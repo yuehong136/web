@@ -1,0 +1,265 @@
+import { apiClient } from './client'
+import type {
+  KnowledgeBase,
+  CreateKBRequest,
+  UpdateKBRequest,
+  Document,
+  UploadDocumentRequest,
+  ParseWebRequest,
+  DocumentChunk,
+  KnowledgeGraph,
+  PaginationRequest,
+  PaginatedData,
+} from '../types/api'
+
+export const knowledgeAPI = {
+  // 知识库管理
+  knowledgeBase: {
+    // 获取知识库列表
+    list: (params?: PaginationRequest & { 
+      keywords?: string
+      tags?: string[]
+      permission?: string
+    }): Promise<PaginatedData<KnowledgeBase>> =>
+      apiClient.post('/v1/kb/list', {}, { params }),
+
+    // 获取知识库详情
+    get: (kbId: string): Promise<KnowledgeBase> =>
+      apiClient.get(`/v1/kb/${kbId}`),
+
+    // 创建知识库
+    create: (data: CreateKBRequest): Promise<{ kb_id: string }> =>
+      apiClient.post('/v1/kb/create', data),
+
+    // 更新知识库
+    update: (data: UpdateKBRequest): Promise<KnowledgeBase> =>
+      apiClient.post('/v1/kb/update', data),
+
+    // 删除知识库
+    delete: (kbIds: string[]): Promise<void> =>
+      apiClient.post('/v1/kb/rm', { kb_ids: kbIds }),
+
+    // 复制知识库
+    duplicate: (kbId: string, newName: string): Promise<{ kb_id: string }> =>
+      apiClient.post(`/v1/kb/${kbId}/duplicate`, { name: newName }),
+
+    // 获取知识图谱
+    getKnowledgeGraph: (kbId: string): Promise<KnowledgeGraph> =>
+      apiClient.get(`/v1/kb/${kbId}/knowledge_graph`),
+
+    // 搜索知识库
+    search: (data: {
+      query: string
+      kb_ids?: string[]
+      top_k?: number
+      score_threshold?: number
+      filters?: Record<string, any>
+    }): Promise<{
+      chunks: Array<DocumentChunk & { score: number }>
+      total: number
+    }> =>
+      apiClient.post('/v1/kb/search', data),
+
+    // 获取知识库统计
+    getStats: (kbId: string): Promise<{
+      document_count: number
+      chunk_count: number
+      total_tokens: number
+      storage_used: number
+      last_updated: string
+    }> =>
+      apiClient.get(`/v1/kb/${kbId}/stats`),
+
+    // 重新索引知识库
+    reindex: (kbId: string): Promise<{ task_id: string }> =>
+      apiClient.post(`/v1/kb/${kbId}/reindex`),
+
+    // 导出知识库
+    export: (kbId: string, format: 'json' | 'csv'): Promise<void> =>
+      apiClient.download(`/v1/kb/${kbId}/export?format=${format}`, `kb_${kbId}.${format}`),
+  },
+
+  // 文档管理
+  document: {
+    // 获取文档列表
+    list: (
+      kbId: string, 
+      params?: PaginationRequest & { 
+        keywords?: string
+        status?: string
+        type?: string
+      }
+    ): Promise<PaginatedData<Document>> =>
+      apiClient.post('/v1/document/list', { kb_id: kbId }, { params }),
+
+    // 获取文档详情
+    get: (docId: string): Promise<Document> =>
+      apiClient.get(`/v1/document/get/${docId}`),
+
+    // 上传文档
+    upload: (kbId: string, files: File[], options?: {
+      parser_id?: string
+      chunk_size?: number
+      chunk_overlap?: number
+      parser_config?: Record<string, any>
+    }): Promise<{ doc_ids: string[] }> =>
+      apiClient.uploadMultiple('/v1/document/upload', files, {
+        kb_id: kbId,
+        ...options,
+      }),
+
+    // 解析网页
+    parseWeb: (data: ParseWebRequest): Promise<{ doc_id: string }> =>
+      apiClient.post('/v1/document/web_crawl', data),
+
+    // 更新文档
+    update: (docId: string, data: {
+      name?: string
+      parser_config?: Record<string, any>
+    }): Promise<Document> =>
+      apiClient.post(`/v1/document/${docId}/update`, data),
+
+    // 删除文档
+    delete: (docIds: string[]): Promise<void> =>
+      apiClient.post('/v1/document/rm', { doc_ids: docIds }),
+
+    // 重新解析文档
+    reparse: (docId: string, options?: {
+      parser_id?: string
+      chunk_size?: number
+      chunk_overlap?: number
+      parser_config?: Record<string, any>
+    }): Promise<{ task_id: string }> =>
+      apiClient.post(`/v1/document/${docId}/reparse`, options),
+
+    // 获取文档内容
+    getContent: (docId: string): Promise<{ content: string }> =>
+      apiClient.get(`/v1/document/${docId}/content`),
+
+    // 获取文档块
+    getChunks: (
+      docId: string, 
+      params?: PaginationRequest
+    ): Promise<PaginatedData<DocumentChunk>> =>
+      apiClient.get(`/v1/document/${docId}/chunks`, { params }),
+
+    // 更新文档块
+    updateChunk: (chunkId: string, data: {
+      content?: string
+      metadata?: Record<string, any>
+    }): Promise<DocumentChunk> =>
+      apiClient.post(`/v1/document/chunk/${chunkId}/update`, data),
+
+    // 删除文档块
+    deleteChunk: (chunkId: string): Promise<void> =>
+      apiClient.delete(`/v1/document/chunk/${chunkId}`),
+
+    // 预览文档
+    preview: (docId: string): Promise<{ preview_url: string }> =>
+      apiClient.get(`/v1/document/${docId}/preview`),
+
+    // 下载文档
+    download: (docId: string): Promise<void> =>
+      apiClient.download(`/v1/document/${docId}/download`),
+
+    // 获取文档解析状态
+    getParseStatus: (docId: string): Promise<{
+      status: 'pending' | 'processing' | 'completed' | 'failed'
+      progress: number
+      error?: string
+      chunks_created: number
+    }> =>
+      apiClient.get(`/v1/document/${docId}/parse-status`),
+
+    // 批量操作文档
+    batch: (operation: 'delete' | 'reparse' | 'move', data: {
+      doc_ids: string[]
+      target_kb_id?: string
+      parser_config?: Record<string, any>
+    }): Promise<{ success_count: number; failed_count: number; errors?: any[] }> =>
+      apiClient.post('/v1/document/batch', { operation, ...data }),
+  },
+
+  // 标签管理
+  tag: {
+    // 获取所有标签
+    list: (): Promise<Array<{ name: string; count: number; color?: string }>> =>
+      apiClient.get('/v1/kb/tags'),
+
+    // 创建标签
+    create: (data: { name: string; color?: string; description?: string }): Promise<void> =>
+      apiClient.post('/v1/kb/tags', data),
+
+    // 更新标签
+    update: (tagName: string, data: { 
+      new_name?: string
+      color?: string
+      description?: string 
+    }): Promise<void> =>
+      apiClient.put(`/v1/kb/tags/${tagName}`, data),
+
+    // 删除标签
+    delete: (tagName: string): Promise<void> =>
+      apiClient.delete(`/v1/kb/tags/${tagName}`),
+
+    // 为知识库添加标签
+    addToKB: (kbId: string, tags: string[]): Promise<void> =>
+      apiClient.post(`/v1/kb/${kbId}/tags`, { tags }),
+
+    // 从知识库移除标签
+    removeFromKB: (kbId: string, tags: string[]): Promise<void> =>
+      apiClient.delete(`/v1/kb/${kbId}/tags`, { data: { tags } }),
+  },
+
+  // 搜索和检索
+  search: {
+    // 全文搜索
+    fulltext: (data: {
+      query: string
+      kb_ids?: string[]
+      filters?: Record<string, any>
+      pagination?: PaginationRequest
+    }): Promise<PaginatedData<DocumentChunk & { score: number; highlights: string[] }>> =>
+      apiClient.post('/v1/kb/search/fulltext', data),
+
+    // 向量搜索
+    vector: (data: {
+      query: string
+      kb_ids?: string[]
+      top_k?: number
+      score_threshold?: number
+      filters?: Record<string, any>
+    }): Promise<Array<DocumentChunk & { score: number }>> =>
+      apiClient.post('/v1/kb/search/vector', data),
+
+    // 混合搜索 (全文 + 向量)
+    hybrid: (data: {
+      query: string
+      kb_ids?: string[]
+      top_k?: number
+      alpha?: number // 向量搜索权重
+      filters?: Record<string, any>
+    }): Promise<Array<DocumentChunk & { score: number; search_type: 'vector' | 'fulltext' | 'hybrid' }>> =>
+      apiClient.post('/v1/kb/search/hybrid', data),
+
+    // 搜索建议
+    suggestions: (query: string, limit?: number): Promise<string[]> =>
+      apiClient.get('/v1/kb/search/suggestions', { 
+        params: { query, limit } 
+      }),
+
+    // 搜索历史
+    history: (params?: PaginationRequest): Promise<PaginatedData<{
+      id: string
+      query: string
+      kb_ids: string[]
+      result_count: number
+      created_at: string
+    }>> =>
+      apiClient.get('/v1/kb/search/history', { params }),
+
+    // 清除搜索历史
+    clearHistory: (): Promise<void> =>
+      apiClient.delete('/v1/kb/search/history'),
+  },
+}
