@@ -3,7 +3,7 @@ import { Plus, Settings, Zap, ExternalLink, ChevronDown, Database, BarChart3, Ke
 import { Button } from '../../components/ui/button'
 import { Card } from '../../components/ui/card'
 import { Loading } from '../../components/ui/loading'
-import { useModelStore, type LLMFactory } from '../../stores/model'
+import { useModelStore, type LLMFactoryInterface, LLMFactory, IconMap } from '../../stores/model'
 import { cn } from '../../lib/utils'
 
 // API Key设置弹窗组件
@@ -133,6 +133,13 @@ const CollapsibleProviderCard: React.FC<{
 }> = ({ providerName, providerData, isExpanded, onToggle, onSetApiKey }) => {
   const getProviderLogo = (name: string) => {
     try {
+      // 先尝试从IconMap中获取对应的图标文件名
+      const factoryKey = Object.values(LLMFactory).find(factory => factory === name)
+      if (factoryKey && IconMap[factoryKey]) {
+        return `/src/assets/svg/llm/${IconMap[factoryKey]}.svg`
+      }
+      
+      // 如果没有找到，使用原来的逻辑作为后备方案
       const filename = name.toLowerCase()
         .replace(/\s+/g, '-')
         .replace(/[^a-z0-9-_]/g, '')
@@ -266,11 +273,18 @@ const CollapsibleProviderCard: React.FC<{
 
 // 可用供应商卡片组件
 const AvailableProviderCard: React.FC<{
-  factory: LLMFactory;
+  factory: LLMFactoryInterface;
   onAdd: () => void;
 }> = ({ factory, onAdd }) => {
   const getProviderLogo = (name: string) => {
     try {
+      // 先尝试从IconMap中获取对应的图标文件名
+      const factoryKey = Object.values(LLMFactory).find(factory => factory === name)
+      if (factoryKey && IconMap[factoryKey]) {
+        return `/src/assets/svg/llm/${IconMap[factoryKey]}.svg`
+      }
+      
+      // 如果没有找到，使用原来的逻辑作为后备方案
       const filename = name.toLowerCase()
         .replace(/\s+/g, '-')
         .replace(/[^a-z0-9-_]/g, '')
@@ -391,7 +405,7 @@ export const ModelProvidersPage: React.FC = () => {
     'Azure-OpenAI', 'Bedrock', 'Tencent Hunyuan', 'Tencent Cloud'
   ]
 
-  const handleAddProvider = async (factory: LLMFactory) => {
+  const handleAddProvider = async (factory: LLMFactoryInterface) => {
     try {
       if (specialFactories.includes(factory.name)) {
         // 特殊厂商需要单独添加模型，这里暂时提示用户

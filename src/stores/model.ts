@@ -16,7 +16,115 @@ export interface MyLLMProvider {
   }
 }
 
-export interface LLMFactory {
+export const LLMFactory = {
+  TongYiQianWen: 'Tongyi-Qianwen',
+  Moonshot: 'Moonshot',
+  OpenAI: 'OpenAI',
+  ZhipuAI: 'ZHIPU-AI',
+  WenXinYiYan: '文心一言',
+  Ollama: 'Ollama',
+  Xinference: 'Xinference',
+  ModelScope: 'ModelScope',
+  DeepSeek: 'DeepSeek',
+  VolcEngine: 'VolcEngine',
+  BaiChuan: 'BaiChuan',
+  Jina: 'Jina',
+  MiniMax: 'MiniMax',
+  Mistral: 'Mistral',
+  AzureOpenAI: 'Azure-OpenAI',
+  Bedrock: 'Bedrock',
+  Gemini: 'Gemini',
+  Groq: 'Groq',
+  OpenRouter: 'OpenRouter',
+  LocalAI: 'LocalAI',
+  StepFun: 'StepFun',
+  NVIDIA: 'NVIDIA',
+  LMStudio: 'LM-Studio',
+  OpenAiAPICompatible: 'OpenAI-API-Compatible',
+  Cohere: 'Cohere',
+  LeptonAI: 'LeptonAI',
+  TogetherAI: 'TogetherAI',
+  PerfXCloud: 'PerfXCloud',
+  Upstage: 'Upstage',
+  NovitaAI: 'NovitaAI',
+  SILICONFLOW: 'SILICONFLOW',
+  PPIO: 'PPIO',
+  ZeroOneAI: '01.AI',
+  Replicate: 'Replicate',
+  TencentHunYuan: 'Tencent Hunyuan',
+  XunFeiSpark: 'XunFei Spark',
+  BaiduYiYan: 'BaiduYiyan',
+  FishAudio: 'Fish Audio',
+  TencentCloud: 'Tencent Cloud',
+  Anthropic: 'Anthropic',
+  VoyageAI: 'Voyage AI',
+  GoogleCloud: 'Google Cloud',
+  HuggingFace: 'HuggingFace',
+  YouDao: 'Youdao',
+  BAAI: 'BAAI',
+  NomicAI: 'nomic-ai',
+  JinaAI: 'jinaai',
+  SentenceTransformers: 'sentence-transformers',
+  GPUStack: 'GPUStack',
+  VLLM: 'VLLM',
+  GiteeAI: 'GiteeAI',
+} as const
+
+export const IconMap = {
+  [LLMFactory.TongYiQianWen]: 'tongyi',
+  [LLMFactory.Moonshot]: 'moonshot',
+  [LLMFactory.OpenAI]: 'openai',
+  [LLMFactory.ZhipuAI]: 'zhipu',
+  [LLMFactory.WenXinYiYan]: 'wenxin',
+  [LLMFactory.Ollama]: 'ollama',
+  [LLMFactory.Xinference]: 'xinference',
+  [LLMFactory.ModelScope]: 'modelscope',
+  [LLMFactory.DeepSeek]: 'deepseek',
+  [LLMFactory.VolcEngine]: 'volc_engine',
+  [LLMFactory.BaiChuan]: 'baichuan',
+  [LLMFactory.Jina]: 'jina',
+  [LLMFactory.MiniMax]: 'chat-minimax',
+  [LLMFactory.Mistral]: 'mistral',
+  [LLMFactory.AzureOpenAI]: 'azure',
+  [LLMFactory.Bedrock]: 'bedrock',
+  [LLMFactory.Gemini]: 'gemini',
+  [LLMFactory.Groq]: 'groq-next',
+  [LLMFactory.OpenRouter]: 'open-router',
+  [LLMFactory.LocalAI]: 'local-ai',
+  [LLMFactory.StepFun]: 'stepfun',
+  [LLMFactory.NVIDIA]: 'nvidia',
+  [LLMFactory.LMStudio]: 'lm-studio',
+  [LLMFactory.OpenAiAPICompatible]: 'openai-api',
+  [LLMFactory.Cohere]: 'cohere',
+  [LLMFactory.LeptonAI]: 'lepton-ai',
+  [LLMFactory.TogetherAI]: 'together-ai',
+  [LLMFactory.PerfXCloud]: 'perfx-cloud',
+  [LLMFactory.Upstage]: 'upstage',
+  [LLMFactory.NovitaAI]: 'novita-ai',
+  [LLMFactory.SILICONFLOW]: 'siliconflow',
+  [LLMFactory.PPIO]: 'ppio',
+  [LLMFactory.ZeroOneAI]: 'yi',
+  [LLMFactory.Replicate]: 'replicate',
+  [LLMFactory.TencentHunYuan]: 'hunyuan',
+  [LLMFactory.XunFeiSpark]: 'spark',
+  [LLMFactory.BaiduYiYan]: 'yiyan',
+  [LLMFactory.FishAudio]: 'fish-audio',
+  [LLMFactory.TencentCloud]: 'tencent-cloud',
+  [LLMFactory.Anthropic]: 'anthropic',
+  [LLMFactory.VoyageAI]: 'voyage',
+  [LLMFactory.GoogleCloud]: 'google-cloud',
+  [LLMFactory.HuggingFace]: 'huggingface',
+  [LLMFactory.YouDao]: 'youdao',
+  [LLMFactory.BAAI]: 'baai',
+  [LLMFactory.NomicAI]: 'nomic-ai',
+  [LLMFactory.JinaAI]: 'jina',
+  [LLMFactory.SentenceTransformers]: 'sentence-transformers',
+  [LLMFactory.GPUStack]: 'gpustack',
+  [LLMFactory.VLLM]: 'vllm',
+  [LLMFactory.GiteeAI]: 'gitee-ai',
+};
+
+export interface LLMFactoryInterface {
   name: string
   logo: string
   tags: string
@@ -32,7 +140,7 @@ export interface LLMFactory {
 interface ModelState {
   // 状态
   myLLMs: MyLLMProvider
-  factories: LLMFactory[]
+  factories: LLMFactoryInterface[]
   isLoading: boolean
   selectedProvider: string | null
   
@@ -180,7 +288,7 @@ export const useModelStore = create<ModelState>()(
           }
           
           // 创建模拟数据用于开发测试
-          const mockFactories: LLMFactory[] = [
+          const mockFactories: LLMFactoryInterface[] = [
             {
               "name": "OpenAI",
               "logo": "",
