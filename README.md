@@ -2,6 +2,15 @@
 
 A modern React-based frontend application for Multi-RAG system, providing intelligent conversation, knowledge base management, system monitoring, and more.
 
+## 🆕 What's New in v0.6.0
+
+- **📚 Complete Knowledge Base Management**: Full CRUD operations, document upload, search, and settings
+- **🎨 Enhanced UI Components**: 40+ UI components with file type icons for 40+ file formats
+- **🔧 LLM Provider Integration**: Support for multiple LLM providers with configuration management
+- **📊 Advanced System Monitoring**: Real-time system status and task executor monitoring with charts
+- **🏗️ Improved Architecture**: Updated to React 19, Vite 7, and latest dependencies
+- **🎯 Better Developer Experience**: Comprehensive TypeScript types, improved error handling
+
 ## 🚀 Features
 
 - **Smart Conversation**: AI-powered chat interface with real-time streaming
@@ -14,45 +23,113 @@ A modern React-based frontend application for Multi-RAG system, providing intell
 
 ## 📋 Tech Stack
 
-- **Framework**: React 19 + TypeScript
-- **Build Tool**: Vite 7
-- **Styling**: Tailwind CSS 3.4
+- **Framework**: React 19.1 + TypeScript 5.8
+- **Build Tool**: Vite 7.0
+- **Styling**: Tailwind CSS 3.4 + Tailwind Forms + Tailwind Typography
 - **State Management**: Zustand 5.0 + TanStack Query 5.8
 - **Routing**: React Router DOM 7.7
 - **Charts**: Recharts 3.1
-- **Forms**: React Hook Form 7.6 + Zod 4.0
-- **Icons**: Lucide React
+- **Forms**: React Hook Form 7.6 + Zod 4.0 + Hookform Resolvers
+- **Icons**: Lucide React 0.525
+- **UI Components**: Class Variance Authority + Tailwind Merge + CLSX
+- **File Handling**: React Dropzone 14.3
 - **HTTP Client**: Custom API client with fetch
+- **Development**: ESLint 9.30 + TypeScript ESLint 8.35
 
 ## 🏗️ Project Structure
 
 ```
 src/
 ├── api/                    # API clients and types
-│   ├── client.ts          # Base API client
+│   ├── client.ts          # Base API client with auth & error handling
 │   ├── auth.ts            # Authentication APIs
 │   ├── conversation.ts    # Chat/conversation APIs
 │   ├── knowledge.ts       # Knowledge base APIs
+│   ├── llm.ts             # LLM provider APIs
 │   ├── system.ts          # System monitoring APIs
 │   └── index.ts           # API exports
 ├── components/            # Reusable UI components
-│   ├── ui/               # Base UI components
+│   ├── ui/               # Base UI components (40+ components)
+│   │   ├── button.tsx    # Button with variants
+│   │   ├── input.tsx     # Form inputs
+│   │   ├── card.tsx      # Card layouts
+│   │   ├── modal.tsx     # Modal dialogs
+│   │   ├── table.tsx     # Data tables
+│   │   ├── file-icon.tsx # File type icons (40+ types)
+│   │   ├── avatar.tsx    # User avatars
+│   │   ├── badge.tsx     # Status badges
+│   │   ├── checkbox.tsx  # Form checkboxes
+│   │   ├── dropdown.tsx  # Dropdown menus
+│   │   ├── tooltip.tsx   # Tooltips
+│   │   └── ...           # More UI components
 │   ├── auth/             # Authentication components
+│   │   └── AuthGuard.tsx # Route protection
+│   ├── knowledge/        # Knowledge base components
+│   │   ├── EmbeddingModelSelector.tsx
+│   │   └── QuickEditModal.tsx
+│   ├── forms/            # Form components
 │   ├── feature/          # Feature-specific components
 │   └── layout/           # Layout components
+│       ├── Layout.tsx    # Main app layout
+│       ├── Header.tsx    # App header
+│       └── Sidebar.tsx   # Navigation sidebar
 ├── pages/                # Application pages
 │   ├── auth/             # Authentication pages
+│   │   ├── LoginPage.tsx
+│   │   └── RegisterPage.tsx
 │   ├── dashboard/        # Dashboard page
+│   │   └── DashboardPage.tsx
 │   ├── chat/             # Chat interface
+│   │   └── ChatPage.tsx
 │   ├── knowledge/        # Knowledge base management
+│   │   ├── KnowledgeListPage.tsx      # Knowledge base list
+│   │   ├── KnowledgeCreatePage.tsx    # Create knowledge base
+│   │   ├── KnowledgeImportPage.tsx    # Import documents
+│   │   ├── KnowledgeDetailLayout.tsx  # Knowledge base detail layout
+│   │   ├── KnowledgeDocumentsPage.tsx # Document management
+│   │   ├── KnowledgeSearchPage.tsx    # Search interface
+│   │   └── KnowledgeSettingsPage.tsx  # Knowledge base settings
 │   ├── system/           # System monitoring
-│   └── settings/         # Settings pages
+│   │   └── SystemPage.tsx
+│   ├── settings/         # Settings pages
+│   │   ├── SettingsLayout.tsx         # Settings layout
+│   │   ├── ProfilePage.tsx            # User profile
+│   │   └── ModelProvidersPage.tsx     # LLM provider settings
+│   ├── documents/        # Document management (placeholder)
+│   ├── ai-tools/         # AI tools (placeholder)
+│   ├── workflow/         # Workflow management (placeholder)
+│   └── mcp-servers/      # MCP server management (placeholder)
 ├── stores/               # Zustand state stores
+│   ├── auth.ts           # Authentication state
+│   ├── ui.ts             # UI state (sidebar, theme, notifications)
+│   ├── chat.ts           # Chat state
+│   ├── conversation.ts   # Conversation management
+│   ├── knowledge.ts      # Knowledge base state
+│   ├── model.ts          # Model configurations
+│   └── index.ts          # Store initialization
 ├── hooks/                # Custom React hooks
+│   ├── use-auth.ts       # Authentication hooks
+│   ├── use-conversations.ts # Conversation hooks
+│   └── use-system-status.ts # System status hooks
 ├── lib/                  # Utilities and configurations
+│   ├── router.tsx        # React Router configuration
+│   ├── query-client.ts   # TanStack Query setup
+│   ├── utils.ts          # Utility functions
+│   └── toast.ts          # Toast notifications
 ├── types/                # TypeScript type definitions
+│   ├── api.ts            # API response types (950+ lines)
+│   └── index.ts          # Type exports
 ├── constants/            # Application constants
-└── assets/               # Static assets
+│   └── index.ts          # Routes, API URLs, etc.
+├── assets/               # Static assets
+│   ├── react.svg         # React logo
+│   └── svg/              # SVG icons
+│       └── file-icon/    # File type icons (40+ types)
+│           ├── pdf.svg, docx.svg, txt.svg
+│           ├── jpg.svg, png.svg, gif.svg
+│           ├── mp4.svg, mp3.svg, avi.svg
+│           └── ...       # More file type icons
+└── utils/                # Additional utilities
 ```
 
 ## 🛠️ Development Setup
@@ -142,10 +219,14 @@ The application uses a custom API client (`src/api/client.ts`) that provides:
 - Streaming responses
 
 ### 4. Knowledge Base Management
-- Document upload (PDF, DOCX, TXT, MD)
-- Knowledge base creation and management
-- Document processing status
-- Search and retrieval
+- **Knowledge Base Creation**: Create and configure knowledge bases with custom settings
+- **Document Upload**: Support for multiple file types (PDF, DOCX, TXT, MD, and 40+ file types)
+- **Document Management**: View, organize, and manage uploaded documents
+- **Embedding Models**: Configure and select embedding models for knowledge bases
+- **Search Interface**: Advanced search and retrieval within knowledge bases
+- **Import/Export**: Bulk import documents and export knowledge base data
+- **Processing Status**: Real-time document processing and indexing status
+- **Quick Edit**: In-place editing of knowledge base settings
 
 ### 5. System Monitoring
 - Real-time system status
@@ -153,30 +234,59 @@ The application uses a custom API client (`src/api/client.ts`) that provides:
 - Task executor monitoring with charts
 - Performance metrics
 
-### 6. Settings
-- User profile management
-- Model provider configurations
-- API key management
-- System preferences
+### 6. Settings & Configuration
+- **User Profile**: Personal information and account settings
+- **Model Providers**: Configure LLM providers (OpenAI, Anthropic, etc.)
+- **API Keys**: Secure API key management for various services
+- **Security Settings**: Password, 2FA, and security preferences (planned)
+- **Notifications**: Notification preferences and settings (planned)
+- **Appearance**: Theme, language, and UI customization (planned)
+- **System Preferences**: Application-wide configuration options
+
+### 7. Additional Features (In Development)
+- **Document Management**: Centralized document repository
+- **AI Tools**: Collection of AI-powered utilities
+- **Workflow Management**: Automated workflow creation and execution
+- **MCP Servers**: Model Context Protocol server management
 
 ## 🎨 UI Components
 
-The application uses a consistent design system built with:
+The application uses a comprehensive design system built with:
 
-- **Base Components**: Button, Input, Card, Modal, etc.
-- **Layout Components**: Header, Sidebar, Layout wrapper
-- **Feature Components**: StatusCard, TaskExecutorChart, etc.
-- **Responsive Design**: Mobile-first approach
-- **Dark Mode**: System preference detection
+### Base UI Components (40+ components)
+- **Form Components**: Button, Input, Checkbox, Custom Select, Dropdown
+- **Layout Components**: Card, Modal, Table, Avatar, Badge
+- **Interactive Components**: Tooltip, Loading, Status Card
+- **File Components**: File Icon (40+ file types), Dropzone integration
+- **Data Visualization**: Task Executor Chart, System Status Cards
+
+### Layout System
+- **Main Layout**: Header, Sidebar, Content area with responsive design
+- **Authentication Guard**: Route protection and user session management
+- **Navigation**: Dynamic sidebar with active state management
+
+### Design Features
+- **Responsive Design**: Mobile-first approach with Tailwind CSS
+- **Component Variants**: Using Class Variance Authority for consistent styling
+- **File Type Recognition**: Comprehensive file icon system for 40+ file types
+- **Accessibility**: ARIA labels, keyboard navigation, screen reader support
+- **Theme System**: Consistent color palette and typography (dark mode planned)
 
 ## 📊 State Management
 
 ### Zustand Stores
-- `auth`: Authentication state
-- `ui`: UI state (sidebar, notifications, theme)
-- `chat`: Conversation management
-- `knowledge`: Knowledge base state
-- `model`: Model configurations
+- **`auth`**: User authentication, JWT tokens, user profile, tenant information
+- **`ui`**: UI state management (sidebar visibility, notifications, theme preferences)
+- **`chat`**: Chat interface state and message management
+- **`conversation`**: Conversation history, settings, and streaming state
+- **`knowledge`**: Knowledge base management, document states, search results
+- **`model`**: LLM provider configurations and model settings
+
+### Store Features
+- **Persistence**: Automatic state persistence with localStorage
+- **Middleware**: DevTools integration for debugging
+- **Type Safety**: Full TypeScript support with proper typing
+- **Initialization**: Centralized store initialization system
 
 ### TanStack Query
 - API state management
@@ -242,4 +352,4 @@ For support and questions:
 
 ---
 
-Built with ❤️ using React + TypeScript + Vite
+**Version**: 0.6.0 | Built with ❤️ using React 19 + TypeScript 5.8 + Vite 7

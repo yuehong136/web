@@ -21,38 +21,105 @@
 ```
 src/
 ├── api/                    # API 层
-│   ├── client.ts          # 统一 API 客户端
+│   ├── client.ts          # 统一 API 客户端 (认证、错误处理、拦截器)
 │   ├── auth.ts            # 身份验证相关 API
 │   ├── conversation.ts    # 对话相关 API
 │   ├── knowledge.ts       # 知识库相关 API
+│   ├── llm.ts             # LLM 提供商 API
 │   ├── system.ts          # 系统监控相关 API
 │   └── index.ts           # 统一导出
 ├── components/            # 组件层
-│   ├── ui/               # 通用 UI 组件
-│   │   ├── button.tsx    # 按钮组件
+│   ├── ui/               # 通用 UI 组件 (40+ 组件)
+│   │   ├── button.tsx    # 按钮组件 (支持多种变体)
 │   │   ├── input.tsx     # 输入组件
 │   │   ├── card.tsx      # 卡片组件
+│   │   ├── modal.tsx     # 模态框组件
+│   │   ├── table.tsx     # 表格组件
+│   │   ├── file-icon.tsx # 文件图标组件 (40+ 文件类型)
+│   │   ├── avatar.tsx    # 头像组件
+│   │   ├── badge.tsx     # 徽章组件
+│   │   ├── checkbox.tsx  # 复选框组件
+│   │   ├── dropdown.tsx  # 下拉菜单组件
+│   │   ├── tooltip.tsx   # 工具提示组件
+│   │   ├── custom-select.tsx # 自定义选择器
+│   │   ├── loading.tsx   # 加载组件
+│   │   ├── status-card.tsx # 状态卡片
+│   │   ├── task-executor-chart.tsx # 任务执行器图表
 │   │   └── index.ts      # 导出文件
 │   ├── auth/             # 认证相关组件
+│   │   ├── AuthGuard.tsx # 路由保护组件
+│   │   └── index.ts      # 导出文件
+│   ├── knowledge/        # 知识库组件
+│   │   ├── EmbeddingModelSelector.tsx # 嵌入模型选择器
+│   │   ├── QuickEditModal.tsx # 快速编辑模态框
+│   │   └── index.ts      # 导出文件
+│   ├── forms/            # 表单组件
 │   ├── feature/          # 功能组件
 │   └── layout/           # 布局组件
+│       ├── Layout.tsx    # 主布局组件
+│       ├── Header.tsx    # 头部组件
+│       ├── Sidebar.tsx   # 侧边栏组件
+│       └── index.ts      # 导出文件
 ├── pages/                # 页面层
 │   ├── auth/             # 认证页面
+│   │   ├── LoginPage.tsx # 登录页面
+│   │   ├── RegisterPage.tsx # 注册页面
+│   │   └── index.ts      # 导出文件
 │   ├── dashboard/        # 仪表板
+│   │   ├── DashboardPage.tsx # 仪表板页面
+│   │   └── index.ts      # 导出文件
 │   ├── chat/             # 聊天页面
+│   │   ├── ChatPage.tsx  # 聊天页面
+│   │   └── index.ts      # 导出文件
 │   ├── knowledge/        # 知识库页面
+│   │   ├── KnowledgeListPage.tsx # 知识库列表
+│   │   ├── KnowledgeCreatePage.tsx # 创建知识库
+│   │   ├── KnowledgeImportPage.tsx # 导入文档
+│   │   ├── KnowledgeDetailLayout.tsx # 知识库详情布局
+│   │   ├── KnowledgeDocumentsPage.tsx # 文档管理
+│   │   ├── KnowledgeSearchPage.tsx # 搜索页面
+│   │   ├── KnowledgeSettingsPage.tsx # 知识库设置
+│   │   └── index.ts      # 导出文件
 │   ├── system/           # 系统监控页面
-│   └── settings/         # 设置页面
+│   │   ├── SystemPage.tsx # 系统监控页面
+│   │   └── index.ts      # 导出文件
+│   ├── settings/         # 设置页面
+│   │   ├── SettingsLayout.tsx # 设置布局
+│   │   ├── ProfilePage.tsx # 个人资料页面
+│   │   ├── ModelProvidersPage.tsx # 模型提供商页面
+│   │   └── index.ts      # 导出文件
+│   ├── documents/        # 文档管理 (占位符)
+│   ├── ai-tools/         # AI 工具 (占位符)
+│   ├── workflow/         # 工作流 (占位符)
+│   └── mcp-servers/      # MCP 服务器 (占位符)
 ├── stores/               # 状态管理
-│   ├── auth.ts           # 认证状态
-│   ├── ui.ts             # UI 状态
+│   ├── auth.ts           # 认证状态 (用户、令牌、租户)
+│   ├── ui.ts             # UI 状态 (侧边栏、主题、通知)
 │   ├── chat.ts           # 聊天状态
-│   └── index.ts          # 统一导出
+│   ├── conversation.ts   # 对话管理 (历史、设置、流式)
+│   ├── knowledge.ts      # 知识库状态
+│   ├── model.ts          # 模型配置
+│   └── index.ts          # 统一导出和初始化
 ├── hooks/                # 自定义 Hooks
+│   ├── use-auth.ts       # 认证相关 Hook
+│   ├── use-conversations.ts # 对话相关 Hook
+│   ├── use-system-status.ts # 系统状态 Hook
+│   └── index.ts          # Hook 导出
 ├── lib/                  # 工具库
+│   ├── router.tsx        # 路由配置
+│   ├── query-client.ts   # TanStack Query 配置
+│   ├── utils.ts          # 工具函数
+│   └── toast.ts          # 通知工具
 ├── types/                # 类型定义
+│   ├── api.ts            # API 类型定义 (950+ 行)
+│   └── index.ts          # 类型导出
 ├── constants/            # 常量定义
-└── assets/               # 静态资源
+│   └── index.ts          # 路由、API URL 等常量
+├── assets/               # 静态资源
+│   ├── react.svg         # React 图标
+│   └── svg/              # SVG 图标
+│       └── file-icon/    # 文件类型图标 (40+ 种)
+└── utils/                # 额外工具函数
 ```
 
 ## 📝 编码规范
@@ -190,6 +257,8 @@ export const UserProfile: React.FC<UserProfileProps> = ({
 
 ### UI 组件规范
 
+#### 1. 基础组件结构
+
 ```typescript
 // src/components/ui/button.tsx
 import React from 'react'
@@ -243,77 +312,301 @@ Button.displayName = 'Button'
 export { Button, buttonVariants }
 ```
 
+#### 2. 文件图标组件
+
+```typescript
+// src/components/ui/file-icon.tsx
+import React from 'react'
+import { cn } from '../../lib/utils'
+
+// 支持的文件类型 (40+ 种)
+const FILE_TYPES = {
+  // 文档类型
+  pdf: () => import('../../assets/svg/file-icon/pdf.svg'),
+  doc: () => import('../../assets/svg/file-icon/doc.svg'),
+  docx: () => import('../../assets/svg/file-icon/docx.svg'),
+  txt: () => import('../../assets/svg/file-icon/txt.svg'),
+  md: () => import('../../assets/svg/file-icon/md.svg'),
+
+  // 图片类型
+  jpg: () => import('../../assets/svg/file-icon/jpg.svg'),
+  jpeg: () => import('../../assets/svg/file-icon/jpeg.svg'),
+  png: () => import('../../assets/svg/file-icon/png.svg'),
+  gif: () => import('../../assets/svg/file-icon/gif.svg'),
+  svg: () => import('../../assets/svg/file-icon/svg.svg'),
+
+  // 视频类型
+  mp4: () => import('../../assets/svg/file-icon/mp4.svg'),
+  avi: () => import('../../assets/svg/file-icon/avi.svg'),
+  mkv: () => import('../../assets/svg/file-icon/mkv.svg'),
+
+  // 音频类型
+  mp3: () => import('../../assets/svg/file-icon/mp3.svg'),
+  wav: () => import('../../assets/svg/file-icon/wav.svg'),
+
+  // 代码类型
+  js: () => import('../../assets/svg/file-icon/js.svg'),
+  html: () => import('../../assets/svg/file-icon/html.svg'),
+  css: () => import('../../assets/svg/file-icon/css.svg'),
+  json: () => import('../../assets/svg/file-icon/json.svg'),
+
+  // 其他类型
+  folder: () => import('../../assets/svg/file-icon/folder.svg'),
+  // ... 更多文件类型
+} as const
+
+interface FileIconProps {
+  type: keyof typeof FILE_TYPES | string
+  size?: 'sm' | 'md' | 'lg'
+  className?: string
+}
+
+export const FileIcon: React.FC<FileIconProps> = ({
+  type,
+  size = 'md',
+  className
+}) => {
+  const sizeClasses = {
+    sm: 'w-4 h-4',
+    md: 'w-6 h-6',
+    lg: 'w-8 h-8'
+  }
+
+  // 动态加载图标
+  const [IconComponent, setIconComponent] = React.useState<React.ComponentType | null>(null)
+
+  React.useEffect(() => {
+    const loadIcon = async () => {
+      try {
+        const iconLoader = FILE_TYPES[type as keyof typeof FILE_TYPES]
+        if (iconLoader) {
+          const iconModule = await iconLoader()
+          setIconComponent(() => iconModule.default)
+        }
+      } catch (error) {
+        console.warn(`Failed to load icon for type: ${type}`)
+      }
+    }
+
+    loadIcon()
+  }, [type])
+
+  if (!IconComponent) {
+    return (
+      <div className={cn(sizeClasses[size], 'bg-gray-200 rounded', className)} />
+    )
+  }
+
+  return (
+    <IconComponent className={cn(sizeClasses[size], className)} />
+  )
+}
+```
+
+#### 3. 组件导出规范
+
+```typescript
+// src/components/ui/index.ts
+export { Button, buttonVariants } from './button'
+export { Input } from './input'
+export { Card, CardHeader, CardContent, CardFooter } from './card'
+export { Modal } from './modal'
+export { Table, TableHeader, TableBody, TableRow, TableCell } from './table'
+export { FileIcon } from './file-icon'
+export { Avatar } from './avatar'
+export { Badge } from './badge'
+export { Checkbox } from './checkbox'
+export { Dropdown } from './dropdown'
+export { Tooltip } from './tooltip'
+export { Loading } from './loading'
+export { StatusCard } from './status-card'
+export { TaskExecutorChart } from './task-executor-chart'
+// ... 更多组件导出
+```
+
 ## 🔌 API 集成规范
 
 ### API 客户端使用
 
+#### 1. 知识库 API 示例
+
 ```typescript
-// src/api/user.ts
+// src/api/knowledge.ts
 import { apiClient } from './client'
-import type { UserInfo, CreateUserRequest, UpdateUserRequest } from '../types/api'
+import type {
+  KnowledgeBase,
+  CreateKnowledgeBaseRequest,
+  Document,
+  PaginatedData,
+  PaginationRequest
+} from '../types/api'
 
-export const userAPI = {
-  // 获取用户列表
-  async getUsers(params?: { page?: number; limit?: number }): Promise<UserInfo[]> {
-    return apiClient.get('/users', { params })
+export const knowledgeAPI = {
+  // 获取知识库列表
+  async getKnowledgeBases(params?: PaginationRequest & {
+    keywords?: string
+    status?: string
+  }): Promise<PaginatedData<KnowledgeBase>> {
+    return apiClient.get('/v1/knowledge/list', { params })
   },
 
-  // 获取单个用户
-  async getUser(id: string): Promise<UserInfo> {
-    return apiClient.get(`/users/${id}`)
+  // 获取知识库详情
+  async getKnowledgeBase(id: string): Promise<KnowledgeBase> {
+    return apiClient.get(`/v1/knowledge/${id}`)
   },
 
-  // 创建用户
-  async createUser(data: CreateUserRequest): Promise<UserInfo> {
-    return apiClient.post('/users', data)
+  // 创建知识库
+  async createKnowledgeBase(data: CreateKnowledgeBaseRequest): Promise<KnowledgeBase> {
+    return apiClient.post('/v1/knowledge/create', data)
   },
 
-  // 更新用户
-  async updateUser(id: string, data: UpdateUserRequest): Promise<UserInfo> {
-    return apiClient.put(`/users/${id}`, data)
+  // 更新知识库
+  async updateKnowledgeBase(id: string, data: Partial<CreateKnowledgeBaseRequest>): Promise<KnowledgeBase> {
+    return apiClient.post(`/v1/knowledge/${id}/update`, data)
   },
 
-  // 删除用户
-  async deleteUser(id: string): Promise<void> {
-    return apiClient.delete(`/users/${id}`)
+  // 删除知识库
+  async deleteKnowledgeBase(id: string): Promise<void> {
+    return apiClient.delete(`/v1/knowledge/${id}`)
+  },
+
+  // 获取文档列表
+  async getDocuments(knowledgeBaseId: string, params?: PaginationRequest): Promise<PaginatedData<Document>> {
+    return apiClient.get(`/v1/knowledge/${knowledgeBaseId}/documents`, { params })
+  },
+
+  // 上传文档
+  async uploadDocument(knowledgeBaseId: string, file: File): Promise<Document> {
+    const formData = new FormData()
+    formData.append('file', file)
+    return apiClient.post(`/v1/knowledge/${knowledgeBaseId}/upload`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+  },
+
+  // 搜索文档
+  async searchDocuments(knowledgeBaseId: string, query: string): Promise<Document[]> {
+    return apiClient.post(`/v1/knowledge/${knowledgeBaseId}/search`, { query })
+  }
+}
+```
+
+#### 2. LLM 提供商 API 示例
+
+```typescript
+// src/api/llm.ts
+import { apiClient } from './client'
+import type { LLMProvider, ModelInfo } from '../types/api'
+
+export const llmAPI = {
+  // 获取支持的 LLM 提供商
+  async getProviders(): Promise<LLMProvider[]> {
+    return apiClient.get('/v1/llm/providers')
+  },
+
+  // 获取模型列表
+  async getModels(provider: string): Promise<ModelInfo[]> {
+    return apiClient.get(`/v1/llm/providers/${provider}/models`)
+  },
+
+  // 测试 API 连接
+  async testConnection(provider: string, apiKey: string): Promise<{ success: boolean; message: string }> {
+    return apiClient.post(`/v1/llm/providers/${provider}/test`, { api_key: apiKey })
   }
 }
 ```
 
 ### 自定义 Hook 集成
 
-```typescript
-// src/hooks/use-users.ts
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { userAPI } from '../api/user'
-import { QUERY_KEYS } from '../constants'
-import type { CreateUserRequest, UpdateUserRequest } from '../types/api'
+#### 1. 知识库相关 Hook
 
-export const useUsers = (params?: { page?: number; limit?: number }) => {
+```typescript
+// src/hooks/use-knowledge.ts
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { knowledgeAPI } from '../api/knowledge'
+import { QUERY_KEYS } from '../constants'
+import type { CreateKnowledgeBaseRequest, PaginationRequest } from '../types/api'
+
+export const useKnowledgeBases = (params?: PaginationRequest & { keywords?: string }) => {
   return useQuery({
-    queryKey: [QUERY_KEYS.USERS, params],
-    queryFn: () => userAPI.getUsers(params),
+    queryKey: [QUERY_KEYS.KNOWLEDGE_BASES, params],
+    queryFn: () => knowledgeAPI.getKnowledgeBases(params),
     staleTime: 5 * 60 * 1000, // 5 分钟
   })
 }
 
-export const useUser = (id: string) => {
+export const useKnowledgeBase = (id: string) => {
   return useQuery({
-    queryKey: [QUERY_KEYS.USER, id],
-    queryFn: () => userAPI.getUser(id),
+    queryKey: [QUERY_KEYS.KNOWLEDGE_BASE, id],
+    queryFn: () => knowledgeAPI.getKnowledgeBase(id),
     enabled: !!id,
   })
 }
 
-export const useCreateUser = () => {
+export const useCreateKnowledgeBase = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (data: CreateUserRequest) => userAPI.createUser(data),
+    mutationFn: (data: CreateKnowledgeBaseRequest) => knowledgeAPI.createKnowledgeBase(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.USERS] })
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.KNOWLEDGE_BASES] })
     },
   })
+}
+
+export const useDocuments = (knowledgeBaseId: string, params?: PaginationRequest) => {
+  return useQuery({
+    queryKey: [QUERY_KEYS.DOCUMENTS, knowledgeBaseId, params],
+    queryFn: () => knowledgeAPI.getDocuments(knowledgeBaseId, params),
+    enabled: !!knowledgeBaseId,
+  })
+}
+
+export const useUploadDocument = (knowledgeBaseId: string) => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (file: File) => knowledgeAPI.uploadDocument(knowledgeBaseId, file),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.DOCUMENTS, knowledgeBaseId]
+      })
+    },
+  })
+}
+```
+
+#### 2. 系统状态 Hook
+
+```typescript
+// src/hooks/use-system-status.ts
+import { useQuery } from '@tanstack/react-query'
+import { systemAPI } from '../api/system'
+import { QUERY_KEYS } from '../constants'
+
+export const useSystemStatus = () => {
+  return useQuery({
+    queryKey: [QUERY_KEYS.SYSTEM_STATUS],
+    queryFn: () => systemAPI.getStatus(),
+    refetchInterval: 30 * 1000, // 每 30 秒刷新
+    staleTime: 10 * 1000, // 10 秒内认为数据是新鲜的
+  })
+}
+
+// 提取特定组件状态的 Hook
+export const useDatabaseStatus = () => {
+  const { data } = useSystemStatus()
+  return data?.database
+}
+
+export const useRedisStatus = () => {
+  const { data } = useSystemStatus()
+  return data?.redis
+}
+
+export const useTaskExecutorHeartbeats = () => {
+  const { data } = useSystemStatus()
+  return data?.task_executor_heartbeats || {}
 }
 ```
 
@@ -723,6 +1016,127 @@ test(user): 添加用户组件测试
 chore(deps): 升级依赖版本
 ```
 
+## 📋 当前实现状态
+
+### ✅ 已完成功能
+
+#### 核心基础设施
+- [x] **项目架构**: React 19 + TypeScript + Vite 7 完整配置
+- [x] **状态管理**: Zustand + TanStack Query 集成
+- [x] **路由系统**: React Router DOM 7.7 配置
+- [x] **API 客户端**: 统一 API 客户端，支持认证、错误处理、拦截器
+- [x] **类型系统**: 完整的 TypeScript 类型定义 (950+ 行)
+
+#### UI 组件系统
+- [x] **基础组件**: 40+ UI 组件 (Button, Input, Card, Modal, Table 等)
+- [x] **文件图标**: 支持 40+ 文件类型的图标系统
+- [x] **布局系统**: Header, Sidebar, Layout 响应式布局
+- [x] **表单组件**: React Hook Form + Zod 验证集成
+- [x] **图表组件**: Recharts 集成的任务执行器图表
+
+#### 认证系统
+- [x] **用户认证**: 登录、注册、JWT 令牌管理
+- [x] **路由保护**: AuthGuard 组件保护私有路由
+- [x] **状态持久化**: 认证状态自动持久化
+- [x] **租户管理**: 多租户支持
+
+#### 知识库管理
+- [x] **知识库 CRUD**: 创建、查看、编辑、删除知识库
+- [x] **文档管理**: 文档上传、列表、搜索功能
+- [x] **嵌入模型**: 嵌入模型选择和配置
+- [x] **快速编辑**: 知识库设置的就地编辑
+- [x] **文件支持**: 支持多种文件格式上传和处理
+
+#### 系统监控
+- [x] **系统状态**: 数据库、Redis、存储、文档引擎状态监控
+- [x] **任务执行器**: 实时任务执行器心跳监控
+- [x] **图表展示**: 任务执行器性能图表
+
+#### 设置管理
+- [x] **用户资料**: 个人信息管理
+- [x] **模型提供商**: LLM 提供商配置和管理
+- [x] **设置布局**: 统一的设置页面布局
+
+### 🚧 开发中功能
+
+#### 聊天系统
+- [x] **基础聊天**: ChatPage 组件已创建
+- [ ] **消息流式**: 实时流式消息显示
+- [ ] **对话历史**: 对话历史管理和搜索
+- [ ] **多模态**: 图片、文件等多媒体消息支持
+
+#### 高级功能
+- [ ] **文档管理**: 独立的文档管理模块
+- [ ] **AI 工具箱**: AI 工具集合
+- [ ] **工作流**: 自动化工作流创建和执行
+- [ ] **MCP 服务器**: Model Context Protocol 服务器管理
+
+#### 设置功能
+- [ ] **安全设置**: 密码修改、两步验证
+- [ ] **通知设置**: 通知偏好和配置
+- [ ] **界面设置**: 主题、语言、界面自定义
+- [ ] **API 密钥**: API 密钥管理界面
+
+### 🎯 开发优先级
+
+#### 高优先级 (当前 Sprint)
+1. **聊天系统完善**: 流式消息、对话管理
+2. **知识库搜索**: 高级搜索功能优化
+3. **文档处理**: 文档解析和索引状态显示
+
+#### 中优先级 (下个 Sprint)
+1. **AI 工具箱**: 基础 AI 工具实现
+2. **工作流系统**: 简单工作流创建
+3. **设置功能**: 安全设置、通知设置
+
+#### 低优先级 (后续版本)
+1. **MCP 服务器**: MCP 协议集成
+2. **高级分析**: 使用统计和分析
+3. **插件系统**: 第三方插件支持
+
+## 🔧 开发环境配置
+
+### 必需工具
+```bash
+# Node.js 版本要求
+node --version  # >= 18.0.0
+
+# 包管理器
+npm --version   # >= 9.0.0
+
+# 开发工具
+git --version   # >= 2.30.0
+```
+
+### 开发流程
+```bash
+# 1. 克隆项目
+git clone <repository-url>
+cd web
+
+# 2. 安装依赖
+npm install
+
+# 3. 启动开发服务器
+npm run dev
+
+# 4. 代码检查
+npm run lint
+
+# 5. 类型检查
+npx tsc --noEmit
+
+# 6. 构建生产版本
+npm run build
+```
+
+### 环境变量配置
+```bash
+# .env.local
+VITE_API_BASE_URL=http://localhost:8000
+VITE_APP_VERSION=0.6.0
+```
+
 ---
 
-遵循以上规范可以确保代码的一致性、可维护性和团队协作效率。如有疑问，请参考具体的实现示例或咨询团队成员。
+遵循以上规范和开发流程可以确保代码的一致性、可维护性和团队协作效率。如有疑问，请参考具体的实现示例或咨询团队成员。
