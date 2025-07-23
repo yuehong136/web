@@ -47,7 +47,7 @@ const navItems: NavItem[] = [
     icon: BookOpen,
   },
   {
-    title: '文档管理',
+    title: '文件中心',
     href: ROUTES.DOCUMENTS,
     icon: FileText,
   },

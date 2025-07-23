@@ -141,11 +141,22 @@ export const knowledgeAPI = {
       chunk_size?: number
       chunk_overlap?: number
       parser_config?: Record<string, any>
-    }): Promise<{ doc_ids: string[] }> =>
-      apiClient.uploadMultiple('/v1/document/upload', files, {
-        kb_id: kbId,
+    }): Promise<Array<{
+      id: string
+      name: string
+      size: number
+      type: string
+      thumbnail?: string
+      created_time: string
+      status: string
+    }>> => {
+      // kb_id作为查询参数，其他作为FormData
+      const uploadData: Record<string, any> = {
         ...options,
-      }),
+      }
+      
+      return apiClient.uploadMultiple(`/v1/document/upload?kb_id=${kbId}`, files, uploadData)
+    },
 
     // 解析网页
     parseWeb: (data: ParseWebRequest): Promise<{ doc_id: string }> =>
@@ -160,7 +171,7 @@ export const knowledgeAPI = {
 
     // 删除文档
     delete: (docIds: string[]): Promise<void> =>
-      apiClient.post('/v1/document/rm', { doc_ids: docIds }),
+      apiClient.post('/v1/document/rm', { doc_id: docIds }),
 
     // 重新解析文档
     reparse: (docId: string, options?: {
@@ -198,8 +209,8 @@ export const knowledgeAPI = {
       apiClient.get(`/v1/document/${docId}/preview`),
 
     // 下载文档
-    download: (docId: string): Promise<void> =>
-      apiClient.download(`/v1/document/${docId}/download`),
+    download: (docId: string, filename?: string): Promise<void> =>
+      apiClient.download(`/v1/document/get/${docId}`, filename),
 
     // 获取文档解析状态
     getParseStatus: (docId: string): Promise<{

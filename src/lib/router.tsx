@@ -24,8 +24,8 @@ import { ROUTES } from '../constants'
 
 const Documents = () => (
   <div className="p-6">
-    <h1 className="text-2xl font-bold mb-4">文档管理</h1>
-    <p className="text-gray-600">文档管理功能开发中...</p>
+    <h1 className="text-2xl font-bold mb-4">文件中心</h1>
+    <p className="text-gray-600">文件中心功能开发中...</p>
   </div>
 )
 

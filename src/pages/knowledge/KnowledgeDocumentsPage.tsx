@@ -74,6 +74,10 @@ const KnowledgeDocumentsPage: React.FC = () => {
   const [newDocName, setNewDocName] = useState('')
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [deletingDocId, setDeletingDocId] = useState<string>('')
+  const [uploadModalOpen, setUploadModalOpen] = useState(false)
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([])
+  const [uploading, setUploading] = useState(false)
+  const [dragOver, setDragOver] = useState(false)
   
   // 运行状态选项 - 匹配后端 TaskStatus 枚举
   const runStatusOptions = [
@@ -276,7 +280,7 @@ const KnowledgeDocumentsPage: React.FC = () => {
   // 下载文档
   const handleDownload = async (doc: Document) => {
     try {
-      await knowledgeAPI.document.download(doc.id)
+      await knowledgeAPI.document.download(doc.id, doc.name)
     } catch (error) {
       console.error('Failed to download document:', error)
     }
@@ -292,6 +296,91 @@ const KnowledgeDocumentsPage: React.FC = () => {
       setSelectedDocs(newSet)
     }
   }
+
+  // 文件验证函数
+  const validateFiles = (files: File[]) => {
+    return files.filter(file => {
+      // 检查文件大小 (100MB限制)
+      const maxSize = 100 * 1024 * 1024
+      if (file.size > maxSize) {
+        alert(`文件 "${file.name}" 超过100MB大小限制`)
+        return false
+      }
+      
+      // 检查文件名长度
+      if (file.name.length > 255) {
+        alert(`文件名 "${file.name}" 过长，请使用更短的文件名`)
+        return false
+      }
+      
+      return true
+    })
+  }
+
+  // 文件上传处理
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || [])
+    const validFiles = validateFiles(files)
+    setSelectedFiles(validFiles)
+  }
+
+  // 拖拽处理
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    setDragOver(true)
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    setDragOver(false)
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    setDragOver(false)
+    
+    const files = Array.from(e.dataTransfer.files)
+    const validFiles = validateFiles(files)
+    setSelectedFiles(prev => [...prev, ...validFiles])
+  }
+
+  // 移除文件
+  const handleRemoveFile = (index: number) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index))
+  }
+
+  const handleUpload = async () => {
+    if (!kbId || selectedFiles.length === 0) return
+    
+    try {
+      setUploading(true)
+      
+      // 使用修复后的API客户端
+      const uploadedDocs = await knowledgeAPI.document.upload(kbId, selectedFiles)
+      
+      if (uploadedDocs && uploadedDocs.length > 0) {
+        console.log(`成功上传 ${uploadedDocs.length} 个文档`)
+        // 成功后关闭模态框并刷新列表
+        setUploadModalOpen(false)
+        setSelectedFiles([])
+        fetchDocuments() // 刷新文档列表
+      } else {
+        console.error('上传响应为空或无效')
+        alert('上传失败：服务器响应异常')
+      }
+    } catch (error) {
+      console.error('文档上传失败:', error)
+      let errorMessage = '文档上传失败'
+      
+      if (error instanceof Error) {
+        errorMessage += `: ${error.message}`
+      }
+      
+      alert(errorMessage)
+    } finally {
+      setUploading(false)
+    }
+  }
   
 
   
@@ -303,15 +392,13 @@ const KnowledgeDocumentsPage: React.FC = () => {
     if (!confirmed) return
     
     try {
-      await Promise.all(
-        Array.from(selectedDocs).map(docId => 
-          knowledgeAPI.document.delete([docId])
-        )
-      )
+      // 一次性删除所有选中的文档
+      await knowledgeAPI.document.delete(Array.from(selectedDocs))
       setSelectedDocs(new Set())
       fetchDocuments()
     } catch (error) {
       console.error('Failed to delete documents:', error)
+      alert('批量删除失败，请重试')
     }
   }
   
@@ -646,7 +733,7 @@ const KnowledgeDocumentsPage: React.FC = () => {
               <RefreshCw className="h-4 w-4 mr-2" />
               刷新
             </Button>
-            <Button onClick={() => navigate(`/knowledge/${kbId}/import`)}>
+            <Button onClick={() => setUploadModalOpen(true)}>
               <Upload className="h-4 w-4 mr-2" />
               导入文档
             </Button>
@@ -1011,7 +1098,7 @@ const KnowledgeDocumentsPage: React.FC = () => {
           <p className="text-gray-500 mb-4">
             还没有上传任何文档，开始添加文档吧
           </p>
-          <Button onClick={() => navigate(`/knowledge/${kbId}/import`)}>
+          <Button onClick={() => setUploadModalOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
             添加文档
           </Button>
@@ -1169,6 +1256,112 @@ const KnowledgeDocumentsPage: React.FC = () => {
         title="确认删除"
         description="确定要删除这个文档吗？此操作不可逆。"
       />
+
+      {/* 文件上传模态框 */}
+      <Modal
+        open={uploadModalOpen}
+        onClose={() => setUploadModalOpen(false)}
+        title="上传文档"
+        size="lg"
+      >
+        <div className="space-y-6">
+          {/* 拖拽上传区域 */}
+          <div
+            className={cn(
+              "border-2 border-dashed rounded-lg p-8 text-center transition-colors",
+              dragOver 
+                ? "border-blue-400 bg-blue-50" 
+                : "border-gray-300 hover:border-gray-400"
+            )}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+          >
+            <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <div className="space-y-2">
+              <p className="text-lg font-medium text-gray-900">
+                拖拽文件到此处，或点击选择文件
+              </p>
+              <p className="text-sm text-gray-500">
+                支持 PDF、Word、Excel、PPT、文本文件等多种格式
+              </p>
+            </div>
+            <input
+              type="file"
+              multiple
+              onChange={handleFileSelect}
+              className="hidden"
+              id="file-upload"
+              accept=".pdf,.docx,.doc,.txt,.md,.csv,.xlsx,.xls,.ppt,.pptx,.jpg,.jpeg,.png,.gif"
+            />
+            <Button
+              variant="outline"
+              className="mt-4"
+              onClick={() => document.getElementById('file-upload')?.click()}
+            >
+              选择文件
+            </Button>
+          </div>
+
+          {/* 文件列表 */}
+          {selectedFiles.length > 0 && (
+            <div>
+              <h4 className="text-sm font-medium text-gray-900 mb-3">
+                已选择 {selectedFiles.length} 个文件
+              </h4>
+              <div className="space-y-2 max-h-40 overflow-y-auto">
+                {selectedFiles.map((file, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center space-x-3 flex-1 min-w-0">
+                      <FileIcon 
+                        fileType={file.name.split('.').pop() || 'unknown'} 
+                        className="h-8 w-8 text-blue-500 flex-shrink-0" 
+                      />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-gray-900 truncate">
+                          {file.name}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {(file.size / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={() => handleRemoveFile(index)}
+                      className="text-gray-400 hover:text-red-600 flex-shrink-0"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {/* 操作按钮 */}
+          <div className="flex justify-end space-x-3 pt-4 border-t">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setUploadModalOpen(false)
+                setSelectedFiles([])
+              }} 
+              disabled={uploading}
+            >
+              取消
+            </Button>
+            <Button 
+              onClick={handleUpload} 
+              loading={uploading} 
+              disabled={selectedFiles.length === 0}
+            >
+              {uploading ? '上传中...' : `上传 ${selectedFiles.length} 个文件`}
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   )
 }

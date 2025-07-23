@@ -167,7 +167,6 @@ export const ConfirmModal: React.FC<{
       open={open}
       onClose={onClose}
       title={title}
-      description={description}
       size="sm"
       footer={
         <div className="flex gap-3 justify-end w-full">

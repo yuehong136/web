@@ -307,36 +307,43 @@ export const useKnowledgeStore = create<KnowledgeState>()(
       },
 
       // 上传文档
-      uploadDocument: async (knowledgeBaseId: string, file: File, metadata = {}) => {
+      uploadDocuments: async (knowledgeBaseId: string, files: File[], options?: {
+        parser_id?: string
+        parser_config?: Record<string, any>
+      }) => {
         try {
-          const formData = new FormData()
-          formData.append('file', file)
-          formData.append('metadata', JSON.stringify(metadata))
-
-          const response = await apiClient.upload<{
-            document: DocumentInfo
-          }>(`/knowledge-bases/${knowledgeBaseId}/documents`, formData)
-
-          const newDoc = response.data.document
+          const uploadedDocs = await knowledgeAPI.document.upload(knowledgeBaseId, files, options)
+          
+          // 将上传的文档转换为DocumentInfo格式（如果需要）
+          const newDocs = uploadedDocs.map(doc => ({
+            id: doc.id,
+            name: doc.name,
+            size: doc.size,
+            type: doc.type,
+            created_time: doc.created_time,
+            status: doc.status,
+            thumbnail: doc.thumbnail
+          }))
           
           set(state => ({
-            documents: [newDoc, ...state.documents]
+            documents: [...newDocs, ...state.documents]
           }))
 
-          return newDoc
+          return uploadedDocs
         } catch (error) {
-          console.error('Failed to upload document:', error)
+          console.error('Failed to upload documents:', error)
           throw error
         }
       },
 
       // 删除文档
-      deleteDocument: async (documentId: string) => {
+      deleteDocument: async (documentId: string | string[]) => {
         try {
-          await apiClient.delete(`/documents/${documentId}`)
+          const docIds = Array.isArray(documentId) ? documentId : [documentId]
+          await knowledgeAPI.document.delete(docIds)
           
           set(state => ({
-            documents: state.documents.filter(doc => doc.id !== documentId)
+            documents: state.documents.filter(doc => !docIds.includes(doc.id))
           }))
         } catch (error) {
           console.error('Failed to delete document:', error)

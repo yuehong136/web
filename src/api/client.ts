@@ -75,9 +75,17 @@ class APIClient {
 
     // 设置请求头
     const requestHeaders: Record<string, string> = {
-      'Content-Type': 'application/json',
+      // 只在非FormData时设置Content-Type
+      ...(!(requestConfig.body instanceof FormData) && { 'Content-Type': 'application/json' }),
       ...(headers as Record<string, string>),
     }
+    
+    // 过滤掉undefined值
+    Object.keys(requestHeaders).forEach(key => {
+      if (requestHeaders[key] === undefined) {
+        delete requestHeaders[key]
+      }
+    })
 
     // 添加认证头
     if (!skipAuth) {
@@ -322,7 +330,20 @@ class APIClient {
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      link.download = filename || 'download'
+      
+      // 优先使用传入的文件名，否则从响应头中获取
+      let downloadFilename = filename
+      if (!downloadFilename) {
+        const contentDisposition = response.headers.get('Content-Disposition')
+        if (contentDisposition) {
+          const matches = contentDisposition.match(/filename\*=UTF-8''(.+)|filename="(.+)"|filename=(.+)/)
+          if (matches) {
+            downloadFilename = decodeURIComponent(matches[1] || matches[2] || matches[3])
+          }
+        }
+      }
+      
+      link.download = downloadFilename || 'download'
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
