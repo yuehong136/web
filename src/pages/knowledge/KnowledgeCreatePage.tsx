@@ -75,7 +75,7 @@ export const KnowledgeCreatePage: React.FC = () => {
         
         // 如果有可用模型，默认选择第一个
         if (modelArray.length > 0 && !formData.embd_id) {
-          setFormData(prev => ({ ...prev, embd_id: modelArray[0].id }))
+          setFormData(prev => ({ ...prev, embd_id: modelArray[0].llm_name }))
         }
       } catch (error: any) {
         console.error('Failed to load embedding models:', error)
@@ -99,11 +99,8 @@ export const KnowledgeCreatePage: React.FC = () => {
     setFormData(prev => ({ ...prev, [field]: e.target.value }))
   }
 
-  const handleModelSelect = (modelId: string) => {
-    const selectedModel = embeddingModels.find(model => model.id === modelId)
-    if (selectedModel) {
-      setFormData(prev => ({ ...prev, embd_id: selectedModel.llm_name }))
-    }
+  const handleModelSelect = (llmName: string) => {
+    setFormData(prev => ({ ...prev, embd_id: llmName }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -157,7 +154,7 @@ export const KnowledgeCreatePage: React.FC = () => {
       
       const createData: CreateKBRequest = {
         name: formData.name.trim(),
-        description: formData.description.trim() || null,
+        description: formData.description.trim() || undefined,
         language: formData.language,
         permission: formData.permission,
         embd_id: formData.embd_id,
@@ -302,7 +299,7 @@ export const KnowledgeCreatePage: React.FC = () => {
 
           <EmbeddingModelSelector
             models={embeddingModels}
-            selectedModelId={embeddingModels.find(m => m.llm_name === formData.embd_id)?.id || ''}
+            selectedModelId={formData.embd_id}
             onSelect={handleModelSelect}
             loading={isLoadingModels}
             error={modelsError}

@@ -2,6 +2,7 @@ import React from 'react'
 import { Check, ChevronDown, Zap, Info, AlertCircle, HelpCircle } from 'lucide-react'
 import { cn } from '../../lib/utils'
 import { Tooltip } from '../ui/tooltip'
+import { LLMFactory, IconMap } from '../../stores/model'
 import type { LLMModel } from '../../types/api'
 
 interface EmbeddingModelSelectorProps {
@@ -23,7 +24,7 @@ export const EmbeddingModelSelector: React.FC<EmbeddingModelSelectorProps> = ({
   const [searchTerm, setSearchTerm] = React.useState('')
   const dropdownRef = React.useRef<HTMLDivElement>(null)
 
-  const selectedModel = models.find(model => model.id === selectedModelId)
+  const selectedModel = models.find(model => model.llm_name === selectedModelId)
 
   // 按厂商分组模型
   const groupedModels = React.useMemo(() => {
@@ -70,6 +71,24 @@ export const EmbeddingModelSelector: React.FC<EmbeddingModelSelectorProps> = ({
       return `${(tokens / 1000).toFixed(0)}K`
     }
     return tokens.toString()
+  }
+
+  const getProviderLogo = (name: string) => {
+    try {
+      // First try to get corresponding icon filename from IconMap
+      const factoryKey = Object.values(LLMFactory).find(factory => factory === name)
+      if (factoryKey && IconMap[factoryKey as keyof typeof IconMap]) {
+        return `/src/assets/svg/llm/${IconMap[factoryKey as keyof typeof IconMap]}.svg`
+      }
+      
+      // Fallback logic if not found in IconMap
+      const filename = name.toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9-_]/g, '')
+      return `/src/assets/svg/llm/${filename}.svg`
+    } catch {
+      return null
+    }
   }
 
   const getModelIcon = (provider: string) => {
@@ -167,7 +186,22 @@ export const EmbeddingModelSelector: React.FC<EmbeddingModelSelectorProps> = ({
             <div className="flex items-center space-x-3 flex-1 min-w-0">
               {selectedModel ? (
                 <>
-                  <span className="text-lg">{getModelIcon(selectedModel.fid)}</span>
+                  <div className="w-6 h-6 flex-shrink-0">
+                    <img 
+                      src={getProviderLogo(selectedModel.fid) || ''} 
+                      alt={selectedModel.fid}
+                      className="w-6 h-6"
+                      onError={(e) => {
+                        const target = e.currentTarget as HTMLImageElement
+                        const fallback = target.nextElementSibling as HTMLElement
+                        target.style.display = 'none'
+                        if (fallback) fallback.style.display = 'flex'
+                      }}
+                    />
+                    <div className="w-6 h-6 bg-blue-100 rounded flex items-center justify-center text-blue-600 font-semibold text-xs" style={{display: 'none'}}>
+                      {selectedModel.fid.charAt(0)}
+                    </div>
+                  </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-medium text-gray-900 truncate">
                       {selectedModel.llm_name}
@@ -220,7 +254,22 @@ export const EmbeddingModelSelector: React.FC<EmbeddingModelSelectorProps> = ({
                     <div key={provider}>
                       {/* 厂商标题 */}
                       <div className="px-4 py-2 bg-gray-50 border-b border-gray-100 text-sm font-medium text-gray-700 flex items-center">
-                        <span className="text-lg mr-2">{getModelIcon(provider)}</span>
+                        <div className="w-5 h-5 mr-2 flex-shrink-0">
+                          <img 
+                            src={getProviderLogo(provider) || ''} 
+                            alt={provider}
+                            className="w-5 h-5"
+                            onError={(e) => {
+                              const target = e.currentTarget as HTMLImageElement
+                              const fallback = target.nextElementSibling as HTMLElement
+                              target.style.display = 'none'
+                              if (fallback) fallback.style.display = 'flex'
+                            }}
+                          />
+                          <div className="w-5 h-5 bg-blue-100 rounded flex items-center justify-center text-blue-600 font-semibold text-xs" style={{display: 'none'}}>
+                            {provider.charAt(0)}
+                          </div>
+                        </div>
                         {provider}
                         <span className="ml-2 text-xs text-gray-500">
                           ({providerModels.length} 个模型)
@@ -232,10 +281,10 @@ export const EmbeddingModelSelector: React.FC<EmbeddingModelSelectorProps> = ({
                         <button
                           key={model.id}
                           type="button"
-                          onClick={() => handleSelect(model.id)}
+                          onClick={() => handleSelect(model.llm_name)}
                           className={cn(
                             "w-full px-4 py-3 text-left hover:bg-blue-50 transition-colors duration-150 border-b border-gray-50 last:border-b-0",
-                            selectedModelId === model.id && "bg-blue-50 border-blue-100"
+                            selectedModelId === model.llm_name && "bg-blue-50 border-blue-100"
                           )}
                         >
                           <div className="flex items-center justify-between">
@@ -250,7 +299,7 @@ export const EmbeddingModelSelector: React.FC<EmbeddingModelSelectorProps> = ({
                               </div>
                               <div className="flex items-center">
                                 <Zap className="h-4 w-4 text-green-500" />
-                                {selectedModelId === model.id && (
+                                {selectedModelId === model.llm_name && (
                                   <Check className="h-4 w-4 text-blue-500 ml-2" />
                                 )}
                               </div>
