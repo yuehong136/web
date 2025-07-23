@@ -15,17 +15,41 @@ import type {
 export const knowledgeAPI = {
   // 知识库管理
   knowledgeBase: {
-    // 获取知识库列表
-    list: (params?: PaginationRequest & { 
+    // 获取知识库列表 - 使用POST方法，匹配后端ListKbsRequest
+    list: (params?: {
+      page?: number
+      page_size?: number
+      orderby?: string
+      desc?: boolean
       keywords?: string
-      tags?: string[]
-      permission?: string
-    }): Promise<PaginatedData<KnowledgeBase>> =>
-      apiClient.post('/v1/kb/list', {}, { params }),
+      owner_ids?: string[]
+      filter_params?: {
+        permissions?: string[]
+        languages?: string[]
+        parser_ids?: string[]
+        embd_ids?: string[]
+        doc_num_range?: [number, number]
+        time_range?: string
+      }
+    }): Promise<{ kbs: KnowledgeBase[]; total: number }> => {
+      // 构建查询参数
+      const queryParams = new URLSearchParams({
+        page: (params?.page || 1).toString(),
+        page_size: (params?.page_size || 12).toString(),
+        orderby: params?.orderby || 'update_time',
+        desc: (params?.desc ?? true).toString(),
+        keywords: params?.keywords || ''
+      })
+      
+      return apiClient.post(`/v1/kb/list?${queryParams.toString()}`, { 
+        owner_ids: params?.owner_ids || [],
+        filter_params: params?.filter_params || {}
+      })
+    },
 
     // 获取知识库详情
     get: (kbId: string): Promise<KnowledgeBase> =>
-      apiClient.get(`/v1/kb/${kbId}`),
+      apiClient.get(`/v1/kb/detail?kb_id=${kbId}`),
 
     // 创建知识库
     create: (data: CreateKBRequest): Promise<{ kb_id: string }> =>
@@ -36,8 +60,8 @@ export const knowledgeAPI = {
       apiClient.post('/v1/kb/update', data),
 
     // 删除知识库
-    delete: (kbIds: string[]): Promise<void> =>
-      apiClient.post('/v1/kb/rm', { kb_ids: kbIds }),
+    delete: (kbId: string): Promise<void> =>
+      apiClient.post('/v1/kb/rm', { kb_id: kbId }),
 
     // 复制知识库
     duplicate: (kbId: string, newName: string): Promise<{ kb_id: string }> =>
@@ -81,16 +105,31 @@ export const knowledgeAPI = {
 
   // 文档管理
   document: {
-    // 获取文档列表
-    list: (
-      kbId: string, 
-      params?: PaginationRequest & { 
-        keywords?: string
-        status?: string
-        type?: string
+    // 获取文档列表 - 使用新的API结构
+    list: (params: {
+      kb_id: string
+      keywords?: string
+      page?: number
+      page_size?: number
+      orderby?: string
+      desc?: boolean
+      filter_params: {
+        run_status?: string[]
+        types?: string[]
+        suffix?: string[]
       }
-    ): Promise<PaginatedData<Document>> =>
-      apiClient.post('/v1/document/list', { kb_id: kbId }, { params }),
+    }): Promise<{ total: number; docs: Document[] }> => {
+      const { kb_id, keywords = '', page = 0, page_size = 0, orderby = 'create_time', desc = true, filter_params } = params
+      const queryParams = new URLSearchParams({
+        kb_id,
+        keywords: keywords,
+        page: page.toString(),
+        page_size: page_size.toString(),
+        orderby,
+        desc: desc.toString()
+      })
+      return apiClient.post(`/v1/document/list?${queryParams.toString()}`, filter_params)
+    },
 
     // 获取文档详情
     get: (docId: string): Promise<Document> =>
@@ -178,6 +217,18 @@ export const knowledgeAPI = {
       parser_config?: Record<string, any>
     }): Promise<{ success_count: number; failed_count: number; errors?: any[] }> =>
       apiClient.post('/v1/document/batch', { operation, ...data }),
+
+    // 文档运行控制 (开始/取消解析)
+    run: (docIds: string[], action: 'run' | 'cancel'): Promise<void> =>
+      apiClient.post('/v1/document/run', { doc_ids: docIds, action }),
+
+    // 更新文档状态 (启用/禁用)
+    updateStatus: (docIds: string[], status: '0' | '1'): Promise<void> =>
+      apiClient.post('/v1/document/status', { doc_ids: docIds, status }),
+
+    // 重命名文档
+    rename: (docId: string, name: string): Promise<Document> =>
+      apiClient.post('/v1/document/rename', { doc_id: docId, name }),
   },
 
   // 标签管理

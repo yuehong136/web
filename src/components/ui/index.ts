@@ -26,3 +26,9 @@ export {
   type TableProps,
   type Column 
 } from './table'
+export * from './dropdown'
+export * from './avatar'
+export * from './file-icon'
+export * from './tooltip'
+export * from './badge'
+export * from './custom-select'

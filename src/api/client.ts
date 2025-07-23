@@ -84,9 +84,6 @@ class APIClient {
       const token = this.getAuthToken()
       if (token) {
         requestHeaders['Authorization'] = `Bearer ${token}`
-        console.log('API Request with token:', token.substring(0, 20) + '...')
-      } else {
-        console.warn('API Request without token!')
       }
     }
 
@@ -119,7 +116,24 @@ class APIClient {
       }
 
       // 解析JSON响应
-      const data: APIResponse<T> = await response.json()
+      const rawData = await response.json()
+      
+      // 兼容不同的响应格式
+      let data: APIResponse<T>
+      if (rawData.retcode !== undefined) {
+        // 旧格式: { retcode, retmsg, data }
+        data = rawData
+      } else if (rawData.code !== undefined) {
+        // 新格式: { code, message, data }
+        data = {
+          retcode: rawData.code,
+          retmsg: rawData.message,
+          data: rawData.data
+        } as APIResponse<T>
+      } else {
+        // 直接返回数据的格式
+        return rawData as T
+      }
 
       // 对于登录接口，从响应头中提取token
       if (endpoint.includes('/user/login') || endpoint.includes('/user/register')) {

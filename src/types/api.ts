@@ -300,40 +300,66 @@ export interface MindmapResponse {
 
 export interface KnowledgeBase {
   id: string
+  avatar?: string | null
   name: string
-  description?: string
-  user_id: string
-  tenant_id: string
-  avatar?: string
-  tags: string[]
-  chunk_num: number
-  document_num: number
-  parser_id?: string
-  parser_config?: Record<string, any>
-  created_at: string
-  updated_at: string
-  permission: 'private' | 'public' | 'shared'
-  embedding_model?: string
   language?: string
+  description?: string | null
+  tenant_id: string
+  permission: string
+  doc_num: number
+  token_num: number
+  chunk_num: number
+  parser_id: string
+  embd_id: string
+  nickname?: string
+  tenant_avatar?: string | null
+  update_time: number  // 时间戳格式
+  
+  // 可选字段（用于兼容不同版本的API）
+  created_by?: string
+  similarity_threshold?: number
+  vector_similarity_weight?: number
+  parser_config?: Record<string, any>
+  pagerank?: number
+  status?: string
+  create_time?: string
+  size?: number
 }
 
 export interface CreateKBRequest {
   name: string
   description?: string
   avatar?: string
-  tags?: string[]
-  permission?: 'private' | 'public' | 'shared'
-  embedding_model?: string
   language?: string
+  embd_id?: string
+  permission?: string
+  similarity_threshold?: number
+  vector_similarity_weight?: number
+  parser_id?: string
+  parser_config?: Record<string, any>
+  pagerank?: number
 }
 
 export interface UpdateKBRequest {
   kb_id: string
-  name?: string
-  description?: string
-  avatar?: string
-  tags?: string[]
-  permission?: 'private' | 'public' | 'shared'
+  name: string
+  description?: string | null
+  permission?: string | null
+  avatar?: string | null
+  parser_id?: string | null
+  parser_config?: Record<string, any> | null
+  embd_id?: string | null
+  pagerank?: number | null
+}
+
+// 后端知识库列表请求
+export interface ListKbsRequest {
+  owner_ids?: string[]
+}
+
+// 后端知识库删除请求
+export interface RemoveKnowledgebaseRequest {
+  kb_id: string
 }
 
 export interface Document {
@@ -343,14 +369,26 @@ export interface Document {
   size: number
   kb_id: string
   location: string
-  status: 'green' | 'red' | 'yellow'
+  status: string // '0' = 禁用, '1' = 启用
+  run: string // '0' = 未解析, '1' = 解析中, '2' = 取消, '3' = 成功, '4' = 失败
   chunk_num: number
   token_num: number
-  created_at: string
-  updated_at: string
+  created_by: string
+  create_date: string
+  update_date: string
+  create_time: number
+  update_time: number
   thumbnail?: string
+  parser_id: string
   parser_config?: Record<string, any>
-  run_id?: string
+  source_type: string
+  progress: number // 解析进度 0-1
+  progress_msg: string // 解析日志信息
+  process_begin_at: string
+  process_duration: number
+  meta_fields: Record<string, any>
+  suffix: string
+  auth?: any
 }
 
 export interface UploadDocumentRequest {
@@ -360,6 +398,53 @@ export interface UploadDocumentRequest {
   chunk_size?: number
   chunk_overlap?: number
   parser_config?: Record<string, any>
+}
+
+// 文档过滤器参数
+export interface DocumentFilter {
+  run_status?: string[] // 运行状态过滤
+  types?: string[] // 文件类型过滤
+  suffix?: string[] // 文件后缀过滤
+}
+
+// 文档列表请求参数
+export interface DocumentListRequest {
+  kb_id: string
+  keywords?: string
+  page?: number
+  page_size?: number
+  orderby?: string
+  desc?: boolean
+  filter_params: DocumentFilter
+}
+
+// 文档列表响应
+export interface DocumentListResponse {
+  total: number
+  docs: Document[]
+}
+
+// 文档运行控制请求
+export interface DocumentRunRequest {
+  doc_ids: string[]
+  action: 'run' | 'cancel' // run = 开始解析, cancel = 取消解析
+}
+
+// 文档状态更新请求
+export interface DocumentStatusRequest {
+  doc_ids: string[]
+  status: '0' | '1' // 0 = 禁用, 1 = 启用
+}
+
+// 文档重命名请求
+export interface DocumentRenameRequest {
+  doc_id: string
+  name: string
+}
+
+// 文档下载请求参数
+export interface DocumentDownloadRequest {
+  doc_id: string
 }
 
 export interface ParseWebRequest {
@@ -603,23 +688,37 @@ export interface AIAnalysisResponse {
 // 大语言模型管理模块
 // ============================================================================
 
+// 模型类型枚举，对应后端的 LLMType
+export type LLMType = 'chat' | 'embedding' | 'speech2text' | 'image2text' | 'rerank' | 'tts'
+
 export interface LLMModel {
   id: string
-  name: string
-  display_name: string
-  provider: string
-  model_type: 'chat' | 'completion' | 'embedding'
-  max_tokens: number
-  supports_functions: boolean
-  supports_streaming: boolean
-  supports_vision: boolean
-  cost_per_1k_tokens: {
+  llm_name: string // 实际的模型名称
+  name?: string
+  display_name?: string
+  provider?: string
+  fid: string // 厂商ID
+  mdl_type: LLMType
+  model_type?: LLMType
+  max_tokens?: number
+  tags?: string
+  is_tools?: boolean
+  status?: string
+  available: boolean
+  supports_functions?: boolean
+  supports_streaming?: boolean
+  supports_vision?: boolean
+  cost_per_1k_tokens?: {
     input: number
     output: number
   }
-  is_active: boolean
-  created_at: string
-  updated_at: string
+  is_active?: boolean
+  create_date?: string
+  update_date?: string
+  create_time?: number
+  update_time?: number
+  created_at?: string
+  updated_at?: string
   config?: Record<string, any>
 }
 
@@ -637,7 +736,7 @@ export interface LLMProvider {
 export interface AddLLMRequest {
   name: string
   provider: string
-  model_type: string
+  model_type: LLMType
   config: Record<string, any>
   is_active?: boolean
 }
@@ -816,6 +915,10 @@ export type FilterOperator = 'eq' | 'ne' | 'gt' | 'lt' | 'gte' | 'lte' | 'in' | 
 export type FileType = 'document' | 'image' | 'audio' | 'video' | 'archive' | 'other'
 export type ProcessingStatus = 'pending' | 'processing' | 'completed' | 'failed'
 export type Permission = 'read' | 'write' | 'delete' | 'admin'
+
+// 文档运行状态类型
+export type DocumentRunStatus = '0' | '1' | '2' | '3' | '4' // 0=未解析, 1=解析中, 2=取消, 3=成功, 4=失败
+export type DocumentStatus = '0' | '1' // 0=禁用, 1=启用
 
 export interface SortConfig {
   field: string

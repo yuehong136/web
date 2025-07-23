@@ -156,9 +156,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className="p-4 border-t border-gray-200">
         {!collapsed ? (
           <div className="text-center">
-            <p className="text-xs text-gray-500">Multi-RAG v1.0.0</p>
+            <p className="text-xs text-gray-500">Multi-RAG v0.6.0</p>
             <p className="text-xs text-gray-400 mt-1">
-              © 2024 All rights reserved
+              © 2025 All rights reserved
             </p>
           </div>
         ) : (

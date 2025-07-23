@@ -4,6 +4,12 @@ import { LoginPage, RegisterPage } from '../pages/auth'
 import { DashboardPage } from '../pages/dashboard'
 import { ChatPage } from '../pages/chat/ChatPage'
 import { KnowledgeListPage } from '../pages/knowledge/KnowledgeListPage'
+import { KnowledgeDetailLayout } from '../pages/knowledge/KnowledgeDetailLayout'
+import { KnowledgeDocumentsPage } from '../pages/knowledge/KnowledgeDocumentsPage'
+import { KnowledgeSearchPage } from '../pages/knowledge/KnowledgeSearchPage'
+import { KnowledgeSettingsPage } from '../pages/knowledge/KnowledgeSettingsPage'
+import { KnowledgeCreatePage } from '../pages/knowledge/KnowledgeCreatePage'
+import { KnowledgeImportPage } from '../pages/knowledge/KnowledgeImportPage'
 import { SettingsLayout } from '../pages/settings/SettingsLayout'
 import { ProfilePage } from '../pages/settings/ProfilePage'
 import { ModelProvidersPage } from '../pages/settings/ModelProvidersPage'
@@ -106,6 +112,36 @@ export const router = createBrowserRouter([
       {
         path: ROUTES.KNOWLEDGE,
         element: <KnowledgeListPage />,
+      },
+      {
+        path: '/knowledge/create',
+        element: <KnowledgeCreatePage />,
+      },
+      {
+        path: '/knowledge/import',
+        element: <KnowledgeImportPage />,
+      },
+      {
+        path: '/knowledge/:id',
+        element: <KnowledgeDetailLayout />,
+        children: [
+          {
+            index: true,
+            element: <Navigate to="documents" replace />,
+          },
+          {
+            path: 'documents',
+            element: <KnowledgeDocumentsPage />,
+          },
+          {
+            path: 'search',
+            element: <KnowledgeSearchPage />,
+          },
+          {
+            path: 'settings',
+            element: <KnowledgeSettingsPage />,
+          },
+        ],
       },
       {
         path: ROUTES.DOCUMENTS,
