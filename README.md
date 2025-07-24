@@ -2,8 +2,12 @@
 
 A modern React-based frontend application for Multi-RAG system, providing intelligent conversation, knowledge base management, system monitoring, and more.
 
-## 🆕 What's New in v0.6.0
+## 🆕 What's New in v0.6.1
 
+- **🔧 Enhanced Document Management**: Advanced batch operations, file upload/download, rename functionality
+- **📝 Document Parsing Control**: Integrated document processing status and control features
+- **🎨 Modernized Sidebar Design**: New floating card design with improved navigation experience
+- **🛠️ Vector Model Selector Fixes**: Resolved dropdown echo issues and dynamic SVG loading for embedding models
 - **📚 Complete Knowledge Base Management**: Full CRUD operations, document upload, search, and settings
 - **🎨 Enhanced UI Components**: 40+ UI components with file type icons for 40+ file formats
 - **🔧 LLM Provider Integration**: Support for multiple LLM providers with configuration management
@@ -219,13 +223,21 @@ The application uses a custom API client (`src/api/client.ts`) that provides:
 - Streaming responses
 
 ### 4. Knowledge Base Management
-- **Knowledge Base Creation**: Create and configure knowledge bases with custom settings
-- **Document Upload**: Support for multiple file types (PDF, DOCX, TXT, MD, and 40+ file types)
-- **Document Management**: View, organize, and manage uploaded documents
-- **Embedding Models**: Configure and select embedding models for knowledge bases
+- **Knowledge Base Creation**: Create and configure knowledge bases with custom settings and fixed vector model selection
+- **Advanced Document Management**: 
+  - Support for multiple file types (PDF, DOCX, TXT, MD, and 40+ file types)
+  - Batch operations: upload, download, rename, and delete multiple documents
+  - Real-time document processing status with parsing control
+  - Document metadata management and organization
+- **Enhanced Document Operations**:
+  - Individual file upload/download with progress tracking
+  - Bulk document operations with selection management
+  - Document renaming and organization tools
+  - Advanced filtering and search capabilities
+- **Embedding Models**: Improved embedding model selector with fixed dropdown issues and dynamic provider logos
 - **Search Interface**: Advanced search and retrieval within knowledge bases
 - **Import/Export**: Bulk import documents and export knowledge base data
-- **Processing Status**: Real-time document processing and indexing status
+- **Processing Control**: Real-time document processing status with start/stop controls
 - **Quick Edit**: In-place editing of knowledge base settings
 
 ### 5. System Monitoring
@@ -262,8 +274,9 @@ The application uses a comprehensive design system built with:
 
 ### Layout System
 - **Main Layout**: Header, Sidebar, Content area with responsive design
+- **Modernized Sidebar**: New floating card design with improved visual hierarchy and navigation experience
 - **Authentication Guard**: Route protection and user session management
-- **Navigation**: Dynamic sidebar with active state management
+- **Enhanced Navigation**: Dynamic sidebar with active state management and visual enhancements
 
 ### Design Features
 - **Responsive Design**: Mobile-first approach with Tailwind CSS
@@ -352,4 +365,4 @@ For support and questions:
 
 ---
 
-**Version**: 0.6.0 | Built with ❤️ using React 19 + TypeScript 5.8 + Vite 7
+**Version**: 0.6.1 | Built with ❤️ using React 19 + TypeScript 5.8 + Vite 7
