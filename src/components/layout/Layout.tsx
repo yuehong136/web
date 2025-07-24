@@ -1,6 +1,5 @@
 import React from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
-import { Header } from './Header'
 import { Sidebar } from './Sidebar'
 import { AuthGuard } from '../auth'
 import { useUIStore } from '../../stores'
@@ -8,9 +7,6 @@ import { cn } from '../../lib/utils'
 
 export const Layout: React.FC = () => {
   const { 
-    sidebarCollapsed, 
-    setSidebarCollapsed, 
-    isMobile,
     notifications,
     removeNotification
   } = useUIStore()
@@ -18,79 +14,34 @@ export const Layout: React.FC = () => {
   const location = useLocation()
   const isSettingsPage = location.pathname.startsWith('/settings')
 
-  const [mobileSidebarOpen, setMobileSidebarOpen] = React.useState(false)
-
-  const handleToggleSidebar = () => {
-    if (isMobile()) {
-      setMobileSidebarOpen(!mobileSidebarOpen)
-    } else {
-      setSidebarCollapsed(!sidebarCollapsed)
-    }
-  }
-
-  const handleCloseMobileSidebar = () => {
-    setMobileSidebarOpen(false)
-  }
-
-  // 处理窗口大小变化
-  React.useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth >= 1024) {
-        setMobileSidebarOpen(false)
-      }
-    }
-
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
-  }, [])
-
   return (
     <AuthGuard requireAuth={true}>
-      <div className="h-screen flex flex-col overflow-hidden bg-gray-50">
-        {/* Header */}
-        <Header 
-          onToggleSidebar={handleToggleSidebar} 
-          showSidebarToggle={!isSettingsPage}
-        />
+      <div className="h-screen bg-gray-50 relative overflow-hidden">
+        {/* Desktop Sidebar - 浮动在页面上 */}
+        {!isSettingsPage && (
+          <div className="hidden lg:block fixed left-4 top-4 bottom-4 z-10">
+            <Sidebar />
+          </div>
+        )}
 
-        <div className="flex flex-1 overflow-hidden">
-          {/* Desktop Sidebar - 只在非设置页面显示 */}
-          {!isSettingsPage && (
-            <div className="hidden lg:block">
-              <Sidebar
-                collapsed={sidebarCollapsed}
-                onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
-              />
-            </div>
-          )}
-
-          {/* Mobile Sidebar Overlay - 只在非设置页面显示 */}
-          {!isSettingsPage && mobileSidebarOpen && (
-            <>
-              <div
-                className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
-                onClick={handleCloseMobileSidebar}
-              />
-              <div className="fixed left-0 top-16 bottom-0 z-50 lg:hidden">
-                <Sidebar
-                  collapsed={false}
-                  onToggleCollapse={handleCloseMobileSidebar}
-                  className="h-full"
-                />
-              </div>
-            </>
-          )}
-
+        {/* Main Content Area - 占据整个页面 */}
+        <div className="h-full overflow-hidden">
           {/* Main Content */}
-          <main className="flex-1 overflow-auto">
-            <div className="h-full">
+          <main className={cn(
+            "h-full overflow-auto",
+            !isSettingsPage ? "lg:pl-8" : ""
+          )}>
+            <div className={cn(
+              "h-full",
+              !isSettingsPage ? "lg:bg-white lg:rounded-l-2xl lg:shadow-sm lg:ml-20" : ""
+            )}>
               <Outlet />
             </div>
           </main>
         </div>
 
         {/* Toast Notifications */}
-        <div className="fixed top-20 right-4 z-50 space-y-2">
+        <div className="fixed top-4 right-4 z-50 space-y-2">
           {notifications.map((notification) => (
             <div
               key={notification.id}
