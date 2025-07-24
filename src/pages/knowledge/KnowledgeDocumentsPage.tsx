@@ -31,6 +31,7 @@ import {
   Tooltip,
   Modal,
   ConfirmModal,
+  PageSizeSelector,
   CustomSelect
 } from '../../components/ui'
 import { cn } from '../../lib/utils'
@@ -467,7 +468,11 @@ const KnowledgeDocumentsPage: React.FC = () => {
             delayHide={500}
             maxWidth="max-w-md"
           >
-            <div className="font-medium text-gray-900 truncate cursor-help" style={{ maxWidth: '300px' }}>
+            <div 
+              className="font-medium text-gray-900 truncate cursor-pointer hover:text-blue-600 transition-colors" 
+              style={{ maxWidth: '300px' }}
+              onClick={() => navigate(`/knowledge/${kbId}/documents/${record.id}/chunks`)}
+            >
               {value}
             </div>
           </Tooltip>
@@ -713,7 +718,7 @@ const KnowledgeDocumentsPage: React.FC = () => {
   }
 
   return (
-    <div className="p-6">
+    <div className="h-full flex flex-col p-6">
       {/* 搜索和筛选栏 */}
       <Card className="mb-6">
         <div className="flex items-center justify-between">
@@ -974,7 +979,7 @@ const KnowledgeDocumentsPage: React.FC = () => {
       
       {/* 文档列表 */}
       {!loading && documents.length > 0 && (
-        <div className="bg-white rounded-lg shadow-sm overflow-x-auto">
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden flex flex-col flex-1 min-h-0">
           {/* 列表头部控制 */}
           <div className="px-6 py-4 border-b border-gray-200">
             <div className="flex items-center justify-between">
@@ -1003,54 +1008,46 @@ const KnowledgeDocumentsPage: React.FC = () => {
             </div>
           </div>
 
-          <Table<Document>
-            columns={getTableColumns()}
-            data={documents}
-            loading={loading}
-            rowKey="id"
-            sortConfig={{
-              field: sortConfig.orderby,
-              direction: sortConfig.desc ? 'desc' : 'asc'
-            }}
-            onSort={(field, direction) => {
-              setSortConfig({
-                orderby: field,
-                desc: direction === 'desc'
-              })
-            }}
-            striped
-            hoverable
-            className="min-w-full"
-          />
+          <div className="flex-1 overflow-y-auto">
+            <Table<Document>
+              columns={getTableColumns()}
+              data={documents}
+              loading={loading}
+              rowKey="id"
+              sortConfig={{
+                field: sortConfig.orderby,
+                direction: sortConfig.desc ? 'desc' : 'asc'
+              }}
+              onSort={(field, direction) => {
+                setSortConfig({
+                  orderby: field,
+                  desc: direction === 'desc'
+                })
+              }}
+              striped
+              hoverable
+              className="min-w-full"
+            />
+          </div>
           
-          {/* 自定义分页控件 */}
+          {/* 自定义分页控件 - sticky 粘性定位 */}
           {total > 0 && (
-            <div className="mt-6 flex items-center justify-between">
-              <div className="text-sm text-gray-600">
-                共 {total} 项{selectedDocs.size > 0 && ` • 已选择 ${selectedDocs.size} 个`}
-              </div>
-              
-              <div className="flex items-center space-x-4">
-                {/* 每页显示选择器 */}
-                <div className="flex items-center space-x-2 text-sm text-gray-600">
-                  <span>每页显示</span>
-                  <CustomSelect
-                    options={[
-                      { value: '10', label: '10' },
-                      { value: '20', label: '20' },
-                      { value: '50', label: '50' },
-                      { value: '100', label: '100' }
-                    ]}
-                    value={pageSize.toString()}
-                    onChange={(value) => {
-                      setPageSize(Number(value))
-                      setPage(1) // 重置到第一页
-                    }}
-                    size="sm"
-                    className="min-w-[60px]"
-                  />
-                  <span>项</span>
+            <div className="sticky bottom-0 border-t border-gray-200 bg-white/95 backdrop-blur-sm shadow-lg">
+              <div className="px-6 py-4 flex items-center justify-between">
+                <div className="text-sm text-gray-600">
+                  共 {total} 项{selectedDocs.size > 0 && ` • 已选择 ${selectedDocs.size} 个`}
                 </div>
+                
+                <div className="flex items-center space-x-4">
+                {/* 每页显示选择器 */}
+                <PageSizeSelector
+                  pageSize={pageSize}
+                  onChange={(size) => {
+                    setPageSize(size)
+                    setPage(1) // 重置到第一页
+                  }}
+                  options={[10, 20, 50, 100]}
+                />
                 
                 {/* 页码导航 */}
                 <div className="flex items-center space-x-2">
@@ -1104,6 +1101,7 @@ const KnowledgeDocumentsPage: React.FC = () => {
                   下一页
                 </Button>
                 </div>
+                </div>
               </div>
             </div>
           )}
@@ -1112,18 +1110,20 @@ const KnowledgeDocumentsPage: React.FC = () => {
       
       {/* 空状态 */}
       {!loading && documents.length === 0 && (
-        <Card className="text-center py-12">
-          <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
-            暂无文档
-          </h3>
-          <p className="text-gray-500 mb-4">
-            还没有上传任何文档，开始添加文档吧
-          </p>
-          <Button onClick={() => setUploadModalOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            添加文档
-          </Button>
+        <Card className="flex-1 flex items-center justify-center">
+          <div className="text-center py-12">
+            <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              暂无文档
+            </h3>
+            <p className="text-gray-500 mb-4">
+              还没有上传任何文档，开始添加文档吧
+            </p>
+            <Button onClick={() => setUploadModalOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              添加文档
+            </Button>
+          </div>
         </Card>
       )}
       

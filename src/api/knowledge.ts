@@ -244,6 +244,87 @@ export const knowledgeAPI = {
     // 重命名文档
     rename: (docId: string, name: string): Promise<Document> =>
       apiClient.post('/v1/document/rename', { doc_id: docId, name }),
+
+    // 获取文档详细信息
+    getInfos: (docIds: string[]): Promise<Array<{
+      location: string
+      process_duration: number
+      update_date: string
+      meta_fields: Record<string, any>
+      parser_id: string
+      size: number
+      create_time: number
+      parser_config: Record<string, any>
+      auth: any
+      suffix: string
+      update_time: number
+      source_type: string
+      token_num: number
+      chunk_num: number
+      run: string
+      id: string
+      type: string
+      progress: number
+      status: string
+      thumbnail: string
+      created_by: string
+      progress_msg: string
+      create_date: string
+      kb_id: string
+      name: string
+      process_begin_at: string
+    }>> =>
+      apiClient.post('/v1/document/infos', docIds),
+
+    // 获取文档分段列表
+    listChunks: (params: {
+      doc_id: string
+      page?: number
+      size?: number
+      keywords?: string
+    }): Promise<{
+      total: number
+      chunks: Array<{
+        chunk_id: string
+        content_with_weight: string
+        doc_id: string
+        docnm_kwd: string
+        important_kwd: string[]
+        question_kwd: string[]
+        img_id: string
+        available_int: number
+        positions: number[][]
+      }>
+      doc: {
+        id: string
+        thumbnail: string
+        kb_id: string
+        parser_id: string
+        parser_config: any
+        source_type: string
+        type: string
+        created_by: string
+        name: string
+        location: string
+        size: number
+        auth: any
+        token_num: number
+        chunk_num: number
+        progress: number
+        progress_msg: string
+        process_begin_at: string
+        process_duration: number
+        meta_fields: any
+        suffix: string
+        run: string
+        status: string
+        create_date: string
+        update_date: string
+        create_time: number
+        update_time: number
+      }
+    }> =>
+      apiClient.post('/v1/chunk/list', params),
   },
 
   // 标签管理

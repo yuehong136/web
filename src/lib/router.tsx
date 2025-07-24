@@ -10,6 +10,7 @@ import { KnowledgeSearchPage } from '../pages/knowledge/KnowledgeSearchPage'
 import { KnowledgeSettingsPage } from '../pages/knowledge/KnowledgeSettingsPage'
 import { KnowledgeCreatePage } from '../pages/knowledge/KnowledgeCreatePage'
 import { KnowledgeImportPage } from '../pages/knowledge/KnowledgeImportPage'
+import { DocumentChunksPage } from '../pages/knowledge/DocumentChunksPage'
 import { SettingsLayout } from '../pages/settings/SettingsLayout'
 import { ProfilePage } from '../pages/settings/ProfilePage'
 import { ModelProvidersPage } from '../pages/settings/ModelProvidersPage'
@@ -140,6 +141,10 @@ export const router = createBrowserRouter([
           {
             path: 'settings',
             element: <KnowledgeSettingsPage />,
+          },
+          {
+            path: 'documents/:docId/chunks',
+            element: <DocumentChunksPage />,
           },
         ],
       },

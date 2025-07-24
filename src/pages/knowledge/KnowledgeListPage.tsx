@@ -42,6 +42,7 @@ import { Table } from '../../components/ui/table'
 import { Avatar } from '../../components/ui/avatar'
 import { Dropdown, DropdownItem } from '../../components/ui/dropdown'
 import { QuickEditModal } from '../../components/knowledge/QuickEditModal'
+import { PageSizeSelector } from '../../components/ui/page-size-selector'
 import { CustomSelect } from '../../components/ui/custom-select'
 import { useKnowledgeStore } from '../../stores/knowledge'
 import { useUIStore } from '../../stores/ui'
@@ -857,7 +858,7 @@ export const KnowledgeListPage: React.FC = () => {
   )
 
   return (
-    <div className="p-6">
+    <div className="h-full flex flex-col p-6">
       {/* 页面头部 */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
@@ -989,34 +990,26 @@ export const KnowledgeListPage: React.FC = () => {
           )}
         </div>
       ) : (
-        <div>
-          {viewMode === 'grid' ? renderGridView() : renderTableView()}
+        <div className="flex-1 flex flex-col min-h-0">
+          <div className="flex-1 overflow-y-auto">
+            {viewMode === 'grid' ? renderGridView() : renderTableView()}
+          </div>
           
-          {/* 分页控件 */}
+          {/* 分页控件 - sticky 粘性定位 */}
           {totalPages > 1 && (
-            <div className="mt-8 flex items-center justify-between">
-              <div className="text-sm text-gray-600">
-                共 {total} 项{selectedBases.length > 0 && ` • 已选择 ${selectedBases.length} 个`}
-              </div>
-              
-              <div className="flex items-center space-x-4">
-                {/* 每页显示选择器 */}
-                <div className="flex items-center space-x-2 text-sm text-gray-600">
-                  <span>每页显示</span>
-                  <CustomSelect
-                    options={[
-                      { value: '6', label: '6' },
-                      { value: '12', label: '12' },
-                      { value: '24', label: '24' },
-                      { value: '48', label: '48' }
-                    ]}
-                    value={pageSize.toString()}
-                    onChange={(value) => handlePageSizeChange(Number(value))}
-                    size="sm"
-                    className="min-w-[60px]"
-                  />
-                  <span>项</span>
+            <div className="sticky bottom-0 border-t border-gray-200 bg-white/95 backdrop-blur-sm shadow-lg rounded-t-lg mx-4 mb-4">
+              <div className="px-6 py-4 flex items-center justify-between">
+                <div className="text-sm text-gray-600">
+                  共 {total} 项{selectedBases.length > 0 && ` • 已选择 ${selectedBases.length} 个`}
                 </div>
+                
+                <div className="flex items-center space-x-4">
+                {/* 每页显示选择器 */}
+                <PageSizeSelector
+                  pageSize={pageSize}
+                  onChange={(size) => handlePageSizeChange(size)}
+                  options={[6, 12, 24, 48]}
+                />
                 
                 {/* 页码导航 */}
                 <div className="flex items-center space-x-2">
@@ -1069,20 +1062,7 @@ export const KnowledgeListPage: React.FC = () => {
                   <ChevronRight className="h-4 w-4" />
                 </Button>
                 </div>
-              </div>
-            </div>
-          )}
-
-          {/* 分页信息 */}
-          {filteredKnowledgeBases.length > 0 && (
-            <div className="mt-4 flex items-center justify-between text-sm text-gray-500">
-              <div className="flex items-center space-x-2">
-                <span>按 {
-                  sortBy === 'create_time' ? '创建时间' :
-                  sortBy === 'update_time' ? '更新时间' :
-                  sortBy === 'name' ? '名称' :
-                  sortBy === 'doc_num' ? '文档数' : '未知字段'
-                } {sortDesc ? '降序' : '升序'} 排列</span>
+                </div>
               </div>
             </div>
           )}

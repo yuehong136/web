@@ -44,7 +44,7 @@ const navItems: NavItem[] = [
     badge: 'New'
   },
   {
-    title: '数据源',
+    title: '知识库',
     href: ROUTES.KNOWLEDGE,
     icon: BookOpen,
   },

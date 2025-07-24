@@ -27,6 +27,8 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
 }) => {
   const [isOpen, setIsOpen] = React.useState(false)
   const dropdownRef = React.useRef<HTMLDivElement>(null)
+  const buttonRef = React.useRef<HTMLButtonElement>(null)
+  const [dropdownPosition, setDropdownPosition] = React.useState({ top: 0, left: 0, width: 0 })
 
   const selectedOption = options.find(option => option.value === value)
 
@@ -46,6 +48,36 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
     onChange(optionValue)
     setIsOpen(false)
   }
+  
+  // 计算下拉菜单位置
+  const updateDropdownPosition = React.useCallback(() => {
+    if (buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect()
+      setDropdownPosition({
+        top: rect.bottom + window.scrollY + 4,
+        left: rect.left + window.scrollX,
+        width: rect.width
+      })
+    }
+  }, [])
+  
+  // 当打开下拉菜单时更新位置
+  React.useEffect(() => {
+    if (isOpen) {
+      updateDropdownPosition()
+      window.addEventListener('scroll', updateDropdownPosition)
+      window.addEventListener('resize', updateDropdownPosition)
+      return () => {
+        window.removeEventListener('scroll', updateDropdownPosition)
+        window.removeEventListener('resize', updateDropdownPosition)
+      }
+    }
+  }, [isOpen, updateDropdownPosition])
+  
+  // 调试信息
+  React.useEffect(() => {
+    console.log('CustomSelect isOpen:', isOpen, 'options:', options.length, 'position:', dropdownPosition)
+  }, [isOpen, options.length, dropdownPosition])
 
   const getSizeClasses = () => {
     switch (size) {
@@ -59,9 +91,10 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   }
 
   return (
-    <div className={cn("relative", className)} ref={dropdownRef}>
+    <div className={cn("relative z-0", className)} ref={dropdownRef}>
       {/* 选择器按钮 */}
       <button
+        ref={buttonRef}
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
@@ -96,8 +129,15 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
       {/* 下拉菜单 */}
       {isOpen && (
         <>
-          <div className="fixed inset-0 z-10" onClick={() => setIsOpen(false)} />
-          <div className="absolute z-20 mt-2 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-64 overflow-hidden">
+          <div className="fixed inset-0 z-50" onClick={() => setIsOpen(false)} />
+          <div 
+            className="fixed z-50 bg-white border border-gray-200 rounded-lg shadow-lg max-h-64 overflow-hidden"
+            style={{
+              top: dropdownPosition.top,
+              left: dropdownPosition.left,
+              width: dropdownPosition.width
+            }}
+          >
             <div className="max-h-64 overflow-y-auto">
               {options.map((option) => (
                 <button
