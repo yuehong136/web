@@ -325,6 +325,21 @@ export const knowledgeAPI = {
       }
     }> =>
       apiClient.post('/v1/chunk/list', params),
+
+    // 设置/更新文档分段
+    setChunk: (params: {
+      doc_id: string
+      chunk_id: string
+      content_with_weight: string
+    }): Promise<boolean> =>
+      apiClient.post('/v1/chunk/set', params),
+
+    // 设置文档元数据
+    setDocumentMeta: (params: {
+      doc_id: string
+      meta: Record<string, any>
+    }): Promise<boolean> =>
+      apiClient.post('/v1/document/set_meta', params),
   },
 
   // 标签管理

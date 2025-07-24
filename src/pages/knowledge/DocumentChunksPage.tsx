@@ -13,7 +13,9 @@ import {
   ToggleRight,
   ChevronDown,
   ChevronRight,
-  Tag
+  Tag,
+  Eye,
+  Code
 } from 'lucide-react'
 import { knowledgeAPI } from '../../api/knowledge'
 import type { DocumentChunk, Document } from '../../types/api'
@@ -66,7 +68,6 @@ const DocumentChunksPage: React.FC = () => {
   
   // 模态框状态
   const [addChunkModalOpen, setAddChunkModalOpen] = useState(false)
-  const [editChunkModalOpen, setEditChunkModalOpen] = useState(false)
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [deletingChunkId, setDeletingChunkId] = useState<string>('')
   
@@ -77,32 +78,22 @@ const DocumentChunksPage: React.FC = () => {
   // 切片配置展开状态
   const [showParserConfig, setShowParserConfig] = useState(false)
   
+  // Markdown预览状态
+  const [isMarkdownPreview, setIsMarkdownPreview] = useState(false)
+  
+  // 元数据标注状态
+  const [metaModalOpen, setMetaModalOpen] = useState(false)
+  const [editingMeta, setEditingMeta] = useState<Array<{id: string; key: string; value: any}>>([])
+  const [nextMetaId, setNextMetaId] = useState(1)
   
   
-  // 应用筛选
-  useEffect(() => {
-    let filtered = chunks
-    
-    // 状态筛选
-    if (filterStatus !== 'all') {
-      filtered = filtered.filter(chunk => {
-        if (filterStatus === 'enabled') {
-          return chunk.available_int === 1
-        } else {
-          return chunk.available_int === 0
-        }
-      })
-    }
-    
-    setFilteredChunks(filtered)
-  }, [chunks, filterStatus])
   
-  // 监听搜索关键词变化，重新获取数据
+  // 监听搜索关键词或筛选状态变化，重置到第一页
   useEffect(() => {
     if (page !== 1) {
-      setPage(1) // 重置页码
+      setPage(1)
     }
-  }, [searchKeyword, page])
+  }, [searchKeyword, filterStatus])
   
   // 监听分页参数变化，重新获取数据
   useEffect(() => {
@@ -116,10 +107,23 @@ const DocumentChunksPage: React.FC = () => {
           doc_id: docId,
           page,
           size: pageSize,
-          keywords: searchKeyword || undefined
+          keywords: searchKeyword.trim() || undefined
         })
         
+        // 根据状态筛选应用前端过滤（如果 API 不支持状态筛选）
+        let filteredChunks = response.chunks
+        if (filterStatus !== 'all') {
+          filteredChunks = response.chunks.filter(chunk => {
+            if (filterStatus === 'enabled') {
+              return chunk.available_int === 1
+            } else {
+              return chunk.available_int === 0
+            }
+          })
+        }
+        
         setChunks(response.chunks)
+        setFilteredChunks(filteredChunks)
         setTotal(response.total)
         setDocInfo(response.doc)
       } catch (error) {
@@ -138,7 +142,20 @@ const DocumentChunksPage: React.FC = () => {
           available_int: Math.random() > 0.3 ? 1 : 0,
           positions: []
         }))
+        // 对模拟数据也应用状态筛选
+        let filteredMockChunks = mockChunks
+        if (filterStatus !== 'all') {
+          filteredMockChunks = mockChunks.filter(chunk => {
+            if (filterStatus === 'enabled') {
+              return chunk.available_int === 1
+            } else {
+              return chunk.available_int === 0
+            }
+          })
+        }
+        
         setChunks(mockChunks)
+        setFilteredChunks(filteredMockChunks)
         setTotal(mockTotal)
         setDocInfo({
           id: docId,
@@ -151,7 +168,7 @@ const DocumentChunksPage: React.FC = () => {
     }
     
     loadChunks()
-  }, [docId, page, pageSize, searchKeyword, kbId])
+  }, [docId, page, pageSize, searchKeyword, filterStatus, kbId])
   
   // 切换分段状态
   const handleToggleChunkStatus = async (chunk: ChunkData) => {
@@ -201,13 +218,25 @@ const DocumentChunksPage: React.FC = () => {
   
   // 编辑分段
   const handleEditChunk = async () => {
-    if (!selectedChunk || !editingChunkContent.trim()) return
+    if (!selectedChunk || !editingChunkContent.trim() || !docId) return
     
     try {
-      // 模拟API调用 - 待实现chunk.set接口
-      // await api.chunk.set(selectedChunk.chunk_id, { content: editingChunkContent })
+      // 调用 chunk set 接口
+      await knowledgeAPI.document.setChunk({
+        doc_id: docId,
+        chunk_id: selectedChunk.chunk_id,
+        content_with_weight: editingChunkContent
+      })
       
+      // 更新本地状态
       setChunks(prev => prev.map(c => 
+        c.chunk_id === selectedChunk.chunk_id 
+          ? { ...c, content_with_weight: editingChunkContent }
+          : c
+      ))
+      
+      // 同步更新筛选后的数据
+      setFilteredChunks(prev => prev.map(c => 
         c.chunk_id === selectedChunk.chunk_id 
           ? { ...c, content_with_weight: editingChunkContent }
           : c
@@ -218,6 +247,7 @@ const DocumentChunksPage: React.FC = () => {
       setEditingChunkContent('')
     } catch (error) {
       console.error('Failed to edit chunk:', error)
+      alert('保存分段失败，请重试')
     }
   }
   
@@ -235,6 +265,84 @@ const DocumentChunksPage: React.FC = () => {
     } catch (error) {
       console.error('Failed to delete chunk:', error)
     }
+  }
+  
+  // 开始元数据标注
+  const handleStartMetaAnnotation = () => {
+    // 初始化编辑状态，将对象转换为数组格式
+    const currentMeta = docInfo?.meta_fields || {}
+    const metaArray = Object.entries(currentMeta).map(([key, value], index) => ({
+      id: `meta_${index + 1}`,
+      key,
+      value
+    }))
+    setEditingMeta(metaArray)
+    setNextMetaId(metaArray.length + 1)
+    setMetaModalOpen(true)
+  }
+  
+  // 保存元数据
+  const handleSaveMeta = async () => {
+    if (!docId) return
+    
+    try {
+      // 将数组格式转换回对象格式
+      const metaObject = editingMeta.reduce((acc, item) => {
+        if (item.key.trim()) {
+          acc[item.key] = item.value
+        }
+        return acc
+      }, {} as Record<string, any>)
+      
+      await knowledgeAPI.document.setDocumentMeta({
+        doc_id: docId,
+        meta: metaObject
+      })
+      
+      // 更新本地文档信息
+      if (docInfo) {
+        setDocInfo({
+          ...docInfo,
+          meta_fields: metaObject
+        })
+      }
+      
+      setMetaModalOpen(false)
+      setEditingMeta([])
+    } catch (error) {
+      console.error('Failed to save meta:', error)
+      alert('保存元数据失败，请重试')
+    }
+  }
+  
+  // 添加元数据字段
+  const handleAddMetaField = () => {
+    const newId = `meta_${nextMetaId}`
+    setEditingMeta(prev => [...prev, {
+      id: newId,
+      key: `field_${nextMetaId}`,
+      value: ''
+    }])
+    setNextMetaId(prev => prev + 1)
+  }
+  
+  // 删除元数据字段
+  const handleRemoveMetaField = (id: string) => {
+    setEditingMeta(prev => prev.filter(item => item.id !== id))
+  }
+  
+  // 更新元数据字段的key
+  const handleUpdateMetaKey = (id: string, newKey: string) => {
+    setEditingMeta(prev => prev.map(item => 
+      item.id === id ? { ...item, key: newKey } : item
+    ))
+  }
+  
+  // 更新元数据字段的value
+  const handleUpdateMetaValue = (id: string, newValue: any) => {
+    setEditingMeta(prev => prev.map(item => 
+      item.id === id ? { ...item, value: newValue } : item
+    ))
   }
   
   // 格式化日期
@@ -338,13 +446,20 @@ const DocumentChunksPage: React.FC = () => {
                 </div>
                 
                 {/* 搜索框 */}
-                <div className="relative w-full sm:w-64">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <div className="w-full sm:w-64">
                   <Input
+                    type="search"
                     placeholder="搜索分段内容..."
                     value={searchKeyword}
                     onChange={(e) => setSearchKeyword(e.target.value)}
-                    className="pl-10 w-full"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        // 触发搜索（实际上会通过 useEffect 自动触发）
+                        e.preventDefault()
+                      }
+                    }}
+                    leftIcon={<Search className="h-4 w-4" />}
+                    className="w-full"
                   />
                 </div>
                 
@@ -397,6 +512,7 @@ const DocumentChunksPage: React.FC = () => {
                       setSelectedChunk(chunk)
                       setIsEditMode(true)
                       setEditingChunkContent(chunk.content_with_weight)
+                      setIsMarkdownPreview(false) // 重置为编辑模式
                     }}
                   >
                     {/* 分段头部 */}
@@ -439,8 +555,9 @@ const DocumentChunksPage: React.FC = () => {
                             onClick={(e) => {
                               e.stopPropagation()
                               setSelectedChunk(chunk)
+                              setIsEditMode(true)
                               setEditingChunkContent(chunk.content_with_weight)
-                              setEditChunkModalOpen(true)
+                              setIsMarkdownPreview(false) // 重置为编辑模式
                             }}
                           >
                             <Edit2 className="h-4 w-4 text-blue-600" />
@@ -583,6 +700,7 @@ const DocumentChunksPage: React.FC = () => {
                       setIsEditMode(false)
                       setSelectedChunk(null)
                       setEditingChunkContent('')
+                      setIsMarkdownPreview(false) // 重置预览状态
                     }}
                   >
                     <X className="h-4 w-4" />
@@ -591,17 +709,132 @@ const DocumentChunksPage: React.FC = () => {
               </div>
               
               <div className="flex-1 p-6 overflow-y-auto">
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                <div className="space-y-4 h-full flex flex-col">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-sm font-medium text-gray-700">
                       分段内容
                     </label>
-                    <textarea
-                      value={editingChunkContent}
-                      onChange={(e) => setEditingChunkContent(e.target.value)}
-                      className="w-full h-80 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none text-sm"
-                      placeholder="请输入分段内容..."
-                    />
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsMarkdownPreview(!isMarkdownPreview)}
+                        className={cn(
+                          "text-xs flex items-center space-x-1",
+                          isMarkdownPreview ? "bg-blue-50 text-blue-600 border-blue-300" : ""
+                        )}
+                      >
+                        {isMarkdownPreview ? (
+                          <>
+                            <Code className="h-3 w-3" />
+                            <span>编辑</span>
+                          </>
+                        ) : (
+                          <>
+                            <Eye className="h-3 w-3" />
+                            <span>预览</span>
+                          </>
+                        )}
+                      </Button>
+                      <span className="inline-flex items-center px-2 py-1 rounded text-xs bg-orange-100 text-orange-600 font-medium">
+                        Beta
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex-1 min-h-0">
+                    {isMarkdownPreview ? (
+                      <div className="w-full h-full px-4 py-3 border border-gray-300 rounded-md bg-gray-50 overflow-y-auto">
+                        <div 
+                          className="prose prose-sm max-w-none text-sm leading-relaxed"
+                          dangerouslySetInnerHTML={{
+                            __html: (() => {
+                              let content = editingChunkContent
+                              
+                              // 表格处理（需要在其他处理之前）
+                              content = content.replace(/(\|[^\n]*\|\n\|[-:\s|]+\|\n(?:\|[^\n]*\|\n?)*)/g, (match) => {
+                                const lines = match.trim().split('\n')
+                                if (lines.length < 3) return match
+                                
+                                const headers = lines[0].split('|').map(h => h.trim()).filter(h => h !== '')
+                                const separators = lines[1].split('|').map(s => s.trim()).filter(s => s !== '')
+                                const rows = lines.slice(2).map(line => 
+                                  line.split('|').map(cell => cell.trim()).filter(cell => cell !== '')
+                                )
+                                
+                                // 检查是否是有效的表格格式
+                                if (headers.length === 0 || separators.length === 0 || separators.every(s => !/^[-:]+$/.test(s))) {
+                                  return match
+                                }
+                                
+                                let tableHtml = '<table class="min-w-full border-collapse border border-gray-300 my-4">'
+                                
+                                // 表头
+                                tableHtml += '<thead class="bg-gray-50">'
+                                tableHtml += '<tr>'
+                                headers.forEach(header => {
+                                  tableHtml += `<th class="border border-gray-300 px-3 py-2 text-left font-semibold text-gray-900">${header}</th>`
+                                })
+                                tableHtml += '</tr>'
+                                tableHtml += '</thead>'
+                                
+                                // 表格内容
+                                tableHtml += '<tbody>'
+                                rows.forEach((row, index) => {
+                                  tableHtml += `<tr class="${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}">`
+                                  row.forEach((cell, cellIndex) => {
+                                    if (cellIndex < headers.length) {
+                                      tableHtml += `<td class="border border-gray-300 px-3 py-2 text-gray-700">${cell}</td>`
+                                    }
+                                  })
+                                  // 填充空单元格
+                                  for (let i = row.length; i < headers.length; i++) {
+                                    tableHtml += '<td class="border border-gray-300 px-3 py-2 text-gray-700"></td>'
+                                  }
+                                  tableHtml += '</tr>'
+                                })
+                                tableHtml += '</tbody>'
+                                tableHtml += '</table>'
+                                
+                                return tableHtml
+                              })
+                              
+                              // 其他 Markdown 语法处理
+                              content = content
+                                // 标题
+                                .replace(/^### (.*?)$/gm, '<h3 class="text-lg font-semibold mt-4 mb-2 text-gray-900">$1</h3>')
+                                .replace(/^## (.*?)$/gm, '<h2 class="text-xl font-semibold mt-4 mb-2 text-gray-900">$1</h2>')
+                                .replace(/^# (.*?)$/gm, '<h1 class="text-2xl font-bold mt-4 mb-2 text-gray-900">$1</h1>')
+                                // 列表
+                                .replace(/^[\s]*[-*+] (.*?)$/gm, '<ul class="list-disc ml-4 my-2"><li class="my-1">$1</li></ul>')
+                                .replace(/^[\s]*\d+\. (.*?)$/gm, '<ol class="list-decimal ml-4 my-2"><li class="my-1">$1</li></ol>')
+                                // 代码块
+                                .replace(/```([\s\S]*?)```/g, '<pre class="bg-gray-100 p-3 rounded-md my-3 overflow-x-auto"><code class="text-sm font-mono">$1</code></pre>')
+                                // 行内代码
+                                .replace(/`(.*?)`/g, '<code class="bg-gray-200 px-1.5 py-0.5 rounded text-sm font-mono">$1</code>')
+                                // 粗体和斜体
+                                .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold">$1</strong>')
+                                .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
+                                // 链接
+                                .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-blue-600 hover:text-blue-800 underline" target="_blank" rel="noopener noreferrer">$1</a>')
+                                // 换行
+                                .replace(/\n\n/g, '<br><br>')
+                                .replace(/\n/g, '<br>')
+                              
+                              return content
+                            })()
+                          }}
+                        />
+                      </div>
+                    ) : (
+                      <textarea
+                        value={editingChunkContent}
+                        onChange={(e) => setEditingChunkContent(e.target.value)}
+                        className="w-full h-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none text-sm font-mono leading-relaxed"
+                        placeholder="请输入分段内容...&#10;&#10;支持 Markdown 语法：&#10;# 标题1  ## 标题2  ### 标题3&#10;**粗体** *斜体* `行内代码`&#10;```代码块```&#10;- 列表项  1. 数字列表&#10;[链接文本](URL)&#10;| 表头1 | 表头2 |&#10;|-------|-------|&#10;| 数据1 | 数据2 |"
+                        style={{ minHeight: '300px' }}
+                      />
+                    )}
                   </div>
                 </div>
               </div>
@@ -614,6 +847,7 @@ const DocumentChunksPage: React.FC = () => {
                       setIsEditMode(false)
                       setSelectedChunk(null)
                       setEditingChunkContent('')
+                      setIsMarkdownPreview(false) // 重置预览状态
                     }}
                   >
                     取消
@@ -643,10 +877,7 @@ const DocumentChunksPage: React.FC = () => {
                   <Button
                     variant="outline"
                     className="w-full"
-                    onClick={() => {
-                      // TODO: 实现元数据标注功能
-                      alert('元数据标注功能开发中...')
-                    }}
+                    onClick={handleStartMetaAnnotation}
                   >
                     <Tag className="h-4 w-4 mr-2" />
                     开始标注
@@ -799,35 +1030,6 @@ const DocumentChunksPage: React.FC = () => {
         </div>
       </Modal>
 
-      {/* 编辑分段模态框 */}
-      <Modal
-        open={editChunkModalOpen}
-        onClose={() => setEditChunkModalOpen(false)}
-        title={`编辑分段 ${selectedChunk?.chunk_id.slice(-8)}`}
-        size="lg"
-      >
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              分段内容
-            </label>
-            <textarea
-              value={editingChunkContent}
-              onChange={(e) => setEditingChunkContent(e.target.value)}
-              className="w-full h-48 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-            />
-          </div>
-          <div className="flex justify-end space-x-3">
-            <Button variant="outline" onClick={() => setEditChunkModalOpen(false)}>
-              取消
-            </Button>
-            <Button onClick={handleEditChunk} disabled={!editingChunkContent.trim()}>
-              <Save className="h-4 w-4 mr-2" />
-              保存修改
-            </Button>
-          </div>
-        </div>
-      </Modal>
 
       {/* 删除确认模态框 */}
       <ConfirmModal
@@ -837,6 +1039,108 @@ const DocumentChunksPage: React.FC = () => {
         title="确认删除"
         description="确定要删除这个分段吗？此操作不可逆。"
       />
+
+      {/* 元数据标注模态框 */}
+      <Modal
+        open={metaModalOpen}
+        onClose={() => setMetaModalOpen(false)}
+        title="文档元数据标注"
+        size="lg"
+      >
+        <div className="space-y-6">
+          <div className="text-sm text-gray-600">
+            为文档添加结构化元数据，便于后续的检索和分析。
+          </div>
+          
+          {/* 元数据字段列表 */}
+          <div className="space-y-4 max-h-96 overflow-y-auto">
+            {editingMeta.map((item) => (
+              <div key={item.id} className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg">
+                <div className="flex-1 grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      字段名
+                    </label>
+                    <Input
+                      value={item.key}
+                      onChange={(e) => handleUpdateMetaKey(item.id, e.target.value)}
+                      placeholder="字段名..."
+                      className="text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      字段值
+                    </label>
+                    <Input
+                      value={typeof item.value === 'string' ? item.value : JSON.stringify(item.value)}
+                      onChange={(e) => {
+                        let newValue: any = e.target.value
+                        // 尝试解析JSON，如果失败则作为字符串
+                        try {
+                          if (e.target.value.startsWith('{') || e.target.value.startsWith('[')) {
+                            newValue = JSON.parse(e.target.value)
+                          }
+                        } catch {
+                          // 保持为字符串
+                        }
+                        handleUpdateMetaValue(item.id, newValue)
+                      }}
+                      placeholder="字段值..."
+                      className="text-sm"
+                    />
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={() => handleRemoveMetaField(item.id)}
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+            
+            {editingMeta.length === 0 && (
+              <div className="text-center py-8 text-gray-500">
+                <Tag className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p>暂无元数据字段</p>
+                <p className="text-sm">点击下方按钮添加第一个字段</p>
+              </div>
+            )}
+          </div>
+          
+          {/* 添加字段按钮 */}
+          <div className="border-t pt-4">
+            <Button
+              variant="outline"
+              onClick={handleAddMetaField}
+              className="w-full text-blue-600 border-blue-300 hover:bg-blue-50"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              添加元数据字段
+            </Button>
+          </div>
+          
+          {/* 操作按钮 */}
+          <div className="flex justify-end space-x-3 pt-4 border-t">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setMetaModalOpen(false)
+                setEditingMeta([])
+              }}
+            >
+              取消
+            </Button>
+            <Button onClick={handleSaveMeta}>
+              <Save className="h-4 w-4 mr-2" />
+              保存元数据
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   )
 }
