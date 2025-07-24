@@ -236,15 +236,28 @@ const KnowledgeDocumentsPage: React.FC = () => {
   const handleToggleParse = async (doc: Document) => {
     try {
       if (doc.run === '1') {
-        // 停止任务
-        await knowledgeAPI.document.run([doc.id], 'cancel')
+        // 停止任务 (run = 0)
+        await knowledgeAPI.document.run([doc.id], 0)
       } else {
-        // 开始任务
-        await knowledgeAPI.document.run([doc.id], 'run')
+        // 开始任务 (run = 1)
+        await knowledgeAPI.document.run([doc.id], 1)
       }
       fetchDocuments()
     } catch (error) {
       console.error('Failed to toggle task:', error)
+    }
+  }
+  
+  // 重新处理文档
+  const handleReprocess = async (doc: Document) => {
+    const confirmed = window.confirm(`确定要重新处理文档 "${doc.name}" 吗？这将清除历史处理数据并重新开始解析。`)
+    if (confirmed) {
+      try {
+        await knowledgeAPI.document.run([doc.id], 1, true)
+        fetchDocuments()
+      } catch (error) {
+        console.error('Failed to reprocess document:', error)
+      }
     }
   }
   
@@ -649,6 +662,15 @@ const KnowledgeDocumentsPage: React.FC = () => {
                 {record.run === '1' ? <Square className="h-4 w-4" /> : <Play className="h-4 w-4" />}
               </Button>
             </Tooltip>
+            <Tooltip content="重新处理文档（清除历史数据）">
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={() => handleReprocess(record)}
+              >
+                <RefreshCw className="h-4 w-4" />
+              </Button>
+            </Tooltip>
             <Tooltip content="重命名文档">
               <Button
                 variant="ghost"
@@ -702,7 +724,7 @@ const KnowledgeDocumentsPage: React.FC = () => {
                 placeholder="搜索文档..."
                 value={searchKeywords}
                 onChange={(e) => setSearchKeywords(e.target.value)}
-                onKeyPress={(e) => {
+                onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     fetchDocuments()
                   }
@@ -1168,7 +1190,7 @@ const KnowledgeDocumentsPage: React.FC = () => {
                 size="sm"
                 onClick={async () => {
                   try {
-                    await knowledgeAPI.document.run(Array.from(selectedDocs), 'run')
+                    await knowledgeAPI.document.run(Array.from(selectedDocs), 1)
                     setSelectedDocs(new Set())
                     fetchDocuments()
                   } catch (error) {
@@ -1185,7 +1207,7 @@ const KnowledgeDocumentsPage: React.FC = () => {
                 size="sm"
                 onClick={async () => {
                   try {
-                    await knowledgeAPI.document.run(Array.from(selectedDocs), 'cancel')
+                    await knowledgeAPI.document.run(Array.from(selectedDocs), 0)
                     setSelectedDocs(new Set())
                     fetchDocuments()
                   } catch (error) {
@@ -1196,6 +1218,26 @@ const KnowledgeDocumentsPage: React.FC = () => {
               >
                 <Square className="h-4 w-4 mr-1" />
                 停止任务
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  const confirmed = window.confirm(`确定要重新处理选中的 ${selectedDocs.size} 个文档吗？这将清除历史处理数据并重新开始解析。`)
+                  if (confirmed) {
+                    try {
+                      await knowledgeAPI.document.run(Array.from(selectedDocs), 1, true)
+                      setSelectedDocs(new Set())
+                      fetchDocuments()
+                    } catch (error) {
+                      console.error('Failed to reprocess documents:', error)
+                    }
+                  }
+                }}
+                className="text-purple-600 border-purple-300 hover:bg-purple-50"
+              >
+                <RefreshCw className="h-4 w-4 mr-1" />
+                重新处理
               </Button>
               <Button
                 variant="destructive"

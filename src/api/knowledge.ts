@@ -229,9 +229,13 @@ export const knowledgeAPI = {
     }): Promise<{ success_count: number; failed_count: number; errors?: any[] }> =>
       apiClient.post('/v1/document/batch', { operation, ...data }),
 
-    // 文档运行控制 (开始/取消解析)
-    run: (docIds: string[], action: 'run' | 'cancel'): Promise<void> =>
-      apiClient.post('/v1/document/run', { doc_ids: docIds, action }),
+    // 文档运行控制 (开始/停止解析) - 匹配后端RunRequest结构
+    run: (docIds: string[], run: number, deleteHistory?: boolean): Promise<void> =>
+      apiClient.post('/v1/document/run', { 
+        doc_ids: docIds, 
+        run, 
+        delete: deleteHistory || false 
+      }),
 
     // 更新文档状态 (启用/禁用)
     updateStatus: (docIds: string[], status: '0' | '1'): Promise<void> =>
