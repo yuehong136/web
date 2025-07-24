@@ -20,6 +20,7 @@ import {
 } from 'lucide-react'
 import { useKnowledgeStore } from '../../stores/knowledge'
 import { knowledgeAPI } from '../../api/knowledge'
+import { toast } from '../../lib/toast'
 import type { Document, DocumentFilter } from '../../types/api'
 import { 
   Button,
@@ -226,11 +227,28 @@ const KnowledgeDocumentsPage: React.FC = () => {
   // 切换文档启用状态
   const handleToggleStatus = async (doc: Document) => {
     try {
-      await knowledgeAPI.document.updateStatus([doc.id], doc.status === '1' ? '0' : '1')
+      const newStatus = doc.status === '1' ? 0 : 1
+      const result = await knowledgeAPI.document.changeStatus({
+        doc_ids: [doc.id],
+        status: newStatus
+      })
+      
+      // 检查操作结果
+      const docResult = result[doc.id]
+      if (docResult?.error) {
+        console.error('Failed to toggle document status:', docResult.error)
+        toast.error(`状态切换失败: ${docResult.error}`)
+        return
+      }
+      
+      // 显示成功提示
+      toast.success(`文档已${newStatus === 1 ? '启用' : '禁用'}`)
+      
       fetchDocuments()
-    } catch (error) {
-      console.error('Failed to toggle document status:', error)
-    }
+          } catch (error) {
+        console.error('Failed to toggle document status:', error)
+        toast.error('状态切换失败，请重试')
+      }
   }
   
   // 开始/停止任务
@@ -1146,16 +1164,39 @@ const KnowledgeDocumentsPage: React.FC = () => {
                 size="sm"
                 onClick={async () => {
                   try {
-                    await Promise.all(
-                      Array.from(selectedDocs).map(docId => {
-                        const doc = documents.find(d => d.id === docId)
-                        return doc ? knowledgeAPI.document.updateStatus([docId], '1') : Promise.resolve()
-                      })
-                    )
+                    const docIds = Array.from(selectedDocs)
+                    const result = await knowledgeAPI.document.changeStatus({
+                      doc_ids: docIds,
+                      status: 1
+                    })
+                    
+                    // 统计操作结果
+                    let successCount = 0
+                    let errorCount = 0
+                    const errors: string[] = []
+                    
+                    Object.entries(result).forEach(([docId, res]) => {
+                      if (res.error) {
+                        errorCount++
+                        errors.push(`${docId}: ${res.error}`)
+                      } else {
+                        successCount++
+                      }
+                    })
+                    
+                    // 显示操作结果
+                    if (errorCount > 0) {
+                      console.error('Some documents failed to enable:', errors)
+                      toast.warning(`批量启用完成: 成功 ${successCount} 个，失败 ${errorCount} 个`, { duration: 5000 })
+                    } else {
+                      toast.success(`成功启用 ${successCount} 个文档`)
+                    }
+                    
                     setSelectedDocs(new Set())
                     fetchDocuments()
                   } catch (error) {
                     console.error('Failed to enable documents:', error)
+                    toast.error('批量启用失败，请重试')
                   }
                 }}
                 className="text-green-600 border-green-300 hover:bg-green-50"
@@ -1168,16 +1209,39 @@ const KnowledgeDocumentsPage: React.FC = () => {
                 size="sm"
                 onClick={async () => {
                   try {
-                    await Promise.all(
-                      Array.from(selectedDocs).map(docId => {
-                        const doc = documents.find(d => d.id === docId)
-                        return doc ? knowledgeAPI.document.updateStatus([docId], '0') : Promise.resolve()
-                      })
-                    )
+                    const docIds = Array.from(selectedDocs)
+                    const result = await knowledgeAPI.document.changeStatus({
+                      doc_ids: docIds,
+                      status: 0
+                    })
+                    
+                    // 统计操作结果
+                    let successCount = 0
+                    let errorCount = 0
+                    const errors: string[] = []
+                    
+                    Object.entries(result).forEach(([docId, res]) => {
+                      if (res.error) {
+                        errorCount++
+                        errors.push(`${docId}: ${res.error}`)
+                      } else {
+                        successCount++
+                      }
+                    })
+                    
+                    // 显示操作结果
+                    if (errorCount > 0) {
+                      console.error('Some documents failed to disable:', errors)
+                      toast.warning(`批量禁用完成: 成功 ${successCount} 个，失败 ${errorCount} 个`, { duration: 5000 })
+                    } else {
+                      toast.success(`成功禁用 ${successCount} 个文档`)
+                    }
+                    
                     setSelectedDocs(new Set())
                     fetchDocuments()
                   } catch (error) {
                     console.error('Failed to disable documents:', error)
+                    toast.error('批量禁用失败，请重试')
                   }
                 }}
                 className="text-gray-600 border-gray-300 hover:bg-gray-50"

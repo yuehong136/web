@@ -237,7 +237,20 @@ export const knowledgeAPI = {
         delete: deleteHistory || false 
       }),
 
-    // 更新文档状态 (启用/禁用)
+    // 更新文档状态 (启用/禁用) - 新接口
+    changeStatus: (params: {
+      doc_ids: string[] | string
+      status: number
+      doc_id?: string // 向后兼容
+    }): Promise<{
+      [docId: string]: { 
+        status?: string
+        error?: string 
+      }
+    }> =>
+      apiClient.post('/v1/document/change_status', params),
+
+    // 更新文档状态 (启用/禁用) - 旧接口，保持兼容
     updateStatus: (docIds: string[], status: '0' | '1'): Promise<void> =>
       apiClient.post('/v1/document/status', { doc_ids: docIds, status }),
 
@@ -340,6 +353,21 @@ export const knowledgeAPI = {
       meta: Record<string, any>
     }): Promise<boolean> =>
       apiClient.post('/v1/document/set_meta', params),
+
+    // 批量切换文档分段状态
+    switchChunks: (params: {
+      doc_id: string
+      chunk_ids: string[]
+      available_int: number
+    }): Promise<boolean> =>
+      apiClient.post('/v1/chunk/switch', params),
+
+    // 删除文档分段
+    deleteChunks: (params: {
+      doc_id: string
+      chunk_ids: string[]
+    }): Promise<boolean> =>
+      apiClient.post('/v1/chunk/rm', params),
   },
 
   // 标签管理

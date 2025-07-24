@@ -9,8 +9,6 @@ import {
   Save,
   X,
   ArrowLeft,
-  ToggleLeft,
-  ToggleRight,
   ChevronDown,
   ChevronRight,
   Tag,
@@ -18,7 +16,6 @@ import {
   Code
 } from 'lucide-react'
 import { knowledgeAPI } from '../../api/knowledge'
-import type { DocumentChunk, Document } from '../../types/api'
 import { 
   Button,
   Input, 
@@ -26,7 +23,8 @@ import {
   Modal,
   ConfirmModal,
   Tooltip,
-  PageSizeSelector
+  PageSizeSelector,
+  ToggleSwitch
 } from '../../components/ui'
 import { cn } from '../../lib/utils'
 
@@ -51,7 +49,6 @@ const DocumentChunksPage: React.FC = () => {
   // 状态管理
   const [docInfo, setDocInfo] = useState<any>(null)
   const [chunks, setChunks] = useState<ChunkData[]>([])
-  const [filteredChunks, setFilteredChunks] = useState<ChunkData[]>([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
   const [selectedChunk, setSelectedChunk] = useState<ChunkData | null>(null)
@@ -86,14 +83,30 @@ const DocumentChunksPage: React.FC = () => {
   const [editingMeta, setEditingMeta] = useState<Array<{id: string; key: string; value: any}>>([])
   const [nextMetaId, setNextMetaId] = useState(1)
   
+  // 计算筛选后的分段数据（状态筛选在前端，搜索在后端）
+  const filteredChunks = React.useMemo(() => {
+    // 只应用状态筛选，搜索已在后端完成
+    if (filterStatus === 'all') {
+      return chunks
+    }
+    
+    return chunks.filter(chunk => {
+      if (filterStatus === 'enabled') {
+        return chunk.available_int === 1
+      } else {
+        return chunk.available_int === 0
+      }
+    })
+  }, [chunks, filterStatus])
   
   
-  // 监听搜索关键词或筛选状态变化，重置到第一页
+  
+  // 监听搜索关键词变化，重置到第一页
   useEffect(() => {
     if (page !== 1) {
       setPage(1)
     }
-  }, [searchKeyword, filterStatus])
+  }, [searchKeyword])
   
   // 监听分页参数变化，重新获取数据
   useEffect(() => {
@@ -110,20 +123,7 @@ const DocumentChunksPage: React.FC = () => {
           keywords: searchKeyword.trim() || undefined
         })
         
-        // 根据状态筛选应用前端过滤（如果 API 不支持状态筛选）
-        let filteredChunks = response.chunks
-        if (filterStatus !== 'all') {
-          filteredChunks = response.chunks.filter(chunk => {
-            if (filterStatus === 'enabled') {
-              return chunk.available_int === 1
-            } else {
-              return chunk.available_int === 0
-            }
-          })
-        }
-        
         setChunks(response.chunks)
-        setFilteredChunks(filteredChunks)
         setTotal(response.total)
         setDocInfo(response.doc)
       } catch (error) {
@@ -142,20 +142,7 @@ const DocumentChunksPage: React.FC = () => {
           available_int: Math.random() > 0.3 ? 1 : 0,
           positions: []
         }))
-        // 对模拟数据也应用状态筛选
-        let filteredMockChunks = mockChunks
-        if (filterStatus !== 'all') {
-          filteredMockChunks = mockChunks.filter(chunk => {
-            if (filterStatus === 'enabled') {
-              return chunk.available_int === 1
-            } else {
-              return chunk.available_int === 0
-            }
-          })
-        }
-        
         setChunks(mockChunks)
-        setFilteredChunks(filteredMockChunks)
         setTotal(mockTotal)
         setDocInfo({
           id: docId,
@@ -168,23 +155,32 @@ const DocumentChunksPage: React.FC = () => {
     }
     
     loadChunks()
-  }, [docId, page, pageSize, searchKeyword, filterStatus, kbId])
+  }, [docId, page, pageSize, searchKeyword, kbId])
   
   // 切换分段状态
   const handleToggleChunkStatus = async (chunk: ChunkData) => {
+    if (!docId) return
+    
     try {
       const newStatus = chunk.available_int === 1 ? 0 : 1
       
-      // 模拟API调用
-      // await api.chunk.switch(chunk.chunk_id, newStatus)
+      // 调用真实的switch API
+      await knowledgeAPI.document.switchChunks({
+        doc_id: docId,
+        chunk_ids: [chunk.chunk_id],
+        available_int: newStatus
+      })
       
+      // 更新本地状态（filteredChunks会自动重新计算）
       setChunks(prev => prev.map(c => 
         c.chunk_id === chunk.chunk_id 
           ? { ...c, available_int: newStatus }
           : c
       ))
+      
     } catch (error) {
       console.error('Failed to toggle chunk status:', error)
+      alert('切换分段状态失败，请重试')
     }
   }
   
@@ -228,15 +224,8 @@ const DocumentChunksPage: React.FC = () => {
         content_with_weight: editingChunkContent
       })
       
-      // 更新本地状态
+      // 更新本地状态（filteredChunks会自动重新计算）
       setChunks(prev => prev.map(c => 
-        c.chunk_id === selectedChunk.chunk_id 
-          ? { ...c, content_with_weight: editingChunkContent }
-          : c
-      ))
-      
-      // 同步更新筛选后的数据
-      setFilteredChunks(prev => prev.map(c => 
         c.chunk_id === selectedChunk.chunk_id 
           ? { ...c, content_with_weight: editingChunkContent }
           : c
@@ -253,17 +242,28 @@ const DocumentChunksPage: React.FC = () => {
   
   // 删除分段
   const handleDeleteChunk = async () => {
-    if (!deletingChunkId) return
+    if (!deletingChunkId || !docId) return
     
     try {
-      // 模拟API调用 - 待实现chunk.delete接口
-      // await api.chunk.delete(deletingChunkId)
+      // 调用真实的删除API
+      await knowledgeAPI.document.deleteChunks({
+        doc_id: docId,
+        chunk_ids: [deletingChunkId]
+      })
       
+      // 更新本地状态
       setChunks(prev => prev.filter(c => c.chunk_id !== deletingChunkId))
+      setTotal(prev => prev - 1) // 更新总数
+      
       setDeleteConfirmOpen(false)
       setDeletingChunkId('')
+      
+      // 可选：显示成功提示
+      // toast.success('分段删除成功')
+      
     } catch (error) {
       console.error('Failed to delete chunk:', error)
+      alert('删除分段失败，请重试')
     }
   }
   
@@ -413,35 +413,50 @@ const DocumentChunksPage: React.FC = () => {
                   <button
                     onClick={() => setFilterStatus('all')}
                     className={cn(
-                      "px-3 py-1.5 text-sm font-medium rounded-md transition-colors",
+                      "px-3 py-1.5 text-sm font-medium rounded-md transition-colors flex items-center space-x-2",
                       filterStatus === 'all'
                         ? "bg-white text-gray-900 shadow-sm"
                         : "text-gray-600 hover:text-gray-900"
                     )}
                   >
-                    全部
+                    <span>全部</span>
+                    <span className="text-xs bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded-full">
+                      {chunks.length}
+                    </span>
                   </button>
                   <button
                     onClick={() => setFilterStatus('enabled')}
                     className={cn(
-                      "px-3 py-1.5 text-sm font-medium rounded-md transition-colors",
+                      "px-3 py-1.5 text-sm font-medium rounded-md transition-colors flex items-center space-x-2",
                       filterStatus === 'enabled'
                         ? "bg-white text-gray-900 shadow-sm"
                         : "text-gray-600 hover:text-gray-900"
                     )}
                   >
-                    启用
+                    <span className="flex items-center">
+                      <span className="w-1.5 h-1.5 bg-green-500 rounded-full mr-1.5" />
+                      启用
+                    </span>
+                    <span className="text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full">
+                      {chunks.filter(c => c.available_int === 1).length}
+                    </span>
                   </button>
                   <button
                     onClick={() => setFilterStatus('disabled')}
                     className={cn(
-                      "px-3 py-1.5 text-sm font-medium rounded-md transition-colors",
+                      "px-3 py-1.5 text-sm font-medium rounded-md transition-colors flex items-center space-x-2",
                       filterStatus === 'disabled'
                         ? "bg-white text-gray-900 shadow-sm"
                         : "text-gray-600 hover:text-gray-900"
                     )}
                   >
-                    禁用
+                    <span className="flex items-center">
+                      <span className="w-1.5 h-1.5 bg-red-500 rounded-full mr-1.5" />
+                      禁用
+                    </span>
+                    <span className="text-xs bg-red-100 text-red-700 px-1.5 py-0.5 rounded-full">
+                      {chunks.filter(c => c.available_int === 0).length}
+                    </span>
                   </button>
                 </div>
                 
@@ -466,7 +481,12 @@ const DocumentChunksPage: React.FC = () => {
                 {/* 结果统计和展开折叠控制 */}
                 <div className="flex items-center space-x-4">
                   <div className="text-sm text-gray-600">
-                    显示 {filteredChunks.length} / {chunks.length} 个分段
+                    显示 {filteredChunks.length} / {total} 个分段
+                    {searchKeyword.trim() && (
+                      <span className="ml-2 text-blue-600">
+                        (搜索: "{searchKeyword.trim()}")
+                      </span>
+                    )}
                   </div>
                   
                   <Tooltip content={isExpanded ? '折叠分段' : '展开分段'}>
@@ -518,36 +538,40 @@ const DocumentChunksPage: React.FC = () => {
                     {/* 分段头部 */}
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center space-x-2">
-                        <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800">
-                          {chunk.chunk_id.slice(-8)}
-                        </span>
+                        <Tooltip content={`完整ID: ${chunk.chunk_id}`}>
+                          <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800 cursor-help">
+                            {chunk.chunk_id.length > 16 
+                              ? `${chunk.chunk_id.slice(0, 8)}...${chunk.chunk_id.slice(-8)}`
+                              : chunk.chunk_id
+                            }
+                          </span>
+                        </Tooltip>
                         <span className={cn(
-                          "inline-flex items-center px-2 py-1 rounded text-xs font-medium",
+                          "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold shadow-sm",
                           chunk.available_int === 1
-                            ? "bg-green-100 text-green-800"
-                            : "bg-gray-100 text-gray-800"
+                            ? "bg-green-100 text-green-700 ring-1 ring-green-200"
+                            : "bg-red-100 text-red-700 ring-1 ring-red-200"
                         )}>
+                          <span className={cn(
+                            "w-1.5 h-1.5 rounded-full mr-1.5",
+                            chunk.available_int === 1 ? "bg-green-500" : "bg-red-500"
+                          )} />
                           {chunk.available_int === 1 ? '启用' : '禁用'}
                         </span>
                       </div>
                       
                       {/* 悬停时显示的操作按钮 */}
-                      <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-1">
-                        <Tooltip content={chunk.available_int === 1 ? '禁用分段' : '启用分段'}>
-                          <Button
-                            variant="ghost"
-                            size="icon-sm"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              handleToggleChunkStatus(chunk)
-                            }}
-                          >
-                            {chunk.available_int === 1 ? 
-                              <ToggleRight className="h-4 w-4 text-green-600" /> : 
-                              <ToggleLeft className="h-4 w-4 text-gray-400" />
-                            }
-                          </Button>
-                        </Tooltip>
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-2">
+                        <div onClick={(e) => e.stopPropagation()}>
+                          <ToggleSwitch
+                            checked={chunk.available_int === 1}
+                            onChange={() => handleToggleChunkStatus(chunk)}
+                            size="sm"
+                            leftLabel="禁用"
+                            rightLabel="启用"
+                            className="bg-white/90 backdrop-blur-sm rounded-lg px-2 py-1 shadow-md border border-gray-200"
+                          />
+                        </div>
                         <Tooltip content="编辑分段">
                           <Button
                             variant="ghost"
@@ -690,9 +714,19 @@ const DocumentChunksPage: React.FC = () => {
             <div className="absolute inset-0 bg-white z-30 flex flex-col">
               <div className="p-6 border-b border-gray-200">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-medium text-gray-900">
-                    编辑分段 {selectedChunk.chunk_id.slice(-8)}
-                  </h3>
+                  <div className="flex items-center space-x-3">
+                    <h3 className="text-lg font-medium text-gray-900">
+                      编辑分段
+                    </h3>
+                    <Tooltip content={`完整ID: ${selectedChunk.chunk_id}`}>
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 cursor-help">
+                        {selectedChunk.chunk_id.length > 16 
+                          ? `${selectedChunk.chunk_id.slice(0, 8)}...${selectedChunk.chunk_id.slice(-8)}`
+                          : selectedChunk.chunk_id
+                        }
+                      </span>
+                    </Tooltip>
+                  </div>
                   <Button
                     variant="ghost"
                     size="icon-sm"
@@ -1036,8 +1070,8 @@ const DocumentChunksPage: React.FC = () => {
         open={deleteConfirmOpen}
         onClose={() => setDeleteConfirmOpen(false)}
         onConfirm={handleDeleteChunk}
-        title="确认删除"
-        description="确定要删除这个分段吗？此操作不可逆。"
+        title="确认删除分段"
+        description={`确定要删除分段 "${deletingChunkId}" 吗？此操作不可逆。`}
       />
 
       {/* 元数据标注模态框 */}
