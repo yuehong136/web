@@ -452,4 +452,51 @@ export const knowledgeAPI = {
     clearHistory: (): Promise<void> =>
       apiClient.delete('/v1/kb/search/history'),
   },
+
+  // 检索测试
+  retrievalTest: {
+    // 执行检索测试
+    test: (data: {
+      kb_ids: string[]
+      question: string
+      page?: number
+      size?: number
+      doc_ids?: string[] | null
+      similarity_threshold?: number
+      vector_similarity_weight?: number
+      use_kg?: boolean
+      top_k?: number
+      rerank_id?: string | null
+      highlight?: boolean
+      keyword?: boolean
+      search_mode?: {
+        type: 'sparse' | 'dense' | 'hybrid' | 'fusion'
+        weight_dense?: number
+        weight_sparse?: number
+        weights?: string
+      } | null
+      cross_languages?: string[] | null
+    }): Promise<{
+      total: number
+      chunks: Array<{
+        chunk_id: string
+        text: string
+        doc_id: string
+        docnm_kwd: string
+        kb_id: string
+        similarity: number
+        vector_similarity: number
+        term_similarity: number
+        highlight?: string
+        positions?: number[][]
+      }>
+      doc_aggs: Array<{
+        doc_name: string
+        doc_id: string
+        count: number
+      }>
+      labels: Record<string, any>
+    }> =>
+      apiClient.post('/v1/chunk/retrieval_test', data),
+  },
 }
