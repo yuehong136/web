@@ -534,7 +534,7 @@ const KnowledgeDocumentsPage: React.FC = () => {
               <div className="max-w-lg">
                 <div className="font-medium mb-2 text-gray-900">解析器: {value || '默认'}</div>
                 {record.parser_config && (
-                  <div className="text-xs text-gray-600 whitespace-pre-wrap max-h-32 overflow-y-auto">
+                  <div className="text-xs text-gray-600 whitespace-pre-wrap max-h-32 overflow-y-auto scrollbar-thin">
                     配置: {JSON.stringify(record.parser_config, null, 2)}
                   </div>
                 )}
@@ -581,7 +581,7 @@ const KnowledgeDocumentsPage: React.FC = () => {
                   <div className="max-w-2xl">
                     <div className="font-medium mb-2 text-gray-900">处理进度: {progress}%</div>
                     {record.progress_msg && (
-                      <div className="text-xs whitespace-pre-wrap max-h-60 overflow-y-auto leading-relaxed text-gray-700">
+                      <div className="text-xs whitespace-pre-wrap max-h-60 overflow-y-auto scrollbar-thin leading-relaxed text-gray-700">
                         {record.progress_msg}
                       </div>
                     )}
@@ -622,7 +622,7 @@ const KnowledgeDocumentsPage: React.FC = () => {
                 <div className="max-w-2xl">
                   <div className="font-medium mb-2 text-gray-900">状态: {status.text}</div>
                   {record.progress_msg && (
-                    <div className="text-xs whitespace-pre-wrap max-h-60 overflow-y-auto leading-relaxed text-gray-700">
+                    <div className="text-xs whitespace-pre-wrap max-h-60 overflow-y-auto scrollbar-thin leading-relaxed text-gray-700">
                       {record.progress_msg}
                     </div>
                   )}
@@ -884,7 +884,7 @@ const KnowledgeDocumentsPage: React.FC = () => {
                   </div>
                   <span>文件后缀</span>
                 </label>
-                <div className="space-y-2 max-h-40 overflow-y-auto">
+                <div className="space-y-2 max-h-40 overflow-y-auto scrollbar-thin">
                   {suffixOptions.map(option => (
                     <label key={option.value} className="flex items-center space-x-2">
                       <input
@@ -1026,7 +1026,7 @@ const KnowledgeDocumentsPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto scrollbar-thin">
             <Table<Document>
               columns={getTableColumns()}
               data={documents}
@@ -1415,7 +1415,7 @@ const KnowledgeDocumentsPage: React.FC = () => {
               <h4 className="text-sm font-medium text-gray-900 mb-3">
                 已选择 {selectedFiles.length} 个文件
               </h4>
-              <div className="space-y-2 max-h-40 overflow-y-auto">
+              <div className="space-y-2 max-h-40 overflow-y-auto scrollbar-thin">
                 {selectedFiles.map((file, index) => (
                   <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div className="flex items-center space-x-3 flex-1 min-w-0">

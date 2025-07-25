@@ -120,23 +120,90 @@
   }
 }
 
-/* 自定义滚动条样式 */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+/* 现代智能滚动条样式 - 2025最佳实践 */
+
+/* 默认隐藏滚动条 */
+* {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
 }
 
-::-webkit-scrollbar-track {
+*::-webkit-scrollbar {
+  width: 0px;
+  height: 0px;
   background: transparent;
 }
 
-::-webkit-scrollbar-thumb {
-  background: rgba(107, 114, 128, 0.3);
-  border-radius: 3px;
+/* 在hover时显示细滚动条 */
+.scrollbar-thin {
+  scrollbar-width: thin; /* Firefox */
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(107, 114, 128, 0.5);
+.scrollbar-thin::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.3); /* gray-400 with opacity */
+  border-radius: 2px;
+  transition: background-color 0.2s ease;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.6); /* gray-400 with higher opacity */
+}
+
+/* 只在内容可滚动时显示滚动条 */
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: transparent;
+}
+
+.scrollbar-thin:hover::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.3);
+}
+
+.scrollbar-thin:hover::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.6);
+}
+
+/* 确保在内容溢出时滚动条可见 */
+.scrollbar-thin[style*="overflow"] {
+  scrollbar-width: thin;
+}
+
+.scrollbar-thin[style*="overflow"]::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.2);
+}
+
+.scrollbar-thin[style*="overflow"]:hover::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.4);
+}
+
+/* 为内容可滚动的容器提供视觉提示 */
+.scrollable-container {
+  position: relative;
+}
+
+.scrollable-container::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(to bottom, transparent, rgba(156, 163, 175, 0.1), transparent);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.scrollable-container:hover::after {
+  opacity: 1;
 }
 
 /* 加载动画 */

@@ -508,7 +508,7 @@ const DocumentChunksPage: React.FC = () => {
 
           {/* 分段列表和分页容器 */}
           <div className="flex-1 flex flex-col min-h-0">
-            <div className="flex-1 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto scrollbar-thin">
             {loading ? (
               <div className="p-8 text-center text-gray-500">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -742,7 +742,7 @@ const DocumentChunksPage: React.FC = () => {
                 </div>
               </div>
               
-              <div className="flex-1 p-6 overflow-y-auto">
+              <div className="flex-1 p-6 overflow-y-auto scrollbar-thin">
                 <div className="space-y-4 h-full flex flex-col">
                   <div className="flex items-center justify-between">
                     <label className="block text-sm font-medium text-gray-700">
@@ -778,7 +778,7 @@ const DocumentChunksPage: React.FC = () => {
                   
                   <div className="flex-1 min-h-0">
                     {isMarkdownPreview ? (
-                      <div className="w-full h-full px-4 py-3 border border-gray-300 rounded-md bg-gray-50 overflow-y-auto">
+                      <div className="w-full h-full px-4 py-3 border border-gray-300 rounded-md bg-gray-50 overflow-y-auto scrollbar-thin">
                         <div 
                           className="prose prose-sm max-w-none text-sm leading-relaxed"
                           dangerouslySetInnerHTML={{
@@ -843,7 +843,7 @@ const DocumentChunksPage: React.FC = () => {
                                 .replace(/^[\s]*[-*+] (.*?)$/gm, '<ul class="list-disc ml-4 my-2"><li class="my-1">$1</li></ul>')
                                 .replace(/^[\s]*\d+\. (.*?)$/gm, '<ol class="list-decimal ml-4 my-2"><li class="my-1">$1</li></ol>')
                                 // 代码块
-                                .replace(/```([\s\S]*?)```/g, '<pre class="bg-gray-100 p-3 rounded-md my-3 overflow-x-auto"><code class="text-sm font-mono">$1</code></pre>')
+                                .replace(/```([\s\S]*?)```/g, '<pre class="bg-gray-100 p-3 rounded-md my-3 overflow-x-auto scrollbar-thin"><code class="text-sm font-mono">$1</code></pre>')
                                 // 行内代码
                                 .replace(/`(.*?)`/g, '<code class="bg-gray-200 px-1.5 py-0.5 rounded text-sm font-mono">$1</code>')
                                 // 粗体和斜体
@@ -899,7 +899,7 @@ const DocumentChunksPage: React.FC = () => {
           )}
           
           {/* 默认内容区域 */}
-          <div className="p-6 space-y-6 h-full overflow-y-auto">
+          <div className="p-6 space-y-6 h-full overflow-y-auto scrollbar-thin">
             {/* 元数据标注区域 */}
             <Card>
               <div className="p-4">
@@ -1010,7 +1010,7 @@ const DocumentChunksPage: React.FC = () => {
                         {/* 可折叠的配置详情 */}
                         {showParserConfig && (
                           <div className="mt-2 bg-gray-50 rounded-lg p-3 border border-gray-200">
-                            <pre className="text-xs text-gray-700 whitespace-pre-wrap overflow-x-auto">
+                            <pre className="text-xs text-gray-700 whitespace-pre-wrap overflow-x-auto scrollbar-thin">
                               {JSON.stringify(docInfo.parser_config, null, 2)}
                             </pre>
                           </div>
@@ -1087,7 +1087,7 @@ const DocumentChunksPage: React.FC = () => {
           </div>
           
           {/* 元数据字段列表 */}
-          <div className="space-y-4 max-h-96 overflow-y-auto">
+          <div className="space-y-4 max-h-96 overflow-y-auto scrollbar-thin">
             {editingMeta.map((item) => (
               <div key={item.id} className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg">
                 <div className="flex-1 grid grid-cols-2 gap-3">

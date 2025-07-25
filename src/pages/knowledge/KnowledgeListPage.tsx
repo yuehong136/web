@@ -453,7 +453,7 @@ export const KnowledgeListPage: React.FC = () => {
               </div>
               <span>解析器</span>
             </label>
-            <div className="space-y-2 max-h-40 overflow-y-auto">
+            <div className="space-y-2 max-h-40 overflow-y-auto scrollbar-thin">
               {getParserOptions().map(option => (
                 <label key={option.value} className="flex items-center space-x-2">
                   <input
@@ -484,7 +484,7 @@ export const KnowledgeListPage: React.FC = () => {
               </div>
               <span>嵌入模型</span>
             </label>
-            <div className="space-y-2 max-h-40 overflow-y-auto">
+            <div className="space-y-2 max-h-40 overflow-y-auto scrollbar-thin">
               {getEmbeddingOptions().map(option => (
                 <label key={option.value} className="flex items-center space-x-2">
                   <input
@@ -991,7 +991,7 @@ export const KnowledgeListPage: React.FC = () => {
         </div>
       ) : (
         <div className="flex-1 flex flex-col min-h-0">
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto scrollbar-thin">
             {viewMode === 'grid' ? renderGridView() : renderTableView()}
           </div>
           

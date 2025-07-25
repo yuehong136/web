@@ -488,7 +488,7 @@ const KnowledgeSearchPage: React.FC = () => {
           )}
 
           {/* 结果列表 */}
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto scrollbar-thin">
             {!searchQuery ? (
               <div className="flex items-center justify-center h-full">
                 <div className="text-center">
@@ -739,7 +739,7 @@ const KnowledgeSearchPage: React.FC = () => {
               </div>
               
               {/* 面板内容 */}
-              <div className="flex-1 p-6 space-y-6 overflow-y-auto">
+              <div className="flex-1 p-6 space-y-6 overflow-y-auto scrollbar-thin">
                   {/* 搜索模式选择 */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-3">
@@ -1079,7 +1079,7 @@ const KnowledgeSearchPage: React.FC = () => {
                             </button>
                             
                             {showLanguageSelector && (
-                              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-40 overflow-y-auto">
+                              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-40 overflow-y-auto scrollbar-thin">
                                 {['English', 'Chinese', 'Spanish', 'French', 'German', 'Japanese', 'Korean', 'Vietnamese'].map((lang) => (
                                   <label key={lang} className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer">
                                     <input
@@ -1216,9 +1216,9 @@ const KnowledgeSearchPage: React.FC = () => {
                 </div>
                 
                 {/* 弹窗内容 */}
-                <div className="flex-1 p-6 overflow-y-auto">
+                <div className="flex-1 p-6 overflow-y-auto scrollbar-thin">
                   {isMarkdownPreview ? (
-                    <div className="w-full h-full px-4 py-3 border border-gray-300 rounded-md bg-gray-50 overflow-y-auto">
+                    <div className="w-full h-full px-4 py-3 border border-gray-300 rounded-md bg-gray-50 overflow-y-auto scrollbar-thin">
                       <div 
                         className="prose prose-sm max-w-none text-sm leading-relaxed"
                         dangerouslySetInnerHTML={{
@@ -1254,7 +1254,7 @@ const KnowledgeSearchPage: React.FC = () => {
                       />
                     </div>
                   ) : (
-                    <div className="w-full h-full px-4 py-3 border border-gray-300 rounded-md bg-white overflow-y-auto">
+                    <div className="w-full h-full px-4 py-3 border border-gray-300 rounded-md bg-white overflow-y-auto scrollbar-thin">
                       <div 
                         className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap"
                         dangerouslySetInnerHTML={{
