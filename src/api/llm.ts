@@ -1,5 +1,5 @@
 import { apiClient } from './client'
-import type { LLMModel, LLMType } from '../types/api'
+import type { LLMModel, LLMType } from '@/types/api'
 
 export const llmAPI = {
   // 获取模型列表

@@ -219,3 +219,104 @@
 .spinner {
   animation: spin 1s linear infinite;
 }
+
+/* Markdown 内容样式优化 */
+.prose {
+  @apply text-gray-800 leading-relaxed;
+}
+
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4,
+.prose h5,
+.prose h6 {
+  @apply text-gray-900 font-semibold leading-tight;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+}
+
+.prose h1:first-child,
+.prose h2:first-child,
+.prose h3:first-child,
+.prose h4:first-child,
+.prose h5:first-child,
+.prose h6:first-child {
+  margin-top: 0;
+}
+
+.prose p {
+  margin: 0.75em 0;
+}
+
+.prose p:first-child {
+  margin-top: 0;
+}
+
+.prose p:last-child {
+  margin-bottom: 0;
+}
+
+.prose ul,
+.prose ol {
+  @apply my-3 pl-6;
+}
+
+.prose li {
+  @apply my-1;
+}
+
+.prose blockquote {
+  @apply border-l-4 border-blue-500 bg-blue-50 pl-4 py-2 my-4 italic text-blue-800;
+}
+
+.prose code {
+  @apply bg-gray-100 text-gray-800 px-1 py-0.5 rounded text-sm font-mono;
+}
+
+.prose pre {
+  @apply bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto my-4;
+}
+
+.prose pre code {
+  @apply bg-transparent text-gray-100 p-0;
+}
+
+.prose a {
+  @apply text-blue-600 hover:text-blue-800 underline;
+}
+
+.prose table {
+  @apply w-full border-collapse my-4;
+}
+
+.prose th,
+.prose td {
+  @apply border border-gray-300 px-3 py-2 text-left;
+}
+
+.prose th {
+  @apply bg-gray-50 font-semibold;
+}
+
+.prose img {
+  @apply max-w-full h-auto rounded-lg my-4;
+}
+
+.prose hr {
+  @apply border-t border-gray-300 my-8;
+}
+
+/* 聊天气泡专用样式 */
+.bubble-content .prose {
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.bubble-content .prose > *:first-child {
+  margin-top: 0 !important;
+}
+
+.bubble-content .prose > *:last-child {
+  margin-bottom: 0 !important;
+}

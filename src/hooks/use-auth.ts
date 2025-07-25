@@ -1,9 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { authAPI } from '../api/auth'
-import { queryKeys } from '../lib/query-client'
-import { STORAGE_KEYS } from '../constants'
-import { toast } from '../lib/toast'
-import type { LoginRequest, RegisterRequest, AuthResponse, UserInfo } from '../types/api'
+import { authAPI } from '@/api/auth'
+import { queryKeys } from '@/lib/query-client'
+import { STORAGE_KEYS } from '@/constants'
+import { toast } from '@/lib/toast'
+import type { LoginRequest, RegisterRequest, AuthResponse, UserInfo } from '@/types/api'
 
 // 登录
 export const useLogin = () => {

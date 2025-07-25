@@ -1,8 +1,8 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { STORAGE_KEYS } from '../constants'
-import { apiClient } from '../api/client'
-import type { UserInfo, TenantInfo } from '../types/api'
+import { STORAGE_KEYS } from '@/constants'
+import { apiClient } from '@/api/client'
+import type { UserInfo, TenantInfo } from '@/types/api'
 
 interface AuthState {
   // 状态

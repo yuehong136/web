@@ -15,10 +15,10 @@ import {
   Monitor,
   LogOut
 } from 'lucide-react'
-import { cn } from '../../lib/utils'
-import { Button } from '../ui/button'
-import { ROUTES } from '../../constants'
-import { useUIStore, useAuthStore } from '../../stores'
+import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import { ROUTES } from '@/constants'
+import { useUIStore, useAuthStore } from '@/stores'
 
 interface SidebarProps {
   className?: string

@@ -1,9 +1,9 @@
 import React from 'react'
 import { Check, ChevronDown, Zap, Info, AlertCircle, HelpCircle } from 'lucide-react'
-import { cn } from '../../lib/utils'
-import { Tooltip } from '../ui/tooltip'
-import { LLMFactory, IconMap } from '../../stores/model'
-import type { LLMModel } from '../../types/api'
+import { cn } from '@/lib/utils'
+import { Tooltip } from '@/components/ui/tooltip'
+import { LLMFactory, IconMap } from '@/stores/model'
+import type { LLMModel } from '@/types/api'
 
 interface RerankModelSelectorProps {
   models: LLMModel[]

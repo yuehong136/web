@@ -15,7 +15,7 @@ import {
   Eye,
   Code
 } from 'lucide-react'
-import { knowledgeAPI } from '../../api/knowledge'
+import { knowledgeAPI } from '@/api/knowledge'
 import { 
   Button,
   Input, 
@@ -26,7 +26,7 @@ import {
   PageSizeSelector,
   ToggleSwitch
 } from '../../components/ui'
-import { cn } from '../../lib/utils'
+import { cn } from '@/lib/utils'
 
 // 新的Chunk数据类型（匹配新API）
 interface ChunkData {

@@ -1,12 +1,12 @@
 import React from 'react'
 import { Outlet, useParams, useNavigate, Link, useLocation } from 'react-router-dom'
 import { ArrowLeft, FileText, Search, Settings, Database } from 'lucide-react'
-import { Button } from '../../components/ui/button'
-import { Avatar } from '../../components/ui/avatar'
-import { Loading } from '../../components/ui/loading'
-import { useKnowledgeStore } from '../../stores/knowledge'
-import { cn } from '../../lib/utils'
-import { ROUTES } from '../../constants'
+import { Button } from '@/components/ui/button'
+import { Avatar } from '@/components/ui/avatar'
+import { Loading } from '@/components/ui/loading'
+import { useKnowledgeStore } from '@/stores/knowledge'
+import { cn } from '@/lib/utils'
+import { ROUTES } from '@/constants'
 
 const KnowledgeDetailLayout: React.FC = () => {
   const { id } = useParams<{ id: string }>()

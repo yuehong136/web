@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { apiClient } from '../api/client'
-import { generateId } from '../lib/utils'
+import { apiClient } from '@/api/client'
+import { generateId } from '@/lib/utils'
 import type { 
   ConversationInfo, 
   MessageInfo, 

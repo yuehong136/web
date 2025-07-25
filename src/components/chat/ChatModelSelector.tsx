@@ -1,24 +1,26 @@
 import React from 'react'
-import { Check, ChevronDown, Zap, Info, AlertCircle, HelpCircle } from 'lucide-react'
+import { Check, ChevronDown, MessageSquare, Image, AlertCircle, HelpCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Tooltip } from '@/components/ui/tooltip'
 import { LLMFactory, IconMap } from '@/stores/model'
-import type { LLMModel } from '@/types/api'
+import type { MyLLMModel, MyLLMProvider } from '@/stores/model'
 
-interface EmbeddingModelSelectorProps {
-  models: LLMModel[]
-  selectedModelId: string | null
-  onSelect: (modelId: string | null) => void
+interface ChatModelSelectorProps {
+  models: MyLLMProvider
+  selectedModelName: string | null
+  onSelect: (modelName: string | null) => void
   loading?: boolean
   error?: string
+  modelTypes?: ('chat' | 'image2text')[] // 只显示聊天和图像识别模型
 }
 
-export const EmbeddingModelSelector: React.FC<EmbeddingModelSelectorProps> = ({
+export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
   models,
-  selectedModelId,
+  selectedModelName,
   onSelect,
   loading = false,
-  error
+  error,
+  modelTypes = ['chat', 'image2text']
 }) => {
   const [isOpen, setIsOpen] = React.useState(false)
   const [searchTerm, setSearchTerm] = React.useState('')
@@ -26,41 +28,78 @@ export const EmbeddingModelSelector: React.FC<EmbeddingModelSelectorProps> = ({
   const dropdownRef = React.useRef<HTMLDivElement>(null)
   const triggerRef = React.useRef<HTMLButtonElement>(null)
 
-  const selectedModel = models.find(model => model.llm_name === selectedModelId)
+  // 筛选可用的聊天和图像识别模型
+  const availableModels = React.useMemo(() => {
+    const filtered: { provider: string; model: MyLLMModel }[] = []
+    
+    // 添加安全检查，确保 models 存在且不为空
+    if (!models || typeof models !== 'object' || Object.keys(models).length === 0) {
+      return []
+    }
+    
+    try {
+      Object.entries(models).forEach(([providerName, providerData]) => {
+        // 确保 providerData 和 providerData.llm 存在且是数组
+        if (providerData && 
+            typeof providerData === 'object' && 
+            providerData.llm && 
+            Array.isArray(providerData.llm)) {
+          providerData.llm.forEach(model => {
+            if (model && 
+                typeof model === 'object' && 
+                model.type && 
+                model.name &&
+                (model.type === 'chat' || model.type === 'image2text')) {
+              filtered.push({ provider: providerName, model })
+            }
+          })
+        }
+      })
+    } catch (error) {
+      console.warn('Error processing models in ChatModelSelector:', error)
+      return []
+    }
+
+    return filtered.filter(item =>
+      item?.model?.name && 
+      item?.provider &&
+      (item.model.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+       item.provider.toLowerCase().includes(searchTerm.toLowerCase()))
+    )
+  }, [models, modelTypes, searchTerm])
 
   // 按厂商分组模型
   const groupedModels = React.useMemo(() => {
-    const filtered = models.filter(model =>
-      model.llm_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      model.fid.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-
-    const groups: Record<string, LLMModel[]> = {}
-    filtered.forEach(model => {
-      const provider = model.fid || '其他'
+    const groups: Record<string, { provider: string; model: MyLLMModel }[]> = {}
+    
+    availableModels.forEach(item => {
+      const provider = item.provider
       if (!groups[provider]) {
         groups[provider] = []
       }
-      groups[provider].push(model)
+      groups[provider].push(item)
     })
 
     return groups
-  }, [models, searchTerm])
+  }, [availableModels])
+
+  // 查找选中的模型
+  const selectedModel = React.useMemo(() => {
+    return availableModels.find(item => item.model.name === selectedModelName)
+  }, [availableModels, selectedModelName])
 
   // 计算下拉框位置
   const updateDropdownPosition = React.useCallback(() => {
     if (triggerRef.current && isOpen) {
       const rect = triggerRef.current.getBoundingClientRect()
       const viewportHeight = window.innerHeight
-      const dropdownHeight = 240 // max-h-60 approximately
+      const dropdownHeight = 240
       
-      // 检查是否有足够空间在下方显示
       const spaceBelow = viewportHeight - rect.bottom
       const spaceAbove = rect.top
       
       let top = rect.bottom + window.scrollY
       
-      // 如果下方空间不够且上方空间更多，则在上方显示
       if (spaceBelow < dropdownHeight && spaceAbove > spaceBelow) {
         top = rect.top + window.scrollY - dropdownHeight
       }
@@ -108,31 +147,19 @@ export const EmbeddingModelSelector: React.FC<EmbeddingModelSelectorProps> = ({
     }
   }, [isOpen, updateDropdownPosition])
 
-  const handleSelect = (modelId: string | null) => {
-    onSelect(modelId)
+  const handleSelect = (modelName: string | null) => {
+    onSelect(modelName)
     setIsOpen(false)
     setSearchTerm('')
   }
 
-  const formatTokens = (tokens: number | undefined) => {
-    if (!tokens || isNaN(tokens)) {
-      return 'N/A'
-    }
-    if (tokens >= 1000) {
-      return `${(tokens / 1000).toFixed(0)}K`
-    }
-    return tokens.toString()
-  }
-
   const getProviderLogo = (name: string) => {
     try {
-      // First try to get corresponding icon filename from IconMap
       const factoryKey = Object.values(LLMFactory).find(factory => factory === name)
       if (factoryKey && IconMap[factoryKey as keyof typeof IconMap]) {
         return `/src/assets/svg/llm/${IconMap[factoryKey as keyof typeof IconMap]}.svg`
       }
       
-      // Fallback logic if not found in IconMap
       const filename = name.toLowerCase()
         .replace(/\s+/g, '-')
         .replace(/[^a-z0-9-_]/g, '')
@@ -142,17 +169,38 @@ export const EmbeddingModelSelector: React.FC<EmbeddingModelSelectorProps> = ({
     }
   }
 
+  const getModelTypeIcon = (type: MyLLMModel['type']) => {
+    switch (type) {
+      case 'chat':
+        return <MessageSquare className="h-3 w-3 text-green-500" />
+      case 'image2text':
+        return <Image className="h-3 w-3 text-blue-500" />
+      default:
+        return <MessageSquare className="h-3 w-3 text-gray-500" />
+    }
+  }
+
+  const getModelTypeLabel = (type: MyLLMModel['type']) => {
+    switch (type) {
+      case 'chat':
+        return '对话'
+      case 'image2text':
+        return '图像识别'
+      default:
+        return '未知'
+    }
+  }
 
   if (loading) {
     return (
       <div className="space-y-2">
         <label className="block text-xs font-medium text-gray-700">
-          嵌入模型
+          聊天模型
         </label>
         <div className="relative">
           <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 flex items-center h-8">
             <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-500"></div>
-            <span className="ml-2 text-gray-500 text-xs">加载嵌入模型中...</span>
+            <span className="ml-2 text-gray-500 text-xs">加载模型中...</span>
           </div>
         </div>
       </div>
@@ -163,7 +211,7 @@ export const EmbeddingModelSelector: React.FC<EmbeddingModelSelectorProps> = ({
     return (
       <div className="space-y-2">
         <label className="block text-xs font-medium text-gray-700">
-          嵌入模型
+          聊天模型
         </label>
         <div className="relative">
           <div className="w-full px-3 py-2 border border-red-300 rounded-md bg-red-50 flex items-center h-8">
@@ -175,16 +223,16 @@ export const EmbeddingModelSelector: React.FC<EmbeddingModelSelectorProps> = ({
     )
   }
 
-  if (models.length === 0) {
+  if (availableModels.length === 0) {
     return (
       <div className="space-y-2">
         <label className="block text-xs font-medium text-gray-700">
-          嵌入模型
+          聊天模型
         </label>
         <div className="relative">
           <div className="w-full px-3 py-2 border border-yellow-300 rounded-md bg-yellow-50 flex items-center h-8">
-            <Info className="h-3 w-3 text-yellow-500" />
-            <span className="ml-2 text-yellow-700 text-xs">暂无可用的嵌入模型</span>
+            <AlertCircle className="h-3 w-3 text-yellow-500" />
+            <span className="ml-2 text-yellow-700 text-xs">暂无可用的聊天模型</span>
           </div>
         </div>
       </div>
@@ -195,9 +243,9 @@ export const EmbeddingModelSelector: React.FC<EmbeddingModelSelectorProps> = ({
     <div className="space-y-2" ref={dropdownRef}>
       <div className="flex items-center space-x-1 mb-1">
         <label className="block text-xs font-medium text-gray-700">
-          嵌入模型
+          聊天模型
         </label>
-        <Tooltip content="用于文档向量化的嵌入模型，影响检索质量">
+        <Tooltip content="选择用于对话或图像识别的模型">
           <HelpCircle className="h-3 w-3 text-gray-400 hover:text-gray-600" />
         </Tooltip>
       </div>
@@ -220,8 +268,8 @@ export const EmbeddingModelSelector: React.FC<EmbeddingModelSelectorProps> = ({
                 <>
                   <div className="w-4 h-4 flex-shrink-0">
                     <img 
-                      src={getProviderLogo(selectedModel.fid) || ''} 
-                      alt={selectedModel.fid}
+                      src={getProviderLogo(selectedModel.provider) || ''} 
+                      alt={selectedModel.provider}
                       className="w-4 h-4"
                       onError={(e) => {
                         const target = e.currentTarget as HTMLImageElement
@@ -231,17 +279,20 @@ export const EmbeddingModelSelector: React.FC<EmbeddingModelSelectorProps> = ({
                       }}
                     />
                     <div className="w-4 h-4 bg-blue-100 rounded flex items-center justify-center text-blue-600 font-semibold text-xs" style={{display: 'none'}}>
-                      {selectedModel.fid.charAt(0)}
+                      {selectedModel.provider.charAt(0)}
                     </div>
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-medium text-gray-900 truncate text-xs">
-                      {selectedModel.llm_name}
+                      {selectedModel.model.name}
                     </div>
+                  </div>
+                  <div className="flex-shrink-0">
+                    {getModelTypeIcon(selectedModel.model.type)}
                   </div>
                 </>
               ) : (
-                <div className="text-gray-500 text-xs">请选择嵌入模型</div>
+                <div className="text-gray-500 text-xs">请选择聊天模型</div>
               )}
             </div>
             <ChevronDown 
@@ -270,7 +321,7 @@ export const EmbeddingModelSelector: React.FC<EmbeddingModelSelectorProps> = ({
               <div className="p-2 border-b border-gray-100">
                 <input
                   type="text"
-                  placeholder="搜索嵌入模型..."
+                  placeholder="搜索聊天模型..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500/20 focus:border-blue-500"
@@ -281,7 +332,7 @@ export const EmbeddingModelSelector: React.FC<EmbeddingModelSelectorProps> = ({
               <div className="max-h-48 overflow-y-auto">
                 {Object.keys(groupedModels).length === 0 ? (
                   <div className="p-3 text-center text-gray-500 text-xs">
-                    未找到匹配的嵌入模型
+                    未找到匹配的聊天模型
                   </div>
                 ) : (
                   Object.entries(groupedModels).map(([provider, providerModels]) => (
@@ -311,30 +362,30 @@ export const EmbeddingModelSelector: React.FC<EmbeddingModelSelectorProps> = ({
                       </div>
 
                       {/* 模型选项 */}
-                      {providerModels.map((model) => (
+                      {providerModels.map((item) => (
                         <button
-                          key={model.id}
+                          key={item.model.name}
                           type="button"
-                          onClick={() => handleSelect(model.llm_name)}
+                          onClick={() => handleSelect(item.model.name)}
                           className={cn(
                             "w-full px-3 py-2 text-left hover:bg-blue-50 transition-colors duration-150 border-b border-gray-50 last:border-b-0 text-xs",
-                            selectedModelId === model.llm_name && "bg-blue-50 border-blue-100"
+                            selectedModelName === item.model.name && "bg-blue-50 border-blue-100"
                           )}
                         >
                           <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-2 flex-1 min-w-0">
                               <div className="flex-1 min-w-0">
                                 <div className="font-medium text-gray-900 truncate">
-                                  {model.llm_name}
+                                  {item.model.name}
                                 </div>
-                                <div className="text-xs text-gray-500">
-                                  {formatTokens(model.max_tokens)} tokens
+                                <div className="text-xs text-gray-500 flex items-center">
+                                  {getModelTypeIcon(item.model.type)}
+                                  <span className="ml-1">{getModelTypeLabel(item.model.type)}</span>
                                 </div>
                               </div>
                               <div className="flex items-center">
-                                <Zap className="h-3 w-3 text-green-500" />
-                                {selectedModelId === model.llm_name && (
-                                  <Check className="h-3 w-3 text-blue-500 ml-1" />
+                                {selectedModelName === item.model.name && (
+                                  <Check className="h-3 w-3 text-blue-500" />
                                 )}
                               </div>
                             </div>
@@ -349,7 +400,6 @@ export const EmbeddingModelSelector: React.FC<EmbeddingModelSelectorProps> = ({
           </>
         )}
       </div>
-
     </div>
   )
 }

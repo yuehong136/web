@@ -1,8 +1,8 @@
 import React from 'react'
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Legend, Tooltip } from 'recharts'
 import { Card } from './card'
-import { cn } from '../../lib/utils'
-import type { TaskExecutorHeartbeat } from '../../api/system'
+import { cn } from '@/lib/utils'
+import type { TaskExecutorHeartbeat } from '@/api/system'
 
 interface TaskExecutorChartProps {
   executorId: string

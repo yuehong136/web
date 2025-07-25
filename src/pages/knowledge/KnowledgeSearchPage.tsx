@@ -17,18 +17,18 @@ import {
   Eye,
   Code,
 } from 'lucide-react'
-import { Button } from '../../components/ui/button'
-import { Input } from '../../components/ui/input'
-import { Card, CardContent } from '../../components/ui/card'
-import { Badge } from '../../components/ui/badge'
-import { Tooltip } from '../../components/ui/tooltip'
-import { PageSizeSelector } from '../../components/ui/page-size-selector'
-import { RerankModelSelector } from '../../components/knowledge/RerankModelSelector'
-import { FileIcon } from '../../components/ui/file-icon'
-import { llmAPI } from '../../api/llm'
-import type { LLMModel } from '../../types/api'
-import { useKnowledgeStore } from '../../stores/knowledge'
-import { knowledgeAPI } from '../../api/knowledge'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Card, CardContent } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Tooltip } from '@/components/ui/tooltip'
+import { PageSizeSelector } from '@/components/ui/page-size-selector'
+import { RerankModelSelector } from '@/components/knowledge/RerankModelSelector'
+import { FileIcon } from '@/components/ui/file-icon'
+import { llmAPI } from '@/api/llm'
+import type { LLMModel } from '@/types/api'
+import { useKnowledgeStore } from '@/stores/knowledge'
+import { knowledgeAPI } from '@/api/knowledge'
 
 interface RetrievalResult {
   chunk_id: string

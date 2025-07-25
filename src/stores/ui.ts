@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { STORAGE_KEYS, THEMES, LANGUAGES } from '../constants'
-import type { Theme, Language } from '../types'
+import { STORAGE_KEYS, THEMES, LANGUAGES } from '@/constants'
+import type { Theme, Language } from '@/types'
 
 interface UIState {
   // 主题设置

@@ -1,9 +1,9 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, Upload } from 'lucide-react'
-import { Button } from '../../components/ui/button'
-import { Card } from '../../components/ui/card'
-import { ROUTES } from '../../constants'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { ROUTES } from '@/constants'
 
 export const KnowledgeImportPage: React.FC = () => {
   const navigate = useNavigate()

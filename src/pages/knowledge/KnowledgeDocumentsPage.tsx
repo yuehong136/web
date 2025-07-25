@@ -18,10 +18,10 @@ import {
   Tag,
   ArrowUpDown
 } from 'lucide-react'
-import { useKnowledgeStore } from '../../stores/knowledge'
-import { knowledgeAPI } from '../../api/knowledge'
-import { toast } from '../../lib/toast'
-import type { Document, DocumentFilter } from '../../types/api'
+import { useKnowledgeStore } from '@/stores/knowledge'
+import { knowledgeAPI } from '@/api/knowledge'
+import { toast } from '@/lib/toast'
+import type { Document, DocumentFilter } from '@/types/api'
 import { 
   Button,
   Input, 
@@ -35,7 +35,7 @@ import {
   PageSizeSelector,
   CustomSelect
 } from '../../components/ui'
-import { cn } from '../../lib/utils'
+import { cn } from '@/lib/utils'
 
 const KnowledgeDocumentsPage: React.FC = () => {
   const { id: kbId } = useParams<{ id: string }>()

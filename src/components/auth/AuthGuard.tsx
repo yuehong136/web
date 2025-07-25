@@ -1,8 +1,8 @@
 import React from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
-import { useAuthStore } from '../../stores/auth'
-import { Loading } from '../ui/loading'
-import { ROUTES } from '../../constants'
+import { useAuthStore } from '@/stores/auth'
+import { Loading } from '@/components/ui/loading'
+import { ROUTES } from '@/constants'
 
 interface AuthGuardProps {
   children: React.ReactNode

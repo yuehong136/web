@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { knowledgeAPI } from '../api/knowledge'
-import { generateId } from '../lib/utils'
+import { knowledgeAPI } from '@/api/knowledge'
+import { generateId } from '@/lib/utils'
 import type { 
   KnowledgeBase, 
   CreateKBRequest,

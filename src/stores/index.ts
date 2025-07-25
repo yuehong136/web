@@ -10,7 +10,7 @@ export { useModelStore } from './model'
 import { useAuthStore } from './auth'
 import { useUIStore } from './ui'
 import { useConversationStore } from './conversation'
-import { apiClient } from '../api/client'
+import { apiClient } from '@/api/client'
 
 // 导出类型
 export type { } from './auth'

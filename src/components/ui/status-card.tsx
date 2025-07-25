@@ -1,6 +1,6 @@
 import React from 'react'
 import { Card } from './card'
-import { cn } from '../../lib/utils'
+import { cn } from '@/lib/utils'
 
 interface StatusCardProps {
   title: string

@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { apiClient } from '../api/client'
+import { apiClient } from '@/api/client'
 
 // 根据您提供的数据结构定义类型
 export interface MyLLMModel {

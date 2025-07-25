@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { Conversation, Message } from '../types/api'
+import type { Conversation, Message } from '@/types/api'
 
 interface ConversationState {
   // 当前对话状态

@@ -1,10 +1,11 @@
 import React from 'react'
 import { Plus, Settings, Zap, ExternalLink, ChevronDown, Database, BarChart3, Key, X } from 'lucide-react'
-import { Button } from '../../components/ui/button'
-import { Card } from '../../components/ui/card'
-import { Loading } from '../../components/ui/loading'
-import { useModelStore, type LLMFactoryInterface, LLMFactory, IconMap } from '../../stores/model'
-import { cn } from '../../lib/utils'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Loading } from '@/components/ui/loading'
+import { useModelStore, type LLMFactoryInterface } from '@/stores/model'
+import { getProviderIconPath } from '@/components/ui/provider-icon'
+import { cn } from '@/lib/utils'
 
 // API Key设置弹窗组件
 const APIKeyModal: React.FC<{
@@ -131,22 +132,9 @@ const CollapsibleProviderCard: React.FC<{
   onToggle: () => void;
   onSetApiKey: () => void;
 }> = ({ providerName, providerData, isExpanded, onToggle, onSetApiKey }) => {
+  // 使用统一的图标路径获取函数
   const getProviderLogo = (name: string) => {
-    try {
-      // 先尝试从IconMap中获取对应的图标文件名
-      const factoryKey = Object.values(LLMFactory).find(factory => factory === name)
-      if (factoryKey && IconMap[factoryKey]) {
-        return `/src/assets/svg/llm/${IconMap[factoryKey]}.svg`
-      }
-      
-      // 如果没有找到，使用原来的逻辑作为后备方案
-      const filename = name.toLowerCase()
-        .replace(/\s+/g, '-')
-        .replace(/[^a-z0-9-_]/g, '')
-      return `/src/assets/svg/llm/${filename}.svg`
-    } catch {
-      return null
-    }
+    return getProviderIconPath(name)
   }
 
   const totalTokens = providerData.llm.reduce((sum: number, model: any) => sum + model.used_token, 0)
@@ -276,22 +264,9 @@ const AvailableProviderCard: React.FC<{
   factory: LLMFactoryInterface;
   onAdd: () => void;
 }> = ({ factory, onAdd }) => {
+  // 使用统一的图标路径获取函数
   const getProviderLogo = (name: string) => {
-    try {
-      // 先尝试从IconMap中获取对应的图标文件名
-      const factoryKey = Object.values(LLMFactory).find(factory => factory === name)
-      if (factoryKey && IconMap[factoryKey]) {
-        return `/src/assets/svg/llm/${IconMap[factoryKey]}.svg`
-      }
-      
-      // 如果没有找到，使用原来的逻辑作为后备方案
-      const filename = name.toLowerCase()
-        .replace(/\s+/g, '-')
-        .replace(/[^a-z0-9-_]/g, '')
-      return `/src/assets/svg/llm/${filename}.svg`
-    } catch {
-      return null
-    }
+    return getProviderIconPath(name)
   }
 
   return (

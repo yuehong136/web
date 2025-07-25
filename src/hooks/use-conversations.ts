@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient, useInfiniteQuery } from '@tanstack/react-query'
-import { conversationAPI } from '../api/conversation'
-import { queryKeys, invalidateQueries } from '../lib/query-client'
-import { toast } from '../lib/toast'
+import { conversationAPI } from '@/api/conversation'
+import { queryKeys, invalidateQueries } from '@/lib/query-client'
+import { toast } from '@/lib/toast'
 import type { 
   Conversation, 
   ChatCompletionRequest, 

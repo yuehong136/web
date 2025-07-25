@@ -1,8 +1,8 @@
 import React from 'react'
 import { Check, ChevronDown, FileText, HelpCircle } from 'lucide-react'
-import { cn } from '../../lib/utils'
-import { Tooltip } from '../ui/tooltip'
-import { DocumentParserType, DOCUMENT_PARSER_TYPE_LABELS, DOCUMENT_PARSER_TYPE_DESCRIPTIONS } from '../../types/document-parser'
+import { cn } from '@/lib/utils'
+import { Tooltip } from '@/components/ui/tooltip'
+import { DocumentParserType, DOCUMENT_PARSER_TYPE_LABELS, DOCUMENT_PARSER_TYPE_DESCRIPTIONS } from '@/types/document-parser'
 
 interface ParserTypeSelectorProps {
   selectedParserId: string | null

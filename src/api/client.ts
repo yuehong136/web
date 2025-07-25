@@ -1,5 +1,5 @@
-import type { APIResponse } from '../types/api'
-import { STORAGE_KEYS, API_BASE_URL, API_VERSION, ERROR_MESSAGES } from '../constants'
+import type { APIResponse } from '@/types/api'
+import { STORAGE_KEYS, API_BASE_URL, API_VERSION, ERROR_MESSAGES } from '@/constants'
 
 export class APIError extends Error {
   public status: number

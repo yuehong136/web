@@ -1,11 +1,11 @@
 import React from 'react'
 import { Save } from 'lucide-react'
-import { Modal } from '../ui/modal'
-import { Button } from '../ui/button'
-import { Input } from '../ui/input'
-import { useKnowledgeStore } from '../../stores/knowledge'
-import { useUIStore } from '../../stores/ui'
-import type { KnowledgeBase, UpdateKBRequest } from '../../types/api'
+import { Modal } from '@/components/ui/modal'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { useKnowledgeStore } from '@/stores/knowledge'
+import { useUIStore } from '@/stores/ui'
+import type { KnowledgeBase, UpdateKBRequest } from '@/types/api'
 
 interface QuickEditModalProps {
   isOpen: boolean

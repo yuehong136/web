@@ -1,9 +1,9 @@
 import React from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
-import { AuthGuard } from '../auth'
-import { useUIStore } from '../../stores'
-import { cn } from '../../lib/utils'
+import { AuthGuard } from '@/components/auth'
+import { useUIStore } from '@/stores'
+import { cn } from '@/lib/utils'
 
 export const Layout: React.FC = () => {
   const { 

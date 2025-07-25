@@ -5,13 +5,15 @@ import {
   Zap, 
   HardDrive, 
   RefreshCw,
-  AlertCircle 
+  AlertCircle,
+  Info
 } from 'lucide-react'
-import { StatusCard } from '../../components/ui/status-card'
-import { TaskExecutorChart } from '../../components/ui/task-executor-chart'
-import { Button } from '../../components/ui/button'
-import { useSystemStatus, useRefreshSystemStatus } from '../../hooks/use-system-status'
-import type { SystemStatusResponse } from '../../api/system'
+import { StatusCard } from '@/components/ui/status-card'
+import { TaskExecutorChart } from '@/components/ui/task-executor-chart'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { useSystemStatus, useRefreshSystemStatus, useSystemVersion } from '@/hooks/use-system-status'
+import type { SystemStatusResponse } from '@/api/system'
 
 interface ComponentCardData {
   id: string
@@ -24,6 +26,7 @@ interface ComponentCardData {
 
 const SystemPage: React.FC = () => {
   const { data, isLoading, error, isRefetching } = useSystemStatus()
+  const { data: versionData, isLoading: versionLoading, error: versionError } = useSystemVersion()
   const refreshStatus = useRefreshSystemStatus()
 
   // 转换API数据为组件所需格式
@@ -102,6 +105,8 @@ const SystemPage: React.FC = () => {
       <div className="p-6">
         <div className="animate-pulse">
           <div className="h-8 bg-gray-200 rounded w-32 mb-6"></div>
+          {/* Version info placeholder */}
+          <div className="h-24 bg-gray-200 rounded-lg mb-6"></div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="h-48 bg-gray-200 rounded-lg"></div>
@@ -158,6 +163,112 @@ const SystemPage: React.FC = () => {
           <RefreshCw className={`h-4 w-4 mr-2 ${isRefetching ? 'animate-spin' : ''}`} />
           刷新
         </Button>
+      </div>
+
+      {/* System Version Info */}
+      <div className="mb-6">
+        <Card className="p-4">
+          <div className="flex items-center space-x-3">
+            <Info className="h-5 w-5 text-blue-500" />
+            <div className="flex-1">
+              <h3 className="text-lg font-medium text-gray-900">系统版本信息</h3>
+              {versionLoading ? (
+                <div className="mt-2">
+                  <div className="animate-pulse">
+                    <div className="h-4 bg-gray-200 rounded w-32"></div>
+                  </div>
+                </div>
+              ) : versionError ? (
+                <p className="mt-2 text-sm text-red-600">获取版本信息失败</p>
+              ) : versionData ? (
+                <div className="mt-2 text-sm text-gray-600">
+                  {(() => {
+                    // 处理版本信息显示
+                    const renderVersionInfo = () => {
+                      if (typeof versionData === 'string') {
+                        // 处理字符串格式的版本信息
+                        const versionString = versionData as string
+                        const parts = versionString.split(' ')
+                        const versionPart = parts[0] // "v0.2.5-537-gdb3f52a"
+                        const buildType = parts[1] // "full"
+                        
+                        const versionMatch = versionPart?.match(/^(v[\d.]+)(?:-(\d+)-g([a-f0-9]+))?/)
+                        
+                        return (
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div>
+                              <span className="font-medium">版本信息:</span> {versionString}
+                            </div>
+                            {versionMatch && (
+                              <>
+                                <div>
+                                  <span className="font-medium">基础版本:</span> {versionMatch[1]}
+                                </div>
+                                {versionMatch[2] && (
+                                  <div>
+                                    <span className="font-medium">提交数:</span> {versionMatch[2]}
+                                  </div>
+                                )}
+                                {versionMatch[3] && (
+                                  <div>
+                                    <span className="font-medium">Git提交:</span> {versionMatch[3]}
+                                  </div>
+                                )}
+                              </>
+                            )}
+                            {buildType && (
+                              <div>
+                                <span className="font-medium">构建类型:</span> {buildType}
+                              </div>
+                            )}
+                          </div>
+                        )
+                      } else if (versionData && typeof versionData === 'object') {
+                        // 处理对象格式的版本信息（向后兼容）
+                        const versionObj = versionData as any
+                        return (
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div>
+                              <span className="font-medium">版本号:</span> {versionObj.version}
+                            </div>
+                            {versionObj.build_time && (
+                              <div>
+                                <span className="font-medium">构建时间:</span> {new Date(versionObj.build_time).toLocaleString('zh-CN')}
+                              </div>
+                            )}
+                            {versionObj.git_commit && (
+                              <div>
+                                <span className="font-medium">Git提交:</span> {versionObj.git_commit.substring(0, 8)}
+                              </div>
+                            )}
+                            {versionObj.git_branch && (
+                              <div>
+                                <span className="font-medium">Git分支:</span> {versionObj.git_branch}
+                              </div>
+                            )}
+                            {versionObj.python_version && (
+                              <div>
+                                <span className="font-medium">Python版本:</span> {versionObj.python_version}
+                              </div>
+                            )}
+                            {versionObj.platform && (
+                              <div>
+                                <span className="font-medium">平台:</span> {versionObj.platform}
+                              </div>
+                            )}
+                          </div>
+                        )
+                      }
+                      return null
+                    }
+                    
+                    return renderVersionInfo()
+                  })()}
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </Card>
       </div>
 
       {/* System Components Status Cards */}

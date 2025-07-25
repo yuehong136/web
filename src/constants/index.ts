@@ -117,6 +117,7 @@ export const QUERY_KEYS = {
   LLMS: 'llms',
   WORKFLOWS: 'workflows',
   SYSTEM_STATUS: 'systemStatus',
+  SYSTEM_VERSION: 'systemVersion',
 } as const
 
 // 状态常量
