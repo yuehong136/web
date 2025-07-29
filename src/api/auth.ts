@@ -5,6 +5,8 @@ import type {
   OAuthLoginRequest,
   AuthResponse,
   UserInfo,
+  UserProfile,
+  UpdateUserProfileRequest,
   TenantInfo,
   LoginChannel,
 } from '../types/api'
@@ -26,8 +28,16 @@ export const authAPI = {
   getUserInfo: (): Promise<UserInfo> =>
     apiClient.get('/v1/user/info'),
 
+  // 获取用户档案信息
+  getUserProfile: (): Promise<UserProfile> =>
+    apiClient.get('/v1/user/info'),
+
   // 更新用户信息
   updateUserInfo: (data: Partial<UserInfo>): Promise<UserInfo> =>
+    apiClient.post('/v1/user/update', data),
+
+  // 更新用户档案信息
+  updateUserProfile: (data: UpdateUserProfileRequest): Promise<UserProfile> =>
     apiClient.post('/v1/user/update', data),
 
   // 获取租户信息

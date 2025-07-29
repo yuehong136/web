@@ -431,17 +431,20 @@ export const ModelProvidersPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <Loading variant="spinner" size="lg" />
+      <div className="h-full flex items-center justify-center">
+        <div className="text-center">
+          <Loading variant="spinner" size="lg" />
+          <p className="text-gray-500 mt-4">加载中...</p>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="p-8 space-y-8">
-      {/* 页面头部统计 */}
-      <div>
-        <div className="flex items-center justify-between mb-6">
+    <div className="h-full flex flex-col">
+      {/* 页面标题 */}
+      <div className="flex-shrink-0 px-8 py-6 border-b border-gray-200">
+        <div className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">AI模型管理</h2>
             <p className="text-gray-600 mt-1">
@@ -461,71 +464,76 @@ export const ModelProvidersPage: React.FC = () => {
         </div>
       </div>
 
-      {/* 已添加的供应商 */}
-      <div>
-        <h3 className="text-lg font-semibold text-gray-900 flex items-center mb-6">
-          <Zap className="h-5 w-5 mr-2 text-green-600" />
-          已配置的供应商
-        </h3>
-
-        {Object.keys(myLLMs).length === 0 ? (
-          <Card className="p-12 text-center border-dashed border-2">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Settings className="h-8 w-8 text-gray-400" />
-            </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              还没有配置任何供应商
+      {/* 内容区域 */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="p-8 space-y-8">
+          {/* 已添加的供应商 */}
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center mb-6">
+              <Zap className="h-5 w-5 mr-2 text-green-600" />
+              已配置的供应商
             </h3>
-            <p className="text-gray-500">
-              从下方的可用供应商中选择并添加您需要的AI模型服务
-            </p>
-          </Card>
-        ) : (
-          <div className="space-y-4">
-            {Object.entries(myLLMs).map(([providerName, providerData]) => (
-              <CollapsibleProviderCard
-                key={providerName}
-                providerName={providerName}
-                providerData={providerData}
-                isExpanded={expandedProviders[providerName] || false}
-                onToggle={() => toggleProvider(providerName)}
-                onSetApiKey={() => handleOpenApiKeyModal(providerName)}
-              />
-            ))}
+
+            {Object.keys(myLLMs).length === 0 ? (
+              <Card className="p-12 text-center border-dashed border-2">
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Settings className="h-8 w-8 text-gray-400" />
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  还没有配置任何供应商
+                </h3>
+                <p className="text-gray-500">
+                  从下方的可用供应商中选择并添加您需要的AI模型服务
+                </p>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {Object.entries(myLLMs).map(([providerName, providerData]) => (
+                  <CollapsibleProviderCard
+                    key={providerName}
+                    providerName={providerName}
+                    providerData={providerData}
+                    isExpanded={expandedProviders[providerName] || false}
+                    onToggle={() => toggleProvider(providerName)}
+                    onSetApiKey={() => handleOpenApiKeyModal(providerName)}
+                  />
+                ))}
+              </div>
+            )}
           </div>
-        )}
-      </div>
 
-      {/* 可用的供应商 */}
-      <div>
-        <h3 className="text-lg font-semibold text-gray-900 flex items-center mb-6">
-          <Plus className="h-5 w-5 mr-2 text-blue-600" />
-          可用的供应商
-        </h3>
-
-        {factories.length === 0 ? (
-          <Card className="p-12 text-center">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Plus className="h-8 w-8 text-gray-400" />
-            </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              暂无可用供应商
+          {/* 可用的供应商 */}
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center mb-6">
+              <Plus className="h-5 w-5 mr-2 text-blue-600" />
+              可用的供应商
             </h3>
-            <p className="text-gray-500">
-              系统中暂时没有可添加的模型供应商
-            </p>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {factories.map((factory) => (
-              <AvailableProviderCard
-                key={factory.id}
-                factory={factory}
-                onAdd={() => handleAddProvider(factory)}
-              />
-            ))}
+
+            {factories.length === 0 ? (
+              <Card className="p-12 text-center">
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Plus className="h-8 w-8 text-gray-400" />
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  暂无可用供应商
+                </h3>
+                <p className="text-gray-500">
+                  系统中暂时没有可添加的模型供应商
+                </p>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {factories.map((factory) => (
+                  <AvailableProviderCard
+                    key={factory.id}
+                    factory={factory}
+                    onAdd={() => handleAddProvider(factory)}
+                  />
+                ))}
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
 
       {/* API Key设置弹窗 */}

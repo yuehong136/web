@@ -62,23 +62,23 @@ export const SettingsLayout: React.FC = () => {
   const location = useLocation()
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      {/* 独立的设置页面顶部 */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div className="min-h-screen bg-gray-50">
+      {/* 顶部导航栏 */}
+      <div className="bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Link 
                 to="/dashboard"
-                className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+                className="flex items-center text-sm text-gray-600 hover:text-gray-900 transition-colors"
               >
-                <ChevronRight className="h-5 w-5 rotate-180 mr-2" />
+                <ChevronRight className="h-4 w-4 rotate-180 mr-1" />
                 返回主页
               </Link>
             </div>
-            <div className="text-center flex-1">
-              <h1 className="text-2xl font-bold text-gray-900 flex items-center justify-center">
-                <SettingsIcon className="h-6 w-6 mr-2" />
+            <div className="text-center">
+              <h1 className="text-xl font-semibold text-gray-900 flex items-center">
+                <SettingsIcon className="h-5 w-5 mr-2" />
                 系统设置
               </h1>
             </div>
@@ -87,46 +87,59 @@ export const SettingsLayout: React.FC = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-          {/* 左侧导航 - 更紧凑的设计 */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-2">
-              <nav className="space-y-1">
-                {settingsItems.map((item) => {
-                  const Icon = item.icon
-                  const isActive = location.pathname === item.href
+      {/* 主要内容区域 - 居中的分栏布局 */}
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        <div className="flex h-[calc(100vh-140px)] gap-6">
+          {/* 左侧固定导航栏 */}
+          <div className="w-80 flex-shrink-0">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 h-full flex flex-col">
+              {/* 导航菜单 */}
+              <div className="p-6">
+                <nav className="space-y-2">
+                  {settingsItems.map((item) => {
+                    const Icon = item.icon
+                    const isActive = location.pathname === item.href
 
-                  return (
-                    <Link
-                      key={item.href}
-                      to={item.href}
-                      className={cn(
-                        "flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
-                        isActive
-                          ? "bg-blue-50 text-blue-700 border border-blue-200 shadow-sm"
-                          : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-                      )}
-                    >
-                      <Icon className={cn(
-                        "h-4 w-4 mr-3 flex-shrink-0",
-                        isActive ? "text-blue-600" : "text-gray-400"
-                      )} />
-                      <span className="truncate">{item.title}</span>
-                      {isActive && (
-                        <div className="ml-auto w-2 h-2 bg-blue-600 rounded-full" />
-                      )}
-                    </Link>
-                  )
-                })}
-              </nav>
+                    return (
+                      <Link
+                        key={item.href}
+                        to={item.href}
+                        className={cn(
+                          "flex items-center px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 group",
+                          isActive
+                            ? "bg-blue-50 text-blue-700 shadow-sm"
+                            : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                        )}
+                      >
+                        <Icon className={cn(
+                          "h-5 w-5 mr-3 flex-shrink-0",
+                          isActive ? "text-blue-600" : "text-gray-400 group-hover:text-gray-600"
+                        )} />
+                        <div className="flex-1">
+                          <div className="text-sm font-medium">{item.title}</div>
+                          {!isActive && (
+                            <div className="text-xs text-gray-500 mt-0.5 group-hover:text-gray-600">
+                              {item.description}
+                            </div>
+                          )}
+                        </div>
+                        {isActive && (
+                          <div className="w-2 h-2 bg-blue-600 rounded-full" />
+                        )}
+                      </Link>
+                    )
+                  })}
+                </nav>
+              </div>
             </div>
           </div>
 
-          {/* 右侧内容区域 - 更大的空间 */}
-          <div className="lg:col-span-4">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-              <Outlet />
+          {/* 右侧内容区域 */}
+          <div className="flex-1 min-w-0">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 h-full overflow-hidden">
+              <div className="h-full overflow-y-auto">
+                <Outlet />
+              </div>
             </div>
           </div>
         </div>

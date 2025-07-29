@@ -1,4 +1,5 @@
 import React from 'react'
+import { createPortal } from 'react-dom'
 import { Check, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -17,6 +18,25 @@ interface CustomSelectProps {
   size?: 'sm' | 'md' | 'lg'
 }
 
+// Portal组件，将下拉菜单渲染到body
+const Portal: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [mounted, setMounted] = React.useState(false)
+
+  React.useEffect(() => {
+    setMounted(true)
+    return () => setMounted(false)
+  }, [])
+
+  if (!mounted) {
+    return null
+  }
+
+  return createPortal(children, document.body)
+}
+
+// 全局z-index计数器，确保每个下拉框都有更高的层级
+let globalZIndex = 10000
+
 export const CustomSelect: React.FC<CustomSelectProps> = ({
   options,
   value,
@@ -26,6 +46,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   size = 'md'
 }) => {
   const [isOpen, setIsOpen] = React.useState(false)
+  const [zIndex, setZIndex] = React.useState(globalZIndex)
   const dropdownRef = React.useRef<HTMLDivElement>(null)
   const buttonRef = React.useRef<HTMLButtonElement>(null)
   const [dropdownPosition, setDropdownPosition] = React.useState({ top: 0, left: 0, width: 0 })
@@ -40,13 +61,24 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
       }
     }
 
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isOpen])
 
   const handleSelect = (optionValue: string) => {
     onChange(optionValue)
     setIsOpen(false)
+  }
+
+  const handleToggle = () => {
+    if (!isOpen) {
+      // 打开时分配新的z-index
+      globalZIndex += 10
+      setZIndex(globalZIndex)
+    }
+    setIsOpen(!isOpen)
   }
   
   // 计算下拉菜单位置
@@ -65,19 +97,19 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   React.useEffect(() => {
     if (isOpen) {
       updateDropdownPosition()
-      window.addEventListener('scroll', updateDropdownPosition)
-      window.addEventListener('resize', updateDropdownPosition)
+      
+      const handleScroll = () => updateDropdownPosition()
+      const handleResize = () => updateDropdownPosition()
+      
+      window.addEventListener('scroll', handleScroll, true) // 使用capture来捕获所有滚动事件
+      window.addEventListener('resize', handleResize)
+      
       return () => {
-        window.removeEventListener('scroll', updateDropdownPosition)
-        window.removeEventListener('resize', updateDropdownPosition)
+        window.removeEventListener('scroll', handleScroll, true)
+        window.removeEventListener('resize', handleResize)
       }
     }
   }, [isOpen, updateDropdownPosition])
-  
-  // 调试信息
-  React.useEffect(() => {
-    console.log('CustomSelect isOpen:', isOpen, 'options:', options.length, 'position:', dropdownPosition)
-  }, [isOpen, options.length, dropdownPosition])
 
   const getSizeClasses = () => {
     switch (size) {
@@ -91,12 +123,12 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   }
 
   return (
-    <div className={cn("relative z-0", className)} ref={dropdownRef}>
+    <div className={cn("relative", className)} ref={dropdownRef}>
       {/* 选择器按钮 */}
       <button
         ref={buttonRef}
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={handleToggle}
         className={cn(
           "w-full text-left border rounded-lg bg-white transition-all duration-200",
           "hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500",
@@ -126,45 +158,52 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
         </div>
       </button>
 
-      {/* 下拉菜单 */}
+      {/* 下拉菜单 - 使用 Portal 渲染到 body */}
       {isOpen && (
-        <>
-          <div className="fixed inset-0 z-50" onClick={() => setIsOpen(false)} />
-          <div 
-            className="fixed z-50 bg-white border border-gray-200 rounded-lg shadow-lg max-h-64 overflow-hidden"
-            style={{
-              top: dropdownPosition.top,
-              left: dropdownPosition.left,
-              width: dropdownPosition.width
-            }}
-          >
-            <div className="max-h-64 overflow-y-auto">
-              {options.map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => handleSelect(option.value)}
-                  className={cn(
-                    "w-full px-4 py-3 text-left hover:bg-blue-50 transition-colors duration-150 border-b border-gray-50 last:border-b-0",
-                    value === option.value && "bg-blue-50 border-blue-100"
-                  )}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      {option.icon && (
-                        <span className="text-lg">{option.icon}</span>
-                      )}
-                      <span className="text-gray-900">{option.label}</span>
-                    </div>
-                    {value === option.value && (
-                      <Check className="h-4 w-4 text-blue-500" />
+        <Portal>
+          <>
+            <div 
+              className="fixed inset-0 bg-transparent"
+              style={{ zIndex: zIndex - 1 }}
+              onClick={() => setIsOpen(false)} 
+            />
+            <div 
+              className="fixed bg-white border border-gray-200 rounded-lg shadow-lg max-h-64 overflow-hidden"
+              style={{
+                top: dropdownPosition.top,
+                left: dropdownPosition.left,
+                width: dropdownPosition.width,
+                zIndex: zIndex
+              }}
+            >
+              <div className="max-h-64 overflow-y-auto">
+                {options.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => handleSelect(option.value)}
+                    className={cn(
+                      "w-full px-4 py-3 text-left hover:bg-blue-50 transition-colors duration-150 border-b border-gray-50 last:border-b-0",
+                      value === option.value && "bg-blue-50 border-blue-100"
                     )}
-                  </div>
-                </button>
-              ))}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        {option.icon && (
+                          <span className="text-lg">{option.icon}</span>
+                        )}
+                        <span className="text-gray-900">{option.label}</span>
+                      </div>
+                      {value === option.value && (
+                        <Check className="h-4 w-4 text-blue-500" />
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
-        </>
+          </>
+        </Portal>
       )}
     </div>
   )

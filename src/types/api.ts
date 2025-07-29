@@ -89,6 +89,31 @@ export interface LoginChannel {
   config: Record<string, any>
 }
 
+// 用户档案信息 - 匹配后端 /v1/user/info 接口响应
+export interface UserProfile {
+  id: string
+  access_token: string
+  avatar?: string | null
+  email: string
+  is_active: boolean
+  is_anonymous: boolean
+  language: string
+  nickname: string
+  password: string
+  status: string
+  timezone: string
+  last_login_time?: string | null
+  is_superuser: boolean
+}
+
+// 用户档案更新请求
+export interface UpdateUserProfileRequest {
+  nickname?: string
+  avatar?: string | null
+  language?: string
+  timezone?: string
+}
+
 // ============================================================================
 // MCP服务器管理模块
 // ============================================================================
