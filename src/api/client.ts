@@ -24,12 +24,15 @@ export interface RequestConfig extends RequestInit {
   timeout?: number
   skipAuth?: boolean
   baseURL?: string
+  _isRetry?: boolean
 }
 
 class APIClient {
   private baseURL: string
   private defaultTimeout: number = 30000
   private authToken: string | null = null
+  private isRefreshing: boolean = false
+  private refreshPromise: Promise<string> | null = null
 
   constructor(baseURL?: string) {
     this.baseURL = baseURL || API_BASE_URL
@@ -49,6 +52,45 @@ class APIClient {
     } else {
       localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN)
     }
+  }
+
+  // 刷新token的内部方法
+  private async refreshAuthToken(): Promise<string> {
+    if (this.isRefreshing && this.refreshPromise) {
+      return this.refreshPromise
+    }
+
+    this.isRefreshing = true
+    this.refreshPromise = (async () => {
+      try {
+        const response = await fetch(`${this.baseURL}/${API_VERSION}/auth/refresh`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${this.getAuthToken()}`,
+          },
+        })
+
+        if (!response.ok) {
+          throw new Error('Token refresh failed')
+        }
+
+        const data = await response.json()
+        const newToken = data.auth || data.access_token
+
+        if (!newToken) {
+          throw new Error('No token in refresh response')
+        }
+
+        this.setAuthToken(newToken)
+        return newToken
+      } finally {
+        this.isRefreshing = false
+        this.refreshPromise = null
+      }
+    })()
+
+    return this.refreshPromise
   }
 
   private async request<T = any>(
@@ -114,6 +156,36 @@ class APIClient {
       const contentType = response.headers.get('content-type')
       if (!contentType?.includes('application/json')) {
         if (!response.ok) {
+          // 特殊处理401错误，即使是非JSON响应也要执行认证逻辑
+          if (response.status === 401) {
+            // 尝试token刷新（如果不是刷新接口本身且还没有重试过）
+            if (!endpoint.includes('/auth/refresh') && !config.skipAuth && !config._isRetry) {
+              try {
+                await this.refreshAuthToken()
+                // 使用新token重试请求
+                return this.request<T>(endpoint, { ...config, _isRetry: true })
+              } catch (refreshError) {
+                console.warn('Token refresh failed:', refreshError)
+                // 刷新失败，继续执行登出逻辑
+              }
+            }
+            
+            // 清除无效token
+            this.setAuthToken(null)
+            
+            // 清除本地存储的认证信息
+            localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN)
+            localStorage.removeItem(STORAGE_KEYS.USER_INFO)
+            
+            // 通知全局状态管理清除用户状态
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(new CustomEvent('auth:logout', { 
+                detail: { reason: 'token_expired' } 
+              }))
+              // AuthGuard会自动处理重定向，不需要手动跳转
+            }
+          }
+          
           throw new APIError(
             response.status,
             'HTTP_ERROR',
@@ -139,7 +211,46 @@ class APIClient {
           data: rawData.data
         } as APIResponse<T>
       } else {
-        // 直接返回数据的格式
+        // 直接返回数据的格式，但先检查是否是401错误
+        if (response.status === 401) {
+          // 尝试token刷新（如果不是刷新接口本身且还没有重试过）
+          if (!endpoint.includes('/auth/refresh') && !config.skipAuth && !config._isRetry) {
+            try {
+              await this.refreshAuthToken()
+              // 使用新token重试请求
+              return this.request<T>(endpoint, { ...config, _isRetry: true })
+            } catch (refreshError) {
+              console.warn('Token refresh failed:', refreshError)
+              // 刷新失败，继续执行登出逻辑
+            }
+          }
+          
+          // 清除无效token
+          this.setAuthToken(null)
+          
+          // 清除本地存储的认证信息
+          localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN)
+          localStorage.removeItem(STORAGE_KEYS.USER_INFO)
+          
+          // 通知全局状态管理清除用户状态
+          if (typeof window !== 'undefined') {
+            console.log('Dispatching auth:logout event due to 401')
+            window.dispatchEvent(new CustomEvent('auth:logout', { 
+              detail: { reason: 'token_expired' } 
+            }))
+            
+            // 添加expired参数到URL，用于显示友好提示
+            const currentUrl = new URL(window.location.href)
+            if (!currentUrl.pathname.startsWith('/auth/')) {
+              currentUrl.searchParams.set('expired', 'true')
+              window.history.replaceState({}, '', currentUrl.toString())
+            }
+          }
+          
+          // 抛出错误
+          throw new APIError(401, 'UNAUTHORIZED', rawData.detail || rawData.message || ERROR_MESSAGES.UNAUTHORIZED)
+        }
+        
         return rawData as T
       }
 
@@ -155,9 +266,41 @@ class APIClient {
       if (!response.ok || data.retcode !== 0) {
         // 处理认证错误
         if (response.status === 401) {
+          // 尝试token刷新（如果不是刷新接口本身且还没有重试过）
+          if (!endpoint.includes('/auth/refresh') && !config.skipAuth && !config._isRetry) {
+            try {
+              await this.refreshAuthToken()
+              // 使用新token重试请求
+              return this.request<T>(endpoint, { ...config, _isRetry: true })
+            } catch (refreshError) {
+              console.warn('Token refresh failed:', refreshError)
+              // 刷新失败，继续执行原来的登出逻辑
+            }
+          }
+          
           // 清除无效token
           this.setAuthToken(null)
-          // 抛出错误让上层处理重定向
+          
+          // 清除本地存储的认证信息
+          localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN)
+          localStorage.removeItem(STORAGE_KEYS.USER_INFO)
+          
+          // 通知全局状态管理清除用户状态
+          if (typeof window !== 'undefined') {
+            console.log('Dispatching auth:logout event due to 401 (non-JSON)')
+            window.dispatchEvent(new CustomEvent('auth:logout', { 
+              detail: { reason: 'token_expired' } 
+            }))
+            
+            // 添加expired参数到URL，用于显示友好提示
+            const currentUrl = new URL(window.location.href)
+            if (!currentUrl.pathname.startsWith('/auth/')) {
+              currentUrl.searchParams.set('expired', 'true')
+              window.history.replaceState({}, '', currentUrl.toString())
+            }
+          }
+          
+          // 抛出错误让上层处理
           throw new APIError(401, 'UNAUTHORIZED', ERROR_MESSAGES.UNAUTHORIZED)
         }
 

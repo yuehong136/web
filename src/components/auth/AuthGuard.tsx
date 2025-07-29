@@ -31,9 +31,13 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
 
   // 如果需要认证但用户未登录，重定向到登录页
   if (requireAuth && !isAuthenticated) {
+    // 检查是否因为token过期而重定向
+    const urlParams = new URLSearchParams(window.location.search)
+    const isExpired = urlParams.get('expired') === 'true'
+    
     return (
       <Navigate 
-        to={ROUTES.LOGIN} 
+        to={`${ROUTES.LOGIN}${isExpired ? '?expired=true' : ''}`}
         state={{ from: location.pathname }} 
         replace 
       />
