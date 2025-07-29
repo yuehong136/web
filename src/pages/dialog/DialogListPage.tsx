@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Edit3, Plus } from 'lucide-react'
+import { Edit3, Plus, MessageSquare } from 'lucide-react'
 import { Button, Card } from '@/components/ui'
 import { dialogAPI } from '@/api/dialog'
 import type { DialogApp } from '@/types/api'
@@ -28,6 +28,10 @@ const DialogListPage: React.FC = () => {
 
   const handleEditPrompt = (dialogId: string) => {
     navigate(`/dialog/${dialogId}/prompt-editor`)
+  }
+
+  const handleViewTopic = (dialogId: string) => {
+    navigate(`/explore`) // 导航到探索页面，在那里可以查看话题
   }
 
   if (loading) {
@@ -82,14 +86,24 @@ const DialogListPage: React.FC = () => {
               <div className="text-xs text-gray-500">
                 模型: {dialog.llm_id}
               </div>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => handleEditPrompt(dialog.id)}
-              >
-                <Edit3 className="h-3 w-3 mr-1" />
-                编辑提示词
-              </Button>
+              <div className="flex space-x-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleViewTopic(dialog.id)}
+                >
+                  <MessageSquare className="h-3 w-3 mr-1" />
+                  话题
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleEditPrompt(dialog.id)}
+                >
+                  <Edit3 className="h-3 w-3 mr-1" />
+                  编辑提示词
+                </Button>
+              </div>
             </div>
           </Card>
         ))}

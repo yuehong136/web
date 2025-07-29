@@ -10,6 +10,7 @@ export const ROUTES = {
   DASHBOARD: '/dashboard',
   CHAT: '/chat',
   KNOWLEDGE: '/knowledge',
+  EXPLORE: '/explore',
   DOCUMENTS: '/documents',
   AI_TOOLS: '/ai-tools',
   WORKFLOW: '/workflow',

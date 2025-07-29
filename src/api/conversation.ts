@@ -22,9 +22,58 @@ export const conversationAPI = {
   }): Promise<PaginatedData<Conversation>> =>
     apiClient.get('/v1/conversation/list', { params }),
 
+  // 根据dialog_id获取对话列表
+  getConversationsByDialog: (dialogId: string): Promise<any> => {
+    if (!dialogId) {
+      throw new Error('dialog_id is required')
+    }
+    console.log('API call with dialog_id:', dialogId)
+    return apiClient.get(`/conversation/list?dialog_id=${dialogId}`)
+  },
+
   // 获取对话详情
   getConversation: (conversationId: string): Promise<Conversation> =>
     apiClient.get(`/v1/conversation/${conversationId}`),
+
+  // 获取对话详情（用于话题页面）
+  getConversationDetail: (conversationId: string): Promise<any> =>
+    apiClient.get(`/v1/conversation/get?conversation_id=${conversationId}`),
+
+  // 对话完成接口（用于话题页面发送消息）
+  completion: (data: {
+    conversation_id: string
+    messages: Array<{role: string, content: string, id?: string}>
+    quote?: boolean
+    stream?: boolean
+    filter_condition?: string
+  }) => {
+    const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+    const fullUrl = `${baseURL}/v1/conversation/completion`
+    const token = localStorage.getItem('auth_token')
+    
+    return fetch(fullUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
+      body: JSON.stringify({
+        quote: false,
+        stream: true,
+        filter_condition: "",
+        ...data
+      })
+    })
+  },
+
+  // 设置对话（创建或更新）
+  setConversation: (data: {
+    conversation_id?: string
+    dialog_id?: string
+    name?: string
+    is_new?: boolean
+  }): Promise<any> =>
+    apiClient.post('/v1/conversation/set', data),
 
   // 创建对话
   createConversation: (data: { title: string; system_prompt?: string }): Promise<Conversation> =>

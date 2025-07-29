@@ -19,6 +19,7 @@ import { CreateAppPage } from '@/pages/studio/CreateAppPage'
 import { SystemPage } from '@/pages/system'
 import { PromptEditorPage } from '@/pages/dialog/PromptEditorPage'
 import { DialogListPage } from '@/pages/dialog/DialogListPage'
+import { ExplorePage } from '@/pages/explore'
 import { ROUTES } from '@/constants'
 
 // 页面组件 (先创建占位符)
@@ -117,6 +118,10 @@ export const router = createBrowserRouter([
       {
         path: ROUTES.KNOWLEDGE,
         element: <KnowledgeListPage />,
+      },
+      {
+        path: ROUTES.EXPLORE,
+        element: <ExplorePage />,
       },
       {
         path: '/knowledge/create',

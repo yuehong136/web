@@ -5,7 +5,6 @@ import {
   MessageSquare,
   BookOpen,
   Wrench,
-  GitBranch,
   Server,
   Briefcase,
   Settings,
@@ -14,7 +13,8 @@ import {
   Sun,
   Moon,
   Monitor,
-  LogOut
+  LogOut,
+  Compass
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -50,6 +50,12 @@ const navItems: NavItem[] = [
     icon: BookOpen,
   },
   {
+    title: '探索',
+    href: ROUTES.EXPLORE,
+    icon: Compass,
+    badge: 'New'
+  },
+  {
     title: '工作室',
     href: ROUTES.STUDIO,
     icon: Briefcase,
@@ -58,11 +64,6 @@ const navItems: NavItem[] = [
     title: 'AI工具箱',
     href: ROUTES.AI_TOOLS,
     icon: Wrench,
-  },
-  {
-    title: '工作流',
-    href: ROUTES.WORKFLOW,
-    icon: GitBranch,
   },
   {
     title: 'MCP服务器',
