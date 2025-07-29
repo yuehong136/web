@@ -14,6 +14,8 @@ export const ROUTES = {
   AI_TOOLS: '/ai-tools',
   WORKFLOW: '/workflow',
   MCP_SERVERS: '/mcp-servers',
+  STUDIO: '/studio',
+  STUDIO_CREATE_APP: '/studio/create-app',
   SYSTEM: '/system',
   SETTINGS: '/settings',
   SETTINGS_PROFILE: '/settings/profile',

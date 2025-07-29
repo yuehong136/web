@@ -18,6 +18,7 @@ import {
   Tag,
   ArrowUpDown
 } from 'lucide-react'
+import { Progress } from 'antd'
 import { useKnowledgeStore } from '@/stores/knowledge'
 import { knowledgeAPI } from '@/api/knowledge'
 import { toast } from '@/lib/toast'
@@ -591,16 +592,17 @@ const KnowledgeDocumentsPage: React.FC = () => {
                 maxWidth="max-w-2xl"
               >
                 <div className="space-y-1">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between mb-1">
                     <span className="text-xs text-blue-600">运行中</span>
-                    <span className="text-xs text-gray-600">{progress}%</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-1.5">
-                    <div 
-                      className="bg-blue-600 h-1.5 rounded-full transition-all duration-300"
-                      style={{ width: `${progress}%` }}
-                    />
-                  </div>
+                  <Progress 
+                    percent={progress}
+                    size="small"
+                    status="active"
+                    strokeColor="#2563eb"
+                    showInfo={true}
+                    format={(percent) => `${percent}%`}
+                  />
                 </div>
               </Tooltip>
             )

@@ -191,6 +191,70 @@ export interface TestConnectionRequest {
 }
 
 // ============================================================================
+// 对话应用管理模块
+// ============================================================================
+
+export interface DialogApp {
+  id: string
+  tenant_id: string
+  name: string
+  description: string
+  icon: string
+  language: string
+  llm_id: string
+  llm_setting: Record<string, any> | null
+  prompt_type: string
+  prompt_config: {
+    system: string
+    prologue: string
+    parameters: Array<{
+      key: string
+      optional: boolean
+    }>
+    empty_response: string
+    reasoning?: boolean
+    tavily_api_key?: string
+  }
+  similarity_threshold: number
+  vector_similarity_weight: number
+  top_n: number
+  top_k: number
+  do_refer: string
+  rerank_id: string | null
+  kb_ids: string[]
+  search_mode: {
+    dense?: Record<string, any>
+    hybrid?: {
+      weight_dense: number
+      weight_sparse: number
+    }
+  } | null
+  status: string
+  create_date: string
+  update_date: string
+  create_time: number
+  update_time: number
+  kb_names: string[]
+}
+
+export interface RemoveDialogRequest {
+  dialog_ids: string[]
+}
+
+export interface SetDialogRequest {
+  dialog_id: string
+  name: string
+  description: string
+  icon: string
+  prompt_config: {
+    system: string
+    prologue: string
+    parameters: any[]
+    empty_response: string
+  }
+}
+
+// ============================================================================
 // 对话和聊天模块
 // ============================================================================
 

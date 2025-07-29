@@ -7,6 +7,7 @@ import {
   Wrench,
   GitBranch,
   Server,
+  Briefcase,
   Settings,
   User,
   Bell,
@@ -47,6 +48,11 @@ const navItems: NavItem[] = [
     title: '知识库',
     href: ROUTES.KNOWLEDGE,
     icon: BookOpen,
+  },
+  {
+    title: '工作室',
+    href: ROUTES.STUDIO,
+    icon: Briefcase,
   },
   {
     title: 'AI工具箱',

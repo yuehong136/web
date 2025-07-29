@@ -102,6 +102,16 @@ export const queryKeys = {
     executions: (id: string) => [...queryKeys.workflows.detail(id), 'executions'] as const,
   },
   
+  // 对话应用相关
+  dialogApps: {
+    all: ['dialogApps'] as const,
+    lists: () => [...queryKeys.dialogApps.all, 'list'] as const,
+    list: (filters: Record<string, any> = {}) => 
+      [...queryKeys.dialogApps.lists(), { filters }] as const,
+    details: () => [...queryKeys.dialogApps.all, 'detail'] as const,
+    detail: (id: string) => [...queryKeys.dialogApps.details(), id] as const,
+  },
+  
   // 系统统计相关
   stats: {
     all: ['stats'] as const,
@@ -120,5 +130,6 @@ export const invalidateQueries = {
   mcpServers: () => queryClient.invalidateQueries({ queryKey: queryKeys.mcpServers.all }),
   llms: () => queryClient.invalidateQueries({ queryKey: queryKeys.llms.all }),
   workflows: () => queryClient.invalidateQueries({ queryKey: queryKeys.workflows.all }),
+  dialogApps: () => queryClient.invalidateQueries({ queryKey: queryKeys.dialogApps.all }),
   stats: () => queryClient.invalidateQueries({ queryKey: queryKeys.stats.all }),
 }

@@ -14,7 +14,11 @@ import { DocumentChunksPage } from '@/pages/knowledge/DocumentChunksPage'
 import { SettingsLayout } from '@/pages/settings/SettingsLayout'
 import { ProfilePage } from '@/pages/settings/ProfilePage'
 import { ModelProvidersPage } from '@/pages/settings/ModelProvidersPage'
+import { StudioPage } from '@/pages/studio'
+import { CreateAppPage } from '@/pages/studio/CreateAppPage'
 import { SystemPage } from '@/pages/system'
+import { PromptEditorPage } from '@/pages/dialog/PromptEditorPage'
+import { DialogListPage } from '@/pages/dialog/DialogListPage'
 import { ROUTES } from '@/constants'
 
 // 页面组件 (先创建占位符)
@@ -165,8 +169,24 @@ export const router = createBrowserRouter([
         element: <MCPServers />,
       },
       {
+        path: ROUTES.STUDIO,
+        element: <StudioPage />,
+      },
+      {
+        path: ROUTES.STUDIO_CREATE_APP,
+        element: <CreateAppPage />,
+      },
+      {
         path: ROUTES.SYSTEM,
         element: <SystemPage />,
+      },
+      {
+        path: '/dialogs',
+        element: <DialogListPage />,
+      },
+      {
+        path: '/dialog/:id/prompt-editor',
+        element: <PromptEditorPage />,
       },
       {
         path: '/settings',

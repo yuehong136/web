@@ -3,6 +3,7 @@ import { RouterProvider } from 'react-router-dom'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { XProvider } from '@ant-design/x'
+import { App as AntApp } from 'antd'
 import { queryClient } from './lib/query-client'
 import { router } from './lib/router'
 import { initializeStores } from './stores'
@@ -24,8 +25,10 @@ function App() {
         }}
         direction="ltr"
       >
-        <RouterProvider router={router} />
-        <ReactQueryDevtools initialIsOpen={false} />
+        <AntApp>
+          <RouterProvider router={router} />
+          <ReactQueryDevtools initialIsOpen={false} />
+        </AntApp>
       </XProvider>
     </QueryClientProvider>
   )
