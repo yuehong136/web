@@ -403,24 +403,24 @@ const DocumentChunksPage: React.FC = () => {
 
       <div className="flex flex-col lg:flex-row flex-1 min-h-0">
         {/* 左侧分段列表区域 */}
-        <div className="w-full lg:w-[70%] flex flex-col bg-white border-r border-gray-200 min-h-0">
+        <div className="w-full lg:w-[70%] flex flex-col bg-background-surface border-r border-border-default min-h-0">
           {/* 筛选器工具栏 */}
-          <div className="border-b border-gray-200 p-4">
+          <div className="border-b border-border-default p-4">
             <div className="flex items-center justify-between mb-4">
               <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
                 {/* 状态筛选按钮组 */}
-                <div className="flex items-center bg-gray-100 rounded-lg p-1">
+                <div className="flex items-center bg-background-subtle rounded-lg p-1">
                   <button
                     onClick={() => setFilterStatus('all')}
                     className={cn(
                       "px-3 py-1.5 text-sm font-medium rounded-md transition-colors flex items-center space-x-2",
                       filterStatus === 'all'
-                        ? "bg-white text-gray-900 shadow-sm"
-                        : "text-gray-600 hover:text-gray-900"
+                        ? "bg-background-surface text-text-primary shadow-sm"
+                        : "text-text-secondary hover:text-text-primary"
                     )}
                   >
                     <span>全部</span>
-                    <span className="text-xs bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded-full">
+                    <span className="text-xs bg-background-subtle text-text-secondary px-1.5 py-0.5 rounded-full">
                       {chunks.length}
                     </span>
                   </button>
@@ -429,8 +429,8 @@ const DocumentChunksPage: React.FC = () => {
                     className={cn(
                       "px-3 py-1.5 text-sm font-medium rounded-md transition-colors flex items-center space-x-2",
                       filterStatus === 'enabled'
-                        ? "bg-white text-gray-900 shadow-sm"
-                        : "text-gray-600 hover:text-gray-900"
+                        ? "bg-background-surface text-text-primary shadow-sm"
+                        : "text-text-secondary hover:text-text-primary"
                     )}
                   >
                     <span className="flex items-center">
@@ -446,8 +446,8 @@ const DocumentChunksPage: React.FC = () => {
                     className={cn(
                       "px-3 py-1.5 text-sm font-medium rounded-md transition-colors flex items-center space-x-2",
                       filterStatus === 'disabled'
-                        ? "bg-white text-gray-900 shadow-sm"
-                        : "text-gray-600 hover:text-gray-900"
+                        ? "bg-background-surface text-text-primary shadow-sm"
+                        : "text-text-secondary hover:text-text-primary"
                     )}
                   >
                     <span className="flex items-center">
@@ -480,10 +480,10 @@ const DocumentChunksPage: React.FC = () => {
                 
                 {/* 结果统计和展开折叠控制 */}
                 <div className="flex items-center space-x-4">
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm text-text-secondary">
                     显示 {filteredChunks.length} / {total} 个分段
                     {searchKeyword.trim() && (
-                      <span className="ml-2 text-blue-600">
+                      <span className="ml-2 text-text-accent">
                         (搜索: "{searchKeyword.trim()}")
                       </span>
                     )}
@@ -492,7 +492,7 @@ const DocumentChunksPage: React.FC = () => {
                   <Tooltip content={isExpanded ? '折叠分段' : '展开分段'}>
                     <button
                       onClick={() => setIsExpanded(!isExpanded)}
-                      className="p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors"
+                      className="p-1 text-text-accent hover:text-text-primary hover:bg-state-hover rounded transition-colors"
                     >
                       {isExpanded ? (
                         <ChevronDown className="h-4 w-4" />
@@ -708,14 +708,14 @@ const DocumentChunksPage: React.FC = () => {
         </div>
 
         {/* 右侧操作面板 */}
-        <div className="w-full lg:w-[30%] bg-gray-50 flex flex-col relative">
+        <div className="w-full lg:w-[30%] bg-background-subtle flex flex-col relative">
           {/* 编辑模式覆盖层 */}
           {isEditMode && selectedChunk && (
-            <div className="absolute inset-0 bg-white z-30 flex flex-col">
-              <div className="p-6 border-b border-gray-200">
+            <div className="absolute inset-0 bg-background-surface z-30 flex flex-col">
+              <div className="p-6 border-b border-border-default">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <h3 className="text-lg font-medium text-gray-900">
+                    <h3 className="text-lg font-medium text-text-primary">
                       编辑分段
                     </h3>
                     <Tooltip content={`完整ID: ${selectedChunk.chunk_id}`}>
@@ -745,7 +745,7 @@ const DocumentChunksPage: React.FC = () => {
               <div className="flex-1 p-6 overflow-y-auto scrollbar-thin">
                 <div className="space-y-4 h-full flex flex-col">
                   <div className="flex items-center justify-between">
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="block text-sm font-medium text-text-secondary">
                       分段内容
                     </label>
                     <div className="flex items-center space-x-2">
@@ -755,7 +755,7 @@ const DocumentChunksPage: React.FC = () => {
                         onClick={() => setIsMarkdownPreview(!isMarkdownPreview)}
                         className={cn(
                           "text-xs flex items-center space-x-1",
-                          isMarkdownPreview ? "bg-blue-50 text-blue-600 border-blue-300" : ""
+                          isMarkdownPreview ? "bg-state-hover text-text-accent border-border-accent" : ""
                         )}
                       >
                         {isMarkdownPreview ? (

@@ -1,31 +1,135 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
+/* 导入主题系统 */
+@import './themes/light.css';
+@import './themes/dark.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
+    /* 基础颜色变量 - 保持与原有样式兼容 */
     --background: 255 255 255;
     --foreground: 15 23 42;
     --border: 226 232 240;
     --ring: 59 130 246;
     
+    /* 语义化颜色变量 */
     --color-primary: 59 130 246;
     --color-gray: 107 114 128;
     --color-success: 34 197 94;
     --color-warning: 251 191 36;
     --color-error: 239 68 68;
+    
+    /* 边框圆角 */
+    --radius: 0.5rem;
+  }
+
+  /* 确保 html 和 body 使用主题背景色 */
+  html {
+    @apply scroll-smooth;
+    background-color: rgb(var(--color-background-body));
+    color: rgb(var(--color-text-primary));
   }
 
   body {
-    @apply bg-white text-slate-900;
+    background-color: rgb(var(--color-background-body));
+    color: rgb(var(--color-text-primary));
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
-  html {
-    @apply scroll-smooth;
+  /* 全局选择器样式 - 确保主题覆盖 */
+  * {
+    border-color: rgb(var(--color-border-default));
+  }
+
+  /* 确保React应用根容器使用主题背景 */
+  #root {
+    background-color: rgb(var(--color-background-body));
+    color: rgb(var(--color-text-primary));
+    min-height: 100vh;
+  }
+
+  /* 页面容器样式 */
+  .page-container {
+    background-color: rgb(var(--color-background-section));
+    color: rgb(var(--color-text-primary));
+  }
+
+  /* 确保所有文本元素继承主题颜色 */
+  h1, h2, h3, h4, h5, h6 {
+    color: rgb(var(--color-text-primary));
+  }
+
+  p, span, div {
+    color: inherit;
+  }
+
+  /* 链接样式 */
+  a {
+    color: rgb(var(--color-text-accent));
+  }
+
+  a:hover {
+    opacity: 0.8;
+  }
+
+  /* 通用颜色类重写 - 仅在暗黑模式下应用，避免覆盖自定义组件 */
+  html[data-theme="dark"] .text-gray-900:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]) {
+    color: rgb(var(--color-text-primary));
+  }
+
+  html[data-theme="dark"] .text-gray-800:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]) {
+    color: rgb(var(--color-text-primary));
+  }
+
+  html[data-theme="dark"] .text-gray-700:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]) {
+    color: rgb(var(--color-text-secondary));
+  }
+
+  html[data-theme="dark"] .text-gray-600:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]) {
+    color: rgb(var(--color-text-secondary));
+  }
+
+  html[data-theme="dark"] .text-gray-500:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]) {
+    color: rgb(var(--color-text-tertiary));
+  }
+
+  html[data-theme="dark"] .text-gray-400:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]) {
+    color: rgb(var(--color-text-muted));
+  }
+
+  html[data-theme="dark"] .text-black:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]) {
+    color: rgb(var(--color-text-primary));
+  }
+
+  /* 背景颜色重写 - 更谨慎的选择器，避免影响弹窗和下拉框 */
+  html[data-theme="dark"] .bg-white:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not([class*="select-"]):not([role="dialog"]):not([role="menu"]):not([role="listbox"]) {
+    background-color: rgb(var(--color-background-surface));
+  }
+
+  html[data-theme="dark"] .bg-gray-50:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not([class*="select-"]):not([role="dialog"]):not([role="menu"]):not([role="listbox"]) {
+    background-color: rgb(var(--color-background-subtle));
+  }
+
+  html[data-theme="dark"] .bg-gray-100:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not([class*="select-"]):not([role="dialog"]):not([role="menu"]):not([role="listbox"]) {
+    background-color: rgb(var(--color-background-subtle));
+  }
+
+  html[data-theme="dark"] .bg-gray-200:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not([class*="select-"]):not([role="dialog"]):not([role="menu"]):not([role="listbox"]) {
+    background-color: rgb(var(--color-border-default));
+  }
+
+  /* 边框颜色重写 */
+  html[data-theme="dark"] .border-gray-200:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not([class*="select-"]) {
+    border-color: rgb(var(--color-border-default));
+  }
+
+  html[data-theme="dark"] .border-gray-300:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not([class*="select-"]) {
+    border-color: rgb(var(--color-border-subtle));
   }
 }
 
@@ -46,36 +150,114 @@
   }
   .btn-primary {
     @apply inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
-    @apply bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-800;
+    background-color: rgb(var(--color-components-button-primary-bg));
+    color: rgb(var(--color-components-button-primary-text));
+    border-color: rgb(var(--color-components-button-primary-border));
     @apply px-4 py-2;
+  }
+
+  .btn-primary:hover {
+    background-color: rgb(var(--color-components-button-primary-bg-hover));
+    border-color: rgb(var(--color-components-button-primary-border-hover));
+  }
+
+  .btn-primary:active {
+    background-color: rgb(var(--color-components-button-primary-bg-active));
+  }
+
+  .btn-primary:disabled {
+    background-color: rgb(var(--color-components-button-primary-bg-disabled));
+    color: rgb(var(--color-components-button-primary-text-disabled));
   }
 
   .btn-secondary {
     @apply inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
-    @apply bg-gray-100 text-gray-900 hover:bg-gray-200 active:bg-gray-300;
+    background-color: rgb(var(--color-components-button-secondary-bg));
+    color: rgb(var(--color-components-button-secondary-text));
+    border-color: rgb(var(--color-components-button-secondary-border));
     @apply px-4 py-2;
+  }
+
+  .btn-secondary:hover {
+    background-color: rgb(var(--color-components-button-secondary-bg-hover));
+    border-color: rgb(var(--color-components-button-secondary-border-hover));
+  }
+
+  .btn-secondary:active {
+    background-color: rgb(var(--color-components-button-secondary-bg-active));
+  }
+
+  .btn-secondary:disabled {
+    background-color: rgb(var(--color-components-button-secondary-bg-disabled));
+    color: rgb(var(--color-components-button-secondary-text-disabled));
   }
 
   .btn-ghost {
     @apply inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
-    @apply hover:bg-gray-100 hover:text-gray-900;
+    color: rgb(var(--color-components-button-ghost-text));
     @apply px-4 py-2;
   }
 
+  .btn-ghost:hover {
+    background-color: rgb(var(--color-components-button-ghost-bg-hover));
+  }
+
+  .btn-ghost:disabled {
+    color: rgb(var(--color-components-button-ghost-text-disabled));
+  }
+
   .card {
-    @apply rounded-lg border bg-white shadow-soft;
+    @apply rounded-lg shadow-soft;
+    background-color: rgb(var(--color-components-card-bg));
+    border-color: rgb(var(--color-components-card-border));
+    box-shadow: var(--color-components-card-shadow);
+  }
+
+  .card:hover {
+    background-color: rgb(var(--color-components-card-bg-hover));
   }
 
   .input-field {
-    @apply flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply flex h-10 w-full rounded-md border px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+    background-color: rgb(var(--color-components-input-bg));
+    border-color: rgb(var(--color-components-input-border));
+    color: rgb(var(--color-components-input-text));
+  }
+
+  .input-field::placeholder {
+    color: rgb(var(--color-components-input-text-placeholder));
+  }
+
+  .input-field:hover {
+    background-color: rgb(var(--color-components-input-bg-hover));
+    border-color: rgb(var(--color-components-input-border-hover));
+  }
+
+  .input-field:focus-visible {
+    background-color: rgb(var(--color-components-input-bg-focus));
+    border-color: rgb(var(--color-components-input-border-focus));
+    --tw-ring-color: rgb(var(--color-components-input-border-focus));
+  }
+
+  .input-field:disabled {
+    background-color: rgb(var(--color-components-input-bg-disabled));
+    color: rgb(var(--color-components-input-text-disabled));
   }
 
   .sidebar-item {
-    @apply flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-900;
+    @apply flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors;
+    background-color: rgb(var(--color-components-sidebar-item-bg));
+    color: rgb(var(--color-components-sidebar-item-text));
+  }
+
+  .sidebar-item:hover {
+    background-color: rgb(var(--color-components-sidebar-item-bg-hover));
+    color: rgb(var(--color-components-sidebar-item-text-active));
   }
 
   .sidebar-item.active {
-    @apply bg-primary-50 text-primary-700 hover:bg-primary-100;
+    background-color: rgb(var(--color-components-sidebar-item-bg-active));
+    color: rgb(var(--color-components-sidebar-item-text-active));
   }
 }
 
@@ -124,7 +306,7 @@
   }
 }
 
-/* 现代智能滚动条样式 - 2025最佳实践 */
+/* 现代智能滚动条样式 - 使用设计令牌 */
 
 /* 默认隐藏滚动条 */
 * {
@@ -149,17 +331,17 @@
 }
 
 .scrollbar-thin::-webkit-scrollbar-track {
-  background: transparent;
+  background: rgb(var(--color-components-scrollbar-track));
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb {
-  background: rgba(156, 163, 175, 0.3); /* gray-400 with opacity */
+  background: rgb(var(--color-components-scrollbar-thumb));
   border-radius: 2px;
   transition: background-color 0.2s ease;
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-  background: rgba(156, 163, 175, 0.6); /* gray-400 with higher opacity */
+  background: rgb(var(--color-components-scrollbar-thumb-hover));
 }
 
 /* 只在内容可滚动时显示滚动条 */
@@ -235,9 +417,10 @@
   animation: spin 1s linear infinite;
 }
 
-/* Markdown 内容样式优化 */
+/* Markdown 内容样式优化 - 使用设计令牌 */
 .prose {
-  @apply text-gray-800 leading-relaxed;
+  color: rgb(var(--color-text-secondary));
+  line-height: 1.625;
 }
 
 .prose h1,
@@ -246,7 +429,9 @@
 .prose h4,
 .prose h5,
 .prose h6 {
-  @apply text-gray-900 font-semibold leading-tight;
+  color: rgb(var(--color-text-primary));
+  font-weight: 600;
+  line-height: 1.25;
   margin-top: 1.5em;
   margin-bottom: 0.5em;
 }
@@ -274,52 +459,84 @@
 
 .prose ul,
 .prose ol {
-  @apply my-3 pl-6;
+  margin: 0.75rem 0;
+  padding-left: 1.5rem;
 }
 
 .prose li {
-  @apply my-1;
+  margin: 0.25rem 0;
 }
 
 .prose blockquote {
-  @apply border-l-4 border-blue-500 bg-blue-50 pl-4 py-2 my-4 italic text-blue-800;
+  border-left: 4px solid rgb(var(--color-components-alert-info-border));
+  background-color: rgb(var(--color-components-alert-info-bg));
+  padding: 0.5rem 1rem;
+  margin: 1rem 0;
+  font-style: italic;
+  color: rgb(var(--color-components-alert-info-text));
 }
 
 .prose code {
-  @apply bg-gray-100 text-gray-800 px-1 py-0.5 rounded text-sm font-mono;
+  background-color: rgb(var(--color-components-code-bg));
+  color: rgb(var(--color-components-code-text));
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, 'DejaVu Sans Mono', monospace;
 }
 
 .prose pre {
-  @apply bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto my-4;
+  background-color: rgb(var(--color-components-pre-bg));
+  color: rgb(var(--color-components-pre-text));
+  padding: 1rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  margin: 1rem 0;
 }
 
 .prose pre code {
-  @apply bg-transparent text-gray-100 p-0;
+  background-color: transparent;
+  color: rgb(var(--color-components-pre-text));
+  padding: 0;
 }
 
 .prose a {
-  @apply text-blue-600 hover:text-blue-800 underline;
+  color: rgb(var(--color-text-accent));
+  text-decoration: underline;
+}
+
+.prose a:hover {
+  opacity: 0.8;
 }
 
 .prose table {
-  @apply w-full border-collapse my-4;
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
 }
 
 .prose th,
 .prose td {
-  @apply border border-gray-300 px-3 py-2 text-left;
+  border: 1px solid rgb(var(--color-border-default));
+  padding: 0.75rem;
+  text-align: left;
 }
 
 .prose th {
-  @apply bg-gray-50 font-semibold;
+  background-color: rgb(var(--color-background-subtle));
+  font-weight: 600;
 }
 
 .prose img {
-  @apply max-w-full h-auto rounded-lg my-4;
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  margin: 1rem 0;
 }
 
 .prose hr {
-  @apply border-t border-gray-300 my-8;
+  border-top: 1px solid rgb(var(--color-border-default));
+  margin: 2rem 0;
 }
 
 /* 聊天气泡专用样式 */

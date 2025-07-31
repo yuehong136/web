@@ -3,6 +3,7 @@ import {
   Menu
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { ThemeSwitcher } from '@/components/ui/theme-switcher'
 
 interface HeaderProps {
   onToggleSidebar: () => void
@@ -11,7 +12,7 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ onToggleSidebar, showSidebarToggle = true }) => {
   return (
-    <header className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-4 lg:px-6">
+    <header className="bg-components-nav-bg border-b border-components-nav-border h-16 flex items-center justify-between px-4 lg:px-6">
       {/* 左侧 */}
       <div className="flex items-center gap-4">
         {/* 移动端侧边栏切换按钮 */}
@@ -28,8 +29,9 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar, showSidebarTogg
 
       </div>
 
-      {/* 右侧 - 预留空间 */}
-      <div className="flex items-center">
+      {/* 右侧 - 主题切换器 */}
+      <div className="flex items-center gap-2">
+        <ThemeSwitcher variant="compact" />
       </div>
     </header>
   )

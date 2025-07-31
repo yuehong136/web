@@ -854,8 +854,7 @@ export const ExplorePage: React.FC = () => {
                               }
                             }))
                           }}
-                          className="text-gray-400 hover:text-gray-600 transition-transform duration-200"
-                          style={{ transform: messageThinking.thinkingExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }}
+                          className={`text-gray-400 hover:text-gray-600 transition-transform duration-200 ${messageThinking.thinkingExpanded ? 'rotate-180' : 'rotate-0'}`}
                         >
                           <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
@@ -892,22 +891,12 @@ export const ExplorePage: React.FC = () => {
       placement: (isUser ? 'end' : 'start') as 'start' | 'end',
       avatar: isUser
         ? { 
-            style: { 
-              backgroundColor: '#3b82f6', 
-              border: 'none',
-              boxShadow: 'none',
-              borderRadius: '50%'
-            }, 
+            className: 'bg-blue-600 border-none shadow-none rounded-full', 
             children: 'U' 
           }
         : { 
             icon: getProviderIcon(selectedModel),
-            style: { 
-              backgroundColor: '#f8fafc', 
-              border: 'none',
-              boxShadow: 'none',
-              borderRadius: '50%'
-            }
+            className: 'bg-slate-50 border-none shadow-none rounded-full'
           },
       footer: !isUser ? (
         <div className="mt-2 flex justify-end">
@@ -939,15 +928,6 @@ export const ExplorePage: React.FC = () => {
         content: 'prose-container'
       },
       styles: {
-        header: { 
-          color: '#6b7280', 
-          fontSize: '12px',
-          marginBottom: '4px'
-        },
-        avatar: { 
-          border: 'none',
-          boxShadow: 'none'
-        },
         content: {
           backgroundColor: isUser ? '#3b82f6' : '#f8fafc',
           color: isUser ? '#ffffff' : '#1f2937',
@@ -957,10 +937,6 @@ export const ExplorePage: React.FC = () => {
           padding: '12px 16px',
           fontSize: '16px',
           lineHeight: '1.6'
-        },
-        footer: {
-          marginTop: '8px',
-          padding: '0'
         }
       },
       loading: false,
@@ -1223,11 +1199,7 @@ export const ExplorePage: React.FC = () => {
                               setSelectedConversationDetail(null)
                             }
                           }}
-                          style={{
-                            width: '100%',
-                            background: 'white',
-                            borderRadius: '8px'
-                          }}
+                          className="w-full bg-white rounded-lg"
                         />
                       </div>
                     )}

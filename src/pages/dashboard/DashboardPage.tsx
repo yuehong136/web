@@ -78,8 +78,8 @@ export const DashboardPage: React.FC = () => {
     <div className="p-6">
       {/* 页面标题 */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">仪表板</h1>
-        <p className="text-gray-600 mt-2">
+        <h1 className="text-3xl font-bold text-text-primary">仪表板</h1>
+        <p className="text-text-secondary mt-2">
           欢迎使用 Multi-RAG 智能对话平台
         </p>
       </div>
@@ -92,10 +92,10 @@ export const DashboardPage: React.FC = () => {
             <Card key={stat.title} className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">
+                  <p className="text-sm font-medium text-text-secondary">
                     {stat.title}
                   </p>
-                  <p className="text-2xl font-bold text-gray-900 mt-2">
+                  <p className="text-2xl font-bold text-text-primary mt-2">
                     {stat.value}
                   </p>
                   <p className={`text-sm mt-2 flex items-center ${
@@ -120,10 +120,10 @@ export const DashboardPage: React.FC = () => {
         {/* 使用统计图表 */}
         <Card className="p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-lg font-semibold text-text-primary">
               使用统计
             </h2>
-            <div className="flex items-center text-sm text-gray-500">
+            <div className="flex items-center text-sm text-text-tertiary">
               <Activity className="h-4 w-4 mr-1" />
               最近7天
             </div>
@@ -132,40 +132,40 @@ export const DashboardPage: React.FC = () => {
           {/* 简单的统计展示 */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">对话次数</span>
+              <span className="text-sm text-text-secondary">对话次数</span>
               <div className="flex items-center">
-                <div className="w-24 h-2 bg-gray-200 rounded-full mr-3">
-                  <div className="w-16 h-2 bg-blue-500 rounded-full"></div>
+                <div className="w-24 h-2 bg-components-progress-bg rounded-full mr-3">
+                  <div className="w-16 h-2 bg-components-progress-fill rounded-full"></div>
                 </div>
                 <span className="text-sm font-medium">67%</span>
               </div>
             </div>
             
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">知识库查询</span>
+              <span className="text-sm text-text-secondary">知识库查询</span>
               <div className="flex items-center">
-                <div className="w-24 h-2 bg-gray-200 rounded-full mr-3">
-                  <div className="w-20 h-2 bg-green-500 rounded-full"></div>
+                <div className="w-24 h-2 bg-components-progress-bg rounded-full mr-3">
+                  <div className="w-20 h-2 bg-text-success rounded-full"></div>
                 </div>
                 <span className="text-sm font-medium">83%</span>
               </div>
             </div>
             
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">文档上传</span>
+              <span className="text-sm text-text-secondary">文档上传</span>
               <div className="flex items-center">
-                <div className="w-24 h-2 bg-gray-200 rounded-full mr-3">
-                  <div className="w-12 h-2 bg-yellow-500 rounded-full"></div>
+                <div className="w-24 h-2 bg-components-progress-bg rounded-full mr-3">
+                  <div className="w-12 h-2 bg-text-warning rounded-full"></div>
                 </div>
                 <span className="text-sm font-medium">50%</span>
               </div>
             </div>
             
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">用户活跃度</span>
+              <span className="text-sm text-text-secondary">用户活跃度</span>
               <div className="flex items-center">
-                <div className="w-24 h-2 bg-gray-200 rounded-full mr-3">
-                  <div className="w-18 h-2 bg-purple-500 rounded-full"></div>
+                <div className="w-24 h-2 bg-components-progress-bg rounded-full mr-3">
+                  <div className="w-18 h-2 bg-text-accent rounded-full"></div>
                 </div>
                 <span className="text-sm font-medium">75%</span>
               </div>
@@ -176,10 +176,10 @@ export const DashboardPage: React.FC = () => {
         {/* 最近活动 */}
         <Card className="p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-lg font-semibold text-text-primary">
               最近活动
             </h2>
-            <div className="flex items-center text-sm text-gray-500">
+            <div className="flex items-center text-sm text-text-tertiary">
               <Clock className="h-4 w-4 mr-1" />
               实时更新
             </div>
@@ -190,14 +190,14 @@ export const DashboardPage: React.FC = () => {
               const Icon = activity.icon
               return (
                 <div key={activity.id} className="flex items-start space-x-3">
-                  <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
-                    <Icon className="h-4 w-4 text-gray-600" />
+                  <div className="w-8 h-8 bg-background-subtle rounded-lg flex items-center justify-center">
+                    <Icon className="h-4 w-4 text-text-secondary" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900">
+                    <p className="text-sm font-medium text-text-primary">
                       {activity.title}
                     </p>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-text-tertiary mt-1">
                       {activity.time}
                     </p>
                   </div>
@@ -211,42 +211,42 @@ export const DashboardPage: React.FC = () => {
       {/* 快速操作 */}
       <div className="mt-8">
         <Card className="p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          <h2 className="text-lg font-semibold text-text-primary mb-4">
             快速操作
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left">
+            <button className="p-4 border border-border-default rounded-lg hover:bg-state-hover transition-colors text-left">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
                   <MessageSquare className="h-5 w-5 text-blue-600" />
                 </div>
                 <div>
-                  <h3 className="font-medium text-gray-900">开始对话</h3>
-                  <p className="text-sm text-gray-500">创建新的AI对话</p>
+                  <h3 className="font-medium text-text-primary">开始对话</h3>
+                  <p className="text-sm text-text-secondary">创建新的AI对话</p>
                 </div>
               </div>
             </button>
             
-            <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left">
+            <button className="p-4 border border-border-default rounded-lg hover:bg-state-hover transition-colors text-left">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
                   <Database className="h-5 w-5 text-green-600" />
                 </div>
                 <div>
-                  <h3 className="font-medium text-gray-900">创建知识库</h3>
-                  <p className="text-sm text-gray-500">构建新的知识库</p>
+                  <h3 className="font-medium text-text-primary">创建知识库</h3>
+                  <p className="text-sm text-text-secondary">构建新的知识库</p>
                 </div>
               </div>
             </button>
             
-            <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left">
+            <button className="p-4 border border-border-default rounded-lg hover:bg-state-hover transition-colors text-left">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
                   <Zap className="h-5 w-5 text-purple-600" />
                 </div>
                 <div>
-                  <h3 className="font-medium text-gray-900">AI工具</h3>
-                  <p className="text-sm text-gray-500">使用AI辅助工具</p>
+                  <h3 className="font-medium text-text-primary">AI工具</h3>
+                  <p className="text-sm text-text-secondary">使用AI辅助工具</p>
                 </div>
               </div>
             </button>

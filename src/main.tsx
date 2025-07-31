@@ -3,6 +3,10 @@ import { createRoot } from 'react-dom/client'
 import 'antd/dist/reset.css'
 import './index.css'
 import App from './App.tsx'
+import { initTheme } from '@/themes'
+
+// 初始化主题系统
+initTheme()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

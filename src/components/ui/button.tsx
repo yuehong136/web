@@ -7,14 +7,14 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-800",
-        destructive: "bg-red-500 text-white hover:bg-red-600 active:bg-red-700",
-        outline: "border border-gray-300 bg-white hover:bg-gray-50 hover:text-gray-900",
-        secondary: "bg-gray-100 text-gray-900 hover:bg-gray-200 active:bg-gray-300",
-        ghost: "hover:bg-gray-100 hover:text-gray-900",
-        link: "text-primary-600 underline-offset-4 hover:underline",
-        success: "bg-green-500 text-white hover:bg-green-600 active:bg-green-700",
-        warning: "bg-yellow-500 text-white hover:bg-yellow-600 active:bg-yellow-700",
+        default: "bg-components-button-primary-bg text-components-button-primary-text hover:bg-components-button-primary-bg-hover active:bg-components-button-primary-bg-active border-components-button-primary-border hover:border-components-button-primary-border-hover disabled:bg-components-button-primary-bg-disabled disabled:text-components-button-primary-text-disabled",
+        destructive: "bg-error-500 text-white hover:bg-error-600 active:bg-error-700",
+        outline: "border bg-components-button-secondary-bg text-components-button-secondary-text hover:bg-components-button-secondary-bg-hover active:bg-components-button-secondary-bg-active border-components-button-secondary-border hover:border-components-button-secondary-border-hover disabled:bg-components-button-secondary-bg-disabled disabled:text-components-button-secondary-text-disabled",
+        secondary: "bg-components-button-secondary-bg text-components-button-secondary-text hover:bg-components-button-secondary-bg-hover active:bg-components-button-secondary-bg-active disabled:bg-components-button-secondary-bg-disabled disabled:text-components-button-secondary-text-disabled",
+        ghost: "hover:bg-components-button-ghost-bg-hover text-components-button-ghost-text disabled:text-components-button-ghost-text-disabled",
+        link: "text-text-accent underline-offset-4 hover:underline",
+        success: "bg-success-500 text-white hover:bg-success-600 active:bg-success-700",
+        warning: "bg-warning-500 text-white hover:bg-warning-600 active:bg-warning-700",
       },
       size: {
         default: "h-10 px-4 py-2",

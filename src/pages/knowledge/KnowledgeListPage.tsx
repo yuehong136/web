@@ -187,11 +187,11 @@ export const KnowledgeListPage: React.FC = () => {
   const getStatusColor = (kb: KnowledgeBase) => {
     // 由于API没有明确的status字段，我们基于其他字段判断状态
     if (kb.doc_num > 0) {
-      return 'text-green-600 bg-green-100'
+      return 'text-text-success bg-green-100'
     } else if (kb.permission === 'me') {
-      return 'text-blue-600 bg-blue-100'
+      return 'text-text-accent bg-blue-100'
     } else {
-      return 'text-gray-600 bg-gray-100'
+      return 'text-text-secondary bg-background-subtle'
     }
   }
 
@@ -304,8 +304,8 @@ export const KnowledgeListPage: React.FC = () => {
             <Database className="h-5 w-5 text-blue-600" />
           </div>
           <div className="ml-3">
-            <p className="text-sm font-medium text-gray-600">知识库总数</p>
-            <p className="text-2xl font-bold text-gray-900">{total}</p>
+            <p className="text-sm font-medium text-text-secondary">知识库总数</p>
+            <p className="text-2xl font-bold text-text-primary">{total}</p>
           </div>
         </div>
       </Card>
@@ -316,8 +316,8 @@ export const KnowledgeListPage: React.FC = () => {
             <FileText className="h-5 w-5 text-green-600" />
           </div>
           <div className="ml-3">
-            <p className="text-sm font-medium text-gray-600">总文档数</p>
-            <p className="text-2xl font-bold text-gray-900">
+            <p className="text-sm font-medium text-text-secondary">总文档数</p>
+            <p className="text-2xl font-bold text-text-primary">
               {knowledgeBases.reduce((sum, kb) => sum + (kb.doc_num || 0), 0)}
             </p>
           </div>
@@ -330,8 +330,8 @@ export const KnowledgeListPage: React.FC = () => {
             <Layers className="h-5 w-5 text-purple-600" />
           </div>
           <div className="ml-3">
-            <p className="text-sm font-medium text-gray-600">总块数</p>
-            <p className="text-2xl font-bold text-gray-900">
+            <p className="text-sm font-medium text-text-secondary">总块数</p>
+            <p className="text-2xl font-bold text-text-primary">
               {knowledgeBases.reduce((sum, kb) => sum + (kb.chunk_num || 0), 0)}
             </p>
           </div>
@@ -344,8 +344,8 @@ export const KnowledgeListPage: React.FC = () => {
             <Target className="h-5 w-5 text-yellow-600" />
           </div>
           <div className="ml-3">
-            <p className="text-sm font-medium text-gray-600">总Token</p>
-            <p className="text-2xl font-bold text-gray-900">
+            <p className="text-sm font-medium text-text-secondary">总Token</p>
+            <p className="text-2xl font-bold text-text-primary">
               {knowledgeBases.reduce((sum, kb) => sum + (kb.token_num || 0), 0).toLocaleString()}
             </p>
           </div>
@@ -356,13 +356,13 @@ export const KnowledgeListPage: React.FC = () => {
 
   const renderFilters = () => (
     showFilters && (
-      <div className="mt-4 pt-4 border-t border-gray-200 bg-gray-50 rounded-lg p-4">
+      <div className="mt-4 pt-4 border-t border-border-default bg-background-subtle rounded-lg p-4">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-2">
             <div className="p-1.5 bg-blue-100 rounded-md">
               <Filter className="h-4 w-4 text-blue-600" />
             </div>
-            <h3 className="text-sm font-medium text-gray-900">筛选条件</h3>
+            <h3 className="text-sm font-medium text-text-primary">筛选条件</h3>
           </div>
           <div className="flex items-center space-x-2">
             {hasActiveFilters() && (
@@ -370,13 +370,13 @@ export const KnowledgeListPage: React.FC = () => {
                 variant="ghost"
                 size="sm"
                 onClick={clearAllFilters}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-text-tertiary hover:text-text-secondary"
               >
                 <X className="h-3 w-3 mr-1" />
                 清除筛选
               </Button>
             )}
-            <span className="text-xs text-gray-500">
+            <span className="text-xs text-text-tertiary">
               筛选条件会自动应用
             </span>
           </div>
@@ -767,7 +767,7 @@ export const KnowledgeListPage: React.FC = () => {
             ),
             render: (value: number) => (
               <div className="flex items-center">
-                <FileText className="h-4 w-4 mr-1 text-gray-400" />
+                <FileText className="h-4 w-4 mr-1 text-text-tertiary" />
                 {value || 0}
               </div>
             )
@@ -777,7 +777,7 @@ export const KnowledgeListPage: React.FC = () => {
             title: '块数',
             render: (value: number) => (
               <div className="flex items-center">
-                <Layers className="h-4 w-4 mr-1 text-gray-400" />
+                <Layers className="h-4 w-4 mr-1 text-text-tertiary" />
                 {value || 0}
               </div>
             )
@@ -786,7 +786,7 @@ export const KnowledgeListPage: React.FC = () => {
             key: 'token_num',
             title: 'Token数',
             render: (value: number) => (
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-text-secondary">
                 {(value || 0).toLocaleString()}
               </div>
             )
@@ -808,7 +808,7 @@ export const KnowledgeListPage: React.FC = () => {
             ),
             render: (value: number) => (
               <div className="flex items-center">
-                <Clock className="h-4 w-4 mr-1 text-gray-400" />
+                <Clock className="h-4 w-4 mr-1 text-text-tertiary" />
                 {formatTime(value)}
               </div>
             )
@@ -863,8 +863,8 @@ export const KnowledgeListPage: React.FC = () => {
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">知识库管理</h1>
-            <p className="text-gray-600 mt-1">
+            <h1 className="text-2xl font-bold text-text-primary">知识库管理</h1>
+            <p className="text-text-secondary mt-1">
               管理您的知识库，上传文档，配置检索参数
             </p>
           </div>

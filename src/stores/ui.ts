@@ -1,12 +1,12 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { STORAGE_KEYS, THEMES, LANGUAGES } from '@/constants'
-import type { Theme, Language } from '@/types'
+import { STORAGE_KEYS } from '@/constants'
+import { Theme, getResolvedTheme } from '@/themes'
+import type { Language } from '@/types'
 
 interface UIState {
   // 主题设置
   theme: Theme
-  systemTheme: Theme
   
   // 语言设置
   language: Language
@@ -61,8 +61,7 @@ export const useUIStore = create<UIState>()(
   persist(
     (set, get) => ({
       // 初始状态
-      theme: 'system',
-      systemTheme: 'light',
+      theme: Theme.SYSTEM,
       language: 'zh-CN',
       sidebarCollapsed: false,
       sidebarWidth: 256,
@@ -74,16 +73,7 @@ export const useUIStore = create<UIState>()(
       // 设置主题
       setTheme: (theme) => {
         set({ theme })
-        
-        // 更新文档类名
-        const root = document.documentElement
-        if (theme === 'system') {
-          const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-          root.className = systemTheme
-          set({ systemTheme })
-        } else {
-          root.className = theme
-        }
+        // 新的主题系统会自动处理DOM更新
       },
 
       // 设置语言
@@ -158,11 +148,7 @@ export const useUIStore = create<UIState>()(
 
       // 获取有效主题
       getEffectiveTheme: () => {
-        const { theme, systemTheme } = get()
-        if (theme === 'system') {
-          return systemTheme
-        }
-        return theme as 'light' | 'dark'
+        return getResolvedTheme()
       },
 
       // 检查是否为移动端
@@ -185,20 +171,7 @@ export const useUIStore = create<UIState>()(
           // 应用语言
           state.setLanguage(state.language)
           
-          // 监听系统主题变化
-          const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-          const handleThemeChange = (e: MediaQueryListEvent) => {
-            const systemTheme = e.matches ? 'dark' : 'light'
-            state.systemTheme = systemTheme
-            if (state.theme === 'system') {
-              document.documentElement.className = systemTheme
-            }
-          }
-          
-          mediaQuery.addEventListener('change', handleThemeChange)
-          
-          // 设置初始系统主题
-          state.systemTheme = mediaQuery.matches ? 'dark' : 'light'
+          // 新的主题系统会自动处理系统主题变化
         }
       },
     }
