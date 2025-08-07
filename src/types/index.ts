@@ -138,6 +138,23 @@ export interface UserUpdateRequest {
   username?: string
 }
 
+// 用户设置更新请求（对应后端 /setting 接口）
+export interface UserSettingsUpdateRequest {
+  password?: string
+  new_password?: string
+  email?: string
+  status?: string
+  is_superuser?: boolean
+  login_channel?: string
+}
+
+// 用户设置更新响应
+export interface UserSettingsUpdateResponse {
+  data: boolean
+  retcode: number
+  retmsg: string
+}
+
 // 设置API密钥请求
 export interface SetAPIKeyRequest {
   api_key: string

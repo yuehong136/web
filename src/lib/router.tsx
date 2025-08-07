@@ -13,6 +13,7 @@ import { KnowledgeImportPage } from '@/pages/knowledge/KnowledgeImportPage'
 import { DocumentChunksPage } from '@/pages/knowledge/DocumentChunksPage'
 import { SettingsLayout } from '@/pages/settings/SettingsLayout'
 import { ProfilePage } from '@/pages/settings/ProfilePage'
+import { SecurityPage } from '@/pages/settings/SecurityPage'
 import { ModelProvidersPage } from '@/pages/settings/ModelProvidersPage'
 import { StudioPage } from '@/pages/studio'
 import { CreateAppPage } from '@/pages/studio/CreateAppPage'
@@ -59,12 +60,6 @@ const MCPServers = () => (
 
 
 // Settings placeholder components
-const SecurityPage = () => (
-  <div className="p-8">
-    <h2 className="text-2xl font-bold text-gray-900">安全设置</h2>
-    <p className="text-gray-600 mt-2">安全设置功能开发中...</p>
-  </div>
-)
 
 const NotificationsPage = () => (
   <div className="p-8">

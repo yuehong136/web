@@ -10,6 +10,7 @@ import type {
   TenantInfo,
   LoginChannel,
 } from '../types/api'
+import type { UserSettingsUpdateRequest, UserSettingsUpdateResponse } from '../types'
 
 export const authAPI = {
   // 用户登录
@@ -78,4 +79,51 @@ export const authAPI = {
   // 设置新密码
   setNewPassword: (token: string, newPassword: string): Promise<void> =>
     apiClient.post('/v1/user/set-new-password', { token, new_password: newPassword }, { skipAuth: true }),
+
+  // 用户设置更新（包含密码修改） - 使用apiClient但处理完整响应
+  updateUserSettings: async (data: UserSettingsUpdateRequest): Promise<UserSettingsUpdateResponse> => {
+    try {
+      // 使用APIClient的内部request方法，但修改处理逻辑
+      const response = await apiClient.post('/v1/user/setting', data)
+      // apiClient.post 返回的可能是data.data，我们需要完整的响应
+      
+      // 如果返回的是布尔值true，说明操作成功
+      if (response === true) {
+        return {
+          retcode: 0,
+          retmsg: 'success',
+          data: true
+        }
+      }
+      
+      // 如果返回的是完整响应对象，直接返回
+      if (typeof response === 'object' && 'retcode' in response) {
+        return response as UserSettingsUpdateResponse
+      }
+      
+      // 其他情况，构造一个成功响应
+      return {
+        retcode: 0,
+        retmsg: 'success', 
+        data: response
+      }
+    } catch (error: any) {
+      // 如果是APIError，可能包含了完整的错误信息
+      if (error.details && typeof error.details === 'object' && 'retcode' in error.details) {
+        return error.details as UserSettingsUpdateResponse
+      }
+      
+      // 如果APIError包含了status和message，转换为我们需要的格式
+      if (error.status && error.code) {
+        return {
+          retcode: parseInt(error.code) || error.status,
+          retmsg: error.message,
+          data: false
+        }
+      }
+      
+      // 重新抛出错误让上层处理
+      throw error
+    }
+  },
 }
