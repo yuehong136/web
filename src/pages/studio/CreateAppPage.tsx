@@ -686,6 +686,25 @@ export const CreateAppPage: React.FC = () => {
       }
       
       // 构建请求参数 - 确保包含所有后端需要的字段
+      // 当没有知识库时，确保系统提示词中不包含 {knowledge}
+      const hasKnowledgeBase = config.kb_ids && config.kb_ids.length > 0
+      
+      // 处理系统提示词：如果没有知识库，移除 {knowledge} 相关内容
+      let systemPrompt = config.systemPrompt
+      if (!hasKnowledgeBase) {
+        // 移除 {knowledge} 占位符和相关的知识库描述文本
+        systemPrompt = systemPrompt
+          .replace(/{knowledge}/g, '')
+          .replace(/以下是知识库：[\s\S]*?以上是知识库。/g, '')
+          .replace(/以下是知识库：\s*\n\s*\n\s*以上是知识库。/g, '')
+          .trim()
+        
+        // 如果系统提示词为空或只是默认值，提供一个不包含知识库的默认提示
+        if (!systemPrompt || systemPrompt === '') {
+          systemPrompt = '你是一个智能助手，请提供有帮助的回答。'
+        }
+      }
+      
       const requestData: any = {
         // 基础信息
         name: config.name,
@@ -698,10 +717,12 @@ export const CreateAppPage: React.FC = () => {
         
         // 提示配置
         prompt_config: {
-          system: config.systemPrompt,
-          prologue: config.prompt_config.prologue,
-          empty_response: config.prompt_config.empty_response,
-          parameters: config.prompt_config.parameters
+          system: systemPrompt,
+          prologue: config.prompt_config.prologue || '您好，我是您的助手！',
+          empty_response: config.prompt_config.empty_response || '抱歉，我无法回答这个问题。',
+          parameters: hasKnowledgeBase 
+            ? config.prompt_config.parameters 
+            : config.prompt_config.parameters.filter(p => p.key !== 'knowledge')
         },
         
         // 检索配置
@@ -712,6 +733,13 @@ export const CreateAppPage: React.FC = () => {
         vector_similarity_weight: config.vector_similarity_weight,
         rerank_id: config.rerank_id || null
       }
+      
+      // 调试：打印请求数据
+      console.log('CreateApp Request Data:', {
+        kb_ids: requestData.kb_ids,
+        prompt_config: requestData.prompt_config,
+        hasKnowledgeBase
+      })
       
       // 如果有dialog_id则添加（用于更新操作）
       if (dialogId) {

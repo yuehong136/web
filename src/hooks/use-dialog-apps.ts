@@ -31,7 +31,22 @@ export const useSetDialogApp = () => {
       name: string
       description: string
       icon: string
-    }) => dialogAPI.set(data),
+      prompt_config?: any
+      kb_ids?: string[]
+    }) => {
+      // 如果没有提供 prompt_config，添加一个默认的不包含 {knowledge} 的配置
+      const requestData = {
+        ...data,
+        prompt_config: data.prompt_config || {
+          system: '你是一个智能助手，请提供有帮助的回答。',
+          prologue: '您好，我是您的助手！',
+          empty_response: '抱歉，我无法回答这个问题。',
+          parameters: []
+        },
+        kb_ids: data.kb_ids || []
+      }
+      return dialogAPI.set(requestData)
+    },
     onSuccess: (dialogApp, variables) => {
       // 更新缓存
       if (variables.dialog_id) {
