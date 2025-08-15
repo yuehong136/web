@@ -28,13 +28,34 @@ html[data-theme="dark"] {
   --color-background-surface: #1e293b;
 
   /* ===== 边框系统 ===== */
-  --color-border-default: #475569;
-  --color-border-subtle: #64748b;
-  --color-border-strong: #94a3b8;
-  --color-border-accent: #3b82f6;
+  --color-border-default: rgba(255, 255, 255, 0.08);
+  --color-border-subtle: rgba(255, 255, 255, 0.05);
+  --color-border-strong: rgba(255, 255, 255, 0.12);
+  --color-border-accent: rgba(255, 255, 255, 0.1);
   --color-border-success: #10b981;
   --color-border-warning: #f59e0b;
   --color-border-error: #ef4444;
+
+  /* ===== Shadcn/UI 兼容变量 ===== */
+  --border: var(--color-border-default);
+  --input: var(--color-components-input-bg);
+  --ring: var(--color-state-focus);
+  --background: var(--color-background-body);
+  --foreground: var(--color-text-primary);
+  --card: var(--color-components-card-bg);
+  --card-foreground: var(--color-components-card-meta-title);
+  --popover: var(--color-components-popover-bg);
+  --popover-foreground: var(--color-text-primary);
+  --primary: var(--color-components-button-primary-bg);
+  --primary-foreground: var(--color-components-button-primary-text);
+  --secondary: var(--color-components-button-secondary-bg);
+  --secondary-foreground: var(--color-components-button-secondary-text);
+  --muted: var(--color-background-subtle);
+  --muted-foreground: var(--color-text-secondary);
+  --accent: var(--color-background-subtle);
+  --accent-foreground: var(--color-text-primary);
+  --destructive: var(--color-border-error);
+  --destructive-foreground: var(--color-text-inverted);
 
   /* ===== 按钮组件 ===== */
   --color-components-button-primary-bg: #3b82f6;
@@ -73,8 +94,8 @@ html[data-theme="dark"] {
   /* ===== 卡片组件 ===== */
   --color-components-card-bg: #1e293b;
   --color-components-card-bg-hover: #334155;
-  --color-components-card-border: #475569;
-  --color-components-card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+  --color-components-card-border: rgba(255, 255, 255, 0.08);
+  --color-components-card-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
   --color-components-card-meta-title: #ffffff;
   --color-components-card-meta-description: #cbd5e1;
   --color-components-card-actions-bg: #0f172a;
@@ -249,7 +270,7 @@ html[data-theme="dark"] {
   --color-components-steps-active-bg: #3b82f6;
   --color-components-steps-active-text: #ffffff;
   --color-components-steps-inactive-bg: rgba(255, 255, 255, 0.05);
-  --color-components-steps-inactive-text: #64748b;
+  --color-components-steps-inactive-text: #94a3b8;
   --color-components-steps-line: #475569;
   --color-components-steps-line-completed: #10b981;
   --color-components-divider-bg: #475569;
@@ -303,9 +324,10 @@ html[data-theme="dark"] {
   --color-components-transfer-item-bg-selected: rgba(59, 130, 246, 0.15);
   --color-components-transfer-item-text: #ffffff;
   --color-components-transfer-item-text-selected: #60a5fa;
-  --color-components-upload-bg: rgba(255, 255, 255, 0.03);
-  --color-components-upload-border: #64748b;
-  --color-components-upload-border-hover: #94a3b8;
+  --color-components-upload-bg: transparent;
+  --color-components-upload-bg-dragover: rgba(59, 130, 246, 0.05);
+  --color-components-upload-border: rgba(229, 231, 235, 0.25);
+  --color-components-upload-border-hover: rgba(229, 231, 235, 0.5);
   --color-components-upload-border-dragover: #3b82f6;
   --color-components-upload-text: #ffffff;
   --color-components-upload-text-secondary: #94a3b8;

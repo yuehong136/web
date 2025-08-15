@@ -1,17 +1,19 @@
 // API 客户端和接口统一导出
 export { apiClient, APIClient, APIError, type RequestConfig } from './client'
 
-// 认证相关API
+// API 模块导入
+import { authAPI } from './auth'
+import { conversationAPI } from './conversation'
+import { knowledgeAPI } from './knowledge'
+import { dialogAPI } from './dialog'
+import { mcpAPI } from './mcp'
+
+// 导出各个API模块
 export { authAPI } from './auth'
-
-// 对话相关API
 export { conversationAPI } from './conversation'
-
-// 知识库相关API
 export { knowledgeAPI } from './knowledge'
-
-// 对话应用相关API
 export { dialogAPI } from './dialog'
+export { mcpAPI } from './mcp'
 
 // 创建一个统一的API对象
 export const api = {
@@ -19,6 +21,7 @@ export const api = {
   conversation: conversationAPI,
   knowledge: knowledgeAPI,
   dialog: dialogAPI,
+  mcp: mcpAPI,
 }
 
 // 默认导出

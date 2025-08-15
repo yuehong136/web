@@ -47,6 +47,12 @@ const navItems: NavItem[] = [
     badge: 'New'
   },
   {
+    title: 'MCP实验场',
+    href: '/mcp-chat',
+    icon: MessageSquare,
+    badge: 'New'
+  },
+  {
     title: '知识库',
     href: ROUTES.KNOWLEDGE,
     icon: BookOpen,
@@ -176,7 +182,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="space-y-1 px-2">
           {navItems.map((item) => {
             const Icon = item.icon
-            const isActive = location.pathname.startsWith(item.href)
+            const isActive = item.href === ROUTES.AI_TOOLS
+              ? (location.pathname.startsWith(ROUTES.AI_TOOLS) || location.pathname.startsWith('/tools'))
+              : location.pathname.startsWith(item.href)
             
             return (
               <NavLink

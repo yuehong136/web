@@ -4,6 +4,9 @@
 @import './themes/light.css';
 @import './themes/dark.css';
 
+/* MCP 聊天页面专用样式 */
+@import './styles/mcp-chat-reference.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -41,8 +44,8 @@
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
-  /* 全局选择器样式 - 确保主题覆盖 */
-  * {
+  /* 全局选择器样式 - 确保主题覆盖，但排除MCP聊天页面 */
+  *:not(.mcp-chat-page *) {
     border-color: rgb(var(--color-border-default));
   }
 
@@ -77,58 +80,58 @@
     opacity: 0.8;
   }
 
-  /* 通用颜色类重写 - 仅在暗黑模式下应用，避免覆盖自定义组件 */
-  html[data-theme="dark"] .text-gray-900:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]) {
+  /* 通用颜色类重写 - 仅在暗黑模式下应用，避免覆盖自定义组件，排除MCP聊天页面 */
+  html[data-theme="dark"] .text-gray-900:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not(.mcp-chat-page *) {
     color: rgb(var(--color-text-primary));
   }
 
-  html[data-theme="dark"] .text-gray-800:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]) {
+  html[data-theme="dark"] .text-gray-800:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not(.mcp-chat-page *) {
     color: rgb(var(--color-text-primary));
   }
 
-  html[data-theme="dark"] .text-gray-700:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]) {
+  html[data-theme="dark"] .text-gray-700:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not(.mcp-chat-page *) {
     color: rgb(var(--color-text-secondary));
   }
 
-  html[data-theme="dark"] .text-gray-600:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]) {
+  html[data-theme="dark"] .text-gray-600:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not(.mcp-chat-page *) {
     color: rgb(var(--color-text-secondary));
   }
 
-  html[data-theme="dark"] .text-gray-500:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]) {
+  html[data-theme="dark"] .text-gray-500:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not(.mcp-chat-page *) {
     color: rgb(var(--color-text-tertiary));
   }
 
-  html[data-theme="dark"] .text-gray-400:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]) {
+  html[data-theme="dark"] .text-gray-400:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not(.mcp-chat-page *) {
     color: rgb(var(--color-text-muted));
   }
 
-  html[data-theme="dark"] .text-black:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]) {
+  html[data-theme="dark"] .text-black:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not(.mcp-chat-page *) {
     color: rgb(var(--color-text-primary));
   }
 
-  /* 背景颜色重写 - 更谨慎的选择器，避免影响弹窗和下拉框 */
-  html[data-theme="dark"] .bg-white:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not([class*="select-"]):not([role="dialog"]):not([role="menu"]):not([role="listbox"]) {
+  /* 背景颜色重写 - 更谨慎的选择器，避免影响弹窗和下拉框，排除MCP聊天页面 */
+  html[data-theme="dark"] .bg-white:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not([class*="select-"]):not([role="dialog"]):not([role="menu"]):not([role="listbox"]):not(.mcp-chat-page *) {
     background-color: rgb(var(--color-background-surface));
   }
 
-  html[data-theme="dark"] .bg-gray-50:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not([class*="select-"]):not([role="dialog"]):not([role="menu"]):not([role="listbox"]) {
+  html[data-theme="dark"] .bg-gray-50:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not([class*="select-"]):not([role="dialog"]):not([role="menu"]):not([role="listbox"]):not(.mcp-chat-page *) {
     background-color: rgb(var(--color-background-subtle));
   }
 
-  html[data-theme="dark"] .bg-gray-100:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not([class*="select-"]):not([role="dialog"]):not([role="menu"]):not([role="listbox"]) {
+  html[data-theme="dark"] .bg-gray-100:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not([class*="select-"]):not([role="dialog"]):not([role="menu"]):not([role="listbox"]):not(.mcp-chat-page *) {
     background-color: rgb(var(--color-background-subtle));
   }
 
-  html[data-theme="dark"] .bg-gray-200:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not([class*="select-"]):not([role="dialog"]):not([role="menu"]):not([role="listbox"]) {
+  html[data-theme="dark"] .bg-gray-200:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not([class*="select-"]):not([role="dialog"]):not([role="menu"]):not([role="listbox"]):not(.mcp-chat-page *) {
     background-color: rgb(var(--color-border-default));
   }
 
-  /* 边框颜色重写 */
-  html[data-theme="dark"] .border-gray-200:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not([class*="select-"]) {
+  /* 边框颜色重写 - 排除MCP聊天页面 */
+  html[data-theme="dark"] .border-gray-200:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not([class*="select-"]):not(.mcp-chat-page *) {
     border-color: rgb(var(--color-border-default));
   }
 
-  html[data-theme="dark"] .border-gray-300:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not([class*="select-"]) {
+  html[data-theme="dark"] .border-gray-300:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not([class*="select-"]):not(.mcp-chat-page *) {
     border-color: rgb(var(--color-border-subtle));
   }
 }

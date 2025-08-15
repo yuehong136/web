@@ -89,7 +89,30 @@ export const getProviderIconPath = (provider: string): string | null => {
 export const getProviderIcon = (modelName: string | null): React.ReactNode => {
   if (!modelName) return <UserOutlined />
   
-  return <ProviderIcon provider={modelName} className="w-6 h-6" />
+  // 先尝试获取图标路径
+  const iconPath = getProviderIconPath(modelName)
+  
+  // 如果有图标路径，返回img元素，否则返回默认图标
+  if (iconPath) {
+    return (
+      <img 
+        src={iconPath} 
+        alt={modelName}
+        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+        onError={(e) => {
+          // 如果图片加载失败，替换为默认图标
+          console.warn(`Failed to load icon for ${modelName}:`, iconPath)
+          const target = e.target as HTMLImageElement
+          target.style.display = 'none'
+          if (target.parentNode) {
+            target.parentNode.innerHTML = '<span style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; font-size: 14px;">AI</span>'
+          }
+        }}
+      />
+    )
+  }
+  
+  return <UserOutlined />
 }
 
 // 获取模型显示名称

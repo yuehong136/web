@@ -13,7 +13,21 @@ const tailwindVars = {
   // Tailwind 默认颜色系统兼容
   'primary': 'var(--color-components-button-primary-bg)',
   'secondary': 'var(--color-text-secondary)',
-  'accent': 'var(--color-text-accent)',
+  // 强调色：用于浅色悬浮背景等
+  'accent': 'var(--color-accent)',
+  'accent-foreground': 'var(--color-accent-foreground)',
+  // 与参考项目一致的通用语义色
+  'foreground': 'var(--color-foreground)',
+  'muted': 'var(--color-muted)',
+  'muted-foreground': 'var(--color-muted-foreground)',
+  'card-base': 'var(--color-card)',
+  'card-base-foreground': 'var(--color-card-foreground)',
+  'popover': 'var(--color-popover)',
+  'popover-foreground': 'var(--color-popover-foreground)',
+  'destructive': 'var(--color-destructive)',
+  'destructive-foreground': 'var(--color-destructive-foreground)',
+  'border': 'var(--color-border)',
+  'ring': 'var(--color-ring)',
   'neutral': 'var(--color-text-primary)',
   'base-100': 'var(--color-background-body)',
   'base-200': 'var(--color-background-default)',

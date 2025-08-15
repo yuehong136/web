@@ -4,17 +4,17 @@
  * 自动生成 light.css 和 dark.css 文件，确保一致性
  */
 
-import { DesignTokens } from './tokens'
+import type { DesignTokens } from './tokens'
 
 // 亮色主题令牌值定义
 export const lightTokens: DesignTokens = {
   // ===== 文本系统 =====
-  'text-primary': '#1f2937',
-  'text-secondary': '#6b7280',
-  'text-tertiary': '#9ca3af',
-  'text-muted': '#d1d5db',
+  'text-primary': '#0f172a',
+  'text-secondary': '#717182',
+  'text-tertiary': '#a3a3a3',
+  'text-muted': '#d4d4d4',
   'text-disabled': '#e5e7eb',
-  'text-accent': '#3b82f6',
+  'text-accent': '#1a1a1a',
   'text-success': '#059669',
   'text-warning': '#d97706',
   'text-error': '#dc2626',
@@ -22,40 +22,40 @@ export const lightTokens: DesignTokens = {
   
   // ===== 背景系统 =====
   'background-body': '#ffffff',
-  'background-default': '#f9fafb',
-  'background-subtle': '#f3f4f6',
+  'background-default': '#f5f5f5',
+  'background-subtle': '#f0f0f0',
   'background-section': '#ffffff',
   'background-overlay': 'rgba(0, 0, 0, 0.5)',
   'background-surface': '#ffffff',
   
   // ===== 边框系统 =====
-  'border-default': '#e5e7eb',
-  'border-subtle': '#f3f4f6',
-  'border-strong': '#d1d5db',
-  'border-accent': '#3b82f6',
+  'border-default': 'rgba(0, 0, 0, 0.08)',
+  'border-subtle': 'rgba(0, 0, 0, 0.05)',
+  'border-strong': 'rgba(0, 0, 0, 0.12)',
+  'border-accent': 'rgba(0, 0, 0, 0.1)',
   'border-success': '#10b981',
   'border-warning': '#f59e0b',
   'border-error': '#ef4444',
   
   // ===== 按钮组件 - Primary =====
-  'components-button-primary-bg': '#3b82f6',
-  'components-button-primary-bg-hover': '#2563eb',
-  'components-button-primary-bg-active': '#1d4ed8',
-  'components-button-primary-bg-disabled': '#e5e7eb',
+  'components-button-primary-bg': '#030213',
+  'components-button-primary-bg-hover': '#030213',
+  'components-button-primary-bg-active': '#030213',
+  'components-button-primary-bg-disabled': '#ececf0',
   'components-button-primary-text': '#ffffff',
   'components-button-primary-text-disabled': '#9ca3af',
-  'components-button-primary-border': '#3b82f6',
-  'components-button-primary-border-hover': '#2563eb',
+  'components-button-primary-border': '#030213',
+  'components-button-primary-border-hover': '#030213',
   
   // ===== 按钮组件 - Secondary =====
-  'components-button-secondary-bg': '#ffffff',
-  'components-button-secondary-bg-hover': '#f9fafb',
-  'components-button-secondary-bg-active': '#f3f4f6',
-  'components-button-secondary-bg-disabled': '#f9fafb',
-  'components-button-secondary-text': '#374151',
+  'components-button-secondary-bg': '#f3f3f5',
+  'components-button-secondary-bg-hover': '#e9ebef',
+  'components-button-secondary-bg-active': '#ececf0',
+  'components-button-secondary-bg-disabled': '#f3f3f5',
+  'components-button-secondary-text': '#030213',
   'components-button-secondary-text-disabled': '#9ca3af',
-  'components-button-secondary-border': '#e5e7eb',
-  'components-button-secondary-border-hover': '#d1d5db',
+  'components-button-secondary-border': 'rgba(0, 0, 0, 0.1)',
+  'components-button-secondary-border-hover': '#b7becb',
   
   // ===== 按钮组件 - Ghost =====
   'components-button-ghost-bg-hover': '#f3f4f6',
@@ -63,23 +63,23 @@ export const lightTokens: DesignTokens = {
   'components-button-ghost-text-disabled': '#9ca3af',
   
   // ===== 输入框组件 =====
-  'components-input-bg': '#ffffff',
-  'components-input-bg-hover': '#f9fafb',
-  'components-input-bg-focus': '#ffffff',
-  'components-input-bg-disabled': '#f9fafb',
-  'components-input-border': '#d1d5db',
-  'components-input-border-hover': '#9ca3af',
-  'components-input-border-focus': '#3b82f6',
+  'components-input-bg': '#f3f3f5',
+  'components-input-bg-hover': '#ececf0',
+  'components-input-bg-focus': '#f3f3f5',
+  'components-input-bg-disabled': '#f3f3f5',
+  'components-input-border': 'rgba(0, 0, 0, 0.1)',
+  'components-input-border-hover': '#b7becb',
+  'components-input-border-focus': '#b7becb',
   'components-input-border-error': '#ef4444',
-  'components-input-text': '#111827',
-  'components-input-text-placeholder': '#9ca3af',
-  'components-input-text-disabled': '#6b7280',
+  'components-input-text': '#1a1a1a',
+  'components-input-text-placeholder': '#9e9e9e',
+  'components-input-text-disabled': '#9ca3af',
   
   // ===== 卡片组件 =====
   'components-card-bg': '#ffffff',
-  'components-card-bg-hover': '#f9fafb',
-  'components-card-border': '#e5e7eb',
-  'components-card-shadow': '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+  'components-card-bg-hover': '#fafafa',
+  'components-card-border': 'rgba(0, 0, 0, 0.08)',
+  'components-card-shadow': '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1)',
   
   // ===== 侧边栏组件 =====
   'components-sidebar-bg': '#ffffff',
@@ -177,10 +177,10 @@ export const lightTokens: DesignTokens = {
   
   // ===== 导航和标签 =====
   'components-tabs-border': '#e5e7eb',
-  'components-tabs-bg': '#f9fafb',
+  'components-tabs-bg': '#f5f5f5',
   'components-tabs-active-bg': '#ffffff',
-  'components-tabs-active-text': '#3b82f6',
-  'components-tabs-inactive-text': '#6b7280',
+  'components-tabs-active-text': '#1a1a1a',
+  'components-tabs-inactive-text': '#737373',
   
   'components-breadcrumb-text': '#6b7280',
   'components-breadcrumb-text-current': '#1f2937',
@@ -220,9 +220,9 @@ export const lightTokens: DesignTokens = {
   
   // ===== 新增组件令牌（使用基础颜色映射） =====
   // 徽章和标签
-  'components-badge-bg': '#f3f4f6',
-  'components-badge-text': '#6b7280',
-  'components-badge-border': '#e5e7eb',
+  'components-badge-bg': '#f5f5f5',
+  'components-badge-text': '#737373',
+  'components-badge-border': '#eaeaea',
   'components-badge-success-bg': '#dcfce7',
   'components-badge-success-text': '#166534',
   'components-badge-warning-bg': '#fef3c7',
@@ -255,10 +255,10 @@ export const lightTokens: DesignTokens = {
   'components-steps-border': '#e5e7eb',
   'components-steps-completed-bg': '#10b981',
   'components-steps-completed-text': '#ffffff',
-  'components-steps-active-bg': '#3b82f6',
+  'components-steps-active-bg': '#030213',
   'components-steps-active-text': '#ffffff',
-  'components-steps-inactive-bg': '#f3f4f6',
-  'components-steps-inactive-text': '#9ca3af',
+  'components-steps-inactive-bg': '#f3f3f5',
+  'components-steps-inactive-text': '#717182',
   'components-steps-line': '#e5e7eb',
   'components-steps-line-completed': '#10b981',
   
@@ -327,10 +327,11 @@ export const lightTokens: DesignTokens = {
   'components-transfer-item-text': '#374151',
   'components-transfer-item-text-selected': '#2563eb',
   
-  'components-upload-bg': '#ffffff',
-  'components-upload-border': '#d1d5db',
-  'components-upload-border-hover': '#9ca3af',
-  'components-upload-border-dragover': '#3b82f6',
+  'components-upload-bg': 'transparent',
+  'components-upload-bg-dragover': 'rgba(3, 2, 19, 0.05)',
+  'components-upload-border': 'rgba(113, 113, 130, 0.25)',
+  'components-upload-border-hover': 'rgba(113, 113, 130, 0.5)',
+  'components-upload-border-dragover': '#030213',
   'components-upload-text': '#374151',
   'components-upload-text-secondary': '#9ca3af',
   'components-upload-icon': '#d1d5db',
@@ -386,13 +387,13 @@ export const lightTokens: DesignTokens = {
   'components-float-button-shadow': '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
   'components-float-button-bg-hover': '#f9fafb',
   
-  'components-segmented-bg': '#f3f4f6',
-  'components-segmented-border': '#e5e7eb',
+  'components-segmented-bg': '#f5f5f5',
+  'components-segmented-border': '#eaeaea',
   'components-segmented-item-bg': 'transparent',
-  'components-segmented-item-bg-hover': '#e5e7eb',
+  'components-segmented-item-bg-hover': '#eaeaea',
   'components-segmented-item-bg-active': '#ffffff',
-  'components-segmented-item-text': '#6b7280',
-  'components-segmented-item-text-active': '#374151',
+  'components-segmented-item-text': '#737373',
+  'components-segmented-item-text-active': '#1a1a1a',
   
   'components-mentions-bg': '#ffffff',
   'components-mentions-border': '#d1d5db',
@@ -468,10 +469,10 @@ export const darkTokens: DesignTokens = {
   'background-surface': '#1e293b',
   
   // ===== 边框系统 =====
-  'border-default': '#475569',
-  'border-subtle': '#64748b',
-  'border-strong': '#94a3b8',
-  'border-accent': '#3b82f6',
+  'border-default': 'rgba(255, 255, 255, 0.08)',
+  'border-subtle': 'rgba(255, 255, 255, 0.05)',
+  'border-strong': 'rgba(255, 255, 255, 0.12)',
+  'border-accent': 'rgba(255, 255, 255, 0.1)',
   'border-success': '#10b981',
   'border-warning': '#f59e0b',
   'border-error': '#ef4444',
@@ -517,8 +518,8 @@ export const darkTokens: DesignTokens = {
   // ===== 卡片组件 =====
   'components-card-bg': '#1e293b',
   'components-card-bg-hover': '#334155',
-  'components-card-border': '#475569',
-  'components-card-shadow': '0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2)',
+  'components-card-border': 'rgba(255, 255, 255, 0.08)',
+  'components-card-shadow': '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1)',
   
   // ===== 侧边栏组件 =====
   'components-sidebar-bg': '#1e293b',
@@ -697,7 +698,7 @@ export const darkTokens: DesignTokens = {
   'components-steps-active-bg': '#3b82f6',
   'components-steps-active-text': '#ffffff',
   'components-steps-inactive-bg': 'rgba(255, 255, 255, 0.05)',
-  'components-steps-inactive-text': '#64748b',
+  'components-steps-inactive-text': '#94a3b8',
   'components-steps-line': '#475569',
   'components-steps-line-completed': '#10b981',
   
@@ -766,9 +767,10 @@ export const darkTokens: DesignTokens = {
   'components-transfer-item-text': '#ffffff',
   'components-transfer-item-text-selected': '#60a5fa',
   
-  'components-upload-bg': 'rgba(255, 255, 255, 0.03)',
-  'components-upload-border': '#64748b',
-  'components-upload-border-hover': '#94a3b8',
+  'components-upload-bg': 'transparent',
+  'components-upload-bg-dragover': 'rgba(59, 130, 246, 0.05)',
+  'components-upload-border': 'rgba(229, 231, 235, 0.25)',
+  'components-upload-border-hover': 'rgba(229, 231, 235, 0.5)',
   'components-upload-border-dragover': '#3b82f6',
   'components-upload-text': '#ffffff',
   'components-upload-text-secondary': '#94a3b8',
@@ -977,10 +979,13 @@ export function validateTokens(tokens: DesignTokens): string[] {
     }
   })
   
-  // 检查颜色值格式
+  // 检查颜色值格式（跳过阴影类令牌）
   tokenKeys.forEach(key => {
     const value = tokens[key]
-    if (value && !isValidColor(value)) {
+    if (!value) return
+    const keyStr = String(key)
+    if (keyStr.includes('shadow')) return
+    if (!isValidColor(value)) {
       errors.push(`设计令牌 "${key}" 的值 "${value}" 不是有效的颜色格式`)
     }
   })

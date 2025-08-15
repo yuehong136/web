@@ -15,6 +15,10 @@ import { SettingsLayout } from '@/pages/settings/SettingsLayout'
 import { ProfilePage } from '@/pages/settings/ProfilePage'
 import { SecurityPage } from '@/pages/settings/SecurityPage'
 import { ModelProvidersPage } from '@/pages/settings/ModelProvidersPage'
+import { MCPServersPage } from '@/pages/settings/MCPServersPage'
+import { MCPToolsPage } from '@/pages/settings/MCPToolsPage'
+import { MCPTestPage } from '@/pages/settings/MCPTestPage'
+import { MCPBatchPage } from '@/pages/settings/MCPBatchPage'
 import { StudioPage } from '@/pages/studio'
 import { CreateAppPage } from '@/pages/studio/CreateAppPage'
 import { SystemPage } from '@/pages/system'
@@ -23,6 +27,8 @@ import { DialogListPage } from '@/pages/dialog/DialogListPage'
 import { ExplorePage } from '@/pages/explore'
 import { ThemeDemoPage } from '@/pages/theme-demo/ThemeDemoPage'
 import { ROUTES } from '@/constants'
+import { AIToolsHomePage, AutoFillWorkbenchPage } from '@/pages/ai-tools'
+import MCPChatPage from '@/pages/MCPChatPage'
 
 // 页面组件 (先创建占位符)
 
@@ -37,12 +43,7 @@ const Documents = () => (
   </div>
 )
 
-const AITools = () => (
-  <div className="p-6">
-    <h1 className="text-2xl font-bold mb-4">AI工具箱</h1>
-    <p className="text-gray-600">AI工具箱功能开发中...</p>
-  </div>
-)
+// 替换为正式 AI 工具箱页面
 
 const Workflow = () => (
   <div className="p-6">
@@ -51,12 +52,7 @@ const Workflow = () => (
   </div>
 )
 
-const MCPServers = () => (
-  <div className="p-6">
-    <h1 className="text-2xl font-bold mb-4">MCP服务器</h1>
-    <p className="text-gray-600">MCP服务器管理功能开发中...</p>
-  </div>
-)
+// MCP 服务器入口已跳转到设置子路由，无需占位组件
 
 
 // Settings placeholder components
@@ -112,6 +108,10 @@ export const router = createBrowserRouter([
         element: <ChatPage />,
       },
       {
+        path: '/mcp-chat',
+        element: <MCPChatPage />,
+      },
+      {
         path: ROUTES.KNOWLEDGE,
         element: <KnowledgeListPage />,
       },
@@ -163,7 +163,15 @@ export const router = createBrowserRouter([
       },
       {
         path: ROUTES.AI_TOOLS,
-        element: <AITools />,
+        element: <AIToolsHomePage />,
+      },
+      {
+        path: '/tools',
+        element: <AIToolsHomePage />,
+      },
+      {
+        path: '/tools/auto-fill',
+        element: <AutoFillWorkbenchPage />,
       },
       {
         path: ROUTES.WORKFLOW,
@@ -171,7 +179,7 @@ export const router = createBrowserRouter([
       },
       {
         path: ROUTES.MCP_SERVERS,
-        element: <MCPServers />,
+        element: <Navigate to="/settings/mcp-servers" replace />,
       },
       {
         path: ROUTES.STUDIO,
@@ -220,6 +228,22 @@ export const router = createBrowserRouter([
           {
             path: 'model-providers',
             element: <ModelProvidersPage />,
+          },
+          {
+            path: 'mcp-servers',
+            element: <MCPServersPage />,
+          },
+          {
+            path: 'mcp-tools',
+            element: <MCPToolsPage />,
+          },
+          {
+            path: 'mcp-test',
+            element: <MCPTestPage />,
+          },
+          {
+            path: 'mcp-batch',
+            element: <MCPBatchPage />,
           },
           {
             path: 'api-keys',

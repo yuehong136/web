@@ -1,0 +1,474 @@
+/* MCP 实验场聊天页面专用样式 - 参考 /Users/dxl/project/ts/web/MCP 实验场对话界面/styles/globals.css */
+
+/* 对全局覆盖参考项目样式，确保完全一致 */
+:root {
+  --font-size: 14px;
+  --background: #ffffff;
+  --foreground: oklch(0.145 0 0);
+  --card: #ffffff;
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: #030213;
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.95 0.0058 264.53);
+  --secondary-foreground: #030213;
+  --muted: #ececf0;
+  --muted-foreground: #717182;
+  --accent: #e9ebef;
+  --accent-foreground: #030213;
+  --destructive: #d4183d;
+  --destructive-foreground: #ffffff;
+  --border: rgba(0, 0, 0, 0.1);
+  --input: transparent;
+  --input-background: #f3f3f5;
+  --switch-background: #cbced4;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: #030213;
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+/* 暗色主题 */
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.145 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.145 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.985 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.396 0.141 25.723);
+  --destructive-foreground: oklch(0.637 0.237 25.331);
+  --border: oklch(0.269 0 0);
+  --input: oklch(0.269 0 0);
+  --ring: oklch(0.439 0 0);
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(0.269 0 0);
+  --sidebar-ring: oklch(0.439 0 0);
+}
+
+/* 全局Tailwind主题变量映射 */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-switch-background: var(--switch-background);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+/* 基础样式重写 - 仅针对MCP聊天页面 */
+@layer base {
+  .mcp-chat-page * {
+    border-color: var(--border);
+  }
+
+  .mcp-chat-page {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-size: var(--font-size);
+  }
+
+  /* Line clamp utilities */
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .line-clamp-1 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+  }
+
+  /* 基础排版样式 - 仅作用于MCP聊天页面 */
+  .mcp-chat-page h1 {
+    font-size: 1.5rem;
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  .mcp-chat-page h2 {
+    font-size: 1.25rem;
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  .mcp-chat-page h3 {
+    font-size: 1.125rem;
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  .mcp-chat-page h4 {
+    font-size: 1rem;
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  .mcp-chat-page p {
+    font-size: 1rem;
+    font-weight: var(--font-weight-normal);
+    line-height: 1.5;
+  }
+
+  .mcp-chat-page label {
+    font-size: 1rem;
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  .mcp-chat-page button {
+    font-size: 1rem;
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  .mcp-chat-page input {
+    font-size: 1rem;
+    font-weight: var(--font-weight-normal);
+    line-height: 1.5;
+  }
+}
+
+html {
+  font-size: var(--font-size);
+}
+
+/* 强制覆盖样式确保MCP聊天页面正确显示 */
+.mcp-chat-page .bg-blue-500 {
+  background-color: #3b82f6 !important;
+}
+
+.mcp-chat-page .bg-gray-500 {
+  background-color: #6b7280 !important;
+}
+
+.mcp-chat-page .text-white {
+  color: #ffffff !important;
+}
+
+.mcp-chat-page .text-blue-600 {
+  color: #2563eb !important;
+}
+
+.mcp-chat-page .text-blue-700 {
+  color: #1d4ed8 !important;
+}
+
+.mcp-chat-page .text-blue-800 {
+  color: #1e40af !important;
+}
+
+.mcp-chat-page .text-blue-900 {
+  color: #1e3a8a !important;
+}
+
+.mcp-chat-page .text-green-600 {
+  color: #16a34a !important;
+}
+
+.mcp-chat-page .text-green-500 {
+  color: #22c55e !important;
+}
+
+.mcp-chat-page .text-gray-500 {
+  color: #6b7280 !important;
+}
+
+.mcp-chat-page .text-red-600 {
+  color: #dc2626 !important;
+}
+
+.mcp-chat-page .text-red-800 {
+  color: #991b1b !important;
+}
+
+.mcp-chat-page .bg-blue-50 {
+  background-color: #eff6ff !important;
+}
+
+.mcp-chat-page .bg-blue-100 {
+  background-color: #dbeafe !important;
+}
+
+.mcp-chat-page .bg-green-100 {
+  background-color: #dcfce7 !important;
+}
+
+.mcp-chat-page .bg-green-800 {
+  background-color: #166534 !important;
+}
+
+.mcp-chat-page .bg-red-50 {
+  background-color: #fef2f2 !important;
+}
+
+.mcp-chat-page .border-blue-200 {
+  border-color: #bfdbfe !important;
+}
+
+.mcp-chat-page .border-red-200 {
+  border-color: #fecaca !important;
+}
+
+/* 确保头像圆形 */
+.mcp-chat-page .rounded-full {
+  border-radius: 9999px !important;
+}
+
+/* 确保输入框无边框 */
+.mcp-chat-page .border-0 {
+  border-width: 0px !important;
+}
+
+.mcp-chat-page .focus-visible\:ring-0:focus-visible {
+  --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color) !important;
+  --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(0px + var(--tw-ring-offset-width)) var(--tw-ring-color) !important;
+  box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000) !important;
+}
+
+/* 确保Tailwind颜色类在MCP聊天页面中正确工作 */
+.mcp-chat-page * {
+  /* 重置所有可能的全局覆盖 */
+  border-color: initial;
+  background-color: initial;
+  color: initial;
+}
+
+/* 然后重新应用Tailwind的颜色类 */
+.mcp-chat-page .bg-transparent {
+  background-color: transparent !important;
+}
+
+.mcp-chat-page .bg-white {
+  background-color: #ffffff !important;
+}
+
+.mcp-chat-page .bg-gray-100 {
+  background-color: #f3f4f6 !important;
+}
+
+.mcp-chat-page .bg-muted {
+  background-color: var(--muted) !important;
+}
+
+.mcp-chat-page .text-foreground {
+  color: var(--foreground) !important;
+}
+
+.mcp-chat-page .text-muted-foreground {
+  color: var(--muted-foreground) !important;
+}
+
+.mcp-chat-page .border-border {
+  border-color: var(--border) !important;
+}
+
+/* MCP 聊天页面的文字排版 */
+.mcp-chat-page h1 {
+  font-size: 1.5rem;
+  font-weight: var(--mcp-font-weight-medium);
+  line-height: 1.5;
+  color: var(--mcp-foreground);
+}
+
+.mcp-chat-page h2 {
+  font-size: 1.25rem;
+  font-weight: var(--mcp-font-weight-medium);
+  line-height: 1.5;
+  color: var(--mcp-foreground);
+}
+
+.mcp-chat-page h3 {
+  font-size: 1.125rem;
+  font-weight: var(--mcp-font-weight-medium);
+  line-height: 1.5;
+  color: var(--mcp-foreground);
+}
+
+.mcp-chat-page h4 {
+  font-size: 1rem;
+  font-weight: var(--mcp-font-weight-medium);
+  line-height: 1.5;
+  color: var(--mcp-foreground);
+}
+
+.mcp-chat-page p {
+  font-size: 1rem;
+  font-weight: var(--mcp-font-weight-normal);
+  line-height: 1.5;
+  color: var(--mcp-foreground);
+}
+
+.mcp-chat-page label {
+  font-size: 1rem;
+  font-weight: var(--mcp-font-weight-medium);
+  line-height: 1.5;
+  color: var(--mcp-foreground);
+}
+
+.mcp-chat-page button {
+  font-size: 1rem;
+  font-weight: var(--mcp-font-weight-medium);
+  line-height: 1.5;
+}
+
+.mcp-chat-page input {
+  font-size: 1rem;
+  font-weight: var(--mcp-font-weight-normal);
+  line-height: 1.5;
+}
+
+/* MCP 聊天页面的卡片样式 */
+.mcp-chat-page .mcp-card {
+  background-color: var(--mcp-card);
+  color: var(--mcp-card-foreground);
+  border: 1px solid var(--mcp-border);
+  border-radius: var(--mcp-radius);
+}
+
+/* MCP 聊天页面的按钮样式 */
+.mcp-chat-page .mcp-button-primary {
+  background-color: var(--mcp-primary);
+  color: var(--mcp-primary-foreground);
+  border-radius: var(--mcp-radius);
+  font-weight: var(--mcp-font-weight-medium);
+}
+
+.mcp-chat-page .mcp-button-secondary {
+  background-color: var(--mcp-secondary);
+  color: var(--mcp-secondary-foreground);
+  border-radius: var(--mcp-radius);
+  font-weight: var(--mcp-font-weight-medium);
+}
+
+/* MCP 聊天页面的输入框样式 */
+.mcp-chat-page .mcp-input {
+  background-color: var(--mcp-input-background);
+  border: 1px solid var(--mcp-border);
+  border-radius: var(--mcp-radius);
+  color: var(--mcp-foreground);
+}
+
+.mcp-chat-page .mcp-input:focus {
+  border-color: var(--mcp-ring);
+  outline: none;
+  box-shadow: 0 0 0 2px color-mix(in oklch, var(--mcp-ring) 20%, transparent);
+}
+
+/* MCP 聊天页面的静音文本 */
+.mcp-chat-page .mcp-muted {
+  color: var(--mcp-muted-foreground);
+}
+
+/* MCP 聊天页面的文本截断工具 */
+.mcp-chat-page .mcp-line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.mcp-chat-page .mcp-line-clamp-1 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+/* MCP 聊天气泡样式 */
+.mcp-chat-page .mcp-message-bubble {
+  max-width: 48rem;
+  padding: 1rem;
+  border-radius: var(--mcp-radius);
+}
+
+.mcp-chat-page .mcp-message-user {
+  margin-left: auto;
+  background-color: var(--mcp-primary);
+  color: var(--mcp-primary-foreground);
+}
+
+.mcp-chat-page .mcp-message-assistant {
+  margin-right: auto;
+  background-color: var(--mcp-muted);
+  color: var(--mcp-muted-foreground);
+}
+
+/* MCP 工具调用显示样式 */
+.mcp-chat-page .mcp-tool-call-display {
+  background-color: color-mix(in oklch, var(--mcp-chart-1) 10%, transparent);
+  border: 1px solid color-mix(in oklch, var(--mcp-chart-1) 30%, transparent);
+  border-radius: var(--mcp-radius);
+  padding: 0.75rem;
+  margin-top: 0.5rem;
+}

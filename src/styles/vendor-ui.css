@@ -1,0 +1,242 @@
+/* Vendor UI theme variables and utility classes - 完全对齐参考项目 */
+
+:root {
+  /* 基础颜色变量映射 - 对应参考项目的语义化颜色 */
+  --color-background: var(--color-background-body);
+  --color-foreground: var(--color-text-primary);
+  
+  --color-card: var(--color-components-card-bg);
+  --color-card-foreground: var(--color-text-primary);
+  
+  --color-popover: var(--color-components-dropdown-bg);
+  --color-popover-foreground: var(--color-text-primary);
+  
+  --color-primary: var(--color-components-button-primary-bg);
+  --color-primary-foreground: var(--color-components-button-primary-text);
+  
+  --color-secondary: var(--color-components-button-secondary-bg);
+  --color-secondary-foreground: var(--color-components-button-secondary-text);
+  
+  --color-muted: var(--color-background-subtle);
+  --color-muted-foreground: var(--color-text-secondary);
+  
+  --color-accent: var(--color-components-button-secondary-bg-hover);
+  --color-accent-foreground: var(--color-components-button-secondary-text);
+  
+  --color-destructive: var(--color-components-button-danger-bg);
+  --color-destructive-foreground: var(--color-components-button-danger-text);
+  
+  --color-border: var(--color-border-default);
+  --color-input: var(--color-components-input-border);
+  --color-input-background: var(--color-components-input-bg);
+  
+  --color-ring: var(--color-border-accent);
+  
+  /* 图表颜色 */
+  --color-chart-1: var(--color-text-accent);
+  --color-chart-2: var(--color-text-success);
+  --color-chart-3: var(--color-text-warning);
+  --color-chart-4: var(--color-text-error);
+  --color-chart-5: var(--color-text-info);
+  
+  /* 侧边栏颜色 */
+  --color-sidebar: var(--color-components-sidebar-bg);
+  --color-sidebar-foreground: var(--color-text-primary);
+  --color-sidebar-primary: var(--color-components-button-primary-bg);
+  --color-sidebar-primary-foreground: var(--color-components-button-primary-text);
+  --color-sidebar-accent: var(--color-background-subtle);
+  --color-sidebar-accent-foreground: var(--color-text-primary);
+  --color-sidebar-border: var(--color-border-default);
+  --color-sidebar-ring: var(--color-border-accent);
+  
+  /* 开关背景 */
+  --color-switch-background: var(--color-components-switch-bg);
+  
+  /* 圆角半径 */
+  --radius: 0.625rem;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  
+  /* 字体权重 */
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+}
+
+/* 暗色模式映射 */
+html[data-theme="dark"] {
+  --color-background: var(--color-background-body);
+  --color-foreground: var(--color-text-primary);
+  --color-card: var(--color-components-card-bg);
+  --color-card-foreground: var(--color-text-primary);
+  --color-popover: var(--color-components-dropdown-bg);
+  --color-popover-foreground: var(--color-text-primary);
+  --color-primary: var(--color-components-button-primary-bg);
+  --color-primary-foreground: var(--color-components-button-primary-text);
+  --color-secondary: var(--color-components-button-secondary-bg);
+  --color-secondary-foreground: var(--color-components-button-secondary-text);
+  --color-muted: var(--color-background-subtle);
+  --color-muted-foreground: var(--color-text-secondary);
+  --color-accent: var(--color-components-button-secondary-bg-hover);
+  --color-accent-foreground: var(--color-components-button-secondary-text);
+  --color-destructive: var(--color-components-button-danger-bg);
+  --color-destructive-foreground: var(--color-components-button-danger-text);
+  --color-border: var(--color-border-default);
+  --color-input: var(--color-components-input-border);
+  --color-input-background: var(--color-components-input-bg);
+  --color-ring: var(--color-border-accent);
+  --color-sidebar: var(--color-components-sidebar-bg);
+  --color-sidebar-foreground: var(--color-text-primary);
+  --color-sidebar-border: var(--color-border-default);
+  --color-sidebar-ring: var(--color-border-accent);
+}
+
+/* 工具类映射 - 支持参考项目中使用的所有Tailwind类 */
+
+/* 背景色 */
+.bg-background { background-color: var(--color-background) !important; }
+.bg-card { background-color: var(--color-card) !important; }
+.bg-popover { background-color: var(--color-popover) !important; }
+.bg-primary { background-color: var(--color-primary) !important; }
+.bg-secondary { background-color: var(--color-secondary) !important; }
+.bg-muted { background-color: var(--color-muted) !important; }
+.bg-accent { background-color: var(--color-accent) !important; }
+.bg-destructive { background-color: var(--color-destructive) !important; }
+.bg-input-background { background-color: var(--color-input-background) !important; }
+.bg-sidebar { background-color: var(--color-sidebar) !important; }
+.bg-sidebar-accent { background-color: var(--color-sidebar-accent) !important; }
+
+/* 带透明度的背景色 */
+.bg-primary\/5 { background-color: color-mix(in oklab, var(--color-primary) 5%, transparent) !important; }
+.bg-primary\/10 { background-color: color-mix(in oklab, var(--color-primary) 10%, transparent) !important; }
+.bg-primary\/20 { background-color: color-mix(in oklab, var(--color-primary) 20%, transparent) !important; }
+.bg-primary\/90 { background-color: color-mix(in oklab, var(--color-primary) 90%, transparent) !important; }
+.bg-secondary\/90 { background-color: color-mix(in oklab, var(--color-secondary) 90%, transparent) !important; }
+.bg-destructive\/90 { background-color: color-mix(in oklab, var(--color-destructive) 90%, transparent) !important; }
+.bg-muted\/20 { background-color: color-mix(in oklab, var(--color-muted) 20%, transparent) !important; }
+.bg-muted\/50 { background-color: color-mix(in oklab, var(--color-muted) 50%, transparent) !important; }
+.bg-input\/30 { background-color: color-mix(in oklab, var(--color-input) 30%, transparent) !important; }
+.bg-input\/50 { background-color: color-mix(in oklab, var(--color-input) 50%, transparent) !important; }
+
+/* 绿色系列 - 用于成功状态 */
+.bg-green-50 { background-color: var(--color-components-alert-success-bg) !important; }
+.bg-green-950\/20 { background-color: color-mix(in oklab, var(--color-components-alert-success-bg) 20%, transparent) !important; }
+.border-green-500 { border-color: var(--color-components-alert-success-border) !important; }
+
+/* 文字颜色 */
+.text-foreground { color: var(--color-foreground) !important; }
+.text-card-foreground { color: var(--color-card-foreground) !important; }
+.text-popover-foreground { color: var(--color-popover-foreground) !important; }
+.text-primary { color: var(--color-primary) !important; }
+.text-primary-foreground { color: var(--color-primary-foreground) !important; }
+.text-secondary-foreground { color: var(--color-secondary-foreground) !important; }
+.text-muted-foreground { color: var(--color-muted-foreground) !important; }
+.text-accent-foreground { color: var(--color-accent-foreground) !important; }
+.text-destructive { color: var(--color-destructive) !important; }
+.text-destructive-foreground { color: var(--color-destructive-foreground) !important; }
+.text-sidebar-foreground { color: var(--color-sidebar-foreground) !important; }
+.text-sidebar-primary-foreground { color: var(--color-sidebar-primary-foreground) !important; }
+.text-sidebar-accent-foreground { color: var(--color-sidebar-accent-foreground) !important; }
+.text-ring { color: var(--color-ring) !important; }
+
+/* 边框颜色 */
+.border { border-color: var(--color-border) !important; }
+.border-border { border-color: var(--color-border) !important; }
+.border-input { border-color: var(--color-input) !important; }
+.border-primary { border-color: var(--color-primary) !important; }
+.border-secondary { border-color: var(--color-secondary) !important; }
+.border-muted { border-color: var(--color-muted) !important; }
+.border-muted-foreground { border-color: var(--color-muted-foreground) !important; }
+.border-accent { border-color: var(--color-accent) !important; }
+.border-destructive { border-color: var(--color-destructive) !important; }
+.border-sidebar-border { border-color: var(--color-sidebar-border) !important; }
+.border-transparent { border-color: transparent !important; }
+
+/* 带透明度的边框颜色 */
+.border-muted-foreground\/25 { border-color: color-mix(in oklab, var(--color-muted-foreground) 25%, transparent) !important; }
+.border-muted-foreground\/30 { border-color: color-mix(in oklab, var(--color-muted-foreground) 30%, transparent) !important; }
+.border-muted-foreground\/50 { border-color: color-mix(in oklab, var(--color-muted-foreground) 50%, transparent) !important; }
+.border-input\/80 { border-color: color-mix(in oklab, var(--color-input) 80%, transparent) !important; }
+
+/* 悬停状态 */
+.hover\:bg-primary\/90:hover { background-color: color-mix(in oklab, var(--color-primary) 90%, transparent) !important; }
+.hover\:bg-secondary\/90:hover { background-color: color-mix(in oklab, var(--color-secondary) 90%, transparent) !important; }
+.hover\:bg-destructive\/90:hover { background-color: color-mix(in oklab, var(--color-destructive) 90%, transparent) !important; }
+.hover\:bg-accent:hover { background-color: var(--color-accent) !important; }
+.hover\:bg-input\/50:hover { background-color: color-mix(in oklab, var(--color-input) 50%, transparent) !important; }
+.hover\:text-accent-foreground:hover { color: var(--color-accent-foreground) !important; }
+.hover\:border-muted-foreground\/50:hover { border-color: color-mix(in oklab, var(--color-muted-foreground) 50%, transparent) !important; }
+.hover\:border-input\/80:hover { border-color: color-mix(in oklab, var(--color-input) 80%, transparent) !important; }
+
+/* 聚焦状态 */
+.focus-visible\:border-ring:focus-visible { border-color: var(--color-ring) !important; }
+.focus-visible\:ring-ring\/50:focus-visible { 
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-ring) 50%, transparent) !important; 
+}
+.focus-visible\:ring-destructive\/20:focus-visible { 
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-destructive) 20%, transparent) !important; 
+}
+.focus-visible\:ring-destructive\/40:focus-visible { 
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-destructive) 40%, transparent) !important; 
+}
+
+/* 暗色模式特定样式 */
+.dark\:bg-input\/30:is([data-theme="dark"] *) { background-color: color-mix(in oklab, var(--color-input) 30%, transparent) !important; }
+.dark\:bg-green-950\/20:is([data-theme="dark"] *) { background-color: color-mix(in oklab, var(--color-components-alert-success-bg) 20%, transparent) !important; }
+.dark\:border-input:is([data-theme="dark"] *) { border-color: var(--color-input) !important; }
+.dark\:hover\:bg-input\/50:is([data-theme="dark"] *):hover { background-color: color-mix(in oklab, var(--color-input) 50%, transparent) !important; }
+.dark\:text-muted-foreground:is([data-theme="dark"] *) { color: var(--color-muted-foreground) !important; }
+.dark\:text-foreground:is([data-theme="dark"] *) { color: var(--color-foreground) !important; }
+.dark\:focus-visible\:ring-destructive\/40:is([data-theme="dark"] *):focus-visible { 
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-destructive) 40%, transparent) !important; 
+}
+.dark\:aria-invalid\:ring-destructive\/40:is([data-theme="dark"] *)[aria-invalid="true"] { 
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-destructive) 40%, transparent) !important; 
+}
+
+/* aria-invalid 状态 */
+.aria-invalid\:ring-destructive\/20[aria-invalid="true"] { 
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-destructive) 20%, transparent) !important; 
+}
+.aria-invalid\:border-destructive[aria-invalid="true"] { 
+  border-color: var(--color-destructive) !important; 
+}
+
+/* data-state 属性样式 */
+[data-state="active"] {
+  &.data-\[state\=active\]\:bg-card { background-color: var(--color-card) !important; }
+  &.data-\[state\=active\]\:text-foreground { color: var(--color-foreground) !important; }
+  &.data-\[state\=active\]\:shadow-medium { box-shadow: var(--color-components-card-shadow) !important; }
+  &.data-\[state\=active\]\:border-input { border-color: var(--color-input) !important; }
+  &.data-\[state\=active\]\:bg-input\/30 { background-color: color-mix(in oklab, var(--color-input) 30%, transparent) !important; }
+}
+
+/* 选择文本样式 */
+.selection\:bg-primary::selection { background-color: var(--color-primary) !important; }
+.selection\:text-primary-foreground::selection { color: var(--color-primary-foreground) !important; }
+
+/* 文件输入样式 */
+.file\:text-foreground::file-selector-button { color: var(--color-foreground) !important; }
+
+/* 占位符样式 */
+.placeholder\:text-muted-foreground::placeholder { color: var(--color-muted-foreground) !important; }
+
+/* 禁用状态 */
+.disabled\:opacity-50:disabled { opacity: 0.5 !important; }
+.disabled\:pointer-events-none:disabled { pointer-events: none !important; }
+.disabled\:cursor-not-allowed:disabled { cursor: not-allowed !important; }
+
+/* 圆角半径工具类 */
+.rounded-sm { border-radius: var(--radius-sm) !important; }
+.rounded-md { border-radius: var(--radius-md) !important; }
+.rounded-lg { border-radius: var(--radius-lg) !important; }
+.rounded-xl { border-radius: var(--radius-xl) !important; }
+
+/* 渐变背景 */
+.bg-gradient-to-br { background-image: linear-gradient(to bottom right, var(--tw-gradient-stops)) !important; }
+.from-background { --tw-gradient-from: var(--color-background) !important; }
+.to-muted\/20 { --tw-gradient-to: color-mix(in oklab, var(--color-muted) 20%, transparent) !important; }
+
+/* 轮廓样式 */
+.outline-ring\/50 { outline-color: color-mix(in oklab, var(--color-ring) 50%, transparent) !important; }

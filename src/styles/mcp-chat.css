@@ -1,0 +1,172 @@
+/* MCP实验场聊天页面样式 */
+
+/* 自定义CSS变量和样式 */
+.mcp-chat-container {
+  --mcp-sidebar-bg: oklch(0.985 0 0);
+  --mcp-sidebar-foreground: oklch(0.145 0 0);
+  --mcp-sidebar-border: oklch(0.922 0 0);
+  --mcp-sidebar-accent: oklch(0.97 0 0);
+}
+
+.dark .mcp-chat-container {
+  --mcp-sidebar-bg: oklch(0.205 0 0);
+  --mcp-sidebar-foreground: oklch(0.985 0 0);
+  --mcp-sidebar-border: oklch(0.269 0 0);
+  --mcp-sidebar-accent: oklch(0.269 0 0);
+}
+
+/* 侧边栏样式覆盖 */
+.mcp-chat-sidebar {
+  background-color: var(--mcp-sidebar-bg);
+  border-color: var(--mcp-sidebar-border);
+  color: var(--mcp-sidebar-foreground);
+}
+
+/* 聊天输入框圆角样式 */
+.mcp-chat-input-container {
+  border-radius: 28px;
+  background: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  transition: box-shadow 0.2s ease;
+}
+
+.mcp-chat-input-container:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.dark .mcp-chat-input-container {
+  background: hsl(var(--card));
+}
+
+/* 工具调用卡片样式 */
+.mcp-tool-call-card {
+  background: rgb(239 246 255);
+  border-color: rgb(219 234 254);
+}
+
+.dark .mcp-tool-call-card {
+  background: rgb(30 58 138 / 0.2);
+  border-color: rgb(30 64 175);
+}
+
+/* 消息气泡样式 */
+.mcp-message-user {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
+.mcp-message-assistant {
+  background: transparent;
+}
+
+/* 滚动条样式 */
+.mcp-scroll-area::-webkit-scrollbar {
+  width: 6px;
+}
+
+.mcp-scroll-area::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.mcp-scroll-area::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.mcp-scroll-area::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.dark .mcp-scroll-area::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.dark .mcp-scroll-area::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* 动画效果 */
+.mcp-fade-in {
+  animation: mcpFadeIn 0.3s ease-in-out;
+}
+
+@keyframes mcpFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 加载状态 */
+.mcp-loading-dots {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.mcp-loading-dots > div {
+  width: 4px;
+  height: 4px;
+  background: currentColor;
+  border-radius: 50%;
+  animation: mcpLoadingBounce 1.4s ease-in-out infinite both;
+}
+
+.mcp-loading-dots > div:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.mcp-loading-dots > div:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+@keyframes mcpLoadingBounce {
+  0%, 80%, 100% {
+    transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
+  }
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .mcp-chat-input-container {
+    border-radius: 20px;
+  }
+  
+  .mcp-chat-sidebar {
+    position: fixed;
+    z-index: 50;
+    height: 100vh;
+  }
+}
+
+/* 高对比度模式支持 */
+@media (prefers-contrast: high) {
+  .mcp-tool-call-card {
+    border-width: 2px;
+  }
+  
+  .mcp-chat-input-container {
+    border-width: 2px;
+  }
+}
+
+/* 减少动画模式 */
+@media (prefers-reduced-motion: reduce) {
+  .mcp-fade-in {
+    animation: none;
+  }
+  
+  .mcp-loading-dots > div {
+    animation: none;
+  }
+  
+  .mcp-chat-input-container {
+    transition: none;
+  }
+}

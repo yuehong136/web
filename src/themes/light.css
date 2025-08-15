@@ -8,12 +8,12 @@
 
 html[data-theme="light"], :root {
   /* ===== 文本系统 ===== */
-  --color-text-primary: #1f2937;
-  --color-text-secondary: #6b7280;
-  --color-text-tertiary: #9ca3af;
-  --color-text-muted: #d1d5db;
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #717182;
+  --color-text-tertiary: #a3a3a3;
+  --color-text-muted: #d4d4d4;
   --color-text-disabled: #e5e7eb;
-  --color-text-accent: #3b82f6;
+  --color-text-accent: #1a1a1a;
   --color-text-success: #059669;
   --color-text-warning: #d97706;
   --color-text-error: #dc2626;
@@ -21,60 +21,81 @@ html[data-theme="light"], :root {
 
   /* ===== 背景系统 ===== */
   --color-background-body: #ffffff;
-  --color-background-default: #f9fafb;
-  --color-background-subtle: #f3f4f6;
+  --color-background-default: #f5f5f5;
+  --color-background-subtle: #f0f0f0;
   --color-background-section: #ffffff;
   --color-background-overlay: rgba(0, 0, 0, 0.5);
   --color-background-surface: #ffffff;
 
   /* ===== 边框系统 ===== */
-  --color-border-default: #e5e7eb;
-  --color-border-subtle: #f3f4f6;
-  --color-border-strong: #d1d5db;
-  --color-border-accent: #3b82f6;
+  --color-border-default: rgba(0, 0, 0, 0.08);
+  --color-border-subtle: rgba(0, 0, 0, 0.05);
+  --color-border-strong: rgba(0, 0, 0, 0.12);
+  --color-border-accent: rgba(0, 0, 0, 0.1);
   --color-border-success: #10b981;
   --color-border-warning: #f59e0b;
   --color-border-error: #ef4444;
 
+  /* ===== Shadcn/UI 兼容变量 ===== */
+  --border: var(--color-border-default);
+  --input: var(--color-components-input-bg);
+  --ring: var(--color-state-focus);
+  --background: var(--color-background-body);
+  --foreground: var(--color-text-primary);
+  --card: var(--color-components-card-bg);
+  --card-foreground: var(--color-components-card-meta-title);
+  --popover: var(--color-components-popover-bg);
+  --popover-foreground: var(--color-text-primary);
+  --primary: var(--color-components-button-primary-bg);
+  --primary-foreground: var(--color-components-button-primary-text);
+  --secondary: var(--color-components-button-secondary-bg);
+  --secondary-foreground: var(--color-components-button-secondary-text);
+  --muted: var(--color-background-subtle);
+  --muted-foreground: var(--color-text-secondary);
+  --accent: var(--color-background-subtle);
+  --accent-foreground: var(--color-text-primary);
+  --destructive: var(--color-border-error);
+  --destructive-foreground: var(--color-text-inverted);
+
   /* ===== 按钮组件 ===== */
-  --color-components-button-primary-bg: #3b82f6;
-  --color-components-button-primary-bg-hover: #2563eb;
-  --color-components-button-primary-bg-active: #1d4ed8;
-  --color-components-button-primary-bg-disabled: #e5e7eb;
+  --color-components-button-primary-bg: #030213;
+  --color-components-button-primary-bg-hover: #030213;
+  --color-components-button-primary-bg-active: #030213;
+  --color-components-button-primary-bg-disabled: #ececf0;
   --color-components-button-primary-text: #ffffff;
   --color-components-button-primary-text-disabled: #9ca3af;
-  --color-components-button-primary-border: #3b82f6;
-  --color-components-button-primary-border-hover: #2563eb;
-  --color-components-button-secondary-bg: #ffffff;
-  --color-components-button-secondary-bg-hover: #f9fafb;
-  --color-components-button-secondary-bg-active: #f3f4f6;
-  --color-components-button-secondary-bg-disabled: #f9fafb;
-  --color-components-button-secondary-text: #374151;
+  --color-components-button-primary-border: #030213;
+  --color-components-button-primary-border-hover: #030213;
+  --color-components-button-secondary-bg: #f3f3f5;
+  --color-components-button-secondary-bg-hover: #e9ebef;
+  --color-components-button-secondary-bg-active: #ececf0;
+  --color-components-button-secondary-bg-disabled: #f3f3f5;
+  --color-components-button-secondary-text: #030213;
   --color-components-button-secondary-text-disabled: #9ca3af;
-  --color-components-button-secondary-border: #e5e7eb;
-  --color-components-button-secondary-border-hover: #d1d5db;
+  --color-components-button-secondary-border: rgba(0, 0, 0, 0.1);
+  --color-components-button-secondary-border-hover: #b7becb;
   --color-components-button-ghost-bg-hover: #f3f4f6;
   --color-components-button-ghost-text: #374151;
   --color-components-button-ghost-text-disabled: #9ca3af;
 
   /* ===== 输入框组件 ===== */
-  --color-components-input-bg: #ffffff;
-  --color-components-input-bg-hover: #f9fafb;
-  --color-components-input-bg-focus: #ffffff;
-  --color-components-input-bg-disabled: #f9fafb;
-  --color-components-input-border: #d1d5db;
-  --color-components-input-border-hover: #9ca3af;
-  --color-components-input-border-focus: #3b82f6;
+  --color-components-input-bg: #f3f3f5;
+  --color-components-input-bg-hover: #ececf0;
+  --color-components-input-bg-focus: #f3f3f5;
+  --color-components-input-bg-disabled: #f3f3f5;
+  --color-components-input-border: rgba(0, 0, 0, 0.1);
+  --color-components-input-border-hover: #b7becb;
+  --color-components-input-border-focus: #b7becb;
   --color-components-input-border-error: #ef4444;
-  --color-components-input-text: #111827;
-  --color-components-input-text-placeholder: #9ca3af;
-  --color-components-input-text-disabled: #6b7280;
+  --color-components-input-text: #1a1a1a;
+  --color-components-input-text-placeholder: #9e9e9e;
+  --color-components-input-text-disabled: #9ca3af;
 
   /* ===== 卡片组件 ===== */
   --color-components-card-bg: #ffffff;
-  --color-components-card-bg-hover: #f9fafb;
-  --color-components-card-border: #e5e7eb;
-  --color-components-card-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --color-components-card-bg-hover: #fafafa;
+  --color-components-card-border: rgba(0, 0, 0, 0.08);
+  --color-components-card-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
   --color-components-card-meta-title: #1f2937;
   --color-components-card-meta-description: #6b7280;
   --color-components-card-actions-bg: #f9fafb;
@@ -172,10 +193,10 @@ html[data-theme="light"], :root {
 
   /* ===== 导航和标签 ===== */
   --color-components-tabs-border: #e5e7eb;
-  --color-components-tabs-bg: #f9fafb;
+  --color-components-tabs-bg: #f5f5f5;
   --color-components-tabs-active-bg: #ffffff;
-  --color-components-tabs-active-text: #3b82f6;
-  --color-components-tabs-inactive-text: #6b7280;
+  --color-components-tabs-active-text: #1a1a1a;
+  --color-components-tabs-inactive-text: #737373;
   --color-components-breadcrumb-text: #6b7280;
   --color-components-breadcrumb-text-current: #1f2937;
   --color-components-breadcrumb-separator: #9ca3af;
@@ -216,9 +237,9 @@ html[data-theme="light"], :root {
   --color-components-pre-border: #374151;
 
   /* ===== 其他组件 ===== */
-  --color-components-badge-bg: #f3f4f6;
-  --color-components-badge-text: #6b7280;
-  --color-components-badge-border: #e5e7eb;
+  --color-components-badge-bg: #f5f5f5;
+  --color-components-badge-text: #737373;
+  --color-components-badge-border: #eaeaea;
   --color-components-badge-success-bg: #dcfce7;
   --color-components-badge-success-text: #166534;
   --color-components-badge-warning-bg: #fef3c7;
@@ -246,10 +267,10 @@ html[data-theme="light"], :root {
   --color-components-steps-border: #e5e7eb;
   --color-components-steps-completed-bg: #10b981;
   --color-components-steps-completed-text: #ffffff;
-  --color-components-steps-active-bg: #3b82f6;
+  --color-components-steps-active-bg: #030213;
   --color-components-steps-active-text: #ffffff;
-  --color-components-steps-inactive-bg: #f3f4f6;
-  --color-components-steps-inactive-text: #9ca3af;
+  --color-components-steps-inactive-bg: #f3f3f5;
+  --color-components-steps-inactive-text: #717182;
   --color-components-steps-line: #e5e7eb;
   --color-components-steps-line-completed: #10b981;
   --color-components-divider-bg: #e5e7eb;
@@ -303,10 +324,11 @@ html[data-theme="light"], :root {
   --color-components-transfer-item-bg-selected: #eff6ff;
   --color-components-transfer-item-text: #374151;
   --color-components-transfer-item-text-selected: #2563eb;
-  --color-components-upload-bg: #ffffff;
-  --color-components-upload-border: #d1d5db;
-  --color-components-upload-border-hover: #9ca3af;
-  --color-components-upload-border-dragover: #3b82f6;
+  --color-components-upload-bg: transparent;
+  --color-components-upload-bg-dragover: rgba(3, 2, 19, 0.05);
+  --color-components-upload-border: rgba(113, 113, 130, 0.25);
+  --color-components-upload-border-hover: rgba(113, 113, 130, 0.5);
+  --color-components-upload-border-dragover: #030213;
   --color-components-upload-text: #374151;
   --color-components-upload-text-secondary: #9ca3af;
   --color-components-upload-icon: #d1d5db;
@@ -345,13 +367,13 @@ html[data-theme="light"], :root {
   --color-components-empty-text-secondary: #d1d5db;
   --color-components-empty-icon: #e5e7eb;
   --color-components-watermark-text: rgba(0, 0, 0, 0.15);
-  --color-components-segmented-bg: #f3f4f6;
-  --color-components-segmented-border: #e5e7eb;
+  --color-components-segmented-bg: #f5f5f5;
+  --color-components-segmented-border: #eaeaea;
   --color-components-segmented-item-bg: transparent;
-  --color-components-segmented-item-bg-hover: #e5e7eb;
+  --color-components-segmented-item-bg-hover: #eaeaea;
   --color-components-segmented-item-bg-active: #ffffff;
-  --color-components-segmented-item-text: #6b7280;
-  --color-components-segmented-item-text-active: #374151;
+  --color-components-segmented-item-text: #737373;
+  --color-components-segmented-item-text-active: #1a1a1a;
   --color-components-mentions-bg: #ffffff;
   --color-components-mentions-border: #d1d5db;
   --color-components-mentions-item-bg-hover: #f3f4f6;
