@@ -1,10 +1,10 @@
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
-import { ChevronDown, Cpu, Zap, Globe } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
+import { ProviderIcon } from '@/components/ui/provider-icon';
 import type { ModelInfo } from '@/types/mcp';
 
 export interface ModelSelectorProps {
@@ -48,16 +48,7 @@ const MOCK_MODELS: ModelInfo[] = [
 ];
 
 const getProviderIcon = (provider: string) => {
-  switch (provider.toLowerCase()) {
-    case 'openai':
-      return <Zap className="w-4 h-4" />;
-    case 'anthropic':
-      return <Cpu className="w-4 h-4" />;
-    case 'google':
-      return <Globe className="w-4 h-4" />;
-    default:
-      return <Cpu className="w-4 h-4" />;
-  }
+  return <ProviderIcon provider={provider} className="w-4 h-4" size={16} />;
 };
 
 export function ModelSelector({
@@ -85,7 +76,7 @@ export function ModelSelector({
           </Button>
         </DropdownMenuTrigger>
         
-        <DropdownMenuContent align="start" className="w-80">
+        <DropdownMenuContent className="w-80">
           {MOCK_MODELS.map((model) => (
             <DropdownMenuItem
               key={model.id}

@@ -104,7 +104,7 @@ export const getProviderIcon = (modelName: string | null): React.ReactNode => {
           console.warn(`Failed to load icon for ${modelName}:`, iconPath)
           const target = e.target as HTMLImageElement
           target.style.display = 'none'
-          if (target.parentNode) {
+          if (target.parentNode && target.parentNode instanceof Element) {
             target.parentNode.innerHTML = '<span style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; font-size: 14px;">AI</span>'
           }
         }}
