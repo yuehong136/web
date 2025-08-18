@@ -26,6 +26,9 @@ export const LoginPage: React.FC = () => {
   const { login, isLoading } = useAuthStore()
   const [showPassword, setShowPassword] = React.useState(false)
   const [showExpiredAlert, setShowExpiredAlert] = React.useState(false)
+  
+  // 检查是否启用注册功能
+  const isRegistrationEnabled = import.meta.env.VITE_ENABLE_REGISTRATION === 'true'
 
   // 检查是否因为token过期而重定向
   React.useEffect(() => {
@@ -244,15 +247,17 @@ export const LoginPage: React.FC = () => {
           </form>
 
           {/* Footer */}
-          <div className="mt-8 text-center text-sm text-text-secondary">
-            还没有账户？{" "}
-            <Link
-              to={ROUTES.REGISTER}
-              className="text-text-accent hover:text-text-accent/80 font-medium"
-            >
-              立即注册
-            </Link>
-          </div>
+          {isRegistrationEnabled && (
+            <div className="mt-8 text-center text-sm text-text-secondary">
+              还没有账户？{" "}
+              <Link
+                to={ROUTES.REGISTER}
+                className="text-text-accent hover:text-text-accent/80 font-medium"
+              >
+                立即注册
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </div>

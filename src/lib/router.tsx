@@ -79,16 +79,24 @@ const APIKeysPage = () => (
 )
 
 // 创建路由配置
-export const router = createBrowserRouter([
-  // 认证路由（不需要布局）
+const authRoutes = [
   {
     path: ROUTES.LOGIN,
     element: <LoginPage />,
-  },
-  {
+  }
+]
+
+// 条件性添加注册路由
+if (import.meta.env.VITE_ENABLE_REGISTRATION === 'true') {
+  authRoutes.push({
     path: ROUTES.REGISTER,
     element: <RegisterPage />,
-  },
+  })
+}
+
+export const router = createBrowserRouter([
+  // 认证路由（不需要布局）
+  ...authRoutes,
   
   // 主应用路由（需要布局和认证）
   {
