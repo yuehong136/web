@@ -92,7 +92,7 @@ export const AlertDialogTitle: React.FC<AlertDialogTitleProps> = ({ className, .
 
 export const AlertDialogDescription: React.FC<AlertDialogDescriptionProps> = ({ className, ...props }) => (
   <p
-    className={cn("text-sm text-gray-600", className)}
+    className={cn("text-sm text-muted-foreground", className)}
     {...props}
   />
 )

@@ -25,9 +25,7 @@ export interface MCPChatServiceRequest {
   mcp_ids?: string[]
   mcp_timeout?: number
   verbose_tool_use?: boolean
-  mcp_react?: boolean     // 是否启用 ReAct 闭环（多轮：计划→工具→反思→总结）
-  mcp_max_rounds?: number  // 闭环最多轮数
-  mcp_parallelism?: number // 单轮并发工具调用数
+  files?: string[]
 }
 
 /**
@@ -124,7 +122,7 @@ export const mcpChatAPI = {
    */
   sendMessage: (request: MCPChatServiceRequest) => {
     const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
-    const fullUrl = `${baseURL}/v1/llm/chat_service_sse`
+    const fullUrl = `${baseURL}/v1/llm/enhanced_chat_sse`
     const token = localStorage.getItem('auth_token')
     
     // 构建请求数据
@@ -140,9 +138,7 @@ export const mcpChatAPI = {
       mcp_ids: request.mcp_ids || [],
       mcp_timeout: request.mcp_timeout || 10.0,
       verbose_tool_use: request.verbose_tool_use !== undefined ? request.verbose_tool_use : false,
-      mcp_react: request.mcp_react !== undefined ? request.mcp_react : false,
-      mcp_max_rounds: request.mcp_max_rounds || 3,
-      mcp_parallelism: request.mcp_parallelism || 3
+      files: request.files || []
     }
     
     return fetch(fullUrl, {
@@ -171,12 +167,10 @@ export const mcpChatAPI = {
       mcp_ids: request.mcp_ids || [],
       mcp_timeout: request.mcp_timeout || 10.0,
       verbose_tool_use: request.verbose_tool_use !== undefined ? request.verbose_tool_use : false,
-      mcp_react: request.mcp_react !== undefined ? request.mcp_react : false,
-      mcp_max_rounds: request.mcp_max_rounds || 3,
-      mcp_parallelism: request.mcp_parallelism || 3
+      files: request.files || []
     }
     
-    const response = await apiClient.post<any>('/llm/chat_service_sse', requestData)
+    const response = await apiClient.post<any>('/llm/enhanced_chat_sse', requestData)
     
     // 处理响应数据
     if (response.data) {
@@ -187,7 +181,7 @@ export const mcpChatAPI = {
 }
 
 /**
- * 解析流式响应中的工具调用
+ * 解析流式响应中的工具调用 - 实时解析版本
  * @param content 响应内容
  * @returns 解析后的内容和工具调用
  */
@@ -196,24 +190,93 @@ export function parseToolCalls(content: string): {
   toolCalls: ParsedToolCall[]
 } {
   const toolCallsMap = new Map<string, ParsedToolCall>()
-  let cleanContent = content
+  let processedContent = content
   
-  // 匹配所有的 <tool_call> 标签
-  const toolCallRegex = /<tool_call>(.*?)<\/tool_call>/gs
+  // 处理新格式的工具调用 - 实时解析
+  if (content.includes('🔧')) {
+    // 1. 解析进行中的工具调用（只有工具调用，没有结果）
+    const pendingCallRegex = /🔧 \*\*工具调用\*\*:\s*([^(]+)\(([^)]*)\)(?!\s*\n📋)/g
+    let pendingMatch
+    
+    while ((pendingMatch = pendingCallRegex.exec(content)) !== null) {
+      try {
+        const toolName = pendingMatch[1].trim()
+        const argsString = pendingMatch[2].trim()
+        
+        // 解析参数字符串
+        const args: Record<string, any> = {}
+        if (argsString) {
+          const argPairs = argsString.split(/,\s*/)
+          for (const pair of argPairs) {
+            const [key, value] = pair.split('=', 2)
+            if (key && value) {
+              args[key.trim()] = value.trim()
+            }
+          }
+        }
+        
+        const toolId = `${toolName}_${JSON.stringify(args)}`
+        
+        toolCallsMap.set(toolId, {
+          name: toolName,
+          args: args,
+          result: '',
+          status: 'running'
+        })
+        
+      } catch (e) {
+        console.error('解析进行中工具调用失败:', e)
+      }
+    }
+    
+    // 2. 解析完整的工具调用（有工具调用和结果）
+    const completeCallRegex = /🔧 \*\*工具调用\*\*:\s*([^(]+)\(([^)]*)\)\s*\n📋 \*\*结果\*\*:\s*([\s\S]*?)(?=(?:\n\n🔧|\n\n📊|$))/g
+    let completeMatch
+    
+    while ((completeMatch = completeCallRegex.exec(content)) !== null) {
+      try {
+        const toolName = completeMatch[1].trim()
+        const argsString = completeMatch[2].trim()
+        const resultContent = completeMatch[3].trim()
+        
+        // 解析参数字符串
+        const args: Record<string, any> = {}
+        if (argsString) {
+          const argPairs = argsString.split(/,\s*/)
+          for (const pair of argPairs) {
+            const [key, value] = pair.split('=', 2)
+            if (key && value) {
+              args[key.trim()] = value.trim()
+            }
+          }
+        }
+        
+        const toolId = `${toolName}_${JSON.stringify(args)}`
+        
+        toolCallsMap.set(toolId, {
+          name: toolName,
+          args: args,
+          result: resultContent,
+          status: 'success'
+        })
+        
+      } catch (e) {
+        console.error('解析完整工具调用失败:', e)
+      }
+    }
+  }
+  
+  // 兼容旧格式：匹配所有的 <tool_call> 标签
+  const oldToolCallRegex = /<tool_call>(.*?)<\/tool_call>/gs
   let match
   
-  while ((match = toolCallRegex.exec(content)) !== null) {
+  while ((match = oldToolCallRegex.exec(content)) !== null) {
     try {
       const toolCallData = JSON.parse(match[1])
-      // 使用工具名和参数的组合作为唯一标识
       const toolId = `${toolCallData.name}_${JSON.stringify(toolCallData.args || {})}`
       
-      // 如果是同一个工具调用，更新状态（后面的覆盖前面的）
-      // "Begin to call..." 表示运行中，其他表示完成
       const isRunning = toolCallData.result === 'Begin to call...'
       
-      // 如果Map中已存在该工具，且新的是完成状态，则更新
-      // 如果Map中不存在，或新的状态更"完整"，则添加/更新
       const existingCall = toolCallsMap.get(toolId)
       if (!existingCall || (!isRunning && existingCall.status === 'running')) {
         toolCallsMap.set(toolId, {
@@ -223,11 +286,8 @@ export function parseToolCalls(content: string): {
           status: isRunning ? 'running' : 'success'
         })
       }
-      
-      // 从内容中移除工具调用标记
-      cleanContent = cleanContent.replace(match[0], '')
     } catch (e) {
-      console.error('解析工具调用失败:', e)
+      console.error('解析旧格式工具调用失败:', e)
     }
   }
   
@@ -235,7 +295,7 @@ export function parseToolCalls(content: string): {
   const toolCalls = Array.from(toolCallsMap.values())
   
   return {
-    content: cleanContent.trim(),
-    toolCalls
+    content: processedContent.trim(),  // 保留完整内容用于正常流式展示
+    toolCalls  // 提取的工具调用用于MCP组件展示
   }
 }

@@ -3,14 +3,14 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const inputVariants = cva(
-  "flex w-full rounded-md border bg-white px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+  "flex w-full rounded-md border bg-input px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
   {
     variants: {
       variant: {
-        default: "border-gray-300 focus-visible:ring-primary-500",
-        destructive: "border-red-300 focus-visible:ring-red-500",
-        success: "border-green-300 focus-visible:ring-green-500",
-        warning: "border-yellow-300 focus-visible:ring-yellow-500",
+        default: "border-border focus-visible:ring-ring",
+        destructive: "border-destructive focus-visible:ring-destructive",
+        success: "border-success focus-visible:ring-success",
+        warning: "border-warning focus-visible:ring-warning",
       },
       inputSize: {
         default: "h-10",
@@ -60,15 +60,15 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className="text-sm font-medium text-gray-700"
+            className="text-sm font-medium text-foreground"
           >
             {label}
-            {required && <span className="text-red-500 ml-1">*</span>}
+            {required && <span className="text-destructive ml-1">*</span>}
           </label>
         )}
         <div className="relative">
           {leftIcon && (
-            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
               {leftIcon}
             </div>
           )}
@@ -85,13 +85,13 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             {...props}
           />
           {rightIcon && (
-            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
               {rightIcon}
             </div>
           )}
         </div>
         {error && (
-          <p className="text-sm text-red-600 flex items-center gap-1">
+          <p className="text-sm text-destructive flex items-center gap-1">
             <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
               <path
                 fillRule="evenodd"
@@ -103,7 +103,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           </p>
         )}
         {helpText && !error && (
-          <p className="text-sm text-gray-500">{helpText}</p>
+          <p className="text-sm text-muted-foreground">{helpText}</p>
         )}
       </div>
     )

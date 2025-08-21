@@ -5,33 +5,29 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Card } from '@/components/ui/card'
 import { Loading } from '@/components/ui/loading'
-import { Progress } from '@/components/ui/progress'
-import { Separator } from '@/components/ui/separator'
-import { Label } from '@/components/ui/label'
 import { useAuthStore } from '@/stores/auth'
 import { ROUTES } from '@/constants'
 import { Eye, EyeOff, User, Mail, Lock, Building, Briefcase, Github } from 'lucide-react'
+import { Progress } from '@/components/ui/progress'
+import { Separator } from '@/components/ui/separator'
+import { Label } from '@/components/ui/label'
 import { AuthCarousel } from '@/components/auth/AuthCarousel'
 
 const registerSchema = z.object({
-  name: z.string().min(2, '姓名至少2位'),
+  nickname: z.string().min(2, '昵称至少2位'),
   email: z.string().email('请输入有效的邮箱地址'),
-  password: z.string().min(8, '密码至少8位').regex(
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-    '密码必须包含大小写字母和数字'
-  ),
+  password: z.string().min(4, '密码至少4位'),
   confirmPassword: z.string(),
-  company: z.string().min(2, '公司名称至少2位'),
-  role: z.string().min(2, '职位至少2位'),
+  company: z.string().optional(),
+  role: z.string().optional(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: '两次输入的密码不一致',
   path: ['confirmPassword'],
 })
 
 interface FormData {
-  name: string;
+  nickname: string;
   email: string;
   password: string;
   confirmPassword: string;
@@ -52,7 +48,7 @@ export const RegisterPage: React.FC = () => {
   const { register: registerUser, isLoading } = useAuthStore()
   const [currentStep, setCurrentStep] = React.useState(0)
   const [formData, setFormData] = React.useState<FormData>({
-    name: "",
+    nickname: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -82,8 +78,9 @@ export const RegisterPage: React.FC = () => {
 
   const handleSubmit = async () => {
     try {
+      // 只发送后端需要的字段
       await registerUser({
-        username: formData.name,
+        nickname: formData.nickname,
         email: formData.email,
         password: formData.password,
       })
@@ -169,12 +166,12 @@ export const RegisterPage: React.FC = () => {
             {currentStep === 0 && (
               <>
                 <div>
-                  <Label htmlFor="name">姓名</Label>
+                  <Label htmlFor="nickname">昵称</Label>
                   <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => handleInputChange("name", e.target.value)}
-                    placeholder="张三"
+                    id="nickname"
+                    value={formData.nickname}
+                    onChange={(e) => handleInputChange("nickname", e.target.value)}
+                    placeholder="请输入您的昵称"
                   />
                 </div>
                 <div>
@@ -203,7 +200,7 @@ export const RegisterPage: React.FC = () => {
                     placeholder="创建一个强密码"
                   />
                   <p className="text-xs text-text-tertiary mt-1">
-                    密码至少8位，包含数字和特殊字符
+                    密码至少4位字符
                   </p>
                 </div>
                 <div>
@@ -223,7 +220,7 @@ export const RegisterPage: React.FC = () => {
             {currentStep === 2 && (
               <>
                 <div>
-                  <Label htmlFor="company">公司</Label>
+                  <Label htmlFor="company">公司（可选）</Label>
                   <Input
                     id="company"
                     value={formData.company}
@@ -232,7 +229,7 @@ export const RegisterPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="role">职位</Label>
+                  <Label htmlFor="role">职位（可选）</Label>
                   <Input
                     id="role"
                     value={formData.role}

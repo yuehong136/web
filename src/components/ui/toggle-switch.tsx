@@ -48,16 +48,15 @@ const ToggleSwitch: React.FC<ToggleSwitchProps> = ({
     <div className={cn('flex items-center', className)}>
       {leftLabel && (
         <span className={cn(
-          'text-sm font-medium mr-3 transition-colors',
-          checked ? 'text-gray-500' : 'text-gray-900'
-        )}>
+          'text-sm font-medium mr-3 transition-colors'
+        )} style={{ color: checked ? 'var(--color-text-muted)' : 'var(--color-text-primary)' }}>
           {leftLabel}
         </span>
       )}
       
       <div className="flex flex-col">
         {label && (
-          <label className="text-sm font-medium text-gray-900 mb-1">
+          <label className="text-sm font-medium mb-1" style={{ color: 'var(--color-text-primary)' }}>
             {label}
           </label>
         )}
@@ -65,13 +64,16 @@ const ToggleSwitch: React.FC<ToggleSwitchProps> = ({
         <button
           type="button"
           className={cn(
-            'relative inline-flex shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
+            'relative inline-flex shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 shadow-md',
             currentSize.switch,
-            checked 
-              ? 'bg-blue-600 shadow-md' 
-              : 'bg-gray-200',
             disabled && 'opacity-50 cursor-not-allowed'
           )}
+          style={{
+            backgroundColor: checked 
+              ? 'var(--color-components-switch-bg-checked)' 
+              : 'var(--color-components-switch-bg)',
+            '--tw-ring-color': 'var(--color-state-focus)'
+          } as React.CSSProperties}
           role="switch"
           aria-checked={checked}
           onClick={() => !disabled && onChange(!checked)}
@@ -83,10 +85,11 @@ const ToggleSwitch: React.FC<ToggleSwitchProps> = ({
           {/* 滑块 */}
           <span
             className={cn(
-              'pointer-events-none inline-block rounded-full bg-white shadow-lg transform ring-0 transition-transform duration-200 ease-in-out',
+              'pointer-events-none inline-block rounded-full shadow-lg transform ring-0 transition-transform duration-200 ease-in-out',
               currentSize.thumb,
               checked ? currentSize.translate : 'translate-x-0'
             )}
+            style={{ backgroundColor: 'var(--color-components-switch-thumb)' }}
           >
             {/* 内部图标 */}
             <span
@@ -126,7 +129,7 @@ const ToggleSwitch: React.FC<ToggleSwitchProps> = ({
         </button>
         
         {description && (
-          <p className="mt-1 text-xs text-gray-500">
+          <p className="mt-1 text-xs" style={{ color: 'var(--color-text-muted)' }}>
             {description}
           </p>
         )}
@@ -135,8 +138,8 @@ const ToggleSwitch: React.FC<ToggleSwitchProps> = ({
       {rightLabel && (
         <span className={cn(
           'text-sm font-medium ml-3 transition-colors',
-          checked ? 'text-blue-600 font-semibold' : 'text-gray-500'
-        )}>
+          checked && 'font-semibold'
+        )} style={{ color: checked ? 'var(--color-text-accent)' : 'var(--color-text-muted)' }}>
           {rightLabel}
         </span>
       )}

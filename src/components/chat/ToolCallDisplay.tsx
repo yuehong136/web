@@ -47,7 +47,7 @@ function ResultPane({
           variant="ghost"
           size="sm"
           onClick={onToggle}
-          className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
+          className="text-primary hover:text-primary/80 flex items-center gap-1"
         >
           {isExpanded ? (
             <>
@@ -65,7 +65,7 @@ function ResultPane({
           variant="ghost"
           size="sm"
           onClick={onOpenModal}
-          className="text-blue-600 hover:text-blue-800"
+          className="text-primary hover:text-primary/80"
         >
           在对话框查看
         </Button>
@@ -124,13 +124,13 @@ export function ToolCallDisplay({ toolCalls, parsedToolCalls }: ToolCallDisplayP
       case 'pending':
         return <Badge variant="secondary">等待中</Badge>;
       case 'running':
-        return <Badge variant="secondary" className="bg-blue-100 text-blue-800">运行中</Badge>;
+        return <Badge variant="secondary" className="bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200">运行中</Badge>;
       case 'success':
-        return <Badge variant="secondary" className="bg-green-100 text-green-800">成功</Badge>;
+        return <Badge variant="secondary" className="bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-200">成功</Badge>;
       case 'error':
         return <Badge variant="destructive">错误</Badge>;
       default:
-        return <Badge variant="secondary" className="bg-green-100 text-green-800">完成</Badge>;
+        return <Badge variant="secondary" className="bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-200">完成</Badge>;
     }
   };
 
@@ -154,7 +154,7 @@ export function ToolCallDisplay({ toolCalls, parsedToolCalls }: ToolCallDisplayP
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="text-blue-600 hover:text-blue-800"
+                className="text-primary hover:text-primary/80"
                 onClick={() => {
                   setModalOpenFor(callId);
                   setModalText(result);
@@ -188,7 +188,7 @@ export function ToolCallDisplay({ toolCalls, parsedToolCalls }: ToolCallDisplayP
 
   return (
     <div className="space-y-3 my-4">
-      <div className="flex items-center gap-2 text-sm font-medium text-blue-700">
+      <div className="flex items-center gap-2 text-sm font-medium text-primary">
         <Wrench className="w-4 h-4" />
         使用MCP工具 ({displayCalls.length})
       </div>
@@ -247,8 +247,8 @@ export function ToolCallDisplay({ toolCalls, parsedToolCalls }: ToolCallDisplayP
                       <span className="text-orange-600">📋</span>
                       参数
                     </div>
-                    <div className="bg-gray-100 rounded-lg p-3 border">
-                      <pre className="text-sm text-wrap whitespace-pre-wrap">
+                    <div className="bg-muted rounded-lg p-3 border">
+                      <pre className="text-sm text-wrap whitespace-pre-wrap text-foreground">
                         {JSON.stringify(input, null, 2)}
                       </pre>
                     </div>

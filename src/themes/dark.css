@@ -36,27 +36,6 @@ html[data-theme="dark"] {
   --color-border-warning: #f59e0b;
   --color-border-error: #ef4444;
 
-  /* ===== Shadcn/UI 兼容变量 ===== */
-  --border: var(--color-border-default);
-  --input: var(--color-components-input-bg);
-  --ring: var(--color-state-focus);
-  --background: var(--color-background-body);
-  --foreground: var(--color-text-primary);
-  --card: var(--color-components-card-bg);
-  --card-foreground: var(--color-components-card-meta-title);
-  --popover: var(--color-components-popover-bg);
-  --popover-foreground: var(--color-text-primary);
-  --primary: var(--color-components-button-primary-bg);
-  --primary-foreground: var(--color-components-button-primary-text);
-  --secondary: var(--color-components-button-secondary-bg);
-  --secondary-foreground: var(--color-components-button-secondary-text);
-  --muted: var(--color-background-subtle);
-  --muted-foreground: var(--color-text-secondary);
-  --accent: var(--color-background-subtle);
-  --accent-foreground: var(--color-text-primary);
-  --destructive: var(--color-border-error);
-  --destructive-foreground: var(--color-text-inverted);
-
   /* ===== 按钮组件 ===== */
   --color-components-button-primary-bg: #3b82f6;
   --color-components-button-primary-bg-hover: #2563eb;
@@ -103,13 +82,14 @@ html[data-theme="dark"] {
   --color-components-card-cover-bg: rgba(255, 255, 255, 0.05);
 
   /* ===== 侧边栏组件 ===== */
-  --color-components-sidebar-bg: #1e293b;
-  --color-components-sidebar-border: #475569;
+  --color-components-sidebar-bg: rgba(15, 23, 42, 0.98);
+  --color-components-sidebar-border: rgba(255, 255, 255, 0.08);
   --color-components-sidebar-item-bg: transparent;
-  --color-components-sidebar-item-bg-hover: rgba(255, 255, 255, 0.05);
+  --color-components-sidebar-item-bg-hover: rgba(255, 255, 255, 0.08);
   --color-components-sidebar-item-bg-active: rgba(59, 130, 246, 0.15);
   --color-components-sidebar-item-text: #cbd5e1;
   --color-components-sidebar-item-text-active: #60a5fa;
+  --color-components-sidebar-backdrop: blur(12px);
 
   /* ===== 导航组件 ===== */
   --color-components-nav-bg: #1e293b;
@@ -124,6 +104,46 @@ html[data-theme="dark"] {
   --color-components-dropdown-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
   --color-components-dropdown-item-bg-hover: rgba(255, 255, 255, 0.05);
   --color-components-dropdown-item-text: #ffffff;
+
+  /* ===== 模型选择器组件 ===== */
+  --color-components-model-selector-dropdown-bg: #1e293b;
+  --color-components-model-selector-dropdown-border: #475569;
+  --color-components-model-selector-dropdown-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+  --color-components-model-selector-search-bg: rgba(255, 255, 255, 0.05);
+  --color-components-model-selector-search-border: #4b5563;
+  --color-components-model-selector-search-text: #f9fafb;
+  --color-components-model-selector-provider-header-bg: rgba(255, 255, 255, 0.05);
+  --color-components-model-selector-provider-header-border: #475569;
+  --color-components-model-selector-provider-header-text: #ffffff;
+  --color-components-model-selector-item-bg: #1e293b;
+  --color-components-model-selector-item-border: #475569;
+  --color-components-model-selector-item-text: #ffffff;
+  --color-components-model-selector-item-bg-hover: rgba(255, 255, 255, 0.05);
+  --color-components-model-selector-item-bg-selected: rgba(59, 130, 246, 0.15);
+  --color-components-model-selector-item-text-selected: #3b82f6;
+  --color-components-model-selector-overlay-bg: rgba(0, 0, 0, 0.6);
+
+  /* ===== 聊天系统 ===== */
+  --color-chat-header-bg: rgba(15, 23, 42, 0.95);
+  --color-chat-header-border: rgba(255, 255, 255, 0.08);
+  --color-chat-header-backdrop: blur(12px);
+  --color-chat-main-bg: #0f172a;
+  --color-chat-content-bg: #1e293b;
+  --color-chat-content-border: rgba(255, 255, 255, 0.06);
+  --color-chat-input-area-bg: rgba(30, 41, 59, 0.9);
+  --color-chat-input-area-border: rgba(255, 255, 255, 0.1);
+  --color-chat-input-area-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3);
+  --color-chat-gradient-primary: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(147, 197, 253, 0.12) 50%, rgba(30, 64, 175, 0.06) 100%);
+  --color-chat-gradient-secondary: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(110, 231, 183, 0.12) 100%);
+  --color-chat-welcome-border: rgba(59, 130, 246, 0.2);
+  --color-chat-welcome-shadow: 0 4px 20px rgba(59, 130, 246, 0.15);
+  --color-chat-input-area-backdrop: blur(20px);
+  --color-chat-bubble-assistant-avatar-bg: rgba(59, 130, 246, 0.15);
+  --color-chat-bubble-assistant-avatar-text: #60a5fa;
+  --color-chat-bubble-user-avatar-bg: #4ade80;
+  --color-chat-bubble-user-avatar-text: #ffffff;
+  --color-chat-bubble-user-bg: #334155;
+  --color-chat-bubble-user-text: #ffffff;
 
   /* ===== 模态框组件 ===== */
   --color-components-modal-bg: #1e293b;

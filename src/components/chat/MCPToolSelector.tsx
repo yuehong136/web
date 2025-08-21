@@ -18,9 +18,6 @@ interface MCPChatConfig {
   mcp_ids: string[];
   mcp_timeout: number;
   verbose_tool_use: boolean;
-  mcp_react: boolean;
-  mcp_max_rounds: number;
-  mcp_parallelism: number;
 }
 
 export interface MCPToolSelectorProps {
@@ -223,29 +220,6 @@ export function MCPToolSelector({
                     max={30000}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="max-rounds">最大轮次</Label>
-                  <Input
-                    id="max-rounds"
-                    type="number"
-                    value={localConfig.mcp_max_rounds}
-                    onChange={(e) => handleConfigChange('mcp_max_rounds', parseInt(e.target.value))}
-                    min={1}
-                    max={10}
-                  />
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="parallelism">并行度</Label>
-                <Input
-                  id="parallelism"
-                  type="number"
-                  value={localConfig.mcp_parallelism}
-                  onChange={(e) => handleConfigChange('mcp_parallelism', parseInt(e.target.value))}
-                  min={1}
-                  max={5}
-                />
               </div>
 
               <div className="space-y-3">
@@ -255,15 +229,6 @@ export function MCPToolSelector({
                     id="verbose"
                     checked={localConfig.verbose_tool_use}
                     onCheckedChange={(checked) => handleConfigChange('verbose_tool_use', checked)}
-                  />
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="react">启用ReAct模式</Label>
-                  <Switch
-                    id="react"
-                    checked={localConfig.mcp_react}
-                    onCheckedChange={(checked) => handleConfigChange('mcp_react', checked)}
                   />
                 </div>
               </div>

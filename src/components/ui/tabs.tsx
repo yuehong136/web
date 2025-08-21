@@ -61,7 +61,12 @@ export const Tabs: React.FC<TabsProps> = ({
 
 export const TabsList: React.FC<TabsListProps> = ({ children, className = "" }) => {
   return (
-    <div className={`inline-flex h-12 items-center justify-center rounded-xl bg-gray-100 p-1 text-gray-600 border border-gray-200 shadow-sm ${className}`}>
+    <div className={`inline-flex h-12 items-center justify-center rounded-xl p-1 shadow-sm ${className}`}
+         style={{ 
+           backgroundColor: 'var(--color-components-tabs-bg)', 
+           color: 'var(--color-components-tabs-inactive-text)',
+           border: '1px solid var(--color-components-tabs-border)'
+         }}>
       {children}
     </div>
   )
@@ -81,11 +86,22 @@ export const TabsTrigger: React.FC<TabsTriggerProps> = ({
       type="button"
       disabled={disabled}
       onClick={() => !disabled && onValueChange?.(value)}
-      className={`inline-flex items-center justify-center whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 ${
-        isActive 
-          ? 'bg-white text-gray-900 shadow-sm' 
-          : 'text-gray-600 hover:bg-gray-200 hover:text-gray-900'
-      } ${className}`}
+      className={`inline-flex items-center justify-center whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 ${className}`}
+      style={{
+        backgroundColor: isActive ? 'var(--color-components-tabs-active-bg)' : 'transparent',
+        color: isActive ? 'var(--color-components-tabs-active-text)' : 'var(--color-components-tabs-inactive-text)',
+        boxShadow: isActive ? '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1)' : 'none'
+      }}
+      onMouseEnter={(e) => {
+        if (!isActive) {
+          (e.target as HTMLElement).style.backgroundColor = 'var(--color-state-hover)'
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!isActive) {
+          (e.target as HTMLElement).style.backgroundColor = 'transparent'
+        }
+      }}
     >
       {children}
     </button>

@@ -38,14 +38,14 @@ export const lightTokens: DesignTokens = {
   'border-error': '#ef4444',
   
   // ===== 按钮组件 - Primary =====
-  'components-button-primary-bg': '#030213',
-  'components-button-primary-bg-hover': '#030213',
-  'components-button-primary-bg-active': '#030213',
+  'components-button-primary-bg': '#1e40af',
+  'components-button-primary-bg-hover': '#1d4ed8',
+  'components-button-primary-bg-active': '#1e3a8a',
   'components-button-primary-bg-disabled': '#ececf0',
   'components-button-primary-text': '#ffffff',
   'components-button-primary-text-disabled': '#9ca3af',
-  'components-button-primary-border': '#030213',
-  'components-button-primary-border-hover': '#030213',
+  'components-button-primary-border': '#1e40af',
+  'components-button-primary-border-hover': '#1d4ed8',
   
   // ===== 按钮组件 - Secondary =====
   'components-button-secondary-bg': '#f3f3f5',
@@ -63,13 +63,13 @@ export const lightTokens: DesignTokens = {
   'components-button-ghost-text-disabled': '#9ca3af',
   
   // ===== 输入框组件 =====
-  'components-input-bg': '#f3f3f5',
-  'components-input-bg-hover': '#ececf0',
-  'components-input-bg-focus': '#f3f3f5',
+  'components-input-bg': '#e9ecef',
+  'components-input-bg-hover': '#dee2e6',
+  'components-input-bg-focus': '#e9ecef',
   'components-input-bg-disabled': '#f3f3f5',
-  'components-input-border': 'rgba(0, 0, 0, 0.1)',
-  'components-input-border-hover': '#b7becb',
-  'components-input-border-focus': '#b7becb',
+  'components-input-border': 'rgba(0, 0, 0, 0.25)',
+  'components-input-border-hover': '#495057',
+  'components-input-border-focus': '#1e40af',
   'components-input-border-error': '#ef4444',
   'components-input-text': '#1a1a1a',
   'components-input-text-placeholder': '#9e9e9e',
@@ -82,11 +82,11 @@ export const lightTokens: DesignTokens = {
   'components-card-shadow': '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1)',
   
   // ===== 侧边栏组件 =====
-  'components-sidebar-bg': '#ffffff',
-  'components-sidebar-border': '#e5e7eb',
+  'components-sidebar-bg': 'rgba(255, 255, 255, 0.98)',
+  'components-sidebar-border': 'rgba(0, 0, 0, 0.06)',
   'components-sidebar-item-bg': 'transparent',
-  'components-sidebar-item-bg-hover': '#f3f4f6',
-  'components-sidebar-item-bg-active': '#eff6ff',
+  'components-sidebar-item-bg-hover': 'rgba(0, 0, 0, 0.04)',
+  'components-sidebar-item-bg-active': 'rgba(59, 130, 246, 0.08)',
   'components-sidebar-item-text': '#6b7280',
   'components-sidebar-item-text-active': '#2563eb',
   
@@ -95,7 +95,7 @@ export const lightTokens: DesignTokens = {
   'components-nav-border': '#e5e7eb',
   'components-nav-item-text': '#6b7280',
   'components-nav-item-text-hover': '#374151',
-  'components-nav-item-text-active': '#3b82f6',
+  'components-nav-item-text-active': '#1e40af',
   
   // ===== 下拉菜单组件 =====
   'components-dropdown-bg': '#ffffff',
@@ -103,6 +103,24 @@ export const lightTokens: DesignTokens = {
   'components-dropdown-shadow': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
   'components-dropdown-item-bg-hover': '#f3f4f6',
   'components-dropdown-item-text': '#374151',
+  
+  // ===== 模型选择器组件 =====
+  'components-model-selector-dropdown-bg': '#ffffff',
+  'components-model-selector-dropdown-border': '#e5e7eb',
+  'components-model-selector-dropdown-shadow': '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+  'components-model-selector-search-bg': '#f9fafb',
+  'components-model-selector-search-border': '#d1d5db',
+  'components-model-selector-search-text': '#111827',
+  'components-model-selector-provider-header-bg': '#f3f4f6',
+  'components-model-selector-provider-header-border': '#e5e7eb',
+  'components-model-selector-provider-header-text': '#374151',
+  'components-model-selector-item-bg': '#ffffff',
+  'components-model-selector-item-border': '#e5e7eb',
+  'components-model-selector-item-text': '#374151',
+  'components-model-selector-item-bg-hover': '#f3f4f6',
+  'components-model-selector-item-bg-selected': 'rgba(59, 130, 246, 0.1)',
+  'components-model-selector-item-text-selected': '#3b82f6',
+  'components-model-selector-overlay-bg': 'rgba(0, 0, 0, 0.3)',
   
   // ===== 模态框组件 =====
   'components-modal-bg': '#ffffff',
@@ -115,12 +133,12 @@ export const lightTokens: DesignTokens = {
   'components-table-border': '#e5e7eb',
   'components-table-header-bg': '#f9fafb',
   'components-table-row-bg-hover': '#f9fafb',
-  'components-table-row-bg-selected': '#eff6ff',
+  'components-table-row-bg-selected': 'rgba(30, 64, 175, 0.1)',
   
   // ===== 交互状态 =====
   'state-hover': '#f3f4f6',
   'state-active': '#e5e7eb',
-  'state-focus': '#3b82f6',
+  'state-focus': '#1e40af',
   'state-disabled': '#e5e7eb',
   'state-success': '#10b981',
   'state-warning': '#f59e0b',
@@ -134,25 +152,25 @@ export const lightTokens: DesignTokens = {
   
   // ===== 表单控件 =====
   'components-checkbox-bg': '#ffffff',
-  'components-checkbox-bg-checked': '#3b82f6',
+  'components-checkbox-bg-checked': '#1e40af',
   'components-checkbox-border': '#d1d5db',
-  'components-checkbox-border-checked': '#3b82f6',
+  'components-checkbox-border-checked': '#1e40af',
   'components-checkbox-icon': '#ffffff',
   
   'components-radio-bg': '#ffffff',
   'components-radio-bg-checked': '#ffffff',
   'components-radio-border': '#d1d5db',
-  'components-radio-border-checked': '#3b82f6',
-  'components-radio-dot': '#3b82f6',
+  'components-radio-border-checked': '#1e40af',
+  'components-radio-dot': '#1e40af',
   
   'components-select-bg': '#ffffff',
   'components-select-border': '#d1d5db',
-  'components-select-border-focus': '#3b82f6',
+  'components-select-border-focus': '#1e40af',
   'components-select-text': '#111827',
   'components-select-placeholder': '#9ca3af',
   
   'components-switch-bg': '#e5e7eb',
-  'components-switch-bg-checked': '#3b82f6',
+  'components-switch-bg-checked': '#1e40af',
   'components-switch-thumb': '#ffffff',
   'components-switch-thumb-checked': '#ffffff',
   
@@ -188,7 +206,7 @@ export const lightTokens: DesignTokens = {
   
   // ===== 状态和通知 =====
   'components-alert-info-bg': '#eff6ff',
-  'components-alert-info-border': '#3b82f6',
+  'components-alert-info-border': '#1e40af',
   'components-alert-info-text': '#1e40af',
   
   'components-alert-success-bg': '#f0fdf4',
@@ -206,8 +224,8 @@ export const lightTokens: DesignTokens = {
   // ===== 加载和进度 =====
   'components-skeleton-bg': '#f3f4f6',
   'components-progress-bg': '#e5e7eb',
-  'components-progress-fill': '#3b82f6',
-  'components-spinner-color': '#3b82f6',
+  'components-progress-fill': '#1e40af',
+  'components-spinner-color': '#1e40af',
   
   // ===== 代码和预格式化文本 =====
   'components-code-bg': '#f3f4f6',
@@ -244,7 +262,7 @@ export const lightTokens: DesignTokens = {
   'components-pagination-border': '#e5e7eb',
   'components-pagination-item-bg': '#ffffff',
   'components-pagination-item-bg-hover': '#f9fafb',
-  'components-pagination-item-bg-active': '#3b82f6',
+  'components-pagination-item-bg-active': '#1e40af',
   'components-pagination-item-text': '#374151',
   'components-pagination-item-text-active': '#ffffff',
   'components-pagination-disabled-bg': '#f9fafb',
@@ -263,7 +281,7 @@ export const lightTokens: DesignTokens = {
   'components-steps-line-completed': '#10b981',
   
   // 其余新增组件令牌使用合适的基础颜色
-  'components-loader-primary': '#3b82f6',
+  'components-loader-primary': '#1e40af',
   'components-loader-secondary': '#d1d5db',
   'components-skeleton-base': '#f3f4f6',
   'components-skeleton-shimmer': '#ffffff',
@@ -274,7 +292,7 @@ export const lightTokens: DesignTokens = {
   
   'components-timeline-line': '#e5e7eb',
   'components-timeline-dot': '#d1d5db',
-  'components-timeline-dot-active': '#3b82f6',
+  'components-timeline-dot-active': '#1e40af',
   'components-timeline-content-bg': '#ffffff',
   'components-timeline-content-border': '#e5e7eb',
   
@@ -285,7 +303,7 @@ export const lightTokens: DesignTokens = {
   'components-calendar-cell-bg': '#ffffff',
   'components-calendar-cell-text': '#374151',
   'components-calendar-cell-bg-hover': '#f3f4f6',
-  'components-calendar-cell-bg-selected': '#3b82f6',
+  'components-calendar-cell-bg-selected': '#1e40af',
   'components-calendar-cell-text-selected': '#ffffff',
   'components-calendar-cell-bg-today': '#eff6ff',
   'components-calendar-cell-text-today': '#2563eb',
@@ -336,7 +354,7 @@ export const lightTokens: DesignTokens = {
   'components-upload-text-secondary': '#9ca3af',
   'components-upload-icon': '#d1d5db',
   'components-upload-progress-bg': '#e5e7eb',
-  'components-upload-progress-fill': '#3b82f6',
+  'components-upload-progress-fill': '#1e40af',
   
   'components-statistic-title': '#9ca3af',
   'components-statistic-value': '#1f2937',
@@ -347,7 +365,7 @@ export const lightTokens: DesignTokens = {
   'components-result-icon-success': '#10b981',
   'components-result-icon-error': '#ef4444',
   'components-result-icon-warning': '#f59e0b',
-  'components-result-icon-info': '#3b82f6',
+  'components-result-icon-info': '#1e40af',
   'components-result-title': '#1f2937',
   'components-result-subtitle': '#6b7280',
   
@@ -358,7 +376,7 @@ export const lightTokens: DesignTokens = {
   'components-anchor-bg': '#ffffff',
   'components-anchor-border': '#e5e7eb',
   'components-anchor-link': '#6b7280',
-  'components-anchor-link-active': '#3b82f6',
+  'components-anchor-link-active': '#1e40af',
   'components-anchor-link-hover': '#374151',
   
   'components-backtop-bg': '#ffffff',
@@ -444,6 +462,36 @@ export const lightTokens: DesignTokens = {
   'components-descriptions-content': '#1f2937',
   'components-descriptions-label': '#6b7280',
   'components-descriptions-item-border': '#f3f4f6',
+  
+  // ===== 聊天页面专用布局 =====
+  'chat-header-bg': 'rgba(255, 255, 255, 0.95)',
+  'chat-header-border': 'rgba(0, 0, 0, 0.06)',
+  'chat-header-backdrop': 'blur(12px)',
+  'chat-main-bg': '#fafafa',
+  'chat-content-bg': '#ffffff',
+  'chat-content-border': 'rgba(0, 0, 0, 0.04)',
+  'chat-input-area-bg': 'rgba(255, 255, 255, 0.98)',
+  'chat-input-area-border': 'rgba(0, 0, 0, 0.06)',
+  'chat-input-area-shadow': '0 -1px 3px rgba(0, 0, 0, 0.05)',
+  'chat-gradient-primary': 'linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(147, 197, 253, 0.08) 50%, rgba(219, 234, 254, 0.05) 100%)',
+  'chat-gradient-secondary': 'linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(110, 231, 183, 0.08) 100%)',
+  'chat-welcome-border': 'rgba(59, 130, 246, 0.1)',
+  'chat-welcome-shadow': '0 4px 20px rgba(59, 130, 246, 0.08)',
+  'chat-input-area-bg': 'rgba(255, 255, 255, 0.9)',
+  'chat-input-area-border': 'rgba(0, 0, 0, 0.08)',
+  'chat-input-area-shadow': '0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08)',
+  'chat-input-area-backdrop': 'blur(20px)',
+  
+  // ===== 侧边栏现代化升级 =====
+  'components-sidebar-backdrop': 'blur(12px)',
+  
+  // ===== 聊天气泡和头像 =====
+  'chat-bubble-assistant-avatar-bg': '#f0f8ff',
+  'chat-bubble-assistant-avatar-text': '#1890ff',
+  'chat-bubble-user-avatar-bg': '#87d068',
+  'chat-bubble-user-avatar-text': '#ffffff',
+  'chat-bubble-user-bg': '#f3f4f6',
+  'chat-bubble-user-text': '#374151',
 }
 
 // 暗色主题令牌值定义
@@ -522,10 +570,10 @@ export const darkTokens: DesignTokens = {
   'components-card-shadow': '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1)',
   
   // ===== 侧边栏组件 =====
-  'components-sidebar-bg': '#1e293b',
-  'components-sidebar-border': '#475569',
+  'components-sidebar-bg': 'rgba(15, 23, 42, 0.98)',
+  'components-sidebar-border': 'rgba(255, 255, 255, 0.08)',
   'components-sidebar-item-bg': 'transparent',
-  'components-sidebar-item-bg-hover': 'rgba(255, 255, 255, 0.05)',
+  'components-sidebar-item-bg-hover': 'rgba(255, 255, 255, 0.08)',
   'components-sidebar-item-bg-active': 'rgba(59, 130, 246, 0.15)',
   'components-sidebar-item-text': '#cbd5e1',
   'components-sidebar-item-text-active': '#60a5fa',
@@ -543,6 +591,24 @@ export const darkTokens: DesignTokens = {
   'components-dropdown-shadow': '0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3)',
   'components-dropdown-item-bg-hover': 'rgba(255, 255, 255, 0.05)',
   'components-dropdown-item-text': '#ffffff',
+  
+  // ===== 模型选择器组件 =====
+  'components-model-selector-dropdown-bg': '#1e293b',
+  'components-model-selector-dropdown-border': '#475569',
+  'components-model-selector-dropdown-shadow': '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.3)',
+  'components-model-selector-search-bg': 'rgba(255, 255, 255, 0.05)',
+  'components-model-selector-search-border': '#4b5563',
+  'components-model-selector-search-text': '#f9fafb',
+  'components-model-selector-provider-header-bg': 'rgba(255, 255, 255, 0.05)',
+  'components-model-selector-provider-header-border': '#475569',
+  'components-model-selector-provider-header-text': '#ffffff',
+  'components-model-selector-item-bg': '#1e293b',
+  'components-model-selector-item-border': '#475569',
+  'components-model-selector-item-text': '#ffffff',
+  'components-model-selector-item-bg-hover': 'rgba(255, 255, 255, 0.05)',
+  'components-model-selector-item-bg-selected': 'rgba(59, 130, 246, 0.15)',
+  'components-model-selector-item-text-selected': '#3b82f6',
+  'components-model-selector-overlay-bg': 'rgba(0, 0, 0, 0.6)',
   
   // ===== 模态框组件 =====
   'components-modal-bg': '#1e293b',
@@ -884,6 +950,36 @@ export const darkTokens: DesignTokens = {
   'components-descriptions-content': '#ffffff',
   'components-descriptions-label': '#cbd5e1',
   'components-descriptions-item-border': 'rgba(255, 255, 255, 0.05)',
+  
+  // ===== 聊天页面专用布局 =====
+  'chat-header-bg': 'rgba(15, 23, 42, 0.95)',
+  'chat-header-border': 'rgba(255, 255, 255, 0.08)',
+  'chat-header-backdrop': 'blur(12px)',
+  'chat-main-bg': '#0f172a',
+  'chat-content-bg': '#1e293b',
+  'chat-content-border': 'rgba(255, 255, 255, 0.06)',
+  'chat-input-area-bg': 'rgba(15, 23, 42, 0.98)',
+  'chat-input-area-border': 'rgba(255, 255, 255, 0.08)',
+  'chat-input-area-shadow': '0 -1px 3px rgba(0, 0, 0, 0.3)',
+  'chat-gradient-primary': 'linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(147, 197, 253, 0.12) 50%, rgba(30, 64, 175, 0.06) 100%)',
+  'chat-gradient-secondary': 'linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(110, 231, 183, 0.12) 100%)',
+  'chat-welcome-border': 'rgba(59, 130, 246, 0.2)',
+  'chat-welcome-shadow': '0 4px 20px rgba(59, 130, 246, 0.15)',
+  'chat-input-area-bg': 'rgba(30, 41, 59, 0.9)',
+  'chat-input-area-border': 'rgba(255, 255, 255, 0.1)',
+  'chat-input-area-shadow': '0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3)',
+  'chat-input-area-backdrop': 'blur(20px)',
+  
+  // ===== 侧边栏现代化升级 =====
+  'components-sidebar-backdrop': 'blur(12px)',
+  
+  // ===== 聊天气泡和头像 =====
+  'chat-bubble-assistant-avatar-bg': 'rgba(59, 130, 246, 0.15)',
+  'chat-bubble-assistant-avatar-text': '#60a5fa',
+  'chat-bubble-user-avatar-bg': '#4ade80',
+  'chat-bubble-user-avatar-text': '#ffffff',
+  'chat-bubble-user-bg': '#334155',
+  'chat-bubble-user-text': '#ffffff',
 }
 
 /**
@@ -905,6 +1001,8 @@ export function generateThemeCSS(tokens: DesignTokens, themeName: 'light' | 'dar
     '侧边栏组件': Object.keys(tokens).filter(key => key.startsWith('components-sidebar-')),
     '导航组件': Object.keys(tokens).filter(key => key.startsWith('components-nav-')),
     '下拉菜单组件': Object.keys(tokens).filter(key => key.startsWith('components-dropdown-')),
+    '模型选择器组件': Object.keys(tokens).filter(key => key.startsWith('components-model-selector-')),
+    '聊天系统': Object.keys(tokens).filter(key => key.startsWith('chat-')),
     '模态框组件': Object.keys(tokens).filter(key => key.startsWith('components-modal-')),
     '表格组件': Object.keys(tokens).filter(key => key.startsWith('components-table-')),
     '交互状态': Object.keys(tokens).filter(key => key.startsWith('state-')),
@@ -922,12 +1020,14 @@ export function generateThemeCSS(tokens: DesignTokens, themeName: 'light' | 'dar
       !key.startsWith('border-') && 
       !key.startsWith('state-') && 
       !key.startsWith('shadow-') &&
+      !key.startsWith('chat-') &&
       !key.includes('-button-') &&
       !key.includes('-input-') &&
       !key.includes('-card-') &&
       !key.includes('-sidebar-') &&
       !key.includes('-nav-') &&
       !key.includes('-dropdown-') &&
+      !key.includes('-model-selector-') &&
       !key.includes('-modal-') &&
       !key.includes('-table-') &&
       !key.includes('-checkbox-') &&

@@ -82,7 +82,19 @@ export const SelectTrigger = React.forwardRef<HTMLButtonElement, SelectTriggerPr
       <button
         ref={ref}
         type="button"
-        className={`flex h-12 w-full items-center justify-between rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 hover:border-gray-300 focus:border-blue-500 focus:bg-white focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 transition-colors ${className}`}
+        className={`flex h-12 w-full items-center justify-between rounded-xl border px-4 py-3 text-sm focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 transition-colors ${className}`}
+        style={{
+          backgroundColor: 'var(--color-components-select-bg)',
+          borderColor: 'var(--color-components-select-border)',
+          color: 'var(--color-components-select-text)',
+          '--tw-ring-color': 'var(--color-components-select-border-focus)'
+        } as React.CSSProperties}
+        onFocus={(e) => {
+          e.currentTarget.style.borderColor = 'var(--color-components-select-border-focus)'
+        }}
+        onBlur={(e) => {
+          e.currentTarget.style.borderColor = 'var(--color-components-select-border)'
+        }}
         onClick={() => setIsOpen(!isOpen)}
         {...props}
       >
@@ -102,7 +114,7 @@ export const SelectValue: React.FC<SelectValueProps> = ({ placeholder }) => {
   }
   
   return (
-    <span className="text-gray-500">
+    <span style={{ color: 'var(--color-components-select-placeholder)' }}>
       {placeholder || contextPlaceholder || "请选择..."}
     </span>
   )
@@ -114,7 +126,14 @@ export const SelectContent: React.FC<SelectContentProps> = ({ children, classNam
   if (!isOpen) return null
 
   return (
-    <div className={`absolute top-full left-0 right-0 z-50 mt-1 max-h-60 overflow-auto rounded-xl border border-gray-200 bg-white shadow-lg ${className}`}>
+    <div 
+      className={`absolute top-full left-0 right-0 z-50 mt-1 max-h-60 overflow-auto rounded-xl border shadow-lg ${className}`}
+      style={{
+        backgroundColor: 'var(--color-components-dropdown-bg)',
+        borderColor: 'var(--color-components-dropdown-border)',
+        boxShadow: 'var(--color-components-dropdown-shadow)'
+      }}
+    >
       <div className="p-1">
         {children}
       </div>
@@ -131,9 +150,25 @@ export const SelectItem = React.forwardRef<HTMLButtonElement, SelectItemProps>(
       <button
         ref={ref}
         type="button"
-        className={`relative flex w-full cursor-pointer select-none items-center rounded-lg py-2 pl-8 pr-2 text-sm outline-none hover:bg-gray-100 focus:bg-gray-100 transition-colors ${
-          isSelected ? 'bg-blue-50 text-blue-600' : 'text-gray-900'
-        } ${className}`}
+        className={`relative flex w-full cursor-pointer select-none items-center rounded-lg py-2 pl-8 pr-2 text-sm outline-none transition-colors ${className}`}
+        style={{
+          backgroundColor: isSelected 
+            ? 'rgba(59, 130, 246, 0.1)' 
+            : 'transparent',
+          color: isSelected 
+            ? 'var(--color-text-accent)' 
+            : 'var(--color-components-dropdown-item-text)'
+        }}
+        onMouseEnter={(e) => {
+          if (!isSelected) {
+            e.currentTarget.style.backgroundColor = 'var(--color-components-dropdown-item-bg-hover)'
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (!isSelected) {
+            e.currentTarget.style.backgroundColor = 'transparent'
+          }
+        }}
         onClick={() => {
           onValueChange?.(value)
           setIsOpen(false)
@@ -162,12 +197,12 @@ export const SelectLabel: React.FC<{ children: React.ReactNode, className?: stri
   className = "" 
 }) => {
   return (
-    <div className={`py-1.5 pl-8 pr-2 text-sm font-semibold text-gray-900 ${className}`}>
+    <div className={`py-1.5 pl-8 pr-2 text-sm font-semibold ${className}`} style={{ color: 'var(--color-text-primary)' }}>
       {children}
     </div>
   )
 }
 
 export const SelectSeparator: React.FC<{ className?: string }> = ({ className = "" }) => {
-  return <hr className={`-mx-1 my-1 h-px bg-gray-200 ${className}`} />
+  return <hr className={`-mx-1 my-1 h-px ${className}`} style={{ backgroundColor: 'var(--color-border-default)' }} />
 }

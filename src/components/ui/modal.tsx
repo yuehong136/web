@@ -86,22 +86,22 @@ export const Modal: React.FC<ModalProps> = ({
       <div
         ref={modalRef}
         className={cn(
-          "relative z-10 w-full rounded-lg bg-white shadow-large animate-fade-in",
+          "relative z-10 w-full rounded-lg bg-modal shadow-large animate-fade-in",
           sizeClasses[size],
           className
         )}
       >
         {/* Header */}
         {(title || showCloseButton) && (
-          <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <div className="flex items-center justify-between p-6 border-b border-border">
             <div>
               {title && (
-                <h2 id="modal-title" className="text-lg font-semibold text-gray-900">
+                <h2 id="modal-title" className="text-lg font-semibold text-foreground">
                   {title}
                 </h2>
               )}
               {description && (
-                <p id="modal-description" className="mt-1 text-sm text-gray-500">
+                <p id="modal-description" className="mt-1 text-sm text-muted-foreground">
                   {description}
                 </p>
               )}
@@ -111,7 +111,7 @@ export const Modal: React.FC<ModalProps> = ({
                 variant="ghost"
                 size="icon-sm"
                 onClick={onClose}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-muted-foreground hover:text-foreground"
               >
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -129,7 +129,7 @@ export const Modal: React.FC<ModalProps> = ({
 
         {/* Footer */}
         {footer && (
-          <div className="border-t border-gray-200 p-6">
+          <div className="border-t border-border p-6">
             {footer}
           </div>
         )}
@@ -183,7 +183,7 @@ export const ConfirmModal: React.FC<{
         </div>
       }
     >
-      <p className="text-gray-700">{description}</p>
+      <p className="text-foreground">{description}</p>
     </Modal>
   )
 }

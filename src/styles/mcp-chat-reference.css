@@ -9,10 +9,10 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: #030213;
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.95 0.0058 264.53);
-  --secondary-foreground: #030213;
+  --primary: #3b82f6;
+  --primary-foreground: #ffffff;
+  --secondary: #f3f4f6;
+  --secondary-foreground: #374151;
   --muted: #ececf0;
   --muted-foreground: #717182;
   --accent: #e9ebef;
@@ -20,8 +20,8 @@
   --destructive: #d4183d;
   --destructive-foreground: #ffffff;
   --border: rgba(0, 0, 0, 0.1);
-  --input: transparent;
-  --input-background: #f3f3f5;
+  --input: var(--color-components-input-bg);
+  --input-background: var(--color-components-input-bg);
   --switch-background: #cbced4;
   --font-weight-medium: 500;
   --font-weight-normal: 400;
@@ -42,84 +42,133 @@
   --sidebar-ring: oklch(0.708 0 0);
 }
 
-/* 暗色主题 */
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.145 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.145 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.985 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.396 0.141 25.723);
-  --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: oklch(0.269 0 0);
-  --input: oklch(0.269 0 0);
-  --ring: oklch(0.439 0 0);
+/* 暗色主题 - 优化视觉对比度和组件层次 */
+.dark,
+[data-theme="dark"],
+html[data-theme="dark"],
+.mcp-chat-page[data-theme="dark"],
+html[data-theme="dark"] .mcp-chat-page {
+  /* 背景色系 - 增强层次感 */
+  --background: #0a0f1c;  /* 更深的背景色 */
+  --foreground: #f8fafc;  /* 高对比度的前景色 */
+  --card: #1e293b;        /* 卡片背景 */
+  --card-foreground: #f1f5f9;  /* 卡片文字 */
+  --popover: #1e293b;     /* 弹出层背景 */
+  --popover-foreground: #f1f5f9;
+  
+  /* 主要色彩 */
+  --primary: #3b82f6;
+  --primary-foreground: #ffffff;
+  --secondary: #475569;   /* 更明显的次要按钮背景 */
+  --secondary-foreground: #f1f5f9;  /* 更亮的次要按钮文字 */
+  
+  /* 静音色彩 - 改善可读性 */
+  --muted: #334155;       /* 更明显的静音背景 */
+  --muted-foreground: #cbd5e1;  /* 更高对比度的静音文字 */
+  --accent: #475569;      /* 强调色背景 */
+  --accent-foreground: #f1f5f9;
+  
+  /* 危险色彩 */
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  
+  /* 边框和输入 - 增强可见性 */
+  --border: #475569;      /* 更明显的边框 */
+  --input: var(--color-components-input-bg);       /* 输入框背景 */
+  --ring: #60a5fa;        /* 焦点环颜色 */
+  
+  /* 字体粗细 */
   --font-weight-medium: 500;
   --font-weight-normal: 400;
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(0.269 0 0);
-  --sidebar-ring: oklch(0.439 0 0);
+  
+  /* 图表颜色 */
+  --chart-1: #60a5fa;
+  --chart-2: #34d399;
+  --chart-3: #fbbf24;
+  --chart-4: #f472b6;
+  --chart-5: #a78bfa;
+  
+  /* 侧边栏 - 增强层次感 */
+  --sidebar: #1e293b;     /* 侧边栏背景 */
+  --sidebar-foreground: #f1f5f9;
+  --sidebar-primary: #3b82f6;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #475569;
+  --sidebar-accent-foreground: #f1f5f9;
+  --sidebar-border: #475569;
+  --sidebar-ring: #60a5fa;
 }
 
-/* 全局Tailwind主题变量映射 */
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-input-background: var(--input-background);
-  --color-switch-background: var(--switch-background);
-  --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
+/* MCP聊天页面的按钮样式强制修复 */
+.mcp-chat-page .bg-secondary {
+  background-color: var(--secondary) !important;
+  color: var(--secondary-foreground) !important;
+}
+
+/* 确保按钮在浅色模式下有足够对比度 */
+.mcp-chat-page button[data-variant="secondary"] {
+  background-color: var(--secondary) !important;
+  color: var(--secondary-foreground) !important;
+  border: 1px solid var(--border) !important;
+}
+
+.mcp-chat-page button[data-variant="ghost"]:not([data-state="active"]) {
+  background-color: transparent !important;
+  color: var(--muted-foreground) !important;
+}
+
+.mcp-chat-page button[data-variant="ghost"]:hover {
+  background-color: var(--accent) !important;
+  color: var(--accent-foreground) !important;
+}
+
+.mcp-chat-page .hover\:bg-secondary\/80:hover {
+  background-color: color-mix(in oklch, var(--secondary) 80%, transparent) !important;
+}
+
+.mcp-chat-page .bg-primary {
+  background-color: var(--primary) !important;
+  color: var(--primary-foreground) !important;
+}
+
+.mcp-chat-page .hover\:bg-primary\/90:hover {
+  background-color: color-mix(in oklch, var(--primary) 90%, transparent) !important;
+}
+
+.mcp-chat-page .bg-background {
+  background-color: var(--background) !important;
+}
+
+.mcp-chat-page .bg-card {
+  background-color: var(--card) !important;
+}
+
+.mcp-chat-page .text-foreground {
+  color: var(--foreground) !important;
+}
+
+.mcp-chat-page .text-card-foreground {
+  color: var(--card-foreground) !important;
+}
+
+.mcp-chat-page .bg-accent {
+  background-color: var(--accent) !important;
+}
+
+.mcp-chat-page .text-accent-foreground {
+  color: var(--accent-foreground) !important;
+}
+
+.mcp-chat-page .hover\:bg-accent:hover {
+  background-color: var(--accent) !important;
+}
+
+.mcp-chat-page .hover\:text-accent-foreground:hover {
+  color: var(--accent-foreground) !important;
+}
+
+.mcp-chat-page .border-border {
+  border-color: var(--border) !important;
 }
 
 /* 基础样式重写 - 仅针对MCP聊天页面 */
@@ -296,12 +345,37 @@ html {
   box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000) !important;
 }
 
+/* 确保暗黑模式下字体颜色正确切换 */
+html[data-theme="dark"] .mcp-chat-page,
+html[data-theme="dark"] .mcp-chat-page *,
+.mcp-chat-page[data-theme="dark"],
+.mcp-chat-page[data-theme="dark"] * {
+  /* 重置可能被全局样式影响的颜色 */
+  color: inherit;
+}
+
+/* 暗黑模式下的文本颜色强制覆盖 */
+html[data-theme="dark"] .mcp-chat-page .text-gray-900,
+html[data-theme="dark"] .mcp-chat-page .text-gray-800,
+html[data-theme="dark"] .mcp-chat-page .text-black {
+  color: var(--foreground) !important;
+}
+
+html[data-theme="dark"] .mcp-chat-page .text-gray-700,
+html[data-theme="dark"] .mcp-chat-page .text-gray-600 {
+  color: var(--muted-foreground) !important;
+}
+
+html[data-theme="dark"] .mcp-chat-page .text-gray-500,
+html[data-theme="dark"] .mcp-chat-page .text-gray-400 {
+  color: oklch(0.6 0 0) !important;
+}
+
 /* 确保Tailwind颜色类在MCP聊天页面中正确工作 */
 .mcp-chat-page * {
   /* 重置所有可能的全局覆盖 */
   border-color: initial;
   background-color: initial;
-  color: initial;
 }
 
 /* 然后重新应用Tailwind的颜色类 */
@@ -466,9 +540,161 @@ html {
 
 /* MCP 工具调用显示样式 */
 .mcp-chat-page .mcp-tool-call-display {
-  background-color: color-mix(in oklch, var(--mcp-chart-1) 10%, transparent);
-  border: 1px solid color-mix(in oklch, var(--mcp-chart-1) 30%, transparent);
-  border-radius: var(--mcp-radius);
+  background-color: color-mix(in oklch, var(--chart-1) 10%, transparent);
+  border: 1px solid color-mix(in oklch, var(--chart-1) 30%, transparent);
+  border-radius: var(--radius);
   padding: 0.75rem;
   margin-top: 0.5rem;
 }
+
+/* 修复暗黑模式下的按钮样式 */
+html[data-theme="dark"] .mcp-chat-page .bg-background {
+  background-color: var(--background) !important;
+}
+
+html[data-theme="dark"] .mcp-chat-page .bg-card {
+  background-color: var(--card) !important;
+}
+
+html[data-theme="dark"] .mcp-chat-page .text-card-foreground {
+  color: var(--card-foreground) !important;
+}
+
+html[data-theme="dark"] .mcp-chat-page .border-border {
+  border-color: var(--border) !important;
+}
+
+/* 修复输入框暗黑模式样式 */
+html[data-theme="dark"] .mcp-chat-page input,
+html[data-theme="dark"] .mcp-chat-page textarea {
+  background-color: var(--background) !important;
+  color: var(--foreground) !important;
+  border-color: var(--border) !important;
+}
+
+html[data-theme="dark"] .mcp-chat-page input::placeholder,
+html[data-theme="dark"] .mcp-chat-page textarea::placeholder {
+  color: var(--muted-foreground) !important;
+}
+
+/* 修复按钮暗黑模式样式 */
+html[data-theme="dark"] .mcp-chat-page button {
+  color: inherit;
+}
+
+html[data-theme="dark"] .mcp-chat-page .bg-primary {
+  background-color: var(--primary) !important;
+}
+
+html[data-theme="dark"] .mcp-chat-page .text-primary-foreground {
+  color: var(--primary-foreground) !important;
+}
+
+html[data-theme="dark"] .mcp-chat-page .bg-secondary {
+  background-color: var(--secondary) !important;
+}
+
+html[data-theme="dark"] .mcp-chat-page .text-secondary-foreground {
+  color: var(--secondary-foreground) !important;
+}
+
+/* 修复徽章和状态指示器暗黑模式样式 */
+html[data-theme="dark"] .mcp-chat-page .bg-muted\/30 {
+  background-color: color-mix(in oklch, var(--muted) 30%, transparent) !important;
+}
+
+/* 修复滚动区域暗黑模式样式 */
+html[data-theme="dark"] .mcp-chat-page .scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: var(--muted-foreground) !important;
+}
+
+/* 确保所有文本元素在暗黑模式下继承正确颜色 */
+html[data-theme="dark"] .mcp-chat-page h1,
+html[data-theme="dark"] .mcp-chat-page h2,
+html[data-theme="dark"] .mcp-chat-page h3,
+html[data-theme="dark"] .mcp-chat-page h4,
+html[data-theme="dark"] .mcp-chat-page h5,
+html[data-theme="dark"] .mcp-chat-page h6 {
+  color: var(--foreground) !important;
+}
+
+html[data-theme="dark"] .mcp-chat-page p,
+html[data-theme="dark"] .mcp-chat-page span,
+html[data-theme="dark"] .mcp-chat-page div {
+  color: inherit;
+}
+
+html[data-theme="dark"] .mcp-chat-page label {
+  color: var(--foreground) !important;
+}
+
+/* Ant Design X 组件样式集成 */
+.mcp-chat-page .ant-bubble {
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+.mcp-chat-page .ant-bubble-content {
+  transition: all 0.2s ease;
+}
+
+.mcp-chat-page .ant-bubble-start .ant-bubble-content {
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  color: var(--color-text-primary) !important;
+}
+
+.mcp-chat-page .ant-bubble-end .ant-bubble-content {
+  background-color: var(--color-chat-bubble-user-bg) !important;
+  color: var(--color-chat-bubble-user-text) !important;
+  border-radius: 18px !important;
+  padding: 12px 16px !important;
+  border: none !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+}
+
+.mcp-chat-page .ant-bubble-list {
+  gap: 24px;
+}
+
+/* 优化操作按钮样式 */
+.mcp-chat-page .ant-btn[type="text"] {
+  opacity: 0.6;
+  transition: all 0.2s ease;
+}
+
+.mcp-chat-page .ant-btn[type="text"]:hover {
+  opacity: 1;
+  background-color: var(--color-state-hover) !important;
+  color: var(--color-text-primary) !important;
+}
+
+.mcp-chat-page .ant-btn[type="text"] .anticon {
+  font-size: 12px;
+}
+
+/* 暗黑模式下的 Ant Design X 组件样式 */
+html[data-theme="dark"] .mcp-chat-page .ant-bubble-content {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+html[data-theme="dark"] .mcp-chat-page .ant-bubble-start .ant-bubble-content {
+  background-color: var(--color-background-surface);
+  color: var(--color-text-primary);
+  border-color: var(--color-border-subtle);
+}
+
+html[data-theme="dark"] .mcp-chat-page .ant-bubble-end .ant-bubble-content {
+  background-color: var(--color-chat-bubble-user-bg);
+  color: var(--color-chat-bubble-user-text);
+}
+
+html[data-theme="dark"] .mcp-chat-page .ant-actions .ant-btn:hover {
+  background-color: var(--color-state-hover);
+  color: var(--color-text-primary);
+}
+
+/* 清理并简化样式 - 依赖上面修复的CSS变量值 */

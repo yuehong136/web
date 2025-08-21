@@ -146,7 +146,7 @@ const AutoFillWorkbenchContent: React.FC = () => {
   const placeholderKeys = Object.keys(placeholders)
 
   return (
-    <div>
+    <div className="autofill-page">
       {/* 步骤指示 */}
       <div className="mb-6">
         <div className="flex items-center justify-between gap-4">
@@ -156,18 +156,18 @@ const AutoFillWorkbenchContent: React.FC = () => {
             const isDone = step > (idx + 1)
             return (
               <div key={s.id} className="flex items-center gap-3 min-w-0">
-                <div className={
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
                   isDone
-                    ? 'w-10 h-10 rounded-full bg-success-500 text-white flex items-center justify-center'
+                    ? 'bg-primary text-primary-foreground'
                     : isActive
-                    ? 'w-10 h-10 rounded-full border-2 border-text-accent text-text-accent bg-background'
-                    : 'w-10 h-10 rounded-full border border-border-subtle text-text-secondary bg-background'
-                }>
+                    ? 'border-2 border-primary text-primary bg-background'
+                    : 'border border-muted-foreground/30 text-muted-foreground bg-background'
+                }`}>
                   <Icon className="w-5 h-5" />
                 </div>
                 <div className="min-w-0">
-                  <div className={`text-sm font-medium ${isActive ? 'text-text-primary' : 'text-text-secondary'}`}>{s.title}</div>
-                  <div className="text-xs text-text-tertiary truncate">{s.desc}</div>
+                  <div className={`text-sm font-medium ${isActive ? 'text-foreground' : 'text-muted-foreground'}`}>{s.title}</div>
+                  <div className="text-xs text-muted-foreground truncate">{s.desc}</div>
                 </div>
               </div>
             )
@@ -185,7 +185,7 @@ const AutoFillWorkbenchContent: React.FC = () => {
             {(() => {
               const s = steps[step - 1]
               const Icon = s.icon
-              return <Icon className="w-6 h-6 text-text-accent" />
+              return <Icon className="w-6 h-6 text-primary" />
             })()}
             <CardTitle>{steps[step - 1].title}</CardTitle>
             <Badge variant="secondary">{step}/3</Badge>
@@ -194,32 +194,32 @@ const AutoFillWorkbenchContent: React.FC = () => {
         <CardContent className="px-6 pb-8">
           {step === 1 && (
             <div className="space-y-4">
-              <div className={`relative border-2 border-dashed rounded-xl p-8 text-center transition ${isLoading ? 'opacity-60 pointer-events-none' : ''} ${uploadedFile ? 'border-success-500 bg-success-50/40' : 'border-border-subtle hover:border-border-default'}`}>
+              <div className={`relative border-2 border-dashed rounded-xl p-8 text-center transition ${isLoading ? 'opacity-60 pointer-events-none' : ''} ${uploadedFile ? 'border-primary bg-primary/5' : 'border-muted-foreground/30 hover:border-border'}`}>
                 <div className="flex flex-col items-center gap-4">
                   {isLoading ? (
-                    <Loader2 className="w-10 h-10 text-text-accent animate-spin" />
+                    <Loader2 className="w-10 h-10 text-primary animate-spin" />
                   ) : uploadedFile ? (
-                    <FileText className="w-10 h-10 text-success-600" />
+                    <FileText className="w-10 h-10 text-primary" />
                   ) : (
-                    <Upload className="w-10 h-10 text-text-tertiary" />
+                    <Upload className="w-10 h-10 text-muted-foreground" />
                   )}
 
                   <div>
                     {isLoading ? (
                       <>
-                        <h3 className="mb-2">正在处理文档...</h3>
-                        <p className="text-text-secondary">请稍候，系统正在分析文档中的占位符</p>
+                        <h3 className="mb-2 text-foreground">正在处理文档...</h3>
+                        <p className="text-muted-foreground">请稍候，系统正在分析文档中的占位符</p>
                       </>
                     ) : uploadedFile ? (
                       <>
-                        <h3 className="mb-2 text-success-700">文件已选择</h3>
-                        <p className="text-text-secondary">{uploadedFile.name}</p>
-                        <p className="text-sm text-text-tertiary mt-1">大小：{(uploadedFile.size / 1024).toFixed(1)} KB</p>
+                        <h3 className="mb-2 text-primary font-semibold">文件已选择</h3>
+                        <p className="text-foreground font-medium">{uploadedFile.name}</p>
+                        <p className="text-sm text-muted-foreground mt-1">大小：{(uploadedFile.size / 1024).toFixed(1)} KB</p>
                       </>
                     ) : (
                       <>
-                        <h3 className="mb-2">点击下方按钮选择文件</h3>
-                        <p className="text-text-secondary">支持 .docx 格式，最大 10MB</p>
+                        <h3 className="mb-2 text-foreground">点击下方按钮选择文件</h3>
+                        <p className="text-muted-foreground">支持 .docx 格式，最大 10MB</p>
                       </>
                     )}
                   </div>
@@ -244,10 +244,10 @@ const AutoFillWorkbenchContent: React.FC = () => {
                 </div>
               </div>
 
-              <div className="p-4 rounded-lg bg-components-card-bg border border-components-card-border">
+              <div className="p-4 rounded-lg bg-muted/30 border border-border">
                 <div className="flex items-start gap-2">
-                  <Info className="w-4 h-4 text-text-accent mt-0.5" />
-                  <div className="text-sm text-text-secondary">
+                  <Info className="w-4 h-4 text-primary mt-0.5" />
+                  <div className="text-sm text-muted-foreground">
                     当前页面为前端静态演示：使用模拟数据展示占位符识别与填充流程，未接入真实后端。
                   </div>
                 </div>
@@ -258,7 +258,7 @@ const AutoFillWorkbenchContent: React.FC = () => {
           {step === 2 && (
             <div className="space-y-5">
               <div className="flex items-center justify-between">
-                <div className="text-sm text-text-secondary">检测到 <Badge variant="secondary">{placeholderKeys.length}</Badge> 个占位符</div>
+                <div className="text-sm text-muted-foreground">检测到 <Badge variant="secondary">{placeholderKeys.length}</Badge> 个占位符</div>
                 <div className="flex items-center gap-2">
                   <Button variant="outline" size="sm" onClick={() => setStep(1)}>
                     <ArrowLeft className="w-4 h-4 mr-1" /> 返回上传
@@ -293,13 +293,13 @@ const AutoFillWorkbenchContent: React.FC = () => {
 
                 <TabsContent value="form" className="mt-4">
                   {placeholderKeys.length === 0 ? (
-                    <div className="p-4 rounded-lg border border-border-subtle text-sm text-text-secondary">未检测到占位符</div>
+                    <div className="p-4 rounded-lg border border-muted-foreground/30 text-sm text-muted-foreground">未检测到占位符</div>
                   ) : (
                     <div className="grid gap-4 md:grid-cols-2">
                       {placeholderKeys.map((key) => (
                         <div key={key} className="space-y-2">
-                          <div className="text-sm text-text-secondary flex items-center gap-2">
-                            <span className="text-text-primary font-medium">{key}</span>
+                          <div className="text-sm text-muted-foreground flex items-center gap-2">
+                            <span className="text-foreground font-medium">{key}</span>
                             <Badge variant="outline" className="text-xs">占位符</Badge>
                           </div>
                           <Input
@@ -320,7 +320,7 @@ const AutoFillWorkbenchContent: React.FC = () => {
 
                 <TabsContent value="json" className="mt-4">
                   <div className="space-y-2">
-                    <div className="text-sm text-text-secondary">JSON 数据</div>
+                    <div className="text-sm text-muted-foreground">JSON 数据</div>
                     <Textarea
                       value={jsonInput}
                       onChange={(e) => {
@@ -329,7 +329,7 @@ const AutoFillWorkbenchContent: React.FC = () => {
                       }}
                       className="font-mono text-sm min-h-[220px]"
                     />
-                    <div className="text-xs text-text-tertiary">格式示例：{'{"姓名":"张三","日期":"2024-01-01"}'}</div>
+                    <div className="text-xs text-muted-foreground">格式示例：{'{"姓名":"张三","日期":"2024-01-01"}'}</div>
                   </div>
                 </TabsContent>
 
@@ -351,7 +351,7 @@ const AutoFillWorkbenchContent: React.FC = () => {
                         </Button>
                       )}
                     </div>
-                    <div className="p-3 rounded-lg border border-border-subtle text-sm text-text-secondary">
+                    <div className="p-3 rounded-lg border border-muted-foreground/30 text-sm text-muted-foreground">
                       提示：支持识别姓名、职位、部门、联系方式等信息，并自动匹配至占位符。
                     </div>
                   </div>
@@ -368,9 +368,9 @@ const AutoFillWorkbenchContent: React.FC = () => {
 
           {step === 3 && (
             <div className="space-y-4">
-              <div className="rounded-lg border border-success-200 bg-success-50 p-4 text-success-800">
+              <div className="rounded-lg border border-primary/30 bg-primary/10 p-4 text-foreground">
                 <div className="flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5" /> 文档填充完成！
+                  <CheckCircle className="w-5 h-5 text-primary" /> 文档填充完成！
                 </div>
               </div>
 
@@ -383,12 +383,12 @@ const AutoFillWorkbenchContent: React.FC = () => {
                 <CardContent>
                   <div className="grid gap-4 md:grid-cols-2 text-sm">
                     <div className="space-y-2">
-                      <div className="flex items-center justify-between"><span className="text-text-secondary">原始文件名</span><span className="font-medium">{uploadedFile?.name || 'document.docx'}</span></div>
-                      <div className="flex items-center justify-between"><span className="text-text-secondary">处理状态</span><Badge variant="default">已完成</Badge></div>
+                      <div className="flex items-center justify-between"><span className="text-muted-foreground">原始文件名</span><span className="font-medium text-foreground">{uploadedFile?.name || 'document.docx'}</span></div>
+                      <div className="flex items-center justify-between"><span className="text-muted-foreground">处理状态</span><Badge variant="default">已完成</Badge></div>
                     </div>
                     <div className="space-y-2">
-                      <div className="flex items-center justify-between"><span className="text-text-secondary">文档类型</span><span className="font-medium">Microsoft Word (.docx)</span></div>
-                      <div className="flex items-center justify-between"><span className="text-text-secondary">编码格式</span><span className="font-medium">UTF-8</span></div>
+                      <div className="flex items-center justify-between"><span className="text-muted-foreground">文档类型</span><span className="font-medium text-foreground">Microsoft Word (.docx)</span></div>
+                      <div className="flex items-center justify-between"><span className="text-muted-foreground">编码格式</span><span className="font-medium text-foreground">UTF-8</span></div>
                     </div>
                   </div>
                 </CardContent>
@@ -403,7 +403,7 @@ const AutoFillWorkbenchContent: React.FC = () => {
                 </Button>
               </div>
 
-              <div className="text-center text-sm text-text-secondary">如需处理更多文档，请点击“处理新文档”。</div>
+              <div className="text-center text-sm text-muted-foreground">如需处理更多文档，请点击“处理新文档”。</div>
 
               <div className="flex justify-end">
                 <Button variant="outline" onClick={() => {
@@ -439,8 +439,8 @@ const AutoFillWorkbenchContent: React.FC = () => {
             <Button variant="ghost" size="sm" onClick={() => setShowPreview(false)}><X className="w-4 h-4" /></Button>
           </div>
         </div>
-        <div className="overflow-auto bg-components-card-bg border border-components-card-border rounded-lg" style={{ maxHeight: '70vh' }}>
-          <div className="mx-auto bg-white" style={{
+        <div className="overflow-auto bg-card border border-border rounded-lg" style={{ maxHeight: '70vh' }}>
+          <div className="mx-auto bg-white dark:bg-gray-50" style={{
             transform: `scale(${zoom / 100})`, transformOrigin: 'top center', width: '210mm', minHeight: '297mm', padding: '25mm 20mm', lineHeight: 1.5
           }}>
             <div className="text-center mb-8">

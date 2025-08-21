@@ -19,9 +19,9 @@ export function ChatSidebar({
   temporaryChatEnabled = false
 }: ChatSidebarProps) {
   return (
-    <div className="w-64 bg-sidebar border-r border-sidebar-border h-full flex flex-col">
+    <div className="w-full h-full flex flex-col">
       {/* Header */}
-      <div className="p-4 border-b border-sidebar-border">
+      <div className="p-4" style={{ borderBottom: '1px solid var(--color-components-sidebar-border)' }}>
         <div className="flex items-center gap-2 mb-4">
           <div className="w-6 h-6 bg-blue-500 rounded flex items-center justify-center">
             <span className="text-white text-xs">M</span>
@@ -96,7 +96,7 @@ export function ChatSidebar({
       </div>
 
       {/* Bottom */}
-      <div className="p-4 border-t border-sidebar-border">
+      <div className="p-4" style={{ borderTop: '1px solid var(--color-components-sidebar-border)' }}>
         <div className="text-xs text-muted-foreground">会话设置</div>
       </div>
     </div>

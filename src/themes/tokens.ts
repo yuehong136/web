@@ -105,6 +105,24 @@ export interface DesignTokens {
   'components-dropdown-item-bg-hover': string
   'components-dropdown-item-text': string
   
+  // ===== 组件系统 - 模型选择器 =====
+  'components-model-selector-dropdown-bg': string
+  'components-model-selector-dropdown-border': string
+  'components-model-selector-dropdown-shadow': string
+  'components-model-selector-search-bg': string
+  'components-model-selector-search-border': string
+  'components-model-selector-search-text': string
+  'components-model-selector-provider-header-bg': string
+  'components-model-selector-provider-header-border': string
+  'components-model-selector-provider-header-text': string
+  'components-model-selector-item-bg': string
+  'components-model-selector-item-border': string
+  'components-model-selector-item-text': string
+  'components-model-selector-item-bg-hover': string
+  'components-model-selector-item-bg-selected': string
+  'components-model-selector-item-text-selected': string
+  'components-model-selector-overlay-bg': string
+  
   // ===== 组件系统 - 模态框 =====
   'components-modal-bg': string
   'components-modal-overlay': string
@@ -468,6 +486,36 @@ export interface DesignTokens {
   'components-descriptions-content': string
   'components-descriptions-label': string
   'components-descriptions-item-border': string
+  
+  // ===== 聊天页面专用布局 =====
+  'chat-header-bg': string
+  'chat-header-border': string
+  'chat-header-backdrop': string
+  'chat-main-bg': string
+  'chat-content-bg': string
+  'chat-content-border': string
+  'chat-input-area-bg': string
+  'chat-input-area-border': string
+  'chat-input-area-shadow': string
+  'chat-gradient-primary': string
+  'chat-gradient-secondary': string
+  'chat-welcome-border': string
+  'chat-welcome-shadow': string
+  'chat-input-area-bg': string
+  'chat-input-area-border': string
+  'chat-input-area-shadow': string
+  'chat-input-area-backdrop': string
+  
+  // ===== 聊天气泡和头像 =====
+  'chat-bubble-assistant-avatar-bg': string
+  'chat-bubble-assistant-avatar-text': string
+  'chat-bubble-user-avatar-bg': string
+  'chat-bubble-user-avatar-text': string
+  'chat-bubble-user-bg': string
+  'chat-bubble-user-text': string
+  
+  // ===== 侧边栏现代化升级 =====
+  'components-sidebar-backdrop': string
 }
 
 // 生成 CSS 变量映射
@@ -940,6 +988,33 @@ export const defaultTokens: DesignTokens = {
   'components-descriptions-content': '',
   'components-descriptions-label': '',
   'components-descriptions-item-border': '',
+  
+  // 聊天页面专用布局
+  'chat-header-bg': '',
+  'chat-header-border': '',
+  'chat-header-backdrop': '',
+  'chat-main-bg': '',
+  'chat-content-bg': '',
+  'chat-content-border': '',
+  'chat-input-area-bg': '',
+  'chat-input-area-border': '',
+  'chat-input-area-shadow': '',
+  'chat-gradient-primary': '',
+  'chat-gradient-secondary': '',
+  'chat-welcome-border': '',
+  'chat-welcome-shadow': '',
+  'chat-input-area-backdrop': '',
+  
+  // 聊天气泡和头像
+  'chat-bubble-assistant-avatar-bg': '',
+  'chat-bubble-assistant-avatar-text': '',
+  'chat-bubble-user-avatar-bg': '',
+  'chat-bubble-user-avatar-text': '',
+  'chat-bubble-user-bg': '',
+  'chat-bubble-user-text': '',
+  
+  // 侧边栏现代化升级
+  'components-sidebar-backdrop': '',
 }
 
 // 导出 CSS 变量映射用于 Tailwind

@@ -24,7 +24,7 @@ const AutoFillWorkbenchPage: React.FC = () => {
   const progressValue = (currentStep - 1) * 50
 
   return (
-    <div className="p-6">
+    <div className="autofill-page p-6">
       {/* Breadcrumb */}
       <div className="mb-4 text-sm text-muted-foreground flex items-center gap-2">
         <span className="hover:text-foreground cursor-default">工具箱</span>
@@ -129,12 +129,12 @@ const AutoFillWorkbenchPage: React.FC = () => {
         </div>
 
         {/* Demo Notice */}
-        <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-          <div className="flex items-center gap-2 text-blue-800 dark:text-blue-400">
-            <Info className="w-4 h-4" />
+        <div className="mt-6 p-4 bg-muted/30 border border-border rounded-lg">
+          <div className="flex items-center gap-2 text-foreground">
+            <Info className="w-4 h-4 text-primary" />
             <span className="font-medium">演示模式</span>
           </div>
-          <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             当前为前端演示版本，使用模拟数据展示功能流程。实际部署时需要连接后端API服务。
           </p>
         </div>

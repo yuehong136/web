@@ -18,7 +18,7 @@ interface AuthState {
   setToken: (token: string | null) => void
   setLoading: (loading: boolean) => void
   login: (email: string, password: string, remember?: boolean) => Promise<void>
-  register: (data: { username: string; email: string; password: string }) => Promise<void>
+  register: (data: { nickname: string; email: string; password: string }) => Promise<void>
   logout: () => Promise<void>
   updateUser: (updates: Partial<UserInfo>) => void
   refreshToken: () => Promise<void>
@@ -122,14 +122,28 @@ export const useAuthStore = create<AuthState>()(
         register: async (data) => {
           set({ isLoading: true })
         try {
-          const response = await apiClient.post('/user/register', {
+          const response = await apiClient.post('/v1/user/register', {
             email: data.email,
-            nickname: data.username,
+            nickname: data.nickname,
             password: data.password
           })
 
+          console.log('Full register response:', response)
+
+          // 检查是否注册被禁用
+          if (response.retcode && response.retcode !== 200) {
+            throw new Error(response.retmsg || '注册失败')
+          }
+
           // 后端返回的数据结构：{ data: user_info, auth: jwt_token, retcode: 200, retmsg: "Welcome aboard!" }
           const { data: user, auth: access_token } = response
+          
+          if (!access_token || !user) {
+            throw new Error('注册响应数据不完整')
+          }
+
+          console.log('Extracted user:', user)
+          console.log('Extracted token:', access_token?.substring(0, 20) + '...')
           
           // 设置API客户端的token
           apiClient.setAuthToken(access_token)

@@ -7,6 +7,8 @@
 /* MCP 聊天页面专用样式 */
 @import './styles/mcp-chat-reference.css';
 
+
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -33,38 +35,38 @@
   /* 确保 html 和 body 使用主题背景色 */
   html {
     @apply scroll-smooth;
-    background-color: rgb(var(--color-background-body));
-    color: rgb(var(--color-text-primary));
+    background-color: var(--color-background-body);
+    color: var(--color-text-primary);
   }
 
   body {
-    background-color: rgb(var(--color-background-body));
-    color: rgb(var(--color-text-primary));
+    background-color: var(--color-background-body);
+    color: var(--color-text-primary);
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
   /* 全局选择器样式 - 确保主题覆盖，但排除MCP聊天页面 */
-  *:not(.mcp-chat-page *) {
-    border-color: rgb(var(--color-border-default));
+  *:not(.mcp-chat-page *):not(.autofill-page *) {
+    border-color: var(--color-border-default);
   }
 
   /* 确保React应用根容器使用主题背景 */
   #root {
-    background-color: rgb(var(--color-background-body));
-    color: rgb(var(--color-text-primary));
+    background-color: var(--color-background-body);
+    color: var(--color-text-primary);
     min-height: 100vh;
   }
 
   /* 页面容器样式 */
   .page-container {
-    background-color: rgb(var(--color-background-section));
-    color: rgb(var(--color-text-primary));
+    background-color: var(--color-background-section);
+    color: var(--color-text-primary);
   }
 
   /* 确保所有文本元素继承主题颜色 */
   h1, h2, h3, h4, h5, h6 {
-    color: rgb(var(--color-text-primary));
+    color: var(--color-text-primary);
   }
 
   p, span, div {
@@ -73,66 +75,66 @@
 
   /* 链接样式 */
   a {
-    color: rgb(var(--color-text-accent));
+    color: var(--color-text-accent);
   }
 
   a:hover {
     opacity: 0.8;
   }
 
-  /* 通用颜色类重写 - 仅在暗黑模式下应用，避免覆盖自定义组件，排除MCP聊天页面 */
-  html[data-theme="dark"] .text-gray-900:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not(.mcp-chat-page *) {
-    color: rgb(var(--color-text-primary));
+  /* 通用颜色类重写 - 仅在暗黑模式下应用，避免覆盖自定义组件，排除MCP聊天和AutoFill页面 */
+  html[data-theme="dark"] .text-gray-900:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not(.mcp-chat-page *):not(.autofill-page *) {
+    color: var(--color-text-primary);
   }
 
-  html[data-theme="dark"] .text-gray-800:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not(.mcp-chat-page *) {
-    color: rgb(var(--color-text-primary));
+  html[data-theme="dark"] .text-gray-800:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not(.mcp-chat-page *):not(.autofill-page *) {
+    color: var(--color-text-primary);
   }
 
-  html[data-theme="dark"] .text-gray-700:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not(.mcp-chat-page *) {
-    color: rgb(var(--color-text-secondary));
+  html[data-theme="dark"] .text-gray-700:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not(.mcp-chat-page *):not(.autofill-page *) {
+    color: var(--color-text-secondary);
   }
 
-  html[data-theme="dark"] .text-gray-600:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not(.mcp-chat-page *) {
-    color: rgb(var(--color-text-secondary));
+  html[data-theme="dark"] .text-gray-600:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not(.mcp-chat-page *):not(.autofill-page *) {
+    color: var(--color-text-secondary);
   }
 
-  html[data-theme="dark"] .text-gray-500:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not(.mcp-chat-page *) {
-    color: rgb(var(--color-text-tertiary));
+  html[data-theme="dark"] .text-gray-500:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not(.mcp-chat-page *):not(.autofill-page *) {
+    color: var(--color-text-tertiary);
   }
 
-  html[data-theme="dark"] .text-gray-400:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not(.mcp-chat-page *) {
-    color: rgb(var(--color-text-muted));
+  html[data-theme="dark"] .text-gray-400:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not(.mcp-chat-page *):not(.autofill-page *) {
+    color: var(--color-text-muted);
   }
 
-  html[data-theme="dark"] .text-black:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not(.mcp-chat-page *) {
-    color: rgb(var(--color-text-primary));
+  html[data-theme="dark"] .text-black:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not(.mcp-chat-page *):not(.autofill-page *) {
+    color: var(--color-text-primary);
   }
 
-  /* 背景颜色重写 - 更谨慎的选择器，避免影响弹窗和下拉框，排除MCP聊天页面 */
-  html[data-theme="dark"] .bg-white:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not([class*="select-"]):not([role="dialog"]):not([role="menu"]):not([role="listbox"]):not(.mcp-chat-page *) {
-    background-color: rgb(var(--color-background-surface));
+  /* 背景颜色重写 - 更谨慎的选择器，避免影响弹窗和下拉框，排除MCP聊天和AutoFill页面 */
+  html[data-theme="dark"] .bg-white:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not([class*="select-"]):not([role="dialog"]):not([role="menu"]):not([role="listbox"]):not(.mcp-chat-page *):not(.autofill-page *) {
+    background-color: var(--color-background-surface);
   }
 
-  html[data-theme="dark"] .bg-gray-50:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not([class*="select-"]):not([role="dialog"]):not([role="menu"]):not([role="listbox"]):not(.mcp-chat-page *) {
-    background-color: rgb(var(--color-background-subtle));
+  html[data-theme="dark"] .bg-gray-50:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not([class*="select-"]):not([role="dialog"]):not([role="menu"]):not([role="listbox"]):not(.mcp-chat-page *):not(.autofill-page *) {
+    background-color: var(--color-background-subtle);
   }
 
-  html[data-theme="dark"] .bg-gray-100:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not([class*="select-"]):not([role="dialog"]):not([role="menu"]):not([role="listbox"]):not(.mcp-chat-page *) {
-    background-color: rgb(var(--color-background-subtle));
+  html[data-theme="dark"] .bg-gray-100:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not([class*="select-"]):not([role="dialog"]):not([role="menu"]):not([role="listbox"]):not(.mcp-chat-page *):not(.autofill-page *) {
+    background-color: var(--color-background-subtle);
   }
 
-  html[data-theme="dark"] .bg-gray-200:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not([class*="select-"]):not([role="dialog"]):not([role="menu"]):not([role="listbox"]):not(.mcp-chat-page *) {
-    background-color: rgb(var(--color-border-default));
+  html[data-theme="dark"] .bg-gray-200:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not([class*="select-"]):not([role="dialog"]):not([role="menu"]):not([role="listbox"]):not(.mcp-chat-page *):not(.autofill-page *) {
+    background-color: var(--color-border-default);
   }
 
-  /* 边框颜色重写 - 排除MCP聊天页面 */
-  html[data-theme="dark"] .border-gray-200:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not([class*="select-"]):not(.mcp-chat-page *) {
-    border-color: rgb(var(--color-border-default));
+  /* 边框颜色重写 - 排除MCP聊天和AutoFill页面 */
+  html[data-theme="dark"] .border-gray-200:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not([class*="select-"]):not(.mcp-chat-page *):not(.autofill-page *) {
+    border-color: var(--color-border-default);
   }
 
-  html[data-theme="dark"] .border-gray-300:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not([class*="select-"]):not(.mcp-chat-page *) {
-    border-color: rgb(var(--color-border-subtle));
+  html[data-theme="dark"] .border-gray-300:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not([class*="select-"]):not(.mcp-chat-page *):not(.autofill-page *) {
+    border-color: var(--color-border-subtle);
   }
 }
 
@@ -153,114 +155,114 @@
   }
   .btn-primary {
     @apply inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
-    background-color: rgb(var(--color-components-button-primary-bg));
-    color: rgb(var(--color-components-button-primary-text));
-    border-color: rgb(var(--color-components-button-primary-border));
+    background-color: var(--color-components-button-primary-bg);
+    color: var(--color-components-button-primary-text);
+    border-color: var(--color-components-button-primary-border);
     @apply px-4 py-2;
   }
 
   .btn-primary:hover {
-    background-color: rgb(var(--color-components-button-primary-bg-hover));
-    border-color: rgb(var(--color-components-button-primary-border-hover));
+    background-color: var(--color-components-button-primary-bg-hover);
+    border-color: var(--color-components-button-primary-border-hover);
   }
 
   .btn-primary:active {
-    background-color: rgb(var(--color-components-button-primary-bg-active));
+    background-color: var(--color-components-button-primary-bg-active);
   }
 
   .btn-primary:disabled {
-    background-color: rgb(var(--color-components-button-primary-bg-disabled));
-    color: rgb(var(--color-components-button-primary-text-disabled));
+    background-color: var(--color-components-button-primary-bg-disabled);
+    color: var(--color-components-button-primary-text-disabled);
   }
 
   .btn-secondary {
     @apply inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
-    background-color: rgb(var(--color-components-button-secondary-bg));
-    color: rgb(var(--color-components-button-secondary-text));
-    border-color: rgb(var(--color-components-button-secondary-border));
+    background-color: var(--color-components-button-secondary-bg);
+    color: var(--color-components-button-secondary-text);
+    border-color: var(--color-components-button-secondary-border);
     @apply px-4 py-2;
   }
 
   .btn-secondary:hover {
-    background-color: rgb(var(--color-components-button-secondary-bg-hover));
-    border-color: rgb(var(--color-components-button-secondary-border-hover));
+    background-color: var(--color-components-button-secondary-bg-hover);
+    border-color: var(--color-components-button-secondary-border-hover);
   }
 
   .btn-secondary:active {
-    background-color: rgb(var(--color-components-button-secondary-bg-active));
+    background-color: var(--color-components-button-secondary-bg-active);
   }
 
   .btn-secondary:disabled {
-    background-color: rgb(var(--color-components-button-secondary-bg-disabled));
-    color: rgb(var(--color-components-button-secondary-text-disabled));
+    background-color: var(--color-components-button-secondary-bg-disabled);
+    color: var(--color-components-button-secondary-text-disabled);
   }
 
   .btn-ghost {
     @apply inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
-    color: rgb(var(--color-components-button-ghost-text));
+    color: var(--color-components-button-ghost-text);
     @apply px-4 py-2;
   }
 
   .btn-ghost:hover {
-    background-color: rgb(var(--color-components-button-ghost-bg-hover));
+    background-color: var(--color-components-button-ghost-bg-hover);
   }
 
   .btn-ghost:disabled {
-    color: rgb(var(--color-components-button-ghost-text-disabled));
+    color: var(--color-components-button-ghost-text-disabled);
   }
 
   .card {
     @apply rounded-lg shadow-soft;
-    background-color: rgb(var(--color-components-card-bg));
-    border-color: rgb(var(--color-components-card-border));
+    background-color: var(--color-components-card-bg);
+    border-color: var(--color-components-card-border);
     box-shadow: var(--color-components-card-shadow);
   }
 
   .card:hover {
-    background-color: rgb(var(--color-components-card-bg-hover));
+    background-color: var(--color-components-card-bg-hover);
   }
 
   .input-field {
     @apply flex h-10 w-full rounded-md border px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
-    background-color: rgb(var(--color-components-input-bg));
-    border-color: rgb(var(--color-components-input-border));
-    color: rgb(var(--color-components-input-text));
+    background-color: var(--color-components-input-bg);
+    border-color: var(--color-components-input-border);
+    color: var(--color-components-input-text);
   }
 
   .input-field::placeholder {
-    color: rgb(var(--color-components-input-text-placeholder));
+    color: var(--color-components-input-text-placeholder);
   }
 
   .input-field:hover {
-    background-color: rgb(var(--color-components-input-bg-hover));
-    border-color: rgb(var(--color-components-input-border-hover));
+    background-color: var(--color-components-input-bg-hover);
+    border-color: var(--color-components-input-border-hover);
   }
 
   .input-field:focus-visible {
-    background-color: rgb(var(--color-components-input-bg-focus));
-    border-color: rgb(var(--color-components-input-border-focus));
-    --tw-ring-color: rgb(var(--color-components-input-border-focus));
+    background-color: var(--color-components-input-bg-focus);
+    border-color: var(--color-components-input-border-focus);
+    --tw-ring-color: var(--color-components-input-border-focus);
   }
 
   .input-field:disabled {
-    background-color: rgb(var(--color-components-input-bg-disabled));
-    color: rgb(var(--color-components-input-text-disabled));
+    background-color: var(--color-components-input-bg-disabled);
+    color: var(--color-components-input-text-disabled);
   }
 
   .sidebar-item {
     @apply flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors;
-    background-color: rgb(var(--color-components-sidebar-item-bg));
-    color: rgb(var(--color-components-sidebar-item-text));
+    background-color: var(--color-components-sidebar-item-bg);
+    color: var(--color-components-sidebar-item-text);
   }
 
   .sidebar-item:hover {
-    background-color: rgb(var(--color-components-sidebar-item-bg-hover));
-    color: rgb(var(--color-components-sidebar-item-text-active));
+    background-color: var(--color-components-sidebar-item-bg-hover);
+    color: var(--color-components-sidebar-item-text-active);
   }
 
   .sidebar-item.active {
-    background-color: rgb(var(--color-components-sidebar-item-bg-active));
-    color: rgb(var(--color-components-sidebar-item-text-active));
+    background-color: var(--color-components-sidebar-item-bg-active);
+    color: var(--color-components-sidebar-item-text-active);
   }
 }
 
@@ -334,17 +336,17 @@
 }
 
 .scrollbar-thin::-webkit-scrollbar-track {
-  background: rgb(var(--color-components-scrollbar-track));
+  background: var(--color-components-scrollbar-track);
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb {
-  background: rgb(var(--color-components-scrollbar-thumb));
+  background: var(--color-components-scrollbar-thumb);
   border-radius: 2px;
   transition: background-color 0.2s ease;
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-  background: rgb(var(--color-components-scrollbar-thumb-hover));
+  background: var(--color-components-scrollbar-thumb-hover);
 }
 
 /* 只在内容可滚动时显示滚动条 */
@@ -416,13 +418,25 @@
   }
 }
 
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
 .spinner {
   animation: spin 1s linear infinite;
 }
 
 /* Markdown 内容样式优化 - 使用设计令牌 */
 .prose {
-  color: rgb(var(--color-text-secondary));
+  color: var(--color-text-secondary);
   line-height: 1.625;
 }
 
@@ -432,7 +446,7 @@
 .prose h4,
 .prose h5,
 .prose h6 {
-  color: rgb(var(--color-text-primary));
+  color: var(--color-text-primary);
   font-weight: 600;
   line-height: 1.25;
   margin-top: 1.5em;
@@ -471,17 +485,17 @@
 }
 
 .prose blockquote {
-  border-left: 4px solid rgb(var(--color-components-alert-info-border));
-  background-color: rgb(var(--color-components-alert-info-bg));
+  border-left: 4px solid var(--color-components-alert-info-border);
+  background-color: var(--color-components-alert-info-bg);
   padding: 0.5rem 1rem;
   margin: 1rem 0;
   font-style: italic;
-  color: rgb(var(--color-components-alert-info-text));
+  color: var(--color-components-alert-info-text);
 }
 
 .prose code {
-  background-color: rgb(var(--color-components-code-bg));
-  color: rgb(var(--color-components-code-text));
+  background-color: var(--color-components-code-bg);
+  color: var(--color-components-code-text);
   padding: 0.125rem 0.25rem;
   border-radius: 0.25rem;
   font-size: 0.875rem;
@@ -489,8 +503,8 @@
 }
 
 .prose pre {
-  background-color: rgb(var(--color-components-pre-bg));
-  color: rgb(var(--color-components-pre-text));
+  background-color: var(--color-components-pre-bg);
+  color: var(--color-components-pre-text);
   padding: 1rem;
   border-radius: 0.5rem;
   overflow-x: auto;
@@ -499,12 +513,12 @@
 
 .prose pre code {
   background-color: transparent;
-  color: rgb(var(--color-components-pre-text));
+  color: var(--color-components-pre-text);
   padding: 0;
 }
 
 .prose a {
-  color: rgb(var(--color-text-accent));
+  color: var(--color-text-accent);
   text-decoration: underline;
 }
 
@@ -520,13 +534,13 @@
 
 .prose th,
 .prose td {
-  border: 1px solid rgb(var(--color-border-default));
+  border: 1px solid var(--color-border-default);
   padding: 0.75rem;
   text-align: left;
 }
 
 .prose th {
-  background-color: rgb(var(--color-background-subtle));
+  background-color: var(--color-background-subtle);
   font-weight: 600;
 }
 
@@ -538,7 +552,7 @@
 }
 
 .prose hr {
-  border-top: 1px solid rgb(var(--color-border-default));
+  border-top: 1px solid var(--color-border-default);
   margin: 2rem 0;
 }
 
@@ -554,4 +568,41 @@
 
 .bubble-content .prose > *:last-child {
   margin-bottom: 0 !important;
+}
+
+/* 强制全局暗黑模式背景 - 最高优先级 */
+html[data-theme="dark"] {
+  background-color: var(--color-background-body) !important;
+  color: var(--color-text-primary) !important;
+}
+
+html[data-theme="dark"] body {
+  background-color: var(--color-background-body) !important;
+  color: var(--color-text-primary) !important;
+}
+
+html[data-theme="dark"] #root {
+  background-color: var(--color-background-body) !important;
+  color: var(--color-text-primary) !important;
+}
+
+/* 确保所有页面容器都使用正确的背景色 */
+html[data-theme="dark"] .min-h-screen,
+html[data-theme="dark"] .h-screen,
+html[data-theme="dark"] .h-full {
+  background-color: var(--color-background-body) !important;
+}
+
+/* 修复可能存在的主要内容区域背景 */
+html[data-theme="dark"] main,
+html[data-theme="dark"] .main-content,
+html[data-theme="dark"] .page-content {
+  background-color: var(--color-background-body) !important;
+  color: var(--color-text-primary) !important;
+}
+
+/* 修复布局容器的背景 */
+html[data-theme="dark"] .flex.flex-col.min-h-screen,
+html[data-theme="dark"] .grid.min-h-screen {
+  background-color: var(--color-background-body) !important;
 }

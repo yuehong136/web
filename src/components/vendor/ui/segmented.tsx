@@ -20,7 +20,7 @@ export function Segmented({ value, onValueChange, className, children, ...props 
         role="tablist"
         data-slot="segmented"
         className={cn(
-          'bg-muted text-muted-foreground inline-flex h-9 w-fit items-center justify-center rounded-xl p-1 border',
+          'bg-[var(--color-components-segmented-bg)] text-[var(--color-components-segmented-item-text)] inline-flex h-9 w-fit items-center justify-center rounded-xl p-1 border border-[var(--color-components-segmented-border)]',
           className
         )}
         {...props}
@@ -49,8 +49,9 @@ export function SegmentedItem({ value, className, children, ...props }: Segmente
       }}
       className={cn(
         'inline-flex h-7 items-center justify-center gap-1.5 rounded-lg px-3 text-sm font-medium border border-transparent',
-        'data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:border-border',
-        'hover:bg-card/70',
+        'text-[var(--color-components-segmented-item-text)]',
+        'data-[state=active]:bg-[var(--color-components-segmented-item-bg-active)] data-[state=active]:text-[var(--color-components-segmented-item-text-active)]',
+        'hover:bg-[var(--color-components-segmented-item-bg-hover)]',
         className
       )}
       {...props}

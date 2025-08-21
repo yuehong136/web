@@ -22,6 +22,9 @@ export interface TableProps<T = any> {
   className?: string
   rowKey?: keyof T | ((record: T) => string)
   onRow?: (record: T, index: number) => React.HTMLAttributes<HTMLTableRowElement>
+  selectedRowKeys?: (string | number)[]
+  onRowSelect?: (selectedKeys: (string | number)[]) => void
+  selectable?: boolean
   pagination?: {
     current: number
     pageSize: number
@@ -50,6 +53,9 @@ const Table = <T extends Record<string, any>>({
   className,
   rowKey = 'id',
   onRow,
+  selectedRowKeys = [],
+  onRowSelect,
+  selectable = false,
   pagination,
   sortConfig,
   onSort,
@@ -118,22 +124,24 @@ const Table = <T extends Record<string, any>>({
       
       <div className="overflow-x-auto">
         <table className={cn(
-          "min-w-full divide-y divide-gray-200",
-          bordered && "border border-gray-200",
+          "min-w-full divide-y",
+          "divide-[var(--color-components-table-border)]",
+          bordered && "border border-[var(--color-components-table-border)]",
           sizeClasses[size]
-        )}>
-          <thead className="bg-gray-50">
+        )} style={{ backgroundColor: 'var(--color-components-table-bg)' }}>
+          <thead style={{ backgroundColor: 'var(--color-components-table-header-bg)' }}>
             <tr>
               {columns.map((column) => (
                 <th
                   key={column.key}
                   className={cn(
                     cellPadding[size],
-                    "text-left text-xs font-medium text-gray-500 uppercase tracking-wider",
+                    "text-left text-xs font-medium uppercase tracking-wider",
+                    "text-[var(--color-text-secondary)]",
                     column.align === 'center' && "text-center",
                     column.align === 'right' && "text-right",
-                    column.sortable && "cursor-pointer hover:bg-gray-100",
-                    bordered && "border-r border-gray-200 last:border-r-0",
+                    column.sortable && "cursor-pointer hover:bg-[var(--color-state-hover)]",
+                    bordered && "border-r border-[var(--color-components-table-border)] last:border-r-0",
                     column.className
                   )}
                   style={{ width: column.width }}
@@ -148,14 +156,14 @@ const Table = <T extends Record<string, any>>({
             </tr>
           </thead>
           <tbody className={cn(
-            "bg-white divide-y divide-gray-200",
-            striped && "divide-gray-100"
-          )}>
+            "divide-y divide-[var(--color-components-table-border)]",
+            striped && "divide-[var(--color-components-table-border)]"
+          )} style={{ backgroundColor: 'var(--color-components-table-bg)' }}>
             {data.length === 0 ? (
               <tr>
                 <td
                   colSpan={columns.length}
-                  className={cn(cellPadding[size], "text-center text-gray-500")}
+                  className={cn(cellPadding[size], "text-center text-[var(--color-text-muted)]")}
                 >
                   {emptyText}
                 </td>
@@ -163,14 +171,27 @@ const Table = <T extends Record<string, any>>({
             ) : (
               data.map((record, index) => {
                 const rowProps = onRow?.(record, index) || {}
+                const recordKey = getRowKey(record, index)
+                const isSelected = selectedRowKeys.includes(recordKey)
+                
                 return (
                   <tr
-                    key={getRowKey(record, index)}
+                    key={recordKey}
                     className={cn(
-                      striped && index % 2 === 1 && "bg-gray-50",
-                      hoverable && "hover:bg-gray-50 transition-colors",
+                      striped && index % 2 === 1 && "bg-[var(--color-state-hover)]",
+                      hoverable && "hover:bg-[var(--color-components-table-row-bg-hover)] transition-colors",
+                      isSelected && "bg-[var(--color-components-table-row-bg-selected)]",
+                      selectable && "cursor-pointer",
                       rowProps.className
                     )}
+                    onClick={() => {
+                      if (selectable && onRowSelect) {
+                        const newSelectedKeys = isSelected
+                          ? selectedRowKeys.filter(key => key !== recordKey)
+                          : [...selectedRowKeys, recordKey]
+                        onRowSelect(newSelectedKeys)
+                      }
+                    }}
                     {...rowProps}
                   >
                     {columns.map((column) => {
@@ -184,10 +205,10 @@ const Table = <T extends Record<string, any>>({
                           key={column.key}
                           className={cn(
                             cellPadding[size],
-                            "text-gray-900",
+                            "text-[var(--color-text-primary)]",
                             column.align === 'center' && "text-center",
                             column.align === 'right' && "text-right",
-                            bordered && "border-r border-gray-200 last:border-r-0",
+                            bordered && "border-r border-[var(--color-components-table-border)] last:border-r-0",
                             column.className
                           )}
                         >
@@ -274,10 +295,10 @@ const TablePagination: React.FC<TablePaginationProps> = ({
   }
 
   return (
-    <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 sm:px-6">
+    <div className="flex items-center justify-between px-4 py-3 border-t border-[var(--color-components-table-border)] sm:px-6" style={{ backgroundColor: 'var(--color-components-table-bg)' }}>
       <div className="flex items-center">
         {showTotal && (
-          <p className="text-sm text-gray-700">
+          <p className="text-sm text-[var(--color-text-primary)]">
             显示 <span className="font-medium">{startItem}</span> 到{' '}
             <span className="font-medium">{endItem}</span> 项，共{' '}
             <span className="font-medium">{total}</span> 项
@@ -290,7 +311,7 @@ const TablePagination: React.FC<TablePaginationProps> = ({
           <select
             value={pageSize}
             onChange={(e) => handlePageSizeChange(Number(e.target.value))}
-            className="text-sm border border-gray-300 rounded px-2 py-1"
+            className="text-sm border border-[var(--color-border-default)] rounded px-2 py-1 bg-[var(--color-components-input-bg)] text-[var(--color-text-primary)]"
           >
             {[10, 20, 50, 100].map(size => (
               <option key={size} value={size}>{size} / 页</option>
@@ -310,7 +331,7 @@ const TablePagination: React.FC<TablePaginationProps> = ({
 
           {getVisiblePages().map((page, index) => (
             page === '...' ? (
-              <span key={index} className="px-2 py-1 text-gray-500">
+              <span key={index} className="px-2 py-1 text-[var(--color-text-muted)]">
                 ...
               </span>
             ) : (
@@ -342,7 +363,7 @@ const TablePagination: React.FC<TablePaginationProps> = ({
               type="number"
               min={1}
               max={totalPages}
-              className="w-16 px-2 py-1 text-center border border-gray-300 rounded"
+              className="w-16 px-2 py-1 text-center border border-[var(--color-border-default)] rounded bg-[var(--color-components-input-bg)] text-[var(--color-text-primary)]"
               onKeyPress={(e) => {
                 if (e.key === 'Enter') {
                   const page = parseInt((e.target as HTMLInputElement).value)

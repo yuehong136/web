@@ -72,6 +72,7 @@ export interface ChatInputProps {
   // 样式
   className?: string;
   rootClassName?: string;
+  floating?: boolean; // 新增：是否为浮动模式
   classNames?: {
     wrapper?: string;
     input?: string;
@@ -125,6 +126,7 @@ export function ChatInput({
   // 样式
   className = "",
   rootClassName = "",
+  floating = false,
   classNames = {},
   styles = {},
 }: ChatInputProps) {
@@ -386,12 +388,23 @@ export function ChatInput({
     }
   }, [showPromptSuggestion, updateInputBoxPosition]);
 
+  // 浮动模式的样式
+  const floatingStyles = floating ? {
+    backgroundColor: 'var(--color-chat-input-area-bg)',
+    border: '1px solid var(--color-chat-input-area-border)',
+    borderRadius: '16px',
+    backdropFilter: 'var(--color-chat-input-area-backdrop)',
+    WebkitBackdropFilter: 'var(--color-chat-input-area-backdrop)',
+    boxShadow: 'var(--color-chat-input-area-shadow)',
+    ...styles.wrapper
+  } : styles.wrapper;
+
   return (
     <div 
-      className={`p-6 ${rootClassName}`}
-      style={styles.wrapper}
+      className={floating ? rootClassName : `p-6 ${rootClassName}`}
+      style={floatingStyles}
     >
-      <div className={`max-w-4xl mx-auto ${classNames.wrapper}`}>
+      <div className={floating ? classNames.wrapper : `max-w-4xl mx-auto ${classNames.wrapper}`}>
         {/* 头部内容 */}
         {header && <div className="mb-4">{header}</div>}
         
@@ -422,7 +435,7 @@ export function ChatInput({
           {/* 主输入区域 - 参考Ant Design X的结构 */}
           <div 
             ref={inputContainerRef}
-            className="relative bg-white dark:bg-card rounded-[28px] border border-border shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden"
+            className={`relative ${floating ? 'bg-transparent' : 'bg-[var(--color-components-input-bg)]'} rounded-[28px] border ${floating ? 'border-transparent' : 'border-border'} shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden`}
           >
             {/* 输入框区域 */}
             <div className="p-5 relative">
@@ -433,7 +446,7 @@ export function ChatInput({
                 onKeyDown={handleKeyDown}
                 onPaste={handlePaste}
                 placeholder={isRecording ? '正在进行语音识别...' : '发消息、输入 @ 选择技能 或 选择文件'}
-                className={`border-0 bg-transparent resize-none text-sm p-0 w-full focus-visible:ring-0 placeholder:text-muted-foreground/60 ${className} ${classNames.input}`}
+                className={`border-0 bg-transparent resize-none text-sm p-0 w-full focus-visible:ring-0 placeholder:text-muted-foreground/60 text-[var(--color-components-input-text)] ${className} ${classNames.input}`}
                 style={{ ...styles.input }}
                 disabled={disabled}
                 readOnly={readOnly}

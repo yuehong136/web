@@ -47,23 +47,23 @@ md.renderer.rules.ordered_list_open = function (tokens, idx, options, _env, rend
   return renderer.renderToken(tokens, idx, options);
 };
 
-// 为代码块添加样式
+// 为代码块添加样式 - 使用语义令牌
 md.renderer.rules.code_inline = function (tokens, idx, _options, _env, _renderer) {
   const token = tokens[idx];
-  return `<code class="bg-muted px-1.5 py-0.5 rounded text-sm font-mono">${token.content}</code>`;
+  return `<code class="bg-[var(--color-components-code-bg)] text-[var(--color-components-code-text)] border border-[var(--color-components-code-border)] px-1.5 py-0.5 rounded text-sm font-mono">${token.content}</code>`;
 };
 
 md.renderer.rules.fence = function (tokens, idx, _options, _env, _renderer) {
   const token = tokens[idx];
   const langName = token.info ? ` data-language="${token.info}"` : '';
   
-  return `<pre class="bg-muted p-4 rounded-lg overflow-x-auto mb-4"><code class="text-sm font-mono"${langName}>${token.content}</code></pre>`;
+  return `<pre class="bg-[var(--color-components-pre-bg)] text-[var(--color-components-pre-text)] border border-[var(--color-components-pre-border)] p-4 rounded-lg overflow-x-auto mb-4"><code class="text-sm font-mono text-inherit"${langName}>${token.content}</code></pre>`;
 };
 
 // 为链接添加样式
 md.renderer.rules.link_open = function (tokens, idx, options, _env, renderer) {
   const token = tokens[idx];
-  token.attrJoin('class', 'text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline');
+  token.attrJoin('class', 'text-primary hover:text-primary/80 underline');
   token.attrSet('target', '_blank');
   token.attrSet('rel', 'noopener noreferrer');
   return renderer.renderToken(tokens, idx, options);
@@ -124,7 +124,7 @@ export function MarkdownRenderer({ content, className = '' }: MarkdownRendererPr
   
   // 为不同主题应用适当的样式
   const themeClasses = className.includes('prose-invert') 
-    ? 'prose-invert [&_code]:bg-white/20 [&_pre]:bg-white/20 [&_blockquote]:border-white/30 [&_a]:text-blue-200 [&_a:hover]:text-blue-100'
+    ? 'prose-invert [&_blockquote]:border-white/30'
     : '';
   
   return (

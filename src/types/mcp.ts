@@ -116,9 +116,6 @@ export interface MCPChatConfig {
   mcp_ids: string[];
   mcp_timeout: number;
   verbose_tool_use: boolean;
-  mcp_react: boolean;
-  mcp_max_rounds: number;
-  mcp_parallelism: number;
 }
 
 export interface ChatToolCall {

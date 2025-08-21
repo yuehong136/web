@@ -4,8 +4,16 @@ import { Wrench, Search, FileText, Image, Code } from "lucide-react";
 
 export function WelcomeMessage() {
   return (
-    <div className="flex-1 flex items-center justify-center p-8">
-      <Card className="max-w-2xl p-8 text-center">
+    <div className="max-w-3xl mx-auto p-8 text-center">
+      <Card 
+        className="p-8 text-center" 
+        style={{
+          backgroundColor: 'var(--color-chat-content-bg)',
+          border: '1px solid var(--color-chat-welcome-border)',
+          backgroundImage: 'var(--color-chat-gradient-primary)',
+          boxShadow: 'var(--color-chat-welcome-shadow)'
+        }}
+      >
         <div className="mb-6">
           <h1 className="text-2xl font-semibold mb-2">👋 欢迎使用 MCP 实验场</h1>
           <p className="text-muted-foreground">

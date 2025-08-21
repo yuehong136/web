@@ -73,16 +73,21 @@ export function ChatMessage({ role, content, timestamp, toolCalls, parsedToolCal
 
   return (
     <div className={`flex gap-4 mb-6 ${isAssistant ? '' : 'flex-row-reverse'}`}>
-      <Avatar className="w-8 h-8">
-        <AvatarFallback 
-          style={{
-            backgroundColor: isAssistant ? '#3b82f6' : '#6b7280',
-            color: '#ffffff'
-          }}
-        >
-          {isAssistant ? 'AI' : 'U'}
-        </AvatarFallback>
-      </Avatar>
+      <Avatar 
+        className="w-8 h-8"
+        size="md"
+        fallback={
+          <div 
+            style={{
+              backgroundColor: isAssistant ? '#3b82f6' : '#6b7280',
+              color: '#ffffff'
+            }}
+            className="w-full h-full flex items-center justify-center rounded-full font-medium text-sm"
+          >
+            {isAssistant ? 'AI' : 'U'}
+          </div>
+        }
+      />
       
       <div className={`flex-1 ${isAssistant ? '' : 'flex justify-end'}`}>
         <div className={`max-w-[80%] ${isAssistant ? '' : 'flex flex-col items-end'}`}>
@@ -151,12 +156,12 @@ export function ChatMessage({ role, content, timestamp, toolCalls, parsedToolCal
                   )}
                 </div>
               ) : (
-                // 用户消息：保持气泡样式
+                // 用户消息：主题区分的气泡样式
                 <div>
-                  <Card className="p-4 bg-primary text-primary-foreground">
+                  <Card className="p-4 bg-muted dark:bg-primary text-foreground dark:text-primary-foreground">
                     <MarkdownRenderer 
                       content={content} 
-                      className="prose-invert [&>*:first-child]:mt-0 [&>*:last-child]:mb-0" 
+                      className="dark:prose-invert [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&>p]:text-current [&>*]:text-current" 
                     />
                   </Card>
                   {/* 用户消息操作栏 */}

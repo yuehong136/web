@@ -3,17 +3,16 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { MCPToolSelector } from "./MCPToolSelector";
 import { ChatModelSelector } from "./ChatModelSelector";
-import { Settings, Menu } from "lucide-react";
+import { Settings, Menu, LayoutGrid, Maximize2, AlignCenter } from "lucide-react";
 import type { MyLLMProvider } from "@/stores/model";
 // 临时定义类型以避免导入问题
 interface MCPChatConfig {
   mcp_ids: string[];
   mcp_timeout: number;
   verbose_tool_use: boolean;
-  mcp_react: boolean;
-  mcp_max_rounds: number;
-  mcp_parallelism: number;
 }
+
+type ChatLayout = 'default' | 'center' | 'full';
 
 interface ChatHeaderProps {
   onMenuToggle: () => void;
@@ -27,6 +26,8 @@ interface ChatHeaderProps {
   onTemporaryChatChange?: (enabled: boolean) => void;
   models?: MyLLMProvider;
   modelsLoading?: boolean;
+  chatLayout?: ChatLayout;
+  onLayoutChange?: (layout: ChatLayout) => void;
 }
 
 export function ChatHeader({ 
@@ -40,10 +41,12 @@ export function ChatHeader({
   temporaryChatEnabled = false,
   onTemporaryChatChange = () => {},
   models,
-  modelsLoading = false
+  modelsLoading = false,
+  chatLayout = 'default',
+  onLayoutChange = () => {}
 }: ChatHeaderProps) {
   return (
-    <div className="border-b bg-background px-4 py-3">
+    <div className="px-6 py-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button
@@ -78,6 +81,37 @@ export function ChatHeader({
         </div>
 
         <div className="flex items-center gap-4">
+          {/* 布局切换按钮组 */}
+          <div className="hidden md:flex items-center gap-1 border border-border rounded-lg p-1">
+            <Button
+              variant={chatLayout === 'default' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => onLayoutChange('default')}
+              className="px-3 py-1 h-7"
+              title="默认布局"
+            >
+              <LayoutGrid className="w-3 h-3" />
+            </Button>
+            <Button
+              variant={chatLayout === 'center' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => onLayoutChange('center')}
+              className="px-3 py-1 h-7"
+              title="居中布局"
+            >
+              <AlignCenter className="w-3 h-3" />
+            </Button>
+            <Button
+              variant={chatLayout === 'full' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => onLayoutChange('full')}
+              className="px-3 py-1 h-7"
+              title="全屏布局"
+            >
+              <Maximize2 className="w-3 h-3" />
+            </Button>
+          </div>
+          
           <div className="hidden lg:flex items-center gap-4">
             <div className="flex items-center gap-2">
               <span className="text-sm">自动MCP通信</span>

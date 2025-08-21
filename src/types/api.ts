@@ -37,9 +37,8 @@ export interface LoginRequest {
 
 export interface RegisterRequest {
   email: string
+  nickname: string
   password: string
-  username: string
-  nickname?: string
 }
 
 export interface OAuthLoginRequest {
