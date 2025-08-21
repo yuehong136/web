@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { flushSync } from "react-dom";
 import { ChatSidebar } from "@/components/chat/ChatSidebar";
 import { ChatHeader } from "@/components/chat/ChatHeader";
 import { ChatInput } from "@/components/chat/ChatInput";
@@ -55,19 +56,32 @@ export default function MCPChatPage() {
   });
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [chatLayout, setChatLayout] = useState<ChatLayout>('default');
+  const [isUserScrolling, setIsUserScrolling] = useState(false);
+  const isUserScrollingRef = useRef(false); // 使用ref避免闭包问题
   const bubbleListRef = useRef<any>(null);
 
   // 滚动处理函数
   const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement, UIEvent>) => {
     const target = e.target as HTMLDivElement;
-    // 可以添加更多滚动逻辑，比如监听是否滚动到底部
-    const isAtBottom = target.scrollTop + target.clientHeight >= target.scrollHeight - 10;
-    console.log('Bubble scroll:', { 
-      scrollTop: target.scrollTop, 
-      scrollHeight: target.scrollHeight, 
-      clientHeight: target.clientHeight,
-      isAtBottom
-    });
+    // 增加容差值到50像素，因为有时候滚动可能不会完全到底
+    const tolerance = 50;
+    const isAtBottom = target.scrollTop + target.clientHeight >= target.scrollHeight - tolerance;
+    
+    // 如果用户滚动到底部，则恢复自动滚动
+    // 如果用户滚动离开底部，则暂停自动滚动
+    const scrollingState = !isAtBottom;
+    setIsUserScrolling(scrollingState);
+    isUserScrollingRef.current = scrollingState; // 同时更新ref
+    
+    // 调试信息
+    if (!isAtBottom) {
+      console.log('User scrolling away from bottom:', { 
+        scrollTop: target.scrollTop, 
+        scrollHeight: target.scrollHeight, 
+        clientHeight: target.clientHeight,
+        distanceFromBottom: target.scrollHeight - (target.scrollTop + target.clientHeight)
+      });
+    }
   }, []);
 
   
@@ -247,7 +261,7 @@ export default function MCPChatPage() {
             role: 'assistant',
             content: streamingContent,
             loading: false,
-            typing: true,
+            typing: false, // 流式内容不使用打字效果，因为内容本身已经是逐渐出现的
             timestamp: new Date().toLocaleTimeString(),
             messageRender: renderMarkdown,
           }
@@ -256,12 +270,15 @@ export default function MCPChatPage() {
       return [];
     }
     
-    const sessionMessages = activeSession.messages.map((msg) => ({
+    const sessionMessages = activeSession.messages.map((msg, index) => ({
       key: msg.id,
       role: msg.role as 'user' | 'assistant',
       content: msg.content || '',
       loading: false,
-      typing: false,
+      // 只对最新的助手消息启用打字效果（且不在流式输出时）
+      typing: msg.role === 'assistant' && 
+              index === activeSession.messages.length - 1 && 
+              !isStreaming ? { step: 50, interval: 10 } : false,
       timestamp: msg.timestamp,
       messageRender: msg.role === 'assistant' ? renderMarkdown : undefined,
       toolCalls: msg.parsedToolCalls,
@@ -274,7 +291,7 @@ export default function MCPChatPage() {
         role: 'assistant',
         content: streamingContent,
         loading: false,
-        typing: true,
+        typing: false, // 流式内容不使用打字效果
         timestamp: new Date().toLocaleTimeString(),
         messageRender: renderMarkdown,
         toolCalls: undefined,
@@ -291,6 +308,67 @@ export default function MCPChatPage() {
       loadMyLLMs();
     }
   }, [loadMyLLMs, myLLMs, modelsLoading]);
+
+  // 当消息更新时自动滚动到底部（仅在用户未手动滚动时）
+  useEffect(() => {
+    // 如果用户正在查看历史消息，不自动滚动
+    if (isUserScrolling) {
+      return;
+    }
+
+    // 使用多个延迟确保DOM完全更新
+    const timers: NodeJS.Timeout[] = [];
+    
+    // 立即尝试滚动
+    const scrollToBottom = () => {
+      const scrollContainer = document.getElementById('chat-scroll-container');
+      if (scrollContainer) {
+        const { scrollHeight, clientHeight } = scrollContainer;
+        // 确保滚动到真正的底部
+        scrollContainer.scrollTo({
+          top: scrollHeight - clientHeight,
+          behavior: 'smooth'
+        });
+      }
+    };
+
+    // 多次尝试滚动，确保内容完全渲染
+    timers.push(setTimeout(scrollToBottom, 0));    // 立即
+    timers.push(setTimeout(scrollToBottom, 100));  // 100ms后
+    timers.push(setTimeout(scrollToBottom, 300));  // 300ms后（用于处理图片等异步内容）
+
+    return () => {
+      timers.forEach(timer => clearTimeout(timer));
+    };
+  }, [activeSession?.messages?.length, streamingContent, isUserScrolling]);
+
+  // 使用ResizeObserver监听内容区域的大小变化
+  useEffect(() => {
+    const scrollContainer = document.getElementById('chat-scroll-container');
+    if (!scrollContainer) return;
+
+    const resizeObserver = new ResizeObserver(() => {
+      // 内容区域大小变化时，如果不在用户滚动状态，则滚动到底部
+      if (!isUserScrolling) {
+        requestAnimationFrame(() => {
+          scrollContainer.scrollTo({
+            top: scrollContainer.scrollHeight,
+            behavior: 'smooth'
+          });
+        });
+      }
+    });
+
+    // 观察滚动容器的第一个子元素（内容容器）
+    const contentContainer = scrollContainer.firstElementChild;
+    if (contentContainer) {
+      resizeObserver.observe(contentContainer);
+    }
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [isUserScrolling]);
 
   // 自动选择第一个可用的聊天模型
   useEffect(() => {
@@ -340,6 +418,10 @@ export default function MCPChatPage() {
       return;
     }
 
+    // 发送新消息时，重置滚动状态，确保能看到新消息
+    setIsUserScrolling(false);
+    isUserScrollingRef.current = false;
+    
     setIsLoading(true);
     setIsStreaming(true);
     setStreamingContent('');
@@ -397,6 +479,7 @@ export default function MCPChatPage() {
       }
 
       let fullContent = '';
+      let buffer = ''; // 用于处理不完整的行
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
 
@@ -405,8 +488,13 @@ export default function MCPChatPage() {
           const { done, value } = await reader.read();
           if (done) break;
 
-          const chunk = decoder.decode(value, { stream: true });
-          const lines = chunk.split('\n');
+          // 不使用 stream: true，避免缓存问题
+          const chunk = decoder.decode(value, { stream: false });
+          buffer += chunk;
+          const lines = buffer.split('\n');
+          
+          // 保留最后一个可能不完整的行
+          buffer = lines.pop() || '';
 
           for (const line of lines) {
             if (line.startsWith('data: ')) {
@@ -419,9 +507,27 @@ export default function MCPChatPage() {
                 if (data.retcode === 0 && typeof data.data === 'string') {
                   const cleanContent = data.data.replace(/^-+\\?$/gm, '').trim();
                   if (cleanContent) {
+                    // 服务器发送的是完整内容，不是增量
                     fullContent = cleanContent;
                     const parsed = parseToolCalls(fullContent);
-                    setStreamingContent(parsed.content);
+                    // 使用 flushSync 强制同步更新，确保立即渲染
+                    flushSync(() => {
+                      setStreamingContent(parsed.content);
+                    });
+                    
+                    // 流式内容更新时也滚动到底部（如果用户没有手动滚动）
+                    // 使用ref避免闭包问题
+                    if (!isUserScrollingRef.current) {
+                      requestAnimationFrame(() => {
+                        const scrollContainer = document.getElementById('chat-scroll-container');
+                        if (scrollContainer) {
+                          scrollContainer.scrollTo({
+                            top: scrollContainer.scrollHeight,
+                            behavior: 'smooth'
+                          });
+                        }
+                      });
+                    }
                   }
                 } else if (data.data === true) {
                   // 流结束，保存消息
@@ -431,7 +537,10 @@ export default function MCPChatPage() {
                     role: 'assistant' as const,
                     content: finalParsed.content,
                     timestamp: new Date().toLocaleTimeString(),
-                    parsedToolCalls: finalParsed.toolCalls,
+                    parsedToolCalls: finalParsed.toolCalls.map(call => ({
+                      ...call,
+                      status: call.status || 'pending' as const
+                    })),
                   };
 
                   setSessions(prev => prev.map(session => 
@@ -527,14 +636,17 @@ export default function MCPChatPage() {
         
         {/* Chat Area - 使用 Bubble.List 的聊天区域 */}
         <div className="flex-1 flex flex-col min-h-0">
-          <div className="flex-1 overflow-y-auto p-6">
+          <div 
+            className="flex-1 overflow-y-auto p-6"
+            onScroll={handleScroll}
+            id="chat-scroll-container"
+          >
             {bubbleItems.length > 0 ? (
               <div className={`${chatLayout === 'full' ? 'max-w-none' : 'max-w-4xl mx-auto'}`}>
                 <Bubble.List
                   items={bubbleItems}
                   ref={bubbleListRef}
-                  autoScroll
-                  onScroll={handleScroll}
+                  autoScroll={!isUserScrolling}
                   roles={getRolesConfig(chatLayout)}
                   style={{ 
                     minHeight: '100%',
