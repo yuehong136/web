@@ -228,13 +228,13 @@ export const lightTokens: DesignTokens = {
   'components-spinner-color': '#1e40af',
   
   // ===== 代码和预格式化文本 =====
-  'components-code-bg': '#f3f4f6',
-  'components-code-text': '#dc2626',
-  'components-code-border': '#e5e7eb',
+  'components-code-bg': '#f6f8fa',
+  'components-code-text': '#e1352b',
+  'components-code-border': '#d1d5db',
   
-  'components-pre-bg': '#1f2937',
-  'components-pre-text': '#f9fafb',
-  'components-pre-border': '#374151',
+  'components-pre-bg': '#f6f8fa',
+  'components-pre-text': '#24292e',
+  'components-pre-border': '#e1e4e8',
   
   // ===== 新增组件令牌（使用基础颜色映射） =====
   // 徽章和标签
@@ -716,13 +716,13 @@ export const darkTokens: DesignTokens = {
   'components-spinner-color': '#3b82f6',
   
   // ===== 代码和预格式化文本 =====
-  'components-code-bg': 'rgba(255, 255, 255, 0.1)',
-  'components-code-text': '#f87171',
-  'components-code-border': '#475569',
+  'components-code-bg': 'rgba(110, 118, 129, 0.15)',
+  'components-code-text': '#79c0ff',
+  'components-code-border': 'rgba(110, 118, 129, 0.2)',
   
-  'components-pre-bg': '#0f172a',
-  'components-pre-text': '#ffffff',
-  'components-pre-border': '#475569',
+  'components-pre-bg': '#161b22',
+  'components-pre-text': '#e6edf3',
+  'components-pre-border': '#30363d',
   
   // ===== 新增组件令牌的暗色版本 =====
   // 徽章和标签

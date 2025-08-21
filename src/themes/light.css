@@ -249,12 +249,12 @@ html[data-theme="light"], :root {
   --color-components-upload-progress-fill: #1e40af;
 
   /* ===== 代码和预格式化文本 ===== */
-  --color-components-code-bg: #f3f4f6;
-  --color-components-code-text: #dc2626;
-  --color-components-code-border: #e5e7eb;
-  --color-components-pre-bg: #1f2937;
-  --color-components-pre-text: #f9fafb;
-  --color-components-pre-border: #374151;
+  --color-components-code-bg: #f6f8fa;
+  --color-components-code-text: #e1352b;
+  --color-components-code-border: #d1d5db;
+  --color-components-pre-bg: #f6f8fa;
+  --color-components-pre-text: #24292e;
+  --color-components-pre-border: #e1e4e8;
 
   /* ===== 其他组件 ===== */
   --color-components-badge-bg: #f5f5f5;

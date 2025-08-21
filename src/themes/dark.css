@@ -249,12 +249,12 @@ html[data-theme="dark"] {
   --color-components-upload-progress-fill: #3b82f6;
 
   /* ===== 代码和预格式化文本 ===== */
-  --color-components-code-bg: rgba(255, 255, 255, 0.1);
-  --color-components-code-text: #f87171;
-  --color-components-code-border: #475569;
-  --color-components-pre-bg: #0f172a;
-  --color-components-pre-text: #ffffff;
-  --color-components-pre-border: #475569;
+  --color-components-code-bg: rgba(110, 118, 129, 0.15);
+  --color-components-code-text: #79c0ff;
+  --color-components-code-border: rgba(110, 118, 129, 0.2);
+  --color-components-pre-bg: #161b22;
+  --color-components-pre-text: #e6edf3;
+  --color-components-pre-border: #30363d;
 
   /* ===== 其他组件 ===== */
   --color-components-badge-bg: rgba(255, 255, 255, 0.1);
