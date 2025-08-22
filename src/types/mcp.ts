@@ -125,10 +125,13 @@ export interface ChatToolCall {
 }
 
 export interface ParsedChatToolCall {
+  id?: string;
   name: string;
   args: Record<string, any>;
+  arguments?: Record<string, any>;
   result: string;
-  status: 'pending' | 'running' | 'success' | 'error';
+  status?: 'pending' | 'running' | 'success' | 'error';
+  timestamp?: string;
 }
 
 export interface ChatMessage {

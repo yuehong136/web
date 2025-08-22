@@ -10,7 +10,9 @@ import { UserOutlined, RobotOutlined, CopyOutlined, LikeOutlined, DislikeOutline
 import { Typography, Button as AntdButton, Space } from 'antd';
 import { getProviderIcon } from '@/components/ui/provider-icon';
 import markdownit from "markdown-it";
-import { mcpChatAPI, parseToolCalls, type MCPChatServiceRequest, type SSEResponse } from "@/api/mcp-chat-service";
+import type { MCPChatServiceRequest } from "@/api/mcp-chat-service";
+import { EnhancedSSEParser, type SSEMessage, type ToolCallInfo } from "@/components/chat/EnhancedSSEParser";
+import { ToolCallRenderer } from "@/components/chat/ToolCallRenderer";
 import { useModelStore } from "@/stores/model";
 import { toast } from "@/lib/toast";
 import type { ChatSession, MCPChatConfig } from "@/types/mcp";
@@ -18,7 +20,7 @@ import type { ChatSession, MCPChatConfig } from "@/types/mcp";
 // 初始化 markdown-it
 const md = markdownit({ html: true, breaks: true, linkify: true });
 
-// Markdown 渲染函数 - 参考Ant Design X示例
+// Markdown 渲染函数 - 参考Ant Design X示例 - 移到组件外部避免重复创建
 const renderMarkdown: BubbleProps['messageRender'] = (content) => {
   if (!content || typeof content !== 'string') return content;
   
@@ -111,16 +113,44 @@ export default function MCPChatPage() {
   // 流式响应状态管理
   const [isLoading, setIsLoading] = useState(false);
   const [streamingContent, setStreamingContent] = useState('');
+  const [streamingToolCalls, setStreamingToolCalls] = useState<ToolCallInfo[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [isToolAnalyzing, setIsToolAnalyzing] = useState(false);
+  
+  // SSE解析器实例
+  const sseParserRef = useRef<EnhancedSSEParser | null>(null);
 
   // 复制消息内容
-  const handleCopy = (content: string) => {
-    if (!content) return toast.error('内容为空');
-    navigator.clipboard?.writeText(content).then(() => {
-      toast.success('已复制到剪贴板');
-    }).catch(() => {
+  const handleCopy = (content?: string, ev?: React.MouseEvent) => {
+    try {
+      let textToCopy = '';
+      if (typeof content === 'string' && content.length >= 0) {
+        // 直接复制原始Markdown字符串（允许空字符串，在下方再做空判断）
+        textToCopy = content;
+      }
+      if (!textToCopy && ev) {
+        // 向上遍历父节点，查找当前气泡内的文本容器
+        let node: HTMLElement | null = ev.currentTarget as HTMLElement;
+        let safety = 0;
+        while (node && safety < 20) {
+          const textEl = node.querySelector('.bubble-copy-text') as HTMLElement | null;
+          if (textEl && textEl.innerText && textEl.innerText.trim()) {
+            textToCopy = textEl.innerText.trim();
+            break;
+          }
+          node = node.parentElement;
+          safety += 1;
+        }
+      }
+      if (!textToCopy || !textToCopy.trim()) return toast.error('内容为空');
+      navigator.clipboard?.writeText(textToCopy).then(() => {
+        toast.success('已复制到剪贴板');
+      }).catch(() => {
+        toast.error('复制失败');
+      });
+    } catch {
       toast.error('复制失败');
-    });
+    }
   };
 
   // 根据布局配置角色样式
@@ -153,13 +183,13 @@ export default function MCPChatPage() {
             lineHeight: '1.6',
           }
         },
-        footer: (messageContext: string) => (
+        footer: (messageContext: any) => (
           <div style={{ marginTop: '8px' }}>
             <Space size={4}>
               <AntdButton
                 type="text"
                 size="small"
-                onClick={() => handleCopy(messageContext)}
+                onClick={(e) => handleCopy(typeof messageContext === 'string' ? messageContext : undefined, e as any)}
                 icon={<CopyOutlined />}
                 title="复制"
                 style={{
@@ -230,7 +260,7 @@ export default function MCPChatPage() {
             <AntdButton
               type="text"
               size="small"
-              onClick={() => handleCopy(messageContext)}
+              onClick={(e) => handleCopy(messageContext, e as any)}
               icon={<CopyOutlined />}
               title="复制"
               style={{
@@ -252,54 +282,99 @@ export default function MCPChatPage() {
 
   // 转换消息数据为 Bubble.List 需要的格式
   const bubbleItems = React.useMemo(() => {
-    if (!activeSession?.messages) {
-      // 如果正在流式输出，显示流式内容
-      if (isStreaming && streamingContent) {
-        return [
-          {
-            key: 'streaming-assistant',
-            role: 'assistant',
-            content: streamingContent,
-            loading: false,
-            typing: false, // 流式内容不使用打字效果，因为内容本身已经是逐渐出现的
-            timestamp: new Date().toLocaleTimeString(),
-            messageRender: renderMarkdown,
-          }
-        ];
-      }
-      return [];
-    }
-    
-    const sessionMessages = activeSession.messages.map((msg, index) => ({
+    // 获取历史消息（如果存在）
+    const sessionMessages = activeSession?.messages ? activeSession.messages.map((msg, index) => ({
       key: msg.id,
       role: msg.role as 'user' | 'assistant',
       content: msg.content || '',
       loading: false,
       // 只对最新的助手消息启用打字效果（且不在流式输出时）
-      typing: msg.role === 'assistant' && 
-              index === activeSession.messages.length - 1 && 
+      typing: msg.role === 'assistant' &&
+              index === activeSession.messages.length - 1 &&
               !isStreaming ? { step: 50, interval: 10 } : false,
       timestamp: msg.timestamp,
-      messageRender: msg.role === 'assistant' ? renderMarkdown : undefined,
-      toolCalls: msg.parsedToolCalls,
-    }));
+      // 助手消息：在自定义 messageRender 中渲染工具卡片 + Markdown
+      messageRender: msg.role === 'assistant' ? ((content: string) => (
+        <div className="space-y-4">
+          {msg.parsedToolCalls && msg.parsedToolCalls.length > 0 && (
+            <ToolCallRenderer
+              toolCalls={msg.parsedToolCalls.map(call => ({
+                id: call.id || `${Date.now()}_${Math.random()}`,
+                name: call.name,
+                arguments: call.args || call.arguments || {},
+                result: call.result,
+                status: call.status || 'success',
+                timestamp: call.timestamp || new Date().toLocaleTimeString()
+              }))}
+              showTimestamp={true}
+              collapsible={true}
+            />
+          )}
+          <div
+            dangerouslySetInnerHTML={{ __html: md.render(content || '') }}
+            className="prose prose-sm max-w-none dark:prose-invert bubble-copy-text"
+          />
+        </div>
+      )) : undefined,
+      toolCalls: undefined,
+    })) : [];
     
-    // 如果正在流式输出，添加流式消息
-    if (isStreaming && streamingContent) {
+    // 如果正在流式输出，添加流式消息（只添加一次）
+    if (isStreaming && (streamingContent || streamingToolCalls.length > 0 || isToolAnalyzing)) {
+          // 检查是否已经有流式消息，避免重复添加
+    const hasExistingStreamingMessage = sessionMessages.some(msg => msg.key === 'streaming-assistant');
+    
+    console.log('🎯 Adding streaming message:', { 
+      contentLength: streamingContent?.length, 
+      toolCallsCount: streamingToolCalls.length, 
+      isToolAnalyzing,
+      sessionMessagesLength: sessionMessages.length,
+      hasExistingStreamingMessage
+    });
+    
+    if (hasExistingStreamingMessage) {
+      console.log('⚠️ Streaming message already exists, skipping duplicate');
+      return sessionMessages;
+    }
+      
+      // 检查是否有工具调用需要显示
+      const hasToolCalls = streamingToolCalls.length > 0;
+      
+      // 使用字符串内容 + 自定义 messageRender，保证复制为原始 Markdown
       sessionMessages.push({
         key: 'streaming-assistant',
         role: 'assistant',
-        content: streamingContent,
+        content: streamingContent || '',
         loading: false,
-        typing: false, // 流式内容不使用打字效果
+        typing: false,
         timestamp: new Date().toLocaleTimeString(),
-        messageRender: renderMarkdown,
+        messageRender: (content: string) => (
+          <div className="space-y-4">
+            {(isToolAnalyzing || streamingToolCalls.length > 0) && (
+              <div className="border border-blue-200 rounded-lg p-3 bg-blue-50 dark:bg-blue-900/20">
+                <h4 className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-2">🛠️ 工具调用状态</h4>
+                <ToolCallRenderer
+                  toolCalls={streamingToolCalls}
+                  isAnalyzing={isToolAnalyzing}
+                  showTimestamp={true}
+                  collapsible={false}
+                />
+              </div>
+            )}
+            {content && content.trim() && (
+              <div
+                dangerouslySetInnerHTML={{ __html: md.render(content) }}
+                className="prose prose-sm max-w-none dark:prose-invert bubble-copy-text"
+              />
+            )}
+          </div>
+        ),
         toolCalls: undefined,
       });
     }
     
     return sessionMessages;
-  }, [activeSession?.messages, isStreaming, streamingContent, renderMarkdown]);
+  }, [activeSessionId, activeSession?.messages?.length, isStreaming, streamingContent, streamingToolCalls, isToolAnalyzing]);
 
   // 加载模型列表
   useEffect(() => {
@@ -425,6 +500,8 @@ export default function MCPChatPage() {
     setIsLoading(true);
     setIsStreaming(true);
     setStreamingContent('');
+    setStreamingToolCalls([]);
+    setIsToolAnalyzing(false);
 
     try {
       // 添加用户消息到会话
@@ -464,113 +541,130 @@ export default function MCPChatPage() {
         mcp_ids: selectedMCPIds,
         mcp_timeout: mcpConfig.mcp_timeout,
         verbose_tool_use: mcpConfig.verbose_tool_use,
-        files: []
+        files: [],
+        structured_output: selectedMCPIds.length > 0 // 根据是否有MCP工具自动设置结构化输出
       };
 
-      // 发送请求
-      const response = await mcpChatAPI.sendMessage(request);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+      // 初始化增强SSE解析器
+      const parser = new EnhancedSSEParser();
+      sseParserRef.current = parser;
 
-      if (!response.body) {
-        throw new Error('No response body');
-      }
-
-      let fullContent = '';
-      let buffer = ''; // 用于处理不完整的行
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-
-      try {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          // 不使用 stream: true，避免缓存问题
-          const chunk = decoder.decode(value, { stream: false });
-          buffer += chunk;
-          const lines = buffer.split('\n');
-          
-          // 保留最后一个可能不完整的行
-          buffer = lines.pop() || '';
-
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              try {
-                const jsonStr = line.slice(6).trim();
-                if (!jsonStr) continue;
-                
-                const data: SSEResponse = JSON.parse(jsonStr);
-                
-                if (data.retcode === 0 && typeof data.data === 'string') {
-                  const cleanContent = data.data.replace(/^-+\\?$/gm, '').trim();
-                  if (cleanContent) {
-                    // 服务器发送的是完整内容，不是增量
-                    fullContent = cleanContent;
-                    const parsed = parseToolCalls(fullContent);
-                    // 使用 flushSync 强制同步更新，确保立即渲染
-                    flushSync(() => {
-                      setStreamingContent(parsed.content);
-                    });
-                    
-                    // 流式内容更新时也滚动到底部（如果用户没有手动滚动）
-                    // 使用ref避免闭包问题
-                    if (!isUserScrollingRef.current) {
-                      requestAnimationFrame(() => {
-                        const scrollContainer = document.getElementById('chat-scroll-container');
-                        if (scrollContainer) {
-                          scrollContainer.scrollTo({
-                            top: scrollContainer.scrollHeight,
-                            behavior: 'smooth'
-                          });
-                        }
-                      });
-                    }
-                  }
-                } else if (data.data === true) {
-                  // 流结束，保存消息
-                  const finalParsed = parseToolCalls(fullContent);
-                  const assistantMessage = {
-                    id: Date.now().toString(),
-                    role: 'assistant' as const,
-                    content: finalParsed.content,
-                    timestamp: new Date().toLocaleTimeString(),
-                    parsedToolCalls: finalParsed.toolCalls.map(call => ({
-                      ...call,
-                      status: call.status || 'pending' as const
-                    })),
-                  };
-
-                  setSessions(prev => prev.map(session => 
-                    session.id === activeSessionId 
-                      ? { ...session, messages: [...session.messages, assistantMessage] }
-                      : session
-                  ));
-                  break;
-                } else if (data.retcode !== 0) {
-                  throw new Error(data.retmsg || 'Unknown error');
-                }
-              } catch (parseError) {
-                console.error('Parse error:', parseError, 'Line:', line);
-              }
-            }
+      // 使用增强SSE解析器处理流式响应  
+      await parser.connect(
+        `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/v1/llm/enhanced_chat_sse`,
+        request,
+        (message: SSEMessage, parserState) => {
+          // 添加调试信息
+          console.log('🔄 SSE Message received:', message.type);
+          if (message.type === 'text') {
+            console.log('📝 Text content length:', parserState.accumulatedText?.length);
+          } else if (message.type === 'tool_call') {
+            console.log('🛠️ Tool call:', message.content);
+          } else if (message.type === 'tool_result') {
+            console.log('✅ Tool result:', message.content);
           }
+          console.log('📊 Parser state - Tools:', parserState.toolCalls.length, 'Analyzing:', parserState.isToolAnalyzing);
+          
+          // 使用flushSync确保即时更新
+          flushSync(() => {
+            switch (message.type) {
+              case 'text':
+                setStreamingContent(parserState.accumulatedText);
+                break;
+
+              case 'tool_call':
+                // 工具调用开始，更新工具列表
+                setStreamingToolCalls([...parserState.toolCalls]);
+                break;
+
+              case 'tool_result':
+                // 工具结果返回，更新工具列表
+                setStreamingToolCalls([...parserState.toolCalls]);
+                break;
+
+              case 'tool_start':
+                setIsToolAnalyzing(true);
+                break;
+
+              case 'tool_end':
+                setIsToolAnalyzing(false);
+                break;
+
+              case 'complete':
+                // 流结束，保存消息
+                const assistantMessage = {
+                  id: Date.now().toString(),
+                  role: 'assistant' as const,
+                  content: parserState.accumulatedText,
+                  timestamp: new Date().toLocaleTimeString(),
+                  parsedToolCalls: parserState.toolCalls.map(call => ({
+                    id: call.id,
+                    name: call.name,
+                    args: call.arguments || {},
+                    result: call.result || '',
+                    status: call.status,
+                    timestamp: call.timestamp
+                  })),
+                };
+
+                setSessions(prev => prev.map(session => 
+                  session.id === activeSessionId 
+                    ? { ...session, messages: [...session.messages, assistantMessage] }
+                    : session
+                ));
+                break;
+
+              case 'error':
+                const errorMsg = message.content as any;
+                throw new Error(errorMsg.error || 'Unknown error');
+            }
+          });
+
+          // 自动滚动到底部
+          if (!isUserScrollingRef.current) {
+            requestAnimationFrame(() => {
+              const scrollContainer = document.getElementById('chat-scroll-container');
+              if (scrollContainer) {
+                scrollContainer.scrollTo({
+                  top: scrollContainer.scrollHeight,
+                  behavior: 'smooth'
+                });
+              }
+            });
+          }
+        },
+        (error) => {
+          console.error('Enhanced SSE Parser error:', error);
+          toast.error(error.message || '连接出错');
         }
-      } finally {
-        reader.releaseLock();
-      }
+      );
       
     } catch (error) {
       console.error('Error sending message:', error);
       toast.error(error instanceof Error ? error.message : '发送消息失败');
     } finally {
+      // 清理状态和连接
+      if (sseParserRef.current) {
+        sseParserRef.current.disconnect();
+        sseParserRef.current = null;
+      }
       setIsLoading(false);
       setIsStreaming(false);
       setStreamingContent('');
+      setStreamingToolCalls([]);
+      setIsToolAnalyzing(false);
     }
   }, [activeSessionId, selectedModelId, selectedMCPIds, mcpConfig, sessions, handleNewChat]);
+
+  // 组件卸载时清理SSE连接
+  useEffect(() => {
+    return () => {
+      if (sseParserRef.current) {
+        sseParserRef.current.disconnect();
+        sseParserRef.current = null;
+      }
+    };
+  }, []);
 
   return (
     <div className="mcp-chat-page h-screen flex overflow-hidden" style={{ backgroundColor: 'var(--color-chat-content-bg)' }}>

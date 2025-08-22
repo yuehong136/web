@@ -4,6 +4,7 @@
  */
 
 import { apiClient } from './client'
+import { parseStreamResponse } from '@/components/chat/StreamResponseParser'
 
 /**
  * MCP聊天服务请求参数
@@ -26,6 +27,8 @@ export interface MCPChatServiceRequest {
   mcp_timeout?: number
   verbose_tool_use?: boolean
   files?: string[]
+  // 结构化输出控制
+  structured_output?: boolean
 }
 
 /**
@@ -80,10 +83,13 @@ export interface SSEResponse {
  * 解析后的工具调用信息
  */
 export interface ParsedToolCall {
+  id?: string
   name: string
   args: Record<string, any>
+  arguments?: Record<string, any>
   result: string
   status?: 'pending' | 'running' | 'success' | 'error'
+  timestamp?: string
 }
 
 /**
@@ -125,6 +131,12 @@ export const mcpChatAPI = {
     const fullUrl = `${baseURL}/v1/llm/enhanced_chat_sse`
     const token = localStorage.getItem('auth_token')
     
+    // 自动根据mcp_ids设置structured_output
+    const hasToolCalls = request.mcp_ids && request.mcp_ids.length > 0;
+    const useStructuredOutput = request.structured_output !== undefined 
+      ? request.structured_output 
+      : hasToolCalls;
+
     // 构建请求数据
     const requestData = {
       prompt: request.prompt || '',
@@ -138,7 +150,9 @@ export const mcpChatAPI = {
       mcp_ids: request.mcp_ids || [],
       mcp_timeout: request.mcp_timeout || 10.0,
       verbose_tool_use: request.verbose_tool_use !== undefined ? request.verbose_tool_use : false,
-      files: request.files || []
+      files: request.files || [],
+      // 结构化输出控制
+      structured_output: useStructuredOutput
     }
     
     return fetch(fullUrl, {
@@ -155,6 +169,12 @@ export const mcpChatAPI = {
    * 发送聊天消息（非流式响应）
    */
   sendMessageSync: async (request: MCPChatServiceRequest): Promise<string> => {
+    // 自动根据mcp_ids设置structured_output  
+    const hasToolCalls = request.mcp_ids && request.mcp_ids.length > 0;
+    const useStructuredOutput = request.structured_output !== undefined 
+      ? request.structured_output 
+      : hasToolCalls;
+      
     const requestData = {
       prompt: request.prompt || '',
       messages: request.messages,
@@ -167,7 +187,9 @@ export const mcpChatAPI = {
       mcp_ids: request.mcp_ids || [],
       mcp_timeout: request.mcp_timeout || 10.0,
       verbose_tool_use: request.verbose_tool_use !== undefined ? request.verbose_tool_use : false,
-      files: request.files || []
+      files: request.files || [],
+      // 结构化输出控制
+      structured_output: useStructuredOutput
     }
     
     const response = await apiClient.post<any>('/llm/enhanced_chat_sse', requestData)
@@ -188,114 +210,23 @@ export const mcpChatAPI = {
 export function parseToolCalls(content: string): {
   content: string
   toolCalls: ParsedToolCall[]
+  isToolAnalyzing?: boolean
+  toolCallCount?: number
 } {
-  const toolCallsMap = new Map<string, ParsedToolCall>()
-  let processedContent = content
+  // 使用新的统一解析器
+  const parsedResponse = parseStreamResponse(content)
   
-  // 处理新格式的工具调用 - 实时解析
-  if (content.includes('🔧')) {
-    // 1. 解析进行中的工具调用（只有工具调用，没有结果）
-    const pendingCallRegex = /🔧 \*\*工具调用\*\*:\s*([^(]+)\(([^)]*)\)(?!\s*\n📋)/g
-    let pendingMatch
-    
-    while ((pendingMatch = pendingCallRegex.exec(content)) !== null) {
-      try {
-        const toolName = pendingMatch[1].trim()
-        const argsString = pendingMatch[2].trim()
-        
-        // 解析参数字符串
-        const args: Record<string, any> = {}
-        if (argsString) {
-          const argPairs = argsString.split(/,\s*/)
-          for (const pair of argPairs) {
-            const [key, value] = pair.split('=', 2)
-            if (key && value) {
-              args[key.trim()] = value.trim()
-            }
-          }
-        }
-        
-        const toolId = `${toolName}_${JSON.stringify(args)}`
-        
-        toolCallsMap.set(toolId, {
-          name: toolName,
-          args: args,
-          result: '',
-          status: 'running'
-        })
-        
-      } catch (e) {
-        console.error('解析进行中工具调用失败:', e)
-      }
-    }
-    
-    // 2. 解析完整的工具调用（有工具调用和结果）
-    const completeCallRegex = /🔧 \*\*工具调用\*\*:\s*([^(]+)\(([^)]*)\)\s*\n📋 \*\*结果\*\*:\s*([\s\S]*?)(?=(?:\n\n🔧|\n\n📊|$))/g
-    let completeMatch
-    
-    while ((completeMatch = completeCallRegex.exec(content)) !== null) {
-      try {
-        const toolName = completeMatch[1].trim()
-        const argsString = completeMatch[2].trim()
-        const resultContent = completeMatch[3].trim()
-        
-        // 解析参数字符串
-        const args: Record<string, any> = {}
-        if (argsString) {
-          const argPairs = argsString.split(/,\s*/)
-          for (const pair of argPairs) {
-            const [key, value] = pair.split('=', 2)
-            if (key && value) {
-              args[key.trim()] = value.trim()
-            }
-          }
-        }
-        
-        const toolId = `${toolName}_${JSON.stringify(args)}`
-        
-        toolCallsMap.set(toolId, {
-          name: toolName,
-          args: args,
-          result: resultContent,
-          status: 'success'
-        })
-        
-      } catch (e) {
-        console.error('解析完整工具调用失败:', e)
-      }
-    }
-  }
-  
-  // 兼容旧格式：匹配所有的 <tool_call> 标签
-  const oldToolCallRegex = /<tool_call>(.*?)<\/tool_call>/gs
-  let match
-  
-  while ((match = oldToolCallRegex.exec(content)) !== null) {
-    try {
-      const toolCallData = JSON.parse(match[1])
-      const toolId = `${toolCallData.name}_${JSON.stringify(toolCallData.args || {})}`
-      
-      const isRunning = toolCallData.result === 'Begin to call...'
-      
-      const existingCall = toolCallsMap.get(toolId)
-      if (!existingCall || (!isRunning && existingCall.status === 'running')) {
-        toolCallsMap.set(toolId, {
-          name: toolCallData.name,
-          args: toolCallData.args || {},
-          result: toolCallData.result || '',
-          status: isRunning ? 'running' : 'success'
-        })
-      }
-    } catch (e) {
-      console.error('解析旧格式工具调用失败:', e)
-    }
-  }
-  
-  // 将Map转换为数组
-  const toolCalls = Array.from(toolCallsMap.values())
+  // 为了兼容性，添加时间戳和ID（如果没有的话）
+  const enhancedToolCalls = parsedResponse.toolCalls.map(call => ({
+    ...call,
+    id: call.id || `${Date.now()}_${Math.random()}`,
+    timestamp: call.timestamp || new Date().toLocaleTimeString()
+  }))
   
   return {
-    content: processedContent.trim(),  // 保留完整内容用于正常流式展示
-    toolCalls  // 提取的工具调用用于MCP组件展示
+    content: parsedResponse.content,
+    toolCalls: enhancedToolCalls,
+    isToolAnalyzing: false, // 暂时设为false，如需要可后续扩展
+    toolCallCount: enhancedToolCalls.length
   }
 }
