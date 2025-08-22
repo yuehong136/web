@@ -2,9 +2,9 @@
 
 /* 卡片现代化样式（使用主题 token） */
 .card-modern {
-  background-color: rgb(var(--color-components-card-bg));
+  background-color: var(--color-components-card-bg);
   backdrop-filter: blur(6px);
-  border: 1px solid rgb(var(--color-border-default) / 0.8);
+  border: 1px solid var(--color-border-default);
   box-shadow: var(--color-components-card-shadow);
   transition: all 0.2s ease-in-out;
 }
@@ -40,22 +40,22 @@
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: rgb(var(--color-components-scrollbar-track));
+  background: var(--color-components-scrollbar-track);
   border-radius: 3px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgb(var(--color-components-scrollbar-thumb));
+  background: var(--color-components-scrollbar-thumb);
   border-radius: 3px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgb(var(--color-components-scrollbar-thumb-hover));
+  background: var(--color-components-scrollbar-thumb-hover);
 }
 
 /* 渐变背景 */
 .gradient-bg {
-  background: linear-gradient(135deg, rgb(var(--color-components-badge-info-bg)) 0%, rgb(var(--color-components-badge-info-text)) 100%);
+  background: linear-gradient(135deg, var(--color-components-badge-info-bg) 0%, var(--color-components-badge-info-text) 100%);
 }
 
 /* 加载动画 */

@@ -11,7 +11,8 @@ import {
   ExclamationCircleOutlined,
   ClockCircleOutlined,
   CodeOutlined,
-  ApiOutlined
+  ApiOutlined,
+  CaretRightOutlined
 } from '@ant-design/icons';
 import type { ToolCallInfo } from './EnhancedSSEParser';
 
@@ -25,28 +26,32 @@ interface ToolCallRendererProps {
   collapsible?: boolean;
 }
 
-// 状态配置
+// 状态配置（使用语义令牌颜色）
 const STATUS_CONFIG = {
   pending: {
-    color: '#faad14',
+    color: 'var(--color-state-warning)',
+    textColor: 'var(--color-components-badge-warning-text)',
     icon: <ClockCircleOutlined />,
     text: '等待中',
     description: '工具调用已创建，等待执行'
   },
   running: {
-    color: '#1890ff',
+    color: 'var(--color-state-focus)',
+    textColor: 'var(--color-components-badge-info-text)',
     icon: <PlayCircleOutlined />,
     text: '执行中',
     description: '工具正在执行中...'
   },
   success: {
-    color: '#52c41a',
+    color: 'var(--color-state-success)',
+    textColor: 'var(--color-components-badge-success-text)',
     icon: <CheckCircleOutlined />,
     text: '成功',
     description: '工具调用执行成功'
   },
   error: {
-    color: '#ff4d4f',
+    color: 'var(--color-state-error)',
+    textColor: 'var(--color-components-badge-error-text)',
     icon: <ExclamationCircleOutlined />,
     text: '失败',
     description: '工具调用执行失败'
@@ -116,7 +121,10 @@ const formatResult = (result: any, status: string): React.ReactNode => {
   
   // 对象或其他类型
   return (
-    <pre className="bg-gray-50 dark:bg-gray-800 p-2 rounded text-xs overflow-x-auto">
+    <pre
+      className="p-2 rounded text-xs overflow-x-auto"
+      style={{ background: 'var(--color-components-code-bg)' }}
+    >
       {JSON.stringify(result, null, 2)}
     </pre>
   );
@@ -129,34 +137,43 @@ const ToolCallCard: React.FC<{
   collapsible: boolean;
 }> = ({ toolCall, showTimestamp, collapsible }) => {
   const statusConfig = STATUS_CONFIG[toolCall.status];
+  const shouldShowHeader = !(collapsible && toolCall.status !== 'running');
   
   const cardContent = (
     <div className="space-y-3">
       {/* 工具信息头部 */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <ApiOutlined className="text-blue-500" />
-          <Text strong className="text-base">{toolCall.name}</Text>
-          <Badge 
-            color={statusConfig.color}
-            text={statusConfig.text}
-          />
+      {shouldShowHeader && (
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <ApiOutlined style={{ color: 'var(--color-state-focus)' }} />
+            <Text strong className="text-base" style={{ color: 'var(--color-text-primary)' }}>{toolCall.name}</Text>
+            <Badge 
+              color={statusConfig.color}
+              text={<span style={{ color: statusConfig.textColor }}>{statusConfig.text}</span>}
+            />
+          </div>
+          {showTimestamp && (
+            <Text className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+              {toolCall.timestamp}
+            </Text>
+          )}
         </div>
-        {showTimestamp && (
-          <Text type="secondary" className="text-xs">
-            {toolCall.timestamp}
-          </Text>
-        )}
-      </div>
+      )}
 
       {/* 参数部分 */}
       {Object.keys(toolCall.arguments).length > 0 && (
         <div className="space-y-2">
           <div className="flex items-center space-x-1">
-            <CodeOutlined className="text-gray-500" />
+            <CodeOutlined style={{ color: 'var(--color-text-secondary)' }} />
             <Text type="secondary" className="text-sm">参数:</Text>
           </div>
-          <pre className="bg-gray-50 dark:bg-gray-800 p-2 rounded text-xs overflow-x-auto border-l-2 border-blue-300">
+          <pre
+            className="p-2 rounded text-xs overflow-x-auto border-l-2"
+            style={{
+              background: 'var(--color-components-code-bg)',
+              borderLeftColor: 'var(--color-state-focus)'
+            }}
+          >
             {formatArguments(toolCall.arguments)}
           </pre>
         </div>
@@ -168,7 +185,7 @@ const ToolCallCard: React.FC<{
           {statusConfig.icon}
           <Text type="secondary" className="text-sm">结果:</Text>
         </div>
-        <div className="border-l-2 border-gray-200 pl-3">
+        <div className="border-l-2 pl-3" style={{ borderLeftColor: 'var(--color-border-default)' }}>
           {toolCall.status === 'error' ? (
             <Alert
               message="执行失败"
@@ -177,7 +194,10 @@ const ToolCallCard: React.FC<{
               showIcon
             />
           ) : (
-            <div className="bg-gray-50 dark:bg-gray-800 p-2 rounded">
+            <div
+              className="p-2 rounded"
+              style={{ background: 'var(--color-components-code-bg)' }}
+            >
               {formatResult(toolCall.result, toolCall.status)}
             </div>
           )}
@@ -192,16 +212,22 @@ const ToolCallCard: React.FC<{
         ghost
         size="small"
         className="tool-call-collapse"
+        expandIcon={({ isActive }) => (
+          <CaretRightOutlined
+            rotate={isActive ? 90 : 0}
+            style={{ color: 'var(--color-text-secondary)' }}
+          />
+        )}
         items={[
           {
             key: toolCall.id,
             label: (
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2" style={{ color: 'var(--color-text-primary)' }}>
                 {statusConfig.icon}
-                <Text strong>{toolCall.name}</Text>
-                <Badge color={statusConfig.color} text={statusConfig.text} />
+                <Text strong style={{ color: 'var(--color-text-primary)' }}>{toolCall.name}</Text>
+                <Badge color={statusConfig.color} text={<span style={{ color: statusConfig.textColor }}>{statusConfig.text}</span>} />
                 {showTimestamp && (
-                  <Text type="secondary" className="text-xs ml-auto">
+                  <Text className="text-xs ml-auto" style={{ color: 'var(--color-text-secondary)' }}>
                     {toolCall.timestamp}
                   </Text>
                 )}
@@ -222,11 +248,18 @@ const ToolCallCard: React.FC<{
   return (
     <Card
       size="small"
-      className={`tool-call-card transition-all duration-200 ${
-        toolCall.status === 'running' ? 'border-blue-300 shadow-sm' : ''
-      } ${toolCall.status === 'error' ? 'border-red-300' : ''}`}
+      className={`tool-call-card transition-all duration-200`}
       styles={{
         body: { padding: '12px' }
+      }}
+      style={{
+        background: 'var(--color-components-card-bg)',
+        borderColor:
+          toolCall.status === 'error'
+            ? 'var(--color-state-error)'
+            : toolCall.status === 'running'
+            ? 'var(--color-state-focus)'
+            : 'var(--color-components-card-border)'
       }}
     >
       {cardContent}
@@ -246,10 +279,16 @@ export const ToolCallRenderer: React.FC<ToolCallRendererProps> = ({
     if (isAnalyzing) {
       return (
         <div className={`tool-call-renderer ${className}`}>
-          <Card size="small" className="border-blue-200 bg-blue-50 dark:bg-blue-900/20">
+          <Card
+            size="small"
+            style={{
+              background: 'var(--color-components-card-bg)',
+              borderColor: 'var(--color-components-card-border)'
+            }}
+          >
             <div className="flex items-center space-x-2">
               <Spin size="small" />
-              <Text type="secondary">正在分析工具需求...</Text>
+              <Text style={{ color: 'var(--color-text-secondary)' }}>正在分析工具需求...</Text>
             </div>
           </Card>
         </div>
@@ -263,7 +302,7 @@ export const ToolCallRenderer: React.FC<ToolCallRendererProps> = ({
       {/* 工具调用统计 */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-2">
-          <ApiOutlined className="text-blue-500" />
+          <ApiOutlined style={{ color: 'var(--color-state-focus)' }} />
           <Text strong>工具调用 ({toolCalls.length})</Text>
         </div>
         {isAnalyzing && (
@@ -287,7 +326,10 @@ export const ToolCallRenderer: React.FC<ToolCallRendererProps> = ({
       </div>
 
       {/* 状态标签 */}
-      <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+      <div
+        className="flex flex-wrap gap-2 pt-2 border-t"
+        style={{ borderColor: 'var(--color-border-default)' }}
+      >
         {Object.entries(
           toolCalls.reduce((acc, call) => {
             acc[call.status] = (acc[call.status] || 0) + 1;
