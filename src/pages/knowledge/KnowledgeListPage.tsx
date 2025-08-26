@@ -300,8 +300,8 @@ export const KnowledgeListPage: React.FC = () => {
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
       <Card className="p-4">
         <div className="flex items-center">
-          <div className="p-2 bg-blue-100 rounded-lg">
-            <Database className="h-5 w-5 text-blue-600" />
+          <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--color-state-info-subtle)' }}>
+            <Database className="h-5 w-5" style={{ color: 'var(--color-state-info)' }} />
           </div>
           <div className="ml-3">
             <p className="text-sm font-medium text-text-secondary">知识库总数</p>
@@ -312,8 +312,8 @@ export const KnowledgeListPage: React.FC = () => {
       
       <Card className="p-4">
         <div className="flex items-center">
-          <div className="p-2 bg-green-100 rounded-lg">
-            <FileText className="h-5 w-5 text-green-600" />
+          <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--color-state-success-subtle)' }}>
+            <FileText className="h-5 w-5" style={{ color: 'var(--color-state-success)' }} />
           </div>
           <div className="ml-3">
             <p className="text-sm font-medium text-text-secondary">总文档数</p>
@@ -326,8 +326,8 @@ export const KnowledgeListPage: React.FC = () => {
 
       <Card className="p-4">
         <div className="flex items-center">
-          <div className="p-2 bg-purple-100 rounded-lg">
-            <Layers className="h-5 w-5 text-purple-600" />
+          <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--color-state-info-subtle)' }}>
+            <Layers className="h-5 w-5" style={{ color: 'var(--color-state-info)' }} />
           </div>
           <div className="ml-3">
             <p className="text-sm font-medium text-text-secondary">总块数</p>
@@ -340,8 +340,8 @@ export const KnowledgeListPage: React.FC = () => {
 
       <Card className="p-4">
         <div className="flex items-center">
-          <div className="p-2 bg-yellow-100 rounded-lg">
-            <Target className="h-5 w-5 text-yellow-600" />
+          <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--color-state-warning-subtle)' }}>
+            <Target className="h-5 w-5" style={{ color: 'var(--color-state-warning)' }} />
           </div>
           <div className="ml-3">
             <p className="text-sm font-medium text-text-secondary">总Token</p>
@@ -359,8 +359,8 @@ export const KnowledgeListPage: React.FC = () => {
       <div className="mt-4 pt-4 border-t border-border-default bg-background-subtle rounded-lg p-4">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-2">
-            <div className="p-1.5 bg-blue-100 rounded-md">
-              <Filter className="h-4 w-4 text-blue-600" />
+            <div className="p-1.5 rounded-md" style={{ backgroundColor: 'var(--color-state-info-subtle)' }}>
+              <Filter className="h-4 w-4" style={{ color: 'var(--color-state-info)' }} />
             </div>
             <h3 className="text-sm font-medium text-text-primary">筛选条件</h3>
           </div>
@@ -384,10 +384,13 @@ export const KnowledgeListPage: React.FC = () => {
         
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           {/* 权限筛选 */}
-          <div className="bg-white rounded-lg p-3 border border-gray-200">
-            <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-3">
-              <div className="p-1 bg-green-100 rounded">
-                <Users className="h-3 w-3 text-green-600" />
+          <div className="rounded-lg p-3" style={{
+            backgroundColor: 'var(--color-background-surface)',
+            border: '1px solid var(--color-border-default)'
+          }}>
+            <label className="flex items-center space-x-2 text-sm font-medium mb-3" style={{ color: 'var(--color-text-primary)' }}>
+              <div className="p-1 rounded" style={{ backgroundColor: 'var(--color-state-success-subtle)' }}>
+                <Users className="h-3 w-3" style={{ color: 'var(--color-state-success)' }} />
               </div>
               <span>权限</span>
             </label>
@@ -415,10 +418,13 @@ export const KnowledgeListPage: React.FC = () => {
           </div>
           
           {/* 语言筛选 */}
-          <div className="bg-white rounded-lg p-3 border border-gray-200">
-            <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-3">
-              <div className="p-1 bg-purple-100 rounded">
-                <Globe className="h-3 w-3 text-purple-600" />
+          <div className="rounded-lg p-3" style={{
+            backgroundColor: 'var(--color-background-surface)',
+            border: '1px solid var(--color-border-default)'
+          }}>
+            <label className="flex items-center space-x-2 text-sm font-medium mb-3" style={{ color: 'var(--color-text-primary)' }}>
+              <div className="p-1 rounded" style={{ backgroundColor: 'var(--color-state-info-subtle)' }}>
+                <Globe className="h-3 w-3" style={{ color: 'var(--color-state-info)' }} />
               </div>
               <span>语言</span>
             </label>
@@ -446,10 +452,13 @@ export const KnowledgeListPage: React.FC = () => {
           </div>
           
           {/* 解析器筛选 */}
-          <div className="bg-white rounded-lg p-3 border border-gray-200">
-            <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-3">
-              <div className="p-1 bg-orange-100 rounded">
-                <Zap className="h-3 w-3 text-orange-600" />
+          <div className="rounded-lg p-3" style={{
+            backgroundColor: 'var(--color-background-surface)',
+            border: '1px solid var(--color-border-default)'
+          }}>
+            <label className="flex items-center space-x-2 text-sm font-medium mb-3" style={{ color: 'var(--color-text-primary)' }}>
+              <div className="p-1 rounded" style={{ backgroundColor: 'var(--color-state-warning-subtle)' }}>
+                <Zap className="h-3 w-3" style={{ color: 'var(--color-state-warning)' }} />
               </div>
               <span>解析器</span>
             </label>
@@ -477,10 +486,13 @@ export const KnowledgeListPage: React.FC = () => {
           </div>
           
           {/* 嵌入模型筛选 */}
-          <div className="bg-white rounded-lg p-3 border border-gray-200">
-            <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-3">
-              <div className="p-1 bg-pink-100 rounded">
-                <Brain className="h-3 w-3 text-pink-600" />
+          <div className="rounded-lg p-3" style={{
+            backgroundColor: 'var(--color-background-surface)',
+            border: '1px solid var(--color-border-default)'
+          }}>
+            <label className="flex items-center space-x-2 text-sm font-medium mb-3" style={{ color: 'var(--color-text-primary)' }}>
+              <div className="p-1 rounded" style={{ backgroundColor: 'var(--color-state-info-subtle)' }}>
+                <Brain className="h-3 w-3" style={{ color: 'var(--color-state-info)' }} />
               </div>
               <span>嵌入模型</span>
             </label>
@@ -508,10 +520,13 @@ export const KnowledgeListPage: React.FC = () => {
           </div>
           
           {/* 时间范围筛选 */}
-          <div className="bg-white rounded-lg p-3 border border-gray-200">
-            <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-3">
-              <div className="p-1 bg-yellow-100 rounded">
-                <Clock className="h-3 w-3 text-yellow-600" />
+          <div className="rounded-lg p-3" style={{
+            backgroundColor: 'var(--color-background-surface)',
+            border: '1px solid var(--color-border-default)'
+          }}>
+            <label className="flex items-center space-x-2 text-sm font-medium mb-3" style={{ color: 'var(--color-text-primary)' }}>
+              <div className="p-1 rounded" style={{ backgroundColor: 'var(--color-state-warning-subtle)' }}>
+                <Clock className="h-3 w-3" style={{ color: 'var(--color-state-warning)' }} />
               </div>
               <span>时间范围</span>
             </label>
@@ -997,9 +1012,13 @@ export const KnowledgeListPage: React.FC = () => {
           
           {/* 分页控件 - sticky 粘性定位 */}
           {totalPages > 1 && (
-            <div className="sticky bottom-0 border-t border-gray-200 bg-white/95 backdrop-blur-sm shadow-lg rounded-t-lg mx-4 mb-4">
+            <div className="sticky bottom-0 backdrop-blur-sm shadow-lg rounded-t-lg mx-4 mb-4" style={{
+              borderTop: '1px solid var(--color-components-pagination-border)',
+              backgroundColor: 'var(--color-components-pagination-bg)',
+              backdropFilter: 'blur(12px)'
+            }}>
               <div className="px-6 py-4 flex items-center justify-between">
-                <div className="text-sm text-gray-600">
+                <div className="text-sm" style={{ color: 'var(--color-components-pagination-text)' }}>
                   共 {total} 项{selectedBases.length > 0 && ` • 已选择 ${selectedBases.length} 个`}
                 </div>
                 

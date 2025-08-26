@@ -36,7 +36,7 @@ import {
   PageSizeSelector,
   CustomSelect
 } from '../../components/ui'
-import { cn } from '@/lib/utils'
+// import { cn } from '@/lib/utils' // 已移除硬编码样式，不再需要
 
 const KnowledgeDocumentsPage: React.FC = () => {
   const { id: kbId } = useParams<{ id: string }>()
@@ -448,7 +448,19 @@ const KnowledgeDocumentsPage: React.FC = () => {
             type="checkbox"
             checked={selectedDocs.has(record.id)}
             onChange={(e) => handleSelectDoc(record.id, e.target.checked)}
-            className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500"
+            className="w-4 h-4 rounded focus:outline-none"
+            style={{
+              backgroundColor: selectedDocs.has(record.id) 
+                ? 'var(--color-components-checkbox-bg-checked)' 
+                : 'var(--color-components-checkbox-bg)',
+              borderColor: selectedDocs.has(record.id) 
+                ? 'var(--color-components-checkbox-border-checked)' 
+                : 'var(--color-components-checkbox-border)',
+              borderWidth: '1px',
+              color: selectedDocs.has(record.id) 
+                ? 'var(--color-components-checkbox-icon)' 
+                : 'transparent'
+            }}
           />
         )
       },
@@ -475,8 +487,8 @@ const KnowledgeDocumentsPage: React.FC = () => {
           <Tooltip 
             content={
               <div className="max-w-md">
-                <div className="font-medium mb-2 text-gray-900">{value}</div>
-                <div className="text-xs text-gray-600 space-y-1">
+                <div className="font-medium mb-2" style={{ color: 'var(--color-text-primary)' }}>{value}</div>
+                <div className="text-xs space-y-1" style={{ color: 'var(--color-text-secondary)' }}>
                   <div>大小: {formatFileSize(record.size || 0)}</div>
                   <div>类型: {record.type || '未知'}</div>
                   <div>分块: {record.chunk_num || 0}</div>
@@ -488,9 +500,18 @@ const KnowledgeDocumentsPage: React.FC = () => {
             maxWidth="max-w-md"
           >
             <div 
-              className="font-medium text-gray-900 truncate cursor-pointer hover:text-blue-600 transition-colors" 
-              style={{ maxWidth: '300px' }}
+              className="font-medium truncate cursor-pointer transition-colors" 
+              style={{ 
+                maxWidth: '300px',
+                color: 'var(--color-text-primary)'
+              }}
               onClick={() => navigate(`/knowledge/${kbId}/documents/${record.id}/chunks`)}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = 'var(--color-text-accent)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = 'var(--color-text-primary)'
+              }}
             >
               {value}
             </div>
@@ -505,7 +526,7 @@ const KnowledgeDocumentsPage: React.FC = () => {
         width: 120,
         render: (value) => (
           <Tooltip content={`文件大小: ${value || 0} 字节`}>
-            <span className="text-sm text-gray-600 cursor-help">
+            <span className="text-sm cursor-help" style={{ color: 'var(--color-text-secondary)' }}>
               {formatFileSize(value || 0)}
             </span>
           </Tooltip>
@@ -518,7 +539,7 @@ const KnowledgeDocumentsPage: React.FC = () => {
         width: 100,
         render: (value, record) => (
           <Tooltip content={`文档已分为 ${value || 0} 个文本块，Token数: ${record.token_num || 0}`}>
-            <span className="text-sm text-gray-600 cursor-help">
+            <span className="text-sm cursor-help" style={{ color: 'var(--color-text-secondary)' }}>
               {value || 0}
             </span>
           </Tooltip>
@@ -533,9 +554,9 @@ const KnowledgeDocumentsPage: React.FC = () => {
           <Tooltip 
             content={
               <div className="max-w-lg">
-                <div className="font-medium mb-2 text-gray-900">解析器: {value || '默认'}</div>
+                <div className="font-medium mb-2" style={{ color: 'var(--color-text-primary)' }}>解析器: {value || '默认'}</div>
                 {record.parser_config && (
-                  <div className="text-xs text-gray-600 whitespace-pre-wrap max-h-32 overflow-y-auto scrollbar-thin">
+                  <div className="text-xs whitespace-pre-wrap max-h-32 overflow-y-auto scrollbar-thin" style={{ color: 'var(--color-text-secondary)' }}>
                     配置: {JSON.stringify(record.parser_config, null, 2)}
                   </div>
                 )}
@@ -544,7 +565,7 @@ const KnowledgeDocumentsPage: React.FC = () => {
             delayHide={600}
             maxWidth="max-w-lg"
           >
-            <span className="text-sm text-gray-600 cursor-help">
+            <span className="text-sm cursor-help" style={{ color: 'var(--color-text-secondary)' }}>
               {value || '默认'}
             </span>
           </Tooltip>
@@ -563,7 +584,24 @@ const KnowledgeDocumentsPage: React.FC = () => {
                 onChange={() => handleToggleStatus(record)}
                 className="sr-only peer"
               />
-              <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+              <div 
+                className="w-9 h-5 rounded-full relative cursor-pointer transition-colors duration-200"
+                style={{
+                  backgroundColor: record.status === '1' 
+                    ? 'var(--color-components-switch-bg-checked)' 
+                    : 'var(--color-components-switch-bg)'
+                }}
+              >
+                <div 
+                  className="absolute top-0.5 left-0.5 w-4 h-4 rounded-full transition-transform duration-200"
+                  style={{
+                    backgroundColor: record.status === '1' 
+                      ? 'var(--color-components-switch-thumb-checked)'
+                      : 'var(--color-components-switch-thumb)',
+                    transform: record.status === '1' ? 'translateX(16px)' : 'translateX(0)'
+                  }}
+                />
+              </div>
             </label>
           </Tooltip>
         )
@@ -580,9 +618,9 @@ const KnowledgeDocumentsPage: React.FC = () => {
               <Tooltip 
                 content={
                   <div className="max-w-2xl">
-                    <div className="font-medium mb-2 text-gray-900">处理进度: {progress}%</div>
+                    <div className="font-medium mb-2" style={{ color: 'var(--color-text-primary)' }}>处理进度: {progress}%</div>
                     {record.progress_msg && (
-                      <div className="text-xs whitespace-pre-wrap max-h-60 overflow-y-auto scrollbar-thin leading-relaxed text-gray-700">
+                      <div className="text-xs whitespace-pre-wrap max-h-60 overflow-y-auto scrollbar-thin leading-relaxed" style={{ color: 'var(--color-text-secondary)' }}>
                         {record.progress_msg}
                       </div>
                     )}
@@ -593,7 +631,7 @@ const KnowledgeDocumentsPage: React.FC = () => {
               >
                 <div className="space-y-1">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs text-blue-600">运行中</span>
+                    <span className="text-xs" style={{ color: 'var(--color-text-accent)' }}>运行中</span>
                   </div>
                   <Progress 
                     percent={progress}
@@ -610,10 +648,10 @@ const KnowledgeDocumentsPage: React.FC = () => {
           
           // 其他状态
           const statusMap = {
-            '0': { text: '未开始', color: 'bg-gray-100 text-gray-800' },
-            '2': { text: '已取消', color: 'bg-yellow-100 text-yellow-800' },
-            '3': { text: '已完成', color: 'bg-green-100 text-green-800' },
-            '4': { text: '失败', color: 'bg-red-100 text-red-800' }
+            '0': { text: '未开始', bgColor: 'var(--color-components-badge-neutral-bg)', textColor: 'var(--color-components-badge-neutral-text)' },
+            '2': { text: '已取消', bgColor: 'var(--color-components-badge-warning-bg)', textColor: 'var(--color-components-badge-warning-text)' },
+            '3': { text: '已完成', bgColor: 'var(--color-components-badge-success-bg)', textColor: 'var(--color-components-badge-success-text)' },
+            '4': { text: '失败', bgColor: 'var(--color-components-badge-error-bg)', textColor: 'var(--color-components-badge-error-text)' }
           }
           
           const status = statusMap[record.run as keyof typeof statusMap] || statusMap['0']
@@ -622,9 +660,9 @@ const KnowledgeDocumentsPage: React.FC = () => {
             <Tooltip 
               content={
                 <div className="max-w-2xl">
-                  <div className="font-medium mb-2 text-gray-900">状态: {status.text}</div>
+                  <div className="font-medium mb-2" style={{ color: 'var(--color-text-primary)' }}>状态: {status.text}</div>
                   {record.progress_msg && (
-                    <div className="text-xs whitespace-pre-wrap max-h-60 overflow-y-auto scrollbar-thin leading-relaxed text-gray-700">
+                    <div className="text-xs whitespace-pre-wrap max-h-60 overflow-y-auto scrollbar-thin leading-relaxed" style={{ color: 'var(--color-text-secondary)' }}>
                       {record.progress_msg}
                     </div>
                   )}
@@ -633,10 +671,10 @@ const KnowledgeDocumentsPage: React.FC = () => {
               delayHide={800}
               maxWidth="max-w-2xl"
             >
-              <span className={cn(
-                "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium cursor-help",
-                status.color
-              )}>
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium cursor-help" style={{
+                backgroundColor: status.bgColor,
+                color: status.textColor
+              }}>
                 {status.text}
               </span>
             </Tooltip>
@@ -653,8 +691,8 @@ const KnowledgeDocumentsPage: React.FC = () => {
           <Tooltip 
             content={
               <div className="max-w-md">
-                <div className="font-medium mb-2 text-gray-900">创建时间</div>
-                <div className="text-xs text-gray-600 space-y-1">
+                <div className="font-medium mb-2" style={{ color: 'var(--color-text-primary)' }}>创建时间</div>
+                <div className="text-xs space-y-1" style={{ color: 'var(--color-text-secondary)' }}>
                   <div>创建: {formatDate(value)}</div>
                   <div>更新: {formatDate(record.update_date)}</div>
                   <div>创建者: {record.created_by || '未知'}</div>
@@ -664,7 +702,7 @@ const KnowledgeDocumentsPage: React.FC = () => {
             delayHide={500}
             maxWidth="max-w-md"
           >
-            <span className="text-sm text-gray-600 cursor-help">
+            <span className="text-sm cursor-help" style={{ color: 'var(--color-text-secondary)' }}>
               {formatDate(value)}
             </span>
           </Tooltip>
@@ -726,7 +764,7 @@ const KnowledgeDocumentsPage: React.FC = () => {
                   setDeletingDocId(record.id)
                   setDeleteConfirmOpen(true)
                 }}
-                className="text-red-600 hover:text-red-700"
+                style={{ color: 'var(--color-text-error)' }}
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
@@ -761,15 +799,25 @@ const KnowledgeDocumentsPage: React.FC = () => {
               variant="outline"
               size="sm"
               onClick={() => setShowFilters(!showFilters)}
-              className={cn(
-                showFilters ? 'bg-blue-50 text-blue-600' : '',
-                hasActiveFilters() ? 'bg-orange-50 text-orange-600 border-orange-300' : ''
-              )}
+              style={{
+                ...(showFilters ? {
+                  backgroundColor: 'var(--color-state-info-subtle)',
+                  color: 'var(--color-state-info)'
+                } : {}),
+                ...(hasActiveFilters() ? {
+                  backgroundColor: 'var(--color-state-warning-subtle)',
+                  color: 'var(--color-state-warning)',
+                  borderColor: 'var(--color-border-warning)'
+                } : {})
+              }}
             >
               <Filter className="h-4 w-4 mr-2" />
               筛选
               {hasActiveFilters() && (
-                <span className="ml-1 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-orange-500 rounded-full">
+                <span className="ml-1 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none rounded-full" style={{
+                  color: 'var(--color-components-badge-warning-text)',
+                  backgroundColor: 'var(--color-state-warning)'
+                }}>
                   {(filters.run_status?.length || 0) + (filters.types?.length || 0) + (filters.suffix?.length || 0) + (searchKeywords.trim() ? 1 : 0)}
                 </span>
               )}
@@ -789,13 +837,16 @@ const KnowledgeDocumentsPage: React.FC = () => {
         
         {/* 展开的筛选器 */}
         {showFilters && (
-          <div className="mt-4 pt-4 border-t border-gray-200 bg-gray-50 rounded-lg p-4">
+          <div className="mt-4 pt-4 rounded-lg p-4" style={{
+            borderTop: '1px solid var(--color-border-default)',
+            backgroundColor: 'var(--color-background-subtle)'
+          }}>
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-2">
-                <div className="p-1.5 bg-blue-100 rounded-md">
-                  <Filter className="h-4 w-4 text-blue-600" />
+                <div className="p-1.5 rounded-md" style={{ backgroundColor: 'var(--color-state-info-subtle)' }}>
+                  <Filter className="h-4 w-4" style={{ color: 'var(--color-state-info)' }} />
                 </div>
-                <h3 className="text-sm font-medium text-gray-900">筛选条件</h3>
+                <h3 className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>筛选条件</h3>
               </div>
               <div className="flex items-center space-x-2">
                 {hasActiveFilters() && (
@@ -803,13 +854,13 @@ const KnowledgeDocumentsPage: React.FC = () => {
                     variant="ghost"
                     size="sm"
                     onClick={clearAllFilters}
-                    className="text-gray-500 hover:text-gray-700"
+                    style={{ color: 'var(--color-text-tertiary)' }}
                   >
                     <X className="h-3 w-3 mr-1" />
                     清除筛选
                   </Button>
                 )}
-                <span className="text-xs text-gray-500">
+                <span className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
                   筛选条件会自动应用
                 </span>
               </div>
@@ -817,10 +868,13 @@ const KnowledgeDocumentsPage: React.FC = () => {
             
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {/* 运行状态筛选 */}
-              <div className="bg-white rounded-lg p-3 border border-gray-200">
-                <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-3">
-                  <div className="p-1 bg-green-100 rounded">
-                    <Play className="h-3 w-3 text-green-600" />
+              <div className="rounded-lg p-3" style={{
+                backgroundColor: 'var(--color-background-surface)',
+                border: '1px solid var(--color-border-default)'
+              }}>
+                <label className="flex items-center space-x-2 text-sm font-medium mb-3" style={{ color: 'var(--color-text-primary)' }}>
+                  <div className="p-1 rounded" style={{ backgroundColor: 'var(--color-state-success-subtle)' }}>
+                    <Play className="h-3 w-3" style={{ color: 'var(--color-state-success)' }} />
                   </div>
                   <span>任务状态</span>
                 </label>
@@ -839,19 +893,34 @@ const KnowledgeDocumentsPage: React.FC = () => {
                             run_status: newRunStatus
                           })
                         }}
-                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                        className="w-4 h-4 rounded focus:outline-none"
+                        style={{
+                          backgroundColor: (filters.run_status?.includes(option.value) || false)
+                            ? 'var(--color-components-checkbox-bg-checked)' 
+                            : 'var(--color-components-checkbox-bg)',
+                          borderColor: (filters.run_status?.includes(option.value) || false)
+                            ? 'var(--color-components-checkbox-border-checked)' 
+                            : 'var(--color-components-checkbox-border)',
+                          borderWidth: '1px',
+                          color: (filters.run_status?.includes(option.value) || false)
+                            ? 'var(--color-components-checkbox-icon)' 
+                            : 'transparent'
+                        }}
                       />
-                      <span className="text-sm text-gray-700">{option.label}</span>
+                      <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>{option.label}</span>
                     </label>
                   ))}
                 </div>
               </div>
               
               {/* 文件类型筛选 */}
-              <div className="bg-white rounded-lg p-3 border border-gray-200">
-                <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-3">
-                  <div className="p-1 bg-purple-100 rounded">
-                    <FileText className="h-3 w-3 text-purple-600" />
+              <div className="rounded-lg p-3" style={{
+                backgroundColor: 'var(--color-background-surface)',
+                border: '1px solid var(--color-border-default)'
+              }}>
+                <label className="flex items-center space-x-2 text-sm font-medium mb-3" style={{ color: 'var(--color-text-primary)' }}>
+                  <div className="p-1 rounded" style={{ backgroundColor: 'var(--color-state-info-subtle)' }}>
+                    <FileText className="h-3 w-3" style={{ color: 'var(--color-state-info)' }} />
                   </div>
                   <span>文件类型</span>
                 </label>
@@ -870,19 +939,34 @@ const KnowledgeDocumentsPage: React.FC = () => {
                             types: newTypes
                           })
                         }}
-                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                        className="w-4 h-4 rounded focus:outline-none"
+                        style={{
+                          backgroundColor: (filters.types?.includes(option.value) || false)
+                            ? 'var(--color-components-checkbox-bg-checked)' 
+                            : 'var(--color-components-checkbox-bg)',
+                          borderColor: (filters.types?.includes(option.value) || false)
+                            ? 'var(--color-components-checkbox-border-checked)' 
+                            : 'var(--color-components-checkbox-border)',
+                          borderWidth: '1px',
+                          color: (filters.types?.includes(option.value) || false)
+                            ? 'var(--color-components-checkbox-icon)' 
+                            : 'transparent'
+                        }}
                       />
-                      <span className="text-sm text-gray-700">{option.label}</span>
+                      <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>{option.label}</span>
                     </label>
                   ))}
                 </div>
               </div>
               
               {/* 文件后缀筛选 */}
-              <div className="bg-white rounded-lg p-3 border border-gray-200">
-                <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-3">
-                  <div className="p-1 bg-orange-100 rounded">
-                    <Tag className="h-3 w-3 text-orange-600" />
+              <div className="rounded-lg p-3" style={{
+                backgroundColor: 'var(--color-background-surface)',
+                border: '1px solid var(--color-border-default)'
+              }}>
+                <label className="flex items-center space-x-2 text-sm font-medium mb-3" style={{ color: 'var(--color-text-primary)' }}>
+                  <div className="p-1 rounded" style={{ backgroundColor: 'var(--color-state-warning-subtle)' }}>
+                    <Tag className="h-3 w-3" style={{ color: 'var(--color-state-warning)' }} />
                   </div>
                   <span>文件后缀</span>
                 </label>
@@ -901,19 +985,34 @@ const KnowledgeDocumentsPage: React.FC = () => {
                             suffix: newSuffix
                           })
                         }}
-                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                        className="w-4 h-4 rounded focus:outline-none"
+                        style={{
+                          backgroundColor: (filters.suffix?.includes(option.value) || false)
+                            ? 'var(--color-components-checkbox-bg-checked)' 
+                            : 'var(--color-components-checkbox-bg)',
+                          borderColor: (filters.suffix?.includes(option.value) || false)
+                            ? 'var(--color-components-checkbox-border-checked)' 
+                            : 'var(--color-components-checkbox-border)',
+                          borderWidth: '1px',
+                          color: (filters.suffix?.includes(option.value) || false)
+                            ? 'var(--color-components-checkbox-icon)' 
+                            : 'transparent'
+                        }}
                       />
-                      <span className="text-sm text-gray-700">{option.label}</span>
+                      <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>{option.label}</span>
                     </label>
                   ))}
                 </div>
               </div>
               
               {/* 排序选项 */}
-              <div className="bg-white rounded-lg p-3 border border-gray-200">
-                <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-3">
-                  <div className="p-1 bg-yellow-100 rounded">
-                    <ArrowUpDown className="h-3 w-3 text-yellow-600" />
+              <div className="rounded-lg p-3" style={{
+                backgroundColor: 'var(--color-background-surface)',
+                border: '1px solid var(--color-border-default)'
+              }}>
+                <label className="flex items-center space-x-2 text-sm font-medium mb-3" style={{ color: 'var(--color-text-primary)' }}>
+                  <div className="p-1 rounded" style={{ backgroundColor: 'var(--color-state-warning-subtle)' }}>
+                    <ArrowUpDown className="h-3 w-3" style={{ color: 'var(--color-state-warning)' }} />
                   </div>
                   <span>排序方式</span>
                 </label>
@@ -943,9 +1042,21 @@ const KnowledgeDocumentsPage: React.FC = () => {
                           desc: e.target.checked
                         })
                       }}
-                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                      className="w-4 h-4 rounded focus:outline-none"
+                      style={{
+                        backgroundColor: sortConfig.desc
+                          ? 'var(--color-components-checkbox-bg-checked)' 
+                          : 'var(--color-components-checkbox-bg)',
+                        borderColor: sortConfig.desc
+                          ? 'var(--color-components-checkbox-border-checked)' 
+                          : 'var(--color-components-checkbox-border)',
+                        borderWidth: '1px',
+                        color: sortConfig.desc
+                          ? 'var(--color-components-checkbox-icon)' 
+                          : 'transparent'
+                      }}
                     />
-                    <span className="text-sm text-gray-700">降序排列</span>
+                    <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>降序排列</span>
                   </label>
                 </div>
               </div>
@@ -953,23 +1064,32 @@ const KnowledgeDocumentsPage: React.FC = () => {
             
             {/* 当前筛选状态显示 */}
             {hasActiveFilters() && (
-              <div className="mt-4 pt-4 border-t border-gray-200 bg-white rounded-lg p-3">
+              <div className="mt-4 pt-4 rounded-lg p-3" style={{
+                borderTop: '1px solid var(--color-border-default)',
+                backgroundColor: 'var(--color-background-surface)'
+              }}>
                 <div className="flex items-center space-x-2 mb-3">
-                  <div className="p-1 bg-blue-100 rounded">
-                    <CheckCircle className="h-3 w-3 text-blue-600" />
+                  <div className="p-1 rounded" style={{ backgroundColor: 'var(--color-state-info-subtle)' }}>
+                    <CheckCircle className="h-3 w-3" style={{ color: 'var(--color-state-info)' }} />
                   </div>
-                  <div className="text-sm font-medium text-gray-700">当前筛选条件</div>
+                  <div className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>当前筛选条件</div>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {searchKeywords.trim() && (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" style={{
+                      backgroundColor: 'var(--color-components-badge-info-bg)',
+                      color: 'var(--color-components-badge-info-text)'
+                    }}>
                       关键词: {searchKeywords}
                     </span>
                   )}
                   {filters.run_status?.map(status => {
                     const statusLabel = runStatusOptions.find(o => o.value === status)?.label
                     return (
-                      <span key={status} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      <span key={status} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" style={{
+                        backgroundColor: 'var(--color-components-badge-success-bg)',
+                        color: 'var(--color-components-badge-success-text)'
+                      }}>
                         状态: {statusLabel}
                       </span>
                     )
@@ -977,7 +1097,10 @@ const KnowledgeDocumentsPage: React.FC = () => {
                   {filters.types?.map(type => {
                     const typeLabel = fileTypeOptions.find(o => o.value === type)?.label
                     return (
-                      <span key={type} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                      <span key={type} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" style={{
+                        backgroundColor: 'var(--color-components-badge-info-bg)',
+                        color: 'var(--color-components-badge-info-text)'
+                      }}>
                         类型: {typeLabel}
                       </span>
                     )
@@ -985,7 +1108,10 @@ const KnowledgeDocumentsPage: React.FC = () => {
                   {filters.suffix?.map(suffix => {
                     const suffixLabel = suffixOptions.find(o => o.value === suffix)?.label
                     return (
-                      <span key={suffix} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                      <span key={suffix} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" style={{
+                        backgroundColor: 'var(--color-components-badge-warning-bg)',
+                        color: 'var(--color-components-badge-warning-text)'
+                      }}>
                         后缀: {suffixLabel}
                       </span>
                     )
@@ -999,9 +1125,9 @@ const KnowledgeDocumentsPage: React.FC = () => {
       
       {/* 文档列表 */}
       {!loading && documents.length > 0 && (
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden flex flex-col flex-1 min-h-0">
+        <div className="rounded-lg shadow-sm overflow-hidden flex flex-col flex-1 min-h-0" style={{ backgroundColor: 'var(--color-background-surface)' }}>
           {/* 列表头部控制 */}
-          <div className="px-6 py-4 border-b border-gray-200">
+          <div className="px-6 py-4" style={{ borderBottom: '1px solid var(--color-border-default)' }}>
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <label className="flex items-center space-x-2">
@@ -1015,14 +1141,26 @@ const KnowledgeDocumentsPage: React.FC = () => {
                         setSelectedDocs(new Set())
                       }
                     }}
-                    className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500"
+                    className="w-4 h-4 rounded focus:outline-none"
+                    style={{
+                      backgroundColor: (selectedDocs.size === documents.length && documents.length > 0)
+                        ? 'var(--color-components-checkbox-bg-checked)' 
+                        : 'var(--color-components-checkbox-bg)',
+                      borderColor: (selectedDocs.size === documents.length && documents.length > 0)
+                        ? 'var(--color-components-checkbox-border-checked)' 
+                        : 'var(--color-components-checkbox-border)',
+                      borderWidth: '1px',
+                      color: (selectedDocs.size === documents.length && documents.length > 0)
+                        ? 'var(--color-components-checkbox-icon)' 
+                        : 'transparent'
+                    }}
                   />
-                  <span className="text-sm text-gray-600">
+                  <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
                     全选 ({selectedDocs.size > 0 ? `已选 ${selectedDocs.size} 个` : `共 ${total} 个文档`})
                   </span>
                 </label>
               </div>
-              <div className="text-sm text-gray-500">
+              <div className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>
                 显示 {documents.length} / {total} 个文档
               </div>
             </div>
@@ -1052,9 +1190,13 @@ const KnowledgeDocumentsPage: React.FC = () => {
           
           {/* 自定义分页控件 - sticky 粘性定位 */}
           {total > 0 && (
-            <div className="sticky bottom-0 border-t border-gray-200 bg-white/95 backdrop-blur-sm shadow-lg">
+            <div className="sticky bottom-0 backdrop-blur-sm shadow-lg" style={{
+              borderTop: '1px solid var(--color-components-pagination-border)',
+              backgroundColor: 'var(--color-components-pagination-bg)',
+              backdropFilter: 'blur(12px)'
+            }}>
               <div className="px-6 py-4 flex items-center justify-between">
-                <div className="text-sm text-gray-600">
+                <div className="text-sm" style={{ color: 'var(--color-components-pagination-text)' }}>
                   共 {total} 项{selectedDocs.size > 0 && ` • 已选择 ${selectedDocs.size} 个`}
                 </div>
                 
@@ -1132,11 +1274,11 @@ const KnowledgeDocumentsPage: React.FC = () => {
       {!loading && documents.length === 0 && (
         <Card className="flex-1 flex items-center justify-center">
           <div className="text-center py-12">
-            <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
+            <FileText className="h-12 w-12 mx-auto mb-4" style={{ color: 'var(--color-text-muted)' }} />
+            <h3 className="text-lg font-medium mb-2" style={{ color: 'var(--color-text-primary)' }}>
               暂无文档
             </h3>
-            <p className="text-gray-500 mb-4">
+            <p className="mb-4" style={{ color: 'var(--color-text-tertiary)' }}>
               还没有上传任何文档，开始添加文档吧
             </p>
             <Button onClick={() => setUploadModalOpen(true)}>
@@ -1149,17 +1291,20 @@ const KnowledgeDocumentsPage: React.FC = () => {
       
       {/* 批量操作浮动工具栏 */}
       {selectedDocs.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-white rounded-lg shadow-lg border border-gray-200 p-4 z-50">
+        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 rounded-lg shadow-lg p-4 z-50" style={{
+          backgroundColor: 'var(--color-background-surface)',
+          border: '1px solid var(--color-border-default)'
+        }}>
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <FileText className="h-4 w-4 text-blue-600" />
+              <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--color-state-info-subtle)' }}>
+                <FileText className="h-4 w-4" style={{ color: 'var(--color-state-info)' }} />
               </div>
-              <span className="text-sm text-gray-600">
+              <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
                 已选择 {selectedDocs.size} 个文档
               </span>
             </div>
-            <div className="h-6 w-px bg-gray-200" />
+            <div className="h-6 w-px" style={{ backgroundColor: 'var(--color-border-default)' }} />
             <div className="flex items-center space-x-2">
               <Button
                 variant="outline"
@@ -1201,7 +1346,10 @@ const KnowledgeDocumentsPage: React.FC = () => {
                     toast.error('批量启用失败，请重试')
                   }
                 }}
-                className="text-green-600 border-green-300 hover:bg-green-50"
+                style={{ 
+                  color: 'var(--color-text-success)', 
+                  borderColor: 'var(--color-border-success)'
+                }}
               >
                 <CheckCircle className="h-4 w-4 mr-1" />
                 启用
@@ -1246,7 +1394,10 @@ const KnowledgeDocumentsPage: React.FC = () => {
                     toast.error('批量禁用失败，请重试')
                   }
                 }}
-                className="text-gray-600 border-gray-300 hover:bg-gray-50"
+                style={{ 
+                  color: 'var(--color-text-secondary)', 
+                  borderColor: 'var(--color-border-default)'
+                }}
               >
                 <XCircle className="h-4 w-4 mr-1" />
                 禁用
@@ -1263,7 +1414,10 @@ const KnowledgeDocumentsPage: React.FC = () => {
                     console.error('Failed to start tasks:', error)
                   }
                 }}
-                className="text-blue-600 border-blue-300 hover:bg-blue-50"
+                style={{ 
+                  color: 'var(--color-text-accent)', 
+                  borderColor: 'var(--color-border-accent)'
+                }}
               >
                 <Play className="h-4 w-4 mr-1" />
                 开始任务
@@ -1280,7 +1434,10 @@ const KnowledgeDocumentsPage: React.FC = () => {
                     console.error('Failed to stop tasks:', error)
                   }
                 }}
-                className="text-orange-600 border-orange-300 hover:bg-orange-50"
+                style={{ 
+                  color: 'var(--color-text-warning)', 
+                  borderColor: 'var(--color-border-warning)'
+                }}
               >
                 <Square className="h-4 w-4 mr-1" />
                 停止任务
@@ -1300,7 +1457,10 @@ const KnowledgeDocumentsPage: React.FC = () => {
                     }
                   }
                 }}
-                className="text-purple-600 border-purple-300 hover:bg-purple-50"
+                style={{ 
+                  color: 'var(--color-text-accent)', 
+                  borderColor: 'var(--color-border-accent)'
+                }}
               >
                 <RefreshCw className="h-4 w-4 mr-1" />
                 重新处理
@@ -1317,7 +1477,7 @@ const KnowledgeDocumentsPage: React.FC = () => {
                 variant="ghost"
                 size="sm"
                 onClick={() => setSelectedDocs(new Set())}
-                className="text-gray-500 hover:text-gray-700"
+                style={{ color: 'var(--color-text-tertiary)' }}
               >
                 <X className="h-4 w-4 mr-1" />
                 取消选择
@@ -1335,7 +1495,7 @@ const KnowledgeDocumentsPage: React.FC = () => {
       >
         <div className="space-y-4">
           <div>
-            <label htmlFor="newDocName" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="newDocName" className="block text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
               新名称
             </label>
             <Input
@@ -1375,22 +1535,35 @@ const KnowledgeDocumentsPage: React.FC = () => {
         <div className="space-y-6">
           {/* 拖拽上传区域 */}
           <div
-            className={cn(
-              "border-2 border-dashed rounded-lg p-8 text-center transition-colors",
-              dragOver 
-                ? "border-blue-400 bg-blue-50" 
-                : "border-gray-300 hover:border-gray-400"
-            )}
+            className="border-2 border-dashed rounded-lg p-8 text-center transition-colors"
+            style={{
+              borderColor: dragOver 
+                ? 'var(--color-border-accent)' 
+                : 'var(--color-border-default)',
+              backgroundColor: dragOver 
+                ? 'var(--color-state-info-subtle)' 
+                : 'transparent'
+            }}
+            onMouseEnter={(e) => {
+              if (!dragOver) {
+                e.currentTarget.style.borderColor = 'var(--color-border-accent)'
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!dragOver) {
+                e.currentTarget.style.borderColor = 'var(--color-border-default)'
+              }
+            }}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
           >
-            <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <Upload className="h-12 w-12 mx-auto mb-4" style={{ color: 'var(--color-text-muted)' }} />
             <div className="space-y-2">
-              <p className="text-lg font-medium text-gray-900">
+              <p className="text-lg font-medium" style={{ color: 'var(--color-text-primary)' }}>
                 拖拽文件到此处，或点击选择文件
               </p>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>
                 支持 PDF、Word、Excel、PPT、文本文件等多种格式
               </p>
             </div>
@@ -1414,22 +1587,22 @@ const KnowledgeDocumentsPage: React.FC = () => {
           {/* 文件列表 */}
           {selectedFiles.length > 0 && (
             <div>
-              <h4 className="text-sm font-medium text-gray-900 mb-3">
+              <h4 className="text-sm font-medium mb-3" style={{ color: 'var(--color-text-primary)' }}>
                 已选择 {selectedFiles.length} 个文件
               </h4>
               <div className="space-y-2 max-h-40 overflow-y-auto scrollbar-thin">
                 {selectedFiles.map((file, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div key={index} className="flex items-center justify-between p-3 rounded-lg" style={{ backgroundColor: 'var(--color-background-subtle)' }}>
                     <div className="flex items-center space-x-3 flex-1 min-w-0">
                       <FileIcon 
                         fileType={file.name.split('.').pop() || 'unknown'} 
                         className="h-8 w-8 text-blue-500 flex-shrink-0" 
                       />
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-gray-900 truncate">
+                        <p className="text-sm font-medium truncate" style={{ color: 'var(--color-text-primary)' }}>
                           {file.name}
                         </p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
                           {(file.size / 1024 / 1024).toFixed(2)} MB
                         </p>
                       </div>
@@ -1438,7 +1611,8 @@ const KnowledgeDocumentsPage: React.FC = () => {
                       variant="ghost"
                       size="icon-sm"
                       onClick={() => handleRemoveFile(index)}
-                      className="text-gray-400 hover:text-red-600 flex-shrink-0"
+                      className="flex-shrink-0"
+              style={{ color: 'var(--color-text-muted)' }}
                     >
                       <X className="h-4 w-4" />
                     </Button>

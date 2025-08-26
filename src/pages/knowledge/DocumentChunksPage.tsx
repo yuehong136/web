@@ -365,26 +365,30 @@ const DocumentChunksPage: React.FC = () => {
   }
 
   return (
-    <div className="h-full bg-gray-50 flex flex-col">
+    <div className="h-full flex flex-col" style={{ backgroundColor: 'var(--color-background-default)' }}>
       {/* 页面标题栏 */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
+      <div className="px-6 py-4" style={{ 
+        backgroundColor: 'var(--color-background-surface)', 
+        borderBottom: '1px solid var(--color-border-default)' 
+      }}>
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => navigate(`/knowledge/${kbId}/documents`)}
-              className="text-gray-600 hover:text-gray-900"
+              style={{ color: 'var(--color-text-secondary)' }}
+              className="hover:color-[var(--color-text-primary)]"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               返回文档列表
             </Button>
-            <div className="h-6 w-px bg-gray-300" />
+            <div className="h-6 w-px" style={{ backgroundColor: 'var(--color-border-accent)' }} />
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-2xl font-bold" style={{ color: 'var(--color-text-primary)' }}>
                 {docInfo?.name || '文档解析块'}
               </h1>
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-sm mt-1" style={{ color: 'var(--color-text-secondary)' }}>
                 共 {total} 个分段
               </p>
             </div>
@@ -434,10 +438,13 @@ const DocumentChunksPage: React.FC = () => {
                     )}
                   >
                     <span className="flex items-center">
-                      <span className="w-1.5 h-1.5 bg-green-500 rounded-full mr-1.5" />
+                      <span className="w-1.5 h-1.5 rounded-full mr-1.5" style={{ backgroundColor: 'var(--color-state-success)' }} />
                       启用
                     </span>
-                    <span className="text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full">
+                    <span className="text-xs px-1.5 py-0.5 rounded-full" style={{
+                      backgroundColor: 'var(--color-components-badge-success-bg)',
+                      color: 'var(--color-components-badge-success-text)'
+                    }}>
                       {chunks.filter(c => c.available_int === 1).length}
                     </span>
                   </button>
@@ -451,10 +458,13 @@ const DocumentChunksPage: React.FC = () => {
                     )}
                   >
                     <span className="flex items-center">
-                      <span className="w-1.5 h-1.5 bg-red-500 rounded-full mr-1.5" />
+                      <span className="w-1.5 h-1.5 rounded-full mr-1.5" style={{ backgroundColor: 'var(--color-state-error)' }} />
                       禁用
                     </span>
-                    <span className="text-xs bg-red-100 text-red-700 px-1.5 py-0.5 rounded-full">
+                    <span className="text-xs px-1.5 py-0.5 rounded-full" style={{
+                      backgroundColor: 'var(--color-components-badge-error-bg)',
+                      color: 'var(--color-components-badge-error-text)'
+                    }}>
                       {chunks.filter(c => c.available_int === 0).length}
                     </span>
                   </button>
@@ -510,13 +520,13 @@ const DocumentChunksPage: React.FC = () => {
           <div className="flex-1 flex flex-col min-h-0">
             <div className="flex-1 overflow-y-auto scrollbar-thin">
             {loading ? (
-              <div className="p-8 text-center text-gray-500">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <div className="p-8 text-center" style={{ color: 'var(--color-text-tertiary)' }}>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto mb-4" style={{ borderColor: 'var(--color-text-accent)' }}></div>
                 加载中...
               </div>
             ) : filteredChunks.length === 0 ? (
-              <div className="p-8 text-center text-gray-500">
-                <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <div className="p-8 text-center" style={{ color: 'var(--color-text-tertiary)' }}>
+                <FileText className="h-12 w-12 mx-auto mb-4" style={{ color: 'var(--color-text-muted)' }} />
                 <p>暂无匹配的分段</p>
               </div>
             ) : (
@@ -525,9 +535,15 @@ const DocumentChunksPage: React.FC = () => {
                   <div
                     key={chunk.chunk_id}
                     className={cn(
-                      "group relative bg-white rounded-lg border border-gray-200 p-4 cursor-pointer transition-all duration-200 hover:shadow-md hover:-translate-y-0.5",
-                      selectedChunk?.chunk_id === chunk.chunk_id && "ring-2 ring-blue-500 border-blue-500"
+                      "group relative rounded-lg p-4 cursor-pointer transition-all duration-200 hover:shadow-md hover:-translate-y-0.5",
+                      selectedChunk?.chunk_id === chunk.chunk_id && "ring-2"
                     )}
+                    style={{
+                      backgroundColor: 'var(--color-components-card-bg)',
+                      border: selectedChunk?.chunk_id === chunk.chunk_id 
+                        ? '2px solid var(--color-text-accent)' 
+                        : '1px solid var(--color-components-card-border)'
+                    }}
                     onClick={() => {
                       setSelectedChunk(chunk)
                       setIsEditMode(true)
@@ -539,23 +555,29 @@ const DocumentChunksPage: React.FC = () => {
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center space-x-2">
                         <Tooltip content={`完整ID: ${chunk.chunk_id}`}>
-                          <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800 cursor-help">
+                          <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium cursor-help" style={{
+                            backgroundColor: 'var(--color-background-subtle)',
+                            color: 'var(--color-text-primary)'
+                          }}>
                             {chunk.chunk_id.length > 16 
                               ? `${chunk.chunk_id.slice(0, 8)}...${chunk.chunk_id.slice(-8)}`
                               : chunk.chunk_id
                             }
                           </span>
                         </Tooltip>
-                        <span className={cn(
-                          "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold shadow-sm",
-                          chunk.available_int === 1
-                            ? "bg-green-100 text-green-700 ring-1 ring-green-200"
-                            : "bg-red-100 text-red-700 ring-1 ring-red-200"
-                        )}>
-                          <span className={cn(
-                            "w-1.5 h-1.5 rounded-full mr-1.5",
-                            chunk.available_int === 1 ? "bg-green-500" : "bg-red-500"
-                          )} />
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold shadow-sm" style={{
+                          backgroundColor: chunk.available_int === 1
+                            ? 'var(--color-components-badge-success-bg)'
+                            : 'var(--color-components-badge-error-bg)',
+                          color: chunk.available_int === 1
+                            ? 'var(--color-components-badge-success-text)'
+                            : 'var(--color-components-badge-error-text)'
+                        }}>
+                          <span className="w-1.5 h-1.5 rounded-full mr-1.5" style={{
+                            backgroundColor: chunk.available_int === 1
+                              ? 'var(--color-state-success)'
+                              : 'var(--color-state-error)'
+                          }} />
                           {chunk.available_int === 1 ? '启用' : '禁用'}
                         </span>
                       </div>
@@ -563,14 +585,18 @@ const DocumentChunksPage: React.FC = () => {
                       {/* 悬停时显示的操作按钮 */}
                       <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-2">
                         <div onClick={(e) => e.stopPropagation()}>
-                          <ToggleSwitch
-                            checked={chunk.available_int === 1}
-                            onChange={() => handleToggleChunkStatus(chunk)}
-                            size="sm"
-                            leftLabel="禁用"
-                            rightLabel="启用"
-                            className="bg-white/90 backdrop-blur-sm rounded-lg px-2 py-1 shadow-md border border-gray-200"
-                          />
+                          <div className="backdrop-blur-sm rounded-lg px-2 py-1 shadow-md" style={{
+                            backgroundColor: 'var(--color-background-surface)',
+                            border: '1px solid var(--color-border-default)'
+                          }}>
+                            <ToggleSwitch
+                              checked={chunk.available_int === 1}
+                              onChange={() => handleToggleChunkStatus(chunk)}
+                              size="sm"
+                              leftLabel="禁用"
+                              rightLabel="启用"
+                            />
+                          </div>
                         </div>
                         <Tooltip content="编辑分段">
                           <Button
@@ -584,7 +610,7 @@ const DocumentChunksPage: React.FC = () => {
                               setIsMarkdownPreview(false) // 重置为编辑模式
                             }}
                           >
-                            <Edit2 className="h-4 w-4 text-blue-600" />
+                            <Edit2 className="h-4 w-4" style={{ color: 'var(--color-text-accent)' }} />
                           </Button>
                         </Tooltip>
                         <Tooltip content="删除分段">
@@ -597,14 +623,14 @@ const DocumentChunksPage: React.FC = () => {
                               setDeleteConfirmOpen(true)
                             }}
                           >
-                            <Trash2 className="h-4 w-4 text-red-600" />
+                            <Trash2 className="h-4 w-4" style={{ color: 'var(--color-text-error)' }} />
                           </Button>
                         </Tooltip>
                       </div>
                     </div>
                     
                     {/* 分段内容预览 */}
-                    <div className="text-sm text-gray-700 leading-relaxed">
+                    <div className="text-sm leading-relaxed" style={{ color: 'var(--color-text-secondary)' }}>
                       <div className={isExpanded ? "" : "line-clamp-3"}>
                         {chunk.content_with_weight}
                       </div>
@@ -612,10 +638,13 @@ const DocumentChunksPage: React.FC = () => {
                     
                     {/* 分段关键词 */}
                     {chunk.important_kwd && chunk.important_kwd.length > 0 && (
-                      <div className="mt-3 pt-3 border-t border-gray-100">
+                      <div className="mt-3 pt-3" style={{ borderTop: '1px solid var(--color-border-subtle)' }}>
                         <div className="flex flex-wrap gap-2">
                           {chunk.important_kwd.map((keyword, index) => (
-                            <span key={index} className="inline-flex items-center px-2 py-1 rounded text-xs bg-blue-50 text-blue-700">
+                            <span key={index} className="inline-flex items-center px-2 py-1 rounded text-xs" style={{
+                              backgroundColor: 'var(--color-components-badge-info-bg)',
+                              color: 'var(--color-components-badge-info-text)'
+                            }}>
                               {keyword}
                             </span>
                           ))}
@@ -631,9 +660,13 @@ const DocumentChunksPage: React.FC = () => {
             
             {/* 分页组件 - sticky 粘性定位 */}
             {total > 0 && (
-              <div className="sticky bottom-0 border-t border-gray-200 bg-white/95 backdrop-blur-sm shadow-lg">
+              <div className="sticky bottom-0 backdrop-blur-sm shadow-lg" style={{
+                borderTop: '1px solid var(--color-components-pagination-border)',
+                backgroundColor: 'var(--color-components-pagination-bg)',
+                backdropFilter: 'blur(12px)'
+              }}>
                 <div className="px-4 py-3 flex items-center justify-between">
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm" style={{ color: 'var(--color-components-pagination-text)' }}>
                     共 {total} 个分段
                   </div>
                   
@@ -719,7 +752,10 @@ const DocumentChunksPage: React.FC = () => {
                       编辑分段
                     </h3>
                     <Tooltip content={`完整ID: ${selectedChunk.chunk_id}`}>
-                      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 cursor-help">
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium cursor-help" style={{
+                        backgroundColor: 'var(--color-components-badge-info-bg)',
+                        color: 'var(--color-components-badge-info-text)'
+                      }}>
                         {selectedChunk.chunk_id.length > 16 
                           ? `${selectedChunk.chunk_id.slice(0, 8)}...${selectedChunk.chunk_id.slice(-8)}`
                           : selectedChunk.chunk_id
@@ -778,7 +814,10 @@ const DocumentChunksPage: React.FC = () => {
                   
                   <div className="flex-1 min-h-0">
                     {isMarkdownPreview ? (
-                      <div className="w-full h-full px-4 py-3 border border-gray-300 rounded-md bg-gray-50 overflow-y-auto scrollbar-thin">
+                      <div className="w-full h-full px-4 py-3 rounded-md overflow-y-auto scrollbar-thin" style={{
+                        border: '1px solid var(--color-components-input-border)',
+                        backgroundColor: 'var(--color-background-subtle)'
+                      }}>
                         <div 
                           className="prose prose-sm max-w-none text-sm leading-relaxed"
                           dangerouslySetInnerHTML={{
@@ -864,7 +903,19 @@ const DocumentChunksPage: React.FC = () => {
                       <textarea
                         value={editingChunkContent}
                         onChange={(e) => setEditingChunkContent(e.target.value)}
-                        className="w-full h-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none text-sm font-mono leading-relaxed"
+                        className="w-full h-full px-3 py-2 rounded-md resize-none text-sm font-mono leading-relaxed"
+                        style={{
+                          border: '1px solid var(--color-components-input-border)',
+                          backgroundColor: 'var(--color-components-input-bg)',
+                          color: 'var(--color-components-input-text)'
+                        }}
+                        onFocus={(e) => {
+                          e.target.style.borderColor = 'var(--color-components-input-border-focus)'
+                          e.target.style.outline = 'none'
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = 'var(--color-components-input-border)'
+                        }}
                         placeholder="请输入分段内容...&#10;&#10;支持 Markdown 语法：&#10;# 标题1  ## 标题2  ### 标题3&#10;**粗体** *斜体* `行内代码`&#10;```代码块```&#10;- 列表项  1. 数字列表&#10;[链接文本](URL)&#10;| 表头1 | 表头2 |&#10;|-------|-------|&#10;| 数据1 | 数据2 |"
                         style={{ minHeight: '300px' }}
                       />
@@ -873,7 +924,10 @@ const DocumentChunksPage: React.FC = () => {
                 </div>
               </div>
               
-              <div className="p-6 border-t border-gray-200 bg-gray-50">
+              <div className="p-6" style={{
+                borderTop: '1px solid var(--color-border-default)',
+                backgroundColor: 'var(--color-background-subtle)'
+              }}>
                 <div className="flex justify-end space-x-3">
                   <Button 
                     variant="outline" 
@@ -903,9 +957,9 @@ const DocumentChunksPage: React.FC = () => {
             {/* 元数据标注区域 */}
             <Card>
               <div className="p-4">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">元数据</h3>
+                <h3 className="text-lg font-medium mb-4" style={{ color: 'var(--color-text-primary)' }}>元数据</h3>
                 <div className="space-y-4">
-                  <div className="text-sm text-gray-600 leading-relaxed">
+                  <div className="text-sm leading-relaxed" style={{ color: 'var(--color-text-secondary)' }}>
                     <p>元数据是关于文档的数据，用于描述文档的属性。元数据可以帮助您更好地组织和管理文档。</p>
                   </div>
                   <Button
@@ -924,74 +978,75 @@ const DocumentChunksPage: React.FC = () => {
             {docInfo && (
               <Card>
                 <div className="p-4">
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">文档信息</h3>
+                  <h3 className="text-lg font-medium mb-4" style={{ color: 'var(--color-text-primary)' }}>文档信息</h3>
                   <div className="space-y-4">
                     
                     {/* 元数据信息 */}
                     <div>
-                      <h4 className="text-sm font-medium text-gray-900 mb-2">元数据信息</h4>
-                      <div className="bg-gray-50 rounded-lg p-3">
+                      <h4 className="text-sm font-medium mb-2" style={{ color: 'var(--color-text-primary)' }}>元数据信息</h4>
+                      <div className="rounded-lg p-3" style={{ backgroundColor: 'var(--color-background-subtle)' }}>
                         {Object.keys(docInfo.meta_fields || {}).length > 0 ? (
                           <div className="space-y-1 text-xs">
                             {Object.entries(docInfo.meta_fields || {}).map(([key, value]) => (
                               <div key={key} className="flex justify-between">
-                                <span className="text-gray-600">{key}:</span>
-                                <span className="text-gray-900">{String(value)}</span>
+                                <span style={{ color: 'var(--color-text-secondary)' }}>{key}:</span>
+                                <span style={{ color: 'var(--color-text-primary)' }}>{String(value)}</span>
                               </div>
                             ))}
                           </div>
                         ) : (
-                          <span className="text-xs text-gray-500">暂无元数据</span>
+                          <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>暂无元数据</span>
                         )}
                       </div>
                     </div>
 
                     {/* 文件信息 */}
                     <div>
-                      <h4 className="text-sm font-medium text-gray-900 mb-2">文件信息</h4>
+                      <h4 className="text-sm font-medium mb-2" style={{ color: 'var(--color-text-primary)' }}>文件信息</h4>
                       <div className="space-y-2 text-xs">
                         <div className="flex justify-between">
-                          <span className="text-gray-600">文件名：</span>
-                          <span className="text-gray-900 font-medium break-all text-right ml-2">{docInfo.name}</span>
+                          <span style={{ color: 'var(--color-text-secondary)' }}>文件名：</span>
+                          <span className="font-medium break-all text-right ml-2" style={{ color: 'var(--color-text-primary)' }}>{docInfo.name}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">创建者：</span>
-                          <span className="text-gray-900">{docInfo.created_by}</span>
+                          <span style={{ color: 'var(--color-text-secondary)' }}>创建者：</span>
+                          <span style={{ color: 'var(--color-text-primary)' }}>{docInfo.created_by}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">创建时间：</span>
-                          <span className="text-gray-900">{formatDate(docInfo.create_date)}</span>
+                          <span style={{ color: 'var(--color-text-secondary)' }}>创建时间：</span>
+                          <span style={{ color: 'var(--color-text-primary)' }}>{formatDate(docInfo.create_date)}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">更新时间：</span>
-                          <span className="text-gray-900">{formatDate(docInfo.update_date)}</span>
+                          <span style={{ color: 'var(--color-text-secondary)' }}>更新时间：</span>
+                          <span style={{ color: 'var(--color-text-primary)' }}>{formatDate(docInfo.update_date)}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">文件大小：</span>
-                          <span className="text-gray-900">{formatFileSize(docInfo.size)}</span>
+                          <span style={{ color: 'var(--color-text-secondary)' }}>文件大小：</span>
+                          <span style={{ color: 'var(--color-text-primary)' }}>{formatFileSize(docInfo.size)}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">来源：</span>
-                          <span className="text-gray-900">{docInfo.source_type}</span>
+                          <span style={{ color: 'var(--color-text-secondary)' }}>来源：</span>
+                          <span style={{ color: 'var(--color-text-primary)' }}>{docInfo.source_type}</span>
                         </div>
                       </div>
                     </div>
 
                     {/* 技术参数 */}
                     <div>
-                      <h4 className="text-sm font-medium text-gray-900 mb-2">技术参数</h4>
+                      <h4 className="text-sm font-medium mb-2" style={{ color: 'var(--color-text-primary)' }}>技术参数</h4>
                       <div className="space-y-2 text-xs">
                         <div className="flex justify-between">
-                          <span className="text-gray-600">切片方法：</span>
-                          <span className="text-gray-900">{docInfo.parser_id}</span>
+                          <span style={{ color: 'var(--color-text-secondary)' }}>切片方法：</span>
+                          <span style={{ color: 'var(--color-text-primary)' }}>{docInfo.parser_id}</span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-gray-600">详细切片配置：</span>
+                          <span style={{ color: 'var(--color-text-secondary)' }}>详细切片配置：</span>
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => setShowParserConfig(!showParserConfig)}
-                            className="text-xs h-6 px-2 text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                            className="text-xs h-6 px-2 flex items-center gap-1"
+                            style={{ color: 'var(--color-text-accent)' }}
                           >
                             {showParserConfig ? (
                               <>
@@ -1009,19 +1064,22 @@ const DocumentChunksPage: React.FC = () => {
                         
                         {/* 可折叠的配置详情 */}
                         {showParserConfig && (
-                          <div className="mt-2 bg-gray-50 rounded-lg p-3 border border-gray-200">
-                            <pre className="text-xs text-gray-700 whitespace-pre-wrap overflow-x-auto scrollbar-thin">
+                          <div className="mt-2 rounded-lg p-3" style={{
+                            backgroundColor: 'var(--color-background-subtle)',
+                            border: '1px solid var(--color-border-default)'
+                          }}>
+                            <pre className="text-xs whitespace-pre-wrap overflow-x-auto scrollbar-thin" style={{ color: 'var(--color-text-secondary)' }}>
                               {JSON.stringify(docInfo.parser_config, null, 2)}
                             </pre>
                           </div>
                         )}
                         <div className="flex justify-between">
-                          <span className="text-gray-600">段落数量：</span>
-                          <span className="text-gray-900">{docInfo.chunk_num}</span>
+                          <span style={{ color: 'var(--color-text-secondary)' }}>段落数量：</span>
+                          <span style={{ color: 'var(--color-text-primary)' }}>{docInfo.chunk_num}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">嵌入花费：</span>
-                          <span className="text-gray-900">{docInfo.token_num} tokens</span>
+                          <span style={{ color: 'var(--color-text-secondary)' }}>嵌入花费：</span>
+                          <span style={{ color: 'var(--color-text-primary)' }}>{docInfo.token_num} tokens</span>
                         </div>
                       </div>
                     </div>
@@ -1049,7 +1107,19 @@ const DocumentChunksPage: React.FC = () => {
               value={newChunkContent}
               onChange={(e) => setNewChunkContent(e.target.value)}
               placeholder="输入分段内容..."
-              className="w-full h-48 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+              className="w-full h-48 px-3 py-2 rounded-md resize-none"
+              style={{
+                border: '1px solid var(--color-components-input-border)',
+                backgroundColor: 'var(--color-components-input-bg)',
+                color: 'var(--color-components-input-text)'
+              }}
+              onFocus={(e) => {
+                e.target.style.borderColor = 'var(--color-components-input-border-focus)'
+                e.target.style.outline = 'none'
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = 'var(--color-components-input-border)'
+              }}
             />
           </div>
           <div className="flex justify-end space-x-3">
@@ -1082,17 +1152,17 @@ const DocumentChunksPage: React.FC = () => {
         size="lg"
       >
         <div className="space-y-6">
-          <div className="text-sm text-gray-600">
+          <div className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
             为文档添加结构化元数据，便于后续的检索和分析。
           </div>
           
           {/* 元数据字段列表 */}
           <div className="space-y-4 max-h-96 overflow-y-auto scrollbar-thin">
             {editingMeta.map((item) => (
-              <div key={item.id} className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg">
+              <div key={item.id} className="flex items-center space-x-3 p-4 rounded-lg" style={{ backgroundColor: 'var(--color-background-subtle)' }}>
                 <div className="flex-1 grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                    <label className="block text-xs font-medium mb-1" style={{ color: 'var(--color-text-primary)' }}>
                       字段名
                     </label>
                     <Input
@@ -1103,7 +1173,7 @@ const DocumentChunksPage: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                    <label className="block text-xs font-medium mb-1" style={{ color: 'var(--color-text-primary)' }}>
                       字段值
                     </label>
                     <Input
@@ -1129,7 +1199,7 @@ const DocumentChunksPage: React.FC = () => {
                   variant="ghost"
                   size="icon-sm"
                   onClick={() => handleRemoveMetaField(item.id)}
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  style={{ color: 'var(--color-text-error)' }}
                 >
                   <X className="h-4 w-4" />
                 </Button>
@@ -1137,8 +1207,8 @@ const DocumentChunksPage: React.FC = () => {
             ))}
             
             {editingMeta.length === 0 && (
-              <div className="text-center py-8 text-gray-500">
-                <Tag className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <div className="text-center py-8" style={{ color: 'var(--color-text-tertiary)' }}>
+                <Tag className="h-12 w-12 mx-auto mb-4" style={{ color: 'var(--color-text-muted)' }} />
                 <p>暂无元数据字段</p>
                 <p className="text-sm">点击下方按钮添加第一个字段</p>
               </div>
@@ -1150,7 +1220,11 @@ const DocumentChunksPage: React.FC = () => {
             <Button
               variant="outline"
               onClick={handleAddMetaField}
-              className="w-full text-blue-600 border-blue-300 hover:bg-blue-50"
+              className="w-full"
+              style={{ 
+                color: 'var(--color-text-accent)', 
+                borderColor: 'var(--color-border-accent)'
+              }}
             >
               <Plus className="h-4 w-4 mr-2" />
               添加元数据字段
