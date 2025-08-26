@@ -477,13 +477,37 @@ export const lightTokens: DesignTokens = {
   'chat-gradient-secondary': 'linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(110, 231, 183, 0.08) 100%)',
   'chat-welcome-border': 'rgba(59, 130, 246, 0.1)',
   'chat-welcome-shadow': '0 4px 20px rgba(59, 130, 246, 0.08)',
-  'chat-input-area-bg': 'rgba(255, 255, 255, 0.9)',
-  'chat-input-area-border': 'rgba(0, 0, 0, 0.08)',
-  'chat-input-area-shadow': '0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08)',
   'chat-input-area-backdrop': 'blur(20px)',
   
   // ===== 侧边栏现代化升级 =====
   'components-sidebar-backdrop': 'blur(12px)',
+  
+  // ===== 编辑器组件 =====
+  'components-editor-bg': '#ffffff',
+  'components-editor-toolbar-bg': '#f9fafb',
+  'components-editor-text': '#374151',
+  'components-editor-border': '#e5e7eb',
+
+  // ===== 面板组件 =====
+  'components-panel-header-bg': '#f9fafb',
+  'components-panel-header-text': '#374151',
+  'components-panel-content-bg': '#ffffff',
+
+  // ===== 图标按钮 =====
+  'components-icon-button-text': '#6b7280',
+  'components-icon-button-text-hover': '#374151',
+  'components-icon-button-bg-hover': '#f3f4f6',
+
+  // ===== 聊天预览增强 =====
+  'chat-bubble-ai-bg': '#f8fafc',
+  'chat-bubble-ai-text': '#1f2937',
+  'chat-input-container-bg': '#f8fafc',
+  'chat-preview-debug-bg': '#f9fafb',
+  'chat-preview-debug-text': '#374151',
+
+  // ===== 应用头像 =====
+  'components-app-avatar-bg': 'linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%)',
+  'components-app-avatar-border': 'rgba(139, 92, 246, 0.2)',
   
   // ===== 聊天气泡和头像 =====
   'chat-bubble-assistant-avatar-bg': '#f0f8ff',
@@ -965,13 +989,37 @@ export const darkTokens: DesignTokens = {
   'chat-gradient-secondary': 'linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(110, 231, 183, 0.12) 100%)',
   'chat-welcome-border': 'rgba(59, 130, 246, 0.2)',
   'chat-welcome-shadow': '0 4px 20px rgba(59, 130, 246, 0.15)',
-  'chat-input-area-bg': 'rgba(30, 41, 59, 0.9)',
-  'chat-input-area-border': 'rgba(255, 255, 255, 0.1)',
-  'chat-input-area-shadow': '0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3)',
   'chat-input-area-backdrop': 'blur(20px)',
   
   // ===== 侧边栏现代化升级 =====
   'components-sidebar-backdrop': 'blur(12px)',
+  
+  // ===== 编辑器组件 =====
+  'components-editor-bg': '#1e293b',
+  'components-editor-toolbar-bg': '#0f172a',
+  'components-editor-text': '#ffffff',
+  'components-editor-border': '#475569',
+
+  // ===== 面板组件 =====
+  'components-panel-header-bg': '#0f172a',
+  'components-panel-header-text': '#ffffff',
+  'components-panel-content-bg': '#1e293b',
+
+  // ===== 图标按钮 =====
+  'components-icon-button-text': '#cbd5e1',
+  'components-icon-button-text-hover': '#ffffff',
+  'components-icon-button-bg-hover': 'rgba(255, 255, 255, 0.05)',
+
+  // ===== 聊天预览增强 =====
+  'chat-bubble-ai-bg': '#334155',
+  'chat-bubble-ai-text': '#ffffff',
+  'chat-input-container-bg': '#334155',
+  'chat-preview-debug-bg': '#0f172a',
+  'chat-preview-debug-text': '#ffffff',
+
+  // ===== 应用头像 =====
+  'components-app-avatar-bg': 'linear-gradient(135deg, #a855f7 0%, #3b82f6 100%)',
+  'components-app-avatar-border': 'rgba(168, 85, 247, 0.3)',
   
   // ===== 聊天气泡和头像 =====
   'chat-bubble-assistant-avatar-bg': 'rgba(59, 130, 246, 0.15)',
@@ -1002,6 +1050,8 @@ export function generateThemeCSS(tokens: DesignTokens, themeName: 'light' | 'dar
     '导航组件': Object.keys(tokens).filter(key => key.startsWith('components-nav-')),
     '下拉菜单组件': Object.keys(tokens).filter(key => key.startsWith('components-dropdown-')),
     '模型选择器组件': Object.keys(tokens).filter(key => key.startsWith('components-model-selector-')),
+    '编辑器组件': Object.keys(tokens).filter(key => key.startsWith('components-editor-')),
+    '面板组件': Object.keys(tokens).filter(key => key.startsWith('components-panel-')),
     '聊天系统': Object.keys(tokens).filter(key => key.startsWith('chat-')),
     '模态框组件': Object.keys(tokens).filter(key => key.startsWith('components-modal-')),
     '表格组件': Object.keys(tokens).filter(key => key.startsWith('components-table-')),
@@ -1014,6 +1064,8 @@ export function generateThemeCSS(tokens: DesignTokens, themeName: 'light' | 'dar
     '状态和通知': Object.keys(tokens).filter(key => key.includes('-alert-')),
     '加载和进度': Object.keys(tokens).filter(key => key.includes('-skeleton-') || key.includes('-progress-') || key.includes('-spinner-') || key.includes('-loader-')),
     '代码和预格式化文本': Object.keys(tokens).filter(key => key.includes('-code-') || key.includes('-pre-')),
+    '图标按钮': Object.keys(tokens).filter(key => key.startsWith('components-icon-button-')),
+    '应用头像': Object.keys(tokens).filter(key => key.startsWith('components-app-avatar-')),
     '其他组件': Object.keys(tokens).filter(key => 
       !key.startsWith('text-') && 
       !key.startsWith('background-') && 
@@ -1028,6 +1080,10 @@ export function generateThemeCSS(tokens: DesignTokens, themeName: 'light' | 'dar
       !key.includes('-nav-') &&
       !key.includes('-dropdown-') &&
       !key.includes('-model-selector-') &&
+      !key.includes('-editor-') &&
+      !key.includes('-panel-') &&
+      !key.includes('-icon-button-') &&
+      !key.includes('-app-avatar-') &&
       !key.includes('-modal-') &&
       !key.includes('-table-') &&
       !key.includes('-checkbox-') &&
@@ -1079,12 +1135,22 @@ export function validateTokens(tokens: DesignTokens): string[] {
     }
   })
   
-  // 检查颜色值格式（跳过阴影类令牌）
+  // 检查颜色值格式（跳过阴影、渐变、滤镜等非颜色类令牌）
   tokenKeys.forEach(key => {
     const value = tokens[key]
     if (!value) return
     const keyStr = String(key)
-    if (keyStr.includes('shadow')) return
+    
+    // 跳过不需要颜色验证的特殊令牌
+    if (keyStr.includes('shadow') || 
+        keyStr.includes('gradient') || 
+        keyStr.includes('backdrop') || 
+        value.startsWith('blur(') || 
+        value.startsWith('linear-gradient(') || 
+        value.startsWith('radial-gradient(')) {
+      return
+    }
+    
     if (!isValidColor(value)) {
       errors.push(`设计令牌 "${key}" 的值 "${value}" 不是有效的颜色格式`)
     }

@@ -10,7 +10,8 @@ import {
   AppstoreOutlined,
   PlusOutlined,
   DeleteOutlined,
-  SearchOutlined
+  SearchOutlined,
+  CaretRightOutlined
 } from '@ant-design/icons'
 import { 
   Bubble, 
@@ -31,6 +32,7 @@ import { ChatModelSelector } from '@/components/chat/ChatModelSelector'
 import { RerankModelSelector } from '@/components/knowledge/RerankModelSelector'
 import type { MyLLMProvider } from '@/stores/model'
 import { formatTimestamp } from '@/lib/utils'
+import { getResolvedTheme } from '@/themes'
 
 const { TextArea } = Input
 const { Title, Text } = Typography
@@ -107,6 +109,44 @@ export const CreateAppPage: React.FC = () => {
   const [leftCollapsed, setLeftCollapsed] = useState(false)
   const [rightCollapsed, setRightCollapsed] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
+  
+  // 主题状态管理
+  const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>(getResolvedTheme())
+  
+  useEffect(() => {
+    const updateTheme = () => {
+      setCurrentTheme(getResolvedTheme())
+    }
+    
+    // 监听主题变化
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
+          updateTheme()
+        }
+      })
+    })
+    
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-theme']
+    })
+    
+    // 监听系统主题变化
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    const handleMediaChange = () => {
+      // 只有在系统主题模式下才响应
+      if (!document.documentElement.hasAttribute('data-theme')) {
+        updateTheme()
+      }
+    }
+    mediaQuery.addEventListener('change', handleMediaChange)
+    
+    return () => {
+      observer.disconnect()
+      mediaQuery.removeEventListener('change', handleMediaChange)
+    }
+  }, [])
   
   // 从URL参数初始化配置
   const [config, setConfig] = useState<AppConfig>({
@@ -793,14 +833,28 @@ export const CreateAppPage: React.FC = () => {
   }
 
   const renderHeader = () => (
-    <div className="bg-white border-b px-6 py-4 flex items-center justify-between">
+    <div className="px-6 py-4 flex items-center justify-between" style={{ 
+      backgroundColor: 'var(--color-components-panel-content-bg)',
+      borderBottom: '1px solid var(--color-border-default)'
+    }}>
       {/* 左侧：返回按钮 + 应用信息 */}
       <div className="flex items-center gap-4">
         <Button 
           type="text" 
-          icon={<ArrowLeftOutlined />}
+          icon={<ArrowLeftOutlined style={{ color: 'var(--color-components-icon-button-text)' }} />}
           onClick={() => navigate('/studio')}
           className="flex items-center justify-center"
+          style={{ color: 'var(--color-components-icon-button-text)' }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = 'var(--color-components-icon-button-text-hover)'
+            const icon = e.currentTarget.querySelector('.anticon')
+            if (icon) (icon as HTMLElement).style.color = 'var(--color-components-icon-button-text-hover)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = 'var(--color-components-icon-button-text)'
+            const icon = e.currentTarget.querySelector('.anticon')
+            if (icon) (icon as HTMLElement).style.color = 'var(--color-components-icon-button-text)'
+          }}
         />
         
         <div className="flex items-center gap-3">
@@ -808,14 +862,20 @@ export const CreateAppPage: React.FC = () => {
             size={40}
             src={config.icon || undefined}
             icon={!config.icon && <AppstoreOutlined />}
-            className={config.icon ? "bg-transparent" : "bg-gradient-to-br from-purple-500 to-blue-500"}
+            style={config.icon ? 
+              { backgroundColor: 'transparent' } : 
+              { 
+                background: 'var(--color-components-app-avatar-bg)',
+                border: '1px solid var(--color-components-app-avatar-border)'
+              }
+            }
           />
           <div className="flex items-center gap-2">
             <div>
-              <Title level={5} className="m-0 text-gray-900">
+              <Title level={5} className="m-0" style={{ color: 'var(--color-text-primary)' }}>
                 {config.name}
               </Title>
-              <Text type="secondary" className="text-sm">
+              <Text className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
                 {config.description}
               </Text>
             </div>
@@ -824,7 +884,9 @@ export const CreateAppPage: React.FC = () => {
               size="small"
               icon={<EditOutlined />}
               onClick={handleEditApp}
-              className="text-gray-500 hover:text-gray-700"
+              style={{ color: 'var(--color-components-icon-button-text)' }}
+              onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-components-icon-button-text-hover)'}
+              onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-components-icon-button-text)'}
             />
           </div>
         </div>
@@ -848,29 +910,45 @@ export const CreateAppPage: React.FC = () => {
   )
 
   const renderLeftPanel = () => (
-    <div className="h-full flex flex-col bg-white">
+    <div className="h-full flex flex-col" style={{ backgroundColor: 'var(--color-components-panel-content-bg)' }}>
       {leftCollapsed ? (
         <div className="flex flex-col items-center p-4 h-full justify-center">
           <Button 
             type="text" 
-            icon={<EditOutlined />} 
+            icon={<EditOutlined style={{ color: 'var(--color-components-icon-button-text)' }} />} 
             onClick={() => setLeftCollapsed(false)}
             className="mb-4"
+            style={{ color: 'var(--color-components-icon-button-text)' }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = 'var(--color-components-icon-button-text-hover)'
+              const icon = e.currentTarget.querySelector('.anticon')
+              if (icon) (icon as HTMLElement).style.color = 'var(--color-components-icon-button-text-hover)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = 'var(--color-components-icon-button-text)'
+              const icon = e.currentTarget.querySelector('.anticon')
+              if (icon) (icon as HTMLElement).style.color = 'var(--color-components-icon-button-text)'
+            }}
           />
-          <Text className="text-xs text-gray-500 transform -rotate-90 whitespace-nowrap">
+          <Text className="text-xs transform -rotate-90 whitespace-nowrap" style={{ color: 'var(--color-text-tertiary)' }}>
             人设与回复逻辑
           </Text>
         </div>
       ) : (
         <>
-          <div className="p-4 border-b bg-gray-50">
+          <div className="p-4" style={{ 
+            backgroundColor: 'var(--color-components-panel-header-bg)',
+            borderBottom: '1px solid var(--color-border-default)'
+          }}>
             <div className="flex items-center justify-between">
-              <Title level={5} className="m-0 text-gray-700">人设与回复逻辑</Title>
+              <Title level={5} className="m-0" style={{ color: 'var(--color-components-panel-header-text)' }}>人设与回复逻辑</Title>
               <Button 
                 type="text" 
                 size="small"
                 onClick={() => setLeftCollapsed(true)}
-                className="text-gray-500"
+                style={{ color: 'var(--color-components-icon-button-text)' }}
+                onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-components-icon-button-text-hover)'}
+                onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-components-icon-button-text)'}
               >
                 ←
               </Button>
@@ -881,7 +959,7 @@ export const CreateAppPage: React.FC = () => {
               <MDEditor
                 value={config.systemPrompt}
                 onChange={(value) => handleConfigChange('systemPrompt', value || '')}
-                data-color-mode="light"
+                data-color-mode={currentTheme}
                 height="100%"
                 visibleDragbar={false}
                 textareaProps={{
@@ -897,8 +975,8 @@ export const CreateAppPage: React.FC = () => {
               />
             </div>
             
-            <div className="mt-3 pt-3 border-t border-gray-200">
-              <div className="flex items-center justify-between text-xs text-gray-500">
+            <div className="mt-3 pt-3" style={{ borderTop: '1px solid var(--color-border-subtle)' }}>
+              <div className="flex items-center justify-between text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
                 <span>💡 支持Markdown语法</span>
                 <span>字符数: {config.systemPrompt.length}</span>
               </div>
@@ -910,9 +988,12 @@ export const CreateAppPage: React.FC = () => {
   )
 
   const renderCenterPanel = () => (
-    <div className="h-full flex flex-col bg-white">
-      <div className="p-4 border-b bg-gray-50">
-        <Title level={5} className="m-0 text-gray-700">应用配置</Title>
+    <div className="h-full flex flex-col" style={{ backgroundColor: 'var(--color-components-panel-content-bg)' }}>
+      <div className="p-4" style={{ 
+        backgroundColor: 'var(--color-components-panel-header-bg)',
+        borderBottom: '1px solid var(--color-border-default)'
+      }}>
+        <Title level={5} className="m-0" style={{ color: 'var(--color-components-panel-header-text)' }}>应用配置</Title>
       </div>
       
       <div className="flex-1 p-4 overflow-auto">
@@ -920,10 +1001,16 @@ export const CreateAppPage: React.FC = () => {
           defaultActiveKey={['model']} 
           ghost
           size="large"
+          expandIcon={({ isActive }) => (
+            <CaretRightOutlined
+              rotate={isActive ? 90 : 0}
+              style={{ color: 'var(--color-text-secondary)' }}
+            />
+          )}
           items={[
             {
               key: 'model',
-              label: '模型',
+              label: <span style={{ color: 'var(--color-text-primary)' }}>模型</span>,
               children: (
                 <Space direction="vertical" className="w-full" size="large">
                   {/* 模型选择 */}
@@ -940,10 +1027,14 @@ export const CreateAppPage: React.FC = () => {
                   
                   {/* 生成多样性 */}
                   <div>
-                    <Text strong className="block mb-3">生成多样性</Text>
+                    <Text strong className="block mb-3" style={{ color: 'var(--color-text-primary)' }}>生成多样性</Text>
                     <Tabs
                       activeKey={currentPreset}
                       onChange={handlePresetChange}
+                      style={{
+                        '--color-text-primary': 'var(--color-text-primary)',
+                        '--color-text-secondary': 'var(--color-text-secondary)',
+                      } as React.CSSProperties}
                       items={[
                         {
                           key: 'creative',
@@ -968,7 +1059,7 @@ export const CreateAppPage: React.FC = () => {
                       {/* 温度 */}
                       <div>
                         <div className="flex items-center justify-between mb-2">
-                          <Text strong>温度: {config.llm_setting.temperature?.toFixed(2)}</Text>
+                          <Text strong style={{ color: 'var(--color-text-primary)' }}>温度: {config.llm_setting.temperature?.toFixed(2)}</Text>
                           <Switch
                             checked={config.llm_setting.temperature_enabled}
                             onChange={(checked) => handleLLMSettingChange('temperature_enabled', checked)}
@@ -988,7 +1079,7 @@ export const CreateAppPage: React.FC = () => {
                       {/* Top P */}
                       <div>
                         <div className="flex items-center justify-between mb-2">
-                          <Text strong>Top P: {config.llm_setting.top_p?.toFixed(2)}</Text>
+                          <Text strong style={{ color: 'var(--color-text-primary)' }}>Top P: {config.llm_setting.top_p?.toFixed(2)}</Text>
                           <Switch
                             checked={config.llm_setting.top_p_enabled}
                             onChange={(checked) => handleLLMSettingChange('top_p_enabled', checked)}
@@ -1008,7 +1099,7 @@ export const CreateAppPage: React.FC = () => {
                       {/* 存在处罚 */}
                       <div>
                         <div className="flex items-center justify-between mb-2">
-                          <Text strong>存在处罚: {config.llm_setting.presence_penalty?.toFixed(2)}</Text>
+                          <Text strong style={{ color: 'var(--color-text-primary)' }}>存在处罚: {config.llm_setting.presence_penalty?.toFixed(2)}</Text>
                           <Switch
                             checked={config.llm_setting.presence_penalty_enabled}
                             onChange={(checked) => handleLLMSettingChange('presence_penalty_enabled', checked)}
@@ -1028,7 +1119,7 @@ export const CreateAppPage: React.FC = () => {
                       {/* 频率惩罚 */}
                       <div>
                         <div className="flex items-center justify-between mb-2">
-                          <Text strong>频率惩罚: {config.llm_setting.frequency_penalty?.toFixed(2)}</Text>
+                          <Text strong style={{ color: 'var(--color-text-primary)' }}>频率惩罚: {config.llm_setting.frequency_penalty?.toFixed(2)}</Text>
                           <Switch
                             checked={config.llm_setting.frequency_penalty_enabled}
                             onChange={(checked) => handleLLMSettingChange('frequency_penalty_enabled', checked)}
@@ -1048,7 +1139,7 @@ export const CreateAppPage: React.FC = () => {
                       {/* 最大回复长度 */}
                       <div>
                         <div className="flex items-center justify-between mb-2">
-                          <Text strong>最大回复长度: {config.llm_setting.max_tokens}</Text>
+                          <Text strong style={{ color: 'var(--color-text-primary)' }}>最大回复长度: {config.llm_setting.max_tokens}</Text>
                           <Switch
                             checked={config.llm_setting.max_tokens_enabled}
                             onChange={(checked) => handleLLMSettingChange('max_tokens_enabled', checked)}
@@ -1070,16 +1161,27 @@ export const CreateAppPage: React.FC = () => {
             },
             {
               key: 'knowledge',
-              label: '知识库',
+              label: <span style={{ color: 'var(--color-text-primary)' }}>知识库</span>,
               extra: (
                 <Button 
                   type="text" 
-                  icon={<PlusOutlined />} 
+                  icon={<PlusOutlined style={{ color: 'var(--color-components-icon-button-text)' }} />} 
                   size="small"
                   onClick={(e) => {
                     e.stopPropagation()
                     setShowKnowledgeModal(true)
                     loadKnowledgeBases()
+                  }}
+                  style={{ color: 'var(--color-components-icon-button-text)' }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = 'var(--color-components-icon-button-text-hover)'
+                    const icon = e.currentTarget.querySelector('.anticon')
+                    if (icon) (icon as HTMLElement).style.color = 'var(--color-components-icon-button-text-hover)'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = 'var(--color-components-icon-button-text)'
+                    const icon = e.currentTarget.querySelector('.anticon')
+                    if (icon) (icon as HTMLElement).style.color = 'var(--color-components-icon-button-text)'
                   }}
                 />
               ),
@@ -1087,9 +1189,9 @@ export const CreateAppPage: React.FC = () => {
                 <Space direction="vertical" className="w-full" size="middle">
                   {/* 已添加的知识库 */}
                   <div>
-                    <Text strong className="block mb-2">已添加的知识库</Text>
+                    <Text strong className="block mb-2" style={{ color: 'var(--color-text-primary)' }}>已添加的知识库</Text>
                     {knowledgeBases.length === 0 ? (
-                      <div className="text-center py-4 text-gray-500">
+                      <div className="text-center py-4" style={{ color: 'var(--color-text-tertiary)' }}>
                         暂无添加的知识库
                       </div>
                     ) : (
@@ -1098,7 +1200,7 @@ export const CreateAppPage: React.FC = () => {
                           <div key={kb.id} className="flex items-center justify-between p-2 border rounded">
                             <div>
                               <div className="font-medium">{kb.name}</div>
-                              <div className="text-sm text-gray-500">{kb.description}</div>
+                              <div className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>{kb.description}</div>
                             </div>
                             <Button 
                               type="text" 
@@ -1117,15 +1219,21 @@ export const CreateAppPage: React.FC = () => {
                   <Collapse 
                     ghost 
                     size="small"
+                    expandIcon={({ isActive }) => (
+                      <CaretRightOutlined
+                        rotate={isActive ? 90 : 0}
+                        style={{ color: 'var(--color-text-secondary)' }}
+                      />
+                    )}
                     items={[
                       {
                         key: 'kb-settings',
-                        label: '知识库设置',
+                        label: <span style={{ color: 'var(--color-text-primary)' }}>知识库设置</span>,
                         children: (
                   <Space direction="vertical" className="w-full" size="middle">
                     {/* 搜索策略 */}
                     <div>
-                      <Text strong className="block mb-2">搜索策略</Text>
+                      <Text strong className="block mb-2" style={{ color: 'var(--color-text-primary)' }}>搜索策略</Text>
                       <Select
                         value={config.search_mode?.type ?? 'dense'}
                         onChange={(value) => {
@@ -1146,11 +1254,11 @@ export const CreateAppPage: React.FC = () => {
                       
                       {/* 混合检索权重设置 */}
                       {config.search_mode?.type === 'hybrid' && (
-                        <div className="mt-3 space-y-3 p-3 bg-gray-50 rounded">
+                        <div className="mt-3 space-y-3 p-3 rounded" style={{ backgroundColor: 'var(--color-background-subtle)' }}>
                           <div>
                             <div className="flex items-center justify-between mb-2">
                               <Text className="text-sm">向量权重</Text>
-                              <Text className="text-sm text-gray-500">{((config.search_mode?.weight_dense ?? 0.7)).toFixed(2)}</Text>
+                              <Text className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>{((config.search_mode?.weight_dense ?? 0.7)).toFixed(2)}</Text>
                             </div>
                             <Slider
                               min={0}
@@ -1171,16 +1279,23 @@ export const CreateAppPage: React.FC = () => {
                           <div>
                             <div className="flex items-center justify-between mb-2">
                               <Text className="text-sm">全文权重 (自动计算)</Text>
-                              <Text className="text-sm text-gray-500">{((config.search_mode?.weight_sparse ?? 0.3)).toFixed(2)}</Text>
+                              <Text className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>{((config.search_mode?.weight_sparse ?? 0.3)).toFixed(2)}</Text>
                             </div>
-                            <div className="h-2 bg-gray-200 rounded relative">
+                            <div className="h-2 rounded relative" style={{ backgroundColor: 'var(--color-components-progress-bg)' }}>
                               <div
-                                className="h-full bg-blue-500 rounded"
-                                style={{ width: `${((config.search_mode?.weight_sparse ?? 0.3) * 100).toFixed(0)}%` }}
+                                className="h-full rounded"
+                                style={{ 
+                                  width: `${((config.search_mode?.weight_sparse ?? 0.3) * 100).toFixed(0)}%`,
+                                  backgroundColor: 'var(--color-components-progress-fill)'
+                                }}
                               />
                             </div>
                           </div>
-                          <div className="text-xs text-gray-500 bg-blue-50 p-2 rounded">
+                          <div className="text-xs p-2 rounded" style={{ 
+                            color: 'var(--color-text-tertiary)', 
+                            backgroundColor: 'var(--color-components-alert-info-bg)', 
+                            border: '1px solid var(--color-components-alert-info-border)' 
+                          }}>
                             💡 向量权重 + 全文权重 = 1.00 (精确到小数点后2位)
                           </div>
                         </div>
@@ -1189,7 +1304,7 @@ export const CreateAppPage: React.FC = () => {
                     
                     {/* 相似度阈值 */}
                     <div>
-                      <Text strong className="block mb-2">相似度阈值: {config.similarity_threshold.toFixed(2)}</Text>
+                      <Text strong className="block mb-2" style={{ color: 'var(--color-text-primary)' }}>相似度阈值: {config.similarity_threshold.toFixed(2)}</Text>
                       <Slider
                         min={0}
                         max={1}
@@ -1201,7 +1316,7 @@ export const CreateAppPage: React.FC = () => {
                     
                     {/* 关键字相似度权重 */}
                     <div>
-                      <Text strong className="block mb-2">关键字相似度权重: {config.vector_similarity_weight.toFixed(2)}</Text>
+                      <Text strong className="block mb-2" style={{ color: 'var(--color-text-primary)' }}>关键字相似度权重: {config.vector_similarity_weight.toFixed(2)}</Text>
                       <Slider
                         min={0}
                         max={1}
@@ -1213,7 +1328,7 @@ export const CreateAppPage: React.FC = () => {
                     
                     {/* Top N */}
                     <div>
-                      <Text strong className="block mb-2">Top N: {config.top_n}</Text>
+                      <Text strong className="block mb-2" style={{ color: 'var(--color-text-primary)' }}>Top N: {config.top_n}</Text>
                       <Input
                         type="number"
                         min={1}
@@ -1224,7 +1339,7 @@ export const CreateAppPage: React.FC = () => {
                     
                     {/* 知识库空回复 */}
                     <div>
-                      <Text strong className="block mb-2">知识库空回复</Text>
+                      <Text strong className="block mb-2" style={{ color: 'var(--color-text-primary)' }}>知识库空回复</Text>
                       <Input.TextArea
                         rows={2}
                         value={config.prompt_config.empty_response}
@@ -1249,7 +1364,7 @@ export const CreateAppPage: React.FC = () => {
                     
                     {/* 向量召回的个数 */}
                     <div>
-                      <Text strong className="block mb-2">向量召回的个数 (Top K): {config.top_k}</Text>
+                      <Text strong className="block mb-2" style={{ color: 'var(--color-text-primary)' }}>向量召回的个数 (Top K): {config.top_k}</Text>
                       <Input
                         type="number"
                         min={1}
@@ -1261,7 +1376,7 @@ export const CreateAppPage: React.FC = () => {
                     {/* 显示来源 */}
                     <div>
                       <div className="flex items-center justify-between">
-                        <Text strong>显示来源</Text>
+                        <Text strong style={{ color: 'var(--color-text-primary)' }}>显示来源</Text>
                         <Switch
                           checked={config.do_refer === '1'}
                           onChange={(checked) => handleConfigChange('do_refer', checked ? '1' : '0')}
@@ -1278,22 +1393,33 @@ export const CreateAppPage: React.FC = () => {
             },
             {
               key: 'memory',
-              label: '变量',
+              label: <span style={{ color: 'var(--color-text-primary)' }}>变量</span>,
               extra: (
                 <Button 
                   type="text" 
-                  icon={<PlusOutlined />} 
+                  icon={<PlusOutlined style={{ color: 'var(--color-components-icon-button-text)' }} />} 
                   size="small"
                   onClick={(e) => {
                     e.stopPropagation()
                     setShowVariableModal(true)
+                  }}
+                  style={{ color: 'var(--color-components-icon-button-text)' }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = 'var(--color-components-icon-button-text-hover)'
+                    const icon = e.currentTarget.querySelector('.anticon')
+                    if (icon) (icon as HTMLElement).style.color = 'var(--color-components-icon-button-text-hover)'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = 'var(--color-components-icon-button-text)'
+                    const icon = e.currentTarget.querySelector('.anticon')
+                    if (icon) (icon as HTMLElement).style.color = 'var(--color-components-icon-button-text)'
                   }}
                 />
               ),
               children: (
                 <div>
                   {config.prompt_config.parameters.length === 0 ? (
-                    <div className="text-center py-4 text-gray-500">
+                    <div className="text-center py-4" style={{ color: 'var(--color-text-tertiary)' }}>
                       暂无变量
                     </div>
                   ) : (
@@ -1322,12 +1448,12 @@ export const CreateAppPage: React.FC = () => {
             },
             {
               key: 'experience',
-              label: '对话体验',
+              label: <span style={{ color: 'var(--color-text-primary)' }}>对话体验</span>,
               children: (
                 <Space direction="vertical" className="w-full" size="middle">
                   {/* 开场白 */}
                   <div>
-                    <Text strong className="block mb-2">开场白</Text>
+                    <Text strong className="block mb-2" style={{ color: 'var(--color-text-primary)' }}>开场白</Text>
                     <Input.TextArea
                       rows={3}
                       value={config.prompt_config.prologue}
@@ -1361,7 +1487,7 @@ export const CreateAppPage: React.FC = () => {
             {msg && msg.trim() ? (
               renderMarkdown(msg)
             ) : (
-              <div className="text-gray-400 italic">正在生成回复...</div>
+              <div className="italic" style={{ color: 'var(--color-text-muted)' }}>正在生成回复...</div>
             )}
           </div>
         ),
@@ -1403,8 +1529,8 @@ export const CreateAppPage: React.FC = () => {
             boxShadow: 'none'
           },
           content: {
-            backgroundColor: isUser ? '#3b82f6' : '#f8fafc',
-            color: isUser ? '#ffffff' : '#1f2937',
+            backgroundColor: isUser ? 'var(--color-chat-bubble-user-bg)' : 'var(--color-chat-bubble-ai-bg)',
+            color: isUser ? 'var(--color-chat-bubble-user-text)' : 'var(--color-chat-bubble-ai-text)',
             border: 'none',
             boxShadow: 'none',
             borderRadius: '16px',
@@ -1419,34 +1545,61 @@ export const CreateAppPage: React.FC = () => {
 
 
     return (
-      <div className="h-full flex flex-col bg-white">
+      <div className="h-full flex flex-col" style={{ backgroundColor: 'var(--color-components-panel-content-bg)' }}>
         {rightCollapsed ? (
           <div className="flex flex-col items-center p-4 h-full justify-center">
             <Button 
               type="text" 
-              icon={<EyeOutlined />} 
+              icon={<EyeOutlined style={{ color: 'var(--color-components-icon-button-text)' }} />} 
               onClick={() => setRightCollapsed(false)}
               className="mb-2"
+              style={{ color: 'var(--color-components-icon-button-text)' }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = 'var(--color-components-icon-button-text-hover)'
+                const icon = e.currentTarget.querySelector('.anticon')
+                if (icon) (icon as HTMLElement).style.color = 'var(--color-components-icon-button-text-hover)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = 'var(--color-components-icon-button-text)'
+                const icon = e.currentTarget.querySelector('.anticon')
+                if (icon) (icon as HTMLElement).style.color = 'var(--color-components-icon-button-text)'
+              }}
             />
             <Button 
               type="text" 
-              icon={<BugOutlined />} 
+              icon={<BugOutlined style={{ color: 'var(--color-components-icon-button-text)' }} />} 
               className="mb-4"
+              style={{ color: 'var(--color-components-icon-button-text)' }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = 'var(--color-components-icon-button-text-hover)'
+                const icon = e.currentTarget.querySelector('.anticon')
+                if (icon) (icon as HTMLElement).style.color = 'var(--color-components-icon-button-text-hover)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = 'var(--color-components-icon-button-text)'
+                const icon = e.currentTarget.querySelector('.anticon')
+                if (icon) (icon as HTMLElement).style.color = 'var(--color-components-icon-button-text)'
+              }}
             />
-            <Text className="text-xs text-gray-500 transform -rotate-90 whitespace-nowrap">
+            <Text className="text-xs transform -rotate-90 whitespace-nowrap" style={{ color: 'var(--color-text-tertiary)' }}>
               预览调试
             </Text>
           </div>
         ) : (
           <>
-            <div className="p-4 border-b bg-gray-50">
+            <div className="p-4" style={{ 
+              backgroundColor: 'var(--color-components-panel-header-bg)',
+              borderBottom: '1px solid var(--color-border-default)'
+            }}>
               <div className="flex items-center justify-between">
-                <Title level={5} className="m-0 text-gray-700">预览与调试</Title>
+                <Title level={5} className="m-0" style={{ color: 'var(--color-components-panel-header-text)' }}>预览与调试</Title>
                 <Button 
                   type="text" 
                   size="small"
                   onClick={() => setRightCollapsed(true)}
-                  className="text-gray-500"
+                  style={{ color: 'var(--color-components-icon-button-text)' }}
+                  onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-components-icon-button-text-hover)'}
+                  onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-components-icon-button-text)'}
                 >
                   →
                 </Button>
@@ -1458,13 +1611,14 @@ export const CreateAppPage: React.FC = () => {
               <div className="flex-1 p-4 overflow-auto">
                 {previewMessages.length === 0 ? (
                   <div className="text-center py-16">
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4" 
+                         style={{ background: 'var(--color-components-app-avatar-bg)' }}>
                       <span className="text-white text-sm font-bold">AI</span>
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--color-text-primary)' }}>
                       {config.name}
                     </h3>
-                    <p className="text-gray-600 text-sm max-w-md mx-auto">
+                    <p className="text-sm max-w-md mx-auto" style={{ color: 'var(--color-text-secondary)' }}>
                       {config.description}
                     </p>
                   </div>
@@ -1488,7 +1642,7 @@ export const CreateAppPage: React.FC = () => {
               </div>
 
               {/* 底部输入区域 */}
-              <div className="p-4 border-t">
+              <div className="p-4" style={{ borderTop: '1px solid var(--color-border-default)' }}>
                 <div className="mb-4">
                   <Sender
                     value={inputValue}
@@ -1512,35 +1666,35 @@ export const CreateAppPage: React.FC = () => {
                         border: 'none',
                         boxShadow: 'none',
                         borderRadius: '12px',
-                        backgroundColor: '#f8fafc',
+                        backgroundColor: 'var(--color-chat-input-container-bg)',
                         fontSize: '13px',
                         lineHeight: '1.5',
                         padding: '8px 12px'
                       }
                     }}
-                    className="border-none shadow-none rounded-xl bg-gray-50"
+                    className="border-none shadow-none rounded-xl"
                   />
                 </div>
                 
                 {/* 调试信息 */}
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <Text strong className="block mb-2 text-xs text-gray-700">调试信息</Text>
+                <div className="rounded-lg p-3" style={{ backgroundColor: 'var(--color-chat-preview-debug-bg)' }}>
+                  <Text strong className="block mb-2 text-xs" style={{ color: 'var(--color-chat-preview-debug-text)' }}>调试信息</Text>
                   <Space direction="vertical" className="w-full" size="small">
                     <div className="flex justify-between text-xs">
-                      <Text type="secondary">当前模型:</Text>
-                      <Text className="text-xs">{config.llm_id || '未选择'}</Text>
+                      <Text className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>当前模型:</Text>
+                      <Text className="text-xs" style={{ color: 'var(--color-chat-preview-debug-text)' }}>{config.llm_id || '未选择'}</Text>
                     </div>
                     <div className="flex justify-between text-xs">
-                      <Text type="secondary">温度设置:</Text>
-                      <Text className="text-xs">{config.llm_setting.temperature?.toFixed(2) || 'N/A'}</Text>
+                      <Text className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>温度设置:</Text>
+                      <Text className="text-xs" style={{ color: 'var(--color-chat-preview-debug-text)' }}>{config.llm_setting.temperature?.toFixed(2) || 'N/A'}</Text>
                     </div>
                     <div className="flex justify-between text-xs">
-                      <Text type="secondary">知识库数量:</Text>
-                      <Text className="text-xs">{config.kb_ids.length}</Text>
+                      <Text className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>知识库数量:</Text>
+                      <Text className="text-xs" style={{ color: 'var(--color-chat-preview-debug-text)' }}>{config.kb_ids.length}</Text>
                     </div>
                     <div className="flex justify-between text-xs">
-                      <Text type="secondary">最大回复长度:</Text>
-                      <Text className="text-xs">{config.llm_setting.max_tokens || 'N/A'}</Text>
+                      <Text className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>最大回复长度:</Text>
+                      <Text className="text-xs" style={{ color: 'var(--color-chat-preview-debug-text)' }}>{config.llm_setting.max_tokens || 'N/A'}</Text>
                     </div>
                   </Space>
                 </div>
@@ -1589,30 +1743,50 @@ export const CreateAppPage: React.FC = () => {
 
       {/* 编辑应用信息弹窗 */}
       <Modal
-        title="编辑应用信息"
+        title={<span style={{ color: 'var(--color-text-primary)' }}>编辑应用信息</span>}
         open={showEditModal}
         onOk={handleSaveEdit}
         onCancel={handleCancelEdit}
         okText="保存"
         cancelText="取消"
         width={500}
+        styles={{
+          content: {
+            backgroundColor: 'var(--color-components-modal-bg)',
+            color: 'var(--color-text-primary)'
+          },
+          header: {
+            backgroundColor: 'var(--color-components-modal-bg)',
+            borderBottom: '1px solid var(--color-border-default)',
+            color: 'var(--color-text-primary)'
+          },
+          body: {
+            backgroundColor: 'var(--color-components-modal-bg)'
+          }
+        }}
       >
         <Space direction="vertical" className="w-full" size="middle">
           <div>
-            <Text strong className="block mb-2">应用图标</Text>
+            <Text strong className="block mb-2" style={{ color: 'var(--color-text-primary)' }}>应用图标</Text>
             <div className="flex items-center gap-4">
               <Avatar 
                 size={64}
                 src={tempConfig.icon}
                 icon={!tempConfig.icon && <AppstoreOutlined />}
-                className={tempConfig.icon ? "bg-transparent" : "bg-gradient-to-br from-purple-500 to-blue-500"}
+                style={tempConfig.icon ? 
+                  { backgroundColor: 'transparent' } : 
+                  { 
+                    background: 'var(--color-components-app-avatar-bg)',
+                    border: '2px solid var(--color-components-app-avatar-border)'
+                  }
+                }
               />
               <Upload
                 beforeUpload={handleIconUpload}
                 showUploadList={false}
                 accept="image/*"
               >
-                <Button icon={<PlusOutlined />}>
+                <Button icon={<PlusOutlined style={{ color: 'var(--color-components-icon-button-text)' }} />}>
                   上传图标
                 </Button>
               </Upload>
@@ -1621,18 +1795,21 @@ export const CreateAppPage: React.FC = () => {
                   onClick={() => setTempConfig(prev => ({ ...prev, icon: undefined }))}
                   type="text"
                   danger
+                  style={{ color: 'var(--color-state-error-text)' }}
+                  onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-state-error-text-hover)'}
+                  onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-state-error-text)'}
                 >
                   移除
                 </Button>
               )}
             </div>
-            <Text type="secondary" className="text-xs">
+            <Text className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
               支持 JPG、PNG、SVG 格式，文件大小不超过 2MB
             </Text>
           </div>
           
           <div>
-            <Text strong className="block mb-2">应用名称</Text>
+            <Text strong className="block mb-2" style={{ color: 'var(--color-text-primary)' }}>应用名称</Text>
             <Input
               value={tempConfig.name}
               onChange={(e) => setTempConfig(prev => ({ ...prev, name: e.target.value }))}
@@ -1658,11 +1835,25 @@ export const CreateAppPage: React.FC = () => {
       
       {/* 添加知识库弹窗 */}
       <Modal
-        title="添加知识库"
+        title={<span style={{ color: 'var(--color-text-primary)' }}>添加知识库</span>}
         open={showKnowledgeModal}
         onCancel={() => setShowKnowledgeModal(false)}
         footer={null}
         width={800}
+        styles={{
+          content: {
+            backgroundColor: 'var(--color-components-modal-bg)',
+            color: 'var(--color-text-primary)'
+          },
+          header: {
+            backgroundColor: 'var(--color-components-modal-bg)',
+            borderBottom: '1px solid var(--color-border-default)',
+            color: 'var(--color-text-primary)'
+          },
+          body: {
+            backgroundColor: 'var(--color-components-modal-bg)'
+          }
+        }}
       >
         <div className="space-y-4">
           {/* 搜索框 */}
@@ -1675,7 +1866,7 @@ export const CreateAppPage: React.FC = () => {
                 setKnowledgePage(1) // 重置到第1页
                 loadKnowledgeBases(knowledgeSearch, 1)
               }}
-              prefix={<SearchOutlined />}
+              prefix={<SearchOutlined style={{ color: 'var(--color-text-tertiary)' }} />}
             />
             <Button onClick={() => {
               setKnowledgePage(1) // 重置到第1页
@@ -1766,7 +1957,7 @@ export const CreateAppPage: React.FC = () => {
       
       {/* 编辑变量弹窗 */}
       <Modal
-        title="编辑变量"
+        title={<span style={{ color: 'var(--color-text-primary)' }}>编辑变量</span>}
         open={showVariableModal}
         onOk={handleAddVariable}
         onCancel={() => {
@@ -1776,10 +1967,24 @@ export const CreateAppPage: React.FC = () => {
         okText="添加"
         cancelText="取消"
         width={400}
+        styles={{
+          content: {
+            backgroundColor: 'var(--color-components-modal-bg)',
+            color: 'var(--color-text-primary)'
+          },
+          header: {
+            backgroundColor: 'var(--color-components-modal-bg)',
+            borderBottom: '1px solid var(--color-border-default)',
+            color: 'var(--color-text-primary)'
+          },
+          body: {
+            backgroundColor: 'var(--color-components-modal-bg)'
+          }
+        }}
       >
         <Space direction="vertical" className="w-full" size="middle">
           <div>
-            <Text strong className="block mb-2">变量名</Text>
+            <Text strong className="block mb-2" style={{ color: 'var(--color-text-primary)' }}>变量名</Text>
             <Input
               value={variableForm.key}
               onChange={(e) => setVariableForm(prev => ({ ...prev, key: e.target.value }))}
@@ -1789,7 +1994,7 @@ export const CreateAppPage: React.FC = () => {
           
           <div>
             <div className="flex items-center justify-between">
-              <Text strong>是否可选</Text>
+              <Text strong style={{ color: 'var(--color-text-primary)' }}>是否可选</Text>
               <Switch
                 checked={variableForm.optional}
                 onChange={(checked) => setVariableForm(prev => ({ ...prev, optional: checked }))}

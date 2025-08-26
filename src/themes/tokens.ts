@@ -354,6 +354,7 @@ export interface DesignTokens {
   
   // ===== 上传组件 =====
   'components-upload-bg': string
+  'components-upload-bg-dragover': string
   'components-upload-border': string
   'components-upload-border-hover': string
   'components-upload-border-dragover': string
@@ -501,9 +502,6 @@ export interface DesignTokens {
   'chat-gradient-secondary': string
   'chat-welcome-border': string
   'chat-welcome-shadow': string
-  'chat-input-area-bg': string
-  'chat-input-area-border': string
-  'chat-input-area-shadow': string
   'chat-input-area-backdrop': string
   
   // ===== 聊天气泡和头像 =====
@@ -516,6 +514,33 @@ export interface DesignTokens {
   
   // ===== 侧边栏现代化升级 =====
   'components-sidebar-backdrop': string
+
+  // ===== 编辑器组件 =====
+  'components-editor-bg': string
+  'components-editor-toolbar-bg': string
+  'components-editor-text': string
+  'components-editor-border': string
+
+  // ===== 面板组件 =====
+  'components-panel-header-bg': string
+  'components-panel-header-text': string
+  'components-panel-content-bg': string
+
+  // ===== 图标按钮 =====
+  'components-icon-button-text': string
+  'components-icon-button-text-hover': string
+  'components-icon-button-bg-hover': string
+
+  // ===== 聊天预览增强 =====
+  'chat-bubble-ai-bg': string
+  'chat-bubble-ai-text': string
+  'chat-input-container-bg': string
+  'chat-preview-debug-bg': string
+  'chat-preview-debug-text': string
+
+  // ===== 应用头像 =====
+  'components-app-avatar-bg': string
+  'components-app-avatar-border': string
 }
 
 // 生成 CSS 变量映射
@@ -624,6 +649,24 @@ export const defaultTokens: DesignTokens = {
   'components-dropdown-shadow': '',
   'components-dropdown-item-bg-hover': '',
   'components-dropdown-item-text': '',
+
+  // 模型选择器组件
+  'components-model-selector-dropdown-bg': '',
+  'components-model-selector-dropdown-border': '',
+  'components-model-selector-dropdown-shadow': '',
+  'components-model-selector-search-bg': '',
+  'components-model-selector-search-border': '',
+  'components-model-selector-search-text': '',
+  'components-model-selector-provider-header-bg': '',
+  'components-model-selector-provider-header-border': '',
+  'components-model-selector-provider-header-text': '',
+  'components-model-selector-item-bg': '',
+  'components-model-selector-item-border': '',
+  'components-model-selector-item-text': '',
+  'components-model-selector-item-bg-hover': '',
+  'components-model-selector-item-bg-selected': '',
+  'components-model-selector-item-text-selected': '',
+  'components-model-selector-overlay-bg': '',
   
   // 模态框组件
   'components-modal-bg': '',
@@ -856,6 +899,7 @@ export const defaultTokens: DesignTokens = {
   
   // 上传组件
   'components-upload-bg': '',
+  'components-upload-bg-dragover': '',
   'components-upload-border': '',
   'components-upload-border-hover': '',
   'components-upload-border-dragover': '',
@@ -1015,6 +1059,33 @@ export const defaultTokens: DesignTokens = {
   
   // 侧边栏现代化升级
   'components-sidebar-backdrop': '',
+
+  // 编辑器组件
+  'components-editor-bg': '',
+  'components-editor-toolbar-bg': '',
+  'components-editor-text': '',
+  'components-editor-border': '',
+
+  // 面板组件
+  'components-panel-header-bg': '',
+  'components-panel-header-text': '',
+  'components-panel-content-bg': '',
+
+  // 图标按钮
+  'components-icon-button-text': '',
+  'components-icon-button-text-hover': '',
+  'components-icon-button-bg-hover': '',
+
+  // 聊天预览增强
+  'chat-bubble-ai-bg': '',
+  'chat-bubble-ai-text': '',
+  'chat-input-container-bg': '',
+  'chat-preview-debug-bg': '',
+  'chat-preview-debug-text': '',
+
+  // 应用头像
+  'components-app-avatar-bg': '',
+  'components-app-avatar-border': '',
 }
 
 // 导出 CSS 变量映射用于 Tailwind

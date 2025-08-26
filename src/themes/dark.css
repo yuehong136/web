@@ -123,6 +123,17 @@ html[data-theme="dark"] {
   --color-components-model-selector-item-text-selected: #3b82f6;
   --color-components-model-selector-overlay-bg: rgba(0, 0, 0, 0.6);
 
+  /* ===== 编辑器组件 ===== */
+  --color-components-editor-bg: #1e293b;
+  --color-components-editor-toolbar-bg: #0f172a;
+  --color-components-editor-text: #ffffff;
+  --color-components-editor-border: #475569;
+
+  /* ===== 面板组件 ===== */
+  --color-components-panel-header-bg: #0f172a;
+  --color-components-panel-header-text: #ffffff;
+  --color-components-panel-content-bg: #1e293b;
+
   /* ===== 聊天系统 ===== */
   --color-chat-header-bg: rgba(15, 23, 42, 0.95);
   --color-chat-header-border: rgba(255, 255, 255, 0.08);
@@ -130,14 +141,19 @@ html[data-theme="dark"] {
   --color-chat-main-bg: #0f172a;
   --color-chat-content-bg: #1e293b;
   --color-chat-content-border: rgba(255, 255, 255, 0.06);
-  --color-chat-input-area-bg: rgba(30, 41, 59, 0.9);
-  --color-chat-input-area-border: rgba(255, 255, 255, 0.1);
-  --color-chat-input-area-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3);
+  --color-chat-input-area-bg: rgba(15, 23, 42, 0.98);
+  --color-chat-input-area-border: rgba(255, 255, 255, 0.08);
+  --color-chat-input-area-shadow: 0 -1px 3px rgba(0, 0, 0, 0.3);
   --color-chat-gradient-primary: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(147, 197, 253, 0.12) 50%, rgba(30, 64, 175, 0.06) 100%);
   --color-chat-gradient-secondary: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(110, 231, 183, 0.12) 100%);
   --color-chat-welcome-border: rgba(59, 130, 246, 0.2);
   --color-chat-welcome-shadow: 0 4px 20px rgba(59, 130, 246, 0.15);
   --color-chat-input-area-backdrop: blur(20px);
+  --color-chat-bubble-ai-bg: #334155;
+  --color-chat-bubble-ai-text: #ffffff;
+  --color-chat-input-container-bg: #334155;
+  --color-chat-preview-debug-bg: #0f172a;
+  --color-chat-preview-debug-text: #ffffff;
   --color-chat-bubble-assistant-avatar-bg: rgba(59, 130, 246, 0.15);
   --color-chat-bubble-assistant-avatar-text: #60a5fa;
   --color-chat-bubble-user-avatar-bg: #4ade80;
@@ -255,6 +271,15 @@ html[data-theme="dark"] {
   --color-components-pre-bg: #161b22;
   --color-components-pre-text: #e6edf3;
   --color-components-pre-border: #30363d;
+
+  /* ===== 图标按钮 ===== */
+  --color-components-icon-button-text: #cbd5e1;
+  --color-components-icon-button-text-hover: #ffffff;
+  --color-components-icon-button-bg-hover: rgba(255, 255, 255, 0.05);
+
+  /* ===== 应用头像 ===== */
+  --color-components-app-avatar-bg: linear-gradient(135deg, #a855f7 0%, #3b82f6 100%);
+  --color-components-app-avatar-border: rgba(168, 85, 247, 0.3);
 
   /* ===== 其他组件 ===== */
   --color-components-badge-bg: rgba(255, 255, 255, 0.1);
@@ -400,9 +425,6 @@ html[data-theme="dark"] {
   --color-components-mentions-item-text: #ffffff;
   --color-components-colorpicker-bg: #1e293b;
   --color-components-colorpicker-border: #475569;
-  --color-components-colorpicker-panel-bg: #1e293b;
-  --color-components-colorpicker-panel-border: #475569;
-  --color-components-colorpicker-panel-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4);
   --color-components-colorpicker-slider-bg: rgba(255, 255, 255, 0.05);
   --color-components-colorpicker-handle: #ffffff;
   --color-components-layout-header-bg: #1e293b;
