@@ -23,7 +23,7 @@ export function TabsTrigger({ className, ...props }: React.ComponentProps<typeof
       className={cn(
         'relative inline-flex h-8 flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-all duration-200',
         'text-muted-foreground hover:text-foreground hover:bg-background/50',
-        'data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:shadow-md data-[state=active]:scale-[1.02]',
+        'data-[state=active]:bg-muted data-[state=active]:text-foreground data-[state=active]:shadow-md data-[state=active]:scale-[1.02]',
         'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
         'disabled:pointer-events-none disabled:opacity-50',
         '[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*=\'size-\'])]:size-4',
