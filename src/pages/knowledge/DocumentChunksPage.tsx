@@ -907,7 +907,8 @@ const DocumentChunksPage: React.FC = () => {
                         style={{
                           border: '1px solid var(--color-components-input-border)',
                           backgroundColor: 'var(--color-components-input-bg)',
-                          color: 'var(--color-components-input-text)'
+                          color: 'var(--color-components-input-text)',
+                          minHeight: '300px'
                         }}
                         onFocus={(e) => {
                           e.target.style.borderColor = 'var(--color-components-input-border-focus)'
@@ -917,7 +918,6 @@ const DocumentChunksPage: React.FC = () => {
                           e.target.style.borderColor = 'var(--color-components-input-border)'
                         }}
                         placeholder="请输入分段内容...&#10;&#10;支持 Markdown 语法：&#10;# 标题1  ## 标题2  ### 标题3&#10;**粗体** *斜体* `行内代码`&#10;```代码块```&#10;- 列表项  1. 数字列表&#10;[链接文本](URL)&#10;| 表头1 | 表头2 |&#10;|-------|-------|&#10;| 数据1 | 数据2 |"
-                        style={{ minHeight: '300px' }}
                       />
                     )}
                   </div>
