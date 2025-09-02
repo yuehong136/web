@@ -100,17 +100,16 @@
 }
 ```
 
-### 2. Tailwind CSS 类名使用
+### 2. Tailwind CSS 类名使用（结合 --twc-* 通道变量）
 ```tsx
-{/* ✅ 正确做法 - 使用设计令牌的 Tailwind 类名 */}
-<div className="bg-components-card-bg text-text-primary border border-border-default">
+{/* ✅ 推荐做法 - 使用语义颜色键与斜杠透明度 */}
+<div className="bg-card text-foreground border border-border">
   <button className="
-    bg-components-button-primary-bg 
-    hover:bg-components-button-primary-bg-hover
-    active:bg-components-button-primary-bg-active
-    disabled:bg-components-button-primary-bg-disabled
-    text-components-button-primary-text
-    disabled:text-components-button-primary-text-disabled
+    inline-flex items-center justify-center rounded-md text-sm font-medium px-4 py-2
+    bg-primary text-primary-foreground border border-primary
+    hover:bg-primary/90
+    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background
+    disabled:opacity-50
   ">
     点击我
   </button>
@@ -243,8 +242,8 @@ npm run build:themes
 #    📄 src/themes/light.css
 #    📄 src/themes/dark.css
 # 📊 统计信息:
-#    🌞 亮色主题令牌数量: 337
-#    🌙 暗色主题令牌数量: 337
+#    🌞 亮色主题令牌数量: <N>
+#    🌙 暗色主题令牌数量: <N>
 #    📦 文件大小: 17.1KB + 18.4KB
 #    ✨ 所有设计令牌验证通过
 ```
@@ -288,6 +287,8 @@ export const darkTokens: DesignTokens = {
 }
 ```
 
+> 说明：生成器会自动在 `light.css`/`dark.css` 的选择器开头输出 `--twc-*` 通道变量（如 `--twc-primary`、`--twc-foreground` 等）。请勿手动编辑生成的 CSS 文件。
+
 **Step 3: 重新生成主题文件**
 ```bash
 npm run build:themes
@@ -311,6 +312,12 @@ import { ThemeSwitcher } from '@/components/ui/theme-switcher'
 <ThemeSwitcher variant="dropdown" />   // 下拉选择器  
 <ThemeSwitcher variant="compact" />    // 紧凑模式
 ```
+
+### 4. 输入框风格（现代浅色）建议
+- 背景：`#fff`，Hover：`#f9fafb`，Focus：`#fff`
+- 边框：默认 `#e2e8f0`，Hover `#cbd5e1`，Focus `#1e40af`
+- 占位符：`#9ca3af`
+- 以上已作为 `components-input-*` 令牌在生成器中配置
 
 ## 🚨 注意事项
 

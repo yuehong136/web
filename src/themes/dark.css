@@ -7,6 +7,14 @@
  */
 
 html[data-theme="dark"] {
+  /* ===== Tailwind 通道变量 (用于 /alpha 透明度支持) ===== */
+  --twc-primary: 59 130 246;
+  --twc-primary-foreground: 255 255 255;
+  --twc-foreground: 255 255 255;
+  --twc-background: 15 23 42;
+  --twc-ring: 59 130 246;
+  --twc-border: 71 85 105;
+
   /* ===== 文本系统 ===== */
   --color-text-primary: #ffffff;
   --color-text-secondary: #e5e7eb;
@@ -282,6 +290,32 @@ html[data-theme="dark"] {
   --color-components-app-avatar-border: rgba(168, 85, 247, 0.3);
 
   /* ===== 其他组件 ===== */
+  --color-components-method-get-bg: rgba(34, 197, 94, 0.2);
+  --color-components-method-get-text: #4ade80;
+  --color-components-method-get-border: #22c55e;
+  --color-components-method-post-bg: rgba(59, 130, 246, 0.2);
+  --color-components-method-post-text: #60a5fa;
+  --color-components-method-post-border: #3b82f6;
+  --color-components-method-put-bg: rgba(245, 158, 11, 0.2);
+  --color-components-method-put-text: #fbbf24;
+  --color-components-method-put-border: #f59e0b;
+  --color-components-method-delete-bg: rgba(239, 68, 68, 0.2);
+  --color-components-method-delete-text: #f87171;
+  --color-components-method-delete-border: #ef4444;
+  --color-components-method-patch-bg: rgba(168, 85, 247, 0.2);
+  --color-components-method-patch-text: #c084fc;
+  --color-components-method-patch-border: #a855f7;
+  --color-components-env-prod-bg: #10b981;
+  --color-components-env-prod-text: #ffffff;
+  --color-components-env-staging-bg: #f59e0b;
+  --color-components-env-staging-text: #ffffff;
+  --color-components-env-dev-bg: #3b82f6;
+  --color-components-env-dev-text: #ffffff;
+  --color-components-glassmorphism-bg: rgba(15, 23, 42, 0.75);
+  --color-components-glassmorphism-border: rgba(255, 255, 255, 0.1);
+  --color-components-api-docs-header-bg: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(147, 197, 253, 0.12) 100%);
+  --color-components-api-docs-header-border: rgba(71, 85, 105, 0.3);
+  --color-components-api-docs-border: #475569;
   --color-components-badge-bg: rgba(255, 255, 255, 0.1);
   --color-components-badge-text: #e5e7eb;
   --color-components-badge-border: #475569;
@@ -449,5 +483,45 @@ html[data-theme="dark"] {
   --color-components-descriptions-content: #ffffff;
   --color-components-descriptions-label: #cbd5e1;
   --color-components-descriptions-item-border: rgba(255, 255, 255, 0.05);
+  --color-components-api-key-header-bg: #0f172a;
+  --color-components-api-key-header-text: #e2e8f0;
+  --color-components-api-key-value-bg: rgba(255, 255, 255, 0.05);
+  --color-components-api-key-value-text: #f1f5f9;
+  --color-components-api-key-value-masked: #64748b;
+  --color-components-api-key-actions-bg: #1e293b;
+  --color-components-api-key-actions-border: #475569;
+  --color-components-api-status-online-bg: rgba(34, 197, 94, 0.15);
+  --color-components-api-status-online-text: #86efac;
+  --color-components-api-status-online-dot: #22c55e;
+  --color-components-api-status-offline-bg: rgba(100, 116, 139, 0.15);
+  --color-components-api-status-offline-text: #94a3b8;
+  --color-components-api-status-offline-dot: #64748b;
+  --color-components-api-status-error-bg: rgba(239, 68, 68, 0.15);
+  --color-components-api-status-error-text: #f87171;
+  --color-components-api-status-error-dot: #ef4444;
+  --color-components-http-method-get-bg: rgba(34, 197, 94, 0.15);
+  --color-components-http-method-get-text: #86efac;
+  --color-components-http-method-get-border: rgba(34, 197, 94, 0.3);
+  --color-components-http-method-post-bg: rgba(59, 130, 246, 0.15);
+  --color-components-http-method-post-text: #93c5fd;
+  --color-components-http-method-post-border: rgba(59, 130, 246, 0.3);
+  --color-components-http-method-put-bg: rgba(245, 158, 11, 0.15);
+  --color-components-http-method-put-text: #fbbf24;
+  --color-components-http-method-put-border: rgba(245, 158, 11, 0.3);
+  --color-components-http-method-delete-bg: rgba(239, 68, 68, 0.15);
+  --color-components-http-method-delete-text: #f87171;
+  --color-components-http-method-delete-border: rgba(239, 68, 68, 0.3);
+  --color-components-http-method-patch-bg: rgba(168, 85, 247, 0.15);
+  --color-components-http-method-patch-text: #c084fc;
+  --color-components-http-method-patch-border: rgba(168, 85, 247, 0.3);
+  --color-components-api-docs-bg: #1e293b;
+  --color-components-api-docs-content-bg: #1e293b;
+  --color-components-api-docs-search-bg: rgba(255, 255, 255, 0.05);
+  --color-components-api-docs-search-border: #64748b;
+  --color-components-api-docs-search-focus-border: #3b82f6;
+  --color-components-glassmorphism-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  --color-components-gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --color-components-gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --color-components-gradient-accent: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
 
 }

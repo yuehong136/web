@@ -62,17 +62,17 @@ export const lightTokens: DesignTokens = {
   'components-button-ghost-text': '#374151',
   'components-button-ghost-text-disabled': '#9ca3af',
   
-  // ===== 输入框组件 =====
-  'components-input-bg': '#e9ecef',
-  'components-input-bg-hover': '#dee2e6',
-  'components-input-bg-focus': '#e9ecef',
-  'components-input-bg-disabled': '#f3f3f5',
-  'components-input-border': 'rgba(0, 0, 0, 0.25)',
-  'components-input-border-hover': '#495057',
+  // ===== 输入框组件（现代浅色风格） =====
+  'components-input-bg': '#ffffff',
+  'components-input-bg-hover': '#f9fafb',
+  'components-input-bg-focus': '#ffffff',
+  'components-input-bg-disabled': '#f5f5f5',
+  'components-input-border': '#e2e8f0',
+  'components-input-border-hover': '#cbd5e1',
   'components-input-border-focus': '#1e40af',
   'components-input-border-error': '#ef4444',
-  'components-input-text': '#1a1a1a',
-  'components-input-text-placeholder': '#9e9e9e',
+  'components-input-text': '#111827',
+  'components-input-text-placeholder': '#9ca3af',
   'components-input-text-disabled': '#9ca3af',
   
   // ===== 卡片组件 =====
@@ -143,6 +143,45 @@ export const lightTokens: DesignTokens = {
   'state-success': '#10b981',
   'state-warning': '#f59e0b',
   'state-error': '#ef4444',
+  
+  // ===== HTTP方法颜色系统 =====
+  'components-method-get-bg': 'rgba(34, 197, 94, 0.1)',
+  'components-method-get-text': '#166534',
+  'components-method-get-border': '#22c55e',
+  'components-method-post-bg': 'rgba(59, 130, 246, 0.1)',
+  'components-method-post-text': '#1e40af',
+  'components-method-post-border': '#3b82f6',
+  'components-method-put-bg': 'rgba(245, 158, 11, 0.1)',
+  'components-method-put-text': '#d97706',
+  'components-method-put-border': '#f59e0b',
+  'components-method-delete-bg': 'rgba(239, 68, 68, 0.1)',
+  'components-method-delete-text': '#dc2626',
+  'components-method-delete-border': '#ef4444',
+  'components-method-patch-bg': 'rgba(168, 85, 247, 0.1)',
+  'components-method-patch-text': '#7c3aed',
+  'components-method-patch-border': '#a855f7',
+  
+  // ===== 环境状态指示器 =====
+  'components-env-prod-bg': '#10b981',
+  'components-env-prod-text': '#ffffff',
+  'components-env-staging-bg': '#f59e0b',
+  'components-env-staging-text': '#ffffff',
+  'components-env-dev-bg': '#3b82f6',
+  'components-env-dev-text': '#ffffff',
+  
+  // ===== 毛玻璃效果 =====
+  'components-glassmorphism-bg': 'rgba(255, 255, 255, 0.8)',
+  'components-glassmorphism-border': 'rgba(255, 255, 255, 0.2)',
+  
+  // ===== API文档专用 =====
+  'components-api-docs-header-bg': 'rgba(255, 255, 255, 0.8)',
+  'components-api-docs-header-border': 'rgba(0, 0, 0, 0.1)',
+  'components-api-docs-sidebar-bg': 'rgba(255, 255, 255, 0.9)',
+  'components-api-docs-sidebar-border': 'rgba(0, 0, 0, 0.08)',
+  'components-api-docs-border': 'rgba(0, 0, 0, 0.1)',
+  'components-code-bg': '#f8fafc',
+  'components-code-text': '#334155',
+  'components-code-border': '#e2e8f0',
   
   // ===== 阴影系统 =====
   'shadow-sm': '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
@@ -516,6 +555,69 @@ export const lightTokens: DesignTokens = {
   'chat-bubble-user-avatar-text': '#ffffff',
   'chat-bubble-user-bg': '#f3f4f6',
   'chat-bubble-user-text': '#374151',
+
+  // ===== API 密钥管理 =====
+  'components-api-key-card-bg': '#ffffff',
+  'components-api-key-card-bg-hover': '#fafbfc',
+  'components-api-key-card-border': 'rgba(0, 0, 0, 0.06)',
+  'components-api-key-card-shadow': '0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06)',
+  'components-api-key-header-bg': '#f8fafc',
+  'components-api-key-header-text': '#374151',
+  'components-api-key-value-bg': '#f1f5f9',
+  'components-api-key-value-text': '#1e293b',
+  'components-api-key-value-masked': '#94a3b8',
+  'components-api-key-actions-bg': '#ffffff',
+  'components-api-key-actions-border': '#e2e8f0',
+
+  // ===== API 状态指示器 =====
+  'components-api-status-online-bg': '#f0fdf4',
+  'components-api-status-online-text': '#15803d',
+  'components-api-status-online-dot': '#22c55e',
+  'components-api-status-offline-bg': '#f9fafb',
+  'components-api-status-offline-text': '#6b7280',
+  'components-api-status-offline-dot': '#9ca3af',
+  'components-api-status-error-bg': '#fef2f2',
+  'components-api-status-error-text': '#dc2626',
+  'components-api-status-error-dot': '#ef4444',
+
+  // ===== HTTP 方法颜色系统 =====
+  'components-http-method-get-bg': '#f0fdf4',
+  'components-http-method-get-text': '#15803d',
+  'components-http-method-get-border': '#bbf7d0',
+  'components-http-method-post-bg': '#eff6ff',
+  'components-http-method-post-text': '#1e40af',
+  'components-http-method-post-border': '#bfdbfe',
+  'components-http-method-put-bg': '#fffbeb',
+  'components-http-method-put-text': '#d97706',
+  'components-http-method-put-border': '#fde68a',
+  'components-http-method-delete-bg': '#fef2f2',
+  'components-http-method-delete-text': '#dc2626',
+  'components-http-method-delete-border': '#fecaca',
+  'components-http-method-patch-bg': '#fdf4ff',
+  'components-http-method-patch-text': '#a855f7',
+  'components-http-method-patch-border': '#e9d5ff',
+
+  // ===== API 文档风格组件 =====
+  'components-api-docs-bg': '#ffffff',
+  'components-api-docs-border': '#e5e7eb',
+  'components-api-docs-header-bg': 'linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(147, 197, 253, 0.08) 100%)',
+  'components-api-docs-sidebar-bg': 'rgba(255, 255, 255, 0.8)',
+  'components-api-docs-sidebar-border': 'rgba(0, 0, 0, 0.06)',
+  'components-api-docs-content-bg': '#ffffff',
+  'components-api-docs-search-bg': '#ffffff',
+  'components-api-docs-search-border': '#d1d5db',
+  'components-api-docs-search-focus-border': '#3b82f6',
+
+  // ===== 现代化增强组件 =====
+  'components-glassmorphism-bg': 'rgba(255, 255, 255, 0.75)',
+  'components-glassmorphism-border': 'rgba(255, 255, 255, 0.2)',
+  'components-glassmorphism-shadow': '0 8px 32px rgba(31, 38, 135, 0.15)',
+  'components-gradient-primary': 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  'components-gradient-secondary': 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+  'components-gradient-accent': 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+  'components-modern-card-bg': 'rgba(255, 255, 255, 0.9)',
+  'components-modern-card-border': 'rgba(255, 255, 255, 0.2)',
+  'components-modern-card-shadow': '0 8px 24px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)',
 }
 
 // 暗色主题令牌值定义
@@ -655,6 +757,45 @@ export const darkTokens: DesignTokens = {
   'state-success': '#10b981',
   'state-warning': '#f59e0b',
   'state-error': '#ef4444',
+  
+  // ===== HTTP方法颜色系统 =====
+  'components-method-get-bg': 'rgba(34, 197, 94, 0.2)',
+  'components-method-get-text': '#4ade80',
+  'components-method-get-border': '#22c55e',
+  'components-method-post-bg': 'rgba(59, 130, 246, 0.2)',
+  'components-method-post-text': '#60a5fa',
+  'components-method-post-border': '#3b82f6',
+  'components-method-put-bg': 'rgba(245, 158, 11, 0.2)',
+  'components-method-put-text': '#fbbf24',
+  'components-method-put-border': '#f59e0b',
+  'components-method-delete-bg': 'rgba(239, 68, 68, 0.2)',
+  'components-method-delete-text': '#f87171',
+  'components-method-delete-border': '#ef4444',
+  'components-method-patch-bg': 'rgba(168, 85, 247, 0.2)',
+  'components-method-patch-text': '#c084fc',
+  'components-method-patch-border': '#a855f7',
+  
+  // ===== 环境状态指示器 =====
+  'components-env-prod-bg': '#10b981',
+  'components-env-prod-text': '#ffffff',
+  'components-env-staging-bg': '#f59e0b',
+  'components-env-staging-text': '#ffffff',
+  'components-env-dev-bg': '#3b82f6',
+  'components-env-dev-text': '#ffffff',
+  
+  // ===== 毛玻璃效果 =====
+  'components-glassmorphism-bg': 'rgba(30, 41, 59, 0.8)',
+  'components-glassmorphism-border': 'rgba(71, 85, 105, 0.3)',
+  
+  // ===== API文档专用 =====
+  'components-api-docs-header-bg': 'rgba(30, 41, 59, 0.8)',
+  'components-api-docs-header-border': 'rgba(71, 85, 105, 0.3)',
+  'components-api-docs-sidebar-bg': 'rgba(30, 41, 59, 0.9)',
+  'components-api-docs-sidebar-border': 'rgba(71, 85, 105, 0.3)',
+  'components-api-docs-border': 'rgba(71, 85, 105, 0.3)',
+  'components-code-bg': '#0f172a',
+  'components-code-text': '#cbd5e1',
+  'components-code-border': '#475569',
   
   // ===== 阴影系统 =====
   'shadow-sm': '0 1px 2px 0 rgba(0, 0, 0, 0.3)',
@@ -1028,6 +1169,69 @@ export const darkTokens: DesignTokens = {
   'chat-bubble-user-avatar-text': '#ffffff',
   'chat-bubble-user-bg': '#334155',
   'chat-bubble-user-text': '#ffffff',
+
+  // ===== API 密钥管理 =====
+  'components-api-key-card-bg': '#1e293b',
+  'components-api-key-card-bg-hover': '#334155',
+  'components-api-key-card-border': 'rgba(255, 255, 255, 0.08)',
+  'components-api-key-card-shadow': '0 4px 12px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2)',
+  'components-api-key-header-bg': '#0f172a',
+  'components-api-key-header-text': '#e2e8f0',
+  'components-api-key-value-bg': 'rgba(255, 255, 255, 0.05)',
+  'components-api-key-value-text': '#f1f5f9',
+  'components-api-key-value-masked': '#64748b',
+  'components-api-key-actions-bg': '#1e293b',
+  'components-api-key-actions-border': '#475569',
+
+  // ===== API 状态指示器 =====
+  'components-api-status-online-bg': 'rgba(34, 197, 94, 0.15)',
+  'components-api-status-online-text': '#86efac',
+  'components-api-status-online-dot': '#22c55e',
+  'components-api-status-offline-bg': 'rgba(100, 116, 139, 0.15)',
+  'components-api-status-offline-text': '#94a3b8',
+  'components-api-status-offline-dot': '#64748b',
+  'components-api-status-error-bg': 'rgba(239, 68, 68, 0.15)',
+  'components-api-status-error-text': '#f87171',
+  'components-api-status-error-dot': '#ef4444',
+
+  // ===== HTTP 方法颜色系统 =====
+  'components-http-method-get-bg': 'rgba(34, 197, 94, 0.15)',
+  'components-http-method-get-text': '#86efac',
+  'components-http-method-get-border': 'rgba(34, 197, 94, 0.3)',
+  'components-http-method-post-bg': 'rgba(59, 130, 246, 0.15)',
+  'components-http-method-post-text': '#93c5fd',
+  'components-http-method-post-border': 'rgba(59, 130, 246, 0.3)',
+  'components-http-method-put-bg': 'rgba(245, 158, 11, 0.15)',
+  'components-http-method-put-text': '#fbbf24',
+  'components-http-method-put-border': 'rgba(245, 158, 11, 0.3)',
+  'components-http-method-delete-bg': 'rgba(239, 68, 68, 0.15)',
+  'components-http-method-delete-text': '#f87171',
+  'components-http-method-delete-border': 'rgba(239, 68, 68, 0.3)',
+  'components-http-method-patch-bg': 'rgba(168, 85, 247, 0.15)',
+  'components-http-method-patch-text': '#c084fc',
+  'components-http-method-patch-border': 'rgba(168, 85, 247, 0.3)',
+
+  // ===== API 文档风格组件 =====
+  'components-api-docs-bg': '#1e293b',
+  'components-api-docs-border': '#475569',
+  'components-api-docs-header-bg': 'linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(147, 197, 253, 0.12) 100%)',
+  'components-api-docs-sidebar-bg': 'rgba(15, 23, 42, 0.8)',
+  'components-api-docs-sidebar-border': 'rgba(255, 255, 255, 0.08)',
+  'components-api-docs-content-bg': '#1e293b',
+  'components-api-docs-search-bg': 'rgba(255, 255, 255, 0.05)',
+  'components-api-docs-search-border': '#64748b',
+  'components-api-docs-search-focus-border': '#3b82f6',
+
+  // ===== 现代化增强组件 =====
+  'components-glassmorphism-bg': 'rgba(15, 23, 42, 0.75)',
+  'components-glassmorphism-border': 'rgba(255, 255, 255, 0.1)',
+  'components-glassmorphism-shadow': '0 8px 32px rgba(0, 0, 0, 0.3)',
+  'components-gradient-primary': 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  'components-gradient-secondary': 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+  'components-gradient-accent': 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+  'components-modern-card-bg': 'rgba(30, 41, 59, 0.9)',
+  'components-modern-card-border': 'rgba(255, 255, 255, 0.1)',
+  'components-modern-card-shadow': '0 8px 24px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2)',
 }
 
 /**
@@ -1036,7 +1240,7 @@ export const darkTokens: DesignTokens = {
 export function generateThemeCSS(tokens: DesignTokens, themeName: 'light' | 'dark'): string {
   const selector = themeName === 'light' ? 'html[data-theme="light"], :root' : 'html[data-theme="dark"]'
   
-  let css = `/**\n * ${themeName === 'light' ? '亮色' : '暗色'}主题 CSS 变量定义\n * 基于 Dify 项目的设计令牌系统\n * \n * ⚠️ 注意: 此文件由代码自动生成，请勿手动修改!\n * 如需修改主题，请编辑 theme-generator.ts 文件\n */\n\n${selector} {\n`
+  let css = `/**\n * ${themeName === 'light' ? '亮色' : '暗色'}主题 CSS 变量定义\n * 基于 Dify 项目的设计令牌系统\n * \n * ⚠️ 注意: 此文件由代码自动生成，请勿手动修改!\n * 如需修改主题，请编辑 theme-generator.ts 文件\n */\n\n${selector} {\n  /* ===== Tailwind 通道变量 (用于 /alpha 透明度支持) ===== */\n  --twc-primary: ${themeName === 'light' ? '30 64 175' : '59 130 246'};\n  --twc-primary-foreground: 255 255 255;\n  --twc-foreground: ${themeName === 'light' ? '15 23 42' : '255 255 255'};\n  --twc-background: ${themeName === 'light' ? '255 255 255' : '15 23 42'};\n  --twc-ring: 59 130 246;\n  --twc-border: ${themeName === 'light' ? '226 232 240' : '71 85 105'};\n\n`
   
   // 按分类组织令牌
   const categories = {

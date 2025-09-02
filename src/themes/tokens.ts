@@ -145,6 +145,39 @@ export interface DesignTokens {
   'state-warning': string
   'state-error': string
   
+  // ===== HTTP方法颜色系统 =====
+  'components-method-get-bg': string
+  'components-method-get-text': string
+  'components-method-get-border': string
+  'components-method-post-bg': string
+  'components-method-post-text': string
+  'components-method-post-border': string
+  'components-method-put-bg': string
+  'components-method-put-text': string
+  'components-method-put-border': string
+  'components-method-delete-bg': string
+  'components-method-delete-text': string
+  'components-method-delete-border': string
+  'components-method-patch-bg': string
+  'components-method-patch-text': string
+  'components-method-patch-border': string
+  
+  // ===== 环境状态指示器 =====
+  'components-env-prod-bg': string
+  'components-env-prod-text': string
+  'components-env-staging-bg': string
+  'components-env-staging-text': string
+  'components-env-dev-bg': string
+  'components-env-dev-text': string
+  
+  
+  // ===== API文档专用 =====
+  'components-api-docs-header-bg': string
+  'components-api-docs-header-border': string
+  'components-api-docs-sidebar-bg': string
+  'components-api-docs-sidebar-border': string
+  'components-api-docs-border': string
+  
   // ===== 阴影系统 =====
   'shadow-sm': string
   'shadow-md': string
@@ -541,6 +574,69 @@ export interface DesignTokens {
   // ===== 应用头像 =====
   'components-app-avatar-bg': string
   'components-app-avatar-border': string
+
+  // ===== API 密钥管理 =====
+  'components-api-key-card-bg': string
+  'components-api-key-card-bg-hover': string
+  'components-api-key-card-border': string
+  'components-api-key-card-shadow': string
+  'components-api-key-header-bg': string
+  'components-api-key-header-text': string
+  'components-api-key-value-bg': string
+  'components-api-key-value-text': string
+  'components-api-key-value-masked': string
+  'components-api-key-actions-bg': string
+  'components-api-key-actions-border': string
+
+  // ===== API 状态指示器 =====
+  'components-api-status-online-bg': string
+  'components-api-status-online-text': string
+  'components-api-status-online-dot': string
+  'components-api-status-offline-bg': string
+  'components-api-status-offline-text': string
+  'components-api-status-offline-dot': string
+  'components-api-status-error-bg': string
+  'components-api-status-error-text': string
+  'components-api-status-error-dot': string
+
+  // ===== HTTP 方法颜色系统 =====
+  'components-http-method-get-bg': string
+  'components-http-method-get-text': string
+  'components-http-method-get-border': string
+  'components-http-method-post-bg': string
+  'components-http-method-post-text': string
+  'components-http-method-post-border': string
+  'components-http-method-put-bg': string
+  'components-http-method-put-text': string
+  'components-http-method-put-border': string
+  'components-http-method-delete-bg': string
+  'components-http-method-delete-text': string
+  'components-http-method-delete-border': string
+  'components-http-method-patch-bg': string
+  'components-http-method-patch-text': string
+  'components-http-method-patch-border': string
+
+  // ===== API 文档风格组件 =====
+  'components-api-docs-bg': string
+  'components-api-docs-border': string
+  'components-api-docs-header-bg': string
+  'components-api-docs-sidebar-bg': string
+  'components-api-docs-sidebar-border': string
+  'components-api-docs-content-bg': string
+  'components-api-docs-search-bg': string
+  'components-api-docs-search-border': string
+  'components-api-docs-search-focus-border': string
+
+  // ===== 现代化增强组件 =====
+  'components-glassmorphism-bg': string
+  'components-glassmorphism-border': string
+  'components-glassmorphism-shadow': string
+  'components-gradient-primary': string
+  'components-gradient-secondary': string
+  'components-gradient-accent': string
+  'components-modern-card-bg': string
+  'components-modern-card-border': string
+  'components-modern-card-shadow': string
 }
 
 // 生成 CSS 变量映射
@@ -689,6 +785,39 @@ export const defaultTokens: DesignTokens = {
   'state-success': '',
   'state-warning': '',
   'state-error': '',
+  
+  // HTTP方法颜色系统
+  'components-method-get-bg': '',
+  'components-method-get-text': '',
+  'components-method-get-border': '',
+  'components-method-post-bg': '',
+  'components-method-post-text': '',
+  'components-method-post-border': '',
+  'components-method-put-bg': '',
+  'components-method-put-text': '',
+  'components-method-put-border': '',
+  'components-method-delete-bg': '',
+  'components-method-delete-text': '',
+  'components-method-delete-border': '',
+  'components-method-patch-bg': '',
+  'components-method-patch-text': '',
+  'components-method-patch-border': '',
+  
+  // 环境状态指示器
+  'components-env-prod-bg': '',
+  'components-env-prod-text': '',
+  'components-env-staging-bg': '',
+  'components-env-staging-text': '',
+  'components-env-dev-bg': '',
+  'components-env-dev-text': '',
+  
+  
+  // API文档专用
+  'components-api-docs-header-bg': '',
+  'components-api-docs-header-border': '',
+  'components-api-docs-sidebar-bg': '',
+  'components-api-docs-sidebar-border': '',
+  'components-api-docs-border': '',
   
   // 阴影系统
   'shadow-sm': '',
@@ -1086,6 +1215,58 @@ export const defaultTokens: DesignTokens = {
   // 应用头像
   'components-app-avatar-bg': '',
   'components-app-avatar-border': '',
+
+  // API 密钥管理
+  'components-api-key-card-bg': '',
+  'components-api-key-card-bg-hover': '',
+  'components-api-key-card-border': '',
+  'components-api-key-card-shadow': '',
+  'components-api-key-header-bg': '',
+  'components-api-key-header-text': '',
+  'components-api-key-value-bg': '',
+  'components-api-key-value-text': '',
+  'components-api-key-value-masked': '',
+  'components-api-key-actions-bg': '',
+  'components-api-key-actions-border': '',
+
+  // API 状态指示器
+  'components-api-status-online-bg': '',
+  'components-api-status-online-text': '',
+  'components-api-status-online-dot': '',
+  'components-api-status-offline-bg': '',
+  'components-api-status-offline-text': '',
+  'components-api-status-offline-dot': '',
+  'components-api-status-error-bg': '',
+  'components-api-status-error-text': '',
+  'components-api-status-error-dot': '',
+
+  // HTTP 方法颜色系统
+  'components-http-method-get-bg': '',
+  'components-http-method-get-text': '',
+  'components-http-method-get-border': '',
+  'components-http-method-post-bg': '',
+  'components-http-method-post-text': '',
+  'components-http-method-post-border': '',
+  'components-http-method-put-bg': '',
+  'components-http-method-put-text': '',
+  'components-http-method-put-border': '',
+  'components-http-method-delete-bg': '',
+  'components-http-method-delete-text': '',
+  'components-http-method-delete-border': '',
+  'components-http-method-patch-bg': '',
+  'components-http-method-patch-text': '',
+  'components-http-method-patch-border': '',
+
+  // 现代化增强组件
+  'components-glassmorphism-bg': '',
+  'components-glassmorphism-border': '',
+  'components-glassmorphism-shadow': '',
+  'components-gradient-primary': '',
+  'components-gradient-secondary': '',
+  'components-gradient-accent': '',
+  'components-modern-card-bg': '',
+  'components-modern-card-border': '',
+  'components-modern-card-shadow': '',
 }
 
 // 导出 CSS 变量映射用于 Tailwind

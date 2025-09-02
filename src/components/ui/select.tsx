@@ -127,7 +127,7 @@ export const SelectContent: React.FC<SelectContentProps> = ({ children, classNam
 
   return (
     <div 
-      className={`absolute top-full left-0 right-0 z-50 mt-1 max-h-60 overflow-auto rounded-xl border shadow-lg ${className}`}
+      className={`absolute top-full left-0 right-0 z-50 mt-1 max-h-60 overflow-auto scrollbar-thin rounded-xl border shadow-lg ${className}`}
       style={{
         backgroundColor: 'var(--color-components-dropdown-bg)',
         borderColor: 'var(--color-components-dropdown-border)',

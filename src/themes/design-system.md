@@ -18,11 +18,17 @@
 ```
 设计令牌定义 (tokens.ts)
        ↓
-CSS 变量映射 (tailwind-vars.ts)
-       ↓  
-Tailwind 类名 (tailwind.config.js)
+主题生成器 (theme-generator.ts)
        ↓
-组件应用 (React 组件)
+生成主题变量 (light.css / dark.css):
+  - --color-* 语义变量
+  - --twc-* 通道变量 (RGB 三通道，供 Tailwind /alpha 使用)
+       ↓
+Tailwind 集成 (tailwind.config.js):
+  - colors.primary = rgb(var(--twc-primary) / <alpha-value>)
+  - foreground/background/ring/border 同理
+       ↓
+组件应用 (React / Tailwind 工具类)
 ```
 
 ## 📚 令牌分类系统
@@ -113,11 +119,31 @@ Tailwind 类名 (tailwind.config.js)
 - 无缝集成到 Tailwind CSS
 - 支持所有设计令牌作为 Tailwind 类名
 - 向后兼容现有样式
+- 通过 `--twc-*` 通道变量获得 Tailwind 原生的斜杠透明度能力：
+  - 示例：`bg-primary/10`、`hover:bg-primary/90`、`ring-ring/50`、`border-border/30`
+- 暗黑模式：`darkMode: ['class', '[data-theme="dark"]']`，配合 `html[data-theme="dark"]` 即可切换
+
+#### 通道变量规范
+- `--twc-primary`: 主色 RGB（不含透明度）
+- `--twc-primary-foreground`: 主色文字 RGB
+- `--twc-foreground` / `--twc-background` / `--twc-ring` / `--twc-border`
+- 以上变量由生成器自动写入 `light.css` / `dark.css`，禁止手改
 
 ### 第四层：组件应用
 - React 组件使用标准化的设计令牌
 - 统一的组件样式类 (.btn-primary, .card, .input-field)
 - 完整的主题响应能力
+
+示例（推荐的 Tailwind 写法，搭配语义颜色键）：
+```tsx
+<button className="
+  inline-flex items-center justify-center rounded-md text-sm font-medium px-4 py-2
+  bg-primary text-primary-foreground border border-primary
+  hover:bg-primary/90
+  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background
+  disabled:opacity-50
+">提交</button>
+```
 
 ## 🚀 自动化工具链
 

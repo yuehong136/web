@@ -7,6 +7,14 @@
  */
 
 html[data-theme="light"], :root {
+  /* ===== Tailwind 通道变量 (用于 /alpha 透明度支持) ===== */
+  --twc-primary: 30 64 175;
+  --twc-primary-foreground: 255 255 255;
+  --twc-foreground: 15 23 42;
+  --twc-background: 255 255 255;
+  --twc-ring: 59 130 246;
+  --twc-border: 226 232 240;
+
   /* ===== 文本系统 ===== */
   --color-text-primary: #0f172a;
   --color-text-secondary: #717182;
@@ -58,16 +66,16 @@ html[data-theme="light"], :root {
   --color-components-button-ghost-text-disabled: #9ca3af;
 
   /* ===== 输入框组件 ===== */
-  --color-components-input-bg: #e9ecef;
-  --color-components-input-bg-hover: #dee2e6;
-  --color-components-input-bg-focus: #e9ecef;
-  --color-components-input-bg-disabled: #f3f3f5;
-  --color-components-input-border: rgba(0, 0, 0, 0.25);
-  --color-components-input-border-hover: #495057;
+  --color-components-input-bg: #ffffff;
+  --color-components-input-bg-hover: #f9fafb;
+  --color-components-input-bg-focus: #ffffff;
+  --color-components-input-bg-disabled: #f5f5f5;
+  --color-components-input-border: #e2e8f0;
+  --color-components-input-border-hover: #cbd5e1;
   --color-components-input-border-focus: #1e40af;
   --color-components-input-border-error: #ef4444;
-  --color-components-input-text: #1a1a1a;
-  --color-components-input-text-placeholder: #9e9e9e;
+  --color-components-input-text: #111827;
+  --color-components-input-text-placeholder: #9ca3af;
   --color-components-input-text-disabled: #9ca3af;
 
   /* ===== 卡片组件 ===== */
@@ -282,6 +290,32 @@ html[data-theme="light"], :root {
   --color-components-app-avatar-border: rgba(139, 92, 246, 0.2);
 
   /* ===== 其他组件 ===== */
+  --color-components-method-get-bg: rgba(34, 197, 94, 0.1);
+  --color-components-method-get-text: #166534;
+  --color-components-method-get-border: #22c55e;
+  --color-components-method-post-bg: rgba(59, 130, 246, 0.1);
+  --color-components-method-post-text: #1e40af;
+  --color-components-method-post-border: #3b82f6;
+  --color-components-method-put-bg: rgba(245, 158, 11, 0.1);
+  --color-components-method-put-text: #d97706;
+  --color-components-method-put-border: #f59e0b;
+  --color-components-method-delete-bg: rgba(239, 68, 68, 0.1);
+  --color-components-method-delete-text: #dc2626;
+  --color-components-method-delete-border: #ef4444;
+  --color-components-method-patch-bg: rgba(168, 85, 247, 0.1);
+  --color-components-method-patch-text: #7c3aed;
+  --color-components-method-patch-border: #a855f7;
+  --color-components-env-prod-bg: #10b981;
+  --color-components-env-prod-text: #ffffff;
+  --color-components-env-staging-bg: #f59e0b;
+  --color-components-env-staging-text: #ffffff;
+  --color-components-env-dev-bg: #3b82f6;
+  --color-components-env-dev-text: #ffffff;
+  --color-components-glassmorphism-bg: rgba(255, 255, 255, 0.75);
+  --color-components-glassmorphism-border: rgba(255, 255, 255, 0.2);
+  --color-components-api-docs-header-bg: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(147, 197, 253, 0.08) 100%);
+  --color-components-api-docs-header-border: rgba(0, 0, 0, 0.1);
+  --color-components-api-docs-border: #e5e7eb;
   --color-components-badge-bg: #f5f5f5;
   --color-components-badge-text: #737373;
   --color-components-badge-border: #eaeaea;
@@ -449,5 +483,45 @@ html[data-theme="light"], :root {
   --color-components-descriptions-content: #1f2937;
   --color-components-descriptions-label: #6b7280;
   --color-components-descriptions-item-border: #f3f4f6;
+  --color-components-api-key-header-bg: #f8fafc;
+  --color-components-api-key-header-text: #374151;
+  --color-components-api-key-value-bg: #f1f5f9;
+  --color-components-api-key-value-text: #1e293b;
+  --color-components-api-key-value-masked: #94a3b8;
+  --color-components-api-key-actions-bg: #ffffff;
+  --color-components-api-key-actions-border: #e2e8f0;
+  --color-components-api-status-online-bg: #f0fdf4;
+  --color-components-api-status-online-text: #15803d;
+  --color-components-api-status-online-dot: #22c55e;
+  --color-components-api-status-offline-bg: #f9fafb;
+  --color-components-api-status-offline-text: #6b7280;
+  --color-components-api-status-offline-dot: #9ca3af;
+  --color-components-api-status-error-bg: #fef2f2;
+  --color-components-api-status-error-text: #dc2626;
+  --color-components-api-status-error-dot: #ef4444;
+  --color-components-http-method-get-bg: #f0fdf4;
+  --color-components-http-method-get-text: #15803d;
+  --color-components-http-method-get-border: #bbf7d0;
+  --color-components-http-method-post-bg: #eff6ff;
+  --color-components-http-method-post-text: #1e40af;
+  --color-components-http-method-post-border: #bfdbfe;
+  --color-components-http-method-put-bg: #fffbeb;
+  --color-components-http-method-put-text: #d97706;
+  --color-components-http-method-put-border: #fde68a;
+  --color-components-http-method-delete-bg: #fef2f2;
+  --color-components-http-method-delete-text: #dc2626;
+  --color-components-http-method-delete-border: #fecaca;
+  --color-components-http-method-patch-bg: #fdf4ff;
+  --color-components-http-method-patch-text: #a855f7;
+  --color-components-http-method-patch-border: #e9d5ff;
+  --color-components-api-docs-bg: #ffffff;
+  --color-components-api-docs-content-bg: #ffffff;
+  --color-components-api-docs-search-bg: #ffffff;
+  --color-components-api-docs-search-border: #d1d5db;
+  --color-components-api-docs-search-focus-border: #3b82f6;
+  --color-components-glassmorphism-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+  --color-components-gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --color-components-gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --color-components-gradient-accent: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
 
 }

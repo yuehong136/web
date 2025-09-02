@@ -12,40 +12,32 @@ export default {
       colors: {
         // 集成语义化设计令牌
         ...tailwindVars,
-        // 使用参考项目的颜色系统
-        background: 'var(--background)',
-        foreground: 'var(--foreground)',
+        // Tailwind 友好的通道变量映射（支持 /alpha 透明度）
+        background: 'rgb(var(--twc-background) / <alpha-value>)',
+        foreground: 'rgb(var(--twc-foreground) / <alpha-value>)',
         card: {
-          DEFAULT: 'var(--card)',
-          foreground: 'var(--card-foreground)',
+          DEFAULT: 'var(--color-components-card-bg)',
+          foreground: 'var(--color-text-primary)',
         },
         popover: {
-          DEFAULT: 'var(--popover)',
-          foreground: 'var(--popover-foreground)',
+          DEFAULT: 'var(--color-components-dropdown-bg)',
+          foreground: 'var(--color-text-primary)',
         },
         primary: {
-          DEFAULT: 'var(--primary)',
-          foreground: 'var(--primary-foreground)',
+          DEFAULT: 'rgb(var(--twc-primary) / <alpha-value>)',
+          foreground: 'rgb(var(--twc-primary-foreground) / <alpha-value>)',
         },
         secondary: {
-          DEFAULT: 'var(--secondary)',
-          foreground: 'var(--secondary-foreground)',
+          DEFAULT: 'var(--color-components-button-secondary-bg)',
+          foreground: 'var(--color-components-button-secondary-text)',
         },
         muted: {
-          DEFAULT: 'var(--muted)',
-          foreground: 'var(--muted-foreground)',
+          DEFAULT: 'var(--color-background-subtle)',
+          foreground: 'var(--color-text-secondary)',
         },
-        accent: {
-          DEFAULT: 'var(--accent)',
-          foreground: 'var(--accent-foreground)',
-        },
-        destructive: {
-          DEFAULT: 'var(--destructive)',
-          foreground: 'var(--destructive-foreground)',
-        },
-        border: 'var(--border)',
-        input: 'var(--input)',
-        ring: 'var(--ring)',
+        border: 'rgb(var(--twc-border) / <alpha-value>)',
+        input: 'var(--color-components-input-border)',
+        ring: 'rgb(var(--twc-ring) / <alpha-value>)',
         // 保持原有的灰色系
         gray: {
           50: '#f9fafb',

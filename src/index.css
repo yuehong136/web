@@ -154,33 +154,28 @@
     overflow: hidden;
   }
   .btn-primary {
-    @apply inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
-    background-color: var(--color-components-button-primary-bg);
-    color: var(--color-components-button-primary-text);
-    border-color: var(--color-components-button-primary-border);
-    @apply px-4 py-2;
+    @apply inline-flex items-center justify-center rounded-md text-sm font-medium px-4 py-2 transition-colors disabled:pointer-events-none disabled:opacity-50;
+    @apply bg-primary text-primary-foreground border border-primary;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background;
   }
 
   .btn-primary:hover {
-    background-color: var(--color-components-button-primary-bg-hover);
-    border-color: var(--color-components-button-primary-border-hover);
+    @apply bg-primary/90;
   }
 
   .btn-primary:active {
-    background-color: var(--color-components-button-primary-bg-active);
+    @apply bg-primary;
   }
 
   .btn-primary:disabled {
-    background-color: var(--color-components-button-primary-bg-disabled);
-    color: var(--color-components-button-primary-text-disabled);
+    /* 颜色保持不变，使用 disabled:opacity-50 表达禁用态 */
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
-    background-color: var(--color-components-button-secondary-bg);
-    color: var(--color-components-button-secondary-text);
+    @apply inline-flex items-center justify-center rounded-md text-sm font-medium px-4 py-2 transition-colors disabled:pointer-events-none disabled:opacity-50;
+    @apply bg-secondary text-secondary-foreground border;
     border-color: var(--color-components-button-secondary-border);
-    @apply px-4 py-2;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background;
   }
 
   .btn-secondary:hover {
@@ -189,12 +184,7 @@
   }
 
   .btn-secondary:active {
-    background-color: var(--color-components-button-secondary-bg-active);
-  }
-
-  .btn-secondary:disabled {
-    background-color: var(--color-components-button-secondary-bg-disabled);
-    color: var(--color-components-button-secondary-text-disabled);
+    @apply bg-secondary;
   }
 
   .btn-ghost {
@@ -212,10 +202,7 @@
   }
 
   .card {
-    @apply rounded-lg shadow-soft;
-    background-color: var(--color-components-card-bg);
-    border-color: var(--color-components-card-border);
-    box-shadow: var(--color-components-card-shadow);
+    @apply rounded-lg shadow-soft bg-card border border-border;
   }
 
   .card:hover {
@@ -224,13 +211,12 @@
 
   .input-field {
     @apply flex h-10 w-full rounded-md border px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply border-input text-foreground;
     background-color: var(--color-components-input-bg);
-    border-color: var(--color-components-input-border);
-    color: var(--color-components-input-text);
   }
 
   .input-field::placeholder {
-    color: var(--color-components-input-text-placeholder);
+    @apply placeholder:text-muted-foreground;
   }
 
   .input-field:hover {
@@ -240,14 +226,10 @@
 
   .input-field:focus-visible {
     background-color: var(--color-components-input-bg-focus);
-    border-color: var(--color-components-input-border-focus);
-    --tw-ring-color: var(--color-components-input-border-focus);
+    @apply border-input focus-visible:ring-ring/50;
   }
 
-  .input-field:disabled {
-    background-color: var(--color-components-input-bg-disabled);
-    color: var(--color-components-input-text-disabled);
-  }
+  /* .input-field:disabled 样式由 disabled:opacity-50 控制 */
 
   .sidebar-item {
     @apply flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors;

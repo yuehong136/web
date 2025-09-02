@@ -19,6 +19,7 @@ import { MCPServersPage } from '@/pages/settings/MCPServersPage'
 import { MCPToolsPage } from '@/pages/settings/MCPToolsPage'
 import { MCPTestPage } from '@/pages/settings/MCPTestPage'
 import { MCPBatchPage } from '@/pages/settings/MCPBatchPage'
+import ApiKeysPage from '@/pages/settings/ApiKeysPage'
 import { StudioPage } from '@/pages/studio'
 import { CreateAppPage } from '@/pages/studio/CreateAppPage'
 import { SystemPage } from '@/pages/system'
@@ -71,12 +72,6 @@ const AppearancePage = () => (
   </div>
 )
 
-const APIKeysPage = () => (
-  <div className="p-8">
-    <h2 className="text-2xl font-bold text-gray-900">API密钥</h2>
-    <p className="text-gray-600 mt-2">API密钥管理功能开发中...</p>
-  </div>
-)
 
 // 创建路由配置
 const authRoutes = [
@@ -255,7 +250,7 @@ export const router = createBrowserRouter([
           },
           {
             path: 'api-keys',
-            element: <APIKeysPage />,
+            element: <ApiKeysPage />,
           },
         ],
       },

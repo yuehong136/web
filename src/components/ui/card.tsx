@@ -1,16 +1,19 @@
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
-import { cn } from "@/lib/utils"
+import { cn } from "./utils"
 
 const cardVariants = cva(
-  "rounded-lg border bg-components-card-bg text-text-primary shadow-components-card-shadow",
+  "rounded-lg border bg-components-card-bg text-text-primary shadow-components-card-shadow transition-all duration-200",
   {
     variants: {
       variant: {
         default: "border-components-card-border",
         outline: "border-border-strong",
         elevated: "border-components-card-border shadow-shadow-md",
-        interactive: "border-components-card-border hover:bg-components-card-bg-hover hover:shadow-shadow-md transition-shadow cursor-pointer",
+        interactive: "border-components-card-border hover:bg-components-card-bg-hover hover:shadow-shadow-md cursor-pointer hover:scale-[1.02]",
+        glassmorphism: "bg-components-glassmorphism-bg border-components-glassmorphism-border backdrop-blur-xl shadow-components-glassmorphism-shadow",
+        modern: "bg-components-modern-card-bg border-components-modern-card-border shadow-components-modern-card-shadow backdrop-blur-sm",
+        "api-key": "bg-components-api-key-card-bg border-components-api-key-card-border shadow-components-api-key-card-shadow hover:bg-components-api-key-card-bg-hover",
       },
       padding: {
         none: "",
