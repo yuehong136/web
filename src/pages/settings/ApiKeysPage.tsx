@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react"
 import { 
-  Search, Menu, X, Globe, Database, Users, Shield, 
+  Search, Globe, Database, Users, Shield, 
   Play, Copy, Check, RefreshCw, Activity, Star, FileText, 
   Key, Zap, BookOpen, ChevronDown, ChevronRight,
   Plus, Minus, Save, Archive
@@ -67,7 +67,7 @@ const tagIcons = {
 const ApiDocumentationPage: React.FC = () => {
   const [selectedAPI, setSelectedAPI] = useState<APIEndpoint | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true)
+  
   const [apiSpec, setApiSpec] = useState<OpenAPISpec | null>(null)
   const [apiEndpoints, setApiEndpoints] = useState<APIEndpoint[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -480,7 +480,7 @@ const ApiDocumentationPage: React.FC = () => {
   if (isLoading) {
     return (
       <div className="h-full flex items-center justify-center bg-gradient-to-br from-background-body via-background-default to-background-subtle">
-        <Card className="p-8 max-w-md w-full text-center space-y-4 backdrop-blur-xl bg-components-glassmorphism-bg border-components-glassmorphism-border shadow-2xl">
+        <Card className="p-8 max-w-md w-full text-center space-y-4 bg-components-glassmorphism-bg border-components-glassmorphism-border shadow-2xl">
           <div className="w-16 h-16 mx-auto bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
             <BookOpen className="h-8 w-8 text-white" />
           </div>
@@ -503,36 +503,24 @@ const ApiDocumentationPage: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-background-body via-background-default to-muted/20">
 
       <div className="flex h-screen bg-background">
-        {/* 顶部导航栏 */}
-        <div className="fixed top-0 left-0 right-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="flex items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-                size="sm"
-              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="lg:hidden"
-            >
-              {isSidebarOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-            </Button>
-              
-            <div className="flex items-center gap-3">
+        {/* 左侧导航 - API列表 */}
+        <div className="w-80 border-r bg-background flex flex-col">
+          <div className="p-4 space-y-4">
+            {/* 标题显示在搜索框上方 */}
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
                   <BookOpen className="h-5 w-5 text-white" />
-              </div>
-                
-              <div>
-                  <h1 className="font-semibold text-lg">用户管理系统 API</h1>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Badge variant="outline" className="text-xs">v1.0.0</Badge>
+                </div>
+                <div>
+                  <h2 className="font-semibold text-base">用户管理系统 API</h2>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <Badge variant="outline" className="text-[10px]">v1.0.0</Badge>
                     <span>•</span>
                     <span>API 文档</span>
+                  </div>
+                </div>
               </div>
-          </div>
-        </div>
-      </div>
-
-            <div className="flex items-center gap-2">
               <Button
                 variant="outline"
                 size="sm"
@@ -541,16 +529,7 @@ const ApiDocumentationPage: React.FC = () => {
               >
                 <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
               </Button>
-              {/* 主题切换按钮位置预留 */}
             </div>
-          </div>
-            </div>
-            
-        {/* 左侧导航 - API列表 */}
-        <div className={`fixed left-0 top-16 bottom-0 w-80 border-r bg-background transition-transform lg:translate-x-0 flex flex-col ${
-          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        } z-40 lg:static lg:z-0`}>
-          <div className="p-4 space-y-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
@@ -564,7 +543,7 @@ const ApiDocumentationPage: React.FC = () => {
             {/* API文档描述 */}
             <div className="p-3 bg-muted/50 rounded-lg">
               <p className="text-sm text-muted-foreground leading-relaxed">
-                一个完整的用户管理系统API，支持用户注册、登录、信息管理等功能
+                开放 API 文档与调用测试；并可通过右侧按钮管理 API Key 的增删改查
               </p>
                       </div>
 
@@ -638,7 +617,7 @@ const ApiDocumentationPage: React.FC = () => {
                         <button
                           key={api.id}
                           onClick={() => setSelectedAPI(api)}
-                          className={`w-full text-left p-3 rounded-lg transition-all duration-200 hover:bg-muted/50 border-2 border-transparent ${
+                          className={`w-full text-left p-3 rounded-lg transition-colors duration-150 hover:bg-muted/50 border-2 border-transparent ${
                             selectedAPI?.id === api.id 
                               ? 'bg-primary/5 border-primary/20 shadow-sm' 
                               : 'hover:border-muted'
@@ -667,8 +646,8 @@ const ApiDocumentationPage: React.FC = () => {
         </div>
 
         {/* 右侧主内容区 - 两栏布局的第二栏 */}
-        <div className="flex-1 flex flex-col lg:ml-0">
-          <div className="pt-16 flex-1 overflow-hidden">
+        <div className="flex-1 flex flex-col">
+          <div className="flex-1 overflow-hidden">
             {selectedAPI ? (
               <div className="h-full flex flex-col">
                 {/* 顶部模式切换标签 - 优化版 */}
@@ -677,7 +656,7 @@ const ApiDocumentationPage: React.FC = () => {
                     <button
                       onClick={() => setMainMode("interface")}
                       className={cn(
-                        "flex items-center gap-2 px-5 py-2.5 rounded-lg transition-all duration-300 font-medium text-sm relative overflow-hidden",
+                        "flex items-center gap-2 px-5 py-2.5 rounded-lg transition-colors duration-150 font-medium text-sm relative overflow-hidden",
                         mainMode === "interface" 
                           ? "bg-background text-foreground shadow-lg border border-border/30 transform scale-[1.02]" 
                           : "text-muted-foreground hover:text-foreground hover:bg-background/30 hover:shadow-sm"
@@ -692,7 +671,7 @@ const ApiDocumentationPage: React.FC = () => {
                     <button
                       onClick={() => setMainMode("test")}
                       className={cn(
-                        "flex items-center gap-2 px-5 py-2.5 rounded-lg transition-all duration-300 font-medium text-sm relative overflow-hidden",
+                        "flex items-center gap-2 px-5 py-2.5 rounded-lg transition-colors duration-150 font-medium text-sm relative overflow-hidden",
                         mainMode === "test" 
                           ? "bg-background text-foreground shadow-lg border border-border/30 transform scale-[1.02]" 
                           : "text-muted-foreground hover:text-foreground hover:bg-background/30 hover:shadow-sm"
@@ -1189,7 +1168,7 @@ const ApiDocumentationPage: React.FC = () => {
                                   key={tab.id}
                                   onClick={() => setActiveTestTab(tab.id)}
                                   className={cn(
-                                    "flex items-center gap-2 px-4 py-2 rounded-md transition-all duration-200 font-medium text-sm relative",
+                                    "flex items-center gap-2 px-4 py-2 rounded-md transition-colors duration-150 font-medium text-sm relative",
                                     activeTestTab === tab.id 
                                       ? "bg-background text-foreground shadow-md border border-border/30" 
                                       : "text-muted-foreground hover:text-foreground hover:bg-background/40"
@@ -1497,7 +1476,7 @@ const ApiDocumentationPage: React.FC = () => {
                                 <Button
                               onClick={handleTestAPI}
                               disabled={testLoading}
-                              className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+                              className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-colors duration-150"
                               size="lg"
                             >
                               {testLoading ? (
@@ -1636,13 +1615,7 @@ const ApiDocumentationPage: React.FC = () => {
           </div>
         </div>
 
-        {/* 移动端遮罩 */}
-        {isSidebarOpen && (
-          <div 
-            className="fixed inset-0 bg-background/80 backdrop-blur-sm z-30 lg:hidden"
-            onClick={() => setIsSidebarOpen(false)}
-          />
-        )}
+        {/* 移动端遮罩（内嵌设置页时不再需要）*/}
       </div>
     </div>
   )

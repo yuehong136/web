@@ -1,4 +1,5 @@
 import * as React from "react"
+import { createPortal } from "react-dom"
 import { ChevronDown, Check } from "lucide-react"
 
 export interface SelectProps {
@@ -6,7 +7,6 @@ export interface SelectProps {
   onValueChange?: (value: string) => void
   placeholder?: string
   children?: React.ReactNode
-  disabled?: boolean
 }
 
 export interface SelectTriggerProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -34,6 +34,7 @@ const SelectContext = React.createContext<{
   isOpen: boolean
   setIsOpen: (open: boolean) => void
   placeholder?: string
+  selectRef?: React.RefObject<HTMLDivElement>
 }>({
   isOpen: false,
   setIsOpen: () => {},
@@ -43,11 +44,10 @@ export const Select: React.FC<SelectProps> = ({
   value, 
   onValueChange, 
   placeholder, 
-  children,
-  disabled 
+  children
 }) => {
   const [isOpen, setIsOpen] = React.useState(false)
-  const selectRef = React.useRef<HTMLDivElement>(null)
+  const selectRef = React.useRef<HTMLDivElement>(null as HTMLDivElement | null)
 
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -66,8 +66,8 @@ export const Select: React.FC<SelectProps> = ({
   }, [isOpen])
 
   return (
-    <SelectContext.Provider value={{ value, onValueChange, isOpen, setIsOpen, placeholder }}>
-      <div ref={selectRef} className="relative">
+    <SelectContext.Provider value={{ value, onValueChange, isOpen, setIsOpen, placeholder, selectRef: selectRef as unknown as React.RefObject<HTMLDivElement> }}>
+      <div ref={selectRef as unknown as React.RefObject<HTMLDivElement>} className="relative">
         {children}
       </div>
     </SelectContext.Provider>
@@ -121,14 +121,45 @@ export const SelectValue: React.FC<SelectValueProps> = ({ placeholder }) => {
 }
 
 export const SelectContent: React.FC<SelectContentProps> = ({ children, className = "" }) => {
-  const { isOpen } = React.useContext(SelectContext)
+  const { isOpen, selectRef } = React.useContext(SelectContext)
+
+  const [position, setPosition] = React.useState<{ left: number; top: number; width: number }>({ left: 0, top: 0, width: 0 })
+
+  const updatePosition = React.useCallback(() => {
+    if (!selectRef?.current) return
+    const rect = selectRef.current.getBoundingClientRect()
+    const viewportWidth = window.innerWidth
+    const dropdownWidth = rect.width
+    let left = rect.left
+    if (left + dropdownWidth > viewportWidth - 8) {
+      left = Math.max(8, viewportWidth - dropdownWidth - 8)
+    }
+    const top = rect.bottom
+    setPosition({ left, top, width: dropdownWidth })
+  }, [selectRef])
+
+  React.useLayoutEffect(() => {
+    if (!isOpen) return
+    updatePosition()
+    const handler = () => updatePosition()
+    window.addEventListener('resize', handler)
+    window.addEventListener('scroll', handler, true)
+    return () => {
+      window.removeEventListener('resize', handler)
+      window.removeEventListener('scroll', handler, true)
+    }
+  }, [isOpen, updatePosition])
 
   if (!isOpen) return null
 
-  return (
+  const content = (
     <div 
-      className={`absolute top-full left-0 right-0 z-50 mt-1 max-h-60 overflow-auto scrollbar-thin rounded-xl border shadow-lg ${className}`}
+      className={`z-[1000] mt-1 max-h-60 overflow-auto scrollbar-thin rounded-xl border shadow-lg ${className}`}
       style={{
+        position: 'fixed',
+        left: position.left,
+        top: position.top,
+        width: position.width,
         backgroundColor: 'var(--color-components-dropdown-bg)',
         borderColor: 'var(--color-components-dropdown-border)',
         boxShadow: 'var(--color-components-dropdown-shadow)'
@@ -139,6 +170,8 @@ export const SelectContent: React.FC<SelectContentProps> = ({ children, classNam
       </div>
     </div>
   )
+
+  return createPortal(content, document.body)
 }
 
 export const SelectItem = React.forwardRef<HTMLButtonElement, SelectItemProps>(
@@ -161,12 +194,12 @@ export const SelectItem = React.forwardRef<HTMLButtonElement, SelectItemProps>(
         }}
         onMouseEnter={(e) => {
           if (!isSelected) {
-            e.currentTarget.style.backgroundColor = 'var(--color-components-dropdown-item-bg-hover)'
+            (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'var(--color-components-dropdown-item-bg-hover)'
           }
         }}
         onMouseLeave={(e) => {
           if (!isSelected) {
-            e.currentTarget.style.backgroundColor = 'transparent'
+            (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'transparent'
           }
         }}
         onClick={() => {

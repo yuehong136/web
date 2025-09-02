@@ -528,7 +528,7 @@ export const MCPServersPage: React.FC<ServerListPageProps> = ({ onServerSelect }
         <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
           <DialogContent 
             title="添加MCP服务器" 
-            className="bg-components-modal-bg backdrop-blur-xl border-components-modal-border max-w-6xl max-h-[90vh] overflow-y-auto"
+            className="bg-components-modal-bg border-components-modal-border max-w-6xl max-h-[90vh] overflow-y-auto"
           >
             <MCPServerForm
               onSuccess={() => {
@@ -546,7 +546,7 @@ export const MCPServersPage: React.FC<ServerListPageProps> = ({ onServerSelect }
         <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
           <DialogContent 
             title={`编辑服务器: ${selectedServer.name}`} 
-            className="bg-components-modal-bg backdrop-blur-xl border-components-modal-border max-w-6xl max-h-[90vh] overflow-y-auto"
+            className="bg-components-modal-bg border-components-modal-border max-w-6xl max-h-[90vh] overflow-y-auto"
           >
             <MCPServerForm
               server={selectedServer}

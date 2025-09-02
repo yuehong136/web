@@ -11,8 +11,8 @@ const cardVariants = cva(
         outline: "border-border-strong",
         elevated: "border-components-card-border shadow-shadow-md",
         interactive: "border-components-card-border hover:bg-components-card-bg-hover hover:shadow-shadow-md cursor-pointer hover:scale-[1.02]",
-        glassmorphism: "bg-components-glassmorphism-bg border-components-glassmorphism-border backdrop-blur-xl shadow-components-glassmorphism-shadow",
-        modern: "bg-components-modern-card-bg border-components-modern-card-border shadow-components-modern-card-shadow backdrop-blur-sm",
+        glassmorphism: "bg-components-glassmorphism-bg border-components-glassmorphism-border shadow-components-glassmorphism-shadow",
+        modern: "bg-components-modern-card-bg border-components-modern-card-border shadow-components-modern-card-shadow",
         "api-key": "bg-components-api-key-card-bg border-components-api-key-card-border shadow-components-api-key-card-shadow hover:bg-components-api-key-card-bg-hover",
       },
       padding: {

@@ -78,7 +78,7 @@ export const Modal: React.FC<ModalProps> = ({
     >
       {/* Overlay - use theme token */}
       <div
-        className="fixed inset-0 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 transition-opacity"
         style={{ backgroundColor: 'var(--color-components-modal-overlay)' }}
         onClick={handleOverlayClick}
       />

@@ -216,7 +216,7 @@ export const MCPToolsPage: React.FC<MCPToolsPageProps> = ({ serverId }) => {
     <div className="h-full flex flex-col bg-background-body">
       {/* 页面头部 */}
       <div className="p-8 pb-4">
-        <div className="bg-components-card-bg backdrop-blur-xl rounded-3xl p-8 border border-components-card-border shadow-lg">
+        <div className="bg-components-card-bg rounded-3xl p-8 border border-components-card-border shadow-lg">
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center space-x-4">
               <div className="w-16 h-16 bg-components-button-primary-bg rounded-2xl flex items-center justify-center shadow-lg">
@@ -311,7 +311,7 @@ export const MCPToolsPage: React.FC<MCPToolsPageProps> = ({ serverId }) => {
 
       {/* 工具栏 */}
       <div className="px-8 pb-4">
-        <div className="bg-components-card-bg backdrop-blur-xl rounded-2xl p-6 border border-components-card-border shadow-md">
+        <div className="bg-components-card-bg rounded-2xl p-6 border border-components-card-border shadow-md">
           <div className="flex items-center gap-4">
             <div className="flex-1 relative">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-text-muted" />
@@ -352,7 +352,7 @@ export const MCPToolsPage: React.FC<MCPToolsPageProps> = ({ serverId }) => {
 
       {/* 内容区域 */}
       <div className="flex-1 overflow-hidden px-8 pb-8">
-        <div className="h-full bg-components-card-bg backdrop-blur-xl rounded-2xl border border-components-card-border shadow-md">
+        <div className="h-full bg-components-card-bg rounded-2xl border border-components-card-border shadow-md">
           <div className="h-full p-8">
             {loading ? (
               <div className="flex flex-col items-center justify-center h-64 space-y-4">
@@ -381,7 +381,7 @@ export const MCPToolsPage: React.FC<MCPToolsPageProps> = ({ serverId }) => {
               </div>
             ) : (
               <div className="h-full overflow-y-auto">
-                <div className="bg-components-table-bg backdrop-blur-sm rounded-xl border border-components-table-border">
+                <div className="bg-components-table-bg rounded-xl border border-components-table-border">
                   <Table
                     columns={[
                       {
@@ -500,7 +500,7 @@ export const MCPToolsPage: React.FC<MCPToolsPageProps> = ({ serverId }) => {
         <Dialog open={showTestDialog} onOpenChange={setShowTestDialog}>
           <DialogContent 
             title={`测试工具: ${selectedTool.name}`}
-            className="bg-components-modal-bg backdrop-blur-xl border-components-modal-border max-w-4xl max-h-[90vh] overflow-y-auto"
+            className="bg-components-modal-bg border-components-modal-border max-w-4xl max-h-[90vh] overflow-y-auto"
           >
             <div className="space-y-6">
               {/* 工具信息 */}

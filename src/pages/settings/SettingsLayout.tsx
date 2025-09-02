@@ -94,10 +94,10 @@ const settingsItems: SidebarItem[] = [
     gradient: 'from-amber-500 to-orange-500'
   },
   {
-    title: 'API密钥',
+    title: 'API开放',
     href: '/settings/api-keys',
     icon: Key,
-    description: '管理第三方服务API密钥',
+    description: 'API文档与测试&API密钥管理',
     gradient: 'from-slate-500 to-gray-500'
   }
 ]
@@ -111,21 +111,16 @@ export const SettingsLayout: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/40 relative overflow-hidden">
-      {/* 背景装饰 */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/20 to-purple-600/20 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-gradient-to-tr from-cyan-400/20 to-blue-600/20 rounded-full blur-3xl"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-violet-400/10 to-purple-600/10 rounded-full blur-3xl"></div>
-      </div>
+      {/* 背景装饰（为性能移除重度模糊） */}
 
       <div className="relative z-10 flex h-screen">
         {/* 侧边栏 */}
-        <div className="w-80 bg-white/80 backdrop-blur-xl border-r border-white/20 shadow-xl flex flex-col">
+        <div className="w-80 bg-white border-r border-white/20 shadow-xl flex flex-col">
           {/* 侧边栏头部 */}
           <div className="p-6 border-b border-gray-100/50">
             <Link 
               to="/dashboard"
-              className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 transition-all duration-200 group mb-6"
+              className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 transition-colors duration-150 group mb-6"
             >
               <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
               返回主页
@@ -153,26 +148,26 @@ export const SettingsLayout: React.FC = () => {
                     key={item.href}
                     to={item.href}
                     className={cn(
-                      "group relative flex items-center p-4 rounded-2xl transition-all duration-300 hover:scale-[1.02]",
+                      "group relative flex items-center p-4 rounded-2xl transition-colors duration-150",
                       isActive
-                        ? "bg-gradient-to-r from-blue-500/10 to-purple-500/10 shadow-lg backdrop-blur-sm border border-blue-200/30"
-                        : "hover:bg-white/60 hover:shadow-md hover:backdrop-blur-sm"
+                        ? "bg-gradient-to-r from-blue-500/10 to-purple-500/10 shadow-lg border border-blue-200/30"
+                        : "hover:bg-white/60 hover:shadow-md"
                     )}
                   >
                     {/* 活跃状态指示器 */}
                     {isActive && (
-                      <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-blue-500 to-purple-600 rounded-r-full"></div>
+                      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-blue-500 to-purple-600 rounded-r-full"></div>
                     )}
 
                     {/* 图标背景 */}
                     <div className={cn(
-                      "relative w-11 h-11 rounded-xl flex items-center justify-center mr-4 transition-all duration-300",
+                      "relative w-11 h-11 rounded-xl flex items-center justify-center mr-4 transition-colors duration-150",
                       isActive 
                         ? `bg-gradient-to-br ${item.gradient} shadow-lg` 
                         : "bg-gray-100 group-hover:bg-gradient-to-br group-hover:from-gray-200 group-hover:to-gray-300"
                     )}>
                       <Icon className={cn(
-                        "h-5 w-5 transition-all duration-300",
+                        "h-5 w-5 transition-colors duration-150",
                         isActive ? "text-white" : "text-gray-600 group-hover:text-gray-700"
                       )} />
                       
@@ -204,7 +199,7 @@ export const SettingsLayout: React.FC = () => {
 
                     {/* 悬停指示器 */}
                     {!isActive && (
-                      <div className="w-0 group-hover:w-2 h-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full transition-all duration-300 opacity-0 group-hover:opacity-100"></div>
+                      <div className="w-2 h-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full transition-opacity duration-150 opacity-0 group-hover:opacity-100"></div>
                     )}
                   </Link>
                 )
@@ -212,7 +207,7 @@ export const SettingsLayout: React.FC = () => {
             </nav>
 
             {/* AI助手卡片 */}
-            <div className="mt-8 p-4 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-2xl border border-blue-200/30 backdrop-blur-sm">
+            <div className="mt-8 p-4 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-2xl border border-blue-200/30">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
                   <Brain className="h-4 w-4 text-white" />
@@ -222,7 +217,7 @@ export const SettingsLayout: React.FC = () => {
               <p className="text-sm text-gray-600 mb-4">
                 根据您的使用习惯，我们推荐优化这些设置以获得更好的AI体验。
               </p>
-              <button className="w-full px-3 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-sm font-medium rounded-lg hover:shadow-lg transition-all duration-300 hover:scale-105">
+              <button className="w-full px-3 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-sm font-medium rounded-lg hover:shadow-lg transition-colors duration-150">
                 智能优化设置
               </button>
             </div>
@@ -231,17 +226,17 @@ export const SettingsLayout: React.FC = () => {
 
         {/* 主内容区域 */}
         <div className="flex-1 flex flex-col overflow-hidden">
-          {/* 顶部面包屑 */}
-          <div className="h-16 bg-white/60 backdrop-blur-xl border-b border-white/20 flex items-center px-8">
-            <div className="flex items-center space-x-2 text-sm text-gray-600">
+          {/* 顶部面包屑（适配主题色）*/}
+          <div className="h-16 bg-background border-b border-border flex items-center px-8">
+            <div className="flex items-center space-x-2 text-sm text-text-secondary">
               <span>系统设置</span>
               <span>/</span>
-              <span className="text-gray-900 font-medium">{currentTitle}</span>
+              <span className="text-text-primary font-medium">{currentTitle}</span>
             </div>
           </div>
 
           {/* 内容区域 */}
-          <div className="flex-1 overflow-hidden bg-white/20 backdrop-blur-sm">
+          <div className="flex-1 overflow-hidden bg-white/20">
             <div className="h-full">
               <Outlet />
             </div>
