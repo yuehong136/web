@@ -76,9 +76,10 @@ export const Modal: React.FC<ModalProps> = ({
       aria-labelledby={title ? "modal-title" : undefined}
       aria-describedby={description ? "modal-description" : undefined}
     >
-      {/* Overlay */}
+      {/* Overlay - use theme token */}
       <div
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 backdrop-blur-sm transition-opacity"
+        style={{ backgroundColor: 'var(--color-components-modal-overlay)' }}
         onClick={handleOverlayClick}
       />
       
@@ -93,7 +94,7 @@ export const Modal: React.FC<ModalProps> = ({
       >
         {/* Header */}
         {(title || showCloseButton) && (
-          <div className="flex items-center justify-between p-6 border-b border-border">
+          <div className="flex items-center justify-between p-6 border-b border-border bg-modal">
             <div>
               {title && (
                 <h2 id="modal-title" className="text-lg font-semibold text-foreground">

@@ -43,6 +43,9 @@ import { ChatModelSelector } from '@/components/chat/ChatModelSelector'
 import { getProviderIcon, getModelDisplayName } from '@/components/ui/provider-icon'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
 import thinkingAnimation from '@/assets/thinking.apng'
+import { MarkdownRenderer } from '@/components/chat/MarkdownRenderer'
+import { extractReferencesFromSSEData, type ReferenceChunk } from '@/utils/reference-replacer'
+import { ReferenceList } from '@/components/ui/reference-marker'
 
 // 初始化 markdown-it
 const md = markdownit({ html: true, breaks: true, linkify: true })
@@ -116,7 +119,7 @@ const formatConversationsForAntD = (conversations: any[]) => {
     return []
   }
 
-  const items = conversations.map((conv, index) => {
+  const items = conversations.map((conv: any, index: number) => {
     const updateTime = conv.update_time || Date.now()
     // 自动判断时间戳格式并统一为毫秒级
     const timestamp = updateTime > 1000000000000 ? updateTime : updateTime * 1000
@@ -172,7 +175,7 @@ export const ExplorePage: React.FC = () => {
   const [loadingConversationDetail, setLoadingConversationDetail] = React.useState(false)
   
   // 话题模式下的消息状态
-  const [topicMessages, setTopicMessages] = React.useState<Array<{role: string, content: string, id?: string}>>([])
+  const [topicMessages, setTopicMessages] = React.useState<Array<{role: string, content: string, id?: string, references?: ReferenceChunk[]}>>([])
   const [isTopicStreaming, setIsTopicStreaming] = React.useState(false)
   
   // 重命名状态
@@ -521,7 +524,8 @@ export const ExplorePage: React.FC = () => {
       let aiMessage = {
         role: 'assistant',
         content: '',
-        id: `msg-${Date.now()}-ai-${Math.random().toString(36).substr(2, 9)}`
+        id: `msg-${Date.now()}-ai-${Math.random().toString(36).substr(2, 9)}`,
+        references: [] as ReferenceChunk[]
       }
 
       // 处理流式响应
@@ -548,6 +552,12 @@ export const ExplorePage: React.FC = () => {
               if (data.retcode === 0 && data.data && typeof data.data.answer === 'string') {
                 aiMessage.content = data.data.answer
                 aiMessage.id = data.data.id || aiMessage.id
+                
+                // 提取引用数据
+                const references = extractReferencesFromSSEData(data.data)
+                if (references.length > 0) {
+                  aiMessage.references = references
+                }
                 
                 // 实时更新消息列表
                 setTopicMessages(prev => {
@@ -634,7 +644,7 @@ export const ExplorePage: React.FC = () => {
       
       // 如果当前选中的就是这个对话，更新详情
       if (selectedConversationDetail?.id === renamingConversationId) {
-        setSelectedConversationDetail(prev => ({
+        setSelectedConversationDetail((prev: any) => ({
           ...prev,
           name: newConversationName.trim()
         }))
@@ -780,7 +790,7 @@ export const ExplorePage: React.FC = () => {
     ],
     onClick: (menuInfo: any) => {
       menuInfo.domEvent.stopPropagation()
-      const conversationData = dialogConversations.find(conv => conv.id === conversation.key)
+      const conversationData = dialogConversations.find((conv: any) => conv.id === conversation.key)
       
       switch (menuInfo.key) {
         case 'rename':
@@ -956,19 +966,19 @@ export const ExplorePage: React.FC = () => {
   ]
 
   return (
-    <div className="h-full flex bg-gray-50">
+    <div className="h-full flex bg-background">
       {/* 左侧边栏 */}
-      <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
+      <div className="w-64 bg-card border-r border-border flex flex-col">
         {/* 顶部导航区域 */}
-        <div className="p-4 border-b border-gray-200">
+        <div className="p-4 border-b border-border">
           <div className="flex space-x-1">
             <button
               onClick={() => setActiveTab('workspace')}
               className={cn(
                 "flex-1 py-2 px-3 text-sm font-medium rounded-lg transition-colors",
                 activeTab === 'workspace'
-                  ? "bg-blue-100 text-blue-700"
-                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                  ? "bg-primary/10 text-primary"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
               )}
             >
               工作区
@@ -978,15 +988,15 @@ export const ExplorePage: React.FC = () => {
               className={cn(
                 "flex-1 py-2 px-3 text-sm font-medium rounded-lg transition-colors relative",
                 activeTab === 'topics'
-                  ? "bg-blue-100 text-blue-700"
-                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                  ? "bg-primary/10 text-primary"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
               )}
               disabled={!selectedApp}
               title={!selectedApp ? "请先在工作区选择一个应用" : "查看应用对话历史"}
             >
               话题
               {!selectedApp && (
-                <span className="absolute -top-1 -right-1 w-2 h-2 bg-gray-400 rounded-full"></span>
+                <span className="absolute -top-1 -right-1 w-2 h-2 bg-muted rounded-full"></span>
               )}
             </button>
             <button
@@ -994,8 +1004,8 @@ export const ExplorePage: React.FC = () => {
               className={cn(
                 "flex-1 py-2 px-3 text-sm font-medium rounded-lg transition-colors",
                 activeTab === 'settings'
-                  ? "bg-blue-100 text-blue-700"
-                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                  ? "bg-primary/10 text-primary"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
               )}
             >
               设置
@@ -1014,8 +1024,8 @@ export const ExplorePage: React.FC = () => {
                   className={cn(
                     "w-full py-3 px-4 text-left text-sm font-medium rounded-lg transition-colors flex items-center space-x-2",
                     mode === 'market'
-                      ? "bg-blue-100 text-blue-700"
-                      : "text-gray-700 hover:bg-gray-50"
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:bg-muted/50"
                   )}
                 >
                   <Search className="h-4 w-4" />
@@ -1029,15 +1039,15 @@ export const ExplorePage: React.FC = () => {
               <div className="flex-1 p-4 space-y-1">
                 {dialogAppsLoading ? (
                   <div className="flex items-center justify-center py-8">
-                    <div className="text-sm text-gray-500">加载应用中...</div>
+                    <div className="text-sm text-muted-foreground">加载应用中...</div>
                   </div>
                 ) : dialogAppsError ? (
                   <div className="flex items-center justify-center py-8">
-                    <div className="text-sm text-red-500">加载应用失败</div>
+                    <div className="text-sm text-destructive">加载应用失败</div>
                   </div>
                 ) : dialogApps.length === 0 ? (
                   <div className="flex items-center justify-center py-8">
-                    <div className="text-sm text-gray-500">暂无应用</div>
+                    <div className="text-sm text-muted-foreground">暂无应用</div>
                   </div>
                 ) : (
                   dialogApps
@@ -1050,8 +1060,8 @@ export const ExplorePage: React.FC = () => {
                           className={cn(
                             "w-full py-3 px-4 text-left text-sm rounded-lg transition-colors flex items-center space-x-3",
                             selectedApp === app.id && mode === 'chat' && activeTab === 'workspace'
-                              ? "bg-blue-100 text-blue-700"
-                              : "text-gray-700 hover:bg-gray-50"
+                              ? "bg-primary/10 text-primary"
+                              : "text-muted-foreground hover:bg-muted/50"
                           )}
                         >
                           <div className="flex items-center justify-center w-4 h-4">
@@ -1081,16 +1091,16 @@ export const ExplorePage: React.FC = () => {
                   {/* 应用信息和新建对话按钮 */}
                   <div className="p-4 border-b border-gray-100">
                     {/* 当前应用信息 */}
-                    <div className="flex items-center mb-3 p-2 bg-gray-50 rounded-lg">
+                    <div className="flex items-center mb-3 p-2 bg-muted rounded-lg">
                       <div className="flex items-center justify-center w-6 h-6 mr-3">
                         {getAppIcon(dialogApps.find(app => app.id === selectedApp), 'md')}
                         <Sparkles className="h-6 w-6 text-purple-600 hidden" />
                       </div>
                       <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900">
+                        <p className="text-sm font-medium text-foreground">
                           {dialogApps.find(app => app.id === selectedApp)?.name || '应用'}
                         </p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-muted-foreground">
                           {dialogApps.find(app => app.id === selectedApp)?.description || '查看对话历史'}
                         </p>
                       </div>
@@ -1219,9 +1229,9 @@ export const ExplorePage: React.FC = () => {
       {/* 右侧主内容区域 */}
       <div className="flex-1 flex flex-col">
         {/* 顶部标题栏 */}
-        <div className="flex items-center justify-between px-6 py-3 border-b border-gray-200 bg-white">
+        <div className="flex items-center justify-between px-6 py-3 border-b border-border bg-card">
           <div className="flex items-center space-x-3">
-            <h1 className="text-lg font-semibold text-gray-900">
+            <h1 className="text-lg font-semibold text-foreground">
               {mode === 'market' 
                 ? '应用市场' 
                 : activeTab === 'topics' 
@@ -1237,7 +1247,7 @@ export const ExplorePage: React.FC = () => {
               <div className="w-64">
                 <ErrorBoundary
                   fallback={(error, retry) => (
-                    <div className="text-xs text-red-600 p-2 bg-red-50 rounded border border-red-200">
+                    <div className="text-xs text-destructive p-2 bg-destructive/20 rounded border border-destructive">
                       模型选择器加载失败
                       <button onClick={retry} className="ml-2 underline">重试</button>
                     </div>
@@ -1252,11 +1262,7 @@ export const ExplorePage: React.FC = () => {
                   />
                 </ErrorBoundary>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-gray-600 hover:text-gray-900"
-              >
+              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
                 <Settings className="h-4 w-4" />
               </Button>
             </div>
@@ -1374,10 +1380,33 @@ export const ExplorePage: React.FC = () => {
                                   }`}
                                 >
                                   {msg.role === 'assistant' ? (
-                                    <div 
-                                      dangerouslySetInnerHTML={{ __html: md.render(msg.content) }} 
-                                      className="prose prose-sm max-w-none prose-p:my-2 prose-pre:bg-gray-100 prose-pre:text-gray-900"
-                                    />
+                                    <div>
+                                      <MarkdownRenderer
+                                        content={msg.content}
+                                        references={msg.references}
+                                        className="prose-sm max-w-none prose-p:my-2 prose-pre:bg-gray-100 prose-pre:text-gray-900"
+                                        onReferenceClick={(referenceId) => {
+                                          console.log('Reference clicked:', referenceId)
+                                          // 这里可以添加引用详情的显示逻辑
+                                        }}
+                                      />
+                                      {/* 参考资料展示 */}
+                                      {msg.references && msg.references.length > 0 && (
+                                        <div className="mt-3">
+                                          <ReferenceList
+                                            references={msg.references.map((ref: any, index: number) => ({
+                                              id: ref.id,
+                                              displayNumber: index + 1,
+                                              documentName: ref.document_name,
+                                              content: ref.content,
+                                              similarity: ref.similarity,
+                                              url: ref.url || undefined
+                                            }))}
+                                            className="text-sm"
+                                          />
+                                        </div>
+                                      )}
+                                    </div>
                                   ) : (
                                     <div className="whitespace-pre-wrap">{msg.content}</div>
                                   )}

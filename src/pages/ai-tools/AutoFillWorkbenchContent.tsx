@@ -429,7 +429,7 @@ const AutoFillWorkbenchContent: React.FC = () => {
         description="演示预览（示意布局）"
         size="xl"
       >
-        <div className="flex items-center gap-2 mb-3">
+        <div className="flex items-center gap-2 mb-3 p-3 rounded-md border border-border bg-card">
           <Button variant="ghost" size="sm" onClick={() => setZoom((z) => Math.max(50, z - 25))}><ZoomOut className="w-4 h-4" /></Button>
           <span className="text-sm w-12 text-center">{zoom}%</span>
           <Button variant="ghost" size="sm" onClick={() => setZoom((z) => Math.min(200, z + 25))}><ZoomIn className="w-4 h-4" /></Button>
@@ -440,58 +440,58 @@ const AutoFillWorkbenchContent: React.FC = () => {
           </div>
         </div>
         <div className="overflow-auto bg-card border border-border rounded-lg" style={{ maxHeight: '70vh' }}>
-          <div className="mx-auto bg-white dark:bg-gray-50" style={{
+          <div className="mx-auto bg-card" style={{
             transform: `scale(${zoom / 100})`, transformOrigin: 'top center', width: '210mm', minHeight: '297mm', padding: '25mm 20mm', lineHeight: 1.5
           }}>
             <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">员工信息登记表</h2>
-              <p className="text-gray-600 text-sm">Employee Information Registration Form</p>
+              <h2 className="text-2xl font-bold text-foreground mb-2">员工信息登记表</h2>
+              <p className="text-muted-foreground text-sm">Employee Information Registration Form</p>
             </div>
             <div className="mb-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-3 border-b border-gray-300 pb-1">基本信息</h3>
-              <table className="w-full border-collapse border border-gray-400">
+              <h3 className="text-lg font-semibold text-foreground mb-3 border-b border-border pb-1">基本信息</h3>
+              <table className="w-full border-collapse border border-border">
                 <tbody>
                   <tr>
-                    <td className="border border-gray-400 bg-gray-50 px-3 py-2 font-medium w-1/4">姓名</td>
-                    <td className="border border-gray-400 px-3 py-2 w-1/4">{formData['姓名'] || '{{姓名}}'}</td>
-                    <td className="border border-gray-400 bg-gray-50 px-3 py-2 font-medium w-1/4">日期</td>
-                    <td className="border border-gray-400 px-3 py-2 w-1/4">{formData['日期'] || '{{日期}}'}</td>
+                    <td className="border border-border bg-muted px-3 py-2 font-medium w-1/4">姓名</td>
+                    <td className="border border-border px-3 py-2 w-1/4">{formData['姓名'] || '{{姓名}}'}</td>
+                    <td className="border border-border bg-muted px-3 py-2 font-medium w-1/4">日期</td>
+                    <td className="border border-border px-3 py-2 w-1/4">{formData['日期'] || '{{日期}}'}</td>
                   </tr>
                   <tr>
-                    <td className="border border-gray-400 bg-gray-50 px-3 py-2 font-medium">部门</td>
-                    <td className="border border-gray-400 px-3 py-2">{formData['部门'] || '{{部门}}'}</td>
-                    <td className="border border-gray-400 bg-gray-50 px-3 py-2 font-medium">职位</td>
-                    <td className="border border-gray-400 px-3 py-2">{formData['职位'] || '{{职位}}'}</td>
+                    <td className="border border-border bg-muted px-3 py-2 font-medium">部门</td>
+                    <td className="border border-border px-3 py-2">{formData['部门'] || '{{部门}}'}</td>
+                    <td className="border border-border bg-muted px-3 py-2 font-medium">职位</td>
+                    <td className="border border-border px-3 py-2">{formData['职位'] || '{{职位}}'}</td>
                   </tr>
                 </tbody>
               </table>
             </div>
             <div className="mb-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-3 border-b border-gray-300 pb-1">联系信息</h3>
-              <table className="w-full border-collapse border border-gray-400">
+              <h3 className="text-lg font-semibold text-foreground mb-3 border-b border-border pb-1">联系信息</h3>
+              <table className="w-full border-collapse border border-border">
                 <tbody>
                   <tr>
-                    <td className="border border-gray-400 bg-gray-50 px-3 py-2 font-medium w-1/3">联系电话</td>
-                    <td className="border border-gray-400 px-3 py-2 w-2/3">{formData['联系电话'] || '{{联系电话}}'}</td>
+                    <td className="border border-border bg-muted px-3 py-2 font-medium w-1/3">联系电话</td>
+                    <td className="border border-border px-3 py-2 w-2/3">{formData['联系电话'] || '{{联系电话}}'}</td>
                   </tr>
                   <tr>
-                    <td className="border border-gray-400 bg-gray-50 px-3 py-2 font-medium">邮箱地址</td>
-                    <td className="border border-gray-400 px-3 py-2">{formData['邮箱地址'] || '{{邮箱地址}}'}</td>
+                    <td className="border border-border bg-muted px-3 py-2 font-medium">邮箱地址</td>
+                    <td className="border border-border px-3 py-2">{formData['邮箱地址'] || '{{邮箱地址}}'}</td>
                   </tr>
                 </tbody>
               </table>
             </div>
             <div className="mb-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-3 border-b border-gray-300 pb-1">工作信息</h3>
-              <table className="w-full border-collapse border border-gray-400">
+              <h3 className="text-lg font-semibold text-foreground mb-3 border-b border-border pb-1">工作信息</h3>
+              <table className="w-full border-collapse border border-border">
                 <tbody>
                   <tr>
-                    <td className="border border-gray-400 bg-gray-50 px-3 py-2 font-medium w-1/4">工作内容</td>
-                    <td className="border border-gray-400 px-3 py-2 w-3/4"><div className="min-h-[60px] flex items-start py-1">{formData['工作内容'] || '{{工作内容}}'}</div></td>
+                    <td className="border border-border bg-muted px-3 py-2 font-medium w-1/4">工作内容</td>
+                    <td className="border border-border px-3 py-2 w-3/4"><div className="min-h-[60px] flex items-start py-1">{formData['工作内容'] || '{{工作内容}}'}</div></td>
                   </tr>
                   <tr>
-                    <td className="border border-gray-400 bg-gray-50 px-3 py-2 font-medium">备注</td>
-                    <td className="border border-gray-400 px-3 py-2"><div className="min-h-[60px] flex items-start py-1">{formData['备注'] || '{{备注}}'}</div></td>
+                    <td className="border border-border bg-muted px-3 py-2 font-medium">备注</td>
+                    <td className="border border-border px-3 py-2"><div className="min-h-[60px] flex items-start py-1">{formData['备注'] || '{{备注}}'}</div></td>
                   </tr>
                 </tbody>
               </table>

@@ -1,4 +1,5 @@
 import markdownit from 'markdown-it';
+import { processReferences, type ReferenceChunk } from '@/utils/reference-replacer';
 
 const md = markdownit({ 
   html: true, 
@@ -110,27 +111,45 @@ md.renderer.rules.td_open = function (tokens, idx, options, _env, renderer) {
   return renderer.renderToken(tokens, idx, options);
 };
 
-export const renderMarkdown = (content: string): string => {
-  return md.render(content);
+export const renderMarkdown = (content: string, references?: ReferenceChunk[]): string => {
+  // 首先处理引用替换
+  const processedContent = processReferences(content, references);
+  
+  // 然后渲染markdown
+  return md.render(processedContent);
 };
 
 export interface MarkdownRendererProps {
   content: string;
   className?: string;
+  references?: ReferenceChunk[];
+  onReferenceClick?: (referenceId: string) => void;
 }
 
-export function MarkdownRenderer({ content, className = '' }: MarkdownRendererProps) {
-  const renderedContent = renderMarkdown(content);
+export function MarkdownRenderer({ content, className = '', references, onReferenceClick }: MarkdownRendererProps) {
+  const renderedContent = renderMarkdown(content, references);
   
   // 为不同主题应用适当的样式
   const themeClasses = className.includes('prose-invert') 
     ? 'prose-invert [&_blockquote]:border-white/30'
     : '';
   
+  // 处理引用标记点击事件
+  const handleClick = (event: React.MouseEvent) => {
+    const target = event.target as HTMLElement;
+    if (target.classList.contains('reference-marker') && onReferenceClick) {
+      const referenceId = target.getAttribute('data-reference-id');
+      if (referenceId) {
+        onReferenceClick(referenceId);
+      }
+    }
+  };
+  
   return (
     <div 
-      className={`prose prose-sm max-w-none ${themeClasses} ${className}`}
+      className={`prose prose-sm max-w-none ${themeClasses} ${className} [&_.reference-marker]:cursor-pointer [&_.reference-marker]:inline-block [&_.reference-marker]:px-1 [&_.reference-marker]:py-0.5 [&_.reference-marker]:text-xs [&_.reference-marker]:font-medium [&_.reference-marker]:rounded [&_.reference-marker]:bg-blue-100 [&_.reference-marker]:text-blue-700 [&_.reference-marker]:hover:bg-blue-200 [&_.reference-marker]:transition-colors [&_.reference-marker]:duration-200 [&_.reference-marker]:border [&_.reference-marker]:border-blue-200 [&_.reference-marker]:hover:border-blue-300`}
       dangerouslySetInnerHTML={{ __html: renderedContent }}
+      onClick={handleClick}
     />
   );
 }
