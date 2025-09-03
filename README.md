@@ -1,29 +1,61 @@
 # Multi-RAG Frontend
 
-A modern React-based frontend application for Multi-RAG system, providing intelligent conversation, knowledge base management, system monitoring, and more.
+A comprehensive React-based frontend application for Multi-RAG system, providing intelligent conversation, knowledge base management, AI tools, MCP integration, system monitoring, and more.
 
-## 🆕 What's New in v0.6.1
+## 🆕 Latest Updates
 
-- **🔧 Enhanced Document Management**: Advanced batch operations, file upload/download, rename functionality
-- **📝 Document Parsing Control**: Integrated document processing status and control features
-- **🎨 Modernized Sidebar Design**: New floating card design with improved navigation experience
-- **🛠️ Vector Model Selector Fixes**: Resolved dropdown echo issues and dynamic SVG loading for embedding models
-- **📚 Complete Knowledge Base Management**: Full CRUD operations, document upload, search, and settings
-- **🎨 Enhanced UI Components**: 40+ UI components with file type icons for 40+ file formats
-- **🔧 LLM Provider Integration**: Support for multiple LLM providers with configuration management
-- **📊 Advanced System Monitoring**: Real-time system status and task executor monitoring with charts
-- **🏗️ Improved Architecture**: Updated to React 19, Vite 7, and latest dependencies
-- **🎯 Better Developer Experience**: Comprehensive TypeScript types, improved error handling
+### Design System & Performance
+- **🎨 Advanced Design Token System**: Complete CSS variable theming with automated theme generation
+- **⚡ Performance Optimizations**: Removed backdrop-blur for better performance, optimized Tailwind configuration
+- **🌗 Enhanced Dark Mode**: Improved color consistency and visual hierarchy across all components
 
-## 🚀 Features
+### AI & MCP Integration  
+- **🤖 MCP Chat Enhancement**: Structured output support with unified tool parsing and improved streaming
+- **🔧 MCP Server Management**: Comprehensive MCP server configuration, testing, and batch operations
+- **📝 AI Tools Expansion**: Auto-fill workbench, document processing, and AI-powered utilities
 
-- **Smart Conversation**: AI-powered chat interface with real-time streaming
-- **Knowledge Base**: Document upload, processing, and intelligent retrieval
-- **System Monitoring**: Real-time system status and task executor monitoring
-- **Model Management**: Support for multiple LLM providers and configurations  
-- **MCP Servers**: Model Context Protocol server management
-- **User Management**: Authentication and profile management
-- **Responsive Design**: Mobile-first design with Tailwind CSS
+### Knowledge Base Features
+- **📚 Advanced Document Management**: Multi-format support with specialized parsers (PDF, DOCX, presentations, legal docs, etc.)
+- **🔍 Enhanced Search & Exploration**: Improved search interface with document chunk visualization
+- **📊 Parser Configuration**: Visual parser settings with real-time preview for different document types
+
+### Developer Experience
+- **🏗️ React 19 + Vite 7**: Latest framework versions with improved TypeScript integration
+- **🎯 Component Architecture**: 50+ UI components with comprehensive design system
+- **📱 Responsive Design**: Mobile-first approach with enhanced accessibility
+
+## 🚀 Core Features
+
+### 💬 Intelligent Conversation
+- **AI-Powered Chat**: Real-time streaming conversations with multiple LLM providers
+- **MCP Chat Integration**: Enhanced chat with Model Context Protocol tools and structured outputs
+- **Conversation Management**: History, settings, and context management
+
+### 📚 Knowledge Base System
+- **Multi-Format Document Support**: PDF, DOCX, TXT, MD, presentations, legal documents, audio, images
+- **Advanced Document Parsing**: Specialized parsers for different content types with visual configuration
+- **Intelligent Search & Retrieval**: Vector-based search with chunk visualization and relevance scoring
+- **Batch Operations**: Upload, download, rename, and organize documents efficiently
+
+### 🤖 AI Tools & Automation
+- **Auto-Fill Workbench**: AI-powered data processing and form filling
+- **Document Processing**: Automated content extraction and analysis
+- **Workflow Automation**: Custom AI-driven workflows (in development)
+
+### 🔧 MCP Integration
+- **Server Management**: Configure, test, and monitor MCP servers
+- **Tool Discovery**: Browse and utilize MCP tools across different servers  
+- **Batch Operations**: Manage multiple MCP connections efficiently
+
+### 🏢 Studio & Development
+- **App Creation Studio**: Build and deploy AI applications
+- **Dialog Management**: Create and manage conversational flows
+- **Prompt Engineering**: Advanced prompt editor with templates
+
+### 📊 System Monitoring
+- **Real-Time Dashboards**: System health, performance metrics, and resource usage
+- **Task Execution Monitoring**: Background job tracking with detailed charts
+- **Component Health Checks**: Database, Redis, storage, and processing engine status
 
 ## 📋 Tech Stack
 
@@ -53,87 +85,121 @@ src/
 │   ├── system.ts          # System monitoring APIs
 │   └── index.ts           # API exports
 ├── components/            # Reusable UI components
-│   ├── ui/               # Base UI components (40+ components)
+│   ├── ui/               # Base UI components (50+ components)
 │   │   ├── button.tsx    # Button with variants
 │   │   ├── input.tsx     # Form inputs
 │   │   ├── card.tsx      # Card layouts
-│   │   ├── modal.tsx     # Modal dialogs
-│   │   ├── table.tsx     # Data tables
 │   │   ├── file-icon.tsx # File type icons (40+ types)
-│   │   ├── avatar.tsx    # User avatars
-│   │   ├── badge.tsx     # Status badges
-│   │   ├── checkbox.tsx  # Form checkboxes
-│   │   ├── dropdown.tsx  # Dropdown menus
-│   │   ├── tooltip.tsx   # Tooltips
-│   │   └── ...           # More UI components
+│   │   ├── provider-icon.tsx # LLM provider icons
+│   │   ├── theme-switcher.tsx # Dark/light mode toggle
+│   │   ├── task-executor-chart.tsx # System monitoring charts
+│   │   └── ...           # More specialized UI components
 │   ├── auth/             # Authentication components
-│   │   └── AuthGuard.tsx # Route protection
+│   │   ├── AuthGuard.tsx # Route protection
+│   │   ├── AuthCarousel.tsx # Login/register carousel
+│   │   └── ImageWithFallback.tsx # Image loading with fallback
 │   ├── knowledge/        # Knowledge base components
-│   │   ├── EmbeddingModelSelector.tsx
-│   │   └── QuickEditModal.tsx
-│   ├── forms/            # Form components
-│   ├── feature/          # Feature-specific components
+│   │   ├── EmbeddingModelSelector.tsx # Vector model selection
+│   │   ├── RerankModelSelector.tsx # Rerank model selection
+│   │   ├── ParserTypeSelector.tsx # Document parser selection
+│   │   └── QuickEditModal.tsx # Quick edit functionality
+│   ├── chat/             # Chat interface components
+│   │   ├── ModelSelector.tsx # LLM model selection
+│   │   └── PromptSuggestion.tsx # Prompt suggestions
+│   ├── mcp/              # MCP integration components
+│   │   └── MCPServerForm.tsx # MCP server configuration
+│   ├── forms/            # Specialized form components
+│   │   ├── CommonFormFields.tsx # Common form inputs
+│   │   ├── GraphRagFormFields.tsx # Graph RAG configuration
+│   │   ├── RaptorFormFields.tsx # RAPTOR algorithm settings
+│   │   └── AutoKeywordsFormField.tsx # Auto-keyword extraction
 │   └── layout/           # Layout components
-│       ├── Layout.tsx    # Main app layout
-│       ├── Header.tsx    # App header
-│       └── Sidebar.tsx   # Navigation sidebar
+│       ├── Layout.tsx    # Main app layout with auth guard
+│       ├── Header.tsx    # App header with user menu
+│       └── Sidebar.tsx   # Navigation sidebar with modern design
 ├── pages/                # Application pages
-│   ├── auth/             # Authentication pages
+│   ├── auth/             # Authentication
 │   │   ├── LoginPage.tsx
 │   │   └── RegisterPage.tsx
-│   ├── dashboard/        # Dashboard page
+│   ├── dashboard/        # Dashboard
 │   │   └── DashboardPage.tsx
 │   ├── chat/             # Chat interface
 │   │   └── ChatPage.tsx
 │   ├── knowledge/        # Knowledge base management
-│   │   ├── KnowledgeListPage.tsx      # Knowledge base list
-│   │   ├── KnowledgeCreatePage.tsx    # Create knowledge base
-│   │   ├── KnowledgeImportPage.tsx    # Import documents
-│   │   ├── KnowledgeDetailLayout.tsx  # Knowledge base detail layout
+│   │   ├── KnowledgeListPage.tsx # KB listing and management
+│   │   ├── KnowledgeCreatePage.tsx # KB creation wizard
+│   │   ├── KnowledgeImportPage.tsx # Document import
+│   │   ├── KnowledgeDetailLayout.tsx # KB detail layout
 │   │   ├── KnowledgeDocumentsPage.tsx # Document management
-│   │   ├── KnowledgeSearchPage.tsx    # Search interface
-│   │   └── KnowledgeSettingsPage.tsx  # Knowledge base settings
+│   │   ├── KnowledgeSearchPage.tsx # Search interface
+│   │   ├── KnowledgeSettingsPage.tsx # KB configuration
+│   │   ├── DocumentChunksPage.tsx # Document chunk viewer
+│   │   └── settings/     # Parser configuration components
+│   │       ├── configuration/ # Specialized parser configs
+│   │       ├── ParserVisualizationPanel.tsx
+│   │       └── configuration-form-container.tsx
+│   ├── ai-tools/         # AI tools and utilities
+│   │   ├── AIToolsHomePage.tsx # Tools homepage
+│   │   ├── AutoFillWorkbenchPage.tsx # Auto-fill workbench
+│   │   └── ref/          # Reference implementations
+│   ├── studio/           # App creation studio
+│   │   ├── StudioPage.tsx # Studio homepage
+│   │   ├── CreateAppPage.tsx # App creation wizard
+│   │   └── components/   # Studio-specific components
+│   ├── dialog/           # Dialog management
+│   │   ├── DialogListPage.tsx # Dialog listing
+│   │   └── PromptEditorPage.tsx # Prompt editing
+│   ├── explore/          # Content exploration
+│   │   └── ExplorePage.tsx # Explore interface
 │   ├── system/           # System monitoring
-│   │   └── SystemPage.tsx
-│   ├── settings/         # Settings pages
-│   │   ├── SettingsLayout.tsx         # Settings layout
-│   │   ├── ProfilePage.tsx            # User profile
-│   │   └── ModelProvidersPage.tsx     # LLM provider settings
-│   ├── documents/        # Document management (placeholder)
-│   ├── ai-tools/         # AI tools (placeholder)
-│   ├── workflow/         # Workflow management (placeholder)
-│   └── mcp-servers/      # MCP server management (placeholder)
-├── stores/               # Zustand state stores
+│   │   └── SystemPage.tsx # System dashboard
+│   ├── settings/         # Application settings
+│   │   ├── SettingsLayout.tsx # Settings layout
+│   │   ├── ProfilePage.tsx # User profile
+│   │   ├── SecurityPage.tsx # Security settings
+│   │   ├── ModelProvidersPage.tsx # LLM provider config
+│   │   ├── MCPServersPage.tsx # MCP server management
+│   │   ├── MCPToolsPage.tsx # MCP tools browser
+│   │   ├── MCPTestPage.tsx # MCP testing interface
+│   │   ├── MCPBatchPage.tsx # MCP batch operations
+│   │   └── ApiKeysPage.tsx # API key management
+│   ├── MCPChatPage.tsx   # MCP-enhanced chat
+│   ├── MCPDashboard.tsx  # MCP dashboard
+│   └── theme-demo/       # Theme demonstration
+├── stores/               # Zustand state management
 │   ├── auth.ts           # Authentication state
 │   ├── ui.ts             # UI state (sidebar, theme, notifications)
 │   ├── chat.ts           # Chat state
 │   ├── conversation.ts   # Conversation management
 │   ├── knowledge.ts      # Knowledge base state
 │   ├── model.ts          # Model configurations
-│   └── index.ts          # Store initialization
+│   └── index.ts          # Store initialization with persistence
+├── themes/               # Advanced design system
+│   ├── tokens.ts         # Design token definitions
+│   ├── theme-generator.ts # Automated theme generation
+│   ├── build-themes.ts   # Theme build script
+│   ├── tailwind-vars.ts  # Tailwind CSS integration
+│   ├── light.css         # Light theme CSS variables
+│   ├── dark.css          # Dark theme CSS variables
+│   └── *.md              # Design system documentation
 ├── hooks/                # Custom React hooks
 │   ├── use-auth.ts       # Authentication hooks
 │   ├── use-conversations.ts # Conversation hooks
 │   └── use-system-status.ts # System status hooks
-├── lib/                  # Utilities and configurations
-│   ├── router.tsx        # React Router configuration
+├── lib/                  # Core utilities and configurations
+│   ├── router.tsx        # React Router configuration with nested routes
 │   ├── query-client.ts   # TanStack Query setup
 │   ├── utils.ts          # Utility functions
-│   └── toast.ts          # Toast notifications
+│   └── toast.ts          # Toast notification system
 ├── types/                # TypeScript type definitions
-│   ├── api.ts            # API response types (950+ lines)
+│   ├── api.ts            # Comprehensive API types (1000+ lines)
 │   └── index.ts          # Type exports
 ├── constants/            # Application constants
-│   └── index.ts          # Routes, API URLs, etc.
-├── assets/               # Static assets
-│   ├── react.svg         # React logo
-│   └── svg/              # SVG icons
-│       └── file-icon/    # File type icons (40+ types)
-│           ├── pdf.svg, docx.svg, txt.svg
-│           ├── jpg.svg, png.svg, gif.svg
-│           ├── mp4.svg, mp3.svg, avi.svg
-│           └── ...       # More file type icons
-└── utils/                # Additional utilities
+│   └── index.ts          # Routes, API URLs, file types, etc.
+└── assets/               # Static assets
+    ├── react.svg         # React logo
+    └── svg/              # SVG icon library
+        └── file-icon/    # File type icons (40+ formats)
 ```
 
 ## 🛠️ Development Setup
@@ -174,13 +240,16 @@ src/
 
 ```bash
 # Development
-npm run dev          # Start development server
-npm run build        # Build for production
+npm run dev          # Start development server (localhost:5173, accessible externally)
+npm run build        # Build for production (TypeScript + Vite)
 npm run preview      # Preview production build
-npm run lint         # Run ESLint
+npm run lint         # Run ESLint for code quality
 
-# Type checking
-npx tsc --noEmit     # TypeScript type checking
+# Design System
+npm run build:themes # Generate CSS theme files from design tokens
+
+# Type Checking & Quality
+npx tsc --noEmit     # TypeScript type checking without emit
 ```
 
 ## ⚙️ Configuration
@@ -222,68 +291,33 @@ The application uses a custom API client (`src/api/client.ts`) that provides:
 - Conversation management
 - Streaming responses
 
-### 4. Knowledge Base Management
-- **Knowledge Base Creation**: Create and configure knowledge bases with custom settings and fixed vector model selection
-- **Advanced Document Management**: 
-  - Support for multiple file types (PDF, DOCX, TXT, MD, and 40+ file types)
-  - Batch operations: upload, download, rename, and delete multiple documents
-  - Real-time document processing status with parsing control
-  - Document metadata management and organization
-- **Enhanced Document Operations**:
-  - Individual file upload/download with progress tracking
-  - Bulk document operations with selection management
-  - Document renaming and organization tools
-  - Advanced filtering and search capabilities
-- **Embedding Models**: Improved embedding model selector with fixed dropdown issues and dynamic provider logos
-- **Search Interface**: Advanced search and retrieval within knowledge bases
-- **Import/Export**: Bulk import documents and export knowledge base data
-- **Processing Control**: Real-time document processing status with start/stop controls
-- **Quick Edit**: In-place editing of knowledge base settings
+### 🔧 Settings & Configuration
+- **User Management**: Profile, security, API keys, and authentication settings
+- **LLM Providers**: Configure multiple AI providers (OpenAI, Anthropic, Claude, etc.)
+- **MCP Integration**: Server management, tool discovery, testing, and batch operations
+- **Security & Privacy**: Advanced security settings and access controls
+- **Theme System**: Light/dark mode with advanced design token customization
 
-### 5. System Monitoring
-- Real-time system status
-- Component health checks (Database, Redis, Storage, Doc Engine)
-- Task executor monitoring with charts
-- Performance metrics
+## 🎨 Design System & UI
 
-### 6. Settings & Configuration
-- **User Profile**: Personal information and account settings
-- **Model Providers**: Configure LLM providers (OpenAI, Anthropic, etc.)
-- **API Keys**: Secure API key management for various services
-- **Security Settings**: Password, 2FA, and security preferences (planned)
-- **Notifications**: Notification preferences and settings (planned)
-- **Appearance**: Theme, language, and UI customization (planned)
-- **System Preferences**: Application-wide configuration options
+### Advanced Design System
+- **Design Tokens**: Comprehensive token system with automated CSS generation
+- **Theme Support**: Advanced light/dark mode with CSS custom properties
+- **Component Library**: 50+ reusable UI components with consistent styling
+- **Icon System**: File type icons (40+ formats), provider icons, and SVG assets
 
-### 7. Additional Features (In Development)
-- **Document Management**: Centralized document repository
-- **AI Tools**: Collection of AI-powered utilities
-- **Workflow Management**: Automated workflow creation and execution
-- **MCP Servers**: Model Context Protocol server management
+### Key UI Components
+- **Form System**: Advanced form components with React Hook Form + Zod validation
+- **Data Visualization**: Task executor charts, system status cards, and metrics displays
+- **File Management**: File icons, drag-and-drop, batch operations interface
+- **Navigation**: Modern sidebar with floating card design and responsive layout
+- **Authentication**: Carousel-based login/register with image fallbacks
 
-## 🎨 UI Components
-
-The application uses a comprehensive design system built with:
-
-### Base UI Components (40+ components)
-- **Form Components**: Button, Input, Checkbox, Custom Select, Dropdown
-- **Layout Components**: Card, Modal, Table, Avatar, Badge
-- **Interactive Components**: Tooltip, Loading, Status Card
-- **File Components**: File Icon (40+ file types), Dropzone integration
-- **Data Visualization**: Task Executor Chart, System Status Cards
-
-### Layout System
-- **Main Layout**: Header, Sidebar, Content area with responsive design
-- **Modernized Sidebar**: New floating card design with improved visual hierarchy and navigation experience
-- **Authentication Guard**: Route protection and user session management
-- **Enhanced Navigation**: Dynamic sidebar with active state management and visual enhancements
-
-### Design Features
+### Layout Architecture
 - **Responsive Design**: Mobile-first approach with Tailwind CSS
-- **Component Variants**: Using Class Variance Authority for consistent styling
-- **File Type Recognition**: Comprehensive file icon system for 40+ file types
-- **Accessibility**: ARIA labels, keyboard navigation, screen reader support
-- **Theme System**: Consistent color palette and typography (dark mode planned)
+- **Component Variants**: Using Class Variance Authority for systematic styling
+- **Accessibility**: ARIA labels, keyboard navigation, and screen reader support
+- **Performance**: Optimized rendering with backdrop-blur removal and efficient CSS
 
 ## 📊 State Management
 
@@ -365,4 +399,13 @@ For support and questions:
 
 ---
 
-**Version**: 0.6.1 | Built with ❤️ using React 19 + TypeScript 5.8 + Vite 7
+**Version**: 0.6.1+ | Built with ❤️ using React 19 + TypeScript 5.8 + Vite 7
+
+## 🏗️ Architecture Highlights
+
+- **Modern Stack**: React 19, Vite 7, TypeScript 5.8 with latest ecosystem tools
+- **Design System**: Advanced theming with automated CSS generation and design tokens
+- **State Management**: Zustand + TanStack Query for optimal client/server state
+- **MCP Integration**: Comprehensive Model Context Protocol support
+- **Performance**: Optimized bundle size, efficient rendering, and responsive design
+- **Developer Experience**: TypeScript-first, comprehensive tooling, and modern practices
