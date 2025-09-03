@@ -102,6 +102,7 @@ interface CodeEditorProps {
   placeholder?: string
   height?: string
   theme?: string
+  readOnly?: boolean
 }
 
 const CodeEditor: React.FC<CodeEditorProps> = ({
@@ -110,10 +111,13 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   language,
   placeholder,
   height = '300px',
-  theme = 'vs'
+  theme = 'vs',
+  readOnly = false
 }) => {
   const handleEditorChange = (value: string | undefined) => {
-    onChange(value || '')
+    if (!readOnly) {
+      onChange(value || '')
+    }
   }
 
   const editorOptions = {
@@ -121,7 +125,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
     lineNumbers: 'on' as const,
     roundedSelection: false,
     scrollBeyondLastLine: false,
-    readOnly: false,
+    readOnly: readOnly,
     fontSize: 14,
     fontFamily: 'Monaco, "Cascadia Code", "Source Code Pro", Consolas, "Courier New", monospace',
     bracketPairColorization: { enabled: true },
@@ -139,16 +143,18 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
       horizontalScrollbarSize: 12
     },
     suggest: {
-      showKeywords: true,
-      showSnippets: true
+      showKeywords: readOnly ? false : true,
+      showSnippets: readOnly ? false : true
     },
     tabSize: 2,
     insertSpaces: true,
     detectIndentation: false,
     glyphMargin: false,
     folding: true,
-    selectOnLineNumbers: true,
-    matchBrackets: 'always' as const
+    selectOnLineNumbers: !readOnly,
+    matchBrackets: 'always' as const,
+    contextmenu: !readOnly,
+    quickSuggestions: readOnly ? false : true
   }
 
   return (
@@ -270,6 +276,7 @@ const ApiDocumentationPage: React.FC = () => {
   // API测试相关状态
   const [testLoading, setTestLoading] = useState(false)
   const [testResponse, setTestResponse] = useState<any>(null)
+  const [formattedResponse, setFormattedResponse] = useState<string>('')
   const [copiedStates, setCopiedStates] = useState<Record<string, boolean>>({})
   
   // Apifox风格的测试状态
@@ -286,6 +293,54 @@ const ApiDocumentationPage: React.FC = () => {
   
   // 编辑器主题
   const [editorTheme, setEditorTheme] = useState<'vs' | 'vs-dark'>('vs')
+  
+  // 响应数据语言检测函数
+  const detectResponseLanguage = useCallback((response: any) => {
+    if (!response || !response.headers) return 'json'
+    
+    const contentType = Object.entries(response.headers).find(
+      ([key]) => key.toLowerCase() === 'content-type'
+    )?.[1] as string || ''
+    
+    if (contentType.includes('json')) return 'json'
+    if (contentType.includes('xml')) return 'xml'
+    if (contentType.includes('html')) return 'html'
+    if (contentType.includes('text/plain')) return 'plaintext'
+    if (contentType.includes('javascript')) return 'javascript'
+    if (contentType.includes('css')) return 'css'
+    
+    return 'json' // 默认使用JSON高亮
+  }, [])
+  
+  // 格式化响应数据
+  const formatResponseData = useCallback((response: any) => {
+    if (!response?.data) return ''
+    
+    try {
+      if (typeof response.data === 'string') {
+        // 尝试解析为JSON
+        try {
+          const parsed = JSON.parse(response.data)
+          return JSON.stringify(parsed, null, 2)
+        } catch {
+          return response.data
+        }
+      } else {
+        return JSON.stringify(response.data, null, 2)
+      }
+    } catch {
+      return String(response.data)
+    }
+  }, [])
+  
+  // 更新格式化响应数据
+  useEffect(() => {
+    if (testResponse) {
+      setFormattedResponse(formatResponseData(testResponse))
+    } else {
+      setFormattedResponse('')
+    }
+  }, [testResponse, formatResponseData])
   
   // 自动清除格式化提示
   useEffect(() => {
@@ -2666,10 +2721,41 @@ const ApiDocumentationPage: React.FC = () => {
                                   <div className="flex items-center justify-between">
                                     <CardTitle className="text-base">响应体</CardTitle>
                                     <div className="flex gap-2">
-                                <Button
-                                  variant="ghost"
+                                      <Badge 
+                                        variant="outline" 
+                                        className="bg-blue-50 text-blue-700 border-blue-200"
+                                      >
+                                        {detectResponseLanguage(testResponse).toUpperCase()}
+                                      </Badge>
+                                      <Button
+                                        variant="outline"
                                         size="sm"
-                                        onClick={() => handleCopy(JSON.stringify(testResponse.data, null, 2), 'response')}
+                                        onClick={() => {
+                                          const newFormatted = formatResponseData(testResponse)
+                                          setFormattedResponse(newFormatted)
+                                          setFormatMessage({
+                                            type: 'success',
+                                            text: '响应数据已重新格式化'
+                                          })
+                                        }}
+                                        className="hover:bg-purple-50 hover:border-purple-200 hover:text-purple-700"
+                                        title="重新格式化响应数据"
+                                      >
+                                        格式化
+                                      </Button>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setEditorTheme(prev => prev === 'vs' ? 'vs-dark' : 'vs')}
+                                        className="hover:bg-gray-50 hover:border-gray-200"
+                                        title="切换编辑器主题"
+                                      >
+                                        {editorTheme === 'vs' ? '🌙' : '☀️'}
+                                      </Button>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => handleCopy(formattedResponse || formatResponseData(testResponse), 'response')}
                                         className="gap-2"
                                       >
                                         {copiedStates.response ? (
@@ -2678,20 +2764,33 @@ const ApiDocumentationPage: React.FC = () => {
                                           <Copy className="h-4 w-4" />
                                         )}
                                         复制
-                                </Button>
+                                      </Button>
+                                      {formatMessage && (
+                                        <div className={cn(
+                                          "px-3 py-1 rounded-md text-xs font-medium transition-all duration-300",
+                                          formatMessage.type === 'success' 
+                                            ? "bg-green-50 text-green-700 border border-green-200" 
+                                            : "bg-red-50 text-red-700 border border-red-200"
+                                        )}>
+                                          {formatMessage.text}
+                                        </div>
+                                      )}
                                     </div>
                                   </div>
                                 </CardHeader>
                                 <CardContent className="pt-0">
-                                  <div className="bg-slate-950 text-green-400 rounded-lg border overflow-hidden">
-                                    <div className="p-4 overflow-auto max-h-96">
-                                      <pre className="text-sm font-mono whitespace-pre-wrap">
-                                        <code>{JSON.stringify(testResponse.data, null, 2)}</code>
-                                </pre>
-                              </div>
+                                  <div className="border rounded-lg overflow-hidden h-96">
+                                    <CodeEditor
+                                      value={formattedResponse || formatResponseData(testResponse)}
+                                      onChange={() => {}} // 只读模式，空函数
+                                      language={detectResponseLanguage(testResponse)}
+                                      height="100%"
+                                      theme={editorTheme}
+                                      readOnly={true}
+                                    />
                                   </div>
                                 </CardContent>
-                        </Card>
+                              </Card>
                   </div>
                           ) : (
                             <div className="h-full flex items-center justify-center p-6">
