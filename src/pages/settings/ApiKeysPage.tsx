@@ -1,16 +1,16 @@
 import { useState, useEffect, useCallback } from "react"
+import { createPortal } from "react-dom"
 import { 
   Search, Globe, Database, Users, Shield, 
   Play, Copy, Check, RefreshCw, Activity, Star, FileText, 
   Key, Zap, BookOpen, ChevronDown, ChevronRight,
-  Plus, Minus, Save, Archive
+  Plus, Minus, Save, Archive, Edit2, Trash2, MoreHorizontal
 } from "lucide-react"
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
@@ -19,7 +19,9 @@ import { Progress } from '@/components/ui/progress'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { MethodBadge } from '@/components/ui/method-badge'
+import { Tooltip } from '@/components/ui/tooltip'
 import { cn } from '@/components/ui/utils'
+import { PageSizeSelector } from '@/components/ui/page-size-selector'
 import { MarkdownRenderer } from '@/components/chat/MarkdownRenderer'
 
 import { 
@@ -50,6 +52,19 @@ interface HeaderRow {
   name: string
   value: string
   description: string
+}
+
+// API Key 接口定义
+interface ApiKey {
+  tenant_id: string
+  token: string
+  beta: string
+  name: string
+  description: string
+  create_time: number
+  create_date: string
+  update_time: number | null
+  update_date: string | null
 }
 
 const tagIcons = {
@@ -164,6 +179,22 @@ const ApiDocumentationPage: React.FC = () => {
   const [userPermissions] = useState<string[]>(["user"])
   const [envManagementOpen, setEnvManagementOpen] = useState(false)
 
+  // API Key 管理状态
+  const [apiKeyManagementOpen, setApiKeyManagementOpen] = useState(false)
+  const [apiKeys, setApiKeys] = useState<ApiKey[]>([])
+  const [apiKeyLoading, setApiKeyLoading] = useState(false)
+  const [apiKeyPage, setApiKeyPage] = useState(1)
+  const [apiKeyPageSize, setApiKeyPageSize] = useState(10)
+  const [apiKeyTotal, setApiKeyTotal] = useState(0)
+  const [apiKeySearchQuery, setApiKeySearchQuery] = useState('')
+  const [editingApiKey, setEditingApiKey] = useState<ApiKey | null>(null)
+  const [createApiKeyModalOpen, setCreateApiKeyModalOpen] = useState(false)
+  const [createApiKeyLoading, setCreateApiKeyLoading] = useState(false)
+  const [editApiKeyLoading, setEditApiKeyLoading] = useState(false)
+  const [operatingKeys, setOperatingKeys] = useState<Set<string>>(new Set())
+  const [openDropdowns, setOpenDropdowns] = useState<Set<string>>(new Set())
+  const [dropdownPositions, setDropdownPositions] = useState<Record<string, { top: number, right: number }>>({})
+
   // 解析 $ref 引用的 schema，支持嵌套与数组
   const resolveSchemaRef = useCallback((input: any): any => {
     if (!input) return input
@@ -211,6 +242,32 @@ const ApiDocumentationPage: React.FC = () => {
       initializeTestData(selectedAPI)
     }
   }, [selectedAPI])
+
+  // 当 API Key 管理弹窗打开时加载数据
+  useEffect(() => {
+    if (apiKeyManagementOpen) {
+      loadApiKeys()
+    }
+  }, [apiKeyManagementOpen])
+
+  // 当分页、搜索参数变化时重新加载
+  useEffect(() => {
+    if (apiKeyManagementOpen) {
+      loadApiKeys()
+    }
+  }, [apiKeyPage, apiKeyPageSize])
+
+  // 搜索关键词变化时重新加载（带防抖）
+  useEffect(() => {
+    if (!apiKeyManagementOpen) return
+    
+    const timeoutId = setTimeout(() => {
+      setApiKeyPage(1) // 搜索时重置到第一页
+      loadApiKeys()
+    }, 300)
+
+    return () => clearTimeout(timeoutId)
+  }, [apiKeySearchQuery])
 
   // 初始化分组收起状态
   useEffect(() => {
@@ -353,6 +410,142 @@ const ApiDocumentationPage: React.FC = () => {
       setCopiedStates({ ...copiedStates, [key]: false })
     }, 2000)
   }, [copiedStates])
+
+  // API Key 相关函数
+  const loadApiKeys = async () => {
+    setApiKeyLoading(true)
+    try {
+      // 模拟API调用
+      await new Promise(resolve => setTimeout(resolve, 800))
+      
+      // 模拟数据，基于提供的 API 返回结构
+      const mockApiKeys: ApiKey[] = [
+        {
+          tenant_id: "2feeedb6b87511ef9991f2debce134a0",
+          token: "multirag-RkOGUxNzRjODg4ODExZjA5ZjczODNmND",
+          beta: "RkOGUyMDcwODg4ODExZjA5ZjczODNmND",
+          name: "dxl_0903",
+          description: "测试",
+          create_time: 1756878186249,
+          create_date: "2025-09-03T13:43:06",
+          update_time: null,
+          update_date: null
+        },
+        {
+          tenant_id: "3feeedb6b87511ef9991f2debce134a1",
+          token: "multirag-BkNGUxNzRjODg4ODExZjA5ZjczODNmND",
+          beta: "BkNGUyMDcwODg4ODExZjA5ZjczODNmND",
+          name: "production_key",
+          description: "生产环境密钥",
+          create_time: 1756778186249,
+          create_date: "2025-09-02T10:23:06",
+          update_time: 1756878186249,
+          update_date: "2025-09-03T13:43:06"
+        }
+      ]
+      
+      // 应用搜索筛选
+      const filteredKeys = mockApiKeys.filter(key => 
+        !apiKeySearchQuery || 
+        key.name.toLowerCase().includes(apiKeySearchQuery.toLowerCase()) ||
+        key.description.toLowerCase().includes(apiKeySearchQuery.toLowerCase()) ||
+        key.tenant_id.includes(apiKeySearchQuery)
+      )
+      
+      // 应用分页
+      const startIndex = (apiKeyPage - 1) * apiKeyPageSize
+      const endIndex = startIndex + apiKeyPageSize
+      const paginatedKeys = filteredKeys.slice(startIndex, endIndex)
+      
+      setApiKeys(paginatedKeys)
+      setApiKeyTotal(filteredKeys.length)
+    } catch (error) {
+      console.error('Failed to load API keys:', error)
+    } finally {
+      setApiKeyLoading(false)
+    }
+  }
+
+  const maskToken = (token: string) => {
+    if (token.length <= 8) return token
+    return token.slice(0, 4) + '•'.repeat(20) + token.slice(-4)
+  }
+
+  const deleteApiKey = async (apiKey: ApiKey) => {
+    // 显示确认对话框
+    if (!window.confirm(`确定要删除 API Key "${apiKey.name}" 吗？此操作不可撤销。`)) {
+      return
+    }
+    
+    setOperatingKeys(prev => new Set(prev).add(apiKey.tenant_id))
+    try {
+      await new Promise(resolve => setTimeout(resolve, 500))
+      loadApiKeys() // 后台刷新数据
+    } finally {
+      setOperatingKeys(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(apiKey.tenant_id)
+        return newSet
+      })
+    }
+  }
+
+  const regenerateApiKey = async (apiKey: ApiKey) => {
+    // 显示确认对话框
+    if (!window.confirm(`确定要重新生成 API Key "${apiKey.name}" 的令牌吗？旧令牌将立即失效。`)) {
+      return
+    }
+    
+    setOperatingKeys(prev => new Set(prev).add(apiKey.tenant_id))
+    try {
+      await new Promise(resolve => setTimeout(resolve, 800))
+      loadApiKeys() // 后台刷新数据
+    } finally {
+      setOperatingKeys(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(apiKey.tenant_id)
+        return newSet
+      })
+    }
+  }
+
+  const toggleDropdown = (apiKeyId: string, buttonElement: HTMLButtonElement) => {
+    setOpenDropdowns(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(apiKeyId)) {
+        newSet.delete(apiKeyId)
+      } else {
+        newSet.clear() // 关闭其他的下拉菜单
+        newSet.add(apiKeyId)
+        
+        // 计算按钮位置
+        const rect = buttonElement.getBoundingClientRect()
+        setDropdownPositions(prev => ({
+          ...prev,
+          [apiKeyId]: {
+            top: rect.bottom + window.scrollY + 4,
+            right: window.innerWidth - rect.right + window.scrollX
+          }
+        }))
+      }
+      return newSet
+    })
+  }
+
+  // 点击外部关闭下拉菜单
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setOpenDropdowns(new Set())
+    }
+    
+    if (openDropdowns.size > 0) {
+      document.addEventListener('click', handleClickOutside)
+    }
+    
+    return () => {
+      document.removeEventListener('click', handleClickOutside)
+    }
+  }, [openDropdowns.size])
 
   const handleTestAPI = async () => {
     if (!selectedAPI) return
@@ -685,12 +878,320 @@ const ApiDocumentationPage: React.FC = () => {
                     </button>
             </div>
                   
-                  {/* 环境选择器 - 优化版 */}
-                  <div className="relative">
-                    <Select value={selectedEnvironment.id} onValueChange={(value) => {
-                      const env = environments.find(e => e.id === value)
-                      if (env) setSelectedEnvironment(env)
-                    }}>
+                  <div className="flex items-center gap-3">
+                    {/* API Key 管理按钮 */}
+                    <Dialog open={apiKeyManagementOpen} onOpenChange={setApiKeyManagementOpen}>
+                      <DialogTrigger>
+                        <Button
+                          variant="outline" 
+                          size="sm"
+                          className="gap-2 bg-background border border-border/50 shadow-sm hover:border-border transition-colors"
+                        >
+                          <Key className="h-4 w-4" />
+                          API Key
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
+                        <DialogHeader>
+                          <DialogTitle className="flex items-center gap-2">
+                            <Key className="h-5 w-5" />
+                            API Key 管理
+                          </DialogTitle>
+                          <DialogDescription>
+                            管理您的 API Key，包括创建、编辑和删除操作
+                          </DialogDescription>
+                        </DialogHeader>
+
+                        {/* API Key 管理内容 */}
+                        <div className="flex-1 overflow-hidden flex flex-col space-y-4">
+                          {/* 操作栏 */}
+                          <div className="flex items-center justify-between gap-4">
+                            <div className="flex items-center gap-3">
+                              <div className="relative">
+                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                                <Input
+                                  placeholder="搜索 API Key..."
+                                  value={apiKeySearchQuery}
+                                  onChange={(e) => setApiKeySearchQuery(e.target.value)}
+                                  className="pl-10 w-80"
+                                />
+                              </div>
+                            </div>
+                            <Button 
+                              onClick={() => setCreateApiKeyModalOpen(true)}
+                              className="gap-2"
+                            >
+                              <Plus className="h-4 w-4" />
+                              新增 API Key
+                            </Button>
+                          </div>
+
+                          {/* 表格容器 */}
+                          <div className="flex-1 overflow-hidden border rounded-lg">
+                            {apiKeyLoading ? (
+                              <div className="h-96 flex items-center justify-center">
+                                <div className="text-center space-y-4">
+                                  <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+                                  <p className="text-muted-foreground">加载中...</p>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="h-full flex flex-col">
+                                {/* 表头 */}
+                                <div className="bg-muted/50 border-b">
+                                  <div className="grid grid-cols-12 gap-4 p-4 text-sm font-semibold">
+                                    <div className="col-span-2">名称</div>
+                                    <div className="col-span-3">Token</div>
+                                    <div className="col-span-2">描述</div>
+                                    <div className="col-span-2">租户ID</div>
+                                    <div className="col-span-2">创建时间</div>
+                                    <div className="col-span-1 text-center">操作</div>
+                                  </div>
+                                </div>
+                                
+                                {/* 表格内容 */}
+                                <div className="flex-1 overflow-auto">
+                                  {apiKeys.length === 0 ? (
+                                    <div className="h-64 flex items-center justify-center">
+                                      <div className="text-center text-muted-foreground">
+                                        <Key className="h-12 w-12 mx-auto mb-4 opacity-30" />
+                                        <p>暂无 API Key</p>
+                                        <p className="text-sm mt-1">点击"新增 API Key"来创建第一个密钥</p>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <div className="divide-y" style={{ position: 'relative', zIndex: 1 }}>
+                                      {apiKeys.map((apiKey) => (
+                                        <div key={apiKey.tenant_id} className="grid grid-cols-12 gap-4 p-4 hover:bg-muted/30 transition-colors relative">
+                                          {/* 名称 */}
+                                          <div className="col-span-2">
+                                            <div className="font-medium">{apiKey.name}</div>
+                                          </div>
+                                          
+                                          {/* Token */}
+                                          <div className="col-span-3">
+                                            <div className="flex items-center gap-2">
+                                              <code className="font-mono text-sm bg-muted px-2 py-1 rounded flex-1 truncate">
+                                                {maskToken(apiKey.token)}
+                                              </code>
+                                              <Button
+                                                variant="ghost"
+                                                size="icon-sm"
+                                                onClick={() => handleCopy(apiKey.token, `token-${apiKey.tenant_id}`)}
+                                                className="shrink-0"
+                                              >
+                                                {copiedStates[`token-${apiKey.tenant_id}`] ? (
+                                                  <Check className="h-3 w-3 text-green-600" />
+                                                ) : (
+                                                  <Copy className="h-3 w-3" />
+                                                )}
+                                              </Button>
+                                            </div>
+                                          </div>
+                                          
+                                          {/* 描述 */}
+                                          <div className="col-span-2">
+                                            {apiKey.description ? (
+                                              <Tooltip 
+                                                content={apiKey.description}
+                                                position="top"
+                                                maxWidth="max-w-sm"
+                                              >
+                                                <div className="text-muted-foreground text-sm truncate cursor-help">
+                                                  {apiKey.description}
+                                                </div>
+                                              </Tooltip>
+                                            ) : (
+                                              <div className="text-muted-foreground text-sm">—</div>
+                                            )}
+                                          </div>
+                                          
+                                          {/* 租户ID */}
+                                          <div className="col-span-2">
+                                            <div className="flex items-center gap-2">
+                                              <code className="font-mono text-xs bg-muted px-1 py-0.5 rounded truncate flex-1">
+                                                {apiKey.tenant_id}
+                                              </code>
+                                              <Button
+                                                variant="ghost"
+                                                size="icon-sm"
+                                                onClick={() => handleCopy(apiKey.tenant_id, `tenant-${apiKey.tenant_id}`)}
+                                                className="shrink-0"
+                                              >
+                                                {copiedStates[`tenant-${apiKey.tenant_id}`] ? (
+                                                  <Check className="h-3 w-3 text-green-600" />
+                                                ) : (
+                                                  <Copy className="h-3 w-3" />
+                                                )}
+                                              </Button>
+                                            </div>
+                                          </div>
+                                          
+                                          {/* 创建时间 */}
+                                          <div className="col-span-2">
+                                            <div className="text-sm text-muted-foreground">
+                                              {apiKey.create_date}
+                                            </div>
+                                            {apiKey.update_date && (
+                                              <div className="text-xs text-muted-foreground mt-1">
+                                                更新: {apiKey.update_date}
+                                              </div>
+                                            )}
+                                          </div>
+                                          
+                                          {/* 操作 */}
+                                          <div className="col-span-1 flex justify-center relative z-[100]">
+                                            <div className="relative">
+                                              <Button 
+                                                variant="ghost" 
+                                                size="icon-sm"
+                                                disabled={operatingKeys.has(apiKey.tenant_id)}
+                                                onClick={(e) => {
+                                                  e.stopPropagation()
+                                                  toggleDropdown(apiKey.tenant_id, e.currentTarget)
+                                                }}
+                                              >
+                                                {operatingKeys.has(apiKey.tenant_id) ? (
+                                                  <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                                                ) : (
+                                                  <MoreHorizontal className="h-4 w-4" />
+                                                )}
+                                              </Button>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* 分页 */}
+                          {apiKeyTotal > 0 && (
+                            <div className="flex items-center justify-between border-t pt-4">
+                              <div className="text-sm text-muted-foreground">
+                                共 {apiKeyTotal} 项
+                              </div>
+                              <div className="flex items-center gap-4">
+                                {/* 页面大小选择器 */}
+                                <PageSizeSelector
+                                  pageSize={apiKeyPageSize}
+                                  onChange={(size) => {
+                                    setApiKeyPageSize(size)
+                                    setApiKeyPage(1)
+                                  }}
+                                  options={[10, 20, 50]}
+                                />
+
+                                {/* 页码导航 */}
+                                <div className="flex items-center space-x-2" style={{ color: 'var(--color-components-pagination-text)' }}>
+                                  <button
+                                    onClick={() => setApiKeyPage(Math.max(1, apiKeyPage - 1))}
+                                    disabled={apiKeyPage <= 1}
+                                    className="px-3 py-1.5 text-sm font-medium rounded-md transition-colors border"
+                                    style={{
+                                      backgroundColor: apiKeyPage <= 1 ? 'var(--color-components-pagination-disabled-bg)' : 'var(--color-components-pagination-item-bg)',
+                                      color: apiKeyPage <= 1 ? 'var(--color-components-pagination-disabled-text)' : 'var(--color-components-pagination-item-text)',
+                                      borderColor: 'var(--color-components-pagination-border)'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      if (apiKeyPage > 1) {
+                                        e.currentTarget.style.backgroundColor = 'var(--color-components-pagination-item-bg-hover)'
+                                      }
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      if (apiKeyPage > 1) {
+                                        e.currentTarget.style.backgroundColor = 'var(--color-components-pagination-item-bg)'
+                                      }
+                                    }}
+                                  >
+                                    上一页
+                                  </button>
+
+                                  <div
+                                    className="flex items-center rounded-lg p-1"
+                                    style={{ backgroundColor: 'var(--color-components-pagination-bg)', border: '1px solid var(--color-components-pagination-border)' }}
+                                  >
+                                    {Array.from({ length: Math.min(5, Math.ceil(apiKeyTotal / apiKeyPageSize)) }, (_, i) => {
+                                      const totalPages = Math.ceil(apiKeyTotal / apiKeyPageSize)
+                                      let pageNum
+                                      
+                                      if (totalPages <= 5) {
+                                        pageNum = i + 1
+                                      } else {
+                                        if (apiKeyPage <= 3) {
+                                          pageNum = i + 1
+                                        } else if (apiKeyPage >= totalPages - 2) {
+                                          pageNum = totalPages - 4 + i
+                                        } else {
+                                          pageNum = apiKeyPage - 2 + i
+                                        }
+                                      }
+                                      
+                                      return (
+                                        <button
+                                          key={pageNum}
+                                          className="w-8 h-8 p-0 rounded-md text-sm font-medium transition-colors"
+                                          style={{
+                                            backgroundColor: pageNum === apiKeyPage ? 'var(--color-components-pagination-item-bg-active)' : 'var(--color-components-pagination-item-bg)',
+                                            color: pageNum === apiKeyPage ? 'var(--color-components-pagination-item-text-active)' : 'var(--color-components-pagination-item-text)'
+                                          }}
+                                          onMouseEnter={(e) => {
+                                            if (pageNum !== apiKeyPage) {
+                                              e.currentTarget.style.backgroundColor = 'var(--color-components-pagination-item-bg-hover)'
+                                            }
+                                          }}
+                                          onMouseLeave={(e) => {
+                                            if (pageNum !== apiKeyPage) {
+                                              e.currentTarget.style.backgroundColor = 'var(--color-components-pagination-item-bg)'
+                                            }
+                                          }}
+                                          onClick={() => setApiKeyPage(pageNum)}
+                                        >
+                                          {pageNum}
+                                        </button>
+                                      )
+                                    })}
+                                  </div>
+                                  
+                                  <button
+                                    onClick={() => setApiKeyPage(Math.min(Math.ceil(apiKeyTotal / apiKeyPageSize), apiKeyPage + 1))}
+                                    disabled={apiKeyPage >= Math.ceil(apiKeyTotal / apiKeyPageSize)}
+                                    className="px-3 py-1.5 text-sm font-medium rounded-md transition-colors border"
+                                    style={{
+                                      backgroundColor: apiKeyPage >= Math.ceil(apiKeyTotal / apiKeyPageSize) ? 'var(--color-components-pagination-disabled-bg)' : 'var(--color-components-pagination-item-bg)',
+                                      color: apiKeyPage >= Math.ceil(apiKeyTotal / apiKeyPageSize) ? 'var(--color-components-pagination-disabled-text)' : 'var(--color-components-pagination-item-text)',
+                                      borderColor: 'var(--color-components-pagination-border)'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      if (apiKeyPage < Math.ceil(apiKeyTotal / apiKeyPageSize)) {
+                                        e.currentTarget.style.backgroundColor = 'var(--color-components-pagination-item-bg-hover)'
+                                      }
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      if (apiKeyPage < Math.ceil(apiKeyTotal / apiKeyPageSize)) {
+                                        e.currentTarget.style.backgroundColor = 'var(--color-components-pagination-item-bg)'
+                                      }
+                                    }}
+                                  >
+                                    下一页
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+
+                    {/* 环境选择器 - 优化版 */}
+                    <div className="relative">
+                      <Select value={selectedEnvironment.id} onValueChange={(value) => {
+                        const env = environments.find(e => e.id === value)
+                        if (env) setSelectedEnvironment(env)
+                      }}>
                       <SelectTrigger className="w-64 bg-background border border-border/50 shadow-sm hover:border-border transition-colors">
                         <div className="flex items-center gap-3">
                           <div className="relative">
@@ -929,6 +1430,7 @@ const ApiDocumentationPage: React.FC = () => {
                         </div>
                       </SelectContent>
                     </Select>
+                    </div>
                   </div>
                 </div>
 
@@ -1616,6 +2118,214 @@ const ApiDocumentationPage: React.FC = () => {
         </div>
 
         {/* 移动端遮罩（内嵌设置页时不再需要）*/}
+
+        {/* 创建 API Key 弹窗 */}
+        <Dialog open={createApiKeyModalOpen} onOpenChange={setCreateApiKeyModalOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Plus className="h-5 w-5" />
+                创建 API Key
+              </DialogTitle>
+              <DialogDescription>
+                创建新的 API Key 用于访问接口
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={async (e) => {
+              e.preventDefault()
+              const formData = new FormData(e.currentTarget)
+              setCreateApiKeyLoading(true)
+              try {
+                // 模拟创建 API
+                await new Promise(resolve => setTimeout(resolve, 600))
+                console.log('创建 API Key:', {
+                  name: formData.get('name'),
+                  description: formData.get('description')
+                })
+                setCreateApiKeyModalOpen(false)
+                loadApiKeys() // 不需要 await，让它在后台刷新
+              } finally {
+                setCreateApiKeyLoading(false)
+              }
+            }} className="space-y-4">
+              <div>
+                <Label htmlFor="name">名称 *</Label>
+                <Input
+                  id="name"
+                  name="name"
+                  placeholder="输入 API Key 名称"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="description">描述</Label>
+                <Textarea
+                  id="description"
+                  name="description"
+                  placeholder="输入 API Key 描述（可选）"
+                  rows={3}
+                />
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setCreateApiKeyModalOpen(false)}
+                  disabled={createApiKeyLoading}
+                >
+                  取消
+                </Button>
+                <Button type="submit" disabled={createApiKeyLoading}>
+                  {createApiKeyLoading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                      创建中...
+                    </>
+                  ) : (
+                    '创建'
+                  )}
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
+
+        {/* 编辑 API Key 弹窗 */}
+        <Dialog open={!!editingApiKey} onOpenChange={(open) => !open && setEditingApiKey(null)}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Edit2 className="h-5 w-5" />
+                编辑 API Key
+              </DialogTitle>
+              <DialogDescription>
+                修改 API Key 的名称和描述
+              </DialogDescription>
+            </DialogHeader>
+            {editingApiKey && (
+              <form onSubmit={async (e) => {
+                e.preventDefault()
+                const formData = new FormData(e.currentTarget)
+                setEditApiKeyLoading(true)
+                try {
+                  // 模拟编辑 API
+                  await new Promise(resolve => setTimeout(resolve, 500))
+                  console.log('编辑 API Key:', {
+                    id: editingApiKey.tenant_id,
+                    name: formData.get('name'),
+                    description: formData.get('description')
+                  })
+                  setEditingApiKey(null)
+                  loadApiKeys() // 不需要 await，让它在后台刷新
+                } finally {
+                  setEditApiKeyLoading(false)
+                }
+              }} className="space-y-4">
+                <div>
+                  <Label htmlFor="edit-name">名称 *</Label>
+                  <Input
+                    id="edit-name"
+                    name="name"
+                    defaultValue={editingApiKey.name}
+                    placeholder="输入 API Key 名称"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-description">描述</Label>
+                  <Textarea
+                    id="edit-description"
+                    name="description"
+                    defaultValue={editingApiKey.description}
+                    placeholder="输入 API Key 描述（可选）"
+                    rows={3}
+                  />
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => setEditingApiKey(null)}
+                    disabled={editApiKeyLoading}
+                  >
+                    取消
+                  </Button>
+                  <Button type="submit" disabled={editApiKeyLoading}>
+                    {editApiKeyLoading ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                        保存中...
+                      </>
+                    ) : (
+                      '保存'
+                    )}
+                  </Button>
+                </div>
+              </form>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Portal 渲染的下拉菜单 */}
+        {openDropdowns.size > 0 && createPortal(
+          <>
+            {Array.from(openDropdowns).map((apiKeyId) => {
+              const position = dropdownPositions[apiKeyId]
+              const apiKey = apiKeys.find(k => k.tenant_id === apiKeyId)
+              
+              if (!position || !apiKey) return null
+              
+              return (
+                <div 
+                  key={apiKeyId}
+                  className="fixed w-40 bg-white border border-gray-200 rounded-md shadow-lg z-[9999]"
+                  style={{
+                    top: position.top,
+                    right: position.right
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="py-1">
+                    <button 
+                      onClick={() => {
+                        setEditingApiKey(apiKey)
+                        setOpenDropdowns(new Set())
+                      }}
+                      disabled={operatingKeys.has(apiKey.tenant_id)}
+                      className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Edit2 className="h-4 w-4" />
+                      编辑
+                    </button>
+                    <button 
+                      onClick={() => {
+                        regenerateApiKey(apiKey)
+                        setOpenDropdowns(new Set())
+                      }}
+                      disabled={operatingKeys.has(apiKey.tenant_id)}
+                      className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <RefreshCw className="h-4 w-4" />
+                      重新生成
+                    </button>
+                    <button 
+                      onClick={() => {
+                        deleteApiKey(apiKey)
+                        setOpenDropdowns(new Set())
+                      }}
+                      disabled={operatingKeys.has(apiKey.tenant_id)}
+                      className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 transition-colors flex items-center gap-2 text-red-600 hover:text-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      删除
+                    </button>
+                  </div>
+                </div>
+              )
+            })}
+          </>,
+          document.body
+        )}
       </div>
     </div>
   )
