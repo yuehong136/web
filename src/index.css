@@ -588,3 +588,84 @@ html[data-theme="dark"] .flex.flex-col.min-h-screen,
 html[data-theme="dark"] .grid.min-h-screen {
   background-color: var(--color-background-body) !important;
 }
+
+/* Antd Tabs 自定义样式 - API 页面 */
+.ant-tabs-custom .ant-tabs-nav {
+  margin: 0;
+  background: linear-gradient(135deg, rgba(var(--color-primary), 0.02), rgba(var(--color-primary), 0.04));
+  border-radius: 12px;
+  padding: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  height: 40px;
+  min-height: 40px;
+}
+
+.ant-tabs-custom .ant-tabs-nav-wrap {
+  border-radius: 12px;
+}
+
+.ant-tabs-custom .ant-tabs-nav-list {
+  background: transparent;
+}
+
+.ant-tabs-custom .ant-tabs-tab {
+  border: none !important;
+  background: transparent;
+  border-radius: 8px;
+  margin: 0 2px;
+  padding: 0 20px;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  min-width: 100px;
+  height: 32px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.ant-tabs-custom .ant-tabs-tab:hover {
+  color: var(--color-text-primary);
+  background: rgba(var(--color-primary), 0.08);
+}
+
+.ant-tabs-custom .ant-tabs-tab.ant-tabs-tab-active {
+  background: rgba(255, 255, 255, 0.95) !important;
+  color: var(--color-text-primary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(var(--color-border-default), 0.3);
+  transform: translateY(-1px);
+  width: 100%;
+}
+
+.ant-tabs-custom .ant-tabs-tab.ant-tabs-tab-active::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(147, 51, 234, 0.08));
+  border-radius: 8px;
+  z-index: -1;
+}
+
+.ant-tabs-custom .ant-tabs-tab .ant-tabs-tab-btn {
+  color: inherit;
+  font-weight: inherit;
+}
+
+.ant-tabs-custom .ant-tabs-ink-bar {
+  display: none;
+}
+
+/* 暗色主题下的 Tabs 样式调整 */
+html[data-theme="dark"] .ant-tabs-custom .ant-tabs-nav {
+  background: linear-gradient(135deg, rgba(var(--color-background-subtle), 0.8), rgba(var(--color-background-subtle), 1));
+  border: 1px solid rgba(var(--color-border-default), 0.3);
+}
+
+html[data-theme="dark"] .ant-tabs-custom .ant-tabs-tab.ant-tabs-tab-active {
+  background: rgba(var(--color-background-surface), 0.98) !important;
+  border-color: rgba(var(--color-border-subtle), 0.5);
+  width: 100%;
+}

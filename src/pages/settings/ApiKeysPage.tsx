@@ -6,6 +6,8 @@ import {
   Key, Zap, BookOpen, ChevronDown, ChevronRight,
   Plus, Minus, Save, Archive, Edit2, Trash2, MoreHorizontal
 } from "lucide-react"
+import { Tabs as AntdTabs } from "antd"
+import Editor from '@monaco-editor/react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -54,6 +56,19 @@ interface HeaderRow {
   description: string
 }
 
+// 请求体类型定义
+type BodyType = 'none' | 'form-data' | 'x-www-form-urlencoded' | 'json' | 'xml' | 'raw' | 'binary' | 'graphql' | 'msgpack'
+
+// Form-data行接口定义
+interface FormDataRow {
+  id: string
+  enabled: boolean
+  key: string
+  value: string
+  type: 'text' | 'file'
+  description?: string
+}
+
 // API Key 接口定义
 interface ApiKey {
   tenant_id: string
@@ -77,6 +92,97 @@ const tagIcons = {
   "支付管理": Key,
   "数据分析": Activity,
   "消息推送": Star
+}
+
+// 代码编辑器组件
+interface CodeEditorProps {
+  value: string
+  onChange: (value: string) => void
+  language: string
+  placeholder?: string
+  height?: string
+  theme?: string
+}
+
+const CodeEditor: React.FC<CodeEditorProps> = ({
+  value,
+  onChange,
+  language,
+  placeholder,
+  height = '300px',
+  theme = 'vs'
+}) => {
+  const handleEditorChange = (value: string | undefined) => {
+    onChange(value || '')
+  }
+
+  const editorOptions = {
+    minimap: { enabled: false },
+    lineNumbers: 'on' as const,
+    roundedSelection: false,
+    scrollBeyondLastLine: false,
+    readOnly: false,
+    fontSize: 14,
+    fontFamily: 'Monaco, "Cascadia Code", "Source Code Pro", Consolas, "Courier New", monospace',
+    bracketPairColorization: { enabled: true },
+    guides: {
+      bracketPairs: true,
+      indentation: true
+    },
+    renderWhitespace: 'boundary' as const,
+    wordWrap: 'on' as const,
+    automaticLayout: true,
+    scrollbar: {
+      vertical: 'visible' as const,
+      horizontal: 'visible' as const,
+      verticalScrollbarSize: 12,
+      horizontalScrollbarSize: 12
+    },
+    suggest: {
+      showKeywords: true,
+      showSnippets: true
+    },
+    tabSize: 2,
+    insertSpaces: true,
+    detectIndentation: false,
+    glyphMargin: false,
+    folding: true,
+    selectOnLineNumbers: true,
+    matchBrackets: 'always' as const
+  }
+
+  return (
+    <div className="relative border-0 h-full">
+      <Editor
+        height={height}
+        language={language}
+        value={value}
+        onChange={handleEditorChange}
+        options={editorOptions}
+        theme={theme}
+        loading={
+          <div className="flex items-center justify-center h-full">
+            <div className="text-sm text-muted-foreground">加载编辑器中...</div>
+          </div>
+        }
+      />
+      {/* 优化的 placeholder overlay - 适配 Monaco Editor 布局 */}
+      {!value && placeholder && (
+        <div className="absolute inset-0 pointer-events-none z-10">
+          <div className="flex h-full">
+            {/* 行号区域 - 匹配 Monaco 的行号宽度 */}
+            <div className="w-14 flex-shrink-0 bg-transparent"></div>
+            {/* 内容区域 - 匹配 Monaco 的内容区域 */}
+            <div className="flex-1 pt-1 pl-1">
+              <div className="text-muted-foreground/50 text-sm font-mono leading-[1.6] whitespace-pre-wrap select-none">
+                {placeholder}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
 }
 
 const ApiDocumentationPage: React.FC = () => {
@@ -170,7 +276,26 @@ const ApiDocumentationPage: React.FC = () => {
   const [testParams, setTestParams] = useState<ParamRow[]>([])
   const [testHeaders, setTestHeaders] = useState<HeaderRow[]>([])
   const [testBody, setTestBody] = useState("")
+  const [bodyType, setBodyType] = useState<BodyType>("json")
+  const [formDataRows, setFormDataRows] = useState<FormDataRow[]>([])
+  const [urlEncodedRows, setUrlEncodedRows] = useState<FormDataRow[]>([])
   const [activeTestTab, setActiveTestTab] = useState("params")
+  
+  // 格式化状态提示
+  const [formatMessage, setFormatMessage] = useState<{type: 'success' | 'error', text: string} | null>(null)
+  
+  // 编辑器主题
+  const [editorTheme, setEditorTheme] = useState<'vs' | 'vs-dark'>('vs')
+  
+  // 自动清除格式化提示
+  useEffect(() => {
+    if (formatMessage) {
+      const timer = setTimeout(() => {
+        setFormatMessage(null)
+      }, 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [formatMessage])
   
   // 主面板模式切换：接口详情 vs 测试面板
   const [mainMode, setMainMode] = useState<"interface" | "test">("interface")
@@ -178,6 +303,170 @@ const ApiDocumentationPage: React.FC = () => {
   // 界面状态
   const [userPermissions] = useState<string[]>(["user"])
   const [envManagementOpen, setEnvManagementOpen] = useState(false)
+
+  // 请求体格式化函数
+  const formatBodyContent = useCallback((content: string, type: BodyType) => {
+    if (!content.trim()) {
+      // 提供默认模板
+      switch (type) {
+        case 'json':
+          return '{\n  "name": "示例用户",\n  "email": "user@example.com",\n  "age": 25,\n  "active": true\n}'
+        case 'xml':
+          return '<?xml version="1.0" encoding="UTF-8"?>\n<root>\n  <user>\n    <name>示例用户</name>\n    <email>user@example.com</email>\n  </user>\n</root>'
+        case 'graphql':
+          return 'query GetUsers {\n  users {\n    id\n    name\n    email\n    createdAt\n  }\n}'
+        default:
+          return content
+      }
+    }
+    
+    try {
+      switch (type) {
+        case 'json':
+          const parsed = JSON.parse(content)
+          const formatted = JSON.stringify(parsed, null, 2)
+          setFormatMessage({
+            type: 'success',
+            text: 'JSON 格式化成功'
+          })
+          return formatted
+        case 'xml':
+          // 简单的XML格式化
+          const xmlFormatted = content
+            .replace(/></g, '>\n<')
+            .replace(/^\s*\n/gm, '')
+            .split('\n')
+            .map((line) => {
+              const trimmedLine = line.trim()
+              if (!trimmedLine) return ''
+              
+              const indent = '  '.repeat(Math.max(0, 
+                (trimmedLine.match(/^<[^\/]/g) ? 1 : 0) - 
+                (trimmedLine.match(/<\//g) || []).length
+              ))
+              return indent + trimmedLine
+            })
+            .join('\n')
+            .trim()
+          setFormatMessage({
+            type: 'success',
+            text: 'XML 格式化成功'
+          })
+          return xmlFormatted
+        case 'graphql':
+          // GraphQL简单格式化
+          const graphqlFormatted = content
+            .replace(/\s*{\s*/g, ' {\n  ')
+            .replace(/\s*}\s*/g, '\n}')
+            .replace(/,\s*/g, '\n  ')
+          setFormatMessage({
+            type: 'success',
+            text: 'GraphQL 格式化成功'
+          })
+          return graphqlFormatted
+        default:
+          return content
+      }
+    } catch (error) {
+      console.error('Format error:', error)
+      setFormatMessage({
+        type: 'error',
+        text: `格式化失败: ${error instanceof Error ? error.message : '无效的格式'}`
+      })
+      return content
+    }
+  }, [setFormatMessage])
+
+  // 压缩内容
+  const minifyBodyContent = useCallback((content: string, type: BodyType) => {
+    if (!content.trim()) {
+      return content
+    }
+    
+    try {
+      switch (type) {
+        case 'json':
+          const parsed = JSON.parse(content)
+          const minified = JSON.stringify(parsed)
+          setFormatMessage({
+            type: 'success',
+            text: 'JSON 压缩成功'
+          })
+          return minified
+        case 'xml':
+          const xmlMinified = content.replace(/>\s+</g, '><').replace(/\s+/g, ' ').trim()
+          setFormatMessage({
+            type: 'success',
+            text: 'XML 压缩成功'
+          })
+          return xmlMinified
+        case 'graphql':
+          const graphqlMinified = content.replace(/\s+/g, ' ').trim()
+          setFormatMessage({
+            type: 'success',
+            text: 'GraphQL 压缩成功'
+          })
+          return graphqlMinified
+        default:
+          const defaultMinified = content.replace(/\s+/g, ' ').trim()
+          setFormatMessage({
+            type: 'success',
+            text: '内容压缩成功'
+          })
+          return defaultMinified
+      }
+    } catch (error) {
+      console.error('Minify error:', error)
+      setFormatMessage({
+        type: 'error',
+        text: `压缩失败: ${error instanceof Error ? error.message : '无效的格式'}`
+      })
+      return content
+    }
+  }, [setFormatMessage])
+
+  // Form-data和URL-encoded行管理函数
+  const addFormDataRow = useCallback(() => {
+    const newRow: FormDataRow = {
+      id: `form-data-${Date.now()}`,
+      enabled: true,
+      key: '',
+      value: '',
+      type: 'text'
+    }
+    setFormDataRows(prev => [...prev, newRow])
+  }, [])
+
+  const updateFormDataRow = useCallback((id: string, field: keyof FormDataRow, value: any) => {
+    setFormDataRows(prev => prev.map(row => 
+      row.id === id ? { ...row, [field]: value } : row
+    ))
+  }, [])
+
+  const removeFormDataRow = useCallback((id: string) => {
+    setFormDataRows(prev => prev.filter(row => row.id !== id))
+  }, [])
+
+  const addUrlEncodedRow = useCallback(() => {
+    const newRow: FormDataRow = {
+      id: `url-encoded-${Date.now()}`,
+      enabled: true,
+      key: '',
+      value: '',
+      type: 'text'
+    }
+    setUrlEncodedRows(prev => [...prev, newRow])
+  }, [])
+
+  const updateUrlEncodedRow = useCallback((id: string, field: keyof FormDataRow, value: any) => {
+    setUrlEncodedRows(prev => prev.map(row => 
+      row.id === id ? { ...row, [field]: value } : row
+    ))
+  }, [])
+
+  const removeUrlEncodedRow = useCallback((id: string) => {
+    setUrlEncodedRows(prev => prev.filter(row => row.id !== id))
+  }, [])
 
   // API Key 管理状态
   const [apiKeyManagementOpen, setApiKeyManagementOpen] = useState(false)
@@ -843,49 +1132,43 @@ const ApiDocumentationPage: React.FC = () => {
           <div className="flex-1 overflow-hidden">
             {selectedAPI ? (
               <div className="h-full flex flex-col">
-                {/* 顶部模式切换标签 - 优化版 */}
-                <div className="bg-gradient-to-r from-background to-muted/20 border-b px-6 py-4 flex items-center justify-between">
-                  <div className="relative bg-gradient-to-r from-muted/30 to-muted/50 p-1 rounded-xl shadow-inner">
-                    <button
-                      onClick={() => setMainMode("interface")}
-                      className={cn(
-                        "flex items-center gap-2 px-5 py-2.5 rounded-lg transition-colors duration-150 font-medium text-sm relative overflow-hidden",
-                        mainMode === "interface" 
-                          ? "bg-background text-foreground shadow-lg border border-border/30 transform scale-[1.02]" 
-                          : "text-muted-foreground hover:text-foreground hover:bg-background/30 hover:shadow-sm"
-                      )}
-                    >
-                      {mainMode === "interface" && (
-                        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10" />
-                      )}
-                      <FileText className={cn("h-4 w-4 relative z-10", mainMode === "interface" && "text-blue-600")} />
-                      <span className="relative z-10">接口</span>
-                    </button>
-                    <button
-                      onClick={() => setMainMode("test")}
-                      className={cn(
-                        "flex items-center gap-2 px-5 py-2.5 rounded-lg transition-colors duration-150 font-medium text-sm relative overflow-hidden",
-                        mainMode === "test" 
-                          ? "bg-background text-foreground shadow-lg border border-border/30 transform scale-[1.02]" 
-                          : "text-muted-foreground hover:text-foreground hover:bg-background/30 hover:shadow-sm"
-                      )}
-                    >
-                      {mainMode === "test" && (
-                        <div className="absolute inset-0 bg-gradient-to-r from-green-500/10 to-emerald-500/10" />
-                      )}
-                      <Play className={cn("h-4 w-4 relative z-10", mainMode === "test" && "text-green-600")} />
-                      <span className="relative z-10">运行</span>
-                    </button>
-            </div>
+                {/* 顶部模式切换标签 - 使用 antd Tabs */}
+                <div className="bg-gradient-to-r from-background to-muted/20 border-b px-6 py-4 flex items-center gap-6">
+                  <AntdTabs
+                    activeKey={mainMode}
+                    onChange={(key) => setMainMode(key as "interface" | "test")}
+                    items={[
+                      {
+                        key: 'interface',
+                        label: (
+                          <div className="flex items-center gap-2">
+                            <FileText className="h-4 w-4" />
+                            接口
+                          </div>
+                        ),
+                      },
+                      {
+                        key: 'test',
+                        label: (
+                          <div className="flex items-center gap-2">
+                            <Play className="h-4 w-4" />
+                            运行
+                          </div>
+                        ),
+                      },
+                    ]}
+                    className="ant-tabs-custom"
+                    size="large"
+                  />
                   
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 ml-auto">
                     {/* API Key 管理按钮 */}
                     <Dialog open={apiKeyManagementOpen} onOpenChange={setApiKeyManagementOpen}>
                       <DialogTrigger>
                         <Button
                           variant="outline" 
-                          size="sm"
-                          className="gap-2 bg-background border border-border/50 shadow-sm hover:border-border transition-colors"
+                          size="default"
+                          className="gap-2 bg-background border border-border/50 shadow-sm hover:border-border transition-colors h-10"
                         >
                           <Key className="h-4 w-4" />
                           API Key
@@ -1192,7 +1475,7 @@ const ApiDocumentationPage: React.FC = () => {
                         const env = environments.find(e => e.id === value)
                         if (env) setSelectedEnvironment(env)
                       }}>
-                      <SelectTrigger className="w-64 bg-background border border-border/50 shadow-sm hover:border-border transition-colors">
+                      <SelectTrigger className="w-64 bg-background border border-border/50 shadow-sm hover:border-border transition-colors h-10">
                         <div className="flex items-center gap-3">
                           <div className="relative">
                             {(() => {
@@ -1653,43 +1936,116 @@ const ApiDocumentationPage: React.FC = () => {
                     </div>
                   ) : (
                     /* 测试模式 - Apifox风格全宽度测试面板 */
-                    <div className="h-full flex">
-                      {/* 左侧：参数配置区域 */}
-                      <div className="flex-1 flex flex-col border-r">
-                        <Tabs value={activeTestTab} onValueChange={setActiveTestTab} className="h-full flex flex-col">
+                    <div className="h-full flex flex-col">
+                      {/* 顶部：API 地址栏 */}
+                      <div className="flex-shrink-0 px-6 py-4 border-b bg-gradient-to-r from-background to-muted/20">
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center h-10">
+                            <MethodBadge method={selectedAPI.method as any} />
+                          </div>
+                          <div className="flex-1 bg-muted/50 rounded-lg px-3 py-2 font-mono text-sm border h-10 flex items-center">
+                            {selectedEnvironment.variables.baseUrl}{selectedAPI.path}
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <Button
+                              onClick={handleTestAPI}
+                              disabled={testLoading}
+                              className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-colors duration-150 h-10"
+                              size="default"
+                            >
+                              {testLoading ? (
+                                <>
+                                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                                  发送中...
+                                </>
+                              ) : (
+                                "发送"
+                              )}
+                            </Button>
+                            <Button variant="outline" size="default" className="px-3 h-10" title="保存为用例">
+                              <Save className="h-4 w-4" />
+                            </Button>
+                            <Button variant="outline" size="default" className="px-3 h-10" title="保存为环境">
+                              <Archive className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* 主体：参数配置和响应区域 */}
+                      <div className="flex-1 flex">
+                        {/* 左侧：参数配置区域 */}
+                        <div className="flex-1 flex flex-col border-r">
+                        <div className="h-full flex flex-col">
                           <div className="border-b bg-gradient-to-r from-muted/20 to-muted/40 px-6 py-3">
-                            <div className="flex items-center gap-2 bg-muted/50 p-1 rounded-lg w-fit">
-                              {[
-                                { id: 'params', label: 'Params', count: testParams.filter(p => p.enabled && p.name).length },
-                                { id: 'body', label: 'Body', count: testBody && testBody.trim() ? 1 : 0 },
-                                { id: 'headers', label: 'Headers', count: testHeaders.filter(h => h.enabled && h.name).length },
-                                { id: 'cookies', label: 'Cookies', count: 0 },
-                                { id: 'auth', label: 'Auth', count: 0 }
-                              ].map((tab) => (
-                                <button
-                                  key={tab.id}
-                                  onClick={() => setActiveTestTab(tab.id)}
-                                  className={cn(
-                                    "flex items-center gap-2 px-4 py-2 rounded-md transition-colors duration-150 font-medium text-sm relative",
-                                    activeTestTab === tab.id 
-                                      ? "bg-background text-foreground shadow-md border border-border/30" 
-                                      : "text-muted-foreground hover:text-foreground hover:bg-background/40"
-                                  )}
-                                >
-                                  {tab.label}
-                                  {tab.count > 0 && (
-                                    <Badge variant="secondary" className="ml-1 h-5 w-5 p-0 text-[10px] flex items-center justify-center">
-                                      {tab.count}
-                              </Badge>
-                                  )}
-                                </button>
-                              ))}
-                            </div>
+                            <AntdTabs
+                              activeKey={activeTestTab}
+                              onChange={setActiveTestTab}
+                              items={[
+                                {
+                                  key: 'params',
+                                  label: (
+                                    <div className="flex items-center gap-2">
+                                      <span>Params</span>
+                                      {testParams.filter(p => p.enabled && p.name).length > 0 && (
+                                        <Badge variant="secondary" className="h-4 px-1.5 text-[10px] flex items-center justify-center">
+                                          {testParams.filter(p => p.enabled && p.name).length}
+                                        </Badge>
+                                      )}
+                                    </div>
+                                  ),
+                                },
+                                {
+                                  key: 'body',
+                                  label: (
+                                    <div className="flex items-center gap-2">
+                                      <span>Body</span>
+                                      {testBody && testBody.trim() && (
+                                        <Badge variant="secondary" className="h-4 px-1.5 text-[10px] flex items-center justify-center">
+                                          1
+                                        </Badge>
+                                      )}
+                                    </div>
+                                  ),
+                                },
+                                {
+                                  key: 'headers',
+                                  label: (
+                                    <div className="flex items-center gap-2">
+                                      <span>Headers</span>
+                                      {testHeaders.filter(h => h.enabled && h.name).length > 0 && (
+                                        <Badge variant="secondary" className="h-4 px-1.5 text-[10px] flex items-center justify-center">
+                                          {testHeaders.filter(h => h.enabled && h.name).length}
+                                        </Badge>
+                                      )}
+                                    </div>
+                                  ),
+                                },
+                                {
+                                  key: 'cookies',
+                                  label: (
+                                    <div className="flex items-center gap-2">
+                                      <span>Cookies</span>
+                                    </div>
+                                  ),
+                                },
+                                {
+                                  key: 'auth',
+                                  label: (
+                                    <div className="flex items-center gap-2">
+                                      <span>Auth</span>
+                                    </div>
+                                  ),
+                                },
+                              ]}
+                              className="ant-tabs-custom"
+                              size="middle"
+                            />
                             </div>
                             
                           <div className="flex-1 overflow-auto">
-                            <TabsContent value="params" className="m-0 h-full">
-                              <div className="p-6 space-y-6">
+                            {activeTestTab === 'params' && (
+                              <div className="m-0 h-full p-6 space-y-6">
                                 <div className="flex items-center justify-between">
                                 <div>
                                     <h3 className="text-lg font-semibold flex items-center gap-2">
@@ -1820,40 +2176,325 @@ const ApiDocumentationPage: React.FC = () => {
                                   </div>
                                 </div>
                               </div>
-                      </TabsContent>
+                            )}
 
-                            <TabsContent value="body" className="m-0 h-full">
-                              <div className="p-6 h-full flex flex-col">
+                            {activeTestTab === 'body' && (
+                              <div className="m-0 h-full p-6 flex flex-col">
                                 <div className="flex items-center justify-between mb-6">
                                   <div>
                                     <h3 className="text-lg font-semibold">请求体</h3>
-                                    <p className="text-sm text-muted-foreground mt-1">配置API请求的JSON数据</p>
+                                    <p className="text-sm text-muted-foreground mt-1">配置API请求的数据体</p>
                                   </div>
-                                  <div className="flex gap-2">
-                                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">JSON</Badge>
-                                    <Button variant="outline" size="sm" className="hover:bg-purple-50 hover:border-purple-200 hover:text-purple-700">格式化</Button>
-                                    <Button variant="outline" size="sm" className="hover:bg-orange-50 hover:border-orange-200 hover:text-orange-700">压缩</Button>
+                                  <div className="flex items-center gap-2">
+                                    {(bodyType === 'json' || bodyType === 'xml' || bodyType === 'graphql') && (
+                                      <>
+                                        <Button 
+                                          variant="outline" 
+                                          size="sm" 
+                                          onClick={() => setTestBody(formatBodyContent(testBody, bodyType))}
+                                          className="hover:bg-purple-50 hover:border-purple-200 hover:text-purple-700"
+                                        >
+                                          格式化
+                                        </Button>
+                                        <Button 
+                                          variant="outline" 
+                                          size="sm" 
+                                          onClick={() => setTestBody(minifyBodyContent(testBody, bodyType))}
+                                          className="hover:bg-orange-50 hover:border-orange-200 hover:text-orange-700"
+                                        >
+                                          压缩
+                                        </Button>
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          onClick={() => setEditorTheme(prev => prev === 'vs' ? 'vs-dark' : 'vs')}
+                                          className="hover:bg-gray-50 hover:border-gray-200"
+                                          title="切换编辑器主题"
+                                        >
+                                          {editorTheme === 'vs' ? '🌙' : '☀️'}
+                                        </Button>
+                                      </>
+                                    )}
+                                    {formatMessage && (
+                                      <div className={cn(
+                                        "px-3 py-1 rounded-md text-xs font-medium transition-all duration-300",
+                                        formatMessage.type === 'success' 
+                                          ? "bg-green-50 text-green-700 border border-green-200" 
+                                          : "bg-red-50 text-red-700 border border-red-200"
+                                      )}>
+                                        {formatMessage.text}
+                                      </div>
+                                    )}
                                   </div>
                                 </div>
                                 
-                                <div className="flex-1 border rounded-lg overflow-hidden flex flex-col">
-                                  <div className="bg-muted/50 border-b p-3 flex items-center justify-between">
-                                    <span className="text-sm font-medium">application/json</span>
-                                  </div>
-                                  <div className="flex-1">
-                                    <Textarea
-                                      placeholder="输入JSON格式的请求体..."
-                                      value={testBody}
-                                      onChange={(e) => setTestBody(e.target.value)}
-                                      className="border-0 rounded-none font-mono text-sm resize-none h-full"
-                                    />
+                                {/* 请求体类型选择器 */}
+                                <div className="mb-4">
+                                  <div className="flex flex-wrap gap-2">
+                                    {[
+                                      { key: 'none', label: 'None', desc: '无请求体' },
+                                      { key: 'form-data', label: 'form-data', desc: '表单数据（支持文件）' },
+                                      { key: 'x-www-form-urlencoded', label: 'x-www-form-urlencoded', desc: 'URL编码表单' },
+                                      { key: 'json', label: 'JSON', desc: 'JSON格式数据' },
+                                      { key: 'xml', label: 'XML', desc: 'XML格式数据' },
+                                      { key: 'raw', label: 'Raw', desc: '原始文本数据' },
+                                      { key: 'binary', label: 'Binary', desc: '二进制文件' },
+                                      { key: 'graphql', label: 'GraphQL', desc: 'GraphQL查询' },
+                                      { key: 'msgpack', label: 'MessagePack', desc: 'MessagePack格式' }
+                                    ].map((type) => (
+                                      <Button
+                                        key={type.key}
+                                        variant={bodyType === type.key ? "default" : "outline"}
+                                        size="sm"
+                                        onClick={() => setBodyType(type.key as BodyType)}
+                                        className={cn(
+                                          "transition-all duration-200",
+                                          bodyType === type.key 
+                                            ? "bg-blue-500 hover:bg-blue-600 text-white shadow-md" 
+                                            : "hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700"
+                                        )}
+                                        title={type.desc}
+                                      >
+                                        {type.label}
+                                      </Button>
+                                    ))}
                                   </div>
                                 </div>
-                              </div>
-                            </TabsContent>
 
-                            <TabsContent value="headers" className="m-0 h-full">
-                              <div className="p-6 space-y-6">
+                                {/* 请求体内容区域 */}
+                                <div className="flex-1 border rounded-lg overflow-hidden flex flex-col">
+                                  {bodyType === 'none' && (
+                                    <div className="flex-1 flex items-center justify-center text-center p-12">
+                                      <div className="text-muted-foreground">
+                                        <div className="w-16 h-16 mx-auto mb-4 bg-muted/50 rounded-full flex items-center justify-center">
+                                          <Minus className="h-8 w-8" />
+                                        </div>
+                                        <p className="text-sm">此请求无需请求体</p>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {bodyType === 'form-data' && (
+                                    <div className="flex-1 flex flex-col">
+                                      <div className="bg-muted/50 border-b p-3 flex items-center justify-between">
+                                        <span className="text-sm font-medium">multipart/form-data</span>
+                                        <Button 
+                                          variant="outline" 
+                                          size="sm" 
+                                          onClick={addFormDataRow}
+                                          className="gap-1"
+                                        >
+                                          <Plus className="h-3 w-3" />
+                                          添加
+                                        </Button>
+                                      </div>
+                                      <div className="flex-1 overflow-auto">
+                                        <div className="p-4 space-y-3">
+                                          {formDataRows.map((row) => (
+                                            <div key={row.id} className="flex items-center gap-3 p-3 bg-muted/30 rounded-md">
+                                              <Switch
+                                                checked={row.enabled}
+                                                onCheckedChange={(checked) => updateFormDataRow(row.id, 'enabled', checked)}
+                                              />
+                                              <Input
+                                                placeholder="Key"
+                                                value={row.key}
+                                                onChange={(e) => updateFormDataRow(row.id, 'key', e.target.value)}
+                                                className="flex-1"
+                                              />
+                                              <Select value={row.type} onValueChange={(value) => updateFormDataRow(row.id, 'type', value)}>
+                                                <SelectTrigger className="w-20">
+                                                  <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                  <SelectItem value="text">Text</SelectItem>
+                                                  <SelectItem value="file">File</SelectItem>
+                                                </SelectContent>
+                                              </Select>
+                                              {row.type === 'text' ? (
+                                                <Input
+                                                  placeholder="Value"
+                                                  value={row.value}
+                                                  onChange={(e) => updateFormDataRow(row.id, 'value', e.target.value)}
+                                                  className="flex-1"
+                                                />
+                                              ) : (
+                                                <div className="flex-1">
+                                                  <label className="flex items-center gap-2 cursor-pointer">
+                                                    <div className="px-3 py-2 border border-dashed rounded-md text-sm text-muted-foreground hover:bg-muted/50">
+                                                      选择文件...
+                                                    </div>
+                                                    <input
+                                                      type="file"
+                                                      className="hidden"
+                                                      onChange={(e) => {
+                                                        const file = e.target.files?.[0]
+                                                        if (file) updateFormDataRow(row.id, 'value', file.name)
+                                                      }}
+                                                    />
+                                                  </label>
+                                                </div>
+                                              )}
+                                              <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => removeFormDataRow(row.id)}
+                                                className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                                              >
+                                                <Trash2 className="h-4 w-4" />
+                                              </Button>
+                                            </div>
+                                          ))}
+                                          {formDataRows.length === 0 && (
+                                            <div className="text-center py-8 text-muted-foreground">
+                                              <p className="text-sm">暂无表单数据</p>
+                                              <Button 
+                                                variant="outline" 
+                                                size="sm" 
+                                                onClick={addFormDataRow}
+                                                className="mt-2 gap-1"
+                                              >
+                                                <Plus className="h-3 w-3" />
+                                                添加表单项
+                                              </Button>
+                                            </div>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {bodyType === 'x-www-form-urlencoded' && (
+                                    <div className="flex-1 flex flex-col">
+                                      <div className="bg-muted/50 border-b p-3 flex items-center justify-between">
+                                        <span className="text-sm font-medium">application/x-www-form-urlencoded</span>
+                                        <Button 
+                                          variant="outline" 
+                                          size="sm" 
+                                          onClick={addUrlEncodedRow}
+                                          className="gap-1"
+                                        >
+                                          <Plus className="h-3 w-3" />
+                                          添加
+                                        </Button>
+                                      </div>
+                                      <div className="flex-1 overflow-auto">
+                                        <div className="p-4 space-y-3">
+                                          {urlEncodedRows.map((row) => (
+                                            <div key={row.id} className="flex items-center gap-3 p-3 bg-muted/30 rounded-md">
+                                              <Switch
+                                                checked={row.enabled}
+                                                onCheckedChange={(checked) => updateUrlEncodedRow(row.id, 'enabled', checked)}
+                                              />
+                                              <Input
+                                                placeholder="Key"
+                                                value={row.key}
+                                                onChange={(e) => updateUrlEncodedRow(row.id, 'key', e.target.value)}
+                                                className="flex-1"
+                                              />
+                                              <Input
+                                                placeholder="Value"
+                                                value={row.value}
+                                                onChange={(e) => updateUrlEncodedRow(row.id, 'value', e.target.value)}
+                                                className="flex-1"
+                                              />
+                                              <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => removeUrlEncodedRow(row.id)}
+                                                className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                                              >
+                                                <Trash2 className="h-4 w-4" />
+                                              </Button>
+                                            </div>
+                                          ))}
+                                          {urlEncodedRows.length === 0 && (
+                                            <div className="text-center py-8 text-muted-foreground">
+                                              <p className="text-sm">暂无URL编码数据</p>
+                                              <Button 
+                                                variant="outline" 
+                                                size="sm" 
+                                                onClick={addUrlEncodedRow}
+                                                className="mt-2 gap-1"
+                                              >
+                                                <Plus className="h-3 w-3" />
+                                                添加参数
+                                              </Button>
+                                            </div>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {(bodyType === 'json' || bodyType === 'xml' || bodyType === 'raw' || bodyType === 'graphql' || bodyType === 'msgpack') && (
+                                    <div className="flex-1 flex flex-col">
+                                      <div className="bg-muted/50 border-b p-3 flex items-center justify-between">
+                                        <span className="text-sm font-medium">
+                                          {bodyType === 'json' && 'application/json'}
+                                          {bodyType === 'xml' && 'application/xml'}
+                                          {bodyType === 'raw' && 'text/plain'}
+                                          {bodyType === 'graphql' && 'application/graphql'}
+                                          {bodyType === 'msgpack' && 'application/msgpack'}
+                                        </span>
+                                      </div>
+                                      <div className="flex-1 relative">
+                                        <CodeEditor
+                                          value={testBody}
+                                          onChange={setTestBody}
+                                          language={
+                                            bodyType === 'json' ? 'json' :
+                                            bodyType === 'xml' ? 'xml' :
+                                            bodyType === 'graphql' ? 'graphql' :
+                                            bodyType === 'msgpack' ? 'json' : // MessagePack显示为JSON格式
+                                            bodyType === 'raw' ? 'plaintext' : 'plaintext'
+                                          }
+                                          placeholder={
+                                            bodyType === 'json' ? '{\n  "name": "示例用户",\n  "email": "user@example.com",\n  "age": 25,\n  "active": true\n}' :
+                                            bodyType === 'xml' ? '<?xml version="1.0" encoding="UTF-8"?>\n<root>\n  <user>\n    <name>示例用户</name>\n    <email>user@example.com</email>\n  </user>\n</root>' :
+                                            bodyType === 'graphql' ? 'query GetUsers {\n  users {\n    id\n    name\n    email\n    createdAt\n  }\n}' :
+                                            bodyType === 'msgpack' ? '# MessagePack 格式示例\n{\n  "data": "binary encoded content"\n}' :
+                                            '# 输入原始文本数据\n# 支持任意格式内容'
+                                          }
+                                          height="100%"
+                                          theme={editorTheme}
+                                        />
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {bodyType === 'binary' && (
+                                    <div className="flex-1 flex items-center justify-center text-center p-12">
+                                      <div className="text-muted-foreground">
+                                        <div className="w-16 h-16 mx-auto mb-4 bg-muted/50 rounded-full flex items-center justify-center">
+                                          <FileText className="h-8 w-8" />
+                                        </div>
+                                        <p className="text-sm mb-4">选择要上传的二进制文件</p>
+                                        <label className="cursor-pointer">
+                                          <Button variant="outline" className="gap-2">
+                                            <Plus className="h-4 w-4" />
+                                            选择文件
+                                          </Button>
+                                          <input
+                                            type="file"
+                                            className="hidden"
+                                            onChange={(e) => {
+                                              const file = e.target.files?.[0]
+                                              if (file) {
+                                                setTestBody(`[Binary File: ${file.name}, Size: ${file.size} bytes]`)
+                                              }
+                                            }}
+                                          />
+                                        </label>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+
+                            {activeTestTab === 'headers' && (
+                              <div className="m-0 h-full p-6 space-y-6">
                                 <div className="flex items-center justify-between">
                                   <div>
                                     <h3 className="text-lg font-semibold flex items-center gap-2">
@@ -1947,59 +2588,37 @@ const ApiDocumentationPage: React.FC = () => {
                                   </div>
                                 </div>
                               </div>
-                            </TabsContent>
+                            )}
 
-                            <TabsContent value="cookies" className="m-0 h-full">
-                              <div className="p-6 h-full flex items-center justify-center">
+                            {activeTestTab === 'cookies' && (
+                              <div className="m-0 h-full p-6 flex items-center justify-center">
                                 <div className="text-center text-muted-foreground">
                                   <Key className="h-12 w-12 mx-auto mb-4 opacity-30" />
                                   <p>Cookies 功能开发中...</p>
                                 </div>
                               </div>
-                            </TabsContent>
+                            )}
 
-                            <TabsContent value="auth" className="m-0 h-full">
-                              <div className="p-6 h-full flex items-center justify-center">
+                            {activeTestTab === 'auth' && (
+                              <div className="m-0 h-full p-6 flex items-center justify-center">
                                 <div className="text-center text-muted-foreground">
                                   <Shield className="h-12 w-12 mx-auto mb-4 opacity-30" />
                                   <p>认证功能开发中...</p>
                                 </div>
                               </div>
-                            </TabsContent>
-                          </div>
-                        </Tabs>
-                      </div>
-                      
-                      {/* 右侧：测试执行和响应区域 */}
-                      <div className="w-2/5 flex flex-col bg-muted/30">
-                        {/* 执行按钮区 */}
-                        <div className="p-6 border-b bg-background">
-                          <div className="flex gap-3">
-                                <Button
-                              onClick={handleTestAPI}
-                              disabled={testLoading}
-                              className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-colors duration-150"
-                              size="lg"
-                            >
-                              {testLoading ? (
-                                <>
-                                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                                  发送中...
-                                </>
-                              ) : (
-                                "发送"
-                              )}
-                                </Button>
-                            <Button variant="outline" size="lg" className="px-4" title="保存为用例">
-                              <Save className="h-4 w-4" />
-                            </Button>
-                            <Button variant="outline" size="lg" className="px-4" title="保存为环境">
-                              <Archive className="h-4 w-4" />
-                            </Button>
+                            )}
                           </div>
                         </div>
+                        </div>
+                      
+                      {/* 右侧：响应区域 */}
+                      <div className="w-2/5 flex flex-col bg-muted/30">
+                        {/* 响应标题栏 */}
+                        <div className="flex-shrink-0 px-6 py-3 border-b bg-background">
+                          <h3 className="text-sm font-medium text-muted-foreground">响应结果</h3>
+                        </div>
                         
-                        {/* 响应区域 */}
+                        {/* 响应内容区域 - 全高度 */}
                         <div className="flex-1 overflow-auto">
                           {testResponse ? (
                             <div className="p-6 space-y-4">
@@ -2090,6 +2709,7 @@ const ApiDocumentationPage: React.FC = () => {
                             </div>
                           )}
                         </div>
+                      </div>
                       </div>
                     </div>
                   )}
