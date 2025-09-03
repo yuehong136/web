@@ -171,12 +171,7 @@ export interface DesignTokens {
   'components-env-dev-text': string
   
   
-  // ===== API文档专用 =====
-  'components-api-docs-header-bg': string
-  'components-api-docs-header-border': string
-  'components-api-docs-sidebar-bg': string
-  'components-api-docs-sidebar-border': string
-  'components-api-docs-border': string
+  
   
   // ===== 阴影系统 =====
   'shadow-sm': string
@@ -620,6 +615,7 @@ export interface DesignTokens {
   'components-api-docs-bg': string
   'components-api-docs-border': string
   'components-api-docs-header-bg': string
+  'components-api-docs-header-border': string
   'components-api-docs-sidebar-bg': string
   'components-api-docs-sidebar-border': string
   'components-api-docs-content-bg': string
@@ -812,12 +808,17 @@ export const defaultTokens: DesignTokens = {
   'components-env-dev-text': '',
   
   
-  // API文档专用
+  // API 文档风格组件
+  'components-api-docs-bg': '',
+  'components-api-docs-border': '',
   'components-api-docs-header-bg': '',
   'components-api-docs-header-border': '',
   'components-api-docs-sidebar-bg': '',
   'components-api-docs-sidebar-border': '',
-  'components-api-docs-border': '',
+  'components-api-docs-content-bg': '',
+  'components-api-docs-search-bg': '',
+  'components-api-docs-search-border': '',
+  'components-api-docs-search-focus-border': '',
   
   // 阴影系统
   'shadow-sm': '',
