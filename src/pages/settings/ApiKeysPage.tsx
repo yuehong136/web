@@ -1221,43 +1221,46 @@ const ApiDocumentationPage: React.FC = () => {
         {/* 左侧导航 - API列表 */}
         <div className="w-80 border-r bg-background flex flex-col">
           <div className="p-4 space-y-4">
-            {/* 标题显示在搜索框上方 */}
-            <div className="flex items-center justify-between mb-2">
+            {/* 精美的标题区域 */}
+            <div className="space-y-4">
+              {/* 主标题和图标 */}
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
-                  <BookOpen className="h-5 w-5 text-white" />
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600 flex items-center justify-center shadow-lg ring-2 ring-blue-500/10">
+                  <BookOpen className="h-6 w-6 text-white" />
                 </div>
-                <div>
-                  <h2 className="font-semibold text-base">用户管理系统 API</h2>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <Badge variant="outline" className="text-[10px]">v1.0.0</Badge>
-                    <span>•</span>
-                    <span>API 文档</span>
-                    {loadingSource && (
-                      <>
-                        <span>•</span>
-                        <Badge 
-                          variant={loadingSource === "dynamic" ? "default" : "secondary"} 
-                          className="text-[10px]"
-                        >
-                          {loadingSource === "dynamic" ? "后端数据" : "静态文件"}
-                        </Badge>
-                      </>
-                    )}
-                  </div>
+                <div className="flex-1">
+                  <h1 className="text-xl font-bold text-foreground mb-1">用户管理系统 API</h1>
+                  <p className="text-sm text-muted-foreground">开放接口文档与测试平台</p>
                 </div>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => loadAPIData(true)}
-                disabled={isLoading}
-                className="gap-2"
-                title="刷新API文档数据（从后端获取过滤后的接口）"
-              >
-                <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-                {loadingSource === "dynamic" ? "从后端加载" : "刷新"}
-              </Button>
+
+              {/* 元信息和操作区 */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="text-xs font-medium px-2.5 py-1">
+                    v1.0.0
+                  </Badge>
+                  {loadingSource && (
+                    <Badge 
+                      variant={loadingSource === "dynamic" ? "default" : "secondary"} 
+                      className="text-xs font-medium px-2.5 py-1"
+                    >
+                      {loadingSource === "dynamic" ? "🔄 实时数据" : "📁 本地缓存"}
+                    </Badge>
+                  )}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => loadAPIData(true)}
+                  disabled={isLoading}
+                  className="gap-2 hover:bg-primary/5 hover:border-primary/20 transition-all duration-200"
+                  title="刷新API文档数据（从后端获取过滤后的接口）"
+                >
+                  <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                  {isLoading ? "加载中" : "刷新"}
+                </Button>
+              </div>
             </div>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
@@ -1269,11 +1272,21 @@ const ApiDocumentationPage: React.FC = () => {
               />
             </div>
 
-            {/* API文档描述 */}
-            <div className="p-3 bg-muted/50 rounded-lg">
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                开放 API 文档与调用测试；并可通过右侧按钮管理 API Key 的增删改查
-              </p>
+            {/* 功能说明卡片 */}
+            <div className="relative overflow-hidden rounded-xl border bg-gradient-to-r from-muted/40 via-muted/30 to-background p-4">
+              <div className="relative z-10">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">功能特性</span>
+                </div>
+                <p className="text-sm text-foreground leading-relaxed">
+                  📋 完整的API接口文档浏览<br/>
+                  🧪 在线接口测试工具<br/>
+                  🔑 API密钥管理与权限控制
+                </p>
+              </div>
+              {/* 装饰性背景 */}
+              <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-blue-500/5 to-purple-500/5 rounded-full -translate-y-8 translate-x-8"></div>
             </div>
 
             {/* 错误提示 */}
@@ -1287,13 +1300,21 @@ const ApiDocumentationPage: React.FC = () => {
 
             {/* 统计信息 */}
             <div className="grid grid-cols-2 gap-3">
-              <div className="p-3 bg-muted/50 rounded-lg">
-                <div className="text-xs text-muted-foreground">接口总数</div>
-                <div className="text-lg font-semibold">{apiEndpoints.length}</div>
+              <div className="group relative overflow-hidden rounded-lg border bg-gradient-to-br from-background to-muted/20 p-3 transition-all duration-200 hover:shadow-md hover:border-primary/20">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                  <span className="text-xs font-medium text-muted-foreground">接口总数</span>
+                </div>
+                <div className="text-xl font-bold text-foreground">{apiEndpoints.length}</div>
+                <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-blue-500/5 rounded-full"></div>
               </div>
-              <div className="p-3 bg-muted/50 rounded-lg">
-                <div className="text-xs text-muted-foreground">分组数量</div>
-                <div className="text-lg font-semibold">{Object.keys(groupedEndpoints).length}</div>
+              <div className="group relative overflow-hidden rounded-lg border bg-gradient-to-br from-background to-muted/20 p-3 transition-all duration-200 hover:shadow-md hover:border-primary/20">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+                  <span className="text-xs font-medium text-muted-foreground">分组数量</span>
+                </div>
+                <div className="text-xl font-bold text-foreground">{Object.keys(groupedEndpoints).length}</div>
+                <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-purple-500/5 rounded-full"></div>
               </div>
             </div>
           </div>
@@ -1386,17 +1407,31 @@ const ApiDocumentationPage: React.FC = () => {
                           }`}
                         >
                           <div className="flex items-center justify-between mb-2">
-                            <MethodBadge method={api.method as any} size="sm" />
+                            <div className="flex items-center gap-2 min-w-0 flex-1">
+                              <MethodBadge method={api.method as any} size="sm" />
+                              {/* 显示路径的关键部分 */}
+                              <Tooltip 
+                                content={api.path}
+                                position="top"
+                                maxWidth="max-w-md"
+                              >
+                                <span className="text-xs text-muted-foreground font-mono truncate cursor-help">
+                                  /{api.path.split('/').filter(p => p).slice(-2).join('/')}
+                                </span>
+                              </Tooltip>
+                            </div>
                             {api.deprecated && (
-                              <Badge variant="destructive" className="text-xs">
+                              <Badge variant="destructive" className="text-xs shrink-0">
                                 已弃用
                               </Badge>
-                          )}
-                        </div>
-                          <div className="font-medium mb-1">{api.summary}</div>
-                          <div className="text-xs text-muted-foreground font-mono bg-muted/50 px-2 py-1 rounded">
-                            {api.path}
+                            )}
                           </div>
+                          <div className="font-medium text-sm leading-relaxed mb-1">{api.summary}</div>
+                          {api.description && (
+                            <div className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                              {api.description}
+                            </div>
+                          )}
                         </button>
                       ))}
                     </CollapsibleContent>
