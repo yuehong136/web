@@ -4,6 +4,11 @@ A comprehensive React-based frontend application for Multi-RAG system, providing
 
 ## 🆕 Latest Updates
 
+### API Management & Documentation
+- **🔑 API Key Management**: Comprehensive API key CRUD operations with secure token handling
+- **📚 OpenAPI Integration**: Interactive API documentation with Monaco editor and real-time testing
+- **🛡️ Enhanced Security**: Portal-based dropdowns, secure token regeneration, and access controls
+
 ### Design System & Performance
 - **🎨 Advanced Design Token System**: Complete CSS variable theming with automated theme generation
 - **⚡ Performance Optimizations**: Removed backdrop-blur for better performance, optimized Tailwind configuration
@@ -70,6 +75,7 @@ A comprehensive React-based frontend application for Multi-RAG system, providing
 - **UI Components**: Class Variance Authority + Tailwind Merge + CLSX
 - **File Handling**: React Dropzone 14.3
 - **HTTP Client**: Custom API client with fetch
+- **Code Editor**: Monaco Editor for syntax highlighting and code formatting
 - **Development**: ESLint 9.30 + TypeScript ESLint 8.35
 
 ## 🏗️ Project Structure
@@ -162,7 +168,7 @@ src/
 │   │   ├── MCPToolsPage.tsx # MCP tools browser
 │   │   ├── MCPTestPage.tsx # MCP testing interface
 │   │   ├── MCPBatchPage.tsx # MCP batch operations
-│   │   └── ApiKeysPage.tsx # API key management
+│   │   └── ApiKeysPage.tsx # Comprehensive API key management with OpenAPI docs
 │   ├── MCPChatPage.tsx   # MCP-enhanced chat
 │   ├── MCPDashboard.tsx  # MCP dashboard
 │   └── theme-demo/       # Theme demonstration
@@ -294,6 +300,8 @@ The application uses a custom API client (`src/api/client.ts`) that provides:
 ### 🔧 Settings & Configuration
 - **User Management**: Profile, security, API keys, and authentication settings
 - **LLM Providers**: Configure multiple AI providers (OpenAI, Anthropic, Claude, etc.)
+- **API Key Management**: Full-featured API key management with CRUD operations, search, and pagination
+- **API Documentation**: Interactive OpenAPI documentation system with Monaco editor integration
 - **MCP Integration**: Server management, tool discovery, testing, and batch operations
 - **Security & Privacy**: Advanced security settings and access controls
 - **Theme System**: Light/dark mode with advanced design token customization
@@ -308,7 +316,9 @@ The application uses a custom API client (`src/api/client.ts`) that provides:
 
 ### Key UI Components
 - **Form System**: Advanced form components with React Hook Form + Zod validation
+- **Code Editor**: Monaco Editor integration with read-only mode and syntax highlighting
 - **Data Visualization**: Task executor charts, system status cards, and metrics displays
+- **API Documentation**: Interactive OpenAPI viewer with request/response formatting
 - **File Management**: File icons, drag-and-drop, batch operations interface
 - **Navigation**: Modern sidebar with floating card design and responsive layout
 - **Authentication**: Carousel-based login/register with image fallbacks

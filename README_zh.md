@@ -4,6 +4,11 @@
 
 ## 🆕 最新更新
 
+### API 管理与文档
+- **🔑 API 密钥管理**: 全面的 API 密钥 CRUD 操作，安全令牌处理
+- **📚 OpenAPI 集成**: 交互式 API 文档，集成 Monaco 编辑器和实时测试
+- **🛡️ 增强安全性**: Portal 基础下拉菜单、安全令牌重生成和访问控制
+
 ### 设计系统与性能优化
 - **🎨 高级设计令牌系统**: 完整的 CSS 变量主题化与自动主题生成
 - **⚡ 性能优化**: 移除 backdrop-blur 提升性能，优化 Tailwind 配置
@@ -70,6 +75,7 @@
 - **UI 组件**: Class Variance Authority + Tailwind Merge + CLSX
 - **文件处理**: React Dropzone 14.3
 - **HTTP 客户端**: 基于 fetch 的自定义 API 客户端
+- **代码编辑器**: Monaco Editor 用于语法高亮和代码格式化
 - **开发工具**: ESLint 9.30 + TypeScript ESLint 8.35
 
 ## 🏗️ 项目结构
@@ -162,7 +168,7 @@ src/
 │   │   ├── MCPToolsPage.tsx # MCP 工具浏览器
 │   │   ├── MCPTestPage.tsx # MCP 测试界面
 │   │   ├── MCPBatchPage.tsx # MCP 批量操作
-│   │   └── ApiKeysPage.tsx # API 密钥管理
+│   │   └── ApiKeysPage.tsx # 全面的 API 密钥管理，支持 OpenAPI 文档
 │   ├── MCPChatPage.tsx   # MCP 增强聊天
 │   ├── MCPDashboard.tsx  # MCP 仪表板
 │   └── theme-demo/       # 主题演示
@@ -275,6 +281,8 @@ VITE_API_BASE_URL=http://localhost:8000  # 后端 API URL
 ### 🔧 设置与配置
 - **用户管理**: 个人资料、安全设置、API 密钥和身份验证设置
 - **LLM 提供商**: 配置多个 AI 提供商（OpenAI、Anthropic、Claude 等）
+- **API 密钥管理**: 全功能 API 密钥管理，支持 CRUD 操作、搜索和分页
+- **API 文档**: 交互式 OpenAPI 文档系统，集成 Monaco 编辑器
 - **MCP 集成**: 服务器管理、工具发现、测试和批量操作
 - **安全与隐私**: 高级安全设置和访问控制
 - **主题系统**: 浅色/深色模式与高级设计令牌自定义
@@ -289,7 +297,9 @@ VITE_API_BASE_URL=http://localhost:8000  # 后端 API URL
 
 ### 关键 UI 组件
 - **表单系统**: 高级表单组件，结合 React Hook Form + Zod 验证
+- **代码编辑器**: Monaco Editor 集成，支持只读模式和语法高亮
 - **数据可视化**: 任务执行器图表、系统状态卡片和指标显示
+- **API 文档**: 交互式 OpenAPI 查看器，支持请求/响应格式化
 - **文件管理**: 文件图标、拖拽上传、批量操作界面
 - **导航**: 现代侧边栏，浮动卡片设计和响应式布局
 - **身份验证**: 基于轮播的登录/注册，带图片回退
