@@ -123,6 +123,16 @@ interface FormDataRow {
   description?: string
 }
 
+// URL-encoded行接口定义
+interface UrlEncodedRow {
+  id: string
+  enabled: boolean
+  key: string
+  value: string
+  type: 'string' | 'integer' | 'number' | 'boolean' | 'file' | 'array' | 'object'
+  description?: string
+}
+
 // API Key 接口定义 - 使用系统API Token类型
 type ApiKey = SystemAPIToken
 
@@ -365,7 +375,13 @@ const ApiDocumentationPage: React.FC = () => {
   const [testBody, setTestBody] = useState("")
   const [bodyType, setBodyType] = useState<BodyType>("json")
   const [formDataRows, setFormDataRows] = useState<FormDataRow[]>([])
-  const [urlEncodedRows, setUrlEncodedRows] = useState<FormDataRow[]>([])
+  const [urlEncodedRows, setUrlEncodedRows] = useState<UrlEncodedRow[]>([{
+    id: 'urlencoded-new',
+    enabled: false,
+    key: '',
+    value: '',
+    type: 'string'
+  }])
   const [activeTestTab, setActiveTestTab] = useState("params")
   
   // 格式化状态提示
@@ -438,17 +454,131 @@ const ApiDocumentationPage: React.FC = () => {
   // 界面状态
   const [envManagementOpen, setEnvManagementOpen] = useState(false)
 
+  // 生成动态的placeholder文本
+  const getBodyPlaceholder = useCallback((type: BodyType) => {
+    // 如果有选中的API，使用其生成的示例数据作为placeholder
+    if (selectedAPI && selectedAPI.requestBody) {
+      const jsonContent = selectedAPI.requestBody.content?.['application/json']
+      if (jsonContent && type === 'json') {
+        if (jsonContent.example) {
+          return JSON.stringify(jsonContent.example, null, 2)
+        } else if (jsonContent.schema) {
+          const generatedExample = generateExampleFromSchema(jsonContent.schema)
+          if (generatedExample) {
+            return JSON.stringify(generatedExample, null, 2)
+          }
+        }
+      }
+    }
+
+    // 兜底：提供简化的占位符
+    switch (type) {
+      case 'json':
+        return '{\n  "key": "value"\n}'
+      case 'xml':
+        return '<?xml version="1.0" encoding="UTF-8"?>\n<root>\n  <data>value</data>\n</root>'
+      case 'graphql':
+        return 'query {\n  field\n}'
+      case 'msgpack':
+        return '{\n  "data": "binary encoded content"\n}'
+      default:
+        return '# 输入数据内容'
+    }
+  }, [selectedAPI])
+
+  // 请求体格式验证函数
+  const validateBodyContent = useCallback((content: string, type: BodyType, api?: APIEndpoint) => {
+    if (!content.trim()) {
+      return { isValid: true, error: null }
+    }
+
+    // 检查用户选择的bodyType是否与API要求匹配
+    if (api && api.requestBody) {
+      const apiSupportedTypes = Object.keys(api.requestBody.content || {})
+      const typeContentTypeMap: Record<BodyType, string> = {
+        'json': 'application/json',
+        'xml': 'application/xml',
+        'form-data': 'multipart/form-data',
+        'x-www-form-urlencoded': 'application/x-www-form-urlencoded',
+        'raw': 'text/plain',
+        'graphql': 'application/graphql',
+        'binary': 'application/octet-stream',
+        'msgpack': 'application/msgpack',
+        'none': ''
+      }
+      
+      const selectedContentType = typeContentTypeMap[type]
+      if (selectedContentType && !apiSupportedTypes.includes(selectedContentType)) {
+        return { 
+          isValid: false, 
+          error: `请求体类型不匹配：API要求 ${apiSupportedTypes.join(' 或 ')}，但您选择了 ${selectedContentType}` 
+        }
+      }
+    }
+
+    // 验证内容格式
+    try {
+      switch (type) {
+        case 'json':
+          JSON.parse(content)
+          return { isValid: true, error: null }
+        
+        case 'xml':
+          // 简单的XML验证 - 检查是否有成对的标签
+          const hasOpenTags = /<\w+/g.test(content)
+          const hasCloseTags = /<\/\w+>/g.test(content)
+          if (hasOpenTags && !hasCloseTags) {
+            return { isValid: false, error: 'XML格式错误：缺少闭合标签' }
+          }
+          return { isValid: true, error: null }
+        
+        case 'graphql':
+          // 简单的GraphQL验证 - 检查是否包含query/mutation/subscription关键字
+          const hasGraphQLKeyword = /\b(query|mutation|subscription)\b/i.test(content)
+          if (!hasGraphQLKeyword) {
+            return { isValid: false, error: 'GraphQL格式错误：缺少query、mutation或subscription关键字' }
+          }
+          return { isValid: true, error: null }
+        
+        default:
+          return { isValid: true, error: null }
+      }
+    } catch (error) {
+      switch (type) {
+        case 'json':
+          return { isValid: false, error: 'JSON格式错误：' + (error as Error).message }
+        default:
+          return { isValid: false, error: '格式错误：' + (error as Error).message }
+      }
+    }
+  }, [])
+
   // 请求体格式化函数
   const formatBodyContent = useCallback((content: string, type: BodyType) => {
     if (!content.trim()) {
-      // 提供默认模板
+      // 如果有选中的API，使用其生成的示例数据
+      if (selectedAPI && selectedAPI.requestBody) {
+        const jsonContent = selectedAPI.requestBody.content?.['application/json']
+        if (jsonContent) {
+          if (jsonContent.example) {
+            return JSON.stringify(jsonContent.example, null, 2)
+          } else if (jsonContent.schema) {
+            const generatedExample = generateExampleFromSchema(jsonContent.schema)
+            if (generatedExample) {
+              return JSON.stringify(generatedExample, null, 2)
+            }
+          }
+        }
+      }
+      
+      // 兜底：提供简化的默认模板
       switch (type) {
         case 'json':
-          return '{\n  "name": "示例用户",\n  "email": "user@example.com",\n  "age": 25,\n  "active": true\n}'
+          return '{\n  "key": "value"\n}'
         case 'xml':
-          return '<?xml version="1.0" encoding="UTF-8"?>\n<root>\n  <user>\n    <name>示例用户</name>\n    <email>user@example.com</email>\n  </user>\n</root>'
+          return '<?xml version="1.0" encoding="UTF-8"?>\n<root>\n  <data>value</data>\n</root>'
         case 'graphql':
-          return 'query GetUsers {\n  users {\n    id\n    name\n    email\n    createdAt\n  }\n}'
+          return 'query {\n  field\n}'
         default:
           return content
       }
@@ -582,17 +712,27 @@ const ApiDocumentationPage: React.FC = () => {
   }, [])
 
   const addUrlEncodedRow = useCallback(() => {
-    const newRow: FormDataRow = {
-      id: `url-encoded-${Date.now()}`,
-      enabled: true,
-      key: '',
-      value: '',
-      type: 'text'
-    }
-    setUrlEncodedRows(prev => [...prev, newRow])
+    const newId = `urlencoded-${Date.now()}`
+    setUrlEncodedRows(prev => [
+      ...prev.slice(0, -1), // 移除最后一个空行
+      {
+        id: newId,
+        enabled: true,
+        key: '',
+        value: '',
+        type: 'string'
+      },
+      { // 添加新的空行
+        id: `urlencoded-new`,
+        enabled: false,
+        key: '',
+        value: '',
+        type: 'string'
+      }
+    ])
   }, [])
 
-  const updateUrlEncodedRow = useCallback((id: string, field: keyof FormDataRow, value: any) => {
+  const updateUrlEncodedRow = useCallback((id: string, field: keyof UrlEncodedRow, value: any) => {
     setUrlEncodedRows(prev => prev.map(row => 
       row.id === id ? { ...row, [field]: value } : row
     ))
@@ -758,12 +898,138 @@ const ApiDocumentationPage: React.FC = () => {
 
     // 初始化请求体
     if (api.requestBody) {
-      const example = Object.values(api.requestBody.content)[0]?.example
-      setTestBody(example ? JSON.stringify(example, null, 2) : '')
+      let exampleBody = ''
+      const content = api.requestBody.content
+      
+      if (content) {
+        // 尝试获取 application/json 的示例
+        const jsonContent = content['application/json']
+        if (jsonContent) {
+          // 首先检查是否有直接的 example
+          if (jsonContent.example) {
+            exampleBody = JSON.stringify(jsonContent.example, null, 2)
+          } 
+          // 如果有 schema，尝试生成示例数据
+          else if (jsonContent.schema) {
+            const generatedExample = generateExampleFromSchema(jsonContent.schema)
+            if (generatedExample) {
+              exampleBody = JSON.stringify(generatedExample, null, 2)
+            }
+          }
+        }
+        // 如果没有 application/json，尝试其他 content type
+        else {
+          const firstContent = Object.values(content)[0] as any
+          if (firstContent?.example) {
+            exampleBody = typeof firstContent.example === 'string' 
+              ? firstContent.example 
+              : JSON.stringify(firstContent.example, null, 2)
+          } else if (firstContent?.schema) {
+            const generatedExample = generateExampleFromSchema(firstContent.schema)
+            if (generatedExample) {
+              exampleBody = JSON.stringify(generatedExample, null, 2)
+            }
+          }
+        }
+      }
+      
+      setTestBody(exampleBody)
     } else {
       setTestBody('')
     }
   }
+
+  // 根据schema生成示例数据
+  const generateExampleFromSchema = useCallback((schema: any, fieldName?: string): any => {
+    if (!schema) return null
+
+    // 如果schema有直接的example，优先使用
+    if (schema.example !== undefined) {
+      return schema.example
+    }
+
+    // 如果是引用类型 ($ref)，解析引用
+    if (schema.$ref && apiSpec) {
+      const refPath = schema.$ref.replace('#/', '').split('/')
+      let referencedSchema = apiSpec
+      
+      // 遍历路径找到引用的schema
+      for (const pathSegment of refPath) {
+        referencedSchema = referencedSchema[pathSegment]
+        if (!referencedSchema) break
+      }
+      
+      // 如果找到了引用的schema，递归生成示例
+      if (referencedSchema) {
+        return generateExampleFromSchema(referencedSchema, fieldName)
+      }
+    }
+
+    // 根据数据类型生成示例
+    switch (schema.type) {
+      case 'object':
+        const obj: any = {}
+        if (schema.properties) {
+          for (const [key, propSchema] of Object.entries(schema.properties)) {
+            // 检查是否是必需字段或有默认值
+            const isRequired = schema.required?.includes(key)
+            const hasDefault = (propSchema as any).default !== undefined
+            
+            if (isRequired || hasDefault) {
+              // 优先使用默认值
+              if (hasDefault) {
+                obj[key] = (propSchema as any).default
+              } else {
+                obj[key] = generateExampleFromSchema(propSchema, key)
+              }
+            } else {
+              // 非必需字段也生成示例，但使用更简单的值
+              obj[key] = generateExampleFromSchema(propSchema, key)
+            }
+          }
+        }
+        return obj
+      
+      case 'array':
+        if (schema.items) {
+          return [generateExampleFromSchema(schema.items, fieldName)]
+        }
+        return []
+      
+      case 'string':
+        // 根据字段名生成更有意义的示例
+        if (schema.enum) {
+          return schema.enum[0]
+        }
+        // 根据字段名生成更有意义的示例值
+        if (fieldName) {
+          const lowerFieldName = fieldName.toLowerCase()
+          if (lowerFieldName.includes('question')) {
+            return 'What is your question?'
+          } else if (lowerFieldName.includes('industry')) {
+            return 'Technology'
+          } else if (lowerFieldName.includes('title') || lowerFieldName.includes('name')) {
+            return 'Example Title'
+          } else if (lowerFieldName.includes('email')) {
+            return 'user@example.com'
+          } else if (lowerFieldName.includes('id')) {
+            return 'example-id-123'
+          }
+        }
+        return 'example string'
+      
+      case 'number':
+      case 'integer':
+        return schema.minimum !== undefined ? schema.minimum : 
+               schema.default !== undefined ? schema.default : 1
+      
+      case 'boolean':
+        return schema.default !== undefined ? schema.default : false
+      
+      default:
+        return null
+    }
+  }, [apiSpec])
 
   // 将OpenAPI规范转换为内部API端点格式
   const convertToAPIEndpoints = useCallback((spec: OpenAPISpec): APIEndpoint[] => {
@@ -2439,6 +2705,24 @@ const ApiDocumentationPage: React.FC = () => {
                                                   boolean
                                                 </div>
                                               </SelectItem>
+                                              <SelectItem value="file">
+                                                <div className="flex items-center gap-2">
+                                                  <div className="w-2 h-2 bg-red-500 rounded-full" />
+                                                  file
+                                                </div>
+                                              </SelectItem>
+                                              <SelectItem value="array">
+                                                <div className="flex items-center gap-2">
+                                                  <div className="w-2 h-2 bg-indigo-500 rounded-full" />
+                                                  array
+                                                </div>
+                                              </SelectItem>
+                                              <SelectItem value="object">
+                                                <div className="flex items-center gap-2">
+                                                  <div className="w-2 h-2 bg-pink-500 rounded-full" />
+                                                  object
+                                                </div>
+                                              </SelectItem>
                                             </SelectContent>
                                           </Select>
                                         </div>
@@ -2478,7 +2762,34 @@ const ApiDocumentationPage: React.FC = () => {
                               <div className="m-0 h-full p-6 flex flex-col">
                                 <div className="flex items-center justify-between mb-6">
                                   <div>
-                                    <h3 className="text-lg font-semibold">请求体</h3>
+                                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                                      请求体
+                                      {(() => {
+                                        const validation = validateBodyContent(testBody, bodyType, selectedAPI)
+                                        if (!validation.isValid) {
+                                          return (
+                                            <Tooltip 
+                                              content={validation.error || '格式错误'}
+                                              position="top"
+                                              maxWidth="max-w-sm"
+                                            >
+                                              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse cursor-help"></div>
+                                            </Tooltip>
+                                          )
+                                        } else if (testBody.trim()) {
+                                          return (
+                                            <Tooltip 
+                                              content="格式正确"
+                                              position="top"
+                                              maxWidth="max-w-sm"
+                                            >
+                                              <div className="w-2 h-2 bg-green-500 rounded-full cursor-help"></div>
+                                            </Tooltip>
+                                          )
+                                        }
+                                        return null
+                                      })()}
+                                    </h3>
                                     <p className="text-sm text-muted-foreground mt-1">配置API请求的数据体</p>
                                   </div>
                                   <div className="flex items-center gap-2">
@@ -2675,50 +2986,135 @@ const ApiDocumentationPage: React.FC = () => {
                                         </Button>
                                       </div>
                                       <div className="flex-1 overflow-auto">
-                                        <div className="p-4 space-y-3">
-                                          {urlEncodedRows.map((row) => (
-                                            <div key={row.id} className="flex items-center gap-3 p-3 bg-muted/30 rounded-md">
-                                              <Switch
-                                                checked={row.enabled}
-                                                onCheckedChange={(checked) => updateUrlEncodedRow(row.id, 'enabled', checked)}
-                                              />
-                                              <Input
-                                                placeholder="Key"
-                                                value={row.key}
-                                                onChange={(e) => updateUrlEncodedRow(row.id, 'key', e.target.value)}
-                                                className="flex-1"
-                                              />
-                                              <Input
-                                                placeholder="Value"
-                                                value={row.value}
-                                                onChange={(e) => updateUrlEncodedRow(row.id, 'value', e.target.value)}
-                                                className="flex-1"
-                                              />
-                                              <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => removeUrlEncodedRow(row.id)}
-                                                className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                                              >
-                                                <Trash2 className="h-4 w-4" />
-                                              </Button>
+                                        {urlEncodedRows.length > 0 ? (
+                                          <div className="px-6 py-4">
+                                            {/* 表头 */}
+                                            <div className="grid grid-cols-12 gap-4 pb-3 border-b border-border/60 text-sm font-medium text-muted-foreground">
+                                              <div className="col-span-1 text-center">启用</div>
+                                              <div className="col-span-3">参数名</div>
+                                              <div className="col-span-4">参数值</div>
+                                              <div className="col-span-2">类型</div>
+                                              <div className="col-span-2 text-center">操作</div>
                                             </div>
-                                          ))}
-                                          {urlEncodedRows.length === 0 && (
-                                            <div className="text-center py-8 text-muted-foreground">
-                                              <p className="text-sm">暂无URL编码数据</p>
+                                            
+                                            {/* 参数行 */}
+                                            <div className="space-y-2 mt-4">
+                                              {urlEncodedRows.map((row) => (
+                                                <div key={row.id} className="grid grid-cols-12 gap-4 items-center py-2 group hover:bg-muted/30 rounded-md px-2 -mx-2 transition-colors">
+                                                  <div className="col-span-1 flex justify-center">
+                                                    <Switch
+                                                      checked={row.enabled}
+                                                      onCheckedChange={(checked) => updateUrlEncodedRow(row.id, 'enabled', checked)}
+                                                    />
+                                                  </div>
+                                                  <div className="col-span-3">
+                                                    <Input
+                                                      placeholder="参数名"
+                                                      value={row.key}
+                                                      onChange={(e) => updateUrlEncodedRow(row.id, 'key', e.target.value)}
+                                                      className="h-9 text-sm border-0 bg-transparent focus:bg-background focus:border focus:rounded-md transition-all"
+                                                      onBlur={() => {
+                                                        if (row.id === 'urlencoded-new' && row.key) {
+                                                          addUrlEncodedRow()
+                                                        }
+                                                      }}
+                                                    />
+                                                  </div>
+                                                  <div className="col-span-4">
+                                                    <Input
+                                                      placeholder="参数值"
+                                                      value={row.value}
+                                                      onChange={(e) => updateUrlEncodedRow(row.id, 'value', e.target.value)}
+                                                      className="h-9 text-sm border-0 bg-transparent focus:bg-background focus:border focus:rounded-md transition-all"
+                                                    />
+                                                  </div>
+                                                  <div className="col-span-2">
+                                                    <Select 
+                                                      value={row.type} 
+                                                      onValueChange={(value) => updateUrlEncodedRow(row.id, 'type', value)}
+                                                    >
+                                                      <SelectTrigger className="h-9 text-sm border-0 bg-transparent focus:bg-background focus:border focus:rounded-md transition-all">
+                                                        <SelectValue />
+                                                      </SelectTrigger>
+                                                      <SelectContent>
+                                                        <SelectItem value="string">
+                                                          <div className="flex items-center gap-2">
+                                                            <div className="w-2 h-2 bg-blue-500 rounded-full" />
+                                                            string
+                                                          </div>
+                                                        </SelectItem>
+                                                        <SelectItem value="integer">
+                                                          <div className="flex items-center gap-2">
+                                                            <div className="w-2 h-2 bg-green-500 rounded-full" />
+                                                            integer
+                                                          </div>
+                                                        </SelectItem>
+                                                        <SelectItem value="number">
+                                                          <div className="flex items-center gap-2">
+                                                            <div className="w-2 h-2 bg-orange-500 rounded-full" />
+                                                            number
+                                                          </div>
+                                                        </SelectItem>
+                                                        <SelectItem value="boolean">
+                                                          <div className="flex items-center gap-2">
+                                                            <div className="w-2 h-2 bg-purple-500 rounded-full" />
+                                                            boolean
+                                                          </div>
+                                                        </SelectItem>
+                                                        <SelectItem value="file">
+                                                          <div className="flex items-center gap-2">
+                                                            <div className="w-2 h-2 bg-red-500 rounded-full" />
+                                                            file
+                                                          </div>
+                                                        </SelectItem>
+                                                        <SelectItem value="array">
+                                                          <div className="flex items-center gap-2">
+                                                            <div className="w-2 h-2 bg-indigo-500 rounded-full" />
+                                                            array
+                                                          </div>
+                                                        </SelectItem>
+                                                        <SelectItem value="object">
+                                                          <div className="flex items-center gap-2">
+                                                            <div className="w-2 h-2 bg-pink-500 rounded-full" />
+                                                            object
+                                                          </div>
+                                                        </SelectItem>
+                                                      </SelectContent>
+                                                    </Select>
+                                                  </div>
+                                                  <div className="col-span-2 flex justify-center">
+                                                    {row.id !== 'urlencoded-new' && row.key && (
+                                                      <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => removeUrlEncodedRow(row.id)}
+                                                        className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50 hover:text-red-600"
+                                                      >
+                                                        <Trash2 className="h-4 w-4" />
+                                                      </Button>
+                                                    )}
+                                                  </div>
+                                                </div>
+                                              ))}
+                                            </div>
+                                          </div>
+                                        ) : (
+                                          <div className="flex-1 flex items-center justify-center">
+                                            <div className="text-center text-muted-foreground">
+                                              <Database className="h-12 w-12 mx-auto mb-4 opacity-30" />
+                                              <p className="text-sm mb-2">暂无URL编码数据</p>
                                               <Button 
                                                 variant="outline" 
                                                 size="sm" 
                                                 onClick={addUrlEncodedRow}
-                                                className="mt-2 gap-1"
+                                                className="gap-1"
                                               >
                                                 <Plus className="h-3 w-3" />
-                                                添加参数
+                                                添加URL编码项
                                               </Button>
                                             </div>
-                                          )}
-                                        </div>
+                                          </div>
+                                        )}
                                       </div>
                                     </div>
                                   )}
@@ -2745,13 +3141,7 @@ const ApiDocumentationPage: React.FC = () => {
                                             bodyType === 'msgpack' ? 'json' : // MessagePack显示为JSON格式
                                             bodyType === 'raw' ? 'plaintext' : 'plaintext'
                                           }
-                                          placeholder={
-                                            bodyType === 'json' ? '{\n  "name": "示例用户",\n  "email": "user@example.com",\n  "age": 25,\n  "active": true\n}' :
-                                            bodyType === 'xml' ? '<?xml version="1.0" encoding="UTF-8"?>\n<root>\n  <user>\n    <name>示例用户</name>\n    <email>user@example.com</email>\n  </user>\n</root>' :
-                                            bodyType === 'graphql' ? 'query GetUsers {\n  users {\n    id\n    name\n    email\n    createdAt\n  }\n}' :
-                                            bodyType === 'msgpack' ? '# MessagePack 格式示例\n{\n  "data": "binary encoded content"\n}' :
-                                            '# 输入原始文本数据\n# 支持任意格式内容'
-                                          }
+                                          placeholder={getBodyPlaceholder(bodyType)}
                                           height="100%"
                                           theme={editorTheme}
                                         />

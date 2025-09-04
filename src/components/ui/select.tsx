@@ -57,11 +57,14 @@ export const Select: React.FC<SelectProps> = ({
     }
 
     if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside)
+      // Use 'click' so option onClick runs before this handler. Using 'mousedown'
+      // closes the menu before the option's onClick executes (due to portal),
+      // causing selection to have no effect.
+      document.addEventListener('click', handleClickOutside)
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('click', handleClickOutside)
     }
   }, [isOpen])
 
