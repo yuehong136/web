@@ -114,6 +114,90 @@ export interface UpdateUserProfileRequest {
 }
 
 // ============================================================================
+// OpenAPI 文档过滤模块
+// ============================================================================
+
+// OpenAPI 过滤规则
+export interface FilterRule {
+  paths: string[]
+  match: 'exact' | 'prefix' | 'glob' | 'regex'
+  include_tags?: string[]
+  exclude_paths?: string[]
+  exclude_tags?: string[]
+  strict?: boolean
+  prune_examples?: boolean
+  oas_version_target?: 'keep' | '3.0' | '3.1'
+  source?: string
+  max_depth?: number
+}
+
+// OpenAPI 过滤响应元信息
+export interface FilterMeta {
+  rules: {
+    paths: string[]
+    match: string
+    include_tags: string[]
+    exclude_paths: string[]
+    exclude_tags: string[]
+    strict: boolean
+    prune_examples: boolean
+    oas_version_target: string
+  }
+  sourceETag?: string
+  generated_at: string
+  processing_time_ms: number
+  paths_before: number
+  paths_after: number
+  components_before: number
+  components_after: number
+}
+
+// OpenAPI 规范基础结构
+export interface OpenAPISpec {
+  openapi: string
+  info: {
+    title: string
+    version: string
+    description?: string
+    contact?: {
+      name?: string
+      email?: string
+    }
+    license?: {
+      name?: string
+      url?: string
+    }
+  }
+  servers?: Array<{
+    url: string
+    description?: string
+  }>
+  tags?: Array<{
+    name: string
+    description?: string
+    externalDocs?: {
+      description?: string
+      url?: string
+    }
+  }>
+  paths: Record<string, any>
+  components?: {
+    schemas?: Record<string, any>
+    securitySchemes?: Record<string, any>
+    [key: string]: any
+  }
+  security?: Array<Record<string, string[]>>
+  'x-filter-warnings'?: string[]
+  'x-filter-meta'?: FilterMeta
+}
+
+// OpenAPI 过滤响应
+export interface FilterResponse extends OpenAPISpec {
+  'x-filter-warnings': string[]
+  'x-filter-meta': FilterMeta
+}
+
+// ============================================================================
 // MCP服务器管理模块
 // ============================================================================
 

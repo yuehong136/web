@@ -1,5 +1,5 @@
 import { apiClient } from '@/api/client'
-import type { APITokenCreateRequest, SystemAPIToken } from '@/types/api'
+import type { APITokenCreateRequest, SystemAPIToken, FilterRule, FilterResponse } from '@/types/api'
 
 // 系统状态相关类型定义
 export interface SystemComponentStatus {
@@ -85,5 +85,11 @@ export const systemAPI = {
   async deleteToken(token: string): Promise<boolean> {
     // 尝试作为简单的字符串值发送
     return apiClient.post<boolean>('/system/rm', token)
+  },
+
+  // OpenAPI 文档过滤
+  // 根据指定规则过滤 OpenAPI 文档
+  async filterOpenAPI(rule: FilterRule): Promise<FilterResponse> {
+    return apiClient.post<FilterResponse>('/openapi_filter/openapi-filtered', rule)
   },
 }

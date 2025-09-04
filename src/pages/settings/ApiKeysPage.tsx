@@ -26,16 +26,68 @@ import { cn } from '@/components/ui/utils'
 import { PageSizeSelector } from '@/components/ui/page-size-selector'
 import { MarkdownRenderer } from '@/components/chat/MarkdownRenderer'
 
-import { 
-  apiLoader
-} from '@/services/api-loader'
 import type { 
-  APIEndpoint, 
-  OpenAPISpec, 
-  Environment
-} from '@/services/api-loader'
+  OpenAPISpec
+} from '@/types/api'
 import { systemAPI } from '@/api/system'
 import type { SystemAPIToken, APITokenCreateRequest } from '@/types/api'
+
+// API端点简化定义
+interface APIEndpoint {
+  id: string
+  operationId?: string
+  summary: string
+  description?: string
+  method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH" | "HEAD" | "OPTIONS"
+  path: string
+  tags?: string[]
+  parameters?: Parameter[]
+  requestBody?: RequestBody
+  responses?: Response[]
+  security?: Record<string, string[]>[]
+  deprecated?: boolean
+}
+
+interface Parameter {
+  name: string
+  in: "query" | "header" | "path" | "cookie"
+  schema?: Schema
+  type?: string
+  required: boolean
+  description: string
+  example?: any
+}
+
+interface Schema {
+  type: string
+  properties?: Record<string, Schema>
+  required?: string[]
+  example?: any
+  description?: string
+  format?: string
+  items?: Schema
+  enum?: string[]
+  $ref?: string
+}
+
+interface RequestBody {
+  description?: string
+  required?: boolean
+  content: Record<string, {
+    schema: Schema
+    example?: any
+  }>
+}
+
+interface Response {
+  status: number
+  description: string
+  content?: Record<string, {
+    schema: Schema
+    example?: any
+  }>
+  headers?: Record<string, Parameter>
+}
 
 // 参数行接口定义
 interface ParamRow {
@@ -75,6 +127,15 @@ interface FormDataRow {
 type ApiKey = SystemAPIToken
 
 const tagIcons = {
+  // 标准的tag图标映射
+  "chat": Users,
+  "session": Activity, 
+  "files": FileText,
+  "file": FileText,
+  "dataset": Database,
+  "document": FileText,
+  "agent": Shield,
+  // 兼容原有的标签图标
   "用户管理": Users,
   "订单管理": Database,
   "认证授权": Shield,
@@ -211,10 +272,18 @@ const ApiDocumentationPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true)
   const [loadingSource, setLoadingSource] = useState<"static" | "dynamic" | null>(null)
   const [loadingProgress, setLoadingProgress] = useState(0)
+  const [loadingError, setLoadingError] = useState<string | null>(null)
   
   // 分组收起状态 - 默认只展开第一个分组
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({})
   
+  // 环境接口定义
+  interface Environment {
+    id: string
+    name: string
+    variables: Record<string, string>
+  }
+
   // 环境管理 - 扩展更多环境
   const [environments] = useState<Environment[]>([
     {
@@ -367,7 +436,6 @@ const ApiDocumentationPage: React.FC = () => {
   const [mainMode, setMainMode] = useState<"interface" | "test">("interface")
   
   // 界面状态
-  const [userPermissions] = useState<string[]>(["user"])
   const [envManagementOpen, setEnvManagementOpen] = useState(false)
 
   // 请求体格式化函数
@@ -588,7 +656,7 @@ const ApiDocumentationPage: React.FC = () => {
 
   // 数据加载
   useEffect(() => {
-    loadAPIData()
+    loadAPIData(false) // 默认加载静态数据
   }, [])
 
   // 当选中API变化时，初始化测试数据
@@ -697,9 +765,99 @@ const ApiDocumentationPage: React.FC = () => {
     }
   }
 
-  const loadAPIData = async () => {
+  // 将OpenAPI规范转换为内部API端点格式
+  const convertToAPIEndpoints = useCallback((spec: OpenAPISpec): APIEndpoint[] => {
+    const endpoints: APIEndpoint[] = []
+
+    for (const [path, pathItem] of Object.entries(spec.paths)) {
+      for (const [method, operation] of Object.entries(pathItem)) {
+        if (typeof operation !== 'object' || !operation) continue
+
+        // Type assertion for OpenAPI operation object
+        const op = operation as any
+
+        const endpoint: APIEndpoint = {
+          id: op.operationId || `${method}-${path}`.replace(/[^\w-]/g, '-'),
+          operationId: op.operationId,
+          summary: op.summary || `${method.toUpperCase()} ${path}`,
+          description: op.description,
+          method: method.toUpperCase() as APIEndpoint['method'],
+          path,
+          tags: op.tags,
+          parameters: convertParameters(op.parameters || []),
+          requestBody: convertRequestBody(op.requestBody),
+          responses: convertResponses(op.responses || {}),
+          security: op.security,
+          deprecated: op.deprecated
+        }
+
+        endpoints.push(endpoint)
+      }
+    }
+
+    return endpoints
+  }, [])
+
+  const convertParameters = (params: any[]): Parameter[] => {
+    return params.map(param => ({
+      name: param.name,
+      in: param.in,
+      schema: param.schema,
+      type: param.schema?.type || param.type,
+      required: param.required || false,
+      description: param.description || '',
+      example: param.example || param.schema?.example
+    }))
+  }
+
+  const convertRequestBody = (requestBody: any): RequestBody | undefined => {
+    if (!requestBody) return undefined
+
+    return {
+      description: requestBody.description,
+      required: requestBody.required,
+      content: requestBody.content || {}
+    }
+  }
+
+  const convertResponses = (responses: any): Response[] => {
+    return Object.entries(responses).map(([status, response]: [string, any]) => ({
+      status: parseInt(status),
+      description: response.description || '',
+      content: response.content,
+      headers: response.headers
+    }))
+  }
+
+  // 加载静态OpenAPI数据
+  const loadStaticAPIData = async (): Promise<OpenAPISpec> => {
+    const response = await fetch('/openapi.json')
+    if (!response.ok) {
+      throw new Error(`Failed to load static spec: ${response.status}`)
+    }
+    return response.json()
+  }
+
+  // 加载过滤的OpenAPI数据
+  const loadFilteredAPIData = async (): Promise<OpenAPISpec> => {
+    const filterRule = {
+      paths: ["/api/v1/*"],
+      match: "glob" as const,
+      include_tags: ["chat", "session", "dataset", "doc", "files", "agent"],
+      exclude_paths: [],
+      exclude_tags: [],
+      strict: true,
+      prune_examples: true,
+      oas_version_target: "keep" as const
+    }
+
+    return await systemAPI.filterOpenAPI(filterRule)
+  }
+
+  const loadAPIData = async (useFiltered: boolean = false) => {
     setIsLoading(true)
     setLoadingProgress(0)
+    setLoadingError(null)
     
     try {
       // 模拟加载进度
@@ -707,13 +865,24 @@ const ApiDocumentationPage: React.FC = () => {
         setLoadingProgress(prev => Math.min(prev + 10, 90))
       }, 200)
 
-      setLoadingSource("static")
-      const spec = await apiLoader.getFullSpec({
-        preferDynamic: false,
-        userPermissions
-      })
+      let spec: OpenAPISpec
+      
+      if (useFiltered) {
+        setLoadingSource("dynamic")
+        try {
+          spec = await loadFilteredAPIData()
+        } catch (error) {
+          console.warn('Failed to load filtered data, falling back to static:', error)
+          setLoadingError("后端接口加载失败，已切换到静态文件")
+          setLoadingSource("static")
+          spec = await loadStaticAPIData()
+        }
+      } else {
+        setLoadingSource("static")
+        spec = await loadStaticAPIData()
+      }
 
-      const endpoints = apiLoader.convertToAPIEndpoints(spec)
+      const endpoints = convertToAPIEndpoints(spec)
       
       setApiSpec(spec)
       setApiEndpoints(endpoints)
@@ -728,10 +897,15 @@ const ApiDocumentationPage: React.FC = () => {
       
       setTimeout(() => {
         setIsLoading(false)
+        // 清除错误提示
+        if (loadingError) {
+          setTimeout(() => setLoadingError(null), 3000)
+        }
       }, 300)
 
     } catch (error) {
       console.error('Failed to load API data:', error)
+      setLoadingError(error instanceof Error ? error.message : "加载API数据失败")
       setIsLoading(false)
     }
   }
@@ -746,7 +920,7 @@ const ApiDocumentationPage: React.FC = () => {
     return matchesSearch
   })
 
-  // 按标签分组
+  // 按标签分组（Apifox标准方式）
   const groupedEndpoints = filteredEndpoints.reduce((groups, endpoint) => {
     const tags = endpoint.tags || ['未分组']
     tags.forEach(tag => {
@@ -1059,16 +1233,30 @@ const ApiDocumentationPage: React.FC = () => {
                     <Badge variant="outline" className="text-[10px]">v1.0.0</Badge>
                     <span>•</span>
                     <span>API 文档</span>
+                    {loadingSource && (
+                      <>
+                        <span>•</span>
+                        <Badge 
+                          variant={loadingSource === "dynamic" ? "default" : "secondary"} 
+                          className="text-[10px]"
+                        >
+                          {loadingSource === "dynamic" ? "后端数据" : "静态文件"}
+                        </Badge>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
               <Button
                 variant="outline"
                 size="sm"
-                onClick={loadAPIData}
+                onClick={() => loadAPIData(true)}
+                disabled={isLoading}
                 className="gap-2"
+                title="刷新API文档数据（从后端获取过滤后的接口）"
               >
                 <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                {loadingSource === "dynamic" ? "从后端加载" : "刷新"}
               </Button>
             </div>
             <div className="relative">
@@ -1086,7 +1274,16 @@ const ApiDocumentationPage: React.FC = () => {
               <p className="text-sm text-muted-foreground leading-relaxed">
                 开放 API 文档与调用测试；并可通过右侧按钮管理 API Key 的增删改查
               </p>
-                      </div>
+            </div>
+
+            {/* 错误提示 */}
+            {loadingError && (
+              <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-sm text-yellow-800">
+                  ⚠️ {loadingError}
+                </p>
+              </div>
+            )}
 
             {/* 统计信息 */}
             <div className="grid grid-cols-2 gap-3">
@@ -1134,6 +1331,30 @@ const ApiDocumentationPage: React.FC = () => {
                 const IconComponent = tagIcons[tag as keyof typeof tagIcons] || Globe
                 const isCollapsed = collapsedGroups[tag]
                 
+                // 格式化显示名称
+                const getDisplayName = (tagName: string) => {
+                  const tagDisplayNames: Record<string, string> = {
+                    'chat': '聊天',
+                    'session': '会话',
+                    'files': '文件',
+                    'dataset': '数据集',
+                    'document': '文档',
+                    'agent': '智能体',
+                    // 保持原有的显示名称
+                    '用户管理': '用户管理',
+                    '订单管理': '订单管理',
+                    '认证授权': '认证授权',
+                    '系统配置': '系统配置',
+                    '文件管理': '文件管理',
+                    '通知服务': '通知服务',
+                    '支付管理': '支付管理',
+                    '数据分析': '数据分析',
+                    '消息推送': '消息推送'
+                  }
+                  
+                  return tagDisplayNames[tagName] || tagName
+                }
+                
                 return (
                   <Collapsible
                     key={tag}
@@ -1144,7 +1365,7 @@ const ApiDocumentationPage: React.FC = () => {
                       <div className="flex items-center gap-2">
                         <IconComponent className="h-4 w-4 text-muted-foreground" />
                         <h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
-                          {tag}
+                          {getDisplayName(tag)}
                         </h3>
                       <Badge variant="secondary" className="text-xs">{endpoints.length}</Badge>
                       </div>
