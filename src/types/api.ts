@@ -969,6 +969,27 @@ export interface UpdateTokenRequest {
 }
 
 // ============================================================================
+// 系统API Token管理 - 匹配后端 /v1/system/new_token 和 token_list 接口
+// ============================================================================
+
+export interface APITokenCreateRequest {
+  name: string
+  description?: string | null
+}
+
+export interface SystemAPIToken {
+  tenant_id: string
+  token: string
+  beta: string
+  name: string
+  description?: string
+  create_time: number
+  create_date: string
+  update_time: number | null
+  update_date: string | null
+}
+
+// ============================================================================
 // 错误和验证类型
 // ============================================================================
 

@@ -1,4 +1,5 @@
 import { apiClient } from '@/api/client'
+import type { APITokenCreateRequest, SystemAPIToken } from '@/types/api'
 
 // 系统状态相关类型定义
 export interface SystemComponentStatus {
@@ -67,5 +68,22 @@ export const systemAPI = {
   // 获取系统版本信息
   async getVersion(): Promise<SystemVersionResponse | SystemVersionString> {
     return apiClient.get<SystemVersionResponse | SystemVersionString>('/system/version')
+  },
+
+  // API Token 管理
+  // 创建新的API访问令牌
+  async createToken(data: APITokenCreateRequest): Promise<SystemAPIToken> {
+    return apiClient.post<SystemAPIToken>('/system/new_token', data)
+  },
+
+  // 获取API访问令牌列表
+  async getTokenList(): Promise<SystemAPIToken[]> {
+    return apiClient.get<SystemAPIToken[]>('/system/token_list')
+  },
+
+  // 删除API访问令牌
+  async deleteToken(token: string): Promise<boolean> {
+    // 尝试作为简单的字符串值发送
+    return apiClient.post<boolean>('/system/rm', token)
   },
 }

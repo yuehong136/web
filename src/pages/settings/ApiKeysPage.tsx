@@ -34,6 +34,8 @@ import type {
   OpenAPISpec, 
   Environment
 } from '@/services/api-loader'
+import { systemAPI } from '@/api/system'
+import type { SystemAPIToken, APITokenCreateRequest } from '@/types/api'
 
 // 参数行接口定义
 interface ParamRow {
@@ -69,18 +71,8 @@ interface FormDataRow {
   description?: string
 }
 
-// API Key 接口定义
-interface ApiKey {
-  tenant_id: string
-  token: string
-  beta: string
-  name: string
-  description: string
-  create_time: number
-  create_date: string
-  update_time: number | null
-  update_date: string | null
-}
+// API Key 接口定义 - 使用系统API Token类型
+type ApiKey = SystemAPIToken
 
 const tagIcons = {
   "用户管理": Users,
@@ -189,6 +181,25 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
       )}
     </div>
   )
+}
+
+// 时间格式化函数
+const formatDateTime = (dateStr: string) => {
+  if (!dateStr) return ''
+  try {
+    const date = new Date(dateStr)
+    
+    // 格式化为 YYYY-MM-DD HH:mm
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    const hour = String(date.getHours()).padStart(2, '0')
+    const minute = String(date.getMinutes()).padStart(2, '0')
+    
+    return `${year}-${month}-${day} ${hour}:${minute}`
+  } catch (error) {
+    return dateStr
+  }
 }
 
 const ApiDocumentationPage: React.FC = () => {
@@ -759,40 +770,14 @@ const ApiDocumentationPage: React.FC = () => {
   const loadApiKeys = async () => {
     setApiKeyLoading(true)
     try {
-      // 模拟API调用
-      await new Promise(resolve => setTimeout(resolve, 800))
-      
-      // 模拟数据，基于提供的 API 返回结构
-      const mockApiKeys: ApiKey[] = [
-        {
-          tenant_id: "2feeedb6b87511ef9991f2debce134a0",
-          token: "multirag-RkOGUxNzRjODg4ODExZjA5ZjczODNmND",
-          beta: "RkOGUyMDcwODg4ODExZjA5ZjczODNmND",
-          name: "dxl_0903",
-          description: "测试",
-          create_time: 1756878186249,
-          create_date: "2025-09-03T13:43:06",
-          update_time: null,
-          update_date: null
-        },
-        {
-          tenant_id: "3feeedb6b87511ef9991f2debce134a1",
-          token: "multirag-BkNGUxNzRjODg4ODExZjA5ZjczODNmND",
-          beta: "BkNGUyMDcwODg4ODExZjA5ZjczODNmND",
-          name: "production_key",
-          description: "生产环境密钥",
-          create_time: 1756778186249,
-          create_date: "2025-09-02T10:23:06",
-          update_time: 1756878186249,
-          update_date: "2025-09-03T13:43:06"
-        }
-      ]
+      // 调用真实API获取Token列表
+      const apiKeys = await systemAPI.getTokenList()
       
       // 应用搜索筛选
-      const filteredKeys = mockApiKeys.filter(key => 
+      const filteredKeys = apiKeys.filter(key => 
         !apiKeySearchQuery || 
         key.name.toLowerCase().includes(apiKeySearchQuery.toLowerCase()) ||
-        key.description.toLowerCase().includes(apiKeySearchQuery.toLowerCase()) ||
+        (key.description && key.description.toLowerCase().includes(apiKeySearchQuery.toLowerCase())) ||
         key.tenant_id.includes(apiKeySearchQuery)
       )
       
@@ -805,6 +790,9 @@ const ApiDocumentationPage: React.FC = () => {
       setApiKeyTotal(filteredKeys.length)
     } catch (error) {
       console.error('Failed to load API keys:', error)
+      // 如果API调用失败，可以显示空列表或错误信息
+      setApiKeys([])
+      setApiKeyTotal(0)
     } finally {
       setApiKeyLoading(false)
     }
@@ -823,8 +811,12 @@ const ApiDocumentationPage: React.FC = () => {
     
     setOperatingKeys(prev => new Set(prev).add(apiKey.tenant_id))
     try {
-      await new Promise(resolve => setTimeout(resolve, 500))
-      loadApiKeys() // 后台刷新数据
+      // 调用真实的删除API
+      await systemAPI.deleteToken(apiKey.token)
+      loadApiKeys() // 刷新列表
+    } catch (error) {
+      console.error('Failed to delete API key:', error)
+      // 这里可以显示错误提示
     } finally {
       setOperatingKeys(prev => {
         const newSet = new Set(prev)
@@ -842,8 +834,20 @@ const ApiDocumentationPage: React.FC = () => {
     
     setOperatingKeys(prev => new Set(prev).add(apiKey.tenant_id))
     try {
-      await new Promise(resolve => setTimeout(resolve, 800))
-      loadApiKeys() // 后台刷新数据
+      // 先删除原有token
+      await systemAPI.deleteToken(apiKey.token)
+      
+      // 使用原有的名称和描述重新创建token
+      const tokenData: APITokenCreateRequest = {
+        name: apiKey.name,
+        description: apiKey.description || null
+      }
+      
+      await systemAPI.createToken(tokenData)
+      loadApiKeys() // 刷新列表显示新的token
+    } catch (error) {
+      console.error('Failed to regenerate API key:', error)
+      // 这里可以显示错误提示
     } finally {
       setOperatingKeys(prev => {
         const newSet = new Set(prev)
@@ -1229,7 +1233,7 @@ const ApiDocumentationPage: React.FC = () => {
                           API Key
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
+                      <DialogContent className="max-w-7xl max-h-[90vh] overflow-hidden flex flex-col">
                         <DialogHeader>
                           <DialogTitle className="flex items-center gap-2">
                             <Key className="h-5 w-5" />
@@ -1277,12 +1281,12 @@ const ApiDocumentationPage: React.FC = () => {
                               <div className="h-full flex flex-col">
                                 {/* 表头 */}
                                 <div className="bg-muted/50 border-b">
-                                  <div className="grid grid-cols-12 gap-4 p-4 text-sm font-semibold">
+                                  <div className="grid grid-cols-12 gap-3 p-4 text-sm font-semibold">
                                     <div className="col-span-2">名称</div>
                                     <div className="col-span-3">Token</div>
                                     <div className="col-span-2">描述</div>
-                                    <div className="col-span-2">租户ID</div>
                                     <div className="col-span-2">创建时间</div>
+                                    <div className="col-span-2">更新时间</div>
                                     <div className="col-span-1 text-center">操作</div>
                                   </div>
                                 </div>
@@ -1300,7 +1304,7 @@ const ApiDocumentationPage: React.FC = () => {
                                   ) : (
                                     <div className="divide-y" style={{ position: 'relative', zIndex: 1 }}>
                                       {apiKeys.map((apiKey) => (
-                                        <div key={apiKey.tenant_id} className="grid grid-cols-12 gap-4 p-4 hover:bg-muted/30 transition-colors relative">
+                                        <div key={apiKey.tenant_id} className="grid grid-cols-12 gap-3 p-4 hover:bg-muted/30 transition-colors relative">
                                           {/* 名称 */}
                                           <div className="col-span-2">
                                             <div className="font-medium">{apiKey.name}</div>
@@ -1344,37 +1348,18 @@ const ApiDocumentationPage: React.FC = () => {
                                             )}
                                           </div>
                                           
-                                          {/* 租户ID */}
+                                          {/* 创建时间 */}
                                           <div className="col-span-2">
-                                            <div className="flex items-center gap-2">
-                                              <code className="font-mono text-xs bg-muted px-1 py-0.5 rounded truncate flex-1">
-                                                {apiKey.tenant_id}
-                                              </code>
-                                              <Button
-                                                variant="ghost"
-                                                size="icon-sm"
-                                                onClick={() => handleCopy(apiKey.tenant_id, `tenant-${apiKey.tenant_id}`)}
-                                                className="shrink-0"
-                                              >
-                                                {copiedStates[`tenant-${apiKey.tenant_id}`] ? (
-                                                  <Check className="h-3 w-3 text-green-600" />
-                                                ) : (
-                                                  <Copy className="h-3 w-3" />
-                                                )}
-                                              </Button>
+                                            <div className="text-sm text-muted-foreground font-mono">
+                                              {formatDateTime(apiKey.create_date)}
                                             </div>
                                           </div>
                                           
-                                          {/* 创建时间 */}
+                                          {/* 更新时间 */}
                                           <div className="col-span-2">
-                                            <div className="text-sm text-muted-foreground">
-                                              {apiKey.create_date}
+                                            <div className="text-sm text-muted-foreground font-mono">
+                                              {apiKey.update_date ? formatDateTime(apiKey.update_date) : '—'}
                                             </div>
-                                            {apiKey.update_date && (
-                                              <div className="text-xs text-muted-foreground mt-1">
-                                                更新: {apiKey.update_date}
-                                              </div>
-                                            )}
                                           </div>
                                           
                                           {/* 操作 */}
@@ -2855,14 +2840,18 @@ const ApiDocumentationPage: React.FC = () => {
               const formData = new FormData(e.currentTarget)
               setCreateApiKeyLoading(true)
               try {
-                // 模拟创建 API
-                await new Promise(resolve => setTimeout(resolve, 600))
-                console.log('创建 API Key:', {
-                  name: formData.get('name'),
-                  description: formData.get('description')
-                })
+                // 调用真实API创建Token
+                const tokenData: APITokenCreateRequest = {
+                  name: formData.get('name') as string,
+                  description: formData.get('description') as string || null
+                }
+                
+                await systemAPI.createToken(tokenData)
                 setCreateApiKeyModalOpen(false)
-                loadApiKeys() // 不需要 await，让它在后台刷新
+                loadApiKeys() // 刷新列表显示新创建的token
+              } catch (error) {
+                console.error('Failed to create API key:', error)
+                // 这里可以显示错误提示
               } finally {
                 setCreateApiKeyLoading(false)
               }
