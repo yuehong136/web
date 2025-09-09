@@ -1,6 +1,6 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
-import { Dropdown, DropdownItem as BaseDropdownItem } from "./dropdown"
+import { DropdownItem as BaseDropdownItem } from "./dropdown"
 
 export interface DropdownMenuProps {
   children: React.ReactNode
@@ -26,6 +26,7 @@ export interface DropdownMenuItemProps extends React.ButtonHTMLAttributes<HTMLBu
 const DropdownMenuContext = React.createContext<{
   trigger: React.ReactNode
   setTrigger: (trigger: React.ReactNode) => void
+  closeDropdown?: () => void
 } | undefined>(undefined)
 
 export const DropdownMenu: React.FC<DropdownMenuProps> = ({ children }) => {
@@ -68,6 +69,37 @@ export const DropdownMenuContent: React.FC<DropdownMenuContentProps> = ({
   children 
 }) => {
   const context = React.useContext(DropdownMenuContext)
+  const [isOpen, setIsOpen] = React.useState(false)
+  const dropdownRef = React.useRef<HTMLDivElement>(null)
+  
+  // 总是创建contextWithClose，即使可能不会使用
+  const contextWithClose = React.useMemo(() => {
+    if (!context) {
+      return undefined
+    }
+    return {
+      ...context,
+      closeDropdown: () => setIsOpen(false)
+    }
+  }, [context])
+
+  // 处理点击外部关闭
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false)
+      }
+    }
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isOpen])
+  
   if (!context) {
     throw new Error('DropdownMenuContent must be used within DropdownMenu')
   }
@@ -77,13 +109,28 @@ export const DropdownMenuContent: React.FC<DropdownMenuContentProps> = ({
   }
 
   return (
-    <Dropdown 
-      trigger={context.trigger} 
-      align={align} 
-      className={className}
-    >
-      {children}
-    </Dropdown>
+    <div className="relative inline-block text-left" ref={dropdownRef}>
+      <div onClick={() => setIsOpen(!isOpen)}>
+        {context.trigger}
+      </div>
+
+      {isOpen && (
+        <>
+          <div className="fixed inset-0 z-10" onClick={() => setIsOpen(false)} />
+          <div className={cn(
+            "absolute z-20 mt-2 min-w-[160px] bg-white border border-gray-200 rounded-md shadow-lg",
+            align === 'right' ? 'right-0' : 'left-0',
+            className
+          )}>
+            <div className="py-1">
+              <DropdownMenuContext.Provider value={contextWithClose!}>
+                {children}
+              </DropdownMenuContext.Provider>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
   )
 }
 
@@ -93,13 +140,25 @@ export const DropdownMenuItem: React.FC<DropdownMenuItemProps> = ({
   onClick,
   ...props 
 }) => {
+  const context = React.useContext(DropdownMenuContext)
+  
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (onClick) {
+      onClick(e)
+    }
+    // 自动关闭下拉框
+    if (context?.closeDropdown) {
+      context.closeDropdown()
+    }
+  }
+
   return (
     <BaseDropdownItem
       className={cn(
         "w-full flex items-center space-x-2 px-4 py-2 text-sm text-left hover:bg-gray-50 transition-colors text-gray-700",
         className
       )}
-      onClick={onClick}
+      onClick={handleClick}
       {...props}
     >
       {children}
@@ -113,5 +172,24 @@ export const DropdownMenuSeparator: React.FC<{ className?: string }> = ({ classN
       className={cn("h-px bg-border mx-2 my-1", className)} 
       role="separator" 
     />
+  )
+}
+
+export interface DropdownMenuLabelProps {
+  className?: string
+  children: React.ReactNode
+}
+
+export const DropdownMenuLabel: React.FC<DropdownMenuLabelProps> = ({ 
+  className,
+  children 
+}) => {
+  return (
+    <div 
+      className={cn("px-2 py-1.5 text-sm font-semibold text-gray-900", className)}
+      role="label"
+    >
+      {children}
+    </div>
   )
 }

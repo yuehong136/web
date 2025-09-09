@@ -4,7 +4,7 @@ import {
   Search, Globe, Database, Users, Shield, 
   Play, Copy, Check, RefreshCw, Activity, Star, FileText, 
   Key, Zap, BookOpen, ChevronDown, ChevronRight,
-  Plus, Minus, Save, Archive, Edit2, Trash2, MoreHorizontal
+  Plus, Minus, Save, Archive, Edit2, Trash2, MoreHorizontal, Settings2
 } from "lucide-react"
 import { Tabs as AntdTabs } from "antd"
 import Editor from '@monaco-editor/react'
@@ -25,6 +25,8 @@ import { Tooltip } from '@/components/ui/tooltip'
 import { cn } from '@/components/ui/utils'
 import { PageSizeSelector } from '@/components/ui/page-size-selector'
 import { MarkdownRenderer } from '@/components/chat/MarkdownRenderer'
+import { ModernEnvironmentSelector, NewEnvironmentManager } from '@/components/environment'
+import { useEnvironmentStore } from '@/stores/environmentStore'
 
 import type { 
   OpenAPISpec
@@ -287,81 +289,53 @@ const ApiDocumentationPage: React.FC = () => {
   // 分组收起状态 - 默认只展开第一个分组
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({})
   
-  // 环境接口定义
-  interface Environment {
-    id: string
-    name: string
-    variables: Record<string, string>
-  }
+  // 使用新的环境管理store
+  const {
+    currentEnvironment,
+    selectedEnvironmentId,
+    selectEnvironment,
+    resolveText,
+    getVariableMap
+  } = useEnvironmentStore()
 
-  // 环境管理 - 扩展更多环境
-  const [environments] = useState<Environment[]>([
-    {
-      id: "staging",
-      name: "演示环境",
-      variables: {
-        baseUrl: "https://demo-api.example.com",
-        apiKey: "YOUR_DEMO_API_KEY"
-      }
-    },
-    {
-      id: "dev",
-      name: "开发环境",
-      variables: {
-        baseUrl: "http://localhost:3000",
-        apiKey: "YOUR_DEV_API_KEY"
-      }
-    },
-    {
-      id: "prod",
-      name: "正式环境",
-      variables: {
-        baseUrl: "https://api.example.com",
-        apiKey: "YOUR_PROD_API_KEY"
-      }
-    },
-    {
-      id: "test",
-      name: "体验环境",
-      variables: {
-        baseUrl: "https://test-api.example.com",
-        apiKey: "YOUR_TEST_API_KEY"
-      }
-    },
-    {
-      id: "local",
-      name: "本地 Mock",
-      variables: {
-        baseUrl: "http://localhost:8080",
-        apiKey: "MOCK_API_KEY"
-      }
-    },
-    {
-      id: "cloud",
-      name: "云端 Mock",
-      variables: {
-        baseUrl: "https://mock-api.example.com",
-        apiKey: "CLOUD_MOCK_KEY"
-      }
-    },
-    {
-      id: "local-dev",
-      name: "本地开发环境",
-      variables: {
-        baseUrl: "http://192.168.1.100:3000",
-        apiKey: "LOCAL_DEV_KEY"
-      }
-    },
-    {
-      id: "custom",
-      name: "社晓龙192",
-      variables: {
-        baseUrl: "http://192.168.1.192:8080",
-        apiKey: "CUSTOM_API_KEY"
-      }
+  // 环境管理弹窗状态
+  const [showEnvironmentManager, setShowEnvironmentManager] = useState(false)
+  
+  // 强制更新状态
+  const [, forceUpdate] = useState({})
+
+  // 获取基础URL的辅助函数
+  const getBaseUrl = useCallback(() => {
+    if (!currentEnvironment) return 'https://api.example.com'
+    
+    // 优先使用环境对象上的base_url字段（后端新增支持）
+    if (currentEnvironment.base_url) {
+      return currentEnvironment.base_url
     }
-  ])
-  const [selectedEnvironment, setSelectedEnvironment] = useState(environments[0])
+    
+    // 如果环境对象没有base_url，再从变量中查找
+    const variables = getVariableMap()
+    const baseUrl = variables.baseUrl || 
+                   variables.base_url || 
+                   variables.BASE_URL ||
+                   variables.host ||
+                   variables.HOST ||
+                   variables.server ||
+                   variables.SERVER ||
+                   variables.url ||
+                   variables.URL ||
+                   variables.api_url ||
+                   variables.API_URL ||
+                   'https://api.example.com'
+    return baseUrl
+  }, [currentEnvironment, selectedEnvironmentId, getVariableMap])
+
+  // 获取完整的API URL
+  const getFullApiUrl = useCallback((path: string) => {
+    const baseUrl = getBaseUrl()
+    const fullUrl = resolveText(`${baseUrl}${path}`)
+    return fullUrl
+  }, [getBaseUrl, resolveText, selectedEnvironmentId, currentEnvironment])
   
   // API测试相关状态
   const [testLoading, setTestLoading] = useState(false)
@@ -452,7 +426,6 @@ const ApiDocumentationPage: React.FC = () => {
   const [mainMode, setMainMode] = useState<"interface" | "test">("interface")
   
   // 界面状态
-  const [envManagementOpen, setEnvManagementOpen] = useState(false)
 
   // 生成动态的placeholder文本
   const getBodyPlaceholder = useCallback((type: BodyType) => {
@@ -1342,6 +1315,14 @@ const ApiDocumentationPage: React.FC = () => {
     setTestResponse(null)
     
     try {
+      // 真实API调用示例（当前为模拟）：
+      // const url = getFullApiUrl(selectedAPI.path)
+      // const response = await fetch(url, {
+      //   method: selectedAPI.method,
+      //   headers: resolveText(JSON.stringify(testHeaders))
+      //   body: resolveText(testBody)
+      // })
+      
       // 模拟API测试
       await new Promise(resolve => setTimeout(resolve, 1500))
       
@@ -2031,251 +2012,37 @@ const ApiDocumentationPage: React.FC = () => {
                       </DialogContent>
                     </Dialog>
 
-                    {/* 环境选择器 - 优化版 */}
-                    <div className="relative">
-                      <Select value={selectedEnvironment.id} onValueChange={(value) => {
-                        const env = environments.find(e => e.id === value)
-                        if (env) setSelectedEnvironment(env)
-                      }}>
-                      <SelectTrigger className="w-64 bg-background border border-border/50 shadow-sm hover:border-border transition-colors h-10">
+                    {/* 现代化环境选择器 */}
                         <div className="flex items-center gap-3">
-                          <div className="relative">
-                            {(() => {
-                              const getEnvDisplay = (envId: string) => {
-                                switch(envId) {
-                                  case 'prod': return { bg: 'bg-green-500', label: '正' }
-                                  case 'staging': return { bg: 'bg-purple-500', label: '演' }  
-                                  case 'dev': return { bg: 'bg-blue-500', label: '开' }
-                                  case 'test': return { bg: 'bg-cyan-500', label: '体' }
-                                  case 'local': return { bg: 'bg-emerald-500', label: '本' }
-                                  case 'cloud': return { bg: 'bg-gray-500', label: '云' }
-                                  case 'local-dev': return { bg: 'bg-teal-500', label: '本' }
-                                  case 'custom': return { bg: 'bg-violet-500', label: '社' }
-                                  default: return { bg: 'bg-gray-400', label: '?' }
-                                }
-                              }
-                              const display = getEnvDisplay(selectedEnvironment.id)
-                              return (
-                                <div className={cn("w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm", display.bg)}>
-                                  {display.label}
-          </div>
-                              )
-                            })()}
-        </div>
-                          <div className="flex flex-col items-start">
-                            <span className="font-medium text-sm">{selectedEnvironment.name}</span>
-                          </div>
-                        </div>
-                      </SelectTrigger>
-                      <SelectContent className="w-64">
-                        {environments.map((env) => {
-                          const getEnvColor = (envId: string) => {
-                            switch(envId) {
-                              case 'prod': return { bg: 'bg-green-500', label: '正' }
-                              case 'staging': return { bg: 'bg-purple-500', label: '演' }  
-                              case 'dev': return { bg: 'bg-blue-500', label: '开' }
-                              case 'test': return { bg: 'bg-cyan-500', label: '体' }
-                              case 'local': return { bg: 'bg-emerald-500', label: '本' }
-                              case 'cloud': return { bg: 'bg-gray-500', label: '云' }
-                              case 'local-dev': return { bg: 'bg-teal-500', label: '本' }
-                              case 'custom': return { bg: 'bg-violet-500', label: '社' }
-                              default: return { bg: 'bg-gray-400', label: '?' }
-                            }
+                      <ModernEnvironmentSelector
+                        onEnvironmentChange={(id) => {
+                          if (id) {
+                            selectEnvironment(id).then(() => {
+                              // 强制触发重新渲染
+                              forceUpdate({})
+                            })
                           }
-                          const colors = getEnvColor(env.id)
-                          
-                          return (
-                            <SelectItem key={env.id} value={env.id} className="p-3 hover:bg-muted/50">
-                              <div className="flex items-center gap-3">
-                                <div className={cn("w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-bold", colors.bg)}>
-                                  {colors.label}
-                                </div>
-                                <span className="font-medium text-sm">{env.name}</span>
-                              </div>
-                            </SelectItem>
-                          )
-                        })}
-                        <div className="border-t p-2 bg-muted/30">
-                          <Dialog open={envManagementOpen} onOpenChange={setEnvManagementOpen}>
-                            <DialogTrigger className="w-full">
-                              <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground hover:text-foreground">
-                                <Plus className="h-4 w-4" />
-                                环境管理
-                </Button>
-                            </DialogTrigger>
-                            <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-                              <DialogHeader>
-                                <DialogTitle className="flex items-center gap-2">
-                                  <Globe className="h-5 w-5" />
-                                  环境管理
-                                </DialogTitle>
-                                <DialogDescription>
-                                  管理API测试环境和变量配置
-                                </DialogDescription>
-                              </DialogHeader>
-
-                              <div className="flex-1 overflow-hidden flex">
-                                {/* 左侧环境列表 */}
-                                <div className="w-80 border-r bg-muted/20">
-                                  <div className="p-4 border-b">
-                                    <h3 className="font-semibold mb-3">环境列表</h3>
-                                    <Button variant="outline" size="sm" className="w-full gap-2">
-                                      <Plus className="h-4 w-4" />
-                                      新建环境
-                                    </Button>
-                                  </div>
-                                  <div className="flex-1 overflow-auto custom-scrollbar" style={{
-                                    scrollbarWidth: 'thin',
-                                    scrollbarColor: 'rgba(203, 213, 225, 0.5) transparent'
-                                  }}>
-                                    <div className="p-2 space-y-1">
-                                      {environments.map((env) => {
-                                        const getEnvColor = (envId: string) => {
-                                          switch(envId) {
-                                            case 'prod': return { bg: 'bg-green-500', label: '正' }
-                                            case 'staging': return { bg: 'bg-purple-500', label: '演' }  
-                                            case 'dev': return { bg: 'bg-blue-500', label: '开' }
-                                            case 'test': return { bg: 'bg-cyan-500', label: '体' }
-                                            case 'local': return { bg: 'bg-emerald-500', label: '本' }
-                                            case 'cloud': return { bg: 'bg-gray-500', label: '云' }
-                                            case 'local-dev': return { bg: 'bg-teal-500', label: '本' }
-                                            case 'custom': return { bg: 'bg-violet-500', label: '社' }
-                                            default: return { bg: 'bg-gray-400', label: '?' }
-                                          }
-                                        }
-                                        const colors = getEnvColor(env.id)
-                                        const isSelected = env.id === selectedEnvironment.id
-
-                                        return (
-                                          <button
-                                            key={env.id}
-                                            onClick={() => setSelectedEnvironment(env)}
-                                            className={cn(
-                                              "w-full p-3 rounded-lg text-left transition-colors flex items-center gap-3",
-                                              isSelected ? "bg-background shadow-sm border" : "hover:bg-background/50"
-                                            )}
-                                          >
-                                            <div className={cn("w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold", colors.bg)}>
-                                              {colors.label}
-                                            </div>
-                                            <span className="font-medium">{env.name}</span>
-                                          </button>
-                                        )
-                                      })}
-                                    </div>
-                                  </div>
-                                </div>
-
-                                {/* 右侧环境详情 */}
-                                <div className="flex-1 overflow-auto">
-                                  <div className="p-6 space-y-6">
-                                    <div className="flex items-center justify-between">
-                                      <div className="flex items-center gap-3">
-                                        {(() => {
-                                          const getEnvDisplay = (envId: string) => {
-                                            switch(envId) {
-                                              case 'prod': return { bg: 'bg-green-500', label: '正' }
-                                              case 'staging': return { bg: 'bg-purple-500', label: '演' }  
-                                              case 'dev': return { bg: 'bg-blue-500', label: '开' }
-                                              case 'test': return { bg: 'bg-cyan-500', label: '体' }
-                                              case 'local': return { bg: 'bg-emerald-500', label: '本' }
-                                              case 'cloud': return { bg: 'bg-gray-500', label: '云' }
-                                              case 'local-dev': return { bg: 'bg-teal-500', label: '本' }
-                                              case 'custom': return { bg: 'bg-violet-500', label: '社' }
-                                              default: return { bg: 'bg-gray-400', label: '?' }
-                                            }
-                                          }
-                                          const display = getEnvDisplay(selectedEnvironment.id)
-                                          return (
-                                            <div className={cn("w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold", display.bg)}>
-                                              {display.label}
-                                            </div>
-                                          )
-                                        })()}
-                <div>
-                                          <h2 className="text-xl font-semibold">{selectedEnvironment.name}</h2>
-                                          <p className="text-sm text-muted-foreground">环境配置</p>
-                </div>
-                                      </div>
-                                      <div className="flex gap-2">
-                                        <Button variant="outline" size="sm">共享</Button>
-                                        <Button variant="outline" size="sm">保存</Button>
-                                      </div>
-            </div>
-
-                                    {/* 前置URL配置 */}
-                                    <Card>
-                                      <CardHeader>
-                                        <CardTitle className="text-base">前置 URL</CardTitle>
-                                      </CardHeader>
-                                      <CardContent className="space-y-4">
-                                        <div>
-                                          <Label className="text-sm text-muted-foreground mb-2 block">默认模块</Label>
-                                          <Input 
-                                            value={selectedEnvironment.variables.baseUrl}
-                                            className="font-mono"
-                                            readOnly
-                                          />
-                                        </div>
-                                      </CardContent>
-                                    </Card>
-
-                                    {/* 环境变量 */}
-                                    <Card>
-                                      <CardHeader>
-                                        <CardTitle className="text-base flex items-center justify-between">
-                                          环境变量
-                                          <Button variant="outline" size="sm" className="gap-2">
-                                            <Plus className="h-4 w-4" />
-                                            添加变量
-              </Button>
-                                        </CardTitle>
-                                      </CardHeader>
-                                      <CardContent>
-                                        <div className="border rounded-lg overflow-hidden">
-                                          <div className="bg-muted/50 border-b">
-                                            <div className="grid grid-cols-5 gap-4 p-3 text-sm font-medium text-muted-foreground">
-                                              <div>变量名</div>
-                                              <div>类型</div>
-                                              <div>远程值</div>
-                                              <div>本地值</div>
-                                              <div>说明</div>
-            </div>
-          </div>
-                                          <div className="divide-y">
-                                            <div className="grid grid-cols-5 gap-4 p-3 items-center">
-                                              <div className="font-mono text-sm">bear_token</div>
-                                              <div>
-                                                <Badge variant="outline" className="text-xs">默认</Badge>
-                          </div>
-                                              <div className="font-mono text-xs text-blue-600">eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...</div>
-                                              <div className="font-mono text-xs text-muted-foreground">eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...</div>
-                                              <div>
-                                                <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                                                  <Minus className="h-3 w-3" />
-                                                </Button>
-                                              </div>
-                                            </div>
-                                            <div className="grid grid-cols-5 gap-4 p-3 items-center text-muted-foreground">
-                                              <div className="text-sm">+ 添加变量</div>
-                                              <div></div>
-                                              <div></div>
-                                              <div></div>
-                                              <div></div>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </CardContent>
-                                    </Card>
-                                  </div>
-                                </div>
-                              </div>
-                            </DialogContent>
-                          </Dialog>
-                        </div>
-                      </SelectContent>
-                    </Select>
+                        }}
+                        onManageClick={() => setShowEnvironmentManager(true)}
+                      />
+                      
+                      {/* 环境管理图标按钮 */}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowEnvironmentManager(true)}
+                        className="w-10 h-10 p-0"
+                        title="管理环境"
+                      >
+                        <Settings2 className="w-4 h-4" />
+                      </Button>
                     </div>
+                    
+                    {/* 环境管理弹窗 */}
+                    <NewEnvironmentManager
+                      isOpen={showEnvironmentManager}
+                      onClose={() => setShowEnvironmentManager(false)}
+                    />
                   </div>
                 </div>
 
@@ -2290,7 +2057,7 @@ const ApiDocumentationPage: React.FC = () => {
                           <div className="flex items-center gap-3 mb-4">
                             <MethodBadge method={selectedAPI.method as any} />
                             <code className="text-lg font-mono bg-muted px-4 py-2 rounded-lg border">
-                              {selectedEnvironment.variables.baseUrl}{selectedAPI.path}
+                              {getFullApiUrl(selectedAPI.path)}
                             </code>
                             {selectedAPI.deprecated && (
                               <Badge variant="destructive">已弃用</Badge>
@@ -2485,7 +2252,7 @@ const ApiDocumentationPage: React.FC = () => {
                               <CardContent>
                                 <div className="bg-muted p-4 rounded-lg">
                                   <pre className="text-sm overflow-x-auto">
-{`curl -X ${selectedAPI.method} "${selectedEnvironment.variables.baseUrl}${selectedAPI.path}" \\
+{`curl -X ${selectedAPI.method} "${getFullApiUrl(selectedAPI.path)}" \\
   -H "Content-Type: application/json" \\
   -H "Authorization: Bearer YOUR_TOKEN"`}
                                   </pre>
@@ -2506,7 +2273,7 @@ const ApiDocumentationPage: React.FC = () => {
                             <MethodBadge method={selectedAPI.method as any} />
                           </div>
                           <div className="flex-1 bg-muted/50 rounded-lg px-3 py-2 font-mono text-sm border h-10 flex items-center">
-                            {selectedEnvironment.variables.baseUrl}{selectedAPI.path}
+                            {getFullApiUrl(selectedAPI.path)}
                           </div>
                           <div className="flex items-center gap-3">
                             <Button

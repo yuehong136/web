@@ -3,6 +3,148 @@
 // 基于 OpenAPI 3.1 规范自动生成
 // ============================================================================
 
+// ============================================================================
+// 环境管理模块
+// ============================================================================
+
+// 变量类型枚举
+export type VariableType = 'string' | 'number' | 'boolean'
+
+export interface EnvironmentVariable {
+  id: string
+  environment_id: string
+  key_name: string
+  key_value: string
+  description?: string
+  is_secret: boolean
+  variable_type: VariableType
+  status: string
+  create_time: number
+  update_time: number
+  create_date: string
+  update_date: string
+  // 为了兼容性，保留原有字段作为计算属性
+  key: string
+  value: string
+}
+
+export interface EnvironmentVariableCreate {
+  key_name: string
+  key_value: string
+  description?: string
+  is_secret: boolean
+  variable_type: VariableType
+}
+
+export interface EnvironmentVariableUpdate {
+  key_name?: string
+  key_value?: string
+  description?: string
+  is_secret?: boolean
+  variable_type?: VariableType
+}
+
+export interface Environment {
+  id: string
+  tenant_id: string
+  name: string
+  description?: string
+  base_url?: string
+  is_default: boolean
+  is_global: boolean
+  status: string
+  variables: EnvironmentVariable[]
+  create_time: number
+  update_time: number
+  create_date: string
+  update_date: string
+}
+
+export interface EnvironmentCreate {
+  name: string
+  description?: string
+  base_url?: string
+  is_default: boolean
+  is_global: boolean
+  variables: EnvironmentVariableCreate[]
+}
+
+export interface EnvironmentUpdate {
+  name?: string
+  description?: string
+  base_url?: string
+  is_default?: boolean
+}
+
+export interface EnvironmentSummary {
+  id: string
+  tenant_id: string
+  name: string
+  description?: string
+  base_url?: string
+  is_default: boolean
+  is_global: boolean
+  status: string
+  variables_count: number
+  create_time: number
+  update_time: number
+  create_date: string
+  update_date: string
+}
+
+export interface GlobalEnvironment {
+  id: string
+  name: string
+  description?: string
+  server_url?: string
+  variables: Record<string, any>
+  is_active: boolean
+  status: string
+  create_time: number
+  update_time: number
+  create_date: string
+  update_date: string
+}
+
+// 环境查询参数
+export interface EnvironmentQueryParams {
+  page?: number
+  page_size?: number
+  search?: string
+  is_default?: boolean
+}
+
+// 分页响应
+export interface PaginatedEnvironmentResponse {
+  items: EnvironmentSummary[]
+  total: number
+  page: number
+  page_size: number
+  total_pages: number
+}
+
+// 复制环境请求
+export interface EnvironmentDuplicateRequest {
+  new_name: string
+}
+
+// 变量解析请求
+export interface VariableResolveRequest {
+  text: string
+}
+
+// 变量解析响应
+export interface VariableResolveResponse {
+  resolved_text: string
+  variables_used: string[]
+  missing_variables: string[]
+}
+
+// 批量变量更新请求
+export interface BatchVariablesRequest {
+  variables: EnvironmentVariableCreate[]
+}
+
 // 基础API响应类型
 export interface APIResponse<T = any> {
   retcode: number

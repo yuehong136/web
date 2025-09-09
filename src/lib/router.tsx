@@ -74,7 +74,7 @@ const AppearancePage = () => (
 
 
 // 创建路由配置
-const authRoutes = [
+const authRoutes: { path: string; element: React.ReactElement }[] = [
   {
     path: ROUTES.LOGIN,
     element: <LoginPage />,

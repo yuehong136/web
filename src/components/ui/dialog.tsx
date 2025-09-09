@@ -16,6 +16,7 @@ export interface DialogContentProps extends Omit<ModalProps, 'open' | 'onClose'>
 export interface DialogHeaderProps extends React.HTMLAttributes<HTMLDivElement> {}
 export interface DialogTitleProps extends React.HTMLAttributes<HTMLHeadingElement> {}
 export interface DialogDescriptionProps extends React.HTMLAttributes<HTMLParagraphElement> {}
+export interface DialogFooterProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 const DialogContext = React.createContext<{
   open: boolean
@@ -95,6 +96,13 @@ export const DialogTitle: React.FC<DialogTitleProps> = ({ className, ...props })
 export const DialogDescription: React.FC<DialogDescriptionProps> = ({ className, ...props }) => (
   <p
     className={cn("text-sm text-text-secondary", className)}
+    {...props}
+  />
+)
+
+export const DialogFooter: React.FC<DialogFooterProps> = ({ className, ...props }) => (
+  <div
+    className={cn("flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2", className)}
     {...props}
   />
 )
