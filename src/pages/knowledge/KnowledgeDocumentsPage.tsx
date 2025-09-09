@@ -1170,7 +1170,6 @@ const KnowledgeDocumentsPage: React.FC = () => {
             <Table<Document>
               columns={getTableColumns()}
               data={documents}
-              loading={loading}
               rowKey="id"
               sortConfig={{
                 field: sortConfig.orderby,
