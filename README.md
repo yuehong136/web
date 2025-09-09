@@ -7,6 +7,8 @@ A comprehensive React-based frontend application for Multi-RAG system, providing
 ### API Management & Documentation
 - **🔑 API Key Management**: Comprehensive API key CRUD operations with secure token handling
 - **📚 OpenAPI Integration**: Interactive API documentation with Monaco editor and real-time testing
+- **🌐 Environment Management**: Complete environment system with variable resolution and template substitution
+- **🔄 Drag-and-Drop UI**: Enhanced user experience with sortable lists and intuitive interactions
 - **🛡️ Enhanced Security**: Portal-based dropdowns, secure token regeneration, and access controls
 
 ### Design System & Performance
@@ -42,6 +44,13 @@ A comprehensive React-based frontend application for Multi-RAG system, providing
 - **Intelligent Search & Retrieval**: Vector-based search with chunk visualization and relevance scoring
 - **Batch Operations**: Upload, download, rename, and organize documents efficiently
 
+### 🌐 Environment Management
+- **Environment Variables**: Comprehensive variable management with template substitution support
+- **Multi-Environment Support**: Switch between development, staging, production environments seamlessly
+- **Variable Resolution**: Advanced templating system with `{{variable}}` syntax and validation
+- **Global Environment Integration**: System-wide environment variables with hierarchical resolution
+- **Drag-and-Drop Interface**: Intuitive environment and variable management with sortable lists
+
 ### 🤖 AI Tools & Automation
 - **Auto-Fill Workbench**: AI-powered data processing and form filling
 - **Document Processing**: Automated content extraction and analysis
@@ -74,6 +83,7 @@ A comprehensive React-based frontend application for Multi-RAG system, providing
 - **Icons**: Lucide React 0.525
 - **UI Components**: Class Variance Authority + Tailwind Merge + CLSX
 - **File Handling**: React Dropzone 14.3
+- **Drag & Drop**: DND Kit 6.3+ for sortable interfaces and drag-and-drop interactions
 - **HTTP Client**: Custom API client with fetch
 - **Code Editor**: Monaco Editor for syntax highlighting and code formatting
 - **Development**: ESLint 9.30 + TypeScript ESLint 8.35
@@ -89,6 +99,7 @@ src/
 │   ├── knowledge.ts       # Knowledge base APIs
 │   ├── llm.ts             # LLM provider APIs
 │   ├── system.ts          # System monitoring APIs
+│   ├── environment.ts     # Environment management APIs
 │   └── index.ts           # API exports
 ├── components/            # Reusable UI components
 │   ├── ui/               # Base UI components (50+ components)
@@ -114,6 +125,13 @@ src/
 │   │   └── PromptSuggestion.tsx # Prompt suggestions
 │   ├── mcp/              # MCP integration components
 │   │   └── MCPServerForm.tsx # MCP server configuration
+│   ├── environment/      # Environment management components
+│   │   ├── EnvironmentDetail.tsx # Environment detail view
+│   │   ├── EnvironmentList.tsx # Environment listing with drag-and-drop
+│   │   ├── EnvironmentVariablesTable.tsx # Variable management table
+│   │   ├── ModernEnvironmentSelector.tsx # Environment selection UI
+│   │   ├── NewEnvironmentManager.tsx # Environment creation/editing
+│   │   └── index.ts       # Environment component exports
 │   ├── forms/            # Specialized form components
 │   │   ├── CommonFormFields.tsx # Common form inputs
 │   │   ├── GraphRagFormFields.tsx # Graph RAG configuration
@@ -179,6 +197,7 @@ src/
 │   ├── conversation.ts   # Conversation management
 │   ├── knowledge.ts      # Knowledge base state
 │   ├── model.ts          # Model configurations
+│   ├── environmentStore.ts # Environment and variable management
 │   └── index.ts          # Store initialization with persistence
 ├── themes/               # Advanced design system
 │   ├── tokens.ts         # Design token definitions
@@ -197,6 +216,8 @@ src/
 │   ├── query-client.ts   # TanStack Query setup
 │   ├── utils.ts          # Utility functions
 │   └── toast.ts          # Toast notification system
+├── utils/                # Additional utilities
+│   └── variableResolver.ts # Environment variable resolution and templating
 ├── types/                # TypeScript type definitions
 │   ├── api.ts            # Comprehensive API types (1000+ lines)
 │   └── index.ts          # Type exports
@@ -302,6 +323,7 @@ The application uses a custom API client (`src/api/client.ts`) that provides:
 - **LLM Providers**: Configure multiple AI providers (OpenAI, Anthropic, Claude, etc.)
 - **API Key Management**: Full-featured API key management with CRUD operations, search, and pagination
 - **API Documentation**: Interactive OpenAPI documentation system with Monaco editor integration
+- **Environment Management**: Complete environment variable system with template substitution
 - **MCP Integration**: Server management, tool discovery, testing, and batch operations
 - **Security & Privacy**: Advanced security settings and access controls
 - **Theme System**: Light/dark mode with advanced design token customization
@@ -338,6 +360,7 @@ The application uses a custom API client (`src/api/client.ts`) that provides:
 - **`conversation`**: Conversation history, settings, and streaming state
 - **`knowledge`**: Knowledge base management, document states, search results
 - **`model`**: LLM provider configurations and model settings
+- **`environmentStore`**: Environment and variable management with template resolution
 
 ### Store Features
 - **Persistence**: Automatic state persistence with localStorage

@@ -7,6 +7,8 @@
 ### API 管理与文档
 - **🔑 API 密钥管理**: 全面的 API 密钥 CRUD 操作，安全令牌处理
 - **📚 OpenAPI 集成**: 交互式 API 文档，集成 Monaco 编辑器和实时测试
+- **🌐 环境管理**: 完整的环境系统，支持变量解析和模板替换
+- **🔄 拖拽界面**: 增强用户体验，支持可排序列表和直观交互
 - **🛡️ 增强安全性**: Portal 基础下拉菜单、安全令牌重生成和访问控制
 
 ### 设计系统与性能优化
@@ -42,6 +44,13 @@
 - **智能搜索检索**: 基于向量的搜索与块可视化和相关性评分
 - **批量操作**: 高效的文档上传、下载、重命名和组织
 
+### 🌐 环境管理
+- **环境变量**: 全面的变量管理，支持模板替换功能
+- **多环境支持**: 无缝切换开发、测试、生产环境
+- **变量解析**: 高级模板系统，支持 `{{variable}}` 语法和验证
+- **全局环境集成**: 系统级环境变量，支持分层解析
+- **拖拽界面**: 直观的环境和变量管理，支持可排序列表
+
 ### 🤖 AI 工具与自动化
 - **自动填充工作台**: AI 驱动的数据处理和表单填充
 - **文档处理**: 自动化内容提取和分析
@@ -74,6 +83,7 @@
 - **图标**: Lucide React 0.525
 - **UI 组件**: Class Variance Authority + Tailwind Merge + CLSX
 - **文件处理**: React Dropzone 14.3
+- **拖拽**: DND Kit 6.3+ 用于可排序界面和拖拽交互
 - **HTTP 客户端**: 基于 fetch 的自定义 API 客户端
 - **代码编辑器**: Monaco Editor 用于语法高亮和代码格式化
 - **开发工具**: ESLint 9.30 + TypeScript ESLint 8.35
@@ -89,6 +99,7 @@ src/
 │   ├── knowledge.ts       # 知识库 API
 │   ├── llm.ts             # LLM 提供商 API
 │   ├── system.ts          # 系统监控 API
+│   ├── environment.ts     # 环境管理 API
 │   └── index.ts           # API 导出
 ├── components/            # 可复用 UI 组件
 │   ├── ui/               # 基础 UI 组件（50+ 组件）
@@ -114,6 +125,13 @@ src/
 │   │   └── PromptSuggestion.tsx # 提示建议
 │   ├── mcp/              # MCP 集成组件
 │   │   └── MCPServerForm.tsx # MCP 服务器配置
+│   ├── environment/      # 环境管理组件
+│   │   ├── EnvironmentDetail.tsx # 环境详情视图
+│   │   ├── EnvironmentList.tsx # 环境列表（支持拖拽）
+│   │   ├── EnvironmentVariablesTable.tsx # 变量管理表格
+│   │   ├── ModernEnvironmentSelector.tsx # 环境选择界面
+│   │   ├── NewEnvironmentManager.tsx # 环境创建/编辑
+│   │   └── index.ts       # 环境组件导出
 │   ├── forms/            # 专业化表单组件
 │   │   ├── CommonFormFields.tsx # 通用表单输入
 │   │   ├── GraphRagFormFields.tsx # Graph RAG 配置
@@ -179,6 +197,7 @@ src/
 │   ├── conversation.ts   # 对话管理
 │   ├── knowledge.ts      # 知识库状态
 │   ├── model.ts          # 模型配置
+│   ├── environmentStore.ts # 环境和变量管理
 │   └── index.ts          # 存储初始化（含持久化）
 ├── themes/               # 高级设计系统
 │   ├── tokens.ts         # 设计令牌定义
@@ -197,6 +216,8 @@ src/
 │   ├── query-client.ts   # TanStack Query 设置
 │   ├── utils.ts          # 工具函数
 │   └── toast.ts          # 通知系统
+├── utils/                # 附加工具
+│   └── variableResolver.ts # 环境变量解析和模板化
 ├── types/                # TypeScript 类型定义
 │   ├── api.ts            # 全面的 API 类型（1000+ 行）
 │   └── index.ts          # 类型导出
@@ -283,6 +304,7 @@ VITE_API_BASE_URL=http://localhost:8000  # 后端 API URL
 - **LLM 提供商**: 配置多个 AI 提供商（OpenAI、Anthropic、Claude 等）
 - **API 密钥管理**: 全功能 API 密钥管理，支持 CRUD 操作、搜索和分页
 - **API 文档**: 交互式 OpenAPI 文档系统，集成 Monaco 编辑器
+- **环境管理**: 完整的环境变量系统，支持模板替换
 - **MCP 集成**: 服务器管理、工具发现、测试和批量操作
 - **安全与隐私**: 高级安全设置和访问控制
 - **主题系统**: 浅色/深色模式与高级设计令牌自定义
@@ -319,6 +341,7 @@ VITE_API_BASE_URL=http://localhost:8000  # 后端 API URL
 - **`conversation`**: 对话历史、设置和流式状态
 - **`knowledge`**: 知识库管理、文档状态、搜索结果
 - **`model`**: LLM 提供商配置和模型设置
+- **`environmentStore`**: 环境和变量管理，支持模板解析
 
 ### 存储特性
 - **持久化**: 使用 localStorage 自动状态持久化
