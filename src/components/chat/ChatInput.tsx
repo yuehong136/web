@@ -256,10 +256,16 @@ export function ChatInput({
     if (showPromptSuggestion) {
       return;
     }
-    
+
+    // 检查是否在IME组合状态中（中文输入法等）
+    // isComposing 为 true 时表示正在输入拼音等组合字符，此时不应该触发发送
+    if (e.nativeEvent.isComposing) {
+      return;
+    }
+
     const shouldSubmit = (submitType === 'enter' && e.key === 'Enter' && !e.shiftKey) ||
                         (submitType === 'shiftEnter' && e.key === 'Enter' && e.shiftKey);
-    
+
     if (shouldSubmit) {
       e.preventDefault();
       handleSubmit();

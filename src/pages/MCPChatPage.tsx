@@ -15,6 +15,7 @@ import { EnhancedSSEParser, type SSEMessage, type ToolCallInfo } from "@/compone
 import { ToolCallRenderer } from "@/components/chat/ToolCallRenderer";
 import { useModelStore } from "@/stores/model";
 import { toast } from "@/lib/toast";
+import { copyToClipboard } from "@/lib/utils";
 import type { ChatSession, MCPChatConfig } from "@/types/mcp";
 
 // 初始化 markdown-it
@@ -121,15 +122,13 @@ export default function MCPChatPage() {
   const sseParserRef = useRef<EnhancedSSEParser | null>(null);
 
   // 复制消息内容
-  const handleCopy = (content?: string, ev?: React.MouseEvent) => {
+  const handleCopy = async (content?: string, ev?: React.MouseEvent) => {
     try {
       let textToCopy = '';
       if (typeof content === 'string' && content.length >= 0) {
-        // 直接复制原始Markdown字符串（允许空字符串，在下方再做空判断）
         textToCopy = content;
       }
       if (!textToCopy && ev) {
-        // 向上遍历父节点，查找当前气泡内的文本容器
         let node: HTMLElement | null = ev.currentTarget as HTMLElement;
         let safety = 0;
         while (node && safety < 20) {
@@ -142,14 +141,14 @@ export default function MCPChatPage() {
           safety += 1;
         }
       }
-      if (!textToCopy || !textToCopy.trim()) return toast.error('内容为空');
-      navigator.clipboard?.writeText(textToCopy).then(() => {
-        toast.success('已复制到剪贴板');
-      }).catch(() => {
-        toast.error('复制失败');
-      });
+      if (!textToCopy || !textToCopy.trim()) {
+        toast.error('内容为空');
+        return;
+      }
+      await copyToClipboard(textToCopy);
+      toast.success('已复制到剪贴板');
     } catch {
-      toast.error('复制失败');
+      toast.error('复制失败，请手动复制');
     }
   };
 

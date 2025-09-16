@@ -31,7 +31,8 @@ import {
 import type { BubbleProps } from '@ant-design/x'
 import markdownit from 'markdown-it'
 import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
+import { cn, copyToClipboard } from '@/lib/utils'
+import { toast } from '@/lib/toast'
 import { useChatStore } from '@/stores/chat'
 import { useUIStore } from '@/stores/ui'
 import { useModelStore } from '@/stores/model'
@@ -913,10 +914,15 @@ export const ExplorePage: React.FC = () => {
           <Actions
             items={actionItems}
             variant="borderless"
-            onClick={({ key }) => {
+            onClick={async ({ key }) => {
               switch (key) {
                 case 'copy':
-                  navigator.clipboard.writeText(content || rawContent)
+                  try {
+                    await copyToClipboard((content || rawContent) || '')
+                    toast.success('已复制到剪贴板')
+                  } catch {
+                    toast.error('复制失败，请手动复制')
+                  }
                   break
                 case 'regenerate':
                   console.log('Regenerate message:', index)
