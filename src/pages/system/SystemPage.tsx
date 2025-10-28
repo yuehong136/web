@@ -6,7 +6,8 @@ import {
   HardDrive, 
   RefreshCw,
   AlertCircle,
-  Info
+  Info,
+  Activity
 } from 'lucide-react'
 import { StatusCard } from '@/components/ui/status-card'
 import { TaskExecutorChart } from '@/components/ui/task-executor-chart'
@@ -37,28 +38,45 @@ const SystemPage: React.FC = () => {
     if (data.database) {
       cards.push({
         id: 'database',
-        title: 'Database',
+        title: `数据库 (${data.database.database.toUpperCase()})`,
         icon: <Database className="h-5 w-5" />,
         status: data.database.status,
         metrics: {
-          'Database': data.database.database,
-          'Elapsed': `${data.database.elapsed} ms`
+          '响应时间': `${data.database.elapsed}ms`
         },
         error: data.database.error
       })
     }
 
-    // Doc Engine (Milvus)
+    // Database Pool
+    if (data.database_pool) {
+      cards.push({
+        id: 'database_pool',
+        title: '数据库连接池',
+        icon: <Activity className="h-5 w-5" />,
+        status: data.database_pool.status,
+        metrics: {
+          '连接池大小': data.database_pool.pool_size,
+          '活动连接': data.database_pool.checked_out,
+          '空闲连接': data.database_pool.checked_in,
+          '总连接数': data.database_pool.total_connections,
+          '使用率': data.database_pool.usage_rate,
+          '响应时间': `${data.database_pool.elapsed}ms`
+        },
+        error: data.database_pool.error
+      })
+    }
+
+    // Doc Engine
     if (data.doc_engine) {
       cards.push({
         id: 'doc_engine',
-        title: 'Doc Engine',
+        title: `向量引擎 (${data.doc_engine.type.charAt(0).toUpperCase() + data.doc_engine.type.slice(1)})`,
         icon: <FileText className="h-5 w-5" />,
         status: data.doc_engine.status,
         metrics: {
-          'Type': data.doc_engine.type,
-          'Version': data.doc_engine.version || 'N/A',
-          'Elapsed': `${data.doc_engine.elapsed} ms`
+          '版本': data.doc_engine.version || 'N/A',
+          '响应时间': `${data.doc_engine.elapsed}ms`
         },
         error: data.doc_engine.error
       })
@@ -68,11 +86,11 @@ const SystemPage: React.FC = () => {
     if (data.redis) {
       cards.push({
         id: 'redis',
-        title: 'Redis',
+        title: '缓存 (Redis)',
         icon: <Zap className="h-5 w-5" />,
         status: data.redis.status,
         metrics: {
-          'Elapsed': `${data.redis.elapsed} ms`
+          '响应时间': `${data.redis.elapsed}ms`
         },
         error: data.redis.error
       })
@@ -82,12 +100,11 @@ const SystemPage: React.FC = () => {
     if (data.storage) {
       cards.push({
         id: 'storage',
-        title: 'Object Storage',
+        title: `对象存储 (${data.storage.storage.toUpperCase()})`,
         icon: <HardDrive className="h-5 w-5" />,
         status: data.storage.status,
         metrics: {
-          'Storage': data.storage.storage,
-          'Elapsed': `${data.storage.elapsed} ms`
+          '响应时间': `${data.storage.elapsed}ms`
         },
         error: data.storage.error
       })

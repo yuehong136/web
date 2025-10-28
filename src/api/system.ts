@@ -25,6 +25,15 @@ export interface StorageStatus extends SystemComponentStatus {
   storage: string
 }
 
+export interface DatabasePoolStatus extends SystemComponentStatus {
+  pool_size: number
+  checked_out: number
+  checked_in: number
+  overflow: number
+  total_connections: number
+  usage_rate: string
+}
+
 export interface TaskExecutorHeartbeat {
   name: string
   now: string // ISO 8601 format
@@ -38,6 +47,7 @@ export interface TaskExecutorHeartbeat {
 
 export interface SystemStatusResponse {
   database: DatabaseStatus
+  database_pool?: DatabasePoolStatus
   doc_engine: DocEngineStatus
   redis: RedisStatus
   storage: StorageStatus
