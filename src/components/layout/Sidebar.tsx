@@ -15,7 +15,8 @@ import {
   Monitor,
   LogOut,
   Compass,
-  Check
+  Check,
+  Workflow
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -61,6 +62,12 @@ const navItems: NavItem[] = [
     title: '探索',
     href: ROUTES.EXPLORE,
     icon: Compass,
+    badge: 'New'
+  },
+  {
+    title: '智能体',
+    href: ROUTES.AGENTS,
+    icon: Workflow,
     badge: 'New'
   },
   {

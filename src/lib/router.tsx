@@ -30,6 +30,8 @@ import { ThemeDemoPage } from '@/pages/theme-demo/ThemeDemoPage'
 import { ROUTES } from '@/constants'
 import { AIToolsHomePage, AutoFillWorkbenchPage } from '@/pages/ai-tools'
 import MCPChatPage from '@/pages/MCPChatPage'
+import AgentListPage from '@/pages/agent'
+import AgentCanvasPage from '@/pages/agent/AgentCanvasPage'
 
 // 页面组件 (先创建占位符)
 
@@ -179,6 +181,14 @@ export const router = createBrowserRouter([
       {
         path: ROUTES.WORKFLOW,
         element: <Workflow />,
+      },
+      {
+        path: ROUTES.AGENTS,
+        element: <AgentListPage />,
+      },
+      {
+        path: '/agent/:id',
+        element: <AgentCanvasPage />,
       },
       {
         path: ROUTES.MCP_SERVERS,

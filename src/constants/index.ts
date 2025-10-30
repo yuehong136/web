@@ -14,6 +14,8 @@ export const ROUTES = {
   DOCUMENTS: '/documents',
   AI_TOOLS: '/ai-tools',
   WORKFLOW: '/workflow',
+  AGENTS: '/agents',
+  AGENT_CANVAS: '/agent/:id',
   MCP_SERVERS: '/mcp-servers',
   STUDIO: '/studio',
   STUDIO_CREATE_APP: '/studio/create-app',
@@ -119,6 +121,8 @@ export const QUERY_KEYS = {
   MCP_SERVERS: 'mcpServers',
   LLMS: 'llms',
   WORKFLOWS: 'workflows',
+  AGENTS: 'agents',
+  AGENT_DETAIL: 'agentDetail',
   SYSTEM_STATUS: 'systemStatus',
   SYSTEM_VERSION: 'systemVersion',
 } as const
@@ -158,4 +162,17 @@ export const DOCUMENT_STATUS = {
   PROCESSING: 'processing',
   READY: 'ready',
   ERROR: 'error',
+} as const
+
+// Agent状态
+export const AGENT_STATUS = {
+  DRAFT: 'draft',
+  PUBLISHED: 'published',
+  ARCHIVED: 'archived',
+} as const
+
+// Agent画布类型
+export const AGENT_CANVAS_TYPE = {
+  AGENT: 'agent',
+  PIPELINE: 'pipeline',
 } as const

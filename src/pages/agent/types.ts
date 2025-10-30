@@ -1,0 +1,294 @@
+import type { Edge, Node } from '@xyflow/react'
+
+// ==================== DSL相关类型 ====================
+
+export type DSLComponents = Record<string, IOperator>
+
+export interface IOperator {
+  obj: IOperatorNode
+  downstream: string[]
+  upstream: string[]
+  parent_id?: string
+}
+
+export interface IOperatorNode {
+  component_name: string
+  params: Record<string, unknown>
+}
+
+export interface DSL {
+  components: DSLComponents
+  history: any[]
+  path?: string[][]
+  answer?: any[]
+  graph?: IGraph
+  messages: any[]
+  reference: any[]
+  globals: Record<string, any>
+  retrieval: any[]
+}
+
+export interface IGraph {
+  nodes: RAGFlowNodeType[]
+  edges: Edge[]
+}
+
+// ==================== Flow/Agent相关类型 ====================
+
+export interface IFlow {
+  avatar?: string
+  canvas_type: 'agent' | 'pipeline' | 'Recommended' | null
+  canvas_category?: string
+  create_date?: string
+  create_time: number
+  description: string | { en?: string; zh?: string }
+  dsl: DSL
+  id: string
+  title: string | { en?: string; zh?: string }
+  update_date?: string
+  update_time: number
+  user_id: string
+  permission: string
+  nickname?: string
+}
+
+// ==================== 节点表单类型 ====================
+
+// LLM基础配置
+export interface ILLMConfig {
+  llm_id?: string
+  temperature?: number
+  top_p?: number
+  presence_penalty?: number
+  frequency_penalty?: number
+  max_tokens?: number
+}
+
+// Begin节点表单
+export interface IBeginForm {
+  prologue?: string
+  mode?: string
+  inputs?: Record<string, any>
+}
+
+// Retrieval节点表单
+export interface IRetrievalForm {
+  similarity_threshold?: number
+  keywords_similarity_weight?: number
+  top_n?: number
+  top_k?: number
+  rerank_id?: string
+  empty_response?: string
+  kb_ids: string[]
+  query?: string
+}
+
+// Generate节点表单
+export interface IGenerateForm extends ILLMConfig {
+  cite?: boolean
+  prompt: string
+  parameters?: Array<{ key: string; component_id: string }>
+  message_history_window_size?: number
+}
+
+// Message节点表单
+export interface IMessageForm {
+  content: string[]
+}
+
+// Categorize节点表单
+export interface ICategorizeItem {
+  name: string
+  description?: string
+  examples?: Array<{ value: string | number | boolean }>
+  to?: string
+  index: number
+  uuid?: string
+}
+
+// ICategorizeItemResult中的examples是string数组
+export interface ICategorizeItemResultItem {
+  description?: string
+  examples?: (string | number | boolean)[]
+  to?: string
+  index: number
+  uuid?: string
+}
+
+export type ICategorizeItemResult = Record<string, ICategorizeItemResultItem>
+
+export interface ICategorizeForm extends ILLMConfig {
+  query?: string
+  parameter?: string
+  message_history_window_size?: number
+  items?: ICategorizeItem[]
+  category_description?: ICategorizeItemResult
+  outputs?: Record<string, any>
+}
+
+// Switch节点表单
+export interface ISwitchItem {
+  cpn_id: string
+  operator: string
+  value: string
+}
+
+export interface ISwitchCondition {
+  items: ISwitchItem[]
+  logical_operator: string
+  to: string[] | string
+}
+
+export interface ISwitchForm {
+  conditions: ISwitchCondition[]
+  end_cpn_id?: string
+  end_cpn_ids?: string[]
+}
+
+// Relevant节点表单
+export interface IRelevantForm extends ILLMConfig {
+  yes?: string
+  no?: string
+}
+
+// Code节点表单
+export interface ICodeForm {
+  inputs?: Array<{ name?: string; component_id?: string }>
+  lang: string
+  script?: string
+  arguments?: Record<string, any>
+  outputs?: Record<string, any>
+}
+
+// Agent节点表单
+export interface IAgentForm extends ILLMConfig {
+  description?: string
+  user_prompt?: string
+  sys_prompt?: string
+  prompts?: Array<{ role: string; content: string }>
+  message_history_window_size?: number
+  max_retries?: number
+  delay_after_error?: number
+  visual_files_var?: string
+  max_rounds?: number
+  exception_method?: string
+  exception_goto?: string[]
+  exception_default_value?: string
+  tools?: Array<{
+    component_name: string
+    id: string
+    name: string
+    params: Record<string, any>
+  }>
+  mcp?: any[]
+  cite?: boolean
+  outputs?: Record<string, any>
+}
+
+// ==================== 节点数据类型 ====================
+
+export type BaseNodeData<TForm = any> = {
+  label: string // operator type
+  name: string // operator name
+  color?: string
+  form?: TForm
+}
+
+export type BaseNode<T = any> = Node<BaseNodeData<T>>
+
+// 具体节点类型
+export type IBeginNode = BaseNode<IBeginForm>
+export type IRetrievalNode = BaseNode<IRetrievalForm>
+export type IGenerateNode = BaseNode<IGenerateForm>
+export type IMessageNode = BaseNode<IMessageForm>
+export type ICategorizeNode = BaseNode<ICategorizeForm>
+export type ISwitchNode = BaseNode<ISwitchForm>
+export type IRelevantNode = BaseNode<IRelevantForm>
+export type ICodeNode = BaseNode<ICodeForm>
+export type IAgentNode<T = any> = BaseNode<T>
+export type IRagNode = BaseNode
+export type INoteNode = BaseNode
+export type IRewriteNode = BaseNode
+export type IKeywordNode = BaseNode
+export type IInvokeNode = BaseNode
+export type IEmailNode = BaseNode
+export type IIterationNode = BaseNode
+export type IIterationStartNode = BaseNode
+export type IPlaceholderNode = BaseNode
+
+// 联合类型
+export type RAGFlowNodeType =
+  | IBeginNode
+  | IRetrievalNode
+  | IGenerateNode
+  | IMessageNode
+  | ICategorizeNode
+  | ISwitchNode
+  | IRelevantNode
+  | ICodeNode
+  | IAgentNode
+  | IRagNode
+  | INoteNode
+  | IRewriteNode
+  | IKeywordNode
+  | IInvokeNode
+  | IEmailNode
+  | IIterationNode
+  | IIterationStartNode
+  | IPlaceholderNode
+
+// ==================== 辅助类型 ====================
+
+export interface IPosition {
+  top: number
+  right: number
+  idx: number
+}
+
+export interface BeginQuery {
+  key: string
+  type: string
+  label?: string
+  required?: boolean
+  options?: string[]
+}
+
+// ==================== API请求/响应类型 ====================
+
+export interface IAgentListRequest {
+  page?: number
+  page_size?: number
+  orderby?: string
+  desc?: boolean
+  name?: string
+  canvas_type?: string
+}
+
+export interface IAgentListResponse {
+  canvas: IFlow[]
+  total: number
+}
+
+export interface ISetAgentRequest {
+  id?: string
+  title: string
+  description?: string
+  dsl?: DSL
+  canvas_type?: 'agent' | 'pipeline'
+  avatar?: string
+  permission?: string
+}
+
+export interface IRunAgentRequest {
+  id: string
+  query?: string
+  session_id?: string | null
+  files?: any[]
+}
+
+export interface IDebugNodeRequest {
+  canvas_id: string
+  component_id: string
+  inputs?: Record<string, any>
+}
+
