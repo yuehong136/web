@@ -25,6 +25,7 @@ import { Tooltip } from '@/components/ui/tooltip'
 import { PageSizeSelector } from '@/components/ui/page-size-selector'
 import { RerankModelSelector } from '@/components/knowledge/RerankModelSelector'
 import { FileIcon } from '@/components/ui/file-icon'
+import { HighlightText } from '@/components/knowledge/HighlightText'
 import { llmAPI } from '@/api/llm'
 import type { LLMModel } from '@/types/api'
 import { useKnowledgeStore } from '@/stores/knowledge'
@@ -572,12 +573,15 @@ const KnowledgeSearchPage: React.FC = () => {
                             setSelectedResult(result)
                             setIsMarkdownPreview(false)
                           }}
-                          dangerouslySetInnerHTML={{
-                            __html: searchParams.highlight && result.highlight 
-                              ? result.highlight.substring(0, 200) + (result.highlight.length > 200 ? '...' : '')
-                              : result.text.substring(0, 200) + (result.text.length > 200 ? '...' : '')
-                          }}
-                        />
+                        >
+                          <HighlightText
+                            html={result.highlight}
+                            text={result.text}
+                            enableHighlight={searchParams.highlight}
+                            truncate={true}
+                            truncateLength={200}
+                          />
+                        </div>
                         {(result.text.length > 200 || (result.highlight && result.highlight.length > 200)) && (
                           <div className="absolute bottom-0 right-0 bg-gradient-to-l from-white via-white to-transparent pl-8 pr-2">
                             <Button 
@@ -1255,14 +1259,13 @@ const KnowledgeSearchPage: React.FC = () => {
                     </div>
                   ) : (
                     <div className="w-full h-full px-4 py-3 border border-gray-300 rounded-md bg-white overflow-y-auto scrollbar-thin">
-                      <div 
-                        className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap"
-                        dangerouslySetInnerHTML={{
-                          __html: searchParams.highlight && selectedResult.highlight 
-                            ? selectedResult.highlight 
-                            : selectedResult.text
-                        }}
-                      />
+                      <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+                        <HighlightText
+                          html={selectedResult.highlight}
+                          text={selectedResult.text}
+                          enableHighlight={searchParams.highlight}
+                        />
+                      </div>
                     </div>
                   )}
                 </div>
