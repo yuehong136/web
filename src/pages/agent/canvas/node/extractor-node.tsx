@@ -48,3 +48,4 @@ function InnerExtractorNode({ id, data, isConnectable, selected }: NodeProps) {
 
 export const ExtractorNode = memo(InnerExtractorNode)
 
+

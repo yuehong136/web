@@ -27,3 +27,4 @@ function InnerTokenizerNode({ id, data, selected }: NodeProps) {
 
 export const TokenizerNode = memo(InnerTokenizerNode)
 
+

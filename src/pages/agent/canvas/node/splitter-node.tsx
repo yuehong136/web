@@ -47,3 +47,4 @@ function InnerSplitterNode({ id, data, isConnectable, selected }: NodeProps) {
 
 export const SplitterNode = memo(InnerSplitterNode)
 
+
