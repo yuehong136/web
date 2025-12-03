@@ -8,33 +8,8 @@ import { Switch } from '@/components/ui/switch'
 import { ProviderIcon } from '@/components/ui/provider-icon'
 
 // ========== 厂商分类 ==========
-
-// 只需要 API Key 的普通厂商
-const SIMPLE_API_KEY_FACTORIES = [
-  'OpenAI',
-  'Tongyi-Qianwen',
-  'MiniMax',
-  'Anthropic',
-  'DeepSeek',
-  'Moonshot',
-  'ZHIPU-AI',
-  'Gemini',
-  'Groq',
-  'Mistral',
-  'Jina',
-  'NVIDIA',
-  'StepFun',
-  'SiliconFlow',
-  'Cohere',
-  'Perplexity',
-  'xAI',
-  'Ai302',
-  'DeepInfra',
-  'Meituan',
-  'Longcat',
-  'DeerAPI',
-  'CometAPI',
-]
+// 注意：不在 LOCAL_MODEL_FACTORIES 和 SPECIAL_FORM_FACTORIES 中的厂商，
+// 默认都会显示 API Key 输入框
 
 // 需要显示 Base URL 选项的普通 API Key 厂商
 const API_KEY_WITH_BASE_URL = [
@@ -246,7 +221,8 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
   // 判断厂商类型
   const isLocal = isLocalProp ?? LOCAL_MODEL_FACTORIES.includes(providerName)
   const isSpecialForm = SPECIAL_FORM_FACTORIES.includes(providerName)
-  const isSimpleApiKey = SIMPLE_API_KEY_FACTORIES.includes(providerName)
+  // 默认逻辑：如果不是本地模型，也不是特殊表单，就是普通 API Key 厂商
+  const isSimpleApiKey = !isLocal && !isSpecialForm
 
   // 通用表单状态
   const [apiKey, setApiKey] = useState('')
