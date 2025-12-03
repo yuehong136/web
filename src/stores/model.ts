@@ -16,6 +16,25 @@ export interface MyLLMProvider {
   }
 }
 
+// 添加本地模型的参数
+export interface AddLlmParams {
+  llm_factory: string
+  llm_name: string
+  mdl_type: string
+  api_base?: string
+  api_key?: string
+  max_tokens?: number
+  // VolcEngine 特殊字段
+  endpoint_id?: string
+  ark_api_key?: string
+  // Bedrock 特殊字段
+  bedrock_ak?: string
+  bedrock_sk?: string
+  bedrock_region?: string
+  // 其他可扩展字段
+  [key: string]: any
+}
+
 export const LLMFactory = {
   TongYiQianWen: 'Tongyi-Qianwen',
   Moonshot: 'Moonshot',
@@ -68,10 +87,20 @@ export const LLMFactory = {
   GPUStack: 'GPUStack',
   VLLM: 'VLLM',
   GiteeAI: 'GiteeAI',
+  // 新增厂商
+  XAI: 'xAI',
+  Ai302: '302.AI',
+  DeepInfra: 'DeepInfra',
+  Meituan: 'Meituan',
+  Longcat: 'LongCat',
+  DeerAPI: 'DeerAPI',
+  Grok: 'Grok',
+  CometAPI: 'CometAPI',
 } as const
 
-export const IconMap = {
-  [LLMFactory.TongYiQianWen]: 'tongyi',
+// IconMap - 与 ragflow iconfont.js 中的图标名称匹配
+export const IconMap: Record<string, string> = {
+  [LLMFactory.TongYiQianWen]: 'tongyi-qianwen',
   [LLMFactory.Moonshot]: 'moonshot',
   [LLMFactory.OpenAI]: 'openai',
   [LLMFactory.ZhipuAI]: 'zhipu',
@@ -80,10 +109,10 @@ export const IconMap = {
   [LLMFactory.Xinference]: 'xinference',
   [LLMFactory.ModelScope]: 'modelscope',
   [LLMFactory.DeepSeek]: 'deepseek',
-  [LLMFactory.VolcEngine]: 'volc_engine',
+  [LLMFactory.VolcEngine]: 'volcengine',
   [LLMFactory.BaiChuan]: 'baichuan',
   [LLMFactory.Jina]: 'jina',
-  [LLMFactory.MiniMax]: 'chat-minimax',
+  [LLMFactory.MiniMax]: 'MiniMax',
   [LLMFactory.Mistral]: 'mistral',
   [LLMFactory.AzureOpenAI]: 'azure',
   [LLMFactory.Bedrock]: 'bedrock',
@@ -96,8 +125,8 @@ export const IconMap = {
   [LLMFactory.LMStudio]: 'lm-studio',
   [LLMFactory.OpenAiAPICompatible]: 'openai-api',
   [LLMFactory.Cohere]: 'cohere',
-  [LLMFactory.LeptonAI]: 'lepton-ai',
-  [LLMFactory.TogetherAI]: 'together-ai',
+  [LLMFactory.LeptonAI]: 'lepton',
+  [LLMFactory.TogetherAI]: 'together',
   [LLMFactory.PerfXCloud]: 'perfx-cloud',
   [LLMFactory.Upstage]: 'upstage',
   [LLMFactory.NovitaAI]: 'novita-ai',
@@ -107,7 +136,7 @@ export const IconMap = {
   [LLMFactory.Replicate]: 'replicate',
   [LLMFactory.TencentHunYuan]: 'hunyuan',
   [LLMFactory.XunFeiSpark]: 'spark',
-  [LLMFactory.BaiduYiYan]: 'yiyan',
+  [LLMFactory.BaiduYiYan]: 'wenxinyiyan',
   [LLMFactory.FishAudio]: 'fish-audio',
   [LLMFactory.TencentCloud]: 'tencent-cloud',
   [LLMFactory.Anthropic]: 'anthropic',
@@ -122,6 +151,14 @@ export const IconMap = {
   [LLMFactory.GPUStack]: 'gpustack',
   [LLMFactory.VLLM]: 'vllm',
   [LLMFactory.GiteeAI]: 'gitee-ai',
+  [LLMFactory.XAI]: 'xai',
+  [LLMFactory.Ai302]: 'ai302',
+  [LLMFactory.DeepInfra]: 'deepinfra',
+  [LLMFactory.Meituan]: 'longcat',
+  [LLMFactory.Longcat]: 'longcat',
+  [LLMFactory.DeerAPI]: 'deerapi',
+  [LLMFactory.Grok]: 'grok',
+  [LLMFactory.CometAPI]: 'cometapi',
 };
 
 export interface LLMFactoryInterface {
@@ -150,7 +187,9 @@ interface ModelState {
   addProvider: (providerId: string) => Promise<void>
   removeProvider: (providerName: string) => Promise<void>
   updateProviderConfig: (providerId: string, config: any) => Promise<void>
-  setApiKey: (llmFactory: string, apiKey: string, baseUrl?: string) => Promise<void>
+  setApiKey: (llmFactory: string, apiKey: string, baseUrl?: string, additionalParams?: Record<string, any>) => Promise<void>
+  addLlm: (params: AddLlmParams) => Promise<void>
+  deleteFactory: (llmFactory: string) => Promise<void>
   
   // 工具方法
   setLoading: (loading: boolean) => void
@@ -374,12 +413,13 @@ export const useModelStore = create<ModelState>()(
         }
       },
 
-      // 设置API Key
-      setApiKey: async (llmFactory: string, apiKey: string, baseUrl?: string) => {
+      // 设置API Key（用于云服务厂商）
+      setApiKey: async (llmFactory: string, apiKey: string, baseUrl?: string, additionalParams?: Record<string, any>) => {
         try {
           const requestData: any = {
             llm_factory: llmFactory,
-            api_key: apiKey
+            api_key: apiKey,
+            ...additionalParams
           }
           
           if (baseUrl) {
@@ -392,6 +432,35 @@ export const useModelStore = create<ModelState>()(
           await get().loadMyLLMs()
         } catch (error) {
           console.error('Failed to set API key:', error)
+          throw error
+        }
+      },
+
+      // 添加本地模型（用于 Ollama、Xinference 等本地服务）
+      addLlm: async (params: AddLlmParams) => {
+        try {
+          await apiClient.post('/llm/add_llm', params)
+          
+          // 请求成功后重新加载模型列表
+          await get().loadMyLLMs()
+        } catch (error) {
+          console.error('Failed to add LLM:', error)
+          throw error
+        }
+      },
+
+      // 删除模型供应商
+      deleteFactory: async (llmFactory: string) => {
+        try {
+          // 后端接口使用 POST 方法传递 llm_factory 参数
+          await apiClient.post('/llm/delete_factory', { 
+            llm_factory: llmFactory 
+          })
+          
+          // 请求成功后重新加载模型列表
+          await get().loadMyLLMs()
+        } catch (error) {
+          console.error('Failed to delete factory:', error)
           throw error
         }
       },

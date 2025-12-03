@@ -41,7 +41,7 @@ import { conversationAPI } from '@/api/conversation'
 import { useQuery } from '@tanstack/react-query'
 import { chatConfig, type ChatMessage, type ChatServiceRequest, type SSEResponse, type ChatAttachment } from '@/config/chat'
 import { ChatModelSelector } from '@/components/chat/ChatModelSelector'
-import { getProviderIcon, getModelDisplayName } from '@/components/ui/provider-icon'
+import { ProviderIcon, getModelDisplayName } from '@/components/ui/provider-icon'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
 import thinkingAnimation from '@/assets/thinking.apng'
 import { MarkdownRenderer } from '@/components/chat/MarkdownRenderer'
@@ -241,6 +241,17 @@ export const ExplorePage: React.FC = () => {
       }
     }
   }, [selectedModel, modelsLoading, myLLMs])
+
+  // 根据选中的模型名称找到对应的厂商名称
+  const selectedProviderName = React.useMemo(() => {
+    if (!selectedModel || !myLLMs) return null
+    for (const [providerName, providerData] of Object.entries(myLLMs)) {
+      if (providerData?.llm?.some(model => model.name === selectedModel)) {
+        return providerName
+      }
+    }
+    return null
+  }, [selectedModel, myLLMs])
 
   // 自动选择第一个应用（只选择status为'1'的应用）
   React.useEffect(() => {
@@ -846,7 +857,9 @@ export const ExplorePage: React.FC = () => {
                         className="w-5 h-5"
                       />
                     ) : (
-                      getProviderIcon(selectedModel)
+                      selectedProviderName 
+                        ? <ProviderIcon provider={selectedProviderName} className="w-5 h-5" size={20} />
+                        : null
                     )}
                   </div>
                   <div className="flex-1">
@@ -906,7 +919,9 @@ export const ExplorePage: React.FC = () => {
             children: 'U' 
           }
         : { 
-            icon: getProviderIcon(selectedModel),
+            icon: selectedProviderName 
+              ? <ProviderIcon provider={selectedProviderName} className="w-5 h-5" size={20} />
+              : null,
             className: 'bg-slate-50 border-none shadow-none rounded-full'
           },
       footer: !isUser ? (

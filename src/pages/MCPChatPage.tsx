@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { flushSync } from "react-dom";
 import { ChatSidebar } from "@/components/chat/ChatSidebar";
 import { ChatHeader } from "@/components/chat/ChatHeader";
@@ -8,7 +8,7 @@ import { Bubble } from "@ant-design/x";
 import type { BubbleProps } from "@ant-design/x";
 import { UserOutlined, RobotOutlined, CopyOutlined, LikeOutlined, DislikeOutlined } from '@ant-design/icons';
 import { Typography, Button as AntdButton, Space } from 'antd';
-import { getProviderIcon } from '@/components/ui/provider-icon';
+import { ProviderIcon } from '@/components/ui/provider-icon';
 import markdownit from "markdown-it";
 import type { MCPChatServiceRequest } from "@/api/mcp-chat-service";
 import { EnhancedSSEParser, type SSEMessage, type ToolCallInfo } from "@/components/chat/EnhancedSSEParser";
@@ -152,10 +152,23 @@ export default function MCPChatPage() {
     }
   };
 
+  // 根据选中的模型名称找到对应的厂商名称
+  const selectedProviderName = useMemo(() => {
+    if (!selectedModelId || !myLLMs) return null
+    for (const [providerName, providerData] of Object.entries(myLLMs)) {
+      if (providerData?.llm?.some(model => model.name === selectedModelId)) {
+        return providerName
+      }
+    }
+    return null
+  }, [selectedModelId, myLLMs])
+
   // 根据布局配置角色样式
   const getRolesConfig = (layout: ChatLayout) => {
     // 获取当前选择模型的厂商图标
-    const assistantIcon = selectedModelId ? getProviderIcon(selectedModelId) : <RobotOutlined />;
+    const assistantIcon = selectedProviderName 
+      ? <ProviderIcon provider={selectedProviderName} className="w-5 h-5" size={20} />
+      : <RobotOutlined />;
     
     const baseRoles = {
       assistant: {

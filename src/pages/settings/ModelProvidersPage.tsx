@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Loading } from '@/components/ui/loading'
 import { useModelStore, type LLMFactoryInterface } from '@/stores/model'
-import { getProviderIconPath } from '@/components/ui/provider-icon'
+import { ProviderIcon } from '@/components/ui/provider-icon'
 import { cn } from '@/lib/utils'
 
 // API Key设置弹窗组件
@@ -132,11 +132,6 @@ const CollapsibleProviderCard: React.FC<{
   onToggle: () => void;
   onSetApiKey: () => void;
 }> = ({ providerName, providerData, isExpanded, onToggle, onSetApiKey }) => {
-  // 使用统一的图标路径获取函数
-  const getProviderLogo = (name: string) => {
-    return getProviderIconPath(name)
-  }
-
   const totalTokens = providerData.llm.reduce((sum: number, model: any) => sum + model.used_token, 0)
 
   return (
@@ -149,20 +144,7 @@ const CollapsibleProviderCard: React.FC<{
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <div className="w-12 h-12 bg-white rounded-xl shadow-sm border flex items-center justify-center">
-              <img 
-                src={getProviderLogo(providerName) || ''} 
-                alt={providerName}
-                className="w-8 h-8"
-                onError={(e) => {
-                  const target = e.currentTarget as HTMLImageElement
-                  const fallback = target.nextElementSibling as HTMLElement
-                  target.style.display = 'none'
-                  if (fallback) fallback.style.display = 'flex'
-                }}
-              />
-              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 font-semibold text-sm" style={{display: 'none'}}>
-                {providerName.charAt(0)}
-              </div>
+              <ProviderIcon provider={providerName} className="w-8 h-8" size={32} />
             </div>
             
             <div>
@@ -264,30 +246,12 @@ const AvailableProviderCard: React.FC<{
   factory: LLMFactoryInterface;
   onAdd: () => void;
 }> = ({ factory, onAdd }) => {
-  // 使用统一的图标路径获取函数
-  const getProviderLogo = (name: string) => {
-    return getProviderIconPath(name)
-  }
-
   return (
     <Card className="p-6 hover:shadow-lg transition-all duration-200 border-0 shadow-md">
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center space-x-3">
           <div className="w-12 h-12 bg-gray-50 rounded-xl border flex items-center justify-center">
-            <img 
-              src={getProviderLogo(factory.name) || ''} 
-              alt={factory.name}
-              className="w-8 h-8"
-              onError={(e) => {
-                const target = e.currentTarget as HTMLImageElement
-                const fallback = target.nextElementSibling as HTMLElement
-                target.style.display = 'none'
-                if (fallback) fallback.style.display = 'flex'
-              }}
-            />
-            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 font-semibold text-sm" style={{display: 'none'}}>
-              {factory.name.charAt(0)}
-            </div>
+            <ProviderIcon provider={factory.name} className="w-8 h-8" size={32} />
           </div>
           <div>
             <h4 className="font-semibold text-gray-900">{factory.name}</h4>

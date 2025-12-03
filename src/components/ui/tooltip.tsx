@@ -1,13 +1,38 @@
-import React from 'react'
-import { cn } from '@/lib/utils'
+'use client'
 
+import * as React from 'react'
+import * as TooltipPrimitive from '@radix-ui/react-tooltip'
+import { cn } from '@/lib/utils'
+import { CircleHelp } from 'lucide-react'
+
+const TooltipProvider = TooltipPrimitive.Provider
+
+const TooltipRoot = TooltipPrimitive.Root
+
+const TooltipTrigger = TooltipPrimitive.Trigger
+
+const TooltipContent = React.forwardRef<
+  React.ElementRef<typeof TooltipPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content>
+>(({ className, sideOffset = 4, ...props }, ref) => (
+  <TooltipPrimitive.Content
+    ref={ref}
+    sideOffset={sideOffset}
+    className={cn(
+      'z-50 overflow-auto rounded-md whitespace-pre-wrap border border-border bg-background px-3 py-1.5 text-sm text-text-primary shadow-md animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 max-w-[30vw]',
+      className,
+    )}
+    {...props}
+  />
+))
+TooltipContent.displayName = TooltipPrimitive.Content.displayName
+
+// 简化的 Tooltip 组件 API（兼容现有代码）
 interface TooltipProps {
   content: React.ReactNode
   children: React.ReactNode
   position?: 'top' | 'bottom' | 'left' | 'right'
   className?: string
-  delayHide?: number // 延迟隐藏时间(ms)
-  maxWidth?: string // 自定义最大宽度
 }
 
 export const Tooltip: React.FC<TooltipProps> = ({
@@ -15,130 +40,41 @@ export const Tooltip: React.FC<TooltipProps> = ({
   children,
   position = 'top',
   className,
-  delayHide = 300,
-  maxWidth = 'max-w-md'
 }) => {
-  const [isVisible, setIsVisible] = React.useState(false)
-  const [tooltipPosition, setTooltipPosition] = React.useState({ top: 0, left: 0 })
-  const hideTimeoutRef = React.useRef<NodeJS.Timeout | null>(null)
-  const triggerRef = React.useRef<HTMLDivElement>(null)
-
-  const showTooltip = () => {
-    if (hideTimeoutRef.current) {
-      clearTimeout(hideTimeoutRef.current)
-      hideTimeoutRef.current = null
-    }
-    setIsVisible(true)
-    
-    // 计算tooltip位置
-    if (triggerRef.current) {
-      const rect = triggerRef.current.getBoundingClientRect()
-      const scrollY = window.scrollY
-      const scrollX = window.scrollX
-      
-      let top = 0
-      let left = 0
-      
-      switch (position) {
-        case 'top':
-          top = rect.top + scrollY - 10
-          left = rect.left + scrollX + rect.width / 2
-          break
-        case 'bottom':
-          top = rect.bottom + scrollY + 10
-          left = rect.left + scrollX + rect.width / 2
-          break
-        case 'left':
-          top = rect.top + scrollY + rect.height / 2
-          left = rect.left + scrollX - 10
-          break
-        case 'right':
-          top = rect.top + scrollY + rect.height / 2
-          left = rect.right + scrollX + 10
-          break
-      }
-      
-      setTooltipPosition({ top, left })
-    }
-  }
-
-  const hideTooltip = () => {
-    hideTimeoutRef.current = setTimeout(() => {
-      setIsVisible(false)
-    }, delayHide)
-  }
-
-  const cancelHide = () => {
-    if (hideTimeoutRef.current) {
-      clearTimeout(hideTimeoutRef.current)
-      hideTimeoutRef.current = null
-    }
-  }
-
-  React.useEffect(() => {
-    return () => {
-      if (hideTimeoutRef.current) {
-        clearTimeout(hideTimeoutRef.current)
-      }
-    }
-  }, [])
-
-  const getTransform = () => {
-    switch (position) {
-      case 'top':
-        return 'translate(-50%, -100%)'
-      case 'bottom':
-        return 'translate(-50%, 0%)'
-      case 'left':
-        return 'translate(-100%, -50%)'
-      case 'right':
-        return 'translate(0%, -50%)'
-      default:
-        return 'translate(-50%, -100%)'
-    }
-  }
+  const side = position
 
   return (
-    <>
-      <div 
-        ref={triggerRef}
-        className="relative inline-block"
-        onMouseEnter={showTooltip}
-        onMouseLeave={hideTooltip}
-      >
-        {children}
-      </div>
-      
-      {isVisible && (
-        <div
-          onMouseEnter={cancelHide}
-          onMouseLeave={hideTooltip}
-          className={cn(
-            'fixed z-[9999] px-4 py-3 text-sm bg-white border border-gray-200 rounded-lg shadow-xl',
-            'animate-in fade-in-0 zoom-in-95 duration-200 text-gray-900',
-            typeof content === 'string' ? 'whitespace-nowrap' : maxWidth,
-            className
-          )}
-          style={{
-            top: tooltipPosition.top,
-            left: tooltipPosition.left,
-            transform: getTransform(),
-          }}
-        >
+    <TooltipProvider delayDuration={200}>
+      <TooltipRoot>
+        <TooltipTrigger asChild>
+          <span className="inline-flex cursor-help">{children}</span>
+        </TooltipTrigger>
+        <TooltipContent side={side} className={className}>
           {content}
-          
-          {/* 箭头 */}
-          <div
-            className={cn(
-              'absolute w-2 h-2 bg-white border-gray-200 transform rotate-45',
-              position === 'top' && 'top-full left-1/2 -translate-x-1/2 -translate-y-1/2 border-r border-b',
-              position === 'bottom' && 'bottom-full left-1/2 -translate-x-1/2 translate-y-1/2 border-l border-t',
-              position === 'left' && 'left-full top-1/2 -translate-y-1/2 translate-x-1/2 border-t border-r',
-              position === 'right' && 'right-full top-1/2 -translate-y-1/2 -translate-x-1/2 border-b border-l'
-            )}
-          />
-        </div>
-      )}
-    </>
+        </TooltipContent>
+      </TooltipRoot>
+    </TooltipProvider>
   )
 }
+
+// 表单问号提示组件（与 ragflow 一致）
+export const FormTooltip: React.FC<{ tooltip: React.ReactNode }> = ({ tooltip }) => {
+  return (
+    <TooltipProvider delayDuration={200}>
+      <TooltipRoot>
+        <TooltipTrigger
+          tabIndex={-1}
+          onClick={(e) => {
+            e.preventDefault()
+          }}
+          className="inline-flex"
+        >
+          <CircleHelp className="w-3 h-3 ml-1 text-text-tertiary hover:text-text-secondary transition-colors" />
+        </TooltipTrigger>
+        <TooltipContent>{tooltip}</TooltipContent>
+      </TooltipRoot>
+    </TooltipProvider>
+  )
+}
+
+export { TooltipRoot, TooltipTrigger, TooltipContent, TooltipProvider }

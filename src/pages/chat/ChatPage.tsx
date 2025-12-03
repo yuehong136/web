@@ -31,7 +31,7 @@ import { cn, copyToClipboard } from '@/lib/utils'
 import { toast } from '@/lib/toast'
 import { chatConfig, type ChatMessage, type ChatServiceRequest, type SSEResponse, type ChatAttachment } from '@/config/chat'
 import { ChatModelSelector } from '@/components/chat/ChatModelSelector'
-import { getProviderIcon, getModelDisplayName } from '@/components/ui/provider-icon'
+import { ProviderIcon, getModelDisplayName } from '@/components/ui/provider-icon'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
 import thinkingAnimation from '@/assets/thinking.apng'
 
@@ -107,6 +107,17 @@ export const ChatPage: React.FC = () => {
       }
     }
   }, [selectedModel, modelsLoading, myLLMs])
+
+  // 根据选中的模型名称找到对应的厂商名称
+  const selectedProviderName = React.useMemo(() => {
+    if (!selectedModel || !myLLMs) return null
+    for (const [providerName, providerData] of Object.entries(myLLMs)) {
+      if (providerData?.llm?.some(model => model.name === selectedModel)) {
+        return providerName
+      }
+    }
+    return null
+  }, [selectedModel, myLLMs])
 
   // 配置 X Agent 对接后端 SSE 接口
   const [agent] = useXAgent({
@@ -499,7 +510,9 @@ export const ChatPage: React.FC = () => {
                         className="w-5 h-5"
                       />
                     ) : (
-                      getProviderIcon(selectedModel)
+                      selectedProviderName 
+                        ? <ProviderIcon provider={selectedProviderName} className="w-5 h-5" size={20} />
+                        : null
                     )}
                   </div>
                   <div className="flex-1">
@@ -567,7 +580,9 @@ export const ChatPage: React.FC = () => {
             children: 'U' 
           }
         : { 
-            icon: getProviderIcon(selectedModel),
+            icon: selectedProviderName 
+              ? <ProviderIcon provider={selectedProviderName} className="w-5 h-5" size={20} />
+              : null,
             style: { 
               backgroundColor: '#f8fafc', 
               border: 'none',
