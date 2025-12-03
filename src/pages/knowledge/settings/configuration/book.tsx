@@ -1,40 +1,29 @@
-import { AutoKeywordsFormField, AutoQuestionsFormField } from '@/components/forms/AutoKeywordsFormField';
-import { LayoutRecognizeFormField } from '@/components/forms/CommonFormFields';
-import PageRankFormField from '@/components/forms/PageRankFormField';
-import GraphRagItems from '@/components/forms/GraphRagFormFields';
-import RaptorFormFields from '@/components/forms/RaptorFormFields';
+'use client'
+
+import {
+  LayoutRecognizeFormField,
+  AutoKeywordsFormField,
+  AutoQuestionsFormField,
+} from '@/components/forms/KnowledgeFormFields'
 import {
   ConfigurationFormContainer,
   MainContainer,
-} from '../configuration-form-container';
-import { TagItems } from '../tag-item';
-import { ChunkMethodItem, EmbeddingModelItem } from './common-item';
+  SectionTitle,
+} from '../configuration-form-container'
 
 export function BookConfiguration() {
   return (
     <MainContainer>
       <ConfigurationFormContainer>
-        <ChunkMethodItem></ChunkMethodItem>
-        <LayoutRecognizeFormField></LayoutRecognizeFormField>
-        <EmbeddingModelItem></EmbeddingModelItem>
-
-        <PageRankFormField></PageRankFormField>
+        <SectionTitle>基础配置</SectionTitle>
+        <LayoutRecognizeFormField />
       </ConfigurationFormContainer>
 
       <ConfigurationFormContainer>
-        <AutoKeywordsFormField></AutoKeywordsFormField>
-        <AutoQuestionsFormField></AutoQuestionsFormField>
-      </ConfigurationFormContainer>
-
-      <ConfigurationFormContainer>
-        <RaptorFormFields></RaptorFormFields>
-      </ConfigurationFormContainer>
-
-      <GraphRagItems marginBottom className="p-10"></GraphRagItems>
-
-      <ConfigurationFormContainer>
-        <TagItems></TagItems>
+        <SectionTitle>智能增强</SectionTitle>
+        <AutoKeywordsFormField />
+        <AutoQuestionsFormField />
       </ConfigurationFormContainer>
     </MainContainer>
-  );
+  )
 }

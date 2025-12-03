@@ -1,39 +1,54 @@
-import React from 'react';
+'use client'
+
+import * as React from 'react'
+import { cn } from '@/lib/utils'
 
 interface ConfigurationFormContainerProps {
-  children: React.ReactNode;
-  title?: string;
+  children: React.ReactNode
+  className?: string
 }
 
-export function ConfigurationFormContainer({ children, title }: ConfigurationFormContainerProps) {
+export function ConfigurationFormContainer({
+  children,
+  className,
+}: ConfigurationFormContainerProps) {
   return (
-    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
-      {title && (
-        <h3 className="text-sm font-medium text-gray-900 mb-3 pb-2 border-b border-gray-200">
-          {title}
-        </h3>
-      )}
-      <div className="space-y-4">
-        {children}
-      </div>
-    </div>
-  );
+    <section className={cn('space-y-5', className)}>
+      {children}
+    </section>
+  )
 }
 
-export function MainContainer({ children }: { children: React.ReactNode }) {
+interface MainContainerProps {
+  children: React.ReactNode
+  className?: string
+}
+
+export function MainContainer({ children, className }: MainContainerProps) {
   return (
-    <div className="space-y-4">
+    <div className={cn('space-y-5', className)}>
       {children}
     </div>
-  );
+  )
 }
 
-function EmptyComponent() {
+interface SectionTitleProps {
+  children: React.ReactNode
+  className?: string
+}
+
+export function SectionTitle({ children, className }: SectionTitleProps) {
+  return (
+    <h4 className={cn('text-sm font-medium text-text-primary mb-3', className)}>
+      {children}
+    </h4>
+  )
+}
+
+export function EmptyComponent() {
   return (
     <div className="flex items-center justify-center py-8">
-      <p className="text-gray-500">请选择解析器类型</p>
+      <p className="text-text-tertiary">请选择解析器类型</p>
     </div>
-  );
+  )
 }
-
-export { EmptyComponent };

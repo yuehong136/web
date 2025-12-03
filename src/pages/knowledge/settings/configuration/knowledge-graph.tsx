@@ -1,22 +1,23 @@
-import { DelimiterFormField, EntityTypesFormField, MaxTokenNumberFormField } from '@/components/forms/CommonFormFields';
-import PageRankFormField from '@/components/forms/PageRankFormField';
-import { ConfigurationFormContainer } from '../configuration-form-container';
-import { TagItems } from '../tag-item';
-import { ChunkMethodItem, EmbeddingModelItem } from './common-item';
+'use client'
+
+import {
+  MaxTokenNumberFormField,
+  DelimiterFormField,
+} from '@/components/forms/KnowledgeFormFields'
+import {
+  ConfigurationFormContainer,
+  MainContainer,
+  SectionTitle,
+} from '../configuration-form-container'
 
 export function KnowledgeGraphConfiguration() {
   return (
-    <ConfigurationFormContainer>
-      <ChunkMethodItem></ChunkMethodItem>
-      <EmbeddingModelItem></EmbeddingModelItem>
-
-      <PageRankFormField></PageRankFormField>
-
-      <EntityTypesFormField></EntityTypesFormField>
-      <MaxTokenNumberFormField max={8192 * 2}></MaxTokenNumberFormField>
-      <DelimiterFormField></DelimiterFormField>
-
-      <TagItems></TagItems>
-    </ConfigurationFormContainer>
-  );
+    <MainContainer>
+      <ConfigurationFormContainer>
+        <SectionTitle>基础配置</SectionTitle>
+        <MaxTokenNumberFormField max={16384} />
+        <DelimiterFormField />
+      </ConfigurationFormContainer>
+    </MainContainer>
+  )
 }

@@ -1,25 +1,18 @@
+'use client'
+
 import {
-  AutoKeywordsFormField,
-  AutoQuestionsFormField,
-} from '@/components/auto-keywords-form-field';
-import PageRankFormField from '@/components/page-rank-form-field';
-import { ConfigurationFormContainer } from '../configuration-form-container';
-import { TagItems } from '../tag-item';
-import { ChunkMethodItem, EmbeddingModelItem } from './common-item';
+  ConfigurationFormContainer,
+  MainContainer,
+} from '../configuration-form-container'
 
 export function PictureConfiguration() {
   return (
-    <ConfigurationFormContainer>
-      <ChunkMethodItem></ChunkMethodItem>
-      <EmbeddingModelItem></EmbeddingModelItem>
-
-      <PageRankFormField></PageRankFormField>
-
-      <>
-        <AutoKeywordsFormField></AutoKeywordsFormField>
-        <AutoQuestionsFormField></AutoQuestionsFormField>
-      </>
-      <TagItems></TagItems>
-    </ConfigurationFormContainer>
-  );
+    <MainContainer>
+      <ConfigurationFormContainer>
+        <div className="text-sm text-text-tertiary py-4 text-center">
+          图片解析器使用 OCR 和视觉理解，无需额外配置。
+        </div>
+      </ConfigurationFormContainer>
+    </MainContainer>
+  )
 }

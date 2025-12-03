@@ -1,31 +1,18 @@
+'use client'
+
 import {
-  AutoKeywordsFormField,
-  AutoQuestionsFormField,
-} from '@/components/auto-keywords-form-field';
-import { LayoutRecognizeFormField } from '@/components/layout-recognize-form-field';
-import PageRankFormField from '@/components/page-rank-form-field';
-import GraphRagItems from '@/components/parse-configuration/graph-rag-form-fields';
-import { ConfigurationFormContainer } from '../configuration-form-container';
-import { TagItems } from '../tag-item';
-import { ChunkMethodItem, EmbeddingModelItem } from './common-item';
+  ConfigurationFormContainer,
+  MainContainer,
+} from '../configuration-form-container'
 
 export function OneConfiguration() {
   return (
-    <ConfigurationFormContainer>
-      <ChunkMethodItem></ChunkMethodItem>
-      <LayoutRecognizeFormField></LayoutRecognizeFormField>
-      <EmbeddingModelItem></EmbeddingModelItem>
-
-      <PageRankFormField></PageRankFormField>
-
-      <>
-        <AutoKeywordsFormField></AutoKeywordsFormField>
-        <AutoQuestionsFormField></AutoQuestionsFormField>
-      </>
-
-      <GraphRagItems marginBottom></GraphRagItems>
-
-      <TagItems></TagItems>
-    </ConfigurationFormContainer>
-  );
+    <MainContainer>
+      <ConfigurationFormContainer>
+        <div className="text-sm text-text-tertiary py-4 text-center">
+          单页解析器将整个文档作为一个块处理，无需额外配置。
+        </div>
+      </ConfigurationFormContainer>
+    </MainContainer>
+  )
 }

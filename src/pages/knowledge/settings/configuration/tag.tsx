@@ -1,14 +1,18 @@
-import PageRankFormField from '@/components/page-rank-form-field';
-import { ConfigurationFormContainer } from '../configuration-form-container';
-import { ChunkMethodItem, EmbeddingModelItem } from './common-item';
+'use client'
+
+import {
+  ConfigurationFormContainer,
+  MainContainer,
+} from '../configuration-form-container'
 
 export function TagConfiguration() {
   return (
-    <ConfigurationFormContainer>
-      <ChunkMethodItem></ChunkMethodItem>
-      <EmbeddingModelItem></EmbeddingModelItem>
-
-      <PageRankFormField></PageRankFormField>
-    </ConfigurationFormContainer>
-  );
+    <MainContainer>
+      <ConfigurationFormContainer>
+        <div className="text-sm text-text-tertiary py-4 text-center">
+          标签解析器用于创建标签知识库，无需额外配置。
+        </div>
+      </ConfigurationFormContainer>
+    </MainContainer>
+  )
 }

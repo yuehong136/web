@@ -1,17 +1,18 @@
-import PageRankFormField from '@/components/page-rank-form-field';
-import { ConfigurationFormContainer } from '../configuration-form-container';
-import { TagItems } from '../tag-item';
-import { ChunkMethodItem, EmbeddingModelItem } from './common-item';
+'use client'
+
+import {
+  ConfigurationFormContainer,
+  MainContainer,
+} from '../configuration-form-container'
 
 export function ResumeConfiguration() {
   return (
+    <MainContainer>
     <ConfigurationFormContainer>
-      <ChunkMethodItem></ChunkMethodItem>
-      <EmbeddingModelItem></EmbeddingModelItem>
-
-      <PageRankFormField></PageRankFormField>
-
-      <TagItems></TagItems>
+        <div className="text-sm text-text-tertiary py-4 text-center">
+          简历解析器使用专门的结构化解析，无需额外配置。
+        </div>
     </ConfigurationFormContainer>
-  );
+    </MainContainer>
+  )
 }

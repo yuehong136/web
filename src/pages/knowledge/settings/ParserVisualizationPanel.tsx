@@ -1,13 +1,14 @@
-import React, { useMemo } from 'react';
-import { DocumentParserType, DOCUMENT_PARSER_TYPE_LABELS, DOCUMENT_PARSER_TYPE_DESCRIPTIONS } from '@/types/document-parser';
-import SvgIcon from '@/components/ui/svg-icon';
-import { Card } from '@/components/ui/card';
+import React, { useMemo } from 'react'
+import { DocumentParserType, DOCUMENT_PARSER_TYPE_LABELS, DOCUMENT_PARSER_TYPE_DESCRIPTIONS } from '@/types/document-parser'
+import SvgIcon from '@/components/ui/svg-icon'
+import { Card } from '@/components/ui/card'
+import { FileText, Lightbulb, Image } from 'lucide-react'
 
 // 图片映射配置
 const getImageName = (prefix: string, length: number) =>
   new Array(length)
     .fill(0)
-    .map((x, idx) => `chunk-method/${prefix}-0${idx + 1}`);
+    .map((_, idx) => `chunk-method/${prefix}-0${idx + 1}`)
 
 export const ImageMap: Record<string, string[]> = {
   book: getImageName('book', 4),
@@ -50,70 +51,62 @@ const ParserVisualizationPanel: React.FC<ParserVisualizationPanelProps> = ({
   if (!parserInfo) {
     return (
       <div className="h-full flex flex-col items-center justify-center text-center p-8">
-        <div className="w-32 h-32 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center mb-6">
-          <svg className="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
+        <div className="w-24 h-24 bg-background-subtle rounded-2xl flex items-center justify-center mb-5">
+          <FileText className="w-12 h-12 text-text-tertiary" />
         </div>
-        <h3 className="text-lg font-medium text-gray-900 mb-2">选择解析器类型</h3>
-        <p className="text-sm text-gray-500 max-w-sm">
-          请在左侧选择一种解析器类型，我们将为您展示相应的配置选项和使用示例
+        <h3 className="text-base font-medium text-text-primary mb-2">选择解析器类型</h3>
+        <p className="text-sm text-text-tertiary max-w-xs">
+          请在左侧选择一种解析器类型，我们将展示相应的说明和示例
         </p>
       </div>
-    );
+    )
   }
 
-  const detailedInfo = getParserDetailedDescription(selectedParser as DocumentParserType);
+  const detailedInfo = getParserDetailedDescription(selectedParser as DocumentParserType)
 
   return (
     <div className="h-full overflow-y-auto scrollbar-thin">
       {/* 头部信息 */}
-      <div className="p-6 border-b border-gray-100">
-        <div className="flex items-start space-x-4">
-          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0">
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-            </svg>
+      <div className="p-6 border-b border-border">
+        <div className="flex items-start gap-4">
+          <div className="w-11 h-11 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
+            <Lightbulb className="w-5 h-5 text-primary" />
           </div>
-          <div className="flex-1">
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">
+          <div className="flex-1 min-w-0">
+            <h2 className="text-lg font-semibold text-text-primary mb-1.5">
               {parserInfo.title}
             </h2>
-            <div className="text-sm text-gray-600 mb-3">
-              <span className="font-medium text-gray-700">支持格式：</span>
-              <span className="text-blue-600">{detailedInfo.supportedFormats}</span>
+            <div className="text-sm text-text-secondary">
+              <span className="font-medium">支持格式：</span>
+              <span className="text-primary">{detailedInfo.supportedFormats}</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* 分块方法说明 */}
-      <div className="p-6 border-b border-gray-100">
-        <h3 className="text-lg font-medium text-gray-900 mb-3">分块方法说明</h3>
-        <div className="prose prose-sm max-w-none text-gray-600">
-          <div className="whitespace-pre-line leading-relaxed">
-            {detailedInfo.description}
-          </div>
+      <div className="p-6 border-b border-border">
+        <h3 className="text-base font-medium text-text-primary mb-3">分块方法说明</h3>
+        <div className="text-sm text-text-secondary leading-relaxed whitespace-pre-line">
+          {detailedInfo.description}
         </div>
       </div>
 
       {/* 使用示例 */}
       {parserInfo.images.length > 0 && (
         <div className="p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-3 flex items-center">
-            <svg className="w-5 h-5 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
+          <h3 className="text-base font-medium text-text-primary mb-3 flex items-center gap-2">
+            <Image className="w-4 h-4 text-primary" />
             使用示例
           </h3>
-          <p className="text-sm text-gray-500 mb-4">
+          <p className="text-sm text-text-tertiary mb-4">
             为帮助您更好地理解，我们提供了相关截图供您参考。
           </p>
           
           <div className="grid gap-4 grid-cols-1">
             {parserInfo.images.map((imageName, index) => (
-              <Card key={index} className="p-3 hover:shadow-md transition-shadow duration-200">
-                <div className="aspect-[4/3] bg-gray-50 rounded-lg overflow-hidden mb-2">
+              <Card key={index} className="p-3 bg-background-subtle border-border/50 hover:border-border transition-colors">
+                <div className="aspect-[4/3] bg-background rounded-lg overflow-hidden mb-2">
                   <SvgIcon
                     name={imageName}
                     width="100%"
@@ -121,7 +114,7 @@ const ParserVisualizationPanel: React.FC<ParserVisualizationPanelProps> = ({
                     className="object-contain"
                   />
                 </div>
-                <p className="text-xs text-gray-500 text-center">
+                <p className="text-xs text-text-tertiary text-center">
                   示例 {index + 1}
                 </p>
               </Card>
@@ -130,8 +123,8 @@ const ParserVisualizationPanel: React.FC<ParserVisualizationPanelProps> = ({
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
 // 获取解析器详细说明信息
 function getParserDetailedDescription(parserType: DocumentParserType): { description: string; supportedFormats: string } {
@@ -236,27 +229,4 @@ chunk的粒度与'ARTICLE'一致，所有上层文本都会包含在chunk中。`
   return descriptions[parserType] || { description: '请配置相应的解析参数以获得最佳效果。', supportedFormats: '多种格式' };
 }
 
-// 获取解析器特性
-function getParserFeatures(parserType: DocumentParserType): string[] {
-  const features: Record<DocumentParserType, string[]> = {
-    [DocumentParserType.Naive]: ['智能布局识别', '自动分块', '关键词提取', '多格式支持'],
-    [DocumentParserType.Qa]: ['问答对识别', '上下文关联', '语义理解', '快速检索'],
-    [DocumentParserType.Resume]: ['个人信息提取', '工作经历分析', '技能识别', '教育背景'],
-    [DocumentParserType.Manual]: ['自定义规则', '精确控制', '灵活配置', '专业级处理'],
-    [DocumentParserType.Table]: ['表格结构保持', '数据关系识别', '跨表关联', '格式转换'],
-    [DocumentParserType.Paper]: ['学术结构识别', '引用分析', '图表处理', '多语言支持'],
-    [DocumentParserType.Book]: ['章节自动分割', '目录识别', '页码处理', '长文档优化'],
-    [DocumentParserType.Laws]: ['法条识别', '层级结构', '条款关联', '法律术语'],
-    [DocumentParserType.Presentation]: ['幻灯片分割', '视觉布局', '动画识别', '多媒体处理'],
-    [DocumentParserType.Picture]: ['OCR文字识别', '图像分析', '版面检测', '多语言OCR'],
-    [DocumentParserType.One]: ['快速处理', '单页优化', '简洁高效', '即时解析'],
-    [DocumentParserType.Audio]: ['语音转文本', '说话人识别', '时间戳', '噪音过滤'],
-    [DocumentParserType.Email]: ['邮件头解析', '附件处理', '线程识别', '联系人提取'],
-    [DocumentParserType.Tag]: ['智能标签', '分类管理', '相似度计算', '标签推荐'],
-    [DocumentParserType.KnowledgeGraph]: ['实体识别', '关系抽取', '图谱构建', '知识推理'],
-  };
-  
-  return features[parserType] || ['高效处理', '智能解析', '准确识别', '稳定可靠'];
-}
-
-export default ParserVisualizationPanel;
+export default ParserVisualizationPanel
