@@ -3,18 +3,18 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "./utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-state-focus focus-visible:ring-offset-2",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:ring-1 focus-visible:ring-primary",
   {
     variants: {
       variant: {
-        default: "bg-components-button-primary-bg text-components-button-primary-text hover:bg-components-button-primary-bg-hover active:bg-components-button-primary-bg-active border-components-button-primary-border",
-        destructive: "bg-state-error text-white hover:bg-state-error/90 focus-visible:ring-state-error/20",
-        outline: "border bg-components-button-secondary-bg text-components-button-secondary-text hover:bg-components-button-secondary-bg-hover border-components-button-secondary-border hover:border-components-button-secondary-border-hover",
-        secondary: "bg-components-button-secondary-bg text-components-button-secondary-text hover:bg-components-button-secondary-bg-hover active:bg-components-button-secondary-bg-active",
+        default: "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90",
+        destructive: "bg-state-error text-white shadow-sm hover:bg-state-error/90",
+        outline: "border bg-components-button-secondary-bg text-components-button-secondary-text shadow-sm hover:bg-components-button-secondary-bg-hover border-components-button-secondary-border hover:border-components-button-secondary-border-hover",
+        secondary: "bg-components-button-secondary-bg text-components-button-secondary-text shadow-sm hover:bg-components-button-secondary-bg-hover",
         ghost: "hover:bg-components-button-ghost-bg-hover text-components-button-ghost-text",
         link: "text-text-accent underline-offset-4 hover:underline",
-        success: "bg-state-success text-white hover:bg-state-success/90",
-        warning: "bg-state-warning text-white hover:bg-state-warning/90",
+        success: "bg-state-success text-white shadow-sm hover:bg-state-success/90",
+        warning: "bg-state-warning text-white shadow-sm hover:bg-state-warning/90",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",

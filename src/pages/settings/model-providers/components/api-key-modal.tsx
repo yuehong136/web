@@ -6,21 +6,65 @@ import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { ProviderIcon } from '@/components/ui/provider-icon'
-import { cn } from '@/lib/utils'
 
-// 需要 Base URL 的厂商
-const MODELS_WITH_BASE_URL = [
+// ========== 厂商分类 ==========
+
+// 只需要 API Key 的普通厂商
+const SIMPLE_API_KEY_FACTORIES = [
   'OpenAI',
-  'Azure-OpenAI', 
   'Tongyi-Qianwen',
   'MiniMax',
   'Anthropic',
   'DeepSeek',
   'Moonshot',
-  'ZHIPU-AI'
+  'ZHIPU-AI',
+  'Gemini',
+  'Groq',
+  'Mistral',
+  'Jina',
+  'NVIDIA',
+  'StepFun',
+  'SiliconFlow',
+  'Cohere',
+  'Perplexity',
+  'xAI',
+  'Ai302',
+  'DeepInfra',
+  'Meituan',
+  'Longcat',
+  'DeerAPI',
+  'CometAPI',
 ]
 
-// 本地模型厂商配置
+// 需要显示 Base URL 选项的普通 API Key 厂商
+const API_KEY_WITH_BASE_URL = [
+  'OpenAI',
+  'Tongyi-Qianwen',
+  'MiniMax',
+  'Anthropic',
+]
+
+// Base URL 提示和占位符
+const BASE_URL_CONFIG: Record<string, { placeholder: string; tooltip?: string }> = {
+  'OpenAI': { 
+    placeholder: 'https://api.openai.com/v1',
+    tooltip: '如果使用代理或自定义端点，请填写'
+  },
+  'Tongyi-Qianwen': { 
+    placeholder: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
+    tooltip: '通义千问 OpenAI 兼容接口地址'
+  },
+  'MiniMax': { 
+    placeholder: 'https://api.minimax.chat/v1',
+    tooltip: 'MiniMax API 地址'
+  },
+  'Anthropic': { 
+    placeholder: 'https://api.anthropic.com/v1',
+    tooltip: '如果使用代理，请填写'
+  },
+}
+
+// 本地模型厂商配置（需要 Base URL、模型名、类型等）
 const LOCAL_MODEL_FACTORIES = [
   'Ollama',
   'Xinference', 
@@ -36,17 +80,17 @@ const LOCAL_MODEL_FACTORIES = [
   'ModelScope'
 ]
 
-// 特殊配置厂商（需要额外参数）
-const SPECIAL_CONFIG_FACTORIES = [
-  'VolcEngine',
-  'Bedrock',
-  'Azure-OpenAI',
-  'Tencent Hunyuan',
-  'Tencent Cloud',
-  'XunFei Spark',
-  'BaiduYiyan',
-  'Fish Audio',
-  'Google Cloud'
+// 特殊表单厂商（每个都有独特的字段）
+const SPECIAL_FORM_FACTORIES = [
+  'Tencent Hunyuan',      // 混元：Secret ID + Secret Key
+  'Tencent Cloud',        // 腾讯云语音：SecretId + SecretKey + 预设模型
+  'XunFei Spark',         // 讯飞星火：API Password + (TTS: AppId, ApiSecret, ApiKey)
+  'BaiduYiyan',           // 百度文心：AK + SK
+  'Fish Audio',           // Fish Audio：AK + RefID
+  'Google Cloud',         // Google Cloud：ProjectID + Region + ServiceAccountKey
+  'Azure-OpenAI',         // Azure：BaseUrl + ApiKey + ModelName + ApiVersion
+  'VolcEngine',           // 火山引擎：EndpointID + ARK API Key
+  'Bedrock',              // AWS Bedrock：AK + SK + Region
 ]
 
 // 厂商文档链接
@@ -67,6 +111,8 @@ const FACTORY_DOC_LINKS: Record<string, string> = {
   'Bedrock': 'https://console.aws.amazon.com/',
   'Azure-OpenAI': 'https://azure.microsoft.com/en-us/products/ai-services/openai-service',
   'Google Cloud': 'https://cloud.google.com/vertex-ai',
+  'Fish Audio': 'https://fish.audio',
+  'Tencent Cloud': 'https://cloud.tencent.com/document/api/1093/37823',
 }
 
 // 各厂商支持的模型类型
@@ -112,6 +158,30 @@ const FACTORY_MODEL_TYPES: Record<string, { value: string; label: string }[]> = 
     { value: 'chat', label: 'Chat' },
     { value: 'embedding', label: 'Embedding' },
   ],
+  'XunFei Spark': [
+    { value: 'chat', label: 'Chat' },
+    { value: 'tts', label: 'TTS' },
+  ],
+  'BaiduYiyan': [
+    { value: 'chat', label: 'Chat' },
+    { value: 'embedding', label: 'Embedding' },
+    { value: 'rerank', label: 'Rerank' },
+  ],
+  'Fish Audio': [
+    { value: 'tts', label: 'TTS' },
+  ],
+  'Tencent Cloud': [
+    { value: 'speech2text', label: 'Speech2Text' },
+  ],
+  'Google Cloud': [
+    { value: 'chat', label: 'Chat' },
+    { value: 'image2text', label: 'Image2Text' },
+  ],
+  'Azure-OpenAI': [
+    { value: 'chat', label: 'Chat' },
+    { value: 'embedding', label: 'Embedding' },
+    { value: 'image2text', label: 'Image2Text' },
+  ],
   'Default': [
     { value: 'chat', label: 'Chat' },
     { value: 'embedding', label: 'Embedding' },
@@ -145,6 +215,19 @@ const BEDROCK_REGIONS = [
   'eu-west-3',
 ]
 
+// 腾讯云语音模型列表
+const TENCENT_CLOUD_MODELS = [
+  { value: '16k_zh', label: '16k_zh (中文普通话)' },
+  { value: '16k_zh_large', label: '16k_zh_large (中文普通话-大模型)' },
+  { value: '16k_multi_lang', label: '16k_multi_lang (多语种)' },
+  { value: '16k_zh_dialect', label: '16k_zh_dialect (中文方言)' },
+  { value: '16k_en', label: '16k_en (英语)' },
+  { value: '16k_yue', label: '16k_yue (粤语)' },
+  { value: '16k_zh-PY', label: '16k_zh-PY (中英混合)' },
+  { value: '16k_ja', label: '16k_ja (日语)' },
+  { value: '16k_ko', label: '16k_ko (韩语)' },
+]
+
 interface ApiKeyModalProps {
   isOpen: boolean
   onClose: () => void
@@ -160,12 +243,12 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
   isLocal: isLocalProp,
   onSave
 }) => {
-  // 判断是否是本地模型厂商
+  // 判断厂商类型
   const isLocal = isLocalProp ?? LOCAL_MODEL_FACTORIES.includes(providerName)
-  const isSpecialConfig = SPECIAL_CONFIG_FACTORIES.includes(providerName)
-  const needsBaseUrl = MODELS_WITH_BASE_URL.includes(providerName) || isLocal
+  const isSpecialForm = SPECIAL_FORM_FACTORIES.includes(providerName)
+  const isSimpleApiKey = SIMPLE_API_KEY_FACTORIES.includes(providerName)
 
-  // 表单状态
+  // 通用表单状态
   const [apiKey, setApiKey] = useState('')
   const [baseUrl, setBaseUrl] = useState('')
   const [modelType, setModelType] = useState('chat')
@@ -174,11 +257,41 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
   const [vision, setVision] = useState(false)
   const [groupId, setGroupId] = useState('') // MiniMax 专用
   
-  // VolcEngine 特殊字段
+  // Hunyuan (混元) 字段
+  const [hunyuanSid, setHunyuanSid] = useState('')
+  const [hunyuanSk, setHunyuanSk] = useState('')
+  
+  // TencentCloud (腾讯云语音) 字段
+  const [tencentCloudSid, setTencentCloudSid] = useState('')
+  const [tencentCloudSk, setTencentCloudSk] = useState('')
+  
+  // XunFei Spark (讯飞星火) 字段
+  const [sparkApiPassword, setSparkApiPassword] = useState('')
+  const [sparkAppId, setSparkAppId] = useState('')
+  const [sparkApiSecret, setSparkApiSecret] = useState('')
+  const [sparkApiKey, setSparkApiKey] = useState('')
+  
+  // BaiduYiyan (百度文心) 字段
+  const [yiyanAk, setYiyanAk] = useState('')
+  const [yiyanSk, setYiyanSk] = useState('')
+  
+  // Fish Audio 字段
+  const [fishAudioAk, setFishAudioAk] = useState('')
+  const [fishAudioRefId, setFishAudioRefId] = useState('')
+  
+  // Google Cloud 字段
+  const [googleProjectId, setGoogleProjectId] = useState('')
+  const [googleRegion, setGoogleRegion] = useState('')
+  const [googleServiceAccountKey, setGoogleServiceAccountKey] = useState('')
+  
+  // Azure OpenAI 字段
+  const [azureApiVersion, setAzureApiVersion] = useState('2024-02-01')
+  
+  // VolcEngine 字段
   const [endpointId, setEndpointId] = useState('')
   const [arkApiKey, setArkApiKey] = useState('')
   
-  // Bedrock 特殊字段
+  // Bedrock 字段
   const [bedrockAk, setBedrockAk] = useState('')
   const [bedrockSk, setBedrockSk] = useState('')
   const [bedrockRegion, setBedrockRegion] = useState('')
@@ -190,105 +303,358 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
   const docLink = FACTORY_DOC_LINKS[providerName]
   const modelTypes = FACTORY_MODEL_TYPES[providerName] || FACTORY_MODEL_TYPES['Default']
   const defaultBaseUrl = DEFAULT_BASE_URLS[providerName] || ''
+  
+  // 获取默认模型类型
+  const getDefaultModelType = () => {
+    if (providerName === 'Fish Audio') return 'tts'
+    if (providerName === 'Tencent Cloud') return 'speech2text'
+    if (providerName === 'Azure-OpenAI') return 'embedding'
+    return 'chat'
+  }
 
   // 重置表单
   useEffect(() => {
     if (isOpen) {
       setApiKey('')
       setBaseUrl(defaultBaseUrl)
-      setModelType('chat')
-      setModelName('')
+      setModelType(getDefaultModelType())
+      setModelName(providerName === 'Azure-OpenAI' ? 'gpt-3.5-turbo' : '')
       setMaxTokens(8192)
       setVision(false)
       setGroupId('')
+      // Hunyuan
+      setHunyuanSid('')
+      setHunyuanSk('')
+      // TencentCloud
+      setTencentCloudSid('')
+      setTencentCloudSk('')
+      // Spark
+      setSparkApiPassword('')
+      setSparkAppId('')
+      setSparkApiSecret('')
+      setSparkApiKey('')
+      // Yiyan
+      setYiyanAk('')
+      setYiyanSk('')
+      // Fish Audio
+      setFishAudioAk('')
+      setFishAudioRefId('')
+      // Google Cloud
+      setGoogleProjectId('')
+      setGoogleRegion('')
+      setGoogleServiceAccountKey('')
+      // Azure
+      setAzureApiVersion('2024-02-01')
+      // VolcEngine
       setEndpointId('')
       setArkApiKey('')
+      // Bedrock
       setBedrockAk('')
       setBedrockSk('')
       setBedrockRegion('')
       setError('')
     }
-  }, [isOpen, defaultBaseUrl])
+  }, [isOpen, defaultBaseUrl, providerName])
 
   const handleSave = async () => {
-    // 验证必填字段
-    if (!isLocal && !isSpecialConfig && !apiKey.trim()) {
-      setError('请输入 API Key')
-      return
-    }
-
-    if (isLocal || isSpecialConfig) {
-      if (!modelName.trim()) {
-        setError('请输入模型名称')
-        return
-      }
-    }
-    
-    if (isLocal && !baseUrl.trim()) {
-      setError('请输入 Base URL')
-      return
-    }
-
-    // VolcEngine 特殊验证
-    if (providerName === 'VolcEngine') {
-      if (!endpointId.trim()) {
-        setError('请输入 Endpoint ID')
-        return
-      }
-      if (!arkApiKey.trim()) {
-        setError('请输入 ARK API Key')
-        return
-      }
-    }
-
-    // Bedrock 特殊验证
-    if (providerName === 'Bedrock') {
-      if (!bedrockAk.trim()) {
-        setError('请输入 Access Key')
-        return
-      }
-      if (!bedrockSk.trim()) {
-        setError('请输入 Secret Key')
-        return
-      }
-      if (!bedrockRegion) {
-        setError('请选择区域')
-        return
-      }
-    }
-
     setIsLoading(true)
     setError('')
 
     try {
       const additionalParams: Record<string, any> = {}
+      let finalApiKey = apiKey.trim()
+      let finalBaseUrl = baseUrl.trim() || undefined
       
-      if (isLocal || isSpecialConfig) {
-        // 本地模型和特殊配置模型需要额外参数
+      // ========== 特殊表单厂商验证和参数构建 ==========
+      
+      // Hunyuan (混元) - 只需要 SID 和 SK
+      if (providerName === 'Tencent Hunyuan') {
+        if (!hunyuanSid.trim()) {
+          setError('请输入混元 Secret ID')
+          setIsLoading(false)
+          return
+        }
+        if (!hunyuanSk.trim()) {
+          setError('请输入混元 Secret Key')
+          setIsLoading(false)
+          return
+        }
+        additionalParams.hunyuan_sid = hunyuanSid
+        additionalParams.hunyuan_sk = hunyuanSk
+        additionalParams.llm_factory = providerName
+      }
+      
+      // TencentCloud (腾讯云语音)
+      else if (providerName === 'Tencent Cloud') {
+        if (!tencentCloudSid.trim()) {
+          setError('请输入腾讯云 SecretId')
+          setIsLoading(false)
+          return
+        }
+        if (!tencentCloudSk.trim()) {
+          setError('请输入腾讯云 SecretKey')
+          setIsLoading(false)
+          return
+        }
+        if (!modelName.trim()) {
+          setError('请选择模型')
+          setIsLoading(false)
+          return
+        }
+        additionalParams.TencentCloud_sid = tencentCloudSid
+        additionalParams.TencentCloud_sk = tencentCloudSk
+        additionalParams.llm_name = modelName
+        additionalParams.model_type = 'speech2text'
+        additionalParams.max_tokens = 16000
+        additionalParams.llm_factory = providerName
+      }
+      
+      // XunFei Spark (讯飞星火)
+      else if (providerName === 'XunFei Spark') {
+        if (!modelName.trim()) {
+          setError('请输入模型名称')
+          setIsLoading(false)
+          return
+        }
+        if (!sparkApiPassword.trim()) {
+          setError('请输入 API Password')
+          setIsLoading(false)
+          return
+        }
+        // TTS 模式需要额外字段
+        if (modelType === 'tts') {
+          if (!sparkAppId.trim()) {
+            setError('请输入 APP ID')
+            setIsLoading(false)
+            return
+          }
+          if (!sparkApiSecret.trim()) {
+            setError('请输入 API Secret')
+            setIsLoading(false)
+            return
+          }
+          if (!sparkApiKey.trim()) {
+            setError('请输入 API Key')
+            setIsLoading(false)
+            return
+          }
+          additionalParams.spark_app_id = sparkAppId
+          additionalParams.spark_api_secret = sparkApiSecret
+          additionalParams.spark_api_key = sparkApiKey
+        }
+        additionalParams.spark_api_password = sparkApiPassword
+        additionalParams.llm_name = modelName
+        additionalParams.model_type = modelType
+        additionalParams.max_tokens = maxTokens
+        additionalParams.llm_factory = providerName
+      }
+      
+      // BaiduYiyan (百度文心)
+      else if (providerName === 'BaiduYiyan') {
+        if (!modelName.trim()) {
+          setError('请输入模型名称')
+          setIsLoading(false)
+          return
+        }
+        if (!yiyanAk.trim()) {
+          setError('请输入 API Key (AK)')
+          setIsLoading(false)
+          return
+        }
+        if (!yiyanSk.trim()) {
+          setError('请输入 Secret Key (SK)')
+          setIsLoading(false)
+          return
+        }
+        additionalParams.yiyan_ak = yiyanAk
+        additionalParams.yiyan_sk = yiyanSk
+        additionalParams.llm_name = modelName
+        additionalParams.model_type = modelType
+        additionalParams.max_tokens = maxTokens
+        additionalParams.llm_factory = providerName
+      }
+      
+      // Fish Audio
+      else if (providerName === 'Fish Audio') {
+        if (!modelName.trim()) {
+          setError('请输入模型名称')
+          setIsLoading(false)
+          return
+        }
+        if (!fishAudioAk.trim()) {
+          setError('请输入 API Key')
+          setIsLoading(false)
+          return
+        }
+        if (!fishAudioRefId.trim()) {
+          setError('请输入 Reference ID')
+          setIsLoading(false)
+          return
+        }
+        additionalParams.fish_audio_ak = fishAudioAk
+        additionalParams.fish_audio_refid = fishAudioRefId
+        additionalParams.llm_name = modelName
+        additionalParams.model_type = 'tts'
+        additionalParams.max_tokens = maxTokens
+        additionalParams.llm_factory = providerName
+      }
+      
+      // Google Cloud
+      else if (providerName === 'Google Cloud') {
+        if (!modelName.trim()) {
+          setError('请输入模型 ID')
+          setIsLoading(false)
+          return
+        }
+        if (!googleProjectId.trim()) {
+          setError('请输入 Project ID')
+          setIsLoading(false)
+          return
+        }
+        if (!googleRegion.trim()) {
+          setError('请输入 Region')
+          setIsLoading(false)
+          return
+        }
+        if (!googleServiceAccountKey.trim()) {
+          setError('请输入 Service Account Key')
+          setIsLoading(false)
+          return
+        }
+        additionalParams.google_project_id = googleProjectId
+        additionalParams.google_region = googleRegion
+        additionalParams.google_service_account_key = googleServiceAccountKey
+        additionalParams.llm_name = modelName
+        additionalParams.model_type = modelType
+        additionalParams.max_tokens = maxTokens
+        additionalParams.llm_factory = providerName
+      }
+      
+      // Azure OpenAI
+      else if (providerName === 'Azure-OpenAI') {
+        if (!baseUrl.trim()) {
+          setError('请输入 Base URL')
+          setIsLoading(false)
+          return
+        }
+        if (!modelName.trim()) {
+          setError('请输入模型名称')
+          setIsLoading(false)
+          return
+        }
+        additionalParams.api_base = baseUrl
+        additionalParams.api_key = apiKey
+        additionalParams.api_version = azureApiVersion
         additionalParams.llm_name = modelName
         additionalParams.model_type = vision && modelType === 'chat' ? 'image2text' : modelType
         additionalParams.max_tokens = maxTokens
         additionalParams.llm_factory = providerName
       }
-
-      // VolcEngine 特殊参数
-      if (providerName === 'VolcEngine') {
+      
+      // VolcEngine (火山引擎)
+      else if (providerName === 'VolcEngine') {
+        if (!modelName.trim()) {
+          setError('请输入模型名称')
+          setIsLoading(false)
+          return
+        }
+        if (!endpointId.trim()) {
+          setError('请输入 Endpoint ID')
+          setIsLoading(false)
+          return
+        }
+        if (!arkApiKey.trim()) {
+          setError('请输入 ARK API Key')
+          setIsLoading(false)
+          return
+        }
         additionalParams.endpoint_id = endpointId
         additionalParams.ark_api_key = arkApiKey
+        additionalParams.llm_name = modelName
+        additionalParams.model_type = modelType
+        additionalParams.max_tokens = maxTokens
+        additionalParams.llm_factory = providerName
       }
-
-      // Bedrock 特殊参数
-      if (providerName === 'Bedrock') {
+      
+      // Bedrock
+      else if (providerName === 'Bedrock') {
+        if (!modelName.trim()) {
+          setError('请输入模型名称')
+          setIsLoading(false)
+          return
+        }
+        if (!bedrockAk.trim()) {
+          setError('请输入 Access Key')
+          setIsLoading(false)
+          return
+        }
+        if (!bedrockSk.trim()) {
+          setError('请输入 Secret Key')
+          setIsLoading(false)
+          return
+        }
+        if (!bedrockRegion) {
+          setError('请选择区域')
+          setIsLoading(false)
+          return
+        }
         additionalParams.bedrock_ak = bedrockAk
         additionalParams.bedrock_sk = bedrockSk
         additionalParams.bedrock_region = bedrockRegion
+        additionalParams.llm_name = modelName
+        additionalParams.model_type = modelType
+        additionalParams.max_tokens = maxTokens
+        additionalParams.llm_factory = providerName
+      }
+      
+      // ========== 本地模型厂商 ==========
+      else if (isLocal) {
+        if (!modelName.trim()) {
+          setError('请输入模型名称')
+          setIsLoading(false)
+          return
+        }
+        if (!baseUrl.trim()) {
+          setError('请输入 Base URL')
+          setIsLoading(false)
+          return
+        }
+        additionalParams.llm_name = modelName
+        additionalParams.model_type = vision && modelType === 'chat' ? 'image2text' : modelType
+        additionalParams.max_tokens = maxTokens
+        additionalParams.llm_factory = providerName
+        additionalParams.api_base = baseUrl
+        if (apiKey.trim()) {
+          additionalParams.api_key = apiKey
+        }
+      }
+      
+      // ========== 普通 API Key 厂商 ==========
+      else if (isSimpleApiKey) {
+        if (!apiKey.trim()) {
+          setError('请输入 API Key')
+          setIsLoading(false)
+          return
+        }
+        // 传递可选的 Base URL
+        if (baseUrl.trim()) {
+          finalBaseUrl = baseUrl.trim()
+        }
+        if (providerName === 'MiniMax' && groupId) {
+          additionalParams.group_id = groupId
+        }
+      }
+      
+      // ========== 其他厂商（兜底） ==========
+      else {
+        if (!apiKey.trim()) {
+          setError('请输入 API Key')
+          setIsLoading(false)
+          return
+        }
       }
 
-      if (providerName === 'MiniMax' && groupId) {
-        additionalParams.group_id = groupId
-      }
-
-      await onSave(apiKey.trim(), baseUrl.trim() || undefined, additionalParams)
+      await onSave(finalApiKey, finalBaseUrl, additionalParams)
       handleClose()
     } catch (err: any) {
       setError(err?.message || '保存失败，请重试')
@@ -308,10 +674,24 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
 
   if (!isOpen) return null
 
+  // 获取模态框标题
+  const getModalTitle = () => {
+    if (isLocal) return `添加 ${providerName} 模型`
+    if (isSpecialForm) return `添加 ${providerName} LLM`
+    return `设置 ${providerName}`
+  }
+
+  // 获取模态框描述
+  const getModalDescription = () => {
+    if (isLocal) return '配置本地模型服务'
+    if (isSpecialForm) return '配置模型参数'
+    return '设置 API 密钥'
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <DialogContent 
-        title={isLocal ? `添加 ${providerName} 模型` : `设置 ${providerName}`}
+        title={getModalTitle()}
         className="max-w-lg"
       >
         <div className="space-y-5">
@@ -326,245 +706,769 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                 {providerName}
               </h3>
               <p className="text-sm text-text-secondary">
-                {isLocal ? '配置本地模型服务' : '设置 API 密钥'}
+                {getModalDescription()}
               </p>
             </div>
           </div>
 
           {/* 表单 */}
           <div className="space-y-4">
-            {/* 本地模型和特殊配置：模型类型选择 */}
-            {(isLocal || isSpecialConfig) && (
-              <div>
-                <label className="block text-sm font-medium text-text-primary mb-2">
-                  模型类型 <span className="text-red-500">*</span>
-                </label>
-                <Select value={modelType} onValueChange={setModelType}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="选择模型类型" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {modelTypes.map(type => (
-                      <SelectItem key={type.value} value={type.value}>
-                        {type.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            {/* ========== Hunyuan (混元) 专用表单 ========== */}
+            {providerName === 'Tencent Hunyuan' && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    混元 Secret ID <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    value={hunyuanSid}
+                    onChange={(e) => setHunyuanSid(e.target.value)}
+                    placeholder="请输入 Secret ID"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    混元 Secret Key <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    type="password"
+                    value={hunyuanSk}
+                    onChange={(e) => setHunyuanSk(e.target.value)}
+                    placeholder="请输入 Secret Key"
+                  />
+                </div>
+              </>
             )}
 
-            {/* 本地模型和特殊配置：模型名称 */}
-            {(isLocal || isSpecialConfig) && (
-              <div>
-                <label className="block text-sm font-medium text-text-primary mb-2">
-                  {providerName === 'Xinference' ? '模型 UID' : '模型名称'} <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  value={modelName}
-                  onChange={(e) => {
-                    setModelName(e.target.value)
-                    setError('')
-                  }}
-                  placeholder={providerName === 'Xinference' ? '请输入模型 UID' : '请输入模型名称'}
-                />
-              </div>
+            {/* ========== TencentCloud (腾讯云语音) 专用表单 ========== */}
+            {providerName === 'Tencent Cloud' && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    模型类型
+                  </label>
+                  <Input 
+                    value="speech2text" 
+                    disabled 
+                    className="bg-muted cursor-not-allowed"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    模型 <span className="text-red-500">*</span>
+                  </label>
+                  <Select value={modelName} onValueChange={setModelName}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="选择模型" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TENCENT_CLOUD_MODELS.map(model => (
+                        <SelectItem key={model.value} value={model.value}>
+                          {model.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    腾讯云 SecretId <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    value={tencentCloudSid}
+                    onChange={(e) => setTencentCloudSid(e.target.value)}
+                    placeholder="请输入 SecretId"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    腾讯云 SecretKey <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    type="password"
+                    value={tencentCloudSk}
+                    onChange={(e) => setTencentCloudSk(e.target.value)}
+                    placeholder="请输入 SecretKey"
+                  />
+                </div>
+              </>
             )}
 
-            {/* VolcEngine 特殊字段：Endpoint ID */}
-            {providerName === 'VolcEngine' && (
-              <div>
-                <label className="block text-sm font-medium text-text-primary mb-2">
-                  Endpoint ID <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  value={endpointId}
-                  onChange={(e) => setEndpointId(e.target.value)}
-                  placeholder="请输入 Endpoint ID"
-                />
-              </div>
-            )}
-
-            {/* VolcEngine 特殊字段：ARK API Key */}
-            {providerName === 'VolcEngine' && (
-              <div>
-                <label className="block text-sm font-medium text-text-primary mb-2">
-                  ARK API Key <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  type="password"
-                  value={arkApiKey}
-                  onChange={(e) => setArkApiKey(e.target.value)}
-                  placeholder="请输入 ARK API Key"
-                />
-              </div>
-            )}
-
-            {/* Bedrock 特殊字段：Access Key */}
-            {providerName === 'Bedrock' && (
-              <div>
-                <label className="block text-sm font-medium text-text-primary mb-2">
-                  Access Key <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  value={bedrockAk}
-                  onChange={(e) => setBedrockAk(e.target.value)}
-                  placeholder="请输入 AWS Access Key"
-                />
-              </div>
-            )}
-
-            {/* Bedrock 特殊字段：Secret Key */}
-            {providerName === 'Bedrock' && (
-              <div>
-                <label className="block text-sm font-medium text-text-primary mb-2">
-                  Secret Key <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  type="password"
-                  value={bedrockSk}
-                  onChange={(e) => setBedrockSk(e.target.value)}
-                  placeholder="请输入 AWS Secret Key"
-                />
-              </div>
-            )}
-
-            {/* Bedrock 特殊字段：Region */}
-            {providerName === 'Bedrock' && (
-              <div>
-                <label className="block text-sm font-medium text-text-primary mb-2">
-                  区域 <span className="text-red-500">*</span>
-                </label>
-                <Select value={bedrockRegion} onValueChange={setBedrockRegion}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="选择 AWS 区域" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {BEDROCK_REGIONS.map(region => (
-                      <SelectItem key={region} value={region}>
-                        {region}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            {/* Base URL */}
-            {needsBaseUrl && (
-              <div>
-                <label className="block text-sm font-medium text-text-primary mb-2">
-                  Base URL {isLocal && <span className="text-red-500">*</span>}
-                  {!isLocal && <span className="text-text-tertiary font-normal ml-1">(可选)</span>}
-                </label>
-                <Input
-                  type="url"
-                  value={baseUrl}
-                  onChange={(e) => setBaseUrl(e.target.value)}
-                  placeholder={defaultBaseUrl || 'https://api.example.com/v1'}
-                />
-                {isLocal && defaultBaseUrl && (
-                  <p className="mt-1.5 text-xs text-text-tertiary">
-                    默认地址：{defaultBaseUrl}
-                  </p>
+            {/* ========== XunFei Spark (讯飞星火) 专用表单 ========== */}
+            {providerName === 'XunFei Spark' && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    模型类型 <span className="text-red-500">*</span>
+                  </label>
+                  <Select value={modelType} onValueChange={setModelType}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {modelTypes.map(type => (
+                        <SelectItem key={type.value} value={type.value}>
+                          {type.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    模型名称 <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    value={modelName}
+                    onChange={(e) => setModelName(e.target.value)}
+                    placeholder="请输入模型名称"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    API Password <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    type="password"
+                    value={sparkApiPassword}
+                    onChange={(e) => setSparkApiPassword(e.target.value)}
+                    placeholder="请输入 API Password"
+                  />
+                </div>
+                {modelType === 'tts' && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-text-primary mb-2">
+                        APP ID <span className="text-red-500">*</span>
+                      </label>
+                      <Input
+                        value={sparkAppId}
+                        onChange={(e) => setSparkAppId(e.target.value)}
+                        placeholder="请输入 APP ID"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-text-primary mb-2">
+                        API Secret <span className="text-red-500">*</span>
+                      </label>
+                      <Input
+                        type="password"
+                        value={sparkApiSecret}
+                        onChange={(e) => setSparkApiSecret(e.target.value)}
+                        placeholder="请输入 API Secret"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-text-primary mb-2">
+                        API Key <span className="text-red-500">*</span>
+                      </label>
+                      <Input
+                        type="password"
+                        value={sparkApiKey}
+                        onChange={(e) => setSparkApiKey(e.target.value)}
+                        placeholder="请输入 API Key"
+                      />
+                    </div>
+                  </>
                 )}
-              </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    Max Tokens <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    type="number"
+                    value={maxTokens}
+                    onChange={(e) => setMaxTokens(parseInt(e.target.value) || 8192)}
+                    placeholder="8192"
+                    min={1}
+                  />
+                </div>
+              </>
             )}
 
-            {/* API Key - 不显示给 VolcEngine 和 Bedrock（它们有自己的认证字段） */}
-            {providerName !== 'VolcEngine' && providerName !== 'Bedrock' && (
-            <div>
-              <label className="block text-sm font-medium text-text-primary mb-2">
-                API Key {!isLocal && !isSpecialConfig && <span className="text-red-500">*</span>}
-                {(isLocal || isSpecialConfig) && <span className="text-text-tertiary font-normal ml-1">(可选)</span>}
-              </label>
-              <div className="relative">
-                <Input
-                  type={showApiKey ? 'text' : 'password'}
-                  value={apiKey}
-                  onChange={(e) => {
-                    setApiKey(e.target.value)
-                    setError('')
-                  }}
-                  placeholder={isLocal ? '如需认证请填写' : '请输入 API Key'}
-                  className="pr-10"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowApiKey(!showApiKey)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-text-tertiary hover:text-text-secondary"
-                >
-                  {showApiKey ? (
-                    <EyeOff className="w-4 h-4" />
-                  ) : (
-                    <Eye className="w-4 h-4" />
+            {/* ========== BaiduYiyan (百度文心) 专用表单 ========== */}
+            {providerName === 'BaiduYiyan' && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    模型类型 <span className="text-red-500">*</span>
+                  </label>
+                  <Select value={modelType} onValueChange={setModelType}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {modelTypes.map(type => (
+                        <SelectItem key={type.value} value={type.value}>
+                          {type.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    模型名称 <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    value={modelName}
+                    onChange={(e) => setModelName(e.target.value)}
+                    placeholder="请输入模型名称"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    API Key (AK) <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    value={yiyanAk}
+                    onChange={(e) => setYiyanAk(e.target.value)}
+                    placeholder="请输入 API Key"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    Secret Key (SK) <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    type="password"
+                    value={yiyanSk}
+                    onChange={(e) => setYiyanSk(e.target.value)}
+                    placeholder="请输入 Secret Key"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    Max Tokens <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    type="number"
+                    value={maxTokens}
+                    onChange={(e) => setMaxTokens(parseInt(e.target.value) || 8192)}
+                    placeholder="8192"
+                    min={1}
+                  />
+                </div>
+              </>
+            )}
+
+            {/* ========== Fish Audio 专用表单 ========== */}
+            {providerName === 'Fish Audio' && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    模型类型
+                  </label>
+                  <Input 
+                    value="TTS" 
+                    disabled 
+                    className="bg-muted cursor-not-allowed"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    模型名称 <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    value={modelName}
+                    onChange={(e) => setModelName(e.target.value)}
+                    placeholder="请输入模型名称"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    API Key <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    value={fishAudioAk}
+                    onChange={(e) => setFishAudioAk(e.target.value)}
+                    placeholder="请输入 API Key"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    Reference ID <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    value={fishAudioRefId}
+                    onChange={(e) => setFishAudioRefId(e.target.value)}
+                    placeholder="请输入 Reference ID"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    Max Tokens <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    type="number"
+                    value={maxTokens}
+                    onChange={(e) => setMaxTokens(parseInt(e.target.value) || 8192)}
+                    placeholder="8192"
+                    min={1}
+                  />
+                </div>
+              </>
+            )}
+
+            {/* ========== Google Cloud 专用表单 ========== */}
+            {providerName === 'Google Cloud' && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    模型类型 <span className="text-red-500">*</span>
+                  </label>
+                  <Select value={modelType} onValueChange={setModelType}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {modelTypes.map(type => (
+                        <SelectItem key={type.value} value={type.value}>
+                          {type.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    模型 ID <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    value={modelName}
+                    onChange={(e) => setModelName(e.target.value)}
+                    placeholder="请输入模型 ID"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    Project ID <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    value={googleProjectId}
+                    onChange={(e) => setGoogleProjectId(e.target.value)}
+                    placeholder="请输入 Project ID"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    Region <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    value={googleRegion}
+                    onChange={(e) => setGoogleRegion(e.target.value)}
+                    placeholder="请输入 Region"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    Service Account Key <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    type="password"
+                    value={googleServiceAccountKey}
+                    onChange={(e) => setGoogleServiceAccountKey(e.target.value)}
+                    placeholder="请输入 Service Account Key"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    Max Tokens <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    type="number"
+                    value={maxTokens}
+                    onChange={(e) => setMaxTokens(parseInt(e.target.value) || 8192)}
+                    placeholder="8192"
+                    min={1}
+                  />
+                </div>
+              </>
+            )}
+
+            {/* ========== Azure OpenAI 专用表单 ========== */}
+            {providerName === 'Azure-OpenAI' && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    模型类型 <span className="text-red-500">*</span>
+                  </label>
+                  <Select value={modelType} onValueChange={setModelType}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {modelTypes.map(type => (
+                        <SelectItem key={type.value} value={type.value}>
+                          {type.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    Base URL <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    value={baseUrl}
+                    onChange={(e) => setBaseUrl(e.target.value)}
+                    placeholder="https://your-resource.openai.azure.com"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    API Key <span className="text-text-tertiary font-normal ml-1">(可选)</span>
+                  </label>
+                  <Input
+                    type="password"
+                    value={apiKey}
+                    onChange={(e) => setApiKey(e.target.value)}
+                    placeholder="请输入 API Key"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    模型名称 <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    value={modelName}
+                    onChange={(e) => setModelName(e.target.value)}
+                    placeholder="gpt-3.5-turbo"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    API Version <span className="text-text-tertiary font-normal ml-1">(可选)</span>
+                  </label>
+                  <Input
+                    value={azureApiVersion}
+                    onChange={(e) => setAzureApiVersion(e.target.value)}
+                    placeholder="2024-02-01"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    Max Tokens <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    type="number"
+                    value={maxTokens}
+                    onChange={(e) => setMaxTokens(parseInt(e.target.value) || 8192)}
+                    placeholder="8192"
+                    min={1}
+                  />
+                </div>
+                {modelType === 'chat' && (
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-medium text-text-primary">
+                      支持视觉 (Vision)
+                    </label>
+                    <Switch checked={vision} onCheckedChange={setVision} />
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* ========== VolcEngine (火山引擎) 专用表单 ========== */}
+            {providerName === 'VolcEngine' && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    模型类型 <span className="text-red-500">*</span>
+                  </label>
+                  <Select value={modelType} onValueChange={setModelType}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {modelTypes.map(type => (
+                        <SelectItem key={type.value} value={type.value}>
+                          {type.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    模型名称 <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    value={modelName}
+                    onChange={(e) => setModelName(e.target.value)}
+                    placeholder="请输入模型名称"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    Endpoint ID <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    value={endpointId}
+                    onChange={(e) => setEndpointId(e.target.value)}
+                    placeholder="请输入 Endpoint ID"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    ARK API Key <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    type="password"
+                    value={arkApiKey}
+                    onChange={(e) => setArkApiKey(e.target.value)}
+                    placeholder="请输入 ARK API Key"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    Max Tokens <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    type="number"
+                    value={maxTokens}
+                    onChange={(e) => setMaxTokens(parseInt(e.target.value) || 8192)}
+                    placeholder="8192"
+                    min={1}
+                  />
+                </div>
+              </>
+            )}
+
+            {/* ========== Bedrock 专用表单 ========== */}
+            {providerName === 'Bedrock' && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    模型类型 <span className="text-red-500">*</span>
+                  </label>
+                  <Select value={modelType} onValueChange={setModelType}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {modelTypes.map(type => (
+                        <SelectItem key={type.value} value={type.value}>
+                          {type.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    模型名称 <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    value={modelName}
+                    onChange={(e) => setModelName(e.target.value)}
+                    placeholder="请输入模型名称"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    Access Key <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    value={bedrockAk}
+                    onChange={(e) => setBedrockAk(e.target.value)}
+                    placeholder="请输入 AWS Access Key"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    Secret Key <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    type="password"
+                    value={bedrockSk}
+                    onChange={(e) => setBedrockSk(e.target.value)}
+                    placeholder="请输入 AWS Secret Key"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    区域 <span className="text-red-500">*</span>
+                  </label>
+                  <Select value={bedrockRegion} onValueChange={setBedrockRegion}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="选择 AWS 区域" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {BEDROCK_REGIONS.map(region => (
+                        <SelectItem key={region} value={region}>
+                          {region}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    Max Tokens <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    type="number"
+                    value={maxTokens}
+                    onChange={(e) => setMaxTokens(parseInt(e.target.value) || 8192)}
+                    placeholder="8192"
+                    min={1}
+                  />
+                </div>
+              </>
+            )}
+
+            {/* ========== 本地模型厂商表单 ========== */}
+            {isLocal && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    模型类型 <span className="text-red-500">*</span>
+                  </label>
+                  <Select value={modelType} onValueChange={setModelType}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {modelTypes.map(type => (
+                        <SelectItem key={type.value} value={type.value}>
+                          {type.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    {providerName === 'Xinference' ? '模型 UID' : '模型名称'} <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    value={modelName}
+                    onChange={(e) => setModelName(e.target.value)}
+                    placeholder={providerName === 'Xinference' ? '请输入模型 UID' : '请输入模型名称'}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    Base URL <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    value={baseUrl}
+                    onChange={(e) => setBaseUrl(e.target.value)}
+                    placeholder={defaultBaseUrl || 'http://localhost:11434'}
+                  />
+                  {defaultBaseUrl && (
+                    <p className="mt-1.5 text-xs text-text-tertiary">
+                      默认地址：{defaultBaseUrl}
+                    </p>
                   )}
-                </button>
-              </div>
-            </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    API Key <span className="text-text-tertiary font-normal ml-1">(可选)</span>
+                  </label>
+                  <div className="relative">
+                    <Input
+                      type={showApiKey ? 'text' : 'password'}
+                      value={apiKey}
+                      onChange={(e) => setApiKey(e.target.value)}
+                      placeholder="如需认证请填写"
+                      className="pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowApiKey(!showApiKey)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-text-tertiary hover:text-text-secondary"
+                    >
+                      {showApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    Max Tokens <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    type="number"
+                    value={maxTokens}
+                    onChange={(e) => setMaxTokens(parseInt(e.target.value) || 8192)}
+                    placeholder="8192"
+                    min={1}
+                  />
+                </div>
+                {modelType === 'chat' && (
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-medium text-text-primary">
+                      支持视觉 (Vision)
+                    </label>
+                    <Switch checked={vision} onCheckedChange={setVision} />
+                  </div>
+                )}
+              </>
             )}
 
-            {/* 本地模型和特殊配置：Max Tokens */}
-            {(isLocal || isSpecialConfig) && (
-              <div>
-                <label className="block text-sm font-medium text-text-primary mb-2">
-                  Max Tokens <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  type="number"
-                  value={maxTokens}
-                  onChange={(e) => setMaxTokens(parseInt(e.target.value) || 8192)}
-                  placeholder="8192"
-                  min={1}
-                />
-                <p className="mt-1.5 text-xs text-text-tertiary">
-                  模型支持的最大 token 数量
-                </p>
-              </div>
-            )}
-
-            {/* OpenRouter: Provider Order */}
-            {providerName === 'OpenRouter' && (
-              <div>
-                <label className="block text-sm font-medium text-text-primary mb-2">
-                  Provider Order <span className="text-text-tertiary font-normal ml-1">(可选)</span>
-                </label>
-                <Input
-                  value=""
-                  onChange={() => {}}
-                  placeholder="Groq,Fireworks"
-                />
-                <p className="mt-1.5 text-xs text-text-tertiary">
-                  逗号分隔的提供商列表
-                </p>
-              </div>
-            )}
-
-            {/* MiniMax: Group ID */}
-            {providerName === 'MiniMax' && (
-              <div>
-                <label className="block text-sm font-medium text-text-primary mb-2">
-                  Group ID
-                </label>
-                <Input
-                  value={groupId}
-                  onChange={(e) => setGroupId(e.target.value)}
-                  placeholder="请输入 Group ID"
-                />
-              </div>
-            )}
-
-            {/* 本地模型和特殊配置：Vision 开关 */}
-            {(isLocal || isSpecialConfig) && modelType === 'chat' && (
-              <div className="flex items-center justify-between">
-                <label className="text-sm font-medium text-text-primary">
-                  支持视觉 (Vision)
-                </label>
-                <Switch
-                  checked={vision}
-                  onCheckedChange={setVision}
-                />
-              </div>
+            {/* ========== 普通 API Key 厂商表单 ========== */}
+            {isSimpleApiKey && !isLocal && !isSpecialForm && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    API Key <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <Input
+                      type={showApiKey ? 'text' : 'password'}
+                      value={apiKey}
+                      onChange={(e) => {
+                        setApiKey(e.target.value)
+                        setError('')
+                      }}
+                      placeholder="请输入 API Key"
+                      className="pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowApiKey(!showApiKey)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-text-tertiary hover:text-text-secondary"
+                    >
+                      {showApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+                
+                {/* Base URL - 部分厂商支持 */}
+                {API_KEY_WITH_BASE_URL.includes(providerName) && (
+                  <div>
+                    <label className="block text-sm font-medium text-text-primary mb-2">
+                      Base URL <span className="text-text-tertiary font-normal ml-1">(可选)</span>
+                    </label>
+                    <Input
+                      value={baseUrl}
+                      onChange={(e) => setBaseUrl(e.target.value)}
+                      placeholder={BASE_URL_CONFIG[providerName]?.placeholder || 'https://api.example.com/v1'}
+                    />
+                    {BASE_URL_CONFIG[providerName]?.tooltip && (
+                      <p className="mt-1.5 text-xs text-text-tertiary">
+                        {BASE_URL_CONFIG[providerName].tooltip}
+                      </p>
+                    )}
+                  </div>
+                )}
+                
+                {/* MiniMax: Group ID */}
+                {providerName === 'MiniMax' && (
+                  <div>
+                    <label className="block text-sm font-medium text-text-primary mb-2">
+                      Group ID <span className="text-text-tertiary font-normal ml-1">(可选)</span>
+                    </label>
+                    <Input
+                      value={groupId}
+                      onChange={(e) => setGroupId(e.target.value)}
+                      placeholder="请输入 Group ID"
+                    />
+                  </div>
+                )}
+              </>
             )}
 
             {/* 错误提示 */}

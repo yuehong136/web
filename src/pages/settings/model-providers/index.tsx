@@ -78,16 +78,21 @@ export const ModelProvidersPage: React.FC = () => {
     const isLocal = LOCAL_MODEL_FACTORIES.includes(apiKeyModal.providerName)
     const isSpecialConfig = SPECIAL_CONFIG_FACTORIES.includes(apiKeyModal.providerName)
     
-    if ((isLocal || isSpecialConfig) && additionalParams?.llm_name) {
+    // 特殊配置厂商和本地模型使用 add_llm 接口
+    // 注意：Hunyuan 不需要 llm_name，只需要 SID 和 SK
+    const needsAddLlm = isLocal || isSpecialConfig
+    const hasRequiredParams = additionalParams?.llm_name || additionalParams?.hunyuan_sid
+    
+    if (needsAddLlm && hasRequiredParams) {
       // 本地模型和特殊配置厂商使用 add_llm 接口
       const params: AddLlmParams = {
-        llm_factory: apiKeyModal.providerName,
-        llm_name: additionalParams.llm_name,
+        llm_factory: additionalParams?.llm_factory || apiKeyModal.providerName,
+        llm_name: additionalParams.llm_name || apiKeyModal.providerName,
         mdl_type: additionalParams.model_type || 'chat',
-        api_base: baseUrl,
-        api_key: apiKey || undefined,
+        api_base: baseUrl || additionalParams?.api_base,
+        api_key: apiKey || additionalParams?.api_key || undefined,
         max_tokens: additionalParams.max_tokens,
-        // 传递特殊参数
+        // 传递所有特殊参数
         ...additionalParams
       }
       await addLlm(params)

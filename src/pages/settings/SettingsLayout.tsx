@@ -1,246 +1,224 @@
-import React from 'react'
-import { Outlet, useLocation, Link } from 'react-router-dom'
+import React, { useCallback } from 'react'
+import { Outlet, useLocation, Link, useNavigate } from 'react-router-dom'
 import { 
-  User, 
-  Shield, 
-  Bell, 
-  Palette, 
   Database, 
   Server,
-  Key,
-  Settings as SettingsIcon,
-  ArrowLeft,
-  Sparkles,
-  Brain,
-  Wrench,
-  FlaskConical,
-  Workflow
+  Users,
+  User,
+  Unplug,
+  Sun,
+  Moon,
+  House
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import { useAuthStore } from '@/stores'
+import { Theme, setTheme as setAppTheme, getResolvedTheme } from '@/themes'
+import { IconFontFill } from '@/components/ui/icon-font'
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb'
 
 interface SidebarItem {
   title: string
   href: string
-  icon: React.ComponentType<{ className?: string }>
-  description?: string
-  badge?: string
-  gradient?: string
+  icon: React.ComponentType<{ className?: string }> | 'mcp'
 }
 
 const settingsItems: SidebarItem[] = [
   {
-    title: '个人资料',
+    title: '数据源',
+    href: '/settings/datasource',
+    icon: Database,
+  },
+  {
+    title: '模型提供商',
+    href: '/settings/model-providers',
+    icon: Server,
+  },
+  {
+    title: 'MCP',
+    href: '/settings/mcp-servers',
+    icon: 'mcp',
+  },
+  {
+    title: '团队',
+    href: '/settings/team',
+    icon: Users,
+  },
+  {
+    title: '概要',
     href: '/settings/profile',
     icon: User,
-    description: '管理您的基本信息和头像',
-    gradient: 'from-blue-500 to-cyan-500'
   },
   {
-    title: '安全设置', 
-    href: '/settings/security',
-    icon: Shield,
-    description: '密码、两步验证等安全选项',
-    gradient: 'from-green-500 to-emerald-500'
-  },
-  {
-    title: '通知设置',
-    href: '/settings/notifications',
-    icon: Bell,
-    description: '邮件通知、系统提醒设置',
-    gradient: 'from-yellow-500 to-orange-500'
-  },
-  {
-    title: '界面设置',
-    href: '/settings/appearance',
-    icon: Palette,
-    description: '主题、语言等界面个性化',
-    gradient: 'from-purple-500 to-pink-500'
-  },
-  {
-    title: '模型供应商',
-    href: '/settings/model-providers',
-    icon: Database,
-    description: '管理AI模型和供应商配置',
-    badge: 'AI',
-    gradient: 'from-indigo-500 to-blue-500'
-  },
-  {
-    title: 'MCP服务器',
-    href: '/settings/mcp-servers',
-    icon: Server,
-    description: '管理MCP服务器连接和配置',
-    badge: 'Hot',
-    gradient: 'from-violet-500 to-purple-500'
-  },
-  {
-    title: 'MCP工具',
-    href: '/settings/mcp-tools',
-    icon: Wrench,
-    description: '查看和测试已连接服务器提供的工具',
-    gradient: 'from-emerald-500 to-teal-500'
-  },
-  {
-    title: 'MCP测试',
-    href: '/settings/mcp-test',
-    icon: FlaskConical,
-    description: '调试与连通性测试',
-    gradient: 'from-fuchsia-500 to-pink-500'
-  },
-  {
-    title: 'MCP批处理',
-    href: '/settings/mcp-batch',
-    icon: Workflow,
-    description: '批量执行工具与自动化流程',
-    gradient: 'from-amber-500 to-orange-500'
-  },
-  {
-    title: 'API开放',
+    title: 'API',
     href: '/settings/api-keys',
-    icon: Key,
-    description: 'API文档与测试&API密钥管理',
-    gradient: 'from-slate-500 to-gray-500'
+    icon: Unplug,
   }
 ]
 
-export const SettingsLayout: React.FC = () => {
-  const location = useLocation()
-  
-  // 获取当前页面信息
-  const currentItem = settingsItems.find(item => item.href === location.pathname)
-  const currentTitle = currentItem?.title || '系统设置'
+// 主题切换组件 - 仿 ragflow 的太阳月亮开关
+const ThemeToggle: React.FC = () => {
+  const [isDark, setIsDark] = React.useState(() => getResolvedTheme() === 'dark')
+
+  React.useEffect(() => {
+    const updateTheme = () => {
+      setIsDark(getResolvedTheme() === 'dark')
+    }
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    mediaQuery.addEventListener('change', updateTheme)
+    return () => mediaQuery.removeEventListener('change', updateTheme)
+  }, [])
+
+  const handleThemeChange = useCallback((dark: boolean) => {
+    setAppTheme(dark ? Theme.DARK : Theme.LIGHT)
+    setIsDark(dark)
+  }, [])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/40 relative overflow-hidden">
-      {/* 背景装饰（为性能移除重度模糊） */}
+    <button
+      type="button"
+      onClick={() => handleThemeChange(!isDark)}
+      className="relative inline-flex h-7 w-14 items-center rounded-full transition-colors p-0.5 bg-card hover:bg-card/80 border border-border"
+    >
+      <div className="inline-flex h-full w-full items-center">
+        <div
+          className={cn(
+            "inline-flex transform items-center justify-center rounded-full transition-all",
+            isDark
+              ? "text-text-tertiary h-5 w-6"
+              : "text-text-primary bg-background h-full w-7 flex-1 shadow-sm"
+          )}
+        >
+          <Sun className="w-4 h-4" />
+        </div>
+        <div
+          className={cn(
+            "inline-flex transform items-center justify-center rounded-full transition-all",
+            isDark
+              ? "text-text-primary bg-background h-full w-7 flex-1 shadow-sm"
+              : "text-text-tertiary h-5 w-6"
+          )}
+        >
+          <Moon className="w-4 h-4" />
+        </div>
+      </div>
+    </button>
+  )
+}
 
-      <div className="relative z-10 flex h-screen">
+// 页面标题映射
+const pageTitles: Record<string, string> = {
+  '/settings/datasource': '数据源',
+  '/settings/model-providers': '模型提供商',
+  '/settings/mcp-servers': 'MCP',
+  '/settings/mcp-tools': 'MCP工具',
+  '/settings/mcp-test': 'MCP测试',
+  '/settings/mcp-batch': 'MCP批处理',
+  '/settings/team': '团队',
+  '/settings/profile': '概要',
+  '/settings/api-keys': 'API',
+}
+
+export const SettingsLayout: React.FC = () => {
+  const location = useLocation()
+  const navigate = useNavigate()
+  const { user } = useAuthStore()
+
+  // 获取当前页面标题
+  const currentTitle = pageTitles[location.pathname] || '设置'
+
+  return (
+    <div className="flex flex-col h-screen bg-background">
+      {/* 顶部面包屑导航 */}
+      <header className="flex items-center bg-card border-b border-border px-5 py-4 shrink-0">
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink onClick={() => navigate('/dashboard')}>
+                <House className="w-4 h-4" />
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>{currentTitle}</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+      </header>
+
+      {/* 主体区域 */}
+      <div className="flex flex-1 overflow-hidden">
         {/* 侧边栏 */}
-        <div className="w-80 bg-white border-r border-white/20 shadow-xl flex flex-col">
-          {/* 侧边栏头部 */}
-          <div className="p-6 border-b border-gray-100/50">
-            <Link 
-              to="/dashboard"
-              className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 transition-colors duration-150 group mb-6"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
-              返回主页
-            </Link>
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
-                <SettingsIcon className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">系统设置</h1>
-                <p className="text-sm text-gray-500">个性化您的AI体验</p>
-              </div>
+        <aside className="w-[280px] bg-background flex flex-col border-r border-border shrink-0">
+          {/* 用户信息 */}
+          <div className="px-6 py-4 flex gap-3 items-center">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+              <span className="text-white font-semibold text-sm">
+                {user?.nickname?.[0] || user?.username?.[0] || 'U'}
+              </span>
             </div>
+            <p className="text-sm text-text-primary truncate">{user?.email || 'user@example.com'}</p>
           </div>
 
           {/* 导航菜单 */}
-          <div className="flex-1 overflow-y-auto p-4">
-            <nav className="space-y-2">
-              {settingsItems.map((item) => {
-                const Icon = item.icon
-                const isActive = location.pathname === item.href
-
-                return (
-                  <Link
-                    key={item.href}
-                    to={item.href}
+          <div className="flex-1 overflow-auto">
+            {settingsItems.map((item, idx) => {
+              const isActive = location.pathname === item.href || 
+                (item.href === '/settings/mcp-servers' && location.pathname.startsWith('/settings/mcp'))
+              
+              return (
+                <div key={idx} className="mx-6 my-2">
+                  <Link to={item.href}>
+                  <Button
+                    variant="ghost"
                     className={cn(
-                      "group relative flex items-center p-4 rounded-2xl transition-colors duration-150",
-                      isActive
-                        ? "bg-gradient-to-r from-blue-500/10 to-purple-500/10 shadow-lg border border-blue-200/30"
-                        : "hover:bg-white/60 hover:shadow-md"
+                      'w-full justify-start gap-3 p-3 h-auto',
+                      isActive 
+                        ? 'bg-primary/10 text-text-primary border border-primary/20' 
+                        : 'bg-transparent text-text-secondary hover:bg-muted hover:text-text-primary'
                     )}
                   >
-                    {/* 活跃状态指示器 */}
-                    {isActive && (
-                      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-blue-500 to-purple-600 rounded-r-full"></div>
-                    )}
-
-                    {/* 图标背景 */}
-                    <div className={cn(
-                      "relative w-11 h-11 rounded-xl flex items-center justify-center mr-4 transition-colors duration-150",
-                      isActive 
-                        ? `bg-gradient-to-br ${item.gradient} shadow-lg` 
-                        : "bg-gray-100 group-hover:bg-gradient-to-br group-hover:from-gray-200 group-hover:to-gray-300"
-                    )}>
-                      <Icon className={cn(
-                        "h-5 w-5 transition-colors duration-150",
-                        isActive ? "text-white" : "text-gray-600 group-hover:text-gray-700"
-                      )} />
-                      
-                      {/* Badge */}
-                      {item.badge && (
-                        <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center shadow-lg">
-                          <span className="text-[10px] font-bold text-white">{item.badge}</span>
-                        </div>
+                      {item.icon === 'mcp' ? (
+                        <IconFontFill name="mcp" className="w-5 h-5" />
+                      ) : (
+                        <item.icon className="w-5 h-5" />
                       )}
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className={cn(
-                          "font-semibold transition-colors duration-300 truncate",
-                          isActive ? "text-gray-900" : "text-gray-700 group-hover:text-gray-900"
-                        )}>
-                          {item.title}
-                        </span>
-                        {isActive && <Sparkles className="h-3 w-3 text-blue-500 animate-pulse" />}
-                      </div>
-                      <p className={cn(
-                        "text-sm transition-colors duration-300 truncate mt-0.5",
-                        isActive ? "text-gray-600" : "text-gray-500 group-hover:text-gray-600"
-                      )}>
-                        {item.description}
-                      </p>
-                    </div>
-
-                    {/* 悬停指示器 */}
-                    {!isActive && (
-                      <div className="w-2 h-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full transition-opacity duration-150 opacity-0 group-hover:opacity-100"></div>
-                    )}
+                      <span className="text-sm">{item.title}</span>
+                    </Button>
                   </Link>
-                )
-              })}
-            </nav>
-
-            {/* AI助手卡片 */}
-            <div className="mt-8 p-4 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-2xl border border-blue-200/30">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                  <Brain className="h-4 w-4 text-white" />
                 </div>
-                <h3 className="font-semibold text-gray-900">AI智能助手</h3>
-              </div>
-              <p className="text-sm text-gray-600 mb-4">
-                根据您的使用习惯，我们推荐优化这些设置以获得更好的AI体验。
-              </p>
-              <button className="w-full px-3 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-sm font-medium rounded-lg hover:shadow-lg transition-colors duration-150">
-                智能优化设置
-              </button>
-            </div>
+              )
+            })}
           </div>
-        </div>
+
+          {/* 底部区域 */}
+          <div className="p-6 mt-auto border-t border-border">
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-sm text-primary">v0.19.1</span>
+              <ThemeToggle />
+            </div>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => {
+                // TODO: implement logout
+              }}
+            >
+              退出登录
+            </Button>
+          </div>
+        </aside>
 
         {/* 主内容区域 */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-          {/* 顶部面包屑（适配主题色）*/}
-          <div className="h-16 bg-background border-b border-border flex items-center px-8">
-            <div className="flex items-center space-x-2 text-sm text-text-secondary">
-              <span>系统设置</span>
-              <span>/</span>
-              <span className="text-text-primary font-medium">{currentTitle}</span>
-            </div>
-          </div>
-
-          {/* 内容区域 */}
-          <div className="flex-1 overflow-hidden bg-white/20">
-            <div className="h-full">
-              <Outlet />
-            </div>
-          </div>
+        <div className="flex-1 overflow-auto bg-background">
+          <Outlet />
         </div>
       </div>
     </div>
