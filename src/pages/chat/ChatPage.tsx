@@ -256,8 +256,16 @@ export const ChatPage: React.FC = () => {
     content: msg.content || (msg.role === 'assistant' ? '正在思考...' : ''),
     placement: (msg.role === 'user' ? 'end' : 'start') as 'start' | 'end',
     avatar: msg.role === 'user'
-      ? { style: { backgroundColor: '#3b82f6' }, children: 'U' }
-      : { style: { backgroundColor: '#f8fafc' }, children: 'AI' },
+      ? (
+          <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-medium">
+            U
+          </div>
+        )
+      : (
+          <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 text-sm font-medium">
+            AI
+          </div>
+        ),
     contentRender: msg.role === 'assistant' ? () => renderMarkdown(msg.content) : undefined,
     variant: 'borderless' as const,
     styles: {

@@ -4,12 +4,13 @@ import { ChatSidebar } from "@/components/chat/ChatSidebar";
 import { ChatHeader } from "@/components/chat/ChatHeader";
 import { ChatInput } from "@/components/chat/ChatInput";
 import { WelcomeMessage } from "@/components/chat/WelcomeMessage";
-import { Bubble } from "@ant-design/x";
+import { Bubble, Think } from "@ant-design/x";
 import type { BubbleProps } from "@ant-design/x";
 import { UserOutlined, RobotOutlined, CopyOutlined, LikeOutlined, DislikeOutlined } from '@ant-design/icons';
-import { Typography, Button as AntdButton, Space } from 'antd';
+import { Button as AntdButton, Space } from 'antd';
 import { ProviderIcon } from '@/components/ui/provider-icon';
-import markdownit from "markdown-it";
+import XMarkdown, { type ComponentProps } from '@ant-design/x-markdown';
+import '@ant-design/x-markdown/dist/x-markdown.css';
 import type { MCPChatServiceRequest } from "@/api/mcp-chat-service";
 import { EnhancedSSEParser, type SSEMessage, type ToolCallInfo } from "@/components/chat/EnhancedSSEParser";
 import { ToolCallRenderer } from "@/components/chat/ToolCallRenderer";
@@ -18,22 +19,67 @@ import { toast } from "@/lib/toast";
 import { copyToClipboard } from "@/lib/utils";
 import type { ChatSession, MCPChatConfig } from "@/types/mcp";
 
-// 初始化 markdown-it
-const md = markdownit({ html: true, breaks: true, linkify: true });
+// Think 组件 - 处理 <think> 标签
+const ThinkComponent = React.memo((props: ComponentProps) => {
+  const [title, setTitle] = React.useState('正在思考...')
+  const [loading, setLoading] = React.useState(true)
+  const [expand, setExpand] = React.useState(true)
 
-// Markdown 渲染函数 - 参考Ant Design X示例 - 移到组件外部避免重复创建
-const renderMarkdown: BubbleProps['messageRender'] = (content) => {
-  if (!content || typeof content !== 'string') return content;
-  
+  React.useEffect(() => {
+    if (props.streamStatus === 'done') {
+      setTitle('思考完成')
+      setLoading(false)
+      setExpand(false)
+    }
+  }, [props.streamStatus])
+
   return (
-    <Typography>
-      <div 
-        dangerouslySetInnerHTML={{ __html: md.render(content) }} 
-        className="prose prose-sm max-w-none dark:prose-invert"
-      />
-    </Typography>
-  );
-};
+    <Think 
+      title={title} 
+      loading={loading} 
+      expanded={expand} 
+      onClick={() => setExpand(!expand)}
+    >
+      <div className="text-gray-600 text-sm whitespace-pre-wrap">
+        {props.children}
+      </div>
+    </Think>
+  )
+})
+
+// 提取并分离 think 内容和主内容
+interface ThinkExtractResult {
+  thinkContent: string
+  mainContent: string
+  isThinking: boolean
+}
+
+const extractThinkContent = (content: string): ThinkExtractResult => {
+  if (!content) return { thinkContent: '', mainContent: '', isThinking: false }
+  
+  // 检查是否有完整的 think 标签
+  const completeMatch = content.match(/<think>([\s\S]*?)<\/think>([\s\S]*)/)
+  if (completeMatch) {
+    return {
+      thinkContent: completeMatch[1].trim(),
+      mainContent: completeMatch[2].trim(),
+      isThinking: false
+    }
+  }
+  
+  // 检查是否有未闭合的 think 标签（正在思考中）
+  const openMatch = content.match(/<think>([\s\S]*)$/)
+  if (openMatch) {
+    return {
+      thinkContent: openMatch[1].trim(),
+      mainContent: '',
+      isThinking: true
+    }
+  }
+  
+  // 没有 think 标签
+  return { thinkContent: '', mainContent: content, isThinking: false }
+}
 
 
 // 创建初始会话数据
@@ -163,134 +209,37 @@ export default function MCPChatPage() {
     return null
   }, [selectedModelId, myLLMs])
 
-  // 根据布局配置角色样式
-  const getRolesConfig = (layout: ChatLayout) => {
-    // 获取当前选择模型的厂商图标
-    const assistantIcon = selectedProviderName 
-      ? <ProviderIcon provider={selectedProviderName} className="w-5 h-5" size={20} />
-      : <RobotOutlined />;
-    
-    const baseRoles = {
-      assistant: {
-        placement: 'start' as const,
-        avatar: { 
-          icon: assistantIcon,
-          style: { 
-            background: 'var(--color-chat-bubble-assistant-avatar-bg)', 
-            color: 'var(--color-chat-bubble-assistant-avatar-text)' 
-          } 
-        },
-        typing: {
-          step: 5,
-          interval: 20,
-        },
-        styles: {
-          content: {
-            maxWidth: layout === 'full' ? '45%' : (layout === 'center' ? 600 : 600),
-            backgroundColor: 'transparent',
-            border: 'none',
-            boxShadow: 'none',
-            padding: '0',
-            fontSize: '14px',
-            lineHeight: '1.6',
-          }
-        },
-        footer: (messageContext: any) => (
-          <div style={{ marginTop: '8px' }}>
-            <Space size={4}>
-              <AntdButton
-                type="text"
-                size="small"
-                onClick={(e) => handleCopy(typeof messageContext === 'string' ? messageContext : undefined, e as any)}
-                icon={<CopyOutlined />}
-                title="复制"
-                style={{
-                  height: '28px',
-                  padding: '0 8px',
-                  fontSize: '12px',
-                  color: 'var(--color-text-tertiary)',
-                  border: 'none',
-                  background: 'transparent'
-                }}
-              />
-              <AntdButton
-                type="text"
-                size="small"
-                onClick={() => toast.success('感谢您的反馈')}
-                icon={<LikeOutlined />}
-                title="点赞"
-                style={{
-                  height: '28px',
-                  padding: '0 8px',
-                  fontSize: '12px',
-                  color: 'var(--color-text-tertiary)',
-                  border: 'none',
-                  background: 'transparent'
-                }}
-              />
-              <AntdButton
-                type="text"
-                size="small"
-                onClick={() => toast.info('我们会努力改进')}
-                icon={<DislikeOutlined />}
-                title="点踩"
-                style={{
-                  height: '28px',
-                  padding: '0 8px',
-                  fontSize: '12px',
-                  color: 'var(--color-text-tertiary)',
-                  border: 'none',
-                  background: 'transparent'
-                }}
-              />
-            </Space>
-          </div>
-        ),
-      },
-      user: {
-        placement: 'end' as const,
-        avatar: { 
-          icon: <UserOutlined />, 
-          style: { 
-            background: 'var(--color-chat-bubble-user-avatar-bg)', 
-            color: 'var(--color-chat-bubble-user-avatar-text)' 
-          } 
-        },
-        styles: {
-          content: {
-            maxWidth: layout === 'full' ? '45%' : (layout === 'center' ? 600 : 600),
-            backgroundColor: 'var(--color-chat-bubble-user-bg)',
-            color: 'var(--color-chat-bubble-user-text)',
-            borderRadius: '18px',
-            padding: '12px 16px',
-            border: 'none',
-            boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
-          }
-        },
-        footer: (messageContext: string) => (
-          <div style={{ marginTop: '8px', textAlign: 'right' }}>
-            <AntdButton
-              type="text"
-              size="small"
-              onClick={(e) => handleCopy(messageContext, e as any)}
-              icon={<CopyOutlined />}
-              title="复制"
-              style={{
-                height: '28px',
-                padding: '0 8px',
-                fontSize: '12px',
-                color: 'var(--color-text-tertiary)',
-                border: 'none',
-                background: 'transparent'
-              }}
-            />
-          </div>
-        ),
-      },
-    };
+  // 获取 AI 头像 - 直接使用厂商 logo，不包裹气泡框
+  const getAssistantAvatar = () => {
+    if (selectedProviderName) {
+      return <ProviderIcon provider={selectedProviderName} className="w-8 h-8" size={32} />
+    }
+    // 没有厂商信息时使用默认图标
+    return (
+      <div 
+        className="w-8 h-8 min-w-[32px] min-h-[32px] rounded-full flex items-center justify-center flex-shrink-0"
+        style={{ 
+          background: 'var(--color-chat-bubble-assistant-avatar-bg)', 
+          color: 'var(--color-chat-bubble-assistant-avatar-text)' 
+        }}
+      >
+        <RobotOutlined />
+      </div>
+    )
+  }
 
-    return baseRoles;
-  };
+  // 获取用户头像
+  const getUserAvatar = () => (
+    <div 
+      className="w-8 h-8 min-w-[32px] min-h-[32px] rounded-full flex items-center justify-center flex-shrink-0"
+      style={{ 
+        background: 'var(--color-chat-bubble-user-avatar-bg)', 
+        color: 'var(--color-chat-bubble-user-avatar-text)' 
+      }}
+    >
+      <UserOutlined />
+    </div>
+  )
 
   // 转换消息数据为 Bubble.List 需要的格式
   const bubbleItems = React.useMemo(() => {
@@ -300,34 +249,75 @@ export default function MCPChatPage() {
       role: msg.role as 'user' | 'assistant',
       content: msg.content || '',
       loading: false,
+      // 设置消息位置：用户消息在右边，AI 消息在左边
+      placement: (msg.role === 'user' ? 'end' : 'start') as 'start' | 'end',
+      // 设置头像
+      avatar: msg.role === 'user' ? getUserAvatar() : getAssistantAvatar(),
       // 只对最新的助手消息启用打字效果（且不在流式输出时）
       typing: msg.role === 'assistant' &&
               index === activeSession.messages.length - 1 &&
               !isStreaming ? { step: 50, interval: 10 } : false,
       timestamp: msg.timestamp,
-      // 助手消息：在自定义 messageRender 中渲染工具卡片 + Markdown
-      messageRender: msg.role === 'assistant' ? ((content: string) => (
-        <div className="space-y-4">
-          {msg.parsedToolCalls && msg.parsedToolCalls.length > 0 && (
-            <ToolCallRenderer
-              toolCalls={msg.parsedToolCalls.map(call => ({
-                id: call.id || `${Date.now()}_${Math.random()}`,
-                name: call.name,
-                arguments: call.args || call.arguments || {},
-                result: call.result,
-                status: call.status || 'success',
-                timestamp: call.timestamp || new Date().toLocaleTimeString()
-              }))}
-              showTimestamp={true}
-              collapsible={true}
-            />
-          )}
-          <div
-            dangerouslySetInnerHTML={{ __html: md.render(content || '') }}
-            className="prose prose-sm max-w-none dark:prose-invert bubble-copy-text"
-          />
-        </div>
-      )) : undefined,
+      // 消息样式
+      styles: msg.role === 'user' ? {
+        content: {
+          backgroundColor: 'var(--color-chat-bubble-user-bg)',
+          color: 'var(--color-chat-bubble-user-text)',
+          borderRadius: '18px',
+          padding: '12px 16px',
+          border: 'none',
+          boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
+        }
+      } : {
+        content: {
+          backgroundColor: 'transparent',
+          border: 'none',
+          boxShadow: 'none',
+          padding: '0',
+        }
+      },
+      // 助手消息：使用 contentRender 渲染工具卡片 + XMarkdown（支持 think 标签）
+      contentRender: msg.role === 'assistant' ? (() => {
+        const { thinkContent, mainContent, isThinking } = extractThinkContent(msg.content || '')
+        return (
+          <div className="space-y-4">
+            {msg.parsedToolCalls && msg.parsedToolCalls.length > 0 && (
+              <ToolCallRenderer
+                toolCalls={msg.parsedToolCalls.map(call => ({
+                  id: call.id || `${Date.now()}_${Math.random()}`,
+                  name: call.name,
+                  arguments: call.args || call.arguments || {},
+                  result: call.result,
+                  status: call.status || 'success',
+                  timestamp: call.timestamp || new Date().toLocaleTimeString()
+                }))}
+                showTimestamp={true}
+                collapsible={true}
+              />
+            )}
+            {/* Think 组件展示思考过程 */}
+            {thinkContent && (
+              <Think
+                title={isThinking ? '正在思考...' : '思考完成'}
+                loading={isThinking}
+                defaultExpanded={false}
+              >
+                <div className="text-gray-600 text-sm whitespace-pre-wrap">
+                  {thinkContent}
+                </div>
+              </Think>
+            )}
+            {/* 使用 XMarkdown 渲染主内容 */}
+            {mainContent && (
+              <div className="prose prose-sm max-w-none dark:prose-invert bubble-copy-text">
+                <XMarkdown paragraphTag="div">
+                  {mainContent}
+                </XMarkdown>
+              </div>
+            )}
+          </div>
+        )
+      }) : undefined,
       toolCalls: undefined,
     })) : [];
     
@@ -352,7 +342,8 @@ export default function MCPChatPage() {
       // 检查是否有工具调用需要显示
       const hasToolCalls = streamingToolCalls.length > 0;
       
-      // 使用字符串内容 + 自定义 messageRender，保证复制为原始 Markdown
+      // 使用字符串内容 + 自定义 contentRender，支持 think 标签
+      const { thinkContent, mainContent, isThinking } = extractThinkContent(streamingContent || '')
       sessionMessages.push({
         key: 'streaming-assistant',
         role: 'assistant',
@@ -360,7 +351,20 @@ export default function MCPChatPage() {
         loading: false,
         typing: false,
         timestamp: new Date().toLocaleTimeString(),
-        messageRender: (content: string) => (
+        // 设置消息位置：AI 消息在左边
+        placement: 'start' as const,
+        // 设置 AI 头像
+        avatar: getAssistantAvatar(),
+        // 消息样式
+        styles: {
+          content: {
+            backgroundColor: 'transparent',
+            border: 'none',
+            boxShadow: 'none',
+            padding: '0',
+          }
+        },
+        contentRender: () => (
           <div className="space-y-4">
             {(isToolAnalyzing || streamingToolCalls.length > 0) && (
               <div className="border border-blue-200 rounded-lg p-3 bg-blue-50 dark:bg-blue-900/20">
@@ -373,11 +377,30 @@ export default function MCPChatPage() {
                 />
               </div>
             )}
-            {content && content.trim() && (
-              <div
-                dangerouslySetInnerHTML={{ __html: md.render(content) }}
-                className="prose prose-sm max-w-none dark:prose-invert bubble-copy-text"
-              />
+            {/* Think 组件展示思考过程 */}
+            {thinkContent && (
+              <Think
+                title={isThinking ? '正在思考...' : '思考完成'}
+                loading={isThinking}
+                defaultExpanded={isThinking}
+                blink={isThinking}
+              >
+                <div className="text-gray-600 text-sm whitespace-pre-wrap">
+                  {thinkContent}
+                </div>
+              </Think>
+            )}
+            {/* 使用 XMarkdown 渲染主内容 */}
+            {mainContent && mainContent.trim() && (
+              <div className="prose prose-sm max-w-none dark:prose-invert bubble-copy-text">
+                <XMarkdown paragraphTag="div">
+                  {mainContent}
+                </XMarkdown>
+              </div>
+            )}
+            {/* 如果没有内容且没有思考内容，显示加载提示 */}
+            {!thinkContent && !mainContent && !isToolAnalyzing && streamingToolCalls.length === 0 && (
+              <span className="text-gray-400 italic">正在生成...</span>
             )}
           </div>
         ),
@@ -386,7 +409,7 @@ export default function MCPChatPage() {
     }
     
     return sessionMessages;
-  }, [activeSessionId, activeSession?.messages?.length, isStreaming, streamingContent, streamingToolCalls, isToolAnalyzing]);
+  }, [activeSessionId, activeSession?.messages?.length, isStreaming, streamingContent, streamingToolCalls, isToolAnalyzing, selectedProviderName]);
 
   // 加载模型列表
   useEffect(() => {
@@ -750,10 +773,9 @@ export default function MCPChatPage() {
             {bubbleItems.length > 0 ? (
               <div className={`${chatLayout === 'full' ? 'max-w-none' : 'max-w-4xl mx-auto'}`}>
                 <Bubble.List
-                  items={bubbleItems}
+                  items={bubbleItems as any}
                   ref={bubbleListRef}
                   autoScroll={!isUserScrolling}
-                  roles={getRolesConfig(chatLayout)}
                   style={{ 
                     minHeight: '100%',
                     paddingBottom: '8px' // 给底部留出一些空间，更紧凑的过渡

@@ -1493,34 +1493,24 @@ export const CreateAppPage: React.FC = () => {
         ),
         placement: (isUser ? 'end' : 'start') as 'start' | 'end',
         avatar: isUser
-          ? { 
-              style: { 
-                backgroundColor: '#3b82f6', 
-                border: 'none',
-                boxShadow: 'none',
-                borderRadius: '50%'
-              }, 
-              children: 'U' 
-            }
+          ? (
+              <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-medium">
+                U
+              </div>
+            )
           : config.icon 
-            ? {
-                src: config.icon || undefined,
-                style: { 
-                  backgroundColor: '#f8fafc', 
-                  border: 'none',
-                  boxShadow: 'none',
-                  borderRadius: '50%'
-                }
-              }
-            : { 
-                icon: <AppstoreOutlined />,
-                style: { 
-                  backgroundColor: '#f8fafc', 
-                  border: 'none',
-                  boxShadow: 'none',
-                  borderRadius: '50%'
-                }
-              },
+            ? (
+                <img 
+                  src={config.icon} 
+                  alt="AI" 
+                  className="w-8 h-8 rounded-full object-cover"
+                />
+              )
+            : (
+                <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                  <AppstoreOutlined className="text-gray-500" />
+                </div>
+              ),
         variant: 'borderless' as const,
         shape: 'round' as const,
         styles: {

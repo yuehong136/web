@@ -225,8 +225,8 @@ export const HomePage: React.FC = () => {
           <Welcome
             variant="borderless"
             icon={<LogoIcon size={56} />}
-            title="FastGPT"
-            description="你好👋，我是 FastGPT！请问有什么可以帮你?"
+            title="MultiRAG"
+            description="你好👋，我是 MultiRAG！请问有什么可以帮你?"
             styles={{
               icon: { 
                 background: 'transparent',

@@ -22,7 +22,7 @@ import {
 import { cn } from '@/lib/utils'
 import { ROUTES } from '@/constants'
 import { useUIStore, useAuthStore } from '@/stores'
-import { Theme, setTheme as setAppTheme, getTheme, getResolvedTheme } from '@/themes'
+import { Theme, setTheme as setAppTheme, getTheme } from '@/themes'
 
 interface SidebarProps {
   className?: string
@@ -143,49 +143,60 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
     <aside
       className={cn(
-        "bg-white h-full flex flex-col transition-all duration-300 rounded-2xl",
+        "bg-white h-full flex flex-col rounded-2xl",
+        // 使用 will-change 优化动画性能
+        "transition-[width] duration-300 ease-out will-change-[width]",
         isCollapsed ? "w-16" : "w-56",
         className
       )}
     >
       {/* Logo区域 */}
       <div className="p-3 border-b border-gray-100">
-        <div className={cn(
-          "flex items-center",
-          isCollapsed ? "justify-center" : "justify-between"
-        )}>
+        <div className="flex items-center justify-between">
           <div 
-            className={cn(
-              "flex items-center",
-              isCollapsed ? "cursor-pointer" : "gap-3"
-            )}
+            className="flex items-center gap-3 cursor-pointer min-w-0"
             onClick={isCollapsed ? () => setCollapsed(false) : undefined}
             title={isCollapsed ? "展开侧边栏" : undefined}
           >
             <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0">
               <span className="text-white font-bold text-sm">MR</span>
             </div>
-            {!isCollapsed && (
-              <span className="text-base font-semibold text-gray-900">Multi-RAG</span>
-            )}
+            {/* 文字使用独立的动画，延迟出现并滑入 */}
+            <span 
+              className={cn(
+                "text-base font-semibold text-gray-900 whitespace-nowrap",
+                "transition-all duration-300 ease-out",
+                isCollapsed 
+                  ? "opacity-0 w-0 translate-x-[-10px] pointer-events-none" 
+                  : "opacity-100 w-auto translate-x-0 delay-100"
+              )}
+            >
+              Multi-RAG
+            </span>
           </div>
           {/* 折叠按钮 - 放在logo旁边 */}
-          {!isCollapsed && (
-            <button
-              onClick={() => setCollapsed(true)}
-              className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
-              title="收起侧边栏"
-            >
-              <PanelLeftClose className="h-4 w-4" />
-            </button>
-          )}
+          <button
+            onClick={() => setCollapsed(!isCollapsed)}
+            className={cn(
+              "w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all duration-200",
+              isCollapsed 
+                ? "opacity-0 w-0 pointer-events-none" 
+                : "opacity-100 delay-150"
+            )}
+            title={isCollapsed ? "展开侧边栏" : "收起侧边栏"}
+          >
+            <PanelLeftClose className="h-4 w-4" />
+          </button>
         </div>
       </div>
 
       {/* 导航菜单 */}
       <nav className="py-4">
-        <div className={cn("space-y-1", isCollapsed ? "px-2" : "px-3")}>
-          {navItems.map((item) => {
+        <div className={cn(
+          "space-y-1 transition-[padding] duration-300",
+          isCollapsed ? "px-2" : "px-3"
+        )}>
+          {navItems.map((item, index) => {
             const Icon = item.icon
             const isActive = item.href === ROUTES.AI_TOOLS
               ? (location.pathname.startsWith(ROUTES.AI_TOOLS) || location.pathname.startsWith('/tools'))
@@ -198,7 +209,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 key={item.href}
                 to={item.href}
                 className={cn(
-                  "relative flex items-center rounded-xl transition-all duration-200 group",
+                  "relative flex items-center rounded-xl group",
+                  "transition-all duration-200 ease-out",
                   isCollapsed 
                     ? "justify-center p-2.5" 
                     : "gap-3 px-3 py-2.5",
@@ -209,12 +221,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 title={isCollapsed ? item.title : undefined}
               >
                 <Icon className={cn(
-                  "flex-shrink-0 h-5 w-5",
+                  "flex-shrink-0 h-5 w-5 transition-transform duration-200",
                   isActive ? "text-blue-600" : ""
                 )} />
-                {!isCollapsed && (
-                  <span className="text-sm font-medium">{item.title}</span>
-                )}
+                {/* 菜单文字使用延迟动画，每个菜单项延迟递增 */}
+                <span 
+                  className={cn(
+                    "text-sm font-medium whitespace-nowrap",
+                    "transition-all duration-300 ease-out",
+                    isCollapsed 
+                      ? "opacity-0 w-0 translate-x-[-10px] pointer-events-none" 
+                      : "opacity-100 w-auto translate-x-0"
+                  )}
+                  style={{
+                    transitionDelay: isCollapsed ? '0ms' : `${50 + index * 20}ms`
+                  }}
+                >
+                  {item.title}
+                </span>
               </NavLink>
             )
           })}
@@ -227,6 +251,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* 底部功能区域 */}
       <div className={cn(
         "border-t border-gray-100 space-y-1 py-2",
+        "transition-[padding] duration-300",
         isCollapsed ? "px-2" : "px-3"
       )}>
         {/* 通知按钮 */}
@@ -243,7 +268,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
             title={isCollapsed ? "通知" : undefined}
           >
             <Bell className="h-5 w-5 flex-shrink-0" />
-            {!isCollapsed && <span className="text-sm">通知</span>}
+            <span 
+              className={cn(
+                "text-sm whitespace-nowrap",
+                "transition-all duration-300 ease-out",
+                isCollapsed 
+                  ? "opacity-0 w-0 translate-x-[-10px] pointer-events-none" 
+                  : "opacity-100 w-auto translate-x-0 delay-[250ms]"
+              )}
+            >
+              通知
+            </span>
             {unreadCount > 0 && (
               <span className={cn(
                 "bg-red-500 text-white text-xs rounded-full min-w-[18px] text-center",
@@ -314,7 +349,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
             title={isCollapsed ? "主题设置" : undefined}
           >
             <ThemeIcon />
-            {!isCollapsed && <span className="text-sm">主题</span>}
+            <span 
+              className={cn(
+                "text-sm whitespace-nowrap",
+                "transition-all duration-300 ease-out",
+                isCollapsed 
+                  ? "opacity-0 w-0 translate-x-[-10px] pointer-events-none" 
+                  : "opacity-100 w-auto translate-x-0 delay-[270ms]"
+              )}
+            >
+              主题
+            </span>
           </button>
           
           {showThemeMenu && (
@@ -378,11 +423,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   {user?.nickname?.[0] || user?.username?.[0] || 'U'}
                 </span>
               </div>
-              {!isCollapsed && (
-                <span className="text-sm truncate">
-                  {user?.nickname || user?.username || '用户'}
-                </span>
-              )}
+              <span 
+                className={cn(
+                  "text-sm truncate whitespace-nowrap",
+                  "transition-all duration-300 ease-out",
+                  isCollapsed 
+                    ? "opacity-0 w-0 translate-x-[-10px] pointer-events-none" 
+                    : "opacity-100 w-auto translate-x-0 delay-[290ms]"
+                )}
+              >
+                {user?.nickname || user?.username || '用户'}
+              </span>
             </button>
 
             {showUserMenu && (
@@ -436,16 +487,32 @@ export const Sidebar: React.FC<SidebarProps> = ({
             title={isCollapsed ? "登录" : undefined}
           >
             <User className="h-5 w-5 flex-shrink-0" />
-            {!isCollapsed && <span className="text-sm">登录</span>}
+            <span 
+              className={cn(
+                "text-sm whitespace-nowrap",
+                "transition-all duration-300 ease-out",
+                isCollapsed 
+                  ? "opacity-0 w-0 translate-x-[-10px] pointer-events-none" 
+                  : "opacity-100 w-auto translate-x-0 delay-[290ms]"
+              )}
+            >
+              登录
+            </span>
           </NavLink>
         )}
 
         {/* 版本信息 */}
-        {!isCollapsed && (
-          <div className="text-center pt-2">
-            <p className="text-xs text-gray-400">v0.6.0</p>
-          </div>
-        )}
+        <div 
+          className={cn(
+            "text-center pt-2 overflow-hidden",
+            "transition-all duration-300 ease-out",
+            isCollapsed 
+              ? "opacity-0 h-0" 
+              : "opacity-100 h-auto delay-[350ms]"
+          )}
+        >
+          <p className="text-xs text-gray-400 whitespace-nowrap">v0.9.0</p>
+        </div>
       </div>
 
       {/* 点击外部关闭菜单的处理 */}
