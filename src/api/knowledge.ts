@@ -32,10 +32,14 @@ export const knowledgeAPI = {
         time_range?: string
       }
     }): Promise<{ kbs: KnowledgeBase[]; total: number }> => {
-      // 构建查询参数
+      // 后端按 1 基页码分页，这里直接透传（默认第一页）
+      const page = params?.page ?? 1
+      const pageSize = params?.page_size ?? 12
+
+      // 构建查询参数（保留 1 基页码）
       const queryParams = new URLSearchParams({
-        page: (params?.page || 1).toString(),
-        page_size: (params?.page_size || 12).toString(),
+        page: page.toString(),
+        page_size: pageSize.toString(),
         orderby: params?.orderby || 'update_time',
         desc: (params?.desc ?? true).toString(),
         keywords: params?.keywords || ''

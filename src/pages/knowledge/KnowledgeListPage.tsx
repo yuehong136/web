@@ -725,6 +725,7 @@ export const KnowledgeListPage: React.FC = () => {
           },
           {
             key: 'name',
+            dataIndex: 'name',
             title: (
               <Button
                 variant="ghost"
@@ -755,6 +756,7 @@ export const KnowledgeListPage: React.FC = () => {
           },
           {
             key: 'status',
+            dataIndex: 'permission',
             title: '状态',
             render: (_, record: KnowledgeBase) => (
               <span className={cn(
@@ -767,6 +769,7 @@ export const KnowledgeListPage: React.FC = () => {
           },
           {
             key: 'doc_num',
+            dataIndex: 'doc_num',
             title: (
               <Button
                 variant="ghost"
@@ -789,6 +792,7 @@ export const KnowledgeListPage: React.FC = () => {
           },
           {
             key: 'chunk_num',
+            dataIndex: 'chunk_num',
             title: '块数',
             render: (value: number) => (
               <div className="flex items-center">
@@ -799,6 +803,7 @@ export const KnowledgeListPage: React.FC = () => {
           },
           {
             key: 'token_num',
+            dataIndex: 'token_num',
             title: 'Token数',
             render: (value: number) => (
               <div className="text-sm text-text-secondary">
@@ -808,6 +813,7 @@ export const KnowledgeListPage: React.FC = () => {
           },
           {
             key: 'update_time',
+            dataIndex: 'update_time',
             title: (
               <Button
                 variant="ghost"
@@ -1010,81 +1016,78 @@ export const KnowledgeListPage: React.FC = () => {
             {viewMode === 'grid' ? renderGridView() : renderTableView()}
           </div>
           
-          {/* 分页控件 - sticky 粘性定位 */}
-          {totalPages > 1 && (
-            <div className="sticky bottom-0 backdrop-blur-sm shadow-lg rounded-t-lg mx-4 mb-4" style={{
-              borderTop: '1px solid var(--color-components-pagination-border)',
-              backgroundColor: 'var(--color-components-pagination-bg)',
-              backdropFilter: 'blur(12px)'
-            }}>
-              <div className="px-6 py-4 flex items-center justify-between">
-                <div className="text-sm" style={{ color: 'var(--color-components-pagination-text)' }}>
-                  共 {total} 项{selectedBases.length > 0 && ` • 已选择 ${selectedBases.length} 个`}
-                </div>
-                
-                <div className="flex items-center space-x-4">
-                {/* 每页显示选择器 */}
-                <PageSizeSelector
-                  pageSize={pageSize}
-                  onChange={(size) => handlePageSizeChange(size)}
-                  options={[6, 12, 24, 48]}
-                />
-                
-                {/* 页码导航 */}
-                <div className="flex items-center space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                  上一页
-                </Button>
-                
-                <div className="flex items-center space-x-1">
-                  {Array.from({ length: Math.min(7, totalPages) }, (_, i) => {
-                    let pageNum = i + 1
-                    
-                    // Show first page, last page, current page and surrounding pages
-                    if (totalPages > 7) {
-                      if (currentPage <= 4) {
-                        pageNum = i + 1
-                      } else if (currentPage >= totalPages - 3) {
-                        pageNum = totalPages - 6 + i
-                      } else {
-                        pageNum = currentPage - 3 + i
-                      }
+          {/* 分页控件 - 与卡片风格统一 */}
+          <div className="mt-4 rounded-lg border shadow-sm" style={{
+            borderColor: 'var(--color-components-card-border)',
+            backgroundColor: 'var(--color-components-card-bg)'
+          }}>
+            <div className="px-6 py-4 flex items-center justify-between">
+              <div className="text-sm" style={{ color: 'var(--color-components-pagination-text)' }}>
+                共 {total} 项{selectedBases.length > 0 && ` • 已选择 ${selectedBases.length} 个`}
+              </div>
+              
+              <div className="flex items-center space-x-4">
+              {/* 每页显示选择器 */}
+              <PageSizeSelector
+                pageSize={pageSize}
+                onChange={(size) => handlePageSizeChange(size)}
+                options={[6, 12, 24, 48]}
+              />
+              
+              {/* 页码导航 */}
+              <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft className="h-4 w-4" />
+                上一页
+              </Button>
+              
+              <div className="flex items-center space-x-1">
+                {Array.from({ length: Math.max(1, Math.min(7, totalPages)) }, (_, i) => {
+                  let pageNum = i + 1
+                  
+                  // Show first page, last page, current page and surrounding pages
+                  if (totalPages > 7) {
+                    if (currentPage <= 4) {
+                      pageNum = i + 1
+                    } else if (currentPage >= totalPages - 3) {
+                      pageNum = totalPages - 6 + i
+                    } else {
+                      pageNum = currentPage - 3 + i
                     }
-                    
-                    return (
-                      <Button
-                        key={pageNum}
-                        variant={currentPage === pageNum ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => handlePageChange(pageNum)}
-                        className="min-w-[40px]"
-                      >
-                        {pageNum}
-                      </Button>
-                    )
-                  })}
-                </div>
-                
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                >
-                  下一页
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-                </div>
-                </div>
+                  }
+                  
+                  return (
+                    <Button
+                      key={pageNum}
+                      variant={currentPage === pageNum ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => handlePageChange(pageNum)}
+                      className="min-w-[40px]"
+                    >
+                      {pageNum}
+                    </Button>
+                  )
+                })}
+              </div>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages || totalPages === 0}
+              >
+                下一页
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+              </div>
               </div>
             </div>
-          )}
+          </div>
         </div>
       )}
       

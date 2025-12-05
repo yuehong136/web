@@ -65,7 +65,23 @@ export const useKnowledgeStore = create<KnowledgeState>()(
           console.log('Store: calling API with params:', params)
           const response = await knowledgeAPI.knowledgeBase.list(params)
           console.log('Store: API response:', response)
-          
+
+          // 后端在 page_size 很大时可能返回空列表，这里兜底重试一次第一页全量
+          if (response.kbs.length === 0 && response.total > 0) {
+            const fallbackPageSize = Math.max(response.total, params?.page_size ?? 12)
+            const retry = await knowledgeAPI.knowledgeBase.list({
+              ...params,
+              page: 1,
+              page_size: fallbackPageSize,
+            })
+            set({
+              knowledgeBases: retry.kbs,
+              total: retry.total,
+              isLoading: false,
+            })
+            return
+          }
+
           set({ 
             knowledgeBases: response.kbs,
             total: response.total,
@@ -149,7 +165,8 @@ export const useKnowledgeStore = create<KnowledgeState>()(
           ]
 
           // 模拟分页逻辑
-          const page = params?.page || 0
+          // 与真实接口保持一致：UI 使用 1 基页码，这里转为 0 基索引
+          const page = Math.max((params?.page ?? 1) - 1, 0)
           const pageSize = params?.page_size || 12
           const keywords = params?.keywords || ''
           
