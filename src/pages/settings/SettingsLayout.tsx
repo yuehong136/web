@@ -141,7 +141,7 @@ export const SettingsLayout: React.FC = () => {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink onClick={() => navigate('/dashboard')}>
+              <BreadcrumbLink onClick={() => navigate('/home')}>
                 <House className="w-4 h-4" />
               </BreadcrumbLink>
             </BreadcrumbItem>

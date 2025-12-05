@@ -4,10 +4,9 @@ export const API_VERSION = 'v1'
 
 // 路由常量
 export const ROUTES = {
-  HOME: '/',
+  HOME: '/home',
   LOGIN: '/auth/login',
   REGISTER: '/auth/register',
-  DASHBOARD: '/dashboard',
   CHAT: '/chat',
   KNOWLEDGE: '/knowledge',
   EXPLORE: '/explore',

@@ -60,7 +60,7 @@ export const LoginPage: React.FC = () => {
   const onSubmit = async (data: LoginFormData) => {
     try {
       await login(data.email, data.password, data.remember)
-      navigate(ROUTES.DASHBOARD)
+      navigate(ROUTES.HOME)
     } catch (error: any) {
       setError('root', {
         message: error.message || '登录失败，请重试',

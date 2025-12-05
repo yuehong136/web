@@ -21,3 +21,4 @@ export function Divider({ className, orientation = 'horizontal' }: DividerProps)
 
 export default Divider
 
+

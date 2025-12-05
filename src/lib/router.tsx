@@ -1,7 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { Layout } from '@/components/layout/Layout'
 import { LoginPage, RegisterPage } from '@/pages/auth'
-import { DashboardPage } from '@/pages/dashboard'
+import { HomePage } from '@/pages/home'
 import { ChatPage } from '@/pages/chat/ChatPage'
 import { KnowledgeListPage } from '@/pages/knowledge/KnowledgeListPage'
 import { KnowledgeDetailLayout } from '@/pages/knowledge/KnowledgeDetailLayout'
@@ -102,11 +102,11 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <Navigate to={ROUTES.DASHBOARD} replace />,
+        element: <Navigate to={ROUTES.HOME} replace />,
       },
       {
-        path: ROUTES.DASHBOARD,
-        element: <DashboardPage />,
+        path: ROUTES.HOME,
+        element: <HomePage />,
       },
       {
         path: ROUTES.CHAT,

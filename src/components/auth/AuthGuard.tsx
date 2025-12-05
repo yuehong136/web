@@ -49,7 +49,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
     location.pathname === ROUTES.LOGIN || 
     location.pathname === ROUTES.REGISTER
   )) {
-    return <Navigate to={ROUTES.DASHBOARD} replace />
+    return <Navigate to={ROUTES.HOME} replace />
   }
 
   // 检查权限

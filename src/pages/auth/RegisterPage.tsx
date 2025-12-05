@@ -84,7 +84,7 @@ export const RegisterPage: React.FC = () => {
         email: formData.email,
         password: formData.password,
       })
-      navigate(ROUTES.DASHBOARD)
+      navigate(ROUTES.HOME)
     } catch (error: any) {
       console.error('注册失败:', error.message || '注册失败，请重试')
     }
