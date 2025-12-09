@@ -84,31 +84,39 @@ const ThemeToggle: React.FC = () => {
   return (
     <button
       type="button"
+      aria-label="切换主题"
+      aria-pressed={isDark}
       onClick={() => handleThemeChange(!isDark)}
-      className="relative inline-flex h-7 w-14 items-center rounded-full transition-colors p-0.5 bg-card hover:bg-card/80 border border-border"
+      className="relative inline-flex h-8 w-16 items-center rounded-full border border-border bg-card transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
     >
-      <div className="inline-flex h-full w-full items-center">
-        <div
+      <span
+        className="absolute inset-0.5 rounded-full bg-muted/40 dark:bg-muted/60"
+        aria-hidden="true"
+      />
+      <span className="absolute inset-0.5 grid grid-cols-2" aria-hidden="true">
+        <span
           className={cn(
-            "inline-flex transform items-center justify-center rounded-full transition-all",
-            isDark
-              ? "text-text-tertiary h-5 w-6"
-              : "text-text-primary bg-background h-full w-7 flex-1 shadow-sm"
+            'col-span-1 flex items-center justify-center transition-all duration-300 ease-out',
+            isDark ? 'col-start-2' : 'col-start-1'
           )}
         >
-          <Sun className="w-4 h-4" />
-        </div>
-        <div
+          <span className="h-6 w-6 rounded-full bg-background shadow-sm" />
+        </span>
+      </span>
+      <span className="relative flex w-full items-center justify-between px-3 text-xs">
+        <Sun
           className={cn(
-            "inline-flex transform items-center justify-center rounded-full transition-all",
-            isDark
-              ? "text-text-primary bg-background h-full w-7 flex-1 shadow-sm"
-              : "text-text-tertiary h-5 w-6"
+            'h-4 w-4 transition-colors',
+            isDark ? 'text-text-tertiary' : 'text-amber-400 drop-shadow'
           )}
-        >
-          <Moon className="w-4 h-4" />
-        </div>
-      </div>
+        />
+        <Moon
+          className={cn(
+            'h-4 w-4 transition-colors',
+            isDark ? 'text-indigo-300 drop-shadow' : 'text-text-tertiary'
+          )}
+        />
+      </span>
     </button>
   )
 }
