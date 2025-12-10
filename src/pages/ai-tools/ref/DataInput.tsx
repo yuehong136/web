@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react'
 import { Button } from '@/components/vendor/ui/button'
 import { Input } from '@/components/vendor/ui/input'
 import { Textarea } from '@/components/vendor/ui/textarea'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/vendor/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/vendor/ui/tabs'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
@@ -16,7 +15,23 @@ import { ChatModelSelector } from '@/components/chat/ChatModelSelector'
 import { documentAPI } from '@/api/document'
 import { mcpChatAPI, type MCPServerInfo } from '@/api/mcp-chat-service'
 import { useModelStore } from '@/stores/model'
-import { Save, Loader2, FileText, Info, Copy, RotateCcw, ArrowLeft, Settings2, Sparkles, PlugZap, ChevronDown, ChevronUp } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import {
+  Save,
+  Loader2,
+  Copy,
+  RotateCcw,
+  ArrowLeft,
+  Settings2,
+  Sparkles,
+  PlugZap,
+  ChevronDown,
+  ChevronUp,
+  Search,
+  Code2,
+  FormInput,
+  AlertCircle
+} from 'lucide-react'
 
 export interface PlaceholderData { [key: string]: string }
 
@@ -263,360 +278,356 @@ const DataInput: React.FC<DataInputProps> = ({
     return hit
   })
 
+  const filledCount = placeholderKeys.filter(k => formData[k] && formData[k].trim() !== '').length
+
   return (
     <div className="space-y-6">
-      {/* 工具栏 */}
-      <div 
-        className="rounded-xl border p-4 space-y-3"
-        style={{
-          backgroundColor: 'rgb(var(--color-background-subtle))',
-          borderColor: 'rgb(var(--color-border-subtle))'
-        }}
-      >
-        {/* 第一行：占位符数量 + 操作按钮 */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2" style={{ color: 'rgb(var(--color-text-primary))' }}>
-            <Info className="w-5 h-5" style={{ color: 'rgb(var(--color-text-accent))' }} />
-            <span>检测到 <Badge variant="secondary" style={{
-              backgroundColor: 'rgb(var(--color-components-badge-bg))',
-              color: 'rgb(var(--color-components-badge-text))',
-              borderColor: 'rgb(var(--color-components-badge-border))'
-            }}>{placeholderKeys.length}</Badge> 待填项</span>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={onBackToUpload}>
-              <ArrowLeft className="w-4 h-4 mr-2" />返回上传
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => setSettingsOpen(true)}>
-              <Settings2 className="w-4 h-4 mr-2" />设置
-            </Button>
-            <Button size="sm" onClick={handleAIFill} disabled={isLoading || aiFilling || placeholderKeys.length === 0}>
-              {aiFilling ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Sparkles className="w-4 h-4 mr-2" />}
-              AI 填写
-            </Button>
-            <Button variant="outline" size="sm" onClick={resetForm}>
-              <RotateCcw className="w-4 h-4 mr-2" />重置
-            </Button>
+      {/* 顶部操作栏 */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="sm" onClick={onBackToUpload}>
+            <ArrowLeft className="w-4 h-4 mr-1" />
+            返回
+          </Button>
+          <div className="h-4 w-px bg-border" />
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Badge variant="secondary" className="font-normal">
+              {filledCount}/{placeholderKeys.length} 已填写
+            </Badge>
           </div>
         </div>
-        {/* 第二行：状态信息 + 搜索/过滤 */}
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-          <div className="text-sm text-muted-foreground flex items-center gap-1">
-            <span className="font-medium text-foreground">模型:</span>
-            <Badge variant="outline">{llmConfig.llm_name || '未选择'}</Badge>
-          </div>
-          <div className="text-sm text-muted-foreground flex items-center gap-1">
-            <span className="font-medium text-foreground">MCP:</span>
-            <Badge variant="outline">{mcpConfig.mcp_ids.length} 个</Badge>
-          </div>
-          <div className="text-sm text-muted-foreground flex items-center gap-1">
-            <span className="font-medium text-foreground">提示词:</span>
-            <Badge variant="outline">{promptConfig.systemPrompt?.trim() ? '就绪' : '未设置'}</Badge>
-          </div>
-          <div className="ml-auto flex items-center gap-3">
-            <Input
-              value={searchKey}
-              onChange={(e) => setSearchKey(e.target.value)}
-              placeholder="搜索待填项"
-              className="h-8 w-[180px]"
-            />
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Switch checked={showOnlyEmpty} onCheckedChange={setShowOnlyEmpty} />
-              <span>仅看未填</span>
-            </div>
-          </div>
+
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => setSettingsOpen(true)}>
+            <Settings2 className="w-4 h-4 mr-1" />
+            设置
+          </Button>
+          <Button
+            size="sm"
+            onClick={handleAIFill}
+            disabled={isLoading || aiFilling || placeholderKeys.length === 0}
+            className="bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 text-white border-0"
+          >
+            {aiFilling ? (
+              <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+            ) : (
+              <Sparkles className="w-4 h-4 mr-1" />
+            )}
+            AI 填写
+          </Button>
+          <Button variant="ghost" size="sm" onClick={resetForm}>
+            <RotateCcw className="w-4 h-4" />
+          </Button>
         </div>
       </div>
 
+      {/* 状态信息 */}
+      <div className="flex flex-wrap items-center gap-3 text-sm">
+        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-muted">
+          <span className="text-muted-foreground">模型:</span>
+          <span className="font-medium text-foreground">{llmConfig.llm_name || '未选择'}</span>
+        </div>
+        {mcpConfig.mcp_ids.length > 0 && (
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-muted">
+            <PlugZap className="w-3.5 h-3.5 text-muted-foreground" />
+            <span className="font-medium text-foreground">{mcpConfig.mcp_ids.length} MCP</span>
+          </div>
+        )}
+      </div>
+
+      {/* 验证错误 */}
       {validationErrors.length > 0 && (
         <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
           <AlertDescription>
             <ul className="list-disc list-inside space-y-1">
-              {validationErrors.map((err) => (<li key={err}>{err}</li>))}
+              {validationErrors.slice(0, 3).map((err) => (<li key={err}>{err}</li>))}
+              {validationErrors.length > 3 && (
+                <li>还有 {validationErrors.length - 3} 个字段未填写</li>
+              )}
             </ul>
           </AlertDescription>
         </Alert>
       )}
 
-      <Tabs 
-        value={activeTab} 
-        onValueChange={(v) => setActiveTab(v as any)}
-        style={{ 
-          '--tabs-list-bg': 'rgb(var(--color-components-tabs-bg))',
-          '--tabs-trigger-active-bg': 'rgb(var(--color-components-tabs-active-bg))',
-          '--tabs-trigger-active-text': 'rgb(var(--color-components-tabs-active-text))',
-          '--tabs-trigger-inactive-text': 'rgb(var(--color-components-tabs-inactive-text))'
-        } as React.CSSProperties}
-      >
-        <TabsList 
-          className="grid w-full grid-cols-2 rounded-xl"
-          style={{
-            backgroundColor: 'rgb(var(--color-components-tabs-bg))',
-            borderColor: 'rgb(var(--color-components-tabs-border))'
-          }}
-        >
-          <TabsTrigger 
-            value="form" 
-            className="h-9 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-none"
-            style={{
-              color: 'rgb(var(--color-components-tabs-inactive-text))'
-            }}
-          >
-            表单填写
-          </TabsTrigger>
-          <TabsTrigger 
-            value="json" 
-            className="h-9 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-none"
-            style={{
-              color: 'rgb(var(--color-components-tabs-inactive-text))'
-            }}
-          >
-            JSON编辑
-          </TabsTrigger>
-        </TabsList>
+      {/* 主内容区 - Tabs */}
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
+        <div className="flex items-center justify-between gap-4 mb-4">
+          <TabsList className="bg-muted/50">
+            <TabsTrigger value="form" className="gap-1.5">
+              <FormInput className="w-4 h-4" />
+              表单
+            </TabsTrigger>
+            <TabsTrigger value="json" className="gap-1.5">
+              <Code2 className="w-4 h-4" />
+              JSON
+            </TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="form" className="space-y-4">
-          <Card 
-            style={{
-              backgroundColor: 'rgb(var(--color-components-card-bg))',
-              borderColor: 'rgb(var(--color-components-card-border))'
-            }}
-          >
-            <CardHeader>
-              <CardTitle 
-                className="flex items-center gap-2" 
-                style={{ color: 'rgb(var(--color-text-primary))' }}
-              >
-                <FileText className="w-5 h-5" />
-                填写待填项数据
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {placeholderKeys.length === 0 ? (
-                <Alert><AlertDescription>文档中没有检测到占位符</AlertDescription></Alert>
-              ) : (
-                <div className="relative">
-                  <div
-                    className="max-h-[60vh] overflow-auto pr-2 pb-4 scrollbar-thin scrollbar-thumb-components-scrollbar-thumb scrollbar-track-components-scrollbar-track"
-                    style={{ WebkitOverflowScrolling: 'touch', touchAction: 'auto' }}
-                  >
-                    <div className="grid gap-4 md:grid-cols-2">
-                      {filteredKeys.map((k) => (
-                        <div key={k} className="space-y-2">
-                          <div className="text-sm flex items-center gap-2" style={{ color: 'rgb(var(--color-text-secondary))' }}>
-                            <span className="font-medium" style={{ color: 'rgb(var(--color-text-primary))' }}>{k}</span>
-                          </div>
-                          <Input
-                            value={formData[k] || ''}
-                            onChange={(e) => handleFormChange(k, e.target.value)}
-                            className="h-11 rounded-xl bg-muted/40 border-border placeholder:text-muted-foreground dark:placeholder:text-slate-400"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="json" className="space-y-4">
-          <Card 
-            style={{
-              backgroundColor: 'rgb(var(--color-components-card-bg))',
-              borderColor: 'rgb(var(--color-components-card-border))'
-            }}
-          >
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <div className="flex items-center gap-2" style={{ color: 'rgb(var(--color-text-primary))' }}>
-                  <FileText className="w-5 h-5" />
-                  JSON数据编辑
-                </div>
-                <Button variant="outline" size="sm" onClick={copyJson}><Copy className="w-4 h-4 mr-2" />复制</Button>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-                <div className="space-y-2">
-                  <Textarea value={jsonInput} onChange={(e) => handleJsonChange(e.target.value)} className="font-mono text-sm min-h-[200px] rounded-xl" />
-                <p className="text-xs" style={{ color: 'rgb(var(--color-text-tertiary))' }}>格式示例：{'{"姓名":"张三","日期":"2024-01-01"}'}</p>
+          {activeTab === 'form' && (
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  value={searchKey}
+                  onChange={(e) => setSearchKey(e.target.value)}
+                  placeholder="搜索字段..."
+                  className="pl-8 h-8 w-[160px]"
+                />
               </div>
-            </CardContent>
-          </Card>
+              <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
+                <Switch
+                  checked={showOnlyEmpty}
+                  onCheckedChange={setShowOnlyEmpty}
+                  className="scale-90"
+                />
+                仅看未填
+              </label>
+            </div>
+          )}
+        </div>
 
-          {aiRawOutput && (
-            <Card>
-              <CardHeader className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4" /> AI 原始输出
-                </CardTitle>
-                <Button variant="ghost" size="sm" onClick={() => setShowAiRaw((v) => !v)}>
-                  {showAiRaw ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                </Button>
-              </CardHeader>
-              {showAiRaw && (
-                <CardContent>
-                  <Textarea readOnly value={aiRawOutput} className="font-mono text-xs min-h-[160px]" />
-                </CardContent>
-              )}
-            </Card>
+        <TabsContent value="form" className="mt-0">
+          {placeholderKeys.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground">
+              文档中没有检测到占位符
+            </div>
+          ) : filteredKeys.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground">
+              没有匹配的字段
+            </div>
+          ) : (
+            <div
+              className="max-h-[50vh] overflow-auto pr-2 -mr-2"
+              style={{ WebkitOverflowScrolling: 'touch' }}
+            >
+              <div className="grid gap-4 sm:grid-cols-2">
+                {filteredKeys.map((k) => (
+                  <div key={k} className="space-y-1.5">
+                    <label className="text-sm font-medium text-foreground truncate block">
+                      {k}
+                    </label>
+                    <Input
+                      value={formData[k] || ''}
+                      onChange={(e) => handleFormChange(k, e.target.value)}
+                      className={cn(
+                        'h-10',
+                        !formData[k] && 'border-dashed'
+                      )}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
         </TabsContent>
 
+        <TabsContent value="json" className="mt-0 space-y-4">
+          <div className="relative">
+            <Textarea
+              value={jsonInput}
+              onChange={(e) => handleJsonChange(e.target.value)}
+              className="font-mono text-sm min-h-[240px] resize-none"
+            />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={copyJson}
+              className="absolute top-2 right-2"
+            >
+              <Copy className="w-4 h-4" />
+            </Button>
+          </div>
+
+          {aiRawOutput && (
+            <div className="rounded-lg border border-border overflow-hidden">
+              <button
+                onClick={() => setShowAiRaw(v => !v)}
+                className="w-full flex items-center justify-between px-4 py-2.5 bg-muted/50 hover:bg-muted transition-colors"
+              >
+                <span className="text-sm font-medium flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-purple-500" />
+                  AI 原始输出
+                </span>
+                {showAiRaw ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </button>
+              {showAiRaw && (
+                <div className="p-4 bg-background">
+                  <pre className="text-xs text-muted-foreground whitespace-pre-wrap overflow-auto max-h-40">
+                    {aiRawOutput}
+                  </pre>
+                </div>
+              )}
+            </div>
+          )}
+        </TabsContent>
       </Tabs>
 
-      <div className="flex justify-end">
-        <Button onClick={fillDocument} disabled={isLoading || placeholderKeys.length === 0} size="lg">
-          {isLoading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />正在填充文档...</> : <><Save className="w-4 h-4 mr-2" />填充文档</>}
+      {/* 提交按钮 */}
+      <div className="flex justify-end pt-4 border-t border-border">
+        <Button
+          onClick={fillDocument}
+          disabled={isLoading || placeholderKeys.length === 0}
+          size="lg"
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              正在填充...
+            </>
+          ) : (
+            <>
+              <Save className="w-4 h-4 mr-2" />
+              生成文档
+            </>
+          )}
         </Button>
       </div>
 
+      {/* 设置弹窗 */}
       <Modal
         open={settingsOpen}
         onClose={() => setSettingsOpen(false)}
         title="AI 填写设置"
-        description="配置模型、提示词和工具参数，驱动 AI 生成填充值"
-        size="xl"
+        description="配置模型和提示词参数"
+        size="lg"
       >
         <div className="space-y-4">
           <Tabs value={settingsTab} onValueChange={(v) => setSettingsTab(v as any)}>
-            <TabsList className="grid grid-cols-3 mb-3">
-              <TabsTrigger value="llm">模型配置</TabsTrigger>
-              <TabsTrigger value="prompt">提示词管理</TabsTrigger>
-              <TabsTrigger value="mcp">高级配置</TabsTrigger>
+            <TabsList className="w-full grid grid-cols-3 mb-4">
+              <TabsTrigger value="llm">模型</TabsTrigger>
+              <TabsTrigger value="prompt">提示词</TabsTrigger>
+              <TabsTrigger value="mcp">高级</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="llm">
-              <div className="space-y-3">
+            <TabsContent value="llm" className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-foreground mb-2 block">选择模型</label>
                 <ChatModelSelector
                   models={myLLMs}
                   selectedModelName={llmConfig.llm_name}
                   onSelect={(name) => setLlmConfig((prev) => ({ ...prev, llm_name: name || '' }))}
                   modelTypes={['chat']}
                 />
+              </div>
 
-                <div className="grid grid-cols-2 gap-3 mt-4">
-                  <div className="space-y-1.5">
-                    <label className="text-sm text-muted-foreground">Temperature</label>
-                    <Input
-                      type="number"
-                      step="0.1"
-                      min="0"
-                      max="1"
-                      value={llmConfig.temperature}
-                      onChange={(e) => setLlmConfig((prev) => ({ ...prev, temperature: Number(e.target.value) }))}
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-sm text-muted-foreground">Max Tokens</label>
-                    <Input
-                      type="number"
-                      min="256"
-                      max="4096"
-                      value={llmConfig.max_tokens}
-                      onChange={(e) => setLlmConfig((prev) => ({ ...prev, max_tokens: Number(e.target.value) }))}
-                    />
-                  </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm text-muted-foreground mb-1.5 block">Temperature</label>
+                  <Input
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    max="1"
+                    value={llmConfig.temperature}
+                    onChange={(e) => setLlmConfig((prev) => ({ ...prev, temperature: Number(e.target.value) }))}
+                  />
+                </div>
+                <div>
+                  <label className="text-sm text-muted-foreground mb-1.5 block">Max Tokens</label>
+                  <Input
+                    type="number"
+                    min="256"
+                    max="4096"
+                    value={llmConfig.max_tokens}
+                    onChange={(e) => setLlmConfig((prev) => ({ ...prev, max_tokens: Number(e.target.value) }))}
+                  />
                 </div>
               </div>
             </TabsContent>
 
-            <TabsContent value="prompt">
-              <div className="space-y-3">
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-foreground">系统提示词</label>
-                  <Textarea
-                    className="min-h-[120px]"
-                    value={promptConfig.systemPrompt}
-                    onChange={(e) => setPromptConfig((prev) => ({ ...prev, systemPrompt: e.target.value }))}
-                    placeholder={DEFAULT_SYSTEM_PROMPT}
-                  />
-                  <p className="text-xs text-muted-foreground">为空时将自动使用默认提示词，确保返回纯 JSON。</p>
+            <TabsContent value="prompt" className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-foreground mb-1.5 block">系统提示词</label>
+                <Textarea
+                  className="min-h-[100px] resize-none"
+                  value={promptConfig.systemPrompt}
+                  onChange={(e) => setPromptConfig((prev) => ({ ...prev, systemPrompt: e.target.value }))}
+                  placeholder={DEFAULT_SYSTEM_PROMPT}
+                />
+                <p className="text-xs text-muted-foreground mt-1.5">为空时将使用默认提示词</p>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-sm font-medium text-foreground">用户输入</label>
+                  <div className="flex items-center gap-1.5">
+                    <Button size="sm" variant="ghost" disabled className="h-7 text-xs">
+                      本地文件
+                    </Button>
+                    <Button size="sm" variant="ghost" disabled className="h-7 text-xs">
+                      数据源
+                    </Button>
+                  </div>
                 </div>
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <label className="text-sm font-medium text-foreground flex items-center gap-2">
-                      <PlugZap className="w-4 h-4" /> 用户输入
-                    </label>
-                    <div className="flex items-center gap-2">
-                      <Button size="sm" variant="outline" disabled>本地文件</Button>
-                      <Button size="sm" variant="outline" disabled>数据源</Button>
+                <Textarea
+                  className="min-h-[100px] resize-none"
+                  value={promptConfig.userInput}
+                  onChange={(e) => setPromptConfig((prev) => ({ ...prev, userInput: e.target.value }))}
+                  placeholder="输入补充信息，将与占位符 JSON 一并发送给模型"
+                />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="mcp" className="space-y-4">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <label className="text-sm font-medium text-foreground">MCP 工具</label>
+                  {mcpLoading && <Loader2 className="w-3.5 h-3.5 animate-spin text-muted-foreground" />}
+                </div>
+                <ScrollArea className="h-32 rounded-md border border-border p-2">
+                  {mcpServers.length === 0 ? (
+                    <div className="text-sm text-muted-foreground text-center py-4">暂无可用 MCP</div>
+                  ) : (
+                    <div className="space-y-2">
+                      {mcpServers.map((server) => (
+                        <label key={server.id} className="flex items-center gap-2 text-sm cursor-pointer">
+                          <Checkbox
+                            checked={mcpConfig.mcp_ids.includes(server.id)}
+                            onCheckedChange={(checked) => {
+                              setMcpConfig((prev) => ({
+                                ...prev,
+                                mcp_ids: checked
+                                  ? [...prev.mcp_ids, server.id]
+                                  : prev.mcp_ids.filter((id) => id !== server.id)
+                              }))
+                            }}
+                          />
+                          <span className="text-foreground">{server.name}</span>
+                        </label>
+                      ))}
                     </div>
-                  </div>
-                  <Textarea
-                    className="min-h-[120px]"
-                    value={promptConfig.userInput}
-                    onChange={(e) => setPromptConfig((prev) => ({ ...prev, userInput: e.target.value }))}
-                    placeholder="输入补充信息，将与占位符 JSON 一并发送给模型"
-                  />
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="mcp">
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <Settings2 className="w-4 h-4" />
-                  <p className="text-sm font-medium text-foreground">MCP 工具选择</p>
-                  {mcpLoading && <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />}
-                </div>
-                <ScrollArea className="h-40 rounded-md border px-3 py-2">
-                  {mcpServers.length === 0 && (
-                    <div className="text-sm text-muted-foreground">暂无可用 MCP 工具</div>
                   )}
-                  <div className="space-y-2">
-                    {mcpServers.map((server) => (
-                      <label key={server.id} className="flex items-center gap-2 text-sm text-foreground">
-                        <Checkbox
-                          checked={mcpConfig.mcp_ids.includes(server.id)}
-                          onCheckedChange={(checked) => {
-                            setMcpConfig((prev) => {
-                              const nextIds = checked
-                                ? [...prev.mcp_ids, server.id]
-                                : prev.mcp_ids.filter((id) => id !== server.id)
-                              return { ...prev, mcp_ids: nextIds }
-                            })
-                          }}
-                        />
-                        <span className="truncate">{server.name}</span>
-                        <span className="text-xs text-muted-foreground truncate">{server.description}</span>
-                      </label>
-                    ))}
-                  </div>
                 </ScrollArea>
+              </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <label className="text-sm text-muted-foreground">超时时间（秒）</label>
-                    <Input
-                      type="number"
-                      min="1"
-                      max="60"
-                      value={mcpConfig.mcp_timeout}
-                      onChange={(e) => setMcpConfig((prev) => ({ ...prev, mcp_timeout: Number(e.target.value) }))}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm text-muted-foreground mb-1.5 block">超时时间（秒）</label>
+                  <Input
+                    type="number"
+                    min="1"
+                    max="60"
+                    value={mcpConfig.mcp_timeout}
+                    onChange={(e) => setMcpConfig((prev) => ({ ...prev, mcp_timeout: Number(e.target.value) }))}
+                  />
+                </div>
+                <div>
+                  <label className="text-sm text-muted-foreground mb-1.5 block">工具调用详情</label>
+                  <div className="h-9 flex items-center">
+                    <Switch
+                      checked={mcpConfig.verbose_tool_use}
+                      onCheckedChange={(checked) => setMcpConfig((prev) => ({ ...prev, verbose_tool_use: checked }))}
                     />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-sm text-muted-foreground flex items-center gap-2">
-                      <Sparkles className="w-4 h-4" /> 返回工具调用摘要
-                    </label>
-                    <div className="flex items-center gap-2">
-                      <Switch
-                        checked={mcpConfig.verbose_tool_use}
-                        onCheckedChange={(checked) => setMcpConfig((prev) => ({ ...prev, verbose_tool_use: checked }))}
-                      />
-                      <span className="text-sm text-muted-foreground">展示工具调用详情</span>
-                    </div>
                   </div>
                 </div>
               </div>
             </TabsContent>
           </Tabs>
 
-          <div className="flex justify-end gap-2 pt-2">
+          <div className="flex justify-end gap-2 pt-2 border-t border-border">
             <Button variant="outline" onClick={() => setSettingsOpen(false)}>取消</Button>
-            <Button onClick={() => setSettingsOpen(false)}>保存</Button>
+            <Button onClick={() => setSettingsOpen(false)}>确定</Button>
           </div>
         </div>
       </Modal>
@@ -625,5 +636,3 @@ const DataInput: React.FC<DataInputProps> = ({
 }
 
 export default DataInput
-
-
