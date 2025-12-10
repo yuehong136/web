@@ -7,7 +7,7 @@ export const llmAPI = {
     mdl_type?: LLMType
     available?: boolean
   }): Promise<Record<string, LLMModel[]>> =>
-    apiClient.get('/v1/llm/list', { params }),
+    apiClient.get('/v1/llm/my_llms', { params }),
 
   // 获取模型详情
   get: (modelId: string): Promise<LLMModel> =>

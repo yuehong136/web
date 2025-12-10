@@ -27,7 +27,7 @@ export const Layout: React.FC = () => {
           )}
 
           {/* Main Content Area - 右侧整体容器（白色圆角） */}
-          <main className="flex-1 h-full overflow-hidden bg-white rounded-2xl shadow-sm">
+          <main className="flex-1 h-full overflow-auto bg-white rounded-2xl shadow-sm">
             <Outlet />
           </main>
         </div>

@@ -3,6 +3,7 @@ import { Button } from '@/components/vendor/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { toast } from '@/lib/toast'
 import { Upload, FileText, Loader2, AlertCircle } from 'lucide-react'
+import { documentAPI } from '@/api/document'
 
 export interface PlaceholderData {
   [key: string]: string
@@ -50,20 +51,8 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileUploaded, onFileProcessed
     onFileUploaded(file)
     setIsLoading(true)
     try {
-      await new Promise((r) => setTimeout(r, 1000))
-      const mockPlaceholders: PlaceholderData = {
-        姓名: '',
-        日期: '',
-        部门: '',
-        职位: '',
-        联系电话: '',
-        邮箱地址: '',
-        工作内容: '',
-        备注: '',
-      }
-      const mockFileData =
-        'UEsDBBQAAAAIAEaMfVCJg5+iSwEAAO0CAAAOAAAAd29yZC9kb2N1bWVudC54bWyVkE1rwzAMhu8L/Q9D91iJkw+S2s5gY6Vs7HKYoKfBtqrYeFLwR/vz52zstmOHnYQevXqlV4LrOl46Z7aTQsm3wMuwCKy0iuzE2FdJy9BGRN7TxWJhpZW5LLTaSiGtsO5aa+lHdJRdaZO4SuZu7Grf6EZmWm0lp5QQQgghJJ4HbePXUBsrJ1sB7JalrdKhHWqRtXsU7mUorS2K+bxIssf8Lb7J97k5jE5H34kz7qHt6qm01dReKqs75xSCkUhGhKB4RtNOLCvVXCJJFRUmLZs3TJvS1z2fdOH8n8E4mS4zYjN2DPyZjNlRSsqf6t5fSm8vpxAUhGHfSPkwXPyeUlIgCCEFCAiCkBGFGCIFgT8T1iqYg=='
-      onFileProcessed({ placeholders: mockPlaceholders, file: mockFileData })
+      const result = await documentAPI.processDocx(file)
+      onFileProcessed({ placeholders: result.placeholders || {}, file: result.file })
       toast.success('文档处理成功！')
     } catch (e) {
       console.error(e)
@@ -142,7 +131,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileUploaded, onFileProcessed
             <Button onClick={handleButtonClick} variant="outline" className="mt-2">
               <Upload className="w-4 h-4 mr-2" /> 选择其他文件
             </Button>
-          )}演示模式
+          )}
         </div>
       </div>
 
@@ -165,12 +154,11 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileUploaded, onFileProcessed
         </AlertDescription>
       </Alert>
 
-      {/* 演示模式提示，贴近参考项目样式 */}
       <div className="rounded-xl border p-4 bg-components-alert-info-bg border-components-alert-info-border text-components-alert-info-text">
         <div className="flex items-start gap-3">
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-components-badge-info-bg text-components-badge-info-text">演示模式</span>
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-components-badge-info-bg text-components-badge-info-text">提示</span>
           <div className="text-sm leading-6">
-            当前为前端演示版本，使用模拟数据展示功能流程。实际部署时需要连接后端 API 服务。
+            上传后将调用后端占位符解析接口，返回标准化的占位符列表与处理后的文档。
           </div>
         </div>
       </div>

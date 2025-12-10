@@ -6,33 +6,69 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/vendor/ui
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/vendor/ui/tabs'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/vendor/ui/select'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { toast } from '@/lib/toast'
-import { Save, Loader2, FileText, Wand2, Info, Copy, RotateCcw, Brain, FileSpreadsheet, CheckCircle, X, ArrowRight, ArrowLeft } from 'lucide-react'
+import { Modal } from '@/components/ui/modal'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Switch } from '@/components/ui/switch'
+import { EnhancedSSEParser } from '@/components/chat/EnhancedSSEParser'
+import { ChatModelSelector } from '@/components/chat/ChatModelSelector'
+import { documentAPI } from '@/api/document'
+import { mcpChatAPI, type MCPServerInfo } from '@/api/mcp-chat-service'
+import { useModelStore } from '@/stores/model'
+import { Save, Loader2, FileText, Info, Copy, RotateCcw, ArrowLeft, Settings2, Sparkles, PlugZap, ChevronDown, ChevronUp } from 'lucide-react'
 
 export interface PlaceholderData { [key: string]: string }
 
 interface DataInputProps {
   placeholders: PlaceholderData
   processedFile: string
+  originalFileName?: string
   onDataFilled: (fileData: string) => void
   onBackToUpload: () => void
   isLoading: boolean
   setIsLoading: (loading: boolean) => void
 }
 
-const DataInput: React.FC<DataInputProps> = ({ placeholders, processedFile, onDataFilled, onBackToUpload, isLoading, setIsLoading }) => {
+const DEFAULT_SYSTEM_PROMPT = '你是一名严谨的表单填充助手。请只输出 JSON，不要包含多余说明。输入给你占位符的 JSON 模板和用户补充信息，请根据语义补全缺失字段，保持键名不变，值为字符串或数组，必须返回有效 JSON。'
+
+const DataInput: React.FC<DataInputProps> = ({
+  placeholders,
+  processedFile,
+  originalFileName,
+  onDataFilled,
+  onBackToUpload,
+  isLoading,
+  setIsLoading,
+}) => {
   const [formData, setFormData] = useState<PlaceholderData>({})
   const [jsonInput, setJsonInput] = useState('')
-  const [textInput, setTextInput] = useState('')
-  const [activeTab, setActiveTab] = useState<'form' | 'json' | 'text' | 'file'>('form')
+  const [activeTab, setActiveTab] = useState<'form' | 'json'>('form')
   const [validationErrors, setValidationErrors] = useState<string[]>([])
-  const [uploadedDataFile, setUploadedDataFile] = useState<File | null>(null)
-  const [parsedFileData, setParsedFileData] = useState<any[]>([])
-  const [selectedRow, setSelectedRow] = useState<number>(0)
-  const [columnMapping, setColumnMapping] = useState<Record<string, string>>({})
-  const [showMappingInterface, setShowMappingInterface] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
+  const [mcpServers, setMcpServers] = useState<MCPServerInfo[]>([])
+  const [mcpLoading, setMcpLoading] = useState(false)
+  const [aiFilling, setAiFilling] = useState(false)
+  const { myLLMs, loadMyLLMs } = useModelStore()
+  const [llmConfig, setLlmConfig] = useState({
+    llm_name: '',
+    temperature: 0.3,
+    max_tokens: 2048,
+  })
+  const [mcpConfig, setMcpConfig] = useState({
+    mcp_ids: [] as string[],
+    mcp_timeout: 10,
+    verbose_tool_use: false,
+  })
+  const [promptConfig, setPromptConfig] = useState({
+    systemPrompt: DEFAULT_SYSTEM_PROMPT,
+    userInput: '',
+  })
+  const [settingsTab, setSettingsTab] = useState<'llm' | 'prompt' | 'mcp'>('llm')
+  const [searchKey, setSearchKey] = useState('')
+  const [showOnlyEmpty, setShowOnlyEmpty] = useState(false)
+  const [aiRawOutput, setAiRawOutput] = useState('')
+  const [showAiRaw, setShowAiRaw] = useState(false)
 
   useEffect(() => {
     const initial: PlaceholderData = {}
@@ -40,6 +76,27 @@ const DataInput: React.FC<DataInputProps> = ({ placeholders, processedFile, onDa
     setFormData(initial)
     setJsonInput(JSON.stringify(initial, null, 2))
   }, [placeholders])
+
+  const fetchMcpServers = async () => {
+    setMcpLoading(true)
+    try {
+      const resp = await mcpChatAPI.listMCPServers()
+      setMcpServers(resp.mcp_servers || [])
+    } catch (error) {
+      console.error(error)
+      toast.error('获取 MCP 列表失败')
+    } finally {
+      setMcpLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (settingsOpen) {
+      fetchMcpServers()
+      loadMyLLMs()
+    }
+  }, [settingsOpen, loadMyLLMs])
+
 
   const validateData = (data: PlaceholderData) => {
     const errors: string[] = []
@@ -59,37 +116,103 @@ const DataInput: React.FC<DataInputProps> = ({ placeholders, processedFile, onDa
     try { setFormData(JSON.parse(value)); setValidationErrors([]) } catch {}
   }
 
-  const extractDataFromText = async () => {
-    if (!textInput.trim()) { toast.error('请输入要提取的文本内容'); return }
-    setIsLoading(true)
-    await new Promise((r) => setTimeout(r, 1000))
-    const extracted: PlaceholderData = {}
-    const keys = Object.keys(placeholders)
-    const text = textInput.toLowerCase()
-    keys.forEach((k) => {
-      if (/姓名|name/.test(k)) extracted[k] = '张三'
-      else if (/日期|date|时间/.test(k)) extracted[k] = '2024-01-15'
-      else if (/部门|department/.test(k)) extracted[k] = '技术部'
-      else if (/职位|position|title/.test(k)) extracted[k] = '软件工程师'
-      else if (/电话|phone|tel/.test(k)) extracted[k] = '13888888888'
-      else if (/邮箱|email|mail/.test(k)) extracted[k] = 'zhangsan@example.com'
-    })
-    setIsLoading(false)
-    const merged = { ...formData, ...extracted }
-    setFormData(merged)
-    setJsonInput(JSON.stringify(merged, null, 2))
-    toast.success(`AI成功提取了 ${Object.values(extracted).filter(Boolean).length} 个字段的信息`)
+  const buildUserMessage = (userInput: string, data: PlaceholderData) => {
+    const payload = JSON.stringify(data || {}, null, 2)
+    return [
+      '请根据以下 JSON 模板补全占位符，只返回 JSON 且键名保持一致：',
+      payload,
+      `用户补充信息：${userInput || '无'}`,
+    ].join('\n')
   }
 
-  const applyFileData = () => {
-    if (parsedFileData.length === 0 || selectedRow >= parsedFileData.length) { toast.error('请选择有效的数据行'); return }
-    const selected = parsedFileData[selectedRow]
-    const mapped: PlaceholderData = {}
-    Object.keys(placeholders).forEach((p) => { const col = columnMapping[p]; if (col && selected[col]) mapped[p] = selected[col] })
-    const merged = { ...formData, ...mapped }
-    setFormData(merged)
-    setJsonInput(JSON.stringify(merged, null, 2))
-    toast.success(`已应用 ${Object.values(mapped).filter(Boolean).length} 个字段的数据`)
+  const extractJsonFromText = (text: string) => {
+    if (!text) return null
+    const candidates: string[] = []
+    const cleaned = text.replace(/```json|```/gi, '').trim()
+    const braceMatch = text.match(/\{[\s\S]*\}/)
+    if (braceMatch) candidates.push(braceMatch[0])
+    candidates.push(cleaned, text.trim())
+    for (const candidate of candidates) {
+      try {
+        return JSON.parse(candidate)
+      } catch {
+        continue
+      }
+    }
+    return null
+  }
+
+  const handleAIFill = async () => {
+    if (placeholderKeys.length === 0) {
+      toast.error('暂无占位符可填充')
+      return
+    }
+    if (!llmConfig.llm_name) {
+      toast.error('请先在设置中选择模型')
+      setSettingsOpen(true)
+      return
+    }
+    let baseData: PlaceholderData = formData
+    try {
+      baseData = JSON.parse(jsonInput)
+    } catch {
+      baseData = formData
+    }
+
+    const requestBody = {
+      prompt: (promptConfig.systemPrompt || DEFAULT_SYSTEM_PROMPT).trim(),
+      messages: [
+        {
+          role: 'user' as const,
+          content: buildUserMessage(promptConfig.userInput, baseData),
+        },
+      ],
+      llm_name: llmConfig.llm_name,
+      stream: true,
+      gen_conf: {
+        ...(llmConfig.temperature !== undefined ? { temperature: llmConfig.temperature } : {}),
+        ...(llmConfig.max_tokens ? { max_tokens: llmConfig.max_tokens } : {}),
+      },
+      mcp_ids: mcpConfig.mcp_ids,
+      mcp_timeout: mcpConfig.mcp_timeout,
+      verbose_tool_use: mcpConfig.verbose_tool_use,
+      files: [],
+      structured_output: mcpConfig.mcp_ids.length > 0,
+    }
+
+    const parser = new EnhancedSSEParser()
+    let latestText = ''
+    setAiFilling(true)
+    setIsLoading(true)
+    setAiRawOutput('')
+    try {
+      const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+      await parser.connect(
+        `${apiBase}/v1/llm/enhanced_chat_sse`,
+        requestBody,
+        (_message, state) => {
+          latestText = state.accumulatedText
+        },
+        (err) => {
+          throw err
+        }
+      )
+      setAiRawOutput(latestText)
+      const parsed = extractJsonFromText(latestText)
+      if (!parsed) {
+        toast.error('AI 返回内容未能解析为 JSON，请调整提示词或输入')
+        return
+      }
+      setFormData(parsed)
+      setJsonInput(JSON.stringify(parsed, null, 2))
+      toast.success('AI 填写完成')
+    } catch (error) {
+      console.error(error)
+      toast.error('AI 填写失败，请重试')
+    } finally {
+      setAiFilling(false)
+      setIsLoading(false)
+    }
   }
 
   const copyJson = () => { navigator.clipboard.writeText(jsonInput); toast.success('JSON已复制到剪贴板') }
@@ -99,72 +222,109 @@ const DataInput: React.FC<DataInputProps> = ({ placeholders, processedFile, onDa
     setFormData(initial)
     setJsonInput(JSON.stringify(initial, null, 2))
     setValidationErrors([])
-    setTextInput('')
-    setUploadedDataFile(null)
-    setParsedFileData([])
-    setShowMappingInterface(false)
-    setColumnMapping({})
     toast.success('表单已重置')
-  }
-
-  const fillExample = () => {
-    const ex: PlaceholderData = {}
-    Object.keys(placeholders).forEach((k) => {
-      if (/姓名|name/.test(k)) ex[k] = '张三'
-      else if (/日期|date|时间/.test(k)) ex[k] = '2024-01-15'
-      else if (/部门|department/.test(k)) ex[k] = '技术部'
-      else if (/职位|position|title/.test(k)) ex[k] = '软件工程师'
-      else if (/电话|phone|tel/.test(k)) ex[k] = '13888888888'
-      else if (/邮箱|email|mail/.test(k)) ex[k] = 'zhangsan@example.com'
-      else ex[k] = '示例数据'
-    })
-    setFormData(ex)
-    setJsonInput(JSON.stringify(ex, null, 2))
-    toast.success('已填入示例数据')
   }
 
   const fillDocument = async () => {
     const errs = validateData(formData)
     if (errs.length) { setValidationErrors(errs); toast.error('请填写所有必填字段'); return }
-    setIsLoading(true)
-    await new Promise((r) => setTimeout(r, 800))
-    const utf8ToBase64 = (str: string) => {
-      try {
-        return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (_, p1) => String.fromCharCode(parseInt(p1, 16))))
-      } catch {
-        const encoder = new TextEncoder(); const data = encoder.encode(str); let bin = ''; for (let i = 0; i < data.length; i++) bin += String.fromCharCode(data[i]); return btoa(bin)
-      }
+    if (!processedFile) {
+      toast.error('缺少处理后的文档，请重新上传')
+      return
     }
-    const mock = 'UEsDBBQAAAAIAEaMfVCJg5+iSwEAAO0CAAAOAAAAd29yZC9kb2N1bWVudC54bWyVkE1rwzAMhu8L/Q9D91iJkw+S2s5gY6Vs7HKYoKfBtqrYeFLwR/vz52zstmOHnYQevXqlV4LrOl46Z7aTQsm3wMuwCKy0iuzE2FdJy9BGRN7TxWJhpZW5LLTaSiGtsO5aa+lHdJRdaZO4SuZu7Grf6EZmWm0lp5QQQgghJJ4HbePXUBsrJ1sB7JalrdKhHWqRtXsU7mUorS2K+bxIssf8Lb7J97k5jE5H34kz7qHt6qm01dReKqs75xSCkUhGhKB4RtNOLCvVXCJJFRUmLZs3TJvS1z2fdOH8n8U4mS4zYjN2DPyZjNlRSsqf6t5fSm8vpxAUhGHfSPkwXPyeUlIgCCEFCAiCkB=' + utf8ToBase64(JSON.stringify(formData))
-    sessionStorage.setItem('documentFilledData', JSON.stringify(formData))
-    onDataFilled(mock)
-    toast.success('文档填充成功！')
-    setIsLoading(false)
+    setIsLoading(true)
+    try {
+      const base64ToFile = (data: string, filename: string) => {
+        const clean = data.trim()
+        const byteString = atob(clean)
+        const ab = new ArrayBuffer(byteString.length)
+        const ia = new Uint8Array(ab)
+        for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i)
+        return new File([ia], filename, { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' })
+      }
+      const safeName = originalFileName || 'document.docx'
+      const uploadFile = base64ToFile(processedFile, safeName)
+      const resp = await documentAPI.fillDocx(uploadFile, formData)
+      onDataFilled(resp.file)
+      toast.success('文档填充成功！')
+    } catch (error) {
+      console.error(error)
+      toast.error('填充文档失败，请重试')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const placeholderKeys = Object.keys(placeholders)
+  const filteredKeys = placeholderKeys.filter((k) => {
+    const hit = !searchKey || k.toLowerCase().includes(searchKey.toLowerCase())
+    const notEmpty = formData[k] && formData[k].trim() !== ''
+    if (showOnlyEmpty) return hit && !notEmpty
+    return hit
+  })
 
   return (
     <div className="space-y-6">
+      {/* 工具栏 */}
       <div 
-        className="flex items-center justify-between p-4 rounded-xl border"
+        className="rounded-xl border p-4 space-y-3"
         style={{
           backgroundColor: 'rgb(var(--color-background-subtle))',
           borderColor: 'rgb(var(--color-border-subtle))'
         }}
       >
-        <div className="flex items-center gap-2" style={{ color: 'rgb(var(--color-text-primary))' }}>
-          <Info className="w-5 h-5" style={{ color: 'rgb(var(--color-text-accent))' }} />
-          <span>检测到 <Badge variant="secondary" style={{
-            backgroundColor: 'rgb(var(--color-components-badge-bg))',
-            color: 'rgb(var(--color-components-badge-text))',
-            borderColor: 'rgb(var(--color-components-badge-border))'
-          }}>{placeholderKeys.length}</Badge> 个占位符</span>
+        {/* 第一行：占位符数量 + 操作按钮 */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2" style={{ color: 'rgb(var(--color-text-primary))' }}>
+            <Info className="w-5 h-5" style={{ color: 'rgb(var(--color-text-accent))' }} />
+            <span>检测到 <Badge variant="secondary" style={{
+              backgroundColor: 'rgb(var(--color-components-badge-bg))',
+              color: 'rgb(var(--color-components-badge-text))',
+              borderColor: 'rgb(var(--color-components-badge-border))'
+            }}>{placeholderKeys.length}</Badge> 待填项</span>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={onBackToUpload}>
+              <ArrowLeft className="w-4 h-4 mr-2" />返回上传
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => setSettingsOpen(true)}>
+              <Settings2 className="w-4 h-4 mr-2" />设置
+            </Button>
+            <Button size="sm" onClick={handleAIFill} disabled={isLoading || aiFilling || placeholderKeys.length === 0}>
+              {aiFilling ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Sparkles className="w-4 h-4 mr-2" />}
+              AI 填写
+            </Button>
+            <Button variant="outline" size="sm" onClick={resetForm}>
+              <RotateCcw className="w-4 h-4 mr-2" />重置
+            </Button>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={onBackToUpload}><ArrowLeft className="w-4 h-4 mr-2" />返回上传</Button>
-          <Button variant="outline" size="sm" onClick={fillExample}><Wand2 className="w-4 h-4 mr-2" />填入示例</Button>
-          <Button variant="outline" size="sm" onClick={resetForm}><RotateCcw className="w-4 h-4 mr-2" />重置</Button>
+        {/* 第二行：状态信息 + 搜索/过滤 */}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <div className="text-sm text-muted-foreground flex items-center gap-1">
+            <span className="font-medium text-foreground">模型:</span>
+            <Badge variant="outline">{llmConfig.llm_name || '未选择'}</Badge>
+          </div>
+          <div className="text-sm text-muted-foreground flex items-center gap-1">
+            <span className="font-medium text-foreground">MCP:</span>
+            <Badge variant="outline">{mcpConfig.mcp_ids.length} 个</Badge>
+          </div>
+          <div className="text-sm text-muted-foreground flex items-center gap-1">
+            <span className="font-medium text-foreground">提示词:</span>
+            <Badge variant="outline">{promptConfig.systemPrompt?.trim() ? '就绪' : '未设置'}</Badge>
+          </div>
+          <div className="ml-auto flex items-center gap-3">
+            <Input
+              value={searchKey}
+              onChange={(e) => setSearchKey(e.target.value)}
+              placeholder="搜索待填项"
+              className="h-8 w-[180px]"
+            />
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Switch checked={showOnlyEmpty} onCheckedChange={setShowOnlyEmpty} />
+              <span>仅看未填</span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -189,7 +349,7 @@ const DataInput: React.FC<DataInputProps> = ({ placeholders, processedFile, onDa
         } as React.CSSProperties}
       >
         <TabsList 
-          className="grid w-full grid-cols-4 rounded-xl"
+          className="grid w-full grid-cols-2 rounded-xl"
           style={{
             backgroundColor: 'rgb(var(--color-components-tabs-bg))',
             borderColor: 'rgb(var(--color-components-tabs-border))'
@@ -197,7 +357,7 @@ const DataInput: React.FC<DataInputProps> = ({ placeholders, processedFile, onDa
         >
           <TabsTrigger 
             value="form" 
-            className="h-9 rounded-lg"
+            className="h-9 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-none"
             style={{
               color: 'rgb(var(--color-components-tabs-inactive-text))'
             }}
@@ -206,30 +366,12 @@ const DataInput: React.FC<DataInputProps> = ({ placeholders, processedFile, onDa
           </TabsTrigger>
           <TabsTrigger 
             value="json" 
-            className="h-9 rounded-lg"
+            className="h-9 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-none"
             style={{
               color: 'rgb(var(--color-components-tabs-inactive-text))'
             }}
           >
             JSON编辑
-          </TabsTrigger>
-          <TabsTrigger 
-            value="text" 
-            className="h-9 rounded-lg"
-            style={{
-              color: 'rgb(var(--color-components-tabs-inactive-text))'
-            }}
-          >
-            文本提取
-          </TabsTrigger>
-          <TabsTrigger 
-            value="file" 
-            className="h-9 rounded-lg"
-            style={{
-              color: 'rgb(var(--color-components-tabs-inactive-text))'
-            }}
-          >
-            文件解析
           </TabsTrigger>
         </TabsList>
 
@@ -246,33 +388,33 @@ const DataInput: React.FC<DataInputProps> = ({ placeholders, processedFile, onDa
                 style={{ color: 'rgb(var(--color-text-primary))' }}
               >
                 <FileText className="w-5 h-5" />
-                填写占位符数据
+                填写待填项数据
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {placeholderKeys.length === 0 ? (
                 <Alert><AlertDescription>文档中没有检测到占位符</AlertDescription></Alert>
               ) : (
-                <div className="grid gap-4 md:grid-cols-2">
-                  {placeholderKeys.map((k) => (
-                    <div key={k} className="space-y-2">
-                      <div className="text-sm flex items-center gap-2" style={{ color: 'rgb(var(--color-text-secondary))' }}>
-                        <span className="font-medium" style={{ color: 'rgb(var(--color-text-primary))' }}>{k}</span>
-                        <Badge 
-                          variant="outline" 
-                          className="text-xs rounded-full"
-                          style={{
-                            backgroundColor: 'rgb(var(--color-components-badge-bg))',
-                            color: 'rgb(var(--color-components-badge-text))',
-                            borderColor: 'rgb(var(--color-components-badge-border))'
-                          }}
-                        >
-                          占位符
-                        </Badge>
-                      </div>
-                      <Input value={formData[k] || ''} onChange={(e) => handleFormChange(k, e.target.value)} placeholder={`请输入 ${k} 的值`} className="h-11 rounded-xl" />
+                <div className="relative">
+                  <div
+                    className="max-h-[60vh] overflow-auto pr-2 pb-4 scrollbar-thin scrollbar-thumb-components-scrollbar-thumb scrollbar-track-components-scrollbar-track"
+                    style={{ WebkitOverflowScrolling: 'touch', touchAction: 'auto' }}
+                  >
+                    <div className="grid gap-4 md:grid-cols-2">
+                      {filteredKeys.map((k) => (
+                        <div key={k} className="space-y-2">
+                          <div className="text-sm flex items-center gap-2" style={{ color: 'rgb(var(--color-text-secondary))' }}>
+                            <span className="font-medium" style={{ color: 'rgb(var(--color-text-primary))' }}>{k}</span>
+                          </div>
+                          <Input
+                            value={formData[k] || ''}
+                            onChange={(e) => handleFormChange(k, e.target.value)}
+                            className="h-11 rounded-xl bg-muted/40 border-border placeholder:text-muted-foreground dark:placeholder:text-slate-400"
+                          />
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  </div>
                 </div>
               )}
             </CardContent>
@@ -302,73 +444,26 @@ const DataInput: React.FC<DataInputProps> = ({ placeholders, processedFile, onDa
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
 
-        <TabsContent value="text" className="space-y-4">
-          <Card 
-            style={{
-              backgroundColor: 'rgb(var(--color-components-card-bg))',
-              borderColor: 'rgb(var(--color-components-card-border))'
-            }}
-          >
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2" style={{ color: 'rgb(var(--color-text-primary))' }}>
-                  <Brain className="w-5 h-5" />
-                  智能文本提取
-                  <Badge 
-                    variant="default" 
-                    className="ml-2"
-                    style={{
-                      backgroundColor: 'rgb(var(--color-components-badge-info-bg))',
-                      color: 'rgb(var(--color-components-badge-info-text))'
-                    }}
-                  >
-                    AI驱动
-                  </Badge>
+          {aiRawOutput && (
+            <Card>
+              <CardHeader className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4" /> AI 原始输出
                 </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <Textarea value={textInput} onChange={(e) => setTextInput(e.target.value)} placeholder={'请输入包含相关信息的文本，例如:\n我叫张三，在技术部工作，职位是软件工程师。手机号13888888888，邮箱zhangsan@example.com。'} className="min-h-[150px]" />
-                <div className="flex gap-2">
-                  <Button onClick={extractDataFromText} disabled={isLoading || !textInput.trim()}>
-                    {isLoading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />AI提取中...</> : <><Brain className="w-4 h-4 mr-2" />AI提取数据</>}
-                  </Button>
-                  <Button variant="outline" onClick={() => setTextInput('')}><X className="w-4 h-4 mr-2" />清空</Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+                <Button variant="ghost" size="sm" onClick={() => setShowAiRaw((v) => !v)}>
+                  {showAiRaw ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </Button>
+              </CardHeader>
+              {showAiRaw && (
+                <CardContent>
+                  <Textarea readOnly value={aiRawOutput} className="font-mono text-xs min-h-[160px]" />
+                </CardContent>
+              )}
+            </Card>
+          )}
         </TabsContent>
 
-        <TabsContent value="file" className="space-y-4">
-          <Card 
-            style={{
-              backgroundColor: 'rgb(var(--color-components-card-bg))',
-              borderColor: 'rgb(var(--color-components-card-border))'
-            }}
-          >
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2" style={{ color: 'rgb(var(--color-text-primary))' }}>
-                <FileSpreadsheet className="w-5 h-5" />
-                文件数据解析
-                <Badge 
-                  variant="default" 
-                  className="ml-2"
-                  style={{
-                    backgroundColor: 'rgb(var(--color-components-badge-bg))',
-                    color: 'rgb(var(--color-components-badge-text))'
-                  }}
-                >
-                  智能解析
-                </Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Alert><AlertDescription>演示模式：此处省略真实解析流程，可接入 CSV/Excel 解析并进行字段映射。</AlertDescription></Alert>
-            </CardContent>
-          </Card>
-        </TabsContent>
       </Tabs>
 
       <div className="flex justify-end">
@@ -376,6 +471,155 @@ const DataInput: React.FC<DataInputProps> = ({ placeholders, processedFile, onDa
           {isLoading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />正在填充文档...</> : <><Save className="w-4 h-4 mr-2" />填充文档</>}
         </Button>
       </div>
+
+      <Modal
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        title="AI 填写设置"
+        description="配置模型、提示词和工具参数，驱动 AI 生成填充值"
+        size="xl"
+      >
+        <div className="space-y-4">
+          <Tabs value={settingsTab} onValueChange={(v) => setSettingsTab(v as any)}>
+            <TabsList className="grid grid-cols-3 mb-3">
+              <TabsTrigger value="llm">模型配置</TabsTrigger>
+              <TabsTrigger value="prompt">提示词管理</TabsTrigger>
+              <TabsTrigger value="mcp">高级配置</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="llm">
+              <div className="space-y-3">
+                <ChatModelSelector
+                  models={myLLMs}
+                  selectedModelName={llmConfig.llm_name}
+                  onSelect={(name) => setLlmConfig((prev) => ({ ...prev, llm_name: name || '' }))}
+                  modelTypes={['chat']}
+                />
+
+                <div className="grid grid-cols-2 gap-3 mt-4">
+                  <div className="space-y-1.5">
+                    <label className="text-sm text-muted-foreground">Temperature</label>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      max="1"
+                      value={llmConfig.temperature}
+                      onChange={(e) => setLlmConfig((prev) => ({ ...prev, temperature: Number(e.target.value) }))}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-sm text-muted-foreground">Max Tokens</label>
+                    <Input
+                      type="number"
+                      min="256"
+                      max="4096"
+                      value={llmConfig.max_tokens}
+                      onChange={(e) => setLlmConfig((prev) => ({ ...prev, max_tokens: Number(e.target.value) }))}
+                    />
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="prompt">
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-foreground">系统提示词</label>
+                  <Textarea
+                    className="min-h-[120px]"
+                    value={promptConfig.systemPrompt}
+                    onChange={(e) => setPromptConfig((prev) => ({ ...prev, systemPrompt: e.target.value }))}
+                    placeholder={DEFAULT_SYSTEM_PROMPT}
+                  />
+                  <p className="text-xs text-muted-foreground">为空时将自动使用默认提示词，确保返回纯 JSON。</p>
+                </div>
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-medium text-foreground flex items-center gap-2">
+                      <PlugZap className="w-4 h-4" /> 用户输入
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <Button size="sm" variant="outline" disabled>本地文件</Button>
+                      <Button size="sm" variant="outline" disabled>数据源</Button>
+                    </div>
+                  </div>
+                  <Textarea
+                    className="min-h-[120px]"
+                    value={promptConfig.userInput}
+                    onChange={(e) => setPromptConfig((prev) => ({ ...prev, userInput: e.target.value }))}
+                    placeholder="输入补充信息，将与占位符 JSON 一并发送给模型"
+                  />
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="mcp">
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Settings2 className="w-4 h-4" />
+                  <p className="text-sm font-medium text-foreground">MCP 工具选择</p>
+                  {mcpLoading && <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />}
+                </div>
+                <ScrollArea className="h-40 rounded-md border px-3 py-2">
+                  {mcpServers.length === 0 && (
+                    <div className="text-sm text-muted-foreground">暂无可用 MCP 工具</div>
+                  )}
+                  <div className="space-y-2">
+                    {mcpServers.map((server) => (
+                      <label key={server.id} className="flex items-center gap-2 text-sm text-foreground">
+                        <Checkbox
+                          checked={mcpConfig.mcp_ids.includes(server.id)}
+                          onCheckedChange={(checked) => {
+                            setMcpConfig((prev) => {
+                              const nextIds = checked
+                                ? [...prev.mcp_ids, server.id]
+                                : prev.mcp_ids.filter((id) => id !== server.id)
+                              return { ...prev, mcp_ids: nextIds }
+                            })
+                          }}
+                        />
+                        <span className="truncate">{server.name}</span>
+                        <span className="text-xs text-muted-foreground truncate">{server.description}</span>
+                      </label>
+                    ))}
+                  </div>
+                </ScrollArea>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="text-sm text-muted-foreground">超时时间（秒）</label>
+                    <Input
+                      type="number"
+                      min="1"
+                      max="60"
+                      value={mcpConfig.mcp_timeout}
+                      onChange={(e) => setMcpConfig((prev) => ({ ...prev, mcp_timeout: Number(e.target.value) }))}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-sm text-muted-foreground flex items-center gap-2">
+                      <Sparkles className="w-4 h-4" /> 返回工具调用摘要
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={mcpConfig.verbose_tool_use}
+                        onCheckedChange={(checked) => setMcpConfig((prev) => ({ ...prev, verbose_tool_use: checked }))}
+                      />
+                      <span className="text-sm text-muted-foreground">展示工具调用详情</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
+
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={() => setSettingsOpen(false)}>取消</Button>
+            <Button onClick={() => setSettingsOpen(false)}>保存</Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   )
 }

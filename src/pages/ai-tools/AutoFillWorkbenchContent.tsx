@@ -258,7 +258,7 @@ const AutoFillWorkbenchContent: React.FC = () => {
           {step === 2 && (
             <div className="space-y-5">
               <div className="flex items-center justify-between">
-                <div className="text-sm text-muted-foreground">检测到 <Badge variant="secondary">{placeholderKeys.length}</Badge> 个占位符</div>
+                <div className="text-sm text-muted-foreground">检测到 <Badge variant="secondary">{placeholderKeys.length}</Badge> 个待填内容</div>
                 <div className="flex items-center gap-2">
                   <Button variant="outline" size="sm" onClick={() => setStep(1)}>
                     <ArrowLeft className="w-4 h-4 mr-1" /> 返回上传

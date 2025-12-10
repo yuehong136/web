@@ -11,9 +11,10 @@ interface ResultDownloadProps {
   fileData: string
   onReset: () => void
   originalFileName: string
+  onBackToFill?: () => void
 }
 
-const ResultDownload: React.FC<ResultDownloadProps> = ({ fileData, onReset, originalFileName }) => {
+const ResultDownload: React.FC<ResultDownloadProps> = ({ fileData, onReset, originalFileName, onBackToFill }) => {
   const [isDownloading, setIsDownloading] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
 
@@ -89,6 +90,12 @@ const ResultDownload: React.FC<ResultDownloadProps> = ({ fileData, onReset, orig
         <Button onClick={downloadFile} disabled={isDownloading} size="lg" className="w-full"><Download className="w-4 h-4 mr-2" />{isDownloading ? '正在下载...' : '下载文档'}</Button>
         <Button variant="outline" size="lg" className="w-full" onClick={() => setShowPreview(true)}><Eye className="w-4 h-4 mr-2" />在线预览</Button>
       </div>
+
+      {onBackToFill && (
+        <div className="flex justify-end">
+          <Button variant="ghost" onClick={onBackToFill}><RotateCcw className="w-4 h-4 mr-2" />返回填写继续编辑</Button>
+        </div>
+      )}
 
       <Alert>
         <AlertDescription>
