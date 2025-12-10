@@ -13,7 +13,8 @@ import { Switch } from '@/components/ui/switch'
 import { EnhancedSSEParser } from '@/components/chat/EnhancedSSEParser'
 import { ChatModelSelector } from '@/components/chat/ChatModelSelector'
 import { documentAPI } from '@/api/document'
-import { mcpChatAPI, type MCPServerInfo } from '@/api/mcp-chat-service'
+import { mcpAPI } from '@/api/mcp'
+import type { MCPServer } from '@/types/mcp'
 import { useModelStore } from '@/stores/model'
 import { cn } from '@/lib/utils'
 import {
@@ -61,7 +62,7 @@ const DataInput: React.FC<DataInputProps> = ({
   const [activeTab, setActiveTab] = useState<'form' | 'json'>('form')
   const [validationErrors, setValidationErrors] = useState<string[]>([])
   const [settingsOpen, setSettingsOpen] = useState(false)
-  const [mcpServers, setMcpServers] = useState<MCPServerInfo[]>([])
+  const [mcpServers, setMcpServers] = useState<MCPServer[]>([])
   const [mcpLoading, setMcpLoading] = useState(false)
   const [aiFilling, setAiFilling] = useState(false)
   const { myLLMs, loadMyLLMs } = useModelStore()
@@ -95,7 +96,7 @@ const DataInput: React.FC<DataInputProps> = ({
   const fetchMcpServers = async () => {
     setMcpLoading(true)
     try {
-      const resp = await mcpChatAPI.listMCPServers()
+      const resp = await mcpAPI.listServers({}, { page_size: 100 })
       setMcpServers(resp.mcp_servers || [])
     } catch (error) {
       console.error(error)
@@ -113,10 +114,9 @@ const DataInput: React.FC<DataInputProps> = ({
   }, [settingsOpen, loadMyLLMs])
 
 
-  const validateData = (data: PlaceholderData) => {
-    const errors: string[] = []
-    Object.keys(placeholders).forEach((k) => { if (!data[k] || data[k].trim() === '') errors.push(`${k} 不能为空`) })
-    return errors
+  const validateData = (_data: PlaceholderData) => {
+    // 不再强制必填，允许部分字段为空
+    return [] as string[]
   }
 
   const handleFormChange = (key: string, value: string) => {
@@ -241,8 +241,6 @@ const DataInput: React.FC<DataInputProps> = ({
   }
 
   const fillDocument = async () => {
-    const errs = validateData(formData)
-    if (errs.length) { setValidationErrors(errs); toast.error('请填写所有必填字段'); return }
     if (!processedFile) {
       toast.error('缺少处理后的文档，请重新上传')
       return
