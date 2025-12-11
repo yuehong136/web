@@ -12,12 +12,11 @@ import { SelectWithSearch, type SelectOptionGroup } from '@/components/ui/select
 import { IconFontFill } from '@/components/ui/icon-font'
 import { useKnowledgeStore } from '@/stores/knowledge'
 import { useUIStore } from '@/stores/ui'
+import { useModelStore, IconMap, LLMFactory } from '@/stores/model'
 import { useIsDarkTheme } from '@/themes'
-import { llmAPI } from '@/api/llm'
 import { ROUTES } from '@/constants'
-import type { UpdateKBRequest, LLMModel } from '@/types/api'
+import type { UpdateKBRequest } from '@/types/api'
 import { DocumentParserType, DOCUMENT_PARSER_TYPE_LABELS, DOCUMENT_PARSER_TYPE_DESCRIPTIONS } from '@/types/document-parser'
-import { IconMap, LLMFactory } from '@/stores/model'
 import {
   knowledgeSettingsFormSchema,
   getDefaultFormValues,
@@ -56,11 +55,10 @@ const getIconName = (provider: string, isDark: boolean): string => {
   return baseIcon
 }
 
-// 构建带图标的选项 Label
-const ModelOptionLabel: React.FC<{ provider: string; modelName: string; maxTokens?: number }> = ({ 
+// 构建带图标的选项 Label（与模型提供商页面保持一致）
+const ModelOptionLabel: React.FC<{ provider: string; modelName: string }> = ({ 
   provider, 
-  modelName,
-  maxTokens
+  modelName
 }) => {
   const isDark = useIsDarkTheme()
   const iconName = getIconName(provider, isDark)
@@ -68,12 +66,7 @@ const ModelOptionLabel: React.FC<{ provider: string; modelName: string; maxToken
   return (
     <div className="flex items-center gap-2 min-w-0 w-full">
       <IconFontFill name={iconName} className="w-5 h-5 shrink-0" />
-      <span className="truncate flex-1">{modelName}</span>
-      {maxTokens && (
-        <span className="text-xs text-text-tertiary shrink-0">
-          {Math.round(maxTokens / 1000)}K
-        </span>
-      )}
+      <span className="truncate">{modelName}</span>
     </div>
   )
 }
@@ -96,11 +89,9 @@ const KnowledgeSettingsPage: React.FC = () => {
   const navigate = useNavigate()
   const { currentKnowledgeBase, updateKnowledgeBase } = useKnowledgeStore()
   const { addNotification } = useUIStore()
+  const { myLLMs, loadMyLLMs, isLoading: isLoadingModels } = useModelStore()
 
   const [isLoading, setIsLoading] = React.useState(false)
-  const [embeddingModels, setEmbeddingModels] = React.useState<LLMModel[]>([])
-  const [isLoadingModels, setIsLoadingModels] = React.useState(false)
-  const [, setModelsError] = React.useState<string | undefined>()
   
   // 数据源状态（后端暂不支持，前端先实现）
   const [dataSources, setDataSources] = React.useState<DataSourceItem[]>([])
@@ -137,51 +128,54 @@ const KnowledgeSettingsPage: React.FC = () => {
     }
   }, [parseType, form])
 
-  // 加载嵌入模型列表
+  // 加载模型列表（复用 modelStore）
   React.useEffect(() => {
-    const loadEmbeddingModels = async () => {
-      try {
-        setIsLoadingModels(true)
-        setModelsError(undefined)
-        const response = await llmAPI.list({
-          mdl_type: 'embedding',
-          available: true,
-        })
+    // 如果 store 中还没有数据，则加载
+    if (Object.keys(myLLMs).length === 0) {
+      loadMyLLMs()
+    }
+  }, [myLLMs, loadMyLLMs])
 
-        let modelArray: LLMModel[] = []
-        if (response && typeof response === 'object' && !Array.isArray(response)) {
-          Object.values(response).forEach((providerModels: any) => {
-            if (Array.isArray(providerModels)) {
-              const availableEmbeddingModels = providerModels.filter(
-                (model: any) => model.available === true && model.mdl_type === 'embedding'
-              )
-              modelArray.push(...availableEmbeddingModels)
-            }
-          })
-        }
-
-        setEmbeddingModels(modelArray)
-      } catch (error: any) {
-        console.error('Failed to load embedding models:', error)
-        setEmbeddingModels([])
-        setModelsError('无法加载嵌入模型列表')
-        addNotification({
-          type: 'error',
-          title: '加载失败',
-          message: '无法加载嵌入模型列表，请刷新页面重试',
+  // 构建所有嵌入模型的 value 映射（用于查找匹配）
+  const allEmbeddingModelValues = React.useMemo(() => {
+    const values: Map<string, string> = new Map()
+    Object.entries(myLLMs).forEach(([providerName, providerData]) => {
+      providerData.llm
+        .filter(model => model.type === 'embedding')
+        .forEach(model => {
+          const fullValue = `${model.name}@${providerName}`
+          // 存储多种可能的匹配格式
+          values.set(fullValue.toLowerCase(), fullValue)
+          values.set(model.name.toLowerCase(), fullValue)
         })
-      } finally {
-        setIsLoadingModels(false)
+    })
+    return values
+  }, [myLLMs])
+
+  // 规范化嵌入模型 ID（匹配 API 返回格式与选择器 value 格式）
+  const normalizeEmbdId = React.useCallback((value: string): string => {
+    if (!value) return ''
+    const lowerValue = value.toLowerCase()
+    // 直接匹配
+    if (allEmbeddingModelValues.has(lowerValue)) {
+      return allEmbeddingModelValues.get(lowerValue)!
+    }
+    // 尝试匹配（忽略大小写和连字符变化）
+    for (const [key, fullValue] of allEmbeddingModelValues) {
+      if (key.replace(/-/g, '').includes(lowerValue.replace(/-/g, '').replace(/@.*$/, ''))) {
+        return fullValue
       }
     }
-
-    loadEmbeddingModels()
-  }, [addNotification])
+    return value
+  }, [allEmbeddingModelValues])
 
   // 初始化表单数据
   React.useEffect(() => {
     if (currentKnowledgeBase) {
       const defaultValues = getDefaultFormValues()
+      // 规范化 embd_id，确保与选择器的 value 格式匹配
+      const normalizedEmbdId = normalizeEmbdId(currentKnowledgeBase.embd_id || '')
+      
       form.reset({
         name: currentKnowledgeBase.name || '',
         description: currentKnowledgeBase.description || '',
@@ -190,7 +184,7 @@ const KnowledgeSettingsPage: React.FC = () => {
         parseType: (currentKnowledgeBase as any).pipeline_id ? 2 : 1,
         parser_id: currentKnowledgeBase.parser_id || 'naive',
         pipeline_id: (currentKnowledgeBase as any).pipeline_id || '',
-        embd_id: currentKnowledgeBase.embd_id || '',
+        embd_id: normalizedEmbdId,
         pagerank: currentKnowledgeBase.pagerank || 0,
         parser_config: {
           ...defaultValues.parser_config,
@@ -198,33 +192,35 @@ const KnowledgeSettingsPage: React.FC = () => {
         },
       })
     }
-  }, [currentKnowledgeBase, form])
+  }, [currentKnowledgeBase, form, normalizeEmbdId])
 
-  // 嵌入模型选项（带厂商图标）
+  // 嵌入模型选项（带厂商图标），复用与模型提供商页面相同的逻辑
   const embeddingModelOptions: SelectOptionGroup[] = React.useMemo(() => {
-    const grouped: Record<string, LLMModel[]> = {}
-    embeddingModels.forEach((model) => {
-      const provider = model.fid || 'Other'
-      if (!grouped[provider]) {
-        grouped[provider] = []
+    const groups: SelectOptionGroup[] = []
+    
+    Object.entries(myLLMs).forEach(([providerName, providerData]) => {
+      // 过滤出 embedding 类型的模型
+      const embeddingModels = providerData.llm.filter(model => model.type === 'embedding')
+      
+      if (embeddingModels.length > 0) {
+        groups.push({
+          label: providerName,
+          options: embeddingModels.map((model) => ({
+            label: (
+              <ModelOptionLabel 
+                provider={providerName} 
+                modelName={model.name} 
+              />
+            ),
+            // 使用 name@provider 格式作为 value，与系统设置页面保持一致
+            value: `${model.name}@${providerName}`,
+          })),
+        })
       }
-      grouped[provider].push(model)
     })
-
-    return Object.entries(grouped).map(([provider, models]) => ({
-      label: provider,
-      options: models.map((model) => ({
-        label: (
-          <ModelOptionLabel 
-            provider={provider} 
-            modelName={model.llm_name} 
-            maxTokens={model.max_tokens}
-          />
-        ),
-        value: model.llm_name,
-      })),
-    }))
-  }, [embeddingModels])
+    
+    return groups
+  }, [myLLMs])
 
   // 提交表单
   const handleSubmit = async (data: Record<string, any>) => {

@@ -6,13 +6,11 @@ import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
 import { useKnowledgeStore } from '@/stores/knowledge'
 import { useUIStore } from '@/stores/ui'
-import { llmAPI } from '@/api/llm'
 import { ROUTES } from '@/constants'
-import { Loading } from '@/components/ui/loading'
 import { EmbeddingModelSelector } from '@/components/knowledge/EmbeddingModelSelector'
 import { Tooltip } from '@/components/ui/tooltip'
 import { CustomSelect } from '@/components/ui/custom-select'
-import type { CreateKBRequest, LLMModel } from '@/types/api'
+import type { CreateKBRequest } from '@/types/api'
 
 export const KnowledgeCreatePage: React.FC = () => {
   const navigate = useNavigate()
@@ -24,12 +22,9 @@ export const KnowledgeCreatePage: React.FC = () => {
     description: '',
     language: 'Chinese',
     permission: 'me' as 'me' | 'team',
-    embd_id: '' // 向量模型ID
+    embd_id: '' // 向量模型ID（格式：modelName@providerName）
   })
   const [isLoading, setIsLoading] = React.useState(false)
-  const [embeddingModels, setEmbeddingModels] = React.useState<LLMModel[]>([])
-  const [isLoadingModels, setIsLoadingModels] = React.useState(false)
-  const [modelsError, setModelsError] = React.useState<string | undefined>()
 
   const languageOptions = [
     { value: 'Chinese', label: '中文', icon: '🇨🇳' },
@@ -43,64 +38,12 @@ export const KnowledgeCreatePage: React.FC = () => {
     { value: 'team', label: '团队可见', icon: '👥' }
   ]
 
-  // 加载向量模型列表
-  React.useEffect(() => {
-    const loadEmbeddingModels = async () => {
-      try {
-        setIsLoadingModels(true)
-        setModelsError(undefined)
-        const response = await llmAPI.list({ 
-          mdl_type: 'embedding',
-          available: true 
-        })
-        console.log('加载的向量模型响应:', response, 'Type:', typeof response)
-        
-        // API 返回的是按厂商分组的对象，需要转换为数组
-        let modelArray: LLMModel[] = []
-        if (response && typeof response === 'object' && !Array.isArray(response)) {
-          // 遍历每个厂商的模型
-          Object.values(response).forEach((providerModels: any) => {
-            if (Array.isArray(providerModels)) {
-              // 只添加 available 为 true 且 mdl_type 为 embedding 的模型
-              const availableEmbeddingModels = providerModels.filter((model: any) => 
-                model.available === true && model.mdl_type === 'embedding'
-              )
-              modelArray.push(...availableEmbeddingModels)
-            }
-          })
-        }
-        
-        console.log('处理后的模型数组:', modelArray)
-        setEmbeddingModels(modelArray)
-        
-        // 如果有可用模型，默认选择第一个
-        if (modelArray.length > 0 && !formData.embd_id) {
-          setFormData(prev => ({ ...prev, embd_id: modelArray[0].llm_name }))
-        }
-      } catch (error: any) {
-        console.error('Failed to load embedding models:', error)
-        // 设置为空数组，防止 forEach 错误
-        setEmbeddingModels([])
-        setModelsError('无法加载向量模型列表')
-        addNotification({
-          type: 'error',
-          title: '加载失败',
-          message: '无法加载向量模型列表'
-        })
-      } finally {
-        setIsLoadingModels(false)
-      }
-    }
-
-    loadEmbeddingModels()
-  }, [])
-
   const handleInputChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData(prev => ({ ...prev, [field]: e.target.value }))
   }
 
-  const handleModelSelect = (llmName: string) => {
-    setFormData(prev => ({ ...prev, embd_id: llmName }))
+  const handleModelSelect = (modelId: string | null) => {
+    setFormData(prev => ({ ...prev, embd_id: modelId || '' }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -298,11 +241,8 @@ export const KnowledgeCreatePage: React.FC = () => {
           </div>
 
           <EmbeddingModelSelector
-            models={embeddingModels}
-            selectedModelId={formData.embd_id}
+            selectedModelId={formData.embd_id || null}
             onSelect={handleModelSelect}
-            loading={isLoadingModels}
-            error={modelsError}
           />
 
           <div>

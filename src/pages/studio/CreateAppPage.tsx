@@ -417,34 +417,39 @@ export const CreateAppPage: React.FC = () => {
       const response = await llmAPI.list()
       if (response && typeof response === 'object') {
         // 为 ChatModelSelector 格式化数据
+        // API 返回格式: { [providerName]: { tags: string, llm: [{ type, name, used_token }] } }
         const chatModelData: MyLLMProvider = {}
         let allRerankModels: LLMModel[] = []
         
-        Object.entries(response).forEach(([providerName, providerModels]: [string, any]) => {
-          if (Array.isArray(providerModels)) {
-            // 处理聊天模型
-            const chatModels = providerModels.filter(model => 
-              (model.mdl_type === 'chat' || model.mdl_type === 'image2text') && 
-              model.available
-            ).map(model => ({
-              name: model.llm_name,
-              type: model.mdl_type === 'image2text' ? 'image2text' as const : 'chat' as const,
-              id: model.id,
-              used_token: 0
+        Object.entries(response).forEach(([providerName, providerData]: [string, any]) => {
+          // 新格式：providerData 是 { tags, llm: [...] } 对象
+          if (providerData && providerData.llm && Array.isArray(providerData.llm)) {
+            // 处理聊天模型（type 为 'chat' 或 'image2text'）
+            const chatModels = providerData.llm.filter((model: any) => 
+              model.type === 'chat' || model.type === 'image2text'
+            ).map((model: any) => ({
+              name: model.name,
+              type: model.type as 'chat' | 'image2text',
+              used_token: model.used_token || 0
             }))
             
             if (chatModels.length > 0) {
               chatModelData[providerName] = {
                 llm: chatModels,
-                tags: ''
+                tags: providerData.tags || ''
               }
             }
             
             // 处理重排序模型
-            const rerankModels = providerModels.filter(model => 
-              model.mdl_type === 'rerank' && 
-              model.available
-            )
+            const rerankModels = providerData.llm.filter((model: any) => 
+              model.type === 'rerank'
+            ).map((model: any) => ({
+              id: `${model.name}@${providerName}`,
+              llm_name: model.name,
+              fid: providerName,
+              mdl_type: 'rerank' as const,
+              available: true
+            }))
             allRerankModels.push(...rerankModels)
           }
         })

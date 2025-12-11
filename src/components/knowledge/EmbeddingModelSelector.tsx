@@ -1,17 +1,19 @@
-import React, { useMemo } from 'react'
-import { Zap, AlertCircle } from 'lucide-react'
+import React, { useMemo, useEffect } from 'react'
+import { AlertCircle } from 'lucide-react'
 import { SelectWithSearch, type SelectOptionGroup } from '@/components/ui/select-with-search'
 import { FormTooltip } from '@/components/ui/tooltip'
 import { IconFontFill } from '@/components/ui/icon-font'
-import { IconMap, LLMFactory } from '@/stores/model'
+import { useModelStore, IconMap, LLMFactory } from '@/stores/model'
 import { useIsDarkTheme } from '@/themes'
-import type { LLMModel } from '@/types/api'
 
 interface EmbeddingModelSelectorProps {
-  models: LLMModel[]
+  /** 当前选中的模型 ID（格式：modelName@providerName） */
   selectedModelId: string | null
+  /** 模型选择变化回调 */
   onSelect: (modelId: string | null) => void
-  loading?: boolean
+  /** 是否禁用 */
+  disabled?: boolean
+  /** 错误信息 */
   error?: string
 }
 
@@ -32,84 +34,106 @@ const getIconName = (provider: string, isDark: boolean): string => {
   return baseIcon
 }
 
-// 格式化 token 数量
-const formatTokens = (tokens: number | undefined) => {
-  if (!tokens || isNaN(tokens)) return 'N/A'
-  if (tokens >= 1000) return `${(tokens / 1000).toFixed(0)}K`
-  return tokens.toString()
-}
-
-// 带图标的模型选项 Label
+// 带图标的模型选项 Label（与系统设置页面保持一致）
 const ModelOptionLabel: React.FC<{ 
   provider: string
   modelName: string
-  maxTokens?: number
-}> = ({ provider, modelName, maxTokens }) => {
+}> = ({ provider, modelName }) => {
   const isDark = useIsDarkTheme()
   const iconName = getIconName(provider, isDark)
   
   return (
     <div className="flex items-center gap-2 min-w-0 w-full">
-      <IconFontFill name={iconName} className="w-4 h-4 shrink-0" />
-      <div className="flex-1 min-w-0">
-        <span className="truncate block">{modelName}</span>
-      </div>
-      <div className="flex items-center gap-1 shrink-0 text-text-tertiary text-xs">
-        <Zap className="h-3 w-3 text-success" />
-        <span>{formatTokens(maxTokens)}</span>
-      </div>
+      <IconFontFill name={iconName} className="w-5 h-5 shrink-0" />
+      <span className="truncate">{modelName}</span>
     </div>
   )
 }
 
+/**
+ * 嵌入模型选择器
+ * 直接从 modelStore 获取数据，与模型提供商页面的设置保持一致
+ */
 export const EmbeddingModelSelector: React.FC<EmbeddingModelSelectorProps> = ({
-  models,
   selectedModelId,
   onSelect,
-  loading = false,
+  disabled = false,
   error
 }) => {
-  // 按厂商分组选项
+  const { myLLMs, loadMyLLMs, isLoading } = useModelStore()
+
+  // 加载模型列表
+  useEffect(() => {
+    if (Object.keys(myLLMs).length === 0) {
+      loadMyLLMs()
+    }
+  }, [myLLMs, loadMyLLMs])
+
+  // 按厂商分组选项（与系统设置页面保持一致）
   const groupedOptions = useMemo((): SelectOptionGroup[] => {
-    const groups: Record<string, LLMModel[]> = {}
+    const groups: SelectOptionGroup[] = []
     
-    models.forEach(model => {
-      const provider = model.fid || '其他'
-      if (!groups[provider]) {
-        groups[provider] = []
+    Object.entries(myLLMs).forEach(([providerName, providerData]) => {
+      // 过滤出 embedding 类型的模型
+      const embeddingModels = providerData.llm.filter(model => model.type === 'embedding')
+      
+      if (embeddingModels.length > 0) {
+        groups.push({
+          label: providerName,
+          options: embeddingModels.map(model => ({
+            label: (
+              <ModelOptionLabel 
+                provider={providerName} 
+                modelName={model.name}
+              />
+            ),
+            // 使用 name@provider 格式作为 value，与系统设置页面保持一致
+            value: `${model.name}@${providerName}`
+          }))
+        })
       }
-      groups[provider].push(model)
     })
 
-    return Object.entries(groups).map(([provider, providerModels]) => ({
-      label: provider,
-      options: providerModels.map(model => ({
-        label: (
-          <ModelOptionLabel 
-            provider={provider} 
-            modelName={model.llm_name} 
-            maxTokens={model.max_tokens}
-          />
-        ),
-        value: model.llm_name
-      }))
-    }))
-  }, [models])
+    return groups
+  }, [myLLMs])
 
-  // 获取选中模型的显示 Label
-  const selectedLabel = useMemo(() => {
-    const model = models.find(m => m.llm_name === selectedModelId)
-    if (!model) return null
-    return (
-      <ModelOptionLabel 
-        provider={model.fid} 
-        modelName={model.llm_name} 
-        maxTokens={model.max_tokens}
-      />
-    )
-  }, [models, selectedModelId])
+  // 构建所有嵌入模型的 value 映射（用于查找匹配）
+  const allModelValues = useMemo(() => {
+    const values: Map<string, string> = new Map()
+    Object.entries(myLLMs).forEach(([providerName, providerData]) => {
+      providerData.llm
+        .filter(model => model.type === 'embedding')
+        .forEach(model => {
+          const fullValue = `${model.name}@${providerName}`
+          // 存储多种可能的匹配格式
+          values.set(fullValue.toLowerCase(), fullValue)
+          values.set(model.name.toLowerCase(), fullValue)
+        })
+    })
+    return values
+  }, [myLLMs])
 
-  if (loading) {
+  // 规范化选中的模型 ID（匹配 API 返回格式与选择器 value 格式）
+  const normalizedValue = useMemo(() => {
+    if (!selectedModelId) return ''
+    const lowerValue = selectedModelId.toLowerCase()
+    // 直接匹配
+    if (allModelValues.has(lowerValue)) {
+      return allModelValues.get(lowerValue)!
+    }
+    // 尝试匹配（忽略大小写和连字符变化）
+    for (const [key, fullValue] of allModelValues) {
+      if (key.replace(/-/g, '').includes(lowerValue.replace(/-/g, '').replace(/@.*$/, ''))) {
+        return fullValue
+      }
+    }
+    return selectedModelId
+  }, [selectedModelId, allModelValues])
+
+  // 计算是否有可用模型
+  const hasModels = groupedOptions.length > 0
+
+  if (isLoading) {
     return (
       <div className="space-y-2">
         <label className="block text-xs font-medium text-text-primary">嵌入模型</label>
@@ -133,13 +157,13 @@ export const EmbeddingModelSelector: React.FC<EmbeddingModelSelectorProps> = ({
     )
   }
 
-  if (models.length === 0) {
+  if (!hasModels) {
     return (
       <div className="space-y-2">
         <label className="block text-xs font-medium text-text-primary">嵌入模型</label>
         <div className="w-full px-3 py-2 border border-warning rounded-md bg-warning/10 flex items-center h-10">
           <AlertCircle className="h-3 w-3 text-warning" />
-          <span className="ml-2 text-warning text-xs">暂无可用的嵌入模型</span>
+          <span className="ml-2 text-warning text-xs">暂无可用的嵌入模型，请先在模型供应商中添加</span>
         </div>
       </div>
     )
@@ -149,16 +173,17 @@ export const EmbeddingModelSelector: React.FC<EmbeddingModelSelectorProps> = ({
     <div className="space-y-2">
       <div className="flex items-center mb-1">
         <label className="block text-xs font-medium text-text-primary">嵌入模型</label>
-        <FormTooltip tooltip="用于文档向量化的嵌入模型，影响检索质量" />
+        <FormTooltip tooltip="用于文档向量化的嵌入模型，影响检索质量。所有新创建的知识库使用的默认嵌入模型。如未显示可选模型，请检查你是否在使用 MultiRAG slim 版(不含嵌入模型)；或确认你的模型供应商是否提供该模型。" />
       </div>
       
       <SelectWithSearch
-        value={selectedModelId || ''}
+        value={normalizedValue}
         options={groupedOptions}
         onChange={(value) => onSelect(value || null)}
         placeholder="请选择嵌入模型"
         emptyText="未找到匹配的嵌入模型"
         triggerClassName="h-10"
+        disabled={disabled}
       />
     </div>
   )
