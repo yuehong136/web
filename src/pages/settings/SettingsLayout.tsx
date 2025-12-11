@@ -209,7 +209,7 @@ export const SettingsLayout: React.FC = () => {
           {/* 底部区域 */}
           <div className="p-6 mt-auto border-t border-border">
             <div className="flex items-center justify-between mb-4">
-              <span className="text-sm text-primary">v0.19.1</span>
+              <span className="text-sm text-primary">v0.9.0</span>
               <ThemeToggle />
             </div>
             <Button

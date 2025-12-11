@@ -162,7 +162,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileUploaded, onFileProcessed
               <Button variant="default" size="sm">
                 <Upload className="w-4 h-4 mr-2" />
                 选择文件
-              </Button>
+            </Button>
             </div>
           )}
         </div>

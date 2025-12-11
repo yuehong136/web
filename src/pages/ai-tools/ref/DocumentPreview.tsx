@@ -161,8 +161,8 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({ fileData, originalFil
             <div className="flex items-center justify-center h-full">
               <div className="text-center text-destructive">
                 <p className="text-sm">{error}</p>
-              </div>
             </div>
+          </div>
           )}
 
           <div

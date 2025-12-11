@@ -33,7 +33,7 @@ const AutoFillWorkbenchPage: React.FC = () => {
     { id: 2, title: '填写数据', icon: Database },
     { id: 3, title: '完成下载', icon: Download }
   ]
-
+  
   // 只有第二步使用分割布局
   const useSplitLayout = currentStep === 2
 
@@ -98,7 +98,7 @@ const AutoFillWorkbenchPage: React.FC = () => {
               )
             })}
           </div>
-        </div>
+      </div>
       </header>
 
       {/* 主内容区 */}
@@ -116,8 +116,8 @@ const AutoFillWorkbenchPage: React.FC = () => {
                     </h1>
                     <p className="text-sm text-muted-foreground">
                       填写或使用 AI 自动生成占位符对应的数据
-                    </p>
-                  </div>
+        </p>
+      </div>
 
                   {/* 内容区 */}
                   <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
@@ -133,7 +133,7 @@ const AutoFillWorkbenchPage: React.FC = () => {
                           setIsLoading={setIsLoading}
                         />
                       )}
-                    </div>
+                </div>
                   </div>
                 </div>
               </div>
@@ -144,7 +144,7 @@ const AutoFillWorkbenchPage: React.FC = () => {
             <ResizablePanel defaultSize={50} minSize={30}>
               <div className="h-full border-l border-border">
                 <DocxPreview fileData={processedData?.file || null} />
-              </div>
+        </div>
             </ResizablePanel>
           </ResizablePanelGroup>
         ) : (
@@ -161,30 +161,30 @@ const AutoFillWorkbenchPage: React.FC = () => {
                   {currentStep === 1 && '支持 .docx 格式的 Word 文档，系统将自动识别占位符'}
                   {currentStep === 3 && '您的文档已填充完成，可以下载使用'}
                 </p>
-              </div>
+      </div>
 
               {/* 步骤内容 */}
               <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
                 <div className="p-6 md:p-8">
-                  {currentStep === 1 && (
-                    <FileUpload
-                      onFileUploaded={setUploadedFile}
-                      onFileProcessed={(data) => { setProcessedData(data); setCurrentStep(2) }}
-                      isLoading={isLoading}
-                      setIsLoading={setIsLoading}
-                    />
-                  )}
+            {currentStep === 1 && (
+              <FileUpload
+                onFileUploaded={setUploadedFile}
+                onFileProcessed={(data) => { setProcessedData(data); setCurrentStep(2) }}
+                isLoading={isLoading}
+                setIsLoading={setIsLoading}
+              />
+            )}
 
-                  {currentStep === 3 && filledFileData && (
-                    <ResultDownload
-                      fileData={filledFileData}
-                      onReset={() => { setCurrentStep(1); setUploadedFile(null); setProcessedData(null); setFilledFileData(null) }}
-                      originalFileName={uploadedFile?.name || 'document.docx'}
+            {currentStep === 3 && filledFileData && (
+              <ResultDownload
+                fileData={filledFileData}
+                onReset={() => { setCurrentStep(1); setUploadedFile(null); setProcessedData(null); setFilledFileData(null) }}
+                originalFileName={uploadedFile?.name || 'document.docx'}
                       onBackToFill={() => setCurrentStep(2)}
-                    />
-                  )}
+              />
+            )}
                 </div>
-              </div>
+        </div>
 
               {/* 底部提示 */}
               {currentStep === 1 && (

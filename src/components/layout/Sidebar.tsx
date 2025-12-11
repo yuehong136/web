@@ -172,7 +172,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   : "opacity-100 w-auto translate-x-0 delay-100"
               )}
             >
-              Multi-RAG
+              Datav AI平台
             </span>
           </div>
           {/* 折叠按钮 - 放在logo旁边 */}

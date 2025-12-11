@@ -91,7 +91,7 @@ const ResultDownload: React.FC<ResultDownloadProps> = ({ fileData, onReset, orig
                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400">
                   已完成
                 </span>
-              </div>
+            </div>
             </div>
           </div>
         </div>
@@ -131,7 +131,7 @@ const ResultDownload: React.FC<ResultDownloadProps> = ({ fileData, onReset, orig
           <RotateCcw className="w-4 h-4 mr-1" />
           处理新文档
         </Button>
-      </div>
+          </div>
 
       {/* 预览弹窗 */}
       {showPreview && (
