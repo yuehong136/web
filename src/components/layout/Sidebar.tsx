@@ -162,9 +162,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <span className="text-white font-bold text-sm">MR</span>
             </div>
             {/* 文字使用独立的动画，延迟出现并滑入 */}
+            {/* 长标题允许折行，若想单行显示改回 whitespace-nowrap */}
             <span 
               className={cn(
-                "text-base font-semibold text-gray-900 whitespace-nowrap",
+                "text-base font-semibold text-gray-900 break-words max-w-[160px]",
                 "transition-all duration-300 ease-out",
                 isCollapsed 
                   ? "opacity-0 w-0 translate-x-[-10px] pointer-events-none" 
