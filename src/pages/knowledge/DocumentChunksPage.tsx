@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useParams } from 'react-router-dom'
 import { 
   FileText, 
   Search, 
@@ -8,12 +9,17 @@ import {
   Trash2, 
   Save,
   X,
-  ArrowLeft,
   ChevronDown,
   ChevronRight,
   Tag,
   Eye,
-  Code
+  Code,
+  ListFilter,
+  CheckCircle,
+  Ban,
+  PanelLeftOpen,
+  PanelRightClose,
+  PanelRightOpen
 } from 'lucide-react'
 import { knowledgeAPI } from '@/api/knowledge'
 import { 
@@ -24,9 +30,22 @@ import {
   ConfirmModal,
   Tooltip,
   PageSizeSelector,
-  ToggleSwitch
+  ToggleSwitch,
+  Checkbox,
+  Label
 } from '../../components/ui'
+import { 
+  Popover, 
+  PopoverTrigger, 
+  PopoverContent 
+} from '../../components/ui/popover'
 import { cn } from '@/lib/utils'
+import { useDebouncedValue } from '@/hooks/useDebouncedValue'
+import { Segmented, SegmentedItem } from '@/components/vendor/ui/segmented'
+import DOMPurify from 'dompurify'
+import { DocumentPreview } from '@/components/knowledge/DocumentPreview'
+
+type CSSVarStyle = React.CSSProperties & Record<`--${string}`, string>
 
 // 新的Chunk数据类型（匹配新API）
 interface ChunkData {
@@ -43,21 +62,23 @@ interface ChunkData {
 
 
 const DocumentChunksPage: React.FC = () => {
-  const { id: kbId, docId } = useParams<{ id: string; docId: string }>()
-  const navigate = useNavigate()
+  const { docId } = useParams<{ id: string; docId: string }>()
+  const queryClient = useQueryClient()
   
   // 状态管理
-  const [docInfo, setDocInfo] = useState<any>(null)
-  const [chunks, setChunks] = useState<ChunkData[]>([])
-  const [total, setTotal] = useState(0)
-  const [loading, setLoading] = useState(true)
   const [selectedChunk, setSelectedChunk] = useState<ChunkData | null>(null)
   const [isEditMode, setIsEditMode] = useState(false)
-  const [isExpanded, setIsExpanded] = useState(false)
+  const [selectedChunkIds, setSelectedChunkIds] = useState<string[]>([])
+  const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [deleteSelectedConfirmOpen, setDeleteSelectedConfirmOpen] = useState(false)
+  
+  // 文本显示模式：full=全文, ellipse=省略
+  const [textMode, setTextMode] = useState<'full' | 'ellipse'>('ellipse')
   
   // 筛选状态
   const [filterStatus, setFilterStatus] = useState<'all' | 'enabled' | 'disabled'>('all')
   const [searchKeyword, setSearchKeyword] = useState('')
+  const debouncedSearchKeyword = useDebouncedValue(searchKeyword.trim(), 400)
   
   // 分页状态
   const [page, setPage] = useState(1)
@@ -80,8 +101,85 @@ const DocumentChunksPage: React.FC = () => {
   
   // 元数据标注状态
   const [metaModalOpen, setMetaModalOpen] = useState(false)
-  const [editingMeta, setEditingMeta] = useState<Array<{id: string; key: string; value: any}>>([])
+  const [editingMeta, setEditingMeta] = useState<Array<{id: string; key: string; value: unknown}>>([])
   const [nextMetaId, setNextMetaId] = useState(1)
+  
+  // 文档预览面板状态
+  const [isPreviewPanelOpen, setIsPreviewPanelOpen] = useState(true)
+  const [previewPanelWidth, setPreviewPanelWidth] = useState(560) // 参考 ragflow 40% 比例，给文档预览更大空间
+  
+  // 右侧信息面板状态
+  const [isInfoPanelOpen, setIsInfoPanelOpen] = useState(true)
+  const [infoPanelWidth, setInfoPanelWidth] = useState(240) // 右侧信息面板更窄
+
+  const resizeRef = useRef<null | {
+    target: 'preview' | 'info'
+    startX: number
+    startWidth: number
+  }>(null)
+
+  useEffect(() => {
+    const onMouseMove = (e: MouseEvent) => {
+      if (!resizeRef.current) return
+
+      const { target, startX, startWidth } = resizeRef.current
+      if (target === 'preview') {
+        // 参考 ragflow 的 40% 预览比例，允许更大的预览空间
+        const next = startWidth + (e.clientX - startX)
+        setPreviewPanelWidth(Math.min(720, Math.max(320, next)))
+      } else {
+        // 右侧：拖拽分隔条向左移动 => 变宽；向右移动 => 变窄
+        const next = startWidth + (startX - e.clientX)
+        setInfoPanelWidth(Math.min(360, Math.max(200, next)))
+      }
+    }
+
+    const onMouseUp = () => {
+      if (!resizeRef.current) return
+      resizeRef.current = null
+      document.body.style.cursor = ''
+      document.body.style.userSelect = ''
+    }
+
+    window.addEventListener('mousemove', onMouseMove)
+    window.addEventListener('mouseup', onMouseUp)
+    return () => {
+      window.removeEventListener('mousemove', onMouseMove)
+      window.removeEventListener('mouseup', onMouseUp)
+    }
+  }, [])
+
+  const availableInt = React.useMemo(() => {
+    if (filterStatus === 'enabled') return 1
+    if (filterStatus === 'disabled') return 0
+    return undefined
+  }, [filterStatus])
+
+  const {
+    data: chunkListData,
+    isFetching,
+    isLoading,
+    error: chunkListError,
+    refetch: refetchChunkList,
+  } = useQuery({
+    queryKey: ['documentChunks', docId, page, pageSize, debouncedSearchKeyword, availableInt],
+    enabled: Boolean(docId),
+    queryFn: async () => {
+      return knowledgeAPI.document.listChunks({
+        doc_id: docId!,
+        page,
+        size: pageSize,
+        keywords: debouncedSearchKeyword || undefined,
+        available_int: availableInt,
+      })
+    },
+    placeholderData: (previousData) => previousData,
+  })
+
+  const chunks = useMemo(() => chunkListData?.chunks ?? [], [chunkListData])
+  const total = chunkListData?.total ?? 0
+  const docInfo = chunkListData?.doc ?? null
+  const loading = (isLoading || isFetching) && !chunkListData
   
   // 计算筛选后的分段数据（状态筛选在前端，搜索在后端）
   const filteredChunks = React.useMemo(() => {
@@ -103,59 +201,98 @@ const DocumentChunksPage: React.FC = () => {
   
   // 监听搜索关键词变化，重置到第一页
   useEffect(() => {
-    if (page !== 1) {
-      setPage(1)
-    }
+    setPage(1)
+    setSelectedChunkIds([])
   }, [searchKeyword])
-  
-  // 监听分页参数变化，重新获取数据
+
+  // 监听筛选状态变化，重置到第一页
   useEffect(() => {
-    const loadChunks = async () => {
-      if (!docId || !kbId) return
-      
-      try {
-        setLoading(true)
-        // 使用新的listChunks API
-        const response = await knowledgeAPI.document.listChunks({
-          doc_id: docId,
-          page,
-          size: pageSize,
-          keywords: searchKeyword.trim() || undefined
-        })
-        
-        setChunks(response.chunks)
-        setTotal(response.total)
-        setDocInfo(response.doc)
-      } catch (error) {
-        console.error('Failed to fetch chunks:', error)
-        // 如果API调用失败，使用模拟数据
-        const mockTotal = 156 // 模拟总数
-        const startIndex = (page - 1) * pageSize
-        const mockChunks: ChunkData[] = Array.from({ length: Math.min(pageSize, mockTotal - startIndex) }, (_, i) => ({
-          chunk_id: `chunk-${startIndex + i + 1}`,
-          content_with_weight: `这是第 ${startIndex + i + 1} 个文档分段的内容。包含了文档的重要信息和上下文，用于向量检索和知识问答。内容可能会很长，需要合理的显示和编辑功能。这里是更多的示例文本，用来展示分段的实际长度和格式。在这个分段中，我们可以看到更多详细的内容展示，包括各种类型的文本处理和显示效果。`,
-          doc_id: docId,
-          docnm_kwd: '测试文档.docx',
-          important_kwd: ['关键词', '文档', '分段'],
-          question_kwd: [],
-          img_id: '',
-          available_int: Math.random() > 0.3 ? 1 : 0,
-          positions: []
-        }))
-        setChunks(mockChunks)
-        setTotal(mockTotal)
-        setDocInfo({
-          id: docId,
-          name: '测试文档.docx',
-          kb_id: kbId || ''
-        })
-      } finally {
-        setLoading(false)
-      }
-    }
-    
-    loadChunks()
-  }, [docId, page, pageSize, searchKeyword, kbId])
+    setPage(1)
+    setSelectedChunkIds([])
+  }, [filterStatus])
+
+  // 分页变化时清空批量选择
+  useEffect(() => {
+    setSelectedChunkIds([])
+  }, [page, pageSize])
+  
+  const invalidateChunkList = React.useCallback(() => {
+    if (!docId) return
+    queryClient.invalidateQueries({ queryKey: ['documentChunks', docId] })
+  }, [docId, queryClient])
+
+  const switchChunkMutation = useMutation({
+    mutationFn: async (params: { chunkId: string; availableInt: number }) => {
+      if (!docId) return false
+      return knowledgeAPI.document.switchChunks({
+        doc_id: docId,
+        chunk_ids: [params.chunkId],
+        available_int: params.availableInt,
+      })
+    },
+    onSuccess: invalidateChunkList,
+  })
+
+  const bulkSwitchChunksMutation = useMutation({
+    mutationFn: async (params: { chunkIds: string[]; availableInt: number }) => {
+      if (!docId) return false
+      return knowledgeAPI.document.switchChunks({
+        doc_id: docId,
+        chunk_ids: params.chunkIds,
+        available_int: params.availableInt,
+      })
+    },
+    onSuccess: () => {
+      setSelectedChunkIds([])
+      invalidateChunkList()
+    },
+  })
+
+  const setChunkMutation = useMutation({
+    mutationFn: async (params: { chunkId: string; content: string }) => {
+      if (!docId) return false
+      return knowledgeAPI.document.setChunk({
+        doc_id: docId,
+        chunk_id: params.chunkId,
+        content_with_weight: params.content,
+      })
+    },
+    onSuccess: invalidateChunkList,
+  })
+
+  const deleteChunksMutation = useMutation({
+    mutationFn: async (chunkIds: string[]) => {
+      if (!docId) return false
+      return knowledgeAPI.document.deleteChunks({
+        doc_id: docId,
+        chunk_ids: chunkIds,
+      })
+    },
+    onSuccess: invalidateChunkList,
+  })
+
+  const createChunkMutation = useMutation({
+    mutationFn: async (content: string) => {
+      if (!docId) return false
+      return knowledgeAPI.document.createChunk({
+        doc_id: docId,
+        content_with_weight: content,
+        available_int: 1,
+      })
+    },
+    onSuccess: invalidateChunkList,
+  })
+
+  const setMetaMutation = useMutation({
+    mutationFn: async (meta: Record<string, unknown>) => {
+      if (!docId) return false
+      return knowledgeAPI.document.setDocumentMeta({
+        doc_id: docId,
+        meta,
+      })
+    },
+    onSuccess: invalidateChunkList,
+  })
   
   // 切换分段状态
   const handleToggleChunkStatus = async (chunk: ChunkData) => {
@@ -165,18 +302,7 @@ const DocumentChunksPage: React.FC = () => {
       const newStatus = chunk.available_int === 1 ? 0 : 1
       
       // 调用真实的switch API
-      await knowledgeAPI.document.switchChunks({
-        doc_id: docId,
-        chunk_ids: [chunk.chunk_id],
-        available_int: newStatus
-      })
-      
-      // 更新本地状态（filteredChunks会自动重新计算）
-      setChunks(prev => prev.map(c => 
-        c.chunk_id === chunk.chunk_id 
-          ? { ...c, available_int: newStatus }
-          : c
-      ))
+      await switchChunkMutation.mutateAsync({ chunkId: chunk.chunk_id, availableInt: newStatus })
       
     } catch (error) {
       console.error('Failed to toggle chunk status:', error)
@@ -189,22 +315,7 @@ const DocumentChunksPage: React.FC = () => {
     if (!newChunkContent.trim()) return
     
     try {
-      // 模拟API调用
-      // const newChunk = await api.chunk.create({ content: newChunkContent, doc_id: docId })
-      
-      const newChunk: ChunkData = {
-        chunk_id: `chunk-new-${Date.now()}`,
-        content_with_weight: newChunkContent,
-        doc_id: docId!,
-        docnm_kwd: docInfo?.name || '',
-        important_kwd: [],
-        question_kwd: [],
-        img_id: '',
-        available_int: 1,
-        positions: []
-      }
-      
-      setChunks(prev => [...prev, newChunk])
+      await createChunkMutation.mutateAsync(newChunkContent.trim())
       setNewChunkContent('')
       setAddChunkModalOpen(false)
     } catch (error) {
@@ -218,18 +329,10 @@ const DocumentChunksPage: React.FC = () => {
     
     try {
       // 调用 chunk set 接口
-      await knowledgeAPI.document.setChunk({
-        doc_id: docId,
-        chunk_id: selectedChunk.chunk_id,
-        content_with_weight: editingChunkContent
+      await setChunkMutation.mutateAsync({
+        chunkId: selectedChunk.chunk_id,
+        content: editingChunkContent.trim(),
       })
-      
-      // 更新本地状态（filteredChunks会自动重新计算）
-      setChunks(prev => prev.map(c => 
-        c.chunk_id === selectedChunk.chunk_id 
-          ? { ...c, content_with_weight: editingChunkContent }
-          : c
-      ))
       
       setIsEditMode(false)
       setSelectedChunk(null)
@@ -246,14 +349,7 @@ const DocumentChunksPage: React.FC = () => {
     
     try {
       // 调用真实的删除API
-      await knowledgeAPI.document.deleteChunks({
-        doc_id: docId,
-        chunk_ids: [deletingChunkId]
-      })
-      
-      // 更新本地状态
-      setChunks(prev => prev.filter(c => c.chunk_id !== deletingChunkId))
-      setTotal(prev => prev - 1) // 更新总数
+      await deleteChunksMutation.mutateAsync([deletingChunkId])
       
       setDeleteConfirmOpen(false)
       setDeletingChunkId('')
@@ -292,20 +388,9 @@ const DocumentChunksPage: React.FC = () => {
           acc[item.key] = item.value
         }
         return acc
-      }, {} as Record<string, any>)
+      }, {} as Record<string, unknown>)
       
-      await knowledgeAPI.document.setDocumentMeta({
-        doc_id: docId,
-        meta: metaObject
-      })
-      
-      // 更新本地文档信息
-      if (docInfo) {
-        setDocInfo({
-          ...docInfo,
-          meta_fields: metaObject
-        })
-      }
+      await setMetaMutation.mutateAsync(metaObject)
       
       setMetaModalOpen(false)
       setEditingMeta([])
@@ -339,7 +424,7 @@ const DocumentChunksPage: React.FC = () => {
   }
   
   // 更新元数据字段的value
-  const handleUpdateMetaValue = (id: string, newValue: any) => {
+  const handleUpdateMetaValue = (id: string, newValue: unknown) => {
     setEditingMeta(prev => prev.map(item => 
       item.id === id ? { ...item, value: newValue } : item
     ))
@@ -364,154 +449,335 @@ const DocumentChunksPage: React.FC = () => {
     return `${(size / (1024 * 1024 * 1024)).toFixed(1)} GB`
   }
 
+  // 批量操作相关
+  const isAllSelected = filteredChunks.length > 0 && selectedChunkIds.length === filteredChunks.length
+  const isPartialSelected = selectedChunkIds.length > 0 && selectedChunkIds.length < filteredChunks.length
+  const hasSelected = selectedChunkIds.length > 0
+
+  const previewPanelStyle = useMemo((): CSSVarStyle => {
+    return { '--preview-panel-width': `${previewPanelWidth}px` }
+  }, [previewPanelWidth])
+
+  const infoPanelStyle = useMemo((): CSSVarStyle => {
+    return { '--info-panel-width': `${infoPanelWidth}px` }
+  }, [infoPanelWidth])
+
+  // 全选/取消全选
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedChunkIds(filteredChunks.map(c => c.chunk_id))
+    } else {
+      setSelectedChunkIds([])
+    }
+  }
+
+  // 单个 checkbox 点击
+  const handleSingleCheckboxClick = (chunkId: string, checked: boolean) => {
+    setSelectedChunkIds(prev => {
+      const idx = prev.indexOf(chunkId)
+      if (checked && idx === -1) {
+        return [...prev, chunkId]
+      } else if (!checked && idx !== -1) {
+        return prev.filter(id => id !== chunkId)
+      }
+      return prev
+    })
+  }
+
+  // 批量启用
+  const handleBulkEnable = async () => {
+    if (selectedChunkIds.length === 0) return
+    try {
+      await bulkSwitchChunksMutation.mutateAsync({
+        chunkIds: selectedChunkIds,
+        availableInt: 1,
+      })
+    } catch (error) {
+      console.error('Failed to bulk enable chunks:', error)
+      alert('批量启用失败，请重试')
+    }
+  }
+
+  // 批量禁用
+  const handleBulkDisable = async () => {
+    if (selectedChunkIds.length === 0) return
+    try {
+      await bulkSwitchChunksMutation.mutateAsync({
+        chunkIds: selectedChunkIds,
+        availableInt: 0,
+      })
+    } catch (error) {
+      console.error('Failed to bulk disable chunks:', error)
+      alert('批量禁用失败，请重试')
+    }
+  }
+
+  // 批量删除
+  const handleBulkDelete = async () => {
+    if (selectedChunkIds.length === 0) return
+    try {
+      await deleteChunksMutation.mutateAsync(selectedChunkIds)
+      setSelectedChunkIds([])
+      setDeleteSelectedConfirmOpen(false)
+    } catch (error) {
+      console.error('Failed to bulk delete chunks:', error)
+      alert('批量删除失败，请重试')
+    }
+  }
+
   return (
     <div className="h-full flex flex-col" style={{ backgroundColor: 'var(--color-background-default)' }}>
-      {/* 页面标题栏 */}
-      <div className="px-6 py-4" style={{ 
-        backgroundColor: 'var(--color-background-surface)', 
-        borderBottom: '1px solid var(--color-border-default)' 
-      }}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate(`/knowledge/${kbId}/documents`)}
-              style={{ color: 'var(--color-text-secondary)' }}
-              className="hover:color-[var(--color-text-primary)]"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              返回文档列表
-            </Button>
-            <div className="h-6 w-px" style={{ backgroundColor: 'var(--color-border-accent)' }} />
-            <div>
-              <h1 className="text-2xl font-bold" style={{ color: 'var(--color-text-primary)' }}>
-                {docInfo?.name || '文档解析块'}
-              </h1>
-              <p className="text-sm mt-1" style={{ color: 'var(--color-text-secondary)' }}>
-                共 {total} 个分段
-              </p>
+      <div className="flex flex-col lg:flex-row flex-1 min-h-0">
+        {/* 左侧文档预览面板 - 可折叠 */}
+        {isPreviewPanelOpen && docInfo && (
+          <div 
+            className="hidden lg:flex flex-col border-r border-border-default bg-background-default lg:w-[var(--preview-panel-width)]"
+            style={previewPanelStyle}
+          >
+            {/* 预览内容 */}
+            <div className="flex-1 overflow-hidden">
+              <DocumentPreview
+                docId={docId!}
+                docName={docInfo.name}
+                docType={docInfo.type}
+                selectedChunkId={selectedChunk?.chunk_id}
+                highlights={selectedChunk?.positions?.map((pos) => ({
+                  page: pos[0] || 1,
+                  x1: pos[1] || 0,
+                  x2: pos[2] || 0,
+                  y1: pos[3] || 0,
+                  y2: pos[4] || 0,
+                }))}
+                onClose={() => setIsPreviewPanelOpen(false)}
+                className="h-full"
+              />
             </div>
           </div>
-          
-          {/* 添加分段按钮 */}
-          <Button
-            onClick={() => setAddChunkModalOpen(true)}
-            className="flex items-center"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            添加分段
-          </Button>
-        </div>
-      </div>
+        )}
 
-      <div className="flex flex-col lg:flex-row flex-1 min-h-0">
-        {/* 左侧分段列表区域 */}
-        <div className="w-full lg:w-[70%] flex flex-col bg-background-surface border-r border-border-default min-h-0">
-          {/* 筛选器工具栏 */}
-          <div className="border-b border-border-default p-4">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
-                {/* 状态筛选按钮组 */}
-                <div className="flex items-center bg-background-subtle rounded-lg p-1">
-                  <button
-                    onClick={() => setFilterStatus('all')}
-                    className={cn(
-                      "px-3 py-1.5 text-sm font-medium rounded-md transition-colors flex items-center space-x-2",
-                      filterStatus === 'all'
-                        ? "bg-background-surface text-text-primary shadow-sm"
-                        : "text-text-secondary hover:text-text-primary"
-                    )}
-                  >
-                    <span>全部</span>
-                    <span className="text-xs bg-background-subtle text-text-secondary px-1.5 py-0.5 rounded-full">
-                      {chunks.length}
-                    </span>
-                  </button>
-                  <button
-                    onClick={() => setFilterStatus('enabled')}
-                    className={cn(
-                      "px-3 py-1.5 text-sm font-medium rounded-md transition-colors flex items-center space-x-2",
-                      filterStatus === 'enabled'
-                        ? "bg-background-surface text-text-primary shadow-sm"
-                        : "text-text-secondary hover:text-text-primary"
-                    )}
-                  >
-                    <span className="flex items-center">
-                      <span className="w-1.5 h-1.5 rounded-full mr-1.5" style={{ backgroundColor: 'var(--color-state-success)' }} />
-                      启用
-                    </span>
-                    <span className="text-xs px-1.5 py-0.5 rounded-full" style={{
-                      backgroundColor: 'var(--color-components-badge-success-bg)',
-                      color: 'var(--color-components-badge-success-text)'
-                    }}>
-                      {chunks.filter(c => c.available_int === 1).length}
-                    </span>
-                  </button>
-                  <button
-                    onClick={() => setFilterStatus('disabled')}
-                    className={cn(
-                      "px-3 py-1.5 text-sm font-medium rounded-md transition-colors flex items-center space-x-2",
-                      filterStatus === 'disabled'
-                        ? "bg-background-surface text-text-primary shadow-sm"
-                        : "text-text-secondary hover:text-text-primary"
-                    )}
-                  >
-                    <span className="flex items-center">
-                      <span className="w-1.5 h-1.5 rounded-full mr-1.5" style={{ backgroundColor: 'var(--color-state-error)' }} />
-                      禁用
-                    </span>
-                    <span className="text-xs px-1.5 py-0.5 rounded-full" style={{
-                      backgroundColor: 'var(--color-components-badge-error-bg)',
-                      color: 'var(--color-components-badge-error-text)'
-                    }}>
-                      {chunks.filter(c => c.available_int === 0).length}
-                    </span>
-                  </button>
-                </div>
-                
-                {/* 搜索框 */}
-                <div className="w-full sm:w-64">
-                  <Input
-                    type="search"
-                    placeholder="搜索分段内容..."
-                    value={searchKeyword}
-                    onChange={(e) => setSearchKeyword(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        // 触发搜索（实际上会通过 useEffect 自动触发）
-                        e.preventDefault()
-                      }
-                    }}
-                    leftIcon={<Search className="h-4 w-4" />}
-                    className="w-full"
-                  />
-                </div>
-                
-                {/* 结果统计和展开折叠控制 */}
-                <div className="flex items-center space-x-4">
-                  <div className="text-sm text-text-secondary">
-                    显示 {filteredChunks.length} / {total} 个分段
-                    {searchKeyword.trim() && (
-                      <span className="ml-2 text-text-accent">
-                        (搜索: "{searchKeyword.trim()}")
-                      </span>
-                    )}
-                  </div>
-                  
-                  <Tooltip content={isExpanded ? '折叠分段' : '展开分段'}>
-                    <button
-                      onClick={() => setIsExpanded(!isExpanded)}
-                      className="p-1 text-text-accent hover:text-text-primary hover:bg-state-hover rounded transition-colors"
+        {/* 左侧预览面板拖拽条 */}
+        {isPreviewPanelOpen && (
+          <div
+            className="hidden lg:block w-1 cursor-col-resize bg-transparent hover:bg-border-subtle"
+            onMouseDown={(e) => {
+              e.preventDefault()
+              resizeRef.current = { target: 'preview', startX: e.clientX, startWidth: previewPanelWidth }
+              document.body.style.cursor = 'col-resize'
+              document.body.style.userSelect = 'none'
+            }}
+          />
+        )}
+        
+        {/* 中间分段列表区域 */}
+        <div className="flex-1 flex flex-col bg-background-surface min-h-0">
+          {/* ragflow 风格工具栏 */}
+          <div className="border-b border-border-default px-4 py-3">
+            {/* 第一行：预览切换 + 全文/省略切换 + 搜索 + 筛选 + 添加 */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                {/* 预览面板切换按钮 */}
+                {!isPreviewPanelOpen && (
+                  <Tooltip content="显示文档预览">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setIsPreviewPanelOpen(true)}
+                      className="hidden lg:flex"
                     >
-                      {isExpanded ? (
-                        <ChevronDown className="h-4 w-4" />
-                      ) : (
-                        <ChevronRight className="h-4 w-4" />
-                      )}
-                    </button>
+                      <PanelLeftOpen className="h-4 w-4" />
+                    </Button>
                   </Tooltip>
-                </div>
+                )}
+                
+                {/* 全文/省略 Segmented 切换 */}
+                <Segmented
+                  value={textMode}
+                  onValueChange={(val) => setTextMode(val as 'full' | 'ellipse')}
+                >
+                  <SegmentedItem value="full">全文</SegmentedItem>
+                  <SegmentedItem value="ellipse">省略</SegmentedItem>
+                </Segmented>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                {/* 搜索框 - 可展开收起 */}
+                {isSearchOpen ? (
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="search"
+                      placeholder="搜索分段内容..."
+                      value={searchKeyword}
+                      onChange={(e) => setSearchKeyword(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault()
+                        }
+                        if (e.key === 'Escape') {
+                          setIsSearchOpen(false)
+                          setSearchKeyword('')
+                        }
+                      }}
+                      leftIcon={<Search className="h-4 w-4" />}
+                      className="w-48"
+                      autoFocus
+                    />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setIsSearchOpen(false)
+                        setSearchKeyword('')
+                      }}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <Tooltip content="搜索">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setIsSearchOpen(true)}
+                    >
+                      <Search className="h-4 w-4" />
+                    </Button>
+                  </Tooltip>
+                )}
+                
+                {/* 筛选 Popover */}
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      className={cn(
+                        filterStatus !== 'all' && 'text-text-accent'
+                      )}
+                    >
+                      <ListFilter className="h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-48 p-2" align="end">
+                    <div className="flex flex-col gap-1">
+                      <button
+                        onClick={() => setFilterStatus('all')}
+                        className={cn(
+                          "flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors text-left",
+                          filterStatus === 'all'
+                            ? "bg-state-active text-text-primary"
+                            : "hover:bg-state-hover text-text-secondary"
+                        )}
+                      >
+                        <span className="flex-1">全部</span>
+                        <span className="text-xs text-text-tertiary">{total}</span>
+                      </button>
+                      <button
+                        onClick={() => setFilterStatus('enabled')}
+                        className={cn(
+                          "flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors text-left",
+                          filterStatus === 'enabled'
+                            ? "bg-state-active text-text-primary"
+                            : "hover:bg-state-hover text-text-secondary"
+                        )}
+                      >
+                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--color-state-success)' }} />
+                        <span className="flex-1">已启用</span>
+                      </button>
+                      <button
+                        onClick={() => setFilterStatus('disabled')}
+                        className={cn(
+                          "flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors text-left",
+                          filterStatus === 'disabled'
+                            ? "bg-state-active text-text-primary"
+                            : "hover:bg-state-hover text-text-secondary"
+                        )}
+                      >
+                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--color-state-error)' }} />
+                        <span className="flex-1">已禁用</span>
+                      </button>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+
+                {/* 添加分段按钮 */}
+                <Tooltip content="添加分段">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setAddChunkModalOpen(true)}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </Tooltip>
+              </div>
+            </div>
+            
+            {/* 第二行：批量操作区（全选 + 批量启用/禁用/删除） */}
+            <div className="flex items-center gap-8 mt-3 py-2 border-t border-border-subtle">
+              {/* 全选 Checkbox */}
+              <div className="flex items-center gap-2 cursor-pointer text-text-secondary hover:text-text-primary">
+                <Checkbox
+                  id="select-all-chunks"
+                  checked={isAllSelected}
+                  indeterminate={isPartialSelected}
+                  onCheckedChange={handleSelectAll}
+                />
+                <Label 
+                  htmlFor="select-all-chunks" 
+                  className="cursor-pointer text-sm"
+                >
+                  全选
+                </Label>
+                {hasSelected && (
+                  <span className="text-xs text-text-tertiary ml-1">
+                    ({selectedChunkIds.length})
+                  </span>
+                )}
+              </div>
+
+              {/* 批量操作按钮 - 仅在选中时显示 */}
+              {hasSelected && (
+                <>
+                  <button
+                    onClick={handleBulkEnable}
+                    disabled={bulkSwitchChunksMutation.isPending}
+                    className="flex items-center gap-1 text-sm text-text-secondary hover:text-text-primary cursor-pointer disabled:opacity-50"
+                  >
+                    <CheckCircle className="h-4 w-4" />
+                    <span>启用</span>
+                  </button>
+                  <button
+                    onClick={handleBulkDisable}
+                    disabled={bulkSwitchChunksMutation.isPending}
+                    className="flex items-center gap-1 text-sm text-text-secondary hover:text-text-primary cursor-pointer disabled:opacity-50"
+                  >
+                    <Ban className="h-4 w-4" />
+                    <span>禁用</span>
+                  </button>
+                  <button
+                    onClick={() => setDeleteSelectedConfirmOpen(true)}
+                    disabled={deleteChunksMutation.isPending}
+                    className="flex items-center gap-1 text-sm text-red-400 hover:text-red-500 cursor-pointer disabled:opacity-50"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    <span>删除</span>
+                  </button>
+                </>
+              )}
+
+              {/* 结果统计 */}
+              <div className="ml-auto text-sm text-text-tertiary">
+                共 {total} 个分段
+                {searchKeyword.trim() && (
+                  <span className="ml-2 text-text-accent">
+                    (搜索: "{searchKeyword.trim()}")
+                  </span>
+                )}
+                {filterStatus !== 'all' && (
+                  <span className="ml-2 text-text-accent">
+                    (筛选: {filterStatus === 'enabled' ? '已启用' : '已禁用'})
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -524,6 +790,19 @@ const DocumentChunksPage: React.FC = () => {
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto mb-4" style={{ borderColor: 'var(--color-text-accent)' }}></div>
                 加载中...
               </div>
+            ) : chunkListError ? (
+              <div className="p-8 text-center" style={{ color: 'var(--color-text-tertiary)' }}>
+                <FileText className="h-12 w-12 mx-auto mb-4" style={{ color: 'var(--color-text-muted)' }} />
+                <p className="mb-4">加载分段失败，请稍后重试</p>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    refetchChunkList()
+                  }}
+                >
+                  重试
+                </Button>
+              </div>
             ) : filteredChunks.length === 0 ? (
               <div className="p-8 text-center" style={{ color: 'var(--color-text-tertiary)' }}>
                 <FileText className="h-12 w-12 mx-auto mb-4" style={{ color: 'var(--color-text-muted)' }} />
@@ -531,29 +810,54 @@ const DocumentChunksPage: React.FC = () => {
               </div>
             ) : (
               <div className="p-4 space-y-3">
-                {filteredChunks.map((chunk) => (
+                {filteredChunks.map((chunk) => {
+                  const isSelected = selectedChunkIds.includes(chunk.chunk_id)
+                  return (
                   <div
                     key={chunk.chunk_id}
                     className={cn(
                       "group relative rounded-lg p-4 cursor-pointer transition-all duration-200 hover:shadow-md hover:-translate-y-0.5",
-                      selectedChunk?.chunk_id === chunk.chunk_id && "ring-2"
+                      selectedChunk?.chunk_id === chunk.chunk_id && "ring-2",
+                      isSelected && "ring-1 ring-text-accent/50"
                     )}
                     style={{
-                      backgroundColor: 'var(--color-components-card-bg)',
+                      backgroundColor: isSelected 
+                        ? 'var(--color-state-active)' 
+                        : 'var(--color-components-card-bg)',
                       border: selectedChunk?.chunk_id === chunk.chunk_id 
                         ? '2px solid var(--color-text-accent)' 
                         : '1px solid var(--color-components-card-border)'
                     }}
                     onClick={() => {
+                      // 单击选中并在右侧面板显示预览
+                      setSelectedChunk(chunk)
+                      setEditingChunkContent(chunk.content_with_weight)
+                      setIsMarkdownPreview(false)
+                    }}
+                    onDoubleClick={(e) => {
+                      // 双击进入编辑模式
+                      e.stopPropagation()
                       setSelectedChunk(chunk)
                       setIsEditMode(true)
                       setEditingChunkContent(chunk.content_with_weight)
-                      setIsMarkdownPreview(false) // 重置为编辑模式
+                      setIsMarkdownPreview(false)
                     }}
                   >
                     {/* 分段头部 */}
                     <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-3">
+                        {/* Checkbox for batch selection */}
+                        <div 
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleSingleCheckboxClick(chunk.chunk_id, !isSelected)
+                          }}
+                        >
+                          <Checkbox
+                            checked={isSelected}
+                            onCheckedChange={(checked) => handleSingleCheckboxClick(chunk.chunk_id, !!checked)}
+                          />
+                        </div>
                         <Tooltip content={`完整ID: ${chunk.chunk_id}`}>
                           <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium cursor-help" style={{
                             backgroundColor: 'var(--color-background-subtle)',
@@ -629,10 +933,50 @@ const DocumentChunksPage: React.FC = () => {
                       </div>
                     </div>
                     
-                    {/* 分段内容预览 */}
-                    <div className="text-sm leading-relaxed" style={{ color: 'var(--color-text-secondary)' }}>
-                      <div className={isExpanded ? "" : "line-clamp-3"}>
-                        {chunk.content_with_weight}
+                    {/* 分段内容区域 - 包含可选的缩略图和内容 */}
+                    <div className="flex gap-3">
+                      {/* 缩略图预览 (如果有 img_id) */}
+                      {chunk.img_id && (
+                        <div className="relative flex-shrink-0 group/thumb">
+                          <img
+                            src={`/v1/document/image/${chunk.img_id}`}
+                            alt="切片缩略图"
+                            className="w-16 h-16 object-cover rounded border"
+                            style={{
+                              borderColor: 'var(--color-border-default)',
+                              backgroundColor: 'var(--color-background-subtle)'
+                            }}
+                            onError={(e) => {
+                              // 隐藏加载失败的图片
+                              (e.target as HTMLImageElement).style.display = 'none'
+                            }}
+                          />
+                          {/* Hover 时显示大图预览 */}
+                          <div className="absolute left-0 top-full mt-2 z-50 opacity-0 invisible group-hover/thumb:opacity-100 group-hover/thumb:visible transition-all duration-200 pointer-events-none">
+                            <img
+                              src={`/v1/document/image/${chunk.img_id}`}
+                              alt="切片预览"
+                              className="max-w-xs max-h-64 object-contain rounded-lg shadow-xl border"
+                              style={{
+                                borderColor: 'var(--color-border-default)',
+                                backgroundColor: 'var(--color-background-surface)'
+                              }}
+                            />
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* 分段内容预览 - 根据 textMode 切换显示方式，使用 DOMPurify 安全渲染 */}
+                      <div className="flex-1 text-sm leading-relaxed" style={{ color: 'var(--color-text-secondary)' }}>
+                        <div 
+                          className={textMode === 'full' ? "" : "line-clamp-3"}
+                          dangerouslySetInnerHTML={{
+                            __html: DOMPurify.sanitize(chunk.content_with_weight, {
+                              ALLOWED_TAGS: ['em', 'strong', 'b', 'i', 'br'],
+                              ALLOWED_ATTR: [],
+                            })
+                          }}
+                        />
                       </div>
                     </div>
                     
@@ -653,7 +997,8 @@ const DocumentChunksPage: React.FC = () => {
                     )}
                     
                   </div>
-                ))}
+                  )
+                })}
               </div>
             )}
             </div>
@@ -740,10 +1085,43 @@ const DocumentChunksPage: React.FC = () => {
           </div>
         </div>
 
+        {/* 右侧信息面板拖拽条（仅展开时） */}
+        {isInfoPanelOpen && (
+          <div
+            className="hidden lg:block w-1 cursor-col-resize bg-transparent hover:bg-border-subtle"
+            onMouseDown={(e) => {
+              e.preventDefault()
+              resizeRef.current = { target: 'info', startX: e.clientX, startWidth: infoPanelWidth }
+              document.body.style.cursor = 'col-resize'
+              document.body.style.userSelect = 'none'
+            }}
+          />
+        )}
+
         {/* 右侧操作面板 */}
-        <div className="w-full lg:w-[30%] bg-background-subtle flex flex-col relative">
+        <div className={cn(
+          "bg-background-subtle flex flex-col relative transition-all duration-200 border-l border-border-default",
+          isInfoPanelOpen ? "w-full lg:w-[var(--info-panel-width)]" : "w-10 lg:w-10 lg:min-w-10"
+        )}
+        style={isInfoPanelOpen ? infoPanelStyle : undefined}
+        >
+          {/* 折叠状态时的展开按钮 */}
+          {!isInfoPanelOpen && (
+            <div className="flex flex-col items-center pt-2">
+              <Tooltip content="展开信息面板">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsInfoPanelOpen(true)}
+                >
+                  <PanelRightOpen className="h-4 w-4" />
+                </Button>
+              </Tooltip>
+            </div>
+          )}
+          
           {/* 编辑模式覆盖层 */}
-          {isEditMode && selectedChunk && (
+          {isInfoPanelOpen && isEditMode && selectedChunk && (
             <div className="absolute inset-0 bg-background-surface z-30 flex flex-col">
               <div className="p-6 border-b border-border-default">
                 <div className="flex items-center justify-between">
@@ -952,7 +1330,82 @@ const DocumentChunksPage: React.FC = () => {
             </div>
           )}
           
+          {/* 面板标题和折叠按钮 */}
+          {isInfoPanelOpen && (
+            <div className="flex items-center justify-between px-4 py-2 border-b border-border-default bg-background-surface">
+              <span className="text-sm font-medium text-text-primary">文档信息</span>
+              <Tooltip content="折叠面板">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsInfoPanelOpen(false)}
+                >
+                  <PanelRightClose className="h-4 w-4" />
+                </Button>
+              </Tooltip>
+            </div>
+          )}
+          
+          {/* 选中分段预览区域 (单击时显示) */}
+          {isInfoPanelOpen && selectedChunk && !isEditMode && (
+            <div className="p-4 border-b border-border-default">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
+                  分段预览
+                </h3>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setIsEditMode(true)
+                      setEditingChunkContent(selectedChunk.content_with_weight)
+                    }}
+                  >
+                    <Edit2 className="h-3 w-3 mr-1" />
+                    编辑
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedChunk(null)
+                      setEditingChunkContent('')
+                    }}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
+              <div 
+                className="text-sm leading-relaxed rounded-lg p-3 max-h-48 overflow-y-auto scrollbar-thin"
+                style={{ 
+                  color: 'var(--color-text-secondary)',
+                  backgroundColor: 'var(--color-background-subtle)'
+                }}
+                dangerouslySetInnerHTML={{
+                  __html: DOMPurify.sanitize(selectedChunk.content_with_weight, {
+                    ALLOWED_TAGS: ['em', 'strong', 'b', 'i', 'br'],
+                    ALLOWED_ATTR: [],
+                  })
+                }}
+              />
+              <div className="mt-2 flex items-center gap-2 text-xs text-text-tertiary">
+                <Tooltip content={`完整ID: ${selectedChunk.chunk_id}`}>
+                  <span className="cursor-help">
+                    ID: {selectedChunk.chunk_id.slice(0, 8)}...
+                  </span>
+                </Tooltip>
+                <span>•</span>
+                <span className={selectedChunk.available_int === 1 ? 'text-green-600' : 'text-red-500'}>
+                  {selectedChunk.available_int === 1 ? '已启用' : '已禁用'}
+                </span>
+              </div>
+            </div>
+          )}
+
           {/* 默认内容区域 */}
+          {isInfoPanelOpen && (
           <div className="p-6 space-y-6 h-full overflow-y-auto scrollbar-thin">
             {/* 元数据标注区域 */}
             <Card>
@@ -1007,10 +1460,6 @@ const DocumentChunksPage: React.FC = () => {
                         <div className="flex justify-between">
                           <span style={{ color: 'var(--color-text-secondary)' }}>文件名：</span>
                           <span className="font-medium break-all text-right ml-2" style={{ color: 'var(--color-text-primary)' }}>{docInfo.name}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span style={{ color: 'var(--color-text-secondary)' }}>创建者：</span>
-                          <span style={{ color: 'var(--color-text-primary)' }}>{docInfo.created_by}</span>
                         </div>
                         <div className="flex justify-between">
                           <span style={{ color: 'var(--color-text-secondary)' }}>创建时间：</span>
@@ -1088,6 +1537,7 @@ const DocumentChunksPage: React.FC = () => {
               </Card>
             )}
           </div>
+          )}
         </div>
       </div>
 
@@ -1144,6 +1594,15 @@ const DocumentChunksPage: React.FC = () => {
         description={`确定要删除分段 "${deletingChunkId}" 吗？此操作不可逆。`}
       />
 
+      {/* 批量删除确认模态框 */}
+      <ConfirmModal
+        open={deleteSelectedConfirmOpen}
+        onClose={() => setDeleteSelectedConfirmOpen(false)}
+        onConfirm={handleBulkDelete}
+        title="确认批量删除"
+        description={`确定要删除选中的 ${selectedChunkIds.length} 个分段吗？此操作不可逆。`}
+      />
+
       {/* 元数据标注模态框 */}
       <Modal
         open={metaModalOpen}
@@ -1179,11 +1638,11 @@ const DocumentChunksPage: React.FC = () => {
                     <Input
                       value={typeof item.value === 'string' ? item.value : JSON.stringify(item.value)}
                       onChange={(e) => {
-                        let newValue: any = e.target.value
+                        let newValue: unknown = e.target.value
                         // 尝试解析JSON，如果失败则作为字符串
                         try {
                           if (e.target.value.startsWith('{') || e.target.value.startsWith('[')) {
-                            newValue = JSON.parse(e.target.value)
+                            newValue = JSON.parse(e.target.value) as unknown
                           }
                         } catch {
                           // 保持为字符串

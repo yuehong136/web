@@ -14,4 +14,8 @@ export default defineConfig({
     host: '0.0.0.0', // 允许外部访问
     port: 5173, // 默认端口
   },
+  // 修复 pdfjs-dist 版本冲突问题
+  optimizeDeps: {
+    include: ['pdfjs-dist'],
+  },
 })

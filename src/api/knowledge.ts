@@ -299,6 +299,7 @@ export const knowledgeAPI = {
       page?: number
       size?: number
       keywords?: string
+      available_int?: number
     }): Promise<{
       total: number
       chunks: Array<{
@@ -342,6 +343,28 @@ export const knowledgeAPI = {
       }
     }> =>
       apiClient.post('/v1/chunk/list', params),
+
+    // 创建文档分段
+    createChunk: (params: {
+      doc_id: string
+      content_with_weight: string
+      available_int?: number
+    }): Promise<boolean> =>
+      apiClient.post('/v1/chunk/create', params),
+
+    // 获取单个分段详情
+    getChunk: (chunkId: string): Promise<{
+      chunk_id: string
+      content_with_weight: string
+      doc_id: string
+      docnm_kwd: string
+      important_kwd: string[]
+      question_kwd: string[]
+      img_id: string
+      available_int: number
+      positions: number[][]
+    }> =>
+      apiClient.get(`/v1/chunk/get?chunk_id=${encodeURIComponent(chunkId)}`),
 
     // 设置/更新文档分段
     setChunk: (params: {
