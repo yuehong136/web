@@ -7,6 +7,9 @@
 /* MCP 聊天页面专用样式 */
 @import './styles/mcp-chat-reference.css';
 
+/* 参考文献和引用相关样式 */
+@import './styles/reference.css';
+
 
 
 @tailwind base;

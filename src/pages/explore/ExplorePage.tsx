@@ -10,7 +10,6 @@ import {
   Copy,
   RotateCcw,
   ThumbsUp,
-  FileText,
   LayoutGrid,
   AlignCenter,
   Maximize2
@@ -22,13 +21,12 @@ import {
   Prompts,
   Welcome,
   Think,
-  Sources,
   Actions,
   Attachments
 } from '@ant-design/x'
 import { ConfigProvider, theme } from 'antd'
-import type { PromptsProps, SourcesProps } from '@ant-design/x'
-import XMarkdown, { type ComponentProps } from '@ant-design/x-markdown'
+import type { PromptsProps } from '@ant-design/x'
+import XMarkdown from '@ant-design/x-markdown'
 import '@ant-design/x-markdown/dist/x-markdown.css'
 import { Button } from '@/components/ui/button'
 import { cn, copyToClipboard } from '@/lib/utils'
@@ -40,6 +38,8 @@ import { conversationAPI } from '@/api/conversation'
 import { useQuery } from '@tanstack/react-query'
 import { chatConfig, type ChatMessage, type ChatServiceRequest, type SSEResponse, type ChatAttachment } from '@/config/chat'
 import { extractReferencesFromSSEData, type ReferenceChunk } from '@/utils/reference-replacer'
+import { ReferenceDocumentList } from '@/components/chat/ReferenceDocumentList'
+import { createSupComponent } from '@/components/chat/InlineSourceRef'
 
 // 将内容中的 [ID:x] 引用转换为 <sup>x</sup> 格式，供 XMarkdown 处理
 const convertReferencesToSup = (content: string): string => {
@@ -48,37 +48,49 @@ const convertReferencesToSup = (content: string): string => {
 }
 
 // 提取并分离 think 内容和主内容
+// 思考状态：'none' 无思考 | 'thinking' 思考中 | 'complete' 思考完成
+type ThinkingStatus = 'none' | 'thinking' | 'complete'
+
 interface ThinkExtractResult {
   thinkContent: string
   mainContent: string
+  /** @deprecated 使用 status 代替 */
   isThinking: boolean
+  /** 思考状态 */
+  status: ThinkingStatus
 }
 
 const extractThinkContent = (content: string): ThinkExtractResult => {
-  if (!content) return { thinkContent: '', mainContent: '', isThinking: false }
+  if (!content) return { thinkContent: '', mainContent: '', isThinking: false, status: 'none' }
   
-  // 检查是否有完整的 think 标签
-  const completeMatch = content.match(/<think>([\s\S]*?)<\/think>([\s\S]*)/)
+  // 检查是否有完整的 think/thinking 标签（思考已完成）
+  // 支持 <think> 和 <thinking> 两种格式
+  const completeMatch = content.match(/<think(?:ing)?>([\s\S]*?)<\/think(?:ing)?>([\s\S]*)/)
   if (completeMatch) {
     return {
       thinkContent: completeMatch[1].trim(),
       mainContent: completeMatch[2].trim(),
-      isThinking: false
+      isThinking: false,
+      status: 'complete'
     }
   }
   
-  // 检查是否有未闭合的 think 标签（正在思考中）
-  const openMatch = content.match(/<think>([\s\S]*)$/)
-  if (openMatch) {
+  // 检查是否有未闭合的 think/thinking 标签（正在思考中）
+  const hasOpenTag = content.includes('<think>') || content.includes('<thinking>')
+  const hasCloseTag = content.includes('</think>') || content.includes('</thinking>')
+  
+  if (hasOpenTag && !hasCloseTag) {
+    const openMatch = content.match(/<think(?:ing)?>([\s\S]*)/)
     return {
-      thinkContent: openMatch[1].trim(),
+      thinkContent: openMatch ? openMatch[1].trim() : '',
       mainContent: '',
-      isThinking: true
+      isThinking: true,
+      status: 'thinking'
     }
   }
   
   // 没有 think 标签
-  return { thinkContent: '', mainContent: content, isThinking: false }
+  return { thinkContent: '', mainContent: content, isThinking: false, status: 'none' }
 }
 
 // 获取应用图标
@@ -151,6 +163,54 @@ interface ChatMessageItem {
   thinking?: string
   thinkingComplete?: boolean
 }
+
+// Think 展开状态组件 - 提取为独立组件避免重新创建导致状态丢失
+interface ThinkWrapperProps {
+  children: React.ReactNode
+  /** 思考状态 */
+  status: ThinkingStatus
+  /** 消息的唯一标识，用于区分不同消息的折叠状态 */
+  messageId?: string
+}
+
+const ThinkWrapper: React.FC<ThinkWrapperProps> = React.memo(({ children, status }) => {
+  const isThinking = status === 'thinking'
+  
+  // 简化逻辑：直接根据 status 控制展开状态
+  // - thinking：强制展开
+  // - complete：用户可手动控制
+  const [userExpanded, setUserExpanded] = React.useState(true)
+  
+  // 当状态为 thinking 时，始终展开；complete 时使用用户控制的状态
+  const expanded = isThinking ? true : userExpanded
+  
+  // 当从 thinking 变为 complete 时，延迟折叠
+  const prevStatusRef = React.useRef(status)
+  React.useEffect(() => {
+    if (prevStatusRef.current === 'thinking' && status === 'complete') {
+      const timer = setTimeout(() => {
+        setUserExpanded(false)
+      }, 800)
+      return () => clearTimeout(timer)
+    }
+    prevStatusRef.current = status
+  }, [status])
+  
+  // 根据状态显示不同的标题
+  const title = isThinking ? '思考中...' : '思考完成'
+  
+  return (
+    <Think
+      title={title}
+      loading={isThinking}
+      expanded={expanded}
+      onExpand={setUserExpanded}
+      blink={isThinking}
+    >
+      {children}
+    </Think>
+  )
+})
 
 export const ExplorePage: React.FC = () => {
   const { clearChat } = useChatStore()
@@ -305,16 +365,19 @@ export const ExplorePage: React.FC = () => {
                   const content = data.data.answer
                 const references = extractReferencesFromSSEData(data.data)
                   
-                  // 提取 thinking 内容
+                  // 提取 think/thinking 内容（支持两种标签格式）
+                  // 服务端返回累积式流式数据，每个 chunk 都可能包含完整的 <think>...</think>
                   let thinking = ''
-                  let thinkingComplete = false
-                  const thinkingMatch = content.match(/<thinking>([\s\S]*?)(?:<\/thinking>|$)/)
-                  if (thinkingMatch) {
-                    thinking = thinkingMatch[1].trim()
-                    thinkingComplete = content.includes('</thinking>')
+                  const thinkMatch = content.match(/<think(?:ing)?>([\s\S]*?)(?:<\/think(?:ing)?>|$)/)
+                  if (thinkMatch) {
+                    thinking = thinkMatch[1].trim()
                   }
                   
-                  const cleanContent = content.replace(/<thinking>[\s\S]*?<\/thinking>/g, '').trim()
+                  // 清理内容：移除 think 标签及其内容
+                  const cleanContent = content
+                    .replace(/<think(?:ing)?>[\s\S]*?<\/think(?:ing)?>/g, '')
+                    .replace(/<think(?:ing)?>[\s\S]*$/, '')
+                    .trim()
                   
                   setMessages(prev => {
                     const newMsgs = [...prev]
@@ -324,8 +387,7 @@ export const ExplorePage: React.FC = () => {
                         ...newMsgs[lastIdx],
                         content: cleanContent,
                         references,
-                        thinking,
-                        thinkingComplete
+                        thinking
                       }
                     }
                     return newMsgs
@@ -388,15 +450,20 @@ export const ExplorePage: React.FC = () => {
                 const data: SSEResponse = JSON.parse(jsonStr)
                 
                 if (data.retcode === 0 && typeof data.data === 'string') {
+                  const rawData = data.data
+                  
+                  // 提取 think/thinking 内容（支持两种标签格式）
                   let thinking = ''
-                  let thinkingComplete = false
-                  const thinkingMatch = data.data.match(/<thinking>([\s\S]*?)(?:<\/thinking>|$)/)
-                  if (thinkingMatch) {
-                    thinking = thinkingMatch[1].trim()
-                    thinkingComplete = data.data.includes('</thinking>')
+                  const thinkMatch = rawData.match(/<think(?:ing)?>([\s\S]*?)(?:<\/think(?:ing)?>|$)/)
+                  if (thinkMatch) {
+                    thinking = thinkMatch[1].trim()
                   }
                   
-                  const content = data.data.replace(/<thinking>[\s\S]*?<\/thinking>/g, '').trim()
+                  // 清理内容：移除 think 标签及其内容
+                  const content = rawData
+                    .replace(/<think(?:ing)?>[\s\S]*?<\/think(?:ing)?>/g, '')
+                    .replace(/<think(?:ing)?>[\s\S]*$/, '')
+                    .trim()
                   
                   setMessages(prev => {
                     const newMsgs = [...prev]
@@ -405,8 +472,7 @@ export const ExplorePage: React.FC = () => {
                       newMsgs[lastIdx] = {
                         ...newMsgs[lastIdx],
                         content,
-                        thinking,
-                        thinkingComplete
+                        thinking
                       }
                     }
                     return newMsgs
@@ -555,38 +621,27 @@ export const ExplorePage: React.FC = () => {
   const currentAppIconUrl = React.useMemo(() => getAppIconUrl(currentApp), [currentApp, getAppIconUrl])
   
 
+  // 处理引用点击事件
+  const handleReferenceClick = React.useCallback((reference: ReferenceChunk, _index: number) => {
+    console.log('Reference clicked:', reference)
+    // 如果有 URL，打开链接
+    if (reference.url) {
+      window.open(reference.url, '_blank', 'noopener,noreferrer')
+    } else {
+      // 可以在这里添加打开文档预览的逻辑
+      toast.success(`查看文档: ${reference.document_name}`)
+    }
+  }, [])
+  
   // 转换消息为 Bubble 格式
   const bubbleItems = messages.map((msg, index) => {
     const references = msg.references || []
     
-    // 创建内联来源引用组件（闭包捕获 references）
-    const SupComponent = (props: ComponentProps) => {
-      const refIndex = parseInt(`${props?.children}` || '0', 10)
-      const ref = references[refIndex]
-      
-      if (!ref) {
-        return <sup>{props?.children}</sup>
-      }
-      
-      const items: SourcesProps['items'] = [{
-        key: ref.id || `ref-${refIndex}`,
-        title: ref.document_name || `来源 ${refIndex + 1}`,
-        icon: <FileText className="h-3 w-3" />,
-        description: ref.content?.slice(0, 200),
-      }]
-      
-      return (
-        <Sources
-          activeKey={refIndex}
-          title={props.children}
-          items={items}
-          inline={true}
-          onClick={() => {
-            console.log('Source clicked:', ref)
-          }}
-        />
-      )
-    }
+    // 使用新的 createSupComponent 创建内联引用组件
+    const SupComponent = createSupComponent(references, {
+      mode: 'popover', // 使用悬浮卡片模式，显示更多信息
+      onReferenceClick: handleReferenceClick
+    })
     
     return {
       key: `message-${index}`,
@@ -619,43 +674,33 @@ export const ExplorePage: React.FC = () => {
                   </div>
           ),
       contentRender: msg.role === 'assistant' ? () => {
-        // 提取并分离 think 内容
-        const { thinkContent, mainContent, isThinking } = extractThinkContent(msg.content || '')
+        // 优先使用流式输出时提取的 thinking 字段，回退到从 content 提取（针对历史消息）
+        const fallback = extractThinkContent(msg.content || '')
+        const thinkContent = msg.thinking || fallback.thinkContent
+        const mainContent = msg.thinking ? (msg.content || '') : fallback.mainContent
+        
+        // 确定思考状态：
+        // - 服务端返回的是累积式流式数据，每个 chunk 都包含完整的 <think>...</think>
+        // - 所以不能用闭合标签来判断，而是用 isStreaming 状态
+        // - 如果正在流式输出且有思考内容，就是 thinking 状态
+        // - 如果流式输出结束或者是历史消息，就是 complete 状态
+        let status: ThinkingStatus = 'none'
+        if (thinkContent) {
+          // 检查是否是当前正在流式输出的消息（最后一条助手消息且 isStreaming 为 true）
+          const lastAssistantMsg = [...messages].reverse().find(m => m.role === 'assistant')
+          const isLastAssistantMsg = lastAssistantMsg?.id === msg.id
+          const isCurrentlyStreaming = isStreaming && isLastAssistantMsg
+          status = isCurrentlyStreaming ? 'thinking' : 'complete'
+        }
+        
         // 对主内容转换引用格式
         const mainContentWithSup = convertReferencesToSup(mainContent)
         
-        // Think 展开状态组件
-        const ThinkWrapper = ({ children, thinking }: { children: React.ReactNode, thinking: boolean }) => {
-          const [expanded, setExpanded] = React.useState(thinking)
-          
-          // 当思考完成时自动折叠
-          React.useEffect(() => {
-            if (!thinking) {
-              setExpanded(false)
-            }
-          }, [thinking])
-          
-          return (
-            <Think
-              title={thinking ? '正在思考...' : '思考完成'}
-              loading={thinking}
-              expanded={expanded}
-              onExpand={(newExpanded) => {
-                // 阻止展开/折叠时触发页面滚动
-                setExpanded(newExpanded)
-              }}
-              blink={thinking}
-            >
-              {children}
-            </Think>
-          )
-        }
-        
         return (
           <div className="space-y-3">
-            {/* Think 组件展示思考过程 */}
+            {/* Think 组件展示思考过程 - 使用外部定义的 ThinkWrapper 组件 */}
             {thinkContent && (
-              <ThinkWrapper thinking={isThinking}>
+              <ThinkWrapper status={status} messageId={msg.id}>
                 <div 
                   className="text-sm whitespace-pre-wrap" 
                   style={{ color: 'var(--color-text-secondary)' }}
@@ -682,18 +727,18 @@ export const ExplorePage: React.FC = () => {
               <span className="italic" style={{ color: 'var(--color-text-muted)' }}>正在生成...</span>
             )}
             
-            {/* 底部汇总显示所有引用来源 */}
+            {/* 底部汇总显示所有引用来源 - 使用新的 ReferenceDocumentList 组件 */}
             {references.length > 0 && (
-              <Sources
-                title={`引用了 ${references.length} 个来源`}
-                items={references.map((ref, idx) => ({
-                  key: ref.id || `ref-${idx}`,
-                  title: ref.document_name || `来源 ${idx + 1}`,
-                  icon: <FileText className="h-3 w-3" />,
-                  description: ref.content?.slice(0, 150)
-                })) as SourcesProps['items']}
-                onClick={(item) => {
-                  console.log('Source clicked:', item)
+              <ReferenceDocumentList
+                chunks={references}
+                mode="sources"
+                onDocumentClick={(doc) => {
+                  const ref = references.find(r => r.document_id === doc.doc_id)
+                  if (ref?.url) {
+                    window.open(ref.url, '_blank', 'noopener,noreferrer')
+                  } else {
+                    toast.success(`查看文档: ${doc.doc_name}`)
+                  }
                 }}
               />
             )}
