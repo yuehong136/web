@@ -4,6 +4,16 @@
 
 ## 🆕 最新更新
 
+### Agent 画布系统（新功能）
+- **🔧 可视化工作流构建器**: 基于 @xyflow/react 的节点式 Agent 设计
+- **🤖 Agent 管理**: 通过可视化画布创建、配置和部署 AI Agent
+- **🔄 工作流自动化**: 连接节点创建自动化 AI 管道
+
+### 增强文档预览（新功能）
+- **📄 多格式支持**: 浏览器内预览 PDF、DOCX、Excel (.xlsx)、PowerPoint (.pptx)
+- **🔍 搜索高亮**: HighlightText 组件，基于 DOMPurify 的 XSS 安全关键词高亮
+- **📊 文档块可视化**: 增强的搜索结果与高亮内容
+
 ### API 管理与文档
 - **🔑 API 密钥管理**: 全面的 API 密钥 CRUD 操作，安全令牌处理
 - **📚 OpenAPI 集成**: 交互式 API 文档，集成 Monaco 编辑器和实时测试
@@ -13,22 +23,22 @@
 
 ### 设计系统与性能优化
 - **🎨 高级设计令牌系统**: 完整的 CSS 变量主题化与自动主题生成
-- **⚡ 性能优化**: 移除 backdrop-blur 提升性能，优化 Tailwind 配置
+- **⚡ 性能优化**: 优化 Think 状态组件，移除 backdrop-blur 提升性能
 - **🌗 增强深色模式**: 改善所有组件的色彩一致性和视觉层次
 
-### AI 与 MCP 集成  
+### AI 与 MCP 集成
 - **🤖 MCP 聊天增强**: 结构化输出支持，统一工具解析和改进的流式传输
 - **🔧 MCP 服务器管理**: 全面的 MCP 服务器配置、测试和批量操作
-- **📝 AI 工具扩展**: 自动填充工作台、文档处理和 AI 驱动的实用工具
+- **📝 AI 工具扩展**: 自动填充工作台与文档集成，AI 驱动的实用工具
 
 ### 知识库功能
-- **📚 高级文档管理**: 多格式支持，专业解析器（PDF、DOCX、演示文稿、法律文档等）
-- **🔍 增强搜索与探索**: 改进的搜索界面与文档块可视化
+- **📚 高级文档管理**: 多格式支持，专业解析器（PDF、DOCX、Excel、PPTX、法律文档等）
+- **🔍 增强搜索与探索**: 改进的搜索界面，HighlightText 组件与文档块可视化
 - **📊 解析器配置**: 可视化解析器设置，针对不同文档类型的实时预览
 
 ### 开发者体验
 - **🏗️ React 19 + Vite 7**: 最新框架版本与改进的 TypeScript 集成
-- **🎯 组件架构**: 50+ UI 组件与全面的设计系统
+- **🎯 组件架构**: 96 个功能组件 + 48 个 UI 组件与全面的设计系统
 - **📱 响应式设计**: 移动优先方法与增强的无障碍性
 
 ## 🚀 核心功能
@@ -52,9 +62,15 @@
 - **拖拽界面**: 直观的环境和变量管理，支持可排序列表
 
 ### 🤖 AI 工具与自动化
-- **自动填充工作台**: AI 驱动的数据处理和表单填充
+- **自动填充工作台**: AI 驱动的数据处理和表单填充，支持文档集成
 - **文档处理**: 自动化内容提取和分析
 - **工作流自动化**: 自定义 AI 驱动工作流（开发中）
+
+### 🔧 Agent 工作流构建器
+- **可视化画布编辑器**: 基于 @xyflow/react 的节点式工作流设计
+- **Agent 管理**: 创建、配置和部署 AI Agent
+- **工作流自动化**: 连接节点创建自动化 AI 管道
+- **画布组件**: 专业化节点、连接线和边缘类型用于 Agent 设计
 
 ### 🔧 MCP 集成
 - **服务器管理**: 配置、测试和监控 MCP 服务器
@@ -73,26 +89,47 @@
 
 ## 📋 技术栈
 
+### 核心框架
 - **框架**: React 19.1 + TypeScript 5.8
 - **构建工具**: Vite 7.0
-- **样式**: Tailwind CSS 3.4 + Tailwind Forms + Tailwind Typography
-- **状态管理**: Zustand 5.0 + TanStack Query 5.8
+- **样式**: Tailwind CSS 3.4 + Tailwind Forms + Tailwind Typography + Tailwind Scrollbar
+
+### 状态与数据
+- **状态管理**: Zustand 5.0 + TanStack Query 5.83
 - **路由**: React Router DOM 7.7
-- **图表**: Recharts 3.1
-- **表单**: React Hook Form 7.6 + Zod 4.0 + Hookform Resolvers
+- **表单**: React Hook Form 7.60 + Zod 4.0 + Hookform Resolvers
+
+### UI 与组件
+- **UI 原语**: Radix UI (20+ 组件) + Ant Design 6.0 + @ant-design/x
 - **图标**: Lucide React 0.525
-- **UI 组件**: Class Variance Authority + Tailwind Merge + CLSX
+- **样式工具**: Class Variance Authority + Tailwind Merge + CLSX
+- **图表**: Recharts 3.1
+
+### Agent 与工作流
+- **画布编辑器**: @xyflow/react 12.9 用于节点式工作流构建
+- **拖拽**: DND Kit 6.3+ 用于可排序界面
+
+### 文档处理
+- **PDF**: react-pdf-highlighter 6.1
+- **DOCX**: docx-preview 0.3.7 + mammoth 1.11
+- **Excel**: @js-preview/excel 1.7.14
+- **PowerPoint**: pptx-preview 1.0.7
+
+### 编辑器与工具
+- **代码编辑器**: Monaco Editor 4.7 用于语法高亮
+- **Markdown**: React Markdown 10.1 + markdown-it 14.1
 - **文件处理**: React Dropzone 14.3
-- **拖拽**: DND Kit 6.3+ 用于可排序界面和拖拽交互
 - **HTTP 客户端**: 基于 fetch 的自定义 API 客户端
-- **代码编辑器**: Monaco Editor 用于语法高亮和代码格式化
+
+### 安全与开发
+- **XSS 防护**: DOMPurify 3.3
 - **开发工具**: ESLint 9.30 + TypeScript ESLint 8.35
 
 ## 🏗️ 项目结构
 
 ```
 src/
-├── api/                    # API 客户端和类型
+├── api/                    # API 客户端和类型（14 个模块）
 │   ├── client.ts          # 基础 API 客户端（认证和错误处理）
 │   ├── auth.ts            # 身份验证 API
 │   ├── conversation.ts    # 聊天/对话 API
@@ -100,9 +137,14 @@ src/
 │   ├── llm.ts             # LLM 提供商 API
 │   ├── system.ts          # 系统监控 API
 │   ├── environment.ts     # 环境管理 API
+│   ├── agent.ts           # Agent 管理 API
+│   ├── mcp.ts             # MCP 服务器 API
+│   ├── mcp-chat.ts        # MCP 聊天服务 API
+│   ├── document.ts        # 文档操作 API
+│   ├── dialog.ts          # 对话/提示 API
 │   └── index.ts           # API 导出
-├── components/            # 可复用 UI 组件
-│   ├── ui/               # 基础 UI 组件（50+ 组件）
+├── components/            # 可复用 UI 组件（96 个功能组件 + 48 个 UI 组件）
+│   ├── ui/               # 基础 UI 组件（48 个组件）
 │   │   ├── button.tsx    # 按钮组件（支持多种变体）
 │   │   ├── input.tsx     # 表单输入组件
 │   │   ├── card.tsx      # 卡片布局组件
@@ -115,14 +157,23 @@ src/
 │   │   ├── AuthGuard.tsx # 路由保护组件
 │   │   ├── AuthCarousel.tsx # 登录/注册轮播
 │   │   └── ImageWithFallback.tsx # 带回退的图片加载
-│   ├── knowledge/        # 知识库组件
+│   ├── knowledge/        # 知识库组件（10 个文件）
+│   │   ├── DocumentPreview.tsx # 多格式预览（PDF、DOCX、Excel、PPTX）
+│   │   ├── HighlightText.tsx # 搜索结果高亮，XSS 防护
 │   │   ├── EmbeddingModelSelector.tsx # 向量模型选择
 │   │   ├── RerankModelSelector.tsx # 重排模型选择
 │   │   ├── ParserTypeSelector.tsx # 文档解析器选择
 │   │   └── QuickEditModal.tsx # 快速编辑功能
-│   ├── chat/             # 聊天界面组件
-│   │   ├── ModelSelector.tsx # LLM 模型选择
-│   │   └── PromptSuggestion.tsx # 提示建议
+│   ├── chat/             # 聊天界面组件（19 个文件）
+│   │   ├── ChatInput.tsx  # 聊天输入（支持附件）
+│   │   ├── ChatMessage.tsx # 消息渲染
+│   │   ├── ChatHeader.tsx # 聊天头部控制
+│   │   ├── ChatModelSelector.tsx # 模型选择
+│   │   ├── MarkdownRenderer.tsx # Markdown 内容渲染
+│   │   ├── ToolCallDisplay.tsx # 工具调用可视化
+│   │   ├── InlineSourceRef.tsx # 内联源引用
+│   │   ├── ReferenceDocumentList.tsx # 引用文档列表
+│   │   └── WelcomeMessage.tsx # 聊天欢迎界面
 │   ├── mcp/              # MCP 集成组件
 │   │   └── MCPServerForm.tsx # MCP 服务器配置
 │   ├── environment/      # 环境管理组件
@@ -141,7 +192,7 @@ src/
 │       ├── Layout.tsx    # 主应用布局（含认证守卫）
 │       ├── Header.tsx    # 应用头部（含用户菜单）
 │       └── Sidebar.tsx   # 导航侧边栏（现代化设计）
-├── pages/                # 应用程序页面
+├── pages/                # 应用程序页面（97 个文件，34 个模块）
 │   ├── auth/             # 身份验证
 │   │   ├── LoginPage.tsx
 │   │   └── RegisterPage.tsx
@@ -149,6 +200,10 @@ src/
 │   │   └── DashboardPage.tsx
 │   ├── chat/             # 聊天界面
 │   │   └── ChatPage.tsx
+│   ├── agent/            # Agent 工作流构建器
+│   │   ├── AgentListPage.tsx # Agent 列表和管理
+│   │   ├── AgentCanvasPage.tsx # 可视化工作流画布
+│   │   └── components/   # 画布节点、边缘、控件
 │   ├── knowledge/        # 知识库管理
 │   │   ├── KnowledgeListPage.tsx # 知识库列表和管理
 │   │   ├── KnowledgeCreatePage.tsx # 知识库创建向导
@@ -190,15 +245,15 @@ src/
 │   ├── MCPChatPage.tsx   # MCP 增强聊天
 │   ├── MCPDashboard.tsx  # MCP 仪表板
 │   └── theme-demo/       # 主题演示
-├── stores/               # Zustand 状态管理
-│   ├── auth.ts           # 身份验证状态
+├── stores/               # Zustand 状态管理（8 个 Store）
+│   ├── auth.ts           # 身份验证状态（令牌、用户、租户）
 │   ├── ui.ts             # UI 状态（侧边栏、主题、通知）
-│   ├── chat.ts           # 聊天状态
-│   ├── conversation.ts   # 对话管理
+│   ├── chat.ts           # 聊天状态和历史
+│   ├── conversation.ts   # 对话管理和流式状态
 │   ├── knowledge.ts      # 知识库状态
 │   ├── model.ts          # 模型配置
 │   ├── environmentStore.ts # 环境和变量管理
-│   └── index.ts          # 存储初始化（含持久化）
+│   └── index.ts          # 存储初始化（initializeStores、resetAllStores）
 ├── themes/               # 高级设计系统
 │   ├── tokens.ts         # 设计令牌定义
 │   ├── theme-generator.ts # 自动主题生成
@@ -207,10 +262,12 @@ src/
 │   ├── light.css         # 浅色主题 CSS 变量
 │   ├── dark.css          # 深色主题 CSS 变量
 │   └── *.md              # 设计系统文档
-├── hooks/                # 自定义 React Hooks
+├── hooks/                # 自定义 React Hooks（5 个文件）
 │   ├── use-auth.ts       # 身份验证 Hook
-│   ├── use-conversations.ts # 对话 Hook
-│   └── use-system-status.ts # 系统状态 Hook
+│   ├── use-conversations.ts # 对话 Hook（8KB）
+│   ├── use-dialog-apps.ts # 对话/应用管理 Hook
+│   ├── use-system-status.ts # 系统状态 Hook
+│   └── useDebouncedValue.ts # 防抖工具 Hook
 ├── lib/                  # 核心工具和配置
 │   ├── router.tsx        # React Router 配置（嵌套路由）
 │   ├── query-client.ts   # TanStack Query 设置
@@ -219,7 +276,7 @@ src/
 ├── utils/                # 附加工具
 │   └── variableResolver.ts # 环境变量解析和模板化
 ├── types/                # TypeScript 类型定义
-│   ├── api.ts            # 全面的 API 类型（1000+ 行）
+│   ├── api.ts            # 全面的 API 类型（1,284 行）
 │   └── index.ts          # 类型导出
 ├── constants/            # 应用程序常量
 │   └── index.ts          # 路由、API URL、文件类型等
@@ -314,7 +371,7 @@ VITE_API_BASE_URL=http://localhost:8000  # 后端 API URL
 ### 高级设计系统
 - **设计令牌**: 全面的令牌系统，支持自动化 CSS 生成
 - **主题支持**: 高级浅色/深色模式，使用 CSS 自定义属性
-- **组件库**: 50+ 可复用 UI 组件，具有一致的样式
+- **组件库**: 96 个功能组件 + 48 个 UI 组件，具有一致的样式
 - **图标系统**: 文件类型图标（40+ 格式）、提供商图标和 SVG 资源
 
 ### 关键 UI 组件
@@ -413,13 +470,16 @@ VITE_API_BASE_URL=http://localhost:8000  # 后端 API URL
 
 ---
 
-**版本**: 0.6.1+ | 使用 ❤️ 构建，基于 React 19 + TypeScript 5.8 + Vite 7
+**版本**: 0.6.1 | 使用 ❤️ 构建，基于 React 19 + TypeScript 5.8 + Vite 7 + @xyflow/react
 
 ## 🏗️ 架构亮点
 
 - **现代技术栈**: React 19、Vite 7、TypeScript 5.8 与最新生态系统工具
+- **Agent 画布**: 基于 @xyflow/react 的可视化工作流构建器，用于节点式 Agent 设计
 - **设计系统**: 高级主题化，自动化 CSS 生成和设计令牌
 - **状态管理**: Zustand + TanStack Query 实现最佳客户端/服务器状态
+- **文档处理**: 多格式预览（PDF、DOCX、Excel、PPTX），浏览器内渲染
 - **MCP 集成**: 全面的模型上下文协议支持
+- **安全性**: 基于 DOMPurify 的 XSS 防护，Zod 输入验证
 - **性能**: 优化的包大小、高效渲染和响应式设计
 - **开发者体验**: TypeScript 优先、全面工具链和现代实践

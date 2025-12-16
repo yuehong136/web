@@ -22,10 +22,16 @@ This is a React 19 + TypeScript 5.8 + Vite 7 application implementing a Multi-RA
 
 **State Management**: Uses Zustand for client state with persistence, TanStack Query for server state management and caching.
 
-**Component Architecture**: 
-- 40+ reusable UI components in `src/components/ui/`
-- Feature-specific components organized by domain (auth, knowledge, chat, etc.)
+**Component Architecture**:
+- 48 base UI components in `src/components/ui/`
+- 96 feature-specific components organized by domain (auth, knowledge, chat, mcp, environment, forms, layout, agent)
 - Layout components handling responsive design with modern sidebar
+
+**Agent Canvas System**: Visual workflow builder using @xyflow/react for node-based agent design and automation pipelines.
+
+**Document Preview System**: Multi-format document preview supporting PDF, DOCX, Excel (.xlsx), PowerPoint (.pptx) with in-browser rendering via specialized libraries (react-pdf-highlighter, docx-preview, pptx-preview, @js-preview/excel).
+
+**Security**: XSS protection via DOMPurify for user-generated content and search result highlighting.
 
 **API Layer**: Centralized API client (`src/api/client.ts`) with automatic token management, request/response interceptors, error handling, and file upload support.
 
@@ -37,12 +43,16 @@ This is a React 19 + TypeScript 5.8 + Vite 7 application implementing a Multi-RA
 
 ### Critical Directories
 
-- `src/api/` - API clients organized by domain (auth, chat, knowledge, system, llm)
-- `src/stores/` - Zustand stores (auth, ui, chat, conversation, knowledge, model)
-- `src/pages/` - Application pages with nested routing structure
-- `src/components/ui/` - 40+ base UI components
+- `src/api/` - API clients organized by domain (auth, chat, conversation, knowledge, system, llm, agent, mcp, mcp-chat, document, dialog, environment)
+- `src/stores/` - Zustand stores (auth, ui, chat, conversation, knowledge, model, environmentStore)
+- `src/pages/` - 97 page files across 34 modules with nested routing structure
+- `src/pages/agent/` - Agent canvas system (AgentListPage, AgentCanvasPage with node-based workflow builder)
+- `src/components/ui/` - 48 base UI components
+- `src/components/chat/` - 19 chat components (ChatInput, ChatMessage, MarkdownRenderer, ToolCallDisplay, InlineSourceRef, ReferenceDocumentList)
+- `src/components/knowledge/` - 10 knowledge components including DocumentPreview (multi-format) and HighlightText (search highlighting)
 - `src/themes/` - Design system and theme generation
-- `src/types/api.ts` - Comprehensive TypeScript API types (950+ lines)
+- `src/types/api.ts` - Comprehensive TypeScript API types (1,284 lines)
+- `src/hooks/` - Custom React hooks (use-auth, use-conversations, use-dialog-apps, use-system-status, useDebouncedValue)
 
 ### Configuration Files
 
@@ -77,16 +87,40 @@ No specific test framework detected - check with team for testing approach.
 
 ## Key Dependencies
 
+### Core Framework
 - **React 19.1** with React DOM for UI
-- **Vite 7.0** for build tooling  
+- **Vite 7.0** for build tooling
 - **TypeScript 5.8** for type safety
-- **Tailwind CSS 3.4** for styling
-- **Zustand 5.0** for state management
-- **TanStack Query 5.8** for server state
+
+### State & Routing
+- **Zustand 5.0** for client state management with persistence
+- **TanStack Query 5.83** for server state and caching
 - **React Router DOM 7.7** for routing
-- **Radix UI** components for accessibility
+
+### UI & Styling
+- **Tailwind CSS 3.4** with Forms, Typography, and Scrollbar plugins
+- **Radix UI** (20+ primitives) for accessible components
+- **Ant Design 6.0** + @ant-design/x for additional UI components
+- **Lucide React 0.525** for icons
+- **Class Variance Authority** + Tailwind Merge + CLSX for styling utilities
+
+### Specialized Libraries
+- **@xyflow/react 12.9** for agent canvas/workflow builder
+- **@monaco-editor/react 4.7** for code editing
 - **Recharts 3.1** for data visualization
-- **Lucide React** for icons
+- **React Hook Form 7.60** + Zod 4.0 for form validation
+
+### Document Processing
+- **react-pdf-highlighter 6.1** for PDF viewing
+- **docx-preview 0.3.7** for DOCX preview
+- **pptx-preview 1.0.7** for PowerPoint preview
+- **@js-preview/excel 1.7.14** for Excel preview
+- **mammoth 1.11** for DOCX parsing
+
+### Security & Utilities
+- **DOMPurify 3.3** for XSS protection
+- **React Dropzone 14.3** for file uploads
+- **DND Kit** for drag-and-drop interfaces
 
 ## Design System Notes
 

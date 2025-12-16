@@ -4,6 +4,16 @@ A comprehensive React-based frontend application for Multi-RAG system, providing
 
 ## 🆕 Latest Updates
 
+### Agent Canvas System (New)
+- **🔧 Visual Workflow Builder**: Node-based agent design using @xyflow/react
+- **🤖 Agent Management**: Create, configure, and deploy AI agents with visual canvas
+- **🔄 Workflow Automation**: Connect nodes to create automated AI pipelines
+
+### Enhanced Document Preview (New)
+- **📄 Multi-Format Support**: In-browser preview for PDF, DOCX, Excel (.xlsx), PowerPoint (.pptx)
+- **🔍 Search Highlighting**: HighlightText component with XSS-safe keyword highlighting via DOMPurify
+- **📊 Document Chunk Visualization**: Enhanced search results with highlighted content
+
 ### API Management & Documentation
 - **🔑 API Key Management**: Comprehensive API key CRUD operations with secure token handling
 - **📚 OpenAPI Integration**: Interactive API documentation with Monaco editor and real-time testing
@@ -13,22 +23,22 @@ A comprehensive React-based frontend application for Multi-RAG system, providing
 
 ### Design System & Performance
 - **🎨 Advanced Design Token System**: Complete CSS variable theming with automated theme generation
-- **⚡ Performance Optimizations**: Removed backdrop-blur for better performance, optimized Tailwind configuration
+- **⚡ Performance Optimizations**: Optimized Think state component, removed backdrop-blur for better performance
 - **🌗 Enhanced Dark Mode**: Improved color consistency and visual hierarchy across all components
 
-### AI & MCP Integration  
+### AI & MCP Integration
 - **🤖 MCP Chat Enhancement**: Structured output support with unified tool parsing and improved streaming
 - **🔧 MCP Server Management**: Comprehensive MCP server configuration, testing, and batch operations
-- **📝 AI Tools Expansion**: Auto-fill workbench, document processing, and AI-powered utilities
+- **📝 AI Tools Expansion**: Auto-fill workbench with document integration, AI-powered utilities
 
 ### Knowledge Base Features
-- **📚 Advanced Document Management**: Multi-format support with specialized parsers (PDF, DOCX, presentations, legal docs, etc.)
-- **🔍 Enhanced Search & Exploration**: Improved search interface with document chunk visualization
+- **📚 Advanced Document Management**: Multi-format support with specialized parsers (PDF, DOCX, Excel, PPTX, legal docs, etc.)
+- **🔍 Enhanced Search & Exploration**: Improved search interface with HighlightText component and document chunk visualization
 - **📊 Parser Configuration**: Visual parser settings with real-time preview for different document types
 
 ### Developer Experience
 - **🏗️ React 19 + Vite 7**: Latest framework versions with improved TypeScript integration
-- **🎯 Component Architecture**: 50+ UI components with comprehensive design system
+- **🎯 Component Architecture**: 96 feature components + 48 UI components with comprehensive design system
 - **📱 Responsive Design**: Mobile-first approach with enhanced accessibility
 
 ## 🚀 Core Features
@@ -52,9 +62,15 @@ A comprehensive React-based frontend application for Multi-RAG system, providing
 - **Drag-and-Drop Interface**: Intuitive environment and variable management with sortable lists
 
 ### 🤖 AI Tools & Automation
-- **Auto-Fill Workbench**: AI-powered data processing and form filling
+- **Auto-Fill Workbench**: AI-powered data processing and form filling with document integration
 - **Document Processing**: Automated content extraction and analysis
 - **Workflow Automation**: Custom AI-driven workflows (in development)
+
+### 🔧 Agent Workflow Builder
+- **Visual Canvas Editor**: Node-based workflow design using @xyflow/react
+- **Agent Management**: Create, configure, and deploy AI agents
+- **Workflow Automation**: Connect nodes to create automated AI pipelines
+- **Canvas Components**: Specialized nodes, handles, and edge types for agent design
 
 ### 🔧 MCP Integration
 - **Server Management**: Configure, test, and monitor MCP servers
@@ -73,26 +89,47 @@ A comprehensive React-based frontend application for Multi-RAG system, providing
 
 ## 📋 Tech Stack
 
+### Core Framework
 - **Framework**: React 19.1 + TypeScript 5.8
 - **Build Tool**: Vite 7.0
-- **Styling**: Tailwind CSS 3.4 + Tailwind Forms + Tailwind Typography
-- **State Management**: Zustand 5.0 + TanStack Query 5.8
+- **Styling**: Tailwind CSS 3.4 + Tailwind Forms + Tailwind Typography + Tailwind Scrollbar
+
+### State & Data
+- **State Management**: Zustand 5.0 + TanStack Query 5.83
 - **Routing**: React Router DOM 7.7
-- **Charts**: Recharts 3.1
-- **Forms**: React Hook Form 7.6 + Zod 4.0 + Hookform Resolvers
+- **Forms**: React Hook Form 7.60 + Zod 4.0 + Hookform Resolvers
+
+### UI & Components
+- **UI Primitives**: Radix UI (20+ components) + Ant Design 6.0 + @ant-design/x
 - **Icons**: Lucide React 0.525
-- **UI Components**: Class Variance Authority + Tailwind Merge + CLSX
+- **Styling Utilities**: Class Variance Authority + Tailwind Merge + CLSX
+- **Charts**: Recharts 3.1
+
+### Agent & Workflow
+- **Canvas Editor**: @xyflow/react 12.9 for node-based workflow builder
+- **Drag & Drop**: DND Kit 6.3+ for sortable interfaces
+
+### Document Processing
+- **PDF**: react-pdf-highlighter 6.1
+- **DOCX**: docx-preview 0.3.7 + mammoth 1.11
+- **Excel**: @js-preview/excel 1.7.14
+- **PowerPoint**: pptx-preview 1.0.7
+
+### Editors & Tools
+- **Code Editor**: Monaco Editor 4.7 for syntax highlighting
+- **Markdown**: React Markdown 10.1 + markdown-it 14.1
 - **File Handling**: React Dropzone 14.3
-- **Drag & Drop**: DND Kit 6.3+ for sortable interfaces and drag-and-drop interactions
 - **HTTP Client**: Custom API client with fetch
-- **Code Editor**: Monaco Editor for syntax highlighting and code formatting
+
+### Security & Development
+- **XSS Protection**: DOMPurify 3.3
 - **Development**: ESLint 9.30 + TypeScript ESLint 8.35
 
 ## 🏗️ Project Structure
 
 ```
 src/
-├── api/                    # API clients and types
+├── api/                    # API clients and types (14 modules)
 │   ├── client.ts          # Base API client with auth & error handling
 │   ├── auth.ts            # Authentication APIs
 │   ├── conversation.ts    # Chat/conversation APIs
@@ -100,9 +137,14 @@ src/
 │   ├── llm.ts             # LLM provider APIs
 │   ├── system.ts          # System monitoring APIs
 │   ├── environment.ts     # Environment management APIs
+│   ├── agent.ts           # Agent management APIs
+│   ├── mcp.ts             # MCP server APIs
+│   ├── mcp-chat.ts        # MCP chat service APIs
+│   ├── document.ts        # Document operations APIs
+│   ├── dialog.ts          # Dialog/prompt APIs
 │   └── index.ts           # API exports
-├── components/            # Reusable UI components
-│   ├── ui/               # Base UI components (50+ components)
+├── components/            # Reusable UI components (96 feature + 48 UI)
+│   ├── ui/               # Base UI components (48 components)
 │   │   ├── button.tsx    # Button with variants
 │   │   ├── input.tsx     # Form inputs
 │   │   ├── card.tsx      # Card layouts
@@ -115,14 +157,23 @@ src/
 │   │   ├── AuthGuard.tsx # Route protection
 │   │   ├── AuthCarousel.tsx # Login/register carousel
 │   │   └── ImageWithFallback.tsx # Image loading with fallback
-│   ├── knowledge/        # Knowledge base components
+│   ├── knowledge/        # Knowledge base components (10 files)
+│   │   ├── DocumentPreview.tsx # Multi-format preview (PDF, DOCX, Excel, PPTX)
+│   │   ├── HighlightText.tsx # Search result highlighting with XSS protection
 │   │   ├── EmbeddingModelSelector.tsx # Vector model selection
 │   │   ├── RerankModelSelector.tsx # Rerank model selection
 │   │   ├── ParserTypeSelector.tsx # Document parser selection
 │   │   └── QuickEditModal.tsx # Quick edit functionality
-│   ├── chat/             # Chat interface components
-│   │   ├── ModelSelector.tsx # LLM model selection
-│   │   └── PromptSuggestion.tsx # Prompt suggestions
+│   ├── chat/             # Chat interface components (19 files)
+│   │   ├── ChatInput.tsx  # Chat input with attachments
+│   │   ├── ChatMessage.tsx # Message rendering
+│   │   ├── ChatHeader.tsx # Chat header controls
+│   │   ├── ChatModelSelector.tsx # Model selection
+│   │   ├── MarkdownRenderer.tsx # Markdown content rendering
+│   │   ├── ToolCallDisplay.tsx # Tool call visualization
+│   │   ├── InlineSourceRef.tsx # Inline source references
+│   │   ├── ReferenceDocumentList.tsx # Reference documents
+│   │   └── WelcomeMessage.tsx # Chat welcome screen
 │   ├── mcp/              # MCP integration components
 │   │   └── MCPServerForm.tsx # MCP server configuration
 │   ├── environment/      # Environment management components
@@ -141,7 +192,7 @@ src/
 │       ├── Layout.tsx    # Main app layout with auth guard
 │       ├── Header.tsx    # App header with user menu
 │       └── Sidebar.tsx   # Navigation sidebar with modern design
-├── pages/                # Application pages
+├── pages/                # Application pages (97 files across 34 modules)
 │   ├── auth/             # Authentication
 │   │   ├── LoginPage.tsx
 │   │   └── RegisterPage.tsx
@@ -149,6 +200,10 @@ src/
 │   │   └── DashboardPage.tsx
 │   ├── chat/             # Chat interface
 │   │   └── ChatPage.tsx
+│   ├── agent/            # Agent workflow builder
+│   │   ├── AgentListPage.tsx # Agent list and management
+│   │   ├── AgentCanvasPage.tsx # Visual workflow canvas
+│   │   └── components/   # Canvas nodes, edges, controls
 │   ├── knowledge/        # Knowledge base management
 │   │   ├── KnowledgeListPage.tsx # KB listing and management
 │   │   ├── KnowledgeCreatePage.tsx # KB creation wizard
@@ -190,15 +245,15 @@ src/
 │   ├── MCPChatPage.tsx   # MCP-enhanced chat
 │   ├── MCPDashboard.tsx  # MCP dashboard
 │   └── theme-demo/       # Theme demonstration
-├── stores/               # Zustand state management
-│   ├── auth.ts           # Authentication state
+├── stores/               # Zustand state management (8 stores)
+│   ├── auth.ts           # Authentication state (token, user, tenant)
 │   ├── ui.ts             # UI state (sidebar, theme, notifications)
-│   ├── chat.ts           # Chat state
-│   ├── conversation.ts   # Conversation management
+│   ├── chat.ts           # Chat state and history
+│   ├── conversation.ts   # Conversation management and streaming
 │   ├── knowledge.ts      # Knowledge base state
 │   ├── model.ts          # Model configurations
 │   ├── environmentStore.ts # Environment and variable management
-│   └── index.ts          # Store initialization with persistence
+│   └── index.ts          # Store initialization with persistence (initializeStores, resetAllStores)
 ├── themes/               # Advanced design system
 │   ├── tokens.ts         # Design token definitions
 │   ├── theme-generator.ts # Automated theme generation
@@ -207,10 +262,12 @@ src/
 │   ├── light.css         # Light theme CSS variables
 │   ├── dark.css          # Dark theme CSS variables
 │   └── *.md              # Design system documentation
-├── hooks/                # Custom React hooks
+├── hooks/                # Custom React hooks (5 files)
 │   ├── use-auth.ts       # Authentication hooks
-│   ├── use-conversations.ts # Conversation hooks
-│   └── use-system-status.ts # System status hooks
+│   ├── use-conversations.ts # Conversation hooks (8KB)
+│   ├── use-dialog-apps.ts # Dialog/app management hooks
+│   ├── use-system-status.ts # System status hooks
+│   └── useDebouncedValue.ts # Debouncing utility hook
 ├── lib/                  # Core utilities and configurations
 │   ├── router.tsx        # React Router configuration with nested routes
 │   ├── query-client.ts   # TanStack Query setup
@@ -219,7 +276,7 @@ src/
 ├── utils/                # Additional utilities
 │   └── variableResolver.ts # Environment variable resolution and templating
 ├── types/                # TypeScript type definitions
-│   ├── api.ts            # Comprehensive API types (1000+ lines)
+│   ├── api.ts            # Comprehensive API types (1,284 lines)
 │   └── index.ts          # Type exports
 ├── constants/            # Application constants
 │   └── index.ts          # Routes, API URLs, file types, etc.
@@ -333,7 +390,7 @@ The application uses a custom API client (`src/api/client.ts`) that provides:
 ### Advanced Design System
 - **Design Tokens**: Comprehensive token system with automated CSS generation
 - **Theme Support**: Advanced light/dark mode with CSS custom properties
-- **Component Library**: 50+ reusable UI components with consistent styling
+- **Component Library**: 96 feature components + 48 UI components with consistent styling
 - **Icon System**: File type icons (40+ formats), provider icons, and SVG assets
 
 ### Key UI Components
@@ -432,13 +489,16 @@ For support and questions:
 
 ---
 
-**Version**: 0.6.1+ | Built with ❤️ using React 19 + TypeScript 5.8 + Vite 7
+**Version**: 0.6.1 | Built with ❤️ using React 19 + TypeScript 5.8 + Vite 7 + @xyflow/react
 
 ## 🏗️ Architecture Highlights
 
 - **Modern Stack**: React 19, Vite 7, TypeScript 5.8 with latest ecosystem tools
+- **Agent Canvas**: Visual workflow builder with @xyflow/react for node-based agent design
 - **Design System**: Advanced theming with automated CSS generation and design tokens
 - **State Management**: Zustand + TanStack Query for optimal client/server state
+- **Document Processing**: Multi-format preview (PDF, DOCX, Excel, PPTX) with in-browser rendering
 - **MCP Integration**: Comprehensive Model Context Protocol support
+- **Security**: XSS protection via DOMPurify, input validation with Zod
 - **Performance**: Optimized bundle size, efficient rendering, and responsive design
 - **Developer Experience**: TypeScript-first, comprehensive tooling, and modern practices
