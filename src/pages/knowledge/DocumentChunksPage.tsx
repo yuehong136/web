@@ -119,7 +119,7 @@ const DocumentChunksPage: React.FC = () => {
   
   // 右侧信息面板状态
   const [isInfoPanelOpen, setIsInfoPanelOpen] = useState(true)
-  const [infoPanelWidth, setInfoPanelWidth] = useState(240) // 右侧信息面板更窄
+  const [infoPanelWidth, setInfoPanelWidth] = useState(320) // 右侧信息面板
 
   const resizeRef = useRef<null | {
     target: 'preview' | 'info'
@@ -139,7 +139,7 @@ const DocumentChunksPage: React.FC = () => {
       } else {
         // 右侧：拖拽分隔条向左移动 => 变宽；向右移动 => 变窄
         const next = startWidth + (startX - e.clientX)
-        setInfoPanelWidth(Math.min(360, Math.max(200, next)))
+        setInfoPanelWidth(Math.min(420, Math.max(240, next)))
       }
     }
 
@@ -877,6 +877,8 @@ const DocumentChunksPage: React.FC = () => {
                       setEditingImportantKwd(chunk.important_kwd || [])
                       setEditingQuestionKwd(chunk.question_kwd || [])
                       setIsMarkdownPreview(false)
+                      // 如果右侧面板已折叠，自动打开
+                      if (!isInfoPanelOpen) setIsInfoPanelOpen(true)
                     }}
                     onDoubleClick={(e) => {
                       // 双击进入编辑模式
@@ -887,6 +889,8 @@ const DocumentChunksPage: React.FC = () => {
                       setEditingImportantKwd(chunk.important_kwd || [])
                       setEditingQuestionKwd(chunk.question_kwd || [])
                       setIsMarkdownPreview(false)
+                      // 如果右侧面板已折叠，自动打开
+                      if (!isInfoPanelOpen) setIsInfoPanelOpen(true)
                     }}
                   >
                     {/* 分段头部 */}
@@ -960,6 +964,8 @@ const DocumentChunksPage: React.FC = () => {
                               setEditingImportantKwd(chunk.important_kwd || [])
                               setEditingQuestionKwd(chunk.question_kwd || [])
                               setIsMarkdownPreview(false) // 重置为编辑模式
+                              // 如果右侧面板已折叠，自动打开
+                              if (!isInfoPanelOpen) setIsInfoPanelOpen(true)
                             }}
                           >
                             <Edit2 className="h-4 w-4" style={{ color: 'var(--color-text-accent)' }} />
@@ -1627,24 +1633,182 @@ const DocumentChunksPage: React.FC = () => {
                         </div>
                         
                         {/* 可折叠的配置详情 */}
-                        {showParserConfig && (
-                          <div className="mt-2 rounded-lg p-3" style={{
+                        {showParserConfig && docInfo.parser_config && (
+                          <div className="mt-2 rounded-lg p-3 space-y-3" style={{
                             backgroundColor: 'var(--color-background-subtle)',
                             border: '1px solid var(--color-border-default)'
                           }}>
-                            <pre className="text-xs whitespace-pre-wrap overflow-x-auto scrollbar-thin" style={{ color: 'var(--color-text-secondary)' }}>
-                              {JSON.stringify(docInfo.parser_config, null, 2)}
-                            </pre>
+                            {/* 基础配置 */}
+                            <div className="space-y-2">
+                              {docInfo.parser_config.layout_recognize && (
+                                <div className="flex justify-between items-center">
+                                  <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>布局识别</span>
+                                  <span className="text-xs px-2 py-0.5 rounded" style={{ 
+                                    backgroundColor: 'var(--color-primary-subtle)',
+                                    color: 'var(--color-text-accent)'
+                                  }}>{docInfo.parser_config.layout_recognize}</span>
+                                </div>
+                              )}
+                              {docInfo.parser_config.chunk_token_num !== undefined && (
+                                <div className="flex justify-between items-center">
+                                  <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>分块大小</span>
+                                  <span className="text-xs font-medium" style={{ color: 'var(--color-text-primary)' }}>{docInfo.parser_config.chunk_token_num} tokens</span>
+                                </div>
+                              )}
+                              {docInfo.parser_config.delimiter !== undefined && (
+                                <div className="flex justify-between items-center">
+                                  <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>分隔符</span>
+                                  <code className="text-xs px-1.5 py-0.5 rounded" style={{ 
+                                    backgroundColor: 'var(--color-background-muted)',
+                                    color: 'var(--color-text-secondary)'
+                                  }}>{docInfo.parser_config.delimiter === '\n' ? '\\n' : docInfo.parser_config.delimiter}</code>
+                                </div>
+                              )}
+                              {docInfo.parser_config.topn_tags !== undefined && (
+                                <div className="flex justify-between items-center">
+                                  <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>标签数量</span>
+                                  <span className="text-xs font-medium" style={{ color: 'var(--color-text-primary)' }}>{docInfo.parser_config.topn_tags}</span>
+                                </div>
+                              )}
+                              {docInfo.parser_config.auto_keywords !== undefined && (
+                                <div className="flex justify-between items-center">
+                                  <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>自动关键词</span>
+                                  <span className="text-xs font-medium" style={{ color: 'var(--color-text-primary)' }}>{docInfo.parser_config.auto_keywords}</span>
+                                </div>
+                              )}
+                              {docInfo.parser_config.auto_questions !== undefined && (
+                                <div className="flex justify-between items-center">
+                                  <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>自动问题</span>
+                                  <span className="text-xs font-medium" style={{ color: 'var(--color-text-primary)' }}>{docInfo.parser_config.auto_questions}</span>
+                                </div>
+                              )}
+                              {docInfo.parser_config.html4excel && (
+                                <div className="flex justify-between items-center">
+                                  <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>Excel 转 HTML</span>
+                                  <span className="text-xs px-1.5 py-0.5 rounded" style={{ 
+                                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                    color: '#10b981'
+                                  }}>已启用</span>
+                                </div>
+                              )}
+                              {docInfo.parser_config.toc_extraction && (
+                                <div className="flex justify-between items-center">
+                                  <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>目录提取</span>
+                                  <span className="text-xs px-1.5 py-0.5 rounded" style={{ 
+                                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                    color: '#10b981'
+                                  }}>已启用</span>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* RAPTOR 配置 */}
+                            {docInfo.parser_config.raptor?.use_raptor && (
+                              <div className="pt-2 border-t" style={{ borderColor: 'var(--color-border-subtle)' }}>
+                                <div className="flex items-center gap-1.5 mb-2">
+                                  <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#8b5cf6' }} />
+                                  <span className="text-xs font-medium" style={{ color: 'var(--color-text-primary)' }}>RAPTOR 增强</span>
+                                </div>
+                                <div className="space-y-1.5 pl-3">
+                                  {docInfo.parser_config.raptor.scope !== undefined && (
+                                    <div className="flex justify-between">
+                                      <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>范围</span>
+                                      <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+                                        {docInfo.parser_config.raptor.scope === 'file' ? '单文件' : '全局'}
+                                      </span>
+                                    </div>
+                                  )}
+                                  {docInfo.parser_config.raptor.max_token !== undefined && (
+                                    <div className="flex justify-between">
+                                      <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>最大 Token</span>
+                                      <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>{docInfo.parser_config.raptor.max_token}</span>
+                                    </div>
+                                  )}
+                                  {docInfo.parser_config.raptor.threshold !== undefined && (
+                                    <div className="flex justify-between">
+                                      <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>聚类阈值</span>
+                                      <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>{docInfo.parser_config.raptor.threshold}</span>
+                                    </div>
+                                  )}
+                                  {docInfo.parser_config.raptor.max_cluster !== undefined && (
+                                    <div className="flex justify-between">
+                                      <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>最大聚类数</span>
+                                      <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>{docInfo.parser_config.raptor.max_cluster}</span>
+                                    </div>
+                                  )}
+                                  {docInfo.parser_config.raptor.random_seed !== undefined && (
+                                    <div className="flex justify-between">
+                                      <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>随机种子</span>
+                                      <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>{docInfo.parser_config.raptor.random_seed}</span>
+                                    </div>
+                                  )}
+                                  {docInfo.parser_config.raptor.prompt && (
+                                    <div className="flex flex-col gap-1">
+                                      <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>提示词</span>
+                                      <div className="text-xs p-2 rounded max-h-20 overflow-y-auto scrollbar-thin" style={{ 
+                                        backgroundColor: 'var(--color-background-muted)',
+                                        color: 'var(--color-text-secondary)',
+                                        whiteSpace: 'pre-wrap',
+                                        wordBreak: 'break-word'
+                                      }}>{docInfo.parser_config.raptor.prompt}</div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* GraphRAG 配置 */}
+                            {docInfo.parser_config.graphrag?.use_graphrag && (
+                              <div className="pt-2 border-t" style={{ borderColor: 'var(--color-border-subtle)' }}>
+                                <div className="flex items-center gap-1.5 mb-2">
+                                  <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#f59e0b' }} />
+                                  <span className="text-xs font-medium" style={{ color: 'var(--color-text-primary)' }}>GraphRAG 增强</span>
+                                </div>
+                                <div className="space-y-1.5 pl-3">
+                                  {docInfo.parser_config.graphrag.method !== undefined && (
+                                    <div className="flex justify-between">
+                                      <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>方法</span>
+                                      <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+                                        {docInfo.parser_config.graphrag.method === 'light' ? '轻量级' : '标准'}
+                                      </span>
+                                    </div>
+                                  )}
+                                  {docInfo.parser_config.graphrag.resolution && (
+                                    <div className="flex justify-between">
+                                      <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>实体归一化</span>
+                                      <span className="text-xs px-1.5 py-0.5 rounded" style={{ 
+                                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                        color: '#10b981'
+                                      }}>已启用</span>
+                                    </div>
+                                  )}
+                                  {docInfo.parser_config.graphrag.community && (
+                                    <div className="flex justify-between">
+                                      <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>社区报告</span>
+                                      <span className="text-xs px-1.5 py-0.5 rounded" style={{ 
+                                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                        color: '#10b981'
+                                      }}>已启用</span>
+                                    </div>
+                                  )}
+                                  {docInfo.parser_config.graphrag.entity_types && docInfo.parser_config.graphrag.entity_types.length > 0 && (
+                                    <div className="flex flex-col gap-1">
+                                      <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>实体类型</span>
+                                      <div className="flex flex-wrap gap-1">
+                                        {docInfo.parser_config.graphrag.entity_types.map((type: string, index: number) => (
+                                          <span key={index} className="text-xs px-1.5 py-0.5 rounded" style={{ 
+                                            backgroundColor: 'var(--color-background-muted)',
+                                            color: 'var(--color-text-secondary)'
+                                          }}>{type}</span>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         )}
-                        <div className="flex justify-between">
-                          <span style={{ color: 'var(--color-text-secondary)' }}>段落数量：</span>
-                          <span style={{ color: 'var(--color-text-primary)' }}>{docInfo.chunk_num}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span style={{ color: 'var(--color-text-secondary)' }}>嵌入花费：</span>
-                          <span style={{ color: 'var(--color-text-primary)' }}>{docInfo.token_num} tokens</span>
-                        </div>
                       </div>
                     </div>
                   </div>
