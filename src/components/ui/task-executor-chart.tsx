@@ -1,8 +1,15 @@
 import React from 'react'
-import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Legend, Tooltip } from 'recharts'
+import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid } from 'recharts'
 import { Card } from './card'
 import { cn } from '@/lib/utils'
 import type { TaskExecutorHeartbeat } from '@/api/system'
+
+// 定义颜色常量
+const COLORS = {
+  done: { main: '#10b981', light: 'rgba(16, 185, 129, 0.1)', gradient: 'url(#doneGradient)' },
+  failed: { main: '#f43f5e', light: 'rgba(244, 63, 94, 0.1)', gradient: 'url(#failedGradient)' },
+  pending: { main: '#f59e0b', light: 'rgba(245, 158, 11, 0.1)', gradient: 'url(#pendingGradient)' },
+}
 
 interface TaskExecutorChartProps {
   executorId: string
@@ -58,47 +65,31 @@ const TaskExecutorChart: React.FC<TaskExecutorChartProps> = ({
 
   // 自定义可点击的圆点组件
   const CustomDot = (props: any) => {
-    const { cx, cy, payload } = props
+    const { cx, cy, payload, fill } = props
+    if (cx === undefined || cy === undefined) return null
     return (
-      <circle
-        cx={cx}
-        cy={cy}
-        r={4}
-        fill={props.fill}
-        stroke={props.stroke}
-        strokeWidth={2}
-        style={{ cursor: 'pointer' }}
-        onClick={(e) => {
-          e.stopPropagation() // 防止事件冒泡
-          console.log('Dot clicked:', payload) // 调试日志
-          if (payload) {
-            setPinnedData(payload as ChartDataPoint)
-          }
-        }}
-      />
+      <g style={{ cursor: 'pointer' }} onClick={(e) => {
+        e.stopPropagation()
+        if (payload) setPinnedData(payload as ChartDataPoint)
+      }}>
+        <circle cx={cx} cy={cy} r={6} fill={fill} fillOpacity={0.15} />
+        <circle cx={cx} cy={cy} r={3.5} fill="#fff" stroke={fill} strokeWidth={2} />
+      </g>
     )
   }
 
   // 自定义活跃圆点组件
   const CustomActiveDot = (props: any) => {
-    const { cx, cy, payload } = props
+    const { cx, cy, payload, fill } = props
+    if (cx === undefined || cy === undefined) return null
     return (
-      <circle
-        cx={cx}
-        cy={cy}
-        r={6}
-        fill={props.fill}
-        stroke={props.stroke}
-        strokeWidth={2}
-        style={{ cursor: 'pointer' }}
-        onClick={(e) => {
-          e.stopPropagation() // 防止事件冒泡
-          console.log('Active dot clicked:', payload) // 调试日志
-          if (payload) {
-            setPinnedData(payload as ChartDataPoint)
-          }
-        }}
-      />
+      <g style={{ cursor: 'pointer' }} onClick={(e) => {
+        e.stopPropagation()
+        if (payload) setPinnedData(payload as ChartDataPoint)
+      }}>
+        <circle cx={cx} cy={cy} r={10} fill={fill} fillOpacity={0.2} />
+        <circle cx={cx} cy={cy} r={5} fill="#fff" stroke={fill} strokeWidth={2.5} />
+      </g>
     )
   }
 
@@ -109,9 +100,12 @@ const TaskExecutorChart: React.FC<TaskExecutorChartProps> = ({
     
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white p-2 border rounded shadow-md">
-          <p className="text-sm font-medium text-gray-900">{`时间: ${label}`}</p>
-          <p className="text-xs text-gray-600">点击查看详细信息</p>
+        <div className="px-3 py-2 rounded-lg shadow-lg border" style={{
+          backgroundColor: 'var(--color-background-elevated, #fff)',
+          borderColor: 'var(--color-border-default, #e5e7eb)'
+        }}>
+          <p className="text-xs font-medium mb-1" style={{ color: 'var(--color-text-primary, #111827)' }}>时间: {label}</p>
+          <p className="text-xs" style={{ color: 'var(--color-text-muted, #9ca3af)' }}>点击查看详细信息</p>
         </div>
       )
     }
@@ -123,47 +117,71 @@ const TaskExecutorChart: React.FC<TaskExecutorChartProps> = ({
     const hasCurrentTask = data?.current && Object.keys(data.current).length > 0
     
     return (
-      <div className="absolute top-4 right-4 bg-white border rounded-lg shadow-lg p-4 max-w-md z-10">
-        <div className="flex items-center justify-between mb-3">
-          <h4 className="font-medium text-gray-900">详细信息</h4>
+      <div className="absolute top-4 right-4 rounded-xl shadow-xl max-w-sm z-10 overflow-hidden" style={{
+        backgroundColor: 'var(--color-background-elevated, #fff)',
+        border: '1px solid var(--color-border-default, #e5e7eb)'
+      }}>
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-3" style={{
+          backgroundColor: 'var(--color-background-subtle, #f9fafb)',
+          borderBottom: '1px solid var(--color-border-subtle, #f3f4f6)'
+        }}>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS.done.main }} />
+            <h4 className="text-sm font-semibold" style={{ color: 'var(--color-text-primary, #111827)' }}>时间: {data.time}</h4>
+          </div>
           <button
             onClick={() => setPinnedData(null)}
-            className="text-gray-400 hover:text-gray-600 text-lg leading-none"
+            className="w-6 h-6 flex items-center justify-center rounded-md transition-colors hover:bg-gray-200"
+            style={{ color: 'var(--color-text-muted, #9ca3af)' }}
             title="关闭"
           >
-            ×
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
           </button>
         </div>
         
-        <div className="space-y-3">
-          <div>
-            <p className="font-medium text-gray-900 mb-2">时间: {data.time}</p>
-            <div className="grid grid-cols-2 gap-2 text-sm">
-              <div className="flex items-center">
-                <div className="w-3 h-3 bg-green-500 rounded mr-2" />
-                <span>已完成: {data.done}</span>
-              </div>
-              <div className="flex items-center">
-                <div className="w-3 h-3 bg-red-500 rounded mr-2" />
-                <span>失败: {data.failed}</span>
-              </div>
-              <div className="flex items-center">
-                <div className="w-3 h-3 bg-yellow-500 rounded mr-2" />
-                <span>待处理: {data.pending}</span>
-              </div>
+        {/* Content */}
+        <div className="p-4 space-y-4">
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ backgroundColor: COLORS.done.light }}>
+              <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS.done.main }} />
               <div>
-                <span className="text-gray-600">延迟: {data.lag}s</span>
+                <p className="text-xs" style={{ color: 'var(--color-text-muted, #6b7280)' }}>已完成</p>
+                <p className="text-sm font-semibold" style={{ color: COLORS.done.main }}>{data.done}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ backgroundColor: COLORS.failed.light }}>
+              <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS.failed.main }} />
+              <div>
+                <p className="text-xs" style={{ color: 'var(--color-text-muted, #6b7280)' }}>失败</p>
+                <p className="text-sm font-semibold" style={{ color: COLORS.failed.main }}>{data.failed}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ backgroundColor: COLORS.pending.light }}>
+              <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS.pending.main }} />
+              <div>
+                <p className="text-xs" style={{ color: 'var(--color-text-muted, #6b7280)' }}>待处理</p>
+                <p className="text-sm font-semibold" style={{ color: COLORS.pending.main }}>{data.pending}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ backgroundColor: 'var(--color-background-subtle, #f9fafb)' }}>
+              <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: 'var(--color-text-muted, #9ca3af)' }} />
+              <div>
+                <p className="text-xs" style={{ color: 'var(--color-text-muted, #6b7280)' }}>延迟</p>
+                <p className="text-sm font-semibold" style={{ color: 'var(--color-text-primary, #374151)' }}>{data.lag}s</p>
               </div>
             </div>
           </div>
 
           {/* 当前任务信息 */}
           {hasCurrentTask && (
-            <div className="border-t pt-3">
-              <p className="font-medium text-gray-800 mb-2">当前任务:</p>
-              <div className="space-y-2 max-h-64 overflow-y-auto">
+            <div className="pt-3 border-t" style={{ borderColor: 'var(--color-border-subtle, #f3f4f6)' }}>
+              <p className="text-xs font-medium mb-2" style={{ color: 'var(--color-text-secondary, #6b7280)' }}>当前任务</p>
+              <div className="space-y-2 max-h-48 overflow-y-auto scrollbar-thin">
                 {Object.entries(data.current).map(([key, value]) => {
-                  // 格式化值的显示
                   const formatValue = (val: any): string => {
                     if (val === null || val === undefined) return '无'
                     if (typeof val === 'object') {
@@ -178,8 +196,12 @@ const TaskExecutorChart: React.FC<TaskExecutorChartProps> = ({
 
                   return (
                     <div key={key} className="space-y-1">
-                      <span className="font-medium text-sm text-gray-700">{key}:</span>
-                      <pre className="text-xs bg-gray-50 p-2 rounded border overflow-auto max-h-32">
+                      <span className="text-xs font-medium" style={{ color: 'var(--color-text-secondary, #6b7280)' }}>{key}:</span>
+                      <pre className="text-xs p-2 rounded-md overflow-auto max-h-24 scrollbar-thin" style={{
+                        backgroundColor: 'var(--color-background-subtle, #f9fafb)',
+                        color: 'var(--color-text-primary, #374151)',
+                        border: '1px solid var(--color-border-subtle, #f3f4f6)'
+                      }}>
                         {formatValue(value)}
                       </pre>
                     </div>
@@ -190,8 +212,8 @@ const TaskExecutorChart: React.FC<TaskExecutorChartProps> = ({
           )}
           
           {!hasCurrentTask && (
-            <div className="border-t pt-3">
-              <p className="text-sm text-gray-500">暂无当前任务</p>
+            <div className="pt-3 border-t text-center" style={{ borderColor: 'var(--color-border-subtle, #f3f4f6)' }}>
+              <p className="text-xs" style={{ color: 'var(--color-text-muted, #9ca3af)' }}>暂无当前任务</p>
             </div>
           )}
         </div>
@@ -203,23 +225,41 @@ const TaskExecutorChart: React.FC<TaskExecutorChartProps> = ({
     <Card className={cn('relative', className)}>
       <div className="p-6">
         {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-3">
-            <h3 className="font-semibold text-gray-900">任务执行器</h3>
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-3">
+            <h3 className="font-semibold" style={{ color: 'var(--color-text-primary, #111827)' }}>任务执行器</h3>
             {!pinnedData && (
-              <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+              <span className="text-xs px-2 py-1 rounded-full" style={{ 
+                backgroundColor: 'var(--color-background-subtle, #f3f4f6)',
+                color: 'var(--color-text-muted, #6b7280)'
+              }}>
                 点击数据点查看详情
               </span>
             )}
           </div>
-          <div className="flex space-x-4 text-sm text-gray-600">
-            <span>ID: {latestHeartbeat?.name || executorId}</span>
-            <span>延迟: {currentLag}s</span>
-            <span>待处理: {latestHeartbeat?.pending || 0}</span>
+          <div className="flex items-center gap-4 text-xs" style={{ color: 'var(--color-text-secondary, #6b7280)' }}>
+            <div className="flex items-center gap-1.5">
+              <span style={{ color: 'var(--color-text-muted, #9ca3af)' }}>ID:</span>
+              <span className="font-medium" style={{ color: 'var(--color-text-primary, #374151)' }}>{latestHeartbeat?.name || executorId}</span>
+            </div>
+            <div className="w-px h-3" style={{ backgroundColor: 'var(--color-border-default, #e5e7eb)' }} />
+            <div className="flex items-center gap-1.5">
+              <span style={{ color: 'var(--color-text-muted, #9ca3af)' }}>延迟:</span>
+              <span className="font-medium" style={{ color: 'var(--color-text-primary, #374151)' }}>{currentLag}s</span>
+            </div>
+            <div className="w-px h-3" style={{ backgroundColor: 'var(--color-border-default, #e5e7eb)' }} />
+            <div className="flex items-center gap-1.5">
+              <span style={{ color: 'var(--color-text-muted, #9ca3af)' }}>待处理:</span>
+              <span className="font-medium" style={{ color: 'var(--color-text-primary, #374151)' }}>{latestHeartbeat?.pending || 0}</span>
+            </div>
             {latestHeartbeat?.boot_at && (
-              <span title={`启动时间: ${new Date(latestHeartbeat.boot_at).toLocaleString('zh-CN')}`}>
-                启动: {new Date(latestHeartbeat.boot_at).toLocaleDateString('zh-CN')}
-              </span>
+              <>
+                <div className="w-px h-3" style={{ backgroundColor: 'var(--color-border-default, #e5e7eb)' }} />
+                <div className="flex items-center gap-1.5" title={`启动时间: ${new Date(latestHeartbeat.boot_at).toLocaleString('zh-CN')}`}>
+                  <span style={{ color: 'var(--color-text-muted, #9ca3af)' }}>启动:</span>
+                  <span className="font-medium" style={{ color: 'var(--color-text-primary, #374151)' }}>{new Date(latestHeartbeat.boot_at).toLocaleDateString('zh-CN')}</span>
+                </div>
+              </>
             )}
           </div>
         </div>
@@ -228,64 +268,89 @@ const TaskExecutorChart: React.FC<TaskExecutorChartProps> = ({
         {chartData.length > 0 ? (
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData}>
+              <LineChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                <defs>
+                  <linearGradient id="doneGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={COLORS.done.main} stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor={COLORS.done.main} stopOpacity={0}/>
+                  </linearGradient>
+                  <linearGradient id="failedGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={COLORS.failed.main} stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor={COLORS.failed.main} stopOpacity={0}/>
+                  </linearGradient>
+                  <linearGradient id="pendingGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={COLORS.pending.main} stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor={COLORS.pending.main} stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-subtle, #e5e7eb)" vertical={false} />
                 <XAxis 
                   dataKey="time" 
-                  tick={{ fontSize: 12 }}
+                  tick={{ fontSize: 11, fill: 'var(--color-text-muted, #9ca3af)' }}
+                  axisLine={{ stroke: 'var(--color-border-default, #e5e7eb)' }}
+                  tickLine={false}
                   interval="preserveStartEnd"
                 />
-                <YAxis tick={{ fontSize: 12 }} />
+                <YAxis 
+                  tick={{ fontSize: 11, fill: 'var(--color-text-muted, #9ca3af)' }} 
+                  axisLine={false}
+                  tickLine={false}
+                  allowDecimals={false}
+                  width={30}
+                />
                 <Tooltip content={<CustomTooltip />} />
-                <Legend />
                 <Line 
                   type="monotone" 
                   dataKey="done" 
-                  stroke="#10b981" 
-                  strokeWidth={2}
-                  dot={<CustomDot />}
-                  activeDot={<CustomActiveDot />}
+                  stroke={COLORS.done.main}
+                  strokeWidth={2.5}
+                  dot={<CustomDot fill={COLORS.done.main} />}
+                  activeDot={<CustomActiveDot fill={COLORS.done.main} />}
                   name="已完成"
                 />
                 <Line 
                   type="monotone" 
                   dataKey="failed" 
-                  stroke="#ef4444" 
-                  strokeWidth={2}
-                  dot={<CustomDot />}
-                  activeDot={<CustomActiveDot />}
+                  stroke={COLORS.failed.main}
+                  strokeWidth={2.5}
+                  dot={<CustomDot fill={COLORS.failed.main} />}
+                  activeDot={<CustomActiveDot fill={COLORS.failed.main} />}
                   name="失败"
                 />
                 <Line 
                   type="monotone" 
                   dataKey="pending" 
-                  stroke="#f59e0b" 
-                  strokeWidth={2}
-                  dot={<CustomDot />}
-                  activeDot={<CustomActiveDot />}
+                  stroke={COLORS.pending.main}
+                  strokeWidth={2.5}
+                  dot={<CustomDot fill={COLORS.pending.main} />}
+                  activeDot={<CustomActiveDot fill={COLORS.pending.main} />}
                   name="待处理"
                 />
               </LineChart>
             </ResponsiveContainer>
           </div>
         ) : (
-          <div className="h-64 flex items-center justify-center text-gray-500">
-            暂无数据
+          <div className="h-64 flex items-center justify-center rounded-lg" style={{ backgroundColor: 'var(--color-background-subtle, #f9fafb)' }}>
+            <p className="text-sm" style={{ color: 'var(--color-text-muted, #9ca3af)' }}>暂无数据</p>
           </div>
         )}
 
         {/* Legend */}
-        <div className="flex justify-center space-x-6 mt-4 text-sm">
-          <div className="flex items-center">
-            <div className="w-3 h-3 bg-green-500 rounded mr-2" />
-            <span>已完成</span>
+        <div className="flex justify-center items-center gap-6 mt-5 pt-4 border-t" style={{ borderColor: 'var(--color-border-subtle, #f3f4f6)' }}>
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS.done.main }} />
+              <div className="absolute inset-0 w-3 h-3 rounded-full animate-ping opacity-20" style={{ backgroundColor: COLORS.done.main }} />
+            </div>
+            <span className="text-xs font-medium" style={{ color: 'var(--color-text-secondary, #6b7280)' }}>已完成</span>
           </div>
-          <div className="flex items-center">
-            <div className="w-3 h-3 bg-red-500 rounded mr-2" />
-            <span>失败</span>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS.failed.main }} />
+            <span className="text-xs font-medium" style={{ color: 'var(--color-text-secondary, #6b7280)' }}>失败</span>
           </div>
-          <div className="flex items-center">
-            <div className="w-3 h-3 bg-yellow-500 rounded mr-2" />
-            <span>待处理</span>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS.pending.main }} />
+            <span className="text-xs font-medium" style={{ color: 'var(--color-text-secondary, #6b7280)' }}>待处理</span>
           </div>
         </div>
       </div>
