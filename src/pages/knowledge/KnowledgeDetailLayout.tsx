@@ -1,7 +1,7 @@
 import React from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Outlet, useParams, useNavigate, Link, useLocation, useMatch } from 'react-router-dom'
-import { ArrowLeft, FileText, Search, Settings, Database, House } from 'lucide-react'
+import { ArrowLeft, FileText, Search, Settings, Database, House, ScrollText } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Avatar } from '@/components/ui/avatar'
 import { Loading } from '@/components/ui/loading'
@@ -44,6 +44,12 @@ const KnowledgeDetailLayout: React.FC = () => {
       label: '检索测试',
       icon: Search,
       path: `/knowledge/${id}/search`,
+    },
+    {
+      key: 'logs',
+      label: '日志',
+      icon: ScrollText,
+      path: `/knowledge/${id}/logs`,
     },
     {
       key: 'settings',

@@ -190,6 +190,11 @@ html[data-theme="light"], :root {
   --color-state-success: #10b981;
   --color-state-warning: #f59e0b;
   --color-state-error: #ef4444;
+  --color-state-focus-10: rgba(30, 64, 175, 0.1);
+  --color-state-success-10: rgba(16, 185, 129, 0.1);
+  --color-state-warning-10: rgba(245, 158, 11, 0.1);
+  --color-state-error-10: rgba(239, 68, 68, 0.1);
+  --color-state-neutral-10: rgba(107, 114, 128, 0.1);
 
   /* ===== 阴影系统 ===== */
   --color-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);

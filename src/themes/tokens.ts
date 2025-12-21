@@ -145,6 +145,13 @@ export interface DesignTokens {
   'state-warning': string
   'state-error': string
   
+  // ===== 状态透明度变体 (10% opacity) =====
+  'state-focus-10': string
+  'state-success-10': string
+  'state-warning-10': string
+  'state-error-10': string
+  'state-neutral-10': string
+  
   // ===== HTTP方法颜色系统 =====
   'components-method-get-bg': string
   'components-method-get-text': string
@@ -781,6 +788,13 @@ export const defaultTokens: DesignTokens = {
   'state-success': '',
   'state-warning': '',
   'state-error': '',
+  
+  // 状态透明度变体 (10% opacity)
+  'state-focus-10': '',
+  'state-success-10': '',
+  'state-warning-10': '',
+  'state-error-10': '',
+  'state-neutral-10': '',
   
   // HTTP方法颜色系统
   'components-method-get-bg': '',

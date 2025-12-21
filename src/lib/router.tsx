@@ -11,6 +11,7 @@ import { KnowledgeSettingsPage } from '@/pages/knowledge/KnowledgeSettingsPage'
 import { KnowledgeCreatePage } from '@/pages/knowledge/KnowledgeCreatePage'
 import { KnowledgeImportPage } from '@/pages/knowledge/KnowledgeImportPage'
 import { DocumentChunksPage } from '@/pages/knowledge/DocumentChunksPage'
+import { KnowledgeLogsPage } from '@/pages/knowledge/logs'
 import { SettingsLayout } from '@/pages/settings/SettingsLayout'
 import { ProfilePage } from '@/pages/settings/ProfilePage'
 import { SecurityPage } from '@/pages/settings/SecurityPage'
@@ -151,6 +152,10 @@ export const router = createBrowserRouter([
           {
             path: 'search',
             element: <KnowledgeSearchPage />,
+          },
+          {
+            path: 'logs',
+            element: <KnowledgeLogsPage />,
           },
           {
             path: 'settings',

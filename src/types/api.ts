@@ -1242,6 +1242,130 @@ export interface APIError {
 }
 
 // ============================================================================
+// 知识库日志模块
+// ============================================================================
+
+// 日志运行状态
+export const RunningStatus = {
+  UNSTART: '0',   // 待处理
+  RUNNING: '1',   // 运行中
+  CANCEL: '2',    // 已取消
+  DONE: '3',      // 成功
+  FAIL: '4',      // 失败
+  SCHEDULE: '5',  // 已调度
+} as const
+
+export type RunningStatus = typeof RunningStatus[keyof typeof RunningStatus]
+
+// 日志运行状态显示名称映射
+export const RunningStatusMap: Record<RunningStatus, string> = {
+  [RunningStatus.UNSTART]: '待处理',
+  [RunningStatus.RUNNING]: '运行中',
+  [RunningStatus.CANCEL]: '已取消',
+  [RunningStatus.DONE]: '成功',
+  [RunningStatus.FAIL]: '失败',
+  [RunningStatus.SCHEDULE]: '已调度',
+}
+
+// 日志Tab类型
+export const LogTabType = {
+  FILE_LOGS: 'fileLogs',
+  DATASET_LOGS: 'datasetLogs',
+} as const
+
+export type LogTabType = typeof LogTabType[keyof typeof LogTabType]
+
+// 处理类型
+export const ProcessingType = {
+  KNOWLEDGE_GRAPH: 'GraphRAG',
+  RAPTOR: 'RAPTOR',
+} as const
+
+export type ProcessingType = typeof ProcessingType[keyof typeof ProcessingType]
+
+// 处理类型显示名称映射
+export const ProcessingTypeMap: Record<ProcessingType, string> = {
+  [ProcessingType.KNOWLEDGE_GRAPH]: '知识图谱',
+  [ProcessingType.RAPTOR]: 'RAPTOR',
+}
+
+// 文件日志条目接口
+export interface IFileLogItem {
+  id: string
+  create_date: string
+  create_time: number
+  document_id: string
+  document_name: string
+  document_suffix: string
+  document_type: string
+  dsl: any
+  path: string[]
+  task_id: string
+  name: string
+  kb_id: string
+  operation_status: string
+  parser_id: string
+  pipeline_id: string
+  pipeline_title: string
+  avatar: string
+  process_begin_at: string | null
+  process_duration: number
+  progress: number
+  progress_msg: string
+  source_type?: string
+  source_from?: string
+  status: string
+  task_type: string
+  tenant_id: string
+  update_date: string
+  update_time: number
+}
+
+// 日志统计数据接口
+export interface ILogStats {
+  cancelled: number
+  failed: number
+  finished: number
+  processing: number
+  downloaded: number
+}
+
+// 日志列表响应接口
+export interface ILogListResponse {
+  logs: IFileLogItem[]
+  total: number
+}
+
+// 日志列表请求参数
+export interface ILogListRequest {
+  kb_id: string
+  page?: number
+  page_size?: number
+  keywords?: string
+  order_by?: string
+  operation_status?: string[]
+}
+
+// 日志详情接口（用于模态框展示）
+export interface ILogDetailInfo {
+  taskId?: string
+  fileName: string
+  fileType?: string
+  uploadedBy?: string
+  uploadDate?: string
+  processBeginAt?: string
+  chunkNumber?: number
+  fileSize?: string
+  source?: string
+  task?: string
+  status?: RunningStatus
+  startTime?: string
+  endTime?: string
+  duration?: string
+  details: string
+}
+
+// ============================================================================
 // 实用工具类型
 // ============================================================================
 

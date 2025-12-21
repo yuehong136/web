@@ -144,6 +144,13 @@ export const lightTokens: DesignTokens = {
   'state-warning': '#f59e0b',
   'state-error': '#ef4444',
   
+  // ===== 状态透明度变体 (10% opacity) =====
+  'state-focus-10': 'rgba(30, 64, 175, 0.1)',
+  'state-success-10': 'rgba(16, 185, 129, 0.1)',
+  'state-warning-10': 'rgba(245, 158, 11, 0.1)',
+  'state-error-10': 'rgba(239, 68, 68, 0.1)',
+  'state-neutral-10': 'rgba(107, 114, 128, 0.1)',
+  
   // ===== HTTP方法颜色系统 =====
   'components-method-get-bg': 'rgba(34, 197, 94, 0.1)',
   'components-method-get-text': '#166534',
@@ -757,6 +764,13 @@ export const darkTokens: DesignTokens = {
   'state-success': '#10b981',
   'state-warning': '#f59e0b',
   'state-error': '#ef4444',
+  
+  // ===== 状态透明度变体 (10% opacity) =====
+  'state-focus-10': 'rgba(59, 130, 246, 0.15)',
+  'state-success-10': 'rgba(16, 185, 129, 0.15)',
+  'state-warning-10': 'rgba(245, 158, 11, 0.15)',
+  'state-error-10': 'rgba(239, 68, 68, 0.15)',
+  'state-neutral-10': 'rgba(156, 163, 175, 0.15)',
   
   // ===== HTTP方法颜色系统 =====
   'components-method-get-bg': 'rgba(34, 197, 94, 0.2)',

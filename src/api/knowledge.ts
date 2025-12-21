@@ -538,4 +538,107 @@ export const knowledgeAPI = {
     }> =>
       apiClient.post('/v1/chunk/retrieval_test', data),
   },
+
+  // 知识库日志管理
+  logs: {
+    // 获取文件日志列表
+    listFileLogs: (params: {
+      kb_id: string
+      page?: number
+      page_size?: number
+      keywords?: string
+      operation_status?: string[]
+    }): Promise<{
+      logs: Array<{
+        id: string
+        create_date: string
+        create_time: number
+        document_id: string
+        document_name: string
+        document_suffix: string
+        document_type: string
+        dsl: any
+        path: string[]
+        task_id: string
+        name: string
+        kb_id: string
+        operation_status: string
+        parser_id: string
+        pipeline_id: string
+        pipeline_title: string
+        avatar: string
+        process_begin_at: string | null
+        process_duration: number
+        progress: number
+        progress_msg: string
+        source_type?: string
+        source_from?: string
+        status: string
+        task_type: string
+        tenant_id: string
+        update_date: string
+        update_time: number
+      }>
+      total: number
+    }> => {
+      const { kb_id, page = 1, page_size = 10, keywords = '', operation_status } = params
+      const queryParams = new URLSearchParams({
+        kb_id,
+        page: page.toString(),
+        page_size: page_size.toString(),
+        keywords,
+      })
+      return apiClient.post(`/v1/kb/list_pipeline_logs?${queryParams.toString()}`, {
+        operation_status: operation_status || []
+      })
+    },
+
+    // 获取数据集日志列表
+    listDatasetLogs: (params: {
+      kb_id: string
+      page?: number
+      page_size?: number
+      keywords?: string
+      operation_status?: string[]
+    }): Promise<{
+      logs: Array<{
+        id: string
+        create_date: string
+        create_time: number
+        kb_id: string
+        operation_status: string
+        process_begin_at: string | null
+        process_duration: number
+        progress: number
+        progress_msg: string
+        status: string
+        task_type: string
+        tenant_id: string
+        update_date: string
+        update_time: number
+      }>
+      total: number
+    }> => {
+      const { kb_id, page = 1, page_size = 10, keywords = '', operation_status } = params
+      const queryParams = new URLSearchParams({
+        kb_id,
+        page: page.toString(),
+        page_size: page_size.toString(),
+        keywords,
+      })
+      return apiClient.post(`/v1/kb/list_pipeline_dataset_logs?${queryParams.toString()}`, {
+        operation_status: operation_status || []
+      })
+    },
+
+    // 获取知识库基础统计信息
+    getBasicInfo: (kbId: string): Promise<{
+      cancelled: number
+      failed: number
+      finished: number
+      processing: number
+      downloaded: number
+    }> =>
+      apiClient.get(`/v1/kb/basic_info?kb_id=${kbId}`),
+  },
 }

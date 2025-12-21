@@ -470,7 +470,7 @@ VITE_API_BASE_URL=http://localhost:8000  # 后端 API URL
 
 ---
 
-**版本**: 0.6.1 | 使用 ❤️ 构建，基于 React 19 + TypeScript 5.8 + Vite 7 + @xyflow/react
+**版本**: 0.9.0 | 使用 ❤️ 构建，基于 React 19 + TypeScript 5.8 + Vite 7 + @xyflow/react
 
 ## 🏗️ 架构亮点
 

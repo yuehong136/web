@@ -1147,12 +1147,12 @@ npm run build
 ```bash
 # .env.local
 VITE_API_BASE_URL=http://localhost:8000
-VITE_APP_VERSION=0.6.1
+VITE_APP_VERSION=0.9.0
 ```
 
 ---
 
-## 📋 最新更新记录 (v0.6.1)
+## 📋 最新更新记录 (v0.9.0)
 
 ### 🔧 修复内容
 1. **知识库向量模型选择器**: 
