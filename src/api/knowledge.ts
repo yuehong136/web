@@ -348,9 +348,15 @@ export const knowledgeAPI = {
     createChunk: (params: {
       doc_id: string
       content_with_weight: string
+      important_kwd?: string[]
+      question_kwd?: string[]
       available_int?: number
     }): Promise<boolean> =>
-      apiClient.post('/v1/chunk/create', params),
+      apiClient.post('/v1/chunk/create', {
+        ...params,
+        important_kwd: params.important_kwd ?? [],
+        question_kwd: params.question_kwd ?? [],
+      }),
 
     // 获取单个分段详情
     getChunk: (chunkId: string): Promise<{
@@ -371,8 +377,14 @@ export const knowledgeAPI = {
       doc_id: string
       chunk_id: string
       content_with_weight: string
+      important_kwd?: string[]
+      question_kwd?: string[]
     }): Promise<boolean> =>
-      apiClient.post('/v1/chunk/set', params),
+      apiClient.post('/v1/chunk/set', {
+        ...params,
+        important_kwd: params.important_kwd ?? [],
+        question_kwd: params.question_kwd ?? [],
+      }),
 
     // 设置文档元数据
     setDocumentMeta: (params: {

@@ -19,7 +19,9 @@ import {
   Ban,
   PanelLeftOpen,
   PanelRightClose,
-  PanelRightOpen
+  PanelRightOpen,
+  MessageCircleQuestion,
+  Key
 } from 'lucide-react'
 import { knowledgeAPI } from '@/api/knowledge'
 import { 
@@ -32,7 +34,8 @@ import {
   PageSizeSelector,
   ToggleSwitch,
   Checkbox,
-  Label
+  Label,
+  TagEditor
 } from '../../components/ui'
 import { 
   Popover, 
@@ -92,6 +95,12 @@ const DocumentChunksPage: React.FC = () => {
   // 表单状态
   const [newChunkContent, setNewChunkContent] = useState('')
   const [editingChunkContent, setEditingChunkContent] = useState('')
+  const [editingImportantKwd, setEditingImportantKwd] = useState<string[]>([])
+  const [editingQuestionKwd, setEditingQuestionKwd] = useState<string[]>([])
+  
+  // 新建分块的关键词和问题
+  const [newImportantKwd, setNewImportantKwd] = useState<string[]>([])
+  const [newQuestionKwd, setNewQuestionKwd] = useState<string[]>([])
   
   // 切片配置展开状态
   const [showParserConfig, setShowParserConfig] = useState(false)
@@ -164,6 +173,7 @@ const DocumentChunksPage: React.FC = () => {
   } = useQuery({
     queryKey: ['documentChunks', docId, page, pageSize, debouncedSearchKeyword, availableInt],
     enabled: Boolean(docId),
+    gcTime: 0, // 与 ragflow 保持一致，防止缓存问题
     queryFn: async () => {
       return knowledgeAPI.document.listChunks({
         doc_id: docId!,
@@ -175,6 +185,13 @@ const DocumentChunksPage: React.FC = () => {
     },
     placeholderData: (previousData) => previousData,
   })
+  
+  // 延迟刷新列表（与 ragflow 保持一致，后端可能需要时间更新索引）
+  const delayedRefetchChunkList = React.useCallback(() => {
+    setTimeout(() => {
+      refetchChunkList()
+    }, 500)
+  }, [refetchChunkList])
 
   const chunks = useMemo(() => chunkListData?.chunks ?? [], [chunkListData])
   const total = chunkListData?.total ?? 0
@@ -216,10 +233,6 @@ const DocumentChunksPage: React.FC = () => {
     setSelectedChunkIds([])
   }, [page, pageSize])
   
-  const invalidateChunkList = React.useCallback(() => {
-    if (!docId) return
-    queryClient.invalidateQueries({ queryKey: ['documentChunks', docId] })
-  }, [docId, queryClient])
 
   const switchChunkMutation = useMutation({
     mutationFn: async (params: { chunkId: string; availableInt: number }) => {
@@ -230,7 +243,7 @@ const DocumentChunksPage: React.FC = () => {
         available_int: params.availableInt,
       })
     },
-    onSuccess: invalidateChunkList,
+    onSuccess: delayedRefetchChunkList,
   })
 
   const bulkSwitchChunksMutation = useMutation({
@@ -244,20 +257,27 @@ const DocumentChunksPage: React.FC = () => {
     },
     onSuccess: () => {
       setSelectedChunkIds([])
-      invalidateChunkList()
+      delayedRefetchChunkList()
     },
   })
 
   const setChunkMutation = useMutation({
-    mutationFn: async (params: { chunkId: string; content: string }) => {
+    mutationFn: async (params: { 
+      chunkId: string
+      content: string
+      important_kwd?: string[]
+      question_kwd?: string[]
+    }) => {
       if (!docId) return false
       return knowledgeAPI.document.setChunk({
         doc_id: docId,
         chunk_id: params.chunkId,
         content_with_weight: params.content,
+        important_kwd: params.important_kwd,
+        question_kwd: params.question_kwd,
       })
     },
-    onSuccess: invalidateChunkList,
+    // 不在这里刷新，由 handleEditChunk 中手动控制刷新时机
   })
 
   const deleteChunksMutation = useMutation({
@@ -268,19 +288,25 @@ const DocumentChunksPage: React.FC = () => {
         chunk_ids: chunkIds,
       })
     },
-    onSuccess: invalidateChunkList,
+    onSuccess: delayedRefetchChunkList,
   })
 
   const createChunkMutation = useMutation({
-    mutationFn: async (content: string) => {
+    mutationFn: async (params: {
+      content: string
+      important_kwd?: string[]
+      question_kwd?: string[]
+    }) => {
       if (!docId) return false
       return knowledgeAPI.document.createChunk({
         doc_id: docId,
-        content_with_weight: content,
+        content_with_weight: params.content,
+        important_kwd: params.important_kwd,
+        question_kwd: params.question_kwd,
         available_int: 1,
       })
     },
-    onSuccess: invalidateChunkList,
+    onSuccess: delayedRefetchChunkList,
   })
 
   const setMetaMutation = useMutation({
@@ -291,7 +317,7 @@ const DocumentChunksPage: React.FC = () => {
         meta,
       })
     },
-    onSuccess: invalidateChunkList,
+    onSuccess: delayedRefetchChunkList,
   })
   
   // 切换分段状态
@@ -315,8 +341,14 @@ const DocumentChunksPage: React.FC = () => {
     if (!newChunkContent.trim()) return
     
     try {
-      await createChunkMutation.mutateAsync(newChunkContent.trim())
+      await createChunkMutation.mutateAsync({
+        content: newChunkContent.trim(),
+        important_kwd: newImportantKwd,
+        question_kwd: newQuestionKwd,
+      })
       setNewChunkContent('')
+      setNewImportantKwd([])
+      setNewQuestionKwd([])
       setAddChunkModalOpen(false)
     } catch (error) {
       console.error('Failed to create chunk:', error)
@@ -332,11 +364,21 @@ const DocumentChunksPage: React.FC = () => {
       await setChunkMutation.mutateAsync({
         chunkId: selectedChunk.chunk_id,
         content: editingChunkContent.trim(),
+        important_kwd: editingImportantKwd,
+        question_kwd: editingQuestionKwd,
       })
       
+      // 先关闭编辑模式
       setIsEditMode(false)
       setSelectedChunk(null)
       setEditingChunkContent('')
+      setEditingImportantKwd([])
+      setEditingQuestionKwd([])
+      
+      // 延迟刷新列表数据（与 ragflow 保持一致，后端需要时间更新索引）
+      setTimeout(() => {
+        refetchChunkList()
+      }, 500)
     } catch (error) {
       console.error('Failed to edit chunk:', error)
       alert('保存分段失败，请重试')
@@ -829,9 +871,11 @@ const DocumentChunksPage: React.FC = () => {
                         : '1px solid var(--color-components-card-border)'
                     }}
                     onClick={() => {
-                      // 单击选中并在右侧面板显示预览
+                      // 单击选中分块，可以在文档预览中高亮
                       setSelectedChunk(chunk)
                       setEditingChunkContent(chunk.content_with_weight)
+                      setEditingImportantKwd(chunk.important_kwd || [])
+                      setEditingQuestionKwd(chunk.question_kwd || [])
                       setIsMarkdownPreview(false)
                     }}
                     onDoubleClick={(e) => {
@@ -840,6 +884,8 @@ const DocumentChunksPage: React.FC = () => {
                       setSelectedChunk(chunk)
                       setIsEditMode(true)
                       setEditingChunkContent(chunk.content_with_weight)
+                      setEditingImportantKwd(chunk.important_kwd || [])
+                      setEditingQuestionKwd(chunk.question_kwd || [])
                       setIsMarkdownPreview(false)
                     }}
                   >
@@ -911,6 +957,8 @@ const DocumentChunksPage: React.FC = () => {
                               setSelectedChunk(chunk)
                               setIsEditMode(true)
                               setEditingChunkContent(chunk.content_with_weight)
+                              setEditingImportantKwd(chunk.important_kwd || [])
+                              setEditingQuestionKwd(chunk.question_kwd || [])
                               setIsMarkdownPreview(false) // 重置为编辑模式
                             }}
                           >
@@ -980,19 +1028,53 @@ const DocumentChunksPage: React.FC = () => {
                       </div>
                     </div>
                     
-                    {/* 分段关键词 */}
-                    {chunk.important_kwd && chunk.important_kwd.length > 0 && (
-                      <div className="mt-3 pt-3" style={{ borderTop: '1px solid var(--color-border-subtle)' }}>
-                        <div className="flex flex-wrap gap-2">
-                          {chunk.important_kwd.map((keyword, index) => (
-                            <span key={index} className="inline-flex items-center px-2 py-1 rounded text-xs" style={{
-                              backgroundColor: 'var(--color-components-badge-info-bg)',
-                              color: 'var(--color-components-badge-info-text)'
-                            }}>
-                              {keyword}
-                            </span>
-                          ))}
-                        </div>
+                    {/* 分段关键词和匹配问题 */}
+                    {((chunk.important_kwd && chunk.important_kwd.length > 0) || 
+                      (chunk.question_kwd && chunk.question_kwd.length > 0)) && (
+                      <div className="mt-3 pt-3 space-y-2" style={{ borderTop: '1px solid var(--color-border-subtle)' }}>
+                        {/* 关键词 */}
+                        {chunk.important_kwd && chunk.important_kwd.length > 0 && (
+                          <div className="flex items-start gap-2">
+                            <div className="flex items-center gap-1 text-xs flex-shrink-0" style={{ color: 'var(--color-text-tertiary)' }}>
+                              <Key className="h-3 w-3" />
+                              <span>关键词</span>
+                            </div>
+                            <div className="flex flex-wrap gap-1.5">
+                              {chunk.important_kwd.map((keyword, index) => (
+                                <Tooltip key={index} content={keyword}>
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs max-w-24 truncate" style={{
+                                    backgroundColor: 'var(--color-components-badge-info-bg)',
+                                    color: 'var(--color-components-badge-info-text)'
+                                  }}>
+                                    {keyword}
+                                  </span>
+                                </Tooltip>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* 匹配问题 */}
+                        {chunk.question_kwd && chunk.question_kwd.length > 0 && (
+                          <div className="flex items-start gap-2">
+                            <div className="flex items-center gap-1 text-xs flex-shrink-0" style={{ color: 'var(--color-text-tertiary)' }}>
+                              <MessageCircleQuestion className="h-3 w-3" />
+                              <span>问题</span>
+                            </div>
+                            <div className="flex flex-wrap gap-1.5">
+                              {chunk.question_kwd.map((question, index) => (
+                                <Tooltip key={index} content={question}>
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs max-w-32 truncate" style={{
+                                    backgroundColor: 'var(--color-components-badge-warning-bg)',
+                                    color: 'var(--color-components-badge-warning-text)'
+                                  }}>
+                                    {question}
+                                  </span>
+                                </Tooltip>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                     
@@ -1148,6 +1230,8 @@ const DocumentChunksPage: React.FC = () => {
                       setIsEditMode(false)
                       setSelectedChunk(null)
                       setEditingChunkContent('')
+                      setEditingImportantKwd([])
+                      setEditingQuestionKwd([])
                       setIsMarkdownPreview(false) // 重置预览状态
                     }}
                   >
@@ -1157,147 +1241,201 @@ const DocumentChunksPage: React.FC = () => {
               </div>
               
               <div className="flex-1 p-6 overflow-y-auto scrollbar-thin">
-                <div className="space-y-4 h-full flex flex-col">
-                  <div className="flex items-center justify-between">
-                    <label className="block text-sm font-medium text-text-secondary">
-                      分段内容
-                    </label>
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setIsMarkdownPreview(!isMarkdownPreview)}
-                        className={cn(
-                          "text-xs flex items-center space-x-1",
-                          isMarkdownPreview ? "bg-state-hover text-text-accent border-border-accent" : ""
-                        )}
-                      >
-                        {isMarkdownPreview ? (
-                          <>
-                            <Code className="h-3 w-3" />
-                            <span>编辑</span>
-                          </>
-                        ) : (
-                          <>
-                            <Eye className="h-3 w-3" />
-                            <span>预览</span>
-                          </>
-                        )}
-                      </Button>
-                      <span className="inline-flex items-center px-2 py-1 rounded text-xs bg-orange-100 text-orange-600 font-medium">
-                        Beta
-                      </span>
+                <div className="space-y-5">
+                  {/* 分段内容编辑区 */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-sm font-medium text-text-secondary">
+                        分段内容
+                      </label>
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setIsMarkdownPreview(!isMarkdownPreview)}
+                          className={cn(
+                            "text-xs flex items-center space-x-1",
+                            isMarkdownPreview ? "bg-state-hover text-text-accent border-border-accent" : ""
+                          )}
+                        >
+                          {isMarkdownPreview ? (
+                            <>
+                              <Code className="h-3 w-3" />
+                              <span>编辑</span>
+                            </>
+                          ) : (
+                            <>
+                              <Eye className="h-3 w-3" />
+                              <span>预览</span>
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    <div className="min-h-[200px]">
+                      {isMarkdownPreview ? (
+                        <div className="w-full h-full min-h-[200px] px-4 py-3 rounded-md overflow-y-auto scrollbar-thin" style={{
+                          border: '1px solid var(--color-components-input-border)',
+                          backgroundColor: 'var(--color-background-subtle)'
+                        }}>
+                          <div 
+                            className="prose prose-sm max-w-none text-sm leading-relaxed"
+                            dangerouslySetInnerHTML={{
+                              __html: (() => {
+                                let content = editingChunkContent
+                                
+                                // 表格处理（需要在其他处理之前）
+                                content = content.replace(/(\|[^\n]*\|\n\|[-:\s|]+\|\n(?:\|[^\n]*\|\n?)*)/g, (match) => {
+                                  const lines = match.trim().split('\n')
+                                  if (lines.length < 3) return match
+                                  
+                                  const headers = lines[0].split('|').map(h => h.trim()).filter(h => h !== '')
+                                  const separators = lines[1].split('|').map(s => s.trim()).filter(s => s !== '')
+                                  const rows = lines.slice(2).map(line => 
+                                    line.split('|').map(cell => cell.trim()).filter(cell => cell !== '')
+                                  )
+                                  
+                                  // 检查是否是有效的表格格式
+                                  if (headers.length === 0 || separators.length === 0 || separators.every(s => !/^[-:]+$/.test(s))) {
+                                    return match
+                                  }
+                                  
+                                  let tableHtml = '<table class="min-w-full border-collapse border border-gray-300 my-4">'
+                                  
+                                  // 表头
+                                  tableHtml += '<thead class="bg-gray-50">'
+                                  tableHtml += '<tr>'
+                                  headers.forEach(header => {
+                                    tableHtml += `<th class="border border-gray-300 px-3 py-2 text-left font-semibold text-gray-900">${header}</th>`
+                                  })
+                                  tableHtml += '</tr>'
+                                  tableHtml += '</thead>'
+                                  
+                                  // 表格内容
+                                  tableHtml += '<tbody>'
+                                  rows.forEach((row, index) => {
+                                    tableHtml += `<tr class="${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}">`
+                                    row.forEach((cell, cellIndex) => {
+                                      if (cellIndex < headers.length) {
+                                        tableHtml += `<td class="border border-gray-300 px-3 py-2 text-gray-700">${cell}</td>`
+                                      }
+                                    })
+                                    // 填充空单元格
+                                    for (let i = row.length; i < headers.length; i++) {
+                                      tableHtml += '<td class="border border-gray-300 px-3 py-2 text-gray-700"></td>'
+                                    }
+                                    tableHtml += '</tr>'
+                                  })
+                                  tableHtml += '</tbody>'
+                                  tableHtml += '</table>'
+                                  
+                                  return tableHtml
+                                })
+                                
+                                // 其他 Markdown 语法处理
+                                content = content
+                                  // 标题
+                                  .replace(/^### (.*?)$/gm, '<h3 class="text-lg font-semibold mt-4 mb-2 text-gray-900">$1</h3>')
+                                  .replace(/^## (.*?)$/gm, '<h2 class="text-xl font-semibold mt-4 mb-2 text-gray-900">$1</h2>')
+                                  .replace(/^# (.*?)$/gm, '<h1 class="text-2xl font-bold mt-4 mb-2 text-gray-900">$1</h1>')
+                                  // 列表
+                                  .replace(/^[\s]*[-*+] (.*?)$/gm, '<ul class="list-disc ml-4 my-2"><li class="my-1">$1</li></ul>')
+                                  .replace(/^[\s]*\d+\. (.*?)$/gm, '<ol class="list-decimal ml-4 my-2"><li class="my-1">$1</li></ol>')
+                                  // 代码块
+                                  .replace(/```([\s\S]*?)```/g, '<pre class="bg-gray-100 p-3 rounded-md my-3 overflow-x-auto scrollbar-thin"><code class="text-sm font-mono">$1</code></pre>')
+                                  // 行内代码
+                                  .replace(/`(.*?)`/g, '<code class="bg-gray-200 px-1.5 py-0.5 rounded text-sm font-mono">$1</code>')
+                                  // 粗体和斜体
+                                  .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold">$1</strong>')
+                                  .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
+                                  // 链接
+                                  .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-blue-600 hover:text-blue-800 underline" target="_blank" rel="noopener noreferrer">$1</a>')
+                                  // 换行
+                                  .replace(/\n\n/g, '<br><br>')
+                                  .replace(/\n/g, '<br>')
+                                
+                                return content
+                              })()
+                            }}
+                          />
+                        </div>
+                      ) : (
+                        <textarea
+                          value={editingChunkContent}
+                          onChange={(e) => setEditingChunkContent(e.target.value)}
+                          className="w-full px-3 py-2 rounded-md resize-none text-sm font-mono leading-relaxed"
+                          style={{
+                            border: '1px solid var(--color-components-input-border)',
+                            backgroundColor: 'var(--color-components-input-bg)',
+                            color: 'var(--color-components-input-text)',
+                            minHeight: '200px'
+                          }}
+                          onFocus={(e) => {
+                            e.target.style.borderColor = 'var(--color-components-input-border-focus)'
+                            e.target.style.outline = 'none'
+                          }}
+                          onBlur={(e) => {
+                            e.target.style.borderColor = 'var(--color-components-input-border)'
+                          }}
+                          placeholder="请输入分段内容..."
+                        />
+                      )}
                     </div>
                   </div>
                   
-                  <div className="flex-1 min-h-0">
-                    {isMarkdownPreview ? (
-                      <div className="w-full h-full px-4 py-3 rounded-md overflow-y-auto scrollbar-thin" style={{
-                        border: '1px solid var(--color-components-input-border)',
-                        backgroundColor: 'var(--color-background-subtle)'
-                      }}>
-                        <div 
-                          className="prose prose-sm max-w-none text-sm leading-relaxed"
-                          dangerouslySetInnerHTML={{
-                            __html: (() => {
-                              let content = editingChunkContent
-                              
-                              // 表格处理（需要在其他处理之前）
-                              content = content.replace(/(\|[^\n]*\|\n\|[-:\s|]+\|\n(?:\|[^\n]*\|\n?)*)/g, (match) => {
-                                const lines = match.trim().split('\n')
-                                if (lines.length < 3) return match
-                                
-                                const headers = lines[0].split('|').map(h => h.trim()).filter(h => h !== '')
-                                const separators = lines[1].split('|').map(s => s.trim()).filter(s => s !== '')
-                                const rows = lines.slice(2).map(line => 
-                                  line.split('|').map(cell => cell.trim()).filter(cell => cell !== '')
-                                )
-                                
-                                // 检查是否是有效的表格格式
-                                if (headers.length === 0 || separators.length === 0 || separators.every(s => !/^[-:]+$/.test(s))) {
-                                  return match
-                                }
-                                
-                                let tableHtml = '<table class="min-w-full border-collapse border border-gray-300 my-4">'
-                                
-                                // 表头
-                                tableHtml += '<thead class="bg-gray-50">'
-                                tableHtml += '<tr>'
-                                headers.forEach(header => {
-                                  tableHtml += `<th class="border border-gray-300 px-3 py-2 text-left font-semibold text-gray-900">${header}</th>`
-                                })
-                                tableHtml += '</tr>'
-                                tableHtml += '</thead>'
-                                
-                                // 表格内容
-                                tableHtml += '<tbody>'
-                                rows.forEach((row, index) => {
-                                  tableHtml += `<tr class="${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}">`
-                                  row.forEach((cell, cellIndex) => {
-                                    if (cellIndex < headers.length) {
-                                      tableHtml += `<td class="border border-gray-300 px-3 py-2 text-gray-700">${cell}</td>`
-                                    }
-                                  })
-                                  // 填充空单元格
-                                  for (let i = row.length; i < headers.length; i++) {
-                                    tableHtml += '<td class="border border-gray-300 px-3 py-2 text-gray-700"></td>'
-                                  }
-                                  tableHtml += '</tr>'
-                                })
-                                tableHtml += '</tbody>'
-                                tableHtml += '</table>'
-                                
-                                return tableHtml
-                              })
-                              
-                              // 其他 Markdown 语法处理
-                              content = content
-                                // 标题
-                                .replace(/^### (.*?)$/gm, '<h3 class="text-lg font-semibold mt-4 mb-2 text-gray-900">$1</h3>')
-                                .replace(/^## (.*?)$/gm, '<h2 class="text-xl font-semibold mt-4 mb-2 text-gray-900">$1</h2>')
-                                .replace(/^# (.*?)$/gm, '<h1 class="text-2xl font-bold mt-4 mb-2 text-gray-900">$1</h1>')
-                                // 列表
-                                .replace(/^[\s]*[-*+] (.*?)$/gm, '<ul class="list-disc ml-4 my-2"><li class="my-1">$1</li></ul>')
-                                .replace(/^[\s]*\d+\. (.*?)$/gm, '<ol class="list-decimal ml-4 my-2"><li class="my-1">$1</li></ol>')
-                                // 代码块
-                                .replace(/```([\s\S]*?)```/g, '<pre class="bg-gray-100 p-3 rounded-md my-3 overflow-x-auto scrollbar-thin"><code class="text-sm font-mono">$1</code></pre>')
-                                // 行内代码
-                                .replace(/`(.*?)`/g, '<code class="bg-gray-200 px-1.5 py-0.5 rounded text-sm font-mono">$1</code>')
-                                // 粗体和斜体
-                                .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold">$1</strong>')
-                                .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
-                                // 链接
-                                .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-blue-600 hover:text-blue-800 underline" target="_blank" rel="noopener noreferrer">$1</a>')
-                                // 换行
-                                .replace(/\n\n/g, '<br><br>')
-                                .replace(/\n/g, '<br>')
-                              
-                              return content
-                            })()
-                          }}
-                        />
-                      </div>
-                    ) : (
-                      <textarea
-                        value={editingChunkContent}
-                        onChange={(e) => setEditingChunkContent(e.target.value)}
-                        className="w-full h-full px-3 py-2 rounded-md resize-none text-sm font-mono leading-relaxed"
-                        style={{
-                          border: '1px solid var(--color-components-input-border)',
-                          backgroundColor: 'var(--color-components-input-bg)',
-                          color: 'var(--color-components-input-text)',
-                          minHeight: '300px'
-                        }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = 'var(--color-components-input-border-focus)'
-                          e.target.style.outline = 'none'
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = 'var(--color-components-input-border)'
-                        }}
-                        placeholder="请输入分段内容...&#10;&#10;支持 Markdown 语法：&#10;# 标题1  ## 标题2  ### 标题3&#10;**粗体** *斜体* `行内代码`&#10;```代码块```&#10;- 列表项  1. 数字列表&#10;[链接文本](URL)&#10;| 表头1 | 表头2 |&#10;|-------|-------|&#10;| 数据1 | 数据2 |"
+                  {/* 关键词编辑区 */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Key className="h-4 w-4" style={{ color: 'var(--color-text-accent)' }} />
+                      <label className="block text-sm font-medium text-text-secondary">
+                        关键词
+                      </label>
+                      <Tooltip content="添加关键词可以提升检索召回效果">
+                        <span className="text-xs cursor-help rounded-full w-4 h-4 flex items-center justify-center border" style={{ 
+                          borderColor: 'var(--color-border-default)',
+                          color: 'var(--color-text-tertiary)'
+                        }}>?</span>
+                      </Tooltip>
+                    </div>
+                    <div className="p-3 rounded-lg" style={{ 
+                      backgroundColor: 'var(--color-background-subtle)',
+                      border: '1px solid var(--color-border-default)'
+                    }}>
+                      <TagEditor
+                        value={editingImportantKwd}
+                        onChange={setEditingImportantKwd}
+                        placeholder="输入关键词后按回车..."
+                        variant="info"
                       />
-                    )}
+                    </div>
+                  </div>
+                  
+                  {/* 匹配问题编辑区 */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <MessageCircleQuestion className="h-4 w-4" style={{ color: 'var(--color-text-warning)' }} />
+                      <label className="block text-sm font-medium text-text-secondary">
+                        匹配问题
+                      </label>
+                      <Tooltip content="添加该分块可以回答的问题，用于提升问答匹配精度">
+                        <span className="text-xs cursor-help rounded-full w-4 h-4 flex items-center justify-center border" style={{ 
+                          borderColor: 'var(--color-border-default)',
+                          color: 'var(--color-text-tertiary)'
+                        }}>?</span>
+                      </Tooltip>
+                    </div>
+                    <div className="p-3 rounded-lg" style={{ 
+                      backgroundColor: 'var(--color-background-subtle)',
+                      border: '1px solid var(--color-border-default)'
+                    }}>
+                      <TagEditor
+                        value={editingQuestionKwd}
+                        onChange={setEditingQuestionKwd}
+                        placeholder="输入问题后按回车..."
+                        variant="warning"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1313,6 +1451,8 @@ const DocumentChunksPage: React.FC = () => {
                       setIsEditMode(false)
                       setSelectedChunk(null)
                       setEditingChunkContent('')
+                      setEditingImportantKwd([])
+                      setEditingQuestionKwd([])
                       setIsMarkdownPreview(false) // 重置预览状态
                     }}
                   >
@@ -1346,61 +1486,36 @@ const DocumentChunksPage: React.FC = () => {
             </div>
           )}
           
-          {/* 选中分段预览区域 (单击时显示) */}
+          {/* 选中分段提示 - 简化为仅显示提示信息 */}
           {isInfoPanelOpen && selectedChunk && !isEditMode && (
             <div className="p-4 border-b border-border-default">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
-                  分段预览
-                </h3>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setIsEditMode(true)
-                      setEditingChunkContent(selectedChunk.content_with_weight)
-                    }}
-                  >
-                    <Edit2 className="h-3 w-3 mr-1" />
-                    编辑
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      setSelectedChunk(null)
-                      setEditingChunkContent('')
-                    }}
-                  >
-                    <X className="h-3 w-3" />
-                  </Button>
-                </div>
-              </div>
-              <div 
-                className="text-sm leading-relaxed rounded-lg p-3 max-h-48 overflow-y-auto scrollbar-thin"
-                style={{ 
-                  color: 'var(--color-text-secondary)',
-                  backgroundColor: 'var(--color-background-subtle)'
-                }}
-                dangerouslySetInnerHTML={{
-                  __html: DOMPurify.sanitize(selectedChunk.content_with_weight, {
-                    ALLOWED_TAGS: ['em', 'strong', 'b', 'i', 'br'],
-                    ALLOWED_ATTR: [],
-                  })
-                }}
-              />
-              <div className="mt-2 flex items-center gap-2 text-xs text-text-tertiary">
-                <Tooltip content={`完整ID: ${selectedChunk.chunk_id}`}>
-                  <span className="cursor-help">
-                    ID: {selectedChunk.chunk_id.slice(0, 8)}...
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+                  <FileText className="h-4 w-4" style={{ color: 'var(--color-text-accent)' }} />
+                  <span>已选中分段</span>
+                  <span className={cn(
+                    "px-1.5 py-0.5 rounded text-xs",
+                    selectedChunk.available_int === 1 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'
+                  )}>
+                    {selectedChunk.available_int === 1 ? '启用' : '禁用'}
                   </span>
-                </Tooltip>
-                <span>•</span>
-                <span className={selectedChunk.available_int === 1 ? 'text-green-600' : 'text-red-500'}>
-                  {selectedChunk.available_int === 1 ? '已启用' : '已禁用'}
-                </span>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={() => {
+                    setSelectedChunk(null)
+                    setEditingChunkContent('')
+                    setEditingImportantKwd([])
+                    setEditingQuestionKwd([])
+                  }}
+                >
+                  <X className="h-3 w-3" />
+                </Button>
               </div>
+              <p className="mt-2 text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
+                双击分块或点击编辑按钮进入编辑模式
+              </p>
             </div>
           )}
 
@@ -1544,20 +1659,26 @@ const DocumentChunksPage: React.FC = () => {
       {/* 添加分段模态框 */}
       <Modal
         open={addChunkModalOpen}
-        onClose={() => setAddChunkModalOpen(false)}
+        onClose={() => {
+          setAddChunkModalOpen(false)
+          setNewChunkContent('')
+          setNewImportantKwd([])
+          setNewQuestionKwd([])
+        }}
         title="添加新分段"
         size="lg"
       >
-        <div className="space-y-4">
+        <div className="space-y-5">
+          {/* 分段内容 */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text-primary)' }}>
               分段内容
             </label>
             <textarea
               value={newChunkContent}
               onChange={(e) => setNewChunkContent(e.target.value)}
               placeholder="输入分段内容..."
-              className="w-full h-48 px-3 py-2 rounded-md resize-none"
+              className="w-full h-40 px-3 py-2 rounded-md resize-none text-sm"
               style={{
                 border: '1px solid var(--color-components-input-border)',
                 backgroundColor: 'var(--color-components-input-bg)',
@@ -1572,8 +1693,62 @@ const DocumentChunksPage: React.FC = () => {
               }}
             />
           </div>
-          <div className="flex justify-end space-x-3">
-            <Button variant="outline" onClick={() => setAddChunkModalOpen(false)}>
+          
+          {/* 关键词 */}
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <Key className="h-4 w-4" style={{ color: 'var(--color-text-accent)' }} />
+              <label className="block text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
+                关键词
+              </label>
+              <span className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
+                (可选)
+              </span>
+            </div>
+            <div className="p-3 rounded-lg" style={{ 
+              backgroundColor: 'var(--color-background-subtle)',
+              border: '1px solid var(--color-border-default)'
+            }}>
+              <TagEditor
+                value={newImportantKwd}
+                onChange={setNewImportantKwd}
+                placeholder="输入关键词后按回车..."
+                variant="info"
+              />
+            </div>
+          </div>
+          
+          {/* 匹配问题 */}
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <MessageCircleQuestion className="h-4 w-4" style={{ color: 'var(--color-text-warning)' }} />
+              <label className="block text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
+                匹配问题
+              </label>
+              <span className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
+                (可选)
+              </span>
+            </div>
+            <div className="p-3 rounded-lg" style={{ 
+              backgroundColor: 'var(--color-background-subtle)',
+              border: '1px solid var(--color-border-default)'
+            }}>
+              <TagEditor
+                value={newQuestionKwd}
+                onChange={setNewQuestionKwd}
+                placeholder="输入问题后按回车..."
+                variant="warning"
+              />
+            </div>
+          </div>
+          
+          <div className="flex justify-end space-x-3 pt-2">
+            <Button variant="outline" onClick={() => {
+              setAddChunkModalOpen(false)
+              setNewChunkContent('')
+              setNewImportantKwd([])
+              setNewQuestionKwd([])
+            }}>
               取消
             </Button>
             <Button onClick={handleCreateChunk} disabled={!newChunkContent.trim()}>
