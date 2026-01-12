@@ -26,6 +26,7 @@ This is a React 19 + TypeScript 5.8 + Vite 7 application implementing a Multi-RA
 - 48 base UI components in `src/components/ui/`
 - 96 feature-specific components organized by domain (auth, knowledge, chat, mcp, environment, forms, layout, agent)
 - Layout components handling responsive design with modern sidebar
+- **CRITICAL**: Strict separation between presentational and container components (see Component Guidelines below)
 
 **Agent Canvas System**: Visual workflow builder using @xyflow/react for node-based agent design and automation pipelines.
 
@@ -122,10 +123,310 @@ No specific test framework detected - check with team for testing approach.
 - **React Dropzone 14.3** for file uploads
 - **DND Kit** for drag-and-drop interfaces
 
-## Design System Notes
+## Component Architecture Guidelines
 
-The application uses a sophisticated design token system. When working with colors or themes:
-1. Use semantic color tokens from `src/themes/tokens.ts`
+### Presentational vs Container Components (MANDATORY SEPARATION)
+
+**Presentational Components** (in `src/components/ui/`, `src/components/vendor/ui/`)
+- ✅ Pure display components that only render UI based on props
+- ✅ Can use controlled component patterns
+- ✅ May contain UI logic (animations, expand/collapse states)
+- ❌ **FORBIDDEN**: `useState`, `useEffect`, `useRef` (except DOM refs)
+- ❌ **FORBIDDEN**: Direct API calls or store access
+- ❌ **FORBIDDEN**: Business logic (data fetching, state management, side effects)
+
+**Example - Correct Presentational Component**:
+```typescript
+interface MessageBubbleProps {
+  content: string;
+  sender: string;
+  isCurrentUser: boolean;
+  onEdit?: () => void;
+}
+
+export const MessageBubble: React.FC<MessageBubbleProps> = ({
+  content, sender, isCurrentUser, onEdit
+}) => {
+  return (
+    <div className={cn(
+      'flex flex-col gap-space-xs p-space-base rounded-radius-lg',
+      isCurrentUser ? 'bg-surface-accent' : 'bg-surface-secondary'
+    )}>
+      <div className="text-text-body-lg">{content}</div>
+      <span className="text-text-caption">{sender}</span>
+      {onEdit && <button onClick={onEdit}>Edit</button>}
+    </div>
+  );
+};
+```
+
+**Container Components** (in `src/pages/`, feature-specific component folders)
+- ✅ Handle business logic, data fetching, state management
+- ✅ Use all React Hooks, API calls, Zustand stores, TanStack Query
+- ✅ Pass data and callbacks to presentational components via props
+- ⚠️ Minimize direct UI code, primarily compose presentational components
+
+**Example - Correct Container Component**:
+```typescript
+export const ChatContainer: React.FC = () => {
+  const { messages, isLoading } = useChatStore();
+  const [input, setInput] = useState('');
+  const sendMessageMutation = useSendMessage();
+  
+  const handleSend = async () => {
+    await sendMessageMutation.mutateAsync(input);
+    setInput('');
+  };
+  
+  return (
+    <div className="flex flex-col h-full">
+      <MessageList messages={messages} isLoading={isLoading} />
+      <ChatInput value={input} onChange={setInput} onSend={handleSend} />
+    </div>
+  );
+};
+```
+
+### ESLint Enforcement
+Configure ESLint to enforce this separation:
+```javascript
+// eslint.config.js
+{
+  files: ['src/components/ui/**/*.tsx', 'src/components/vendor/ui/**/*.tsx'],
+  rules: {
+    'no-restricted-imports': ['error', {
+      patterns: [{
+        group: ['@/api/*', '@/stores/*'],
+        message: 'Presentational components must not import API or stores'
+      }]
+    }]
+  }
+}
+```
+
+## Design System & Styling Constraints
+
+### MANDATORY: Design Token Usage (NO ARBITRARY VALUES)
+
+The application uses a sophisticated design token system. **Arbitrary values are FORBIDDEN**.
+
+#### Required Token Usage
+**Colors**:
+- ✅ USE: `bg-surface-primary`, `text-text-body`, `border-border-default`
+- ❌ FORBIDDEN: `bg-[#1a73e8]`, `text-[#333]`, `bg-blue-600`
+
+**Spacing**:
+- ✅ USE: `p-space-base`, `m-space-lg`, `gap-space-md`
+- ❌ FORBIDDEN: `p-4`, `p-[20px]`, `m-8`
+
+**Radius**:
+- ✅ USE: `rounded-radius-lg`, `rounded-radius-md`
+- ❌ FORBIDDEN: `rounded-lg`, `rounded-[12px]`
+
+**Shadows**:
+- ✅ USE: `shadow-elevation-low`, `shadow-elevation-high`
+- ❌ FORBIDDEN: `shadow-md`, `shadow-[0_4px_6px_rgba(0,0,0,0.1)]`
+
+#### Design Token Priority
+When writing styles, use this priority order:
+1. **Semantic tokens** (highest priority): `bg-surface-primary`, `text-text-body`
+2. **Functional tokens**: `p-space-base`, `gap-space-md`
+3. **Tailwind layout utilities**: `flex`, `grid`, `absolute`
+4. **NEVER arbitrary values**: Avoid `[#hex]`, `[12px]`
+
+#### Allowed Exceptions
+Only these Tailwind native classes are permitted:
+- Layout: `flex`, `grid`, `absolute`, `relative`, `fixed`, `sticky`
+- Sizing: `w-full`, `h-screen`, `max-w-*` (preset values only)
+- Responsive prefixes: `sm:`, `md:`, `lg:`, `xl:`, `2xl:`
+- State prefixes: `hover:`, `focus:`, `active:`, `disabled:`
+
+#### Correct vs Incorrect Examples
+```typescript
+// ✅ CORRECT: Using design tokens
+<button className="px-space-md py-space-sm bg-surface-primary text-text-primary rounded-radius-lg shadow-elevation-low">
+  Submit
+</button>
+
+// ❌ INCORRECT: Using arbitrary/native values
+<button className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow-md">
+  Submit
+</button>
+
+// ✅ CORRECT: Responsive with design tokens
+<div className="p-space-sm md:p-space-base lg:p-space-lg bg-surface-primary">
+  Responsive content
+</div>
+
+// ❌ INCORRECT: Mixed arbitrary values
+<div className="p-2 md:p-[16px] lg:p-8 bg-[#f5f5f5]">
+  Responsive content
+</div>
+```
+
+#### Dark Mode Support
+All color tokens automatically adapt to dark mode - DO NOT manually add `dark:` prefixes:
+```typescript
+// ✅ CORRECT: Automatic dark mode
+<div className="bg-surface-primary text-text-primary">Content</div>
+
+// ❌ INCORRECT: Manual dark mode override
+<div className="bg-white dark:bg-gray-900">Content</div>
+```
+
+#### ESLint Enforcement
+Configure `eslint-plugin-tailwindcss` to enforce token usage:
+```javascript
+// eslint.config.js
+{
+  plugins: ['tailwindcss'],
+  rules: {
+    'tailwindcss/no-arbitrary-value': 'error', // Forbid arbitrary values
+    'tailwindcss/enforces-negative-arbitrary-values': 'error',
+  }
+}
+```
+
+#### Design Token Update Process
+When new styling needs arise:
+1. **First**: Check if `src/themes/tokens.ts` has an appropriate token
+2. **If not**: Consult product/design team to add to design system
+3. **FORBIDDEN**: Create temporary arbitrary values to bypass system
+4. **After adding tokens**: Run `npm run build:themes` to regenerate CSS
+
+### Design Token Reference
+Available token categories (see `src/themes/tokens.ts`):
+- **Colors**: `surface-*`, `text-*`, `border-*`, `status-*`
+- **Spacing**: `space-xs`, `space-sm`, `space-base`, `space-md`, `space-lg`, `space-xl`, `space-2xl`
+- **Radius**: `radius-sm`, `radius-md`, `radius-lg`, `radius-xl`, `radius-full`
+- **Elevation**: `elevation-low`, `elevation-medium`, `elevation-high`
+- **Typography**: `body-sm`, `body-base`, `body-lg`, `heading-*`
+- **Icons**: `icon-sm`, `icon-md`, `icon-lg`, `icon-xl`, `icon-2xl`
+
+## Figma MCP Integration (Design-to-Code Workflow)
+
+When using Figma MCP to generate first-pass display code from design files:
+
+### MANDATORY Constraints for Generated Code
+
+**1. Style System Constraints**:
+- ✅ MUST map Figma values to project design tokens
+- ❌ NEVER use Figma's arbitrary values directly
+
+**2. Icon Library Constraints**:
+- ✅ MUST use **Lucide React** icons exclusively
+- ❌ FORBIDDEN: Phosphor, Heroicons, custom SVGs, or other icon libraries
+```typescript
+// ✅ CORRECT
+import { Search, User, Settings } from 'lucide-react';
+<Search className="w-icon-md h-icon-md text-text-secondary" />
+
+// ❌ INCORRECT
+import { MagnifyingGlass } from 'phosphor-react'; // Wrong library
+```
+
+**3. Component Library Constraints**:
+- ✅ MUST use existing project components from `@/components/ui/*`
+- ❌ FORBIDDEN: Introducing new UI libraries without approval
+```typescript
+// ✅ CORRECT
+import { Button } from '@/components/ui/button';
+import { Dialog } from '@/components/ui/dialog';
+
+// ❌ INCORRECT
+import { Button } from 'antd'; // Unapproved library
+import { Modal } from 'react-modal'; // Use project Dialog instead
+```
+
+### Figma-to-Token Mapping Tables
+
+**Color Mapping**:
+| Figma Color Type | Map to Design Token |
+|-----------------|-------------------|
+| Primary/Brand | `bg-surface-accent`, `text-text-accent` |
+| Background | `bg-surface-primary`, `bg-surface-secondary` |
+| Text | `text-text-primary`, `text-text-secondary` |
+| Border | `border-border-default`, `border-border-subtle` |
+| Success/Error/Warning | `bg-status-success`, `bg-status-error`, `bg-status-warning` |
+
+**Spacing Mapping**:
+| Figma Spacing | Map to Design Token |
+|--------------|-------------------|
+| 4px | `space-xs` |
+| 8px | `space-sm` |
+| 12px | `space-base` |
+| 16px | `space-md` |
+| 24px | `space-lg` |
+| 32px | `space-xl` |
+| Other values | ⚠️ Require design system confirmation |
+
+### Handling Unmappable Values
+When Figma designs contain values not in the design system:
+1. **Add TODO comment** with original Figma value
+2. **Ask user for confirmation** before introducing new tokens
+3. **Use closest existing token** as temporary fallback
+4. **NEVER create arbitrary values** without approval
+
+**Example**:
+```typescript
+// TODO: Figma uses #5E3AEE for emphasis, but no matching token exists
+// Original: bg-[#5E3AEE]
+// Question: Should this be added to src/themes/tokens.ts as accent-purple?
+// Temporary fallback to closest token:
+<div className="bg-surface-accent">
+```
+
+### Generated Code Quality Standards
+MCP-generated code MUST:
+- ✅ Follow presentational/container separation (generate pure presentational components)
+- ✅ Use project design tokens exclusively (no arbitrary values)
+- ✅ Use Lucide React icon library
+- ✅ Use existing `@/components/ui/*` components
+- ✅ Include TypeScript type definitions
+- ✅ Follow kebab-case file naming conventions
+- ✅ Include complete props interfaces
+
+### MCP Generation Workflow Example
+```bash
+# 1. AI reads Figma design via MCP
+Component: UserProfileCard
+- Size: 320x200px
+- Background: #F5F5F5
+- Text: #333333, 16px, Inter font
+- Spacing: padding 16px, gap 12px
+- Border radius: 8px
+
+# 2. AI maps to design tokens
+Background: #F5F5F5 → bg-surface-secondary
+Text: #333333 → text-text-primary
+Spacing: 16px → p-space-md, 12px → gap-space-base
+Radius: 8px → rounded-radius-lg
+
+# 3. AI generates component code
+export interface UserProfileCardProps {
+  name: string;
+  avatar: string;
+  bio: string;
+}
+
+export const UserProfileCard: React.FC<UserProfileCardProps> = ({
+  name, avatar, bio
+}) => {
+  return (
+    <div className="flex flex-col gap-space-base p-space-md bg-surface-secondary rounded-radius-lg">
+      <img src={avatar} alt={name} className="w-icon-2xl h-icon-2xl rounded-full" />
+      <h3 className="text-text-primary text-body-lg">{name}</h3>
+      <p className="text-text-secondary text-body-sm">{bio}</p>
+    </div>
+  );
+};
+```
+
+## Theme System Notes
+
+When working with colors or themes:
+1. Use semantic color tokens from `src/themes/tokens.ts` (MANDATORY)
 2. Regenerate theme files after token changes: `npm run build:themes`
 3. Colors are mapped to Tailwind CSS custom properties
-4. Support for light/dark modes via CSS custom properties
+4. Automatic light/dark mode support via CSS custom properties
+5. NEVER use arbitrary color values or Tailwind native color classes

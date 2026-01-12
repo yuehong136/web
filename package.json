@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:docker": "vite build",
     "build:themes": "tsx src/themes/build-themes.ts",
     "lint": "eslint .",
     "preview": "vite preview"
