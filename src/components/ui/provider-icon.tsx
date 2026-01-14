@@ -13,6 +13,7 @@ const THEME_AWARE_FACTORIES = [
   LLMFactory.TogetherAI,
   LLMFactory.Meituan,
   LLMFactory.Longcat,
+  LLMFactory.MinerU,
 ]
 
 /**
@@ -23,6 +24,7 @@ const SVG_FILE_FACTORIES = [
   LLMFactory.LocalAI,
   LLMFactory.Gemini,
   LLMFactory.StepFun,
+  LLMFactory.MinerU,
 ]
 
 interface ProviderIconProps {

@@ -66,6 +66,7 @@ const SPECIAL_FORM_FACTORIES = [
   'Azure-OpenAI',         // Azure：BaseUrl + ApiKey + ModelName + ApiVersion
   'VolcEngine',           // 火山引擎：EndpointID + ARK API Key
   'Bedrock',              // AWS Bedrock：AK + SK + Region
+  'MinerU',               // MinerU：API Server + Output Dir + Backend + Server URL
 ]
 
 // 厂商文档链接
@@ -88,6 +89,7 @@ const FACTORY_DOC_LINKS: Record<string, string> = {
   'Google Cloud': 'https://cloud.google.com/vertex-ai',
   'Fish Audio': 'https://fish.audio',
   'Tencent Cloud': 'https://cloud.tencent.com/document/api/1093/37823',
+  'MinerU': 'https://github.com/opendatalab/MinerU',
 }
 
 // 各厂商支持的模型类型
@@ -156,6 +158,9 @@ const FACTORY_MODEL_TYPES: Record<string, { value: string; label: string }[]> = 
     { value: 'chat', label: 'Chat' },
     { value: 'embedding', label: 'Embedding' },
     { value: 'image2text', label: 'Image2Text' },
+  ],
+  'MinerU': [
+    { value: 'ocr', label: 'OCR' },
   ],
   'Default': [
     { value: 'chat', label: 'Chat' },
@@ -272,6 +277,13 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
   const [bedrockSk, setBedrockSk] = useState('')
   const [bedrockRegion, setBedrockRegion] = useState('')
 
+  // MinerU 字段
+  const [mineruApiServer, setMineruApiServer] = useState('')
+  const [mineruOutputDir, setMineruOutputDir] = useState('')
+  const [mineruBackend, setMineruBackend] = useState<'pipeline' | 'vlm-transformers' | 'vlm-vllm-engine' | 'vlm-http-client'>('pipeline')
+  const [mineruServerUrl, setMineruServerUrl] = useState('')
+  const [mineruDeleteOutput, setMineruDeleteOutput] = useState(true)
+
   const [showApiKey, setShowApiKey] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
@@ -285,6 +297,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
     if (providerName === 'Fish Audio') return 'tts'
     if (providerName === 'Tencent Cloud') return 'speech2text'
     if (providerName === 'Azure-OpenAI') return 'embedding'
+    if (providerName === 'MinerU') return 'ocr'
     return 'chat'
   }
 
@@ -328,6 +341,12 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
       setBedrockAk('')
       setBedrockSk('')
       setBedrockRegion('')
+      // MinerU
+      setMineruApiServer('')
+      setMineruOutputDir('')
+      setMineruBackend('pipeline')
+      setMineruServerUrl('')
+      setMineruDeleteOutput(true)
       setError('')
     }
   }, [isOpen, defaultBaseUrl, providerName])
@@ -581,6 +600,36 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
         additionalParams.model_type = modelType
         additionalParams.max_tokens = maxTokens
         additionalParams.llm_factory = providerName
+      }
+      
+      // MinerU
+      else if (providerName === 'MinerU') {
+        if (!modelName.trim()) {
+          setError('请输入模型名称')
+          setIsLoading(false)
+          return
+        }
+        // 构建 api_key 配置对象
+        const mineruConfig: Record<string, any> = {
+          mineru_backend: mineruBackend,
+          mineru_delete_output: mineruDeleteOutput ? '1' : '0',
+        }
+        if (mineruApiServer.trim()) {
+          mineruConfig.mineru_apiserver = mineruApiServer
+        }
+        if (mineruOutputDir.trim()) {
+          mineruConfig.mineru_output_dir = mineruOutputDir
+        }
+        if (mineruServerUrl.trim()) {
+          mineruConfig.mineru_server_url = mineruServerUrl
+        }
+        
+        additionalParams.llm_name = modelName
+        additionalParams.model_type = 'ocr'
+        additionalParams.max_tokens = 0
+        additionalParams.llm_factory = providerName
+        additionalParams.api_key = mineruConfig
+        additionalParams.api_base = ''
       }
       
       // ========== 本地模型厂商 ==========
@@ -1291,6 +1340,95 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                     placeholder="8192"
                     min={1}
                   />
+                </div>
+              </>
+            )}
+
+            {/* ========== MinerU 专用表单 ========== */}
+            {providerName === 'MinerU' && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    模型类型
+                  </label>
+                  <Input 
+                    value="OCR" 
+                    disabled 
+                    className="bg-muted cursor-not-allowed"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    模型名称 <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    value={modelName}
+                    onChange={(e) => setModelName(e.target.value)}
+                    placeholder="mineru-from-env-1"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    API Server <span className="text-text-tertiary font-normal ml-1">(可选)</span>
+                  </label>
+                  <Input
+                    value={mineruApiServer}
+                    onChange={(e) => setMineruApiServer(e.target.value)}
+                    placeholder="http://host.docker.internal:9987"
+                  />
+                  <p className="mt-1.5 text-xs text-text-tertiary">
+                    MinerU API 服务器地址
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    输出目录 <span className="text-text-tertiary font-normal ml-1">(可选)</span>
+                  </label>
+                  <Input
+                    value={mineruOutputDir}
+                    onChange={(e) => setMineruOutputDir(e.target.value)}
+                    placeholder="/tmp/mineru"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    后端类型 <span className="text-red-500">*</span>
+                  </label>
+                  <Select value={mineruBackend} onValueChange={(value) => setMineruBackend(value as typeof mineruBackend)}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pipeline">Pipeline</SelectItem>
+                      <SelectItem value="vlm-transformers">VLM Transformers</SelectItem>
+                      <SelectItem value="vlm-vllm-engine">VLM VLLM Engine</SelectItem>
+                      <SelectItem value="vlm-http-client">VLM HTTP Client</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    服务器 URL <span className="text-text-tertiary font-normal ml-1">(可选)</span>
+                  </label>
+                  <Input
+                    value={mineruServerUrl}
+                    onChange={(e) => setMineruServerUrl(e.target.value)}
+                    placeholder="http://your-vllm-server:30000"
+                  />
+                  <p className="mt-1.5 text-xs text-text-tertiary">
+                    用于 VLM HTTP Client 后端的服务器地址
+                  </p>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <label className="text-sm font-medium text-text-primary">
+                      删除输出文件
+                    </label>
+                    <p className="text-xs text-text-tertiary">
+                      处理完成后删除临时输出文件
+                    </p>
+                  </div>
+                  <Switch checked={mineruDeleteOutput} onCheckedChange={setMineruDeleteOutput} />
                 </div>
               </>
             )}

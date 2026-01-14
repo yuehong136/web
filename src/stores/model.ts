@@ -4,7 +4,7 @@ import { apiClient } from '@/api/client'
 
 // 根据您提供的数据结构定义类型
 export interface MyLLMModel {
-  type: 'chat' | 'embedding' | 'rerank' | 'image2text' | 'tts' | 'speech2text'
+  type: 'chat' | 'embedding' | 'rerank' | 'image2text' | 'tts' | 'speech2text' | 'ocr'
   name: string
   used_token: number
 }
@@ -96,6 +96,7 @@ export const LLMFactory = {
   DeerAPI: 'DeerAPI',
   Grok: 'Grok',
   CometAPI: 'CometAPI',
+  MinerU: 'MinerU',
 } as const
 
 // IconMap - 与 ragflow iconfont.js 中的图标名称匹配
@@ -159,6 +160,7 @@ export const IconMap: Record<string, string> = {
   [LLMFactory.DeerAPI]: 'deerapi',
   [LLMFactory.Grok]: 'grok',
   [LLMFactory.CometAPI]: 'cometapi',
+  [LLMFactory.MinerU]: 'mineru',
 };
 
 export interface LLMFactoryInterface {
