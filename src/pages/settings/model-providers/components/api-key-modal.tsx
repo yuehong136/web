@@ -17,6 +17,7 @@ const API_KEY_WITH_BASE_URL = [
   'Tongyi-Qianwen',
   'MiniMax',
   'Anthropic',
+  'BaiduYiyan',
 ]
 
 // Base URL 提示和占位符
@@ -36,6 +37,10 @@ const BASE_URL_CONFIG: Record<string, { placeholder: string; tooltip?: string }>
   'Anthropic': { 
     placeholder: 'https://api.anthropic.com/v1',
     tooltip: '如果使用代理，请填写'
+  },
+  'BaiduYiyan': { 
+    placeholder: 'https://qianfan.baidubce.com/v2',
+    tooltip: '百度文心 OpenAI 兼容接口地址'
   },
 }
 
@@ -60,7 +65,6 @@ const SPECIAL_FORM_FACTORIES = [
   'Tencent Hunyuan',      // 混元：Secret ID + Secret Key
   'Tencent Cloud',        // 腾讯云语音：SecretId + SecretKey + 预设模型
   'XunFei Spark',         // 讯飞星火：API Password + (TTS: AppId, ApiSecret, ApiKey)
-  'BaiduYiyan',           // 百度文心：AK + SK
   'Fish Audio',           // Fish Audio：AK + RefID
   'Google Cloud',         // Google Cloud：ProjectID + Region + ServiceAccountKey
   'Azure-OpenAI',         // Azure：BaseUrl + ApiKey + ModelName + ApiVersion
@@ -252,10 +256,6 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
   const [sparkApiSecret, setSparkApiSecret] = useState('')
   const [sparkApiKey, setSparkApiKey] = useState('')
   
-  // BaiduYiyan (百度文心) 字段
-  const [yiyanAk, setYiyanAk] = useState('')
-  const [yiyanSk, setYiyanSk] = useState('')
-  
   // Fish Audio 字段
   const [fishAudioAk, setFishAudioAk] = useState('')
   const [fishAudioRefId, setFishAudioRefId] = useState('')
@@ -322,9 +322,6 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
       setSparkAppId('')
       setSparkApiSecret('')
       setSparkApiKey('')
-      // Yiyan
-      setYiyanAk('')
-      setYiyanSk('')
       // Fish Audio
       setFishAudioAk('')
       setFishAudioRefId('')
@@ -438,31 +435,6 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
           additionalParams.spark_api_key = sparkApiKey
         }
         additionalParams.spark_api_password = sparkApiPassword
-        additionalParams.llm_name = modelName
-        additionalParams.model_type = modelType
-        additionalParams.max_tokens = maxTokens
-        additionalParams.llm_factory = providerName
-      }
-      
-      // BaiduYiyan (百度文心)
-      else if (providerName === 'BaiduYiyan') {
-        if (!modelName.trim()) {
-          setError('请输入模型名称')
-          setIsLoading(false)
-          return
-        }
-        if (!yiyanAk.trim()) {
-          setError('请输入 API Key (AK)')
-          setIsLoading(false)
-          return
-        }
-        if (!yiyanSk.trim()) {
-          setError('请输入 Secret Key (SK)')
-          setIsLoading(false)
-          return
-        }
-        additionalParams.yiyan_ak = yiyanAk
-        additionalParams.yiyan_sk = yiyanSk
         additionalParams.llm_name = modelName
         additionalParams.model_type = modelType
         additionalParams.max_tokens = maxTokens
@@ -896,72 +868,6 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                     </div>
                   </>
                 )}
-                <div>
-                  <label className="block text-sm font-medium text-text-primary mb-2">
-                    Max Tokens <span className="text-red-500">*</span>
-                  </label>
-                  <Input
-                    type="number"
-                    value={maxTokens}
-                    onChange={(e) => setMaxTokens(parseInt(e.target.value) || 8192)}
-                    placeholder="8192"
-                    min={1}
-                  />
-                </div>
-              </>
-            )}
-
-            {/* ========== BaiduYiyan (百度文心) 专用表单 ========== */}
-            {providerName === 'BaiduYiyan' && (
-              <>
-                <div>
-                  <label className="block text-sm font-medium text-text-primary mb-2">
-                    模型类型 <span className="text-red-500">*</span>
-                  </label>
-                  <Select value={modelType} onValueChange={setModelType}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {modelTypes.map(type => (
-                        <SelectItem key={type.value} value={type.value}>
-                          {type.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-text-primary mb-2">
-                    模型名称 <span className="text-red-500">*</span>
-                  </label>
-                  <Input
-                    value={modelName}
-                    onChange={(e) => setModelName(e.target.value)}
-                    placeholder="请输入模型名称"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-text-primary mb-2">
-                    API Key (AK) <span className="text-red-500">*</span>
-                  </label>
-                  <Input
-                    value={yiyanAk}
-                    onChange={(e) => setYiyanAk(e.target.value)}
-                    placeholder="请输入 API Key"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-text-primary mb-2">
-                    Secret Key (SK) <span className="text-red-500">*</span>
-                  </label>
-                  <Input
-                    type="password"
-                    value={yiyanSk}
-                    onChange={(e) => setYiyanSk(e.target.value)}
-                    placeholder="请输入 Secret Key"
-                  />
-                </div>
                 <div>
                   <label className="block text-sm font-medium text-text-primary mb-2">
                     Max Tokens <span className="text-red-500">*</span>
