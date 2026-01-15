@@ -2,6 +2,7 @@
 
 import {
   LayoutRecognizeFormField,
+  MinerUOptionsFormField,
   AutoKeywordsFormField,
   AutoQuestionsFormField,
 } from '@/components/forms/KnowledgeFormFields'
@@ -17,6 +18,7 @@ export function LawsConfiguration() {
       <ConfigurationFormContainer>
         <SectionTitle>基础配置</SectionTitle>
         <LayoutRecognizeFormField />
+        <MinerUOptionsFormField />
       </ConfigurationFormContainer>
 
       <ConfigurationFormContainer>

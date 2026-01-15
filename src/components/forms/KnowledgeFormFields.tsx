@@ -13,7 +13,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { SliderInputFormField } from './SliderInputFormField'
-import { LayoutRecognizeOptions, PermissionOptions } from '@/types/knowledge-form'
+import { LayoutRecognizeOptions, PermissionOptions, MineruParseMethodOptions } from '@/types/knowledge-form'
 
 // =====================================================
 // 布局识别/PDF解析器选择
@@ -461,6 +461,120 @@ export function ParserTypeFormField({
         </FormItem>
       )}
     />
+  )
+}
+
+// =====================================================
+// MinerU 选项（条件渲染，当选择 MinerU 时显示）
+// =====================================================
+interface MinerUOptionsFormFieldProps {
+  className?: string
+}
+
+export function MinerUOptionsFormField({
+  className,
+}: MinerUOptionsFormFieldProps) {
+  const form = useFormContext()
+
+  // 监听 layout_recognize 字段的变化
+  const layoutRecognize = form.watch('parser_config.layout_recognize')
+
+  // 检查是否选择了 MinerU
+  const isMinerUSelected = layoutRecognize?.includes('MinerU') || layoutRecognize?.toLowerCase()?.includes('mineru')
+
+  // 如果没有选择 MinerU，不渲染任何内容
+  if (!isMinerUSelected) {
+    return null
+  }
+
+  const parseMethodOptions: SelectOptionGroup[] = MineruParseMethodOptions.map((opt) => ({
+    label: opt.label,
+    value: opt.value,
+  }))
+
+  return (
+    <div className={cn('border-l-2 border-border-accent pl-4 ml-2 space-y-4', className)}>
+      <div className="text-sm font-medium text-text-secondary">
+        MinerU 选项
+      </div>
+
+      {/* 解析方法 */}
+      <FormField
+        control={form.control}
+        name="parser_config.mineru_parse_method"
+        render={({ field }) => (
+          <FormItem className="flex items-center gap-1 space-y-0">
+            <FormLabel
+              tooltip="PDF 解析方法：auto（自动检测）、txt（文本提取）、ocr（光学字符识别）"
+              className="text-sm text-text-secondary w-1/4 shrink-0"
+            >
+              解析方法
+            </FormLabel>
+            <div className="w-3/4">
+              <FormControl>
+                <SelectWithSearch
+                  value={field.value || 'auto'}
+                  onChange={field.onChange}
+                  options={parseMethodOptions}
+                  placeholder="请选择解析方法"
+                />
+              </FormControl>
+            </div>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      {/* 公式识别 */}
+      <FormField
+        control={form.control}
+        name="parser_config.mineru_formula_enable"
+        render={({ field }) => (
+          <FormItem className="flex items-center gap-1 space-y-0">
+            <FormLabel
+              tooltip="启用公式识别。注意：对于西里尔文档可能无法正常工作。"
+              className="text-sm text-text-secondary w-1/4 shrink-0"
+            >
+              公式识别
+            </FormLabel>
+            <div className="w-3/4">
+              <FormControl>
+                <Switch
+                  checked={field.value ?? true}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+            </div>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      {/* 表格识别 */}
+      <FormField
+        control={form.control}
+        name="parser_config.mineru_table_enable"
+        render={({ field }) => (
+          <FormItem className="flex items-center gap-1 space-y-0">
+            <FormLabel
+              tooltip="启用表格识别和提取。"
+              className="text-sm text-text-secondary w-1/4 shrink-0"
+            >
+              表格识别
+            </FormLabel>
+            <div className="w-3/4">
+              <FormControl>
+                <Switch
+                  checked={field.value ?? true}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+            </div>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    </div>
   )
 }
 

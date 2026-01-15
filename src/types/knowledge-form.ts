@@ -20,6 +20,13 @@ export const graphragSchema = z.object({
   community: z.boolean().default(false),
 })
 
+// MinerU 解析方法选项
+export const MineruParseMethodOptions = [
+  { label: 'Auto', value: 'auto' },
+  { label: 'Text', value: 'txt' },
+  { label: 'OCR', value: 'ocr' },
+] as const
+
 // 解析器配置 Schema
 export const parserConfigSchema = z.object({
   layout_recognize: z.string().default('DeepDOC'),
@@ -33,6 +40,10 @@ export const parserConfigSchema = z.object({
   topn_tags: z.number().min(1).max(10).default(3),
   raptor: raptorSchema.optional(),
   graphrag: graphragSchema.optional(),
+  // MinerU 特定配置选项
+  mineru_parse_method: z.enum(['auto', 'txt', 'ocr']).default('auto'),
+  mineru_formula_enable: z.boolean().default(true),
+  mineru_table_enable: z.boolean().default(true),
 })
 
 // 知识库设置表单 Schema
@@ -123,6 +134,10 @@ export const getDefaultFormValues = (): Partial<KnowledgeSettingsFormData> => ({
     html4excel: false,
     toc_extraction: false,
     topn_tags: 3,
+    // MinerU 默认配置
+    mineru_parse_method: 'auto',
+    mineru_formula_enable: true,
+    mineru_table_enable: true,
     raptor: {
       use_raptor: false,
       max_token: 256,

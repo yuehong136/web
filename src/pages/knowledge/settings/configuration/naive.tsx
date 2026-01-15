@@ -2,6 +2,7 @@
 
 import {
   LayoutRecognizeFormField,
+  MinerUOptionsFormField,
   MaxTokenNumberFormField,
   DelimiterFormField,
   TocExtractionFormField,
@@ -22,6 +23,7 @@ export function NaiveConfiguration() {
       <ConfigurationFormContainer>
         <SectionTitle>基础配置</SectionTitle>
         <LayoutRecognizeFormField />
+        <MinerUOptionsFormField />
         <MaxTokenNumberFormField initialValue={512} max={2048} />
         <DelimiterFormField />
         <TocExtractionFormField />
