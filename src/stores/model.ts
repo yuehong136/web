@@ -22,7 +22,7 @@ export interface AddLlmParams {
   llm_name: string
   mdl_type: string
   api_base?: string
-  api_key?: string
+  api_key?: string | Record<string, any>  // 支持字符串或对象（MinerU 等厂商需要传递配置对象）
   max_tokens?: number
   // VolcEngine 特殊字段
   endpoint_id?: string

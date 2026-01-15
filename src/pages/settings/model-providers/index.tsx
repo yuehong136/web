@@ -32,7 +32,8 @@ const SPECIAL_CONFIG_FACTORIES = [
   'XunFei Spark',
   'BaiduYiyan',
   'Fish Audio',
-  'Google Cloud'
+  'Google Cloud',
+  'MinerU',
 ]
 
 export const ModelProvidersPage: React.FC = () => {
@@ -88,7 +89,7 @@ export const ModelProvidersPage: React.FC = () => {
       const params: AddLlmParams = {
         llm_factory: additionalParams?.llm_factory || apiKeyModal.providerName,
         llm_name: additionalParams.llm_name || apiKeyModal.providerName,
-        mdl_type: additionalParams.model_type || 'chat',
+        mdl_type: additionalParams.mdl_type || 'chat',
         api_base: baseUrl || additionalParams?.api_base,
         api_key: apiKey || additionalParams?.api_key || undefined,
         max_tokens: additionalParams.max_tokens,

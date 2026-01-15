@@ -396,7 +396,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
         additionalParams.TencentCloud_sid = tencentCloudSid
         additionalParams.TencentCloud_sk = tencentCloudSk
         additionalParams.llm_name = modelName
-        additionalParams.model_type = 'speech2text'
+        additionalParams.mdl_type = 'speech2text'
         additionalParams.max_tokens = 16000
         additionalParams.llm_factory = providerName
       }
@@ -436,7 +436,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
         }
         additionalParams.spark_api_password = sparkApiPassword
         additionalParams.llm_name = modelName
-        additionalParams.model_type = modelType
+        additionalParams.mdl_type = modelType
         additionalParams.max_tokens = maxTokens
         additionalParams.llm_factory = providerName
       }
@@ -461,7 +461,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
         additionalParams.fish_audio_ak = fishAudioAk
         additionalParams.fish_audio_refid = fishAudioRefId
         additionalParams.llm_name = modelName
-        additionalParams.model_type = 'tts'
+        additionalParams.mdl_type = 'tts'
         additionalParams.max_tokens = maxTokens
         additionalParams.llm_factory = providerName
       }
@@ -492,7 +492,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
         additionalParams.google_region = googleRegion
         additionalParams.google_service_account_key = googleServiceAccountKey
         additionalParams.llm_name = modelName
-        additionalParams.model_type = modelType
+        additionalParams.mdl_type = modelType
         additionalParams.max_tokens = maxTokens
         additionalParams.llm_factory = providerName
       }
@@ -513,7 +513,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
         additionalParams.api_key = apiKey
         additionalParams.api_version = azureApiVersion
         additionalParams.llm_name = modelName
-        additionalParams.model_type = vision && modelType === 'chat' ? 'image2text' : modelType
+        additionalParams.mdl_type = vision && modelType === 'chat' ? 'image2text' : modelType
         additionalParams.max_tokens = maxTokens
         additionalParams.llm_factory = providerName
       }
@@ -538,7 +538,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
         additionalParams.endpoint_id = endpointId
         additionalParams.ark_api_key = arkApiKey
         additionalParams.llm_name = modelName
-        additionalParams.model_type = modelType
+        additionalParams.mdl_type = modelType
         additionalParams.max_tokens = maxTokens
         additionalParams.llm_factory = providerName
       }
@@ -569,7 +569,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
         additionalParams.bedrock_sk = bedrockSk
         additionalParams.bedrock_region = bedrockRegion
         additionalParams.llm_name = modelName
-        additionalParams.model_type = modelType
+        additionalParams.mdl_type = modelType
         additionalParams.max_tokens = maxTokens
         additionalParams.llm_factory = providerName
       }
@@ -600,7 +600,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
         }
 
         additionalParams.llm_name = modelName
-        additionalParams.model_type = 'ocr'
+        additionalParams.mdl_type = 'ocr'
         additionalParams.max_tokens = 0
         additionalParams.llm_factory = providerName
         additionalParams.api_key = mineruConfig
@@ -620,7 +620,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
           return
         }
         additionalParams.llm_name = modelName
-        additionalParams.model_type = vision && modelType === 'chat' ? 'image2text' : modelType
+        additionalParams.mdl_type = vision && modelType === 'chat' ? 'image2text' : modelType
         additionalParams.max_tokens = maxTokens
         additionalParams.llm_factory = providerName
         additionalParams.api_base = baseUrl
