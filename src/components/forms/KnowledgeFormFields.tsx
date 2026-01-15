@@ -13,7 +13,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { SliderInputFormField } from './SliderInputFormField'
-import { LayoutRecognizeOptions, PermissionOptions, MineruParseMethodOptions } from '@/types/knowledge-form'
+import { LayoutRecognizeOptions, PermissionOptions, MineruParseMethodOptions, MineruLanguageOptions } from '@/types/knowledge-form'
 
 // =====================================================
 // 布局识别/PDF解析器选择
@@ -492,6 +492,11 @@ export function MinerUOptionsFormField({
     value: opt.value,
   }))
 
+  const languageOptions: SelectOptionGroup[] = MineruLanguageOptions.map((opt) => ({
+    label: opt.label,
+    value: opt.value,
+  }))
+
   return (
     <div className={cn('border-l-2 border-border-accent pl-4 ml-2 space-y-4', className)}>
       <div className="text-sm font-medium text-text-secondary">
@@ -517,6 +522,33 @@ export function MinerUOptionsFormField({
                   onChange={field.onChange}
                   options={parseMethodOptions}
                   placeholder="请选择解析方法"
+                />
+              </FormControl>
+            </div>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      {/* OCR 语言 */}
+      <FormField
+        control={form.control}
+        name="parser_config.mineru_lang"
+        render={({ field }) => (
+          <FormItem className="flex items-center gap-1 space-y-0">
+            <FormLabel
+              tooltip="MinerU OCR 首选语言设置。"
+              className="text-sm text-text-secondary w-1/4 shrink-0"
+            >
+              OCR 语言
+            </FormLabel>
+            <div className="w-3/4">
+              <FormControl>
+                <SelectWithSearch
+                  value={field.value || 'English'}
+                  onChange={field.onChange}
+                  options={languageOptions}
+                  placeholder="请选择语言"
                 />
               </FormControl>
             </div>

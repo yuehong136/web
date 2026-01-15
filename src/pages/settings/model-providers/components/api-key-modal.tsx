@@ -280,7 +280,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
   // MinerU 字段
   const [mineruApiServer, setMineruApiServer] = useState('')
   const [mineruOutputDir, setMineruOutputDir] = useState('')
-  const [mineruBackend, setMineruBackend] = useState<'pipeline' | 'vlm-transformers' | 'vlm-vllm-engine' | 'vlm-http-client'>('pipeline')
+  const [mineruBackend, setMineruBackend] = useState<'pipeline' | 'vlm-transformers' | 'vlm-vllm-engine' | 'vlm-http-client' | 'vlm-mlx-engine' | 'vlm-vllm-async-engine' | 'vlm-lmdeploy-engine'>('pipeline')
   const [mineruServerUrl, setMineruServerUrl] = useState('')
   const [mineruDeleteOutput, setMineruDeleteOutput] = useState(true)
 
@@ -581,13 +581,16 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
           setIsLoading(false)
           return
         }
+        if (!mineruApiServer.trim()) {
+          setError('请输入 API Server 地址')
+          setIsLoading(false)
+          return
+        }
         // 构建 api_key 配置对象
         const mineruConfig: Record<string, any> = {
+          mineru_apiserver: mineruApiServer,
           mineru_backend: mineruBackend,
           mineru_delete_output: mineruDeleteOutput ? '1' : '0',
-        }
-        if (mineruApiServer.trim()) {
-          mineruConfig.mineru_apiserver = mineruApiServer
         }
         if (mineruOutputDir.trim()) {
           mineruConfig.mineru_output_dir = mineruOutputDir
@@ -595,7 +598,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
         if (mineruServerUrl.trim()) {
           mineruConfig.mineru_server_url = mineruServerUrl
         }
-        
+
         additionalParams.llm_name = modelName
         additionalParams.model_type = 'ocr'
         additionalParams.max_tokens = 0
@@ -1275,16 +1278,13 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-text-primary mb-2">
-                    API Server <span className="text-text-tertiary font-normal ml-1">(可选)</span>
+                    API Server <span className="text-red-500">*</span>
                   </label>
                   <Input
                     value={mineruApiServer}
                     onChange={(e) => setMineruApiServer(e.target.value)}
                     placeholder="http://host.docker.internal:9987"
                   />
-                  <p className="mt-1.5 text-xs text-text-tertiary">
-                    MinerU API 服务器地址
-                  </p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-text-primary mb-2">
@@ -1300,7 +1300,15 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                   <label className="block text-sm font-medium text-text-primary mb-2">
                     后端类型 <span className="text-red-500">*</span>
                   </label>
-                  <Select value={mineruBackend} onValueChange={(value) => setMineruBackend(value as typeof mineruBackend)}>
+                  <Select
+                    value={mineruBackend}
+                    onValueChange={(value) => {
+                      setMineruBackend(value as typeof mineruBackend)
+                      if (value !== 'vlm-http-client') {
+                        setMineruServerUrl('')
+                      }
+                    }}
+                  >
                     <SelectTrigger className="w-full">
                       <SelectValue />
                     </SelectTrigger>
@@ -1309,22 +1317,24 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                       <SelectItem value="vlm-transformers">VLM Transformers</SelectItem>
                       <SelectItem value="vlm-vllm-engine">VLM VLLM Engine</SelectItem>
                       <SelectItem value="vlm-http-client">VLM HTTP Client</SelectItem>
+                      <SelectItem value="vlm-mlx-engine">VLM MLX Engine</SelectItem>
+                      <SelectItem value="vlm-vllm-async-engine">VLM VLLM Async Engine</SelectItem>
+                      <SelectItem value="vlm-lmdeploy-engine">VLM LMDeploy Engine</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-text-primary mb-2">
-                    服务器 URL <span className="text-text-tertiary font-normal ml-1">(可选)</span>
-                  </label>
-                  <Input
-                    value={mineruServerUrl}
-                    onChange={(e) => setMineruServerUrl(e.target.value)}
-                    placeholder="http://your-vllm-server:30000"
-                  />
-                  <p className="mt-1.5 text-xs text-text-tertiary">
-                    用于 VLM HTTP Client 后端的服务器地址
-                  </p>
-                </div>
+                {mineruBackend === 'vlm-http-client' && (
+                  <div>
+                    <label className="block text-sm font-medium text-text-primary mb-2">
+                      服务器 URL <span className="text-text-tertiary font-normal ml-1">(可选)</span>
+                    </label>
+                    <Input
+                      value={mineruServerUrl}
+                      onChange={(e) => setMineruServerUrl(e.target.value)}
+                      placeholder="http://your-vllm-server:30000"
+                    />
+                  </div>
+                )}
                 <div className="flex items-center justify-between">
                   <div>
                     <label className="text-sm font-medium text-text-primary">

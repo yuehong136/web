@@ -27,6 +27,30 @@ export const MineruParseMethodOptions = [
   { label: 'OCR', value: 'ocr' },
 ] as const
 
+// MinerU 语言选项
+export const MineruLanguageOptions = [
+  { label: 'English', value: 'English' },
+  { label: 'Chinese', value: 'Chinese' },
+  { label: 'Traditional Chinese', value: 'Traditional Chinese' },
+  { label: 'Russian', value: 'Russian' },
+  { label: 'Ukrainian', value: 'Ukrainian' },
+  { label: 'Indonesian', value: 'Indonesian' },
+  { label: 'Spanish', value: 'Spanish' },
+  { label: 'Vietnamese', value: 'Vietnamese' },
+  { label: 'Japanese', value: 'Japanese' },
+  { label: 'Korean', value: 'Korean' },
+  { label: 'Portuguese BR', value: 'Portuguese BR' },
+  { label: 'German', value: 'German' },
+  { label: 'French', value: 'French' },
+  { label: 'Italian', value: 'Italian' },
+  { label: 'Tamil', value: 'Tamil' },
+  { label: 'Telugu', value: 'Telugu' },
+  { label: 'Kannada', value: 'Kannada' },
+  { label: 'Thai', value: 'Thai' },
+  { label: 'Greek', value: 'Greek' },
+  { label: 'Hindi', value: 'Hindi' },
+] as const
+
 // 解析器配置 Schema
 export const parserConfigSchema = z.object({
   layout_recognize: z.string().default('DeepDOC'),
@@ -44,6 +68,7 @@ export const parserConfigSchema = z.object({
   mineru_parse_method: z.enum(['auto', 'txt', 'ocr']).default('auto'),
   mineru_formula_enable: z.boolean().default(true),
   mineru_table_enable: z.boolean().default(true),
+  mineru_lang: z.string().default('English'),
 })
 
 // 知识库设置表单 Schema
@@ -138,6 +163,7 @@ export const getDefaultFormValues = (): Partial<KnowledgeSettingsFormData> => ({
     mineru_parse_method: 'auto',
     mineru_formula_enable: true,
     mineru_table_enable: true,
+    mineru_lang: 'English',
     raptor: {
       use_raptor: false,
       max_token: 256,
