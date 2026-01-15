@@ -12,6 +12,12 @@ import { KnowledgeCreatePage } from '@/pages/knowledge/KnowledgeCreatePage'
 import { KnowledgeImportPage } from '@/pages/knowledge/KnowledgeImportPage'
 import { DocumentChunksPage } from '@/pages/knowledge/DocumentChunksPage'
 import { KnowledgeLogsPage } from '@/pages/knowledge/logs'
+import {
+  MemoryListPage,
+  MemoryDetailLayout,
+  MemoryMessagesPage,
+  MemorySettingsPage,
+} from '@/pages/memory'
 import { SettingsLayout } from '@/pages/settings/SettingsLayout'
 import { ProfilePage } from '@/pages/settings/ProfilePage'
 import { SecurityPage } from '@/pages/settings/SecurityPage'
@@ -75,6 +81,36 @@ const AppearancePage = () => (
   </div>
 )
 
+const DataSourcePage = () => (
+  <div className="flex flex-col items-center justify-center h-full p-8">
+    <div className="text-center max-w-md">
+      <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-surface-secondary flex items-center justify-center">
+        <svg className="w-8 h-8 text-text-tertiary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
+        </svg>
+      </div>
+      <h2 className="text-xl font-semibold text-text-primary mb-2">数据源管理</h2>
+      <p className="text-text-secondary mb-4">该功能正在开发中，敬请期待...</p>
+      <p className="text-sm text-text-tertiary">数据源管理将支持连接多种外部数据源，包括数据库、API、文件存储等。</p>
+    </div>
+  </div>
+)
+
+const TeamPage = () => (
+  <div className="flex flex-col items-center justify-center h-full p-8">
+    <div className="text-center max-w-md">
+      <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-surface-secondary flex items-center justify-center">
+        <svg className="w-8 h-8 text-text-tertiary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>
+      </div>
+      <h2 className="text-xl font-semibold text-text-primary mb-2">团队管理</h2>
+      <p className="text-text-secondary mb-4">该功能正在开发中，敬请期待...</p>
+      <p className="text-sm text-text-tertiary">团队管理将支持邀请成员、角色权限分配、协作空间等功能。</p>
+    </div>
+  </div>
+)
+
 
 // 创建路由配置
 const authRoutes: { path: string; element: React.ReactElement }[] = [
@@ -120,6 +156,24 @@ export const router = createBrowserRouter([
       {
         path: ROUTES.KNOWLEDGE,
         element: <KnowledgeListPage />,
+      },
+      {
+        path: ROUTES.MEMORY,
+        element: <MemoryListPage />,
+      },
+      {
+        path: '/memory/:id',
+        element: <MemoryDetailLayout />,
+        children: [
+          {
+            index: true,
+            element: <MemoryMessagesPage />,
+          },
+          {
+            path: 'settings',
+            element: <MemorySettingsPage />,
+          },
+        ],
       },
       {
         path: ROUTES.EXPLORE,
@@ -228,8 +282,16 @@ export const router = createBrowserRouter([
             element: <Navigate to={ROUTES.SETTINGS_PROFILE} replace />,
           },
           {
+            path: 'datasource',
+            element: <DataSourcePage />,
+          },
+          {
             path: 'profile',
             element: <ProfilePage />,
+          },
+          {
+            path: 'team',
+            element: <TeamPage />,
           },
           {
             path: 'security',

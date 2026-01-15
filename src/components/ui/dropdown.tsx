@@ -1,5 +1,9 @@
 import * as React from "react"
+import { createPortal } from "react-dom"
 import { cn } from "@/lib/utils"
+
+// Context 用于传递关闭函数
+const DropdownContext = React.createContext<{ close: () => void } | null>(null)
 
 interface DropdownItem {
   label: string
@@ -24,11 +28,39 @@ const Dropdown: React.FC<DropdownProps> = ({
   className 
 }) => {
   const [isOpen, setIsOpen] = React.useState(false)
+  const [position, setPosition] = React.useState({ top: 0, left: 0, right: 0 })
+  const triggerRef = React.useRef<HTMLDivElement>(null)
   const dropdownRef = React.useRef<HTMLDivElement>(null)
 
+  // 计算下拉菜单位置
+  const updatePosition = React.useCallback(() => {
+    if (triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect()
+      setPosition({
+        top: rect.bottom + 4, // 4px 间距
+        left: rect.left,
+        right: window.innerWidth - rect.right,
+      })
+    }
+  }, [])
+
+  // 打开时计算位置
+  React.useEffect(() => {
+    if (isOpen) {
+      updatePosition()
+    }
+  }, [isOpen, updatePosition])
+
+  // 点击外部关闭
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      const target = event.target as Node
+      if (
+        triggerRef.current && 
+        !triggerRef.current.contains(target) &&
+        dropdownRef.current &&
+        !dropdownRef.current.contains(target)
+      ) {
         setIsOpen(false)
       }
     }
@@ -42,41 +74,78 @@ const Dropdown: React.FC<DropdownProps> = ({
     }
   }, [isOpen])
 
+  // ESC 键关闭
+  React.useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsOpen(false)
+      }
+    }
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleEscape)
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape)
+    }
+  }, [isOpen])
+
+  // 滚动时关闭
+  React.useEffect(() => {
+    if (isOpen) {
+      const handleScroll = () => setIsOpen(false)
+      window.addEventListener('scroll', handleScroll, true)
+      return () => window.removeEventListener('scroll', handleScroll, true)
+    }
+  }, [isOpen])
+
+  // Context value
+  const contextValue = React.useMemo(() => ({ close: () => setIsOpen(false) }), [])
+
+  const dropdownContent = isOpen && (
+    <DropdownContext.Provider value={contextValue}>
+      {/* Backdrop */}
+      <div 
+        className="fixed inset-0 z-[9998]" 
+        onClick={() => setIsOpen(false)} 
+      />
+      
+      {/* Dropdown content - 使用 Portal 渲染到 body */}
+      <div 
+        ref={dropdownRef}
+        className={cn(
+          "fixed z-[9999] min-w-[160px] rounded-lg shadow-lg",
+          "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700",
+          className
+        )}
+        style={{
+          top: position.top,
+          ...(align === 'right' ? { right: position.right } : { left: position.left }),
+        }}
+      >
+        <div className="py-1 bg-white dark:bg-gray-800 rounded-lg">
+          {items ? items.map((item, index) => (
+            <DropdownItem
+              key={index}
+              icon={item.icon}
+              danger={item.destructive}
+              onClick={item.onClick}
+            >
+              {item.label}
+            </DropdownItem>
+          )) : children}
+        </div>
+      </div>
+    </DropdownContext.Provider>
+  )
+
   return (
-    <div className="relative inline-block text-left" ref={dropdownRef}>
+    <div className="relative inline-block text-left" ref={triggerRef}>
       <div onClick={() => setIsOpen(!isOpen)}>
         {trigger}
       </div>
-
-      {isOpen && (
-        <>
-          {/* Backdrop */}
-          <div className="fixed inset-0 z-10" onClick={() => setIsOpen(false)} />
-          
-          {/* Dropdown content */}
-          <div className={cn(
-            "absolute z-20 mt-2 min-w-[160px] bg-white border border-gray-200 rounded-md shadow-lg",
-            align === 'right' ? 'right-0' : 'left-0',
-            className
-          )}>
-            <div className="py-1">
-              {items ? items.map((item, index) => (
-                <DropdownItem
-                  key={index}
-                  icon={item.icon}
-                  danger={item.destructive}
-                  onClick={() => {
-                    item.onClick()
-                    setIsOpen(false)
-                  }}
-                >
-                  {item.label}
-                </DropdownItem>
-              )) : children}
-            </div>
-          </div>
-        </>
-      )}
+      {createPortal(dropdownContent, document.body)}
     </div>
   )
 }
@@ -92,15 +161,27 @@ const DropdownItem: React.FC<DropdownItemProps> = ({
   icon, 
   danger = false, 
   className,
+  onClick,
   ...props 
 }) => {
+  const context = React.useContext(DropdownContext)
+
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    onClick?.(e)
+    // 关闭下拉菜单
+    context?.close()
+  }
+
   return (
     <button
       className={cn(
-        "w-full flex items-center space-x-2 px-4 py-2 text-sm text-left hover:bg-gray-50 transition-colors",
-        danger ? "text-red-600 hover:bg-red-50" : "text-gray-700",
+        "w-full flex items-center gap-2 px-3 py-2.5 text-sm text-left",
+        danger 
+          ? "text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20" 
+          : "text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700",
         className
       )}
+      onClick={handleClick}
       {...props}
     >
       {icon && <span className="flex-shrink-0">{icon}</span>}

@@ -201,27 +201,23 @@ const LogTabFilter: React.FC<LogTabFilterProps> = ({
         </Popover>
 
         {/* 搜索框 */}
-        <div className="relative">
-          <Search 
-            className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-            style={{ color: 'var(--color-text-tertiary)' }}
-          />
-          <Input
-            placeholder="搜索..."
-            value={searchValue}
-            onChange={onSearchChange}
-            className="w-48 pl-8 h-9 text-sm"
-          />
-          {searchValue && (
-            <button
-              onClick={() => onSearchChange({ target: { value: '' } } as React.ChangeEvent<HTMLInputElement>)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded"
-              style={{ color: 'var(--color-text-tertiary)' }}
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          )}
-        </div>
+        <Input
+          placeholder="搜索..."
+          value={searchValue}
+          onChange={onSearchChange}
+          className="w-48 h-9 text-sm"
+          leftIcon={<Search className="w-4 h-4" />}
+          rightIcon={
+            searchValue ? (
+              <button
+                onClick={() => onSearchChange({ target: { value: '' } } as React.ChangeEvent<HTMLInputElement>)}
+                className="p-0.5 rounded hover:bg-surface-subtle"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            ) : undefined
+          }
+        />
       </div>
     </div>
   )

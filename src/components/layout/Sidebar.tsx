@@ -3,6 +3,7 @@ import { NavLink, useLocation } from 'react-router-dom'
 import {
   MessageSquare,
   BookOpen,
+  HardDrive,
   Wrench,
   Server,
   Briefcase,
@@ -17,7 +18,8 @@ import {
   Check,
   Workflow,
   Home,
-  PanelLeftClose
+  PanelLeftClose,
+  PlugZap
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ROUTES } from '@/constants'
@@ -50,12 +52,17 @@ const navItems: NavItem[] = [
   {
     title: 'MCP实验场',
     href: '/mcp-chat',
-    icon: MessageSquare,
+    icon: PlugZap,
   },
   {
     title: '知识库',
     href: ROUTES.KNOWLEDGE,
     icon: BookOpen,
+  },
+  {
+    title: '记忆库',
+    href: ROUTES.MEMORY,
+    icon: HardDrive,
   },
   {
     title: '探索',
@@ -521,7 +528,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       : "opacity-100 h-auto delay-[350ms]"
               )}
           >
-            <p className="text-xs text-text-muted whitespace-nowrap">v0.9.0</p>
+            <p className="text-xs text-text-muted whitespace-nowrap">v0.9.7</p>
           </div>
         </div>
 
