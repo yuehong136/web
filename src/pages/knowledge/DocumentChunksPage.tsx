@@ -21,9 +21,13 @@ import {
   PanelRightClose,
   PanelRightOpen,
   MessageCircleQuestion,
-  Key
+  Key,
+  Image as ImageIcon,
+  ZoomIn,
+  Replace
 } from 'lucide-react'
 import { knowledgeAPI } from '@/api/knowledge'
+import { API_BASE_URL, API_VERSION } from '@/constants'
 import { 
   Button,
   Input, 
@@ -35,8 +39,10 @@ import {
   ToggleSwitch,
   Checkbox,
   Label,
-  TagEditor
+  TagEditor,
+  ImageUploader
 } from '../../components/ui'
+import { fileToBase64 } from '@/lib/utils'
 import { 
   Popover, 
   PopoverTrigger, 
@@ -61,6 +67,8 @@ interface ChunkData {
   img_id: string
   available_int: number
   positions: number[][]
+  /** 分块类型：text | image | table 等 */
+  doc_type_kwd?: string
 }
 
 
@@ -101,6 +109,13 @@ const DocumentChunksPage: React.FC = () => {
   // 新建分块的关键词和问题
   const [newImportantKwd, setNewImportantKwd] = useState<string[]>([])
   const [newQuestionKwd, setNewQuestionKwd] = useState<string[]>([])
+  
+  // 图片上传状态（用于图片类型分块）
+  const [editingImage, setEditingImage] = useState<File[]>([])
+  const [newChunkImage, setNewChunkImage] = useState<File[]>([])
+  
+  // 图片预览弹窗状态
+  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null)
   
   // 切片配置展开状态
   const [showParserConfig, setShowParserConfig] = useState(false)
@@ -267,6 +282,8 @@ const DocumentChunksPage: React.FC = () => {
       content: string
       important_kwd?: string[]
       question_kwd?: string[]
+      /** 图片 Base64 编码（纯 Base64，不含 Data URL 前缀） */
+      image_base64?: string
     }) => {
       if (!docId) return false
       return knowledgeAPI.document.setChunk({
@@ -275,6 +292,7 @@ const DocumentChunksPage: React.FC = () => {
         content_with_weight: params.content,
         important_kwd: params.important_kwd,
         question_kwd: params.question_kwd,
+        image_base64: params.image_base64,
       })
     },
     // 不在这里刷新，由 handleEditChunk 中手动控制刷新时机
@@ -296,6 +314,8 @@ const DocumentChunksPage: React.FC = () => {
       content: string
       important_kwd?: string[]
       question_kwd?: string[]
+      /** 图片 Base64 编码（纯 Base64，不含 Data URL 前缀） */
+      image_base64?: string
     }) => {
       if (!docId) return false
       return knowledgeAPI.document.createChunk({
@@ -304,6 +324,7 @@ const DocumentChunksPage: React.FC = () => {
         important_kwd: params.important_kwd,
         question_kwd: params.question_kwd,
         available_int: 1,
+        image_base64: params.image_base64,
       })
     },
     onSuccess: delayedRefetchChunkList,
@@ -341,14 +362,22 @@ const DocumentChunksPage: React.FC = () => {
     if (!newChunkContent.trim()) return
     
     try {
+      // 如果有上传图片，转换为 Base64
+      let imageBase64: string | undefined
+      if (newChunkImage.length > 0) {
+        imageBase64 = await fileToBase64(newChunkImage[0])
+      }
+      
       await createChunkMutation.mutateAsync({
         content: newChunkContent.trim(),
         important_kwd: newImportantKwd,
         question_kwd: newQuestionKwd,
+        image_base64: imageBase64,
       })
       setNewChunkContent('')
       setNewImportantKwd([])
       setNewQuestionKwd([])
+      setNewChunkImage([])
       setAddChunkModalOpen(false)
     } catch (error) {
       console.error('Failed to create chunk:', error)
@@ -360,12 +389,19 @@ const DocumentChunksPage: React.FC = () => {
     if (!selectedChunk || !editingChunkContent.trim() || !docId) return
     
     try {
+      // 如果有上传新图片，转换为 Base64
+      let imageBase64: string | undefined
+      if (editingImage.length > 0) {
+        imageBase64 = await fileToBase64(editingImage[0])
+      }
+      
       // 调用 chunk set 接口
       await setChunkMutation.mutateAsync({
         chunkId: selectedChunk.chunk_id,
         content: editingChunkContent.trim(),
         important_kwd: editingImportantKwd,
         question_kwd: editingQuestionKwd,
+        image_base64: imageBase64,
       })
       
       // 先关闭编辑模式
@@ -374,6 +410,7 @@ const DocumentChunksPage: React.FC = () => {
       setEditingChunkContent('')
       setEditingImportantKwd([])
       setEditingQuestionKwd([])
+      setEditingImage([])
       
       // 延迟刷新列表数据（与 ragflow 保持一致，后端需要时间更新索引）
       setTimeout(() => {
@@ -988,14 +1025,25 @@ const DocumentChunksPage: React.FC = () => {
                     </div>
                     
                     {/* 分段内容区域 - 包含可选的缩略图和内容 */}
-                    <div className="flex gap-3">
-                      {/* 缩略图预览 (如果有 img_id) */}
+                    <div className="flex gap-3 items-stretch">
+                      {/* 缩略图预览 (如果有 img_id) - 点击放大 */}
                       {chunk.img_id && (
-                        <div className="relative flex-shrink-0 group/thumb">
+                        <div 
+                          className="relative flex-shrink-0 group/thumb cursor-pointer self-stretch"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setPreviewImageUrl(`${API_BASE_URL}/${API_VERSION}/document/image/${chunk.img_id}`)
+                          }}
+                          style={{
+                            minHeight: '64px',
+                            minWidth: textMode === 'full' ? '120px' : '64px',
+                            maxWidth: textMode === 'full' ? '160px' : '64px',
+                          }}
+                        >
                           <img
-                            src={`/v1/document/image/${chunk.img_id}`}
+                            src={`${API_BASE_URL}/${API_VERSION}/document/image/${chunk.img_id}`}
                             alt="切片缩略图"
-                            className="w-16 h-16 object-cover rounded border"
+                            className="w-full h-full object-cover rounded border transition-all duration-200 group-hover/thumb:ring-2 group-hover/thumb:ring-text-accent"
                             style={{
                               borderColor: 'var(--color-border-default)',
                               backgroundColor: 'var(--color-background-subtle)'
@@ -1005,17 +1053,9 @@ const DocumentChunksPage: React.FC = () => {
                               (e.target as HTMLImageElement).style.display = 'none'
                             }}
                           />
-                          {/* Hover 时显示大图预览 */}
-                          <div className="absolute left-0 top-full mt-2 z-50 opacity-0 invisible group-hover/thumb:opacity-100 group-hover/thumb:visible transition-all duration-200 pointer-events-none">
-                            <img
-                              src={`/v1/document/image/${chunk.img_id}`}
-                              alt="切片预览"
-                              className="max-w-xs max-h-64 object-contain rounded-lg shadow-xl border"
-                              style={{
-                                borderColor: 'var(--color-border-default)',
-                                backgroundColor: 'var(--color-background-surface)'
-                              }}
-                            />
+                          {/* 悬停时显示放大图标 */}
+                          <div className="absolute inset-0 bg-black/0 group-hover/thumb:bg-black/30 transition-all duration-200 rounded flex items-center justify-center opacity-0 group-hover/thumb:opacity-100">
+                            <ZoomIn className="w-5 h-5 text-white drop-shadow-lg" />
                           </div>
                         </div>
                       )}
@@ -1238,6 +1278,7 @@ const DocumentChunksPage: React.FC = () => {
                       setEditingChunkContent('')
                       setEditingImportantKwd([])
                       setEditingQuestionKwd([])
+                      setEditingImage([])
                       setIsMarkdownPreview(false) // 重置预览状态
                     }}
                   >
@@ -1390,6 +1431,78 @@ const DocumentChunksPage: React.FC = () => {
                     </div>
                   </div>
                   
+                  {/* 图片上传区域 - 当分块类型是 image 或有现有图片时显示 */}
+                  {(selectedChunk.doc_type_kwd === 'image' || selectedChunk.img_id) && (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <ImageIcon className="h-4 w-4" style={{ color: 'var(--color-text-accent)' }} />
+                        <label className="block text-sm font-medium text-text-secondary">
+                          图片
+                        </label>
+                        <Tooltip content="为图片类型分块上传或替换图片">
+                          <span className="text-xs cursor-help rounded-full w-4 h-4 flex items-center justify-center border" style={{ 
+                            borderColor: 'var(--color-border-default)',
+                            color: 'var(--color-text-tertiary)'
+                          }}>?</span>
+                        </Tooltip>
+                      </div>
+                      
+                      {/* 图片预览与上传区域 */}
+                      <div className="space-y-3">
+                        {/* 现有图片预览 - 仅当没有上传新图片时显示 */}
+                        {selectedChunk.img_id && editingImage.length === 0 && (
+                          <div 
+                            className="relative group cursor-pointer rounded-lg overflow-hidden"
+                            onClick={() => setPreviewImageUrl(`${API_BASE_URL}/${API_VERSION}/document/image/${selectedChunk.img_id}`)}
+                            style={{ 
+                              backgroundColor: 'var(--color-background-default)',
+                              border: '1px solid var(--color-border-subtle)'
+                            }}
+                          >
+                            {/* 图片预览 */}
+                            <div className="aspect-video flex items-center justify-center p-4" style={{ backgroundColor: 'var(--color-background-subtle)' }}>
+                              <img
+                                src={`${API_BASE_URL}/${API_VERSION}/document/image/${selectedChunk.img_id}`}
+                                alt="分块图片"
+                                className="max-w-full max-h-full object-contain rounded shadow-sm"
+                              />
+                            </div>
+                            
+                            {/* 悬停遮罩层 */}
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                              <div className="flex items-center gap-2 px-4 py-2 rounded-full shadow-lg" style={{ backgroundColor: 'rgba(255,255,255,0.95)' }}>
+                                <ZoomIn className="w-4 h-4" style={{ color: 'var(--color-text-accent)' }} />
+                                <span className="text-sm font-medium" style={{ color: 'var(--color-text-accent)' }}>点击放大</span>
+                              </div>
+                            </div>
+                            
+                            {/* 底部信息栏 */}
+                            <div className="px-3 py-2 flex items-center justify-between" style={{ borderTop: '1px solid var(--color-border-subtle)', backgroundColor: 'var(--color-background-default)' }}>
+                              <span className="text-xs font-medium" style={{ color: 'var(--color-text-secondary)' }}>
+                                当前图片
+                              </span>
+                              <span className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
+                                点击查看大图
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* 图片上传组件 - 使用紧凑模式 */}
+                        <ImageUploader
+                          value={editingImage}
+                          onValueChange={setEditingImage}
+                          maxFileCount={1}
+                          hideDropzoneOnMaxFileCount={true}
+                          variant={selectedChunk.img_id ? "compact" : "default"}
+                          title={selectedChunk.img_id ? "上传新图片替换" : undefined}
+                          description={selectedChunk.img_id ? "PNG、JPG、WebP、GIF，最大 10MB" : undefined}
+                          dropzoneHeight="h-36"
+                        />
+                      </div>
+                    </div>
+                  )}
+                  
                   {/* 关键词编辑区 */}
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
@@ -1459,6 +1572,7 @@ const DocumentChunksPage: React.FC = () => {
                       setEditingChunkContent('')
                       setEditingImportantKwd([])
                       setEditingQuestionKwd([])
+                      setEditingImage([])
                       setIsMarkdownPreview(false) // 重置预览状态
                     }}
                   >
@@ -1828,6 +1942,7 @@ const DocumentChunksPage: React.FC = () => {
           setNewChunkContent('')
           setNewImportantKwd([])
           setNewQuestionKwd([])
+          setNewChunkImage([])
         }}
         title="添加新分段"
         size="lg"
@@ -1906,12 +2021,33 @@ const DocumentChunksPage: React.FC = () => {
             </div>
           </div>
           
+          {/* 图片上传（可选） */}
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <ImageIcon className="h-4 w-4" style={{ color: 'var(--color-text-accent)' }} />
+              <label className="block text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
+                图片
+              </label>
+              <span className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
+                (可选，用于图片类型分块)
+              </span>
+            </div>
+            <ImageUploader
+              value={newChunkImage}
+              onValueChange={setNewChunkImage}
+              maxFileCount={1}
+              hideDropzoneOnMaxFileCount={true}
+              dropzoneHeight="h-36"
+            />
+          </div>
+          
           <div className="flex justify-end space-x-3 pt-2">
             <Button variant="outline" onClick={() => {
               setAddChunkModalOpen(false)
               setNewChunkContent('')
               setNewImportantKwd([])
               setNewQuestionKwd([])
+              setNewChunkImage([])
             }}>
               取消
             </Button>
@@ -2043,6 +2179,48 @@ const DocumentChunksPage: React.FC = () => {
             <Button onClick={handleSaveMeta}>
               <Save className="h-4 w-4 mr-2" />
               保存元数据
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* 图片预览弹窗 */}
+      <Modal
+        open={!!previewImageUrl}
+        onClose={() => setPreviewImageUrl(null)}
+        title="图片预览"
+        size="xl"
+      >
+        <div className="flex flex-col items-center gap-4">
+          {previewImageUrl && (
+            <div className="relative w-full flex items-center justify-center" style={{ minHeight: '400px', maxHeight: '70vh' }}>
+              <img
+                src={previewImageUrl}
+                alt="图片预览"
+                className="max-w-full max-h-[70vh] object-contain rounded-lg shadow-lg"
+                style={{ 
+                  backgroundColor: 'var(--color-background-subtle)',
+                }}
+              />
+            </div>
+          )}
+          <div className="flex items-center gap-4">
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (previewImageUrl) {
+                  window.open(previewImageUrl, '_blank')
+                }
+              }}
+            >
+              <Eye className="h-4 w-4 mr-2" />
+              在新标签页打开
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setPreviewImageUrl(null)}
+            >
+              关闭
             </Button>
           </div>
         </div>

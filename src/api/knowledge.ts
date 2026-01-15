@@ -351,6 +351,8 @@ export const knowledgeAPI = {
       important_kwd?: string[]
       question_kwd?: string[]
       available_int?: number
+      /** 图片 Base64 编码（纯 Base64，不含 Data URL 前缀），用于图片类型分块 */
+      image_base64?: string
     }): Promise<boolean> =>
       apiClient.post('/v1/chunk/create', {
         ...params,
@@ -369,6 +371,8 @@ export const knowledgeAPI = {
       img_id: string
       available_int: number
       positions: number[][]
+      /** 分块类型：text | image | table 等 */
+      doc_type_kwd?: string
     }> =>
       apiClient.get(`/v1/chunk/get?chunk_id=${encodeURIComponent(chunkId)}`),
 
@@ -379,6 +383,8 @@ export const knowledgeAPI = {
       content_with_weight: string
       important_kwd?: string[]
       question_kwd?: string[]
+      /** 图片 Base64 编码（纯 Base64，不含 Data URL 前缀），用于图片类型分块 */
+      image_base64?: string
     }): Promise<boolean> =>
       apiClient.post('/v1/chunk/set', {
         ...params,

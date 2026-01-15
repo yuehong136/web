@@ -237,3 +237,39 @@ export function getInitials(name: string): string {
 export function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
+
+/**
+ * 将 File 对象转换为 Base64 字符串
+ * 
+ * 用于图片上传场景，将用户选择的图片文件转换为纯 Base64 编码字符串，
+ * 去除 Data URL 前缀（如 "data:image/png;base64,"），便于通过 JSON 接口传输。
+ * 
+ * @param file - 要转换的 File 对象
+ * @returns 返回纯 Base64 编码字符串的 Promise，如果文件为空则返回 undefined
+ * 
+ * @example
+ * const file = inputElement.files[0];
+ * const base64 = await fileToBase64(file);
+ * // base64 是纯 Base64 字符串，不含 "data:image/xxx;base64," 前缀
+ */
+export async function fileToBase64(file: File): Promise<string | undefined> {
+  if (!file) {
+    return undefined
+  }
+
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader()
+    
+    reader.addEventListener('load', () => {
+      // 去除 Data URL 前缀（如 "data:image/png;base64,"），只保留纯 Base64 内容
+      const result = reader.result?.toString() ?? ''
+      resolve(result.replace(/^data:[^;]+;base64,/, ''))
+    })
+    
+    reader.addEventListener('error', () => {
+      reject(new Error('文件读取失败'))
+    })
+    
+    reader.readAsDataURL(file)
+  })
+}
