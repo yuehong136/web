@@ -272,11 +272,12 @@ export const CreateAppPage: React.FC = () => {
           llm_id: data.llm_id || '',
           llm_setting: {
             // 如果 llm_setting 为 null，使用默认值但不启用
-            temperature: isLlmSettingNull ? 0.5 : (llmSetting?.temperature ?? 0.5),
-            top_p: isLlmSettingNull ? 0.85 : (llmSetting?.top_p ?? 0.85),
-            presence_penalty: isLlmSettingNull ? 0.2 : (llmSetting?.presence_penalty ?? 0.2),
-            frequency_penalty: isLlmSettingNull ? 0.3 : (llmSetting?.frequency_penalty ?? 0.3),
-            max_tokens: isLlmSettingNull ? 4096 : (llmSetting?.max_tokens ?? 4096),
+            // 使用 Number() 确保值为数字类型，避免 API 字符串类型错误
+            temperature: isLlmSettingNull ? 0.5 : Number(llmSetting?.temperature ?? 0.5),
+            top_p: isLlmSettingNull ? 0.85 : Number(llmSetting?.top_p ?? 0.85),
+            presence_penalty: isLlmSettingNull ? 0.2 : Number(llmSetting?.presence_penalty ?? 0.2),
+            frequency_penalty: isLlmSettingNull ? 0.3 : Number(llmSetting?.frequency_penalty ?? 0.3),
+            max_tokens: isLlmSettingNull ? 4096 : Number(llmSetting?.max_tokens ?? 4096),
             // 如果 llm_setting 为 null，所有参数都不启用
             temperature_enabled: isLlmSettingNull ? false : (llmSetting?.temperature !== undefined),
             top_p_enabled: isLlmSettingNull ? false : (llmSetting?.top_p !== undefined),
@@ -706,12 +707,13 @@ export const CreateAppPage: React.FC = () => {
       const dialogId = searchParams.get('dialog_id') || searchParams.get('id')
       
       // 构建 llm_setting，如果没有启用的参数则传 null
+      // 使用 Number() 确保值为数字类型，避免 API 字符串类型错误
       const enabledLlmSettings = {
-        ...(config.llm_setting.temperature_enabled && { temperature: config.llm_setting.temperature }),
-        ...(config.llm_setting.top_p_enabled && { top_p: config.llm_setting.top_p }),
-        ...(config.llm_setting.presence_penalty_enabled && { presence_penalty: config.llm_setting.presence_penalty }),
-        ...(config.llm_setting.frequency_penalty_enabled && { frequency_penalty: config.llm_setting.frequency_penalty }),
-        ...(config.llm_setting.max_tokens_enabled && { max_tokens: config.llm_setting.max_tokens })
+        ...(config.llm_setting.temperature_enabled && { temperature: Number(config.llm_setting.temperature) }),
+        ...(config.llm_setting.top_p_enabled && { top_p: Number(config.llm_setting.top_p) }),
+        ...(config.llm_setting.presence_penalty_enabled && { presence_penalty: Number(config.llm_setting.presence_penalty) }),
+        ...(config.llm_setting.frequency_penalty_enabled && { frequency_penalty: Number(config.llm_setting.frequency_penalty) }),
+        ...(config.llm_setting.max_tokens_enabled && { max_tokens: Number(config.llm_setting.max_tokens) })
       }
       
       // 构建 search_mode
@@ -1064,7 +1066,7 @@ export const CreateAppPage: React.FC = () => {
                       {/* 温度 */}
                       <div>
                         <div className="flex items-center justify-between mb-2">
-                          <Text strong style={{ color: 'var(--color-text-primary)' }}>温度: {config.llm_setting.temperature?.toFixed(2)}</Text>
+                          <Text strong style={{ color: 'var(--color-text-primary)' }}>温度: {Number(config.llm_setting.temperature ?? 0).toFixed(2)}</Text>
                           <Switch
                             checked={config.llm_setting.temperature_enabled}
                             onChange={(checked) => handleLLMSettingChange('temperature_enabled', checked)}
@@ -1084,7 +1086,7 @@ export const CreateAppPage: React.FC = () => {
                       {/* Top P */}
                       <div>
                         <div className="flex items-center justify-between mb-2">
-                          <Text strong style={{ color: 'var(--color-text-primary)' }}>Top P: {config.llm_setting.top_p?.toFixed(2)}</Text>
+                          <Text strong style={{ color: 'var(--color-text-primary)' }}>Top P: {Number(config.llm_setting.top_p ?? 0).toFixed(2)}</Text>
                           <Switch
                             checked={config.llm_setting.top_p_enabled}
                             onChange={(checked) => handleLLMSettingChange('top_p_enabled', checked)}
@@ -1104,7 +1106,7 @@ export const CreateAppPage: React.FC = () => {
                       {/* 存在处罚 */}
                       <div>
                         <div className="flex items-center justify-between mb-2">
-                          <Text strong style={{ color: 'var(--color-text-primary)' }}>存在处罚: {config.llm_setting.presence_penalty?.toFixed(2)}</Text>
+                          <Text strong style={{ color: 'var(--color-text-primary)' }}>存在处罚: {Number(config.llm_setting.presence_penalty ?? 0).toFixed(2)}</Text>
                           <Switch
                             checked={config.llm_setting.presence_penalty_enabled}
                             onChange={(checked) => handleLLMSettingChange('presence_penalty_enabled', checked)}
@@ -1124,7 +1126,7 @@ export const CreateAppPage: React.FC = () => {
                       {/* 频率惩罚 */}
                       <div>
                         <div className="flex items-center justify-between mb-2">
-                          <Text strong style={{ color: 'var(--color-text-primary)' }}>频率惩罚: {config.llm_setting.frequency_penalty?.toFixed(2)}</Text>
+                          <Text strong style={{ color: 'var(--color-text-primary)' }}>频率惩罚: {Number(config.llm_setting.frequency_penalty ?? 0).toFixed(2)}</Text>
                           <Switch
                             checked={config.llm_setting.frequency_penalty_enabled}
                             onChange={(checked) => handleLLMSettingChange('frequency_penalty_enabled', checked)}
@@ -1309,7 +1311,7 @@ export const CreateAppPage: React.FC = () => {
                     
                     {/* 相似度阈值 */}
                     <div>
-                      <Text strong className="block mb-2" style={{ color: 'var(--color-text-primary)' }}>相似度阈值: {config.similarity_threshold.toFixed(2)}</Text>
+                      <Text strong className="block mb-2" style={{ color: 'var(--color-text-primary)' }}>相似度阈值: {Number(config.similarity_threshold ?? 0).toFixed(2)}</Text>
                       <Slider
                         min={0}
                         max={1}
@@ -1321,7 +1323,7 @@ export const CreateAppPage: React.FC = () => {
                     
                     {/* 关键字相似度权重 */}
                     <div>
-                      <Text strong className="block mb-2" style={{ color: 'var(--color-text-primary)' }}>关键字相似度权重: {config.vector_similarity_weight.toFixed(2)}</Text>
+                      <Text strong className="block mb-2" style={{ color: 'var(--color-text-primary)' }}>关键字相似度权重: {Number(config.vector_similarity_weight ?? 0).toFixed(2)}</Text>
                       <Slider
                         min={0}
                         max={1}
@@ -1681,7 +1683,7 @@ export const CreateAppPage: React.FC = () => {
                     </div>
                     <div className="flex justify-between text-xs">
                       <Text className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>温度设置:</Text>
-                      <Text className="text-xs" style={{ color: 'var(--color-chat-preview-debug-text)' }}>{config.llm_setting.temperature?.toFixed(2) || 'N/A'}</Text>
+                      <Text className="text-xs" style={{ color: 'var(--color-chat-preview-debug-text)' }}>{Number(config.llm_setting.temperature ?? 0).toFixed(2) || 'N/A'}</Text>
                     </div>
                     <div className="flex justify-between text-xs">
                       <Text className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>知识库数量:</Text>
