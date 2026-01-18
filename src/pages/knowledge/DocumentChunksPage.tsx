@@ -930,6 +930,44 @@ const DocumentChunksPage: React.FC = () => {
                       if (!isInfoPanelOpen) setIsInfoPanelOpen(true)
                     }}
                   >
+                    {/* 分块类型标签 - 右上角 */}
+                    {(() => {
+                      const chunkType = (chunk.doc_type_kwd?.toLowerCase() as 'image' | 'text' | 'table') || 'text'
+                      const getTypeStyles = () => {
+                        switch (chunkType) {
+                          case 'image':
+                            return {
+                              bg: 'var(--color-components-badge-warning-bg)',
+                              text: 'var(--color-components-badge-warning-text)'
+                            }
+                          case 'table':
+                            return {
+                              bg: 'var(--color-components-badge-success-bg)',
+                              text: 'var(--color-components-badge-success-text)'
+                            }
+                          default:
+                            return {
+                              bg: 'var(--color-background-subtle)',
+                              text: 'var(--color-text-tertiary)'
+                            }
+                        }
+                      }
+                      const styles = getTypeStyles()
+                      return (
+                        <span 
+                          className="absolute top-0 right-0 px-3 py-1 text-xs font-medium rounded-bl-xl rounded-tr-lg"
+                          style={{
+                            backgroundColor: styles.bg,
+                            color: styles.text,
+                            borderLeft: '1px solid var(--color-border-default)',
+                            borderBottom: '1px solid var(--color-border-default)'
+                          }}
+                        >
+                          {chunkType === 'image' ? 'Image' : chunkType === 'table' ? 'Table' : 'Text'}
+                        </span>
+                      )
+                    })()}
+                    
                     {/* 分段头部 */}
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center space-x-3">
