@@ -6,6 +6,10 @@ import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { ProviderIcon } from '@/components/ui/provider-icon'
+import { Segmented, SegmentedItem } from '@/components/vendor/ui/segmented'
+
+// Bedrock 认证模式类型
+type BedrockAuthMode = 'access_key_secret' | 'iam_role' | 'assume_role'
 
 // ========== 厂商分类 ==========
 // 注意：不在 LOCAL_MODEL_FACTORIES 和 SPECIAL_FORM_FACTORIES 中的厂商，
@@ -184,19 +188,20 @@ const DEFAULT_BASE_URLS: Record<string, string> = {
   'GPUStack': 'http://localhost:8000',
 }
 
-// Bedrock 区域列表
+// Bedrock 区域列表（带中文描述）
 const BEDROCK_REGIONS = [
-  'us-east-1',
-  'us-east-2', 
-  'us-west-2',
-  'ap-south-1',
-  'ap-southeast-1',
-  'ap-southeast-2',
-  'ap-northeast-1',
-  'eu-central-1',
-  'eu-west-1',
-  'eu-west-2',
-  'eu-west-3',
+  { value: 'us-east-1', label: '美国东部 (弗吉尼亚北部)' },
+  { value: 'us-east-2', label: '美国东部 (俄亥俄州)' },
+  { value: 'us-west-2', label: '美国西部 (俄勒冈州)' },
+  { value: 'ap-south-1', label: '亚太地区 (孟买)' },
+  { value: 'ap-southeast-1', label: '亚太地区 (新加坡)' },
+  { value: 'ap-southeast-2', label: '亚太地区 (悉尼)' },
+  { value: 'ap-northeast-1', label: '亚太地区 (东京)' },
+  { value: 'eu-central-1', label: '欧洲 (法兰克福)' },
+  { value: 'eu-west-1', label: '欧洲 (爱尔兰)' },
+  { value: 'eu-west-2', label: '欧洲 (伦敦)' },
+  { value: 'eu-west-3', label: '欧洲 (巴黎)' },
+  { value: 'us-gov-west-1', label: 'AWS GovCloud (US-West)' },
 ]
 
 // 腾讯云语音模型列表
@@ -273,9 +278,11 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
   const [arkApiKey, setArkApiKey] = useState('')
   
   // Bedrock 字段
+  const [bedrockAuthMode, setBedrockAuthMode] = useState<BedrockAuthMode>('access_key_secret')
   const [bedrockAk, setBedrockAk] = useState('')
   const [bedrockSk, setBedrockSk] = useState('')
   const [bedrockRegion, setBedrockRegion] = useState('')
+  const [awsRoleArn, setAwsRoleArn] = useState('')
 
   // MinerU 字段
   const [mineruApiServer, setMineruApiServer] = useState('')
@@ -335,9 +342,11 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
       setEndpointId('')
       setArkApiKey('')
       // Bedrock
+      setBedrockAuthMode('access_key_secret')
       setBedrockAk('')
       setBedrockSk('')
       setBedrockRegion('')
+      setAwsRoleArn('')
       // MinerU
       setMineruApiServer('')
       setMineruOutputDir('')
@@ -550,23 +559,37 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
           setIsLoading(false)
           return
         }
-        if (!bedrockAk.trim()) {
-          setError('请输入 Access Key')
-          setIsLoading(false)
-          return
-        }
-        if (!bedrockSk.trim()) {
-          setError('请输入 Secret Key')
-          setIsLoading(false)
-          return
-        }
         if (!bedrockRegion) {
           setError('请选择区域')
           setIsLoading(false)
           return
         }
-        additionalParams.bedrock_ak = bedrockAk
-        additionalParams.bedrock_sk = bedrockSk
+        
+        // 根据认证模式验证
+        if (bedrockAuthMode === 'access_key_secret') {
+          if (!bedrockAk.trim()) {
+            setError('请输入 Access Key')
+            setIsLoading(false)
+            return
+          }
+          if (!bedrockSk.trim()) {
+            setError('请输入 Secret Key')
+            setIsLoading(false)
+            return
+          }
+          additionalParams.bedrock_ak = bedrockAk
+          additionalParams.bedrock_sk = bedrockSk
+        } else if (bedrockAuthMode === 'iam_role') {
+          if (!awsRoleArn.trim()) {
+            setError('请输入 AWS Role ARN')
+            setIsLoading(false)
+            return
+          }
+          additionalParams.aws_role_arn = awsRoleArn
+        }
+        // assume_role 模式不需要额外凭证
+        
+        additionalParams.auth_mode = bedrockAuthMode
         additionalParams.bedrock_region = bedrockRegion
         additionalParams.llm_name = modelName
         additionalParams.mdl_type = modelType
@@ -1200,27 +1223,84 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                     placeholder="请输入模型名称"
                   />
                 </div>
+
+                {/* AWS 认证模式切换 */}
                 <div>
                   <label className="block text-sm font-medium text-text-primary mb-2">
-                    Access Key <span className="text-red-500">*</span>
+                    认证模式
                   </label>
-                  <Input
-                    value={bedrockAk}
-                    onChange={(e) => setBedrockAk(e.target.value)}
-                    placeholder="请输入 AWS Access Key"
-                  />
+                  <Segmented
+                    value={bedrockAuthMode}
+                    onValueChange={(v) => {
+                      const next = v as BedrockAuthMode
+                      setBedrockAuthMode(next)
+                      // 切换模式时清除非活动字段
+                      if (next !== 'access_key_secret') {
+                        setBedrockAk('')
+                        setBedrockSk('')
+                      }
+                      if (next !== 'iam_role') {
+                        setAwsRoleArn('')
+                      }
+                    }}
+                    block
+                  >
+                    <SegmentedItem value="access_key_secret">Access Key</SegmentedItem>
+                    <SegmentedItem value="iam_role">IAM Role</SegmentedItem>
+                    <SegmentedItem value="assume_role">Assume Role</SegmentedItem>
+                  </Segmented>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-text-primary mb-2">
-                    Secret Key <span className="text-red-500">*</span>
-                  </label>
-                  <Input
-                    type="password"
-                    value={bedrockSk}
-                    onChange={(e) => setBedrockSk(e.target.value)}
-                    placeholder="请输入 AWS Secret Key"
-                  />
-                </div>
+
+                {/* Access Key 模式 */}
+                {bedrockAuthMode === 'access_key_secret' && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-text-primary mb-2">
+                        AWS Access Key ID <span className="text-red-500">*</span>
+                      </label>
+                      <Input
+                        value={bedrockAk}
+                        onChange={(e) => setBedrockAk(e.target.value)}
+                        placeholder="请输入 AWS Access Key ID"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-text-primary mb-2">
+                        AWS Secret Access Key <span className="text-red-500">*</span>
+                      </label>
+                      <Input
+                        type="password"
+                        value={bedrockSk}
+                        onChange={(e) => setBedrockSk(e.target.value)}
+                        placeholder="请输入 AWS Secret Access Key"
+                      />
+                    </div>
+                  </>
+                )}
+
+                {/* IAM Role 模式 */}
+                {bedrockAuthMode === 'iam_role' && (
+                  <div>
+                    <label className="block text-sm font-medium text-text-primary mb-2">
+                      AWS Role ARN <span className="text-red-500">*</span>
+                    </label>
+                    <Input
+                      value={awsRoleArn}
+                      onChange={(e) => setAwsRoleArn(e.target.value)}
+                      placeholder="请输入 AWS Role ARN"
+                    />
+                  </div>
+                )}
+
+                {/* Assume Role 模式提示 */}
+                {bedrockAuthMode === 'assume_role' && (
+                  <div className="p-3 bg-muted rounded-lg">
+                    <p className="text-sm text-text-secondary">
+                      选择此模式后，EC2 实例将使用其已有的 IAM Role 访问 AWS 服务，无需额外的凭证。
+                    </p>
+                  </div>
+                )}
+
                 <div>
                   <label className="block text-sm font-medium text-text-primary mb-2">
                     区域 <span className="text-red-500">*</span>
@@ -1231,8 +1311,8 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                     </SelectTrigger>
                     <SelectContent>
                       {BEDROCK_REGIONS.map(region => (
-                        <SelectItem key={region} value={region}>
-                          {region}
+                        <SelectItem key={region.value} value={region.value}>
+                          {region.label}
                         </SelectItem>
                       ))}
                     </SelectContent>

@@ -28,9 +28,11 @@ export interface AddLlmParams {
   endpoint_id?: string
   ark_api_key?: string
   // Bedrock 特殊字段
+  auth_mode?: 'access_key_secret' | 'iam_role' | 'assume_role'
   bedrock_ak?: string
   bedrock_sk?: string
   bedrock_region?: string
+  aws_role_arn?: string
   // 其他可扩展字段
   [key: string]: any
 }
