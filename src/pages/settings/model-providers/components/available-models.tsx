@@ -34,13 +34,23 @@ interface AvailableModelsProps {
 export const AvailableModels: React.FC<AvailableModelsProps> = ({
   handleAddModel
 }) => {
-  const { factories } = useModelStore()
+  const { factories, myLLMs } = useModelStore()
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedTag, setSelectedTag] = useState<string | null>(null)
 
-  // 过滤模型列表
+  // 获取已添加的厂商名称列表
+  const addedProviderNames = useMemo(() => {
+    return Object.keys(myLLMs)
+  }, [myLLMs])
+
+  // 获取可用厂商列表（排除已添加的）
+  const availableFactories = useMemo(() => {
+    return factories.filter(factory => !addedProviderNames.includes(factory.name))
+  }, [factories, addedProviderNames])
+
+  // 过滤模型列表：基于搜索和标签
   const filteredModels = useMemo(() => {
-    return factories.filter(factory => {
+    return availableFactories.filter(factory => {
       // 搜索匹配
       const matchesSearch = factory.name
         .toLowerCase()
@@ -52,12 +62,12 @@ export const AvailableModels: React.FC<AvailableModelsProps> = ({
       
       return matchesSearch && matchesTag
     })
-  }, [factories, searchTerm, selectedTag])
+  }, [availableFactories, searchTerm, selectedTag])
 
-  // 获取所有可用标签
+  // 获取所有可用标签（只从未添加的厂商中收集）
   const allTags = useMemo(() => {
     const tagsSet = new Set<string>()
-    factories.forEach(factory => {
+    availableFactories.forEach(factory => {
       factory.tags.split(',').forEach(tag => {
         const trimmed = tag.trim()
         if (trimmed) tagsSet.add(trimmed)
@@ -66,7 +76,7 @@ export const AvailableModels: React.FC<AvailableModelsProps> = ({
     return Array.from(tagsSet).sort((a, b) => 
       (TAG_ORDER[a as TagType] || 999) - (TAG_ORDER[b as TagType] || 999)
     )
-  }, [factories])
+  }, [availableFactories])
 
   const handleTagClick = (tag: string) => {
     setSelectedTag(selectedTag === tag ? null : tag)
