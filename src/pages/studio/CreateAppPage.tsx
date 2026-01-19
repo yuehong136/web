@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { Splitter, Collapse, Input, Select, Slider, Switch, Button, Space, Typography, Modal, Avatar, Upload, App, Tabs, Table, Tag } from 'antd'
 import { 
   EditOutlined, 
@@ -13,6 +13,7 @@ import {
   SearchOutlined,
   CaretRightOutlined
 } from '@ant-design/icons'
+import { LLMParameterControl, LLM_PARAMETER_PRESETS } from '@/components/vendor/ui/LLMParameterControl'
 import { 
   Bubble, 
   Sender
@@ -29,7 +30,7 @@ import { knowledgeAPI } from '@/api/knowledge'
 import { dialogAPI } from '@/api/dialog'
 import type { LLMModel, KnowledgeBase } from '@/types/api'
 import { ChatModelSelector } from '@/components/chat/ChatModelSelector'
-import { RerankModelSelector } from '@/components/knowledge/RerankModelSelector'
+import { RerankModelSelector, KnowledgeBaseAvatar } from '@/components/knowledge'
 import type { MyLLMProvider } from '@/stores/model'
 import { formatTimestamp } from '@/lib/utils'
 import { getResolvedTheme } from '@/themes'
@@ -199,6 +200,13 @@ export const CreateAppPage: React.FC = () => {
   const [knowledgePage, setKnowledgePage] = useState(1)
   const [knowledgeTotal, setKnowledgeTotal] = useState(0)
   const [addedKnowledgeBases, setAddedKnowledgeBases] = useState<Set<string>>(new Set())
+  
+  // 计算已选中知识库的 embedding 模型 ID（用于限制只能选择相同 embedding 模型的知识库）
+  const selectedEmbdId = useMemo(() => {
+    if (knowledgeBases.length === 0) return ''
+    const firstKb = knowledgeBases[0]
+    return firstKb?.embd_id || ''
+  }, [knowledgeBases])
   
   // 生成多样性预设
   const generationPresets: Record<string, GenerationPreset> = {
@@ -378,27 +386,40 @@ export const CreateAppPage: React.FC = () => {
         
         setCurrentPreset(matchedPreset)
         
-        // 同步更新已添加的知识库
-        if (data.kb_names && Array.isArray(data.kb_names) && data.kb_ids) {
-          const kbs: KnowledgeBase[] = data.kb_names.map((name: string, index: number) => ({
-            id: data.kb_ids![index],
-            tenant_id: data.tenant_id || '',
-            name: name,
-            description: '',
-            permission: 'me',
-            language: data.language || 'Chinese',
-            embd_id: '',
-            chunk_count: 0,
-            chunk_num: 0,
-            doc_num: 0,
-            token_num: 0,
-            avatar: '',
-            parser_id: '',
-            create_date: data.create_date || '',
-            create_time: data.create_time ? data.create_time.toString() : '',
-            update_date: data.update_date || '',
-            update_time: data.update_time || 0
-          }))
+        // 同步更新已添加的知识库 - 需要获取完整的知识库详情（包含 embd_id）
+        if (data.kb_ids && Array.isArray(data.kb_ids) && data.kb_ids.length > 0) {
+          // 并行获取所有知识库的详情
+          const kbPromises = data.kb_ids.map(async (kbId: string, index: number) => {
+            try {
+              // 调用 API 获取知识库完整详情（包含 embd_id）
+              const kbDetail = await knowledgeAPI.knowledgeBase.get(kbId)
+              return kbDetail
+            } catch (error) {
+              console.error(`Failed to fetch knowledge base ${kbId}:`, error)
+              // 获取失败时返回占位对象，使用 kb_names 中的名称
+              return {
+                id: kbId,
+                tenant_id: data.tenant_id || '',
+                name: data.kb_names?.[index] || kbId,
+                description: '',
+                permission: 'me',
+                language: data.language || 'Chinese',
+                embd_id: '', // 获取失败时无法得知 embd_id
+                chunk_count: 0,
+                chunk_num: 0,
+                doc_num: 0,
+                token_num: 0,
+                avatar: '',
+                parser_id: '',
+                create_date: data.create_date || '',
+                create_time: data.create_time ? data.create_time.toString() : '',
+                update_date: data.update_date || '',
+                update_time: data.update_time || 0
+              } as KnowledgeBase
+            }
+          })
+          
+          const kbs = await Promise.all(kbPromises)
           setKnowledgeBases(kbs)
           setAddedKnowledgeBases(new Set(data.kb_ids))
         }
@@ -1064,103 +1085,71 @@ export const CreateAppPage: React.FC = () => {
                     
                     <div className="mt-4 space-y-4">
                       {/* 温度 */}
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <Text strong style={{ color: 'var(--color-text-primary)' }}>温度: {Number(config.llm_setting.temperature ?? 0).toFixed(2)}</Text>
-                          <Switch
-                            checked={config.llm_setting.temperature_enabled}
-                            onChange={(checked) => handleLLMSettingChange('temperature_enabled', checked)}
-                          />
-                        </div>
-                        {config.llm_setting.temperature_enabled && (
-                          <Slider
-                            min={0}
-                            max={1}
-                            step={0.01}
-                            value={config.llm_setting.temperature}
-                            onChange={(value) => handleLLMSettingChange('temperature', value)}
-                          />
-                        )}
-                      </div>
+                      <LLMParameterControl
+                        label={LLM_PARAMETER_PRESETS.temperature.label}
+                        tooltip={LLM_PARAMETER_PRESETS.temperature.tooltip}
+                        value={config.llm_setting.temperature ?? LLM_PARAMETER_PRESETS.temperature.default}
+                        onChange={(value) => handleLLMSettingChange('temperature', value)}
+                        enabled={config.llm_setting.temperature_enabled}
+                        onEnabledChange={(checked) => handleLLMSettingChange('temperature_enabled', checked)}
+                        min={LLM_PARAMETER_PRESETS.temperature.min}
+                        max={LLM_PARAMETER_PRESETS.temperature.max}
+                        step={LLM_PARAMETER_PRESETS.temperature.step}
+                      />
                       
                       {/* Top P */}
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <Text strong style={{ color: 'var(--color-text-primary)' }}>Top P: {Number(config.llm_setting.top_p ?? 0).toFixed(2)}</Text>
-                          <Switch
-                            checked={config.llm_setting.top_p_enabled}
-                            onChange={(checked) => handleLLMSettingChange('top_p_enabled', checked)}
-                          />
-                        </div>
-                        {config.llm_setting.top_p_enabled && (
-                          <Slider
-                            min={0}
-                            max={1}
-                            step={0.01}
-                            value={config.llm_setting.top_p}
-                            onChange={(value) => handleLLMSettingChange('top_p', value)}
-                          />
-                        )}
-                      </div>
+                      <LLMParameterControl
+                        label={LLM_PARAMETER_PRESETS.topP.label}
+                        tooltip={LLM_PARAMETER_PRESETS.topP.tooltip}
+                        value={config.llm_setting.top_p ?? LLM_PARAMETER_PRESETS.topP.default}
+                        onChange={(value) => handleLLMSettingChange('top_p', value)}
+                        enabled={config.llm_setting.top_p_enabled}
+                        onEnabledChange={(checked) => handleLLMSettingChange('top_p_enabled', checked)}
+                        min={LLM_PARAMETER_PRESETS.topP.min}
+                        max={LLM_PARAMETER_PRESETS.topP.max}
+                        step={LLM_PARAMETER_PRESETS.topP.step}
+                      />
                       
                       {/* 存在处罚 */}
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <Text strong style={{ color: 'var(--color-text-primary)' }}>存在处罚: {Number(config.llm_setting.presence_penalty ?? 0).toFixed(2)}</Text>
-                          <Switch
-                            checked={config.llm_setting.presence_penalty_enabled}
-                            onChange={(checked) => handleLLMSettingChange('presence_penalty_enabled', checked)}
-                          />
-                        </div>
-                        {config.llm_setting.presence_penalty_enabled && (
-                          <Slider
-                            min={0}
-                            max={1}
-                            step={0.01}
-                            value={config.llm_setting.presence_penalty}
-                            onChange={(value) => handleLLMSettingChange('presence_penalty', value)}
-                          />
-                        )}
-                      </div>
+                      <LLMParameterControl
+                        label={LLM_PARAMETER_PRESETS.presencePenalty.label}
+                        tooltip={LLM_PARAMETER_PRESETS.presencePenalty.tooltip}
+                        value={config.llm_setting.presence_penalty ?? LLM_PARAMETER_PRESETS.presencePenalty.default}
+                        onChange={(value) => handleLLMSettingChange('presence_penalty', value)}
+                        enabled={config.llm_setting.presence_penalty_enabled}
+                        onEnabledChange={(checked) => handleLLMSettingChange('presence_penalty_enabled', checked)}
+                        min={LLM_PARAMETER_PRESETS.presencePenalty.min}
+                        max={LLM_PARAMETER_PRESETS.presencePenalty.max}
+                        step={LLM_PARAMETER_PRESETS.presencePenalty.step}
+                      />
                       
                       {/* 频率惩罚 */}
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <Text strong style={{ color: 'var(--color-text-primary)' }}>频率惩罚: {Number(config.llm_setting.frequency_penalty ?? 0).toFixed(2)}</Text>
-                          <Switch
-                            checked={config.llm_setting.frequency_penalty_enabled}
-                            onChange={(checked) => handleLLMSettingChange('frequency_penalty_enabled', checked)}
-                          />
-                        </div>
-                        {config.llm_setting.frequency_penalty_enabled && (
-                          <Slider
-                            min={0}
-                            max={1}
-                            step={0.01}
-                            value={config.llm_setting.frequency_penalty}
-                            onChange={(value) => handleLLMSettingChange('frequency_penalty', value)}
-                          />
-                        )}
-                      </div>
+                      <LLMParameterControl
+                        label={LLM_PARAMETER_PRESETS.frequencyPenalty.label}
+                        tooltip={LLM_PARAMETER_PRESETS.frequencyPenalty.tooltip}
+                        value={config.llm_setting.frequency_penalty ?? LLM_PARAMETER_PRESETS.frequencyPenalty.default}
+                        onChange={(value) => handleLLMSettingChange('frequency_penalty', value)}
+                        enabled={config.llm_setting.frequency_penalty_enabled}
+                        onEnabledChange={(checked) => handleLLMSettingChange('frequency_penalty_enabled', checked)}
+                        min={LLM_PARAMETER_PRESETS.frequencyPenalty.min}
+                        max={LLM_PARAMETER_PRESETS.frequencyPenalty.max}
+                        step={LLM_PARAMETER_PRESETS.frequencyPenalty.step}
+                      />
                       
-                      {/* 最大回复长度 */}
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <Text strong style={{ color: 'var(--color-text-primary)' }}>最大回复长度: {config.llm_setting.max_tokens}</Text>
-                          <Switch
-                            checked={config.llm_setting.max_tokens_enabled}
-                            onChange={(checked) => handleLLMSettingChange('max_tokens_enabled', checked)}
-                          />
-                        </div>
-                        {config.llm_setting.max_tokens_enabled && (
-                          <Input
-                            type="number"
-                            min={1}
-                            value={config.llm_setting.max_tokens}
-                            onChange={(e) => handleLLMSettingChange('max_tokens', parseInt(e.target.value) || 1)}
-                          />
-                        )}
-                      </div>
+                      {/* 最大 Token 数 */}
+                      <LLMParameterControl
+                        label={LLM_PARAMETER_PRESETS.maxTokens.label}
+                        tooltip={LLM_PARAMETER_PRESETS.maxTokens.tooltip}
+                        value={config.llm_setting.max_tokens ?? LLM_PARAMETER_PRESETS.maxTokens.default}
+                        onChange={(value) => handleLLMSettingChange('max_tokens', value)}
+                        enabled={config.llm_setting.max_tokens_enabled}
+                        onEnabledChange={(checked) => handleLLMSettingChange('max_tokens_enabled', checked)}
+                        min={LLM_PARAMETER_PRESETS.maxTokens.min}
+                        max={LLM_PARAMETER_PRESETS.maxTokens.max}
+                        step={LLM_PARAMETER_PRESETS.maxTokens.step}
+                        inputOnly={LLM_PARAMETER_PRESETS.maxTokens.inputOnly}
+                        inputWidth={LLM_PARAMETER_PRESETS.maxTokens.inputWidth}
+                      />
                     </div>
                   </div>
                 </Space>
@@ -1204,10 +1193,42 @@ export const CreateAppPage: React.FC = () => {
                     ) : (
                       <div className="space-y-2">
                         {knowledgeBases.map(kb => (
-                          <div key={kb.id} className="flex items-center justify-between p-2 border rounded">
-                            <div>
-                              <div className="font-medium">{kb.name}</div>
-                              <div className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>{kb.description}</div>
+                          <div 
+                            key={kb.id} 
+                            className="flex items-center justify-between p-3 border rounded-lg"
+                            style={{ borderColor: 'var(--color-border-default)' }}
+                          >
+                            <div className="flex items-center gap-3 min-w-0 flex-1">
+                              {/* 知识库头像 */}
+                              <KnowledgeBaseAvatar 
+                                name={kb.name} 
+                                avatar={kb.avatar} 
+                                size="lg"
+                              />
+                              <div className="min-w-0 flex-1">
+                                <div className="font-medium truncate" style={{ color: 'var(--color-text-primary)' }}>
+                                  {kb.name}
+                                </div>
+                                {kb.description && (
+                                  <div className="text-xs truncate" style={{ color: 'var(--color-text-tertiary)' }}>
+                                    {kb.description}
+                                  </div>
+                                )}
+                                {/* 向量模型标签 */}
+                                {kb.embd_id && (
+                                  <Tag 
+                                    color="blue" 
+                                    className="mt-1 text-xs"
+                                    style={{ 
+                                      fontSize: '11px',
+                                      padding: '0 6px',
+                                      lineHeight: '18px'
+                                    }}
+                                  >
+                                    {kb.embd_id}
+                                  </Tag>
+                                )}
+                              </div>
                             </div>
                             <Button 
                               type="text" 
@@ -1891,7 +1912,17 @@ export const CreateAppPage: React.FC = () => {
                 title: '名称',
                 dataIndex: 'name',
                 key: 'name',
-                width: 150
+                width: 180,
+                render: (name: string, record: KnowledgeBase) => (
+                  <div className="flex items-center gap-2">
+                    <KnowledgeBaseAvatar 
+                      name={record.name} 
+                      avatar={record.avatar} 
+                      size="md"
+                    />
+                    <span className="truncate">{name}</span>
+                  </div>
+                )
               },
               {
                 title: '描述',
@@ -1900,18 +1931,27 @@ export const CreateAppPage: React.FC = () => {
                 ellipsis: true
               },
               {
-                title: '创建时间',
-                dataIndex: 'create_time',
-                key: 'create_time',
-                width: 120,
-                render: (timestamp: number) => {
-                  if (!timestamp) return '-'
-                  try {
-                    return formatTimestamp(timestamp)
-                  } catch {
-                    return '-'
-                  }
-                }
+                title: '向量模型',
+                dataIndex: 'embd_id',
+                key: 'embd_id',
+                width: 160,
+                render: (embdId: string) => embdId ? (
+                  <Tag 
+                    color="blue"
+                    style={{ 
+                      fontSize: '11px',
+                      padding: '0 6px',
+                      lineHeight: '18px',
+                      maxWidth: '140px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap'
+                    }}
+                    title={embdId}
+                  >
+                    {embdId}
+                  </Tag>
+                ) : '-'
               },
               {
                 title: '文档个数',
@@ -1931,12 +1971,32 @@ export const CreateAppPage: React.FC = () => {
                 title: '操作',
                 key: 'action',
                 width: 80,
-                render: (_, record) => (
-                  addedKnowledgeBases.has(record.id) ? (
-                    <Button size="small" disabled>
-                      已添加
-                    </Button>
-                  ) : (
+                render: (_, record: KnowledgeBase) => {
+                  const isAdded = addedKnowledgeBases.has(record.id)
+                  // 检查向量模型是否兼容（已选择的知识库和待添加的知识库向量模型必须相同）
+                  const isEmbdIncompatible = selectedEmbdId !== '' && record.embd_id !== selectedEmbdId
+                  
+                  if (isAdded) {
+                    return (
+                      <Button size="small" disabled>
+                        已添加
+                      </Button>
+                    )
+                  }
+                  
+                  if (isEmbdIncompatible) {
+                    return (
+                      <Button 
+                        size="small" 
+                        disabled
+                        title={`向量模型不兼容：已选择 ${selectedEmbdId}，当前为 ${record.embd_id || '未知'}`}
+                      >
+                        不兼容
+                      </Button>
+                    )
+                  }
+                  
+                  return (
                     <Button 
                       type="primary" 
                       size="small"
@@ -1945,7 +2005,7 @@ export const CreateAppPage: React.FC = () => {
                       添加
                     </Button>
                   )
-                )
+                }
               }
             ]}
           />

@@ -2,7 +2,6 @@ import React from 'react'
 import {
   MessageSquare,
   Search,
-  Settings,
   Plus,
   Sparkles,
   Edit3,
@@ -12,7 +11,8 @@ import {
   ThumbsUp,
   LayoutGrid,
   AlignCenter,
-  Maximize2
+  Maximize2,
+  SlidersHorizontal
 } from 'lucide-react'
 import { 
   Conversations, 
@@ -33,13 +33,20 @@ import { cn, copyToClipboard } from '@/lib/utils'
 import { toast } from '@/lib/toast'
 import { useChatStore } from '@/stores/chat'
 import { useModelStore } from '@/stores/model'
-import { useDialogApps } from '@/hooks/use-dialog-apps'
+import { useDialogApps, useDialogApp } from '@/hooks/use-dialog-apps'
+import { 
+  useChatSettings, 
+  useKnowledgeBases, 
+  useRerankModels,
+  buildMetadataCondition,
+} from '@/hooks/use-chat-settings'
 import { conversationAPI } from '@/api/conversation'
 import { useQuery } from '@tanstack/react-query'
 import { chatConfig, type ChatMessage, type ChatServiceRequest, type SSEResponse, type ChatAttachment } from '@/config/chat'
 import { extractReferencesFromSSEData, type ReferenceChunk } from '@/utils/reference-replacer'
 import { ReferenceDocumentList } from '@/components/chat/ReferenceDocumentList'
 import { createSupComponent } from '@/components/chat/InlineSourceRef'
+import { ChatSettingsPanel, defaultChatSettings, type ChatSettings } from '@/components/chat/ChatSettingsPanel'
 
 // 将内容中的 [ID:x] 引用转换为 <sup>x</sup> 格式，供 XMarkdown 处理
 const convertReferencesToSup = (content: string): string => {
@@ -237,6 +244,32 @@ export const ExplorePage: React.FC = () => {
   const [renamingConversationId, setRenamingConversationId] = React.useState<string | null>(null)
   const [newConversationName, setNewConversationName] = React.useState('')
   const [chatLayout, setChatLayout] = React.useState<'default' | 'center' | 'full'>('default')
+  const [settingsPanelOpen, setSettingsPanelOpen] = React.useState(false)
+  const [chatSettings, setChatSettings] = React.useState<ChatSettings>(defaultChatSettings)
+
+  // 获取选中应用的详情和设置
+  const { 
+    dialog: selectedAppDetail,
+    settings: dialogSettings,
+    loading: settingsLoading,
+    saving: savingSettings,
+    saveSettings,
+  } = useChatSettings(selectedApp || undefined)
+
+  // 获取知识库列表
+  const { knowledgeBases, loadKnowledgeBases } = useKnowledgeBases()
+  
+  // 获取重排序模型列表（LLMModel[] 格式）
+  const rerankModels = useRerankModels(myLLMs)
+
+  // 当 dialog 设置加载完成后，同步到本地状态
+  // 使用 selectedApp 和 dialogSettings 作为依赖，确保切换应用时能正确更新
+  React.useEffect(() => {
+    if (selectedApp) {
+      // 当应用变化时，使用从服务器获取的设置更新本地状态
+      setChatSettings(dialogSettings)
+    }
+  }, [selectedApp, dialogSettings])
 
   // 获取选中应用的对话列表
   const { 
@@ -336,10 +369,21 @@ export const ExplorePage: React.FC = () => {
       // 根据模式选择 API
       if (activeTab === 'topics' && selectedConversationDetail?.id) {
         // 话题模式 - 使用 completion API
-      const response = await conversationAPI.completion({
-        conversation_id: selectedConversationDetail.id,
-        messages: updatedMessages
-      })
+        // 构建请求参数，包含元数据过滤条件
+        const completionParams: Parameters<typeof conversationAPI.completion>[0] = {
+          conversation_id: selectedConversationDetail.id,
+          messages: updatedMessages,
+          quote: chatSettings.quote,
+        }
+        
+        // 如果启用了元数据过滤且有条件，添加到请求中
+        if (chatSettings.metadataFilterMode === 'manual' && 
+            chatSettings.metadataCondition.conditions && 
+            chatSettings.metadataCondition.conditions.length > 0) {
+          completionParams.metadata_condition = chatSettings.metadataCondition
+        }
+        
+        const response = await conversationAPI.completion(completionParams)
 
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
         if (!response.body) throw new Error('No response body')
@@ -1086,7 +1130,9 @@ export const ExplorePage: React.FC = () => {
       </div>
 
       {/* 右侧主内容区 */}
-      <div className="flex-1 flex flex-col" style={{ backgroundColor: 'var(--color-chat-content-bg)' }}>
+      <div className="flex-1 flex" style={{ backgroundColor: 'var(--color-chat-content-bg)' }}>
+        {/* 聊天内容区 */}
+        <div className="flex-1 flex flex-col min-w-0">
         {/* 顶部工具栏 */}
         <div 
           className="flex items-center justify-between px-6 py-3"
@@ -1158,8 +1204,13 @@ export const ExplorePage: React.FC = () => {
                 </Button>
               </div>
               
-              <Button variant="ghost" size="sm">
-                <Settings className="h-4 w-4" />
+              <Button 
+                variant={settingsPanelOpen ? "default" : "ghost"} 
+                size="sm"
+                onClick={() => setSettingsPanelOpen(!settingsPanelOpen)}
+                title="聊天设置"
+              >
+                <SlidersHorizontal className="h-4 w-4" />
               </Button>
             </div>
           )}
@@ -1343,6 +1394,25 @@ export const ExplorePage: React.FC = () => {
             </>
           )}
         </div>
+        </div>
+        
+        {/* 聊天设置面板 */}
+        {mode === 'chat' && (
+          <ChatSettingsPanel
+            open={settingsPanelOpen}
+            onClose={() => setSettingsPanelOpen(false)}
+            settings={chatSettings}
+            onSettingsChange={setChatSettings}
+            onSave={selectedApp ? () => saveSettings(chatSettings) : undefined}
+            saving={savingSettings}
+            loading={settingsLoading}
+            knowledgeBases={knowledgeBases}
+            rerankModels={rerankModels}
+            llmModels={myLLMs}
+            modelsLoading={modelsLoading}
+            onLoadKnowledgeBases={loadKnowledgeBases}
+          />
+        )}
       </div>
     </div>
   )

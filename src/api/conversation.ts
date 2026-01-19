@@ -12,6 +12,7 @@ import type {
   MindmapResponse,
   PaginationRequest,
   PaginatedData,
+  MetadataCondition,
 } from '../types/api'
 
 export const conversationAPI = {
@@ -46,6 +47,8 @@ export const conversationAPI = {
     quote?: boolean
     stream?: boolean
     filter_condition?: string
+    doc_ids?: string  // 文档 ID 列表，逗号分隔
+    metadata_condition?: MetadataCondition  // 元数据过滤条件
   }) => {
     const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
     const fullUrl = `${baseURL}/v1/conversation/completion`

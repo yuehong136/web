@@ -529,6 +529,23 @@ export interface Conversation {
   metadata?: Record<string, any>
 }
 
+// ============================================================================
+// 元数据过滤条件 (Metadata Filtering)
+// ============================================================================
+
+// 元数据过滤条件中的单个条件
+export interface MetadataFilterCondition {
+  name: string                    // 元数据字段名
+  comparison_operator: string     // 比较操作符: is, not is, contains, not contains, start with, end with, empty, not empty, >, <, ≥, ≤
+  value?: string | number | boolean  // 值 (对于 empty/not empty 可选)
+}
+
+// 元数据过滤条件对象
+export interface MetadataCondition {
+  logic?: 'and' | 'or'            // 逻辑运算符，默认 and
+  conditions?: MetadataFilterCondition[]  // 条件列表
+}
+
 export interface ChatCompletionRequest {
   message: string
   conversation_id?: string
@@ -539,6 +556,7 @@ export interface ChatCompletionRequest {
   kb_ids?: string[]
   system_prompt?: string
   tools?: string[]
+  metadata_condition?: MetadataCondition  // 元数据过滤条件
 }
 
 export interface ChatCompletionResponse {

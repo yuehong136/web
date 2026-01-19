@@ -220,6 +220,12 @@ export const lightTokens: DesignTokens = {
   'components-switch-thumb': '#ffffff',
   'components-switch-thumb-checked': '#ffffff',
   
+  // ===== 滑块组件 =====
+  'components-slider-track': '#e5e7eb',
+  'components-slider-range': '#1e40af',
+  'components-slider-thumb': '#ffffff',
+  'components-slider-thumb-border': 'rgba(30, 64, 175, 0.5)',
+  
   // ===== 滚动条系统 =====
   'components-scrollbar-track': '#f3f4f6',
   'components-scrollbar-thumb': '#d1d5db',
@@ -840,6 +846,12 @@ export const darkTokens: DesignTokens = {
   'components-switch-bg-checked': '#3b82f6',
   'components-switch-thumb': '#ffffff',
   'components-switch-thumb-checked': '#ffffff',
+  
+  // ===== 滑块组件 =====
+  'components-slider-track': 'rgba(255, 255, 255, 0.15)',
+  'components-slider-range': '#3b82f6',
+  'components-slider-thumb': '#ffffff',
+  'components-slider-thumb-border': 'rgba(59, 130, 246, 0.5)',
   
   // ===== 滚动条系统 =====
   'components-scrollbar-track': 'rgba(255, 255, 255, 0.05)',

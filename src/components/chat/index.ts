@@ -16,9 +16,22 @@ export { parseStreamResponse, formatSearchResult, isValidUrl } from './StreamRes
 export { ReferenceDocumentList, extractDocumentsFromChunks } from './ReferenceDocumentList';
 export { InlineSourceRef, createSupComponent } from './InlineSourceRef';
 
+// 聊天设置相关组件
+export { ChatSettingsPanel, defaultChatSettings } from './ChatSettingsPanel';
+export { MetadataFilter, ComparisonOperators, MetadataFilterModes } from './MetadataFilter';
+export { 
+  GenerationPresetSelector, 
+  GENERATION_PRESETS, 
+  PRESET_OPTIONS,
+  detectPreset 
+} from './GenerationPresetSelector';
+
 // 重新导出类型
 export type { PromptItem } from './PromptSuggestion';
 export type { ChatInputProps, ActionsComponents, FooterInfo } from './ChatInput';
 export type { ParsedToolCall, ParsedStreamResponse, SearchResult } from './StreamResponseParser';
 export type { ReferenceDocument, ReferenceDocumentListProps } from './ReferenceDocumentList';
 export type { InlineSourceRefProps } from './InlineSourceRef';
+export type { ChatSettings } from './ChatSettingsPanel';
+export type { MetadataFilterMode } from './MetadataFilter';
+export type { GenerationPresetType, GenerationPreset, LLMParameters } from './GenerationPresetSelector';

@@ -210,6 +210,12 @@ export interface DesignTokens {
   'components-switch-thumb': string
   'components-switch-thumb-checked': string
   
+  // ===== 滑块组件 =====
+  'components-slider-track': string
+  'components-slider-range': string
+  'components-slider-thumb': string
+  'components-slider-thumb-border': string
+  
   // ===== 滚动条系统 =====
   'components-scrollbar-track': string
   'components-scrollbar-thumb': string
@@ -863,6 +869,12 @@ export const defaultTokens: DesignTokens = {
   'components-switch-bg-checked': '',
   'components-switch-thumb': '',
   'components-switch-thumb-checked': '',
+  
+  // 滑块组件
+  'components-slider-track': '',
+  'components-slider-range': '',
+  'components-slider-thumb': '',
+  'components-slider-thumb-border': '',
   
   // 滚动条系统
   'components-scrollbar-track': '',
