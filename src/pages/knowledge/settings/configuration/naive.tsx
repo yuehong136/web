@@ -6,6 +6,7 @@ import {
   MaxTokenNumberFormField,
   DelimiterFormField,
   TocExtractionFormField,
+  ImageContextWindowFormField,
   AutoKeywordsFormField,
   AutoQuestionsFormField,
   ExcelToHtmlFormField,
@@ -27,6 +28,7 @@ export function NaiveConfiguration() {
         <MaxTokenNumberFormField initialValue={512} max={2048} />
         <DelimiterFormField />
         <TocExtractionFormField />
+        <ImageContextWindowFormField />
       </ConfigurationFormContainer>
 
       {/* 智能增强 */}

@@ -293,6 +293,33 @@ export function TocExtractionFormField({
 }
 
 // =====================================================
+// 图片上下文窗口
+// =====================================================
+interface ImageContextWindowFormFieldProps {
+  name?: string
+  className?: string
+}
+
+export function ImageContextWindowFormField({
+  name = 'parser_config.image_context_window',
+  className,
+}: ImageContextWindowFormFieldProps) {
+  return (
+    <SliderInputFormField
+      name={name}
+      label="图片上下文窗口"
+      tooltip="捕获图片上下方 N 个 token 的文本内容，为图片块提供更丰富的背景上下文信息。设置为 0 表示不捕获上下文。"
+      min={0}
+      max={256}
+      step={1}
+      defaultValue={0}
+      layout="horizontal"
+      className={className}
+    />
+  )
+}
+
+// =====================================================
 // PageRank 权重
 // =====================================================
 interface PageRankFormFieldProps {
