@@ -119,6 +119,12 @@ export const queryKeys = {
     api: () => [...queryKeys.stats.all, 'api'] as const,
     usage: (timeRange: string) => [...queryKeys.stats.all, 'usage', timeRange] as const,
   },
+
+  // Metadata 相关
+  metadata: {
+    all: ['metadata'] as const,
+    summary: (kbId: string) => [...queryKeys.metadata.all, 'summary', kbId] as const,
+  },
 } as const
 
 // 查询失效帮助函数
@@ -132,4 +138,5 @@ export const invalidateQueries = {
   workflows: () => queryClient.invalidateQueries({ queryKey: queryKeys.workflows.all }),
   dialogApps: () => queryClient.invalidateQueries({ queryKey: queryKeys.dialogApps.all }),
   stats: () => queryClient.invalidateQueries({ queryKey: queryKeys.stats.all }),
+  metadata: () => queryClient.invalidateQueries({ queryKey: queryKeys.metadata.all }),
 }

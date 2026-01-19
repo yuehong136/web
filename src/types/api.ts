@@ -546,6 +546,87 @@ export interface MetadataCondition {
   conditions?: MetadataFilterCondition[]  // 条件列表
 }
 
+// ============================================================================
+// Metadata 管理模块 (知识库元数据字段定义和管理)
+// ============================================================================
+
+// Metadata 字段定义 (知识库模板)
+export interface MetadataFieldDefinition {
+  key: string                      // 字段名 (仅允许英文字母和下划线)
+  description?: string             // 字段描述
+  enum?: string[]                  // 允许的值列表 (可选)
+  restrictDefinedValues?: boolean  // 是否限制为预定义值
+}
+
+// Metadata 汇总项 (聚合统计)
+export interface MetadataSummaryItem {
+  field: string                    // 字段名
+  values: Array<[string | number, number]>  // [值, 出现次数] 数组
+}
+
+// Metadata 汇总响应
+export interface MetadataSummaryResponse {
+  summary: Record<string, Array<[string | number, number]>>
+  total_docs?: number
+}
+
+// Metadata 更新操作
+export interface MetadataUpdateOperation {
+  key: string                      // 字段名
+  match: string                    // 原始值 (用于匹配)
+  value: string                    // 新值
+}
+
+// Metadata 删除操作
+export interface MetadataDeleteOperation {
+  key: string                      // 字段名
+  value?: string                   // 具体值 (不提供则删除整个字段)
+}
+
+// Metadata 批量操作请求
+export interface MetadataBatchRequest {
+  kb_id: string
+  updates?: MetadataUpdateOperation[]
+  deletes?: MetadataDeleteOperation[]
+}
+
+// 知识库 Metadata 设置更新请求
+export interface KBMetadataSettingsRequest {
+  kb_id: string
+  metadata: MetadataFieldDefinition[]
+  enable_metadata?: boolean
+}
+
+// 文档 Metadata 设置更新请求
+export interface DocumentMetadataSettingsRequest {
+  doc_id: string
+  metadata: MetadataFieldDefinition[]
+}
+
+// 文档 Metadata 更新请求 (更新 meta_fields)
+export interface DocumentMetadataUpdateRequest {
+  doc_id: string
+  meta: string  // JSON 字符串格式的 Record<string, any>
+}
+
+// Metadata 表格数据 (UI 展示用)
+export interface MetadataTableData {
+  field: string
+  description: string
+  restrictDefinedValues?: boolean
+  values: string[]
+}
+
+// Metadata 管理操作类型
+export const MetadataManageType = {
+  MANAGE: 1,           // 管理知识库级别 metadata 汇总
+  UPDATE_SINGLE: 2,    // 编辑单个文档 metadata
+  SETTING: 3,          // 知识库 metadata 模板设置
+  SINGLE_FILE_SETTING: 4,  // 单文件 metadata 设置
+} as const
+
+export type MetadataManageType = typeof MetadataManageType[keyof typeof MetadataManageType]
+
 export interface ChatCompletionRequest {
   message: string
   conversation_id?: string
@@ -646,7 +727,7 @@ export interface KnowledgeBase {
   nickname?: string
   tenant_avatar?: string | null
   update_time: number  // 时间戳格式
-  
+
   // 可选字段（用于兼容不同版本的API）
   created_by?: string
   similarity_threshold?: number
@@ -656,6 +737,10 @@ export interface KnowledgeBase {
   status?: string
   create_time?: string
   size?: number
+
+  // Metadata 模板设置
+  metadata_settings?: MetadataFieldDefinition[]
+  enable_metadata?: boolean
 }
 
 export interface CreateKBRequest {

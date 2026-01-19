@@ -1,13 +1,14 @@
 'use client'
 
 import React from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Save, Settings2 } from 'lucide-react'
+import { Save, Settings2, Settings } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Form } from '@/components/ui/form'
 import { Divider } from '@/components/ui/divider'
+import { Switch } from '@/components/ui/switch'
 import { SelectWithSearch, type SelectOptionGroup } from '@/components/ui/select-with-search'
 import { IconFontFill } from '@/components/ui/icon-font'
 import { useKnowledgeStore } from '@/stores/knowledge'
@@ -37,6 +38,8 @@ import { ChunkMethodForm } from './settings/ChunkMethodForm'
 import { PipelineSelect, type PipelineOption } from './settings/PipelineSelect'
 import { LinkDataSource, type DataSourceItem } from './settings/LinkDataSource'
 import ParserVisualizationPanel from './settings/ParserVisualizationPanel'
+import { ManageMetadataModal } from './metadata/ManageMetadataModal'
+import { MetadataManageType } from '@/types/api'
 
 // 需要主题切换的厂商
 const THEME_AWARE_FACTORIES = [
@@ -87,21 +90,35 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 const KnowledgeSettingsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const { currentKnowledgeBase, updateKnowledgeBase } = useKnowledgeStore()
   const { addNotification } = useUIStore()
   const { myLLMs, loadMyLLMs, isLoading: isLoadingModels } = useModelStore()
 
   const [isLoading, setIsLoading] = React.useState(false)
-  
+
   // 数据源状态（后端暂不支持，前端先实现）
   const [dataSources, setDataSources] = React.useState<DataSourceItem[]>([])
-  
+
   // Pipeline 列表（后端暂不支持，前端先实现）
   const [pipelineOptions] = React.useState<PipelineOption[]>([
     // 模拟数据，实际应该从后端获取
     // { id: '1', name: '默认文档处理流程' },
     // { id: '2', name: '多语言文档处理' },
   ])
+
+  // Metadata 设置模态框状态
+  const [metadataModalOpen, setMetadataModalOpen] = React.useState(false)
+
+  // 检查 URL 参数，自动打开元数据设置弹窗
+  React.useEffect(() => {
+    if (searchParams.get('openMetadata') === 'true') {
+      setMetadataModalOpen(true)
+      // 清除 URL 参数
+      searchParams.delete('openMetadata')
+      setSearchParams(searchParams, { replace: true })
+    }
+  }, [searchParams, setSearchParams])
 
   // 初始化表单
   const form = useForm({
@@ -470,8 +487,51 @@ const KnowledgeSettingsPage: React.FC = () => {
 
                       {/* 解析器配置参数 */}
                       {selectedParserId && (
-                        <div className="border-t border-border pt-4">
+                        <div className="border-t border-border pt-4 space-y-4">
                           <ChunkMethodForm />
+
+                          {/* 自动元数据（ragflow 风格行内布局） */}
+                          <FormField
+                            control={form.control}
+                            name="parser_config.auto_metadata"
+                            render={({ field }) => (
+                              <FormItem className="flex items-center gap-1 space-y-0">
+                                <FormLabel
+                                  tooltip="自动从文档中提取元数据。启用后，系统会使用 AI 模型根据预定义的字段模板自动提取文档的元数据信息。"
+                                  className="text-sm text-text-secondary w-1/4 shrink-0"
+                                >
+                                  自动元数据
+                                </FormLabel>
+                                <div className="w-3/4 flex items-center justify-between">
+                                  {/* 设置按钮 */}
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setMetadataModalOpen(true)}
+                                    className="h-8 px-3 text-text-secondary hover:text-text-primary hover:bg-surface-secondary"
+                                  >
+                                    <Settings className="w-4 h-4 mr-1.5" />
+                                    设置
+                                    {(currentKnowledgeBase?.metadata_settings?.length ?? 0) > 0 && (
+                                      <span className="ml-1.5 text-xs text-text-tertiary">
+                                        ({currentKnowledgeBase?.metadata_settings?.length})
+                                      </span>
+                                    )}
+                                  </Button>
+
+                                  {/* 启用开关 */}
+                                  <FormControl>
+                                    <Switch
+                                      checked={field.value}
+                                      onCheckedChange={field.onChange}
+                                    />
+                                  </FormControl>
+                                </div>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
                         </div>
                       )}
                     </>
@@ -488,7 +548,7 @@ const KnowledgeSettingsPage: React.FC = () => {
 
                 <Divider />
 
-                {/* ==================== 4. 数据源 ==================== */}
+                {/* ==================== 5. 数据源 ==================== */}
                 <LinkDataSource
                   data={dataSources}
                   onLinkOrEditSubmit={handleLinkDataSource}
@@ -518,6 +578,21 @@ const KnowledgeSettingsPage: React.FC = () => {
           </form>
         </Form>
       </div>
+
+      {/* Metadata 设置模态框 */}
+      {id && (
+        <ManageMetadataModal
+          open={metadataModalOpen}
+          onClose={() => setMetadataModalOpen(false)}
+          kbId={id}
+          mode={MetadataManageType.SETTING}
+          initialSettings={currentKnowledgeBase?.metadata_settings || []}
+          onSuccess={() => {
+            // 刷新知识库详情以获取最新的 metadata_settings
+            // 这里依赖 useUpdateKBMetadataSettings 的缓存失效逻辑
+          }}
+        />
+      )}
     </div>
   )
 }

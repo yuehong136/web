@@ -10,6 +10,10 @@ import type {
   KnowledgeGraph,
   PaginationRequest,
   PaginatedData,
+  MetadataSummaryResponse,
+  MetadataBatchRequest,
+  KBMetadataSettingsRequest,
+  DocumentMetadataSettingsRequest,
 } from '../types/api'
 
 export const knowledgeAPI = {
@@ -646,5 +650,34 @@ export const knowledgeAPI = {
       downloaded: number
     }> =>
       apiClient.get(`/v1/kb/basic_info?kb_id=${kbId}`),
+  },
+
+  // Metadata 管理
+  metadata: {
+    // 获取知识库 metadata 汇总 (聚合所有文档的 metadata)
+    getSummary: (kbId: string): Promise<MetadataSummaryResponse> =>
+      apiClient.post('/v1/document/metadata/summary', { kb_id: kbId }),
+
+    // 批量更新/删除 metadata 值
+    batchUpdate: (data: MetadataBatchRequest): Promise<{
+      updated_count: number
+      deleted_count: number
+    }> =>
+      apiClient.post('/v1/document/metadata/update', data),
+
+    // 更新知识库 metadata 模板设置
+    updateKBSettings: (data: KBMetadataSettingsRequest): Promise<void> =>
+      apiClient.post('/v1/kb/update_metadata_setting', data),
+
+    // 更新单文档 metadata 模板设置
+    updateDocumentSettings: (data: DocumentMetadataSettingsRequest): Promise<void> =>
+      apiClient.post('/v1/document/update_metadata_setting', data),
+
+    // 更新单文档 metadata 值 (更新 meta_fields)
+    updateDocumentMeta: (docId: string, meta: Record<string, any>): Promise<void> =>
+      apiClient.post('/v1/document/set_meta', {
+        doc_id: docId,
+        meta: JSON.stringify(meta),
+      }),
   },
 }

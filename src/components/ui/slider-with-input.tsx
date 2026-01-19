@@ -6,7 +6,7 @@ import { Slider } from '@/components/ui/slider'
 import { Switch } from '@/components/ui/switch'
 import { HelpCircle } from 'lucide-react'
 import {
-  Tooltip,
+  TooltipRoot as Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,

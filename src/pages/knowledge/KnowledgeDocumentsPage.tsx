@@ -1,28 +1,31 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { 
-  FileText, 
-  Upload, 
-  Plus, 
-  Search, 
-  Filter, 
-  Play, 
-  Square, 
-  Download, 
-  Edit2, 
-  Trash2, 
+import {
+  FileText,
+  Upload,
+  Plus,
+  Search,
+  Filter,
+  Play,
+  Square,
+  Download,
+  Edit2,
+  Trash2,
   RefreshCw,
   X,
   CheckCircle,
   XCircle,
   Tag,
-  ArrowUpDown
+  ArrowUpDown,
+  Settings2
 } from 'lucide-react'
 import { Progress } from 'antd'
 import { useKnowledgeStore } from '@/stores/knowledge'
 import { knowledgeAPI } from '@/api/knowledge'
 import { toast } from '@/lib/toast'
-import type { Document, DocumentFilter } from '@/types/api'
+import type { Document, DocumentFilter, MetadataManageType } from '@/types/api'
+import { MetadataManageType as MetadataType } from '@/types/api'
+import { ManageMetadataModal, DocumentMetadataModal } from './metadata'
 import { 
   Button,
   Input, 
@@ -81,6 +84,11 @@ const KnowledgeDocumentsPage: React.FC = () => {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const [uploading, setUploading] = useState(false)
   const [dragOver, setDragOver] = useState(false)
+
+  // Metadata 模态框状态
+  const [metadataModalOpen, setMetadataModalOpen] = useState(false)
+  const [docMetadataModalOpen, setDocMetadataModalOpen] = useState(false)
+  const [editingDocMeta, setEditingDocMeta] = useState<Document | null>(null)
   
   // 运行状态选项 - 匹配后端 TaskStatus 枚举
   const runStatusOptions = [
@@ -827,6 +835,10 @@ const KnowledgeDocumentsPage: React.FC = () => {
             <Button variant="outline" onClick={fetchDocuments}>
               <RefreshCw className="h-4 w-4 mr-2" />
               刷新
+            </Button>
+            <Button variant="outline" onClick={() => setMetadataModalOpen(true)}>
+              <Tag className="h-4 w-4 mr-2" />
+              管理元数据
             </Button>
             <Button onClick={() => setUploadModalOpen(true)}>
               <Upload className="h-4 w-4 mr-2" />
@@ -1643,6 +1655,40 @@ const KnowledgeDocumentsPage: React.FC = () => {
           </div>
         </div>
       </Modal>
+
+      {/* Metadata 管理模态框 */}
+      {kbId && (
+        <ManageMetadataModal
+          open={metadataModalOpen}
+          onClose={() => setMetadataModalOpen(false)}
+          kbId={kbId}
+          mode={MetadataType.MANAGE}
+          onSuccess={() => {
+            fetchDocuments()
+          }}
+          onNavigateToSettings={() => {
+            navigate(`/knowledge/${kbId}/settings?openMetadata=true`)
+          }}
+        />
+      )}
+
+      {/* 单文档 Metadata 编辑模态框 */}
+      {editingDocMeta && kbId && (
+        <DocumentMetadataModal
+          open={docMetadataModalOpen}
+          onClose={() => {
+            setDocMetadataModalOpen(false)
+            setEditingDocMeta(null)
+          }}
+          docId={editingDocMeta.id}
+          docName={editingDocMeta.name}
+          kbId={kbId}
+          metaFields={editingDocMeta.meta_fields || {}}
+          onSuccess={() => {
+            fetchDocuments()
+          }}
+        />
+      )}
     </div>
   )
 }
