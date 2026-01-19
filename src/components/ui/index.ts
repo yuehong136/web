@@ -38,3 +38,5 @@ export * from './tag-editor'
 export * from './image-uploader'
 export * from './collapsible-section'
 export * from './list-filter-bar'
+// carousel 组件按需导入，避免模块加载时初始化问题
+// import { Carousel, ... } from '@/components/ui/carousel'

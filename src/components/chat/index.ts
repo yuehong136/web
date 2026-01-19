@@ -15,6 +15,7 @@ export { parseStreamResponse, formatSearchResult, isValidUrl } from './StreamRes
 // 参考文献相关组件
 export { ReferenceDocumentList, extractDocumentsFromChunks } from './ReferenceDocumentList';
 export { InlineSourceRef, createSupComponent } from './InlineSourceRef';
+export { ImageCarousel } from './ImageCarousel';
 
 // 聊天设置相关组件
 export { ChatSettingsPanel, defaultChatSettings } from './ChatSettingsPanel';
@@ -32,6 +33,7 @@ export type { ChatInputProps, ActionsComponents, FooterInfo } from './ChatInput'
 export type { ParsedToolCall, ParsedStreamResponse, SearchResult } from './StreamResponseParser';
 export type { ReferenceDocument, ReferenceDocumentListProps } from './ReferenceDocumentList';
 export type { InlineSourceRefProps } from './InlineSourceRef';
+export type { ImageCarouselProps } from './ImageCarousel';
 export type { ChatSettings } from './ChatSettingsPanel';
 export type { MetadataFilterMode } from './MetadataFilter';
 export type { GenerationPresetType, GenerationPreset, LLMParameters } from './GenerationPresetSelector';

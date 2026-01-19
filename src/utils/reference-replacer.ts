@@ -136,3 +136,19 @@ export function extractReferencesFromSSEData(data: any): ReferenceChunk[] {
   return []
 }
 
+/**
+ * 判断图片类型文档
+ * 支持 'image' 和 'table' 类型（与 RAGFlow 保持一致）
+ */
+const IMAGE_DOC_TYPES = ['image', 'table']
+
+/**
+ * 判断一个 chunk 是否为图片类型
+ * @param chunk 引用 chunk 数据
+ * @returns 是否为图片类型
+ */
+export function isImageChunk(chunk?: ReferenceChunk): boolean {
+  if (!chunk?.doc_type) return false
+  return IMAGE_DOC_TYPES.includes(chunk.doc_type)
+}
+

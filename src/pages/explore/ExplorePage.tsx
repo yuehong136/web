@@ -47,11 +47,151 @@ import { extractReferencesFromSSEData, type ReferenceChunk } from '@/utils/refer
 import { ReferenceDocumentList } from '@/components/chat/ReferenceDocumentList'
 import { createSupComponent } from '@/components/chat/InlineSourceRef'
 import { ChatSettingsPanel, defaultChatSettings, type ChatSettings } from '@/components/chat/ChatSettingsPanel'
+import { 
+  groupConsecutiveReferences, 
+  shouldShowCarousel,
+  type ReferenceGroup,
+} from '@/utils/reference-utils'
+
+// 延迟加载 ImageCarousel 组件，避免 embla-carousel 初始化问题
+const ImageCarousel = React.lazy(() => import('@/components/chat/ImageCarousel'))
 
 // 将内容中的 [ID:x] 引用转换为 <sup>x</sup> 格式，供 XMarkdown 处理
 const convertReferencesToSup = (content: string): string => {
   if (!content) return ''
   return content.replace(/\[ID:(\d+)\]/g, '<sup>$1</sup>')
+}
+
+/**
+ * 处理内容中的引用，将连续图片引用替换为轮播占位符
+ * 返回处理后的内容和需要渲染的轮播组信息
+ */
+interface ProcessedContent {
+  /** 处理后的内容（连续图片引用被替换为占位符） */
+  content: string
+  /** 需要渲染为轮播的分组（按顺序） */
+  carouselGroups: ReferenceGroup[]
+}
+
+const processContentForCarousel = (
+  content: string, 
+  references: ReferenceChunk[]
+): ProcessedContent => {
+  if (!content || references.length === 0) {
+    return { content, carouselGroups: [] }
+  }
+
+  const groups = groupConsecutiveReferences(content)
+  const carouselGroups: ReferenceGroup[] = []
+  let processedContent = content
+
+  // 从后往前处理，避免位置偏移问题
+  for (let i = groups.length - 1; i >= 0; i--) {
+    const group = groups[i]
+    if (shouldShowCarousel(group, references)) {
+      carouselGroups.unshift(group) // 保持顺序
+      
+      // 计算要替换的文本范围
+      const startPos = group[0].start
+      const endPos = group[group.length - 1].end
+      
+      // 替换为占位符标记（用于分割内容）
+      processedContent = 
+        processedContent.slice(0, startPos) + 
+        '<carousel-placeholder></carousel-placeholder>' +
+        processedContent.slice(endPos)
+    }
+  }
+
+  return { content: processedContent, carouselGroups }
+}
+
+/**
+ * 轮播包装组件，包含错误边界和懒加载
+ * 用于安全地渲染图片轮播
+ */
+interface CarouselWrapperProps {
+  group: ReferenceGroup
+  chunks: ReferenceChunk[]
+}
+
+const CarouselWrapper: React.FC<CarouselWrapperProps> = ({ group, chunks }) => {
+  const [hasError, setHasError] = React.useState(false)
+
+  if (hasError) {
+    // 出错时显示简单的图片列表作为降级方案
+    return (
+      <div className="my-4 flex flex-wrap gap-2 justify-center">
+        {group.map((ref) => {
+          const chunkIndex = parseInt(ref.id, 10)
+          const chunk = chunks[chunkIndex]
+          if (!chunk?.image_id) return null
+          const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+          return (
+            <img
+              key={ref.id}
+              src={`${baseUrl}/document/image/${chunk.image_id}`}
+              alt={`Fig. ${chunkIndex + 1}`}
+              className="max-h-36 object-contain rounded-lg"
+              style={{ border: '1px solid var(--color-border-subtle)' }}
+            />
+          )
+        })}
+      </div>
+    )
+  }
+
+  return (
+    <React.Suspense fallback={
+      <div className="my-4 flex items-center justify-center h-36">
+        <span style={{ color: 'var(--color-text-tertiary)' }}>加载图片...</span>
+      </div>
+    }>
+      <ErrorBoundaryWrapper onError={() => setHasError(true)}>
+        <ImageCarousel
+          group={group}
+          chunks={chunks}
+          onImageClick={(chunk) => {
+            if (chunk.url) {
+              window.open(chunk.url, '_blank', 'noopener,noreferrer')
+            } else {
+              toast.success(`查看图片: Fig. ${parseInt(chunk.id || '0', 10) + 1}`)
+            }
+          }}
+          className="my-4"
+        />
+      </ErrorBoundaryWrapper>
+    </React.Suspense>
+  )
+}
+
+/**
+ * 简单的错误边界包装组件
+ */
+class ErrorBoundaryWrapper extends React.Component<
+  { children: React.ReactNode; onError: () => void },
+  { hasError: boolean }
+> {
+  constructor(props: { children: React.ReactNode; onError: () => void }) {
+    super(props)
+    this.state = { hasError: false }
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true }
+  }
+
+  componentDidCatch(error: Error) {
+    console.error('ImageCarousel error:', error)
+    this.props.onError()
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return null
+    }
+    return this.props.children
+  }
 }
 
 // 提取并分离 think 内容和主内容
@@ -737,8 +877,59 @@ export const ExplorePage: React.FC = () => {
           status = isCurrentlyStreaming ? 'thinking' : 'complete'
         }
         
-        // 对主内容转换引用格式
-        const mainContentWithSup = convertReferencesToSup(mainContent)
+        // 处理连续图片引用，分析轮播组
+        const { content: processedContent, carouselGroups } = processContentForCarousel(mainContent, references)
+        
+        // 对处理后的内容转换剩余引用格式
+        const mainContentWithSup = convertReferencesToSup(processedContent)
+        
+        // 渲染内容片段（在轮播占位符处分割）
+        const renderContentWithCarousels = () => {
+          if (carouselGroups.length === 0) {
+            // 没有轮播组，直接渲染
+            return (
+              <XMarkdown 
+                components={{ sup: SupComponent }} 
+                paragraphTag="div"
+              >
+                {mainContentWithSup}
+              </XMarkdown>
+            )
+          }
+          
+          // 有轮播组，分割渲染
+          const parts = mainContentWithSup.split(/<carousel-placeholder[^>]*><\/carousel-placeholder>/g)
+          const elements: React.ReactNode[] = []
+          
+          parts.forEach((part, idx) => {
+            // 渲染文本部分
+            if (part.trim()) {
+              elements.push(
+                <XMarkdown 
+                  key={`text-${idx}`}
+                  components={{ sup: SupComponent }} 
+                  paragraphTag="div"
+                >
+                  {part}
+                </XMarkdown>
+              )
+            }
+            
+            // 在文本部分之间插入轮播（除了最后一个部分）
+            if (idx < carouselGroups.length) {
+              const group = carouselGroups[idx]
+              elements.push(
+                <CarouselWrapper 
+                  key={`carousel-${idx}`}
+                  group={group}
+                  chunks={references}
+                />
+              )
+            }
+          })
+          
+          return <>{elements}</>
+        }
         
         return (
           <div className="space-y-3">
@@ -754,17 +945,12 @@ export const ExplorePage: React.FC = () => {
               </ThinkWrapper>
             )}
             
-            {/* 使用 XMarkdown 渲染主内容 */}
+            {/* 使用 XMarkdown 渲染主内容，支持轮播组件 */}
             {mainContentWithSup && (
               <div className="leading-relaxed markdown-content">
-                <XMarkdown 
-                  components={{ sup: SupComponent }} 
-                  paragraphTag="div"
-                >
-                  {mainContentWithSup}
-                </XMarkdown>
-            </div>
-          )}
+                {renderContentWithCarousels()}
+              </div>
+            )}
           
             {/* 如果没有内容且没有思考内容，显示加载提示 */}
             {!thinkContent && !mainContent && (
