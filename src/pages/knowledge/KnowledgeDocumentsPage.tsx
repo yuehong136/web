@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react'
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   FileText,
@@ -23,7 +23,7 @@ import { Progress } from 'antd'
 import { useKnowledgeStore } from '@/stores/knowledge'
 import { knowledgeAPI } from '@/api/knowledge'
 import { toast } from '@/lib/toast'
-import type { Document, DocumentFilter, MetadataManageType } from '@/types/api'
+import type { Document, DocumentFilter, MetadataManageType, IDocumentInfoFilter } from '@/types/api'
 import { MetadataManageType as MetadataType } from '@/types/api'
 import { ManageMetadataModal, DocumentMetadataModal } from './metadata'
 import { 
@@ -39,7 +39,289 @@ import {
   PageSizeSelector,
   CustomSelect
 } from '../../components/ui'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import { Checkbox } from '@/components/ui/checkbox'
+import { ChevronDown, ChevronUp, Funnel } from 'lucide-react'
 // import { cn } from '@/lib/utils' // 已移除硬编码样式，不再需要
+
+// ============================================================================
+// 筛选器类型定义 - 参照 ragflow 的 interface.ts
+// ============================================================================
+
+interface FilterType {
+  id: string
+  field?: string
+  label: string
+  list?: FilterType[]
+  value?: string | string[]
+  count?: number
+}
+
+interface FilterCollection {
+  field: string
+  label: string
+  list: FilterType[]
+}
+
+type FilterValue = Record<string, Array<string> | Record<string, Array<string>>>
+
+// ============================================================================
+// FilterField 组件 - 参照 ragflow 的 filter-field.tsx，支持递归嵌套
+// ============================================================================
+
+interface FilterFieldProps {
+  item: FilterType
+  parent: FilterType & { field: string }
+  level?: number
+  value: FilterValue
+  onChange: (value: FilterValue) => void
+}
+
+const FilterField: React.FC<FilterFieldProps> = ({
+  item,
+  parent,
+  level = 0,
+  value,
+  onChange
+}) => {
+  const [showAll, setShowAll] = useState(false)
+  const hasNestedList = item.list && item.list.length > 0
+
+  // 处理 checkbox 变化
+  const handleCheckChange = (checked: boolean, isNestedField = false, parentId = '') => {
+    if (isNestedField && parentId) {
+      // 嵌套字段（如 metadata.author）
+      const fieldName = parent.field // 'metadata'
+      const currentValue = (value[fieldName] as Record<string, string[]>) || {}
+      const currentParentValues = currentValue[parentId] || []
+
+      const newParentValues = checked
+        ? [...currentParentValues, item.id.toString()]
+        : currentParentValues.filter(v => v !== item.id.toString())
+
+      const newFieldValue = newParentValues.length > 0
+        ? { ...currentValue, [parentId]: newParentValues }
+        : (() => {
+            const { [parentId]: _, ...rest } = currentValue
+            return rest
+          })()
+
+      onChange({
+        ...value,
+        [fieldName]: Object.keys(newFieldValue).length > 0 ? newFieldValue : {}
+      })
+    } else {
+      // 普通字段（如 type, run）
+      const fieldName = parent.field
+      const currentValues = (value[fieldName] as string[]) || []
+      
+      const newValues = checked
+        ? [...currentValues, item.id.toString()]
+        : currentValues.filter(v => v !== item.id.toString())
+
+      onChange({
+        ...value,
+        [fieldName]: newValues
+      })
+    }
+  }
+
+  // 检查是否选中
+  const isChecked = () => {
+    const fieldName = parent.field
+    const fieldValue = value[fieldName]
+    
+    if (Array.isArray(fieldValue)) {
+      return fieldValue.includes(item.id.toString())
+    }
+    return false
+  }
+
+  // 渲染嵌套列表（如 metadata 字段）
+  if (hasNestedList) {
+    return (
+      <div className={`flex flex-col gap-2 ${level > 0 ? 'ml-1' : ''}`}>
+        <div
+          className="flex items-center justify-between cursor-pointer py-1 hover:bg-[var(--color-surface-secondary)] rounded transition-colors"
+          onClick={() => setShowAll(!showAll)}
+        >
+          <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+            {item.label}
+          </span>
+          <div className="flex items-center gap-2">
+            {item.count !== undefined && (
+              <span className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
+                {item.count}
+              </span>
+            )}
+            {showAll ? (
+              <ChevronUp className="h-3 w-3" style={{ color: 'var(--color-text-tertiary)' }} />
+            ) : (
+              <ChevronDown className="h-3 w-3" style={{ color: 'var(--color-text-tertiary)' }} />
+            )}
+          </div>
+        </div>
+        {showAll && item.list?.map(child => (
+          <FilterField
+            key={child.id}
+            item={child}
+            parent={{
+              ...item,
+              id: item.id,
+              field: parent.field, // 保持父级 field 为 'metadata'
+            }}
+            level={level + 1}
+            value={value}
+            onChange={onChange}
+          />
+        ))}
+      </div>
+    )
+  }
+
+  // 渲染叶子节点（checkbox）
+  // 判断是否是嵌套字段的子项（如 metadata.author 下的具体值）
+  const isNestedChild = level > 0
+  const parentId = isNestedChild ? parent.id : ''
+
+  // 检查嵌套字段是否选中
+  const isNestedChecked = () => {
+    if (!isNestedChild) return false
+    const fieldName = parent.field
+    const fieldValue = value[fieldName]
+    if (typeof fieldValue === 'object' && !Array.isArray(fieldValue)) {
+      const parentValues = fieldValue[parentId] || []
+      return parentValues.includes(item.id.toString())
+    }
+    return false
+  }
+
+  const checked = isNestedChild ? isNestedChecked() : isChecked()
+  // 生成唯一的 checkbox id 用于 label 关联
+  const checkboxId = `filter-${parent.field}-${parentId || 'root'}-${item.id}`
+
+  return (
+    <div className={`flex items-center justify-between text-xs group ${level > 0 ? 'ml-4' : ''}`}>
+      {/* 使用 flex 容器包裹 Checkbox 和 label，实现点击任意位置都能触发选中 */}
+      <div 
+        className="flex items-center gap-2 flex-1 min-w-0 py-1.5 px-1 -mx-1 rounded cursor-pointer hover:bg-[var(--color-surface-secondary)] transition-colors"
+        onClick={() => handleCheckChange(!checked, isNestedChild, parentId)}
+      >
+        <Checkbox
+          id={checkboxId}
+          checked={checked}
+          onCheckedChange={(c) => handleCheckChange(!!c, isNestedChild, parentId)}
+          onClick={(e) => e.stopPropagation()} // 防止冒泡导致双击
+          className="shrink-0"
+        />
+        <span 
+          className="truncate select-none" 
+          style={{ color: 'var(--color-text-primary)' }}
+          title={item.label}
+        >
+          {item.label}
+        </span>
+      </div>
+      {item.count !== undefined && (
+        <span className="text-xs ml-2 tabular-nums" style={{ color: 'var(--color-text-tertiary)' }}>
+          {item.count}
+        </span>
+      )}
+    </div>
+  )
+}
+
+// ============================================================================
+// FilterPopover 组件 - 参照 ragflow 的 filter-popover.tsx
+// ============================================================================
+
+interface FilterPopoverProps {
+  filters: FilterCollection[]
+  value: FilterValue
+  onChange: (value: FilterValue) => void
+  onOpenChange?: (open: boolean) => void
+}
+
+const FilterPopover: React.FC<React.PropsWithChildren<FilterPopoverProps>> = ({
+  children,
+  filters,
+  value,
+  onChange,
+  onOpenChange
+}) => {
+  const [open, setOpen] = useState(false)
+  const [localValue, setLocalValue] = useState<FilterValue>(value)
+
+  // 同步外部 value 变化
+  useEffect(() => {
+    setLocalValue(value)
+  }, [value])
+
+  const handleOpenChange = (newOpen: boolean) => {
+    onOpenChange?.(newOpen)
+    setOpen(newOpen)
+    if (newOpen) {
+      setLocalValue(value)
+    }
+  }
+
+  const handleSubmit = () => {
+    onChange(localValue)
+    setOpen(false)
+  }
+
+  const handleReset = () => {
+    const emptyValue: FilterValue = {}
+    filters.forEach(f => {
+      const hasNested = f.list?.some(item => item.list && item.list.length > 0)
+      emptyValue[f.field] = hasNested ? {} : []
+    })
+    onChange(emptyValue)
+    setOpen(false)
+  }
+
+  return (
+    <Popover open={open} onOpenChange={handleOpenChange}>
+      <PopoverTrigger asChild>
+        {children}
+      </PopoverTrigger>
+      <PopoverContent className="w-80 p-0" align="end">
+        <div className="px-4 py-3 space-y-4 max-h-[60vh] overflow-y-auto scrollbar-thin">
+          {filters.map(collection => (
+            <div key={collection.field} className="space-y-3">
+              <div className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
+                {collection.label}
+              </div>
+              <div className="space-y-1">
+                {collection.list?.map(item => (
+                  <FilterField
+                    key={item.id}
+                    item={item}
+                    parent={{ ...collection, id: collection.field }}
+                    value={localValue}
+                    onChange={setLocalValue}
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="flex justify-end gap-3 px-4 py-3 border-t" style={{ borderColor: 'var(--color-border-default)' }}>
+          <Button variant="outline" size="sm" onClick={handleReset}>
+            清除
+          </Button>
+          <Button size="sm" onClick={handleSubmit}>
+            确定
+          </Button>
+        </div>
+      </PopoverContent>
+    </Popover>
+  )
+}
 
 const KnowledgeDocumentsPage: React.FC = () => {
   const { id: kbId } = useParams<{ id: string }>()
@@ -52,7 +334,6 @@ const KnowledgeDocumentsPage: React.FC = () => {
   const [total, setTotal] = useState(0)
   const [selectedDocs, setSelectedDocs] = useState<Set<string>>(new Set())
   const [searchKeywords, setSearchKeywords] = useState('')
-  const [showFilters, setShowFilters] = useState(false)
   
   // 分页状态
   const [page, setPage] = useState(1)
@@ -64,12 +345,16 @@ const KnowledgeDocumentsPage: React.FC = () => {
     desc: true
   })
   
-  // 过滤器状态
-  const [filters, setFilters] = useState<DocumentFilter>({
-    run_status: [],
-    types: [],
-    suffix: []
+  // 筛选值状态 - 使用 ragflow 的 FilterValue 结构
+  const [filterValue, setFilterValue] = useState<FilterValue>({
+    type: [],
+    run: [],
+    metadata: {}
   })
+  
+  // 筛选选项（从后端动态获取）
+  const [filterOptions, setFilterOptions] = useState<IDocumentInfoFilter | null>(null)
+  const [filterOptionsLoading, setFilterOptionsLoading] = useState(false)
   
   // 定时器引用
   const refreshInterval = useRef<NodeJS.Timeout | null>(null)
@@ -124,24 +409,120 @@ const KnowledgeDocumentsPage: React.FC = () => {
     { value: 'pptx', label: '.pptx' }
   ]
   
+  // 构建筛选器列表 - 参照 ragflow 的 use-select-filters.ts
+  const filterCollections = useMemo<FilterCollection[]>(() => {
+    if (!filterOptions) {
+      return [
+        { field: 'type', label: '文件类型', list: suffixOptions.map(o => ({ id: o.value, label: o.label })) },
+        { field: 'run', label: '任务状态', list: runStatusOptions.map(o => ({ id: o.value, label: o.label })) },
+        { field: 'metadata', label: '元数据', list: [] }
+      ]
+    }
+    
+    // 从后端数据构建 fileTypes
+    const fileTypes: FilterType[] = filterOptions.suffix 
+      ? Object.entries(filterOptions.suffix).map(([suffix, count]) => ({
+          id: suffix,
+          label: suffix.toUpperCase(),
+          count
+        }))
+      : []
+    
+    // 从后端数据构建 fileStatus
+    const fileStatus: FilterType[] = filterOptions.run_status
+      ? Object.entries(filterOptions.run_status).map(([status, count]) => ({
+          id: status,
+          label: runStatusOptions.find(o => o.value === status)?.label || `状态${status}`,
+          count
+        }))
+      : []
+    
+    // 从后端数据构建 metaDataList - 嵌套结构
+    const metaDataList: FilterType[] = filterOptions.metadata
+      ? Object.entries(filterOptions.metadata)
+          .filter(([fieldName]) => fieldName !== 'empty_metadata')
+          .map(([fieldName, fieldValues]) => ({
+            id: fieldName,
+            field: fieldName,
+            label: fieldName,
+            list: Object.entries(fieldValues).map(([value, count]) => ({
+              id: value,
+              field: value,
+              label: value,
+              value: [value],
+              count
+            })),
+            count: Object.values(fieldValues).reduce((acc, c) => acc + c, 0)
+          }))
+      : []
+    
+    return [
+      { field: 'type', label: '文件类型', list: fileTypes },
+      { field: 'run', label: '任务状态', list: fileStatus },
+      { field: 'metadata', label: '元数据', list: metaDataList }
+    ]
+  }, [filterOptions])
+  
+  // 计算筛选数量 - 参照 ragflow 的 filterCount 计算逻辑
+  const filterCount = useMemo(() => {
+    return typeof filterValue === 'object' && filterValue !== null
+      ? Object.values(filterValue).reduce((pre, cur) => {
+          if (Array.isArray(cur)) {
+            return pre + cur.length
+          }
+          if (typeof cur === 'object') {
+            return pre + Object.values(cur).reduce((innerPre, innerCur) => {
+              return innerPre + (innerCur?.length || 0)
+            }, 0)
+          }
+          return pre
+        }, 0)
+      : 0
+  }, [filterValue])
+
   // 检查是否有活动的筛选条件
   const hasActiveFilters = () => {
-    return (filters.run_status && filters.run_status.length > 0) ||
-           (filters.types && filters.types.length > 0) ||
-           (filters.suffix && filters.suffix.length > 0) ||
-           searchKeywords.trim() !== ''
+    return filterCount > 0 || searchKeywords.trim() !== ''
   }
   
   // 清除所有筛选条件
   const clearAllFilters = () => {
-    setFilters({
-      run_status: [],
-      types: [],
-      suffix: []
+    setFilterValue({
+      type: [],
+      run: [],
+      metadata: {}
     })
     setSearchKeywords('')
     setPage(1)
   }
+  
+  // 获取筛选选项
+  const fetchFilterOptions = async () => {
+    if (!kbId) return
+    
+    try {
+      setFilterOptionsLoading(true)
+      const response = await knowledgeAPI.document.getFilter(kbId)
+      setFilterOptions(response.filter)
+    } catch (error) {
+      console.error('Failed to fetch filter options:', error)
+    } finally {
+      setFilterOptionsLoading(false)
+    }
+  }
+  
+  // 将 filterValue 转换为 API 需要的 DocumentFilter 格式
+  const getDocumentFilter = useCallback((): DocumentFilter => {
+    const typeValues = filterValue.type as string[] || []
+    const runValues = filterValue.run as string[] || []
+    const metadataValues = filterValue.metadata as Record<string, string[]> || {}
+    
+    return {
+      suffix: typeValues,
+      run_status: runValues,
+      metadata: Object.keys(metadataValues).length > 0 ? metadataValues : undefined
+    }
+  }, [filterValue])
   
   // 格式化文件大小
   const formatFileSize = (size: number) => {
@@ -175,7 +556,7 @@ const KnowledgeDocumentsPage: React.FC = () => {
         page_size: pageSize,
         orderby: sortConfig.orderby,
         desc: sortConfig.desc,
-        filter_params: filters
+        filter_params: getDocumentFilter()
       })
       
       setDocuments(response.docs || [])
@@ -224,14 +605,21 @@ const KnowledgeDocumentsPage: React.FC = () => {
   // 监听筛选条件变化，重置页码
   useEffect(() => {
     setPage(1)
-  }, [filters, searchKeywords])
+  }, [filterValue, searchKeywords])
+  
+  // 页面加载时获取筛选选项
+  useEffect(() => {
+    if (kbId) {
+      fetchFilterOptions()
+    }
+  }, [kbId])
   
   // 监听所有变化，触发数据获取
   useEffect(() => {
     if (kbId) {
       fetchDocuments()
     }
-  }, [kbId, page, pageSize, sortConfig, filters, searchKeywords])
+  }, [kbId, page, pageSize, sortConfig, filterValue, searchKeywords])
   
   // 切换文档启用状态
   const handleToggleStatus = async (doc: Document) => {
@@ -803,33 +1191,38 @@ const KnowledgeDocumentsPage: React.FC = () => {
                 leftIcon={<Search className="h-4 w-4" />}
               />
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowFilters(!showFilters)}
-              style={{
-                ...(showFilters ? {
-                  backgroundColor: 'var(--color-state-info-subtle)',
-                  color: 'var(--color-state-info)'
-                } : {}),
-                ...(hasActiveFilters() ? {
+            {/* 筛选按钮 - 使用 FilterPopover */}
+            <FilterPopover
+              filters={filterCollections}
+              value={filterValue}
+              onChange={setFilterValue}
+              onOpenChange={(open) => {
+                if (open) {
+                  fetchFilterOptions()
+                }
+              }}
+            >
+              <Button
+                variant="outline"
+                size="sm"
+                style={filterCount > 0 ? {
                   backgroundColor: 'var(--color-state-warning-subtle)',
                   color: 'var(--color-state-warning)',
                   borderColor: 'var(--color-border-warning)'
-                } : {})
-              }}
-            >
-              <Filter className="h-4 w-4 mr-2" />
-              筛选
-              {hasActiveFilters() && (
-                <span className="ml-1 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none rounded-full" style={{
-                  color: 'var(--color-components-badge-warning-text)',
-                  backgroundColor: 'var(--color-state-warning)'
-                }}>
-                  {(filters.run_status?.length || 0) + (filters.types?.length || 0) + (filters.suffix?.length || 0) + (searchKeywords.trim() ? 1 : 0)}
-                </span>
-              )}
-            </Button>
+                } : {}}
+              >
+                <Funnel className="h-4 w-4 mr-2" />
+                筛选
+                {filterCount > 0 && (
+                  <span className="ml-1 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none rounded-full" style={{
+                    color: 'var(--color-components-badge-warning-text)',
+                    backgroundColor: 'var(--color-state-warning)'
+                  }}>
+                    {filterCount}
+                  </span>
+                )}
+              </Button>
+            </FilterPopover>
           </div>
           <div className="flex items-center space-x-3">
             <Button variant="outline" onClick={fetchDocuments}>
@@ -846,293 +1239,6 @@ const KnowledgeDocumentsPage: React.FC = () => {
             </Button>
           </div>
         </div>
-        
-        {/* 展开的筛选器 */}
-        {showFilters && (
-          <div className="mt-4 pt-4 rounded-lg p-4" style={{
-            borderTop: '1px solid var(--color-border-default)',
-            backgroundColor: 'var(--color-background-subtle)'
-          }}>
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center space-x-2">
-                <div className="p-1.5 rounded-md" style={{ backgroundColor: 'var(--color-state-info-subtle)' }}>
-                  <Filter className="h-4 w-4" style={{ color: 'var(--color-state-info)' }} />
-                </div>
-                <h3 className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>筛选条件</h3>
-              </div>
-              <div className="flex items-center space-x-2">
-                {hasActiveFilters() && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={clearAllFilters}
-                    style={{ color: 'var(--color-text-tertiary)' }}
-                  >
-                    <X className="h-3 w-3 mr-1" />
-                    清除筛选
-                  </Button>
-                )}
-                <span className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
-                  筛选条件会自动应用
-                </span>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              {/* 运行状态筛选 */}
-              <div className="rounded-lg p-3" style={{
-                backgroundColor: 'var(--color-background-surface)',
-                border: '1px solid var(--color-border-default)'
-              }}>
-                <label className="flex items-center space-x-2 text-sm font-medium mb-3" style={{ color: 'var(--color-text-primary)' }}>
-                  <div className="p-1 rounded" style={{ backgroundColor: 'var(--color-state-success-subtle)' }}>
-                    <Play className="h-3 w-3" style={{ color: 'var(--color-state-success)' }} />
-                  </div>
-                  <span>任务状态</span>
-                </label>
-                <div className="space-y-2">
-                  {runStatusOptions.map(option => (
-                    <label key={option.value} className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        checked={filters.run_status?.includes(option.value) || false}
-                        onChange={(e) => {
-                          const newRunStatus = e.target.checked
-                            ? [...(filters.run_status || []), option.value]
-                            : (filters.run_status || []).filter(s => s !== option.value)
-                          setFilters({
-                            ...filters,
-                            run_status: newRunStatus
-                          })
-                        }}
-                        className="w-4 h-4 rounded focus:outline-none"
-                        style={{
-                          backgroundColor: (filters.run_status?.includes(option.value) || false)
-                            ? 'var(--color-components-checkbox-bg-checked)' 
-                            : 'var(--color-components-checkbox-bg)',
-                          borderColor: (filters.run_status?.includes(option.value) || false)
-                            ? 'var(--color-components-checkbox-border-checked)' 
-                            : 'var(--color-components-checkbox-border)',
-                          borderWidth: '1px',
-                          color: (filters.run_status?.includes(option.value) || false)
-                            ? 'var(--color-components-checkbox-icon)' 
-                            : 'transparent'
-                        }}
-                      />
-                      <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>{option.label}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-              
-              {/* 文件类型筛选 */}
-              <div className="rounded-lg p-3" style={{
-                backgroundColor: 'var(--color-background-surface)',
-                border: '1px solid var(--color-border-default)'
-              }}>
-                <label className="flex items-center space-x-2 text-sm font-medium mb-3" style={{ color: 'var(--color-text-primary)' }}>
-                  <div className="p-1 rounded" style={{ backgroundColor: 'var(--color-state-info-subtle)' }}>
-                    <FileText className="h-3 w-3" style={{ color: 'var(--color-state-info)' }} />
-                  </div>
-                  <span>文件类型</span>
-                </label>
-                <div className="space-y-2">
-                  {fileTypeOptions.map(option => (
-                    <label key={option.value} className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        checked={filters.types?.includes(option.value) || false}
-                        onChange={(e) => {
-                          const newTypes = e.target.checked
-                            ? [...(filters.types || []), option.value]
-                            : (filters.types || []).filter(t => t !== option.value)
-                          setFilters({
-                            ...filters,
-                            types: newTypes
-                          })
-                        }}
-                        className="w-4 h-4 rounded focus:outline-none"
-                        style={{
-                          backgroundColor: (filters.types?.includes(option.value) || false)
-                            ? 'var(--color-components-checkbox-bg-checked)' 
-                            : 'var(--color-components-checkbox-bg)',
-                          borderColor: (filters.types?.includes(option.value) || false)
-                            ? 'var(--color-components-checkbox-border-checked)' 
-                            : 'var(--color-components-checkbox-border)',
-                          borderWidth: '1px',
-                          color: (filters.types?.includes(option.value) || false)
-                            ? 'var(--color-components-checkbox-icon)' 
-                            : 'transparent'
-                        }}
-                      />
-                      <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>{option.label}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-              
-              {/* 文件后缀筛选 */}
-              <div className="rounded-lg p-3" style={{
-                backgroundColor: 'var(--color-background-surface)',
-                border: '1px solid var(--color-border-default)'
-              }}>
-                <label className="flex items-center space-x-2 text-sm font-medium mb-3" style={{ color: 'var(--color-text-primary)' }}>
-                  <div className="p-1 rounded" style={{ backgroundColor: 'var(--color-state-warning-subtle)' }}>
-                    <Tag className="h-3 w-3" style={{ color: 'var(--color-state-warning)' }} />
-                  </div>
-                  <span>文件后缀</span>
-                </label>
-                <div className="space-y-2 max-h-40 overflow-y-auto scrollbar-thin">
-                  {suffixOptions.map(option => (
-                    <label key={option.value} className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        checked={filters.suffix?.includes(option.value) || false}
-                        onChange={(e) => {
-                          const newSuffix = e.target.checked
-                            ? [...(filters.suffix || []), option.value]
-                            : (filters.suffix || []).filter(s => s !== option.value)
-                          setFilters({
-                            ...filters,
-                            suffix: newSuffix
-                          })
-                        }}
-                        className="w-4 h-4 rounded focus:outline-none"
-                        style={{
-                          backgroundColor: (filters.suffix?.includes(option.value) || false)
-                            ? 'var(--color-components-checkbox-bg-checked)' 
-                            : 'var(--color-components-checkbox-bg)',
-                          borderColor: (filters.suffix?.includes(option.value) || false)
-                            ? 'var(--color-components-checkbox-border-checked)' 
-                            : 'var(--color-components-checkbox-border)',
-                          borderWidth: '1px',
-                          color: (filters.suffix?.includes(option.value) || false)
-                            ? 'var(--color-components-checkbox-icon)' 
-                            : 'transparent'
-                        }}
-                      />
-                      <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>{option.label}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-              
-              {/* 排序选项 */}
-              <div className="rounded-lg p-3" style={{
-                backgroundColor: 'var(--color-background-surface)',
-                border: '1px solid var(--color-border-default)'
-              }}>
-                <label className="flex items-center space-x-2 text-sm font-medium mb-3" style={{ color: 'var(--color-text-primary)' }}>
-                  <div className="p-1 rounded" style={{ backgroundColor: 'var(--color-state-warning-subtle)' }}>
-                    <ArrowUpDown className="h-3 w-3" style={{ color: 'var(--color-state-warning)' }} />
-                  </div>
-                  <span>排序方式</span>
-                </label>
-                <div className="space-y-2">
-                  <CustomSelect
-                    options={[
-                      { value: 'create_time', label: '创建时间' },
-                      { value: 'update_time', label: '更新时间' },
-                      { value: 'name', label: '文件名' },
-                      { value: 'size', label: '文件大小' }
-                    ]}
-                    value={sortConfig.orderby}
-                    onChange={(value) => {
-                      setSortConfig({
-                        ...sortConfig,
-                        orderby: value
-                      })
-                    }}
-                  />
-                  <label className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      checked={sortConfig.desc}
-                      onChange={(e) => {
-                        setSortConfig({
-                          ...sortConfig,
-                          desc: e.target.checked
-                        })
-                      }}
-                      className="w-4 h-4 rounded focus:outline-none"
-                      style={{
-                        backgroundColor: sortConfig.desc
-                          ? 'var(--color-components-checkbox-bg-checked)' 
-                          : 'var(--color-components-checkbox-bg)',
-                        borderColor: sortConfig.desc
-                          ? 'var(--color-components-checkbox-border-checked)' 
-                          : 'var(--color-components-checkbox-border)',
-                        borderWidth: '1px',
-                        color: sortConfig.desc
-                          ? 'var(--color-components-checkbox-icon)' 
-                          : 'transparent'
-                      }}
-                    />
-                    <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>降序排列</span>
-                  </label>
-                </div>
-              </div>
-            </div>
-            
-            {/* 当前筛选状态显示 */}
-            {hasActiveFilters() && (
-              <div className="mt-4 pt-4 rounded-lg p-3" style={{
-                borderTop: '1px solid var(--color-border-default)',
-                backgroundColor: 'var(--color-background-surface)'
-              }}>
-                <div className="flex items-center space-x-2 mb-3">
-                  <div className="p-1 rounded" style={{ backgroundColor: 'var(--color-state-info-subtle)' }}>
-                    <CheckCircle className="h-3 w-3" style={{ color: 'var(--color-state-info)' }} />
-                  </div>
-                  <div className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>当前筛选条件</div>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {searchKeywords.trim() && (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" style={{
-                      backgroundColor: 'var(--color-components-badge-info-bg)',
-                      color: 'var(--color-components-badge-info-text)'
-                    }}>
-                      关键词: {searchKeywords}
-                    </span>
-                  )}
-                  {filters.run_status?.map(status => {
-                    const statusLabel = runStatusOptions.find(o => o.value === status)?.label
-                    return (
-                      <span key={status} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" style={{
-                        backgroundColor: 'var(--color-components-badge-success-bg)',
-                        color: 'var(--color-components-badge-success-text)'
-                      }}>
-                        状态: {statusLabel}
-                      </span>
-                    )
-                  })}
-                  {filters.types?.map(type => {
-                    const typeLabel = fileTypeOptions.find(o => o.value === type)?.label
-                    return (
-                      <span key={type} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" style={{
-                        backgroundColor: 'var(--color-components-badge-info-bg)',
-                        color: 'var(--color-components-badge-info-text)'
-                      }}>
-                        类型: {typeLabel}
-                      </span>
-                    )
-                  })}
-                  {filters.suffix?.map(suffix => {
-                    const suffixLabel = suffixOptions.find(o => o.value === suffix)?.label
-                    return (
-                      <span key={suffix} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" style={{
-                        backgroundColor: 'var(--color-components-badge-warning-bg)',
-                        color: 'var(--color-components-badge-warning-text)'
-                      }}>
-                        后缀: {suffixLabel}
-                      </span>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
       </Card>
       
       {/* 文档列表 */}

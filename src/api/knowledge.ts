@@ -14,6 +14,8 @@ import type {
   MetadataBatchRequest,
   KBMetadataSettingsRequest,
   DocumentMetadataSettingsRequest,
+  DocumentFilter,
+  IDocumentInfoFilter,
 } from '../types/api'
 
 export const knowledgeAPI = {
@@ -121,11 +123,7 @@ export const knowledgeAPI = {
       page_size?: number
       orderby?: string
       desc?: boolean
-      filter_params: {
-        run_status?: string[]
-        types?: string[]
-        suffix?: string[]
-      }
+      filter_params: DocumentFilter
     }): Promise<{ total: number; docs: Document[] }> => {
       const { kb_id, keywords = '', page = 0, page_size = 0, orderby = 'create_time', desc = true, filter_params } = params
       const queryParams = new URLSearchParams({
@@ -136,8 +134,19 @@ export const knowledgeAPI = {
         orderby,
         desc: desc.toString()
       })
-      return apiClient.post(`/v1/document/list?${queryParams.toString()}`, filter_params)
+      // 构建筛选参数，包含 metadata 筛选
+      const filterBody: DocumentFilter = {
+        run_status: filter_params.run_status,
+        suffix: filter_params.suffix,
+        metadata: filter_params.metadata,
+      }
+      return apiClient.post(`/v1/document/list?${queryParams.toString()}`, filterBody)
     },
+
+    // 获取文档筛选选项（动态获取可用的筛选值）
+    // 注意：后端 API 是 POST /v1/document/filter，不是 GET /v1/document/get_filter
+    getFilter: (kbId: string): Promise<{ filter: IDocumentInfoFilter }> =>
+      apiClient.post('/v1/document/filter', { kb_id: kbId }),
 
     // 获取文档详情
     get: (docId: string): Promise<Document> =>

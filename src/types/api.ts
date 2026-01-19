@@ -822,6 +822,14 @@ export interface DocumentFilter {
   run_status?: string[] // 运行状态过滤
   types?: string[] // 文件类型过滤
   suffix?: string[] // 文件后缀过滤
+  metadata?: Record<string, string[]> // metadata 嵌套筛选
+}
+
+// 文档筛选信息（从后端获取可用的筛选选项）
+export interface IDocumentInfoFilter {
+  run_status: Record<string, number> // 状态 -> 数量
+  suffix: Record<string, number> // 后缀 -> 数量
+  metadata: Record<string, Record<string, number>> // metadata 字段 -> 值 -> 数量
 }
 
 // 文档列表请求参数
