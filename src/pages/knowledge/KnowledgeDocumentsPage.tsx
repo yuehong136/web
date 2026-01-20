@@ -49,6 +49,13 @@ import { ChevronDown, ChevronUp, Funnel } from 'lucide-react'
 // import { cn } from '@/lib/utils' // 已移除硬编码样式，不再需要
 
 // ============================================================================
+// 筛选器常量 - 参照 ragflow 的 use-select-filters.ts
+// ============================================================================
+
+/** 特殊筛选字段：无元数据 */
+const EMPTY_METADATA_FIELD = 'empty_metadata'
+
+// ============================================================================
 // 筛选器类型定义 - 参照 ragflow 的 interface.ts
 // ============================================================================
 
@@ -477,14 +484,32 @@ const KnowledgeDocumentsPage: React.FC = () => {
         }))
       : []
     
-    // 从后端数据构建 fileStatus
-    const fileStatus: FilterType[] = filterOptions.run_status
-      ? Object.entries(filterOptions.run_status).map(([status, count]) => ({
+    // 从后端数据构建 fileStatus（包含运行状态 + 无元数据筛选）
+    const fileStatus: FilterType[] = []
+    
+    // 添加运行状态选项
+    if (filterOptions.run_status) {
+      Object.entries(filterOptions.run_status).forEach(([status, count]) => {
+        fileStatus.push({
           id: status,
           label: runStatusOptions.find(o => o.value === status)?.label || `状态${status}`,
           count
-        }))
-      : []
+        })
+      })
+    }
+    
+    // 添加"无元数据"筛选选项（从 metadata.empty_metadata 获取）
+    const emptyMetadataInfo = filterOptions.metadata?.[EMPTY_METADATA_FIELD]
+    if (emptyMetadataInfo) {
+      const emptyCount = emptyMetadataInfo['true'] ?? 0
+      if (emptyCount > 0) {
+        fileStatus.push({
+          id: EMPTY_METADATA_FIELD,
+          label: '无元数据',
+          count: emptyCount
+        })
+      }
+    }
     
     // 从后端数据构建 metaDataList - 嵌套结构
     const metaDataList: FilterType[] = filterOptions.metadata
@@ -569,13 +594,25 @@ const KnowledgeDocumentsPage: React.FC = () => {
   // 将 filterValue 转换为 API 需要的 DocumentFilter 格式
   const getDocumentFilter = useCallback((): DocumentFilter => {
     const typeValues = filterValue.type as string[] || []
-    const runValues = filterValue.run as string[] || []
+    const rawRunValues = filterValue.run as string[] || []
     const metadataValues = filterValue.metadata as Record<string, string[]> || {}
+    
+    // 处理"无元数据"特殊筛选值
+    // 如果选中了"无元数据"，需要从 run_status 中移除并设置 return_empty_metadata
+    let returnEmptyMetadata = false
+    const runValues = rawRunValues.filter(value => {
+      if (value === EMPTY_METADATA_FIELD) {
+        returnEmptyMetadata = true
+        return false
+      }
+      return true
+    })
     
     return {
       suffix: typeValues,
-      run_status: runValues,
-      metadata: Object.keys(metadataValues).length > 0 ? metadataValues : undefined
+      run_status: runValues.length > 0 ? runValues : undefined,
+      metadata: Object.keys(metadataValues).length > 0 ? metadataValues : undefined,
+      return_empty_metadata: returnEmptyMetadata || undefined
     }
   }, [filterValue])
   

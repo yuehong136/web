@@ -823,6 +823,7 @@ export interface DocumentFilter {
   types?: string[] // 文件类型过滤
   suffix?: string[] // 文件后缀过滤
   metadata?: Record<string, string[]> // metadata 嵌套筛选
+  return_empty_metadata?: boolean // 是否只返回无元数据的文档
 }
 
 // 文档筛选信息（从后端获取可用的筛选选项）

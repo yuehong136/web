@@ -134,11 +134,12 @@ export const knowledgeAPI = {
         orderby,
         desc: desc.toString()
       })
-      // 构建筛选参数，包含 metadata 筛选
+      // 构建筛选参数，包含 metadata 筛选和无元数据过滤
       const filterBody: DocumentFilter = {
         run_status: filter_params.run_status,
         suffix: filter_params.suffix,
         metadata: filter_params.metadata,
+        return_empty_metadata: filter_params.return_empty_metadata,
       }
       return apiClient.post(`/v1/document/list?${queryParams.toString()}`, filterBody)
     },
