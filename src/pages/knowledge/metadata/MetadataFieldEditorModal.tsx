@@ -197,6 +197,20 @@ export const MetadataFieldEditorModal: React.FC<MetadataFieldEditorModalProps> =
   // 处理值变化
   const handleValueChange = useCallback((index: number, value: string) => {
     setTempValues((prev) => {
+      // 检查值是否重复（排除当前正在编辑的项）
+      const otherValues = prev.filter((_, i) => i !== index)
+      if (value && otherValues.includes(value)) {
+        setErrors((prevErrors) => ({
+          ...prevErrors,
+          values: '值已存在',
+        }))
+      } else {
+        setErrors((prevErrors) => ({
+          ...prevErrors,
+          values: undefined,
+        }))
+      }
+
       const newValues = [...prev]
       newValues[index] = value
       return newValues
@@ -234,7 +248,7 @@ export const MetadataFieldEditorModal: React.FC<MetadataFieldEditorModalProps> =
 
   // 处理保存
   const handleSave = useCallback(() => {
-    // 验证
+    // 验证字段名
     if (!formData.field.trim()) {
       setErrors((prev) => ({ ...prev, field: '请输入字段名' }))
       return
@@ -244,14 +258,26 @@ export const MetadataFieldEditorModal: React.FC<MetadataFieldEditorModalProps> =
       return
     }
 
-    // 最终同步值
+    // 最终同步值并去重
     const finalValues = [...new Set(tempValues.filter((v) => v.trim()))]
+
+    // 检查是否有重复值（最终验证）
+    if (finalValues.length !== tempValues.filter((v) => v.trim()).length) {
+      // 有重复值，但已经通过 Set 去重了，可以继续保存
+      // 这里清除错误状态
+      setErrors((prev) => ({ ...prev, values: undefined }))
+    }
+
+    // 如果当前仍有值重复错误，阻止保存
+    if (errors.values) {
+      return
+    }
 
     onSave({
       ...formData,
-      values: formData.restrictDefinedValues ? finalValues : finalValues,
+      values: finalValues,
     })
-  }, [formData, tempValues, errors.field, onSave])
+  }, [formData, tempValues, errors.field, errors.values, onSave])
 
   // 处理关闭
   const handleClose = useCallback(() => {
@@ -421,7 +447,7 @@ export const MetadataFieldEditorModal: React.FC<MetadataFieldEditorModalProps> =
           <Button variant="outline" onClick={handleClose} disabled={loading}>
             取消
           </Button>
-          <Button onClick={handleSave} disabled={loading || !!errors.field}>
+          <Button onClick={handleSave} disabled={loading || !!errors.field || !!errors.values}>
             {loading ? (
               <>
                 <div className="animate-spin w-4 h-4 border-2 border-current border-t-transparent rounded-full mr-2" />
