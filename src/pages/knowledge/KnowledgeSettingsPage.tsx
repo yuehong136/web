@@ -256,6 +256,14 @@ const KnowledgeSettingsPage: React.FC = () => {
     try {
       setIsLoading(true)
 
+      // 处理 parser_config，添加字段映射
+      const parserConfig = data.parseType === 1 && data.parser_config ? {
+        ...data.parser_config,
+        // 将 image_table_context_window 映射到后端的两个字段
+        image_context_size: data.parser_config.image_table_context_window,
+        table_context_size: data.parser_config.image_table_context_window,
+      } : null
+
       const updateData: UpdateKBRequest = {
         kb_id: id,
         name: trimmedName,
@@ -265,7 +273,7 @@ const KnowledgeSettingsPage: React.FC = () => {
         parser_id: data.parseType === 1 ? data.parser_id : null,
         embd_id: data.embd_id?.trim() || null,
         pagerank: data.pagerank || 0,
-        parser_config: data.parseType === 1 && data.parser_config ? data.parser_config : null,
+        parser_config: parserConfig,
         // pipeline_id: data.parseType === 2 ? data.pipeline_id : null, // 后端暂不支持
       }
 

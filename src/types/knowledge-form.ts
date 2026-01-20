@@ -60,7 +60,7 @@ export const parserConfigSchema = z.object({
   auto_questions: z.number().min(0).max(10).default(0),
   html4excel: z.boolean().default(false),
   toc_extraction: z.boolean().default(false),
-  image_context_window: z.number().min(0).max(256).default(0),
+  image_table_context_window: z.number().min(0).max(256).default(0),
   tag_kb_ids: z.array(z.string()).nullish(),
   topn_tags: z.number().min(1).max(10).default(3),
   raptor: raptorSchema.optional(),
@@ -159,7 +159,7 @@ export const getDefaultFormValues = (): Partial<KnowledgeSettingsFormData> => ({
     auto_questions: 0,
     html4excel: false,
     toc_extraction: false,
-    image_context_window: 0,
+    image_table_context_window: 0,
     topn_tags: 3,
     // MinerU 默认配置
     mineru_parse_method: 'auto',
