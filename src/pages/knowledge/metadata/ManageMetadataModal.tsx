@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react'
-import { Plus, Settings2, AlertCircle, Database } from 'lucide-react'
+import { Plus, Settings2, AlertCircle, Database, AlertTriangle, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
   Dialog,
@@ -35,6 +35,40 @@ import type {
   MetadataFieldDefinition,
 } from '@/types/api'
 import { MetadataManageType } from '@/types/api'
+
+// ============================================================================
+// 删除确认文案配置 - 根据模式区分全局/单文件
+// ============================================================================
+
+type DeleteTextConfig = {
+  fieldTitle: string
+  fieldWarn: string
+  valueTitle: string
+  valueWarn: string
+}
+
+const getDeleteTextConfig = (
+  mode: (typeof MetadataManageType)[keyof typeof MetadataManageType]
+): DeleteTextConfig => {
+  const isGlobalMode = mode === MetadataManageType.MANAGE || mode === MetadataManageType.SETTING
+  
+  if (isGlobalMode) {
+    return {
+      fieldTitle: '删除元数据字段',
+      fieldWarn: '此字段及其所有对应值将从所有关联文件中删除，此操作不可撤销。',
+      valueTitle: '删除元数据值',
+      valueWarn: '此值将从所有关联文件中删除，此操作不可撤销。',
+    }
+  } else {
+    // UPDATE_SINGLE 或 SINGLE_FILE_SETTING
+    return {
+      fieldTitle: '删除元数据字段',
+      fieldWarn: '此字段及其所有对应值将从此文件中删除。',
+      valueTitle: '删除元数据值',
+      valueWarn: '此值将从此文件中删除。',
+    }
+  }
+}
 
 interface ManageMetadataModalProps {
   /**
@@ -212,46 +246,51 @@ export const ManageMetadataModal: React.FC<ManageMetadataModalProps> = ({
     [tableData]
   )
 
+  // 获取删除文案配置
+  const deleteTextConfig = useMemo(() => getDeleteTextConfig(mode), [mode])
+
   // 删除字段
   const handleDeleteField = useCallback(
     (index: number) => {
       const item = tableData[index]
-      const warnText = isManageMode
-        ? '删除此字段将从所有文档中移除该元数据，此操作不可撤销。'
-        : '删除此字段定义后，新解析的文档将不再自动提取该字段。'
-
-      showDeleteConfirm('删除元数据字段', item.field, warnText, () => {
-        if (isManageMode) {
-          setPendingDeletes((prev) => [...prev, { key: item.field }])
+      showDeleteConfirm(
+        deleteTextConfig.fieldTitle,
+        item.field,
+        deleteTextConfig.fieldWarn,
+        () => {
+          if (isManageMode) {
+            setPendingDeletes((prev) => [...prev, { key: item.field }])
+          }
+          setTableData((prev) => prev.filter((_, i) => i !== index))
         }
-        setTableData((prev) => prev.filter((_, i) => i !== index))
-      })
+      )
     },
-    [isManageMode, tableData, showDeleteConfirm]
+    [isManageMode, tableData, showDeleteConfirm, deleteTextConfig]
   )
 
   // 删除单个值
   const handleRemoveValue = useCallback(
     (fieldIndex: number, value: string) => {
       const item = tableData[fieldIndex]
-      const warnText = isManageMode
-        ? '删除此值将从所有包含该值的文档中移除，此操作不可撤销。'
-        : '删除此可选值后，已有数据不受影响。'
-
-      showDeleteConfirm('删除元数据值', value, warnText, () => {
-        if (isManageMode) {
-          setPendingDeletes((prev) => [...prev, { key: item.field, value }])
-        }
-        setTableData((prev) =>
-          prev.map((item, i) =>
-            i === fieldIndex
-              ? { ...item, values: item.values.filter((v) => v !== value) }
-              : item
+      showDeleteConfirm(
+        deleteTextConfig.valueTitle,
+        value,
+        deleteTextConfig.valueWarn,
+        () => {
+          if (isManageMode) {
+            setPendingDeletes((prev) => [...prev, { key: item.field, value }])
+          }
+          setTableData((prev) =>
+            prev.map((item, i) =>
+              i === fieldIndex
+                ? { ...item, values: item.values.filter((v) => v !== value) }
+                : item
+            )
           )
-        )
-      })
+        }
+      )
     },
-    [isManageMode, tableData, showDeleteConfirm]
+    [isManageMode, tableData, showDeleteConfirm, deleteTextConfig]
   )
 
   // 保存字段编辑
@@ -376,23 +415,44 @@ export const ManageMetadataModal: React.FC<ManageMetadataModalProps> = ({
     <>
       <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
         <DialogContent className="max-w-2xl p-0 gap-0 overflow-hidden">
-          {/* 头部 */}
-          <DialogHeader className="px-6 py-4 border-b border-border-default bg-surface-secondary/30">
-            <DialogTitle className="text-base font-semibold">{title}</DialogTitle>
-            {subtitle && (
-              <p className="text-sm text-text-secondary mt-1">{subtitle}</p>
-            )}
+          {/* 头部 - 增强设计 */}
+          <DialogHeader className="px-6 py-5 border-b border-border-default bg-gradient-to-r from-surface-secondary/50 to-surface-primary">
+            <div className="flex items-start gap-3">
+              <div className={cn(
+                'flex items-center justify-center w-10 h-10 rounded-xl shrink-0',
+                isSettingMode 
+                  ? 'bg-surface-accent/10 text-surface-accent' 
+                  : 'bg-surface-secondary text-text-secondary'
+              )}>
+                {isSettingMode ? (
+                  <Sparkles className="w-5 h-5" />
+                ) : (
+                  <Database className="w-5 h-5" />
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <DialogTitle className="text-base font-semibold text-text-primary">
+                  {title}
+                </DialogTitle>
+                {subtitle && (
+                  <p className="text-sm text-text-secondary mt-0.5 leading-relaxed">
+                    {subtitle}
+                  </p>
+                )}
+              </div>
+            </div>
           </DialogHeader>
 
           {/* 内容区域 */}
           <div className="px-6 py-4">
             {/* 工具栏 */}
             <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2 text-sm text-text-secondary">
-                <Database className="w-4 h-4" />
-                <span>元数据字段</span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-text-primary">字段列表</span>
                 {tableData.length > 0 && (
-                  <span className="text-text-tertiary">({tableData.length})</span>
+                  <span className="inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-medium text-text-tertiary bg-surface-secondary rounded">
+                    {tableData.length}
+                  </span>
                 )}
               </div>
               <div className="flex items-center gap-2">
@@ -400,17 +460,23 @@ export const ManageMetadataModal: React.FC<ManageMetadataModalProps> = ({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-text-secondary hover:text-text-primary"
+                    className="text-text-secondary hover:text-text-accent"
                     onClick={() => {
                       onClose()
                       onNavigateToSettings()
                     }}
                   >
                     <Settings2 className="w-4 h-4 mr-1.5" />
-                    前往模板设置
+                    模板设置
                   </Button>
                 )}
-                <Button variant="outline" size="sm" onClick={handleAddField} disabled={isSaving}>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleAddField} 
+                  disabled={isSaving}
+                  className="hover:border-surface-accent hover:text-surface-accent"
+                >
                   <Plus className="w-4 h-4 mr-1" />
                   添加字段
                 </Button>
@@ -420,51 +486,56 @@ export const ManageMetadataModal: React.FC<ManageMetadataModalProps> = ({
             {/* 表格容器 */}
             <div
               className={cn(
-                'border border-border-default rounded-lg overflow-hidden',
-                'bg-surface-primary'
+                'border border-border-default rounded-xl overflow-hidden',
+                'bg-surface-primary shadow-sm'
               )}
             >
               {/* 表头 */}
-              <div className="flex items-center bg-surface-secondary/50 border-b border-border-default">
+              <div className="flex items-center bg-surface-secondary/40 border-b border-border-default/60">
                 <div className="w-[140px] shrink-0 px-4 py-2.5">
-                  <span className="text-xs font-medium text-text-secondary uppercase tracking-wide">
+                  <span className="text-xs font-medium text-text-secondary uppercase tracking-wider">
                     字段名
                   </span>
                 </div>
                 {isSettingMode && (
                   <div className="w-[160px] shrink-0 px-4 py-2.5">
-                    <span className="text-xs font-medium text-text-secondary uppercase tracking-wide">
+                    <span className="text-xs font-medium text-text-secondary uppercase tracking-wider">
                       描述
                     </span>
                   </div>
                 )}
                 <div className="flex-1 px-4 py-2.5">
-                  <span className="text-xs font-medium text-text-secondary uppercase tracking-wide">
+                  <span className="text-xs font-medium text-text-secondary uppercase tracking-wider">
                     {isSettingMode ? '可选值' : '值'}
                   </span>
                 </div>
-                <div className="w-[80px] shrink-0 px-4 py-2.5">
-                  <span className="text-xs font-medium text-text-secondary uppercase tracking-wide">
+                <div className="w-[88px] shrink-0 px-4 py-2.5">
+                  <span className="text-xs font-medium text-text-secondary uppercase tracking-wider">
                     操作
                   </span>
                 </div>
               </div>
 
               {/* 数据行 */}
-              <div className="max-h-[360px] overflow-y-auto">
+              <div className="max-h-[360px] overflow-y-auto scrollbar-thin scrollbar-thumb-border-default scrollbar-track-transparent">
                 {isLoading ? (
-                  <div className="flex items-center justify-center py-12 text-text-secondary">
-                    <div className="animate-spin w-5 h-5 border-2 border-current border-t-transparent rounded-full mr-2" />
-                    加载中...
+                  <div className="flex flex-col items-center justify-center py-16 text-text-secondary">
+                    <div className="relative w-10 h-10 mb-3">
+                      <div className="absolute inset-0 rounded-full border-2 border-border-default" />
+                      <div className="absolute inset-0 rounded-full border-2 border-surface-accent border-t-transparent animate-spin" />
+                    </div>
+                    <span className="text-sm">加载中...</span>
                   </div>
                 ) : tableData.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-12 text-center">
-                    <div className="w-12 h-12 rounded-full bg-surface-secondary flex items-center justify-center mb-3">
-                      <Database className="w-6 h-6 text-text-tertiary" />
+                  <div className="flex flex-col items-center justify-center py-16 text-center">
+                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-surface-secondary to-surface-tertiary flex items-center justify-center mb-4 shadow-sm">
+                      <Database className="w-7 h-7 text-text-tertiary" />
                     </div>
-                    <p className="text-sm text-text-secondary mb-1">暂无元数据字段</p>
-                    <p className="text-xs text-text-tertiary">
-                      点击「添加字段」开始定义元数据
+                    <p className="text-sm font-medium text-text-secondary mb-1">
+                      暂无元数据字段
+                    </p>
+                    <p className="text-xs text-text-tertiary max-w-[200px]">
+                      点击上方「添加字段」按钮开始定义元数据
                     </p>
                   </div>
                 ) : (
@@ -486,23 +557,44 @@ export const ManageMetadataModal: React.FC<ManageMetadataModalProps> = ({
               </div>
             </div>
 
-            {/* 提示信息 */}
+            {/* 提示信息 - 增强设计 */}
             {isManageMode && tableData.length > 0 && (
-              <div className="flex items-start gap-2 mt-3 p-3 bg-surface-accent/5 border border-surface-accent/20 rounded-lg">
-                <AlertCircle className="w-4 h-4 text-surface-accent shrink-0 mt-0.5" />
-                <p className="text-xs text-text-secondary">
-                  在此处删除字段或值将影响所有相关文档。如需修改字段定义，请前往知识库设置中的「元数据模板」。
+              <div className="flex items-start gap-2.5 mt-4 p-3 bg-surface-accent/5 border border-surface-accent/15 rounded-lg">
+                <div className="flex items-center justify-center w-5 h-5 rounded-full bg-surface-accent/10 shrink-0 mt-0.5">
+                  <AlertCircle className="w-3.5 h-3.5 text-surface-accent" />
+                </div>
+                <p className="text-xs text-text-secondary leading-relaxed">
+                  在此处删除字段或值将影响所有关联文档。如需修改字段定义模板，请前往知识库设置。
+                </p>
+              </div>
+            )}
+
+            {/* Setting 模式提示 */}
+            {isSettingMode && tableData.length > 0 && (
+              <div className="flex items-start gap-2.5 mt-4 p-3 bg-status-info/5 border border-status-info/15 rounded-lg">
+                <Sparkles className="w-4 h-4 text-status-info shrink-0 mt-0.5" />
+                <p className="text-xs text-text-secondary leading-relaxed">
+                  定义的字段将用于 AI 自动提取元数据。描述越清晰，提取效果越好。
                 </p>
               </div>
             )}
           </div>
 
-          {/* 底部按钮 */}
-          <DialogFooter className="px-6 py-4 border-t border-border-default bg-surface-secondary/30">
-            <Button variant="outline" onClick={onClose} disabled={isSaving}>
+          {/* 底部按钮 - 增强设计 */}
+          <DialogFooter className="px-6 py-4 border-t border-border-default bg-surface-secondary/20">
+            <Button 
+              variant="outline" 
+              onClick={onClose} 
+              disabled={isSaving}
+              className="min-w-[80px]"
+            >
               取消
             </Button>
-            <Button onClick={handleSave} disabled={isSaving}>
+            <Button 
+              onClick={handleSave} 
+              disabled={isSaving}
+              className="min-w-[80px]"
+            >
               {isSaving ? (
                 <>
                   <div className="animate-spin w-4 h-4 border-2 border-current border-t-transparent rounded-full mr-2" />
@@ -530,28 +622,44 @@ export const ManageMetadataModal: React.FC<ManageMetadataModalProps> = ({
         onSave={handleSaveField}
       />
 
-      {/* 删除确认对话框 */}
+      {/* 删除确认对话框 - 增强设计 */}
       <AlertDialog
         open={deleteConfirm.visible}
         onOpenChange={(open) => !open && hideDeleteConfirm()}
       >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{deleteConfirm.title}</AlertDialogTitle>
-            <AlertDialogDescription asChild>
-              <div className="space-y-3">
-                <div className="px-3 py-2 bg-surface-secondary rounded-md">
-                  <span className="font-medium text-text-primary">{deleteConfirm.name}</span>
-                </div>
-                <p className="text-status-warning">{deleteConfirm.warnText}</p>
+        <AlertDialogContent className="max-w-[400px]">
+          <AlertDialogHeader className="pb-2">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-status-error/10">
+                <AlertTriangle className="w-5 h-5 text-status-error" />
               </div>
-            </AlertDialogDescription>
+              <AlertDialogTitle className="text-base">
+                {deleteConfirm.title}
+              </AlertDialogTitle>
+            </div>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
+          <AlertDialogDescription asChild>
+            <div className="space-y-3 pl-[52px]">
+              {/* 被删除项显示 */}
+              <div className="inline-flex items-center px-3 py-1.5 bg-surface-secondary border border-border-default rounded-md">
+                <span className="font-medium text-text-primary text-sm truncate max-w-[260px]">
+                  {deleteConfirm.name}
+                </span>
+              </div>
+              {/* 警告提示 */}
+              <div className="flex items-start gap-2 p-2.5 bg-status-warning/5 border border-status-warning/20 rounded-md">
+                <AlertCircle className="w-4 h-4 text-status-warning shrink-0 mt-0.5" />
+                <p className="text-xs text-text-secondary leading-relaxed">
+                  {deleteConfirm.warnText}
+                </p>
+              </div>
+            </div>
+          </AlertDialogDescription>
+          <AlertDialogFooter className="pt-4">
+            <AlertDialogCancel className="text-sm">取消</AlertDialogCancel>
             <AlertDialogAction
               onClick={deleteConfirm.onConfirm}
-              className="bg-status-error hover:bg-status-error/90"
+              className="bg-status-error hover:bg-status-error/90 text-sm"
             >
               确认删除
             </AlertDialogAction>

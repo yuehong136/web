@@ -1,8 +1,14 @@
 import React from 'react'
-import { Settings, Trash2 } from 'lucide-react'
+import { Settings, Trash2, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { MetadataValueTag } from './MetadataValueTag'
 import { Button } from '@/components/ui/button'
+import {
+  TooltipRoot as Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 interface MetadataFieldRowProps {
   /**
@@ -54,13 +60,13 @@ interface MetadataFieldRowProps {
 /**
  * Metadata 字段行组件
  * 用于在表格中展示单个 metadata 字段及其值
- * 参照 ragflow 设计，采用表格行布局
+ * 采用现代化表格行布局，支持 Tooltip 和流畅动效
  */
 export const MetadataFieldRow: React.FC<MetadataFieldRowProps> = ({
   field,
   description,
   values,
-  maxDisplayValues = 2,
+  maxDisplayValues = 3,
   showDescription = false,
   allowRemoveValue = false,
   onRemoveValue,
@@ -76,85 +82,157 @@ export const MetadataFieldRow: React.FC<MetadataFieldRowProps> = ({
     <div
       className={cn(
         'group flex items-center',
-        'border-b border-border-default last:border-b-0',
-        'hover:bg-surface-secondary/50',
-        'transition-colors duration-150',
+        'border-b border-border-default/60 last:border-b-0',
+        'bg-surface-primary hover:bg-surface-secondary/40',
+        'transition-all duration-200 ease-out',
+        disabled && 'opacity-60',
         className
       )}
     >
       {/* 字段名 */}
       <div className="w-[140px] shrink-0 px-4 py-3">
-        <span className="text-sm font-medium text-text-accent">
-          {field}
-        </span>
+        <TooltipProvider delayDuration={400}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="text-sm font-medium text-text-accent truncate block cursor-default">
+                {field}
+              </span>
+            </TooltipTrigger>
+            {field.length > 16 && (
+              <TooltipContent side="top" className="text-xs">
+                {field}
+              </TooltipContent>
+            )}
+          </Tooltip>
+        </TooltipProvider>
       </div>
 
       {/* 描述 */}
       {showDescription && (
         <div className="w-[160px] shrink-0 px-4 py-3">
-          <span className="text-sm text-text-secondary truncate block" title={description}>
-            {description || '-'}
-          </span>
+          <TooltipProvider delayDuration={400}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="text-sm text-text-secondary truncate block cursor-default">
+                  {description || '-'}
+                </span>
+              </TooltipTrigger>
+              {description && description.length > 18 && (
+                <TooltipContent side="top" className="max-w-[240px] text-xs">
+                  {description}
+                </TooltipContent>
+              )}
+            </Tooltip>
+          </TooltipProvider>
         </div>
       )}
 
       {/* 值列表 */}
       <div className="flex-1 px-4 py-2.5 min-w-0">
         <div className="flex items-center gap-1.5 flex-wrap">
-          {displayValues.map(({ value, count }) => (
-            <MetadataValueTag
-              key={value}
-              value={value}
-              count={count}
-              removable={allowRemoveValue}
-              onRemove={() => onRemoveValue?.(value)}
-              disabled={disabled}
-              variant="outline"
-            />
-          ))}
-          {remainingCount > 0 && (
-            <span className="text-xs text-text-tertiary ml-1">
-              ...
-            </span>
-          )}
-          {values.length === 0 && (
-            <span className="text-sm text-text-tertiary italic">-</span>
+          {displayValues.length > 0 ? (
+            <>
+              {displayValues.map(({ value, count }) => (
+                <MetadataValueTag
+                  key={value}
+                  value={value}
+                  count={count}
+                  removable={allowRemoveValue}
+                  onRemove={() => onRemoveValue?.(value)}
+                  disabled={disabled}
+                  variant="outline"
+                />
+              ))}
+              {remainingCount > 0 && (
+                <TooltipProvider delayDuration={300}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="inline-flex items-center px-1.5 py-0.5 text-xs text-text-tertiary bg-surface-secondary/60 rounded cursor-default">
+                        +{remainingCount}
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="text-xs">
+                      还有 {remainingCount} 个值
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+            </>
+          ) : (
+            <span className="text-sm text-text-tertiary">-</span>
           )}
         </div>
       </div>
 
       {/* 操作按钮 */}
-      <div className="w-[80px] shrink-0 px-2 py-3 flex items-center justify-end gap-1">
+      <div className="w-[88px] shrink-0 px-2 py-3 flex items-center justify-end gap-0.5">
         <div
           className={cn(
-            'flex items-center gap-1',
+            'flex items-center gap-0.5',
             'opacity-0 group-hover:opacity-100',
-            'transition-opacity duration-150'
+            'transition-all duration-200'
           )}
         >
           {onEdit && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onEdit}
-              disabled={disabled}
-              className="h-7 w-7 p-0 hover:bg-surface-tertiary"
-            >
-              <Settings className="w-4 h-4 text-text-secondary" />
-            </Button>
+            <TooltipProvider delayDuration={500}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={onEdit}
+                    disabled={disabled}
+                    className={cn(
+                      'h-7 w-7 p-0',
+                      'hover:bg-surface-accent/10 hover:text-text-accent',
+                      'transition-colors duration-150'
+                    )}
+                  >
+                    <Settings className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="text-xs">
+                  编辑
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           )}
           {onDelete && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onDelete}
-              disabled={disabled}
-              className="h-7 w-7 p-0 hover:bg-status-error/10 hover:text-status-error"
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button>
+            <TooltipProvider delayDuration={500}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={onDelete}
+                    disabled={disabled}
+                    className={cn(
+                      'h-7 w-7 p-0',
+                      'hover:bg-status-error/10 hover:text-status-error',
+                      'transition-colors duration-150'
+                    )}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="text-xs">
+                  删除
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           )}
         </div>
+        {/* 展开箭头指示 */}
+        {onEdit && (
+          <ChevronRight 
+            className={cn(
+              'w-4 h-4 text-text-tertiary',
+              'opacity-0 group-hover:opacity-60',
+              'transition-opacity duration-200',
+              'ml-1'
+            )} 
+          />
+        )}
       </div>
     </div>
   )

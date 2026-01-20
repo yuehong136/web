@@ -1,6 +1,12 @@
 import React from 'react'
 import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import {
+  TooltipRoot as Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 interface MetadataValueTagProps {
   /**
@@ -79,12 +85,15 @@ export const MetadataValueTag: React.FC<MetadataValueTagProps> = ({
     ),
   }
 
-  return (
+  // 判断文本是否可能被截断（简单启发式：超过12个字符）
+  const shouldShowTooltip = value.length > 12
+
+  const tagContent = (
     <span
       className={cn(
         'inline-flex items-center rounded-md',
         'text-text-primary font-normal',
-        'select-none',
+        'select-none group/tag',
         sizeStyles[size],
         variantStyles[variant],
         disabled && 'opacity-50 pointer-events-none',
@@ -93,12 +102,12 @@ export const MetadataValueTag: React.FC<MetadataValueTagProps> = ({
       )}
       onClick={onClick}
     >
-      <span className="truncate max-w-[100px]" title={value}>
+      <span className="truncate max-w-[120px]">
         {value}
       </span>
 
       {count !== undefined && count > 0 && (
-        <span className="text-text-tertiary font-medium shrink-0">
+        <span className="text-text-tertiary font-medium shrink-0 tabular-nums">
           {count}
         </span>
       )}
@@ -112,11 +121,12 @@ export const MetadataValueTag: React.FC<MetadataValueTagProps> = ({
           }}
           className={cn(
             'flex items-center justify-center shrink-0',
-            'w-3.5 h-3.5 -mr-0.5 ml-0.5',
+            'w-4 h-4 -mr-0.5 ml-1',
             'rounded-sm',
-            'text-text-tertiary hover:text-status-error',
-            'hover:bg-status-error/10',
-            'transition-colors duration-150'
+            'text-text-tertiary',
+            'opacity-0 group-hover/tag:opacity-100',
+            'hover:text-status-error hover:bg-status-error/10',
+            'transition-all duration-150'
           )}
           aria-label={`删除 ${value}`}
         >
@@ -125,4 +135,25 @@ export const MetadataValueTag: React.FC<MetadataValueTagProps> = ({
       )}
     </span>
   )
+
+  // 对长文本使用 Tooltip 显示完整内容
+  if (shouldShowTooltip) {
+    return (
+      <TooltipProvider delayDuration={300}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            {tagContent}
+          </TooltipTrigger>
+          <TooltipContent 
+            side="top" 
+            className="max-w-[280px] break-words text-xs"
+          >
+            {value}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    )
+  }
+
+  return tagContent
 }

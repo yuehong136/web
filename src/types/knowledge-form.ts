@@ -51,6 +51,13 @@ export const MineruLanguageOptions = [
   { label: 'Hindi', value: 'Hindi' },
 ] as const
 
+// Metadata 字段定义 Schema
+export const metadataFieldSchema = z.object({
+  key: z.string().optional(),
+  description: z.string().optional(),
+  enum: z.array(z.string()).optional(),
+})
+
 // 解析器配置 Schema
 export const parserConfigSchema = z.object({
   layout_recognize: z.string().default('DeepDOC'),
@@ -61,6 +68,7 @@ export const parserConfigSchema = z.object({
   html4excel: z.boolean().default(false),
   toc_extraction: z.boolean().default(false),
   image_table_context_window: z.number().min(0).max(256).default(0),
+  image_context_window: z.number().min(0).max(256).default(0),
   tag_kb_ids: z.array(z.string()).nullish(),
   topn_tags: z.number().min(1).max(10).default(3),
   raptor: raptorSchema.optional(),
@@ -70,6 +78,11 @@ export const parserConfigSchema = z.object({
   mineru_formula_enable: z.boolean().default(true),
   mineru_table_enable: z.boolean().default(true),
   mineru_lang: z.string().default('English'),
+  // Metadata 自动提取配置
+  metadata: z.array(metadataFieldSchema).optional(),
+  enable_metadata: z.boolean().default(false),
+  // 实体类型 (用于命名实体识别)
+  entity_types: z.array(z.string()).optional(),
 })
 
 // 知识库设置表单 Schema
@@ -89,6 +102,7 @@ export const knowledgeSettingsFormSchema = z.object({
 // 类型导出
 export type RaptorConfig = z.infer<typeof raptorSchema>
 export type GraphragConfig = z.infer<typeof graphragSchema>
+export type MetadataField = z.infer<typeof metadataFieldSchema>
 export type ParserConfig = z.infer<typeof parserConfigSchema>
 export type KnowledgeSettingsFormData = z.infer<typeof knowledgeSettingsFormSchema>
 
@@ -160,12 +174,17 @@ export const getDefaultFormValues = (): Partial<KnowledgeSettingsFormData> => ({
     html4excel: false,
     toc_extraction: false,
     image_table_context_window: 0,
+    image_context_window: 0,
     topn_tags: 3,
     // MinerU 默认配置
     mineru_parse_method: 'auto',
     mineru_formula_enable: true,
     mineru_table_enable: true,
     mineru_lang: 'English',
+    // Metadata 默认配置
+    metadata: [],
+    enable_metadata: false,
+    entity_types: [],
     raptor: {
       use_raptor: false,
       max_token: 256,
