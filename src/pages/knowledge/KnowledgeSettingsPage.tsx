@@ -4,11 +4,10 @@ import React from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Save, Settings2, Settings } from 'lucide-react'
+import { Save, Settings2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Form } from '@/components/ui/form'
 import { Divider } from '@/components/ui/divider'
-import { Switch } from '@/components/ui/switch'
 import { SelectWithSearch, type SelectOptionGroup } from '@/components/ui/select-with-search'
 import { IconFontFill } from '@/components/ui/icon-font'
 import { useKnowledgeStore } from '@/stores/knowledge'
@@ -33,6 +32,7 @@ import {
 } from '@/components/ui/form'
 import { GraphRagFormFields } from '@/components/forms/GraphRagFormFields'
 import { RaptorFormFields } from '@/components/forms/RaptorFormFields'
+import { AutoMetadataFormField } from '@/components/forms/KnowledgeFormFields'
 import { GeneralForm } from './settings/GeneralForm'
 import { ChunkMethodForm } from './settings/ChunkMethodForm'
 import { PipelineSelect, type PipelineOption } from './settings/PipelineSelect'
@@ -490,47 +490,10 @@ const KnowledgeSettingsPage: React.FC = () => {
                         <div className="border-t border-border pt-4 space-y-4">
                           <ChunkMethodForm />
 
-                          {/* 自动元数据（ragflow 风格行内布局） */}
-                          <FormField
-                            control={form.control}
-                            name="parser_config.auto_metadata"
-                            render={({ field }) => (
-                              <FormItem className="flex items-center gap-1 space-y-0">
-                                <FormLabel
-                                  tooltip="自动从文档中提取元数据。启用后，系统会使用 AI 模型根据预定义的字段模板自动提取文档的元数据信息。"
-                                  className="text-sm text-text-secondary w-1/4 shrink-0"
-                                >
-                                  自动元数据
-                                </FormLabel>
-                                <div className="w-3/4 flex items-center justify-between">
-                                  {/* 设置按钮 */}
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => setMetadataModalOpen(true)}
-                                    className="h-8 px-3 text-text-secondary hover:text-text-primary hover:bg-surface-secondary"
-                                  >
-                                    <Settings className="w-4 h-4 mr-1.5" />
-                                    设置
-                                    {(currentKnowledgeBase?.metadata_settings?.length ?? 0) > 0 && (
-                                      <span className="ml-1.5 text-xs text-text-tertiary">
-                                        ({currentKnowledgeBase?.metadata_settings?.length})
-                                      </span>
-                                    )}
-                                  </Button>
-
-                                  {/* 启用开关 */}
-                                  <FormControl>
-                                    <Switch
-                                      checked={field.value}
-                                      onCheckedChange={field.onChange}
-                                    />
-                                  </FormControl>
-                                </div>
-                                <FormMessage />
-                              </FormItem>
-                            )}
+                          {/* 自动元数据设置 - 使用独立组件，带设置按钮 */}
+                          <AutoMetadataFormField
+                            onSettingsClick={() => setMetadataModalOpen(true)}
+                            metadataCount={currentKnowledgeBase?.metadata_settings?.length ?? 0}
                           />
                         </div>
                       )}

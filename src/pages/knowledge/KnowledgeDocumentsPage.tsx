@@ -236,7 +236,7 @@ const FilterField: React.FC<FilterFieldProps> = ({
 }
 
 // ============================================================================
-// FilterPopover 组件 - 参照 ragflow 的 filter-popover.tsx
+// FilterPopover 组件 - 参照 ragflow 的 filter-popover.tsx，支持 filterGroup 分组
 // ============================================================================
 
 interface FilterPopoverProps {
@@ -244,6 +244,8 @@ interface FilterPopoverProps {
   value: FilterValue
   onChange: (value: FilterValue) => void
   onOpenChange?: (open: boolean) => void
+  /** 筛选器分组配置，key 为组名，value 为该组包含的 field 数组 */
+  filterGroup?: Record<string, string[]>
 }
 
 const FilterPopover: React.FC<React.PropsWithChildren<FilterPopoverProps>> = ({
@@ -251,7 +253,8 @@ const FilterPopover: React.FC<React.PropsWithChildren<FilterPopoverProps>> = ({
   filters,
   value,
   onChange,
-  onOpenChange
+  onOpenChange,
+  filterGroup
 }) => {
   const [open, setOpen] = useState(false)
   const [localValue, setLocalValue] = useState<FilterValue>(value)
@@ -284,6 +287,20 @@ const FilterPopover: React.FC<React.PropsWithChildren<FilterPopoverProps>> = ({
     setOpen(false)
   }
 
+  // 计算属于分组的 field 列表
+  const groupedFields = useMemo(() => {
+    if (!filterGroup) return new Set<string>()
+    return Object.values(filterGroup).reduce<Set<string>>((pre, cur) => {
+      cur.forEach(item => pre.add(item))
+      return pre
+    }, new Set())
+  }, [filterGroup])
+
+  // 不属于任何分组的筛选器
+  const ungroupedFilters = useMemo(() => {
+    return filters.filter(f => !groupedFields.has(f.field))
+  }, [filters, groupedFields])
+
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
@@ -291,7 +308,39 @@ const FilterPopover: React.FC<React.PropsWithChildren<FilterPopoverProps>> = ({
       </PopoverTrigger>
       <PopoverContent className="w-80 p-0" align="end">
         <div className="px-4 py-3 space-y-4 max-h-[60vh] overflow-y-auto scrollbar-thin">
-          {filters.map(collection => (
+          {/* 渲染分组筛选器 */}
+          {filterGroup && Object.entries(filterGroup).map(([groupName, fieldKeys]) => {
+            const groupFilters = filters.filter(f => fieldKeys.includes(f.field))
+            if (groupFilters.length === 0) return null
+            
+            return (
+              <div 
+                key={groupName} 
+                className="flex flex-col space-y-3 border-b pb-4"
+                style={{ borderColor: 'var(--color-border-default)' }}
+              >
+                {/* 组标题 */}
+                <div className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
+                  {groupName}
+                </div>
+                {/* 组内筛选器 */}
+                <div className="flex flex-col space-y-3">
+                  {groupFilters.map(collection => (
+                    <FilterField
+                      key={collection.field}
+                      item={{ ...collection, id: collection.field }}
+                      parent={{ ...collection, id: collection.field, field: '' }}
+                      value={localValue}
+                      onChange={setLocalValue}
+                    />
+                  ))}
+                </div>
+              </div>
+            )
+          })}
+
+          {/* 渲染未分组的筛选器 */}
+          {ungroupedFilters.map(collection => (
             <div key={collection.field} className="space-y-3">
               <div className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
                 {collection.label}
@@ -462,6 +511,12 @@ const KnowledgeDocumentsPage: React.FC = () => {
       { field: 'metadata', label: '元数据', list: metaDataList }
     ]
   }, [filterOptions])
+  
+  // 筛选器分组配置 - 参照 ragflow 的 use-select-filters.ts
+  const filterGroup = useMemo<Record<string, string[]>>(() => ({
+    '系统属性': ['type', 'run'],
+    // '元数据字段': ['metadata'],  // metadata 单独显示，不放入分组
+  }), [])
   
   // 计算筛选数量 - 参照 ragflow 的 filterCount 计算逻辑
   const filterCount = useMemo(() => {
@@ -1191,11 +1246,12 @@ const KnowledgeDocumentsPage: React.FC = () => {
                 leftIcon={<Search className="h-4 w-4" />}
               />
             </div>
-            {/* 筛选按钮 - 使用 FilterPopover */}
+            {/* 筛选按钮 - 使用 FilterPopover，支持 filterGroup 分组 */}
             <FilterPopover
               filters={filterCollections}
               value={filterValue}
               onChange={setFilterValue}
+              filterGroup={filterGroup}
               onOpenChange={(open) => {
                 if (open) {
                   fetchFilterOptions()

@@ -637,3 +637,86 @@ export function MinerUOptionsFormField({
   )
 }
 
+// =====================================================
+// 自动元数据 - 参照 ragflow 的 AutoMetadata 组件
+// =====================================================
+interface AutoMetadataFormFieldProps {
+  name?: string
+  className?: string
+  /** 已配置的元数据字段数量（可选，优先使用 Context 中的值） */
+  metadataCount?: number
+  /** 点击设置按钮的回调（可选，优先使用 Context 中的值） */
+  onSettingsClick?: () => void
+  /** 是否显示设置按钮 */
+  showSettingsButton?: boolean
+}
+
+export function AutoMetadataFormField({
+  name = 'parser_config.auto_metadata',
+  className,
+  metadataCount: propMetadataCount,
+  onSettingsClick: propOnSettingsClick,
+  showSettingsButton = true,
+}: AutoMetadataFormFieldProps) {
+  const form = useFormContext()
+
+  // 使用 props 传入的回调和数量
+  const onSettingsClick = propOnSettingsClick
+  const metadataCount = propMetadataCount ?? 0
+
+  return (
+    <FormField
+      control={form.control}
+      name={name}
+      render={({ field }) => (
+        <FormItem className={cn('flex items-center gap-1 space-y-0', className)}>
+          <FormLabel
+            tooltip="自动从文档中提取元数据。启用后，系统会使用 AI 模型根据预定义的字段模板自动提取文档的元数据信息。"
+            className="text-sm text-text-secondary w-1/4 shrink-0"
+          >
+            自动元数据
+          </FormLabel>
+          <div className="w-3/4 flex items-center justify-between">
+            {/* 设置按钮 */}
+            {showSettingsButton && onSettingsClick && (
+              <button
+                type="button"
+                onClick={onSettingsClick}
+                className="inline-flex items-center h-8 px-3 text-sm text-text-secondary hover:text-text-primary hover:bg-surface-secondary rounded-md transition-colors"
+              >
+                <svg 
+                  className="w-4 h-4 mr-1.5" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2"
+                >
+                  <circle cx="12" cy="12" r="3" />
+                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                </svg>
+                设置
+                {metadataCount > 0 && (
+                  <span className="ml-1.5 text-xs text-text-tertiary">
+                    ({metadataCount})
+                  </span>
+                )}
+              </button>
+            )}
+            {/* 如果没有设置按钮，添加一个空占位 */}
+            {(!showSettingsButton || !onSettingsClick) && <div />}
+
+            {/* 启用开关 */}
+            <FormControl>
+              <Switch
+                checked={field.value}
+                onCheckedChange={field.onChange}
+              />
+            </FormControl>
+          </div>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  )
+}
+
