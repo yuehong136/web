@@ -110,9 +110,8 @@ const DocumentChunksPage: React.FC = () => {
   const [newImportantKwd, setNewImportantKwd] = useState<string[]>([])
   const [newQuestionKwd, setNewQuestionKwd] = useState<string[]>([])
   
-  // 图片上传状态（用于图片类型分块）
+  // 图片上传状态（仅用于编辑 image 类型分块）
   const [editingImage, setEditingImage] = useState<File[]>([])
-  const [newChunkImage, setNewChunkImage] = useState<File[]>([])
   
   // 图片预览弹窗状态
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null)
@@ -357,27 +356,19 @@ const DocumentChunksPage: React.FC = () => {
     }
   }
   
-  // 创建分段
+  // 创建分段（与 ragflow 保持一致，新建时不支持上传图片，chunk 类型由解析器自动决定）
   const handleCreateChunk = async () => {
     if (!newChunkContent.trim()) return
     
     try {
-      // 如果有上传图片，转换为 Base64
-      let imageBase64: string | undefined
-      if (newChunkImage.length > 0) {
-        imageBase64 = await fileToBase64(newChunkImage[0])
-      }
-      
       await createChunkMutation.mutateAsync({
         content: newChunkContent.trim(),
         important_kwd: newImportantKwd,
         question_kwd: newQuestionKwd,
-        image_base64: imageBase64,
       })
       setNewChunkContent('')
       setNewImportantKwd([])
       setNewQuestionKwd([])
-      setNewChunkImage([])
       setAddChunkModalOpen(false)
     } catch (error) {
       console.error('Failed to create chunk:', error)
@@ -1469,8 +1460,8 @@ const DocumentChunksPage: React.FC = () => {
                     </div>
                   </div>
                   
-                  {/* 图片上传区域 - 当分块类型是 image 或有现有图片时显示 */}
-                  {(selectedChunk.doc_type_kwd === 'image' || selectedChunk.img_id) && (
+                  {/* 图片上传区域 - 仅当分块类型是 image 时才允许更新图片（与 ragflow 保持一致） */}
+                  {selectedChunk.doc_type_kwd === 'image' && (
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
                         <ImageIcon className="h-4 w-4" style={{ color: 'var(--color-text-accent)' }} />
@@ -1980,7 +1971,6 @@ const DocumentChunksPage: React.FC = () => {
           setNewChunkContent('')
           setNewImportantKwd([])
           setNewQuestionKwd([])
-          setNewChunkImage([])
         }}
         title="添加新分段"
         size="lg"
@@ -2059,25 +2049,7 @@ const DocumentChunksPage: React.FC = () => {
             </div>
           </div>
           
-          {/* 图片上传（可选） */}
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <ImageIcon className="h-4 w-4" style={{ color: 'var(--color-text-accent)' }} />
-              <label className="block text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
-                图片
-              </label>
-              <span className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
-                (可选，用于图片类型分块)
-              </span>
-            </div>
-            <ImageUploader
-              value={newChunkImage}
-              onValueChange={setNewChunkImage}
-              maxFileCount={1}
-              hideDropzoneOnMaxFileCount={true}
-              dropzoneHeight="h-36"
-            />
-          </div>
+          {/* 图片上传已移除 - 与 ragflow 保持一致，新建分块时不允许上传图片，chunk 类型由解析器自动决定 */}
           
           <div className="flex justify-end space-x-3 pt-2">
             <Button variant="outline" onClick={() => {
@@ -2085,7 +2057,6 @@ const DocumentChunksPage: React.FC = () => {
               setNewChunkContent('')
               setNewImportantKwd([])
               setNewQuestionKwd([])
-              setNewChunkImage([])
             }}>
               取消
             </Button>
