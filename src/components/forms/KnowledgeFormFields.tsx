@@ -652,7 +652,7 @@ interface AutoMetadataFormFieldProps {
 }
 
 export function AutoMetadataFormField({
-  name = 'parser_config.auto_metadata',
+  name = 'parser_config.enable_metadata',
   className,
   metadataCount: propMetadataCount,
   onSettingsClick: propOnSettingsClick,

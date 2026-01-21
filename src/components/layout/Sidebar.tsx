@@ -432,14 +432,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     )}
                     title={isCollapsed ? (user?.nickname || user?.username || '用户') : undefined}
                 >
-                  <div
-                      className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0"
-                      style={{ background: 'var(--color-components-gradient-secondary)' }}
-                  >
-                <span className="text-text-inverted text-xs font-bold">
-                  {user?.nickname?.[0] || user?.username?.[0] || 'U'}
-                </span>
-                  </div>
+                  {/* 头像：优先显示用户上传的头像，没有则显示首字母 */}
+                  {user?.avatar ? (
+                    <img
+                      src={user.avatar}
+                      alt="avatar"
+                      className="w-6 h-6 rounded-lg object-cover flex-shrink-0"
+                    />
+                  ) : (
+                    <div
+                        className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0"
+                        style={{ background: 'var(--color-components-gradient-secondary)' }}
+                    >
+                      <span className="text-text-inverted text-xs font-bold">
+                        {user?.nickname?.[0] || user?.username?.[0] || 'U'}
+                      </span>
+                    </div>
+                  )}
                   <span
                       className={cn(
                           "text-sm truncate whitespace-nowrap",

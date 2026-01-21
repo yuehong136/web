@@ -167,11 +167,19 @@ export const SettingsLayout: React.FC = () => {
         <aside className="w-[280px] bg-background flex flex-col border-r border-border shrink-0">
           {/* 用户信息 */}
           <div className="px-6 py-4 flex gap-3 items-center">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-              <span className="text-white font-semibold text-sm">
-                {user?.nickname?.[0] || user?.username?.[0] || 'U'}
-              </span>
-            </div>
+            {user?.avatar ? (
+              <img
+                src={user.avatar}
+                alt="avatar"
+                className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+              />
+            ) : (
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+                <span className="text-white font-semibold text-sm">
+                  {user?.nickname?.[0] || user?.username?.[0] || 'U'}
+                </span>
+              </div>
+            )}
             <p className="text-sm text-text-primary truncate">{user?.email || 'user@example.com'}</p>
           </div>
 

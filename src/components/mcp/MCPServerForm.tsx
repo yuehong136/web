@@ -1,12 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { 
   Server, 
   Globe, 
@@ -17,13 +14,17 @@ import {
   Loader2,
   Plus,
   Trash2,
-  AlertTriangle,
-  Info
+  Info,
+  Zap,
+  Link2,
+  FileCode,
+  X
 } from 'lucide-react'
 import type { MCPServer, CreateMCPServerRequest, UpdateMCPServerRequest, MCPTool } from '@/types/mcp'
 import { MCP_SERVER_TYPES } from '@/types/mcp'
 import { mcpAPI } from '@/api/mcp'
 import { toast } from '@/lib/toast'
+import { cn } from '@/lib/utils'
 
 interface MCPServerFormProps {
   server?: MCPServer | null
@@ -40,16 +41,32 @@ interface FormData {
   headers: Record<string, string>
 }
 
+type TabType = 'basic' | 'headers' | 'variables' | 'test'
+
+const tabs: { id: TabType; label: string; icon: React.ElementType }[] = [
+  { id: 'basic', label: '基本配置', icon: Server },
+  { id: 'headers', label: '请求头', icon: FileCode },
+  { id: 'variables', label: '环境变量', icon: Settings },
+  { id: 'test', label: '连接测试', icon: TestTube },
+]
+
+const protocolOptions = [
+  { value: 'streamable-http', label: 'Streamable HTTP', description: '流式 HTTP 传输协议' },
+  { value: 'sse', label: 'SSE', description: '服务器发送事件' },
+  { value: 'stdio', label: 'STDIO', description: '标准输入输出' },
+]
+
 export const MCPServerForm: React.FC<MCPServerFormProps> = ({ 
   server, 
   onSuccess, 
   onCancel 
 }) => {
   const isEditing = Boolean(server)
+  const [activeTab, setActiveTab] = useState<TabType>('basic')
   
   const [formData, setFormData] = useState<FormData>({
     name: '',
-    server_type: 'http',
+    server_type: 'streamable-http',
     url: '',
     description: '',
     variables: {},
@@ -78,7 +95,6 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
         headers: server.headers || {}
       })
 
-      // 转换为编辑器友好的格式
       setVariableEntries(
         Object.entries(server.variables || {}).map(([key, value]) => ({
           key,
@@ -100,7 +116,6 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
     newEntries[index][field] = value
     setVariableEntries(newEntries)
     
-    // 更新formData中的variables
     const variables: Record<string, any> = {}
     newEntries.forEach(({ key, value }) => {
       if (key.trim()) {
@@ -119,7 +134,6 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
     newEntries[index][field] = value
     setHeaderEntries(newEntries)
     
-    // 更新formData中的headers
     const headers: Record<string, string> = {}
     newEntries.forEach(({ key, value }) => {
       if (key.trim()) {
@@ -169,7 +183,7 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
 
   const handleTestConnection = async () => {
     if (!formData.url || !formData.server_type) {
-      toast.error('请先填写服务器URL和类型')
+      toast.error('请先填写服务器 URL 和协议类型')
       return
     }
 
@@ -189,7 +203,7 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
         success: true,
         tools
       })
-      toast.success(`连接测试成功，发现 ${tools.length} 个工具`)
+      toast.success(`连接成功，发现 ${tools.length} 个工具`)
     } catch (error: any) {
       setTestResult({
         success: false,
@@ -233,366 +247,413 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
     }
   }
 
-  const getServerTypeDescription = (type: string) => {
-    const descriptions: Record<string, string> = {
-      'stdio': '标准输入输出协议，适合本地进程通信',
-      'sse': '服务器发送事件，支持实时数据推送',
-      'streamable-http': '可流式传输的HTTP协议，支持长连接',
-      'http': '标准HTTP协议，简单可靠',
-      'websocket': 'WebSocket协议，支持双向实时通信'
+  // 渲染键值对编辑器
+  const renderKeyValueEditor = (
+    entries: Array<{key: string, value: string}>,
+    onChange: (index: number, field: 'key' | 'value', value: string) => void,
+    onRemove: (index: number) => void,
+    onAdd: () => void,
+    keyPlaceholder: string,
+    valuePlaceholder: string,
+    emptyText: string,
+    emptyDescription: string
+  ) => {
+    if (entries.length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <div className="w-12 h-12 rounded-full bg-[var(--color-surface-secondary)] flex items-center justify-center mb-4">
+            <Plus className="h-6 w-6 text-[var(--color-text-tertiary)]" />
+          </div>
+          <p className="text-[var(--color-text-secondary)] font-medium mb-1">{emptyText}</p>
+          <p className="text-[var(--color-text-tertiary)] text-sm mb-4">{emptyDescription}</p>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={onAdd}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            添加
+          </Button>
+        </div>
+      )
     }
-    return descriptions[type] || '未知协议类型'
+
+    return (
+      <div className="space-y-3">
+        {entries.map((entry, index) => (
+          <div key={index} className="flex items-center gap-3 group">
+            <Input
+              placeholder={keyPlaceholder}
+              value={entry.key}
+              onChange={(e) => onChange(index, 'key', e.target.value)}
+              className="flex-1 h-10 bg-[var(--color-surface-secondary)] border-[var(--color-border-subtle)] focus:border-[var(--color-border-focus)]"
+            />
+            <Input
+              placeholder={valuePlaceholder}
+              value={entry.value}
+              onChange={(e) => onChange(index, 'value', e.target.value)}
+              className="flex-[2] h-10 bg-[var(--color-surface-secondary)] border-[var(--color-border-subtle)] focus:border-[var(--color-border-focus)] font-mono text-sm"
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => onRemove(index)}
+              className="h-10 w-10 text-[var(--color-text-tertiary)] hover:text-[var(--color-status-error)] hover:bg-[var(--color-status-error-bg)] opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        ))}
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={onAdd}
+          className="w-full h-10 border border-dashed border-[var(--color-border-subtle)] hover:border-[var(--color-border-default)] text-[var(--color-text-tertiary)] hover:text-[var(--color-text-secondary)]"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          添加一行
+        </Button>
+      </div>
+    )
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <form onSubmit={handleSubmit} className="space-y-8">
-        {/* 头部信息 */}
-        <div className="bg-components-card-bg backdrop-blur-xl rounded-2xl p-8 border border-components-card-border">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="w-14 h-14 bg-components-button-primary-bg rounded-2xl flex items-center justify-center shadow-lg">
-              <Server className="h-7 w-7 text-components-button-primary-text" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-text-primary">
-                {isEditing ? `编辑服务器: ${server?.name}` : '添加新的MCP服务器'}
-              </h2>
-              <p className="text-text-secondary mt-1">
-                配置MCP服务器连接信息和参数
-              </p>
-            </div>
+    <div className="flex flex-col h-full max-h-[85vh]">
+      {/* Header */}
+      <div className="shrink-0 flex items-center justify-between px-6 py-4 border-b border-[var(--color-border-subtle)]">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--color-surface-accent)] to-[var(--color-surface-accent)]/80 flex items-center justify-center">
+            <Server className="h-5 w-5 text-[var(--color-text-on-accent)]" />
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
+              {isEditing ? '编辑 MCP 服务器' : '添加 MCP 服务器'}
+            </h2>
+            <p className="text-sm text-[var(--color-text-tertiary)]">
+              {isEditing ? `正在编辑: ${server?.name}` : '配置新的 MCP 服务器连接'}
+            </p>
+          </div>
+        </div>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={onCancel}
+          className="h-8 w-8 text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)]"
+        >
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
+
+      <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+        <div className="flex flex-1 min-h-0">
+          {/* 左侧导航 */}
+          <div className="shrink-0 w-48 border-r border-[var(--color-border-subtle)] p-3 space-y-1">
+            {tabs.map((tab) => {
+              const Icon = tab.icon
+              const isActive = activeTab === tab.id
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveTab(tab.id)}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all",
+                    isActive
+                      ? "bg-[var(--color-surface-accent)] text-[var(--color-text-on-accent)]"
+                      : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-secondary)]"
+                  )}
+                >
+                  <Icon className="h-4 w-4" />
+                  {tab.label}
+                  {tab.id === 'headers' && headerEntries.length > 0 && (
+                    <Badge variant="secondary" className="ml-auto text-xs h-5 min-w-5 justify-center">
+                      {headerEntries.length}
+                    </Badge>
+                  )}
+                  {tab.id === 'variables' && variableEntries.length > 0 && (
+                    <Badge variant="secondary" className="ml-auto text-xs h-5 min-w-5 justify-center">
+                      {variableEntries.length}
+                    </Badge>
+                  )}
+                </button>
+              )
+            })}
           </div>
 
-          <Tabs defaultValue="basic" className="w-full">
-            <TabsList className="grid w-full grid-cols-4 mb-8">
-              <TabsTrigger value="basic" className="data-[state=active]:bg-components-button-primary-bg data-[state=active]:text-components-button-primary-text">
-                基本信息
-              </TabsTrigger>
-              <TabsTrigger value="config" className="data-[state=active]:bg-components-button-primary-bg data-[state=active]:text-components-button-primary-text">
-                连接配置
-              </TabsTrigger>
-              <TabsTrigger value="advanced" className="data-[state=active]:bg-components-button-primary-bg data-[state=active]:text-components-button-primary-text">
-                高级设置
-              </TabsTrigger>
-              <TabsTrigger value="test" className="data-[state=active]:bg-components-button-primary-bg data-[state=active]:text-components-button-primary-text">
-                连接测试
-              </TabsTrigger>
-            </TabsList>
-
-            {/* 基本信息 */}
-            <TabsContent value="basic" className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* 右侧内容 */}
+          <div className="flex-1 overflow-y-auto p-6">
+            {/* 基本配置 */}
+            {activeTab === 'basic' && (
+              <div className="space-y-6 max-w-2xl">
+                {/* 服务器名称 */}
                 <div className="space-y-2">
-                  <Label htmlFor="name" className="text-text-primary font-medium">
-                    服务器名称 <span className="text-state-error">*</span>
-                  </Label>
+                  <label className="text-sm font-medium text-[var(--color-text-primary)]">
+                    服务器名称 <span className="text-[var(--color-status-error)]">*</span>
+                  </label>
                   <Input
-                    id="name"
                     value={formData.name}
                     onChange={(e) => handleInputChange('name', e.target.value)}
-                    placeholder="输入服务器名称"
-                    className="bg-components-input-bg border-components-input-border focus:border-components-input-border-focus"
-                    required
+                    placeholder="例如: My MCP Server"
+                    className="h-11 bg-[var(--color-surface-secondary)] border-[var(--color-border-subtle)] focus:border-[var(--color-border-focus)]"
                   />
                 </div>
 
+                {/* 协议类型 */}
                 <div className="space-y-2">
-                  <Label htmlFor="server_type" className="text-text-primary font-medium">
-                    协议类型 <span className="text-state-error">*</span>
-                  </Label>
-                  <Select 
-                    value={formData.server_type} 
-                    onValueChange={(value) => handleInputChange('server_type', value)}
-                  >
-                    <SelectTrigger className="bg-components-input-bg border-components-input-border focus:border-components-input-border-focus">
-                      <SelectValue placeholder="选择协议类型" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-components-dropdown-bg border-components-dropdown-border">
-                      {MCP_SERVER_TYPES.map((type) => (
-                        <SelectItem key={type} value={type} className="hover:bg-components-dropdown-item-bg-hover">
-                          <div className="flex items-center gap-2">
-                            <Globe className="h-4 w-4" />
-                            <span>{type.toUpperCase()}</span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-sm text-text-secondary">
-                    {getServerTypeDescription(formData.server_type)}
-                  </p>
+                  <label className="text-sm font-medium text-[var(--color-text-primary)]">
+                    协议类型 <span className="text-[var(--color-status-error)]">*</span>
+                  </label>
+                  <div className="grid grid-cols-3 gap-3">
+                    {protocolOptions.map((protocol) => (
+                      <button
+                        key={protocol.value}
+                        type="button"
+                        onClick={() => handleInputChange('server_type', protocol.value)}
+                        className={cn(
+                          "flex flex-col items-start p-3 rounded-xl border-2 transition-all text-left",
+                          formData.server_type === protocol.value
+                            ? "border-[var(--color-border-focus)] bg-[var(--color-surface-accent)]/5"
+                            : "border-[var(--color-border-subtle)] hover:border-[var(--color-border-default)] bg-[var(--color-surface-secondary)]"
+                        )}
+                      >
+                        <div className="flex items-center gap-2 mb-1">
+                          <Globe className={cn(
+                            "h-4 w-4",
+                            formData.server_type === protocol.value
+                              ? "text-[var(--color-text-accent)]"
+                              : "text-[var(--color-text-tertiary)]"
+                          )} />
+                          <span className={cn(
+                            "font-medium text-sm",
+                            formData.server_type === protocol.value
+                              ? "text-[var(--color-text-accent)]"
+                              : "text-[var(--color-text-primary)]"
+                          )}>
+                            {protocol.label}
+                          </span>
+                        </div>
+                        <span className="text-xs text-[var(--color-text-tertiary)]">
+                          {protocol.description}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 服务器地址 */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-[var(--color-text-primary)]">
+                    服务器地址 <span className="text-[var(--color-status-error)]">*</span>
+                  </label>
+                  <div className="relative">
+                    <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--color-text-tertiary)]" />
+                    <Input
+                      value={formData.url}
+                      onChange={(e) => handleInputChange('url', e.target.value)}
+                      placeholder="http://localhost:3000/mcp"
+                      className="h-11 pl-10 bg-[var(--color-surface-secondary)] border-[var(--color-border-subtle)] focus:border-[var(--color-border-focus)] font-mono text-sm"
+                    />
+                  </div>
+                </div>
+
+                {/* 描述 */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-[var(--color-text-primary)]">
+                    描述 <span className="text-[var(--color-text-tertiary)] font-normal">(可选)</span>
+                  </label>
+                  <Textarea
+                    value={formData.description}
+                    onChange={(e) => handleInputChange('description', e.target.value)}
+                    placeholder="描述此服务器的用途..."
+                    className="min-h-[100px] bg-[var(--color-surface-secondary)] border-[var(--color-border-subtle)] focus:border-[var(--color-border-focus)] resize-none"
+                    rows={4}
+                  />
                 </div>
               </div>
+            )}
 
-              <div className="space-y-2">
-                <Label htmlFor="url" className="text-text-primary font-medium">
-                  服务器地址 <span className="text-state-error">*</span>
-                </Label>
-                <Input
-                  id="url"
-                  value={formData.url}
-                  onChange={(e) => handleInputChange('url', e.target.value)}
-                  placeholder="输入服务器URL，如: http://localhost:3000 或 ws://example.com/mcp"
-                  className="bg-components-input-bg border-components-input-border focus:border-components-input-border-focus"
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="description" className="text-text-primary font-medium">
-                  描述信息
-                </Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => handleInputChange('description', e.target.value)}
-                  placeholder="输入服务器描述信息"
-                  className="bg-components-input-bg border-components-input-border focus:border-components-input-border-focus min-h-[100px] resize-none"
-                  rows={4}
-                />
-              </div>
-            </TabsContent>
-
-            {/* 连接配置 */}
-            <TabsContent value="config" className="space-y-6">
-              {/* HTTP Headers */}
-              <Card className="border-components-card-border bg-components-card-bg">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-lg text-text-primary flex items-center gap-2">
-                    <Settings className="h-5 w-5" />
-                    HTTP 请求头
-                  </CardTitle>
-                  <p className="text-sm text-text-secondary">
-                    配置请求头信息，如认证令牌、内容类型等
+            {/* 请求头 */}
+            {activeTab === 'headers' && (
+              <div className="max-w-2xl">
+                <div className="mb-6">
+                  <h3 className="text-base font-medium text-[var(--color-text-primary)] mb-1">HTTP 请求头</h3>
+                  <p className="text-sm text-[var(--color-text-tertiary)]">
+                    配置发送到 MCP 服务器的自定义请求头，如认证令牌等
                   </p>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {headerEntries.map((entry, index) => (
-                    <div key={index} className="flex items-center gap-4">
-                      <Input
-                        placeholder="Header名称"
-                        value={entry.key}
-                        onChange={(e) => handleHeaderChange(index, 'key', e.target.value)}
-                        className="flex-1 bg-components-input-bg border-components-input-border"
-                      />
-                      <Input
-                        placeholder="Header值"
-                        value={entry.value}
-                        onChange={(e) => handleHeaderChange(index, 'value', e.target.value)}
-                        className="flex-1 bg-components-input-bg border-components-input-border"
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeHeaderEntry(index)}
-                        className="text-state-error hover:text-state-error hover:bg-state-error/10"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={addHeaderEntry}
-                    className="w-full border-dashed"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    添加请求头
-                  </Button>
-                </CardContent>
-              </Card>
-            </TabsContent>
+                </div>
+                {renderKeyValueEditor(
+                  headerEntries,
+                  handleHeaderChange,
+                  removeHeaderEntry,
+                  addHeaderEntry,
+                  'Header 名称',
+                  'Header 值',
+                  '暂无请求头',
+                  '点击下方按钮添加自定义请求头'
+                )}
+              </div>
+            )}
 
-            {/* 高级设置 */}
-            <TabsContent value="advanced" className="space-y-6">
-              <Card className="border-components-card-border bg-components-card-bg">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-lg text-text-primary flex items-center gap-2">
-                    <Settings className="h-5 w-5" />
-                    环境变量
-                  </CardTitle>
-                  <p className="text-sm text-text-secondary">
-                    配置服务器运行时环境变量，支持JSON格式
+            {/* 环境变量 */}
+            {activeTab === 'variables' && (
+              <div className="max-w-2xl">
+                <div className="mb-6">
+                  <h3 className="text-base font-medium text-[var(--color-text-primary)] mb-1">环境变量</h3>
+                  <p className="text-sm text-[var(--color-text-tertiary)]">
+                    配置传递给 MCP 服务器的环境变量，值支持 JSON 格式
                   </p>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {variableEntries.map((entry, index) => (
-                    <div key={index} className="flex items-center gap-4">
-                      <Input
-                        placeholder="变量名"
-                        value={entry.key}
-                        onChange={(e) => handleVariableChange(index, 'key', e.target.value)}
-                        className="flex-1 bg-components-input-bg border-components-input-border"
-                      />
-                      <Input
-                        placeholder="变量值 (支持JSON格式)"
-                        value={entry.value}
-                        onChange={(e) => handleVariableChange(index, 'value', e.target.value)}
-                        className="flex-2 bg-components-input-bg border-components-input-border font-mono text-sm"
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeVariableEntry(index)}
-                        className="text-state-error hover:text-state-error hover:bg-state-error/10"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={addVariableEntry}
-                    className="w-full border-dashed"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    添加环境变量
-                  </Button>
-                </CardContent>
-              </Card>
-            </TabsContent>
+                </div>
+                {renderKeyValueEditor(
+                  variableEntries,
+                  handleVariableChange,
+                  removeVariableEntry,
+                  addVariableEntry,
+                  '变量名',
+                  '变量值 (支持 JSON)',
+                  '暂无环境变量',
+                  '点击下方按钮添加环境变量'
+                )}
+              </div>
+            )}
 
             {/* 连接测试 */}
-            <TabsContent value="test" className="space-y-6">
-              <Card className="border-components-card-border bg-components-card-bg">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-lg text-text-primary flex items-center gap-2">
-                    <TestTube className="h-5 w-5" />
-                    连接测试
-                  </CardTitle>
-                  <p className="text-sm text-text-secondary">
-                    测试服务器连接并获取可用工具列表
+            {activeTab === 'test' && (
+              <div className="max-w-2xl space-y-6">
+                <div className="mb-6">
+                  <h3 className="text-base font-medium text-[var(--color-text-primary)] mb-1">连接测试</h3>
+                  <p className="text-sm text-[var(--color-text-tertiary)]">
+                    测试与 MCP 服务器的连接，验证配置是否正确
                   </p>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="flex items-center gap-4">
-                    <Button
-                      type="button"
-                      onClick={handleTestConnection}
-                      disabled={testing || !formData.url}
-                      className="bg-components-button-primary-bg hover:bg-components-button-primary-bg-hover text-components-button-primary-text"
+                </div>
+
+                {/* 测试按钮 */}
+                <div className="flex items-center gap-4">
+                  <Button
+                    type="button"
+                    onClick={handleTestConnection}
+                    disabled={testing || !formData.url}
+                    className="h-11"
+                  >
+                    {testing ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Zap className="h-4 w-4 mr-2" />
+                    )}
+                    {testing ? '测试中...' : '开始测试'}
+                  </Button>
+                  
+                  {testResult && (
+                    <Badge 
+                      variant={testResult.success ? "default" : "destructive"}
+                      className="h-7 px-3"
                     >
-                      {testing ? (
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      {testResult.success ? (
+                        <CheckCircle className="h-3.5 w-3.5 mr-1.5" />
                       ) : (
-                        <TestTube className="h-4 w-4 mr-2" />
+                        <XCircle className="h-3.5 w-3.5 mr-1.5" />
                       )}
-                      {testing ? '测试中...' : '开始测试'}
-                    </Button>
-                    
-                    {testResult && (
-                      <Badge 
-                        className={`${
-                          testResult.success 
-                            ? 'bg-components-badge-success-bg text-components-badge-success-text' 
-                            : 'bg-components-badge-error-bg text-components-badge-error-text'
-                        } border-components-badge-border`}
-                      >
-                        {testResult.success ? (
-                          <CheckCircle className="h-3 w-3 mr-1" />
+                      {testResult.success ? '连接成功' : '连接失败'}
+                    </Badge>
+                  )}
+                </div>
+
+                {/* 测试结果 */}
+                {testResult && (
+                  <div className={cn(
+                    "rounded-xl border p-4",
+                    testResult.success 
+                      ? "bg-[var(--color-status-success-bg)] border-[var(--color-status-success-border)]"
+                      : "bg-[var(--color-status-error-bg)] border-[var(--color-status-error-border)]"
+                  )}>
+                    {testResult.success ? (
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-2 text-[var(--color-status-success)]">
+                          <CheckCircle className="h-5 w-5" />
+                          <span className="font-medium">服务器连接正常</span>
+                        </div>
+                        {testResult.tools && testResult.tools.length > 0 ? (
+                          <div>
+                            <p className="text-sm text-[var(--color-text-secondary)] mb-3">
+                              发现 {testResult.tools.length} 个可用工具：
+                            </p>
+                            <div className="space-y-2 max-h-48 overflow-y-auto">
+                              {testResult.tools.map((tool, index) => (
+                                <div 
+                                  key={index}
+                                  className="flex items-center justify-between p-3 bg-[var(--color-background-surface)] rounded-lg"
+                                >
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-lg bg-[var(--color-surface-secondary)] flex items-center justify-center">
+                                      <Zap className="h-4 w-4 text-[var(--color-text-tertiary)]" />
+                                    </div>
+                                    <div>
+                                      <span className="font-medium text-sm text-[var(--color-text-primary)]">{tool.name}</span>
+                                      <p className="text-xs text-[var(--color-text-tertiary)] line-clamp-1">{tool.description}</p>
+                                    </div>
+                                  </div>
+                                  <Badge variant="secondary" className="text-xs">
+                                    {tool.enabled ? '已启用' : '未启用'}
+                                  </Badge>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
                         ) : (
-                          <XCircle className="h-3 w-3 mr-1" />
+                          <div className="flex items-center gap-2 text-[var(--color-text-secondary)]">
+                            <Info className="h-4 w-4" />
+                            <span className="text-sm">服务器未提供任何工具</span>
+                          </div>
                         )}
-                        {testResult.success ? '连接成功' : '连接失败'}
-                      </Badge>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-[var(--color-status-error)]">
+                          <XCircle className="h-5 w-5" />
+                          <span className="font-medium">连接失败</span>
+                        </div>
+                        <p className="text-sm text-[var(--color-text-secondary)] pl-7">{testResult.error}</p>
+                      </div>
                     )}
                   </div>
+                )}
 
-                  {testResult && (
-                    <div className="bg-background-subtle rounded-xl p-6 border border-border-subtle">
-                      {testResult.success ? (
-                        <div className="space-y-4">
-                          <div className="flex items-center gap-2 text-state-success">
-                            <CheckCircle className="h-5 w-5" />
-                            <span className="font-medium">连接测试成功</span>
-                          </div>
-                          {testResult.tools && testResult.tools.length > 0 ? (
-                            <div>
-                              <p className="text-text-secondary mb-3">发现 {testResult.tools.length} 个可用工具：</p>
-                              <div className="space-y-2 max-h-60 overflow-y-auto">
-                                {testResult.tools.map((tool, index) => (
-                                  <div 
-                                    key={index}
-                                    className="flex items-center justify-between p-3 bg-components-card-bg rounded-lg border border-components-card-border"
-                                  >
-                                    <div>
-                                      <span className="font-medium text-text-primary">{tool.name}</span>
-                                      <p className="text-sm text-text-secondary">{tool.description}</p>
-                                    </div>
-                                    <Badge className="bg-components-badge-info-bg text-components-badge-info-text border-components-badge-border">
-                                      {tool.enabled ? '已启用' : '未启用'}
-                                    </Badge>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-2 text-text-secondary">
-                              <Info className="h-4 w-4" />
-                              <span>服务器连接成功，但未发现可用工具</span>
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <div className="space-y-3">
-                          <div className="flex items-center gap-2 text-state-error">
-                            <XCircle className="h-5 w-5" />
-                            <span className="font-medium">连接测试失败</span>
-                          </div>
-                          <p className="text-text-secondary">{testResult.error}</p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  <div className="bg-components-card-bg border border-components-card-border rounded-xl p-4">
-                    <div className="flex items-start gap-3">
-                      <AlertTriangle className="h-5 w-5 text-state-warning mt-0.5" />
-                      <div>
-                        <p className="font-medium text-text-primary">连接测试说明</p>
-                        <ul className="text-sm text-text-secondary mt-2 space-y-1">
-                          <li>• 测试将验证服务器URL的可访问性</li>
-                          <li>• 验证协议类型是否匹配</li>
-                          <li>• 获取服务器提供的工具列表</li>
-                          <li>• 建议在保存配置前先进行连接测试</li>
-                        </ul>
-                      </div>
-                    </div>
+                {/* 提示信息 */}
+                <div className="flex items-start gap-3 p-4 rounded-xl bg-[var(--color-surface-secondary)]">
+                  <Info className="h-5 w-5 text-[var(--color-text-tertiary)] mt-0.5 shrink-0" />
+                  <div className="text-sm text-[var(--color-text-tertiary)] space-y-1">
+                    <p>测试将验证服务器 URL 的可访问性和协议兼容性</p>
+                    <p>建议在保存配置前先进行连接测试</p>
                   </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* 底部操作按钮 */}
-        <div className="flex items-center justify-end gap-4 bg-components-card-bg backdrop-blur-xl rounded-2xl p-6 border border-components-card-border">
+        {/* Footer */}
+        <div className="shrink-0 flex items-center justify-end gap-3 px-6 py-4 border-t border-[var(--color-border-subtle)] bg-[var(--color-surface-secondary)]/50">
           <Button
             type="button"
             variant="outline"
             onClick={onCancel}
             disabled={loading}
-            className="px-8"
           >
             取消
           </Button>
           <Button
             type="submit"
             disabled={loading || !formData.name.trim() || !formData.url.trim()}
-            className="bg-components-button-primary-bg hover:bg-components-button-primary-bg-hover text-components-button-primary-text px-8"
           >
             {loading ? (
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
             ) : (
               <CheckCircle className="h-4 w-4 mr-2" />
             )}
-            {loading ? '保存中...' : (isEditing ? '更新服务器' : '创建服务器')}
+            {loading ? '保存中...' : (isEditing ? '保存更改' : '创建服务器')}
           </Button>
         </div>
       </form>

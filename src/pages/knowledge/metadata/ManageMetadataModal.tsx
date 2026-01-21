@@ -6,6 +6,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -414,15 +415,15 @@ export const ManageMetadataModal: React.FC<ManageMetadataModalProps> = ({
   return (
     <>
       <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-        <DialogContent className="max-w-2xl p-0 gap-0 overflow-hidden">
-          {/* 头部 - 增强设计 */}
-          <DialogHeader className="px-6 py-5 border-b border-border-default bg-gradient-to-r from-surface-secondary/50 to-surface-primary">
+        <DialogContent className="max-w-2xl">
+          {/* 头部 */}
+          <DialogHeader>
             <div className="flex items-start gap-3">
               <div className={cn(
                 'flex items-center justify-center w-10 h-10 rounded-xl shrink-0',
                 isSettingMode 
-                  ? 'bg-surface-accent/10 text-surface-accent' 
-                  : 'bg-surface-secondary text-text-secondary'
+                  ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]' 
+                  : 'bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)]'
               )}>
                 {isSettingMode ? (
                   <Sparkles className="w-5 h-5" />
@@ -430,21 +431,21 @@ export const ManageMetadataModal: React.FC<ManageMetadataModalProps> = ({
                   <Database className="w-5 h-5" />
                 )}
               </div>
-              <div className="flex-1 min-w-0">
-                <DialogTitle className="text-base font-semibold text-text-primary">
+              <div className="flex-1 min-w-0 pr-6">
+                <DialogTitle>
                   {title}
                 </DialogTitle>
                 {subtitle && (
-                  <p className="text-sm text-text-secondary mt-0.5 leading-relaxed">
+                  <DialogDescription>
                     {subtitle}
-                  </p>
+                  </DialogDescription>
                 )}
               </div>
             </div>
           </DialogHeader>
 
           {/* 内容区域 */}
-          <div className="px-6 py-4">
+          <div className="flex-1 overflow-y-auto px-6 pb-4 scrollbar-thin">
             {/* 工具栏 */}
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
@@ -580,29 +581,20 @@ export const ManageMetadataModal: React.FC<ManageMetadataModalProps> = ({
             )}
           </div>
 
-          {/* 底部按钮 - 增强设计 */}
-          <DialogFooter className="px-6 py-4 border-t border-border-default bg-surface-secondary/20">
+          {/* 底部按钮 */}
+          <DialogFooter>
             <Button 
               variant="outline" 
               onClick={onClose} 
               disabled={isSaving}
-              className="min-w-[80px]"
             >
               取消
             </Button>
             <Button 
               onClick={handleSave} 
-              disabled={isSaving}
-              className="min-w-[80px]"
+              loading={isSaving}
             >
-              {isSaving ? (
-                <>
-                  <div className="animate-spin w-4 h-4 border-2 border-current border-t-transparent rounded-full mr-2" />
-                  保存中...
-                </>
-              ) : (
-                '保存'
-              )}
+              保存
             </Button>
           </DialogFooter>
         </DialogContent>

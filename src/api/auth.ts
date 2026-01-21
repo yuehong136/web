@@ -80,12 +80,18 @@ export const authAPI = {
   setNewPassword: (token: string, newPassword: string): Promise<void> =>
     apiClient.post('/v1/user/set-new-password', { token, new_password: newPassword }, { skipAuth: true }),
 
-  // 用户设置更新（包含密码修改） - 使用apiClient但处理完整响应
-  updateUserSettings: async (data: UserSettingsUpdateRequest): Promise<UserSettingsUpdateResponse> => {
+  // 用户设置更新（包含密码修改） - 参考 ragflow /v1/user/setting 接口
+  // 支持的参数: nickname, timezone, avatar, password, new_password
+  updateUserSettings: async (data: {
+    nickname?: string
+    timezone?: string
+    avatar?: string
+    password?: string
+    new_password?: string
+  }): Promise<UserSettingsUpdateResponse> => {
     try {
-      // 使用APIClient的内部request方法，但修改处理逻辑
+      // 使用APIClient的内部request方法
       const response = await apiClient.post('/v1/user/setting', data)
-      // apiClient.post 返回的可能是data.data，我们需要完整的响应
       
       // 如果返回的是布尔值true，说明操作成功
       if (response === true) {

@@ -26,6 +26,7 @@ import { toast } from '@/lib/toast'
 import type { Document, DocumentFilter, MetadataManageType, IDocumentInfoFilter } from '@/types/api'
 import { MetadataManageType as MetadataType } from '@/types/api'
 import { ManageMetadataModal, DocumentMetadataModal } from './metadata'
+import { ReparseConfirmModal } from '@/components/knowledge'
 import { 
   Button,
   Input, 
@@ -381,7 +382,7 @@ const FilterPopover: React.FC<React.PropsWithChildren<FilterPopoverProps>> = ({
 
 const KnowledgeDocumentsPage: React.FC = () => {
   const { id: kbId } = useParams<{ id: string }>()
-  const { } = useKnowledgeStore()
+  const { currentKnowledgeBase } = useKnowledgeStore()
   const navigate = useNavigate()
   
   // 状态管理
@@ -421,6 +422,10 @@ const KnowledgeDocumentsPage: React.FC = () => {
   const [newDocName, setNewDocName] = useState('')
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [deletingDocId, setDeletingDocId] = useState<string>('')
+  // 重新解析弹窗状态
+  const [reparseModalOpen, setReparseModalOpen] = useState(false)
+  const [reparsingDocs, setReparsingDocs] = useState<Document[]>([])
+  const [isReparsing, setIsReparsing] = useState(false)
   const [uploadModalOpen, setUploadModalOpen] = useState(false)
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const [uploading, setUploading] = useState(false)
@@ -740,33 +745,84 @@ const KnowledgeDocumentsPage: React.FC = () => {
       }
   }
   
-  // 开始/停止任务
-  const handleToggleParse = async (doc: Document) => {
+  // 停止任务
+  const handleStopParse = async (doc: Document) => {
     try {
-      if (doc.run === '1') {
-        // 停止任务 (run = 0)
-        await knowledgeAPI.document.run([doc.id], 0)
-      } else {
-        // 开始任务 (run = 1)
-        await knowledgeAPI.document.run([doc.id], 1)
-      }
+      await knowledgeAPI.document.run([doc.id], 0)
       fetchDocuments()
     } catch (error) {
-      console.error('Failed to toggle task:', error)
+      console.error('Failed to stop task:', error)
+      toast.error('停止任务失败')
     }
   }
-  
-  // 重新处理文档
-  const handleReprocess = async (doc: Document) => {
-    const confirmed = window.confirm(`确定要重新处理文档 "${doc.name}" 吗？这将清除历史处理数据并重新开始解析。`)
-    if (confirmed) {
-      try {
-        await knowledgeAPI.document.run([doc.id], 1, true)
-        fetchDocuments()
-      } catch (error) {
-        console.error('Failed to reprocess document:', error)
-      }
+
+  // 检查是否需要显示解析确认弹窗
+  const needsParseConfirmation = (docs: Document[]) => {
+    // 如果有文档已有 chunk，需要确认
+    const hasChunks = docs.some(doc => (doc.chunk_num || 0) > 0)
+    // 如果知识库启用了自动元数据，需要确认
+    // 注意：enable_metadata 可能在顶层或 parser_config 内部
+    const hasMetadataEnabled = 
+      currentKnowledgeBase?.enable_metadata === true || 
+      currentKnowledgeBase?.parser_config?.enable_metadata === true
+    return hasChunks || hasMetadataEnabled
+  }
+
+  // 开始解析（单个文档）
+  const handleStartParse = (doc: Document) => {
+    if (needsParseConfirmation([doc])) {
+      setReparsingDocs([doc])
+      setReparseModalOpen(true)
+    } else {
+      // 直接开始解析
+      executeStartParse([doc], false, false)
     }
+  }
+
+  // 开始解析（批量）
+  const handleBatchStartParse = (docs: Document[]) => {
+    if (needsParseConfirmation(docs)) {
+      setReparsingDocs(docs)
+      setReparseModalOpen(true)
+    } else {
+      // 直接开始解析
+      executeStartParse(docs, false, false)
+    }
+  }
+
+  // 执行解析
+  const executeStartParse = async (
+    docs: Document[], 
+    deleteChunks: boolean,
+    _applyMetadataSettings: boolean
+  ) => {
+    setIsReparsing(true)
+    try {
+      const docIds = docs.map(doc => doc.id)
+      // deleteChunks=true 时传 delete=true 清空历史数据
+      await knowledgeAPI.document.run(docIds, 1, deleteChunks)
+      
+      toast.success(`已开始解析 ${docIds.length} 个文档`)
+      
+      setReparseModalOpen(false)
+      setReparsingDocs([])
+      setSelectedDocs(new Set())
+      fetchDocuments()
+    } catch (error) {
+      console.error('Failed to start parsing:', error)
+      toast.error('开始解析失败，请重试')
+    } finally {
+      setIsReparsing(false)
+    }
+  }
+
+  // 确认解析弹窗回调
+  const handleConfirmParse = async (options: { 
+    deleteChunks: boolean
+    applyMetadataSettings: boolean 
+  }) => {
+    if (reparsingDocs.length === 0) return
+    await executeStartParse(reparsingDocs, options.deleteChunks, options.applyMetadataSettings)
   }
   
   // 删除文档
@@ -1060,6 +1116,76 @@ const KnowledgeDocumentsPage: React.FC = () => {
         )
       },
       {
+        key: 'metadata',
+        title: '元数据',
+        width: 100,
+        render: (_, record) => {
+          const hasMetadata = record.meta_fields && Object.keys(record.meta_fields).length > 0
+          const metadataCount = hasMetadata ? Object.keys(record.meta_fields!).length : 0
+          
+          if (hasMetadata) {
+            return (
+              <Tooltip 
+                content={
+                  <div className="max-w-xs">
+                    <div className="font-medium mb-1" style={{ color: 'var(--color-text-primary)' }}>
+                      已配置 {metadataCount} 个字段
+                    </div>
+                    <div className="text-xs space-y-0.5" style={{ color: 'var(--color-text-secondary)' }}>
+                      {Object.entries(record.meta_fields!).slice(0, 5).map(([key, value]) => (
+                        <div key={key} className="truncate">
+                          <span className="font-medium">{key}:</span> {String(value)}
+                        </div>
+                      ))}
+                      {metadataCount > 5 && (
+                        <div className="text-text-tertiary">... 还有 {metadataCount - 5} 个</div>
+                      )}
+                    </div>
+                  </div>
+                }
+              >
+                <div className="flex items-center gap-1 cursor-help">
+                  <div 
+                    className="w-2 h-2 rounded-full"
+                    style={{ backgroundColor: 'var(--color-state-success)' }}
+                  />
+                  <span className="text-xs" style={{ color: 'var(--color-text-success)' }}>
+                    {metadataCount}
+                  </span>
+                </div>
+              </Tooltip>
+            )
+          }
+          
+          // 无元数据时显示快捷操作
+          const kbHasMetadataEnabled = 
+            currentKnowledgeBase?.enable_metadata || 
+            currentKnowledgeBase?.parser_config?.enable_metadata
+          return (
+            <Tooltip 
+              content={
+                kbHasMetadataEnabled 
+                  ? "点击重新解析以提取元数据" 
+                  : "未配置元数据"
+              }
+            >
+              <div 
+                className={`flex items-center gap-1 ${kbHasMetadataEnabled ? 'cursor-pointer hover:opacity-80' : 'cursor-default'}`}
+                onClick={kbHasMetadataEnabled ? () => handleStartParse(record) : undefined}
+              >
+                <div 
+                  className="w-2 h-2 rounded-full"
+                  style={{ backgroundColor: 'var(--color-state-warning)' }}
+                />
+                <span className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
+                  无
+                </span>
+              </div>
+            </Tooltip>
+          )
+        }
+      },
+      {
         key: 'status',
         title: '启用',
         width: 100,
@@ -1204,22 +1330,13 @@ const KnowledgeDocumentsPage: React.FC = () => {
         align: 'right',
         render: (_, record) => (
           <div className="flex items-center justify-end space-x-2">
-            <Tooltip content={record.run === '1' ? '停止当前任务' : '开始处理任务'}>
+            <Tooltip content={record.run === '1' ? '停止当前任务' : '开始解析'}>
               <Button
                 variant="ghost"
                 size="icon-sm"
-                onClick={() => handleToggleParse(record)}
+                onClick={() => record.run === '1' ? handleStopParse(record) : handleStartParse(record)}
               >
                 {record.run === '1' ? <Square className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-              </Button>
-            </Tooltip>
-            <Tooltip content="重新处理文档（清除历史数据）">
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                onClick={() => handleReprocess(record)}
-              >
-                <RefreshCw className="h-4 w-4" />
               </Button>
             </Tooltip>
             <Tooltip content="重命名文档">
@@ -1615,14 +1732,9 @@ const KnowledgeDocumentsPage: React.FC = () => {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={async () => {
-                  try {
-                    await knowledgeAPI.document.run(Array.from(selectedDocs), 1)
-                    setSelectedDocs(new Set())
-                    fetchDocuments()
-                  } catch (error) {
-                    console.error('Failed to start tasks:', error)
-                  }
+                onClick={() => {
+                  const selectedDocList = documents.filter(doc => selectedDocs.has(doc.id))
+                  handleBatchStartParse(selectedDocList)
                 }}
                 style={{ 
                   color: 'var(--color-text-accent)', 
@@ -1630,7 +1742,7 @@ const KnowledgeDocumentsPage: React.FC = () => {
                 }}
               >
                 <Play className="h-4 w-4 mr-1" />
-                开始任务
+                开始解析
               </Button>
               <Button
                 variant="outline"
@@ -1651,29 +1763,6 @@ const KnowledgeDocumentsPage: React.FC = () => {
               >
                 <Square className="h-4 w-4 mr-1" />
                 停止任务
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={async () => {
-                  const confirmed = window.confirm(`确定要重新处理选中的 ${selectedDocs.size} 个文档吗？这将清除历史处理数据并重新开始解析。`)
-                  if (confirmed) {
-                    try {
-                      await knowledgeAPI.document.run(Array.from(selectedDocs), 1, true)
-                      setSelectedDocs(new Set())
-                      fetchDocuments()
-                    } catch (error) {
-                      console.error('Failed to reprocess documents:', error)
-                    }
-                  }
-                }}
-                style={{ 
-                  color: 'var(--color-text-accent)', 
-                  borderColor: 'var(--color-border-accent)'
-                }}
-              >
-                <RefreshCw className="h-4 w-4 mr-1" />
-                重新处理
               </Button>
               <Button
                 variant="destructive"
@@ -1888,6 +1977,19 @@ const KnowledgeDocumentsPage: React.FC = () => {
           }}
         />
       )}
+
+      {/* 重新解析确认弹窗 */}
+      <ReparseConfirmModal
+        open={reparseModalOpen}
+        onClose={() => {
+          setReparseModalOpen(false)
+          setReparsingDocs([])
+        }}
+        onConfirm={handleConfirmParse}
+        documents={reparsingDocs}
+        knowledgeBase={currentKnowledgeBase}
+        isLoading={isReparsing}
+      />
     </div>
   )
 }

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Table } from '@/components/ui/table'
-import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { 
@@ -498,148 +498,112 @@ export const MCPToolsPage: React.FC<MCPToolsPageProps> = ({ serverId }) => {
       {/* 工具测试对话框 */}
       {showTestDialog && selectedTool && (
         <Dialog open={showTestDialog} onOpenChange={setShowTestDialog}>
-          <DialogContent 
-            title={`测试工具: ${selectedTool.name}`}
-            className="bg-components-modal-bg border-components-modal-border max-w-4xl max-h-[90vh] overflow-y-auto"
-          >
-            <div className="space-y-6">
-              {/* 工具信息 */}
-              <Card className="border-components-card-border bg-components-card-bg">
-                <CardHeader className="pb-4">
-                  <CardTitle className="flex items-center gap-2 text-text-primary">
-                    <Zap className="h-5 w-5" />
-                    工具详情
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm font-medium text-text-secondary">工具名称</p>
-                      <p className="text-text-primary">{selectedTool.name}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-text-secondary">所属服务器</p>
-                      <p className="text-text-primary">{selectedTool.serverName}</p>
-                    </div>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-text-secondary mb-2">描述</p>
-                    <p className="text-text-primary">{selectedTool.description}</p>
-                  </div>
-                  {selectedTool.inputSchema && (
-                    <div>
-                      <p className="text-sm font-medium text-text-secondary mb-2">参数架构</p>
-                      <pre className="bg-background-subtle p-4 rounded-lg text-sm font-mono text-text-primary overflow-auto">
-                        {JSON.stringify(selectedTool.inputSchema, null, 2)}
-                      </pre>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+          <DialogContent size="xl">
+            <DialogHeader>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[var(--color-surface-accent)] flex items-center justify-center">
+                  <Zap className="h-5 w-5 text-[var(--color-text-on-accent)]" />
+                </div>
+                <div>
+                  <DialogTitle>{selectedTool.name}</DialogTitle>
+                  <DialogDescription>{selectedTool.serverName}</DialogDescription>
+                </div>
+              </div>
+            </DialogHeader>
 
-              {/* 测试配置 */}
-              <Card className="border-components-card-border bg-components-card-bg">
-                <CardHeader className="pb-4">
-                  <CardTitle className="flex items-center gap-2 text-text-primary">
-                    <TestTube className="h-5 w-5" />
-                    测试配置
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <label className="text-sm font-medium text-text-secondary mb-2 block">
-                      测试参数 (JSON格式)
-                    </label>
-                    <Textarea
-                      value={testArguments}
-                      onChange={(e) => setTestArguments(e.target.value)}
-                      placeholder={selectedTool.inputSchema ? 
-                        '输入JSON格式的参数，例如: {"param1": "value1", "param2": "value2"}' : 
-                        '该工具无需参数，留空即可'
-                      }
-                      className="bg-components-input-bg border-components-input-border focus:border-components-input-border-focus min-h-[100px] font-mono text-sm"
-                      rows={4}
-                    />
-                  </div>
-                  <div className="flex justify-end">
-                    <Button
-                      onClick={handleTestTool}
-                      disabled={testing}
-                      className="bg-components-button-primary-bg hover:bg-components-button-primary-bg-hover text-components-button-primary-text"
-                    >
-                      {testing ? (
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      ) : (
-                        <Play className="h-4 w-4 mr-2" />
-                      )}
-                      {testing ? '测试中...' : '开始测试'}
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+            <div className="px-6 pb-2 space-y-6 overflow-y-auto max-h-[calc(90vh-200px)]">
+              {/* 工具描述 */}
+              <div className="p-4 rounded-xl bg-[var(--color-surface-secondary)]">
+                <p className="text-[var(--color-text-secondary)] text-sm leading-relaxed">
+                  {selectedTool.description}
+                </p>
+              </div>
+
+              {/* 参数架构 - 可折叠 */}
+              {selectedTool.inputSchema && (
+                <div className="space-y-3">
+                  <h4 className="text-sm font-medium text-[var(--color-text-primary)] flex items-center gap-2">
+                    <Code className="h-4 w-4 text-[var(--color-text-tertiary)]" />
+                    参数架构
+                  </h4>
+                  <pre className="p-4 rounded-xl bg-[var(--color-surface-secondary)] border border-[var(--color-border-subtle)] text-xs font-mono text-[var(--color-text-secondary)] overflow-auto max-h-40">
+                    {JSON.stringify(selectedTool.inputSchema, null, 2)}
+                  </pre>
+                </div>
+              )}
+
+              {/* 测试输入 */}
+              <div className="space-y-3">
+                <h4 className="text-sm font-medium text-[var(--color-text-primary)] flex items-center gap-2">
+                  <TestTube className="h-4 w-4 text-[var(--color-text-tertiary)]" />
+                  测试参数
+                </h4>
+                <Textarea
+                  value={testArguments}
+                  onChange={(e) => setTestArguments(e.target.value)}
+                  placeholder={selectedTool.inputSchema ? 
+                    '输入 JSON 格式的参数，例如:\n{"param1": "value1", "param2": "value2"}' : 
+                    '该工具无需参数，留空即可'
+                  }
+                  className="min-h-[120px] font-mono text-sm bg-[var(--color-surface-secondary)] border-[var(--color-border-default)] focus:border-[var(--color-border-focus)] rounded-xl resize-none"
+                />
+              </div>
 
               {/* 测试结果 */}
               {testResult && (
-                <Card className="border-components-card-border bg-components-card-bg">
-                  <CardHeader className="pb-4">
-                    <CardTitle className="flex items-center gap-2 text-text-primary">
-                      {testResult.success ? (
-                        <CheckCircle className="h-5 w-5 text-state-success" />
-                      ) : (
-                        <AlertCircle className="h-5 w-5 text-state-error" />
-                      )}
-                      测试结果
-                      {testResult.duration && (
-                        <Badge className="bg-components-badge-info-bg text-components-badge-info-text border-components-badge-border ml-2">
-                          {testResult.duration}ms
-                        </Badge>
-                      )}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
+                <div className={`p-4 rounded-xl border ${
+                  testResult.success 
+                    ? 'bg-[var(--color-status-success-bg)] border-[var(--color-status-success-border)]' 
+                    : 'bg-[var(--color-status-error-bg)] border-[var(--color-status-error-border)]'
+                }`}>
+                  <div className="flex items-center gap-2 mb-3">
                     {testResult.success ? (
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-2 text-state-success">
-                          <CheckCircle className="h-5 w-5" />
-                          <span className="font-medium">工具执行成功</span>
-                        </div>
-                        {testResult.content && testResult.content.length > 0 && (
-                          <div>
-                            <p className="text-sm font-medium text-text-secondary mb-2">执行结果:</p>
-                            <div className="bg-background-subtle rounded-lg p-4 max-h-60 overflow-auto">
-                              <pre className="text-sm text-text-primary whitespace-pre-wrap">
-                                {JSON.stringify(testResult.content, null, 2)}
-                              </pre>
-                            </div>
-                          </div>
-                        )}
-                      </div>
+                      <CheckCircle className="h-5 w-5 text-[var(--color-status-success)]" />
                     ) : (
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-2 text-state-error">
-                          <AlertCircle className="h-5 w-5" />
-                          <span className="font-medium">工具执行失败</span>
-                        </div>
-                        <div className="bg-state-error/10 border border-state-error/20 rounded-lg p-4">
-                          <p className="text-state-error">{testResult.error}</p>
-                        </div>
-                      </div>
+                      <AlertCircle className="h-5 w-5 text-[var(--color-status-error)]" />
                     )}
-                  </CardContent>
-                </Card>
+                    <span className={`font-medium ${
+                      testResult.success ? 'text-[var(--color-status-success)]' : 'text-[var(--color-status-error)]'
+                    }`}>
+                      {testResult.success ? '执行成功' : '执行失败'}
+                    </span>
+                    {testResult.duration && (
+                      <Badge variant="secondary" className="ml-auto text-xs">
+                        {testResult.duration}ms
+                      </Badge>
+                    )}
+                  </div>
+                  {testResult.success && testResult.content && testResult.content.length > 0 && (
+                    <pre className="p-3 rounded-lg bg-[var(--color-background-surface)] text-xs font-mono text-[var(--color-text-secondary)] overflow-auto max-h-48">
+                      {JSON.stringify(testResult.content, null, 2)}
+                    </pre>
+                  )}
+                  {!testResult.success && testResult.error && (
+                    <p className="text-sm text-[var(--color-status-error)]">{testResult.error}</p>
+                  )}
+                </div>
               )}
-
-              {/* 底部操作 */}
-              <div className="flex justify-end gap-3">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowTestDialog(false)}
-                  className="px-6"
-                >
-                  关闭
-                </Button>
-              </div>
             </div>
+
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setShowTestDialog(false)}
+              >
+                关闭
+              </Button>
+              <Button
+                onClick={handleTestTool}
+                disabled={testing}
+              >
+                {testing ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Play className="h-4 w-4 mr-2" />
+                )}
+                {testing ? '测试中...' : '执行测试'}
+              </Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       )}

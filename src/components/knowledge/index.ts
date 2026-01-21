@@ -8,6 +8,7 @@ export { MetadataFieldRow } from './MetadataFieldRow'
 export { MetadataValueTag } from './MetadataValueTag'
 export { ParserTypeSelector } from './ParserTypeSelector'
 export { QuickEditModal } from './QuickEditModal'
+export { ReparseConfirmModal } from './ReparseConfirmModal'
 export { RerankModelSelector } from './RerankModelSelector'
 
 

@@ -2,10 +2,15 @@ import React, { useState, useEffect } from 'react'
 import {
   Dialog,
   DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { DocumentMetadataEditor } from '@/components/knowledge/DocumentMetadataEditor'
 import { useUpdateDocumentMeta } from '@/hooks/use-metadata'
+import { FileText, Loader2, Info } from 'lucide-react'
 import type { MetadataFieldDefinition } from '@/types/api'
 
 interface DocumentMetadataModalProps {
@@ -84,8 +89,20 @@ export const DocumentMetadataModal: React.FC<DocumentMetadataModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <DialogContent title={`编辑元数据 - ${docName}`} className="max-w-lg">
-        <div className="flex flex-col gap-space-md">
+      <DialogContent size="md">
+        <DialogHeader>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-[var(--color-surface-accent)] flex items-center justify-center">
+              <FileText className="h-5 w-5 text-[var(--color-text-on-accent)]" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <DialogTitle>编辑元数据</DialogTitle>
+              <DialogDescription className="truncate">{docName}</DialogDescription>
+            </div>
+          </div>
+        </DialogHeader>
+
+        <div className="px-6 py-4 space-y-4 overflow-y-auto max-h-[calc(90vh-200px)]">
           {/* 编辑器 */}
           <DocumentMetadataEditor
             value={localMeta}
@@ -94,23 +111,26 @@ export const DocumentMetadataModal: React.FC<DocumentMetadataModalProps> = ({
             disabled={isSaving}
           />
 
-          {/* 提示 */}
+          {/* 提示信息 */}
           {fieldDefinitions.length > 0 && (
-            <p className="text-text-tertiary text-body-sm">
-              提示：字段列表来自知识库的元数据模板设置
-            </p>
+            <div className="flex items-start gap-2 p-3 rounded-lg bg-[var(--color-surface-secondary)]">
+              <Info className="h-4 w-4 text-[var(--color-text-tertiary)] mt-0.5 shrink-0" />
+              <p className="text-[var(--color-text-tertiary)] text-sm">
+                字段列表来自知识库的元数据模板设置
+              </p>
+            </div>
           )}
-
-          {/* 操作按钮 */}
-          <div className="flex justify-end gap-space-sm pt-space-md border-t border-border-default">
-            <Button variant="outline" onClick={onClose} disabled={isSaving}>
-              取消
-            </Button>
-            <Button onClick={handleSave} disabled={isSaving}>
-              {isSaving ? '保存中...' : '保存'}
-            </Button>
-          </div>
         </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose} disabled={isSaving}>
+            取消
+          </Button>
+          <Button onClick={handleSave} disabled={isSaving}>
+            {isSaving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+            {isSaving ? '保存中...' : '保存'}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   )

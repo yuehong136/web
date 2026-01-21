@@ -1,7 +1,53 @@
 import * as React from "react"
+import * as AvatarPrimitive from "@radix-ui/react-avatar"
 import { cn } from "@/lib/utils"
 
-interface AvatarProps extends React.HTMLAttributes<HTMLDivElement> {
+const Avatar = React.forwardRef<
+  React.ElementRef<typeof AvatarPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Root>
+>(({ className, ...props }, ref) => (
+  <AvatarPrimitive.Root
+    ref={ref}
+    className={cn(
+      "relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full",
+      className
+    )}
+    {...props}
+  />
+))
+Avatar.displayName = AvatarPrimitive.Root.displayName
+
+const AvatarImage = React.forwardRef<
+  React.ElementRef<typeof AvatarPrimitive.Image>,
+  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image>
+>(({ className, ...props }, ref) => (
+  <AvatarPrimitive.Image
+    ref={ref}
+    className={cn("aspect-square h-full w-full object-cover", className)}
+    {...props}
+  />
+))
+AvatarImage.displayName = AvatarPrimitive.Image.displayName
+
+const AvatarFallback = React.forwardRef<
+  React.ElementRef<typeof AvatarPrimitive.Fallback>,
+  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Fallback>
+>(({ className, ...props }, ref) => (
+  <AvatarPrimitive.Fallback
+    ref={ref}
+    className={cn(
+      "flex h-full w-full items-center justify-center rounded-full bg-background-subtle text-text-secondary font-medium text-sm",
+      className
+    )}
+    {...props}
+  />
+))
+AvatarFallback.displayName = AvatarPrimitive.Fallback.displayName
+
+export { Avatar, AvatarImage, AvatarFallback }
+
+// Legacy interface for backward compatibility
+interface LegacyAvatarProps extends React.HTMLAttributes<HTMLDivElement> {
   src?: string | null
   alt?: string
   size?: 'sm' | 'md' | 'lg' | 'xl'
@@ -10,84 +56,76 @@ interface AvatarProps extends React.HTMLAttributes<HTMLDivElement> {
 
 const sizeClasses = {
   sm: 'h-6 w-6',
-  md: 'h-8 w-8', 
+  md: 'h-8 w-8',
   lg: 'h-10 w-10',
   xl: 'h-12 w-12'
 }
 
-const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
+/**
+ * @deprecated Use Avatar, AvatarImage, AvatarFallback composition instead
+ */
+const LegacyAvatar = React.forwardRef<HTMLDivElement, LegacyAvatarProps>(
   ({ className, src, alt, size = 'lg', fallback, ...props }, ref) => {
-    const [imgError, setImgError] = React.useState(false)
-    const [imgLoaded, setImgLoaded] = React.useState(false)
-
-    const handleImageError = () => {
-      setImgError(true)
-    }
-
-    const handleImageLoad = () => {
-      setImgLoaded(true)
-      setImgError(false)
-    }
-
-    React.useEffect(() => {
-      // Reset state when src changes
-      if (src) {
-        setImgError(false)
-        setImgLoaded(false)
-      }
-    }, [src])
-
-    const showFallback = !src || imgError || !imgLoaded
-
     return (
-      <div
+      <Avatar
         ref={ref}
-        className={cn(
-          "relative flex shrink-0 overflow-hidden rounded-full bg-background-subtle",
-          sizeClasses[size],
-          className
-        )}
+        className={cn(sizeClasses[size], className)}
         {...props}
       >
-        {src && !imgError && (
-          <img
-            src={src}
-            alt={alt || ''}
-            className={cn(
-              "h-full w-full object-cover",
-              imgLoaded ? 'opacity-100' : 'opacity-0'
-            )}
-            onError={handleImageError}
-            onLoad={handleImageLoad}
-          />
-        )}
-        {showFallback && (
-          <AvatarFallback>
-            {fallback}
-          </AvatarFallback>
-        )}
-      </div>
+        <AvatarImage src={src || undefined} alt={alt || ''} />
+        <AvatarFallback>{fallback}</AvatarFallback>
+      </Avatar>
     )
   }
 )
 
-Avatar.displayName = "Avatar"
+LegacyAvatar.displayName = "LegacyAvatar"
 
-const AvatarFallback = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, children, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn(
-      "flex h-full w-full items-center justify-center rounded-full bg-background-subtle text-text-secondary font-medium text-sm",
-      className
-    )}
-    {...props}
-  >
-    {children}
-  </div>
-))
-AvatarFallback.displayName = "AvatarFallback"
+export { LegacyAvatar }
 
-export { Avatar, AvatarFallback }
+// AvatarGroup component
+type AvatarProps = React.ComponentProps<typeof Avatar>
+
+interface AvatarGroupProps extends React.ComponentProps<'div'> {
+  children: React.ReactElement<AvatarProps>[]
+  max?: number
+}
+
+export const AvatarGroup = ({
+  children,
+  max,
+  className,
+  ...props
+}: AvatarGroupProps) => {
+  const totalAvatars = React.Children.count(children)
+  const displayedAvatars = React.Children.toArray(children)
+    .slice(0, max)
+    .reverse()
+  const remainingAvatars = max ? Math.max(totalAvatars - max, 0) : 0
+
+  return (
+    <div
+      className={cn('flex items-center flex-row-reverse', className)}
+      {...props}
+    >
+      {remainingAvatars > 0 && (
+        <Avatar className="-ml-2 hover:z-10 relative ring-2 ring-background">
+          <AvatarFallback className="bg-muted-foreground text-white">
+            +{remainingAvatars}
+          </AvatarFallback>
+        </Avatar>
+      )}
+      {displayedAvatars.map((avatar, index) => {
+        if (!React.isValidElement(avatar)) return null
+
+        return (
+          <div key={index} className="-ml-2 hover:z-10 relative">
+            {React.cloneElement(avatar as React.ReactElement<AvatarProps>, {
+              className: 'ring-2 ring-background',
+            })}
+          </div>
+        )
+      })}
+    </div>
+  )
+}

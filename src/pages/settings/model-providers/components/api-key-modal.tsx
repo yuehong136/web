@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Eye, EyeOff, ExternalLink } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { ProviderIcon } from '@/components/ui/provider-icon'
@@ -713,29 +713,20 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent 
-        title={getModalTitle()}
-        className="max-w-lg"
-      >
-        <div className="space-y-5">
-          {/* 头部信息 */}
-          <div className="flex items-center gap-3 pb-4 border-b border-border">
-            <div className="w-12 h-12 rounded-xl bg-accent border border-border flex items-center justify-center overflow-hidden">
-              <ProviderIcon provider={providerName} className="w-8 h-8" size={32} />
+      <DialogContent size="md">
+        <DialogHeader>
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-xl bg-[var(--color-surface-secondary)] border border-[var(--color-border-subtle)] flex items-center justify-center overflow-hidden">
+              <ProviderIcon provider={providerName} className="w-7 h-7" size={28} />
             </div>
-
             <div className="flex-1">
-              <h3 className="font-semibold text-lg text-text-primary">
-                {providerName}
-              </h3>
-              <p className="text-sm text-text-secondary">
-                {getModalDescription()}
-              </p>
+              <DialogTitle>{getModalTitle()}</DialogTitle>
+              <DialogDescription>{getModalDescription()}</DialogDescription>
             </div>
           </div>
+        </DialogHeader>
 
-          {/* 表单 */}
-          <div className="space-y-4">
+        <div className="px-6 py-4 space-y-4 overflow-y-auto max-h-[calc(90vh-200px)]">
             {/* ========== Hunyuan (混元) 专用表单 ========== */}
             {providerName === 'Tencent Hunyuan' && (
               <>
@@ -1583,47 +1574,42 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
 
             {/* 错误提示 */}
             {error && (
-              <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
-                <p className="text-sm text-destructive">{error}</p>
+              <div className="p-3 rounded-xl bg-[var(--color-status-error-bg)] border border-[var(--color-status-error-border)]">
+                <p className="text-sm text-[var(--color-status-error)]">{error}</p>
               </div>
             )}
-          </div>
-
-          {/* 操作按钮 */}
-          <div className="flex items-center justify-between pt-4 border-t border-border">
-            {/* 文档链接 */}
-            <div>
-              {docLink && (
-                <a 
-                  href={docLink} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-sm text-primary hover:underline flex items-center gap-1"
-                >
-                  如何获取 {providerName}？
-                  <ExternalLink className="w-3 h-3" />
-                </a>
-              )}
-            </div>
-
-            <div className="flex gap-3">
-              <Button
-                variant="outline"
-                onClick={handleClose}
-                disabled={isLoading}
-              >
-                取消
-              </Button>
-              <Button
-                onClick={handleSave}
-                disabled={isLoading}
-                className="min-w-[80px]"
-              >
-                {isLoading ? '保存中...' : '确定'}
-              </Button>
-            </div>
-          </div>
         </div>
+
+        <DialogFooter className="flex-col sm:flex-row gap-3">
+          {/* 文档链接 */}
+          {docLink && (
+            <a 
+              href={docLink} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-sm text-[var(--color-text-accent)] hover:underline flex items-center gap-1 mr-auto"
+            >
+              如何获取？
+              <ExternalLink className="w-3 h-3" />
+            </a>
+          )}
+
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              onClick={handleClose}
+              disabled={isLoading}
+            >
+              取消
+            </Button>
+            <Button
+              onClick={handleSave}
+              disabled={isLoading}
+            >
+              {isLoading ? '保存中...' : '确定'}
+            </Button>
+          </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   )
