@@ -1039,14 +1039,16 @@ const KnowledgeDocumentsPage: React.FC = () => {
       {
         key: 'icon',
         title: '',
-        width: 50,
+        width: 56,
         render: (_, record) => (
           <Tooltip content={`文件类型: ${record.type || '未知'}`}>
-            <FileIcon 
-              fileType={record.suffix || record.type || 'txt'} 
-              fileName={record.name}
-              size="sm"
-            />
+            <div className="flex items-center justify-center">
+              <FileIcon 
+                fileName={record.name}
+                fileType={record.suffix || record.type}
+                size="md"
+              />
+            </div>
           </Tooltip>
         )
       },

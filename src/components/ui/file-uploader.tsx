@@ -35,7 +35,8 @@ import { Tooltip } from './tooltip'
 /**
  * 根据文件扩展名获取对应的图标组件
  */
-function getFileIcon(fileName: string) {
+function getFileIcon(fileName: string | undefined) {
+  if (!fileName) return File
   const ext = fileName.split('.').pop()?.toLowerCase() || ''
   
   // PDF 文档
@@ -85,7 +86,14 @@ function getFileIcon(fileName: string) {
 /**
  * 获取文件扩展名的显示颜色
  */
-function getFileColor(fileName: string): { bg: string; text: string; accent: string } {
+function getFileColor(fileName: string | undefined): { bg: string; text: string; accent: string } {
+  if (!fileName) {
+    return { 
+      bg: 'rgba(107, 114, 128, 0.1)', 
+      text: 'var(--color-text-tertiary)', 
+      accent: 'var(--color-text-tertiary)' 
+    }
+  }
   const ext = fileName.split('.').pop()?.toLowerCase() || ''
   
   // 颜色主题定义
@@ -236,10 +244,10 @@ interface FileCardProps {
 function FileCard({ file, index, onRemove, onRetry, showProgress, compact }: FileCardProps) {
   const IconComponent = getFileIcon(file.name)
   const colors = getFileColor(file.name)
-  const ext = file.name.split('.').pop()?.toUpperCase() || 'FILE'
+  const ext = file.name?.split('.').pop()?.toUpperCase() || 'FILE'
   
   // 判断是否是图片类型，用于显示缩略图
-  const isImage = file.type.startsWith('image/')
+  const isImage = file.type?.startsWith('image/') ?? false
   const [imgError, setImgError] = React.useState(false)
   
   return (
@@ -500,14 +508,12 @@ export interface FileUploaderProps extends Omit<React.HTMLAttributes<HTMLDivElem
  */
 /**
  * 默认支持的文件类型 - 参考 ragflow 的文件类型配置
- * 使用通配符接受所有文件类型，与 ragflow 保持一致
+ * 使用 undefined 接受所有文件类型，后端会进行实际的文件类型验证
  * 
- * ragflow 使用 accept={{ '*': [] }} 接受所有文件，后端会进行实际的文件类型验证
+ * 注意：react-dropzone 不支持 '*' 作为 MIME 类型
+ * 如果需要接受所有文件，传入 undefined 或不传递 accept 属性
  */
-export const DEFAULT_ACCEPTED_FILE_TYPES: Record<string, string[]> = {
-  // 接受所有文件类型 - 与 ragflow 保持一致
-  '*': [],
-}
+export const DEFAULT_ACCEPTED_FILE_TYPES: Record<string, string[]> | undefined = undefined
 
 export function FileUploader(props: FileUploaderProps) {
   const {
@@ -585,7 +591,7 @@ export function FileUploader(props: FileUploaderProps) {
       // 为新文件添加初始状态和唯一ID
       const newFiles: UploadFile[] = uniqueFiles.map((file) => {
         const uploadFile = Object.assign(file, {
-          preview: file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined,
+          preview: file.type?.startsWith('image/') ? URL.createObjectURL(file) : undefined,
           status: 'pending' as FileUploadStatus,
           progress: 0,
           uid: generateFileId(),
