@@ -31,10 +31,10 @@ export type PermissionType = 'me' | 'team'
 
 /**
  * 遗忘策略
- * - fifo: 先进先出
- * - lru: 最近最少使用
+ * - FIFO: 先进先出
+ * - LRU: 最近最少使用
  */
-export type ForgettingPolicy = 'fifo' | 'lru'
+export type ForgettingPolicy = 'FIFO' | 'LRU'
 
 // ============ 核心实体类型 ============
 
