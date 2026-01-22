@@ -206,6 +206,12 @@ const KnowledgeSettingsPage: React.FC = () => {
         parser_config: {
           ...defaultValues.parser_config,
           ...currentKnowledgeBase.parser_config,
+          // 回退兼容：优先使用 image_table_context_window，否则回退到 image_context_size 或 table_context_size
+          image_table_context_window:
+            currentKnowledgeBase.parser_config?.image_table_context_window ??
+            currentKnowledgeBase.parser_config?.image_context_size ??
+            currentKnowledgeBase.parser_config?.table_context_size ??
+            0,
         },
       })
     }
@@ -313,6 +319,12 @@ const KnowledgeSettingsPage: React.FC = () => {
         parser_config: {
           ...defaultValues.parser_config,
           ...currentKnowledgeBase.parser_config,
+          // 回退兼容：优先使用 image_table_context_window，否则回退到 image_context_size 或 table_context_size
+          image_table_context_window:
+            currentKnowledgeBase.parser_config?.image_table_context_window ??
+            currentKnowledgeBase.parser_config?.image_context_size ??
+            currentKnowledgeBase.parser_config?.table_context_size ??
+            0,
         },
       })
     }
