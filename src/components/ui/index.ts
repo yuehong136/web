@@ -39,5 +39,6 @@ export * from './image-uploader'
 export * from './collapsible-section'
 export * from './list-filter-bar'
 export * from './image-preview'
+export * from './file-uploader'
 // carousel 组件按需导入，避免模块加载时初始化问题
 // import { Carousel, ... } from '@/components/ui/carousel'

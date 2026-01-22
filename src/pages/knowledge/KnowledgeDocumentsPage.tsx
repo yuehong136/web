@@ -5,7 +5,6 @@ import {
   Upload,
   Plus,
   Search,
-  Filter,
   Play,
   Square,
   Download,
@@ -16,14 +15,12 @@ import {
   CheckCircle,
   XCircle,
   Tag,
-  ArrowUpDown,
-  Settings2
 } from 'lucide-react'
 import { Progress } from 'antd'
 import { useKnowledgeStore } from '@/stores/knowledge'
 import { knowledgeAPI } from '@/api/knowledge'
 import { toast } from '@/lib/toast'
-import type { Document, DocumentFilter, MetadataManageType, IDocumentInfoFilter } from '@/types/api'
+import type { Document, DocumentFilter, IDocumentInfoFilter } from '@/types/api'
 import { MetadataManageType as MetadataType } from '@/types/api'
 import { ManageMetadataModal, DocumentMetadataModal } from './metadata'
 import { ReparseConfirmModal } from '@/components/knowledge'
@@ -38,7 +35,9 @@ import {
   Modal,
   ConfirmModal,
   PageSizeSelector,
-  CustomSelect
+  FileUploader,
+  type UploadFile,
+  type FileRejection
 } from '../../components/ui'
 import {
   Popover,
@@ -427,9 +426,8 @@ const KnowledgeDocumentsPage: React.FC = () => {
   const [reparsingDocs, setReparsingDocs] = useState<Document[]>([])
   const [isReparsing, setIsReparsing] = useState(false)
   const [uploadModalOpen, setUploadModalOpen] = useState(false)
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([])
+  const [uploadFiles, setUploadFiles] = useState<UploadFile[]>([])
   const [uploading, setUploading] = useState(false)
-  const [dragOver, setDragOver] = useState(false)
 
   // Metadata 模态框状态
   const [metadataModalOpen, setMetadataModalOpen] = useState(false)
@@ -874,90 +872,120 @@ const KnowledgeDocumentsPage: React.FC = () => {
     }
   }
 
-  // 文件验证函数
-  const validateFiles = (files: File[]) => {
-    return files.filter(file => {
-      // 检查文件大小 (100MB限制)
-      const maxSize = 100 * 1024 * 1024
-      if (file.size > maxSize) {
-        alert(`文件 "${file.name}" 超过100MB大小限制`)
-        return false
-      }
-      
-      // 检查文件名长度
-      if (file.name.length > 255) {
-        alert(`文件名 "${file.name}" 过长，请使用更短的文件名`)
-        return false
-      }
-      
-      return true
+  // 文件上传变化处理
+  const handleUploadFilesChange = useCallback((files: UploadFile[]) => {
+    setUploadFiles(files)
+  }, [])
+  
+  // 文件被拒绝处理
+  const handleFilesRejected = useCallback((rejectedFiles: FileRejection[]) => {
+    rejectedFiles.forEach(({ file, errors }) => {
+      const errorMessages = errors.map(e => {
+        if (e.code === 'file-too-large') return `文件 "${file.name}" 超过大小限制`
+        if (e.code === 'file-invalid-type') return `文件 "${file.name}" 类型不支持`
+        if (e.code === 'too-many-files') return `文件数量超过限制`
+        return e.message
+      })
+      toast.error(errorMessages.join('; '))
     })
-  }
-
-  // 文件上传处理
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files || [])
-    const validFiles = validateFiles(files)
-    setSelectedFiles(validFiles)
-  }
-
-  // 拖拽处理
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault()
-    setDragOver(true)
-  }
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault()
-    setDragOver(false)
-  }
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault()
-    setDragOver(false)
-    
-    const files = Array.from(e.dataTransfer.files)
-    const validFiles = validateFiles(files)
-    setSelectedFiles(prev => [...prev, ...validFiles])
-  }
-
-  // 移除文件
-  const handleRemoveFile = (index: number) => {
-    setSelectedFiles(prev => prev.filter((_, i) => i !== index))
-  }
+  }, [])
 
   const handleUpload = async () => {
-    if (!kbId || selectedFiles.length === 0) return
+    if (!kbId || uploadFiles.length === 0) return
+    
+    // 获取待上传的文件（排除已成功的）
+    const filesToUpload = uploadFiles.filter(f => f.status !== 'success')
+    if (filesToUpload.length === 0) {
+      toast.info('所有文件已上传完成')
+      setUploadModalOpen(false)
+      setUploadFiles([])
+      return
+    }
     
     try {
       setUploading(true)
       
-      // 使用修复后的API客户端
-      const uploadedDocs = await knowledgeAPI.document.upload(kbId, selectedFiles)
+      // 更新所有待上传文件为上传中状态
+      setUploadFiles(prev => prev.map(f => 
+        f.status !== 'success' 
+          ? { ...f, status: 'uploading' as const, progress: 0 } 
+          : f
+      ))
+      
+      // 使用修复后的API客户端上传所有文件
+      const uploadedDocs = await knowledgeAPI.document.upload(kbId, filesToUpload)
       
       if (uploadedDocs && uploadedDocs.length > 0) {
-        console.log(`成功上传 ${uploadedDocs.length} 个文档`)
-        // 成功后关闭模态框并刷新列表
-        setUploadModalOpen(false)
-        setSelectedFiles([])
-        fetchDocuments() // 刷新文档列表
+        // 更新文件状态为成功
+        setUploadFiles(prev => prev.map(f => ({
+          ...f,
+          status: 'success' as const,
+          progress: 100
+        })))
+        
+        toast.success(`成功上传 ${uploadedDocs.length} 个文档`)
+        
+        // 稍等片刻让用户看到成功状态，然后关闭
+        setTimeout(() => {
+          setUploadModalOpen(false)
+          setUploadFiles([])
+          fetchDocuments() // 刷新文档列表
+        }, 800)
       } else {
-        console.error('上传响应为空或无效')
-        alert('上传失败：服务器响应异常')
+        // 更新文件状态为失败
+        setUploadFiles(prev => prev.map(f => 
+          f.status === 'uploading' 
+            ? { ...f, status: 'error' as const, error: '服务器响应异常' } 
+            : f
+        ))
+        toast.error('上传失败：服务器响应异常')
       }
     } catch (error) {
       console.error('文档上传失败:', error)
-      let errorMessage = '文档上传失败'
+      const errorMessage = error instanceof Error ? error.message : '未知错误'
       
-      if (error instanceof Error) {
-        errorMessage += `: ${error.message}`
-      }
+      // 更新文件状态为失败
+      setUploadFiles(prev => prev.map(f => 
+        f.status === 'uploading' 
+          ? { ...f, status: 'error' as const, error: errorMessage } 
+          : f
+      ))
       
-      alert(errorMessage)
+      toast.error(`文档上传失败: ${errorMessage}`)
     } finally {
       setUploading(false)
     }
   }
+  
+  // 重试上传失败的文件
+  const handleRetryUpload = useCallback(async (file: UploadFile, index: number) => {
+    if (!kbId) return
+    
+    // 更新单个文件状态为上传中
+    setUploadFiles(prev => prev.map((f, i) => 
+      i === index ? { ...f, status: 'uploading' as const, progress: 0, error: undefined } : f
+    ))
+    
+    try {
+      const uploadedDocs = await knowledgeAPI.document.upload(kbId, [file])
+      
+      if (uploadedDocs && uploadedDocs.length > 0) {
+        setUploadFiles(prev => prev.map((f, i) => 
+          i === index ? { ...f, status: 'success' as const, progress: 100 } : f
+        ))
+        toast.success(`文件 "${file.name}" 上传成功`)
+      } else {
+        setUploadFiles(prev => prev.map((f, i) => 
+          i === index ? { ...f, status: 'error' as const, error: '上传失败' } : f
+        ))
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : '上传失败'
+      setUploadFiles(prev => prev.map((f, i) => 
+        i === index ? { ...f, status: 'error' as const, error: errorMessage } : f
+      ))
+    }
+  }, [kbId])
   
 
   
@@ -1827,107 +1855,48 @@ const KnowledgeDocumentsPage: React.FC = () => {
       {/* 文件上传模态框 */}
       <Modal
         open={uploadModalOpen}
-        onClose={() => setUploadModalOpen(false)}
+        onClose={() => {
+          if (!uploading) {
+            setUploadModalOpen(false)
+            setUploadFiles([])
+          }
+        }}
         title="上传文档"
         size="lg"
       >
         <div className="space-y-6">
-          {/* 拖拽上传区域 */}
-          <div
-            className="border-2 border-dashed rounded-lg p-8 text-center transition-colors"
-            style={{
-              borderColor: dragOver 
-                ? 'var(--color-border-accent)' 
-                : 'var(--color-border-default)',
-              backgroundColor: dragOver 
-                ? 'var(--color-state-info-subtle)' 
-                : 'transparent'
-            }}
-            onMouseEnter={(e) => {
-              if (!dragOver) {
-                e.currentTarget.style.borderColor = 'var(--color-border-accent)'
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!dragOver) {
-                e.currentTarget.style.borderColor = 'var(--color-border-default)'
-              }
-            }}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-          >
-            <Upload className="h-12 w-12 mx-auto mb-4" style={{ color: 'var(--color-text-muted)' }} />
-            <div className="space-y-2">
-              <p className="text-lg font-medium" style={{ color: 'var(--color-text-primary)' }}>
-                拖拽文件到此处，或点击选择文件
-              </p>
-              <p className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>
-                支持 PDF、Word、Excel、PPT、文本文件等多种格式
-              </p>
-            </div>
-            <input
-              type="file"
-              multiple
-              onChange={handleFileSelect}
-              className="hidden"
-              id="file-upload"
-              accept=".pdf,.docx,.doc,.txt,.md,.csv,.xlsx,.xls,.ppt,.pptx,.jpg,.jpeg,.png,.gif"
-            />
-            <Button
-              variant="outline"
-              className="mt-4"
-              onClick={() => document.getElementById('file-upload')?.click()}
-            >
-              选择文件
-            </Button>
-          </div>
-
-          {/* 文件列表 */}
-          {selectedFiles.length > 0 && (
-            <div>
-              <h4 className="text-sm font-medium mb-3" style={{ color: 'var(--color-text-primary)' }}>
-                已选择 {selectedFiles.length} 个文件
-              </h4>
-              <div className="space-y-2 max-h-40 overflow-y-auto scrollbar-thin">
-                {selectedFiles.map((file, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 rounded-lg" style={{ backgroundColor: 'var(--color-background-subtle)' }}>
-                    <div className="flex items-center space-x-3 flex-1 min-w-0">
-                      <FileIcon 
-                        fileType={file.name.split('.').pop() || 'unknown'} 
-                        className="h-8 w-8 text-blue-500 flex-shrink-0" 
-                      />
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium truncate" style={{ color: 'var(--color-text-primary)' }}>
-                          {file.name}
-                        </p>
-                        <p className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
-                          {(file.size / 1024 / 1024).toFixed(2)} MB
-                        </p>
-                      </div>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      onClick={() => handleRemoveFile(index)}
-                      className="flex-shrink-0"
-              style={{ color: 'var(--color-text-muted)' }}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          {/* 使用增强的 FileUploader 组件 */}
+          <FileUploader
+            value={uploadFiles}
+            onValueChange={handleUploadFilesChange}
+            onFilesRejected={handleFilesRejected}
+            onRetry={handleRetryUpload}
+            maxSize={1024 * 1024 * 1024} // 1GB
+            maxFileCount={32}
+            multiple={true}
+            showProgress={true}
+            disabled={uploading}
+            dropzoneHeight="min-h-[180px]"
+            listMaxHeight="max-h-[240px]"
+            description={
+              <>
+                支持 PDF、Word、Excel、PPT、Markdown、代码文件、图片、音视频等多种格式。
+                单次上传文件总大小上限为 <span className="font-medium" style={{ color: 'var(--color-text-primary)' }}>1GB</span>，
+                单次批量上传文件数不超过 <span className="font-medium" style={{ color: 'var(--color-text-primary)' }}>32</span> 个
+              </>
+            }
+          />
           
           {/* 操作按钮 */}
-          <div className="flex justify-end space-x-3 pt-4 border-t">
+          <div 
+            className="flex justify-end space-x-3 pt-4"
+            style={{ borderTop: '1px solid var(--color-border-subtle)' }}
+          >
             <Button 
               variant="outline" 
               onClick={() => {
                 setUploadModalOpen(false)
-                setSelectedFiles([])
+                setUploadFiles([])
               }} 
               disabled={uploading}
             >
@@ -1936,9 +1905,14 @@ const KnowledgeDocumentsPage: React.FC = () => {
             <Button 
               onClick={handleUpload} 
               loading={uploading} 
-              disabled={selectedFiles.length === 0}
+              disabled={uploadFiles.length === 0 || uploadFiles.every(f => f.status === 'success')}
             >
-              {uploading ? '上传中...' : `上传 ${selectedFiles.length} 个文件`}
+              {uploading 
+                ? '上传中...' 
+                : uploadFiles.some(f => f.status === 'success')
+                  ? `上传剩余 ${uploadFiles.filter(f => f.status !== 'success').length} 个文件`
+                  : `上传 ${uploadFiles.length} 个文件`
+              }
             </Button>
           </div>
         </div>
