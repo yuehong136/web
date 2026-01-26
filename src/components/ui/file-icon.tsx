@@ -316,6 +316,7 @@ const SVG_ICON_MAP: Record<string, string> = {
   docx: '/src/assets/svg/file-icon/docx.svg',
   txt: '/src/assets/svg/file-icon/txt.svg',
   md: '/src/assets/svg/file-icon/md.svg',
+  mdx: '/src/assets/svg/file-icon/mdx.svg',
   
   // 表格类型
   xls: '/src/assets/svg/file-icon/xls.svg',

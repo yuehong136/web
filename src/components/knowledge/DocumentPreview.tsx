@@ -94,7 +94,7 @@ const getFileType = (filename?: string, docType?: string): FileType => {
   if (['xls', 'xlsx'].includes(ext)) return 'xlsx'
   if (['ppt', 'pptx'].includes(ext)) return 'pptx'
   if (['txt', 'text', 'log'].includes(ext)) return 'txt'
-  if (ext === 'md' || ext === 'markdown') return 'md'
+  if (ext === 'md' || ext === 'mdx' || ext === 'markdown') return 'md'
   if (ext === 'csv') return 'csv'
   
   return 'unknown'
