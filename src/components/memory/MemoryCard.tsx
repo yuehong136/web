@@ -16,7 +16,7 @@ import {
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Avatar } from '@/components/ui/avatar'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Dropdown, DropdownItem } from '@/components/ui/dropdown'
 import { cn, formatRelativeTime } from '@/lib/utils'
 import { MEMORY_TEXTS } from '@/constants/memory-texts'
@@ -121,12 +121,10 @@ export const MemoryCard: React.FC<MemoryCardProps> = ({
             
             {/* 头像 */}
             {data.avatar ? (
-              <Avatar
-                src={data.avatar}
-                alt={data.name}
-                size="lg"
-                fallback={<Database className="h-5 w-5" />}
-              />
+              <Avatar className="h-10 w-10">
+                <AvatarImage src={data.avatar} alt={data.name} />
+                <AvatarFallback><Database className="h-5 w-5" /></AvatarFallback>
+              </Avatar>
             ) : (
               <div
                 className={cn(

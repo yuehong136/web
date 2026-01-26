@@ -6,7 +6,7 @@
 import React from 'react'
 import { NavLink, useParams } from 'react-router-dom'
 import { MessageSquare, Settings, Database, Clock, Activity } from 'lucide-react'
-import { Avatar } from '@/components/ui/avatar'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { cn, formatRelativeTime, formatBytes } from '@/lib/utils'
 import { MEMORY_TEXTS } from '@/constants/memory-texts'
 import type { Memory } from '@/types/memory'
@@ -78,12 +78,10 @@ export const MemorySidebar: React.FC<MemorySidebarProps> = ({
           )} />
           
           {memory?.avatar ? (
-            <Avatar
-              src={memory.avatar}
-              alt={memory.name}
-              size="xl"
-              className="relative ring-2 ring-surface-primary shadow-lg w-16 h-16"
-            />
+            <Avatar className="relative ring-2 ring-surface-primary shadow-lg w-16 h-16">
+              <AvatarImage src={memory.avatar} alt={memory.name} />
+              <AvatarFallback><Database className="h-6 w-6" /></AvatarFallback>
+            </Avatar>
           ) : (
             <div
               className={cn(

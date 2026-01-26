@@ -17,7 +17,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Avatar } from '@/components/ui/avatar'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Dropdown, DropdownItem } from '@/components/ui/dropdown'
 import { Checkbox } from '@/components/ui/checkbox'
 import { cn } from '@/lib/utils'
@@ -131,13 +131,10 @@ const MemoryListRow: React.FC<{
         
         {/* 头像 - 放大并添加悬停效果 */}
         {data.avatar ? (
-          <Avatar
-            src={data.avatar}
-            alt={data.name}
-            size="lg"
-            fallback={<Database className="h-5 w-5" />}
-            className="shrink-0 transition-transform duration-200 group-hover:scale-105"
-          />
+          <Avatar className="h-10 w-10 shrink-0 transition-transform duration-200 group-hover:scale-105">
+            <AvatarImage src={data.avatar} alt={data.name} />
+            <AvatarFallback><Database className="h-5 w-5" /></AvatarFallback>
+          </Avatar>
         ) : (
           <div
             className={cn(

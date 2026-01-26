@@ -66,7 +66,7 @@ const memorySettingsSchema = z.object({
   permissions: z.enum(['me', 'team'] as const),
   llm_id: z.string().min(1, MEMORY_TEXTS.memories.selectLlmRequired),
   memory_size: z.number().min(1048576).max(104857600), // 1MB - 100MB
-  forgetting_policy: z.enum(['fifo', 'lru'] as const),  // 后端使用小写
+  forgetting_policy: z.enum(['FIFO', 'LRU'] as const),
   temperature: z.number().min(0).max(1),  // 后端限制 0-1
   system_prompt: z.string().optional(),
   user_prompt: z.string().optional(),
@@ -218,7 +218,7 @@ export const MemorySettingsPage: React.FC = () => {
       permissions: 'me',
       llm_id: '',
       memory_size: 5242880, // 5MB
-      forgetting_policy: 'fifo',
+      forgetting_policy: 'FIFO',
       temperature: 0.7,
       system_prompt: '',
       user_prompt: '',
@@ -562,10 +562,10 @@ export const MemorySettingsPage: React.FC = () => {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="fifo">
-                            {MEMORY_TEXTS.config.fifo}
-                          </SelectItem>
-                          <SelectItem value="lru">
+                        <SelectItem value="FIFO">
+                          {MEMORY_TEXTS.config.fifo}
+                        </SelectItem>
+                        <SelectItem value="LRU">
                             {MEMORY_TEXTS.config.lru}
                           </SelectItem>
                         </SelectContent>

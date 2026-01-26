@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Outlet, useParams, useNavigate, Link, useLocation, useMatch } from 'react-router-dom'
 import { ArrowLeft, FileText, Search, Settings, Database, House, ScrollText } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Avatar } from '@/components/ui/avatar'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Loading } from '@/components/ui/loading'
 import { useKnowledgeStore } from '@/stores/knowledge'
 import { cn } from '@/lib/utils'
@@ -129,12 +129,10 @@ const KnowledgeDetailLayout: React.FC = () => {
                 <ArrowLeft className="h-4 w-4" />
               </Button>
               <div className="flex items-center space-x-3">
-                <Avatar 
-                  src={currentKnowledgeBase.avatar}
-                  alt={currentKnowledgeBase.name}
-                  size="lg"
-                  fallback={<Database className="h-5 w-5" />}
-                />
+                <Avatar className="h-10 w-10">
+                  <AvatarImage src={currentKnowledgeBase.avatar || undefined} alt={currentKnowledgeBase.name} />
+                  <AvatarFallback><Database className="h-5 w-5" /></AvatarFallback>
+                </Avatar>
                 <div>
                   <h1 className="text-xl font-semibold text-gray-900">
                     {currentKnowledgeBase.name}

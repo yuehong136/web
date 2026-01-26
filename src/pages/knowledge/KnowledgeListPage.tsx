@@ -39,7 +39,7 @@ import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
 import { Loading } from '@/components/ui/loading'
 import { Table } from '@/components/ui/table'
-import { Avatar } from '@/components/ui/avatar'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Dropdown, DropdownItem } from '@/components/ui/dropdown'
 import { QuickEditModal } from '@/components/knowledge/QuickEditModal'
 import { PageSizeSelector } from '@/components/ui/page-size-selector'
@@ -617,12 +617,10 @@ export const KnowledgeListPage: React.FC = () => {
                   }}
                   onClick={(e) => e.stopPropagation()} // 防止点击事件冒泡
                 />
-                <Avatar 
-                  src={kb.avatar}
-                  alt={kb.name}
-                  size="lg"
-                  fallback={<Database className="h-5 w-5" />}
-                />
+                <Avatar className="h-10 w-10">
+                  <AvatarImage src={kb.avatar || undefined} alt={kb.name} />
+                  <AvatarFallback><Database className="h-5 w-5" /></AvatarFallback>
+                </Avatar>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold text-gray-900 truncate">
                     {kb.name}
@@ -741,12 +739,10 @@ export const KnowledgeListPage: React.FC = () => {
             ),
             render: (value: string, record: KnowledgeBase) => (
               <div className="flex items-center space-x-3">
-                <Avatar 
-                  src={record.avatar}
-                  alt={record.name}
-                  size="md"
-                  fallback={<Database className="h-4 w-4" />}
-                />
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={record.avatar || undefined} alt={record.name} />
+                  <AvatarFallback><Database className="h-4 w-4" /></AvatarFallback>
+                </Avatar>
                 <div>
                   <div className="font-medium text-gray-900">{value}</div>
                   <div className="text-sm text-gray-500 max-w-xs truncate">{record.description}</div>

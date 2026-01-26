@@ -6,7 +6,7 @@ import { Upload, Database } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Avatar } from '@/components/ui/avatar'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Textarea } from '@/components/ui/textarea'
 import type { SelectOptionGroup } from '@/components/ui/select-with-search'
 import {
@@ -67,13 +67,10 @@ export function GeneralForm({
               知识库头像
             </FormLabel>
             <div className="w-3/4 flex items-center gap-4">
-              <Avatar
-                src={avatarValue}
-                alt={nameValue}
-                size="xl"
-                fallback={<Database className="h-6 w-6 text-text-tertiary" />}
-                className="ring-2 ring-border"
-              />
+              <Avatar className="h-12 w-12 ring-2 ring-border">
+                <AvatarImage src={avatarValue || undefined} alt={nameValue} />
+                <AvatarFallback><Database className="h-6 w-6 text-text-tertiary" /></AvatarFallback>
+              </Avatar>
               <div>
                 <input
                   ref={fileInputRef}
