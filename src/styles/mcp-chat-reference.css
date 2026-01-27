@@ -173,10 +173,7 @@ html[data-theme="dark"] .mcp-chat-page {
 
 /* 基础样式重写 - 仅针对MCP聊天页面 */
 @layer base {
-  .mcp-chat-page * {
-    border-color: var(--border);
-  }
-
+  /* 移除通用边框覆盖，使用项目语义令牌体系 */
   .mcp-chat-page {
     background-color: var(--background);
     color: var(--foreground);
@@ -372,11 +369,7 @@ html[data-theme="dark"] .mcp-chat-page .text-gray-400 {
 }
 
 /* 确保Tailwind颜色类在MCP聊天页面中正确工作 */
-.mcp-chat-page * {
-  /* 重置所有可能的全局覆盖 */
-  border-color: initial;
-  background-color: initial;
-}
+/* 移除通用重置规则，使用项目语义令牌体系 */
 
 /* 然后重新应用Tailwind的颜色类 */
 .mcp-chat-page .bg-transparent {
@@ -695,6 +688,29 @@ html[data-theme="dark"] .mcp-chat-page .ant-bubble-end .ant-bubble-content {
 html[data-theme="dark"] .mcp-chat-page .ant-actions .ant-btn:hover {
   background-color: var(--color-state-hover);
   color: var(--color-text-primary);
+}
+
+/* Ant Design X Attachments 组件样式 - 现代化设计，使用项目语义令牌 */
+.mcp-chat-page .ant-attachment-placeholder-inner {
+  border: 2px dashed var(--color-border-default) !important;
+  border-radius: 12px !important;
+  padding: 24px !important;
+  transition: all 0.2s ease !important;
+}
+
+.mcp-chat-page .ant-attachments:hover .ant-attachment-placeholder-inner {
+  border-color: var(--color-border-accent) !important;
+  background-color: var(--color-state-hover) !important;
+}
+
+.mcp-chat-page .ant-attachments-list-item {
+  border: 1px solid var(--color-border-default) !important;
+  border-radius: 8px !important;
+  transition: all 0.2s ease !important;
+}
+
+.mcp-chat-page .ant-attachments-list-item:hover {
+  border-color: var(--color-border-accent) !important;
 }
 
 /* 清理并简化样式 - 依赖上面修复的CSS变量值 */

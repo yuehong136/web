@@ -2,11 +2,11 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import { flushSync } from "react-dom";
 import { ChatSidebar } from "@/components/chat/ChatSidebar";
 import { ChatHeader } from "@/components/chat/ChatHeader";
-import { ChatInput } from "@/components/chat/ChatInput";
 import { WelcomeMessage } from "@/components/chat/WelcomeMessage";
-import { Bubble, Think } from "@ant-design/x";
+import { Bubble, Think, Sender, Attachments } from "@ant-design/x";
 import type { BubbleProps } from "@ant-design/x";
-import { User, Bot } from 'lucide-react';
+import { User, Bot, Paperclip, Square, Upload } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { ProviderIcon } from '@/components/ui/provider-icon';
 import XMarkdown, { type ComponentProps } from '@ant-design/x-markdown';
 import '@ant-design/x-markdown/dist/x-markdown.css';
@@ -14,8 +14,10 @@ import type { MCPChatServiceRequest } from "@/api/mcp-chat-service";
 import { EnhancedSSEParser, type SSEMessage, type ToolCallInfo } from "@/components/chat/EnhancedSSEParser";
 import { ToolCallRenderer } from "@/components/chat/ToolCallRenderer";
 import { useModelStore } from "@/stores/model";
+import { useMcpUpload } from "@/hooks/use-mcp-upload";
 import { toast } from "@/lib/toast";
-import { copyToClipboard } from "@/lib/utils";
+import { cn, copyToClipboard } from "@/lib/utils";
+import { uploadConfig, type UploadFile } from "@/config/chat";
 import type { ChatSession, MCPChatConfig } from "@/types/mcp";
 
 // Think 组件 - 处理 <think> 标签
@@ -135,7 +137,6 @@ export default function MCPChatPage() {
   
   // 聊天输入相关状态
   const [inputValue, setInputValue] = useState('');
-  const [submitType] = useState<'enter' | 'shiftEnter'>('enter');
   
   
   // MCP相关状态
@@ -145,6 +146,76 @@ export default function MCPChatPage() {
     mcp_timeout: 1000,
     verbose_tool_use: true
   });
+
+  // 文件上传面板状态（参考 ExplorePage）
+  const [headerOpen, setHeaderOpen] = useState(false);
+  
+  // 拖拽状态
+  const [isDragging, setIsDragging] = useState(false);
+  const dropContainerRef = useRef<HTMLDivElement>(null);
+  const dragCounterRef = useRef(0);
+  
+  // 文件上传 Hook（使用 MCP 专用的 upload_info 接口）
+  const {
+    files: uploadFiles,
+    uploading: isUploading,
+    upload: uploadFile,
+    removeFile: removeUploadFile,
+    clearFiles: clearUploadFiles,
+    getFileIds,
+    setFiles: setUploadFiles,
+  } = useMcpUpload();
+  
+  // 全局拖拽事件处理
+  useEffect(() => {
+    const handleDragEnter = (e: DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dragCounterRef.current++;
+      if (e.dataTransfer?.types.includes('Files')) {
+        setIsDragging(true);
+        setHeaderOpen(true); // 自动打开上传面板
+      }
+    };
+    
+    const handleDragLeave = (e: DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dragCounterRef.current--;
+      if (dragCounterRef.current === 0) {
+        setIsDragging(false);
+      }
+    };
+    
+    const handleDragOver = (e: DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+    };
+    
+    const handleDrop = (e: DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dragCounterRef.current = 0;
+      setIsDragging(false);
+      
+      // 文件会由 Attachments 组件处理
+    };
+    
+    const container = dropContainerRef.current;
+    if (container) {
+      container.addEventListener('dragenter', handleDragEnter);
+      container.addEventListener('dragleave', handleDragLeave);
+      container.addEventListener('dragover', handleDragOver);
+      container.addEventListener('drop', handleDrop);
+      
+      return () => {
+        container.removeEventListener('dragenter', handleDragEnter);
+        container.removeEventListener('dragleave', handleDragLeave);
+        container.removeEventListener('dragover', handleDragOver);
+        container.removeEventListener('drop', handleDrop);
+      };
+    }
+  }, []);
 
   // 模型选择相关状态 - 使用真实的模型数据
   const { myLLMs, isLoading: modelsLoading, loadMyLLMs } = useModelStore();
@@ -565,6 +636,9 @@ export default function MCPChatPage() {
         content: content
       }];
 
+      // 获取已上传文件的 ID 列表
+      const fileIds = getFileIds();
+      
       // 构建请求参数
       const request: MCPChatServiceRequest = {
         prompt: '',
@@ -575,7 +649,7 @@ export default function MCPChatPage() {
         mcp_ids: selectedMCPIds,
         mcp_timeout: mcpConfig.mcp_timeout,
         verbose_tool_use: mcpConfig.verbose_tool_use,
-        files: [],
+        files: fileIds, // 传递已上传文件的 ID 列表
         structured_output: selectedMCPIds.length > 0 // 根据是否有MCP工具自动设置结构化输出
       };
 
@@ -688,7 +762,7 @@ export default function MCPChatPage() {
       setStreamingToolCalls([]);
       setIsToolAnalyzing(false);
     }
-  }, [activeSessionId, selectedModelId, selectedMCPIds, mcpConfig, sessions, handleNewChat]);
+  }, [activeSessionId, selectedModelId, selectedMCPIds, mcpConfig, sessions, handleNewChat, getFileIds]);
 
   // 组件卸载时清理SSE连接
   useEffect(() => {
@@ -701,7 +775,39 @@ export default function MCPChatPage() {
   }, []);
 
   return (
-    <div className="mcp-chat-page h-screen flex overflow-hidden" style={{ backgroundColor: 'var(--color-chat-content-bg)' }}>
+    <div 
+      ref={dropContainerRef}
+      className="mcp-chat-page h-screen flex overflow-hidden" 
+      style={{ backgroundColor: 'var(--color-chat-content-bg)' }}
+    >
+      {/* 全屏拖拽指示器 */}
+      {isDragging && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none"
+          style={{ 
+            backgroundColor: 'rgba(var(--color-surface-primary-rgb, 0, 0, 0), 0.6)',
+            backdropFilter: 'blur(4px)'
+          }}
+        >
+          <div 
+            className="flex flex-col items-center gap-4 p-8 rounded-2xl"
+            style={{ 
+              backgroundColor: 'var(--color-components-card-bg)',
+              border: '3px dashed var(--color-border-accent)',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)'
+            }}
+          >
+            <Upload className="w-16 h-16" style={{ color: 'var(--color-text-accent)' }} />
+            <div className="text-lg font-medium" style={{ color: 'var(--color-text-primary)' }}>
+              释放以上传文件
+            </div>
+            <div className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+              支持图片、文档等格式
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
         <div 
@@ -788,31 +894,306 @@ export default function MCPChatPage() {
             )}
           </div>
 
-          {/* ChatInput - 固定在底部但不遮挡内容 */}
+          {/* 输入区域（参考 ExplorePage 重构） */}
           <div className="flex-shrink-0 px-6 pb-6 pt-2">
-            <div className="max-w-4xl mx-auto">
-              <ChatInput
+            <div 
+              className={cn(
+                "mx-auto mcp-sender-area rounded-2xl overflow-hidden",
+                chatLayout === 'full' ? 'max-w-none px-4' : 'max-w-4xl'
+              )}
+              style={{
+                border: '1px solid var(--color-components-input-border)',
+                backgroundColor: 'var(--color-components-input-bg)',
+              }}
+            >
+              {/* Sender 和 Attachments 样式覆盖 */}
+              <style>{`
+                /* Sender 输入框样式 - 现代化无高亮设计，边框在外层容器 */
+                .mcp-sender-area .ant-sender {
+                  background-color: transparent !important;
+                  border: none !important;
+                  box-shadow: none !important;
+                  outline: none !important;
+                }
+                .mcp-sender-area .ant-sender:hover {
+                  border: none !important;
+                }
+                .mcp-sender-area .ant-sender:focus-within {
+                  border: none !important;
+                  box-shadow: none !important;
+                  outline: none !important;
+                }
+                .mcp-sender-area .ant-sender-content {
+                  background-color: transparent !important;
+                }
+                .mcp-sender-area .ant-sender textarea,
+                .mcp-sender-area .ant-sender input {
+                  color: var(--color-components-input-text) !important;
+                  background-color: transparent !important;
+                  outline: none !important;
+                  box-shadow: none !important;
+                  padding-left: 4px !important;
+                }
+                .mcp-sender-area .ant-sender textarea:focus,
+                .mcp-sender-area .ant-sender input:focus {
+                  outline: none !important;
+                  box-shadow: none !important;
+                }
+                .mcp-sender-area .ant-sender textarea::placeholder,
+                .mcp-sender-area .ant-sender input::placeholder {
+                  color: var(--color-components-input-text-placeholder) !important;
+                }
+                /* 发送按钮样式 */
+                .mcp-sender-area .ant-sender-actions-btn {
+                  background-color: var(--color-components-button-primary-bg) !important;
+                  color: var(--color-components-button-primary-text) !important;
+                  border: none !important;
+                }
+                .mcp-sender-area .ant-sender-actions-btn:hover {
+                  background-color: var(--color-components-button-primary-bg-hover) !important;
+                }
+                .mcp-sender-area .ant-sender-actions-btn:disabled {
+                  background-color: var(--color-components-button-primary-bg-disabled) !important;
+                  color: var(--color-components-button-primary-text-disabled) !important;
+                }
+                /* 当 Header 打开时，Sender 顶部不要圆角 */
+                .mcp-sender-area .ant-sender-header ~ .ant-sender,
+                .mcp-sender-area .ant-sender-header + .ant-sender {
+                  border-radius: 0 0 16px 16px !important;
+                  border-top: none !important;
+                }
+                /* 关闭按钮 */
+                .mcp-sender-area .ant-sender-header-close,
+                .mcp-sender-area [class*="sender-header"] button,
+                .mcp-sender-area [class*="header-close"] {
+                  color: var(--color-text-tertiary) !important;
+                  background-color: transparent !important;
+                  border-color: transparent !important;
+                }
+                .mcp-sender-area .ant-sender-header-close:hover,
+                .mcp-sender-area [class*="sender-header"] button:hover,
+                .mcp-sender-area [class*="header-close"]:hover {
+                  color: var(--color-text-primary) !important;
+                  background-color: var(--color-state-hover) !important;
+                }
+                /* Attachments 容器和拖拽区域背景 */
+                .mcp-sender-area .ant-attachments,
+                .mcp-sender-area .ant-attachment-placeholder {
+                  background-color: var(--color-components-card-bg) !important;
+                }
+                /* 拖拽区域边框 - 现代化设计 */
+                .mcp-sender-area .ant-attachment-placeholder-inner {
+                  border: 2px dashed var(--color-border-default) !important;
+                  border-radius: 12px !important;
+                  padding: 24px !important;
+                  transition: all 0.2s ease !important;
+                }
+                .mcp-sender-area .ant-attachments:hover .ant-attachment-placeholder-inner {
+                  border-color: var(--color-border-accent) !important;
+                  background-color: var(--color-state-hover) !important;
+                }
+                /* 已上传文件列表项 */
+                .mcp-sender-area .ant-attachments-list-item {
+                  background-color: var(--color-components-input-bg) !important;
+                  border: 1px solid var(--color-border-default) !important;
+                  border-radius: 8px !important;
+                  transition: all 0.2s ease !important;
+                }
+                .mcp-sender-area .ant-attachments-list-item:hover {
+                  background-color: var(--color-components-input-bg-hover) !important;
+                  border-color: var(--color-border-accent) !important;
+                }
+                .mcp-sender-area .ant-attachments-list-item-name {
+                  color: var(--color-text-primary) !important;
+                }
+              `}</style>
+              
+              <Sender
                 value={inputValue}
                 onChange={setInputValue}
+                placeholder="输入消息，按 Enter 发送"
+                loading={isStreaming}
+                // 文件上传面板
+                header={
+                  <Sender.Header
+                    title="上传文件"
+                    open={headerOpen}
+                    onOpenChange={setHeaderOpen}
+                    styles={{
+                      header: {
+                        backgroundColor: 'var(--color-components-card-bg)',
+                        borderColor: 'var(--color-components-input-border)',
+                        borderRadius: '16px 16px 0 0',
+                        borderWidth: '1px',
+                        borderStyle: 'solid',
+                        borderBottom: 'none',
+                      },
+                      content: {
+                        padding: 0,
+                        backgroundColor: 'var(--color-components-card-bg)',
+                      },
+                    }}
+                  >
+                    <Attachments
+                      items={uploadFiles as any}
+                      maxCount={uploadConfig.maxCount}
+                      getDropContainer={() => dropContainerRef.current}
+                      onChange={(info) => {
+                        // 处理 Attachments 组件的文件变化
+                        if (info && Array.isArray(info)) {
+                          setUploadFiles(info as UploadFile[])
+                        }
+                      }}
+                      onRemove={(file) => {
+                        if (file && typeof file === 'object' && 'uid' in file) {
+                          removeUploadFile((file as UploadFile).uid)
+                        }
+                      }}
+                      placeholder={{
+                        icon: <Upload className="w-8 h-8" style={{ color: 'var(--color-text-tertiary)' }} />,
+                        title: <span style={{ color: 'var(--color-text-primary)' }}>拖拽或点击上传文件</span>,
+                        description: <span style={{ color: 'var(--color-text-secondary)' }}>{`支持图片、文档等格式，最多 ${uploadConfig.maxCount} 个文件，每个最大 ${Math.round(uploadConfig.maxSize / 1024 / 1024)}MB`}</span>,
+                      }}
+                      style={{
+                        backgroundColor: 'var(--color-components-card-bg)',
+                      }}
+                      // 自定义上传请求，使用 /v1/document/upload_info 接口
+                      customRequest={async (options) => {
+                        const { file, onSuccess, onError } = options
+                        try {
+                          // 调用上传 API
+                          const result = await uploadFile(file as File)
+                          
+                          if (result) {
+                            onSuccess?.(result, new XMLHttpRequest())
+                            toast.success(`文件 ${(file as File).name} 上传成功`)
+                            // 上传成功后自动收起面板
+                            setHeaderOpen(false)
+                          } else {
+                            onError?.(new Error('Upload failed'))
+                          }
+                        } catch (error) {
+                          console.error('Upload error:', error)
+                          onError?.(error as Error)
+                          toast.error(`上传失败: ${(error as Error).message}`)
+                        }
+                      }}
+                    />
+                  </Sender.Header>
+                }
+                // 右侧操作区：停止按钮或发送按钮
+                suffix={isStreaming ? (
+                  <Button 
+                    variant="destructive" 
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                    onClick={() => {
+                      // 停止输出（断开 SSE 连接）
+                      if (sseParserRef.current) {
+                        sseParserRef.current.disconnect()
+                        sseParserRef.current = null
+                      }
+                      setIsLoading(false)
+                      setIsStreaming(false)
+                      setStreamingContent('')
+                      setStreamingToolCalls([])
+                      setIsToolAnalyzing(false)
+                    }}
+                    title="停止输出"
+                  >
+                    <Square className="w-4 h-4" />
+                  </Button>
+                ) : undefined}
                 onSubmit={(message) => {
-                  setInputValue('');
-                  handleSendMessage(message);
+                  if (message) {
+                    handleSendMessage(message)
+                    setInputValue('')
+                    // 清空上传的文件
+                    clearUploadFiles()
+                    // 关闭上传面板
+                    setHeaderOpen(false)
+                  }
                 }}
-                loading={isLoading}
-                disabled={isLoading}
-                floating={true}
-                autoSize={{ minRows: 1, maxRows: 6 }}
-                allowSpeech={{
-                  enabled: true,
-                  continuous: true,
-                  interimResults: true,
-                  language: 'zh-CN'
+                onCancel={() => {
+                  // 停止输出
+                  if (sseParserRef.current) {
+                    sseParserRef.current.disconnect()
+                    sseParserRef.current = null
+                  }
+                  setIsLoading(false)
+                  setIsStreaming(false)
+                  setStreamingContent('')
+                  setStreamingToolCalls([])
+                  setIsToolAnalyzing(false)
                 }}
-                onPasteFile={(firstFile, files) => {
-                  console.log('粘贴文件:', firstFile, files);
+                onPasteFile={(files) => {
+                  // 粘贴文件时触发上传
+                  for (let i = 0; i < files.length; i++) {
+                    const file = files[i]
+                    // 检查文件大小
+                    if (file.size <= uploadConfig.maxSize) {
+                      uploadFile(file)
+                    } else {
+                      toast.error(`文件 ${file.name} 超过大小限制`)
+                    }
+                  }
+                  // 打开上传面板显示文件
+                  if (files.length > 0) {
+                    setHeaderOpen(true)
+                  }
                 }}
-                submitType={submitType}
+                style={{
+                  borderRadius: headerOpen ? '0' : '16px 16px 0 0',
+                  border: 'none',
+                  backgroundColor: 'transparent',
+                }}
+                styles={{
+                  input: {
+                    color: 'var(--color-components-input-text)',
+                  },
+                }}
               />
+              
+              {/* 输入框下方工具栏 - 在同一个容器内，与输入框文字左对齐 */}
+              <div 
+                className="flex items-center justify-between pb-2"
+                style={{ 
+                  backgroundColor: 'var(--color-components-input-bg)',
+                  borderRadius: '0 0 16px 16px',
+                  paddingLeft: '8px',
+                  paddingRight: '12px',
+                }}
+              >
+                <div className="flex items-center gap-1">
+                  {/* 附件按钮 */}
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    className="h-7 px-1.5 gap-1.5"
+                    onClick={() => setHeaderOpen(!headerOpen)}
+                    title="上传文件"
+                  >
+                    <Paperclip className="w-4 h-4" style={{ color: headerOpen ? 'var(--color-text-accent)' : 'var(--color-text-tertiary)' }} />
+                    {uploadFiles.length > 0 && (
+                      <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+                        {uploadFiles.filter(f => f.status === 'done').length}
+                      </span>
+                    )}
+                  </Button>
+                  
+                  {/* 可以在这里添加更多功能按钮，如 Thinking、联网搜索等 */}
+                </div>
+                
+                {/* 右侧状态提示 */}
+                <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
+                  {isUploading && (
+                    <div className="flex items-center gap-1">
+                      <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                      <span>上传中...</span>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>

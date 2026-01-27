@@ -409,12 +409,67 @@ export const ExplorePage: React.FC = () => {
   // 文件上传面板状态（参考 ragflow）
   const [headerOpen, setHeaderOpen] = React.useState(false)
   
+  // 拖拽状态
+  const [isDragging, setIsDragging] = React.useState(false)
+  const dropContainerRef = React.useRef<HTMLDivElement>(null)
+  const dragCounterRef = React.useRef(0)
+  
   // 功能开关状态（参考 ragflow）
   const [enableReasoning, setEnableReasoning] = React.useState(false)
   const [enableInternet, setEnableInternet] = React.useState(false)
   
   // 流式输出控制器（用于停止输出）
   const abortControllerRef = React.useRef<AbortController | null>(null)
+  
+  // 全局拖拽事件处理
+  React.useEffect(() => {
+    const handleDragEnter = (e: DragEvent) => {
+      e.preventDefault()
+      e.stopPropagation()
+      dragCounterRef.current++
+      if (e.dataTransfer?.types.includes('Files')) {
+        setIsDragging(true)
+        setHeaderOpen(true) // 自动打开上传面板
+      }
+    }
+    
+    const handleDragLeave = (e: DragEvent) => {
+      e.preventDefault()
+      e.stopPropagation()
+      dragCounterRef.current--
+      if (dragCounterRef.current === 0) {
+        setIsDragging(false)
+      }
+    }
+    
+    const handleDragOver = (e: DragEvent) => {
+      e.preventDefault()
+      e.stopPropagation()
+    }
+    
+    const handleDrop = (e: DragEvent) => {
+      e.preventDefault()
+      e.stopPropagation()
+      dragCounterRef.current = 0
+      setIsDragging(false)
+      // 文件会由 Attachments 组件处理
+    }
+    
+    const container = dropContainerRef.current
+    if (container) {
+      container.addEventListener('dragenter', handleDragEnter)
+      container.addEventListener('dragleave', handleDragLeave)
+      container.addEventListener('dragover', handleDragOver)
+      container.addEventListener('drop', handleDrop)
+      
+      return () => {
+        container.removeEventListener('dragenter', handleDragEnter)
+        container.removeEventListener('dragleave', handleDragLeave)
+        container.removeEventListener('dragover', handleDragOver)
+        container.removeEventListener('drop', handleDrop)
+      }
+    }
+  }, [])
 
   // 获取选中应用的详情和设置
   const { 
@@ -1100,7 +1155,39 @@ export const ExplorePage: React.FC = () => {
   }
 
   return (
-    <div className="h-full flex" style={{ backgroundColor: 'var(--color-chat-content-bg)' }}>
+    <div 
+      ref={dropContainerRef}
+      className="h-full flex" 
+      style={{ backgroundColor: 'var(--color-chat-content-bg)' }}
+    >
+      {/* 全屏拖拽指示器 */}
+      {isDragging && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none"
+          style={{ 
+            backgroundColor: 'rgba(var(--color-surface-primary-rgb, 0, 0, 0), 0.6)',
+            backdropFilter: 'blur(4px)'
+          }}
+        >
+          <div 
+            className="flex flex-col items-center gap-4 p-8 rounded-2xl"
+            style={{ 
+              backgroundColor: 'var(--color-components-card-bg)',
+              border: '3px dashed var(--color-border-accent)',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)'
+            }}
+          >
+            <Upload className="w-16 h-16" style={{ color: 'var(--color-text-accent)' }} />
+            <div className="text-lg font-medium" style={{ color: 'var(--color-text-primary)' }}>
+              释放以上传文件
+            </div>
+            <div className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+              支持图片、文档等格式
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* 左侧边栏 */}
       <div 
         className="w-64 flex flex-col"
@@ -1644,22 +1731,32 @@ export const ExplorePage: React.FC = () => {
               {/* 输入区域（参考 ragflow 重构） */}
               {(activeTab !== 'topics' || selectedConversationDetail) && (
                 <div className="px-6 pb-6">
-                  <div className={cn(
-                    "mx-auto explore-sender-area",
-                    chatLayout === 'full' ? 'max-w-none px-4' : chatLayout === 'center' ? 'max-w-4xl' : 'max-w-3xl'
-                  )}>
+                  <div 
+                    className={cn(
+                      "mx-auto explore-sender-area rounded-2xl overflow-hidden",
+                      chatLayout === 'full' ? 'max-w-none px-4' : chatLayout === 'center' ? 'max-w-4xl' : 'max-w-3xl'
+                    )}
+                    style={{
+                      border: '1px solid var(--color-components-input-border)',
+                      backgroundColor: 'var(--color-components-input-bg)',
+                    }}
+                  >
                     {/* Sender 和 Attachments 样式覆盖 - 使用项目语义令牌 */}
                     <style>{`
-                      /* Sender 输入框样式 */
+                      /* Sender 输入框样式 - 现代化无高亮设计，边框在外层容器 */
                       .explore-sender-area .ant-sender {
-                        background-color: var(--color-components-input-bg) !important;
-                        border-color: var(--color-components-input-border) !important;
+                        background-color: transparent !important;
+                        border: none !important;
+                        box-shadow: none !important;
+                        outline: none !important;
                       }
                       .explore-sender-area .ant-sender:hover {
-                        border-color: var(--color-components-input-border-hover) !important;
+                        border: none !important;
                       }
                       .explore-sender-area .ant-sender:focus-within {
-                        border-color: var(--color-components-input-border-focus) !important;
+                        border: none !important;
+                        box-shadow: none !important;
+                        outline: none !important;
                       }
                       .explore-sender-area .ant-sender-content {
                         background-color: transparent !important;
@@ -1668,6 +1765,14 @@ export const ExplorePage: React.FC = () => {
                       .explore-sender-area .ant-sender input {
                         color: var(--color-components-input-text) !important;
                         background-color: transparent !important;
+                        outline: none !important;
+                        box-shadow: none !important;
+                        padding-left: 4px !important;
+                      }
+                      .explore-sender-area .ant-sender textarea:focus,
+                      .explore-sender-area .ant-sender input:focus {
+                        outline: none !important;
+                        box-shadow: none !important;
                       }
                       .explore-sender-area .ant-sender textarea::placeholder,
                       .explore-sender-area .ant-sender input::placeholder {
@@ -1711,20 +1816,27 @@ export const ExplorePage: React.FC = () => {
                       .explore-sender-area .ant-attachment-placeholder {
                         background-color: var(--color-components-card-bg) !important;
                       }
-                      /* 拖拽区域边框 */
+                      /* 拖拽区域边框 - 现代化设计 */
                       .explore-sender-area .ant-attachment-placeholder-inner {
-                        border-color: var(--color-border-default) !important;
+                        border: 2px dashed var(--color-border-default) !important;
+                        border-radius: 12px !important;
+                        padding: 24px !important;
+                        transition: all 0.2s ease !important;
                       }
                       .explore-sender-area .ant-attachments:hover .ant-attachment-placeholder-inner {
                         border-color: var(--color-border-accent) !important;
+                        background-color: var(--color-state-hover) !important;
                       }
                       /* 已上传文件列表项 */
                       .explore-sender-area .ant-attachments-list-item {
                         background-color: var(--color-components-input-bg) !important;
-                        border-color: var(--color-border-default) !important;
+                        border: 1px solid var(--color-border-default) !important;
+                        border-radius: 8px !important;
+                        transition: all 0.2s ease !important;
                       }
                       .explore-sender-area .ant-attachments-list-item:hover {
                         background-color: var(--color-components-input-bg-hover) !important;
+                        border-color: var(--color-border-accent) !important;
                       }
                       .explore-sender-area .ant-attachments-list-item-name {
                         color: var(--color-text-primary) !important;
@@ -1759,6 +1871,8 @@ export const ExplorePage: React.FC = () => {
                         >
                           <Attachments
                             items={uploadFiles as any}
+                            maxCount={uploadConfig.maxCount}
+                            getDropContainer={() => dropContainerRef.current}
                             onChange={(info) => {
                               // 处理 Attachments 组件的文件变化
                               if (info && Array.isArray(info)) {
@@ -1833,54 +1947,6 @@ export const ExplorePage: React.FC = () => {
                           />
                         </Sender.Header>
                       }
-                      // 左侧功能按钮区（参考 ragflow 布局）
-                      prefix={
-                        <div className="flex items-center gap-2">
-                          {/* 附件按钮 */}
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            className="h-8 w-8 p-0"
-                            onClick={() => setHeaderOpen(!headerOpen)}
-                            title="上传文件"
-                          >
-                            <Paperclip className="w-4 h-4" style={{ color: headerOpen ? 'var(--color-text-accent)' : 'var(--color-text-tertiary)' }} />
-                          </Button>
-                          
-                          {/* 深度思考按钮（参考 ragflow showReasoning） */}
-                          <Button 
-                            variant={enableReasoning ? "default" : "ghost"}
-                            size="sm"
-                            className={cn(
-                              "h-8 px-3 gap-1.5 transition-colors",
-                              enableReasoning 
-                                ? "bg-[var(--color-components-button-primary-bg)] text-[var(--color-components-button-primary-text)] hover:bg-[var(--color-components-button-primary-bg-hover)]" 
-                                : "text-[var(--color-text-secondary)]"
-                            )}
-                            onClick={() => setEnableReasoning(!enableReasoning)}
-                            title="深度思考"
-                          >
-                            <Atom className="w-4 h-4" />
-                            <span className="text-xs">Thinking</span>
-                          </Button>
-                          
-                          {/* 联网搜索按钮（参考 ragflow showInternet） */}
-                          <Button 
-                            variant={enableInternet ? "default" : "ghost"}
-                            size="sm"
-                            className={cn(
-                              "h-8 w-8 p-0 transition-colors",
-                              enableInternet 
-                                ? "bg-[var(--color-components-button-primary-bg)] text-[var(--color-components-button-primary-text)] hover:bg-[var(--color-components-button-primary-bg-hover)]" 
-                                : "text-[var(--color-text-secondary)]"
-                            )}
-                            onClick={() => setEnableInternet(!enableInternet)}
-                            title="联网搜索"
-                          >
-                            <Globe className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      }
                       // 右侧操作区：停止按钮或发送按钮
                       suffix={isStreaming ? (
                         <Button 
@@ -1921,9 +1987,9 @@ export const ExplorePage: React.FC = () => {
                         }
                       }}
                       style={{
-                        borderRadius: '16px',
-                        border: '1px solid var(--color-components-input-border)',
-                        backgroundColor: 'var(--color-components-input-bg)',
+                        borderRadius: headerOpen ? '0' : '16px 16px 0 0',
+                        border: 'none',
+                        backgroundColor: 'transparent',
                       }}
                       styles={{
                         input: {
@@ -1932,33 +1998,77 @@ export const ExplorePage: React.FC = () => {
                       }}
                     />
                     
-                    {/* 已上传文件提示 */}
-                    {uploadFiles.length > 0 && !headerOpen && (
-                      <div 
-                        className="mt-2 flex items-center gap-2 text-xs cursor-pointer hover:opacity-80"
-                        style={{ color: 'var(--color-text-secondary)' }}
-                        onClick={() => setHeaderOpen(true)}
-                      >
-                        <Paperclip className="w-3 h-3" />
-                        <span>已上传 {uploadFiles.filter(f => f.status === 'done').length} 个文件</span>
-                        {isUploading && <span style={{ color: 'var(--color-components-button-primary-bg)' }}>（处理中...）</span>}
+                    {/* 输入框下方工具栏 - 在同一个容器内，与输入框文字左对齐 */}
+                    <div 
+                      className="flex items-center justify-between pb-2"
+                      style={{ 
+                        backgroundColor: 'var(--color-components-input-bg)',
+                        borderRadius: '0 0 16px 16px',
+                        paddingLeft: '8px',
+                        paddingRight: '12px',
+                      }}
+                    >
+                      <div className="flex items-center gap-1">
+                        {/* 附件按钮 */}
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          className="h-7 px-1.5 gap-1.5"
+                          onClick={() => setHeaderOpen(!headerOpen)}
+                          title="上传文件"
+                        >
+                          <Paperclip className="w-4 h-4" style={{ color: headerOpen ? 'var(--color-text-accent)' : 'var(--color-text-tertiary)' }} />
+                          {uploadFiles.length > 0 && (
+                            <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+                              {uploadFiles.filter(f => f.status === 'done').length}
+                            </span>
+                          )}
+                        </Button>
+                        
+                        {/* 深度思考按钮 */}
+                        <Button 
+                          variant={enableReasoning ? "default" : "ghost"}
+                          size="sm"
+                          className={cn(
+                            "h-7 px-2 gap-1.5 transition-colors",
+                            enableReasoning 
+                              ? "bg-[var(--color-components-button-primary-bg)] text-[var(--color-components-button-primary-text)] hover:bg-[var(--color-components-button-primary-bg-hover)]" 
+                              : "text-[var(--color-text-tertiary)]"
+                          )}
+                          onClick={() => setEnableReasoning(!enableReasoning)}
+                          title="深度思考"
+                        >
+                          <Atom className="w-4 h-4" />
+                          <span className="text-xs">Thinking</span>
+                        </Button>
+                        
+                        {/* 联网搜索按钮 */}
+                        <Button 
+                          variant={enableInternet ? "default" : "ghost"}
+                          size="sm"
+                          className={cn(
+                            "h-7 px-2 gap-1.5 transition-colors",
+                            enableInternet 
+                              ? "bg-[var(--color-components-button-primary-bg)] text-[var(--color-components-button-primary-text)] hover:bg-[var(--color-components-button-primary-bg-hover)]" 
+                              : "text-[var(--color-text-tertiary)]"
+                          )}
+                          onClick={() => setEnableInternet(!enableInternet)}
+                          title="联网搜索"
+                        >
+                          <Globe className="w-4 h-4" />
+                        </Button>
                       </div>
-                    )}
-                    
-                    {/* 文件处理中的提示 - 当有文件正在上传时显示 */}
-                    {isUploading && (
-                      <div 
-                        className="mt-2 px-3 py-2 rounded-lg text-xs flex items-center gap-2"
-                        style={{ 
-                          backgroundColor: 'var(--color-status-warning-bg)', 
-                          color: 'var(--color-status-warning-text)',
-                          border: '1px solid var(--color-status-warning-border)'
-                        }}
-                      >
-                        <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                        <span>文件正在解析中，此时提问将不包含当前上传的文档内容</span>
+                      
+                      {/* 右侧状态提示 */}
+                      <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
+                        {isUploading && (
+                          <div className="flex items-center gap-1">
+                            <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                            <span>上传中...</span>
+                          </div>
+                        )}
                       </div>
-                    )}
+                    </div>
                   </div>
                 </div>
               )}
