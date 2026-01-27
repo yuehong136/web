@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback, memo } from 'react'
-import { Plus, Trash2, HelpCircle } from 'lucide-react'
+import { Plus, Trash2, HelpCircle, Settings2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -294,22 +295,34 @@ export const MetadataFieldEditorModal: React.FC<MetadataFieldEditorModalProps> =
 
   const title = isNew
     ? isSettingMode
-      ? '字段设置'
+      ? '添加字段'
       : '添加元数据'
     : isSettingMode
-      ? '字段设置'
+      ? '编辑字段'
       : '编辑元数据'
+
+  const description = isSettingMode
+    ? '配置元数据字段的名称、描述和可选值'
+    : '设置此元数据字段的值'
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleClose()}>
-      <DialogContent className="max-w-md p-0 gap-0">
+      <DialogContent size="sm">
         {/* 头部 */}
-        <DialogHeader className="px-6 py-4 border-b border-border-default">
-          <DialogTitle className="text-base font-semibold">{title}</DialogTitle>
+        <DialogHeader>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center">
+              <Settings2 className="h-5 w-5 text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <DialogTitle>{title}</DialogTitle>
+              <DialogDescription>{description}</DialogDescription>
+            </div>
+          </div>
         </DialogHeader>
 
         {/* 内容区域 */}
-        <div className="px-6 py-4 space-y-5 max-h-[60vh] overflow-y-auto">
+        <div className="px-6 py-4 space-y-5 max-h-[50vh] overflow-y-auto">
           {/* 字段名显示（非编辑模式）*/}
           {!isNew && !isSettingMode && (
             <div className="p-4 bg-surface-secondary rounded-lg border border-border-default">
@@ -443,7 +456,7 @@ export const MetadataFieldEditorModal: React.FC<MetadataFieldEditorModalProps> =
         </div>
 
         {/* 底部按钮 */}
-        <DialogFooter className="px-6 py-4 border-t border-border-default">
+        <DialogFooter>
           <Button variant="outline" onClick={handleClose} disabled={loading}>
             取消
           </Button>

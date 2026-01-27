@@ -10,6 +10,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog'
 import { Tooltip } from '@/components/ui/tooltip'
@@ -150,60 +151,88 @@ function LinkDataSourceModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent size="md">
         <DialogHeader>
-          <DialogTitle>链接数据源</DialogTitle>
-        </DialogHeader>
-        <div className="py-4">
-          <p className="text-sm text-text-tertiary mb-4">
-            选择要链接到此知识库的数据源。链接后，数据源中的文件将自动同步到知识库。
-          </p>
-          <div className="space-y-2 max-h-64 overflow-y-auto">
-            {availableSources.length > 0 ? (
-              availableSources.map((source) => {
-                const sourceInfo = DataSourceIcons[source.source] || DataSourceIcons.default
-                const isSelected = selected.includes(source.id)
-                return (
-                  <div
-                    key={source.id}
-                    className={cn(
-                      'flex items-center justify-between px-3 py-2 rounded-lg border cursor-pointer transition-colors',
-                      isSelected
-                        ? 'border-primary bg-primary/5'
-                        : 'border-border hover:bg-background-subtle'
-                    )}
-                    onClick={() => handleToggle(source.id)}
-                  >
-                    <div className="flex items-center gap-2">
-                      {sourceInfo.icon}
-                      <span className="text-sm font-medium">{sourceInfo.name}</span>
-                      <span className="text-sm text-text-secondary">{source.name}</span>
-                    </div>
-                    <div
-                      className={cn(
-                        'w-4 h-4 rounded-full border-2 transition-colors',
-                        isSelected
-                          ? 'border-primary bg-primary'
-                          : 'border-border'
-                      )}
-                    />
-                  </div>
-                )
-              })
-            ) : (
-              <div className="text-center py-8 text-text-tertiary">
-                <Database className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                <p>暂无可用的数据源</p>
-                <p className="text-xs mt-1">请先在设置中配置数据源</p>
-              </div>
-            )}
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
+              <Link className="h-5 w-5 text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <DialogTitle>链接数据源</DialogTitle>
+              <DialogDescription>
+                选择要链接到此知识库的数据源，链接后文件将自动同步
+              </DialogDescription>
+            </div>
           </div>
+        </DialogHeader>
+
+        <div className="px-6 py-4 space-y-3 max-h-[320px] overflow-y-auto">
+          {availableSources.length > 0 ? (
+            availableSources.map((source) => {
+              const sourceInfo = DataSourceIcons[source.source] || DataSourceIcons.default
+              const isSelected = selected.includes(source.id)
+              return (
+                <div
+                  key={source.id}
+                  className={cn(
+                    'flex items-center justify-between px-4 py-3 rounded-xl border-2 cursor-pointer transition-all',
+                    isSelected
+                      ? 'border-[var(--color-border-accent)] bg-[var(--color-surface-accent-subtle)]'
+                      : 'border-[var(--color-border-default)] hover:border-[var(--color-border-hover)] hover:bg-[var(--color-surface-secondary)]'
+                  )}
+                  onClick={() => handleToggle(source.id)}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-[var(--color-surface-secondary)] flex items-center justify-center">
+                      {sourceInfo.icon}
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-[var(--color-text-primary)]">
+                        {sourceInfo.name}
+                      </span>
+                      <span className="text-xs text-[var(--color-text-tertiary)]">
+                        {source.name}
+                      </span>
+                    </div>
+                  </div>
+                  <div
+                    className={cn(
+                      'w-5 h-5 rounded-full border-2 transition-all flex items-center justify-center',
+                      isSelected
+                        ? 'border-[var(--color-border-accent)] bg-[var(--color-surface-accent)]'
+                        : 'border-[var(--color-border-default)]'
+                    )}
+                  >
+                    {isSelected && (
+                      <div className="w-2 h-2 rounded-full bg-white" />
+                    )}
+                  </div>
+                </div>
+              )
+            })
+          ) : (
+            <div className="text-center py-10">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-[var(--color-surface-secondary)] flex items-center justify-center">
+                <Database className="h-8 w-8 text-[var(--color-text-tertiary)]" />
+              </div>
+              <p className="text-sm font-medium text-[var(--color-text-secondary)]">
+                暂无可用的数据源
+              </p>
+              <p className="text-xs text-[var(--color-text-tertiary)] mt-1">
+                请先在设置中配置数据源
+              </p>
+            </div>
+          )}
         </div>
+
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             取消
           </Button>
-          <Button onClick={handleSubmit}>确认链接</Button>
+          <Button onClick={handleSubmit} className="gap-1.5">
+            <Link className="h-4 w-4" />
+            确认链接
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

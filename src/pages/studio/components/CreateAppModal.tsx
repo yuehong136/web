@@ -1,13 +1,22 @@
-import React, { useState } from 'react'
-import { Modal, Input, Avatar, Upload, Button, Space, Typography, message } from 'antd'
-import { AppstoreOutlined, PlusOutlined } from '@ant-design/icons'
-import type { UploadProps } from 'antd'
+import React, { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Sparkles, Upload, ImagePlus, Trash2, Loader2 } from 'lucide-react'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
+import { toast } from '@/lib/toast'
 import { useSetDialogApp } from '@/hooks/use-dialog-apps'
 import { ROUTES } from '@/constants'
-
-const { TextArea } = Input
-const { Text } = Typography
+import { cn } from '@/lib/utils'
 
 interface CreateAppModalProps {
   isOpen: boolean
@@ -30,30 +39,31 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({
   const [nameError, setNameError] = useState<string | null>(null)
   const setDialogAppMutation = useSetDialogApp()
 
-  const handleIconUpload: UploadProps['beforeUpload'] = (file) => {
+  const handleIconUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
     const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png' || file.type === 'image/svg+xml'
     if (!isJpgOrPng) {
-      message.error('只能上传 JPG/PNG/SVG 格式的图片!')
-      return false
+      toast.error('只能上传 JPG/PNG/SVG 格式的图片!')
+      return
     }
     const isLt2M = file.size / 1024 / 1024 < 2
     if (!isLt2M) {
-      message.error('图片大小不能超过 2MB!')
-      return false
+      toast.error('图片大小不能超过 2MB!')
+      return
     }
 
     // 转换为base64
     const reader = new FileReader()
     reader.onload = () => {
       const result = reader.result as string
-      // 保留完整的data URL格式（包含data:image/...;base64,前缀）
       setFormData(prev => ({ ...prev, icon: result }))
     }
     reader.readAsDataURL(file)
-    return false // 阻止自动上传
-  }
+  }, [])
 
-  const validateName = (name: string): string | null => {
+  const validateName = useCallback((name: string): string | null => {
     if (name.trim() === '') {
       return '应用名称不能为空'
     }
@@ -65,18 +75,18 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({
     }
     
     return null
-  }
+  }, [])
 
-  const handleCreate = () => {
+  const handleCreate = useCallback(() => {
     // 验证应用名称
-    const nameError = validateName(formData.name)
-    if (nameError) {
-      message.error(nameError)
+    const error = validateName(formData.name)
+    if (error) {
+      toast.error(error)
       return
     }
     
     if (!formData.description.trim()) {
-      message.error('请输入应用描述')
+      toast.error('请输入应用描述')
       return
     }
     
@@ -84,7 +94,7 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({
     setDialogAppMutation.mutate({
       name: formData.name,
       description: formData.description,
-      icon: formData.icon, // 后端调整max_length后恢复发送图标数据
+      icon: formData.icon,
     }, {
       onSuccess: (createdApp) => {
         handleClose()
@@ -101,14 +111,14 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({
         onCreate?.(formData)
       }
     })
-  }
+  }, [formData, navigate, onCreate, setDialogAppMutation, validateName])
 
-  const handleNameChange = (value: string) => {
+  const handleNameChange = useCallback((value: string) => {
     setFormData(prev => ({ ...prev, name: value }))
     setNameError(validateName(value))
-  }
+  }, [validateName])
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setFormData({
       name: '',
       description: '',
@@ -116,93 +126,146 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({
     })
     setNameError(null)
     onClose()
-  }
+  }, [onClose])
+
+  const isLoading = setDialogAppMutation.isPending
 
   return (
-    <Modal
-      title="创建新应用"
-      open={isOpen}
-      onOk={handleCreate}
-      onCancel={handleClose}
-      okText="创建应用"
-      cancelText="取消"
-      width={500}
-      destroyOnHidden
-      confirmLoading={setDialogAppMutation.isPending}
-    >
-      <Space direction="vertical" className="w-full" size="large">
-        <div>
-          <Text strong className="block mb-3">应用图标</Text>
-          <div className="flex items-center gap-4">
-            <Avatar 
-              size={64}
-              src={formData.icon || undefined}
-              icon={!formData.icon && <AppstoreOutlined />}
-              className={formData.icon ? "bg-transparent" : "bg-gradient-to-br from-purple-500 to-blue-500"}
-            />
-            <div className="flex flex-col gap-2">
-              <Upload
-                beforeUpload={handleIconUpload}
-                showUploadList={false}
-                accept="image/*"
-              >
-                <Button icon={<PlusOutlined />}>
-                  上传图标
-                </Button>
-              </Upload>
-              {formData.icon && (
-                <Button 
-                  onClick={() => setFormData(prev => ({ ...prev, icon: '' }))}
-                  type="text"
-                  danger
-                  size="small"
-                >
-                  移除图标
-                </Button>
-              )}
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
+      <DialogContent size="md">
+        <DialogHeader>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center">
+              <Sparkles className="h-5 w-5 text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <DialogTitle>创建新应用</DialogTitle>
+              <DialogDescription>
+                创建一个新的对话应用，配置模型参数和提示词
+              </DialogDescription>
             </div>
           </div>
-          <Text type="secondary" className="text-xs block mt-2">
-            支持 JPG、PNG、SVG 格式，文件大小不超过 2MB
-          </Text>
-        </div>
-        
-        <div>
-          <Text strong className="block mb-2">应用名称 *</Text>
-          <Input
-            value={formData.name}
-            onChange={(e) => handleNameChange(e.target.value)}
-            placeholder="输入应用名称"
-            status={nameError ? 'error' : ''}
-          />
-          {nameError && (
-            <Text type="danger" className="text-xs block mt-1">
-              {nameError}
-            </Text>
-          )}
-          <Text type="secondary" className="text-xs block mt-1">
-            最多255字节（中文字符约85个字）
-          </Text>
-        </div>
-        
-        <div>
-          <Text strong className="block mb-2">应用描述 *</Text>
-          <TextArea
-            value={formData.description}
-            onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-            placeholder="描述应用的功能和用途..."
-            rows={4}
-            maxLength={200}
-            showCount
-          />
+        </DialogHeader>
+
+        <div className="px-6 py-4 space-y-6 overflow-y-auto max-h-[calc(80vh-200px)]">
+          {/* 应用图标 */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium text-[var(--color-text-primary)]">
+              应用图标
+            </Label>
+            <div className="flex items-center gap-4">
+              <div
+                className={cn(
+                  'w-16 h-16 rounded-xl flex items-center justify-center overflow-hidden',
+                  'border-2 border-dashed border-[var(--color-border-default)]',
+                  formData.icon ? 'bg-transparent border-solid' : 'bg-gradient-to-br from-purple-500 to-blue-500'
+                )}
+              >
+                {formData.icon ? (
+                  <img src={formData.icon} alt="App icon" className="w-full h-full object-cover" />
+                ) : (
+                  <Sparkles className="h-7 w-7 text-white" />
+                )}
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className="cursor-pointer">
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/svg+xml"
+                    onChange={handleIconUpload}
+                    className="hidden"
+                    disabled={isLoading}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="gap-1.5 pointer-events-none"
+                    disabled={isLoading}
+                  >
+                    <ImagePlus className="h-4 w-4" />
+                    上传图标
+                  </Button>
+                </label>
+                {formData.icon && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setFormData(prev => ({ ...prev, icon: '' }))}
+                    className="text-[var(--color-status-error)] hover:text-[var(--color-status-error)] hover:bg-[var(--color-status-error)]/10 gap-1.5"
+                    disabled={isLoading}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    移除图标
+                  </Button>
+                )}
+              </div>
+            </div>
+            <p className="text-xs text-[var(--color-text-tertiary)]">
+              支持 JPG、PNG、SVG 格式，文件大小不超过 2MB
+            </p>
+          </div>
+          
+          {/* 应用名称 */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-[var(--color-text-primary)]">
+              应用名称 <span className="text-[var(--color-status-error)]">*</span>
+            </Label>
+            <Input
+              value={formData.name}
+              onChange={(e) => handleNameChange(e.target.value)}
+              placeholder="输入应用名称"
+              disabled={isLoading}
+              className={cn(nameError && 'border-[var(--color-status-error)]')}
+            />
+            {nameError && (
+              <p className="text-xs text-[var(--color-status-error)]">{nameError}</p>
+            )}
+            <p className="text-xs text-[var(--color-text-tertiary)]">
+              最多255字节（中文字符约85个字）
+            </p>
+          </div>
+          
+          {/* 应用描述 */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-sm font-medium text-[var(--color-text-primary)]">
+                应用描述 <span className="text-[var(--color-status-error)]">*</span>
+              </Label>
+              <span className="text-xs text-[var(--color-text-tertiary)]">
+                {formData.description.length}/200
+              </span>
+            </div>
+            <Textarea
+              value={formData.description}
+              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value.slice(0, 200) }))}
+              placeholder="描述应用的功能和用途..."
+              rows={4}
+              disabled={isLoading}
+            />
+          </div>
+
+          {/* 提示信息 */}
+          <div className="flex items-start gap-2.5 p-3 bg-[var(--color-surface-accent)]/5 border border-[var(--color-surface-accent)]/15 rounded-lg">
+            <Sparkles className="h-4 w-4 text-[var(--color-surface-accent)] mt-0.5 shrink-0" />
+            <p className="text-xs text-[var(--color-text-secondary)] leading-relaxed">
+              <strong className="text-[var(--color-text-primary)]">提示：</strong>
+              创建应用后，您将进入应用配置页面，可以设置模型参数、提示词模板、对话记忆等高级功能。
+            </p>
+          </div>
         </div>
 
-        <div className="bg-blue-50 p-4 rounded-lg">
-          <Text className="text-sm text-blue-700">
-            <strong>提示：</strong>创建应用后，您将进入应用配置页面，可以设置模型参数、提示词模板、对话记忆等高级功能。
-          </Text>
-        </div>
-      </Space>
-    </Modal>
+        <DialogFooter>
+          <Button variant="outline" onClick={handleClose} disabled={isLoading}>
+            取消
+          </Button>
+          <Button onClick={handleCreate} disabled={isLoading} className="gap-1.5">
+            {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+            {isLoading ? '创建中...' : '创建应用'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }
