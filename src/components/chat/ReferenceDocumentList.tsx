@@ -1,4 +1,7 @@
 /**
+ * @deprecated 此组件已废弃，请使用 ReferencePanel 组件代替
+ * @see {@link ./ReferencePanel.tsx} 新版引用面板组件
+ * 
  * 参考文献列表组件
  * 参考 ragflow 的 ReferenceDocumentList 组件设计
  * 用于在消息底部展示引用的文档来源

@@ -318,7 +318,15 @@ const PdfPreviewInner: React.FC<{
 
   useEffect(() => {
     if (highlights.length > 0) {
-      scrollToRef.current?.(highlights[0])
+      // 延迟执行滚动，确保 PdfHighlighter 的 viewport 已经准备好
+      const timeoutId = setTimeout(() => {
+        try {
+          scrollToRef.current?.(highlights[0])
+        } catch (err) {
+          console.warn('[PDF] Failed to scroll to highlight:', err)
+        }
+      }, 100)
+      return () => clearTimeout(timeoutId)
     }
   }, [highlights])
 

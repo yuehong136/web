@@ -1,9 +1,29 @@
 /**
  * 引用分组工具函数
  * 用于检测和分组连续出现的引用标记，支持图片轮播功能
+ * 以及引用数据的处理和展示辅助函数
  */
 
+import DOMPurify from 'dompurify'
 import type { ReferenceChunk } from './reference-replacer'
+
+/**
+ * 文档聚合数据类型
+ */
+export interface DocAgg {
+  doc_name: string
+  doc_id: string
+  count: number
+}
+
+/**
+ * 引用响应数据类型
+ */
+export interface ReferenceResponse {
+  total: number
+  chunks: ReferenceChunk[]
+  doc_aggs: DocAgg[]
+}
 
 /**
  * 引用匹配结果
@@ -192,4 +212,263 @@ export function processReferenceGroups(
     groups,
     carouselGroupIndices,
   }
+}
+
+// ============================================================
+// 引用展示辅助函数
+// ============================================================
+
+/**
+ * 安全渲染 HTML 内容（用于表格等结构化内容）
+ * 使用 DOMPurify 防止 XSS 攻击
+ * 
+ * @param html 原始 HTML 字符串
+ * @param options 可选配置
+ * @returns 安全的 HTML 字符串
+ */
+export function sanitizeHtmlContent(
+  html: string,
+  options?: {
+    allowedTags?: string[]
+    allowedAttrs?: string[]
+  }
+): string {
+  const defaultTags = ['table', 'thead', 'tbody', 'tr', 'th', 'td', 'caption', 'br', 'p', 'div', 'span', 'strong', 'em', 'b', 'i', 'ul', 'ol', 'li']
+  const defaultAttrs = ['rowspan', 'colspan', 'class', 'style']
+  
+  return DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: options?.allowedTags || defaultTags,
+    ALLOWED_ATTR: options?.allowedAttrs || defaultAttrs,
+  })
+}
+
+/**
+ * 相似度颜色等级
+ */
+export type SimilarityLevel = 'high' | 'medium' | 'low'
+
+/**
+ * 获取相似度等级
+ * @param similarity 相似度值 (0-1)
+ * @returns 相似度等级
+ */
+export function getSimilarityLevel(similarity: number): SimilarityLevel {
+  if (similarity >= 0.8) return 'high'
+  if (similarity >= 0.6) return 'medium'
+  return 'low'
+}
+
+/**
+ * 获取相似度对应的 CSS 颜色变量
+ * @param similarity 相似度值 (0-1)
+ * @returns CSS 颜色变量
+ */
+export function getSimilarityColor(similarity: number): string {
+  const level = getSimilarityLevel(similarity)
+  switch (level) {
+    case 'high':
+      return 'var(--color-text-success)'
+    case 'medium':
+      return 'var(--color-text-accent)'
+    case 'low':
+      return 'var(--color-text-tertiary)'
+  }
+}
+
+/**
+ * 获取相似度等级标签
+ * @param similarity 相似度值 (0-1)
+ * @returns 中文等级标签
+ */
+export function getSimilarityLabel(similarity: number): string {
+  const level = getSimilarityLevel(similarity)
+  switch (level) {
+    case 'high':
+      return '高度匹配'
+    case 'medium':
+      return '较为相关'
+    case 'low':
+      return '可能相关'
+  }
+}
+
+/**
+ * 文档类型
+ */
+export type DocType = 'table' | 'image' | 'text' | 'pdf' | 'word' | 'excel' | 'markdown' | 'unknown'
+
+/**
+ * 获取文档类型
+ * @param docType chunk 的 doc_type 字段
+ * @param docName 文档名称
+ * @returns 标准化的文档类型
+ */
+export function getDocType(docType?: string, docName?: string): DocType {
+  if (docType === 'table') return 'table'
+  if (docType === 'image') return 'image'
+  
+  if (docName) {
+    const ext = docName.split('.').pop()?.toLowerCase()
+    switch (ext) {
+      case 'pdf':
+        return 'pdf'
+      case 'doc':
+      case 'docx':
+        return 'word'
+      case 'xls':
+      case 'xlsx':
+        return 'excel'
+      case 'md':
+      case 'mdx':
+        return 'markdown'
+    }
+  }
+  
+  return docType === 'text' ? 'text' : 'unknown'
+}
+
+/**
+ * 获取文档类型的中文标签
+ * @param docType 文档类型
+ * @returns 中文标签
+ */
+export function getDocTypeLabel(docType: DocType | string | undefined): string {
+  switch (docType) {
+    case 'table':
+      return '表格'
+    case 'image':
+      return '图片'
+    case 'pdf':
+      return 'PDF'
+    case 'word':
+      return 'Word'
+    case 'excel':
+      return 'Excel'
+    case 'markdown':
+      return 'Markdown'
+    case 'text':
+      return '文本'
+    default:
+      return '文本'
+  }
+}
+
+/**
+ * 截取内容摘要，移除 HTML 标签
+ * @param content 原始内容
+ * @param maxLength 最大长度
+ * @returns 截取后的纯文本
+ */
+export function truncateContent(content: string, maxLength = 100): string {
+  if (!content) return ''
+  // 移除 HTML 标签并合并空白
+  const textContent = content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
+  if (textContent.length <= maxLength) return textContent
+  return textContent.slice(0, maxLength) + '...'
+}
+
+/**
+ * 按文档分组 chunks
+ * @param chunks 引用 chunks 数组
+ * @param docAggs 文档聚合数据（可选）
+ * @returns 按文档 ID 分组的 Map
+ */
+export interface GroupedChunk {
+  chunk: ReferenceChunk
+  index: number
+}
+
+export interface DocumentGroup {
+  docName: string
+  docId: string
+  chunks: GroupedChunk[]
+  count?: number
+}
+
+export function groupChunksByDocument(
+  chunks: ReferenceChunk[],
+  docAggs?: DocAgg[]
+): Map<string, DocumentGroup> {
+  const groups = new Map<string, DocumentGroup>()
+  
+  // 先按 chunks 分组
+  chunks.forEach((chunk, index) => {
+    const docId = chunk.document_id || 'unknown'
+    const existing = groups.get(docId)
+    
+    if (existing) {
+      existing.chunks.push({ chunk, index })
+    } else {
+      groups.set(docId, {
+        docName: chunk.document_name || '未知文档',
+        docId,
+        chunks: [{ chunk, index }]
+      })
+    }
+  })
+  
+  // 如果有 docAggs，更新 count 信息
+  if (docAggs) {
+    docAggs.forEach(agg => {
+      const group = groups.get(agg.doc_id)
+      if (group) {
+        group.count = agg.count
+      }
+    })
+  }
+  
+  return groups
+}
+
+/**
+ * API 响应数据类型（用于 extractDocAggsFromResponse）
+ */
+interface ApiResponseData {
+  reference?: {
+    doc_aggs?: DocAgg[]
+  }
+  doc_aggs?: DocAgg[]
+}
+
+/**
+ * 从 API 响应中提取 doc_aggs
+ * @param data API 响应数据
+ * @returns doc_aggs 数组
+ */
+export function extractDocAggsFromResponse(data: unknown): DocAgg[] {
+  if (!data || typeof data !== 'object') return []
+  
+  const typedData = data as ApiResponseData
+  
+  // 检查 reference.doc_aggs
+  if (typedData.reference && Array.isArray(typedData.reference.doc_aggs)) {
+    return typedData.reference.doc_aggs
+  }
+  
+  // 检查顶层 doc_aggs
+  if (Array.isArray(typedData.doc_aggs)) {
+    return typedData.doc_aggs
+  }
+  
+  return []
+}
+
+/**
+ * 判断内容是否包含 HTML 结构
+ * @param content 内容字符串
+ * @returns 是否包含 HTML
+ */
+export function isHtmlContent(content: string): boolean {
+  if (!content) return false
+  return /<[a-z][\s\S]*>/i.test(content)
+}
+
+/**
+ * 获取纯文本内容
+ * @param content 可能包含 HTML 的内容
+ * @returns 纯文本
+ */
+export function getPlainTextContent(content: string): string {
+  if (!content) return ''
+  return content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
 }

@@ -51,7 +51,14 @@ import {
   groupConsecutiveReferences, 
   shouldShowCarousel,
   type ReferenceGroup,
+  extractDocAggsFromResponse,
+  type DocAgg,
 } from '@/utils/reference-utils'
+
+// 新版引用组件
+import { ReferencePanel } from '@/components/chat/ReferencePanel'
+import { ReferenceDetailSheet } from '@/components/chat/ReferenceDetailSheet'
+import { createReferenceMarkerComponent } from '@/components/chat/ReferenceMarker'
 
 // 延迟加载 ImageCarousel 组件，避免 embla-carousel 初始化问题
 const ImageCarousel = React.lazy(() => import('@/components/chat/ImageCarousel'))
@@ -386,6 +393,11 @@ export const ExplorePage: React.FC = () => {
   const [chatLayout, setChatLayout] = React.useState<'default' | 'center' | 'full'>('default')
   const [settingsPanelOpen, setSettingsPanelOpen] = React.useState(false)
   const [chatSettings, setChatSettings] = React.useState<ChatSettings>(defaultChatSettings)
+  
+  // 引用详情侧边栏状态
+  const [detailSheetOpen, setDetailSheetOpen] = React.useState(false)
+  const [selectedChunk, setSelectedChunk] = React.useState<ReferenceChunk | null>(null)
+  const [currentMessageReferences, setCurrentMessageReferences] = React.useState<ReferenceChunk[]>([])
 
   // 获取选中应用的详情和设置
   const { 
@@ -805,26 +817,39 @@ export const ExplorePage: React.FC = () => {
   const currentAppIconUrl = React.useMemo(() => getAppIconUrl(currentApp), [currentApp, getAppIconUrl])
   
 
-  // 处理引用点击事件
-  const handleReferenceClick = React.useCallback((reference: ReferenceChunk, _index: number) => {
+  // 处理引用点击事件 - 打开详情侧边栏
+  const handleReferenceClick = React.useCallback((reference: ReferenceChunk, _index: number, allReferences?: ReferenceChunk[]) => {
     console.log('Reference clicked:', reference)
-    // 如果有 URL，打开链接
-    if (reference.url) {
-      window.open(reference.url, '_blank', 'noopener,noreferrer')
-    } else {
-      // 可以在这里添加打开文档预览的逻辑
-      toast.success(`查看文档: ${reference.document_name}`)
+    setSelectedChunk(reference)
+    if (allReferences) {
+      setCurrentMessageReferences(allReferences)
     }
+    setDetailSheetOpen(true)
+  }, [])
+  
+  // 处理查看详情
+  const handleViewDetail = React.useCallback((chunk: ReferenceChunk, allReferences?: ReferenceChunk[]) => {
+    setSelectedChunk(chunk)
+    if (allReferences) {
+      setCurrentMessageReferences(allReferences)
+    }
+    setDetailSheetOpen(true)
+  }, [])
+  
+  // 处理复制
+  const handleCopyContent = React.useCallback((content: string) => {
+    copyToClipboard(content)
+    toast.success('已复制到剪贴板')
   }, [])
   
   // 转换消息为 Bubble 格式
   const bubbleItems = messages.map((msg, index) => {
     const references = msg.references || []
     
-    // 使用新的 createSupComponent 创建内联引用组件
-    const SupComponent = createSupComponent(references, {
-      mode: 'popover', // 使用悬浮卡片模式，显示更多信息
-      onReferenceClick: handleReferenceClick
+    // 使用新的 createReferenceMarkerComponent 创建内联引用组件
+    const SupComponent = createReferenceMarkerComponent(references, {
+      onViewDetail: (chunk) => handleViewDetail(chunk, references),
+      onCopy: handleCopyContent
     })
     
     return {
@@ -957,19 +982,12 @@ export const ExplorePage: React.FC = () => {
               <span className="italic" style={{ color: 'var(--color-text-muted)' }}>正在生成...</span>
             )}
             
-            {/* 底部汇总显示所有引用来源 - 使用新的 ReferenceDocumentList 组件 */}
+            {/* 底部汇总显示所有引用来源 - 使用新的 ReferencePanel 组件 */}
             {references.length > 0 && (
-              <ReferenceDocumentList
+              <ReferencePanel
                 chunks={references}
-                mode="sources"
-                onDocumentClick={(doc) => {
-                  const ref = references.find(r => r.document_id === doc.doc_id)
-                  if (ref?.url) {
-                    window.open(ref.url, '_blank', 'noopener,noreferrer')
-                  } else {
-                    toast.success(`查看文档: ${doc.doc_name}`)
-                  }
-                }}
+                onChunkClick={(chunk) => handleViewDetail(chunk, references)}
+                defaultVisiblePerDoc={2}
               />
             )}
           </div>
@@ -1599,6 +1617,15 @@ export const ExplorePage: React.FC = () => {
             onLoadKnowledgeBases={loadKnowledgeBases}
           />
         )}
+        
+        {/* 引用详情侧边栏 */}
+        <ReferenceDetailSheet
+          open={detailSheetOpen}
+          onOpenChange={setDetailSheetOpen}
+          chunk={selectedChunk}
+          allChunks={currentMessageReferences}
+          onCopySuccess={() => toast.success('已复制到剪贴板')}
+        />
       </div>
     </div>
   )

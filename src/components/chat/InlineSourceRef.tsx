@@ -1,4 +1,7 @@
 /**
+ * @deprecated 此组件已废弃，请使用 ReferenceMarker 组件代替
+ * @see {@link ./ReferenceMarker.tsx} 新版内联引用标记组件
+ * 
  * 内联引用组件
  * 用于在消息内容中展示引用标记，支持悬浮显示详情
  * 参考 ragflow 的引用交互设计和 @ant-design/x Sources 组件
