@@ -1648,31 +1648,8 @@ export const ExplorePage: React.FC = () => {
                     "mx-auto explore-sender-area",
                     chatLayout === 'full' ? 'max-w-none px-4' : chatLayout === 'center' ? 'max-w-4xl' : 'max-w-3xl'
                   )}>
-                    {/* Sender.Header 和 Attachments 样式覆盖 */}
+                    {/* Sender 和 Attachments 样式覆盖 - 使用项目语义令牌 */}
                     <style>{`
-                      .explore-sender-area .ant-sender-header {
-                        background-color: var(--color-background-subtle) !important;
-                        border-color: var(--color-border-subtle) !important;
-                      }
-                      .explore-sender-area .ant-sender-header-title {
-                        color: var(--color-text-primary) !important;
-                      }
-                      .explore-sender-area .ant-attachments {
-                        background-color: var(--color-background-subtle) !important;
-                      }
-                      .explore-sender-area .ant-attachments-placeholder-title {
-                        color: var(--color-text-primary) !important;
-                      }
-                      .explore-sender-area .ant-attachments-placeholder-description {
-                        color: var(--color-text-secondary) !important;
-                      }
-                      .explore-sender-area .ant-attachments-list-item {
-                        background-color: var(--color-background-default) !important;
-                        border-color: var(--color-border-default) !important;
-                      }
-                      .explore-sender-area .ant-attachments-list-item-name {
-                        color: var(--color-text-primary) !important;
-                      }
                       /* Sender 输入框样式 */
                       .explore-sender-area .ant-sender {
                         background-color: var(--color-components-input-bg) !important;
@@ -1709,6 +1686,49 @@ export const ExplorePage: React.FC = () => {
                         background-color: var(--color-components-button-primary-bg-disabled) !important;
                         color: var(--color-components-button-primary-text-disabled) !important;
                       }
+                      /* 当 Header 打开时，Sender 顶部不要圆角 */
+                      .explore-sender-area .ant-sender-header ~ .ant-sender,
+                      .explore-sender-area .ant-sender-header + .ant-sender {
+                        border-radius: 0 0 16px 16px !important;
+                        border-top: none !important;
+                      }
+                      /* 关闭按钮 */
+                      .explore-sender-area .ant-sender-header-close,
+                      .explore-sender-area [class*="sender-header"] button,
+                      .explore-sender-area [class*="header-close"] {
+                        color: var(--color-text-tertiary) !important;
+                        background-color: transparent !important;
+                        border-color: transparent !important;
+                      }
+                      .explore-sender-area .ant-sender-header-close:hover,
+                      .explore-sender-area [class*="sender-header"] button:hover,
+                      .explore-sender-area [class*="header-close"]:hover {
+                        color: var(--color-text-primary) !important;
+                        background-color: var(--color-state-hover) !important;
+                      }
+                      /* Attachments 容器和拖拽区域背景 */
+                      .explore-sender-area .ant-attachments,
+                      .explore-sender-area .ant-attachment-placeholder {
+                        background-color: var(--color-components-card-bg) !important;
+                      }
+                      /* 拖拽区域边框 */
+                      .explore-sender-area .ant-attachment-placeholder-inner {
+                        border-color: var(--color-border-default) !important;
+                      }
+                      .explore-sender-area .ant-attachments:hover .ant-attachment-placeholder-inner {
+                        border-color: var(--color-border-accent) !important;
+                      }
+                      /* 已上传文件列表项 */
+                      .explore-sender-area .ant-attachments-list-item {
+                        background-color: var(--color-components-input-bg) !important;
+                        border-color: var(--color-border-default) !important;
+                      }
+                      .explore-sender-area .ant-attachments-list-item:hover {
+                        background-color: var(--color-components-input-bg-hover) !important;
+                      }
+                      .explore-sender-area .ant-attachments-list-item-name {
+                        color: var(--color-text-primary) !important;
+                      }
                     `}</style>
                     
                     <Sender
@@ -1722,6 +1742,20 @@ export const ExplorePage: React.FC = () => {
                           title="上传文件"
                           open={headerOpen}
                           onOpenChange={setHeaderOpen}
+                          styles={{
+                            header: {
+                              backgroundColor: 'var(--color-components-card-bg)',
+                              borderColor: 'var(--color-components-input-border)',
+                              borderRadius: '16px 16px 0 0',
+                              borderWidth: '1px',
+                              borderStyle: 'solid',
+                              borderBottom: 'none',
+                            },
+                            content: {
+                              padding: 0,
+                              backgroundColor: 'var(--color-components-card-bg)',
+                            },
+                          }}
                         >
                           <Attachments
                             items={uploadFiles as any}
@@ -1738,8 +1772,63 @@ export const ExplorePage: React.FC = () => {
                             }}
                             placeholder={{
                               icon: <Upload className="w-8 h-8" style={{ color: 'var(--color-text-tertiary)' }} />,
-                              title: '拖拽或点击上传文件',
-                              description: `支持图片、文档等格式，最多 ${uploadConfig.maxCount} 个文件，每个最大 ${Math.round(uploadConfig.maxSize / 1024 / 1024)}MB`,
+                              title: <span style={{ color: 'var(--color-text-primary)' }}>拖拽或点击上传文件</span>,
+                              description: <span style={{ color: 'var(--color-text-secondary)' }}>{`支持图片、文档等格式，最多 ${uploadConfig.maxCount} 个文件，每个最大 ${Math.round(uploadConfig.maxSize / 1024 / 1024)}MB`}</span>,
+                            }}
+                            style={{
+                              backgroundColor: 'var(--color-components-card-bg)',
+                            }}
+                            // 自定义上传请求，参考 ragflow 的 createConversationBeforeUploadFile
+                            // 1. 防止默认上传到当前页面 URL
+                            // 2. 如果没有对话，先创建对话再上传
+                            customRequest={async (options) => {
+                              const { file, onSuccess, onError } = options
+                              try {
+                                let conversationId = selectedConversationDetail?.id
+                                
+                                // 如果没有对话，先创建一个新对话（参考 ragflow）
+                                if (!conversationId && selectedApp) {
+                                  const newConversation = await conversationAPI.setConversation({
+                                    dialog_id: selectedApp,
+                                    name: (file as File).name || 'New conversation',
+                                    is_new: true
+                                  })
+                                  
+                                  if (newConversation?.id) {
+                                    conversationId = newConversation.id
+                                    // 刷新对话列表
+                                    refetchConversations()
+                                    // 更新当前对话详情
+                                    setTimeout(() => fetchConversationDetail(newConversation.id), 500)
+                                  }
+                                }
+                                
+                                if (!conversationId) {
+                                  onError?.(new Error('No conversation available'))
+                                  toast.error('请先选择或创建一个对话')
+                                  return
+                                }
+                                
+                                // 调用上传 API
+                                const result = await conversationAPI.uploadAndParse(
+                                  conversationId,
+                                  file as File
+                                  // 注：进度回调暂不使用，Attachments 组件会通过 onChange 处理文件状态
+                                )
+                                
+                                if (result) {
+                                  onSuccess?.(result, new XMLHttpRequest())
+                                  toast.success(`文件 ${(file as File).name} 上传成功，解析完成后可基于文档提问`)
+                                  // 上传成功后自动收起面板
+                                  setHeaderOpen(false)
+                                } else {
+                                  onError?.(new Error('Upload failed'))
+                                }
+                              } catch (error) {
+                                console.error('Upload error:', error)
+                                onError?.(error as Error)
+                                toast.error(`上传失败: ${(error as Error).message}`)
+                              }
                             }}
                           />
                         </Sender.Header>
@@ -1852,7 +1941,22 @@ export const ExplorePage: React.FC = () => {
                       >
                         <Paperclip className="w-3 h-3" />
                         <span>已上传 {uploadFiles.filter(f => f.status === 'done').length} 个文件</span>
-                        {isUploading && <span style={{ color: 'var(--color-components-button-primary-bg)' }}>（上传中...）</span>}
+                        {isUploading && <span style={{ color: 'var(--color-components-button-primary-bg)' }}>（处理中...）</span>}
+                      </div>
+                    )}
+                    
+                    {/* 文件处理中的提示 - 当有文件正在上传时显示 */}
+                    {isUploading && (
+                      <div 
+                        className="mt-2 px-3 py-2 rounded-lg text-xs flex items-center gap-2"
+                        style={{ 
+                          backgroundColor: 'var(--color-status-warning-bg)', 
+                          color: 'var(--color-status-warning-text)',
+                          border: '1px solid var(--color-status-warning-border)'
+                        }}
+                      >
+                        <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                        <span>文件正在解析中，此时提问将不包含当前上传的文档内容</span>
                       </div>
                     )}
                   </div>

@@ -228,12 +228,16 @@ export const conversationAPI = {
     }),
 
   // ============================================================================
-  // 文件上传相关接口（参考 ragflow /document/upload_info）
+  // 文件上传相关接口（使用 /document/upload_and_parse，需要 conversation_id）
   // ============================================================================
 
   /**
    * 上传并解析文件
    * 用于聊天时上传文件，文件会被解析后参与对话
+   * 
+   * 注意：使用 /document/upload_and_parse 接口（而非 /document/upload_info）
+   * - upload_and_parse: 需要 conversation_id，文件会关联到对话
+   * - upload_info: 不需要 conversation_id，仅做文件解析
    * 
    * @param conversationId - 对话 ID
    * @param file - 要上传的文件
@@ -250,7 +254,7 @@ export const conversationAPI = {
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest()
       const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
-      xhr.open('POST', `${baseURL}/v1/document/upload_info`)
+      xhr.open('POST', `${baseURL}/v1/document/upload_and_parse`)
       
       // 设置认证头
       const token = localStorage.getItem('auth_token')
