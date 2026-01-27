@@ -123,19 +123,19 @@ export const MCPDashboard: React.FC = () => {
             </div>
 
             <TabsList className="grid w-full grid-cols-5 mb-8">
-              <TabsTrigger value="overview" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+              <TabsTrigger value="overview" className="data-[state=active]:bg-[var(--color-components-button-primary-bg)] data-[state=active]:text-[var(--color-components-button-primary-text)]">
                 概览面板
               </TabsTrigger>
-              <TabsTrigger value="servers" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+              <TabsTrigger value="servers" className="data-[state=active]:bg-[var(--color-components-button-primary-bg)] data-[state=active]:text-[var(--color-components-button-primary-text)]">
                 服务器管理
               </TabsTrigger>
-              <TabsTrigger value="tools" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+              <TabsTrigger value="tools" className="data-[state=active]:bg-[var(--color-components-button-primary-bg)] data-[state=active]:text-[var(--color-components-button-primary-text)]">
                 工具管理
               </TabsTrigger>
-              <TabsTrigger value="test" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+              <TabsTrigger value="test" className="data-[state=active]:bg-[var(--color-components-button-primary-bg)] data-[state=active]:text-[var(--color-components-button-primary-text)]">
                 连接测试
               </TabsTrigger>
-              <TabsTrigger value="batch" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+              <TabsTrigger value="batch" className="data-[state=active]:bg-[var(--color-components-button-primary-bg)] data-[state=active]:text-[var(--color-components-button-primary-text)]">
                 批量操作
               </TabsTrigger>
             </TabsList>

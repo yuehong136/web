@@ -132,7 +132,8 @@ export const MCPServersPage: React.FC<ServerListPageProps> = ({ onServerSelect }
           </div>
           <Button 
             onClick={() => setShowCreateDialog(true)} 
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg shadow-blue-500/25 hover-lift"
+            className="shadow-lg hover-lift"
+            variant="default"
           >
             <Plus className="h-4 w-4 mr-2" />
             创建服务器
@@ -286,7 +287,7 @@ export const MCPServersPage: React.FC<ServerListPageProps> = ({ onServerSelect }
               {!searchTerm && (
                 <Button 
                   onClick={() => setShowCreateDialog(true)}
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                  variant="default"
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   创建服务器

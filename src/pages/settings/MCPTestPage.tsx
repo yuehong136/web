@@ -319,7 +319,8 @@ export const MCPTestPage: React.FC = () => {
                       onClick={handleTest}
                       disabled={testing || !testForm.url}
                       size="lg"
-                      className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 px-8"
+                      className="px-8"
+                      variant="default"
                     >
                       {testing ? (
                         <Loader2 className="h-5 w-5 mr-2 animate-spin" />

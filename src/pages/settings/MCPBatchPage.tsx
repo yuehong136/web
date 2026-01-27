@@ -354,7 +354,7 @@ export const MCPBatchPage: React.FC = () => {
                       <Button
                         onClick={handleImport}
                         disabled={operating || !importData.trim()}
-                        className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                        variant="default"
                       >
                         {operating ? (
                           <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -386,7 +386,7 @@ export const MCPBatchPage: React.FC = () => {
                       <Button
                         onClick={handleExport}
                         disabled={operating || selectedServers.size === 0}
-                        className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
+                        variant="default"
                       >
                         {operating ? (
                           <Loader2 className="h-4 w-4 mr-2 animate-spin" />

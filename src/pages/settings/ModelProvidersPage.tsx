@@ -90,7 +90,7 @@ const APIKeyModal: React.FC<{
           <Button 
             onClick={handleSave} 
             disabled={!apiKey.trim() || isLoading}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
+            variant="default"
           >
             {isLoading ? '保存中...' : '确定'}
           </Button>
@@ -293,7 +293,8 @@ const AvailableProviderCard: React.FC<{
         <Button 
           onClick={onAdd}
           disabled={factory.status !== "1"}
-          className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+          className="flex-1"
+          variant="default"
           size="sm"
         >
           <Plus className="h-4 w-4 mr-1" />

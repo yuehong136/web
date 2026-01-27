@@ -2264,7 +2264,8 @@ const ApiDocumentationPage: React.FC = () => {
                             <Button
                               onClick={handleTestAPI}
                               disabled={testLoading}
-                              className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-colors duration-150 h-10"
+                              className="shadow-lg hover:shadow-xl transition-colors duration-150 h-10"
+                              variant="default"
                               size="default"
                             >
                               {testLoading ? (

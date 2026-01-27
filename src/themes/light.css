@@ -45,14 +45,14 @@ html[data-theme="light"], :root {
   --color-border-error: #ef4444;
 
   /* ===== 按钮组件 ===== */
-  --color-components-button-primary-bg: #1e40af;
-  --color-components-button-primary-bg-hover: #1d4ed8;
-  --color-components-button-primary-bg-active: #1e3a8a;
+  --color-components-button-primary-bg: #18181b;
+  --color-components-button-primary-bg-hover: #27272a;
+  --color-components-button-primary-bg-active: #09090b;
   --color-components-button-primary-bg-disabled: #ececf0;
   --color-components-button-primary-text: #ffffff;
   --color-components-button-primary-text-disabled: #9ca3af;
-  --color-components-button-primary-border: #1e40af;
-  --color-components-button-primary-border-hover: #1d4ed8;
+  --color-components-button-primary-border: #18181b;
+  --color-components-button-primary-border-hover: #27272a;
   --color-components-button-secondary-bg: #f3f3f5;
   --color-components-button-secondary-bg-hover: #e9ebef;
   --color-components-button-secondary-bg-active: #ececf0;
@@ -72,7 +72,7 @@ html[data-theme="light"], :root {
   --color-components-input-bg-disabled: #f5f5f5;
   --color-components-input-border: #e2e8f0;
   --color-components-input-border-hover: #cbd5e1;
-  --color-components-input-border-focus: #1e40af;
+  --color-components-input-border-focus: #00BEB4;
   --color-components-input-border-error: #ef4444;
   --color-components-input-text: #111827;
   --color-components-input-text-placeholder: #9ca3af;
@@ -96,7 +96,7 @@ html[data-theme="light"], :root {
   --color-components-sidebar-item-bg-hover: rgba(0, 0, 0, 0.04);
   --color-components-sidebar-item-bg-active: rgba(59, 130, 246, 0.08);
   --color-components-sidebar-item-text: #6b7280;
-  --color-components-sidebar-item-text-active: #2563eb;
+  --color-components-sidebar-item-text-active: #00D4C8;
   --color-components-sidebar-backdrop: blur(12px);
 
   /* ===== 导航组件 ===== */
@@ -104,7 +104,7 @@ html[data-theme="light"], :root {
   --color-components-nav-border: #e5e7eb;
   --color-components-nav-item-text: #6b7280;
   --color-components-nav-item-text-hover: #374151;
-  --color-components-nav-item-text-active: #1e40af;
+  --color-components-nav-item-text-active: #00BEB4;
 
   /* ===== 下拉菜单组件 ===== */
   --color-components-dropdown-bg: #ffffff;
@@ -128,7 +128,7 @@ html[data-theme="light"], :root {
   --color-components-model-selector-item-text: #374151;
   --color-components-model-selector-item-bg-hover: #f3f4f6;
   --color-components-model-selector-item-bg-selected: rgba(59, 130, 246, 0.1);
-  --color-components-model-selector-item-text-selected: #3b82f6;
+  --color-components-model-selector-item-text-selected: #33D4CB;
   --color-components-model-selector-overlay-bg: rgba(0, 0, 0, 0.3);
 
   /* ===== 编辑器组件 ===== */
@@ -185,7 +185,7 @@ html[data-theme="light"], :root {
   /* ===== 交互状态 ===== */
   --color-state-hover: #f3f4f6;
   --color-state-active: #e5e7eb;
-  --color-state-focus: #1e40af;
+  --color-state-focus: #00BEB4;
   --color-state-disabled: #e5e7eb;
   --color-state-success: #10b981;
   --color-state-warning: #f59e0b;
@@ -204,22 +204,22 @@ html[data-theme="light"], :root {
 
   /* ===== 表单控件 ===== */
   --color-components-checkbox-bg: #ffffff;
-  --color-components-checkbox-bg-checked: #1e40af;
+  --color-components-checkbox-bg-checked: #00BEB4;
   --color-components-checkbox-border: #d1d5db;
-  --color-components-checkbox-border-checked: #1e40af;
+  --color-components-checkbox-border-checked: #00BEB4;
   --color-components-checkbox-icon: #ffffff;
   --color-components-radio-bg: #ffffff;
   --color-components-radio-bg-checked: #ffffff;
   --color-components-radio-border: #d1d5db;
-  --color-components-radio-border-checked: #1e40af;
-  --color-components-radio-dot: #1e40af;
+  --color-components-radio-border-checked: #00BEB4;
+  --color-components-radio-dot: #00BEB4;
   --color-components-select-bg: #ffffff;
   --color-components-select-border: #d1d5db;
-  --color-components-select-border-focus: #1e40af;
+  --color-components-select-border-focus: #00BEB4;
   --color-components-select-text: #111827;
   --color-components-select-placeholder: #9ca3af;
   --color-components-switch-bg: #e5e7eb;
-  --color-components-switch-bg-checked: #1e40af;
+  --color-components-switch-bg-checked: #00BEB4;
   --color-components-switch-thumb: #ffffff;
   --color-components-switch-thumb-checked: #ffffff;
 
@@ -252,8 +252,8 @@ html[data-theme="light"], :root {
 
   /* ===== 状态和通知 ===== */
   --color-components-alert-info-bg: #eff6ff;
-  --color-components-alert-info-border: #1e40af;
-  --color-components-alert-info-text: #1e40af;
+  --color-components-alert-info-border: #00BEB4;
+  --color-components-alert-info-text: #00BEB4;
   --color-components-alert-success-bg: #f0fdf4;
   --color-components-alert-success-border: #22c55e;
   --color-components-alert-success-text: #15803d;
@@ -267,18 +267,18 @@ html[data-theme="light"], :root {
   /* ===== 加载和进度 ===== */
   --color-components-skeleton-bg: #f3f4f6;
   --color-components-progress-bg: #e5e7eb;
-  --color-components-progress-fill: #1e40af;
-  --color-components-spinner-color: #1e40af;
+  --color-components-progress-fill: #00BEB4;
+  --color-components-spinner-color: #00BEB4;
   --color-components-task-status-running-progress-bg: rgba(107, 114, 128, 0.2);
-  --color-components-task-status-running-progress-fill: linear-gradient(to right, #3b82f6, #8b5cf6);
+  --color-components-task-status-running-progress-fill: linear-gradient(to right, #33D4CB, #8b5cf6);
   --color-components-task-status-running-progress-glow: linear-gradient(to right, rgba(59, 130, 246, 0.5), rgba(139, 92, 246, 0.5));
-  --color-components-loader-primary: #1e40af;
+  --color-components-loader-primary: #00BEB4;
   --color-components-loader-secondary: #d1d5db;
   --color-components-skeleton-base: #f3f4f6;
   --color-components-skeleton-shimmer: #ffffff;
   --color-components-skeleton-text: #e5e7eb;
   --color-components-upload-progress-bg: #e5e7eb;
-  --color-components-upload-progress-fill: #1e40af;
+  --color-components-upload-progress-fill: #00BEB4;
 
   /* ===== 代码和预格式化文本 ===== */
   --color-components-code-bg: #f6f8fa;
@@ -294,7 +294,7 @@ html[data-theme="light"], :root {
   --color-components-icon-button-bg-hover: #f3f4f6;
 
   /* ===== 应用头像 ===== */
-  --color-components-app-avatar-bg: linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%);
+  --color-components-app-avatar-bg: linear-gradient(135deg, #8b5cf6 0%, #33D4CB 100%);
   --color-components-app-avatar-border: rgba(139, 92, 246, 0.2);
 
   /* ===== 其他组件 ===== */
@@ -302,8 +302,8 @@ html[data-theme="light"], :root {
   --color-components-method-get-text: #166534;
   --color-components-method-get-border: #22c55e;
   --color-components-method-post-bg: rgba(59, 130, 246, 0.1);
-  --color-components-method-post-text: #1e40af;
-  --color-components-method-post-border: #3b82f6;
+  --color-components-method-post-text: #00BEB4;
+  --color-components-method-post-border: #33D4CB;
   --color-components-method-put-bg: rgba(245, 158, 11, 0.1);
   --color-components-method-put-text: #d97706;
   --color-components-method-put-border: #f59e0b;
@@ -317,7 +317,7 @@ html[data-theme="light"], :root {
   --color-components-env-prod-text: #ffffff;
   --color-components-env-staging-bg: #f59e0b;
   --color-components-env-staging-text: #ffffff;
-  --color-components-env-dev-bg: #3b82f6;
+  --color-components-env-dev-bg: #33D4CB;
   --color-components-env-dev-text: #ffffff;
   --color-components-glassmorphism-bg: rgba(255, 255, 255, 0.75);
   --color-components-glassmorphism-border: rgba(255, 255, 255, 0.2);
@@ -325,7 +325,7 @@ html[data-theme="light"], :root {
   --color-components-api-docs-header-border: rgba(0, 0, 0, 0.1);
   --color-components-api-docs-border: #e5e7eb;
   --color-components-slider-track: #e5e7eb;
-  --color-components-slider-range: #1e40af;
+  --color-components-slider-range: #00BEB4;
   --color-components-slider-thumb: #ffffff;
   --color-components-slider-thumb-border: rgba(30, 64, 175, 0.5);
   --color-components-badge-bg: #f5f5f5;
@@ -338,7 +338,7 @@ html[data-theme="light"], :root {
   --color-components-badge-error-bg: #fee2e2;
   --color-components-badge-error-text: #991b1b;
   --color-components-badge-info-bg: #dbeafe;
-  --color-components-badge-info-text: #1e40af;
+  --color-components-badge-info-text: #00BEB4;
   --color-components-badge-neutral-bg: #f3f4f6;
   --color-components-badge-neutral-text: #6b7280;
   --color-components-task-status-idle-bg: rgba(107, 114, 128, 0.1);
@@ -347,8 +347,8 @@ html[data-theme="light"], :root {
   --color-components-task-status-idle-dot: #9ca3af;
   --color-components-task-status-running-bg: linear-gradient(to right, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
   --color-components-task-status-running-border: rgba(59, 130, 246, 0.2);
-  --color-components-task-status-running-text: #2563eb;
-  --color-components-task-status-running-dot: #3b82f6;
+  --color-components-task-status-running-text: #00D4C8;
+  --color-components-task-status-running-dot: #33D4CB;
   --color-components-task-status-cancelled-bg: rgba(245, 158, 11, 0.1);
   --color-components-task-status-cancelled-border: rgba(245, 158, 11, 0.2);
   --color-components-task-status-cancelled-text: #d97706;
@@ -368,7 +368,7 @@ html[data-theme="light"], :root {
   --color-components-pagination-border: #e5e7eb;
   --color-components-pagination-item-bg: #ffffff;
   --color-components-pagination-item-bg-hover: #f9fafb;
-  --color-components-pagination-item-bg-active: #1e40af;
+  --color-components-pagination-item-bg-active: #18181b;
   --color-components-pagination-item-text: #374151;
   --color-components-pagination-item-text-active: #ffffff;
   --color-components-pagination-disabled-bg: #f9fafb;
@@ -387,7 +387,7 @@ html[data-theme="light"], :root {
   --color-components-divider-text: #9ca3af;
   --color-components-timeline-line: #e5e7eb;
   --color-components-timeline-dot: #d1d5db;
-  --color-components-timeline-dot-active: #1e40af;
+  --color-components-timeline-dot-active: #00BEB4;
   --color-components-timeline-content-bg: #ffffff;
   --color-components-timeline-content-border: #e5e7eb;
   --color-components-calendar-bg: #ffffff;
@@ -397,10 +397,10 @@ html[data-theme="light"], :root {
   --color-components-calendar-cell-bg: #ffffff;
   --color-components-calendar-cell-text: #374151;
   --color-components-calendar-cell-bg-hover: #f3f4f6;
-  --color-components-calendar-cell-bg-selected: #1e40af;
+  --color-components-calendar-cell-bg-selected: #00BEB4;
   --color-components-calendar-cell-text-selected: #ffffff;
   --color-components-calendar-cell-bg-today: #eff6ff;
-  --color-components-calendar-cell-text-today: #2563eb;
+  --color-components-calendar-cell-text-today: #00D4C8;
   --color-components-calendar-cell-bg-disabled: #f9fafb;
   --color-components-calendar-cell-text-disabled: #d1d5db;
   --color-components-drawer-bg: #ffffff;
@@ -422,7 +422,7 @@ html[data-theme="light"], :root {
   --color-components-tree-node-bg-hover: #f3f4f6;
   --color-components-tree-node-bg-selected: #eff6ff;
   --color-components-tree-node-text: #374151;
-  --color-components-tree-node-text-selected: #2563eb;
+  --color-components-tree-node-text-selected: #00D4C8;
   --color-components-tree-indent-line: #e5e7eb;
   --color-components-tree-expand-icon: #9ca3af;
   --color-components-transfer-bg: #ffffff;
@@ -433,7 +433,7 @@ html[data-theme="light"], :root {
   --color-components-transfer-item-bg-hover: #f3f4f6;
   --color-components-transfer-item-bg-selected: #eff6ff;
   --color-components-transfer-item-text: #374151;
-  --color-components-transfer-item-text-selected: #2563eb;
+  --color-components-transfer-item-text-selected: #00D4C8;
   --color-components-upload-bg: transparent;
   --color-components-upload-bg-dragover: rgba(3, 2, 19, 0.05);
   --color-components-upload-border: rgba(113, 113, 130, 0.25);
@@ -450,7 +450,7 @@ html[data-theme="light"], :root {
   --color-components-result-icon-success: #10b981;
   --color-components-result-icon-error: #ef4444;
   --color-components-result-icon-warning: #f59e0b;
-  --color-components-result-icon-info: #1e40af;
+  --color-components-result-icon-info: #00BEB4;
   --color-components-result-title: #1f2937;
   --color-components-result-subtitle: #6b7280;
   --color-components-rate-star: #d1d5db;
@@ -459,7 +459,7 @@ html[data-theme="light"], :root {
   --color-components-anchor-bg: #ffffff;
   --color-components-anchor-border: #e5e7eb;
   --color-components-anchor-link: #6b7280;
-  --color-components-anchor-link-active: #1e40af;
+  --color-components-anchor-link-active: #00BEB4;
   --color-components-anchor-link-hover: #374151;
   --color-components-backtop-bg: #ffffff;
   --color-components-backtop-text: #6b7280;
@@ -534,7 +534,7 @@ html[data-theme="light"], :root {
   --color-components-http-method-get-text: #15803d;
   --color-components-http-method-get-border: #bbf7d0;
   --color-components-http-method-post-bg: #eff6ff;
-  --color-components-http-method-post-text: #1e40af;
+  --color-components-http-method-post-text: #00BEB4;
   --color-components-http-method-post-border: #bfdbfe;
   --color-components-http-method-put-bg: #fffbeb;
   --color-components-http-method-put-text: #d97706;
@@ -549,7 +549,7 @@ html[data-theme="light"], :root {
   --color-components-api-docs-content-bg: #ffffff;
   --color-components-api-docs-search-bg: #ffffff;
   --color-components-api-docs-search-border: #d1d5db;
-  --color-components-api-docs-search-focus-border: #3b82f6;
+  --color-components-api-docs-search-focus-border: #33D4CB;
   --color-components-glassmorphism-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
   --color-components-gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   --color-components-gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);

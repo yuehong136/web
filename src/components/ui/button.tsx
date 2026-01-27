@@ -3,11 +3,11 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "./utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:ring-1 focus-visible:ring-primary",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-state-focus)]",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90",
+        default: "bg-[var(--color-components-button-primary-bg)] text-[var(--color-components-button-primary-text)] shadow-sm hover:bg-[var(--color-components-button-primary-bg-hover)] active:bg-[var(--color-components-button-primary-bg-active)] border border-[var(--color-components-button-primary-border)] hover:border-[var(--color-components-button-primary-border-hover)]",
         destructive: "bg-state-error text-white shadow-sm hover:bg-state-error/90",
         outline: "border bg-components-button-secondary-bg text-components-button-secondary-text shadow-sm hover:bg-components-button-secondary-bg-hover border-components-button-secondary-border hover:border-components-button-secondary-border-hover",
         secondary: "bg-components-button-secondary-bg text-components-button-secondary-text shadow-sm hover:bg-components-button-secondary-bg-hover",

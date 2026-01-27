@@ -119,7 +119,8 @@ export const StudioPage: React.FC = () => {
         </div>
         <Button
           onClick={() => setShowCreateModal(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg flex items-center gap-2"
+          className="px-6 py-2 rounded-lg flex items-center gap-2"
+          variant="default"
         >
           <Plus className="h-5 w-5" />
           新建项目
@@ -247,7 +248,8 @@ export const StudioPage: React.FC = () => {
             </p>
             <Button
               onClick={() => setShowCreateModal(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg flex items-center gap-2"
+              className="px-6 py-2 rounded-lg flex items-center gap-2"
+          variant="default"
             >
               <Plus className="h-5 w-5" />
               创建第一个应用

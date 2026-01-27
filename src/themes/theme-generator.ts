@@ -38,14 +38,14 @@ export const lightTokens: DesignTokens = {
   'border-error': '#ef4444',
   
   // ===== 按钮组件 - Primary =====
-  'components-button-primary-bg': '#1e40af',
-  'components-button-primary-bg-hover': '#1d4ed8',
-  'components-button-primary-bg-active': '#1e3a8a',
+  'components-button-primary-bg': '#18181b',
+  'components-button-primary-bg-hover': '#27272a',
+  'components-button-primary-bg-active': '#09090b',
   'components-button-primary-bg-disabled': '#ececf0',
   'components-button-primary-text': '#ffffff',
   'components-button-primary-text-disabled': '#9ca3af',
-  'components-button-primary-border': '#1e40af',
-  'components-button-primary-border-hover': '#1d4ed8',
+  'components-button-primary-border': '#18181b',
+  'components-button-primary-border-hover': '#27272a',
   
   // ===== 按钮组件 - Secondary =====
   'components-button-secondary-bg': '#f3f3f5',
@@ -69,7 +69,7 @@ export const lightTokens: DesignTokens = {
   'components-input-bg-disabled': '#f5f5f5',
   'components-input-border': '#e2e8f0',
   'components-input-border-hover': '#cbd5e1',
-  'components-input-border-focus': '#1e40af',
+  'components-input-border-focus': '#00BEB4',
   'components-input-border-error': '#ef4444',
   'components-input-text': '#111827',
   'components-input-text-placeholder': '#9ca3af',
@@ -88,14 +88,14 @@ export const lightTokens: DesignTokens = {
   'components-sidebar-item-bg-hover': 'rgba(0, 0, 0, 0.04)',
   'components-sidebar-item-bg-active': 'rgba(59, 130, 246, 0.08)',
   'components-sidebar-item-text': '#6b7280',
-  'components-sidebar-item-text-active': '#2563eb',
+  'components-sidebar-item-text-active': '#00D4C8',
   
   // ===== 导航组件 =====
   'components-nav-bg': '#ffffff',
   'components-nav-border': '#e5e7eb',
   'components-nav-item-text': '#6b7280',
   'components-nav-item-text-hover': '#374151',
-  'components-nav-item-text-active': '#1e40af',
+  'components-nav-item-text-active': '#00BEB4',
   
   // ===== 下拉菜单组件 =====
   'components-dropdown-bg': '#ffffff',
@@ -119,7 +119,7 @@ export const lightTokens: DesignTokens = {
   'components-model-selector-item-text': '#374151',
   'components-model-selector-item-bg-hover': '#f3f4f6',
   'components-model-selector-item-bg-selected': 'rgba(59, 130, 246, 0.1)',
-  'components-model-selector-item-text-selected': '#3b82f6',
+  'components-model-selector-item-text-selected': '#33D4CB',
   'components-model-selector-overlay-bg': 'rgba(0, 0, 0, 0.3)',
   
   // ===== 模态框组件 =====
@@ -138,7 +138,7 @@ export const lightTokens: DesignTokens = {
   // ===== 交互状态 =====
   'state-hover': '#f3f4f6',
   'state-active': '#e5e7eb',
-  'state-focus': '#1e40af',
+  'state-focus': '#00BEB4',
   'state-disabled': '#e5e7eb',
   'state-success': '#10b981',
   'state-warning': '#f59e0b',
@@ -156,8 +156,8 @@ export const lightTokens: DesignTokens = {
   'components-method-get-text': '#166534',
   'components-method-get-border': '#22c55e',
   'components-method-post-bg': 'rgba(59, 130, 246, 0.1)',
-  'components-method-post-text': '#1e40af',
-  'components-method-post-border': '#3b82f6',
+  'components-method-post-text': '#00BEB4',
+  'components-method-post-border': '#33D4CB',
   'components-method-put-bg': 'rgba(245, 158, 11, 0.1)',
   'components-method-put-text': '#d97706',
   'components-method-put-border': '#f59e0b',
@@ -173,7 +173,7 @@ export const lightTokens: DesignTokens = {
   'components-env-prod-text': '#ffffff',
   'components-env-staging-bg': '#f59e0b',
   'components-env-staging-text': '#ffffff',
-  'components-env-dev-bg': '#3b82f6',
+  'components-env-dev-bg': '#33D4CB',
   'components-env-dev-text': '#ffffff',
   
   // ===== 毛玻璃效果 =====
@@ -198,31 +198,31 @@ export const lightTokens: DesignTokens = {
   
   // ===== 表单控件 =====
   'components-checkbox-bg': '#ffffff',
-  'components-checkbox-bg-checked': '#1e40af',
+  'components-checkbox-bg-checked': '#00BEB4',
   'components-checkbox-border': '#d1d5db',
-  'components-checkbox-border-checked': '#1e40af',
+  'components-checkbox-border-checked': '#00BEB4',
   'components-checkbox-icon': '#ffffff',
   
   'components-radio-bg': '#ffffff',
   'components-radio-bg-checked': '#ffffff',
   'components-radio-border': '#d1d5db',
-  'components-radio-border-checked': '#1e40af',
-  'components-radio-dot': '#1e40af',
+  'components-radio-border-checked': '#00BEB4',
+  'components-radio-dot': '#00BEB4',
   
   'components-select-bg': '#ffffff',
   'components-select-border': '#d1d5db',
-  'components-select-border-focus': '#1e40af',
+  'components-select-border-focus': '#00BEB4',
   'components-select-text': '#111827',
   'components-select-placeholder': '#9ca3af',
   
   'components-switch-bg': '#e5e7eb',
-  'components-switch-bg-checked': '#1e40af',
+  'components-switch-bg-checked': '#00BEB4',
   'components-switch-thumb': '#ffffff',
   'components-switch-thumb-checked': '#ffffff',
   
   // ===== 滑块组件 =====
   'components-slider-track': '#e5e7eb',
-  'components-slider-range': '#1e40af',
+  'components-slider-range': '#00BEB4',
   'components-slider-thumb': '#ffffff',
   'components-slider-thumb-border': 'rgba(30, 64, 175, 0.5)',
   
@@ -258,8 +258,8 @@ export const lightTokens: DesignTokens = {
   
   // ===== 状态和通知 =====
   'components-alert-info-bg': '#eff6ff',
-  'components-alert-info-border': '#1e40af',
-  'components-alert-info-text': '#1e40af',
+  'components-alert-info-border': '#00BEB4',
+  'components-alert-info-text': '#00BEB4',
   
   'components-alert-success-bg': '#f0fdf4',
   'components-alert-success-border': '#22c55e',
@@ -276,8 +276,8 @@ export const lightTokens: DesignTokens = {
   // ===== 加载和进度 =====
   'components-skeleton-bg': '#f3f4f6',
   'components-progress-bg': '#e5e7eb',
-  'components-progress-fill': '#1e40af',
-  'components-spinner-color': '#1e40af',
+  'components-progress-fill': '#00BEB4',
+  'components-spinner-color': '#00BEB4',
   
   // ===== 代码和预格式化文本 =====
   'components-code-bg': '#f6f8fa',
@@ -300,7 +300,7 @@ export const lightTokens: DesignTokens = {
   'components-badge-error-bg': '#fee2e2',
   'components-badge-error-text': '#991b1b',
   'components-badge-info-bg': '#dbeafe',
-  'components-badge-info-text': '#1e40af',
+  'components-badge-info-text': '#00BEB4',
   'components-badge-neutral-bg': '#f3f4f6',
   'components-badge-neutral-text': '#6b7280',
 
@@ -312,10 +312,10 @@ export const lightTokens: DesignTokens = {
 
   'components-task-status-running-bg': 'linear-gradient(to right, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1))',
   'components-task-status-running-border': 'rgba(59, 130, 246, 0.2)',
-  'components-task-status-running-text': '#2563eb',
-  'components-task-status-running-dot': '#3b82f6',
+  'components-task-status-running-text': '#00D4C8',
+  'components-task-status-running-dot': '#33D4CB',
   'components-task-status-running-progress-bg': 'rgba(107, 114, 128, 0.2)',
-  'components-task-status-running-progress-fill': 'linear-gradient(to right, #3b82f6, #8b5cf6)',
+  'components-task-status-running-progress-fill': 'linear-gradient(to right, #33D4CB, #8b5cf6)',
   'components-task-status-running-progress-glow': 'linear-gradient(to right, rgba(59, 130, 246, 0.5), rgba(139, 92, 246, 0.5))',
 
   'components-task-status-cancelled-bg': 'rgba(245, 158, 11, 0.1)',
@@ -342,7 +342,7 @@ export const lightTokens: DesignTokens = {
   'components-pagination-border': '#e5e7eb',
   'components-pagination-item-bg': '#ffffff',
   'components-pagination-item-bg-hover': '#f9fafb',
-  'components-pagination-item-bg-active': '#1e40af',
+  'components-pagination-item-bg-active': '#18181b',
   'components-pagination-item-text': '#374151',
   'components-pagination-item-text-active': '#ffffff',
   'components-pagination-disabled-bg': '#f9fafb',
@@ -361,7 +361,7 @@ export const lightTokens: DesignTokens = {
   'components-steps-line-completed': '#10b981',
   
   // 其余新增组件令牌使用合适的基础颜色
-  'components-loader-primary': '#1e40af',
+  'components-loader-primary': '#00BEB4',
   'components-loader-secondary': '#d1d5db',
   'components-skeleton-base': '#f3f4f6',
   'components-skeleton-shimmer': '#ffffff',
@@ -372,7 +372,7 @@ export const lightTokens: DesignTokens = {
   
   'components-timeline-line': '#e5e7eb',
   'components-timeline-dot': '#d1d5db',
-  'components-timeline-dot-active': '#1e40af',
+  'components-timeline-dot-active': '#00BEB4',
   'components-timeline-content-bg': '#ffffff',
   'components-timeline-content-border': '#e5e7eb',
   
@@ -383,10 +383,10 @@ export const lightTokens: DesignTokens = {
   'components-calendar-cell-bg': '#ffffff',
   'components-calendar-cell-text': '#374151',
   'components-calendar-cell-bg-hover': '#f3f4f6',
-  'components-calendar-cell-bg-selected': '#1e40af',
+  'components-calendar-cell-bg-selected': '#00BEB4',
   'components-calendar-cell-text-selected': '#ffffff',
   'components-calendar-cell-bg-today': '#eff6ff',
-  'components-calendar-cell-text-today': '#2563eb',
+  'components-calendar-cell-text-today': '#00D4C8',
   'components-calendar-cell-bg-disabled': '#f9fafb',
   'components-calendar-cell-text-disabled': '#d1d5db',
   
@@ -411,7 +411,7 @@ export const lightTokens: DesignTokens = {
   'components-tree-node-bg-hover': '#f3f4f6',
   'components-tree-node-bg-selected': '#eff6ff',
   'components-tree-node-text': '#374151',
-  'components-tree-node-text-selected': '#2563eb',
+  'components-tree-node-text-selected': '#00D4C8',
   'components-tree-indent-line': '#e5e7eb',
   'components-tree-expand-icon': '#9ca3af',
   
@@ -423,7 +423,7 @@ export const lightTokens: DesignTokens = {
   'components-transfer-item-bg-hover': '#f3f4f6',
   'components-transfer-item-bg-selected': '#eff6ff',
   'components-transfer-item-text': '#374151',
-  'components-transfer-item-text-selected': '#2563eb',
+  'components-transfer-item-text-selected': '#00D4C8',
   
   'components-upload-bg': 'transparent',
   'components-upload-bg-dragover': 'rgba(3, 2, 19, 0.05)',
@@ -434,7 +434,7 @@ export const lightTokens: DesignTokens = {
   'components-upload-text-secondary': '#9ca3af',
   'components-upload-icon': '#d1d5db',
   'components-upload-progress-bg': '#e5e7eb',
-  'components-upload-progress-fill': '#1e40af',
+  'components-upload-progress-fill': '#00BEB4',
   
   'components-statistic-title': '#9ca3af',
   'components-statistic-value': '#1f2937',
@@ -445,7 +445,7 @@ export const lightTokens: DesignTokens = {
   'components-result-icon-success': '#10b981',
   'components-result-icon-error': '#ef4444',
   'components-result-icon-warning': '#f59e0b',
-  'components-result-icon-info': '#1e40af',
+  'components-result-icon-info': '#00BEB4',
   'components-result-title': '#1f2937',
   'components-result-subtitle': '#6b7280',
   
@@ -456,7 +456,7 @@ export const lightTokens: DesignTokens = {
   'components-anchor-bg': '#ffffff',
   'components-anchor-border': '#e5e7eb',
   'components-anchor-link': '#6b7280',
-  'components-anchor-link-active': '#1e40af',
+  'components-anchor-link-active': '#00BEB4',
   'components-anchor-link-hover': '#374151',
   
   'components-backtop-bg': '#ffffff',
@@ -586,7 +586,7 @@ export const lightTokens: DesignTokens = {
   'chat-preview-debug-text': '#374151',
 
   // ===== 应用头像 =====
-  'components-app-avatar-bg': 'linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%)',
+  'components-app-avatar-bg': 'linear-gradient(135deg, #8b5cf6 0%, #33D4CB 100%)',
   'components-app-avatar-border': 'rgba(139, 92, 246, 0.2)',
   
   // ===== 聊天气泡和头像 =====
@@ -626,7 +626,7 @@ export const lightTokens: DesignTokens = {
   'components-http-method-get-text': '#15803d',
   'components-http-method-get-border': '#bbf7d0',
   'components-http-method-post-bg': '#eff6ff',
-  'components-http-method-post-text': '#1e40af',
+  'components-http-method-post-text': '#00BEB4',
   'components-http-method-post-border': '#bfdbfe',
   'components-http-method-put-bg': '#fffbeb',
   'components-http-method-put-text': '#d97706',
@@ -647,7 +647,7 @@ export const lightTokens: DesignTokens = {
   'components-api-docs-content-bg': '#ffffff',
   'components-api-docs-search-bg': '#ffffff',
   'components-api-docs-search-border': '#d1d5db',
-  'components-api-docs-search-focus-border': '#3b82f6',
+  'components-api-docs-search-focus-border': '#33D4CB',
 
   // ===== 现代化增强组件 =====
   'components-glassmorphism-bg': 'rgba(255, 255, 255, 0.75)',
