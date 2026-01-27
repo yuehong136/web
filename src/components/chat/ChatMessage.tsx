@@ -4,8 +4,12 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ToolCallDisplay } from "./ToolCallDisplay";
 import { MarkdownRenderer } from "./MarkdownRenderer";
+import { ReferenceImageList } from "./ReferenceImageList";
 import { Copy, Check, ThumbsUp, ThumbsDown } from "lucide-react";
 import { toast } from "@/lib/toast";
+import { copyToClipboard } from "@/lib/utils";
+import type { ReferenceChunk } from "@/utils/reference-replacer";
+
 // 直接定义类型，避免导入问题
 interface ChatMessageType {
   id: string;
@@ -14,6 +18,7 @@ interface ChatMessageType {
   timestamp: string;
   toolCalls?: any[];
   parsedToolCalls?: any[];
+  referenceChunks?: ReferenceChunk[];
 }
 
 interface ChatMessageProps {
@@ -22,10 +27,11 @@ interface ChatMessageProps {
   timestamp?: string;
   toolCalls?: ChatMessageType['toolCalls'];
   parsedToolCalls?: ChatMessageType['parsedToolCalls'];
+  referenceChunks?: ReferenceChunk[];  // 新增：引用 chunks 数据
   isLoading?: boolean;  // 新增：是否正在加载
 }
 
-export function ChatMessage({ role, content, timestamp, toolCalls, parsedToolCalls, isLoading = false }: ChatMessageProps) {
+export function ChatMessage({ role, content, timestamp, toolCalls, parsedToolCalls, referenceChunks, isLoading = false }: ChatMessageProps) {
   const isAssistant = role === 'assistant';
   const [copied, setCopied] = useState(false);
 
@@ -33,40 +39,12 @@ export function ChatMessage({ role, content, timestamp, toolCalls, parsedToolCal
     if (!content) return;
     
     try {
-      // 首先尝试使用 Clipboard API
-      if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(content);
-        setCopied(true);
-        toast.success('已复制到剪贴板');
-        // 2秒后重置复制状态
-        setTimeout(() => setCopied(false), 2000);
-      } else {
-        // 回退方案：使用 document.execCommand
-        const textArea = document.createElement('textarea');
-        textArea.value = content;
-        textArea.style.position = 'fixed';
-        textArea.style.left = '-999999px';
-        textArea.style.top = '-999999px';
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-        
-        try {
-          const successful = document.execCommand('copy');
-          if (successful) {
-            setCopied(true);
-            toast.success('已复制到剪贴板');
-            setTimeout(() => setCopied(false), 2000);
-          } else {
-            throw new Error('Copy command failed');
-          }
-        } finally {
-          document.body.removeChild(textArea);
-        }
-      }
+      await copyToClipboard(content);
+      setCopied(true);
+      toast.success('已复制到剪贴板');
+      setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       console.error('Failed to copy text: ', err);
-      // 最后的回退方案：提示用户手动复制
       toast.error('复制失败，请手动选择文本复制');
     }
   };
@@ -114,6 +92,15 @@ export function ChatMessage({ role, content, timestamp, toolCalls, parsedToolCal
                       <span className="text-muted-foreground">正在思考中...</span>
                     ) : null}
                   </div>
+                  
+                  {/* 图片引用列表 - 在消息内容下方展示图片类型的引用 */}
+                  {!isLoading && content && referenceChunks && referenceChunks.length > 0 && (
+                    <ReferenceImageList
+                      referenceChunks={referenceChunks}
+                      messageContent={content}
+                      className="mt-3"
+                    />
+                  )}
                   
                   {/* AI消息操作栏 - 只在消息生成完成后显示 */}
                   {!isLoading && (

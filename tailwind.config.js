@@ -128,5 +128,6 @@ export default {
     require('@tailwindcss/forms'),
     require('@tailwindcss/typography'),
     require('tailwind-scrollbar')({ nocompatible: true }),
+    require('@tailwindcss/container-queries'),
   ],
 }

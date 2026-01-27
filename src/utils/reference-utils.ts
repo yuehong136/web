@@ -175,7 +175,8 @@ export function getChunkByRefId(
  */
 export function buildImageUrl(imageId: string): string {
   const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
-  return `${baseUrl}/document/image/${imageId}`
+  // 注意：API 需要 /v1 版本前缀
+  return `${baseUrl}/v1/document/image/${imageId}`
 }
 
 /**

@@ -59,6 +59,7 @@ import {
 import { ReferencePanel } from '@/components/chat/ReferencePanel'
 import { ReferenceDetailSheet } from '@/components/chat/ReferenceDetailSheet'
 import { createReferenceMarkerComponent } from '@/components/chat/ReferenceMarker'
+import { ReferenceImageList } from '@/components/chat/ReferenceImageList'
 
 // 延迟加载 ImageCarousel 组件，避免 embla-carousel 初始化问题
 const ImageCarousel = React.lazy(() => import('@/components/chat/ImageCarousel'))
@@ -137,7 +138,7 @@ const CarouselWrapper: React.FC<CarouselWrapperProps> = ({ group, chunks }) => {
           return (
             <img
               key={ref.id}
-              src={`${baseUrl}/document/image/${chunk.image_id}`}
+              src={`${baseUrl}/v1/document/image/${chunk.image_id}`}
               alt={`Fig. ${chunkIndex + 1}`}
               className="max-h-36 object-contain rounded-lg"
               style={{ border: '1px solid var(--color-border-subtle)' }}
@@ -982,6 +983,16 @@ export const ExplorePage: React.FC = () => {
               <span className="italic" style={{ color: 'var(--color-text-muted)' }}>正在生成...</span>
             )}
             
+            {/* 图片引用轮播列表 - 汇总展示消息中引用的所有图片 */}
+            {references.length > 0 && (
+              <ReferenceImageList
+                referenceChunks={references}
+                messageContent={mainContent}
+                className="mt-4"
+                onImageClick={(chunk) => handleViewDetail(chunk, references)}
+              />
+            )}
+            
             {/* 底部汇总显示所有引用来源 - 使用新的 ReferencePanel 组件 */}
             {references.length > 0 && (
               <ReferencePanel
@@ -1624,7 +1635,7 @@ export const ExplorePage: React.FC = () => {
           onOpenChange={setDetailSheetOpen}
           chunk={selectedChunk}
           allChunks={currentMessageReferences}
-          onCopySuccess={() => toast.success('已复制到剪贴板')}
+          onCopySuccess={() => { /* 组件内部已处理 toast */ }}
         />
       </div>
     </div>

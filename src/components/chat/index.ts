@@ -23,6 +23,7 @@ export { ImageCarousel } from './ImageCarousel';
 export { ReferenceMarker, createReferenceMarkerComponent } from './ReferenceMarker';
 export { ReferencePanel } from './ReferencePanel';
 export { ReferenceDetailSheet } from './ReferenceDetailSheet';
+export { ReferenceImageList } from './ReferenceImageList';
 
 // 聊天设置相关组件
 export { ChatSettingsPanel, defaultChatSettings } from './ChatSettingsPanel';
@@ -49,3 +50,4 @@ export type { GenerationPresetType, GenerationPreset, LLMParameters } from './Ge
 export type { ReferenceMarkerProps } from './ReferenceMarker';
 export type { ReferencePanelProps, DocAgg } from './ReferencePanel';
 export type { ReferenceDetailSheetProps } from './ReferenceDetailSheet';
+export type { ReferenceImageListProps } from './ReferenceImageList';

@@ -97,7 +97,7 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
 
   const renderCarouselContent = () => (
     <Carousel
-      className={cn('w-44 mx-auto', className)}
+      className={cn('w-full max-w-md mx-auto', className)}
       opts={{
         align: 'start',
         skipSnaps: false,
@@ -179,8 +179,8 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
           )
         })}
       </CarouselContent>
-      <CarouselPrevious className="h-7 w-7 -left-9" />
-      <CarouselNext className="h-7 w-7 -right-9" />
+      <CarouselPrevious className="h-8 w-8 -left-10" />
+      <CarouselNext className="h-8 w-8 -right-10" />
     </Carousel>
   )
 

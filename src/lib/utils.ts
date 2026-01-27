@@ -197,22 +197,74 @@ export function throttle<T extends (...args: any[]) => any>(
 }
 
 export function copyToClipboard(text: string): Promise<void> {
-  if (navigator.clipboard && window.isSecureContext) {
-    return navigator.clipboard.writeText(text)
-  } else {
+  return new Promise((resolve, reject) => {
+    // 优先使用 Clipboard API（需要 HTTPS 或 localhost）
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(resolve).catch(reject)
+      return
+    }
+    
+    // 回退方案：使用 execCommand
+    // 创建一个临时的 textarea 元素
     const textArea = document.createElement('textarea')
+    
+    // 设置要复制的文本
     textArea.value = text
-    textArea.style.position = 'fixed'
-    textArea.style.left = '-999999px'
-    textArea.style.top = '-999999px'
-    document.body.appendChild(textArea)
+    
+    // 设置为只读，防止移动设备上弹出键盘
+    textArea.setAttribute('readonly', '')
+    
+    // 将元素放在屏幕外
+    textArea.style.cssText = `
+      position: fixed;
+      top: -9999px;
+      left: -9999px;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      border: none;
+      outline: none;
+      box-shadow: none;
+      background: transparent;
+    `
+    
+    // 获取当前活跃元素，用于确定插入位置
+    // 在模态框（如 Sheet）中，将 textarea 插入到模态框内部，避免被 focus trap 干扰
+    const activeElement = document.activeElement as HTMLElement
+    const container = activeElement?.closest('[role="dialog"]') || document.body
+    
+    container.appendChild(textArea)
+    
+    // 选中文本
     textArea.focus()
     textArea.select()
-    return new Promise((resolve, reject) => {
-      document.execCommand('copy') ? resolve() : reject()
-      textArea.remove()
-    })
-  }
+    textArea.setSelectionRange(0, text.length)
+    
+    let successful = false
+    try {
+      successful = document.execCommand('copy')
+    } catch {
+      // execCommand 失败，将返回 reject
+    }
+    
+    // 移除临时元素
+    textArea.remove()
+    
+    // 恢复焦点
+    if (activeElement && typeof activeElement.focus === 'function') {
+      try {
+        activeElement.focus()
+      } catch {
+        // 忽略焦点恢复失败
+      }
+    }
+    
+    if (successful) {
+      resolve()
+    } else {
+      reject(new Error('execCommand copy failed'))
+    }
+  })
 }
 
 export function isValidEmail(email: string): boolean {

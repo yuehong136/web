@@ -27,7 +27,8 @@ import {
   SheetDescription,
 } from '@/components/ui/sheet'
 import { Progress } from '@/components/ui/progress'
-import { cn } from '@/lib/utils'
+import { cn, copyToClipboard } from '@/lib/utils'
+import { toast } from '@/lib/toast'
 import type { ReferenceChunk } from '@/utils/reference-replacer'
 
 export interface ReferenceDetailSheetProps {
@@ -146,21 +147,13 @@ const MetadataItem: React.FC<MetadataItemProps> = ({
   
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(value)
+      await copyToClipboard(value)
       setCopied(true)
+      toast.success('已复制')
       onCopy?.()
       setTimeout(() => setCopied(false), 2000)
     } catch {
-      // 回退方案
-      const textArea = document.createElement('textarea')
-      textArea.value = value
-      document.body.appendChild(textArea)
-      textArea.select()
-      document.execCommand('copy')
-      document.body.removeChild(textArea)
-      setCopied(true)
-      onCopy?.()
-      setTimeout(() => setCopied(false), 2000)
+      toast.error('复制失败')
     }
   }
   
@@ -222,21 +215,13 @@ export const ReferenceDetailSheet: React.FC<ReferenceDetailSheetProps> = ({
     if (!chunk?.content) return
     const textContent = chunk.content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
     try {
-      await navigator.clipboard.writeText(textContent)
+      await copyToClipboard(textContent)
       setContentCopied(true)
+      toast.success('已复制内容')
       onCopySuccess?.()
       setTimeout(() => setContentCopied(false), 2000)
     } catch {
-      // 回退方案
-      const textArea = document.createElement('textarea')
-      textArea.value = textContent
-      document.body.appendChild(textArea)
-      textArea.select()
-      document.execCommand('copy')
-      document.body.removeChild(textArea)
-      setContentCopied(true)
-      onCopySuccess?.()
-      setTimeout(() => setContentCopied(false), 2000)
+      toast.error('复制失败')
     }
   }, [chunk?.content, onCopySuccess])
   
