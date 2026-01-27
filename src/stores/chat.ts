@@ -1,5 +1,4 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
 import { apiClient } from '@/api/client'
 import { generateId } from '@/lib/utils'
 import type { 
@@ -37,8 +36,7 @@ interface ChatState {
 }
 
 export const useChatStore = create<ChatState>()(
-  persist(
-    (set, get) => ({
+  (set, get) => ({
       // 初始状态
       conversations: [],
       currentConversation: null,
@@ -339,14 +337,5 @@ export const useChatStore = create<ChatState>()(
       setStreaming: (streaming: boolean) => {
         set({ isStreaming: streaming })
       },
-    }),
-    {
-      name: 'chat-storage',
-      // 只持久化对话列表和当前对话
-      partialize: (state) => ({
-        conversations: state.conversations,
-        currentConversation: state.currentConversation,
-      }),
-    }
-  )
+    })
 )

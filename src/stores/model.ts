@@ -1,5 +1,4 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
 import { apiClient } from '@/api/client'
 
 // 根据您提供的数据结构定义类型
@@ -204,8 +203,7 @@ interface ModelState {
 }
 
 export const useModelStore = create<ModelState>()(
-  persist(
-    (set, get) => ({
+  (set, get) => ({
       // 初始状态
       myLLMs: {},
       factories: [],
@@ -501,14 +499,5 @@ export const useModelStore = create<ModelState>()(
           }, 0)
         }, 0)
       },
-    }),
-    {
-      name: 'model-storage',
-      // 只持久化必要的数据
-      partialize: (state) => ({
-        myLLMs: state.myLLMs,
-        selectedProvider: state.selectedProvider,
-      }),
-    }
-  )
+    })
 )

@@ -35,8 +35,10 @@ src/
 │   └── dialog/, auth/, system/, home/
 ├── stores/        # Zustand 状态管理
 │   └── auth.ts, chat.ts, conversation.ts, knowledge.ts, model.ts, ui.ts, environmentStore.ts
-├── hooks/         # 自定义 Hooks
-│   └── use-auth.ts, use-conversations.ts, use-dialog-apps.ts, use-system-status.ts, useDebouncedValue.ts
+├── hooks/         # 自定义 Hooks 和 TanStack Query 请求 Hooks
+│   ├── use-knowledge-request.ts, use-chat-request.ts  # 服务器状态管理
+│   ├── use-llm-request.ts, use-document-request.ts    # 服务器状态管理
+│   └── use-auth.ts, use-conversations.ts, useDebouncedValue.ts
 ├── lib/           # 工具库
 │   └── router.tsx, query-client.ts, utils.ts, toast.ts
 ├── themes/        # 设计系统
@@ -297,9 +299,40 @@ export const ChatContainer: React.FC = () => {
 </div>
 ```
 
-## State Management
-- **Zustand** - 客户端状态管理，支持持久化
-- **TanStack Query** - 服务器状态管理和缓存
+## State Management (状态管理)
+
+**服务器状态** → TanStack Query (`src/hooks/use-*-request.ts`)
+**客户端状态** → Zustand (`src/stores/`) - 仅用于 UI 偏好和认证
+
+### 禁止：将 API 数据持久化到 localStorage
+
+```typescript
+// ❌ 禁止 - 会导致配额超限错误
+persist({ knowledgeBases: [], conversations: [] }, { name: 'storage' })
+
+// ✅ 正确 - 只持久化 UI 状态
+persist({ theme: 'light', sidebarCollapsed: false }, { name: 'ui-storage' })
+```
+
+### 请求 Hooks (`src/hooks/use-*-request.ts`)
+
+| Hook | 主要函数 |
+|------|----------|
+| `use-knowledge-request.ts` | `useFetchKnowledgeList`, `useCreateKnowledge`, `useDeleteKnowledge` |
+| `use-chat-request.ts` | `useFetchConversationList`, `useCreateConversation`, `useDeleteConversation` |
+| `use-llm-request.ts` | `useFetchMyLLMs`, `useFetchFactories`, `useSetApiKey` |
+| `use-document-request.ts` | `useFetchDocumentList`, `useUploadDocument`, `useDeleteDocument` |
+
+```typescript
+// ❌ 旧方式：Store + useEffect
+const { knowledgeBases, loadKnowledgeBases } = useKnowledgeStore()
+useEffect(() => { loadKnowledgeBases(params) }, [params])
+
+// ✅ 新方式：TanStack Query hooks（自动获取和缓存）
+const { knowledgeBases, isLoading } = useFetchKnowledgeList(params)
+```
+
+### 其他
 - **React Hook Form + Zod** - 表单验证
 
 ## Key Dependencies

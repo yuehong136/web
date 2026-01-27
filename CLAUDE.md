@@ -20,7 +20,7 @@ This is a React 19 + TypeScript 5.8 + Vite 7 application implementing a Multi-RA
 
 ### Key Architecture Patterns
 
-**State Management**: Uses Zustand for client state with persistence, TanStack Query for server state management and caching.
+**State Management**: Uses Zustand for client-only state, TanStack Query for server state management and caching. See "State Management Architecture" section for detailed guidelines.
 
 **Component Architecture**:
 - 48 base UI components in `src/components/ui/`
@@ -53,7 +53,7 @@ This is a React 19 + TypeScript 5.8 + Vite 7 application implementing a Multi-RA
 - `src/components/knowledge/` - 10 knowledge components including DocumentPreview (multi-format) and HighlightText (search highlighting)
 - `src/themes/` - Design system and theme generation
 - `src/types/api.ts` - Comprehensive TypeScript API types (1,284 lines)
-- `src/hooks/` - Custom React hooks (use-auth, use-conversations, use-dialog-apps, use-system-status, useDebouncedValue)
+- `src/hooks/` - Custom React hooks and TanStack Query request hooks (use-knowledge-request, use-chat-request, use-llm-request, use-document-request, use-auth, use-conversations)
 
 ### Configuration Files
 
@@ -420,6 +420,39 @@ export const UserProfileCard: React.FC<UserProfileCardProps> = ({
     </div>
   );
 };
+```
+
+## State Management Architecture
+
+**Server State** → TanStack Query (`src/hooks/use-*-request.ts`)
+**Client State** → Zustand (`src/stores/`) - only for UI preferences and auth
+
+### CRITICAL: Never Persist API Data to localStorage
+
+```typescript
+// ❌ FORBIDDEN - causes quota exceeded errors
+persist({ knowledgeBases: [], conversations: [] }, { name: 'storage' })
+
+// ✅ CORRECT - only persist UI state
+persist({ theme: 'light', sidebarCollapsed: false }, { name: 'ui-storage' })
+```
+
+### Request Hooks (`src/hooks/use-*-request.ts`)
+
+| Hook | Functions |
+|------|-----------|
+| `use-knowledge-request.ts` | `useFetchKnowledgeList`, `useCreateKnowledge`, `useDeleteKnowledge` |
+| `use-chat-request.ts` | `useFetchConversationList`, `useCreateConversation`, `useDeleteConversation` |
+| `use-llm-request.ts` | `useFetchMyLLMs`, `useFetchFactories`, `useSetApiKey` |
+| `use-document-request.ts` | `useFetchDocumentList`, `useUploadDocument`, `useDeleteDocument` |
+
+```typescript
+// ❌ OLD: Store + useEffect
+const { knowledgeBases, loadKnowledgeBases } = useKnowledgeStore()
+useEffect(() => { loadKnowledgeBases(params) }, [params])
+
+// ✅ NEW: TanStack Query hooks (auto fetch & cache)
+const { knowledgeBases, isLoading } = useFetchKnowledgeList(params)
 ```
 
 ## Theme System Notes

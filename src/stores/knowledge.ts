@@ -1,5 +1,4 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
 import { knowledgeAPI } from '@/api/knowledge'
 import { generateId } from '@/lib/utils'
 import type { 
@@ -48,8 +47,7 @@ interface KnowledgeState {
 }
 
 export const useKnowledgeStore = create<KnowledgeState>()(
-  persist(
-    (set, get) => ({
+  (set, get) => ({
       // 初始状态
       knowledgeBases: [],
       currentKnowledgeBase: null,
@@ -404,13 +402,5 @@ export const useKnowledgeStore = create<KnowledgeState>()(
       clearDocuments: () => {
         set({ documents: [] })
       },
-    }),
-    {
-      name: 'knowledge-storage',
-      // 只持久化知识库列表
-      partialize: (state) => ({
-        knowledgeBases: state.knowledgeBases,
-      }),
-    }
-  )
+    })
 )
