@@ -14,6 +14,7 @@ import type {
   PaginatedData,
   MetadataCondition,
 } from '../types/api'
+import type { UploadedFileInfo } from '../config/chat'
 
 export const conversationAPI = {
   // 获取对话列表
@@ -49,6 +50,8 @@ export const conversationAPI = {
     filter_condition?: string
     doc_ids?: string  // 文档 ID 列表，逗号分隔
     metadata_condition?: MetadataCondition  // 元数据过滤条件
+    reasoning?: boolean  // 深度思考开关（参考 ragflow）
+    internet?: boolean   // 联网搜索开关（参考 ragflow）
   }) => {
     const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
     const fullUrl = `${baseURL}/v1/conversation/completion`
@@ -223,4 +226,83 @@ export const conversationAPI = {
     apiClient.get('/v1/conversation/stats', { 
       params: timeRange ? { time_range: timeRange } : undefined 
     }),
+
+  // ============================================================================
+  // 文件上传相关接口（参考 ragflow /document/upload_info）
+  // ============================================================================
+
+  /**
+   * 上传并解析文件
+   * 用于聊天时上传文件，文件会被解析后参与对话
+   * 
+   * @param conversationId - 对话 ID
+   * @param file - 要上传的文件
+   * @param onProgress - 上传进度回调（0-100）
+   * @param signal - AbortSignal 用于取消上传
+   * @returns 上传成功后的文件信息
+   */
+  uploadAndParse: (
+    conversationId: string,
+    file: File,
+    onProgress?: (progress: number) => void,
+    signal?: AbortSignal
+  ): Promise<UploadedFileInfo> => {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest()
+      const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+      xhr.open('POST', `${baseURL}/v1/document/upload_info`)
+      
+      // 设置认证头
+      const token = localStorage.getItem('auth_token')
+      if (token) {
+        xhr.setRequestHeader('Authorization', `Bearer ${token}`)
+      }
+      
+      // 上传进度回调
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) {
+          const progress = Math.round((e.loaded / e.total) * 100)
+          onProgress?.(progress)
+        }
+      }
+      
+      // 上传完成处理
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            const response = JSON.parse(xhr.responseText)
+            if (response.code === 0 || response.retcode === 0) {
+              resolve(response.data)
+            } else {
+              reject(new Error(response.message || response.retmsg || 'Upload failed'))
+            }
+          } catch (e) {
+            reject(new Error('Invalid response format'))
+          }
+        } else {
+          reject(new Error(`HTTP ${xhr.status}: ${xhr.statusText}`))
+        }
+      }
+      
+      // 错误处理
+      xhr.onerror = () => reject(new Error('Network error'))
+      xhr.ontimeout = () => reject(new Error('Upload timeout'))
+      
+      // 支持取消上传
+      if (signal) {
+        signal.addEventListener('abort', () => {
+          xhr.abort()
+          reject(new Error('Upload cancelled'))
+        })
+      }
+      
+      // 构建 FormData
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('conversation_id', conversationId)
+      
+      // 发送请求
+      xhr.send(formData)
+    })
+  },
 }

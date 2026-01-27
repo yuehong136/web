@@ -420,14 +420,14 @@ export function ChatInput({
             {attachedFiles.map((file, index) => (
               <div 
                 key={index}
-                className="flex items-center gap-2 bg-muted rounded-lg px-3 py-2 text-sm"
+                className="flex items-center gap-2 bg-[var(--color-components-tag-bg)] border border-[var(--color-components-tag-border)] rounded-lg px-3 py-2 text-sm"
               >
-                <span className="text-muted-foreground">{file.name}</span>
+                <span className="text-[var(--color-components-tag-text)]">{file.name}</span>
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground"
+                  className="h-4 w-4 p-0 text-[var(--color-components-tag-text)] opacity-60 hover:opacity-100 hover:bg-[var(--color-components-tag-bg-hover)]"
                   onClick={() => removeFile(index)}
                 >
                   <X className="w-3 h-3" />
@@ -461,12 +461,12 @@ export function ChatInput({
             </div>
             
             {/* Footer区域 - 参考Ant Design X的footer结构 */}
-            <div className={`flex justify-between items-center px-5 py-3 bg-muted/30 ${classNames.footer}`} style={styles.footer}>
+            <div className={`flex justify-between items-center px-5 py-3 bg-[var(--color-background-subtle)]/30 ${classNames.footer}`} style={styles.footer}>
               {/* 左侧功能区 */}
               <div className="flex items-center gap-3">
                 {/* Deep Thinking */}
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-foreground">Deep Thinking</span>
+                  <span className="text-sm text-[var(--color-text-primary)]">Deep Thinking</span>
                   <Switch
                     checked={deepThinkingEnabled}
                     onCheckedChange={setDeepThinkingEnabled}
@@ -478,9 +478,13 @@ export function ChatInput({
                 {/* Global Search */}
                 <Button
                   type="button"
-                  variant={globalSearchEnabled ? "secondary" : "ghost"}
+                  variant="ghost"
                   size="sm"
-                  className="h-8 px-3 text-sm"
+                  className={`h-8 px-3 text-sm transition-colors ${
+                    globalSearchEnabled 
+                      ? 'bg-[var(--color-state-focus-10)] text-[var(--color-state-focus)] border border-[var(--color-state-focus)]/30' 
+                      : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-background-subtle)]'
+                  }`}
                   onClick={() => setGlobalSearchEnabled(!globalSearchEnabled)}
                 >
                   <Globe className="w-4 h-4 mr-1.5" />
@@ -495,7 +499,7 @@ export function ChatInput({
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                  className="h-8 w-8 p-0 text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-background-subtle)]"
                   onClick={handleFileSelect}
                 >
                   <Paperclip className="w-4 h-4" />
@@ -530,7 +534,7 @@ export function ChatInput({
                     type="button"
                     size="sm"
                     variant="default"
-                    className="h-8 px-4"
+                    className="h-8 px-4 bg-[var(--color-components-button-primary-bg-disabled)] text-[var(--color-components-button-primary-text-disabled)]"
                     disabled
                   >
                     发送中...
@@ -540,7 +544,7 @@ export function ChatInput({
                     type="submit"
                     size="sm"
                     variant="default"
-                    className="h-8 px-4"
+                    className="h-8 px-4 bg-[var(--color-components-button-primary-bg)] text-[var(--color-components-button-primary-text)] hover:bg-[var(--color-components-button-primary-bg-hover)] disabled:bg-[var(--color-components-button-primary-bg-disabled)] disabled:text-[var(--color-components-button-primary-text-disabled)]"
                     disabled={!currentValue.trim() || disabled}
                   >
                     <Send className="w-4 h-4 mr-1.5" />
@@ -554,7 +558,7 @@ export function ChatInput({
         
         {/* 底部提示文字 */}
         <div className="mt-3 text-center">
-          <div className="text-xs text-muted-foreground">
+          <div className="text-xs text-[var(--color-text-tertiary)]">
             提示模式：Enter 发送・Shift+Enter 换行
           </div>
         </div>

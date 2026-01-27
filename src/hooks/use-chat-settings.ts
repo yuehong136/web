@@ -38,7 +38,8 @@ export function dialogToSettings(dialog: DialogApp | null | undefined): ChatSett
   }
 
   return {
-    // 基础设置
+    // 聊天设置
+    icon: dialog.icon || '',
     name: dialog.name || '',
     description: dialog.description || '',
     emptyResponse: promptConfig.empty_response || '',
@@ -119,6 +120,7 @@ export function settingsToDialogUpdate(settings: ChatSettings, dialogId: string)
 
   return {
     dialog_id: dialogId,
+    icon: settings.icon || undefined,
     name: settings.name || undefined,
     description: settings.description || undefined,
     kb_ids: settings.kbIds,

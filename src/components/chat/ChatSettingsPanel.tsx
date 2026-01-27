@@ -12,6 +12,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
+import { AvatarUpload } from '@/components/ui/avatar-upload'
 import { ChatModelSelector } from './ChatModelSelector'
 import { RerankModelSelector } from '@/components/knowledge/RerankModelSelector'
 import { KnowledgeBaseSelector } from '@/components/knowledge/KnowledgeBaseSelector'
@@ -43,7 +44,9 @@ interface DynamicVariable {
  * 聊天设置配置 - 完整版，参考 ragflow
  */
 export interface ChatSettings {
-  // === 基础设置 ===
+  // === 聊天设置（参考 ragflow） ===
+  /** 助理头像 (base64 或 URL) */
+  icon?: string
   /** 助手名称 */
   name?: string
   /** 助手描述 */
@@ -134,7 +137,8 @@ export interface ChatSettings {
  * 默认聊天设置
  */
 export const defaultChatSettings: ChatSettings = {
-  // 基础设置
+  // 聊天设置
+  icon: '',
   name: '',
   description: '',
   emptyResponse: '',
@@ -273,6 +277,7 @@ export const ChatSettingsPanel: React.FC<ChatSettingsPanelProps> = ({
   modelsError,
   onLoadKnowledgeBases,
 }) => {
+  const [chatSettingsExpanded, setChatSettingsExpanded] = React.useState(true)
   const [basicExpanded, setBasicExpanded] = React.useState(true)
   const [promptExpanded, setPromptExpanded] = React.useState(true)
   const [modelExpanded, setModelExpanded] = React.useState(true)
@@ -385,6 +390,112 @@ export const ChatSettingsPanel: React.FC<ChatSettingsPanelProps> = ({
 
       {/* 内容区域 - 可滚动 */}
       <div className="flex-1 overflow-y-auto">
+        {/* ========== 聊天设置（参考 ragflow） ========== */}
+        <Collapsible open={chatSettingsExpanded} onOpenChange={setChatSettingsExpanded}>
+          <CollapsibleTrigger 
+            className="w-full px-4 py-3 flex items-center justify-between transition-colors"
+            style={{ 
+              backgroundColor: 'transparent',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--color-components-collapse-header-bg-hover)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent'
+            }}
+          >
+            <span className="font-medium" style={{ color: 'var(--color-text-primary)' }}>
+              聊天设置
+            </span>
+            <span style={{ color: 'var(--color-text-tertiary)' }}>
+              {chatSettingsExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+            </span>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="px-4 pb-4 space-y-4">
+            {/* 助理头像 */}
+            <div className="space-y-2">
+              <SettingLabel>助理头像</SettingLabel>
+              <AvatarUpload
+                value={settings.icon}
+                onChange={(value) => updateSetting('icon', value)}
+                tips="你可以上传4MB的文件"
+              />
+            </div>
+
+            {/* 助理姓名 */}
+            <div className="space-y-2">
+              <SettingLabel>
+                <span className="text-red-500 mr-1">*</span>
+                助理姓名
+              </SettingLabel>
+              <Input
+                value={settings.name || ''}
+                onChange={(e) => updateSetting('name', e.target.value)}
+                placeholder="请输入助理名称"
+                style={{
+                  backgroundColor: 'var(--color-components-input-bg)',
+                  borderColor: 'var(--color-components-input-border)',
+                  color: 'var(--color-components-input-text)',
+                }}
+              />
+            </div>
+
+            {/* 助理描述 */}
+            <div className="space-y-2">
+              <SettingLabel>助理描述</SettingLabel>
+              <Textarea
+                value={settings.description || ''}
+                onChange={(e) => updateSetting('description', e.target.value)}
+                placeholder="请输入助理描述"
+                rows={3}
+                style={{
+                  backgroundColor: 'var(--color-components-input-bg)',
+                  borderColor: 'var(--color-components-input-border)',
+                  color: 'var(--color-components-input-text)',
+                }}
+              />
+            </div>
+
+            {/* 空回复 */}
+            <div className="space-y-2">
+              <SettingLabel tooltip="当检索不到相关内容时，系统将返回此消息">
+                空回复
+              </SettingLabel>
+              <Textarea
+                value={settings.emptyResponse || ''}
+                onChange={(e) => updateSetting('emptyResponse', e.target.value)}
+                placeholder="例如：抱歉，我没有找到相关的信息"
+                rows={3}
+                style={{
+                  backgroundColor: 'var(--color-components-input-bg)',
+                  borderColor: 'var(--color-components-input-border)',
+                  color: 'var(--color-components-input-text)',
+                }}
+              />
+            </div>
+
+            {/* 开场白 */}
+            <div className="space-y-2">
+              <SettingLabel tooltip="对话开始时的问候语">
+                开场白
+              </SettingLabel>
+              <Textarea
+                value={settings.prologue || ''}
+                onChange={(e) => updateSetting('prologue', e.target.value)}
+                placeholder="例如：您好，我是您的助手！有什么可以帮您的？"
+                rows={3}
+                style={{
+                  backgroundColor: 'var(--color-components-input-bg)',
+                  borderColor: 'var(--color-components-input-border)',
+                  color: 'var(--color-components-input-text)',
+                }}
+              />
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+
+        <Separator style={{ backgroundColor: 'var(--color-border-subtle)' }} />
+
         {/* ========== 模型设置 ========== */}
         <Collapsible open={modelExpanded} onOpenChange={setModelExpanded}>
           <CollapsibleTrigger 

@@ -178,16 +178,16 @@ export function PromptSuggestion({
       <div
         ref={containerRef}
         style={positionStyle}
-        className="bg-white dark:bg-card rounded-xl shadow-xl border border-border w-full max-w-md h-[400px] flex flex-col"
+        className="bg-[var(--color-background-surface)] dark:bg-[var(--color-background-surface)] rounded-xl shadow-xl border border-[var(--color-border-default)] w-full max-w-md h-[400px] flex flex-col"
         onKeyDown={handleKeyDown}
       >
         {/* 搜索框 - 固定在顶部 */}
-        <div className="flex-shrink-0 p-4 border-b border-border">
+        <div className="flex-shrink-0 p-4 border-b border-[var(--color-border-subtle)]">
           <Input
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="搜索技能"
-            className="w-full h-9"
+            className="w-full h-9 bg-[var(--color-background-default)] border-[var(--color-border-default)] text-[var(--color-text-primary)]"
             autoFocus
           />
         </div>
@@ -204,27 +204,27 @@ export function PromptSuggestion({
                     variant="ghost"
                     className={`w-full justify-start text-left p-3 h-auto mb-2 rounded-lg transition-all duration-200 ${
                       index === selectedIndex 
-                        ? 'bg-accent text-accent-foreground shadow-sm border border-accent' 
-                        : 'hover:bg-accent/50 border border-transparent'
+                        ? 'bg-[var(--color-state-hover)] text-[var(--color-text-primary)] shadow-sm border border-[var(--color-border-accent)]' 
+                        : 'hover:bg-[var(--color-state-hover)] border border-transparent text-[var(--color-text-secondary)]'
                     }`}
                     onClick={() => onSelect(prompt)}
                   >
                     <div className="flex items-start gap-3 w-full">
-                      <div className="flex-shrink-0 mt-1 text-muted-foreground">
+                      <div className="flex-shrink-0 mt-1 text-[var(--color-text-tertiary)]">
                         {prompt.icon}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="font-medium text-sm truncate">
+                          <span className="font-medium text-sm truncate text-[var(--color-text-primary)]">
                             {prompt.title}
                           </span>
                           {prompt.category && (
-                            <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                            <span className="text-xs text-[var(--color-text-tertiary)] bg-[var(--color-background-subtle)] px-2 py-0.5 rounded-full">
                               {prompt.category}
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
+                        <p className="text-xs text-[var(--color-text-secondary)] leading-relaxed line-clamp-2">
                           {prompt.description}
                         </p>
                       </div>
@@ -232,7 +232,7 @@ export function PromptSuggestion({
                   </Button>
                 ))
               ) : (
-                <div className="text-center py-12 text-muted-foreground">
+                <div className="text-center py-12 text-[var(--color-text-tertiary)]">
                   <Search className="w-12 h-12 mx-auto mb-3 opacity-30" />
                   <p className="text-sm font-medium mb-1">没有找到匹配的提示词</p>
                   <p className="text-xs">尝试使用其他关键词搜索</p>
@@ -243,8 +243,8 @@ export function PromptSuggestion({
         </div>
 
         {/* 底部提示 - 固定在底部 */}
-        <div className="flex-shrink-0 px-4 py-3 border-t border-border bg-muted/30">
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
+        <div className="flex-shrink-0 px-4 py-3 border-t border-[var(--color-border-subtle)] bg-[var(--color-background-subtle)]/30">
+          <div className="flex items-center justify-between text-xs text-[var(--color-text-tertiary)]">
             <div className="flex items-center gap-3">
               <span className="flex items-center gap-1">
                 <ChevronUp className="w-3 h-3" />
@@ -252,12 +252,12 @@ export function PromptSuggestion({
                 <span className="ml-1">选择</span>
               </span>
               <span className="flex items-center gap-1">
-                <kbd className="px-1.5 py-0.5 text-xs bg-background rounded border">Enter</kbd>
+                <kbd className="px-1.5 py-0.5 text-xs bg-[var(--color-background-default)] text-[var(--color-text-primary)] rounded border border-[var(--color-border-default)]">Enter</kbd>
                 <span>确认</span>
               </span>
             </div>
             <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 text-xs bg-background rounded border">Esc</kbd>
+              <kbd className="px-1.5 py-0.5 text-xs bg-[var(--color-background-default)] text-[var(--color-text-primary)] rounded border border-[var(--color-border-default)]">Esc</kbd>
               <span>关闭</span>
             </span>
           </div>
