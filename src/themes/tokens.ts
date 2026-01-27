@@ -290,7 +290,35 @@ export interface DesignTokens {
   'components-badge-error-text': string
   'components-badge-info-bg': string
   'components-badge-info-text': string
-  
+  'components-badge-neutral-bg': string
+  'components-badge-neutral-text': string
+
+  // ===== 任务状态指示器 =====
+  'components-task-status-idle-bg': string
+  'components-task-status-idle-border': string
+  'components-task-status-idle-text': string
+  'components-task-status-idle-dot': string
+
+  'components-task-status-running-bg': string
+  'components-task-status-running-border': string
+  'components-task-status-running-text': string
+  'components-task-status-running-dot': string
+  'components-task-status-running-progress-bg': string
+  'components-task-status-running-progress-fill': string
+  'components-task-status-running-progress-glow': string
+
+  'components-task-status-cancelled-bg': string
+  'components-task-status-cancelled-border': string
+  'components-task-status-cancelled-text': string
+
+  'components-task-status-completed-bg': string
+  'components-task-status-completed-border': string
+  'components-task-status-completed-text': string
+
+  'components-task-status-failed-bg': string
+  'components-task-status-failed-border': string
+  'components-task-status-failed-text': string
+
   'components-tag-bg': string
   'components-tag-text': string
   'components-tag-border': string
@@ -950,7 +978,35 @@ export const defaultTokens: DesignTokens = {
   'components-badge-error-text': '',
   'components-badge-info-bg': '',
   'components-badge-info-text': '',
-  
+  'components-badge-neutral-bg': '',
+  'components-badge-neutral-text': '',
+
+  // 任务状态指示器
+  'components-task-status-idle-bg': '',
+  'components-task-status-idle-border': '',
+  'components-task-status-idle-text': '',
+  'components-task-status-idle-dot': '',
+
+  'components-task-status-running-bg': '',
+  'components-task-status-running-border': '',
+  'components-task-status-running-text': '',
+  'components-task-status-running-dot': '',
+  'components-task-status-running-progress-bg': '',
+  'components-task-status-running-progress-fill': '',
+  'components-task-status-running-progress-glow': '',
+
+  'components-task-status-cancelled-bg': '',
+  'components-task-status-cancelled-border': '',
+  'components-task-status-cancelled-text': '',
+
+  'components-task-status-completed-bg': '',
+  'components-task-status-completed-border': '',
+  'components-task-status-completed-text': '',
+
+  'components-task-status-failed-bg': '',
+  'components-task-status-failed-border': '',
+  'components-task-status-failed-text': '',
+
   'components-tag-bg': '',
   'components-tag-text': '',
   'components-tag-border': '',

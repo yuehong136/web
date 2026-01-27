@@ -6,8 +6,7 @@ import { ChatInput } from "@/components/chat/ChatInput";
 import { WelcomeMessage } from "@/components/chat/WelcomeMessage";
 import { Bubble, Think } from "@ant-design/x";
 import type { BubbleProps } from "@ant-design/x";
-import { UserOutlined, RobotOutlined, CopyOutlined, LikeOutlined, DislikeOutlined } from '@ant-design/icons';
-import { Button as AntdButton, Space } from 'antd';
+import { User, Bot } from 'lucide-react';
 import { ProviderIcon } from '@/components/ui/provider-icon';
 import XMarkdown, { type ComponentProps } from '@ant-design/x-markdown';
 import '@ant-design/x-markdown/dist/x-markdown.css';
@@ -223,7 +222,7 @@ export default function MCPChatPage() {
           color: 'var(--color-chat-bubble-assistant-avatar-text)' 
         }}
       >
-        <RobotOutlined />
+        <Bot className="h-4 w-4" />
       </div>
     )
   }
@@ -237,7 +236,7 @@ export default function MCPChatPage() {
         color: 'var(--color-chat-bubble-user-avatar-text)' 
       }}
     >
-      <UserOutlined />
+      <User className="h-4 w-4" />
     </div>
   )
 

@@ -301,7 +301,35 @@ export const lightTokens: DesignTokens = {
   'components-badge-error-text': '#991b1b',
   'components-badge-info-bg': '#dbeafe',
   'components-badge-info-text': '#1e40af',
-  
+  'components-badge-neutral-bg': '#f3f4f6',
+  'components-badge-neutral-text': '#6b7280',
+
+  // 任务状态指示器 - 亮色主题
+  'components-task-status-idle-bg': 'rgba(107, 114, 128, 0.1)',
+  'components-task-status-idle-border': 'rgba(107, 114, 128, 0.2)',
+  'components-task-status-idle-text': '#4b5563',
+  'components-task-status-idle-dot': '#9ca3af',
+
+  'components-task-status-running-bg': 'linear-gradient(to right, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1))',
+  'components-task-status-running-border': 'rgba(59, 130, 246, 0.2)',
+  'components-task-status-running-text': '#2563eb',
+  'components-task-status-running-dot': '#3b82f6',
+  'components-task-status-running-progress-bg': 'rgba(107, 114, 128, 0.2)',
+  'components-task-status-running-progress-fill': 'linear-gradient(to right, #3b82f6, #8b5cf6)',
+  'components-task-status-running-progress-glow': 'linear-gradient(to right, rgba(59, 130, 246, 0.5), rgba(139, 92, 246, 0.5))',
+
+  'components-task-status-cancelled-bg': 'rgba(245, 158, 11, 0.1)',
+  'components-task-status-cancelled-border': 'rgba(245, 158, 11, 0.2)',
+  'components-task-status-cancelled-text': '#d97706',
+
+  'components-task-status-completed-bg': 'rgba(16, 185, 129, 0.1)',
+  'components-task-status-completed-border': 'rgba(16, 185, 129, 0.2)',
+  'components-task-status-completed-text': '#059669',
+
+  'components-task-status-failed-bg': 'rgba(239, 68, 68, 0.1)',
+  'components-task-status-failed-border': 'rgba(239, 68, 68, 0.2)',
+  'components-task-status-failed-text': '#dc2626',
+
   'components-tag-bg': '#f3f4f6',
   'components-tag-text': '#374151',
   'components-tag-border': '#e5e7eb',
@@ -928,7 +956,35 @@ export const darkTokens: DesignTokens = {
   'components-badge-error-text': '#f87171',
   'components-badge-info-bg': 'rgba(59, 130, 246, 0.15)',
   'components-badge-info-text': '#93c5fd',
-  
+  'components-badge-neutral-bg': 'rgba(156, 163, 175, 0.15)',
+  'components-badge-neutral-text': '#9ca3af',
+
+  // 任务状态指示器 - 暗色主题
+  'components-task-status-idle-bg': 'rgba(156, 163, 175, 0.1)',
+  'components-task-status-idle-border': 'rgba(156, 163, 175, 0.2)',
+  'components-task-status-idle-text': '#9ca3af',
+  'components-task-status-idle-dot': '#6b7280',
+
+  'components-task-status-running-bg': 'linear-gradient(to right, rgba(59, 130, 246, 0.15), rgba(139, 92, 246, 0.15))',
+  'components-task-status-running-border': 'rgba(59, 130, 246, 0.3)',
+  'components-task-status-running-text': '#60a5fa',
+  'components-task-status-running-dot': '#3b82f6',
+  'components-task-status-running-progress-bg': 'rgba(156, 163, 175, 0.2)',
+  'components-task-status-running-progress-fill': 'linear-gradient(to right, #3b82f6, #8b5cf6)',
+  'components-task-status-running-progress-glow': 'linear-gradient(to right, rgba(59, 130, 246, 0.5), rgba(139, 92, 246, 0.5))',
+
+  'components-task-status-cancelled-bg': 'rgba(245, 158, 11, 0.15)',
+  'components-task-status-cancelled-border': 'rgba(245, 158, 11, 0.3)',
+  'components-task-status-cancelled-text': '#fbbf24',
+
+  'components-task-status-completed-bg': 'rgba(16, 185, 129, 0.15)',
+  'components-task-status-completed-border': 'rgba(16, 185, 129, 0.3)',
+  'components-task-status-completed-text': '#34d399',
+
+  'components-task-status-failed-bg': 'rgba(239, 68, 68, 0.15)',
+  'components-task-status-failed-border': 'rgba(239, 68, 68, 0.3)',
+  'components-task-status-failed-text': '#f87171',
+
   'components-tag-bg': 'rgba(255, 255, 255, 0.1)',
   'components-tag-text': '#ffffff',
   'components-tag-border': '#475569',

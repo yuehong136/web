@@ -16,7 +16,6 @@ import {
   XCircle,
   Tag,
 } from 'lucide-react'
-import { Progress } from 'antd'
 import { useKnowledgeStore } from '@/stores/knowledge'
 import { knowledgeAPI } from '@/api/knowledge'
 import { toast } from '@/lib/toast'
@@ -1259,7 +1258,7 @@ const KnowledgeDocumentsPage: React.FC = () => {
             // 运行中，显示进度条
             const progress = Math.round(record.progress * 100)
             return (
-              <Tooltip 
+              <Tooltip
                 content={
                   <div className="max-w-2xl">
                     <div className="font-medium mb-2" style={{ color: 'var(--color-text-primary)' }}>处理进度: {progress}%</div>
@@ -1273,35 +1272,99 @@ const KnowledgeDocumentsPage: React.FC = () => {
                 delayHide={800}
                 maxWidth="max-w-2xl"
               >
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs" style={{ color: 'var(--color-text-accent)' }}>运行中</span>
+                <div
+                  className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-full"
+                  style={{
+                    background: 'var(--color-components-task-status-running-bg)',
+                    border: '1px solid var(--color-components-task-status-running-border)'
+                  }}
+                >
+                  {/* 脉冲动画点 */}
+                  <span className="relative flex h-2 w-2">
+                    <span
+                      className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+                      style={{ backgroundColor: 'var(--color-components-task-status-running-dot)' }}
+                    />
+                    <span
+                      className="relative inline-flex rounded-full h-2 w-2"
+                      style={{ backgroundColor: 'var(--color-components-task-status-running-dot)' }}
+                    />
+                  </span>
+                  {/* 进度条 */}
+                  <div
+                    className="relative w-16 h-1.5 rounded-full overflow-hidden"
+                    style={{ background: 'var(--color-components-task-status-running-progress-bg)' }}
+                  >
+                    <div
+                      className="absolute inset-y-0 left-0 rounded-full transition-all duration-300"
+                      style={{
+                        width: `${progress}%`,
+                        background: 'var(--color-components-task-status-running-progress-fill)'
+                      }}
+                    />
+                    {/* 光晕效果 */}
+                    <div
+                      className="absolute inset-y-0 left-0 rounded-full blur-sm opacity-50 transition-all duration-300"
+                      style={{
+                        width: `${progress}%`,
+                        background: 'var(--color-components-task-status-running-progress-glow)'
+                      }}
+                    />
                   </div>
-                  <Progress 
-                    percent={progress}
-                    size="small"
-                    status="active"
-                    strokeColor="#2563eb"
-                    showInfo={true}
-                    format={(percent) => `${percent}%`}
-                  />
+                  {/* 百分比 */}
+                  <span
+                    className="text-xs font-medium tabular-nums"
+                    style={{ color: 'var(--color-components-task-status-running-text)' }}
+                  >
+                    {progress}%
+                  </span>
                 </div>
               </Tooltip>
             )
           }
           
-          // 其他状态
-          const statusMap = {
-            '0': { text: '未开始', bgColor: 'var(--color-components-badge-neutral-bg)', textColor: 'var(--color-components-badge-neutral-text)' },
-            '2': { text: '已取消', bgColor: 'var(--color-components-badge-warning-bg)', textColor: 'var(--color-components-badge-warning-text)' },
-            '3': { text: '已完成', bgColor: 'var(--color-components-badge-success-bg)', textColor: 'var(--color-components-badge-success-text)' },
-            '4': { text: '失败', bgColor: 'var(--color-components-badge-error-bg)', textColor: 'var(--color-components-badge-error-text)' }
+          // 其他状态配置 - 使用设计令牌
+          const statusConfig: Record<string, {
+            text: string
+            icon: React.ReactNode
+            bgToken: string
+            borderToken: string
+            textToken: string
+          }> = {
+            '0': {
+              text: '未开始',
+              icon: <span className="inline-flex h-1.5 w-1.5 rounded-full" style={{ backgroundColor: 'var(--color-components-task-status-idle-dot)' }} />,
+              bgToken: 'var(--color-components-task-status-idle-bg)',
+              borderToken: 'var(--color-components-task-status-idle-border)',
+              textToken: 'var(--color-components-task-status-idle-text)'
+            },
+            '2': {
+              text: '已取消',
+              icon: <X className="h-3 w-3" />,
+              bgToken: 'var(--color-components-task-status-cancelled-bg)',
+              borderToken: 'var(--color-components-task-status-cancelled-border)',
+              textToken: 'var(--color-components-task-status-cancelled-text)'
+            },
+            '3': {
+              text: '已完成',
+              icon: <CheckCircle className="h-3 w-3" />,
+              bgToken: 'var(--color-components-task-status-completed-bg)',
+              borderToken: 'var(--color-components-task-status-completed-border)',
+              textToken: 'var(--color-components-task-status-completed-text)'
+            },
+            '4': {
+              text: '失败',
+              icon: <XCircle className="h-3 w-3" />,
+              bgToken: 'var(--color-components-task-status-failed-bg)',
+              borderToken: 'var(--color-components-task-status-failed-border)',
+              textToken: 'var(--color-components-task-status-failed-text)'
+            }
           }
-          
-          const status = statusMap[record.run as keyof typeof statusMap] || statusMap['0']
-          
+
+          const status = statusConfig[record.run as keyof typeof statusConfig] || statusConfig['0']
+
           return (
-            <Tooltip 
+            <Tooltip
               content={
                 <div className="max-w-2xl">
                   <div className="font-medium mb-2" style={{ color: 'var(--color-text-primary)' }}>状态: {status.text}</div>
@@ -1315,10 +1378,15 @@ const KnowledgeDocumentsPage: React.FC = () => {
               delayHide={800}
               maxWidth="max-w-2xl"
             >
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium cursor-help" style={{
-                backgroundColor: status.bgColor,
-                color: status.textColor
-              }}>
+              <span
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium cursor-help"
+                style={{
+                  backgroundColor: status.bgToken,
+                  border: `1px solid ${status.borderToken}`,
+                  color: status.textToken
+                }}
+              >
+                {status.icon}
                 {status.text}
               </span>
             </Tooltip>

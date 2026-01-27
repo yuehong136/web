@@ -21,8 +21,12 @@ export const Alert: React.FC<AlertProps> = ({ className, variant = 'default', ..
   return <div className={cn(base, variantCls, className)} {...props} />
 }
 
+export const AlertTitle: React.FC<React.HTMLAttributes<HTMLHeadingElement>> = ({ className, ...props }) => (
+  <h5 className={cn('mb-1 font-medium leading-none tracking-tight', className)} {...props} />
+)
+
 export const AlertDescription: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({ className, ...props }) => (
-  <div className={cn('text-sm', className)} {...props} />
+  <div className={cn('text-sm [&_p]:leading-relaxed', className)} {...props} />
 )
 
 

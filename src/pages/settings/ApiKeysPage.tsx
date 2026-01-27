@@ -6,7 +6,6 @@ import {
   Key, Zap, BookOpen, ChevronDown, ChevronRight,
   Plus, Minus, Save, Archive, Edit2, Trash2, MoreHorizontal, Settings2
 } from "lucide-react"
-import { Tabs as AntdTabs } from "antd"
 import Editor from '@monaco-editor/react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -1694,34 +1693,20 @@ const ApiDocumentationPage: React.FC = () => {
           <div className="flex-1 overflow-hidden">
             {selectedAPI ? (
               <div className="h-full flex flex-col">
-                {/* 顶部模式切换标签 - 使用 antd Tabs */}
+                {/* 顶部模式切换标签 */}
                 <div className="bg-gradient-to-r from-background to-muted/20 border-b px-6 py-4 flex items-center gap-6">
-                  <AntdTabs
-                    activeKey={mainMode}
-                    onChange={(key) => setMainMode(key as "interface" | "test")}
-                    items={[
-                      {
-                        key: 'interface',
-                        label: (
-                          <div className="flex items-center gap-2">
-                            <FileText className="h-4 w-4" />
-                            接口
-                          </div>
-                        ),
-                      },
-                      {
-                        key: 'test',
-                        label: (
-                          <div className="flex items-center gap-2">
-                            <Play className="h-4 w-4" />
-                            运行
-                          </div>
-                        ),
-                      },
-                    ]}
-                    className="ant-tabs-custom"
-                    size="large"
-                  />
+                  <Tabs value={mainMode} onValueChange={(value) => setMainMode(value as "interface" | "test")}>
+                    <TabsList className="h-10">
+                      <TabsTrigger value="interface" className="gap-2 px-4">
+                        <FileText className="h-4 w-4" />
+                        接口
+                      </TabsTrigger>
+                      <TabsTrigger value="test" className="gap-2 px-4">
+                        <Play className="h-4 w-4" />
+                        运行
+                      </TabsTrigger>
+                    </TabsList>
+                  </Tabs>
                   
                   <div className="flex items-center gap-3 ml-auto">
                     {/* API Key 管理按钮 */}
@@ -2307,70 +2292,41 @@ const ApiDocumentationPage: React.FC = () => {
                         <div className="flex-1 flex flex-col border-r">
                         <div className="h-full flex flex-col">
                           <div className="border-b bg-gradient-to-r from-muted/20 to-muted/40 px-6 py-3">
-                            <AntdTabs
-                              activeKey={activeTestTab}
-                              onChange={setActiveTestTab}
-                              items={[
-                                {
-                                  key: 'params',
-                                  label: (
-                                    <div className="flex items-center gap-2">
-                                      <span>Params</span>
-                                      {testParams.filter(p => p.enabled && p.name).length > 0 && (
-                                        <Badge variant="secondary" className="h-4 px-1.5 text-[10px] flex items-center justify-center">
-                                          {testParams.filter(p => p.enabled && p.name).length}
-                                        </Badge>
-                                      )}
-                                    </div>
-                                  ),
-                                },
-                                {
-                                  key: 'body',
-                                  label: (
-                                    <div className="flex items-center gap-2">
-                                      <span>Body</span>
-                                      {testBody && testBody.trim() && (
-                                        <Badge variant="secondary" className="h-4 px-1.5 text-[10px] flex items-center justify-center">
-                                          1
-                                        </Badge>
-                                      )}
-                                    </div>
-                                  ),
-                                },
-                                {
-                                  key: 'headers',
-                                  label: (
-                                    <div className="flex items-center gap-2">
-                                      <span>Headers</span>
-                                      {testHeaders.filter(h => h.enabled && h.name).length > 0 && (
-                                        <Badge variant="secondary" className="h-4 px-1.5 text-[10px] flex items-center justify-center">
-                                          {testHeaders.filter(h => h.enabled && h.name).length}
-                                        </Badge>
-                                      )}
-                                    </div>
-                                  ),
-                                },
-                                {
-                                  key: 'cookies',
-                                  label: (
-                                    <div className="flex items-center gap-2">
-                                      <span>Cookies</span>
-                                    </div>
-                                  ),
-                                },
-                                {
-                                  key: 'auth',
-                                  label: (
-                                    <div className="flex items-center gap-2">
-                                      <span>Auth</span>
-                                    </div>
-                                  ),
-                                },
-                              ]}
-                              className="ant-tabs-custom"
-                              size="middle"
-                            />
-                            </div>
+                            <Tabs value={activeTestTab} onValueChange={setActiveTestTab}>
+                              <TabsList className="h-9">
+                                <TabsTrigger value="params" className="gap-2 px-3">
+                                  <span>Params</span>
+                                  {testParams.filter(p => p.enabled && p.name).length > 0 && (
+                                    <Badge variant="secondary" className="h-4 px-1.5 text-[10px] flex items-center justify-center">
+                                      {testParams.filter(p => p.enabled && p.name).length}
+                                    </Badge>
+                                  )}
+                                </TabsTrigger>
+                                <TabsTrigger value="body" className="gap-2 px-3">
+                                  <span>Body</span>
+                                  {testBody && testBody.trim() && (
+                                    <Badge variant="secondary" className="h-4 px-1.5 text-[10px] flex items-center justify-center">
+                                      1
+                                    </Badge>
+                                  )}
+                                </TabsTrigger>
+                                <TabsTrigger value="headers" className="gap-2 px-3">
+                                  <span>Headers</span>
+                                  {testHeaders.filter(h => h.enabled && h.name).length > 0 && (
+                                    <Badge variant="secondary" className="h-4 px-1.5 text-[10px] flex items-center justify-center">
+                                      {testHeaders.filter(h => h.enabled && h.name).length}
+                                    </Badge>
+                                  )}
+                                </TabsTrigger>
+                                <TabsTrigger value="cookies" className="px-3">
+                                  Cookies
+                                </TabsTrigger>
+                                <TabsTrigger value="auth" className="px-3">
+                                  Auth
+                                </TabsTrigger>
+                              </TabsList>
+                            </Tabs>
+                          </div>
                             
                           <div className="flex-1 overflow-auto">
                             {activeTestTab === 'params' && (
