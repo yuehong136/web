@@ -49,14 +49,19 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   const [zIndex, setZIndex] = React.useState(globalZIndex)
   const dropdownRef = React.useRef<HTMLDivElement>(null)
   const buttonRef = React.useRef<HTMLButtonElement>(null)
+  const menuRef = React.useRef<HTMLDivElement>(null)
   const [dropdownPosition, setDropdownPosition] = React.useState({ top: 0, left: 0, width: 0 })
 
   const selectedOption = options.find(option => option.value === value)
 
-  // 点击外部关闭
+  // 点击外部关闭 - 需要同时检查触发按钮和 Portal 中的下拉菜单
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      const target = event.target as Node
+      const isInsideTrigger = dropdownRef.current?.contains(target)
+      const isInsideMenu = menuRef.current?.contains(target)
+      
+      if (!isInsideTrigger && !isInsideMenu) {
         setIsOpen(false)
       }
     }
@@ -168,6 +173,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
               onClick={() => setIsOpen(false)} 
             />
             <div 
+              ref={menuRef}
               className="fixed bg-white border border-gray-200 rounded-lg shadow-lg max-h-64 overflow-hidden"
               style={{
                 top: dropdownPosition.top,
