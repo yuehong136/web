@@ -36,7 +36,8 @@ import {
   PageSizeSelector,
   FileUploader,
   type UploadFile,
-  type FileRejection
+  type FileRejection,
+  Switch,
 } from '../../components/ui'
 import {
   Popover,
@@ -427,6 +428,7 @@ const KnowledgeDocumentsPage: React.FC = () => {
   const [uploadModalOpen, setUploadModalOpen] = useState(false)
   const [uploadFiles, setUploadFiles] = useState<UploadFile[]>([])
   const [uploading, setUploading] = useState(false)
+  const [parseOnUpload, setParseOnUpload] = useState(true) // 创建时解析开关
 
   // Metadata 模态框状态
   const [metadataModalOpen, setMetadataModalOpen] = useState(false)
@@ -923,6 +925,18 @@ const KnowledgeDocumentsPage: React.FC = () => {
         })))
         
         toast.success(`成功上传 ${uploadedDocs.length} 个文档`)
+        
+        // 如果开启了"创建时解析"，自动触发解析
+        if (parseOnUpload) {
+          try {
+            const docIds = uploadedDocs.map(doc => doc.id)
+            await knowledgeAPI.document.run(docIds, 1, false)
+            toast.success(`已开始解析 ${docIds.length} 个文档`)
+          } catch (parseError) {
+            console.error('自动解析失败:', parseError)
+            toast.error('文档上传成功，但自动解析失败，请手动触发解析')
+          }
+        }
         
         // 稍等片刻让用户看到成功状态，然后关闭
         setTimeout(() => {
@@ -1956,6 +1970,32 @@ const KnowledgeDocumentsPage: React.FC = () => {
               </>
             }
           />
+          
+          {/* 创建时解析开关 */}
+          <div 
+            className="flex items-center justify-between py-3 px-4 rounded-lg"
+            style={{ backgroundColor: 'var(--color-surface-secondary)' }}
+          >
+            <div className="flex flex-col">
+              <span 
+                className="text-sm font-medium"
+                style={{ color: 'var(--color-text-primary)' }}
+              >
+                创建时解析
+              </span>
+              <span 
+                className="text-xs"
+                style={{ color: 'var(--color-text-tertiary)' }}
+              >
+                上传成功后自动开始解析文档
+              </span>
+            </div>
+            <Switch
+              checked={parseOnUpload}
+              onCheckedChange={setParseOnUpload}
+              disabled={uploading}
+            />
+          </div>
           
           {/* 操作按钮 */}
           <div 
