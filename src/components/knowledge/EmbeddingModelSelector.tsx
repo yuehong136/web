@@ -15,6 +15,8 @@ interface EmbeddingModelSelectorProps {
   disabled?: boolean
   /** 错误信息 */
   error?: string
+  /** 是否显示标签 */
+  showLabel?: boolean
 }
 
 // 需要主题切换的厂商
@@ -58,7 +60,8 @@ export const EmbeddingModelSelector: React.FC<EmbeddingModelSelectorProps> = ({
   selectedModelId,
   onSelect,
   disabled = false,
-  error
+  error,
+  showLabel = true
 }) => {
   const { myLLMs, loadMyLLMs, isLoading } = useModelStore()
 
@@ -136,10 +139,12 @@ export const EmbeddingModelSelector: React.FC<EmbeddingModelSelectorProps> = ({
   if (isLoading) {
     return (
       <div className="space-y-2">
-        <label className="block text-xs font-medium text-text-primary">嵌入模型</label>
-        <div className="w-full px-3 py-2 border border-border rounded-md bg-accent/20 flex items-center h-10">
-          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-primary"></div>
-          <span className="ml-2 text-text-tertiary text-xs">加载嵌入模型中...</span>
+        {showLabel && (
+          <label className="block text-sm font-medium text-text-primary">嵌入模型</label>
+        )}
+        <div className="w-full px-3 py-2 border border-border-default rounded-md bg-surface-secondary/50 flex items-center h-10">
+          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-text-accent"></div>
+          <span className="ml-2 text-text-tertiary text-sm">加载嵌入模型中...</span>
         </div>
       </div>
     )
@@ -148,10 +153,12 @@ export const EmbeddingModelSelector: React.FC<EmbeddingModelSelectorProps> = ({
   if (error) {
     return (
       <div className="space-y-2">
-        <label className="block text-xs font-medium text-text-primary">嵌入模型</label>
-        <div className="w-full px-3 py-2 border border-error rounded-md bg-error/10 flex items-center h-10">
-          <AlertCircle className="h-3 w-3 text-error" />
-          <span className="ml-2 text-error text-xs">{error}</span>
+        {showLabel && (
+          <label className="block text-sm font-medium text-text-primary">嵌入模型</label>
+        )}
+        <div className="w-full px-3 py-2 border border-status-error rounded-md bg-status-error/10 flex items-center h-10">
+          <AlertCircle className="h-3 w-3 text-status-error" />
+          <span className="ml-2 text-status-error text-sm">{error}</span>
         </div>
       </div>
     )
@@ -160,10 +167,12 @@ export const EmbeddingModelSelector: React.FC<EmbeddingModelSelectorProps> = ({
   if (!hasModels) {
     return (
       <div className="space-y-2">
-        <label className="block text-xs font-medium text-text-primary">嵌入模型</label>
-        <div className="w-full px-3 py-2 border border-warning rounded-md bg-warning/10 flex items-center h-10">
-          <AlertCircle className="h-3 w-3 text-warning" />
-          <span className="ml-2 text-warning text-xs">暂无可用的嵌入模型，请先在模型供应商中添加</span>
+        {showLabel && (
+          <label className="block text-sm font-medium text-text-primary">嵌入模型</label>
+        )}
+        <div className="w-full px-3 py-2 border border-status-warning rounded-md bg-status-warning/10 flex items-center h-10">
+          <AlertCircle className="h-3 w-3 text-status-warning" />
+          <span className="ml-2 text-status-warning text-sm">暂无可用的嵌入模型，请先在模型供应商中添加</span>
         </div>
       </div>
     )
@@ -171,11 +180,13 @@ export const EmbeddingModelSelector: React.FC<EmbeddingModelSelectorProps> = ({
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center mb-1">
-        <label className="block text-xs font-medium text-text-primary">嵌入模型</label>
-        <FormTooltip tooltip="用于文档向量化的嵌入模型，影响检索质量。所有新创建的知识库使用的默认嵌入模型。如未显示可选模型，请检查你是否在使用 MultiRAG slim 版(不含嵌入模型)；或确认你的模型供应商是否提供该模型。" />
-      </div>
-      
+      {showLabel && (
+        <div className="flex items-center mb-1">
+          <label className="block text-sm font-medium text-text-primary">嵌入模型</label>
+          <FormTooltip tooltip="用于文档向量化的嵌入模型，影响检索质量。所有新创建的知识库使用的默认嵌入模型。如未显示可选模型，请检查你是否在使用 MultiRAG slim 版(不含嵌入模型)；或确认你的模型供应商是否提供该模型。" />
+        </div>
+      )}
+
       <SelectWithSearch
         value={normalizedValue}
         options={groupedOptions}

@@ -15,6 +15,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -164,7 +165,7 @@ export const CreateMemoryDialog: React.FC<CreateMemoryDialogProps> = ({
   if (isEditMode) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-[420px]">
+        <DialogContent size="sm">
           <DialogHeader>
             <div className="flex items-center gap-3">
               <div
@@ -176,55 +177,61 @@ export const CreateMemoryDialog: React.FC<CreateMemoryDialogProps> = ({
               >
                 <Brain className="h-5 w-5 text-white" />
               </div>
-              <DialogTitle>{MEMORY_TEXTS.memories.editMemory}</DialogTitle>
+              <div className="flex-1 min-w-0">
+                <DialogTitle>{MEMORY_TEXTS.memories.editMemory}</DialogTitle>
+                <DialogDescription>
+                  修改记忆库的名称和头像
+                </DialogDescription>
+              </div>
             </div>
           </DialogHeader>
 
           <Form {...editForm}>
-            <form onSubmit={editForm.handleSubmit(handleEditSubmit)} className="space-y-6">
-              {/* 头像 */}
-              <FormField
-                control={editForm.control}
-                name="avatar"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col items-center">
-                    <AvatarUpload
-                      value={field.value}
-                      onChange={field.onChange}
-                      size="lg"
-                      fallbackLetter={editForm.watch('name')?.charAt(0) || 'M'}
-                      gradientClass={avatarGradient}
-                      tips="支持 JPG、PNG，最大 5MB"
-                    />
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* 名称 */}
-              <FormField
-                control={editForm.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-text-secondary">
-                      {MEMORY_TEXTS.memories.name}
-                      <span className="text-status-error ml-0.5">*</span>
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder={MEMORY_TEXTS.memories.memoryNamePlaceholder}
-                        {...field}
+            <form onSubmit={editForm.handleSubmit(handleEditSubmit)}>
+              <div className="px-6 py-4 space-y-5">
+                {/* 头像 */}
+                <FormField
+                  control={editForm.control}
+                  name="avatar"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col items-center">
+                      <AvatarUpload
+                        value={field.value}
+                        onChange={field.onChange}
+                        size="lg"
+                        fallbackLetter={editForm.watch('name')?.charAt(0) || 'M'}
+                        gradientClass={avatarGradient}
+                        tips="支持 JPG、PNG，最大 5MB"
                       />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <p className="text-xs text-text-tertiary text-center">
-                更多配置请前往设置页面修改
-              </p>
+                {/* 名称 */}
+                <FormField
+                  control={editForm.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-medium text-[var(--color-text-primary)]">
+                        {MEMORY_TEXTS.memories.name}
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder={MEMORY_TEXTS.memories.memoryNamePlaceholder}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <p className="text-xs text-[var(--color-text-tertiary)] text-center">
+                  更多配置请前往设置页面修改
+                </p>
+              </div>
 
               <DialogFooter>
                 <Button
@@ -250,7 +257,7 @@ export const CreateMemoryDialog: React.FC<CreateMemoryDialogProps> = ({
   // ============ 创建模式 UI ============
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent size="md">
         <DialogHeader>
           <div className="flex items-center gap-3">
             <div
@@ -261,27 +268,27 @@ export const CreateMemoryDialog: React.FC<CreateMemoryDialogProps> = ({
             >
               <Brain className="h-5 w-5 text-white" />
             </div>
-            <DialogTitle>{MEMORY_TEXTS.memories.createMemory}</DialogTitle>
+            <div className="flex-1 min-w-0">
+              <DialogTitle>{MEMORY_TEXTS.memories.createMemory}</DialogTitle>
+              <DialogDescription>
+                配置记忆库的基本信息和模型设置
+              </DialogDescription>
+            </div>
           </div>
         </DialogHeader>
 
         <Form {...createForm}>
-          <form onSubmit={createForm.handleSubmit(handleCreateSubmit)} className="space-y-5">
-            {/* 名称 */}
-            <FormField
-              control={createForm.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem className="flex items-start gap-4">
-                  <div className="w-24 shrink-0 pt-2.5">
-                    <div className="flex items-center gap-1.5">
-                      <FormLabel className="text-text-secondary text-sm">
-                        {MEMORY_TEXTS.memories.name}
-                      </FormLabel>
-                      <span className="text-status-error">*</span>
-                    </div>
-                  </div>
-                  <div className="flex-1">
+          <form onSubmit={createForm.handleSubmit(handleCreateSubmit)}>
+            <div className="px-6 py-4 space-y-5 overflow-y-auto max-h-[calc(80vh-200px)]">
+              {/* 名称 */}
+              <FormField
+                control={createForm.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-medium text-[var(--color-text-primary)]">
+                      {MEMORY_TEXTS.memories.name}
+                    </FormLabel>
                     <FormControl>
                       <Input
                         placeholder={MEMORY_TEXTS.memories.memoryNamePlaceholder}
@@ -289,23 +296,20 @@ export const CreateMemoryDialog: React.FC<CreateMemoryDialogProps> = ({
                       />
                     </FormControl>
                     <FormMessage />
-                  </div>
-                </FormItem>
-              )}
-            />
+                  </FormItem>
+                )}
+              />
 
-            {/* 记忆类型 */}
-            <FormField
-              control={createForm.control}
-              name="memory_type"
-              render={({ field }) => (
-                <FormItem className="flex items-start gap-4">
-                  <div className="w-24 shrink-0 pt-2.5">
+              {/* 记忆类型 */}
+              <FormField
+                control={createForm.control}
+                name="memory_type"
+                render={({ field }) => (
+                  <FormItem>
                     <div className="flex items-center gap-1.5">
-                      <FormLabel className="text-text-secondary text-sm">
+                      <FormLabel className="text-sm font-medium text-[var(--color-text-primary)]">
                         {MEMORY_TEXTS.memories.memoryType}
                       </FormLabel>
-                      <span className="text-status-error">*</span>
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -317,8 +321,6 @@ export const CreateMemoryDialog: React.FC<CreateMemoryDialogProps> = ({
                         </Tooltip>
                       </TooltipProvider>
                     </div>
-                  </div>
-                  <div className="flex-1">
                     <FormControl>
                       <MemoryTypeSelect
                         value={field.value}
@@ -326,23 +328,20 @@ export const CreateMemoryDialog: React.FC<CreateMemoryDialogProps> = ({
                       />
                     </FormControl>
                     <FormMessage />
-                  </div>
-                </FormItem>
-              )}
-            />
+                  </FormItem>
+                )}
+              />
 
-            {/* 嵌入模型 */}
-            <FormField
-              control={createForm.control}
-              name="embd_id"
-              render={({ field }) => (
-                <FormItem className="flex items-start gap-4">
-                  <div className="w-24 shrink-0 pt-2.5">
+              {/* 嵌入模型 */}
+              <FormField
+                control={createForm.control}
+                name="embd_id"
+                render={({ field }) => (
+                  <FormItem>
                     <div className="flex items-center gap-1.5">
-                      <FormLabel className="text-text-secondary text-sm">
+                      <FormLabel className="text-sm font-medium text-[var(--color-text-primary)]">
                         {MEMORY_TEXTS.memories.embeddingModel}
                       </FormLabel>
-                      <span className="text-status-error">*</span>
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -354,8 +353,6 @@ export const CreateMemoryDialog: React.FC<CreateMemoryDialogProps> = ({
                         </Tooltip>
                       </TooltipProvider>
                     </div>
-                  </div>
-                  <div className="flex-1">
                     <FormControl>
                       <EmbeddingModelSelector
                         selectedModelId={field.value}
@@ -364,23 +361,20 @@ export const CreateMemoryDialog: React.FC<CreateMemoryDialogProps> = ({
                       />
                     </FormControl>
                     <FormMessage />
-                  </div>
-                </FormItem>
-              )}
-            />
+                  </FormItem>
+                )}
+              />
 
-            {/* LLM 模型 */}
-            <FormField
-              control={createForm.control}
-              name="llm_id"
-              render={({ field }) => (
-                <FormItem className="flex items-start gap-4">
-                  <div className="w-24 shrink-0 pt-2.5">
+              {/* LLM 模型 */}
+              <FormField
+                control={createForm.control}
+                name="llm_id"
+                render={({ field }) => (
+                  <FormItem>
                     <div className="flex items-center gap-1.5">
-                      <FormLabel className="text-text-secondary text-sm">
+                      <FormLabel className="text-sm font-medium text-[var(--color-text-primary)]">
                         {MEMORY_TEXTS.memories.llm}
                       </FormLabel>
-                      <span className="text-status-error">*</span>
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -392,8 +386,6 @@ export const CreateMemoryDialog: React.FC<CreateMemoryDialogProps> = ({
                         </Tooltip>
                       </TooltipProvider>
                     </div>
-                  </div>
-                  <div className="flex-1">
                     <FormControl>
                       <ChatModelSelector
                         selectedModelId={field.value}
@@ -402,12 +394,12 @@ export const CreateMemoryDialog: React.FC<CreateMemoryDialogProps> = ({
                       />
                     </FormControl>
                     <FormMessage />
-                  </div>
-                </FormItem>
-              )}
-            />
+                  </FormItem>
+                )}
+              />
+            </div>
 
-            <DialogFooter className="pt-4">
+            <DialogFooter>
               <Button
                 type="button"
                 variant="outline"
