@@ -75,6 +75,9 @@ import { ReferenceDetailSheet } from '@/components/chat/ReferenceDetailSheet'
 import { createReferenceMarkerComponent } from '@/components/chat/ReferenceMarker'
 import { ReferenceImageList } from '@/components/chat/ReferenceImageList'
 
+// SSE 流解析库（参考 ragflow 最佳实践）
+import { EventSourceParserStream } from 'eventsource-parser/stream'
+
 // 延迟加载 ImageCarousel 组件，避免 embla-carousel 初始化问题
 const ImageCarousel = React.lazy(() => import('@/components/chat/ImageCarousel'))
 
@@ -786,61 +789,67 @@ export const ExplorePage: React.FC = () => {
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
         if (!response.body) throw new Error('No response body')
 
-      const reader = response.body.getReader()
-      const decoder = new TextDecoder()
+      // 使用 EventSourceParserStream 处理 SSE 流（参考 ragflow 最佳实践）
+      // 自动处理 TCP 分包、SSE 格式解析等边界情况
+      const reader = response.body
+        .pipeThrough(new TextDecoderStream())
+        .pipeThrough(new EventSourceParserStream())
+        .getReader()
 
       while (true) {
         const { done, value } = await reader.read()
         if (done) break
 
-        const chunk = decoder.decode(value)
-        const lines = chunk.split('\n')
-
-        for (const line of lines) {
-          if (line.startsWith('data:')) {
-            try {
-              const jsonStr = line.slice(5).trim()
-                if (jsonStr === 'true') break
+        try {
+          // value 已经是解析好的 SSE 事件对象
+          const jsonStr = value?.data
+          if (!jsonStr) continue
+          
+          const data = JSON.parse(jsonStr)
+          // 检查是否是终止信号
+          if (data.data === true) continue
+          
+          if (data.retcode === 0 && data.data?.answer) {
+            const content = data.data.answer
+            // 只有当 SSE 返回了 references 数据时才更新，避免空数组覆盖之前的有效数据
+            const newReferences = extractReferencesFromSSEData(data.data)
               
-              const data = JSON.parse(jsonStr)
-                if (data.retcode === 0 && data.data?.answer) {
-                  const content = data.data.answer
-                const references = extractReferencesFromSSEData(data.data)
-                  
-                  // 提取 think/thinking 内容（支持两种标签格式）
-                  // 服务端返回累积式流式数据，每个 chunk 都可能包含完整的 <think>...</think>
-                  let thinking = ''
-                  const thinkMatch = content.match(/<think(?:ing)?>([\s\S]*?)(?:<\/think(?:ing)?>|$)/)
-                  if (thinkMatch) {
-                    thinking = thinkMatch[1].trim()
-                  }
-                  
-                  // 清理内容：移除 think 标签及其内容
-                  const cleanContent = content
-                    .replace(/<think(?:ing)?>[\s\S]*?<\/think(?:ing)?>/g, '')
-                    .replace(/<think(?:ing)?>[\s\S]*$/, '')
-                    .trim()
-                  
-                  setMessages(prev => {
-                    const newMsgs = [...prev]
-                    const lastIdx = newMsgs.length - 1
-                    if (lastIdx >= 0 && newMsgs[lastIdx].role === 'assistant') {
-                      newMsgs[lastIdx] = {
-                        ...newMsgs[lastIdx],
-                        content: cleanContent,
-                        references,
-                        thinking
-                      }
-                    }
-                    return newMsgs
-                  })
-                }
-              } catch (e) {
-                // 忽略解析错误
-              }
+            // 提取 think/thinking 内容（支持两种标签格式）
+            // 服务端返回累积式流式数据，每个 chunk 都可能包含完整的 <think>...</think>
+            let thinking = ''
+            const thinkMatch = content.match(/<think(?:ing)?>([\s\S]*?)(?:<\/think(?:ing)?>|$)/)
+            if (thinkMatch) {
+              thinking = thinkMatch[1].trim()
             }
+              
+            // 清理内容：移除 think 标签及其内容
+            const cleanContent = content
+              .replace(/<think(?:ing)?>[\s\S]*?<\/think(?:ing)?>/g, '')
+              .replace(/<think(?:ing)?>[\s\S]*$/, '')
+              .trim()
+              
+            setMessages(prev => {
+              const newMsgs = [...prev]
+              const lastIdx = newMsgs.length - 1
+              if (lastIdx >= 0 && newMsgs[lastIdx].role === 'assistant') {
+                // 只有当新的 references 有数据时才更新，否则保留之前的
+                const existingReferences = newMsgs[lastIdx].references || []
+                const references = newReferences.length > 0 ? newReferences : existingReferences
+                  
+                newMsgs[lastIdx] = {
+                  ...newMsgs[lastIdx],
+                  content: cleanContent,
+                  references,
+                  thinking
+                }
+              }
+              return newMsgs
+            })
           }
+        } catch (e) {
+          // JSON 解析错误，忽略
         }
+      }
       } else {
         // 普通聊天模式
         const historyMessages: ChatMessage[] = updatedMessages.map(msg => ({
@@ -873,59 +882,57 @@ export const ExplorePage: React.FC = () => {
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
         if (!response.body) throw new Error('No response body')
 
-        const reader = response.body.getReader()
-        const decoder = new TextDecoder()
+        // 使用 EventSourceParserStream 处理 SSE 流（参考 ragflow 最佳实践）
+        const reader = response.body
+          .pipeThrough(new TextDecoderStream())
+          .pipeThrough(new EventSourceParserStream())
+          .getReader()
 
         while (true) {
           const { done, value } = await reader.read()
           if (done) break
 
-          const chunk = decoder.decode(value, { stream: true })
-          const lines = chunk.split('\n')
-
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              try {
-                const jsonStr = line.slice(6).trim()
-                if (!jsonStr) continue
-                
-                const data: SSEResponse = JSON.parse(jsonStr)
-                
-                if (data.retcode === 0 && typeof data.data === 'string') {
-                  const rawData = data.data
-                  
-                  // 提取 think/thinking 内容（支持两种标签格式）
-                  let thinking = ''
-                  const thinkMatch = rawData.match(/<think(?:ing)?>([\s\S]*?)(?:<\/think(?:ing)?>|$)/)
-                  if (thinkMatch) {
-                    thinking = thinkMatch[1].trim()
-                  }
-                  
-                  // 清理内容：移除 think 标签及其内容
-                  const content = rawData
-                    .replace(/<think(?:ing)?>[\s\S]*?<\/think(?:ing)?>/g, '')
-                    .replace(/<think(?:ing)?>[\s\S]*$/, '')
-                    .trim()
-                  
-                  setMessages(prev => {
-                    const newMsgs = [...prev]
-                    const lastIdx = newMsgs.length - 1
-                    if (lastIdx >= 0 && newMsgs[lastIdx].role === 'assistant') {
-                      newMsgs[lastIdx] = {
-                        ...newMsgs[lastIdx],
-                        content,
-                        thinking
-                      }
-                    }
-                    return newMsgs
-                  })
-                } else if (data.data === true) {
-                  break
-                }
-              } catch (e) {
-                // 忽略解析错误
+          try {
+            // value 已经是解析好的 SSE 事件对象
+            const jsonStr = value?.data
+            if (!jsonStr) continue
+            
+            const data: SSEResponse = JSON.parse(jsonStr)
+            
+            // 检查是否是终止信号
+            if (data.data === true) continue
+            
+            if (data.retcode === 0 && typeof data.data === 'string') {
+              const rawData = data.data
+              
+              // 提取 think/thinking 内容（支持两种标签格式）
+              let thinking = ''
+              const thinkMatch = rawData.match(/<think(?:ing)?>([\s\S]*?)(?:<\/think(?:ing)?>|$)/)
+              if (thinkMatch) {
+                thinking = thinkMatch[1].trim()
               }
+              
+              // 清理内容：移除 think 标签及其内容
+              const content = rawData
+                .replace(/<think(?:ing)?>[\s\S]*?<\/think(?:ing)?>/g, '')
+                .replace(/<think(?:ing)?>[\s\S]*$/, '')
+                .trim()
+              
+              setMessages(prev => {
+                const newMsgs = [...prev]
+                const lastIdx = newMsgs.length - 1
+                if (lastIdx >= 0 && newMsgs[lastIdx].role === 'assistant') {
+                  newMsgs[lastIdx] = {
+                    ...newMsgs[lastIdx],
+                    content,
+                    thinking
+                  }
+                }
+                return newMsgs
+              })
             }
+          } catch (e) {
+            // JSON 解析错误，忽略
           }
         }
       }

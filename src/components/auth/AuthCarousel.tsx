@@ -3,17 +3,19 @@ import { ImageWithFallback } from "./ImageWithFallback";
 
 const carouselData = [
   {
-    image: "https://images.unsplash.com/photo-1740933084056-078fac872bff?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjB3b3Jrc3BhY2UlMjBjb2xsYWJvcmF0aW9ufGVufDF8fHx8MTc1NDQ0MjE0N3ww&ixlib=rb-4.1.0&q=80&w=1080",
+    // image: "https://images.unsplash.com/photo-1740933084056-078fac872bff?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjB3b3Jrc3BhY2UlMjBjb2xsYWJvcmF0aW9ufGVufDF8fHx8MTc1NDQ0MjE0N3ww&ixlib=rb-4.1.0&q=80&w=1080",
+    image: "/src/assets/images/z-image-turbo1.png",
     title: "开始您的旅程",
     subtitle: "加入我们的社区，与全球用户一起探索无限可能。",
   },
   {
-    image: "/src/assets/images/auth-carousel-2.png",
+    image: "/src/assets/images/z-image-turbo2.png",
     title: "创新技术",
     subtitle: "体验最前沿的AI技术，让工作变得更加智能高效。",
   },
   {
-    image: "https://images.unsplash.com/photo-1515355252367-42ae86cb92f9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkaWdpdGFsJTIwaW5ub3ZhdGlvbiUyMHRlY2hub2xvZ3l8ZW58MXx8fHwxNzU0NTIxNjAzfDA&ixlib=rb-4.1.0&q=80&w=1080",
+    // image: "https://images.unsplash.com/photo-1515355252367-42ae86cb92f9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkaWdpdGFsJTIwaW5ub3ZhdGlvbiUyMHRlY2hub2xvZ3l8ZW58MXx8fHwxNzU0NTIxNjAzfDA&ixlib=rb-4.1.0&q=80&w=1080",
+    image: "/src/assets/images/z-image-turbo3.png",
     title: "快速上手",
     subtitle: "简单几步即可完成注册，立即体验我们的优质服务。",
   },
