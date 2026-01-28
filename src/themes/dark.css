@@ -324,10 +324,10 @@ html[data-theme="dark"] {
   --color-components-api-docs-header-bg: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(147, 197, 253, 0.12) 100%);
   --color-components-api-docs-header-border: rgba(71, 85, 105, 0.3);
   --color-components-api-docs-border: #475569;
-  --color-components-slider-track: rgba(255, 255, 255, 0.15);
+  --color-components-slider-track: rgba(255, 255, 255, 0.16);
   --color-components-slider-range: #3b82f6;
   --color-components-slider-thumb: #ffffff;
-  --color-components-slider-thumb-border: rgba(59, 130, 246, 0.5);
+  --color-components-slider-thumb-border: #3b82f6;
   --color-components-badge-bg: rgba(255, 255, 255, 0.1);
   --color-components-badge-text: #e5e7eb;
   --color-components-badge-border: #475569;

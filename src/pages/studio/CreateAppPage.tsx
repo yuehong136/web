@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react'
-import { Splitter, Collapse, Input, Select, Slider, Switch, Button, Space, Typography, Modal, Avatar, Upload, App, Tabs, Table, Tag } from 'antd'
+import { Splitter, Collapse, Input, Select, Switch, Button, Space, Typography, Modal, Avatar, Upload, App, Tabs, Table, Tag } from 'antd'
+import { Slider } from '@/components/ui/slider'
 import { 
   EditOutlined, 
   EyeOutlined, 
@@ -1292,9 +1293,9 @@ export const CreateAppPage: React.FC = () => {
                               min={0}
                               max={1}
                               step={0.01}
-                              value={config.search_mode?.weight_dense ?? 0.7}
-                              onChange={(value) => {
-                                const denseWeight = Number(value.toFixed(2))
+                              value={[config.search_mode?.weight_dense ?? 0.7]}
+                              onValueChange={(values) => {
+                                const denseWeight = Number(values[0].toFixed(2))
                                 const sparseWeight = Number((1 - denseWeight).toFixed(2))
                                 handleConfigChange('search_mode', {
                                   type: 'hybrid' as const,
@@ -1337,8 +1338,8 @@ export const CreateAppPage: React.FC = () => {
                         min={0}
                         max={1}
                         step={0.01}
-                        value={config.similarity_threshold}
-                        onChange={(value) => handleConfigChange('similarity_threshold', value)}
+                        value={[config.similarity_threshold ?? 0]}
+                        onValueChange={(values) => handleConfigChange('similarity_threshold', values[0])}
                       />
                     </div>
                     
@@ -1349,8 +1350,8 @@ export const CreateAppPage: React.FC = () => {
                         min={0}
                         max={1}
                         step={0.01}
-                        value={config.vector_similarity_weight}
-                        onChange={(value) => handleConfigChange('vector_similarity_weight', value)}
+                        value={[config.vector_similarity_weight ?? 0]}
+                        onValueChange={(values) => handleConfigChange('vector_similarity_weight', values[0])}
                       />
                     </div>
                     

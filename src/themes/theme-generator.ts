@@ -876,10 +876,10 @@ export const darkTokens: DesignTokens = {
   'components-switch-thumb-checked': '#ffffff',
   
   // ===== 滑块组件 =====
-  'components-slider-track': 'rgba(255, 255, 255, 0.15)',
+  'components-slider-track': 'rgba(255, 255, 255, 0.16)',
   'components-slider-range': '#3b82f6',
   'components-slider-thumb': '#ffffff',
-  'components-slider-thumb-border': 'rgba(59, 130, 246, 0.5)',
+  'components-slider-thumb-border': '#3b82f6',
   
   // ===== 滚动条系统 =====
   'components-scrollbar-track': 'rgba(255, 255, 255, 0.05)',
