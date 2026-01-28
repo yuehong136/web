@@ -21,10 +21,47 @@ import {
   PanelLeftClose,
   PlugZap
 } from 'lucide-react'
+import * as TooltipPrimitive from '@radix-ui/react-tooltip'
 import { cn } from '@/lib/utils'
 import { ROUTES } from '@/constants'
 import { useUIStore, useAuthStore } from '@/stores'
 import { Theme, setTheme as setAppTheme, getTheme } from '@/themes'
+
+// 侧边栏专用 Tooltip 组件（黑色背景样式）
+interface SidebarTooltipProps {
+  content: React.ReactNode
+  children: React.ReactNode
+  enabled?: boolean
+}
+
+const SidebarTooltip: React.FC<SidebarTooltipProps> = ({
+  content,
+  children,
+  enabled = true,
+}) => {
+  if (!enabled) {
+    return <>{children}</>
+  }
+
+  return (
+    <TooltipPrimitive.Provider delayDuration={100}>
+      <TooltipPrimitive.Root>
+        <TooltipPrimitive.Trigger asChild>
+          {children}
+        </TooltipPrimitive.Trigger>
+        <TooltipPrimitive.Portal>
+          <TooltipPrimitive.Content
+            side="right"
+            sideOffset={12}
+            className="z-50 rounded-lg bg-gray-900 px-3 py-1.5 text-sm text-white shadow-lg animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=right]:slide-in-from-left-2"
+          >
+            {content}
+          </TooltipPrimitive.Content>
+        </TooltipPrimitive.Portal>
+      </TooltipPrimitive.Root>
+    </TooltipPrimitive.Provider>
+  )
+}
 
 interface SidebarProps {
   className?: string
@@ -218,41 +255,41 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       : location.pathname.startsWith(item.href)
 
               return (
-                  <NavLink
-                      key={item.href}
-                      to={item.href}
-                      className={cn(
-                          "relative flex items-center rounded-xl group",
-                          "transition-all duration-200 ease-out",
-                          isCollapsed
-                              ? "justify-center p-2.5"
-                              : "gap-3 px-3 py-2.5",
-                          isActive
-                              ? "bg-components-sidebar-item-bg-active text-components-sidebar-item-text-active"
-                              : "text-components-sidebar-item-text hover:bg-components-sidebar-item-bg-hover hover:text-text-primary"
-                      )}
-                      title={isCollapsed ? item.title : undefined}
-                  >
-                    <Icon className={cn(
-                        "flex-shrink-0 h-5 w-5 transition-transform duration-200",
-                        isActive ? "text-components-sidebar-item-text-active" : ""
-                    )} />
-                    {/* 菜单文字使用延迟动画，每个菜单项延迟递增 */}
-                    <span
+                  <SidebarTooltip key={item.href} content={item.title} enabled={isCollapsed}>
+                    <NavLink
+                        to={item.href}
                         className={cn(
-                            "text-sm font-medium whitespace-nowrap",
-                            "transition-all duration-300 ease-out",
+                            "relative flex items-center rounded-xl group",
+                            "transition-all duration-200 ease-out",
                             isCollapsed
-                                ? "opacity-0 w-0 translate-x-[-10px] pointer-events-none"
-                                : "opacity-100 w-auto translate-x-0"
+                                ? "justify-center p-2.5"
+                                : "gap-3 px-3 py-2.5",
+                            isActive
+                                ? "bg-components-sidebar-item-bg-active text-components-sidebar-item-text-active"
+                                : "text-components-sidebar-item-text hover:bg-components-sidebar-item-bg-hover hover:text-text-primary"
                         )}
-                        style={{
-                          transitionDelay: isCollapsed ? '0ms' : `${50 + index * 20}ms`
-                        }}
                     >
-                  {item.title}
-                </span>
-                  </NavLink>
+                      <Icon className={cn(
+                          "flex-shrink-0 h-5 w-5 transition-transform duration-200",
+                          isActive ? "text-components-sidebar-item-text-active" : ""
+                      )} />
+                      {/* 菜单文字使用延迟动画，每个菜单项延迟递增 */}
+                      <span
+                          className={cn(
+                              "text-sm font-medium whitespace-nowrap",
+                              "transition-all duration-300 ease-out",
+                              isCollapsed
+                                  ? "opacity-0 w-0 translate-x-[-10px] pointer-events-none"
+                                  : "opacity-100 w-auto translate-x-0"
+                          )}
+                          style={{
+                            transitionDelay: isCollapsed ? '0ms' : `${50 + index * 20}ms`
+                          }}
+                      >
+                    {item.title}
+                  </span>
+                    </NavLink>
+                  </SidebarTooltip>
               )
             })}
           </div>
@@ -269,17 +306,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
         )}>
           {/* 通知按钮 */}
           <div className="relative">
-            <button
-                onClick={() => setShowNotifications(!showNotifications)}
-                className={cn(
-                    "w-full flex items-center rounded-xl transition-all duration-200",
-                    isCollapsed
-                        ? "justify-center p-2.5"
-                        : "gap-3 px-3 py-2",
-                    "text-components-sidebar-item-text hover:bg-components-sidebar-item-bg-hover hover:text-text-primary"
-                )}
-                title={isCollapsed ? "通知" : undefined}
-            >
+            <SidebarTooltip content="通知" enabled={isCollapsed}>
+              <button
+                  onClick={() => setShowNotifications(!showNotifications)}
+                  className={cn(
+                      "w-full flex items-center rounded-xl transition-all duration-200",
+                      isCollapsed
+                          ? "justify-center p-2.5"
+                          : "gap-3 px-3 py-2",
+                      "text-components-sidebar-item-text hover:bg-components-sidebar-item-bg-hover hover:text-text-primary"
+                  )}
+              >
               <Bell className="h-5 w-5 flex-shrink-0" />
               <span
                   className={cn(
@@ -300,7 +337,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 {isCollapsed ? '•' : (unreadCount > 9 ? '9+' : unreadCount)}
               </span>
               )}
-            </button>
+              </button>
+            </SidebarTooltip>
 
             {showNotifications && (
                 <div className={cn(
@@ -351,30 +389,31 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           {/* 主题切换 */}
           <div className="relative">
-            <button
-                onClick={() => setShowThemeMenu(!showThemeMenu)}
-                className={cn(
-                    "w-full flex items-center rounded-xl transition-all duration-200",
-                    isCollapsed
-                        ? "justify-center p-2.5"
-                        : "gap-3 px-3 py-2",
-                    "text-components-sidebar-item-text hover:bg-components-sidebar-item-bg-hover hover:text-text-primary"
-                )}
-                title={isCollapsed ? "主题设置" : undefined}
-            >
-              <ThemeIcon />
-              <span
+            <SidebarTooltip content="主题" enabled={isCollapsed}>
+              <button
+                  onClick={() => setShowThemeMenu(!showThemeMenu)}
                   className={cn(
-                      "text-sm whitespace-nowrap",
-                      "transition-all duration-300 ease-out",
+                      "w-full flex items-center rounded-xl transition-all duration-200",
                       isCollapsed
-                          ? "opacity-0 w-0 translate-x-[-10px] pointer-events-none"
-                          : "opacity-100 w-auto translate-x-0 delay-[270ms]"
+                          ? "justify-center p-2.5"
+                          : "gap-3 px-3 py-2",
+                      "text-components-sidebar-item-text hover:bg-components-sidebar-item-bg-hover hover:text-text-primary"
                   )}
               >
-              主题
-            </span>
-            </button>
+                <ThemeIcon />
+                <span
+                    className={cn(
+                        "text-sm whitespace-nowrap",
+                        "transition-all duration-300 ease-out",
+                        isCollapsed
+                            ? "opacity-0 w-0 translate-x-[-10px] pointer-events-none"
+                            : "opacity-100 w-auto translate-x-0 delay-[270ms]"
+                    )}
+                >
+                主题
+              </span>
+              </button>
+            </SidebarTooltip>
 
             {showThemeMenu && (
                 <div className={cn(
@@ -421,46 +460,47 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* 用户信息 */}
           {isAuthenticated ? (
               <div className="relative">
-                <button
-                    onClick={() => setShowUserMenu(!showUserMenu)}
-                    className={cn(
-                        "w-full flex items-center rounded-xl transition-all duration-200",
-                        isCollapsed
-                            ? "justify-center p-2.5"
-                            : "gap-3 px-3 py-2",
-                        "text-components-sidebar-item-text hover:bg-components-sidebar-item-bg-hover hover:text-text-primary"
-                    )}
-                    title={isCollapsed ? (user?.nickname || user?.username || '用户') : undefined}
-                >
-                  {/* 头像：优先显示用户上传的头像，没有则显示首字母 */}
-                  {user?.avatar ? (
-                    <img
-                      src={user.avatar}
-                      alt="avatar"
-                      className="w-6 h-6 rounded-lg object-cover flex-shrink-0"
-                    />
-                  ) : (
-                    <div
-                        className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0"
-                        style={{ background: 'var(--color-components-gradient-secondary)' }}
-                    >
-                      <span className="text-text-inverted text-xs font-bold">
-                        {user?.nickname?.[0] || user?.username?.[0] || 'U'}
-                      </span>
-                    </div>
-                  )}
-                  <span
+                <SidebarTooltip content={user?.nickname || user?.username || '用户'} enabled={isCollapsed}>
+                  <button
+                      onClick={() => setShowUserMenu(!showUserMenu)}
                       className={cn(
-                          "text-sm truncate whitespace-nowrap",
-                          "transition-all duration-300 ease-out",
+                          "w-full flex items-center rounded-xl transition-all duration-200",
                           isCollapsed
-                              ? "opacity-0 w-0 translate-x-[-10px] pointer-events-none"
-                              : "opacity-100 w-auto translate-x-0 delay-[290ms]"
+                              ? "justify-center p-2.5"
+                              : "gap-3 px-3 py-2",
+                          "text-components-sidebar-item-text hover:bg-components-sidebar-item-bg-hover hover:text-text-primary"
                       )}
                   >
-                {user?.nickname || user?.username || '用户'}
-              </span>
-                </button>
+                    {/* 头像：优先显示用户上传的头像，没有则显示首字母 */}
+                    {user?.avatar ? (
+                      <img
+                        src={user.avatar}
+                        alt="avatar"
+                        className="w-6 h-6 rounded-lg object-cover flex-shrink-0"
+                      />
+                    ) : (
+                      <div
+                          className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0"
+                          style={{ background: 'var(--color-components-gradient-secondary)' }}
+                      >
+                        <span className="text-text-inverted text-xs font-bold">
+                          {user?.nickname?.[0] || user?.username?.[0] || 'U'}
+                        </span>
+                      </div>
+                    )}
+                    <span
+                        className={cn(
+                            "text-sm truncate whitespace-nowrap",
+                            "transition-all duration-300 ease-out",
+                            isCollapsed
+                                ? "opacity-0 w-0 translate-x-[-10px] pointer-events-none"
+                                : "opacity-100 w-auto translate-x-0 delay-[290ms]"
+                        )}
+                    >
+                  {user?.nickname || user?.username || '用户'}
+                </span>
+                  </button>
+                </SidebarTooltip>
 
                 {showUserMenu && (
                     <div className={cn(
@@ -501,30 +541,31 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 )}
               </div>
           ) : (
-              <NavLink
-                  to="/auth/login"
-                  className={cn(
-                      "flex items-center rounded-xl transition-all duration-200",
-                      isCollapsed
-                          ? "justify-center p-2.5"
-                          : "gap-3 px-3 py-2",
-                      "text-components-sidebar-item-text hover:bg-components-sidebar-item-bg-hover hover:text-text-primary"
-                  )}
-                  title={isCollapsed ? "登录" : undefined}
-              >
-                <User className="h-5 w-5 flex-shrink-0" />
-                <span
+              <SidebarTooltip content="登录" enabled={isCollapsed}>
+                <NavLink
+                    to="/auth/login"
                     className={cn(
-                        "text-sm whitespace-nowrap",
-                        "transition-all duration-300 ease-out",
+                        "flex items-center rounded-xl transition-all duration-200",
                         isCollapsed
-                            ? "opacity-0 w-0 translate-x-[-10px] pointer-events-none"
-                            : "opacity-100 w-auto translate-x-0 delay-[290ms]"
+                            ? "justify-center p-2.5"
+                            : "gap-3 px-3 py-2",
+                        "text-components-sidebar-item-text hover:bg-components-sidebar-item-bg-hover hover:text-text-primary"
                     )}
                 >
-              登录
-            </span>
-              </NavLink>
+                  <User className="h-5 w-5 flex-shrink-0" />
+                  <span
+                      className={cn(
+                          "text-sm whitespace-nowrap",
+                          "transition-all duration-300 ease-out",
+                          isCollapsed
+                              ? "opacity-0 w-0 translate-x-[-10px] pointer-events-none"
+                              : "opacity-100 w-auto translate-x-0 delay-[290ms]"
+                      )}
+                  >
+                登录
+              </span>
+                </NavLink>
+              </SidebarTooltip>
           )}
 
           {/* 版本信息 */}
