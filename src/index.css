@@ -49,6 +49,35 @@
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
+  /* ===== 暗黑模式字体渲染优化 ===== */
+  /* 解决深色背景上浅色文字的"光晕效应"和模糊感 */
+  html[data-theme="dark"] {
+    /* macOS/iOS: 使用抗锯齿渲染，减少文字发光感 */
+    -webkit-font-smoothing: antialiased;
+    /* Firefox macOS: 等效的字体平滑设置 */
+    -moz-osx-font-smoothing: grayscale;
+    /* 优化文字可读性 */
+    text-rendering: optimizeLegibility;
+  }
+
+  html[data-theme="dark"] body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* 暗黑模式下图片优化 - 轻微提升对比度和锐度 */
+  html[data-theme="dark"] img:not([data-no-filter]) {
+    /* 轻微提升对比度，改善深色背景下的图片清晰度 */
+    filter: contrast(1.02) brightness(1.02);
+  }
+
+  /* 排除特定图片（如 logo、图标）的滤镜 */
+  html[data-theme="dark"] img[data-no-filter],
+  html[data-theme="dark"] .no-dark-filter img {
+    filter: none;
+  }
+
   /* 全局选择器样式 - 确保主题覆盖，但排除MCP聊天页面 */
   *:not(.mcp-chat-page *):not(.autofill-page *) {
     border-color: var(--color-border-default);
@@ -559,6 +588,16 @@
 html[data-theme="dark"] {
   background-color: var(--color-background-body) !important;
   color: var(--color-text-primary) !important;
+  /* 确保字体渲染优化应用 */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 暗黑模式下的文本清晰度优化 */
+html[data-theme="dark"] .text-xs,
+html[data-theme="dark"] .text-sm {
+  /* 增加字间距，提升小字体可读性 */
+  letter-spacing: 0.015em;
 }
 
 html[data-theme="dark"] body {
@@ -935,4 +974,10 @@ html[data-theme="dark"] .ant-tabs-custom .ant-tabs-tab.ant-tabs-tab-active {
   top: 0;
   z-index: 10;
   background-color: var(--color-background-surface);
+}
+
+/* ===== Ant Design X Bubble Loading 三点动画主题适配 ===== */
+/* 使用 loader-primary 语义令牌：浅色绿色 / 深色紫色 */
+.ant-bubble-dot-item {
+  background-color: var(--color-components-loader-primary) !important;
 }

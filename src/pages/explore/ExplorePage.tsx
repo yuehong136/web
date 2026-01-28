@@ -1465,12 +1465,21 @@ export const ExplorePage: React.FC = () => {
                           transition: all 0.2s ease !important;
                           font-weight: 500 !important;
                         }
+                        .explore-conversations .ant-conversations-creation .ant-typography,
+                        .explore-conversations .ant-conversations-creation span {
+                          color: var(--color-components-sidebar-item-text-active) !important;
+                        }
                         .explore-conversations .ant-conversations-creation:hover {
                           background-color: var(--color-components-button-primary-bg) !important;
                           color: var(--color-components-button-primary-text) !important;
                         }
+                        .explore-conversations .ant-conversations-creation:hover .ant-typography,
+                        .explore-conversations .ant-conversations-creation:hover span {
+                          color: var(--color-components-button-primary-text) !important;
+                        }
                         /* 分组标题样式 */
-                        .explore-conversations .ant-conversations-group-title {
+                        .explore-conversations .ant-conversations-group-title,
+                        .explore-conversations .ant-conversations-group-title .ant-typography {
                           color: var(--color-text-tertiary) !important;
                           font-size: 12px !important;
                           padding: 12px 16px 4px !important;
@@ -1496,6 +1505,17 @@ export const ExplorePage: React.FC = () => {
                         .explore-conversations .ant-conversations-item-label {
                           color: var(--color-text-primary) !important;
                           font-size: 14px !important;
+                        }
+                        /* 覆盖 Typography 组件的文字颜色（Conversations 内部使用 Typography 渲染标签） */
+                        .explore-conversations .ant-typography,
+                        .explore-conversations .ant-conversations-label,
+                        .explore-conversations span.ant-typography.ant-conversations-label {
+                          color: var(--color-text-primary) !important;
+                        }
+                        .explore-conversations .ant-conversations-item-active .ant-typography,
+                        .explore-conversations .ant-conversations-item-active .ant-conversations-label,
+                        .explore-conversations .ant-conversations-item-active span.ant-typography.ant-conversations-label {
+                          color: var(--color-components-sidebar-item-text-active) !important;
                         }
                         .explore-conversations .ant-conversations-item .anticon {
                           color: var(--color-text-tertiary) !important;

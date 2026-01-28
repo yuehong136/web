@@ -319,11 +319,6 @@ html[data-theme="light"], :root {
   --color-components-env-staging-text: #ffffff;
   --color-components-env-dev-bg: #33D4CB;
   --color-components-env-dev-text: #ffffff;
-  --color-components-glassmorphism-bg: rgba(255, 255, 255, 0.75);
-  --color-components-glassmorphism-border: rgba(255, 255, 255, 0.2);
-  --color-components-api-docs-header-bg: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(147, 197, 253, 0.08) 100%);
-  --color-components-api-docs-header-border: rgba(0, 0, 0, 0.1);
-  --color-components-api-docs-border: #e5e7eb;
   --color-components-slider-track: #e5e7eb;
   --color-components-slider-range: #00BEB4;
   --color-components-slider-thumb: #ffffff;
@@ -546,10 +541,15 @@ html[data-theme="light"], :root {
   --color-components-http-method-patch-text: #a855f7;
   --color-components-http-method-patch-border: #e9d5ff;
   --color-components-api-docs-bg: #ffffff;
+  --color-components-api-docs-border: #e5e7eb;
+  --color-components-api-docs-header-bg: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(147, 197, 253, 0.08) 100%);
+  --color-components-api-docs-header-border: rgba(0, 0, 0, 0.08);
   --color-components-api-docs-content-bg: #ffffff;
   --color-components-api-docs-search-bg: #ffffff;
   --color-components-api-docs-search-border: #d1d5db;
   --color-components-api-docs-search-focus-border: #33D4CB;
+  --color-components-glassmorphism-bg: rgba(255, 255, 255, 0.75);
+  --color-components-glassmorphism-border: rgba(255, 255, 255, 0.2);
   --color-components-glassmorphism-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
   --color-components-gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   --color-components-gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);

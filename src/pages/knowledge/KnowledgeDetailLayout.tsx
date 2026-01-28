@@ -118,7 +118,13 @@ const KnowledgeDetailLayout: React.FC = () => {
           </Breadcrumb>
         </header>
       ) : (
-        <div className="border-b border-gray-200 bg-white px-6 py-4">
+        <div 
+          className="px-6 py-4"
+          style={{
+            backgroundColor: 'var(--color-background-surface)',
+            borderBottom: '1px solid var(--color-border-default)'
+          }}
+        >
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Button
@@ -134,17 +140,26 @@ const KnowledgeDetailLayout: React.FC = () => {
                   <AvatarFallback><Database className="h-5 w-5" /></AvatarFallback>
                 </Avatar>
                 <div>
-                  <h1 className="text-xl font-semibold text-gray-900">
+                  <h1 
+                    className="text-xl font-semibold"
+                    style={{ color: 'var(--color-text-primary)' }}
+                  >
                     {currentKnowledgeBase.name}
                   </h1>
-                  <p className="text-sm text-gray-500">
+                  <p 
+                    className="text-sm"
+                    style={{ color: 'var(--color-text-secondary)' }}
+                  >
                     {currentKnowledgeBase.description || '暂无描述'}
                   </p>
                 </div>
               </div>
             </div>
             
-            <div className="flex items-center space-x-3 text-sm text-gray-500">
+            <div 
+              className="flex items-center space-x-3 text-sm"
+              style={{ color: 'var(--color-text-secondary)' }}
+            >
               <span>{currentKnowledgeBase.doc_num || 0} 个文档</span>
               <span>{currentKnowledgeBase.chunk_num || 0} 个块</span>
               <span>{(currentKnowledgeBase.token_num || 0).toLocaleString()} Token</span>
@@ -156,7 +171,13 @@ const KnowledgeDetailLayout: React.FC = () => {
       <div className="flex flex-1 overflow-hidden">
         {/* 侧边栏 */}
         {!isChunksRoute && (
-          <div className="w-64 bg-gray-50 border-r border-gray-200 p-4">
+          <div 
+            className="w-64 p-4"
+            style={{
+              backgroundColor: 'var(--color-components-sidebar-bg)',
+              borderRight: '1px solid var(--color-components-sidebar-border)'
+            }}
+          >
             <nav className="space-y-1">
               {sidebarItems.map((item) => {
                 const Icon = item.icon
@@ -166,12 +187,25 @@ const KnowledgeDetailLayout: React.FC = () => {
                   <Link
                     key={item.key}
                     to={item.path}
-                    className={cn(
-                      "flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
-                      isActive
-                        ? "bg-primary-100 text-primary-700"
-                        : "text-gray-700 hover:bg-gray-100"
-                    )}
+                    className="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+                    style={{
+                      backgroundColor: isActive 
+                        ? 'var(--color-components-sidebar-item-bg-active)' 
+                        : 'transparent',
+                      color: isActive 
+                        ? 'var(--color-components-sidebar-item-text-active)' 
+                        : 'var(--color-components-sidebar-item-text)'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isActive) {
+                        e.currentTarget.style.backgroundColor = 'var(--color-components-sidebar-item-bg-hover)'
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isActive) {
+                        e.currentTarget.style.backgroundColor = 'transparent'
+                      }
+                    }}
                   >
                     <Icon className="h-4 w-4" />
                     <span>{item.label}</span>
