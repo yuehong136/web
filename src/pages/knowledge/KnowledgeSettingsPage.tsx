@@ -30,6 +30,7 @@ import {
   FormControl,
   FormMessage,
 } from '@/components/ui/form'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { GraphRagFormFields } from '@/components/forms/GraphRagFormFields'
 import { RaptorFormFields } from '@/components/forms/RaptorFormFields'
 import { AutoMetadataFormField } from '@/components/forms/KnowledgeFormFields'
@@ -439,24 +440,21 @@ const KnowledgeSettingsPage: React.FC = () => {
                         </FormLabel>
                         <div className="w-3/4">
                           <FormControl>
-                            <div className="flex gap-6">
+                            <RadioGroup
+                              value={String(field.value)}
+                              onValueChange={(val) => field.onChange(Number(val))}
+                              className="flex gap-6"
+                            >
                               {ParseTypeOptions.map((opt) => (
                                 <label
                                   key={opt.value}
                                   className="flex items-center gap-2 cursor-pointer"
                                 >
-                                  <input
-                                    type="radio"
-                                    name="parseType"
-                                    value={opt.value}
-                                    checked={field.value === opt.value}
-                                    onChange={() => field.onChange(opt.value)}
-                                    className="h-4 w-4 text-primary border-border focus:ring-primary"
-                                  />
+                                  <RadioGroupItem value={String(opt.value)} />
                                   <span className="text-sm text-text-secondary">{opt.label}</span>
                                 </label>
                               ))}
-                            </div>
+                            </RadioGroup>
                           </FormControl>
                           <FormMessage className="mt-1" />
                         </div>

@@ -14,6 +14,7 @@ import {
   FormControl,
   FormMessage,
 } from '@/components/ui/form'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { SliderInputFormField } from './SliderInputFormField'
 import { RaptorScopeOptions, DefaultRaptorPrompt } from '@/types/knowledge-form'
 
@@ -76,24 +77,21 @@ export function RaptorFormFields({ className }: RaptorFormFieldsProps) {
             </FormLabel>
             <div className="w-3/4">
               <FormControl>
-                <div className="flex gap-4">
+                <RadioGroup
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  className="flex gap-4"
+                >
                   {RaptorScopeOptions.map((opt) => (
                     <label
                       key={opt.value}
                       className="flex items-center gap-2 cursor-pointer"
                     >
-                      <input
-                        type="radio"
-                        name="raptor_scope"
-                        value={opt.value}
-                        checked={field.value === opt.value}
-                        onChange={() => field.onChange(opt.value)}
-                        className="h-4 w-4 text-primary border-border focus:ring-primary"
-                      />
+                      <RadioGroupItem value={opt.value} />
                       <span className="text-sm text-text-secondary">{opt.label}</span>
                     </label>
                   ))}
-                </div>
+                </RadioGroup>
               </FormControl>
             </div>
           </FormItem>
