@@ -1931,6 +1931,7 @@ export const ExplorePage: React.FC = () => {
                         border: none !important;
                         box-shadow: none !important;
                         outline: none !important;
+                        padding-bottom: 0 !important;
                       }
                       .explore-sender-area .ant-sender:hover {
                         border: none !important;
@@ -1942,6 +1943,13 @@ export const ExplorePage: React.FC = () => {
                       }
                       .explore-sender-area .ant-sender-content {
                         background-color: transparent !important;
+                        padding-bottom: 0 !important;
+                      }
+                      /* 移除 Sender 内部可能的分隔线和边距 */
+                      .explore-sender-area .ant-sender-actions {
+                        border-top: none !important;
+                        padding-top: 0 !important;
+                        margin-top: 0 !important;
                       }
                       .explore-sender-area .ant-sender textarea,
                       .explore-sender-area .ant-sender input {
@@ -1976,7 +1984,7 @@ export const ExplorePage: React.FC = () => {
                       /* 当 Header 打开时，Sender 顶部不要圆角 */
                       .explore-sender-area .ant-sender-header ~ .ant-sender,
                       .explore-sender-area .ant-sender-header + .ant-sender {
-                        border-radius: 0 0 16px 16px !important;
+                        border-radius: 0 !important;
                         border-top: none !important;
                       }
                       /* 关闭按钮 - 现代化圆形设计 */
@@ -2269,7 +2277,7 @@ export const ExplorePage: React.FC = () => {
                         }
                       }}
                       style={{
-                        borderRadius: headerOpen ? '0' : '16px 16px 0 0',
+                        borderRadius: '0',
                         border: 'none',
                         backgroundColor: 'transparent',
                       }}
@@ -2280,14 +2288,14 @@ export const ExplorePage: React.FC = () => {
                       }}
                     />
                     
-                    {/* 输入框下方工具栏 - 在同一个容器内，与输入框文字左对齐 */}
+                    {/* 输入框下方工具栏 - 与输入框无缝融合，参考 Claude 设计 */}
                     <div 
-                      className="flex items-center justify-between pb-2"
+                      className="flex items-center justify-between"
                       style={{ 
-                        backgroundColor: 'var(--color-components-input-bg)',
-                        borderRadius: '0 0 16px 16px',
-                        paddingLeft: '8px',
+                        paddingLeft: '12px',
                         paddingRight: '12px',
+                        paddingBottom: '10px',
+                        paddingTop: '4px',
                       }}
                     >
                       <div className="flex items-center gap-1">

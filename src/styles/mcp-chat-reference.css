@@ -478,12 +478,30 @@ html[data-theme="dark"] .mcp-chat-page .text-gray-400 {
   font-weight: var(--mcp-font-weight-medium);
 }
 
-/* MCP 聊天页面的输入框样式 */
+/* MCP 聊天页面的输入框样式 - 使用项目语义令牌 */
 .mcp-chat-page .mcp-input {
-  background-color: var(--mcp-input-background);
-  border: 1px solid var(--mcp-border);
+  background-color: var(--color-components-input-bg);
+  border: 1px solid var(--color-components-input-border);
   border-radius: var(--mcp-radius);
-  color: var(--mcp-foreground);
+  color: var(--color-components-input-text);
+}
+
+/* 通用输入框样式 - 确保与 Explore 页面一致 */
+.mcp-chat-page input:not(.mcp-sender-area input),
+.mcp-chat-page textarea:not(.mcp-sender-area textarea) {
+  background-color: var(--color-components-input-bg);
+  color: var(--color-components-input-text);
+}
+
+/* Sender 组件内的输入框使用透明背景（外层容器已有背景色） */
+.mcp-chat-page .mcp-sender-area input,
+.mcp-chat-page .mcp-sender-area textarea,
+.mcp-chat-page .mcp-sender-area .ant-input,
+.mcp-chat-page .mcp-sender-area .ant-input-borderless,
+.mcp-chat-page .mcp-sender-area textarea.ant-input,
+.mcp-chat-page .mcp-sender-area textarea.ant-input-borderless {
+  background-color: transparent !important;
+  background: transparent !important;
 }
 
 .mcp-chat-page .mcp-input:focus {
@@ -557,17 +575,26 @@ html[data-theme="dark"] .mcp-chat-page .border-border {
   border-color: var(--border) !important;
 }
 
-/* 修复输入框暗黑模式样式 */
+/* 修复输入框暗黑模式样式 - 使用项目语义令牌保持一致性 */
 html[data-theme="dark"] .mcp-chat-page input,
 html[data-theme="dark"] .mcp-chat-page textarea {
-  background-color: var(--background) !important;
-  color: var(--foreground) !important;
-  border-color: var(--border) !important;
+  background-color: var(--color-components-input-bg) !important;
+  color: var(--color-components-input-text) !important;
+  border-color: var(--color-components-input-border) !important;
 }
 
 html[data-theme="dark"] .mcp-chat-page input::placeholder,
 html[data-theme="dark"] .mcp-chat-page textarea::placeholder {
-  color: var(--muted-foreground) !important;
+  color: var(--color-components-input-text-placeholder) !important;
+}
+
+/* 排除 Sender 组件内的输入框，让组件内部样式生效 */
+html[data-theme="dark"] .mcp-chat-page .mcp-sender-area input,
+html[data-theme="dark"] .mcp-chat-page .mcp-sender-area textarea,
+html[data-theme="dark"] .mcp-chat-page .mcp-sender-area .ant-input,
+html[data-theme="dark"] .mcp-chat-page .mcp-sender-area .ant-input-borderless {
+  background-color: transparent !important;
+  background: transparent !important;
 }
 
 /* 修复按钮暗黑模式样式 */

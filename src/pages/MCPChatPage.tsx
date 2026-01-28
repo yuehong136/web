@@ -49,37 +49,49 @@ const ThinkComponent = React.memo((props: ComponentProps) => {
 })
 
 // 提取并分离 think 内容和主内容
+// 思考状态：'none' 无思考 | 'thinking' 思考中 | 'complete' 思考完成
+type ThinkingStatus = 'none' | 'thinking' | 'complete'
+
 interface ThinkExtractResult {
   thinkContent: string
   mainContent: string
+  /** @deprecated 使用 status 代替 */
   isThinking: boolean
+  /** 思考状态 */
+  status: ThinkingStatus
 }
 
 const extractThinkContent = (content: string): ThinkExtractResult => {
-  if (!content) return { thinkContent: '', mainContent: '', isThinking: false }
+  if (!content) return { thinkContent: '', mainContent: '', isThinking: false, status: 'none' }
   
-  // 检查是否有完整的 think 标签
-  const completeMatch = content.match(/<think>([\s\S]*?)<\/think>([\s\S]*)/)
+  // 检查是否有完整的 think/thinking 标签（思考已完成）
+  // 支持 <think> 和 <thinking> 两种格式
+  const completeMatch = content.match(/<think(?:ing)?>([\s\S]*?)<\/think(?:ing)?>([\s\S]*)/)
   if (completeMatch) {
     return {
       thinkContent: completeMatch[1].trim(),
       mainContent: completeMatch[2].trim(),
-      isThinking: false
+      isThinking: false,
+      status: 'complete'
     }
   }
   
-  // 检查是否有未闭合的 think 标签（正在思考中）
-  const openMatch = content.match(/<think>([\s\S]*)$/)
-  if (openMatch) {
+  // 检查是否有未闭合的 think/thinking 标签（正在思考中）
+  const hasOpenTag = content.includes('<think>') || content.includes('<thinking>')
+  const hasCloseTag = content.includes('</think>') || content.includes('</thinking>')
+  
+  if (hasOpenTag && !hasCloseTag) {
+    const openMatch = content.match(/<think(?:ing)?>([\s\S]*)/)
     return {
-      thinkContent: openMatch[1].trim(),
+      thinkContent: openMatch ? openMatch[1].trim() : '',
       mainContent: '',
-      isThinking: true
+      isThinking: true,
+      status: 'thinking'
     }
   }
   
   // 没有 think 标签
-  return { thinkContent: '', mainContent: content, isThinking: false }
+  return { thinkContent: '', mainContent: content, isThinking: false, status: 'none' }
 }
 
 
@@ -906,62 +918,80 @@ export default function MCPChatPage() {
                 backgroundColor: 'var(--color-components-input-bg)',
               }}
             >
-              {/* Sender 和 Attachments 样式覆盖 */}
-              <style>{`
-                /* Sender 输入框样式 - 现代化无高亮设计，边框在外层容器 */
-                .mcp-sender-area .ant-sender {
-                  background-color: transparent !important;
-                  border: none !important;
-                  box-shadow: none !important;
-                  outline: none !important;
-                }
-                .mcp-sender-area .ant-sender:hover {
-                  border: none !important;
-                }
-                .mcp-sender-area .ant-sender:focus-within {
-                  border: none !important;
-                  box-shadow: none !important;
-                  outline: none !important;
-                }
-                .mcp-sender-area .ant-sender-content {
-                  background-color: transparent !important;
-                }
-                .mcp-sender-area .ant-sender textarea,
-                .mcp-sender-area .ant-sender input {
-                  color: var(--color-components-input-text) !important;
-                  background-color: transparent !important;
-                  outline: none !important;
-                  box-shadow: none !important;
-                  padding-left: 4px !important;
-                }
-                .mcp-sender-area .ant-sender textarea:focus,
-                .mcp-sender-area .ant-sender input:focus {
-                  outline: none !important;
-                  box-shadow: none !important;
-                }
-                .mcp-sender-area .ant-sender textarea::placeholder,
-                .mcp-sender-area .ant-sender input::placeholder {
-                  color: var(--color-components-input-text-placeholder) !important;
-                }
-                /* 发送按钮样式 */
-                .mcp-sender-area .ant-sender-actions-btn {
-                  background-color: var(--color-components-button-primary-bg) !important;
-                  color: var(--color-components-button-primary-text) !important;
-                  border: none !important;
-                }
-                .mcp-sender-area .ant-sender-actions-btn:hover {
-                  background-color: var(--color-components-button-primary-bg-hover) !important;
-                }
-                .mcp-sender-area .ant-sender-actions-btn:disabled {
-                  background-color: var(--color-components-button-primary-bg-disabled) !important;
-                  color: var(--color-components-button-primary-text-disabled) !important;
-                }
-                /* 当 Header 打开时，Sender 顶部不要圆角 */
-                .mcp-sender-area .ant-sender-header ~ .ant-sender,
-                .mcp-sender-area .ant-sender-header + .ant-sender {
-                  border-radius: 0 0 16px 16px !important;
-                  border-top: none !important;
-                }
+                    {/* Sender 和 Attachments 样式覆盖 */}
+                    <style>{`
+                      /* Sender 输入框样式 - 现代化无高亮设计，边框在外层容器 */
+                      .mcp-sender-area .ant-sender {
+                        background-color: transparent !important;
+                        border: none !important;
+                        box-shadow: none !important;
+                        outline: none !important;
+                        padding-bottom: 0 !important;
+                      }
+                      .mcp-sender-area .ant-sender:hover {
+                        border: none !important;
+                      }
+                      .mcp-sender-area .ant-sender:focus-within {
+                        border: none !important;
+                        box-shadow: none !important;
+                        outline: none !important;
+                      }
+                      .mcp-sender-area .ant-sender-content {
+                        background-color: transparent !important;
+                        padding-bottom: 0 !important;
+                      }
+                      /* 移除 Sender 内部可能的分隔线和边距 */
+                      .mcp-sender-area .ant-sender-actions {
+                        border-top: none !important;
+                        padding-top: 0 !important;
+                        margin-top: 0 !important;
+                      }
+                      .mcp-sender-area .ant-sender textarea,
+                      .mcp-sender-area .ant-sender input,
+                      .mcp-sender-area .ant-sender .ant-input,
+                      .mcp-sender-area .ant-sender textarea.ant-input,
+                      .mcp-sender-area .ant-input-borderless,
+                      .mcp-sender-area textarea.ant-input-borderless {
+                        color: var(--color-components-input-text) !important;
+                        background-color: transparent !important;
+                        background: transparent !important;
+                        outline: none !important;
+                        box-shadow: none !important;
+                        padding-left: 4px !important;
+                      }
+                      .mcp-sender-area .ant-sender textarea:focus,
+                      .mcp-sender-area .ant-sender input:focus,
+                      .mcp-sender-area .ant-sender .ant-input:focus,
+                      .mcp-sender-area .ant-input-borderless:focus {
+                        outline: none !important;
+                        box-shadow: none !important;
+                        background-color: transparent !important;
+                        background: transparent !important;
+                      }
+                      .mcp-sender-area .ant-sender textarea::placeholder,
+                      .mcp-sender-area .ant-sender input::placeholder,
+                      .mcp-sender-area .ant-input::placeholder {
+                        color: var(--color-components-input-text-placeholder) !important;
+                      }
+                      /* 发送按钮样式 - 移动到工具栏区域 */
+                      .mcp-sender-area .ant-sender-actions-btn {
+                        background-color: var(--color-components-button-primary-bg) !important;
+                        color: var(--color-components-button-primary-text) !important;
+                        border: none !important;
+                      }
+                      .mcp-sender-area .ant-sender-actions-btn:hover {
+                        background-color: var(--color-components-button-primary-bg-hover) !important;
+                      }
+                      .mcp-sender-area .ant-sender-actions-btn:disabled {
+                        background-color: var(--color-components-button-primary-bg-disabled) !important;
+                        color: var(--color-components-button-primary-text-disabled) !important;
+                      }
+                      /* 当 Header 打开时，Sender 顶部不要圆角 */
+                      .mcp-sender-area .ant-sender-header ~ .ant-sender,
+                      .mcp-sender-area .ant-sender-header + .ant-sender {
+                        border-radius: 0 !important;
+                        border-top: none !important;
+                      }
                 /* 关闭按钮 - 现代化圆形设计 */
                 .mcp-sender-area .ant-sender-header-close,
                 .mcp-sender-area [class*="sender-header"] button,
@@ -1243,7 +1273,7 @@ export default function MCPChatPage() {
                   }
                 }}
                 style={{
-                  borderRadius: headerOpen ? '0' : '16px 16px 0 0',
+                  borderRadius: '0',
                   border: 'none',
                   backgroundColor: 'transparent',
                 }}
@@ -1254,14 +1284,14 @@ export default function MCPChatPage() {
                 }}
               />
               
-              {/* 输入框下方工具栏 - 在同一个容器内，与输入框文字左对齐 */}
+              {/* 输入框下方工具栏 - 与输入框无缝融合，参考 Claude 设计 */}
               <div 
-                className="flex items-center justify-between pb-2"
+                className="flex items-center justify-between"
                 style={{ 
-                  backgroundColor: 'var(--color-components-input-bg)',
-                  borderRadius: '0 0 16px 16px',
-                  paddingLeft: '8px',
+                  paddingLeft: '12px',
                   paddingRight: '12px',
+                  paddingBottom: '10px',
+                  paddingTop: '4px',
                 }}
               >
                 <div className="flex items-center gap-1">
