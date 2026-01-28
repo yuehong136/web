@@ -92,9 +92,13 @@ export const conversationAPI = {
   ): Promise<Conversation> =>
     apiClient.post(`/v1/conversation/${conversationId}/update`, data),
 
-  // 删除对话
+  // 删除对话（单个）
   deleteConversation: (conversationId: string): Promise<void> =>
     apiClient.delete(`/v1/conversation/${conversationId}`),
+
+  // 删除对话（批量，参考 RAGFlow /conversation/rm 接口）
+  removeConversation: (conversationIds: string[]): Promise<any> =>
+    apiClient.post('/v1/conversation/rm', { conversation_ids: conversationIds }),
 
   // 归档对话
   archiveConversation: (conversationId: string): Promise<void> =>
@@ -163,6 +167,22 @@ export const conversationAPI = {
   // 文本转语音 (TTS)
   textToSpeech: (data: TTSRequest): Promise<TTSResponse> =>
     apiClient.post('/v1/conversation/tts', data),
+
+  // 文本转语音 - 流式版本（用于实时播放）
+  // 返回原始 Response 对象，供 SpeechPlayer 流式处理
+  textToSpeechStream: (text: string): Promise<Response> => {
+    const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+    const token = localStorage.getItem('auth_token')
+
+    return fetch(`${baseURL}/v1/conversation/tts`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
+      body: JSON.stringify({ text })
+    })
+  },
 
   // 生成思维导图
   generateMindmap: (data: MindmapRequest): Promise<MindmapResponse> =>

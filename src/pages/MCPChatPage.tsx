@@ -962,13 +962,20 @@ export default function MCPChatPage() {
                   border-radius: 0 0 16px 16px !important;
                   border-top: none !important;
                 }
-                /* 关闭按钮 */
+                /* 关闭按钮 - 现代化圆形设计 */
                 .mcp-sender-area .ant-sender-header-close,
                 .mcp-sender-area [class*="sender-header"] button,
                 .mcp-sender-area [class*="header-close"] {
                   color: var(--color-text-tertiary) !important;
                   background-color: transparent !important;
                   border-color: transparent !important;
+                  border-radius: 8px !important;
+                  width: 32px !important;
+                  height: 32px !important;
+                  display: flex !important;
+                  align-items: center !important;
+                  justify-content: center !important;
+                  transition: all 0.2s ease !important;
                 }
                 .mcp-sender-area .ant-sender-header-close:hover,
                 .mcp-sender-area [class*="sender-header"] button:hover,
@@ -976,20 +983,33 @@ export default function MCPChatPage() {
                   color: var(--color-text-primary) !important;
                   background-color: var(--color-state-hover) !important;
                 }
-                /* Attachments 容器和拖拽区域背景 */
-                .mcp-sender-area .ant-attachments,
-                .mcp-sender-area .ant-attachment-placeholder {
+                /* 标题栏整体样式优化 */
+                .mcp-sender-area .ant-sender-header {
+                  padding: 12px 16px !important;
+                  border-bottom: 1px solid var(--color-border-default) !important;
+                }
+                .mcp-sender-area .ant-sender-header-title {
+                  font-weight: 500 !important;
+                  font-size: 14px !important;
+                  color: var(--color-text-primary) !important;
+                  display: flex !important;
+                  align-items: center !important;
+                  gap: 8px !important;
+                }
+                /* Attachments 容器背景 - 简洁设计 */
+                .mcp-sender-area .ant-attachments {
                   background-color: var(--color-components-card-bg) !important;
                 }
-                /* 拖拽区域边框 - 现代化设计 */
+                /* 移除内层多余边框 */
+                .mcp-sender-area .ant-attachment-placeholder,
                 .mcp-sender-area .ant-attachment-placeholder-inner {
-                  border: 2px dashed var(--color-border-default) !important;
-                  border-radius: 12px !important;
-                  padding: 24px !important;
-                  transition: all 0.2s ease !important;
+                  border: none !important;
+                  background: transparent !important;
+                  padding: 0 !important;
+                  margin: 0 !important;
                 }
-                .mcp-sender-area .ant-attachments:hover .ant-attachment-placeholder-inner {
-                  border-color: var(--color-border-accent) !important;
+                /* 悬停效果 */
+                .mcp-sender-area .ant-attachments:hover {
                   background-color: var(--color-state-hover) !important;
                 }
                 /* 已上传文件列表项 */
@@ -1016,21 +1036,33 @@ export default function MCPChatPage() {
                 // 文件上传面板
                 header={
                   <Sender.Header
-                    title="上传文件"
+                    title={
+                      <span style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: '8px',
+                        color: 'var(--color-text-primary)',
+                        fontWeight: 500,
+                        fontSize: '14px',
+                      }}>
+                        <Upload className="w-4 h-4" style={{ color: 'var(--color-state-focus)' }} />
+                        上传文件
+                      </span>
+                    }
                     open={headerOpen}
                     onOpenChange={setHeaderOpen}
                     styles={{
                       header: {
                         backgroundColor: 'var(--color-components-card-bg)',
-                        borderColor: 'var(--color-components-input-border)',
                         borderRadius: '16px 16px 0 0',
-                        borderWidth: '1px',
-                        borderStyle: 'solid',
-                        borderBottom: 'none',
+                        border: 'none',
+                        borderBottom: '1px solid var(--color-border-default)',
+                        padding: '12px 16px',
                       },
                       content: {
                         padding: 0,
                         backgroundColor: 'var(--color-components-card-bg)',
+                        border: 'none',
                       },
                     }}
                   >
@@ -1049,13 +1081,81 @@ export default function MCPChatPage() {
                           removeUploadFile((file as UploadFile).uid)
                         }
                       }}
-                      placeholder={{
-                        icon: <Upload className="w-8 h-8" style={{ color: 'var(--color-text-tertiary)' }} />,
-                        title: <span style={{ color: 'var(--color-text-primary)' }}>拖拽或点击上传文件</span>,
-                        description: <span style={{ color: 'var(--color-text-secondary)' }}>{`支持图片、文档等格式，最多 ${uploadConfig.maxCount} 个文件，每个最大 ${Math.round(uploadConfig.maxSize / 1024 / 1024)}MB`}</span>,
-                      }}
-                      style={{
-                        backgroundColor: 'var(--color-components-card-bg)',
+                      overflow="scrollX"
+                      placeholder={(type) => ({
+                        icon: (
+                          <div style={{
+                            width: '44px',
+                            height: '44px',
+                            borderRadius: '12px',
+                            backgroundColor: type === 'drop' ? 'var(--color-state-focus-10)' : 'var(--color-surface-secondary)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            marginBottom: '12px',
+                            transition: 'all 0.2s ease',
+                          }}>
+                            <Upload 
+                              className="w-5 h-5" 
+                              style={{ 
+                                color: type === 'drop' ? 'var(--color-state-focus)' : 'var(--color-text-tertiary)',
+                                transition: 'color 0.2s ease',
+                              }} 
+                            />
+                          </div>
+                        ),
+                        title: (
+                          <span style={{ 
+                            color: 'var(--color-text-primary)', 
+                            fontWeight: 500,
+                            fontSize: '14px',
+                          }}>
+                            {type === 'drop' ? '释放以上传' : '点击或拖拽文件到此处'}
+                          </span>
+                        ),
+                        description: (
+                          <span style={{ 
+                            color: 'var(--color-text-tertiary)',
+                            fontSize: '12px',
+                            marginTop: '4px',
+                            display: 'block',
+                          }}>
+                            {`支持图片、文档等，最多 ${uploadConfig.maxCount} 个，单个最大 ${Math.round(uploadConfig.maxSize / 1024 / 1024)}MB`}
+                          </span>
+                        ),
+                      })}
+                      styles={{
+                        root: {
+                          backgroundColor: 'var(--color-components-card-bg)',
+                          padding: '20px 16px',
+                          transition: 'background-color 0.2s ease',
+                        },
+                        placeholder: {
+                          padding: 0,
+                          margin: 0,
+                          border: 'none',
+                          background: 'transparent',
+                        },
+                        list: {
+                          padding: '0 0 8px 0',
+                          gap: '8px',
+                        },
+                        card: {
+                          backgroundColor: 'var(--color-components-input-bg)',
+                          border: '1px solid var(--color-border-default)',
+                          borderRadius: '10px',
+                          padding: '8px 12px',
+                          transition: 'all 0.2s ease',
+                        },
+                        name: {
+                          color: 'var(--color-text-primary)',
+                          fontWeight: 500,
+                          fontSize: '13px',
+                        },
+                        description: {
+                          color: 'var(--color-text-tertiary)',
+                          fontSize: '12px',
+                        },
                       }}
                       // 自定义上传请求，使用 /v1/document/upload_info 接口
                       customRequest={async (options) => {

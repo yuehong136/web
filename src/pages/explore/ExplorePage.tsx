@@ -9,6 +9,7 @@ import {
   Copy,
   RotateCcw,
   ThumbsUp,
+  ThumbsDown,
   LayoutGrid,
   AlignCenter,
   Maximize2,
@@ -18,10 +19,13 @@ import {
   Globe,
   Square,
   Upload,
-  X
+  X,
+  Volume2,
+  Pause,
+  Loader2
 } from 'lucide-react'
 import { 
-  Conversations, 
+  Conversations,
   Bubble, 
   Sender, 
   Prompts,
@@ -30,7 +34,9 @@ import {
   Actions,
   Attachments
 } from '@ant-design/x'
-import { ConfigProvider, theme } from 'antd'
+// 导入 Ant Design X 内部的 Loading 组件用于三点加载动画
+import BubbleLoading from '@ant-design/x/es/bubble/loading'
+import { ConfigProvider, theme, Modal, Input } from 'antd'
 import type { PromptsProps } from '@ant-design/x'
 import XMarkdown from '@ant-design/x-markdown'
 import '@ant-design/x-markdown/dist/x-markdown.css'
@@ -47,6 +53,7 @@ import {
   buildMetadataCondition,
 } from '@/hooks/use-chat-settings'
 import { useChatUpload } from '@/hooks/use-chat-upload'
+import { useSpeech } from '@/hooks/use-speech'
 import { conversationAPI } from '@/api/conversation'
 import { useQuery } from '@tanstack/react-query'
 import { chatConfig, type ChatMessage, type ChatServiceRequest, type SSEResponse, uploadConfig, type UploadFile } from '@/config/chat'
@@ -278,43 +285,6 @@ const getAppIcon = (app: any, size: 'sm' | 'md' = 'sm') => {
   return <Sparkles className={sizeClass} style={{ color: 'var(--color-components-button-primary-bg)' }} />
 }
 
-// 对话分组逻辑
-const getConversationGroup = (updateTime: number) => {
-  const now = Date.now()
-  const timestamp = updateTime > 1000000000000 ? updateTime : updateTime * 1000
-  const diffTime = now - timestamp
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-
-  if (diffDays <= 3) return { key: 'recent', title: '最近3天', order: 1 }
-  if (diffDays <= 7) return { key: 'week', title: '近7天', order: 2 }
-  if (diffDays <= 30) return { key: 'month', title: '近30天', order: 3 }
-  if (diffDays <= 365) return { key: 'year', title: '近1年', order: 4 }
-    return { key: 'older', title: '更早', order: 5 }
-}
-
-// 转换对话数据为Conversations组件格式
-const formatConversationsForAntD = (conversations: any[]) => {
-  if (!conversations?.length) return []
-
-  return conversations
-    .map((conv: any, index: number) => {
-    const updateTime = conv.update_time || Date.now()
-    const timestamp = updateTime > 1000000000000 ? updateTime : updateTime * 1000
-    const group = getConversationGroup(updateTime)
-    
-    return {
-      key: conv.id,
-      label: (
-        <span style={{ color: 'var(--color-text-primary)' }}>
-          {conv.name || `对话 ${index + 1}`}
-        </span>
-      ),
-        timestamp,
-      group: group.title
-    }
-  })
-    .sort((a, b) => b.timestamp - a.timestamp)
-}
 
 // 消息类型
 interface ChatMessageItem {
@@ -324,6 +294,31 @@ interface ChatMessageItem {
   references?: ReferenceChunk[]
   thinking?: string
   thinkingComplete?: boolean
+}
+
+// 会话日期分组辅助函数（参考 RAGFlow）
+const getConversationDateGroup = (timestamp: number): string => {
+  // 处理时间戳格式（毫秒或秒）
+  const time = timestamp > 1000000000000 ? timestamp : timestamp * 1000
+  const date = new Date(time)
+  const now = new Date()
+  
+  // 获取今天和昨天的日期（忽略时间）
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000)
+  const lastWeek = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
+  
+  const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+  
+  if (dateOnly.getTime() === today.getTime()) {
+    return '今天'
+  } else if (dateOnly.getTime() === yesterday.getTime()) {
+    return '昨天'
+  } else if (dateOnly >= lastWeek) {
+    return '最近 7 天'
+  } else {
+    return '更早'
+  }
 }
 
 // Think 展开状态组件 - 提取为独立组件避免重新创建导致状态丢失
@@ -374,6 +369,92 @@ const ThinkWrapper: React.FC<ThinkWrapperProps> = React.memo(({ children, status
   )
 })
 
+// 消息操作按钮组件 - 包含 TTS 功能
+// 由于 useSpeech 是 hook，需要为每条消息创建独立的组件实例
+interface MessageActionsFooterProps {
+  content: string
+  onCopy: () => void
+  onRegenerate: () => void
+  onLike: () => void
+  onDislike: () => void
+}
+
+const MessageActionsFooter: React.FC<MessageActionsFooterProps> = React.memo(({
+  content,
+  onCopy,
+  onRegenerate,
+  onLike,
+  onDislike
+}) => {
+  const { isPlaying, isLoading, handleTogglePlay, audioRef } = useSpeech(content)
+
+  const actionItems = [
+    {
+      key: 'copy',
+      label: '复制',
+      icon: <Copy className="h-3 w-3" style={{ color: 'var(--color-text-tertiary)' }} />
+    },
+    {
+      key: 'tts',
+      label: isPlaying ? '暂停' : '朗读',
+      icon: isLoading ? (
+        <Loader2 className="h-3 w-3 animate-spin" style={{ color: 'var(--color-text-accent)' }} />
+      ) : isPlaying ? (
+        <Pause className="h-3 w-3" style={{ color: 'var(--color-text-accent)' }} />
+      ) : (
+        <Volume2 className="h-3 w-3" style={{ color: 'var(--color-text-tertiary)' }} />
+      )
+    },
+    {
+      key: 'regenerate',
+      label: '重新生成',
+      icon: <RotateCcw className="h-3 w-3" style={{ color: 'var(--color-text-tertiary)' }} />
+    },
+    {
+      key: 'like',
+      label: '点赞',
+      icon: <ThumbsUp className="h-3 w-3" style={{ color: 'var(--color-text-tertiary)' }} />
+    },
+    {
+      key: 'dislike',
+      label: '踩',
+      icon: <ThumbsDown className="h-3 w-3" style={{ color: 'var(--color-text-tertiary)' }} />
+    }
+  ]
+
+  const handleAction = async (key: string) => {
+    switch (key) {
+      case 'copy':
+        onCopy()
+        break
+      case 'tts':
+        handleTogglePlay()
+        break
+      case 'regenerate':
+        onRegenerate()
+        break
+      case 'like':
+        onLike()
+        break
+      case 'dislike':
+        onDislike()
+        break
+    }
+  }
+
+  return (
+    <div className="mt-2 flex justify-end">
+      <Actions
+        items={actionItems}
+        variant="borderless"
+        onClick={({ key }) => handleAction(key)}
+      />
+      {/* Hidden audio element for TTS playback */}
+      <audio ref={audioRef} style={{ display: 'none' }} />
+    </div>
+  )
+})
+
 export const ExplorePage: React.FC = () => {
   const { clearChat } = useChatStore()
   const { myLLMs, isLoading: modelsLoading, loadMyLLMs } = useModelStore()
@@ -390,6 +471,7 @@ export const ExplorePage: React.FC = () => {
   const [selectedApp, setSelectedApp] = React.useState<string>('')
   const [mode, setMode] = React.useState<'chat' | 'market'>('chat')
   const [selectedConversationDetail, setSelectedConversationDetail] = React.useState<any>(null)
+  const [activeConversationKey, setActiveConversationKey] = React.useState<string | undefined>(undefined)
   const [, setLoadingConversationDetail] = React.useState(false)
   const [messages, setMessages] = React.useState<ChatMessageItem[]>([])
   const [isStreaming, setIsStreaming] = React.useState(false)
@@ -420,6 +502,9 @@ export const ExplorePage: React.FC = () => {
   
   // 流式输出控制器（用于停止输出）
   const abortControllerRef = React.useRef<AbortController | null>(null)
+
+  // 用于存储最新的 handleSendMessage 引用，解决 useCallback 闭包陈旧问题
+  const handleSendMessageRef = React.useRef<(message: string, baseMessages?: ChatMessageItem[]) => Promise<void>>(null!)
   
   // 全局拖拽事件处理
   React.useEffect(() => {
@@ -555,14 +640,21 @@ export const ExplorePage: React.FC = () => {
     
     try {
       setLoadingConversationDetail(true)
+      // 先清空消息，避免新旧消息混合
+      setMessages([])
+      
       const response = await conversationAPI.getConversationDetail(conversationId)
       setSelectedConversationDetail(response)
       
-      if (response?.message) {
+      // 设置消息列表，如果对话没有消息则清空
+      if (response?.message && Array.isArray(response.message)) {
         setMessages(response.message.map((msg: any) => ({
           role: msg.role,
           content: msg.content,
-          id: msg.id
+          // 参考 ragflow buildMessageUuid：优先使用后端返回的 ID
+          id: msg.id,
+          // 保留引用信息（如果有）
+          references: msg.reference?.chunks || []
         })))
       }
     } catch (error) {
@@ -583,8 +675,35 @@ export const ExplorePage: React.FC = () => {
     setIsStreaming(false)
   }, [])
 
+  // 重新生成消息（参考 ragflow 的 useRegenerateMessage 实现）
+  // 当点击助手消息的重新生成按钮时，找到对应的用户消息并重新发送
+  const handleRegenerateMessage = React.useCallback((assistantMessageIndex: number) => {
+    if (isStreaming) return
+
+    // 找到这个助手消息之前的用户消息
+    const userMessageIndex = assistantMessageIndex - 1
+    if (userMessageIndex < 0 || messages[userMessageIndex]?.role !== 'user') {
+      toast.error('无法找到对应的用户消息')
+      return
+    }
+
+    const userContent = messages[userMessageIndex].content
+    // 保留用户消息之前的所有消息（不包括用户消息本身，因为 handleSendMessage 会重新添加）
+    const baseMessages = messages.slice(0, userMessageIndex)
+
+    // 先立即更新 UI，移除当前用户消息和助手消息
+    setMessages(baseMessages)
+
+    // 使用 queueMicrotask 确保 state 更新后再发送新消息
+    // 通过 ref 调用最新的 handleSendMessage，避免闭包陈旧问题
+    queueMicrotask(() => {
+      handleSendMessageRef.current?.(userContent, baseMessages)
+    })
+  }, [isStreaming, messages])
+
   // 发送消息（支持功能开关和文件 ID）
-  const handleSendMessage = async (message: string) => {
+  // baseMessages 参数用于重新生成场景，传入截断后的消息列表
+  const handleSendMessage = async (message: string, baseMessages?: ChatMessageItem[]) => {
     if (!message.trim() || isStreaming) return
 
     const userMessage: ChatMessageItem = {
@@ -593,9 +712,32 @@ export const ExplorePage: React.FC = () => {
       id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
     }
 
-    const updatedMessages = [...messages, userMessage]
+    const updatedMessages = [...(baseMessages ?? messages), userMessage]
     setMessages(updatedMessages)
     setIsStreaming(true)
+    
+    // 参考 RAGFlow：如果是第一条用户消息，用消息内容更新会话名称
+    // 检查是否为第一条用户消息（只有当前新增的这条用户消息）
+    const existingUserMessages = (baseMessages ?? messages).filter(m => m.role === 'user')
+    const isFirstUserMessage = existingUserMessages.length === 0
+    
+    if (isFirstUserMessage && activeConversationKey && selectedApp) {
+      // 截取前50个字符作为会话名称
+      const conversationName = message.trim().slice(0, 50) + (message.trim().length > 50 ? '...' : '')
+      try {
+        await conversationAPI.setConversation({
+          dialog_id: selectedApp,
+          conversation_id: activeConversationKey,
+          name: conversationName,
+          is_new: false
+        })
+        // 更新本地状态和刷新列表
+        setSelectedConversationDetail((prev: any) => prev ? { ...prev, name: conversationName } : prev)
+        refetchConversations()
+      } catch (error) {
+        console.error('Failed to update conversation name:', error)
+      }
+    }
     
     // 创建新的 AbortController 用于停止输出
     abortControllerRef.current = new AbortController()
@@ -805,6 +947,9 @@ export const ExplorePage: React.FC = () => {
     }
   }
 
+  // 保持 ref 指向最新的 handleSendMessage
+  handleSendMessageRef.current = handleSendMessage
+
   // 新建对话
   const handleCreateConversation = async () => {
     if (!selectedApp) return
@@ -819,6 +964,11 @@ export const ExplorePage: React.FC = () => {
       refetchConversations()
       
       if (newConversation?.id) {
+        // 立即更新选中状态
+        setActiveConversationKey(newConversation.id)
+        // 清空消息，准备新对话
+        setMessages([])
+        // 异步加载对话详情
         setTimeout(() => fetchConversationDetail(newConversation.id), 500)
       }
     } catch (error) {
@@ -828,10 +978,11 @@ export const ExplorePage: React.FC = () => {
 
   // 重命名对话
   const confirmRenameConversation = async () => {
-    if (!renamingConversationId || !newConversationName.trim()) return
+    if (!renamingConversationId || !newConversationName.trim() || !selectedApp) return
 
     try {
       await conversationAPI.setConversation({
+        dialog_id: selectedApp,
         conversation_id: renamingConversationId,
         name: newConversationName.trim(),
         is_new: false
@@ -852,13 +1003,6 @@ export const ExplorePage: React.FC = () => {
       console.error('Failed to rename conversation:', error)
     }
   }
-
-  // 操作项 - 使用主题令牌颜色
-  const actionItems = [
-    { key: 'copy', label: '复制', icon: <Copy className="h-3 w-3" style={{ color: 'var(--color-text-tertiary)' }} /> },
-    { key: 'regenerate', label: '重新生成', icon: <RotateCcw className="h-3 w-3" style={{ color: 'var(--color-text-tertiary)' }} /> },
-    { key: 'like', label: '点赞', icon: <ThumbsUp className="h-3 w-3" style={{ color: 'var(--color-text-tertiary)' }} /> }
-  ]
 
   // 获取当前选中应用的信息
   const currentApp = dialogApps.find(app => app.id === selectedApp)
@@ -903,18 +1047,30 @@ export const ExplorePage: React.FC = () => {
   // 转换消息为 Bubble 格式
   const bubbleItems = messages.map((msg, index) => {
     const references = msg.references || []
-    
+
     // 使用新的 createReferenceMarkerComponent 创建内联引用组件
     const SupComponent = createReferenceMarkerComponent(references, {
       onViewDetail: (chunk) => handleViewDetail(chunk, references),
       onCopy: handleCopyContent
     })
-    
+
+    // 判断当前消息是否正在流式输出
+    const lastAssistantMsgIndex = [...messages].reverse().findIndex(m => m.role === 'assistant')
+    const actualLastIndex = lastAssistantMsgIndex >= 0 ? messages.length - 1 - lastAssistantMsgIndex : -1
+    const isCurrentStreamingMessage = isStreaming && msg.role === 'assistant' && index === actualLastIndex
+
     return {
-      key: `message-${index}`,
+      // 参考 ragflow buildMessageUuidWithRole：使用 role_id 格式确保唯一性
+      key: `${msg.role}_${msg.id || index}`,
       role: msg.role,
       content: msg.content || '',
+      // 使用 streaming 属性优化流式体验，避免动画异常
+      streaming: isCurrentStreamingMessage,
+      // 注意：不要设置 loading 属性，否则会导致流式输出时持续显示加载动画
+      // 加载状态在 contentRender 中通过 "正在生成..." 文本显示
       placement: (msg.role === 'user' ? 'end' : 'start') as 'start' | 'end',
+      // 底部操作栏位置：助手消息放在外部底部，用户消息不显示
+      footerPlacement: msg.role === 'assistant' ? 'outer-end' as const : undefined,
       avatar: msg.role === 'user'
         ? (
             <div 
@@ -1038,9 +1194,9 @@ export const ExplorePage: React.FC = () => {
               </div>
             )}
           
-            {/* 如果没有内容且没有思考内容，显示加载提示 */}
+            {/* 如果没有内容且没有思考内容，显示 Ant Design X 三点加载动画 */}
             {!thinkContent && !mainContent && (
-              <span className="italic" style={{ color: 'var(--color-text-muted)' }}>正在生成...</span>
+              <BubbleLoading prefixCls="ant-bubble" />
             )}
             
             {/* 图片引用轮播列表 - 汇总展示消息中引用的所有图片 */}
@@ -1065,22 +1221,20 @@ export const ExplorePage: React.FC = () => {
         )
       } : undefined,
       footer: msg.role === 'assistant' ? (
-        <div className="mt-2 flex justify-end">
-          <Actions
-            items={actionItems}
-            variant="borderless"
-            onClick={async ({ key }) => {
-              if (key === 'copy') {
-                  try {
-                  await copyToClipboard(msg.content || '')
-                    toast.success('已复制到剪贴板')
-                  } catch {
-                  toast.error('复制失败')
-                }
-              }
-            }}
-          />
-        </div>
+        <MessageActionsFooter
+          content={msg.content || ''}
+          onCopy={async () => {
+            try {
+              await copyToClipboard(msg.content || '')
+              toast.success('已复制到剪贴板')
+            } catch {
+              toast.error('复制失败')
+            }
+          }}
+          onRegenerate={() => handleRegenerateMessage(index)}
+          onLike={() => toast.success('感谢您的反馈')}
+          onDislike={() => toast.success('感谢您的反馈，我们会继续改进')}
+        />
       ) : undefined,
       variant: 'borderless' as const,
       styles: msg.role === 'user' 
@@ -1116,22 +1270,6 @@ export const ExplorePage: React.FC = () => {
     { key: '4', label: '翻译文本', description: '多语言' },
   ]
 
-  // 对话列表菜单
-  const conversationMenuConfig = (conversation: any) => ({
-    items: [
-      { label: '重命名', key: 'rename', icon: <Edit3 className="h-3 w-3" /> },
-      { label: '删除', key: 'delete', icon: <Trash2 className="h-3 w-3" />, danger: true },
-    ],
-    onClick: (menuInfo: any) => {
-      menuInfo.domEvent.stopPropagation()
-      const conversationData = dialogConversations.find((conv: any) => conv.id === conversation.key)
-      
-      if (menuInfo.key === 'rename' && conversationData) {
-        setRenamingConversationId(conversation.key)
-        setNewConversationName(conversationData.name || 'New conversation')
-      }
-    },
-  })
 
   // 处理事件
   const handleDiscoverClick = () => {
@@ -1144,6 +1282,9 @@ export const ExplorePage: React.FC = () => {
     setSelectedApp(appId)
     setActiveTab('workspace')
     setMessages([])
+    // 切换应用时清理对话状态，避免状态不一致
+    setSelectedConversationDetail(null)
+    setActiveConversationKey(undefined)
   }
 
   const handleTopicsClick = () => {
@@ -1151,6 +1292,7 @@ export const ExplorePage: React.FC = () => {
     setMode('chat')
     clearChat()
     setSelectedConversationDetail(null)
+    setActiveConversationKey(undefined)
     setMessages([])
   }
 
@@ -1303,167 +1445,174 @@ export const ExplorePage: React.FC = () => {
                       </div>
                     </div>
                     
-                    <Button
-                      onClick={handleCreateConversation}
-                      className="w-full"
-                      size="sm"
-                      style={{
-                        backgroundColor: 'var(--color-components-sidebar-item-bg-active)',
-                        color: 'var(--color-components-sidebar-item-text-active)',
-                        border: '1px solid var(--color-border-accent)'
-                      }}
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      新建对话
-                    </Button>
                   </div>
 
-                  {/* 重命名输入框 */}
-                  {renamingConversationId && (
-                    <div 
-                      className="px-4 py-2"
-                      style={{ 
-                        borderBottom: '1px solid var(--color-border-subtle)',
-                        backgroundColor: 'var(--color-background-subtle)'
-                      }}
-                    >
-                      <div className="text-xs mb-2" style={{ color: 'var(--color-text-secondary)' }}>重命名对话</div>
-                      <div className="flex space-x-2">
-                        <input
-                          type="text"
-                          value={newConversationName}
-                          onChange={(e) => setNewConversationName(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') confirmRenameConversation()
-                            else if (e.key === 'Escape') {
-                              setRenamingConversationId(null)
-                              setNewConversationName('')
-                            }
-                          }}
-                          className="flex-1 px-2 py-1 text-sm rounded focus:outline-none"
-                          style={{
-                            border: '1px solid var(--color-components-input-border)',
-                            backgroundColor: 'var(--color-components-input-bg)',
-                            color: 'var(--color-components-input-text)'
-                          }}
-                          autoFocus
-                        />
-                        <button
-                          onClick={confirmRenameConversation}
-                          className="px-2 py-1 text-xs rounded"
-                          style={{
-                            backgroundColor: 'var(--color-components-button-primary-bg)',
-                            color: 'var(--color-components-button-primary-text)'
-                          }}
-                        >确认</button>
-                        <button
-                          onClick={() => { setRenamingConversationId(null); setNewConversationName('') }} 
-                          className="px-2 py-1 text-xs rounded"
-                          style={{
-                            backgroundColor: 'var(--color-components-button-secondary-bg)',
-                            color: 'var(--color-components-button-secondary-text)'
-                          }}
-                        >取消</button>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* 对话列表 */}
-                  <div className="flex-1 overflow-y-auto p-3">
-                    {dialogConversationsLoading ? (
-                      <div className="text-center py-8 text-sm" style={{ color: 'var(--color-text-tertiary)' }}>加载中...</div>
-                    ) : dialogConversationsError ? (
-                      <div className="text-center py-8 text-sm" style={{ color: 'var(--color-text-error)' }}>加载失败</div>
-                    ) : dialogConversations.length === 0 ? (
-                      <div className="text-center py-8 text-sm" style={{ color: 'var(--color-text-tertiary)' }}>暂无对话</div>
-                    ) : (
-                      <div className="explore-conversations">
-                        <style>{`
-                          /* Conversations 组件整体样式 */
-                          .explore-conversations .ant-conversations {
-                            background-color: transparent !important;
-                          }
-                          /* 分组标题样式 */
-                          .explore-conversations .ant-conversations-group-title {
-                            color: var(--color-text-tertiary) !important;
-                            font-size: 12px !important;
-                            padding: 8px 12px !important;
-                          }
-                          /* 对话项基础样式 */
-                          .explore-conversations .ant-conversations-list .ant-conversations-item {
-                            background-color: transparent !important;
-                            border-radius: 8px !important;
-                            margin: 2px 0 !important;
-                            transition: all 0.2s ease !important;
-                          }
-                          /* hover 状态样式 */
-                          .explore-conversations .ant-conversations-list .ant-conversations-item:hover {
-                            background-color: var(--color-components-sidebar-item-bg-hover) !important;
-                          }
-                          /* active 状态样式 */
-                          .explore-conversations .ant-conversations-list .ant-conversations-item-active {
-                            background-color: var(--color-components-sidebar-item-bg-active) !important;
-                          }
-                          .explore-conversations .ant-conversations-list .ant-conversations-item-active .ant-conversations-item-label {
-                            color: var(--color-components-sidebar-item-text-active) !important;
-                          }
-                          /* 对话项文字样式 */
-                          .explore-conversations .ant-conversations-item-label {
-                            color: var(--color-text-primary) !important;
-                          }
-                          /* 更多选项按钮样式 */
-                          .explore-conversations .ant-conversations-item .anticon {
-                            color: var(--color-text-tertiary) !important;
-                          }
-                          .explore-conversations .ant-conversations-item:hover .anticon {
-                            color: var(--color-text-secondary) !important;
-                          }
-                          /* 下拉菜单样式 */
-                          .explore-conversations .ant-dropdown-menu {
-                            background-color: var(--color-components-dropdown-bg) !important;
-                            border: 1px solid var(--color-components-dropdown-border) !important;
-                            box-shadow: var(--color-components-dropdown-shadow) !important;
-                          }
-                          .explore-conversations .ant-dropdown-menu-item {
-                            color: var(--color-text-primary) !important;
-                          }
-                          .explore-conversations .ant-dropdown-menu-item:hover {
-                            background-color: var(--color-components-dropdown-item-bg-hover) !important;
-                          }
-                          .explore-conversations .ant-dropdown-menu-item-danger {
-                            color: var(--color-text-error) !important;
-                          }
-                        `}</style>
-                        <ConfigProvider
-                          theme={{
-                            algorithm: document.documentElement.classList.contains('dark') ? theme.darkAlgorithm : theme.defaultAlgorithm,
-                            components: {
-                              Conversations: {
-                                colorText: 'var(--color-text-primary)',
-                                colorTextSecondary: 'var(--color-text-secondary)',
-                                colorTextTertiary: 'var(--color-text-tertiary)',
-                              }
-                            }
-                          }}
-                        >
+                  {/* 对话列表 - 使用 ant-design/x Conversations 组件（带分组和新建功能） */}
+                  <div className="flex-1 overflow-y-auto">
+                    <div className="explore-conversations">
+                      <style>{`
+                        .explore-conversations .ant-conversations {
+                          background-color: transparent !important;
+                        }
+                        /* 新建对话按钮样式 */
+                        .explore-conversations .ant-conversations-creation {
+                          margin: 8px 12px !important;
+                          padding: 10px 12px !important;
+                          border-radius: 8px !important;
+                          background-color: var(--color-components-sidebar-item-bg-active) !important;
+                          color: var(--color-components-sidebar-item-text-active) !important;
+                          border: 1px solid var(--color-border-accent) !important;
+                          transition: all 0.2s ease !important;
+                          font-weight: 500 !important;
+                        }
+                        .explore-conversations .ant-conversations-creation:hover {
+                          background-color: var(--color-components-button-primary-bg) !important;
+                          color: var(--color-components-button-primary-text) !important;
+                        }
+                        /* 分组标题样式 */
+                        .explore-conversations .ant-conversations-group-title {
+                          color: var(--color-text-tertiary) !important;
+                          font-size: 12px !important;
+                          padding: 12px 16px 4px !important;
+                          font-weight: 500 !important;
+                        }
+                        /* 会话项样式 */
+                        .explore-conversations .ant-conversations-list .ant-conversations-item {
+                          background-color: transparent !important;
+                          border-radius: 8px !important;
+                          margin: 2px 8px !important;
+                          padding: 8px 12px !important;
+                          transition: all 0.2s ease !important;
+                        }
+                        .explore-conversations .ant-conversations-list .ant-conversations-item:hover {
+                          background-color: var(--color-components-sidebar-item-bg-hover) !important;
+                        }
+                        .explore-conversations .ant-conversations-list .ant-conversations-item-active {
+                          background-color: var(--color-components-sidebar-item-bg-active) !important;
+                        }
+                        .explore-conversations .ant-conversations-list .ant-conversations-item-active .ant-conversations-item-label {
+                          color: var(--color-components-sidebar-item-text-active) !important;
+                        }
+                        .explore-conversations .ant-conversations-item-label {
+                          color: var(--color-text-primary) !important;
+                          font-size: 14px !important;
+                        }
+                        .explore-conversations .ant-conversations-item .anticon {
+                          color: var(--color-text-tertiary) !important;
+                        }
+                        .explore-conversations .ant-conversations-item:hover .anticon {
+                          color: var(--color-text-secondary) !important;
+                        }
+                        /* 空状态提示 */
+                        .explore-conversations-empty {
+                          text-align: center;
+                          padding: 32px 16px;
+                          color: var(--color-text-tertiary);
+                          font-size: 14px;
+                        }
+                      `}</style>
+                      <ConfigProvider
+                        theme={{
+                          algorithm: document.documentElement.classList.contains('dark') ? theme.darkAlgorithm : theme.defaultAlgorithm,
+                        }}
+                      >
+                        {dialogConversationsLoading ? (
+                          <div className="explore-conversations-empty">加载中...</div>
+                        ) : dialogConversationsError ? (
+                          <div className="explore-conversations-empty" style={{ color: 'var(--color-text-error)' }}>加载失败</div>
+                        ) : (
                           <Conversations
-                            defaultActiveKey={formatConversationsForAntD(dialogConversations)[0]?.key}
-                            items={formatConversationsForAntD(dialogConversations)}
-                            menu={conversationMenuConfig}
-                            groupable
-                            onActiveChange={(key) => key ? fetchConversationDetail(key) : setSelectedConversationDetail(null)}
-                            styles={{
-                              item: {
-                                label: {
-                                  color: 'var(--color-text-primary)',
+                            activeKey={activeConversationKey}
+                            // 新建对话功能（使用 Conversations 组件的 creation 属性）
+                            creation={{
+                              icon: <Plus className="h-4 w-4" />,
+                              label: '新建对话',
+                              onClick: handleCreateConversation,
+                            }}
+                            // 按日期分组
+                            groupable={{
+                              label: (group) => group,
+                            }}
+                            items={dialogConversations.length === 0 ? [] : dialogConversations
+                              .sort((a: any, b: any) => {
+                                const timeA = a.update_time > 1000000000000 ? a.update_time : a.update_time * 1000
+                                const timeB = b.update_time > 1000000000000 ? b.update_time : b.update_time * 1000
+                                return timeB - timeA
+                              })
+                              .map((conv: any) => ({
+                                key: conv.id,
+                                label: conv.name || 'New conversation',
+                                // 添加分组信息（今天、昨天、最近7天、更早）
+                                group: getConversationDateGroup(conv.update_time),
+                              }))}
+                            menu={(conversation) => ({
+                              items: [
+                                { label: '重命名', key: 'rename', icon: <Edit3 className="h-3 w-3" /> },
+                                { label: '删除', key: 'delete', icon: <Trash2 className="h-3 w-3" />, danger: true },
+                              ],
+                              onClick: async (menuInfo) => {
+                                menuInfo.domEvent.stopPropagation()
+                                const convData = dialogConversations.find((c: any) => c.id === conversation.key)
+                                
+                                if (menuInfo.key === 'rename' && convData) {
+                                  setRenamingConversationId(conversation.key as string)
+                                  setNewConversationName(convData.name || 'New conversation')
+                                } else if (menuInfo.key === 'delete') {
+                                  try {
+                                    await conversationAPI.removeConversation([conversation.key as string])
+                                    refetchConversations()
+                                    if (activeConversationKey === conversation.key) {
+                                      setActiveConversationKey(undefined)
+                                      setSelectedConversationDetail(null)
+                                      setMessages([])
+                                    }
+                                    toast.success('对话已删除')
+                                  } catch (error) {
+                                    console.error('Failed to delete conversation:', error)
+                                    toast.error('删除失败')
+                                  }
                                 }
+                              },
+                            })}
+                            onActiveChange={(key) => {
+                              // 受控模式：更新 activeKey 状态
+                              setActiveConversationKey(key)
+                              // 先清空消息，避免新旧消息混合导致 key 重复
+                              setMessages([])
+                              // 加载对话详情
+                              if (key) {
+                                fetchConversationDetail(key)
+                              } else {
+                                setSelectedConversationDetail(null)
                               }
                             }}
                           />
-                        </ConfigProvider>
-                      </div>
-                    )}
+                        )}
+                      </ConfigProvider>
+                    </div>
                   </div>
+                  
+                  {/* 重命名对话 Modal（更现代化的交互） */}
+                  <Modal
+                    title="重命名对话"
+                    open={!!renamingConversationId}
+                    onOk={confirmRenameConversation}
+                    onCancel={() => {
+                      setRenamingConversationId(null)
+                      setNewConversationName('')
+                    }}
+                    okText="确认"
+                    cancelText="取消"
+                    destroyOnClose
+                  >
+                    <Input
+                      value={newConversationName}
+                      onChange={(e) => setNewConversationName(e.target.value)}
+                      onPressEnter={confirmRenameConversation}
+                      placeholder="请输入对话名称"
+                      autoFocus
+                    />
+                  </Modal>
                 </>
               )}
             </div>
@@ -1723,6 +1872,19 @@ export const ExplorePage: React.FC = () => {
                       items={bubbleItems as any}
                       autoScroll
                       style={{ height: '100%' }}
+                      role={{
+                        // 用户消息默认配置
+                        user: {
+                          placement: 'end',
+                          variant: 'filled',
+                          shape: 'round',
+                        },
+                        // AI 助手消息默认配置
+                        assistant: {
+                          placement: 'start',
+                          variant: 'borderless',
+                        },
+                      }}
                     />
                   </div>
                 )}
@@ -1797,13 +1959,20 @@ export const ExplorePage: React.FC = () => {
                         border-radius: 0 0 16px 16px !important;
                         border-top: none !important;
                       }
-                      /* 关闭按钮 */
+                      /* 关闭按钮 - 现代化圆形设计 */
                       .explore-sender-area .ant-sender-header-close,
                       .explore-sender-area [class*="sender-header"] button,
                       .explore-sender-area [class*="header-close"] {
                         color: var(--color-text-tertiary) !important;
                         background-color: transparent !important;
                         border-color: transparent !important;
+                        border-radius: 8px !important;
+                        width: 32px !important;
+                        height: 32px !important;
+                        display: flex !important;
+                        align-items: center !important;
+                        justify-content: center !important;
+                        transition: all 0.2s ease !important;
                       }
                       .explore-sender-area .ant-sender-header-close:hover,
                       .explore-sender-area [class*="sender-header"] button:hover,
@@ -1811,20 +1980,33 @@ export const ExplorePage: React.FC = () => {
                         color: var(--color-text-primary) !important;
                         background-color: var(--color-state-hover) !important;
                       }
-                      /* Attachments 容器和拖拽区域背景 */
-                      .explore-sender-area .ant-attachments,
-                      .explore-sender-area .ant-attachment-placeholder {
+                      /* 标题栏整体样式优化 */
+                      .explore-sender-area .ant-sender-header {
+                        padding: 12px 16px !important;
+                        border-bottom: 1px solid var(--color-border-default) !important;
+                      }
+                      .explore-sender-area .ant-sender-header-title {
+                        font-weight: 500 !important;
+                        font-size: 14px !important;
+                        color: var(--color-text-primary) !important;
+                        display: flex !important;
+                        align-items: center !important;
+                        gap: 8px !important;
+                      }
+                      /* Attachments 容器背景 - 简洁设计 */
+                      .explore-sender-area .ant-attachments {
                         background-color: var(--color-components-card-bg) !important;
                       }
-                      /* 拖拽区域边框 - 现代化设计 */
+                      /* 移除内层多余边框 */
+                      .explore-sender-area .ant-attachment-placeholder,
                       .explore-sender-area .ant-attachment-placeholder-inner {
-                        border: 2px dashed var(--color-border-default) !important;
-                        border-radius: 12px !important;
-                        padding: 24px !important;
-                        transition: all 0.2s ease !important;
+                        border: none !important;
+                        background: transparent !important;
+                        padding: 0 !important;
+                        margin: 0 !important;
                       }
-                      .explore-sender-area .ant-attachments:hover .ant-attachment-placeholder-inner {
-                        border-color: var(--color-border-accent) !important;
+                      /* 悬停效果 */
+                      .explore-sender-area .ant-attachments:hover {
                         background-color: var(--color-state-hover) !important;
                       }
                       /* 已上传文件列表项 */
@@ -1851,21 +2033,33 @@ export const ExplorePage: React.FC = () => {
                       // 文件上传面板（参考 ragflow）
                       header={
                         <Sender.Header
-                          title="上传文件"
+                          title={
+                            <span style={{ 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              gap: '8px',
+                              color: 'var(--color-text-primary)',
+                              fontWeight: 500,
+                              fontSize: '14px',
+                            }}>
+                              <Upload className="w-4 h-4" style={{ color: 'var(--color-state-focus)' }} />
+                              上传文件
+                            </span>
+                          }
                           open={headerOpen}
                           onOpenChange={setHeaderOpen}
                           styles={{
                             header: {
                               backgroundColor: 'var(--color-components-card-bg)',
-                              borderColor: 'var(--color-components-input-border)',
                               borderRadius: '16px 16px 0 0',
-                              borderWidth: '1px',
-                              borderStyle: 'solid',
-                              borderBottom: 'none',
+                              border: 'none',
+                              borderBottom: '1px solid var(--color-border-default)',
+                              padding: '12px 16px',
                             },
                             content: {
                               padding: 0,
                               backgroundColor: 'var(--color-components-card-bg)',
+                              border: 'none',
                             },
                           }}
                         >
@@ -1884,13 +2078,81 @@ export const ExplorePage: React.FC = () => {
                                 removeUploadFile((file as UploadFile).uid)
                               }
                             }}
-                            placeholder={{
-                              icon: <Upload className="w-8 h-8" style={{ color: 'var(--color-text-tertiary)' }} />,
-                              title: <span style={{ color: 'var(--color-text-primary)' }}>拖拽或点击上传文件</span>,
-                              description: <span style={{ color: 'var(--color-text-secondary)' }}>{`支持图片、文档等格式，最多 ${uploadConfig.maxCount} 个文件，每个最大 ${Math.round(uploadConfig.maxSize / 1024 / 1024)}MB`}</span>,
-                            }}
-                            style={{
-                              backgroundColor: 'var(--color-components-card-bg)',
+                            overflow="scrollX"
+                            placeholder={(type) => ({
+                              icon: (
+                                <div style={{
+                                  width: '44px',
+                                  height: '44px',
+                                  borderRadius: '12px',
+                                  backgroundColor: type === 'drop' ? 'var(--color-state-focus-10)' : 'var(--color-surface-secondary)',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  marginBottom: '12px',
+                                  transition: 'all 0.2s ease',
+                                }}>
+                                  <Upload 
+                                    className="w-5 h-5" 
+                                    style={{ 
+                                      color: type === 'drop' ? 'var(--color-state-focus)' : 'var(--color-text-tertiary)',
+                                      transition: 'color 0.2s ease',
+                                    }} 
+                                  />
+                                </div>
+                              ),
+                              title: (
+                                <span style={{ 
+                                  color: 'var(--color-text-primary)', 
+                                  fontWeight: 500,
+                                  fontSize: '14px',
+                                }}>
+                                  {type === 'drop' ? '释放以上传' : '点击或拖拽文件到此处'}
+                                </span>
+                              ),
+                              description: (
+                                <span style={{ 
+                                  color: 'var(--color-text-tertiary)',
+                                  fontSize: '12px',
+                                  marginTop: '4px',
+                                  display: 'block',
+                                }}>
+                                  {`支持图片、文档等，最多 ${uploadConfig.maxCount} 个，单个最大 ${Math.round(uploadConfig.maxSize / 1024 / 1024)}MB`}
+                                </span>
+                              ),
+                            })}
+                            styles={{
+                              root: {
+                                backgroundColor: 'var(--color-components-card-bg)',
+                                padding: '20px 16px',
+                                transition: 'background-color 0.2s ease',
+                              },
+                              placeholder: {
+                                padding: 0,
+                                margin: 0,
+                                border: 'none',
+                                background: 'transparent',
+                              },
+                              list: {
+                                padding: '0 0 8px 0',
+                                gap: '8px',
+                              },
+                              card: {
+                                backgroundColor: 'var(--color-components-input-bg)',
+                                border: '1px solid var(--color-border-default)',
+                                borderRadius: '10px',
+                                padding: '8px 12px',
+                                transition: 'all 0.2s ease',
+                              },
+                              name: {
+                                color: 'var(--color-text-primary)',
+                                fontWeight: 500,
+                                fontSize: '13px',
+                              },
+                              description: {
+                                color: 'var(--color-text-tertiary)',
+                                fontSize: '12px',
+                              },
                             }}
                             // 自定义上传请求，参考 ragflow 的 createConversationBeforeUploadFile
                             // 1. 防止默认上传到当前页面 URL
