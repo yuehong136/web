@@ -144,6 +144,7 @@ export interface DesignTokens {
   'state-success': string
   'state-warning': string
   'state-error': string
+  'state-info': string
   
   // ===== 状态透明度变体 (10% opacity) =====
   'state-focus-10': string
@@ -151,6 +152,13 @@ export interface DesignTokens {
   'state-warning-10': string
   'state-error-10': string
   'state-neutral-10': string
+  'state-info-10': string
+  // 语义化别名（subtle = 10% opacity）
+  'state-focus-subtle': string
+  'state-success-subtle': string
+  'state-warning-subtle': string
+  'state-error-subtle': string
+  'state-info-subtle': string
   
   // ===== HTTP方法颜色系统 =====
   'components-method-get-bg': string
@@ -829,6 +837,7 @@ export const defaultTokens: DesignTokens = {
   'state-success': '',
   'state-warning': '',
   'state-error': '',
+  'state-info': '',
   
   // 状态透明度变体 (10% opacity)
   'state-focus-10': '',
@@ -836,6 +845,13 @@ export const defaultTokens: DesignTokens = {
   'state-warning-10': '',
   'state-error-10': '',
   'state-neutral-10': '',
+  'state-info-10': '',
+  // 语义化别名（subtle = 10% opacity）
+  'state-focus-subtle': '',
+  'state-success-subtle': '',
+  'state-warning-subtle': '',
+  'state-error-subtle': '',
+  'state-info-subtle': '',
   
   // HTTP方法颜色系统
   'components-method-get-bg': '',

@@ -135,30 +135,35 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
         type="button"
         onClick={handleToggle}
         className={cn(
-          "w-full text-left border rounded-lg bg-white transition-all duration-200",
-          "hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500",
-          getSizeClasses(),
-          isOpen ? "border-blue-500 ring-2 ring-blue-500/20" : "border-gray-300"
+          "w-full text-left border rounded-lg transition-all duration-200",
+          "focus:outline-none focus:ring-2",
+          getSizeClasses()
         )}
+        style={{
+          backgroundColor: 'var(--color-components-input-bg)',
+          borderColor: isOpen ? 'var(--color-state-focus)' : 'var(--color-components-input-border)',
+          boxShadow: isOpen ? '0 0 0 2px var(--color-state-focus-10)' : undefined
+        }}
       >
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center gap-2">
             {selectedOption ? (
               <>
                 {selectedOption.icon && (
                   <span className="text-lg">{selectedOption.icon}</span>
                 )}
-                <span className="text-gray-900">{selectedOption.label}</span>
+                <span style={{ color: 'var(--color-text-primary)' }}>{selectedOption.label}</span>
               </>
             ) : (
-              <span className="text-gray-500">{placeholder}</span>
+              <span style={{ color: 'var(--color-text-tertiary)' }}>{placeholder}</span>
             )}
           </div>
           <ChevronDown 
             className={cn(
-              "h-5 w-5 text-gray-400 transition-transform duration-200",
+              "h-5 w-5 transition-transform duration-200",
               isOpen && "rotate-180"
             )}
+            style={{ color: 'var(--color-text-muted)' }}
           />
         </div>
       </button>
@@ -174,34 +179,46 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
             />
             <div 
               ref={menuRef}
-              className="fixed bg-white border border-gray-200 rounded-lg shadow-lg max-h-64 overflow-hidden"
+              className="fixed rounded-lg max-h-64 overflow-hidden"
               style={{
                 top: dropdownPosition.top,
                 left: dropdownPosition.left,
                 width: dropdownPosition.width,
-                zIndex: zIndex
+                zIndex: zIndex,
+                backgroundColor: 'var(--color-components-dropdown-bg)',
+                border: '1px solid var(--color-components-dropdown-border)',
+                boxShadow: 'var(--color-components-dropdown-shadow)'
               }}
             >
-              <div className="max-h-64 overflow-y-auto">
+              <div className="max-h-64 overflow-y-auto scrollbar-thin">
                 {options.map((option) => (
                   <button
                     key={option.value}
                     type="button"
                     onClick={() => handleSelect(option.value)}
-                    className={cn(
-                      "w-full px-4 py-3 text-left hover:bg-blue-50 transition-colors duration-150 border-b border-gray-50 last:border-b-0",
-                      value === option.value && "bg-blue-50 border-blue-100"
-                    )}
+                    className="w-full px-4 py-3 text-left transition-colors duration-150 border-b last:border-b-0"
+                    style={{
+                      backgroundColor: value === option.value ? 'var(--color-state-focus-10)' : undefined,
+                      borderColor: 'var(--color-border-subtle)'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (value !== option.value) {
+                        e.currentTarget.style.backgroundColor = 'var(--color-components-dropdown-item-bg-hover)'
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = value === option.value ? 'var(--color-state-focus-10)' : ''
+                    }}
                   >
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center gap-2">
                         {option.icon && (
                           <span className="text-lg">{option.icon}</span>
                         )}
-                        <span className="text-gray-900">{option.label}</span>
+                        <span style={{ color: 'var(--color-text-primary)' }}>{option.label}</span>
                       </div>
                       {value === option.value && (
-                        <Check className="h-4 w-4 text-blue-500" />
+                        <Check className="h-4 w-4" style={{ color: 'var(--color-state-focus)' }} />
                       )}
                     </div>
                   </button>

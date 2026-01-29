@@ -143,13 +143,21 @@ export const lightTokens: DesignTokens = {
   'state-success': '#10b981',
   'state-warning': '#f59e0b',
   'state-error': '#ef4444',
+  'state-info': '#0ea5e9',
   
   // ===== 状态透明度变体 (10% opacity) =====
-  'state-focus-10': 'rgba(30, 64, 175, 0.1)',
+  'state-focus-10': 'rgba(0, 190, 180, 0.1)',
   'state-success-10': 'rgba(16, 185, 129, 0.1)',
   'state-warning-10': 'rgba(245, 158, 11, 0.1)',
   'state-error-10': 'rgba(239, 68, 68, 0.1)',
   'state-neutral-10': 'rgba(107, 114, 128, 0.1)',
+  'state-info-10': 'rgba(14, 165, 233, 0.1)',
+  // 语义化别名（subtle = 10% opacity）
+  'state-focus-subtle': 'rgba(0, 190, 180, 0.1)',
+  'state-success-subtle': 'rgba(16, 185, 129, 0.1)',
+  'state-warning-subtle': 'rgba(245, 158, 11, 0.1)',
+  'state-error-subtle': 'rgba(239, 68, 68, 0.1)',
+  'state-info-subtle': 'rgba(14, 165, 233, 0.1)',
   
   // ===== HTTP方法颜色系统 =====
   'components-method-get-bg': 'rgba(34, 197, 94, 0.1)',
@@ -792,6 +800,7 @@ export const darkTokens: DesignTokens = {
   'state-success': '#22c55e',
   'state-warning': '#f59e0b',
   'state-error': '#ef4444',
+  'state-info': '#38bdf8',
   
   // ===== 状态透明度变体 (10% opacity) =====
   'state-focus-10': 'rgba(129, 140, 248, 0.15)',
@@ -799,6 +808,13 @@ export const darkTokens: DesignTokens = {
   'state-warning-10': 'rgba(245, 158, 11, 0.12)',
   'state-error-10': 'rgba(239, 68, 68, 0.12)',
   'state-neutral-10': 'rgba(161, 161, 170, 0.12)',
+  'state-info-10': 'rgba(56, 189, 248, 0.12)',
+  // 语义化别名（subtle = 10% opacity）
+  'state-focus-subtle': 'rgba(129, 140, 248, 0.15)',
+  'state-success-subtle': 'rgba(34, 197, 94, 0.12)',
+  'state-warning-subtle': 'rgba(245, 158, 11, 0.12)',
+  'state-error-subtle': 'rgba(239, 68, 68, 0.12)',
+  'state-info-subtle': 'rgba(56, 189, 248, 0.12)',
   
   // ===== HTTP方法颜色系统 =====
   'components-method-get-bg': 'rgba(34, 197, 94, 0.2)',

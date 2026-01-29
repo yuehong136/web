@@ -14,7 +14,6 @@ import {
   Filter,
   Settings,
   Copy,
-  Upload,
   Download,
   BarChart3,
   ChevronDown,
@@ -44,6 +43,7 @@ import { Dropdown, DropdownItem } from '@/components/ui/dropdown'
 import { QuickEditModal } from '@/components/knowledge/QuickEditModal'
 import { PageSizeSelector } from '@/components/ui/page-size-selector'
 import { CustomSelect } from '@/components/ui/custom-select'
+import { Checkbox } from '@/components/ui/checkbox'
 import { useKnowledgeStore } from '@/stores/knowledge'
 import { useUIStore } from '@/stores/ui'
 import { cn, formatTimestamp, formatTimestampDetailed, formatTimestampCompact, formatRelativeTime, formatBytes } from '@/lib/utils'
@@ -187,9 +187,9 @@ export const KnowledgeListPage: React.FC = () => {
   const getStatusColor = (kb: KnowledgeBase) => {
     // 由于API没有明确的status字段，我们基于其他字段判断状态
     if (kb.doc_num > 0) {
-      return 'text-text-success bg-green-100'
+      return 'text-text-success bg-[var(--color-state-success-10)]'
     } else if (kb.permission === 'me') {
-      return 'text-text-accent bg-blue-100'
+      return 'text-text-accent bg-[var(--color-state-info-10)]'
     } else {
       return 'text-text-secondary bg-background-subtle'
     }
@@ -396,12 +396,24 @@ export const KnowledgeListPage: React.FC = () => {
             </label>
             <div className="space-y-2">
               {getPermissionOptions().map(option => (
-                <label key={option.value} className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
+                <label 
+                  key={option.value} 
+                  className="flex items-center gap-2 py-1 px-1 -mx-1 rounded cursor-pointer hover:bg-[var(--color-state-hover)] transition-colors"
+                  onClick={() => {
+                    const checked = filters.permissions?.includes(option.value) || false
+                    const newPermissions = !checked
+                      ? [...(filters.permissions || []), option.value]
+                      : (filters.permissions || []).filter(p => p !== option.value)
+                    setFilters({
+                      ...filters,
+                      permissions: newPermissions
+                    })
+                  }}
+                >
+                  <Checkbox
                     checked={filters.permissions?.includes(option.value) || false}
-                    onChange={(e) => {
-                      const newPermissions = e.target.checked
+                    onCheckedChange={(checked) => {
+                      const newPermissions = checked
                         ? [...(filters.permissions || []), option.value]
                         : (filters.permissions || []).filter(p => p !== option.value)
                       setFilters({
@@ -409,9 +421,10 @@ export const KnowledgeListPage: React.FC = () => {
                         permissions: newPermissions
                       })
                     }}
-                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                    onClick={(e) => e.stopPropagation()}
+                    className="shrink-0"
                   />
-                  <span className="text-sm text-gray-700">{option.label}</span>
+                  <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>{option.label}</span>
                 </label>
               ))}
             </div>
@@ -430,12 +443,24 @@ export const KnowledgeListPage: React.FC = () => {
             </label>
             <div className="space-y-2">
               {getLanguageOptions().map(option => (
-                <label key={option.value} className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
+                <label 
+                  key={option.value} 
+                  className="flex items-center gap-2 py-1 px-1 -mx-1 rounded cursor-pointer hover:bg-[var(--color-state-hover)] transition-colors"
+                  onClick={() => {
+                    const checked = filters.languages?.includes(option.value) || false
+                    const newLanguages = !checked
+                      ? [...(filters.languages || []), option.value]
+                      : (filters.languages || []).filter(l => l !== option.value)
+                    setFilters({
+                      ...filters,
+                      languages: newLanguages
+                    })
+                  }}
+                >
+                  <Checkbox
                     checked={filters.languages?.includes(option.value) || false}
-                    onChange={(e) => {
-                      const newLanguages = e.target.checked
+                    onCheckedChange={(checked) => {
+                      const newLanguages = checked
                         ? [...(filters.languages || []), option.value]
                         : (filters.languages || []).filter(l => l !== option.value)
                       setFilters({
@@ -443,9 +468,10 @@ export const KnowledgeListPage: React.FC = () => {
                         languages: newLanguages
                       })
                     }}
-                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                    onClick={(e) => e.stopPropagation()}
+                    className="shrink-0"
                   />
-                  <span className="text-sm text-gray-700">{option.label}</span>
+                  <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>{option.label}</span>
                 </label>
               ))}
             </div>
@@ -464,12 +490,24 @@ export const KnowledgeListPage: React.FC = () => {
             </label>
             <div className="space-y-2 max-h-40 overflow-y-auto scrollbar-thin">
               {getParserOptions().map(option => (
-                <label key={option.value} className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
+                <label 
+                  key={option.value} 
+                  className="flex items-center gap-2 py-1 px-1 -mx-1 rounded cursor-pointer hover:bg-[var(--color-state-hover)] transition-colors"
+                  onClick={() => {
+                    const checked = filters.parser_ids?.includes(option.value) || false
+                    const newParserIds = !checked
+                      ? [...(filters.parser_ids || []), option.value]
+                      : (filters.parser_ids || []).filter(p => p !== option.value)
+                    setFilters({
+                      ...filters,
+                      parser_ids: newParserIds
+                    })
+                  }}
+                >
+                  <Checkbox
                     checked={filters.parser_ids?.includes(option.value) || false}
-                    onChange={(e) => {
-                      const newParserIds = e.target.checked
+                    onCheckedChange={(checked) => {
+                      const newParserIds = checked
                         ? [...(filters.parser_ids || []), option.value]
                         : (filters.parser_ids || []).filter(p => p !== option.value)
                       setFilters({
@@ -477,9 +515,10 @@ export const KnowledgeListPage: React.FC = () => {
                         parser_ids: newParserIds
                       })
                     }}
-                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                    onClick={(e) => e.stopPropagation()}
+                    className="shrink-0"
                   />
-                  <span className="text-sm text-gray-700">{option.label}</span>
+                  <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>{option.label}</span>
                 </label>
               ))}
             </div>
@@ -498,12 +537,24 @@ export const KnowledgeListPage: React.FC = () => {
             </label>
             <div className="space-y-2 max-h-40 overflow-y-auto scrollbar-thin">
               {getEmbeddingOptions().map(option => (
-                <label key={option.value} className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
+                <label 
+                  key={option.value} 
+                  className="flex items-center gap-2 py-1 px-1 -mx-1 rounded cursor-pointer hover:bg-[var(--color-state-hover)] transition-colors"
+                  onClick={() => {
+                    const checked = filters.embd_ids?.includes(option.value) || false
+                    const newEmbdIds = !checked
+                      ? [...(filters.embd_ids || []), option.value]
+                      : (filters.embd_ids || []).filter(e => e !== option.value)
+                    setFilters({
+                      ...filters,
+                      embd_ids: newEmbdIds
+                    })
+                  }}
+                >
+                  <Checkbox
                     checked={filters.embd_ids?.includes(option.value) || false}
-                    onChange={(e) => {
-                      const newEmbdIds = e.target.checked
+                    onCheckedChange={(checked) => {
+                      const newEmbdIds = checked
                         ? [...(filters.embd_ids || []), option.value]
                         : (filters.embd_ids || []).filter(e => e !== option.value)
                       setFilters({
@@ -511,9 +562,10 @@ export const KnowledgeListPage: React.FC = () => {
                         embd_ids: newEmbdIds
                       })
                     }}
-                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                    onClick={(e) => e.stopPropagation()}
+                    className="shrink-0"
                   />
-                  <span className="text-sm text-gray-700">{option.label}</span>
+                  <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>{option.label}</span>
                 </label>
               ))}
             </div>
@@ -547,41 +599,69 @@ export const KnowledgeListPage: React.FC = () => {
         
         {/* 当前筛选状态显示 */}
         {hasActiveFilters() && (
-          <div className="mt-4 pt-4 border-t border-gray-200 bg-white rounded-lg p-3">
-            <div className="flex items-center space-x-2 mb-3">
-              <div className="p-1 bg-blue-100 rounded">
-                <CheckCircle className="h-3 w-3 text-blue-600" />
+          <div 
+            className="mt-4 pt-4 border-t rounded-lg p-3"
+            style={{
+              borderColor: 'var(--color-border-default)',
+              backgroundColor: 'var(--color-background-surface)'
+            }}
+          >
+            <div className="flex items-center gap-2 mb-3">
+              <div className="p-1 rounded" style={{ backgroundColor: 'var(--color-state-info-subtle)' }}>
+                <CheckCircle className="h-3 w-3" style={{ color: 'var(--color-state-info)' }} />
               </div>
-              <div className="text-sm font-medium text-gray-700">当前筛选条件</div>
+              <div className="text-sm font-medium" style={{ color: 'var(--color-text-secondary)' }}>当前筛选条件</div>
             </div>
             <div className="flex flex-wrap gap-2">
               {searchQuery.trim() && (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                <span 
+                  className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                  style={{ backgroundColor: 'var(--color-state-info-subtle)', color: 'var(--color-state-info)' }}
+                >
                   关键词: {searchQuery}
                 </span>
               )}
               {filters.permissions?.map(permission => (
-                <span key={permission} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                <span 
+                  key={permission} 
+                  className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                  style={{ backgroundColor: 'var(--color-state-success-subtle)', color: 'var(--color-state-success)' }}
+                >
                   权限: {permission}
                 </span>
               ))}
               {filters.languages?.map(language => (
-                <span key={language} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                <span 
+                  key={language} 
+                  className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                  style={{ backgroundColor: 'var(--color-state-info-subtle)', color: 'var(--color-state-info)' }}
+                >
                   语言: {language}
                 </span>
               ))}
               {filters.parser_ids?.map(parser => (
-                <span key={parser} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                <span 
+                  key={parser} 
+                  className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                  style={{ backgroundColor: 'var(--color-state-warning-subtle)', color: 'var(--color-state-warning)' }}
+                >
                   解析器: {parser}
                 </span>
               ))}
               {filters.embd_ids?.map(embd => (
-                <span key={embd} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-pink-100 text-pink-800">
+                <span 
+                  key={embd} 
+                  className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                  style={{ backgroundColor: 'var(--color-state-error-subtle)', color: 'var(--color-state-error)' }}
+                >
                   嵌入模型: {embd}
                 </span>
               ))}
               {filters.time_range !== 'all' && (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                <span 
+                  className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                  style={{ backgroundColor: 'var(--color-state-warning-subtle)', color: 'var(--color-state-warning)' }}
+                >
                   时间: {getTimeRangeOptions().find(opt => opt.value === filters.time_range)?.label}
                 </span>
               )}
@@ -602,27 +682,24 @@ export const KnowledgeListPage: React.FC = () => {
         >
           <div className="p-6">
             <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center space-x-3 flex-1">
-                <input
-                  type="checkbox"
-                  className="rounded border-gray-300"
+              <div className="flex items-center gap-3 flex-1">
+                <Checkbox
                   checked={selectedBases.includes(kb.id)}
-                  onChange={(e) => {
-                    e.stopPropagation() // 防止事件冒泡
-                    if (e.target.checked) {
+                  onCheckedChange={(checked) => {
+                    if (checked) {
                       setSelectedBases([...selectedBases, kb.id])
                     } else {
                       setSelectedBases(selectedBases.filter(id => id !== kb.id))
                     }
                   }}
-                  onClick={(e) => e.stopPropagation()} // 防止点击事件冒泡
+                  onClick={(e) => e.stopPropagation()}
                 />
                 <Avatar className="h-10 w-10">
                   <AvatarImage src={kb.avatar || undefined} alt={kb.name} />
                   <AvatarFallback><Database className="h-5 w-5" /></AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-gray-900 truncate">
+                  <h3 className="font-semibold truncate" style={{ color: 'var(--color-text-primary)' }}>
                     {kb.name}
                   </h3>
                   <span className={cn(
@@ -658,11 +735,11 @@ export const KnowledgeListPage: React.FC = () => {
               </div>
             </div>
 
-            <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+            <p className="text-sm mb-4 line-clamp-2" style={{ color: 'var(--color-text-secondary)' }}>
               {kb.description || '暂无描述'}
             </p>
 
-            <div className="grid grid-cols-2 gap-4 text-sm text-gray-500">
+            <div className="grid grid-cols-2 gap-4 text-sm" style={{ color: 'var(--color-text-tertiary)' }}>
               <div className="flex items-center">
                 <FileText className="h-4 w-4 mr-1" />
                 {kb.doc_num || 0} 文档
@@ -693,12 +770,10 @@ export const KnowledgeListPage: React.FC = () => {
           {
             key: 'select',
             title: (
-              <input
-                type="checkbox"
-                className="rounded border-gray-300"
+              <Checkbox
                 checked={selectedBases.length === filteredKnowledgeBases.length && filteredKnowledgeBases.length > 0}
-                onChange={(e) => {
-                  if (e.target.checked) {
+                onCheckedChange={(checked) => {
+                  if (checked) {
                     setSelectedBases(filteredKnowledgeBases.map(kb => kb.id))
                   } else {
                     setSelectedBases([])
@@ -707,12 +782,10 @@ export const KnowledgeListPage: React.FC = () => {
               />
             ),
             render: (_, record: KnowledgeBase) => (
-              <input
-                type="checkbox"
-                className="rounded border-gray-300"
+              <Checkbox
                 checked={selectedBases.includes(record.id)}
-                onChange={(e) => {
-                  if (e.target.checked) {
+                onCheckedChange={(checked) => {
+                  if (checked) {
                     setSelectedBases([...selectedBases, record.id])
                   } else {
                     setSelectedBases(selectedBases.filter(id => id !== record.id))
@@ -738,14 +811,14 @@ export const KnowledgeListPage: React.FC = () => {
               </Button>
             ),
             render: (value: string, record: KnowledgeBase) => (
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center gap-3">
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={record.avatar || undefined} alt={record.name} />
                   <AvatarFallback><Database className="h-4 w-4" /></AvatarFallback>
                 </Avatar>
                 <div>
-                  <div className="font-medium text-gray-900">{value}</div>
-                  <div className="text-sm text-gray-500 max-w-xs truncate">{record.description}</div>
+                  <div className="font-medium" style={{ color: 'var(--color-text-primary)' }}>{value}</div>
+                  <div className="text-sm max-w-xs truncate" style={{ color: 'var(--color-text-tertiary)' }}>{record.description}</div>
                 </div>
               </div>
             )
@@ -896,10 +969,6 @@ export const KnowledgeListPage: React.FC = () => {
                 删除 ({selectedBases.length})
               </Button>
             )}
-            <Button variant="outline" onClick={() => navigate(`${ROUTES.KNOWLEDGE}/import`)}>
-              <Upload className="h-4 w-4 mr-2" />
-              导入
-            </Button>
             <Button onClick={handleCreate}>
               <Plus className="h-4 w-4 mr-2" />
               创建知识库
@@ -927,15 +996,31 @@ export const KnowledgeListPage: React.FC = () => {
               variant="outline" 
               size="sm"
               onClick={() => setShowFilters(!showFilters)}
-              className={cn(
-                showFilters ? 'bg-blue-50 text-blue-600' : '',
-                hasActiveFilters() ? 'bg-orange-50 text-orange-600 border-orange-300' : ''
-              )}
+              style={
+                hasActiveFilters() 
+                  ? { 
+                      backgroundColor: 'var(--color-state-warning-subtle)', 
+                      color: 'var(--color-state-warning)', 
+                      borderColor: 'var(--color-state-warning)' 
+                    }
+                  : showFilters 
+                    ? { 
+                        backgroundColor: 'var(--color-state-info-subtle)', 
+                        color: 'var(--color-state-info)' 
+                      }
+                    : undefined
+              }
             >
               <Filter className="h-4 w-4 mr-2" />
               筛选
               {hasActiveFilters() && (
-                <span className="ml-1 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-orange-500 rounded-full">
+                <span 
+                  className="ml-1 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none rounded-full"
+                  style={{ 
+                    backgroundColor: 'var(--color-state-warning)', 
+                    color: 'var(--color-text-inverted)' 
+                  }}
+                >
                   {(filters.permissions?.length || 0) + 
                    (filters.languages?.length || 0) + 
                    (filters.parser_ids?.length || 0) + 
@@ -960,7 +1045,10 @@ export const KnowledgeListPage: React.FC = () => {
               className="min-w-[100px]"
             />
             
-            <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
+            <div 
+              className="flex items-center rounded-lg overflow-hidden"
+              style={{ border: '1px solid var(--color-border-default)' }}
+            >
               <Button
                 variant={viewMode === 'grid' ? 'default' : 'ghost'}
                 size="sm"
@@ -992,11 +1080,11 @@ export const KnowledgeListPage: React.FC = () => {
         </div>
       ) : filteredKnowledgeBases.length === 0 ? (
         <div className="text-center py-12">
-          <Database className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
+          <Database className="h-12 w-12 mx-auto mb-4" style={{ color: 'var(--color-text-muted)' }} />
+          <h3 className="text-lg font-medium mb-2" style={{ color: 'var(--color-text-primary)' }}>
             {searchQuery || showFilters ? '未找到匹配的知识库' : '还没有知识库'}
           </h3>
-          <p className="text-gray-500 mb-4">
+          <p className="mb-4" style={{ color: 'var(--color-text-tertiary)' }}>
             {searchQuery || showFilters? '尝试调整搜索条件或筛选器' : '创建您的第一个知识库开始使用'}
           </p>
           {!searchQuery && !showFilters && (
