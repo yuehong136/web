@@ -105,8 +105,7 @@
 }
 
 /* 暗色模式引用标记 */
-[data-theme="dark"] .reference-marker,
-.dark .reference-marker {
+html[data-theme="dark"] .reference-marker {
   --color-reference-bg: rgba(59, 130, 246, 0.2);
   --color-reference-text: #93c5fd;
   --color-reference-border: rgba(59, 130, 246, 0.3);
@@ -134,8 +133,7 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-[data-theme="dark"] .reference-doc-card:hover,
-.dark .reference-doc-card:hover {
+html[data-theme="dark"] .reference-doc-card:hover {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
@@ -185,8 +183,7 @@
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
-[data-theme="dark"] .reference-hover-card,
-.dark .reference-hover-card {
+html[data-theme="dark"] .reference-hover-card {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
 

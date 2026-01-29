@@ -6,7 +6,7 @@
  * 如需修改主题，请编辑 theme-generator.ts 文件
  */
 
-html[data-theme="light"], :root {
+html[data-theme="light"] {
   /* ===== Tailwind 通道变量 (用于 /alpha 透明度支持) ===== */
   --twc-primary: 30 64 175;
   --twc-primary-foreground: 255 255 255;
@@ -333,6 +333,11 @@ html[data-theme="light"], :root {
   --color-components-slider-range: #00BEB4;
   --color-components-slider-thumb: #ffffff;
   --color-components-slider-thumb-border: #00BEB4;
+  --color-components-tool-call-bg: #eff6ff;
+  --color-components-tool-call-border: #bfdbfe;
+  --color-components-tool-call-title: #1e40af;
+  --color-components-tool-call-content-bg: #1e293b;
+  --color-components-tool-call-content-text: #e2e8f0;
   --color-components-badge-bg: #f5f5f5;
   --color-components-badge-text: #737373;
   --color-components-badge-border: #eaeaea;

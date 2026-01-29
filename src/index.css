@@ -60,6 +60,14 @@
     text-rendering: optimizeLegibility;
   }
 
+  /* ===== 主题切换过渡控制（借鉴 Dify）===== */
+  /* 主题切换时临时禁用过渡动画，防止闪烁 */
+  html[data-changing-theme] *,
+  html[data-changing-theme] *::before,
+  html[data-changing-theme] *::after {
+    transition: none !important;
+  }
+
   html[data-theme="dark"] body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -185,6 +193,7 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
+
   .btn-primary {
     @apply inline-flex items-center justify-center rounded-md text-sm font-medium px-4 py-2 transition-colors disabled:pointer-events-none disabled:opacity-50;
     @apply bg-primary text-primary-foreground border border-primary;
@@ -980,4 +989,31 @@ html[data-theme="dark"] .ant-tabs-custom .ant-tabs-tab.ant-tabs-tab-active {
 /* 使用 loader-primary 语义令牌：浅色绿色 / 深色紫色 */
 .ant-bubble-dot-item {
   background-color: var(--color-components-loader-primary) !important;
+}
+
+/* ===== 视图切换组件样式（非分层，确保优先级） ===== */
+/* 放在 @layer 外部，避免 CSS 变量在分层中的优先级问题 */
+
+/* 选中状态 - 浅色模式（默认：黑色） */
+.view-toggle-selected {
+  background-color: #18181b !important;
+  color: #ffffff !important;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+
+/* 选中状态 - 深色模式覆盖（蓝色） */
+html[data-theme="dark"] .view-toggle-selected {
+  background-color: #3b82f6 !important;
+  color: #ffffff !important;
+}
+
+/* 未选中状态 */
+.view-toggle-unselected {
+  background-color: transparent !important;
+  color: var(--color-text-secondary) !important;
+}
+
+.view-toggle-unselected:hover {
+  background-color: var(--color-state-hover) !important;
+  color: var(--color-text-primary) !important;
 }

@@ -333,6 +333,11 @@ html[data-theme="dark"] {
   --color-components-slider-range: #3b82f6;
   --color-components-slider-thumb: #ffffff;
   --color-components-slider-thumb-border: #3b82f6;
+  --color-components-tool-call-bg: rgba(59, 130, 246, 0.1);
+  --color-components-tool-call-border: rgba(59, 130, 246, 0.3);
+  --color-components-tool-call-title: #93c5fd;
+  --color-components-tool-call-content-bg: #0f172a;
+  --color-components-tool-call-content-text: #e2e8f0;
   --color-components-badge-bg: rgba(255, 255, 255, 0.1);
   --color-components-badge-text: #e5e7eb;
   --color-components-badge-border: #475569;

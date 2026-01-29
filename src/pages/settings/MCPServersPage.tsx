@@ -30,7 +30,7 @@ import {
   Globe,
   Filter,
   Grid3X3,
-  List,
+  List as ListIcon,
   MoreHorizontal,
   TestTube,
   Edit,
@@ -40,6 +40,7 @@ import {
   Zap,
   Check,
 } from 'lucide-react'
+import { ViewToggle } from '@/components/ui/view-toggle'
 import type { MCPServer, MCPTool } from '@/types/mcp'
 import { MCPServerForm } from '@/components/mcp/MCPServerForm'
 import { MCPStatsCards } from '@/components/mcp/MCPStatsCards'
@@ -484,27 +485,15 @@ export const MCPServersPage: React.FC<ServerListPageProps> = ({ onServerSelect }
           </Button>
 
           {/* 视图切换 */}
-          <div
-            className="flex items-center rounded-lg overflow-hidden h-9"
-            style={{ border: '1px solid var(--color-border-default)' }}
-          >
-            <Button
-              variant={viewMode === 'grid' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('grid')}
-              className="rounded-none h-full"
-            >
-              <Grid3X3 className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={viewMode === 'table' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('table')}
-              className="rounded-none h-full"
-            >
-              <List className="h-4 w-4" />
-            </Button>
-          </div>
+          <ViewToggle
+            value={viewMode}
+            onChange={setViewMode}
+            size="md"
+            options={[
+              { value: 'grid', icon: <Grid3X3 />, label: '网格视图' },
+              { value: 'table', icon: <ListIcon />, label: '表格视图' },
+            ]}
+          />
         </div>
       </div>
 

@@ -5,6 +5,7 @@ export { useConversationStore } from './conversation'
 export { useChatStore } from './chat'
 export { useKnowledgeStore } from './knowledge'
 export { useModelStore } from './model'
+export { useStudioStore, useHasActiveFilters as useStudioHasActiveFilters, useSelectedCount as useStudioSelectedCount } from './studio'
 
 // 导入stores用于初始化
 import { useAuthStore } from './auth'

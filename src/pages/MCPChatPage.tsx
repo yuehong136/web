@@ -41,7 +41,7 @@ const ThinkComponent = React.memo((props: ComponentProps) => {
       expanded={expand} 
       onClick={() => setExpand(!expand)}
     >
-      <div className="text-gray-600 text-sm whitespace-pre-wrap">
+      <div className="text-sm whitespace-pre-wrap" style={{ color: 'var(--color-text-secondary)' }}>
         {props.children}
       </div>
     </Think>
@@ -442,7 +442,7 @@ export default function MCPChatPage() {
                 loading={isThinking}
                 defaultExpanded={false}
               >
-                <div className="text-gray-600 text-sm whitespace-pre-wrap">
+                <div className="text-sm whitespace-pre-wrap" style={{ color: 'var(--color-text-secondary)' }}>
                   {thinkContent}
                 </div>
               </Think>
@@ -503,8 +503,19 @@ export default function MCPChatPage() {
         contentRender: () => (
           <div className="space-y-4">
             {(isToolAnalyzing || streamingToolCalls.length > 0) && (
-              <div className="border border-blue-200 rounded-lg p-3 bg-blue-50 dark:bg-blue-900/20">
-                <h4 className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-2">🛠️ 工具调用状态</h4>
+              <div 
+                className="rounded-lg p-3"
+                style={{
+                  backgroundColor: 'var(--color-components-tool-call-bg)',
+                  border: '1px solid var(--color-components-tool-call-border)',
+                }}
+              >
+                <h4 
+                  className="text-sm font-medium mb-2"
+                  style={{ color: 'var(--color-components-tool-call-title)' }}
+                >
+                  🛠️ 工具调用状态
+                </h4>
                 <ToolCallRenderer
                   toolCalls={streamingToolCalls}
                   isAnalyzing={isToolAnalyzing}
@@ -521,7 +532,7 @@ export default function MCPChatPage() {
                 defaultExpanded={isThinking}
                 blink={isThinking}
               >
-                <div className="text-gray-600 text-sm whitespace-pre-wrap">
+                <div className="text-sm whitespace-pre-wrap" style={{ color: 'var(--color-text-secondary)' }}>
                   {thinkContent}
                 </div>
               </Think>
@@ -532,7 +543,7 @@ export default function MCPChatPage() {
             )}
             {/* 如果没有内容且没有思考内容，显示加载提示 */}
             {!thinkContent && !mainContent && !isToolAnalyzing && streamingToolCalls.length === 0 && (
-              <span className="text-gray-400 italic">正在生成...</span>
+              <span className="italic" style={{ color: 'var(--color-text-tertiary)' }}>正在生成...</span>
             )}
           </div>
         ),

@@ -286,6 +286,13 @@ export interface DesignTokens {
   'components-pre-text': string
   'components-pre-border': string
   
+  // ===== 工具调用组件 =====
+  'components-tool-call-bg': string
+  'components-tool-call-border': string
+  'components-tool-call-title': string
+  'components-tool-call-content-bg': string
+  'components-tool-call-content-text': string
+  
   // ===== 徽章和标签 =====
   'components-badge-bg': string
   'components-badge-text': string
@@ -1018,6 +1025,13 @@ export const defaultTokens: DesignTokens = {
   'components-pre-bg': '',
   'components-pre-text': '',
   'components-pre-border': '',
+  
+  // 工具调用组件
+  'components-tool-call-bg': '',
+  'components-tool-call-border': '',
+  'components-tool-call-title': '',
+  'components-tool-call-content-bg': '',
+  'components-tool-call-content-text': '',
   
   // 徽章和标签
   'components-badge-bg': '',

@@ -1,7 +1,10 @@
 /* MCP 实验场聊天页面专用样式 - 参考 /Users/dxl/project/ts/web/MCP 实验场对话界面/styles/globals.css */
 
-/* 对全局覆盖参考项目样式，确保完全一致 */
-:root {
+/* 
+ * 注意：使用 html[data-theme="light"] 而非 :root，避免与主题系统的优先级冲突
+ * 这样浅色主题变量只在明确设置 data-theme="light" 时生效
+ */
+html[data-theme="light"] {
   --font-size: 14px;
   --background: #ffffff;
   --foreground: oklch(0.145 0 0);
@@ -43,11 +46,8 @@
 }
 
 /* 暗色主题 - 优化视觉对比度和组件层次 */
-.dark,
-[data-theme="dark"],
-html[data-theme="dark"],
-.mcp-chat-page[data-theme="dark"],
-html[data-theme="dark"] .mcp-chat-page {
+/* 统一使用 html[data-theme="dark"] 选择器，与主题系统保持一致 */
+html[data-theme="dark"] {
   /* 背景色系 - 增强层次感 */
   --background: #0a0f1c;  /* 更深的背景色 */
   --foreground: #f8fafc;  /* 高对比度的前景色 */

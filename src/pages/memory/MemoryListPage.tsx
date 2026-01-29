@@ -4,7 +4,7 @@
  */
 
 import React from 'react'
-import { Plus, Grid, List, Database, MessageSquare, HardDrive, Zap, Search, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Plus, Grid, List as ListIcon, Database, MessageSquare, HardDrive, Zap, Search, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -20,6 +20,7 @@ import {
 import { FilterPopover, type FilterConfig, type FilterValue } from '@/components/ui/filter-popover'
 import { CustomSelect } from '@/components/ui/custom-select'
 import { PageSizeSelector } from '@/components/ui/page-size-selector'
+import { ViewToggle } from '@/components/ui/view-toggle'
 import {
   MemoryCard,
   MemoryListView,
@@ -241,27 +242,15 @@ export const MemoryListPage: React.FC = () => {
           />
           
           {/* 视图切换 */}
-          <div 
-            className="flex items-center rounded-lg overflow-hidden h-9"
-            style={{ border: '1px solid var(--color-border-default)' }}
-          >
-            <Button
-              variant={viewMode === 'grid' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('grid')}
-              className="rounded-none h-full"
-            >
-              <Grid className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={viewMode === 'list' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('list')}
-              className="rounded-none h-full"
-            >
-              <List className="h-4 w-4" />
-            </Button>
-          </div>
+          <ViewToggle
+            value={viewMode}
+            onChange={setViewMode}
+            size="md"
+            options={[
+              { value: 'grid', icon: <Grid />, label: '网格视图' },
+              { value: 'list', icon: <ListIcon />, label: '列表视图' },
+            ]}
+          />
         </div>
       </div>
 

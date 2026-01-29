@@ -1,14 +1,8 @@
 /* MCP实验场聊天页面样式 */
 
 /* 自定义CSS变量和样式 */
+/* CSS 变量引用会根据 data-theme 自动解析到正确的值，无需分别定义 */
 .mcp-chat-container {
-  --mcp-sidebar-bg: var(--color-components-sidebar-bg);
-  --mcp-sidebar-foreground: var(--color-components-sidebar-item-text);
-  --mcp-sidebar-border: var(--color-components-sidebar-border);
-  --mcp-sidebar-accent: var(--color-components-sidebar-item-bg-hover);
-}
-
-.dark .mcp-chat-container {
   --mcp-sidebar-bg: var(--color-components-sidebar-bg);
   --mcp-sidebar-foreground: var(--color-components-sidebar-item-text);
   --mcp-sidebar-border: var(--color-components-sidebar-border);
@@ -34,17 +28,8 @@
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
-.dark .mcp-chat-input-container {
-  background: var(--color-chat-input-area-bg);
-}
-
 /* 工具调用卡片样式 */
 .mcp-tool-call-card {
-  background: var(--color-components-card-bg);
-  border-color: var(--color-components-card-border);
-}
-
-.dark .mcp-tool-call-card {
   background: var(--color-components-card-bg);
   border-color: var(--color-components-card-border);
 }
@@ -74,14 +59,6 @@
 }
 
 .mcp-scroll-area::-webkit-scrollbar-thumb:hover {
-  background: var(--color-components-scrollbar-thumb-hover);
-}
-
-.dark .mcp-scroll-area::-webkit-scrollbar-thumb {
-  background: var(--color-components-scrollbar-thumb);
-}
-
-.dark .mcp-scroll-area::-webkit-scrollbar-thumb:hover {
   background: var(--color-components-scrollbar-thumb-hover);
 }
 

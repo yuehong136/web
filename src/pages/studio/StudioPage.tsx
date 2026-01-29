@@ -1,276 +1,500 @@
-import React, { useState, useEffect, useRef } from 'react'
-import { Plus, Sparkles, Bot, MoreVertical, Briefcase, Trash2 } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+/**
+ * 工作室页面
+ * 布局参考记忆库管理页面，保持一致的交互和视觉体验
+ */
+
+import React from 'react'
+import {
+  Plus,
+  Grid,
+  List,
+  Sparkles,
+  CheckCircle,
+  FileEdit,
+  Clock,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  Trash2,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import { FilterPopover, type FilterConfig, type FilterValue } from '@/components/ui/filter-popover'
+import { CustomSelect } from '@/components/ui/custom-select'
+import { PageSizeSelector } from '@/components/ui/page-size-selector'
+import { ViewToggle } from '@/components/ui/view-toggle'
+import { MemoryStatsCard } from '@/components/memory'
+import {
+  AppCard,
+  AppListView,
+  AppEmptyState,
+} from '@/components/studio'
 import { CreateProjectModal } from './components/CreateProjectModal'
 import { CreateAppModal } from './components/CreateAppModal'
-import { ROUTES } from '@/constants'
+import { useStudioStore } from '@/stores/studio'
 import { useDialogApps, useDeleteDialogApps } from '@/hooks/use-dialog-apps'
+import { STUDIO_TEXTS } from '@/constants/studio-texts'
+import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import type { DialogApp } from '@/types/api'
 
 export const StudioPage: React.FC = () => {
-  const navigate = useNavigate()
-  const [showCreateModal, setShowCreateModal] = useState(false)
-  const [showCreateAppModal, setShowCreateAppModal] = useState(false)
-  const [activeMenuId, setActiveMenuId] = useState<string | null>(null)
+  // Store state
+  const {
+    filter,
+    setFilter,
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
+    viewMode,
+    setViewMode,
+    timeFormat,
+    setTimeFormat,
+    selectedIds,
+    toggleSelect,
+    selectAll,
+    clearSelection,
+    projectTypeModalOpen,
+    openProjectTypeModal,
+    closeProjectTypeModal,
+    createAppModalOpen,
+    openCreateAppModal,
+    closeCreateAppModal,
+    editingApp,
+  } = useStudioStore()
 
-  // 使用React Query hooks
-  const { data: dialogApps = [], isLoading: loading } = useDialogApps()
+  // 搜索防抖
+  const [searchInput, setSearchInput] = React.useState(filter.keywords)
+  const debouncedSearch = useDebouncedValue(searchInput, 300)
+
+  // 删除确认弹窗状态
+  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
+  const [appToDelete, setAppToDelete] = React.useState<DialogApp | null>(null)
+
+  // 更新筛选条件（搜索词变化时）
+  React.useEffect(() => {
+    if (debouncedSearch !== filter.keywords) {
+      setFilter({ keywords: debouncedSearch })
+    }
+  }, [debouncedSearch, filter.keywords, setFilter])
+
+  // API hooks
+  const { data: dialogApps = [], isLoading } = useDialogApps()
   const deleteDialogAppsMutation = useDeleteDialogApps()
 
-  // 点击外部关闭菜单
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (activeMenuId) {
-        setActiveMenuId(null)
-      }
+  // 根据筛选条件过滤应用
+  const filteredApps = React.useMemo(() => {
+    let result = dialogApps
+
+    // 关键词搜索
+    if (filter.keywords) {
+      const keywords = filter.keywords.toLowerCase()
+      result = result.filter(
+        (app) =>
+          app.name.toLowerCase().includes(keywords) ||
+          app.description?.toLowerCase().includes(keywords)
+      )
     }
 
-    if (activeMenuId) {
-      document.addEventListener('click', handleClickOutside)
-      return () => document.removeEventListener('click', handleClickOutside)
+    // 状态筛选
+    if (filter.status.length > 0) {
+      result = result.filter((app) => filter.status.includes(app.status))
     }
-  }, [activeMenuId])
 
+    return result
+  }, [dialogApps, filter])
+
+  // 分页数据
+  const paginatedApps = React.useMemo(() => {
+    const start = (page - 1) * pageSize
+    return filteredApps.slice(start, start + pageSize)
+  }, [filteredApps, page, pageSize])
+
+  const total = filteredApps.length
+  const totalPages = Math.ceil(total / pageSize)
+
+  // 统计数据
+  const stats = React.useMemo(() => {
+    const published = dialogApps.filter((app) => app.status === '1').length
+    const draft = dialogApps.filter((app) => app.status !== '1').length
+    const oneWeekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000
+    const recentUpdated = dialogApps.filter(
+      (app) => new Date(app.update_date).getTime() > oneWeekAgo
+    ).length
+
+    return {
+      total: dialogApps.length,
+      published,
+      draft,
+      recentUpdated,
+    }
+  }, [dialogApps])
+
+  // 处理创建项目类型选择
   const handleCreateProject = (type: 'app' | 'agent') => {
-    setShowCreateModal(false)
+    closeProjectTypeModal()
     if (type === 'app') {
-      setShowCreateAppModal(true)
+      openCreateAppModal()
     } else {
       // 智能体创建页面暂未实现
       console.log('Creating agent - page not implemented yet')
     }
   }
 
+  // 处理创建应用
   const handleCreateApp = (appData: { name: string; description: string; icon?: string }) => {
-    // 现在应用已通过API创建，可以选择导航到配置页面或保持在当前页面
     console.log('App created successfully:', appData)
-    
-    // 可选：导航到应用配置页面
-    // const searchParams = new URLSearchParams({
-    //   name: appData.name,
-    //   description: appData.description,
-    //   ...(appData.icon && { icon: appData.icon })
-    // })
-    // navigate(`${ROUTES.STUDIO_CREATE_APP}?${searchParams.toString()}`)
   }
 
-  const handleDeleteApp = (appId: string) => {
-    if (confirm('确认删除该应用吗？')) {
-      deleteDialogAppsMutation.mutate([appId])
-    }
-    setActiveMenuId(null)
-  }
-
-  const toggleMenu = (appId: string) => {
-    setActiveMenuId(activeMenuId === appId ? null : appId)
-  }
-
-  const handleAppClick = (app: DialogApp) => {
-    // 跳转到应用配置页面
+  // 处理编辑
+  const handleEdit = (app: DialogApp) => {
+    // 直接跳转到配置页面
     const searchParams = new URLSearchParams({
       id: app.id,
       name: app.name,
       description: app.description,
       ...(app.icon && { icon: app.icon })
     })
-    navigate(`${ROUTES.STUDIO_CREATE_APP}?${searchParams.toString()}`)
+    window.location.href = `/studio/create-app?${searchParams.toString()}`
   }
 
-  const getAppIcon = (app: DialogApp) => {
-    if (app.icon) {
-      // 判断是data URL、http(s) URL还是base64字符串
-      const iconSrc = app.icon.startsWith('data:') || app.icon.startsWith('http') 
-        ? app.icon 
-        : `data:image/png;base64,${app.icon}`
-      return (
-        <img 
-          src={iconSrc} 
-          alt={app.name}
-          className="h-8 w-8 rounded object-cover"
-          onError={(e) => {
-            // 如果图片加载失败，显示默认图标
-            e.currentTarget.style.display = 'none'
-            e.currentTarget.nextElementSibling?.classList.remove('hidden')
-          }}
-        />
-      )
+  // 打开删除确认
+  const handleDeleteClick = (app: DialogApp) => {
+    setAppToDelete(app)
+    setDeleteDialogOpen(true)
+  }
+
+  // 确认删除
+  const handleConfirmDelete = () => {
+    if (appToDelete) {
+      deleteDialogAppsMutation.mutate([appToDelete.id])
     }
-    return <Sparkles className="h-8 w-8 text-purple-600" />
+    setDeleteDialogOpen(false)
+    setAppToDelete(null)
   }
 
-  const formatDateTime = (dateString: string) => {
-    return new Date(dateString).toLocaleString('zh-CN', {
-      year: 'numeric',
-      month: 'numeric',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+  // 批量删除
+  const handleBulkDelete = () => {
+    if (selectedIds.length === 0) return
+    deleteDialogAppsMutation.mutate(selectedIds, {
+      onSuccess: () => {
+        clearSelection()
+      },
     })
   }
 
+  // 筛选器配置
+  const filterConfigs: FilterConfig[] = [
+    {
+      key: 'status',
+      label: STUDIO_TEXTS.filterStatus,
+      options: [
+        { value: '1', label: STUDIO_TEXTS.statusPublished },
+        { value: '0', label: STUDIO_TEXTS.statusDraft },
+      ],
+    },
+  ]
+
+  // 筛选值转换
+  const filterValue: FilterValue = {
+    status: filter.status,
+  }
+
+  // 处理筛选变化
+  const handleFilterChange = (newValue: FilterValue) => {
+    setFilter({ status: (newValue.status || []) as string[] })
+  }
+
+  // 判断是否显示空状态
+  const showEmptyState = !isLoading && paginatedApps.length === 0
+  const emptyStateType = filter.keywords || filter.status.length > 0 ? 'search' : 'list'
+
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      {/* 页面头部 */}
-      <div className="flex items-center justify-between mb-8">
+    <div className="h-full flex flex-col p-6">
+      {/* 页面头部 - 标题 + 创建按钮 */}
+      <div className="flex items-start justify-between mb-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">工作室</h1>
-          <p className="text-gray-600 mt-2">创建和管理您的AI应用和智能体</p>
+          <h1 className="text-xl font-semibold text-text-primary">
+            {STUDIO_TEXTS.pageTitle}
+          </h1>
+          <p className="text-sm text-text-secondary mt-1">
+            {STUDIO_TEXTS.pageDescription}
+          </p>
         </div>
-        <Button
-          onClick={() => setShowCreateModal(true)}
-          className="px-6 py-2 rounded-lg flex items-center gap-2"
-          variant="default"
-        >
-          <Plus className="h-5 w-5" />
-          新建项目
-        </Button>
-      </div>
-
-      {/* 项目列表 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {loading ? (
-          // 加载状态
-          Array.from({ length: 6 }).map((_, index) => (
-            <div key={index} className="bg-white rounded-xl border border-gray-200 animate-pulse">
-              <div className="p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 bg-gray-200 rounded"></div>
-                    <div>
-                      <div className="h-4 bg-gray-200 rounded w-24 mb-2"></div>
-                      <div className="h-3 bg-gray-200 rounded w-16"></div>
-                    </div>
-                  </div>
-                </div>
-                <div className="h-3 bg-gray-200 rounded w-full mb-2"></div>
-                <div className="h-3 bg-gray-200 rounded w-2/3 mb-4"></div>
-                <div className="flex items-center justify-between">
-                  <div className="h-3 bg-gray-200 rounded w-16"></div>
-                  <div className="h-3 bg-gray-200 rounded w-20"></div>
-                </div>
-              </div>
-            </div>
-          ))
-        ) : dialogApps.length > 0 ? (
-          dialogApps.map((app) => (
-            <div
-              key={app.id}
-              className="bg-white rounded-xl border border-gray-200 hover:border-gray-300 transition-colors cursor-pointer group"
-              onClick={() => handleAppClick(app)}
-            >
-              <div className="p-6">
-                {/* 应用头部 */}
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="relative">
-                      {getAppIcon(app)}
-                      <Sparkles className="h-8 w-8 text-purple-600 hidden" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
-                        {app.name}
-                      </h3>
-                      <span className="text-sm text-gray-500">
-                        应用
-                      </span>
-                    </div>
-                  </div>
-                  <div className="relative">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        toggleMenu(app.id)
-                      }}
-                    >
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                    
-                    {/* 下拉菜单 */}
-                    {activeMenuId === app.id && (
-                      <div className="absolute top-8 right-0 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-32">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 px-3 py-2 text-sm"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            handleDeleteApp(app.id)
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          删除
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* 应用描述 */}
-                <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                  {app.description}
-                </p>
-
-                {/* 应用状态和时间 */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div
-                      className={`w-2 h-2 rounded-full ${
-                        app.status === '1' ? 'bg-green-500' : 'bg-gray-400'
-                      }`}
-                    />
-                    <span className="text-xs text-gray-500">
-                      {app.status === '1' ? '已启用' : '未启用'}
-                    </span>
-                  </div>
-                  <span className="text-xs text-gray-400">
-                    {formatDateTime(app.update_date)}
-                  </span>
-                </div>
-              </div>
-
-              {/* 悬停效果 */}
-              <div className="h-1 bg-gradient-to-r from-blue-500 to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity rounded-b-xl" />
-            </div>
-          ))
-        ) : (
-          // 空状态
-          <div className="col-span-full flex flex-col items-center justify-center py-16 text-center">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-              <Briefcase className="h-8 w-8 text-gray-400" />
-            </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">还没有应用</h3>
-            <p className="text-gray-600 mb-6 max-w-md">
-              开始创建您的第一个AI应用，让AI为您的业务赋能
-            </p>
+        <div className="flex items-center space-x-3">
+          {selectedIds.length > 0 && (
             <Button
-              onClick={() => setShowCreateModal(true)}
-              className="px-6 py-2 rounded-lg flex items-center gap-2"
-          variant="default"
+              variant="destructive"
+              size="sm"
+              onClick={handleBulkDelete}
             >
-              <Plus className="h-5 w-5" />
-              创建第一个应用
+              <Trash2 className="h-4 w-4 mr-2" />
+              删除 ({selectedIds.length})
             </Button>
-          </div>
-        )}
+          )}
+          <Button onClick={openProjectTypeModal}>
+            <Plus className="h-4 w-4 mr-2" />
+            {STUDIO_TEXTS.createProject}
+          </Button>
+        </div>
       </div>
 
-      {/* 创建项目弹窗 */}
+      {/* 统计卡片 - 与记忆库/知识库页面保持一致的布局 */}
+      <div className="mb-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <MemoryStatsCard
+            title={STUDIO_TEXTS.stats.totalApps}
+            value={stats.total}
+            icon={Sparkles}
+            color="info"
+          />
+          <MemoryStatsCard
+            title={STUDIO_TEXTS.stats.published}
+            value={stats.published}
+            icon={CheckCircle}
+            color="success"
+          />
+          <MemoryStatsCard
+            title={STUDIO_TEXTS.stats.draft}
+            value={stats.draft}
+            icon={FileEdit}
+            color="warning"
+          />
+          <MemoryStatsCard
+            title={STUDIO_TEXTS.stats.recentUpdated}
+            value={stats.recentUpdated}
+            icon={Clock}
+            color="info"
+          />
+        </div>
+      </div>
+
+      {/* 搜索和筛选工具栏 */}
+      <div className="flex items-center space-x-4 mb-4">
+        {/* 左侧：搜索框 */}
+        <div className="flex-1 max-w-md">
+          <Input
+            type="search"
+            placeholder={STUDIO_TEXTS.searchPlaceholder}
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            leftIcon={<Search className="h-4 w-4" />}
+          />
+        </div>
+
+        {/* 右侧：筛选 + 时间格式 + 视图切换 */}
+        <div className="flex items-center space-x-2">
+          {/* 筛选按钮 */}
+          <FilterPopover
+            filters={filterConfigs}
+            value={filterValue}
+            onChange={handleFilterChange}
+          />
+
+          {/* 时间格式选择器 */}
+          <CustomSelect
+            options={[
+              { value: 'detailed', label: STUDIO_TEXTS.timeFormatDetailed },
+              { value: 'compact', label: STUDIO_TEXTS.timeFormatCompact },
+              { value: 'relative', label: STUDIO_TEXTS.timeFormatRelative },
+            ]}
+            value={timeFormat}
+            onChange={(value) => setTimeFormat(value as 'detailed' | 'compact' | 'relative')}
+            size="sm"
+            className="min-w-[100px]"
+          />
+
+          {/* 视图切换 */}
+          <ViewToggle
+            value={viewMode}
+            onChange={setViewMode}
+            size="md"
+            options={[
+              { value: 'grid', icon: <Grid />, label: '网格视图' },
+              { value: 'list', icon: <List />, label: '列表视图' },
+            ]}
+          />
+        </div>
+      </div>
+
+      {/* 内容区域 */}
+      {showEmptyState ? (
+        <div className="flex-1 flex items-center justify-center">
+          <AppEmptyState type={emptyStateType} onAction={openProjectTypeModal} />
+        </div>
+      ) : (
+        <>
+          {/* 可滚动内容区域 - pt-1 pb-2 为悬停效果留出空间 */}
+          <div className="flex-1 overflow-y-auto pt-1 pb-2 -mx-1 px-1">
+            {viewMode === 'grid' ? (
+              /* 卡片网格视图 */
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                {isLoading
+                  ? // 加载骨架屏
+                    [...Array(6)].map((_, i) => (
+                      <div
+                        key={i}
+                        className="h-[180px] rounded-2xl bg-surface-secondary animate-pulse"
+                      />
+                    ))
+                  : paginatedApps.map((app) => (
+                      <AppCard
+                        key={app.id}
+                        data={app}
+                        onEdit={handleEdit}
+                        onDelete={handleDeleteClick}
+                        selected={selectedIds.includes(app.id)}
+                        onSelect={toggleSelect}
+                        timeFormat={timeFormat}
+                      />
+                    ))}
+              </div>
+            ) : (
+              /* 列表视图 */
+              <AppListView
+                data={paginatedApps}
+                selectedIds={selectedIds}
+                onSelect={toggleSelect}
+                onSelectAll={selectAll}
+                onEdit={handleEdit}
+                onDelete={handleDeleteClick}
+                isLoading={isLoading}
+                timeFormat={timeFormat}
+              />
+            )}
+          </div>
+
+          {/* 分页控件 - 固定在底部，参考记忆库/知识库页面 */}
+          {totalPages > 0 && (
+            <div
+              className="mt-4 rounded-lg border shadow-sm"
+              style={{
+                borderColor: 'var(--color-components-card-border)',
+                backgroundColor: 'var(--color-components-card-bg)',
+              }}
+            >
+              <div className="px-6 py-4 flex items-center justify-between">
+                <div
+                  className="text-sm"
+                  style={{ color: 'var(--color-components-pagination-text)' }}
+                >
+                  共 {total} 项
+                  {selectedIds.length > 0 && ` • 已选择 ${selectedIds.length} 个`}
+                </div>
+
+                <div className="flex items-center space-x-4">
+                  {/* 每页显示选择器 */}
+                  <PageSizeSelector
+                    pageSize={pageSize}
+                    onChange={(size) => setPageSize(size)}
+                    options={[6, 12, 24, 48]}
+                  />
+
+                  {/* 页码导航 */}
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPage(page - 1)}
+                      disabled={page === 1}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      上一页
+                    </Button>
+
+                    <div className="flex items-center space-x-1">
+                      {Array.from(
+                        { length: Math.max(1, Math.min(7, totalPages)) },
+                        (_, i) => {
+                          let pageNum = i + 1
+
+                          // Show first page, last page, current page and surrounding pages
+                          if (totalPages > 7) {
+                            if (page <= 4) {
+                              pageNum = i + 1
+                            } else if (page >= totalPages - 3) {
+                              pageNum = totalPages - 6 + i
+                            } else {
+                              pageNum = page - 3 + i
+                            }
+                          }
+
+                          return (
+                            <Button
+                              key={pageNum}
+                              variant={page === pageNum ? 'default' : 'outline'}
+                              size="sm"
+                              onClick={() => setPage(pageNum)}
+                              className="min-w-[40px]"
+                            >
+                              {pageNum}
+                            </Button>
+                          )
+                        }
+                      )}
+                    </div>
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPage(page + 1)}
+                      disabled={page === totalPages || totalPages === 0}
+                    >
+                      下一页
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* 创建项目类型选择弹窗 */}
       <CreateProjectModal
-        isOpen={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
+        isOpen={projectTypeModalOpen}
+        onClose={closeProjectTypeModal}
         onCreateProject={handleCreateProject}
       />
 
       {/* 创建应用弹窗 */}
       <CreateAppModal
-        isOpen={showCreateAppModal}
-        onClose={() => setShowCreateAppModal(false)}
+        isOpen={createAppModalOpen}
+        onClose={closeCreateAppModal}
         onCreate={handleCreateApp}
       />
+
+      {/* 删除确认弹窗 */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{STUDIO_TEXTS.deleteApp}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {STUDIO_TEXTS.deleteAppConfirm}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{STUDIO_TEXTS.common.cancel}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              className="bg-state-error hover:bg-state-error/90"
+            >
+              {STUDIO_TEXTS.common.delete}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

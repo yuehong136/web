@@ -282,6 +282,13 @@ export const lightTokens: DesignTokens = {
   'components-pre-text': '#24292e',
   'components-pre-border': '#e1e4e8',
   
+  // ===== 工具调用组件 =====
+  'components-tool-call-bg': '#eff6ff',           // 蓝色淡背景
+  'components-tool-call-border': '#bfdbfe',       // 蓝色边框
+  'components-tool-call-title': '#1e40af',        // 蓝色标题文字
+  'components-tool-call-content-bg': '#1e293b',   // 深色内容区背景
+  'components-tool-call-content-text': '#e2e8f0', // 浅色内容文字
+  
   // ===== 新增组件令牌（使用基础颜色映射） =====
   // 徽章和标签
   'components-badge-bg': '#f5f5f5',
@@ -969,6 +976,13 @@ export const darkTokens: DesignTokens = {
   'components-pre-text': '#e6edf3',
   'components-pre-border': '#30363d',
   
+  // ===== 工具调用组件 =====
+  'components-tool-call-bg': 'rgba(59, 130, 246, 0.1)',  // 蓝色半透明背景
+  'components-tool-call-border': 'rgba(59, 130, 246, 0.3)', // 蓝色半透明边框
+  'components-tool-call-title': '#93c5fd',               // 浅蓝色标题文字
+  'components-tool-call-content-bg': '#0f172a',          // 深色内容区背景
+  'components-tool-call-content-text': '#e2e8f0',        // 浅色内容文字
+  
   // ===== 新增组件令牌的暗色版本 =====
   // 徽章和标签
   'components-badge-bg': 'rgba(255, 255, 255, 0.1)',
@@ -1384,7 +1398,8 @@ export const darkTokens: DesignTokens = {
  * 生成主题 CSS 文件内容
  */
 export function generateThemeCSS(tokens: DesignTokens, themeName: 'light' | 'dark'): string {
-  const selector = themeName === 'light' ? 'html[data-theme="light"], :root' : 'html[data-theme="dark"]'
+  // 使用纯净的选择器，与 Dify 一致，避免 :root 造成的优先级污染
+  const selector = `html[data-theme="${themeName}"]`
   
   let css = `/**\n * ${themeName === 'light' ? '亮色' : '暗色'}主题 CSS 变量定义\n * 基于 Dify 项目的设计令牌系统\n * \n * ⚠️ 注意: 此文件由代码自动生成，请勿手动修改!\n * 如需修改主题，请编辑 theme-generator.ts 文件\n */\n\n${selector} {\n  /* ===== Tailwind 通道变量 (用于 /alpha 透明度支持) ===== */\n  --twc-primary: ${themeName === 'light' ? '30 64 175' : '129 140 248'};\n  --twc-primary-foreground: 255 255 255;\n  --twc-foreground: ${themeName === 'light' ? '15 23 42' : '255 255 255'};\n  --twc-background: ${themeName === 'light' ? '255 255 255' : '18 18 18'};\n  --twc-ring: ${themeName === 'light' ? '59 130 246' : '129 140 248'};\n  --twc-border: ${themeName === 'light' ? '226 232 240' : '39 39 42'};\n\n`
   

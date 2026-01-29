@@ -18,7 +18,7 @@ import {
   BarChart3,
   ChevronDown,
   Grid3X3,
-  List,
+  List as ListIcon,
   SortAsc,
   SortDesc,
   Calendar,
@@ -44,6 +44,7 @@ import { QuickEditModal } from '@/components/knowledge/QuickEditModal'
 import { PageSizeSelector } from '@/components/ui/page-size-selector'
 import { CustomSelect } from '@/components/ui/custom-select'
 import { Checkbox } from '@/components/ui/checkbox'
+import { ViewToggle } from '@/components/ui/view-toggle'
 import { useKnowledgeStore } from '@/stores/knowledge'
 import { useUIStore } from '@/stores/ui'
 import { cn, formatTimestamp, formatTimestampDetailed, formatTimestampCompact, formatRelativeTime, formatBytes } from '@/lib/utils'
@@ -1099,27 +1100,15 @@ export const KnowledgeListPage: React.FC = () => {
               className="min-w-[100px]"
             />
             
-            <div 
-              className="flex items-center rounded-lg overflow-hidden h-9"
-              style={{ border: '1px solid var(--color-border-default)' }}
-            >
-              <Button
-                variant={viewMode === 'grid' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setViewMode('grid')}
-                className="rounded-none h-full"
-              >
-                <Grid3X3 className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={viewMode === 'table' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setViewMode('table')}
-                className="rounded-none h-full"
-              >
-                <List className="h-4 w-4" />
-              </Button>
-            </div>
+            <ViewToggle
+              value={viewMode}
+              onChange={setViewMode}
+              size="md"
+              options={[
+                { value: 'grid', icon: <Grid3X3 />, label: '网格视图' },
+                { value: 'table', icon: <ListIcon />, label: '表格视图' },
+              ]}
+            />
           </div>
         </div>
 

@@ -1,6 +1,11 @@
+/**
+ * 创建应用弹窗
+ * 使用设计令牌重写
+ */
+
 import React, { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Sparkles, Upload, ImagePlus, Trash2, Loader2 } from 'lucide-react'
+import { Sparkles, ImagePlus, Trash2, Loader2 } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -16,6 +21,7 @@ import { Label } from '@/components/ui/label'
 import { toast } from '@/lib/toast'
 import { useSetDialogApp } from '@/hooks/use-dialog-apps'
 import { ROUTES } from '@/constants'
+import { STUDIO_TEXTS } from '@/constants/studio-texts'
 import { cn } from '@/lib/utils'
 
 interface CreateAppModalProps {
@@ -35,7 +41,7 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({
     description: '',
     icon: '',
   })
-  
+
   const [nameError, setNameError] = useState<string | null>(null)
   const setDialogAppMutation = useSetDialogApp()
 
@@ -65,15 +71,15 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({
 
   const validateName = useCallback((name: string): string | null => {
     if (name.trim() === '') {
-      return '应用名称不能为空'
+      return STUDIO_TEXTS.createAppModal.nameRequired
     }
-    
+
     // 检查UTF-8字节长度是否超过255
     const byteLength = new TextEncoder().encode(name).length
     if (byteLength > 255) {
-      return `应用名称过长（${byteLength}字节），请不要超过255字节`
+      return STUDIO_TEXTS.createAppModal.nameMaxLength
     }
-    
+
     return null
   }, [])
 
@@ -84,12 +90,12 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({
       toast.error(error)
       return
     }
-    
+
     if (!formData.description.trim()) {
       toast.error('请输入应用描述')
       return
     }
-    
+
     // 使用新的API创建应用
     setDialogAppMutation.mutate({
       name: formData.name,
@@ -106,7 +112,7 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({
           ...(formData.icon && { icon: formData.icon })
         })
         navigate(`${ROUTES.STUDIO_CREATE_APP}?${searchParams.toString()}`)
-        
+
         // 如果有回调函数，也调用它（兼容性）
         onCreate?.(formData)
       }
@@ -135,12 +141,19 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({
       <DialogContent size="md">
         <DialogHeader>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center">
+            <div
+              className={cn(
+                'w-10 h-10 rounded-xl flex items-center justify-center',
+                'bg-gradient-to-br from-components-avatar-gradient-purple-from to-components-avatar-gradient-blue-to'
+              )}
+            >
               <Sparkles className="h-5 w-5 text-white" />
             </div>
             <div className="flex-1 min-w-0">
-              <DialogTitle>创建新应用</DialogTitle>
-              <DialogDescription>
+              <DialogTitle className="text-text-primary">
+                {STUDIO_TEXTS.createAppModal.title}
+              </DialogTitle>
+              <DialogDescription className="text-text-secondary">
                 创建一个新的对话应用，配置模型参数和提示词
               </DialogDescription>
             </div>
@@ -150,15 +163,17 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({
         <div className="px-6 py-4 space-y-6 overflow-y-auto max-h-[calc(80vh-200px)]">
           {/* 应用图标 */}
           <div className="space-y-3">
-            <Label className="text-sm font-medium text-[var(--color-text-primary)]">
-              应用图标
+            <Label className="text-sm font-medium text-text-primary">
+              {STUDIO_TEXTS.createAppModal.iconLabel}
             </Label>
             <div className="flex items-center gap-4">
               <div
                 className={cn(
                   'w-16 h-16 rounded-xl flex items-center justify-center overflow-hidden',
-                  'border-2 border-dashed border-[var(--color-border-default)]',
-                  formData.icon ? 'bg-transparent border-solid' : 'bg-gradient-to-br from-purple-500 to-blue-500'
+                  'border-2 border-dashed border-border-default',
+                  formData.icon
+                    ? 'bg-transparent border-solid'
+                    : 'bg-gradient-to-br from-components-avatar-gradient-purple-from to-components-avatar-gradient-blue-to'
                 )}
               >
                 {formData.icon ? (
@@ -184,7 +199,7 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({
                     disabled={isLoading}
                   >
                     <ImagePlus className="h-4 w-4" />
-                    上传图标
+                    {STUDIO_TEXTS.createAppModal.iconUpload}
                   </Button>
                 </label>
                 {formData.icon && (
@@ -193,7 +208,7 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({
                     variant="ghost"
                     size="sm"
                     onClick={() => setFormData(prev => ({ ...prev, icon: '' }))}
-                    className="text-[var(--color-status-error)] hover:text-[var(--color-status-error)] hover:bg-[var(--color-status-error)]/10 gap-1.5"
+                    className="text-state-error hover:text-state-error hover:bg-state-error/10 gap-1.5"
                     disabled={isLoading}
                   >
                     <Trash2 className="h-4 w-4" />
@@ -202,55 +217,61 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({
                 )}
               </div>
             </div>
-            <p className="text-xs text-[var(--color-text-tertiary)]">
-              支持 JPG、PNG、SVG 格式，文件大小不超过 2MB
+            <p className="text-xs text-text-tertiary">
+              {STUDIO_TEXTS.createAppModal.iconTip}
             </p>
           </div>
-          
+
           {/* 应用名称 */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium text-[var(--color-text-primary)]">
-              应用名称 <span className="text-[var(--color-status-error)]">*</span>
+            <Label className="text-sm font-medium text-text-primary">
+              {STUDIO_TEXTS.createAppModal.nameLabel} <span className="text-state-error">*</span>
             </Label>
             <Input
               value={formData.name}
               onChange={(e) => handleNameChange(e.target.value)}
-              placeholder="输入应用名称"
+              placeholder={STUDIO_TEXTS.createAppModal.namePlaceholder}
               disabled={isLoading}
-              className={cn(nameError && 'border-[var(--color-status-error)]')}
+              className={cn(nameError && 'border-state-error')}
             />
             {nameError && (
-              <p className="text-xs text-[var(--color-status-error)]">{nameError}</p>
+              <p className="text-xs text-state-error">{nameError}</p>
             )}
-            <p className="text-xs text-[var(--color-text-tertiary)]">
+            <p className="text-xs text-text-tertiary">
               最多255字节（中文字符约85个字）
             </p>
           </div>
-          
+
           {/* 应用描述 */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label className="text-sm font-medium text-[var(--color-text-primary)]">
-                应用描述 <span className="text-[var(--color-status-error)]">*</span>
+              <Label className="text-sm font-medium text-text-primary">
+                {STUDIO_TEXTS.createAppModal.descriptionLabel} <span className="text-state-error">*</span>
               </Label>
-              <span className="text-xs text-[var(--color-text-tertiary)]">
+              <span className="text-xs text-text-tertiary">
                 {formData.description.length}/200
               </span>
             </div>
             <Textarea
               value={formData.description}
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value.slice(0, 200) }))}
-              placeholder="描述应用的功能和用途..."
+              placeholder={STUDIO_TEXTS.createAppModal.descriptionPlaceholder}
               rows={4}
               disabled={isLoading}
             />
           </div>
 
           {/* 提示信息 */}
-          <div className="flex items-start gap-2.5 p-3 bg-[var(--color-surface-accent)]/5 border border-[var(--color-surface-accent)]/15 rounded-lg">
-            <Sparkles className="h-4 w-4 text-[var(--color-surface-accent)] mt-0.5 shrink-0" />
-            <p className="text-xs text-[var(--color-text-secondary)] leading-relaxed">
-              <strong className="text-[var(--color-text-primary)]">提示：</strong>
+          <div
+            className="flex items-start gap-2.5 p-3 rounded-lg"
+            style={{
+              backgroundColor: 'var(--color-state-info-subtle)',
+              border: '1px solid var(--color-state-info-subtle)',
+            }}
+          >
+            <Sparkles className="h-4 w-4 mt-0.5 shrink-0" style={{ color: 'var(--color-state-info)' }} />
+            <p className="text-xs text-text-secondary leading-relaxed">
+              <strong className="text-text-primary">提示：</strong>
               创建应用后，您将进入应用配置页面，可以设置模型参数、提示词模板、对话记忆等高级功能。
             </p>
           </div>
@@ -258,11 +279,11 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({
 
         <DialogFooter>
           <Button variant="outline" onClick={handleClose} disabled={isLoading}>
-            取消
+            {STUDIO_TEXTS.common.cancel}
           </Button>
           <Button onClick={handleCreate} disabled={isLoading} className="gap-1.5">
             {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
-            {isLoading ? '创建中...' : '创建应用'}
+            {isLoading ? '创建中...' : STUDIO_TEXTS.createApp}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -18,14 +18,25 @@ export type Theme = typeof Theme[keyof typeof Theme]
 
 // 主题工具函数
 export const setTheme = (theme: Theme) => {
+  // 添加过渡控制标记，临时禁用过渡动画防止闪烁（借鉴 Dify）
+  document.documentElement.setAttribute('data-changing-theme', '')
+  
   if (theme === Theme.SYSTEM) {
-    // 移除手动设置的主题，让浏览器使用系统偏好
-    document.documentElement.removeAttribute('data-theme')
+    // 系统模式：检测系统偏好并设置对应主题
+    const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light')
     localStorage.removeItem('theme')
   } else {
     document.documentElement.setAttribute('data-theme', theme)
     localStorage.setItem('theme', theme)
   }
+  
+  // 下一帧移除标记，恢复过渡动画
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      document.documentElement.removeAttribute('data-changing-theme')
+    })
+  })
 }
 
 export const getTheme = (): Theme => {
