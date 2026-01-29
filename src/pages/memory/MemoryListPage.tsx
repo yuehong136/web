@@ -1,11 +1,12 @@
 /**
  * 记忆库列表页面
- * 优化版本：使用 ListFilterBar 组件
+ * 布局参考知识库管理页面，筛选组件保留 ListFilterBar 的 Popover 方式
  */
 
 import React from 'react'
-import { Plus, Grid, List, Database, MessageSquare, HardDrive, Zap } from 'lucide-react'
+import { Plus, Grid, List, Database, MessageSquare, HardDrive, Zap, Search, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,7 +17,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { ListFilterBar, type FilterConfig, type FilterValue } from '@/components/ui/list-filter-bar'
+import { FilterPopover, type FilterConfig, type FilterValue } from '@/components/ui/filter-popover'
+import { CustomSelect } from '@/components/ui/custom-select'
+import { PageSizeSelector } from '@/components/ui/page-size-selector'
 import {
   MemoryCard,
   MemoryListView,
@@ -43,6 +46,7 @@ export const MemoryListPage: React.FC = () => {
     page,
     setPage,
     pageSize,
+    setPageSize,
     viewMode,
     setViewMode,
     createModalOpen,
@@ -59,6 +63,9 @@ export const MemoryListPage: React.FC = () => {
   // 删除确认弹窗状态
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
   const [memoryToDelete, setMemoryToDelete] = React.useState<Memory | null>(null)
+  
+  // 时间格式
+  const [timeFormat, setTimeFormat] = React.useState<'detailed' | 'compact' | 'relative'>('detailed')
 
   // 更新筛选条件（搜索词变化时）
   React.useEffect(() => {
@@ -151,93 +158,125 @@ export const MemoryListPage: React.FC = () => {
   const emptyStateType = filter.keywords ? 'search' : 'list'
 
   return (
-    <div className="h-full flex flex-col bg-background-page">
-      {/* 页面头部 - 统计卡片 */}
-      <div className="flex-shrink-0 px-6 py-5 border-b border-border-default bg-surface-primary">
-        <div className="mb-4">
-          <p className="text-sm text-text-secondary">
+    <div className="h-full flex flex-col p-6">
+      {/* 页面头部 - 标题 + 创建按钮 */}
+      <div className="flex items-start justify-between mb-4">
+        <div>
+          <h1 className="text-xl font-semibold text-text-primary">
+            {MEMORY_TEXTS.memories.pageTitle}
+          </h1>
+          <p className="text-sm text-text-secondary mt-1">
             {MEMORY_TEXTS.memories.pageDescription}
           </p>
         </div>
+        <Button onClick={openCreateModal}>
+          <Plus className="h-4 w-4 mr-2" />
+          {MEMORY_TEXTS.memories.createMemory}
+        </Button>
+      </div>
 
-        {/* 统计卡片 */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {/* 统计卡片 - 与知识库页面保持一致的布局 */}
+      <div className="mb-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <MemoryStatsCard
             title={MEMORY_TEXTS.memories.totalMemories}
             value={stats.totalMemories}
             icon={Database}
-            gradient="blue"
+            color="info"
           />
           <MemoryStatsCard
             title={MEMORY_TEXTS.memories.totalMessages}
             value={stats.totalMessages}
             icon={MessageSquare}
-            gradient="green"
+            color="success"
           />
           <MemoryStatsCard
             title={MEMORY_TEXTS.memories.totalStorage}
             value={stats.totalStorage}
             icon={HardDrive}
-            gradient="purple"
+            color="info"
           />
           <MemoryStatsCard
             title={MEMORY_TEXTS.memories.activeMemories}
             value={stats.activeMemories}
             icon={Zap}
-            gradient="orange"
+            color="warning"
           />
         </div>
       </div>
 
-      {/* 筛选工具栏 */}
-      <div className="flex-shrink-0 px-6 py-3 border-b border-border-default bg-surface-primary">
-        <ListFilterBar
-          icon={<HardDrive className="h-5 w-5" />}
-          title={MEMORY_TEXTS.memories.pageTitle}
-          searchString={searchInput}
-          onSearchChange={(e) => setSearchInput(e.target.value)}
-          searchPlaceholder={MEMORY_TEXTS.memories.searchPlaceholder}
-          filters={filterConfigs}
-          filterValue={filterValue}
-          onFilterChange={handleFilterChange}
-        >
+      {/* 搜索和筛选工具栏 */}
+      <div className="flex items-center space-x-4 mb-4">
+        {/* 左侧：搜索框 */}
+        <div className="flex-1 max-w-md">
+          <Input
+            type="search"
+            placeholder={MEMORY_TEXTS.memories.searchPlaceholder}
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            leftIcon={<Search className="h-4 w-4" />}
+          />
+        </div>
+        
+        {/* 右侧：筛选 + 时间格式 + 视图切换 */}
+        <div className="flex items-center space-x-2">
+          {/* 筛选按钮 */}
+          <FilterPopover
+            filters={filterConfigs}
+            value={filterValue}
+            onChange={handleFilterChange}
+          />
+          
+          {/* 时间格式选择器 */}
+          <CustomSelect
+            options={[
+              { value: 'detailed', label: '详细时间' },
+              { value: 'compact', label: '简洁时间' },
+              { value: 'relative', label: '相对时间' }
+            ]}
+            value={timeFormat}
+            onChange={(value) => setTimeFormat(value as 'detailed' | 'compact' | 'relative')}
+            size="sm"
+            className="min-w-[100px]"
+          />
+          
           {/* 视图切换 */}
-          <div className="flex items-center rounded-lg border border-border-default p-1 bg-surface-secondary">
+          <div 
+            className="flex items-center rounded-lg overflow-hidden h-9"
+            style={{ border: '1px solid var(--color-border-default)' }}
+          >
             <Button
-              variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
-              size="icon-sm"
+              variant={viewMode === 'grid' ? 'default' : 'ghost'}
+              size="sm"
               onClick={() => setViewMode('grid')}
-              className="h-7 w-7"
+              className="rounded-none h-full"
             >
               <Grid className="h-4 w-4" />
             </Button>
             <Button
-              variant={viewMode === 'list' ? 'secondary' : 'ghost'}
-              size="icon-sm"
+              variant={viewMode === 'list' ? 'default' : 'ghost'}
+              size="sm"
               onClick={() => setViewMode('list')}
-              className="h-7 w-7"
+              className="rounded-none h-full"
             >
               <List className="h-4 w-4" />
             </Button>
           </div>
-          
-          {/* 创建按钮 */}
-          <Button onClick={openCreateModal} className="gap-2 h-9">
-            <Plus className="h-4 w-4" />
-            {MEMORY_TEXTS.memories.createMemory}
-          </Button>
-        </ListFilterBar>
+        </div>
       </div>
 
       {/* 内容区域 */}
-      <div className="flex-1 overflow-auto p-6">
-        {showEmptyState ? (
+      {showEmptyState ? (
+        <div className="flex-1 flex items-center justify-center">
           <MemoryEmptyState type={emptyStateType} onAction={openCreateModal} />
-        ) : (
-          <>
+        </div>
+      ) : (
+        <>
+          {/* 可滚动内容区域 - pt-1 pb-2 为悬停效果留出空间 */}
+          <div className="flex-1 overflow-y-auto pt-1 pb-2 -mx-1 px-1">
             {viewMode === 'grid' ? (
               /* 卡片网格视图 */
-              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 {isLoading
                   ? // 加载骨架屏
                     [...Array(8)].map((_, i) => (
@@ -252,6 +291,7 @@ export const MemoryListPage: React.FC = () => {
                         data={memory}
                         onEdit={handleEdit}
                         onDelete={handleDeleteClick}
+                        timeFormat={timeFormat}
                       />
                     ))}
               </div>
@@ -263,42 +303,91 @@ export const MemoryListPage: React.FC = () => {
                   onEdit={handleEdit}
                   onDelete={handleDeleteClick}
                   isLoading={isLoading}
+                  timeFormat={timeFormat}
                 />
               </div>
             )}
+          </div>
 
-            {/* 分页 */}
-            {total > pageSize && (
-              <div className="flex items-center justify-between mt-6 px-2">
-                <span className="text-sm text-text-tertiary">
-                  共 {total} 条记录
-                </span>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={page <= 1}
-                    onClick={() => setPage(page - 1)}
-                  >
-                    上一页
-                  </Button>
-                  <span className="text-sm text-text-secondary px-2">
-                    {page} / {Math.ceil(total / pageSize)}
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={page >= Math.ceil(total / pageSize)}
-                    onClick={() => setPage(page + 1)}
-                  >
-                    下一页
-                  </Button>
+          {/* 分页控件 - 固定在底部，参考知识库页面 */}
+          {(() => {
+            const totalPages = Math.ceil(total / pageSize)
+            return totalPages > 0 ? (
+              <div className="mt-4 rounded-lg border shadow-sm" style={{
+                borderColor: 'var(--color-components-card-border)',
+                backgroundColor: 'var(--color-components-card-bg)'
+              }}>
+                <div className="px-6 py-4 flex items-center justify-between">
+                  <div className="text-sm" style={{ color: 'var(--color-components-pagination-text)' }}>
+                    共 {total} 项
+                  </div>
+                  
+                  <div className="flex items-center space-x-4">
+                    {/* 每页显示选择器 */}
+                    <PageSizeSelector
+                      pageSize={pageSize}
+                      onChange={(size) => setPageSize(size)}
+                      options={[6, 12, 24, 48]}
+                    />
+                    
+                    {/* 页码导航 */}
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPage(page - 1)}
+                        disabled={page === 1}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                        上一页
+                      </Button>
+                      
+                      <div className="flex items-center space-x-1">
+                        {Array.from({ length: Math.max(1, Math.min(7, totalPages)) }, (_, i) => {
+                          let pageNum = i + 1
+                          
+                          // Show first page, last page, current page and surrounding pages
+                          if (totalPages > 7) {
+                            if (page <= 4) {
+                              pageNum = i + 1
+                            } else if (page >= totalPages - 3) {
+                              pageNum = totalPages - 6 + i
+                            } else {
+                              pageNum = page - 3 + i
+                            }
+                          }
+                          
+                          return (
+                            <Button
+                              key={pageNum}
+                              variant={page === pageNum ? 'default' : 'outline'}
+                              size="sm"
+                              onClick={() => setPage(pageNum)}
+                              className="min-w-[40px]"
+                            >
+                              {pageNum}
+                            </Button>
+                          )
+                        })}
+                      </div>
+                      
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPage(page + 1)}
+                        disabled={page === totalPages || totalPages === 0}
+                      >
+                        下一页
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               </div>
-            )}
-          </>
-        )}
-      </div>
+            ) : null
+          })()}
+        </>
+      )}
 
       {/* 创建/编辑弹窗 */}
       <CreateMemoryDialog
@@ -325,7 +414,7 @@ export const MemoryListPage: React.FC = () => {
             <AlertDialogCancel>{MEMORY_TEXTS.common.cancel}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmDelete}
-              className="bg-red-500 hover:bg-red-600"
+              className="bg-state-error hover:bg-state-error/90"
             >
               {MEMORY_TEXTS.common.delete}
             </AlertDialogAction>

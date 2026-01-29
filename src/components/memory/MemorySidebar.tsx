@@ -37,15 +37,15 @@ export const MemorySidebar: React.FC<MemorySidebarProps> = ({
     },
   ]
 
-  // 生成头像背景渐变
+  // 生成头像背景渐变 - 使用语义令牌
   const avatarGradient = React.useMemo(() => {
-    if (!memory?.name) return 'from-purple-500 to-pink-500'
+    if (!memory?.name) return 'from-components-avatar-gradient-purple-from to-components-avatar-gradient-purple-to'
     const gradients = [
-      'from-purple-500 to-pink-500',
-      'from-blue-500 to-cyan-500',
-      'from-green-500 to-teal-500',
-      'from-orange-500 to-red-500',
-      'from-indigo-500 to-purple-500',
+      'from-components-avatar-gradient-purple-from to-components-avatar-gradient-purple-to',
+      'from-components-avatar-gradient-blue-from to-components-avatar-gradient-blue-to',
+      'from-components-avatar-gradient-green-from to-components-avatar-gradient-green-to',
+      'from-components-avatar-gradient-orange-from to-components-avatar-gradient-orange-to',
+      'from-components-avatar-gradient-indigo-from to-components-avatar-gradient-indigo-to',
     ]
     const index = memory.name.charCodeAt(0) % gradients.length
     return gradients[index]

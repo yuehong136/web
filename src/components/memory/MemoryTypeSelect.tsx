@@ -63,12 +63,12 @@ const memoryTypeOptions: Array<{
   },
 ]
 
-// 记忆类型颜色映射
+// 记忆类型颜色映射 - 使用语义令牌
 const memoryTypeColors: Record<MemoryTypeValue, string> = {
-  raw: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
-  semantic: 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300',
-  episodic: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
-  procedural: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300',
+  raw: 'bg-components-badge-blue-bg text-components-badge-blue-text',
+  semantic: 'bg-components-badge-purple-bg text-components-badge-purple-text',
+  episodic: 'bg-components-badge-green-bg text-components-badge-green-text',
+  procedural: 'bg-components-badge-orange-bg text-components-badge-orange-text',
 }
 
 export const MemoryTypeSelect: React.FC<MemoryTypeSelectProps> = ({
@@ -247,7 +247,7 @@ export const MemoryTypeSelect: React.FC<MemoryTypeSelectProps> = ({
                       )}
                     >
                       {isSelected && (
-                        <Check className="h-3.5 w-3.5 text-white" />
+                        <Check className="w-icon-xs h-icon-xs text-white" />
                       )}
                     </div>
                     <div className="flex-1 space-y-1">

@@ -1,5 +1,6 @@
 /**
  * 记忆库统计卡片组件
+ * 风格与知识库管理页面保持一致
  */
 
 import React from 'react'
@@ -16,22 +17,29 @@ interface MemoryStatsCardProps {
     value: number
     isUp: boolean
   }
-  gradient?: 'blue' | 'green' | 'purple' | 'orange'
+  /** 颜色主题，对应不同的状态色 */
+  color?: 'info' | 'success' | 'warning' | 'purple'
   className?: string
 }
 
-const gradientClasses = {
-  blue: 'from-blue-500/10 to-cyan-500/10 dark:from-blue-500/20 dark:to-cyan-500/20',
-  green: 'from-green-500/10 to-teal-500/10 dark:from-green-500/20 dark:to-teal-500/20',
-  purple: 'from-purple-500/10 to-pink-500/10 dark:from-purple-500/20 dark:to-pink-500/20',
-  orange: 'from-orange-500/10 to-red-500/10 dark:from-orange-500/20 dark:to-red-500/20',
-}
-
-const iconBgClasses = {
-  blue: 'bg-blue-100 text-blue-600 dark:bg-blue-900/50 dark:text-blue-400',
-  green: 'bg-green-100 text-green-600 dark:bg-green-900/50 dark:text-green-400',
-  purple: 'bg-purple-100 text-purple-600 dark:bg-purple-900/50 dark:text-purple-400',
-  orange: 'bg-orange-100 text-orange-600 dark:bg-orange-900/50 dark:text-orange-400',
+// 图标背景色映射 - 与知识库页面一致的风格
+const iconStyles = {
+  info: {
+    bg: 'var(--color-state-info-subtle)',
+    text: 'var(--color-state-info)',
+  },
+  success: {
+    bg: 'var(--color-state-success-subtle)',
+    text: 'var(--color-state-success)',
+  },
+  warning: {
+    bg: 'var(--color-state-warning-subtle)',
+    text: 'var(--color-state-warning)',
+  },
+  purple: {
+    bg: 'var(--color-state-info-subtle)',
+    text: 'var(--color-state-info)',
+  },
 }
 
 export const MemoryStatsCard: React.FC<MemoryStatsCardProps> = ({
@@ -39,31 +47,25 @@ export const MemoryStatsCard: React.FC<MemoryStatsCardProps> = ({
   value,
   icon: Icon,
   trend,
-  gradient = 'blue',
+  color = 'info',
   className,
 }) => {
+  const style = iconStyles[color]
+
   return (
-    <Card
-      className={cn(
-        'p-4 bg-gradient-to-br border-border-default',
-        gradientClasses[gradient],
-        className
-      )}
-    >
-      <div className="flex items-center gap-3">
+    <Card className={cn('p-4', className)}>
+      <div className="flex items-center">
         <div
-          className={cn(
-            'p-2.5 rounded-xl',
-            iconBgClasses[gradient]
-          )}
+          className="p-2 rounded-lg"
+          style={{ backgroundColor: style.bg }}
         >
-          <Icon className="h-5 w-5" />
+          <Icon className="h-5 w-5" style={{ color: style.text }} />
         </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-text-secondary truncate">
+        <div className="ml-3">
+          <p className="text-sm font-medium text-text-secondary">
             {title}
           </p>
-          <div className="flex items-baseline gap-2">
+          <div className="flex items-baseline gap-space-sm">
             <p className="text-2xl font-bold text-text-primary">
               {typeof value === 'number' ? value.toLocaleString() : value}
             </p>
@@ -71,13 +73,13 @@ export const MemoryStatsCard: React.FC<MemoryStatsCardProps> = ({
               <span
                 className={cn(
                   'flex items-center text-xs font-medium',
-                  trend.isUp ? 'text-green-600' : 'text-red-600'
+                  trend.isUp ? 'text-text-success' : 'text-text-error'
                 )}
               >
                 {trend.isUp ? (
-                  <TrendingUp className="h-3 w-3 mr-0.5" />
+                  <TrendingUp className="w-icon-xs h-icon-xs mr-0.5" />
                 ) : (
-                  <TrendingDown className="h-3 w-3 mr-0.5" />
+                  <TrendingDown className="w-icon-xs h-icon-xs mr-0.5" />
                 )}
                 {trend.value}%
               </span>

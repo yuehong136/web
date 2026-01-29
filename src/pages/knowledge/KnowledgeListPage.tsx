@@ -59,6 +59,124 @@ interface FilterState {
   time_range: string
 }
 
+// 知识库卡片组件 - 参考 MCP 服务器卡片的悬停交互效果
+interface KnowledgeCardProps {
+  kb: KnowledgeBase
+  selected: boolean
+  onSelect: (checked: boolean) => void
+  onClick: () => void
+  onSettings: () => void
+  onDelete: () => void
+  formatTime: (timestamp: number) => string
+  getStatusColor: (kb: KnowledgeBase) => string
+  getStatusText: (kb: KnowledgeBase) => string
+}
+
+const KnowledgeCard: React.FC<KnowledgeCardProps> = ({
+  kb,
+  selected,
+  onSelect,
+  onClick,
+  onSettings,
+  onDelete,
+  formatTime,
+  getStatusColor,
+  getStatusText,
+}) => {
+  const [isHovered, setIsHovered] = React.useState(false)
+
+  return (
+    <div
+      className={cn(
+        'group relative rounded-2xl border transition-all duration-300 cursor-pointer',
+        'hover:shadow-lg hover:shadow-black/5 hover:-translate-y-0.5',
+        isHovered && 'ring-2 ring-blue-500/20',
+        selected && 'ring-2 ring-text-accent'
+      )}
+      style={{
+        backgroundColor: 'var(--color-components-card-bg)',
+        borderColor: isHovered ? 'var(--color-state-focus)' : 'var(--color-components-card-border)',
+      }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onClick={onClick}
+    >
+      <div className="p-5">
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-center gap-3 flex-1">
+            <Checkbox
+              checked={selected}
+              onCheckedChange={onSelect}
+              onClick={(e) => e.stopPropagation()}
+            />
+            <Avatar className="h-10 w-10">
+              <AvatarImage src={kb.avatar || undefined} alt={kb.name} />
+              <AvatarFallback><Database className="h-5 w-5" /></AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold truncate" style={{ color: 'var(--color-text-primary)' }}>
+                {kb.name}
+              </h3>
+              <span className={cn(
+                "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium",
+                getStatusColor(kb)
+              )}>
+                {getStatusText(kb)}
+              </span>
+            </div>
+          </div>
+          <div onClick={(e) => e.stopPropagation()}>
+            <Dropdown
+              trigger={
+                <Button variant="ghost" size="icon-sm">
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              }
+            >
+              <DropdownItem
+                icon={<Settings className="h-4 w-4" />}
+                onClick={onSettings}
+              >
+                设置
+              </DropdownItem>
+              <DropdownItem
+                icon={<Trash2 className="h-4 w-4" />}
+                onClick={onDelete}
+                danger
+              >
+                删除
+              </DropdownItem>
+            </Dropdown>
+          </div>
+        </div>
+
+        <p className="text-sm mb-4 line-clamp-2" style={{ color: 'var(--color-text-secondary)' }}>
+          {kb.description || '暂无描述'}
+        </p>
+
+        <div className="grid grid-cols-2 gap-3 text-sm" style={{ color: 'var(--color-text-tertiary)' }}>
+          <div className="flex items-center">
+            <FileText className="h-4 w-4 mr-1.5" />
+            {kb.doc_num || 0} 文档
+          </div>
+          <div className="flex items-center">
+            <Layers className="h-4 w-4 mr-1.5" />
+            {kb.chunk_num || 0} 块
+          </div>
+          <div className="flex items-center">
+            <Target className="h-4 w-4 mr-1.5" />
+            {(kb.token_num || 0).toLocaleString()} Token
+          </div>
+          <div className="flex items-center">
+            <Clock className="h-4 w-4 mr-1.5" />
+            {formatTime(kb.update_time)}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export const KnowledgeListPage: React.FC = () => {
   const navigate = useNavigate()
   const { 
@@ -673,92 +791,26 @@ export const KnowledgeListPage: React.FC = () => {
   )
 
   const renderGridView = () => (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
       {filteredKnowledgeBases.map((kb) => (
-        <Card 
-          key={kb.id} 
-          className="hover:shadow-md transition-shadow cursor-pointer"
+        <KnowledgeCard
+          key={kb.id}
+          kb={kb}
+          selected={selectedBases.includes(kb.id)}
+          onSelect={(checked) => {
+            if (checked) {
+              setSelectedBases([...selectedBases, kb.id])
+            } else {
+              setSelectedBases(selectedBases.filter(id => id !== kb.id))
+            }
+          }}
           onClick={() => handleView(kb.id)}
-        >
-          <div className="p-6">
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center gap-3 flex-1">
-                <Checkbox
-                  checked={selectedBases.includes(kb.id)}
-                  onCheckedChange={(checked) => {
-                    if (checked) {
-                      setSelectedBases([...selectedBases, kb.id])
-                    } else {
-                      setSelectedBases(selectedBases.filter(id => id !== kb.id))
-                    }
-                  }}
-                  onClick={(e) => e.stopPropagation()}
-                />
-                <Avatar className="h-10 w-10">
-                  <AvatarImage src={kb.avatar || undefined} alt={kb.name} />
-                  <AvatarFallback><Database className="h-5 w-5" /></AvatarFallback>
-                </Avatar>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold truncate" style={{ color: 'var(--color-text-primary)' }}>
-                    {kb.name}
-                  </h3>
-                  <span className={cn(
-                    "inline-flex items-center px-2 py-1 rounded-full text-xs font-medium",
-                    getStatusColor(kb)
-                  )}>
-                    {getStatusText(kb)}
-                  </span>
-                </div>
-              </div>
-              <div onClick={(e) => e.stopPropagation()}>
-                <Dropdown
-                  trigger={
-                    <Button variant="ghost" size="icon-sm">
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  }
-                >
-                  <DropdownItem
-                    icon={<Settings className="h-4 w-4" />}
-                    onClick={() => setEditingKnowledgeBase(kb)}
-                  >
-                    设置
-                  </DropdownItem>
-                  <DropdownItem
-                    icon={<Trash2 className="h-4 w-4" />}
-                    onClick={() => handleDelete(kb.id)}
-                    danger
-                  >
-                    删除
-                  </DropdownItem>
-                </Dropdown>
-              </div>
-            </div>
-
-            <p className="text-sm mb-4 line-clamp-2" style={{ color: 'var(--color-text-secondary)' }}>
-              {kb.description || '暂无描述'}
-            </p>
-
-            <div className="grid grid-cols-2 gap-4 text-sm" style={{ color: 'var(--color-text-tertiary)' }}>
-              <div className="flex items-center">
-                <FileText className="h-4 w-4 mr-1" />
-                {kb.doc_num || 0} 文档
-              </div>
-              <div className="flex items-center">
-                <Layers className="h-4 w-4 mr-1" />
-                {kb.chunk_num || 0} 块
-              </div>
-              <div className="flex items-center">
-                <Target className="h-4 w-4 mr-1" />
-                {(kb.token_num || 0).toLocaleString()} Token
-              </div>
-              <div className="flex items-center">
-                <Clock className="h-4 w-4 mr-1" />
-                {formatTime(kb.update_time)}
-              </div>
-            </div>
-          </div>
-        </Card>
+          onSettings={() => setEditingKnowledgeBase(kb)}
+          onDelete={() => handleDelete(kb.id)}
+          formatTime={formatTime}
+          getStatusColor={getStatusColor}
+          getStatusText={getStatusText}
+        />
       ))}
     </div>
   )
@@ -950,14 +1002,13 @@ export const KnowledgeListPage: React.FC = () => {
   return (
     <div className="h-full flex flex-col p-6">
       {/* 页面头部 */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-2xl font-bold text-text-primary">知识库管理</h1>
-            <p className="text-text-secondary mt-1">
-              管理您的知识库，上传文档，配置检索参数
-            </p>
-          </div>
+      <div className="flex items-start justify-between mb-4">
+        <div>
+          <h1 className="text-xl font-semibold text-text-primary">知识库管理</h1>
+          <p className="text-sm text-text-secondary mt-1">
+            管理您的知识库，上传文档，配置检索参数
+          </p>
+        </div>
           <div className="flex items-center space-x-3">
             {selectedBases.length > 0 && (
               <Button
@@ -974,13 +1025,15 @@ export const KnowledgeListPage: React.FC = () => {
               创建知识库
             </Button>
           </div>
-        </div>
+      </div>
 
-        {/* 统计卡片 */}
+      {/* 统计卡片 */}
+      <div className="mb-4">
         {renderStatsCards()}
+      </div>
 
-        {/* 搜索和筛选 */}
-        <div className="flex items-center space-x-4 mb-4">
+      {/* 搜索和筛选 */}
+      <div className="flex items-center space-x-4 mb-4">
           <div className="flex-1 max-w-md">
             <Input
               type="search"
@@ -995,6 +1048,7 @@ export const KnowledgeListPage: React.FC = () => {
             <Button 
               variant="outline" 
               size="sm"
+              className="h-9"
               onClick={() => setShowFilters(!showFilters)}
               style={
                 hasActiveFilters() 
@@ -1046,14 +1100,14 @@ export const KnowledgeListPage: React.FC = () => {
             />
             
             <div 
-              className="flex items-center rounded-lg overflow-hidden"
+              className="flex items-center rounded-lg overflow-hidden h-9"
               style={{ border: '1px solid var(--color-border-default)' }}
             >
               <Button
                 variant={viewMode === 'grid' ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => setViewMode('grid')}
-                className="rounded-none"
+                className="rounded-none h-full"
               >
                 <Grid3X3 className="h-4 w-4" />
               </Button>
@@ -1061,7 +1115,7 @@ export const KnowledgeListPage: React.FC = () => {
                 variant={viewMode === 'table' ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => setViewMode('table')}
-                className="rounded-none"
+                className="rounded-none h-full"
               >
                 <List className="h-4 w-4" />
               </Button>
@@ -1069,38 +1123,40 @@ export const KnowledgeListPage: React.FC = () => {
           </div>
         </div>
 
-        {/* 筛选面板 */}
-        {renderFilters()}
-      </div>
+      {/* 筛选面板 */}
+      {renderFilters()}
 
       {/* 内容区域 */}
       {isLoading ? (
-        <div className="flex items-center justify-center py-12">
+        <div className="flex-1 flex items-center justify-center">
           <Loading variant="spinner" size="lg" />
         </div>
       ) : filteredKnowledgeBases.length === 0 ? (
-        <div className="text-center py-12">
-          <Database className="h-12 w-12 mx-auto mb-4" style={{ color: 'var(--color-text-muted)' }} />
-          <h3 className="text-lg font-medium mb-2" style={{ color: 'var(--color-text-primary)' }}>
-            {searchQuery || showFilters ? '未找到匹配的知识库' : '还没有知识库'}
-          </h3>
-          <p className="mb-4" style={{ color: 'var(--color-text-tertiary)' }}>
-            {searchQuery || showFilters? '尝试调整搜索条件或筛选器' : '创建您的第一个知识库开始使用'}
-          </p>
-          {!searchQuery && !showFilters && (
-            <Button onClick={handleCreate}>
-              <Plus className="h-4 w-4 mr-2" />
-              创建知识库
-            </Button>
-          )}
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <Database className="h-12 w-12 mx-auto mb-4" style={{ color: 'var(--color-text-muted)' }} />
+            <h3 className="text-lg font-medium mb-2" style={{ color: 'var(--color-text-primary)' }}>
+              {searchQuery || showFilters ? '未找到匹配的知识库' : '还没有知识库'}
+            </h3>
+            <p className="mb-4" style={{ color: 'var(--color-text-tertiary)' }}>
+              {searchQuery || showFilters? '尝试调整搜索条件或筛选器' : '创建您的第一个知识库开始使用'}
+            </p>
+            {!searchQuery && !showFilters && (
+              <Button onClick={handleCreate}>
+                <Plus className="h-4 w-4 mr-2" />
+                创建知识库
+              </Button>
+            )}
+          </div>
         </div>
       ) : (
-        <div className="flex-1 flex flex-col min-h-0">
-          <div className="flex-1 overflow-y-auto scrollbar-thin">
+        <>
+          {/* 可滚动内容区域 - pt-1 pb-2 为悬停效果留出空间 */}
+          <div className="flex-1 overflow-y-auto pt-1 pb-2 -mx-1 px-1">
             {viewMode === 'grid' ? renderGridView() : renderTableView()}
           </div>
           
-          {/* 分页控件 - 与卡片风格统一 */}
+          {/* 分页控件 - 固定在底部 */}
           <div className="mt-4 rounded-lg border shadow-sm" style={{
             borderColor: 'var(--color-components-card-border)',
             backgroundColor: 'var(--color-components-card-bg)'
@@ -1172,7 +1228,7 @@ export const KnowledgeListPage: React.FC = () => {
               </div>
             </div>
           </div>
-        </div>
+        </>
       )}
       
       {/* Quick Edit Modal */}

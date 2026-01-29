@@ -58,12 +58,12 @@ interface MemoryMessageTableProps {
   onViewContent?: (message: MemoryMessage) => void
 }
 
-// 记忆类型颜色映射
+// 记忆类型颜色映射 - 使用语义令牌
 const memoryTypeColors: Record<MemoryType, string> = {
-  raw: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
-  semantic: 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300',
-  episodic: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
-  procedural: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300',
+  raw: 'bg-components-badge-blue-bg text-components-badge-blue-text',
+  semantic: 'bg-components-badge-purple-bg text-components-badge-purple-text',
+  episodic: 'bg-components-badge-green-bg text-components-badge-green-text',
+  procedural: 'bg-components-badge-orange-bg text-components-badge-orange-text',
 }
 
 // 记忆类型标签
@@ -134,9 +134,9 @@ export const MemoryMessageTable: React.FC<MemoryMessageTableProps> = ({
             className="transition-transform"
           >
             {row.getIsExpanded() ? (
-              <ChevronDown className="h-4 w-4" />
+              <ChevronDown className="w-icon-sm h-icon-sm" />
             ) : (
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="w-icon-sm h-icon-sm" />
             )}
           </Button>
         )
@@ -160,9 +160,9 @@ export const MemoryMessageTable: React.FC<MemoryMessageTableProps> = ({
               onClick={() => handleCopy(id, `session-${id}`)}
             >
               {copiedId === `session-${id}` ? (
-                <Check className="h-3 w-3 text-green-500" />
+                <Check className="w-icon-xs h-icon-xs text-text-success" />
               ) : (
-                <Copy className="h-3 w-3" />
+                <Copy className="w-icon-xs h-icon-xs" />
               )}
             </Button>
           </div>
@@ -228,16 +228,16 @@ export const MemoryMessageTable: React.FC<MemoryMessageTableProps> = ({
             onClick={() => handleViewContent(row.original)}
             title={MEMORY_TEXTS.messages.viewContent}
           >
-            <Eye className="h-4 w-4" />
+            <Eye className="w-icon-sm h-icon-sm" />
           </Button>
           <Button
             variant="ghost"
             size="icon-sm"
             onClick={() => handleOpenForgetDialog(row.original.id)}
-            className="text-red-500 hover:text-red-600 hover:bg-red-50"
+            className="text-text-error hover:text-text-error/80 hover:bg-state-error-subtle"
             title={MEMORY_TEXTS.messages.forget}
           >
-            <Trash2 className="h-4 w-4" />
+            <Trash2 className="w-icon-sm h-icon-sm" />
           </Button>
         </div>
       ),
@@ -398,7 +398,7 @@ export const MemoryMessageTable: React.FC<MemoryMessageTableProps> = ({
             <AlertDialogCancel>{MEMORY_TEXTS.common.cancel}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmForget}
-              className="bg-red-500 hover:bg-red-600"
+              className="bg-state-error hover:bg-state-error/90"
             >
               {MEMORY_TEXTS.messages.forget}
             </AlertDialogAction>

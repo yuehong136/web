@@ -43,6 +43,8 @@ interface ListFilterBarProps {
   onSearchChange?: ChangeEventHandler<HTMLInputElement>
   /** 搜索占位符 */
   searchPlaceholder?: string
+  /** 搜索框宽度类名 */
+  searchWidth?: string
   /** 是否显示筛选 */
   showFilter?: boolean
   /** 筛选器配置 */
@@ -65,6 +67,7 @@ export const ListFilterBar: React.FC<ListFilterBarProps> = ({
   searchString = '',
   onSearchChange,
   searchPlaceholder = '搜索...',
+  searchWidth = 'w-48',
   showFilter = true,
   filters = [],
   filterValue = {},
@@ -133,8 +136,8 @@ export const ListFilterBar: React.FC<ListFilterBarProps> = ({
             value={searchString}
             onChange={onSearchChange}
             placeholder={searchPlaceholder}
-            className="w-48 h-9"
-            leftIcon={<Search className="h-4 w-4" />}
+            className={cn(searchWidth, 'h-9')}
+            leftIcon={<Search className="w-icon-sm h-icon-sm" />}
           />
         )}
 

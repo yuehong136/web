@@ -119,7 +119,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   const getSizeClasses = () => {
     switch (size) {
       case 'sm':
-        return 'px-3 py-1.5 text-sm'
+        return 'h-9 px-3 text-sm'
       case 'lg':
         return 'px-5 py-4 text-lg'
       default:

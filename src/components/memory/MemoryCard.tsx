@@ -1,9 +1,10 @@
 /**
  * 记忆库卡片组件
  * 用于列表页展示单个记忆库
+ * 参考 MCP 服务器卡片的悬停效果实现
  */
 
-import React from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   MoreVertical,
@@ -13,14 +14,15 @@ import {
   Clock,
   Database,
 } from 'lucide-react'
-import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Dropdown, DropdownItem } from '@/components/ui/dropdown'
-import { cn, formatRelativeTime } from '@/lib/utils'
+import { cn, formatRelativeTime, formatTimestampDetailed, formatTimestampCompact } from '@/lib/utils'
 import { MEMORY_TEXTS } from '@/constants/memory-texts'
 import type { Memory, MemoryType } from '@/types/memory'
+
+export type TimeFormatType = 'detailed' | 'compact' | 'relative'
 
 interface MemoryCardProps {
   data: Memory
@@ -28,14 +30,15 @@ interface MemoryCardProps {
   onDelete?: (memory: Memory) => void
   selected?: boolean
   onSelect?: (id: string) => void
+  timeFormat?: TimeFormatType
 }
 
-// 记忆类型颜色映射
+// 记忆类型颜色映射 - 使用语义令牌
 const memoryTypeColors: Record<MemoryType, string> = {
-  raw: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
-  semantic: 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300',
-  episodic: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
-  procedural: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300',
+  raw: 'bg-components-badge-blue-bg text-components-badge-blue-text',
+  semantic: 'bg-components-badge-purple-bg text-components-badge-purple-text',
+  episodic: 'bg-components-badge-green-bg text-components-badge-green-text',
+  procedural: 'bg-components-badge-orange-bg text-components-badge-orange-text',
 }
 
 // 记忆类型标签
@@ -46,14 +49,31 @@ const memoryTypeLabels: Record<MemoryType, string> = {
   procedural: MEMORY_TEXTS.memories.procedural,
 }
 
+
+// 根据时间格式返回格式化后的时间
+const formatTime = (timestamp: number, format: TimeFormatType): string => {
+  switch (format) {
+    case 'detailed':
+      return formatTimestampDetailed(timestamp)
+    case 'compact':
+      return formatTimestampCompact(timestamp)
+    case 'relative':
+      return formatRelativeTime(timestamp)
+    default:
+      return formatTimestampDetailed(timestamp)
+  }
+}
+
 export const MemoryCard: React.FC<MemoryCardProps> = ({
   data,
   onEdit,
   onDelete,
   selected = false,
   onSelect,
+  timeFormat = 'detailed',
 }) => {
   const navigate = useNavigate()
+  const [isHovered, setIsHovered] = useState(false)
 
   const handleClick = () => {
     navigate(`/memory/${data.id}`)
@@ -74,37 +94,37 @@ export const MemoryCard: React.FC<MemoryCardProps> = ({
     onDelete?.(data)
   }
 
-  // 生成头像背景渐变
+  // 生成头像背景渐变 - 使用语义令牌
   const avatarGradient = React.useMemo(() => {
     const gradients = [
-      'from-purple-500 to-pink-500',
-      'from-blue-500 to-cyan-500',
-      'from-green-500 to-teal-500',
-      'from-orange-500 to-red-500',
-      'from-indigo-500 to-purple-500',
+      'from-components-avatar-gradient-purple-from to-components-avatar-gradient-purple-to',
+      'from-components-avatar-gradient-blue-from to-components-avatar-gradient-blue-to',
+      'from-components-avatar-gradient-green-from to-components-avatar-gradient-green-to',
+      'from-components-avatar-gradient-orange-from to-components-avatar-gradient-orange-to',
+      'from-components-avatar-gradient-indigo-from to-components-avatar-gradient-indigo-to',
     ]
     const index = data.name.charCodeAt(0) % gradients.length
     return gradients[index]
   }, [data.name])
 
   return (
-    <Card
+    <div
       className={cn(
-        'cursor-pointer transition-all duration-300 ease-out',
-        'hover:shadow-xl hover:-translate-y-1.5 hover:border-text-accent/30',
-        'border border-border-default bg-surface-primary',
-        'group relative overflow-hidden',
-        selected && 'ring-2 ring-text-accent border-text-accent'
+        'group relative rounded-2xl border transition-all duration-300 cursor-pointer',
+        'hover:shadow-lg hover:shadow-black/5 hover:-translate-y-0.5',
+        isHovered && 'ring-2 ring-blue-500/20',
+        selected && 'ring-2 ring-text-accent'
       )}
+      style={{
+        backgroundColor: 'var(--color-components-card-bg)',
+        borderColor: isHovered ? 'var(--color-state-focus)' : 'var(--color-components-card-border)',
+      }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       onClick={handleClick}
     >
-      {/* 渐变装饰条 */}
-      <div className={cn(
-        'absolute top-0 left-0 right-0 h-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300',
-        'bg-gradient-to-r',
-        avatarGradient
-      )} />
-      <CardContent className="p-4 pt-5">
+      {/* 卡片内容 */}
+      <div className="relative p-4 pt-5">
         {/* 头部：头像、名称、操作 */}
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -199,11 +219,11 @@ export const MemoryCard: React.FC<MemoryCardProps> = ({
           </div>
           <div className="flex items-center gap-1">
             <Clock className="h-3.5 w-3.5" />
-            <span>{formatRelativeTime(data.create_time)}</span>
+            <span>{formatTime(data.create_time, timeFormat)}</span>
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }
 

@@ -20,19 +20,24 @@ import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Dropdown, DropdownItem } from '@/components/ui/dropdown'
 import { Checkbox } from '@/components/ui/checkbox'
-import { cn } from '@/lib/utils'
+import { cn, formatRelativeTime, formatTimestampDetailed, formatTimestampCompact } from '@/lib/utils'
 import { MEMORY_TEXTS } from '@/constants/memory-texts'
 import type { Memory, MemoryType } from '@/types/memory'
 
-// 格式化时间为 年-月-日 时:分
-const formatDateTime = (timestamp: number) => {
-  const date = new Date(timestamp)
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  const hours = String(date.getHours()).padStart(2, '0')
-  const minutes = String(date.getMinutes()).padStart(2, '0')
-  return `${year}-${month}-${day} ${hours}:${minutes}`
+export type TimeFormatType = 'detailed' | 'compact' | 'relative'
+
+// 根据时间格式返回格式化后的时间
+const formatTime = (timestamp: number, format: TimeFormatType): string => {
+  switch (format) {
+    case 'detailed':
+      return formatTimestampDetailed(timestamp)
+    case 'compact':
+      return formatTimestampCompact(timestamp)
+    case 'relative':
+      return formatRelativeTime(timestamp)
+    default:
+      return formatTimestampDetailed(timestamp)
+  }
 }
 
 interface MemoryListViewProps {
@@ -43,14 +48,15 @@ interface MemoryListViewProps {
   onSelect?: (id: string) => void
   onSelectAll?: () => void
   isLoading?: boolean
+  timeFormat?: TimeFormatType
 }
 
-// 记忆类型颜色映射
+// 记忆类型颜色映射 - 使用语义令牌
 const memoryTypeColors: Record<MemoryType, string> = {
-  raw: 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300',
-  semantic: 'bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300',
-  episodic: 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300',
-  procedural: 'bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300',
+  raw: 'bg-components-badge-blue-bg text-components-badge-blue-text',
+  semantic: 'bg-components-badge-purple-bg text-components-badge-purple-text',
+  episodic: 'bg-components-badge-green-bg text-components-badge-green-text',
+  procedural: 'bg-components-badge-orange-bg text-components-badge-orange-text',
 }
 
 // 记忆类型标签
@@ -61,14 +67,14 @@ const memoryTypeLabels: Record<MemoryType, string> = {
   procedural: MEMORY_TEXTS.memories.procedural,
 }
 
-// 生成头像背景渐变
+// 生成头像背景渐变 - 使用语义令牌
 const getAvatarGradient = (name: string) => {
   const gradients = [
-    'from-purple-500 to-pink-500',
-    'from-blue-500 to-cyan-500',
-    'from-green-500 to-teal-500',
-    'from-orange-500 to-red-500',
-    'from-indigo-500 to-purple-500',
+    'from-components-avatar-gradient-purple-from to-components-avatar-gradient-purple-to',
+    'from-components-avatar-gradient-blue-from to-components-avatar-gradient-blue-to',
+    'from-components-avatar-gradient-green-from to-components-avatar-gradient-green-to',
+    'from-components-avatar-gradient-orange-from to-components-avatar-gradient-orange-to',
+    'from-components-avatar-gradient-indigo-from to-components-avatar-gradient-indigo-to',
   ]
   const index = name.charCodeAt(0) % gradients.length
   return gradients[index]
@@ -81,7 +87,8 @@ const MemoryListRow: React.FC<{
   onDelete?: (memory: Memory) => void
   selected?: boolean
   onSelect?: (id: string) => void
-}> = ({ data, onEdit, onDelete, selected, onSelect }) => {
+  timeFormat?: TimeFormatType
+}> = ({ data, onEdit, onDelete, selected, onSelect, timeFormat = 'detailed' }) => {
   const navigate = useNavigate()
   const avatarGradient = getAvatarGradient(data.name)
 
@@ -217,12 +224,12 @@ const MemoryListRow: React.FC<{
 
       {/* 创建时间列 */}
       <div className="text-sm text-text-tertiary">
-        {formatDateTime(data.create_time)}
+        {formatTime(data.create_time, timeFormat)}
       </div>
 
       {/* 更新时间列 */}
       <div className="text-sm text-text-tertiary">
-        {data.update_time ? formatDateTime(data.update_time) : '-'}
+        {data.update_time ? formatTime(data.update_time, timeFormat) : '-'}
       </div>
 
       {/* 操作列 */}
@@ -287,6 +294,7 @@ export const MemoryListView: React.FC<MemoryListViewProps> = ({
   onSelect,
   onSelectAll,
   isLoading = false,
+  timeFormat = 'detailed',
 }) => {
   const allSelected = data.length > 0 && selectedIds.length === data.length
 
@@ -337,6 +345,7 @@ export const MemoryListView: React.FC<MemoryListViewProps> = ({
               onDelete={onDelete}
               selected={selectedIds.includes(memory.id)}
               onSelect={onSelect}
+              timeFormat={timeFormat}
             />
           ))
         )}

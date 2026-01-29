@@ -54,35 +54,34 @@ export const MemoryEmptyState: React.FC<MemoryEmptyStateProps> = ({
       )}
     >
       {/* 图标 */}
-      <div className="mb-6 relative">
+      <div className="mb-space-lg relative">
         <div
           className={cn(
-            'w-20 h-20 rounded-2xl flex items-center justify-center',
-            'bg-gradient-to-br from-purple-500/10 to-pink-500/10',
-            'dark:from-purple-500/20 dark:to-pink-500/20'
+            'w-20 h-20 rounded-radius-xl flex items-center justify-center',
+            'bg-gradient-to-br from-components-avatar-gradient-purple-from/10 to-components-avatar-gradient-purple-to/10'
           )}
         >
-          <Icon className="h-10 w-10 text-purple-500" />
+          <Icon className="w-icon-2xl h-icon-2xl text-components-badge-purple-text" />
         </div>
         {/* 装饰点 */}
-        <div className="absolute -top-1 -right-1 w-3 h-3 bg-purple-400 rounded-full animate-pulse" />
-        <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-pink-400 rounded-full animate-pulse delay-150" />
+        <div className="absolute -top-1 -right-1 w-3 h-3 bg-components-avatar-gradient-purple-from rounded-full animate-pulse" />
+        <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-components-avatar-gradient-purple-to rounded-full animate-pulse delay-150" />
       </div>
 
       {/* 标题 */}
-      <h3 className="text-lg font-semibold text-text-primary mb-2">
+      <h3 className="text-lg font-semibold text-text-primary mb-space-sm">
         {config.title}
       </h3>
 
       {/* 描述 */}
-      <p className="text-sm text-text-secondary max-w-sm mb-6">
+      <p className="text-sm text-text-secondary max-w-sm mb-space-lg">
         {config.description}
       </p>
 
       {/* 操作按钮 */}
       {config.showAction && onAction && (
-        <Button onClick={onAction} className="gap-2">
-          <Plus className="h-4 w-4" />
+        <Button onClick={onAction} className="gap-space-sm">
+          <Plus className="w-icon-sm h-icon-sm" />
           {config.actionText}
         </Button>
       )}

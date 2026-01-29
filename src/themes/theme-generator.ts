@@ -301,6 +301,36 @@ export const lightTokens: DesignTokens = {
   'components-badge-blue-text': '#1d4ed8',
   'components-badge-orange-bg': '#ffedd5',
   'components-badge-orange-text': '#c2410c',
+  'components-badge-purple-bg': '#f3e8ff',
+  'components-badge-purple-text': '#7c3aed',
+  'components-badge-green-bg': '#dcfce7',
+  'components-badge-green-text': '#15803d',
+
+  // ===== 统计卡片组件 - 亮色主题 =====
+  'components-stats-card-blue-bg': 'linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(6, 182, 212, 0.1))',
+  'components-stats-card-blue-icon-bg': '#dbeafe',
+  'components-stats-card-blue-icon-text': '#2563eb',
+  'components-stats-card-green-bg': 'linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(20, 184, 166, 0.1))',
+  'components-stats-card-green-icon-bg': '#dcfce7',
+  'components-stats-card-green-icon-text': '#16a34a',
+  'components-stats-card-purple-bg': 'linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(236, 72, 153, 0.1))',
+  'components-stats-card-purple-icon-bg': '#f3e8ff',
+  'components-stats-card-purple-icon-text': '#9333ea',
+  'components-stats-card-orange-bg': 'linear-gradient(135deg, rgba(249, 115, 22, 0.1), rgba(239, 68, 68, 0.1))',
+  'components-stats-card-orange-icon-bg': '#ffedd5',
+  'components-stats-card-orange-icon-text': '#ea580c',
+
+  // ===== 头像渐变系统 - 亮色主题 =====
+  'components-avatar-gradient-purple-from': '#a855f7',
+  'components-avatar-gradient-purple-to': '#ec4899',
+  'components-avatar-gradient-blue-from': '#3b82f6',
+  'components-avatar-gradient-blue-to': '#06b6d4',
+  'components-avatar-gradient-green-from': '#22c55e',
+  'components-avatar-gradient-green-to': '#14b8a6',
+  'components-avatar-gradient-orange-from': '#f97316',
+  'components-avatar-gradient-orange-to': '#ef4444',
+  'components-avatar-gradient-indigo-from': '#6366f1',
+  'components-avatar-gradient-indigo-to': '#a855f7',
 
   // 任务状态指示器 - 亮色主题
   'components-task-status-idle-bg': 'rgba(107, 114, 128, 0.1)',
@@ -958,6 +988,36 @@ export const darkTokens: DesignTokens = {
   'components-badge-blue-text': '#93c5fd',
   'components-badge-orange-bg': 'rgba(249, 115, 22, 0.2)',
   'components-badge-orange-text': '#fdba74',
+  'components-badge-purple-bg': 'rgba(168, 85, 247, 0.2)',
+  'components-badge-purple-text': '#c4b5fd',
+  'components-badge-green-bg': 'rgba(34, 197, 94, 0.2)',
+  'components-badge-green-text': '#86efac',
+
+  // ===== 统计卡片组件 - 暗色主题 =====
+  'components-stats-card-blue-bg': 'linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(6, 182, 212, 0.2))',
+  'components-stats-card-blue-icon-bg': 'rgba(59, 130, 246, 0.25)',
+  'components-stats-card-blue-icon-text': '#93c5fd',
+  'components-stats-card-green-bg': 'linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(20, 184, 166, 0.2))',
+  'components-stats-card-green-icon-bg': 'rgba(34, 197, 94, 0.25)',
+  'components-stats-card-green-icon-text': '#86efac',
+  'components-stats-card-purple-bg': 'linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(236, 72, 153, 0.2))',
+  'components-stats-card-purple-icon-bg': 'rgba(168, 85, 247, 0.25)',
+  'components-stats-card-purple-icon-text': '#c4b5fd',
+  'components-stats-card-orange-bg': 'linear-gradient(135deg, rgba(249, 115, 22, 0.2), rgba(239, 68, 68, 0.2))',
+  'components-stats-card-orange-icon-bg': 'rgba(249, 115, 22, 0.25)',
+  'components-stats-card-orange-icon-text': '#fdba74',
+
+  // ===== 头像渐变系统 - 暗色主题 =====
+  'components-avatar-gradient-purple-from': '#a855f7',
+  'components-avatar-gradient-purple-to': '#ec4899',
+  'components-avatar-gradient-blue-from': '#3b82f6',
+  'components-avatar-gradient-blue-to': '#06b6d4',
+  'components-avatar-gradient-green-from': '#22c55e',
+  'components-avatar-gradient-green-to': '#14b8a6',
+  'components-avatar-gradient-orange-from': '#f97316',
+  'components-avatar-gradient-orange-to': '#ef4444',
+  'components-avatar-gradient-indigo-from': '#6366f1',
+  'components-avatar-gradient-indigo-to': '#a855f7',
 
   // 任务状态指示器 - 暗色主题
   'components-task-status-idle-bg': 'rgba(161, 161, 170, 0.08)',

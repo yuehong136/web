@@ -87,15 +87,15 @@ export const CreateMemoryDialog: React.FC<CreateMemoryDialogProps> = ({
 }) => {
   const isEditMode = !!initialData
 
-  // 生成渐变背景类
+  // 生成渐变背景类 - 使用语义令牌
   const avatarGradient = React.useMemo(() => {
     const name = initialData?.name || 'M'
     const gradients = [
-      'from-purple-500 to-pink-500',
-      'from-blue-500 to-cyan-500',
-      'from-green-500 to-teal-500',
-      'from-orange-500 to-red-500',
-      'from-indigo-500 to-purple-500',
+      'from-components-avatar-gradient-purple-from to-components-avatar-gradient-purple-to',
+      'from-components-avatar-gradient-blue-from to-components-avatar-gradient-blue-to',
+      'from-components-avatar-gradient-green-from to-components-avatar-gradient-green-to',
+      'from-components-avatar-gradient-orange-from to-components-avatar-gradient-orange-to',
+      'from-components-avatar-gradient-indigo-from to-components-avatar-gradient-indigo-to',
     ]
     const index = name.charCodeAt(0) % gradients.length
     return gradients[index]
@@ -170,12 +170,12 @@ export const CreateMemoryDialog: React.FC<CreateMemoryDialogProps> = ({
             <div className="flex items-center gap-3">
               <div
                 className={cn(
-                  'w-10 h-10 rounded-xl flex items-center justify-center',
+                  'w-10 h-10 rounded-radius-lg flex items-center justify-center',
                   'bg-gradient-to-br',
                   avatarGradient
                 )}
               >
-                <Brain className="h-5 w-5 text-white" />
+                <Brain className="w-icon-md h-icon-md text-white" />
               </div>
               <div className="flex-1 min-w-0">
                 <DialogTitle>{MEMORY_TEXTS.memories.editMemory}</DialogTitle>
@@ -243,7 +243,7 @@ export const CreateMemoryDialog: React.FC<CreateMemoryDialogProps> = ({
                   {MEMORY_TEXTS.common.cancel}
                 </Button>
                 <Button type="submit" disabled={isLoading}>
-                  {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                  {isLoading && <Loader2 className="w-icon-sm h-icon-sm mr-space-sm animate-spin" />}
                   {MEMORY_TEXTS.common.save}
                 </Button>
               </DialogFooter>
@@ -262,11 +262,11 @@ export const CreateMemoryDialog: React.FC<CreateMemoryDialogProps> = ({
           <div className="flex items-center gap-3">
             <div
               className={cn(
-                'w-10 h-10 rounded-xl flex items-center justify-center',
-                'bg-gradient-to-br from-purple-500 to-pink-500'
+                'w-10 h-10 rounded-radius-lg flex items-center justify-center',
+                'bg-gradient-to-br from-components-avatar-gradient-purple-from to-components-avatar-gradient-purple-to'
               )}
             >
-              <Brain className="h-5 w-5 text-white" />
+              <Brain className="w-icon-md h-icon-md text-white" />
             </div>
             <div className="flex-1 min-w-0">
               <DialogTitle>{MEMORY_TEXTS.memories.createMemory}</DialogTitle>
@@ -313,7 +313,7 @@ export const CreateMemoryDialog: React.FC<CreateMemoryDialogProps> = ({
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <HelpCircle className="h-3.5 w-3.5 text-text-tertiary cursor-help" />
+                            <HelpCircle className="w-icon-xs h-icon-xs text-text-tertiary cursor-help" />
                           </TooltipTrigger>
                           <TooltipContent className="max-w-xs whitespace-pre-line">
                             {MEMORY_TEXTS.memories.memoryTypeTooltip}
@@ -345,7 +345,7 @@ export const CreateMemoryDialog: React.FC<CreateMemoryDialogProps> = ({
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <HelpCircle className="h-3.5 w-3.5 text-text-tertiary cursor-help" />
+                            <HelpCircle className="w-icon-xs h-icon-xs text-text-tertiary cursor-help" />
                           </TooltipTrigger>
                           <TooltipContent className="max-w-xs">
                             {MEMORY_TEXTS.memories.embeddingModelTooltip}
@@ -378,7 +378,7 @@ export const CreateMemoryDialog: React.FC<CreateMemoryDialogProps> = ({
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <HelpCircle className="h-3.5 w-3.5 text-text-tertiary cursor-help" />
+                            <HelpCircle className="w-icon-xs h-icon-xs text-text-tertiary cursor-help" />
                           </TooltipTrigger>
                           <TooltipContent className="max-w-xs">
                             {MEMORY_TEXTS.memories.llmTooltip}
@@ -409,7 +409,7 @@ export const CreateMemoryDialog: React.FC<CreateMemoryDialogProps> = ({
                 {MEMORY_TEXTS.common.cancel}
               </Button>
               <Button type="submit" disabled={isLoading}>
-                {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                {isLoading && <Loader2 className="w-icon-sm h-icon-sm mr-space-sm animate-spin" />}
                 {MEMORY_TEXTS.common.create}
               </Button>
             </DialogFooter>

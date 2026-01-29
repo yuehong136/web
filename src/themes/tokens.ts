@@ -304,6 +304,36 @@ export interface DesignTokens {
   'components-badge-blue-text': string
   'components-badge-orange-bg': string
   'components-badge-orange-text': string
+  'components-badge-purple-bg': string
+  'components-badge-purple-text': string
+  'components-badge-green-bg': string
+  'components-badge-green-text': string
+
+  // ===== 统计卡片组件 =====
+  'components-stats-card-blue-bg': string
+  'components-stats-card-blue-icon-bg': string
+  'components-stats-card-blue-icon-text': string
+  'components-stats-card-green-bg': string
+  'components-stats-card-green-icon-bg': string
+  'components-stats-card-green-icon-text': string
+  'components-stats-card-purple-bg': string
+  'components-stats-card-purple-icon-bg': string
+  'components-stats-card-purple-icon-text': string
+  'components-stats-card-orange-bg': string
+  'components-stats-card-orange-icon-bg': string
+  'components-stats-card-orange-icon-text': string
+
+  // ===== 头像渐变系统 =====
+  'components-avatar-gradient-purple-from': string
+  'components-avatar-gradient-purple-to': string
+  'components-avatar-gradient-blue-from': string
+  'components-avatar-gradient-blue-to': string
+  'components-avatar-gradient-green-from': string
+  'components-avatar-gradient-green-to': string
+  'components-avatar-gradient-orange-from': string
+  'components-avatar-gradient-orange-to': string
+  'components-avatar-gradient-indigo-from': string
+  'components-avatar-gradient-indigo-to': string
 
   // ===== 任务状态指示器 =====
   'components-task-status-idle-bg': string
@@ -1007,6 +1037,36 @@ export const defaultTokens: DesignTokens = {
   'components-badge-blue-text': '',
   'components-badge-orange-bg': '',
   'components-badge-orange-text': '',
+  'components-badge-purple-bg': '',
+  'components-badge-purple-text': '',
+  'components-badge-green-bg': '',
+  'components-badge-green-text': '',
+
+  // 统计卡片组件
+  'components-stats-card-blue-bg': '',
+  'components-stats-card-blue-icon-bg': '',
+  'components-stats-card-blue-icon-text': '',
+  'components-stats-card-green-bg': '',
+  'components-stats-card-green-icon-bg': '',
+  'components-stats-card-green-icon-text': '',
+  'components-stats-card-purple-bg': '',
+  'components-stats-card-purple-icon-bg': '',
+  'components-stats-card-purple-icon-text': '',
+  'components-stats-card-orange-bg': '',
+  'components-stats-card-orange-icon-bg': '',
+  'components-stats-card-orange-icon-text': '',
+
+  // 头像渐变系统
+  'components-avatar-gradient-purple-from': '',
+  'components-avatar-gradient-purple-to': '',
+  'components-avatar-gradient-blue-from': '',
+  'components-avatar-gradient-blue-to': '',
+  'components-avatar-gradient-green-from': '',
+  'components-avatar-gradient-green-to': '',
+  'components-avatar-gradient-orange-from': '',
+  'components-avatar-gradient-orange-to': '',
+  'components-avatar-gradient-indigo-from': '',
+  'components-avatar-gradient-indigo-to': '',
 
   // 任务状态指示器
   'components-task-status-idle-bg': '',
