@@ -536,9 +536,9 @@ export function EnvironmentVariablesTable({
           <DialogHeader>
             <DialogTitle>添加环境变量</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 pt-4">
+          <div className="px-6 pb-2 space-y-4">
             <div className="space-y-2">
-              <Label>变量名 *</Label>
+              <Label className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>变量名 *</Label>
               <Input
                 value={newVariable.key_name}
                 onChange={(e) => setNewVariable({ ...newVariable, key_name: e.target.value })}
@@ -548,7 +548,7 @@ export function EnvironmentVariablesTable({
             </div>
 
             <div className="space-y-2">
-              <Label>类型</Label>
+              <Label className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>类型</Label>
               <Select
                 value={newVariable.variable_type}
                 onValueChange={(value: string) => 
@@ -567,7 +567,7 @@ export function EnvironmentVariablesTable({
             </div>
 
             <div className="space-y-2">
-              <Label>变量值</Label>
+              <Label className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>变量值</Label>
               <Input
                 value={newVariable.key_value}
                 onChange={(e) => setNewVariable({ ...newVariable, key_value: e.target.value })}
@@ -589,7 +589,7 @@ export function EnvironmentVariablesTable({
             </div>
 
             <div className="space-y-2">
-              <Label>说明（可选）</Label>
+              <Label className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>说明（可选）</Label>
               <Textarea
                 value={newVariable.description}
                 onChange={(e) => setNewVariable({ ...newVariable, description: e.target.value })}

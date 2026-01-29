@@ -409,7 +409,13 @@ export const MCPServersPage: React.FC<ServerListPageProps> = ({ onServerSelect }
             </div>
           ) : (
             // List View (Table)
-            <div className="overflow-hidden">
+            <div 
+              className="rounded-xl border overflow-hidden"
+              style={{ 
+                backgroundColor: 'var(--color-components-table-bg)',
+                borderColor: 'var(--color-components-table-border)'
+              }}
+            >
               <Table
                 columns={[
                   {
@@ -514,8 +520,9 @@ export const MCPServersPage: React.FC<ServerListPageProps> = ({ onServerSelect }
                 ]}
                 data={filteredServers}
                 loading={loading}
+                hoverable
                 onRow={(record) => ({
-                  className: "hover:bg-gray-50/50 smooth-transition group cursor-pointer",
+                  className: "smooth-transition group cursor-pointer",
                   onClick: () => onServerSelect?.(record.id)
                 })}
               />

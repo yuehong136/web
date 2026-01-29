@@ -1890,9 +1890,9 @@ export const CreateAppPage: React.FC = () => {
           <DialogHeader>
             <DialogTitle>编辑应用信息</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div>
-              <span className="block mb-2 font-medium" style={{ color: 'var(--color-text-primary)' }}>应用图标</span>
+          <div className="px-6 pb-6 space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>应用图标</label>
               <div className="flex items-center gap-4">
                 <Avatar className="h-16 w-16">
                   {tempConfig.icon ? (
@@ -1941,21 +1941,21 @@ export const CreateAppPage: React.FC = () => {
               </span>
             </div>
             
-            <div>
-              <span className="block mb-2 font-medium" style={{ color: 'var(--color-text-primary)' }}>应用名称</span>
+            <div className="space-y-2">
+              <label className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>应用名称</label>
               <Input
                 value={tempConfig.name}
                 onChange={(e) => setTempConfig(prev => ({ ...prev, name: e.target.value }))}
                 placeholder="输入应用名称"
                 maxLength={50}
               />
-              <span className="text-xs mt-1 block text-right" style={{ color: 'var(--color-text-tertiary)' }}>
+              <span className="text-xs block text-right" style={{ color: 'var(--color-text-tertiary)' }}>
                 {tempConfig.name.length}/50
               </span>
             </div>
             
-            <div>
-              <span className="block mb-2 font-medium" style={{ color: 'var(--color-text-primary)' }}>应用描述</span>
+            <div className="space-y-2">
+              <label className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>应用描述</label>
               <Textarea
                 value={tempConfig.description}
                 onChange={(e) => setTempConfig(prev => ({ ...prev, description: e.target.value }))}
@@ -1963,7 +1963,7 @@ export const CreateAppPage: React.FC = () => {
                 rows={4}
                 maxLength={200}
               />
-              <span className="text-xs mt-1 block text-right" style={{ color: 'var(--color-text-tertiary)' }}>
+              <span className="text-xs block text-right" style={{ color: 'var(--color-text-tertiary)' }}>
                 {tempConfig.description.length}/200
               </span>
             </div>
@@ -1981,7 +1981,7 @@ export const CreateAppPage: React.FC = () => {
           <DialogHeader>
             <DialogTitle>添加知识库</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-4">
+          <div className="px-6 pb-6 space-y-4">
             {/* 搜索框 */}
             <div className="flex gap-2">
               <div className="relative flex-1">
@@ -2008,102 +2008,118 @@ export const CreateAppPage: React.FC = () => {
             </div>
             
             {/* 知识库列表 */}
-            <Table<KnowledgeBase>
-              columns={[
-                {
-                  key: 'name',
-                  title: '名称',
-                  dataIndex: 'name',
-                  width: 180,
-                  render: (name: string, record: KnowledgeBase) => (
-                    <div className="flex items-center gap-2">
-                      <KnowledgeBaseAvatar 
-                        name={record.name} 
-                        avatar={record.avatar} 
-                        size="md"
-                      />
-                      <span className="truncate">{name}</span>
-                    </div>
-                  )
-                },
-                {
-                  key: 'description',
-                  title: '描述',
-                  dataIndex: 'description',
-                  ellipsis: true
-                },
-                {
-                  key: 'embd_id',
-                  title: '向量模型',
-                  dataIndex: 'embd_id',
-                  width: 160,
-                  render: (embdId: string) => embdId ? (
-                    <Badge variant="blue" className="text-xs truncate max-w-[140px]" title={embdId}>
-                      {embdId}
-                    </Badge>
-                  ) : '-'
-                },
-                {
-                  key: 'doc_num',
-                  title: '文档个数',
-                  dataIndex: 'doc_num',
-                  width: 80,
-                  render: (num: number) => num || 0
-                },
-                {
-                  key: 'chunk_num',
-                  title: '文本块个数',
-                  dataIndex: 'chunk_num',
-                  width: 90,
-                  render: (num: number) => num || 0
-                },
-                {
-                  key: 'action',
-                  title: '操作',
-                  width: 80,
-                  render: (_: unknown, record: KnowledgeBase) => {
-                    const isAdded = addedKnowledgeBases.has(record.id)
-                    const isEmbdIncompatible = selectedEmbdId !== '' && record.embd_id !== selectedEmbdId
-                    
-                    if (isAdded) {
-                      return (
-                        <Button size="sm" disabled variant="outline">
-                          已添加
-                        </Button>
-                      )
-                    }
-                    
-                    if (isEmbdIncompatible) {
+            <div 
+              className="rounded-xl border overflow-hidden"
+              style={{ 
+                backgroundColor: 'var(--color-components-table-bg)',
+                borderColor: 'var(--color-components-table-border)'
+              }}
+            >
+              <Table<KnowledgeBase>
+                columns={[
+                  {
+                    key: 'name',
+                    title: '名称',
+                    dataIndex: 'name',
+                    width: 180,
+                    render: (name: string, record: KnowledgeBase) => (
+                      <div className="flex items-center gap-2">
+                        <KnowledgeBaseAvatar 
+                          name={record.name} 
+                          avatar={record.avatar} 
+                          size="md"
+                        />
+                        <span className="truncate" style={{ color: 'var(--color-text-primary)' }}>{name}</span>
+                      </div>
+                    )
+                  },
+                  {
+                    key: 'description',
+                    title: '描述',
+                    dataIndex: 'description',
+                    ellipsis: true,
+                    render: (description: string) => (
+                      <span style={{ color: 'var(--color-text-secondary)' }}>{description || '-'}</span>
+                    )
+                  },
+                  {
+                    key: 'embd_id',
+                    title: '向量模型',
+                    dataIndex: 'embd_id',
+                    width: 160,
+                    render: (embdId: string) => embdId ? (
+                      <Badge variant="blue" className="text-xs truncate max-w-[140px]" title={embdId}>
+                        {embdId}
+                      </Badge>
+                    ) : <span style={{ color: 'var(--color-text-tertiary)' }}>-</span>
+                  },
+                  {
+                    key: 'doc_num',
+                    title: '文档个数',
+                    dataIndex: 'doc_num',
+                    width: 80,
+                    render: (num: number) => (
+                      <span style={{ color: 'var(--color-text-secondary)' }}>{num || 0}</span>
+                    )
+                  },
+                  {
+                    key: 'chunk_num',
+                    title: '文本块个数',
+                    dataIndex: 'chunk_num',
+                    width: 100,
+                    render: (num: number) => (
+                      <span style={{ color: 'var(--color-text-secondary)' }}>{num || 0}</span>
+                    )
+                  },
+                  {
+                    key: 'action',
+                    title: '操作',
+                    width: 90,
+                    render: (_: unknown, record: KnowledgeBase) => {
+                      const isAdded = addedKnowledgeBases.has(record.id)
+                      const isEmbdIncompatible = selectedEmbdId !== '' && record.embd_id !== selectedEmbdId
+                      
+                      if (isAdded) {
+                        return (
+                          <Button size="sm" disabled variant="outline">
+                            已添加
+                          </Button>
+                        )
+                      }
+                      
+                      if (isEmbdIncompatible) {
+                        return (
+                          <Button 
+                            size="sm" 
+                            disabled
+                            variant="outline"
+                            title={`向量模型不兼容：已选择 ${selectedEmbdId}，当前为 ${record.embd_id || '未知'}`}
+                          >
+                            不兼容
+                          </Button>
+                        )
+                      }
+                      
                       return (
                         <Button 
-                          size="sm" 
-                          disabled
-                          variant="outline"
-                          title={`向量模型不兼容：已选择 ${selectedEmbdId}，当前为 ${record.embd_id || '未知'}`}
+                          size="sm"
+                          onClick={() => handleAddKnowledgeBase(record)}
                         >
-                          不兼容
+                          添加
                         </Button>
                       )
                     }
-                    
-                    return (
-                      <Button 
-                        size="sm"
-                        onClick={() => handleAddKnowledgeBase(record)}
-                      >
-                        添加
-                      </Button>
-                    )
                   }
-                }
-              ]}
-              dataSource={availableKnowledgeBases}
-              rowKey="id"
-            />
+                ]}
+                data={availableKnowledgeBases}
+                rowKey="id"
+                hoverable
+              />
+            </div>
             
             {/* 分页 */}
             {knowledgeTotal > 10 && (
-              <div className="flex justify-end mt-4">
+              <div className="flex justify-end">
                 <Pagination
                   current={knowledgePage}
                   total={knowledgeTotal}
@@ -2130,9 +2146,9 @@ export const CreateAppPage: React.FC = () => {
           <DialogHeader>
             <DialogTitle>编辑变量</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div>
-              <span className="block mb-2 font-medium" style={{ color: 'var(--color-text-primary)' }}>变量名</span>
+          <div className="px-6 pb-2 space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>变量名</label>
               <Input
                 value={variableForm.key}
                 onChange={(e) => setVariableForm(prev => ({ ...prev, key: e.target.value }))}
@@ -2140,14 +2156,12 @@ export const CreateAppPage: React.FC = () => {
               />
             </div>
             
-            <div>
-              <div className="flex items-center justify-between">
-                <span className="font-medium" style={{ color: 'var(--color-text-primary)' }}>是否可选</span>
-                <Switch
-                  checked={variableForm.optional}
-                  onCheckedChange={(checked) => setVariableForm(prev => ({ ...prev, optional: checked }))}
-                />
-              </div>
+            <div className="flex items-center justify-between py-2">
+              <label className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>是否可选</label>
+              <Switch
+                checked={variableForm.optional}
+                onCheckedChange={(checked) => setVariableForm(prev => ({ ...prev, optional: checked }))}
+              />
             </div>
           </div>
           <DialogFooter>
