@@ -292,6 +292,10 @@ export interface DesignTokens {
   'components-badge-info-text': string
   'components-badge-neutral-bg': string
   'components-badge-neutral-text': string
+  'components-badge-blue-bg': string
+  'components-badge-blue-text': string
+  'components-badge-orange-bg': string
+  'components-badge-orange-text': string
 
   // ===== 任务状态指示器 =====
   'components-task-status-idle-bg': string
@@ -606,6 +610,9 @@ export interface DesignTokens {
   'chat-input-container-bg': string
   'chat-preview-debug-bg': string
   'chat-preview-debug-text': string
+  'chat-think-bg': string
+  'chat-think-border': string
+  'chat-think-text': string
 
   // ===== 应用头像 =====
   'components-app-avatar-bg': string
@@ -980,6 +987,10 @@ export const defaultTokens: DesignTokens = {
   'components-badge-info-text': '',
   'components-badge-neutral-bg': '',
   'components-badge-neutral-text': '',
+  'components-badge-blue-bg': '',
+  'components-badge-blue-text': '',
+  'components-badge-orange-bg': '',
+  'components-badge-orange-text': '',
 
   // 任务状态指示器
   'components-task-status-idle-bg': '',
@@ -1294,6 +1305,9 @@ export const defaultTokens: DesignTokens = {
   'chat-input-container-bg': '',
   'chat-preview-debug-bg': '',
   'chat-preview-debug-text': '',
+  'chat-think-bg': '',
+  'chat-think-border': '',
+  'chat-think-text': '',
 
   // 应用头像
   'components-app-avatar-bg': '',

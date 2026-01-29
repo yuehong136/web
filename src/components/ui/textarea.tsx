@@ -5,14 +5,34 @@ export interface TextareaProps
   extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {}
 
 const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
-  ({ className, ...props }, ref) => {
+  ({ className, style, onFocus, onBlur, ...props }, ref) => {
+    const [isFocused, setIsFocused] = React.useState(false)
+
+    const handleFocus = (e: React.FocusEvent<HTMLTextAreaElement>) => {
+      setIsFocused(true)
+      onFocus?.(e)
+    }
+
+    const handleBlur = (e: React.FocusEvent<HTMLTextAreaElement>) => {
+      setIsFocused(false)
+      onBlur?.(e)
+    }
+
     return (
       <textarea
         className={cn(
-          "flex min-h-[80px] w-full rounded-xl border border-components-input-border bg-components-input-bg px-4 py-3 text-sm text-text-primary placeholder:text-components-input-text-placeholder focus-visible:outline-none focus-visible:border-components-input-border-focus focus-visible:bg-components-input-bg-focus disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-components-input-bg-disabled transition-colors resize-none",
+          "flex min-h-[80px] w-full rounded-xl border px-4 py-3 text-sm focus:ring-0 focus-visible:ring-0 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 transition-colors resize-none",
           className
         )}
+        style={{
+          backgroundColor: isFocused ? 'var(--color-components-input-bg-focus)' : 'var(--color-components-input-bg)',
+          borderColor: isFocused ? 'var(--color-components-input-border-focus)' : 'var(--color-components-input-border)',
+          color: 'var(--color-text-primary)',
+          ...style
+        }}
         ref={ref}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
         {...props}
       />
     )

@@ -1073,8 +1073,9 @@ export const ExplorePage: React.FC = () => {
       content: msg.content || '',
       // 使用 streaming 属性优化流式体验，避免动画异常
       streaming: isCurrentStreamingMessage,
-      // 注意：不要设置 loading 属性，否则会导致流式输出时持续显示加载动画
-      // 加载状态在 contentRender 中通过 "正在生成..." 文本显示
+      // 只在消息刚创建、还没有任何内容时显示三个点动画
+      // 一旦有 content 或 thinking，就显示实际内容
+      loading: isCurrentStreamingMessage && !msg.content && !msg.thinking,
       placement: (msg.role === 'user' ? 'end' : 'start') as 'start' | 'end',
       // 底部操作栏位置：助手消息放在外部底部，用户消息不显示
       footerPlacement: msg.role === 'assistant' ? 'outer-end' as const : undefined,
@@ -1630,7 +1631,7 @@ export const ExplorePage: React.FC = () => {
                     }}
                     okText="确认"
                     cancelText="取消"
-                    destroyOnClose
+                    destroyOnHidden
                   >
                     <Input
                       value={newConversationName}

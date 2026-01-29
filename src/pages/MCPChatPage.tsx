@@ -48,6 +48,45 @@ const ThinkComponent = React.memo((props: ComponentProps) => {
   )
 })
 
+// 稳定的 Markdown 渲染组件 - 避免 XMarkdown 内部状态更新导致无限循环
+const StableMarkdown = React.memo(({ content }: { content: string }) => {
+  // 使用 ref 存储最后稳定的内容，避免频繁更新触发 XMarkdown 内部状态循环
+  const stableContentRef = React.useRef(content)
+  const [stableContent, setStableContent] = React.useState(content)
+  
+  // 使用 debounce 效果，避免流式输出时过于频繁的更新
+  React.useEffect(() => {
+    // 只有内容真正变化时才更新
+    if (content !== stableContentRef.current) {
+      stableContentRef.current = content
+      // 使用 RAF 来批量处理更新，避免过于频繁的渲染
+      const rafId = requestAnimationFrame(() => {
+        setStableContent(content)
+      })
+      return () => cancelAnimationFrame(rafId)
+    }
+  }, [content])
+  
+  if (!stableContent || !stableContent.trim()) {
+    return null
+  }
+  
+  return (
+    <div className="prose prose-sm max-w-none dark:prose-invert bubble-copy-text">
+      <XMarkdown paragraphTag="div">
+        {stableContent}
+      </XMarkdown>
+    </div>
+  )
+}, (prevProps, nextProps) => {
+  // 自定义比较函数，只有内容长度变化超过阈值或内容完全相同时才重新渲染
+  // 这可以减少流式输出时的渲染次数
+  if (prevProps.content === nextProps.content) return true
+  // 如果内容变化不大（小于 10 个字符），跳过更新
+  const diff = Math.abs((nextProps.content?.length || 0) - (prevProps.content?.length || 0))
+  return diff < 10 && nextProps.content?.startsWith(prevProps.content || '')
+})
+
 // 提取并分离 think 内容和主内容
 // 思考状态：'none' 无思考 | 'thinking' 思考中 | 'complete' 思考完成
 type ThinkingStatus = 'none' | 'thinking' | 'complete'
@@ -76,14 +115,33 @@ const extractThinkContent = (content: string): ThinkExtractResult => {
     }
   }
   
-  // 检查是否有未闭合的 think/thinking 标签（正在思考中）
+  // 检查是否有开始标签
   const hasOpenTag = content.includes('<think>') || content.includes('<thinking>')
   const hasCloseTag = content.includes('</think>') || content.includes('</thinking>')
   
   if (hasOpenTag && !hasCloseTag) {
+    // 提取 <think> 标签后的内容
     const openMatch = content.match(/<think(?:ing)?>([\s\S]*)/)
+    const afterTag = openMatch ? openMatch[1] : ''
+    
+    // 后端可能不返回 </think> 闭合标签，而是用双换行分隔思考和主内容
+    // 格式: <think>\n思考内容\n\n\n主内容 或 <think>\n思考内容\n\n主内容
+    // 检查是否有双换行（2个或更多连续换行），表示思考已完成
+    const doubleNewlineMatch = afterTag.match(/^([\s\S]*?)\n\n+(\S[\s\S]*)$/)
+    
+    if (doubleNewlineMatch) {
+      // 有双换行分隔，说明思考已完成，后面是主内容
+      return {
+        thinkContent: doubleNewlineMatch[1].trim(),
+        mainContent: doubleNewlineMatch[2].trim(),
+        isThinking: false,
+        status: 'complete'
+      }
+    }
+    
+    // 没有双换行分隔，还在思考中
     return {
-      thinkContent: openMatch ? openMatch[1].trim() : '',
+      thinkContent: afterTag.trim(),
       mainContent: '',
       isThinking: true,
       status: 'thinking'
@@ -389,13 +447,9 @@ export default function MCPChatPage() {
                 </div>
               </Think>
             )}
-            {/* 使用 XMarkdown 渲染主内容 */}
+            {/* 使用稳定的 Markdown 组件渲染主内容 */}
             {mainContent && (
-              <div className="prose prose-sm max-w-none dark:prose-invert bubble-copy-text">
-                <XMarkdown paragraphTag="div">
-                  {mainContent}
-                </XMarkdown>
-              </div>
+              <StableMarkdown content={mainContent} />
             )}
           </div>
         )
@@ -472,13 +526,9 @@ export default function MCPChatPage() {
                 </div>
               </Think>
             )}
-            {/* 使用 XMarkdown 渲染主内容 */}
+            {/* 使用稳定的 Markdown 组件渲染主内容 */}
             {mainContent && mainContent.trim() && (
-              <div className="prose prose-sm max-w-none dark:prose-invert bubble-copy-text">
-                <XMarkdown paragraphTag="div">
-                  {mainContent}
-                </XMarkdown>
-              </div>
+              <StableMarkdown content={mainContent} />
             )}
             {/* 如果没有内容且没有思考内容，显示加载提示 */}
             {!thinkContent && !mainContent && !isToolAnalyzing && streamingToolCalls.length === 0 && (

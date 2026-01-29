@@ -3,19 +3,19 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const inputVariants = cva(
-  "flex w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 bg-[var(--color-components-input-bg)] text-[var(--color-components-input-text)] placeholder:text-[var(--color-components-input-text-placeholder)] transition-colors",
+  "flex w-full rounded-xl border px-4 py-3 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus:ring-0 focus-visible:ring-0 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 transition-colors",
   {
     variants: {
       variant: {
-        default: "border-[var(--color-components-input-border)] focus:ring-1 focus:ring-primary focus:border-primary",
-        destructive: "border-destructive focus:ring-1 focus:ring-destructive",
-        success: "border-success focus:ring-1 focus:ring-success",
-        warning: "border-warning focus:ring-1 focus:ring-warning",
+        default: "",
+        destructive: "",
+        success: "",
+        warning: "",
       },
       inputSize: {
-        default: "h-10",
-        sm: "h-9 text-xs",
-        lg: "h-11",
+        default: "h-12",
+        sm: "h-10 text-xs",
+        lg: "h-14",
       },
     },
     defaultVariants: {
@@ -49,26 +49,66 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     label, 
     required,
     id,
+    style,
+    onFocus,
+    onBlur,
     ...props 
   }, ref) => {
     const inputId = id || React.useId()
     const hasError = !!error
     const effectiveVariant = hasError ? 'destructive' : variant
+    const [isFocused, setIsFocused] = React.useState(false)
+
+    const getBorderColor = () => {
+      if (isFocused) {
+        switch (effectiveVariant) {
+          case 'destructive':
+            return 'var(--color-components-input-border-error)'
+          case 'success':
+            return 'var(--color-status-success-border)'
+          case 'warning':
+            return 'var(--color-status-warning-border)'
+          default:
+            return 'var(--color-components-input-border-focus)'
+        }
+      }
+      switch (effectiveVariant) {
+        case 'destructive':
+          return 'var(--color-components-input-border-error)'
+        case 'success':
+          return 'var(--color-status-success-border)'
+        case 'warning':
+          return 'var(--color-status-warning-border)'
+        default:
+          return 'var(--color-components-input-border)'
+      }
+    }
+
+    const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+      setIsFocused(true)
+      onFocus?.(e)
+    }
+
+    const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+      setIsFocused(false)
+      onBlur?.(e)
+    }
 
     return (
       <div className="space-y-2">
         {label && (
           <label
             htmlFor={inputId}
-            className="text-sm font-medium text-foreground"
+            className="text-sm font-medium"
+            style={{ color: 'var(--color-text-primary)' }}
           >
             {label}
-            {required && <span className="text-destructive ml-1">*</span>}
+            {required && <span style={{ color: 'var(--color-state-error-text)' }} className="ml-1">*</span>}
           </label>
         )}
         <div className="relative">
           {leftIcon && (
-            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
+            <div className="absolute left-4 top-1/2 transform -translate-y-1/2" style={{ color: 'var(--color-text-tertiary)' }}>
               {leftIcon}
             </div>
           )}
@@ -76,22 +116,30 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             type={type}
             className={cn(
               inputVariants({ variant: effectiveVariant, inputSize }),
-              leftIcon && "pl-10",
-              rightIcon && "pr-10",
+              leftIcon && "pl-11",
+              rightIcon && "pr-11",
               className
             )}
+            style={{
+              backgroundColor: isFocused ? 'var(--color-components-input-bg-focus)' : 'var(--color-components-input-bg)',
+              borderColor: getBorderColor(),
+              color: 'var(--color-components-input-text)',
+              ...style
+            }}
             ref={ref}
             id={inputId}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
             {...props}
           />
           {rightIcon && (
-            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
+            <div className="absolute right-4 top-1/2 transform -translate-y-1/2" style={{ color: 'var(--color-text-tertiary)' }}>
               {rightIcon}
             </div>
           )}
         </div>
         {error && (
-          <p className="text-sm text-destructive flex items-center gap-1">
+          <p className="text-sm flex items-center gap-1" style={{ color: 'var(--color-state-error-text)' }}>
             <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
               <path
                 fillRule="evenodd"
@@ -103,7 +151,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           </p>
         )}
         {helpText && !error && (
-          <p className="text-sm text-muted-foreground">{helpText}</p>
+          <p className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>{helpText}</p>
         )}
       </div>
     )

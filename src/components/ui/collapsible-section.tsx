@@ -66,7 +66,7 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
         )}
         <span
           className={cn(
-            'text-sm font-medium transition-colors',
+            'text-base font-medium transition-colors',
             isOpen ? 'text-text-accent' : 'text-text-secondary group-hover:text-text-primary'
           )}
         >

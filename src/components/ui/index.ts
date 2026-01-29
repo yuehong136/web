@@ -40,5 +40,6 @@ export * from './collapsible-section'
 export * from './list-filter-bar'
 export * from './image-preview'
 export * from './file-uploader'
+export * from './pagination'
 // carousel 组件按需导入，避免模块加载时初始化问题
 // import { Carousel, ... } from '@/components/ui/carousel'

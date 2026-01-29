@@ -8,6 +8,7 @@ import type { DialogApp } from '@/types/api'
 import type { ChatSettings } from '@/components/chat/ChatSettingsPanel'
 import { defaultChatSettings } from '@/components/chat/ChatSettingsPanel'
 import type { MetadataFilterMode } from '@/components/chat/MetadataFilter'
+import { detectMatchingPreset, GenerationPresetType } from '@/constants/llm'
 
 /**
  * 从 DialogApp 转换为 ChatSettings
@@ -81,8 +82,6 @@ export function dialogToSettings(dialog: DialogApp | null | undefined): ChatSett
     
     // LLM 设置
     llmId: dialog.llm_id || '',
-    // 生成多样性预设 - 默认平衡
-    generationPreset: 'balanced',
     // 参数值
     temperature: dialog.llm_setting?.temperature ?? 0.5,
     topP: dialog.llm_setting?.top_p ?? 0.85,
@@ -97,6 +96,19 @@ export function dialogToSettings(dialog: DialogApp | null | undefined): ChatSett
     presencePenaltyEnabled: true,
     frequencyPenaltyEnabled: true,
     maxTokensEnabled: dialog.llm_setting?.max_tokens !== undefined,
+    // 生成多样性预设 - 根据参数值自动检测
+    generationPreset: detectMatchingPreset({
+      temperature: dialog.llm_setting?.temperature ?? 0.5,
+      topP: dialog.llm_setting?.top_p ?? 0.85,
+      presencePenalty: dialog.llm_setting?.presence_penalty ?? 0.2,
+      frequencyPenalty: dialog.llm_setting?.frequency_penalty ?? 0.3,
+      maxTokens: dialog.llm_setting?.max_tokens ?? 4096,
+      temperatureEnabled: true,
+      topPEnabled: true,
+      presencePenaltyEnabled: true,
+      frequencyPenaltyEnabled: true,
+      maxTokensEnabled: dialog.llm_setting?.max_tokens !== undefined,
+    }),
   }
 }
 

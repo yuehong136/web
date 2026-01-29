@@ -1,27 +1,54 @@
-import React, { useState, useEffect, useMemo } from 'react'
-import { Splitter, Collapse, Input, Select, Switch, Button, Space, Typography, Modal, Avatar, Upload, App, Tabs, Table, Tag } from 'antd'
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
+// shadcn/ui 组件
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { Slider } from '@/components/ui/slider'
+import { Button } from '@/components/ui/button'
+import { Switch } from '@/components/ui/switch'
+import { Badge } from '@/components/ui/badge'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { 
-  EditOutlined, 
-  EyeOutlined, 
-  BugOutlined, 
-  SaveOutlined,
-  ArrowLeftOutlined,
-  PlayCircleOutlined,
-  AppstoreOutlined,
-  PlusOutlined,
-  DeleteOutlined,
-  SearchOutlined,
-  CaretRightOutlined
-} from '@ant-design/icons'
-import { LLMParameterControl, LLM_PARAMETER_PRESETS } from '@/components/vendor/ui/LLMParameterControl'
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogFooter 
+} from '@/components/ui/dialog'
+import { 
+  Select, 
+  SelectTrigger, 
+  SelectValue, 
+  SelectContent, 
+  SelectItem 
+} from '@/components/ui/select'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Table } from '@/components/ui/table'
+import { Pagination } from '@/components/ui/pagination'
+import { CollapsibleSection } from '@/components/ui/collapsible-section'
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable'
+// Lucide React 图标
+import { 
+  Pencil, 
+  Eye, 
+  Bug, 
+  Save,
+  ArrowLeft,
+  PlayCircle,
+  LayoutGrid,
+  Plus,
+  Trash2,
+  Search,
+  ChevronRight,
+  RefreshCw,
+  Square,
+  Upload
+} from 'lucide-react'
+// 保留 @ant-design/x 聊天组件
 import { 
   Bubble, 
   Sender
 } from '@ant-design/x'
-import type { BubbleProps } from '@ant-design/x'
 import markdownit from 'markdown-it'
-import type { UploadProps } from 'antd'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import MDEditor from '@uiw/react-md-editor'
 import '@uiw/react-md-editor/markdown-editor.css'
@@ -29,30 +56,47 @@ import '@uiw/react-markdown-preview/markdown.css'
 import { llmAPI } from '@/api/llm'
 import { knowledgeAPI } from '@/api/knowledge'
 import { dialogAPI } from '@/api/dialog'
+import { conversationAPI } from '@/api/conversation'
 import type { LLMModel, KnowledgeBase } from '@/types/api'
 import { ChatModelSelector } from '@/components/chat/ChatModelSelector'
 import { RerankModelSelector, KnowledgeBaseAvatar } from '@/components/knowledge'
 import type { MyLLMProvider } from '@/stores/model'
-import { formatTimestamp } from '@/lib/utils'
 import { getResolvedTheme } from '@/themes'
-
-const { TextArea } = Input
-const { Title, Text } = Typography
-// Using Panel with deprecation suppression until full migration to items prop
-// @ts-ignore - Suppress deprecation warning for Panel usage  
-const { Panel } = Collapse
+import { toast } from '@/lib/toast'
+import { LLMParameterControl, LLM_PARAMETER_PRESETS } from '@/components/vendor/ui/LLMParameterControl'
+import {
+  GenerationPresetType,
+  generationPresetConfigMapSnake,
+  generationPresetOptions,
+  detectMatchingPresetSnake,
+  getDefaultEnabledFieldsSnake,
+} from '@/constants/llm'
+// SSE 流解析库（参考 ragflow 最佳实践）
+import { EventSourceParserStream } from 'eventsource-parser/stream'
 
 // 初始化 markdown-it
 const md = markdownit({ html: true, breaks: true, linkify: true })
 
 // Markdown 渲染函数
-const renderMarkdown: BubbleProps['messageRender'] = (content) => {
+const renderMarkdown = (content: string | React.ReactNode) => {
   if (!content || typeof content !== 'string') return content
   
   return (
     <div 
       dangerouslySetInnerHTML={{ __html: md.render(content) }} 
       className="prose prose-sm max-w-none"
+      style={{
+        // 使用 CSS 变量覆盖 prose 默认颜色以支持主题切换
+        '--tw-prose-body': 'var(--color-text-primary)',
+        '--tw-prose-headings': 'var(--color-text-primary)',
+        '--tw-prose-links': 'var(--color-text-accent)',
+        '--tw-prose-bold': 'var(--color-text-primary)',
+        '--tw-prose-code': 'var(--color-text-primary)',
+        '--tw-prose-quotes': 'var(--color-text-secondary)',
+        '--tw-prose-quote-borders': 'var(--color-border-default)',
+        '--tw-prose-pre-bg': 'var(--color-components-pre-bg)',
+        '--tw-prose-pre-code': 'var(--color-components-pre-text)',
+      } as React.CSSProperties}
     />
   )
 }
@@ -95,17 +139,9 @@ interface AppConfig {
   }
 }
 
-interface GenerationPreset {
-  temperature: number
-  top_p: number
-  presence_penalty: number
-  frequency_penalty: number
-  max_tokens_enabled: boolean
-}
 
 
 export const CreateAppPage: React.FC = () => {
-  const { message } = App.useApp()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const [leftCollapsed, setLeftCollapsed] = useState(false)
@@ -209,32 +245,8 @@ export const CreateAppPage: React.FC = () => {
     return firstKb?.embd_id || ''
   }, [knowledgeBases])
   
-  // 生成多样性预设
-  const generationPresets: Record<string, GenerationPreset> = {
-    creative: {
-      temperature: 0.80,
-      top_p: 0.90,
-      presence_penalty: 0.10,
-      frequency_penalty: 0.10,
-      max_tokens_enabled: false
-    },
-    precise: {
-      temperature: 0.20,
-      top_p: 0.75,
-      presence_penalty: 0.50,
-      frequency_penalty: 0.50,
-      max_tokens_enabled: false
-    },
-    balanced: {
-      temperature: 0.50,
-      top_p: 0.85,
-      presence_penalty: 0.20,
-      frequency_penalty: 0.30,
-      max_tokens_enabled: false
-    }
-  }
-  
-  const [currentPreset, setCurrentPreset] = useState<string>('custom')
+  // 生成多样性预设状态
+  const [currentPreset, setCurrentPreset] = useState<GenerationPresetType>(GenerationPresetType.Custom)
   const [variableForm, setVariableForm] = useState<{ key: string; optional: boolean }>({ key: '', optional: false })
   
   
@@ -339,51 +351,18 @@ export const CreateAppPage: React.FC = () => {
         
         // 根据加载的参数判断当前预设
         const loadedSetting = newConfig.llm_setting
-        let matchedPreset = 'custom'
-        
-        // 检查是否匹配任何预设（仅比较启用的参数）
-        for (const [presetName, preset] of Object.entries(generationPresets)) {
-          let isMatch = true
-          let hasEnabledParams = false
-          
-          // 温度参数比较
-          if (loadedSetting.temperature_enabled && loadedSetting.temperature !== undefined) {
-            hasEnabledParams = true
-            if (Math.abs(loadedSetting.temperature - preset.temperature) >= 0.01) {
-              isMatch = false
-            }
-          }
-          
-          // Top P参数比较
-          if (loadedSetting.top_p_enabled && loadedSetting.top_p !== undefined) {
-            hasEnabledParams = true
-            if (Math.abs(loadedSetting.top_p - preset.top_p) >= 0.01) {
-              isMatch = false
-            }
-          }
-          
-          // Presence Penalty参数比较
-          if (loadedSetting.presence_penalty_enabled && loadedSetting.presence_penalty !== undefined) {
-            hasEnabledParams = true
-            if (Math.abs(loadedSetting.presence_penalty - preset.presence_penalty) >= 0.01) {
-              isMatch = false
-            }
-          }
-          
-          // Frequency Penalty参数比较
-          if (loadedSetting.frequency_penalty_enabled && loadedSetting.frequency_penalty !== undefined) {
-            hasEnabledParams = true
-            if (Math.abs(loadedSetting.frequency_penalty - preset.frequency_penalty) >= 0.01) {
-              isMatch = false
-            }
-          }
-          
-          // 只有当有启用的参数且全部匹配时才认为是该预设
-          if (isMatch && hasEnabledParams) {
-            matchedPreset = presetName
-            break
-          }
-        }
+        const matchedPreset = detectMatchingPresetSnake({
+          temperature: loadedSetting.temperature ?? 0.5,
+          top_p: loadedSetting.top_p ?? 0.85,
+          presence_penalty: loadedSetting.presence_penalty ?? 0.2,
+          frequency_penalty: loadedSetting.frequency_penalty ?? 0.3,
+          max_tokens: loadedSetting.max_tokens ?? 4096,
+          temperature_enabled: loadedSetting.temperature_enabled ?? false,
+          top_p_enabled: loadedSetting.top_p_enabled ?? false,
+          presence_penalty_enabled: loadedSetting.presence_penalty_enabled ?? false,
+          frequency_penalty_enabled: loadedSetting.frequency_penalty_enabled ?? false,
+          max_tokens_enabled: loadedSetting.max_tokens_enabled ?? false,
+        })
         
         setCurrentPreset(matchedPreset)
         
@@ -427,7 +406,7 @@ export const CreateAppPage: React.FC = () => {
       }
     } catch (error) {
       console.error('Failed to load dialog config:', error)
-      message.error('加载对话配置失败')
+      toast.error('加载对话配置失败')
     }
   }
   
@@ -442,7 +421,7 @@ export const CreateAppPage: React.FC = () => {
         // 为 ChatModelSelector 格式化数据
         // API 返回格式: { [providerName]: { tags: string, llm: [{ type, name, used_token }] } }
         const chatModelData: MyLLMProvider = {}
-        let allRerankModels: LLMModel[] = []
+        const allRerankModels: LLMModel[] = []
         
         Object.entries(response).forEach(([providerName, providerData]: [string, any]) => {
           // 新格式：providerData 是 { tags, llm: [...] } 对象
@@ -491,7 +470,7 @@ export const CreateAppPage: React.FC = () => {
     } catch (error) {
       console.error('Failed to load models:', error)
       setModelsError('加载模型列表失败')
-      message.error('加载模型列表失败')
+      toast.error('加载模型列表失败')
     } finally {
       setModelsLoading(false)
     }
@@ -514,20 +493,226 @@ export const CreateAppPage: React.FC = () => {
       }
     } catch (error) {
       console.error('Failed to load knowledge bases:', error)
-      message.error('加载知识库列表失败')
+      toast.error('加载知识库列表失败')
     }
   }
 
   // 预览对话状态
-  const [previewMessages, setPreviewMessages] = useState<string[]>([])
+  interface PreviewMessage {
+    role: 'user' | 'assistant'
+    content: string
+    id: string
+    thinking?: string
+  }
+  const [previewMessages, setPreviewMessages] = useState<PreviewMessage[]>([])
   const [inputValue, setInputValue] = useState('')
+  const [isStreaming, setIsStreaming] = useState(false)
+  const [previewConversationId, setPreviewConversationId] = useState<string | null>(null)
+  const abortControllerRef = useRef<AbortController | null>(null)
   
   // 初始化开场白消息
   useEffect(() => {
     if (config.prompt_config.prologue) {
-      setPreviewMessages([config.prompt_config.prologue])
+      setPreviewMessages([{
+        role: 'assistant',
+        content: config.prompt_config.prologue,
+        id: 'prologue-' + Date.now()
+      }])
     }
   }, [config.prompt_config.prologue])
+  
+  // 获取或创建预览会话
+  const getOrCreatePreviewConversation = useCallback(async (): Promise<string | null> => {
+    // 如果已有预览会话，直接返回
+    if (previewConversationId) {
+      return previewConversationId
+    }
+    
+    // 获取 dialog_id
+    const dialogId = searchParams.get('dialog_id') || searchParams.get('id')
+    if (!dialogId) {
+      toast.error('请先保存应用配置')
+      return null
+    }
+    
+    try {
+      // 创建新的预览会话
+      const newConversation = await conversationAPI.setConversation({
+        dialog_id: dialogId,
+        name: `预览会话 - ${new Date().toLocaleString()}`,
+        is_new: true
+      })
+      
+      if (newConversation?.id) {
+        setPreviewConversationId(newConversation.id)
+        return newConversation.id
+      }
+      return null
+    } catch (error) {
+      console.error('Failed to create preview conversation:', error)
+      toast.error('创建预览会话失败')
+      return null
+    }
+  }, [previewConversationId, searchParams])
+  
+  // 停止输出
+  const handleStopOutput = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+      abortControllerRef.current = null
+    }
+    setIsStreaming(false)
+  }, [])
+  
+  // 发送预览消息（真实 API 调用）
+  const handleSendPreviewMessage = useCallback(async (userContent: string) => {
+    if (!userContent.trim() || isStreaming) return
+    
+    const conversationId = await getOrCreatePreviewConversation()
+    if (!conversationId) return
+    
+    // 添加用户消息
+    const userMessage: PreviewMessage = {
+      role: 'user',
+      content: userContent.trim(),
+      id: `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    }
+    
+    // 添加 AI 占位消息
+    const aiMessage: PreviewMessage = {
+      role: 'assistant',
+      content: '',
+      id: `ai-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      thinking: ''
+    }
+    
+    setPreviewMessages(prev => [...prev, userMessage, aiMessage])
+    setIsStreaming(true)
+    setInputValue('')
+    
+    // 创建 AbortController
+    abortControllerRef.current = new AbortController()
+    
+    try {
+      // 构建消息历史（排除开场白）
+      const historyMessages = previewMessages
+        .filter(msg => !msg.id.startsWith('prologue-'))
+        .map(msg => ({
+          role: msg.role,
+          content: msg.content
+        }))
+      
+      // 添加当前用户消息
+      historyMessages.push({
+        role: 'user',
+        content: userContent.trim()
+      })
+      
+      // 调用 completion API
+      const response = await conversationAPI.completion({
+        conversation_id: conversationId,
+        messages: historyMessages,
+        quote: true,
+        stream: true
+      })
+      
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
+      if (!response.body) throw new Error('No response body')
+      
+      // 使用 EventSourceParserStream 处理 SSE 流
+      const reader = response.body
+        .pipeThrough(new TextDecoderStream())
+        .pipeThrough(new EventSourceParserStream())
+        .getReader()
+      
+      while (true) {
+        // 检查是否被中止
+        if (abortControllerRef.current?.signal.aborted) {
+          break
+        }
+        
+        const { done, value } = await reader.read()
+        if (done) break
+        
+        try {
+          const jsonStr = value?.data
+          if (!jsonStr) continue
+          
+          const data = JSON.parse(jsonStr)
+          // 检查是否是终止信号
+          if (data.data === true) continue
+          
+          if (data.retcode === 0 && data.data?.answer) {
+            const content = data.data.answer
+            
+            // 提取 think/thinking 内容
+            let thinking = ''
+            const thinkMatch = content.match(/<think(?:ing)?>([\s\S]*?)(?:<\/think(?:ing)?>|$)/)
+            if (thinkMatch) {
+              thinking = thinkMatch[1].trim()
+            }
+            
+            // 清理内容：移除 think 标签及其内容
+            const cleanContent = content
+              .replace(/<think(?:ing)?>[\s\S]*?<\/think(?:ing)?>/g, '')
+              .replace(/<think(?:ing)?>[\s\S]*$/, '')
+              .trim()
+            
+            setPreviewMessages(prev => {
+              const newMsgs = [...prev]
+              const lastIdx = newMsgs.length - 1
+              if (lastIdx >= 0 && newMsgs[lastIdx].role === 'assistant') {
+                newMsgs[lastIdx] = {
+                  ...newMsgs[lastIdx],
+                  content: cleanContent,
+                  thinking
+                }
+              }
+              return newMsgs
+            })
+          }
+        } catch {
+          // JSON 解析错误，忽略
+        }
+      }
+    } catch (error) {
+      if ((error as Error).name !== 'AbortError') {
+        console.error('Failed to send preview message:', error)
+        setPreviewMessages(prev => {
+          const newMsgs = [...prev]
+          const lastIdx = newMsgs.length - 1
+          if (lastIdx >= 0 && newMsgs[lastIdx].role === 'assistant') {
+            newMsgs[lastIdx] = {
+              ...newMsgs[lastIdx],
+              content: '抱歉，发生了错误，请重试。'
+            }
+          }
+          return newMsgs
+        })
+      }
+    } finally {
+      setIsStreaming(false)
+      abortControllerRef.current = null
+    }
+  }, [isStreaming, getOrCreatePreviewConversation, previewMessages])
+  
+  // 重置预览会话
+  const handleResetPreview = useCallback(() => {
+    // 停止任何正在进行的输出
+    handleStopOutput()
+    // 清空预览会话 ID，下次发送时会创建新会话
+    setPreviewConversationId(null)
+    // 重置消息为开场白
+    if (config.prompt_config.prologue) {
+      setPreviewMessages([{
+        role: 'assistant',
+        content: config.prompt_config.prologue,
+        id: 'prologue-' + Date.now()
+      }])
+    } else {
+      setPreviewMessages([])
+    }
+  }, [handleStopOutput, config.prompt_config.prologue])
 
   const handleConfigChange = (key: keyof AppConfig, value: any) => {
     setConfig(prev => ({ ...prev, [key]: value }))
@@ -535,8 +720,12 @@ export const CreateAppPage: React.FC = () => {
   
   // 处理生成预设变化
   const handlePresetChange = (preset: string) => {
-    if (preset in generationPresets) {
-      const presetConfig = generationPresets[preset]
+    const presetType = preset as GenerationPresetType
+    
+    if (presetType !== GenerationPresetType.Custom && presetType in generationPresetConfigMapSnake) {
+      const presetConfig = generationPresetConfigMapSnake[presetType as Exclude<GenerationPresetType, 'custom'>]
+      const enabledFields = getDefaultEnabledFieldsSnake()
+      
       setConfig(prev => ({
         ...prev,
         llm_setting: {
@@ -546,18 +735,14 @@ export const CreateAppPage: React.FC = () => {
           top_p: presetConfig.top_p,
           presence_penalty: presetConfig.presence_penalty,
           frequency_penalty: presetConfig.frequency_penalty,
-          // 启用相关参数（预设模式下这些参数都应该启用）
-          temperature_enabled: true,
-          top_p_enabled: true,
-          presence_penalty_enabled: true,
-          frequency_penalty_enabled: true,
-          // max_tokens 根据预设配置决定
-          max_tokens_enabled: presetConfig.max_tokens_enabled
+          max_tokens: presetConfig.max_tokens,
+          // 更新启用状态
+          ...enabledFields,
         }
       }))
-      setCurrentPreset(preset)
+      setCurrentPreset(presetType)
     } else {
-      setCurrentPreset('custom')
+      setCurrentPreset(GenerationPresetType.Custom)
     }
   }
   
@@ -573,44 +758,19 @@ export const CreateAppPage: React.FC = () => {
       llm_setting: newSetting
     }))
     
-    // 检查是否匹配预设（比较参数值和启用状态）
-    let matchedPreset = 'custom'
-    
-    for (const [presetName, preset] of Object.entries(generationPresets)) {
-      let isMatch = true
-      
-      // 对于预设，核心参数（temperature, top_p, presence_penalty, frequency_penalty）应该都启用
-      const shouldBeEnabled = ['temperature', 'top_p', 'presence_penalty', 'frequency_penalty']
-      
-      for (const param of shouldBeEnabled) {
-        const enabledKey = `${param}_enabled` as keyof typeof newSetting
-        const valueKey = param as keyof typeof newSetting
-        
-        // 检查参数是否启用
-        if (!newSetting[enabledKey]) {
-          isMatch = false
-          break
-        }
-        
-        // 检查参数值是否匹配
-        const currentValue = newSetting[valueKey] as number
-        const presetValue = preset[param as keyof typeof preset] as number
-        if (Math.abs(currentValue - presetValue) >= 0.01) {
-          isMatch = false
-          break
-        }
-      }
-      
-      // 检查 max_tokens_enabled 是否匹配预设
-      if (isMatch && newSetting.max_tokens_enabled !== preset.max_tokens_enabled) {
-        isMatch = false
-      }
-      
-      if (isMatch) {
-        matchedPreset = presetName
-        break
-      }
-    }
+    // 使用统一的预设检测函数
+    const matchedPreset = detectMatchingPresetSnake({
+      temperature: newSetting.temperature ?? 0.5,
+      top_p: newSetting.top_p ?? 0.85,
+      presence_penalty: newSetting.presence_penalty ?? 0.2,
+      frequency_penalty: newSetting.frequency_penalty ?? 0.3,
+      max_tokens: newSetting.max_tokens ?? 4096,
+      temperature_enabled: newSetting.temperature_enabled ?? false,
+      top_p_enabled: newSetting.top_p_enabled ?? false,
+      presence_penalty_enabled: newSetting.presence_penalty_enabled ?? false,
+      frequency_penalty_enabled: newSetting.frequency_penalty_enabled ?? false,
+      max_tokens_enabled: newSetting.max_tokens_enabled ?? false,
+    })
     
     setCurrentPreset(matchedPreset)
   }
@@ -642,13 +802,13 @@ export const CreateAppPage: React.FC = () => {
   // 添加变量
   const handleAddVariable = () => {
     if (!variableForm.key.trim()) {
-      message.error('变量名不能为空')
+      toast.error('变量名不能为空')
       return
     }
     
     const exists = config.prompt_config.parameters.some(p => p.key === variableForm.key)
     if (exists) {
-      message.error('变量名已存在')
+      toast.error('变量名已存在')
       return
     }
     
@@ -714,13 +874,13 @@ export const CreateAppPage: React.FC = () => {
       
       // 验证必填项
       if (!config.name.trim()) {
-        message.error('应用名称不能为空')
+        toast.error('应用名称不能为空')
         setSaving(false)
         return
       }
       
       if (!config.llm_id) {
-        message.error('请选择模型')
+        toast.error('请选择模型')
         setSaving(false)
         return
       }
@@ -824,7 +984,7 @@ export const CreateAppPage: React.FC = () => {
       const result = await dialogAPI.set(requestData)
       
       // 显示保存成功提示
-      message.success('保存成功')
+      toast.success('保存成功')
       
       // 如果是新创建的对话，更新URL以包含新的dialog_id
       if (!dialogId && result && result.id) {
@@ -834,7 +994,7 @@ export const CreateAppPage: React.FC = () => {
       }
     } catch (error) {
       console.error('Failed to save config:', error)
-      message.error('保存失败，请重试')
+      toast.error('保存失败，请重试')
     } finally {
       setSaving(false)
     }
@@ -843,12 +1003,12 @@ export const CreateAppPage: React.FC = () => {
   const handleIconUpload: UploadProps['beforeUpload'] = (file) => {
     const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png' || file.type === 'image/svg+xml'
     if (!isJpgOrPng) {
-      message.error('只能上传 JPG/PNG/SVG 格式的图片!')
+      toast.error('只能上传 JPG/PNG/SVG 格式的图片!')
       return false
     }
     const isLt2M = file.size / 1024 / 1024 < 2
     if (!isLt2M) {
-      message.error('图片大小不能超过 2MB!')
+      toast.error('图片大小不能超过 2MB!')
       return false
     }
 
@@ -869,72 +1029,63 @@ export const CreateAppPage: React.FC = () => {
       {/* 左侧：返回按钮 + 应用信息 */}
       <div className="flex items-center gap-4">
         <Button 
-          type="text" 
-          icon={<ArrowLeftOutlined style={{ color: 'var(--color-components-icon-button-text)' }} />}
+          variant="ghost"
+          size="icon"
           onClick={() => navigate('/studio')}
-          className="flex items-center justify-center"
-          style={{ color: 'var(--color-components-icon-button-text)' }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.color = 'var(--color-components-icon-button-text-hover)'
-            const icon = e.currentTarget.querySelector('.anticon')
-            if (icon) (icon as HTMLElement).style.color = 'var(--color-components-icon-button-text-hover)'
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.color = 'var(--color-components-icon-button-text)'
-            const icon = e.currentTarget.querySelector('.anticon')
-            if (icon) (icon as HTMLElement).style.color = 'var(--color-components-icon-button-text)'
-          }}
-        />
+        >
+          <ArrowLeft className="h-4 w-4" style={{ color: 'var(--color-components-icon-button-text)' }} />
+        </Button>
         
         <div className="flex items-center gap-3">
-          <Avatar 
-            size={40}
-            src={config.icon || undefined}
-            icon={!config.icon && <AppstoreOutlined />}
-            style={config.icon ? 
-              { backgroundColor: 'transparent' } : 
-              { 
+          <Avatar className="h-10 w-10">
+            {config.icon ? (
+              <AvatarImage src={config.icon} alt={config.name} />
+            ) : null}
+            <AvatarFallback 
+              style={{ 
                 background: 'var(--color-components-app-avatar-bg)',
                 border: '1px solid var(--color-components-app-avatar-border)'
-              }
-            }
-          />
+              }}
+            >
+              <LayoutGrid className="h-5 w-5" style={{ color: 'var(--color-text-tertiary)' }} />
+            </AvatarFallback>
+          </Avatar>
           <div className="flex items-center gap-2">
             <div>
-              <Title level={5} className="m-0" style={{ color: 'var(--color-text-primary)' }}>
+              <h5 className="m-0 text-base font-semibold" style={{ color: 'var(--color-text-primary)' }}>
                 {config.name}
-              </Title>
-              <Text className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+              </h5>
+              <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
                 {config.description}
-              </Text>
+              </span>
             </div>
             <Button
-              type="text"
-              size="small"
-              icon={<EditOutlined />}
+              variant="ghost"
+              size="icon-sm"
               onClick={handleEditApp}
-              style={{ color: 'var(--color-components-icon-button-text)' }}
-              onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-components-icon-button-text-hover)'}
-              onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-components-icon-button-text)'}
-            />
+            >
+              <Pencil className="h-4 w-4" style={{ color: 'var(--color-components-icon-button-text)' }} />
+            </Button>
           </div>
         </div>
       </div>
 
       {/* 右侧：操作按钮 */}
-      <Space>
+      <div className="flex items-center gap-2">
         <Button 
-          icon={<SaveOutlined />} 
+          variant="outline"
           onClick={handleSave}
           loading={saving}
           disabled={saving}
         >
+          <Save className="h-4 w-4 mr-2" />
           {saving ? '保存中...' : '保存'}
         </Button>
-        <Button type="primary" icon={<PlayCircleOutlined />}>
+        <Button variant="default">
+          <PlayCircle className="h-4 w-4 mr-2" />
           发布
         </Button>
-      </Space>
+      </div>
     </div>
   )
 
@@ -943,25 +1094,16 @@ export const CreateAppPage: React.FC = () => {
       {leftCollapsed ? (
         <div className="flex flex-col items-center p-4 h-full justify-center">
           <Button 
-            type="text" 
-            icon={<EditOutlined style={{ color: 'var(--color-components-icon-button-text)' }} />} 
+            variant="ghost"
+            size="icon"
             onClick={() => setLeftCollapsed(false)}
             className="mb-4"
-            style={{ color: 'var(--color-components-icon-button-text)' }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.color = 'var(--color-components-icon-button-text-hover)'
-              const icon = e.currentTarget.querySelector('.anticon')
-              if (icon) (icon as HTMLElement).style.color = 'var(--color-components-icon-button-text-hover)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = 'var(--color-components-icon-button-text)'
-              const icon = e.currentTarget.querySelector('.anticon')
-              if (icon) (icon as HTMLElement).style.color = 'var(--color-components-icon-button-text)'
-            }}
-          />
-          <Text className="text-xs transform -rotate-90 whitespace-nowrap" style={{ color: 'var(--color-text-tertiary)' }}>
+          >
+            <Pencil className="h-4 w-4" style={{ color: 'var(--color-components-icon-button-text)' }} />
+          </Button>
+          <span className="text-xs transform -rotate-90 whitespace-nowrap" style={{ color: 'var(--color-text-tertiary)' }}>
             人设与回复逻辑
-          </Text>
+          </span>
         </div>
       ) : (
         <>
@@ -970,16 +1112,13 @@ export const CreateAppPage: React.FC = () => {
             borderBottom: '1px solid var(--color-border-default)'
           }}>
             <div className="flex items-center justify-between">
-              <Title level={5} className="m-0" style={{ color: 'var(--color-components-panel-header-text)' }}>人设与回复逻辑</Title>
+              <h5 className="m-0 text-base font-semibold" style={{ color: 'var(--color-components-panel-header-text)' }}>人设与回复逻辑</h5>
               <Button 
-                type="text" 
-                size="small"
+                variant="ghost"
+                size="icon-sm"
                 onClick={() => setLeftCollapsed(true)}
-                style={{ color: 'var(--color-components-icon-button-text)' }}
-                onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-components-icon-button-text-hover)'}
-                onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-components-icon-button-text)'}
               >
-                ←
+                <ArrowLeft className="h-4 w-4" style={{ color: 'var(--color-components-icon-button-text)' }} />
               </Button>
             </div>
           </div>
@@ -1022,482 +1161,408 @@ export const CreateAppPage: React.FC = () => {
         backgroundColor: 'var(--color-components-panel-header-bg)',
         borderBottom: '1px solid var(--color-border-default)'
       }}>
-        <Title level={5} className="m-0" style={{ color: 'var(--color-components-panel-header-text)' }}>应用配置</Title>
+        <h5 className="m-0 text-base font-semibold" style={{ color: 'var(--color-components-panel-header-text)' }}>应用配置</h5>
       </div>
       
-      <div className="flex-1 p-4 overflow-auto">
-        <Collapse 
-          defaultActiveKey={['model']} 
-          ghost
-          size="large"
-          expandIcon={({ isActive }) => (
-            <CaretRightOutlined
-              rotate={isActive ? 90 : 0}
-              style={{ color: 'var(--color-text-secondary)' }}
-            />
-          )}
-          items={[
-            {
-              key: 'model',
-              label: <span style={{ color: 'var(--color-text-primary)' }}>模型</span>,
-              children: (
-                <Space direction="vertical" className="w-full" size="large">
-                  {/* 模型选择 */}
-                  <div>
-                    <ChatModelSelector
-                      models={chatModels}
-                      selectedModelName={config.llm_id}
-                      onSelect={(modelName) => handleConfigChange('llm_id', modelName)}
-                      loading={modelsLoading}
-                      error={modelsError}
-                      modelTypes={['chat', 'image2text']}
-                    />
-                  </div>
-                  
-                  {/* 生成多样性 */}
-                  <div>
-                    <Text strong className="block mb-3" style={{ color: 'var(--color-text-primary)' }}>生成多样性</Text>
-                    <Tabs
-                      activeKey={currentPreset}
-                      onChange={handlePresetChange}
-                      style={{
-                        '--color-text-primary': 'var(--color-text-primary)',
-                        '--color-text-secondary': 'var(--color-text-secondary)',
-                      } as React.CSSProperties}
-                      items={[
-                        {
-                          key: 'creative',
-                          label: '即兴创作'
-                        },
-                        {
-                          key: 'precise',
-                          label: '精确'
-                        },
-                        {
-                          key: 'balanced',
-                          label: '平衡'
-                        },
-                        {
-                          key: 'custom',
-                          label: '自定义'
-                        }
-                      ]}
-                    />
-                    
-                    <div className="mt-4 space-y-4">
-                      {/* 温度 */}
-                      <LLMParameterControl
-                        label={LLM_PARAMETER_PRESETS.temperature.label}
-                        tooltip={LLM_PARAMETER_PRESETS.temperature.tooltip}
-                        value={config.llm_setting.temperature ?? LLM_PARAMETER_PRESETS.temperature.default}
-                        onChange={(value) => handleLLMSettingChange('temperature', value)}
-                        enabled={config.llm_setting.temperature_enabled}
-                        onEnabledChange={(checked) => handleLLMSettingChange('temperature_enabled', checked)}
-                        min={LLM_PARAMETER_PRESETS.temperature.min}
-                        max={LLM_PARAMETER_PRESETS.temperature.max}
-                        step={LLM_PARAMETER_PRESETS.temperature.step}
-                      />
-                      
-                      {/* Top P */}
-                      <LLMParameterControl
-                        label={LLM_PARAMETER_PRESETS.topP.label}
-                        tooltip={LLM_PARAMETER_PRESETS.topP.tooltip}
-                        value={config.llm_setting.top_p ?? LLM_PARAMETER_PRESETS.topP.default}
-                        onChange={(value) => handleLLMSettingChange('top_p', value)}
-                        enabled={config.llm_setting.top_p_enabled}
-                        onEnabledChange={(checked) => handleLLMSettingChange('top_p_enabled', checked)}
-                        min={LLM_PARAMETER_PRESETS.topP.min}
-                        max={LLM_PARAMETER_PRESETS.topP.max}
-                        step={LLM_PARAMETER_PRESETS.topP.step}
-                      />
-                      
-                      {/* 存在处罚 */}
-                      <LLMParameterControl
-                        label={LLM_PARAMETER_PRESETS.presencePenalty.label}
-                        tooltip={LLM_PARAMETER_PRESETS.presencePenalty.tooltip}
-                        value={config.llm_setting.presence_penalty ?? LLM_PARAMETER_PRESETS.presencePenalty.default}
-                        onChange={(value) => handleLLMSettingChange('presence_penalty', value)}
-                        enabled={config.llm_setting.presence_penalty_enabled}
-                        onEnabledChange={(checked) => handleLLMSettingChange('presence_penalty_enabled', checked)}
-                        min={LLM_PARAMETER_PRESETS.presencePenalty.min}
-                        max={LLM_PARAMETER_PRESETS.presencePenalty.max}
-                        step={LLM_PARAMETER_PRESETS.presencePenalty.step}
-                      />
-                      
-                      {/* 频率惩罚 */}
-                      <LLMParameterControl
-                        label={LLM_PARAMETER_PRESETS.frequencyPenalty.label}
-                        tooltip={LLM_PARAMETER_PRESETS.frequencyPenalty.tooltip}
-                        value={config.llm_setting.frequency_penalty ?? LLM_PARAMETER_PRESETS.frequencyPenalty.default}
-                        onChange={(value) => handleLLMSettingChange('frequency_penalty', value)}
-                        enabled={config.llm_setting.frequency_penalty_enabled}
-                        onEnabledChange={(checked) => handleLLMSettingChange('frequency_penalty_enabled', checked)}
-                        min={LLM_PARAMETER_PRESETS.frequencyPenalty.min}
-                        max={LLM_PARAMETER_PRESETS.frequencyPenalty.max}
-                        step={LLM_PARAMETER_PRESETS.frequencyPenalty.step}
-                      />
-                      
-                      {/* 最大 Token 数 */}
-                      <LLMParameterControl
-                        label={LLM_PARAMETER_PRESETS.maxTokens.label}
-                        tooltip={LLM_PARAMETER_PRESETS.maxTokens.tooltip}
-                        value={config.llm_setting.max_tokens ?? LLM_PARAMETER_PRESETS.maxTokens.default}
-                        onChange={(value) => handleLLMSettingChange('max_tokens', value)}
-                        enabled={config.llm_setting.max_tokens_enabled}
-                        onEnabledChange={(checked) => handleLLMSettingChange('max_tokens_enabled', checked)}
-                        min={LLM_PARAMETER_PRESETS.maxTokens.min}
-                        max={LLM_PARAMETER_PRESETS.maxTokens.max}
-                        step={LLM_PARAMETER_PRESETS.maxTokens.step}
-                        inputOnly={LLM_PARAMETER_PRESETS.maxTokens.inputOnly}
-                        inputWidth={LLM_PARAMETER_PRESETS.maxTokens.inputWidth}
-                      />
-                    </div>
-                  </div>
-                </Space>
-              )
-            },
-            {
-              key: 'knowledge',
-              label: <span style={{ color: 'var(--color-text-primary)' }}>知识库</span>,
-              extra: (
-                <Button 
-                  type="text" 
-                  icon={<PlusOutlined style={{ color: 'var(--color-components-icon-button-text)' }} />} 
-                  size="small"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setShowKnowledgeModal(true)
-                    loadKnowledgeBases()
-                  }}
-                  style={{ color: 'var(--color-components-icon-button-text)' }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.color = 'var(--color-components-icon-button-text-hover)'
-                    const icon = e.currentTarget.querySelector('.anticon')
-                    if (icon) (icon as HTMLElement).style.color = 'var(--color-components-icon-button-text-hover)'
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.color = 'var(--color-components-icon-button-text)'
-                    const icon = e.currentTarget.querySelector('.anticon')
-                    if (icon) (icon as HTMLElement).style.color = 'var(--color-components-icon-button-text)'
-                  }}
+      <div className="flex-1 p-4 overflow-auto space-y-4">
+        {/* 模型配置 */}
+        <CollapsibleSection title="模型" defaultOpen={true}>
+          <div className="space-y-6">
+            {/* 模型选择 */}
+            <div>
+              <ChatModelSelector
+                models={chatModels}
+                selectedModelName={config.llm_id}
+                onSelect={(modelName) => handleConfigChange('llm_id', modelName)}
+                loading={modelsLoading}
+                error={modelsError}
+                modelTypes={['chat', 'image2text']}
+              />
+            </div>
+            
+            {/* 生成多样性 */}
+            <div>
+              <span className="block mb-3 font-medium" style={{ color: 'var(--color-text-primary)' }}>生成多样性</span>
+              <Tabs value={currentPreset} onValueChange={handlePresetChange}>
+                <TabsList>
+                  {generationPresetOptions.map(option => (
+                    <TabsTrigger key={option.value} value={option.value}>
+                      {option.label}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </Tabs>
+              
+              <div className="mt-4 space-y-4">
+                {/* 温度 */}
+                <LLMParameterControl
+                  label={LLM_PARAMETER_PRESETS.temperature.label}
+                  tooltip={LLM_PARAMETER_PRESETS.temperature.tooltip}
+                  value={config.llm_setting.temperature ?? LLM_PARAMETER_PRESETS.temperature.default}
+                  onChange={(value) => handleLLMSettingChange('temperature', value)}
+                  enabled={config.llm_setting.temperature_enabled}
+                  onEnabledChange={(checked) => handleLLMSettingChange('temperature_enabled', checked)}
+                  min={LLM_PARAMETER_PRESETS.temperature.min}
+                  max={LLM_PARAMETER_PRESETS.temperature.max}
+                  step={LLM_PARAMETER_PRESETS.temperature.step}
                 />
-              ),
-              children: (
-                <Space direction="vertical" className="w-full" size="middle">
-                  {/* 已添加的知识库 */}
-                  <div>
-                    <Text strong className="block mb-2" style={{ color: 'var(--color-text-primary)' }}>已添加的知识库</Text>
-                    {knowledgeBases.length === 0 ? (
-                      <div className="text-center py-4" style={{ color: 'var(--color-text-tertiary)' }}>
-                        暂无添加的知识库
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        {knowledgeBases.map(kb => (
-                          <div 
-                            key={kb.id} 
-                            className="flex items-center justify-between p-3 border rounded-lg"
-                            style={{ borderColor: 'var(--color-border-default)' }}
-                          >
-                            <div className="flex items-center gap-3 min-w-0 flex-1">
-                              {/* 知识库头像 */}
-                              <KnowledgeBaseAvatar 
-                                name={kb.name} 
-                                avatar={kb.avatar} 
-                                size="lg"
-                              />
-                              <div className="min-w-0 flex-1">
-                                <div className="font-medium truncate" style={{ color: 'var(--color-text-primary)' }}>
-                                  {kb.name}
-                                </div>
-                                {kb.description && (
-                                  <div className="text-xs truncate" style={{ color: 'var(--color-text-tertiary)' }}>
-                                    {kb.description}
-                                  </div>
-                                )}
-                                {/* 向量模型标签 */}
-                                {kb.embd_id && (
-                                  <Tag 
-                                    color="blue" 
-                                    className="mt-1 text-xs"
-                                    style={{ 
-                                      fontSize: '11px',
-                                      padding: '0 6px',
-                                      lineHeight: '18px'
-                                    }}
-                                  >
-                                    {kb.embd_id}
-                                  </Tag>
-                                )}
-                              </div>
-                            </div>
-                            <Button 
-                              type="text" 
-                              danger 
-                              icon={<DeleteOutlined />} 
-                              size="small"
-                              onClick={() => handleRemoveKnowledgeBase(kb.id)}
-                            />
+                
+                {/* Top P */}
+                <LLMParameterControl
+                  label={LLM_PARAMETER_PRESETS.topP.label}
+                  tooltip={LLM_PARAMETER_PRESETS.topP.tooltip}
+                  value={config.llm_setting.top_p ?? LLM_PARAMETER_PRESETS.topP.default}
+                  onChange={(value) => handleLLMSettingChange('top_p', value)}
+                  enabled={config.llm_setting.top_p_enabled}
+                  onEnabledChange={(checked) => handleLLMSettingChange('top_p_enabled', checked)}
+                  min={LLM_PARAMETER_PRESETS.topP.min}
+                  max={LLM_PARAMETER_PRESETS.topP.max}
+                  step={LLM_PARAMETER_PRESETS.topP.step}
+                />
+                
+                {/* 存在处罚 */}
+                <LLMParameterControl
+                  label={LLM_PARAMETER_PRESETS.presencePenalty.label}
+                  tooltip={LLM_PARAMETER_PRESETS.presencePenalty.tooltip}
+                  value={config.llm_setting.presence_penalty ?? LLM_PARAMETER_PRESETS.presencePenalty.default}
+                  onChange={(value) => handleLLMSettingChange('presence_penalty', value)}
+                  enabled={config.llm_setting.presence_penalty_enabled}
+                  onEnabledChange={(checked) => handleLLMSettingChange('presence_penalty_enabled', checked)}
+                  min={LLM_PARAMETER_PRESETS.presencePenalty.min}
+                  max={LLM_PARAMETER_PRESETS.presencePenalty.max}
+                  step={LLM_PARAMETER_PRESETS.presencePenalty.step}
+                />
+                
+                {/* 频率惩罚 */}
+                <LLMParameterControl
+                  label={LLM_PARAMETER_PRESETS.frequencyPenalty.label}
+                  tooltip={LLM_PARAMETER_PRESETS.frequencyPenalty.tooltip}
+                  value={config.llm_setting.frequency_penalty ?? LLM_PARAMETER_PRESETS.frequencyPenalty.default}
+                  onChange={(value) => handleLLMSettingChange('frequency_penalty', value)}
+                  enabled={config.llm_setting.frequency_penalty_enabled}
+                  onEnabledChange={(checked) => handleLLMSettingChange('frequency_penalty_enabled', checked)}
+                  min={LLM_PARAMETER_PRESETS.frequencyPenalty.min}
+                  max={LLM_PARAMETER_PRESETS.frequencyPenalty.max}
+                  step={LLM_PARAMETER_PRESETS.frequencyPenalty.step}
+                />
+                
+                {/* 最大 Token 数 */}
+                <LLMParameterControl
+                  label={LLM_PARAMETER_PRESETS.maxTokens.label}
+                  tooltip={LLM_PARAMETER_PRESETS.maxTokens.tooltip}
+                  value={config.llm_setting.max_tokens ?? LLM_PARAMETER_PRESETS.maxTokens.default}
+                  onChange={(value) => handleLLMSettingChange('max_tokens', value)}
+                  enabled={config.llm_setting.max_tokens_enabled}
+                  onEnabledChange={(checked) => handleLLMSettingChange('max_tokens_enabled', checked)}
+                  min={LLM_PARAMETER_PRESETS.maxTokens.min}
+                  max={LLM_PARAMETER_PRESETS.maxTokens.max}
+                  step={LLM_PARAMETER_PRESETS.maxTokens.step}
+                  inputOnly={LLM_PARAMETER_PRESETS.maxTokens.inputOnly}
+                  inputWidth={LLM_PARAMETER_PRESETS.maxTokens.inputWidth}
+                />
+              </div>
+            </div>
+          </div>
+        </CollapsibleSection>
+
+        {/* 知识库配置 */}
+        <CollapsibleSection 
+          title="知识库" 
+          extra={
+            <Button 
+              variant="ghost"
+              size="icon-sm"
+              onClick={(e) => {
+                e.stopPropagation()
+                setShowKnowledgeModal(true)
+                loadKnowledgeBases()
+              }}
+            >
+              <Plus className="h-4 w-4" style={{ color: 'var(--color-components-icon-button-text)' }} />
+            </Button>
+          }
+        >
+          <div className="space-y-4">
+            {/* 已添加的知识库 */}
+            <div>
+              <span className="block mb-2 font-medium" style={{ color: 'var(--color-text-primary)' }}>已添加的知识库</span>
+              {knowledgeBases.length === 0 ? (
+                <div className="text-center py-4" style={{ color: 'var(--color-text-tertiary)' }}>
+                  暂无添加的知识库
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {knowledgeBases.map(kb => (
+                    <div 
+                      key={kb.id} 
+                      className="flex items-center justify-between p-3 border rounded-lg"
+                      style={{ borderColor: 'var(--color-border-default)' }}
+                    >
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <KnowledgeBaseAvatar 
+                          name={kb.name} 
+                          avatar={kb.avatar} 
+                          size="lg"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <div className="font-medium truncate" style={{ color: 'var(--color-text-primary)' }}>
+                            {kb.name}
                           </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  
-                  {/* 知识库设置 */}
-                  <Collapse 
-                    ghost 
-                    size="small"
-                    expandIcon={({ isActive }) => (
-                      <CaretRightOutlined
-                        rotate={isActive ? 90 : 0}
-                        style={{ color: 'var(--color-text-secondary)' }}
-                      />
-                    )}
-                    items={[
-                      {
-                        key: 'kb-settings',
-                        label: <span style={{ color: 'var(--color-text-primary)' }}>知识库设置</span>,
-                        children: (
-                  <Space direction="vertical" className="w-full" size="middle">
-                    {/* 搜索策略 */}
-                    <div>
-                      <Text strong className="block mb-2" style={{ color: 'var(--color-text-primary)' }}>搜索策略</Text>
-                      <Select
-                        value={config.search_mode?.type ?? 'dense'}
-                        onChange={(value) => {
-                          const searchMode = value === 'hybrid' 
-                            ? { type: 'hybrid' as const, weight_dense: config.search_mode?.weight_dense ?? 0.7, weight_sparse: config.search_mode?.weight_sparse ?? 0.3 }
-                            : value === 'dense'
-                            ? { type: 'dense' as const }
-                            : { type: 'sparse' as const }
-                          handleConfigChange('search_mode', searchMode)
-                        }}
-                        className="w-full"
-                        options={[
-                          { label: '混合', value: 'hybrid' },
-                          { label: '语义', value: 'dense' },
-                          { label: '全文', value: 'sparse' }
-                        ]}
-                      />
-                      
-                      {/* 混合检索权重设置 */}
-                      {config.search_mode?.type === 'hybrid' && (
-                        <div className="mt-3 space-y-3 p-3 rounded" style={{ backgroundColor: 'var(--color-background-subtle)' }}>
-                          <div>
-                            <div className="flex items-center justify-between mb-2">
-                              <Text className="text-sm">向量权重</Text>
-                              <Text className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>{((config.search_mode?.weight_dense ?? 0.7)).toFixed(2)}</Text>
+                          {kb.description && (
+                            <div className="text-xs truncate" style={{ color: 'var(--color-text-tertiary)' }}>
+                              {kb.description}
                             </div>
-                            <Slider
-                              min={0}
-                              max={1}
-                              step={0.01}
-                              value={[config.search_mode?.weight_dense ?? 0.7]}
-                              onValueChange={(values) => {
-                                const denseWeight = Number(values[0].toFixed(2))
-                                const sparseWeight = Number((1 - denseWeight).toFixed(2))
-                                handleConfigChange('search_mode', {
-                                  type: 'hybrid' as const,
-                                  weight_dense: denseWeight,
-                                  weight_sparse: sparseWeight
-                                })
-                              }}
-                            />
-                          </div>
-                          <div>
-                            <div className="flex items-center justify-between mb-2">
-                              <Text className="text-sm">全文权重 (自动计算)</Text>
-                              <Text className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>{((config.search_mode?.weight_sparse ?? 0.3)).toFixed(2)}</Text>
-                            </div>
-                            <div className="h-2 rounded relative" style={{ backgroundColor: 'var(--color-components-progress-bg)' }}>
-                              <div
-                                className="h-full rounded"
-                                style={{ 
-                                  width: `${((config.search_mode?.weight_sparse ?? 0.3) * 100).toFixed(0)}%`,
-                                  backgroundColor: 'var(--color-components-progress-fill)'
-                                }}
-                              />
-                            </div>
-                          </div>
-                          <div className="text-xs p-2 rounded" style={{ 
-                            color: 'var(--color-text-tertiary)', 
-                            backgroundColor: 'var(--color-components-alert-info-bg)', 
-                            border: '1px solid var(--color-components-alert-info-border)' 
-                          }}>
-                            💡 向量权重 + 全文权重 = 1.00 (精确到小数点后2位)
-                          </div>
+                          )}
+                          {kb.embd_id && (
+                            <Badge variant="blue" className="mt-1 text-xs">
+                              {kb.embd_id}
+                            </Badge>
+                          )}
                         </div>
-                      )}
+                      </div>
+                      <Button 
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={() => handleRemoveKnowledgeBase(kb.id)}
+                      >
+                        <Trash2 className="h-4 w-4" style={{ color: 'var(--color-state-error-text)' }} />
+                      </Button>
                     </div>
-                    
-                    {/* 相似度阈值 */}
-                    <div>
-                      <Text strong className="block mb-2" style={{ color: 'var(--color-text-primary)' }}>相似度阈值: {Number(config.similarity_threshold ?? 0).toFixed(2)}</Text>
-                      <Slider
-                        min={0}
-                        max={1}
-                        step={0.01}
-                        value={[config.similarity_threshold ?? 0]}
-                        onValueChange={(values) => handleConfigChange('similarity_threshold', values[0])}
-                      />
-                    </div>
-                    
-                    {/* 关键字相似度权重 */}
-                    <div>
-                      <Text strong className="block mb-2" style={{ color: 'var(--color-text-primary)' }}>关键字相似度权重: {Number(config.vector_similarity_weight ?? 0).toFixed(2)}</Text>
-                      <Slider
-                        min={0}
-                        max={1}
-                        step={0.01}
-                        value={[config.vector_similarity_weight ?? 0]}
-                        onValueChange={(values) => handleConfigChange('vector_similarity_weight', values[0])}
-                      />
-                    </div>
-                    
-                    {/* Top N */}
-                    <div>
-                      <Text strong className="block mb-2" style={{ color: 'var(--color-text-primary)' }}>Top N: {config.top_n}</Text>
-                      <Input
-                        type="number"
-                        min={1}
-                        value={config.top_n}
-                        onChange={(e) => handleConfigChange('top_n', parseInt(e.target.value) || 1)}
-                      />
-                    </div>
-                    
-                    {/* 知识库空回复 */}
-                    <div>
-                      <Text strong className="block mb-2" style={{ color: 'var(--color-text-primary)' }}>知识库空回复</Text>
-                      <Input.TextArea
-                        rows={2}
-                        value={config.prompt_config.empty_response}
-                        onChange={(e) => handleConfigChange('prompt_config', {
-                          ...config.prompt_config,
-                          empty_response: e.target.value
-                        })}
-                        placeholder="当知识库中未找到相关内容时的回复"
-                      />
-                    </div>
-                    
-                    {/* 重排序模型 */}
-                    <div>
-                      <RerankModelSelector
-                        models={rerankModels}
-                        selectedModelId={config.rerank_id}
-                        onSelect={(modelId) => handleConfigChange('rerank_id', modelId)}
-                        loading={modelsLoading}
-                        error={modelsError}
-                      />
-                    </div>
-                    
-                    {/* 向量召回的个数 */}
-                    <div>
-                      <Text strong className="block mb-2" style={{ color: 'var(--color-text-primary)' }}>向量召回的个数 (Top K): {config.top_k}</Text>
-                      <Input
-                        type="number"
-                        min={1}
-                        value={config.top_k}
-                        onChange={(e) => handleConfigChange('top_k', parseInt(e.target.value) || 1)}
-                      />
-                    </div>
-                    
-                    {/* 显示来源 */}
-                    <div>
-                      <div className="flex items-center justify-between">
-                        <Text strong style={{ color: 'var(--color-text-primary)' }}>显示来源</Text>
-                        <Switch
-                          checked={config.do_refer === '1'}
-                          onChange={(checked) => handleConfigChange('do_refer', checked ? '1' : '0')}
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            {/* 知识库设置 */}
+            <CollapsibleSection title="知识库设置">
+              <div className="space-y-4">
+                {/* 搜索策略 */}
+                <div>
+                  <span className="block mb-2 font-medium" style={{ color: 'var(--color-text-primary)' }}>搜索策略</span>
+                  <Select
+                    value={config.search_mode?.type ?? 'dense'}
+                    onValueChange={(value) => {
+                      const searchMode = value === 'hybrid' 
+                        ? { type: 'hybrid' as const, weight_dense: config.search_mode?.weight_dense ?? 0.7, weight_sparse: config.search_mode?.weight_sparse ?? 0.3 }
+                        : value === 'dense'
+                        ? { type: 'dense' as const }
+                        : { type: 'sparse' as const }
+                      handleConfigChange('search_mode', searchMode)
+                    }}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="选择搜索策略" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="hybrid">混合</SelectItem>
+                      <SelectItem value="dense">语义</SelectItem>
+                      <SelectItem value="sparse">全文</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  
+                  {/* 混合检索权重设置 */}
+                  {config.search_mode?.type === 'hybrid' && (
+                    <div className="mt-3 space-y-3 p-3 rounded" style={{ backgroundColor: 'var(--color-background-subtle)' }}>
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm">向量权重</span>
+                          <span className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>{((config.search_mode?.weight_dense ?? 0.7)).toFixed(2)}</span>
+                        </div>
+                        <Slider
+                          min={0}
+                          max={1}
+                          step={0.01}
+                          value={[config.search_mode?.weight_dense ?? 0.7]}
+                          onValueChange={(values) => {
+                            const denseWeight = Number(values[0].toFixed(2))
+                            const sparseWeight = Number((1 - denseWeight).toFixed(2))
+                            handleConfigChange('search_mode', {
+                              type: 'hybrid' as const,
+                              weight_dense: denseWeight,
+                              weight_sparse: sparseWeight
+                            })
+                          }}
                         />
                       </div>
-                    </div>
-                  </Space>
-                )
-              }
-            ]}
-          />
-                </Space>
-              )
-            },
-            {
-              key: 'memory',
-              label: <span style={{ color: 'var(--color-text-primary)' }}>变量</span>,
-              extra: (
-                <Button 
-                  type="text" 
-                  icon={<PlusOutlined style={{ color: 'var(--color-components-icon-button-text)' }} />} 
-                  size="small"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setShowVariableModal(true)
-                  }}
-                  style={{ color: 'var(--color-components-icon-button-text)' }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.color = 'var(--color-components-icon-button-text-hover)'
-                    const icon = e.currentTarget.querySelector('.anticon')
-                    if (icon) (icon as HTMLElement).style.color = 'var(--color-components-icon-button-text-hover)'
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.color = 'var(--color-components-icon-button-text)'
-                    const icon = e.currentTarget.querySelector('.anticon')
-                    if (icon) (icon as HTMLElement).style.color = 'var(--color-components-icon-button-text)'
-                  }}
-                />
-              ),
-              children: (
-                <div>
-                  {config.prompt_config.parameters.length === 0 ? (
-                    <div className="text-center py-4" style={{ color: 'var(--color-text-tertiary)' }}>
-                      暂无变量
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      {config.prompt_config.parameters.map(param => (
-                        <div key={param.key} className="flex items-center justify-between p-2 border rounded">
-                          <div>
-                            <span className="font-medium">{param.key}</span>
-                            <Tag className="ml-2" color={param.optional ? 'orange' : 'blue'}>
-                              {param.optional ? '可选' : '必选'}
-                            </Tag>
-                          </div>
-                          <Button 
-                            type="text" 
-                            danger 
-                            icon={<DeleteOutlined />} 
-                            size="small"
-                            onClick={() => handleRemoveVariable(param.key)}
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm">全文权重 (自动计算)</span>
+                          <span className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>{((config.search_mode?.weight_sparse ?? 0.3)).toFixed(2)}</span>
+                        </div>
+                        <div className="h-2 rounded relative" style={{ backgroundColor: 'var(--color-components-progress-bg)' }}>
+                          <div
+                            className="h-full rounded"
+                            style={{ 
+                              width: `${((config.search_mode?.weight_sparse ?? 0.3) * 100).toFixed(0)}%`,
+                              backgroundColor: 'var(--color-components-progress-fill)'
+                            }}
                           />
                         </div>
-                      ))}
+                      </div>
+                      <div className="text-xs p-2 rounded" style={{ 
+                        color: 'var(--color-text-tertiary)', 
+                        backgroundColor: 'var(--color-components-alert-info-bg)', 
+                        border: '1px solid var(--color-components-alert-info-border)' 
+                      }}>
+                        💡 向量权重 + 全文权重 = 1.00 (精确到小数点后2位)
+                      </div>
                     </div>
                   )}
                 </div>
-              )
-            },
-            {
-              key: 'experience',
-              label: <span style={{ color: 'var(--color-text-primary)' }}>对话体验</span>,
-              children: (
-                <Space direction="vertical" className="w-full" size="middle">
-                  {/* 开场白 */}
-                  <div>
-                    <Text strong className="block mb-2" style={{ color: 'var(--color-text-primary)' }}>开场白</Text>
-                    <Input.TextArea
-                      rows={3}
-                      value={config.prompt_config.prologue}
-                      onChange={(e) => handleConfigChange('prompt_config', {
-                        ...config.prompt_config,
-                        prologue: e.target.value
-                      })}
-                      placeholder="设置对话开始时的问候语"
+                
+                {/* 相似度阈值 */}
+                <div>
+                  <span className="block mb-2 font-medium" style={{ color: 'var(--color-text-primary)' }}>相似度阈值: {Number(config.similarity_threshold ?? 0).toFixed(2)}</span>
+                  <Slider
+                    min={0}
+                    max={1}
+                    step={0.01}
+                    value={[config.similarity_threshold ?? 0]}
+                    onValueChange={(values) => handleConfigChange('similarity_threshold', values[0])}
+                  />
+                </div>
+                
+                {/* 关键字相似度权重 */}
+                <div>
+                  <span className="block mb-2 font-medium" style={{ color: 'var(--color-text-primary)' }}>关键字相似度权重: {Number(config.vector_similarity_weight ?? 0).toFixed(2)}</span>
+                  <Slider
+                    min={0}
+                    max={1}
+                    step={0.01}
+                    value={[config.vector_similarity_weight ?? 0]}
+                    onValueChange={(values) => handleConfigChange('vector_similarity_weight', values[0])}
+                  />
+                </div>
+                
+                {/* Top N */}
+                <div>
+                  <span className="block mb-2 font-medium" style={{ color: 'var(--color-text-primary)' }}>Top N: {config.top_n}</span>
+                  <Input
+                    type="number"
+                    min={1}
+                    value={config.top_n}
+                    onChange={(e) => handleConfigChange('top_n', parseInt(e.target.value) || 1)}
+                  />
+                </div>
+                
+                {/* 知识库空回复 */}
+                <div>
+                  <span className="block mb-2 font-medium" style={{ color: 'var(--color-text-primary)' }}>知识库空回复</span>
+                  <Textarea
+                    rows={2}
+                    value={config.prompt_config.empty_response}
+                    onChange={(e) => handleConfigChange('prompt_config', {
+                      ...config.prompt_config,
+                      empty_response: e.target.value
+                    })}
+                    placeholder="当知识库中未找到相关内容时的回复"
+                  />
+                </div>
+                
+                {/* 重排序模型 */}
+                <div>
+                  <RerankModelSelector
+                    models={rerankModels}
+                    selectedModelId={config.rerank_id}
+                    onSelect={(modelId) => handleConfigChange('rerank_id', modelId)}
+                    loading={modelsLoading}
+                    error={modelsError}
+                  />
+                </div>
+                
+                {/* 向量召回的个数 */}
+                <div>
+                  <span className="block mb-2 font-medium" style={{ color: 'var(--color-text-primary)' }}>向量召回的个数 (Top K): {config.top_k}</span>
+                  <Input
+                    type="number"
+                    min={1}
+                    value={config.top_k}
+                    onChange={(e) => handleConfigChange('top_k', parseInt(e.target.value) || 1)}
+                  />
+                </div>
+                
+                {/* 显示来源 */}
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium" style={{ color: 'var(--color-text-primary)' }}>显示来源</span>
+                    <Switch
+                      checked={config.do_refer === '1'}
+                      onCheckedChange={(checked) => handleConfigChange('do_refer', checked ? '1' : '0')}
                     />
                   </div>
-                </Space>
-              )
-            }
-          ]}
-        />
+                </div>
+              </div>
+            </CollapsibleSection>
+          </div>
+        </CollapsibleSection>
+
+        {/* 变量配置 */}
+        <CollapsibleSection 
+          title="变量"
+          extra={
+            <Button 
+              variant="ghost"
+              size="icon-sm"
+              onClick={(e) => {
+                e.stopPropagation()
+                setShowVariableModal(true)
+              }}
+            >
+              <Plus className="h-4 w-4" style={{ color: 'var(--color-components-icon-button-text)' }} />
+            </Button>
+          }
+        >
+          <div>
+            {config.prompt_config.parameters.length === 0 ? (
+              <div className="text-center py-4" style={{ color: 'var(--color-text-tertiary)' }}>
+                暂无变量
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {config.prompt_config.parameters.map(param => (
+                  <div 
+                    key={param.key} 
+                    className="flex items-center justify-between p-2 rounded"
+                    style={{ border: '1px solid var(--color-border-default)' }}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium" style={{ color: 'var(--color-text-primary)' }}>{param.key}</span>
+                      <Badge variant={param.optional ? 'orange' : 'blue'}>
+                        {param.optional ? '可选' : '必选'}
+                      </Badge>
+                    </div>
+                    <Button 
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={() => handleRemoveVariable(param.key)}
+                    >
+                      <Trash2 className="h-4 w-4" style={{ color: 'var(--color-state-error-text)' }} />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </CollapsibleSection>
+
+        {/* 对话体验 */}
+        <CollapsibleSection title="对话体验">
+          <div className="space-y-4">
+            {/* 开场白 */}
+            <div>
+              <span className="block mb-2 font-medium" style={{ color: 'var(--color-text-primary)' }}>开场白</span>
+              <Textarea
+                rows={3}
+                value={config.prompt_config.prologue}
+                onChange={(e) => handleConfigChange('prompt_config', {
+                  ...config.prompt_config,
+                  prologue: e.target.value
+                })}
+                placeholder="设置对话开始时的问候语"
+              />
+            </div>
+          </div>
+        </CollapsibleSection>
       </div>
     </div>
   )
@@ -1505,39 +1570,76 @@ export const CreateAppPage: React.FC = () => {
   const renderRightPanel = () => {
     // 转换消息数据为 Bubble.List 需要的格式
     const bubbleItems = previewMessages.map((msg, index) => {
-      // 偶数索引为AI回复，奇数为用户消息
-      const isUser = index % 2 === 1
+      const isUser = msg.role === 'user'
+      const isLastAssistant = !isUser && index === previewMessages.length - 1
+      const isCurrentStreaming = isStreaming && isLastAssistant
       
       return {
-        key: `preview-message-${index}`,
-        role: isUser ? 'user' : 'assistant',
+        key: msg.id,
+        role: msg.role,
         content: (
           <div className="bubble-content leading-relaxed">
-            {msg && msg.trim() ? (
-              renderMarkdown(msg)
-            ) : (
-              <div className="italic" style={{ color: 'var(--color-text-muted)' }}>正在生成回复...</div>
+            {/* 显示思考过程 */}
+            {msg.thinking && (
+              <div 
+                className="mb-3 p-3 rounded-lg text-xs"
+                style={{ 
+                  backgroundColor: 'var(--color-chat-think-bg)',
+                  border: '1px solid var(--color-chat-think-border)',
+                }}
+              >
+                <div 
+                  className="font-medium mb-2 flex items-center gap-1"
+                  style={{ color: 'var(--color-chat-think-text)' }}
+                >
+                  <span>{isCurrentStreaming ? '💭 思考中...' : '💭 思考过程'}</span>
+                </div>
+                <div 
+                  className="whitespace-pre-wrap leading-relaxed"
+                  style={{ color: 'var(--color-chat-think-text)' }}
+                >
+                  {msg.thinking}
+                </div>
+              </div>
             )}
+            {/* 显示主内容 */}
+            {msg.content && msg.content.trim() ? (
+              renderMarkdown(msg.content)
+            ) : isCurrentStreaming && !msg.thinking ? (
+              <div className="italic" style={{ color: 'var(--color-text-muted)' }}>正在生成回复...</div>
+            ) : null}
           </div>
         ),
         placement: (isUser ? 'end' : 'start') as 'start' | 'end',
+        loading: isCurrentStreaming && !msg.content && !msg.thinking,
         avatar: isUser
           ? (
-              <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-medium">
+              <div 
+                className="w-8 h-8 min-w-[32px] min-h-[32px] rounded-full flex items-center justify-center text-sm font-medium flex-shrink-0"
+                style={{ 
+                  backgroundColor: 'var(--color-chat-bubble-user-avatar-bg)',
+                  color: 'var(--color-chat-bubble-user-avatar-text)'
+                }}
+              >
                 U
               </div>
             )
-          : config.icon 
+          : config.icon && config.icon.trim() 
             ? (
-                <img 
-                  src={config.icon} 
-                  alt="AI" 
-                  className="w-8 h-8 rounded-full object-cover"
-                />
+                <div className="w-8 h-8 min-w-[32px] min-h-[32px] rounded-full overflow-hidden flex-shrink-0">
+                  <img 
+                    src={config.icon} 
+                    alt="AI" 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
               )
             : (
-                <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
-                  <AppstoreOutlined className="text-gray-500" />
+                <div 
+                  className="w-8 h-8 min-w-[32px] min-h-[32px] rounded-full flex items-center justify-center flex-shrink-0"
+                  style={{ backgroundColor: 'var(--color-chat-bubble-assistant-avatar-bg)' }}
+                >
+                  <LayoutGrid className="h-4 w-4" style={{ color: 'var(--color-chat-bubble-assistant-avatar-text)' }} />
                 </div>
               ),
         variant: 'borderless' as const,
@@ -1558,7 +1660,6 @@ export const CreateAppPage: React.FC = () => {
             lineHeight: '1.6'
           }
         },
-        messageRender: !isUser ? renderMarkdown : undefined,
       }
     })
 
@@ -1568,41 +1669,23 @@ export const CreateAppPage: React.FC = () => {
         {rightCollapsed ? (
           <div className="flex flex-col items-center p-4 h-full justify-center">
             <Button 
-              type="text" 
-              icon={<EyeOutlined style={{ color: 'var(--color-components-icon-button-text)' }} />} 
+              variant="ghost"
+              size="icon"
               onClick={() => setRightCollapsed(false)}
               className="mb-2"
-              style={{ color: 'var(--color-components-icon-button-text)' }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = 'var(--color-components-icon-button-text-hover)'
-                const icon = e.currentTarget.querySelector('.anticon')
-                if (icon) (icon as HTMLElement).style.color = 'var(--color-components-icon-button-text-hover)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = 'var(--color-components-icon-button-text)'
-                const icon = e.currentTarget.querySelector('.anticon')
-                if (icon) (icon as HTMLElement).style.color = 'var(--color-components-icon-button-text)'
-              }}
-            />
+            >
+              <Eye className="h-4 w-4" style={{ color: 'var(--color-components-icon-button-text)' }} />
+            </Button>
             <Button 
-              type="text" 
-              icon={<BugOutlined style={{ color: 'var(--color-components-icon-button-text)' }} />} 
+              variant="ghost"
+              size="icon"
               className="mb-4"
-              style={{ color: 'var(--color-components-icon-button-text)' }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = 'var(--color-components-icon-button-text-hover)'
-                const icon = e.currentTarget.querySelector('.anticon')
-                if (icon) (icon as HTMLElement).style.color = 'var(--color-components-icon-button-text-hover)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = 'var(--color-components-icon-button-text)'
-                const icon = e.currentTarget.querySelector('.anticon')
-                if (icon) (icon as HTMLElement).style.color = 'var(--color-components-icon-button-text)'
-              }}
-            />
-            <Text className="text-xs transform -rotate-90 whitespace-nowrap" style={{ color: 'var(--color-text-tertiary)' }}>
+            >
+              <Bug className="h-4 w-4" style={{ color: 'var(--color-components-icon-button-text)' }} />
+            </Button>
+            <span className="text-xs transform -rotate-90 whitespace-nowrap" style={{ color: 'var(--color-text-tertiary)' }}>
               预览调试
-            </Text>
+            </span>
           </div>
         ) : (
           <>
@@ -1611,17 +1694,24 @@ export const CreateAppPage: React.FC = () => {
               borderBottom: '1px solid var(--color-border-default)'
             }}>
               <div className="flex items-center justify-between">
-                <Title level={5} className="m-0" style={{ color: 'var(--color-components-panel-header-text)' }}>预览与调试</Title>
-                <Button 
-                  type="text" 
-                  size="small"
-                  onClick={() => setRightCollapsed(true)}
-                  style={{ color: 'var(--color-components-icon-button-text)' }}
-                  onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-components-icon-button-text-hover)'}
-                  onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-components-icon-button-text)'}
-                >
-                  →
-                </Button>
+                <h5 className="m-0 text-base font-semibold" style={{ color: 'var(--color-components-panel-header-text)' }}>预览与调试</h5>
+                <div className="flex items-center gap-2">
+                  <Button 
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={handleResetPreview}
+                    title="重置对话"
+                  >
+                    <RefreshCw className="h-4 w-4" style={{ color: 'var(--color-components-icon-button-text)' }} />
+                  </Button>
+                  <Button 
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={() => setRightCollapsed(true)}
+                  >
+                    <ChevronRight className="h-4 w-4" style={{ color: 'var(--color-components-icon-button-text)' }} />
+                  </Button>
+                </div>
               </div>
             </div>
             
@@ -1632,7 +1722,7 @@ export const CreateAppPage: React.FC = () => {
                   <div className="text-center py-16">
                     <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4" 
                          style={{ background: 'var(--color-components-app-avatar-bg)' }}>
-                      <span className="text-white text-sm font-bold">AI</span>
+                      <span className="text-sm font-bold" style={{ color: 'var(--color-text-inverted)' }}>AI</span>
                     </div>
                     <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--color-text-primary)' }}>
                       {config.name}
@@ -1667,18 +1757,13 @@ export const CreateAppPage: React.FC = () => {
                     value={inputValue}
                     onChange={(value) => setInputValue(value)}
                     placeholder="输入消息进行预览..."
+                    loading={isStreaming}
                     onSubmit={(message) => {
                       if (message) {
-                        setPreviewMessages(prev => [...prev, message])
-                        setInputValue('')
-                        
-                        // 模拟AI回复
-                        setTimeout(() => {
-                          const aiResponse = '根据当前配置，这是AI的回复。'
-                          setPreviewMessages(prev => [...prev, aiResponse])
-                        }, 1000)
+                        handleSendPreviewMessage(message)
                       }
                     }}
+                    onCancel={handleStopOutput}
                     submitType="enter"
                     styles={{
                       input: {
@@ -1693,30 +1778,63 @@ export const CreateAppPage: React.FC = () => {
                     }}
                     className="border-none shadow-none rounded-xl"
                   />
+                  {isStreaming && (
+                    <div className="flex justify-center mt-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleStopOutput}
+                      >
+                        <Square className="h-4 w-4 mr-2" style={{ color: 'var(--color-state-error-text)' }} />
+                        停止生成
+                      </Button>
+                    </div>
+                  )}
                 </div>
                 
                 {/* 调试信息 */}
                 <div className="rounded-lg p-3" style={{ backgroundColor: 'var(--color-chat-preview-debug-bg)' }}>
-                  <Text strong className="block mb-2 text-xs" style={{ color: 'var(--color-chat-preview-debug-text)' }}>调试信息</Text>
-                  <Space direction="vertical" className="w-full" size="small">
+                  <span className="block mb-2 text-xs font-medium" style={{ color: 'var(--color-chat-preview-debug-text)' }}>调试信息</span>
+                  <div className="space-y-1">
                     <div className="flex justify-between text-xs">
-                      <Text className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>当前模型:</Text>
-                      <Text className="text-xs" style={{ color: 'var(--color-chat-preview-debug-text)' }}>{config.llm_id || '未选择'}</Text>
+                      <span style={{ color: 'var(--color-text-tertiary)' }}>当前模型:</span>
+                      <span style={{ color: 'var(--color-chat-preview-debug-text)' }}>{config.llm_id || '未选择'}</span>
                     </div>
                     <div className="flex justify-between text-xs">
-                      <Text className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>温度设置:</Text>
-                      <Text className="text-xs" style={{ color: 'var(--color-chat-preview-debug-text)' }}>{Number(config.llm_setting.temperature ?? 0).toFixed(2) || 'N/A'}</Text>
+                      <span style={{ color: 'var(--color-text-tertiary)' }}>温度设置:</span>
+                      <span style={{ color: 'var(--color-chat-preview-debug-text)' }}>{Number(config.llm_setting.temperature ?? 0).toFixed(2) || 'N/A'}</span>
                     </div>
                     <div className="flex justify-between text-xs">
-                      <Text className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>知识库数量:</Text>
-                      <Text className="text-xs" style={{ color: 'var(--color-chat-preview-debug-text)' }}>{config.kb_ids.length}</Text>
+                      <span style={{ color: 'var(--color-text-tertiary)' }}>知识库数量:</span>
+                      <span style={{ color: 'var(--color-chat-preview-debug-text)' }}>{config.kb_ids.length}</span>
                     </div>
                     <div className="flex justify-between text-xs">
-                      <Text className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>最大回复长度:</Text>
-                      <Text className="text-xs" style={{ color: 'var(--color-chat-preview-debug-text)' }}>{config.llm_setting.max_tokens || 'N/A'}</Text>
+                      <span style={{ color: 'var(--color-text-tertiary)' }}>最大回复长度:</span>
+                      <span style={{ color: 'var(--color-chat-preview-debug-text)' }}>{config.llm_setting.max_tokens || 'N/A'}</span>
                     </div>
-                  </Space>
+                    <div className="flex justify-between text-xs">
+                      <span style={{ color: 'var(--color-text-tertiary)' }}>预览会话:</span>
+                      <span style={{ color: previewConversationId ? 'var(--color-status-success-text)' : 'var(--color-text-tertiary)' }}>
+                        {previewConversationId ? '已创建' : '待创建'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span style={{ color: 'var(--color-text-tertiary)' }}>消息数:</span>
+                      <span style={{ color: 'var(--color-chat-preview-debug-text)' }}>{previewMessages.length}</span>
+                    </div>
+                  </div>
                 </div>
+                
+                {/* 提示信息 */}
+                {!(searchParams.get('dialog_id') || searchParams.get('id')) && (
+                  <div className="mt-2 p-2 rounded text-xs" style={{ 
+                    backgroundColor: 'var(--color-components-alert-warning-bg)',
+                    border: '1px solid var(--color-components-alert-warning-border)',
+                    color: 'var(--color-components-alert-warning-text)'
+                  }}>
+                    💡 请先保存应用配置后才能进行预览调试
+                  </div>
+                )}
               </div>
             </div>
           </>
@@ -1726,341 +1844,321 @@ export const CreateAppPage: React.FC = () => {
   }
 
   return (
-    <div className="h-screen bg-gray-50 flex flex-col">
+    <div className="h-screen flex flex-col" style={{ backgroundColor: 'var(--color-background-body)' }}>
       {/* 顶部Header */}
       {renderHeader()}
       
       {/* 三栏布局 */}
-      <div className="flex-1">
-        <Splitter style={{ height: '100%' }}>
-          <Splitter.Panel 
-            defaultSize="33.33%"
-            min="20%"
-            max="50%"
-            className="border-r"
+      <div className="flex-1 overflow-hidden">
+        <ResizablePanelGroup direction="horizontal" className="h-full">
+          <ResizablePanel 
+            defaultSize={33}
+            minSize={20}
+            maxSize={50}
           >
-            {renderLeftPanel()}
-          </Splitter.Panel>
+            <div className="h-full" style={{ borderRight: '1px solid var(--color-border-default)' }}>
+              {renderLeftPanel()}
+            </div>
+          </ResizablePanel>
           
-          <Splitter.Panel 
-            defaultSize="33.33%"
-            min="30%"
-            className="border-r"
+          <ResizableHandle className="w-px bg-transparent hover:bg-[var(--color-border-accent)] transition-colors" />
+          
+          <ResizablePanel 
+            defaultSize={34}
+            minSize={30}
           >
-            {renderCenterPanel()}
-          </Splitter.Panel>
+            <div className="h-full" style={{ borderRight: '1px solid var(--color-border-default)' }}>
+              {renderCenterPanel()}
+            </div>
+          </ResizablePanel>
           
-          <Splitter.Panel 
-            defaultSize="33.33%"
-            min="20%"
-            max="50%"
+          <ResizableHandle className="w-px bg-transparent hover:bg-[var(--color-border-accent)] transition-colors" />
+          
+          <ResizablePanel 
+            defaultSize={33}
+            minSize={20}
+            maxSize={50}
           >
             {renderRightPanel()}
-          </Splitter.Panel>
-        </Splitter>
+          </ResizablePanel>
+        </ResizablePanelGroup>
       </div>
 
       {/* 编辑应用信息弹窗 */}
-      <Modal
-        title={<span style={{ color: 'var(--color-text-primary)' }}>编辑应用信息</span>}
-        open={showEditModal}
-        onOk={handleSaveEdit}
-        onCancel={handleCancelEdit}
-        okText="保存"
-        cancelText="取消"
-        width={500}
-        styles={{
-          content: {
-            backgroundColor: 'var(--color-components-modal-bg)',
-            color: 'var(--color-text-primary)'
-          },
-          header: {
-            backgroundColor: 'var(--color-components-modal-bg)',
-            borderBottom: '1px solid var(--color-border-default)',
-            color: 'var(--color-text-primary)'
-          },
-          body: {
-            backgroundColor: 'var(--color-components-modal-bg)'
-          }
-        }}
-      >
-        <Space direction="vertical" className="w-full" size="middle">
-          <div>
-            <Text strong className="block mb-2" style={{ color: 'var(--color-text-primary)' }}>应用图标</Text>
-            <div className="flex items-center gap-4">
-              <Avatar 
-                size={64}
-                src={tempConfig.icon}
-                icon={!tempConfig.icon && <AppstoreOutlined />}
-                style={tempConfig.icon ? 
-                  { backgroundColor: 'transparent' } : 
-                  { 
-                    background: 'var(--color-components-app-avatar-bg)',
-                    border: '2px solid var(--color-components-app-avatar-border)'
-                  }
-                }
-              />
-              <Upload
-                beforeUpload={handleIconUpload}
-                showUploadList={false}
-                accept="image/*"
-              >
-                <Button icon={<PlusOutlined style={{ color: 'var(--color-components-icon-button-text)' }} />}>
-                  上传图标
-                </Button>
-              </Upload>
-              {tempConfig.icon && (
-                <Button 
-                  onClick={() => setTempConfig(prev => ({ ...prev, icon: undefined }))}
-                  type="text"
-                  danger
-                  style={{ color: 'var(--color-state-error-text)' }}
-                  onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-state-error-text-hover)'}
-                  onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-state-error-text)'}
-                >
-                  移除
-                </Button>
-              )}
+      <Dialog open={showEditModal} onOpenChange={(open) => !open && handleCancelEdit()}>
+        <DialogContent size="md">
+          <DialogHeader>
+            <DialogTitle>编辑应用信息</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <span className="block mb-2 font-medium" style={{ color: 'var(--color-text-primary)' }}>应用图标</span>
+              <div className="flex items-center gap-4">
+                <Avatar className="h-16 w-16">
+                  {tempConfig.icon ? (
+                    <AvatarImage src={tempConfig.icon} alt="App Icon" />
+                  ) : null}
+                  <AvatarFallback 
+                    style={{ 
+                      background: 'var(--color-components-app-avatar-bg)',
+                      border: '2px solid var(--color-components-app-avatar-border)'
+                    }}
+                  >
+                    <LayoutGrid className="h-6 w-6" style={{ color: 'var(--color-text-tertiary)' }} />
+                  </AvatarFallback>
+                </Avatar>
+                <label className="cursor-pointer">
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/svg+xml"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (file) {
+                        handleIconUpload(file)
+                      }
+                    }}
+                  />
+                  <Button variant="outline" asChild>
+                    <span>
+                      <Upload className="h-4 w-4 mr-2" />
+                      上传图标
+                    </span>
+                  </Button>
+                </label>
+                {tempConfig.icon && (
+                  <Button 
+                    variant="ghost"
+                    onClick={() => setTempConfig(prev => ({ ...prev, icon: undefined }))}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" style={{ color: 'var(--color-state-error-text)' }} />
+                    移除
+                  </Button>
+                )}
+              </div>
+              <span className="text-xs mt-2 block" style={{ color: 'var(--color-text-tertiary)' }}>
+                支持 JPG、PNG、SVG 格式，文件大小不超过 2MB
+              </span>
             </div>
-            <Text className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
-              支持 JPG、PNG、SVG 格式，文件大小不超过 2MB
-            </Text>
+            
+            <div>
+              <span className="block mb-2 font-medium" style={{ color: 'var(--color-text-primary)' }}>应用名称</span>
+              <Input
+                value={tempConfig.name}
+                onChange={(e) => setTempConfig(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="输入应用名称"
+                maxLength={50}
+              />
+              <span className="text-xs mt-1 block text-right" style={{ color: 'var(--color-text-tertiary)' }}>
+                {tempConfig.name.length}/50
+              </span>
+            </div>
+            
+            <div>
+              <span className="block mb-2 font-medium" style={{ color: 'var(--color-text-primary)' }}>应用描述</span>
+              <Textarea
+                value={tempConfig.description}
+                onChange={(e) => setTempConfig(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="描述应用的功能和用途..."
+                rows={4}
+                maxLength={200}
+              />
+              <span className="text-xs mt-1 block text-right" style={{ color: 'var(--color-text-tertiary)' }}>
+                {tempConfig.description.length}/200
+              </span>
+            </div>
           </div>
-          
-          <div>
-            <Text strong className="block mb-2" style={{ color: 'var(--color-text-primary)' }}>应用名称</Text>
-            <Input
-              value={tempConfig.name}
-              onChange={(e) => setTempConfig(prev => ({ ...prev, name: e.target.value }))}
-              placeholder="输入应用名称"
-              maxLength={50}
-              showCount
-            />
-          </div>
-          
-          <div>
-            <Text strong className="block mb-2">应用描述</Text>
-            <TextArea
-              value={tempConfig.description}
-              onChange={(e) => setTempConfig(prev => ({ ...prev, description: e.target.value }))}
-              placeholder="描述应用的功能和用途..."
-              rows={4}
-              maxLength={200}
-              showCount
-            />
-          </div>
-        </Space>
-      </Modal>
+          <DialogFooter>
+            <Button variant="outline" onClick={handleCancelEdit}>取消</Button>
+            <Button onClick={handleSaveEdit}>保存</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       
       {/* 添加知识库弹窗 */}
-      <Modal
-        title={<span style={{ color: 'var(--color-text-primary)' }}>添加知识库</span>}
-        open={showKnowledgeModal}
-        onCancel={() => setShowKnowledgeModal(false)}
-        footer={null}
-        width={800}
-        styles={{
-          content: {
-            backgroundColor: 'var(--color-components-modal-bg)',
-            color: 'var(--color-text-primary)'
-          },
-          header: {
-            backgroundColor: 'var(--color-components-modal-bg)',
-            borderBottom: '1px solid var(--color-border-default)',
-            color: 'var(--color-text-primary)'
-          },
-          body: {
-            backgroundColor: 'var(--color-components-modal-bg)'
-          }
-        }}
-      >
-        <div className="space-y-4">
-          {/* 搜索框 */}
-          <div className="flex gap-2">
-            <Input
-              placeholder="搜索知识库名称"
-              value={knowledgeSearch}
-              onChange={(e) => setKnowledgeSearch(e.target.value)}
-              onPressEnter={() => {
-                setKnowledgePage(1) // 重置到第1页
+      <Dialog open={showKnowledgeModal} onOpenChange={(open) => !open && setShowKnowledgeModal(false)}>
+        <DialogContent size="xl">
+          <DialogHeader>
+            <DialogTitle>添加知识库</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            {/* 搜索框 */}
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: 'var(--color-text-tertiary)' }} />
+                <Input
+                  placeholder="搜索知识库名称"
+                  value={knowledgeSearch}
+                  onChange={(e) => setKnowledgeSearch(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      setKnowledgePage(1)
+                      loadKnowledgeBases(knowledgeSearch, 1)
+                    }
+                  }}
+                  className="pl-10"
+                />
+              </div>
+              <Button onClick={() => {
+                setKnowledgePage(1)
                 loadKnowledgeBases(knowledgeSearch, 1)
-              }}
-              prefix={<SearchOutlined style={{ color: 'var(--color-text-tertiary)' }} />}
-            />
-            <Button onClick={() => {
-              setKnowledgePage(1) // 重置到第1页
-              loadKnowledgeBases(knowledgeSearch, 1)
-            }}>
-              搜索
-            </Button>
-          </div>
-          
-          {/* 知识库列表 */}
-          <Table
-            dataSource={availableKnowledgeBases}
-            rowKey="id"
-            pagination={{
-              current: knowledgePage,
-              total: knowledgeTotal,
-              pageSize: 10,
-              onChange: (page) => {
-                setKnowledgePage(page)
-                loadKnowledgeBases(knowledgeSearch, page)
-              }
-            }}
-            columns={[
-              {
-                title: '名称',
-                dataIndex: 'name',
-                key: 'name',
-                width: 180,
-                render: (name: string, record: KnowledgeBase) => (
-                  <div className="flex items-center gap-2">
-                    <KnowledgeBaseAvatar 
-                      name={record.name} 
-                      avatar={record.avatar} 
-                      size="md"
-                    />
-                    <span className="truncate">{name}</span>
-                  </div>
-                )
-              },
-              {
-                title: '描述',
-                dataIndex: 'description',
-                key: 'description',
-                ellipsis: true
-              },
-              {
-                title: '向量模型',
-                dataIndex: 'embd_id',
-                key: 'embd_id',
-                width: 160,
-                render: (embdId: string) => embdId ? (
-                  <Tag 
-                    color="blue"
-                    style={{ 
-                      fontSize: '11px',
-                      padding: '0 6px',
-                      lineHeight: '18px',
-                      maxWidth: '140px',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap'
-                    }}
-                    title={embdId}
-                  >
-                    {embdId}
-                  </Tag>
-                ) : '-'
-              },
-              {
-                title: '文档个数',
-                dataIndex: 'doc_num',
-                key: 'doc_num',
-                width: 80,
-                render: (num: number) => num || 0
-              },
-              {
-                title: '文本块个数',
-                dataIndex: 'chunk_num',
-                key: 'chunk_num',
-                width: 90,
-                render: (num: number) => num || 0
-              },
-              {
-                title: '操作',
-                key: 'action',
-                width: 80,
-                render: (_, record: KnowledgeBase) => {
-                  const isAdded = addedKnowledgeBases.has(record.id)
-                  // 检查向量模型是否兼容（已选择的知识库和待添加的知识库向量模型必须相同）
-                  const isEmbdIncompatible = selectedEmbdId !== '' && record.embd_id !== selectedEmbdId
-                  
-                  if (isAdded) {
-                    return (
-                      <Button size="small" disabled>
-                        已添加
-                      </Button>
-                    )
-                  }
-                  
-                  if (isEmbdIncompatible) {
+              }}>
+                搜索
+              </Button>
+            </div>
+            
+            {/* 知识库列表 */}
+            <Table<KnowledgeBase>
+              columns={[
+                {
+                  key: 'name',
+                  title: '名称',
+                  dataIndex: 'name',
+                  width: 180,
+                  render: (name: string, record: KnowledgeBase) => (
+                    <div className="flex items-center gap-2">
+                      <KnowledgeBaseAvatar 
+                        name={record.name} 
+                        avatar={record.avatar} 
+                        size="md"
+                      />
+                      <span className="truncate">{name}</span>
+                    </div>
+                  )
+                },
+                {
+                  key: 'description',
+                  title: '描述',
+                  dataIndex: 'description',
+                  ellipsis: true
+                },
+                {
+                  key: 'embd_id',
+                  title: '向量模型',
+                  dataIndex: 'embd_id',
+                  width: 160,
+                  render: (embdId: string) => embdId ? (
+                    <Badge variant="blue" className="text-xs truncate max-w-[140px]" title={embdId}>
+                      {embdId}
+                    </Badge>
+                  ) : '-'
+                },
+                {
+                  key: 'doc_num',
+                  title: '文档个数',
+                  dataIndex: 'doc_num',
+                  width: 80,
+                  render: (num: number) => num || 0
+                },
+                {
+                  key: 'chunk_num',
+                  title: '文本块个数',
+                  dataIndex: 'chunk_num',
+                  width: 90,
+                  render: (num: number) => num || 0
+                },
+                {
+                  key: 'action',
+                  title: '操作',
+                  width: 80,
+                  render: (_: unknown, record: KnowledgeBase) => {
+                    const isAdded = addedKnowledgeBases.has(record.id)
+                    const isEmbdIncompatible = selectedEmbdId !== '' && record.embd_id !== selectedEmbdId
+                    
+                    if (isAdded) {
+                      return (
+                        <Button size="sm" disabled variant="outline">
+                          已添加
+                        </Button>
+                      )
+                    }
+                    
+                    if (isEmbdIncompatible) {
+                      return (
+                        <Button 
+                          size="sm" 
+                          disabled
+                          variant="outline"
+                          title={`向量模型不兼容：已选择 ${selectedEmbdId}，当前为 ${record.embd_id || '未知'}`}
+                        >
+                          不兼容
+                        </Button>
+                      )
+                    }
+                    
                     return (
                       <Button 
-                        size="small" 
-                        disabled
-                        title={`向量模型不兼容：已选择 ${selectedEmbdId}，当前为 ${record.embd_id || '未知'}`}
+                        size="sm"
+                        onClick={() => handleAddKnowledgeBase(record)}
                       >
-                        不兼容
+                        添加
                       </Button>
                     )
                   }
-                  
-                  return (
-                    <Button 
-                      type="primary" 
-                      size="small"
-                      onClick={() => handleAddKnowledgeBase(record)}
-                    >
-                      添加
-                    </Button>
-                  )
                 }
-              }
-            ]}
-          />
-        </div>
-      </Modal>
+              ]}
+              dataSource={availableKnowledgeBases}
+              rowKey="id"
+            />
+            
+            {/* 分页 */}
+            {knowledgeTotal > 10 && (
+              <div className="flex justify-end mt-4">
+                <Pagination
+                  current={knowledgePage}
+                  total={knowledgeTotal}
+                  pageSize={10}
+                  onChange={(page) => {
+                    setKnowledgePage(page)
+                    loadKnowledgeBases(knowledgeSearch, page)
+                  }}
+                />
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
       
       {/* 编辑变量弹窗 */}
-      <Modal
-        title={<span style={{ color: 'var(--color-text-primary)' }}>编辑变量</span>}
-        open={showVariableModal}
-        onOk={handleAddVariable}
-        onCancel={() => {
+      <Dialog open={showVariableModal} onOpenChange={(open) => {
+        if (!open) {
           setShowVariableModal(false)
           setVariableForm({ key: '', optional: false })
-        }}
-        okText="添加"
-        cancelText="取消"
-        width={400}
-        styles={{
-          content: {
-            backgroundColor: 'var(--color-components-modal-bg)',
-            color: 'var(--color-text-primary)'
-          },
-          header: {
-            backgroundColor: 'var(--color-components-modal-bg)',
-            borderBottom: '1px solid var(--color-border-default)',
-            color: 'var(--color-text-primary)'
-          },
-          body: {
-            backgroundColor: 'var(--color-components-modal-bg)'
-          }
-        }}
-      >
-        <Space direction="vertical" className="w-full" size="middle">
-          <div>
-            <Text strong className="block mb-2" style={{ color: 'var(--color-text-primary)' }}>变量名</Text>
-            <Input
-              value={variableForm.key}
-              onChange={(e) => setVariableForm(prev => ({ ...prev, key: e.target.value }))}
-              placeholder="请输入变量名"
-            />
-          </div>
-          
-          <div>
-            <div className="flex items-center justify-between">
-              <Text strong style={{ color: 'var(--color-text-primary)' }}>是否可选</Text>
-              <Switch
-                checked={variableForm.optional}
-                onChange={(checked) => setVariableForm(prev => ({ ...prev, optional: checked }))}
+        }
+      }}>
+        <DialogContent size="sm">
+          <DialogHeader>
+            <DialogTitle>编辑变量</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <span className="block mb-2 font-medium" style={{ color: 'var(--color-text-primary)' }}>变量名</span>
+              <Input
+                value={variableForm.key}
+                onChange={(e) => setVariableForm(prev => ({ ...prev, key: e.target.value }))}
+                placeholder="请输入变量名"
               />
             </div>
+            
+            <div>
+              <div className="flex items-center justify-between">
+                <span className="font-medium" style={{ color: 'var(--color-text-primary)' }}>是否可选</span>
+                <Switch
+                  checked={variableForm.optional}
+                  onCheckedChange={(checked) => setVariableForm(prev => ({ ...prev, optional: checked }))}
+                />
+              </div>
+            </div>
           </div>
-        </Space>
-      </Modal>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setShowVariableModal(false)
+              setVariableForm({ key: '', optional: false })
+            }}>取消</Button>
+            <Button onClick={handleAddVariable}>添加</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

@@ -162,6 +162,9 @@ html[data-theme="dark"] {
   --color-chat-input-container-bg: #262626;
   --color-chat-preview-debug-bg: #141414;
   --color-chat-preview-debug-text: #ffffff;
+  --color-chat-think-bg: #1a1a1a;
+  --color-chat-think-border: rgba(255, 255, 255, 0.15);
+  --color-chat-think-text: #a3a3a3;
   --color-chat-bubble-assistant-avatar-bg: rgba(99, 102, 241, 0.15);
   --color-chat-bubble-assistant-avatar-text: #a5b4fc;
   --color-chat-bubble-user-avatar-bg: #86efac;
@@ -319,7 +322,7 @@ html[data-theme="dark"] {
   --color-components-env-staging-text: #ffffff;
   --color-components-env-dev-bg: #3b82f6;
   --color-components-env-dev-text: #ffffff;
-  --color-components-slider-track: rgba(255, 255, 255, 0.16);
+  --color-components-slider-track: rgba(255, 255, 255, 0.25);
   --color-components-slider-range: #3b82f6;
   --color-components-slider-thumb: #ffffff;
   --color-components-slider-thumb-border: #3b82f6;
@@ -336,6 +339,10 @@ html[data-theme="dark"] {
   --color-components-badge-info-text: #93c5fd;
   --color-components-badge-neutral-bg: rgba(156, 163, 175, 0.15);
   --color-components-badge-neutral-text: #9ca3af;
+  --color-components-badge-blue-bg: rgba(59, 130, 246, 0.2);
+  --color-components-badge-blue-text: #93c5fd;
+  --color-components-badge-orange-bg: rgba(249, 115, 22, 0.2);
+  --color-components-badge-orange-text: #fdba74;
   --color-components-task-status-idle-bg: rgba(161, 161, 170, 0.08);
   --color-components-task-status-idle-border: rgba(161, 161, 170, 0.15);
   --color-components-task-status-idle-text: #a1a1aa;

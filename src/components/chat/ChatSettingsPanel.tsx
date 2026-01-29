@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo, useCallback } from 'react'
 import { X, Plus, ExternalLink, Trash2, ChevronDown, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -19,6 +19,8 @@ import { KnowledgeBaseSelector } from '@/components/knowledge/KnowledgeBaseSelec
 import { MetadataFilter, type MetadataFilterMode } from './MetadataFilter'
 import { GenerationPresetSelector } from './GenerationPresetSelector'
 import { SliderWithInput, SLIDER_PRESETS } from '@/components/ui/slider-with-input'
+import { useGenerationPreset } from '@/hooks/use-generation-preset'
+import { GenerationPresetType, type LLMParameters } from '@/constants/llm'
 import type { MetadataCondition, KnowledgeBase, LLMModel } from '@/types/api'
 import type { MyLLMProvider } from '@/stores/model'
 
@@ -110,7 +112,7 @@ export interface ChatSettings {
   /** LLM 模型 ID */
   llmId?: string
   /** 生成多样性预设 */
-  generationPreset: 'creative' | 'precise' | 'balanced' | 'custom'
+  generationPreset: GenerationPresetType
   /** Temperature */
   temperature: number
   /** Temperature 是否启用 */
@@ -180,7 +182,7 @@ export const defaultChatSettings: ChatSettings = {
   
   // LLM 设置
   llmId: '',
-  generationPreset: 'balanced',
+  generationPreset: GenerationPresetType.Balance,
   temperature: 0.5,
   temperatureEnabled: true,
   topP: 0.85,
@@ -277,11 +279,68 @@ export const ChatSettingsPanel: React.FC<ChatSettingsPanelProps> = ({
   modelsError,
   onLoadKnowledgeBases,
 }) => {
+  // ========== 所有 Hooks 必须在条件返回之前 ==========
   const [chatSettingsExpanded, setChatSettingsExpanded] = React.useState(true)
   const [basicExpanded, setBasicExpanded] = React.useState(true)
   const [promptExpanded, setPromptExpanded] = React.useState(true)
   const [modelExpanded, setModelExpanded] = React.useState(true)
 
+  // 将 ChatSettings 中的 LLM 参数提取为 LLMParameters 对象
+  const llmParameters: LLMParameters = useMemo(() => ({
+    preset: settings.generationPreset,
+    temperature: settings.temperature,
+    topP: settings.topP,
+    presencePenalty: settings.presencePenalty,
+    frequencyPenalty: settings.frequencyPenalty,
+    maxTokens: settings.maxTokens,
+    temperatureEnabled: settings.temperatureEnabled,
+    topPEnabled: settings.topPEnabled,
+    presencePenaltyEnabled: settings.presencePenaltyEnabled,
+    frequencyPenaltyEnabled: settings.frequencyPenaltyEnabled,
+    maxTokensEnabled: settings.maxTokensEnabled,
+  }), [
+    settings.generationPreset,
+    settings.temperature,
+    settings.topP,
+    settings.presencePenalty,
+    settings.frequencyPenalty,
+    settings.maxTokens,
+    settings.temperatureEnabled,
+    settings.topPEnabled,
+    settings.presencePenaltyEnabled,
+    settings.frequencyPenaltyEnabled,
+    settings.maxTokensEnabled,
+  ])
+
+  // 将 LLMParameters 更新回 ChatSettings
+  const handleLLMParametersChange = useCallback((params: LLMParameters) => {
+    onSettingsChange({
+      ...settings,
+      generationPreset: params.preset,
+      temperature: params.temperature,
+      topP: params.topP,
+      presencePenalty: params.presencePenalty,
+      frequencyPenalty: params.frequencyPenalty,
+      maxTokens: params.maxTokens,
+      temperatureEnabled: params.temperatureEnabled,
+      topPEnabled: params.topPEnabled,
+      presencePenaltyEnabled: params.presencePenaltyEnabled,
+      frequencyPenaltyEnabled: params.frequencyPenaltyEnabled,
+      maxTokensEnabled: params.maxTokensEnabled,
+    })
+  }, [settings, onSettingsChange])
+
+  // 使用 useGenerationPreset hook 管理预设和参数
+  const {
+    preset,
+    setPreset,
+    updateParameter,
+  } = useGenerationPreset({
+    parameters: llmParameters,
+    onChange: handleLLMParametersChange,
+  })
+
+  // ========== 条件返回 ==========
   if (!open) return null
 
   // 如果正在加载设置，显示加载状态
@@ -328,6 +387,7 @@ export const ChatSettingsPanel: React.FC<ChatSettingsPanelProps> = ({
     )
   }
 
+  // ========== 辅助函数 ==========
   // 更新单个设置项
   const updateSetting = <K extends keyof ChatSettings>(
     key: K,
@@ -528,38 +588,20 @@ export const ChatSettingsPanel: React.FC<ChatSettingsPanelProps> = ({
               modelTypes={['chat', 'image2text']}
             />
 
-            {/* 生成多样性预设选择器 */}
+            {/* 生成多样性预设选择器 - 使用 useGenerationPreset hook */}
             <GenerationPresetSelector
-              value={settings.generationPreset}
-              onChange={(preset) => updateSetting('generationPreset', preset)}
-              onApplyPreset={(presetConfig) => {
-                // 应用预设参数
-                onSettingsChange({
-                  ...settings,
-                  generationPreset: settings.generationPreset,
-                  temperature: presetConfig.temperature,
-                  topP: presetConfig.topP,
-                  presencePenalty: presetConfig.presencePenalty,
-                  frequencyPenalty: presetConfig.frequencyPenalty,
-                  maxTokensEnabled: presetConfig.maxTokensEnabled,
-                })
-              }}
+              value={preset}
+              onChange={setPreset}
             />
 
-            {/* Temperature */}
+            {/* Temperature - 使用 updateParameter 自动检测预设匹配 */}
             <SliderWithInput
               label={SLIDER_PRESETS.temperature.label}
               tooltip={SLIDER_PRESETS.temperature.tooltip}
               value={settings.temperature}
-              onChange={(value) => {
-                updateSetting('temperature', value)
-                // 当手动调整参数时，切换到自定义模式
-                if (settings.generationPreset !== 'custom') {
-                  updateSetting('generationPreset', 'custom')
-                }
-              }}
+              onChange={(value) => updateParameter('temperature', value)}
               enabled={settings.temperatureEnabled}
-              onEnabledChange={(checked) => updateSetting('temperatureEnabled', checked)}
+              onEnabledChange={(checked) => updateParameter('temperatureEnabled', checked)}
               min={SLIDER_PRESETS.temperature.min}
               max={SLIDER_PRESETS.temperature.max}
               step={SLIDER_PRESETS.temperature.step}
@@ -571,14 +613,9 @@ export const ChatSettingsPanel: React.FC<ChatSettingsPanelProps> = ({
               label={SLIDER_PRESETS.topP.label}
               tooltip={SLIDER_PRESETS.topP.tooltip}
               value={settings.topP}
-              onChange={(value) => {
-                updateSetting('topP', value)
-                if (settings.generationPreset !== 'custom') {
-                  updateSetting('generationPreset', 'custom')
-                }
-              }}
+              onChange={(value) => updateParameter('topP', value)}
               enabled={settings.topPEnabled}
-              onEnabledChange={(checked) => updateSetting('topPEnabled', checked)}
+              onEnabledChange={(checked) => updateParameter('topPEnabled', checked)}
               min={SLIDER_PRESETS.topP.min}
               max={SLIDER_PRESETS.topP.max}
               step={SLIDER_PRESETS.topP.step}
@@ -590,14 +627,9 @@ export const ChatSettingsPanel: React.FC<ChatSettingsPanelProps> = ({
               label={SLIDER_PRESETS.presencePenalty.label}
               tooltip={SLIDER_PRESETS.presencePenalty.tooltip}
               value={settings.presencePenalty}
-              onChange={(value) => {
-                updateSetting('presencePenalty', value)
-                if (settings.generationPreset !== 'custom') {
-                  updateSetting('generationPreset', 'custom')
-                }
-              }}
+              onChange={(value) => updateParameter('presencePenalty', value)}
               enabled={settings.presencePenaltyEnabled}
-              onEnabledChange={(checked) => updateSetting('presencePenaltyEnabled', checked)}
+              onEnabledChange={(checked) => updateParameter('presencePenaltyEnabled', checked)}
               min={SLIDER_PRESETS.presencePenalty.min}
               max={SLIDER_PRESETS.presencePenalty.max}
               step={SLIDER_PRESETS.presencePenalty.step}
@@ -609,14 +641,9 @@ export const ChatSettingsPanel: React.FC<ChatSettingsPanelProps> = ({
               label={SLIDER_PRESETS.frequencyPenalty.label}
               tooltip={SLIDER_PRESETS.frequencyPenalty.tooltip}
               value={settings.frequencyPenalty}
-              onChange={(value) => {
-                updateSetting('frequencyPenalty', value)
-                if (settings.generationPreset !== 'custom') {
-                  updateSetting('generationPreset', 'custom')
-                }
-              }}
+              onChange={(value) => updateParameter('frequencyPenalty', value)}
               enabled={settings.frequencyPenaltyEnabled}
-              onEnabledChange={(checked) => updateSetting('frequencyPenaltyEnabled', checked)}
+              onEnabledChange={(checked) => updateParameter('frequencyPenaltyEnabled', checked)}
               min={SLIDER_PRESETS.frequencyPenalty.min}
               max={SLIDER_PRESETS.frequencyPenalty.max}
               step={SLIDER_PRESETS.frequencyPenalty.step}
@@ -628,9 +655,9 @@ export const ChatSettingsPanel: React.FC<ChatSettingsPanelProps> = ({
               label={SLIDER_PRESETS.maxTokens.label}
               tooltip={SLIDER_PRESETS.maxTokens.tooltip}
               value={settings.maxTokens}
-              onChange={(value) => updateSetting('maxTokens', value)}
+              onChange={(value) => updateParameter('maxTokens', value)}
               enabled={settings.maxTokensEnabled}
-              onEnabledChange={(checked) => updateSetting('maxTokensEnabled', checked)}
+              onEnabledChange={(checked) => updateParameter('maxTokensEnabled', checked)}
               min={SLIDER_PRESETS.maxTokens.min}
               max={SLIDER_PRESETS.maxTokens.max}
               step={SLIDER_PRESETS.maxTokens.step}

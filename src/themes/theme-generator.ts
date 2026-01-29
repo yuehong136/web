@@ -210,7 +210,7 @@ export const lightTokens: DesignTokens = {
   'components-slider-track': '#e5e7eb',
   'components-slider-range': '#00BEB4',
   'components-slider-thumb': '#ffffff',
-  'components-slider-thumb-border': 'rgba(30, 64, 175, 0.5)',
+  'components-slider-thumb-border': '#00BEB4',
   
   // ===== 滚动条系统 =====
   'components-scrollbar-track': '#f3f4f6',
@@ -289,6 +289,10 @@ export const lightTokens: DesignTokens = {
   'components-badge-info-text': '#00BEB4',
   'components-badge-neutral-bg': '#f3f4f6',
   'components-badge-neutral-text': '#6b7280',
+  'components-badge-blue-bg': '#dbeafe',
+  'components-badge-blue-text': '#1d4ed8',
+  'components-badge-orange-bg': '#ffedd5',
+  'components-badge-orange-text': '#c2410c',
 
   // 任务状态指示器 - 亮色主题
   'components-task-status-idle-bg': 'rgba(107, 114, 128, 0.1)',
@@ -570,6 +574,9 @@ export const lightTokens: DesignTokens = {
   'chat-input-container-bg': '#f8fafc',
   'chat-preview-debug-bg': '#f9fafb',
   'chat-preview-debug-text': '#374151',
+  'chat-think-bg': '#f3f4f6',
+  'chat-think-border': '#e5e7eb',
+  'chat-think-text': '#6b7280',
 
   // ===== 应用头像 =====
   'components-app-avatar-bg': 'linear-gradient(135deg, #8b5cf6 0%, #33D4CB 100%)',
@@ -849,7 +856,7 @@ export const darkTokens: DesignTokens = {
   'components-switch-thumb-checked': '#ffffff',
   
   // ===== 滑块组件 =====
-  'components-slider-track': 'rgba(255, 255, 255, 0.16)',
+  'components-slider-track': 'rgba(255, 255, 255, 0.25)',
   'components-slider-range': '#3b82f6',
   'components-slider-thumb': '#ffffff',
   'components-slider-thumb-border': '#3b82f6',
@@ -931,6 +938,10 @@ export const darkTokens: DesignTokens = {
   'components-badge-info-text': '#93c5fd',
   'components-badge-neutral-bg': 'rgba(156, 163, 175, 0.15)',
   'components-badge-neutral-text': '#9ca3af',
+  'components-badge-blue-bg': 'rgba(59, 130, 246, 0.2)',
+  'components-badge-blue-text': '#93c5fd',
+  'components-badge-orange-bg': 'rgba(249, 115, 22, 0.2)',
+  'components-badge-orange-text': '#fdba74',
 
   // 任务状态指示器 - 暗色主题
   'components-task-status-idle-bg': 'rgba(161, 161, 170, 0.08)',
@@ -1212,6 +1223,9 @@ export const darkTokens: DesignTokens = {
   'chat-input-container-bg': '#262626',
   'chat-preview-debug-bg': '#141414',
   'chat-preview-debug-text': '#ffffff',
+  'chat-think-bg': '#1a1a1a',
+  'chat-think-border': 'rgba(255, 255, 255, 0.15)',
+  'chat-think-text': '#a3a3a3',
 
   // ===== 应用头像 =====
   'components-app-avatar-bg': 'linear-gradient(135deg, #a78bfa 0%, #818cf8 100%)',
