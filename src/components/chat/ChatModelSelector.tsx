@@ -1,11 +1,27 @@
-import React, { useMemo } from 'react'
-import { AlertCircle } from 'lucide-react'
+import React, { useMemo, useState, Fragment } from 'react'
+import { AlertCircle, ChevronDown, Check } from 'lucide-react'
 import { SelectWithSearch, type SelectOptionGroup } from '@/components/ui/select-with-search'
 import { FormTooltip } from '@/components/ui/tooltip'
 import { IconFontFill } from '@/components/ui/icon-font'
 import { IconMap, LLMFactory } from '@/stores/model'
 import { useIsDarkTheme } from '@/themes'
+import { cn } from '@/lib/utils'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command'
 import type { MyLLMModel, MyLLMProvider } from '@/stores/model'
+
+type ChatModelSelectorVariant = 'default' | 'compact' | 'minimal'
 
 interface ChatModelSelectorProps {
   models: MyLLMProvider
@@ -14,6 +30,21 @@ interface ChatModelSelectorProps {
   loading?: boolean
   error?: string
   modelTypes?: ('chat' | 'image2text')[]
+  /** 
+   * 显示变体：
+   * - default: 带 label 的表单样式
+   * - compact: 紧凑的选择框样式（有边框）
+   * - minimal: 最小化样式，无边框，只显示模型名字和箭头（类似 Claude app）
+   */
+  variant?: ChatModelSelectorVariant
+  /** @deprecated 使用 variant="compact" 代替 */
+  compact?: boolean
+  /** 禁用状态 */
+  disabled?: boolean
+  /** 自定义触发器类名 */
+  triggerClassName?: string
+  /** 下拉方向（仅 minimal 模式有效）：up=向上弹出，down=向下弹出 */
+  dropdownDirection?: 'up' | 'down'
 }
 
 // 需要主题切换的厂商
@@ -55,9 +86,18 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
   onSelect,
   loading = false,
   error,
-  modelTypes = ['chat', 'image2text']
+  modelTypes = ['chat', 'image2text'],
+  variant,
+  compact = false,
+  disabled = false,
+  triggerClassName,
+  dropdownDirection = 'up',
 }) => {
   const isDark = useIsDarkTheme()
+  const [isOpen, setIsOpen] = useState(false)
+
+  // 兼容旧的 compact 属性
+  const actualVariant: ChatModelSelectorVariant = variant || (compact ? 'compact' : 'default')
 
   // 获取所有可用的聊天和图像识别模型
   const allAvailableModels = useMemo(() => {
@@ -110,6 +150,216 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
     }))
   }, [allAvailableModels])
 
+  // 找到当前选中模型的信息
+  const selectedModelInfo = useMemo(() => {
+    if (!selectedModelName) return null
+    return allAvailableModels.find(item => item.model.name === selectedModelName)
+  }, [selectedModelName, allAvailableModels])
+
+
+
+  // minimal 模式：无边框触发按钮，下拉内容与 SelectWithSearch 完全一致
+  if (actualVariant === 'minimal') {
+    if (loading) {
+      return (
+        <div className="flex items-center gap-1 text-text-tertiary">
+          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-text-tertiary"></div>
+        </div>
+      )
+    }
+
+    if (allAvailableModels.length === 0) {
+      return null
+    }
+
+    const handleSelect = (val: string) => {
+      onSelect(val)
+      setIsOpen(false)
+    }
+
+    return (
+      <Popover open={isOpen} onOpenChange={setIsOpen}>
+        <PopoverTrigger asChild>
+          {/* 触发按钮 - 与 @ 按钮风格一致：悬停时浅灰背景+阴影，展开时蓝绿背景+阴影 */}
+          <button
+            disabled={disabled}
+            className={cn(
+              "flex items-center gap-space-sm h-10 px-space-md rounded-radius-lg transition-all",
+              "text-base font-medium",
+              isOpen
+                ? "bg-state-focus-subtle text-state-focus shadow-soft"
+                : "bg-transparent text-text-tertiary hover:bg-background-subtle hover:shadow-soft",
+              disabled && "opacity-50 cursor-not-allowed",
+              triggerClassName
+            )}
+          >
+            {selectedModelInfo && (
+              <IconFontFill 
+                name={getIconName(selectedModelInfo.provider, isDark)} 
+                className="w-5 h-5 shrink-0" 
+              />
+            )}
+            <span className="whitespace-nowrap">
+              {selectedModelName || '选择模型'}
+            </span>
+            <ChevronDown className={cn(
+              "w-4 h-4 transition-transform shrink-0 ml-1",
+              isOpen ? "rotate-180 text-state-focus" : "text-text-tertiary"
+            )} />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent
+          className="border-border w-full min-w-[var(--radix-popper-anchor-width)] p-0"
+          align="end"
+          side={dropdownDirection === 'up' ? 'top' : 'bottom'}
+        >
+          <Command className="p-4">
+            {groupedOptions.length > 0 && (
+              <CommandInput
+                placeholder="搜索..."
+                className="placeholder:text-text-tertiary"
+              />
+            )}
+            <CommandList className="mt-2 outline-none">
+              <CommandEmpty>
+                <div className="text-text-tertiary">未找到匹配的模型</div>
+              </CommandEmpty>
+              {groupedOptions.map((group, idx) => {
+                if (group.options && group.options.length > 0) {
+                  return (
+                    <Fragment key={idx}>
+                      <CommandGroup heading={group.label}>
+                        {group.options.map((option) => (
+                          <CommandItem
+                            key={option.value}
+                            value={option.value}
+                            onSelect={handleSelect}
+                            className={cn(
+                              'min-h-9',
+                              selectedModelName === option.value ? 'bg-card' : ''
+                            )}
+                          >
+                            <span className="leading-none flex-1">{option.label}</span>
+                            {selectedModelName === option.value && (
+                              <Check className="w-4 h-4 ml-auto text-primary" />
+                            )}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </Fragment>
+                  )
+                }
+                return null
+              })}
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
+    )
+  }
+
+  // compact 模式：有边框的选择框，下拉内容与 SelectWithSearch 完全一致
+  if (actualVariant === 'compact') {
+    if (loading) {
+      return (
+        <div className="h-10 px-3 rounded-lg bg-surface-secondary animate-pulse flex items-center">
+          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-primary"></div>
+        </div>
+      )
+    }
+
+    if (allAvailableModels.length === 0) {
+      return null
+    }
+
+    const handleSelect = (val: string) => {
+      onSelect(val)
+      setIsOpen(false)
+    }
+
+    return (
+      <Popover open={isOpen} onOpenChange={setIsOpen}>
+        <PopoverTrigger asChild>
+          {/* 触发按钮 - 有边框样式，与 @ 按钮风格一致 */}
+          <button
+            disabled={disabled}
+            className={cn(
+              "flex items-center gap-space-sm h-10 px-space-md rounded-radius-lg transition-all",
+              "border border-border",
+              "text-base font-medium",
+              isOpen
+                ? "bg-state-focus-subtle text-state-focus shadow-soft border-transparent"
+                : "bg-transparent text-text-tertiary hover:bg-background-subtle hover:shadow-soft",
+              disabled && "opacity-50 cursor-not-allowed",
+              triggerClassName
+            )}
+          >
+            {selectedModelInfo && (
+              <IconFontFill 
+                name={getIconName(selectedModelInfo.provider, isDark)} 
+                className="w-5 h-5 shrink-0" 
+              />
+            )}
+            <span className="whitespace-nowrap">
+              {selectedModelName || '选择模型'}
+            </span>
+            <ChevronDown className={cn(
+              "w-4 h-4 transition-transform shrink-0 ml-1",
+              isOpen ? "rotate-180 text-state-focus" : "text-text-tertiary"
+            )} />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent
+          className="border-border w-full min-w-[var(--radix-popper-anchor-width)] p-0"
+          align="end"
+          side={dropdownDirection === 'up' ? 'top' : 'bottom'}
+        >
+          <Command className="p-4">
+            {groupedOptions.length > 0 && (
+              <CommandInput
+                placeholder="搜索..."
+                className="placeholder:text-text-tertiary"
+              />
+            )}
+            <CommandList className="mt-2 outline-none">
+              <CommandEmpty>
+                <div className="text-text-tertiary">未找到匹配的模型</div>
+              </CommandEmpty>
+              {groupedOptions.map((group, idx) => {
+                if (group.options && group.options.length > 0) {
+                  return (
+                    <Fragment key={idx}>
+                      <CommandGroup heading={group.label}>
+                        {group.options.map((option) => (
+                          <CommandItem
+                            key={option.value}
+                            value={option.value}
+                            onSelect={handleSelect}
+                            className={cn(
+                              'min-h-9',
+                              selectedModelName === option.value ? 'bg-card' : ''
+                            )}
+                          >
+                            <span className="leading-none flex-1">{option.label}</span>
+                            {selectedModelName === option.value && (
+                              <Check className="w-4 h-4 ml-auto text-primary" />
+                            )}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </Fragment>
+                  )
+                }
+                return null
+              })}
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
+    )
+  }
+
+  // 标准模式
   if (loading) {
     return (
       <div className="space-y-2">
@@ -159,7 +409,8 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
         onChange={(value) => onSelect(value || null)}
         placeholder="请选择聊天模型"
         emptyText="未找到匹配的聊天模型"
-        triggerClassName="h-10"
+        disabled={disabled}
+        triggerClassName={triggerClassName || "h-10"}
       />
     </div>
   )

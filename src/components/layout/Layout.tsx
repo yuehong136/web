@@ -10,7 +10,7 @@ export const Layout: React.FC = () => {
   const isSettingsPage = location.pathname.startsWith('/settings')
   
   // 侧边栏折叠状态
-  const [sidebarCollapsed, setSidebarCollapsed] = React.useState(true) // 默认收起
+  const [sidebarCollapsed, setSidebarCollapsed] = React.useState(false) // 默认展开
 
   return (
     <AuthGuard requireAuth={true}>

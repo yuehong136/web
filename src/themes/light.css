@@ -307,6 +307,14 @@ html[data-theme="light"] {
   --color-components-app-avatar-bg: linear-gradient(135deg, #8b5cf6 0%, #33D4CB 100%);
   --color-components-app-avatar-border: rgba(139, 92, 246, 0.2);
 
+  /* ===== 推荐卡片 ===== */
+  --color-components-recommend-card-bg-1: #F0EDE8;
+  --color-components-recommend-card-bg-2: #E8E4DF;
+  --color-components-recommend-card-bg-3: #F5F3F0;
+  --color-components-recommend-card-bg-4: #EDEDED;
+  --color-components-recommend-card-text: #1f2937;
+  --color-components-recommend-card-tag: #9ca3af;
+
   /* ===== 其他组件 ===== */
   --color-components-method-get-bg: rgba(34, 197, 94, 0.1);
   --color-components-method-get-text: #166534;

@@ -698,6 +698,14 @@ export const lightTokens: DesignTokens = {
   'components-modern-card-bg': 'rgba(255, 255, 255, 0.9)',
   'components-modern-card-border': 'rgba(255, 255, 255, 0.2)',
   'components-modern-card-shadow': '0 8px 24px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)',
+
+  // ===== 首页推荐卡片系统 =====
+  'components-recommend-card-bg-1': '#F0EDE8',
+  'components-recommend-card-bg-2': '#E8E4DF',
+  'components-recommend-card-bg-3': '#F5F3F0',
+  'components-recommend-card-bg-4': '#EDEDED',
+  'components-recommend-card-text': '#1f2937',
+  'components-recommend-card-tag': '#9ca3af',
 }
 
 // 暗色主题令牌值定义
@@ -1392,6 +1400,15 @@ export const darkTokens: DesignTokens = {
   'components-modern-card-bg': 'rgba(30, 30, 30, 0.95)',
   'components-modern-card-border': 'rgba(255, 255, 255, 0.10)',
   'components-modern-card-shadow': '0 8px 24px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.25)',
+
+  // ===== 首页推荐卡片系统 =====
+  // 深色模式下使用带棕色调的半透明背景，与参考设计一致
+  'components-recommend-card-bg-1': 'rgba(120, 113, 98, 0.45)',
+  'components-recommend-card-bg-2': 'rgba(120, 113, 98, 0.50)',
+  'components-recommend-card-bg-3': 'rgba(120, 113, 98, 0.40)',
+  'components-recommend-card-bg-4': 'rgba(120, 113, 98, 0.55)',
+  'components-recommend-card-text': '#ffffff',
+  'components-recommend-card-tag': '#d4d4d8',
 }
 
 /**
@@ -1431,6 +1448,7 @@ export function generateThemeCSS(tokens: DesignTokens, themeName: 'light' | 'dar
     '代码和预格式化文本': Object.keys(tokens).filter(key => key.includes('-code-') || key.includes('-pre-')),
     '图标按钮': Object.keys(tokens).filter(key => key.startsWith('components-icon-button-')),
     '应用头像': Object.keys(tokens).filter(key => key.startsWith('components-app-avatar-')),
+    '推荐卡片': Object.keys(tokens).filter(key => key.startsWith('components-recommend-card-')),
     '其他组件': Object.keys(tokens).filter(key => 
       !key.startsWith('text-') && 
       !key.startsWith('background-') && 

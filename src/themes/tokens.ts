@@ -726,6 +726,14 @@ export interface DesignTokens {
   'components-modern-card-bg': string
   'components-modern-card-border': string
   'components-modern-card-shadow': string
+
+  // ===== 首页推荐卡片系统 =====
+  'components-recommend-card-bg-1': string
+  'components-recommend-card-bg-2': string
+  'components-recommend-card-bg-3': string
+  'components-recommend-card-bg-4': string
+  'components-recommend-card-text': string
+  'components-recommend-card-tag': string
 }
 
 // 生成 CSS 变量映射
@@ -1454,6 +1462,14 @@ export const defaultTokens: DesignTokens = {
   'components-modern-card-bg': '',
   'components-modern-card-border': '',
   'components-modern-card-shadow': '',
+
+  // 首页推荐卡片系统
+  'components-recommend-card-bg-1': '',
+  'components-recommend-card-bg-2': '',
+  'components-recommend-card-bg-3': '',
+  'components-recommend-card-bg-4': '',
+  'components-recommend-card-text': '',
+  'components-recommend-card-tag': '',
 }
 
 // 导出 CSS 变量映射用于 Tailwind

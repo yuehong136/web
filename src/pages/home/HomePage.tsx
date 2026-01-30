@@ -26,6 +26,8 @@ import '@ant-design/x-markdown/dist/x-markdown.css'
 import { EnhancedSSEParser, type SSEMessage, type ToolCallInfo } from '@/components/chat/EnhancedSSEParser'
 import { ToolCallRenderer } from '@/components/chat/ToolCallRenderer'
 import { ProviderIcon } from '@/components/ui/provider-icon'
+import { Textarea } from '@/components/ui/textarea'
+import { ChatModelSelector } from '@/components/chat/ChatModelSelector'
 import type { MCPServer, MCPChatConfig } from '@/types/mcp'
 import type { MCPChatServiceRequest } from '@/api/mcp-chat-service'
 import type { DialogApp } from '@/types/api'
@@ -48,22 +50,19 @@ const recommendCards = [
     id: 1,
     title: '银发经济崛起背后有哪些新商机?',
     tag: '猜你想聊',
-    bgColor: 'bg-[#F0EDE8]',
-    height: 'h-[180px]',
+    bgColor: 'bg-components-recommend-card-bg-1',
   },
   {
     id: 2,
     title: '副业收入超主业，该辞职全职搞副业吗?',
     tag: '猜你想聊',
-    bgColor: 'bg-[#E8E4DF]',
-    height: 'h-[210px]',
+    bgColor: 'bg-components-recommend-card-bg-2',
   },
   {
     id: 3,
     title: '一键直出动植物百科',
     tag: '创意设计',
-    bgColor: 'bg-[#F5F3F0]',
-    height: 'h-[200px]',
+    bgColor: 'bg-components-recommend-card-bg-3',
     hasImage: true,
     imageUrl: 'https://images.unsplash.com/photo-1698844243252-520dc762243e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3Njk3Mzg5MTV8&ixlib=rb-4.1.0&q=80&w=400',
   },
@@ -71,15 +70,13 @@ const recommendCards = [
     id: 4,
     title: '水贝杰我睿疑似暴雷，专班介入后现状如何?',
     tag: '聊热点',
-    bgColor: 'bg-[#EDEDED]',
-    height: 'h-[180px]',
+    bgColor: 'bg-components-recommend-card-bg-4',
   },
   {
     id: 5,
     title: '470万颗冰毒坠泰国河中，生态影响与恢复需多久?',
     tag: '聊热点',
-    bgColor: 'bg-[#EDEDED]',
-    height: 'h-[180px]',
+    bgColor: 'bg-components-recommend-card-bg-4',
   },
 ]
 
@@ -492,6 +489,8 @@ export const HomePage: React.FC = () => {
   // 应用相关状态
   const [selectedAppIds, setSelectedAppIds] = useState<string[]>([])
   const [selectedApps, setSelectedApps] = useState<DialogApp[]>([])
+  // 记录用户输入 @ 的位置，用于选择后删除
+  const [atTriggerPosition, setAtTriggerPosition] = useState<number | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const atButtonRef = useRef<HTMLButtonElement>(null)
 
@@ -710,6 +709,41 @@ export const HomePage: React.FC = () => {
     }
   }
 
+  // 处理输入变化，监听 @ 符号输入
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newValue = e.target.value
+    const prevValue = inputValue
+    
+    // 检查是否新输入了 @ 符号
+    if (newValue.length > prevValue.length) {
+      const cursorPos = e.target.selectionStart!
+      const addedChar = newValue[cursorPos - 1]
+      if (addedChar === '@') {
+        // 检查 @ 前面是否是空格、换行或字符串开头
+        const charBeforeAt = cursorPos > 1 ? newValue[cursorPos - 2] : ''
+        const isAtStart = cursorPos === 1
+        const isAfterWhitespace = /\s/.test(charBeforeAt)
+        
+        if (isAtStart || isAfterWhitespace || charBeforeAt === '') {
+          // 记录 @ 的位置，打开技能面板
+          setAtTriggerPosition(cursorPos - 1)
+          setSkillPanelOpen(true)
+        }
+      }
+    }
+    
+    setInputValue(newValue)
+  }
+
+  // 删除用户输入的 @ 符号
+  const removeAtSymbol = useCallback(() => {
+    if (atTriggerPosition !== null && inputValue[atTriggerPosition] === '@') {
+      const newValue = inputValue.slice(0, atTriggerPosition) + inputValue.slice(atTriggerPosition + 1)
+      setInputValue(newValue)
+      setAtTriggerPosition(null)
+    }
+  }, [atTriggerPosition, inputValue])
+
   // 处理卡片点击
   const handleCardClick = (title: string) => {
     setInputValue(title)
@@ -721,14 +755,22 @@ export const HomePage: React.FC = () => {
     setActiveTab(activeTab === tabId ? null : tabId)
   }
 
-  // 处理技能选择
+  // 处理技能选择（技能和应用互斥，选技能时清空应用）
   const handleSkillSelect = (server: MCPServer) => {
+    // 选择技能时，清空已选应用
+    if (selectedAppIds.length > 0) {
+      setSelectedAppIds([])
+      setSelectedApps([])
+    }
+    
     if (selectedMCPIds.includes(server.id)) {
       setSelectedMCPIds(prev => prev.filter(id => id !== server.id))
       setSelectedMCPServers(prev => prev.filter(s => s.id !== server.id))
     } else {
       setSelectedMCPIds(prev => [...prev, server.id])
       setSelectedMCPServers(prev => [...prev, server])
+      // 选择技能后删除用户输入的 @ 符号
+      removeAtSymbol()
     }
   }
 
@@ -738,14 +780,22 @@ export const HomePage: React.FC = () => {
     setSelectedMCPServers(prev => prev.filter(s => s.id !== serverId))
   }
 
-  // 处理应用选择
+  // 处理应用选择（技能和应用互斥，选应用时清空技能）
   const handleAppSelect = (app: DialogApp) => {
+    // 选择应用时，清空已选技能
+    if (selectedMCPIds.length > 0) {
+      setSelectedMCPIds([])
+      setSelectedMCPServers([])
+    }
+    
     if (selectedAppIds.includes(app.id)) {
       setSelectedAppIds(prev => prev.filter(id => id !== app.id))
       setSelectedApps(prev => prev.filter(a => a.id !== app.id))
     } else {
       setSelectedAppIds(prev => [...prev, app.id])
       setSelectedApps(prev => [...prev, app])
+      // 选择应用后删除用户输入的 @ 符号
+      removeAtSymbol()
     }
   }
 
@@ -895,8 +945,8 @@ export const HomePage: React.FC = () => {
 
             {/* InputSection - 输入区域 */}
             <div className="w-full max-w-[720px] flex flex-col gap-2">
-              {/* 输入框 */}
-              <div className="bg-components-card-bg rounded-2xl border border-border-default p-5 flex flex-col justify-between min-h-[110px] relative">
+            {/* 输入框 */}
+            <div className="bg-components-card-bg rounded-2xl p-5 flex flex-col justify-between min-h-[110px] relative">
                 {/* 已选技能和应用标签 */}
                 {(selectedMCPServers.length > 0 || selectedApps.length > 0) && (
                   <div className="flex flex-wrap gap-2 mb-3">
@@ -936,13 +986,14 @@ export const HomePage: React.FC = () => {
                 )}
 
                 {/* 文本输入区 */}
-                <textarea
+                <Textarea
                   ref={textareaRef}
+                  variant="chat"
                   value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
+                  onChange={handleInputChange}
                   onKeyDown={handleKeyDown}
                   placeholder="给我发消息或布置任务"
-                  className="w-full resize-none bg-transparent text-text-primary text-base placeholder:text-text-tertiary focus:outline-none"
+                  className="w-full text-base placeholder:text-text-tertiary"
                   rows={1}
                 />
 
@@ -982,21 +1033,34 @@ export const HomePage: React.FC = () => {
                     />
                   </div>
 
-                  {/* 发送按钮 */}
-                  <button
-                    onClick={handleSend}
-                    className={cn(
-                      "w-10 h-10 rounded-full flex items-center justify-center transition-colors",
-                      inputValue.trim()
-                        ? "bg-text-primary hover:bg-text-secondary"
-                        : "bg-border-default"
-                    )}
-                  >
-                    <ArrowUp className={cn(
-                      "w-5 h-5",
-                      inputValue.trim() ? "text-text-inverted" : "text-text-tertiary"
-                    )} />
-                  </button>
+                  {/* 右侧：模型选择器 + 发送按钮 */}
+                  <div className="flex items-center gap-3">
+                    {/* 模型选择器 - 融入输入框风格 */}
+                    <ChatModelSelector
+                      models={myLLMs}
+                      selectedModelName={selectedModelId}
+                      onSelect={(modelName) => setSelectedModelId(modelName || '')}
+                      loading={modelsLoading}
+                      variant="minimal"
+                      dropdownDirection="down"
+                    />
+
+                    {/* 发送按钮 */}
+                    <button
+                      onClick={handleSend}
+                      className={cn(
+                        "w-10 h-10 rounded-full flex items-center justify-center transition-colors",
+                        inputValue.trim()
+                          ? "bg-text-primary hover:bg-text-secondary"
+                          : "bg-border-default"
+                      )}
+                    >
+                      <ArrowUp className={cn(
+                        "w-5 h-5",
+                        inputValue.trim() ? "text-text-inverted" : "text-text-tertiary"
+                      )} />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1019,25 +1083,18 @@ export const HomePage: React.FC = () => {
               ))}
             </div>
 
-            {/* HintText - 功能提示 */}
-            <div className="bg-[#C4A484]/80 text-text-inverted text-[13px] font-medium px-5 py-2.5 rounded-full">
-              一键快速生成精美PPT，支持自定义风格和项目
-            </div>
-
             {/* CardsSection - 推荐卡片 */}
-            <div className="w-full flex gap-4 pt-10">
+            <div className="w-full flex gap-4 mt-20">
               {recommendCards.map((card) => (
                 <div
                   key={card.id}
-                  onClick={() => handleCardClick(card.title)}
                   className={cn(
-                    "flex-1 rounded-2xl p-5 flex flex-col justify-between cursor-pointer transition-transform hover:scale-[1.02]",
-                    card.bgColor,
-                    card.height
+                    "group flex-1 rounded-2xl p-5 flex flex-col justify-between cursor-pointer relative overflow-hidden h-[200px]",
+                    card.bgColor
                   )}
                 >
                   <div className="flex flex-col gap-2">
-                    <p className="text-sm font-medium text-text-primary leading-relaxed">
+                    <p className="text-sm font-medium text-components-recommend-card-text leading-relaxed">
                       {card.title}
                     </p>
                     {card.hasImage && card.imageUrl && (
@@ -1050,9 +1107,26 @@ export const HomePage: React.FC = () => {
                       </div>
                     )}
                   </div>
-                  <p className="text-xs text-text-tertiary text-right">
+                  <p className="text-xs text-components-recommend-card-tag text-right">
                     {card.tag}
                   </p>
+                  
+                  {/* 悬停时显示的聊一聊按钮 */}
+                  <div className="absolute bottom-0 left-0 right-0 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out">
+                    <div className="h-px bg-border-subtle" />
+                    <div className="p-3">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleCardClick(card.title)
+                        }}
+                        className="w-full flex items-center justify-center gap-2 py-2.5 bg-text-primary text-text-inverted rounded-full text-sm font-medium hover:bg-text-secondary transition-colors"
+                      >
+                        <span className="text-base">✨</span>
+                        聊一聊
+                      </button>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
@@ -1078,7 +1152,7 @@ export const HomePage: React.FC = () => {
           {/* 底部输入区域 */}
           <div className="flex-shrink-0 px-6 pb-6 pt-2">
             <div className="max-w-4xl mx-auto">
-              <div className="bg-components-card-bg rounded-2xl border border-border-default p-4 relative">
+              <div className="bg-components-card-bg rounded-2xl p-4 relative">
                 {/* 已选技能和应用标签 */}
                 {(selectedMCPServers.length > 0 || selectedApps.length > 0) && (
                   <div className="flex flex-wrap gap-2 mb-3">
@@ -1118,13 +1192,14 @@ export const HomePage: React.FC = () => {
                 )}
 
                 {/* 文本输入区 */}
-                <textarea
+                <Textarea
                   ref={textareaRef}
+                  variant="chat"
                   value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
+                  onChange={handleInputChange}
                   onKeyDown={handleKeyDown}
                   placeholder="输入消息，按 Enter 发送"
-                  className="w-full resize-none bg-transparent text-text-primary text-base placeholder:text-text-tertiary focus:outline-none"
+                  className="w-full text-base placeholder:text-text-tertiary"
                   rows={1}
                   disabled={isStreaming}
                 />
@@ -1166,30 +1241,44 @@ export const HomePage: React.FC = () => {
                     />
                   </div>
 
-                  {/* 发送/停止按钮 */}
-                  {isStreaming ? (
-                    <button
-                      onClick={handleStop}
-                      className="w-9 h-9 rounded-full flex items-center justify-center bg-state-error text-text-inverted hover:bg-state-error/90 transition-colors"
-                    >
-                      <Square className="w-4 h-4" />
-                    </button>
-                  ) : (
-                    <button
-                      onClick={handleSend}
-                      className={cn(
-                        "w-9 h-9 rounded-full flex items-center justify-center transition-colors",
-                        inputValue.trim()
-                          ? "bg-text-primary hover:bg-text-secondary"
-                          : "bg-border-default"
-                      )}
-                    >
-                      <ArrowUp className={cn(
-                        "w-4 h-4",
-                        inputValue.trim() ? "text-text-inverted" : "text-text-tertiary"
-                      )} />
-                    </button>
-                  )}
+                  {/* 右侧：模型选择器 + 发送/停止按钮 */}
+                  <div className="flex items-center gap-3">
+                    {/* 模型选择器 - 对话页面使用 minimal 样式，向上弹出 */}
+                    <ChatModelSelector
+                      models={myLLMs}
+                      selectedModelName={selectedModelId}
+                      onSelect={(modelName) => setSelectedModelId(modelName || '')}
+                      loading={modelsLoading}
+                      variant="minimal"
+                      dropdownDirection="up"
+                      disabled={isStreaming}
+                    />
+
+                    {/* 发送/停止按钮 */}
+                    {isStreaming ? (
+                      <button
+                        onClick={handleStop}
+                        className="w-9 h-9 rounded-full flex items-center justify-center bg-state-error text-text-inverted hover:bg-state-error/90 transition-colors"
+                      >
+                        <Square className="w-4 h-4" />
+                      </button>
+                    ) : (
+                      <button
+                        onClick={handleSend}
+                        className={cn(
+                          "w-9 h-9 rounded-full flex items-center justify-center transition-colors",
+                          inputValue.trim()
+                            ? "bg-text-primary hover:bg-text-secondary"
+                            : "bg-border-default"
+                        )}
+                      >
+                        <ArrowUp className={cn(
+                          "w-4 h-4",
+                          inputValue.trim() ? "text-text-inverted" : "text-text-tertiary"
+                        )} />
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
