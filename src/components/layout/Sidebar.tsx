@@ -566,7 +566,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       : "opacity-100 h-auto delay-[350ms]"
               )}
           >
-            <p className="text-xs text-text-muted whitespace-nowrap">v0.9.7</p>
+            <p className="text-xs text-text-muted whitespace-nowrap">v0.9.8</p>
           </div>
         </div>
 

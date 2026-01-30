@@ -372,7 +372,7 @@ const SkillPanel: React.FC<SkillPanelProps> = ({
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-tertiary" />
           <input
             type="text"
-            placeholder="搜索技能/文件"
+            placeholder="搜索技能/应用"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-9 pr-3 py-2 text-sm bg-background-subtle rounded-lg border-none outline-none placeholder:text-text-tertiary text-text-primary"

@@ -489,7 +489,7 @@ For support and questions:
 
 ---
 
-**Version**: 0.9.7 | Built with ❤️ using React 19 + TypeScript 5.8 + Vite 7 + @xyflow/react
+**Version**: 0.9.8 | Built with ❤️ using React 19 + TypeScript 5.8 + Vite 7 + @xyflow/react
 
 ## 🏗️ Architecture Highlights
 
