@@ -92,6 +92,57 @@ const getGreeting = () => {
   return '夜深了'
 }
 
+// 波浪式文字动画组件
+interface WaveTextProps {
+  text: string
+  className?: string
+  charDelay?: number // 每个字符的延迟间隔(ms)
+  duration?: number // 动画持续时间(ms)
+}
+
+const WaveText: React.FC<WaveTextProps> = ({
+  text,
+  className = '',
+  charDelay = 40,
+  duration = 600,
+}) => {
+  const characters = text.split('')
+
+  return (
+    <>
+      <style>
+        {`
+          @keyframes waveCharFadeUp {
+            0% {
+              opacity: 0;
+              transform: translateY(12px);
+            }
+            100% {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+        `}
+      </style>
+      <span className={className}>
+        {characters.map((char, index) => (
+          <span
+            key={index}
+            className="inline-block"
+            style={{
+              opacity: 0,
+              animation: `waveCharFadeUp ${duration}ms cubic-bezier(0.16, 1, 0.3, 1) forwards`,
+              animationDelay: `${index * charDelay}ms`,
+            }}
+          >
+            {char === ' ' ? '\u00A0' : char}
+          </span>
+        ))}
+      </span>
+    </>
+  )
+}
+
 // 根据服务器类型获取图标
 const getServerIcon = (serverType: string) => {
   switch (serverType) {
@@ -930,16 +981,19 @@ export const HomePage: React.FC = () => {
   // 是否显示欢迎界面
   const showWelcome = messages.length === 0 && !isStreaming
 
+  // 问候语文本
+  const greetingText = `${getGreeting()}！有哪些工作要处理？`
+
   return (
     <div className="h-full bg-background-subtle flex flex-col">
       {showWelcome ? (
         /* 欢迎界面 */
         <div className="flex-1 flex flex-col items-center justify-center px-6 py-8 overflow-y-auto">
           <div className="w-full max-w-[1240px] flex flex-col items-center gap-8">
-            {/* Header - 问候语 */}
-            <div className="w-full flex flex-col items-center gap-3">
+            {/* Header - 问候语（波浪式渐隐浮起） */}
+            <div className="w-full flex flex-col items-center mb-12">
               <h1 className="text-[36px] font-semibold text-text-primary text-center">
-                {getGreeting()}！有哪些工作要处理？
+                <WaveText text={greetingText} charDelay={35} duration={500} />
               </h1>
             </div>
 
