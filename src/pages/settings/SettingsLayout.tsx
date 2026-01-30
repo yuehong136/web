@@ -11,7 +11,6 @@ import {
   House
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
 import { useAuthStore } from '@/stores'
 import { Theme, setTheme as setAppTheme, getResolvedTheme } from '@/themes'
 import { IconFontFill } from '@/components/ui/icon-font'
@@ -87,10 +86,10 @@ const ThemeToggle: React.FC = () => {
       aria-label="切换主题"
       aria-pressed={isDark}
       onClick={() => handleThemeChange(!isDark)}
-      className="relative inline-flex h-8 w-16 items-center rounded-full border border-border bg-card transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+      className="relative inline-flex h-8 w-16 items-center rounded-full border border-border-default bg-surface-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-focus/50"
     >
       <span
-        className="absolute inset-0.5 rounded-full bg-muted/40 dark:bg-muted/60"
+        className="absolute inset-0.5 rounded-full bg-surface-secondary/40"
         aria-hidden="true"
       />
       <span className="absolute inset-0.5 grid grid-cols-2" aria-hidden="true">
@@ -143,9 +142,9 @@ export const SettingsLayout: React.FC = () => {
   const currentTitle = pageTitles[location.pathname] || '设置'
 
   return (
-    <div className="flex flex-col h-screen bg-background">
+    <div className="flex flex-col h-full bg-background">
       {/* 顶部面包屑导航 */}
-      <header className="flex items-center bg-card border-b border-border px-5 py-4 shrink-0">
+      <header className="flex items-center bg-surface-primary border-b border-border-subtle px-5 py-3 shrink-0">
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
@@ -164,9 +163,9 @@ export const SettingsLayout: React.FC = () => {
       {/* 主体区域 */}
       <div className="flex flex-1 overflow-hidden">
         {/* 侧边栏 */}
-        <aside className="w-[280px] bg-background flex flex-col border-r border-border shrink-0">
+        <aside className="w-[280px] bg-surface-primary flex flex-col border-r border-border-subtle shrink-0 overflow-hidden">
           {/* 用户信息 */}
-          <div className="px-6 py-4 flex gap-3 items-center">
+          <div className="px-6 py-3 flex gap-3 items-center shrink-0">
             {user?.avatar ? (
               <img
                 src={user.avatar}
@@ -184,30 +183,34 @@ export const SettingsLayout: React.FC = () => {
           </div>
 
           {/* 导航菜单 */}
-          <div className="flex-1 overflow-auto">
+          <div className="flex-1 min-h-0 overflow-auto py-2 space-y-1">
             {settingsItems.map((item, idx) => {
-              const isActive = location.pathname === item.href || 
+              const isActive = location.pathname === item.href ||
                 (item.href === '/settings/mcp-servers' && location.pathname.startsWith('/settings/mcp'))
-              
+
               return (
-                <div key={idx} className="mx-6 my-2">
-                  <Link to={item.href}>
-                  <Button
-                    variant="ghost"
+                <div key={idx} className="px-3">
+                  <Link
+                    to={item.href}
                     className={cn(
-                      'w-full justify-start gap-3 p-3 h-auto',
-                      isActive 
-                        ? 'bg-primary/10 text-text-primary border border-primary/20' 
-                        : 'bg-transparent text-text-secondary hover:bg-muted hover:text-text-primary'
+                      'flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200',
+                      isActive
+                        ? 'bg-components-sidebar-item-bg-active text-components-sidebar-item-text-active'
+                        : 'text-components-sidebar-item-text hover:bg-components-sidebar-item-bg-hover hover:text-text-primary'
                     )}
                   >
-                      {item.icon === 'mcp' ? (
-                        <IconFontFill name="mcp" className="w-5 h-5" />
-                      ) : (
-                        <item.icon className="w-5 h-5" />
-                      )}
-                      <span className="text-sm">{item.title}</span>
-                    </Button>
+                    {item.icon === 'mcp' ? (
+                      <IconFontFill name="mcp" className={cn(
+                        'w-5 h-5',
+                        isActive && 'text-components-sidebar-item-text-active'
+                      )} />
+                    ) : (
+                      <item.icon className={cn(
+                        'w-5 h-5',
+                        isActive && 'text-components-sidebar-item-text-active'
+                      )} />
+                    )}
+                    <span className="text-sm font-medium">{item.title}</span>
                   </Link>
                 </div>
               )
@@ -215,20 +218,19 @@ export const SettingsLayout: React.FC = () => {
           </div>
 
           {/* 底部区域 */}
-          <div className="p-6 mt-auto border-t border-border">
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-sm text-primary">v0.9.8</span>
+          <div className="px-3 py-3 shrink-0 border-t border-border-subtle">
+            <div className="flex items-center justify-between px-3 mb-2">
+              <span className="text-sm text-text-accent">v0.9.8</span>
               <ThemeToggle />
             </div>
-            <Button
-              variant="outline"
-              className="w-full"
+            <button
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-sm font-medium text-text-secondary border border-border-default bg-surface-primary hover:bg-surface-secondary hover:text-text-primary hover:border-components-sidebar-item-text-active transition-all duration-200"
               onClick={() => {
                 // TODO: implement logout
               }}
             >
               退出登录
-            </Button>
+            </button>
           </div>
         </aside>
 
