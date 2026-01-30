@@ -1,5 +1,6 @@
 import React, { useMemo, useState, Fragment } from 'react'
-import { AlertCircle, ChevronDown, Check } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { AlertCircle, ChevronDown, Check, Settings } from 'lucide-react'
 import { SelectWithSearch, type SelectOptionGroup } from '@/components/ui/select-with-search'
 import { FormTooltip } from '@/components/ui/tooltip'
 import { IconFontFill } from '@/components/ui/icon-font'
@@ -95,6 +96,12 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
 }) => {
   const isDark = useIsDarkTheme()
   const [isOpen, setIsOpen] = useState(false)
+  const navigate = useNavigate()
+
+  // 跳转到模型提供商配置页面
+  const handleGoToModelProviders = () => {
+    navigate('/settings/model-providers')
+  }
 
   // 兼容旧的 compact 属性
   const actualVariant: ChatModelSelectorVariant = variant || (compact ? 'compact' : 'default')
@@ -169,7 +176,21 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
     }
 
     if (allAvailableModels.length === 0) {
-      return null
+      return (
+        <button
+          onClick={handleGoToModelProviders}
+          className={cn(
+            "flex items-center gap-space-sm h-10 px-space-md rounded-radius-lg transition-all",
+            "text-base font-medium",
+            "text-state-warning hover:bg-state-warning-subtle",
+            triggerClassName
+          )}
+          title="点击配置模型"
+        >
+          <Settings className="w-4 h-4 shrink-0" />
+          <span className="whitespace-nowrap">配置模型</span>
+        </button>
+      )
     }
 
     const handleSelect = (val: string) => {
@@ -194,9 +215,9 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
             )}
           >
             {selectedModelInfo && (
-              <IconFontFill 
-                name={getIconName(selectedModelInfo.provider, isDark)} 
-                className="w-5 h-5 shrink-0" 
+              <IconFontFill
+                name={getIconName(selectedModelInfo.provider, isDark)}
+                className="w-5 h-5 shrink-0"
               />
             )}
             <span className="whitespace-nowrap">
@@ -236,7 +257,7 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
                             onSelect={handleSelect}
                             className={cn(
                               'min-h-9',
-                              selectedModelName === option.value ? 'bg-card' : ''
+                              selectedModelName === option.value ? 'bg-background-subtle' : ''
                             )}
                           >
                             <span className="leading-none flex-1">{option.label}</span>
@@ -269,7 +290,22 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
     }
 
     if (allAvailableModels.length === 0) {
-      return null
+      return (
+        <button
+          onClick={handleGoToModelProviders}
+          className={cn(
+            "flex items-center gap-space-sm h-10 px-space-md rounded-radius-lg transition-all",
+            "border border-state-warning",
+            "text-base font-medium",
+            "text-state-warning hover:bg-state-warning-subtle",
+            triggerClassName
+          )}
+          title="点击配置模型"
+        >
+          <Settings className="w-4 h-4 shrink-0" />
+          <span className="whitespace-nowrap">配置模型</span>
+        </button>
+      )
     }
 
     const handleSelect = (val: string) => {
@@ -337,7 +373,7 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
                             onSelect={handleSelect}
                             className={cn(
                               'min-h-9',
-                              selectedModelName === option.value ? 'bg-card' : ''
+                              selectedModelName === option.value ? 'bg-background-subtle' : ''
                             )}
                           >
                             <span className="leading-none flex-1">{option.label}</span>
@@ -388,10 +424,14 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
     return (
       <div className="space-y-2">
         <label className="block text-xs font-medium text-text-primary">聊天模型</label>
-        <div className="w-full px-3 py-2 border border-warning rounded-md bg-warning/10 flex items-center h-10">
-          <AlertCircle className="h-3 w-3 text-warning" />
-          <span className="ml-2 text-warning text-xs">暂无可用的聊天模型</span>
-        </div>
+        <button
+          onClick={handleGoToModelProviders}
+          className="w-full px-3 py-2 border border-state-warning rounded-md bg-state-warning-subtle flex items-center h-10 hover:bg-state-warning/20 transition-colors cursor-pointer"
+        >
+          <AlertCircle className="h-3 w-3 text-state-warning shrink-0" />
+          <span className="ml-2 text-state-warning text-xs">暂无可用模型，点击前往配置</span>
+          <Settings className="h-3 w-3 text-state-warning ml-auto shrink-0" />
+        </button>
       </div>
     )
   }

@@ -540,6 +540,8 @@ export const HomePage: React.FC = () => {
   // 应用相关状态
   const [selectedAppIds, setSelectedAppIds] = useState<string[]>([])
   const [selectedApps, setSelectedApps] = useState<DialogApp[]>([])
+  // 记录选择应用前的模型，用于取消选择后恢复
+  const [previousModelId, setPreviousModelId] = useState<string>('')
   // 记录用户输入 @ 的位置，用于选择后删除
   const [atTriggerPosition, setAtTriggerPosition] = useState<number | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -831,29 +833,55 @@ export const HomePage: React.FC = () => {
     setSelectedMCPServers(prev => prev.filter(s => s.id !== serverId))
   }
 
-  // 处理应用选择（技能和应用互斥，选应用时清空技能）
+  // 处理应用选择（技能和应用互斥，选应用时清空技能，应用只能单选，并锁定模型）
   const handleAppSelect = (app: DialogApp) => {
     // 选择应用时，清空已选技能
     if (selectedMCPIds.length > 0) {
       setSelectedMCPIds([])
       setSelectedMCPServers([])
     }
-    
+
     if (selectedAppIds.includes(app.id)) {
-      setSelectedAppIds(prev => prev.filter(id => id !== app.id))
-      setSelectedApps(prev => prev.filter(a => a.id !== app.id))
+      // 取消选择当前应用
+      setSelectedAppIds([])
+      setSelectedApps([])
+
+      // 恢复之前的模型
+      if (previousModelId) {
+        setSelectedModelId(previousModelId)
+        setPreviousModelId('')
+      }
     } else {
-      setSelectedAppIds(prev => [...prev, app.id])
-      setSelectedApps(prev => [...prev, app])
+      // 选择新应用（单选，替换之前的选择）
+      // 如果之前没有选中应用，保存当前模型
+      if (selectedAppIds.length === 0) {
+        setPreviousModelId(selectedModelId)
+      }
+
+      // 单选：直接替换
+      setSelectedAppIds([app.id])
+      setSelectedApps([app])
+
+      // 切换到应用绑定的模型
+      if (app.llm_id) {
+        setSelectedModelId(app.llm_id)
+      }
+
       // 选择应用后删除用户输入的 @ 符号
       removeAtSymbol()
     }
   }
 
-  // 移除已选应用
-  const handleRemoveApp = (appId: string) => {
-    setSelectedAppIds(prev => prev.filter(id => id !== appId))
-    setSelectedApps(prev => prev.filter(a => a.id !== appId))
+  // 移除已选应用（应用是单选的，移除即清空）
+  const handleRemoveApp = (_appId: string) => {
+    setSelectedAppIds([])
+    setSelectedApps([])
+
+    // 恢复之前的模型
+    if (previousModelId) {
+      setSelectedModelId(previousModelId)
+      setPreviousModelId('')
+    }
   }
 
   // 转换消息为 Bubble.List 格式
@@ -1089,7 +1117,7 @@ export const HomePage: React.FC = () => {
 
                   {/* 右侧：模型选择器 + 发送按钮 */}
                   <div className="flex items-center gap-3">
-                    {/* 模型选择器 - 融入输入框风格 */}
+                    {/* 模型选择器 - 融入输入框风格，选择应用时锁定 */}
                     <ChatModelSelector
                       models={myLLMs}
                       selectedModelName={selectedModelId}
@@ -1097,6 +1125,7 @@ export const HomePage: React.FC = () => {
                       loading={modelsLoading}
                       variant="minimal"
                       dropdownDirection="down"
+                      disabled={selectedAppIds.length > 0}
                     />
 
                     {/* 发送按钮 */}
@@ -1297,7 +1326,7 @@ export const HomePage: React.FC = () => {
 
                   {/* 右侧：模型选择器 + 发送/停止按钮 */}
                   <div className="flex items-center gap-3">
-                    {/* 模型选择器 - 对话页面使用 minimal 样式，向上弹出 */}
+                    {/* 模型选择器 - 对话页面使用 minimal 样式，向上弹出，选择应用时锁定 */}
                     <ChatModelSelector
                       models={myLLMs}
                       selectedModelName={selectedModelId}
@@ -1305,7 +1334,7 @@ export const HomePage: React.FC = () => {
                       loading={modelsLoading}
                       variant="minimal"
                       dropdownDirection="up"
-                      disabled={isStreaming}
+                      disabled={isStreaming || selectedAppIds.length > 0}
                     />
 
                     {/* 发送/停止按钮 */}
