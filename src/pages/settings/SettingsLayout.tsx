@@ -99,7 +99,7 @@ const ThemeToggle: React.FC = () => {
             isDark ? 'col-start-2' : 'col-start-1'
           )}
         >
-          <span className="h-6 w-6 rounded-full bg-background shadow-sm" />
+          <span className="h-6 w-6 rounded-full bg-surface-primary shadow-sm" />
         </span>
       </span>
       <span className="relative flex w-full items-center justify-between px-3 text-xs">
@@ -142,19 +142,22 @@ export const SettingsLayout: React.FC = () => {
   const currentTitle = pageTitles[location.pathname] || '设置'
 
   return (
-    <div className="flex flex-col h-full bg-background">
+    <div className="flex flex-col h-full bg-surface-primary">
       {/* 顶部面包屑导航 */}
       <header className="flex items-center bg-surface-primary border-b border-border-subtle px-5 py-3 shrink-0">
         <Breadcrumb>
-          <BreadcrumbList>
+          <BreadcrumbList className="text-base gap-2">
             <BreadcrumbItem>
-              <BreadcrumbLink onClick={() => navigate('/home')}>
-                <House className="w-4 h-4" />
+              <BreadcrumbLink
+                onClick={() => navigate('/home')}
+                className="p-1.5 -m-1.5 rounded-lg hover:bg-surface-secondary"
+              >
+                <House className="w-5 h-5" />
               </BreadcrumbLink>
             </BreadcrumbItem>
-            <BreadcrumbSeparator />
+            <BreadcrumbSeparator className="[&>svg]:w-4 [&>svg]:h-4" />
             <BreadcrumbItem>
-              <BreadcrumbPage>{currentTitle}</BreadcrumbPage>
+              <BreadcrumbPage className="text-base">{currentTitle}</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
@@ -173,8 +176,11 @@ export const SettingsLayout: React.FC = () => {
                 className="w-10 h-10 rounded-full object-cover flex-shrink-0"
               />
             ) : (
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-white font-semibold text-sm">
+              <div
+                className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+                style={{ background: 'var(--color-components-gradient-secondary)' }}
+              >
+                <span className="text-text-inverted font-semibold text-sm">
                   {user?.nickname?.[0] || user?.username?.[0] || 'U'}
                 </span>
               </div>
@@ -235,7 +241,7 @@ export const SettingsLayout: React.FC = () => {
         </aside>
 
         {/* 主内容区域 */}
-        <div className="flex-1 overflow-auto bg-background">
+        <div className="flex-1 overflow-auto bg-surface-primary">
           <Outlet />
         </div>
       </div>

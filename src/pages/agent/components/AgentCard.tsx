@@ -1,15 +1,15 @@
-import { Card } from '@/components/ui/card'
+/**
+ * 智能体卡片组件
+ * 风格参照知识库卡片 (KnowledgeCard)，保持一致的布局和交互
+ */
+
+import React from 'react'
 import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { Workflow, Calendar, MoreVertical, Edit, Trash2, Play, Copy } from 'lucide-react'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+import { Dropdown, DropdownItem } from '@/components/ui/dropdown'
+import { Workflow, Clock, MoreVertical, Settings, Trash2, Layers } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { cn } from '@/lib/utils'
+import { cn, formatTimestampDetailed, formatTimestampCompact, formatRelativeTime } from '@/lib/utils'
 import type { IFlow } from '../types'
 
 interface AgentCardProps {
@@ -17,10 +17,18 @@ interface AgentCardProps {
   onDelete: (id: string) => void
   onRename?: (id: string, currentName: string) => void
   onDuplicate?: (id: string) => void
+  timeFormat?: 'detailed' | 'compact' | 'relative'
 }
 
-export const AgentCard = ({ agent, onDelete, onRename, onDuplicate }: AgentCardProps) => {
+export const AgentCard: React.FC<AgentCardProps> = ({ 
+  agent, 
+  onDelete, 
+  onRename, 
+  onDuplicate,
+  timeFormat = 'detailed'
+}) => {
   const navigate = useNavigate()
+  const [isHovered, setIsHovered] = React.useState(false)
 
   // 处理多语言标题
   const title = typeof agent.title === 'object'
@@ -35,141 +43,148 @@ export const AgentCard = ({ agent, onDelete, onRename, onDuplicate }: AgentCardP
   // 判断类型
   const isPlugin = agent.canvas_type === 'pipeline' || agent.canvas_category === 'Ingestion'
 
-  return (
-    <Card className="group relative overflow-hidden hover:shadow-xl transition-all duration-300 border-2 hover:border-primary/30">
-      {/* 顶部彩色条 */}
-      <div className={cn(
-        'h-1.5 w-full',
-        isPlugin
-          ? 'bg-gradient-to-r from-green-500 to-emerald-500'
-          : 'bg-gradient-to-r from-blue-500 to-purple-500'
-      )} />
+  // 获取节点数量
+  const nodeCount = agent.dsl?.graph?.nodes?.length || 0
 
-      <div className="p-6">
-        {/* 头部：图标+标题+菜单 */}
+  // 格式化时间
+  const formatTime = (timestamp: number) => {
+    switch (timeFormat) {
+      case 'detailed':
+        return formatTimestampDetailed(timestamp)
+      case 'compact':
+        return formatTimestampCompact(timestamp)
+      case 'relative':
+        return formatRelativeTime(timestamp)
+      default:
+        return formatTimestampDetailed(timestamp)
+    }
+  }
+
+  // 获取状态颜色和文字
+  const getStatusColor = () => {
+    if (nodeCount > 1) {
+      return 'text-text-success bg-[var(--color-state-success-10)]'
+    } else {
+      return 'text-text-accent bg-[var(--color-state-info-10)]'
+    }
+  }
+
+  const getStatusText = () => {
+    if (nodeCount > 1) {
+      return isPlugin ? 'Pipeline' : '智能体'
+    } else {
+      return '空流程'
+    }
+  }
+
+  const handleClick = () => {
+    navigate(`/agent/${agent.id}`)
+  }
+
+  const handleSettings = () => {
+    navigate(`/agent/${agent.id}`)
+  }
+
+  const handleDelete = () => {
+    onDelete(agent.id)
+  }
+
+  return (
+    <div
+      className={cn(
+        'group relative rounded-2xl border transition-all duration-300 cursor-pointer',
+        'hover:shadow-lg hover:shadow-black/5 hover:-translate-y-0.5',
+        isHovered && 'ring-2 ring-blue-500/20'
+      )}
+      style={{
+        backgroundColor: 'var(--color-components-card-bg)',
+        borderColor: isHovered ? 'var(--color-state-focus)' : 'var(--color-components-card-border)',
+      }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onClick={handleClick}
+    >
+      <div className="p-5">
         <div className="flex items-start justify-between mb-4">
-          <div className="flex items-center space-x-3 flex-1 min-w-0">
-            {/* 图标 */}
-            <div className={cn(
-              'w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg',
-              isPlugin
-                ? 'bg-gradient-to-br from-green-500 to-emerald-600'
-                : 'bg-gradient-to-br from-blue-500 to-purple-600'
-            )}>
-              <Workflow className="w-6 h-6 text-white" />
-            </div>
-            
-            {/* 标题和类型 */}
+          <div className="flex items-center gap-3 flex-1">
+            <Avatar className="h-10 w-10">
+              <AvatarImage src={agent.avatar || undefined} alt={title} />
+              <AvatarFallback 
+                className={cn(
+                  isPlugin
+                    ? 'bg-[var(--color-state-success-subtle)]'
+                    : 'bg-[var(--color-state-info-subtle)]'
+                )}
+              >
+                <Workflow 
+                  className="h-5 w-5" 
+                  style={{ 
+                    color: isPlugin 
+                      ? 'var(--color-state-success)' 
+                      : 'var(--color-state-info)' 
+                  }} 
+                />
+              </AvatarFallback>
+            </Avatar>
             <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-foreground truncate text-lg group-hover:text-primary transition-colors">
+              <h3 className="font-semibold truncate" style={{ color: 'var(--color-text-primary)' }}>
                 {title}
               </h3>
-              <p className="text-sm text-muted-foreground">
-                {isPlugin ? 'Pipeline' : '智能体流程'}
-              </p>
+              <span className={cn(
+                "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium",
+                getStatusColor()
+              )}>
+                {getStatusText()}
+              </span>
             </div>
           </div>
-
-          {/* 更多菜单 */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="opacity-0 group-hover:opacity-100 transition-opacity"
-                onClick={(e) => e.stopPropagation()}
+          <div onClick={(e) => e.stopPropagation()}>
+            <Dropdown
+              trigger={
+                <Button variant="ghost" size="icon-sm">
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              }
+            >
+              <DropdownItem
+                icon={<Settings className="h-4 w-4" />}
+                onClick={handleSettings}
               >
-                <MoreVertical className="w-4 h-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => navigate(`/agent/${agent.id}`)}>
-                <Edit className="w-4 h-4 mr-2" />
                 编辑
-              </DropdownMenuItem>
-              {onRename && (
-                <DropdownMenuItem onClick={() => onRename(agent.id, title)}>
-                  <Edit className="w-4 h-4 mr-2" />
-                  重命名
-                </DropdownMenuItem>
-              )}
-              {onDuplicate && (
-                <DropdownMenuItem onClick={() => onDuplicate(agent.id)}>
-                  <Copy className="w-4 h-4 mr-2" />
-                  复制
-                </DropdownMenuItem>
-              )}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="text-destructive focus:text-destructive"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onDelete(agent.id)
-                }}
+              </DropdownItem>
+              <DropdownItem
+                icon={<Trash2 className="h-4 w-4" />}
+                onClick={handleDelete}
+                danger
               >
-                <Trash2 className="w-4 h-4 mr-2" />
                 删除
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+              </DropdownItem>
+            </Dropdown>
+          </div>
         </div>
 
-        {/* 描述 */}
-        {description && (
-          <p className="text-sm text-muted-foreground line-clamp-2 mb-4 min-h-[2.5rem]">
-            {description}
-          </p>
-        )}
+        <p className="text-sm mb-4 line-clamp-2" style={{ color: 'var(--color-text-secondary)' }}>
+          {description || '暂无描述'}
+        </p>
 
-        {/* 底部信息 */}
-        <div className="flex items-center justify-between pt-4 border-t border-border/50">
-          <div className="flex items-center text-xs text-muted-foreground">
-            <Calendar className="w-3 h-3 mr-1.5" />
-            {new Date(agent.update_time * 1000).toLocaleDateString('zh-CN', {
-              month: '2-digit',
-              day: '2-digit',
-              hour: '2-digit',
-              minute: '2-digit',
-            })}
+        <div className="grid grid-cols-2 gap-3 text-sm" style={{ color: 'var(--color-text-tertiary)' }}>
+          <div className="flex items-center">
+            <Layers className="h-4 w-4 mr-1.5" />
+            {nodeCount} 节点
           </div>
-
-          {/* 快速操作按钮 */}
-          <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-8"
-              onClick={(e) => {
-                e.stopPropagation()
-                navigate(`/agent/${agent.id}`)
-              }}
-            >
-              <Edit className="w-3 h-3 mr-1" />
-              编辑
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-8"
-              onClick={(e) => {
-                e.stopPropagation()
-                // TODO: 运行功能
-                console.log('运行:', agent.id)
-              }}
-            >
-              <Play className="w-3 h-3 mr-1" />
-              运行
-            </Button>
+          <div className="flex items-center">
+            <Workflow className="h-4 w-4 mr-1.5" />
+            {isPlugin ? 'Pipeline' : '智能体'}
+          </div>
+          <div className="flex items-center col-span-2">
+            <Clock className="h-4 w-4 mr-1.5" />
+            {formatTime(agent.update_time)}
           </div>
         </div>
       </div>
-
-      {/* 点击整个卡片也可以进入 */}
-      <div
-        className="absolute inset-0 cursor-pointer"
-        onClick={() => navigate(`/agent/${agent.id}`)}
-      />
-    </Card>
+    </div>
   )
 }
+
+AgentCard.displayName = 'AgentCard'
 
