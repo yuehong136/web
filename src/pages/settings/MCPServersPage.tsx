@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -39,6 +40,7 @@ import {
   Loader2,
   Zap,
   Check,
+  Rocket,
 } from 'lucide-react'
 import { ViewToggle } from '@/components/ui/view-toggle'
 import type { MCPServer, MCPTool } from '@/types/mcp'
@@ -82,6 +84,8 @@ const SERVER_TYPE_CONFIG: Record<string, { label: string; bgColor: string; textC
 }
 
 export const MCPServersPage: React.FC<ServerListPageProps> = ({ onServerSelect }) => {
+  const navigate = useNavigate()
+  
   // 视图和筛选状态
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid')
   const [searchTerm, setSearchTerm] = useState('')
@@ -412,13 +416,13 @@ export const MCPServersPage: React.FC<ServerListPageProps> = ({ onServerSelect }
             className="text-xl font-semibold"
             style={{ color: 'var(--color-text-primary)' }}
           >
-            MCP服务器管理
+            MCP 管理
           </h1>
           <p
             className="text-sm mt-1"
             style={{ color: 'var(--color-text-secondary)' }}
           >
-            管理您的MCP服务器，上传文档，配置检索参数
+            管理您的 MCP 服务器，配置检索参数
           </p>
         </div>
         <Button onClick={() => setShowCreateDialog(true)}>
@@ -435,6 +439,65 @@ export const MCPServersPage: React.FC<ServerListPageProps> = ({ onServerSelect }
         serverTypes={stats.serverTypes}
         isLoading={stats.isLoading}
       />
+
+      {/* MCP 实验场入口海报 */}
+      <div
+        onClick={() => navigate('/mcp-chat')}
+        className="relative rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 border p-5"
+        style={{
+          background: 'linear-gradient(135deg, var(--color-state-focus-subtle) 0%, var(--color-components-card-bg) 100%)',
+          borderColor: 'var(--color-state-focus-subtle)',
+        }}
+      >
+        {/* 左侧紫色竖条 */}
+        <div 
+          className="absolute left-0 top-0 bottom-0 w-1"
+          style={{ backgroundColor: 'var(--color-state-focus)' }}
+        />
+        
+        <div className="flex items-center justify-between">
+          {/* 左侧内容 */}
+          <div className="flex items-center gap-4">
+            {/* New 标签 */}
+            <span 
+              className="px-2 py-0.5 rounded text-xs font-semibold"
+              style={{ 
+                backgroundColor: 'var(--color-state-focus)',
+                color: 'white'
+              }}
+            >
+              New
+            </span>
+            
+            {/* 标题和描述 */}
+            <div>
+              <h3 
+                className="text-lg font-semibold"
+                style={{ color: 'var(--color-state-focus)' }}
+              >
+                MCP 实验场
+              </h3>
+              <p 
+                className="text-sm"
+                style={{ color: 'var(--color-text-secondary)' }}
+              >
+                探索模型与 MCP Server 的自由组合和碰撞
+              </p>
+            </div>
+          </div>
+          
+          {/* 右侧火箭图标 */}
+          <div 
+            className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0"
+            style={{ backgroundColor: 'var(--color-components-card-bg)' }}
+          >
+            <Rocket 
+              className="w-7 h-7" 
+              style={{ color: 'var(--color-state-focus)' }}
+            />
+          </div>
+        </div>
+      </div>
 
       {/* 搜索和筛选栏 - 参考知识库页面布局 */}
       <div className="flex items-center space-x-4">

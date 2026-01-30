@@ -1,7 +1,6 @@
 import React from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import {
-  MessageSquare,
   BookOpen,
   HardDrive,
   Wrench,
@@ -19,7 +18,6 @@ import {
   Workflow,
   Home,
   PanelLeftClose,
-  PlugZap
 } from 'lucide-react'
 import * as TooltipPrimitive from '@radix-ui/react-tooltip'
 import { cn } from '@/lib/utils'
@@ -82,14 +80,9 @@ const navItems: NavItem[] = [
     icon: Home,
   },
   {
-    title: '智能对话',
-    href: ROUTES.CHAT,
-    icon: MessageSquare,
-  },
-  {
-    title: 'MCP实验场',
-    href: '/mcp-chat',
-    icon: PlugZap,
+    title: '探索',
+    href: ROUTES.EXPLORE,
+    icon: Compass,
   },
   {
     title: '知识库',
@@ -102,11 +95,6 @@ const navItems: NavItem[] = [
     icon: HardDrive,
   },
   {
-    title: '探索',
-    href: ROUTES.EXPLORE,
-    icon: Compass,
-  },
-  {
     title: '智能体',
     href: ROUTES.AGENTS,
     icon: Workflow,
@@ -117,12 +105,12 @@ const navItems: NavItem[] = [
     icon: Briefcase,
   },
   {
-    title: 'AI工具箱',
+    title: '工具箱',
     href: ROUTES.AI_TOOLS,
     icon: Wrench,
   },
   {
-    title: 'MCP服务器',
+    title: 'MCP',
     href: ROUTES.MCP_SERVERS,
     icon: Server,
   },

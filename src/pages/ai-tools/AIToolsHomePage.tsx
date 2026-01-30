@@ -119,12 +119,12 @@ export const AIToolsHomePage: React.FC = () => {
       <div className="mb-4 text-sm text-text-secondary flex items-center gap-2">
         <span className="hover:text-text-primary cursor-default">首页</span>
         <ChevronRight className="h-4 w-4 text-components-breadcrumb-separator" />
-        <span className="text-text-primary">AI 工具箱</span>
+        <span className="text-text-primary">工具箱</span>
       </div>
 
       {/* Page title and quick filter (right aligned) */}
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-text-primary">AI 工具箱</h1>
+        <h1 className="text-2xl font-semibold text-text-primary">工具箱</h1>
         <div className="hidden md:block">
           <Segmented value={serviceType} onValueChange={(v) => handleServiceTypeChange(v as ServiceType)}>
             <SegmentedItem value="all">All</SegmentedItem>

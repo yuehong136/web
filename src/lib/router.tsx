@@ -2,7 +2,6 @@ import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { Layout } from '@/components/layout/Layout'
 import { LoginPage, RegisterPage } from '@/pages/auth'
 import { HomePage } from '@/pages/home'
-import { ChatPage } from '@/pages/chat/ChatPage'
 import { KnowledgeListPage } from '@/pages/knowledge/KnowledgeListPage'
 import { KnowledgeDetailLayout } from '@/pages/knowledge/KnowledgeDetailLayout'
 import { KnowledgeDocumentsPage } from '@/pages/knowledge/KnowledgeDocumentsPage'
@@ -42,7 +41,6 @@ import AgentCanvasPage from '@/pages/agent/AgentCanvasPage'
 
 // 页面组件 (先创建占位符)
 
-// Chat页面已迁移到ChatPage组件
 
 // Knowledge页面已迁移到KnowledgeListPage组件
 
@@ -53,7 +51,7 @@ const Documents = () => (
   </div>
 )
 
-// 替换为正式 AI 工具箱页面
+// 替换为正式工具箱页面
 
 const Workflow = () => (
   <div className="p-6">
@@ -144,10 +142,6 @@ export const router = createBrowserRouter([
       {
         path: ROUTES.HOME,
         element: <HomePage />,
-      },
-      {
-        path: ROUTES.CHAT,
-        element: <ChatPage />,
       },
       {
         path: '/mcp-chat',

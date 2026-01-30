@@ -7,7 +7,6 @@ export const ROUTES = {
   HOME: '/home',
   LOGIN: '/auth/login',
   REGISTER: '/auth/register',
-  CHAT: '/chat',
   KNOWLEDGE: '/knowledge',
   MEMORY: '/memory',
   MEMORY_DETAIL: '/memory/:id',
