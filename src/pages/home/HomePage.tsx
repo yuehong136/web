@@ -1,296 +1,1201 @@
-import React, { useState, useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { 
-  Plus, 
-  MessageSquare, 
-  MoreHorizontal,
-  ChevronLeft,
-  ChevronRight,
-  Lock
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
+import { flushSync } from 'react-dom'
+import {
+  AtSign,
+  Paperclip,
+  Lightbulb,
+  ArrowUp,
+  Search,
+  Server,
+  Globe,
+  Wrench,
+  X,
+  Bot,
+  User,
+  Square,
+  MessageSquare,
 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { useChatStore } from '@/stores/chat'
+import { mcpAPI } from '@/api/mcp'
 import { useModelStore } from '@/stores/model'
-import { ChatModelSelector } from '@/components/chat/ChatModelSelector'
-import { ErrorBoundary } from '@/components/ui/error-boundary'
-import { Welcome, Prompts, Sender } from '@ant-design/x'
-import type { PromptsProps } from '@ant-design/x'
+import { useDialogApps } from '@/hooks/use-dialog-apps'
+import { toast } from '@/lib/toast'
+import { Bubble, Think } from '@ant-design/x'
+import XMarkdown from '@ant-design/x-markdown'
+import '@ant-design/x-markdown/dist/x-markdown.css'
+import { EnhancedSSEParser, type SSEMessage, type ToolCallInfo } from '@/components/chat/EnhancedSSEParser'
+import { ToolCallRenderer } from '@/components/chat/ToolCallRenderer'
+import { ProviderIcon } from '@/components/ui/provider-icon'
+import type { MCPServer, MCPChatConfig } from '@/types/mcp'
+import type { MCPChatServiceRequest } from '@/api/mcp-chat-service'
+import type { DialogApp } from '@/types/api'
 
-// Logo 组件
-const LogoIcon: React.FC<{ size?: number }> = ({ size = 48 }) => (
-  <div 
-    className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center"
-    style={{ width: size, height: size }}
-  >
-    <span className="text-white font-bold" style={{ fontSize: size * 0.4 }}>F</span>
-  </div>
-)
+// 功能标签数据
+const functionTabs = [
+  { id: 'writing', label: '写作' },
+  { id: 'ppt', label: 'PPT' },
+  { id: 'video', label: '视频' },
+  { id: 'design', label: '设计' },
+  { id: 'excel', label: 'Excel' },
+  { id: 'web', label: '网页' },
+  { id: 'podcast', label: '播客' },
+  { id: 'chart', label: '图表' },
+]
+
+// 推荐卡片数据
+const recommendCards = [
+  {
+    id: 1,
+    title: '银发经济崛起背后有哪些新商机?',
+    tag: '猜你想聊',
+    bgColor: 'bg-[#F0EDE8]',
+    height: 'h-[180px]',
+  },
+  {
+    id: 2,
+    title: '副业收入超主业，该辞职全职搞副业吗?',
+    tag: '猜你想聊',
+    bgColor: 'bg-[#E8E4DF]',
+    height: 'h-[210px]',
+  },
+  {
+    id: 3,
+    title: '一键直出动植物百科',
+    tag: '创意设计',
+    bgColor: 'bg-[#F5F3F0]',
+    height: 'h-[200px]',
+    hasImage: true,
+    imageUrl: 'https://images.unsplash.com/photo-1698844243252-520dc762243e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3Njk3Mzg5MTV8&ixlib=rb-4.1.0&q=80&w=400',
+  },
+  {
+    id: 4,
+    title: '水贝杰我睿疑似暴雷，专班介入后现状如何?',
+    tag: '聊热点',
+    bgColor: 'bg-[#EDEDED]',
+    height: 'h-[180px]',
+  },
+  {
+    id: 5,
+    title: '470万颗冰毒坠泰国河中，生态影响与恢复需多久?',
+    tag: '聊热点',
+    bgColor: 'bg-[#EDEDED]',
+    height: 'h-[180px]',
+  },
+]
+
+// 获取问候语
+const getGreeting = () => {
+  const hour = new Date().getHours()
+  if (hour < 6) return '凌晨好'
+  if (hour < 9) return '早上好'
+  if (hour < 12) return '上午好'
+  if (hour < 14) return '中午好'
+  if (hour < 18) return '下午好'
+  if (hour < 22) return '晚上好'
+  return '夜深了'
+}
+
+// 根据服务器类型获取图标
+const getServerIcon = (serverType: string) => {
+  switch (serverType) {
+    case 'sse':
+      return <Globe className="w-4 h-4" />
+    case 'streamable-http':
+    case 'http':
+      return <Server className="w-4 h-4" />
+    default:
+      return <Wrench className="w-4 h-4" />
+  }
+}
+
+// 思考状态类型
+type ThinkingStatus = 'none' | 'thinking' | 'complete'
+
+interface ThinkExtractResult {
+  thinkContent: string
+  mainContent: string
+  isThinking: boolean
+  status: ThinkingStatus
+}
+
+// 提取 think 内容
+const extractThinkContent = (content: string): ThinkExtractResult => {
+  if (!content) return { thinkContent: '', mainContent: '', isThinking: false, status: 'none' }
+
+  const completeMatch = content.match(/<think(?:ing)?>([\s\S]*?)<\/think(?:ing)?>([\s\S]*)/)
+  if (completeMatch) {
+    return {
+      thinkContent: completeMatch[1].trim(),
+      mainContent: completeMatch[2].trim(),
+      isThinking: false,
+      status: 'complete'
+    }
+  }
+
+  const hasOpenTag = content.includes('<think>') || content.includes('<thinking>')
+  const hasCloseTag = content.includes('</think>') || content.includes('</thinking>')
+
+  if (hasOpenTag && !hasCloseTag) {
+    const openMatch = content.match(/<think(?:ing)?>([\s\S]*)/)
+    const afterTag = openMatch ? openMatch[1] : ''
+    const doubleNewlineMatch = afterTag.match(/^([\s\S]*?)\n\n+(\S[\s\S]*)$/)
+
+    if (doubleNewlineMatch) {
+      return {
+        thinkContent: doubleNewlineMatch[1].trim(),
+        mainContent: doubleNewlineMatch[2].trim(),
+        isThinking: false,
+        status: 'complete'
+      }
+    }
+
+    return {
+      thinkContent: afterTag.trim(),
+      mainContent: '',
+      isThinking: true,
+      status: 'thinking'
+    }
+  }
+
+  return { thinkContent: '', mainContent: content, isThinking: false, status: 'none' }
+}
+
+// 稳定的 Markdown 渲染组件
+const StableMarkdown = React.memo(({ content }: { content: string }) => {
+  const stableContentRef = React.useRef(content)
+  const [stableContent, setStableContent] = React.useState(content)
+
+  React.useEffect(() => {
+    if (content !== stableContentRef.current) {
+      stableContentRef.current = content
+      const rafId = requestAnimationFrame(() => {
+        setStableContent(content)
+      })
+      return () => cancelAnimationFrame(rafId)
+    }
+  }, [content])
+
+  if (!stableContent || !stableContent.trim()) {
+    return null
+  }
+
+  return (
+    <div className="prose prose-sm max-w-none dark:prose-invert bubble-copy-text">
+      <XMarkdown paragraphTag="div">
+        {stableContent}
+      </XMarkdown>
+    </div>
+  )
+}, (prevProps, nextProps) => {
+  if (prevProps.content === nextProps.content) return true
+  const diff = Math.abs((nextProps.content?.length || 0) - (prevProps.content?.length || 0))
+  return diff < 10 && nextProps.content?.startsWith(prevProps.content || '')
+})
+
+// 消息类型
+interface ChatMessage {
+  id: string
+  role: 'user' | 'assistant'
+  content: string
+  timestamp: string
+  parsedToolCalls?: ToolCallInfo[]
+}
+
+// 技能面板组件
+interface SkillPanelProps {
+  open: boolean
+  onClose: () => void
+  onSelectSkill: (server: MCPServer) => void
+  onSelectApp: (app: DialogApp) => void
+  selectedSkillIds: string[]
+  selectedAppIds: string[]
+  anchorRef: React.RefObject<HTMLElement>
+  /** 面板弹出方向：down=向下弹出，up=向上弹出 */
+  direction: 'up' | 'down'
+}
+
+const SkillPanel: React.FC<SkillPanelProps> = ({
+  open,
+  onClose,
+  onSelectSkill,
+  onSelectApp,
+  selectedSkillIds,
+  selectedAppIds,
+  anchorRef,
+  direction,
+}) => {
+  const [activeTab, setActiveTab] = useState<'skill' | 'app'>('skill')
+  const [servers, setServers] = useState<MCPServer[]>([])
+  const [skillLoading, setSkillLoading] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+  const panelRef = useRef<HTMLDivElement>(null)
+
+  // 获取对话应用列表
+  const { data: dialogApps = [], isLoading: appsLoading } = useDialogApps()
+
+  // 加载 MCP 服务器列表
+  useEffect(() => {
+    if (open && activeTab === 'skill') {
+      loadServers()
+    }
+  }, [open, activeTab])
+
+  // 点击外部关闭
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        panelRef.current &&
+        !panelRef.current.contains(event.target as Node) &&
+        anchorRef.current &&
+        !anchorRef.current.contains(event.target as Node)
+      ) {
+        onClose()
+      }
+    }
+
+    if (open) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [open, onClose, anchorRef])
+
+  // 切换标签时清空搜索
+  useEffect(() => {
+    setSearchTerm('')
+  }, [activeTab])
+
+  const loadServers = async () => {
+    try {
+      setSkillLoading(true)
+      const response = await mcpAPI.listServers({}, { page: 1, page_size: 100 })
+      setServers(response.mcp_servers || [])
+    } catch (error) {
+      toast.error('加载技能列表失败')
+      console.error('Load MCP servers error:', error)
+    } finally {
+      setSkillLoading(false)
+    }
+  }
+
+  // 过滤后的技能列表
+  const filteredServers = useMemo(() => {
+    if (!searchTerm) return servers
+    const term = searchTerm.toLowerCase()
+    return servers.filter(
+      (server) =>
+        server.name.toLowerCase().includes(term) ||
+        server.description?.toLowerCase().includes(term)
+    )
+  }, [servers, searchTerm])
+
+  // 过滤后的应用列表（只显示已激活的应用）
+  const filteredApps = useMemo(() => {
+    const activeApps = dialogApps.filter(app => app.status === '1')
+    if (!searchTerm) return activeApps
+    const term = searchTerm.toLowerCase()
+    return activeApps.filter(
+      (app) =>
+        app.name.toLowerCase().includes(term) ||
+        app.description?.toLowerCase().includes(term)
+    )
+  }, [dialogApps, searchTerm])
+
+  if (!open) return null
+
+  const isLoading = activeTab === 'skill' ? skillLoading : appsLoading
+  const isEmpty = activeTab === 'skill' ? filteredServers.length === 0 : filteredApps.length === 0
+
+  return (
+    <div
+      ref={panelRef}
+      className={cn(
+        "absolute left-0 w-80 bg-components-card-bg rounded-xl border border-border-default shadow-lg overflow-hidden z-50",
+        direction === 'up' ? 'bottom-full mb-2' : 'top-full mt-2'
+      )}
+      style={{
+        boxShadow: '0 4px 24px rgba(0, 0, 0, 0.12)',
+      }}
+    >
+      {/* 搜索框 */}
+      <div className="p-3 border-b border-border-default">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-tertiary" />
+          <input
+            type="text"
+            placeholder="搜索技能/文件"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-9 pr-3 py-2 text-sm bg-background-subtle rounded-lg border-none outline-none placeholder:text-text-tertiary text-text-primary"
+            autoFocus
+          />
+        </div>
+      </div>
+
+      {/* 标签切换 */}
+      <div className="flex border-b border-border-default">
+        <button
+          onClick={() => setActiveTab('skill')}
+          className={cn(
+            'flex-1 py-2.5 text-sm font-medium transition-colors',
+            activeTab === 'skill'
+              ? 'text-text-primary border-b-2 border-text-primary'
+              : 'text-text-tertiary hover:text-text-secondary'
+          )}
+        >
+          技能
+        </button>
+        <button
+          onClick={() => setActiveTab('app')}
+          className={cn(
+            'flex-1 py-2.5 text-sm font-medium transition-colors',
+            activeTab === 'app'
+              ? 'text-text-primary border-b-2 border-text-primary'
+              : 'text-text-tertiary hover:text-text-secondary'
+          )}
+        >
+          应用
+        </button>
+      </div>
+
+      {/* 列表内容 */}
+      <div className="max-h-[300px] overflow-y-auto">
+        {isLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="w-5 h-5 border-2 border-text-tertiary border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : isEmpty ? (
+          <div className="flex flex-col items-center justify-center py-8 text-center">
+            {activeTab === 'skill' ? (
+              <Wrench className="w-8 h-8 text-text-tertiary mb-2" />
+            ) : (
+              <MessageSquare className="w-8 h-8 text-text-tertiary mb-2" />
+            )}
+            <p className="text-sm text-text-secondary">
+              {searchTerm
+                ? `没有找到匹配的${activeTab === 'skill' ? '技能' : '应用'}`
+                : `暂无可用${activeTab === 'skill' ? '技能' : '应用'}`
+              }
+            </p>
+          </div>
+        ) : activeTab === 'skill' ? (
+          // 技能列表
+          <div className="py-1">
+            {filteredServers.map((server) => {
+              const isSelected = selectedSkillIds.includes(server.id)
+              return (
+                <button
+                  key={server.id}
+                  onClick={() => onSelectSkill(server)}
+                  className={cn(
+                    'w-full flex items-center gap-3 px-4 py-3 text-left transition-colors',
+                    isSelected
+                      ? 'bg-state-focus-subtle'
+                      : 'hover:bg-background-subtle'
+                  )}
+                >
+                  <div
+                    className={cn(
+                      'w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0',
+                      isSelected
+                        ? 'bg-state-focus text-text-inverted'
+                        : 'bg-background-subtle text-text-secondary'
+                    )}
+                  >
+                    {getServerIcon(server.server_type)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium text-text-primary truncate">
+                      {server.name}
+                    </div>
+                    {server.description && (
+                      <div className="text-xs text-text-tertiary truncate">
+                        {server.description}
+                      </div>
+                    )}
+                  </div>
+                  {isSelected && (
+                    <div className="w-2 h-2 rounded-full bg-state-focus flex-shrink-0" />
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        ) : (
+          // 应用列表
+          <div className="py-1">
+            {filteredApps.map((app) => {
+              const isSelected = selectedAppIds.includes(app.id)
+              return (
+                <button
+                  key={app.id}
+                  onClick={() => onSelectApp(app)}
+                  className={cn(
+                    'w-full flex items-center gap-3 px-4 py-3 text-left transition-colors',
+                    isSelected
+                      ? 'bg-state-focus-subtle'
+                      : 'hover:bg-background-subtle'
+                  )}
+                >
+                  <div
+                    className={cn(
+                      'w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden',
+                      isSelected
+                        ? 'bg-state-focus text-text-inverted'
+                        : 'bg-background-subtle text-text-secondary'
+                    )}
+                  >
+                    {app.icon ? (
+                      <img
+                        src={app.icon}
+                        alt={app.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none'
+                        }}
+                      />
+                    ) : (
+                      <MessageSquare className="w-4 h-4" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium text-text-primary truncate">
+                      {app.name}
+                    </div>
+                    {app.description && (
+                      <div className="text-xs text-text-tertiary truncate">
+                        {app.description}
+                      </div>
+                    )}
+                  </div>
+                  {isSelected && (
+                    <div className="w-2 h-2 rounded-full bg-state-focus flex-shrink-0" />
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
 
 export const HomePage: React.FC = () => {
-  const navigate = useNavigate()
-  const { 
-    conversations, 
-    currentConversation, 
-    createConversation, 
-    selectConversation 
-  } = useChatStore()
-  const { myLLMs, isLoading: modelsLoading, loadMyLLMs } = useModelStore()
-  
-  const [chatSidebarCollapsed, setChatSidebarCollapsed] = useState(false)
   const [inputValue, setInputValue] = useState('')
-  const [selectedModel, setSelectedModel] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<string | null>(null)
+  const [skillPanelOpen, setSkillPanelOpen] = useState(false)
+  // 技能（MCP）相关状态
+  const [selectedMCPIds, setSelectedMCPIds] = useState<string[]>([])
+  const [selectedMCPServers, setSelectedMCPServers] = useState<MCPServer[]>([])
+  // 应用相关状态
+  const [selectedAppIds, setSelectedAppIds] = useState<string[]>([])
+  const [selectedApps, setSelectedApps] = useState<DialogApp[]>([])
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const atButtonRef = useRef<HTMLButtonElement>(null)
+
+  // 对话相关状态
+  const [messages, setMessages] = useState<ChatMessage[]>([])
+  const [isStreaming, setIsStreaming] = useState(false)
+  const [streamingContent, setStreamingContent] = useState('')
+  const [streamingToolCalls, setStreamingToolCalls] = useState<ToolCallInfo[]>([])
+  const [isToolAnalyzing, setIsToolAnalyzing] = useState(false)
+  const chatContainerRef = useRef<HTMLDivElement>(null)
+  const sseParserRef = useRef<EnhancedSSEParser | null>(null)
+
+  // 模型相关
+  const { myLLMs, isLoading: modelsLoading, loadMyLLMs } = useModelStore()
+  const [selectedModelId, setSelectedModelId] = useState<string>('')
 
   // 加载模型列表
   useEffect(() => {
-    loadMyLLMs()
-  }, [])
+    if (Object.keys(myLLMs || {}).length === 0 && !modelsLoading) {
+      loadMyLLMs()
+    }
+  }, [loadMyLLMs, myLLMs, modelsLoading])
 
   // 自动选择第一个可用的聊天模型
   useEffect(() => {
-    if (!selectedModel && !modelsLoading && myLLMs && Object.keys(myLLMs).length > 0) {
+    if (!selectedModelId && !modelsLoading && myLLMs && Object.keys(myLLMs).length > 0) {
       for (const [, provider] of Object.entries(myLLMs)) {
         if (provider && provider.llm && Array.isArray(provider.llm)) {
-          const chatModel = provider.llm.find(model => 
+          const chatModel = provider.llm.find(model =>
             model && model.type === 'chat' && model.name
           )
           if (chatModel) {
-            setSelectedModel(chatModel.name)
+            setSelectedModelId(chatModel.name)
             break
           }
         }
       }
     }
-  }, [selectedModel, modelsLoading, myLLMs])
+  }, [selectedModelId, modelsLoading, myLLMs])
 
-  // 处理新对话
-  const handleNewChat = () => {
-    createConversation()
-  }
+  // 根据选中的模型名称找到对应的厂商名称
+  const selectedProviderName = useMemo(() => {
+    if (!selectedModelId || !myLLMs) return null
+    for (const [providerName, providerData] of Object.entries(myLLMs)) {
+      if (providerData?.llm?.some(model => model.name === selectedModelId)) {
+        return providerName
+      }
+    }
+    return null
+  }, [selectedModelId, myLLMs])
+
+  // 获取 AI 头像
+  const getAssistantAvatar = useCallback(() => {
+    if (selectedProviderName) {
+      return <ProviderIcon provider={selectedProviderName} className="w-8 h-8" size={32} />
+    }
+    return (
+      <div className="w-8 h-8 min-w-[32px] min-h-[32px] rounded-full flex items-center justify-center flex-shrink-0 bg-components-avatar-gradient-purple-from">
+        <Bot className="h-4 w-4 text-text-inverted" />
+      </div>
+    )
+  }, [selectedProviderName])
+
+  // 获取用户头像
+  const getUserAvatar = useCallback(() => (
+    <div className="w-8 h-8 min-w-[32px] min-h-[32px] rounded-full flex items-center justify-center flex-shrink-0 bg-components-avatar-gradient-blue-from">
+      <User className="h-4 w-4 text-text-inverted" />
+    </div>
+  ), [])
+
+  // 自动调整输入框高度
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto'
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`
+    }
+  }, [inputValue])
+
+  // 滚动到底部
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight
+    }
+  }, [messages, streamingContent])
 
   // 处理发送消息
-  const handleSendMessage = (message: string) => {
-    if (message.trim()) {
-      if (!currentConversation) {
-        createConversation()
+  const handleSend = useCallback(async () => {
+    if (!inputValue.trim()) return
+
+    if (!selectedModelId) {
+      toast.error('请先选择一个聊天模型')
+      return
+    }
+
+    const userMessage: ChatMessage = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: inputValue.trim(),
+      timestamp: new Date().toLocaleTimeString(),
+    }
+
+    setMessages(prev => [...prev, userMessage])
+    setInputValue('')
+    setIsStreaming(true)
+    setStreamingContent('')
+    setStreamingToolCalls([])
+    setIsToolAnalyzing(false)
+
+    try {
+      const historyMessages = messages.map(msg => ({
+        role: msg.role,
+        content: msg.content
+      }))
+
+      const allMessages = [...historyMessages, {
+        role: 'user' as const,
+        content: userMessage.content
+      }]
+
+      const mcpConfig: MCPChatConfig = {
+        mcp_ids: selectedMCPIds,
+        mcp_timeout: 30000,
+        verbose_tool_use: true,
       }
-      navigate('/chat')
+
+      const request: MCPChatServiceRequest = {
+        prompt: '',
+        messages: allMessages,
+        llm_name: selectedModelId,
+        stream: true,
+        gen_conf: {},
+        mcp_ids: selectedMCPIds,
+        mcp_timeout: mcpConfig.mcp_timeout,
+        verbose_tool_use: mcpConfig.verbose_tool_use,
+        files: [],
+        structured_output: selectedMCPIds.length > 0
+      }
+
+      const parser = new EnhancedSSEParser()
+      sseParserRef.current = parser
+
+      await parser.connect(
+        `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/v1/llm/enhanced_chat_sse`,
+        request,
+        (message: SSEMessage, parserState) => {
+          flushSync(() => {
+            switch (message.type) {
+              case 'text':
+                setStreamingContent(parserState.accumulatedText)
+                break
+              case 'tool_call':
+              case 'tool_result':
+                setStreamingToolCalls([...parserState.toolCalls])
+                break
+              case 'tool_start':
+                setIsToolAnalyzing(true)
+                break
+              case 'tool_end':
+                setIsToolAnalyzing(false)
+                break
+              case 'complete': {
+                const assistantMessage: ChatMessage = {
+                  id: Date.now().toString(),
+                  role: 'assistant',
+                  content: parserState.accumulatedText,
+                  timestamp: new Date().toLocaleTimeString(),
+                  parsedToolCalls: parserState.toolCalls,
+                }
+                setMessages(prev => [...prev, assistantMessage])
+                break
+              }
+              case 'error': {
+                const errorMsg = message.content as unknown as { error?: string }
+                throw new Error(errorMsg.error || 'Unknown error')
+              }
+            }
+          })
+        },
+        (error) => {
+          console.error('SSE Parser error:', error)
+          toast.error(error.message || '连接出错')
+        }
+      )
+    } catch (error) {
+      console.error('Error sending message:', error)
+      toast.error(error instanceof Error ? error.message : '发送消息失败')
+    } finally {
+      if (sseParserRef.current) {
+        sseParserRef.current.disconnect()
+        sseParserRef.current = null
+      }
+      setIsStreaming(false)
+      setStreamingContent('')
+      setStreamingToolCalls([])
+      setIsToolAnalyzing(false)
+    }
+  }, [inputValue, selectedModelId, selectedMCPIds, messages])
+
+  // 停止输出
+  const handleStop = () => {
+    if (sseParserRef.current) {
+      sseParserRef.current.disconnect()
+      sseParserRef.current = null
+    }
+    setIsStreaming(false)
+    setStreamingContent('')
+    setStreamingToolCalls([])
+    setIsToolAnalyzing(false)
+  }
+
+  // 处理键盘事件
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      handleSend()
     }
   }
 
-  // 处理提示词点击
-  const handlePromptClick: PromptsProps['onItemClick'] = (info) => {
-    const label = info.data.label
-    if (typeof label === 'string') {
-      setInputValue(label)
+  // 处理卡片点击
+  const handleCardClick = (title: string) => {
+    setInputValue(title)
+    textareaRef.current?.focus()
+  }
+
+  // 处理标签点击
+  const handleTabClick = (tabId: string) => {
+    setActiveTab(activeTab === tabId ? null : tabId)
+  }
+
+  // 处理技能选择
+  const handleSkillSelect = (server: MCPServer) => {
+    if (selectedMCPIds.includes(server.id)) {
+      setSelectedMCPIds(prev => prev.filter(id => id !== server.id))
+      setSelectedMCPServers(prev => prev.filter(s => s.id !== server.id))
+    } else {
+      setSelectedMCPIds(prev => [...prev, server.id])
+      setSelectedMCPServers(prev => [...prev, server])
     }
   }
 
-  // 格式化时间
-  const formatTime = (date: Date) => {
-    const hours = date.getHours().toString().padStart(2, '0')
-    const minutes = date.getMinutes().toString().padStart(2, '0')
-    return `${hours}:${minutes}`
+  // 移除已选技能
+  const handleRemoveSkill = (serverId: string) => {
+    setSelectedMCPIds(prev => prev.filter(id => id !== serverId))
+    setSelectedMCPServers(prev => prev.filter(s => s.id !== serverId))
   }
 
-  // 转换对话列表
-  const conversationList = conversations.map(conv => ({
-    id: conv.id,
-    title: conv.title || '新对话',
-    timestamp: formatTime(new Date(conv.updatedAt)),
-    isActive: conv.id === currentConversation?.id
-  }))
+  // 处理应用选择
+  const handleAppSelect = (app: DialogApp) => {
+    if (selectedAppIds.includes(app.id)) {
+      setSelectedAppIds(prev => prev.filter(id => id !== app.id))
+      setSelectedApps(prev => prev.filter(a => a.id !== app.id))
+    } else {
+      setSelectedAppIds(prev => [...prev, app.id])
+      setSelectedApps(prev => [...prev, app])
+    }
+  }
 
-  // 提示词列表
-  const promptItems: PromptsProps['items'] = [
-    {
-      key: '1',
-      label: '今天有什么新鲜事？',
-      description: '获取最新资讯',
-    },
-    {
-      key: '2',
-      label: '帮我写一段代码',
-      description: '编程助手',
-    },
-    {
-      key: '3',
-      label: '解释一个概念',
-      description: '知识百科',
-    },
-    {
-      key: '4',
-      label: '翻译一段文字',
-      description: '多语言翻译',
-    },
-  ]
+  // 移除已选应用
+  const handleRemoveApp = (appId: string) => {
+    setSelectedAppIds(prev => prev.filter(id => id !== appId))
+    setSelectedApps(prev => prev.filter(a => a.id !== appId))
+  }
+
+  // 转换消息为 Bubble.List 格式
+  const bubbleItems = useMemo(() => {
+    const items = messages.map((msg) => ({
+      key: msg.id,
+      role: msg.role,
+      content: msg.content || '',
+      loading: false,
+      placement: (msg.role === 'user' ? 'end' : 'start') as 'start' | 'end',
+      avatar: msg.role === 'user' ? getUserAvatar() : getAssistantAvatar(),
+      typing: false,
+      timestamp: msg.timestamp,
+      styles: msg.role === 'user' ? {
+        content: {
+          backgroundColor: 'var(--color-chat-bubble-user-bg)',
+          color: 'var(--color-chat-bubble-user-text)',
+          borderRadius: '18px',
+          padding: '12px 16px',
+          border: 'none',
+          boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
+        }
+      } : {
+        content: {
+          backgroundColor: 'transparent',
+          border: 'none',
+          boxShadow: 'none',
+          padding: '0',
+        }
+      },
+      contentRender: msg.role === 'assistant' ? (() => {
+        const { thinkContent, mainContent, isThinking } = extractThinkContent(msg.content || '')
+        return (
+          <div className="space-y-4">
+            {msg.parsedToolCalls && msg.parsedToolCalls.length > 0 && (
+              <ToolCallRenderer
+                toolCalls={msg.parsedToolCalls.map(call => ({
+                  id: call.id || `${Date.now()}_${Math.random()}`,
+                  name: call.name,
+                  arguments: call.arguments || {},
+                  result: call.result,
+                  status: call.status || 'success',
+                  timestamp: call.timestamp || new Date().toLocaleTimeString()
+                }))}
+                showTimestamp={true}
+                collapsible={true}
+              />
+            )}
+            {thinkContent && (
+              <Think
+                title={isThinking ? '正在思考...' : '思考完成'}
+                loading={isThinking}
+                defaultExpanded={false}
+              >
+                <div className="text-sm whitespace-pre-wrap text-text-secondary">
+                  {thinkContent}
+                </div>
+              </Think>
+            )}
+            {mainContent && <StableMarkdown content={mainContent} />}
+          </div>
+        )
+      }) : undefined,
+    }))
+
+    // 添加流式消息
+    if (isStreaming && (streamingContent || streamingToolCalls.length > 0 || isToolAnalyzing)) {
+      const { thinkContent, mainContent, isThinking } = extractThinkContent(streamingContent || '')
+      items.push({
+        key: 'streaming-assistant',
+        role: 'assistant',
+        content: streamingContent || '',
+        loading: false,
+        typing: false,
+        timestamp: new Date().toLocaleTimeString(),
+        placement: 'start' as const,
+        avatar: getAssistantAvatar(),
+        styles: {
+          content: {
+            backgroundColor: 'transparent',
+            border: 'none',
+            boxShadow: 'none',
+            padding: '0',
+          }
+        },
+        contentRender: () => (
+          <div className="space-y-4">
+            {(isToolAnalyzing || streamingToolCalls.length > 0) && (
+              <div className="rounded-lg p-3 bg-components-tool-call-bg border border-components-tool-call-border">
+                <h4 className="text-sm font-medium mb-2 text-components-tool-call-title">
+                  🛠️ 工具调用状态
+                </h4>
+                <ToolCallRenderer
+                  toolCalls={streamingToolCalls}
+                  isAnalyzing={isToolAnalyzing}
+                  showTimestamp={true}
+                  collapsible={false}
+                />
+              </div>
+            )}
+            {thinkContent && (
+              <Think
+                title={isThinking ? '正在思考...' : '思考完成'}
+                loading={isThinking}
+                defaultExpanded={isThinking}
+                blink={isThinking}
+              >
+                <div className="text-sm whitespace-pre-wrap text-text-secondary">
+                  {thinkContent}
+                </div>
+              </Think>
+            )}
+            {mainContent && mainContent.trim() && <StableMarkdown content={mainContent} />}
+            {!thinkContent && !mainContent && !isToolAnalyzing && streamingToolCalls.length === 0 && (
+              <span className="italic text-text-tertiary">正在生成...</span>
+            )}
+          </div>
+        ),
+      })
+    }
+
+    return items
+  }, [messages, isStreaming, streamingContent, streamingToolCalls, isToolAnalyzing, getAssistantAvatar, getUserAvatar])
+
+  // 是否显示欢迎界面
+  const showWelcome = messages.length === 0 && !isStreaming
 
   return (
-    <div className="h-full flex">
-      {/* 中间聊天侧边栏 */}
-      <div 
-        className={cn(
-          "border-r border-gray-100 flex flex-col transition-all duration-300 relative",
-          chatSidebarCollapsed ? "w-0 overflow-hidden" : "w-72"
-        )}
-      >
-        {/* 聊天标题 */}
-        <div className="px-4 py-4 border-b border-gray-100">
-          <h2 className="text-base font-medium text-gray-900">聊天</h2>
-        </div>
+    <div className="h-full bg-background-subtle flex flex-col">
+      {showWelcome ? (
+        /* 欢迎界面 */
+        <div className="flex-1 flex flex-col items-center justify-center px-6 py-8 overflow-y-auto">
+          <div className="w-full max-w-[1240px] flex flex-col items-center gap-8">
+            {/* Header - 问候语 */}
+            <div className="w-full flex flex-col items-center gap-3">
+              <h1 className="text-[36px] font-semibold text-text-primary text-center">
+                {getGreeting()}！有哪些工作要处理？
+              </h1>
+            </div>
 
-        {/* 新对话按钮区域 */}
-        <div className="px-3 py-3 flex items-center gap-2">
-          <Button
-            onClick={handleNewChat}
-            variant="outline"
-            className="flex-1 h-9 justify-center gap-2 text-sm font-normal rounded-lg border-gray-200 hover:bg-gray-50"
-          >
-            <Plus className="h-4 w-4" />
-            新对话
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-9 w-9 rounded-lg border-gray-200 hover:bg-gray-50"
-          >
-            <Lock className="h-4 w-4 text-gray-400" />
-          </Button>
-        </div>
-
-        {/* 对话列表 */}
-        <div className="flex-1 overflow-y-auto px-2">
-          <div className="space-y-1">
-            {conversationList.map((conv) => (
-              <div
-                key={conv.id}
-                onClick={() => {
-                  selectConversation(conv.id)
-                  navigate('/chat')
-                }}
-                className={cn(
-                  "group flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-colors",
-                  conv.isActive 
-                    ? "bg-blue-50 text-blue-600" 
-                    : "hover:bg-gray-50 text-gray-700"
+            {/* InputSection - 输入区域 */}
+            <div className="w-full max-w-[720px] flex flex-col gap-2">
+              {/* 输入框 */}
+              <div className="bg-components-card-bg rounded-2xl border border-border-default p-5 flex flex-col justify-between min-h-[110px] relative">
+                {/* 已选技能和应用标签 */}
+                {(selectedMCPServers.length > 0 || selectedApps.length > 0) && (
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {/* 已选技能 */}
+                    {selectedMCPServers.map((server) => (
+                      <div
+                        key={`skill-${server.id}`}
+                        className="flex items-center gap-1.5 px-2.5 py-1 bg-state-focus-subtle text-state-focus rounded-full text-xs font-medium"
+                      >
+                        {getServerIcon(server.server_type)}
+                        <span>{server.name}</span>
+                        <button
+                          onClick={() => handleRemoveSkill(server.id)}
+                          className="hover:bg-state-focus/20 rounded-full p-0.5"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                    {/* 已选应用 */}
+                    {selectedApps.map((app) => (
+                      <div
+                        key={`app-${app.id}`}
+                        className="flex items-center gap-1.5 px-2.5 py-1 bg-state-success-subtle text-state-success rounded-full text-xs font-medium"
+                      >
+                        <MessageSquare className="w-3.5 h-3.5" />
+                        <span>{app.name}</span>
+                        <button
+                          onClick={() => handleRemoveApp(app.id)}
+                          className="hover:bg-state-success/20 rounded-full p-0.5"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 )}
-              >
-                <div className={cn(
-                  "w-2 h-2 rounded-full flex-shrink-0",
-                  conv.isActive ? "bg-blue-500" : "bg-blue-400"
-                )} />
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm truncate">{conv.title}</div>
-                </div>
-                <span className="text-xs text-gray-400 flex-shrink-0">
-                  {conv.timestamp}
-                </span>
-                <button className="opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-200 rounded transition-opacity">
-                  <MoreHorizontal className="h-3.5 w-3.5 text-gray-400" />
-                </button>
-              </div>
-            ))}
-          </div>
-          
-          {conversationList.length === 0 && (
-            <div className="text-center py-8 text-gray-400 text-sm">
-              暂无对话记录
-            </div>
-          )}
-          
-          {conversationList.length > 0 && (
-            <div className="text-center py-4 text-xs text-gray-400">
-              已加载全部
-            </div>
-          )}
-        </div>
 
-        {/* 折叠按钮 */}
-        <button
-          onClick={() => setChatSidebarCollapsed(!chatSidebarCollapsed)}
-          className="absolute -right-3 top-1/2 transform -translate-y-1/2 w-6 h-6 bg-gray-500 rounded-full flex items-center justify-center shadow-md hover:bg-gray-600 transition-colors z-10"
-        >
-          {chatSidebarCollapsed ? (
-            <ChevronRight className="h-3.5 w-3.5 text-white" />
-          ) : (
-            <ChevronLeft className="h-3.5 w-3.5 text-white" />
-          )}
-        </button>
-      </div>
+                {/* 文本输入区 */}
+                <textarea
+                  ref={textareaRef}
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="给我发消息或布置任务"
+                  className="w-full resize-none bg-transparent text-text-primary text-base placeholder:text-text-tertiary focus:outline-none"
+                  rows={1}
+                />
 
-      {/* 右侧主内容区 */}
-      <div className="flex-1 flex flex-col min-w-0 items-center justify-center p-8">
-        <div className="w-full max-w-2xl space-y-8">
-          {/* Welcome 欢迎组件 */}
-          <Welcome
-            variant="borderless"
-            icon={<LogoIcon size={56} />}
-            title="MultiRAG"
-            description="你好👋，我是 MultiRAG！请问有什么可以帮你?"
-            styles={{
-              icon: { 
-                background: 'transparent',
-              },
-              title: { 
-                fontSize: '28px', 
-                fontWeight: 600,
-                color: '#1f2937',
-              },
-              description: { 
-                fontSize: '15px',
-                color: '#6b7280',
-              },
-            }}
-          />
-
-          {/* 输入框 - 放在中间 */}
-          <div className="w-full">
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-              <Sender
-                value={inputValue}
-                onChange={setInputValue}
-                placeholder="你可以问我任何问题"
-                onSubmit={handleSendMessage}
-                style={{
-                  boxShadow: 'none',
-                  border: 'none',
-                }}
-                suffix={
-                  <div className="flex items-center gap-2">
-                    <ErrorBoundary
-                      fallback={() => (
-                        <span className="text-xs text-gray-400">gpt-4o-mini</span>
+                {/* 工具栏 */}
+                <div className="flex items-center justify-between mt-3">
+                  {/* 左侧图标 */}
+                  <div className="flex items-center gap-2 relative">
+                    <button
+                      ref={atButtonRef as React.RefObject<HTMLButtonElement>}
+                      onClick={() => setSkillPanelOpen(!skillPanelOpen)}
+                      className={cn(
+                        "w-9 h-9 rounded-lg flex items-center justify-center transition-colors",
+                        skillPanelOpen || selectedMCPIds.length > 0 || selectedAppIds.length > 0
+                          ? "bg-state-focus-subtle text-state-focus"
+                          : "hover:bg-background-subtle text-text-tertiary"
                       )}
                     >
-                      <ChatModelSelector
-                        models={myLLMs || {}}
-                        selectedModelName={selectedModel}
-                        onSelect={setSelectedModel}
-                        loading={modelsLoading || !myLLMs}
-                        modelTypes={['chat', 'image2text']}
-                      />
-                    </ErrorBoundary>
+                      <AtSign className="w-5 h-5" />
+                    </button>
+                    <button className="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-background-subtle transition-colors">
+                      <Paperclip className="w-5 h-5 text-text-tertiary" />
+                    </button>
+                    <button className="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-background-subtle transition-colors">
+                      <Lightbulb className="w-5 h-5 text-text-tertiary" />
+                    </button>
+
+                    {/* 技能面板 - 欢迎界面向下弹出 */}
+                    <SkillPanel
+                      open={skillPanelOpen}
+                      onClose={() => setSkillPanelOpen(false)}
+                      onSelectSkill={handleSkillSelect}
+                      onSelectApp={handleAppSelect}
+                      selectedSkillIds={selectedMCPIds}
+                      selectedAppIds={selectedAppIds}
+                      anchorRef={atButtonRef as React.RefObject<HTMLElement>}
+                      direction="down"
+                    />
                   </div>
-                }
+
+                  {/* 发送按钮 */}
+                  <button
+                    onClick={handleSend}
+                    className={cn(
+                      "w-10 h-10 rounded-full flex items-center justify-center transition-colors",
+                      inputValue.trim()
+                        ? "bg-text-primary hover:bg-text-secondary"
+                        : "bg-border-default"
+                    )}
+                  >
+                    <ArrowUp className={cn(
+                      "w-5 h-5",
+                      inputValue.trim() ? "text-text-inverted" : "text-text-tertiary"
+                    )} />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* TabsRow - 功能标签 */}
+            <div className="flex items-center justify-center gap-3 flex-wrap">
+              {functionTabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => handleTabClick(tab.id)}
+                  className={cn(
+                    "px-6 py-2.5 rounded-full text-[15px] font-medium border transition-colors",
+                    activeTab === tab.id
+                      ? "bg-text-primary text-text-inverted border-text-primary"
+                      : "bg-components-card-bg text-text-primary border-border-default hover:bg-background-subtle"
+                  )}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {/* HintText - 功能提示 */}
+            <div className="bg-[#C4A484]/80 text-text-inverted text-[13px] font-medium px-5 py-2.5 rounded-full">
+              一键快速生成精美PPT，支持自定义风格和项目
+            </div>
+
+            {/* CardsSection - 推荐卡片 */}
+            <div className="w-full flex gap-4 pt-10">
+              {recommendCards.map((card) => (
+                <div
+                  key={card.id}
+                  onClick={() => handleCardClick(card.title)}
+                  className={cn(
+                    "flex-1 rounded-2xl p-5 flex flex-col justify-between cursor-pointer transition-transform hover:scale-[1.02]",
+                    card.bgColor,
+                    card.height
+                  )}
+                >
+                  <div className="flex flex-col gap-2">
+                    <p className="text-sm font-medium text-text-primary leading-relaxed">
+                      {card.title}
+                    </p>
+                    {card.hasImage && card.imageUrl && (
+                      <div className="w-full h-20 rounded-lg overflow-hidden">
+                        <img
+                          src={card.imageUrl}
+                          alt=""
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-xs text-text-tertiary text-right">
+                    {card.tag}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* 对话界面 */
+        <div className="flex-1 flex flex-col min-h-0">
+          {/* 对话消息区域 */}
+          <div
+            ref={chatContainerRef}
+            className="flex-1 overflow-y-auto p-6"
+          >
+            <div className="max-w-4xl mx-auto">
+              <Bubble.List
+                items={bubbleItems as Parameters<typeof Bubble.List>[0]['items']}
+                autoScroll={true}
+                style={{ minHeight: '100%', paddingBottom: '8px' }}
               />
             </div>
           </div>
 
-          {/* Prompts 提示词建议 */}
-          <Prompts
-            items={promptItems}
-            onItemClick={handlePromptClick}
-            wrap
-            styles={{
-              item: {
-                background: '#f9fafb',
-                borderRadius: '12px',
-                border: '1px solid #e5e7eb',
-              },
-            }}
-          />
+          {/* 底部输入区域 */}
+          <div className="flex-shrink-0 px-6 pb-6 pt-2">
+            <div className="max-w-4xl mx-auto">
+              <div className="bg-components-card-bg rounded-2xl border border-border-default p-4 relative">
+                {/* 已选技能和应用标签 */}
+                {(selectedMCPServers.length > 0 || selectedApps.length > 0) && (
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {/* 已选技能 */}
+                    {selectedMCPServers.map((server) => (
+                      <div
+                        key={`skill-${server.id}`}
+                        className="flex items-center gap-1.5 px-2.5 py-1 bg-state-focus-subtle text-state-focus rounded-full text-xs font-medium"
+                      >
+                        {getServerIcon(server.server_type)}
+                        <span>{server.name}</span>
+                        <button
+                          onClick={() => handleRemoveSkill(server.id)}
+                          className="hover:bg-state-focus/20 rounded-full p-0.5"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                    {/* 已选应用 */}
+                    {selectedApps.map((app) => (
+                      <div
+                        key={`app-${app.id}`}
+                        className="flex items-center gap-1.5 px-2.5 py-1 bg-state-success-subtle text-state-success rounded-full text-xs font-medium"
+                      >
+                        <MessageSquare className="w-3.5 h-3.5" />
+                        <span>{app.name}</span>
+                        <button
+                          onClick={() => handleRemoveApp(app.id)}
+                          className="hover:bg-state-success/20 rounded-full p-0.5"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* 文本输入区 */}
+                <textarea
+                  ref={textareaRef}
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="输入消息，按 Enter 发送"
+                  className="w-full resize-none bg-transparent text-text-primary text-base placeholder:text-text-tertiary focus:outline-none"
+                  rows={1}
+                  disabled={isStreaming}
+                />
+
+                {/* 工具栏 */}
+                <div className="flex items-center justify-between mt-3">
+                  {/* 左侧图标 */}
+                  <div className="flex items-center gap-2 relative">
+                    <button
+                      ref={atButtonRef as React.RefObject<HTMLButtonElement>}
+                      onClick={() => setSkillPanelOpen(!skillPanelOpen)}
+                      className={cn(
+                        "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
+                        skillPanelOpen || selectedMCPIds.length > 0 || selectedAppIds.length > 0
+                          ? "bg-state-focus-subtle text-state-focus"
+                          : "hover:bg-background-subtle text-text-tertiary"
+                      )}
+                      disabled={isStreaming}
+                    >
+                      <AtSign className="w-4 h-4" />
+                    </button>
+                    <button
+                      className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-background-subtle transition-colors"
+                      disabled={isStreaming}
+                    >
+                      <Paperclip className="w-4 h-4 text-text-tertiary" />
+                    </button>
+
+                    {/* 技能面板 - 对话界面向上弹出 */}
+                    <SkillPanel
+                      open={skillPanelOpen}
+                      onClose={() => setSkillPanelOpen(false)}
+                      onSelectSkill={handleSkillSelect}
+                      onSelectApp={handleAppSelect}
+                      selectedSkillIds={selectedMCPIds}
+                      selectedAppIds={selectedAppIds}
+                      anchorRef={atButtonRef as React.RefObject<HTMLElement>}
+                      direction="up"
+                    />
+                  </div>
+
+                  {/* 发送/停止按钮 */}
+                  {isStreaming ? (
+                    <button
+                      onClick={handleStop}
+                      className="w-9 h-9 rounded-full flex items-center justify-center bg-state-error text-text-inverted hover:bg-state-error/90 transition-colors"
+                    >
+                      <Square className="w-4 h-4" />
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleSend}
+                      className={cn(
+                        "w-9 h-9 rounded-full flex items-center justify-center transition-colors",
+                        inputValue.trim()
+                          ? "bg-text-primary hover:bg-text-secondary"
+                          : "bg-border-default"
+                      )}
+                    >
+                      <ArrowUp className={cn(
+                        "w-4 h-4",
+                        inputValue.trim() ? "text-text-inverted" : "text-text-tertiary"
+                      )} />
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }
