@@ -48,6 +48,9 @@ html[data-theme="light"] {
 /* 暗色主题 - 优化视觉对比度和组件层次 */
 /* 统一使用 html[data-theme="dark"] 选择器，与主题系统保持一致 */
 html[data-theme="dark"] {
+  /* 字体大小 - 与亮色模式保持一致 */
+  --font-size: 14px;
+  
   /* 背景色系 - 增强层次感 */
   --background: #0a0f1c;  /* 更深的背景色 */
   --foreground: #f8fafc;  /* 高对比度的前景色 */
