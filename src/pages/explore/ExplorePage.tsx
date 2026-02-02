@@ -6,10 +6,6 @@ import {
   Sparkles,
   Edit3,
   Trash2,
-  Copy,
-  RotateCcw,
-  ThumbsUp,
-  ThumbsDown,
   LayoutGrid,
   AlignCenter,
   Maximize2,
@@ -19,10 +15,6 @@ import {
   Globe,
   Square,
   Upload,
-  X,
-  Volume2,
-  Pause,
-  Loader2
 } from 'lucide-react'
 import { 
   Conversations,
@@ -30,8 +22,6 @@ import {
   Sender, 
   Prompts,
   Welcome,
-  Think,
-  Actions,
   Attachments
 } from '@ant-design/x'
 // 导入 Ant Design X 内部的 Loading 组件用于三点加载动画
@@ -45,29 +35,26 @@ import { cn, copyToClipboard } from '@/lib/utils'
 import { toast } from '@/lib/toast'
 import { useChatStore } from '@/stores/chat'
 import { useModelStore } from '@/stores/model'
-import { useDialogApps, useDialogApp } from '@/hooks/use-dialog-apps'
+import { useDialogApps } from '@/hooks/use-dialog-apps'
 import { 
   useChatSettings, 
   useKnowledgeBases, 
   useRerankModels,
-  buildMetadataCondition,
 } from '@/hooks/use-chat-settings'
 import { useChatUpload } from '@/hooks/use-chat-upload'
-import { useSpeech } from '@/hooks/use-speech'
 import { conversationAPI } from '@/api/conversation'
 import { useQuery } from '@tanstack/react-query'
 import { chatConfig, type ChatMessage, type ChatServiceRequest, type SSEResponse, uploadConfig, type UploadFile } from '@/config/chat'
 import { extractReferencesFromSSEData, type ReferenceChunk } from '@/utils/reference-replacer'
-import { ReferenceDocumentList } from '@/components/chat/ReferenceDocumentList'
-import { createSupComponent } from '@/components/chat/InlineSourceRef'
 import { ChatSettingsPanel, defaultChatSettings, type ChatSettings } from '@/components/chat/ChatSettingsPanel'
-import { 
-  groupConsecutiveReferences, 
-  shouldShowCarousel,
-  type ReferenceGroup,
-  extractDocAggsFromResponse,
-  type DocAgg,
-} from '@/utils/reference-utils'
+import { getConversationDateGroup } from '@/utils/conversation-utils'
+
+// 公共工具函数和组件
+import { convertReferencesToSup, processContentForCarousel } from '@/utils/message-utils'
+import { extractThinkContent, type ThinkingStatus } from '@/utils/think-utils'
+import { ThinkWrapper } from '@/components/chat/ThinkWrapper'
+import { MessageActionsFooter } from '@/components/chat/MessageActionsFooter'
+import { CarouselWrapper } from '@/components/chat/CarouselWrapper'
 
 // 新版引用组件
 import { ReferencePanel } from '@/components/chat/ReferencePanel'
@@ -77,193 +64,6 @@ import { ReferenceImageList } from '@/components/chat/ReferenceImageList'
 
 // SSE 流解析库（参考 ragflow 最佳实践）
 import { EventSourceParserStream } from 'eventsource-parser/stream'
-
-// 延迟加载 ImageCarousel 组件，避免 embla-carousel 初始化问题
-const ImageCarousel = React.lazy(() => import('@/components/chat/ImageCarousel'))
-
-// 将内容中的 [ID:x] 引用转换为 <sup>x</sup> 格式，供 XMarkdown 处理
-const convertReferencesToSup = (content: string): string => {
-  if (!content) return ''
-  return content.replace(/\[ID:(\d+)\]/g, '<sup>$1</sup>')
-}
-
-/**
- * 处理内容中的引用，将连续图片引用替换为轮播占位符
- * 返回处理后的内容和需要渲染的轮播组信息
- */
-interface ProcessedContent {
-  /** 处理后的内容（连续图片引用被替换为占位符） */
-  content: string
-  /** 需要渲染为轮播的分组（按顺序） */
-  carouselGroups: ReferenceGroup[]
-}
-
-const processContentForCarousel = (
-  content: string, 
-  references: ReferenceChunk[]
-): ProcessedContent => {
-  if (!content || references.length === 0) {
-    return { content, carouselGroups: [] }
-  }
-
-  const groups = groupConsecutiveReferences(content)
-  const carouselGroups: ReferenceGroup[] = []
-  let processedContent = content
-
-  // 从后往前处理，避免位置偏移问题
-  for (let i = groups.length - 1; i >= 0; i--) {
-    const group = groups[i]
-    if (shouldShowCarousel(group, references)) {
-      carouselGroups.unshift(group) // 保持顺序
-      
-      // 计算要替换的文本范围
-      const startPos = group[0].start
-      const endPos = group[group.length - 1].end
-      
-      // 替换为占位符标记（用于分割内容）
-      processedContent = 
-        processedContent.slice(0, startPos) + 
-        '<carousel-placeholder></carousel-placeholder>' +
-        processedContent.slice(endPos)
-    }
-  }
-
-  return { content: processedContent, carouselGroups }
-}
-
-/**
- * 轮播包装组件，包含错误边界和懒加载
- * 用于安全地渲染图片轮播
- */
-interface CarouselWrapperProps {
-  group: ReferenceGroup
-  chunks: ReferenceChunk[]
-}
-
-const CarouselWrapper: React.FC<CarouselWrapperProps> = ({ group, chunks }) => {
-  const [hasError, setHasError] = React.useState(false)
-
-  if (hasError) {
-    // 出错时显示简单的图片列表作为降级方案
-    return (
-      <div className="my-4 flex flex-wrap gap-2 justify-center">
-        {group.map((ref) => {
-          const chunkIndex = parseInt(ref.id, 10)
-          const chunk = chunks[chunkIndex]
-          if (!chunk?.image_id) return null
-          const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
-          return (
-            <img
-              key={ref.id}
-              src={`${baseUrl}/v1/document/image/${chunk.image_id}`}
-              alt={`Fig. ${chunkIndex + 1}`}
-              className="max-h-36 object-contain rounded-lg"
-              style={{ border: '1px solid var(--color-border-subtle)' }}
-            />
-          )
-        })}
-      </div>
-    )
-  }
-
-  return (
-    <React.Suspense fallback={
-      <div className="my-4 flex items-center justify-center h-36">
-        <span style={{ color: 'var(--color-text-tertiary)' }}>加载图片...</span>
-      </div>
-    }>
-      <ErrorBoundaryWrapper onError={() => setHasError(true)}>
-        <ImageCarousel
-          group={group}
-          chunks={chunks}
-          onImageClick={(chunk) => {
-            if (chunk.url) {
-              window.open(chunk.url, '_blank', 'noopener,noreferrer')
-            } else {
-              toast.success(`查看图片: Fig. ${parseInt(chunk.id || '0', 10) + 1}`)
-            }
-          }}
-          className="my-4"
-        />
-      </ErrorBoundaryWrapper>
-    </React.Suspense>
-  )
-}
-
-/**
- * 简单的错误边界包装组件
- */
-class ErrorBoundaryWrapper extends React.Component<
-  { children: React.ReactNode; onError: () => void },
-  { hasError: boolean }
-> {
-  constructor(props: { children: React.ReactNode; onError: () => void }) {
-    super(props)
-    this.state = { hasError: false }
-  }
-
-  static getDerivedStateFromError() {
-    return { hasError: true }
-  }
-
-  componentDidCatch(error: Error) {
-    console.error('ImageCarousel error:', error)
-    this.props.onError()
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return null
-    }
-    return this.props.children
-  }
-}
-
-// 提取并分离 think 内容和主内容
-// 思考状态：'none' 无思考 | 'thinking' 思考中 | 'complete' 思考完成
-type ThinkingStatus = 'none' | 'thinking' | 'complete'
-
-interface ThinkExtractResult {
-  thinkContent: string
-  mainContent: string
-  /** @deprecated 使用 status 代替 */
-  isThinking: boolean
-  /** 思考状态 */
-  status: ThinkingStatus
-}
-
-const extractThinkContent = (content: string): ThinkExtractResult => {
-  if (!content) return { thinkContent: '', mainContent: '', isThinking: false, status: 'none' }
-  
-  // 检查是否有完整的 think/thinking 标签（思考已完成）
-  // 支持 <think> 和 <thinking> 两种格式
-  const completeMatch = content.match(/<think(?:ing)?>([\s\S]*?)<\/think(?:ing)?>([\s\S]*)/)
-  if (completeMatch) {
-    return {
-      thinkContent: completeMatch[1].trim(),
-      mainContent: completeMatch[2].trim(),
-      isThinking: false,
-      status: 'complete'
-    }
-  }
-  
-  // 检查是否有未闭合的 think/thinking 标签（正在思考中）
-  const hasOpenTag = content.includes('<think>') || content.includes('<thinking>')
-  const hasCloseTag = content.includes('</think>') || content.includes('</thinking>')
-  
-  if (hasOpenTag && !hasCloseTag) {
-    const openMatch = content.match(/<think(?:ing)?>([\s\S]*)/)
-    return {
-      thinkContent: openMatch ? openMatch[1].trim() : '',
-      mainContent: '',
-      isThinking: true,
-      status: 'thinking'
-    }
-  }
-  
-  // 没有 think 标签
-  return { thinkContent: '', mainContent: content, isThinking: false, status: 'none' }
-}
 
 // 获取应用图标
 const getAppIcon = (app: any, size: 'sm' | 'md' = 'sm') => {
@@ -298,165 +98,6 @@ interface ChatMessageItem {
   thinking?: string
   thinkingComplete?: boolean
 }
-
-// 会话日期分组辅助函数（参考 RAGFlow）
-const getConversationDateGroup = (timestamp: number): string => {
-  // 处理时间戳格式（毫秒或秒）
-  const time = timestamp > 1000000000000 ? timestamp : timestamp * 1000
-  const date = new Date(time)
-  const now = new Date()
-  
-  // 获取今天和昨天的日期（忽略时间）
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000)
-  const lastWeek = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
-  
-  const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate())
-  
-  if (dateOnly.getTime() === today.getTime()) {
-    return '今天'
-  } else if (dateOnly.getTime() === yesterday.getTime()) {
-    return '昨天'
-  } else if (dateOnly >= lastWeek) {
-    return '最近 7 天'
-  } else {
-    return '更早'
-  }
-}
-
-// Think 展开状态组件 - 提取为独立组件避免重新创建导致状态丢失
-interface ThinkWrapperProps {
-  children: React.ReactNode
-  /** 思考状态 */
-  status: ThinkingStatus
-  /** 消息的唯一标识，用于区分不同消息的折叠状态 */
-  messageId?: string
-}
-
-const ThinkWrapper: React.FC<ThinkWrapperProps> = React.memo(({ children, status }) => {
-  const isThinking = status === 'thinking'
-  
-  // 简化逻辑：直接根据 status 控制展开状态
-  // - thinking：强制展开
-  // - complete：用户可手动控制
-  const [userExpanded, setUserExpanded] = React.useState(true)
-  
-  // 当状态为 thinking 时，始终展开；complete 时使用用户控制的状态
-  const expanded = isThinking ? true : userExpanded
-  
-  // 当从 thinking 变为 complete 时，延迟折叠
-  const prevStatusRef = React.useRef(status)
-  React.useEffect(() => {
-    if (prevStatusRef.current === 'thinking' && status === 'complete') {
-      const timer = setTimeout(() => {
-        setUserExpanded(false)
-      }, 800)
-      return () => clearTimeout(timer)
-    }
-    prevStatusRef.current = status
-  }, [status])
-  
-  // 根据状态显示不同的标题
-  const title = isThinking ? '思考中...' : '思考完成'
-  
-  return (
-    <Think
-      title={title}
-      loading={isThinking}
-      expanded={expanded}
-      onExpand={setUserExpanded}
-      blink={isThinking}
-    >
-      {children}
-    </Think>
-  )
-})
-
-// 消息操作按钮组件 - 包含 TTS 功能
-// 由于 useSpeech 是 hook，需要为每条消息创建独立的组件实例
-interface MessageActionsFooterProps {
-  content: string
-  onCopy: () => void
-  onRegenerate: () => void
-  onLike: () => void
-  onDislike: () => void
-}
-
-const MessageActionsFooter: React.FC<MessageActionsFooterProps> = React.memo(({
-  content,
-  onCopy,
-  onRegenerate,
-  onLike,
-  onDislike
-}) => {
-  const { isPlaying, isLoading, handleTogglePlay, audioRef } = useSpeech(content)
-
-  const actionItems = [
-    {
-      key: 'copy',
-      label: '复制',
-      icon: <Copy className="h-3 w-3" style={{ color: 'var(--color-text-tertiary)' }} />
-    },
-    {
-      key: 'tts',
-      label: isPlaying ? '暂停' : '朗读',
-      icon: isLoading ? (
-        <Loader2 className="h-3 w-3 animate-spin" style={{ color: 'var(--color-text-accent)' }} />
-      ) : isPlaying ? (
-        <Pause className="h-3 w-3" style={{ color: 'var(--color-text-accent)' }} />
-      ) : (
-        <Volume2 className="h-3 w-3" style={{ color: 'var(--color-text-tertiary)' }} />
-      )
-    },
-    {
-      key: 'regenerate',
-      label: '重新生成',
-      icon: <RotateCcw className="h-3 w-3" style={{ color: 'var(--color-text-tertiary)' }} />
-    },
-    {
-      key: 'like',
-      label: '点赞',
-      icon: <ThumbsUp className="h-3 w-3" style={{ color: 'var(--color-text-tertiary)' }} />
-    },
-    {
-      key: 'dislike',
-      label: '踩',
-      icon: <ThumbsDown className="h-3 w-3" style={{ color: 'var(--color-text-tertiary)' }} />
-    }
-  ]
-
-  const handleAction = async (key: string) => {
-    switch (key) {
-      case 'copy':
-        onCopy()
-        break
-      case 'tts':
-        handleTogglePlay()
-        break
-      case 'regenerate':
-        onRegenerate()
-        break
-      case 'like':
-        onLike()
-        break
-      case 'dislike':
-        onDislike()
-        break
-    }
-  }
-
-  return (
-    <div className="mt-2 flex justify-end">
-      <Actions
-        items={actionItems}
-        variant="borderless"
-        onClick={({ key }) => handleAction(key)}
-      />
-      {/* Hidden audio element for TTS playback */}
-      <audio ref={audioRef} style={{ display: 'none' }} />
-    </div>
-  )
-})
 
 export const ExplorePage: React.FC = () => {
   const { clearChat } = useChatStore()

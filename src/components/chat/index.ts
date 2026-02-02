@@ -25,6 +25,11 @@ export { ReferencePanel } from './ReferencePanel';
 export { ReferenceDetailSheet } from './ReferenceDetailSheet';
 export { ReferenceImageList } from './ReferenceImageList';
 
+// 公共消息渲染组件
+export { ThinkWrapper } from './ThinkWrapper';
+export { MessageActionsFooter } from './MessageActionsFooter';
+export { CarouselWrapper } from './CarouselWrapper';
+
 // 聊天设置相关组件
 export { ChatSettingsPanel, defaultChatSettings } from './ChatSettingsPanel';
 export { MetadataFilter, ComparisonOperators, MetadataFilterModes } from './MetadataFilter';
@@ -51,3 +56,8 @@ export type { ReferenceMarkerProps } from './ReferenceMarker';
 export type { ReferencePanelProps, DocAgg } from './ReferencePanel';
 export type { ReferenceDetailSheetProps } from './ReferenceDetailSheet';
 export type { ReferenceImageListProps } from './ReferenceImageList';
+
+// 公共消息渲染组件类型
+export type { ThinkWrapperProps } from './ThinkWrapper';
+export type { MessageActionsFooterProps } from './MessageActionsFooter';
+export type { CarouselWrapperProps } from './CarouselWrapper';

@@ -14,6 +14,7 @@ export const chatKeys = {
   all: ['chat'] as const,
   conversations: () => [...chatKeys.all, 'conversations'] as const,
   conversationList: (params: Record<string, any>) => [...chatKeys.conversations(), 'list', params] as const,
+  conversationsByDialog: (dialogId: string) => [...chatKeys.conversations(), 'byDialog', dialogId] as const,
   conversationDetail: (id: string) => [...chatKeys.conversations(), 'detail', id] as const,
   messages: (conversationId: string) => [...chatKeys.all, 'messages', conversationId] as const,
 }
@@ -218,5 +219,35 @@ export const useDeleteMessage = () => {
     isLoading: isPending,
     isError,
     error,
+  }
+}
+
+// 根据 dialog_id 获取对话列表（用于首页应用历史）
+export const useFetchConversationsByDialog = (dialogId?: string | null) => {
+  const { data, isFetching, isError, error, refetch } = useQuery({
+    queryKey: chatKeys.conversationsByDialog(dialogId || ''),
+    queryFn: async () => {
+      if (!dialogId) return []
+      console.log('[useFetchConversationsByDialog] Fetching conversations for dialog:', dialogId)
+      const response = await conversationAPI.getConversationsByDialog(dialogId)
+      console.log('[useFetchConversationsByDialog] Response:', response)
+      // API 直接返回数组
+      return response || []
+    },
+    enabled: !!dialogId,
+    staleTime: 2 * 60 * 1000, // 2 分钟内认为数据新鲜
+    gcTime: 5 * 60 * 1000,    // 缓存保留 5 分钟
+    refetchOnWindowFocus: false,
+  })
+
+  // 调试日志
+  console.log('[useFetchConversationsByDialog] dialogId:', dialogId, 'data:', data, 'isLoading:', isFetching)
+
+  return {
+    conversations: Array.isArray(data) ? data : [],
+    isLoading: isFetching,
+    isError,
+    error,
+    refetch,
   }
 }

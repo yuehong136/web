@@ -22,8 +22,9 @@ import {
 import * as TooltipPrimitive from '@radix-ui/react-tooltip'
 import { cn } from '@/lib/utils'
 import { ROUTES } from '@/constants'
-import { useUIStore, useAuthStore } from '@/stores'
+import { useUIStore, useAuthStore, useHomeStore } from '@/stores'
 import { Theme, setTheme as setAppTheme, getTheme } from '@/themes'
+import { SidebarConversations } from './SidebarConversations'
 
 // 侧边栏专用 Tooltip 组件（黑色背景样式）
 interface SidebarTooltipProps {
@@ -129,6 +130,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const location = useLocation()
   const { notifications } = useUIStore()
   const { user, isAuthenticated, logout } = useAuthStore()
+  
+  // 首页状态（用于显示应用对话历史）
+  const { 
+    selectedApps, 
+    selectedConversationId, 
+    selectConversation,
+    startNewConversation,
+  } = useHomeStore()
+  const isHomePage = location.pathname === '/' || location.pathname === '/home'
 
   // 内部折叠状态（如果没有外部控制）
   const [internalCollapsed, setInternalCollapsed] = React.useState(true) // 默认收起
@@ -283,8 +293,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
         </nav>
 
-        {/* 中间空白区域 - 将底部推到最下面 */}
-        <div className="flex-1" />
+        {/* 首页应用对话历史 - 条件渲染，使用 flex-1 充分利用空间 */}
+        {isHomePage && selectedApps.length > 0 ? (
+          <SidebarConversations
+            appId={selectedApps[0]?.id}
+            appName={selectedApps[0]?.name}
+            currentConversationId={selectedConversationId}
+            onSelectConversation={(conversationId) => selectConversation(conversationId)}
+            onCreateNew={startNewConversation}
+            isCollapsed={isCollapsed}
+          />
+        ) : (
+          /* 中间空白区域 - 将底部推到最下面（仅在非首页或无选中应用时显示） */
+          <div className="flex-1" />
+        )}
 
         {/* 底部功能区域 */}
         <div className={cn(
