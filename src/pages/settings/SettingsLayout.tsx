@@ -8,7 +8,9 @@ import {
   Unplug,
   Sun,
   Moon,
-  House
+  House,
+  Activity,
+  LogOut,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/stores'
@@ -54,6 +56,11 @@ const settingsItems: SidebarItem[] = [
     title: '概要',
     href: '/settings/profile',
     icon: User,
+  },
+  {
+    title: '系统',
+    href: '/settings/system',
+    icon: Activity,
   },
   {
     title: 'API',
@@ -130,6 +137,7 @@ const pageTitles: Record<string, string> = {
   '/settings/mcp-batch': 'MCP批处理',
   '/settings/team': '团队',
   '/settings/profile': '概要',
+  '/settings/system': '系统',
   '/settings/api-keys': 'API',
 }
 
@@ -238,9 +246,10 @@ export const SettingsLayout: React.FC = () => {
               <ThemeToggle />
             </div>
             <button
-              className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-sm font-medium text-text-secondary border border-border-default bg-surface-primary hover:bg-surface-secondary hover:text-text-primary hover:border-components-sidebar-item-text-active transition-all duration-200"
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-sm font-medium text-text-secondary border border-border-default bg-surface-primary hover:bg-state-error-subtle hover:text-text-error hover:border-state-error transition-colors duration-150"
               onClick={handleLogout}
             >
+              <LogOut className="h-4 w-4" />
               退出登录
             </button>
           </div>

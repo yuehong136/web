@@ -339,7 +339,7 @@ export const MCPServersPage: React.FC<ServerListPageProps> = ({ onServerSelect }
                     <MoreHorizontal className="w-4 h-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-44">
+                <DropdownMenuContent align="end" className="min-w-[140px]">
                   <DropdownMenuItem
                     onClick={() => handleTestConnection(record)}
                     disabled={testingServerId === record.id}
@@ -517,7 +517,7 @@ export const MCPServersPage: React.FC<ServerListPageProps> = ({ onServerSelect }
           {/* 类型筛选 */}
           <Select value={typeFilter} onValueChange={setTypeFilter}>
             <SelectTrigger
-              className="w-[140px] h-9"
+              className="w-auto min-w-[120px] h-9"
               style={{
                 backgroundColor: typeFilter !== 'all' ? 'var(--color-state-info-subtle)' : undefined,
                 borderColor: typeFilter !== 'all' ? 'var(--color-state-info)' : undefined,
@@ -527,7 +527,7 @@ export const MCPServersPage: React.FC<ServerListPageProps> = ({ onServerSelect }
               <Filter className="h-4 w-4 mr-2" />
               <SelectValue placeholder="筛选类型" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="min-w-[180px]">
               {SERVER_TYPE_OPTIONS.map((option) => (
                 <SelectItem key={option.value} value={option.value}>
                   {option.label}

@@ -245,7 +245,7 @@ export const router = createBrowserRouter([
       },
       {
         path: ROUTES.SYSTEM,
-        element: <SystemPage />,
+        element: <Navigate to="/settings/system" replace />,
       },
       {
         path: '/dialogs',
@@ -310,6 +310,10 @@ export const router = createBrowserRouter([
           {
             path: 'api-keys',
             element: <ApiKeysPage />,
+          },
+          {
+            path: 'system',
+            element: <SystemPage />,
           },
         ],
       },

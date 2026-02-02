@@ -180,7 +180,7 @@ export const MCPServerCard: React.FC<MCPServerCardProps> = ({
                   <MoreHorizontal className="w-4 h-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-44">
+              <DropdownMenuContent align="end" className="min-w-[140px]">
                 <DropdownMenuItem
                   onClick={(e) => {
                     e.stopPropagation()

@@ -115,11 +115,6 @@ const navItems: NavItem[] = [
     href: ROUTES.MCP_SERVERS,
     icon: Server,
   },
-  {
-    title: '系统',
-    href: ROUTES.SYSTEM,
-    icon: Settings,
-  },
 ]
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -524,10 +519,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         <p className="text-xs text-text-secondary">{user?.email}</p>
                       </div>
 
-                      <button className="w-full px-3 py-2 text-left text-sm hover:bg-components-dropdown-item-bg-hover flex items-center gap-2 text-components-dropdown-item-text">
+                      <NavLink
+                          to="/settings/profile"
+                          className="w-full px-3 py-2 text-left text-sm hover:bg-components-dropdown-item-bg-hover flex items-center gap-2 text-components-dropdown-item-text"
+                          onClick={() => setShowUserMenu(false)}
+                      >
                         <User className="h-4 w-4" />
                         个人资料
-                      </button>
+                      </NavLink>
 
                       <NavLink
                           to="/settings"
@@ -541,7 +540,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       <div className="border-t border-border-subtle mt-1 pt-1">
                         <button
                             onClick={handleLogout}
-                            className="w-full px-3 py-2 text-left text-sm hover:bg-components-dropdown-item-bg-hover flex items-center gap-2 text-text-error"
+                            className="w-full px-3 py-2 text-left text-sm flex items-center gap-2 text-text-secondary hover:bg-state-error-subtle hover:text-text-error rounded-lg transition-colors duration-150"
                         >
                           <LogOut className="h-4 w-4" />
                           退出登录

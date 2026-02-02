@@ -162,7 +162,7 @@ export const SelectContent: React.FC<SelectContentProps> = ({ children, classNam
         position: 'fixed',
         left: position.left,
         top: position.top,
-        width: position.width,
+        minWidth: position.width,
         backgroundColor: 'var(--color-components-dropdown-bg)',
         borderColor: 'var(--color-components-dropdown-border)',
         boxShadow: 'var(--color-components-dropdown-shadow)'
