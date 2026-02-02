@@ -39,6 +39,8 @@ import MCPChatPage from '@/pages/MCPChatPage'
 import AgentListPage from '@/pages/agent'
 import AgentCanvasPage from '@/pages/agent/AgentCanvasPage'
 import { TeamPage } from '@/pages/team'
+import DataSourcePage from '@/pages/settings/datasource'
+import DataSourceDetailPage from '@/pages/settings/datasource/detail'
 
 // 页面组件 (先创建占位符)
 
@@ -80,22 +82,8 @@ const AppearancePage = () => (
   </div>
 )
 
-const DataSourcePage = () => (
-  <div className="flex flex-col items-center justify-center h-full p-8">
-    <div className="text-center max-w-md">
-      <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-surface-secondary flex items-center justify-center">
-        <svg className="w-8 h-8 text-text-tertiary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
-        </svg>
-      </div>
-      <h2 className="text-xl font-semibold text-text-primary mb-2">数据源管理</h2>
-      <p className="text-text-secondary mb-4">该功能正在开发中，敬请期待...</p>
-      <p className="text-sm text-text-tertiary">数据源管理将支持连接多种外部数据源，包括数据库、API、文件存储等。</p>
-    </div>
-  </div>
-)
-
 // TeamPage now imported from @/pages/team
+// DataSourcePage now imported from @/pages/settings/datasource
 
 
 // 创建路由配置
@@ -266,6 +254,10 @@ export const router = createBrowserRouter([
           {
             path: 'datasource',
             element: <DataSourcePage />,
+          },
+          {
+            path: 'datasource-detail',
+            element: <DataSourceDetailPage />,
           },
           {
             path: 'profile',

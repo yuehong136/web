@@ -1,30 +1,37 @@
-import React from 'react';
+import React from 'react'
+import { cn } from '@/lib/utils'
 
 interface SvgIconProps {
-  name: string;
-  width?: string | number;
-  height?: string | number;
-  className?: string;
+  src: string
+  width?: string | number
+  height?: string | number
+  className?: string
+  alt?: string
 }
 
-const SvgIcon: React.FC<SvgIconProps> = ({ 
-  name, 
-  width = '24px', 
-  height = '24px', 
-  className = '' 
+/**
+ * SVG 图标组件
+ * 
+ * @example
+ * import s3Icon from '@/assets/svg/data-source/s3.svg'
+ * <SvgIcon src={s3Icon} width={24} height={24} />
+ */
+const SvgIcon: React.FC<SvgIconProps> = ({
+  src,
+  width = 24,
+  height = 24,
+  className = '',
+  alt = 'icon',
 }) => {
-  const svgPath = `/src/assets/svg/${name}.svg`;
-  
   return (
     <img
-      src={svgPath}
-      alt={name}
+      src={src}
+      alt={alt}
       width={width}
       height={height}
-      className={className}
-      style={{ display: 'block' }}
+      className={cn('inline-block', className)}
     />
-  );
-};
+  )
+}
 
-export default SvgIcon;
+export default SvgIcon
