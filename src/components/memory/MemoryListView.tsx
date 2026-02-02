@@ -51,12 +51,12 @@ interface MemoryListViewProps {
   timeFormat?: TimeFormatType
 }
 
-// 记忆类型颜色映射 - 使用语义令牌
-const memoryTypeColors: Record<MemoryType, string> = {
-  raw: 'bg-components-badge-blue-bg text-components-badge-blue-text',
-  semantic: 'bg-components-badge-purple-bg text-components-badge-purple-text',
-  episodic: 'bg-components-badge-green-bg text-components-badge-green-text',
-  procedural: 'bg-components-badge-orange-bg text-components-badge-orange-text',
+// 记忆类型颜色映射 - 使用 Badge variant
+const memoryTypeVariants: Record<MemoryType, 'blue' | 'purple' | 'green' | 'orange'> = {
+  raw: 'blue',
+  semantic: 'purple',
+  episodic: 'green',
+  procedural: 'orange',
 }
 
 // 记忆类型标签
@@ -184,8 +184,8 @@ const MemoryListRow: React.FC<{
         {data.memory_type.map((type) => (
           <Badge
             key={type}
-            variant="secondary"
-            className={cn('text-xs px-1.5 py-0', memoryTypeColors[type])}
+            variant={memoryTypeVariants[type]}
+            className="text-xs px-1.5 py-0"
           >
             {memoryTypeLabels[type]}
           </Badge>

@@ -61,7 +61,7 @@ export const Tabs: React.FC<TabsProps> = ({
 
 export const TabsList: React.FC<TabsListProps> = ({ children, className = "" }) => {
   return (
-    <div className={`inline-flex h-12 items-center justify-center rounded-xl p-1 shadow-sm ${className}`}
+    <div className={`inline-flex h-11 items-center justify-center rounded-lg p-1 ${className}`}
          style={{ 
            backgroundColor: 'var(--color-components-tabs-bg)', 
            color: 'var(--color-components-tabs-inactive-text)',

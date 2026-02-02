@@ -63,12 +63,12 @@ const memoryTypeOptions: Array<{
   },
 ]
 
-// 记忆类型颜色映射 - 使用语义令牌
-const memoryTypeColors: Record<MemoryTypeValue, string> = {
-  raw: 'bg-components-badge-blue-bg text-components-badge-blue-text',
-  semantic: 'bg-components-badge-purple-bg text-components-badge-purple-text',
-  episodic: 'bg-components-badge-green-bg text-components-badge-green-text',
-  procedural: 'bg-components-badge-orange-bg text-components-badge-orange-text',
+// 记忆类型颜色映射 - 使用 Badge variant
+const memoryTypeVariants: Record<MemoryTypeValue, 'blue' | 'purple' | 'green' | 'orange'> = {
+  raw: 'blue',
+  semantic: 'purple',
+  episodic: 'green',
+  procedural: 'orange',
 }
 
 export const MemoryTypeSelect: React.FC<MemoryTypeSelectProps> = ({
@@ -135,8 +135,8 @@ export const MemoryTypeSelect: React.FC<MemoryTypeSelectProps> = ({
     return memoryTypeOptions.find((o) => o.value === type)?.label || type
   }
   
-  const getColorForType = (type: string): string => {
-    return memoryTypeColors[type as MemoryTypeValue] || ''
+  const getVariantForType = (type: string): 'blue' | 'purple' | 'green' | 'orange' => {
+    return memoryTypeVariants[type as MemoryTypeValue] || 'blue'
   }
 
   return (
@@ -165,11 +165,8 @@ export const MemoryTypeSelect: React.FC<MemoryTypeSelectProps> = ({
                 return (
                   <Badge
                     key={type}
-                    variant="secondary"
-                    className={cn(
-                      'text-xs gap-1',
-                      getColorForType(type)
-                    )}
+                    variant={getVariantForType(type)}
+                    className="text-xs gap-1"
                   >
                     {getLabelForType(type)}
                     {option?.required ? (

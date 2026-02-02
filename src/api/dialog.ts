@@ -5,10 +5,44 @@ import type {
   SetDialogRequest,
 } from '../types/api'
 
+// Dialog 列表请求参数（与 ragflow 保持一致）
+export interface DialogListParams {
+  keywords?: string
+  page?: number
+  page_size?: number
+}
+
+// Dialog 列表响应（与 ragflow 保持一致）
+export interface DialogListResponse {
+  dialogs: DialogApp[]
+  total: number
+}
+
 export const dialogAPI = {
-  // 获取对话应用列表
-  list: (): Promise<DialogApp[]> =>
-    apiClient.get('/dialog/list'),
+  // 获取对话应用列表 (使用 next 接口，与 ragflow 保持一致)
+  // POST /dialog/next?keywords=xxx&page=1&page_size=30
+  // Body: { owner_ids: [] }
+  list: (params?: DialogListParams): Promise<DialogListResponse> => {
+    const searchParams = new URLSearchParams()
+    if (params?.keywords) searchParams.set('keywords', params.keywords)
+    if (params?.page) searchParams.set('page', params.page.toString())
+    if (params?.page_size) searchParams.set('page_size', params.page_size.toString())
+    
+    const queryString = searchParams.toString()
+    const url = queryString ? `/dialog/next?${queryString}` : '/dialog/next'
+    
+    // Body 传递 owner_ids（后端 ListDialogsRequest 需要）
+    return apiClient.post(url, { owner_ids: [] })
+  },
+
+  // 兼容旧接口的简化调用（返回所有 dialogs）
+  listAll: async (): Promise<DialogApp[]> => {
+    const response = await apiClient.post(
+      '/dialog/next?page=1&page_size=9999',
+      { owner_ids: [] }
+    ) as DialogListResponse
+    return response.dialogs
+  },
 
   // 删除对话应用
   remove: (dialogIds: string[]): Promise<boolean> =>

@@ -102,12 +102,13 @@ export const queryKeys = {
     executions: (id: string) => [...queryKeys.workflows.detail(id), 'executions'] as const,
   },
   
-  // 对话应用相关
+  // 对话应用相关（与 ragflow dialog/next 接口保持一致）
   dialogApps: {
     all: ['dialogApps'] as const,
     lists: () => [...queryKeys.dialogApps.all, 'list'] as const,
-    list: (filters: Record<string, any> = {}) => 
-      [...queryKeys.dialogApps.lists(), { filters }] as const,
+    // 支持分页和搜索参数
+    list: (params?: { keywords?: string; page?: number; page_size?: number }) => 
+      [...queryKeys.dialogApps.lists(), params ?? {}] as const,
     details: () => [...queryKeys.dialogApps.all, 'detail'] as const,
     detail: (id: string) => [...queryKeys.dialogApps.details(), id] as const,
   },

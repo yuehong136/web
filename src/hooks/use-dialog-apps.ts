@@ -1,15 +1,74 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { dialogAPI } from '@/api/dialog'
+import { useState, useCallback } from 'react'
+import { dialogAPI, type DialogListParams, type DialogListResponse } from '@/api/dialog'
 import { queryKeys, invalidateQueries } from '@/lib/query-client'
 import { toast } from '@/lib/toast'
 import type { DialogApp } from '../types/api'
+import { useDebouncedValue } from './useDebouncedValue'
 
-// 获取对话应用列表
-export const useDialogApps = () => {
-  return useQuery({
-    queryKey: queryKeys.dialogApps.list(),
-    queryFn: () => dialogAPI.list(),
+// 分页参数类型
+interface PaginationState {
+  current: number
+  pageSize: number
+}
+
+// 获取对话应用列表（带分页和搜索，与 ragflow 保持一致）
+export const useFetchDialogList = (initialPageSize = 30) => {
+  const [searchString, setSearchString] = useState('')
+  const [pagination, setPagination] = useState<PaginationState>({
+    current: 1,
+    pageSize: initialPageSize,
   })
+
+  const debouncedSearchString = useDebouncedValue(searchString, 500)
+
+  const handleInputChange = useCallback((value: string) => {
+    setSearchString(value)
+    // 搜索时重置到第一页
+    setPagination(prev => ({ ...prev, current: 1 }))
+  }, [])
+
+  const { data, isFetching, isError, error, refetch } = useQuery<DialogListResponse>({
+    queryKey: queryKeys.dialogApps.list({
+      keywords: debouncedSearchString,
+      page: pagination.current,
+      page_size: pagination.pageSize,
+    }),
+    queryFn: () => dialogAPI.list({
+      keywords: debouncedSearchString,
+      page: pagination.current,
+      page_size: pagination.pageSize,
+    }),
+    // 使用 placeholderData 而不是 initialData，确保触发真实的 API 请求
+    placeholderData: { dialogs: [], total: 0 },
+    staleTime: 0,
+    gcTime: 5 * 60 * 1000, // 5 分钟
+    refetchOnWindowFocus: false,
+  })
+
+  return {
+    data: data ?? { dialogs: [], total: 0 },
+    loading: isFetching,
+    isError,
+    error,
+    refetch,
+    searchString,
+    handleInputChange,
+    pagination,
+    setPagination,
+  }
+}
+
+// 获取对话应用列表（简化版，向后兼容）
+export const useDialogApps = () => {
+  const { data, loading, isError, error, refetch } = useFetchDialogList(9999)
+  return {
+    data: data.dialogs,
+    isLoading: loading,
+    isError,
+    error,
+    refetch,
+  }
 }
 
 // 获取对话应用详情

@@ -42,9 +42,8 @@ import {
 import { CreateProjectModal } from './components/CreateProjectModal'
 import { CreateAppModal } from './components/CreateAppModal'
 import { useStudioStore } from '@/stores/studio'
-import { useDialogApps, useDeleteDialogApps } from '@/hooks/use-dialog-apps'
+import { useFetchDialogList, useDeleteDialogApps } from '@/hooks/use-dialog-apps'
 import { STUDIO_TEXTS } from '@/constants/studio-texts'
-import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import type { DialogApp } from '@/types/api'
 
 export const StudioPage: React.FC = () => {
@@ -52,10 +51,6 @@ export const StudioPage: React.FC = () => {
   const {
     filter,
     setFilter,
-    page,
-    setPage,
-    pageSize,
-    setPageSize,
     viewMode,
     setViewMode,
     timeFormat,
@@ -73,57 +68,33 @@ export const StudioPage: React.FC = () => {
     editingApp,
   } = useStudioStore()
 
-  // 搜索防抖
-  const [searchInput, setSearchInput] = React.useState(filter.keywords)
-  const debouncedSearch = useDebouncedValue(searchInput, 300)
-
   // 删除确认弹窗状态
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
   const [appToDelete, setAppToDelete] = React.useState<DialogApp | null>(null)
 
-  // 更新筛选条件（搜索词变化时）
-  React.useEffect(() => {
-    if (debouncedSearch !== filter.keywords) {
-      setFilter({ keywords: debouncedSearch })
-    }
-  }, [debouncedSearch, filter.keywords, setFilter])
+  // API hooks - 使用后端分页（与 ragflow 一致）
+  const {
+    data,
+    loading: isLoading,
+    searchString,
+    handleInputChange,
+    pagination,
+    setPagination,
+  } = useFetchDialogList(12) // 默认每页 12 条，与 ragflow 类似
 
-  // API hooks
-  const { data: dialogApps = [], isLoading } = useDialogApps()
-  const deleteDialogAppsMutation = useDeleteDialogApps()
+  const dialogApps = data.dialogs
+  const total = data.total
+  const totalPages = Math.ceil(total / pagination.pageSize)
 
-  // 根据筛选条件过滤应用
+  // 本地状态筛选（状态筛选仍在前端，因为后端暂不支持）
   const filteredApps = React.useMemo(() => {
-    let result = dialogApps
-
-    // 关键词搜索
-    if (filter.keywords) {
-      const keywords = filter.keywords.toLowerCase()
-      result = result.filter(
-        (app) =>
-          app.name.toLowerCase().includes(keywords) ||
-          app.description?.toLowerCase().includes(keywords)
-      )
+    if (filter.status.length === 0) {
+      return dialogApps
     }
+    return dialogApps.filter((app) => filter.status.includes(app.status))
+  }, [dialogApps, filter.status])
 
-    // 状态筛选
-    if (filter.status.length > 0) {
-      result = result.filter((app) => filter.status.includes(app.status))
-    }
-
-    return result
-  }, [dialogApps, filter])
-
-  // 分页数据
-  const paginatedApps = React.useMemo(() => {
-    const start = (page - 1) * pageSize
-    return filteredApps.slice(start, start + pageSize)
-  }, [filteredApps, page, pageSize])
-
-  const total = filteredApps.length
-  const totalPages = Math.ceil(total / pageSize)
-
-  // 统计数据
+  // 统计数据（基于当前页数据的估算）
   const stats = React.useMemo(() => {
     const published = dialogApps.filter((app) => app.status === '1').length
     const draft = dialogApps.filter((app) => app.status !== '1').length
@@ -133,12 +104,18 @@ export const StudioPage: React.FC = () => {
     ).length
 
     return {
-      total: dialogApps.length,
+      total,
       published,
       draft,
       recentUpdated,
     }
-  }, [dialogApps])
+  }, [dialogApps, total])
+
+  // 分页和搜索状态同步到 store
+  const page = pagination.current
+  const pageSize = pagination.pageSize
+  const setPage = (p: number) => setPagination({ current: p, pageSize })
+  const setPageSize = (size: number) => setPagination({ current: 1, pageSize: size })
 
   // 处理创建项目类型选择
   const handleCreateProject = (type: 'app' | 'agent') => {
@@ -216,8 +193,8 @@ export const StudioPage: React.FC = () => {
   }
 
   // 判断是否显示空状态
-  const showEmptyState = !isLoading && paginatedApps.length === 0
-  const emptyStateType = filter.keywords || filter.status.length > 0 ? 'search' : 'list'
+  const showEmptyState = !isLoading && filteredApps.length === 0
+  const emptyStateType = searchString || filter.status.length > 0 ? 'search' : 'list'
 
   return (
     <div className="h-full flex flex-col p-6">
@@ -281,13 +258,13 @@ export const StudioPage: React.FC = () => {
 
       {/* 搜索和筛选工具栏 */}
       <div className="flex items-center space-x-4 mb-4">
-        {/* 左侧：搜索框 */}
+        {/* 左侧：搜索框 - 使用后端分页的搜索 */}
         <div className="flex-1 max-w-md">
           <Input
             type="search"
             placeholder={STUDIO_TEXTS.searchPlaceholder}
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
+            value={searchString}
+            onChange={(e) => handleInputChange(e.target.value)}
             leftIcon={<Search className="h-4 w-4" />}
           />
         </div>
@@ -347,7 +324,7 @@ export const StudioPage: React.FC = () => {
                         className="h-[180px] rounded-2xl bg-surface-secondary animate-pulse"
                       />
                     ))
-                  : paginatedApps.map((app) => (
+                  : filteredApps.map((app) => (
                       <AppCard
                         key={app.id}
                         data={app}
@@ -362,7 +339,7 @@ export const StudioPage: React.FC = () => {
             ) : (
               /* 列表视图 */
               <AppListView
-                data={paginatedApps}
+                data={filteredApps}
                 selectedIds={selectedIds}
                 onSelect={toggleSelect}
                 onSelectAll={selectAll}

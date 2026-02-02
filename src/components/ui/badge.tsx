@@ -2,7 +2,7 @@ import React from 'react'
 import { cn } from '@/lib/utils'
 
 export interface BadgeProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: 'default' | 'secondary' | 'destructive' | 'success' | 'warning' | 'outline' | 'blue' | 'orange'
+  variant?: 'default' | 'secondary' | 'destructive' | 'success' | 'warning' | 'outline' | 'blue' | 'orange' | 'purple' | 'green'
 }
 
 /**
@@ -17,8 +17,10 @@ export interface BadgeProps extends React.HTMLAttributes<HTMLDivElement> {
  * - success: 成功状态
  * - warning: 警告状态
  * - outline: 轮廓样式
- * - blue: 蓝色 (用于向量模型等信息标签)
- * - orange: 橙色 (用于可选变量等标签)
+ * - blue: 蓝色 (用于原始记忆、向量模型等信息标签)
+ * - orange: 橙色 (用于程序记忆、可选变量等标签)
+ * - purple: 紫色 (用于语义记忆等标签)
+ * - green: 绿色 (用于情景记忆等标签)
  */
 const Badge: React.FC<BadgeProps> = ({ className, variant = 'default', ...props }) => {
   return (
@@ -75,6 +77,16 @@ function getVariantStyles(variant: BadgeProps['variant']): React.CSSProperties {
       return {
         backgroundColor: 'var(--color-components-badge-orange-bg)',
         color: 'var(--color-components-badge-orange-text)',
+      }
+    case 'purple':
+      return {
+        backgroundColor: 'var(--color-components-badge-purple-bg)',
+        color: 'var(--color-components-badge-purple-text)',
+      }
+    case 'green':
+      return {
+        backgroundColor: 'var(--color-components-badge-green-bg)',
+        color: 'var(--color-components-badge-green-text)',
       }
     default:
       return {

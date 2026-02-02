@@ -9,7 +9,7 @@ import React from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Brain, Loader2, HelpCircle } from 'lucide-react'
+import { Brain, Loader2 } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -28,12 +28,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
-import {
-  TooltipRoot as Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
+import { FormTooltip } from '@/components/ui/tooltip'
 import { MemoryTypeSelect } from './MemoryTypeSelect'
 import { ChatModelSelector } from './ChatModelSelector'
 import { AvatarUpload } from './AvatarUpload'
@@ -306,20 +301,11 @@ export const CreateMemoryDialog: React.FC<CreateMemoryDialogProps> = ({
                 name="memory_type"
                 render={({ field }) => (
                   <FormItem>
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center">
                       <FormLabel className="text-sm font-medium text-[var(--color-text-primary)]">
                         {MEMORY_TEXTS.memories.memoryType}
                       </FormLabel>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <HelpCircle className="w-icon-xs h-icon-xs text-text-tertiary cursor-help" />
-                          </TooltipTrigger>
-                          <TooltipContent className="max-w-xs whitespace-pre-line">
-                            {MEMORY_TEXTS.memories.memoryTypeTooltip}
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                      <FormTooltip tooltip={MEMORY_TEXTS.memories.memoryTypeTooltip} />
                     </div>
                     <FormControl>
                       <MemoryTypeSelect
@@ -338,20 +324,11 @@ export const CreateMemoryDialog: React.FC<CreateMemoryDialogProps> = ({
                 name="embd_id"
                 render={({ field }) => (
                   <FormItem>
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center">
                       <FormLabel className="text-sm font-medium text-[var(--color-text-primary)]">
                         {MEMORY_TEXTS.memories.embeddingModel}
                       </FormLabel>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <HelpCircle className="w-icon-xs h-icon-xs text-text-tertiary cursor-help" />
-                          </TooltipTrigger>
-                          <TooltipContent className="max-w-xs">
-                            {MEMORY_TEXTS.memories.embeddingModelTooltip}
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                      <FormTooltip tooltip={MEMORY_TEXTS.memories.embeddingModelTooltip} />
                     </div>
                     <FormControl>
                       <EmbeddingModelSelector
@@ -371,20 +348,11 @@ export const CreateMemoryDialog: React.FC<CreateMemoryDialogProps> = ({
                 name="llm_id"
                 render={({ field }) => (
                   <FormItem>
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center">
                       <FormLabel className="text-sm font-medium text-[var(--color-text-primary)]">
                         {MEMORY_TEXTS.memories.llm}
                       </FormLabel>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <HelpCircle className="w-icon-xs h-icon-xs text-text-tertiary cursor-help" />
-                          </TooltipTrigger>
-                          <TooltipContent className="max-w-xs">
-                            {MEMORY_TEXTS.memories.llmTooltip}
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                      <FormTooltip tooltip={MEMORY_TEXTS.memories.llmTooltip} />
                     </div>
                     <FormControl>
                       <ChatModelSelector

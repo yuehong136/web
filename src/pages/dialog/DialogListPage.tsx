@@ -1,30 +1,31 @@
-import React, { useState, useEffect } from 'react'
+import React, { useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Edit3, Plus, MessageSquare } from 'lucide-react'
-import { Button, Card } from '@/components/ui'
-import { dialogAPI } from '@/api/dialog'
+import { Edit3, Plus, MessageSquare, Search } from 'lucide-react'
+import { Button, Card, Input } from '@/components/ui'
+import { useFetchDialogList } from '@/hooks/use-dialog-apps'
 import type { DialogApp } from '@/types/api'
 
 const DialogListPage: React.FC = () => {
   const navigate = useNavigate()
-  const [dialogs, setDialogs] = useState<DialogApp[]>([])
-  const [loading, setLoading] = useState(true)
+  const {
+    data,
+    loading,
+    searchString,
+    handleInputChange,
+    pagination,
+    setPagination,
+  } = useFetchDialogList()
 
-  useEffect(() => {
-    const fetchDialogs = async () => {
-      try {
-        setLoading(true)
-        const response = await dialogAPI.list()
-        setDialogs(response)
-      } catch (error) {
-        console.error('Failed to fetch dialogs:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
+  const dialogs = data.dialogs
+  const total = data.total
 
-    fetchDialogs()
-  }, [])
+  // 分页切换处理
+  const handlePageChange = useCallback(
+    (page: number, pageSize?: number) => {
+      setPagination({ current: page, pageSize: pageSize ?? pagination.pageSize })
+    },
+    [setPagination, pagination.pageSize]
+  )
 
   const handleEditPrompt = (dialogId: string) => {
     navigate(`/dialog/${dialogId}/prompt-editor`)
@@ -50,12 +51,24 @@ const DialogListPage: React.FC = () => {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">对话应用</h1>
-          <p className="text-gray-500 mt-1">管理您的AI对话应用</p>
+          <p className="text-gray-500 mt-1">管理您的AI对话应用 (共 {total} 个)</p>
         </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          创建应用
-        </Button>
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              type="text"
+              placeholder="搜索应用..."
+              value={searchString}
+              onChange={(e) => handleInputChange(e.target.value)}
+              className="pl-9 w-64"
+            />
+          </div>
+          <Button>
+            <Plus className="h-4 w-4 mr-2" />
+            创建应用
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -109,7 +122,7 @@ const DialogListPage: React.FC = () => {
         ))}
       </div>
 
-      {dialogs.length === 0 && (
+      {dialogs.length === 0 && !loading && (
         <div className="text-center py-12">
           <div className="text-gray-400 mb-4">
             <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -117,14 +130,41 @@ const DialogListPage: React.FC = () => {
             </svg>
           </div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">
-            暂无对话应用
+            {searchString ? '未找到匹配的应用' : '暂无对话应用'}
           </h3>
           <p className="text-gray-500 mb-4">
-            创建您的第一个AI对话应用
+            {searchString ? '请尝试其他搜索关键词' : '创建您的第一个AI对话应用'}
           </p>
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            创建应用
+          {!searchString && (
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              创建应用
+            </Button>
+          )}
+        </div>
+      )}
+
+      {/* 分页 */}
+      {total > pagination.pageSize && (
+        <div className="flex items-center justify-center gap-2 mt-6">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handlePageChange(pagination.current - 1)}
+            disabled={pagination.current <= 1}
+          >
+            上一页
+          </Button>
+          <span className="text-sm text-gray-600">
+            第 {pagination.current} / {Math.ceil(total / pagination.pageSize)} 页
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handlePageChange(pagination.current + 1)}
+            disabled={pagination.current >= Math.ceil(total / pagination.pageSize)}
+          >
+            下一页
           </Button>
         </div>
       )}
