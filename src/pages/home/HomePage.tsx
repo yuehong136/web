@@ -1019,7 +1019,7 @@ export const HomePage: React.FC = () => {
         <div className="flex-1 flex flex-col items-center justify-center px-6 py-8 overflow-y-auto">
           <div className="w-full max-w-[1240px] flex flex-col items-center gap-8">
             {/* Header - 问候语（波浪式渐隐浮起） */}
-            <div className="w-full flex flex-col items-center mb-12">
+            <div className="w-full flex flex-col items-center mb-20">
               <h1 className="text-[36px] font-semibold text-text-primary text-center">
                 <WaveText text={greetingText} charDelay={35} duration={500} />
               </h1>

@@ -136,7 +136,15 @@ const pageTitles: Record<string, string> = {
 export const SettingsLayout: React.FC = () => {
   const location = useLocation()
   const navigate = useNavigate()
-  const { user } = useAuthStore()
+  const { user, logout } = useAuthStore()
+
+  const handleLogout = useCallback(async () => {
+    try {
+      await logout()
+    } catch (error) {
+      console.error('Logout failed:', error)
+    }
+  }, [logout])
 
   // 获取当前页面标题
   const currentTitle = pageTitles[location.pathname] || '设置'
@@ -231,9 +239,7 @@ export const SettingsLayout: React.FC = () => {
             </div>
             <button
               className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-sm font-medium text-text-secondary border border-border-default bg-surface-primary hover:bg-surface-secondary hover:text-text-primary hover:border-components-sidebar-item-text-active transition-all duration-200"
-              onClick={() => {
-                // TODO: implement logout
-              }}
+              onClick={handleLogout}
             >
               退出登录
             </button>

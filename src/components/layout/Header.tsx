@@ -4,6 +4,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ThemeSwitcher } from '@/components/ui/theme-switcher'
+import { InvitationBell } from './InvitationBell'
 
 interface HeaderProps {
   onToggleSidebar: () => void
@@ -29,8 +30,9 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar, showSidebarTogg
 
       </div>
 
-      {/* 右侧 - 主题切换器 */}
+      {/* 右侧 - 通知和主题切换器 */}
       <div className="flex items-center gap-2">
+        <InvitationBell />
         <ThemeSwitcher variant="compact" />
       </div>
     </header>

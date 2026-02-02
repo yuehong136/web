@@ -38,6 +38,7 @@ import { AIToolsHomePage, AutoFillWorkbenchPage } from '@/pages/ai-tools'
 import MCPChatPage from '@/pages/MCPChatPage'
 import AgentListPage from '@/pages/agent'
 import AgentCanvasPage from '@/pages/agent/AgentCanvasPage'
+import { TeamPage } from '@/pages/team'
 
 // 页面组件 (先创建占位符)
 
@@ -94,20 +95,7 @@ const DataSourcePage = () => (
   </div>
 )
 
-const TeamPage = () => (
-  <div className="flex flex-col items-center justify-center h-full p-8">
-    <div className="text-center max-w-md">
-      <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-surface-secondary flex items-center justify-center">
-        <svg className="w-8 h-8 text-text-tertiary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-        </svg>
-      </div>
-      <h2 className="text-xl font-semibold text-text-primary mb-2">团队管理</h2>
-      <p className="text-text-secondary mb-4">该功能正在开发中，敬请期待...</p>
-      <p className="text-sm text-text-tertiary">团队管理将支持邀请成员、角色权限分配、协作空间等功能。</p>
-    </div>
-  </div>
-)
+// TeamPage now imported from @/pages/team
 
 
 // 创建路由配置
