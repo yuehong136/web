@@ -1,24 +1,26 @@
 /**
  * Document Request Hooks
- * 
+ *
  * 使用 TanStack Query 管理文档相关的服务器状态
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useParams } from 'react-router-dom'
 import { knowledgeAPI } from '@/api/knowledge'
-import type { Document } from '@/types/api'
+import type { DocumentFilter } from '@/types/api'
 
 // Query Keys 统一管理
 export const documentKeys = {
   all: ['documents'] as const,
   lists: () => [...documentKeys.all, 'list'] as const,
-  list: (knowledgeBaseId: string, params: Record<string, any>) => 
+  list: (knowledgeBaseId: string, params: Record<string, any>) =>
     [...documentKeys.lists(), knowledgeBaseId, params] as const,
   details: () => [...documentKeys.all, 'detail'] as const,
   detail: (id: string) => [...documentKeys.details(), id] as const,
-  chunks: (documentId: string, params: Record<string, any>) => 
+  chunks: (documentId: string, params: Record<string, any>) =>
     [...documentKeys.all, 'chunks', documentId, params] as const,
+  filter: (knowledgeBaseId: string) =>
+    [...documentKeys.all, 'filter', knowledgeBaseId] as const,
 }
 
 // 获取当前知识库 ID
@@ -27,43 +29,79 @@ export const useKnowledgeBaseIdFromRoute = (): string => {
   return (knowledgeBaseId || id) as string || ''
 }
 
+// 文档运行状态常量
+export const TaskStatus = {
+  UNSTART: '0',
+  RUNNING: '1',
+  CANCEL: '2',
+  DONE: '3',
+  FAIL: '4',
+} as const
+
 // 获取文档列表
 export interface UseFetchDocumentListParams {
   knowledgeBaseId?: string
   page?: number
   page_size?: number
   keywords?: string
-  status?: string[]
-  suffix?: string[]
+  orderby?: string
+  desc?: boolean
+  filter_params?: DocumentFilter
+  /** 是否启用智能轮询（有解析中的文档时自动轮询） */
+  enableSmartPolling?: boolean
+  /** 轮询间隔（毫秒），默认 5000 */
+  pollingInterval?: number
 }
 
 export const useFetchDocumentList = (params: UseFetchDocumentListParams = {}) => {
   const routeKbId = useKnowledgeBaseIdFromRoute()
-  const { 
-    knowledgeBaseId = routeKbId, 
-    page = 1, 
-    page_size = 20, 
+  const {
+    knowledgeBaseId = routeKbId,
+    page = 1,
+    page_size = 20,
     keywords,
-    status,
-    suffix 
+    orderby = 'create_time',
+    desc = true,
+    filter_params = {},
+    enableSmartPolling = true,
+    pollingInterval = 5000,
   } = params
 
   const { data, isFetching, isError, error, refetch } = useQuery({
-    queryKey: documentKeys.list(knowledgeBaseId, { page, page_size, keywords, status, suffix }),
+    queryKey: documentKeys.list(knowledgeBaseId, {
+      page,
+      page_size,
+      keywords,
+      orderby,
+      desc,
+      filter_params,
+    }),
     queryFn: async () => {
-      const response = await knowledgeAPI.document.list(knowledgeBaseId, {
-        page,
+      const response = await knowledgeAPI.document.list({
+        kb_id: knowledgeBaseId,
+        page: page - 1, // API 使用 0 基索引
         page_size,
         keywords,
-        status,
-        suffix,
+        orderby,
+        desc,
+        filter_params,
       })
       return response
     },
     enabled: !!knowledgeBaseId,
-    staleTime: 2 * 60 * 1000,
+    staleTime: 30 * 1000, // 30秒内数据被视为新鲜
     gcTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
+    // 智能轮询：根据查询结果动态决定是否轮询
+    refetchInterval: enableSmartPolling
+      ? (query) => {
+          const docs = query.state.data?.docs || []
+          const hasParsingDocs = docs.some((doc) => doc.run === TaskStatus.RUNNING)
+          return hasParsingDocs ? pollingInterval : false
+        }
+      : false,
+    // 使用 placeholderData 防止轮询时闪烁
+    placeholderData: (previousData) => previousData,
   })
 
   return {
@@ -240,5 +278,120 @@ export const useFetchChunks = (params: UseFetchChunksParams) => {
     isError,
     error,
     refetch,
+  }
+}
+
+// 获取文档筛选选项
+export const useFetchDocumentFilter = (knowledgeBaseId?: string) => {
+  const routeKbId = useKnowledgeBaseIdFromRoute()
+  const kbId = knowledgeBaseId || routeKbId
+
+  const { data, isFetching, isError, error, refetch } = useQuery({
+    queryKey: documentKeys.filter(kbId),
+    queryFn: async () => {
+      const response = await knowledgeAPI.document.getFilter(kbId)
+      return response.filter
+    },
+    enabled: !!kbId,
+    staleTime: 60 * 1000, // 1分钟缓存
+    gcTime: 5 * 60 * 1000,
+  })
+
+  return {
+    filterOptions: data ?? null,
+    isLoading: isFetching,
+    isError,
+    error,
+    refetch,
+  }
+}
+
+// 运行/停止文档解析
+export const useRunDocument = () => {
+  const queryClient = useQueryClient()
+
+  const { mutateAsync, isPending, isError, error } = useMutation({
+    mutationFn: async (params: {
+      docIds: string[]
+      run: 0 | 1 // 0=停止, 1=开始
+      deleteHistory?: boolean
+    }) => {
+      await knowledgeAPI.document.run(params.docIds, params.run, params.deleteHistory)
+      return params
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: documentKeys.lists() })
+    },
+  })
+
+  return {
+    runDocument: mutateAsync,
+    isLoading: isPending,
+    isError,
+    error,
+  }
+}
+
+// 更改文档启用状态
+export const useChangeDocumentStatus = () => {
+  const queryClient = useQueryClient()
+
+  const { mutateAsync, isPending, isError, error } = useMutation({
+    mutationFn: async (params: { docIds: string[]; status: 0 | 1 }) => {
+      const result = await knowledgeAPI.document.changeStatus({
+        doc_ids: params.docIds,
+        status: params.status,
+      })
+      return result
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: documentKeys.lists() })
+    },
+  })
+
+  return {
+    changeStatus: mutateAsync,
+    isLoading: isPending,
+    isError,
+    error,
+  }
+}
+
+// 重命名文档
+export const useRenameDocument = () => {
+  const queryClient = useQueryClient()
+
+  const { mutateAsync, isPending, isError, error } = useMutation({
+    mutationFn: async (params: { docId: string; name: string }) => {
+      const result = await knowledgeAPI.document.rename(params.docId, params.name)
+      return result
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: documentKeys.lists() })
+    },
+  })
+
+  return {
+    renameDocument: mutateAsync,
+    isLoading: isPending,
+    isError,
+    error,
+  }
+}
+
+// 下载文档
+export const useDownloadDocument = () => {
+  const { mutateAsync, isPending, isError, error } = useMutation({
+    mutationFn: async (params: { docId: string; filename?: string }) => {
+      await knowledgeAPI.document.download(params.docId, params.filename)
+      return params
+    },
+  })
+
+  return {
+    downloadDocument: mutateAsync,
+    isLoading: isPending,
+    isError,
+    error,
   }
 }
