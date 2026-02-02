@@ -314,18 +314,30 @@ export const lightTokens: DesignTokens = {
   'components-badge-green-text': '#15803d',
 
   // ===== 统计卡片组件 - 亮色主题 =====
-  'components-stats-card-blue-bg': 'linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(6, 182, 212, 0.1))',
-  'components-stats-card-blue-icon-bg': '#dbeafe',
+  // 蓝色卡片 - 信息/总量
+  'components-stats-card-blue-bg': 'linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(14, 165, 233, 0.08))',
+  'components-stats-card-blue-icon-bg': 'linear-gradient(135deg, #dbeafe, #e0f2fe)',
   'components-stats-card-blue-icon-text': '#2563eb',
-  'components-stats-card-green-bg': 'linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(20, 184, 166, 0.1))',
-  'components-stats-card-green-icon-bg': '#dcfce7',
+  'components-stats-card-blue-shadow': '0 8px 24px -4px rgba(59, 130, 246, 0.25), 0 4px 8px -2px rgba(59, 130, 246, 0.1)',
+  'components-stats-card-blue-border-hover': 'rgba(59, 130, 246, 0.4)',
+  // 绿色卡片 - 成功/活跃
+  'components-stats-card-green-bg': 'linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(16, 185, 129, 0.08))',
+  'components-stats-card-green-icon-bg': 'linear-gradient(135deg, #dcfce7, #d1fae5)',
   'components-stats-card-green-icon-text': '#16a34a',
-  'components-stats-card-purple-bg': 'linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(236, 72, 153, 0.1))',
-  'components-stats-card-purple-icon-bg': '#f3e8ff',
-  'components-stats-card-purple-icon-text': '#9333ea',
-  'components-stats-card-orange-bg': 'linear-gradient(135deg, rgba(249, 115, 22, 0.1), rgba(239, 68, 68, 0.1))',
-  'components-stats-card-orange-icon-bg': '#ffedd5',
+  'components-stats-card-green-shadow': '0 8px 24px -4px rgba(34, 197, 94, 0.25), 0 4px 8px -2px rgba(34, 197, 94, 0.1)',
+  'components-stats-card-green-border-hover': 'rgba(34, 197, 94, 0.4)',
+  // 紫色卡片 - 特殊/高级
+  'components-stats-card-purple-bg': 'linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(168, 85, 247, 0.08))',
+  'components-stats-card-purple-icon-bg': 'linear-gradient(135deg, #ede9fe, #f3e8ff)',
+  'components-stats-card-purple-icon-text': '#7c3aed',
+  'components-stats-card-purple-shadow': '0 8px 24px -4px rgba(139, 92, 246, 0.25), 0 4px 8px -2px rgba(139, 92, 246, 0.1)',
+  'components-stats-card-purple-border-hover': 'rgba(139, 92, 246, 0.4)',
+  // 橙色卡片 - 警告/待处理
+  'components-stats-card-orange-bg': 'linear-gradient(135deg, rgba(249, 115, 22, 0.15), rgba(245, 158, 11, 0.08))',
+  'components-stats-card-orange-icon-bg': 'linear-gradient(135deg, #ffedd5, #fef3c7)',
   'components-stats-card-orange-icon-text': '#ea580c',
+  'components-stats-card-orange-shadow': '0 8px 24px -4px rgba(249, 115, 22, 0.25), 0 4px 8px -2px rgba(249, 115, 22, 0.1)',
+  'components-stats-card-orange-border-hover': 'rgba(249, 115, 22, 0.4)',
 
   // ===== 头像渐变系统 - 亮色主题 =====
   'components-avatar-gradient-purple-from': '#a855f7',
@@ -1016,18 +1028,30 @@ export const darkTokens: DesignTokens = {
   'components-badge-green-text': '#86efac',
 
   // ===== 统计卡片组件 - 暗色主题 =====
-  'components-stats-card-blue-bg': 'linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(6, 182, 212, 0.2))',
-  'components-stats-card-blue-icon-bg': 'rgba(59, 130, 246, 0.25)',
+  // 蓝色卡片 - 信息/总量
+  'components-stats-card-blue-bg': 'linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(14, 165, 233, 0.1))',
+  'components-stats-card-blue-icon-bg': 'linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(14, 165, 233, 0.2))',
   'components-stats-card-blue-icon-text': '#93c5fd',
-  'components-stats-card-green-bg': 'linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(20, 184, 166, 0.2))',
-  'components-stats-card-green-icon-bg': 'rgba(34, 197, 94, 0.25)',
+  'components-stats-card-blue-shadow': '0 8px 24px -4px rgba(59, 130, 246, 0.35), 0 4px 8px -2px rgba(59, 130, 246, 0.15)',
+  'components-stats-card-blue-border-hover': 'rgba(59, 130, 246, 0.5)',
+  // 绿色卡片 - 成功/活跃
+  'components-stats-card-green-bg': 'linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(16, 185, 129, 0.1))',
+  'components-stats-card-green-icon-bg': 'linear-gradient(135deg, rgba(34, 197, 94, 0.3), rgba(16, 185, 129, 0.2))',
   'components-stats-card-green-icon-text': '#86efac',
-  'components-stats-card-purple-bg': 'linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(236, 72, 153, 0.2))',
-  'components-stats-card-purple-icon-bg': 'rgba(168, 85, 247, 0.25)',
+  'components-stats-card-green-shadow': '0 8px 24px -4px rgba(34, 197, 94, 0.35), 0 4px 8px -2px rgba(34, 197, 94, 0.15)',
+  'components-stats-card-green-border-hover': 'rgba(34, 197, 94, 0.5)',
+  // 紫色卡片 - 特殊/高级
+  'components-stats-card-purple-bg': 'linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(168, 85, 247, 0.1))',
+  'components-stats-card-purple-icon-bg': 'linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(168, 85, 247, 0.2))',
   'components-stats-card-purple-icon-text': '#c4b5fd',
-  'components-stats-card-orange-bg': 'linear-gradient(135deg, rgba(249, 115, 22, 0.2), rgba(239, 68, 68, 0.2))',
-  'components-stats-card-orange-icon-bg': 'rgba(249, 115, 22, 0.25)',
+  'components-stats-card-purple-shadow': '0 8px 24px -4px rgba(139, 92, 246, 0.35), 0 4px 8px -2px rgba(139, 92, 246, 0.15)',
+  'components-stats-card-purple-border-hover': 'rgba(139, 92, 246, 0.5)',
+  // 橙色卡片 - 警告/待处理
+  'components-stats-card-orange-bg': 'linear-gradient(135deg, rgba(249, 115, 22, 0.2), rgba(245, 158, 11, 0.1))',
+  'components-stats-card-orange-icon-bg': 'linear-gradient(135deg, rgba(249, 115, 22, 0.3), rgba(245, 158, 11, 0.2))',
   'components-stats-card-orange-icon-text': '#fdba74',
+  'components-stats-card-orange-shadow': '0 8px 24px -4px rgba(249, 115, 22, 0.35), 0 4px 8px -2px rgba(249, 115, 22, 0.15)',
+  'components-stats-card-orange-border-hover': 'rgba(249, 115, 22, 0.5)',
 
   // ===== 头像渐变系统 - 暗色主题 =====
   'components-avatar-gradient-purple-from': '#a855f7',
@@ -1449,6 +1473,7 @@ export function generateThemeCSS(tokens: DesignTokens, themeName: 'light' | 'dar
     '图标按钮': Object.keys(tokens).filter(key => key.startsWith('components-icon-button-')),
     '应用头像': Object.keys(tokens).filter(key => key.startsWith('components-app-avatar-')),
     '推荐卡片': Object.keys(tokens).filter(key => key.startsWith('components-recommend-card-')),
+    '统计卡片': Object.keys(tokens).filter(key => key.startsWith('components-stats-card-')),
     '其他组件': Object.keys(tokens).filter(key => 
       !key.startsWith('text-') && 
       !key.startsWith('background-') && 
@@ -1485,7 +1510,8 @@ export function generateThemeCSS(tokens: DesignTokens, themeName: 'light' | 'dar
       !key.includes('-spinner-') &&
       !key.includes('-loader-') &&
       !key.includes('-code-') &&
-      !key.includes('-pre-')
+      !key.includes('-pre-') &&
+      !key.includes('-stats-card-')
     )
   }
   

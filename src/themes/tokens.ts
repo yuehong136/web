@@ -317,18 +317,30 @@ export interface DesignTokens {
   'components-badge-green-text': string
 
   // ===== 统计卡片组件 =====
+  // 蓝色卡片
   'components-stats-card-blue-bg': string
   'components-stats-card-blue-icon-bg': string
   'components-stats-card-blue-icon-text': string
+  'components-stats-card-blue-shadow': string
+  'components-stats-card-blue-border-hover': string
+  // 绿色卡片
   'components-stats-card-green-bg': string
   'components-stats-card-green-icon-bg': string
   'components-stats-card-green-icon-text': string
+  'components-stats-card-green-shadow': string
+  'components-stats-card-green-border-hover': string
+  // 紫色卡片
   'components-stats-card-purple-bg': string
   'components-stats-card-purple-icon-bg': string
   'components-stats-card-purple-icon-text': string
+  'components-stats-card-purple-shadow': string
+  'components-stats-card-purple-border-hover': string
+  // 橙色卡片
   'components-stats-card-orange-bg': string
   'components-stats-card-orange-icon-bg': string
   'components-stats-card-orange-icon-text': string
+  'components-stats-card-orange-shadow': string
+  'components-stats-card-orange-border-hover': string
 
   // ===== 头像渐变系统 =====
   'components-avatar-gradient-purple-from': string
@@ -1065,18 +1077,30 @@ export const defaultTokens: DesignTokens = {
   'components-badge-green-text': '',
 
   // 统计卡片组件
+  // 蓝色卡片
   'components-stats-card-blue-bg': '',
   'components-stats-card-blue-icon-bg': '',
   'components-stats-card-blue-icon-text': '',
+  'components-stats-card-blue-shadow': '',
+  'components-stats-card-blue-border-hover': '',
+  // 绿色卡片
   'components-stats-card-green-bg': '',
   'components-stats-card-green-icon-bg': '',
   'components-stats-card-green-icon-text': '',
+  'components-stats-card-green-shadow': '',
+  'components-stats-card-green-border-hover': '',
+  // 紫色卡片
   'components-stats-card-purple-bg': '',
   'components-stats-card-purple-icon-bg': '',
   'components-stats-card-purple-icon-text': '',
+  'components-stats-card-purple-shadow': '',
+  'components-stats-card-purple-border-hover': '',
+  // 橙色卡片
   'components-stats-card-orange-bg': '',
   'components-stats-card-orange-icon-bg': '',
   'components-stats-card-orange-icon-text': '',
+  'components-stats-card-orange-shadow': '',
+  'components-stats-card-orange-border-hover': '',
 
   // 头像渐变系统
   'components-avatar-gradient-purple-from': '',

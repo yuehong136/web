@@ -315,6 +315,28 @@ html[data-theme="light"] {
   --color-components-recommend-card-text: #1f2937;
   --color-components-recommend-card-tag: #9ca3af;
 
+  /* ===== 统计卡片 ===== */
+  --color-components-stats-card-blue-bg: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(14, 165, 233, 0.08));
+  --color-components-stats-card-blue-icon-bg: linear-gradient(135deg, #dbeafe, #e0f2fe);
+  --color-components-stats-card-blue-icon-text: #2563eb;
+  --color-components-stats-card-blue-shadow: 0 8px 24px -4px rgba(59, 130, 246, 0.25), 0 4px 8px -2px rgba(59, 130, 246, 0.1);
+  --color-components-stats-card-blue-border-hover: rgba(59, 130, 246, 0.4);
+  --color-components-stats-card-green-bg: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(16, 185, 129, 0.08));
+  --color-components-stats-card-green-icon-bg: linear-gradient(135deg, #dcfce7, #d1fae5);
+  --color-components-stats-card-green-icon-text: #16a34a;
+  --color-components-stats-card-green-shadow: 0 8px 24px -4px rgba(34, 197, 94, 0.25), 0 4px 8px -2px rgba(34, 197, 94, 0.1);
+  --color-components-stats-card-green-border-hover: rgba(34, 197, 94, 0.4);
+  --color-components-stats-card-purple-bg: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(168, 85, 247, 0.08));
+  --color-components-stats-card-purple-icon-bg: linear-gradient(135deg, #ede9fe, #f3e8ff);
+  --color-components-stats-card-purple-icon-text: #7c3aed;
+  --color-components-stats-card-purple-shadow: 0 8px 24px -4px rgba(139, 92, 246, 0.25), 0 4px 8px -2px rgba(139, 92, 246, 0.1);
+  --color-components-stats-card-purple-border-hover: rgba(139, 92, 246, 0.4);
+  --color-components-stats-card-orange-bg: linear-gradient(135deg, rgba(249, 115, 22, 0.15), rgba(245, 158, 11, 0.08));
+  --color-components-stats-card-orange-icon-bg: linear-gradient(135deg, #ffedd5, #fef3c7);
+  --color-components-stats-card-orange-icon-text: #ea580c;
+  --color-components-stats-card-orange-shadow: 0 8px 24px -4px rgba(249, 115, 22, 0.25), 0 4px 8px -2px rgba(249, 115, 22, 0.1);
+  --color-components-stats-card-orange-border-hover: rgba(249, 115, 22, 0.4);
+
   /* ===== 其他组件 ===== */
   --color-components-method-get-bg: rgba(34, 197, 94, 0.1);
   --color-components-method-get-text: #166534;

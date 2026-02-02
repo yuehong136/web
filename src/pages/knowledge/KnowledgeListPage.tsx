@@ -415,61 +415,116 @@ export const KnowledgeListPage: React.FC = () => {
     }
   }
 
+  // 统计卡片悬浮状态
+  const [hoveredCardIndex, setHoveredCardIndex] = React.useState<number | null>(null)
+
+  // 统计卡片数据配置 - 使用语义化设计令牌
+  const statsCards = [
+    {
+      title: '知识库总数',
+      value: total,
+      icon: Database,
+      // 使用 components-stats-card-* 语义化令牌
+      gradient: 'var(--color-components-stats-card-blue-bg)',
+      iconBg: 'var(--color-components-stats-card-blue-icon-bg)',
+      iconColor: 'var(--color-components-stats-card-blue-icon-text)',
+      shadow: 'var(--color-components-stats-card-blue-shadow)',
+      borderHover: 'var(--color-components-stats-card-blue-border-hover)',
+    },
+    {
+      title: '总文档数',
+      value: knowledgeBases.reduce((sum, kb) => sum + (kb.doc_num || 0), 0),
+      icon: FileText,
+      gradient: 'var(--color-components-stats-card-green-bg)',
+      iconBg: 'var(--color-components-stats-card-green-icon-bg)',
+      iconColor: 'var(--color-components-stats-card-green-icon-text)',
+      shadow: 'var(--color-components-stats-card-green-shadow)',
+      borderHover: 'var(--color-components-stats-card-green-border-hover)',
+    },
+    {
+      title: '总块数',
+      value: knowledgeBases.reduce((sum, kb) => sum + (kb.chunk_num || 0), 0),
+      icon: Layers,
+      gradient: 'var(--color-components-stats-card-purple-bg)',
+      iconBg: 'var(--color-components-stats-card-purple-icon-bg)',
+      iconColor: 'var(--color-components-stats-card-purple-icon-text)',
+      shadow: 'var(--color-components-stats-card-purple-shadow)',
+      borderHover: 'var(--color-components-stats-card-purple-border-hover)',
+    },
+    {
+      title: '总Token',
+      value: knowledgeBases.reduce((sum, kb) => sum + (kb.token_num || 0), 0),
+      icon: Target,
+      gradient: 'var(--color-components-stats-card-orange-bg)',
+      iconBg: 'var(--color-components-stats-card-orange-icon-bg)',
+      iconColor: 'var(--color-components-stats-card-orange-icon-text)',
+      shadow: 'var(--color-components-stats-card-orange-shadow)',
+      borderHover: 'var(--color-components-stats-card-orange-border-hover)',
+    },
+  ]
+
   const renderStatsCards = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-      <Card className="p-4">
-        <div className="flex items-center">
-          <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--color-state-info-subtle)' }}>
-            <Database className="h-5 w-5" style={{ color: 'var(--color-state-info)' }} />
-          </div>
-          <div className="ml-3">
-            <p className="text-sm font-medium text-text-secondary">知识库总数</p>
-            <p className="text-2xl font-bold text-text-primary">{total}</p>
-          </div>
-        </div>
-      </Card>
-      
-      <Card className="p-4">
-        <div className="flex items-center">
-          <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--color-state-success-subtle)' }}>
-            <FileText className="h-5 w-5" style={{ color: 'var(--color-state-success)' }} />
-          </div>
-          <div className="ml-3">
-            <p className="text-sm font-medium text-text-secondary">总文档数</p>
-            <p className="text-2xl font-bold text-text-primary">
-              {knowledgeBases.reduce((sum, kb) => sum + (kb.doc_num || 0), 0)}
-            </p>
-          </div>
-        </div>
-      </Card>
+      {statsCards.map((stat, index) => {
+        const IconComponent = stat.icon
+        const isHovered = hoveredCardIndex === index
+        return (
+          <div
+            key={stat.title}
+            className={cn(
+              'relative overflow-hidden rounded-2xl p-5 transition-all duration-300',
+              'hover:-translate-y-1',
+              'border'
+            )}
+            style={{
+              backgroundColor: 'var(--color-components-card-bg)',
+              borderColor: isHovered ? stat.borderHover : 'var(--color-components-card-border)',
+              boxShadow: isHovered ? stat.shadow : 'none',
+              animationDelay: `${index * 50}ms`,
+            }}
+            onMouseEnter={() => setHoveredCardIndex(index)}
+            onMouseLeave={() => setHoveredCardIndex(null)}
+          >
+            {/* 背景渐变装饰 - 使用设计令牌中的渐变 */}
+            <div
+              className={cn(
+                'absolute -right-4 -top-4 w-28 h-28 rounded-full blur-2xl transition-all duration-300',
+                isHovered ? 'opacity-80 scale-110' : 'opacity-50'
+              )}
+              style={{ background: stat.gradient }}
+            />
+            
+            <div className="relative flex items-center gap-4">
+              {/* 图标 - 使用渐变背景令牌 */}
+              <div
+                className={cn(
+                  'flex items-center justify-center w-12 h-12 rounded-xl transition-all duration-300',
+                  isHovered && 'scale-110'
+                )}
+                style={{ background: stat.iconBg }}
+              >
+                <IconComponent className="h-6 w-6" style={{ color: stat.iconColor }} />
+              </div>
 
-      <Card className="p-4">
-        <div className="flex items-center">
-          <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--color-state-info-subtle)' }}>
-            <Layers className="h-5 w-5" style={{ color: 'var(--color-state-info)' }} />
+              {/* 文本 */}
+              <div className="flex-1 min-w-0">
+                <p
+                  className="text-sm font-medium mb-1"
+                  style={{ color: 'var(--color-text-secondary)' }}
+                >
+                  {stat.title}
+                </p>
+                <p
+                  className="text-3xl font-bold tracking-tight"
+                  style={{ color: 'var(--color-text-primary)' }}
+                >
+                  {stat.value.toLocaleString()}
+                </p>
+              </div>
+            </div>
           </div>
-          <div className="ml-3">
-            <p className="text-sm font-medium text-text-secondary">总块数</p>
-            <p className="text-2xl font-bold text-text-primary">
-              {knowledgeBases.reduce((sum, kb) => sum + (kb.chunk_num || 0), 0)}
-            </p>
-          </div>
-        </div>
-      </Card>
-
-      <Card className="p-4">
-        <div className="flex items-center">
-          <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--color-state-warning-subtle)' }}>
-            <Target className="h-5 w-5" style={{ color: 'var(--color-state-warning)' }} />
-          </div>
-          <div className="ml-3">
-            <p className="text-sm font-medium text-text-secondary">总Token</p>
-            <p className="text-2xl font-bold text-text-primary">
-              {knowledgeBases.reduce((sum, kb) => sum + (kb.token_num || 0), 0).toLocaleString()}
-            </p>
-          </div>
-        </div>
-      </Card>
+        )
+      })}
     </div>
   )
 

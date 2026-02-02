@@ -315,6 +315,28 @@ html[data-theme="dark"] {
   --color-components-recommend-card-text: #ffffff;
   --color-components-recommend-card-tag: #d4d4d8;
 
+  /* ===== 统计卡片 ===== */
+  --color-components-stats-card-blue-bg: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(14, 165, 233, 0.1));
+  --color-components-stats-card-blue-icon-bg: linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(14, 165, 233, 0.2));
+  --color-components-stats-card-blue-icon-text: #93c5fd;
+  --color-components-stats-card-blue-shadow: 0 8px 24px -4px rgba(59, 130, 246, 0.35), 0 4px 8px -2px rgba(59, 130, 246, 0.15);
+  --color-components-stats-card-blue-border-hover: rgba(59, 130, 246, 0.5);
+  --color-components-stats-card-green-bg: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(16, 185, 129, 0.1));
+  --color-components-stats-card-green-icon-bg: linear-gradient(135deg, rgba(34, 197, 94, 0.3), rgba(16, 185, 129, 0.2));
+  --color-components-stats-card-green-icon-text: #86efac;
+  --color-components-stats-card-green-shadow: 0 8px 24px -4px rgba(34, 197, 94, 0.35), 0 4px 8px -2px rgba(34, 197, 94, 0.15);
+  --color-components-stats-card-green-border-hover: rgba(34, 197, 94, 0.5);
+  --color-components-stats-card-purple-bg: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(168, 85, 247, 0.1));
+  --color-components-stats-card-purple-icon-bg: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(168, 85, 247, 0.2));
+  --color-components-stats-card-purple-icon-text: #c4b5fd;
+  --color-components-stats-card-purple-shadow: 0 8px 24px -4px rgba(139, 92, 246, 0.35), 0 4px 8px -2px rgba(139, 92, 246, 0.15);
+  --color-components-stats-card-purple-border-hover: rgba(139, 92, 246, 0.5);
+  --color-components-stats-card-orange-bg: linear-gradient(135deg, rgba(249, 115, 22, 0.2), rgba(245, 158, 11, 0.1));
+  --color-components-stats-card-orange-icon-bg: linear-gradient(135deg, rgba(249, 115, 22, 0.3), rgba(245, 158, 11, 0.2));
+  --color-components-stats-card-orange-icon-text: #fdba74;
+  --color-components-stats-card-orange-shadow: 0 8px 24px -4px rgba(249, 115, 22, 0.35), 0 4px 8px -2px rgba(249, 115, 22, 0.15);
+  --color-components-stats-card-orange-border-hover: rgba(249, 115, 22, 0.5);
+
   /* ===== 其他组件 ===== */
   --color-components-method-get-bg: rgba(34, 197, 94, 0.2);
   --color-components-method-get-text: #4ade80;
