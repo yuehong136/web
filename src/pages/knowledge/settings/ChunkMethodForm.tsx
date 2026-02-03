@@ -21,8 +21,14 @@ import { OneConfiguration } from './configuration/one'
 import { TagConfiguration } from './configuration/tag'
 import { KnowledgeGraphConfiguration } from './configuration/knowledge-graph'
 
+// 配置组件 Props 类型
+export interface ConfigurationComponentProps {
+  onMetadataSettingsClick?: () => void
+  metadataCount?: number
+}
+
 // 配置组件映射
-const ConfigurationComponentMap: Record<string, React.ComponentType> = {
+const ConfigurationComponentMap: Record<string, React.ComponentType<ConfigurationComponentProps>> = {
   [DocumentParserType.Naive]: NaiveConfiguration,
   [DocumentParserType.Qa]: QAConfiguration,
   [DocumentParserType.Resume]: ResumeConfiguration,
@@ -50,9 +56,17 @@ function EmptyConfiguration() {
 
 interface ChunkMethodFormProps {
   className?: string
+  /** 点击自动元数据设置按钮的回调 */
+  onMetadataSettingsClick?: () => void
+  /** 已配置的元数据数量 */
+  metadataCount?: number
 }
 
-export function ChunkMethodForm({ className }: ChunkMethodFormProps) {
+export function ChunkMethodForm({ 
+  className,
+  onMetadataSettingsClick,
+  metadataCount,
+}: ChunkMethodFormProps) {
   const form = useFormContext()
 
   const parserId = useWatch({
@@ -69,7 +83,10 @@ export function ChunkMethodForm({ className }: ChunkMethodFormProps) {
 
   return (
     <div className={className}>
-      <ConfigurationComponent />
+      <ConfigurationComponent 
+        onMetadataSettingsClick={onMetadataSettingsClick}
+        metadataCount={metadataCount}
+      />
     </div>
   )
 }

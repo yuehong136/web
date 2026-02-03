@@ -5,8 +5,11 @@ import {
   MinerUOptionsFormField,
   MaxTokenNumberFormField,
   DelimiterFormField,
+  ChildrenDelimiterFormField,
   TocExtractionFormField,
   ImageTableContextWindowFormField,
+  AutoMetadataFormField,
+  OverlappedPercentFormField,
   AutoKeywordsFormField,
   AutoQuestionsFormField,
   ExcelToHtmlFormField,
@@ -14,26 +17,39 @@ import {
 import {
   ConfigurationFormContainer,
   MainContainer,
-  SectionTitle,
 } from '../configuration-form-container'
 
-export function NaiveConfiguration() {
+interface NaiveConfigurationProps {
+  /** 点击自动元数据设置按钮的回调 */
+  onMetadataSettingsClick?: () => void
+  /** 已配置的元数据数量 */
+  metadataCount?: number
+}
+
+export function NaiveConfiguration({
+  onMetadataSettingsClick,
+  metadataCount,
+}: NaiveConfigurationProps = {}) {
   return (
     <MainContainer>
-      {/* 基础配置 */}
+      {/* 第一组：基础分块配置 - 与 RAGFlow 保持一致 */}
       <ConfigurationFormContainer>
-        <SectionTitle>基础配置</SectionTitle>
         <LayoutRecognizeFormField />
         <MinerUOptionsFormField />
         <MaxTokenNumberFormField initialValue={512} max={2048} />
         <DelimiterFormField />
-        <TocExtractionFormField />
-        <ImageTableContextWindowFormField />
+        <ChildrenDelimiterFormField />
       </ConfigurationFormContainer>
 
-      {/* 智能增强 */}
+      {/* 第二组：增强配置 */}
       <ConfigurationFormContainer>
-        <SectionTitle>智能增强</SectionTitle>
+        <TocExtractionFormField />
+        <ImageTableContextWindowFormField />
+        <AutoMetadataFormField 
+          onSettingsClick={onMetadataSettingsClick}
+          metadataCount={metadataCount}
+        />
+        <OverlappedPercentFormField />
         <AutoKeywordsFormField />
         <AutoQuestionsFormField />
         <ExcelToHtmlFormField />

@@ -180,12 +180,13 @@ export const knowledgeAPI = {
     parseWeb: (data: ParseWebRequest): Promise<{ doc_id: string }> =>
       apiClient.post('/v1/document/web_crawl', data),
 
-    // 更新文档
-    update: (docId: string, data: {
-      name?: string
+    // 更新文档解析器配置 - 使用 RAGFlow 的 change_parser API
+    changeParser: (data: {
+      doc_id: string
+      parser_id: string
       parser_config?: Record<string, any>
-    }): Promise<Document> =>
-      apiClient.post(`/v1/document/${docId}/update`, data),
+    }): Promise<void> =>
+      apiClient.post('/v1/document/change_parser', data),
 
     // 删除文档
     delete: (docIds: string[]): Promise<void> =>

@@ -720,3 +720,124 @@ export function AutoMetadataFormField({
   )
 }
 
+// =====================================================
+// 子分块用于检索 (Children Delimiter)
+// =====================================================
+interface ChildrenDelimiterFormFieldProps {
+  className?: string
+}
+
+export function ChildrenDelimiterFormField({
+  className,
+}: ChildrenDelimiterFormFieldProps) {
+  const form = useFormContext()
+  const enableChildren = form.watch('parser_config.enable_children')
+
+  // 格式化显示值：将实际的换行符转为转义字符串
+  const formatValue = (val: string | undefined): string => {
+    if (!val) return ''
+    return val
+      .replace(/\n/g, '\\n')
+      .replace(/\t/g, '\\t')
+      .replace(/\r/g, '\\r')
+  }
+
+  // 解析输入值：将转义字符串转为实际换行符
+  const parseValue = (val: string): string => {
+    return val
+      .replace(/\\n/g, '\n')
+      .replace(/\\t/g, '\t')
+      .replace(/\\r/g, '\r')
+  }
+
+  return (
+    <fieldset className={cn('space-y-3', className)}>
+      {/* 启用开关 */}
+      <FormField
+        control={form.control}
+        name="parser_config.enable_children"
+        render={({ field }) => (
+          <FormItem className="flex items-center justify-between space-y-0">
+            <FormLabel
+              tooltip="启用后，系统会使用子分隔符将父文本块进一步拆分为子文本块。检索时使用子文本块进行匹配，但返回的是对应的父文本块，从而提供更完整的上下文信息。"
+              className="text-sm text-text-secondary"
+            >
+              子分块用于检索
+            </FormLabel>
+            <FormControl>
+              <Switch
+                checked={field.value}
+                onCheckedChange={(checked) => {
+                  // 如果启用且没有设置分隔符，设置默认值
+                  if (checked && !form.getValues('parser_config.children_delimiter')) {
+                    form.setValue('parser_config.children_delimiter', '\n')
+                  }
+                  field.onChange(checked)
+                }}
+              />
+            </FormControl>
+          </FormItem>
+        )}
+      />
+
+      {/* 子分隔符输入 - 仅在启用时显示 */}
+      {enableChildren && (
+        <FormField
+          control={form.control}
+          name="parser_config.children_delimiter"
+          render={({ field }) => (
+            <FormItem className="flex items-center gap-1 space-y-0">
+              <FormLabel
+                required
+                tooltip="用于将父文本块拆分为子文本块的分隔符。支持转义字符如 \\n（换行）、\\t（制表符）等。"
+                className="text-sm text-text-secondary w-[140px] shrink-0"
+              >
+                子分隔符
+              </FormLabel>
+              <div className="flex-1">
+                <FormControl>
+                  <Input
+                    value={formatValue(field.value)}
+                    onChange={(e) => field.onChange(parseValue(e.target.value))}
+                    placeholder="\n"
+                    className="h-9"
+                  />
+                </FormControl>
+              </div>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      )}
+    </fieldset>
+  )
+}
+
+// =====================================================
+// 重叠百分比 (Overlapped Percent)
+// =====================================================
+interface OverlappedPercentFormFieldProps {
+  name?: string
+  className?: string
+}
+
+export function OverlappedPercentFormField({
+  name = 'parser_config.overlapped_percent',
+  className,
+}: OverlappedPercentFormFieldProps) {
+  return (
+    <SliderInputFormField
+      name={name}
+      label="重叠百分比"
+      tooltip="相邻文本块之间的重叠比例。较高的重叠可以保持更好的上下文连续性，但会增加存储空间和处理时间。建议值为 10%-20%。"
+      min={0}
+      max={0.3}
+      step={0.01}
+      defaultValue={0}
+      layout="horizontal"
+      className={className}
+      percentage
+    />
+  )
+}
+

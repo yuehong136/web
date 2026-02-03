@@ -12,6 +12,7 @@ import {
   DocumentEnableSwitch,
 } from './document-status-cell'
 import { DocumentActionCell } from './document-action-cell'
+import { ParserMethodCell } from './parser-method-cell'
 import { formatFileSize, formatDate } from './hooks'
 
 interface UseDocumentTableColumnsProps {
@@ -26,6 +27,7 @@ interface UseDocumentTableColumnsProps {
   onDownload: (doc: Document) => void
   onDelete: (doc: Document) => void
   onShowLog?: (doc: Document) => void
+  onShowChunkMethodModal?: (doc: Document) => void
 }
 
 export function useDocumentTableColumns({
@@ -40,6 +42,7 @@ export function useDocumentTableColumns({
   onDownload,
   onDelete,
   onShowLog,
+  onShowChunkMethodModal,
 }: UseDocumentTableColumnsProps): Column<Document>[] {
   const navigate = useNavigate()
 
@@ -174,39 +177,23 @@ export function useDocumentTableColumns({
       },
       {
         key: 'parser_id',
-        title: '切片方法',
+        title: '解析方式',
         dataIndex: 'parser_id',
-        width: 100,
-        render: (value, record) => (
-          <Tooltip
-            content={
-              <div className="max-w-lg">
-                <div
-                  className="font-medium mb-2"
-                  style={{ color: 'var(--color-text-primary)' }}
-                >
-                  解析器: {value || '默认'}
-                </div>
-                {record.parser_config && (
-                  <div
-                    className="text-xs whitespace-pre-wrap max-h-32 overflow-y-auto scrollbar-thin"
-                    style={{ color: 'var(--color-text-secondary)' }}
-                  >
-                    配置: {JSON.stringify(record.parser_config, null, 2)}
-                  </div>
-                )}
-              </div>
-            }
-            delayHide={600}
-            maxWidth="max-w-lg"
-          >
+        width: 120,
+        render: (_, record) => (
+          onShowChunkMethodModal ? (
+            <ParserMethodCell
+              document={record}
+              onShowChunkMethodModal={onShowChunkMethodModal}
+            />
+          ) : (
             <span
-              className="text-sm cursor-help"
+              className="text-sm"
               style={{ color: 'var(--color-text-secondary)' }}
             >
-              {value || '默认'}
+              {record.parser_id || '默认'}
             </span>
-          </Tooltip>
+          )
         ),
       },
       {
@@ -308,6 +295,7 @@ export function useDocumentTableColumns({
       onDownload,
       onDelete,
       onShowLog,
+      onShowChunkMethodModal,
       navigate,
     ]
   )

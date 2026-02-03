@@ -39,7 +39,7 @@ export function AuthCarousel({
   }, []);
 
   return (
-      <div className={`hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br ${gradientFrom} ${gradientTo}`}>
+      <div className={`hidden lg:flex lg:w-1/2 min-h-screen relative overflow-hidden bg-gradient-to-br ${gradientFrom} ${gradientTo}`}>
         {/* Background Images */}
         {carouselData.map((slide, index) => (
             <div

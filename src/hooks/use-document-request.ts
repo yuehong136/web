@@ -398,3 +398,32 @@ export const useDownloadDocument = () => {
     error,
   }
 }
+
+// 更新文档解析器配置 - 使用 RAGFlow 的 change_parser API
+export const useUpdateDocumentParser = () => {
+  const queryClient = useQueryClient()
+
+  const { mutateAsync, isPending, isError, error } = useMutation({
+    mutationFn: async (params: {
+      docId: string
+      parserId: string
+      parserConfig?: Record<string, any>
+    }) => {
+      await knowledgeAPI.document.changeParser({
+        doc_id: params.docId,
+        parser_id: params.parserId,
+        parser_config: params.parserConfig,
+      })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: documentKeys.lists() })
+    },
+  })
+
+  return {
+    updateDocumentParser: mutateAsync,
+    isLoading: isPending,
+    isError,
+    error,
+  }
+}

@@ -24,10 +24,11 @@ import {
   PageSizeSelector,
 } from '@/components/ui'
 import { useKnowledgeStore } from '@/stores/knowledge'
-import { ReparseConfirmModal } from '@/components/knowledge'
+import { ReparseConfirmModal, ChunkMethodModal } from '@/components/knowledge'
 import { MetadataManageType as MetadataType } from '@/types/api'
 import type { Document } from '@/types/api'
 import { ManageMetadataModal, DocumentMetadataModal } from '../metadata'
+import { useUpdateDocumentParser } from '@/hooks/use-document-request'
 
 // 本地组件
 import { FilterButton } from './document-filter-popover'
@@ -78,6 +79,11 @@ export const KnowledgeDocumentsPage: React.FC = () => {
   const [metadataModalOpen, setMetadataModalOpen] = useState(false)
   const [docMetadataModalOpen, setDocMetadataModalOpen] = useState(false)
   const [editingDocMeta, setEditingDocMeta] = useState<Document | null>(null)
+  const [chunkMethodModalOpen, setChunkMethodModalOpen] = useState(false)
+  const [editingParserDoc, setEditingParserDoc] = useState<Document | null>(null)
+
+  // 更新文档解析器 hook
+  const { updateDocumentParser, isLoading: isUpdatingParser } = useUpdateDocumentParser()
 
   // 检查是否需要显示解析确认弹窗
   const needsParseConfirmation = useCallback(
@@ -167,6 +173,23 @@ export const KnowledgeDocumentsPage: React.FC = () => {
     listState.clearSelection()
   }, [listState, actions])
 
+  // 显示解析方式配置弹窗
+  const handleShowChunkMethodModal = useCallback((doc: Document) => {
+    setEditingParserDoc(doc)
+    setChunkMethodModalOpen(true)
+  }, [])
+
+  // 提交解析方式配置
+  const handleChunkMethodSubmit = useCallback(
+    async (data: { docId: string; parserId: string; parserConfig?: Record<string, any> }) => {
+      await updateDocumentParser(data)
+      setChunkMethodModalOpen(false)
+      setEditingParserDoc(null)
+      listState.refetch()
+    },
+    [updateDocumentParser, listState]
+  )
+
   // 知识库是否启用元数据
   const hasMetadataEnabled =
     currentKnowledgeBase?.enable_metadata === true ||
@@ -192,6 +215,7 @@ export const KnowledgeDocumentsPage: React.FC = () => {
       setDeleteConfirmOpen(true)
     },
     onShowLog: showLog,
+    onShowChunkMethodModal: handleShowChunkMethodModal,
   })
 
   return (
@@ -553,6 +577,18 @@ export const KnowledgeDocumentsPage: React.FC = () => {
         visible={logVisible}
         onClose={hideLog}
         logInfo={logInfo}
+      />
+
+      {/* 解析方式配置弹窗 */}
+      <ChunkMethodModal
+        open={chunkMethodModalOpen}
+        onClose={() => {
+          setChunkMethodModalOpen(false)
+          setEditingParserDoc(null)
+        }}
+        document={editingParserDoc}
+        onSubmit={handleChunkMethodSubmit}
+        isLoading={isUpdatingParser}
       />
     </div>
   )

@@ -1,3 +1,4 @@
+export { ChunkMethodModal } from './ChunkMethodModal'
 export { DocumentMetadataEditor } from './DocumentMetadataEditor'
 export { EmbeddingModelSelector } from './EmbeddingModelSelector'
 export { HighlightText } from './HighlightText'
