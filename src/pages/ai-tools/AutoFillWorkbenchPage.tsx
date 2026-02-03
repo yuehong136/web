@@ -38,9 +38,9 @@ const AutoFillWorkbenchPage: React.FC = () => {
   const useSplitLayout = currentStep === 2
 
   return (
-    <div className="h-full flex flex-col bg-background">
+    <div className="h-full flex flex-col bg-background-body">
       {/* 顶部导航栏 */}
-      <header className="shrink-0 border-b border-border bg-card px-6 py-4">
+      <header className="shrink-0 border-b border-border-default bg-components-card-bg px-6 py-4">
         <div className="flex items-center justify-between">
           <Breadcrumb>
             <BreadcrumbList>
@@ -74,9 +74,9 @@ const AutoFillWorkbenchPage: React.FC = () => {
                   <div
                     className={cn(
                       'flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-all',
-                      isCompleted && 'bg-primary/10 text-primary',
-                      isActive && 'bg-primary text-primary-foreground',
-                      !isActive && !isCompleted && 'bg-muted text-muted-foreground'
+                      isCompleted && 'bg-components-steps-completed-bg text-components-steps-completed-text',
+                      isActive && 'bg-components-steps-active-bg text-components-steps-active-text',
+                      !isActive && !isCompleted && 'bg-components-steps-inactive-bg text-components-steps-inactive-text'
                     )}
                   >
                     {isCompleted ? (
@@ -90,7 +90,7 @@ const AutoFillWorkbenchPage: React.FC = () => {
                     <div
                       className={cn(
                         'w-8 h-0.5 rounded-full transition-colors',
-                        step.id < currentStep ? 'bg-primary' : 'bg-border'
+                        step.id < currentStep ? 'bg-components-steps-line-completed' : 'bg-components-steps-line'
                       )}
                     />
                   )}
@@ -111,16 +111,16 @@ const AutoFillWorkbenchPage: React.FC = () => {
                 <div className="max-w-2xl mx-auto">
                   {/* 页面标题 */}
                   <div className="mb-6 text-center">
-                    <h1 className="text-xl font-semibold text-foreground mb-1">
+                    <h1 className="text-xl font-semibold text-text-primary mb-1">
                       填写表单数据
                     </h1>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-text-secondary">
                       填写或使用 AI 自动生成占位符对应的数据
         </p>
       </div>
 
                   {/* 内容区 */}
-                  <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+                  <div className="bg-components-card-bg rounded-2xl border border-border-default shadow-shadow-sm overflow-hidden">
                     <div className="p-6">
                       {processedData && (
                         <DataInput
@@ -142,7 +142,7 @@ const AutoFillWorkbenchPage: React.FC = () => {
             <ResizableHandle withHandle />
 
             <ResizablePanel defaultSize={50} minSize={30}>
-              <div className="h-full border-l border-border">
+              <div className="h-full border-l border-border-default">
                 <DocxPreview fileData={processedData?.file || null} />
         </div>
             </ResizablePanel>
@@ -153,18 +153,18 @@ const AutoFillWorkbenchPage: React.FC = () => {
             <div className="max-w-4xl mx-auto px-6 py-8">
               {/* 页面标题 */}
               <div className="mb-8 text-center">
-                <h1 className="text-2xl font-semibold text-foreground mb-2">
+                <h1 className="text-2xl font-semibold text-text-primary mb-2">
                   {currentStep === 1 && '上传您的文档'}
                   {currentStep === 3 && '填充完成'}
                 </h1>
-                <p className="text-muted-foreground">
+                <p className="text-text-secondary">
                   {currentStep === 1 && '支持 .docx 格式的 Word 文档，系统将自动识别占位符'}
                   {currentStep === 3 && '您的文档已填充完成，可以下载使用'}
                 </p>
       </div>
 
               {/* 步骤内容 */}
-              <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+              <div className="bg-components-card-bg rounded-2xl border border-border-default shadow-shadow-sm overflow-hidden">
                 <div className="p-6 md:p-8">
             {currentStep === 1 && (
               <FileUpload
@@ -188,7 +188,7 @@ const AutoFillWorkbenchPage: React.FC = () => {
 
               {/* 底部提示 */}
               {currentStep === 1 && (
-                <p className="text-center text-sm text-muted-foreground mt-6">
+                <p className="text-center text-sm text-text-secondary mt-6">
                   文档在本地处理，数据安全可靠
                 </p>
               )}

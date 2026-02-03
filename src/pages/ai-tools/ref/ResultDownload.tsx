@@ -61,34 +61,34 @@ const ResultDownload: React.FC<ResultDownloadProps> = ({ fileData, onReset, orig
     <div className="space-y-8">
       {/* 成功状态 */}
       <div className="text-center py-8">
-        <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-500/20 flex items-center justify-center mx-auto mb-4">
-          <CheckCircle2 className="w-8 h-8 text-green-600 dark:text-green-400" />
+        <div className="w-16 h-16 rounded-full bg-state-success-subtle flex items-center justify-center mx-auto mb-4">
+          <CheckCircle2 className="w-8 h-8 text-state-success" />
         </div>
-        <h2 className="text-xl font-semibold text-foreground mb-2">文档填充完成</h2>
-        <p className="text-muted-foreground">所有占位符已成功替换为您提供的数据</p>
+        <h2 className="text-xl font-semibold text-text-primary mb-2">文档填充完成</h2>
+        <p className="text-text-secondary">所有占位符已成功替换为您提供的数据</p>
       </div>
 
       {/* 文件信息卡片 */}
-      <div className="rounded-xl border border-border bg-muted/30 p-5">
+      <div className="rounded-xl border border-border-default bg-background-subtle p-5">
         <div className="flex items-start gap-4">
-          <div className="w-12 h-12 rounded-lg bg-blue-100 dark:bg-blue-500/20 flex items-center justify-center shrink-0">
-            <FileText className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+          <div className="w-12 h-12 rounded-lg bg-state-info-subtle flex items-center justify-center shrink-0">
+            <FileText className="w-6 h-6 text-state-info" />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="font-medium text-foreground truncate mb-3">
+            <h3 className="font-medium text-text-primary truncate mb-3">
               {originalFileName}
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-2 text-sm">
-              <div className="flex items-center gap-1.5 text-muted-foreground">
+              <div className="flex items-center gap-1.5 text-text-secondary">
                 <HardDrive className="w-3.5 h-3.5" />
                 <span>{formatFileSize(fileData)}</span>
               </div>
-              <div className="flex items-center gap-1.5 text-muted-foreground">
+              <div className="flex items-center gap-1.5 text-text-secondary">
                 <Clock className="w-3.5 h-3.5" />
                 <span>{currentTime}</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400">
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-state-success-subtle text-state-success">
                   已完成
                 </span>
             </div>
@@ -120,7 +120,7 @@ const ResultDownload: React.FC<ResultDownloadProps> = ({ fileData, onReset, orig
       </div>
 
       {/* 底部操作 */}
-      <div className="flex items-center justify-between pt-4 border-t border-border">
+      <div className="flex items-center justify-between pt-4 border-t border-border-default">
         {onBackToFill && (
           <Button variant="ghost" size="sm" onClick={onBackToFill}>
             <ArrowLeft className="w-4 h-4 mr-1" />

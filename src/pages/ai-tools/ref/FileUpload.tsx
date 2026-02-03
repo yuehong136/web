@@ -88,9 +88,9 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileUploaded, onFileProcessed
       <div
         className={cn(
           'relative rounded-2xl border-2 border-dashed transition-all duration-200 cursor-pointer group',
-          dragActive && 'border-primary bg-primary/5 scale-[1.01]',
-          selectedFile && !isLoading && 'border-primary/50 bg-primary/5',
-          !dragActive && !selectedFile && 'border-border hover:border-primary/50 hover:bg-muted/50',
+          dragActive && 'border-components-upload-border-dragover bg-components-upload-bg-dragover scale-[1.01]',
+          selectedFile && !isLoading && 'border-state-success bg-state-success-subtle',
+          !dragActive && !selectedFile && 'border-components-upload-border hover:border-components-upload-border-hover hover:bg-background-subtle',
           isLoading && 'pointer-events-none'
         )}
         onDragEnter={handleDrag}
@@ -113,34 +113,34 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileUploaded, onFileProcessed
           <div
             className={cn(
               'w-16 h-16 rounded-2xl flex items-center justify-center mb-6 transition-all',
-              isLoading && 'bg-primary/10',
-              selectedFile && !isLoading && 'bg-primary/10',
-              !selectedFile && !isLoading && 'bg-muted group-hover:bg-primary/10'
+              isLoading && 'bg-state-info-subtle',
+              selectedFile && !isLoading && 'bg-state-success-subtle',
+              !selectedFile && !isLoading && 'bg-background-subtle group-hover:bg-state-info-subtle'
             )}
           >
             {isLoading ? (
-              <Loader2 className="w-8 h-8 text-primary animate-spin" />
+              <Loader2 className="w-8 h-8 text-state-info animate-spin" />
             ) : selectedFile ? (
-              <CheckCircle2 className="w-8 h-8 text-primary" />
+              <CheckCircle2 className="w-8 h-8 text-state-success" />
             ) : (
-              <FileUp className="w-8 h-8 text-muted-foreground group-hover:text-primary transition-colors" />
+              <FileUp className="w-8 h-8 text-text-secondary group-hover:text-state-info transition-colors" />
             )}
           </div>
 
           {/* 文字内容 */}
           {isLoading ? (
             <div className="text-center">
-              <h3 className="text-lg font-medium text-foreground mb-2">正在解析文档...</h3>
-              <p className="text-sm text-muted-foreground">
+              <h3 className="text-lg font-medium text-text-primary mb-2">正在解析文档...</h3>
+              <p className="text-sm text-text-secondary">
                 系统正在识别文档中的占位符
               </p>
             </div>
           ) : selectedFile ? (
             <div className="text-center">
-              <h3 className="text-lg font-medium text-foreground mb-2">
+              <h3 className="text-lg font-medium text-text-primary mb-2">
                 {selectedFile.name}
               </h3>
-              <p className="text-sm text-muted-foreground mb-4">
+              <p className="text-sm text-text-secondary mb-4">
                 {formatFileSize(selectedFile.size)}
               </p>
               <Button
@@ -153,10 +153,10 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileUploaded, onFileProcessed
             </div>
           ) : (
             <div className="text-center">
-              <h3 className="text-lg font-medium text-foreground mb-2">
+              <h3 className="text-lg font-medium text-text-primary mb-2">
                 拖放文件到此处
               </h3>
-              <p className="text-sm text-muted-foreground mb-4">
+              <p className="text-sm text-text-secondary mb-4">
                 或点击选择文件上传
               </p>
               <Button variant="default" size="sm">
@@ -170,20 +170,20 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileUploaded, onFileProcessed
 
       {/* 文件要求说明 */}
       <div className="grid gap-3 md:grid-cols-2">
-        <div className="flex items-start gap-3 p-4 rounded-xl bg-muted/50 border border-border">
-          <FileText className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
+        <div className="flex items-start gap-3 p-4 rounded-xl bg-background-subtle border border-border-default">
+          <FileText className="w-5 h-5 text-text-secondary shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-medium text-foreground">支持格式</p>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm font-medium text-text-primary">支持格式</p>
+            <p className="text-sm text-text-secondary">
               Microsoft Word 文档 (.docx)，最大 10MB
             </p>
           </div>
         </div>
-        <div className="flex items-start gap-3 p-4 rounded-xl bg-muted/50 border border-border">
-          <AlertTriangle className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
+        <div className="flex items-start gap-3 p-4 rounded-xl bg-background-subtle border border-border-default">
+          <AlertTriangle className="w-5 h-5 text-text-secondary shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-medium text-foreground">占位符格式</p>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm font-medium text-text-primary">占位符格式</p>
+            <p className="text-sm text-text-secondary">
               使用 {'{{占位符名称}}'} 格式标记待填充位置
             </p>
           </div>

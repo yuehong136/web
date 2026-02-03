@@ -337,8 +337,8 @@ const DataInput: React.FC<DataInputProps> = ({
             <ArrowLeft className="w-4 h-4 mr-1" />
             返回
           </Button>
-          <div className="h-4 w-px bg-border" />
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <div className="h-4 w-px bg-border-default" />
+          <div className="flex items-center gap-2 text-sm text-text-secondary">
             <Badge variant="secondary" className="font-normal">
               {filledCount}/{placeholderKeys.length} 已填写
             </Badge>
@@ -371,14 +371,14 @@ const DataInput: React.FC<DataInputProps> = ({
 
       {/* 状态信息 */}
       <div className="flex flex-wrap items-center gap-3 text-sm">
-        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-muted">
-          <span className="text-muted-foreground">模型:</span>
-          <span className="font-medium text-foreground">{llmConfig.llm_name || '未选择'}</span>
+        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-background-body-subtle">
+          <span className="text-text-secondary">模型:</span>
+          <span className="font-medium text-text-primary">{llmConfig.llm_name || '未选择'}</span>
         </div>
         {mcpConfig.mcp_ids.length > 0 && (
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-muted">
-            <PlugZap className="w-3.5 h-3.5 text-muted-foreground" />
-            <span className="font-medium text-foreground">{mcpConfig.mcp_ids.length} MCP</span>
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-background-body-subtle">
+            <PlugZap className="w-3.5 h-3.5 text-text-secondary" />
+            <span className="font-medium text-text-primary">{mcpConfig.mcp_ids.length} MCP</span>
           </div>
         )}
       </div>
@@ -401,7 +401,7 @@ const DataInput: React.FC<DataInputProps> = ({
       {/* 主内容区 - Tabs */}
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
         <div className="flex items-center justify-between gap-4 mb-4">
-          <TabsList className="bg-muted/50">
+          <TabsList className="bg-background-body-subtle">
             <TabsTrigger value="form" className="gap-1.5">
               <FormInput className="w-4 h-4" />
               表单
@@ -415,7 +415,7 @@ const DataInput: React.FC<DataInputProps> = ({
           {activeTab === 'form' && (
             <div className="flex items-center gap-3">
               <div className="relative">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
                 <Input
                   value={searchKey}
                   onChange={(e) => setSearchKey(e.target.value)}
@@ -423,7 +423,7 @@ const DataInput: React.FC<DataInputProps> = ({
                   className="pl-8 h-8 w-[160px]"
                 />
               </div>
-              <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
+              <label className="flex items-center gap-2 text-sm text-text-secondary cursor-pointer">
                 <Switch
                   checked={showOnlyEmpty}
                   onCheckedChange={setShowOnlyEmpty}
@@ -437,11 +437,11 @@ const DataInput: React.FC<DataInputProps> = ({
 
         <TabsContent value="form" className="mt-0">
               {placeholderKeys.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
+            <div className="text-center py-12 text-text-secondary">
               文档中没有检测到占位符
             </div>
           ) : filteredKeys.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
+            <div className="text-center py-12 text-text-secondary">
               没有匹配的字段
             </div>
           ) : (
@@ -452,7 +452,7 @@ const DataInput: React.FC<DataInputProps> = ({
               <div className="grid gap-4 sm:grid-cols-2">
                 {filteredKeys.map((k) => (
                   <div key={k} className="space-y-1.5">
-                    <label className="text-sm font-medium text-foreground truncate block">
+                    <label className="text-sm font-medium text-text-primary truncate block">
                       {k}
                     </label>
                     <Input
@@ -488,10 +488,10 @@ const DataInput: React.FC<DataInputProps> = ({
           </div>
 
           {aiRawOutput && (
-            <div className="rounded-lg border border-border overflow-hidden">
+            <div className="rounded-lg border border-border-default overflow-hidden">
               <button
                 onClick={() => setShowAiRaw(v => !v)}
-                className="w-full flex items-center justify-between px-4 py-2.5 bg-muted/50 hover:bg-muted transition-colors"
+                className="w-full flex items-center justify-between px-4 py-2.5 bg-background-body-subtle hover:bg-muted transition-colors"
               >
                 <span className="text-sm font-medium flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-purple-500" />
@@ -500,8 +500,8 @@ const DataInput: React.FC<DataInputProps> = ({
                 {showAiRaw ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
               </button>
               {showAiRaw && (
-                <div className="p-4 bg-background">
-                  <pre className="text-xs text-muted-foreground whitespace-pre-wrap overflow-auto max-h-40">
+                <div className="p-4 bg-background-body">
+                  <pre className="text-xs text-text-secondary whitespace-pre-wrap overflow-auto max-h-40">
                     {aiRawOutput}
                   </pre>
                 </div>
@@ -512,7 +512,7 @@ const DataInput: React.FC<DataInputProps> = ({
       </Tabs>
 
       {/* 提交按钮 */}
-      <div className="flex justify-end pt-4 border-t border-border">
+      <div className="flex justify-end pt-4 border-t border-border-default">
         <Button
           onClick={fillDocument}
           disabled={isLoading || placeholderKeys.length === 0}
@@ -550,7 +550,7 @@ const DataInput: React.FC<DataInputProps> = ({
 
             <TabsContent value="llm" className="space-y-4">
               <div>
-                <label className="text-sm font-medium text-foreground mb-2 block">选择模型</label>
+                <label className="text-sm font-medium text-text-primary mb-2 block">选择模型</label>
                 <ChatModelSelector
                   models={myLLMs}
                   selectedModelName={llmConfig.llm_name}
@@ -561,7 +561,7 @@ const DataInput: React.FC<DataInputProps> = ({
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm text-muted-foreground mb-1.5 block">Temperature</label>
+                  <label className="text-sm text-text-secondary mb-1.5 block">Temperature</label>
                   <Input
                     type="number"
                     step="0.1"
@@ -572,7 +572,7 @@ const DataInput: React.FC<DataInputProps> = ({
                   />
                 </div>
                 <div>
-                  <label className="text-sm text-muted-foreground mb-1.5 block">Max Tokens</label>
+                  <label className="text-sm text-text-secondary mb-1.5 block">Max Tokens</label>
                   <Input
                     type="number"
                     min="256"
@@ -586,18 +586,18 @@ const DataInput: React.FC<DataInputProps> = ({
 
             <TabsContent value="prompt" className="space-y-4">
               <div>
-                <label className="text-sm font-medium text-foreground mb-1.5 block">系统提示词</label>
+                <label className="text-sm font-medium text-text-primary mb-1.5 block">系统提示词</label>
                 <Textarea
                   className="min-h-[80px] resize-none"
                   value={promptConfig.systemPrompt}
                   onChange={(e) => setPromptConfig((prev) => ({ ...prev, systemPrompt: e.target.value }))}
                   placeholder={DEFAULT_SYSTEM_PROMPT}
                 />
-                <p className="text-xs text-muted-foreground mt-1.5">为空时将使用默认提示词</p>
+                <p className="text-xs text-text-secondary mt-1.5">为空时将使用默认提示词</p>
               </div>
 
               <div>
-                <label className="text-sm font-medium text-foreground mb-2 block">用户输入</label>
+                <label className="text-sm font-medium text-text-primary mb-2 block">用户输入</label>
                 
                 {/* 输入模式切换 */}
                 <div className="flex items-center gap-1 p-1 bg-muted rounded-lg mb-3">
@@ -606,8 +606,8 @@ const DataInput: React.FC<DataInputProps> = ({
                     className={cn(
                       'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all',
                       userInputMode === 'manual'
-                        ? 'bg-background text-foreground shadow-sm'
-                        : 'text-muted-foreground hover:text-foreground'
+                        ? 'bg-background-body text-text-primary shadow-sm'
+                        : 'text-text-secondary hover:text-text-primary'
                     )}
                   >
                     <PenLine className="w-3.5 h-3.5" />
@@ -618,8 +618,8 @@ const DataInput: React.FC<DataInputProps> = ({
                     className={cn(
                       'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all',
                       userInputMode === 'file'
-                        ? 'bg-background text-foreground shadow-sm'
-                        : 'text-muted-foreground hover:text-foreground'
+                        ? 'bg-background-body text-text-primary shadow-sm'
+                        : 'text-text-secondary hover:text-text-primary'
                     )}
                   >
                     <FileUp className="w-3.5 h-3.5" />
@@ -630,8 +630,8 @@ const DataInput: React.FC<DataInputProps> = ({
                     className={cn(
                       'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all',
                       userInputMode === 'datasource'
-                        ? 'bg-background text-foreground shadow-sm'
-                        : 'text-muted-foreground hover:text-foreground'
+                        ? 'bg-background-body text-text-primary shadow-sm'
+                        : 'text-text-secondary hover:text-text-primary'
                     )}
                   >
                     <Database className="w-3.5 h-3.5" />
@@ -653,7 +653,7 @@ const DataInput: React.FC<DataInputProps> = ({
                 {userInputMode === 'file' && (
                   <div className="space-y-3">
                     {/* 上传区域 */}
-                    <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary/50 hover:bg-muted/30 transition-colors">
+                    <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-border-default rounded-lg cursor-pointer hover:border-primary/50 hover:bg-background-body-subtle transition-colors">
                       <input
                         type="file"
                         className="hidden"
@@ -677,25 +677,25 @@ const DataInput: React.FC<DataInputProps> = ({
                           e.target.value = ''
                         }}
                       />
-                      <FileUp className="w-8 h-8 text-muted-foreground mb-2" />
-                      <p className="text-sm text-muted-foreground">点击上传文件</p>
-                      <p className="text-xs text-muted-foreground mt-1">支持 .txt, .json, .csv, .md 格式</p>
+                      <FileUp className="w-8 h-8 text-text-secondary mb-2" />
+                      <p className="text-sm text-text-secondary">点击上传文件</p>
+                      <p className="text-xs text-text-secondary mt-1">支持 .txt, .json, .csv, .md 格式</p>
                     </label>
 
                     {/* 已上传文件列表 */}
                     {uploadedFiles.length > 0 && (
                       <div className="space-y-2">
-                        <p className="text-xs text-muted-foreground">已上传 {uploadedFiles.length} 个文件</p>
+                        <p className="text-xs text-text-secondary">已上传 {uploadedFiles.length} 个文件</p>
                         <div className="space-y-1.5 max-h-32 overflow-auto">
                           {uploadedFiles.map(file => (
                             <div
                               key={file.id}
-                              className="flex items-center justify-between p-2 bg-muted/50 rounded-md"
+                              className="flex items-center justify-between p-2 bg-background-body-subtle rounded-md"
                             >
                               <div className="flex items-center gap-2 min-w-0">
-                                <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
+                                <FileText className="w-4 h-4 text-text-secondary shrink-0" />
                                 <span className="text-sm truncate">{file.name}</span>
-                                <span className="text-xs text-muted-foreground shrink-0">
+                                <span className="text-xs text-text-secondary shrink-0">
                                   {(file.size / 1024).toFixed(1)} KB
                                 </span>
                               </div>
@@ -744,7 +744,7 @@ const DataInput: React.FC<DataInputProps> = ({
 
                     {/* 添加数据源表单 */}
                     {showAddDataSource && (
-                      <div className="p-4 border border-border rounded-lg bg-muted/30 space-y-3">
+                      <div className="p-4 border border-border-default rounded-lg bg-background-body-subtle space-y-3">
                         <div className="flex items-center justify-between">
                           <h4 className="text-sm font-medium flex items-center gap-2">
                             {newDataSourceType === 'api' ? (
@@ -765,7 +765,7 @@ const DataInput: React.FC<DataInputProps> = ({
 
                         <div className="grid gap-3">
                           <div>
-                            <label className="text-xs text-muted-foreground mb-1 block">名称</label>
+                            <label className="text-xs text-text-secondary mb-1 block">名称</label>
                             <Input
                               value={newDataSourceForm.name}
                               onChange={(e) => setNewDataSourceForm(prev => ({ ...prev, name: e.target.value }))}
@@ -777,7 +777,7 @@ const DataInput: React.FC<DataInputProps> = ({
                           {newDataSourceType === 'api' ? (
                             <>
                               <div>
-                                <label className="text-xs text-muted-foreground mb-1 block">API URL</label>
+                                <label className="text-xs text-text-secondary mb-1 block">API URL</label>
                                 <Input
                                   value={newDataSourceForm.apiUrl}
                                   onChange={(e) => setNewDataSourceForm(prev => ({ ...prev, apiUrl: e.target.value }))}
@@ -787,18 +787,18 @@ const DataInput: React.FC<DataInputProps> = ({
                               </div>
                               <div className="grid grid-cols-2 gap-2">
                                 <div>
-                                  <label className="text-xs text-muted-foreground mb-1 block">请求方法</label>
+                                  <label className="text-xs text-text-secondary mb-1 block">请求方法</label>
                                   <select
                                     value={newDataSourceForm.apiMethod}
                                     onChange={(e) => setNewDataSourceForm(prev => ({ ...prev, apiMethod: e.target.value }))}
-                                    className="w-full h-8 px-2 rounded-md border border-input bg-background text-sm"
+                                    className="w-full h-8 px-2 rounded-md border border-input bg-background-body text-sm"
                                   >
                                     <option value="GET">GET</option>
                                     <option value="POST">POST</option>
                                   </select>
                                 </div>
                                 <div>
-                                  <label className="text-xs text-muted-foreground mb-1 block">请求头 (JSON)</label>
+                                  <label className="text-xs text-text-secondary mb-1 block">请求头 (JSON)</label>
                                   <Input
                                     value={newDataSourceForm.apiHeaders}
                                     onChange={(e) => setNewDataSourceForm(prev => ({ ...prev, apiHeaders: e.target.value }))}
@@ -812,11 +812,11 @@ const DataInput: React.FC<DataInputProps> = ({
                             <>
                               <div className="grid grid-cols-3 gap-2">
                                 <div>
-                                  <label className="text-xs text-muted-foreground mb-1 block">数据库类型</label>
+                                  <label className="text-xs text-text-secondary mb-1 block">数据库类型</label>
                                   <select
                                     value={newDataSourceForm.dbType}
                                     onChange={(e) => setNewDataSourceForm(prev => ({ ...prev, dbType: e.target.value }))}
-                                    className="w-full h-8 px-2 rounded-md border border-input bg-background text-sm"
+                                    className="w-full h-8 px-2 rounded-md border border-input bg-background-body text-sm"
                                   >
                                     <option value="mysql">MySQL</option>
                                     <option value="postgresql">PostgreSQL</option>
@@ -825,7 +825,7 @@ const DataInput: React.FC<DataInputProps> = ({
                                   </select>
                                 </div>
                                 <div>
-                                  <label className="text-xs text-muted-foreground mb-1 block">主机</label>
+                                  <label className="text-xs text-text-secondary mb-1 block">主机</label>
                                   <Input
                                     value={newDataSourceForm.dbHost}
                                     onChange={(e) => setNewDataSourceForm(prev => ({ ...prev, dbHost: e.target.value }))}
@@ -834,7 +834,7 @@ const DataInput: React.FC<DataInputProps> = ({
                                   />
                                 </div>
                                 <div>
-                                  <label className="text-xs text-muted-foreground mb-1 block">端口</label>
+                                  <label className="text-xs text-text-secondary mb-1 block">端口</label>
                                   <Input
                                     value={newDataSourceForm.dbPort}
                                     onChange={(e) => setNewDataSourceForm(prev => ({ ...prev, dbPort: e.target.value }))}
@@ -845,7 +845,7 @@ const DataInput: React.FC<DataInputProps> = ({
                               </div>
                               <div className="grid grid-cols-3 gap-2">
                                 <div>
-                                  <label className="text-xs text-muted-foreground mb-1 block">数据库名</label>
+                                  <label className="text-xs text-text-secondary mb-1 block">数据库名</label>
                                   <Input
                                     value={newDataSourceForm.dbName}
                                     onChange={(e) => setNewDataSourceForm(prev => ({ ...prev, dbName: e.target.value }))}
@@ -854,7 +854,7 @@ const DataInput: React.FC<DataInputProps> = ({
                                   />
                                 </div>
                                 <div>
-                                  <label className="text-xs text-muted-foreground mb-1 block">用户名</label>
+                                  <label className="text-xs text-text-secondary mb-1 block">用户名</label>
                                   <Input
                                     value={newDataSourceForm.dbUser}
                                     onChange={(e) => setNewDataSourceForm(prev => ({ ...prev, dbUser: e.target.value }))}
@@ -863,7 +863,7 @@ const DataInput: React.FC<DataInputProps> = ({
                                   />
                                 </div>
                                 <div>
-                                  <label className="text-xs text-muted-foreground mb-1 block">密码</label>
+                                  <label className="text-xs text-text-secondary mb-1 block">密码</label>
                                   <Input
                                     type="password"
                                     value={newDataSourceForm.dbPassword}
@@ -874,7 +874,7 @@ const DataInput: React.FC<DataInputProps> = ({
                                 </div>
                               </div>
                               <div>
-                                <label className="text-xs text-muted-foreground mb-1 block">查询语句</label>
+                                <label className="text-xs text-text-secondary mb-1 block">查询语句</label>
                                 <Input
                                   value={newDataSourceForm.dbQuery}
                                   onChange={(e) => setNewDataSourceForm(prev => ({ ...prev, dbQuery: e.target.value }))}
@@ -933,12 +933,12 @@ const DataInput: React.FC<DataInputProps> = ({
                     {/* 数据源列表 */}
                     {dataSources.length > 0 && (
                       <div className="space-y-2">
-                        <p className="text-xs text-muted-foreground">已添加 {dataSources.length} 个数据源</p>
+                        <p className="text-xs text-text-secondary">已添加 {dataSources.length} 个数据源</p>
                         <div className="space-y-2 max-h-40 overflow-auto">
                           {dataSources.map(ds => (
                             <div
                               key={ds.id}
-                              className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border border-border"
+                              className="flex items-center justify-between p-3 bg-background-body-subtle rounded-lg border border-border-default"
                             >
                               <div className="flex items-center gap-3 min-w-0">
                                 <div className={cn(
@@ -949,7 +949,7 @@ const DataInput: React.FC<DataInputProps> = ({
                                 </div>
                                 <div className="min-w-0">
                                   <p className="text-sm font-medium truncate">{ds.name}</p>
-                                  <p className="text-xs text-muted-foreground truncate">{ds.description}</p>
+                                  <p className="text-xs text-text-secondary truncate">{ds.description}</p>
                                 </div>
                               </div>
                               <div className="flex items-center gap-2 shrink-0">
@@ -958,7 +958,7 @@ const DataInput: React.FC<DataInputProps> = ({
                                   className={cn(
                                     'text-xs',
                                     ds.status === 'connected' && 'border-green-500 text-green-500',
-                                    ds.status === 'disconnected' && 'border-muted-foreground text-muted-foreground',
+                                    ds.status === 'disconnected' && 'border-muted-foreground text-text-secondary',
                                     ds.status === 'error' && 'border-destructive text-destructive'
                                   )}
                                 >
@@ -980,7 +980,7 @@ const DataInput: React.FC<DataInputProps> = ({
                     )}
 
                     {dataSources.length === 0 && !showAddDataSource && (
-                      <div className="text-center py-6 text-muted-foreground">
+                      <div className="text-center py-6 text-text-secondary">
                         <Database className="w-8 h-8 mx-auto mb-2 opacity-50" />
                         <p className="text-sm">暂无数据源</p>
                         <p className="text-xs mt-1">点击上方按钮添加 API 或数据库数据源</p>
@@ -994,12 +994,12 @@ const DataInput: React.FC<DataInputProps> = ({
             <TabsContent value="mcp" className="space-y-4">
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <label className="text-sm font-medium text-foreground">MCP 工具</label>
-                  {mcpLoading && <Loader2 className="w-3.5 h-3.5 animate-spin text-muted-foreground" />}
+                  <label className="text-sm font-medium text-text-primary">MCP 工具</label>
+                  {mcpLoading && <Loader2 className="w-3.5 h-3.5 animate-spin text-text-secondary" />}
                 </div>
-                <ScrollArea className="h-32 rounded-md border border-border p-2">
+                <ScrollArea className="h-32 rounded-md border border-border-default p-2">
                   {mcpServers.length === 0 ? (
-                    <div className="text-sm text-muted-foreground text-center py-4">暂无可用 MCP</div>
+                    <div className="text-sm text-text-secondary text-center py-4">暂无可用 MCP</div>
                   ) : (
                     <div className="space-y-2">
                       {mcpServers.map((server) => (
@@ -1015,7 +1015,7 @@ const DataInput: React.FC<DataInputProps> = ({
                               }))
                             }}
                           />
-                          <span className="text-foreground">{server.name}</span>
+                          <span className="text-text-primary">{server.name}</span>
                         </label>
                       ))}
                     </div>
@@ -1025,7 +1025,7 @@ const DataInput: React.FC<DataInputProps> = ({
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm text-muted-foreground mb-1.5 block">超时时间（秒）</label>
+                  <label className="text-sm text-text-secondary mb-1.5 block">超时时间（秒）</label>
                   <Input
                     type="number"
                     min="1"
@@ -1035,7 +1035,7 @@ const DataInput: React.FC<DataInputProps> = ({
                   />
                 </div>
                 <div>
-                  <label className="text-sm text-muted-foreground mb-1.5 block">工具调用详情</label>
+                  <label className="text-sm text-text-secondary mb-1.5 block">工具调用详情</label>
                   <div className="h-9 flex items-center">
                     <Switch
                       checked={mcpConfig.verbose_tool_use}
@@ -1047,7 +1047,7 @@ const DataInput: React.FC<DataInputProps> = ({
         </TabsContent>
       </Tabs>
 
-          <div className="flex justify-end gap-2 pt-2 border-t border-border">
+          <div className="flex justify-end gap-2 pt-2 border-t border-border-default">
             <Button variant="outline" onClick={() => setSettingsOpen(false)}>取消</Button>
             <Button onClick={() => setSettingsOpen(false)}>确定</Button>
           </div>

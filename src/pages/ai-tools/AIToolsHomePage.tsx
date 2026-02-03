@@ -98,7 +98,7 @@ export const AIToolsHomePage: React.FC = () => {
 
   const renderEmpty = () => (
     <div className="flex flex-col items-center justify-center py-20 text-center bg-components-empty-bg rounded-lg border border-border-subtle">
-      <div className="w-12 h-12 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center mb-3">:)</div>
+      <div className="w-12 h-12 rounded-full bg-background-subtle text-text-muted flex items-center justify-center mb-3">:)</div>
       <p className="text-text-secondary mb-2">未找到匹配的工具</p>
       <p className="text-sm text-text-tertiary mb-4">试试调整搜索关键词或清空筛选条件</p>
       <Button variant="outline" onClick={resetFilters}>清空筛选</Button>
@@ -259,7 +259,7 @@ export const AIToolsHomePage: React.FC = () => {
 
                     <div className="mt-4 flex items-center justify-between">
                       <div className="flex items-center gap-4 text-sm text-text-secondary">
-                        <span className="inline-flex items-center gap-1"><Star className="h-4 w-4 text-warning-500" aria-hidden />{tool.stars}</span>
+                        <span className="inline-flex items-center gap-1"><Star className="h-4 w-4 text-state-warning" aria-hidden />{tool.stars}</span>
                         <span className="inline-flex items-center gap-1"><Download className="h-4 w-4" aria-hidden />{tool.downloads}</span>
                       </div>
                       <Button onClick={(e) => { e.stopPropagation(); openTool(tool.id) }}>进入</Button>

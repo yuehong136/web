@@ -79,6 +79,30 @@ document-preview/
 | 类型 | `types.ts` | - |
 | 常量 | `constants.ts` | - |
 
+### Hook 命名规范
+
+| 用途 | 模式 | 示例 |
+|-----|------|-----|
+| 查询 | `useFetch*`, `useGet*` | `useFetchKnowledgeList` |
+| 变更 | `useCreate*`, `useUpdate*`, `useDelete*` | `useCreateConversation` |
+| UI 状态 | `useSet*`, `useShow*` | `useSetModalState` |
+
+### 常量：使用 TypeScript 枚举
+
+```typescript
+// ✅ 正确：使用枚举定义常量
+export enum RunningStatus {
+  UNSTART = '0',
+  RUNNING = '1',
+  DONE = '3',
+  FAIL = '4',
+}
+
+// ❌ 避免：普通对象或魔法字符串
+const status = { running: '1', done: '3' };
+if (doc.status === '1') { ... }
+```
+
 ### 重构顺序
 1. 提取 hooks → `hooks/use-*.ts`
 2. 提取子组件
@@ -158,6 +182,54 @@ useEffect(() => { loadKnowledgeBases(params) }, [params])
 
 // ✅ 新方式
 const { knowledgeBases, isLoading } = useFetchKnowledgeList(params)
+```
+
+## 性能优化
+
+### 记忆化规则
+
+```typescript
+// ✅ 导出组件使用 memo 防止不必要的重渲染
+export default memo(MyComponent);
+
+// ✅ 缓存昂贵的计算
+const filteredList = useMemo(() => 
+  list.filter(item => item.status === status), [list, status]);
+
+// ✅ 缓存传递给子组件的回调
+const handleClick = useCallback(() => doSomething(id), [id]);
+```
+
+### 路由懒加载
+
+```typescript
+// ✅ 页面组件必须懒加载
+const KnowledgePage = lazy(() => import('@/pages/knowledge'));
+
+// 路由配置需包含错误边界
+{
+  path: '/knowledge',
+  element: <Suspense fallback={<Loading />}><KnowledgePage /></Suspense>,
+  errorElement: <ErrorFallback />,
+}
+```
+
+## 错误处理
+
+### 错误边界（页面必需）
+
+每个路由必须有 `errorElement`，创建可复用的 `ErrorFallback`:
+
+```typescript
+export const ErrorFallback: React.FC<{ error?: Error; reset?: () => void }> = ({
+  error, reset
+}) => (
+  <div className="flex flex-col items-center gap-space-md p-space-lg">
+    <h2>{t('error.title')}</h2>
+    {error && <details>{error.message}</details>}
+    <Button onClick={() => window.location.reload()}>{t('error.reload')}</Button>
+  </div>
+);
 ```
 
 ## Figma MCP 集成

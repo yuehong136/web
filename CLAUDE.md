@@ -80,6 +80,30 @@ pages/knowledge/
 | Types | `types.ts` | - |
 | Constants | `constants.ts` | - |
 
+### Hook Naming Convention
+
+| Purpose | Pattern | Example |
+|---------|---------|---------|
+| Query | `useFetch*`, `useGet*` | `useFetchKnowledgeList` |
+| Mutation | `useCreate*`, `useUpdate*`, `useDelete*` | `useCreateConversation` |
+| UI State | `useSet*`, `useShow*` | `useSetModalState` |
+
+### Constants: Use TypeScript Enums
+
+```typescript
+// ✅ CORRECT: Use enums for constants
+export enum RunningStatus {
+  UNSTART = '0',
+  RUNNING = '1',
+  DONE = '3',
+  FAIL = '4',
+}
+
+// ❌ AVOID: Plain objects or magic strings
+const status = { running: '1', done: '3' };
+if (doc.status === '1') { ... }
+```
+
 ### Refactoring Order
 
 1. Extract hooks → `hooks/use-*.ts`
@@ -160,6 +184,57 @@ useEffect(() => { loadKnowledgeBases(params) }, [params])
 
 // ✅ NEW: TanStack Query
 const { knowledgeBases, isLoading } = useFetchKnowledgeList(params)
+```
+
+## Performance Optimization
+
+### Memoization Rules
+
+```typescript
+// ✅ Export components with memo for re-render prevention
+export default memo(MyComponent);
+
+// ✅ Memoize expensive calculations
+const filteredList = useMemo(() => 
+  list.filter(item => item.status === status), [list, status]);
+
+// ✅ Memoize callbacks passed to children
+const handleClick = useCallback(() => {
+  doSomething(id);
+}, [id]);
+```
+
+### Route Lazy Loading
+
+```typescript
+// ✅ Always lazy load page components
+const KnowledgePage = lazy(() => import('@/pages/knowledge'));
+
+// Route config with error boundary
+{
+  path: '/knowledge',
+  element: <Suspense fallback={<Loading />}><KnowledgePage /></Suspense>,
+  errorElement: <ErrorFallback />,
+}
+```
+
+## Error Handling
+
+### Error Boundaries (Required for Pages)
+
+Every route must have `errorElement`. Create reusable `ErrorFallback`:
+
+```typescript
+// components/error-fallback.tsx
+export const ErrorFallback: React.FC<{ error?: Error; reset?: () => void }> = ({
+  error, reset
+}) => (
+  <div className="flex flex-col items-center gap-space-md p-space-lg">
+    <h2>{t('error.title')}</h2>
+    {error && <details>{error.message}</details>}
+    <Button onClick={() => window.location.reload()}>{t('error.reload')}</Button>
+  </div>
+);
 ```
 
 ## Figma MCP Integration

@@ -82,7 +82,7 @@ const DocxPreview: React.FC<DocxPreviewProps> = ({ fileData, className, title = 
 
   if (!fileData) {
     return (
-      <div className={cn('flex flex-col items-center justify-center h-full text-muted-foreground', className)}>
+      <div className={cn('flex flex-col items-center justify-center h-full text-text-secondary', className)}>
         <AlertCircle className="w-12 h-12 mb-4 opacity-50" />
         <p className="text-sm">暂无文档预览</p>
         <p className="text-xs mt-1">上传文档后将在此处显示预览</p>
@@ -93,8 +93,8 @@ const DocxPreview: React.FC<DocxPreviewProps> = ({ fileData, className, title = 
   return (
     <div className={cn('flex flex-col h-full', className)}>
       {/* 工具栏 */}
-      <div className="shrink-0 flex items-center justify-between px-4 py-2 border-b border-border bg-muted/30">
-        <span className="text-sm text-muted-foreground">{title}</span>
+      <div className="shrink-0 flex items-center justify-between px-4 py-2 border-b border-border-default bg-background-subtle">
+        <span className="text-sm text-text-secondary">{title}</span>
         <div className="flex items-center gap-1">
           <Button
             variant="ghost"
@@ -105,7 +105,7 @@ const DocxPreview: React.FC<DocxPreviewProps> = ({ fileData, className, title = 
           >
             <ZoomOut className="w-4 h-4" />
           </Button>
-          <span className="text-xs text-muted-foreground min-w-[3rem] text-center">
+          <span className="text-xs text-text-secondary min-w-[3rem] text-center">
             {zoom}%
           </span>
           <Button
@@ -129,15 +129,15 @@ const DocxPreview: React.FC<DocxPreviewProps> = ({ fileData, className, title = 
       </div>
 
       {/* 预览区域 */}
-      <div className="flex-1 overflow-auto bg-muted/20">
+      <div className="flex-1 overflow-auto bg-background-subtle">
         {loading && (
           <div className="flex items-center justify-center h-full">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            <Loader2 className="w-8 h-8 animate-spin text-state-info" />
           </div>
         )}
 
         {error && (
-          <div className="flex flex-col items-center justify-center h-full text-destructive">
+          <div className="flex flex-col items-center justify-center h-full text-state-error">
             <AlertCircle className="w-12 h-12 mb-4" />
             <p className="text-sm">{error}</p>
           </div>

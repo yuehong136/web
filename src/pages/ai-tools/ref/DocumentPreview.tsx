@@ -87,36 +87,36 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({ fileData, originalFil
   }, [isFullscreen, onClose])
 
   return (
-    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-      <div 
-        className={`bg-background rounded-xl shadow-2xl flex flex-col transition-all duration-200 ${
+    <div className="fixed inset-0 bg-background-overlay z-50 flex items-center justify-center p-4">
+      <div
+        className={`bg-background-body rounded-xl shadow-2xl flex flex-col transition-all duration-200 ${
           isFullscreen ? 'w-full h-full max-w-none max-h-none rounded-none' : 'w-full max-w-6xl h-full max-h-[90vh]'
         }`}
       >
         {/* 工具栏 */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-card shrink-0">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-border-default bg-components-card-bg shrink-0">
           <div className="flex items-center gap-3">
-            <FileText className="w-5 h-5 text-primary" />
+            <FileText className="w-5 h-5 text-state-info" />
             <div>
-              <h3 className="font-medium text-foreground text-sm">{originalFileName}</h3>
-              <p className="text-xs text-muted-foreground">文档预览</p>
+              <h3 className="font-medium text-text-primary text-sm">{originalFileName}</h3>
+              <p className="text-xs text-text-secondary">文档预览</p>
             </div>
             <Badge variant="secondary" className="ml-2">已填充</Badge>
           </div>
-          
+
           <div className="flex items-center gap-2">
             {/* 缩放控制 */}
-            <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
-              <Button 
-                variant="ghost" 
-                size="sm" 
+            <div className="flex items-center gap-1 bg-background-subtle rounded-lg p-1">
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => setZoom((z) => Math.max(50, z - 10))}
                 disabled={zoom <= 50}
                 className="h-7 w-7 p-0"
               >
                 <ZoomOut className="w-4 h-4" />
               </Button>
-              <span className="text-sm px-2 min-w-[3rem] text-center text-muted-foreground">{zoom}%</span>
+              <span className="text-sm px-2 min-w-[3rem] text-center text-text-secondary">{zoom}%</span>
               <Button 
                 variant="ghost" 
                 size="sm" 
@@ -147,19 +147,19 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({ fileData, originalFil
         </div>
 
         {/* 预览区域 */}
-        <div className="flex-1 overflow-auto bg-muted/30">
+        <div className="flex-1 overflow-auto bg-background-subtle">
           {loading && (
             <div className="flex items-center justify-center h-full">
               <div className="flex flex-col items-center gap-3">
-                <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                <p className="text-sm text-muted-foreground">正在渲染文档...</p>
+                <Loader2 className="w-8 h-8 animate-spin text-state-info" />
+                <p className="text-sm text-text-secondary">正在渲染文档...</p>
               </div>
             </div>
           )}
 
           {error && (
             <div className="flex items-center justify-center h-full">
-              <div className="text-center text-destructive">
+              <div className="text-center text-state-error">
                 <p className="text-sm">{error}</p>
             </div>
           </div>
