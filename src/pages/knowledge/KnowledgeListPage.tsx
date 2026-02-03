@@ -41,6 +41,7 @@ import { Table } from '@/components/ui/table'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Dropdown, DropdownItem } from '@/components/ui/dropdown'
 import { QuickEditModal } from '@/components/knowledge/QuickEditModal'
+import { CreateKnowledgeModal } from './components/CreateKnowledgeModal'
 import { PageSizeSelector } from '@/components/ui/page-size-selector'
 import { CustomSelect } from '@/components/ui/custom-select'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -198,6 +199,7 @@ export const KnowledgeListPage: React.FC = () => {
   const [showFilters, setShowFilters] = React.useState(false)
   const [timeFormat, setTimeFormat] = React.useState<'detailed' | 'compact' | 'relative'>('detailed')
   const [editingKnowledgeBase, setEditingKnowledgeBase] = React.useState<KnowledgeBase | null>(null)
+  const [showCreateModal, setShowCreateModal] = React.useState(false)
   const [currentPage, setCurrentPage] = React.useState(1)
   const [pageSize, setPageSize] = React.useState(12)
   const [filters, setFilters] = React.useState<FilterState>({
@@ -238,7 +240,20 @@ export const KnowledgeListPage: React.FC = () => {
   }
 
   const handleCreate = () => {
-    navigate(`${ROUTES.KNOWLEDGE}/create`)
+    setShowCreateModal(true)
+  }
+
+  const handleCreateSuccess = (kbId: string) => {
+    // 刷新列表
+    loadKnowledgeBases({
+      page: currentPage,
+      page_size: pageSize,
+      orderby: sortBy,
+      desc: sortDesc,
+      keywords: searchQuery
+    })
+    // 导航到新创建的知识库
+    navigate(`${ROUTES.KNOWLEDGE}/${kbId}`)
   }
 
   const handleView = (id: string) => {
@@ -1283,6 +1298,13 @@ export const KnowledgeListPage: React.FC = () => {
           knowledgeBase={editingKnowledgeBase}
         />
       )}
+
+      {/* Create Knowledge Modal */}
+      <CreateKnowledgeModal
+        open={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSuccess={handleCreateSuccess}
+      />
     </div>
   )
 }

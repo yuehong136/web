@@ -1,4 +1,5 @@
 import * as React from "react"
+import { createPortal } from "react-dom"
 import { cn } from "@/lib/utils"
 import { DropdownItem as BaseDropdownItem } from "./dropdown"
 
@@ -27,16 +28,18 @@ const DropdownMenuContext = React.createContext<{
   isOpen: boolean
   setIsOpen: (open: boolean) => void
   closeDropdown?: () => void
+  triggerRef: React.RefObject<HTMLDivElement | null>
 } | undefined>(undefined)
 
 export const DropdownMenu: React.FC<DropdownMenuProps> = ({ children }) => {
   const [isOpen, setIsOpen] = React.useState(false)
+  const triggerRef = React.useRef<HTMLDivElement>(null)
   
   const closeDropdown = React.useCallback(() => setIsOpen(false), [])
 
   return (
-    <DropdownMenuContext.Provider value={{ isOpen, setIsOpen, closeDropdown }}>
-      <div className="relative inline-block text-left">
+    <DropdownMenuContext.Provider value={{ isOpen, setIsOpen, closeDropdown, triggerRef }}>
+      <div ref={triggerRef} className="relative inline-block text-left">
         {children}
       </div>
     </DropdownMenuContext.Provider>
@@ -84,11 +87,29 @@ export const DropdownMenuContent: React.FC<DropdownMenuContentProps> = ({
 }) => {
   const context = React.useContext(DropdownMenuContext)
   const dropdownRef = React.useRef<HTMLDivElement>(null)
+  const [position, setPosition] = React.useState({ top: 0, left: 0 })
+
+  // 计算下拉菜单位置
+  React.useEffect(() => {
+    if (context?.isOpen && context.triggerRef.current) {
+      const rect = context.triggerRef.current.getBoundingClientRect()
+      const top = rect.bottom + window.scrollY + 8
+      const left = align === 'right' 
+        ? rect.right + window.scrollX - 160 // 160 是 min-width
+        : rect.left + window.scrollX
+      setPosition({ top, left: Math.max(8, left) })
+    }
+  }, [context?.isOpen, context?.triggerRef, align])
 
   // 处理点击外部关闭
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current && 
+        !dropdownRef.current.contains(event.target as Node) &&
+        context?.triggerRef.current &&
+        !context.triggerRef.current.contains(event.target as Node)
+      ) {
         context?.closeDropdown?.()
       }
     }
@@ -100,7 +121,7 @@ export const DropdownMenuContent: React.FC<DropdownMenuContentProps> = ({
     return () => {
       document.removeEventListener('mousedown', handleClickOutside)
     }
-  }, [context?.isOpen, context?.closeDropdown])
+  }, [context?.isOpen, context?.closeDropdown, context?.triggerRef])
   
   if (!context) {
     throw new Error('DropdownMenuContent must be used within DropdownMenu')
@@ -110,25 +131,29 @@ export const DropdownMenuContent: React.FC<DropdownMenuContentProps> = ({
     return null
   }
 
-  return (
+  return createPortal(
     <>
       {/* Backdrop */}
-      <div className="fixed inset-0 z-10" onClick={() => context.closeDropdown?.()} />
+      <div className="fixed inset-0 z-[9998]" onClick={() => context.closeDropdown?.()} />
       
       {/* Dropdown content */}
       <div 
         ref={dropdownRef}
         className={cn(
-          "absolute z-20 mt-2 min-w-[160px] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg",
-          align === 'right' ? 'right-0' : 'left-0',
+          "fixed z-[9999] min-w-[160px] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg",
           className
         )}
+        style={{
+          top: position.top,
+          left: position.left,
+        }}
       >
         <div className="py-1">
           {children}
         </div>
       </div>
-    </>
+    </>,
+    document.body
   )
 }
 
