@@ -8,6 +8,7 @@ export interface Column<T = any> {
   title?: React.ReactNode
   dataIndex?: string | keyof T
   width?: number | string
+  minWidth?: number | string
   align?: 'left' | 'center' | 'right'
   fixed?: 'left' | 'right'
   sortable?: boolean
@@ -88,6 +89,7 @@ const TableInner = <T,>(
                 )
                 const style: React.CSSProperties = {}
                 if (col.width !== undefined) style.width = col.width as any
+                if (col.minWidth !== undefined) style.minWidth = col.minWidth as any
 
                 const handleSort = () => {
                   if (!onSort || !col.sortable) return
@@ -130,6 +132,7 @@ const TableInner = <T,>(
                     )
                     const style: React.CSSProperties = {}
                     if (col.width !== undefined) style.width = col.width as any
+                    if (col.minWidth !== undefined) style.minWidth = col.minWidth as any
                     const raw = getByPath(record as any, col.dataIndex as any)
                     const content = col.render ? col.render(raw, record, index) : (raw ?? '')
                     return (

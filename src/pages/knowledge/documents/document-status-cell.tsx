@@ -10,39 +10,25 @@ import { TaskStatus, TaskStatusConfig } from './constants'
 
 interface DocumentStatusCellProps {
   document: Document
+  onShowLog?: (doc: Document) => void
 }
 
 export const DocumentStatusCell: React.FC<DocumentStatusCellProps> = ({
   document,
+  onShowLog,
 }) => {
-  const { run, progress, progress_msg } = document
+  const { run, progress } = document
+
+  // 点击处理
+  const handleClick = () => {
+    onShowLog?.(document)
+  }
 
   // 运行中状态 - 显示进度条
   if (run === TaskStatus.RUNNING) {
     const progressPercent = Math.round(progress * 100)
     return (
-      <Tooltip
-        content={
-          <div className="max-w-2xl">
-            <div
-              className="font-medium mb-2"
-              style={{ color: 'var(--color-text-primary)' }}
-            >
-              处理进度: {progressPercent}%
-            </div>
-            {progress_msg && (
-              <div
-                className="text-xs whitespace-pre-wrap max-h-60 overflow-y-auto scrollbar-thin leading-relaxed"
-                style={{ color: 'var(--color-text-secondary)' }}
-              >
-                {progress_msg}
-              </div>
-            )}
-          </div>
-        }
-        delayHide={800}
-        maxWidth="max-w-2xl"
-      >
+      <div className="inline-flex items-center gap-2">
         <div
           className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-full"
           style={{
@@ -102,7 +88,17 @@ export const DocumentStatusCell: React.FC<DocumentStatusCellProps> = ({
             {progressPercent}%
           </span>
         </div>
-      </Tooltip>
+        {/* 查看详情按钮 - 小圆点 */}
+        <Tooltip content="查看详情">
+          <button
+            onClick={handleClick}
+            className="w-2 h-2 rounded-full transition-all hover:scale-150 cursor-pointer"
+            style={{
+              backgroundColor: 'var(--color-components-task-status-running-dot)',
+            }}
+          />
+        </Tooltip>
+      </div>
     )
   }
 
@@ -129,30 +125,9 @@ export const DocumentStatusCell: React.FC<DocumentStatusCellProps> = ({
   }
 
   return (
-    <Tooltip
-      content={
-        <div className="max-w-2xl">
-          <div
-            className="font-medium mb-2"
-            style={{ color: 'var(--color-text-primary)' }}
-          >
-            状态: {statusConfig.text}
-          </div>
-          {progress_msg && (
-            <div
-              className="text-xs whitespace-pre-wrap max-h-60 overflow-y-auto scrollbar-thin leading-relaxed"
-              style={{ color: 'var(--color-text-secondary)' }}
-            >
-              {progress_msg}
-            </div>
-          )}
-        </div>
-      }
-      delayHide={800}
-      maxWidth="max-w-2xl"
-    >
+    <div className="inline-flex items-center gap-2">
       <span
-        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium cursor-help"
+        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium"
         style={{
           backgroundColor: statusConfig.bgToken,
           border: `1px solid ${statusConfig.borderToken}`,
@@ -162,7 +137,17 @@ export const DocumentStatusCell: React.FC<DocumentStatusCellProps> = ({
         {getStatusIcon()}
         {statusConfig.text}
       </span>
-    </Tooltip>
+      {/* 查看详情按钮 - 小圆点，颜色与状态一致 */}
+      <Tooltip content="查看详情">
+        <button
+          onClick={handleClick}
+          className="w-2 h-2 rounded-full transition-all hover:scale-150 cursor-pointer"
+          style={{
+            backgroundColor: statusConfig.dotToken,
+          }}
+        />
+      </Tooltip>
+    </div>
   )
 }
 

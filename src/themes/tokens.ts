@@ -371,14 +371,17 @@ export interface DesignTokens {
   'components-task-status-cancelled-bg': string
   'components-task-status-cancelled-border': string
   'components-task-status-cancelled-text': string
+  'components-task-status-cancelled-dot': string
 
   'components-task-status-completed-bg': string
   'components-task-status-completed-border': string
   'components-task-status-completed-text': string
+  'components-task-status-completed-dot': string
 
   'components-task-status-failed-bg': string
   'components-task-status-failed-border': string
   'components-task-status-failed-text': string
+  'components-task-status-failed-dot': string
 
   'components-tag-bg': string
   'components-tag-text': string
@@ -1131,14 +1134,17 @@ export const defaultTokens: DesignTokens = {
   'components-task-status-cancelled-bg': '',
   'components-task-status-cancelled-border': '',
   'components-task-status-cancelled-text': '',
+  'components-task-status-cancelled-dot': '',
 
   'components-task-status-completed-bg': '',
   'components-task-status-completed-border': '',
   'components-task-status-completed-text': '',
+  'components-task-status-completed-dot': '',
 
   'components-task-status-failed-bg': '',
   'components-task-status-failed-border': '',
   'components-task-status-failed-text': '',
+  'components-task-status-failed-dot': '',
 
   'components-tag-bg': '',
   'components-tag-text': '',

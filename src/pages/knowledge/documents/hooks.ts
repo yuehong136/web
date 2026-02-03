@@ -86,6 +86,7 @@ export function useDocumentListState(): DocumentListState {
     documents,
     total,
     isLoading,
+    isFetching,
     isError,
     refetch,
   } = useFetchDocumentList({
@@ -192,6 +193,7 @@ export function useDocumentListState(): DocumentListState {
     documents,
     total,
     isLoading,
+    isFetching,
     isError,
 
     // 筛选选项
@@ -507,6 +509,86 @@ export function useDocumentActions(
     isDeleting,
     isDownloading,
   }
+}
+
+/**
+ * 显示日志弹窗 Hook
+ *
+ * 管理日志弹窗的显示状态和日志信息
+ * 通过 useMemo 依赖 documents，当轮询更新时自动刷新日志
+ */
+export function useShowLog(documents: Document[]) {
+  const [visible, setVisible] = useState(false)
+  const [record, setRecord] = useState<Document | null>(null)
+
+  // 构建日志信息，依赖 documents 以实现实时更新
+  const logInfo = useMemo(() => {
+    // 从最新的 documents 中查找当前记录
+    const findRecord = documents.find((item) => item.id === record?.id)
+
+    // 默认日志信息
+    const defaultLog = {
+      fileName: record?.name || '-',
+      details: record?.progress_msg || '-',
+    }
+
+    if (!findRecord) {
+      return defaultLog
+    }
+
+    // 构建完整日志信息
+    return {
+      fileType: findRecord.suffix || findRecord.type,
+      uploadedBy: findRecord.created_by,
+      fileName: findRecord.name,
+      uploadDate: formatDate(findRecord.create_date),
+      fileSize: formatFileSize(findRecord.size || 0),
+      processBeginAt: findRecord.process_begin_at
+        ? formatDate(findRecord.process_begin_at)
+        : undefined,
+      chunkNumber: findRecord.chunk_num,
+      duration: findRecord.process_duration
+        ? formatDuration(findRecord.process_duration)
+        : undefined,
+      status: findRecord.run,
+      details: findRecord.progress_msg || '-',
+    }
+  }, [record, documents])
+
+  // 显示日志弹窗
+  const showLog = useCallback((doc: Document) => {
+    setRecord(doc)
+    setVisible(true)
+  }, [])
+
+  // 隐藏日志弹窗
+  const hideLog = useCallback(() => {
+    setVisible(false)
+  }, [])
+
+  return {
+    showLog,
+    hideLog,
+    logVisible: visible,
+    logInfo,
+  }
+}
+
+/**
+ * 格式化耗时（秒数转为可读格式）
+ */
+export function formatDuration(seconds: number): string {
+  if (seconds < 60) {
+    return `${seconds.toFixed(1)}s`
+  }
+  const minutes = Math.floor(seconds / 60)
+  const remainingSeconds = seconds % 60
+  if (minutes < 60) {
+    return `${minutes}m ${remainingSeconds.toFixed(1)}s`
+  }
+  const hours = Math.floor(minutes / 60)
+  const remainingMinutes = minutes % 60
+  return `${hours}h ${remainingMinutes}m ${remainingSeconds.toFixed(0)}s`
 }
 
 /**

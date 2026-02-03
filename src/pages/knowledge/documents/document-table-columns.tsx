@@ -25,6 +25,7 @@ interface UseDocumentTableColumnsProps {
   onRename: (doc: Document) => void
   onDownload: (doc: Document) => void
   onDelete: (doc: Document) => void
+  onShowLog?: (doc: Document) => void
 }
 
 export function useDocumentTableColumns({
@@ -38,6 +39,7 @@ export function useDocumentTableColumns({
   onRename,
   onDownload,
   onDelete,
+  onShowLog,
 }: UseDocumentTableColumnsProps): Column<Document>[] {
   const navigate = useNavigate()
 
@@ -46,7 +48,7 @@ export function useDocumentTableColumns({
       {
         key: 'select',
         title: '选择',
-        width: 60,
+        width: 48,
         fixed: 'left',
         render: (_, record) => (
           <input
@@ -72,7 +74,7 @@ export function useDocumentTableColumns({
       {
         key: 'icon',
         title: '',
-        width: 56,
+        width: 48,
         render: (_, record) => (
           <Tooltip content={`文件类型: ${record.type || '未知'}`}>
             <div className="flex items-center justify-center">
@@ -90,6 +92,7 @@ export function useDocumentTableColumns({
         title: '文件名',
         dataIndex: 'name',
         sortable: true,
+        width: 280,
         render: (value, record) => (
           <Tooltip
             content={
@@ -117,7 +120,6 @@ export function useDocumentTableColumns({
             <div
               className="font-medium truncate cursor-pointer transition-colors"
               style={{
-                maxWidth: '300px',
                 color: 'var(--color-text-primary)',
               }}
               onClick={() =>
@@ -140,7 +142,7 @@ export function useDocumentTableColumns({
         title: '大小',
         dataIndex: 'size',
         sortable: true,
-        width: 120,
+        width: 100,
         render: (value) => (
           <Tooltip content={`文件大小: ${value || 0} 字节`}>
             <span
@@ -156,7 +158,7 @@ export function useDocumentTableColumns({
         key: 'chunk_num',
         title: '分块数',
         dataIndex: 'chunk_num',
-        width: 100,
+        width: 80,
         render: (value, record) => (
           <Tooltip
             content={`文档已分为 ${value || 0} 个文本块，Token数: ${record.token_num || 0}`}
@@ -174,7 +176,7 @@ export function useDocumentTableColumns({
         key: 'parser_id',
         title: '切片方法',
         dataIndex: 'parser_id',
-        width: 120,
+        width: 100,
         render: (value, record) => (
           <Tooltip
             content={
@@ -210,7 +212,7 @@ export function useDocumentTableColumns({
       {
         key: 'metadata',
         title: '元数据',
-        width: 100,
+        width: 80,
         render: (_, record) => (
           <DocumentMetadataCell
             document={record}
@@ -222,7 +224,7 @@ export function useDocumentTableColumns({
       {
         key: 'status',
         title: '启用',
-        width: 100,
+        width: 80,
         render: (_, record) => (
           <DocumentEnableSwitch
             document={record}
@@ -233,15 +235,17 @@ export function useDocumentTableColumns({
       {
         key: 'run',
         title: '任务状态',
-        width: 180,
-        render: (_, record) => <DocumentStatusCell document={record} />,
+        width: 150,
+        render: (_, record) => (
+          <DocumentStatusCell document={record} onShowLog={onShowLog} />
+        ),
       },
       {
         key: 'create_date',
         title: '创建时间',
         dataIndex: 'create_date',
         sortable: true,
-        width: 180,
+        width: 160,
         render: (value, record) => (
           <Tooltip
             content={
@@ -277,7 +281,7 @@ export function useDocumentTableColumns({
       {
         key: 'actions',
         title: '操作',
-        width: 200,
+        width: 160,
         fixed: 'right',
         align: 'right',
         render: (_, record) => (
@@ -303,6 +307,7 @@ export function useDocumentTableColumns({
       onRename,
       onDownload,
       onDelete,
+      onShowLog,
       navigate,
     ]
   )

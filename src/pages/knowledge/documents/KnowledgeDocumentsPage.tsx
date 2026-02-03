@@ -39,8 +39,10 @@ import {
   useFilterCollections,
   useFilterGroup,
   useDocumentActions,
+  useShowLog,
 } from './hooks'
 import { PAGE_SIZE_OPTIONS } from './constants'
+import { ProcessLogModal } from './process-log-modal'
 
 export const KnowledgeDocumentsPage: React.FC = () => {
   const { id: kbId } = useParams<{ id: string }>()
@@ -59,6 +61,9 @@ export const KnowledgeDocumentsPage: React.FC = () => {
     listState.clearSelection()
     listState.refetch()
   })
+
+  // 日志弹窗
+  const { showLog, hideLog, logVisible, logInfo } = useShowLog(listState.documents)
 
   // 模态框状态
   const [uploadModalOpen, setUploadModalOpen] = useState(false)
@@ -186,6 +191,7 @@ export const KnowledgeDocumentsPage: React.FC = () => {
       setDeletingDocId(doc.id)
       setDeleteConfirmOpen(true)
     },
+    onShowLog: showLog,
   })
 
   return (
@@ -218,7 +224,9 @@ export const KnowledgeDocumentsPage: React.FC = () => {
           </div>
           <div className="flex items-center space-x-3">
             <Button variant="outline" onClick={listState.refetch}>
-              <RefreshCw className="h-4 w-4 mr-2" />
+              <RefreshCw
+                className={`h-4 w-4 mr-2 ${listState.isFetching ? 'animate-spin' : ''}`}
+              />
               刷新
             </Button>
             <Button variant="outline" onClick={() => setMetadataModalOpen(true)}>
@@ -538,6 +546,13 @@ export const KnowledgeDocumentsPage: React.FC = () => {
         documents={reparsingDocs}
         knowledgeBase={currentKnowledgeBase}
         isLoading={isReparsing}
+      />
+
+      {/* 文件详情/日志弹窗 */}
+      <ProcessLogModal
+        visible={logVisible}
+        onClose={hideLog}
+        logInfo={logInfo}
       />
     </div>
   )

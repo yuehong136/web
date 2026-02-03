@@ -41,7 +41,8 @@ export interface DocumentListState {
   // 数据
   documents: Document[]
   total: number
-  isLoading: boolean
+  isLoading: boolean // 首次加载状态
+  isFetching: boolean // 任何加载状态（包括轮询）
   isError: boolean
 
   // 筛选选项

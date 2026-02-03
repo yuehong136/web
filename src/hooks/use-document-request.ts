@@ -67,7 +67,7 @@ export const useFetchDocumentList = (params: UseFetchDocumentListParams = {}) =>
     pollingInterval = 5000,
   } = params
 
-  const { data, isFetching, isError, error, refetch } = useQuery({
+  const { data, isFetching, isPending, isError, error, refetch } = useQuery({
     queryKey: documentKeys.list(knowledgeBaseId, {
       page,
       page_size,
@@ -107,7 +107,10 @@ export const useFetchDocumentList = (params: UseFetchDocumentListParams = {}) =>
   return {
     documents: data?.docs ?? [],
     total: data?.total ?? 0,
-    isLoading: isFetching,
+    // isPending: 首次加载（没有数据时），用于显示骨架屏/空状态
+    // isFetching: 任何请求进行中（包括轮询），用于显示加载指示器
+    isLoading: isPending, // 首次加载状态，不会因轮询而闪烁
+    isFetching, // 任何加载状态（可选用于显示小的加载指示器）
     isError,
     error,
     refetch,

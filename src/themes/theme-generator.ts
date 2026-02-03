@@ -368,14 +368,17 @@ export const lightTokens: DesignTokens = {
   'components-task-status-cancelled-bg': 'rgba(245, 158, 11, 0.1)',
   'components-task-status-cancelled-border': 'rgba(245, 158, 11, 0.2)',
   'components-task-status-cancelled-text': '#d97706',
+  'components-task-status-cancelled-dot': '#f59e0b',
 
   'components-task-status-completed-bg': 'rgba(16, 185, 129, 0.1)',
   'components-task-status-completed-border': 'rgba(16, 185, 129, 0.2)',
   'components-task-status-completed-text': '#059669',
+  'components-task-status-completed-dot': '#10b981',
 
   'components-task-status-failed-bg': 'rgba(239, 68, 68, 0.1)',
   'components-task-status-failed-border': 'rgba(239, 68, 68, 0.2)',
   'components-task-status-failed-text': '#dc2626',
+  'components-task-status-failed-dot': '#ef4444',
 
   'components-tag-bg': '#f3f4f6',
   'components-tag-text': '#374151',
@@ -1082,14 +1085,17 @@ export const darkTokens: DesignTokens = {
   'components-task-status-cancelled-bg': 'rgba(245, 158, 11, 0.10)',
   'components-task-status-cancelled-border': 'rgba(245, 158, 11, 0.20)',
   'components-task-status-cancelled-text': '#fcd34d',
+  'components-task-status-cancelled-dot': '#fbbf24',
 
   'components-task-status-completed-bg': 'rgba(34, 197, 94, 0.10)',
   'components-task-status-completed-border': 'rgba(34, 197, 94, 0.20)',
   'components-task-status-completed-text': '#86efac',
+  'components-task-status-completed-dot': '#22c55e',
 
   'components-task-status-failed-bg': 'rgba(239, 68, 68, 0.10)',
   'components-task-status-failed-border': 'rgba(239, 68, 68, 0.20)',
   'components-task-status-failed-text': '#fca5a5',
+  'components-task-status-failed-dot': '#f87171',
 
   'components-tag-bg': 'rgba(255, 255, 255, 0.08)',
   'components-tag-text': '#e4e4e7',
