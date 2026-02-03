@@ -7,6 +7,7 @@
 import React, { useMemo } from 'react'
 import { FileText } from 'lucide-react'
 import { Modal, Button } from '@/components/ui'
+import { Tooltip } from '@/components/ui/tooltip'
 import { TaskStatus, TaskStatusConfig } from './constants'
 
 // 日志信息接口
@@ -35,7 +36,8 @@ const InfoItem: React.FC<{
   value: React.ReactNode
   className?: string
   fullWidth?: boolean
-}> = ({ label, value, className = '', fullWidth = false }) => {
+  overflowTip?: boolean // 是否支持鼠标悬浮显示完整内容
+}> = ({ label, value, className = '', fullWidth = false, overflowTip = false }) => {
   return (
     <div className={`flex flex-col mb-4 ${fullWidth ? 'w-full' : 'w-1/2'} ${className}`}>
       <span
@@ -44,13 +46,23 @@ const InfoItem: React.FC<{
       >
         {label}
       </span>
-      <span
-        className="mt-1 truncate"
-        style={{ color: 'var(--color-text-primary)' }}
-        title={typeof value === 'string' ? value : undefined}
-      >
-        {value}
-      </span>
+      {overflowTip ? (
+        <Tooltip content={value} position="bottom" className="max-w-[300px] break-words">
+          <span
+            className="mt-1 truncate w-full"
+            style={{ color: 'var(--color-text-primary)' }}
+          >
+            {value}
+          </span>
+        </Tooltip>
+      ) : (
+        <span
+          className="mt-1 truncate"
+          style={{ color: 'var(--color-text-primary)' }}
+        >
+          {value}
+        </span>
+      )}
     </div>
   )
 }
@@ -200,11 +212,14 @@ export const ProcessLogModal: React.FC<ProcessLogModalProps> = ({
             }
 
             // 其他字段 - 半宽展示
+            // 对于文件名、创建者等可能较长的字段，启用 tooltip
+            const needsOverflowTip = key === 'fileName' || key === 'uploadedBy'
             return (
               <div className="w-1/2" key={key}>
                 <InfoItem
                   label={label}
                   value={String(value)}
+                  overflowTip={needsOverflowTip}
                 />
               </div>
             )

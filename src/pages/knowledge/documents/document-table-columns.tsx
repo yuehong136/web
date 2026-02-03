@@ -249,7 +249,7 @@ export function useDocumentTableColumns({
                 >
                   <div>创建: {formatDate(value)}</div>
                   <div>更新: {formatDate(record.update_date)}</div>
-                  <div>创建者: {record.created_by || '未知'}</div>
+                  <div>创建者: {record.nickname || record.created_by || '未知'}</div>
                 </div>
               </div>
             }

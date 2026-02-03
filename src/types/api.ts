@@ -791,6 +791,7 @@ export interface Document {
   chunk_num: number
   token_num: number
   created_by: string
+  nickname?: string // 创建者昵称（用于显示）
   create_date: string
   update_date: string
   create_time: number
@@ -802,7 +803,7 @@ export interface Document {
   progress: number // 解析进度 0-1
   progress_msg: string // 解析日志信息
   process_begin_at: string
-  process_duration: number
+  process_duration: number // 后端返回的处理耗时（秒数），直接使用不涉及时区
   meta_fields: Record<string, any>
   suffix: string
   auth?: any

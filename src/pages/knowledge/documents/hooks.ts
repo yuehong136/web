@@ -537,9 +537,11 @@ export function useShowLog(documents: Document[]) {
     }
 
     // 构建完整日志信息
+    // 使用 nickname（用户昵称）代替 created_by（用户ID）
+    // 耗时使用后端返回的 process_duration（秒数），避免前端计算时区问题
     return {
       fileType: findRecord.suffix || findRecord.type,
-      uploadedBy: findRecord.created_by,
+      uploadedBy: findRecord.nickname || findRecord.created_by,
       fileName: findRecord.name,
       uploadDate: formatDate(findRecord.create_date),
       fileSize: formatFileSize(findRecord.size || 0),
