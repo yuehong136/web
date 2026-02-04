@@ -340,16 +340,17 @@ export const lightTokens: DesignTokens = {
   'components-stats-card-orange-border-hover': 'rgba(249, 115, 22, 0.4)',
 
   // ===== 头像渐变系统 - 亮色主题 =====
-  'components-avatar-gradient-purple-from': '#a855f7',
-  'components-avatar-gradient-purple-to': '#ec4899',
-  'components-avatar-gradient-blue-from': '#3b82f6',
-  'components-avatar-gradient-blue-to': '#06b6d4',
-  'components-avatar-gradient-green-from': '#22c55e',
-  'components-avatar-gradient-green-to': '#14b8a6',
-  'components-avatar-gradient-orange-from': '#f97316',
-  'components-avatar-gradient-orange-to': '#ef4444',
-  'components-avatar-gradient-indigo-from': '#6366f1',
-  'components-avatar-gradient-indigo-to': '#a855f7',
+  // 参考现代 AI 项目（Notion、Linear、Dify）的柔和配色，降低饱和度
+  'components-avatar-gradient-purple-from': '#A78BFA',  // violet-400，柔和紫
+  'components-avatar-gradient-purple-to': '#C4B5FD',    // violet-300，浅紫
+  'components-avatar-gradient-blue-from': '#60A5FA',    // blue-400，柔和蓝
+  'components-avatar-gradient-blue-to': '#93C5FD',      // blue-300，浅蓝
+  'components-avatar-gradient-green-from': '#4ADE80',   // green-400，柔和绿
+  'components-avatar-gradient-green-to': '#86EFAC',     // green-300，浅绿
+  'components-avatar-gradient-orange-from': '#FB923C',  // orange-400，柔和橙
+  'components-avatar-gradient-orange-to': '#FDBA74',    // orange-300，浅橙
+  'components-avatar-gradient-indigo-from': '#818CF8',  // indigo-400，柔和靛蓝
+  'components-avatar-gradient-indigo-to': '#A5B4FC',    // indigo-300，浅靛蓝
 
   // 任务状态指示器 - 亮色主题
   'components-task-status-idle-bg': 'rgba(107, 114, 128, 0.1)',
@@ -1057,16 +1058,17 @@ export const darkTokens: DesignTokens = {
   'components-stats-card-orange-border-hover': 'rgba(249, 115, 22, 0.5)',
 
   // ===== 头像渐变系统 - 暗色主题 =====
-  'components-avatar-gradient-purple-from': '#a855f7',
-  'components-avatar-gradient-purple-to': '#ec4899',
-  'components-avatar-gradient-blue-from': '#3b82f6',
-  'components-avatar-gradient-blue-to': '#06b6d4',
-  'components-avatar-gradient-green-from': '#22c55e',
-  'components-avatar-gradient-green-to': '#14b8a6',
-  'components-avatar-gradient-orange-from': '#f97316',
-  'components-avatar-gradient-orange-to': '#ef4444',
-  'components-avatar-gradient-indigo-from': '#6366f1',
-  'components-avatar-gradient-indigo-to': '#a855f7',
+  // 与亮色主题保持一致的柔和配色
+  'components-avatar-gradient-purple-from': '#A78BFA',  // violet-400，柔和紫
+  'components-avatar-gradient-purple-to': '#C4B5FD',    // violet-300，浅紫
+  'components-avatar-gradient-blue-from': '#60A5FA',    // blue-400，柔和蓝
+  'components-avatar-gradient-blue-to': '#93C5FD',      // blue-300，浅蓝
+  'components-avatar-gradient-green-from': '#4ADE80',   // green-400，柔和绿
+  'components-avatar-gradient-green-to': '#86EFAC',     // green-300，浅绿
+  'components-avatar-gradient-orange-from': '#FB923C',  // orange-400，柔和橙
+  'components-avatar-gradient-orange-to': '#FDBA74',    // orange-300，浅橙
+  'components-avatar-gradient-indigo-from': '#818CF8',  // indigo-400，柔和靛蓝
+  'components-avatar-gradient-indigo-to': '#A5B4FC',    // indigo-300，浅靛蓝
 
   // 任务状态指示器 - 暗色主题
   'components-task-status-idle-bg': 'rgba(161, 161, 170, 0.08)',

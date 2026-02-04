@@ -149,11 +149,11 @@ export const MemoryCard: React.FC<MemoryCardProps> = ({
               <div
                 className={cn(
                   'w-12 h-12 rounded-xl flex items-center justify-center',
-                  'bg-gradient-to-br',
+                  'bg-gradient-to-br shadow-sm',
                   avatarGradient
                 )}
               >
-                <span className="text-white font-bold text-lg">
+                <span className="text-white font-semibold text-xl">
                   {data.name.charAt(0).toUpperCase()}
                 </span>
               </div>

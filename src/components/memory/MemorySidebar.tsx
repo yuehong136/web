@@ -86,11 +86,11 @@ export const MemorySidebar: React.FC<MemorySidebarProps> = ({
             <div
               className={cn(
                 'relative w-16 h-16 rounded-2xl flex items-center justify-center',
-                'bg-gradient-to-br shadow-lg',
+                'bg-gradient-to-br shadow-sm',
                 avatarGradient
               )}
             >
-              <span className="text-white font-bold text-2xl">
+              <span className="text-white font-semibold text-[28px]">
                 {memory?.name?.charAt(0).toUpperCase() || 'M'}
               </span>
             </div>

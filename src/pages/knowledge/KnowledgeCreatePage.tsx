@@ -183,7 +183,7 @@ export const KnowledgeCreatePage: React.FC = () => {
               className={cn(
                 'w-12 h-12 rounded-xl flex items-center justify-center',
                 'bg-gradient-to-br from-components-avatar-gradient-indigo-from to-components-avatar-gradient-indigo-to',
-                'shadow-lg'
+                'shadow-sm'
               )}
             >
               <Database className="h-6 w-6 text-white" />

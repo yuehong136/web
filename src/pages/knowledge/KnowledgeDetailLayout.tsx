@@ -8,6 +8,8 @@ import { Loading } from '@/components/ui/loading'
 import { useKnowledgeStore } from '@/stores/knowledge'
 import { ROUTES } from '@/constants'
 import { knowledgeAPI } from '@/api/knowledge'
+import { getAvatarGradient } from '@/components/ui/resource-list'
+import { cn } from '@/lib/utils'
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -134,10 +136,24 @@ const KnowledgeDetailLayout: React.FC = () => {
                 <ArrowLeft className="h-4 w-4" />
               </Button>
               <div className="flex items-center space-x-3">
-                <Avatar className="h-10 w-10">
-                  <AvatarImage src={currentKnowledgeBase.avatar || undefined} alt={currentKnowledgeBase.name} />
-                  <AvatarFallback><Database className="h-5 w-5" /></AvatarFallback>
-                </Avatar>
+                {currentKnowledgeBase.avatar ? (
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src={currentKnowledgeBase.avatar} alt={currentKnowledgeBase.name} />
+                    <AvatarFallback><Database className="h-5 w-5" /></AvatarFallback>
+                  </Avatar>
+                ) : (
+                  <div
+                    className={cn(
+                      'w-10 h-10 rounded-xl flex items-center justify-center',
+                      'bg-gradient-to-br shadow-sm',
+                      getAvatarGradient(currentKnowledgeBase.name)
+                    )}
+                  >
+                    <span className="text-white font-semibold text-lg">
+                      {currentKnowledgeBase.name.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                )}
                 <div>
                   <h1 
                     className="text-xl font-semibold"

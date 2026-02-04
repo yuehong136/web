@@ -1,24 +1,21 @@
 /**
  * 应用列表视图组件
  * 用于工作室页面的表格展示模式
- * 参考 KnowledgeListPage 的 renderTableView 实现
+ * 使用通用 ResourceListRow 组件，整行可点击进入、悬停高亮
  */
 
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Settings, Trash2, Clock, Database } from 'lucide-react'
 import {
-  MoreVertical,
-  Eye,
-  Settings,
-  Trash2,
-  Clock,
-  Sparkles,
-  Database,
-} from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Table } from '@/components/ui/table'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Dropdown, DropdownItem } from '@/components/ui/dropdown'
+  ResourceListContainer,
+  ResourceListHeader,
+  ResourceListBody,
+  ResourceListRow,
+  ResourceListSkeletonRow,
+  ResourceListEmpty,
+  getAvatarGradient,
+} from '@/components/ui/resource-list'
 import { cn, formatRelativeTime, formatTimestampDetailed, formatTimestampCompact } from '@/lib/utils'
 import { STUDIO_TEXTS } from '@/constants/studio-texts'
 import { ROUTES } from '@/constants'
@@ -36,20 +33,33 @@ interface AppListViewProps {
   timeFormat?: TimeFormatType
 }
 
-// 状态颜色映射
-const getStatusColor = (status: string) => {
-  if (status === '1') {
-    return 'text-text-success bg-[var(--color-state-success-10)]'
-  }
-  return 'text-text-secondary bg-background-subtle'
-}
+// Grid 布局：名称 | 状态 | 知识库 | 创建时间 | 更新时间 | 操作
+const GRID_COLS = 'grid-cols-[2fr_90px_80px_150px_150px_60px]'
 
-// 状态标签
-const getStatusText = (status: string) => {
-  return status === '1' ? STUDIO_TEXTS.statusPublished : STUDIO_TEXTS.statusDraft
-}
+// 表头列配置
+const HEADER_COLUMNS = [
+  { key: 'name', label: '名称' },
+  { key: 'status', label: '状态' },
+  { key: 'kb_ids', label: '知识库' },
+  { key: 'create_date', label: '创建时间' },
+  { key: 'update_date', label: '更新时间' },
+  { key: 'actions', label: '操作' },
+]
 
-// 根据时间格式返回格式化后的时间
+// 骨架屏列宽度
+const SKELETON_WIDTHS = ['w-14', 'w-8', 'w-28', 'w-28']
+
+// 状态颜色
+const getStatusColor = (status: string) =>
+  status === '1'
+    ? 'text-text-success bg-[var(--color-state-success-10)]'
+    : 'text-text-secondary bg-background-subtle'
+
+// 状态文本
+const getStatusText = (status: string) =>
+  status === '1' ? STUDIO_TEXTS.statusPublished : STUDIO_TEXTS.statusDraft
+
+// 时间格式化
 const formatTime = (dateString: string, format: TimeFormatType): string => {
   const timestamp = new Date(dateString).getTime()
   switch (format) {
@@ -64,6 +74,122 @@ const formatTime = (dateString: string, format: TimeFormatType): string => {
   }
 }
 
+// 应用图标
+const AppAvatar: React.FC<{ app: DialogApp }> = ({ app }) => {
+  const gradient = getAvatarGradient(app.name)
+
+  if (app.icon) {
+    const iconSrc =
+      app.icon.startsWith('data:') || app.icon.startsWith('http')
+        ? app.icon
+        : `data:image/png;base64,${app.icon}`
+    return (
+      <img
+        src={iconSrc}
+        alt={app.name}
+        className="w-12 h-12 rounded-xl object-cover"
+        onError={(e) => {
+          // 图片加载失败时隐藏
+          e.currentTarget.style.display = 'none'
+        }}
+      />
+    )
+  }
+
+  return (
+    <div
+      className={cn(
+        'w-12 h-12 rounded-xl flex items-center justify-center',
+        'bg-gradient-to-br shadow-sm',
+        gradient
+      )}
+    >
+      <span className="text-white font-semibold text-xl">
+        {app.name.charAt(0).toUpperCase()}
+      </span>
+    </div>
+  )
+}
+
+// 列表行组件
+const AppListRow: React.FC<{
+  app: DialogApp
+  selected: boolean
+  onSelect: () => void
+  onEdit: () => void
+  onDelete: () => void
+  timeFormat: TimeFormatType
+}> = ({ app, selected, onSelect, onEdit, onDelete, timeFormat }) => {
+  const navigate = useNavigate()
+
+  const handleClick = () => {
+    const searchParams = new URLSearchParams({
+      id: app.id,
+      name: app.name,
+      description: app.description,
+      ...(app.icon && { icon: app.icon }),
+    })
+    navigate(`${ROUTES.STUDIO_CREATE_APP}?${searchParams.toString()}`)
+  }
+
+  return (
+    <ResourceListRow
+      onClick={handleClick}
+      selected={selected}
+      onSelect={onSelect}
+      avatar={<AppAvatar app={app} />}
+      name={app.name}
+      description={app.description || undefined}
+      actions={[
+        {
+          key: 'settings',
+          label: STUDIO_TEXTS.settings,
+          icon: <Settings className="h-4 w-4" />,
+          onClick: onEdit,
+        },
+        {
+          key: 'delete',
+          label: STUDIO_TEXTS.delete,
+          icon: <Trash2 className="h-4 w-4" />,
+          onClick: onDelete,
+          danger: true,
+        },
+      ]}
+      gridCols={GRID_COLS}
+    >
+      {/* 状态列 */}
+      <div className="flex items-center">
+        <span
+          className={cn(
+            'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium truncate',
+            getStatusColor(app.status)
+          )}
+        >
+          {getStatusText(app.status)}
+        </span>
+      </div>
+
+      {/* 知识库列 */}
+      <div className="flex items-center gap-1.5 text-sm text-text-secondary">
+        <Database className="h-3.5 w-3.5 shrink-0" />
+        <span>{app.kb_ids?.length || 0}</span>
+      </div>
+
+      {/* 创建时间列 */}
+      <div className="flex items-center gap-1.5 text-sm text-text-tertiary">
+        <Clock className="h-3.5 w-3.5 shrink-0" />
+        {formatTime(app.create_date, timeFormat)}
+      </div>
+
+      {/* 更新时间列 */}
+      <div className="flex items-center gap-1.5 text-sm text-text-tertiary">
+        <Clock className="h-3.5 w-3.5 shrink-0" />
+        {formatTime(app.update_date, timeFormat)}
+      </div>
+    </ResourceListRow>
+  )
+}
+
 export const AppListView: React.FC<AppListViewProps> = ({
   data,
   selectedIds,
@@ -74,197 +200,51 @@ export const AppListView: React.FC<AppListViewProps> = ({
   isLoading = false,
   timeFormat = 'detailed',
 }) => {
-  const navigate = useNavigate()
-
-  const handleView = (app: DialogApp) => {
-    const searchParams = new URLSearchParams({
-      id: app.id,
-      name: app.name,
-      description: app.description,
-      ...(app.icon && { icon: app.icon })
-    })
-    navigate(`${ROUTES.STUDIO_CREATE_APP}?${searchParams.toString()}`)
-  }
-
-  // 生成头像背景渐变
-  const getAvatarGradient = (name: string) => {
-    const gradients = [
-      'from-components-avatar-gradient-purple-from to-components-avatar-gradient-purple-to',
-      'from-components-avatar-gradient-blue-from to-components-avatar-gradient-blue-to',
-      'from-components-avatar-gradient-green-from to-components-avatar-gradient-green-to',
-      'from-components-avatar-gradient-orange-from to-components-avatar-gradient-orange-to',
-      'from-components-avatar-gradient-indigo-from to-components-avatar-gradient-indigo-to',
-    ]
-    const index = name.charCodeAt(0) % gradients.length
-    return gradients[index]
-  }
-
-  // 获取应用图标
-  const getAppIcon = (app: DialogApp) => {
-    if (app.icon) {
-      const iconSrc = app.icon.startsWith('data:') || app.icon.startsWith('http')
-        ? app.icon
-        : `data:image/png;base64,${app.icon}`
-      return (
-        <img
-          src={iconSrc}
-          alt={app.name}
-          className="w-8 h-8 rounded-lg object-cover"
-        />
-      )
-    }
-    return (
-      <div
-        className={cn(
-          'w-8 h-8 rounded-lg flex items-center justify-center',
-          'bg-gradient-to-br',
-          getAvatarGradient(app.name)
-        )}
-      >
-        <Sparkles className="w-4 h-4 text-white" />
-      </div>
-    )
-  }
-
-  const columns = [
-    {
-      key: 'select',
-      title: (
-        <Checkbox
-          checked={selectedIds.length === data.length && data.length > 0}
-          onCheckedChange={(checked) => {
-            if (checked) {
-              onSelectAll(data.map(app => app.id))
-            } else {
-              onSelectAll([])
-            }
-          }}
-        />
-      ),
-      render: (_: unknown, record: DialogApp) => (
-        <Checkbox
-          checked={selectedIds.includes(record.id)}
-          onCheckedChange={() => onSelect(record.id)}
-        />
-      ),
-    },
-    {
-      key: 'name',
-      dataIndex: 'name',
-      title: '名称',
-      render: (value: string, record: DialogApp) => (
-        <div className="flex items-center gap-3">
-          {getAppIcon(record)}
-          <div>
-            <div className="font-medium" style={{ color: 'var(--color-text-primary)' }}>
-              {value}
-            </div>
-            <div className="text-sm max-w-xs truncate" style={{ color: 'var(--color-text-tertiary)' }}>
-              {record.description || '暂无描述'}
-            </div>
-          </div>
-        </div>
-      ),
-    },
-    {
-      key: 'status',
-      dataIndex: 'status',
-      title: '状态',
-      render: (value: string) => (
-        <span className={cn(
-          'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium',
-          getStatusColor(value)
-        )}>
-          {getStatusText(value)}
-        </span>
-      ),
-    },
-    {
-      key: 'kb_ids',
-      dataIndex: 'kb_ids',
-      title: '知识库',
-      render: (value: string[] | undefined) => (
-        <div className="flex items-center text-text-secondary">
-          <Database className="h-4 w-4 mr-1 text-text-tertiary" />
-          {value?.length || 0}
-        </div>
-      ),
-    },
-    {
-      key: 'create_date',
-      dataIndex: 'create_date',
-      title: '创建时间',
-      render: (value: string) => (
-        <div className="flex items-center text-text-secondary">
-          <Clock className="h-4 w-4 mr-1 text-text-tertiary" />
-          {formatTime(value, timeFormat)}
-        </div>
-      ),
-    },
-    {
-      key: 'update_date',
-      dataIndex: 'update_date',
-      title: '更新时间',
-      render: (value: string) => (
-        <div className="flex items-center text-text-secondary">
-          <Clock className="h-4 w-4 mr-1 text-text-tertiary" />
-          {formatTime(value, timeFormat)}
-        </div>
-      ),
-    },
-    {
-      key: 'actions',
-      title: '操作',
-      render: (_: unknown, record: DialogApp) => (
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={() => handleView(record)}
-            title="查看详情"
-          >
-            <Eye className="h-4 w-4" />
-          </Button>
-          <Dropdown
-            trigger={
-              <Button variant="ghost" size="icon-sm">
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            }
-          >
-            <DropdownItem
-              icon={<Settings className="h-4 w-4" />}
-              onClick={() => onEdit(record)}
-            >
-              {STUDIO_TEXTS.settings}
-            </DropdownItem>
-            <DropdownItem
-              icon={<Trash2 className="h-4 w-4" />}
-              onClick={() => onDelete(record)}
-              danger
-            >
-              {STUDIO_TEXTS.delete}
-            </DropdownItem>
-          </Dropdown>
-        </div>
-      ),
-    },
-  ]
+  const allSelected = data.length > 0 && selectedIds.length === data.length
 
   return (
-    <div
-      className="rounded-lg border overflow-hidden"
-      style={{
-        backgroundColor: 'var(--color-components-card-bg)',
-        borderColor: 'var(--color-components-card-border)',
-      }}
-    >
-      <Table
-        columns={columns}
-        data={data}
-        loading={isLoading}
+    <ResourceListContainer>
+      {/* 表头 */}
+      <ResourceListHeader
+        columns={HEADER_COLUMNS}
+        allSelected={allSelected}
+        onSelectAll={() => {
+          if (allSelected) {
+            onSelectAll([])
+          } else {
+            onSelectAll(data.map((app) => app.id))
+          }
+        }}
+        gridCols={GRID_COLS}
       />
-    </div>
+
+      {/* 列表内容 */}
+      <ResourceListBody>
+        {isLoading ? (
+          [...Array(5)].map((_, i) => (
+            <ResourceListSkeletonRow
+              key={i}
+              columnWidths={SKELETON_WIDTHS}
+              gridCols={GRID_COLS}
+            />
+          ))
+        ) : data.length === 0 ? (
+          <ResourceListEmpty />
+        ) : (
+          data.map((app) => (
+            <AppListRow
+              key={app.id}
+              app={app}
+              selected={selectedIds.includes(app.id)}
+              onSelect={() => onSelect(app.id)}
+              onEdit={() => onEdit(app)}
+              onDelete={() => onDelete(app)}
+              timeFormat={timeFormat}
+            />
+          ))
+        )}
+      </ResourceListBody>
+    </ResourceListContainer>
   )
 }
 

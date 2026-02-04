@@ -7,6 +7,7 @@ import React from 'react'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Dropdown, DropdownItem } from '@/components/ui/dropdown'
+import { getAvatarGradient } from '@/components/ui/resource-list'
 import { Workflow, Clock, MoreVertical, Settings, Trash2, Layers } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { cn, formatTimestampDetailed, formatTimestampCompact, formatRelativeTime } from '@/lib/utils'
@@ -44,6 +45,9 @@ export const AgentCard: React.FC<AgentCardProps> = ({
 
   // 判断类型
   const isPlugin = agent.canvas_type === 'pipeline' || agent.canvas_category === 'Ingestion'
+
+  // 获取头像渐变色
+  const gradient = getAvatarGradient(title)
 
   // 获取节点数量
   const nodeCount = agent.dsl?.graph?.nodes?.length || 0
@@ -109,25 +113,26 @@ export const AgentCard: React.FC<AgentCardProps> = ({
       <div className="p-5">
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3 flex-1">
-            <Avatar className="h-10 w-10">
-              <AvatarImage src={agent.avatar || undefined} alt={title} />
-              <AvatarFallback 
+            {agent.avatar ? (
+              <Avatar className="h-10 w-10">
+                <AvatarImage src={agent.avatar} alt={title} />
+                <AvatarFallback>
+                  <Workflow className="h-5 w-5" />
+                </AvatarFallback>
+              </Avatar>
+            ) : (
+              <div
                 className={cn(
-                  isPlugin
-                    ? 'bg-[var(--color-state-success-subtle)]'
-                    : 'bg-[var(--color-state-info-subtle)]'
+                  'w-10 h-10 rounded-xl flex items-center justify-center',
+                  'bg-gradient-to-br shadow-sm',
+                  gradient
                 )}
               >
-                <Workflow 
-                  className="h-5 w-5" 
-                  style={{ 
-                    color: isPlugin 
-                      ? 'var(--color-state-success)' 
-                      : 'var(--color-state-info)' 
-                  }} 
-                />
-              </AvatarFallback>
-            </Avatar>
+                <span className="text-white font-semibold text-lg">
+                  {title.charAt(0).toUpperCase()}
+                </span>
+              </div>
+            )}
             <div className="flex-1 min-w-0">
               <h3 className="font-semibold truncate" style={{ color: 'var(--color-text-primary)' }}>
                 {title}

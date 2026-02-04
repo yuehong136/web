@@ -11,13 +11,13 @@ import {
   Edit,
   Trash2,
   Clock,
-  Sparkles,
   Database,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Dropdown, DropdownItem } from '@/components/ui/dropdown'
+import { getAvatarGradient } from '@/components/ui/resource-list'
 import { cn, formatRelativeTime, formatTimestampDetailed, formatTimestampCompact } from '@/lib/utils'
 import { STUDIO_TEXTS } from '@/constants/studio-texts'
 import { ROUTES } from '@/constants'
@@ -97,18 +97,8 @@ export const AppCard: React.FC<AppCardProps> = ({
     onDelete?.(data)
   }
 
-  // 生成头像背景渐变 - 使用语义令牌
-  const avatarGradient = useMemo(() => {
-    const gradients = [
-      'from-components-avatar-gradient-purple-from to-components-avatar-gradient-purple-to',
-      'from-components-avatar-gradient-blue-from to-components-avatar-gradient-blue-to',
-      'from-components-avatar-gradient-green-from to-components-avatar-gradient-green-to',
-      'from-components-avatar-gradient-orange-from to-components-avatar-gradient-orange-to',
-      'from-components-avatar-gradient-indigo-from to-components-avatar-gradient-indigo-to',
-    ]
-    const index = data.name.charCodeAt(0) % gradients.length
-    return gradients[index]
-  }, [data.name])
+  // 获取头像渐变色
+  const avatarGradient = useMemo(() => getAvatarGradient(data.name), [data.name])
 
   // 获取应用图标
   const getAppIcon = () => {
@@ -167,12 +157,14 @@ export const AppCard: React.FC<AppCardProps> = ({
               <div
                 className={cn(
                   'w-12 h-12 rounded-xl flex items-center justify-center',
-                  'bg-gradient-to-br',
+                  'bg-gradient-to-br shadow-sm',
                   avatarGradient,
                   data.icon && 'hidden'
                 )}
               >
-                <Sparkles className="w-6 h-6 text-white" />
+                <span className="text-white font-semibold text-xl">
+                  {data.name.charAt(0).toUpperCase()}
+                </span>
               </div>
             </div>
 

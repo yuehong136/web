@@ -286,15 +286,13 @@ export const MemoryListPage: React.FC = () => {
               </div>
             ) : (
               /* 列表视图 */
-              <div className="bg-surface-primary rounded-lg border border-border-default overflow-hidden">
-                <MemoryListView
-                  data={memories}
-                  onEdit={handleEdit}
-                  onDelete={handleDeleteClick}
-                  isLoading={isLoading}
-                  timeFormat={timeFormat}
-                />
-              </div>
+              <MemoryListView
+                data={memories}
+                onEdit={handleEdit}
+                onDelete={handleDeleteClick}
+                isLoading={isLoading}
+                timeFormat={timeFormat}
+              />
             )}
           </div>
 

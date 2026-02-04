@@ -8,14 +8,11 @@ import {
   FileText, 
   Clock, 
   Users,
-  Eye,
   Trash2,
   Filter,
   Settings,
   Grid3X3,
   List as ListIcon,
-  SortAsc,
-  SortDesc,
   Layers,
   Target,
   ChevronLeft,
@@ -28,12 +25,10 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Card } from '@/components/ui/card'
 import { Loading } from '@/components/ui/loading'
-import { Table } from '@/components/ui/table'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Dropdown, DropdownItem } from '@/components/ui/dropdown'
-import { QuickEditModal } from '@/components/knowledge/QuickEditModal'
+import { QuickEditModal, KnowledgeListView } from '@/components/knowledge'
 import { CreateKnowledgeModal } from './components/CreateKnowledgeModal'
 import { PageSizeSelector } from '@/components/ui/page-size-selector'
 import { CustomSelect } from '@/components/ui/custom-select'
@@ -43,6 +38,7 @@ import { useKnowledgeStore } from '@/stores/knowledge'
 import { useUIStore } from '@/stores/ui'
 import { cn, formatTimestamp, formatTimestampDetailed, formatTimestampCompact, formatRelativeTime } from '@/lib/utils'
 import { ROUTES } from '@/constants'
+import { getAvatarGradient } from '@/components/ui/resource-list'
 import type { KnowledgeBase } from '@/types/api'
 
 interface FilterState {
@@ -79,6 +75,7 @@ const KnowledgeCard: React.FC<KnowledgeCardProps> = ({
   getStatusText,
 }) => {
   const [isHovered, setIsHovered] = React.useState(false)
+  const gradient = getAvatarGradient(kb.name)
 
   return (
     <div
@@ -104,10 +101,24 @@ const KnowledgeCard: React.FC<KnowledgeCardProps> = ({
               onCheckedChange={onSelect}
               onClick={(e) => e.stopPropagation()}
             />
-            <Avatar className="h-10 w-10">
-              <AvatarImage src={kb.avatar || undefined} alt={kb.name} />
-              <AvatarFallback><Database className="h-5 w-5" /></AvatarFallback>
-            </Avatar>
+            {kb.avatar ? (
+              <Avatar className="h-10 w-10">
+                <AvatarImage src={kb.avatar} alt={kb.name} />
+                <AvatarFallback><Database className="h-5 w-5" /></AvatarFallback>
+              </Avatar>
+            ) : (
+              <div
+                className={cn(
+                  'w-10 h-10 rounded-xl flex items-center justify-center',
+                  'bg-gradient-to-br shadow-sm',
+                  gradient
+                )}
+              >
+                <span className="text-white font-semibold text-lg">
+                  {kb.name.charAt(0).toUpperCase()}
+                </span>
+              </div>
+            )}
             <div className="flex-1 min-w-0">
               <h3 className="font-semibold truncate" style={{ color: 'var(--color-text-primary)' }}>
                 {kb.name}
@@ -145,11 +156,13 @@ const KnowledgeCard: React.FC<KnowledgeCardProps> = ({
           </div>
         </div>
 
-        <p className="text-sm mb-4 line-clamp-2" style={{ color: 'var(--color-text-secondary)' }}>
-          {kb.description || '暂无描述'}
-        </p>
+        {kb.description ? (
+          <p className="text-sm mb-4 line-clamp-2 text-text-secondary">
+            {kb.description}
+          </p>
+        ) : null}
 
-        <div className="grid grid-cols-2 gap-3 text-sm" style={{ color: 'var(--color-text-tertiary)' }}>
+        <div className={cn('grid grid-cols-2 gap-3 text-sm text-text-tertiary', !kb.description && 'mt-4')}>
           <div className="flex items-center">
             <FileText className="h-4 w-4 mr-1.5" />
             {kb.doc_num || 0} 文档
@@ -880,187 +893,30 @@ export const KnowledgeListPage: React.FC = () => {
   )
 
   const renderTableView = () => (
-    <Card>
-      <Table
-        columns={[
-          {
-            key: 'select',
-            title: (
-              <Checkbox
-                checked={selectedBases.length === filteredKnowledgeBases.length && filteredKnowledgeBases.length > 0}
-                onCheckedChange={(checked) => {
-                  if (checked) {
-                    setSelectedBases(filteredKnowledgeBases.map(kb => kb.id))
-                  } else {
-                    setSelectedBases([])
-                  }
-                }}
-              />
-            ),
-            render: (_, record: KnowledgeBase) => (
-              <Checkbox
-                checked={selectedBases.includes(record.id)}
-                onCheckedChange={(checked) => {
-                  if (checked) {
-                    setSelectedBases([...selectedBases, record.id])
-                  } else {
-                    setSelectedBases(selectedBases.filter(id => id !== record.id))
-                  }
-                }}
-              />
-            )
-          },
-          {
-            key: 'name',
-            dataIndex: 'name',
-            title: (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleSort('name')}
-                className="p-0 h-auto font-medium hover:bg-transparent"
-              >
-                名称
-                {sortBy === 'name' && (
-                  sortDesc ? <SortDesc className="ml-1 h-3 w-3" /> : <SortAsc className="ml-1 h-3 w-3" />
-                )}
-              </Button>
-            ),
-            render: (value: string, record: KnowledgeBase) => (
-              <div className="flex items-center gap-3">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={record.avatar || undefined} alt={record.name} />
-                  <AvatarFallback><Database className="h-4 w-4" /></AvatarFallback>
-                </Avatar>
-                <div>
-                  <div className="font-medium" style={{ color: 'var(--color-text-primary)' }}>{value}</div>
-                  <div className="text-sm max-w-xs truncate" style={{ color: 'var(--color-text-tertiary)' }}>{record.description}</div>
-                </div>
-              </div>
-            )
-          },
-          {
-            key: 'status',
-            dataIndex: 'permission',
-            title: '状态',
-            render: (_, record: KnowledgeBase) => (
-              <span className={cn(
-                "inline-flex items-center px-2 py-1 rounded-full text-xs font-medium",
-                getStatusColor(record)
-              )}>
-                {getStatusText(record)}
-              </span>
-            )
-          },
-          {
-            key: 'doc_num',
-            dataIndex: 'doc_num',
-            title: (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleSort('doc_num')}
-                className="p-0 h-auto font-medium hover:bg-transparent"
-              >
-                文档数
-                {sortBy === 'doc_num' && (
-                  sortDesc ? <SortDesc className="ml-1 h-3 w-3" /> : <SortAsc className="ml-1 h-3 w-3" />
-                )}
-              </Button>
-            ),
-            render: (value: number) => (
-              <div className="flex items-center">
-                <FileText className="h-4 w-4 mr-1 text-text-tertiary" />
-                {value || 0}
-              </div>
-            )
-          },
-          {
-            key: 'chunk_num',
-            dataIndex: 'chunk_num',
-            title: '块数',
-            render: (value: number) => (
-              <div className="flex items-center">
-                <Layers className="h-4 w-4 mr-1 text-text-tertiary" />
-                {value || 0}
-              </div>
-            )
-          },
-          {
-            key: 'token_num',
-            dataIndex: 'token_num',
-            title: 'Token数',
-            render: (value: number) => (
-              <div className="text-sm text-text-secondary">
-                {(value || 0).toLocaleString()}
-              </div>
-            )
-          },
-          {
-            key: 'update_time',
-            dataIndex: 'update_time',
-            title: (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleSort('update_time')}
-                className="p-0 h-auto font-medium hover:bg-transparent"
-              >
-                更新时间
-                {sortBy === 'update_time' && (
-                  sortDesc ? <SortDesc className="ml-1 h-3 w-3" /> : <SortAsc className="ml-1 h-3 w-3" />
-                )}
-              </Button>
-            ),
-            render: (value: number) => (
-              <div className="flex items-center">
-                <Clock className="h-4 w-4 mr-1 text-text-tertiary" />
-                {formatTime(value)}
-              </div>
-            )
-          },
-          {
-            key: 'actions',
-            title: '操作',
-            render: (_, record: KnowledgeBase) => (
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  onClick={() => handleView(record.id)}
-                  title="查看详情"
-                >
-                  <Eye className="h-4 w-4" />
-                </Button>
-                <Dropdown
-                  trigger={
-                    <Button variant="ghost" size="icon-sm">
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  }
-                >
-                  <DropdownItem
-                    icon={<Settings className="h-4 w-4" />}
-                    onClick={() => setEditingKnowledgeBase(record)}
-                  >
-                    设置
-                  </DropdownItem>
-                  <DropdownItem
-                    icon={<Trash2 className="h-4 w-4" />}
-                    onClick={() => handleDelete(record.id)}
-                    danger
-                  >
-                    删除
-                  </DropdownItem>
-                </Dropdown>
-              </div>
-            )
-          }
-        ]}
-        data={filteredKnowledgeBases}
-        loading={isLoading}
-      />
-    </Card>
+    <KnowledgeListView
+      data={filteredKnowledgeBases}
+      onEdit={setEditingKnowledgeBase}
+      onDelete={(kb) => handleDelete(kb.id)}
+      selectedIds={selectedBases}
+      onSelect={(id) => {
+        if (selectedBases.includes(id)) {
+          setSelectedBases(selectedBases.filter((x) => x !== id))
+        } else {
+          setSelectedBases([...selectedBases, id])
+        }
+      }}
+      onSelectAll={() => {
+        if (selectedBases.length === filteredKnowledgeBases.length) {
+          setSelectedBases([])
+        } else {
+          setSelectedBases(filteredKnowledgeBases.map((kb) => kb.id))
+        }
+      }}
+      isLoading={isLoading}
+      timeFormat={timeFormat}
+      getStatusColor={getStatusColor}
+      getStatusText={getStatusText}
+    />
   )
 
   return (

@@ -6,12 +6,13 @@ import { cn } from '@/lib/utils'
 // 支持首字母渐变头像和图片头像
 // ============================================================================
 
-// 预定义的渐变色
+// 预定义的渐变色 - 参考现代 AI 项目的柔和配色
 const PREDEFINED_COLORS = [
-  { from: '#4F6DEE', to: '#67BDF9' },
-  { from: '#38A04D', to: '#93DCA2' },
-  { from: '#C35F2B', to: '#EDB395' },
-  { from: '#633897', to: '#CBA1FF' },
+  { from: '#A78BFA', to: '#C4B5FD' },  // 柔和紫色
+  { from: '#60A5FA', to: '#93C5FD' },  // 柔和蓝色
+  { from: '#4ADE80', to: '#86EFAC' },  // 柔和绿色
+  { from: '#FB923C', to: '#FDBA74' },  // 柔和橙色
+  { from: '#818CF8', to: '#A5B4FC' },  // 柔和靛蓝
 ]
 
 // 根据字符串生成哈希值
@@ -55,11 +56,12 @@ export interface KnowledgeBaseAvatarProps {
   size?: 'sm' | 'md' | 'lg' | 'xl'
 }
 
+// 字体大小优化：首字母占头像比例约 45-50%
 const sizeMap = {
-  sm: 'w-4 h-4 text-[8px]',
-  md: 'w-5 h-5 text-[10px]',
-  lg: 'w-8 h-8 text-xs',
-  xl: 'w-10 h-10 text-sm',
+  sm: 'w-4 h-4 text-[9px]',
+  md: 'w-5 h-5 text-[11px]',
+  lg: 'w-8 h-8 text-sm',
+  xl: 'w-10 h-10 text-base',
 }
 
 /**
