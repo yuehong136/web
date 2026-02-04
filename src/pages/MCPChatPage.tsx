@@ -849,7 +849,7 @@ export default function MCPChatPage() {
   return (
     <div 
       ref={dropContainerRef}
-      className="mcp-chat-page h-screen flex overflow-hidden" 
+      className="mcp-chat-page h-full flex overflow-hidden" 
       style={{ backgroundColor: 'var(--color-chat-content-bg)' }}
     >
       {/* 全屏拖拽指示器 */}
@@ -960,7 +960,7 @@ export default function MCPChatPage() {
                 />
               </div>
             ) : (
-              <div className="h-full flex items-center justify-center">
+              <div className="min-h-full flex items-center justify-center py-4">
                 <WelcomeMessage />
               </div>
             )}
