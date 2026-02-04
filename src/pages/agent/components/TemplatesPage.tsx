@@ -13,8 +13,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { Tooltip } from '@/components/ui/tooltip'
 import {
   ArrowLeft,
+  ArrowRight,
   Search,
   Sparkles,
   Box,
@@ -196,14 +198,20 @@ export const TemplatesPage = ({ onBack }: TemplatesPageProps) => {
                 onClick={() => setSelectedCategory(item.key)}
                 className={cn(
                   'w-full flex items-center gap-4 px-6 py-4 transition-all relative',
-                  'hover:bg-muted/50',
-                  isActive && 'bg-secondary text-secondary-foreground font-medium',
+                  'hover:bg-[var(--color-components-sidebar-item-bg-hover)]',
+                  isActive && 'bg-[var(--color-components-sidebar-item-bg-active)] text-[var(--color-components-sidebar-item-text-active)] font-medium',
                 )}
               >
                 <Icon className="w-5 h-5" />
                 <span>{item.label}</span>
                 {isActive && (
-                  <div className="absolute right-0 w-1 h-12 bg-primary rounded-l-lg shadow-lg shadow-primary/50" />
+                  <div 
+                    className="absolute right-0 w-1 h-12 rounded-l-lg" 
+                    style={{ 
+                      backgroundColor: 'var(--color-components-sidebar-item-text-active)',
+                      boxShadow: '0 0 8px var(--color-components-sidebar-item-text-active)'
+                    }}
+                  />
                 )}
               </button>
             )
@@ -364,65 +372,92 @@ export const TemplatesPage = ({ onBack }: TemplatesPageProps) => {
 
       {/* 创建确认对话框 */}
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle className="text-xl">创建智能体</DialogTitle>
-            <DialogDescription className="text-base">
-              基于模版
-              <span className="font-semibold text-foreground mx-1">
-                "{selectedTemplate && getTemplateTitle(selectedTemplate)}"
-              </span>
-              创建新的智能体
-            </DialogDescription>
+        <DialogContent size="md" className="overflow-hidden">
+          <DialogHeader className="pb-0">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-violet-500 to-purple-600 shadow-md">
+                <Sparkles className="w-5 h-5 text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <DialogTitle className="text-lg font-semibold text-[var(--color-text-primary)]">
+                  创建智能体
+                </DialogTitle>
+                <DialogDescription className="text-[var(--color-text-secondary)]">
+                  基于模版
+                  <span className="font-semibold text-[var(--color-text-primary)] mx-1">
+                    "{selectedTemplate && getTemplateTitle(selectedTemplate)}"
+                  </span>
+                  创建
+                </DialogDescription>
+              </div>
+            </div>
           </DialogHeader>
 
           {/* 模版预览 */}
           {selectedTemplate && (
-            <div className="py-4">
-              <div className="rounded-lg border border-border p-4 bg-muted/30 mb-4">
+            <div className="px-6 py-5 space-y-5">
+              {/* 模版卡片预览 */}
+              <div className="rounded-xl border-2 border-[var(--color-border-default)] p-4 bg-[var(--color-surface-secondary)]/50">
                 <div className="flex items-start gap-4">
                   {/* 模版图标 */}
-                  <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-md overflow-hidden">
                     {selectedTemplate.avatar ? (
                       <img
                         src={selectedTemplate.avatar}
                         alt={getTemplateTitle(selectedTemplate)}
-                        className="w-full h-full object-cover rounded-lg"
+                        className="w-full h-full object-cover"
                       />
                     ) : (
-                      <Sparkles className="w-8 h-8 text-white" />
+                      <Sparkles className="w-7 h-7 text-white" />
                     )}
                   </div>
                   
                   {/* 模版信息 */}
                   <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold text-foreground mb-1 truncate">
+                    <h4 className="font-semibold text-[var(--color-text-primary)] mb-1.5">
                       {getTemplateTitle(selectedTemplate)}
                     </h4>
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {getTemplateDescription(selectedTemplate)}
-                    </p>
+                    {getTemplateDescription(selectedTemplate) ? (
+                      <Tooltip 
+                        content={getTemplateDescription(selectedTemplate)} 
+                        position="bottom"
+                      >
+                        <p className="text-sm text-[var(--color-text-tertiary)] line-clamp-2 leading-relaxed cursor-default">
+                          {getTemplateDescription(selectedTemplate)}
+                        </p>
+                      </Tooltip>
+                    ) : (
+                      <p className="text-sm text-[var(--color-text-tertiary)] leading-relaxed">
+                        暂无描述
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
 
               {/* 名称输入 */}
               <div>
-                <Label htmlFor="new-agent-name" className="text-sm font-medium mb-2 block">
-                  <span className="text-destructive">*</span> 智能体名称
+                <Label htmlFor="new-agent-name" className="text-sm font-medium text-[var(--color-text-primary)] mb-2 block">
+                  名称
                 </Label>
                 <Input
                   id="new-agent-name"
-                  placeholder="请输入名称"
+                  placeholder="例如：客服助手、文档分析器"
                   value={newAgentName}
                   onChange={(e) => setNewAgentName(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && newAgentName.trim()) {
                       handleCreateFromTemplate()
                     }
+                    if (e.key === 'Escape') {
+                      setCreateDialogOpen(false)
+                    }
                   }}
-                  className="text-base"
+                  autoFocus
                 />
+                <p className="text-xs text-[var(--color-text-tertiary)] mt-1.5">
+                  给智能体起一个清晰、描述性的名称
+                </p>
               </div>
             </div>
           )}
@@ -431,8 +466,13 @@ export const TemplatesPage = ({ onBack }: TemplatesPageProps) => {
             <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
               取消
             </Button>
-            <Button onClick={handleCreateFromTemplate} disabled={!newAgentName.trim()}>
+            <Button 
+              onClick={handleCreateFromTemplate} 
+              disabled={!newAgentName.trim()}
+              className="gap-1.5"
+            >
               创建
+              <ArrowRight className="w-4 h-4" />
             </Button>
           </DialogFooter>
         </DialogContent>
