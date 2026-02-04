@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
+import React, { useState, useEffect, useMemo, useRef, useCallback, lazy, Suspense, memo } from 'react'
 // shadcn/ui 组件
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -50,7 +50,8 @@ import {
 } from '@ant-design/x'
 import markdownit from 'markdown-it'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import MDEditor from '@uiw/react-md-editor'
+// 懒加载 MDEditor 组件
+const MDEditor = lazy(() => import('@uiw/react-md-editor'))
 import '@uiw/react-md-editor/markdown-editor.css'
 import '@uiw/react-markdown-preview/markdown.css'
 import { llmAPI } from '@/api/llm'
@@ -141,7 +142,7 @@ interface AppConfig {
 
 
 
-export const CreateAppPage: React.FC = () => {
+const CreateAppPageComponent: React.FC = () => {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const [leftCollapsed, setLeftCollapsed] = useState(false)
@@ -1124,23 +1125,29 @@ export const CreateAppPage: React.FC = () => {
           </div>
           <div className="flex-1 p-4 overflow-hidden flex flex-col">
             <div className="flex-1 min-h-0">
-              <MDEditor
-                value={config.systemPrompt}
-                onChange={(value) => handleConfigChange('systemPrompt', value || '')}
-                data-color-mode={currentTheme}
-                height="100%"
-                visibleDragbar={false}
-                textareaProps={{
-                  placeholder: '# AI助手系统提示词\n\n请在这里定义AI助手的角色和行为...\n\n## 示例：\n你是一个专业的客服助手，具有以下特点：\n- 友好和耐心\n- 提供准确信息\n- 快速响应问题',
-                  style: {
-                    fontSize: 14,
-                    lineHeight: 1.6,
-                    fontFamily: 'ui-monospace, SFMono-Regular, Monaco, Consolas, monospace'
-                  },
-                  spellCheck: false
-                }}
-                preview="edit"
-              />
+              <Suspense fallback={
+                <div className="h-full flex items-center justify-center" style={{ backgroundColor: 'var(--color-background-subtle)' }}>
+                  <span style={{ color: 'var(--color-text-tertiary)' }}>加载编辑器...</span>
+                </div>
+              }>
+                <MDEditor
+                  value={config.systemPrompt}
+                  onChange={(value) => handleConfigChange('systemPrompt', value || '')}
+                  data-color-mode={currentTheme}
+                  height="100%"
+                  visibleDragbar={false}
+                  textareaProps={{
+                    placeholder: '# AI助手系统提示词\n\n请在这里定义AI助手的角色和行为...\n\n## 示例：\n你是一个专业的客服助手，具有以下特点：\n- 友好和耐心\n- 提供准确信息\n- 快速响应问题',
+                    style: {
+                      fontSize: 14,
+                      lineHeight: 1.6,
+                      fontFamily: 'ui-monospace, SFMono-Regular, Monaco, Consolas, monospace'
+                    },
+                    spellCheck: false
+                  }}
+                  preview="edit"
+                />
+              </Suspense>
             </div>
             
             <div className="mt-3 pt-3" style={{ borderTop: '1px solid var(--color-border-subtle)' }}>
@@ -1567,9 +1574,9 @@ export const CreateAppPage: React.FC = () => {
     </div>
   )
 
-  const renderRightPanel = () => {
-    // 转换消息数据为 Bubble.List 需要的格式
-    const bubbleItems = previewMessages.map((msg, index) => {
+  // 记忆化 bubbleItems 计算
+  const bubbleItems = useMemo(() => {
+    return previewMessages.map((msg, index) => {
       const isUser = msg.role === 'user'
       const isLastAssistant = !isUser && index === previewMessages.length - 1
       const isCurrentStreaming = isStreaming && isLastAssistant
@@ -1662,8 +1669,9 @@ export const CreateAppPage: React.FC = () => {
         },
       }
     })
+  }, [previewMessages, isStreaming, config.icon])
 
-
+  const renderRightPanel = () => {
     return (
       <div className="h-full flex flex-col" style={{ backgroundColor: 'var(--color-components-panel-content-bg)' }}>
         {rightCollapsed ? (
@@ -2166,3 +2174,6 @@ export const CreateAppPage: React.FC = () => {
     </div>
   )
 }
+
+// 使用 memo 包装组件，避免不必要的重渲染
+export const CreateAppPage = memo(CreateAppPageComponent)

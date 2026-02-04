@@ -43,37 +43,39 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
       onOpenChange={setIsOpen}
       className={cn('w-full', className)}
     >
-      <CollapsibleTrigger className="flex items-center gap-1.5 w-full group cursor-pointer">
-        <span
-          className={cn(
-            'transition-colors',
-            isOpen ? 'text-text-accent' : 'text-text-secondary group-hover:text-text-primary'
-          )}
-        >
-          {isOpen ? (
-            <ChevronDown className="h-4 w-4" />
-          ) : (
-            <ChevronRight className="h-4 w-4" />
-          )}
-        </span>
-        {icon && (
-          <span className={cn(
-            'transition-colors',
-            isOpen ? 'text-text-accent' : 'text-text-secondary'
-          )}>
-            {icon}
+      <div className="flex items-center gap-1.5 w-full">
+        <CollapsibleTrigger className="flex items-center gap-1.5 flex-1 group cursor-pointer">
+          <span
+            className={cn(
+              'transition-colors',
+              isOpen ? 'text-text-accent' : 'text-text-secondary group-hover:text-text-primary'
+            )}
+          >
+            {isOpen ? (
+              <ChevronDown className="h-4 w-4" />
+            ) : (
+              <ChevronRight className="h-4 w-4" />
+            )}
           </span>
-        )}
-        <span
-          className={cn(
-            'text-base font-medium transition-colors',
-            isOpen ? 'text-text-accent' : 'text-text-secondary group-hover:text-text-primary'
+          {icon && (
+            <span className={cn(
+              'transition-colors',
+              isOpen ? 'text-text-accent' : 'text-text-secondary'
+            )}>
+              {icon}
+            </span>
           )}
-        >
-          {title}
-        </span>
+          <span
+            className={cn(
+              'text-base font-medium transition-colors',
+              isOpen ? 'text-text-accent' : 'text-text-secondary group-hover:text-text-primary'
+            )}
+          >
+            {title}
+          </span>
+        </CollapsibleTrigger>
         {extra && <div className="ml-auto">{extra}</div>}
-      </CollapsibleTrigger>
+      </div>
       <CollapsibleContent className="overflow-hidden data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up">
         <div className="pt-4">
           {children}
