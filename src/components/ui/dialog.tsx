@@ -13,7 +13,7 @@ export interface DialogContentProps {
   className?: string
   children: React.ReactNode
   /** 弹窗尺寸 */
-  size?: "sm" | "md" | "lg" | "xl" | "full"
+  size?: "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "full"
   /** 是否显示关闭按钮 */
   showCloseButton?: boolean
   /** 点击遮罩层关闭 */
@@ -30,6 +30,8 @@ const sizeClasses = {
   md: "max-w-lg",
   lg: "max-w-2xl",
   xl: "max-w-4xl",
+  "2xl": "max-w-6xl",
+  "3xl": "max-w-7xl",
   full: "max-w-[calc(100vw-2rem)]",
 }
 

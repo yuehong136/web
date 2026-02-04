@@ -17,7 +17,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { Progress } from '@/components/ui/progress'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { MethodBadge } from '@/components/ui/method-badge'
 import { Tooltip } from '@/components/ui/tooltip'
@@ -1721,8 +1721,8 @@ const ApiDocumentationPage: React.FC = () => {
                           API Key
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="max-w-7xl max-h-[90vh] overflow-hidden flex flex-col">
-                        <DialogHeader>
+                      <DialogContent size="3xl" className="h-[80vh] flex flex-col p-0 gap-0">
+                        <DialogHeader className="px-6 pt-6 pb-4 shrink-0">
                           <DialogTitle className="flex items-center gap-2">
                             <Key className="h-5 w-5" />
                             API Key 管理
@@ -1733,9 +1733,9 @@ const ApiDocumentationPage: React.FC = () => {
                         </DialogHeader>
 
                         {/* API Key 管理内容 */}
-                        <div className="flex-1 overflow-hidden flex flex-col space-y-4">
+                        <div className="flex-1 overflow-hidden flex flex-col px-6 pb-4">
                           {/* 操作栏 */}
-                          <div className="flex items-center justify-between gap-4">
+                          <div className="flex items-center justify-between gap-4 mb-4 shrink-0">
                             <div className="flex items-center gap-3">
                               <div className="relative">
                                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
@@ -1759,7 +1759,7 @@ const ApiDocumentationPage: React.FC = () => {
                           {/* 表格容器 */}
                           <div className="flex-1 overflow-hidden border rounded-lg">
                             {apiKeyLoading ? (
-                              <div className="h-96 flex items-center justify-center">
+                              <div className="h-full flex items-center justify-center">
                                 <div className="text-center space-y-4">
                                   <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
                                   <p className="text-muted-foreground">加载中...</p>
@@ -1768,7 +1768,7 @@ const ApiDocumentationPage: React.FC = () => {
                             ) : (
                               <div className="h-full flex flex-col">
                                 {/* 表头 */}
-                                <div className="bg-muted/50 border-b">
+                                <div className="bg-muted/50 border-b shrink-0">
                                   <div className="grid grid-cols-12 gap-3 p-4 text-sm font-semibold">
                                     <div className="col-span-2">名称</div>
                                     <div className="col-span-3">Token</div>
@@ -1790,9 +1790,9 @@ const ApiDocumentationPage: React.FC = () => {
                                       </div>
                                     </div>
                                   ) : (
-                                    <div className="divide-y" style={{ position: 'relative', zIndex: 1 }}>
+                                    <div className="divide-y">
                                       {apiKeys.map((apiKey) => (
-                                        <div key={apiKey.tenant_id} className="grid grid-cols-12 gap-3 p-4 hover:bg-muted/30 transition-colors relative">
+                                        <div key={apiKey.tenant_id} className="grid grid-cols-12 gap-3 p-4 hover:bg-muted/30 transition-colors">
                                           {/* 名称 */}
                                           <div className="col-span-2">
                                             <div className="font-medium">{apiKey.name}</div>
@@ -1851,24 +1851,22 @@ const ApiDocumentationPage: React.FC = () => {
                                           </div>
                                           
                                           {/* 操作 */}
-                                          <div className="col-span-1 flex justify-center relative z-[100]">
-                                            <div className="relative">
-                                              <Button 
-                                                variant="ghost" 
-                                                size="icon-sm"
-                                                disabled={operatingKeys.has(apiKey.tenant_id)}
-                                                onClick={(e) => {
-                                                  e.stopPropagation()
-                                                  toggleDropdown(apiKey.tenant_id, e.currentTarget)
-                                                }}
-                                              >
-                                                {operatingKeys.has(apiKey.tenant_id) ? (
-                                                  <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
-                                                ) : (
-                                                  <MoreHorizontal className="h-4 w-4" />
-                                                )}
-                                              </Button>
-                                            </div>
+                                          <div className="col-span-1 flex justify-center">
+                                            <Button 
+                                              variant="ghost" 
+                                              size="icon-sm"
+                                              disabled={operatingKeys.has(apiKey.tenant_id)}
+                                              onClick={(e) => {
+                                                e.stopPropagation()
+                                                toggleDropdown(apiKey.tenant_id, e.currentTarget)
+                                              }}
+                                            >
+                                              {operatingKeys.has(apiKey.tenant_id) ? (
+                                                <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                                              ) : (
+                                                <MoreHorizontal className="h-4 w-4" />
+                                              )}
+                                            </Button>
                                           </div>
                                         </div>
                                       ))}
@@ -1878,122 +1876,79 @@ const ApiDocumentationPage: React.FC = () => {
                               </div>
                             )}
                           </div>
+                        </div>
 
-                          {/* 分页 */}
-                          {apiKeyTotal > 0 && (
-                            <div className="flex items-center justify-between border-t pt-4">
-                              <div className="text-sm text-muted-foreground">
-                                共 {apiKeyTotal} 项
-                              </div>
-                              <div className="flex items-center gap-4">
-                                {/* 页面大小选择器 */}
-                                <PageSizeSelector
-                                  pageSize={apiKeyPageSize}
-                                  onChange={(size) => {
-                                    setApiKeyPageSize(size)
-                                    setApiKeyPage(1)
-                                  }}
-                                  options={[10, 20, 50]}
-                                />
+                        {/* 分页 - 使用 DialogFooter */}
+                        {apiKeyTotal > 0 && (
+                          <DialogFooter className="justify-between px-6 py-4 shrink-0">
+                            <div className="text-sm text-muted-foreground">
+                              共 {apiKeyTotal} 项
+                            </div>
+                            <div className="flex items-center gap-4">
+                              {/* 页面大小选择器 */}
+                              <PageSizeSelector
+                                pageSize={apiKeyPageSize}
+                                onChange={(size) => {
+                                  setApiKeyPageSize(size)
+                                  setApiKeyPage(1)
+                                }}
+                                options={[10, 20, 50]}
+                              />
 
-                                {/* 页码导航 */}
-                                <div className="flex items-center space-x-2" style={{ color: 'var(--color-components-pagination-text)' }}>
-                                  <button
-                                    onClick={() => setApiKeyPage(Math.max(1, apiKeyPage - 1))}
-                                    disabled={apiKeyPage <= 1}
-                                    className="px-3 py-1.5 text-sm font-medium rounded-md transition-colors border"
-                                    style={{
-                                      backgroundColor: apiKeyPage <= 1 ? 'var(--color-components-pagination-disabled-bg)' : 'var(--color-components-pagination-item-bg)',
-                                      color: apiKeyPage <= 1 ? 'var(--color-components-pagination-disabled-text)' : 'var(--color-components-pagination-item-text)',
-                                      borderColor: 'var(--color-components-pagination-border)'
-                                    }}
-                                    onMouseEnter={(e) => {
-                                      if (apiKeyPage > 1) {
-                                        e.currentTarget.style.backgroundColor = 'var(--color-components-pagination-item-bg-hover)'
-                                      }
-                                    }}
-                                    onMouseLeave={(e) => {
-                                      if (apiKeyPage > 1) {
-                                        e.currentTarget.style.backgroundColor = 'var(--color-components-pagination-item-bg)'
-                                      }
-                                    }}
-                                  >
-                                    上一页
-                                  </button>
+                              {/* 页码导航 */}
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setApiKeyPage(Math.max(1, apiKeyPage - 1))}
+                                  disabled={apiKeyPage <= 1}
+                                >
+                                  上一页
+                                </Button>
 
-                                  <div
-                                    className="flex items-center rounded-lg p-1"
-                                    style={{ backgroundColor: 'var(--color-components-pagination-bg)', border: '1px solid var(--color-components-pagination-border)' }}
-                                  >
-                                    {Array.from({ length: Math.min(5, Math.ceil(apiKeyTotal / apiKeyPageSize)) }, (_, i) => {
-                                      const totalPages = Math.ceil(apiKeyTotal / apiKeyPageSize)
-                                      let pageNum
-                                      
-                                      if (totalPages <= 5) {
+                                <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1">
+                                  {Array.from({ length: Math.min(5, Math.ceil(apiKeyTotal / apiKeyPageSize)) }, (_, i) => {
+                                    const totalPages = Math.ceil(apiKeyTotal / apiKeyPageSize)
+                                    let pageNum
+                                    
+                                    if (totalPages <= 5) {
+                                      pageNum = i + 1
+                                    } else {
+                                      if (apiKeyPage <= 3) {
                                         pageNum = i + 1
+                                      } else if (apiKeyPage >= totalPages - 2) {
+                                        pageNum = totalPages - 4 + i
                                       } else {
-                                        if (apiKeyPage <= 3) {
-                                          pageNum = i + 1
-                                        } else if (apiKeyPage >= totalPages - 2) {
-                                          pageNum = totalPages - 4 + i
-                                        } else {
-                                          pageNum = apiKeyPage - 2 + i
-                                        }
+                                        pageNum = apiKeyPage - 2 + i
                                       }
-                                      
-                                      return (
-                                        <button
-                                          key={pageNum}
-                                          className="w-8 h-8 p-0 rounded-md text-sm font-medium transition-colors"
-                                          style={{
-                                            backgroundColor: pageNum === apiKeyPage ? 'var(--color-components-pagination-item-bg-active)' : 'var(--color-components-pagination-item-bg)',
-                                            color: pageNum === apiKeyPage ? 'var(--color-components-pagination-item-text-active)' : 'var(--color-components-pagination-item-text)'
-                                          }}
-                                          onMouseEnter={(e) => {
-                                            if (pageNum !== apiKeyPage) {
-                                              e.currentTarget.style.backgroundColor = 'var(--color-components-pagination-item-bg-hover)'
-                                            }
-                                          }}
-                                          onMouseLeave={(e) => {
-                                            if (pageNum !== apiKeyPage) {
-                                              e.currentTarget.style.backgroundColor = 'var(--color-components-pagination-item-bg)'
-                                            }
-                                          }}
-                                          onClick={() => setApiKeyPage(pageNum)}
-                                        >
-                                          {pageNum}
-                                        </button>
-                                      )
-                                    })}
-                                  </div>
-                                  
-                                  <button
-                                    onClick={() => setApiKeyPage(Math.min(Math.ceil(apiKeyTotal / apiKeyPageSize), apiKeyPage + 1))}
-                                    disabled={apiKeyPage >= Math.ceil(apiKeyTotal / apiKeyPageSize)}
-                                    className="px-3 py-1.5 text-sm font-medium rounded-md transition-colors border"
-                                    style={{
-                                      backgroundColor: apiKeyPage >= Math.ceil(apiKeyTotal / apiKeyPageSize) ? 'var(--color-components-pagination-disabled-bg)' : 'var(--color-components-pagination-item-bg)',
-                                      color: apiKeyPage >= Math.ceil(apiKeyTotal / apiKeyPageSize) ? 'var(--color-components-pagination-disabled-text)' : 'var(--color-components-pagination-item-text)',
-                                      borderColor: 'var(--color-components-pagination-border)'
-                                    }}
-                                    onMouseEnter={(e) => {
-                                      if (apiKeyPage < Math.ceil(apiKeyTotal / apiKeyPageSize)) {
-                                        e.currentTarget.style.backgroundColor = 'var(--color-components-pagination-item-bg-hover)'
-                                      }
-                                    }}
-                                    onMouseLeave={(e) => {
-                                      if (apiKeyPage < Math.ceil(apiKeyTotal / apiKeyPageSize)) {
-                                        e.currentTarget.style.backgroundColor = 'var(--color-components-pagination-item-bg)'
-                                      }
-                                    }}
-                                  >
-                                    下一页
-                                  </button>
+                                    }
+                                    
+                                    return (
+                                      <Button
+                                        key={pageNum}
+                                        variant={pageNum === apiKeyPage ? 'default' : 'ghost'}
+                                        size="sm"
+                                        className="w-8 h-8 p-0"
+                                        onClick={() => setApiKeyPage(pageNum)}
+                                      >
+                                        {pageNum}
+                                      </Button>
+                                    )
+                                  })}
                                 </div>
+                                
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setApiKeyPage(Math.min(Math.ceil(apiKeyTotal / apiKeyPageSize), apiKeyPage + 1))}
+                                  disabled={apiKeyPage >= Math.ceil(apiKeyTotal / apiKeyPageSize)}
+                                >
+                                  下一页
+                                </Button>
                               </div>
                             </div>
-                          )}
-                        </div>
+                          </DialogFooter>
+                        )}
                       </DialogContent>
                     </Dialog>
 
