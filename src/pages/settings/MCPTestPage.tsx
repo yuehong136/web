@@ -4,9 +4,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { 
+import {
   TestTube,
   Play,
   RefreshCw,
@@ -14,14 +13,10 @@ import {
   XCircle,
   Clock,
   AlertTriangle,
-  Activity,
-  Zap,
   Globe,
   Settings,
   Info,
   Loader2,
-  Copy,
-  ExternalLink
 } from 'lucide-react'
 import type { MCPServer, MCPTool } from '@/types/mcp'
 import { MCP_SERVER_TYPES } from '@/types/mcp'
@@ -205,7 +200,7 @@ export const MCPTestPage: React.FC = () => {
     }
   }
 
-  const copyToClipboard = (text: string) => {
+  const _copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text)
     toast.success('已复制到剪贴板')
   }

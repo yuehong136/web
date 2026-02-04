@@ -55,6 +55,23 @@ export const useKnowledgeStore = create<KnowledgeState>()(
       isLoading: false,
       searchQuery: '',
       total: 0,
+      
+      // 上传文档
+      uploadDocument: async (knowledgeBaseId: string, file: File, metadata?: any): Promise<Document> => {
+        try {
+          const uploadedDocs = await knowledgeAPI.document.upload(knowledgeBaseId, [file], metadata)
+          
+          // 确保返回的文档符合 Document 类型，只更新 documents 为实际上传的文档
+          set(state => ({
+            documents: [...uploadedDocs as unknown as Document[], ...state.documents]
+          }))
+
+          return uploadedDocs[0] as unknown as Document
+        } catch (error) {
+          console.error('Failed to upload document:', error)
+          throw error
+        }
+      },
 
       // 加载知识库列表
       loadKnowledgeBases: async (params) => {
@@ -239,28 +256,37 @@ export const useKnowledgeStore = create<KnowledgeState>()(
         try {
           await knowledgeAPI.knowledgeBase.update(data)
 
+          // 过滤掉 null 值，只更新有效字段
+          const updates = Object.fromEntries(
+            Object.entries(data).filter(([_, v]) => v !== null && v !== undefined)
+          )
+
           set(state => ({
             knowledgeBases: state.knowledgeBases.map(kb =>
               kb.id === data.kb_id 
-                ? { ...kb, ...data, update_time: new Date().toISOString() }
+                ? { ...kb, ...updates, update_time: Date.now() } as KnowledgeBase
                 : kb
             ),
             currentKnowledgeBase: state.currentKnowledgeBase?.id === data.kb_id
-              ? { ...state.currentKnowledgeBase, ...data, update_time: new Date().toISOString() }
+              ? { ...state.currentKnowledgeBase, ...updates, update_time: Date.now() } as KnowledgeBase
               : state.currentKnowledgeBase
           }))
         } catch (error) {
           console.error('Failed to update knowledge base:', error)
           
           // 本地更新
+          const updates = Object.fromEntries(
+            Object.entries(data).filter(([_, v]) => v !== null && v !== undefined)
+          )
+
           set(state => ({
             knowledgeBases: state.knowledgeBases.map(kb =>
               kb.id === data.kb_id 
-                ? { ...kb, ...data, update_time: new Date().toISOString() }
+                ? { ...kb, ...updates, update_time: Date.now() } as KnowledgeBase
                 : kb
             ),
             currentKnowledgeBase: state.currentKnowledgeBase?.id === data.kb_id
-              ? { ...state.currentKnowledgeBase, ...data, update_time: new Date().toISOString() }
+              ? { ...state.currentKnowledgeBase, ...updates, update_time: Date.now() } as KnowledgeBase
               : state.currentKnowledgeBase
           }))
         }
@@ -304,12 +330,15 @@ export const useKnowledgeStore = create<KnowledgeState>()(
       loadDocuments: async (knowledgeBaseId: string) => {
         try {
           set({ isLoading: true })
-          const response = await apiClient.get<{
-            documents: DocumentInfo[]
-          }>(`/knowledge-bases/${knowledgeBaseId}/documents`)
+          const response = await knowledgeAPI.document.list({
+            kb_id: knowledgeBaseId,
+            page: 1,
+            page_size: 100,
+            filter_params: {}
+          })
           
           set({ 
-            documents: response.data.documents,
+            documents: response.docs,
             isLoading: false 
           })
         } catch (error) {
@@ -318,36 +347,6 @@ export const useKnowledgeStore = create<KnowledgeState>()(
             documents: [],
             isLoading: false 
           })
-        }
-      },
-
-      // 上传文档
-      uploadDocuments: async (knowledgeBaseId: string, files: File[], options?: {
-        parser_id?: string
-        parser_config?: Record<string, any>
-      }) => {
-        try {
-          const uploadedDocs = await knowledgeAPI.document.upload(knowledgeBaseId, files, options)
-          
-          // 将上传的文档转换为DocumentInfo格式（如果需要）
-          const newDocs = uploadedDocs.map(doc => ({
-            id: doc.id,
-            name: doc.name,
-            size: doc.size,
-            type: doc.type,
-            created_time: doc.created_time,
-            status: doc.status,
-            thumbnail: doc.thumbnail
-          }))
-          
-          set(state => ({
-            documents: [...newDocs, ...state.documents]
-          }))
-
-          return uploadedDocs
-        } catch (error) {
-          console.error('Failed to upload documents:', error)
-          throw error
         }
       },
 
@@ -374,14 +373,15 @@ export const useKnowledgeStore = create<KnowledgeState>()(
       // 搜索文档
       searchDocuments: async (knowledgeBaseId: string, query: string) => {
         try {
-          const response = await apiClient.post<{
-            documents: DocumentInfo[]
-          }>(`/knowledge-bases/${knowledgeBaseId}/search`, {
-            query,
-            limit: 20
+          const response = await knowledgeAPI.document.list({
+            kb_id: knowledgeBaseId,
+            keywords: query,
+            page: 1,
+            page_size: 20,
+            filter_params: {}
           })
 
-          return response.data.documents
+          return response.docs
         } catch (error) {
           console.error('Failed to search documents:', error)
           return []

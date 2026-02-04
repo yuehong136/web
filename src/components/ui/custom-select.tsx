@@ -9,13 +9,14 @@ interface SelectOption {
   icon?: string
 }
 
-interface CustomSelectProps {
+export interface CustomSelectProps {
   options: SelectOption[]
   value: string
   onChange: (value: string) => void
   placeholder?: string
   className?: string
   size?: 'sm' | 'md' | 'lg'
+  disabled?: boolean
 }
 
 // Portal组件，将下拉菜单渲染到body

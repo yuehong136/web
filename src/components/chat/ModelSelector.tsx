@@ -87,7 +87,7 @@ export function ModelSelector({
     }))
   }, [])
 
-  const selectedModel = MOCK_MODELS.find(model => model.id === selectedModelId)
+  const _selectedModel = MOCK_MODELS.find(model => model.id === selectedModelId)
 
   return (
     <div className={`flex items-center gap-4 ${className}`}>

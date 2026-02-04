@@ -51,21 +51,17 @@ export function ChatMessage({ role, content, timestamp, toolCalls, parsedToolCal
 
   return (
     <div className={`flex gap-4 mb-6 ${isAssistant ? '' : 'flex-row-reverse'}`}>
-      <Avatar 
-        className="w-8 h-8"
-        size="md"
-        fallback={
-          <div 
-            style={{
-              backgroundColor: isAssistant ? '#3b82f6' : '#6b7280',
-              color: '#ffffff'
-            }}
-            className="w-full h-full flex items-center justify-center rounded-full font-medium text-sm"
-          >
-            {isAssistant ? 'AI' : 'U'}
-          </div>
-        }
-      />
+      <Avatar className="w-8 h-8">
+        <AvatarFallback
+          style={{
+            backgroundColor: isAssistant ? '#3b82f6' : '#6b7280',
+            color: '#ffffff'
+          }}
+          className="font-medium text-sm"
+        >
+          {isAssistant ? 'AI' : 'U'}
+        </AvatarFallback>
+      </Avatar>
       
       <div className={`flex-1 ${isAssistant ? '' : 'flex justify-end'}`}>
         <div className={`max-w-[80%] ${isAssistant ? '' : 'flex flex-col items-end'}`}>

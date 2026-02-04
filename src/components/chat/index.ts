@@ -34,10 +34,10 @@ export { CarouselWrapper } from './CarouselWrapper';
 export { ChatSettingsPanel, defaultChatSettings } from './ChatSettingsPanel';
 export { MetadataFilter, ComparisonOperators, MetadataFilterModes } from './MetadataFilter';
 export { 
-  GenerationPresetSelector, 
-  GENERATION_PRESETS, 
-  PRESET_OPTIONS,
-  detectPreset 
+  GenerationPresetSelector,
+  generationPresetConfigMap,
+  generationPresetOptions,
+  detectMatchingPreset
 } from './GenerationPresetSelector';
 
 // 重新导出类型
@@ -49,7 +49,7 @@ export type { InlineSourceRefProps } from './InlineSourceRef';
 export type { ImageCarouselProps } from './ImageCarousel';
 export type { ChatSettings } from './ChatSettingsPanel';
 export type { MetadataFilterMode } from './MetadataFilter';
-export type { GenerationPresetType, GenerationPreset, LLMParameters } from './GenerationPresetSelector';
+export type { GenerationPresetType, GenerationPresetConfig, LLMParameters, PresetOption } from './GenerationPresetSelector';
 
 // 新版参考文献组件类型
 export type { ReferenceMarkerProps } from './ReferenceMarker';

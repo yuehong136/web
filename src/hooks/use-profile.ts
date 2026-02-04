@@ -6,7 +6,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { authAPI } from '@/api/auth'
 import { toast } from '@/lib/toast'
 import { useAuthStore } from '@/stores/auth'
-import type { UserProfile } from '@/types/api'
 
 // 时区列表 - 参考 ragflow 完整的时区列表
 export const TimezoneList = [

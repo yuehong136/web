@@ -1572,7 +1572,7 @@ export interface UpdateBindingRequest {
 // ============ 特殊业务类型 ============
 
 // 语义元素类型
-export enum SemanticElementType {
+export const enum SemanticElementType {
   TITLE = 'title',
   PARAGRAPH = 'paragraph',
   LIST = 'list',
@@ -1590,7 +1590,7 @@ export interface SemanticLayerRequest {
 }
 
 // 所有者类型
-export enum OwnerType {
+export const enum OwnerType {
   USER = 'user',
   TENANT = 'tenant',
   SYSTEM = 'system'
@@ -1939,7 +1939,7 @@ export interface FullEntity extends UserEntity, StatusEntity, TaggableEntity, Ca
 }
 
 // HTTP状态码
-export enum HttpStatus {
+export const enum HttpStatus {
   OK = 200,
   CREATED = 201,
   NO_CONTENT = 204,

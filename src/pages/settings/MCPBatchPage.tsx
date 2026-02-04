@@ -21,7 +21,6 @@ import {
   Info,
   Loader2,
   Copy,
-  ExternalLink,
   Globe,
   Activity,
   Database

@@ -778,9 +778,7 @@ export function ChildrenDelimiterFormField({
             </FormControl>
           </FormItem>
         )}
-      />
-
-      {/* 子分隔符输入 - 仅在启用时显示 */}
+      />      {/* 子分隔符输入 - 仅在启用时显示 */}
       {enableChildren && (
         <FormField
           control={form.control}
@@ -840,4 +838,3 @@ export function OverlappedPercentFormField({
     />
   )
 }
-

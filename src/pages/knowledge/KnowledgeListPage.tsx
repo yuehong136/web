@@ -1,5 +1,5 @@
 import React from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { 
   Plus, 
   Search, 
@@ -9,20 +9,13 @@ import {
   Clock, 
   Users,
   Eye,
-  Edit,
   Trash2,
   Filter,
   Settings,
-  Copy,
-  Download,
-  BarChart3,
-  ChevronDown,
   Grid3X3,
   List as ListIcon,
   SortAsc,
   SortDesc,
-  Calendar,
-  FileIcon,
   Layers,
   Target,
   ChevronLeft,
@@ -48,7 +41,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { ViewToggle } from '@/components/ui/view-toggle'
 import { useKnowledgeStore } from '@/stores/knowledge'
 import { useUIStore } from '@/stores/ui'
-import { cn, formatTimestamp, formatTimestampDetailed, formatTimestampCompact, formatRelativeTime, formatBytes } from '@/lib/utils'
+import { cn, formatTimestamp, formatTimestampDetailed, formatTimestampCompact, formatRelativeTime } from '@/lib/utils'
 import { ROUTES } from '@/constants'
 import type { KnowledgeBase } from '@/types/api'
 
@@ -260,7 +253,7 @@ export const KnowledgeListPage: React.FC = () => {
     navigate(`${ROUTES.KNOWLEDGE}/${id}`)
   }
 
-  const handleEdit = (id: string) => {
+  const _handleEdit = (id: string) => {
     navigate(`${ROUTES.KNOWLEDGE}/${id}/edit`)
   }
 
@@ -341,12 +334,12 @@ export const KnowledgeListPage: React.FC = () => {
 
   // 移除本地的formatSize函数，使用utils中的formatBytes
 
-  const getLanguages = () => {
+  const _getLanguages = () => {
     const languages = new Set(knowledgeBases.map(kb => kb.language).filter(Boolean))
     return Array.from(languages)
   }
 
-  const getPermissions = () => {
+  const _getPermissions = () => {
     const permissions = new Set(knowledgeBases.map(kb => kb.permission).filter(Boolean))
     return Array.from(permissions)
   }
@@ -376,7 +369,7 @@ export const KnowledgeListPage: React.FC = () => {
     return uniqueEmbeddings.map(e => ({ value: e, label: e }))
   }
 
-  const getDocNumRangeOptions = () => [
+  const _getDocNumRangeOptions = () => [
     { value: '0', label: '0 个文档' },
     { value: '1-5', label: '1-5 个文档' },
     { value: '6-20', label: '6-20 个文档' },

@@ -44,9 +44,9 @@ const nameSchema = baseSchema.extend({
 // 密码编辑 Schema
 const passwordSchema = baseSchema
   .extend({
-    currPasswd: z.string({ required_error: '请输入当前密码' }).trim().min(1, { message: '请输入当前密码' }),
-    newPasswd: z.string({ required_error: '请输入新密码' }).trim().min(8, { message: '新密码至少需要8个字符' }),
-    confirmPasswd: z.string({ required_error: '请确认新密码' }).trim().min(8, { message: '确认密码至少需要8个字符' }),
+    currPasswd: z.string({ message: '请输入当前密码' }).trim().min(1, { message: '请输入当前密码' }),
+    newPasswd: z.string({ message: '请输入新密码' }).trim().min(8, { message: '新密码至少需要8个字符' }),
+    confirmPasswd: z.string({ message: '请确认新密码' }).trim().min(8, { message: '确认密码至少需要8个字符' }),
   })
   .superRefine((data, ctx) => {
     if (data.newPasswd && data.confirmPasswd && data.newPasswd !== data.confirmPasswd) {

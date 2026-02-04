@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from 'react'
 import { conversationAPI } from '@/api/conversation'
-import type { UploadFile, UploadedFileInfo, uploadConfig } from '@/config/chat'
+import type { UploadFile, UploadedFileInfo } from '@/config/chat'
 
 /**
  * 聊天文件上传 Hook

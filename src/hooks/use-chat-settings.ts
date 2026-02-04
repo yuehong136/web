@@ -8,7 +8,7 @@ import type { DialogApp } from '@/types/api'
 import type { ChatSettings } from '@/components/chat/ChatSettingsPanel'
 import { defaultChatSettings } from '@/components/chat/ChatSettingsPanel'
 import type { MetadataFilterMode } from '@/components/chat/MetadataFilter'
-import { detectMatchingPreset, GenerationPresetType } from '@/constants/llm'
+import { detectMatchingPreset } from '@/constants/llm'
 
 /**
  * 从 DialogApp 转换为 ChatSettings
@@ -16,7 +16,7 @@ import { detectMatchingPreset, GenerationPresetType } from '@/constants/llm'
 export function dialogToSettings(dialog: DialogApp | null | undefined): ChatSettings {
   if (!dialog) return defaultChatSettings
 
-  const promptConfig = dialog.prompt_config || {}
+  const promptConfig = (dialog.prompt_config || {}) as any
   
   // 解析元数据过滤设置
   let metadataFilterMode: MetadataFilterMode = 'disabled'

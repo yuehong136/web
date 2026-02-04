@@ -24,7 +24,7 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({
   onSend,
 }) => {
   const [activeTab, setActiveTab] = useState<string | null>(null)
-  const atButtonRef = useRef<HTMLButtonElement>(null)
+  const atButtonRef = useRef<HTMLButtonElement>(null!) as React.RefObject<HTMLButtonElement>
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   // Store 状态

@@ -12,7 +12,7 @@
  * - episodic: 情景记忆 - 带时间戳的特定事件和经历记录
  * - procedural: 程序记忆 - 学习的技能、习惯和自动化程序
  */
-export enum MemoryType {
+export const enum MemoryType {
   Raw = 'raw',
   Semantic = 'semantic',
   Episodic = 'episodic',

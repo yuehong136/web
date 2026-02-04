@@ -191,7 +191,7 @@ export const useUpdateDocumentMeta = () => {
     mutationFn: ({
       docId,
       meta,
-      kbId,
+      kbId: _kbId,
     }: {
       docId: string
       meta: Record<string, any>

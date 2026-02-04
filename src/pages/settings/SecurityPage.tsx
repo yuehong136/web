@@ -100,14 +100,17 @@ export const SecurityPage: React.FC = () => {
         
         toast.error(errorMessage)
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('API调用异常详情:', error)
       console.error('Error type:', typeof error)
-      console.error('Error message:', error.message)
-      if (error.response) {
-        console.error('Error response:', error.response)
-        console.error('Error response data:', error.response.data)
-        console.error('Error response status:', error.response.status)
+      if (error && typeof error === 'object') {
+        const err = error as any
+        console.error('Error message:', err.message)
+        if (err.response) {
+          console.error('Error response:', err.response)
+          console.error('Error response data:', err.response.data)
+          console.error('Error response status:', err.response.status)
+        }
       }
       toast.error('密码修改失败，请检查网络连接后重试')
     } finally {

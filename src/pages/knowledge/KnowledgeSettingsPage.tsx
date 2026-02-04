@@ -98,9 +98,6 @@ const KnowledgeSettingsPage: React.FC = () => {
 
   const [isLoading, setIsLoading] = React.useState(false)
 
-  // 数据源状态（后端暂不支持，前端先实现）
-  const [dataSources, setDataSources] = React.useState<DataSourceItem[]>([])
-
   // Pipeline 列表（后端暂不支持，前端先实现）
   const [pipelineOptions] = React.useState<PipelineOption[]>([
     // 模拟数据，实际应该从后端获取
@@ -331,20 +328,6 @@ const KnowledgeSettingsPage: React.FC = () => {
     }
   }
 
-  // 数据源操作
-  const handleLinkDataSource = (items: DataSourceItem[]) => {
-    setDataSources(items)
-  }
-
-  const handleUnbindDataSource = (item: DataSourceItem) => {
-    setDataSources((prev) => prev.filter((s) => s.id !== item.id))
-  }
-
-  const handleAutoParseChange = (sourceId: string, autoParse: boolean) => {
-    setDataSources((prev) =>
-      prev.map((s) => (s.id === sourceId ? { ...s, auto_parse: autoParse ? '1' : '0' } : s))
-    )
-  }
 
   const parserDescription = selectedParserId
     ? DOCUMENT_PARSER_TYPE_DESCRIPTIONS[selectedParserId as DocumentParserType]
@@ -530,12 +513,7 @@ const KnowledgeSettingsPage: React.FC = () => {
                 <Divider />
 
                 {/* ==================== 5. 数据源 ==================== */}
-                <LinkDataSource
-                  data={dataSources}
-                  onLinkOrEditSubmit={handleLinkDataSource}
-                  onUnbind={handleUnbindDataSource}
-                  onAutoParse={handleAutoParseChange}
-                />
+                <LinkDataSource kbId={id!} />
               </div>
             </div>
 

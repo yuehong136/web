@@ -1,14 +1,12 @@
 import React from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Loading } from '@/components/ui/loading'
 import { useAuthStore } from '@/stores/auth'
 import { ROUTES } from '@/constants'
-import { Eye, EyeOff, User, Mail, Lock, Building, Briefcase, Github } from 'lucide-react'
+import { Github } from 'lucide-react'
 import { Progress } from '@/components/ui/progress'
 import { Separator } from '@/components/ui/separator'
 import { Label } from '@/components/ui/label'
@@ -41,8 +39,6 @@ const steps = [
   { title: "工作信息", description: "帮助我们个性化您的体验" },
 ];
 
-type RegisterFormData = z.infer<typeof registerSchema>
-
 export const RegisterPage: React.FC = () => {
   const navigate = useNavigate()
   const { register: registerUser, isLoading } = useAuthStore()
@@ -55,8 +51,8 @@ export const RegisterPage: React.FC = () => {
     company: "",
     role: "",
   })
-  const [showPassword, setShowPassword] = React.useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = React.useState(false)
+  const [showPassword, _setShowPassword] = React.useState(false)
+  const [showConfirmPassword, _setShowConfirmPassword] = React.useState(false)
 
   const progress = ((currentStep + 1) / steps.length) * 100;
 

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { 
   Server, 
@@ -21,7 +20,6 @@ import {
   X
 } from 'lucide-react'
 import type { MCPServer, CreateMCPServerRequest, UpdateMCPServerRequest, MCPTool } from '@/types/mcp'
-import { MCP_SERVER_TYPES } from '@/types/mcp'
 import { mcpAPI } from '@/api/mcp'
 import { toast } from '@/lib/toast'
 import { cn } from '@/lib/utils'

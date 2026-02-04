@@ -4,7 +4,6 @@ import type {
   CreateKBRequest,
   UpdateKBRequest,
   Document,
-  UploadDocumentRequest,
   ParseWebRequest,
   DocumentChunk,
   KnowledgeGraph,
@@ -200,6 +199,10 @@ export const knowledgeAPI = {
       parser_config?: Record<string, any>
     }): Promise<{ task_id: string }> =>
       apiClient.post(`/v1/document/${docId}/reparse`, options),
+    
+    // 别名：parse -> 批量解析文档
+    parse: (docIds: string[]): Promise<void> =>
+      apiClient.post('/v1/document/run', { doc_ids: docIds }),
 
     // 获取文档内容
     getContent: (docId: string): Promise<{ content: string }> =>

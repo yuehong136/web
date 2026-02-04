@@ -81,6 +81,9 @@ export const StudioPage: React.FC = () => {
     pagination,
     setPagination,
   } = useFetchDialogList(12) // 默认每页 12 条，与 ragflow 类似
+  
+  // 删除 mutation
+  const deleteDialogAppsMutation = useDeleteDialogApps()
 
   const dialogApps = data.dialogs
   const total = data.total

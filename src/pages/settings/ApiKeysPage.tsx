@@ -923,7 +923,7 @@ const ApiDocumentationPage: React.FC = () => {
     // 如果是引用类型 ($ref)，解析引用
     if (schema.$ref && apiSpec) {
       const refPath = schema.$ref.replace('#/', '').split('/')
-      let referencedSchema = apiSpec
+      let referencedSchema: any = apiSpec
       
       // 遍历路径找到引用的schema
       for (const pathSegment of refPath) {

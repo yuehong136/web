@@ -17,11 +17,11 @@ export const llmKeys = {
 
 // 获取我的 LLM 列表
 export const useFetchMyLLMs = () => {
-  const { data, isFetching, isError, error, refetch } = useQuery<MyLLMProvider>({
+  const { data, isFetching, isError, error, refetch } = useQuery<Record<string, any>>({
     queryKey: llmKeys.myLLMs(),
     queryFn: async () => {
       const response = await llmAPI.getMyLLMs()
-      return response
+      return response as any
     },
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
@@ -29,7 +29,7 @@ export const useFetchMyLLMs = () => {
   })
 
   return {
-    myLLMs: data ?? {},
+    myLLMs: (data ?? {}) as MyLLMProvider,
     isLoading: isFetching,
     isError,
     error,
@@ -70,7 +70,12 @@ export const useSetApiKey = () => {
       baseUrl?: string
       additionalParams?: Record<string, any>
     }) => {
-      await llmAPI.setApiKey(params)
+      await llmAPI.setApiKey(
+        params.llmFactory, 
+        params.apiKey,
+        params.baseUrl,
+        params.additionalParams
+      )
       return params
     },
     onSuccess: () => {
@@ -134,10 +139,10 @@ export const useDeleteFactory = () => {
 export const useLLMOptions = (type?: 'chat' | 'embedding' | 'rerank') => {
   const { myLLMs, isLoading } = useFetchMyLLMs()
 
-  const options = Object.entries(myLLMs).flatMap(([providerName, provider]) => {
-    return provider.llm
-      .filter(model => !type || model.type === type)
-      .map(model => ({
+  const options = Object.entries(myLLMs).flatMap(([providerName, provider]: [string, any]) => {
+    return (provider.llm || [])
+      .filter((model: any) => !type || model.type === type)
+      .map((model: any) => ({
         label: `${providerName} / ${model.name}`,
         value: model.name,
         provider: providerName,

@@ -164,7 +164,7 @@ const DataInput: React.FC<DataInputProps> = ({
   }, [settingsOpen, loadMyLLMs])
 
 
-  const validateData = (_data: PlaceholderData) => {
+  const _validateData = (_data: PlaceholderData) => {
     // 不再强制必填，允许部分字段为空
     return [] as string[]
   }

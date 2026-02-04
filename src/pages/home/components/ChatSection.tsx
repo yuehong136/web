@@ -92,7 +92,7 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
   isLoadingHistory = false,
 }) => {
   const chatContainerRef = useRef<HTMLDivElement>(null)
-  const atButtonRef = useRef<HTMLButtonElement>(null)
+  const atButtonRef = useRef<HTMLButtonElement>(null!) as React.RefObject<HTMLButtonElement>
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   // 引用详情侧边栏状态

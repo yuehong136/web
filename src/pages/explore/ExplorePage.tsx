@@ -202,7 +202,7 @@ export const ExplorePage: React.FC = () => {
 
   // 获取选中应用的详情和设置
   const { 
-    dialog: selectedAppDetail,
+    dialog: _selectedAppDetail,
     settings: dialogSettings,
     loading: settingsLoading,
     saving: savingSettings,
@@ -668,7 +668,7 @@ export const ExplorePage: React.FC = () => {
   
 
   // 处理引用点击事件 - 打开详情侧边栏
-  const handleReferenceClick = React.useCallback((reference: ReferenceChunk, _index: number, allReferences?: ReferenceChunk[]) => {
+  const _handleReferenceClick = React.useCallback((reference: ReferenceChunk, _index: number, allReferences?: ReferenceChunk[]) => {
     console.log('Reference clicked:', reference)
     setSelectedChunk(reference)
     if (allReferences) {

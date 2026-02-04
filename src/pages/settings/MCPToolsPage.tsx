@@ -1,18 +1,17 @@
 import React, { useState, useEffect } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Table } from '@/components/ui/table'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { 
-  Search, 
-  RefreshCw, 
+import {
+  Search,
+  RefreshCw,
   Play,
-  Settings, 
-  Zap, 
+  Settings,
+  Zap,
   TestTube,
   Code,
   AlertCircle,
@@ -25,8 +24,6 @@ import {
   Download,
   Sparkles,
   Loader2,
-  ChevronRight,
-  ExternalLink
 } from 'lucide-react'
 import type { MCPServer, MCPTool } from '@/types/mcp'
 import { mcpAPI } from '@/api/mcp'

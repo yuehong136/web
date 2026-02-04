@@ -4,7 +4,6 @@ import { ChatSidebar } from "@/components/chat/ChatSidebar";
 import { ChatHeader } from "@/components/chat/ChatHeader";
 import { WelcomeMessage } from "@/components/chat/WelcomeMessage";
 import { Bubble, Think, Sender, Attachments } from "@ant-design/x";
-import type { BubbleProps } from "@ant-design/x";
 import { User, Bot, Paperclip, Square, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ProviderIcon } from '@/components/ui/provider-icon';
@@ -21,7 +20,7 @@ import { uploadConfig, type UploadFile } from "@/config/chat";
 import type { ChatSession, MCPChatConfig } from "@/types/mcp";
 
 // Think 组件 - 处理 <think> 标签
-const ThinkComponent = React.memo((props: ComponentProps) => {
+const _ThinkComponent = React.memo((props: ComponentProps) => {
   const [title, setTitle] = React.useState('正在思考...')
   const [loading, setLoading] = React.useState(true)
   const [expand, setExpand] = React.useState(true)
@@ -298,7 +297,7 @@ export default function MCPChatPage() {
   // const abortControllerRef = useRef<AbortController | null>(null);
 
   // 流式响应状态管理
-  const [isLoading, setIsLoading] = useState(false);
+  const [_isLoading, setIsLoading] = useState(false);
   const [streamingContent, setStreamingContent] = useState('');
   const [streamingToolCalls, setStreamingToolCalls] = useState<ToolCallInfo[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
@@ -308,7 +307,7 @@ export default function MCPChatPage() {
   const sseParserRef = useRef<EnhancedSSEParser | null>(null);
 
   // 复制消息内容
-  const handleCopy = async (content?: string, ev?: React.MouseEvent) => {
+  const _handleCopy = async (content?: string, ev?: React.MouseEvent) => {
     try {
       let textToCopy = '';
       if (typeof content === 'string' && content.length >= 0) {
@@ -476,7 +475,7 @@ export default function MCPChatPage() {
     }
       
       // 检查是否有工具调用需要显示
-      const hasToolCalls = streamingToolCalls.length > 0;
+      const _hasToolCalls = streamingToolCalls.length > 0;
       
       // 使用字符串内容 + 自定义 contentRender，支持 think 标签
       const { thinkContent, mainContent, isThinking } = extractThinkContent(streamingContent || '')

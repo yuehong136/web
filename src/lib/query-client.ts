@@ -2,7 +2,7 @@ import { QueryClient } from '@tanstack/react-query'
 
 const queryConfig = {
   queries: {
-    retry: (failureCount, error: any) => {
+    retry: (failureCount: number, error: any) => {
       // 不重试认证错误
       if (error?.status === 401 || error?.status === 403) {
         return false
@@ -10,7 +10,7 @@ const queryConfig = {
       // 最多重试2次
       return failureCount < 2
     },
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    retryDelay: (attemptIndex: number) => Math.min(1000 * 2 ** attemptIndex, 30000),
     staleTime: 5 * 60 * 1000, // 5分钟
     gcTime: 10 * 60 * 1000, // 10分钟 (原cacheTime)
     refetchOnWindowFocus: false,

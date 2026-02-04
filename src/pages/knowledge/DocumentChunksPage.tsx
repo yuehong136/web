@@ -24,7 +24,6 @@ import {
   Key,
   Image as ImageIcon,
   ZoomIn,
-  Replace
 } from 'lucide-react'
 import { knowledgeAPI } from '@/api/knowledge'
 import { API_BASE_URL, API_VERSION } from '@/constants'
@@ -74,7 +73,7 @@ interface ChunkData {
 
 const DocumentChunksPage: React.FC = () => {
   const { docId } = useParams<{ id: string; docId: string }>()
-  const queryClient = useQueryClient()
+  const _queryClient = useQueryClient()
   
   // 状态管理
   const [selectedChunk, setSelectedChunk] = useState<ChunkData | null>(null)
@@ -923,7 +922,7 @@ const DocumentChunksPage: React.FC = () => {
                   >
                     {/* 分块类型标签 - 右上角 */}
                     {(() => {
-                      const chunkType = (chunk.doc_type_kwd?.toLowerCase() as 'image' | 'text' | 'table') || 'text'
+                      const chunkType = ((chunk as any).doc_type_kwd?.toLowerCase() as 'image' | 'text' | 'table') || 'text'
                       const getTypeStyles = () => {
                         switch (chunkType) {
                           case 'image':

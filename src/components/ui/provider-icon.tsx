@@ -158,7 +158,7 @@ export const getProviderIconPath = (provider: string, isDark: boolean = false): 
  * 判断给定厂商是否需要在暗黑模式下反色
  * @deprecated iconfont 方式不需要此函数，保留仅为兼容性
  */
-export const needsInvertFilter = (provider: string, isDark: boolean): boolean => {
+export const needsInvertFilter = (_provider: string, _isDark: boolean): boolean => {
   // iconfont 方式自动支持主题切换，不需要反色滤镜
   return false
 }

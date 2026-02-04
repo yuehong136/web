@@ -114,7 +114,7 @@ const renderField = (
                 {field.tooltip && <FormTooltip tooltip={field.tooltip} />}
               </div>
             )}
-            {field.render(fieldProps)}
+            {field.render!(fieldProps)}
           </div>
         )}
       />
@@ -208,7 +208,7 @@ const renderField = (
           
           {field.type === FormFieldType.Tag && (
             <TagEditor
-              tags={fieldProps.value || []}
+              value={fieldProps.value || []}
               onChange={fieldProps.onChange}
               placeholder={field.placeholder}
             />
@@ -269,9 +269,9 @@ function DynamicFormRoot<T extends FieldValues>({
 /**
  * 取消按钮
  */
-function CancelButton({ handleCancel }: { handleCancel: () => void }) {
+function CancelButton({ handleCancel, className }: { handleCancel: () => void; className?: string }) {
   return (
-    <Button type="button" variant="outline" onClick={handleCancel}>
+    <Button type="button" variant="outline" onClick={handleCancel} className={className}>
       取消
     </Button>
   )
@@ -284,10 +284,12 @@ function SavingButton({
   submitLoading,
   buttonText,
   submitFunc,
+  className,
 }: {
   submitLoading: boolean
   buttonText?: string
   submitFunc?: (values: any) => void
+  className?: string
 }) {
   const form = useFormInstance()
 
@@ -299,7 +301,7 @@ function SavingButton({
   }
 
   return (
-    <Button type="button" onClick={handleClick} disabled={submitLoading}>
+    <Button type="button" onClick={handleClick} disabled={submitLoading} className={className}>
       {submitLoading ? '处理中...' : buttonText || '确定'}
     </Button>
   )

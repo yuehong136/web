@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { Edit3, Plus, MessageSquare, Search } from 'lucide-react'
 import { Button, Card, Input } from '@/components/ui'
 import { useFetchDialogList } from '@/hooks/use-dialog-apps'
-import type { DialogApp } from '@/types/api'
 
 const DialogListPage: React.FC = () => {
   const navigate = useNavigate()
@@ -31,7 +30,7 @@ const DialogListPage: React.FC = () => {
     navigate(`/dialog/${dialogId}/prompt-editor`)
   }
 
-  const handleViewTopic = (dialogId: string) => {
+  const handleViewTopic = (_dialogId: string) => {
     navigate(`/explore`) // 导航到探索页面，在那里可以查看话题
   }
 

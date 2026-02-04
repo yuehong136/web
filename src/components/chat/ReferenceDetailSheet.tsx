@@ -10,13 +10,11 @@ import {
   Table2, 
   Image, 
   Copy, 
-  ExternalLink,
   FileType,
   Database,
   Hash,
   Layers,
   Check,
-  X
 } from 'lucide-react'
 import DOMPurify from 'dompurify'
 import {
@@ -26,8 +24,7 @@ import {
   SheetTitle,
   SheetDescription,
 } from '@/components/ui/sheet'
-import { Progress } from '@/components/ui/progress'
-import { cn, copyToClipboard } from '@/lib/utils'
+import { copyToClipboard } from '@/lib/utils'
 import { toast } from '@/lib/toast'
 import type { ReferenceChunk } from '@/utils/reference-replacer'
 

@@ -4,7 +4,7 @@
  */
 
 // 租户角色枚举
-export enum TenantRole {
+export const enum TenantRole {
   Owner = 'owner',
   Invite = 'invite',
   Normal = 'normal',

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { Link, Settings, Unlink, RefreshCw, Database, Loader2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
@@ -23,7 +23,10 @@ import {
   useDataSourceRebuild,
 } from '@/hooks/use-datasource-request'
 import { useDataSourceInfo } from '@/pages/settings/datasource/constants'
-import { type IDataSourceBase, type IConnector, DataSourceKey } from '@/pages/settings/datasource/types'
+import { type IConnector, DataSourceKey } from '@/pages/settings/datasource/types'
+
+// 导出类型供外部使用
+export type DataSourceItem = IConnector
 
 // 单个数据源项卡片
 interface DataSourceItemCardProps {
@@ -259,8 +262,8 @@ export function LinkDataSource({ kbId, className }: LinkDataSourceProps) {
   const [openLinkModal, setOpenLinkModal] = useState(false)
 
   // 获取已链接的数据源
-  const { dataSources, isFetching, refetch } = useDataSourceByKb(kbId)
-  const { link, unlink, updateAutoParse, isLinking, isUnlinking } = useLinkDataSource(kbId)
+  const { dataSources, isFetching, refetch: _refetch } = useDataSourceByKb(kbId)
+  const { link, unlink, updateAutoParse, isLinking, isUnlinking: _isUnlinking } = useLinkDataSource(kbId)
   const { handleRebuild } = useDataSourceRebuild()
 
   // 转换为 IConnector 类型

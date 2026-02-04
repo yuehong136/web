@@ -86,11 +86,7 @@ export function useSpeech(
           setIsPlaying(false)
           onPause?.()
         },
-        onEnd: () => {
-          setIsPlaying(false)
-          onEnd?.()
-        },
-      })
+      } as any)
 
       await player.init()
       playerRef.current = player

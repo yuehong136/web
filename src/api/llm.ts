@@ -8,6 +8,14 @@ export const llmAPI = {
     available?: boolean
   }): Promise<Record<string, LLMModel[]>> =>
     apiClient.get('/v1/llm/my_llms', { params }),
+  
+  // 别名：getMyLLMs -> list
+  getMyLLMs: (params?: { mdl_type?: LLMType; available?: boolean }): Promise<Record<string, LLMModel[]>> =>
+    llmAPI.list(params),
+
+  // 获取模型工厂列表
+  getFactories: (): Promise<any> =>
+    apiClient.get('/v1/llm/factories'),
 
   // 获取模型详情
   get: (modelId: string): Promise<LLMModel> =>
@@ -22,6 +30,24 @@ export const llmAPI = {
     is_active?: boolean
   }): Promise<LLMModel> =>
     apiClient.post('/v1/llm/add', data),
+  
+  // 别名：addLLM -> add
+  addLLM: (data: any): Promise<LLMModel> =>
+    llmAPI.add(data),
+
+  // 设置 API Key
+  setApiKey: (
+    provider: string, 
+    apiKey: string,
+    baseUrl?: string,
+    additionalParams?: Record<string, any>
+  ): Promise<void> =>
+    apiClient.post('/v1/llm/set_api_key', { 
+      provider, 
+      api_key: apiKey,
+      ...(baseUrl && { base_url: baseUrl }),
+      ...(additionalParams && additionalParams)
+    }),
 
   // 更新模型
   update: (modelId: string, data: {
@@ -34,6 +60,10 @@ export const llmAPI = {
   // 删除模型
   delete: (modelId: string): Promise<void> =>
     apiClient.delete(`/v1/llm/${modelId}`),
+  
+  // 别名：deleteFactory -> delete
+  deleteFactory: (modelId: string): Promise<void> =>
+    llmAPI.delete(modelId),
 
   // 测试模型连接
   test: (modelId: string): Promise<{ success: boolean; message?: string }> =>

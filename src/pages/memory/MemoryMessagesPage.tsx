@@ -112,7 +112,7 @@ export const MemoryMessagesPage: React.FC = () => {
             {MEMORY_TEXTS.messages.pageTitle}
           </h2>
           <span className="text-sm text-text-secondary">
-            {MEMORY_TEXTS.common.total} {total} 条
+            共 {total} 条
           </span>
         </div>
 

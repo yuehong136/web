@@ -13,8 +13,6 @@ import {
   TestTube,
   Loader2,
   MoreHorizontal,
-  ExternalLink,
-  Activity,
   Globe,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -36,13 +34,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
-import { cn } from '@/lib/utils'
+import { Tooltip } from '@/components/ui/tooltip'
+import { cn, copyToClipboard } from '@/lib/utils'
+import { toast } from '@/lib/toast'
 import type { MCPServer, MCPTool } from '@/types/mcp'
 
 // 服务器类型配置
@@ -101,11 +95,13 @@ export const MCPServerCard: React.FC<MCPServerCardProps> = ({
   const handleCopyUrl = useCallback(async (e: React.MouseEvent) => {
     e.stopPropagation()
     try {
-      await navigator.clipboard.writeText(server.url)
+      await copyToClipboard(server.url)
       setCopied(true)
+      toast.success('地址已复制到剪贴板')
       setTimeout(() => setCopied(false), 2000)
     } catch (err) {
       console.error('Failed to copy URL:', err)
+      toast.error('复制失败，请手动复制')
     }
   }, [server.url])
 
@@ -180,7 +176,7 @@ export const MCPServerCard: React.FC<MCPServerCardProps> = ({
                   <MoreHorizontal className="w-4 h-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="min-w-[140px]">
+              <DropdownMenuContent align="right" className="min-w-[140px]">
                 <DropdownMenuItem
                   onClick={(e) => {
                     e.stopPropagation()
@@ -247,28 +243,21 @@ export const MCPServerCard: React.FC<MCPServerCardProps> = ({
           </div>
 
           {/* 服务器地址 */}
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg mb-4 cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-                  style={{ backgroundColor: 'var(--color-background-subtle)' }}
-                  onClick={handleCopyUrl}
-                >
-                  <Globe className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--color-text-tertiary)' }} />
-                  <code
-                    className="text-xs font-mono truncate flex-1"
-                    style={{ color: 'var(--color-text-secondary)' }}
-                  >
-                    {server.url}
-                  </code>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>点击复制地址</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <Tooltip content={copied ? '已复制!' : '点击复制地址'}>
+            <div
+              className="flex items-center gap-2 px-3 py-2 rounded-lg mb-4 cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+              style={{ backgroundColor: 'var(--color-background-subtle)' }}
+              onClick={handleCopyUrl}
+            >
+              <Globe className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--color-text-tertiary)' }} />
+              <code
+                className="text-xs font-mono truncate flex-1"
+                style={{ color: 'var(--color-text-secondary)' }}
+              >
+                {server.url}
+              </code>
+            </div>
+          </Tooltip>
 
           {/* 描述（如果有） */}
           {server.description && (
@@ -352,7 +341,7 @@ export const MCPServerCard: React.FC<MCPServerCardProps> = ({
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>确认删除服务器</AlertDialogTitle>
-            <AlertDialogDescription asChild>
+            <AlertDialogDescription>
               <div>
                 <div
                   className="flex items-center gap-3 p-3 rounded-lg my-3"

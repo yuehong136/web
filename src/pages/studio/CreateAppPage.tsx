@@ -1000,7 +1000,7 @@ export const CreateAppPage: React.FC = () => {
     }
   }
 
-  const handleIconUpload: UploadProps['beforeUpload'] = (file) => {
+  const handleIconUpload = (file: File) => {
     const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png' || file.type === 'image/svg+xml'
     if (!isJpgOrPng) {
       toast.error('只能上传 JPG/PNG/SVG 格式的图片!')
@@ -1735,16 +1735,6 @@ export const CreateAppPage: React.FC = () => {
                   <div className="space-y-4">
                     <Bubble.List
                       items={bubbleItems}
-                      roles={{
-                        user: {
-                          variant: 'borderless',
-                          shape: 'round'
-                        },
-                        assistant: {
-                          variant: 'borderless', 
-                          shape: 'round'
-                        }
-                      }}
                     />
                   </div>
                 )}

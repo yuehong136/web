@@ -37,7 +37,7 @@ export enum DataSourceKey {
 /**
  * 数据源运行状态
  */
-export enum DataSourceStatus {
+export const enum DataSourceStatus {
   PENDING = 'pending',
   RUNNING = 'running',
   PAUSED = 'paused',
@@ -127,7 +127,7 @@ export interface IConnector {
 /**
  * 表单字段类型
  */
-export enum FormFieldType {
+export const enum FormFieldType {
   Text = 'text',
   Password = 'password',
   Number = 'number',

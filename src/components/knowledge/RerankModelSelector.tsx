@@ -29,7 +29,7 @@ const NO_RERANK_VALUE = '__NO_RERANK__'
 // 获取图标名称
 const getIconName = (provider: string, isDark: boolean): string => {
   const baseIcon = IconMap[provider as keyof typeof IconMap] || 'moxing-default'
-  if (THEME_AWARE_FACTORIES.includes(provider as LLMFactory)) {
+  if (THEME_AWARE_FACTORIES.includes(provider as any)) {
     return isDark ? `${baseIcon}-dark` : `${baseIcon}-bright`
   }
   return baseIcon

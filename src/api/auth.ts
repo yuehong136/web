@@ -10,7 +10,7 @@ import type {
   TenantInfo,
   LoginChannel,
 } from '../types/api'
-import type { UserSettingsUpdateRequest, UserSettingsUpdateResponse } from '../types'
+import type { UserSettingsUpdateResponse } from '../types'
 
 export const authAPI = {
   // 用户登录

@@ -16,15 +16,17 @@ interface AgentCardProps {
   agent: IFlow
   onDelete: (id: string) => void
   onRename?: (id: string, currentName: string) => void
+  _onRename?: (id: string, currentName: string) => void
   onDuplicate?: (id: string) => void
+  _onDuplicate?: (id: string) => void
   timeFormat?: 'detailed' | 'compact' | 'relative'
 }
 
 export const AgentCard: React.FC<AgentCardProps> = ({ 
   agent, 
-  onDelete, 
-  onRename, 
-  onDuplicate,
+  onDelete,
+  _onRename,
+  _onDuplicate,
   timeFormat = 'detailed'
 }) => {
   const navigate = useNavigate()

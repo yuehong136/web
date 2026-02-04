@@ -34,6 +34,8 @@ interface TooltipProps {
   children: React.ReactNode
   position?: 'top' | 'bottom' | 'left' | 'right'
   className?: string
+  delayHide?: number
+  maxWidth?: string
 }
 
 export const Tooltip: React.FC<TooltipProps> = ({

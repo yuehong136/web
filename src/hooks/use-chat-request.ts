@@ -7,7 +7,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useParams } from 'react-router-dom'
 import { conversationAPI } from '@/api/conversation'
-import type { ConversationInfo, MessageInfo } from '@/types/api'
 
 // Query Keys 统一管理
 export const chatKeys = {
@@ -107,7 +106,7 @@ export const useFetchMessages = (conversationId?: string) => {
   })
 
   return {
-    messages: data?.messages ?? [],
+    messages: data?.items ?? [],
     isLoading: isFetching,
     isError,
     error,

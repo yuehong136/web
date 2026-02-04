@@ -60,26 +60,26 @@ const PhotoToolbar: React.FC<{
         className="cursor-pointer text-white/60 hover:text-white transition-colors"
         size={20}
         onClick={() => onRotate(rotate + 90)}
-        title="旋转"
+        aria-label="旋转"
       />
       <ZoomIn
         className="cursor-pointer text-white/60 hover:text-white transition-colors"
         size={20}
         onClick={() => onScale(scale + 0.5)}
-        title="放大"
+        aria-label="放大"
       />
       <ZoomOut
         className="cursor-pointer text-white/60 hover:text-white transition-colors"
         size={20}
         onClick={() => onScale(scale - 0.5)}
-        title="缩小"
+        aria-label="缩小"
       />
       {showDownload && (
         <Download
           className="cursor-pointer text-white/60 hover:text-white transition-colors"
           size={20}
           onClick={handleDownload}
-          title="下载"
+          aria-label="下载"
         />
       )}
       {showOpenInNew && (
@@ -87,7 +87,7 @@ const PhotoToolbar: React.FC<{
           className="cursor-pointer text-white/60 hover:text-white transition-colors"
           size={20}
           onClick={handleOpenInNew}
-          title="新窗口打开"
+          aria-label="新窗口打开"
         />
       )}
     </div>
@@ -219,7 +219,7 @@ export const ImagePreviewItem: React.FC<ImagePreviewItemProps> = ({
 
   return (
     <PhotoView src={src}>
-      {children ? React.cloneElement(children, { 'data-photo-view-src': src }) : defaultImage}
+      {children ? React.cloneElement(children, { 'data-photo-view-src': src } as any) : defaultImage}
     </PhotoView>
   )
 }

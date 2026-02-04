@@ -59,10 +59,10 @@ export const useMessages = (conversationId: string, params?: PaginationRequest) 
 
 // 创建对话
 export const useCreateConversation = () => {
-  const queryClient = useQueryClient()
-  
+  const _queryClient = useQueryClient()
+
   return useMutation({
-    mutationFn: (data: { title: string; system_prompt?: string }) => 
+    mutationFn: (data: { title: string; system_prompt?: string }) =>
       conversationAPI.createConversation(data),
     onSuccess: (newConversation) => {
       // 使对话列表查询失效
@@ -130,10 +130,10 @@ export const useDeleteConversation = () => {
 
 // 归档对话
 export const useArchiveConversation = () => {
-  const queryClient = useQueryClient()
-  
+  const _queryClient = useQueryClient()
+
   return useMutation({
-    mutationFn: (conversationId: string) => 
+    mutationFn: (conversationId: string) =>
       conversationAPI.archiveConversation(conversationId),
     onSuccess: () => {
       invalidateQueries.conversations()
@@ -152,7 +152,7 @@ export const useChatCompletion = () => {
   return useMutation({
     mutationFn: (data: ChatCompletionRequest) => 
       conversationAPI.chatCompletion(data),
-    onSuccess: (response, variables) => {
+    onSuccess: (_response, variables) => {
       // 如果有conversation_id，刷新消息列表
       if (variables.conversation_id) {
         queryClient.invalidateQueries({
@@ -181,7 +181,7 @@ export const useAsk = () => {
       model?: string
       stream?: boolean
     }) => conversationAPI.ask(data),
-    onSuccess: (response, variables) => {
+    onSuccess: (response, _variables) => {
       // 如果有conversation_id，刷新消息列表
       if (response.conversation_id) {
         queryClient.invalidateQueries({

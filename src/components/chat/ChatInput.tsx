@@ -95,7 +95,7 @@ export function ChatInput({
   
   // 提交相关
   onSubmit,
-  onCancel,
+  onCancel: _onCancel,
   submitType = 'enter',
   
   // 状态控制
@@ -116,12 +116,12 @@ export function ChatInput({
   components,
   
   // 自定义操作按钮
-  actions,
-  
+  actions: _actions,
+
   // 自定义内容
   header,
   footer,
-  prefix,
+  prefix: _prefix,
   
   // 样式
   className = "",
@@ -140,7 +140,7 @@ export function ChatInput({
   // @ 提示词功能状态
   const [showPromptSuggestion, setShowPromptSuggestion] = useState(false);
   const [promptSearchQuery, setPromptSearchQuery] = useState("");
-  const [cursorPosition, setCursorPosition] = useState(0);
+  const [_cursorPosition, setCursorPosition] = useState(0);
   const [atTriggerPosition, setAtTriggerPosition] = useState(-1);
   const [inputBoxPosition, setInputBoxPosition] = useState<{ top: number; left: number; width: number } | null>(null);
   

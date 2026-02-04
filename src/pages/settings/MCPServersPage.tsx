@@ -43,7 +43,7 @@ import {
   Rocket,
 } from 'lucide-react'
 import { ViewToggle } from '@/components/ui/view-toggle'
-import type { MCPServer, MCPTool } from '@/types/mcp'
+import type { MCPServer } from '@/types/mcp'
 import { MCPServerForm } from '@/components/mcp/MCPServerForm'
 import { MCPStatsCards } from '@/components/mcp/MCPStatsCards'
 import { MCPServerCard } from '@/components/mcp/MCPServerCard'
@@ -339,7 +339,7 @@ export const MCPServersPage: React.FC<ServerListPageProps> = ({ onServerSelect }
                     <MoreHorizontal className="w-4 h-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="min-w-[140px]">
+                <DropdownMenuContent align="right" className="min-w-[140px]">
                   <DropdownMenuItem
                     onClick={() => handleTestConnection(record)}
                     disabled={testingServerId === record.id}

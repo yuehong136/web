@@ -13,10 +13,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useParams } from 'react-router-dom'
 import { knowledgeAPI } from '@/api/knowledge'
-import type { 
-  KnowledgeBase, 
-  CreateKBRequest, 
-  UpdateKBRequest 
+import type {
+  CreateKBRequest,
+  UpdateKBRequest
 } from '@/types/api'
 
 // Query Keys 统一管理

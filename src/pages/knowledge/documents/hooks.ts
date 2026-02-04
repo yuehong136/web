@@ -332,7 +332,7 @@ export function useFilterGroup(): Record<string, string[]> {
  * 文档操作 Hooks
  */
 export function useDocumentActions(
-  kbId: string | undefined,
+  _kbId: string | undefined,
   onSuccess?: () => void
 ) {
   const { runDocument, isLoading: isRunning } = useRunDocument()

@@ -62,11 +62,11 @@ export const DropdownMenuTrigger: React.FC<DropdownMenuTriggerProps> = ({
     context.setIsOpen(!context.isOpen)
   }
 
-  if (asChild) {
+  if (asChild && React.isValidElement(children)) {
     // 如果是asChild，我们需要clone children并添加onClick
-    return React.cloneElement(children as React.ReactElement, {
-      onClick: handleClick
-    })
+    return React.cloneElement(children, {
+      onClick: handleClick,
+    } as any)
   }
 
   return (

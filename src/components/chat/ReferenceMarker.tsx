@@ -9,8 +9,7 @@ import {
   FileText, 
   Table2, 
   Image, 
-  Copy, 
-  ExternalLink,
+  Copy,
   FileType,
   ChevronRight
 } from 'lucide-react'
@@ -20,7 +19,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
-import { Progress } from '@/components/ui/progress'
 import { cn } from '@/lib/utils'
 import type { ReferenceChunk } from '@/utils/reference-replacer'
 

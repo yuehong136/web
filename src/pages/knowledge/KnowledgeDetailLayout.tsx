@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Loading } from '@/components/ui/loading'
 import { useKnowledgeStore } from '@/stores/knowledge'
-import { cn } from '@/lib/utils'
 import { ROUTES } from '@/constants'
 import { knowledgeAPI } from '@/api/knowledge'
 import {

@@ -12,10 +12,8 @@ import {
   ChevronDown, 
   ChevronRight,
   BookOpen,
-  FileType,
-  ExternalLink
+  FileType
 } from 'lucide-react'
-import DOMPurify from 'dompurify'
 import { cn } from '@/lib/utils'
 import type { ReferenceChunk } from '@/utils/reference-replacer'
 
@@ -370,9 +368,9 @@ export const ReferencePanel: React.FC<ReferencePanelProps> = ({
       {/* 展开内容 */}
       {isExpanded && (
         <div className="mt-2 space-y-2">
-          {Array.from(documentGroups.entries()).map(([docId, group]) => (
+          {Array.from(documentGroups.entries()).map(([_docId, group]) => (
             <DocumentGroup
-              key={docId}
+              key={group.docId}
               docName={group.docName}
               docId={group.docId}
               chunks={group.chunks}

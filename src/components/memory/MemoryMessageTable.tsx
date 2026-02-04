@@ -156,7 +156,7 @@ export const MemoryMessageTable: React.FC<MemoryMessageTableProps> = ({
             </span>
             <Button
               variant="ghost"
-              size="icon-xs"
+              size="icon-sm"
               onClick={() => handleCopy(id, `session-${id}`)}
             >
               {copiedId === `session-${id}` ? (

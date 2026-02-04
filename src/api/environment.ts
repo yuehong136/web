@@ -9,7 +9,9 @@ import type {
   EnvironmentVariableCreate,
   EnvironmentVariableUpdate,
   GlobalEnvironment,
-  APIResponse
+  EnvironmentQueryParams,
+  PaginatedEnvironmentResponse,
+  VariableResolveResponse,
 } from '@/types/api'
 
 class EnvironmentAPI {
@@ -28,7 +30,7 @@ class EnvironmentAPI {
       
       if (paginatedResponse?.items && Array.isArray(paginatedResponse.items)) {
         // 简化处理，直接返回后端数据，添加兼容性
-        const environments = paginatedResponse.items.map(item => ({
+        const environments = paginatedResponse.items.map((item: EnvironmentSummary) => ({
           ...item,
           description: item.description || '',
           variables_count: item.variables_count || 0

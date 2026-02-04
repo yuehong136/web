@@ -122,7 +122,7 @@ export function DataSourceLogsTable({ dataSourceId, refreshFreq }: DataSourceLog
             total={total}
             current={pagination.page}
             pageSize={pagination.pageSize}
-            onChange={(page, pageSize) => setPagination({ page, pageSize })}
+            onChange={(page: number) => setPagination({ page, pageSize: pagination.pageSize })}
           />
         </div>
       )}

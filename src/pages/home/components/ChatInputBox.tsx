@@ -113,7 +113,7 @@ export const ChatInputBox: React.FC<ChatInputBoxProps> = ({
       <div className="flex items-center justify-between mt-3">
         {/* 左侧工具按钮 */}
         <div className="flex items-center gap-2 relative">
-          <div ref={skillPanelRef as React.RefObject<HTMLDivElement>}>
+          <div>
             <InputToolbar
               isSkillPanelOpen={isSkillPanelOpen}
               hasSelectedItems={hasSelectedItems}
@@ -131,7 +131,7 @@ export const ChatInputBox: React.FC<ChatInputBoxProps> = ({
         <div className="flex items-center gap-3">
           {/* 模型选择器 */}
           <ChatModelSelector
-            models={models}
+            models={models || {}}
             selectedModelName={selectedModelId}
             onSelect={(modelName) => onModelSelect(modelName || '')}
             loading={modelsLoading}

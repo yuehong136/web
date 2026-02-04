@@ -1,6 +1,6 @@
 // MCP实验场聊天API接口
 
-import type { ChatSession, ChatMessage, MCPChatConfig } from '@/types/mcp';
+import type { ChatSession, MCPChatConfig } from '@/types/mcp';
 
 // 模拟聊天API响应
 export interface ChatResponse {
@@ -16,7 +16,7 @@ export interface ChatResponse {
 export async function sendChatMessage(
   message: string,
   config: MCPChatConfig,
-  sessionId?: string
+  _sessionId?: string
 ): Promise<ChatResponse> {
   // 模拟API调用延迟
   await new Promise(resolve => setTimeout(resolve, 1000));

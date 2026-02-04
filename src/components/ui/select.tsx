@@ -7,6 +7,7 @@ export interface SelectProps {
   onValueChange?: (value: string) => void
   placeholder?: string
   children?: React.ReactNode
+  disabled?: boolean
 }
 
 export interface SelectTriggerProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {

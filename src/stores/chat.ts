@@ -2,25 +2,38 @@ import { create } from 'zustand'
 import { apiClient } from '@/api/client'
 import { generateId } from '@/lib/utils'
 import type { 
-  ConversationInfo, 
-  MessageInfo, 
-  ConversationCreateRequest,
-  MessageCreateRequest 
+  Conversation, 
+  Message
 } from '../types/api'
+
+interface ConversationCreateRequest {
+  title?: string
+  knowledgeBaseIds?: string[]
+  systemPrompt?: string
+  model?: string
+  temperature?: number
+  maxTokens?: number
+}
+
+interface MessageCreateRequest {
+  content: string
+  attachments?: any[]
+  stream?: boolean
+}
 
 interface ChatState {
   // 状态
-  conversations: ConversationInfo[]
-  currentConversation: ConversationInfo | null
-  messages: MessageInfo[]
+  conversations: Conversation[]
+  currentConversation: Conversation | null
+  messages: Message[]
   isLoading: boolean
   isStreaming: boolean
   
   // 对话管理
   loadConversations: () => Promise<void>
-  createConversation: (data?: Partial<ConversationCreateRequest>) => Promise<ConversationInfo>
+  createConversation: (data?: Partial<ConversationCreateRequest>) => Promise<Conversation>
   selectConversation: (conversationId: string) => Promise<void>
-  updateConversation: (conversationId: string, data: Partial<ConversationInfo>) => Promise<void>
+  updateConversation: (conversationId: string, data: Partial<Conversation>) => Promise<void>
   deleteConversation: (conversationId: string) => Promise<void>
   
   // 消息管理
@@ -49,10 +62,10 @@ export const useChatStore = create<ChatState>()(
         try {
           set({ isLoading: true })
           const response = await apiClient.get<{
-            conversations: ConversationInfo[]
+            conversations: Conversation[]
           }>('/conversations')
           set({ 
-            conversations: response.data.conversations,
+            conversations: response.conversations,
             isLoading: false 
           })
         } catch (error) {
@@ -75,10 +88,10 @@ export const useChatStore = create<ChatState>()(
           }
 
           const response = await apiClient.post<{
-            conversation: ConversationInfo
+            conversation: Conversation
           }>('/conversations', conversationData)
 
-          const newConversation = response.data.conversation
+          const newConversation = response.conversation
           
           set(state => ({
             conversations: [newConversation, ...state.conversations],
@@ -90,18 +103,14 @@ export const useChatStore = create<ChatState>()(
         } catch (error) {
           console.error('Failed to create conversation:', error)
           // 如果API失败，创建本地临时对话
-          const tempConversation: ConversationInfo = {
+          const tempConversation: Conversation = {
             id: generateId(),
             title: data.title || '新对话',
-            knowledgeBaseIds: data.knowledgeBaseIds || [],
-            systemPrompt: data.systemPrompt,
-            model: data.model || 'gpt-4',
-            temperature: data.temperature || 0.7,
-            maxTokens: data.maxTokens || 2048,
+            user_id: '',
+            tenant_id: '',
             status: 'active',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            messageCount: 0
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
           }
           
           set(state => ({
@@ -124,13 +133,13 @@ export const useChatStore = create<ChatState>()(
       },
 
       // 更新对话
-      updateConversation: async (conversationId: string, data: Partial<ConversationInfo>) => {
+      updateConversation: async (conversationId: string, data: Partial<Conversation>) => {
         try {
           const response = await apiClient.put<{
-            conversation: ConversationInfo
+            conversation: Conversation
           }>(`/conversations/${conversationId}`, data)
 
-          const updatedConversation = response.data.conversation
+          const updatedConversation = response.conversation
 
           set(state => ({
             conversations: state.conversations.map(c =>
@@ -181,11 +190,11 @@ export const useChatStore = create<ChatState>()(
         try {
           set({ isLoading: true })
           const response = await apiClient.get<{
-            messages: MessageInfo[]
+            messages: Message[]
           }>(`/conversations/${conversationId}/messages`)
           
           set({ 
-            messages: response.data.messages,
+            messages: response.messages,
             isLoading: false 
           })
         } catch (error) {
@@ -203,13 +212,12 @@ export const useChatStore = create<ChatState>()(
         if (!currentConversation) return
 
         // 创建用户消息
-        const userMessage: MessageInfo = {
+        const userMessage: Message = {
           id: generateId(),
-          conversationId: currentConversation.id,
+          conversation_id: currentConversation.id,
           role: 'user',
           content,
-          attachments,
-          createdAt: new Date().toISOString()
+          created_at: new Date().toISOString()
         }
 
         // 添加用户消息到界面
@@ -220,12 +228,12 @@ export const useChatStore = create<ChatState>()(
 
         try {
           // 创建助手消息占位符
-          const assistantMessage: MessageInfo = {
+          const assistantMessage: Message = {
             id: generateId(),
-            conversationId: currentConversation.id,
+            conversation_id: currentConversation.id,
             role: 'assistant',
             content: '',
-            createdAt: new Date().toISOString()
+            created_at: new Date().toISOString()
           }
 
           set(state => ({
@@ -285,12 +293,12 @@ export const useChatStore = create<ChatState>()(
           
           // 模拟AI回复（在没有后端时）
           setTimeout(() => {
-            const mockResponse: MessageInfo = {
+            const mockResponse: Message = {
               id: generateId(),
-              conversationId: currentConversation.id,
+              conversation_id: currentConversation.id,
               role: 'assistant',
               content: `这是对"${content}"的模拟回复。当前还没有连接到实际的AI服务，这只是一个演示界面。`,
-              createdAt: new Date().toISOString()
+              created_at: new Date().toISOString()
             }
 
             set(state => ({

@@ -25,6 +25,10 @@ export interface RequestConfig extends RequestInit {
   skipAuth?: boolean
   baseURL?: string
   _isRetry?: boolean
+  /** GET 等请求的 URL 查询参数，会在 request 中序列化到 URL */
+  params?: Record<string, any> | any
+  /** POST/PUT 等请求体（若由调用方直接传入 config 时使用） */
+  data?: unknown
 }
 
 class APIClient {
@@ -102,6 +106,8 @@ class APIClient {
       skipAuth = false,
       baseURL = this.baseURL,
       headers = {},
+      params,
+      data,
       ...requestConfig
     } = config
 
@@ -113,6 +119,17 @@ class APIClient {
       // 如果endpoint不以/v1开头，则添加API版本前缀
       const apiPath = endpoint.startsWith(`/${API_VERSION}`) ? endpoint : `/${API_VERSION}${endpoint}`
       url = `${baseURL}${apiPath}`
+    }
+    if (params && Object.keys(params).length > 0) {
+      const search = new URLSearchParams()
+      for (const [k, v] of Object.entries(params)) {
+        if (v !== undefined && v !== '') search.set(k, String(v))
+      }
+      const q = search.toString()
+      if (q) url += (url.includes('?') ? '&' : '?') + q
+    }
+    if (data !== undefined && !requestConfig.body) {
+      requestConfig.body = typeof data === 'object' ? JSON.stringify(data) : (data as BodyInit)
     }
 
     // 设置请求头

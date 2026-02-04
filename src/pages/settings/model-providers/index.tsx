@@ -39,7 +39,7 @@ const SPECIAL_CONFIG_FACTORIES = [
 export const ModelProvidersPage: React.FC = () => {
   const { 
     myLLMs,
-    factories,
+    factories: _factories,
     isLoading,
     loadMyLLMs,
     loadFactories,

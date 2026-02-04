@@ -107,10 +107,10 @@ const ParserVisualizationPanel: React.FC<ParserVisualizationPanelProps> = ({
             {parserInfo.images.map((imageName, index) => (
               <Card key={index} className="p-3 bg-background-subtle border-border/50 hover:border-border transition-colors">
                 <div className="aspect-[4/3] bg-background rounded-lg overflow-hidden mb-2">
-                  <SvgIcon
-                    name={imageName}
-                    width="100%"
-                    height="100%"
+                  <img
+                    src={imageName}
+                    alt={`示例 ${index + 1}`}
+                    style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                     className="object-contain"
                   />
                 </div>

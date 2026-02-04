@@ -9,8 +9,6 @@ import { memoryAPI } from '@/api/memory'
 import { useMemoryStore } from '@/stores/memory'
 import { MEMORY_TEXTS } from '@/constants/memory-texts'
 import type {
-  Memory,
-  MemoryMessage,
   CreateMemoryParams,
   UpdateMemoryParams,
   MemoryListParams,
@@ -134,7 +132,7 @@ export function useUpdateMemory() {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateMemoryParams }) =>
       memoryAPI.memory.update(id, data),
-    onSuccess: (result, { id, data }) => {
+    onSuccess: (_result, { id, data }) => {
       // 更新本地状态
       updateMemory(id, data)
       

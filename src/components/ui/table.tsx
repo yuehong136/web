@@ -162,8 +162,8 @@ const TableInner = <T,>(
 
 const Table = React.forwardRef(TableInner) as <T>(
   props: DataTableProps<T> & { ref?: React.Ref<HTMLTableElement> }
-) => JSX.Element
-Table.displayName = "Table"
+) => React.ReactNode
+;(Table as React.FC).displayName = "Table"
 
 const TableHeader = React.forwardRef<
   HTMLTableSectionElement,

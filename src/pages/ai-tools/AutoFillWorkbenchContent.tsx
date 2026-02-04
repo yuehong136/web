@@ -133,7 +133,7 @@ const AutoFillWorkbenchContent: React.FC = () => {
     downloadBase64Docx(filledFile, `${name}_填充完成_${ts}.docx`)
   }
 
-  const handleReset = () => {
+  const _handleReset = () => {
     setStep(1)
     setUploadedFile(null)
     setPlaceholders({})

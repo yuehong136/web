@@ -88,7 +88,7 @@ const ModelOptionLabel: React.FC<{ provider: string; modelName: string }> = ({
 
 export const SystemSetting: React.FC = () => {
   const { myLLMs } = useModelStore()
-  const isDark = useIsDarkTheme()
+  const _isDark = useIsDarkTheme()
   const [tenantInfo, setTenantInfo] = useState<TenantInfo>({
     tenant_id: '',
     name: '',
@@ -239,7 +239,7 @@ export const SystemSetting: React.FC = () => {
             <div key={field} className="flex gap-3">
               {/* 标签 */}
               <label className="flex items-center text-sm font-normal text-text-secondary w-1/4 shrink-0">
-                {config.required && <span className="text-red-500">*</span>}
+                {('required' in config && config.required) && <span className="text-red-500">*</span>}
                 {config.label}
                 <FormTooltip tooltip={config.tooltip} />
               </label>

@@ -15,6 +15,7 @@ export interface ThinkWrapperProps {
   status: ThinkingStatus
   /** 消息的唯一标识，用于区分不同消息的折叠状态 */
   messageId?: string
+  _messageId?: string
   /** 自定义标题（可选） */
   titles?: {
     thinking?: string
@@ -38,9 +39,9 @@ export interface ThinkWrapperProps {
  * </ThinkWrapper>
  */
 export const ThinkWrapper: React.FC<ThinkWrapperProps> = React.memo(({ 
-  children, 
+  children,
   status,
-  messageId,
+  _messageId,
   titles = {
     thinking: '思考中...',
     complete: '思考完成'

@@ -2,7 +2,7 @@
  * 文档表格列定义
  */
 
-import React, { useMemo } from 'react'
+import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FileIcon, Tooltip, type Column } from '@/components/ui'
 import type { Document } from '@/types/api'

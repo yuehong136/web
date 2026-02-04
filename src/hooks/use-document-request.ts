@@ -230,7 +230,7 @@ export const useUpdateDocumentStatus = () => {
   const { mutateAsync, isPending, isError, error } = useMutation({
     mutationFn: async (params: {
       documentIds: string[]
-      status: string
+      status: '0' | '1'
     }) => {
       await knowledgeAPI.document.updateStatus(params.documentIds, params.status)
       return params
@@ -262,10 +262,9 @@ export const useFetchChunks = (params: UseFetchChunksParams) => {
   const { data, isFetching, isError, error, refetch } = useQuery({
     queryKey: documentKeys.chunks(documentId, { page, page_size, keywords }),
     queryFn: async () => {
-      const response = await knowledgeAPI.chunk.list(documentId, {
+      const response = await knowledgeAPI.document.getChunks(documentId, {
         page,
         page_size,
-        keywords,
       })
       return response
     },
@@ -275,7 +274,7 @@ export const useFetchChunks = (params: UseFetchChunksParams) => {
   })
 
   return {
-    chunks: data?.chunks ?? [],
+    chunks: data?.items ?? [],
     total: data?.total ?? 0,
     isLoading: isFetching,
     isError,

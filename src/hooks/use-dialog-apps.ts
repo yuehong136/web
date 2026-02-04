@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState, useCallback } from 'react'
-import { dialogAPI, type DialogListParams, type DialogListResponse } from '@/api/dialog'
+import { dialogAPI, type DialogListResponse } from '@/api/dialog'
 import { queryKeys, invalidateQueries } from '@/lib/query-client'
 import { toast } from '@/lib/toast'
 import type { DialogApp } from '../types/api'
