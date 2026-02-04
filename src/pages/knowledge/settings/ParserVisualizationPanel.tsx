@@ -4,28 +4,43 @@ import SvgIcon from '@/components/ui/svg-icon'
 import { Card } from '@/components/ui/card'
 import { FileText, Lightbulb, Image } from 'lucide-react'
 
-// 图片映射配置
-const getImageName = (prefix: string, length: number) =>
+// 使用 Vite 的 glob import 导入所有 chunk-method SVG 图片
+const chunkMethodImages = import.meta.glob<{ default: string }>(
+  '@/assets/svg/chunk-method/*.svg',
+  { eager: true }
+)
+
+// 将导入的模块转换为 URL 映射
+const imageUrlMap: Record<string, string> = {}
+for (const [path, module] of Object.entries(chunkMethodImages)) {
+  // 提取文件名（不含扩展名），如 /src/assets/svg/chunk-method/naive-01.svg -> naive-01
+  const filename = path.split('/').pop()?.replace('.svg', '') || ''
+  imageUrlMap[filename] = module.default
+}
+
+// 图片映射配置 - 返回实际的 URL
+const getImageUrls = (prefix: string, length: number): string[] =>
   new Array(length)
     .fill(0)
-    .map((_, idx) => `chunk-method/${prefix}-0${idx + 1}`)
+    .map((_, idx) => imageUrlMap[`${prefix}-0${idx + 1}`])
+    .filter(Boolean)
 
 export const ImageMap: Record<string, string[]> = {
-  book: getImageName('book', 4),
-  laws: getImageName('law', 2),
-  manual: getImageName('manual', 4),
-  picture: getImageName('media', 2),
-  naive: getImageName('naive', 2),
-  paper: getImageName('paper', 2),
-  presentation: getImageName('presentation', 2),
-  qa: getImageName('qa', 2),
-  resume: getImageName('resume', 2),
-  table: getImageName('table', 2),
-  one: getImageName('one', 4),
-  knowledge_graph: getImageName('knowledge-graph', 2),
-  audio: getImageName('media', 2), // 使用媒体图标
-  email: getImageName('naive', 2), // 使用通用图标
-  tag: getImageName('tag', 2),
+  book: getImageUrls('book', 4),
+  laws: getImageUrls('law', 2),
+  manual: getImageUrls('manual', 4),
+  picture: getImageUrls('media', 2),
+  naive: getImageUrls('naive', 2),
+  paper: getImageUrls('paper', 2),
+  presentation: getImageUrls('presentation', 2),
+  qa: getImageUrls('qa', 2),
+  resume: getImageUrls('resume', 2),
+  table: getImageUrls('table', 2),
+  one: getImageUrls('one', 4),
+  knowledge_graph: getImageUrls('knowledge-graph', 2),
+  audio: getImageUrls('media', 2), // 使用媒体图标
+  email: getImageUrls('naive', 2), // 使用通用图标
+  tag: getImageUrls('tag', 2),
 };
 
 interface ParserVisualizationPanelProps {
