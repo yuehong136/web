@@ -1,25 +1,18 @@
 import { CodeHighlightNode, CodeNode } from '@lexical/code'
-import {
-  InitialConfigType,
-  LexicalComposer,
-} from '@lexical/react/LexicalComposer'
+import type { InitialConfigType } from '@lexical/react/LexicalComposer'
+import { LexicalComposer } from '@lexical/react/LexicalComposer'
 import { ContentEditable } from '@lexical/react/LexicalContentEditable'
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary'
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin'
 import { HeadingNode, QuoteNode } from '@lexical/rich-text'
-import {
-  $getRoot,
-  $getSelection,
-  $nodesOfType,
-  EditorState,
-  Klass,
-  LexicalNode,
-} from 'lexical'
+import type { EditorState, Klass, LexicalNode } from 'lexical'
+import { $getRoot, $getSelection, $nodesOfType } from 'lexical'
 
 import { cn } from '@/lib/utils'
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
 import { Variable } from 'lucide-react'
-import { ReactNode, useCallback, useState } from 'react'
+import type { ReactNode } from 'react'
+import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { EnterKeyPlugin } from './enter-key-plugin'
@@ -27,9 +20,8 @@ import { PasteHandlerPlugin } from './paste-handler-plugin'
 import theme from './theme'
 import { VariableNode } from './variable-node'
 import { VariableOnChangePlugin } from './variable-on-change-plugin'
-import VariablePickerMenuPlugin, {
-  VariableOptionGroup,
-} from './variable-picker-plugin'
+import type { VariableOptionGroup } from './variable-picker-plugin'
+import VariablePickerMenuPlugin from './variable-picker-plugin'
 
 // Catch any errors that occur during Lexical updates and log them
 // or throw them as needed. If you don't throw them, Lexical will
@@ -100,15 +92,12 @@ function PromptContent({
     >
       {showToolbar && (
         <div className="border-b border-border-primary px-space-sm py-space-sm justify-end flex">
-          <Tooltip>
+          <Tooltip content={<p>{t('flow.insertVariableTip')}</p>}>
             <TooltipTrigger asChild>
               <span className="inline-block cursor-pointer p-0.5 hover:bg-surface-secondary rounded-radius-sm">
                 <Variable size={16} onClick={handleVariableIconClick} />
               </span>
             </TooltipTrigger>
-            <TooltipContent>
-              <p>{t('flow.insertVariableTip')}</p>
-            </TooltipContent>
           </Tooltip>
         </div>
       )}
@@ -189,5 +178,5 @@ export function PromptEditor({
   )
 }
 
-export { VariableOptionGroup } from './variable-picker-plugin'
+export type { VariableOptionGroup } from './variable-picker-plugin'
 export { VariableNode, $createVariableNode, $isVariableNode } from './variable-node'

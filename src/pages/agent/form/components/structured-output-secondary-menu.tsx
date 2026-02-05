@@ -6,7 +6,8 @@ import {
 import { cn } from '@/lib/utils'
 import { get, isEmpty, isPlainObject } from 'lodash'
 import { ChevronRight } from 'lucide-react'
-import { PropsWithChildren, ReactNode, useCallback } from 'react'
+import type { PropsWithChildren, ReactNode } from 'react'
+import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { JsonSchemaDataType } from '../../constant'
 

@@ -354,10 +354,10 @@ export function getAgentNodeMCP(agentNode?: RAGFlowNodeType) {
 }
 
 export function buildBeginQueryWithObject(
-  inputs: Record<string, BeginQuery>,
-  values: BeginQuery[],
+  inputs: Record<string, any>,
+  values: any[],
 ) {
-  const nextInputs = Object.keys(inputs).reduce<Record<string, BeginQuery>>(
+  const nextInputs = Object.keys(inputs).reduce<Record<string, any>>(
     (pre, key) => {
       const item = values.find((x) => x.key === key)
       if (item) {

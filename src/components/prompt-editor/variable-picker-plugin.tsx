@@ -19,8 +19,8 @@ import {
   $isRangeSelection,
   TextNode,
 } from 'lexical'
+import type { ReactElement } from 'react'
 import React, {
-  ReactElement,
   useCallback,
   useEffect,
   useMemo,
@@ -117,7 +117,7 @@ export interface VariablePickerMenuPluginProps {
 export default function VariablePickerMenuPlugin({
   value,
   options = [],
-}: VariablePickerMenuPluginProps): JSX.Element {
+}: VariablePickerMenuPluginProps): React.JSX.Element {
   const [editor] = useLexicalComposerContext()
   const isFirstRender = useRef(true)
 

@@ -24,10 +24,10 @@ export function findEndOutput(list?: ITraceData[]) {
   if (Array.isArray(list)) {
     const trace = list.find((x) => x.component_id === 'END')?.trace
 
-    const str = get(trace, '0.message')
+    const str = get(trace, '0.message') as string | undefined
 
     try {
-      if (!isEmpty(str)) {
+      if (!isEmpty(str) && str) {
         const json = JSON.parse(str)
         return json
       }

@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils'
 import { useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { Operator } from '../constant'
+import type { INodeEvent } from '../hooks/use-node-loading'
 import OperatorIcon from '../operator-icon'
 
 // 消息事件类型
@@ -18,22 +19,6 @@ export const MessageEventType = {
   Message: 'message',
   Error: 'error',
 } as const
-
-interface INodeData {
-  component_id: string
-  component_type: string
-  component_name: string
-  elapsed_time?: number
-  error?: string
-  inputs?: Record<string, any>
-  outputs?: Record<string, any>
-  thoughts?: string
-}
-
-interface INodeEvent {
-  event: string
-  data: INodeData
-}
 
 interface LogFlowTimelineProps {
   currentEventListWithoutMessage: INodeEvent[]
@@ -152,7 +137,7 @@ export const WorkFlowTimeline = ({
                   <AccordionTrigger className="hover:no-underline py-space-sm">
                     <div className="flex gap-space-sm items-center">
                       <span className="font-medium">
-                        {getNodeName(x.data.component_name)}
+                        {getNodeName(x.data.component_name || '')}
                       </span>
                       {getElapsedTime(x.data.component_id) && (
                         <span className="text-text-secondary text-xs">

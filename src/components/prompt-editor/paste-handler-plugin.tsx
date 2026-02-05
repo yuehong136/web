@@ -1,10 +1,10 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
+import type { LexicalNode } from 'lexical'
 import {
   $createLineBreakNode,
   $createTextNode,
   $getSelection,
   $isRangeSelection,
-  LexicalNode,
   PASTE_COMMAND,
 } from 'lexical'
 import { useEffect } from 'react'

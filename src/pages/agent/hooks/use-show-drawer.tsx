@@ -1,10 +1,12 @@
 import get from 'lodash/get'
 import React, { useCallback, useEffect, useState } from 'react'
+import { useParams } from 'react-router-dom'
 import { Operator } from '../constant'
 import useGraphStore from '../store'
 import { useCacheChatLog } from './use-cache-chat-log'
 import { useGetBeginNodeDataInputs } from './use-get-begin-query'
 import { useSaveGraph } from './use-save-graph'
+import { useFetchAgent as useFetchData } from './use-fetch-data'
 
 // Simple modal state hook
 function useSetModalState() {
@@ -38,9 +40,8 @@ export const useShowFormDrawer = () => {
       const operatorType = getOperatorTypeFromId(nodeId)
       if (
         (operatorType === Operator.Tool && !tool) ||
-        [Operator.LoopStart, Operator.ExitLoop].includes(
-          operatorType as typeof Operator[keyof typeof Operator],
-        )
+        operatorType === Operator.LoopStart ||
+        operatorType === Operator.ExitLoop
       ) {
         return
       }
@@ -61,14 +62,19 @@ export const useShowFormDrawer = () => {
 
 export const useShowSingleDebugDrawer = () => {
   const { visible, showModal, hideModal } = useSetModalState()
-  const { saveGraph } = useSaveGraph()
+  const { id } = useParams<{ id: string }>()
+  const { data: agent } = useFetchData()
+  const { saveGraph } = useSaveGraph(id)
 
   const showSingleDebugDrawer = useCallback(async () => {
-    const saveRet = await saveGraph()
-    if (saveRet?.code === 0) {
-      showModal()
+    if (agent?.title) {
+      const title = typeof agent.title === 'string' ? agent.title : (agent.title.zh || agent.title.en || 'Untitled')
+      const saveRet = await saveGraph(title)
+      if (saveRet) {
+        showModal()
+      }
     }
-  }, [saveGraph, showModal])
+  }, [saveGraph, showModal, agent])
 
   return {
     singleDebugDrawerVisible: visible,
@@ -136,7 +142,7 @@ export function useShowDrawer({
 
   const onNodeClick = useCallback(
     (e: React.MouseEvent<Element>, node: { id: string; data?: { label?: string } }) => {
-      if (!ExcludedNodes.some((x) => x === node.data.label)) {
+      if (!ExcludedNodes.some((x) => x === node.data?.label)) {
         hideSingleDebugDrawer()
         showFormDrawer(e, node.id)
       }

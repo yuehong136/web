@@ -1,5 +1,6 @@
 import { get, isPlainObject } from 'lodash'
-import { ReactNode, useCallback } from 'react'
+import type { ReactNode } from 'react'
+import { useCallback } from 'react'
 import { AgentStructuredOutputField, JsonSchemaDataType, Operator } from '../constant'
 import useGraphStore from '../store'
 
@@ -12,11 +13,11 @@ function getNodeId(value: string) {
 }
 
 function getStructuredDatatype(value: Record<string, any> | unknown) {
-  const dataType = get(value, 'type', JsonSchemaDataType.String)
+  const dataType = get(value, 'type', JsonSchemaDataType.String) as string
   const arrayItemsType = get(value, 'items.type', JsonSchemaDataType.String)
 
   const compositeDataType =
-    dataType === JsonSchemaDataType.Array
+    dataType === 'array'
       ? `${dataType}<${arrayItemsType}>`
       : dataType
 
@@ -115,9 +116,7 @@ export function useFindAgentStructuredOutputTypeByValue() {
           }
 
           if (
-            [JsonSchemaDataType.Object, JsonSchemaDataType.Array].some(
-              (x) => x === dataType,
-            )
+            ['object', 'array'].includes(dataType)
           ) {
             const type = findTypeByValue(value, target, nextPath)
             if (type) {

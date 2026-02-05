@@ -60,14 +60,15 @@ export function CanvasContextMenu({
   }, [nodeId, onDebug, onOpenChange, t])
 
   return (
-    <ContextMenu open={open} onOpenChange={onOpenChange}>
+    <ContextMenu>
       <ContextMenuTrigger asChild>
         <div className="fixed inset-0 pointer-events-none" />
       </ContextMenuTrigger>
-      <ContextMenuContent
-        style={{ position: 'fixed', top: position.y, left: position.x }}
-        onEscapeKeyDown={() => onOpenChange(false)}
-      >
+      {open && (
+        <ContextMenuContent
+          style={{ position: 'fixed', top: position.y, left: position.x }}
+          onEscapeKeyDown={() => onOpenChange(false)}
+        >
         {nodeName && <ContextMenuLabel>{nodeName}</ContextMenuLabel>}
         {nodeName && <ContextMenuSeparator />}
         <ContextMenuItem onSelect={handleCopy}>
@@ -83,7 +84,8 @@ export function CanvasContextMenu({
           <Trash2 className="size-3.5 text-status-error" />
           {t('flow.delete', '删除')}
         </ContextMenuItem>
-      </ContextMenuContent>
+        </ContextMenuContent>
+      )}
     </ContextMenu>
   )
 }

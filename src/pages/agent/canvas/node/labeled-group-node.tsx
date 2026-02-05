@@ -26,6 +26,8 @@ export function GroupNodeLabel({
 export type GroupNodeProps = Partial<NodeProps> & {
   label?: ReactNode
   position?: PanelPosition
+  className?: string
+  style?: React.CSSProperties
 }
 
 export function LabeledGroupNode({
@@ -56,6 +58,7 @@ export function LabeledGroupNode({
   }
 
   const displayLabel = label ?? data?.name ?? data?.label
+  const labelText = typeof displayLabel === 'string' ? displayLabel : String(displayLabel || '')
 
   return (
     <div
@@ -66,13 +69,13 @@ export function LabeledGroupNode({
       )}
       style={style}
     >
-      <Panel className="m-0 p-0" position={position}>
-        {displayLabel && (
+      {labelText && (
+        <Panel className="m-0 p-0" position={position}>
           <GroupNodeLabel className={getLabelClassName(position)}>
-            {displayLabel}
+            {labelText}
           </GroupNodeLabel>
-        )}
-      </Panel>
+        </Panel>
+      )}
     </div>
   )
 }

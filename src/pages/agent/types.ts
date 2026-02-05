@@ -410,6 +410,9 @@ export interface BeginQuery {
   options?: (number | string | boolean)[]
 }
 
+// Export BeginQuery from this module
+export type { BeginQuery as IBeginQuery }
+
 export type IInputs = {
   avatar: string
   title: string

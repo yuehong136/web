@@ -38,7 +38,7 @@ export function SchemaDialog({
   }, [onOk, schema])
 
   return (
-    <Dialog onOpenChange={hideModal} open>
+    <Dialog onOpenChange={(open) => !open && hideModal?.()} open>
       <DialogContent className="md:max-w-[1200px] h-[50vh]">
         <DialogHeader>
           <DialogTitle>{t('flow.structuredOutput.configuration')}</DialogTitle>
@@ -49,9 +49,7 @@ export function SchemaDialog({
           </div>
         </section>
         <DialogFooter>
-          <DialogClose asChild>
-            <Button variant="outline">{t('common.cancel')}</Button>
-          </DialogClose>
+          <Button variant="outline" onClick={() => hideModal?.()}>{t('common.cancel')}</Button>
           <Button type="button" onClick={handleOk}>
             {t('common.save')}
           </Button>

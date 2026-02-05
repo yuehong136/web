@@ -7,25 +7,12 @@ import {
 import { cn } from '@/lib/utils'
 import { NotebookText } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import type { INodeEvent } from '../hooks/use-node-loading'
 import { WorkFlowTimeline } from './workflow-timeline'
-
-interface IEventItem {
-  event: string
-  data: {
-    component_id: string
-    component_type: string
-    component_name: string
-    elapsed_time?: number
-    error?: string
-    inputs?: Record<string, any>
-    outputs?: Record<string, any>
-    thoughts?: string
-  }
-}
 
 interface LogSheetProps {
   hideModal?: () => void
-  currentEventListWithoutMessageById?: (messageId: string) => IEventItem[]
+  currentEventListWithoutMessageById?: (messageId: string) => INodeEvent[]
   currentMessageId?: string
   sendLoading?: boolean
 }

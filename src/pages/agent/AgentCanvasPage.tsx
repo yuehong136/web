@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ReactFlowProvider } from '@xyflow/react'
 import { Button } from '@/components/ui/button'
+import { toast } from '@/lib/toast'
 import {
   Save,
   Play,

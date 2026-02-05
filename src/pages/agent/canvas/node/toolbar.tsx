@@ -36,7 +36,7 @@ export const ToolBar = memo(
     const handleDelete = useCallback(
       (e: React.MouseEvent) => {
         e.stopPropagation()
-        if ([Operator.Iteration, Operator.Loop].includes(label as Operator)) {
+        if (label === Operator.Iteration || label === Operator.Loop) {
           deleteIterationNodeById(id)
         } else {
           deleteNodeById(id)

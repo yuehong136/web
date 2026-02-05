@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
-import type { IMessage } from '../types'
+import type { IMessage } from '../utils/chat'
 
 export interface INodeEvent {
   event: string
@@ -8,10 +8,17 @@ export interface INodeEvent {
 
 export interface INodeData {
   component_id: string
+  component_type?: string
+  component_name?: string
+  elapsed_time?: number
+  error?: string
+  inputs?: Record<string, any>
+  outputs?: Record<string, any>
+  thoughts?: string
   [key: string]: unknown
 }
 
-export const MessageEventType = {
+export const NodeMessageEventType = {
   NodeStarted: 'node_started',
   NodeFinished: 'node_finished',
 } as const
@@ -36,7 +43,7 @@ export const useNodeLoading = ({
 
   const startedNodeList = useMemo(() => {
     const duplicateList = currentEventListWithoutMessage?.filter(
-      (x) => x.event === MessageEventType.NodeStarted,
+      (x) => x.event === NodeMessageEventType.NodeStarted,
     ) as INodeEvent[]
 
     // Remove duplicate nodes
@@ -50,7 +57,7 @@ export const useNodeLoading = ({
 
   const filterFinishedNodeList = useCallback(() => {
     const nodeEventList = currentEventListWithoutMessage
-      .filter((x) => x.event === MessageEventType.NodeFinished)
+      .filter((x) => x.event === NodeMessageEventType.NodeFinished)
       .map((x) => x.data)
 
     return nodeEventList

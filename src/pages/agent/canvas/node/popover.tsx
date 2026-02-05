@@ -24,7 +24,7 @@ interface NextNodePopoverProps extends PropsWithChildren {
 
 export function NextNodePopover({ children, nodeId, name }: NextNodePopoverProps) {
   const { t } = useTranslation()
-  const { data } = useFetchAgent()
+  const { agent: data } = useFetchAgent()
   const getNode = useGraphStore((state) => state.getNode)
 
   const component = useMemo(() => {

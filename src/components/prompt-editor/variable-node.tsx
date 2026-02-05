@@ -1,6 +1,7 @@
 import { BeginId } from '@/pages/agent/constant'
-import { DecoratorNode, LexicalNode, NodeKey } from 'lexical'
-import { ReactNode } from 'react'
+import type { LexicalNode, NodeKey } from 'lexical'
+import { DecoratorNode } from 'lexical'
+import type { ReactNode } from 'react'
 import i18n from 'i18next'
 
 const prefix = BeginId + '@'

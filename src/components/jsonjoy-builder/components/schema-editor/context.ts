@@ -1,5 +1,5 @@
 import React, { useContext } from 'react'
-import { KeyInputProps } from './interface'
+import type { KeyInputProps } from './interface'
 
 export const KeyInputContext = React.createContext<KeyInputProps>({})
 

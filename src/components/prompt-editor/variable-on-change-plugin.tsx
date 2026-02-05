@@ -1,5 +1,5 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
-import { EditorState, LexicalEditor } from 'lexical'
+import type { EditorState, LexicalEditor } from 'lexical'
 import { useEffect } from 'react'
 import { ProgrammaticTag } from './constant'
 

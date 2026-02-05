@@ -1,4 +1,4 @@
-import { Edge } from '@xyflow/react'
+import type { Edge } from '@xyflow/react'
 import { NodeHandleId } from '../constant'
 
 // Get all downstream node ids
