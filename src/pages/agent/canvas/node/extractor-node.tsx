@@ -20,7 +20,7 @@ function InnerExtractorNode({ id, data, isConnectable, selected }: NodeProps) {
       showRun={needsSingleStepDebugging(data.label as string)}
       showCopy={showCopyIcon(data.label as string)}
     >
-      <NodeWrapper selected={selected}>
+      <NodeWrapper selected={selected} id={id}>
         <LeftEndHandle />
         <CommonHandle
           type="source"
@@ -29,15 +29,16 @@ function InnerExtractorNode({ id, data, isConnectable, selected }: NodeProps) {
           id={NodeHandleId.Start}
           style={RightHandleStyle}
           isConnectableEnd={false}
+          nodeId={id}
         />
         <NodeHeader
           id={id}
           name={data.name as string}
           label={data.label as string}
-          icon={<Sparkles className="w-4 h-4 text-indigo-600" />}
+          icon={<Sparkles className="w-4 h-4" style={{ color: 'var(--color-components-canvas-icon-extractor)' }} />}
         />
         <div className="px-3 py-2">
-          <div className="text-xs text-gray-500">
+          <div className="text-xs text-text-tertiary">
             内容提取
           </div>
         </div>
@@ -47,5 +48,3 @@ function InnerExtractorNode({ id, data, isConnectable, selected }: NodeProps) {
 }
 
 export const ExtractorNode = memo(InnerExtractorNode)
-
-

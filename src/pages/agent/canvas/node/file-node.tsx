@@ -11,7 +11,7 @@ import { NodeHandleId } from '../../constant'
 // File节点 - Pipeline的起点（类似Begin）
 function InnerFileNode({ id, data, isConnectable, selected }: NodeProps) {
   return (
-    <NodeWrapper selected={selected} className="!border-green-500">
+    <NodeWrapper selected={selected} id={id}>
       <CommonHandle
         type="source"
         position={Position.Right}
@@ -19,15 +19,16 @@ function InnerFileNode({ id, data, isConnectable, selected }: NodeProps) {
         id={NodeHandleId.Start}
         style={RightHandleStyle}
         isConnectableEnd={false}
+        nodeId={id}
       />
       <NodeHeader
         id={id}
         name={data.name as string}
         label={data.label as string}
-        icon={<FileUp className="w-4 h-4 text-green-600" />}
+        icon={<FileUp className="w-4 h-4" style={{ color: 'var(--color-components-canvas-icon-file)' }} />}
       />
       <div className="px-3 py-2">
-        <div className="text-xs text-gray-600">
+        <div className="text-xs text-text-tertiary">
           文件输入
         </div>
       </div>
@@ -36,5 +37,3 @@ function InnerFileNode({ id, data, isConnectable, selected }: NodeProps) {
 }
 
 export const FileNode = memo(InnerFileNode)
-
-

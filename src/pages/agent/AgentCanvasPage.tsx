@@ -23,13 +23,14 @@ import AgentCanvas from './canvas'
 import { useFetchDataOnMount } from './hooks/use-fetch-data'
 import { useSaveGraph } from './hooks/use-save-graph'
 import { useWatchAgentChange } from './hooks/use-watch-agent-change'
-import { agentAPI } from '@/api/agent'
-import { toast } from '@/lib/toast'
 import { useParams } from 'react-router-dom'
+import { useAgentHistoryManager } from './use-agent-history-manager'
 
 export default function AgentCanvasPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+
+  useAgentHistoryManager()
   
   // 获取Canvas数据并初始化画布
   const { flowDetail, loading: dataLoading } = useFetchDataOnMount()
@@ -42,6 +43,10 @@ export default function AgentCanvasPage() {
 
   const [title, setTitle] = useState('')
   const [isEditingTitle, setIsEditingTitle] = useState(false)
+  const [drawerVisible, setDrawerVisible] = useState(false)
+
+  const hideDrawer = useCallback(() => setDrawerVisible(false), [])
+  const showDrawer = useCallback(() => setDrawerVisible(true), [])
 
   // 当数据加载完成后，设置标题
   useState(() => {
@@ -60,24 +65,9 @@ export default function AgentCanvasPage() {
   }, [saveGraph, title])
 
   // 运行
-  const handleRun = useCallback(async () => {
-    console.log('▶️ [运行] 准备运行工作流...')
-    
-    try {
-      // 先保存当前状态
-      await saveGraph(title)
-      
-      // 重置Agent状态
-      await agentAPI.resetAgent(id!)
-      
-      // TODO: 打开运行对话框或开始SSE流
-      toast.success('开始执行工作流')
-      
-    } catch (error) {
-      console.error('Run error:', error)
-      toast.error('执行失败')
-    }
-  }, [id, saveGraph, title])
+  const handleRun = useCallback(() => {
+    showDrawer()
+  }, [showDrawer])
 
   // 导出JSON
   const handleExportJSON = useCallback(() => {
@@ -235,7 +225,7 @@ export default function AgentCanvasPage() {
       {/* 主画布区域 */}
       <div className="flex-1 relative overflow-hidden">
         <ReactFlowProvider>
-          <AgentCanvas />
+          <AgentCanvas drawerVisible={drawerVisible} hideDrawer={hideDrawer} />
         </ReactFlowProvider>
       </div>
     </div>

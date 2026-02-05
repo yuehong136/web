@@ -52,7 +52,7 @@ function InnerButtonEdge({
 
   const selectedStyle = useMemo(() => {
     return selected
-      ? { strokeWidth: 2, stroke: 'rgb(59, 130, 246)' }
+      ? { strokeWidth: 2, stroke: 'var(--color-components-canvas-edge-stroke-selected)' }
       : {}
   }, [selected])
 
@@ -63,7 +63,7 @@ function InnerButtonEdge({
   const placeholderHighlightStyle = useMemo(() => {
     const isHighlighted = isTargetPlaceholder
     return isHighlighted
-      ? { strokeWidth: 2, stroke: 'rgb(59, 130, 246)' }
+      ? { strokeWidth: 2, stroke: 'var(--color-components-canvas-edge-stroke-selected)' }
       : {}
   }, [isTargetPlaceholder])
 
@@ -95,7 +95,7 @@ function InnerButtonEdge({
           ...selectedStyle,
           ...placeholderHighlightStyle,
         }}
-        className="text-gray-400"
+        className="text-text-tertiary"
       />
 
       <EdgeLabelRenderer>
@@ -111,7 +111,7 @@ function InnerButtonEdge({
         >
           <button
             className={cn(
-              'size-4 border border-red-500 text-red-500 rounded-full leading-none bg-white hover:bg-red-50',
+              'size-4 border border-state-error text-state-error rounded-full leading-none bg-surface-primary hover:bg-state-error-subtle',
               'invisible',
               { visible },
             )}

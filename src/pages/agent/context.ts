@@ -17,7 +17,7 @@ export const HandleContext = createContext<HandleContextType>({
   isFromConnectionDrag: false,
 })
 
-// Agent实例上下文（用于添加节点）
+// Agent实例上下文（用于添加节点和管理表单）
 export type AgentInstanceContextType = {
   addCanvasNode: (
     type: string,
@@ -28,9 +28,28 @@ export type AgentInstanceContextType = {
       isFromConnectionDrag?: boolean
     },
   ) => (event?: { clientX: number; clientY: number }) => string | undefined
+  showFormDrawer?: (e: React.MouseEvent<Element>, nodeId: string) => void
+  lastNode?: string
+  currentSendLoading?: boolean
+  startButNotFinishedNodeIds?: string[]
 }
 
 export const AgentInstanceContext = createContext<AgentInstanceContextType>({
   addCanvasNode: () => () => undefined,
+  showFormDrawer: undefined,
 })
 
+export type AgentChatContextType = {
+  showLogSheet?: (messageId: string) => void
+  setLastSendLoadingFunc?: (loading: boolean, messageId: string) => void
+  setDerivedMessages?: (messages: any[]) => void
+}
+
+export const AgentChatContext = createContext<AgentChatContextType>({})
+
+export type AgentChatLogContextType = {
+  addEventList?: (events: any[], messageId: string) => void
+  setCurrentMessageId?: (messageId: string) => void
+}
+
+export const AgentChatLogContext = createContext<AgentChatLogContextType>({})

@@ -11,7 +11,7 @@ import { NodeHandleId } from '../../constant'
 
 function InnerBeginNode({ id, data, isConnectable, selected }: NodeProps<IBeginNode>) {
   return (
-    <NodeWrapper selected={selected} className="!border-green-500">
+    <NodeWrapper selected={selected} id={id}>
       <CommonHandle
         type="source"
         position={Position.Right}
@@ -19,15 +19,16 @@ function InnerBeginNode({ id, data, isConnectable, selected }: NodeProps<IBeginN
         id={NodeHandleId.Start}
         style={RightHandleStyle}
         isConnectableEnd={false}
+        nodeId={id}
       />
       <NodeHeader
         id={id}
         name={data.name}
         label={data.label}
-        icon={<Play className="w-4 h-4 text-green-600" />}
+        icon={<Play className="w-4 h-4" style={{ color: 'var(--color-components-canvas-icon-start)' }} />}
       />
       <div className="px-3 py-2">
-        <div className="text-xs text-gray-600 line-clamp-2">
+        <div className="text-xs text-text-tertiary line-clamp-2">
           {data.form?.prologue || 'Start of workflow'}
         </div>
       </div>
@@ -36,4 +37,3 @@ function InnerBeginNode({ id, data, isConnectable, selected }: NodeProps<IBeginN
 }
 
 export const BeginNode = memo(InnerBeginNode)
-

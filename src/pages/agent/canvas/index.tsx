@@ -1,109 +1,244 @@
+import { useSetModalState } from '@/hooks/common-hooks'
+import type { ReactFlowInstance } from '@xyflow/react'
 import {
   ConnectionMode,
+  ControlButton,
   Controls,
-  ReactFlow,
   Position,
-  useReactFlow,
+  ReactFlow,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
-import { useCallback, useState } from 'react'
-import useGraphStore from '../store'
-import { nodeTypes } from './node-types'
-import { ButtonEdge } from './edge'
-import { NodeSelectorPanel } from './node/dropdown/NodeSelectorPanel'
-import { AgentInstanceContext, HandleContext } from '../context'
-import { useAddNode } from '../hooks/use-add-node'
+import { NotebookPen } from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { FormSheet } from '../components/FormSheet'
+import {
+  AgentChatContext,
+  AgentChatLogContext,
+  AgentInstanceContext,
+  HandleContext,
+} from '../context'
+import { useAddNode } from '../hooks/use-add-node'
+import { useBeforeDelete } from '../hooks/use-before-delete'
+import { useCacheChatLog } from '../hooks/use-cache-chat-log'
+import { useConnectionDrag } from '../hooks/use-connection-drag'
+import { useDropdownPosition } from '../hooks/use-dropdown-position'
+import { useHideFormSheetOnNodeDeletion, useShowDrawer, useShowLogSheet } from '../hooks/use-show-drawer'
+import { useMoveNote } from '../hooks/use-move-note'
+import { useNodeLoading } from '../hooks/use-node-loading'
+import { usePlaceholderManager } from '../hooks/use-placeholder-manager'
+import { useSelectCanvasData } from '../hooks/use-select-canvas-data'
+import { useStopMessageUnmount } from '../hooks/use-stop-message'
+import { useValidateConnection } from '../hooks/use-validate-connection'
+import { DropdownProvider, useDropdownManager } from './context'
+import { ButtonEdge } from './edge'
+import { ChatSheet } from '../chat/chat-sheet'
+import { LogSheet } from '../log-sheet'
+import RunSheet from '../run-sheet'
+import { NextStepDropdown } from './node/dropdown/next-step-dropdown'
+import { nodeTypes } from './node-types'
+import { CanvasContextMenu } from './context-menu'
+import { SingleDebugSheet } from './single-debug-sheet'
+import { useParams } from 'react-router-dom'
+import { AgentBackground } from '@/components/canvas/background'
+import Spotlight from '@/components/spotlight'
+import {
+  TooltipContent,
+  TooltipProvider,
+  TooltipRoot,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 const edgeTypes = {
   buttonEdge: ButtonEdge,
 }
 
 interface AgentCanvasProps {
-  onNodeClick?: (nodeId: string) => void
+  drawerVisible?: boolean
+  hideDrawer?: () => void
 }
 
-export default function AgentCanvas({ onNodeClick: _onNodeClick }: AgentCanvasProps) {
-  const [showFormSheet, setShowFormSheet] = useState(false)
-  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null)
-  const getNode = useGraphStore(state => state.getNode)
-  const reactFlowInstance = useReactFlow()
-  const [showNodeSelector, setShowNodeSelector] = useState(false)
-  const [selectorPosition, setSelectorPosition] = useState({ x: 0, y: 0 })
-  const [connectionStart, setConnectionStart] = useState<{
-    nodeId: string
-    handleId: string
-  } | null>(null)
+function AgentCanvasInner({ drawerVisible, hideDrawer }: AgentCanvasProps) {
+  const { t } = useTranslation()
+  const { id: canvasId } = useParams<{ id: string }>()
+  const resolvedDrawerVisible = drawerVisible ?? false
+  const resolvedHideDrawer = hideDrawer ?? (() => {})
   const {
     nodes,
     edges,
-    onConnect,
+    onConnect: originalOnConnect,
     onEdgesChange,
     onNodesChange,
     onSelectionChange,
     onEdgeMouseEnter,
     onEdgeMouseLeave,
-  } = useGraphStore()
+  } = useSelectCanvasData()
+  const isValidConnection = useValidateConnection()
 
-  // 输出画布状态（只在开发环境）
-  if (import.meta.env.DEV) {
-    console.log('🎨 [AgentCanvas] nodes:', nodes.length, 'edges:', edges.length)
+  const [reactFlowInstance, setReactFlowInstance] =
+    useState<ReactFlowInstance<any, any>>()
+
+  const {
+    onNodeClick,
+    clickedNode,
+    formDrawerVisible,
+    hideFormDrawer,
+    chatVisible,
+    runVisible,
+    hideRunOrChatDrawer,
+    showChatModal,
+    showFormDrawer,
+  } = useShowDrawer({
+    drawerVisible: resolvedDrawerVisible,
+    hideDrawer: resolvedHideDrawer,
+  })
+
+  const {
+    addEventList,
+    setCurrentMessageId,
+    currentEventListWithoutMessageById,
+    clearEventList,
+    currentMessageId,
+    latestTaskId,
+  } = useCacheChatLog()
+
+  const { stopMessage } = useStopMessageUnmount(chatVisible, latestTaskId)
+
+  const { showLogSheet, logSheetVisible, hideLogSheet } = useShowLogSheet({
+    setCurrentMessageId,
+  })
+  const [lastSendLoading, setLastSendLoading] = useState(false)
+  const [currentSendLoading, setCurrentSendLoading] = useState(false)
+
+  const { handleBeforeDelete } = useBeforeDelete()
+
+  const { addCanvasNode, addNoteNode } = useAddNode(reactFlowInstance)
+
+  const { ref, showImage, hideImage, imgVisible, mouse } = useMoveNote()
+
+  useEffect(() => {
+    if (!chatVisible) {
+      stopMessage(latestTaskId)
+      clearEventList()
+    }
+  }, [chatVisible, clearEventList, latestTaskId, stopMessage])
+
+  const setLastSendLoadingFunc = (loading: boolean, messageId: string) => {
+    setCurrentSendLoading(!!loading)
+    if (messageId === currentMessageId) {
+      setLastSendLoading(loading)
+    } else {
+      setLastSendLoading(false)
+    }
   }
 
-  const { addCanvasNode } = useAddNode(reactFlowInstance)
+  useHideFormSheetOnNodeDeletion({ hideFormDrawer })
+  const [singleDebugNodeId, setSingleDebugNodeId] = useState<string | null>(null)
+  const [contextMenu, setContextMenu] = useState<{
+    open: boolean
+    x: number
+    y: number
+    nodeId?: string | null
+  }>({ open: false, x: 0, y: 0, nodeId: null })
 
-  const handleNodeClick = useCallback(
-    (_event: React.MouseEvent, node: { id: string }) => {
-      console.log('🖱️ [点击节点]', node.id)
-      // 排除Note和Placeholder节点
-      if (node.id.startsWith('Note:') || node.id.startsWith('Placeholder:')) {
-        return
-      }
-      // 打开右侧表单抽屉
-      setSelectedNodeId(node.id)
-      setShowFormSheet(true)
+  // 下拉菜单状态
+  const { visible, hideModal, showModal } = useSetModalState()
+  const [dropdownPosition, setDropdownPosition] = useState({ x: 0, y: 0 })
+
+  const { clearActiveDropdown } = useDropdownManager()
+
+  const {
+    removePlaceholderNode,
+    onNodeCreated,
+    setCreatedPlaceholderRef,
+    checkAndRemoveExistingPlaceholder,
+  } = usePlaceholderManager(reactFlowInstance)
+
+  const { calculateDropdownPosition } = useDropdownPosition(reactFlowInstance)
+
+  const {
+    onConnectStart,
+    onConnectEnd,
+    handleConnect,
+    getConnectionStartContext,
+    shouldPreventClose,
+    onMove,
+    nodeId,
+  } = useConnectionDrag(
+    originalOnConnect,
+    showModal,
+    hideModal,
+    setDropdownPosition,
+    setCreatedPlaceholderRef,
+    calculateDropdownPosition,
+    removePlaceholderNode,
+    clearActiveDropdown,
+    checkAndRemoveExistingPlaceholder,
+    reactFlowInstance,
+  )
+
+  const handleNodeContextMenu = useCallback(
+    (e: React.MouseEvent, node: { id: string }) => {
+      e.preventDefault()
+      setContextMenu({
+        open: true,
+        x: e.clientX,
+        y: e.clientY,
+        nodeId: node.id,
+      })
     },
     [],
   )
 
-  // 连接开始时记录起始节点
-  const handleConnectStart = useCallback(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (_event: any, params: any) => {
-      if (params?.nodeId && params?.handleId) {
-        setConnectionStart({
-          nodeId: params.nodeId,
-          handleId: params.handleId,
-        })
-      }
-    },
-    [],
-  )
+  const handleShowSingleDebug = useCallback((nodeId: string) => {
+    setSingleDebugNodeId(nodeId)
+  }, [])
 
-  // 连接结束时显示节点选择面板
-  const handleConnectEnd = useCallback((event: MouseEvent | TouchEvent) => {
-    if ('clientX' in event && 'clientY' in event) {
-      setSelectorPosition({ x: event.clientX, y: event.clientY })
-      setShowNodeSelector(true)
+  const handleCloseSingleDebug = useCallback(() => {
+    setSingleDebugNodeId(null)
+  }, [])
+
+  // 画布点击处理
+  const onPaneClick = useCallback(() => {
+    hideFormDrawer()
+    setContextMenu((prev) => ({ ...prev, open: false }))
+    if (visible && !shouldPreventClose()) {
+      removePlaceholderNode()
+      hideModal()
+      clearActiveDropdown()
     }
-  }, [])
+    if (imgVisible) {
+      addNoteNode(mouse)
+      hideImage()
+    }
+  }, [
+    hideFormDrawer,
+    visible,
+    shouldPreventClose,
+    hideModal,
+    clearActiveDropdown,
+    removePlaceholderNode,
+    imgVisible,
+    addNoteNode,
+    mouse,
+    hideImage,
+  ])
 
-  // 点击画布关闭节点选择面板和表单抽屉
-  const handlePaneClick = useCallback(() => {
-    setShowNodeSelector(false)
-    setConnectionStart(null)
-    setShowFormSheet(false)
-  }, [])
+  const { lastNode, setDerivedMessages, startButNotFinishedNodeIds } =
+    useNodeLoading({
+      currentEventListWithoutMessageById,
+    })
 
   return (
-    <div className="w-full h-full bg-gray-50">
+    <div className="w-full h-full px-space-lg pb-space-lg bg-surface-secondary">
+      {/* SVG 标记定义 */}
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        style={{ position: 'absolute', top: 0, left: 0, width: 0, height: 0 }}
+        style={{ position: 'absolute', top: 10, left: 0 }}
       >
         <defs>
           <marker
-            fill="rgb(59, 130, 246)"
+            fill="var(--color-components-canvas-edge-marker-selected)"
             id="selected-marker"
             viewBox="0 0 40 40"
             refX="8"
@@ -116,7 +251,7 @@ export default function AgentCanvas({ onNodeClick: _onNodeClick }: AgentCanvasPr
             <path d="M 0 0 L 10 5 L 0 10 z" />
           </marker>
           <marker
-            fill="#9ca3af"
+            fill="var(--color-components-canvas-edge-marker)"
             id="logo"
             viewBox="0 0 40 40"
             refX="8"
@@ -130,8 +265,16 @@ export default function AgentCanvas({ onNodeClick: _onNodeClick }: AgentCanvasPr
           </marker>
         </defs>
       </svg>
-      
-      <AgentInstanceContext.Provider value={{ addCanvasNode }}>
+
+      <AgentInstanceContext.Provider
+        value={{
+          addCanvasNode,
+          showFormDrawer,
+          lastNode: lastNode?.data?.component_id,
+          currentSendLoading,
+          startButNotFinishedNodeIds,
+        }}
+      >
         <ReactFlow
           connectionMode={ConnectionMode.Loose}
           nodes={nodes}
@@ -139,15 +282,19 @@ export default function AgentCanvas({ onNodeClick: _onNodeClick }: AgentCanvasPr
           edges={edges}
           onEdgesChange={onEdgesChange}
           fitView
-          onConnect={onConnect}
+          onConnect={handleConnect}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
-          onNodeClick={handleNodeClick}
+          onConnectStart={onConnectStart}
+          onConnectEnd={onConnectEnd}
+          onMove={onMove}
+          onNodeClick={onNodeClick}
+          onNodeContextMenu={handleNodeContextMenu}
+          onPaneClick={onPaneClick}
+          onInit={setReactFlowInstance}
           onSelectionChange={onSelectionChange}
-          onConnectStart={handleConnectStart}
-          onConnectEnd={handleConnectEnd}
-          onPaneClick={handlePaneClick}
           nodeOrigin={[0.5, 0]}
+          isValidConnection={isValidConnection}
           onEdgeMouseEnter={onEdgeMouseEnter}
           onEdgeMouseLeave={onEdgeMouseLeave}
           className="h-full"
@@ -155,55 +302,127 @@ export default function AgentCanvas({ onNodeClick: _onNodeClick }: AgentCanvasPr
             type: 'buttonEdge',
             markerEnd: 'logo',
             zIndex: 1001,
-            style: { stroke: '#9ca3af', strokeWidth: 2 }, // 添加明显的样式
           }}
           deleteKeyCode={['Delete', 'Backspace']}
+          onBeforeDelete={handleBeforeDelete}
           proOptions={{ hideAttribution: true }}
         >
+          <AgentBackground />
+          <Spotlight className="z-0" opcity={0.7} coverage={70} />
           <Controls
             position={'bottom-center'}
             orientation="horizontal"
-            className="bg-white px-4 py-2 rounded-md shadow-lg"
-          />
-        </ReactFlow>
-
-        {/* 节点选择面板 */}
-        {showNodeSelector && connectionStart && (
-          <HandleContext.Provider
-            value={{
-              nodeId: connectionStart.nodeId,
-              id: connectionStart.handleId,
-              type: 'source',
-              position: Position.Right,
-              isFromConnectionDrag: true,
-            }}
+            className="bg-surface-primary px-space-base py-space-sm h-auto w-auto [&>button]:bg-transparent [&>button]:border-0 [&>button]:text-text-primary [&>button]:hover:bg-surface-secondary [&>button]:p-0 [&>button]:size-4 gap-space-sm rounded-radius-md shadow-elevation-low"
           >
-            <NodeSelectorPanel
-              position={selectorPosition}
-              onClose={() => {
-                setShowNodeSelector(false)
-                setConnectionStart(null)
+            <ControlButton>
+              <TooltipProvider delayDuration={200}>
+                <TooltipRoot>
+                  <TooltipTrigger asChild>
+                    <NotebookPen className="!fill-none size-4" onClick={showImage} />
+                  </TooltipTrigger>
+                  <TooltipContent>{t('flow.note', '笔记')}</TooltipContent>
+                </TooltipRoot>
+              </TooltipProvider>
+            </ControlButton>
+          </Controls>
+        </ReactFlow>
+        {/* 下拉节点选择菜单 */}
+        {visible && (
+          <HandleContext.Provider
+            value={
+              getConnectionStartContext() || {
+                nodeId: '',
+                id: '',
+                type: 'source',
+                position: Position.Right,
+                isFromConnectionDrag: true,
+              }
+            }
+          >
+            <NextStepDropdown
+              hideModal={() => {
+                removePlaceholderNode()
+                hideModal()
+                clearActiveDropdown()
               }}
-              onNodeCreated={() => {
-                setShowNodeSelector(false)
-                setConnectionStart(null)
-              }}
-            />
+              position={dropdownPosition}
+              onNodeCreated={onNodeCreated}
+              nodeId={nodeId}
+            >
+              <span></span>
+            </NextStepDropdown>
           </HandleContext.Provider>
         )}
-      </AgentInstanceContext.Provider>
 
-      {/* 右侧属性编辑抽屉 */}
-      <FormSheet
-        open={showFormSheet}
-        node={selectedNodeId ? getNode(selectedNodeId) : undefined}
-        onClose={() => {
-          setShowFormSheet(false)
-          setSelectedNodeId(null)
-        }}
-      />
+        <NotebookPen
+          className={`hidden absolute size-6 ${imgVisible ? 'block' : ''}`}
+          ref={ref}
+        />
+
+        {formDrawerVisible && (
+          <AgentInstanceContext.Provider
+            value={{ addCanvasNode, showFormDrawer }}
+          >
+            <FormSheet
+              open={formDrawerVisible}
+              node={clickedNode}
+              onClose={hideFormDrawer}
+            />
+          </AgentInstanceContext.Provider>
+        )}
+
+        {chatVisible && (
+          <AgentChatContext.Provider
+            value={{ showLogSheet, setLastSendLoadingFunc, setDerivedMessages }}
+          >
+            <AgentChatLogContext.Provider
+              value={{ addEventList, setCurrentMessageId }}
+            >
+              <ChatSheet hideModal={hideRunOrChatDrawer} />
+            </AgentChatLogContext.Provider>
+          </AgentChatContext.Provider>
+        )}
+
+        {runVisible && (
+          <RunSheet hideModal={hideRunOrChatDrawer} showModal={showChatModal} />
+        )}
+
+        {logSheetVisible && (
+          <LogSheet
+            hideModal={hideLogSheet}
+            currentEventListWithoutMessageById={
+              currentEventListWithoutMessageById
+            }
+            currentMessageId={currentMessageId}
+            sendLoading={lastSendLoading}
+          />
+        )}
+
+        <CanvasContextMenu
+          open={contextMenu.open}
+          position={{ x: contextMenu.x, y: contextMenu.y }}
+          nodeId={contextMenu.nodeId}
+          onOpenChange={(open) =>
+            setContextMenu((prev) => ({ ...prev, open }))
+          }
+          onDebug={handleShowSingleDebug}
+        />
+
+        <SingleDebugSheet
+          open={Boolean(singleDebugNodeId)}
+          canvasId={canvasId}
+          componentId={singleDebugNodeId ?? undefined}
+          onClose={handleCloseSingleDebug}
+        />
+      </AgentInstanceContext.Provider>
     </div>
   )
 }
 
-
+export default function AgentCanvas(props: AgentCanvasProps) {
+  return (
+    <DropdownProvider>
+      <AgentCanvasInner {...props} />
+    </DropdownProvider>
+  )
+}

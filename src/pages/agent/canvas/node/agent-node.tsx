@@ -1,27 +1,32 @@
 import { memo, useMemo } from 'react'
 import type { NodeProps } from '@xyflow/react'
 import { Handle, Position } from '@xyflow/react'
-import { Bot } from 'lucide-react'
 import { get } from 'lodash'
+import { useTranslation } from 'react-i18next'
 import type { IAgentNode } from '../../types'
+import { AgentExceptionMethod, NodeHandleId } from '../../constant'
 import { CommonHandle, LeftEndHandle } from './handle'
 import { RightHandleStyle } from './handle-styles'
 import NodeHeader from './node-header'
 import { NodeWrapper } from './node-wrapper'
-import { NodeHandleId } from '../../constant'
 import { ToolBar } from './toolbar'
-import { needsSingleStepDebugging, showCopyIcon } from '../../utils'
-import { isBottomSubAgent, hasSubAgent } from '../../utils/delete-node'
+import { needsSingleStepDebugging, showCopyIcon, hasSubAgent, isBottomSubAgent } from '../../utils'
 import useGraphStore from '../../store'
 import { cn } from '@/lib/utils'
+import { LLMLabelCard } from './card'
 
 function InnerAgentNode({ id, data, isConnectable, selected }: NodeProps<IAgentNode>) {
   const edges = useGraphStore((state) => state.edges)
+  const { t } = useTranslation()
 
   // 判断是否是子Agent（通过agentTop连接的）
   const isHeadAgent = useMemo(() => {
     return !isBottomSubAgent(edges, id)
   }, [edges, id])
+
+  const exceptionMethod = useMemo(() => {
+    return get(data, 'form.exception_method')
+  }, [data])
 
   // 判断是否有tools/mcp
   const hasTools = useMemo(() => {
@@ -29,6 +34,10 @@ function InnerAgentNode({ id, data, isConnectable, selected }: NodeProps<IAgentN
     const mcp = get(data, 'form.mcp', [])
     return tools.length > 0 || mcp.length > 0
   }, [data])
+
+  const isGotoMethod = useMemo(() => {
+    return exceptionMethod === AgentExceptionMethod.Goto
+  }, [exceptionMethod])
 
   return (
     <ToolBar
@@ -38,7 +47,7 @@ function InnerAgentNode({ id, data, isConnectable, selected }: NodeProps<IAgentN
       showRun={needsSingleStepDebugging(data.label)}
       showCopy={showCopyIcon(data.label)}
     >
-      <NodeWrapper selected={selected} className="!border-purple-500">
+      <NodeWrapper selected={selected} id={id}>
         {/* 主Agent的handles */}
         {isHeadAgent && (
           <>
@@ -50,6 +59,7 @@ function InnerAgentNode({ id, data, isConnectable, selected }: NodeProps<IAgentN
               id={NodeHandleId.Start}
               style={RightHandleStyle}
               isConnectableEnd={false}
+              nodeId={id}
             />
           </>
         )}
@@ -61,7 +71,7 @@ function InnerAgentNode({ id, data, isConnectable, selected }: NodeProps<IAgentN
             position={Position.Top}
             isConnectable={false}
             id={NodeHandleId.AgentTop}
-            className="!bg-blue-500 !size-2"
+            className="!bg-surface-accent !size-2"
           />
         )}
         
@@ -71,10 +81,9 @@ function InnerAgentNode({ id, data, isConnectable, selected }: NodeProps<IAgentN
           position={Position.Bottom}
           isConnectable={false}
           id={NodeHandleId.AgentBottom}
-          style={{ left: '70%' }}
-          className={cn('!bg-blue-500 !size-2', {
-            'invisible': !hasSubAgent(edges, id),
-            'visible': hasSubAgent(edges, id),
+          style={{ left: 180 }}
+          className={cn('!bg-surface-accent !size-2 invisible', {
+            visible: hasSubAgent(edges, id),
           })}
         />
         
@@ -84,32 +93,38 @@ function InnerAgentNode({ id, data, isConnectable, selected }: NodeProps<IAgentN
           position={Position.Bottom}
           isConnectable={false}
           id={NodeHandleId.Tool}
-          style={{ left: '30%' }}
-          className={cn('!bg-blue-500 !size-2', {
-            'invisible': !hasTools,
-            'visible': hasTools,
+          style={{ left: 20 }}
+          className={cn('!bg-surface-accent !size-2 invisible', {
+            visible: hasTools,
           })}
         />
         
-        <NodeHeader
-          id={id}
-          name={data.name}
-          label={data.label}
-          icon={<Bot className="w-4 h-4 text-purple-600" />}
-        />
-        
-        <div className="px-3 py-2">
-          <div className="text-xs text-gray-500 space-y-0.5">
-            {data.form?.llm_id && (
-              <div className="truncate text-blue-600 font-medium">
-                {data.form.llm_id.split('@')[0]}
-              </div>
-            )}
-            {data.form?.description && (
-              <div className="line-clamp-2 text-gray-600">{data.form.description}</div>
-            )}
-          </div>
-        </div>
+        <NodeHeader id={id} name={data.name} label={data.label} />
+
+        <section className="flex flex-col gap-space-sm">
+          <LLMLabelCard llmId={get(data, 'form.llm_id')} />
+          {(isGotoMethod || exceptionMethod === AgentExceptionMethod.Comment) && (
+            <div className="bg-surface-secondary rounded-radius-sm p-space-xs flex justify-between gap-space-sm">
+              <span className="text-text-secondary">{t('flow.onFailure')}</span>
+              <span className="truncate flex-1 text-right">
+                {t(`flow.${exceptionMethod}`)}
+              </span>
+            </div>
+          )}
+        </section>
+
+        {isGotoMethod && (
+          <CommonHandle
+            type="source"
+            position={Position.Right}
+            isConnectable={isConnectable}
+            className="!bg-state-error"
+            style={{ ...RightHandleStyle, top: 94 }}
+            nodeId={id}
+            id={NodeHandleId.AgentException}
+            isConnectableEnd={false}
+          />
+        )}
       </NodeWrapper>
     </ToolBar>
   )

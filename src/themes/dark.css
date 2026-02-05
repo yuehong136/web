@@ -289,6 +289,7 @@ html[data-theme="dark"] {
   --color-components-skeleton-text: rgba(255, 255, 255, 0.05);
   --color-components-upload-progress-bg: rgba(255, 255, 255, 0.08);
   --color-components-upload-progress-fill: #818cf8;
+  --color-components-canvas-skeleton-bg: rgba(255, 255, 255, 0.1);
 
   /* ===== 代码和预格式化文本 ===== */
   --color-components-code-bg: rgba(110, 118, 129, 0.15);
@@ -336,6 +337,47 @@ html[data-theme="dark"] {
   --color-components-stats-card-orange-icon-text: #fdba74;
   --color-components-stats-card-orange-shadow: 0 8px 24px -4px rgba(249, 115, 22, 0.35), 0 4px 8px -2px rgba(249, 115, 22, 0.15);
   --color-components-stats-card-orange-border-hover: rgba(249, 115, 22, 0.5);
+
+  /* ===== 画布系统 ===== */
+  --color-components-canvas-bg: rgb(18, 18, 18);
+  --color-components-canvas-grid: rgba(255, 255, 255, 0.05);
+  --color-components-canvas-node-bg: #202025;
+  --color-components-canvas-node-border: rgba(255, 255, 255, 0.1);
+  --color-components-canvas-node-border-hover: rgba(255, 255, 255, 0.15);
+  --color-components-canvas-node-border-selected: #00BEB4;
+  --color-components-canvas-node-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --color-components-canvas-edge-stroke: rgb(113, 113, 122);
+  --color-components-canvas-edge-stroke-hover: rgb(161, 161, 170);
+  --color-components-canvas-edge-stroke-selected: #00BEB4;
+  --color-components-canvas-edge-marker: rgb(113, 113, 122);
+  --color-components-canvas-edge-marker-selected: #00BEB4;
+  --color-components-canvas-handle-bg: #00BEB4;
+  --color-components-canvas-handle-border: #202025;
+  --color-components-canvas-handle-icon: #ffffff;
+  --color-components-canvas-toolbar-bg: #202025;
+  --color-components-canvas-toolbar-border: rgba(255, 255, 255, 0.1);
+  --color-components-canvas-toolbar-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --color-components-canvas-icon-start: #4ade80;
+  --color-components-canvas-icon-retrieval: #60a5fa;
+  --color-components-canvas-icon-generate: #c084fc;
+  --color-components-canvas-icon-message: #2dd4bf;
+  --color-components-canvas-icon-tool: #fb923c;
+  --color-components-canvas-icon-file: #4ade80;
+  --color-components-canvas-icon-parser: #60a5fa;
+  --color-components-canvas-icon-splitter: #fb923c;
+  --color-components-canvas-icon-tokenizer: #c084fc;
+  --color-components-canvas-icon-extractor: #818cf8;
+  --color-components-canvas-icon-switch: #facc15;
+  --color-components-canvas-icon-categorize: #f472b6;
+  --color-components-canvas-icon-agent: #a78bfa;
+  --color-components-canvas-icon-code: #9ca3af;
+  --color-components-canvas-icon-default: #a1a1aa;
+  --color-components-canvas-skeleton-bg: rgba(255, 255, 255, 0.1);
+  --color-components-canvas-note-bg: rgba(234, 179, 8, 0.15);
+  --color-components-canvas-note-border: rgba(250, 204, 21, 0.4);
+  --color-components-canvas-note-border-selected: #facc15;
+  --color-components-canvas-note-title: #fde047;
+  --color-components-canvas-note-text: #fef08a;
 
   /* ===== 其他组件 ===== */
   --color-components-method-get-bg: rgba(34, 197, 94, 0.2);

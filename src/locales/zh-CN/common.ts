@@ -2,6 +2,7 @@ export default {
   common: {
     // 操作按钮
     add: '添加',
+    remove: '移除',
     edit: '编辑',
     delete: '删除',
     save: '保存',
@@ -57,5 +58,12 @@ export default {
     type: '类型',
     action: '操作',
     total: '共 {{count}} 条',
+  },
+  flow: {
+    copy: '复制',
+    debug: '调试',
+    delete: '删除',
+    testRun: '测试运行',
+    note: '笔记',
   },
 }

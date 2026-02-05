@@ -24,7 +24,7 @@ function InnerMessageNode({ id, data, isConnectable, selected }: NodeProps<IMess
       showRun={needsSingleStepDebugging(data.label)}
       showCopy={showCopyIcon(data.label)}
     >
-      <NodeWrapper selected={selected} className="!border-green-500">
+      <NodeWrapper selected={selected} id={id}>
         <LeftEndHandle />
         <CommonHandle
           type="source"
@@ -33,15 +33,16 @@ function InnerMessageNode({ id, data, isConnectable, selected }: NodeProps<IMess
           id={NodeHandleId.Start}
           style={RightHandleStyle}
           isConnectableEnd={false}
+          nodeId={id}
         />
         <NodeHeader
           id={id}
           name={data.name}
           label={data.label}
-          icon={<MessageSquare className="w-4 h-4 text-green-600" />}
+          icon={<MessageSquare className="w-4 h-4" style={{ color: 'var(--color-components-canvas-icon-message)' }} />}
         />
         <div className="px-3 py-2">
-          <div className="text-xs text-gray-600 line-clamp-2">
+          <div className="text-xs text-text-tertiary line-clamp-2">
             {content || '暂无内容'}
           </div>
         </div>
@@ -51,4 +52,3 @@ function InnerMessageNode({ id, data, isConnectable, selected }: NodeProps<IMess
 }
 
 export const MessageNode = memo(InnerMessageNode)
-

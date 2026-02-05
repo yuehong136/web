@@ -749,6 +749,62 @@ export interface DesignTokens {
   'components-recommend-card-bg-4': string
   'components-recommend-card-text': string
   'components-recommend-card-tag': string
+
+  // ===== 画布系统 (Agent Canvas) =====
+  // 画布背景
+  'components-canvas-bg': string
+  'components-canvas-grid': string
+
+  // 节点通用
+  'components-canvas-node-bg': string
+  'components-canvas-node-border': string
+  'components-canvas-node-border-hover': string
+  'components-canvas-node-border-selected': string
+  'components-canvas-node-shadow': string
+
+  // 边线
+  'components-canvas-edge-stroke': string
+  'components-canvas-edge-stroke-hover': string
+  'components-canvas-edge-stroke-selected': string
+  'components-canvas-edge-marker': string
+  'components-canvas-edge-marker-selected': string
+
+  // 连接点
+  'components-canvas-handle-bg': string
+  'components-canvas-handle-border': string
+  'components-canvas-handle-icon': string
+
+  // 工具栏
+  'components-canvas-toolbar-bg': string
+  'components-canvas-toolbar-border': string
+  'components-canvas-toolbar-shadow': string
+
+  // 节点类型图标颜色（按功能分组）
+  'components-canvas-icon-start': string       // 开始节点（绿色）
+  'components-canvas-icon-retrieval': string   // 检索节点（蓝色）
+  'components-canvas-icon-generate': string    // 生成节点（紫色）
+  'components-canvas-icon-message': string     // 消息节点（青绿色）
+  'components-canvas-icon-tool': string        // 工具节点（橙色）
+  'components-canvas-icon-file': string        // 文件节点（绿色）
+  'components-canvas-icon-parser': string      // 解析节点（蓝色）
+  'components-canvas-icon-splitter': string    // 分割节点（橙色）
+  'components-canvas-icon-tokenizer': string   // 分词节点（紫色）
+  'components-canvas-icon-extractor': string   // 提取节点（靛蓝色）
+  'components-canvas-icon-switch': string      // 条件节点（黄色）
+  'components-canvas-icon-categorize': string  // 分类节点（粉色）
+  'components-canvas-icon-agent': string       // Agent节点（紫色）
+  'components-canvas-icon-code': string        // 代码节点（灰色）
+  'components-canvas-icon-default': string     // 默认图标色（灰色）
+
+  // 占位符/骨架屏
+  'components-canvas-skeleton-bg': string
+
+  // 笔记节点
+  'components-canvas-note-bg': string
+  'components-canvas-note-border': string
+  'components-canvas-note-border-selected': string
+  'components-canvas-note-title': string
+  'components-canvas-note-text': string
 }
 
 // 生成 CSS 变量映射
@@ -1500,6 +1556,47 @@ export const defaultTokens: DesignTokens = {
   'components-recommend-card-bg-4': '',
   'components-recommend-card-text': '',
   'components-recommend-card-tag': '',
+
+  // 画布系统 (Agent Canvas)
+  'components-canvas-bg': '',
+  'components-canvas-grid': '',
+  'components-canvas-node-bg': '',
+  'components-canvas-node-border': '',
+  'components-canvas-node-border-hover': '',
+  'components-canvas-node-border-selected': '',
+  'components-canvas-node-shadow': '',
+  'components-canvas-edge-stroke': '',
+  'components-canvas-edge-stroke-hover': '',
+  'components-canvas-edge-stroke-selected': '',
+  'components-canvas-edge-marker': '',
+  'components-canvas-edge-marker-selected': '',
+  'components-canvas-handle-bg': '',
+  'components-canvas-handle-border': '',
+  'components-canvas-handle-icon': '',
+  'components-canvas-toolbar-bg': '',
+  'components-canvas-toolbar-border': '',
+  'components-canvas-toolbar-shadow': '',
+  'components-canvas-icon-start': '',
+  'components-canvas-icon-retrieval': '',
+  'components-canvas-icon-generate': '',
+  'components-canvas-icon-message': '',
+  'components-canvas-icon-tool': '',
+  'components-canvas-icon-file': '',
+  'components-canvas-icon-parser': '',
+  'components-canvas-icon-splitter': '',
+  'components-canvas-icon-tokenizer': '',
+  'components-canvas-icon-extractor': '',
+  'components-canvas-icon-switch': '',
+  'components-canvas-icon-categorize': '',
+  'components-canvas-icon-agent': '',
+  'components-canvas-icon-code': '',
+  'components-canvas-icon-default': '',
+  'components-canvas-skeleton-bg': '',
+  'components-canvas-note-bg': '',
+  'components-canvas-note-border': '',
+  'components-canvas-note-border-selected': '',
+  'components-canvas-note-title': '',
+  'components-canvas-note-text': '',
 }
 
 // 导出 CSS 变量映射用于 Tailwind

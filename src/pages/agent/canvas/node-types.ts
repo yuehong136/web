@@ -7,37 +7,68 @@ import { SwitchNode } from './node/switch-node'
 import { AgentNode } from './node/agent-node'
 import { ToolNode } from './node/tool-node'
 import { NoteNode } from './node/note-node'
+import { CategorizeNode } from './node/categorize-node'
+import { RewriteNode } from './node/rewrite-node'
+import { KeywordNode } from './node/keyword-node'
+import { DataOperationsNode } from './node/data-operations-node'
+import { ListOperationsNode } from './node/list-operations-node'
+import { VariableAssignerNode } from './node/variable-assigner-node'
+import { VariableAggregatorNode } from './node/variable-aggregator-node'
+import { IterationNode, IterationStartNode } from './node/iteration-node'
+import { LoopNode, LoopStartNode } from './node/loop-node'
+import { ExitLoopNode } from './node/exit-loop-node'
+import { PlaceholderNode } from './node/placeholder-node'
+import { LabeledGroupNode } from './node/labeled-group-node'
 
+// Pipeline nodes
 import { FileNode } from './node/file-node'
 import { ParserNode } from './node/parser-node'
 import { TokenizerNode } from './node/tokenizer-node'
 import { SplitterNode } from './node/splitter-node'
 import { ExtractorNode } from './node/extractor-node'
 
-// 定义节点类型映射 - 完整照抄RAGFlow
 export const nodeTypes: NodeTypes = {
+  // Base fallback
   ragNode: RagNode,
+
+  // Core nodes
   beginNode: BeginNode,
   retrievalNode: RetrievalNode,
   messageNode: MessageNode,
+  categorizeNode: CategorizeNode,
   switchNode: SwitchNode,
+  relevantNode: RagNode,
+  rewriteNode: RewriteNode,
+  keywordNode: KeywordNode,
+
+  // Agent nodes
   agentNode: AgentNode,
   toolNode: ToolNode,
   noteNode: NoteNode,
-  // Pipeline专用节点
+  placeholderNode: PlaceholderNode,
+
+  // Data operation nodes
+  dataOperationsNode: DataOperationsNode,
+  listOperationsNode: ListOperationsNode,
+  variableAssignerNode: VariableAssignerNode,
+  variableAggregatorNode: VariableAggregatorNode,
+
+  // Iteration / Loop nodes
+  group: IterationNode,
+  labeledGroupNode: LabeledGroupNode,
+  iterationStartNode: IterationStartNode,
+  loopNode: LoopNode,
+  loopStartNode: LoopStartNode,
+  exitLoopNode: ExitLoopNode,
+
+  // Pipeline nodes
   fileNode: FileNode,
   parserNode: ParserNode,
   tokenizerNode: TokenizerNode,
   splitterNode: SplitterNode,
-  contextNode: ExtractorNode,  // contextNode = ExtractorNode
-  // 其他节点类型暂时用RagNode
-  rewriteNode: RagNode,
-  keywordNode: RagNode,
-  categorizeNode: RagNode,
-  relevantNode: RagNode,
+  contextNode: ExtractorNode,
 }
 
 export const edgeTypes = {
-  buttonEdge: () => null, // 临时占位，实际使用时会被ButtonEdge替换
+  buttonEdge: () => null,
 }
-

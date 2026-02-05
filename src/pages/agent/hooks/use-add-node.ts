@@ -22,10 +22,38 @@ import {
   initialWaitingDialogueValues,
   initialDuckValues,
   initialWikipediaValues,
+  initialPubMedValues,
+  initialArXivValues,
+  initialGoogleValues,
+  initialBingValues,
+  initialGoogleScholarValues,
+  initialGithubValues,
+  initialSearXNGValues,
+  initialTavilyValues,
+  initialTavilyExtractValues,
+  initialWenCaiValues,
+  initialYahooFinanceValues,
   initialInvokeValues,
+  initialExeSqlValues,
+  initialCrawlerValues,
   initialEmailValues,
+  initialUserFillUpValues,
+  initialStringTransformValues,
+  initialPDFGeneratorValues,
+  initialExcelProcessorValues,
+  initialDataOperationsValues,
+  initialListOperationsValues,
+  initialVariableAssignerValues,
+  initialVariableAggregatorValues,
+  initialLoopValues,
   initialIterationValues,
   initialIterationStartValues,
+  initialFileValues,
+  initialParserValues,
+  initialTokenizerValues,
+  initialSplitterValues,
+  initialHierarchicalMergerValues,
+  initialExtractorValues,
 } from '../constant'
 import useGraphStore from '../store'
 import { generateNodeNamesWithIncreasingIndex, getNodeDragHandle } from '../utils'
@@ -50,10 +78,40 @@ export const useInitializeOperatorParams = () => {
       [Operator.WaitingDialogue]: initialWaitingDialogueValues,
       [Operator.DuckDuckGo]: initialDuckValues,
       [Operator.Wikipedia]: initialWikipediaValues,
+      [Operator.PubMed]: initialPubMedValues,
+      [Operator.ArXiv]: initialArXivValues,
+      [Operator.Google]: initialGoogleValues,
+      [Operator.Bing]: initialBingValues,
+      [Operator.GoogleScholar]: initialGoogleScholarValues,
+      [Operator.GitHub]: initialGithubValues,
+      [Operator.SearXNG]: initialSearXNGValues,
+      [Operator.TavilySearch]: initialTavilyValues,
+      [Operator.TavilyExtract]: initialTavilyExtractValues,
+      [Operator.WenCai]: initialWenCaiValues,
+      [Operator.YahooFinance]: initialYahooFinanceValues,
       [Operator.Invoke]: initialInvokeValues,
+      [Operator.ExeSQL]: initialExeSqlValues,
+      [Operator.Crawler]: initialCrawlerValues,
       [Operator.Email]: initialEmailValues,
+      [Operator.UserFillUp]: initialUserFillUpValues,
+      [Operator.StringTransform]: initialStringTransformValues,
+      [Operator.PDFGenerator]: initialPDFGeneratorValues,
+      [Operator.ExcelProcessor]: initialExcelProcessorValues,
+      [Operator.DataOperations]: initialDataOperationsValues,
+      [Operator.ListOperations]: initialListOperationsValues,
+      [Operator.VariableAssigner]: initialVariableAssignerValues,
+      [Operator.VariableAggregator]: initialVariableAggregatorValues,
+      [Operator.Loop]: initialLoopValues,
+      [Operator.LoopStart]: {},
+      [Operator.ExitLoop]: {},
       [Operator.Iteration]: initialIterationValues,
       [Operator.IterationStart]: initialIterationStartValues,
+      [Operator.File]: initialFileValues,
+      [Operator.Parser]: initialParserValues,
+      [Operator.Tokenizer]: initialTokenizerValues,
+      [Operator.Splitter]: initialSplitterValues,
+      [Operator.HierarchicalMerger]: initialHierarchicalMergerValues,
+      [Operator.Extractor]: initialExtractorValues,
     }
   }, [])
 
@@ -64,7 +122,7 @@ export const useInitializeOperatorParams = () => {
     [initialFormValuesMap],
   )
 
-  return { initializeOperatorParams }
+  return { initializeOperatorParams, initialFormValuesMap }
 }
 
 export const useGetNodeName = () => {
@@ -99,7 +157,7 @@ type CanvasMouseEvent = Pick<
   'clientX' | 'clientY'
 >
 
-export function useAddNode(reactFlowInstance?: ReactFlowInstance) {
+export function useAddNode(reactFlowInstance?: ReactFlowInstance<any, any>) {
   const { nodes, addEdge, addNode } = useGraphStore((state) => state)
   const getNodeName = useGetNodeName()
   const { initializeOperatorParams } = useInitializeOperatorParams()
@@ -161,6 +219,12 @@ export function useAddNode(reactFlowInstance?: ReactFlowInstance) {
     ],
   )
 
-  return { addCanvasNode }
-}
+  const addNoteNode = useCallback(
+    (mouse: { clientX: number; clientY: number }) => {
+      addCanvasNode(Operator.Note)({ clientX: mouse.clientX, clientY: mouse.clientY })
+    },
+    [addCanvasNode],
+  )
 
+  return { addCanvasNode, addNoteNode }
+}

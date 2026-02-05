@@ -19,7 +19,7 @@ function InnerParserNode({ id, data, isConnectable, selected }: NodeProps) {
       showRun={needsSingleStepDebugging(data.label as string)}
       showCopy={showCopyIcon(data.label as string)}
     >
-      <NodeWrapper selected={selected}>
+      <NodeWrapper selected={selected} id={id}>
         <LeftEndHandle />
         <CommonHandle
           type="source"
@@ -28,15 +28,16 @@ function InnerParserNode({ id, data, isConnectable, selected }: NodeProps) {
           id={NodeHandleId.Start}
           style={RightHandleStyle}
           isConnectableEnd={false}
+          nodeId={id}
         />
         <NodeHeader
           id={id}
           name={data.name as string}
           label={data.label as string}
-          icon={<FileText className="w-4 h-4 text-blue-600" />}
+          icon={<FileText className="w-4 h-4" style={{ color: 'var(--color-components-canvas-icon-parser)' }} />}
         />
         <div className="px-3 py-2">
-          <div className="text-xs text-gray-500">
+          <div className="text-xs text-text-tertiary">
             文档解析
           </div>
         </div>
@@ -46,5 +47,3 @@ function InnerParserNode({ id, data, isConnectable, selected }: NodeProps) {
 }
 
 export const ParserNode = memo(InnerParserNode)
-
-

@@ -1,3 +1,5 @@
+import { Button, type ButtonProps } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 import { Copy, Play, Trash2 } from 'lucide-react'
 import type { PropsWithChildren } from 'react'
 import { memo, useCallback } from 'react'
@@ -12,16 +14,35 @@ interface ToolBarProps extends PropsWithChildren {
   showCopy?: boolean
 }
 
+function IconWrapper({ className, ...props }: ButtonProps) {
+  return (
+    <Button
+      variant="secondary"
+      size="icon-sm"
+      className={cn(
+        'size-7 p-0 bg-surface-primary text-text-secondary hover:text-text-primary',
+        className,
+      )}
+      {...props}
+    />
+  )
+}
+
 export const ToolBar = memo(
   ({ children, selected, id, label, showRun, showCopy }: ToolBarProps) => {
-    const { deleteNodeById, duplicateNode } = useGraphStore()
+    const { deleteNodeById, deleteIterationNodeById, duplicateNode } =
+      useGraphStore()
 
     const handleDelete = useCallback(
       (e: React.MouseEvent) => {
         e.stopPropagation()
-        deleteNodeById(id)
+        if ([Operator.Iteration, Operator.Loop].includes(label as Operator)) {
+          deleteIterationNodeById(id)
+        } else {
+          deleteNodeById(id)
+        }
       },
-      [deleteNodeById, id],
+      [deleteIterationNodeById, deleteNodeById, id, label],
     )
 
     const handleDuplicate = useCallback(
@@ -32,45 +53,37 @@ export const ToolBar = memo(
       [duplicateNode, id, label],
     )
 
-    const handleRun = useCallback(
-      (e: React.MouseEvent) => {
-        e.stopPropagation()
-        console.log('Run node:', id)
-        // TODO: 实现节点调试功能
-      },
-      [id],
-    )
+    const toolbarVisible = selected
 
     return (
       <div className="relative group">
         {children}
-        {selected && label !== Operator.Begin && (
-          <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 flex items-center space-x-1 bg-white rounded-lg shadow-lg border border-gray-200 px-2 py-1">
+        {label !== Operator.Begin && (
+          <div
+            className={cn(
+              'absolute -top-10 left-1/2 -translate-x-1/2 flex items-center gap-space-xs rounded-radius-md border border-border-primary bg-surface-primary px-space-xs py-space-xs shadow-elevation-low transition-opacity',
+              toolbarVisible
+                ? 'opacity-100 pointer-events-auto'
+                : 'opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto',
+            )}
+          >
             {showRun && (
-              <button
-                onClick={handleRun}
-                className="p-1 hover:bg-blue-50 rounded transition-colors"
-                title="调试节点"
-              >
-                <Play className="w-4 h-4 text-blue-600" />
-              </button>
+              <IconWrapper title="调试节点">
+                <Play className="size-3.5" data-play />
+              </IconWrapper>
             )}
             {showCopy && (
-              <button
-                onClick={handleDuplicate}
-                className="p-1 hover:bg-gray-100 rounded transition-colors"
-                title="复制节点"
-              >
-                <Copy className="w-4 h-4 text-gray-600" />
-              </button>
+              <IconWrapper onClick={handleDuplicate} title="复制节点">
+                <Copy className="size-3.5" />
+              </IconWrapper>
             )}
-            <button
+            <IconWrapper
+              className="hover:text-state-error"
               onClick={handleDelete}
-              className="p-1 hover:bg-red-50 rounded transition-colors"
               title="删除节点"
             >
-              <Trash2 className="w-4 h-4 text-red-600" />
-            </button>
+              <Trash2 className="size-3.5" />
+            </IconWrapper>
           </div>
         )}
       </div>
@@ -79,4 +92,3 @@ export const ToolBar = memo(
 )
 
 ToolBar.displayName = 'ToolBar'
-

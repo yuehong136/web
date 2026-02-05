@@ -28,7 +28,7 @@ function InnerRagNode({
       showRun={needsSingleStepDebugging(data.label)}
       showCopy={showCopyIcon(data.label)}
     >
-      <NodeWrapper selected={selected}>
+      <NodeWrapper selected={selected} id={id}>
         <LeftEndHandle />
         <CommonHandle
           type="source"
@@ -37,6 +37,7 @@ function InnerRagNode({
           id={NodeHandleId.Start}
           style={RightHandleStyle}
           isConnectableEnd={false}
+          nodeId={id}
         />
         <NodeHeader id={id} name={data.name} label={data.label} />
         {children}
@@ -46,4 +47,3 @@ function InnerRagNode({
 }
 
 export const RagNode = memo(InnerRagNode)
-

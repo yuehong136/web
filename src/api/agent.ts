@@ -25,10 +25,7 @@ export const agentAPI = {
     const queryString = query.toString()
     const url = `/v1/canvas/list${queryString ? '?' + queryString : ''}`
     
-    console.log('🔍 请求Canvas列表:', url)
-    const result = await apiClient.get<{ canvas: IFlow[]; total: number }>(url)
-    console.log('📦 Canvas列表返回:', result)
-    return result
+    return apiClient.get<{ canvas: IFlow[]; total: number }>(url)
   },
 
   // 获取Canvas详情
@@ -121,10 +118,7 @@ export const agentAPI = {
   // 后端返回: { retcode, retmsg, data: [...] }
   // apiClient自动提取data字段，所以这里泛型直接是IFlow[]
   fetchTemplates: async () => {
-    console.log('🔍 请求模版列表: /v1/canvas/templates')
-    const result = await apiClient.get<IFlow[]>('/v1/canvas/templates')
-    console.log('📦 模版API返回:', result)
-    return result
+    return apiClient.get<IFlow[]>('/v1/canvas/templates')
   },
 
   // 更新Canvas设置（标题、描述等）
@@ -149,9 +143,19 @@ export const agentAPI = {
   // 上传文件到Canvas
   // 对应: POST /v1/canvas/upload/{canvas_id}
   uploadFile: async (canvasId: string, file: File) => {
-    const formData = new FormData()
-    formData.append('file', file)
-    return apiClient.post(`/v1/canvas/upload/${canvasId}`, formData)
+    return apiClient.upload(`/v1/canvas/upload/${canvasId}`, file)
+  },
+
+  // 获取Canvas SSE详情
+  // 对应: GET /v1/canvas/getsse/{canvas_id}
+  fetchCanvasSSE: async (canvasId: string) => {
+    return apiClient.get(`/v1/canvas/getsse/${canvasId}`)
+  },
+
+  // 获取Agent头像或共享详情
+  // 对应: GET /v1/canvas/getsse/{canvas_id}
+  fetchAgentAvatar: async (canvasId: string) => {
+    return apiClient.get(`/v1/canvas/getsse/${canvasId}`)
   },
 
   // 获取Canvas会话列表
@@ -166,6 +170,97 @@ export const agentAPI = {
     return apiClient.put(`/v1/canvas/cancel/${taskId}`)
   },
 
+  // 取消Pipeline执行
+  // 对应: PUT /v1/canvas/cancel/{task_id}
+  cancelDataflow: async (taskId: string) => {
+    return apiClient.put(`/v1/canvas/cancel/${taskId}`)
+  },
+
+  // 获取输入表单配置
+  // 对应: GET /v1/canvas/input_form?id=xxx&component_id=xxx
+  inputForm: async (canvasId: string, componentId: string) => {
+    return apiClient.get(`/v1/canvas/input_form`, {
+      params: {
+        id: canvasId,
+        component_id: componentId,
+      },
+    })
+  },
+
+  // 获取外部共享Agent输入
+  // 对应: GET /v1/agentbots/{canvas_id}/inputs
+  fetchExternalAgentInputs: async (canvasId: string) => {
+    return apiClient.get(`/v1/agentbots/${canvasId}/inputs`)
+  },
+
+  // 带进度的Canvas文件上传
+  // 对应: POST /v1/canvas/upload/{canvas_id}
+  uploadCanvasFileWithProgress: async (
+    canvasId: string,
+    file: File,
+    onProgress?: (progress: number) => void,
+    signal?: AbortSignal,
+  ) => {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest()
+      const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+      xhr.open('POST', `${baseURL}/v1/canvas/upload/${canvasId}`)
+
+      const token = localStorage.getItem('auth_token')
+      if (token) {
+        xhr.setRequestHeader('Authorization', `Bearer ${token}`)
+      }
+
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) {
+          const progress = Math.round((e.loaded / e.total) * 100)
+          onProgress?.(progress)
+        }
+      }
+
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            const response = JSON.parse(xhr.responseText)
+            if (response.code === 0 || response.retcode === 0) {
+              resolve(response.data)
+            } else {
+              reject(new Error(response.message || response.retmsg || 'Upload failed'))
+            }
+          } catch (e) {
+            reject(new Error('Invalid response format'))
+          }
+        } else {
+          reject(new Error(`HTTP ${xhr.status}: ${xhr.statusText}`))
+        }
+      }
+
+      xhr.onerror = () => reject(new Error('Network error'))
+      xhr.ontimeout = () => reject(new Error('Upload timeout'))
+
+      if (signal) {
+        signal.addEventListener('abort', () => {
+          xhr.abort()
+          reject(new Error('Upload cancelled'))
+        })
+      }
+
+      const formData = new FormData()
+      formData.append('file', file)
+      xhr.send(formData)
+    })
+  },
+
+  // 单节点调试（兼容RAGFlow接口）
+  // 对应: POST /v1/canvas/debug
+  debugSingle: async (data: IDebugNodeRequest) => {
+    return apiClient.post('/v1/canvas/debug', {
+      id: data.canvas_id,
+      component_id: data.component_id,
+      params: data.inputs || {},
+    })
+  },
+
   // 下载文件
   // 对应: GET /v1/canvas/download
   downloadFile: async (fileId: string, chunkId: string) => {
@@ -173,4 +268,3 @@ export const agentAPI = {
     return apiClient.get(`/v1/canvas/download${queryString}`)
   },
 }
-

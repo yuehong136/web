@@ -6,12 +6,18 @@ function InnerNoteNode({ data, selected }: NodeProps) {
   const noteText = (data.form as any)?.text || '备注...'
   
   return (
-    <div className={`min-w-[200px] min-h-[100px] bg-yellow-100 border-2 ${selected ? 'border-yellow-500' : 'border-yellow-300'} rounded-lg p-4 shadow-md note-drag-handle cursor-move`}>
+    <div 
+      className="min-w-[200px] min-h-[100px] border-2 rounded-lg p-4 shadow-md note-drag-handle cursor-move"
+      style={{
+        backgroundColor: 'var(--color-components-canvas-note-bg)',
+        borderColor: selected ? 'var(--color-components-canvas-note-border-selected)' : 'var(--color-components-canvas-note-border)',
+      }}
+    >
       <div className="flex items-center gap-2 mb-2">
-        <StickyNote className="w-4 h-4 text-yellow-700" />
-        <div className="text-sm font-semibold text-yellow-900">{data.name as string}</div>
+        <StickyNote className="w-4 h-4" style={{ color: 'var(--color-components-canvas-note-title)' }} />
+        <div className="text-sm font-semibold" style={{ color: 'var(--color-components-canvas-note-title)' }}>{data.name as string}</div>
       </div>
-      <div className="text-xs text-yellow-800 whitespace-pre-wrap">
+      <div className="text-xs whitespace-pre-wrap" style={{ color: 'var(--color-components-canvas-note-text)' }}>
         {noteText}
       </div>
     </div>

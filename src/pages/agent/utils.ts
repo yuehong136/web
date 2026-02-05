@@ -15,6 +15,7 @@ import type {
   ICategorizeItem,
   IPosition,
 } from './types'
+export { hasSubAgent, isBottomSubAgent } from './utils/delete-node'
 
 // ==================== 节点名称生成 ====================
 
@@ -352,6 +353,24 @@ export function getAgentNodeMCP(agentNode?: RAGFlowNodeType) {
   return mcp
 }
 
+export function buildBeginQueryWithObject(
+  inputs: Record<string, BeginQuery>,
+  values: BeginQuery[],
+) {
+  const nextInputs = Object.keys(inputs).reduce<Record<string, BeginQuery>>(
+    (pre, key) => {
+      const item = values.find((x) => x.key === key)
+      if (item) {
+        pre[key] = { ...item }
+      }
+      return pre
+    },
+    {},
+  )
+
+  return nextInputs
+}
+
 // ==================== 其他工具 ====================
 
 export const getDrawerWidth = () => {
@@ -360,4 +379,3 @@ export const getDrawerWidth = () => {
 
 export const receiveMessageError = (res: any) =>
   res && (res?.response.status !== 200 || res?.data?.code !== 0)
-

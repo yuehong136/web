@@ -722,6 +722,62 @@ export const lightTokens: DesignTokens = {
   'components-recommend-card-bg-4': '#EDEDED',
   'components-recommend-card-text': '#1f2937',
   'components-recommend-card-tag': '#9ca3af',
+
+  // ===== 画布系统 (Agent Canvas) - 亮色主题 =====
+  // 画布背景
+  'components-canvas-bg': 'rgb(246, 246, 247)',
+  'components-canvas-grid': 'rgba(0, 0, 0, 0.05)',
+
+  // 节点通用
+  'components-canvas-node-bg': '#ffffff',
+  'components-canvas-node-border': 'rgba(0, 0, 0, 0.1)',
+  'components-canvas-node-border-hover': 'rgba(0, 0, 0, 0.15)',
+  'components-canvas-node-border-selected': '#00BEB4',
+  'components-canvas-node-shadow': '0 2px 8px rgba(0, 0, 0, 0.08)',
+
+  // 边线
+  'components-canvas-edge-stroke': 'rgb(156, 163, 175)',
+  'components-canvas-edge-stroke-hover': 'rgb(107, 114, 128)',
+  'components-canvas-edge-stroke-selected': '#00BEB4',
+  'components-canvas-edge-marker': 'rgb(156, 163, 175)',
+  'components-canvas-edge-marker-selected': '#00BEB4',
+
+  // 连接点
+  'components-canvas-handle-bg': '#00BEB4',
+  'components-canvas-handle-border': '#ffffff',
+  'components-canvas-handle-icon': '#ffffff',
+
+  // 工具栏
+  'components-canvas-toolbar-bg': '#ffffff',
+  'components-canvas-toolbar-border': 'rgba(0, 0, 0, 0.08)',
+  'components-canvas-toolbar-shadow': '0 2px 8px rgba(0, 0, 0, 0.1)',
+
+  // 节点类型图标颜色（亮色主题）
+  'components-canvas-icon-start': '#16a34a',       // green-600
+  'components-canvas-icon-retrieval': '#2563eb',   // blue-600
+  'components-canvas-icon-generate': '#9333ea',    // purple-600
+  'components-canvas-icon-message': '#0d9488',     // teal-600
+  'components-canvas-icon-tool': '#ea580c',        // orange-600
+  'components-canvas-icon-file': '#16a34a',        // green-600
+  'components-canvas-icon-parser': '#2563eb',      // blue-600
+  'components-canvas-icon-splitter': '#ea580c',    // orange-600
+  'components-canvas-icon-tokenizer': '#9333ea',   // purple-600
+  'components-canvas-icon-extractor': '#4f46e5',   // indigo-600
+  'components-canvas-icon-switch': '#ca8a04',      // yellow-600
+  'components-canvas-icon-categorize': '#db2777',  // pink-600
+  'components-canvas-icon-agent': '#7c3aed',       // violet-600
+  'components-canvas-icon-code': '#4b5563',        // gray-600
+  'components-canvas-icon-default': '#6b7280',     // gray-500
+
+  // 占位符/骨架屏
+  'components-canvas-skeleton-bg': '#e5e7eb',
+
+  // 笔记节点
+  'components-canvas-note-bg': '#fef9c3',          // yellow-100
+  'components-canvas-note-border': '#fde047',      // yellow-300
+  'components-canvas-note-border-selected': '#eab308', // yellow-500
+  'components-canvas-note-title': '#a16207',       // yellow-700
+  'components-canvas-note-text': '#854d0e',        // yellow-800
 }
 
 // 暗色主题令牌值定义
@@ -1441,6 +1497,62 @@ export const darkTokens: DesignTokens = {
   'components-recommend-card-bg-4': 'rgba(120, 113, 98, 0.55)',
   'components-recommend-card-text': '#ffffff',
   'components-recommend-card-tag': '#d4d4d8',
+
+  // ===== 画布系统 (Agent Canvas) - 暗色主题 =====
+  // 画布背景
+  'components-canvas-bg': 'rgb(18, 18, 18)',
+  'components-canvas-grid': 'rgba(255, 255, 255, 0.05)',
+
+  // 节点通用
+  'components-canvas-node-bg': '#202025',
+  'components-canvas-node-border': 'rgba(255, 255, 255, 0.1)',
+  'components-canvas-node-border-hover': 'rgba(255, 255, 255, 0.15)',
+  'components-canvas-node-border-selected': '#00BEB4',
+  'components-canvas-node-shadow': '0 2px 8px rgba(0, 0, 0, 0.3)',
+
+  // 边线
+  'components-canvas-edge-stroke': 'rgb(113, 113, 122)',
+  'components-canvas-edge-stroke-hover': 'rgb(161, 161, 170)',
+  'components-canvas-edge-stroke-selected': '#00BEB4',
+  'components-canvas-edge-marker': 'rgb(113, 113, 122)',
+  'components-canvas-edge-marker-selected': '#00BEB4',
+
+  // 连接点
+  'components-canvas-handle-bg': '#00BEB4',
+  'components-canvas-handle-border': '#202025',
+  'components-canvas-handle-icon': '#ffffff',
+
+  // 工具栏
+  'components-canvas-toolbar-bg': '#202025',
+  'components-canvas-toolbar-border': 'rgba(255, 255, 255, 0.1)',
+  'components-canvas-toolbar-shadow': '0 2px 8px rgba(0, 0, 0, 0.3)',
+
+  // 节点类型图标颜色（暗色主题 - 适当调亮）
+  'components-canvas-icon-start': '#4ade80',       // green-400
+  'components-canvas-icon-retrieval': '#60a5fa',   // blue-400
+  'components-canvas-icon-generate': '#c084fc',    // purple-400
+  'components-canvas-icon-message': '#2dd4bf',     // teal-400
+  'components-canvas-icon-tool': '#fb923c',        // orange-400
+  'components-canvas-icon-file': '#4ade80',        // green-400
+  'components-canvas-icon-parser': '#60a5fa',      // blue-400
+  'components-canvas-icon-splitter': '#fb923c',    // orange-400
+  'components-canvas-icon-tokenizer': '#c084fc',   // purple-400
+  'components-canvas-icon-extractor': '#818cf8',   // indigo-400
+  'components-canvas-icon-switch': '#facc15',      // yellow-400
+  'components-canvas-icon-categorize': '#f472b6',  // pink-400
+  'components-canvas-icon-agent': '#a78bfa',       // violet-400
+  'components-canvas-icon-code': '#9ca3af',        // gray-400
+  'components-canvas-icon-default': '#a1a1aa',     // zinc-400
+
+  // 占位符/骨架屏
+  'components-canvas-skeleton-bg': 'rgba(255, 255, 255, 0.1)',
+
+  // 笔记节点
+  'components-canvas-note-bg': 'rgba(234, 179, 8, 0.15)',    // yellow with opacity
+  'components-canvas-note-border': 'rgba(250, 204, 21, 0.4)', // yellow-400 with opacity
+  'components-canvas-note-border-selected': '#facc15',        // yellow-400
+  'components-canvas-note-title': '#fde047',                  // yellow-300
+  'components-canvas-note-text': '#fef08a',                   // yellow-200
 }
 
 /**
@@ -1482,6 +1594,7 @@ export function generateThemeCSS(tokens: DesignTokens, themeName: 'light' | 'dar
     '应用头像': Object.keys(tokens).filter(key => key.startsWith('components-app-avatar-')),
     '推荐卡片': Object.keys(tokens).filter(key => key.startsWith('components-recommend-card-')),
     '统计卡片': Object.keys(tokens).filter(key => key.startsWith('components-stats-card-')),
+    '画布系统': Object.keys(tokens).filter(key => key.startsWith('components-canvas-')),
     '其他组件': Object.keys(tokens).filter(key => 
       !key.startsWith('text-') && 
       !key.startsWith('background-') && 
@@ -1519,7 +1632,8 @@ export function generateThemeCSS(tokens: DesignTokens, themeName: 'light' | 'dar
       !key.includes('-loader-') &&
       !key.includes('-code-') &&
       !key.includes('-pre-') &&
-      !key.includes('-stats-card-')
+      !key.includes('-stats-card-') &&
+      !key.startsWith('components-canvas-')
     )
   }
   

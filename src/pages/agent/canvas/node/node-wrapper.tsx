@@ -1,28 +1,39 @@
 import { cn } from '@/lib/utils'
+import { Loader } from 'lucide-react'
 import type { PropsWithChildren } from 'react'
+import { forwardRef, useContext } from 'react'
+import { AgentInstanceContext } from '../../context'
 
 interface NodeWrapperProps extends PropsWithChildren {
   selected?: boolean
   className?: string
+  id?: string
 }
 
-export const NodeWrapper = ({
-  children,
-  selected,
-  className,
-}: NodeWrapperProps) => {
+export const NodeWrapper = forwardRef<HTMLDivElement, NodeWrapperProps>(
+  ({ children, selected, className, id }, ref) => {
+  const { currentSendLoading, startButNotFinishedNodeIds = [] } =
+    useContext(AgentInstanceContext)
   return (
     <div
+      ref={ref}
       className={cn(
-        'min-w-[200px] bg-white rounded-lg border transition-all group',
-        selected
-          ? 'border-blue-500 shadow-lg ring-2 ring-blue-500/20'
-          : 'border-gray-200 shadow hover:shadow-lg',
+        'relative w-[200px] bg-surface-primary p-space-sm rounded-radius-md border border-border-primary text-xs group hover:shadow-elevation-medium',
+        selected && 'border-border-accent',
         className,
       )}
     >
+      {id &&
+        startButNotFinishedNodeIds.indexOf(id) > -1 &&
+        currentSendLoading && (
+          <div className="absolute right-0 left-0 top-0 flex items-start justify-end p-space-xs">
+            <Loader size={12} className="animate-spin text-text-secondary" />
+          </div>
+        )}
       {children}
     </div>
   )
-}
+},
+)
 
+NodeWrapper.displayName = 'NodeWrapper'

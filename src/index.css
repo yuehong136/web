@@ -33,6 +33,20 @@
     
     /* 边框圆角 */
     --radius: 0.5rem;
+    --radius-sm: calc(var(--radius) - 4px);
+    --radius-md: calc(var(--radius) - 2px);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) + 4px);
+    --radius-full: 9999px;
+
+    /* 间距 */
+    --space-xs: 4px;
+    --space-sm: 8px;
+    --space-base: 12px;
+    --space-md: 16px;
+    --space-lg: 24px;
+    --space-xl: 32px;
+    --space-2xl: 40px;
   }
 
   /* 确保 html 和 body 使用主题背景色 */
@@ -176,6 +190,109 @@
   html[data-theme="dark"] .border-gray-300:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not([class*="select-"]):not(.mcp-chat-page *):not(.autofill-page *) {
     border-color: var(--color-border-subtle);
   }
+}
+
+@layer utilities {
+  /* Radius tokens */
+  .rounded-radius-sm { border-radius: var(--radius-sm); }
+  .rounded-radius-md { border-radius: var(--radius-md); }
+  .rounded-radius-lg { border-radius: var(--radius-lg); }
+  .rounded-radius-xl { border-radius: var(--radius-xl); }
+  .rounded-radius-full { border-radius: var(--radius-full); }
+
+  /* Spacing tokens */
+  .p-space-xs { padding: var(--space-xs); }
+  .p-space-sm { padding: var(--space-sm); }
+  .p-space-base { padding: var(--space-base); }
+  .p-space-md { padding: var(--space-md); }
+  .p-space-lg { padding: var(--space-lg); }
+  .p-space-xl { padding: var(--space-xl); }
+  .p-space-2xl { padding: var(--space-2xl); }
+
+  .px-space-xs { padding-left: var(--space-xs); padding-right: var(--space-xs); }
+  .px-space-sm { padding-left: var(--space-sm); padding-right: var(--space-sm); }
+  .px-space-base { padding-left: var(--space-base); padding-right: var(--space-base); }
+  .px-space-md { padding-left: var(--space-md); padding-right: var(--space-md); }
+  .px-space-lg { padding-left: var(--space-lg); padding-right: var(--space-lg); }
+  .px-space-xl { padding-left: var(--space-xl); padding-right: var(--space-xl); }
+  .px-space-2xl { padding-left: var(--space-2xl); padding-right: var(--space-2xl); }
+
+  .py-space-xs { padding-top: var(--space-xs); padding-bottom: var(--space-xs); }
+  .py-space-sm { padding-top: var(--space-sm); padding-bottom: var(--space-sm); }
+  .py-space-base { padding-top: var(--space-base); padding-bottom: var(--space-base); }
+  .py-space-md { padding-top: var(--space-md); padding-bottom: var(--space-md); }
+  .py-space-lg { padding-top: var(--space-lg); padding-bottom: var(--space-lg); }
+  .py-space-xl { padding-top: var(--space-xl); padding-bottom: var(--space-xl); }
+  .py-space-2xl { padding-top: var(--space-2xl); padding-bottom: var(--space-2xl); }
+
+  .pt-space-xs { padding-top: var(--space-xs); }
+  .pt-space-sm { padding-top: var(--space-sm); }
+  .pt-space-base { padding-top: var(--space-base); }
+  .pt-space-md { padding-top: var(--space-md); }
+  .pt-space-lg { padding-top: var(--space-lg); }
+  .pt-space-xl { padding-top: var(--space-xl); }
+  .pt-space-2xl { padding-top: var(--space-2xl); }
+
+  .pr-space-xs { padding-right: var(--space-xs); }
+  .pr-space-sm { padding-right: var(--space-sm); }
+  .pr-space-base { padding-right: var(--space-base); }
+  .pr-space-md { padding-right: var(--space-md); }
+  .pr-space-lg { padding-right: var(--space-lg); }
+  .pr-space-xl { padding-right: var(--space-xl); }
+  .pr-space-2xl { padding-right: var(--space-2xl); }
+
+  .pb-space-xs { padding-bottom: var(--space-xs); }
+  .pb-space-sm { padding-bottom: var(--space-sm); }
+  .pb-space-base { padding-bottom: var(--space-base); }
+  .pb-space-md { padding-bottom: var(--space-md); }
+  .pb-space-lg { padding-bottom: var(--space-lg); }
+  .pb-space-xl { padding-bottom: var(--space-xl); }
+  .pb-space-2xl { padding-bottom: var(--space-2xl); }
+
+  .pl-space-xs { padding-left: var(--space-xs); }
+  .pl-space-sm { padding-left: var(--space-sm); }
+  .pl-space-base { padding-left: var(--space-base); }
+  .pl-space-md { padding-left: var(--space-md); }
+  .pl-space-lg { padding-left: var(--space-lg); }
+  .pl-space-xl { padding-left: var(--space-xl); }
+  .pl-space-2xl { padding-left: var(--space-2xl); }
+
+  .m-space-xs { margin: var(--space-xs); }
+  .m-space-sm { margin: var(--space-sm); }
+  .m-space-base { margin: var(--space-base); }
+  .m-space-md { margin: var(--space-md); }
+  .m-space-lg { margin: var(--space-lg); }
+  .m-space-xl { margin: var(--space-xl); }
+  .m-space-2xl { margin: var(--space-2xl); }
+
+  .mx-space-xs { margin-left: var(--space-xs); margin-right: var(--space-xs); }
+  .mx-space-sm { margin-left: var(--space-sm); margin-right: var(--space-sm); }
+  .mx-space-base { margin-left: var(--space-base); margin-right: var(--space-base); }
+  .mx-space-md { margin-left: var(--space-md); margin-right: var(--space-md); }
+  .mx-space-lg { margin-left: var(--space-lg); margin-right: var(--space-lg); }
+  .mx-space-xl { margin-left: var(--space-xl); margin-right: var(--space-xl); }
+  .mx-space-2xl { margin-left: var(--space-2xl); margin-right: var(--space-2xl); }
+
+  .my-space-xs { margin-top: var(--space-xs); margin-bottom: var(--space-xs); }
+  .my-space-sm { margin-top: var(--space-sm); margin-bottom: var(--space-sm); }
+  .my-space-base { margin-top: var(--space-base); margin-bottom: var(--space-base); }
+  .my-space-md { margin-top: var(--space-md); margin-bottom: var(--space-md); }
+  .my-space-lg { margin-top: var(--space-lg); margin-bottom: var(--space-lg); }
+  .my-space-xl { margin-top: var(--space-xl); margin-bottom: var(--space-xl); }
+  .my-space-2xl { margin-top: var(--space-2xl); margin-bottom: var(--space-2xl); }
+
+  .gap-space-xs { gap: var(--space-xs); }
+  .gap-space-sm { gap: var(--space-sm); }
+  .gap-space-base { gap: var(--space-base); }
+  .gap-space-md { gap: var(--space-md); }
+  .gap-space-lg { gap: var(--space-lg); }
+  .gap-space-xl { gap: var(--space-xl); }
+  .gap-space-2xl { gap: var(--space-2xl); }
+
+  /* Shadow tokens */
+  .shadow-elevation-low { box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.1); }
+  .shadow-elevation-medium { box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.06); }
+  .shadow-elevation-high { box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12), 0 6px 10px rgba(0, 0, 0, 0.08); }
 }
 
 @layer components {

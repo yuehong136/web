@@ -1,26 +1,28 @@
+import { cn } from '@/lib/utils'
 import { memo } from 'react'
+import { Operator } from '../../constant'
+import OperatorIcon from '../../operator-icon'
 
 interface NodeHeaderProps {
   id: string
   name: string
   label: string
   icon?: React.ReactNode
+  className?: string
+  wrapperClassName?: string
 }
 
-const NodeHeader = ({ name, icon }: NodeHeaderProps) => {
+const NodeHeader = ({ name, label, icon, className, wrapperClassName }: NodeHeaderProps) => {
   return (
-    <div className="px-3 py-2 border-b border-gray-100">
-      <div className="flex items-center space-x-2">
-        {icon && <div className="flex-shrink-0">{icon}</div>}
-        <div className="flex-1 min-w-0">
-          <div className="text-sm font-medium text-gray-900 truncate">
-            {name}
-          </div>
-        </div>
+    <section className={cn(wrapperClassName, 'pb-space-sm')}>
+      <div className={cn(className, 'flex items-center gap-space-sm')}>
+        {icon || <OperatorIcon name={label as Operator} />}
+        <span className="truncate text-sm font-semibold text-text-primary">
+          {name}
+        </span>
       </div>
-    </div>
+    </section>
   )
 }
 
 export default memo(NodeHeader)
-

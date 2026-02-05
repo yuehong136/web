@@ -236,6 +236,160 @@ export type RAGFlowNodeType =
   | IIterationNode
   | IIterationStartNode
   | IPlaceholderNode
+  | ILoopNode
+  | IDataOperationsNode
+  | IListOperationsNode
+  | IVariableAggregatorNode
+  | IVariableAssignerNode
+  | IExitLoopNode
+  | ILoopStartNode
+  | ICrawlerNode
+  | IExeSQLNode
+  | IUserFillUpNode
+  | IStringTransformNode
+  | IPDFGeneratorNode
+  | IFileNode
+  | IParserNode
+  | ITokenizerNode
+  | ISplitterNode
+  | IExtractorNode
+  | IExcelProcessorNode
+
+// ==================== 新增节点表单类型 ====================
+
+// Loop节点表单
+export interface ILoopForm {
+  loop_variables?: any[]
+  loop_termination_condition?: any[]
+  maximum_loop_count?: number
+  outputs?: Record<string, any>
+}
+
+// DataOperations节点表单
+export interface IDataOperationsForm {
+  query?: string[]
+  operations?: string
+  outputs?: Record<string, any>
+}
+
+// ListOperations节点表单
+export interface IListOperationsForm {
+  query?: string
+  operations?: string
+  outputs?: Record<string, any>
+}
+
+// VariableAggregator节点表单
+export interface IVariableAggregatorForm {
+  outputs?: Record<string, any>
+  groups?: any[]
+}
+
+// VariableAssigner节点表单
+export interface IVariableAssignerForm {
+  [key: string]: any
+}
+
+// ExitLoop节点表单
+export interface IExitLoopForm {
+  [key: string]: any
+}
+
+// Crawler节点表单
+export interface ICrawlerForm {
+  extract_type?: string
+  query?: string
+}
+
+// ExeSQL节点表单
+export interface IExeSQLForm {
+  sql?: string
+  db_type?: string
+  database?: string
+  username?: string
+  host?: string
+  port?: number
+  password?: string
+  max_records?: number
+  outputs?: Record<string, any>
+}
+
+// UserFillUp节点表单
+export interface IUserFillUpForm {
+  enable_tips?: boolean
+  tips?: string
+  inputs?: any[]
+  outputs?: Record<string, any>
+}
+
+// StringTransform节点表单
+export interface IStringTransformForm {
+  method?: string
+  split_ref?: string
+  script?: string
+  delimiters?: string[]
+  outputs?: Record<string, any>
+}
+
+// PDFGenerator节点表单
+export interface IPDFGeneratorForm {
+  output_format?: string
+  content?: string
+  title?: string
+  subtitle?: string
+  outputs?: Record<string, any>
+  [key: string]: any
+}
+
+// Pipeline节点表单
+export interface IFileForm {
+  outputs?: Record<string, any>
+}
+
+export interface IParserForm {
+  outputs?: Record<string, any>
+  setups?: any[]
+}
+
+export interface ITokenizerForm {
+  search_method?: string[]
+  filename_embd_weight?: number
+  fields?: string
+  outputs?: Record<string, any>
+}
+
+export interface ISplitterForm {
+  outputs?: Record<string, any>
+  chunk_token_size?: number
+  overlapped_percent?: number
+  delimiters?: Array<{ value: string }>
+  image_table_context_window?: number
+}
+
+export interface IExtractorForm extends ILLMConfig {
+  field_name?: string
+  outputs?: Record<string, any>
+}
+
+// ==================== 新增具体节点类型 ====================
+export type ILoopNode = BaseNode<ILoopForm>
+export type IDataOperationsNode = BaseNode<IDataOperationsForm>
+export type IListOperationsNode = BaseNode<IListOperationsForm>
+export type IVariableAggregatorNode = BaseNode<IVariableAggregatorForm>
+export type IVariableAssignerNode = BaseNode<IVariableAssignerForm>
+export type IExitLoopNode = BaseNode<IExitLoopForm>
+export type ILoopStartNode = BaseNode
+export type ICrawlerNode = BaseNode<ICrawlerForm>
+export type IExeSQLNode = BaseNode<IExeSQLForm>
+export type IUserFillUpNode = BaseNode<IUserFillUpForm>
+export type IStringTransformNode = BaseNode<IStringTransformForm>
+export type IPDFGeneratorNode = BaseNode<IPDFGeneratorForm>
+export type IFileNode = BaseNode<IFileForm>
+export type IParserNode = BaseNode<IParserForm>
+export type ITokenizerNode = BaseNode<ITokenizerForm>
+export type ISplitterNode = BaseNode<ISplitterForm>
+export type IExtractorNode = BaseNode<IExtractorForm>
+export type IExcelProcessorNode = BaseNode
 
 // ==================== 辅助类型 ====================
 
@@ -248,9 +402,83 @@ export interface IPosition {
 export interface BeginQuery {
   key: string
   type: string
+  value: string
+  optional: boolean
+  name: string
   label?: string
   required?: boolean
-  options?: string[]
+  options?: (number | string | boolean)[]
+}
+
+export type IInputs = {
+  avatar: string
+  title: string
+  inputs: Record<string, BeginQuery>
+  prologue: string
+  mode: string
+}
+
+export type IOutputs = Record<
+  string,
+  {
+    type?: string
+    value?: string
+  }
+>
+
+// ==================== Form接口 ====================
+export interface IOperatorForm {
+  onValuesChange?(changedValues: any, values: any): void
+  node?: RAGFlowNodeType
+  nodeId?: string
+}
+
+export interface INextOperatorForm {
+  node?: RAGFlowNodeType
+  nodeId?: string
+}
+
+export interface IGenerateParameter {
+  id?: string
+  key: string
+  component_id?: string
+}
+
+export interface IInvokeVariable extends IGenerateParameter {
+  value?: string
+}
+
+// ==================== 执行/事件相关类型 ====================
+export const MessageEventType = {
+  NodeStarted: 'node_started',
+  NodeFinished: 'node_finished',
+  Message: 'message',
+  MessageEnd: 'message_end',
+  WorkflowFinished: 'workflow_finished',
+  UserInputs: 'user_inputs',
+  Error: 'error',
+} as const
+
+export type MessageEventType =
+  (typeof MessageEventType)[keyof typeof MessageEventType]
+
+export interface IEventList {
+  event_type: MessageEventType
+  data: any
+  message_id?: string
+  task_id?: string
+  component_id?: string
+  elapsed_time?: number
+}
+
+export interface ITraceData {
+  component_id: string
+  component_name: string
+  status: string
+  elapsed_time?: number
+  inputs?: Record<string, any>
+  outputs?: Record<string, any>
+  traces?: ITraceData[]
 }
 
 // ==================== API请求/响应类型 ====================
