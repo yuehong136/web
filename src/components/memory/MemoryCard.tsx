@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Dropdown, DropdownItem } from '@/components/ui/dropdown'
 import { cn, formatRelativeTime, formatTimestampDetailed, formatTimestampCompact } from '@/lib/utils'
@@ -79,8 +80,7 @@ export const MemoryCard: React.FC<MemoryCardProps> = ({
     navigate(`/memory/${data.id}`)
   }
 
-  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    e.stopPropagation()
+  const handleCheckboxChange = () => {
     onSelect?.(data.id)
   }
 
@@ -130,11 +130,9 @@ export const MemoryCard: React.FC<MemoryCardProps> = ({
           <div className="flex items-center gap-3 flex-1 min-w-0">
             {/* 选择框 */}
             {onSelect && (
-              <input
-                type="checkbox"
-                className="rounded border-border-default"
+              <Checkbox
                 checked={selected}
-                onChange={handleCheckboxChange}
+                onCheckedChange={handleCheckboxChange}
                 onClick={(e) => e.stopPropagation()}
               />
             )}

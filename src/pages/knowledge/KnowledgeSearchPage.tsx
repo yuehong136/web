@@ -6,7 +6,7 @@ import {
   Settings as SettingsIcon, 
   FileText, 
   Star, 
- 
+
   ChevronDown,
   ChevronUp,
   Loader2,
@@ -21,6 +21,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Checkbox } from '@/components/ui/checkbox'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Tooltip } from '@/components/ui/tooltip'
 import { PageSizeSelector } from '@/components/ui/page-size-selector'
 import { RerankModelSelector } from '@/components/knowledge/RerankModelSelector'
@@ -460,15 +462,13 @@ const KnowledgeSearchPage: React.FC = () => {
                   {docAggs.map((doc) => (
                     <label 
                       key={doc.doc_id} 
-                      className="flex items-center space-x-2 px-3 py-1 bg-gray-50 hover:bg-gray-100 rounded-full cursor-pointer transition-colors"
+                      className="flex items-center gap-space-xs px-3 py-1 bg-surface-secondary hover:bg-surface-tertiary rounded-full cursor-pointer transition-colors"
                     >
-                      <input
-                        type="checkbox"
+                      <Checkbox
                         checked={selectedDocIds.includes(doc.doc_id)}
-                        onChange={(e) => handleDocFilter(doc.doc_id, e.target.checked)}
-                        className="text-primary-600"
+                        onCheckedChange={(checked) => handleDocFilter(doc.doc_id, checked as boolean)}
                       />
-                      <span className="text-sm text-gray-700 truncate max-w-[200px]">
+                      <span className="text-sm text-text-secondary truncate max-w-[200px]">
                         {doc.doc_name}
                       </span>
                       <Badge variant="outline" className="text-xs">
@@ -479,7 +479,7 @@ const KnowledgeSearchPage: React.FC = () => {
                   
                   <button
                     onClick={selectAllDocs}
-                    className="px-3 py-1 text-xs text-primary-600 hover:text-primary-700 border border-primary-200 hover:border-primary-300 rounded-full transition-colors"
+                    className="px-3 py-1 text-xs text-text-accent hover:text-text-accent/80 border border-border-accent rounded-full transition-colors"
                   >
                     全选
                   </button>
@@ -746,41 +746,41 @@ const KnowledgeSearchPage: React.FC = () => {
               <div className="flex-1 p-6 space-y-6 overflow-y-auto scrollbar-thin">
                   {/* 搜索模式选择 */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                    <label className="block text-sm font-medium text-text-primary mb-space-sm">
                       检索模式
                     </label>
-                    <div className="space-y-2">
+                    <RadioGroup
+                      value={searchMode.type}
+                      onValueChange={(value) => {
+                        if (value === 'fusion') {
+                          setSearchMode({ type: 'fusion', weights: '0.05,0.95' })
+                        } else if (value === 'hybrid') {
+                          setSearchMode({ type: 'hybrid', weight_dense: 0.7, weight_sparse: 0.3 })
+                        } else {
+                          setSearchMode({ type: value as 'sparse' | 'dense' | 'hybrid' | 'fusion' })
+                        }
+                      }}
+                      className="space-y-2"
+                    >
                       {searchModeOptions.map((option) => (
                         <div key={option.value}>
-                          <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                            <input
-                              type="radio"
-                              name="searchMode"
+                          <label className="flex items-start gap-space-sm p-space-sm border border-border-default rounded-radius-lg cursor-pointer hover:bg-surface-secondary transition-colors">
+                            <RadioGroupItem
                               value={option.value}
-                              checked={searchMode.type === option.value}
-                              onChange={(e) => {
-                                if (e.target.value === 'fusion') {
-                                  setSearchMode({ type: 'fusion', weights: '0.05,0.95' })
-                                } else if (e.target.value === 'hybrid') {
-                                  setSearchMode({ type: 'hybrid', weight_dense: 0.7, weight_sparse: 0.3 })
-                                } else {
-                                  setSearchMode({ type: e.target.value as 'sparse' | 'dense' | 'hybrid' | 'fusion' })
-                                }
-                              }}
-                              className="mt-0.5"
                               disabled={option.value === 'dense'}
+                              className="mt-0.5"
                             />
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-center space-x-2">
+                              <div className="flex items-center gap-space-xs">
                                 {option.icon}
-                                <span className="text-sm font-medium text-gray-900">
+                                <span className="text-sm font-medium text-text-primary">
                                   {option.label}
                                 </span>
                                 {option.value === 'dense' && (
                                   <Badge variant="secondary" className="text-xs">暂不可用</Badge>
                                 )}
                               </div>
-                              <p className="text-xs text-gray-500 mt-1">{option.description}</p>
+                              <p className="text-xs text-text-tertiary mt-1">{option.description}</p>
                             </div>
                           </label>
                           
@@ -915,7 +915,7 @@ const KnowledgeSearchPage: React.FC = () => {
                           )}
                         </div>
                       ))}
-                    </div>
+                    </RadioGroup>
                   </div>
 
                   {/* 高级参数 */}
@@ -1019,43 +1019,37 @@ const KnowledgeSearchPage: React.FC = () => {
                         </div>
                         
                         <div className="space-y-3">
-                          <label className="flex items-center space-x-2">
-                            <input
-                              type="checkbox"
+                          <label className="flex items-center gap-space-xs cursor-pointer">
+                            <Checkbox
                               checked={searchParams.use_kg}
-                              onChange={(e) => setSearchParams(prev => ({
+                              onCheckedChange={(checked) => setSearchParams(prev => ({
                                 ...prev,
-                                use_kg: e.target.checked
+                                use_kg: checked as boolean
                               }))}
-                              className="text-primary-600"
                             />
-                            <span className="text-xs text-gray-700">使用知识图谱</span>
+                            <span className="text-xs text-text-secondary">使用知识图谱</span>
                           </label>
                           
-                          <label className="flex items-center space-x-2">
-                            <input
-                              type="checkbox"
+                          <label className="flex items-center gap-space-xs cursor-pointer">
+                            <Checkbox
                               checked={searchParams.highlight}
-                              onChange={(e) => setSearchParams(prev => ({
+                              onCheckedChange={(checked) => setSearchParams(prev => ({
                                 ...prev,
-                                highlight: e.target.checked
+                                highlight: checked as boolean
                               }))}
-                              className="text-primary-600"
                             />
-                            <span className="text-xs text-gray-700">高亮匹配文本</span>
+                            <span className="text-xs text-text-secondary">高亮匹配文本</span>
                           </label>
                           
-                          <label className="flex items-center space-x-2">
-                            <input
-                              type="checkbox"
+                          <label className="flex items-center gap-space-xs cursor-pointer">
+                            <Checkbox
                               checked={searchParams.keyword}
-                              onChange={(e) => setSearchParams(prev => ({
+                              onCheckedChange={(checked) => setSearchParams(prev => ({
                                 ...prev,
-                                keyword: e.target.checked
+                                keyword: checked as boolean
                               }))}
-                              className="text-primary-600"
                             />
-                            <span className="text-xs text-gray-700">关键词增强</span>
+                            <span className="text-xs text-text-secondary">关键词增强</span>
                           </label>
                         </div>
                         
@@ -1083,22 +1077,20 @@ const KnowledgeSearchPage: React.FC = () => {
                             </button>
                             
                             {showLanguageSelector && (
-                              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-40 overflow-y-auto scrollbar-thin">
+                              <div className="absolute z-10 w-full mt-1 bg-surface-primary border border-border-default rounded-radius-md shadow-elevation-medium max-h-40 overflow-y-auto scrollbar-thin">
                                 {['English', 'Chinese', 'Spanish', 'French', 'German', 'Japanese', 'Korean', 'Vietnamese'].map((lang) => (
-                                  <label key={lang} className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer">
-                                    <input
-                                      type="checkbox"
+                                  <label key={lang} className="flex items-center gap-space-xs px-3 py-2 hover:bg-surface-secondary cursor-pointer">
+                                    <Checkbox
                                       checked={selectedLanguages.includes(lang)}
-                                      onChange={(e) => {
-                                        if (e.target.checked) {
+                                      onCheckedChange={(checked) => {
+                                        if (checked) {
                                           setSelectedLanguages(prev => [...prev, lang])
                                         } else {
                                           setSelectedLanguages(prev => prev.filter(l => l !== lang))
                                         }
                                       }}
-                                      className="mr-2 text-primary-600"
                                     />
-                                    <span className="text-xs text-gray-700">{lang}</span>
+                                    <span className="text-xs text-text-secondary">{lang}</span>
                                   </label>
                                 ))}
                               </div>

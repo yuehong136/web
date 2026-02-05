@@ -23,6 +23,7 @@ import {
   ConfirmModal,
   PageSizeSelector,
 } from '@/components/ui'
+import { Checkbox } from '@/components/ui/checkbox'
 import { useKnowledgeStore } from '@/stores/knowledge'
 import { ReparseConfirmModal, ChunkMethodModal } from '@/components/knowledge'
 import { MetadataManageType as MetadataType } from '@/types/api'
@@ -277,27 +278,13 @@ export const KnowledgeDocumentsPage: React.FC = () => {
             style={{ borderBottom: '1px solid var(--color-border-default)' }}
           >
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
+              <div className="flex items-center gap-space-md">
+                <label className="flex items-center gap-space-xs cursor-pointer">
+                  <Checkbox
                     checked={listState.allSelected}
-                    onChange={(e) => listState.selectAll(e.target.checked)}
-                    className="w-4 h-4 rounded focus:outline-none"
-                    style={{
-                      backgroundColor: listState.allSelected
-                        ? 'var(--color-components-checkbox-bg-checked)'
-                        : 'var(--color-components-checkbox-bg)',
-                      borderColor: listState.allSelected
-                        ? 'var(--color-components-checkbox-border-checked)'
-                        : 'var(--color-components-checkbox-border)',
-                      borderWidth: '1px',
-                    }}
+                    onCheckedChange={(checked) => listState.selectAll(checked as boolean)}
                   />
-                  <span
-                    className="text-sm"
-                    style={{ color: 'var(--color-text-secondary)' }}
-                  >
+                  <span className="text-sm text-text-secondary">
                     全选 (
                     {listState.selectedDocs.size > 0
                       ? `已选 ${listState.selectedDocs.size} 个`

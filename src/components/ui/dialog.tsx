@@ -70,6 +70,28 @@ export const DialogTrigger: React.FC<React.ButtonHTMLAttributes<HTMLButtonElemen
   )
 }
 
+export const DialogClose: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement>> = ({
+  children,
+  onClick,
+  ...props
+}) => {
+  const context = React.useContext(DialogContext)
+  if (!context) {
+    throw new Error('DialogClose must be used within Dialog')
+  }
+
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    context.onOpenChange(false)
+    onClick?.(e)
+  }
+
+  return (
+    <button onClick={handleClick} {...props}>
+      {children}
+    </button>
+  )
+}
+
 /**
  * Dialog 内容容器
  * 

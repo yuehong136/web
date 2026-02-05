@@ -5,6 +5,7 @@
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FileIcon, Tooltip, type Column } from '@/components/ui'
+import { Checkbox } from '@/components/ui/checkbox'
 import type { Document } from '@/types/api'
 import {
   DocumentStatusCell,
@@ -54,23 +55,9 @@ export function useDocumentTableColumns({
         width: 48,
         fixed: 'left',
         render: (_, record) => (
-          <input
-            type="checkbox"
+          <Checkbox
             checked={selectedDocs.has(record.id)}
-            onChange={(e) => onSelectDoc(record.id, e.target.checked)}
-            className="w-4 h-4 rounded focus:outline-none"
-            style={{
-              backgroundColor: selectedDocs.has(record.id)
-                ? 'var(--color-components-checkbox-bg-checked)'
-                : 'var(--color-components-checkbox-bg)',
-              borderColor: selectedDocs.has(record.id)
-                ? 'var(--color-components-checkbox-border-checked)'
-                : 'var(--color-components-checkbox-border)',
-              borderWidth: '1px',
-              color: selectedDocs.has(record.id)
-                ? 'var(--color-components-checkbox-icon)'
-                : 'transparent',
-            }}
+            onCheckedChange={(checked) => onSelectDoc(record.id, checked as boolean)}
           />
         ),
       },

@@ -1,10 +1,11 @@
 import React from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Loading } from '@/components/ui/loading'
 import { useAuthStore } from '@/stores/auth'
 import { ROUTES } from '@/constants'
@@ -50,6 +51,7 @@ export const LoginPage: React.FC = () => {
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
     setError,
   } = useForm<LoginFormData>({
@@ -207,14 +209,19 @@ export const LoginPage: React.FC = () => {
             </div>
 
             <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <input
-                  id="remember-me"
-                  type="checkbox"
-                  className="h-4 w-4 text-components-button-primary-bg focus:ring-components-button-primary-bg border-border-default rounded"
-                  {...register('remember')}
+              <div className="flex items-center gap-space-xs">
+                <Controller
+                  name="remember"
+                  control={control}
+                  render={({ field }) => (
+                    <Checkbox
+                      id="remember-me"
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  )}
                 />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-text-primary">
+                <label htmlFor="remember-me" className="text-sm text-text-primary cursor-pointer">
                   记住我
                 </label>
               </div>

@@ -8,6 +8,7 @@
 import React from 'react'
 import { useForm, FormProvider, useWatch } from 'react-hook-form'
 import { Modal, Button } from '@/components/ui'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { SelectWithSearch, type SelectOptionGroup } from '@/components/ui/select-with-search'
 import { Settings2 } from 'lucide-react'
 import type { Document } from '@/types/api'
@@ -59,51 +60,24 @@ const ParseTypeSelector: React.FC<{
   onChange: (value: 1 | 2) => void
 }> = ({ value, onChange }) => {
   return (
-    <div
-      className="rounded-lg p-4"
-      style={{
-        backgroundColor: 'var(--color-surface-secondary)',
-        border: '1px solid var(--color-border-default)',
-      }}
-    >
-      <label
-        className="block text-sm font-medium mb-3"
-        style={{ color: 'var(--color-text-primary)' }}
-      >
+    <div className="rounded-radius-lg p-space-base bg-surface-secondary border border-border-default">
+      <label className="block text-sm font-medium mb-space-sm text-text-primary">
         解析方法
       </label>
-      <div className="flex items-center gap-8">
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="radio"
-            name="parseType"
-            checked={value === 1}
-            onChange={() => onChange(1)}
-            className="w-4 h-4 accent-[var(--color-primary)]"
-          />
-          <span
-            className="text-sm"
-            style={{ color: 'var(--color-text-secondary)' }}
-          >
-            内置
-          </span>
+      <RadioGroup
+        value={String(value)}
+        onValueChange={(val) => onChange(Number(val) as 1 | 2)}
+        className="flex items-center gap-space-lg"
+      >
+        <label className="flex items-center gap-space-xs cursor-pointer">
+          <RadioGroupItem value="1" />
+          <span className="text-sm text-text-secondary">内置</span>
         </label>
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="radio"
-            name="parseType"
-            checked={value === 2}
-            onChange={() => onChange(2)}
-            className="w-4 h-4 accent-[var(--color-primary)]"
-          />
-          <span
-            className="text-sm"
-            style={{ color: 'var(--color-text-secondary)' }}
-          >
-            选择pipeline
-          </span>
+        <label className="flex items-center gap-space-xs cursor-pointer">
+          <RadioGroupItem value="2" />
+          <span className="text-sm text-text-secondary">选择pipeline</span>
         </label>
-      </div>
+      </RadioGroup>
     </div>
   )
 }

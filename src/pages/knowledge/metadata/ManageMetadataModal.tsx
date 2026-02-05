@@ -71,6 +71,8 @@ const getDeleteTextConfig = (
   }
 }
 
+const EMPTY_SETTINGS: MetadataFieldDefinition[] = []
+
 interface ManageMetadataModalProps {
   /**
    * 是否显示
@@ -128,7 +130,7 @@ export const ManageMetadataModal: React.FC<ManageMetadataModalProps> = ({
   onClose,
   kbId,
   mode,
-  initialSettings = [],
+  initialSettings = EMPTY_SETTINGS,
   documentId,
   onSuccess,
   onNavigateToSettings,
@@ -648,10 +650,10 @@ export const ManageMetadataModal: React.FC<ManageMetadataModalProps> = ({
             </div>
           </AlertDialogDescription>
           <AlertDialogFooter className="pt-4">
-            <AlertDialogCancel className="text-sm">取消</AlertDialogCancel>
+            <AlertDialogCancel>取消</AlertDialogCancel>
             <AlertDialogAction
+              variant="destructive"
               onClick={deleteConfirm.onConfirm}
-              className="bg-status-error hover:bg-status-error/90 text-sm"
             >
               确认删除
             </AlertDialogAction>

@@ -5,6 +5,7 @@
 import React from 'react'
 import { X, CheckCircle, XCircle } from 'lucide-react'
 import { Tooltip } from '@/components/ui'
+import { Switch } from '@/components/ui/switch'
 import type { Document } from '@/types/api'
 import { TaskStatus, TaskStatusConfig } from './constants'
 
@@ -264,32 +265,11 @@ export const DocumentEnableSwitch: React.FC<DocumentEnableSwitchProps> = ({
 
   return (
     <Tooltip content={isEnabled ? '点击禁用文档' : '点击启用文档'}>
-      <label className="relative inline-flex items-center cursor-pointer">
-        <input
-          type="checkbox"
-          checked={isEnabled}
-          onChange={onToggle}
-          className="sr-only peer"
-        />
-        <div
-          className="w-9 h-5 rounded-full relative cursor-pointer transition-colors duration-200"
-          style={{
-            backgroundColor: isEnabled
-              ? 'var(--color-components-switch-bg-checked)'
-              : 'var(--color-components-switch-bg)',
-          }}
-        >
-          <div
-            className="absolute top-0.5 left-0.5 w-4 h-4 rounded-full transition-transform duration-200"
-            style={{
-              backgroundColor: isEnabled
-                ? 'var(--color-components-switch-thumb-checked)'
-                : 'var(--color-components-switch-thumb)',
-              transform: isEnabled ? 'translateX(16px)' : 'translateX(0)',
-            }}
-          />
-        </div>
-      </label>
+      <Switch
+        size="sm"
+        checked={isEnabled}
+        onCheckedChange={onToggle}
+      />
     </Tooltip>
   )
 }
