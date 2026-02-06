@@ -27,6 +27,11 @@ import {
   UserPlus,
   Building2,
 } from 'lucide-react'
+import {
+  ResourceListContainer,
+  ResourceListHeader,
+  ResourceListBody,
+} from '@/components/ui/resource-list'
 import { toast } from '@/lib/toast'
 
 // Hooks
@@ -359,42 +364,19 @@ export const TeamPage: React.FC = () => {
                 ))}
               </div>
             ) : (
-              <div
-                className="rounded-lg border overflow-hidden"
-                style={{
-                  backgroundColor: 'var(--color-surface-primary)',
-                  borderColor: 'var(--color-border-default)',
-                }}
-              >
-                {/* 表头 */}
-                <div
-                  className="grid grid-cols-[2fr_1fr_1fr_120px_60px] items-center gap-4 px-5 h-12 border-b"
-                  style={{
-                    backgroundColor: 'var(--color-surface-secondary)',
-                    borderColor: 'var(--color-border-default)',
-                  }}
-                >
-                  <div className="text-xs font-medium text-text-tertiary uppercase tracking-wider">
-                    成员
-                  </div>
-                  <div className="text-xs font-medium text-text-tertiary uppercase tracking-wider">
-                    角色
-                  </div>
-                  <div className="text-xs font-medium text-text-tertiary uppercase tracking-wider">
-                    邮箱
-                  </div>
-                  <div className="text-xs font-medium text-text-tertiary uppercase tracking-wider">
-                    加入时间
-                  </div>
-                  <div className="text-xs font-medium text-text-tertiary uppercase tracking-wider text-right">
-                    操作
-                  </div>
-                </div>
-                {/* 列表内容 */}
-                <div
-                  className="divide-y"
-                  style={{ borderColor: 'var(--color-border-subtle)' }}
-                >
+              <ResourceListContainer>
+                <ResourceListHeader
+                  columns={[
+                    { key: 'member', label: '成员' },
+                    { key: 'role', label: '角色' },
+                    { key: 'email', label: '邮箱' },
+                    { key: 'join_time', label: '加入时间' },
+                    { key: 'actions', label: '操作' },
+                  ]}
+                  showSelect={false}
+                  gridCols="grid-cols-[2fr_1fr_1fr_120px_60px]"
+                />
+                <ResourceListBody>
                   {filteredMembers.map((member) => (
                     <TeamMemberListRow
                       key={member.user_id}
@@ -404,8 +386,8 @@ export const TeamPage: React.FC = () => {
                       timeFormat={timeFormat}
                     />
                   ))}
-                </div>
-              </div>
+                </ResourceListBody>
+              </ResourceListContainer>
             )}
           </div>
         </TabsContent>
@@ -473,42 +455,19 @@ export const TeamPage: React.FC = () => {
                 ))}
               </div>
             ) : (
-              <div
-                className="rounded-lg border overflow-hidden"
-                style={{
-                  backgroundColor: 'var(--color-surface-primary)',
-                  borderColor: 'var(--color-border-default)',
-                }}
-              >
-                {/* 表头 */}
-                <div
-                  className="grid grid-cols-[2fr_1fr_1fr_120px_100px] items-center gap-4 px-5 h-12 border-b"
-                  style={{
-                    backgroundColor: 'var(--color-surface-secondary)',
-                    borderColor: 'var(--color-border-default)',
-                  }}
-                >
-                  <div className="text-xs font-medium text-text-tertiary uppercase tracking-wider">
-                    团队
-                  </div>
-                  <div className="text-xs font-medium text-text-tertiary uppercase tracking-wider">
-                    角色
-                  </div>
-                  <div className="text-xs font-medium text-text-tertiary uppercase tracking-wider">
-                    邮箱
-                  </div>
-                  <div className="text-xs font-medium text-text-tertiary uppercase tracking-wider">
-                    加入时间
-                  </div>
-                  <div className="text-xs font-medium text-text-tertiary uppercase tracking-wider text-right">
-                    操作
-                  </div>
-                </div>
-                {/* 列表内容 */}
-                <div
-                  className="divide-y"
-                  style={{ borderColor: 'var(--color-border-subtle)' }}
-                >
+              <ResourceListContainer>
+                <ResourceListHeader
+                  columns={[
+                    { key: 'team', label: '团队' },
+                    { key: 'role', label: '角色' },
+                    { key: 'email', label: '邮箱' },
+                    { key: 'join_time', label: '加入时间' },
+                    { key: 'actions', label: '操作' },
+                  ]}
+                  showSelect={false}
+                  gridCols="grid-cols-[2fr_1fr_1fr_120px_100px]"
+                />
+                <ResourceListBody>
                   {filteredJoinedTeams.map((team) => (
                     <JoinedTeamListRow
                       key={team.tenant_id}
@@ -520,8 +479,8 @@ export const TeamPage: React.FC = () => {
                       isLoading={respondLoading}
                     />
                   ))}
-                </div>
-              </div>
+                </ResourceListBody>
+              </ResourceListContainer>
             )}
           </div>
         </TabsContent>

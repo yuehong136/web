@@ -79,10 +79,10 @@ export const JoinedTeamListRow: React.FC<JoinedTeamListRowProps> = ({
     <div
       className={cn(
         'group relative grid grid-cols-[2fr_1fr_1fr_120px_100px] items-center gap-4',
-        'px-5 h-[72px] rounded-xl',
-        'border-2 border-transparent',
+        'px-4 h-[68px] rounded-xl',
+        'border border-transparent',
         'transition-all duration-200 ease-out',
-        'hover:bg-surface-secondary/80 hover:border-border-default hover:shadow-md',
+        'hover:bg-surface-secondary/60 hover:border-state-focus hover:shadow-sm',
         isPending && 'bg-state-info-subtle/30'
       )}
     >

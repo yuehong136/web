@@ -39,6 +39,11 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { FilterPopover, type FilterConfig, type FilterValue } from '@/components/ui/filter-popover'
+import {
+  ResourceListContainer,
+  ResourceListHeader,
+  ResourceListBody,
+} from '@/components/ui/resource-list'
 import { CustomSelect } from '@/components/ui/custom-select'
 import { PageSizeSelector } from '@/components/ui/page-size-selector'
 import { ViewToggle } from '@/components/ui/view-toggle'
@@ -199,10 +204,10 @@ const AgentListRow: React.FC<AgentListRowProps> = ({ agent, onDelete, timeFormat
     <div
       className={cn(
         'group relative grid grid-cols-[2fr_100px_100px_150px_60px] items-center gap-4',
-        'px-5 h-[72px] rounded-xl cursor-pointer',
-        'border-2 border-transparent',
+        'px-4 h-[68px] rounded-xl cursor-pointer',
+        'border border-transparent',
         'transition-all duration-200 ease-out',
-        'hover:bg-surface-secondary/80 hover:border-border-default hover:shadow-md'
+        'hover:bg-surface-secondary/60 hover:border-state-focus hover:shadow-sm'
       )}
       onClick={handleClick}
     >
@@ -661,27 +666,19 @@ export default function AgentListPage() {
                 ))}
               </div>
             ) : (
-              <div className="bg-surface-primary rounded-lg border border-border-default overflow-hidden">
-                {/* 表头 */}
-                <div className="grid grid-cols-[2fr_100px_100px_150px_60px] items-center gap-4 px-5 h-12 border-b border-border-default bg-surface-secondary/50">
-                  <div className="text-xs font-medium text-text-tertiary uppercase tracking-wider">
-                    名称
-                  </div>
-                  <div className="text-xs font-medium text-text-tertiary uppercase tracking-wider">
-                    类型
-                  </div>
-                  <div className="text-xs font-medium text-text-tertiary uppercase tracking-wider">
-                    节点数
-                  </div>
-                  <div className="text-xs font-medium text-text-tertiary uppercase tracking-wider">
-                    更新时间
-                  </div>
-                  <div className="text-xs font-medium text-text-tertiary uppercase tracking-wider text-right">
-                    操作
-                  </div>
-                </div>
-                {/* 列表内容 */}
-                <div className="divide-y divide-border-subtle">
+              <ResourceListContainer>
+                <ResourceListHeader
+                  columns={[
+                    { key: 'name', label: '名称' },
+                    { key: 'type', label: '类型' },
+                    { key: 'nodes', label: '节点数' },
+                    { key: 'update_time', label: '更新时间' },
+                    { key: 'actions', label: '操作' },
+                  ]}
+                  showSelect={false}
+                  gridCols="grid-cols-[2fr_100px_100px_150px_60px]"
+                />
+                <ResourceListBody>
                   {paginatedAgents.map((agent) => (
                     <AgentListRow
                       key={agent.id}
@@ -690,8 +687,8 @@ export default function AgentListPage() {
                       timeFormat={timeFormat}
                     />
                   ))}
-                </div>
-              </div>
+                </ResourceListBody>
+              </ResourceListContainer>
             )}
           </div>
 

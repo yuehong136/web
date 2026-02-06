@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
-import { Table } from '@/components/ui/table'
 import {
   Select,
   SelectContent,
@@ -21,7 +20,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import {
@@ -41,7 +39,15 @@ import {
   Zap,
   Check,
   Rocket,
+  ChevronRight,
+  Clock,
 } from 'lucide-react'
+import {
+  ResourceListContainer,
+  ResourceListHeader,
+  ResourceListBody,
+} from '@/components/ui/resource-list'
+import { Dropdown, DropdownItem } from '@/components/ui/dropdown'
 import { ViewToggle } from '@/components/ui/view-toggle'
 import type { MCPServer } from '@/types/mcp'
 import { MCPServerForm } from '@/components/mcp/MCPServerForm'
@@ -215,176 +221,155 @@ export const MCPServersPage: React.FC<ServerListPageProps> = ({ onServerSelect }
     return new Date(dateString).toLocaleDateString('zh-CN')
   }
 
-  // 渲染表格视图
+  // 渲染列表视图（使用 ResourceList 组件统一风格）
   const renderTableView = () => (
-    <div
-      className="rounded-xl border overflow-hidden"
-      style={{
-        backgroundColor: 'var(--color-components-table-bg)',
-        borderColor: 'var(--color-components-table-border)',
-      }}
-    >
-      <Table
+    <ResourceListContainer>
+      <ResourceListHeader
         columns={[
-          {
-            key: 'status',
-            title: '状态',
-            width: 80,
-            render: (_: unknown, record: MCPServer) => {
-              const online = hasServerTools(record)
-              return (
-                <div className="flex items-center gap-2">
-                  <div
-                    className={cn('w-2 h-2 rounded-full', online && 'animate-pulse')}
-                    style={{
-                      backgroundColor: online
-                        ? 'var(--color-state-success)'
-                        : 'var(--color-text-disabled)',
-                      boxShadow: online ? '0 0 6px var(--color-state-success)' : 'none',
-                    }}
-                  />
-                  <span
-                    className="text-xs"
-                    style={{ color: online ? 'var(--color-state-success)' : 'var(--color-text-disabled)' }}
-                  >
-                    {online ? '在线' : '离线'}
-                  </span>
+          { key: 'name', label: '名称' },
+          { key: 'type', label: '类型' },
+          { key: 'url', label: '地址' },
+          { key: 'tools', label: '工具数' },
+          { key: 'create_time', label: '创建时间' },
+          { key: 'actions', label: '操作' },
+        ]}
+        showSelect={false}
+        gridCols="grid-cols-[2fr_80px_1fr_80px_120px_60px]"
+      />
+      <ResourceListBody>
+        {filteredServers.map((server) => {
+          const online = hasServerTools(server)
+          const tools = getServerTools(server)
+          const typeConfig = SERVER_TYPE_CONFIG[server.server_type] || {
+            label: server.server_type.toUpperCase(),
+            bgColor: 'var(--color-background-subtle)',
+            textColor: 'var(--color-text-secondary)',
+          }
+
+          return (
+            <div
+              key={server.id}
+              className={cn(
+                'group relative grid items-center gap-4',
+                'px-4 h-[68px] rounded-xl cursor-pointer',
+                'border border-transparent',
+                'transition-all duration-200 ease-out',
+                'hover:bg-surface-secondary/60 hover:border-state-focus hover:shadow-sm',
+              )}
+              style={{ gridTemplateColumns: '2fr 80px 1fr 80px 120px 60px' }}
+              onClick={() => onServerSelect?.(server.id)}
+            >
+              {/* 名称列（含状态指示器） */}
+              <div className="flex items-center gap-4 min-w-0">
+                <div
+                  className={cn(
+                    'w-10 h-10 rounded-xl flex items-center justify-center shrink-0 relative',
+                    online ? 'bg-state-success-subtle' : 'bg-surface-secondary',
+                  )}
+                >
+                  <Globe className={cn('h-5 w-5', online ? 'text-state-success' : 'text-text-disabled')} />
                 </div>
-              )
-            },
-          },
-          {
-            key: 'name',
-            title: '名称',
-            render: (_: unknown, record: MCPServer) => (
-              <div className="flex items-center gap-2">
-                <span className="font-medium" style={{ color: 'var(--color-text-primary)' }}>
-                  {record.name}
-                </span>
+                <div className="flex-1 min-w-0 h-11 flex flex-col justify-center">
+                  <div className="flex items-center gap-1.5">
+                    <h3 className="font-medium text-text-primary truncate group-hover:text-text-accent transition-colors duration-200">
+                      {server.name}
+                    </h3>
+                    <ChevronRight className="h-4 w-4 text-text-tertiary opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all duration-200 shrink-0" />
+                  </div>
+                  {server.description && (
+                    <p className="text-sm text-text-tertiary truncate mt-0.5" title={server.description}>
+                      {server.description}
+                    </p>
+                  )}
+                </div>
               </div>
-            ),
-          },
-          {
-            key: 'server_type',
-            title: '类型',
-            width: 120,
-            render: (_: unknown, record: MCPServer) => {
-              const config = SERVER_TYPE_CONFIG[record.server_type] || {
-                label: record.server_type.toUpperCase(),
-                bgColor: 'var(--color-background-subtle)',
-                textColor: 'var(--color-text-secondary)',
-              }
-              return (
+
+              {/* 类型列 */}
+              <div className="flex items-center">
                 <Badge
                   className="text-xs font-medium border-0"
-                  style={{ backgroundColor: config.bgColor, color: config.textColor }}
+                  style={{ backgroundColor: typeConfig.bgColor, color: typeConfig.textColor }}
                 >
-                  {config.label}
+                  {typeConfig.label}
                 </Badge>
-              )
-            },
-          },
-          {
-            key: 'url',
-            title: '地址',
-            render: (_: unknown, record: MCPServer) => (
+              </div>
+
+              {/* 地址列 */}
               <code
-                className="text-xs font-mono px-2 py-1 rounded max-w-xs truncate block"
-                style={{
-                  backgroundColor: 'var(--color-background-subtle)',
-                  color: 'var(--color-text-secondary)',
-                }}
-                title={record.url}
+                className="text-xs font-mono text-text-secondary truncate block"
+                title={server.url}
               >
-                {record.url}
+                {server.url}
               </code>
-            ),
-          },
-          {
-            key: 'tools',
-            title: '工具数',
-            width: 100,
-            align: 'center' as const,
-            render: (_: unknown, record: MCPServer) => {
-              const tools = getServerTools(record)
-              return (
-                <div className="flex items-center justify-center gap-1">
-                  <Zap className="w-3.5 h-3.5" style={{ color: 'var(--color-state-focus)' }} />
-                  <span style={{ color: 'var(--color-text-primary)' }}>
-                    {tools.length}
-                  </span>
-                </div>
-              )
-            },
-          },
-          {
-            key: 'create_time',
-            title: '创建时间',
-            width: 120,
-            render: (_: unknown, record: MCPServer) => (
-              <span style={{ color: 'var(--color-text-secondary)' }}>
-                {formatDate(record.create_time)}
-              </span>
-            ),
-          },
-          {
-            key: 'actions',
-            title: '操作',
-            width: 80,
-            align: 'center' as const,
-            render: (_: unknown, record: MCPServer) => (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                    <MoreHorizontal className="w-4 h-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="right" className="min-w-[140px]">
-                  <DropdownMenuItem
-                    onClick={() => handleTestConnection(record)}
-                    disabled={testingServerId === record.id}
+
+              {/* 工具数列 */}
+              <div className="flex items-center gap-1.5 text-sm text-text-secondary">
+                <Zap className="h-3.5 w-3.5 text-state-focus shrink-0" />
+                <span>{tools.length}</span>
+              </div>
+
+              {/* 创建时间列 */}
+              <div className="flex items-center gap-1.5 text-sm text-text-tertiary">
+                <Clock className="h-3.5 w-3.5 shrink-0" />
+                {formatDate(server.create_time)}
+              </div>
+
+              {/* 操作列 */}
+              <div
+                className="flex justify-end"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Dropdown
+                  trigger={
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  }
+                >
+                  <DropdownItem
+                    icon={
+                      testingServerId === server.id
+                        ? <Loader2 className="h-4 w-4 animate-spin" />
+                        : <TestTube className="h-4 w-4" />
+                    }
+                    onClick={() => handleTestConnection(server)}
                   >
-                    {testingServerId === record.id ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <TestTube className="w-4 h-4 mr-2" />
-                    )}
-                    测试连接
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleCopyUrl(record)}>
-                    {copiedId === record.id ? (
-                      <Check className="w-4 h-4 mr-2 text-green-500" />
-                    ) : (
-                      <Copy className="w-4 h-4 mr-2" />
-                    )}
+                    {testingServerId === server.id ? '测试中...' : '测试连接'}
+                  </DropdownItem>
+                  <DropdownItem
+                    icon={
+                      copiedId === server.id
+                        ? <Check className="h-4 w-4 text-state-success" />
+                        : <Copy className="h-4 w-4" />
+                    }
+                    onClick={() => handleCopyUrl(server)}
+                  >
                     复制地址
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => handleEdit(record)}>
-                    <Edit className="w-4 h-4 mr-2" />
-                    编辑配置
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => handleDelete(record)}
-                    className="text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950/50"
+                  </DropdownItem>
+                  <DropdownItem
+                    icon={<Edit className="h-4 w-4" />}
+                    onClick={() => handleEdit(server)}
                   >
-                    <Trash2 className="w-4 h-4 mr-2" />
+                    编辑配置
+                  </DropdownItem>
+                  <DropdownItem
+                    icon={<Trash2 className="h-4 w-4" />}
+                    onClick={() => handleDelete(server)}
+                    danger
+                  >
                     删除服务器
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ),
-          },
-        ]}
-        data={filteredServers}
-        loading={isLoading}
-        hoverable
-        onRow={(record) => ({
-          className: 'cursor-pointer transition-colors',
-          onClick: () => onServerSelect?.(record.id),
+                  </DropdownItem>
+                </Dropdown>
+              </div>
+            </div>
+          )
         })}
-      />
-    </div>
+      </ResourceListBody>
+    </ResourceListContainer>
   )
 
   // 渲染网格视图
