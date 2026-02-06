@@ -1,5 +1,4 @@
 import {
-  Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipRoot,
@@ -10,8 +9,9 @@ import { AgentInstanceContext, HandleContext } from '@/pages/agent/context'
 import OperatorIcon from '@/pages/agent/operator-icon'
 import { Position } from '@xyflow/react'
 import { lowerFirst } from 'lodash'
-import { createContext, useContext } from 'react'
+import { useContext } from 'react'
 import { useTranslation } from 'react-i18next'
+import { HideModalContext, OnNodeCreatedContext } from './operator-item-context'
 
 export type OperatorItemProps = {
   operators: Operator[]
@@ -19,14 +19,8 @@ export type OperatorItemProps = {
   mousePosition?: { x: number; y: number }
 }
 
-export const HideModalContext = createContext<(() => void) | undefined>(undefined)
-export const OnNodeCreatedContext = createContext<
-  ((newNodeId: string) => void) | undefined
->(undefined)
-
 export function OperatorItemList({
   operators,
-  isCustomDropdown = false,
   mousePosition,
 }: OperatorItemProps) {
   const { addCanvasNode } = useContext(AgentInstanceContext)

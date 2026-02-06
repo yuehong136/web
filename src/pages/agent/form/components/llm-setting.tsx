@@ -6,16 +6,10 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { Slider } from '@/components/ui/slider'
 import { useFormContext } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
+import { LLMSelectField } from './llm-select-field'
 
 type LlmSettingProps = {
   hideModel?: boolean
@@ -27,25 +21,7 @@ export function LlmSetting({ hideModel = false }: LlmSettingProps) {
 
   return (
     <div className="space-y-4">
-      {!hideModel && (
-        <FormField
-          control={form.control}
-          name="llm_id"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('flow.model', 'Model')}</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder={t('flow.selectModel', 'Enter model ID')}
-                  {...field}
-                  value={field.value ?? ''}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      )}
+      {!hideModel && <LLMSelectField type="chat" />}
 
       <FormField
         control={form.control}

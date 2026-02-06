@@ -24,6 +24,8 @@ import { useFormValues } from '../hooks/use-form-values'
 import { useWatchFormChange } from '../hooks/use-watch-form-change'
 import type { INextOperatorForm } from '../types'
 import { FormWrapper, Output, transferOutputs } from './components'
+import { KnowledgeBaseSelectField } from './components/knowledge-base-select-field'
+import { LLMSelectField } from './components/llm-select-field'
 
 const schema = z.object({
   query: z.string().optional(),
@@ -67,35 +69,7 @@ export function RetrievalForm({ node }: INextOperatorForm) {
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="kb_ids"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                {t('flow.knowledgeBases', 'Knowledge Bases')}
-              </FormLabel>
-              <FormControl>
-                <Input
-                  placeholder={t(
-                    'flow.kbIdsPlaceholder',
-                    'Comma-separated KB IDs',
-                  )}
-                  value={(field.value ?? []).join(', ')}
-                  onChange={(e) =>
-                    field.onChange(
-                      e.target.value
-                        .split(',')
-                        .map((s) => s.trim())
-                        .filter(Boolean),
-                    )
-                  }
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <KnowledgeBaseSelectField />
 
         <Collapsible>
           <CollapsibleTrigger className="flex items-center gap-1 text-sm font-medium">
@@ -196,18 +170,7 @@ export function RetrievalForm({ node }: INextOperatorForm) {
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="rerank_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('flow.rerankModel', 'Rerank Model')}</FormLabel>
-                  <FormControl>
-                    <Input {...field} value={field.value ?? ''} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+            <LLMSelectField name="rerank_id" type="rerank" />
 
             <FormField
               control={form.control}

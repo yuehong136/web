@@ -36,19 +36,33 @@ const SelectContext = React.createContext<{
   setIsOpen: (open: boolean) => void
   placeholder?: string
   selectRef?: React.RefObject<HTMLDivElement>
+  labelMap: Map<string, React.ReactNode>
+  registerLabel: (value: string, label: React.ReactNode) => void
 }>({
   isOpen: false,
   setIsOpen: () => {},
+  labelMap: new Map(),
+  registerLabel: () => {},
 })
 
-export const Select: React.FC<SelectProps> = ({ 
-  value, 
-  onValueChange, 
-  placeholder, 
+export const Select: React.FC<SelectProps> = ({
+  value,
+  onValueChange,
+  placeholder,
   children
 }) => {
   const [isOpen, setIsOpen] = React.useState(false)
   const selectRef = React.useRef<HTMLDivElement>(null as HTMLDivElement | null)
+  const [labelMap, setLabelMap] = React.useState<Map<string, React.ReactNode>>(new Map())
+
+  const registerLabel = React.useCallback((itemValue: string, label: React.ReactNode) => {
+    setLabelMap((prev) => {
+      if (prev.get(itemValue) === label) return prev
+      const next = new Map(prev)
+      next.set(itemValue, label)
+      return next
+    })
+  }, [])
 
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -70,7 +84,7 @@ export const Select: React.FC<SelectProps> = ({
   }, [isOpen])
 
   return (
-    <SelectContext.Provider value={{ value, onValueChange, isOpen, setIsOpen, placeholder, selectRef: selectRef as unknown as React.RefObject<HTMLDivElement> }}>
+    <SelectContext.Provider value={{ value, onValueChange, isOpen, setIsOpen, placeholder, selectRef: selectRef as unknown as React.RefObject<HTMLDivElement>, labelMap, registerLabel }}>
       <div ref={selectRef as unknown as React.RefObject<HTMLDivElement>} className="relative">
         {children}
       </div>
@@ -111,12 +125,13 @@ export const SelectTrigger = React.forwardRef<HTMLButtonElement, SelectTriggerPr
 SelectTrigger.displayName = "SelectTrigger"
 
 export const SelectValue: React.FC<SelectValueProps> = ({ placeholder }) => {
-  const { value, placeholder: contextPlaceholder } = React.useContext(SelectContext)
-  
+  const { value, placeholder: contextPlaceholder, labelMap } = React.useContext(SelectContext)
+
   if (value) {
-    return <span>{value}</span>
+    const displayLabel = labelMap.get(value) || value
+    return <span>{displayLabel}</span>
   }
-  
+
   return (
     <span style={{ color: 'var(--color-components-select-placeholder)' }}>
       {placeholder || contextPlaceholder || "请选择..."}
@@ -180,8 +195,13 @@ export const SelectContent: React.FC<SelectContentProps> = ({ children, classNam
 
 export const SelectItem = React.forwardRef<HTMLButtonElement, SelectItemProps>(
   ({ value, children, className = "", ...props }, ref) => {
-    const { value: selectedValue, onValueChange, setIsOpen } = React.useContext(SelectContext)
+    const { value: selectedValue, onValueChange, setIsOpen, registerLabel } = React.useContext(SelectContext)
     const isSelected = selectedValue === value
+
+    // Register label on mount and when children change
+    React.useEffect(() => {
+      registerLabel(value, children)
+    }, [value, children, registerLabel])
 
     return (
       <button
@@ -189,11 +209,11 @@ export const SelectItem = React.forwardRef<HTMLButtonElement, SelectItemProps>(
         type="button"
         className={`relative flex w-full cursor-pointer select-none items-center rounded-lg py-2 pl-8 pr-2 text-sm outline-none transition-colors ${className}`}
         style={{
-          backgroundColor: isSelected 
-            ? 'rgba(59, 130, 246, 0.1)' 
+          backgroundColor: isSelected
+            ? 'rgba(59, 130, 246, 0.1)'
             : 'transparent',
-          color: isSelected 
-            ? 'var(--color-text-accent)' 
+          color: isSelected
+            ? 'var(--color-text-accent)'
             : 'var(--color-components-dropdown-item-text)'
         }}
         onMouseEnter={(e) => {

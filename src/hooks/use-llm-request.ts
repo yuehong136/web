@@ -153,6 +153,28 @@ export const useLLMOptions = (type?: 'chat' | 'embedding' | 'rerank') => {
   return { options, isLoading }
 }
 
+// 获取模型选项（按 provider 分组，用于 SelectWithSearch）
+export const useLLMGroupedOptions = (type?: 'chat' | 'embedding' | 'rerank') => {
+  const { myLLMs, isLoading } = useFetchMyLLMs()
+
+  const options = Object.entries(myLLMs)
+    .map(([providerName, provider]: [string, any]) => {
+      const models = (provider.llm || [])
+        .filter((model: any) => !type || model.type === type)
+        .map((model: any) => ({
+          label: model.name,
+          value: model.name,
+        }))
+      return {
+        label: providerName,
+        options: models,
+      }
+    })
+    .filter((group) => group.options.length > 0)
+
+  return { options, isLoading }
+}
+
 // 获取聊天模型选项
 export const useChatModelOptions = () => useLLMOptions('chat')
 
@@ -161,3 +183,12 @@ export const useEmbeddingModelOptions = () => useLLMOptions('embedding')
 
 // 获取 Rerank 模型选项
 export const useRerankModelOptions = () => useLLMOptions('rerank')
+
+// 获取分组的聊天模型选项
+export const useChatModelGroupedOptions = () => useLLMGroupedOptions('chat')
+
+// 获取分组的 Embedding 模型选项
+export const useEmbeddingModelGroupedOptions = () => useLLMGroupedOptions('embedding')
+
+// 获取分组的 Rerank 模型选项
+export const useRerankModelGroupedOptions = () => useLLMGroupedOptions('rerank')

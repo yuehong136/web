@@ -1,11 +1,11 @@
 import { useIsPipeline } from '@/pages/agent/hooks/use-is-pipeline'
-import { type PropsWithChildren, memo, useEffect, useRef } from 'react'
+import { memo, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   AccordionOperators,
   PipelineAccordionOperators,
 } from './accordion-operators'
-import { HideModalContext, OnNodeCreatedContext } from './operator-item-list'
+import { HideModalContext, OnNodeCreatedContext } from './operator-item-context'
 
 export interface NextStepDropdownProps {
   hideModal?: () => void
@@ -15,12 +15,11 @@ export interface NextStepDropdownProps {
 }
 
 export function InnerNextStepDropdown({
-  children: _children,
   hideModal,
   position,
   onNodeCreated,
   nodeId,
-}: PropsWithChildren & NextStepDropdownProps) {
+}: NextStepDropdownProps) {
   const dropdownRef = useRef<HTMLDivElement>(null)
   const isPipeline = useIsPipeline()
   const { t } = useTranslation()
