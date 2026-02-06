@@ -816,6 +816,10 @@ export interface DesignTokens {
   'components-settings-user-role-bg': string
 
   // ===== 系统状态页面专用 =====
+  'components-system-accent-bg': string
+  'components-system-accent-border': string
+  'components-system-accent-text': string
+  'components-system-accent-soft': string
   'components-system-page-bg': string
   'components-system-panel-bg': string
   'components-system-panel-border': string
@@ -1673,6 +1677,10 @@ export const defaultTokens: DesignTokens = {
   'components-settings-user-role-bg': '',
 
   // 系统状态页面专用
+  'components-system-accent-bg': '',
+  'components-system-accent-border': '',
+  'components-system-accent-text': '',
+  'components-system-accent-soft': '',
   'components-system-page-bg': '',
   'components-system-panel-bg': '',
   'components-system-panel-border': '',

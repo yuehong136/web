@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useState } from 'react'
 import {
   Database,
   FileText,
@@ -30,6 +30,18 @@ interface ComponentCardData {
 }
 
 const sectionTitleClass = 'text-xs font-semibold uppercase tracking-wider text-components-system-section-title'
+const statusPriority: Record<ComponentCardData['status'], number> = {
+  red: 0,
+  yellow: 1,
+  green: 2,
+}
+
+const getResponseTimeMs = (metrics: ComponentCardData['metrics']): number => {
+  const raw = metrics['响应时间']
+  if (typeof raw === 'number') return raw
+  const parsed = Number.parseFloat(String(raw).replace(/[^\d.]/g, ''))
+  return Number.isFinite(parsed) ? parsed : 0
+}
 
 // 健康概览横幅
 const HealthBanner: React.FC<{ cards: ComponentCardData[] }> = ({ cards }) => {
@@ -57,7 +69,7 @@ const HealthBanner: React.FC<{ cards: ComponentCardData[] }> = ({ cards }) => {
       }
 
   return (
-    <div className={cn('flex items-center gap-3 rounded-xl border px-5 py-3.5', statusStyle.container)}>
+    <div className={cn('flex items-center gap-3 rounded-xl border px-4 py-2.5', statusStyle.container)}>
       {allHealthy ? (
         <CheckCircle2 className={cn('h-5 w-5 flex-shrink-0', statusStyle.icon)} />
       ) : redCount > 0 ? (
@@ -75,18 +87,18 @@ const HealthBanner: React.FC<{ cards: ComponentCardData[] }> = ({ cards }) => {
       </div>
       <div className="flex items-center gap-3 text-xs text-text-tertiary flex-shrink-0">
         <span className="flex items-center gap-1">
-          <span className="w-2 h-2 rounded-full bg-state-success" />
+          <span className="w-2 h-2 rounded-full bg-components-system-status-ok-text" />
           {greenCount}
         </span>
         {yellowCount > 0 && (
           <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-state-warning" />
+            <span className="w-2 h-2 rounded-full bg-components-system-status-warning-text" />
             {yellowCount}
           </span>
         )}
         {redCount > 0 && (
           <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-state-error" />
+            <span className="w-2 h-2 rounded-full bg-components-system-status-error-text" />
             {redCount}
           </span>
         )}
@@ -106,6 +118,7 @@ const VersionTag: React.FC<{ icon: React.ReactNode; label: string; value: string
 
 const SectionTitle: React.FC<{ title: string }> = ({ title }) => (
   <div className="mb-4 flex items-center gap-3">
+    <span className="h-2 w-2 rounded-full bg-components-system-accent-text" />
     <h2 className={sectionTitleClass}>{title}</h2>
     <div className="h-px flex-1 bg-components-system-section-divider" />
   </div>
@@ -115,6 +128,7 @@ const SystemPage: React.FC = () => {
   const { data, isLoading, error, isRefetching } = useSystemStatus()
   const { data: versionData, isLoading: versionLoading } = useSystemVersion()
   const refreshStatus = useRefreshSystemStatus()
+  const [showAllHealthyCards, setShowAllHealthyCards] = useState(false)
 
   // 转换API数据为组件所需格式
   const cards = useMemo(() => {
@@ -186,8 +200,16 @@ const SystemPage: React.FC = () => {
       })
     }
 
-    return result
+    return result.sort((a, b) => {
+      const statusDiff = statusPriority[a.status] - statusPriority[b.status]
+      if (statusDiff !== 0) return statusDiff
+      return getResponseTimeMs(b.metrics) - getResponseTimeMs(a.metrics)
+    })
   }, [data])
+
+  const hasUnhealthyCards = cards.some(card => card.status !== 'green')
+  const canCollapseHealthyCards = !hasUnhealthyCards && cards.length > 3
+  const visibleCards = canCollapseHealthyCards && !showAllHealthyCards ? cards.slice(0, 3) : cards
 
   const taskExecutors = data?.task_executor_heartbeats || {}
 
@@ -219,14 +241,14 @@ const SystemPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-full bg-components-system-page-bg p-8">
-        <div className="animate-pulse space-y-6">
+      <div className="min-h-full bg-components-system-page-bg p-4 md:p-6">
+        <div className="animate-pulse space-y-4 md:space-y-5">
           <div className="flex items-center justify-between">
             <div className="h-8 bg-components-skeleton-bg rounded-lg w-40" />
             <div className="h-9 bg-components-skeleton-bg rounded-lg w-20" />
           </div>
           <div className="h-12 bg-components-skeleton-bg rounded-xl" />
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
             {Array.from({ length: 5 }).map((_, i) => (
               <div key={i} className="h-40 bg-components-skeleton-bg rounded-xl" />
             ))}
@@ -238,11 +260,17 @@ const SystemPage: React.FC = () => {
 
   if (error) {
     return (
-      <div className="min-h-full bg-components-system-page-bg p-8">
-        <div className="space-y-6 rounded-2xl border border-components-system-panel-border bg-components-system-panel-bg p-6 shadow-components-system-panel-shadow backdrop-blur-md">
+      <div className="min-h-full bg-components-system-page-bg p-4 md:p-6">
+        <div className="space-y-4 rounded-2xl border border-components-system-panel-border bg-components-system-panel-bg p-4 shadow-components-system-panel-shadow backdrop-blur-md md:space-y-5 md:p-5">
           <div className="flex items-center justify-between">
             <h1 className="text-xl font-semibold text-components-system-header-title">系统状态</h1>
-            <Button onClick={() => refreshStatus()} disabled={isRefetching} variant="outline" size="sm">
+            <Button
+              onClick={() => refreshStatus()}
+              disabled={isRefetching}
+              variant="outline"
+              size="sm"
+              className="border-components-system-accent-border text-components-system-accent-text hover:bg-components-system-accent-bg"
+            >
               <RefreshCw className={cn('mr-2 h-4 w-4', isRefetching && 'animate-spin')} />
               刷新
             </Button>
@@ -262,15 +290,29 @@ const SystemPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-full bg-components-system-page-bg p-8">
-      <div className="space-y-6 rounded-2xl border border-components-system-panel-border bg-components-system-panel-bg p-6 shadow-components-system-panel-shadow backdrop-blur-md">
+    <div className="min-h-full bg-components-system-page-bg p-4 md:p-6">
+      <div className="space-y-4 rounded-2xl border border-components-system-panel-border border-t-2 border-t-components-system-accent-border bg-components-system-panel-bg p-4 shadow-components-system-panel-shadow backdrop-blur-md md:space-y-5 md:p-5">
         {/* Page Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-xl font-semibold text-components-system-header-title">系统状态</h1>
             <p className="mt-0.5 text-sm text-components-system-header-description">监控组件运行状况和任务执行器心跳</p>
+            <div className="mt-2 flex items-center gap-2">
+              <span className="inline-flex items-center rounded-full border border-components-system-accent-border bg-components-system-accent-bg px-2.5 py-0.5 text-xs font-medium text-components-system-accent-text">
+                实时监控
+              </span>
+              {isRefetching && (
+                <span className="text-xs text-components-system-version-tag-label">正在更新...</span>
+              )}
+            </div>
           </div>
-          <Button onClick={() => refreshStatus()} disabled={isRefetching} variant="outline" size="sm">
+          <Button
+            onClick={() => refreshStatus()}
+            disabled={isRefetching}
+            variant="outline"
+            size="sm"
+            className="border-components-system-accent-border text-components-system-accent-text hover:bg-components-system-accent-bg"
+          >
             <RefreshCw className={cn('mr-2 h-4 w-4', isRefetching && 'animate-spin')} />
             刷新
           </Button>
@@ -301,8 +343,8 @@ const SystemPage: React.FC = () => {
         {cards.length > 0 && (
           <div>
             <SectionTitle title="组件状态" />
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {cards.map((card) => (
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+              {visibleCards.map((card) => (
                 <StatusCard
                   key={card.id}
                   title={card.title}
@@ -313,6 +355,18 @@ const SystemPage: React.FC = () => {
                 />
               ))}
             </div>
+            {canCollapseHealthyCards && (
+              <div className="mt-2 flex justify-end">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 px-2 text-xs text-components-system-accent-text hover:bg-components-system-accent-bg hover:text-components-system-accent-text"
+                  onClick={() => setShowAllHealthyCards((prev) => !prev)}
+                >
+                  {showAllHealthyCards ? '收起为核心组件' : `显示全部组件（${cards.length}）`}
+                </Button>
+              </div>
+            )}
           </div>
         )}
 
@@ -320,7 +374,7 @@ const SystemPage: React.FC = () => {
         {Object.keys(taskExecutors).length > 0 && (
           <div>
             <SectionTitle title="任务执行器" />
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
               {Object.entries(taskExecutors).map(([executorId, heartbeats]) => (
                 <TaskExecutorChart
                   key={executorId}
@@ -336,7 +390,7 @@ const SystemPage: React.FC = () => {
         {Object.keys(taskExecutors).length === 0 && (
           <div>
             <SectionTitle title="任务执行器" />
-            <div className="rounded-xl border border-components-system-empty-border bg-components-system-empty-bg p-10 text-center">
+            <div className="rounded-xl border border-components-system-empty-border bg-components-system-empty-bg p-8 text-center">
               <Activity className="mx-auto mb-2 h-8 w-8 text-text-muted" />
               <p className="text-sm text-text-tertiary">暂无任务执行器数据</p>
             </div>
