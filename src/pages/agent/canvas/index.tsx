@@ -348,9 +348,7 @@ function AgentCanvasInner({ drawerVisible, hideDrawer }: AgentCanvasProps) {
               position={dropdownPosition}
               onNodeCreated={onNodeCreated}
               nodeId={nodeId}
-            >
-              <span></span>
-            </NextStepDropdown>
+            />
           </HandleContext.Provider>
         )}
 

@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils'
 import type { HandleProps } from '@xyflow/react'
 import { Handle, Position } from '@xyflow/react'
 import { Plus } from 'lucide-react'
-import { memo, useMemo } from 'react'
+import { memo, useMemo, useState } from 'react'
 import { NodeHandleId } from '../../constant'
 import { HandleContext } from '../../context'
 import { useIsPipeline } from '../../hooks/use-is-pipeline'
@@ -36,6 +36,7 @@ export const CommonHandle = memo(
       useDropdownManager()
     const { hasChildNode } = useGraphStore((state) => state)
     const isPipeline = useIsPipeline()
+    const [dropdownPosition, setDropdownPosition] = useState({ x: 0, y: 0 })
 
     const canConnectByPipeline = !(isPipeline && hasChildNode(nodeId))
     const isConnectable = (props.isConnectable ?? true) && canConnectByPipeline
@@ -71,6 +72,10 @@ export const CommonHandle = memo(
               return
             }
 
+            setDropdownPosition({
+              x: e.clientX + 8,
+              y: e.clientY - 12,
+            })
             setActiveDropdown('handle')
             showModal()
           }}
@@ -79,13 +84,12 @@ export const CommonHandle = memo(
           {visible && (
             <NextStepDropdown
               nodeId={nodeId}
+              position={dropdownPosition}
               hideModal={() => {
                 hideModal()
                 clearActiveDropdown()
               }}
-            >
-              <span></span>
-            </NextStepDropdown>
+            />
           )}
         </Handle>
       </HandleContext.Provider>
