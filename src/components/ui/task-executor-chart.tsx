@@ -6,10 +6,11 @@ import type { TaskExecutorHeartbeat } from '@/api/system'
 
 // 定义颜色常量
 const COLORS = {
-  done: { main: '#10b981', light: 'rgba(16, 185, 129, 0.1)', gradient: 'url(#doneGradient)' },
-  failed: { main: '#f43f5e', light: 'rgba(244, 63, 94, 0.1)', gradient: 'url(#failedGradient)' },
-  pending: { main: '#f59e0b', light: 'rgba(245, 158, 11, 0.1)', gradient: 'url(#pendingGradient)' },
-}
+  done: { main: 'var(--color-components-system-chart-done)', light: 'var(--color-components-system-chart-done-soft)' },
+  failed: { main: 'var(--color-components-system-chart-failed)', light: 'var(--color-components-system-chart-failed-soft)' },
+  pending: { main: 'var(--color-components-system-chart-pending)', light: 'var(--color-components-system-chart-pending-soft)' },
+  lag: 'var(--color-components-system-chart-lag)',
+} as const
 
 interface TaskExecutorChartProps {
   executorId: string
@@ -24,8 +25,21 @@ interface ChartDataPoint {
   pending: number
   lag: number
   timestamp: number
-  current: Record<string, any>
+  current: Record<string, unknown>
   heartbeat: TaskExecutorHeartbeat // 完整的心跳数据，用于 tooltip
+}
+
+interface ChartDotProps {
+  cx?: number
+  cy?: number
+  payload?: ChartDataPoint
+  fill?: string
+}
+
+interface ChartTooltipProps {
+  active?: boolean
+  payload?: unknown[]
+  label?: string
 }
 
 const TaskExecutorChart: React.FC<TaskExecutorChartProps> = ({
@@ -51,7 +65,7 @@ const TaskExecutorChart: React.FC<TaskExecutorChartProps> = ({
           pending: item.pending,
           lag: item.lag,
           timestamp: nowDate.getTime(),
-          current: item.current,
+          current: item.current as Record<string, unknown>,
           heartbeat: item
         }
       })
@@ -64,48 +78,43 @@ const TaskExecutorChart: React.FC<TaskExecutorChartProps> = ({
   const currentLag = latestHeartbeat ? latestHeartbeat.lag : 0
 
   // 自定义可点击的圆点组件
-  const CustomDot = (props: any) => {
-    const { cx, cy, payload, fill } = props
-    if (cx === undefined || cy === undefined) return null
+  const CustomDot = ({ cx, cy, payload, fill }: ChartDotProps) => {
+    if (cx === undefined || cy === undefined || !fill) return null
     return (
       <g style={{ cursor: 'pointer' }} onClick={(e) => {
         e.stopPropagation()
         if (payload) setPinnedData(payload as ChartDataPoint)
       }}>
         <circle cx={cx} cy={cy} r={6} fill={fill} fillOpacity={0.15} />
-        <circle cx={cx} cy={cy} r={3.5} fill="#fff" stroke={fill} strokeWidth={2} />
+        <circle cx={cx} cy={cy} r={3.5} fill="var(--color-components-system-chart-tooltip-bg)" stroke={fill} strokeWidth={2} />
       </g>
     )
   }
 
   // 自定义活跃圆点组件
-  const CustomActiveDot = (props: any) => {
-    const { cx, cy, payload, fill } = props
-    if (cx === undefined || cy === undefined) return null
+  const CustomActiveDot = ({ cx, cy, payload, fill }: ChartDotProps) => {
+    if (cx === undefined || cy === undefined || !fill) return null
     return (
       <g style={{ cursor: 'pointer' }} onClick={(e) => {
         e.stopPropagation()
         if (payload) setPinnedData(payload as ChartDataPoint)
       }}>
         <circle cx={cx} cy={cy} r={10} fill={fill} fillOpacity={0.2} />
-        <circle cx={cx} cy={cy} r={5} fill="#fff" stroke={fill} strokeWidth={2.5} />
+        <circle cx={cx} cy={cy} r={5} fill="var(--color-components-system-chart-tooltip-bg)" stroke={fill} strokeWidth={2.5} />
       </g>
     )
   }
 
   // 自定义Tooltip（悬停时的简单提示）
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload, label }: ChartTooltipProps) => {
     // 如果有固定数据，不显示悬停 tooltip
     if (pinnedData) return null
     
     if (active && payload && payload.length) {
       return (
-        <div className="px-3 py-2 rounded-lg shadow-lg border" style={{
-          backgroundColor: 'var(--color-background-elevated, #fff)',
-          borderColor: 'var(--color-border-default, #e5e7eb)'
-        }}>
-          <p className="text-xs font-medium mb-1" style={{ color: 'var(--color-text-primary, #111827)' }}>时间: {label}</p>
-          <p className="text-xs" style={{ color: 'var(--color-text-muted, #9ca3af)' }}>点击查看详细信息</p>
+        <div className="rounded-lg border border-components-system-chart-tooltip-border bg-components-system-chart-tooltip-bg px-3 py-2 shadow-shadow-md">
+          <p className="mb-1 text-xs font-semibold text-components-system-chart-tooltip-text">时间: {label ?? '-'}</p>
+          <p className="text-xs text-components-system-chart-tooltip-muted">点击查看详细信息</p>
         </div>
       )
     }
@@ -117,23 +126,17 @@ const TaskExecutorChart: React.FC<TaskExecutorChartProps> = ({
     const hasCurrentTask = data?.current && Object.keys(data.current).length > 0
     
     return (
-      <div className="absolute top-4 right-4 rounded-xl shadow-xl max-w-sm z-10 overflow-hidden" style={{
-        backgroundColor: 'var(--color-background-elevated, #fff)',
-        border: '1px solid var(--color-border-default, #e5e7eb)'
-      }}>
+      <div className="absolute right-4 top-4 z-10 max-w-sm overflow-hidden rounded-xl border border-components-system-chart-tooltip-border bg-components-system-chart-tooltip-bg shadow-shadow-lg">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3" style={{
-          backgroundColor: 'var(--color-background-subtle, #f9fafb)',
-          borderBottom: '1px solid var(--color-border-subtle, #f3f4f6)'
-        }}>
+        <div className="flex items-center justify-between border-b border-components-system-section-divider bg-components-system-chart-info-pill-bg px-4 py-3">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS.done.main }} />
-            <h4 className="text-sm font-semibold" style={{ color: 'var(--color-text-primary, #111827)' }}>时间: {data.time}</h4>
+            <h4 className="text-sm font-semibold text-components-system-chart-tooltip-text">时间: {data.time}</h4>
           </div>
           <button
             onClick={() => setPinnedData(null)}
             className="w-6 h-6 flex items-center justify-center rounded-md transition-colors hover:bg-components-icon-button-bg-hover"
-            style={{ color: 'var(--color-text-muted, #9ca3af)' }}
+            style={{ color: 'var(--color-components-system-chart-tooltip-muted)' }}
             title="关闭"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -149,40 +152,40 @@ const TaskExecutorChart: React.FC<TaskExecutorChartProps> = ({
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ backgroundColor: COLORS.done.light }}>
               <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS.done.main }} />
               <div>
-                <p className="text-xs" style={{ color: 'var(--color-text-muted, #6b7280)' }}>已完成</p>
+                <p className="text-xs text-components-system-chart-tooltip-muted">已完成</p>
                 <p className="text-sm font-semibold" style={{ color: COLORS.done.main }}>{data.done}</p>
               </div>
             </div>
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ backgroundColor: COLORS.failed.light }}>
               <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS.failed.main }} />
               <div>
-                <p className="text-xs" style={{ color: 'var(--color-text-muted, #6b7280)' }}>失败</p>
+                <p className="text-xs text-components-system-chart-tooltip-muted">失败</p>
                 <p className="text-sm font-semibold" style={{ color: COLORS.failed.main }}>{data.failed}</p>
               </div>
             </div>
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ backgroundColor: COLORS.pending.light }}>
               <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS.pending.main }} />
               <div>
-                <p className="text-xs" style={{ color: 'var(--color-text-muted, #6b7280)' }}>待处理</p>
+                <p className="text-xs text-components-system-chart-tooltip-muted">待处理</p>
                 <p className="text-sm font-semibold" style={{ color: COLORS.pending.main }}>{data.pending}</p>
               </div>
             </div>
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ backgroundColor: 'var(--color-background-subtle, #f9fafb)' }}>
-              <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: 'var(--color-text-muted, #9ca3af)' }} />
+            <div className="flex items-center gap-2 rounded-lg bg-components-system-chart-info-pill-bg px-3 py-2">
+              <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS.lag }} />
               <div>
-                <p className="text-xs" style={{ color: 'var(--color-text-muted, #6b7280)' }}>延迟</p>
-                <p className="text-sm font-semibold" style={{ color: 'var(--color-text-primary, #374151)' }}>{data.lag}s</p>
+                <p className="text-xs text-components-system-chart-tooltip-muted">延迟</p>
+                <p className="text-sm font-semibold text-components-system-chart-tooltip-text">{data.lag}s</p>
               </div>
             </div>
           </div>
 
           {/* 当前任务信息 */}
           {hasCurrentTask && (
-            <div className="pt-3 border-t" style={{ borderColor: 'var(--color-border-subtle, #f3f4f6)' }}>
-              <p className="text-xs font-medium mb-2" style={{ color: 'var(--color-text-secondary, #6b7280)' }}>当前任务</p>
+            <div className="border-t border-components-system-section-divider pt-3">
+              <p className="mb-2 text-xs font-medium text-components-system-chart-tooltip-muted">当前任务</p>
               <div className="space-y-2 max-h-48 overflow-y-auto scrollbar-thin">
                 {Object.entries(data.current).map(([key, value]) => {
-                  const formatValue = (val: any): string => {
+                  const formatValue = (val: unknown): string => {
                     if (val === null || val === undefined) return '无'
                     if (typeof val === 'object') {
                       try {
@@ -196,12 +199,8 @@ const TaskExecutorChart: React.FC<TaskExecutorChartProps> = ({
 
                   return (
                     <div key={key} className="space-y-1">
-                      <span className="text-xs font-medium" style={{ color: 'var(--color-text-secondary, #6b7280)' }}>{key}:</span>
-                      <pre className="text-xs p-2 rounded-md overflow-auto max-h-24 scrollbar-thin" style={{
-                        backgroundColor: 'var(--color-background-subtle, #f9fafb)',
-                        color: 'var(--color-text-primary, #374151)',
-                        border: '1px solid var(--color-border-subtle, #f3f4f6)'
-                      }}>
+                      <span className="text-xs font-medium text-components-system-chart-tooltip-muted">{key}:</span>
+                      <pre className="max-h-24 overflow-auto rounded-md border border-components-system-section-divider bg-components-system-chart-info-pill-bg p-2 text-xs text-components-system-chart-tooltip-text scrollbar-thin">
                         {formatValue(value)}
                       </pre>
                     </div>
@@ -212,8 +211,8 @@ const TaskExecutorChart: React.FC<TaskExecutorChartProps> = ({
           )}
           
           {!hasCurrentTask && (
-            <div className="pt-3 border-t text-center" style={{ borderColor: 'var(--color-border-subtle, #f3f4f6)' }}>
-              <p className="text-xs" style={{ color: 'var(--color-text-muted, #9ca3af)' }}>暂无当前任务</p>
+            <div className="border-t border-components-system-section-divider pt-3 text-center">
+              <p className="text-xs text-components-system-chart-tooltip-muted">暂无当前任务</p>
             </div>
           )}
         </div>
@@ -222,42 +221,39 @@ const TaskExecutorChart: React.FC<TaskExecutorChartProps> = ({
   }
 
   return (
-    <Card className={cn('relative', className)}>
+    <Card className={cn('relative border-components-system-status-card-border bg-components-system-status-card-bg shadow-components-system-status-card-shadow', className)}>
       <div className="p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-3">
-            <h3 className="font-semibold" style={{ color: 'var(--color-text-primary, #111827)' }}>任务执行器</h3>
+            <h3 className="font-semibold text-components-system-header-title">任务执行器</h3>
             {!pinnedData && (
-              <span className="text-xs px-2 py-1 rounded-full" style={{ 
-                backgroundColor: 'var(--color-background-subtle, #f3f4f6)',
-                color: 'var(--color-text-muted, #6b7280)'
-              }}>
+              <span className="rounded-full bg-components-system-chart-info-pill-bg px-2 py-1 text-xs text-components-system-chart-info-pill-text">
                 点击数据点查看详情
               </span>
             )}
           </div>
-          <div className="flex items-center gap-4 text-xs" style={{ color: 'var(--color-text-secondary, #6b7280)' }}>
+          <div className="flex items-center gap-4 text-xs text-components-system-chart-tooltip-muted">
             <div className="flex items-center gap-1.5">
-              <span style={{ color: 'var(--color-text-muted, #9ca3af)' }}>ID:</span>
-              <span className="font-medium" style={{ color: 'var(--color-text-primary, #374151)' }}>{latestHeartbeat?.name || executorId}</span>
+              <span>ID:</span>
+              <span className="font-medium text-components-system-header-title">{latestHeartbeat?.name || executorId}</span>
             </div>
-            <div className="w-px h-3" style={{ backgroundColor: 'var(--color-border-default, #e5e7eb)' }} />
+            <div className="h-3 w-px bg-components-system-section-divider" />
             <div className="flex items-center gap-1.5">
-              <span style={{ color: 'var(--color-text-muted, #9ca3af)' }}>延迟:</span>
-              <span className="font-medium" style={{ color: 'var(--color-text-primary, #374151)' }}>{currentLag}s</span>
+              <span>延迟:</span>
+              <span className="font-medium text-components-system-header-title">{currentLag}s</span>
             </div>
-            <div className="w-px h-3" style={{ backgroundColor: 'var(--color-border-default, #e5e7eb)' }} />
+            <div className="h-3 w-px bg-components-system-section-divider" />
             <div className="flex items-center gap-1.5">
-              <span style={{ color: 'var(--color-text-muted, #9ca3af)' }}>待处理:</span>
-              <span className="font-medium" style={{ color: 'var(--color-text-primary, #374151)' }}>{latestHeartbeat?.pending || 0}</span>
+              <span>待处理:</span>
+              <span className="font-medium text-components-system-header-title">{latestHeartbeat?.pending || 0}</span>
             </div>
             {latestHeartbeat?.boot_at && (
               <>
-                <div className="w-px h-3" style={{ backgroundColor: 'var(--color-border-default, #e5e7eb)' }} />
+                <div className="h-3 w-px bg-components-system-section-divider" />
                 <div className="flex items-center gap-1.5" title={`启动时间: ${new Date(latestHeartbeat.boot_at).toLocaleString('zh-CN')}`}>
-                  <span style={{ color: 'var(--color-text-muted, #9ca3af)' }}>启动:</span>
-                  <span className="font-medium" style={{ color: 'var(--color-text-primary, #374151)' }}>{new Date(latestHeartbeat.boot_at).toLocaleDateString('zh-CN')}</span>
+                  <span>启动:</span>
+                  <span className="font-medium text-components-system-header-title">{new Date(latestHeartbeat.boot_at).toLocaleDateString('zh-CN')}</span>
                 </div>
               </>
             )}
@@ -269,30 +265,16 @@ const TaskExecutorChart: React.FC<TaskExecutorChartProps> = ({
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-                <defs>
-                  <linearGradient id="doneGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={COLORS.done.main} stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor={COLORS.done.main} stopOpacity={0}/>
-                  </linearGradient>
-                  <linearGradient id="failedGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={COLORS.failed.main} stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor={COLORS.failed.main} stopOpacity={0}/>
-                  </linearGradient>
-                  <linearGradient id="pendingGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={COLORS.pending.main} stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor={COLORS.pending.main} stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-subtle, #e5e7eb)" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-components-system-chart-grid)" vertical={false} />
                 <XAxis 
                   dataKey="time" 
-                  tick={{ fontSize: 11, fill: 'var(--color-text-muted, #9ca3af)' }}
-                  axisLine={{ stroke: 'var(--color-border-default, #e5e7eb)' }}
+                  tick={{ fontSize: 11, fill: 'var(--color-components-system-chart-axis)' }}
+                  axisLine={{ stroke: 'var(--color-components-system-chart-grid)' }}
                   tickLine={false}
                   interval="preserveStartEnd"
                 />
                 <YAxis 
-                  tick={{ fontSize: 11, fill: 'var(--color-text-muted, #9ca3af)' }} 
+                  tick={{ fontSize: 11, fill: 'var(--color-components-system-chart-axis)' }} 
                   axisLine={false}
                   tickLine={false}
                   allowDecimals={false}
@@ -330,27 +312,27 @@ const TaskExecutorChart: React.FC<TaskExecutorChartProps> = ({
             </ResponsiveContainer>
           </div>
         ) : (
-          <div className="h-64 flex items-center justify-center rounded-lg" style={{ backgroundColor: 'var(--color-background-subtle, #f9fafb)' }}>
-            <p className="text-sm" style={{ color: 'var(--color-text-muted, #9ca3af)' }}>暂无数据</p>
+          <div className="flex h-64 items-center justify-center rounded-lg border border-components-system-empty-border bg-components-system-empty-bg">
+            <p className="text-sm text-components-system-chart-tooltip-muted">暂无数据</p>
           </div>
         )}
 
         {/* Legend */}
-        <div className="flex justify-center items-center gap-6 mt-5 pt-4 border-t" style={{ borderColor: 'var(--color-border-subtle, #f3f4f6)' }}>
+        <div className="mt-5 flex items-center justify-center gap-6 border-t border-components-system-section-divider pt-4">
           <div className="flex items-center gap-2">
             <div className="relative">
               <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS.done.main }} />
               <div className="absolute inset-0 w-3 h-3 rounded-full animate-ping opacity-20" style={{ backgroundColor: COLORS.done.main }} />
             </div>
-            <span className="text-xs font-medium" style={{ color: 'var(--color-text-secondary, #6b7280)' }}>已完成</span>
+            <span className="text-xs font-medium text-components-system-chart-info-pill-text">已完成</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS.failed.main }} />
-            <span className="text-xs font-medium" style={{ color: 'var(--color-text-secondary, #6b7280)' }}>失败</span>
+            <span className="text-xs font-medium text-components-system-chart-info-pill-text">失败</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS.pending.main }} />
-            <span className="text-xs font-medium" style={{ color: 'var(--color-text-secondary, #6b7280)' }}>待处理</span>
+            <span className="text-xs font-medium text-components-system-chart-info-pill-text">待处理</span>
           </div>
         </div>
       </div>

@@ -814,6 +814,62 @@ export interface DesignTokens {
   'components-settings-section-title': string
   'components-settings-section-description': string
   'components-settings-user-role-bg': string
+
+  // ===== 系统状态页面专用 =====
+  'components-system-page-bg': string
+  'components-system-panel-bg': string
+  'components-system-panel-border': string
+  'components-system-panel-shadow': string
+  'components-system-header-title': string
+  'components-system-header-description': string
+  'components-system-version-tag-bg': string
+  'components-system-version-tag-border': string
+  'components-system-version-tag-label': string
+  'components-system-version-tag-value': string
+  'components-system-section-title': string
+  'components-system-section-divider': string
+  'components-system-empty-bg': string
+  'components-system-empty-border': string
+
+  'components-system-health-ok-bg': string
+  'components-system-health-ok-border': string
+  'components-system-health-ok-text': string
+  'components-system-health-warning-bg': string
+  'components-system-health-warning-border': string
+  'components-system-health-warning-text': string
+  'components-system-health-error-bg': string
+  'components-system-health-error-border': string
+  'components-system-health-error-text': string
+
+  'components-system-status-card-bg': string
+  'components-system-status-card-border': string
+  'components-system-status-card-border-hover': string
+  'components-system-status-card-shadow': string
+  'components-system-status-ok-bg': string
+  'components-system-status-ok-border': string
+  'components-system-status-ok-text': string
+  'components-system-status-warning-bg': string
+  'components-system-status-warning-border': string
+  'components-system-status-warning-text': string
+  'components-system-status-error-bg': string
+  'components-system-status-error-border': string
+  'components-system-status-error-text': string
+
+  'components-system-chart-grid': string
+  'components-system-chart-axis': string
+  'components-system-chart-tooltip-bg': string
+  'components-system-chart-tooltip-border': string
+  'components-system-chart-tooltip-text': string
+  'components-system-chart-tooltip-muted': string
+  'components-system-chart-done': string
+  'components-system-chart-done-soft': string
+  'components-system-chart-failed': string
+  'components-system-chart-failed-soft': string
+  'components-system-chart-pending': string
+  'components-system-chart-pending-soft': string
+  'components-system-chart-lag': string
+  'components-system-chart-info-pill-bg': string
+  'components-system-chart-info-pill-text': string
 }
 
 // 生成 CSS 变量映射
@@ -1615,6 +1671,62 @@ export const defaultTokens: DesignTokens = {
   'components-settings-section-title': '',
   'components-settings-section-description': '',
   'components-settings-user-role-bg': '',
+
+  // 系统状态页面专用
+  'components-system-page-bg': '',
+  'components-system-panel-bg': '',
+  'components-system-panel-border': '',
+  'components-system-panel-shadow': '',
+  'components-system-header-title': '',
+  'components-system-header-description': '',
+  'components-system-version-tag-bg': '',
+  'components-system-version-tag-border': '',
+  'components-system-version-tag-label': '',
+  'components-system-version-tag-value': '',
+  'components-system-section-title': '',
+  'components-system-section-divider': '',
+  'components-system-empty-bg': '',
+  'components-system-empty-border': '',
+
+  'components-system-health-ok-bg': '',
+  'components-system-health-ok-border': '',
+  'components-system-health-ok-text': '',
+  'components-system-health-warning-bg': '',
+  'components-system-health-warning-border': '',
+  'components-system-health-warning-text': '',
+  'components-system-health-error-bg': '',
+  'components-system-health-error-border': '',
+  'components-system-health-error-text': '',
+
+  'components-system-status-card-bg': '',
+  'components-system-status-card-border': '',
+  'components-system-status-card-border-hover': '',
+  'components-system-status-card-shadow': '',
+  'components-system-status-ok-bg': '',
+  'components-system-status-ok-border': '',
+  'components-system-status-ok-text': '',
+  'components-system-status-warning-bg': '',
+  'components-system-status-warning-border': '',
+  'components-system-status-warning-text': '',
+  'components-system-status-error-bg': '',
+  'components-system-status-error-border': '',
+  'components-system-status-error-text': '',
+
+  'components-system-chart-grid': '',
+  'components-system-chart-axis': '',
+  'components-system-chart-tooltip-bg': '',
+  'components-system-chart-tooltip-border': '',
+  'components-system-chart-tooltip-text': '',
+  'components-system-chart-tooltip-muted': '',
+  'components-system-chart-done': '',
+  'components-system-chart-done-soft': '',
+  'components-system-chart-failed': '',
+  'components-system-chart-failed-soft': '',
+  'components-system-chart-pending': '',
+  'components-system-chart-pending-soft': '',
+  'components-system-chart-lag': '',
+  'components-system-chart-info-pill-bg': '',
+  'components-system-chart-info-pill-text': '',
 }
 
 // 导出 CSS 变量映射用于 Tailwind
