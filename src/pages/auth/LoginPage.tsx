@@ -9,7 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Loading } from '@/components/ui/loading'
 import { useAuthStore } from '@/stores/auth'
 import { ROUTES } from '@/constants'
-import { Eye, EyeOff, Github, Mail } from 'lucide-react'
+import { AlertTriangle, Eye, EyeOff, Github, Mail, X } from 'lucide-react'
 import { AuthCarousel } from '@/components/auth/AuthCarousel'
 
 const loginSchema = z.object({
@@ -33,19 +33,20 @@ export const LoginPage: React.FC = () => {
   // 检查是否因为token过期而重定向
   React.useEffect(() => {
     const isExpired = searchParams.get('expired') === 'true'
-    if (isExpired) {
-      setShowExpiredAlert(true)
-      // 清除URL参数，避免刷新页面时重复显示
-      searchParams.delete('expired')
-      setSearchParams(searchParams, { replace: true })
-      
-      // 5秒后自动隐藏提示
-      const timer = setTimeout(() => {
-        setShowExpiredAlert(false)
-      }, 8000)
-      
-      return () => clearTimeout(timer)
-    }
+    if (!isExpired) return
+
+    setShowExpiredAlert(true)
+    // 清除URL参数，避免刷新页面时重复显示
+    const nextParams = new URLSearchParams(searchParams)
+    nextParams.delete('expired')
+    setSearchParams(nextParams, { replace: true })
+
+    // 8秒后自动隐藏提示
+    const timer = setTimeout(() => {
+      setShowExpiredAlert(false)
+    }, 8000)
+
+    return () => clearTimeout(timer)
   }, [searchParams, setSearchParams])
 
   const {
@@ -62,9 +63,10 @@ export const LoginPage: React.FC = () => {
     try {
       await login(data.email, data.password, data.remember)
       navigate(ROUTES.HOME)
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : '登录失败，请重试'
       setError('root', {
-        message: error.message || '登录失败，请重试',
+        message: errorMessage,
       })
     }
   }
@@ -75,7 +77,10 @@ export const LoginPage: React.FC = () => {
 
   return (
     <div className="min-h-screen flex">
-      <AuthCarousel gradientFrom="from-primary-600" gradientTo="to-primary-800" />
+      <AuthCarousel
+        gradientFrom="from-components-button-primary-bg"
+        gradientTo="to-state-focus"
+      />
       <div className="flex-1 flex flex-col justify-center px-8 py-12 lg:px-12 bg-background-body">
         <div className="w-full max-w-md mx-auto">
           {/* Header */}
@@ -88,12 +93,13 @@ export const LoginPage: React.FC = () => {
 
           {/* 登录过期提示 */}
           {showExpiredAlert && (
-            <div className="mb-6 bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-lg shadow-sm animate-fade-in">
+            <div
+              className="mb-6 border border-components-alert-warning-border bg-components-alert-warning-bg text-components-alert-warning-text px-space-md py-space-base rounded-radius-lg shadow-elevation-low animate-fade-in"
+              role="alert"
+            >
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <svg className="h-5 w-5 text-amber-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
+                  <AlertTriangle className="h-5 w-5" />
                 </div>
                 <div className="ml-3 flex-1">
                   <h3 className="text-sm font-medium">登录已过期</h3>
@@ -102,12 +108,10 @@ export const LoginPage: React.FC = () => {
                 <div className="ml-4 flex-shrink-0">
                   <button
                     onClick={() => setShowExpiredAlert(false)}
-                    className="bg-amber-50 rounded-md p-1.5 text-amber-500 hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:ring-offset-2 focus:ring-offset-amber-50"
+                    className="rounded-radius-md p-space-xs text-components-alert-warning-text hover:bg-state-warning-subtle focus:outline-none focus:ring-2 focus:ring-state-focus focus:ring-offset-2 focus:ring-offset-background-body"
+                    aria-label="关闭提示"
                   >
-                    <span className="sr-only">关闭</span>
-                    <svg className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                    </svg>
+                    <X className="h-3 w-3" />
                   </button>
                 </div>
               </div>
@@ -165,7 +169,10 @@ export const LoginPage: React.FC = () => {
           {/* Form */}
           <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
             {errors.root && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+              <div
+                className="border border-components-alert-error-border bg-components-alert-error-bg text-components-alert-error-text px-space-md py-space-base rounded-radius-md"
+                role="alert"
+              >
                 {errors.root.message}
               </div>
             )}
@@ -180,6 +187,7 @@ export const LoginPage: React.FC = () => {
                 error={errors.email?.message}
                 leftIcon={<Mail className="h-4 w-4" />}
                 placeholder="zhangsan@example.com"
+                autoFocus
               />
             </div>
 
@@ -196,7 +204,8 @@ export const LoginPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="text-gray-400 hover:text-gray-600"
+                    className="text-text-tertiary hover:text-text-secondary transition-colors"
+                    aria-label={showPassword ? '隐藏密码' : '显示密码'}
                   >
                     {showPassword ? (
                       <EyeOff className="h-4 w-4" />

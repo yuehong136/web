@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { ImageWithFallback } from "./ImageWithFallback";
+import authCarouselImage2 from "@/assets/images/auth-carousel-2.png";
 
 const carouselData = [
   {
@@ -8,7 +9,7 @@ const carouselData = [
     subtitle: "加入我们的社区，与全球用户一起探索无限可能。",
   },
   {
-    image: "/src/assets/images/auth-carousel-2.png",
+    image: authCarouselImage2,
     title: "创新技术",
     subtitle: "体验最前沿的AI技术，让工作变得更加智能高效。",
   },
@@ -25,8 +26,8 @@ interface AuthCarouselProps {
 }
 
 export function AuthCarousel({
-                               gradientFrom = "from-primary-600",
-                               gradientTo = "to-primary-800"
+                               gradientFrom = "from-components-button-primary-bg",
+                               gradientTo = "to-state-focus"
                              }: AuthCarouselProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
 
@@ -51,9 +52,10 @@ export function AuthCarousel({
               <ImageWithFallback
                   src={slide.image}
                   alt={slide.title}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain"
+                  darkEnhance
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/10 to-transparent" />
             </div>
         ))}
 

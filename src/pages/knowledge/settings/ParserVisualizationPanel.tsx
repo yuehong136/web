@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react'
 import { DocumentParserType, DOCUMENT_PARSER_TYPE_LABELS, DOCUMENT_PARSER_TYPE_DESCRIPTIONS } from '@/types/document-parser'
-import SvgIcon from '@/components/ui/svg-icon'
 import { Card } from '@/components/ui/card'
 import { FileText, Lightbulb, Image } from 'lucide-react'
 
@@ -25,7 +24,7 @@ const getImageUrls = (prefix: string, length: number): string[] =>
     .map((_, idx) => imageUrlMap[`${prefix}-0${idx + 1}`])
     .filter(Boolean)
 
-export const ImageMap: Record<string, string[]> = {
+const ImageMap: Record<string, string[]> = {
   book: getImageUrls('book', 4),
   laws: getImageUrls('law', 2),
   manual: getImageUrls('manual', 4),
@@ -127,6 +126,7 @@ const ParserVisualizationPanel: React.FC<ParserVisualizationPanelProps> = ({
                     alt={`示例 ${index + 1}`}
                     style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                     className="object-contain"
+                    data-dark-enhance="true"
                   />
                 </div>
                 <p className="text-xs text-text-tertiary text-center">

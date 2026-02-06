@@ -88,16 +88,18 @@
     text-rendering: optimizeLegibility;
   }
 
-  /* 暗黑模式下图片优化 - 轻微提升对比度和锐度 */
-  html[data-theme="dark"] img:not([data-no-filter]) {
-    /* 轻微提升对比度，改善深色背景下的图片清晰度 */
+  /* 暗黑模式图片策略：默认不改变图片像素，避免全局滤镜导致观感偏差 */
+
+  /* 仅对明确声明的装饰图做轻微增强（opt-in） */
+  html[data-theme="dark"] img[data-dark-enhance],
+  html[data-theme="dark"] .dark-image-enhance img {
     filter: contrast(1.02) brightness(1.02);
   }
 
-  /* 排除特定图片（如 logo、图标）的滤镜 */
+  /* 兼容旧写法：显式声明不做滤镜（优先级高于 opt-in） */
   html[data-theme="dark"] img[data-no-filter],
   html[data-theme="dark"] .no-dark-filter img {
-    filter: none;
+    filter: none !important;
   }
 
   /* 全局选择器样式 - 确保主题覆盖，但排除MCP聊天页面 */

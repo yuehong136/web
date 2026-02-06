@@ -92,7 +92,7 @@ export const RegisterPage: React.FC = () => {
 
   return (
     <div className="min-h-screen flex">
-      <AuthCarousel gradientFrom="from-success-600" gradientTo="to-primary-700" />
+      <AuthCarousel gradientFrom="from-state-success" gradientTo="to-state-focus" />
       <div className="flex-1 flex flex-col justify-center px-8 py-12 lg:px-12 bg-background-body">
         <div className="w-full max-w-md mx-auto">
           {/* Header */}

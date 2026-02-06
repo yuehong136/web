@@ -381,12 +381,12 @@ export const AvatarUpload = React.forwardRef<HTMLInputElement, AvatarUploadProps
                     </Avatar>
                     {/* Hover 遮罩 */}
                     <div className={cn(
-                        "absolute inset-0 bg-black/20 rounded-lg pointer-events-none",
-                        "group-hover:bg-black/50 transition-colors"
+                        "absolute inset-0 rounded-lg pointer-events-none bg-transparent",
+                        "group-hover:bg-state-neutral-10 transition-colors"
                     )}>
                       <Pencil
                           size={16}
-                          className="absolute right-1.5 bottom-1.5 text-white opacity-50 group-hover:opacity-100 transition-opacity"
+                          className="absolute right-1.5 bottom-1.5 text-text-inverted opacity-0 group-hover:opacity-100 transition-opacity"
                       />
                     </div>
                     {/* 删除按钮 */}

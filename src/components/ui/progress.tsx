@@ -6,6 +6,8 @@ interface ProgressProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 function Progress({ className, value, ...props }: ProgressProps) {
+  const normalizedValue = Math.max(0, Math.min(100, value ?? 0));
+
   return (
     <div
       className={cn(
@@ -15,8 +17,8 @@ function Progress({ className, value, ...props }: ProgressProps) {
       {...props}
     >
       <div
-        className="h-full bg-components-progress-fill transition-all duration-300 ease-in-out"
-        style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
+        className="h-full w-full bg-components-progress-fill transition-all duration-300 ease-in-out"
+        style={{ transform: `translateX(-${100 - normalizedValue}%)` }}
       />
     </div>
   );

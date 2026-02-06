@@ -31,6 +31,7 @@ export const RecommendCards: React.FC<RecommendCardsProps> = ({
                   src={card.imageUrl}
                   alt=""
                   className="w-full h-full object-cover"
+                  data-dark-enhance="true"
                 />
               </div>
             )}
