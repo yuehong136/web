@@ -24,7 +24,9 @@ import { Tooltip } from '@/components/ui/tooltip'
 import { cn } from '@/components/ui/utils'
 import { PageSizeSelector } from '@/components/ui/page-size-selector'
 import { MarkdownRenderer } from '@/components/chat/MarkdownRenderer'
+import { CreateApiKeyDialog } from '@/pages/settings/components/create-api-key-dialog'
 import { ModernEnvironmentSelector, NewEnvironmentManager } from '@/components/environment'
+import { EditApiKeyDialog } from '@/pages/settings/components/edit-api-key-dialog'
 import { useEnvironmentStore } from '@/stores/environmentStore'
 
 import type { 
@@ -1266,6 +1268,43 @@ const ApiDocumentationPage: React.FC = () => {
         newSet.delete(apiKey.tenant_id)
         return newSet
       })
+    }
+  }
+
+  const handleCreateApiKey = async ({ name, description }: { name: string; description: string | null }) => {
+    setCreateApiKeyLoading(true)
+    try {
+      const tokenData: APITokenCreateRequest = { name, description }
+      await systemAPI.createToken(tokenData)
+      setCreateApiKeyModalOpen(false)
+      loadApiKeys() // 刷新列表显示新创建的 token
+    } catch (error) {
+      console.error('Failed to create API key:', error)
+      throw error
+    } finally {
+      setCreateApiKeyLoading(false)
+    }
+  }
+
+  const handleEditApiKey = async ({ name, description }: { name: string; description: string | null }) => {
+    if (!editingApiKey) return
+
+    setEditApiKeyLoading(true)
+    try {
+      // 当前后端尚未提供更新接口，暂时保留现有模拟流程
+      await new Promise(resolve => setTimeout(resolve, 500))
+      console.log('编辑 API Key:', {
+        id: editingApiKey.tenant_id,
+        name,
+        description,
+      })
+      setEditingApiKey(null)
+      loadApiKeys() // 不需要 await，让它在后台刷新
+    } catch (error) {
+      console.error('Failed to edit API key:', error)
+      throw error
+    } finally {
+      setEditApiKeyLoading(false)
     }
   }
 
@@ -3149,155 +3188,22 @@ const ApiDocumentationPage: React.FC = () => {
         {/* 移动端遮罩（内嵌设置页时不再需要）*/}
 
         {/* 创建 API Key 弹窗 */}
-        <Dialog open={createApiKeyModalOpen} onOpenChange={setCreateApiKeyModalOpen}>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <Plus className="h-5 w-5" />
-                创建 API Key
-              </DialogTitle>
-              <DialogDescription>
-                创建新的 API Key 用于访问接口
-              </DialogDescription>
-            </DialogHeader>
-            <form onSubmit={async (e) => {
-              e.preventDefault()
-              const formData = new FormData(e.currentTarget)
-              setCreateApiKeyLoading(true)
-              try {
-                // 调用真实API创建Token
-                const tokenData: APITokenCreateRequest = {
-                  name: formData.get('name') as string,
-                  description: formData.get('description') as string || null
-                }
-                
-                await systemAPI.createToken(tokenData)
-                setCreateApiKeyModalOpen(false)
-                loadApiKeys() // 刷新列表显示新创建的token
-              } catch (error) {
-                console.error('Failed to create API key:', error)
-                // 这里可以显示错误提示
-              } finally {
-                setCreateApiKeyLoading(false)
-              }
-            }} className="space-y-4">
-              <div>
-                <Label htmlFor="name">名称 *</Label>
-                <Input
-                  id="name"
-                  name="name"
-                  placeholder="输入 API Key 名称"
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="description">描述</Label>
-                <Textarea
-                  id="description"
-                  name="description"
-                  placeholder="输入 API Key 描述（可选）"
-                  rows={3}
-                />
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => setCreateApiKeyModalOpen(false)}
-                  disabled={createApiKeyLoading}
-                >
-                  取消
-                </Button>
-                <Button type="submit" disabled={createApiKeyLoading}>
-                  {createApiKeyLoading ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                      创建中...
-                    </>
-                  ) : (
-                    '创建'
-                  )}
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <CreateApiKeyDialog
+          open={createApiKeyModalOpen}
+          isLoading={createApiKeyLoading}
+          onOpenChange={setCreateApiKeyModalOpen}
+          onSubmit={handleCreateApiKey}
+        />
 
         {/* 编辑 API Key 弹窗 */}
-        <Dialog open={!!editingApiKey} onOpenChange={(open) => !open && setEditingApiKey(null)}>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <Edit2 className="h-5 w-5" />
-                编辑 API Key
-              </DialogTitle>
-              <DialogDescription>
-                修改 API Key 的名称和描述
-              </DialogDescription>
-            </DialogHeader>
-            {editingApiKey && (
-              <form onSubmit={async (e) => {
-                e.preventDefault()
-                const formData = new FormData(e.currentTarget)
-                setEditApiKeyLoading(true)
-                try {
-                  // 模拟编辑 API
-                  await new Promise(resolve => setTimeout(resolve, 500))
-                  console.log('编辑 API Key:', {
-                    id: editingApiKey.tenant_id,
-                    name: formData.get('name'),
-                    description: formData.get('description')
-                  })
-                  setEditingApiKey(null)
-                  loadApiKeys() // 不需要 await，让它在后台刷新
-                } finally {
-                  setEditApiKeyLoading(false)
-                }
-              }} className="space-y-4">
-                <div>
-                  <Label htmlFor="edit-name">名称 *</Label>
-                  <Input
-                    id="edit-name"
-                    name="name"
-                    defaultValue={editingApiKey.name}
-                    placeholder="输入 API Key 名称"
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="edit-description">描述</Label>
-                  <Textarea
-                    id="edit-description"
-                    name="description"
-                    defaultValue={editingApiKey.description}
-                    placeholder="输入 API Key 描述（可选）"
-                    rows={3}
-                  />
-                </div>
-                <div className="flex justify-end gap-2">
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={() => setEditingApiKey(null)}
-                    disabled={editApiKeyLoading}
-                  >
-                    取消
-                  </Button>
-                  <Button type="submit" disabled={editApiKeyLoading}>
-                    {editApiKeyLoading ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                        保存中...
-                      </>
-                    ) : (
-                      '保存'
-                    )}
-                  </Button>
-                </div>
-              </form>
-            )}
-          </DialogContent>
-        </Dialog>
+        <EditApiKeyDialog
+          apiKey={editingApiKey}
+          isLoading={editApiKeyLoading}
+          onOpenChange={(open) => {
+            if (!open) setEditingApiKey(null)
+          }}
+          onSubmit={handleEditApiKey}
+        />
 
         {/* Portal 渲染的下拉菜单 */}
         {openDropdowns.size > 0 && createPortal(
