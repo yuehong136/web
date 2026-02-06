@@ -778,6 +778,15 @@ export const lightTokens: DesignTokens = {
   'components-canvas-note-border-selected': '#eab308', // yellow-500
   'components-canvas-note-title': '#a16207',       // yellow-700
   'components-canvas-note-text': '#854d0e',        // yellow-800
+
+  // ===== 设置页面专用 =====
+  'components-settings-sidebar-section-text': '#9ca3af',
+  'components-settings-content-bg': '#f9fafb',
+  'components-settings-section-bg': '#ffffff',
+  'components-settings-section-border': 'rgba(0, 0, 0, 0.06)',
+  'components-settings-section-title': '#0f172a',
+  'components-settings-section-description': '#6b7280',
+  'components-settings-user-role-bg': 'rgba(0, 190, 180, 0.1)',
 }
 
 // 暗色主题令牌值定义
@@ -1553,6 +1562,15 @@ export const darkTokens: DesignTokens = {
   'components-canvas-note-border-selected': '#facc15',        // yellow-400
   'components-canvas-note-title': '#fde047',                  // yellow-300
   'components-canvas-note-text': '#fef08a',                   // yellow-200
+
+  // ===== 设置页面专用 =====
+  'components-settings-sidebar-section-text': '#6b7280',
+  'components-settings-content-bg': '#0a0a0a',
+  'components-settings-section-bg': '#18181b',
+  'components-settings-section-border': 'rgba(255, 255, 255, 0.08)',
+  'components-settings-section-title': '#ffffff',
+  'components-settings-section-description': '#a1a1aa',
+  'components-settings-user-role-bg': 'rgba(0, 190, 180, 0.15)',
 }
 
 /**

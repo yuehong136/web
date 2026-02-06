@@ -1,20 +1,24 @@
-import React from 'react'
-import { 
-  Database, 
-  FileText, 
-  Zap, 
-  HardDrive, 
+import React, { useMemo } from 'react'
+import {
+  Database,
+  FileText,
+  Zap,
+  HardDrive,
   RefreshCw,
   AlertCircle,
-  Info,
-  Activity
+  Activity,
+  CheckCircle2,
+  AlertTriangle,
+  XCircle,
+  GitCommit,
+  Tag,
+  Package,
 } from 'lucide-react'
 import { StatusCard } from '@/components/ui/status-card'
 import { TaskExecutorChart } from '@/components/ui/task-executor-chart'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
 import { useSystemStatus, useRefreshSystemStatus, useSystemVersion } from '@/hooks/use-system-status'
-import type { SystemStatusResponse } from '@/api/system'
 
 interface ComponentCardData {
   id: string
@@ -25,108 +29,189 @@ interface ComponentCardData {
   error?: string
 }
 
+// 健康概览横幅
+const HealthBanner: React.FC<{ cards: ComponentCardData[] }> = ({ cards }) => {
+  const greenCount = cards.filter(c => c.status === 'green').length
+  const yellowCount = cards.filter(c => c.status === 'yellow').length
+  const redCount = cards.filter(c => c.status === 'red').length
+  const allHealthy = redCount === 0 && yellowCount === 0
+
+  return (
+    <div className={cn(
+      'flex items-center gap-3 px-5 py-3.5 rounded-xl border',
+      allHealthy
+        ? 'bg-state-success-subtle border-border-success'
+        : redCount > 0
+          ? 'bg-state-error-subtle border-border-error'
+          : 'bg-state-warning-subtle border-border-warning'
+    )}>
+      {allHealthy ? (
+        <CheckCircle2 className="h-5 w-5 text-state-success flex-shrink-0" />
+      ) : redCount > 0 ? (
+        <XCircle className="h-5 w-5 text-state-error flex-shrink-0" />
+      ) : (
+        <AlertTriangle className="h-5 w-5 text-state-warning flex-shrink-0" />
+      )}
+      <div className="flex-1 min-w-0">
+        <p className={cn(
+          'text-sm font-medium',
+          allHealthy ? 'text-state-success' : redCount > 0 ? 'text-text-error' : 'text-text-warning'
+        )}>
+          {allHealthy
+            ? '所有系统正常运行'
+            : `${redCount > 0 ? `${redCount} 个组件异常` : ''}${redCount > 0 && yellowCount > 0 ? '，' : ''}${yellowCount > 0 ? `${yellowCount} 个组件警告` : ''}`
+          }
+        </p>
+      </div>
+      <div className="flex items-center gap-3 text-xs text-text-tertiary flex-shrink-0">
+        <span className="flex items-center gap-1">
+          <span className="w-2 h-2 rounded-full bg-state-success" />
+          {greenCount}
+        </span>
+        {yellowCount > 0 && (
+          <span className="flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-state-warning" />
+            {yellowCount}
+          </span>
+        )}
+        {redCount > 0 && (
+          <span className="flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-state-error" />
+            {redCount}
+          </span>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// 紧凑版本信息标签
+const VersionTag: React.FC<{ icon: React.ReactNode; label: string; value: string }> = ({ icon, label, value }) => (
+  <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-background-subtle border border-border-subtle text-xs">
+    <span className="text-text-tertiary">{icon}</span>
+    <span className="text-text-tertiary">{label}</span>
+    <span className="font-medium text-text-primary font-mono">{value}</span>
+  </div>
+)
+
 const SystemPage: React.FC = () => {
   const { data, isLoading, error, isRefetching } = useSystemStatus()
-  const { data: versionData, isLoading: versionLoading, error: versionError } = useSystemVersion()
+  const { data: versionData, isLoading: versionLoading } = useSystemVersion()
   const refreshStatus = useRefreshSystemStatus()
 
   // 转换API数据为组件所需格式
-  const transformToCardData = (data: SystemStatusResponse): ComponentCardData[] => {
-    const cards: ComponentCardData[] = []
+  const cards = useMemo(() => {
+    if (!data) return []
+    const result: ComponentCardData[] = []
 
-    // Database
     if (data.database) {
-      cards.push({
+      result.push({
         id: 'database',
         title: `数据库 (${data.database.database.toUpperCase()})`,
-        icon: <Database className="h-5 w-5" />,
+        icon: <Database className="h-4 w-4" />,
         status: data.database.status,
-        metrics: {
-          '响应时间': `${data.database.elapsed}ms`
-        },
+        metrics: { '响应时间': `${data.database.elapsed}ms` },
         error: data.database.error
       })
     }
 
-    // Database Pool
     if (data.database_pool) {
-      cards.push({
+      result.push({
         id: 'database_pool',
         title: '数据库连接池',
-        icon: <Activity className="h-5 w-5" />,
+        icon: <Activity className="h-4 w-4" />,
         status: data.database_pool.status,
         metrics: {
+          '响应时间': `${data.database_pool.elapsed}ms`,
           '连接池大小': data.database_pool.pool_size,
           '活动连接': data.database_pool.checked_out,
           '空闲连接': data.database_pool.checked_in,
           '总连接数': data.database_pool.total_connections,
           '使用率': data.database_pool.usage_rate,
-          '响应时间': `${data.database_pool.elapsed}ms`
         },
         error: data.database_pool.error
       })
     }
 
-    // Doc Engine
     if (data.doc_engine) {
-      cards.push({
+      result.push({
         id: 'doc_engine',
         title: `向量引擎 (${data.doc_engine.type.charAt(0).toUpperCase() + data.doc_engine.type.slice(1)})`,
-        icon: <FileText className="h-5 w-5" />,
+        icon: <FileText className="h-4 w-4" />,
         status: data.doc_engine.status,
         metrics: {
+          '响应时间': `${data.doc_engine.elapsed}ms`,
           '版本': data.doc_engine.version || 'N/A',
-          '响应时间': `${data.doc_engine.elapsed}ms`
         },
         error: data.doc_engine.error
       })
     }
 
-    // Redis
     if (data.redis) {
-      cards.push({
+      result.push({
         id: 'redis',
         title: '缓存 (Redis)',
-        icon: <Zap className="h-5 w-5" />,
+        icon: <Zap className="h-4 w-4" />,
         status: data.redis.status,
-        metrics: {
-          '响应时间': `${data.redis.elapsed}ms`
-        },
+        metrics: { '响应时间': `${data.redis.elapsed}ms` },
         error: data.redis.error
       })
     }
 
-    // Storage
     if (data.storage) {
-      cards.push({
+      result.push({
         id: 'storage',
         title: `对象存储 (${data.storage.storage.toUpperCase()})`,
-        icon: <HardDrive className="h-5 w-5" />,
+        icon: <HardDrive className="h-4 w-4" />,
         status: data.storage.status,
-        metrics: {
-          '响应时间': `${data.storage.elapsed}ms`
-        },
+        metrics: { '响应时间': `${data.storage.elapsed}ms` },
         error: data.storage.error
       })
     }
 
-    return cards
-  }
+    return result
+  }, [data])
 
-  const handleRefresh = () => {
-    refreshStatus()
-  }
+  const taskExecutors = data?.task_executor_heartbeats || {}
+
+  // 解析版本信息
+  const versionInfo = useMemo(() => {
+    if (!versionData) return null
+    if (typeof versionData === 'string') {
+      const parts = versionData.split(' ')
+      const versionPart = parts[0]
+      const buildType = parts[1]
+      const versionMatch = versionPart?.match(/^(v[\d.]+)(?:-(\d+)-g([a-f0-9]+))?/)
+      return {
+        version: versionMatch?.[1] || versionPart || '',
+        commits: versionMatch?.[2],
+        gitCommit: versionMatch?.[3],
+        buildType,
+      }
+    }
+    if (typeof versionData === 'object') {
+      const obj = versionData as any
+      return {
+        version: obj.version || '',
+        gitCommit: obj.git_commit?.substring(0, 8),
+        buildType: obj.platform,
+      }
+    }
+    return null
+  }, [versionData])
 
   if (isLoading) {
     return (
-      <div className="p-6">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-32 mb-6"></div>
-          {/* Version info placeholder */}
-          <div className="h-24 bg-gray-200 rounded-lg mb-6"></div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="h-48 bg-gray-200 rounded-lg"></div>
+      <div className="p-8">
+        <div className="animate-pulse space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="h-8 bg-components-skeleton-bg rounded-lg w-40" />
+            <div className="h-9 bg-components-skeleton-bg rounded-lg w-20" />
+          </div>
+          <div className="h-12 bg-components-skeleton-bg rounded-xl" />
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="h-40 bg-components-skeleton-bg rounded-xl" />
             ))}
           </div>
         </div>
@@ -136,26 +221,20 @@ const SystemPage: React.FC = () => {
 
   if (error) {
     return (
-      <div className="p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">系统状态</h1>
-          <Button 
-            onClick={handleRefresh}
-            disabled={isRefetching}
-            variant="outline"
-            size="sm"
-          >
-            <RefreshCw className={`h-4 w-4 mr-2 ${isRefetching ? 'animate-spin' : ''}`} />
+      <div className="p-8 space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl font-semibold text-text-primary">系统状态</h1>
+          <Button onClick={() => refreshStatus()} disabled={isRefetching} variant="outline" size="sm">
+            <RefreshCw className={cn('h-4 w-4 mr-2', isRefetching && 'animate-spin')} />
             刷新
           </Button>
         </div>
-        
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-          <div className="flex items-center">
-            <AlertCircle className="h-6 w-6 text-red-600 mr-3" />
+        <div className="bg-state-error-subtle border border-border-error rounded-xl p-6">
+          <div className="flex items-center gap-3">
+            <AlertCircle className="h-5 w-5 text-text-error flex-shrink-0" />
             <div>
-              <h3 className="text-lg font-medium text-red-800">加载系统状态失败</h3>
-              <p className="text-red-700 mt-1">{error.message}</p>
+              <h3 className="text-sm font-semibold text-text-error">加载系统状态失败</h3>
+              <p className="text-sm text-text-error/80 mt-0.5">{error.message}</p>
             </div>
           </div>
         </div>
@@ -163,150 +242,65 @@ const SystemPage: React.FC = () => {
     )
   }
 
-  const cards = data ? transformToCardData(data) : []
-  const taskExecutors = data?.task_executor_heartbeats || {}
-
   return (
-    <div className="p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">系统状态</h1>
-        <Button 
-          onClick={handleRefresh}
-          disabled={isRefetching}
-          variant="outline"
-          size="sm"
-        >
-          <RefreshCw className={`h-4 w-4 mr-2 ${isRefetching ? 'animate-spin' : ''}`} />
+    <div className="p-8 space-y-6">
+      {/* Page Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-semibold text-text-primary">系统状态</h1>
+          <p className="text-sm text-text-tertiary mt-0.5">监控组件运行状况和任务执行器心跳</p>
+        </div>
+        <Button onClick={() => refreshStatus()} disabled={isRefetching} variant="outline" size="sm">
+          <RefreshCw className={cn('h-4 w-4 mr-2', isRefetching && 'animate-spin')} />
           刷新
         </Button>
       </div>
 
-      {/* System Version Info */}
-      <div className="mb-6">
-        <Card className="p-4">
-          <div className="flex items-center space-x-3">
-            <Info className="h-5 w-5 text-blue-500" />
-            <div className="flex-1">
-              <h3 className="text-lg font-medium text-gray-900">系统版本信息</h3>
-              {versionLoading ? (
-                <div className="mt-2">
-                  <div className="animate-pulse">
-                    <div className="h-4 bg-gray-200 rounded w-32"></div>
-                  </div>
-                </div>
-              ) : versionError ? (
-                <p className="mt-2 text-sm text-red-600">获取版本信息失败</p>
-              ) : versionData ? (
-                <div className="mt-2 text-sm text-gray-600">
-                  {(() => {
-                    // 处理版本信息显示
-                    const renderVersionInfo = () => {
-                      if (typeof versionData === 'string') {
-                        // 处理字符串格式的版本信息
-                        const versionString = versionData as string
-                        const parts = versionString.split(' ')
-                        const versionPart = parts[0] // "v0.2.5-537-gdb3f52a"
-                        const buildType = parts[1] // "full"
-                        
-                        const versionMatch = versionPart?.match(/^(v[\d.]+)(?:-(\d+)-g([a-f0-9]+))?/)
-                        
-                        return (
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            <div>
-                              <span className="font-medium">版本信息:</span> {versionString}
-                            </div>
-                            {versionMatch && (
-                              <>
-                                <div>
-                                  <span className="font-medium">基础版本:</span> {versionMatch[1]}
-                                </div>
-                                {versionMatch[2] && (
-                                  <div>
-                                    <span className="font-medium">提交数:</span> {versionMatch[2]}
-                                  </div>
-                                )}
-                                {versionMatch[3] && (
-                                  <div>
-                                    <span className="font-medium">Git提交:</span> {versionMatch[3]}
-                                  </div>
-                                )}
-                              </>
-                            )}
-                            {buildType && (
-                              <div>
-                                <span className="font-medium">构建类型:</span> {buildType}
-                              </div>
-                            )}
-                          </div>
-                        )
-                      } else if (versionData && typeof versionData === 'object') {
-                        // 处理对象格式的版本信息（向后兼容）
-                        const versionObj = versionData as any
-                        return (
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            <div>
-                              <span className="font-medium">版本号:</span> {versionObj.version}
-                            </div>
-                            {versionObj.build_time && (
-                              <div>
-                                <span className="font-medium">构建时间:</span> {new Date(versionObj.build_time).toLocaleString('zh-CN')}
-                              </div>
-                            )}
-                            {versionObj.git_commit && (
-                              <div>
-                                <span className="font-medium">Git提交:</span> {versionObj.git_commit.substring(0, 8)}
-                              </div>
-                            )}
-                            {versionObj.git_branch && (
-                              <div>
-                                <span className="font-medium">Git分支:</span> {versionObj.git_branch}
-                              </div>
-                            )}
-                            {versionObj.python_version && (
-                              <div>
-                                <span className="font-medium">Python版本:</span> {versionObj.python_version}
-                              </div>
-                            )}
-                            {versionObj.platform && (
-                              <div>
-                                <span className="font-medium">平台:</span> {versionObj.platform}
-                              </div>
-                            )}
-                          </div>
-                        )
-                      }
-                      return null
-                    }
-                    
-                    return renderVersionInfo()
-                  })()}
-                </div>
-              ) : null}
-            </div>
-          </div>
-        </Card>
-      </div>
+      {/* Health Banner */}
+      {cards.length > 0 && <HealthBanner cards={cards} />}
+
+      {/* Version Info Tags */}
+      {!versionLoading && versionInfo && (
+        <div className="flex flex-wrap items-center gap-2">
+          {versionInfo.version && (
+            <VersionTag icon={<Tag className="h-3 w-3" />} label="版本" value={versionInfo.version} />
+          )}
+          {versionInfo.gitCommit && (
+            <VersionTag icon={<GitCommit className="h-3 w-3" />} label="提交" value={versionInfo.gitCommit} />
+          )}
+          {versionInfo.commits && (
+            <VersionTag icon={<Package className="h-3 w-3" />} label="提交数" value={versionInfo.commits} />
+          )}
+          {versionInfo.buildType && (
+            <VersionTag icon={<Package className="h-3 w-3" />} label="构建" value={versionInfo.buildType} />
+          )}
+        </div>
+      )}
 
       {/* System Components Status Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
-        {cards.map((card) => (
-          <StatusCard
-            key={card.id}
-            title={card.title}
-            icon={card.icon}
-            status={card.status}
-            metrics={card.metrics}
-            error={card.error}
-          />
-        ))}
-      </div>
+      {cards.length > 0 && (
+        <div>
+          <h2 className="text-sm font-medium text-text-tertiary uppercase tracking-wider mb-4">组件状态</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {cards.map((card) => (
+              <StatusCard
+                key={card.id}
+                title={card.title}
+                icon={card.icon}
+                status={card.status}
+                metrics={card.metrics}
+                error={card.error}
+              />
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Task Executors */}
       {Object.keys(taskExecutors).length > 0 && (
-        <div className="space-y-6">
-          <h2 className="text-xl font-semibold text-gray-900">任务执行器</h2>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div>
+          <h2 className="text-sm font-medium text-text-tertiary uppercase tracking-wider mb-4">任务执行器</h2>
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
             {Object.entries(taskExecutors).map(([executorId, heartbeats]) => (
               <TaskExecutorChart
                 key={executorId}
@@ -320,10 +314,11 @@ const SystemPage: React.FC = () => {
 
       {/* Empty State for Task Executors */}
       {Object.keys(taskExecutors).length === 0 && (
-        <div className="mt-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">任务执行器</h2>
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
-            <p className="text-gray-600">暂无任务执行器数据</p>
+        <div>
+          <h2 className="text-sm font-medium text-text-tertiary uppercase tracking-wider mb-4">任务执行器</h2>
+          <div className="bg-background-subtle border border-border-subtle rounded-xl p-10 text-center">
+            <Activity className="h-8 w-8 text-text-muted mx-auto mb-2" />
+            <p className="text-sm text-text-tertiary">暂无任务执行器数据</p>
           </div>
         </div>
       )}

@@ -18,7 +18,7 @@ import {
   MemorySettingsPage,
 } from '@/pages/memory'
 import { SettingsLayout } from '@/pages/settings/SettingsLayout'
-import { ProfilePage } from '@/pages/settings/ProfilePage'
+import { ProfilePage } from '@/pages/settings/profile'
 import { SecurityPage } from '@/pages/settings/SecurityPage'
 import { ModelProvidersPage } from '@/pages/settings/model-providers'
 import { MCPServersPage } from '@/pages/settings/MCPServersPage'

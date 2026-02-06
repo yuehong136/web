@@ -132,7 +132,7 @@ const TaskExecutorChart: React.FC<TaskExecutorChartProps> = ({
           </div>
           <button
             onClick={() => setPinnedData(null)}
-            className="w-6 h-6 flex items-center justify-center rounded-md transition-colors hover:bg-gray-200"
+            className="w-6 h-6 flex items-center justify-center rounded-md transition-colors hover:bg-components-icon-button-bg-hover"
             style={{ color: 'var(--color-text-muted, #9ca3af)' }}
             title="关闭"
           >

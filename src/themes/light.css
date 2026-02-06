@@ -662,5 +662,11 @@ html[data-theme="light"] {
   --color-components-gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   --color-components-gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
   --color-components-gradient-accent: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  --color-components-settings-content-bg: #f9fafb;
+  --color-components-settings-section-bg: #ffffff;
+  --color-components-settings-section-border: rgba(0, 0, 0, 0.06);
+  --color-components-settings-section-title: #0f172a;
+  --color-components-settings-section-description: #6b7280;
+  --color-components-settings-user-role-bg: rgba(0, 190, 180, 0.1);
 
 }

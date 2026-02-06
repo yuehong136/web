@@ -1,16 +1,16 @@
 import React, { useCallback } from 'react'
 import { Outlet, useLocation, Link, useNavigate } from 'react-router-dom'
-import { 
-  Database, 
+import {
+  Database,
   Server,
   Users,
   User,
-  Unplug,
   Sun,
   Moon,
   House,
   Activity,
   LogOut,
+  Key,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/stores'
@@ -31,42 +31,44 @@ interface SidebarItem {
   icon: React.ComponentType<{ className?: string }> | 'mcp'
 }
 
-const settingsItems: SidebarItem[] = [
+interface SidebarGroup {
+  label: string
+  items: SidebarItem[]
+}
+
+const settingsGroups: SidebarGroup[] = [
   {
-    title: '数据源',
-    href: '/settings/datasource',
-    icon: Database,
+    label: '工作空间',
+    items: [
+      { title: '数据源', href: '/settings/datasource', icon: Database },
+      { title: '模型提供商', href: '/settings/model-providers', icon: Server },
+      { title: 'MCP', href: '/settings/mcp-servers', icon: 'mcp' },
+    ],
   },
   {
-    title: '模型提供商',
-    href: '/settings/model-providers',
-    icon: Server,
+    label: '团队与协作',
+    items: [
+      { title: '团队', href: '/settings/team', icon: Users },
+    ],
   },
   {
-    title: 'MCP',
-    href: '/settings/mcp-servers',
-    icon: 'mcp',
+    label: '账户',
+    items: [
+      { title: '概要', href: '/settings/profile', icon: User },
+    ],
   },
   {
-    title: '团队',
-    href: '/settings/team',
-    icon: Users,
+    label: '开发者',
+    items: [
+      { title: 'API', href: '/settings/api-keys', icon: Key },
+    ],
   },
   {
-    title: '概要',
-    href: '/settings/profile',
-    icon: User,
+    label: '系统',
+    items: [
+      { title: '系统状态', href: '/settings/system', icon: Activity },
+    ],
   },
-  {
-    title: '系统',
-    href: '/settings/system',
-    icon: Activity,
-  },
-  {
-    title: 'API',
-    href: '/settings/api-keys',
-    icon: Unplug,
-  }
 ]
 
 // 主题切换组件 - 仿 ragflow 的太阳月亮开关
@@ -113,13 +115,13 @@ const ThemeToggle: React.FC = () => {
         <Sun
           className={cn(
             'h-4 w-4 transition-colors',
-            isDark ? 'text-text-tertiary' : 'text-amber-400 drop-shadow'
+            isDark ? 'text-text-tertiary' : 'text-state-warning drop-shadow'
           )}
         />
         <Moon
           className={cn(
             'h-4 w-4 transition-colors',
-            isDark ? 'text-indigo-300 drop-shadow' : 'text-text-tertiary'
+            isDark ? 'text-state-info drop-shadow' : 'text-text-tertiary'
           )}
         />
       </span>
@@ -137,7 +139,7 @@ const pageTitles: Record<string, string> = {
   '/settings/mcp-batch': 'MCP批处理',
   '/settings/team': '团队',
   '/settings/profile': '概要',
-  '/settings/system': '系统',
+  '/settings/system': '系统状态',
   '/settings/api-keys': 'API',
 }
 
@@ -201,42 +203,63 @@ export const SettingsLayout: React.FC = () => {
                 </span>
               </div>
             )}
-            <p className="text-sm text-text-primary truncate">{user?.email || 'user@example.com'}</p>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium text-text-primary truncate">
+                {user?.nickname || user?.username || '用户'}
+              </p>
+              <p className="text-xs text-text-tertiary truncate">
+                {user?.email || 'user@example.com'}
+              </p>
+            </div>
           </div>
 
-          {/* 导航菜单 */}
-          <div className="flex-1 min-h-0 overflow-auto py-2 space-y-1">
-            {settingsItems.map((item, idx) => {
-              const isActive = location.pathname === item.href ||
-                (item.href === '/settings/mcp-servers' && location.pathname.startsWith('/settings/mcp'))
-
-              return (
-                <div key={idx} className="px-3">
-                  <Link
-                    to={item.href}
-                    className={cn(
-                      'flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200',
-                      isActive
-                        ? 'bg-components-sidebar-item-bg-active text-components-sidebar-item-text-active'
-                        : 'text-components-sidebar-item-text hover:bg-components-sidebar-item-bg-hover hover:text-text-primary'
-                    )}
-                  >
-                    {item.icon === 'mcp' ? (
-                      <IconFontFill name="mcp" className={cn(
-                        'w-5 h-5',
-                        isActive && 'text-components-sidebar-item-text-active'
-                      )} />
-                    ) : (
-                      <item.icon className={cn(
-                        'w-5 h-5',
-                        isActive && 'text-components-sidebar-item-text-active'
-                      )} />
-                    )}
-                    <span className="text-sm font-medium">{item.title}</span>
-                  </Link>
+          {/* 分组导航菜单 */}
+          <div className="flex-1 min-h-0 overflow-auto py-2">
+            {settingsGroups.map((group, groupIdx) => (
+              <div key={group.label}>
+                {groupIdx > 0 && (
+                  <div className="mx-6 my-2 border-t border-border-subtle" />
+                )}
+                <div className="px-6 pt-3 pb-1">
+                  <span className="text-xs font-medium uppercase tracking-wider text-components-settings-sidebar-section-text">
+                    {group.label}
+                  </span>
                 </div>
-              )
-            })}
+                <div className="space-y-0.5">
+                  {group.items.map((item) => {
+                    const isActive = location.pathname === item.href ||
+                      (item.href === '/settings/mcp-servers' && location.pathname.startsWith('/settings/mcp'))
+
+                    return (
+                      <div key={item.href} className="px-3">
+                        <Link
+                          to={item.href}
+                          className={cn(
+                            'flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-200',
+                            isActive
+                              ? 'bg-components-sidebar-item-bg-active text-components-sidebar-item-text-active'
+                              : 'text-components-sidebar-item-text hover:bg-components-sidebar-item-bg-hover hover:text-text-primary'
+                          )}
+                        >
+                          {item.icon === 'mcp' ? (
+                            <IconFontFill name="mcp" className={cn(
+                              'w-5 h-5',
+                              isActive && 'text-components-sidebar-item-text-active'
+                            )} />
+                          ) : (
+                            <item.icon className={cn(
+                              'w-5 h-5',
+                              isActive && 'text-components-sidebar-item-text-active'
+                            )} />
+                          )}
+                          <span className="text-sm font-medium">{item.title}</span>
+                        </Link>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
 
           {/* 底部区域 */}
@@ -256,7 +279,7 @@ export const SettingsLayout: React.FC = () => {
         </aside>
 
         {/* 主内容区域 */}
-        <div className="flex-1 overflow-auto bg-surface-primary">
+        <div className="flex-1 overflow-auto bg-components-settings-content-bg">
           <Outlet />
         </div>
       </div>

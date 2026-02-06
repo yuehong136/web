@@ -805,6 +805,15 @@ export interface DesignTokens {
   'components-canvas-note-border-selected': string
   'components-canvas-note-title': string
   'components-canvas-note-text': string
+
+  // ===== 设置页面专用 =====
+  'components-settings-sidebar-section-text': string
+  'components-settings-content-bg': string
+  'components-settings-section-bg': string
+  'components-settings-section-border': string
+  'components-settings-section-title': string
+  'components-settings-section-description': string
+  'components-settings-user-role-bg': string
 }
 
 // 生成 CSS 变量映射
@@ -1597,6 +1606,15 @@ export const defaultTokens: DesignTokens = {
   'components-canvas-note-border-selected': '',
   'components-canvas-note-title': '',
   'components-canvas-note-text': '',
+
+  // 设置页面专用
+  'components-settings-sidebar-section-text': '',
+  'components-settings-content-bg': '',
+  'components-settings-section-bg': '',
+  'components-settings-section-border': '',
+  'components-settings-section-title': '',
+  'components-settings-section-description': '',
+  'components-settings-user-role-bg': '',
 }
 
 // 导出 CSS 变量映射用于 Tailwind
