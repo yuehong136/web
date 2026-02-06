@@ -17,9 +17,12 @@ import {
   Zap,
   Link2,
   FileCode,
-  X
+  X,
+  Braces,
 } from 'lucide-react'
 import type { MCPServer, CreateMCPServerRequest, UpdateMCPServerRequest, MCPTool } from '@/types/mcp'
+import { ToolItem } from './tool-item'
+import { AutoResizeTextarea } from './auto-resize-textarea'
 import { mcpAPI } from '@/api/mcp'
 import { toast } from '@/lib/toast'
 import { cn } from '@/lib/utils'
@@ -258,12 +261,12 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
   ) => {
     if (entries.length === 0) {
       return (
-        <div className="flex flex-col items-center justify-center py-12 text-center">
-          <div className="w-12 h-12 rounded-full bg-[var(--color-surface-secondary)] flex items-center justify-center mb-4">
-            <Plus className="h-6 w-6 text-[var(--color-text-tertiary)]" />
+        <div className="flex flex-col items-center justify-center py-12 text-center border border-dashed border-[var(--color-border-subtle)] rounded-lg">
+          <div className="w-10 h-10 rounded-lg bg-[var(--color-background-subtle)] flex items-center justify-center mb-3">
+            <Plus className="h-5 w-5 text-[var(--color-text-tertiary)]" />
           </div>
-          <p className="text-[var(--color-text-secondary)] font-medium mb-1">{emptyText}</p>
-          <p className="text-[var(--color-text-tertiary)] text-sm mb-4">{emptyDescription}</p>
+          <p className="text-sm text-[var(--color-text-secondary)] font-medium mb-0.5">{emptyText}</p>
+          <p className="text-xs text-[var(--color-text-tertiary)] mb-4">{emptyDescription}</p>
           <Button
             type="button"
             variant="outline"
@@ -279,37 +282,56 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
 
     return (
       <div className="space-y-3">
-        {entries.map((entry, index) => (
-          <div key={index} className="flex items-center gap-3 group">
-            <Input
-              placeholder={keyPlaceholder}
-              value={entry.key}
-              onChange={(e) => onChange(index, 'key', e.target.value)}
-              className="flex-1 h-10 bg-[var(--color-surface-secondary)] border-[var(--color-border-subtle)] focus:border-[var(--color-border-focus)]"
-            />
-            <Input
-              placeholder={valuePlaceholder}
-              value={entry.value}
-              onChange={(e) => onChange(index, 'value', e.target.value)}
-              className="flex-[2] h-10 bg-[var(--color-surface-secondary)] border-[var(--color-border-subtle)] focus:border-[var(--color-border-focus)] font-mono text-sm"
-            />
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={() => onRemove(index)}
-              className="h-10 w-10 text-[var(--color-text-tertiary)] hover:text-[var(--color-status-error)] hover:bg-[var(--color-status-error-bg)] opacity-0 group-hover:opacity-100 transition-opacity"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
-        ))}
+        {/* 条目列表 */}
+        <div className="rounded-lg border border-[var(--color-border-default)] overflow-hidden divide-y divide-[var(--color-border-subtle)]">
+          {entries.map((entry, index) => (
+            <div key={index} className="group bg-[var(--color-background-surface)]">
+              <div className="flex items-start gap-3 p-3">
+                {/* Key + Value 垂直布局 */}
+                <div className="flex-1 min-w-0 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <label className="shrink-0 text-xs font-medium text-[var(--color-text-tertiary)] w-8">Key</label>
+                    <Input
+                      placeholder={keyPlaceholder}
+                      value={entry.key}
+                      onChange={(e) => onChange(index, 'key', e.target.value)}
+                      inputSize="sm"
+                      className="font-mono text-sm"
+                    />
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <label className="shrink-0 text-xs font-medium text-[var(--color-text-tertiary)] w-8 mt-2">Value</label>
+                    <AutoResizeTextarea
+                      placeholder={valuePlaceholder}
+                      value={entry.value}
+                      onChange={(e) => onChange(index, 'value', e.target.value)}
+                      maxHeight={160}
+                      className="font-mono text-sm flex-1"
+                    />
+                  </div>
+                </div>
+                {/* 删除按钮 */}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onRemove(index)}
+                  className="shrink-0 h-8 w-8 mt-0.5 text-[var(--color-text-muted)] hover:text-[var(--color-state-error)] hover:bg-[var(--color-state-error-subtle)] transition-colors"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* 添加按钮 */}
         <Button
           type="button"
           variant="ghost"
           size="sm"
           onClick={onAdd}
-          className="w-full h-10 border border-dashed border-[var(--color-border-subtle)] hover:border-[var(--color-border-default)] text-[var(--color-text-tertiary)] hover:text-[var(--color-text-secondary)]"
+          className="w-full h-9 border border-dashed border-[var(--color-border-subtle)] hover:border-[var(--color-border-default)] text-[var(--color-text-tertiary)] hover:text-[var(--color-text-secondary)]"
         >
           <Plus className="h-4 w-4 mr-2" />
           添加一行
@@ -323,8 +345,8 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
       {/* Header */}
       <div className="shrink-0 flex items-center justify-between px-6 py-4 border-b border-[var(--color-border-subtle)]">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--color-surface-accent)] to-[var(--color-surface-accent)]/80 flex items-center justify-center">
-            <Server className="h-5 w-5 text-[var(--color-text-on-accent)]" />
+          <div className="w-10 h-10 rounded-xl bg-[var(--color-components-button-primary-bg)] flex items-center justify-center">
+            <Server className="h-5 w-5 text-[var(--color-text-inverted)]" />
           </div>
           <div>
             <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
@@ -361,8 +383,8 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
                   className={cn(
                     "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all",
                     isActive
-                      ? "bg-[var(--color-surface-accent)] text-[var(--color-text-on-accent)]"
-                      : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-secondary)]"
+                      ? "bg-[var(--color-components-button-primary-bg)] text-[var(--color-text-inverted)]"
+                      : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-background-subtle)]"
                   )}
                 >
                   <Icon className="h-4 w-4" />
@@ -390,20 +412,19 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
                 {/* 服务器名称 */}
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-[var(--color-text-primary)]">
-                    服务器名称 <span className="text-[var(--color-status-error)]">*</span>
+                    服务器名称 <span className="text-[var(--color-state-error)]">*</span>
                   </label>
                   <Input
                     value={formData.name}
                     onChange={(e) => handleInputChange('name', e.target.value)}
                     placeholder="例如: My MCP Server"
-                    className="h-11 bg-[var(--color-surface-secondary)] border-[var(--color-border-subtle)] focus:border-[var(--color-border-focus)]"
                   />
                 </div>
 
                 {/* 协议类型 */}
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-[var(--color-text-primary)]">
-                    协议类型 <span className="text-[var(--color-status-error)]">*</span>
+                    协议类型 <span className="text-[var(--color-state-error)]">*</span>
                   </label>
                   <div className="grid grid-cols-3 gap-3">
                     {protocolOptions.map((protocol) => (
@@ -414,21 +435,21 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
                         className={cn(
                           "flex flex-col items-start p-3 rounded-xl border-2 transition-all text-left",
                           formData.server_type === protocol.value
-                            ? "border-[var(--color-border-focus)] bg-[var(--color-surface-accent)]/5"
-                            : "border-[var(--color-border-subtle)] hover:border-[var(--color-border-default)] bg-[var(--color-surface-secondary)]"
+                            ? "border-[var(--color-components-input-border-focus)] bg-[var(--color-state-focus-subtle)]"
+                            : "border-[var(--color-border-subtle)] hover:border-[var(--color-border-default)] bg-[var(--color-background-subtle)]"
                         )}
                       >
                         <div className="flex items-center gap-2 mb-1">
                           <Globe className={cn(
                             "h-4 w-4",
                             formData.server_type === protocol.value
-                              ? "text-[var(--color-text-accent)]"
+                              ? "text-[var(--color-state-focus)]"
                               : "text-[var(--color-text-tertiary)]"
                           )} />
                           <span className={cn(
                             "font-medium text-sm",
                             formData.server_type === protocol.value
-                              ? "text-[var(--color-text-accent)]"
+                              ? "text-[var(--color-state-focus)]"
                               : "text-[var(--color-text-primary)]"
                           )}>
                             {protocol.label}
@@ -445,17 +466,15 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
                 {/* 服务器地址 */}
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-[var(--color-text-primary)]">
-                    服务器地址 <span className="text-[var(--color-status-error)]">*</span>
+                    服务器地址 <span className="text-[var(--color-state-error)]">*</span>
                   </label>
-                  <div className="relative">
-                    <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--color-text-tertiary)]" />
-                    <Input
-                      value={formData.url}
-                      onChange={(e) => handleInputChange('url', e.target.value)}
-                      placeholder="http://localhost:3000/mcp"
-                      className="h-11 pl-10 bg-[var(--color-surface-secondary)] border-[var(--color-border-subtle)] focus:border-[var(--color-border-focus)] font-mono text-sm"
-                    />
-                  </div>
+                  <Input
+                    value={formData.url}
+                    onChange={(e) => handleInputChange('url', e.target.value)}
+                    placeholder="http://localhost:3000/mcp"
+                    leftIcon={<Link2 className="h-4 w-4" />}
+                    className="font-mono text-sm"
+                  />
                 </div>
 
                 {/* 描述 */}
@@ -467,7 +486,7 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
                     value={formData.description}
                     onChange={(e) => handleInputChange('description', e.target.value)}
                     placeholder="描述此服务器的用途..."
-                    className="min-h-[100px] bg-[var(--color-surface-secondary)] border-[var(--color-border-subtle)] focus:border-[var(--color-border-focus)] resize-none"
+                    className="min-h-[100px] resize-none"
                     rows={4}
                   />
                 </div>
@@ -528,13 +547,12 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
                   </p>
                 </div>
 
-                {/* 测试按钮 */}
-                <div className="flex items-center gap-4">
+                {/* 测试按钮 + 状态 */}
+                <div className="flex items-center gap-3">
                   <Button
                     type="button"
                     onClick={handleTestConnection}
                     disabled={testing || !formData.url}
-                    className="h-11"
                   >
                     {testing ? (
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -545,95 +563,83 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
                   </Button>
                   
                   {testResult && (
-                    <Badge 
-                      variant={testResult.success ? "default" : "destructive"}
-                      className="h-7 px-3"
-                    >
+                    <div className={cn(
+                      "flex items-center gap-1.5 text-sm font-medium",
+                      testResult.success
+                        ? "text-[var(--color-state-success)]"
+                        : "text-[var(--color-state-error)]"
+                    )}>
                       {testResult.success ? (
-                        <CheckCircle className="h-3.5 w-3.5 mr-1.5" />
+                        <CheckCircle className="h-4 w-4" />
                       ) : (
-                        <XCircle className="h-3.5 w-3.5 mr-1.5" />
+                        <XCircle className="h-4 w-4" />
                       )}
                       {testResult.success ? '连接成功' : '连接失败'}
-                    </Badge>
+                    </div>
                   )}
                 </div>
 
-                {/* 测试结果 */}
-                {testResult && (
-                  <div className={cn(
-                    "rounded-xl border p-4",
-                    testResult.success 
-                      ? "bg-[var(--color-status-success-bg)] border-[var(--color-status-success-border)]"
-                      : "bg-[var(--color-status-error-bg)] border-[var(--color-status-error-border)]"
-                  )}>
-                    {testResult.success ? (
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-2 text-[var(--color-status-success)]">
-                          <CheckCircle className="h-5 w-5" />
-                          <span className="font-medium">服务器连接正常</span>
-                        </div>
-                        {testResult.tools && testResult.tools.length > 0 ? (
-                          <div>
-                            <p className="text-sm text-[var(--color-text-secondary)] mb-3">
-                              发现 {testResult.tools.length} 个可用工具：
-                            </p>
-                            <div className="space-y-2 max-h-48 overflow-y-auto">
-                              {testResult.tools.map((tool, index) => (
-                                <div 
-                                  key={index}
-                                  className="flex items-center justify-between p-3 bg-[var(--color-background-surface)] rounded-lg"
-                                >
-                                  <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-lg bg-[var(--color-surface-secondary)] flex items-center justify-center">
-                                      <Zap className="h-4 w-4 text-[var(--color-text-tertiary)]" />
-                                    </div>
-                                    <div>
-                                      <span className="font-medium text-sm text-[var(--color-text-primary)]">{tool.name}</span>
-                                      <p className="text-xs text-[var(--color-text-tertiary)] line-clamp-1">{tool.description}</p>
-                                    </div>
-                                  </div>
-                                  <Badge variant="secondary" className="text-xs">
-                                    {tool.enabled ? '已启用' : '未启用'}
-                                  </Badge>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-2 text-[var(--color-text-secondary)]">
-                            <Info className="h-4 w-4" />
-                            <span className="text-sm">服务器未提供任何工具</span>
-                          </div>
-                        )}
+                {/* 测试结果 - 失败 */}
+                {testResult && !testResult.success && (
+                  <div className="rounded-lg border border-[var(--color-border-error)] bg-[var(--color-state-error-subtle)] p-4">
+                    <div className="flex items-start gap-3">
+                      <XCircle className="h-4 w-4 text-[var(--color-state-error)] mt-0.5 shrink-0" />
+                      <div className="space-y-1 min-w-0">
+                        <p className="text-sm font-medium text-[var(--color-state-error)]">连接失败</p>
+                        <p className="text-sm text-[var(--color-text-secondary)] break-all">{testResult.error}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* 测试结果 - 成功：工具列表 */}
+                {testResult?.success && (
+                  <div className="rounded-lg border border-[var(--color-border-default)] overflow-hidden">
+                    {/* 工具列表标题栏 */}
+                    <div className="flex items-center justify-between px-4 py-3 bg-[var(--color-background-subtle)] border-b border-[var(--color-border-subtle)]">
+                      <div className="flex items-center gap-2">
+                        <Braces className="h-4 w-4 text-[var(--color-text-tertiary)]" />
+                        <span className="text-sm font-medium text-[var(--color-text-primary)]">
+                          可用工具
+                        </span>
+                        <Badge variant="secondary" className="text-xs h-5 min-w-5 justify-center">
+                          {testResult.tools?.length || 0}
+                        </Badge>
+                      </div>
+                    </div>
+
+                    {testResult.tools && testResult.tools.length > 0 ? (
+                      <div className="divide-y divide-[var(--color-border-subtle)] max-h-[320px] overflow-y-auto">
+                        {testResult.tools.map((tool, index) => (
+                          <ToolItem key={index} tool={tool} />
+                        ))}
                       </div>
                     ) : (
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-[var(--color-status-error)]">
-                          <XCircle className="h-5 w-5" />
-                          <span className="font-medium">连接失败</span>
-                        </div>
-                        <p className="text-sm text-[var(--color-text-secondary)] pl-7">{testResult.error}</p>
+                      <div className="flex flex-col items-center justify-center py-10 text-center">
+                        <Info className="h-5 w-5 text-[var(--color-text-tertiary)] mb-2" />
+                        <p className="text-sm text-[var(--color-text-secondary)]">服务器未提供任何工具</p>
                       </div>
                     )}
                   </div>
                 )}
 
                 {/* 提示信息 */}
-                <div className="flex items-start gap-3 p-4 rounded-xl bg-[var(--color-surface-secondary)]">
-                  <Info className="h-5 w-5 text-[var(--color-text-tertiary)] mt-0.5 shrink-0" />
-                  <div className="text-sm text-[var(--color-text-tertiary)] space-y-1">
-                    <p>测试将验证服务器 URL 的可访问性和协议兼容性</p>
-                    <p>建议在保存配置前先进行连接测试</p>
+                {!testResult && (
+                  <div className="flex items-start gap-3 p-4 rounded-lg border border-[var(--color-border-subtle)] bg-[var(--color-background-subtle)]">
+                    <Info className="h-4 w-4 text-[var(--color-text-tertiary)] mt-0.5 shrink-0" />
+                    <div className="text-sm text-[var(--color-text-tertiary)] space-y-1">
+                      <p>测试将验证服务器 URL 的可访问性和协议兼容性</p>
+                      <p>建议在保存配置前先进行连接测试</p>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             )}
           </div>
         </div>
 
         {/* Footer */}
-        <div className="shrink-0 flex items-center justify-end gap-3 px-6 py-4 border-t border-[var(--color-border-subtle)] bg-[var(--color-surface-secondary)]/50">
+        <div className="shrink-0 flex items-center justify-end gap-3 px-6 py-4 border-t border-[var(--color-border-subtle)] bg-[var(--color-background-subtle)]">
           <Button
             type="button"
             variant="outline"
