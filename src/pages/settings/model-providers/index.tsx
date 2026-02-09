@@ -27,7 +27,6 @@ const SPECIAL_CONFIG_FACTORIES = [
   'VolcEngine',
   'Bedrock',
   'Azure-OpenAI',
-  'Tencent Hunyuan',
   'Tencent Cloud',
   'XunFei Spark',
   'BaiduYiyan',
@@ -80,9 +79,8 @@ export const ModelProvidersPage: React.FC = () => {
     const isSpecialConfig = SPECIAL_CONFIG_FACTORIES.includes(apiKeyModal.providerName)
     
     // 特殊配置厂商和本地模型使用 add_llm 接口
-    // 注意：Hunyuan 不需要 llm_name，只需要 SID 和 SK
     const needsAddLlm = isLocal || isSpecialConfig
-    const hasRequiredParams = additionalParams?.llm_name || additionalParams?.hunyuan_sid
+    const hasRequiredParams = additionalParams?.llm_name
     
     if (needsAddLlm && hasRequiredParams) {
       // 本地模型和特殊配置厂商使用 add_llm 接口

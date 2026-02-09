@@ -66,7 +66,6 @@ const LOCAL_MODEL_FACTORIES = [
 
 // 特殊表单厂商（每个都有独特的字段）
 const SPECIAL_FORM_FACTORIES = [
-  'Tencent Hunyuan',      // 混元：Secret ID + Secret Key
   'Tencent Cloud',        // 腾讯云语音：SecretId + SecretKey + 预设模型
   'XunFei Spark',         // 讯飞星火：API Password + (TTS: AppId, ApiSecret, ApiKey)
   'Fish Audio',           // Fish Audio：AK + RefID
@@ -247,10 +246,6 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
   const [vision, setVision] = useState(false)
   const [groupId, setGroupId] = useState('') // MiniMax 专用
   
-  // Hunyuan (混元) 字段
-  const [hunyuanSid, setHunyuanSid] = useState('')
-  const [hunyuanSk, setHunyuanSk] = useState('')
-  
   // TencentCloud (腾讯云语音) 字段
   const [tencentCloudSid, setTencentCloudSid] = useState('')
   const [tencentCloudSk, setTencentCloudSk] = useState('')
@@ -318,9 +313,6 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
       setMaxTokens(8192)
       setVision(false)
       setGroupId('')
-      // Hunyuan
-      setHunyuanSid('')
-      setHunyuanSk('')
       // TencentCloud
       setTencentCloudSid('')
       setTencentCloudSk('')
@@ -367,26 +359,9 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
       let finalBaseUrl = baseUrl.trim() || undefined
       
       // ========== 特殊表单厂商验证和参数构建 ==========
-      
-      // Hunyuan (混元) - 只需要 SID 和 SK
-      if (providerName === 'Tencent Hunyuan') {
-        if (!hunyuanSid.trim()) {
-          setError('请输入混元 Secret ID')
-          setIsLoading(false)
-          return
-        }
-        if (!hunyuanSk.trim()) {
-          setError('请输入混元 Secret Key')
-          setIsLoading(false)
-          return
-        }
-        additionalParams.hunyuan_sid = hunyuanSid
-        additionalParams.hunyuan_sk = hunyuanSk
-        additionalParams.llm_factory = providerName
-      }
-      
+
       // TencentCloud (腾讯云语音)
-      else if (providerName === 'Tencent Cloud') {
+      if (providerName === 'Tencent Cloud') {
         if (!tencentCloudSid.trim()) {
           setError('请输入腾讯云 SecretId')
           setIsLoading(false)
@@ -727,33 +702,6 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
         </DialogHeader>
 
         <div className="px-6 py-4 space-y-4 overflow-y-auto max-h-[calc(90vh-200px)]">
-            {/* ========== Hunyuan (混元) 专用表单 ========== */}
-            {providerName === 'Tencent Hunyuan' && (
-              <>
-                <div>
-                  <label className="block text-sm font-medium text-text-primary mb-2">
-                    混元 Secret ID <span className="text-red-500">*</span>
-                  </label>
-                  <Input
-                    value={hunyuanSid}
-                    onChange={(e) => setHunyuanSid(e.target.value)}
-                    placeholder="请输入 Secret ID"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-text-primary mb-2">
-                    混元 Secret Key <span className="text-red-500">*</span>
-                  </label>
-                  <Input
-                    type="password"
-                    value={hunyuanSk}
-                    onChange={(e) => setHunyuanSk(e.target.value)}
-                    placeholder="请输入 Secret Key"
-                  />
-                </div>
-              </>
-            )}
-
             {/* ========== TencentCloud (腾讯云语音) 专用表单 ========== */}
             {providerName === 'Tencent Cloud' && (
               <>
