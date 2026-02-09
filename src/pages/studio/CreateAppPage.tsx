@@ -21,10 +21,14 @@ import {
   SelectContent, 
   SelectItem 
 } from '@/components/ui/select'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Table } from '@/components/ui/table'
 import { Pagination } from '@/components/ui/pagination'
-import { CollapsibleSection } from '@/components/ui/collapsible-section'
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible'
+import { Separator } from '@/components/ui/separator'
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable'
 // Lucide React 图标
 import { 
@@ -38,6 +42,8 @@ import {
   Plus,
   Trash2,
   Search,
+  ChevronDown,
+  ChevronLeft,
   ChevronRight,
   RefreshCw,
   Square,
@@ -60,15 +66,15 @@ import { dialogAPI } from '@/api/dialog'
 import { conversationAPI } from '@/api/conversation'
 import type { LLMModel, KnowledgeBase } from '@/types/api'
 import { ChatModelSelector } from '@/components/chat/ChatModelSelector'
+import { GenerationPresetSelector } from '@/components/chat/GenerationPresetSelector'
 import { RerankModelSelector, KnowledgeBaseAvatar } from '@/components/knowledge'
 import type { MyLLMProvider } from '@/stores/model'
 import { getResolvedTheme } from '@/themes'
 import { toast } from '@/lib/toast'
-import { LLMParameterControl, LLM_PARAMETER_PRESETS } from '@/components/vendor/ui/LLMParameterControl'
+import { SliderWithInput, SLIDER_PRESETS } from '@/components/ui/slider-with-input'
 import {
   GenerationPresetType,
   generationPresetConfigMapSnake,
-  generationPresetOptions,
   detectMatchingPresetSnake,
   getDefaultEnabledFieldsSnake,
 } from '@/constants/llm'
@@ -136,9 +142,69 @@ interface AppConfig {
   prompt_config: {
     prologue: string
     empty_response: string
+    quote: boolean
+    keyword: boolean
+    tts: boolean
+    toc_enhance: boolean
+    refine_multiturn: boolean
+    use_kg: boolean
+    reasoning: boolean
+    tavily_api_key: string
+    cross_languages: string[]
     parameters: Array<{ key: string; optional: boolean }>
   }
 }
+
+const SUPPORTED_LANGUAGES = [
+  { value: 'English', label: '英语' },
+  { value: 'Chinese', label: '中文' },
+  { value: 'Spanish', label: '西班牙语' },
+  { value: 'French', label: '法语' },
+  { value: 'German', label: '德语' },
+  { value: 'Japanese', label: '日语' },
+  { value: 'Korean', label: '韩语' },
+  { value: 'Vietnamese', label: '越南语' },
+]
+
+interface CenterConfigSectionProps {
+  title: string
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  extra?: React.ReactNode
+  children: React.ReactNode
+}
+
+const CenterConfigSection: React.FC<CenterConfigSectionProps> = ({
+  title,
+  open,
+  onOpenChange,
+  extra,
+  children,
+}) => (
+  <Collapsible open={open} onOpenChange={onOpenChange}>
+    <CollapsibleTrigger
+      className="w-full px-4 py-3 flex items-center justify-between transition-colors"
+      style={{ backgroundColor: 'transparent' }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.backgroundColor = 'var(--color-components-collapse-header-bg-hover)'
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.backgroundColor = 'transparent'
+      }}
+    >
+      <span className="font-medium" style={{ color: 'var(--color-text-primary)' }}>
+        {title}
+      </span>
+      <span className="flex items-center gap-2" style={{ color: 'var(--color-text-tertiary)' }}>
+        {extra}
+        {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+      </span>
+    </CollapsibleTrigger>
+    <CollapsibleContent className="px-4 pb-4 space-y-4">
+      {children}
+    </CollapsibleContent>
+  </Collapsible>
+)
 
 
 
@@ -147,6 +213,9 @@ const CreateAppPageComponent: React.FC = () => {
   const [searchParams] = useSearchParams()
   const [leftCollapsed, setLeftCollapsed] = useState(false)
   const [rightCollapsed, setRightCollapsed] = useState(false)
+  const leftPanelRef = useRef<React.ElementRef<typeof ResizablePanel>>(null)
+  const rightPanelRef = useRef<React.ElementRef<typeof ResizablePanel>>(null)
+  const iconInputRef = useRef<HTMLInputElement>(null)
   const [showEditModal, setShowEditModal] = useState(false)
   
   // 主题状态管理
@@ -219,6 +288,15 @@ const CreateAppPageComponent: React.FC = () => {
     prompt_config: {
       prologue: '您好，我是您的助手！',
       empty_response: '',
+      quote: true,
+      keyword: false,
+      tts: false,
+      toc_enhance: false,
+      refine_multiturn: true,
+      use_kg: false,
+      reasoning: false,
+      tavily_api_key: '',
+      cross_languages: [],
       parameters: []
     }
   })
@@ -248,6 +326,11 @@ const CreateAppPageComponent: React.FC = () => {
   
   // 生成多样性预设状态
   const [currentPreset, setCurrentPreset] = useState<GenerationPresetType>(GenerationPresetType.Custom)
+  const [modelSectionExpanded, setModelSectionExpanded] = useState(true)
+  const [knowledgeSectionExpanded, setKnowledgeSectionExpanded] = useState(true)
+  const [advancedSectionExpanded, setAdvancedSectionExpanded] = useState(true)
+  const [variableSectionExpanded, setVariableSectionExpanded] = useState(true)
+  const [experienceSectionExpanded, setExperienceSectionExpanded] = useState(true)
   const [variableForm, setVariableForm] = useState<{ key: string; optional: boolean }>({ key: '', optional: false })
   
   
@@ -282,6 +365,7 @@ const CreateAppPageComponent: React.FC = () => {
       // 根据新的API响应结构处理数据
       const data = response
       if (data) {
+        const promptConfig = (data.prompt_config || {}) as Record<string, any>
         // 处理llm_setting，如果为null则所有参数都不启用
         const llmSetting = data.llm_setting
         const isLlmSettingNull = llmSetting === null
@@ -290,7 +374,7 @@ const CreateAppPageComponent: React.FC = () => {
           name: data.name || '新建应用',
           description: data.description || '',
           icon: data.icon || '',
-          systemPrompt: data.prompt_config?.system || '你是一个智能助手，请提供有帮助的回答。',
+          systemPrompt: promptConfig.system || '你是一个智能助手，请提供有帮助的回答。',
           llm_id: data.llm_id || '',
           llm_setting: {
             // 如果 llm_setting 为 null，使用默认值但不启用
@@ -342,9 +426,18 @@ const CreateAppPageComponent: React.FC = () => {
           rerank_id: data.rerank_id || null,
           do_refer: data.do_refer || '1',
           prompt_config: {
-            prologue: data.prompt_config?.prologue || '您好，我是您的助手！',
-            empty_response: data.prompt_config?.empty_response || '',
-            parameters: data.prompt_config?.parameters || []
+            prologue: promptConfig.prologue || '您好，我是您的助手！',
+            empty_response: promptConfig.empty_response || '',
+            quote: promptConfig.quote ?? (data.do_refer !== '0'),
+            keyword: promptConfig.keyword || false,
+            tts: promptConfig.tts || false,
+            toc_enhance: promptConfig.toc_enhance || false,
+            refine_multiturn: promptConfig.refine_multiturn !== false,
+            use_kg: promptConfig.use_kg || false,
+            reasoning: promptConfig.reasoning || false,
+            tavily_api_key: promptConfig.tavily_api_key || '',
+            cross_languages: promptConfig.cross_languages || [],
+            parameters: promptConfig.parameters || []
           }
         }
         
@@ -613,7 +706,7 @@ const CreateAppPageComponent: React.FC = () => {
       const response = await conversationAPI.completion({
         conversation_id: conversationId,
         messages: historyMessages,
-        quote: true,
+        quote: config.prompt_config.quote,
         stream: true
       })
       
@@ -695,7 +788,7 @@ const CreateAppPageComponent: React.FC = () => {
       setIsStreaming(false)
       abortControllerRef.current = null
     }
-  }, [isStreaming, getOrCreatePreviewConversation, previewMessages])
+  }, [isStreaming, getOrCreatePreviewConversation, previewMessages, config.prompt_config.quote])
   
   // 重置预览会话
   const handleResetPreview = useCallback(() => {
@@ -718,11 +811,25 @@ const CreateAppPageComponent: React.FC = () => {
   const handleConfigChange = (key: keyof AppConfig, value: any) => {
     setConfig(prev => ({ ...prev, [key]: value }))
   }
+
+  const collapseLeftPanel = useCallback(() => {
+    leftPanelRef.current?.collapse()
+  }, [])
+
+  const expandLeftPanel = useCallback(() => {
+    leftPanelRef.current?.expand(20)
+  }, [])
+
+  const collapseRightPanel = useCallback(() => {
+    rightPanelRef.current?.collapse()
+  }, [])
+
+  const expandRightPanel = useCallback(() => {
+    rightPanelRef.current?.expand(20)
+  }, [])
   
   // 处理生成预设变化
-  const handlePresetChange = (preset: string) => {
-    const presetType = preset as GenerationPresetType
-    
+  const handlePresetChange = (presetType: GenerationPresetType) => {
     if (presetType !== GenerationPresetType.Custom && presetType in generationPresetConfigMapSnake) {
       const presetConfig = generationPresetConfigMapSnake[presetType as Exclude<GenerationPresetType, 'custom'>]
       const enabledFields = getDefaultEnabledFieldsSnake()
@@ -950,6 +1057,15 @@ const CreateAppPageComponent: React.FC = () => {
           system: systemPrompt,
           prologue: config.prompt_config.prologue || '您好，我是您的助手！',
           empty_response: config.prompt_config.empty_response || '抱歉，我无法回答这个问题。',
+          quote: config.prompt_config.quote,
+          keyword: config.prompt_config.keyword,
+          tts: config.prompt_config.tts,
+          toc_enhance: config.prompt_config.toc_enhance,
+          refine_multiturn: config.prompt_config.refine_multiturn,
+          use_kg: config.prompt_config.use_kg,
+          reasoning: config.prompt_config.reasoning,
+          tavily_api_key: config.prompt_config.tavily_api_key || '',
+          cross_languages: config.prompt_config.cross_languages || [],
           parameters: hasKnowledgeBase 
             ? config.prompt_config.parameters 
             : config.prompt_config.parameters.filter(p => p.key !== 'knowledge')
@@ -959,6 +1075,7 @@ const CreateAppPageComponent: React.FC = () => {
         kb_ids: config.kb_ids || [],
         top_n: config.top_n,
         top_k: config.top_k,
+        do_refer: config.do_refer,
         similarity_threshold: config.similarity_threshold,
         vector_similarity_weight: config.vector_similarity_weight,
         rerank_id: config.rerank_id || null
@@ -1018,8 +1135,24 @@ const CreateAppPageComponent: React.FC = () => {
     reader.onload = () => {
       setTempConfig(prev => ({ ...prev, icon: reader.result as string }))
     }
+    reader.onerror = () => {
+      toast.error('读取图片失败，请重试')
+    }
     reader.readAsDataURL(file)
     return false // 阻止自动上传
+  }
+
+  const handleOpenIconPicker = () => {
+    iconInputRef.current?.click()
+  }
+
+  const handleIconInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      handleIconUpload(file)
+    }
+    // 支持重复选择同一文件
+    e.target.value = ''
   }
 
   const renderHeader = () => (
@@ -1093,35 +1226,33 @@ const CreateAppPageComponent: React.FC = () => {
   const renderLeftPanel = () => (
     <div className="h-full flex flex-col" style={{ backgroundColor: 'var(--color-components-panel-content-bg)' }}>
       {leftCollapsed ? (
-        <div className="flex flex-col items-center p-4 h-full justify-center">
+        <div className="h-full flex flex-col items-center gap-3 py-3">
           <Button 
             variant="ghost"
             size="icon"
-            onClick={() => setLeftCollapsed(false)}
-            className="mb-4"
+            onClick={expandLeftPanel}
+            title="展开人设与回复逻辑"
           >
-            <Pencil className="h-4 w-4" style={{ color: 'var(--color-components-icon-button-text)' }} />
+            <ChevronRight className="h-4 w-4" style={{ color: 'var(--color-components-icon-button-text)' }} />
           </Button>
-          <span className="text-xs transform -rotate-90 whitespace-nowrap" style={{ color: 'var(--color-text-tertiary)' }}>
-            人设与回复逻辑
-          </span>
+          <div className="w-5 h-px" style={{ backgroundColor: 'var(--color-border-default)' }} />
+          <Pencil className="h-4 w-4" style={{ color: 'var(--color-text-tertiary)' }} />
         </div>
       ) : (
         <>
-          <div className="p-4" style={{ 
+          <div className="h-14 px-4 flex items-center justify-between" style={{ 
             backgroundColor: 'var(--color-components-panel-header-bg)',
             borderBottom: '1px solid var(--color-border-default)'
           }}>
-            <div className="flex items-center justify-between">
-              <h5 className="m-0 text-base font-semibold" style={{ color: 'var(--color-components-panel-header-text)' }}>人设与回复逻辑</h5>
-              <Button 
-                variant="ghost"
-                size="icon-sm"
-                onClick={() => setLeftCollapsed(true)}
-              >
-                <ArrowLeft className="h-4 w-4" style={{ color: 'var(--color-components-icon-button-text)' }} />
-              </Button>
-            </div>
+            <h5 className="m-0 text-base font-semibold" style={{ color: 'var(--color-components-panel-header-text)' }}>人设与回复逻辑</h5>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={collapseLeftPanel}
+              title="收起人设与回复逻辑"
+            >
+              <ArrowLeft className="h-4 w-4" style={{ color: 'var(--color-components-icon-button-text)' }} />
+            </Button>
           </div>
           <div className="flex-1 p-4 overflow-hidden flex flex-col">
             <div className="flex-1 min-h-0">
@@ -1164,119 +1295,109 @@ const CreateAppPageComponent: React.FC = () => {
 
   const renderCenterPanel = () => (
     <div className="h-full flex flex-col" style={{ backgroundColor: 'var(--color-components-panel-content-bg)' }}>
-      <div className="p-4" style={{ 
+      <div className="h-14 px-4 flex items-center" style={{
         backgroundColor: 'var(--color-components-panel-header-bg)',
-        borderBottom: '1px solid var(--color-border-default)'
+        borderBottom: '1px solid var(--color-border-default)',
       }}>
         <h5 className="m-0 text-base font-semibold" style={{ color: 'var(--color-components-panel-header-text)' }}>应用配置</h5>
       </div>
-      
-      <div className="flex-1 p-4 overflow-auto space-y-4">
-        {/* 模型配置 */}
-        <CollapsibleSection title="模型" defaultOpen={true}>
-          <div className="space-y-6">
-            {/* 模型选择 */}
-            <div>
-              <ChatModelSelector
-                models={chatModels}
-                selectedModelName={config.llm_id}
-                onSelect={(modelName) => handleConfigChange('llm_id', modelName)}
-                loading={modelsLoading}
-                error={modelsError}
-                modelTypes={['chat', 'image2text']}
-              />
-            </div>
-            
-            {/* 生成多样性 */}
-            <div>
-              <span className="block mb-3 font-medium" style={{ color: 'var(--color-text-primary)' }}>生成多样性</span>
-              <Tabs value={currentPreset} onValueChange={handlePresetChange}>
-                <TabsList>
-                  {generationPresetOptions.map(option => (
-                    <TabsTrigger key={option.value} value={option.value}>
-                      {option.label}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-              </Tabs>
-              
-              <div className="mt-4 space-y-4">
-                {/* 温度 */}
-                <LLMParameterControl
-                  label={LLM_PARAMETER_PRESETS.temperature.label}
-                  tooltip={LLM_PARAMETER_PRESETS.temperature.tooltip}
-                  value={config.llm_setting.temperature ?? LLM_PARAMETER_PRESETS.temperature.default}
-                  onChange={(value) => handleLLMSettingChange('temperature', value)}
-                  enabled={config.llm_setting.temperature_enabled}
-                  onEnabledChange={(checked) => handleLLMSettingChange('temperature_enabled', checked)}
-                  min={LLM_PARAMETER_PRESETS.temperature.min}
-                  max={LLM_PARAMETER_PRESETS.temperature.max}
-                  step={LLM_PARAMETER_PRESETS.temperature.step}
-                />
-                
-                {/* Top P */}
-                <LLMParameterControl
-                  label={LLM_PARAMETER_PRESETS.topP.label}
-                  tooltip={LLM_PARAMETER_PRESETS.topP.tooltip}
-                  value={config.llm_setting.top_p ?? LLM_PARAMETER_PRESETS.topP.default}
-                  onChange={(value) => handleLLMSettingChange('top_p', value)}
-                  enabled={config.llm_setting.top_p_enabled}
-                  onEnabledChange={(checked) => handleLLMSettingChange('top_p_enabled', checked)}
-                  min={LLM_PARAMETER_PRESETS.topP.min}
-                  max={LLM_PARAMETER_PRESETS.topP.max}
-                  step={LLM_PARAMETER_PRESETS.topP.step}
-                />
-                
-                {/* 存在处罚 */}
-                <LLMParameterControl
-                  label={LLM_PARAMETER_PRESETS.presencePenalty.label}
-                  tooltip={LLM_PARAMETER_PRESETS.presencePenalty.tooltip}
-                  value={config.llm_setting.presence_penalty ?? LLM_PARAMETER_PRESETS.presencePenalty.default}
-                  onChange={(value) => handleLLMSettingChange('presence_penalty', value)}
-                  enabled={config.llm_setting.presence_penalty_enabled}
-                  onEnabledChange={(checked) => handleLLMSettingChange('presence_penalty_enabled', checked)}
-                  min={LLM_PARAMETER_PRESETS.presencePenalty.min}
-                  max={LLM_PARAMETER_PRESETS.presencePenalty.max}
-                  step={LLM_PARAMETER_PRESETS.presencePenalty.step}
-                />
-                
-                {/* 频率惩罚 */}
-                <LLMParameterControl
-                  label={LLM_PARAMETER_PRESETS.frequencyPenalty.label}
-                  tooltip={LLM_PARAMETER_PRESETS.frequencyPenalty.tooltip}
-                  value={config.llm_setting.frequency_penalty ?? LLM_PARAMETER_PRESETS.frequencyPenalty.default}
-                  onChange={(value) => handleLLMSettingChange('frequency_penalty', value)}
-                  enabled={config.llm_setting.frequency_penalty_enabled}
-                  onEnabledChange={(checked) => handleLLMSettingChange('frequency_penalty_enabled', checked)}
-                  min={LLM_PARAMETER_PRESETS.frequencyPenalty.min}
-                  max={LLM_PARAMETER_PRESETS.frequencyPenalty.max}
-                  step={LLM_PARAMETER_PRESETS.frequencyPenalty.step}
-                />
-                
-                {/* 最大 Token 数 */}
-                <LLMParameterControl
-                  label={LLM_PARAMETER_PRESETS.maxTokens.label}
-                  tooltip={LLM_PARAMETER_PRESETS.maxTokens.tooltip}
-                  value={config.llm_setting.max_tokens ?? LLM_PARAMETER_PRESETS.maxTokens.default}
-                  onChange={(value) => handleLLMSettingChange('max_tokens', value)}
-                  enabled={config.llm_setting.max_tokens_enabled}
-                  onEnabledChange={(checked) => handleLLMSettingChange('max_tokens_enabled', checked)}
-                  min={LLM_PARAMETER_PRESETS.maxTokens.min}
-                  max={LLM_PARAMETER_PRESETS.maxTokens.max}
-                  step={LLM_PARAMETER_PRESETS.maxTokens.step}
-                  inputOnly={LLM_PARAMETER_PRESETS.maxTokens.inputOnly}
-                  inputWidth={LLM_PARAMETER_PRESETS.maxTokens.inputWidth}
-                />
-              </div>
-            </div>
-          </div>
-        </CollapsibleSection>
 
-        {/* 知识库配置 */}
-        <CollapsibleSection 
-          title="知识库" 
-          extra={
-            <Button 
+      <div className="flex-1 overflow-y-auto">
+        <CenterConfigSection
+          title="模型设置"
+          open={modelSectionExpanded}
+          onOpenChange={setModelSectionExpanded}
+        >
+          <ChatModelSelector
+            models={chatModels}
+            selectedModelName={config.llm_id}
+            onSelect={(modelName) => handleConfigChange('llm_id', modelName)}
+            loading={modelsLoading}
+            error={modelsError}
+            modelTypes={['chat', 'image2text']}
+          />
+
+          <GenerationPresetSelector
+            value={currentPreset}
+            onChange={handlePresetChange}
+          />
+
+          <SliderWithInput
+            label={SLIDER_PRESETS.temperature.label}
+            tooltip={SLIDER_PRESETS.temperature.tooltip}
+            value={config.llm_setting.temperature ?? SLIDER_PRESETS.temperature.default}
+            onChange={(value) => handleLLMSettingChange('temperature', value)}
+            enabled={config.llm_setting.temperature_enabled ?? false}
+            onEnabledChange={(checked) => handleLLMSettingChange('temperature_enabled', checked)}
+            min={SLIDER_PRESETS.temperature.min}
+            max={SLIDER_PRESETS.temperature.max}
+            step={SLIDER_PRESETS.temperature.step}
+            precision={SLIDER_PRESETS.temperature.precision}
+          />
+
+          <SliderWithInput
+            label={SLIDER_PRESETS.topP.label}
+            tooltip={SLIDER_PRESETS.topP.tooltip}
+            value={config.llm_setting.top_p ?? SLIDER_PRESETS.topP.default}
+            onChange={(value) => handleLLMSettingChange('top_p', value)}
+            enabled={config.llm_setting.top_p_enabled ?? false}
+            onEnabledChange={(checked) => handleLLMSettingChange('top_p_enabled', checked)}
+            min={SLIDER_PRESETS.topP.min}
+            max={SLIDER_PRESETS.topP.max}
+            step={SLIDER_PRESETS.topP.step}
+            precision={SLIDER_PRESETS.topP.precision}
+          />
+
+          <SliderWithInput
+            label={SLIDER_PRESETS.presencePenalty.label}
+            tooltip={SLIDER_PRESETS.presencePenalty.tooltip}
+            value={config.llm_setting.presence_penalty ?? SLIDER_PRESETS.presencePenalty.default}
+            onChange={(value) => handleLLMSettingChange('presence_penalty', value)}
+            enabled={config.llm_setting.presence_penalty_enabled ?? false}
+            onEnabledChange={(checked) => handleLLMSettingChange('presence_penalty_enabled', checked)}
+            min={SLIDER_PRESETS.presencePenalty.min}
+            max={SLIDER_PRESETS.presencePenalty.max}
+            step={SLIDER_PRESETS.presencePenalty.step}
+            precision={SLIDER_PRESETS.presencePenalty.precision}
+          />
+
+          <SliderWithInput
+            label={SLIDER_PRESETS.frequencyPenalty.label}
+            tooltip={SLIDER_PRESETS.frequencyPenalty.tooltip}
+            value={config.llm_setting.frequency_penalty ?? SLIDER_PRESETS.frequencyPenalty.default}
+            onChange={(value) => handleLLMSettingChange('frequency_penalty', value)}
+            enabled={config.llm_setting.frequency_penalty_enabled ?? false}
+            onEnabledChange={(checked) => handleLLMSettingChange('frequency_penalty_enabled', checked)}
+            min={SLIDER_PRESETS.frequencyPenalty.min}
+            max={SLIDER_PRESETS.frequencyPenalty.max}
+            step={SLIDER_PRESETS.frequencyPenalty.step}
+            precision={SLIDER_PRESETS.frequencyPenalty.precision}
+          />
+
+          <SliderWithInput
+            label={SLIDER_PRESETS.maxTokens.label}
+            tooltip={SLIDER_PRESETS.maxTokens.tooltip}
+            value={config.llm_setting.max_tokens ?? SLIDER_PRESETS.maxTokens.default}
+            onChange={(value) => handleLLMSettingChange('max_tokens', value)}
+            enabled={config.llm_setting.max_tokens_enabled ?? false}
+            onEnabledChange={(checked) => handleLLMSettingChange('max_tokens_enabled', checked)}
+            min={SLIDER_PRESETS.maxTokens.min}
+            max={SLIDER_PRESETS.maxTokens.max}
+            step={SLIDER_PRESETS.maxTokens.step}
+            precision={SLIDER_PRESETS.maxTokens.precision}
+            inputOnly={SLIDER_PRESETS.maxTokens.inputOnly}
+            inputWidth={SLIDER_PRESETS.maxTokens.inputWidth}
+          />
+        </CenterConfigSection>
+
+        <Separator style={{ backgroundColor: 'var(--color-border-subtle)' }} />
+
+        <CenterConfigSection
+          title="知识库设置"
+          open={knowledgeSectionExpanded}
+          onOpenChange={setKnowledgeSectionExpanded}
+          extra={(
+            <Button
               variant="ghost"
               size="icon-sm"
               onClick={(e) => {
@@ -1287,227 +1408,355 @@ const CreateAppPageComponent: React.FC = () => {
             >
               <Plus className="h-4 w-4" style={{ color: 'var(--color-components-icon-button-text)' }} />
             </Button>
-          }
+          )}
         >
-          <div className="space-y-4">
-            {/* 已添加的知识库 */}
-            <div>
-              <span className="block mb-2 font-medium" style={{ color: 'var(--color-text-primary)' }}>已添加的知识库</span>
-              {knowledgeBases.length === 0 ? (
-                <div className="text-center py-4" style={{ color: 'var(--color-text-tertiary)' }}>
-                  暂无添加的知识库
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {knowledgeBases.map(kb => (
-                    <div 
-                      key={kb.id} 
-                      className="flex items-center justify-between p-3 border rounded-lg"
-                      style={{ borderColor: 'var(--color-border-default)' }}
-                    >
-                      <div className="flex items-center gap-3 min-w-0 flex-1">
-                        <KnowledgeBaseAvatar 
-                          name={kb.name} 
-                          avatar={kb.avatar} 
-                          size="lg"
-                        />
-                        <div className="min-w-0 flex-1">
-                          <div className="font-medium truncate" style={{ color: 'var(--color-text-primary)' }}>
-                            {kb.name}
-                          </div>
-                          {kb.description && (
-                            <div className="text-xs truncate" style={{ color: 'var(--color-text-tertiary)' }}>
-                              {kb.description}
-                            </div>
-                          )}
-                          {kb.embd_id && (
-                            <Badge variant="blue" className="mt-1 text-xs">
-                              {kb.embd_id}
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                      <Button 
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => handleRemoveKnowledgeBase(kb.id)}
-                      >
-                        <Trash2 className="h-4 w-4" style={{ color: 'var(--color-state-error-text)' }} />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-            
-            {/* 知识库设置 */}
-            <CollapsibleSection title="知识库设置">
-              <div className="space-y-4">
-                {/* 搜索策略 */}
-                <div>
-                  <span className="block mb-2 font-medium" style={{ color: 'var(--color-text-primary)' }}>搜索策略</span>
-                  <Select
-                    value={config.search_mode?.type ?? 'dense'}
-                    onValueChange={(value) => {
-                      const searchMode = value === 'hybrid' 
-                        ? { type: 'hybrid' as const, weight_dense: config.search_mode?.weight_dense ?? 0.7, weight_sparse: config.search_mode?.weight_sparse ?? 0.3 }
-                        : value === 'dense'
-                        ? { type: 'dense' as const }
-                        : { type: 'sparse' as const }
-                      handleConfigChange('search_mode', searchMode)
-                    }}
+          <div className="space-y-2">
+            <span className="block text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>已添加的知识库</span>
+            {knowledgeBases.length === 0 ? (
+              <div className="text-center py-4 text-sm" style={{ color: 'var(--color-text-tertiary)' }}>
+                暂无添加的知识库
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {knowledgeBases.map((kb) => (
+                  <div
+                    key={kb.id}
+                    className="flex items-center justify-between p-3 rounded-lg"
+                    style={{ border: '1px solid var(--color-border-default)' }}
                   >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="选择搜索策略" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="hybrid">混合</SelectItem>
-                      <SelectItem value="dense">语义</SelectItem>
-                      <SelectItem value="sparse">全文</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  
-                  {/* 混合检索权重设置 */}
-                  {config.search_mode?.type === 'hybrid' && (
-                    <div className="mt-3 space-y-3 p-3 rounded" style={{ backgroundColor: 'var(--color-background-subtle)' }}>
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm">向量权重</span>
-                          <span className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>{((config.search_mode?.weight_dense ?? 0.7)).toFixed(2)}</span>
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <KnowledgeBaseAvatar
+                        name={kb.name}
+                        avatar={kb.avatar}
+                        size="lg"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <div className="font-medium truncate" style={{ color: 'var(--color-text-primary)' }}>
+                          {kb.name}
                         </div>
-                        <Slider
-                          min={0}
-                          max={1}
-                          step={0.01}
-                          value={[config.search_mode?.weight_dense ?? 0.7]}
-                          onValueChange={(values) => {
-                            const denseWeight = Number(values[0].toFixed(2))
-                            const sparseWeight = Number((1 - denseWeight).toFixed(2))
-                            handleConfigChange('search_mode', {
-                              type: 'hybrid' as const,
-                              weight_dense: denseWeight,
-                              weight_sparse: sparseWeight
-                            })
-                          }}
-                        />
-                      </div>
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm">全文权重 (自动计算)</span>
-                          <span className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>{((config.search_mode?.weight_sparse ?? 0.3)).toFixed(2)}</span>
-                        </div>
-                        <div className="h-2 rounded relative" style={{ backgroundColor: 'var(--color-components-progress-bg)' }}>
-                          <div
-                            className="h-full rounded"
-                            style={{ 
-                              width: `${((config.search_mode?.weight_sparse ?? 0.3) * 100).toFixed(0)}%`,
-                              backgroundColor: 'var(--color-components-progress-fill)'
-                            }}
-                          />
-                        </div>
-                      </div>
-                      <div className="text-xs p-2 rounded" style={{ 
-                        color: 'var(--color-text-tertiary)', 
-                        backgroundColor: 'var(--color-components-alert-info-bg)', 
-                        border: '1px solid var(--color-components-alert-info-border)' 
-                      }}>
-                        💡 向量权重 + 全文权重 = 1.00 (精确到小数点后2位)
+                        {kb.description && (
+                          <div className="text-xs truncate" style={{ color: 'var(--color-text-tertiary)' }}>
+                            {kb.description}
+                          </div>
+                        )}
+                        {kb.embd_id && (
+                          <Badge variant="blue" className="mt-1 text-xs">
+                            {kb.embd_id}
+                          </Badge>
+                        )}
                       </div>
                     </div>
-                  )}
-                </div>
-                
-                {/* 相似度阈值 */}
-                <div>
-                  <span className="block mb-2 font-medium" style={{ color: 'var(--color-text-primary)' }}>相似度阈值: {Number(config.similarity_threshold ?? 0).toFixed(2)}</span>
-                  <Slider
-                    min={0}
-                    max={1}
-                    step={0.01}
-                    value={[config.similarity_threshold ?? 0]}
-                    onValueChange={(values) => handleConfigChange('similarity_threshold', values[0])}
-                  />
-                </div>
-                
-                {/* 关键字相似度权重 */}
-                <div>
-                  <span className="block mb-2 font-medium" style={{ color: 'var(--color-text-primary)' }}>关键字相似度权重: {Number(config.vector_similarity_weight ?? 0).toFixed(2)}</span>
-                  <Slider
-                    min={0}
-                    max={1}
-                    step={0.01}
-                    value={[config.vector_similarity_weight ?? 0]}
-                    onValueChange={(values) => handleConfigChange('vector_similarity_weight', values[0])}
-                  />
-                </div>
-                
-                {/* Top N */}
-                <div>
-                  <span className="block mb-2 font-medium" style={{ color: 'var(--color-text-primary)' }}>Top N: {config.top_n}</span>
-                  <Input
-                    type="number"
-                    min={1}
-                    value={config.top_n}
-                    onChange={(e) => handleConfigChange('top_n', parseInt(e.target.value) || 1)}
-                  />
-                </div>
-                
-                {/* 知识库空回复 */}
-                <div>
-                  <span className="block mb-2 font-medium" style={{ color: 'var(--color-text-primary)' }}>知识库空回复</span>
-                  <Textarea
-                    rows={2}
-                    value={config.prompt_config.empty_response}
-                    onChange={(e) => handleConfigChange('prompt_config', {
-                      ...config.prompt_config,
-                      empty_response: e.target.value
-                    })}
-                    placeholder="当知识库中未找到相关内容时的回复"
-                  />
-                </div>
-                
-                {/* 重排序模型 */}
-                <div>
-                  <RerankModelSelector
-                    models={rerankModels}
-                    selectedModelId={config.rerank_id}
-                    onSelect={(modelId) => handleConfigChange('rerank_id', modelId)}
-                    loading={modelsLoading}
-                    error={modelsError}
-                  />
-                </div>
-                
-                {/* 向量召回的个数 */}
-                <div>
-                  <span className="block mb-2 font-medium" style={{ color: 'var(--color-text-primary)' }}>向量召回的个数 (Top K): {config.top_k}</span>
-                  <Input
-                    type="number"
-                    min={1}
-                    value={config.top_k}
-                    onChange={(e) => handleConfigChange('top_k', parseInt(e.target.value) || 1)}
-                  />
-                </div>
-                
-                {/* 显示来源 */}
-                <div>
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium" style={{ color: 'var(--color-text-primary)' }}>显示来源</span>
-                    <Switch
-                      checked={config.do_refer === '1'}
-                      onCheckedChange={(checked) => handleConfigChange('do_refer', checked ? '1' : '0')}
-                    />
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={() => handleRemoveKnowledgeBase(kb.id)}
+                    >
+                      <Trash2 className="h-4 w-4" style={{ color: 'var(--color-state-error-text)' }} />
+                    </Button>
                   </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <Separator style={{ backgroundColor: 'var(--color-border-subtle)' }} />
+
+          <div className="space-y-2">
+            <span className="block text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>搜索策略</span>
+            <Select
+              value={config.search_mode?.type ?? 'dense'}
+              onValueChange={(value) => {
+                const searchMode = value === 'hybrid'
+                  ? { type: 'hybrid' as const, weight_dense: config.search_mode?.weight_dense ?? 0.7, weight_sparse: config.search_mode?.weight_sparse ?? 0.3 }
+                  : value === 'dense'
+                    ? { type: 'dense' as const }
+                    : { type: 'sparse' as const }
+                handleConfigChange('search_mode', searchMode)
+              }}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="选择搜索策略" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="hybrid">混合</SelectItem>
+                <SelectItem value="dense">语义</SelectItem>
+                <SelectItem value="sparse">全文</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {config.search_mode?.type === 'hybrid' && (
+            <div className="space-y-3 p-3 rounded-md" style={{ backgroundColor: 'var(--color-background-subtle)' }}>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span style={{ color: 'var(--color-text-primary)' }}>向量权重</span>
+                  <span style={{ color: 'var(--color-text-secondary)' }}>
+                    {(config.search_mode?.weight_dense ?? 0.7).toFixed(2)}
+                  </span>
+                </div>
+                <Slider
+                  min={0}
+                  max={1}
+                  step={0.01}
+                  value={[config.search_mode?.weight_dense ?? 0.7]}
+                  onValueChange={(values) => {
+                    const denseWeight = Number(values[0].toFixed(2))
+                    const sparseWeight = Number((1 - denseWeight).toFixed(2))
+                    handleConfigChange('search_mode', {
+                      type: 'hybrid' as const,
+                      weight_dense: denseWeight,
+                      weight_sparse: sparseWeight,
+                    })
+                  }}
+                />
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span style={{ color: 'var(--color-text-primary)' }}>全文权重（自动计算）</span>
+                  <span style={{ color: 'var(--color-text-secondary)' }}>
+                    {(config.search_mode?.weight_sparse ?? 0.3).toFixed(2)}
+                  </span>
+                </div>
+                <div className="h-2 rounded relative" style={{ backgroundColor: 'var(--color-components-progress-bg)' }}>
+                  <div
+                    className="h-full rounded"
+                    style={{
+                      width: `${((config.search_mode?.weight_sparse ?? 0.3) * 100).toFixed(0)}%`,
+                      backgroundColor: 'var(--color-components-progress-fill)',
+                    }}
+                  />
                 </div>
               </div>
-            </CollapsibleSection>
-          </div>
-        </CollapsibleSection>
+              <div className="text-xs p-2 rounded" style={{
+                color: 'var(--color-text-tertiary)',
+                backgroundColor: 'var(--color-components-alert-info-bg)',
+                border: '1px solid var(--color-components-alert-info-border)',
+              }}>
+                向量权重 + 全文权重 = 1.00
+              </div>
+            </div>
+          )}
 
-        {/* 变量配置 */}
-        <CollapsibleSection 
-          title="变量"
-          extra={
-            <Button 
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>相似度阈值</span>
+              <span className="text-sm tabular-nums" style={{ color: 'var(--color-text-secondary)' }}>
+                {Number(config.similarity_threshold ?? 0).toFixed(2)}
+              </span>
+            </div>
+            <Slider
+              min={0}
+              max={1}
+              step={0.01}
+              value={[config.similarity_threshold ?? 0]}
+              onValueChange={(values) => handleConfigChange('similarity_threshold', values[0])}
+            />
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>向量相似度权重</span>
+              <div className="flex items-center gap-2 text-xs">
+                <span style={{ color: 'var(--color-text-secondary)' }}>
+                  vector: {Number(config.vector_similarity_weight ?? 0).toFixed(2)}
+                </span>
+                <span style={{ color: 'var(--color-text-tertiary)' }}>|</span>
+                <span style={{ color: 'var(--color-text-secondary)' }}>
+                  full-text: {(1 - Number(config.vector_similarity_weight ?? 0)).toFixed(2)}
+                </span>
+              </div>
+            </div>
+            <Slider
+              min={0}
+              max={1}
+              step={0.01}
+              value={[config.vector_similarity_weight ?? 0]}
+              onValueChange={(values) => handleConfigChange('vector_similarity_weight', values[0])}
+            />
+          </div>
+
+          <SliderWithInput
+            label="Top N"
+            tooltip="检索返回的最大文档块数量"
+            value={config.top_n}
+            onChange={(value) => handleConfigChange('top_n', Math.max(1, Math.round(value)))}
+            min={1}
+            max={30}
+            step={1}
+            precision={0}
+            showSwitch={false}
+          />
+
+          <RerankModelSelector
+            models={rerankModels}
+            selectedModelId={config.rerank_id}
+            onSelect={(modelId) => handleConfigChange('rerank_id', modelId)}
+            loading={modelsLoading}
+            error={modelsError}
+          />
+
+          <SliderWithInput
+            label="Top K"
+            tooltip="重排序时考虑的最大候选数量"
+            value={config.top_k}
+            onChange={(value) => handleConfigChange('top_k', Math.max(1, Math.round(value)))}
+            min={1}
+            max={2048}
+            step={1}
+            precision={0}
+            showSwitch={false}
+            inputOnly
+            inputWidth={100}
+          />
+
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>显示来源</span>
+            <Switch
+              checked={config.do_refer === '1'}
+              onCheckedChange={(checked) => {
+                handleConfigChange('do_refer', checked ? '1' : '0')
+                handleConfigChange('prompt_config', {
+                  ...config.prompt_config,
+                  quote: checked,
+                })
+              }}
+            />
+          </div>
+        </CenterConfigSection>
+
+        <Separator style={{ backgroundColor: 'var(--color-border-subtle)' }} />
+
+        <CenterConfigSection
+          title="高级设置"
+          open={advancedSectionExpanded}
+          onOpenChange={setAdvancedSectionExpanded}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>关键词分析</span>
+            <Switch
+              checked={config.prompt_config.keyword}
+              onCheckedChange={(checked) => handleConfigChange('prompt_config', {
+                ...config.prompt_config,
+                keyword: checked,
+              })}
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>文本转语音</span>
+            <Switch
+              checked={config.prompt_config.tts}
+              onCheckedChange={(checked) => handleConfigChange('prompt_config', {
+                ...config.prompt_config,
+                tts: checked,
+              })}
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>目录增强</span>
+            <Switch
+              checked={config.prompt_config.toc_enhance}
+              onCheckedChange={(checked) => handleConfigChange('prompt_config', {
+                ...config.prompt_config,
+                toc_enhance: checked,
+              })}
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>多轮对话优化</span>
+            <Switch
+              checked={config.prompt_config.refine_multiturn}
+              onCheckedChange={(checked) => handleConfigChange('prompt_config', {
+                ...config.prompt_config,
+                refine_multiturn: checked,
+              })}
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>使用知识图谱</span>
+            <Switch
+              checked={config.prompt_config.use_kg}
+              onCheckedChange={(checked) => handleConfigChange('prompt_config', {
+                ...config.prompt_config,
+                use_kg: checked,
+              })}
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>深度思考</span>
+            <Switch
+              checked={config.prompt_config.reasoning}
+              onCheckedChange={(checked) => handleConfigChange('prompt_config', {
+                ...config.prompt_config,
+                reasoning: checked,
+              })}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <span className="block text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>Tavily API Key</span>
+            <Input
+              type="password"
+              value={config.prompt_config.tavily_api_key}
+              onChange={(e) => handleConfigChange('prompt_config', {
+                ...config.prompt_config,
+                tavily_api_key: e.target.value,
+              })}
+              placeholder="用于联网搜索增强"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <span className="block text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>跨语言</span>
+            <div className="flex flex-wrap gap-2">
+              {SUPPORTED_LANGUAGES.map((lang) => {
+                const selected = config.prompt_config.cross_languages.includes(lang.value)
+                return (
+                  <button
+                    key={lang.value}
+                    type="button"
+                    className="px-3 py-1 text-xs rounded-full transition-colors"
+                    style={{
+                      backgroundColor: selected
+                        ? 'var(--color-components-badge-info-bg)'
+                        : 'var(--color-components-tag-bg)',
+                      color: selected
+                        ? 'var(--color-components-badge-info-text)'
+                        : 'var(--color-components-tag-text)',
+                      border: `1px solid ${selected
+                        ? 'var(--color-components-alert-info-border)'
+                        : 'var(--color-components-tag-border)'}`,
+                    }}
+                    onClick={() => {
+                      const next = selected
+                        ? config.prompt_config.cross_languages.filter((item) => item !== lang.value)
+                        : [...config.prompt_config.cross_languages, lang.value]
+                      handleConfigChange('prompt_config', {
+                        ...config.prompt_config,
+                        cross_languages: next,
+                      })
+                    }}
+                  >
+                    {lang.label}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        </CenterConfigSection>
+
+        <Separator style={{ backgroundColor: 'var(--color-border-subtle)' }} />
+
+        <CenterConfigSection
+          title="变量配置"
+          open={variableSectionExpanded}
+          onOpenChange={setVariableSectionExpanded}
+          extra={(
+            <Button
               variant="ghost"
               size="icon-sm"
               onClick={(e) => {
@@ -1517,59 +1766,72 @@ const CreateAppPageComponent: React.FC = () => {
             >
               <Plus className="h-4 w-4" style={{ color: 'var(--color-components-icon-button-text)' }} />
             </Button>
-          }
+          )}
         >
-          <div>
-            {config.prompt_config.parameters.length === 0 ? (
-              <div className="text-center py-4" style={{ color: 'var(--color-text-tertiary)' }}>
-                暂无变量
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {config.prompt_config.parameters.map(param => (
-                  <div 
-                    key={param.key} 
-                    className="flex items-center justify-between p-2 rounded"
-                    style={{ border: '1px solid var(--color-border-default)' }}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium" style={{ color: 'var(--color-text-primary)' }}>{param.key}</span>
-                      <Badge variant={param.optional ? 'orange' : 'blue'}>
-                        {param.optional ? '可选' : '必选'}
-                      </Badge>
-                    </div>
-                    <Button 
-                      variant="ghost"
-                      size="icon-sm"
-                      onClick={() => handleRemoveVariable(param.key)}
-                    >
-                      <Trash2 className="h-4 w-4" style={{ color: 'var(--color-state-error-text)' }} />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </CollapsibleSection>
-
-        {/* 对话体验 */}
-        <CollapsibleSection title="对话体验">
-          <div className="space-y-4">
-            {/* 开场白 */}
-            <div>
-              <span className="block mb-2 font-medium" style={{ color: 'var(--color-text-primary)' }}>开场白</span>
-              <Textarea
-                rows={3}
-                value={config.prompt_config.prologue}
-                onChange={(e) => handleConfigChange('prompt_config', {
-                  ...config.prompt_config,
-                  prologue: e.target.value
-                })}
-                placeholder="设置对话开始时的问候语"
-              />
+          {config.prompt_config.parameters.length === 0 ? (
+            <div className="text-center py-4 text-sm" style={{ color: 'var(--color-text-tertiary)' }}>
+              暂无变量
             </div>
+          ) : (
+            <div className="space-y-2">
+              {config.prompt_config.parameters.map((param) => (
+                <div
+                  key={param.key}
+                  className="flex items-center justify-between p-3 rounded-lg"
+                  style={{ border: '1px solid var(--color-border-default)' }}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium" style={{ color: 'var(--color-text-primary)' }}>{param.key}</span>
+                    <Badge variant={param.optional ? 'orange' : 'blue'}>
+                      {param.optional ? '可选' : '必选'}
+                    </Badge>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={() => handleRemoveVariable(param.key)}
+                  >
+                    <Trash2 className="h-4 w-4" style={{ color: 'var(--color-state-error-text)' }} />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </CenterConfigSection>
+
+        <Separator style={{ backgroundColor: 'var(--color-border-subtle)' }} />
+
+        <CenterConfigSection
+          title="对话体验"
+          open={experienceSectionExpanded}
+          onOpenChange={setExperienceSectionExpanded}
+        >
+          <div className="space-y-2">
+            <span className="block text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>知识库空回复</span>
+            <Textarea
+              rows={2}
+              value={config.prompt_config.empty_response}
+              onChange={(e) => handleConfigChange('prompt_config', {
+                ...config.prompt_config,
+                empty_response: e.target.value,
+              })}
+              placeholder="当知识库中未找到相关内容时的回复"
+            />
           </div>
-        </CollapsibleSection>
+
+          <div className="space-y-2">
+            <span className="block text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>开场白</span>
+            <Textarea
+              rows={3}
+              value={config.prompt_config.prologue}
+              onChange={(e) => handleConfigChange('prompt_config', {
+                ...config.prompt_config,
+                prologue: e.target.value,
+              })}
+              placeholder="设置对话开始时的问候语"
+            />
+          </div>
+        </CenterConfigSection>
       </div>
     </div>
   )
@@ -1675,51 +1937,45 @@ const CreateAppPageComponent: React.FC = () => {
     return (
       <div className="h-full flex flex-col" style={{ backgroundColor: 'var(--color-components-panel-content-bg)' }}>
         {rightCollapsed ? (
-          <div className="flex flex-col items-center p-4 h-full justify-center">
+          <div className="h-full flex flex-col items-center gap-3 py-3">
             <Button 
               variant="ghost"
               size="icon"
-              onClick={() => setRightCollapsed(false)}
-              className="mb-2"
+              onClick={expandRightPanel}
+              title="展开预览与调试"
             >
-              <Eye className="h-4 w-4" style={{ color: 'var(--color-components-icon-button-text)' }} />
+              <ChevronLeft className="h-4 w-4" style={{ color: 'var(--color-components-icon-button-text)' }} />
             </Button>
-            <Button 
-              variant="ghost"
-              size="icon"
-              className="mb-4"
-            >
-              <Bug className="h-4 w-4" style={{ color: 'var(--color-components-icon-button-text)' }} />
-            </Button>
-            <span className="text-xs transform -rotate-90 whitespace-nowrap" style={{ color: 'var(--color-text-tertiary)' }}>
-              预览调试
-            </span>
+            <div className="w-5 h-px" style={{ backgroundColor: 'var(--color-border-default)' }} />
+            <Eye className="h-4 w-4" style={{ color: 'var(--color-text-tertiary)' }} />
+            <Bug className="h-4 w-4" style={{ color: 'var(--color-text-tertiary)' }} />
           </div>
         ) : (
           <>
-            <div className="p-4" style={{ 
+            <div className="h-14 px-4 flex items-center justify-between" style={{ 
               backgroundColor: 'var(--color-components-panel-header-bg)',
               borderBottom: '1px solid var(--color-border-default)'
             }}>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={collapseRightPanel}
+                  title="收起预览与调试"
+                >
+                  <ChevronRight className="h-4 w-4" style={{ color: 'var(--color-components-icon-button-text)' }} />
+                </Button>
                 <h5 className="m-0 text-base font-semibold" style={{ color: 'var(--color-components-panel-header-text)' }}>预览与调试</h5>
-                <div className="flex items-center gap-2">
-                  <Button 
-                    variant="ghost"
-                    size="icon-sm"
-                    onClick={handleResetPreview}
-                    title="重置对话"
-                  >
-                    <RefreshCw className="h-4 w-4" style={{ color: 'var(--color-components-icon-button-text)' }} />
-                  </Button>
-                  <Button 
-                    variant="ghost"
-                    size="icon-sm"
-                    onClick={() => setRightCollapsed(true)}
-                  >
-                    <ChevronRight className="h-4 w-4" style={{ color: 'var(--color-components-icon-button-text)' }} />
-                  </Button>
-                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={handleResetPreview}
+                  title="重置对话"
+                >
+                  <RefreshCw className="h-4 w-4" style={{ color: 'var(--color-components-icon-button-text)' }} />
+                </Button>
               </div>
             </div>
             
@@ -1848,11 +2104,22 @@ const CreateAppPageComponent: React.FC = () => {
       
       {/* 三栏布局 */}
       <div className="flex-1 overflow-hidden">
-        <ResizablePanelGroup direction="horizontal" className="h-full">
+        <ResizablePanelGroup
+          direction="horizontal"
+          className="h-full"
+          autoSaveId="studio-create-app-layout-v2"
+        >
           <ResizablePanel 
+            ref={leftPanelRef}
+            id="studio-create-left"
+            order={1}
             defaultSize={33}
             minSize={20}
             maxSize={50}
+            collapsible
+            collapsedSize={4}
+            onCollapse={() => setLeftCollapsed(true)}
+            onExpand={() => setLeftCollapsed(false)}
           >
             <div className="h-full" style={{ borderRight: '1px solid var(--color-border-default)' }}>
               {renderLeftPanel()}
@@ -1862,6 +2129,8 @@ const CreateAppPageComponent: React.FC = () => {
           <ResizableHandle className="w-px bg-transparent hover:bg-[var(--color-border-accent)] transition-colors" />
           
           <ResizablePanel 
+            id="studio-create-center"
+            order={2}
             defaultSize={34}
             minSize={30}
           >
@@ -1873,9 +2142,16 @@ const CreateAppPageComponent: React.FC = () => {
           <ResizableHandle className="w-px bg-transparent hover:bg-[var(--color-border-accent)] transition-colors" />
           
           <ResizablePanel 
+            ref={rightPanelRef}
+            id="studio-create-right"
+            order={3}
             defaultSize={33}
             minSize={20}
             maxSize={50}
+            collapsible
+            collapsedSize={4}
+            onCollapse={() => setRightCollapsed(true)}
+            onExpand={() => setRightCollapsed(false)}
           >
             {renderRightPanel()}
           </ResizablePanel>
@@ -1891,42 +2167,42 @@ const CreateAppPageComponent: React.FC = () => {
           <div className="px-6 pb-6 space-y-4">
             <div className="space-y-2">
               <label className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>应用图标</label>
+              <input
+                ref={iconInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/svg+xml"
+                className="hidden"
+                onChange={handleIconInputChange}
+              />
               <div className="flex items-center gap-4">
-                <Avatar className="h-16 w-16">
-                  {tempConfig.icon ? (
-                    <AvatarImage src={tempConfig.icon} alt="App Icon" />
-                  ) : null}
-                  <AvatarFallback 
-                    style={{ 
-                      background: 'var(--color-components-app-avatar-bg)',
-                      border: '2px solid var(--color-components-app-avatar-border)'
-                    }}
-                  >
-                    <LayoutGrid className="h-6 w-6" style={{ color: 'var(--color-text-tertiary)' }} />
-                  </AvatarFallback>
-                </Avatar>
-                <label className="cursor-pointer">
-                  <input
-                    type="file"
-                    accept="image/jpeg,image/png,image/svg+xml"
-                    className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0]
-                      if (file) {
-                        handleIconUpload(file)
-                      }
-                    }}
-                  />
-                  <Button variant="outline" asChild>
-                    <span>
-                      <Upload className="h-4 w-4 mr-2" />
-                      上传图标
-                    </span>
-                  </Button>
-                </label>
+                <button
+                  type="button"
+                  onClick={handleOpenIconPicker}
+                  className="rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-accent)]"
+                  title="点击上传图标"
+                >
+                  <Avatar className="h-16 w-16">
+                    {tempConfig.icon ? (
+                      <AvatarImage src={tempConfig.icon} alt="App Icon" />
+                    ) : null}
+                    <AvatarFallback 
+                      style={{ 
+                        background: 'var(--color-components-app-avatar-bg)',
+                        border: '2px solid var(--color-components-app-avatar-border)'
+                      }}
+                    >
+                      <LayoutGrid className="h-6 w-6" style={{ color: 'var(--color-text-tertiary)' }} />
+                    </AvatarFallback>
+                  </Avatar>
+                </button>
+                <Button variant="outline" type="button" onClick={handleOpenIconPicker}>
+                  <Upload className="h-4 w-4 mr-2" />
+                  上传图标
+                </Button>
                 {tempConfig.icon && (
                   <Button 
                     variant="ghost"
+                    type="button"
                     onClick={() => setTempConfig(prev => ({ ...prev, icon: undefined }))}
                   >
                     <Trash2 className="h-4 w-4 mr-2" style={{ color: 'var(--color-state-error-text)' }} />
