@@ -360,13 +360,32 @@ export const ExplorePage: React.FC = () => {
     setMessages(updatedMessages)
     setIsStreaming(true)
     
-    // 参考 RAGFlow：如果是第一条用户消息，用消息内容更新会话名称
-    // 检查是否为第一条用户消息（只有当前新增的这条用户消息）
+    // 解析会话 ID：如果没有会话但有选中的应用，自动创建新会话
+    // 参考首页 sendAppMessage 的实现方式
+    let conversationId = selectedConversationDetail?.id
     const existingUserMessages = (baseMessages ?? messages).filter(m => m.role === 'user')
     const isFirstUserMessage = existingUserMessages.length === 0
-    
-    if (isFirstUserMessage && activeConversationKey && selectedApp) {
-      // 截取前50个字符作为会话名称
+
+    if (!conversationId && selectedApp) {
+      // 自动创建新会话，使用消息内容作为名称（参考 RAGFlow 命名逻辑）
+      const conversationName = message.trim().slice(0, 50) + (message.trim().length > 50 ? '...' : '')
+      try {
+        const newConversation = await conversationAPI.setConversation({
+          dialog_id: selectedApp,
+          name: conversationName,
+          is_new: true
+        })
+        if (newConversation?.id) {
+          conversationId = newConversation.id
+          setActiveConversationKey(newConversation.id)
+          setSelectedConversationDetail({ id: newConversation.id, name: conversationName })
+          refetchConversations()
+        }
+      } catch (error) {
+        console.error('Failed to auto-create conversation:', error)
+      }
+    } else if (isFirstUserMessage && activeConversationKey && selectedApp) {
+      // 对于已存在的会话，如果是第一条用户消息，用消息内容更新会话名称
       const conversationName = message.trim().slice(0, 50) + (message.trim().length > 50 ? '...' : '')
       try {
         await conversationAPI.setConversation({
@@ -375,7 +394,6 @@ export const ExplorePage: React.FC = () => {
           name: conversationName,
           is_new: false
         })
-        // 更新本地状态和刷新列表
         setSelectedConversationDetail((prev: any) => prev ? { ...prev, name: conversationName } : prev)
         refetchConversations()
       } catch (error) {
@@ -399,12 +417,11 @@ export const ExplorePage: React.FC = () => {
 
       setMessages(prev => [...prev, aiMessage])
 
-      // 根据模式选择 API
-      if (activeTab === 'topics' && selectedConversationDetail?.id) {
-        // 话题模式 - 使用 completion API
-        // 构建请求参数，包含元数据过滤条件和功能开关（参考 ragflow）
+      // 根据模式选择 API：有会话 ID 时使用 completion，否则回退到 chat_service_sse
+      if (conversationId) {
+        // 会话模式 - 使用 completion API（支持话题模式和工作区自动创建的会话）
         const completionParams: Parameters<typeof conversationAPI.completion>[0] = {
-          conversation_id: selectedConversationDetail.id,
+          conversation_id: conversationId,
           messages: updatedMessages,
           quote: chatSettings.quote,
           // 功能开关参数（参考 ragflow）
@@ -492,7 +509,7 @@ export const ExplorePage: React.FC = () => {
         }
       }
       } else {
-        // 普通聊天模式
+        // 回退：无应用或创建会话失败时，使用 chat_service_sse 直接聊天
         const historyMessages: ChatMessage[] = updatedMessages.map(msg => ({
           role: msg.role,
           content: msg.content
