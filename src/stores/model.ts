@@ -509,7 +509,7 @@ export const useModelStore = create<ModelState>()(
           await apiClient.post('/llm/enable_llm', {
             llm_factory: llmFactory,
             llm_name: llmName,
-            status: enabled ? 1 : 0,
+            status: enabled ? '1' : '0',
           })
 
           // 请求成功后重新加载模型列表
