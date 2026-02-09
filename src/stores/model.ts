@@ -97,7 +97,12 @@ export const LLMFactory = {
   DeerAPI: 'DeerAPI',
   Grok: 'Grok',
   CometAPI: 'CometAPI',
+  JiekouAI: 'Jiekou.AI',
+  TokenPony: 'TokenPony',
+  Builtin: 'Builtin',
   MinerU: 'MinerU',
+  PaddleOCR: 'PaddleOCR',
+  N1n: 'n1n',
 } as const
 
 // IconMap - 与 ragflow iconfont.js 中的图标名称匹配
@@ -161,7 +166,12 @@ export const IconMap: Record<string, string> = {
   [LLMFactory.DeerAPI]: 'deerapi',
   [LLMFactory.Grok]: 'grok',
   [LLMFactory.CometAPI]: 'cometapi',
+  [LLMFactory.JiekouAI]: 'jiekouai',
+  [LLMFactory.TokenPony]: 'tokenpony',
+  [LLMFactory.Builtin]: 'builtin',
   [LLMFactory.MinerU]: 'mineru',
+  [LLMFactory.PaddleOCR]: 'paddleocr',
+  [LLMFactory.N1n]: 'n1n',
 };
 
 export interface LLMFactoryInterface {

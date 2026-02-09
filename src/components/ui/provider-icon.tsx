@@ -25,6 +25,9 @@ const SVG_FILE_FACTORIES = [
   LLMFactory.Gemini,
   LLMFactory.StepFun,
   LLMFactory.MinerU,
+  LLMFactory.PaddleOCR,
+  LLMFactory.N1n,
+  LLMFactory.JiekouAI,
 ]
 
 interface ProviderIconProps {
