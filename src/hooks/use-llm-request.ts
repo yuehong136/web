@@ -6,7 +6,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { llmAPI } from '@/api/llm'
-import type { MyLLMProvider, LLMFactoryInterface, AddLlmParams } from '@/stores/model'
+import { isLLMModelEnabled, type MyLLMProvider, type LLMFactoryInterface, type AddLlmParams } from '@/stores/model'
 
 // Query Keys 统一管理
 export const llmKeys = {
@@ -141,7 +141,7 @@ export const useLLMOptions = (type?: 'chat' | 'embedding' | 'rerank') => {
 
   const options = Object.entries(myLLMs).flatMap(([providerName, provider]: [string, any]) => {
     return (provider.llm || [])
-      .filter((model: any) => !type || model.type === type)
+      .filter((model: any) => (!type || model.type === type) && isLLMModelEnabled(model))
       .map((model: any) => ({
         label: `${providerName} / ${model.name}`,
         value: model.name,
@@ -160,7 +160,7 @@ export const useLLMGroupedOptions = (type?: 'chat' | 'embedding' | 'rerank') => 
   const options = Object.entries(myLLMs)
     .map(([providerName, provider]: [string, any]) => {
       const models = (provider.llm || [])
-        .filter((model: any) => !type || model.type === type)
+        .filter((model: any) => (!type || model.type === type) && isLLMModelEnabled(model))
         .map((model: any) => ({
           label: model.name,
           value: model.name,

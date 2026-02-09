@@ -1,5 +1,5 @@
 import React, { useRef, useCallback, useState, useEffect } from 'react'
-import { useModelStore } from '@/stores/model'
+import { findFirstEnabledModelByType, hasEnabledModelName, useModelStore } from '@/stores/model'
 import { useHomeStore } from '@/stores/home'
 import { WaveText } from './WaveText'
 import { FunctionTabs } from './FunctionTabs'
@@ -60,17 +60,14 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({
 
   // 自动选择第一个可用的聊天模型
   useEffect(() => {
-    if (!selectedModelId && !modelsLoading && myLLMs && Object.keys(myLLMs).length > 0) {
-      for (const [, provider] of Object.entries(myLLMs)) {
-        if (provider && provider.llm && Array.isArray(provider.llm)) {
-          const chatModel = provider.llm.find(model =>
-            model && model.type === 'chat' && model.name
-          )
-          if (chatModel) {
-            setSelectedModelId(chatModel.name)
-            break
-          }
-        }
+    if (!modelsLoading && myLLMs && Object.keys(myLLMs).length > 0) {
+      if (hasEnabledModelName(myLLMs, selectedModelId)) {
+        return
+      }
+
+      const firstEnabledChatModel = findFirstEnabledModelByType(myLLMs, 'chat')
+      if (firstEnabledChatModel) {
+        setSelectedModelId(firstEnabledChatModel)
       }
     }
   }, [selectedModelId, modelsLoading, myLLMs, setSelectedModelId])

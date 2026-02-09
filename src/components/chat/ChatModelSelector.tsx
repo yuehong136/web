@@ -4,7 +4,7 @@ import { AlertCircle, ChevronDown, Check, Settings } from 'lucide-react'
 import { SelectWithSearch, type SelectOptionGroup } from '@/components/ui/select-with-search'
 import { FormTooltip } from '@/components/ui/tooltip'
 import { IconFontFill } from '@/components/ui/icon-font'
-import { IconMap, LLMFactory } from '@/stores/model'
+import { IconMap, LLMFactory, isLLMModelEnabled } from '@/stores/model'
 import { useIsDarkTheme } from '@/themes'
 import { cn } from '@/lib/utils'
 import {
@@ -118,7 +118,12 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
       Object.entries(models).forEach(([providerName, providerData]) => {
         if (providerData?.llm && Array.isArray(providerData.llm)) {
           providerData.llm.forEach(model => {
-            if (model?.type && model?.name && modelTypes.includes(model.type as 'chat' | 'image2text')) {
+            if (
+              model?.type &&
+              model?.name &&
+              modelTypes.includes(model.type as 'chat' | 'image2text') &&
+              isLLMModelEnabled(model)
+            ) {
               filtered.push({ provider: providerName, model })
             }
           })

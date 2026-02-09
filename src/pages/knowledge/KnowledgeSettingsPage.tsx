@@ -12,7 +12,7 @@ import { SelectWithSearch, type SelectOptionGroup } from '@/components/ui/select
 import { IconFontFill } from '@/components/ui/icon-font'
 import { useKnowledgeStore } from '@/stores/knowledge'
 import { useUIStore } from '@/stores/ui'
-import { useModelStore, IconMap, LLMFactory } from '@/stores/model'
+import { useModelStore, IconMap, LLMFactory, isLLMModelEnabled } from '@/stores/model'
 import { useIsDarkTheme } from '@/themes'
 import { ROUTES } from '@/constants'
 import type { UpdateKBRequest } from '@/types/api'
@@ -156,7 +156,7 @@ const KnowledgeSettingsPage: React.FC = () => {
     const values: Map<string, string> = new Map()
     Object.entries(myLLMs).forEach(([providerName, providerData]) => {
       providerData.llm
-        .filter(model => model.type === 'embedding')
+        .filter(model => model.type === 'embedding' && isLLMModelEnabled(model))
         .forEach(model => {
           const fullValue = `${model.name}@${providerName}`
           // 存储多种可能的匹配格式
@@ -221,7 +221,9 @@ const KnowledgeSettingsPage: React.FC = () => {
     
     Object.entries(myLLMs).forEach(([providerName, providerData]) => {
       // 过滤出 embedding 类型的模型
-      const embeddingModels = providerData.llm.filter(model => model.type === 'embedding')
+      const embeddingModels = providerData.llm.filter(
+        model => model.type === 'embedding' && isLLMModelEnabled(model)
+      )
       
       if (embeddingModels.length > 0) {
         groups.push({

@@ -8,7 +8,7 @@ import { AlertCircle } from 'lucide-react'
 import { SelectWithSearch, type SelectOptionGroup } from '@/components/ui/select-with-search'
 import { FormTooltip } from '@/components/ui/tooltip'
 import { IconFontFill } from '@/components/ui/icon-font'
-import { useModelStore, IconMap, LLMFactory } from '@/stores/model'
+import { useModelStore, IconMap, LLMFactory, isLLMModelEnabled } from '@/stores/model'
 import { useIsDarkTheme } from '@/themes'
 
 interface ChatModelSelectorProps {
@@ -93,7 +93,7 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
     Object.entries(myLLMs).forEach(([providerName, providerData]) => {
       // 过滤出 chat 和 image2text 类型的模型
       const supportedModels = providerData.llm.filter(model => 
-        SUPPORTED_MODEL_TYPES.includes(model.type)
+        SUPPORTED_MODEL_TYPES.includes(model.type) && isLLMModelEnabled(model)
       )
       
       if (supportedModels.length > 0) {
@@ -121,7 +121,7 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
     const values: Map<string, string> = new Map()
     Object.entries(myLLMs).forEach(([providerName, providerData]) => {
       providerData.llm
-        .filter(model => SUPPORTED_MODEL_TYPES.includes(model.type))
+        .filter(model => SUPPORTED_MODEL_TYPES.includes(model.type) && isLLMModelEnabled(model))
         .forEach(model => {
           const fullValue = `${model.name}@${providerName}`
           // 存储多种可能的匹配格式

@@ -34,7 +34,7 @@ import { Button } from '@/components/ui/button'
 import { cn, copyToClipboard } from '@/lib/utils'
 import { toast } from '@/lib/toast'
 import { useChatStore } from '@/stores/chat'
-import { useModelStore } from '@/stores/model'
+import { findFirstEnabledModelByType, hasEnabledModelName, useModelStore } from '@/stores/model'
 import { useDialogApps } from '@/hooks/use-dialog-apps'
 import { 
   useChatSettings, 
@@ -257,15 +257,14 @@ export const ExplorePage: React.FC = () => {
 
   // 自动选择第一个可用的聊天模型
   React.useEffect(() => {
-    if (!selectedModel && !modelsLoading && myLLMs && Object.keys(myLLMs).length > 0) {
-      for (const [, provider] of Object.entries(myLLMs)) {
-        if (provider?.llm?.length) {
-          const chatModel = provider.llm.find(model => model?.type === 'chat' && model?.name)
-          if (chatModel) {
-            setSelectedModel(chatModel.name)
-            break
-          }
-        }
+    if (!modelsLoading && myLLMs && Object.keys(myLLMs).length > 0) {
+      if (hasEnabledModelName(myLLMs, selectedModel)) {
+        return
+      }
+
+      const firstEnabledChatModel = findFirstEnabledModelByType(myLLMs, 'chat')
+      if (firstEnabledChatModel) {
+        setSelectedModel(firstEnabledChatModel)
       }
     }
   }, [selectedModel, modelsLoading, myLLMs])

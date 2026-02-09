@@ -7,6 +7,18 @@ export interface MyLLMModel {
   name: string
   used_token: number
   status?: '0' | '1'
+  available?: boolean
+}
+
+export interface LLMModelAvailability {
+  status?: string
+  available?: boolean
+}
+
+export const isLLMModelEnabled = (model?: LLMModelAvailability | null): boolean => {
+  if (!model) return false
+  if (model.available === false) return false
+  return model.status !== '0'
 }
 
 export interface MyLLMProvider {
@@ -14,6 +26,52 @@ export interface MyLLMProvider {
     tags: string
     llm: MyLLMModel[]
   }
+}
+
+export const hasEnabledModelName = (
+  providers: MyLLMProvider | null | undefined,
+  modelName: string | null | undefined
+): boolean => {
+  if (!providers || !modelName) return false
+
+  return Object.values(providers).some((provider) =>
+    provider.llm.some((model) => model.name === modelName && isLLMModelEnabled(model))
+  )
+}
+
+export const findFirstEnabledModelByType = (
+  providers: MyLLMProvider | null | undefined,
+  type: MyLLMModel['type']
+): string | null => {
+  if (!providers) return null
+
+  for (const provider of Object.values(providers)) {
+    const model = provider.llm.find(
+      (item) => item.type === type && !!item.name && isLLMModelEnabled(item)
+    )
+    if (model) return model.name
+  }
+
+  return null
+}
+
+export const findProviderNameByModelName = (
+  providers: MyLLMProvider | null | undefined,
+  modelName: string | null | undefined,
+  enabledOnly = false
+): string | null => {
+  if (!providers || !modelName) return null
+
+  for (const [providerName, provider] of Object.entries(providers)) {
+    const matched = provider.llm.some((model) => {
+      if (model.name !== modelName) return false
+      if (enabledOnly && !isLLMModelEnabled(model)) return false
+      return true
+    })
+    if (matched) return providerName
+  }
+
+  return null
 }
 
 // 添加本地模型的参数

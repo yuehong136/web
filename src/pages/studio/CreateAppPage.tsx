@@ -68,7 +68,7 @@ import type { LLMModel, KnowledgeBase } from '@/types/api'
 import { ChatModelSelector } from '@/components/chat/ChatModelSelector'
 import { GenerationPresetSelector } from '@/components/chat/GenerationPresetSelector'
 import { RerankModelSelector, KnowledgeBaseAvatar } from '@/components/knowledge'
-import type { MyLLMProvider } from '@/stores/model'
+import { isLLMModelEnabled, type MyLLMProvider } from '@/stores/model'
 import { getResolvedTheme } from '@/themes'
 import { toast } from '@/lib/toast'
 import { SliderWithInput, SLIDER_PRESETS } from '@/components/ui/slider-with-input'
@@ -522,11 +522,13 @@ const CreateAppPageComponent: React.FC = () => {
           if (providerData && providerData.llm && Array.isArray(providerData.llm)) {
             // 处理聊天模型（type 为 'chat' 或 'image2text'）
             const chatModels = providerData.llm.filter((model: any) => 
-              model.type === 'chat' || model.type === 'image2text'
+              (model.type === 'chat' || model.type === 'image2text') && isLLMModelEnabled(model)
             ).map((model: any) => ({
               name: model.name,
               type: model.type as 'chat' | 'image2text',
-              used_token: model.used_token || 0
+              used_token: model.used_token || 0,
+              status: model.status,
+              available: model.available,
             }))
             
             if (chatModels.length > 0) {
@@ -538,7 +540,7 @@ const CreateAppPageComponent: React.FC = () => {
             
             // 处理重排序模型
             const rerankModels = providerData.llm.filter((model: any) => 
-              model.type === 'rerank'
+              model.type === 'rerank' && isLLMModelEnabled(model)
             ).map((model: any) => ({
               id: `${model.name}@${providerName}`,
               llm_name: model.name,

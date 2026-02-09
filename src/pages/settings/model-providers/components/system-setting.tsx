@@ -1,11 +1,10 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react'
 import { FormTooltip } from '@/components/ui/tooltip'
 import { SelectWithSearch, type SelectOptionGroup } from '@/components/ui/select-with-search'
-import { useModelStore } from '@/stores/model'
+import { useModelStore, IconMap, LLMFactory, isLLMModelEnabled } from '@/stores/model'
 import { apiClient } from '@/api/client'
 import { toast } from '@/lib/toast'
 import { IconFontFill } from '@/components/ui/icon-font'
-import { IconMap, LLMFactory } from '@/stores/model'
 import { useIsDarkTheme } from '@/themes'
 
 interface TenantInfo {
@@ -129,6 +128,7 @@ export const SystemSetting: React.FC = () => {
     const values: Map<string, string> = new Map()
     Object.entries(myLLMs).forEach(([providerName, providerData]) => {
       providerData.llm.forEach(model => {
+        if (!isLLMModelEnabled(model)) return
         const fullValue = `${model.name}@${providerName}`
         // 存储多种可能的匹配格式
         values.set(fullValue.toLowerCase(), fullValue)
@@ -161,7 +161,7 @@ export const SystemSetting: React.FC = () => {
     
     Object.entries(myLLMs).forEach(([providerName, providerData]) => {
       const matchingModels = providerData.llm.filter(model => 
-        types.includes(model.type)
+        types.includes(model.type) && isLLMModelEnabled(model)
       )
       
       if (matchingModels.length > 0) {

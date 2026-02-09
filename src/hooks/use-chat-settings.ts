@@ -9,6 +9,7 @@ import type { ChatSettings } from '@/components/chat/ChatSettingsPanel'
 import { defaultChatSettings } from '@/components/chat/ChatSettingsPanel'
 import type { MetadataFilterMode } from '@/components/chat/MetadataFilter'
 import { detectMatchingPreset } from '@/constants/llm'
+import { isLLMModelEnabled } from '@/stores/model'
 
 /**
  * 从 DialogApp 转换为 ChatSettings
@@ -279,7 +280,7 @@ export function useRerankModels(myLLMs: any) {
     Object.entries(myLLMs).forEach(([providerName, providerData]: [string, any]) => {
       if (providerData?.llm && Array.isArray(providerData.llm)) {
         providerData.llm.forEach((model: any) => {
-          if (model?.type === 'rerank' && model?.name) {
+          if (model?.type === 'rerank' && model?.name && isLLMModelEnabled(model)) {
             models.push({
               id: `${model.name}@${providerName}`,
               llm_name: model.name,
@@ -309,7 +310,7 @@ export function useLLMModels(myLLMs: any) {
     Object.entries(myLLMs).forEach(([providerName, providerData]: [string, any]) => {
       if (providerData?.llm && Array.isArray(providerData.llm)) {
         providerData.llm.forEach((model: any) => {
-          if (model?.type === 'chat' && model?.name) {
+          if (model?.type === 'chat' && model?.name && isLLMModelEnabled(model)) {
             models.push({
               id: model.name,
               name: model.name,

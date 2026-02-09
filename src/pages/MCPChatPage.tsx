@@ -12,7 +12,12 @@ import '@ant-design/x-markdown/dist/x-markdown.css';
 import type { MCPChatServiceRequest } from "@/api/mcp-chat-service";
 import { EnhancedSSEParser, type SSEMessage, type ToolCallInfo } from "@/components/chat/EnhancedSSEParser";
 import { ToolCallRenderer } from "@/components/chat/ToolCallRenderer";
-import { useModelStore } from "@/stores/model";
+import {
+  findFirstEnabledModelByType,
+  findProviderNameByModelName,
+  hasEnabledModelName,
+  useModelStore
+} from "@/stores/model";
 import { useMcpUpload } from "@/hooks/use-mcp-upload";
 import { toast } from "@/lib/toast";
 import { cn, copyToClipboard } from "@/lib/utils";
@@ -339,13 +344,7 @@ export default function MCPChatPage() {
 
   // 根据选中的模型名称找到对应的厂商名称
   const selectedProviderName = useMemo(() => {
-    if (!selectedModelId || !myLLMs) return null
-    for (const [providerName, providerData] of Object.entries(myLLMs)) {
-      if (providerData?.llm?.some(model => model.name === selectedModelId)) {
-        return providerName
-      }
-    }
-    return null
+    return findProviderNameByModelName(myLLMs, selectedModelId, true)
   }, [selectedModelId, myLLMs])
 
   // 获取 AI 头像 - 直接使用厂商 logo，不包裹气泡框
@@ -624,18 +623,14 @@ export default function MCPChatPage() {
 
   // 自动选择第一个可用的聊天模型
   useEffect(() => {
-    if (!selectedModelId && !modelsLoading && myLLMs && Object.keys(myLLMs).length > 0) {
-      // 找到第一个可用的聊天模型
-      for (const [, provider] of Object.entries(myLLMs)) {
-        if (provider && provider.llm && Array.isArray(provider.llm)) {
-          const chatModel = provider.llm.find(model => 
-            model && model.type === 'chat' && model.name
-          );
-          if (chatModel) {
-            setSelectedModelId(chatModel.name);
-            break;
-          }
-        }
+    if (!modelsLoading && myLLMs && Object.keys(myLLMs).length > 0) {
+      if (hasEnabledModelName(myLLMs, selectedModelId)) {
+        return
+      }
+
+      const firstEnabledChatModel = findFirstEnabledModelByType(myLLMs, 'chat')
+      if (firstEnabledChatModel) {
+        setSelectedModelId(firstEnabledChatModel)
       }
     }
   }, [selectedModelId, modelsLoading, myLLMs]);

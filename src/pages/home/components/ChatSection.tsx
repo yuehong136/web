@@ -4,7 +4,12 @@ import { Bubble } from '@ant-design/x'
 // 导入 Ant Design X 内部的 Loading 组件用于三点加载动画
 import BubbleLoading from '@ant-design/x/es/bubble/loading'
 import XMarkdown from '@ant-design/x-markdown'
-import { useModelStore } from '@/stores/model'
+import {
+  findFirstEnabledModelByType,
+  findProviderNameByModelName,
+  hasEnabledModelName,
+  useModelStore
+} from '@/stores/model'
 import { useHomeStore } from '@/stores/home'
 import { ProviderIcon } from '@/components/ui/provider-icon'
 import { ToolCallRenderer } from '@/components/chat/ToolCallRenderer'
@@ -132,15 +137,21 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
     }
   }, [messages, streamingContent])
 
+  // 确保当前选中的是可用聊天模型；如果被禁用则自动切换
+  useEffect(() => {
+    if (modelsLoading || !myLLMs || Object.keys(myLLMs).length === 0) return
+
+    if (hasEnabledModelName(myLLMs, selectedModelId)) return
+
+    const firstEnabledChatModel = findFirstEnabledModelByType(myLLMs, 'chat')
+    if (firstEnabledChatModel) {
+      setSelectedModelId(firstEnabledChatModel)
+    }
+  }, [selectedModelId, myLLMs, modelsLoading, setSelectedModelId])
+
   // 根据选中的模型名称找到对应的厂商名称
   const selectedProviderName = useMemo(() => {
-    if (!selectedModelId || !myLLMs) return null
-    for (const [providerName, providerData] of Object.entries(myLLMs)) {
-      if (providerData?.llm?.some(model => model.name === selectedModelId)) {
-        return providerName
-      }
-    }
-    return null
+    return findProviderNameByModelName(myLLMs, selectedModelId, true)
   }, [selectedModelId, myLLMs])
 
   // 获取 AI 头像
