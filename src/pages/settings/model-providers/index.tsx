@@ -1,5 +1,5 @@
 import React, { useEffect, useCallback } from 'react'
-import { useModelStore, type AddLlmParams } from '@/stores/model'
+import { useModelStore, type AddLlmParams, type ModelVerifyResult } from '@/stores/model'
 import { Loading } from '@/components/ui/loading'
 import { SystemSetting } from './components/system-setting'
 import { UsedModels } from './components/used-models'
@@ -33,6 +33,7 @@ const SPECIAL_CONFIG_FACTORIES = [
   'Fish Audio',
   'Google Cloud',
   'MinerU',
+  'PaddleOCR',
 ]
 
 export const ModelProvidersPage: React.FC = () => {
@@ -44,6 +45,7 @@ export const ModelProvidersPage: React.FC = () => {
     loadFactories,
     setApiKey,
     addLlm,
+    enableLlm,
     deleteFactory,
   } = useModelStore()
 
@@ -74,7 +76,12 @@ export const ModelProvidersPage: React.FC = () => {
   }, [])
 
   // 处理保存 - 根据厂商类型调用不同的 API
-  const handleSaveApiKey = async (apiKey: string, baseUrl?: string, additionalParams?: Record<string, any>) => {
+  const handleSaveApiKey = async (
+    apiKey: string,
+    baseUrl?: string,
+    additionalParams?: Record<string, any>,
+    verify = false
+  ): Promise<void | ModelVerifyResult> => {
     const isLocal = LOCAL_MODEL_FACTORIES.includes(apiKeyModal.providerName)
     const isSpecialConfig = SPECIAL_CONFIG_FACTORIES.includes(apiKeyModal.providerName)
     
@@ -94,12 +101,26 @@ export const ModelProvidersPage: React.FC = () => {
         // 传递所有特殊参数
         ...additionalParams
       }
-      await addLlm(params)
+      return addLlm(params, verify)
     } else {
       // 普通云服务厂商使用 set_api_key 接口
-      await setApiKey(apiKeyModal.providerName, apiKey, baseUrl, additionalParams)
+      return setApiKey(apiKeyModal.providerName, apiKey, baseUrl, additionalParams, verify)
     }
   }
+
+  // 处理验证连接
+  const handleVerifyApiKey = async (
+    apiKey: string,
+    baseUrl?: string,
+    additionalParams?: Record<string, any>
+  ): Promise<void | ModelVerifyResult> => {
+    return handleSaveApiKey(apiKey, baseUrl, additionalParams, true)
+  }
+
+  // 处理模型启用/禁用
+  const handleEnableModel = useCallback(async (modelName: string, providerName: string, enabled: boolean) => {
+    await enableLlm(providerName, modelName, enabled)
+  }, [enableLlm])
 
   // 处理删除供应商
   const handleDeleteFactory = useCallback(async (factoryName: string) => {
@@ -128,6 +149,7 @@ export const ModelProvidersPage: React.FC = () => {
         <UsedModels 
           handleAddModel={handleAddModel}
           handleDeleteFactory={handleDeleteFactory}
+          handleEnableModel={handleEnableModel}
         />
       </section>
 
@@ -143,10 +165,10 @@ export const ModelProvidersPage: React.FC = () => {
         providerName={apiKeyModal.providerName}
         isLocal={apiKeyModal.isLocal}
         onSave={handleSaveApiKey}
+        onVerify={handleVerifyApiKey}
       />
     </div>
   )
 }
 
 export default ModelProvidersPage
-

@@ -6,6 +6,7 @@ export interface MyLLMModel {
   type: 'chat' | 'embedding' | 'rerank' | 'image2text' | 'tts' | 'speech2text' | 'ocr'
   name: string
   used_token: number
+  status?: '0' | '1'
 }
 
 export interface MyLLMProvider {
@@ -32,8 +33,14 @@ export interface AddLlmParams {
   bedrock_sk?: string
   bedrock_region?: string
   aws_role_arn?: string
+  verify?: boolean
   // 其他可扩展字段
   [key: string]: any
+}
+
+export interface ModelVerifyResult {
+  isValid: boolean | null
+  logs: string
 }
 
 export const LLMFactory = {
@@ -200,8 +207,15 @@ interface ModelState {
   addProvider: (providerId: string) => Promise<void>
   removeProvider: (providerName: string) => Promise<void>
   updateProviderConfig: (providerId: string, config: any) => Promise<void>
-  setApiKey: (llmFactory: string, apiKey: string, baseUrl?: string, additionalParams?: Record<string, any>) => Promise<void>
-  addLlm: (params: AddLlmParams) => Promise<void>
+  setApiKey: (
+    llmFactory: string,
+    apiKey: string,
+    baseUrl?: string,
+    additionalParams?: Record<string, any>,
+    verify?: boolean
+  ) => Promise<void | ModelVerifyResult>
+  addLlm: (params: AddLlmParams, verify?: boolean) => Promise<void | ModelVerifyResult>
+  enableLlm: (llmFactory: string, llmName: string, enabled: boolean) => Promise<void>
   deleteFactory: (llmFactory: string) => Promise<void>
   
   // 工具方法
@@ -426,11 +440,18 @@ export const useModelStore = create<ModelState>()(
       },
 
       // 设置API Key（用于云服务厂商）
-      setApiKey: async (llmFactory: string, apiKey: string, baseUrl?: string, additionalParams?: Record<string, any>) => {
+      setApiKey: async (
+        llmFactory: string,
+        apiKey: string,
+        baseUrl?: string,
+        additionalParams?: Record<string, any>,
+        verify = false
+      ) => {
         try {
           const requestData: any = {
             llm_factory: llmFactory,
             api_key: apiKey,
+            verify,
             ...additionalParams
           }
           
@@ -438,8 +459,16 @@ export const useModelStore = create<ModelState>()(
             requestData.base_url = baseUrl
           }
           
-          await apiClient.post('/llm/set_api_key', requestData)
-          
+          const response = await apiClient.post('/llm/set_api_key', requestData)
+
+          // verify 模式只返回验证结果，不刷新列表
+          if (verify) {
+            return {
+              isValid: !!response?.success,
+              logs: response?.message || ''
+            } as ModelVerifyResult
+          }
+
           // apiClient已经处理了错误情况，请求成功后重新加载模型列表
           await get().loadMyLLMs()
         } catch (error) {
@@ -449,14 +478,44 @@ export const useModelStore = create<ModelState>()(
       },
 
       // 添加本地模型（用于 Ollama、Xinference 等本地服务）
-      addLlm: async (params: AddLlmParams) => {
+      addLlm: async (params: AddLlmParams, verify = false) => {
         try {
-          await apiClient.post('/llm/add_llm', params)
-          
+          const requestData = {
+            ...params,
+            verify,
+          }
+
+          const response = await apiClient.post('/llm/add_llm', requestData)
+
+          // verify 模式只返回验证结果，不刷新列表
+          if (verify) {
+            return {
+              isValid: !!response?.success,
+              logs: response?.message || ''
+            } as ModelVerifyResult
+          }
+
           // 请求成功后重新加载模型列表
           await get().loadMyLLMs()
         } catch (error) {
           console.error('Failed to add LLM:', error)
+          throw error
+        }
+      },
+
+      // 启用/禁用指定模型
+      enableLlm: async (llmFactory: string, llmName: string, enabled: boolean) => {
+        try {
+          await apiClient.post('/llm/enable_llm', {
+            llm_factory: llmFactory,
+            llm_name: llmName,
+            status: enabled ? 1 : 0,
+          })
+
+          // 请求成功后重新加载模型列表
+          await get().loadMyLLMs()
+        } catch (error) {
+          console.error('Failed to enable/disable LLM:', error)
           throw error
         }
       },

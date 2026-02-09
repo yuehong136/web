@@ -17,7 +17,14 @@ import { cn } from '@/lib/utils'
 import type { MyLLMModel } from '@/stores/model'
 
 // 模型类型标签排序
-type TagType = 'LLM' | 'TEXT EMBEDDING' | 'TEXT RE-RANK' | 'TTS' | 'SPEECH2TEXT' | 'IMAGE2TEXT' | 'MODERATION'
+type TagType =
+  | 'LLM'
+  | 'TEXT EMBEDDING'
+  | 'TEXT RE-RANK'
+  | 'TTS'
+  | 'SPEECH2TEXT'
+  | 'IMAGE2TEXT'
+  | 'MODERATION'
 
 const TAG_ORDER: Record<TagType, number> = {
   'LLM': 1,
@@ -197,7 +204,7 @@ export const ModelProviderCard: React.FC<ModelProviderCardProps> = ({
                       {/* 启用/禁用开关 (预留功能) */}
                       {onEnableModel && (
                         <Switch
-                          checked={true} // 后续通过 API 获取实际状态
+                          checked={model.status ? model.status === '1' : true}
                           onCheckedChange={(checked) => onEnableModel(model.name, name, checked)}
                         />
                       )}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Eye, EyeOff, ExternalLink } from 'lucide-react'
+import { Eye, EyeOff, ExternalLink, RefreshCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch'
 import { ProviderIcon } from '@/components/ui/provider-icon'
 import { Segmented, SegmentedItem } from '@/components/vendor/ui/segmented'
+import type { ModelVerifyResult } from '@/stores/model'
 
 // Bedrock 认证模式类型
 type BedrockAuthMode = 'access_key_secret' | 'iam_role' | 'assume_role'
@@ -74,6 +75,7 @@ const SPECIAL_FORM_FACTORIES = [
   'VolcEngine',           // 火山引擎：EndpointID + ARK API Key
   'Bedrock',              // AWS Bedrock：AK + SK + Region
   'MinerU',               // MinerU：API Server + Output Dir + Backend + Server URL
+  'PaddleOCR',            // PaddleOCR：API URL + Access Token + Algorithm
 ]
 
 // 厂商文档链接
@@ -97,6 +99,7 @@ const FACTORY_DOC_LINKS: Record<string, string> = {
   'Fish Audio': 'https://fish.audio',
   'Tencent Cloud': 'https://cloud.tencent.com/document/api/1093/37823',
   'MinerU': 'https://github.com/opendatalab/MinerU',
+  'PaddleOCR': 'https://www.paddleocr.ai/latest/',
 }
 
 // 各厂商支持的模型类型
@@ -169,6 +172,9 @@ const FACTORY_MODEL_TYPES: Record<string, { value: string; label: string }[]> = 
   'MinerU': [
     { value: 'ocr', label: 'OCR' },
   ],
+  'PaddleOCR': [
+    { value: 'ocr', label: 'OCR' },
+  ],
   'Default': [
     { value: 'chat', label: 'Chat' },
     { value: 'embedding', label: 'Embedding' },
@@ -221,7 +227,8 @@ interface ApiKeyModalProps {
   onClose: () => void
   providerName: string
   isLocal?: boolean
-  onSave: (apiKey: string, baseUrl?: string, additionalParams?: Record<string, any>) => Promise<void>
+  onSave: (apiKey: string, baseUrl?: string, additionalParams?: Record<string, any>) => Promise<void | ModelVerifyResult>
+  onVerify?: (apiKey: string, baseUrl?: string, additionalParams?: Record<string, any>) => Promise<void | ModelVerifyResult>
 }
 
 export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
@@ -229,7 +236,8 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
   onClose,
   providerName,
   isLocal: isLocalProp,
-  onSave
+  onSave,
+  onVerify,
 }) => {
   // 判断厂商类型
   const isLocal = isLocalProp ?? LOCAL_MODEL_FACTORIES.includes(providerName)
@@ -285,9 +293,15 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
   const [mineruBackend, setMineruBackend] = useState<'pipeline' | 'vlm-transformers' | 'vlm-vllm-engine' | 'vlm-http-client' | 'vlm-mlx-engine' | 'vlm-vllm-async-engine' | 'vlm-lmdeploy-engine'>('pipeline')
   const [mineruServerUrl, setMineruServerUrl] = useState('')
   const [mineruDeleteOutput, setMineruDeleteOutput] = useState(true)
+  // PaddleOCR 字段
+  const [paddleocrApiUrl, setPaddleocrApiUrl] = useState('')
+  const [paddleocrAccessToken, setPaddleocrAccessToken] = useState('')
+  const [paddleocrAlgorithm, setPaddleocrAlgorithm] = useState('PaddleOCR-VL')
 
   const [showApiKey, setShowApiKey] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [isVerifying, setIsVerifying] = useState(false)
+  const [verifyResult, setVerifyResult] = useState<ModelVerifyResult | null>(null)
   const [error, setError] = useState('')
 
   const docLink = FACTORY_DOC_LINKS[providerName]
@@ -300,6 +314,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
     if (providerName === 'Tencent Cloud') return 'speech2text'
     if (providerName === 'Azure-OpenAI') return 'embedding'
     if (providerName === 'MinerU') return 'ocr'
+    if (providerName === 'PaddleOCR') return 'ocr'
     return 'chat'
   }
 
@@ -345,12 +360,46 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
       setMineruBackend('pipeline')
       setMineruServerUrl('')
       setMineruDeleteOutput(true)
+      // PaddleOCR
+      setPaddleocrApiUrl('')
+      setPaddleocrAccessToken('')
+      setPaddleocrAlgorithm('PaddleOCR-VL')
+      // Verify 状态
+      setIsVerifying(false)
+      setVerifyResult(null)
       setError('')
     }
   }, [isOpen, defaultBaseUrl, providerName])
 
-  const handleSave = async () => {
-    setIsLoading(true)
+  const normalizeVerifyResult = (result: unknown): ModelVerifyResult => {
+    if (result && typeof result === 'object') {
+      const r = result as { isValid?: boolean | null; success?: boolean; logs?: string; message?: string }
+      if (typeof r.isValid === 'boolean' || r.isValid === null) {
+        return {
+          isValid: r.isValid,
+          logs: r.logs || r.message || ''
+        }
+      }
+      if (typeof r.success === 'boolean') {
+        return {
+          isValid: r.success,
+          logs: r.message || r.logs || ''
+        }
+      }
+    }
+    return {
+      isValid: false,
+      logs: '验证失败，未返回可识别的验证结果'
+    }
+  }
+
+  const handleSave = async (isVerify = false) => {
+    if (isVerify) {
+      setVerifyResult({ isValid: null, logs: '' })
+      setIsVerifying(true)
+    } else {
+      setIsLoading(true)
+    }
     setError('')
 
     try {
@@ -604,6 +653,33 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
         additionalParams.api_key = mineruConfig
         additionalParams.api_base = ''
       }
+
+      // PaddleOCR
+      else if (providerName === 'PaddleOCR') {
+        if (!modelName.trim()) {
+          setError('请输入模型名称')
+          return
+        }
+        if (!paddleocrApiUrl.trim()) {
+          setError('请输入 PaddleOCR API URL')
+          return
+        }
+
+        const paddleocrConfig: Record<string, any> = {
+          paddleocr_api_url: paddleocrApiUrl.trim(),
+          paddleocr_algorithm: paddleocrAlgorithm || 'PaddleOCR-VL',
+        }
+        if (paddleocrAccessToken.trim()) {
+          paddleocrConfig.paddleocr_access_token = paddleocrAccessToken.trim()
+        }
+
+        additionalParams.llm_name = modelName
+        additionalParams.mdl_type = 'ocr'
+        additionalParams.max_tokens = 0
+        additionalParams.llm_factory = providerName
+        additionalParams.api_key = paddleocrConfig
+        additionalParams.api_base = ''
+      }
       
       // ========== 本地模型厂商 ==========
       else if (isLocal) {
@@ -652,12 +728,35 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
         }
       }
 
-      await onSave(finalApiKey, finalBaseUrl, additionalParams)
-      handleClose()
+      if (isVerify) {
+        if (!onVerify) {
+          setVerifyResult({
+            isValid: false,
+            logs: '当前供应商不支持验证'
+          })
+          return
+        }
+        const verifyResponse = await onVerify(finalApiKey, finalBaseUrl, additionalParams)
+        setVerifyResult(normalizeVerifyResult(verifyResponse))
+      } else {
+        await onSave(finalApiKey, finalBaseUrl, additionalParams)
+        handleClose()
+      }
     } catch (err: any) {
-      setError(err?.message || '保存失败，请重试')
+      if (isVerify) {
+        setVerifyResult({
+          isValid: false,
+          logs: err?.message || '验证失败，请重试'
+        })
+      } else {
+        setError(err?.message || '保存失败，请重试')
+      }
     } finally {
-      setIsLoading(false)
+      if (isVerify) {
+        setIsVerifying(false)
+      } else {
+        setIsLoading(false)
+      }
     }
   }
 
@@ -666,6 +765,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
     setBaseUrl('')
     setModelName('')
     setError('')
+    setVerifyResult(null)
     setShowApiKey(false)
     onClose()
   }
@@ -1368,6 +1468,65 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
               </>
             )}
 
+            {/* ========== PaddleOCR 专用表单 ========== */}
+            {providerName === 'PaddleOCR' && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    模型类型
+                  </label>
+                  <Input
+                    value="OCR"
+                    disabled
+                    className="bg-muted cursor-not-allowed"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    模型名称 <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    value={modelName}
+                    onChange={(e) => setModelName(e.target.value)}
+                    placeholder="paddleocr-from-env-1"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    PaddleOCR API URL <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    value={paddleocrApiUrl}
+                    onChange={(e) => setPaddleocrApiUrl(e.target.value)}
+                    placeholder="https://paddleocr-server.com/layout-parsing"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    AI Studio 访问令牌 <span className="text-text-tertiary font-normal ml-1">(可选)</span>
+                  </label>
+                  <Input
+                    value={paddleocrAccessToken}
+                    onChange={(e) => setPaddleocrAccessToken(e.target.value)}
+                    placeholder="您的 AI Studio Token（可选）"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    PaddleOCR 算法
+                  </label>
+                  <Select value={paddleocrAlgorithm} onValueChange={setPaddleocrAlgorithm}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="PaddleOCR-VL">PaddleOCR-VL</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </>
+            )}
+
             {/* ========== 本地模型厂商表单 ========== */}
             {isLocal && (
               <>
@@ -1526,33 +1685,61 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                 <p className="text-sm text-[var(--color-status-error)]">{error}</p>
               </div>
             )}
+
+            {/* 验证结果 */}
+            {verifyResult && verifyResult.isValid !== null && (
+              <div className="p-3 rounded-xl bg-[var(--color-surface-secondary)] border border-[var(--color-border-subtle)]">
+                <p className={verifyResult.isValid ? 'text-sm text-[var(--color-status-success)]' : 'text-sm text-[var(--color-status-error)]'}>
+                  {verifyResult.isValid ? '验证通过' : '验证失败'}
+                </p>
+                {verifyResult.logs && (
+                  <pre className="mt-2 text-xs whitespace-pre-wrap text-text-secondary max-h-40 overflow-auto">{verifyResult.logs}</pre>
+                )}
+              </div>
+            )}
         </div>
 
-        <DialogFooter className="flex-col sm:flex-row gap-3">
-          {/* 文档链接 */}
-          {docLink && (
-            <a 
-              href={docLink} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-sm text-[var(--color-text-accent)] hover:underline flex items-center gap-1 mr-auto"
-            >
-              如何获取？
-              <ExternalLink className="w-3 h-3" />
-            </a>
-          )}
+        <DialogFooter className="flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex items-center gap-3">
+            {/* 文档链接 */}
+            {docLink && (
+              <a
+                href={docLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-[var(--color-text-accent)] hover:underline flex items-center gap-1"
+              >
+                如何获取？
+                <ExternalLink className="w-3 h-3" />
+              </a>
+            )}
+            {/* 验证按钮（左侧，ragflow 风格） */}
+            {onVerify && (
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => handleSave(true)}
+                disabled={isLoading || isVerifying}
+                className="gap-1.5"
+              >
+                <RefreshCcw className={isVerifying ? 'w-3.5 h-3.5 animate-spin' : 'w-3.5 h-3.5'} />
+                验证
+              </Button>
+            )}
+          </div>
 
+          {/* 右侧仅保留取消/确定 */}
           <div className="flex gap-3">
             <Button
               variant="outline"
               onClick={handleClose}
-              disabled={isLoading}
+              disabled={isLoading || isVerifying}
             >
               取消
             </Button>
             <Button
-              onClick={handleSave}
-              disabled={isLoading}
+              onClick={() => handleSave(false)}
+              disabled={isLoading || isVerifying}
             >
               {isLoading ? '保存中...' : '确定'}
             </Button>

@@ -6,7 +6,14 @@ import { ProviderIcon } from '@/components/ui/provider-icon'
 import { cn } from '@/lib/utils'
 
 // 模型类型标签
-type TagType = 'LLM' | 'TEXT EMBEDDING' | 'TEXT RE-RANK' | 'TTS' | 'SPEECH2TEXT' | 'IMAGE2TEXT' | 'MODERATION'
+type TagType =
+  | 'LLM'
+  | 'TEXT EMBEDDING'
+  | 'TEXT RE-RANK'
+  | 'TTS'
+  | 'SPEECH2TEXT'
+  | 'IMAGE2TEXT'
+  | 'MODERATION'
 
 // 标签排序
 const TAG_ORDER: Record<TagType, number> = {

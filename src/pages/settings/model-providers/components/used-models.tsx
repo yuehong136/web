@@ -5,11 +5,13 @@ import { ModelProviderCard } from './model-provider-card'
 interface UsedModelsProps {
   handleAddModel: (factoryName: string) => void
   handleDeleteFactory: (factoryName: string) => void
+  handleEnableModel: (modelName: string, providerName: string, enabled: boolean) => void
 }
 
 export const UsedModels: React.FC<UsedModelsProps> = ({
   handleAddModel,
-  handleDeleteFactory
+  handleDeleteFactory,
+  handleEnableModel,
 }) => {
   const { myLLMs } = useModelStore()
   
@@ -57,6 +59,7 @@ export const UsedModels: React.FC<UsedModelsProps> = ({
               llm={providerData.llm}
               onApiKeyClick={handleAddModel}
               onDeleteClick={handleDeleteFactory}
+              onEnableModel={handleEnableModel}
             />
           ))}
         </div>
@@ -64,6 +67,5 @@ export const UsedModels: React.FC<UsedModelsProps> = ({
     </div>
   )
 }
-
 
 
