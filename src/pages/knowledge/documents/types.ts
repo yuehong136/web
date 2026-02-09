@@ -17,6 +17,7 @@ export interface FilterType {
 export interface FilterCollection {
   field: string
   label: string
+  canSearch?: boolean
   list: FilterType[]
 }
 

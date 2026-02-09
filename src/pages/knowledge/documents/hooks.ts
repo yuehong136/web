@@ -4,7 +4,7 @@
  * 整合 TanStack Query hooks，管理本地 UI 状态
  */
 
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import {
@@ -31,6 +31,74 @@ import {
   EMPTY_METADATA_FIELD,
   runStatusOptions,
 } from './constants'
+
+const sanitizeFilterValueByCollections = (
+  value: FilterValue,
+  collections: FilterCollection[]
+): FilterValue => {
+  const baseAllowedMap = collections.reduce<Record<string, Set<string>>>(
+    (pre, cur) => {
+      if (cur.field !== 'metadata') {
+        pre[cur.field] = new Set(cur.list.map((item) => item.id.toString()))
+      }
+      return pre
+    },
+    {}
+  )
+
+  const metadataAllowedMap =
+    collections.find((item) => item.field === 'metadata')?.list.reduce<
+      Record<string, Set<string>>
+    >((pre, field) => {
+      pre[field.id.toString()] = new Set(
+        (field.list || []).map((subItem) => subItem.id.toString())
+      )
+      return pre
+    }, {}) || {}
+
+  const nextValue: FilterValue = {}
+
+  Object.entries(value).forEach(([key, rawValue]) => {
+    if (key === 'metadata') {
+      if (
+        rawValue &&
+        typeof rawValue === 'object' &&
+        !Array.isArray(rawValue)
+      ) {
+        const nextMetadata: Record<string, string[]> = {}
+
+        Object.entries(rawValue).forEach(([fieldKey, fieldValues]) => {
+          const allowedValues = metadataAllowedMap[fieldKey]
+          if (!allowedValues || !Array.isArray(fieldValues)) return
+
+          const filtered = fieldValues.filter((item) => allowedValues.has(item))
+          if (filtered.length > 0) {
+            nextMetadata[fieldKey] = filtered
+          }
+        })
+
+        nextValue[key] = nextMetadata
+      } else {
+        nextValue[key] = {}
+      }
+      return
+    }
+
+    const allowed = baseAllowedMap[key]
+    if (!Array.isArray(rawValue) || !allowed) {
+      nextValue[key] = Array.isArray(rawValue) ? rawValue : []
+      return
+    }
+
+    nextValue[key] = rawValue.filter((item) => allowed.has(item))
+  })
+
+  return nextValue
+}
+
+const isSameFilterValue = (left: FilterValue, right: FilterValue): boolean => {
+  return JSON.stringify(left) === JSON.stringify(right)
+}
 
 /**
  * 文档列表状态管理 Hook
@@ -106,6 +174,17 @@ export function useDocumentListState(): DocumentListState {
     isLoading: filterOptionsLoading,
     refetch: refreshFilterOptions,
   } = useFetchDocumentFilter(kbId)
+  const filterCollections = useFilterCollections(filterOptions)
+
+  // 对齐 ragflow 的 checkValue 逻辑：筛选项变更后移除已失效的前端筛选值
+  useEffect(() => {
+    if (!filterOptions) return
+
+    setFilterValue((prev) => {
+      const next = sanitizeFilterValueByCollections(prev, filterCollections)
+      return isSameFilterValue(prev, next) ? prev : next
+    })
+  }, [filterOptions, filterCollections])
 
   // 计算筛选数量
   const filterCount = useMemo(() => {
@@ -247,7 +326,7 @@ export function useFilterCollections(
       return [
         { field: 'type', label: '文件类型', list: [] },
         { field: 'run', label: '任务状态', list: runStatusOptions.map((o) => ({ id: o.value, label: o.label })) },
-        { field: 'metadata', label: '元数据', list: [] },
+        { field: 'metadata', label: '元数据', canSearch: true, list: [] },
       ]
     }
 
@@ -311,7 +390,7 @@ export function useFilterCollections(
     return [
       { field: 'type', label: '文件类型', list: fileTypes },
       { field: 'run', label: '任务状态', list: fileStatus },
-      { field: 'metadata', label: '元数据', list: metaDataList },
+      { field: 'metadata', label: '元数据', canSearch: true, list: metaDataList },
     ]
   }, [filterOptions])
 }

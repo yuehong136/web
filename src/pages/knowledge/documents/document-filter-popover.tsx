@@ -4,9 +4,10 @@
  * 支持递归嵌套的筛选字段，参照 ragflow 的 filter-field.tsx 和 filter-popover.tsx
  */
 
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { ChevronDown, ChevronUp, Funnel } from 'lucide-react'
 import { Button } from '@/components/ui'
+import { Input } from '@/components/ui/input'
 import {
   Popover,
   PopoverContent,
@@ -217,6 +218,38 @@ interface FilterPopoverProps {
   children?: React.ReactNode
 }
 
+const filterNestedList = (
+  list: FilterType[],
+  searchTerm: string
+): FilterType[] => {
+  if (!searchTerm) return list
+
+  const term = searchTerm.toLowerCase()
+
+  return list
+    .filter((item) => {
+      if (
+        item.label.toString().toLowerCase().includes(term) ||
+        item.id.toString().toLowerCase().includes(term)
+      ) {
+        return true
+      }
+
+      if (item.list?.length) {
+        return filterNestedList(item.list, searchTerm).length > 0
+      }
+
+      return false
+    })
+    .map((item) => {
+      if (!item.list?.length) return item
+      return {
+        ...item,
+        list: filterNestedList(item.list, searchTerm),
+      }
+    })
+}
+
 export const FilterPopover: React.FC<FilterPopoverProps> = ({
   children,
   filters,
@@ -227,6 +260,7 @@ export const FilterPopover: React.FC<FilterPopoverProps> = ({
 }) => {
   const [open, setOpen] = useState(false)
   const [localValue, setLocalValue] = useState<FilterValue>(value)
+  const [searchTerms, setSearchTerms] = useState<Record<string, string>>({})
 
   // 同步外部 value 变化
   useEffect(() => {
@@ -238,6 +272,7 @@ export const FilterPopover: React.FC<FilterPopoverProps> = ({
     setOpen(newOpen)
     if (newOpen) {
       setLocalValue(value)
+      setSearchTerms({})
     }
   }
 
@@ -258,6 +293,28 @@ export const FilterPopover: React.FC<FilterPopoverProps> = ({
     setOpen(false)
   }
 
+  const handleSearchChange = (field: string, keyword: string) => {
+    setSearchTerms((prev) => ({
+      ...prev,
+      [field]: keyword,
+    }))
+  }
+
+  const getFilteredCollection = useCallback(
+    (collection: FilterCollection) => {
+      if (!collection.canSearch) return collection
+
+      const searchTerm = searchTerms[collection.field]?.trim()
+      if (!searchTerm) return collection
+
+      return {
+        ...collection,
+        list: filterNestedList(collection.list || [], searchTerm),
+      }
+    },
+    [searchTerms]
+  )
+
   // 计算属于分组的 field 列表
   const groupedFields = useMemo(() => {
     if (!filterGroup) return new Set<string>()
@@ -269,8 +326,10 @@ export const FilterPopover: React.FC<FilterPopoverProps> = ({
 
   // 不属于任何分组的筛选器
   const ungroupedFilters = useMemo(() => {
-    return filters.filter((f) => !groupedFields.has(f.field))
-  }, [filters, groupedFields])
+    return filters
+      .filter((f) => !groupedFields.has(f.field))
+      .map((item) => getFilteredCollection(item))
+  }, [filters, groupedFields, getFilteredCollection])
 
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
@@ -280,9 +339,9 @@ export const FilterPopover: React.FC<FilterPopoverProps> = ({
           {/* 渲染分组筛选器 */}
           {filterGroup &&
             Object.entries(filterGroup).map(([groupName, fieldKeys]) => {
-              const groupFilters = filters.filter((f) =>
-                fieldKeys.includes(f.field)
-              )
+              const groupFilters = filters
+                .filter((f) => fieldKeys.includes(f.field))
+                .map((item) => getFilteredCollection(item))
               if (groupFilters.length === 0) return null
 
               return (
@@ -308,6 +367,16 @@ export const FilterPopover: React.FC<FilterPopoverProps> = ({
                         >
                           {collection.label}
                         </div>
+                        {collection.canSearch && (
+                          <Input
+                            placeholder={`搜索${collection.label}...`}
+                            value={searchTerms[collection.field] || ''}
+                            onChange={(e) =>
+                              handleSearchChange(collection.field, e.target.value)
+                            }
+                            className="h-8"
+                          />
+                        )}
                         {collection.list?.map((item) => (
                           <FilterField
                             key={item.id}
@@ -333,6 +402,16 @@ export const FilterPopover: React.FC<FilterPopoverProps> = ({
               >
                 {collection.label}
               </div>
+              {collection.canSearch && (
+                <Input
+                  placeholder={`搜索${collection.label}...`}
+                  value={searchTerms[collection.field] || ''}
+                  onChange={(e) =>
+                    handleSearchChange(collection.field, e.target.value)
+                  }
+                  className="h-8"
+                />
+              )}
               <div className="space-y-1">
                 {collection.list?.map((item) => (
                   <FilterField
@@ -398,9 +477,9 @@ export const FilterButton: React.FC<FilterButtonProps> = ({
         style={
           filterCount > 0
             ? {
-                backgroundColor: 'var(--color-state-warning-subtle)',
-                color: 'var(--color-state-warning)',
-                borderColor: 'var(--color-border-warning)',
+                backgroundColor: 'var(--color-state-focus-10)',
+                color: 'var(--color-state-focus)',
+                borderColor: 'var(--color-state-focus)',
               }
             : {}
         }
@@ -411,8 +490,8 @@ export const FilterButton: React.FC<FilterButtonProps> = ({
           <span
             className="ml-1 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none rounded-full"
             style={{
-              color: 'var(--color-components-badge-warning-text)',
-              backgroundColor: 'var(--color-state-warning)',
+              color: '#ffffff',
+              backgroundColor: 'var(--color-state-focus)',
             }}
           >
             {filterCount}

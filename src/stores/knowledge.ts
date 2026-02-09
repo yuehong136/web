@@ -25,6 +25,14 @@ interface KnowledgeState {
     desc?: boolean
     keywords?: string
     owner_ids?: string[]
+    filter_params?: {
+      permissions?: string[]
+      languages?: string[]
+      parser_ids?: string[]
+      embd_ids?: string[]
+      doc_num_range?: [number, number]
+      time_range?: string
+    }
   }) => Promise<void>
   createKnowledgeBase: (data: CreateKBRequest) => Promise<KnowledgeBase>
   updateKnowledgeBase: (data: UpdateKBRequest) => Promise<void>
@@ -184,6 +192,7 @@ export const useKnowledgeStore = create<KnowledgeState>()(
           const page = Math.max((params?.page ?? 1) - 1, 0)
           const pageSize = params?.page_size || 12
           const keywords = params?.keywords || ''
+          const filterParams = params?.filter_params
           
           // 模拟搜索过滤
           let filteredData = allMockKnowledgeBases
@@ -191,6 +200,28 @@ export const useKnowledgeStore = create<KnowledgeState>()(
             filteredData = allMockKnowledgeBases.filter(kb =>
               kb.name.toLowerCase().includes(keywords.toLowerCase()) ||
               kb.description?.toLowerCase().includes(keywords.toLowerCase())
+            )
+          }
+
+          // 模拟后端 filter_params 过滤
+          if (filterParams?.permissions?.length) {
+            filteredData = filteredData.filter((kb) =>
+              filterParams.permissions?.includes(kb.permission)
+            )
+          }
+          if (filterParams?.languages?.length) {
+            filteredData = filteredData.filter((kb) =>
+              kb.language && filterParams.languages?.includes(kb.language)
+            )
+          }
+          if (filterParams?.parser_ids?.length) {
+            filteredData = filteredData.filter((kb) =>
+              filterParams.parser_ids?.includes(kb.parser_id)
+            )
+          }
+          if (filterParams?.embd_ids?.length) {
+            filteredData = filteredData.filter((kb) =>
+              filterParams.embd_ids?.includes(kb.embd_id)
             )
           }
           

@@ -26,6 +26,11 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Loading } from '@/components/ui/loading'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Dropdown, DropdownItem } from '@/components/ui/dropdown'
 import { QuickEditModal, KnowledgeListView } from '@/components/knowledge'
@@ -202,7 +207,7 @@ export const KnowledgeListPage: React.FC = () => {
   const [selectedBases, setSelectedBases] = React.useState<string[]>([])
   const [sortBy, setSortBy] = React.useState<'create_time' | 'update_time' | 'name' | 'doc_num'>('update_time')
   const [sortDesc, setSortDesc] = React.useState(true)
-  const [showFilters, setShowFilters] = React.useState(false)
+  const [filterPopoverOpen, setFilterPopoverOpen] = React.useState(false)
   const [timeFormat, setTimeFormat] = React.useState<'detailed' | 'compact' | 'relative'>('detailed')
   const [editingKnowledgeBase, setEditingKnowledgeBase] = React.useState<KnowledgeBase | null>(null)
   const [showCreateModal, setShowCreateModal] = React.useState(false)
@@ -217,22 +222,30 @@ export const KnowledgeListPage: React.FC = () => {
     time_range: 'all'
   })
 
+  const backendFilterParams = React.useMemo(() => ({
+    permissions: filters.permissions.length > 0 ? filters.permissions : undefined,
+    languages: filters.languages.length > 0 ? filters.languages : undefined,
+    parser_ids: filters.parser_ids.length > 0 ? filters.parser_ids : undefined,
+    embd_ids: filters.embd_ids.length > 0 ? filters.embd_ids : undefined,
+  }), [filters])
+
   React.useEffect(() => {
     loadKnowledgeBases({
       page: currentPage,
       page_size: pageSize,
       orderby: sortBy,
       desc: sortDesc,
-      keywords: searchQuery
+      keywords: searchQuery,
+      filter_params: backendFilterParams,
     })
-  }, [loadKnowledgeBases, currentPage, pageSize, sortBy, sortDesc, searchQuery])
+  }, [loadKnowledgeBases, currentPage, pageSize, sortBy, sortDesc, searchQuery, backendFilterParams])
 
   // Reset to first page when search query or filters change
   React.useEffect(() => {
     if (currentPage !== 1) {
       setCurrentPage(1)
     }
-  }, [searchQuery, filters])
+  }, [searchQuery, filters, currentPage])
 
   const totalPages = Math.ceil(total / pageSize)
 
@@ -256,7 +269,8 @@ export const KnowledgeListPage: React.FC = () => {
       page_size: pageSize,
       orderby: sortBy,
       desc: sortDesc,
-      keywords: searchQuery
+      keywords: searchQuery,
+      filter_params: backendFilterParams,
     })
     // 导航到新创建的知识库
     navigate(`${ROUTES.KNOWLEDGE}/${kbId}`)
@@ -321,8 +335,53 @@ export const KnowledgeListPage: React.FC = () => {
     setCurrentPage(1) // Reset to first page when sorting changes
   }
 
-  // Use knowledgeBases directly since server-side pagination handles filtering
-  const filteredKnowledgeBases = knowledgeBases
+  const filteredKnowledgeBases = React.useMemo(() => {
+    const now = Date.now()
+    return knowledgeBases.filter((kb) => {
+      // 前端兜底：后端不支持的筛选条件继续在前端执行（以及后端失效时兜底）
+      if (filters.permissions.length > 0 && !filters.permissions.includes(kb.permission)) {
+        return false
+      }
+      if (filters.languages.length > 0) {
+        if (!kb.language || !filters.languages.includes(kb.language)) {
+          return false
+        }
+      }
+      if (filters.parser_ids.length > 0 && !filters.parser_ids.includes(kb.parser_id)) {
+        return false
+      }
+      if (filters.embd_ids.length > 0 && !filters.embd_ids.includes(kb.embd_id)) {
+        return false
+      }
+
+      if (filters.doc_num_range.length > 0) {
+        const matchesDocRange = filters.doc_num_range.some((range) => {
+          const docNum = kb.doc_num || 0
+          if (range === '0') return docNum === 0
+          if (range === '1-5') return docNum >= 1 && docNum <= 5
+          if (range === '6-20') return docNum >= 6 && docNum <= 20
+          if (range === '21+') return docNum >= 21
+          return true
+        })
+        if (!matchesDocRange) return false
+      }
+
+      if (filters.time_range !== 'all') {
+        const updatedAt =
+          kb.update_time < 1_000_000_000_000
+            ? kb.update_time * 1000
+            : kb.update_time
+        const diff = now - updatedAt
+        const day = 24 * 60 * 60 * 1000
+        if (filters.time_range === 'today' && diff > day) return false
+        if (filters.time_range === 'week' && diff > 7 * day) return false
+        if (filters.time_range === 'month' && diff > 30 * day) return false
+        if (filters.time_range === 'quarter' && diff > 90 * day) return false
+      }
+
+      return true
+    })
+  }, [knowledgeBases, filters])
 
   const getStatusColor = (kb: KnowledgeBase) => {
     // 由于API没有明确的status字段，我们基于其他字段判断状态
@@ -407,6 +466,18 @@ export const KnowledgeListPage: React.FC = () => {
       filters.doc_num_range.length > 0 ||
       filters.time_range !== 'all' ||
       searchQuery.trim() !== ''
+    )
+  }
+
+  const getActiveFilterCount = () => {
+    return (
+      (filters.permissions?.length || 0) +
+      (filters.languages?.length || 0) +
+      (filters.parser_ids?.length || 0) +
+      (filters.embd_ids?.length || 0) +
+      (filters.doc_num_range?.length || 0) +
+      (filters.time_range !== 'all' ? 1 : 0) +
+      (searchQuery.trim() ? 1 : 0)
     )
   }
 
@@ -550,8 +621,7 @@ export const KnowledgeListPage: React.FC = () => {
   )
 
   const renderFilters = () => (
-    showFilters && (
-      <div className="mt-4 pt-4 border-t border-border-default bg-background-subtle rounded-lg p-4">
+      <div className="bg-background-subtle rounded-lg p-4">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-2">
             <div className="p-1.5 rounded-md" style={{ backgroundColor: 'var(--color-state-info-subtle)' }}>
@@ -864,7 +934,6 @@ export const KnowledgeListPage: React.FC = () => {
           </div>
         )}
       </div>
-    )
   )
 
   const renderGridView = () => (
@@ -965,46 +1034,41 @@ export const KnowledgeListPage: React.FC = () => {
           </div>
           
           <div className="flex items-center space-x-2">
-            <Button 
-              variant="outline" 
-              size="sm"
-              className="h-9"
-              onClick={() => setShowFilters(!showFilters)}
-              style={
-                hasActiveFilters() 
-                  ? { 
-                      backgroundColor: 'var(--color-state-warning-subtle)', 
-                      color: 'var(--color-state-warning)', 
-                      borderColor: 'var(--color-state-warning)' 
-                    }
-                  : showFilters 
-                    ? { 
-                        backgroundColor: 'var(--color-state-info-subtle)', 
-                        color: 'var(--color-state-info)' 
-                      }
-                    : undefined
-              }
-            >
-              <Filter className="h-4 w-4 mr-2" />
-              筛选
-              {hasActiveFilters() && (
-                <span 
-                  className="ml-1 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none rounded-full"
-                  style={{ 
-                    backgroundColor: 'var(--color-state-warning)', 
-                    color: 'var(--color-text-inverted)' 
-                  }}
+            <Popover open={filterPopoverOpen} onOpenChange={setFilterPopoverOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9"
+                  style={
+                    hasActiveFilters()
+                      ? {
+                          backgroundColor: 'var(--color-state-focus-10)',
+                          color: 'var(--color-state-focus)',
+                          borderColor: 'var(--color-state-focus)',
+                        }
+                      : undefined
+                  }
                 >
-                  {(filters.permissions?.length || 0) + 
-                   (filters.languages?.length || 0) + 
-                   (filters.parser_ids?.length || 0) + 
-                   (filters.embd_ids?.length || 0) + 
-                   (filters.doc_num_range?.length || 0) + 
-                   (filters.time_range !== 'all' ? 1 : 0) + 
-                   (searchQuery.trim() ? 1 : 0)}
-                </span>
-              )}
-            </Button>
+                  <Filter className="h-4 w-4 mr-2" />
+                  筛选
+                  {hasActiveFilters() && (
+                    <span
+                      className="ml-1 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none rounded-full"
+                      style={{
+                        backgroundColor: 'var(--color-state-focus)',
+                        color: '#ffffff',
+                      }}
+                    >
+                      {getActiveFilterCount()}
+                    </span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[980px] p-0" align="end">
+                {renderFilters()}
+              </PopoverContent>
+            </Popover>
 
             {/* 时间格式选择器 */}
             <CustomSelect
@@ -1031,9 +1095,6 @@ export const KnowledgeListPage: React.FC = () => {
           </div>
         </div>
 
-      {/* 筛选面板 */}
-      {renderFilters()}
-
       {/* 内容区域 */}
       {isLoading ? (
         <div className="flex-1 flex items-center justify-center">
@@ -1044,12 +1105,12 @@ export const KnowledgeListPage: React.FC = () => {
           <div className="text-center">
             <Database className="h-12 w-12 mx-auto mb-4" style={{ color: 'var(--color-text-muted)' }} />
             <h3 className="text-lg font-medium mb-2" style={{ color: 'var(--color-text-primary)' }}>
-              {searchQuery || showFilters ? '未找到匹配的知识库' : '还没有知识库'}
+              {searchQuery || hasActiveFilters() ? '未找到匹配的知识库' : '还没有知识库'}
             </h3>
             <p className="mb-4" style={{ color: 'var(--color-text-tertiary)' }}>
-              {searchQuery || showFilters? '尝试调整搜索条件或筛选器' : '创建您的第一个知识库开始使用'}
+              {searchQuery || hasActiveFilters() ? '尝试调整搜索条件或筛选器' : '创建您的第一个知识库开始使用'}
             </p>
-            {!searchQuery && !showFilters && (
+            {!searchQuery && !hasActiveFilters() && (
               <Button onClick={handleCreate}>
                 <Plus className="h-4 w-4 mr-2" />
                 创建知识库
