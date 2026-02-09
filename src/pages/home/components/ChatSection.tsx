@@ -17,6 +17,7 @@ import { createReferenceMarkerComponent } from '@/components/chat/ReferenceMarke
 import { ChatInputBox } from './ChatInputBox'
 import { SkillPanel } from './SkillPanel'
 import { useAtTrigger } from '../hooks'
+import { shouldIgnoreEnterForIme } from '../utils'
 import { extractThinkContent } from '@/utils/think-utils'
 import { convertReferencesToSup } from '@/utils/message-utils'
 import { copyToClipboard } from '@/lib/utils'
@@ -170,6 +171,10 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
 
   // 处理键盘事件
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (shouldIgnoreEnterForIme(e)) {
+      return
+    }
+
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       onSend()

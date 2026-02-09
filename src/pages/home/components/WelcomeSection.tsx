@@ -7,7 +7,7 @@ import { RecommendCards } from './RecommendCards'
 import { ChatInputBox } from './ChatInputBox'
 import { SkillPanel } from './SkillPanel'
 import { functionTabs, recommendCards } from '../constants'
-import { getGreeting } from '../utils'
+import { getGreeting, shouldIgnoreEnterForIme } from '../utils'
 import { useAtTrigger } from '../hooks'
 import type { DialogApp } from '@/types/api'
 import type { MCPServer } from '@/types/mcp'
@@ -84,6 +84,10 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({
 
   // 处理键盘事件
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (shouldIgnoreEnterForIme(e)) {
+      return
+    }
+
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       onSend()
