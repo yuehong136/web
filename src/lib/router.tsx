@@ -32,6 +32,8 @@ import { SystemPage } from '@/pages/system'
 import { PromptEditorPage } from '@/pages/dialog/PromptEditorPage'
 import { DialogListPage } from '@/pages/dialog/DialogListPage'
 import { ExplorePage } from '@/pages/explore'
+import { SearchListPage } from '@/pages/search'
+import { SearchDetailPage } from '@/pages/search/detail/SearchDetailPage'
 import { ThemeDemoPage } from '@/pages/theme-demo/ThemeDemoPage'
 import { ROUTES } from '@/constants'
 import { AIToolsHomePage, AutoFillWorkbenchPage } from '@/pages/ai-tools'
@@ -148,6 +150,14 @@ export const router = createBrowserRouter([
       {
         path: ROUTES.EXPLORE,
         element: <ExplorePage />,
+      },
+      {
+        path: ROUTES.SEARCH,
+        element: <SearchListPage />,
+      },
+      {
+        path: '/search/:id',
+        element: <SearchDetailPage />,
       },
       {
         path: '/theme-demo',

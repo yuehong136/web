@@ -6,7 +6,8 @@ export { useChatStore } from './chat'
 export { useKnowledgeStore } from './knowledge'
 export { useModelStore } from './model'
 export { useStudioStore, useHasActiveFilters as useStudioHasActiveFilters, useSelectedCount as useStudioSelectedCount } from './studio'
-export { 
+export { useSearchStore } from './search'
+export {
   useHomeStore,
   useSelectedApps,
   useSelectedAppIds,

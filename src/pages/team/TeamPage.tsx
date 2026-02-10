@@ -24,6 +24,7 @@ import {
   Users,
   UserCheck,
   Clock,
+  ArrowUpDown,
   UserPlus,
   Building2,
 } from 'lucide-react'
@@ -104,31 +105,47 @@ export const TeamPage: React.FC = () => {
   const { acceptInvitation, isLoading: acceptLoading } = useAcceptInvitation()
   const { rejectInvitation, isLoading: rejectLoading } = useRejectInvitation()
   const respondLoading = acceptLoading || rejectLoading
+  const [memberSortDesc, setMemberSortDesc] = React.useState(true)
+  const [joinedTeamSortDesc, setJoinedTeamSortDesc] = React.useState(true)
 
   // Check if current user is owner
   const isOwner = tenantInfo?.role === TenantRole.Owner
 
   // Filtered members
   const filteredMembers = useMemo(() => {
-    if (!memberSearchQuery.trim()) return members
-    const query = memberSearchQuery.toLowerCase()
-    return members.filter(
-      (m) =>
-        m.nickname?.toLowerCase().includes(query) ||
-        m.email?.toLowerCase().includes(query)
-    )
-  }, [members, memberSearchQuery])
+    const query = memberSearchQuery.toLowerCase().trim()
+    const list = query
+      ? members.filter(
+          (m) =>
+            m.nickname?.toLowerCase().includes(query) ||
+            m.email?.toLowerCase().includes(query)
+        )
+      : members
+
+    return [...list].sort((a, b) => {
+      const timeA = new Date(a.update_date).getTime() || 0
+      const timeB = new Date(b.update_date).getTime() || 0
+      return memberSortDesc ? timeB - timeA : timeA - timeB
+    })
+  }, [members, memberSearchQuery, memberSortDesc])
 
   // Filtered joined teams
   const filteredJoinedTeams = useMemo(() => {
-    if (!teamSearchQuery.trim()) return joinedTeams
-    const query = teamSearchQuery.toLowerCase()
-    return joinedTeams.filter(
-      (t) =>
-        t.nickname?.toLowerCase().includes(query) ||
-        t.email?.toLowerCase().includes(query)
-    )
-  }, [joinedTeams, teamSearchQuery])
+    const query = teamSearchQuery.toLowerCase().trim()
+    const list = query
+      ? joinedTeams.filter(
+          (t) =>
+            t.nickname?.toLowerCase().includes(query) ||
+            t.email?.toLowerCase().includes(query)
+        )
+      : joinedTeams
+
+    return [...list].sort((a, b) => {
+      const timeA = new Date(a.update_date).getTime() || 0
+      const timeB = new Date(b.update_date).getTime() || 0
+      return joinedTeamSortDesc ? timeB - timeA : timeA - timeB
+    })
+  }, [joinedTeams, teamSearchQuery, joinedTeamSortDesc])
 
   // Stats
   const stats = useMemo(() => {
@@ -329,6 +346,15 @@ export const TeamPage: React.FC = () => {
                 size="sm"
                 className="min-w-[100px]"
               />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setMemberSortDesc((prev) => !prev)}
+                className="h-9 px-2 flex items-center gap-1 text-xs"
+              >
+                <ArrowUpDown className="h-3.5 w-3.5" />
+                <span>{memberSortDesc ? '倒序' : '正序'}</span>
+              </Button>
               <ViewToggle
                 value={viewMode}
                 onChange={setViewMode}
@@ -419,6 +445,15 @@ export const TeamPage: React.FC = () => {
                 size="sm"
                 className="min-w-[100px]"
               />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setJoinedTeamSortDesc((prev) => !prev)}
+                className="h-9 px-2 flex items-center gap-1 text-xs"
+              >
+                <ArrowUpDown className="h-3.5 w-3.5" />
+                <span>{joinedTeamSortDesc ? '倒序' : '正序'}</span>
+              </Button>
               <ViewToggle
                 value={joinedTeamsViewMode}
                 onChange={setJoinedTeamsViewMode}

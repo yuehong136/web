@@ -4,7 +4,7 @@
  */
 
 import React from 'react'
-import { Plus, Grid, List as ListIcon, Database, MessageSquare, HardDrive, Zap, Search, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Plus, Grid, List as ListIcon, Database, MessageSquare, HardDrive, Zap, Search, ChevronLeft, ChevronRight, ArrowUpDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -67,6 +67,7 @@ export const MemoryListPage: React.FC = () => {
   
   // 时间格式
   const [timeFormat, setTimeFormat] = React.useState<'detailed' | 'compact' | 'relative'>('detailed')
+  const [sortDesc, setSortDesc] = React.useState(true)
 
   // 更新筛选条件（搜索词变化时）
   React.useEffect(() => {
@@ -91,6 +92,13 @@ export const MemoryListPage: React.FC = () => {
   // 记忆库列表
   const memories = data?.memory_list || []
   const total = data?.total_count || 0
+
+  const sortedMemories = React.useMemo(() => {
+    const getSortTime = (memory: Memory) => memory.update_time ?? memory.create_time ?? 0
+    return [...memories].sort((a, b) => (
+      sortDesc ? getSortTime(b) - getSortTime(a) : getSortTime(a) - getSortTime(b)
+    ))
+  }, [memories, sortDesc])
 
   // 统计数据（示例数据，实际应从 API 获取）
   const stats = {
@@ -155,7 +163,7 @@ export const MemoryListPage: React.FC = () => {
   }
 
   // 判断是否显示空状态
-  const showEmptyState = !isLoading && memories.length === 0
+  const showEmptyState = !isLoading && sortedMemories.length === 0
   const emptyStateType = filter.keywords ? 'search' : 'list'
 
   return (
@@ -240,6 +248,16 @@ export const MemoryListPage: React.FC = () => {
             size="sm"
             className="min-w-[100px]"
           />
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setSortDesc((prev) => !prev)}
+            className="h-9 px-2 flex items-center gap-1 text-xs"
+          >
+            <ArrowUpDown className="h-3.5 w-3.5" />
+            <span>{sortDesc ? '倒序' : '正序'}</span>
+          </Button>
           
           {/* 视图切换 */}
           <ViewToggle
@@ -274,7 +292,7 @@ export const MemoryListPage: React.FC = () => {
                         className="h-[180px] rounded-lg bg-surface-secondary animate-pulse"
                       />
                     ))
-                  : memories.map((memory) => (
+                  : sortedMemories.map((memory) => (
                       <MemoryCard
                         key={memory.id}
                         data={memory}
@@ -287,7 +305,7 @@ export const MemoryListPage: React.FC = () => {
             ) : (
               /* 列表视图 */
               <MemoryListView
-                data={memories}
+                data={sortedMemories}
                 onEdit={handleEdit}
                 onDelete={handleDeleteClick}
                 isLoading={isLoading}

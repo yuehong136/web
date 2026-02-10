@@ -13,6 +13,7 @@ import {
   FileEdit,
   Clock,
   Search,
+  ArrowUpDown,
   ChevronLeft,
   ChevronRight,
   Trash2,
@@ -71,6 +72,7 @@ export const StudioPage: React.FC = () => {
   // 删除确认弹窗状态
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
   const [appToDelete, setAppToDelete] = React.useState<DialogApp | null>(null)
+  const [sortDesc, setSortDesc] = React.useState(true)
 
   // API hooks - 使用后端分页（与 ragflow 一致）
   const {
@@ -87,8 +89,6 @@ export const StudioPage: React.FC = () => {
 
   const dialogApps = data.dialogs
   const total = data.total
-  const totalPages = Math.ceil(total / pagination.pageSize)
-
   // 本地状态筛选（状态筛选仍在前端，因为后端暂不支持）
   const filteredApps = React.useMemo(() => {
     if (filter.status.length === 0) {
@@ -96,6 +96,15 @@ export const StudioPage: React.FC = () => {
     }
     return dialogApps.filter((app) => filter.status.includes(app.status))
   }, [dialogApps, filter.status])
+
+  const sortedApps = React.useMemo(() => {
+    const getSortTime = (app: DialogApp) => app.update_time || app.create_time || 0
+    return [...filteredApps].sort((a, b) => (
+      sortDesc ? getSortTime(b) - getSortTime(a) : getSortTime(a) - getSortTime(b)
+    ))
+  }, [filteredApps, sortDesc])
+
+  const totalPages = Math.ceil(total / pagination.pageSize)
 
   // 统计数据（基于当前页数据的估算）
   const stats = React.useMemo(() => {
@@ -196,7 +205,7 @@ export const StudioPage: React.FC = () => {
   }
 
   // 判断是否显示空状态
-  const showEmptyState = !isLoading && filteredApps.length === 0
+  const showEmptyState = !isLoading && sortedApps.length === 0
   const emptyStateType = searchString || filter.status.length > 0 ? 'search' : 'list'
 
   return (
@@ -294,6 +303,16 @@ export const StudioPage: React.FC = () => {
             className="min-w-[100px]"
           />
 
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setSortDesc((prev) => !prev)}
+            className="h-9 px-2 flex items-center gap-1 text-xs"
+          >
+            <ArrowUpDown className="h-3.5 w-3.5" />
+            <span>{sortDesc ? '倒序' : '正序'}</span>
+          </Button>
+
           {/* 视图切换 */}
           <ViewToggle
             value={viewMode}
@@ -327,7 +346,7 @@ export const StudioPage: React.FC = () => {
                         className="h-[180px] rounded-2xl bg-surface-secondary animate-pulse"
                       />
                     ))
-                  : filteredApps.map((app) => (
+                  : sortedApps.map((app) => (
                       <AppCard
                         key={app.id}
                         data={app}
@@ -342,7 +361,7 @@ export const StudioPage: React.FC = () => {
             ) : (
               /* 列表视图 */
               <AppListView
-                data={filteredApps}
+                data={sortedApps}
                 selectedIds={selectedIds}
                 onSelect={toggleSelect}
                 onSelectAll={selectAll}

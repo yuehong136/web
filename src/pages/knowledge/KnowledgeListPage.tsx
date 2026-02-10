@@ -15,6 +15,7 @@ import {
   List as ListIcon,
   Layers,
   Target,
+  ArrowUpDown,
   ChevronLeft,
   ChevronRight,
   X,
@@ -1082,6 +1083,16 @@ export const KnowledgeListPage: React.FC = () => {
               size="sm"
               className="min-w-[100px]"
             />
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setSortDesc((prev) => !prev)}
+              className="h-9 px-2 flex items-center gap-1 text-xs"
+            >
+              <ArrowUpDown className="h-3.5 w-3.5" />
+              <span>{sortDesc ? '倒序' : '正序'}</span>
+            </Button>
             
             <ViewToggle
               value={viewMode}

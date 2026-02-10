@@ -39,6 +39,7 @@ import {
   Zap,
   Check,
   Rocket,
+  ArrowUpDown,
   ChevronRight,
   Clock,
 } from 'lucide-react'
@@ -97,6 +98,7 @@ export const MCPServersPage: React.FC<ServerListPageProps> = ({ onServerSelect }
   const [searchTerm, setSearchTerm] = useState('')
   const [searchKeyword, setSearchKeyword] = useState('')
   const [typeFilter, setTypeFilter] = useState('all')
+  const [sortDesc, setSortDesc] = useState(true)
 
   // 弹窗状态
   const [showCreateDialog, setShowCreateDialog] = useState(false)
@@ -148,6 +150,23 @@ export const MCPServersPage: React.FC<ServerListPageProps> = ({ onServerSelect }
 
     return result
   }, [servers, typeFilter, searchTerm])
+
+  const sortedServers = useMemo(() => {
+    const parseSortTime = (server: MCPServer) => {
+      const raw = server.update_time || server.create_time
+      if (!raw) return 0
+      const asNum = Number(raw)
+      if (!Number.isNaN(asNum) && asNum > 0) {
+        return asNum < 1_000_000_000_000 ? asNum * 1000 : asNum
+      }
+      const parsed = new Date(raw).getTime()
+      return Number.isNaN(parsed) ? 0 : parsed
+    }
+
+    return [...filteredServers].sort((a, b) => (
+      sortDesc ? parseSortTime(b) - parseSortTime(a) : parseSortTime(a) - parseSortTime(b)
+    ))
+  }, [filteredServers, sortDesc])
 
   // 处理搜索
   const handleSearch = (value: string) => {
@@ -237,7 +256,7 @@ export const MCPServersPage: React.FC<ServerListPageProps> = ({ onServerSelect }
         gridCols="grid-cols-[2fr_80px_1fr_80px_120px_60px]"
       />
       <ResourceListBody>
-        {filteredServers.map((server) => {
+        {sortedServers.map((server) => {
           const online = hasServerTools(server)
           const tools = getServerTools(server)
           const typeConfig = SERVER_TYPE_CONFIG[server.server_type] || {
@@ -375,7 +394,7 @@ export const MCPServersPage: React.FC<ServerListPageProps> = ({ onServerSelect }
   // 渲染网格视图
   const renderGridView = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-      {filteredServers.map((server) => (
+      {sortedServers.map((server) => (
         <MCPServerCard
           key={server.id}
           server={server}
@@ -532,6 +551,16 @@ export const MCPServersPage: React.FC<ServerListPageProps> = ({ onServerSelect }
             <RefreshCw className={cn('h-4 w-4', isFetching && 'animate-spin')} />
           </Button>
 
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setSortDesc((prev) => !prev)}
+            className="h-9 px-2 flex items-center gap-1 text-xs"
+          >
+            <ArrowUpDown className="h-3.5 w-3.5" />
+            <span>{sortDesc ? '倒序' : '正序'}</span>
+          </Button>
+
           {/* 视图切换 */}
           <ViewToggle
             value={viewMode}
@@ -587,7 +616,7 @@ export const MCPServersPage: React.FC<ServerListPageProps> = ({ onServerSelect }
             </div>
           ))}
         </div>
-      ) : filteredServers.length === 0 ? (
+      ) : sortedServers.length === 0 ? (
         // 空状态
         <div
           className="flex flex-col items-center justify-center py-16 rounded-2xl border"

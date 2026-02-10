@@ -1037,12 +1037,12 @@ export interface RetrievalTestRequest {
 export interface CreateSearchRequest {
   name: string
   description?: string
-  kb_ids: string[]
-  config?: Record<string, any>
+  search_config?: Record<string, unknown>
 }
 
 // 列出搜索请求
 export interface ListSearchRequest {
+  owner_ids?: string[]
   keywords?: string
   page?: number
   page_size?: number
@@ -1053,15 +1053,15 @@ export interface ListSearchRequest {
 // 更新搜索请求
 export interface UpdateSearchRequest {
   search_id: string
-  name?: string
+  name: string
   description?: string
-  kb_ids?: string[]
-  config?: Record<string, any>
+  search_config?: Record<string, unknown>
+  tenant_id: string
 }
 
 // 删除搜索请求
 export interface RemoveSearchRequest {
-  search_ids: string[]
+  search_id: string
 }
 
 // 查询重写请求

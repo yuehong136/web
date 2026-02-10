@@ -9,6 +9,7 @@ import { dialogAPI } from './dialog'
 import { mcpAPI } from './mcp'
 import { agentAPI } from './agent'
 import { documentAPI } from './document'
+import { searchAPI } from './search'
 
 // 导出各个API模块
 export { authAPI } from './auth'
@@ -18,6 +19,7 @@ export { dialogAPI } from './dialog'
 export { mcpAPI } from './mcp'
 export { agentAPI } from './agent'
 export { documentAPI } from './document'
+export { searchAPI } from './search'
 
 // 创建一个统一的API对象
 export const api = {
@@ -28,6 +30,7 @@ export const api = {
   mcp: mcpAPI,
   agent: agentAPI,
   document: documentAPI,
+  search: searchAPI,
 }
 
 // 默认导出

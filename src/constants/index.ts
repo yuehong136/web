@@ -13,6 +13,7 @@ export const ROUTES = {
   MEMORY_MESSAGES: '/memory/:id',
   MEMORY_SETTINGS: '/memory/:id/settings',
   EXPLORE: '/explore',
+  SEARCH: '/search',
   DOCUMENTS: '/documents',
   AI_TOOLS: '/ai-tools',
   WORKFLOW: '/workflow',

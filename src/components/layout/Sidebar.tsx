@@ -14,6 +14,7 @@ import {
   Monitor,
   LogOut,
   Compass,
+  Search,
   Check,
   Workflow,
   Home,
@@ -72,6 +73,7 @@ interface NavItem {
   title: string
   href: string
   icon: React.ComponentType<{ className?: string }>
+  children?: Array<{ title: string; href: string; icon?: React.ComponentType<{ className?: string }> }>
 }
 
 const navItems: NavItem[] = [
@@ -84,6 +86,11 @@ const navItems: NavItem[] = [
     title: '探索',
     href: ROUTES.EXPLORE,
     icon: Compass,
+  },
+  {
+    title: '搜索',
+    href: ROUTES.SEARCH,
+    icon: Search,
   },
   {
     title: '知识库',
@@ -242,47 +249,74 @@ export const Sidebar: React.FC<SidebarProps> = ({
             {navItems.map((item, index) => {
               const Icon = item.icon
               const isActive = item.href === ROUTES.AI_TOOLS
-                  ? (location.pathname.startsWith(ROUTES.AI_TOOLS) || location.pathname.startsWith('/tools'))
-                  : item.href === ROUTES.HOME
-                      ? (location.pathname === ROUTES.HOME || location.pathname === '/')
-                      : location.pathname.startsWith(item.href)
+                ? (location.pathname.startsWith(ROUTES.AI_TOOLS) || location.pathname.startsWith('/tools'))
+                : item.href === ROUTES.HOME
+                  ? (location.pathname === ROUTES.HOME || location.pathname === '/')
+                  : location.pathname.startsWith(item.href) ||
+                    item.children?.some((child) => location.pathname.startsWith(child.href))
 
               return (
-                  <SidebarTooltip key={item.href} content={item.title} enabled={isCollapsed}>
+                <div key={item.href} className="space-y-1">
+                  <SidebarTooltip content={item.title} enabled={isCollapsed}>
                     <NavLink
-                        to={item.href}
-                        className={cn(
-                            "relative flex items-center rounded-xl group",
-                            "transition-all duration-200 ease-out",
-                            isCollapsed
-                                ? "justify-center p-2.5"
-                                : "gap-3 px-3 py-2.5",
-                            isActive
-                                ? "bg-components-sidebar-item-bg-active text-components-sidebar-item-text-active"
-                                : "text-components-sidebar-item-text hover:bg-components-sidebar-item-bg-hover hover:text-text-primary"
-                        )}
+                      to={item.href}
+                      className={cn(
+                        "relative flex items-center rounded-xl group",
+                        "transition-all duration-200 ease-out",
+                        isCollapsed
+                          ? "justify-center p-2.5"
+                          : "gap-3 px-3 py-2.5",
+                        isActive
+                          ? "bg-components-sidebar-item-bg-active text-components-sidebar-item-text-active"
+                          : "text-components-sidebar-item-text hover:bg-components-sidebar-item-bg-hover hover:text-text-primary"
+                      )}
                     >
                       <Icon className={cn(
-                          "flex-shrink-0 h-5 w-5 transition-transform duration-200",
-                          isActive ? "text-components-sidebar-item-text-active" : ""
+                        "flex-shrink-0 h-5 w-5 transition-transform duration-200",
+                        isActive ? "text-components-sidebar-item-text-active" : ""
                       )} />
-                      {/* 菜单文字使用延迟动画，每个菜单项延迟递增 */}
                       <span
-                          className={cn(
-                              "text-sm font-medium whitespace-nowrap",
-                              "transition-all duration-300 ease-out",
-                              isCollapsed
-                                  ? "opacity-0 w-0 translate-x-[-10px] pointer-events-none"
-                                  : "opacity-100 w-auto translate-x-0"
-                          )}
-                          style={{
-                            transitionDelay: isCollapsed ? '0ms' : `${50 + index * 20}ms`
-                          }}
+                        className={cn(
+                          "text-sm font-medium whitespace-nowrap",
+                          "transition-all duration-300 ease-out",
+                          isCollapsed
+                            ? "opacity-0 w-0 translate-x-[-10px] pointer-events-none"
+                            : "opacity-100 w-auto translate-x-0"
+                        )}
+                        style={{
+                          transitionDelay: isCollapsed ? '0ms' : `${50 + index * 20}ms`
+                        }}
                       >
-                    {item.title}
-                  </span>
+                        {item.title}
+                      </span>
                     </NavLink>
                   </SidebarTooltip>
+
+                  {!isCollapsed && item.children?.length ? (
+                    <div className="ml-11 space-y-1">
+                      {item.children.map((child) => {
+                        const ChildIcon = child.icon
+                        const childActive = location.pathname.startsWith(child.href)
+
+                        return (
+                          <NavLink
+                            key={child.href}
+                            to={child.href}
+                            className={cn(
+                              "flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs transition-colors",
+                              childActive
+                                ? "bg-components-sidebar-item-bg-active text-components-sidebar-item-text-active"
+                                : "text-components-sidebar-item-text hover:bg-components-sidebar-item-bg-hover"
+                            )}
+                          >
+                            {ChildIcon ? <ChildIcon className="h-3.5 w-3.5" /> : null}
+                            <span>{child.title}</span>
+                          </NavLink>
+                        )
+                      })}
+                    </div>
+                  ) : null}
+                </div>
               )
             })}
           </div>

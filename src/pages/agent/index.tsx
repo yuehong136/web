@@ -14,6 +14,7 @@ import {
   Grid3X3,
   List as ListIcon,
   Clock,
+  ArrowUpDown,
   Zap,
   ChevronLeft,
   ChevronRight,
@@ -309,6 +310,7 @@ export default function AgentListPage() {
   const [searchKeyword, setSearchKeyword] = useState('')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [timeFormat, setTimeFormat] = useState<'detailed' | 'compact' | 'relative'>('detailed')
+  const [sortDesc, setSortDesc] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(12)
   const [filterValue, setFilterValue] = useState<FilterValue>({ type: [] })
@@ -359,6 +361,13 @@ export default function AgentListPage() {
     })
   }, [agents, filterValue, searchKeyword])
 
+  const sortedAgents = useMemo(() => {
+    const getSortTime = (agent: IFlow) => agent.update_time || 0
+    return [...filteredAgents].sort((a, b) => (
+      sortDesc ? getSortTime(b) - getSortTime(a) : getSortTime(a) - getSortTime(b)
+    ))
+  }, [filteredAgents, sortDesc])
+
   // 统计数据
   const stats = useMemo(() => {
     const agentCount = agents.filter(a => a.canvas_type !== 'pipeline' && a.canvas_category !== 'Ingestion').length
@@ -377,11 +386,11 @@ export default function AgentListPage() {
   }, [agents])
 
   // 分页计算
-  const totalPages = Math.ceil(filteredAgents.length / pageSize)
+  const totalPages = Math.ceil(sortedAgents.length / pageSize)
   const paginatedAgents = useMemo(() => {
     const start = (currentPage - 1) * pageSize
-    return filteredAgents.slice(start, start + pageSize)
-  }, [filteredAgents, currentPage, pageSize])
+    return sortedAgents.slice(start, start + pageSize)
+  }, [sortedAgents, currentPage, pageSize])
 
   // 页码变化时重置到第一页
   React.useEffect(() => {
@@ -609,6 +618,19 @@ export default function AgentListPage() {
             size="sm"
             className="min-w-[100px]"
           />
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setSortDesc((prev) => !prev)
+              setCurrentPage(1)
+            }}
+            className="h-9 px-2 flex items-center gap-1 text-xs"
+          >
+            <ArrowUpDown className="h-3.5 w-3.5" />
+            <span>{sortDesc ? '倒序' : '正序'}</span>
+          </Button>
           
           {/* 视图切换 */}
           <ViewToggle
@@ -628,7 +650,7 @@ export default function AgentListPage() {
         <div className="flex-1 flex items-center justify-center">
           <Loading variant="spinner" size="lg" />
         </div>
-      ) : filteredAgents.length === 0 ? (
+      ) : sortedAgents.length === 0 ? (
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <Workflow className="h-12 w-12 mx-auto mb-4" style={{ color: 'var(--color-text-muted)' }} />
@@ -700,7 +722,7 @@ export default function AgentListPage() {
             }}>
               <div className="px-6 py-4 flex items-center justify-between">
                 <div className="text-sm" style={{ color: 'var(--color-components-pagination-text)' }}>
-                  共 {filteredAgents.length} 项
+                  共 {sortedAgents.length} 项
                 </div>
                 
                 <div className="flex items-center space-x-4">
