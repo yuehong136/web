@@ -1,5 +1,6 @@
 import React, { memo, useState } from 'react'
-import { Clock, Database, MoreVertical, Search, Settings, Sparkles, Trash2, Workflow } from 'lucide-react'
+import { Clock, Database, MoreVertical, Settings, Sparkles, Trash2, Workflow } from 'lucide-react'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Dropdown, DropdownItem } from '@/components/ui/dropdown'
 import { getAvatarGradient } from '@/components/ui/resource-list'
@@ -53,11 +54,10 @@ const SearchGridCard: React.FC<SearchGridCardProps> = ({
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3 flex-1 min-w-0">
             {app.avatar ? (
-              <img
-                src={app.avatar}
-                alt={app.name}
-                className="h-10 w-10 rounded-xl object-cover"
-              />
+              <Avatar className="h-10 w-10">
+                <AvatarImage src={app.avatar} alt={app.name} />
+                <AvatarFallback><Database className="h-5 w-5" /></AvatarFallback>
+              </Avatar>
             ) : (
               <div
                 className={cn(
@@ -66,7 +66,9 @@ const SearchGridCard: React.FC<SearchGridCardProps> = ({
                   gradient
                 )}
               >
-                <Search className="h-5 w-5 text-white" />
+                <span className="text-white font-semibold text-lg">
+                  {app.name.charAt(0).toUpperCase()}
+                </span>
               </div>
             )}
 

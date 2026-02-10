@@ -82,7 +82,8 @@ const CreateSearchDialog: React.FC<CreateSearchDialogProps> = ({
           web_search: false,
           query_mindmap: false,
           meta_data_filter: {
-            method: 'manual',
+            method: 'disabled',
+            logic: 'and',
             manual: [],
           },
         },

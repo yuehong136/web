@@ -64,4 +64,62 @@ export const searchAPI = {
       }),
     })
   },
+
+  // 查询思维导图
+  mindmap: (data: {
+    question: string
+    kb_ids: string[]
+    search_id?: string
+    searchId?: string
+    doc_ids?: string[]
+  }): Promise<unknown> =>
+    apiClient.post('/v1/conversation/mindmap', {
+      question: data.question,
+      kb_ids: data.kb_ids,
+      // Keep both naming styles for compatibility with different backend branches.
+      search_id: data.search_id || data.searchId,
+      searchId: data.searchId || data.search_id,
+      doc_ids: data.doc_ids,
+    }),
+
+  // 分享态查询思维导图（对齐 ragflow /searchbots/mindmap）
+  mindmapShare: async (data: {
+    question: string
+    kb_ids: string[]
+    search_id?: string
+    signal?: AbortSignal
+  }): Promise<unknown> => {
+    const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+    const searchAuth =
+      typeof window !== 'undefined'
+        ? new URLSearchParams(window.location.search).get('auth')
+        : null
+    const storedToken = localStorage.getItem('auth_token')
+    const authorization = searchAuth
+      ? `Bearer ${searchAuth}`
+      : storedToken
+        ? `Bearer ${storedToken}`
+        : undefined
+
+    const response = await fetch(`${baseURL}/api/v1/searchbots/mindmap`, {
+      method: 'POST',
+      signal: data.signal,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(authorization && { Authorization: authorization }),
+      },
+      body: JSON.stringify({
+        question: data.question,
+        kb_ids: data.kb_ids,
+        search_id: data.search_id,
+      }),
+    })
+
+    const raw = await response.json()
+    const code = raw?.retcode ?? raw?.code ?? 0
+    if (!response.ok || code !== 0) {
+      throw new Error(raw?.retmsg || raw?.message || `HTTP ${response.status}`)
+    }
+    return raw?.data ?? null
+  },
 }

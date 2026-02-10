@@ -32,6 +32,7 @@ export interface SearchConfig {
   query_mindmap?: boolean
   meta_data_filter?: {
     method: string
+    logic?: 'and' | 'or'
     manual: Array<{ key: string; op: string; value: string }>
   }
 }
@@ -84,6 +85,7 @@ export interface SearchTurn {
   id: string
   query: string
   summary: string
+  thinking?: string
   isStreaming: boolean
   chunks: ChunkResult[]
   docAggs: DocAgg[]

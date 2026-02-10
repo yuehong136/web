@@ -725,9 +725,7 @@ export function AutoMetadataFormField({
 // =====================================================
 interface ChildrenDelimiterFormFieldProps {
   className?: string
-}
-
-export function ChildrenDelimiterFormField({
+}export function ChildrenDelimiterFormField({
   className,
 }: ChildrenDelimiterFormFieldProps) {
   const form = useFormContext()

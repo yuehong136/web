@@ -8,6 +8,7 @@ import {
   type ChunkResult,
   type DocAgg,
   type SearchApp,
+  type SearchConfig,
   type SearchTurn,
 } from '@/types/search'
 
@@ -19,22 +20,69 @@ const isRunningPhase = (phase: SearchExecutionPhase) => {
   )
 }
 
-export const useSearchExecution = (searchApp: SearchApp | null) => {
+export const useSearchExecution = (searchApp: SearchApp | null, appliedConfig?: SearchConfig) => {
   const [turns, setTurns] = useState<SearchTurn[]>([])
   const [phase, setPhase] = useState<SearchExecutionPhase>(SearchExecutionPhase.IDLE)
   const abortControllerRef = useRef<AbortController | null>(null)
+  const streamFrameRef = useRef<number | null>(null)
+  const pendingStreamPatchRef = useRef<{ turnId: string; summary: string; thinking: string } | null>(null)
 
   const updateTurn = useCallback((turnId: string, partial: Partial<SearchTurn>) => {
     setTurns((prev) => prev.map((turn) => (turn.id === turnId ? { ...turn, ...partial } : turn)))
   }, [])
 
+  const resetPendingStreamPatch = useCallback(() => {
+    if (streamFrameRef.current !== null) {
+      cancelAnimationFrame(streamFrameRef.current)
+      streamFrameRef.current = null
+    }
+    pendingStreamPatchRef.current = null
+  }, [])
+
+  const flushPendingStreamPatch = useCallback(() => {
+    if (streamFrameRef.current !== null) {
+      cancelAnimationFrame(streamFrameRef.current)
+      streamFrameRef.current = null
+    }
+    const pendingPatch = pendingStreamPatchRef.current
+    if (!pendingPatch) return
+    pendingStreamPatchRef.current = null
+    updateTurn(pendingPatch.turnId, {
+      summary: pendingPatch.summary,
+      thinking: pendingPatch.thinking,
+      phase: SearchExecutionPhase.SUMMARIZING,
+    })
+  }, [updateTurn])
+
+  const scheduleStreamPatch = useCallback(
+    (turnId: string, summary: string, thinking: string) => {
+      pendingStreamPatchRef.current = { turnId, summary, thinking }
+      if (streamFrameRef.current !== null) return
+
+      streamFrameRef.current = requestAnimationFrame(() => {
+        streamFrameRef.current = null
+        const pendingPatch = pendingStreamPatchRef.current
+        if (!pendingPatch) return
+        pendingStreamPatchRef.current = null
+        updateTurn(pendingPatch.turnId, {
+          summary: pendingPatch.summary,
+          thinking: pendingPatch.thinking,
+          phase: SearchExecutionPhase.SUMMARIZING,
+        })
+      })
+    },
+    [updateTurn]
+  )
+
   const search = useCallback(
     async (query: string, options?: { docIds?: string[] }) => {
+      const effectiveConfig = appliedConfig || searchApp?.search_config
       if (!searchApp || !query.trim()) return
-      if (!searchApp.search_config?.kb_ids?.length) return
+      if (!effectiveConfig?.kb_ids?.length) return
 
       if (abortControllerRef.current) {
         abortControllerRef.current.abort()
+        resetPendingStreamPatch()
         setTurns((prev) =>
           prev.map((turn) =>
             turn.isStreaming ? { ...turn, isStreaming: false, phase: SearchExecutionPhase.STOPPED } : turn
@@ -47,12 +95,13 @@ export const useSearchExecution = (searchApp: SearchApp | null) => {
       const { signal } = abortController
 
       const turnId = `turn-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
-      const config = searchApp.search_config
+      const config = effectiveConfig
 
       const newTurn: SearchTurn = {
         id: turnId,
         query: query.trim(),
         summary: '',
+        thinking: '',
         isStreaming: true,
         chunks: [],
         docAggs: [],
@@ -64,6 +113,18 @@ export const useSearchExecution = (searchApp: SearchApp | null) => {
       setPhase(SearchExecutionPhase.RETRIEVING)
 
       try {
+        const metadataCondition =
+          config.meta_data_filter?.method === 'manual' && config.meta_data_filter.manual?.length
+            ? {
+                logic: config.meta_data_filter.logic || 'and',
+                conditions: config.meta_data_filter.manual.map((item) => ({
+                  name: item.key,
+                  comparison_operator: item.op,
+                  value: item.value,
+                })),
+              }
+            : undefined
+
         const retrievalPromise = knowledgeAPI.retrievalTest
           .test({
             kb_ids: config.kb_ids,
@@ -77,6 +138,7 @@ export const useSearchExecution = (searchApp: SearchApp | null) => {
             rerank_id: config.use_rerank ? config.rerank_id || null : null,
             highlight: true,
             keyword: true,
+            metadata_condition: metadataCondition,
           })
           .then((result) => {
             if (signal.aborted) return
@@ -126,19 +188,22 @@ export const useSearchExecution = (searchApp: SearchApp | null) => {
                   if (data?.data === true) continue
                   if (data?.retcode !== 0 || !data?.data?.answer) continue
 
-                  const content = String(data.data.answer)
+                  const rawAnswer = String(data.data.answer)
+                  const thinkMatch = rawAnswer.match(/<think(?:ing)?>([\s\S]*?)(?:<\/think(?:ing)?>|$)/)
+                  const thinking = thinkMatch?.[1]?.trim() || ''
+
+                  const content = rawAnswer
                     .replace(/<think(?:ing)?>[\s\S]*?<\/think(?:ing)?>/g, '')
                     .replace(/<think(?:ing)?>[\s\S]*$/, '')
                     .trim()
 
-                  updateTurn(turnId, {
-                    summary: content,
-                    phase: SearchExecutionPhase.SUMMARIZING,
-                  })
+                  scheduleStreamPatch(turnId, content, thinking)
                 } catch {
                   // Ignore malformed SSE chunk.
                 }
               }
+
+              flushPendingStreamPatch()
             })()
           : Promise.resolve()
 
@@ -185,12 +250,13 @@ export const useSearchExecution = (searchApp: SearchApp | null) => {
         setPhase(SearchExecutionPhase.ERROR)
       }
     },
-    [searchApp, updateTurn]
+    [appliedConfig, flushPendingStreamPatch, resetPendingStreamPatch, scheduleStreamPatch, searchApp, updateTurn]
   )
 
   const stop = useCallback(() => {
     abortControllerRef.current?.abort()
     abortControllerRef.current = null
+    resetPendingStreamPatch()
 
     setTurns((prev) =>
       prev.map((turn) =>
@@ -200,14 +266,15 @@ export const useSearchExecution = (searchApp: SearchApp | null) => {
       )
     )
     setPhase(SearchExecutionPhase.STOPPED)
-  }, [])
+  }, [resetPendingStreamPatch])
 
   const clear = useCallback(() => {
     abortControllerRef.current?.abort()
     abortControllerRef.current = null
+    resetPendingStreamPatch()
     setTurns([])
     setPhase(SearchExecutionPhase.IDLE)
-  }, [])
+  }, [resetPendingStreamPatch])
 
   return {
     turns,

@@ -1,5 +1,6 @@
 import React, { memo } from 'react'
 import { Clock, Database, Settings, Sparkles, Trash2 } from 'lucide-react'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import {
   ResourceListBody,
   ResourceListContainer,
@@ -41,19 +42,29 @@ interface SearchListViewProps {
 
 const SearchAvatar: React.FC<{ app: SearchAppListItem }> = ({ app }) => {
   const gradient = getAvatarGradient(app.name)
+
   if (app.avatar) {
     return (
-      <img
-        src={app.avatar}
-        alt={app.name}
-        className="h-12 w-12 rounded-radius-lg object-cover"
-      />
+      <Avatar className="h-12 w-12">
+        <AvatarImage src={app.avatar} alt={app.name} />
+        <AvatarFallback>
+          <Database className="h-5 w-5" />
+        </AvatarFallback>
+      </Avatar>
     )
   }
 
   return (
-    <div className={cn('h-12 w-12 rounded-radius-lg flex items-center justify-center bg-gradient-to-br', gradient)}>
-      <span className="text-text-inverted text-lg font-semibold">{app.name.charAt(0).toUpperCase()}</span>
+    <div
+      className={cn(
+        'w-12 h-12 rounded-xl flex items-center justify-center',
+        'bg-gradient-to-br shadow-sm',
+        gradient
+      )}
+    >
+      <span className="text-white font-semibold text-xl">
+        {app.name.charAt(0).toUpperCase()}
+      </span>
     </div>
   )
 }

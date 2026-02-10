@@ -1037,6 +1037,7 @@ export interface RetrievalTestRequest {
 export interface CreateSearchRequest {
   name: string
   description?: string
+  avatar?: string | null
   search_config?: Record<string, unknown>
 }
 
@@ -1055,6 +1056,7 @@ export interface UpdateSearchRequest {
   search_id: string
   name: string
   description?: string
+  avatar?: string | null
   search_config?: Record<string, unknown>
   tenant_id: string
 }

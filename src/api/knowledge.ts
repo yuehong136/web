@@ -14,6 +14,7 @@ import type {
   KBMetadataSettingsRequest,
   DocumentMetadataSettingsRequest,
   DocumentFilter,
+  MetadataCondition,
   IDocumentInfoFilter,
 } from '../types/api'
 
@@ -539,6 +540,7 @@ export const knowledgeAPI = {
         weights?: string
       } | null
       cross_languages?: string[] | null
+      metadata_condition?: MetadataCondition
     }): Promise<{
       total: number
       chunks: Array<{
