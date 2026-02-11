@@ -94,7 +94,7 @@ export function AddDataSourceModal({
               {/* 底部操作按钮 */}
               <div className="sticky bottom-0 flex items-center justify-end gap-3 
                               pt-5 mt-6 border-t border-border-default 
-                              bg-background-body">
+                              bg-surface-primary">
                 <DynamicForm.CancelButton 
                   handleCancel={hideModal}
                   className="px-5 h-10 text-sm font-medium"

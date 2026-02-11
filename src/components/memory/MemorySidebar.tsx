@@ -4,10 +4,12 @@
  */
 
 import React from 'react'
-import { NavLink, useParams } from 'react-router-dom'
-import { MessageSquare, Settings, Database, Clock, Activity } from 'lucide-react'
+import { NavLink, useParams, useNavigate } from 'react-router-dom'
+import { MessageSquare, Settings, Database, Clock, Activity, ArrowLeft } from 'lucide-react'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
 import { cn, formatRelativeTime, formatBytes } from '@/lib/utils'
+import { ROUTES } from '@/constants'
 import { MEMORY_TEXTS } from '@/constants/memory-texts'
 import type { Memory } from '@/types/memory'
 
@@ -21,6 +23,7 @@ export const MemorySidebar: React.FC<MemorySidebarProps> = ({
   isLoading = false,
 }) => {
   const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
 
   // 导航项配置
   const navItems = [
@@ -54,8 +57,20 @@ export const MemorySidebar: React.FC<MemorySidebarProps> = ({
   if (isLoading) {
     return (
       <div className="h-full flex flex-col bg-background-surface border-r border-border-default">
+        {/* 返回按钮 - 加载时也可用 */}
+        <div className="px-4 pt-4 pb-0">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-space-xs text-text-secondary hover:text-text-primary"
+            onClick={() => navigate(ROUTES.MEMORY)}
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span>{MEMORY_TEXTS.common.allMemories}</span>
+          </Button>
+        </div>
         {/* 骨架屏 */}
-        <div className="p-6 space-y-4 animate-pulse">
+        <div className="px-6 pb-6 pt-4 space-y-4 animate-pulse">
           <div className="w-16 h-16 rounded-2xl bg-background-subtle" />
           <div className="h-5 w-3/4 bg-background-subtle rounded" />
           <div className="h-4 w-1/2 bg-background-subtle rounded" />
@@ -66,8 +81,21 @@ export const MemorySidebar: React.FC<MemorySidebarProps> = ({
 
   return (
     <div className="h-full flex flex-col bg-background-surface border-r border-border-default">
+      {/* 返回按钮 */}
+      <div className="px-4 pt-4 pb-0">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="gap-space-xs text-text-secondary hover:text-text-primary"
+          onClick={() => navigate(ROUTES.MEMORY)}
+        >
+          <ArrowLeft className="h-4 w-4" />
+          <span>{MEMORY_TEXTS.common.allMemories}</span>
+        </Button>
+      </div>
+
       {/* 头部信息区 */}
-      <div className="p-6 border-b border-border-default">
+      <div className="px-6 pb-6 pt-4 border-b border-border-default">
         {/* 头像带渐变光环和状态指示 */}
         <div className="mb-4 relative inline-block">
           {/* 渐变光环背景 */}

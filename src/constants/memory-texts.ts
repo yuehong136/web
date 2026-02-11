@@ -201,6 +201,7 @@ export const MEMORY_TEXTS = {
     pleaseSelect: '请选择',
     selectMemoryType: '选择记忆类型...',
     notEditable: '创建后不可修改',
+    allMemories: '所有记忆库',
   },
 }
 
