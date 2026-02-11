@@ -30,6 +30,7 @@ import { ConfigProvider, theme, Modal, Input } from 'antd'
 import type { PromptsProps } from '@ant-design/x'
 import XMarkdown from '@ant-design/x-markdown'
 import '@ant-design/x-markdown/dist/x-markdown.css'
+import { markdownCodeComponents } from '@/components/chat/MarkdownCodeBlock'
 import { Button } from '@/components/ui/button'
 import { cn, copyToClipboard } from '@/lib/utils'
 import { toast } from '@/lib/toast'
@@ -795,8 +796,8 @@ export const ExplorePage: React.FC = () => {
           if (carouselGroups.length === 0) {
             // 没有轮播组，直接渲染
             return (
-              <XMarkdown 
-                components={{ sup: SupComponent }} 
+              <XMarkdown
+                components={{ ...markdownCodeComponents, sup: SupComponent }}
                 paragraphTag="div"
               >
                 {mainContentWithSup}
@@ -812,9 +813,9 @@ export const ExplorePage: React.FC = () => {
             // 渲染文本部分
             if (part.trim()) {
               elements.push(
-                <XMarkdown 
+                <XMarkdown
                   key={`text-${idx}`}
-                  components={{ sup: SupComponent }} 
+                  components={{ ...markdownCodeComponents, sup: SupComponent }}
                   paragraphTag="div"
                 >
                   {part}

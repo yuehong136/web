@@ -1,7 +1,7 @@
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Sender } from '@ant-design/x'
-import type { SenderRef, SlotConfigType } from '@ant-design/x/es/sender'
-import { AudioLines, MicOff, Sparkles, WandSparkles } from 'lucide-react'
+import type { SenderRef } from '@ant-design/x/es/sender'
+import { AudioLines, ChevronDown, MicOff, Sparkles, WandSparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from '@/lib/toast'
 
@@ -48,33 +48,58 @@ interface SearchComposerProps {
   prefillVersion?: number
 }
 
-const SEMANTIC_SLOT_CONFIG: SlotConfigType[] = [
-  {
-    type: 'text',
-    value: '在',
-  },
-  {
-    type: 'select',
-    key: 'scope',
-    props: {
-      options: ['当前应用知识库', '全部已授权知识库'],
-      defaultValue: '当前应用知识库',
-    },
-    formatResult: (value: unknown) => String(value || '当前应用知识库'),
-  },
-  {
-    type: 'text',
-    value: '范围内，深度检索并回答：',
-  },
-  {
-    type: 'input',
-    key: 'query',
-    props: {
-      placeholder: '输入你想检索的问题',
-    },
-    formatResult: (value: unknown) => String(value || '').trim(),
-  },
-]
+const SCOPE_OPTIONS = ['当前应用知识库', '全部已授权知识库'] as const
+
+const ScopeSelector: React.FC<{
+  value: string
+  onChange: (value: string) => void
+}> = memo(({ value, onChange }) => {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [open])
+
+  return (
+    <div ref={ref} className="scope-selector-wrapper">
+      <button
+        type="button"
+        className="scope-selector-trigger"
+        onClick={() => setOpen((prev) => !prev)}
+      >
+        <span>{value}</span>
+        <ChevronDown className={cn('scope-selector-arrow', open && 'scope-selector-arrow-open')} />
+      </button>
+      {open && (
+        <div className="scope-selector-dropdown">
+          {SCOPE_OPTIONS.map((opt) => (
+            <button
+              key={opt}
+              type="button"
+              className={cn('scope-selector-option', opt === value && 'scope-selector-option-active')}
+              onClick={() => {
+                onChange(opt)
+                setOpen(false)
+              }}
+            >
+              {opt}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+})
+
+ScopeSelector.displayName = 'ScopeSelector'
 
 const SearchComposer: React.FC<SearchComposerProps> = ({
   onSearch,
@@ -89,7 +114,7 @@ const SearchComposer: React.FC<SearchComposerProps> = ({
   const speechRecognitionRef = useRef<BrowserSpeechRecognitionInstance | null>(null)
   const [value, setValue] = useState('')
   const [semanticMode, setSemanticMode] = useState(false)
-  const [semanticKey, setSemanticKey] = useState(0)
+  const [scope, setScope] = useState<string>(SCOPE_OPTIONS[0])
   const [recording, setRecording] = useState(false)
 
   const getSpeechRecognitionConstructor = useCallback(() => {
@@ -97,20 +122,11 @@ const SearchComposer: React.FC<SearchComposerProps> = ({
     return browserWindow.SpeechRecognition || browserWindow.webkitSpeechRecognition
   }, [])
 
-  const appendSpeechText = useCallback(
-    (transcript: string) => {
-      const nextText = transcript.trim()
-      if (!nextText) return
-
-      if (semanticMode) {
-        senderRef.current?.insert?.(nextText)
-        return
-      }
-
-      setValue((prev) => (prev.trim() ? `${prev} ${nextText}` : nextText))
-    },
-    [semanticMode]
-  )
+  const appendSpeechText = useCallback((transcript: string) => {
+    const nextText = transcript.trim()
+    if (!nextText) return
+    setValue((prev) => (prev.trim() ? `${prev} ${nextText}` : nextText))
+  }, [])
 
   const stopSpeechRecognition = useCallback(() => {
     speechRecognitionRef.current?.stop()
@@ -180,22 +196,34 @@ const SearchComposer: React.FC<SearchComposerProps> = ({
     (message: string) => {
       const next = message.trim()
       if (!next || isSearching) return
-      onSearch(next)
+
       if (semanticMode) {
-        setSemanticKey((prev) => prev + 1)
+        onSearch(`在 ${scope} 范围内，深度检索并回答：${next}`)
       } else {
-        setValue('')
+        onSearch(next)
       }
+      setValue('')
     },
-    [isSearching, onSearch, semanticMode]
+    [isSearching, onSearch, semanticMode, scope]
   )
 
   const senderPlaceholder = useMemo(() => {
     if (semanticMode) {
-      return '使用结构化语义输入组织检索问题'
+      return '输入你想检索的问题'
     }
     return placeholder
   }, [placeholder, semanticMode])
+
+  const semanticPrefix = useMemo(() => {
+    if (!semanticMode) return undefined
+    return (
+      <div className="semantic-prefix">
+        <span className="semantic-prefix-text">在</span>
+        <ScopeSelector value={scope} onChange={setScope} />
+        <span className="semantic-prefix-text">范围内，深度检索并回答：</span>
+      </div>
+    )
+  }, [semanticMode, scope])
 
   useEffect(() => {
     return () => {
@@ -216,6 +244,7 @@ const SearchComposer: React.FC<SearchComposerProps> = ({
     <div
       className={cn(
         'search-composer-area',
+        semanticMode && 'search-composer-semantic',
         variant === 'hero'
           ? 'search-composer-hero'
           : 'search-composer-dock rounded-radius-xl border border-border-default bg-surface-primary p-space-sm'
@@ -244,9 +273,29 @@ const SearchComposer: React.FC<SearchComposerProps> = ({
           gap: 8px !important;
         }
 
+        /* 语义模式：prefix 在上方，input + suffix 在下方 */
+        .search-composer-semantic .ant-sender-content {
+          display: grid !important;
+          grid-template-columns: 1fr auto !important;
+          grid-template-rows: auto 1fr !important;
+          align-items: end !important;
+          gap: 6px 8px !important;
+        }
+
+        .search-composer-semantic .ant-sender-prefix {
+          grid-column: 1 / -1 !important;
+          padding-bottom: 4px !important;
+          border-bottom: 1px solid var(--color-border-default) !important;
+          margin-bottom: 2px !important;
+        }
+
         .search-composer-area .ant-sender-content > *:first-child {
           flex: 1 1 auto !important;
           min-width: 0 !important;
+        }
+
+        .search-composer-semantic .ant-sender-content > *:first-child {
+          flex: unset !important;
         }
 
         .search-composer-area .ant-sender-actions-list {
@@ -320,44 +369,100 @@ const SearchComposer: React.FC<SearchComposerProps> = ({
           margin-top: 12px !important;
         }
 
-        /* Slot select 下拉选择器 - 遵循语义令牌 */
-        .search-composer-area .ant-sender-slot-select {
-          background: var(--color-components-select-bg) !important;
-          border: 1px solid var(--color-components-select-border) !important;
-          color: var(--color-text-primary) !important;
-          border-radius: 6px !important;
-          padding: 2px 6px !important;
+        /* 语义前缀栏 */
+        .semantic-prefix {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          flex-wrap: wrap;
+          font-size: 14px;
+          line-height: 1.6;
+          color: var(--color-text-secondary);
         }
 
-        .search-composer-area .ant-sender-slot-select:hover,
-        .search-composer-area .ant-sender-slot-select.ant-dropdown-trigger-open {
-          border-color: var(--color-state-focus) !important;
-          color: var(--color-state-focus) !important;
+        .semantic-prefix-text {
+          white-space: nowrap;
         }
 
-        .search-composer-area .ant-sender-slot-select .ant-sender-slot-select-arrow {
-          color: var(--color-text-tertiary) !important;
+        /* 范围选择器 */
+        .scope-selector-wrapper {
+          position: relative;
+          display: inline-flex;
         }
 
-        .search-composer-area .ant-sender-slot-select:hover .ant-sender-slot-select-arrow,
-        .search-composer-area .ant-sender-slot-select.ant-dropdown-trigger-open .ant-sender-slot-select-arrow {
-          color: var(--color-state-focus) !important;
+        .scope-selector-trigger {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          background: var(--color-components-select-bg);
+          border: 1px solid var(--color-components-select-border);
+          color: var(--color-text-primary);
+          border-radius: 6px;
+          padding: 2px 6px;
+          font-size: 14px;
+          line-height: 1.6;
+          cursor: pointer;
+          transition: border-color 0.2s, color 0.2s;
+          white-space: nowrap;
         }
 
-        /* Slot input 输入框 - 遵循语义令牌 */
-        .search-composer-area .ant-input.ant-sender-slot-input {
-          background: var(--color-components-input-bg) !important;
-          border: 1px solid var(--color-components-input-border) !important;
-          color: var(--color-components-input-text) !important;
+        .scope-selector-trigger:hover {
+          border-color: var(--color-state-focus);
+          color: var(--color-state-focus);
         }
 
-        .search-composer-area .ant-input.ant-sender-slot-input:hover,
-        .search-composer-area .ant-input.ant-sender-slot-input:focus {
-          border-color: var(--color-components-input-border-focus) !important;
+        .scope-selector-arrow {
+          width: 14px;
+          height: 14px;
+          color: var(--color-text-tertiary);
+          transition: transform 0.2s, color 0.2s;
+          flex-shrink: 0;
         }
 
-        .search-composer-area .ant-input.ant-sender-slot-input::placeholder {
-          color: var(--color-components-input-text-placeholder) !important;
+        .scope-selector-trigger:hover .scope-selector-arrow {
+          color: var(--color-state-focus);
+        }
+
+        .scope-selector-arrow-open {
+          transform: rotate(180deg);
+        }
+
+        .scope-selector-dropdown {
+          position: absolute;
+          top: calc(100% + 4px);
+          left: 0;
+          z-index: 1050;
+          min-width: 100%;
+          background: var(--color-components-dropdown-bg);
+          border: 1px solid var(--color-components-dropdown-border);
+          border-radius: 8px;
+          padding: 4px;
+          box-shadow: 0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 3px 6px -4px rgba(0, 0, 0, 0.12);
+        }
+
+        .scope-selector-option {
+          display: block;
+          width: 100%;
+          text-align: left;
+          padding: 5px 12px;
+          border: none;
+          background: transparent;
+          color: var(--color-components-dropdown-item-text);
+          font-size: 14px;
+          line-height: 1.6;
+          border-radius: 4px;
+          cursor: pointer;
+          white-space: nowrap;
+          transition: background 0.15s;
+        }
+
+        .scope-selector-option:hover {
+          background: var(--color-components-dropdown-item-bg-hover);
+        }
+
+        .scope-selector-option-active {
+          background: var(--color-state-focus-10);
+          color: var(--color-state-focus);
         }
 
         /* Sender.Switch 模式开关 - 统一风格，遵循语义令牌 */
@@ -375,13 +480,6 @@ const SearchComposer: React.FC<SearchComposerProps> = ({
           border-color: var(--color-state-focus) !important;
           color: var(--color-state-focus) !important;
           box-shadow: none !important;
-        }
-
-        /* Slot tag 标签 - 遵循语义令牌 */
-        .search-composer-area .ant-sender-slot-tag {
-          background: var(--color-components-tag-bg) !important;
-          border-color: var(--color-components-tag-border) !important;
-          color: var(--color-components-tag-text) !important;
         }
 
         /* Dropdown menu 下拉菜单 - 遵循语义令牌 */
@@ -407,20 +505,16 @@ const SearchComposer: React.FC<SearchComposerProps> = ({
       `}</style>
 
       <Sender
-        key={semanticMode ? `semantic-${semanticKey}` : 'plain'}
         ref={senderRef}
-        value={semanticMode ? undefined : value}
-        slotConfig={semanticMode ? SEMANTIC_SLOT_CONFIG : undefined}
-        onChange={(nextValue) => {
-          if (semanticMode) return
-          setValue(nextValue)
-        }}
+        value={value}
+        onChange={setValue}
         onSubmit={handleSenderSubmit}
         onCancel={onStop}
         loading={isSearching}
         submitType="enter"
         autoSize={{ minRows: 1, maxRows: 6 }}
         placeholder={senderPlaceholder}
+        prefix={semanticPrefix}
         allowSpeech={{
           recording,
           onRecordingChange: handleRecordingChange,
@@ -446,7 +540,7 @@ const SearchComposer: React.FC<SearchComposerProps> = ({
                 {recording ? '语音识别中' : '支持语音转文本'}
               </span>
             </div>
-            <span>{semanticMode ? '词槽语义模式' : '普通文本模式'} · Enter 发送</span>
+            <span>{semanticMode ? '语义模式' : '普通文本模式'} · Enter 发送</span>
           </div>
         }
         styles={{

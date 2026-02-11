@@ -4,6 +4,7 @@ import { Bubble } from '@ant-design/x'
 // 导入 Ant Design X 内部的 Loading 组件用于三点加载动画
 import BubbleLoading from '@ant-design/x/es/bubble/loading'
 import XMarkdown from '@ant-design/x-markdown'
+import { markdownCodeComponents } from '@/components/chat/MarkdownCodeBlock'
 import {
   findFirstEnabledModelByType,
   findProviderNameByModelName,
@@ -59,7 +60,7 @@ const StableMarkdown = React.memo(({ content, components }: StableMarkdownProps)
 
   return (
     <div className="prose prose-sm max-w-none dark:prose-invert bubble-copy-text">
-      <XMarkdown paragraphTag="div" components={components}>
+      <XMarkdown paragraphTag="div" components={{ ...markdownCodeComponents, ...components }}>
         {stableContent}
       </XMarkdown>
     </div>

@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { ProviderIcon } from '@/components/ui/provider-icon';
 import XMarkdown, { type ComponentProps } from '@ant-design/x-markdown';
 import '@ant-design/x-markdown/dist/x-markdown.css';
+import { markdownCodeComponents } from '@/components/chat/MarkdownCodeBlock';
 import type { MCPChatServiceRequest } from "@/api/mcp-chat-service";
 import { EnhancedSSEParser, type SSEMessage, type ToolCallInfo } from "@/components/chat/EnhancedSSEParser";
 import { ToolCallRenderer } from "@/components/chat/ToolCallRenderer";
@@ -77,7 +78,7 @@ const StableMarkdown = React.memo(({ content }: { content: string }) => {
   
   return (
     <div className="prose prose-sm max-w-none dark:prose-invert bubble-copy-text">
-      <XMarkdown paragraphTag="div">
+      <XMarkdown paragraphTag="div" components={markdownCodeComponents}>
         {stableContent}
       </XMarkdown>
     </div>
