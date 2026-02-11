@@ -231,11 +231,10 @@ export const conversationAPI = {
 
   // 生成相关问题
   generateRelatedQuestions: (data: {
-    message: string
-    conversation_id?: string
-    count?: number
-  }): Promise<{ questions: string[] }> =>
-    apiClient.post('/v1/conversation/related-questions', data),
+    question: string
+    search_id?: string
+  }): Promise<string[]> =>
+    apiClient.post('/v1/conversation/related_questions', data),
 
   // 生成对话标题
   generateTitle: (conversationId: string): Promise<{ title: string }> =>

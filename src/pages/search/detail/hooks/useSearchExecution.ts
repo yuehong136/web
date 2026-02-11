@@ -220,12 +220,11 @@ export const useSearchExecution = (searchApp: SearchApp | null, appliedConfig?: 
           updateTurn(turnId, { phase: SearchExecutionPhase.RELATED })
           try {
             const related = await conversationAPI.generateRelatedQuestions({
-              message: query.trim(),
-              count: 5,
+              question: query.trim(),
             })
 
             if (!signal.aborted) {
-              updateTurn(turnId, { relatedQuestions: related.questions?.slice(0, 5) ?? [] })
+              updateTurn(turnId, { relatedQuestions: related?.slice(0, 5) ?? [] })
             }
           } catch {
             // Non-critical failure.
