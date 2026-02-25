@@ -44,6 +44,7 @@ interface SearchComposerProps {
   isSearching: boolean
   placeholder?: string
   variant?: 'hero' | 'dock'
+  enableSemanticMode?: boolean
   prefillText?: string
   prefillVersion?: number
 }
@@ -107,6 +108,7 @@ const SearchComposer: React.FC<SearchComposerProps> = ({
   isSearching,
   placeholder = '输入问题并回车发送，Shift+Enter 换行',
   variant = 'dock',
+  enableSemanticMode = true,
   prefillText,
   prefillVersion,
 }) => {
@@ -197,25 +199,25 @@ const SearchComposer: React.FC<SearchComposerProps> = ({
       const next = message.trim()
       if (!next || isSearching) return
 
-      if (semanticMode) {
+      if (enableSemanticMode && semanticMode) {
         onSearch(`在 ${scope} 范围内，深度检索并回答：${next}`)
       } else {
         onSearch(next)
       }
       setValue('')
     },
-    [isSearching, onSearch, semanticMode, scope]
+    [enableSemanticMode, isSearching, onSearch, semanticMode, scope]
   )
 
   const senderPlaceholder = useMemo(() => {
-    if (semanticMode) {
+    if (enableSemanticMode && semanticMode) {
       return '输入你想检索的问题'
     }
     return placeholder
-  }, [placeholder, semanticMode])
+  }, [enableSemanticMode, placeholder, semanticMode])
 
   const semanticPrefix = useMemo(() => {
-    if (!semanticMode) return undefined
+    if (!enableSemanticMode || !semanticMode) return undefined
     return (
       <div className="semantic-prefix">
         <span className="semantic-prefix-text">在</span>
@@ -223,7 +225,7 @@ const SearchComposer: React.FC<SearchComposerProps> = ({
         <span className="semantic-prefix-text">范围内，深度检索并回答：</span>
       </div>
     )
-  }, [semanticMode, scope])
+  }, [enableSemanticMode, semanticMode, scope])
 
   useEffect(() => {
     return () => {
@@ -528,19 +530,21 @@ const SearchComposer: React.FC<SearchComposerProps> = ({
         footer={
           <div className="flex items-center justify-between gap-space-sm text-xs text-text-tertiary flex-wrap mt-space-xs">
             <div className="flex items-center gap-space-sm">
-              <Sender.Switch
-                value={semanticMode}
-                onChange={(checked) => setSemanticMode(checked)}
-                icon={semanticMode ? <WandSparkles className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
-                checkedChildren="语义输入"
-                unCheckedChildren="普通输入"
-              />
+              {enableSemanticMode ? (
+                <Sender.Switch
+                  value={semanticMode}
+                  onChange={(checked) => setSemanticMode(checked)}
+                  icon={semanticMode ? <WandSparkles className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
+                  checkedChildren="语义输入"
+                  unCheckedChildren="普通输入"
+                />
+              ) : null}
               <span className="inline-flex items-center gap-1 rounded-radius-full bg-surface-secondary px-space-xs py-0.5 text-xs text-text-secondary">
                 {recording ? <AudioLines className="h-3.5 w-3.5 text-text-success" /> : <MicOff className="h-3.5 w-3.5" />}
                 {recording ? '语音识别中' : '支持语音转文本'}
               </span>
             </div>
-            <span>{semanticMode ? '语义模式' : '普通文本模式'} · Enter 发送</span>
+            <span>{enableSemanticMode ? `${semanticMode ? '语义模式' : '普通文本模式'} · Enter 发送` : 'Enter 发送'}</span>
           </div>
         }
         styles={{

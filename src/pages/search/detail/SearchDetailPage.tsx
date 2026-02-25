@@ -1,24 +1,23 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import {
-  ArrowLeft,
-  BrainCircuit,
-  ClipboardList,
-  Lightbulb,
-  RotateCcw,
-  Settings,
-  Sparkles,
-} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Loading } from '@/components/ui/loading'
-import { Tooltip } from '@/components/ui/tooltip'
 import { ReferenceDetailSheet } from '@/components/chat/ReferenceDetailSheet'
 import { useFetchSearchAppDetail } from '@/hooks/use-search-request'
 import { useSearchStore } from '@/stores/search'
 import { ROUTES } from '@/constants'
-import { SearchExecutionPhase, type ChunkResult } from '@/types/search'
+import {
+  SearchExecutionMode,
+  SearchExecutionPhase,
+  SearchSourceMode,
+  type ChunkResult,
+} from '@/types/search'
+import { copyToClipboard } from '@/lib/utils'
+import { toast } from '@/lib/toast'
 import type { ReferenceChunk } from '@/utils/reference-replacer'
 import SearchComposer from './components/search-composer'
+import SearchDetailHeader from './components/search-detail-header'
+import SearchStarterView from './components/search-starter-view'
 import SearchTurnItem from './components/search-turn-item'
 import SearchSettingsSheet from './components/SearchSettingsSheet'
 import SearchMindmapDrawer from './mindmap/mindmap-drawer'
@@ -48,27 +47,6 @@ const phaseLabelMap: Record<SearchExecutionPhase, string> = {
   [SearchExecutionPhase.ERROR]: '错误',
 }
 
-const STARTER_PROMPTS = [
-  {
-    title: '总结某个主题',
-    description: '提炼核心结论与证据来源',
-    query: '请基于当前知识库，总结这套资料最核心的 5 个结论，并给出引用依据。',
-    icon: ClipboardList,
-  },
-  {
-    title: '定位关键信息',
-    description: '快速找出关键段落与原文',
-    query: '请找出与“系统架构与性能瓶颈”最相关的文档片段，并按重要性排序。',
-    icon: Lightbulb,
-  },
-  {
-    title: '多文档对比',
-    description: '比较异同并给出建议',
-    query: '请对比不同文档在功能设计上的差异，并输出可执行的改进建议。',
-    icon: Sparkles,
-  },
-] as const
-
 export const SearchDetailPage: React.FC = () => {
   const navigate = useNavigate()
   const location = useLocation()
@@ -85,14 +63,19 @@ export const SearchDetailPage: React.FC = () => {
   const [prefillVersion, setPrefillVersion] = useState(0)
   const [expandedByTurnId, setExpandedByTurnId] = useState<Record<string, boolean>>({})
   const [mindmapOpen, setMindmapOpen] = useState(false)
+  const executionMode = SearchExecutionMode.DEEP_RESEARCH
+  const sourceMode = SearchSourceMode.KNOWLEDGE_BASE
 
   const kbCount = appliedConfig?.kb_ids?.length || 0
 
   const handleSearch = useCallback(
     (query: string) => {
-      search(query)
+      search(query, {
+        executionMode,
+        sourceMode,
+      })
     },
-    [search]
+    [executionMode, search, sourceMode]
   )
 
   const handleClear = useCallback(() => {
@@ -111,6 +94,22 @@ export const SearchDetailPage: React.FC = () => {
   const handlePrefillFromCard = useCallback((query: string) => {
     setPrefillText(query)
     setPrefillVersion((prev) => prev + 1)
+  }, [])
+
+  const handleToggleSettings = useCallback(() => {
+    setSettingsOpen(!settingsOpen)
+    if (!settingsOpen) {
+      setMindmapOpen(false)
+    }
+  }, [setSettingsOpen, settingsOpen])
+
+  const handleShare = useCallback(() => {
+    copyToClipboard(window.location.href)
+    toast.success('链接已复制')
+  }, [])
+
+  const handleExport = useCallback(() => {
+    toast.info('导出功能即将支持')
   }, [])
 
   useEffect(() => {
@@ -177,6 +176,22 @@ export const SearchDetailPage: React.FC = () => {
       (latestTurn?.kbIdsSnapshot.length || 0) > 0
   )
 
+  const handleToggleMindmap = useCallback(() => {
+    if (!canOpenMindmap && !mindmapOpen) return
+    setMindmapOpen((prev) => {
+      const next = !prev
+      if (next) {
+        setSettingsOpen(false)
+      }
+      return next
+    })
+  }, [canOpenMindmap, mindmapOpen, setSettingsOpen])
+
+  useEffect(() => {
+    if (canOpenMindmap) return
+    setMindmapOpen(false)
+  }, [canOpenMindmap])
+
   if (isLoading) {
     return (
       <div className="h-full flex items-center justify-center">
@@ -198,92 +213,37 @@ export const SearchDetailPage: React.FC = () => {
 
   return (
     <div className="h-full flex flex-col bg-surface-primary">
-      <header className="shrink-0 border-b border-border-default bg-surface-primary px-space-base py-space-sm">
-        <div className="flex items-center justify-between gap-space-sm">
-          <div className="flex items-center gap-space-sm min-w-0">
-            <Button variant="ghost" size="icon-sm" onClick={() => navigate(ROUTES.SEARCH)}>
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <div className="min-w-0">
-              <h2 className="text-base font-semibold text-text-primary truncate">{searchApp.name}</h2>
-              <p className="text-xs text-text-tertiary">
-                {kbCount} 个知识库 · 当前状态 {phaseLabelMap[phase] || phaseLabelMap[SearchExecutionPhase.IDLE]}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            {hasTurns ? (
-              <Button variant="ghost" size="icon-sm" onClick={handleClear} title="清空当前会话">
-                <RotateCcw className="h-4 w-4" />
-              </Button>
-            ) : null}
-            <Button
-              variant={settingsOpen ? 'outline' : 'ghost'}
-              size="icon-sm"
-              onClick={() => setSettingsOpen(!settingsOpen)}
-              title={settingsOpen ? '收起配置' : '配置'}
-            >
-              <Settings className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      </header>
+      <SearchDetailHeader
+        appName={searchApp.name}
+        kbCount={kbCount}
+        phaseLabel={phaseLabelMap[phase] || phaseLabelMap[SearchExecutionPhase.IDLE]}
+        hasTurns={hasTurns}
+        canOpenMindmap={canOpenMindmap}
+        mindmapOpen={mindmapOpen}
+        settingsOpen={settingsOpen}
+        onBack={() => navigate(ROUTES.SEARCH)}
+        onClear={handleClear}
+        onToggleMindmap={handleToggleMindmap}
+        onShare={handleShare}
+        onExport={handleExport}
+        onToggleSettings={handleToggleSettings}
+      />
 
       <div className="flex-1 min-h-0 flex bg-surface-primary">
         <div className="flex-1 min-w-0 flex flex-col">
           <main className="relative flex-1 min-h-0 overflow-y-auto px-space-base py-space-lg bg-surface-primary">
             {!hasTurns ? (
-              <div className="h-full flex items-center justify-center">
-                <div className="relative w-full max-w-5xl">
-                  <div className="text-center mb-space-2xl">
-                    <p
-                      className="text-2xl font-semibold tracking-tight text-transparent bg-clip-text"
-                      style={{ backgroundImage: 'linear-gradient(90deg, var(--color-text-accent), var(--color-state-info))' }}
-                    >
-                      AI SEARCH
-                    </p>
-                    <h3 className="mt-space-sm text-3xl font-semibold tracking-tight text-text-primary">开始一次深度检索</h3>
-                    <p className="mt-space-base text-base text-text-secondary">
-                      融合知识检索、证据引用与结构化总结，快速产出高质量答案。
-                    </p>
-                  </div>
-
-                  <div className="mt-space-xl w-full max-w-4xl mx-auto rounded-radius-xl border border-border-default bg-components-card-bg p-space-xl">
-                    <SearchComposer
-                      variant="hero"
-                      onSearch={handleSearch}
-                      onStop={stop}
-                      isSearching={isSearching}
-                      prefillText={prefillText}
-                      prefillVersion={prefillVersion}
-                    />
-                  </div>
-
-                  <div className="mt-space-2xl grid grid-cols-1 md:grid-cols-3 gap-space-xl">
-                    {STARTER_PROMPTS.map((prompt) => {
-                      const Icon = prompt.icon
-                      return (
-                        <button
-                          key={prompt.title}
-                          type="button"
-                          onClick={() => handlePrefillFromCard(prompt.query)}
-                          className="group rounded-radius-xl border border-border-default bg-surface-primary p-space-lg text-left transition-all duration-200 hover:border-border-accent hover:bg-[var(--color-state-focus-10)]"
-                        >
-                          <span className="inline-flex h-10 w-10 items-center justify-center rounded-radius-lg bg-surface-secondary text-text-accent transition-colors group-hover:bg-[var(--color-state-focus-10)] group-hover:text-text-accent">
-                            <Icon className="h-4 w-4" />
-                          </span>
-                          <p className="mt-space-sm text-base font-medium text-text-primary group-hover:text-text-accent">{prompt.title}</p>
-                          <p className="mt-space-xs text-xs text-text-secondary leading-relaxed">{prompt.description}</p>
-                        </button>
-                      )
-                    })}
-                  </div>
-                </div>
-              </div>
+              <SearchStarterView
+                onSearch={handleSearch}
+                onStop={stop}
+                isSearching={isSearching}
+                prefillText={prefillText}
+                prefillVersion={prefillVersion}
+                onPrefill={handlePrefillFromCard}
+              />
             ) : (
-              <div className="max-w-6xl mx-auto space-y-space-sm pb-space-base">
-                <div className="flex items-center justify-between rounded-radius-lg border border-border-default bg-surface-secondary px-space-sm py-space-xs">
+              <div className="max-w-6xl mx-auto space-y-space-base pb-space-base">
+                <div className="flex items-center justify-between rounded-radius-lg border border-border-default bg-surface-secondary px-space-base py-space-xs">
                   <p className="text-xs text-text-secondary">
                     共 {turns.length} 轮查询，可折叠查看历史轮次
                   </p>
@@ -332,11 +292,26 @@ export const SearchDetailPage: React.FC = () => {
           {hasTurns ? (
             <footer className="shrink-0 bg-surface-primary px-space-base py-space-sm">
               <div className="max-w-5xl mx-auto">
-                <SearchComposer onSearch={handleSearch} onStop={stop} isSearching={isSearching} />
+                <SearchComposer
+                  onSearch={handleSearch}
+                  onStop={stop}
+                  isSearching={isSearching}
+                  enableSemanticMode={false}
+                />
               </div>
             </footer>
           ) : null}
         </div>
+
+        <SearchMindmapDrawer
+          open={mindmapOpen}
+          onOpenChange={setMindmapOpen}
+          question={latestTurn?.query || ''}
+          kbIds={latestTurn?.kbIdsSnapshot || []}
+          searchId={searchApp.id}
+          isShareMode={isShareMode}
+          fallbackChunks={latestTurn?.chunks || []}
+        />
 
         <SearchSettingsSheet
           open={settingsOpen}
@@ -351,30 +326,7 @@ export const SearchDetailPage: React.FC = () => {
           isSaving={isSaving}
           isDirty={isDirty}
         />
-
-        <SearchMindmapDrawer
-          open={mindmapOpen}
-          onOpenChange={setMindmapOpen}
-          question={latestTurn?.query || ''}
-          kbIds={latestTurn?.kbIdsSnapshot || []}
-          searchId={searchApp.id}
-          isShareMode={isShareMode}
-          fallbackChunks={latestTurn?.chunks || []}
-        />
       </div>
-
-      {canOpenMindmap && !mindmapOpen ? (
-        <Tooltip content="查看当前问题思维导图" position="left">
-          <button
-            type="button"
-            onClick={() => setMindmapOpen(true)}
-            className="fixed right-space-lg bottom-24 z-40 inline-flex h-12 w-12 items-center justify-center rounded-radius-full border border-border-default bg-surface-primary text-text-accent shadow-elevation-medium transition-transform hover:scale-105 hover:bg-surface-secondary"
-            aria-label="打开思维导图"
-          >
-            <BrainCircuit className="h-5 w-5" />
-          </button>
-        </Tooltip>
-      ) : null}
 
       <ReferenceDetailSheet
         open={detailOpen}

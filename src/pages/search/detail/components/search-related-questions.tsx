@@ -1,5 +1,5 @@
 import React, { memo } from 'react'
-import { MessageCircleQuestion } from 'lucide-react'
+import { CornerDownRight } from 'lucide-react'
 
 interface SearchRelatedQuestionsProps {
   questions: string[]
@@ -10,20 +10,20 @@ const SearchRelatedQuestions: React.FC<SearchRelatedQuestionsProps> = ({ questio
   if (!questions.length) return null
 
   return (
-    <div>
-      <div className="flex items-center gap-2 mb-space-xs">
-        <MessageCircleQuestion className="h-4 w-4 text-text-tertiary" />
-        <span className="text-sm font-medium text-text-primary">相关问题</span>
-      </div>
-      <div className="flex flex-wrap gap-space-xs">
-        {questions.map((question) => (
+    <div className="pt-space-xs">
+      <h4 className="text-base font-semibold text-text-primary">后续提问</h4>
+      <div className="mt-space-xs border-t border-border-default">
+        {questions.map((question, index) => (
           <button
             key={question}
             type="button"
             onClick={() => onSelect(question)}
-            className="rounded-radius-full border border-border-default px-3 py-1.5 text-xs text-text-secondary hover:bg-surface-secondary"
+            className={`flex w-full items-center gap-space-sm px-space-xs py-space-sm text-left transition-colors hover:bg-surface-secondary ${
+              index === questions.length - 1 ? '' : 'border-b border-border-default'
+            }`}
           >
-            {question}
+            <CornerDownRight className="h-4 w-4 shrink-0 text-text-tertiary" />
+            <span className="text-lg font-medium leading-7 text-text-primary">{question}</span>
           </button>
         ))}
       </div>

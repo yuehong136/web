@@ -1,5 +1,5 @@
-import React, { memo, useMemo } from 'react'
-import { ChevronDown, ChevronRight, MessageSquare } from 'lucide-react'
+import React, { memo, useMemo, useState } from 'react'
+import { ChevronDown, ChevronRight, User } from 'lucide-react'
 import { SearchExecutionPhase, type ChunkResult, type SearchTurn } from '@/types/search'
 import { cn } from '@/lib/utils'
 import SearchChunkList from './search-chunk-list'
@@ -30,6 +30,7 @@ const SearchTurnItem: React.FC<SearchTurnItemProps> = ({
   onAskRelated,
   onViewChunkDetail,
 }) => {
+  const [showChunks, setShowChunks] = useState(() => !turn.summaryEnabled)
   const filteredChunks = useMemo(() => {
     if (!selectedDocIds.length) return turn.chunks
     return turn.chunks.filter((chunk) => selectedDocIds.includes(chunk.doc_id))
@@ -37,22 +38,22 @@ const SearchTurnItem: React.FC<SearchTurnItemProps> = ({
 
   const statusLabel =
     turn.phase === SearchExecutionPhase.ERROR
-      ? '执行失败'
+      ? '失败'
       : turn.phase === SearchExecutionPhase.COMPLETE
         ? '完成'
         : '进行中'
 
   const statusClassName =
     turn.phase === SearchExecutionPhase.ERROR
-      ? 'bg-state-error/10 text-state-error border-state-error/30'
+      ? 'bg-state-error/10 text-state-error'
       : turn.phase === SearchExecutionPhase.COMPLETE
-        ? 'bg-state-success/10 text-state-success border-state-success/30'
-        : 'bg-state-info/10 text-state-info border-state-info/30'
+        ? 'bg-state-success/10 text-state-success'
+        : 'bg-state-info/10 text-state-info'
 
   const summaryPreview = useMemo(() => {
     const plainSummary = (turn.summary || turn.thinking || '').replace(/\s+/g, ' ').trim()
     if (!plainSummary) return '已收起本轮查询，点击上方问题可展开查看完整内容。'
-    return plainSummary.length > 120 ? `${plainSummary.slice(0, 120)}...` : plainSummary
+    return plainSummary.length > 180 ? `${plainSummary.slice(0, 180)}...` : plainSummary
   }, [turn.summary, turn.thinking])
 
   const executionSnapshot = useMemo(
@@ -64,68 +65,133 @@ const SearchTurnItem: React.FC<SearchTurnItemProps> = ({
     ],
     [turn.mindmapEnabled, turn.relatedEnabled, turn.rerankEnabled, turn.rerankModelName, turn.summaryEnabled]
   )
+  const enabledExecutionLabels = useMemo(
+    () => executionSnapshot.filter((item) => item.enabled).map((item) => item.label),
+    [executionSnapshot]
+  )
+
+  const progressSummary = useMemo(() => {
+    const retrievedText = `检索 ${turn.total} 条`
+    const rerankText = turn.rerankEnabled ? '已重排' : '未重排'
+    const generatedText = turn.summaryEnabled ? '已生成摘要' : '未生成摘要'
+    return `${retrievedText} · ${rerankText} · ${generatedText}`
+  }, [turn.rerankEnabled, turn.summaryEnabled, turn.total])
+
+  const phasePill = useMemo(() => {
+    if (turn.phase === SearchExecutionPhase.ERROR) {
+      return {
+        label: '执行失败',
+        className: 'border-state-error/30 bg-state-error/10 text-state-error',
+      }
+    }
+    if (turn.phase === SearchExecutionPhase.RETRIEVING) {
+      return {
+        label: '检索中',
+        className: 'border-state-info/30 bg-state-info/10 text-state-info',
+      }
+    }
+    if (turn.phase === SearchExecutionPhase.SUMMARIZING) {
+      return {
+        label: '生成摘要中',
+        className: 'border-state-info/30 bg-state-info/10 text-state-info',
+      }
+    }
+    if (turn.phase === SearchExecutionPhase.RELATED) {
+      return {
+        label: '生成相关问题',
+        className: 'border-state-info/30 bg-state-info/10 text-state-info',
+      }
+    }
+    return {
+      label: '已完成',
+      className: 'border-state-success/30 bg-state-success/10 text-state-success',
+    }
+  }, [turn.phase])
 
   return (
-    <section className="rounded-radius-xl border border-border-default bg-surface-primary p-space-base space-y-space-sm">
-      <div className="space-y-space-sm">
+    <section className="rounded-radius-xl border border-border-default bg-surface-primary overflow-hidden">
+      {isLatest ? (
+        <div className="h-0.5 bg-gradient-to-r from-text-accent via-state-info to-state-success" />
+      ) : null}
+      <div className="p-space-base space-y-space-sm">
         <div className="flex items-center justify-between gap-space-sm">
           <div className="flex items-center gap-space-sm min-w-0">
-            <span className="inline-flex items-center rounded-radius-full border border-border-default bg-surface-secondary px-space-sm py-space-xs text-sm font-semibold text-text-secondary shadow-elevation-low">
-              第 {index + 1} 轮查询
+            <span
+              className={cn(
+                'inline-flex items-center rounded-radius-full border px-space-sm py-space-xs text-xs font-semibold',
+                isLatest
+                  ? 'border-border-accent bg-surface-accent-subtle text-text-accent'
+                  : 'border-border-default bg-surface-secondary text-text-secondary'
+              )}
+            >
+              Round {index + 1}
+              {isLatest ? ' · Current' : ''}
             </span>
             <span className="hidden md:inline text-xs text-text-tertiary truncate">
               命中 {turn.total} 条 · 来源 {turn.docAggs.length} 篇
             </span>
-            {isLatest ? (
-              <span className="hidden md:inline text-xs text-text-accent">当前轮次</span>
-            ) : null}
           </div>
-          <div className="flex items-center gap-space-sm">
+
+          <div className="flex items-center gap-space-sm shrink-0">
+            {expanded && enabledExecutionLabels.length ? (
+              <div className="hidden xl:flex items-center gap-space-sm">
+                {enabledExecutionLabels.map((label) => (
+                  <span key={label} className="text-xs font-medium text-text-secondary">
+                    {label}
+                  </span>
+                ))}
+              </div>
+            ) : null}
+            <span
+              className={cn(
+                'inline-flex items-center gap-space-xs rounded-radius-full px-space-sm py-space-xs text-xs font-medium',
+                statusClassName
+              )}
+            >
+              <span className="h-1.5 w-1.5 rounded-radius-full bg-current" />
+              {statusLabel}
+            </span>
             <button
               type="button"
               onClick={onToggleExpand}
-              className="inline-flex items-center gap-1 text-xs font-medium text-text-secondary hover:text-text-accent transition-colors"
+              className="inline-flex items-center justify-center rounded-radius-sm text-text-tertiary hover:text-text-primary"
               aria-expanded={expanded}
               title={expanded ? '收起本轮' : '展开本轮'}
             >
-              {expanded ? '收起' : '展开'}
-              {expanded ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+              {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
             </button>
-            <span className={cn('text-xs px-space-xs py-space-xs rounded-radius-full border font-medium', statusClassName)}>
-              {statusLabel}
-            </span>
           </div>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-space-xs">
-          {executionSnapshot.map((item) => (
-            <span
-              key={item.key}
-              className={cn(
-                'inline-flex items-center rounded-radius-full border px-space-sm py-space-xs text-xs',
-                item.enabled
-                  ? 'border-state-success/30 bg-state-success/10 text-state-success'
-                  : 'border-border-default bg-surface-secondary text-text-tertiary'
-              )}
-            >
-              {item.label} · {item.enabled ? '开' : '关'}
-            </span>
-          ))}
         </div>
 
         <button
           type="button"
           onClick={onToggleExpand}
-          className="w-full rounded-radius-xl border border-border-accent bg-surface-accent-subtle px-space-md py-space-sm shadow-elevation-medium text-left transition-colors hover:bg-[var(--color-state-focus-10)]"
+          className={cn(
+            'w-full rounded-radius-lg border text-left transition-colors',
+            expanded
+              ? 'border-border-default bg-surface-primary px-space-md py-space-sm'
+              : 'border-border-default bg-surface-secondary px-space-md py-space-sm hover:bg-surface-primary'
+          )}
           aria-expanded={expanded}
         >
           <div className="flex items-start gap-space-sm">
-            <span className="inline-flex h-7 min-w-7 items-center justify-center rounded-radius-full border border-border-accent bg-surface-primary text-text-accent shadow-elevation-low">
-              <MessageSquare className="h-4 w-4" />
-            </span>
+            {expanded ? (
+              <span className="inline-flex h-7 min-w-7 items-center justify-center rounded-radius-full bg-surface-accent-subtle text-text-accent">
+                <User className="h-4 w-4" />
+              </span>
+            ) : (
+              <User className="h-4 w-4 mt-0.5 text-text-tertiary shrink-0" />
+            )}
             <div className="min-w-0">
               <p className="text-xs text-text-tertiary">用户提问</p>
-              <h3 className="mt-space-xs text-xl font-semibold leading-tight text-text-primary break-words">{turn.query}</h3>
+              <h3
+                className={cn(
+                  'mt-space-xs text-text-primary break-words',
+                  expanded ? 'text-xl font-semibold leading-snug' : 'text-lg font-medium leading-snug'
+                )}
+              >
+                {turn.query}
+              </h3>
             </div>
           </div>
         </button>
@@ -138,7 +204,8 @@ const SearchTurnItem: React.FC<SearchTurnItemProps> = ({
       </div>
 
       {expanded ? (
-        <div className="space-y-space-sm min-w-0">
+        <div className="space-y-space-sm min-w-0 px-space-base pb-space-base">
+
           {turn.summaryEnabled ? (
             <div className="grid grid-cols-1 xl:grid-cols-[1fr_280px] gap-space-sm items-start">
               <SearchSummaryCard
@@ -162,17 +229,48 @@ const SearchTurnItem: React.FC<SearchTurnItemProps> = ({
             />
           )}
 
-          <SearchChunkList
-            chunks={filteredChunks}
-            total={turn.total}
-            isLoading={turn.phase === SearchExecutionPhase.RETRIEVING && filteredChunks.length === 0}
-            onViewDetail={onViewChunkDetail}
-          />
+          <button
+            type="button"
+            onClick={() => setShowChunks((prev) => !prev)}
+            className="w-full rounded-radius-lg border border-border-default bg-surface-secondary px-space-sm py-space-xs text-left"
+            aria-expanded={showChunks}
+          >
+            <div className="flex items-center justify-between gap-space-sm">
+              <div className="flex items-center gap-space-xs min-w-0">
+                {showChunks ? (
+                  <ChevronDown className="h-3.5 w-3.5 text-text-tertiary shrink-0" />
+                ) : (
+                  <ChevronRight className="h-3.5 w-3.5 text-text-tertiary shrink-0" />
+                )}
+                <span className="text-xs font-medium text-text-secondary">{showChunks ? '收起检索片段' : '查看检索片段'}</span>
+                <span className="text-xs text-text-tertiary">({filteredChunks.length} 条)</span>
+              </div>
+              <span
+                className={cn(
+                  'inline-flex items-center rounded-radius-full border px-space-sm py-space-xs text-xs font-medium',
+                  phasePill.className
+                )}
+              >
+                {phasePill.label}
+              </span>
+            </div>
+            <p className="mt-space-xs truncate text-xs text-text-tertiary">{progressSummary}</p>
+          </button>
+
+          {showChunks ? (
+            <SearchChunkList
+              chunks={filteredChunks}
+              total={turn.total}
+              isLoading={turn.phase === SearchExecutionPhase.RETRIEVING && filteredChunks.length === 0}
+              onViewDetail={onViewChunkDetail}
+            />
+          ) : null}
+
           {turn.relatedEnabled && !turn.isStreaming ? (
             <SearchRelatedQuestions questions={turn.relatedQuestions} onSelect={onAskRelated} />
           ) : null}
           {turn.errorMessage ? (
-            <div className="rounded-radius-md border border-state-error/30 bg-state-error/10 px-3 py-2 text-sm text-state-error">
+            <div className="rounded-radius-md border border-state-error/30 bg-state-error/10 px-space-sm py-space-xs text-sm text-state-error">
               {turn.errorMessage}
             </div>
           ) : null}

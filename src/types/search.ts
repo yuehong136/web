@@ -8,6 +8,18 @@ export enum SearchExecutionPhase {
   STOPPED = 'stopped',
 }
 
+export enum SearchExecutionMode {
+  QUICK_QA = 'quick_qa',
+  DEEP_RESEARCH = 'deep_research',
+  TASK_EXECUTION = 'task_execution',
+}
+
+export enum SearchSourceMode {
+  KNOWLEDGE_BASE = 'knowledge_base',
+  WEB = 'web',
+  HYBRID = 'hybrid',
+}
+
 export interface LLMSetting {
   temperature?: number
   top_p?: number
@@ -84,6 +96,8 @@ export interface DocAgg {
 export interface SearchTurn {
   id: string
   query: string
+  executionMode: SearchExecutionMode
+  sourceMode: SearchSourceMode
   summaryEnabled: boolean
   relatedEnabled: boolean
   mindmapEnabled: boolean
@@ -99,5 +113,6 @@ export interface SearchTurn {
   relatedQuestions: string[]
   total: number
   phase: SearchExecutionPhase
+  latencyMs?: number
   errorMessage?: string
 }

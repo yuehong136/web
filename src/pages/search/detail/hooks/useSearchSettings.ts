@@ -116,7 +116,7 @@ export const useSearchSettings = (searchApp: SearchApp | null) => {
   return {
     basicInfo,
     config,
-    appliedConfig: savedConfig,
+    appliedConfig: config,
     updateBasicInfo,
     updateConfig,
     saveConfig,

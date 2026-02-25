@@ -66,17 +66,17 @@ const SearchSummaryCard: React.FC<SearchSummaryCardProps> = ({
   if (!summary && !isStreaming) return null
 
   return (
-    <div className="rounded-radius-xl border border-border-default bg-surface-primary overflow-hidden">
+    <div className="overflow-hidden rounded-radius-xl border border-border-default bg-surface-primary">
       <div className="h-1 bg-gradient-to-r from-text-accent via-state-info to-state-success" />
       <div className="p-space-base">
-        <div className="flex items-center gap-2 mb-space-sm">
+        <div className="mb-space-sm flex items-center gap-space-xs">
           <Sparkles className="h-4 w-4 text-text-accent" />
-          <span className="text-sm font-medium text-text-accent">AI 摘要</span>
+          <span className="text-sm font-semibold text-text-accent">AI 摘要</span>
         </div>
 
         {summary ? (
           <div className="space-y-space-sm text-text-primary">
-            <div className="prose prose-sm max-w-none bubble-copy-text [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
+            <div className="bubble-copy-text max-w-none text-sm leading-7 text-text-primary [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_h1]:mb-space-sm [&_h1]:mt-space-sm [&_h1]:text-lg [&_h1]:font-semibold [&_h1]:text-text-primary [&_h2]:mb-space-sm [&_h2]:mt-space-sm [&_h2]:text-base [&_h2]:font-semibold [&_h2]:text-text-primary [&_h3]:mb-space-xs [&_h3]:mt-space-sm [&_h3]:text-base [&_h3]:font-semibold [&_h3]:text-text-primary [&_li]:my-space-xs [&_li]:leading-7 [&_li]:text-text-primary [&_ol]:my-space-sm [&_p]:my-space-sm [&_p]:leading-7 [&_p]:text-text-primary [&_strong]:font-semibold [&_strong]:text-text-primary [&_ul]:my-space-sm">
               <XMarkdown
                 paragraphTag="div"
                 config={markdownConfig}
@@ -95,6 +95,7 @@ const SearchSummaryCard: React.FC<SearchSummaryCardProps> = ({
                 <ReferencePanel
                   chunks={referenceChunks}
                   onChunkClick={handleViewReferenceDetail}
+                  className="mt-space-xs"
                 />
               </>
             ) : null}
@@ -105,10 +106,10 @@ const SearchSummaryCard: React.FC<SearchSummaryCardProps> = ({
         ) : isStreaming && thinking ? (
           <div className="rounded-radius-lg border border-border-default bg-surface-secondary px-space-sm py-space-sm">
             <p className="text-xs text-text-tertiary mb-space-xs">思考中</p>
-            <p className="text-sm text-text-secondary leading-relaxed whitespace-pre-wrap line-clamp-6">{thinking}</p>
+            <p className="line-clamp-6 whitespace-pre-wrap text-sm leading-relaxed text-text-secondary">{thinking}</p>
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-space-xs">
             <div className="h-4 rounded-radius-md bg-background-subtle animate-pulse w-full" />
             <div className="h-4 rounded-radius-md bg-background-subtle animate-pulse w-4/5" />
             <div className="h-4 rounded-radius-md bg-background-subtle animate-pulse w-3/5" />

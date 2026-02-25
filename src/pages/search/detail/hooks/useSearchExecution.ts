@@ -6,12 +6,15 @@ import { llmAPI } from '@/api/llm'
 import { searchAPI } from '@/api/search'
 import {
   SearchExecutionPhase,
+  SearchExecutionMode,
+  SearchSourceMode,
   type ChunkResult,
   type DocAgg,
   type SearchApp,
   type SearchConfig,
   type SearchTurn,
 } from '@/types/search'
+import { buildRuntimeConfig, type SearchRuntimeOptions } from './search-runtime-config'
 
 const isRunningPhase = (phase: SearchExecutionPhase) => {
   return (
@@ -117,7 +120,7 @@ export const useSearchExecution = (searchApp: SearchApp | null, appliedConfig?: 
   }, [])
 
   const search = useCallback(
-    async (query: string, options?: { docIds?: string[] }) => {
+    async (query: string, options?: SearchRuntimeOptions) => {
       const effectiveConfig = appliedConfig || searchApp?.search_config
       if (!searchApp || !query.trim()) return
       if (!effectiveConfig?.kb_ids?.length) return
@@ -135,9 +138,12 @@ export const useSearchExecution = (searchApp: SearchApp | null, appliedConfig?: 
       const abortController = new AbortController()
       abortControllerRef.current = abortController
       const { signal } = abortController
+      const startedAt = Date.now()
+      const executionMode = options?.executionMode || SearchExecutionMode.DEEP_RESEARCH
+      const sourceMode = options?.sourceMode || SearchSourceMode.KNOWLEDGE_BASE
 
       const turnId = `turn-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
-      const config = effectiveConfig
+      const config = buildRuntimeConfig(effectiveConfig, executionMode, sourceMode)
       const rerankModelId = config.use_rerank ? (config.rerank_id || '') : ''
       let rerankModelName = rerankModelId
       if (rerankModelId) {
@@ -152,6 +158,8 @@ export const useSearchExecution = (searchApp: SearchApp | null, appliedConfig?: 
       const newTurn: SearchTurn = {
         id: turnId,
         query: query.trim(),
+        executionMode,
+        sourceMode,
         summaryEnabled: Boolean(config.summary),
         relatedEnabled: Boolean(config.related_search),
         mindmapEnabled: Boolean(config.query_mindmap),
@@ -271,7 +279,11 @@ export const useSearchExecution = (searchApp: SearchApp | null, appliedConfig?: 
         await Promise.allSettled([retrievalPromise, summaryPromise])
 
         if (signal.aborted) {
-          updateTurn(turnId, { isStreaming: false, phase: SearchExecutionPhase.STOPPED })
+          updateTurn(turnId, {
+            isStreaming: false,
+            phase: SearchExecutionPhase.STOPPED,
+            latencyMs: Date.now() - startedAt,
+          })
           setPhase(SearchExecutionPhase.STOPPED)
           return
         }
@@ -292,12 +304,20 @@ export const useSearchExecution = (searchApp: SearchApp | null, appliedConfig?: 
           }
         }
 
-        updateTurn(turnId, { isStreaming: false, phase: SearchExecutionPhase.COMPLETE })
+        updateTurn(turnId, {
+          isStreaming: false,
+          phase: SearchExecutionPhase.COMPLETE,
+          latencyMs: Date.now() - startedAt,
+        })
         setPhase(SearchExecutionPhase.COMPLETE)
       } catch (error: unknown) {
         const aborted = signal.aborted || (error as { name?: string })?.name === 'AbortError'
         if (aborted) {
-          updateTurn(turnId, { isStreaming: false, phase: SearchExecutionPhase.STOPPED })
+          updateTurn(turnId, {
+            isStreaming: false,
+            phase: SearchExecutionPhase.STOPPED,
+            latencyMs: Date.now() - startedAt,
+          })
           setPhase(SearchExecutionPhase.STOPPED)
           return
         }
@@ -305,6 +325,7 @@ export const useSearchExecution = (searchApp: SearchApp | null, appliedConfig?: 
         updateTurn(turnId, {
           isStreaming: false,
           phase: SearchExecutionPhase.ERROR,
+          latencyMs: Date.now() - startedAt,
           errorMessage: '搜索执行失败，请稍后重试。',
         })
         setPhase(SearchExecutionPhase.ERROR)

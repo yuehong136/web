@@ -35,29 +35,37 @@ const SearchDocFilterRail: React.FC<SearchDocFilterRailProps> = ({
   }
 
   return (
-    <div className="rounded-radius-xl border border-border-default bg-surface-primary p-space-sm">
-      <div className="flex items-center justify-between mb-space-xs">
-        <div className="flex items-center gap-2">
-          <FileText className="h-4 w-4 text-text-tertiary" />
-          <span className="text-sm font-medium text-text-primary">来源文档</span>
-        </div>
-        <button
-          type="button"
-          className="text-xs text-text-accent hover:underline"
-          onClick={() => onSelectionChange([])}
-        >
-          {isSelectAll ? '全部' : '重置'}
-        </button>
+    <div className="rounded-radius-lg border border-border-default bg-surface-primary p-space-sm">
+      <div className="mb-space-sm flex items-center justify-between">
+        <span className="text-sm font-semibold text-text-primary">Sources</span>
+        {!isSelectAll ? (
+          <button
+            type="button"
+            className="text-xs text-text-accent hover:underline"
+            onClick={() => onSelectionChange([])}
+          >
+            Reset
+          </button>
+        ) : null}
       </div>
 
-      <div className="space-y-2 max-h-[300px] overflow-y-auto">
+      <div className="space-y-space-xs max-h-[260px] overflow-y-auto">
         {docAggs.map((doc) => {
           const checked = selectedDocIds.length === 0 || selectedDocIds.includes(doc.doc_id)
           return (
-            <label key={doc.doc_id} className="flex items-center gap-2 cursor-pointer">
+            <label
+              key={doc.doc_id}
+              className={`
+                flex cursor-pointer items-center gap-space-xs rounded-radius-md border px-space-xs py-space-xs transition-colors
+                ${checked ? 'border-border-default bg-surface-secondary' : 'border-border-default bg-surface-primary hover:bg-surface-secondary'}
+              `}
+            >
               <Checkbox checked={checked} onCheckedChange={() => handleToggle(doc.doc_id)} />
-              <span className="flex-1 min-w-0 text-sm text-text-secondary truncate">{doc.doc_name}</span>
-              <span className="text-xs text-text-tertiary">{doc.count}</span>
+              <FileText className="h-3.5 w-3.5 text-text-tertiary shrink-0" />
+              <span className="flex-1 min-w-0 text-sm text-text-primary truncate">{doc.doc_name}</span>
+              <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-radius-full bg-surface-secondary px-space-xs text-xs text-text-tertiary">
+                {doc.count}
+              </span>
             </label>
           )
         })}
