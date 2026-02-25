@@ -8,10 +8,10 @@
  */
 
 import { useState, useRef, useCallback, useEffect } from 'react'
-import { flushSync } from 'react-dom'
 import { toast } from '@/lib/toast'
 import { EnhancedSSEParser, type SSEMessage, type ToolCallInfo } from '@/components/chat/EnhancedSSEParser'
 import { EventSourceParserStream } from 'eventsource-parser/stream'
+import { useStreamBatcher } from '@/hooks/useStreamBatcher'
 import type { MCPChatServiceRequest } from '@/api/mcp-chat-service'
 import { conversationAPI } from '@/api/conversation'
 import type { DialogApp } from '@/types/api'
@@ -50,6 +50,28 @@ export const useHomeChat = ({
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null)
   const sseParserRef = useRef<EnhancedSSEParser | null>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
+
+  type StreamUIPatch = {
+    streamingContent: string
+    streamingToolCalls: ToolCallInfo[]
+    isToolAnalyzing: boolean
+  }
+
+  const {
+    schedulePatch: scheduleStreamPatch,
+    flush: flushStreamPatch,
+    reset: resetStreamPatch,
+  } = useStreamBatcher<StreamUIPatch>((patch) => {
+    if ('streamingContent' in patch && typeof patch.streamingContent === 'string') {
+      setStreamingContent(patch.streamingContent)
+    }
+    if ('streamingToolCalls' in patch && Array.isArray(patch.streamingToolCalls)) {
+      setStreamingToolCalls(patch.streamingToolCalls)
+    }
+    if ('isToolAnalyzing' in patch && typeof patch.isToolAnalyzing === 'boolean') {
+      setIsToolAnalyzing(patch.isToolAnalyzing)
+    }
+  }, { maxDelayMs: 50 })
   
   // 标记是否正在发送消息（防止 effect 中重复加载历史）
   const isSendingRef = useRef(false)
@@ -315,7 +337,26 @@ export const useHomeChat = ({
               if (lastIdx >= 0 && newMsgs[lastIdx].role === 'assistant') {
                 // 只有当新的 references 有数据时才更新，否则保留之前的
                 const existingReferences = newMsgs[lastIdx].references || []
-                const references = newReferences.length > 0 ? newReferences : existingReferences
+                const referencesChanged = newReferences.length > 0 && (
+                  newReferences.length !== existingReferences.length ||
+                  newReferences.some((ref: any, refIdx: number) => {
+                    const previousRef = existingReferences[refIdx] as any
+                    if (!previousRef) return true
+                    return (
+                      previousRef.id !== ref.id ||
+                      previousRef.doc_id !== ref.doc_id ||
+                      previousRef.content !== ref.content
+                    )
+                  })
+                )
+                const references = referencesChanged ? newReferences : existingReferences
+
+                const sameContent = newMsgs[lastIdx].content === cleanContent
+                const sameThinking = (newMsgs[lastIdx].thinking || '') === thinking
+                const sameReferences = references === existingReferences
+                if (sameContent && sameThinking && sameReferences) {
+                  return prev
+                }
                 
                 newMsgs[lastIdx] = {
                   ...newMsgs[lastIdx],
@@ -409,38 +450,37 @@ export const useHomeChat = ({
         `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/v1/llm/enhanced_chat_sse`,
         request,
         (message: SSEMessage, parserState) => {
-          flushSync(() => {
-            switch (message.type) {
-              case 'text':
-                setStreamingContent(parserState.accumulatedText)
-                break
-              case 'tool_call':
-              case 'tool_result':
-                setStreamingToolCalls([...parserState.toolCalls])
-                break
-              case 'tool_start':
-                setIsToolAnalyzing(true)
-                break
-              case 'tool_end':
-                setIsToolAnalyzing(false)
-                break
-              case 'complete': {
-                const assistantMessage: ChatMessage = {
-                  id: Date.now().toString(),
-                  role: 'assistant',
-                  content: parserState.accumulatedText,
-                  timestamp: new Date().toLocaleTimeString(),
-                  parsedToolCalls: parserState.toolCalls,
-                }
-                updateMessages(prev => [...prev, assistantMessage])
-                break
+          switch (message.type) {
+            case 'text':
+              scheduleStreamPatch({ streamingContent: parserState.accumulatedText })
+              break
+            case 'tool_call':
+            case 'tool_result':
+              scheduleStreamPatch({ streamingToolCalls: [...parserState.toolCalls] })
+              break
+            case 'tool_start':
+              scheduleStreamPatch({ isToolAnalyzing: true })
+              break
+            case 'tool_end':
+              scheduleStreamPatch({ isToolAnalyzing: false })
+              break
+            case 'complete': {
+              flushStreamPatch()
+              const assistantMessage: ChatMessage = {
+                id: Date.now().toString(),
+                role: 'assistant',
+                content: parserState.accumulatedText,
+                timestamp: new Date().toLocaleTimeString(),
+                parsedToolCalls: parserState.toolCalls,
               }
-              case 'error': {
-                const errorMsg = message.content as unknown as { error?: string }
-                throw new Error(errorMsg.error || 'Unknown error')
-              }
+              updateMessages(prev => [...prev, assistantMessage])
+              break
             }
-          })
+            case 'error': {
+              const errorMsg = message.content as unknown as { error?: string }
+              throw new Error(errorMsg.error || 'Unknown error')
+            }
+          }
         },
         (error) => {
           console.error('SSE Parser error:', error)
@@ -455,12 +495,13 @@ export const useHomeChat = ({
         sseParserRef.current.disconnect()
         sseParserRef.current = null
       }
+      resetStreamPatch()
       setIsStreaming(false)
       setStreamingContent('')
       setStreamingToolCalls([])
       setIsToolAnalyzing(false)
     }
-  }, [selectedModelId, selectedMCPIds, updateMessages])
+  }, [selectedModelId, selectedMCPIds, updateMessages, scheduleStreamPatch, flushStreamPatch, resetStreamPatch])
 
   // 发送消息（根据模式选择）
   const sendMessage = useCallback(async (inputValue: string) => {
@@ -483,11 +524,12 @@ export const useHomeChat = ({
       sseParserRef.current.disconnect()
       sseParserRef.current = null
     }
+    resetStreamPatch()
     setIsStreaming(false)
     setStreamingContent('')
     setStreamingToolCalls([])
     setIsToolAnalyzing(false)
-  }, [])
+  }, [resetStreamPatch])
 
   // 清空对话
   const clearMessages = useCallback(() => {

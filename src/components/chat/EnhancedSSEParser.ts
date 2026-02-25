@@ -274,14 +274,19 @@ export class EnhancedSSEParser {
    */
   private processStructuredMessage(message: any): SSEMessage | null {
     switch (message.type) {
-      case 'text':
+      case 'text': {
+        const nextContent = typeof message.content === 'string' ? message.content : '';
+        if (nextContent === this.state.accumulatedText) {
+          return null;
+        }
         // Update accumulated text with content directly (backend sends full accumulated content)
-        this.state.accumulatedText = message.content;
+        this.state.accumulatedText = nextContent;
         return {
           type: 'text' as MessageType,
-          content: message.content,
-          accumulated: message.content
+          content: nextContent,
+          accumulated: nextContent
         } as TextMessage;
+      }
 
       case 'tool_call':
         this.processToolCall(message.content);
@@ -328,7 +333,7 @@ export class EnhancedSSEParser {
    * Process legacy unstructured messages (for backward compatibility)
    */
   private processLegacyMessage(content: string): SSEMessage | null {
-    this.state.accumulatedText = content;
+    const previousText = this.state.accumulatedText;
     
     // Parse tool calls from legacy format using existing parser
     const toolCallRegex = /<tool_call>(.*?)<\/tool_call>/gs;
@@ -359,12 +364,16 @@ export class EnhancedSSEParser {
     // Update state
     this.state.toolCalls = toolCalls;
     this.state.accumulatedText = cleanContent;
+
+    if (cleanContent === previousText) {
+      return null;
+    }
     
-          return {
-        type: 'text' as MessageType,
-        content: cleanContent,
-        accumulated: cleanContent
-      } as TextMessage;
+    return {
+      type: 'text' as MessageType,
+      content: cleanContent,
+      accumulated: cleanContent
+    } as TextMessage;
   }
 
   /**

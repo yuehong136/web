@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { flushSync } from "react-dom";
 import { ChatSidebar } from "@/components/chat/ChatSidebar";
 import { ChatHeader } from "@/components/chat/ChatHeader";
 import { WelcomeMessage } from "@/components/chat/WelcomeMessage";
@@ -12,6 +11,7 @@ import '@ant-design/x-markdown/dist/x-markdown.css';
 import { markdownCodeComponents, markdownConfig } from '@/components/chat/MarkdownCodeBlock';
 import type { MCPChatServiceRequest } from "@/api/mcp-chat-service";
 import { EnhancedSSEParser, type SSEMessage, type ToolCallInfo } from "@/components/chat/EnhancedSSEParser";
+import { HybridStreamingMarkdown } from "@/components/chat/HybridStreamingMarkdown";
 import { ToolCallRenderer } from "@/components/chat/ToolCallRenderer";
 import {
   findFirstEnabledModelByType,
@@ -20,6 +20,7 @@ import {
   useModelStore
 } from "@/stores/model";
 import { useMcpUpload } from "@/hooks/use-mcp-upload";
+import { useStreamBatcher } from "@/hooks/useStreamBatcher";
 import { toast } from "@/lib/toast";
 import { cn, copyToClipboard } from "@/lib/utils";
 import { uploadConfig, type UploadFile } from "@/config/chat";
@@ -311,6 +312,48 @@ export default function MCPChatPage() {
   
   // SSE解析器实例
   const sseParserRef = useRef<EnhancedSSEParser | null>(null);
+  const scrollFrameRef = useRef<number | null>(null);
+
+  type StreamUIPatch = {
+    streamingContent: string
+    streamingToolCalls: ToolCallInfo[]
+    isToolAnalyzing: boolean
+  }
+
+  const {
+    schedulePatch: scheduleStreamPatch,
+    flush: flushStreamPatch,
+    reset: resetStreamPatch,
+  } = useStreamBatcher<StreamUIPatch>((patch) => {
+    if ('streamingContent' in patch && typeof patch.streamingContent === 'string') {
+      setStreamingContent(patch.streamingContent)
+    }
+    if ('streamingToolCalls' in patch && Array.isArray(patch.streamingToolCalls)) {
+      setStreamingToolCalls(patch.streamingToolCalls)
+    }
+    if ('isToolAnalyzing' in patch && typeof patch.isToolAnalyzing === 'boolean') {
+      setIsToolAnalyzing(patch.isToolAnalyzing)
+    }
+  }, { maxDelayMs: 50 })
+
+  const scrollToBottom = useCallback((behavior: ScrollBehavior = 'auto') => {
+    const scrollContainer = document.getElementById('chat-scroll-container');
+    if (!scrollContainer) return;
+    scrollContainer.scrollTo({
+      top: scrollContainer.scrollHeight,
+      behavior,
+    });
+  }, []);
+
+  const scheduleAutoScroll = useCallback(() => {
+    if (isUserScrollingRef.current) return;
+    if (scrollFrameRef.current !== null) return;
+
+    scrollFrameRef.current = requestAnimationFrame(() => {
+      scrollFrameRef.current = null;
+      scrollToBottom('auto');
+    });
+  }, [scrollToBottom]);
 
   // 复制消息内容
   const _handleCopy = async (content?: string, ev?: React.MouseEvent) => {
@@ -349,7 +392,7 @@ export default function MCPChatPage() {
   }, [selectedModelId, myLLMs])
 
   // 获取 AI 头像 - 直接使用厂商 logo，不包裹气泡框
-  const getAssistantAvatar = () => {
+  const getAssistantAvatar = useCallback(() => {
     if (selectedProviderName) {
       return <ProviderIcon provider={selectedProviderName} className="w-8 h-8" size={32} />
     }
@@ -365,10 +408,10 @@ export default function MCPChatPage() {
         <Bot className="h-4 w-4" />
       </div>
     )
-  }
+  }, [selectedProviderName])
 
   // 获取用户头像
-  const getUserAvatar = () => (
+  const getUserAvatar = useCallback(() => (
     <div 
       className="w-8 h-8 min-w-[32px] min-h-[32px] rounded-full flex items-center justify-center flex-shrink-0"
       style={{ 
@@ -378,12 +421,11 @@ export default function MCPChatPage() {
     >
       <User className="h-4 w-4" />
     </div>
-  )
+  ), [])
 
-  // 转换消息数据为 Bubble.List 需要的格式
-  const bubbleItems = React.useMemo(() => {
-    // 获取历史消息（如果存在）
-    const sessionMessages = activeSession?.messages ? activeSession.messages.map((msg, index) => ({
+  const historyBubbleItems = React.useMemo(() => {
+    if (!activeSession?.messages) return []
+    return activeSession.messages.map((msg, index) => ({
       key: msg.id,
       role: msg.role as 'user' | 'assistant',
       content: msg.content || '',
@@ -454,29 +496,15 @@ export default function MCPChatPage() {
         )
       }) : undefined,
       toolCalls: undefined,
-    })) : [];
-    
-    // 如果正在流式输出，添加流式消息（只添加一次）
+    }))
+  }, [activeSession?.messages, isStreaming, getUserAvatar, getAssistantAvatar])
+
+  // 转换消息数据为 Bubble.List 需要的格式
+  const bubbleItems = React.useMemo(() => {
+    const sessionMessages = [...historyBubbleItems]
+
+    // 如果正在流式输出，添加流式消息
     if (isStreaming && (streamingContent || streamingToolCalls.length > 0 || isToolAnalyzing)) {
-          // 检查是否已经有流式消息，避免重复添加
-    const hasExistingStreamingMessage = sessionMessages.some(msg => msg.key === 'streaming-assistant');
-    
-    console.log('🎯 Adding streaming message:', { 
-      contentLength: streamingContent?.length, 
-      toolCallsCount: streamingToolCalls.length, 
-      isToolAnalyzing,
-      sessionMessagesLength: sessionMessages.length,
-      hasExistingStreamingMessage
-    });
-    
-    if (hasExistingStreamingMessage) {
-      console.log('⚠️ Streaming message already exists, skipping duplicate');
-      return sessionMessages;
-    }
-      
-      // 检查是否有工具调用需要显示
-      const _hasToolCalls = streamingToolCalls.length > 0;
-      
       // 使用字符串内容 + 自定义 contentRender，支持 think 标签
       const { thinkContent, mainContent, isThinking } = extractThinkContent(streamingContent || '')
       sessionMessages.push({
@@ -538,7 +566,7 @@ export default function MCPChatPage() {
             )}
             {/* 使用稳定的 Markdown 组件渲染主内容 */}
             {mainContent && mainContent.trim() && (
-              <StableMarkdown content={mainContent} />
+              <HybridStreamingMarkdown content={mainContent} isStreaming={true} />
             )}
             {/* 如果没有内容且没有思考内容，显示加载提示 */}
             {!thinkContent && !mainContent && !isToolAnalyzing && streamingToolCalls.length === 0 && (
@@ -551,7 +579,7 @@ export default function MCPChatPage() {
     }
     
     return sessionMessages;
-  }, [activeSessionId, activeSession?.messages?.length, isStreaming, streamingContent, streamingToolCalls, isToolAnalyzing, selectedProviderName]);
+  }, [historyBubbleItems, isStreaming, streamingContent, streamingToolCalls, isToolAnalyzing, getAssistantAvatar]);
 
   // 加载模型列表
   useEffect(() => {
@@ -561,66 +589,20 @@ export default function MCPChatPage() {
     }
   }, [loadMyLLMs, myLLMs, modelsLoading]);
 
-  // 当消息更新时自动滚动到底部（仅在用户未手动滚动时）
+  // 新消息进入会话时自动滚动到底部（单通道调度）
   useEffect(() => {
-    // 如果用户正在查看历史消息，不自动滚动
-    if (isUserScrolling) {
-      return;
-    }
+    if (isUserScrolling) return;
+    scheduleAutoScroll();
+  }, [activeSession?.messages?.length, isUserScrolling, scheduleAutoScroll]);
 
-    // 使用多个延迟确保DOM完全更新
-    const timers: NodeJS.Timeout[] = [];
-    
-    // 立即尝试滚动
-    const scrollToBottom = () => {
-      const scrollContainer = document.getElementById('chat-scroll-container');
-      if (scrollContainer) {
-        const { scrollHeight, clientHeight } = scrollContainer;
-        // 确保滚动到真正的底部
-        scrollContainer.scrollTo({
-          top: scrollHeight - clientHeight,
-          behavior: 'smooth'
-        });
+  useEffect(() => {
+    return () => {
+      if (scrollFrameRef.current !== null) {
+        cancelAnimationFrame(scrollFrameRef.current);
+        scrollFrameRef.current = null;
       }
     };
-
-    // 多次尝试滚动，确保内容完全渲染
-    timers.push(setTimeout(scrollToBottom, 0));    // 立即
-    timers.push(setTimeout(scrollToBottom, 100));  // 100ms后
-    timers.push(setTimeout(scrollToBottom, 300));  // 300ms后（用于处理图片等异步内容）
-
-    return () => {
-      timers.forEach(timer => clearTimeout(timer));
-    };
-  }, [activeSession?.messages?.length, streamingContent, isUserScrolling]);
-
-  // 使用ResizeObserver监听内容区域的大小变化
-  useEffect(() => {
-    const scrollContainer = document.getElementById('chat-scroll-container');
-    if (!scrollContainer) return;
-
-    const resizeObserver = new ResizeObserver(() => {
-      // 内容区域大小变化时，如果不在用户滚动状态，则滚动到底部
-      if (!isUserScrolling) {
-        requestAnimationFrame(() => {
-          scrollContainer.scrollTo({
-            top: scrollContainer.scrollHeight,
-            behavior: 'smooth'
-          });
-        });
-      }
-    });
-
-    // 观察滚动容器的第一个子元素（内容容器）
-    const contentContainer = scrollContainer.firstElementChild;
-    if (contentContainer) {
-      resizeObserver.observe(contentContainer);
-    }
-
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, [isUserScrolling]);
+  }, []);
 
   // 自动选择第一个可用的聊天模型
   useEffect(() => {
@@ -730,84 +712,56 @@ export default function MCPChatPage() {
         `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/v1/llm/enhanced_chat_sse`,
         request,
         (message: SSEMessage, parserState) => {
-          // 添加调试信息
-          console.log('🔄 SSE Message received:', message.type);
-          if (message.type === 'text') {
-            console.log('📝 Text content length:', parserState.accumulatedText?.length);
-          } else if (message.type === 'tool_call') {
-            console.log('🛠️ Tool call:', message.content);
-          } else if (message.type === 'tool_result') {
-            console.log('✅ Tool result:', message.content);
-          }
-          console.log('📊 Parser state - Tools:', parserState.toolCalls.length, 'Analyzing:', parserState.isToolAnalyzing);
-          
-          // 使用flushSync确保即时更新
-          flushSync(() => {
-            switch (message.type) {
-              case 'text':
-                setStreamingContent(parserState.accumulatedText);
-                break;
+          switch (message.type) {
+            case 'text':
+              scheduleStreamPatch({ streamingContent: parserState.accumulatedText });
+              break;
 
-              case 'tool_call':
-                // 工具调用开始，更新工具列表
-                setStreamingToolCalls([...parserState.toolCalls]);
-                break;
+            case 'tool_call':
+            case 'tool_result':
+              scheduleStreamPatch({ streamingToolCalls: [...parserState.toolCalls] });
+              break;
 
-              case 'tool_result':
-                // 工具结果返回，更新工具列表
-                setStreamingToolCalls([...parserState.toolCalls]);
-                break;
+            case 'tool_start':
+              scheduleStreamPatch({ isToolAnalyzing: true });
+              break;
 
-              case 'tool_start':
-                setIsToolAnalyzing(true);
-                break;
+            case 'tool_end':
+              scheduleStreamPatch({ isToolAnalyzing: false });
+              break;
 
-              case 'tool_end':
-                setIsToolAnalyzing(false);
-                break;
+            case 'complete': {
+              flushStreamPatch();
+              const assistantMessage = {
+                id: Date.now().toString(),
+                role: 'assistant' as const,
+                content: parserState.accumulatedText,
+                timestamp: new Date().toLocaleTimeString(),
+                parsedToolCalls: parserState.toolCalls.map(call => ({
+                  id: call.id,
+                  name: call.name,
+                  args: call.arguments || {},
+                  result: call.result || '',
+                  status: call.status,
+                  timestamp: call.timestamp
+                })),
+              };
 
-              case 'complete':
-                // 流结束，保存消息
-                const assistantMessage = {
-                  id: Date.now().toString(),
-                  role: 'assistant' as const,
-                  content: parserState.accumulatedText,
-                  timestamp: new Date().toLocaleTimeString(),
-                  parsedToolCalls: parserState.toolCalls.map(call => ({
-                    id: call.id,
-                    name: call.name,
-                    args: call.arguments || {},
-                    result: call.result || '',
-                    status: call.status,
-                    timestamp: call.timestamp
-                  })),
-                };
-
-                setSessions(prev => prev.map(session => 
-                  session.id === activeSessionId 
-                    ? { ...session, messages: [...session.messages, assistantMessage] }
-                    : session
-                ));
-                break;
-
-              case 'error':
-                const errorMsg = message.content as any;
-                throw new Error(errorMsg.error || 'Unknown error');
+              setSessions(prev => prev.map(session => 
+                session.id === activeSessionId 
+                  ? { ...session, messages: [...session.messages, assistantMessage] }
+                  : session
+              ));
+              break;
             }
-          });
 
-          // 自动滚动到底部
-          if (!isUserScrollingRef.current) {
-            requestAnimationFrame(() => {
-              const scrollContainer = document.getElementById('chat-scroll-container');
-              if (scrollContainer) {
-                scrollContainer.scrollTo({
-                  top: scrollContainer.scrollHeight,
-                  behavior: 'smooth'
-                });
-              }
-            });
+            case 'error': {
+              const errorMsg = message.content as any;
+              throw new Error(errorMsg.error || 'Unknown error');
+            }
           }
+
+          scheduleAutoScroll();
         },
         (error) => {
           console.error('Enhanced SSE Parser error:', error);
@@ -824,13 +778,14 @@ export default function MCPChatPage() {
         sseParserRef.current.disconnect();
         sseParserRef.current = null;
       }
+      resetStreamPatch();
       setIsLoading(false);
       setIsStreaming(false);
       setStreamingContent('');
       setStreamingToolCalls([]);
       setIsToolAnalyzing(false);
     }
-  }, [activeSessionId, selectedModelId, selectedMCPIds, mcpConfig, sessions, handleNewChat, getFileIds]);
+  }, [activeSessionId, selectedModelId, selectedMCPIds, mcpConfig, sessions, handleNewChat, getFileIds, scheduleAutoScroll, scheduleStreamPatch, flushStreamPatch, resetStreamPatch]);
 
   // 组件卸载时清理SSE连接
   useEffect(() => {

@@ -5,6 +5,7 @@ import { Bubble } from '@ant-design/x'
 import BubbleLoading from '@ant-design/x/es/bubble/loading'
 import XMarkdown from '@ant-design/x-markdown'
 import { markdownCodeComponents, markdownConfig } from '@/components/chat/MarkdownCodeBlock'
+import { HybridStreamingMarkdown } from '@/components/chat/HybridStreamingMarkdown'
 import {
   findFirstEnabledModelByType,
   findProviderNameByModelName,
@@ -333,10 +334,14 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
               
               {/* Markdown 内容（带引用标记） */}
               {contentWithSup && (
-                <StableMarkdown 
-                  content={contentWithSup} 
-                  components={SupComponent ? { sup: SupComponent } : undefined}
-                />
+                isCurrentStreamingMsg ? (
+                  <HybridStreamingMarkdown content={mainContent} isStreaming={true} />
+                ) : (
+                  <StableMarkdown 
+                    content={contentWithSup} 
+                    components={SupComponent ? { sup: SupComponent } : undefined}
+                  />
+                )
               )}
               
               {/* Loading 状态（应用模式流式输出时，没有内容显示 loading） */}
@@ -427,7 +432,7 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
                 </div>
               </ThinkWrapper>
             )}
-            {mainContent && mainContent.trim() && <StableMarkdown content={mainContent} />}
+            {mainContent && mainContent.trim() && <HybridStreamingMarkdown content={mainContent} isStreaming={true} />}
             {/* 如果没有任何内容，显示 Ant Design X 三点加载动画 */}
             {!thinkContent && !mainContent && !isToolAnalyzing && streamingToolCalls.length === 0 && (
               <BubbleLoading prefixCls="ant-bubble" />
