@@ -55,6 +55,16 @@ const SearchTurnItem: React.FC<SearchTurnItemProps> = ({
     return plainSummary.length > 120 ? `${plainSummary.slice(0, 120)}...` : plainSummary
   }, [turn.summary, turn.thinking])
 
+  const executionSnapshot = useMemo(
+    () => [
+      { key: 'summary', label: 'AI总结', enabled: turn.summaryEnabled },
+      { key: 'related', label: '相关问题', enabled: turn.relatedEnabled },
+      { key: 'mindmap', label: '思维导图', enabled: turn.mindmapEnabled },
+      { key: 'rerank', label: turn.rerankModelName ? `Rerank(${turn.rerankModelName})` : 'Rerank', enabled: turn.rerankEnabled },
+    ],
+    [turn.mindmapEnabled, turn.relatedEnabled, turn.rerankEnabled, turn.rerankModelName, turn.summaryEnabled]
+  )
+
   return (
     <section className="rounded-radius-xl border border-border-default bg-surface-primary p-space-base space-y-space-sm">
       <div className="space-y-space-sm">
@@ -87,6 +97,22 @@ const SearchTurnItem: React.FC<SearchTurnItemProps> = ({
           </div>
         </div>
 
+        <div className="flex flex-wrap items-center gap-space-xs">
+          {executionSnapshot.map((item) => (
+            <span
+              key={item.key}
+              className={cn(
+                'inline-flex items-center rounded-radius-full border px-space-sm py-space-xs text-xs',
+                item.enabled
+                  ? 'border-state-success/30 bg-state-success/10 text-state-success'
+                  : 'border-border-default bg-surface-secondary text-text-tertiary'
+              )}
+            >
+              {item.label} · {item.enabled ? '开' : '关'}
+            </span>
+          ))}
+        </div>
+
         <button
           type="button"
           onClick={onToggleExpand}
@@ -113,20 +139,28 @@ const SearchTurnItem: React.FC<SearchTurnItemProps> = ({
 
       {expanded ? (
         <div className="space-y-space-sm min-w-0">
-          <div className="grid grid-cols-1 xl:grid-cols-[1fr_280px] gap-space-sm items-start">
-            <SearchSummaryCard
-              summary={turn.summary}
-              thinking={turn.thinking}
-              isStreaming={turn.isStreaming}
-              references={turn.chunks}
-              onViewDetail={onViewChunkDetail}
-            />
+          {turn.summaryEnabled ? (
+            <div className="grid grid-cols-1 xl:grid-cols-[1fr_280px] gap-space-sm items-start">
+              <SearchSummaryCard
+                summary={turn.summary}
+                thinking={turn.thinking}
+                isStreaming={turn.isStreaming}
+                references={turn.chunks}
+                onViewDetail={onViewChunkDetail}
+              />
+              <SearchDocFilterRail
+                docAggs={turn.docAggs}
+                selectedDocIds={selectedDocIds}
+                onSelectionChange={(docIds) => onDocFilterChange(turn.id, docIds)}
+              />
+            </div>
+          ) : (
             <SearchDocFilterRail
               docAggs={turn.docAggs}
               selectedDocIds={selectedDocIds}
               onSelectionChange={(docIds) => onDocFilterChange(turn.id, docIds)}
             />
-          </div>
+          )}
 
           <SearchChunkList
             chunks={filteredChunks}
@@ -134,7 +168,7 @@ const SearchTurnItem: React.FC<SearchTurnItemProps> = ({
             isLoading={turn.phase === SearchExecutionPhase.RETRIEVING && filteredChunks.length === 0}
             onViewDetail={onViewChunkDetail}
           />
-          {!turn.isStreaming ? (
+          {turn.relatedEnabled && !turn.isStreaming ? (
             <SearchRelatedQuestions questions={turn.relatedQuestions} onSelect={onAskRelated} />
           ) : null}
           {turn.errorMessage ? (

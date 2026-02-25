@@ -171,7 +171,10 @@ export const SearchDetailPage: React.FC = () => {
   const latestTurn = turns.length ? turns[turns.length - 1] : null
   const isShareMode = useMemo(() => new URLSearchParams(location.search).has('shared_id'), [location.search])
   const canOpenMindmap = Boolean(
-    hasTurns && appliedConfig?.query_mindmap && latestTurn?.query.trim() && (appliedConfig?.kb_ids?.length || 0) > 0
+    hasTurns &&
+      latestTurn?.mindmapEnabled &&
+      latestTurn?.query.trim() &&
+      (latestTurn?.kbIdsSnapshot.length || 0) > 0
   )
 
   if (isLoading) {
@@ -353,7 +356,7 @@ export const SearchDetailPage: React.FC = () => {
           open={mindmapOpen}
           onOpenChange={setMindmapOpen}
           question={latestTurn?.query || ''}
-          kbIds={appliedConfig?.kb_ids || []}
+          kbIds={latestTurn?.kbIdsSnapshot || []}
           searchId={searchApp.id}
           isShareMode={isShareMode}
           fallbackChunks={latestTurn?.chunks || []}

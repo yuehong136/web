@@ -2,6 +2,7 @@ import { useCallback, useRef, useState } from 'react'
 import { EventSourceParserStream } from 'eventsource-parser/stream'
 import { conversationAPI } from '@/api/conversation'
 import { knowledgeAPI } from '@/api/knowledge'
+import { llmAPI } from '@/api/llm'
 import { searchAPI } from '@/api/search'
 import {
   SearchExecutionPhase,
@@ -20,12 +21,28 @@ const isRunningPhase = (phase: SearchExecutionPhase) => {
   )
 }
 
+interface RawModelItem {
+  id?: string
+  name?: string
+  llm_name?: string
+  type?: string
+  mdl_type?: string
+  available?: boolean
+  status?: string
+}
+
+interface RawProviderPayload {
+  llm?: RawModelItem[]
+}
+
 export const useSearchExecution = (searchApp: SearchApp | null, appliedConfig?: SearchConfig) => {
   const [turns, setTurns] = useState<SearchTurn[]>([])
   const [phase, setPhase] = useState<SearchExecutionPhase>(SearchExecutionPhase.IDLE)
   const abortControllerRef = useRef<AbortController | null>(null)
   const streamFrameRef = useRef<number | null>(null)
   const pendingStreamPatchRef = useRef<{ turnId: string; summary: string; thinking: string } | null>(null)
+  const rerankModelNameByIdRef = useRef<Record<string, string>>({})
+  const rerankModelMapLoadedRef = useRef(false)
 
   const updateTurn = useCallback((turnId: string, partial: Partial<SearchTurn>) => {
     setTurns((prev) => prev.map((turn) => (turn.id === turnId ? { ...turn, ...partial } : turn)))
@@ -74,6 +91,31 @@ export const useSearchExecution = (searchApp: SearchApp | null, appliedConfig?: 
     [updateTurn]
   )
 
+  const ensureRerankModelMap = useCallback(async () => {
+    if (rerankModelMapLoadedRef.current) return
+    const response = await llmAPI.list({ available: true })
+    const modelMap: Record<string, string> = {}
+
+    Object.values(response as Record<string, unknown>).forEach((providerValue) => {
+      const payload = providerValue as RawProviderPayload | RawModelItem[]
+      const llmList = Array.isArray(payload) ? payload : payload?.llm || []
+
+      llmList.forEach((model) => {
+        const modelType = model.mdl_type || model.type
+        if (modelType !== 'rerank') return
+        if (model.available === false || model.status === '0') return
+
+        const displayName = model.llm_name || model.name || model.id
+        if (!displayName) return
+        if (model.id) modelMap[model.id] = displayName
+        modelMap[displayName] = displayName
+      })
+    })
+
+    rerankModelNameByIdRef.current = modelMap
+    rerankModelMapLoadedRef.current = true
+  }, [])
+
   const search = useCallback(
     async (query: string, options?: { docIds?: string[] }) => {
       const effectiveConfig = appliedConfig || searchApp?.search_config
@@ -96,10 +138,27 @@ export const useSearchExecution = (searchApp: SearchApp | null, appliedConfig?: 
 
       const turnId = `turn-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
       const config = effectiveConfig
+      const rerankModelId = config.use_rerank ? (config.rerank_id || '') : ''
+      let rerankModelName = rerankModelId
+      if (rerankModelId) {
+        try {
+          await ensureRerankModelMap()
+          rerankModelName = rerankModelNameByIdRef.current[rerankModelId] || rerankModelId
+        } catch {
+          rerankModelName = rerankModelId
+        }
+      }
 
       const newTurn: SearchTurn = {
         id: turnId,
         query: query.trim(),
+        summaryEnabled: Boolean(config.summary),
+        relatedEnabled: Boolean(config.related_search),
+        mindmapEnabled: Boolean(config.query_mindmap),
+        rerankEnabled: Boolean(config.use_rerank),
+        rerankModelId,
+        rerankModelName,
+        kbIdsSnapshot: [...config.kb_ids],
         summary: '',
         thinking: '',
         isStreaming: true,
@@ -148,7 +207,9 @@ export const useSearchExecution = (searchApp: SearchApp | null, appliedConfig?: 
               total: result.total,
               phase: config.summary
                 ? SearchExecutionPhase.SUMMARIZING
-                : SearchExecutionPhase.RELATED,
+                : config.related_search
+                  ? SearchExecutionPhase.RELATED
+                  : SearchExecutionPhase.COMPLETE,
             })
           })
 
@@ -249,7 +310,7 @@ export const useSearchExecution = (searchApp: SearchApp | null, appliedConfig?: 
         setPhase(SearchExecutionPhase.ERROR)
       }
     },
-    [appliedConfig, flushPendingStreamPatch, resetPendingStreamPatch, scheduleStreamPatch, searchApp, updateTurn]
+    [appliedConfig, ensureRerankModelMap, flushPendingStreamPatch, resetPendingStreamPatch, scheduleStreamPatch, searchApp, updateTurn]
   )
 
   const stop = useCallback(() => {

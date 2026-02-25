@@ -84,6 +84,13 @@ export interface DocAgg {
 export interface SearchTurn {
   id: string
   query: string
+  summaryEnabled: boolean
+  relatedEnabled: boolean
+  mindmapEnabled: boolean
+  rerankEnabled: boolean
+  rerankModelId: string
+  rerankModelName: string
+  kbIdsSnapshot: string[]
   summary: string
   thinking?: string
   isStreaming: boolean
