@@ -1,10 +1,10 @@
 import { useState } from "react";
+import { CodeHighlighter } from "@ant-design/x";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronRight, ChevronUp, Wrench, Clock, CheckCircle, XCircle } from "lucide-react";
-import { formatSearchResult } from "./StreamResponseParser";
+import { ChevronDown, ChevronRight, Wrench, Clock, CheckCircle, XCircle, Terminal, PlayCircle } from "lucide-react";
 import type { ParsedToolCall } from "./StreamResponseParser";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
@@ -25,312 +25,407 @@ interface ToolCallDisplayProps {
   parsedToolCalls?: ParsedToolCall[];
 }
 
-// 结果文本展示组件（不截断内容，仅限制可视高度并允许滚动/放大）
-function ResultPane({ 
-  text,
-  isExpanded,
-  onToggle,
-  onOpenModal,
-}: {
-  text: string;
-  isExpanded: boolean;
-  onToggle: () => void;
-  onOpenModal: () => void;
-}) {
-  return (
-    <div className="space-y-2">
-      <div
-        className={`rounded-lg p-3 border ${isExpanded ? 'max-h-[600px]' : 'max-h-[300px]'} overflow-y-auto transition-all duration-300`}
+const detectLang = (content: string): string => {
+  const t = content.trim();
+  if (/^\s*(WITH|SELECT|INSERT|UPDATE|DELETE|CREATE|DROP|ALTER|EXPLAIN)\b/i.test(t)) return 'sql';
+  try {
+    JSON.parse(t);
+    return 'json';
+  } catch {}
+  return 'plaintext';
+};
+
+function ParamValue({ value }: { value: any }) {
+  if (value === null || value === undefined) {
+    return (
+      <span className="text-xs italic" style={{ color: 'var(--color-text-disabled)' }}>
+        null
+      </span>
+    );
+  }
+  if (typeof value === 'boolean') {
+    return (
+      <span
+        className="text-xs font-mono px-1.5 py-0.5 rounded"
         style={{
-          background: 'var(--color-components-code-bg)',
-          borderColor: 'var(--color-border-default)'
+          background: 'var(--color-components-badge-info-bg)',
+          color: 'var(--color-components-badge-info-text)',
         }}
       >
-        <pre className="text-sm text-wrap whitespace-pre-wrap">{text}</pre>
-      </div>
-      <div className="flex items-center gap-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onToggle}
-          className="text-primary hover:text-primary/80 flex items-center gap-1"
-        >
-          {isExpanded ? (
-            <>
-              <ChevronUp className="w-4 h-4" />
-              收起视窗
-            </>
-          ) : (
-            <>
-              <ChevronDown className="w-4 h-4" />
-              扩大视窗
-            </>
-          )}
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onOpenModal}
-          className="hover:opacity-80"
-          style={{ color: 'var(--color-text-primary)' }}
-        >
-          在对话框查看
-        </Button>
-      </div>
+        {String(value)}
+      </span>
+    );
+  }
+  if (typeof value === 'number') {
+    return (
+      <span className="text-xs font-mono" style={{ color: 'var(--color-text-accent)' }}>
+        {value}
+      </span>
+    );
+  }
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      if (typeof parsed === 'object' && parsed !== null) {
+        return <CodeHighlighter lang="json">{JSON.stringify(parsed, null, 2)}</CodeHighlighter>;
+      }
+    } catch {}
+    const lang = detectLang(value);
+    if (lang !== 'plaintext' || value.length > 80 || value.includes('\n')) {
+      return <CodeHighlighter lang={lang}>{value}</CodeHighlighter>;
+    }
+    return (
+      <span className="text-sm font-mono break-all" style={{ color: 'var(--color-text-primary)' }}>
+        {value}
+      </span>
+    );
+  }
+  return <CodeHighlighter lang="json">{JSON.stringify(value, null, 2)}</CodeHighlighter>;
+}
+
+function ParamsList({ args }: { args: Record<string, any> }) {
+  const entries = Object.entries(args || {});
+  if (entries.length === 0) {
+    return (
+      <span className="text-xs" style={{ color: 'var(--color-text-disabled)' }}>
+        无参数
+      </span>
+    );
+  }
+  return (
+    <div className="space-y-2">
+      {entries.map(([key, value]) => (
+        <div key={key} className="space-y-1">
+          <span
+            className="inline-block text-xs font-mono font-medium px-1.5 py-0.5 rounded"
+            style={{
+              background: 'var(--color-components-badge-warning-bg)',
+              color: 'var(--color-components-badge-warning-text)',
+            }}
+          >
+            {key}
+          </span>
+          <div className="pl-2">
+            <ParamValue value={value} />
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
 
+function ResultView({ result, onOpenModal, toolName }: {
+  result: string | any;
+  onOpenModal?: (text: string) => void;
+  toolName?: string;
+}) {
+  if (!result) return null;
+
+  if (result === 'Begin to call...') {
+    return (
+      <div className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+        工具调用中...
+      </div>
+    );
+  }
+
+  const text = typeof result === 'string' ? result : JSON.stringify(result, null, 2);
+
+  // Try parse as JSON object – render as structured key-value
+  if (typeof result === 'string') {
+    try {
+      const parsed = JSON.parse(result);
+      if (typeof parsed === 'object' && parsed !== null) {
+        const entries = Object.entries(parsed);
+        if (entries.length > 0 && entries.length <= 20) {
+          return (
+            <div className="space-y-1">
+              <ParamsList args={parsed} />
+              {onOpenModal && text.length > 300 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onOpenModal(text)}
+                  className="mt-1 h-auto py-1 text-xs"
+                  style={{ color: 'var(--color-text-secondary)' }}
+                >
+                  在对话框查看完整结果
+                </Button>
+              )}
+            </div>
+          );
+        }
+        return <CodeHighlighter lang="json">{JSON.stringify(parsed, null, 2)}</CodeHighlighter>;
+      }
+    } catch {}
+  }
+
+  // Object value directly
+  if (typeof result === 'object' && result !== null) {
+    return <ParamsList args={result} />;
+  }
+
+  const lang = detectLang(text);
+
+  return (
+    <div className="space-y-1.5">
+      <CodeHighlighter lang={lang}>{text}</CodeHighlighter>
+      {onOpenModal && text.length > 500 && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => onOpenModal(text)}
+          className="h-auto py-1 text-xs"
+          style={{ color: 'var(--color-text-secondary)' }}
+        >
+          在对话框查看完整结果
+        </Button>
+      )}
+    </div>
+  );
+}
+
+const getStatusIcon = (status: string) => {
+  switch (status) {
+    case 'pending':
+      return <Clock className="w-4 h-4" style={{ color: 'var(--color-state-warning)' }} />;
+    case 'running':
+      return (
+        <PlayCircle className="w-4 h-4 animate-pulse" style={{ color: 'var(--color-state-focus)' }} />
+      );
+    case 'success':
+      return <CheckCircle className="w-4 h-4" style={{ color: 'var(--color-state-success)' }} />;
+    case 'error':
+      return <XCircle className="w-4 h-4" style={{ color: 'var(--color-state-error)' }} />;
+    default:
+      return <CheckCircle className="w-4 h-4" style={{ color: 'var(--color-state-success)' }} />;
+  }
+};
+
+const getStatusBadge = (status: string) => {
+  switch (status) {
+    case 'pending':
+      return (
+        <Badge variant="secondary" className="text-xs border" style={{
+          background: 'var(--color-components-badge-warning-bg)',
+          color: 'var(--color-components-badge-warning-text)',
+          borderColor: 'var(--color-components-badge-border)',
+        }}>等待中</Badge>
+      );
+    case 'running':
+      return (
+        <Badge variant="secondary" className="text-xs border" style={{
+          background: 'var(--color-components-badge-info-bg)',
+          color: 'var(--color-components-badge-info-text)',
+          borderColor: 'var(--color-components-badge-border)',
+        }}>运行中</Badge>
+      );
+    case 'success':
+      return (
+        <Badge variant="secondary" className="text-xs border" style={{
+          background: 'var(--color-components-badge-success-bg)',
+          color: 'var(--color-components-badge-success-text)',
+          borderColor: 'var(--color-components-badge-border)',
+        }}>成功</Badge>
+      );
+    case 'error':
+      return (
+        <Badge variant="destructive" className="text-xs border" style={{
+          background: 'var(--color-components-badge-error-bg)',
+          color: 'var(--color-components-badge-error-text)',
+          borderColor: 'var(--color-components-badge-border)',
+        }}>错误</Badge>
+      );
+    default:
+      return (
+        <Badge variant="secondary" className="text-xs border" style={{
+          background: 'var(--color-components-badge-success-bg)',
+          color: 'var(--color-components-badge-success-text)',
+          borderColor: 'var(--color-components-badge-border)',
+        }}>完成</Badge>
+      );
+  }
+};
+
 export function ToolCallDisplay({ toolCalls, parsedToolCalls }: ToolCallDisplayProps) {
   const [expandedCalls, setExpandedCalls] = useState<Set<string>>(new Set());
-  const [expandedResults, setExpandedResults] = useState<Set<string>>(new Set());
-  const [modalOpenFor, setModalOpenFor] = useState<string | null>(null);
-  const [modalText, setModalText] = useState<string>("");
-  const [modalTitle, setModalTitle] = useState<string>("工具结果");
-  
-  // 使用新的解析数据或回退到原始数据
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalText, setModalText] = useState('');
+  const [modalTitle, setModalTitle] = useState('工具结果');
+
   const displayCalls = parsedToolCalls || toolCalls || [];
-  
+
   const toggleExpanded = (callId: string) => {
     if (expandedCalls.has(callId)) {
-      // 已展开 -> 收起所有
       setExpandedCalls(new Set());
     } else {
-      // 只展开当前，其他全部收起（手风琴模式）
       setExpandedCalls(new Set([callId]));
     }
   };
-  
-  const toggleResultExpanded = (callId: string) => {
-    const newExpanded = new Set(expandedResults);
-    if (newExpanded.has(callId)) {
-      newExpanded.delete(callId);
-    } else {
-      newExpanded.add(callId);
-    }
-    setExpandedResults(newExpanded);
-  };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return <Clock className="w-4 h-4" style={{ color: 'var(--color-state-warning)' }} />;
-      case 'running':
-        return (
-          <div
-            className="w-4 h-4 border-2 rounded-full animate-spin"
-            style={{ borderColor: 'var(--color-state-focus)', borderTopColor: 'transparent' }}
-          />
-        );
-      case 'success':
-        return <CheckCircle className="w-4 h-4" style={{ color: 'var(--color-state-success)' }} />;
-      case 'error':
-        return <XCircle className="w-4 h-4" style={{ color: 'var(--color-state-error)' }} />;
-      default:
-        return <CheckCircle className="w-4 h-4" style={{ color: 'var(--color-state-success)' }} />;
-    }
-  };
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return <Badge variant="secondary" className="border" style={{
-          background: 'var(--color-components-badge-warning-bg)',
-          color: 'var(--color-components-badge-warning-text)',
-          borderColor: 'var(--color-components-badge-border)'
-        }}>等待中</Badge>;
-      case 'running':
-        return <Badge variant="secondary" className="border" style={{
-          background: 'var(--color-components-badge-info-bg)',
-          color: 'var(--color-components-badge-info-text)',
-          borderColor: 'var(--color-components-badge-border)'
-        }}>运行中</Badge>;
-      case 'success':
-        return <Badge variant="secondary" className="border" style={{
-          background: 'var(--color-components-badge-success-bg)',
-          color: 'var(--color-components-badge-success-text)',
-          borderColor: 'var(--color-components-badge-border)'
-        }}>成功</Badge>;
-      case 'error':
-        return <Badge variant="destructive" className="border" style={{
-          background: 'var(--color-components-badge-error-bg)',
-          color: 'var(--color-components-badge-error-text)',
-          borderColor: 'var(--color-components-badge-border)'
-        }}>错误</Badge>;
-      default:
-        return <Badge variant="secondary" className="border" style={{
-          background: 'var(--color-components-badge-success-bg)',
-          color: 'var(--color-components-badge-success-text)',
-          borderColor: 'var(--color-components-badge-border)'
-        }}>完成</Badge>;
-    }
-  };
-
-  const renderSearchResult = (result: string, callId: string, toolNameForTitle: string) => {
-    if (result === 'Begin to call...') {
-      return <div className="text-sm text-muted-foreground">工具调用中...</div>;
-    }
-    
-    // 仅当文本较短时使用简洁卡片预览；否则用滚动面板展示全文
-    const parsedResult = formatSearchResult(result);
-    const useCompactCard = parsedResult && result.length <= 300;
-    if (useCompactCard) {
-      return (
-        <div className="space-y-3">
-          <div
-            className="p-3 rounded-lg border"
-            style={{
-              background: 'var(--color-components-badge-info-bg)',
-              borderColor: 'var(--color-components-badge-border)'
-            }}
-          >
-            <div className="flex items-start justify-between gap-2">
-              <div className="flex-1 min-w-0">
-                <h4 className="font-medium mb-1" style={{ color: 'var(--color-text-primary)' }}>{parsedResult!.title}</h4>
-                <p className="text-sm mb-2" style={{ color: 'var(--color-text-secondary)' }}>{parsedResult!.snippet}</p>
-              </div>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="hover:opacity-80"
-                style={{ color: 'var(--color-text-primary)' }}
-                onClick={() => {
-                  setModalOpenFor(callId);
-                  setModalText(result);
-                  setModalTitle(`${toolNameForTitle} 结果`);
-                }}
-              >
-                查看原文
-              </Button>
-            </div>
-          </div>
-        </div>
-      );
-    }
-    
-    // 默认：使用滚动面板展示全文（不截断）
-    return (
-      <ResultPane 
-        text={result}
-        isExpanded={expandedResults.has(callId)}
-        onToggle={() => toggleResultExpanded(callId)}
-        onOpenModal={() => {
-          setModalOpenFor(callId);
-          setModalText(result);
-          setModalTitle(`${toolNameForTitle} 结果`);
-        }}
-      />
-    );
+  const openModal = (text: string, title?: string) => {
+    setModalText(text);
+    setModalTitle(title || '工具结果');
+    setModalOpen(true);
   };
 
   if (displayCalls.length === 0) return null;
 
   return (
-    <div className="space-y-3 my-4">
-      <div className="flex items-center gap-2 text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
+    <div className="space-y-2 my-3">
+      <div
+        className="flex items-center gap-2 text-sm font-medium"
+        style={{ color: 'var(--color-text-primary)' }}
+      >
         <Wrench className="w-4 h-4" />
-        使用MCP工具 ({displayCalls.length})
+        使用 MCP 工具 ({displayCalls.length})
       </div>
-      
+
       {displayCalls.map((call, index) => {
         const isLegacyCall = 'tool_name' in call;
         const toolName = isLegacyCall ? (call as any).tool_name : (call as any).name;
-        const serverName = isLegacyCall ? (call as any).server_name : 'jina-mcp-server';
+        const serverName = isLegacyCall ? (call as any).server_name : '';
         const status = (call as any).status;
         const timestamp = (call as any).timestamp;
         const input = isLegacyCall ? (call as any).input : (call as any).args;
         const output = isLegacyCall ? (call as any).output : (call as any).result;
         const error = isLegacyCall ? (call as any).error : undefined;
-        // 生成稳定唯一ID：即使原始 id 存在也追加 index，避免不同工具复用了相同 id 导致联动展开
         const fallbackIdBase = `${toolName || 'tool'}_${JSON.stringify(input || {})}`;
         const callId = `${(call as any).id ?? fallbackIdBase}_${index}`;
-        
+        const isExpanded = expandedCalls.has(callId);
+        const hasInput = input && Object.keys(input).length > 0;
+        const hasOutput = !!output;
+        const hasBody = hasInput || hasOutput || !!error;
+
+        const borderColor =
+          status === 'error'
+            ? 'var(--color-state-error)'
+            : status === 'running'
+            ? 'var(--color-state-focus)'
+            : 'var(--color-components-card-border)';
+
         return (
           <Card
             key={callId}
-            className="border-l-4"
+            className="overflow-hidden border-l-[3px]"
             style={{
-              borderLeftColor: 'var(--color-state-focus)',
-              background: 'color-mix(in srgb, var(--color-components-card-bg), transparent 70%)'
+              borderLeftColor: borderColor,
+              background: 'var(--color-components-card-bg)',
             }}
           >
             <Collapsible
-              open={expandedCalls.has(callId)}
-              onOpenChange={() => toggleExpanded(callId)}
+              open={isExpanded}
+              onOpenChange={() => hasBody && toggleExpanded(callId)}
             >
               <CollapsibleTrigger asChild>
                 <div
-                  className="flex items-center justify-between p-4 cursor-pointer"
-                  style={{ background: 'transparent', color: 'var(--color-text-primary)' }}
+                  className="flex items-center justify-between px-3 py-2.5 cursor-pointer transition-colors hover:bg-[var(--color-surface-secondary)]"
+                  style={{ color: 'var(--color-text-primary)' }}
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2.5 min-w-0">
                     {getStatusIcon(status)}
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-sm" style={{ color: 'var(--color-text-primary)' }}>
-                          [{serverName}] {toolName}
+                    <div className="flex items-center gap-2 min-w-0 flex-wrap">
+                      <span
+                        className="font-mono font-medium text-sm"
+                        style={{ color: 'var(--color-text-primary)' }}
+                      >
+                        {serverName ? `[${serverName}] ` : ''}{toolName}
+                      </span>
+                      {getStatusBadge(status)}
+                      {timestamp && (
+                        <span
+                          className="text-xs"
+                          style={{ color: 'var(--color-text-secondary)' }}
+                        >
+                          {timestamp}
                         </span>
-                        {getStatusBadge(status)}
-                      </div>
-                      <div className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
-                        {timestamp}
-                      </div>
+                      )}
                     </div>
                   </div>
-                  
-                  <Button variant="ghost" size="sm" className="p-0 h-auto">
-                    {expandedCalls.has(callId) ? (
-                      <ChevronDown className="w-4 h-4" style={{ color: 'var(--color-text-secondary)' }} />
-                    ) : (
-                      <ChevronRight className="w-4 h-4" style={{ color: 'var(--color-text-secondary)' }} />
-                    )}
-                  </Button>
+                  {hasBody && (
+                    <Button variant="ghost" size="sm" className="p-0 h-auto ml-2 shrink-0">
+                      {isExpanded ? (
+                        <ChevronDown className="w-4 h-4" style={{ color: 'var(--color-text-secondary)' }} />
+                      ) : (
+                        <ChevronRight className="w-4 h-4" style={{ color: 'var(--color-text-secondary)' }} />
+                      )}
+                    </Button>
+                  )}
                 </div>
               </CollapsibleTrigger>
-              
+
               <CollapsibleContent>
-                <div className="px-4 pb-4 space-y-3">
-                  {/* 参数 */}
-                  <div>
-                    <div className="text-sm font-medium mb-2 flex items-center gap-1">
-                      <span style={{ color: 'var(--color-state-warning)' }}>📋</span>
-                      参数
-                    </div>
-                    <div
-                      className="rounded-lg p-3 border"
-                      style={{
-                        background: 'var(--color-components-code-bg)',
-                        borderColor: 'var(--color-border-default)'
-                      }}
-                    >
-                      <pre className="text-sm text-wrap whitespace-pre-wrap" style={{ color: 'var(--color-text-primary)' }}>
-                        {JSON.stringify(input, null, 2)}
-                      </pre>
-                    </div>
-                  </div>
-                  
-                  {/* 结果 */}
-                  {output && (
-                    <div>
-                      <div className="text-sm font-medium mb-2 flex items-center gap-1">
-                        <span style={{ color: 'var(--color-state-success)' }}>📊</span>
-                        结果
+                <div
+                  className="px-3 pb-3 pt-2 space-y-3 border-t"
+                  style={{
+                    borderColor: 'var(--color-components-card-border)',
+                    background: 'var(--color-surface-secondary)',
+                  }}
+                >
+                  {/* Parameters */}
+                  {hasInput && (
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-1.5">
+                        <Terminal
+                          className="w-3.5 h-3.5"
+                          style={{ color: 'var(--color-text-secondary)' }}
+                        />
+                        <span
+                          className="text-xs font-medium"
+                          style={{ color: 'var(--color-text-secondary)' }}
+                        >
+                          参数
+                        </span>
                       </div>
-                      {renderSearchResult(output, callId, toolName || '工具')}
+                      <div className="pl-4">
+                        <ParamsList args={input} />
+                      </div>
                     </div>
                   )}
-                  
-                  {/* 错误信息 */}
-                  {error && (
-                    <div>
-                      <div className="text-sm font-medium mb-2 text-red-600 flex items-center gap-1">
-                        <span>❌</span>
-                        错误信息
+
+                  {/* Result */}
+                  {hasOutput && (
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-1.5">
+                        {getStatusIcon(status)}
+                        <span
+                          className="text-xs font-medium"
+                          style={{ color: 'var(--color-text-secondary)' }}
+                        >
+                          结果
+                        </span>
                       </div>
-                      <div className="rounded-lg p-3 border" style={{ background: 'var(--color-components-alert-error-bg)', borderColor: 'var(--color-components-alert-error-border)' }}>
-                        <pre className="text-sm text-wrap whitespace-pre-wrap" style={{ color: 'var(--color-components-alert-error-text)' }}>
-                          {error}
-                        </pre>
+                      <div className="pl-4">
+                        <ResultView
+                          result={output}
+                          onOpenModal={(text) => openModal(text, `${toolName} 结果`)}
+                          toolName={toolName}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Error */}
+                  {error && (
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-1.5">
+                        <XCircle className="w-3.5 h-3.5" style={{ color: 'var(--color-state-error)' }} />
+                        <span
+                          className="text-xs font-medium"
+                          style={{ color: 'var(--color-state-error)' }}
+                        >
+                          错误信息
+                        </span>
+                      </div>
+                      <div
+                        className="pl-4 rounded-lg p-2.5 text-sm font-mono"
+                        style={{
+                          background: 'var(--color-components-alert-error-bg)',
+                          color: 'var(--color-components-alert-error-text)',
+                          border: '1px solid var(--color-components-alert-error-border)',
+                        }}
+                      >
+                        {error}
                       </div>
                     </div>
                   )}
@@ -341,24 +436,26 @@ export function ToolCallDisplay({ toolCalls, parsedToolCalls }: ToolCallDisplayP
         );
       })}
 
-      {/* 结果对话框 */}
-      <Dialog open={!!modalOpenFor} onOpenChange={(open) => !open && setModalOpenFor(null)}>
-        <DialogContent className="max-w-4xl w-[90vw] bg-components-dialog-bg">
+      {/* Full result modal */}
+      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+        <DialogContent className="max-w-4xl w-[90vw]">
           <DialogHeader>
             <DialogTitle>{modalTitle}</DialogTitle>
           </DialogHeader>
-          <div
-            className="mt-2 rounded-lg p-3 border max-h-[70vh] overflow-y-auto"
-            style={{
-              background: 'var(--color-components-code-bg)',
-              borderColor: 'var(--color-border-default)'
-            }}
-          >
-            <pre className="text-sm text-wrap whitespace-pre-wrap">{modalText}</pre>
+          <div className="mt-2 max-h-[70vh] overflow-y-auto">
+            {(() => {
+              try {
+                const parsed = JSON.parse(modalText);
+                if (typeof parsed === 'object' && parsed !== null) {
+                  return <ParamsList args={parsed} />;
+                }
+              } catch {}
+              const lang = detectLang(modalText);
+              return <CodeHighlighter lang={lang}>{modalText}</CodeHighlighter>;
+            })()}
           </div>
         </DialogContent>
       </Dialog>
     </div>
   );
 }
-

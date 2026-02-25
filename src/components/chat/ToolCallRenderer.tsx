@@ -9,12 +9,12 @@ import {
   CheckCircle,
   AlertCircle,
   Clock,
-  Code,
-  Zap,
   ChevronRight,
-  ChevronDown
+  ChevronDown,
+  Terminal,
+  Zap,
 } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import { CodeHighlighter } from '@ant-design/x';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Loading } from '@/components/ui/loading';
@@ -29,108 +29,172 @@ interface ToolCallRendererProps {
   collapsible?: boolean;
 }
 
-// 状态配置（使用语义令牌颜色）
 const STATUS_CONFIG = {
   pending: {
     color: 'warning' as const,
     bgColor: 'var(--color-state-warning)',
-    textColor: 'var(--color-components-badge-warning-text)',
     icon: Clock,
     text: '等待中',
-    description: '工具调用已创建，等待执行'
   },
   running: {
     color: 'info' as const,
     bgColor: 'var(--color-state-focus)',
-    textColor: 'var(--color-components-badge-info-text)',
     icon: PlayCircle,
     text: '执行中',
-    description: '工具正在执行中...'
   },
   success: {
     color: 'success' as const,
     bgColor: 'var(--color-state-success)',
-    textColor: 'var(--color-components-badge-success-text)',
     icon: CheckCircle,
     text: '成功',
-    description: '工具调用执行成功'
   },
   error: {
     color: 'destructive' as const,
     bgColor: 'var(--color-state-error)',
-    textColor: 'var(--color-components-badge-error-text)',
     icon: AlertCircle,
     text: '失败',
-    description: '工具调用执行失败'
-  }
+  },
 };
 
-// 格式化参数显示
-const formatArguments = (args: Record<string, any>): string => {
-  if (!args || Object.keys(args).length === 0) {
-    return '{}';
-  }
-
+const detectLang = (content: string): string => {
+  const t = content.trim();
+  if (/^\s*(WITH|SELECT|INSERT|UPDATE|DELETE|CREATE|DROP|ALTER|EXPLAIN)\b/i.test(t)) return 'sql';
   try {
-    return JSON.stringify(args, null, 2);
-  } catch {
-    return String(args);
-  }
+    JSON.parse(t);
+    return 'json';
+  } catch {}
+  return 'plaintext';
 };
 
-// 格式化结果显示
-const formatResult = (result: any, status: string): React.ReactNode => {
+const ParamValue: React.FC<{ value: any }> = ({ value }) => {
+  if (value === null || value === undefined) {
+    return (
+      <span className="text-xs italic" style={{ color: 'var(--color-text-disabled)' }}>
+        null
+      </span>
+    );
+  }
+  if (typeof value === 'boolean') {
+    return (
+      <span
+        className="text-xs font-mono px-1.5 py-0.5 rounded"
+        style={{
+          background: 'var(--color-components-badge-info-bg)',
+          color: 'var(--color-components-badge-info-text)',
+        }}
+      >
+        {String(value)}
+      </span>
+    );
+  }
+  if (typeof value === 'number') {
+    return (
+      <span className="text-xs font-mono" style={{ color: 'var(--color-text-accent)' }}>
+        {value}
+      </span>
+    );
+  }
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      if (typeof parsed === 'object' && parsed !== null) {
+        return <CodeHighlighter lang="json">{JSON.stringify(parsed, null, 2)}</CodeHighlighter>;
+      }
+    } catch {}
+    const lang = detectLang(value);
+    if (lang !== 'plaintext' || value.length > 80 || value.includes('\n')) {
+      return <CodeHighlighter lang={lang}>{value}</CodeHighlighter>;
+    }
+    return (
+      <span className="text-sm font-mono break-all" style={{ color: 'var(--color-text-primary)' }}>
+        {value}
+      </span>
+    );
+  }
+  return <CodeHighlighter lang="json">{JSON.stringify(value, null, 2)}</CodeHighlighter>;
+};
+
+const ParamsList: React.FC<{ args: Record<string, any> }> = ({ args }) => {
+  const entries = Object.entries(args);
+  if (entries.length === 0) return null;
+  return (
+    <div className="space-y-2">
+      {entries.map(([key, value]) => (
+        <div key={key} className="space-y-1">
+          <span
+            className="inline-block text-xs font-mono font-medium px-1.5 py-0.5 rounded"
+            style={{
+              background: 'var(--color-components-badge-warning-bg)',
+              color: 'var(--color-components-badge-warning-text)',
+            }}
+          >
+            {key}
+          </span>
+          <div className="pl-2">
+            <ParamValue value={value} />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+const ResultContent: React.FC<{ result: any; status: string }> = ({ result, status }) => {
   if (!result) {
-    return status === 'running' ? (
-      <div className="flex items-center space-x-2">
-        <Loading size="sm" />
-        <span style={{ color: 'var(--color-text-secondary)' }}>执行中...</span>
-      </div>
-    ) : (
-      <span style={{ color: 'var(--color-text-secondary)' }}>暂无结果</span>
+    if (status === 'running') {
+      return (
+        <div className="flex items-center gap-2">
+          <Loading size="sm" />
+          <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+            执行中...
+          </span>
+        </div>
+      );
+    }
+    return (
+      <span className="text-xs" style={{ color: 'var(--color-text-disabled)' }}>
+        暂无结果
+      </span>
     );
   }
 
   if (typeof result === 'string') {
-    // 检查是否是JSON字符串
     try {
       const parsed = JSON.parse(result);
-      return (
-        <div className="space-y-2">
-          <span className="font-semibold" style={{ color: 'var(--color-text-primary)' }}>结构化结果:</span>
-          <pre className="p-2 rounded text-xs overflow-x-auto" style={{ background: 'var(--color-components-code-bg)' }}>
-            {JSON.stringify(parsed, null, 2)}
-          </pre>
-        </div>
-      );
-    } catch {
-      // 普通字符串结果
-      if (result.length > 200) {
-        return (
-          <div className="space-y-2">
-            <p className="line-clamp-3" style={{ color: 'var(--color-text-primary)' }}>
-              {result}
-            </p>
-          </div>
-        );
-      } else {
-        return <span style={{ color: 'var(--color-text-primary)' }}>{result}</span>;
+      if (typeof parsed === 'object' && parsed !== null) {
+        const entries = Object.entries(parsed);
+        if (entries.length > 0 && entries.length <= 20) {
+          return <ParamsList args={parsed} />;
+        }
+        return <CodeHighlighter lang="json">{JSON.stringify(parsed, null, 2)}</CodeHighlighter>;
       }
+    } catch {}
+    const lang = detectLang(result);
+    if (lang !== 'plaintext' || result.includes('\n') || result.length > 100) {
+      return <CodeHighlighter lang={lang}>{result}</CodeHighlighter>;
     }
+    return (
+      <span className="text-sm" style={{ color: 'var(--color-text-primary)' }}>
+        {result}
+      </span>
+    );
   }
 
-  // 对象或其他类型
+  if (typeof result === 'object' && result !== null) {
+    const entries = Object.entries(result);
+    if (entries.length > 0 && entries.length <= 20) {
+      return <ParamsList args={result} />;
+    }
+    return <CodeHighlighter lang="json">{JSON.stringify(result, null, 2)}</CodeHighlighter>;
+  }
+
   return (
-    <pre
-      className="p-2 rounded text-xs overflow-x-auto"
-      style={{ background: 'var(--color-components-code-bg)' }}
-    >
-      {JSON.stringify(result, null, 2)}
-    </pre>
+    <span className="text-sm font-mono" style={{ color: 'var(--color-text-primary)' }}>
+      {String(result)}
+    </span>
   );
 };
 
-// 单个工具调用卡片
 const ToolCallCard: React.FC<{
   toolCall: ToolCallInfo;
   showTimestamp: boolean;
@@ -139,108 +203,113 @@ const ToolCallCard: React.FC<{
   const [isOpen, setIsOpen] = useState(['running', 'error'].includes(toolCall.status));
   const statusConfig = STATUS_CONFIG[toolCall.status];
   const StatusIcon = statusConfig.icon;
-  const shouldShowHeader = !(collapsible && toolCall.status !== 'running');
+  const hasParams = Object.keys(toolCall.arguments).length > 0;
+  const hasResult = !!toolCall.result;
+  const hasBody = hasParams || hasResult || toolCall.status === 'running';
 
-  const cardContent = (
-    <div className="space-y-3">
-      {/* 工具信息头部 */}
-      {shouldShowHeader && (
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Zap className="h-4 w-4" style={{ color: 'var(--color-state-focus)' }} />
-            <span className="font-semibold text-base" style={{ color: 'var(--color-text-primary)' }}>{toolCall.name}</span>
-            <Badge variant={statusConfig.color === 'info' ? 'secondary' : statusConfig.color}>
-              {statusConfig.text}
-            </Badge>
-          </div>
-          {showTimestamp && (
-            <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
-              {toolCall.timestamp}
-            </span>
-          )}
-        </div>
-      )}
-
-      {/* 参数部分 */}
-      {Object.keys(toolCall.arguments).length > 0 && (
-        <div className="space-y-2">
-          <div className="flex items-center space-x-1">
-            <Code className="h-4 w-4" style={{ color: 'var(--color-text-secondary)' }} />
-            <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>参数:</span>
-          </div>
-          <pre
-            className="p-2 rounded text-xs overflow-x-auto border-l-2"
-            style={{
-              background: 'var(--color-components-code-bg)',
-              borderLeftColor: 'var(--color-state-focus)'
-            }}
-          >
-            {formatArguments(toolCall.arguments)}
-          </pre>
-        </div>
-      )}
-
-      {/* 结果部分 */}
-      <div className="space-y-2">
-        <div className="flex items-center space-x-1">
-          <StatusIcon className="h-4 w-4" style={{ color: statusConfig.bgColor }} />
-          <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>结果:</span>
-        </div>
-        <div className="border-l-2 pl-3" style={{ borderLeftColor: 'var(--color-border-default)' }}>
-          {toolCall.status === 'error' ? (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>执行失败</AlertTitle>
-              <AlertDescription>
-                {formatResult(toolCall.result, toolCall.status)}
-              </AlertDescription>
-            </Alert>
-          ) : (
-            <div
-              className="p-2 rounded"
-              style={{ background: 'var(--color-components-code-bg)' }}
-            >
-              {formatResult(toolCall.result, toolCall.status)}
-            </div>
-          )}
-        </div>
+  const headerContent = (
+    <div className="flex items-center justify-between w-full">
+      <div className="flex items-center gap-2">
+        {collapsible && hasBody && (
+          isOpen
+            ? <ChevronDown className="h-3.5 w-3.5 shrink-0" style={{ color: 'var(--color-text-secondary)' }} />
+            : <ChevronRight className="h-3.5 w-3.5 shrink-0" style={{ color: 'var(--color-text-secondary)' }} />
+        )}
+        <StatusIcon className="h-4 w-4 shrink-0" style={{ color: statusConfig.bgColor }} />
+        <span className="font-mono font-medium text-sm" style={{ color: 'var(--color-text-primary)' }}>
+          {toolCall.name}
+        </span>
+        <Badge
+          variant={statusConfig.color === 'info' ? 'secondary' : statusConfig.color}
+          className="text-xs"
+        >
+          {statusConfig.text}
+        </Badge>
       </div>
+      {showTimestamp && (
+        <span className="text-xs shrink-0" style={{ color: 'var(--color-text-secondary)' }}>
+          {toolCall.timestamp}
+        </span>
+      )}
     </div>
   );
 
-  if (collapsible && toolCall.status !== 'running') {
+  const bodyContent = hasBody ? (
+    <div
+      className="px-3 py-3 space-y-3 border-t"
+      style={{
+        borderColor: 'var(--color-components-card-border)',
+        background: 'var(--color-surface-secondary)',
+      }}
+    >
+      {hasParams && (
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-1.5">
+            <Terminal className="h-3.5 w-3.5" style={{ color: 'var(--color-text-secondary)' }} />
+            <span className="text-xs font-medium" style={{ color: 'var(--color-text-secondary)' }}>
+              参数
+            </span>
+          </div>
+          <div className="pl-4">
+            <ParamsList args={toolCall.arguments} />
+          </div>
+        </div>
+      )}
+
+      {(hasResult || toolCall.status === 'running') && (
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-1.5">
+            <StatusIcon className="h-3.5 w-3.5" style={{ color: statusConfig.bgColor }} />
+            <span className="text-xs font-medium" style={{ color: 'var(--color-text-secondary)' }}>
+              结果
+            </span>
+          </div>
+          <div className="pl-4">
+            {toolCall.status === 'error' ? (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>执行失败</AlertTitle>
+                <AlertDescription>
+                  <ResultContent result={toolCall.result} status={toolCall.status} />
+                </AlertDescription>
+              </Alert>
+            ) : (
+              <ResultContent result={toolCall.result} status={toolCall.status} />
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  ) : null;
+
+  const borderColor =
+    toolCall.status === 'error'
+      ? 'var(--color-state-error)'
+      : toolCall.status === 'running'
+      ? 'var(--color-state-focus)'
+      : 'var(--color-components-card-border)';
+
+  if (collapsible && hasBody) {
     return (
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <CollapsibleTrigger asChild>
           <div
-            className="flex items-center justify-between p-3 cursor-pointer rounded-lg transition-colors hover:bg-[var(--color-surface-secondary)]"
+            className="flex items-center px-3 py-2.5 cursor-pointer rounded-t-lg transition-colors hover:bg-[var(--color-surface-secondary)]"
             style={{
               background: 'var(--color-components-card-bg)',
-              border: '1px solid var(--color-components-card-border)'
+              border: `1px solid ${borderColor}`,
+              borderRadius: isOpen ? '8px 8px 0 0' : '8px',
             }}
           >
-            <div className="flex items-center space-x-2" style={{ color: 'var(--color-text-primary)' }}>
-              {isOpen ? (
-                <ChevronDown className="h-4 w-4" style={{ color: 'var(--color-text-secondary)' }} />
-              ) : (
-                <ChevronRight className="h-4 w-4" style={{ color: 'var(--color-text-secondary)' }} />
-              )}
-              <StatusIcon className="h-4 w-4" style={{ color: statusConfig.bgColor }} />
-              <span className="font-semibold" style={{ color: 'var(--color-text-primary)' }}>{toolCall.name}</span>
-              <Badge variant={statusConfig.color === 'info' ? 'secondary' : statusConfig.color}>
-                {statusConfig.text}
-              </Badge>
-            </div>
-            {showTimestamp && (
-              <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
-                {toolCall.timestamp}
-              </span>
-            )}
+            {headerContent}
           </div>
         </CollapsibleTrigger>
         <CollapsibleContent>
-          <div className="pl-6 pt-2">
-            {cardContent}
+          <div
+            className="rounded-b-lg overflow-hidden"
+            style={{ border: `1px solid ${borderColor}`, borderTop: 'none' }}
+          >
+            {bodyContent}
           </div>
         </CollapsibleContent>
       </Collapsible>
@@ -248,74 +317,93 @@ const ToolCallCard: React.FC<{
   }
 
   return (
-    <Card
-      className="transition-all duration-200"
-      style={{
-        background: 'var(--color-components-card-bg)',
-        borderColor:
-          toolCall.status === 'error'
-            ? 'var(--color-state-error)'
-            : toolCall.status === 'running'
-            ? 'var(--color-state-focus)'
-            : 'var(--color-components-card-border)'
-      }}
+    <div
+      className="rounded-lg overflow-hidden"
+      style={{ border: `1px solid ${borderColor}` }}
     >
-      <CardContent className="p-3">
-        {cardContent}
-      </CardContent>
-    </Card>
+      <div
+        className="px-3 py-2.5"
+        style={{ background: 'var(--color-components-card-bg)' }}
+      >
+        {headerContent}
+      </div>
+      {bodyContent}
+    </div>
   );
 };
 
-// 主组件
 export const ToolCallRenderer: React.FC<ToolCallRendererProps> = ({
   toolCalls,
   isAnalyzing = false,
   className = '',
   showTimestamp = true,
-  collapsible = false
+  collapsible = false,
 }) => {
   if (!toolCalls || toolCalls.length === 0) {
     if (isAnalyzing) {
       return (
-        <div className={`tool-call-renderer ${className}`}>
-          <Card
-            style={{
-              background: 'var(--color-components-card-bg)',
-              borderColor: 'var(--color-components-card-border)'
-            }}
-          >
-            <CardContent className="p-3">
-              <div className="flex items-center space-x-2">
-                <Loading size="sm" />
-                <span style={{ color: 'var(--color-text-secondary)' }}>正在分析工具需求...</span>
-              </div>
-            </CardContent>
-          </Card>
+        <div
+          className={`${className} px-3 py-2.5 rounded-lg`}
+          style={{
+            background: 'var(--color-components-card-bg)',
+            border: '1px solid var(--color-components-card-border)',
+          }}
+        >
+          <div className="flex items-center gap-2">
+            <Loading size="sm" />
+            <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+              正在分析工具需求...
+            </span>
+          </div>
         </div>
       );
     }
     return null;
   }
 
+  const successCount = toolCalls.filter((c) => c.status === 'success').length;
+  const errorCount = toolCalls.filter((c) => c.status === 'error').length;
+
   return (
-    <div className={`tool-call-renderer space-y-3 ${className}`}>
-      {/* 工具调用统计 */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center space-x-2">
+    <div className={`space-y-2 ${className}`}>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1.5">
           <Zap className="h-4 w-4" style={{ color: 'var(--color-state-focus)' }} />
-          <span className="font-semibold" style={{ color: 'var(--color-text-primary)' }}>工具调用 ({toolCalls.length})</span>
+          <span className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+            工具调用 ({toolCalls.length})
+          </span>
         </div>
-        {isAnalyzing && (
-          <div className="flex items-center space-x-2">
-            <Loading size="sm" />
-            <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>分析中...</span>
-          </div>
-        )}
+        <div className="flex items-center gap-3">
+          {successCount > 0 && (
+            <span
+              className="text-xs flex items-center gap-1"
+              style={{ color: 'var(--color-state-success)' }}
+            >
+              <CheckCircle className="h-3 w-3" />
+              {successCount} 成功
+            </span>
+          )}
+          {errorCount > 0 && (
+            <span
+              className="text-xs flex items-center gap-1"
+              style={{ color: 'var(--color-state-error)' }}
+            >
+              <AlertCircle className="h-3 w-3" />
+              {errorCount} 失败
+            </span>
+          )}
+          {isAnalyzing && (
+            <div className="flex items-center gap-1.5">
+              <Loading size="sm" />
+              <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+                分析中...
+              </span>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* 工具调用列表 */}
-      <div className="space-y-3">
+      <div className="space-y-2">
         {toolCalls.map((toolCall) => (
           <ToolCallCard
             key={toolCall.id}
@@ -324,32 +412,6 @@ export const ToolCallRenderer: React.FC<ToolCallRendererProps> = ({
             collapsible={collapsible}
           />
         ))}
-      </div>
-
-      {/* 状态标签 */}
-      <div
-        className="flex flex-wrap gap-2 pt-2 border-t"
-        style={{ borderColor: 'var(--color-border-default)' }}
-      >
-        {Object.entries(
-          toolCalls.reduce((acc, call) => {
-            acc[call.status] = (acc[call.status] || 0) + 1;
-            return acc;
-          }, {} as Record<string, number>)
-        ).map(([status, count]) => {
-          const config = STATUS_CONFIG[status as keyof typeof STATUS_CONFIG];
-          const StatusIcon = config.icon;
-          return (
-            <Badge
-              key={status}
-              variant={config.color === 'info' ? 'secondary' : config.color}
-              className="flex items-center gap-1"
-            >
-              <StatusIcon className="h-3 w-3" />
-              {config.text} ({count})
-            </Badge>
-          );
-        })}
       </div>
     </div>
   );
