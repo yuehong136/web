@@ -30,7 +30,7 @@ import { ConfigProvider, theme, Modal, Input } from 'antd'
 import type { PromptsProps } from '@ant-design/x'
 import XMarkdown from '@ant-design/x-markdown'
 import '@ant-design/x-markdown/dist/x-markdown.css'
-import { markdownCodeComponents } from '@/components/chat/MarkdownCodeBlock'
+import { markdownCodeComponents, markdownConfig } from '@/components/chat/MarkdownCodeBlock'
 import { Button } from '@/components/ui/button'
 import { cn, copyToClipboard } from '@/lib/utils'
 import { toast } from '@/lib/toast'
@@ -797,6 +797,7 @@ export const ExplorePage: React.FC = () => {
             // 没有轮播组，直接渲染
             return (
               <XMarkdown
+                config={markdownConfig}
                 components={{ ...markdownCodeComponents, sup: SupComponent }}
                 paragraphTag="div"
               >
@@ -815,6 +816,7 @@ export const ExplorePage: React.FC = () => {
               elements.push(
                 <XMarkdown
                   key={`text-${idx}`}
+                  config={markdownConfig}
                   components={{ ...markdownCodeComponents, sup: SupComponent }}
                   paragraphTag="div"
                 >

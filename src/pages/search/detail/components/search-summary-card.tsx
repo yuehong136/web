@@ -1,6 +1,6 @@
 import React, { memo, useCallback, useMemo } from 'react'
 import XMarkdown from '@ant-design/x-markdown'
-import { markdownCodeComponents } from '@/components/chat/MarkdownCodeBlock'
+import { markdownCodeComponents, markdownConfig } from '@/components/chat/MarkdownCodeBlock'
 import { Sparkles } from 'lucide-react'
 import { ReferenceImageList } from '@/components/chat/ReferenceImageList'
 import { createReferenceMarkerComponent } from '@/components/chat/ReferenceMarker'
@@ -79,6 +79,7 @@ const SearchSummaryCard: React.FC<SearchSummaryCardProps> = ({
             <div className="prose prose-sm max-w-none bubble-copy-text [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
               <XMarkdown
                 paragraphTag="div"
+                config={markdownConfig}
                 components={{ ...markdownCodeComponents, ...(referenceChunks.length > 0 ? { sup: SupComponent } : {}) }}
               >
                 {referenceChunks.length > 0 ? summaryWithSup : summary}
