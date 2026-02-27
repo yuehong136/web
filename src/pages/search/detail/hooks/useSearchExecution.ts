@@ -224,11 +224,13 @@ export const useSearchExecution = (searchApp: SearchApp | null, appliedConfig?: 
         const summaryPromise = config.summary
           ? (async () => {
               setPhase(SearchExecutionPhase.SUMMARIZING)
+              const summaryModel = config.chat_id || config.llm_id
 
               const response = await searchAPI.askStream({
                 question: query.trim(),
                 kb_ids: config.kb_ids,
                 search_id: searchApp.id,
+                model: summaryModel,
                 doc_ids: options?.docIds,
                 signal,
               })

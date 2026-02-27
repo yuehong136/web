@@ -23,6 +23,25 @@ const buildDefaultConfig = (): SearchConfig => ({
   },
 })
 
+const normalizeModelConfig = (rawConfig: Partial<SearchConfig>): SearchConfig => {
+  const selectedModel = rawConfig.chat_id || rawConfig.llm_id
+
+  return {
+    ...buildDefaultConfig(),
+    ...rawConfig,
+    chat_id: selectedModel || undefined,
+    llm_id: selectedModel || undefined,
+    rerank_id: rawConfig.rerank_id || '',
+    web_search: rawConfig.web_search || false,
+    query_mindmap: rawConfig.query_mindmap || false,
+    meta_data_filter: rawConfig.meta_data_filter || {
+      method: 'disabled',
+      logic: 'and',
+      manual: [],
+    },
+  }
+}
+
 export const useSearchSettings = (searchApp: SearchApp | null) => {
   const { updateSearch, isLoading } = useUpdateSearch()
   const { addNotification } = useUIStore()
@@ -42,18 +61,7 @@ export const useSearchSettings = (searchApp: SearchApp | null) => {
   useEffect(() => {
     if (!searchApp) return
     const rawSearchConfig = (searchApp.search_config || {}) as Partial<SearchConfig>
-    const mergedConfig: SearchConfig = {
-      ...buildDefaultConfig(),
-      ...rawSearchConfig,
-      rerank_id: rawSearchConfig.rerank_id || '',
-      web_search: rawSearchConfig.web_search || false,
-      query_mindmap: rawSearchConfig.query_mindmap || false,
-      meta_data_filter: rawSearchConfig.meta_data_filter || {
-        method: 'disabled',
-        logic: 'and',
-        manual: [],
-      },
-    }
+    const mergedConfig = normalizeModelConfig(rawSearchConfig)
     setConfig(mergedConfig)
     setSavedConfig(mergedConfig)
     const nextBasicInfo = {
@@ -73,7 +81,7 @@ export const useSearchSettings = (searchApp: SearchApp | null) => {
   )
 
   const updateConfig = useCallback((partial: Partial<SearchConfig>) => {
-    setConfig((prev) => ({ ...prev, ...partial }))
+    setConfig((prev) => normalizeModelConfig({ ...prev, ...partial }))
   }, [])
 
   const updateBasicInfo = useCallback((partial: Partial<Pick<SearchApp, 'name' | 'description' | 'avatar'>>) => {
@@ -93,15 +101,17 @@ export const useSearchSettings = (searchApp: SearchApp | null) => {
     }
 
     try {
+      const normalizedConfig = normalizeModelConfig(config)
       await updateSearch({
         search_id: searchApp.id,
         name: trimmedName,
         description: (basicInfo.description || '').trim() || undefined,
         avatar: basicInfo.avatar || '',
         tenant_id: searchApp.tenant_id,
-        search_config: config as unknown as Record<string, unknown>,
+        search_config: normalizedConfig as unknown as Record<string, unknown>,
       })
-      setSavedConfig(config)
+      setConfig(normalizedConfig)
+      setSavedConfig(normalizedConfig)
       setSavedBasicInfo({
         name: trimmedName,
         description: (basicInfo.description || '').trim(),

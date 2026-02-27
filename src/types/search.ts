@@ -34,7 +34,10 @@ export interface SearchConfig {
   vector_similarity_weight: number
   top_k: number
   summary: boolean
+  /** 当前搜索模块主用字段（保留） */
   chat_id?: string
+  /** 兼容部分后端分支使用 llm_id 的场景 */
+  llm_id?: string
   llm_setting?: LLMSetting
   related_search: boolean
   use_rerank: boolean

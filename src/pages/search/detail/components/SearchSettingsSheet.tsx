@@ -146,7 +146,6 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
 }) => {
   const { knowledgeBases } = useFetchKnowledgeList({ page_size: 1000 })
   const [chatModelProviders, setChatModelProviders] = useState<MyLLMProvider>({})
-  const [chatModelIdByName, setChatModelIdByName] = useState<Record<string, string>>({})
   const [chatModelNameById, setChatModelNameById] = useState<Record<string, string>>({})
   const [rerankModels, setRerankModels] = useState<LLMModel[]>([])
   const [modelLoading, setModelLoading] = useState(false)
@@ -170,9 +169,10 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
   const summaryPreset = useMemo(() => matchSummaryPreset(config.llm_setting), [config.llm_setting])
 
   const selectedSummaryModelName = useMemo(() => {
-    if (!config.chat_id) return null
-    return chatModelIdByName[config.chat_id] ? config.chat_id : (chatModelNameById[config.chat_id] || config.chat_id)
-  }, [chatModelIdByName, chatModelNameById, config.chat_id])
+    const selectedModel = config.chat_id || config.llm_id
+    if (!selectedModel) return null
+    return chatModelNameById[selectedModel] || selectedModel
+  }, [chatModelNameById, config.chat_id, config.llm_id])
 
   const getLLMValue = useCallback(
     (field: LLMSettingField) => config.llm_setting?.[field] ?? DEFAULT_LLM_SETTING[field],
@@ -301,19 +301,16 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
             )
         })
 
-        const nameToIdMap: Record<string, string> = {}
         const idToNameMap: Record<string, string> = {}
         allModels.forEach((model) => {
           if (model.mdl_type !== 'chat' && model.mdl_type !== 'image2text') return
           const modelName = model.llm_name || model.name || model.id
           if (!modelName) return
-          nameToIdMap[modelName] = model.id || modelName
           idToNameMap[model.id || modelName] = modelName
         })
 
         setRerankModels(allModels.filter((model) => model.mdl_type === 'rerank'))
         setChatModelProviders(providers)
-        setChatModelIdByName(nameToIdMap)
         setChatModelNameById(idToNameMap)
       } catch {
         setModelError('模型列表加载失败')
@@ -450,10 +447,10 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
                     selectedModelName={selectedSummaryModelName}
                     onSelect={(modelName) => {
                       if (!modelName) {
-                        onConfigChange({ chat_id: undefined })
+                        onConfigChange({ chat_id: undefined, llm_id: undefined })
                         return
                       }
-                      onConfigChange({ chat_id: chatModelIdByName[modelName] || modelName })
+                      onConfigChange({ chat_id: modelName, llm_id: modelName })
                     }}
                     loading={modelLoading}
                     error={modelError}

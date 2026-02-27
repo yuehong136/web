@@ -43,6 +43,7 @@ export const searchAPI = {
     question: string
     kb_ids: string[]
     search_id?: string
+    model?: string
     doc_ids?: string[]
     signal?: AbortSignal
   }): Promise<Response> => {
@@ -59,6 +60,7 @@ export const searchAPI = {
         question: data.question,
         kb_ids: data.kb_ids,
         search_id: data.search_id,
+        model: data.model,
         doc_ids: data.doc_ids,
         stream: true,
       }),
