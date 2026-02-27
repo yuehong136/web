@@ -43,6 +43,7 @@ import AgentCanvasPage from '@/pages/agent/AgentCanvasPage'
 import { TeamPage } from '@/pages/team'
 import DataSourcePage from '@/pages/settings/datasource'
 import DataSourceDetailPage from '@/pages/settings/datasource/detail'
+import { AdminUsersPage } from '@/pages/settings/admin'
 
 // 页面组件 (先创建占位符)
 
@@ -316,6 +317,10 @@ export const router = createBrowserRouter([
           {
             path: 'system',
             element: <SystemPage />,
+          },
+          {
+            path: 'admin',
+            element: <AdminUsersPage />,
           },
         ],
       },

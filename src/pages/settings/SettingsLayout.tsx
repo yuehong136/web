@@ -11,6 +11,7 @@ import {
   Activity,
   LogOut,
   Key,
+  UserCog,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/stores'
@@ -67,6 +68,12 @@ const settingsGroups: SidebarGroup[] = [
     label: '系统',
     items: [
       { title: '系统状态', href: '/settings/system', icon: Activity },
+    ],
+  },
+  {
+    label: '管理',
+    items: [
+      { title: '用户管理', href: '/settings/admin', icon: UserCog },
     ],
   },
 ]
@@ -141,6 +148,7 @@ const pageTitles: Record<string, string> = {
   '/settings/profile': '概要',
   '/settings/system': '系统状态',
   '/settings/api-keys': 'API',
+  '/settings/admin': '用户管理',
 }
 
 export const SettingsLayout: React.FC = () => {

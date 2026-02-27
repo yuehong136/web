@@ -1,0 +1,371 @@
+import React, { useState, useMemo, useCallback, memo, useEffect } from 'react'
+import { UserPlus, Search, RefreshCw, Shield, Lock, Eye, EyeOff, LogIn } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { useAuthStore } from '@/stores'
+import { toast } from '@/lib/toast'
+import { adminAPI, getAdminToken, setAdminToken } from '@/api/admin'
+import { StatsBar } from './components/stats-bar'
+import { UserTable } from './components/user-table'
+import { CreateUserDialog } from './components/create-user-dialog'
+import { ChangePasswordDialog } from './components/change-password-dialog'
+import {
+  useFetchAdminUsers,
+  useCreateAdminUser,
+  useDeleteAdminUser,
+  useUpdateUserActivate,
+  useUpdateUserPassword,
+  useGrantAdmin,
+} from './hooks/use-admin-users'
+import { UserStatusFilter, UserRoleFilter } from './types'
+import type { AdminUser, CreateUserParams } from './types'
+
+// ─── Filter Select ────────────────────────────────────────────────────────────
+
+const FilterSelect: React.FC<{
+  value: string
+  onChange: (v: string) => void
+  options: { value: string; label: string }[]
+}> = memo(({ value, onChange, options }) => (
+  <select
+    value={value}
+    onChange={e => onChange(e.target.value)}
+    className="h-9 rounded-xl border border-border-default bg-background-surface px-3 text-sm text-text-secondary focus:outline-none focus:ring-2 focus:ring-border-accent hover:bg-background-subtle transition-colors cursor-pointer"
+  >
+    {options.map(opt => (
+      <option key={opt.value} value={opt.value}>{opt.label}</option>
+    ))}
+  </select>
+))
+FilterSelect.displayName = 'FilterSelect'
+
+// ─── Skeleton ─────────────────────────────────────────────────────────────────
+
+const TableSkeleton: React.FC = () => (
+  <div className="overflow-hidden rounded-xl border border-border-subtle bg-background-surface animate-pulse">
+    <div className="h-10 bg-background-subtle" />
+    {Array.from({ length: 5 }).map((_, i) => (
+      <div key={i} className="flex items-center gap-3 border-t border-border-subtle px-4 py-3">
+        <div className="h-9 w-9 rounded-full bg-background-subtle" />
+        <div className="flex-1 space-y-1.5">
+          <div className="h-3 w-32 rounded bg-background-subtle" />
+          <div className="h-2.5 w-48 rounded bg-background-subtle" />
+        </div>
+        <div className="h-5 w-12 rounded-full bg-background-subtle" />
+        <div className="h-3 w-24 rounded bg-background-subtle" />
+      </div>
+    ))}
+  </div>
+)
+
+// ─── Admin Login Form ─────────────────────────────────────────────────────────
+
+interface AdminLoginFormProps {
+  onSuccess: () => void
+}
+
+const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ onSuccess }) => {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [showPwd, setShowPwd] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleLogin = useCallback(async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!email || !password) { setError('请填写邮箱和密码'); return }
+    setLoading(true)
+    setError('')
+    try {
+      const { token } = await adminAPI.login(email, password)
+      setAdminToken(token)
+      onSuccess()
+    } catch (err: any) {
+      setError(err?.message || '登录失败，请检查管理员凭据')
+    } finally {
+      setLoading(false)
+    }
+  }, [email, password, onSuccess])
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[50vh]">
+      <div className="w-full max-w-sm">
+        <div className="rounded-2xl border border-border-subtle bg-background-surface p-8 shadow-soft">
+          <div className="mb-6 flex flex-col items-center gap-3">
+            <div
+              className="flex h-12 w-12 items-center justify-center rounded-2xl"
+              style={{ background: 'rgba(var(--twc-primary), 0.12)' }}
+            >
+              <Lock className="h-6 w-6 text-text-accent" />
+            </div>
+            <div className="text-center">
+              <h2 className="text-lg font-semibold text-text-primary">管理员验证</h2>
+              <p className="mt-1 text-sm text-text-tertiary">
+                此功能需要管理员权限，请输入管理员凭据
+              </p>
+            </div>
+          </div>
+
+          <form onSubmit={handleLogin} className="space-y-space-md">
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-text-secondary">管理员邮箱</label>
+              <Input
+                type="email"
+                inputSize="sm"
+                placeholder="admin@example.com"
+                value={email}
+                onChange={e => { setEmail(e.target.value); setError('') }}
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-text-secondary">密码</label>
+              <Input
+                type={showPwd ? 'text' : 'password'}
+                inputSize="sm"
+                placeholder="管理员密码"
+                value={password}
+                onChange={e => { setPassword(e.target.value); setError('') }}
+                rightIcon={
+                  <button
+                    type="button"
+                    onClick={() => setShowPwd(v => !v)}
+                    className="text-text-tertiary hover:text-text-secondary transition-colors"
+                  >
+                    {showPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                }
+              />
+            </div>
+            {error && (
+              <p className="rounded-lg bg-state-error-subtle px-3 py-2 text-sm text-text-error">{error}</p>
+            )}
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading
+                ? '验证中...'
+                : <><LogIn className="mr-2 h-4 w-4" />进入管理后台</>
+              }
+            </Button>
+          </form>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── Users Panel ──────────────────────────────────────────────────────────────
+
+const UsersPanel: React.FC<{ currentUserEmail?: string; onLogout: () => void }> = ({
+  currentUserEmail,
+  onLogout,
+}) => {
+  const [keyword, setKeyword] = useState('')
+  const [statusFilter, setStatusFilter] = useState<string>(UserStatusFilter.ALL)
+  const [roleFilter, setRoleFilter] = useState<string>(UserRoleFilter.ALL)
+  const [createOpen, setCreateOpen] = useState(false)
+  const [changePassUser, setChangePassUser] = useState<AdminUser | null>(null)
+
+  const { data: users = [], isLoading, isRefetching, refetch, error } = useFetchAdminUsers()
+  const createUser = useCreateAdminUser()
+  const deleteUser = useDeleteAdminUser()
+  const updateActivate = useUpdateUserActivate()
+  const updatePassword = useUpdateUserPassword()
+  const grantAdmin = useGrantAdmin()
+
+  // If token expired/invalid, go back to login
+  const isAuthError = error && (error as any)?.message?.includes('401')
+
+  const filteredUsers = useMemo(() => {
+    return users.filter(u => {
+      const kw = keyword.toLowerCase()
+      const matchKw = !kw || u.email.toLowerCase().includes(kw) || u.nickname.toLowerCase().includes(kw)
+      const matchStatus =
+        statusFilter === UserStatusFilter.ALL ||
+        (statusFilter === UserStatusFilter.ACTIVE ? u.is_active : !u.is_active)
+      return matchKw && matchStatus
+    })
+  }, [users, keyword, statusFilter])
+
+  const handleCreate = useCallback(async (data: CreateUserParams) => {
+    try {
+      await createUser.mutateAsync(data)
+      setCreateOpen(false)
+      toast.success('用户创建成功')
+    } catch (e: any) {
+      toast.error(e?.message || '创建失败')
+    }
+  }, [createUser])
+
+  const handleDelete = useCallback(async (user: AdminUser) => {
+    if (!confirm(`确定要删除用户「${user.nickname || user.email}」吗？此操作不可恢复。`)) return
+    try {
+      await deleteUser.mutateAsync(user.email)
+      toast.success('用户已删除')
+    } catch (e: any) {
+      toast.error(e?.message || '删除失败')
+    }
+  }, [deleteUser])
+
+  const handleToggleStatus = useCallback(async (user: AdminUser) => {
+    try {
+      await updateActivate.mutateAsync({ username: user.email, activate: !user.is_active })
+      toast.success(`用户已${user.is_active ? '停用' : '启用'}`)
+    } catch (e: any) {
+      toast.error(e?.message || '操作失败')
+    }
+  }, [updateActivate])
+
+  const handleGrantAdmin = useCallback(async (user: AdminUser) => {
+    try {
+      await grantAdmin.mutateAsync(user.email)
+      toast.success(`已授予「${user.nickname || user.email}」管理员权限`)
+    } catch (e: any) {
+      toast.error(e?.message || '操作失败')
+    }
+  }, [grantAdmin])
+
+  const handleChangePassword = useCallback((user: AdminUser) => setChangePassUser(user), [])
+
+  const handlePasswordSubmit = useCallback(async (username: string, newPassword: string) => {
+    try {
+      await updatePassword.mutateAsync({ username, newPassword })
+      setChangePassUser(null)
+      toast.success('密码修改成功')
+    } catch (e: any) {
+      toast.error(e?.message || '修改失败')
+    }
+  }, [updatePassword])
+
+  if (isAuthError) {
+    onLogout()
+    return null
+  }
+
+  return (
+    <div className="space-y-space-lg">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-space-md">
+        <div className="flex items-start gap-space-md">
+          <div
+            className="flex h-10 w-10 items-center justify-center rounded-xl flex-shrink-0 mt-0.5"
+            style={{ background: 'rgba(var(--twc-primary), 0.12)' }}
+          >
+            <Shield className="h-5 w-5 text-text-accent" />
+          </div>
+          <div>
+            <h1 className="text-xl font-semibold text-text-primary leading-tight">用户管理</h1>
+            <p className="mt-0.5 text-sm text-text-tertiary">管理系统中所有用户的账号与权限</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-space-sm flex-shrink-0">
+          <Button variant="outline" size="sm" onClick={onLogout} className="h-9 text-text-tertiary">
+            退出管理
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isRefetching} className="h-9 px-3">
+            <RefreshCw className={`h-3.5 w-3.5 ${isRefetching ? 'animate-spin' : ''}`} />
+          </Button>
+          <Button size="sm" onClick={() => setCreateOpen(true)} className="h-9">
+            <UserPlus className="mr-1.5 h-3.5 w-3.5" />
+            新建用户
+          </Button>
+        </div>
+      </div>
+
+      {/* Stats */}
+      {!isLoading && users.length > 0 && <StatsBar users={users} />}
+
+      {/* Toolbar */}
+      <div className="flex flex-wrap items-center gap-space-sm">
+        <div className="flex-1 min-w-[180px]">
+          <Input
+            inputSize="sm"
+            placeholder="搜索邮箱或昵称..."
+            value={keyword}
+            onChange={e => setKeyword(e.target.value)}
+            leftIcon={<Search className="h-4 w-4 text-text-tertiary" />}
+            className="h-9 bg-background-surface"
+          />
+        </div>
+        <FilterSelect
+          value={statusFilter}
+          onChange={setStatusFilter}
+          options={[
+            { value: UserStatusFilter.ALL, label: '所有状态' },
+            { value: UserStatusFilter.ACTIVE, label: '活跃' },
+            { value: UserStatusFilter.INACTIVE, label: '已停用' },
+          ]}
+        />
+        {keyword || statusFilter !== UserStatusFilter.ALL ? (
+          <span className="text-xs text-text-tertiary">共 {filteredUsers.length} 条结果</span>
+        ) : null}
+      </div>
+
+      {/* Table */}
+      {isLoading ? (
+        <TableSkeleton />
+      ) : (
+        <UserTable
+          users={filteredUsers}
+          currentUserEmail={currentUserEmail}
+          onChangePassword={handleChangePassword}
+          onToggleStatus={handleToggleStatus}
+          onGrantAdmin={handleGrantAdmin}
+          onDelete={handleDelete}
+        />
+      )}
+
+      {/* Dialogs */}
+      <CreateUserDialog
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        onSubmit={handleCreate}
+        isLoading={createUser.isPending}
+      />
+      <ChangePasswordDialog
+        open={!!changePassUser}
+        onOpenChange={open => !open && setChangePassUser(null)}
+        user={changePassUser}
+        onSubmit={handlePasswordSubmit}
+        isLoading={updatePassword.isPending}
+      />
+    </div>
+  )
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
+const AdminUsersPage: React.FC = () => {
+  const { user: currentUser } = useAuthStore()
+  const [isAdminAuthed, setIsAdminAuthed] = useState(() => !!getAdminToken())
+
+  // Verify token on mount
+  useEffect(() => {
+    if (!getAdminToken()) return
+    adminAPI.verify().catch(() => {
+      setAdminToken(null)
+      setIsAdminAuthed(false)
+    })
+  }, [])
+
+  const handleLogout = useCallback(() => {
+    setAdminToken(null)
+    setIsAdminAuthed(false)
+  }, [])
+
+  return (
+    <div className="min-h-full bg-components-settings-content-bg p-space-lg">
+      <div className="mx-auto max-w-5xl">
+        {isAdminAuthed ? (
+          <UsersPanel
+            currentUserEmail={currentUser?.email}
+            onLogout={handleLogout}
+          />
+        ) : (
+          <AdminLoginForm onSuccess={() => setIsAdminAuthed(true)} />
+        )}
+      </div>
+    </div>
+  )
+}
+
+export default memo(AdminUsersPage)
+export { AdminUsersPage }
