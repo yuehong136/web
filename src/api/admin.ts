@@ -3,11 +3,41 @@
  * 对应后端独立 admin_server（默认 port 8130），路由前缀 /api/v1/admin
  *
  * 认证：独立的 Admin JWT，存储于 localStorage['admin_token']
- * 密码传输：明文（后端同时支持 RSA 加密和明文，HTTPS 提供传输安全）
+ * 密码传输：RSA(PKCS1_v1_5(base64(password)))，与 admin_client.py 保持一致
  */
 
 import { API_BASE_URL, API_VERSION } from '@/constants'
+import JSEncrypt from 'jsencrypt'
 import type { AdminUser, CreateUserParams, AdminLoginResponse } from '@/pages/settings/admin/types'
+
+const ADMIN_LOGIN_PUBLIC_KEY = `-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArq9XTUSeYr2+N1h3Afl/
+z8Dse/2yD0ZGrKwx+EEEcdsBLca9Ynmx3nIB5obmLlSfmskLpBo0UACBmB5rEjBp
+2Q2f3AG3Hjd4B+gNCG6BDaawuDlgANIhGnaTLrIqWrrcm4EMzJOnAOI1fgzJRsOO
+UEfaS318Eq9OVO3apEyCCt0lOQK6PuksduOjVxtltDav+guVAA068NrPYmRNabVK
+RNLJpL8w4D44sfth5RvZ3q9t+6RTArpEtc5sh5ChzvqPOzKGMXW83C95TxmXqpbK
+6olN4RevSfVjEAgCydH6HN6OhtOQEcnrU97r9H0iZOWwbw3pVrZiUkuRD1R56Wzs
+2wIDAQAB
+-----END PUBLIC KEY-----`
+
+function utf8ToBase64(value: string): string {
+  const bytes = new TextEncoder().encode(value)
+  let binary = ''
+  for (const byte of bytes) {
+    binary += String.fromCharCode(byte)
+  }
+  return btoa(binary)
+}
+
+function encryptAdminLoginPassword(password: string): string {
+  const encryptor = new JSEncrypt()
+  encryptor.setPublicKey(ADMIN_LOGIN_PUBLIC_KEY)
+  const encrypted = encryptor.encrypt(utf8ToBase64(password))
+  if (!encrypted) {
+    throw new Error('管理员登录密码加密失败')
+  }
+  return encrypted
+}
 
 // ─── Admin API Base URL ───────────────────────────────────────────────────────
 // 从主 API URL 派生 admin URL（替换端口为 8130），可通过 VITE_ADMIN_API_BASE_URL 覆盖
@@ -99,10 +129,11 @@ export function setAdminToken(token: string | null): void {
 export const adminAPI = {
   /** 管理员登录，获取 JWT token */
   login: async (email: string, password: string): Promise<AdminLoginResponse> => {
+    const encryptedPassword = encryptAdminLoginPassword(password)
     const res = await fetch(`${ADMIN_API_BASE_URL}/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password: encryptedPassword }),
     })
     const data = await res.json()
     const code = data.retcode ?? data.code ?? 0
