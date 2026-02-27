@@ -243,10 +243,8 @@ export const KnowledgeListPage: React.FC = () => {
 
   // Reset to first page when search query or filters change
   React.useEffect(() => {
-    if (currentPage !== 1) {
-      setCurrentPage(1)
-    }
-  }, [searchQuery, filters, currentPage])
+    setCurrentPage((prevPage) => (prevPage === 1 ? prevPage : 1))
+  }, [searchQuery, filters])
 
   const totalPages = Math.ceil(total / pageSize)
 
