@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback, memo, useEffect } from 'react'
-import { UserPlus, Search, RefreshCw, Shield, Lock, Eye, EyeOff, LogIn } from 'lucide-react'
+import { UserPlus, Search, RefreshCw, Shield, Lock, Eye, EyeOff, LogIn, LogOut, ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useAuthStore } from '@/stores'
@@ -27,32 +27,35 @@ const FilterSelect: React.FC<{
   onChange: (v: string) => void
   options: { value: string; label: string }[]
 }> = memo(({ value, onChange, options }) => (
-  <select
-    value={value}
-    onChange={e => onChange(e.target.value)}
-    className="h-9 rounded-xl border border-border-default bg-background-surface px-3 text-sm text-text-secondary focus:outline-none focus:ring-2 focus:ring-border-accent hover:bg-background-subtle transition-colors cursor-pointer"
-  >
-    {options.map(opt => (
-      <option key={opt.value} value={opt.value}>{opt.label}</option>
-    ))}
-  </select>
+  <div className="relative">
+    <select
+      value={value}
+      onChange={e => onChange(e.target.value)}
+      className="h-9 appearance-none rounded-radius-lg border border-border-default bg-surface-secondary pl-space-base pr-8 text-sm text-text-secondary focus:outline-none focus:ring-2 focus:ring-border-accent hover:bg-surface-tertiary transition-colors cursor-pointer"
+    >
+      {options.map(opt => (
+        <option key={opt.value} value={opt.value}>{opt.label}</option>
+      ))}
+    </select>
+    <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-text-tertiary" />
+  </div>
 ))
 FilterSelect.displayName = 'FilterSelect'
 
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
 
 const TableSkeleton: React.FC = () => (
-  <div className="overflow-hidden rounded-xl border border-border-subtle bg-background-surface animate-pulse">
-    <div className="h-10 bg-background-subtle" />
+  <div className="overflow-hidden rounded-radius-lg border border-border-subtle bg-surface-secondary animate-pulse">
+    <div className="h-11 bg-surface-tertiary" />
     {Array.from({ length: 5 }).map((_, i) => (
-      <div key={i} className="flex items-center gap-3 border-t border-border-subtle px-4 py-3">
-        <div className="h-9 w-9 rounded-full bg-background-subtle" />
-        <div className="flex-1 space-y-1.5">
-          <div className="h-3 w-32 rounded bg-background-subtle" />
-          <div className="h-2.5 w-48 rounded bg-background-subtle" />
+      <div key={i} className="flex items-center gap-space-base border-t border-border-subtle px-space-md py-space-base">
+        <div className="h-10 w-10 rounded-full bg-surface-tertiary" />
+        <div className="flex-1 space-y-2">
+          <div className="h-3.5 w-32 rounded-radius-lg bg-surface-tertiary" />
+          <div className="h-3 w-48 rounded-radius-lg bg-surface-tertiary" />
         </div>
-        <div className="h-5 w-12 rounded-full bg-background-subtle" />
-        <div className="h-3 w-24 rounded bg-background-subtle" />
+        <div className="h-5 w-14 rounded-full bg-surface-tertiary" />
+        <div className="h-3.5 w-24 rounded-radius-lg bg-surface-tertiary" />
       </div>
     ))}
   </div>
@@ -89,17 +92,16 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ onSuccess }) => {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[50vh]">
-      <div className="w-full max-w-sm">
-        <div className="rounded-2xl border border-border-subtle bg-background-surface p-8 shadow-soft">
-          <div className="mb-6 flex flex-col items-center gap-3">
+      <div className="w-full max-w-md">
+        <div className="rounded-2xl bg-background-surface p-10 shadow-soft">
+          <div className="mb-8 flex flex-col items-center gap-3">
             <div
-              className="flex h-12 w-12 items-center justify-center rounded-2xl"
-              style={{ background: 'rgba(var(--twc-primary), 0.12)' }}
+              className="flex h-14 w-14 items-center justify-center rounded-2xl bg-surface-accent/10"
             >
-              <Lock className="h-6 w-6 text-text-accent" />
+              <Lock className="h-7 w-7 text-text-accent" />
             </div>
             <div className="text-center">
-              <h2 className="text-lg font-semibold text-text-primary">管理员验证</h2>
+              <h2 className="text-xl font-bold text-text-primary">管理员验证</h2>
               <p className="mt-1 text-sm text-text-tertiary">
                 此功能需要管理员权限，请输入管理员凭据
               </p>
@@ -107,7 +109,7 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ onSuccess }) => {
           </div>
 
           <form onSubmit={handleLogin} className="space-y-space-md">
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <label className="text-sm font-medium text-text-secondary">管理员邮箱</label>
               <Input
                 type="email"
@@ -117,7 +119,7 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ onSuccess }) => {
                 onChange={e => { setEmail(e.target.value); setError('') }}
               />
             </div>
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <label className="text-sm font-medium text-text-secondary">密码</label>
               <Input
                 type={showPwd ? 'text' : 'password'}
@@ -243,22 +245,17 @@ const UsersPanel: React.FC<{ currentUserEmail?: string; onLogout: () => void }> 
   return (
     <div className="space-y-space-lg">
       {/* Header */}
-      <div className="flex items-start justify-between gap-space-md">
-        <div className="flex items-start gap-space-md">
-          <div
-            className="flex h-10 w-10 items-center justify-center rounded-xl flex-shrink-0 mt-0.5"
-            style={{ background: 'rgba(var(--twc-primary), 0.12)' }}
-          >
-            <Shield className="h-5 w-5 text-text-accent" />
-          </div>
+      <div className="flex items-center justify-between gap-space-md">
+        <div className="flex items-center gap-space-base">
+          <Shield className="h-6 w-6 text-text-accent flex-shrink-0" />
           <div>
-            <h1 className="text-xl font-semibold text-text-primary leading-tight">用户管理</h1>
+            <h1 className="text-2xl font-bold text-text-primary leading-tight">用户管理</h1>
             <p className="mt-0.5 text-sm text-text-tertiary">管理系统中所有用户的账号与权限</p>
           </div>
         </div>
         <div className="flex items-center gap-space-sm flex-shrink-0">
-          <Button variant="outline" size="sm" onClick={onLogout} className="h-9 text-text-tertiary">
-            退出管理
+          <Button variant="outline" size="sm" onClick={onLogout} className="h-9 px-3" title="退出管理">
+            <LogOut className="h-3.5 w-3.5" />
           </Button>
           <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isRefetching} className="h-9 px-3">
             <RefreshCw className={`h-3.5 w-3.5 ${isRefetching ? 'animate-spin' : ''}`} />
@@ -275,14 +272,14 @@ const UsersPanel: React.FC<{ currentUserEmail?: string; onLogout: () => void }> 
 
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-space-sm">
-        <div className="flex-1 min-w-[180px]">
+        <div className="flex-1 min-w-[240px] max-w-sm">
           <Input
             inputSize="sm"
             placeholder="搜索邮箱或昵称..."
             value={keyword}
             onChange={e => setKeyword(e.target.value)}
             leftIcon={<Search className="h-4 w-4 text-text-tertiary" />}
-            className="h-9 bg-background-surface"
+            className="h-9 bg-surface-secondary"
           />
         </div>
         <FilterSelect

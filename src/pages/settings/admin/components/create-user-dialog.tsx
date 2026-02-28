@@ -68,8 +68,7 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-space-sm">
             <span
-              className="flex h-8 w-8 items-center justify-center rounded-lg"
-              style={{ background: 'rgba(var(--twc-primary), 0.12)' }}
+              className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/12"
             >
               <UserPlus className="h-4 w-4 text-text-accent" />
             </span>
@@ -80,7 +79,7 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
         <form onSubmit={handleSubmit}>
           <div className="px-space-lg py-space-base space-y-space-md">
             {/* Email */}
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <label className="text-sm font-medium text-text-secondary">
                 邮箱 <span className="text-text-error">*</span>
               </label>
@@ -95,7 +94,7 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
             </div>
 
             {/* Password */}
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <label className="text-sm font-medium text-text-secondary">
                 密码 <span className="text-text-error">*</span>
               </label>
@@ -119,7 +118,7 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
             </div>
 
             {/* Confirm Password */}
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <label className="text-sm font-medium text-text-secondary">
                 确认密码 <span className="text-text-error">*</span>
               </label>
@@ -141,7 +140,7 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
               <div
                 className={cn(
                   'relative h-5 w-9 rounded-full transition-colors flex-shrink-0',
-                  isAdmin ? 'bg-text-success' : 'bg-background-default border border-border-default'
+                  isAdmin ? 'bg-primary' : 'bg-background-default border border-border-default'
                 )}
               >
                 <span

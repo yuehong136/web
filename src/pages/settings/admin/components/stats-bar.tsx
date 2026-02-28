@@ -13,23 +13,23 @@ interface StatCardProps {
 const StatCard: React.FC<StatCardProps> = memo(({ icon, label, value, highlight }) => (
   <div
     className={cn(
-      'flex items-center gap-space-md rounded-xl border p-space-md transition-shadow hover:shadow-soft',
+      'flex items-center gap-space-md rounded-xl p-space-lg',
       highlight
-        ? 'border-border-accent bg-background-subtle'
-        : 'border-border-subtle bg-background-surface'
+        ? 'bg-background-subtle'
+        : 'bg-background-surface'
     )}
   >
     <div
       className={cn(
-        'flex h-10 w-10 items-center justify-center rounded-xl flex-shrink-0',
+        'flex h-11 w-11 items-center justify-center rounded-xl flex-shrink-0',
         highlight ? 'bg-state-success-subtle' : 'bg-background-default'
       )}
     >
       <span className={highlight ? 'text-text-success' : 'text-text-secondary'}>{icon}</span>
     </div>
     <div className="min-w-0">
-      <p className="text-2xl font-bold tabular-nums text-text-primary leading-none">{value}</p>
-      <p className="mt-0.5 text-xs text-text-tertiary truncate">{label}</p>
+      <p className="text-3xl font-bold tabular-nums text-text-primary leading-none">{value}</p>
+      <p className="mt-0.5 text-sm text-text-tertiary truncate">{label}</p>
     </div>
   </div>
 ))
