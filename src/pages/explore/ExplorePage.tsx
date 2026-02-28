@@ -30,7 +30,7 @@ import { ConfigProvider, theme, Modal, Input } from 'antd'
 import type { PromptsProps } from '@ant-design/x'
 import XMarkdown from '@ant-design/x-markdown'
 import '@ant-design/x-markdown/dist/x-markdown.css'
-import { markdownCodeComponents, markdownConfig } from '@/components/chat/MarkdownCodeBlock'
+import { markdownConfig, markdownStreamingComponents } from '@/components/chat/MarkdownCodeBlock'
 import { Button } from '@/components/ui/button'
 import { cn, copyToClipboard } from '@/lib/utils'
 import { toast } from '@/lib/toast'
@@ -484,7 +484,7 @@ export const ExplorePage: React.FC = () => {
             const cleanContent = content
               .replace(/<think(?:ing)?>[\s\S]*?<\/think(?:ing)?>/g, '')
               .replace(/<think(?:ing)?>[\s\S]*$/, '')
-              .trim()
+              .replace(/^\n+/, '')
               
             setMessages(prev => {
               const newMsgs = [...prev]
@@ -574,7 +574,7 @@ export const ExplorePage: React.FC = () => {
               const content = rawData
                 .replace(/<think(?:ing)?>[\s\S]*?<\/think(?:ing)?>/g, '')
                 .replace(/<think(?:ing)?>[\s\S]*$/, '')
-                .trim()
+                .replace(/^\n+/, '')
               
               setMessages(prev => {
                 const newMsgs = [...prev]
@@ -798,8 +798,9 @@ export const ExplorePage: React.FC = () => {
             return (
               <XMarkdown
                 config={markdownConfig}
-                components={{ ...markdownCodeComponents, sup: SupComponent }}
+                components={{ ...markdownStreamingComponents, sup: SupComponent }}
                 paragraphTag="div"
+                streaming={isCurrentStreamingMessage ? { hasNextChunk: true, enableAnimation: true } : undefined}
               >
                 {mainContentWithSup}
               </XMarkdown>
@@ -817,8 +818,9 @@ export const ExplorePage: React.FC = () => {
                 <XMarkdown
                   key={`text-${idx}`}
                   config={markdownConfig}
-                  components={{ ...markdownCodeComponents, sup: SupComponent }}
+                  components={{ ...markdownStreamingComponents, sup: SupComponent }}
                   paragraphTag="div"
+                  streaming={isCurrentStreamingMessage ? { hasNextChunk: true, enableAnimation: true } : undefined}
                 >
                   {part}
                 </XMarkdown>
@@ -1554,6 +1556,33 @@ export const ExplorePage: React.FC = () => {
                       }
                       .explore-chat-area .markdown-content pre code {
                         color: var(--color-components-pre-text) !important;
+                      }
+                      .explore-chat-area .markdown-content table:not(pre) {
+                        border-collapse: collapse !important;
+                        display: block !important;
+                        width: max-content !important;
+                        max-width: 100% !important;
+                        overflow: auto !important;
+                        border: 1px solid var(--color-border-default) !important;
+                        border-radius: 8px !important;
+                        margin: 8px 0 16px 0 !important;
+                        background-color: var(--color-components-card-bg) !important;
+                      }
+                      .explore-chat-area .markdown-content th,
+                      .explore-chat-area .markdown-content td {
+                        border: 1px solid var(--color-border-default) !important;
+                        padding: 8px 12px !important;
+                        text-align: left !important;
+                        vertical-align: top !important;
+                      }
+                      .explore-chat-area .markdown-content th {
+                        color: var(--color-text-primary) !important;
+                        background-color: var(--color-surface-secondary) !important;
+                        font-weight: 600 !important;
+                      }
+                      .explore-chat-area .markdown-content td {
+                        color: var(--color-text-primary) !important;
+                        background-color: var(--color-surface-primary) !important;
                       }
                     `}</style>
                     <Bubble.List

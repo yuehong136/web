@@ -81,6 +81,27 @@ const MarkdownPre: React.FC<ComponentProps> = ({ children }) => {
   return <>{children}</>
 }
 
+function getStreamingPendingText(domNode: ComponentProps['domNode']): string {
+  const raw = (domNode as { attribs?: Record<string, string> })?.attribs?.['data-raw']
+  if (!raw) return ''
+  try {
+    return decodeURIComponent(raw)
+  } catch {
+    return raw
+  }
+}
+
+const IncompleteMarkdownToken: React.FC<ComponentProps> = ({ domNode }) => {
+  const pendingText = getStreamingPendingText(domNode)
+  if (!pendingText) return null
+
+  return (
+    <span className="text-text-tertiary whitespace-pre-wrap">
+      {pendingText}
+    </span>
+  )
+}
+
 /**
  * Base components map for XMarkdown integration.
  * Merge with additional components (like `sup` for references) when needed:
@@ -92,6 +113,20 @@ const MarkdownPre: React.FC<ComponentProps> = ({ children }) => {
 export const markdownCodeComponents: Record<string, React.ComponentType<ComponentProps>> = {
   pre: memo(MarkdownPre),
   code: memo(MarkdownCode),
+}
+
+/**
+ * Components map with placeholders for incomplete markdown tokens during streaming.
+ * This keeps the "typing" feel while allowing XMarkdown to finalize syntax safely.
+ */
+export const markdownStreamingComponents: Record<string, React.ComponentType<ComponentProps>> = {
+  ...markdownCodeComponents,
+  'incomplete-link': memo(IncompleteMarkdownToken),
+  'incomplete-image': memo(IncompleteMarkdownToken),
+  'incomplete-html': memo(IncompleteMarkdownToken),
+  'incomplete-emphasis': memo(IncompleteMarkdownToken),
+  'incomplete-list': memo(IncompleteMarkdownToken),
+  'incomplete-table': memo(IncompleteMarkdownToken),
 }
 
 /**

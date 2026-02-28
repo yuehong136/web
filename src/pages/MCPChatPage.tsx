@@ -8,10 +8,9 @@ import { Button } from '@/components/ui/button';
 import { ProviderIcon } from '@/components/ui/provider-icon';
 import XMarkdown, { type ComponentProps } from '@ant-design/x-markdown';
 import '@ant-design/x-markdown/dist/x-markdown.css';
-import { markdownCodeComponents, markdownConfig } from '@/components/chat/MarkdownCodeBlock';
+import { markdownConfig, markdownStreamingComponents } from '@/components/chat/MarkdownCodeBlock';
 import type { MCPChatServiceRequest } from "@/api/mcp-chat-service";
 import { EnhancedSSEParser, type SSEMessage, type ToolCallInfo } from "@/components/chat/EnhancedSSEParser";
-import { HybridStreamingMarkdown } from "@/components/chat/HybridStreamingMarkdown";
 import { ToolCallRenderer } from "@/components/chat/ToolCallRenderer";
 import {
   findFirstEnabledModelByType,
@@ -78,8 +77,8 @@ const StableMarkdown = React.memo(({ content }: { content: string }) => {
   }
   
   return (
-    <div className="prose prose-sm max-w-none dark:prose-invert bubble-copy-text">
-      <XMarkdown paragraphTag="div" config={markdownConfig} components={markdownCodeComponents}>
+    <div className="prose prose-sm max-w-none dark:prose-invert bubble-copy-text markdown-content">
+      <XMarkdown paragraphTag="div" config={markdownConfig} components={markdownStreamingComponents}>
         {stableContent}
       </XMarkdown>
     </div>
@@ -91,6 +90,25 @@ const StableMarkdown = React.memo(({ content }: { content: string }) => {
   // 如果内容变化不大（小于 10 个字符），跳过更新
   const diff = Math.abs((nextProps.content?.length || 0) - (prevProps.content?.length || 0))
   return diff < 10 && nextProps.content?.startsWith(prevProps.content || '')
+})
+
+const StreamingMarkdown = React.memo(({ content, isStreaming }: { content: string; isStreaming: boolean }) => {
+  if (!content || !content.trim()) {
+    return null
+  }
+
+  return (
+    <div className="prose prose-sm max-w-none dark:prose-invert bubble-copy-text markdown-content">
+      <XMarkdown
+        paragraphTag="div"
+        config={markdownConfig}
+        components={markdownStreamingComponents}
+        streaming={isStreaming ? { hasNextChunk: true, enableAnimation: true } : undefined}
+      >
+        {content}
+      </XMarkdown>
+    </div>
+  )
 })
 
 // 提取并分离 think 内容和主内容
@@ -115,7 +133,7 @@ const extractThinkContent = (content: string): ThinkExtractResult => {
   if (completeMatch) {
     return {
       thinkContent: completeMatch[1].trim(),
-      mainContent: completeMatch[2].trim(),
+      mainContent: completeMatch[2].replace(/^\n+/, ''),
       isThinking: false,
       status: 'complete'
     }
@@ -139,7 +157,7 @@ const extractThinkContent = (content: string): ThinkExtractResult => {
       // 有双换行分隔，说明思考已完成，后面是主内容
       return {
         thinkContent: doubleNewlineMatch[1].trim(),
-        mainContent: doubleNewlineMatch[2].trim(),
+        mainContent: doubleNewlineMatch[2].replace(/^\n+/, ''),
         isThinking: false,
         status: 'complete'
       }
@@ -566,7 +584,7 @@ export default function MCPChatPage() {
             )}
             {/* 使用稳定的 Markdown 组件渲染主内容 */}
             {mainContent && mainContent.trim() && (
-              <HybridStreamingMarkdown content={mainContent} isStreaming={true} />
+              <StreamingMarkdown content={mainContent} isStreaming={true} />
             )}
             {/* 如果没有内容且没有思考内容，显示加载提示 */}
             {!thinkContent && !mainContent && !isToolAnalyzing && streamingToolCalls.length === 0 && (
@@ -892,7 +910,7 @@ export default function MCPChatPage() {
         </div>
         
         {/* Chat Area - 使用 Bubble.List 的聊天区域 */}
-        <div className="flex-1 flex flex-col min-h-0">
+        <div className="flex-1 flex flex-col min-h-0 mcp-chat-area">
           <div 
             className="flex-1 overflow-y-auto p-6"
             onScroll={handleScroll}
@@ -900,6 +918,52 @@ export default function MCPChatPage() {
           >
             {bubbleItems.length > 0 ? (
               <div className={`${chatLayout === 'full' ? 'max-w-none' : 'max-w-4xl mx-auto'}`}>
+                <style>{`
+                  .mcp-chat-area .markdown-content {
+                    color: var(--color-text-primary) !important;
+                  }
+                  .mcp-chat-area .markdown-content a {
+                    color: var(--color-components-button-primary-bg) !important;
+                  }
+                  .mcp-chat-area .markdown-content table:not(pre) {
+                    border-collapse: collapse !important;
+                    display: block !important;
+                    width: max-content !important;
+                    max-width: 100% !important;
+                    overflow: auto !important;
+                    border: 1px solid var(--color-border-default) !important;
+                    border-radius: 8px !important;
+                    margin: 8px 0 16px 0 !important;
+                    background-color: var(--color-components-card-bg) !important;
+                  }
+                  .mcp-chat-area .markdown-content th,
+                  .mcp-chat-area .markdown-content td {
+                    border: 1px solid var(--color-border-default) !important;
+                    padding: 8px 12px !important;
+                    text-align: left !important;
+                    vertical-align: top !important;
+                  }
+                  .mcp-chat-area .markdown-content th {
+                    color: var(--color-text-primary) !important;
+                    background-color: var(--color-surface-secondary) !important;
+                    font-weight: 600 !important;
+                  }
+                  .mcp-chat-area .markdown-content td {
+                    color: var(--color-text-primary) !important;
+                    background-color: var(--color-surface-primary) !important;
+                  }
+                  .mcp-chat-area .markdown-content code {
+                    background-color: var(--color-background-subtle) !important;
+                    color: var(--color-text-primary) !important;
+                  }
+                  .mcp-chat-area .markdown-content pre {
+                    background-color: var(--color-components-pre-bg) !important;
+                    border-color: var(--color-components-pre-border) !important;
+                  }
+                  .mcp-chat-area .markdown-content pre code {
+                    color: var(--color-components-pre-text) !important;
+                  }
+                `}</style>
                 <Bubble.List
                   items={bubbleItems as any}
                   ref={bubbleListRef}

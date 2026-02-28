@@ -3,9 +3,8 @@ import { Bot, User } from 'lucide-react'
 import { Bubble } from '@ant-design/x'
 // 导入 Ant Design X 内部的 Loading 组件用于三点加载动画
 import BubbleLoading from '@ant-design/x/es/bubble/loading'
-import XMarkdown from '@ant-design/x-markdown'
-import { markdownCodeComponents, markdownConfig } from '@/components/chat/MarkdownCodeBlock'
-import { HybridStreamingMarkdown } from '@/components/chat/HybridStreamingMarkdown'
+import XMarkdown, { type ComponentProps } from '@ant-design/x-markdown'
+import { markdownConfig, markdownStreamingComponents } from '@/components/chat/MarkdownCodeBlock'
 import {
   findFirstEnabledModelByType,
   findProviderNameByModelName,
@@ -25,7 +24,7 @@ import { ChatInputBox } from './ChatInputBox'
 import { SkillPanel } from './SkillPanel'
 import { useAtTrigger } from '../hooks'
 import { shouldIgnoreEnterForIme } from '../utils'
-import { extractThinkContent } from '@/utils/think-utils'
+import { extractThinkContent, type ThinkingStatus } from '@/utils/think-utils'
 import { convertReferencesToSup } from '@/utils/message-utils'
 import { copyToClipboard } from '@/lib/utils'
 import { toast } from '@/lib/toast'
@@ -38,7 +37,7 @@ import type { ReferenceChunk } from '@/utils/reference-replacer'
 // 稳定的 Markdown 渲染组件，支持引用标记
 interface StableMarkdownProps {
   content: string
-  components?: Record<string, React.ComponentType<any>>
+  components?: Record<string, React.ComponentType<ComponentProps>>
 }
 
 const StableMarkdown = React.memo(({ content, components }: StableMarkdownProps) => {
@@ -60,8 +59,8 @@ const StableMarkdown = React.memo(({ content, components }: StableMarkdownProps)
   }
 
   return (
-    <div className="prose prose-sm max-w-none dark:prose-invert bubble-copy-text">
-      <XMarkdown paragraphTag="div" config={markdownConfig} components={{ ...markdownCodeComponents, ...components }}>
+    <div className="prose prose-sm max-w-none dark:prose-invert bubble-copy-text markdown-content">
+      <XMarkdown paragraphTag="div" config={markdownConfig} components={{ ...markdownStreamingComponents, ...components }}>
         {stableContent}
       </XMarkdown>
     </div>
@@ -70,6 +69,31 @@ const StableMarkdown = React.memo(({ content, components }: StableMarkdownProps)
   if (prevProps.content === nextProps.content && prevProps.components === nextProps.components) return true
   const diff = Math.abs((nextProps.content?.length || 0) - (prevProps.content?.length || 0))
   return diff < 10 && nextProps.content?.startsWith(prevProps.content || '')
+})
+
+interface StreamingMarkdownProps {
+  content: string
+  isStreaming: boolean
+  components?: Record<string, React.ComponentType<ComponentProps>>
+}
+
+const StreamingMarkdown = React.memo(({ content, isStreaming, components }: StreamingMarkdownProps) => {
+  if (!content || !content.trim()) {
+    return null
+  }
+
+  return (
+    <div className="prose prose-sm max-w-none dark:prose-invert bubble-copy-text markdown-content">
+      <XMarkdown
+        paragraphTag="div"
+        config={markdownConfig}
+        components={{ ...markdownStreamingComponents, ...components }}
+        streaming={isStreaming ? { hasNextChunk: true, enableAnimation: true } : undefined}
+      >
+        {content}
+      </XMarkdown>
+    </div>
+  )
 })
 
 interface ChatSectionProps {
@@ -335,7 +359,11 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
               {/* Markdown 内容（带引用标记） */}
               {contentWithSup && (
                 isCurrentStreamingMsg ? (
-                  <HybridStreamingMarkdown content={mainContent} isStreaming={true} />
+                  <StreamingMarkdown
+                    content={contentWithSup}
+                    isStreaming={true}
+                    components={SupComponent ? { sup: SupComponent } : undefined}
+                  />
                 ) : (
                   <StableMarkdown 
                     content={contentWithSup} 
@@ -391,7 +419,7 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
       const thinkContent = streamingThinking || fallback.thinkContent
       const mainContent = streamingThinking ? (streamingContent || '') : fallback.mainContent
       
-      const status = thinkContent ? 'thinking' : 'none'
+      const status: ThinkingStatus = thinkContent ? 'thinking' : 'none'
       
       items.push({
         key: 'streaming-assistant',
@@ -426,13 +454,15 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
               </div>
             )}
             {thinkContent && (
-              <ThinkWrapper status={status as any} messageId="streaming">
+              <ThinkWrapper status={status} messageId="streaming">
                 <div className="text-sm whitespace-pre-wrap text-text-secondary">
                   {thinkContent}
                 </div>
               </ThinkWrapper>
             )}
-            {mainContent && mainContent.trim() && <HybridStreamingMarkdown content={mainContent} isStreaming={true} />}
+            {mainContent && mainContent.trim() && (
+              <StreamingMarkdown content={mainContent} isStreaming={true} />
+            )}
             {/* 如果没有任何内容，显示 Ant Design X 三点加载动画 */}
             {!thinkContent && !mainContent && !isToolAnalyzing && streamingToolCalls.length === 0 && (
               <BubbleLoading prefixCls="ant-bubble" />
@@ -446,13 +476,69 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
   }, [messages, isStreaming, isAppModeStreaming, streamingContent, streamingThinking, streamingToolCalls, isToolAnalyzing, getAssistantAvatar, getUserAvatar, handleViewDetail, handleCopyReference])
 
   return (
-    <div className="flex-1 flex flex-col min-h-0">
+    <div className="flex-1 flex flex-col min-h-0 home-chat-area">
       {/* 对话消息区域 */}
       <div
         ref={chatContainerRef}
         className="flex-1 overflow-y-auto p-6"
       >
         <div className="max-w-4xl mx-auto">
+          <style>{`
+            .home-chat-area .markdown-content {
+              color: var(--color-text-primary) !important;
+            }
+            .home-chat-area .markdown-content a {
+              color: var(--color-components-button-primary-bg) !important;
+            }
+            .home-chat-area .markdown-content table:not(pre) {
+              border-collapse: collapse !important;
+              display: block !important;
+              width: max-content !important;
+              max-width: 100% !important;
+              overflow: auto !important;
+              margin: 8px 0 16px 0 !important;
+              border: 1px solid var(--color-border-default) !important;
+              border-radius: 8px !important;
+              background-color: var(--color-surface-primary) !important;
+            }
+            .home-chat-area .markdown-content th,
+            .home-chat-area .markdown-content td {
+              border: 1px solid var(--color-border-default) !important;
+              padding: 8px 12px !important;
+              text-align: left !important;
+              vertical-align: top !important;
+            }
+            .home-chat-area .markdown-content th {
+              background-color: var(--color-surface-secondary) !important;
+              color: var(--color-text-primary) !important;
+              font-weight: 600 !important;
+            }
+            .home-chat-area .markdown-content td {
+              background-color: var(--color-surface-primary) !important;
+              color: var(--color-text-primary) !important;
+            }
+            .home-chat-area .markdown-content code {
+              background-color: var(--color-background-subtle) !important;
+              color: var(--color-text-primary) !important;
+            }
+            .home-chat-area .markdown-content pre {
+              background-color: var(--color-components-pre-bg) !important;
+              border-color: var(--color-components-pre-border) !important;
+            }
+            .home-chat-area .markdown-content pre code {
+              color: var(--color-components-pre-text) !important;
+            }
+            .home-chat-area .markdown-content .ant-mermaid-graph {
+              height: auto !important;
+              min-height: 220px !important;
+              max-height: 70vh !important;
+            }
+            .home-chat-area .markdown-content .ant-mermaid-code {
+              height: auto !important;
+              min-height: 220px !important;
+              max-height: 70vh !important;
+            }
+          `}</style>
           {isLoadingHistory ? (
             <div className="flex items-center justify-center py-12">
               <div className="flex flex-col items-center gap-3">
