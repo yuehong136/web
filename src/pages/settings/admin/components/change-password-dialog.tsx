@@ -55,8 +55,7 @@ export const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-space-sm">
             <span
-              className="flex h-8 w-8 items-center justify-center rounded-lg"
-              style={{ background: 'rgba(245, 158, 11, 0.12)' }}
+              className="flex h-8 w-8 items-center justify-center rounded-lg bg-state-warning-subtle"
             >
               <KeyRound className="h-4 w-4 text-text-warning" />
             </span>
@@ -65,10 +64,9 @@ export const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
         </DialogHeader>
 
         {user && (
-          <div className="mx-space-lg flex items-center gap-space-sm rounded-xl bg-background-subtle px-space-md py-space-sm">
+          <div className="mx-space-lg flex items-center gap-space-sm rounded-xl bg-background-subtle px-space-md py-space-base">
             <div
-              className="flex h-8 w-8 items-center justify-center rounded-full flex-shrink-0"
-              style={{ background: 'rgba(var(--twc-primary), 0.15)' }}
+              className="flex h-8 w-8 items-center justify-center rounded-full flex-shrink-0 bg-primary/15"
             >
               {user.avatar ? (
                 <img src={user.avatar} alt="" className="h-8 w-8 rounded-full object-cover" />
@@ -91,7 +89,7 @@ export const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
 
         <div className="px-space-lg py-space-sm">
           <form onSubmit={handleSubmit} className="space-y-space-md">
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <label className="text-sm font-medium text-text-secondary">
                 新密码 <span className="text-text-error">*</span>
               </label>
@@ -113,7 +111,7 @@ export const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
                 }
               />
             </div>
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <label className="text-sm font-medium text-text-secondary">
                 确认密码 <span className="text-text-error">*</span>
               </label>

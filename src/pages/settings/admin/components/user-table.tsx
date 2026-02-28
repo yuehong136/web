@@ -32,7 +32,7 @@ const UserAvatar: React.FC<{ user: AdminUser }> = memo(({ user }) => {
   const color = AVATAR_COLORS[initial.charCodeAt(0) % AVATAR_COLORS.length]
   return (
     <div
-      className="flex h-9 w-9 items-center justify-center rounded-full flex-shrink-0 ring-2 ring-border-subtle"
+      className="flex h-9 w-9 items-center justify-center rounded-full flex-shrink-0"
       style={{ background: `linear-gradient(135deg, ${color.from}, ${color.to})` }}
     >
       <span className="text-sm font-semibold text-white">{initial}</span>
@@ -55,7 +55,7 @@ const StatusPill: React.FC<{ active: boolean | null }> = memo(({ active }) => (
     <span
       className={cn(
         'h-1.5 w-1.5 rounded-full',
-        active ? 'bg-text-success animate-pulse' : 'bg-text-tertiary'
+        active ? 'bg-text-success' : 'bg-text-tertiary'
       )}
     />
     {active ? '活跃' : '停用'}
@@ -154,23 +154,23 @@ export const UserTable: React.FC<UserTableProps> = memo(({
 
   if (users.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border-default bg-background-subtle py-16 text-center">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-background-default">
-          <Users className="h-7 w-7 text-text-tertiary" />
+      <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border-default bg-background-subtle py-20 text-center">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-background-default">
+          <Users className="h-8 w-8 text-text-tertiary" />
         </div>
-        <p className="mt-4 text-sm font-medium text-text-secondary">暂无用户数据</p>
-        <p className="mt-1 text-xs text-text-tertiary">点击「新建用户」添加第一个用户</p>
+        <p className="mt-5 text-sm font-medium text-text-secondary">暂无用户数据</p>
+        <p className="mt-1.5 text-xs text-text-tertiary">点击「新建用户」添加第一个用户</p>
       </div>
     )
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-border-subtle bg-background-surface">
+    <div className="overflow-hidden rounded-xl bg-background-surface">
       {/* Table Head */}
-      <div className="grid grid-cols-[1fr_100px_140px_44px] items-center gap-space-sm border-b border-border-subtle bg-background-subtle px-space-md py-space-sm">
-        <span className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">用户</span>
-        <span className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">状态</span>
-        <span className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">创建时间</span>
+      <div className="grid grid-cols-[1fr_100px_140px_44px] items-center gap-space-sm border-b border-border-subtle px-space-md py-space-sm">
+        <span className="text-[11px] font-medium uppercase tracking-wider text-text-tertiary">用户</span>
+        <span className="text-[11px] font-medium uppercase tracking-wider text-text-tertiary">状态</span>
+        <span className="text-[11px] font-medium uppercase tracking-wider text-text-tertiary">创建时间</span>
         <span />
       </div>
 
@@ -179,7 +179,7 @@ export const UserTable: React.FC<UserTableProps> = memo(({
         {users.map(user => (
           <div
             key={user.email}
-            className="grid grid-cols-[1fr_100px_140px_44px] items-center gap-space-sm px-space-md py-space-sm hover:bg-background-subtle transition-colors"
+            className="grid grid-cols-[1fr_100px_140px_44px] items-center gap-space-sm px-space-md py-3 hover:bg-surface-accent/[0.03] transition-colors"
           >
             {/* User info */}
             <div className="flex items-center gap-space-sm min-w-0">
@@ -188,7 +188,7 @@ export const UserTable: React.FC<UserTableProps> = memo(({
                 <p className="text-sm font-medium text-text-primary truncate flex items-center gap-space-xs">
                   {user.nickname || user.email}
                   {user.email === currentUserEmail && (
-                    <span className="inline-flex items-center rounded-full border border-border-accent px-1.5 text-xs text-text-accent">
+                    <span className="inline-flex items-center rounded-full bg-surface-accent/10 px-1.5 text-xs text-text-accent">
                       你
                     </span>
                   )}
