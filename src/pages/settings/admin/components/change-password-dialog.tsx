@@ -51,7 +51,7 @@ export const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent size="sm" showCloseButton>
+      <DialogContent size="md" showCloseButton>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-space-sm">
             <span
@@ -64,7 +64,7 @@ export const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
         </DialogHeader>
 
         {user && (
-          <div className="mx-space-lg flex items-center gap-space-sm rounded-xl bg-background-subtle px-space-md py-space-base">
+          <div className="mx-space-lg flex items-center gap-space-sm rounded-radius-xl bg-surface-secondary px-space-md py-space-base">
             <div
               className="flex h-8 w-8 items-center justify-center rounded-full flex-shrink-0 bg-primary/15"
             >
@@ -87,9 +87,9 @@ export const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
           </div>
         )}
 
-        <div className="px-space-lg py-space-sm">
-          <form onSubmit={handleSubmit} className="space-y-space-md">
-            <div className="space-y-1.5">
+        <div className="px-space-lg pt-space-sm pb-space-lg">
+          <form id="change-password-form" onSubmit={handleSubmit} className="space-y-space-lg">
+            <div className="space-y-space-xs">
               <label className="text-sm font-medium text-text-secondary">
                 新密码 <span className="text-text-error">*</span>
               </label>
@@ -111,7 +111,7 @@ export const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
                 }
               />
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-space-xs">
               <label className="text-sm font-medium text-text-secondary">
                 确认密码 <span className="text-text-error">*</span>
               </label>
@@ -131,7 +131,7 @@ export const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
           <Button variant="outline" size="sm" onClick={handleClose} disabled={isLoading}>
             取消
           </Button>
-          <Button size="sm" onClick={handleSubmit as any} disabled={isLoading}>
+          <Button size="sm" type="submit" form="change-password-form" disabled={isLoading}>
             {isLoading ? '保存中...' : '保存密码'}
           </Button>
         </DialogFooter>

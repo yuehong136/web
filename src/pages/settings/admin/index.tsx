@@ -1,7 +1,14 @@
 import React, { useState, useMemo, useCallback, memo, useEffect } from 'react'
-import { UserPlus, Search, RefreshCw, Shield, Lock, Eye, EyeOff, LogIn, LogOut, ChevronDown } from 'lucide-react'
+import { UserPlus, Search, RefreshCw, Shield, Lock, Eye, EyeOff, LogIn, LogOut } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { useAuthStore } from '@/stores'
 import { toast } from '@/lib/toast'
 import { adminAPI, getAdminToken, setAdminToken } from '@/api/admin'
@@ -26,20 +33,22 @@ const FilterSelect: React.FC<{
   value: string
   onChange: (v: string) => void
   options: { value: string; label: string }[]
-}> = memo(({ value, onChange, options }) => (
-  <div className="relative">
-    <select
-      value={value}
-      onChange={e => onChange(e.target.value)}
-      className="h-9 appearance-none rounded-radius-lg border border-border-default bg-surface-secondary pl-space-base pr-8 text-sm text-text-secondary focus:outline-none focus:ring-2 focus:ring-border-accent hover:bg-surface-tertiary transition-colors cursor-pointer"
-    >
-      {options.map(opt => (
-        <option key={opt.value} value={opt.value}>{opt.label}</option>
-      ))}
-    </select>
-    <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-text-tertiary" />
-  </div>
-))
+}> = memo(({ value, onChange, options }) => {
+  return (
+    <Select value={value} onValueChange={onChange}>
+      <SelectTrigger className="h-10 w-36 rounded-radius-lg border-border-default bg-surface-secondary px-space-base text-sm text-text-secondary hover:bg-surface-tertiary">
+        <SelectValue placeholder="请选择" />
+      </SelectTrigger>
+      <SelectContent>
+        {options.map(opt => (
+          <SelectItem key={opt.value} value={opt.value}>
+            {opt.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  )
+})
 FilterSelect.displayName = 'FilterSelect'
 
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
@@ -91,25 +100,25 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ onSuccess }) => {
   }, [email, password, onSuccess])
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[50vh]">
-      <div className="w-full max-w-md">
-        <div className="rounded-2xl bg-background-surface p-10 shadow-soft">
-          <div className="mb-8 flex flex-col items-center gap-3">
+    <div className="flex flex-col items-center justify-center py-space-xl min-h-[60vh]">
+      <div className="w-full max-w-lg">
+        <div className="rounded-radius-xl border border-border-subtle bg-background-surface p-space-2xl shadow-elevation-medium">
+          <div className="mb-space-xl flex flex-col items-center gap-space-sm">
             <div
               className="flex h-14 w-14 items-center justify-center rounded-2xl bg-surface-accent/10"
             >
               <Lock className="h-7 w-7 text-text-accent" />
             </div>
             <div className="text-center">
-              <h2 className="text-xl font-bold text-text-primary">管理员验证</h2>
-              <p className="mt-1 text-sm text-text-tertiary">
+              <h2 className="text-2xl font-bold text-text-primary">管理员验证</h2>
+              <p className="mt-space-xs text-sm text-text-tertiary">
                 此功能需要管理员权限，请输入管理员凭据
               </p>
             </div>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-space-md">
-            <div className="space-y-1.5">
+          <form onSubmit={handleLogin} className="space-y-space-lg">
+            <div className="space-y-space-xs">
               <label className="text-sm font-medium text-text-secondary">管理员邮箱</label>
               <Input
                 type="email"
@@ -119,7 +128,7 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ onSuccess }) => {
                 onChange={e => { setEmail(e.target.value); setError('') }}
               />
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-space-xs">
               <label className="text-sm font-medium text-text-secondary">密码</label>
               <Input
                 type={showPwd ? 'text' : 'password'}
@@ -139,9 +148,9 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ onSuccess }) => {
               />
             </div>
             {error && (
-              <p className="rounded-lg bg-state-error-subtle px-3 py-2 text-sm text-text-error">{error}</p>
+              <p className="rounded-radius-lg bg-state-error-subtle px-space-sm py-space-xs text-sm text-text-error">{error}</p>
             )}
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="mt-space-sm h-10 w-full" disabled={loading}>
               {loading
                 ? '验证中...'
                 : <><LogIn className="mr-2 h-4 w-4" />进入管理后台</>
@@ -243,24 +252,24 @@ const UsersPanel: React.FC<{ currentUserEmail?: string; onLogout: () => void }> 
   }
 
   return (
-    <div className="space-y-space-lg">
+    <div className="space-y-space-xl">
       {/* Header */}
-      <div className="flex items-center justify-between gap-space-md">
-        <div className="flex items-center gap-space-base">
+      <div className="flex flex-wrap items-start justify-between gap-space-lg">
+        <div className="flex items-center gap-space-md">
           <Shield className="h-6 w-6 text-text-accent flex-shrink-0" />
           <div>
             <h1 className="text-2xl font-bold text-text-primary leading-tight">用户管理</h1>
-            <p className="mt-0.5 text-sm text-text-tertiary">管理系统中所有用户的账号与权限</p>
+            <p className="mt-space-xs text-sm text-text-tertiary">管理系统中所有用户的账号与权限</p>
           </div>
         </div>
-        <div className="flex items-center gap-space-sm flex-shrink-0">
-          <Button variant="outline" size="sm" onClick={onLogout} className="h-9 px-3" title="退出管理">
+        <div className="flex items-center gap-space-sm">
+          <Button variant="outline" size="sm" onClick={onLogout} className="h-10 px-space-sm" title="退出管理">
             <LogOut className="h-3.5 w-3.5" />
           </Button>
-          <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isRefetching} className="h-9 px-3">
+          <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isRefetching} className="h-10 px-space-sm">
             <RefreshCw className={`h-3.5 w-3.5 ${isRefetching ? 'animate-spin' : ''}`} />
           </Button>
-          <Button size="sm" onClick={() => setCreateOpen(true)} className="h-9">
+          <Button size="sm" onClick={() => setCreateOpen(true)} className="h-10 px-space-md">
             <UserPlus className="mr-1.5 h-3.5 w-3.5" />
             新建用户
           </Button>
@@ -271,15 +280,15 @@ const UsersPanel: React.FC<{ currentUserEmail?: string; onLogout: () => void }> 
       {!isLoading && users.length > 0 && <StatsBar users={users} />}
 
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-space-sm">
-        <div className="flex-1 min-w-[240px] max-w-sm">
+      <div className="flex flex-wrap items-center gap-space-sm rounded-radius-xl border border-border-subtle bg-background-surface p-space-sm">
+        <div className="flex-1 min-w-[240px] max-w-md">
           <Input
             inputSize="sm"
             placeholder="搜索邮箱或昵称..."
             value={keyword}
             onChange={e => setKeyword(e.target.value)}
             leftIcon={<Search className="h-4 w-4 text-text-tertiary" />}
-            className="h-9 bg-surface-secondary"
+            className="h-10 bg-surface-secondary"
           />
         </div>
         <FilterSelect
@@ -349,8 +358,8 @@ const AdminUsersPage: React.FC = () => {
   }, [])
 
   return (
-    <div className="min-h-full bg-components-settings-content-bg p-space-lg">
-      <div className="mx-auto max-w-5xl">
+    <div className="min-h-full bg-components-settings-content-bg p-space-xl">
+      <div className="mx-auto max-w-6xl">
         {isAdminAuthed ? (
           <UsersPanel
             currentUserEmail={currentUser?.email}

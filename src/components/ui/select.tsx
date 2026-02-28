@@ -28,6 +28,28 @@ export interface SelectValueProps {
   placeholder?: string
 }
 
+function collectLabelsFromChildren(
+  nodes: React.ReactNode,
+  map: Map<string, React.ReactNode>
+): void {
+  React.Children.forEach(nodes, (node) => {
+    if (!React.isValidElement(node)) return
+
+    const element = node as React.ReactElement<{
+      value?: unknown
+      children?: React.ReactNode
+    }>
+
+    if (typeof element.props.value === "string" && element.props.children !== undefined) {
+      map.set(element.props.value, element.props.children)
+    }
+
+    if (element.props.children) {
+      collectLabelsFromChildren(element.props.children, map)
+    }
+  })
+}
+
 // Simple Select implementation without Radix UI
 const SelectContext = React.createContext<{
   value?: string
@@ -53,10 +75,24 @@ export const Select: React.FC<SelectProps> = ({
 }) => {
   const [isOpen, setIsOpen] = React.useState(false)
   const selectRef = React.useRef<HTMLDivElement>(null as HTMLDivElement | null)
-  const [labelMap, setLabelMap] = React.useState<Map<string, React.ReactNode>>(new Map())
+  const [runtimeLabelMap, setRuntimeLabelMap] = React.useState<Map<string, React.ReactNode>>(new Map())
+
+  // Pre-collect labels from SelectItem tree so the trigger can render correct
+  // labels on first paint (before the dropdown content is opened/mounted).
+  const staticLabelMap = React.useMemo(() => {
+    const map = new Map<string, React.ReactNode>()
+    collectLabelsFromChildren(children, map)
+    return map
+  }, [children])
+
+  const labelMap = React.useMemo(() => {
+    const merged = new Map(staticLabelMap)
+    runtimeLabelMap.forEach((label, key) => merged.set(key, label))
+    return merged
+  }, [staticLabelMap, runtimeLabelMap])
 
   const registerLabel = React.useCallback((itemValue: string, label: React.ReactNode) => {
-    setLabelMap((prev) => {
+    setRuntimeLabelMap((prev) => {
       if (prev.get(itemValue) === label) return prev
       const next = new Map(prev)
       next.set(itemValue, label)
@@ -127,7 +163,7 @@ SelectTrigger.displayName = "SelectTrigger"
 export const SelectValue: React.FC<SelectValueProps> = ({ placeholder }) => {
   const { value, placeholder: contextPlaceholder, labelMap } = React.useContext(SelectContext)
 
-  if (value) {
+  if (value !== undefined && value !== null && value !== "") {
     const displayLabel = labelMap.get(value) || value
     return <span>{displayLabel}</span>
   }

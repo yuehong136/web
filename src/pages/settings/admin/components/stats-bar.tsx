@@ -13,7 +13,7 @@ interface StatCardProps {
 const StatCard: React.FC<StatCardProps> = memo(({ icon, label, value, highlight }) => (
   <div
     className={cn(
-      'flex items-center gap-space-md rounded-xl p-space-lg',
+      'flex items-center gap-space-lg rounded-radius-xl p-space-xl',
       highlight
         ? 'bg-background-subtle'
         : 'bg-background-surface'
@@ -21,7 +21,7 @@ const StatCard: React.FC<StatCardProps> = memo(({ icon, label, value, highlight 
   >
     <div
       className={cn(
-        'flex h-11 w-11 items-center justify-center rounded-xl flex-shrink-0',
+        'flex h-12 w-12 items-center justify-center rounded-radius-xl flex-shrink-0',
         highlight ? 'bg-state-success-subtle' : 'bg-background-default'
       )}
     >
@@ -45,7 +45,7 @@ export const StatsBar: React.FC<StatsBarProps> = memo(({ users }) => {
   const inactive = users.filter(u => !u.is_active).length
 
   return (
-    <div className="grid grid-cols-3 gap-space-md">
+    <div className="grid grid-cols-1 gap-space-md md:grid-cols-3 md:gap-space-lg">
       <StatCard
         icon={<Users className="h-5 w-5" />}
         label="总用户"

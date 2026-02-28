@@ -64,7 +64,7 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent size="sm" showCloseButton>
+      <DialogContent size="md" showCloseButton>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-space-sm">
             <span
@@ -76,10 +76,10 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit}>
-          <div className="px-space-lg py-space-base space-y-space-md">
+        <form id="create-user-form" onSubmit={handleSubmit}>
+          <div className="px-space-lg pt-space-sm pb-space-lg space-y-space-lg">
             {/* Email */}
-            <div className="space-y-1.5">
+            <div className="space-y-space-xs">
               <label className="text-sm font-medium text-text-secondary">
                 邮箱 <span className="text-text-error">*</span>
               </label>
@@ -94,7 +94,7 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
             </div>
 
             {/* Password */}
-            <div className="space-y-1.5">
+            <div className="space-y-space-xs">
               <label className="text-sm font-medium text-text-secondary">
                 密码 <span className="text-text-error">*</span>
               </label>
@@ -118,7 +118,7 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
             </div>
 
             {/* Confirm Password */}
-            <div className="space-y-1.5">
+            <div className="space-y-space-xs">
               <label className="text-sm font-medium text-text-secondary">
                 确认密码 <span className="text-text-error">*</span>
               </label>
@@ -134,13 +134,15 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
 
             {/* Admin Toggle */}
             <label
-              className="flex cursor-pointer items-center gap-space-sm rounded-xl border border-border-subtle bg-background-subtle px-space-md py-space-sm hover:bg-background-default transition-colors"
+              className="flex cursor-pointer items-center gap-space-sm rounded-radius-xl border border-border-default bg-surface-secondary px-space-md py-space-base hover:bg-surface-tertiary transition-colors"
               onClick={() => setIsAdmin(v => !v)}
             >
               <div
                 className={cn(
                   'relative h-5 w-9 rounded-full transition-colors flex-shrink-0',
-                  isAdmin ? 'bg-primary' : 'bg-background-default border border-border-default'
+                  isAdmin
+                    ? 'bg-state-focus'
+                    : 'bg-background-default border border-border-default'
                 )}
               >
                 <span
@@ -162,7 +164,7 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
           <Button variant="outline" size="sm" onClick={handleClose} disabled={isLoading}>
             取消
           </Button>
-          <Button size="sm" onClick={handleSubmit as any} disabled={isLoading}>
+          <Button size="sm" type="submit" form="create-user-form" disabled={isLoading}>
             {isLoading ? '创建中...' : '创建用户'}
           </Button>
         </DialogFooter>
