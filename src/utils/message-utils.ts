@@ -33,7 +33,29 @@ export interface ProcessedContent {
  */
 export const convertReferencesToSup = (content: string): string => {
   if (!content) return ''
-  return content.replace(/\[ID:(\d+)\]/g, '<sup>$1</sup>')
+
+  const replaceReferenceInPlainText = (text: string): string => {
+    return text.replace(/\[ID:(\d+)\]/g, '<sup>$1</sup>')
+  }
+
+  return content
+    .split(/(```[\s\S]*?```)/g)
+    .map((fencedSegment) => {
+      if (fencedSegment.startsWith('```') && fencedSegment.endsWith('```')) {
+        return fencedSegment
+      }
+
+      return fencedSegment
+        .split(/(`[^`\n]+`)/g)
+        .map((inlineSegment) => {
+          if (inlineSegment.startsWith('`') && inlineSegment.endsWith('`')) {
+            return inlineSegment
+          }
+          return replaceReferenceInPlainText(inlineSegment)
+        })
+        .join('')
+    })
+    .join('')
 }
 
 /**

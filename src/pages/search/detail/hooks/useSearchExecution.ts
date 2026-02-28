@@ -266,7 +266,7 @@ export const useSearchExecution = (searchApp: SearchApp | null, appliedConfig?: 
                   const content = rawAnswer
                     .replace(/<think(?:ing)?>[\s\S]*?<\/think(?:ing)?>/g, '')
                     .replace(/<think(?:ing)?>[\s\S]*$/, '')
-                    .trim()
+                    .replace(/^\n+/, '')
 
                   scheduleStreamPatch(turnId, content, thinking)
                 } catch {

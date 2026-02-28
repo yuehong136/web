@@ -1,6 +1,6 @@
 import React, { memo, useCallback, useMemo } from 'react'
 import XMarkdown from '@ant-design/x-markdown'
-import { markdownCodeComponents, markdownConfig } from '@/components/chat/MarkdownCodeBlock'
+import { markdownConfig, markdownStreamingComponents } from '@/components/chat/MarkdownCodeBlock'
 import { Sparkles } from 'lucide-react'
 import { ReferenceImageList } from '@/components/chat/ReferenceImageList'
 import { createReferenceMarkerComponent } from '@/components/chat/ReferenceMarker'
@@ -76,11 +76,68 @@ const SearchSummaryCard: React.FC<SearchSummaryCardProps> = ({
 
         {summary ? (
           <div className="space-y-space-sm text-text-primary">
-            <div className="bubble-copy-text max-w-none text-sm leading-7 text-text-primary [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_h1]:mb-space-sm [&_h1]:mt-space-sm [&_h1]:text-lg [&_h1]:font-semibold [&_h1]:text-text-primary [&_h2]:mb-space-sm [&_h2]:mt-space-sm [&_h2]:text-base [&_h2]:font-semibold [&_h2]:text-text-primary [&_h3]:mb-space-xs [&_h3]:mt-space-sm [&_h3]:text-base [&_h3]:font-semibold [&_h3]:text-text-primary [&_li]:my-space-xs [&_li]:leading-7 [&_li]:text-text-primary [&_ol]:my-space-sm [&_p]:my-space-sm [&_p]:leading-7 [&_p]:text-text-primary [&_strong]:font-semibold [&_strong]:text-text-primary [&_ul]:my-space-sm">
+            <div className="bubble-copy-text search-summary-markdown max-w-none text-sm leading-7 text-text-primary [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_h1]:mb-space-sm [&_h1]:mt-space-sm [&_h1]:text-lg [&_h1]:font-semibold [&_h1]:text-text-primary [&_h2]:mb-space-sm [&_h2]:mt-space-sm [&_h2]:text-base [&_h2]:font-semibold [&_h2]:text-text-primary [&_h3]:mb-space-xs [&_h3]:mt-space-sm [&_h3]:text-base [&_h3]:font-semibold [&_h3]:text-text-primary [&_li]:my-space-xs [&_li]:leading-7 [&_li]:text-text-primary [&_ol]:my-space-sm [&_p]:my-space-sm [&_p]:leading-7 [&_p]:text-text-primary [&_strong]:font-semibold [&_strong]:text-text-primary [&_ul]:my-space-sm">
+              <style>{`
+                .search-summary-markdown {
+                  color: var(--color-text-primary) !important;
+                }
+                .search-summary-markdown a {
+                  color: var(--color-components-button-primary-bg) !important;
+                }
+                .search-summary-markdown table:not(pre) {
+                  border-collapse: collapse !important;
+                  display: block !important;
+                  width: max-content !important;
+                  max-width: 100% !important;
+                  overflow: auto !important;
+                  border: 1px solid var(--color-border-default) !important;
+                  border-radius: 8px !important;
+                  margin: 8px 0 16px 0 !important;
+                  background-color: var(--color-surface-primary) !important;
+                }
+                .search-summary-markdown th,
+                .search-summary-markdown td {
+                  border: 1px solid var(--color-border-default) !important;
+                  padding: 8px 12px !important;
+                  text-align: left !important;
+                  vertical-align: top !important;
+                }
+                .search-summary-markdown th {
+                  color: var(--color-text-primary) !important;
+                  background-color: var(--color-surface-secondary) !important;
+                  font-weight: 600 !important;
+                }
+                .search-summary-markdown td {
+                  color: var(--color-text-primary) !important;
+                  background-color: var(--color-surface-primary) !important;
+                }
+                .search-summary-markdown code {
+                  background-color: var(--color-background-subtle) !important;
+                  color: var(--color-text-primary) !important;
+                }
+                .search-summary-markdown pre {
+                  background-color: var(--color-components-pre-bg) !important;
+                  border-color: var(--color-components-pre-border) !important;
+                }
+                .search-summary-markdown pre code {
+                  color: var(--color-components-pre-text) !important;
+                }
+                .search-summary-markdown .ant-mermaid-graph {
+                  height: auto !important;
+                  min-height: 220px !important;
+                  max-height: 70vh !important;
+                }
+                .search-summary-markdown .ant-mermaid-code {
+                  height: auto !important;
+                  min-height: 220px !important;
+                  max-height: 70vh !important;
+                }
+              `}</style>
               <XMarkdown
                 paragraphTag="div"
                 config={markdownConfig}
-                components={{ ...markdownCodeComponents, ...(referenceChunks.length > 0 ? { sup: SupComponent } : {}) }}
+                components={{ ...markdownStreamingComponents, ...(referenceChunks.length > 0 ? { sup: SupComponent } : {}) }}
+                streaming={isStreaming ? { hasNextChunk: true, enableAnimation: true } : undefined}
               >
                 {referenceChunks.length > 0 ? summaryWithSup : summary}
               </XMarkdown>

@@ -27,6 +27,115 @@ function parseLang(className?: string): string {
   return match?.[1] || ''
 }
 
+function normalizeMermaidSource(source: string): string {
+  if (!source) return ''
+
+  const normalizedPunctuation = source
+    .replace(/\r\n?/g, '\n')
+    .replace(/[\u200B-\u200D\uFEFF]/g, '')
+    .replace(/[“”]/g, '"')
+    .replace(/[‘’]/g, "'")
+
+  return normalizedPunctuation
+    .split('\n')
+    .map((line) => {
+      const trimmed = line.trim()
+      if (!trimmed || trimmed.startsWith('%%')) return line
+
+      if (/^subgraph\s+/i.test(trimmed)) {
+        return line.replace(/^(\s*subgraph)\s+["'](.+?)["']\s*$/i, '$1 $2')
+      }
+
+      const normalizedEdgeLabel = line.replace(
+        /((?:-->|==>|-.->|---|<--|<->|<-->|o-->|x-->|--o|--x)\s*)([A-Za-z][\w-]*)\s+\[/g,
+        '$1$2['
+      )
+
+      return normalizedEdgeLabel.replace(/^(\s*[A-Za-z][\w-]*)\s+\[/, '$1[')
+    })
+    .join('\n')
+}
+
+const mermaidValidationCache = new Map<string, boolean>()
+let mermaidValidatorPromise: Promise<{
+  parse: (text: string, options?: { suppressErrors?: boolean }) => Promise<boolean | unknown>
+  initialize: (config: Record<string, unknown>) => void
+}> | null = null
+
+async function validateMermaidSource(source: string): Promise<boolean> {
+  const cached = mermaidValidationCache.get(source)
+  if (cached !== undefined) return cached
+
+  try {
+    if (!mermaidValidatorPromise) {
+      mermaidValidatorPromise = import('mermaid').then((module) => {
+        const mermaid = module.default
+        mermaid.initialize({
+          startOnLoad: false,
+          securityLevel: 'strict',
+          theme: 'default',
+          fontFamily: 'monospace',
+        })
+        return mermaid
+      })
+    }
+
+    const mermaid = await mermaidValidatorPromise
+    const parsed = await mermaid.parse(source, { suppressErrors: true })
+    const isValid = parsed !== false
+    mermaidValidationCache.set(source, isValid)
+    return isValid
+  } catch {
+    mermaidValidationCache.set(source, false)
+    return false
+  }
+}
+
+const SafeMermaid: React.FC<{ code: string; streamStatus: ComponentProps['streamStatus'] }> = ({
+  code,
+  streamStatus,
+}) => {
+  const normalizedCode = React.useMemo(() => normalizeMermaidSource(code), [code])
+  const [canRenderMermaid, setCanRenderMermaid] = React.useState<boolean>(() => {
+    const cached = mermaidValidationCache.get(normalizedCode)
+    return cached ?? true
+  })
+
+  React.useEffect(() => {
+    let cancelled = false
+    const cached = mermaidValidationCache.get(normalizedCode)
+    if (cached !== undefined) {
+      setCanRenderMermaid(cached)
+      return () => {
+        cancelled = true
+      }
+    }
+
+    if (streamStatus === 'loading') {
+      setCanRenderMermaid(true)
+      return () => {
+        cancelled = true
+      }
+    }
+
+    void validateMermaidSource(normalizedCode).then((isValid) => {
+      if (!cancelled) {
+        setCanRenderMermaid(isValid)
+      }
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [normalizedCode, streamStatus])
+
+  if (!canRenderMermaid) {
+    return <CodeHighlighter lang="mermaid">{normalizedCode}</CodeHighlighter>
+  }
+
+  return <Mermaid>{normalizedCode}</Mermaid>
+}
+
 /**
  * Custom code component for XMarkdown.
  *
@@ -45,8 +154,7 @@ const MarkdownCode: React.FC<ComponentProps & { block?: boolean }> = ({
   children,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   domNode: _domNode,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  streamStatus: _streamStatus,
+  streamStatus = 'done',
   ...rest
 }) => {
   if (!block) {
@@ -64,7 +172,7 @@ const MarkdownCode: React.FC<ComponentProps & { block?: boolean }> = ({
   const code = extractText(children)
 
   if (lang === 'mermaid') {
-    return <Mermaid>{code}</Mermaid>
+    return <SafeMermaid code={code} streamStatus={streamStatus} />
   }
 
   return <CodeHighlighter lang={lang}>{code}</CodeHighlighter>
