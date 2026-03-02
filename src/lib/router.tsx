@@ -6,6 +6,7 @@ import { KnowledgeListPage } from '@/pages/knowledge/KnowledgeListPage'
 import { KnowledgeDetailLayout } from '@/pages/knowledge/KnowledgeDetailLayout'
 import { KnowledgeDocumentsPage } from '@/pages/knowledge/documents'
 import { KnowledgeSearchPage } from '@/pages/knowledge/KnowledgeSearchPage'
+import { KnowledgeGraphPage } from '@/pages/knowledge/graph'
 import { KnowledgeSettingsPage } from '@/pages/knowledge/KnowledgeSettingsPage'
 import { KnowledgeCreatePage } from '@/pages/knowledge/KnowledgeCreatePage'
 import { KnowledgeImportPage } from '@/pages/knowledge/KnowledgeImportPage'
@@ -187,6 +188,10 @@ export const router = createBrowserRouter([
           {
             path: 'search',
             element: <KnowledgeSearchPage />,
+          },
+          {
+            path: 'graph',
+            element: <KnowledgeGraphPage />,
           },
           {
             path: 'logs',

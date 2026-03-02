@@ -696,4 +696,45 @@ export const knowledgeAPI = {
         meta: JSON.stringify(meta),
       }),
   },
+
+  // GraphRAG / RAPTOR 生成任务
+  generate: {
+    runGraphRag: (payload: { kb_id: string; doc_ids?: string[] }): Promise<{ graphrag_task_id: string }> =>
+      apiClient.post('/v1/kb/run_graphrag', payload),
+
+    traceGraphRag: (kbId: string): Promise<{
+      id: string
+      progress: number
+      progress_msg: string
+      begin_at: string
+      create_date: string
+      update_date: string
+      process_duration: number
+      task_type: string
+    } | Record<string, never>> =>
+      apiClient.get(`/v1/kb/trace_graphrag?kb_id=${kbId}`),
+
+    runRaptor: (payload: { kb_id: string; doc_ids?: string[] }): Promise<{ raptor_task_id: string }> =>
+      apiClient.post('/v1/kb/run_raptor', payload),
+
+    traceRaptor: (kbId: string): Promise<{
+      id: string
+      progress: number
+      progress_msg: string
+      begin_at: string
+      create_date: string
+      update_date: string
+      process_duration: number
+      task_type: string
+    } | Record<string, never>> =>
+      apiClient.get(`/v1/kb/trace_raptor?kb_id=${kbId}`),
+
+    unbindPipelineTask: (params: {
+      kb_id: string
+      pipeline_task_type: 'GraphRAG' | 'RAPTOR'
+    }): Promise<boolean> =>
+      apiClient.delete(
+        `/v1/kb/unbind_task?kb_id=${params.kb_id}&pipeline_task_type=${params.pipeline_task_type}`
+      ),
+  },
 }

@@ -45,6 +45,12 @@ import {
 } from './hooks'
 import { PAGE_SIZE_OPTIONS } from './constants'
 import { ProcessLogModal } from './process-log-modal'
+import {
+  GenerateButton,
+  GenerateTaskDock,
+  GenerateDeleteConfirm,
+} from './generate'
+import { useGenerateState } from './generate/hooks'
 
 export const KnowledgeDocumentsPage: React.FC = () => {
   const { id: kbId } = useParams<{ id: string }>()
@@ -66,6 +72,10 @@ export const KnowledgeDocumentsPage: React.FC = () => {
 
   // 日志弹窗
   const { showLog, hideLog, logVisible, logInfo } = useShowLog(listState.documents)
+
+  // 生成任务（GraphRAG / RAPTOR）
+  const generate = useGenerateState(kbId || '')
+  const chunkNum = currentKnowledgeBase?.chunk_num ?? 0
 
   // 模态框状态
   const [uploadModalOpen, setUploadModalOpen] = useState(false)
@@ -254,6 +264,17 @@ export const KnowledgeDocumentsPage: React.FC = () => {
               />
               刷新
             </Button>
+            <GenerateButton
+              disabled={chunkNum <= 0}
+              graphStatus={generate.graph.status}
+              raptorStatus={generate.raptor.status}
+              graphTrace={generate.graph.traceData}
+              raptorTrace={generate.raptor.traceData}
+              isActionPending={generate.isActionPending}
+              onRun={generate.handleRun}
+              onPause={generate.handlePause}
+              onDelete={generate.handleDeleteRequest}
+            />
             <Button variant="outline" onClick={() => setMetadataModalOpen(true)}>
               <Tag className="h-4 w-4 mr-2" />
               管理元数据
@@ -265,6 +286,20 @@ export const KnowledgeDocumentsPage: React.FC = () => {
           </div>
         </div>
       </Card>
+
+      {/* 常驻生成任务状态区 */}
+      <GenerateTaskDock
+        kbId={kbId || ''}
+        graphStatus={generate.graph.status}
+        raptorStatus={generate.raptor.status}
+        graphTrace={generate.graph.traceData}
+        raptorTrace={generate.raptor.traceData}
+        disabled={chunkNum <= 0}
+        isActionPending={generate.isActionPending}
+        onRun={generate.handleRun}
+        onPause={generate.handlePause}
+        onDelete={generate.handleDeleteRequest}
+      />
 
       {/* 文档列表 */}
       {!listState.isLoading && listState.documents.length > 0 && (
@@ -576,6 +611,14 @@ export const KnowledgeDocumentsPage: React.FC = () => {
         document={editingParserDoc}
         onSubmit={handleChunkMethodSubmit}
         isLoading={isUpdatingParser}
+      />
+
+      {/* 生成结果删除确认弹窗 */}
+      <GenerateDeleteConfirm
+        open={generate.deleteConfirmOpen}
+        type={generate.deletingType}
+        onConfirm={generate.handleDeleteConfirm}
+        onClose={generate.handleDeleteCancel}
       />
     </div>
   )

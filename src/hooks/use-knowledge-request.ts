@@ -15,7 +15,8 @@ import { useParams } from 'react-router-dom'
 import { knowledgeAPI } from '@/api/knowledge'
 import type {
   CreateKBRequest,
-  UpdateKBRequest
+  UpdateKBRequest,
+  KnowledgeGraph,
 } from '@/types/api'
 
 // Query Keys 统一管理
@@ -173,6 +174,65 @@ export const useDeleteKnowledge = () => {
     isLoading: isPending,
     isError,
     error,
+  }
+}
+
+// 获取知识图谱
+export const useFetchKnowledgeGraph = (id?: string) => {
+  const knowledgeBaseId = useKnowledgeBaseId()
+  const targetId = id || knowledgeBaseId
+
+  const { data, isFetching, isError, error, refetch } = useQuery({
+    queryKey: [...knowledgeKeys.detail(targetId), 'graph'] as const,
+    queryFn: async () => {
+      const raw = await knowledgeAPI.knowledgeBase.getKnowledgeGraph(targetId)
+      return normalizeGraphResponse(raw)
+    },
+    enabled: !!targetId,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  })
+
+  return {
+    data: data ?? null,
+    isLoading: isFetching,
+    isError,
+    error,
+    refetch,
+  }
+}
+
+/**
+ * Normalize the knowledge graph API response.
+ * Handles both our typed format { nodes, edges } and ragflow format { graph: { nodes, edges } }.
+ */
+function normalizeGraphResponse(raw: unknown): KnowledgeGraph {
+  const empty: KnowledgeGraph = { nodes: [], edges: [] }
+  if (!raw || typeof raw !== 'object') return empty
+
+  const obj = raw as Record<string, unknown>
+
+  // ragflow format: { graph: { nodes, edges }, mind_map }
+  const graphField = obj.graph
+  const source = (graphField && typeof graphField === 'object') ? graphField as Record<string, unknown> : obj
+
+  const rawNodes = Array.isArray(source.nodes) ? source.nodes : []
+  const rawEdges = Array.isArray(source.edges) ? source.edges : []
+
+  return {
+    nodes: rawNodes.map((n: Record<string, unknown>) => ({
+      id: String(n.id ?? ''),
+      label: String(n.label ?? n.name ?? n.id ?? ''),
+      type: String(n.type ?? n.entity_type ?? ''),
+      properties: (typeof n === 'object' ? n : {}) as Record<string, unknown>,
+    })),
+    edges: rawEdges.map((e: Record<string, unknown>) => ({
+      id: String(e.id ?? `${e.source}-${e.target}`),
+      source: String(e.source ?? ''),
+      target: String(e.target ?? ''),
+      label: String(e.label ?? e.relation ?? ''),
+      properties: (typeof e === 'object' ? e : {}) as Record<string, unknown>,
+    })),
   }
 }
 
