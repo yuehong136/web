@@ -68,13 +68,9 @@ export const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
             <div
               className="flex h-8 w-8 items-center justify-center rounded-full flex-shrink-0 bg-primary/15"
             >
-              {user.avatar ? (
-                <img src={user.avatar} alt="" className="h-8 w-8 rounded-full object-cover" />
-              ) : (
-                <span className="text-sm font-semibold text-text-accent">
-                  {(user.nickname || user.email)[0].toUpperCase()}
-                </span>
-              )}
+              <span className="text-sm font-semibold text-text-accent">
+                {(user.nickname || user.email)[0].toUpperCase()}
+              </span>
             </div>
             <div className="min-w-0">
               <p className="text-sm font-medium text-text-primary truncate">

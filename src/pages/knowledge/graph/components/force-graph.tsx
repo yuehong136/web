@@ -74,9 +74,9 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
     }, [data])
 
     useImperativeHandle(ref, () => ({
-      zoomIn: () => graphRef.current?.zoomBy(1.3, undefined, { duration: 300 }),
-      zoomOut: () => graphRef.current?.zoomBy(0.7, undefined, { duration: 300 }),
-      fitView: () => graphRef.current?.fitView({ duration: 400 }),
+      zoomIn: () => graphRef.current?.zoomBy(1.3, { duration: 300 }),
+      zoomOut: () => graphRef.current?.zoomBy(0.7, { duration: 300 }),
+      fitView: () => graphRef.current?.fitView(undefined, { duration: 400 }),
     }))
 
     const textColor = isDark ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.85)'
