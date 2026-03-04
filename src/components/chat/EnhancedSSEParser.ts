@@ -252,14 +252,50 @@ export class EnhancedSSEParser {
           metadata: this.state.metadata
         } as CompleteMessage;
       }
+
+      // Handle root-level think markers in legacy stream:
+      // { retcode: 0, data: "", start_to_think: true } / end_to_think
+      // We append think tags into accumulated text so existing UI can parse/render think blocks.
+      let markerMutated = false;
+      if (message.start_to_think === true && !this.hasOpenThinkTag(this.state.accumulatedText)) {
+        this.state.accumulatedText += '<think>';
+        markerMutated = true;
+      }
+      if (message.end_to_think === true && this.hasOpenThinkTag(this.state.accumulatedText)) {
+        this.state.accumulatedText += '</think>';
+        markerMutated = true;
+      }
       
       // Check if data contains structured message
       if (typeof message.data === 'object' && message.data && 'type' in message.data) {
         // Handle structured message
-        return this.processStructuredMessage(message.data);
+        const structured = this.processStructuredMessage(message.data);
+        if (structured) {
+          return structured;
+        }
+        if (markerMutated) {
+          return {
+            type: 'text' as MessageType,
+            content: this.state.accumulatedText,
+            accumulated: this.state.accumulatedText
+          } as TextMessage;
+        }
+        return null;
+      } else if (typeof message.data === 'object' && message.data && 'answer' in message.data) {
+        // Compatibility: wrapped answer object in some legacy branches
+        const answer = typeof message.data.answer === 'string' ? message.data.answer : '';
+        return this.processLegacyMessage(answer, markerMutated);
       } else if (typeof message.data === 'string') {
         // Handle legacy unstructured format
-        return this.processLegacyMessage(message.data);
+        return this.processLegacyMessage(message.data, markerMutated);
+      }
+
+      if (markerMutated) {
+        return {
+          type: 'text' as MessageType,
+          content: this.state.accumulatedText,
+          accumulated: this.state.accumulatedText
+        } as TextMessage;
       }
     } else if ('type' in message) {
       // Direct structured message (no wrapper)
@@ -275,11 +311,15 @@ export class EnhancedSSEParser {
   private processStructuredMessage(message: any): SSEMessage | null {
     switch (message.type) {
       case 'text': {
-        const nextContent = typeof message.content === 'string' ? message.content : '';
+        const incoming = typeof message.content === 'string' ? message.content : '';
+        const nextContent =
+          this.state.accumulatedText && incoming.startsWith(this.state.accumulatedText)
+            ? incoming
+            : this.state.accumulatedText + incoming;
         if (nextContent === this.state.accumulatedText) {
           return null;
         }
-        // Update accumulated text with content directly (backend sends full accumulated content)
+        // Compatible with both accumulated-text and delta-text backends.
         this.state.accumulatedText = nextContent;
         return {
           type: 'text' as MessageType,
@@ -332,7 +372,7 @@ export class EnhancedSSEParser {
   /**
    * Process legacy unstructured messages (for backward compatibility)
    */
-  private processLegacyMessage(content: string): SSEMessage | null {
+  private processLegacyMessage(content: string, markerMutated = false): SSEMessage | null {
     const previousText = this.state.accumulatedText;
     
     // Parse tool calls from legacy format using existing parser
@@ -358,22 +398,52 @@ export class EnhancedSSEParser {
       }
     }
     
-    // Remove tool_call tags from content
-    cleanContent = cleanContent.replace(toolCallRegex, '').trim();
-    
-    // Update state
-    this.state.toolCalls = toolCalls;
-    this.state.accumulatedText = cleanContent;
+    // Remove tool_call tags from content, keep whitespace/newlines for streaming fidelity.
+    cleanContent = cleanContent.replace(toolCallRegex, '');
 
-    if (cleanContent === previousText) {
+    // Compatible with both accumulated-text and delta-text legacy payloads.
+    const mergedContent =
+      previousText && cleanContent.startsWith(previousText)
+        ? cleanContent
+        : previousText + cleanContent;
+
+    // Update state:
+    // - Do not clear previously parsed structured tool calls on normal text chunks.
+    // - Legacy streams may include repeated cumulative payloads, so de-duplicate by payload signature.
+    if (toolCalls.length > 0) {
+      const existing = this.state.toolCalls;
+      const mergedMap = new Map<string, ToolCallInfo>();
+
+      for (const call of existing) {
+        const key = `${call.name}:${JSON.stringify(call.arguments || {})}:${JSON.stringify(call.result ?? '')}`;
+        mergedMap.set(key, call);
+      }
+
+      for (const call of toolCalls) {
+        const key = `${call.name}:${JSON.stringify(call.arguments || {})}:${JSON.stringify(call.result ?? '')}`;
+        const prev = mergedMap.get(key);
+        mergedMap.set(key, prev ? { ...call, id: prev.id } : call);
+      }
+
+      this.state.toolCalls = Array.from(mergedMap.values());
+    }
+    this.state.accumulatedText = mergedContent;
+
+    if (mergedContent === previousText && !markerMutated) {
       return null;
     }
     
     return {
       type: 'text' as MessageType,
-      content: cleanContent,
-      accumulated: cleanContent
+      content: mergedContent,
+      accumulated: mergedContent
     } as TextMessage;
+  }
+
+  private hasOpenThinkTag(content: string): boolean {
+    const openCount = (content.match(/<think>/g) || []).length + (content.match(/<thinking>/g) || []).length;
+    const closeCount = (content.match(/<\/think>/g) || []).length + (content.match(/<\/thinking>/g) || []).length;
+    return openCount > closeCount;
   }
 
   /**
@@ -439,6 +509,7 @@ export class EnhancedSSEParser {
       metadata: {}
     };
     this.toolCallMap.clear();
+    this.syntheticCompleteSent = false;
   }
 
   /**
