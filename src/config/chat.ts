@@ -57,10 +57,19 @@ export interface ChatServiceRequest {
 }
 
 // SSE response data structure
+export interface SSEAnswerData {
+  answer?: string
+  reference?: Record<string, any>
+  audio_binary?: string | null
+  final?: boolean
+  start_to_think?: boolean
+  end_to_think?: boolean
+}
+
 export interface SSEResponse {
   retcode: number
   retmsg: string
-  data: string | boolean | { answer: string }
+  data: string | boolean | SSEAnswerData
 }
 
 // ============================================================================

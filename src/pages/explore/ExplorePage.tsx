@@ -62,6 +62,7 @@ import { ReferencePanel } from '@/components/chat/ReferencePanel'
 import { ReferenceDetailSheet } from '@/components/chat/ReferenceDetailSheet'
 import { createReferenceMarkerComponent } from '@/components/chat/ReferenceMarker'
 import { ReferenceImageList } from '@/components/chat/ReferenceImageList'
+import { consumeStreamingAnswerChunk, createInitialStreamingAnswerState } from '@/utils/streaming-answer'
 
 // SSE 流解析库（参考 ragflow 最佳实践）
 import { EventSourceParserStream } from 'eventsource-parser/stream'
@@ -454,6 +455,8 @@ export const ExplorePage: React.FC = () => {
         .pipeThrough(new EventSourceParserStream())
         .getReader()
 
+      let streamState = createInitialStreamingAnswerState()
+
       while (true) {
         const { done, value } = await reader.read()
         if (done) break
@@ -464,46 +467,35 @@ export const ExplorePage: React.FC = () => {
           if (!jsonStr) continue
           
           const data = JSON.parse(jsonStr)
-          // 检查是否是终止信号
-          if (data.data === true) continue
+          const chunk = consumeStreamingAnswerChunk(streamState, data)
+          streamState = chunk.nextState
+          if (chunk.isDone) continue
+
+          const chunkData = chunk.payload && typeof chunk.payload === 'object'
+            ? (chunk.payload as Record<string, unknown>)
+            : null
+          // 只有当 SSE 返回了 references 数据时才更新，避免空数组覆盖之前的有效数据
+          const newReferences = chunkData ? extractReferencesFromSSEData(chunkData) : []
+          const cleanContent = streamState.content
+          const thinking = streamState.thinking
           
-          if (data.retcode === 0 && data.data?.answer) {
-            const content = data.data.answer
-            // 只有当 SSE 返回了 references 数据时才更新，避免空数组覆盖之前的有效数据
-            const newReferences = extractReferencesFromSSEData(data.data)
-              
-            // 提取 think/thinking 内容（支持两种标签格式）
-            // 服务端返回累积式流式数据，每个 chunk 都可能包含完整的 <think>...</think>
-            let thinking = ''
-            const thinkMatch = content.match(/<think(?:ing)?>([\s\S]*?)(?:<\/think(?:ing)?>|$)/)
-            if (thinkMatch) {
-              thinking = thinkMatch[1].trim()
-            }
-              
-            // 清理内容：移除 think 标签及其内容
-            const cleanContent = content
-              .replace(/<think(?:ing)?>[\s\S]*?<\/think(?:ing)?>/g, '')
-              .replace(/<think(?:ing)?>[\s\S]*$/, '')
-              .replace(/^\n+/, '')
-              
-            setMessages(prev => {
-              const newMsgs = [...prev]
-              const lastIdx = newMsgs.length - 1
-              if (lastIdx >= 0 && newMsgs[lastIdx].role === 'assistant') {
-                // 只有当新的 references 有数据时才更新，否则保留之前的
-                const existingReferences = newMsgs[lastIdx].references || []
-                const references = newReferences.length > 0 ? newReferences : existingReferences
-                  
-                newMsgs[lastIdx] = {
-                  ...newMsgs[lastIdx],
-                  content: cleanContent,
-                  references,
-                  thinking
-                }
+          setMessages(prev => {
+            const newMsgs = [...prev]
+            const lastIdx = newMsgs.length - 1
+            if (lastIdx >= 0 && newMsgs[lastIdx].role === 'assistant') {
+              // 只有当新的 references 有数据时才更新，否则保留之前的
+              const existingReferences = newMsgs[lastIdx].references || []
+              const references = newReferences.length > 0 ? newReferences : existingReferences
+                
+              newMsgs[lastIdx] = {
+                ...newMsgs[lastIdx],
+                content: cleanContent,
+                references,
+                thinking
               }
-              return newMsgs
-            })
-          }
+            }
+            return newMsgs
+          })
         } catch (e) {
           // JSON 解析错误，忽略
         }
@@ -546,6 +538,8 @@ export const ExplorePage: React.FC = () => {
           .pipeThrough(new EventSourceParserStream())
           .getReader()
 
+        let streamState = createInitialStreamingAnswerState()
+
         while (true) {
           const { done, value } = await reader.read()
           if (done) break
@@ -556,39 +550,22 @@ export const ExplorePage: React.FC = () => {
             if (!jsonStr) continue
             
             const data: SSEResponse = JSON.parse(jsonStr)
-            
-            // 检查是否是终止信号
-            if (data.data === true) continue
-            
-            if (data.retcode === 0 && typeof data.data === 'string') {
-              const rawData = data.data
-              
-              // 提取 think/thinking 内容（支持两种标签格式）
-              let thinking = ''
-              const thinkMatch = rawData.match(/<think(?:ing)?>([\s\S]*?)(?:<\/think(?:ing)?>|$)/)
-              if (thinkMatch) {
-                thinking = thinkMatch[1].trim()
-              }
-              
-              // 清理内容：移除 think 标签及其内容
-              const content = rawData
-                .replace(/<think(?:ing)?>[\s\S]*?<\/think(?:ing)?>/g, '')
-                .replace(/<think(?:ing)?>[\s\S]*$/, '')
-                .replace(/^\n+/, '')
-              
-              setMessages(prev => {
-                const newMsgs = [...prev]
-                const lastIdx = newMsgs.length - 1
-                if (lastIdx >= 0 && newMsgs[lastIdx].role === 'assistant') {
-                  newMsgs[lastIdx] = {
-                    ...newMsgs[lastIdx],
-                    content,
-                    thinking
-                  }
+            const chunk = consumeStreamingAnswerChunk(streamState, data)
+            streamState = chunk.nextState
+            if (chunk.isDone) continue
+
+            setMessages(prev => {
+              const newMsgs = [...prev]
+              const lastIdx = newMsgs.length - 1
+              if (lastIdx >= 0 && newMsgs[lastIdx].role === 'assistant') {
+                newMsgs[lastIdx] = {
+                  ...newMsgs[lastIdx],
+                  content: streamState.content,
+                  thinking: streamState.thinking
                 }
-                return newMsgs
-              })
-            }
+              }
+              return newMsgs
+            })
           } catch (e) {
             // JSON 解析错误，忽略
           }

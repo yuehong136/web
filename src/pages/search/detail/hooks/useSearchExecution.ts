@@ -4,6 +4,7 @@ import { conversationAPI } from '@/api/conversation'
 import { knowledgeAPI } from '@/api/knowledge'
 import { llmAPI } from '@/api/llm'
 import { searchAPI } from '@/api/search'
+import { consumeStreamingAnswerChunk, createInitialStreamingAnswerState } from '@/utils/streaming-answer'
 import {
   SearchExecutionPhase,
   SearchExecutionMode,
@@ -244,6 +245,8 @@ export const useSearchExecution = (searchApp: SearchApp | null, appliedConfig?: 
                 .pipeThrough(new EventSourceParserStream())
                 .getReader()
 
+              let streamState = createInitialStreamingAnswerState()
+
               while (true) {
                 const { done, value } = await reader.read()
                 if (done) break
@@ -256,19 +259,11 @@ export const useSearchExecution = (searchApp: SearchApp | null, appliedConfig?: 
                   const jsonStr = value?.data
                   if (!jsonStr) continue
                   const data = JSON.parse(jsonStr)
-                  if (data?.data === true) continue
-                  if (data?.retcode !== 0 || !data?.data?.answer) continue
+                  const chunk = consumeStreamingAnswerChunk(streamState, data)
+                  streamState = chunk.nextState
+                  if (chunk.isDone) continue
 
-                  const rawAnswer = String(data.data.answer)
-                  const thinkMatch = rawAnswer.match(/<think(?:ing)?>([\s\S]*?)(?:<\/think(?:ing)?>|$)/)
-                  const thinking = thinkMatch?.[1]?.trim() || ''
-
-                  const content = rawAnswer
-                    .replace(/<think(?:ing)?>[\s\S]*?<\/think(?:ing)?>/g, '')
-                    .replace(/<think(?:ing)?>[\s\S]*$/, '')
-                    .replace(/^\n+/, '')
-
-                  scheduleStreamPatch(turnId, content, thinking)
+                  scheduleStreamPatch(turnId, streamState.content, streamState.thinking)
                 } catch {
                   // Ignore malformed SSE chunk.
                 }

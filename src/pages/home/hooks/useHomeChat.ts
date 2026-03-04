@@ -16,6 +16,7 @@ import type { MCPChatServiceRequest } from '@/api/mcp-chat-service'
 import { conversationAPI } from '@/api/conversation'
 import type { DialogApp } from '@/types/api'
 import type { ChatMessage } from '../types'
+import { consumeStreamingAnswerChunk, createInitialStreamingAnswerState } from '@/utils/streaming-answer'
 
 interface UseHomeChatOptions {
   selectedMCPIds: string[]
@@ -296,6 +297,8 @@ export const useHomeChat = ({
         .pipeThrough(new EventSourceParserStream())
         .getReader()
 
+      let streamState = createInitialStreamingAnswerState()
+
       while (true) {
         const { done, value } = await reader.read()
         if (done) break
@@ -311,63 +314,54 @@ export const useHomeChat = ({
           if (!jsonStr) continue
           
           const data = JSON.parse(jsonStr)
-          if (data.data === true) continue
-          
-          if (data.retcode === 0 && data.data?.answer) {
-            const content = data.data.answer
-            const newReferences = extractReferencesFromSSEData(data.data)
-            
-            // 提取 think 内容
-            let thinking = ''
-            const thinkMatch = content.match(/<think(?:ing)?>([\s\S]*?)(?:<\/think(?:ing)?>|$)/)
-            if (thinkMatch) {
-              thinking = thinkMatch[1].trim()
-            }
-            
-            // 清理内容
-            const cleanContent = content
-              .replace(/<think(?:ing)?>[\s\S]*?<\/think(?:ing)?>/g, '')
-              .replace(/<think(?:ing)?>[\s\S]*$/, '')
-              .trim()
-            
-            // 直接更新 messages 中最后一条 AI 消息（参考探索页面）
-            updateMessages(prev => {
-              const newMsgs = [...prev]
-              const lastIdx = newMsgs.length - 1
-              if (lastIdx >= 0 && newMsgs[lastIdx].role === 'assistant') {
-                // 只有当新的 references 有数据时才更新，否则保留之前的
-                const existingReferences = newMsgs[lastIdx].references || []
-                const referencesChanged = newReferences.length > 0 && (
-                  newReferences.length !== existingReferences.length ||
-                  newReferences.some((ref: any, refIdx: number) => {
-                    const previousRef = existingReferences[refIdx] as any
-                    if (!previousRef) return true
-                    return (
-                      previousRef.id !== ref.id ||
-                      previousRef.doc_id !== ref.doc_id ||
-                      previousRef.content !== ref.content
-                    )
-                  })
-                )
-                const references = referencesChanged ? newReferences : existingReferences
+          const chunk = consumeStreamingAnswerChunk(streamState, data)
+          streamState = chunk.nextState
+          if (chunk.isDone) continue
 
-                const sameContent = newMsgs[lastIdx].content === cleanContent
-                const sameThinking = (newMsgs[lastIdx].thinking || '') === thinking
-                const sameReferences = references === existingReferences
-                if (sameContent && sameThinking && sameReferences) {
-                  return prev
-                }
-                
-                newMsgs[lastIdx] = {
-                  ...newMsgs[lastIdx],
-                  content: cleanContent,
-                  references,
-                  thinking,
-                }
+          const chunkData = chunk.payload && typeof chunk.payload === 'object'
+            ? (chunk.payload as Record<string, unknown>)
+            : null
+          const newReferences = chunkData ? extractReferencesFromSSEData(chunkData) : []
+          const cleanContent = streamState.content
+          const thinking = streamState.thinking
+
+          // 直接更新 messages 中最后一条 AI 消息（参考探索页面）
+          updateMessages(prev => {
+            const newMsgs = [...prev]
+            const lastIdx = newMsgs.length - 1
+            if (lastIdx >= 0 && newMsgs[lastIdx].role === 'assistant') {
+              // 只有当新的 references 有数据时才更新，否则保留之前的
+              const existingReferences = newMsgs[lastIdx].references || []
+              const referencesChanged = newReferences.length > 0 && (
+                newReferences.length !== existingReferences.length ||
+                newReferences.some((ref: any, refIdx: number) => {
+                  const previousRef = existingReferences[refIdx] as any
+                  if (!previousRef) return true
+                  return (
+                    previousRef.id !== ref.id ||
+                    previousRef.doc_id !== ref.doc_id ||
+                    previousRef.content !== ref.content
+                  )
+                })
+              )
+              const references = referencesChanged ? newReferences : existingReferences
+
+              const sameContent = newMsgs[lastIdx].content === cleanContent
+              const sameThinking = (newMsgs[lastIdx].thinking || '') === thinking
+              const sameReferences = references === existingReferences
+              if (sameContent && sameThinking && sameReferences) {
+                return prev
               }
-              return newMsgs
-            })
-          }
+              
+              newMsgs[lastIdx] = {
+                ...newMsgs[lastIdx],
+                content: cleanContent,
+                references,
+                thinking,
+              }
+            }
+            return newMsgs
+          })
         } catch (e) {
           // JSON 解析错误，忽略
         }

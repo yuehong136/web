@@ -78,6 +78,7 @@ import {
   detectMatchingPresetSnake,
   getDefaultEnabledFieldsSnake,
 } from '@/constants/llm'
+import { consumeStreamingAnswerChunk, createInitialStreamingAnswerState } from '@/utils/streaming-answer'
 // SSE 流解析库（参考 ragflow 最佳实践）
 import { EventSourceParserStream } from 'eventsource-parser/stream'
 
@@ -720,6 +721,8 @@ const CreateAppPageComponent: React.FC = () => {
         .pipeThrough(new TextDecoderStream())
         .pipeThrough(new EventSourceParserStream())
         .getReader()
+
+      let streamState = createInitialStreamingAnswerState()
       
       while (true) {
         // 检查是否被中止
@@ -735,38 +738,22 @@ const CreateAppPageComponent: React.FC = () => {
           if (!jsonStr) continue
           
           const data = JSON.parse(jsonStr)
-          // 检查是否是终止信号
-          if (data.data === true) continue
-          
-          if (data.retcode === 0 && data.data?.answer) {
-            const content = data.data.answer
-            
-            // 提取 think/thinking 内容
-            let thinking = ''
-            const thinkMatch = content.match(/<think(?:ing)?>([\s\S]*?)(?:<\/think(?:ing)?>|$)/)
-            if (thinkMatch) {
-              thinking = thinkMatch[1].trim()
-            }
-            
-            // 清理内容：移除 think 标签及其内容
-            const cleanContent = content
-              .replace(/<think(?:ing)?>[\s\S]*?<\/think(?:ing)?>/g, '')
-              .replace(/<think(?:ing)?>[\s\S]*$/, '')
-              .trim()
-            
-            setPreviewMessages(prev => {
-              const newMsgs = [...prev]
-              const lastIdx = newMsgs.length - 1
-              if (lastIdx >= 0 && newMsgs[lastIdx].role === 'assistant') {
-                newMsgs[lastIdx] = {
-                  ...newMsgs[lastIdx],
-                  content: cleanContent,
-                  thinking
-                }
+          const chunk = consumeStreamingAnswerChunk(streamState, data)
+          streamState = chunk.nextState
+          if (chunk.isDone) continue
+
+          setPreviewMessages(prev => {
+            const newMsgs = [...prev]
+            const lastIdx = newMsgs.length - 1
+            if (lastIdx >= 0 && newMsgs[lastIdx].role === 'assistant') {
+              newMsgs[lastIdx] = {
+                ...newMsgs[lastIdx],
+                content: streamState.content,
+                thinking: streamState.thinking
               }
-              return newMsgs
-            })
-          }
+            }
+            return newMsgs
+          })
         } catch {
           // JSON 解析错误，忽略
         }
