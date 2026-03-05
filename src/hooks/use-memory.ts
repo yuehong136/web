@@ -198,7 +198,7 @@ export function useMessageList(memoryId: string | undefined, params?: MessageLis
       if (!memoryId) throw new Error('Memory ID is required')
       setMessagesLoading(true)
       try {
-        const data = await memoryAPI.message.list(memoryId, params)
+        const data = await memoryAPI.message.list({ memory_id: memoryId, ...params })
         setMessages(data.message_list, data.total_count)
         return data
       } finally {

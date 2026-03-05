@@ -1,9 +1,14 @@
 /**
  * 记忆库 API 接口层
- * 对接后端 memory_app.py API 端点
+ * 对接后端 api/apps/sdk/memories.py 和 api/apps/sdk/messages.py
+ *
+ * 后端路由前缀为 /api/v1（SDK 路径），使用 baseURL override 实现：
+ *   apiClient 的 baseURL 设为 API_BASE_URL，请求时传 { baseURL: `${API_BASE_URL}/api` }
+ *   最终 URL = API_BASE_URL/api/v1/<endpoint>
  */
 
 import { apiClient } from './client'
+import { API_BASE_URL } from '@/constants'
 import type {
   Memory,
   CreateMemoryParams,
@@ -15,134 +20,170 @@ import type {
   MessageContentResponse,
 } from '@/types/memory'
 
-/**
- * 后端 API 端点：
- * POST   /v1/memory              - 创建 Memory
- * GET    /v1/memory              - 获取 Memory 列表
- * PUT    /v1/memory/:id          - 更新 Memory
- * DELETE /v1/memory/:id          - 删除 Memory
- * GET    /v1/memory/:id/config   - 获取 Memory 配置
- */
+/** apiClient 的 baseURL 覆盖，使请求走 /api/v1/... */
+const sdkBase = { baseURL: `${API_BASE_URL}/api` }
 
 export const memoryAPI = {
   // ============ 记忆库管理 ============
+  // 后端路由: api/apps/sdk/memories.py，前缀 /api/v1
   memory: {
     /**
      * 获取记忆库列表
-     * 后端 Query 参数: tenant_id[], memory_type[], storage_type, keywords, page, page_size
+     * GET /api/v1/memories
      */
     list: (params?: MemoryListParams): Promise<MemoryListResponse> => {
       const queryParams = new URLSearchParams()
-      
+
       if (params?.page) queryParams.set('page', params.page.toString())
       if (params?.page_size) queryParams.set('page_size', params.page_size.toString())
       if (params?.keywords) queryParams.set('keywords', params.keywords)
       if (params?.storage_type) queryParams.set('storage_type', params.storage_type)
-      
-      // FastAPI Query 参数格式：数组使用多个同名参数
-      // 例如：?memory_type=raw&memory_type=semantic
+
       if (params?.memory_type?.length) {
-        params.memory_type.forEach(type => {
-          queryParams.append('memory_type', type)
-        })
+        params.memory_type.forEach(type => queryParams.append('memory_type', type))
       }
       if (params?.tenant_id?.length) {
-        params.tenant_id.forEach(id => {
-          queryParams.append('tenant_id', id)
-        })
+        params.tenant_id.forEach(id => queryParams.append('tenant_id', id))
       }
 
-      const queryString = queryParams.toString()
-      return apiClient.get(`/memory${queryString ? `?${queryString}` : ''}`)
+      const qs = queryParams.toString()
+      return apiClient.get(`/memories${qs ? `?${qs}` : ''}`, sdkBase)
     },
 
     /**
-     * 获取记忆库详情/配置
-     * 后端接口: GET /v1/memory/:id/config
+     * 获取记忆库配置
+     * GET /api/v1/memories/{id}/config
      */
     get: (id: string): Promise<Memory> =>
-      apiClient.get(`/memory/${id}/config`),
+      apiClient.get(`/memories/${id}/config`, sdkBase),
+
+    getConfig: (id: string): Promise<Memory> =>
+      apiClient.get(`/memories/${id}/config`, sdkBase),
 
     /**
-     * 获取记忆库配置（用于设置页面）
-     * 与 get 相同，保持兼容性
+     * 获取记忆库详情及消息列表
+     * GET /api/v1/memories/{id}
      */
-    getConfig: (id: string): Promise<Memory> =>
-      apiClient.get(`/memory/${id}/config`),
+    getDetail: (id: string, params?: {
+      agent_id?: string[]
+      keywords?: string
+      page?: number
+      page_size?: number
+    }): Promise<{ messages: MessageListResponse; storage_type: string }> => {
+      const queryParams = new URLSearchParams()
+      if (params?.keywords) queryParams.set('keywords', params.keywords)
+      if (params?.page) queryParams.set('page', params.page.toString())
+      if (params?.page_size) queryParams.set('page_size', params.page_size.toString())
+      if (params?.agent_id?.length) {
+        params.agent_id.forEach(id => queryParams.append('agent_id', id))
+      }
+      const qs = queryParams.toString()
+      return apiClient.get(`/memories/${id}${qs ? `?${qs}` : ''}`, sdkBase)
+    },
 
     /**
      * 创建记忆库
-     * 后端接口: POST /v1/memory
-     * 请求体: { name, memory_type: string[], embd_id, llm_id }
+     * POST /api/v1/memories
      */
     create: (data: CreateMemoryParams): Promise<Memory> =>
-      apiClient.post('/memory', data),
+      apiClient.post('/memories', data, sdkBase),
 
     /**
      * 更新记忆库
-     * 后端接口: PUT /v1/memory/:id
-     * 注意: 不允许修改 id, tenant_id, memory_type, storage_type, embd_id
+     * PUT /api/v1/memories/{id}
      */
     update: (id: string, data: UpdateMemoryParams): Promise<Memory> =>
-      apiClient.put(`/memory/${id}`, data),
+      apiClient.put(`/memories/${id}`, data, sdkBase),
 
     /**
      * 删除记忆库
-     * 后端接口: DELETE /v1/memory/:id
+     * DELETE /api/v1/memories/{id}
      */
     delete: (id: string): Promise<void> =>
-      apiClient.delete(`/memory/${id}`),
+      apiClient.delete(`/memories/${id}`, sdkBase),
   },
 
   // ============ 记忆消息管理 ============
-  // TODO: 后端消息接口待实现
+  // 后端路由: api/apps/sdk/messages.py，前缀 /api/v1
   message: {
     /**
-     * 获取消息列表
-     * TODO: 后端接口待实现
+     * 获取最近消息列表
+     * GET /api/v1/messages?memory_id=...&agent_id=...&session_id=...&limit=...
      */
-    list: (memoryId: string, params?: MessageListParams): Promise<MessageListResponse> => {
+    list: (params: {
+      memory_id: string | string[]
+      agent_id?: string
+      session_id?: string
+      limit?: number
+    }): Promise<MessageListResponse> => {
       const queryParams = new URLSearchParams()
-      
-      if (params?.page) queryParams.set('page', params.page.toString())
-      if (params?.page_size) queryParams.set('page_size', params.page_size.toString())
-      if (params?.keywords) queryParams.set('keywords', params.keywords)
-      if (params?.status !== undefined) queryParams.set('status', params.status.toString())
-      if (params?.session_id) queryParams.set('session_id', params.session_id)
-      
-      // 数组参数使用多值格式
-      if (params?.message_type?.length) {
-        params.message_type.forEach(type => {
-          queryParams.append('message_type', type)
-        })
-      }
+      const ids = Array.isArray(params.memory_id) ? params.memory_id : [params.memory_id]
+      ids.forEach(id => queryParams.append('memory_id', id))
+      if (params.agent_id) queryParams.set('agent_id', params.agent_id)
+      if (params.session_id) queryParams.set('session_id', params.session_id)
+      if (params.limit) queryParams.set('limit', params.limit.toString())
+      return apiClient.get(`/messages?${queryParams.toString()}`, sdkBase)
+    },
 
-      const queryString = queryParams.toString()
-      return apiClient.get(`/memory/${memoryId}/messages${queryString ? `?${queryString}` : ''}`)
+    /**
+     * 搜索消息
+     * GET /api/v1/messages/search
+     */
+    search: (params: {
+      memory_id: string[]
+      query: string
+      similarity_threshold?: number
+      keywords_similarity_weight?: number
+      top_n?: number
+      agent_id?: string
+      session_id?: string
+    }): Promise<any> => {
+      const queryParams = new URLSearchParams()
+      params.memory_id.forEach(id => queryParams.append('memory_id', id))
+      queryParams.set('query', params.query)
+      if (params.similarity_threshold !== undefined) queryParams.set('similarity_threshold', params.similarity_threshold.toString())
+      if (params.keywords_similarity_weight !== undefined) queryParams.set('keywords_similarity_weight', params.keywords_similarity_weight.toString())
+      if (params.top_n !== undefined) queryParams.set('top_n', params.top_n.toString())
+      if (params.agent_id) queryParams.set('agent_id', params.agent_id)
+      if (params.session_id) queryParams.set('session_id', params.session_id)
+      return apiClient.get(`/messages/search?${queryParams.toString()}`, sdkBase)
     },
 
     /**
      * 获取消息内容
-     * TODO: 后端接口待实现
+     * GET /api/v1/messages/{memory_id}:{message_id}/content
      */
     getContent: (memoryId: string, messageId: string): Promise<MessageContentResponse> =>
-      apiClient.get(`/memory/${memoryId}/messages/${messageId}/content`),
+      apiClient.get(`/messages/${memoryId}:${messageId}/content`, sdkBase),
 
     /**
      * 更新消息状态（启用/禁用）
-     * TODO: 后端接口待实现
+     * PUT /api/v1/messages/{memory_id}:{message_id}
      */
     updateState: (memoryId: string, messageId: string, status: boolean): Promise<void> =>
-      apiClient.put(`/memory/${memoryId}/messages/${messageId}`, { status }),
+      apiClient.put(`/messages/${memoryId}:${messageId}`, { status }, sdkBase),
 
     /**
-     * 遗忘消息（删除）
-     * TODO: 后端接口待实现
+     * 遗忘消息（软删除）
+     * DELETE /api/v1/messages/{memory_id}:{message_id}
      */
     forget: (memoryId: string, messageId: string): Promise<void> =>
-      apiClient.delete(`/memory/${memoryId}/messages/${messageId}`),
+      apiClient.delete(`/messages/${memoryId}:${messageId}`, sdkBase),
+
+    /**
+     * 添加消息到记忆
+     * POST /api/v1/messages
+     */
+    add: (data: {
+      memory_id: string | string[]
+      agent_id: string
+      session_id: string
+      user_input: string
+      agent_response: string
+      user_id?: string
+    }): Promise<void> =>
+      apiClient.post('/messages', data, sdkBase),
   },
 }
 
-// 导出 API 对象
 export default memoryAPI
