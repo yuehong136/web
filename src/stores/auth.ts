@@ -43,13 +43,15 @@ export const useAuthStore = create<AuthState>()(
           localStorage.removeItem(STORAGE_KEYS.USER_INFO)
           localStorage.removeItem('tenant_info')
           
-          set({ 
-            user: null, 
+          set({
+            user: null,
             tenant: null,
-            token: null, 
+            token: null,
             isAuthenticated: false,
-            isLoading: false 
+            isLoading: false
           })
+
+          window.location.reload()
         })
       }
       
