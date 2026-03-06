@@ -12,3 +12,8 @@ export interface GraphStats {
   edgeCount: number
   nodeTypes: string[]
 }
+
+export enum LayoutMode {
+  COMBO = 'combo',
+  FORCE = 'force',
+}

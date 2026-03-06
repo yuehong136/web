@@ -6,10 +6,12 @@ import {
   useMemo,
   useRef,
 } from 'react'
-import { Graph, type IElementEvent, type ElementDatum, type NodeData, type EdgeData } from '@antv/g6'
+import { Graph, GraphEvent, type IElementEvent, type ElementDatum, type NodeData, type EdgeData, type ComboData } from '@antv/g6'
 import { useIsDarkTheme } from '@/themes'
 import type { KnowledgeGraph } from '@/types/api'
-import { NODE_TYPE_PALETTE, NODE_TYPE_PALETTE_DARK } from '../constants'
+import { NODE_TYPE_PALETTE, NODE_TYPE_PALETTE_DARK, COMBO_LAYOUT_CONFIG, FORCE_LAYOUT_CONFIG, DEFAULT_COMBO_LABEL } from '../constants'
+import { LayoutMode } from '../types'
+import { detectLayoutMode, buildCombosFromCommunities, spreadInitialPositions } from '../utils'
 
 interface ForceGraphProps {
   data: KnowledgeGraph
@@ -49,29 +51,42 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
       [nodeTypes, isDark],
     )
 
+    const layoutMode = useMemo(() => detectLayoutMode(data), [data])
+
     const graphData = useMemo(() => {
-      return {
-        nodes: data.nodes.map((n) => ({
-          id: n.id,
-          data: {
-            label: n.label,
-            entityType: n.type,
-            properties: n.properties,
-            rank: n.properties?.rank ?? n.properties?.weight ?? 1,
-          },
-        })),
-        edges: data.edges.map((e) => ({
-          id: e.id,
-          source: e.source,
-          target: e.target,
-          data: {
-            label: e.label,
-            weight: e.properties?.weight ?? 1,
-            properties: e.properties,
-          },
-        })),
+      const positions = spreadInitialPositions(data.nodes.length)
+
+      const baseNodes = data.nodes.map((n, i) => ({
+        id: n.id,
+        data: {
+          label: n.label,
+          entityType: n.type,
+          properties: n.properties,
+          rank: n.properties?.rank ?? n.properties?.weight ?? 1,
+          communities: n.properties?.communities,
+          x: positions[i].x,
+          y: positions[i].y,
+        },
+      }))
+
+      const edges = data.edges.map((e) => ({
+        id: e.id,
+        source: e.source,
+        target: e.target,
+        data: {
+          label: e.label,
+          weight: e.properties?.weight ?? 1,
+          properties: e.properties,
+        },
+      }))
+
+      if (layoutMode === LayoutMode.COMBO) {
+        const { nodes: comboNodes, combos } = buildCombosFromCommunities(baseNodes)
+        return { nodes: comboNodes, edges, combos }
       }
-    }, [data])
+
+      return { nodes: baseNodes, edges }
+    }, [data, layoutMode])
 
     useImperativeHandle(ref, () => ({
       zoomIn: () => graphRef.current?.zoomBy(1.3, { duration: 300 }),
@@ -97,6 +112,7 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
           'zoom-canvas',
           'drag-element',
           { type: 'hover-activate', degree: 1 },
+          ...(layoutMode === LayoutMode.COMBO ? ['collapse-expand' as const] : []),
         ],
         plugins: [
           {
@@ -123,16 +139,7 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
             stroke: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)',
           },
         ],
-        layout: {
-          type: 'd3-force',
-          preventOverlap: true,
-          nodeSize: 60,
-          linkDistance: 180,
-          forceSimulation: {
-            alphaDecay: 0.02,
-            alphaMin: 0.001,
-          },
-        },
+        layout: layoutMode === LayoutMode.COMBO ? COMBO_LAYOUT_CONFIG : FORCE_LAYOUT_CONFIG,
         node: {
           style: {
             size: (d: NodeData) => {
@@ -211,6 +218,19 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
             },
           },
         },
+        combo: {
+          style: (d: ComboData) => {
+            if (d.data?.label === DEFAULT_COMBO_LABEL) {
+              return { stroke: 'transparent', fill: 'transparent' }
+            }
+            return {
+              stroke: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.08)',
+              fill: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+              lineWidth: 1,
+              lineDash: [4, 4],
+            }
+          },
+        },
       })
 
       if (graphRef.current) {
@@ -219,6 +239,11 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
       graphRef.current = graph
 
       graph.setData(graphData)
+
+      graph.once(GraphEvent.AFTER_LAYOUT, () => {
+        graph.fitView(undefined, { duration: 500 })
+      })
+
       graph.render()
 
       graph.on('node:click', (e: IElementEvent) => {
@@ -234,7 +259,7 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
       graph.on('canvas:click', () => {
         onCanvasClick()
       })
-    }, [graphData, colorMap, isDark, textColor, textColorSub, edgeColor, edgeActiveColor, onNodeClick, onEdgeClick, onCanvasClick])
+    }, [graphData, colorMap, isDark, textColor, textColorSub, edgeColor, edgeActiveColor, onNodeClick, onEdgeClick, onCanvasClick, layoutMode])
 
     useEffect(() => {
       if (graphData.nodes.length > 0) {
