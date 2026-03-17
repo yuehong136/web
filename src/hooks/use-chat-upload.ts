@@ -11,9 +11,9 @@ import type { UploadFile, UploadedFileInfo } from '@/config/chat'
  * - 上传进度实时更新
  * - 支持取消上传
  * - 支持多文件管理
- * - 获取已上传文件的 doc_ids
+ * - 获取已上传的运行时附件元数据
  */
-export function useChatUpload(conversationId?: string) {
+export function useChatUpload() {
   const [files, setFiles] = useState<UploadFile[]>([])
   const [uploading, setUploading] = useState(false)
   
@@ -31,11 +31,6 @@ export function useChatUpload(conversationId?: string) {
    * 上传单个文件
    */
   const upload = useCallback(async (file: File): Promise<UploadedFileInfo | null> => {
-    if (!conversationId) {
-      console.warn('useChatUpload: conversationId is required')
-      return null
-    }
-    
     const controller = new AbortController()
     const uid = generateUid()
     abortControllers.current.set(uid, controller)
@@ -61,8 +56,7 @@ export function useChatUpload(conversationId?: string) {
     setUploading(true)
     
     try {
-      const result = await conversationAPI.uploadAndParse(
-        conversationId,
+      const result = await conversationAPI.uploadInfo(
         file,
         (percent) => {
           // 更新上传进度
@@ -106,7 +100,7 @@ export function useChatUpload(conversationId?: string) {
         return prev
       })
     }
-  }, [conversationId, generateUid])
+  }, [generateUid])
   
   /**
    * 批量上传文件
@@ -167,20 +161,16 @@ export function useChatUpload(conversationId?: string) {
   }, [cancelAll, files])
   
   /**
-   * 获取已上传成功的文件 ID 列表
+   * 获取已上传成功的附件元数据列表
    */
-  const getDocIds = useCallback((): string[] => {
+  const getUploadedFiles = useCallback((): UploadedFileInfo[] => {
     return files
-      .filter(f => f.status === 'done' && f.response?.id)
-      .map(f => f.response!.id)
+      .filter((f): f is UploadFile & { response: UploadedFileInfo } => f.status === 'done' && !!f.response?.id)
+      .map((f) => ({
+        ...f.response,
+        preview_url: f.thumbUrl ?? f.response.preview_url ?? null,
+      }))
   }, [files])
-  
-  /**
-   * 获取已上传成功的文件 ID 字符串（逗号分隔）
-   */
-  const getDocIdsString = useCallback((): string => {
-    return getDocIds().join(',')
-  }, [getDocIds])
   
   /**
    * 检查是否有上传失败的文件
@@ -236,10 +226,8 @@ export function useChatUpload(conversationId?: string) {
     removeFile,
     /** 清空所有文件 */
     clearFiles,
-    /** 获取已上传文件的 ID 列表 */
-    getDocIds,
-    /** 获取已上传文件的 ID 字符串（逗号分隔） */
-    getDocIdsString,
+    /** 获取已上传的运行时附件元数据 */
+    getUploadedFiles,
     /** 重试上传失败的文件 */
     retry,
     /** 直接设置文件列表（用于 Attachments 组件） */

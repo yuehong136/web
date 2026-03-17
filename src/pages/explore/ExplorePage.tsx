@@ -32,7 +32,8 @@ import XMarkdown from '@ant-design/x-markdown'
 import '@ant-design/x-markdown/dist/x-markdown.css'
 import { markdownConfig, markdownStreamingComponents } from '@/components/chat/MarkdownCodeBlock'
 import { Button } from '@/components/ui/button'
-import { cn, copyToClipboard } from '@/lib/utils'
+import { FileIcon, getFileCategory } from '@/components/ui/file-icon'
+import { cn, copyToClipboard, formatBytes } from '@/lib/utils'
 import { toast } from '@/lib/toast'
 import { useChatStore } from '@/stores/chat'
 import { findFirstEnabledModelByType, hasEnabledModelName, useModelStore } from '@/stores/model'
@@ -45,7 +46,7 @@ import {
 import { useChatUpload } from '@/hooks/use-chat-upload'
 import { conversationAPI } from '@/api/conversation'
 import { useQuery } from '@tanstack/react-query'
-import { chatConfig, type ChatMessage, type ChatServiceRequest, type SSEResponse, uploadConfig, type UploadFile } from '@/config/chat'
+import { chatConfig, type ChatMessage, type ChatServiceRequest, type SSEResponse, uploadConfig, type UploadFile, type UploadedFileInfo } from '@/config/chat'
 import { extractReferencesFromSSEData, type ReferenceChunk } from '@/utils/reference-replacer'
 import { ChatSettingsPanel, defaultChatSettings, type ChatSettings } from '@/components/chat/ChatSettingsPanel'
 import { getConversationDateGroup } from '@/utils/conversation-utils'
@@ -90,6 +91,29 @@ const getAppIcon = (app: any, size: 'sm' | 'md' = 'sm') => {
   return <Sparkles className={sizeClass} style={{ color: 'var(--color-components-button-primary-bg)' }} />
 }
 
+const ATTACHMENT_ONLY_PROMPT = '请分析这些附件'
+
+const isImageAttachment = (file?: UploadedFileInfo) => {
+  return !!file?.mime_type?.startsWith('image/')
+}
+
+const getAttachmentStatusLabel = (file: UploadFile) => {
+  if (file.status === 'uploading') {
+    return `上传中 ${Math.round(file.percent || 0)}%`
+  }
+
+  if (file.status === 'error') {
+    return '上传失败，点击重试'
+  }
+
+  if (file.response) {
+    const typeLabel = file.response.extension?.toUpperCase() || 'FILE'
+    return `已就绪 · ${typeLabel} · ${formatBytes(file.response.size || file.size || 0)}`
+  }
+
+  return formatBytes(file.size || 0)
+}
+
 
 // 消息类型
 interface ChatMessageItem {
@@ -99,6 +123,7 @@ interface ChatMessageItem {
   references?: ReferenceChunk[]
   thinking?: string
   thinkingComplete?: boolean
+  files?: UploadedFileInfo[]
 }
 
 export const ExplorePage: React.FC = () => {
@@ -150,7 +175,11 @@ export const ExplorePage: React.FC = () => {
   const abortControllerRef = React.useRef<AbortController | null>(null)
 
   // 用于存储最新的 handleSendMessage 引用，解决 useCallback 闭包陈旧问题
-  const handleSendMessageRef = React.useRef<(message: string, baseMessages?: ChatMessageItem[]) => Promise<void>>(null!)
+  const handleSendMessageRef = React.useRef<(
+    message: string,
+    baseMessages?: ChatMessageItem[],
+    overrideFiles?: UploadedFileInfo[],
+  ) => Promise<void>>(null!)
   
   // 全局拖拽事件处理
   React.useEffect(() => {
@@ -218,9 +247,11 @@ export const ExplorePage: React.FC = () => {
     upload: uploadFile,
     removeFile: removeUploadFile,
     clearFiles: clearUploadFiles,
-    getDocIdsString,
+    getUploadedFiles,
+    hasError: hasUploadError,
+    retry: retryUploadFile,
     setFiles: setUploadFiles,
-  } = useChatUpload(selectedConversationDetail?.id)
+  } = useChatUpload()
 
   // 获取知识库列表
   const { knowledgeBases, loadKnowledgeBases } = useKnowledgeBases()
@@ -251,6 +282,23 @@ export const ExplorePage: React.FC = () => {
   })
 
   const dialogConversations = dialogConversationsData || []
+  const uploadedAttachments = React.useMemo(() => getUploadedFiles(), [getUploadedFiles])
+  const hasReadyUploads = uploadedAttachments.length > 0
+  const hasUploadingFiles = React.useMemo(
+    () => isUploading || uploadFiles.some((file) => file.status === 'uploading'),
+    [isUploading, uploadFiles],
+  )
+  const canSubmitMessage = (!isStreaming && !hasUploadingFiles) && (inputValue.trim().length > 0 || hasReadyUploads)
+  const attachmentItems = React.useMemo(() => {
+    return uploadFiles.map((file) => ({
+      ...file,
+      className: file.status === 'error' ? 'cursor-pointer' : undefined,
+      description: getAttachmentStatusLabel(file),
+      icon: file.response ? <FileIcon fileName={file.response.name} size="sm" /> : undefined,
+      src: file.thumbUrl,
+      onClick: file.status === 'error' ? () => { void retryUploadFile(file.uid) } : undefined,
+    }))
+  }, [retryUploadFile, uploadFiles])
 
   // 加载模型列表
   React.useEffect(() => {
@@ -299,7 +347,8 @@ export const ExplorePage: React.FC = () => {
           // 参考 ragflow buildMessageUuid：优先使用后端返回的 ID
           id: msg.id,
           // 保留引用信息（如果有）
-          references: msg.reference?.chunks || []
+          references: msg.reference?.chunks || [],
+          files: Array.isArray(msg.files) ? msg.files : [],
         })))
       }
     } catch (error) {
@@ -333,6 +382,7 @@ export const ExplorePage: React.FC = () => {
     }
 
     const userContent = messages[userMessageIndex].content
+    const userFiles = messages[userMessageIndex].files || []
     // 保留用户消息之前的所有消息（不包括用户消息本身，因为 handleSendMessage 会重新添加）
     const baseMessages = messages.slice(0, userMessageIndex)
 
@@ -342,34 +392,51 @@ export const ExplorePage: React.FC = () => {
     // 使用 queueMicrotask 确保 state 更新后再发送新消息
     // 通过 ref 调用最新的 handleSendMessage，避免闭包陈旧问题
     queueMicrotask(() => {
-      handleSendMessageRef.current?.(userContent, baseMessages)
+      handleSendMessageRef.current?.(userContent, baseMessages, userFiles)
     })
   }, [isStreaming, messages])
 
-  // 发送消息（支持功能开关和文件 ID）
+  // 发送消息（支持附件与失败恢复）
   // baseMessages 参数用于重新生成场景，传入截断后的消息列表
-  const handleSendMessage = async (message: string, baseMessages?: ChatMessageItem[]) => {
-    if (!message.trim() || isStreaming) return
+  const handleSendMessage = async (
+    message: string,
+    baseMessages?: ChatMessageItem[],
+    overrideFiles?: UploadedFileInfo[],
+  ) => {
+    if (isStreaming) return
+
+    const pendingFiles = overrideFiles ?? uploadedAttachments
+    const normalizedMessage = message.trim()
+    const messageContent = normalizedMessage || (pendingFiles.length > 0 ? ATTACHMENT_ONLY_PROMPT : '')
+    const conversationSeed = normalizedMessage || pendingFiles[0]?.name || messageContent
+
+    if (!messageContent) return
 
     const userMessage: ChatMessageItem = {
       role: 'user',
-      content: message.trim(),
-      id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+      content: messageContent,
+      id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      files: pendingFiles,
     }
 
-    const updatedMessages = [...(baseMessages ?? messages), userMessage]
+    const previousMessages = baseMessages ?? messages
+    const updatedMessages = [...previousMessages, userMessage]
     setMessages(updatedMessages)
+    setInputValue('')
+    if (!overrideFiles?.length) {
+      clearUploadFiles()
+    }
     setIsStreaming(true)
-    
+
     // 解析会话 ID：如果没有会话但有选中的应用，自动创建新会话
     // 参考首页 sendAppMessage 的实现方式
     let conversationId = selectedConversationDetail?.id
-    const existingUserMessages = (baseMessages ?? messages).filter(m => m.role === 'user')
+    const existingUserMessages = previousMessages.filter(m => m.role === 'user')
     const isFirstUserMessage = existingUserMessages.length === 0
 
     if (!conversationId && selectedApp) {
       // 自动创建新会话，使用消息内容作为名称（参考 RAGFlow 命名逻辑）
-      const conversationName = message.trim().slice(0, 50) + (message.trim().length > 50 ? '...' : '')
+      const conversationName = conversationSeed.slice(0, 50) + (conversationSeed.length > 50 ? '...' : '')
       try {
         const newConversation = await conversationAPI.setConversation({
           dialog_id: selectedApp,
@@ -387,7 +454,7 @@ export const ExplorePage: React.FC = () => {
       }
     } else if (isFirstUserMessage && activeConversationKey && selectedApp) {
       // 对于已存在的会话，如果是第一条用户消息，用消息内容更新会话名称
-      const conversationName = message.trim().slice(0, 50) + (message.trim().length > 50 ? '...' : '')
+      const conversationName = conversationSeed.slice(0, 50) + (conversationSeed.length > 50 ? '...' : '')
       try {
         await conversationAPI.setConversation({
           dialog_id: selectedApp,
@@ -404,6 +471,7 @@ export const ExplorePage: React.FC = () => {
     
     // 创建新的 AbortController 用于停止输出
     abortControllerRef.current = new AbortController()
+    let hasReceivedContent = false
 
     try {
       // 准备 AI 消息
@@ -420,22 +488,23 @@ export const ExplorePage: React.FC = () => {
 
       // 根据模式选择 API：有会话 ID 时使用 completion，否则回退到 chat_service_sse
       if (conversationId) {
+        const completionMessages = updatedMessages.map((msg) => ({
+          role: msg.role,
+          content: msg.content,
+          id: msg.id,
+          ...(msg.files?.length ? { files: msg.files } : {}),
+        }))
+
         // 会话模式 - 使用 completion API（支持话题模式和工作区自动创建的会话）
         const completionParams: Parameters<typeof conversationAPI.completion>[0] = {
           conversation_id: conversationId,
-          messages: updatedMessages,
+          messages: completionMessages,
           quote: chatSettings.quote,
           // 功能开关参数（参考 ragflow）
           reasoning: enableReasoning,
           internet: enableInternet,
         }
-        
-        // 如果有已上传的文件，添加 doc_ids
-        const docIds = getDocIdsString()
-        if (docIds) {
-          completionParams.doc_ids = docIds
-        }
-        
+
         // 如果启用了元数据过滤且有条件，添加到请求中
         if (chatSettings.metadataFilterMode === 'manual' && 
             chatSettings.metadataCondition.conditions && 
@@ -474,6 +543,7 @@ export const ExplorePage: React.FC = () => {
           const chunkData = chunk.payload && typeof chunk.payload === 'object'
             ? (chunk.payload as Record<string, unknown>)
             : null
+          hasReceivedContent = true
           // 只有当 SSE 返回了 references 数据时才更新，避免空数组覆盖之前的有效数据
           const newReferences = chunkData ? extractReferencesFromSSEData(chunkData) : []
           const cleanContent = streamState.content
@@ -557,10 +627,11 @@ export const ExplorePage: React.FC = () => {
             setMessages(prev => {
               const newMsgs = [...prev]
               const lastIdx = newMsgs.length - 1
-              if (lastIdx >= 0 && newMsgs[lastIdx].role === 'assistant') {
-                newMsgs[lastIdx] = {
-                  ...newMsgs[lastIdx],
-                  content: streamState.content,
+            if (lastIdx >= 0 && newMsgs[lastIdx].role === 'assistant') {
+              hasReceivedContent = true
+              newMsgs[lastIdx] = {
+                ...newMsgs[lastIdx],
+                content: streamState.content,
                   thinking: streamState.thinking
                 }
               }
@@ -573,17 +644,35 @@ export const ExplorePage: React.FC = () => {
       }
     } catch (error) {
       console.error('Failed to send message:', error)
-      setMessages(prev => {
-        const newMsgs = [...prev]
-        const lastIdx = newMsgs.length - 1
-        if (lastIdx >= 0 && newMsgs[lastIdx].role === 'assistant') {
-          newMsgs[lastIdx] = {
-            ...newMsgs[lastIdx],
-            content: '抱歉，发生了错误，请重试。'
-          }
+      if (!hasReceivedContent) {
+        setMessages(previousMessages)
+        setInputValue(messageContent)
+        if (pendingFiles.length > 0 && !overrideFiles?.length) {
+          setUploadFiles(pendingFiles.map((file, index) => ({
+            uid: `${file.id}-${index}`,
+            name: file.name,
+            size: file.size,
+            type: file.mime_type,
+            status: 'done' as const,
+            percent: 100,
+            response: file,
+            thumbUrl: file.preview_url ?? undefined,
+          })))
+          setHeaderOpen(true)
         }
-        return newMsgs
-      })
+      } else {
+        setMessages(prev => {
+          const newMsgs = [...prev]
+          const lastIdx = newMsgs.length - 1
+          if (lastIdx >= 0 && newMsgs[lastIdx].role === 'assistant') {
+            newMsgs[lastIdx] = {
+              ...newMsgs[lastIdx],
+              content: '抱歉，发生了错误，请重试。'
+            }
+          }
+          return newMsgs
+        })
+      }
     } finally {
       setIsStreaming(false)
     }
@@ -684,6 +773,54 @@ export const ExplorePage: React.FC = () => {
   const handleCopyContent = React.useCallback((content: string) => {
     copyToClipboard(content)
     toast.success('已复制到剪贴板')
+  }, [])
+
+  const renderMessageAttachments = React.useCallback((files?: UploadedFileInfo[]) => {
+    if (!files?.length) {
+      return null
+    }
+
+    return (
+      <div className="mt-3 grid gap-2">
+        {files.map((file) => {
+          const isImage = isImageAttachment(file)
+          const category = getFileCategory(file.extension || '')
+
+          return (
+            <div
+              key={file.id}
+              className="flex items-center gap-3 rounded-xl border px-3 py-2"
+              style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.14)',
+                borderColor: 'rgba(255, 255, 255, 0.18)',
+              }}
+            >
+              {isImage && file.preview_url ? (
+                <img
+                  src={file.preview_url}
+                  alt={file.name}
+                  className="h-12 w-12 rounded-lg object-cover"
+                />
+              ) : (
+                <div
+                  className="flex h-12 w-12 items-center justify-center rounded-lg"
+                  style={{ backgroundColor: 'rgba(255, 255, 255, 0.12)' }}
+                >
+                  <FileIcon fileName={file.name} size="md" />
+                </div>
+              )}
+
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-sm font-medium">{file.name}</div>
+                <div className="text-xs opacity-80">
+                  {category === 'image' ? '图片' : file.extension?.toUpperCase() || 'FILE'} · {formatBytes(file.size || 0)}
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    )
   }, [])
   
   // 转换消息为 Bubble 格式
@@ -866,7 +1003,12 @@ export const ExplorePage: React.FC = () => {
             )}
           </div>
         )
-      } : undefined,
+      } : msg.files?.length ? () => (
+        <div>
+          <div className="whitespace-pre-wrap break-words">{msg.content}</div>
+          {renderMessageAttachments(msg.files)}
+        </div>
+      ) : undefined,
       footer: msg.role === 'assistant' ? (
         <MessageActionsFooter
           content={msg.content || ''}
@@ -887,12 +1029,13 @@ export const ExplorePage: React.FC = () => {
       styles: msg.role === 'user' 
         ? {
             // 用户消息：保持气泡框样式
-        content: {
+            content: {
               backgroundColor: 'var(--color-chat-bubble-user-bg)',
               color: 'var(--color-chat-bubble-user-text)',
               borderRadius: '18px',
               padding: '12px 16px',
               boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
+              maxWidth: 'min(640px, 100%)',
             }
           }
         : {
@@ -1730,7 +1873,7 @@ export const ExplorePage: React.FC = () => {
                     <Sender
                       value={inputValue}
                       onChange={setInputValue}
-                      placeholder="输入消息，按 Enter 发送"
+                      placeholder="输入消息，按 Enter 发送，也可直接发送附件"
                       loading={isStreaming}
                       // 文件上传面板（参考 ragflow）
                       header={
@@ -1766,15 +1909,10 @@ export const ExplorePage: React.FC = () => {
                           }}
                         >
                           <Attachments
-                            items={uploadFiles as any}
+                            items={attachmentItems}
                             maxCount={uploadConfig.maxCount}
+                            disabled={hasUploadingFiles}
                             getDropContainer={() => dropContainerRef.current}
-                            onChange={(info) => {
-                              // 处理 Attachments 组件的文件变化
-                              if (info && Array.isArray(info)) {
-                                setUploadFiles(info as UploadFile[])
-                              }
-                            }}
                             onRemove={(file) => {
                               if (file && typeof file === 'object' && 'uid' in file) {
                                 removeUploadFile((file as UploadFile).uid)
@@ -1856,49 +1994,14 @@ export const ExplorePage: React.FC = () => {
                                 fontSize: '12px',
                               },
                             }}
-                            // 自定义上传请求，参考 ragflow 的 createConversationBeforeUploadFile
-                            // 1. 防止默认上传到当前页面 URL
-                            // 2. 如果没有对话，先创建对话再上传
+                            // 自定义上传请求，通过 useChatUpload 统一管理状态
                             customRequest={async (options) => {
                               const { file, onSuccess, onError } = options
                               try {
-                                let conversationId = selectedConversationDetail?.id
-                                
-                                // 如果没有对话，先创建一个新对话（参考 ragflow）
-                                if (!conversationId && selectedApp) {
-                                  const newConversation = await conversationAPI.setConversation({
-                                    dialog_id: selectedApp,
-                                    name: (file as File).name || 'New conversation',
-                                    is_new: true
-                                  })
-                                  
-                                  if (newConversation?.id) {
-                                    conversationId = newConversation.id
-                                    // 刷新对话列表
-                                    refetchConversations()
-                                    // 更新当前对话详情
-                                    setTimeout(() => fetchConversationDetail(newConversation.id), 500)
-                                  }
-                                }
-                                
-                                if (!conversationId) {
-                                  onError?.(new Error('No conversation available'))
-                                  toast.error('请先选择或创建一个对话')
-                                  return
-                                }
-                                
-                                // 调用上传 API
-                                const result = await conversationAPI.uploadAndParse(
-                                  conversationId,
-                                  file as File
-                                  // 注：进度回调暂不使用，Attachments 组件会通过 onChange 处理文件状态
-                                )
-                                
+                                const result = await uploadFile(file as File)
                                 if (result) {
                                   onSuccess?.(result, new XMLHttpRequest())
-                                  toast.success(`文件 ${(file as File).name} 上传成功，解析完成后可基于文档提问`)
-                                  // 上传成功后自动收起面板
-                                  setHeaderOpen(false)
+                                  toast.success(`文件 ${(file as File).name} 上传成功`)
                                 } else {
                                   onError?.(new Error('Upload failed'))
                                 }
@@ -1912,42 +2015,36 @@ export const ExplorePage: React.FC = () => {
                         </Sender.Header>
                       }
                       // 右侧操作区：停止按钮或发送按钮
-                      suffix={isStreaming ? (
-                        <Button 
-                          variant="destructive" 
-                          size="sm"
-                          className="h-8 w-8 p-0"
-                          onClick={handleStopOutput}
-                          title="停止输出"
-                        >
-                          <Square className="w-4 h-4" />
-                        </Button>
-                      ) : undefined}
+                      suffix={(_, { components }) => (
+                        isStreaming ? (
+                          <Button 
+                            variant="destructive" 
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                            onClick={handleStopOutput}
+                            title="停止输出"
+                          >
+                            <Square className="w-4 h-4" />
+                          </Button>
+                        ) : (
+                          <components.SendButton disabled={!canSubmitMessage} />
+                        )
+                      )}
                       onSubmit={(message) => {
-                        if (message) {
-                          handleSendMessage(message)
-                          setInputValue('')
-                          // 清空上传的文件
-                          clearUploadFiles()
-                          // 关闭上传面板
-                          setHeaderOpen(false)
-                        }
+                        if (!canSubmitMessage) return
+                        void handleSendMessage(message)
+                        setHeaderOpen(false)
                       }}
                       onCancel={handleStopOutput}
                       onPasteFile={(files) => {
-                        // 粘贴文件时触发上传
+                        if (files.length > 0) setHeaderOpen(true)
                         for (let i = 0; i < files.length; i++) {
                           const file = files[i]
-                          // 检查文件大小
                           if (file.size <= uploadConfig.maxSize) {
-                            uploadFile(file)
+                            void uploadFile(file)
                           } else {
                             toast.error(`文件 ${file.name} 超过大小限制`)
                           }
-                        }
-                        // 打开上传面板显示文件
-                        if (files.length > 0) {
-                          setHeaderOpen(true)
                         }
                       }}
                       style={{
@@ -2025,11 +2122,20 @@ export const ExplorePage: React.FC = () => {
                       
                       {/* 右侧状态提示 */}
                       <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
-                        {isUploading && (
+                        {hasUploadingFiles && (
                           <div className="flex items-center gap-1">
                             <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
                             <span>上传中...</span>
                           </div>
+                        )}
+                        {!hasUploadingFiles && hasReadyUploads && (
+                          <div className="flex items-center gap-1">
+                            <span>{uploadedAttachments.length} 个附件已就绪</span>
+                            {!inputValue.trim() && <span>可直接发送</span>}
+                          </div>
+                        )}
+                        {hasUploadError && (
+                          <span style={{ color: 'var(--color-text-error)' }}>有附件上传失败，可点击卡片重试</span>
                         )}
                       </div>
                     </div>

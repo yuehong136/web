@@ -78,7 +78,8 @@ export interface SSEResponse {
 
 /**
  * 上传文件响应类型
- * 后端 /v1/document/upload_info 接口返回的文件信息
+ * 后端 /v1/document/upload_info 接口返回的运行时附件元数据。
+ * 该对象会在探索页发送消息时直接挂到 messages[].files。
  */
 export interface UploadedFileInfo {
   /** 文件 ID */

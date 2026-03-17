@@ -15,6 +15,13 @@ import type {
 } from '../types/api'
 import type { UploadedFileInfo } from '../config/chat'
 
+type CompletionMessage = {
+  role: string
+  content: string
+  id?: string
+  files?: UploadedFileInfo[]
+}
+
 export const conversationAPI = {
   // 获取对话列表
   getConversations: (params?: PaginationRequest & { 
@@ -51,7 +58,7 @@ export const conversationAPI = {
   // 对话完成接口（用于话题页面发送消息）
   completion: (data: {
     conversation_id: string
-    messages: Array<{role: string, content: string, id?: string}>
+    messages: CompletionMessage[]
     quote?: boolean
     stream?: boolean
     filter_condition?: string
@@ -288,8 +295,67 @@ export const conversationAPI = {
     }),
 
   // ============================================================================
-  // 文件上传相关接口（使用 /document/upload_and_parse，需要 conversation_id）
+  // 文件上传相关接口
   // ============================================================================
+
+  /**
+   * 上传文件并返回运行时附件元数据
+   * 对齐 ragflow 内部聊天：使用 /document/upload_info，不需要 conversation_id
+   */
+  uploadInfo: (
+    file: File,
+    onProgress?: (progress: number) => void,
+    signal?: AbortSignal
+  ): Promise<UploadedFileInfo> => {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest()
+      const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+      xhr.open('POST', `${baseURL}/v1/document/upload_info`)
+
+      const token = localStorage.getItem('auth_token')
+      if (token) {
+        xhr.setRequestHeader('Authorization', `Bearer ${token}`)
+      }
+
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) {
+          const progress = Math.round((e.loaded / e.total) * 100)
+          onProgress?.(progress)
+        }
+      }
+
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            const response = JSON.parse(xhr.responseText)
+            if (response.code === 0 || response.retcode === 0) {
+              resolve(response.data)
+            } else {
+              reject(new Error(response.message || response.retmsg || 'Upload failed'))
+            }
+          } catch {
+            reject(new Error('Invalid response format'))
+          }
+        } else {
+          reject(new Error(`HTTP ${xhr.status}: ${xhr.statusText}`))
+        }
+      }
+
+      xhr.onerror = () => reject(new Error('Network error'))
+      xhr.ontimeout = () => reject(new Error('Upload timeout'))
+
+      if (signal) {
+        signal.addEventListener('abort', () => {
+          xhr.abort()
+          reject(new Error('Upload cancelled'))
+        })
+      }
+
+      const formData = new FormData()
+      formData.append('file', file)
+      xhr.send(formData)
+    })
+  },
 
   /**
    * 上传并解析文件
@@ -303,14 +369,14 @@ export const conversationAPI = {
    * @param file - 要上传的文件
    * @param onProgress - 上传进度回调（0-100）
    * @param signal - AbortSignal 用于取消上传
-   * @returns 上传成功后的文件信息
+   * @returns 上传成功后的文档 ID 列表
    */
   uploadAndParse: (
     conversationId: string,
     file: File,
     onProgress?: (progress: number) => void,
     signal?: AbortSignal
-  ): Promise<UploadedFileInfo> => {
+  ): Promise<string[]> => {
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest()
       const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
