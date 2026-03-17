@@ -1,13 +1,15 @@
 import { z } from 'zod'
 
+const numericField = () => z.coerce.number()
+
 // RAPTOR 配置 Schema
 export const raptorSchema = z.object({
   use_raptor: z.boolean().default(false),
   prompt: z.string().optional(),
-  max_token: z.number().min(0).max(2048).default(256),
-  threshold: z.number().min(0).max(1).default(0.1),
-  max_cluster: z.number().min(1).max(1024).default(64),
-  random_seed: z.number().default(0),
+  max_token: numericField().min(0).max(2048).default(256),
+  threshold: numericField().min(0).max(1).default(0.1),
+  max_cluster: numericField().min(1).max(1024).default(64),
+  random_seed: numericField().default(0),
   scope: z.enum(['dataset', 'file']).default('file'),
 })
 
@@ -61,18 +63,18 @@ export const metadataFieldSchema = z.object({
 // 解析器配置 Schema
 export const parserConfigSchema = z.object({
   layout_recognize: z.string().default('DeepDOC'),
-  chunk_token_num: z.number().min(0).max(8192).default(512),
+  chunk_token_num: numericField().min(0).max(8192).default(512),
   delimiter: z.string().default('\n'),
-  auto_keywords: z.number().min(0).max(30).default(0),
-  auto_questions: z.number().min(0).max(10).default(0),
+  auto_keywords: numericField().min(0).max(30).default(0),
+  auto_questions: numericField().min(0).max(10).default(0),
   html4excel: z.boolean().default(false),
   toc_extraction: z.boolean().default(false),
-  image_table_context_window: z.number().min(0).max(256).default(0),
+  image_table_context_window: numericField().min(0).max(256).default(0),
   // 后端实际使用的字段（提交时会映射）
-  image_context_size: z.number().min(0).max(256).default(0),
-  table_context_size: z.number().min(0).max(256).default(0),
+  image_context_size: numericField().min(0).max(256).default(0),
+  table_context_size: numericField().min(0).max(256).default(0),
   tag_kb_ids: z.array(z.string()).nullish(),
-  topn_tags: z.number().min(1).max(10).default(3),
+  topn_tags: numericField().min(1).max(10).default(3),
   raptor: raptorSchema.optional(),
   graphrag: graphragSchema.optional(),
   // MinerU 特定配置选项
@@ -94,8 +96,8 @@ export const knowledgeSettingsFormSchema = z.object({
   description: z.string().optional(),
   permission: z.enum(['me', 'team']).default('me'),
   embd_id: z.string().min(1, { message: '请选择嵌入模型' }),
-  pagerank: z.number().min(0).max(100).default(0),
-  parseType: z.number().default(1), // 1=内置, 2=手动设置Pipeline
+  pagerank: numericField().min(0).max(100).default(0),
+  parseType: numericField().default(1), // 1=内置, 2=手动设置Pipeline
   parser_id: z.string().min(1, { message: '请选择解析器类型' }),
   pipeline_id: z.string().optional(), // 当 parseType=2 时使用
   parser_config: parserConfigSchema.optional(),
@@ -206,4 +208,3 @@ export const getDefaultFormValues = (): Partial<KnowledgeSettingsFormData> => ({
     },
   },
 })
-

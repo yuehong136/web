@@ -15,7 +15,7 @@ import { useUIStore } from '@/stores/ui'
 import { useModelStore, IconMap, LLMFactory, isLLMModelEnabled } from '@/stores/model'
 import { useIsDarkTheme } from '@/themes'
 import { ROUTES } from '@/constants'
-import type { UpdateKBRequest } from '@/types/api'
+import type { KnowledgeBase, UpdateKBRequest } from '@/types/api'
 import { DocumentParserType, DOCUMENT_PARSER_TYPE_LABELS, DOCUMENT_PARSER_TYPE_DESCRIPTIONS } from '@/types/document-parser'
 import {
   knowledgeSettingsFormSchema,
@@ -37,13 +37,17 @@ import { AutoMetadataFormField } from '@/components/forms/KnowledgeFormFields'
 import { GeneralForm } from './settings/GeneralForm'
 import { ChunkMethodForm } from './settings/ChunkMethodForm'
 import { PipelineSelect, type PipelineOption } from './settings/PipelineSelect'
-import { LinkDataSource, type DataSourceItem } from './settings/LinkDataSource'
+import { LinkDataSource } from './settings/LinkDataSource'
 import ParserVisualizationPanel from './settings/ParserVisualizationPanel'
 import { ManageMetadataModal } from './metadata/ManageMetadataModal'
 import { MetadataManageType } from '@/types/api'
 
+type KnowledgeBaseWithPipeline = KnowledgeBase & {
+  pipeline_id?: string | null
+}
+
 // 需要主题切换的厂商
-const THEME_AWARE_FACTORIES = [
+const THEME_AWARE_FACTORIES: readonly string[] = [
   LLMFactory.FishAudio,
   LLMFactory.TogetherAI,
   LLMFactory.Meituan,
@@ -53,7 +57,7 @@ const THEME_AWARE_FACTORIES = [
 // 获取图标名称
 const getIconName = (provider: string, isDark: boolean): string => {
   const baseIcon = IconMap[provider as keyof typeof IconMap] || 'moxing-default'
-  if (THEME_AWARE_FACTORIES.includes(provider as any)) {
+  if (THEME_AWARE_FACTORIES.includes(provider)) {
     return isDark ? `${baseIcon}-dark` : `${baseIcon}-bright`
   }
   return baseIcon
@@ -80,6 +84,36 @@ const parserTypeOptions: SelectOptionGroup[] = Object.values(DocumentParserType)
   label: DOCUMENT_PARSER_TYPE_LABELS[type],
   value: type,
 }))
+
+const buildKnowledgeSettingsFormValues = (
+  currentKnowledgeBase: KnowledgeBaseWithPipeline,
+  normalizeEmbdId: (value: string) => string,
+): KnowledgeSettingsFormData => {
+  const defaultValues = getDefaultFormValues()
+  const rawValues = {
+    name: currentKnowledgeBase.name || '',
+    description: currentKnowledgeBase.description || '',
+    permission: (currentKnowledgeBase.permission as 'me' | 'team') || 'me',
+    avatar: currentKnowledgeBase.avatar || '',
+    parseType: currentKnowledgeBase.pipeline_id ? 2 : 1,
+    parser_id: currentKnowledgeBase.parser_id || 'naive',
+    pipeline_id: currentKnowledgeBase.pipeline_id || '',
+    embd_id: normalizeEmbdId(currentKnowledgeBase.embd_id || ''),
+    pagerank: currentKnowledgeBase.pagerank || 0,
+    parser_config: {
+      ...defaultValues.parser_config,
+      ...currentKnowledgeBase.parser_config,
+      // 回退兼容：优先使用 image_table_context_window，否则回退到 image_context_size 或 table_context_size
+      image_table_context_window:
+        currentKnowledgeBase.parser_config?.image_table_context_window ??
+        currentKnowledgeBase.parser_config?.image_context_size ??
+        currentKnowledgeBase.parser_config?.table_context_size ??
+        0,
+    },
+  }
+
+  return knowledgeSettingsFormSchema.parse(rawValues)
+}
 
 // 区块标题组件
 function SectionTitle({ children }: { children: React.ReactNode }) {
@@ -187,31 +221,7 @@ const KnowledgeSettingsPage: React.FC = () => {
   // 初始化表单数据
   React.useEffect(() => {
     if (currentKnowledgeBase) {
-      const defaultValues = getDefaultFormValues()
-      // 规范化 embd_id，确保与选择器的 value 格式匹配
-      const normalizedEmbdId = normalizeEmbdId(currentKnowledgeBase.embd_id || '')
-      
-      form.reset({
-        name: currentKnowledgeBase.name || '',
-        description: currentKnowledgeBase.description || '',
-        permission: (currentKnowledgeBase.permission as 'me' | 'team') || 'me',
-        avatar: currentKnowledgeBase.avatar || '',
-        parseType: (currentKnowledgeBase as any).pipeline_id ? 2 : 1,
-        parser_id: currentKnowledgeBase.parser_id || 'naive',
-        pipeline_id: (currentKnowledgeBase as any).pipeline_id || '',
-        embd_id: normalizedEmbdId,
-        pagerank: currentKnowledgeBase.pagerank || 0,
-        parser_config: {
-          ...defaultValues.parser_config,
-          ...currentKnowledgeBase.parser_config,
-          // 回退兼容：优先使用 image_table_context_window，否则回退到 image_context_size 或 table_context_size
-          image_table_context_window:
-            currentKnowledgeBase.parser_config?.image_table_context_window ??
-            currentKnowledgeBase.parser_config?.image_context_size ??
-            currentKnowledgeBase.parser_config?.table_context_size ??
-            0,
-        },
-      })
+      form.reset(buildKnowledgeSettingsFormValues(currentKnowledgeBase, normalizeEmbdId))
     }
   }, [currentKnowledgeBase, form, normalizeEmbdId])
 
@@ -246,7 +256,7 @@ const KnowledgeSettingsPage: React.FC = () => {
   }, [myLLMs])
 
   // 提交表单
-  const handleSubmit = async (data: Record<string, any>) => {
+  const handleSubmit = async (data: KnowledgeSettingsFormData) => {
     if (!id) return
 
     const trimmedName = data.name.trim()
@@ -305,28 +315,7 @@ const KnowledgeSettingsPage: React.FC = () => {
   // 重置表单
   const handleReset = () => {
     if (currentKnowledgeBase) {
-      const defaultValues = getDefaultFormValues()
-      form.reset({
-        name: currentKnowledgeBase.name || '',
-        description: currentKnowledgeBase.description || '',
-        permission: (currentKnowledgeBase.permission as 'me' | 'team') || 'me',
-        avatar: currentKnowledgeBase.avatar || '',
-        parseType: (currentKnowledgeBase as any).pipeline_id ? 2 : 1,
-        parser_id: currentKnowledgeBase.parser_id || 'naive',
-        pipeline_id: (currentKnowledgeBase as any).pipeline_id || '',
-        embd_id: currentKnowledgeBase.embd_id || '',
-        pagerank: currentKnowledgeBase.pagerank || 0,
-        parser_config: {
-          ...defaultValues.parser_config,
-          ...currentKnowledgeBase.parser_config,
-          // 回退兼容：优先使用 image_table_context_window，否则回退到 image_context_size 或 table_context_size
-          image_table_context_window:
-            currentKnowledgeBase.parser_config?.image_table_context_window ??
-            currentKnowledgeBase.parser_config?.image_context_size ??
-            currentKnowledgeBase.parser_config?.table_context_size ??
-            0,
-        },
-      })
+      form.reset(buildKnowledgeSettingsFormValues(currentKnowledgeBase, normalizeEmbdId))
     }
   }
 

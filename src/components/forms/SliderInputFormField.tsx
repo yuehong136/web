@@ -48,13 +48,28 @@ export function SliderInputFormField({
   // 百分比模式下的转换系数
   const multiplier = percentage ? 100 : 1
 
+  const normalizeNumber = (value: unknown) => {
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return value
+    }
+
+    if (typeof value === 'string') {
+      const parsed = Number.parseFloat(value)
+      if (Number.isFinite(parsed)) {
+        return parsed
+      }
+    }
+
+    return defaultValue
+  }
+
   return (
     <FormField
       control={form.control}
       name={name}
       defaultValue={defaultValue}
       render={({ field }) => {
-        const rawValue = typeof field.value === 'number' ? field.value : defaultValue
+        const rawValue = normalizeNumber(field.value)
         // 显示值：百分比模式下乘以100
         const displayValue = percentage ? Math.round(rawValue * multiplier) : rawValue
 
@@ -140,4 +155,3 @@ export function SliderInputFormField({
 }
 
 export default SliderInputFormField
-
