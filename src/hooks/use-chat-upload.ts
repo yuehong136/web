@@ -34,12 +34,22 @@ export function useChatUpload() {
     const controller = new AbortController()
     const uid = generateUid()
     abortControllers.current.set(uid, controller)
-    
-    // 创建图片预览 URL
-    const thumbUrl = file.type.startsWith('image/') 
-      ? URL.createObjectURL(file) 
-      : undefined
-    
+
+    // 图片转 base64 data URI（不依赖 blob URL，发送后仍可预览）
+    let thumbUrl: string | undefined
+    if (file.type.startsWith('image/')) {
+      try {
+        thumbUrl = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader()
+          reader.onload = () => resolve(reader.result as string)
+          reader.onerror = () => reject(reader.error)
+          reader.readAsDataURL(file)
+        })
+      } catch {
+        // 读取失败则不显示预览
+      }
+    }
+
     // 添加到文件列表（uploading 状态）
     const newFile: UploadFile = {
       uid,
@@ -135,30 +145,16 @@ export function useChatUpload() {
    * 移除指定文件（已上传完成的文件）
    */
   const removeFile = useCallback((uid: string) => {
-    setFiles(prev => {
-      const file = prev.find(f => f.uid === uid)
-      // 如果有预览 URL，释放它
-      if (file?.thumbUrl) {
-        URL.revokeObjectURL(file.thumbUrl)
-      }
-      return prev.filter(f => f.uid !== uid)
-    })
+    setFiles(prev => prev.filter(f => f.uid !== uid))
   }, [])
   
   /**
    * 清空所有文件
    */
   const clearFiles = useCallback(() => {
-    // 取消所有正在上传的文件
     cancelAll()
-    // 释放所有预览 URL
-    files.forEach(file => {
-      if (file.thumbUrl) {
-        URL.revokeObjectURL(file.thumbUrl)
-      }
-    })
     setFiles([])
-  }, [cancelAll, files])
+  }, [cancelAll])
   
   /**
    * 获取已上传成功的附件元数据列表

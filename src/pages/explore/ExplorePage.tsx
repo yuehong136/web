@@ -97,6 +97,16 @@ const isImageAttachment = (file?: UploadedFileInfo) => {
   return !!file?.mime_type?.startsWith('image/')
 }
 
+/** 获取图片预览：优先 base64 data URI，回退到后端 /v1/document/image 端点 */
+const getImagePreviewUrl = (file: UploadedFileInfo): string | null => {
+  if (file.preview_url) return file.preview_url
+  if (file.created_by && file.id) {
+    const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+    return `${baseURL}/v1/document/image/${file.created_by}-${file.id}`
+  }
+  return null
+}
+
 const getAttachmentStatusLabel = (file: UploadFile) => {
   if (file.status === 'uploading') {
     return `上传中 ${Math.round(file.percent || 0)}%`
@@ -780,12 +790,55 @@ export const ExplorePage: React.FC = () => {
       return null
     }
 
+    const imageFiles = files.filter(isImageAttachment)
+    const otherFiles = files.filter(f => !isImageAttachment(f))
+
     return (
       <div className="mt-3 grid gap-2">
-        {files.map((file) => {
-          const isImage = isImageAttachment(file)
-          const category = getFileCategory(file.extension || '')
+        {/* 图片附件：较大预览 */}
+        {imageFiles.length > 0 && (
+          <div className={`grid gap-2 ${imageFiles.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
+            {imageFiles.map((file) => {
+              const imgUrl = getImagePreviewUrl(file)
+              return (
+                <div
+                  key={file.id}
+                  className="overflow-hidden rounded-xl border"
+                  style={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.14)',
+                    borderColor: 'rgba(255, 255, 255, 0.18)',
+                  }}
+                >
+                  {imgUrl ? (
+                    <img
+                      src={imgUrl}
+                      alt={file.name}
+                      className="w-full max-h-64 object-contain cursor-pointer"
+                      style={{ backgroundColor: 'rgba(0, 0, 0, 0.03)' }}
+                      onClick={() => window.open(imgUrl, '_blank')}
+                    />
+                  ) : (
+                    <div
+                      className="flex h-32 items-center justify-center"
+                      style={{ backgroundColor: 'rgba(255, 255, 255, 0.12)' }}
+                    >
+                      <FileIcon fileName={file.name} size="md" />
+                    </div>
+                  )}
+                  <div className="px-3 py-1.5">
+                    <div className="truncate text-xs opacity-80">
+                      {file.name} · {formatBytes(file.size || 0)}
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
 
+        {/* 非图片附件：文件卡片 */}
+        {otherFiles.map((file) => {
+          const category = getFileCategory(file.extension || '')
           return (
             <div
               key={file.id}
@@ -795,21 +848,12 @@ export const ExplorePage: React.FC = () => {
                 borderColor: 'rgba(255, 255, 255, 0.18)',
               }}
             >
-              {isImage && file.preview_url ? (
-                <img
-                  src={file.preview_url}
-                  alt={file.name}
-                  className="h-12 w-12 rounded-lg object-cover"
-                />
-              ) : (
-                <div
-                  className="flex h-12 w-12 items-center justify-center rounded-lg"
-                  style={{ backgroundColor: 'rgba(255, 255, 255, 0.12)' }}
-                >
-                  <FileIcon fileName={file.name} size="md" />
-                </div>
-              )}
-
+              <div
+                className="flex h-10 w-10 items-center justify-center rounded-lg"
+                style={{ backgroundColor: 'rgba(255, 255, 255, 0.12)' }}
+              >
+                <FileIcon fileName={file.name} size="md" />
+              </div>
               <div className="min-w-0 flex-1">
                 <div className="truncate text-sm font-medium">{file.name}</div>
                 <div className="text-xs opacity-80">
