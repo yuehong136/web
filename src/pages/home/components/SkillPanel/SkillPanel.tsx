@@ -39,8 +39,8 @@ export const SkillPanel: React.FC<SkillPanelProps> = ({
   const [searchTerm, setSearchTerm] = useState('')
   const panelRef = useRef<HTMLDivElement>(null)
 
-  // 获取对话应用列表
-  const { data: dialogApps = [], isLoading: appsLoading } = useDialogApps()
+  // 获取对话应用列表 — 仅在面板打开时请求
+  const { data: dialogApps = [], isLoading: appsLoading } = useDialogApps({ enabled: open })
 
   // 加载 MCP 服务器列表
   useEffect(() => {

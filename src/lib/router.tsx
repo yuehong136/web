@@ -1,56 +1,110 @@
+import { Suspense, lazy, type ComponentType } from 'react'
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { Layout } from '@/components/layout/Layout'
+import { ROUTES } from '@/constants'
+
+// ---------------------------------------------------------------------------
+// Static imports — critical path for first paint
+// ---------------------------------------------------------------------------
 import { LoginPage, RegisterPage } from '@/pages/auth'
 import { HomePage } from '@/pages/home'
-import { KnowledgeListPage } from '@/pages/knowledge/KnowledgeListPage'
-import { KnowledgeDetailLayout } from '@/pages/knowledge/KnowledgeDetailLayout'
-import { KnowledgeDocumentsPage } from '@/pages/knowledge/documents'
-import { KnowledgeSearchPage } from '@/pages/knowledge/KnowledgeSearchPage'
-import { KnowledgeGraphPage } from '@/pages/knowledge/graph'
-import { KnowledgeSettingsPage } from '@/pages/knowledge/KnowledgeSettingsPage'
-import { KnowledgeCreatePage } from '@/pages/knowledge/KnowledgeCreatePage'
-import { KnowledgeImportPage } from '@/pages/knowledge/KnowledgeImportPage'
-import { DocumentChunksPage } from '@/pages/knowledge/DocumentChunksPage'
-import { KnowledgeLogsPage } from '@/pages/knowledge/logs'
-import {
-  MemoryListPage,
-  MemoryDetailLayout,
-  MemoryMessagesPage,
-  MemorySettingsPage,
-} from '@/pages/memory'
-import { SettingsLayout } from '@/pages/settings/SettingsLayout'
-import { ProfilePage } from '@/pages/settings/profile'
-import { SecurityPage } from '@/pages/settings/SecurityPage'
-import { ModelProvidersPage } from '@/pages/settings/model-providers'
-import { MCPServersPage } from '@/pages/settings/MCPServersPage'
-import { MCPToolsPage } from '@/pages/settings/MCPToolsPage'
-import { MCPTestPage } from '@/pages/settings/MCPTestPage'
-import { MCPBatchPage } from '@/pages/settings/MCPBatchPage'
-import ApiKeysPage from '@/pages/settings/ApiKeysPage'
-import { StudioPage } from '@/pages/studio'
-import { CreateAppPage } from '@/pages/studio/CreateAppPage'
-import { SystemPage } from '@/pages/system'
-import { PromptEditorPage } from '@/pages/dialog/PromptEditorPage'
-import { DialogListPage } from '@/pages/dialog/DialogListPage'
-import { ExplorePage } from '@/pages/explore'
-import { SearchListPage } from '@/pages/search'
-import { SearchDetailPage } from '@/pages/search/detail/SearchDetailPage'
-import { ThemeDemoPage } from '@/pages/theme-demo/ThemeDemoPage'
-import { ROUTES } from '@/constants'
-import { AIToolsHomePage, AutoFillWorkbenchPage } from '@/pages/ai-tools'
-import MCPChatPage from '@/pages/MCPChatPage'
-import AgentListPage from '@/pages/agent'
-import AgentCanvasPage from '@/pages/agent/AgentCanvasPage'
-import { TeamPage } from '@/pages/team'
-import DataSourcePage from '@/pages/settings/datasource'
-import DataSourceDetailPage from '@/pages/settings/datasource/detail'
-import { AdminUsersPage } from '@/pages/settings/admin'
 
-// 页面组件 (先创建占位符)
+// ---------------------------------------------------------------------------
+// Suspense loading fallback
+// ---------------------------------------------------------------------------
+const PageLoading = () => (
+  <div className="flex h-full items-center justify-center">
+    <div className="h-icon-lg w-icon-lg animate-spin rounded-radius-full border-2 border-border-default border-t-transparent" />
+  </div>
+)
 
+/** Wrap a lazy component with Suspense */
+function withLoading(LazyComponent: React.LazyExoticComponent<ComponentType>) {
+  return (
+    <Suspense fallback={<PageLoading />}>
+      <LazyComponent />
+    </Suspense>
+  )
+}
 
-// Knowledge页面已迁移到KnowledgeListPage组件
+// ---------------------------------------------------------------------------
+// Helper for lazy-loading named exports
+// ---------------------------------------------------------------------------
+function lazyNamed<K extends string>(
+  factory: () => Promise<Record<K, ComponentType>>,
+  name: K,
+) {
+  return lazy(() => factory().then(m => ({ default: m[name] })))
+}
 
+// ---------------------------------------------------------------------------
+// Lazy imports — code-split per route
+// ---------------------------------------------------------------------------
+
+// Knowledge
+const KnowledgeListPage = lazyNamed(() => import('@/pages/knowledge/KnowledgeListPage'), 'KnowledgeListPage')
+const KnowledgeDetailLayout = lazyNamed(() => import('@/pages/knowledge/KnowledgeDetailLayout'), 'KnowledgeDetailLayout')
+const KnowledgeDocumentsPage = lazyNamed(() => import('@/pages/knowledge/documents'), 'KnowledgeDocumentsPage')
+const KnowledgeSearchPage = lazyNamed(() => import('@/pages/knowledge/KnowledgeSearchPage'), 'KnowledgeSearchPage')
+const KnowledgeGraphPage = lazyNamed(() => import('@/pages/knowledge/graph'), 'KnowledgeGraphPage')
+const KnowledgeSettingsPage = lazyNamed(() => import('@/pages/knowledge/KnowledgeSettingsPage'), 'KnowledgeSettingsPage')
+const KnowledgeCreatePage = lazyNamed(() => import('@/pages/knowledge/KnowledgeCreatePage'), 'KnowledgeCreatePage')
+const KnowledgeImportPage = lazyNamed(() => import('@/pages/knowledge/KnowledgeImportPage'), 'KnowledgeImportPage')
+const DocumentChunksPage = lazyNamed(() => import('@/pages/knowledge/DocumentChunksPage'), 'DocumentChunksPage')
+const KnowledgeLogsPage = lazyNamed(() => import('@/pages/knowledge/logs'), 'KnowledgeLogsPage')
+
+// Memory
+const MemoryListPage = lazyNamed(() => import('@/pages/memory'), 'MemoryListPage')
+const MemoryDetailLayout = lazyNamed(() => import('@/pages/memory'), 'MemoryDetailLayout')
+const MemoryMessagesPage = lazyNamed(() => import('@/pages/memory'), 'MemoryMessagesPage')
+const MemorySettingsPage = lazyNamed(() => import('@/pages/memory'), 'MemorySettingsPage')
+
+// Explore & Search
+const ExplorePage = lazyNamed(() => import('@/pages/explore'), 'ExplorePage')
+const SearchListPage = lazyNamed(() => import('@/pages/search'), 'SearchListPage')
+const SearchDetailPage = lazyNamed(() => import('@/pages/search/detail/SearchDetailPage'), 'SearchDetailPage')
+
+// Agent
+const AgentListPage = lazy(() => import('@/pages/agent'))
+const AgentCanvasPage = lazy(() => import('@/pages/agent/AgentCanvasPage'))
+
+// Studio
+const StudioPage = lazyNamed(() => import('@/pages/studio'), 'StudioPage')
+const CreateAppPage = lazyNamed(() => import('@/pages/studio/CreateAppPage'), 'CreateAppPage')
+
+// Dialog
+const PromptEditorPage = lazyNamed(() => import('@/pages/dialog/PromptEditorPage'), 'PromptEditorPage')
+const DialogListPage = lazyNamed(() => import('@/pages/dialog/DialogListPage'), 'DialogListPage')
+
+// AI Tools
+const AIToolsHomePage = lazyNamed(() => import('@/pages/ai-tools'), 'AIToolsHomePage')
+const AutoFillWorkbenchPage = lazyNamed(() => import('@/pages/ai-tools'), 'AutoFillWorkbenchPage')
+
+// MCP Chat
+const MCPChatPage = lazy(() => import('@/pages/MCPChatPage'))
+
+// Settings
+const SettingsLayout = lazyNamed(() => import('@/pages/settings/SettingsLayout'), 'SettingsLayout')
+const ProfilePage = lazyNamed(() => import('@/pages/settings/profile'), 'ProfilePage')
+const SecurityPage = lazyNamed(() => import('@/pages/settings/SecurityPage'), 'SecurityPage')
+const ModelProvidersPage = lazyNamed(() => import('@/pages/settings/model-providers'), 'ModelProvidersPage')
+const MCPServersPage = lazyNamed(() => import('@/pages/settings/MCPServersPage'), 'MCPServersPage')
+const MCPToolsPage = lazyNamed(() => import('@/pages/settings/MCPToolsPage'), 'MCPToolsPage')
+const MCPTestPage = lazyNamed(() => import('@/pages/settings/MCPTestPage'), 'MCPTestPage')
+const MCPBatchPage = lazyNamed(() => import('@/pages/settings/MCPBatchPage'), 'MCPBatchPage')
+const ApiKeysPage = lazy(() => import('@/pages/settings/ApiKeysPage'))
+const SystemPage = lazyNamed(() => import('@/pages/system'), 'SystemPage')
+const TeamPage = lazyNamed(() => import('@/pages/team'), 'TeamPage')
+const DataSourcePage = lazy(() => import('@/pages/settings/datasource'))
+const DataSourceDetailPage = lazy(() => import('@/pages/settings/datasource/detail'))
+const AdminUsersPage = lazyNamed(() => import('@/pages/settings/admin'), 'AdminUsersPage')
+
+// Theme Demo
+const ThemeDemoPage = lazyNamed(() => import('@/pages/theme-demo/ThemeDemoPage'), 'ThemeDemoPage')
+
+// ---------------------------------------------------------------------------
+// Placeholder pages
+// ---------------------------------------------------------------------------
 const Documents = () => (
   <div className="p-6">
     <h1 className="text-2xl font-bold mb-4">文件中心</h1>
@@ -58,19 +112,12 @@ const Documents = () => (
   </div>
 )
 
-// 替换为正式工具箱页面
-
 const Workflow = () => (
   <div className="p-6">
     <h1 className="text-2xl font-bold mb-4">工作流</h1>
     <p className="text-gray-600">工作流功能开发中...</p>
   </div>
 )
-
-// MCP 服务器入口已跳转到设置子路由，无需占位组件
-
-
-// Settings placeholder components
 
 const NotificationsPage = () => (
   <div className="p-8">
@@ -86,11 +133,9 @@ const AppearancePage = () => (
   </div>
 )
 
-// TeamPage now imported from @/pages/team
-// DataSourcePage now imported from @/pages/settings/datasource
-
-
-// 创建路由配置
+// ---------------------------------------------------------------------------
+// Route configuration
+// ---------------------------------------------------------------------------
 const authRoutes: { path: string; element: React.ReactElement }[] = [
   {
     path: ROUTES.LOGIN,
@@ -98,7 +143,6 @@ const authRoutes: { path: string; element: React.ReactElement }[] = [
   }
 ]
 
-// 条件性添加注册路由
 if (import.meta.env.VITE_ENABLE_REGISTRATION === 'true') {
   authRoutes.push({
     path: ROUTES.REGISTER,
@@ -107,10 +151,8 @@ if (import.meta.env.VITE_ENABLE_REGISTRATION === 'true') {
 }
 
 export const router = createBrowserRouter([
-  // 认证路由（不需要布局）
   ...authRoutes,
-  
-  // 主应用路由（需要布局和认证）
+
   {
     path: '/',
     element: <Layout />,
@@ -125,57 +167,57 @@ export const router = createBrowserRouter([
       },
       {
         path: '/mcp-chat',
-        element: <MCPChatPage />,
+        element: withLoading(MCPChatPage),
       },
       {
         path: ROUTES.KNOWLEDGE,
-        element: <KnowledgeListPage />,
+        element: withLoading(KnowledgeListPage),
       },
       {
         path: ROUTES.MEMORY,
-        element: <MemoryListPage />,
+        element: withLoading(MemoryListPage),
       },
       {
         path: '/memory/:id',
-        element: <MemoryDetailLayout />,
+        element: withLoading(MemoryDetailLayout),
         children: [
           {
             index: true,
-            element: <MemoryMessagesPage />,
+            element: withLoading(MemoryMessagesPage),
           },
           {
             path: 'settings',
-            element: <MemorySettingsPage />,
+            element: withLoading(MemorySettingsPage),
           },
         ],
       },
       {
         path: ROUTES.EXPLORE,
-        element: <ExplorePage />,
+        element: withLoading(ExplorePage),
       },
       {
         path: ROUTES.SEARCH,
-        element: <SearchListPage />,
+        element: withLoading(SearchListPage),
       },
       {
         path: '/search/:id',
-        element: <SearchDetailPage />,
+        element: withLoading(SearchDetailPage),
       },
       {
         path: '/theme-demo',
-        element: <ThemeDemoPage />,
+        element: withLoading(ThemeDemoPage),
       },
       {
         path: '/knowledge/create',
-        element: <KnowledgeCreatePage />,
+        element: withLoading(KnowledgeCreatePage),
       },
       {
         path: '/knowledge/import',
-        element: <KnowledgeImportPage />,
+        element: withLoading(KnowledgeImportPage),
       },
       {
         path: '/knowledge/:id',
-        element: <KnowledgeDetailLayout />,
+        element: withLoading(KnowledgeDetailLayout),
         children: [
           {
             index: true,
@@ -183,27 +225,27 @@ export const router = createBrowserRouter([
           },
           {
             path: 'documents',
-            element: <KnowledgeDocumentsPage />,
+            element: withLoading(KnowledgeDocumentsPage),
           },
           {
             path: 'search',
-            element: <KnowledgeSearchPage />,
+            element: withLoading(KnowledgeSearchPage),
           },
           {
             path: 'graph',
-            element: <KnowledgeGraphPage />,
+            element: withLoading(KnowledgeGraphPage),
           },
           {
             path: 'logs',
-            element: <KnowledgeLogsPage />,
+            element: withLoading(KnowledgeLogsPage),
           },
           {
             path: 'settings',
-            element: <KnowledgeSettingsPage />,
+            element: withLoading(KnowledgeSettingsPage),
           },
           {
             path: 'documents/:docId/chunks',
-            element: <DocumentChunksPage />,
+            element: withLoading(DocumentChunksPage),
           },
         ],
       },
@@ -213,15 +255,15 @@ export const router = createBrowserRouter([
       },
       {
         path: ROUTES.AI_TOOLS,
-        element: <AIToolsHomePage />,
+        element: withLoading(AIToolsHomePage),
       },
       {
         path: '/tools',
-        element: <AIToolsHomePage />,
+        element: withLoading(AIToolsHomePage),
       },
       {
         path: '/tools/auto-fill',
-        element: <AutoFillWorkbenchPage />,
+        element: withLoading(AutoFillWorkbenchPage),
       },
       {
         path: ROUTES.WORKFLOW,
@@ -229,11 +271,11 @@ export const router = createBrowserRouter([
       },
       {
         path: ROUTES.AGENTS,
-        element: <AgentListPage />,
+        element: withLoading(AgentListPage),
       },
       {
         path: '/agent/:id',
-        element: <AgentCanvasPage />,
+        element: withLoading(AgentCanvasPage),
       },
       {
         path: ROUTES.MCP_SERVERS,
@@ -241,11 +283,11 @@ export const router = createBrowserRouter([
       },
       {
         path: ROUTES.STUDIO,
-        element: <StudioPage />,
+        element: withLoading(StudioPage),
       },
       {
         path: ROUTES.STUDIO_CREATE_APP,
-        element: <CreateAppPage />,
+        element: withLoading(CreateAppPage),
       },
       {
         path: ROUTES.SYSTEM,
@@ -253,15 +295,15 @@ export const router = createBrowserRouter([
       },
       {
         path: '/dialogs',
-        element: <DialogListPage />,
+        element: withLoading(DialogListPage),
       },
       {
         path: '/dialog/:id/prompt-editor',
-        element: <PromptEditorPage />,
+        element: withLoading(PromptEditorPage),
       },
       {
         path: '/settings',
-        element: <SettingsLayout />,
+        element: withLoading(SettingsLayout),
         children: [
           {
             index: true,
@@ -269,23 +311,23 @@ export const router = createBrowserRouter([
           },
           {
             path: 'datasource',
-            element: <DataSourcePage />,
+            element: withLoading(DataSourcePage),
           },
           {
             path: 'datasource-detail',
-            element: <DataSourceDetailPage />,
+            element: withLoading(DataSourceDetailPage),
           },
           {
             path: 'profile',
-            element: <ProfilePage />,
+            element: withLoading(ProfilePage),
           },
           {
             path: 'team',
-            element: <TeamPage />,
+            element: withLoading(TeamPage),
           },
           {
             path: 'security',
-            element: <SecurityPage />,
+            element: withLoading(SecurityPage),
           },
           {
             path: 'notifications',
@@ -297,35 +339,35 @@ export const router = createBrowserRouter([
           },
           {
             path: 'model-providers',
-            element: <ModelProvidersPage />,
+            element: withLoading(ModelProvidersPage),
           },
           {
             path: 'mcp-servers',
-            element: <MCPServersPage />,
+            element: withLoading(MCPServersPage),
           },
           {
             path: 'mcp-tools',
-            element: <MCPToolsPage />,
+            element: withLoading(MCPToolsPage),
           },
           {
             path: 'mcp-test',
-            element: <MCPTestPage />,
+            element: withLoading(MCPTestPage),
           },
           {
             path: 'mcp-batch',
-            element: <MCPBatchPage />,
+            element: withLoading(MCPBatchPage),
           },
           {
             path: 'api-keys',
-            element: <ApiKeysPage />,
+            element: withLoading(ApiKeysPage),
           },
           {
             path: 'system',
-            element: <SystemPage />,
+            element: withLoading(SystemPage),
           },
           {
             path: 'admin',
-            element: <AdminUsersPage />,
+            element: withLoading(AdminUsersPage),
           },
         ],
       },

@@ -13,7 +13,10 @@ interface PaginationState {
 }
 
 // 获取对话应用列表（带分页和搜索，与 ragflow 保持一致）
-export const useFetchDialogList = (initialPageSize = 30) => {
+export const useFetchDialogList = (
+  initialPageSize = 30,
+  options?: { enabled?: boolean },
+) => {
   const [searchString, setSearchString] = useState('')
   const [pagination, setPagination] = useState<PaginationState>({
     current: 1,
@@ -44,6 +47,7 @@ export const useFetchDialogList = (initialPageSize = 30) => {
     staleTime: 0,
     gcTime: 5 * 60 * 1000, // 5 分钟
     refetchOnWindowFocus: false,
+    enabled: options?.enabled ?? true,
   })
 
   return {
@@ -60,8 +64,8 @@ export const useFetchDialogList = (initialPageSize = 30) => {
 }
 
 // 获取对话应用列表（简化版，向后兼容）
-export const useDialogApps = () => {
-  const { data, loading, isError, error, refetch } = useFetchDialogList(9999)
+export const useDialogApps = (options?: { enabled?: boolean }) => {
+  const { data, loading, isError, error, refetch } = useFetchDialogList(100, options)
   return {
     data: data.dialogs,
     isLoading: loading,
