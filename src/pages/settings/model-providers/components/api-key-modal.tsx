@@ -23,6 +23,7 @@ const API_KEY_WITH_BASE_URL = [
   'MiniMax',
   'Anthropic',
   'BaiduYiyan',
+  'SILICONFLOW',
 ]
 
 // Base URL 提示和占位符
@@ -43,9 +44,13 @@ const BASE_URL_CONFIG: Record<string, { placeholder: string; tooltip?: string }>
     placeholder: 'https://api.anthropic.com/v1',
     tooltip: '如果使用代理，请填写'
   },
-  'BaiduYiyan': { 
+  'BaiduYiyan': {
     placeholder: 'https://qianfan.baidubce.com/v2',
     tooltip: '百度文心 OpenAI 兼容接口地址'
+  },
+  'SILICONFLOW': {
+    placeholder: 'https://api.siliconflow.cn/v1',
+    tooltip: '中国用户无需填写或使用 https://api.siliconflow.cn/v1，国际用户使用 https://api.siliconflow.com/v1'
   },
 }
 

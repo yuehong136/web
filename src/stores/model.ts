@@ -512,9 +512,18 @@ export const useModelStore = create<ModelState>()(
             verify,
             ...additionalParams
           }
-          
+
           if (baseUrl) {
             requestData.base_url = baseUrl
+          }
+
+          // SILICONFLOW 国际版：根据 base_url 判断使用哪个模型源
+          if (llmFactory === LLMFactory.SILICONFLOW) {
+            requestData.source_fid = (baseUrl || '')
+              .toLowerCase()
+              .includes('api.siliconflow.com')
+              ? 'siliconflow_intl'
+              : LLMFactory.SILICONFLOW
           }
           
           const response = await apiClient.post('/llm/set_api_key', requestData)
