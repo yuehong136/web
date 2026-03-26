@@ -17,13 +17,39 @@ import type {
 /**
  * 将 API 返回的 summary 数据转换为表格数据格式
  */
+type MetadataSummaryFieldValues =
+  | Array<[string | number, number]>
+  | {
+      type?: string
+      values?: Array<[string | number, number]>
+    }
+  | Record<string, number>
+  | null
+  | undefined
+
+function normalizeSummaryValues(values: MetadataSummaryFieldValues): string[] {
+  if (Array.isArray(values)) {
+    return values.map(([value]) => String(value))
+  }
+
+  if (values && typeof values === 'object') {
+    if ('values' in values && Array.isArray(values.values)) {
+      return values.values.map(([value]) => String(value))
+    }
+
+    return Object.keys(values)
+  }
+
+  return []
+}
+
 export function summaryToTableData(
-  summary: Record<string, Array<[string | number, number]>>
+  summary: Record<string, MetadataSummaryFieldValues>
 ): MetadataTableData[] {
   return Object.entries(summary).map(([field, values]) => ({
     field,
     description: '',
-    values: values.map(([v]) => String(v)),
+    values: normalizeSummaryValues(values),
   }))
 }
 
