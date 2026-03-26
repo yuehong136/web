@@ -1100,28 +1100,54 @@ html[data-theme="dark"] .ant-tabs-custom .ant-tabs-tab.ant-tabs-tab-active {
   background-color: #eff6ff;
 }
 
-/* PPT 预览样式 (与 ragflow ppt-previewer 一致) */
+/* PPT 预览样式 */
 .ppt-previewer {
-  background: white;
+  /* 强制 light color-scheme，隔离系统深色模式对 canvas 渲染上下文的影响 */
+  color-scheme: light;
+}
+
+/* 幻灯片滚动区：presentation viewer 风格深灰背景 */
+.ppt-scroll-area {
+  background: #e8e8e8;
+}
+
+html[data-theme="dark"] .ppt-scroll-area {
+  background: #1c1c1e;
+}
+
+/* 修复 slide 间的黑条：
+   全局 dark mode 规则 `html[data-theme="dark"] .h-full { background-color: ... !important }`
+   会渗入 pptx-preview 内部，此处以更高特异度的 !important 覆盖还原 */
+html[data-theme="dark"] .ppt-previewer *,
+html[data-theme="dark"] .ppt-scroll-area * {
+  background-color: transparent !important;
+  color: inherit !important;
+}
+
+/* 幻灯片卡片：强制白底，对抗上方 transparent !important */
+.ppt-previewer .slide-wrapper,
+html[data-theme="dark"] .ppt-previewer .slide-wrapper {
+  background: #ffffff !important;
+  border-radius: 6px !important;
+  overflow: hidden !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+  color-scheme: light !important;
 }
 
 .ppt-previewer .pptx-preview-wrapper {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: 24px;
+  padding: 24px;
 }
 
-.ppt-previewer .slide-wrapper {
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  border-radius: 8px;
-  overflow: hidden;
-  background: white;
-}
-
-.ppt-previewer canvas {
-  max-width: 100%;
-  height: auto;
+/* canvas 明确 display:block 防 Tailwind preflight 将其 inline 化导致底部间隙 */
+.ppt-previewer canvas,
+html[data-theme="dark"] .ppt-previewer canvas {
+  display: block !important;
+  max-width: 100% !important;
+  background: #ffffff !important;
 }
 
 /* CSV 表格优化 */

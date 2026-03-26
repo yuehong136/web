@@ -1127,52 +1127,48 @@ const ExcelPreviewInner: React.FC<{
 const ExcelPreview = memo(ExcelPreviewInner)
 
 // ==================== PPT 预览组件 ====================
-const PptPreviewInner: React.FC<{
-  url: string
-}> = ({ url }) => {
-  const containerRef = useRef<HTMLDivElement>(null)
+const PptPreviewInner: React.FC<{ url: string }> = ({ url }) => {
+  const measureRef = useRef<HTMLDivElement>(null)
   const wrapperRef = useRef<HTMLDivElement>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [slideCount, setSlideCount] = useState(0)
+  const [zoom, setZoom] = useState(100)
 
   useEffect(() => {
     let mounted = true
 
     const loadPpt = async () => {
-      if (!containerRef.current) return
+      if (!measureRef.current || !wrapperRef.current) return
 
       try {
         setLoading(true)
         setError(null)
+        setSlideCount(0)
+        wrapperRef.current.innerHTML = ''
 
-        // 动态导入 pptx-preview
         const pptxPreview = await import('pptx-preview')
-        
+
         const response = await fetchWithAuth(url)
-        if (!response.ok) {
-          throw new Error(`PPT 加载失败: ${response.status}`)
-        }
+        if (!response.ok) throw new Error(`PPT 加载失败: ${response.status}`)
 
         const arrayBuffer = await response.arrayBuffer()
+        if (!mounted || !measureRef.current || !wrapperRef.current) return
 
-        if (!mounted || !containerRef.current) return
+        // 以测量容器的宽度定幻灯片尺寸，保持 16:9
+        const slideWidth = Math.max(measureRef.current.clientWidth - 64, 480)
+        const slideHeight = Math.round(slideWidth * 9 / 16)
 
-        // 获取容器尺寸
-        let width = 600
-        let height = 450
-        if (containerRef.current) {
-          width = containerRef.current.clientWidth - 50
-          height = containerRef.current.clientHeight - 50
-        }
-
-        const pptPreviewer = pptxPreview.init(containerRef.current, {
-          width: Math.max(width, 400),
-          height: Math.max(height, 300),
+        const pptPreviewer = pptxPreview.init(wrapperRef.current, {
+          width: slideWidth,
+          height: slideHeight,
         })
-
         await pptPreviewer.preview(arrayBuffer)
 
         if (mounted) {
+          // 统计渲染出的幻灯片数量
+          const slides = wrapperRef.current?.querySelectorAll('.slide-wrapper, [class*="slide"]')
+          setSlideCount(slides?.length ?? 0)
           setLoading(false)
         }
       } catch (err) {
@@ -1185,10 +1181,7 @@ const PptPreviewInner: React.FC<{
     }
 
     loadPpt()
-
-    return () => {
-      mounted = false
-    }
+    return () => { mounted = false }
   }, [url])
 
   if (error) {
@@ -1203,21 +1196,70 @@ const PptPreviewInner: React.FC<{
   }
 
   return (
-    <div className="relative w-full h-full overflow-auto bg-white ppt-previewer">
-      {loading && (
-        <div className="absolute inset-0 z-10">
-          <LoadingState message="加载 PPT 中..." />
+    <div className="flex flex-col w-full h-full ppt-previewer" ref={measureRef}>
+      {/* 工具栏 */}
+      <div className="flex items-center justify-between px-space-md py-space-sm border-b border-border-default bg-surface-primary shrink-0">
+        <div className="flex items-center gap-space-xs text-text-secondary">
+          <Presentation className="h-4 w-4 shrink-0" />
+          {!loading && slideCount > 0 && (
+            <span className="text-sm">{slideCount} 张幻灯片</span>
+          )}
+          {loading && (
+            <span className="text-sm">加载中...</span>
+          )}
         </div>
-      )}
-      <div 
-        ref={containerRef} 
-        className="w-full h-full p-4 border border-border-default rounded-md"
-      >
-        <div className="overflow-auto p-2">
-          <div className="flex flex-col gap-4">
+        <div className="flex items-center gap-space-xs">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setZoom(z => Math.max(50, z - 10))}
+            disabled={zoom <= 50 || loading}
+            className="h-7 w-7 p-0"
+          >
+            <ZoomOut className="h-3.5 w-3.5" />
+          </Button>
+          <span className="text-sm text-text-secondary min-w-[3rem] text-center tabular-nums">
+            {zoom}%
+          </span>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setZoom(z => Math.min(200, z + 10))}
+            disabled={zoom >= 200 || loading}
+            className="h-7 w-7 p-0"
+          >
+            <ZoomIn className="h-3.5 w-3.5" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setZoom(100)}
+            disabled={zoom === 100 || loading}
+            className="h-7 w-7 p-0"
+          >
+            <RotateCcw className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+      </div>
+
+      {/* 幻灯片区域 */}
+      <div className="flex-1 overflow-auto ppt-scroll-area">
+        {loading ? (
+          <div className="flex items-center justify-center h-full">
+            <LoadingState message="加载 PPT 中..." />
+          </div>
+        ) : (
+          <div
+            className="py-space-lg"
+            style={{
+              zoom: `${zoom}%`,
+              // zoom 缩小时保持容器可正确滚动
+              minWidth: zoom < 100 ? `${10000 / zoom}%` : undefined,
+            }}
+          >
             <div ref={wrapperRef} />
           </div>
-        </div>
+        )}
       </div>
     </div>
   )
