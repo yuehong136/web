@@ -63,13 +63,23 @@ async function adminRequest<T>(endpoint: string, config: AdminRequestConfig = {}
     if (token) headers['Authorization'] = `Bearer ${token}`
   }
 
-  const res = await fetch(url, {
-    method: config.method || 'GET',
-    headers,
-    body: config.body,
-  })
+  let res: Response
+  try {
+    res = await fetch(url, {
+      method: config.method || 'GET',
+      headers,
+      body: config.body,
+    })
+  } catch {
+    throw new Error('无法连接管理员服务，请确认 admin_server (端口 8130) 已启动')
+  }
 
-  const data = await res.json()
+  let data: any
+  try {
+    data = await res.json()
+  } catch {
+    throw new Error(`管理员服务响应异常 (HTTP ${res.status})`)
+  }
 
   // 适配后端 APIResponse: { code/retcode, message/retmsg, data }
   const code = data.retcode ?? data.code ?? 0
@@ -101,12 +111,22 @@ export const adminAPI = {
   /** 管理员登录，获取 JWT token */
   login: async (email: string, password: string): Promise<AdminLoginResponse> => {
     const encryptedPassword = encryptPassword(password)
-    const res = await fetch(`${ADMIN_API_BASE_URL}/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password: encryptedPassword }),
-    })
-    const data = await res.json()
+    let res: Response
+    try {
+      res = await fetch(`${ADMIN_API_BASE_URL}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password: encryptedPassword }),
+      })
+    } catch {
+      throw new Error('无法连接管理员服务，请确认 admin_server (端口 8130) 已启动')
+    }
+    let data: any
+    try {
+      data = await res.json()
+    } catch {
+      throw new Error(`管理员服务响应异常 (HTTP ${res.status})，请确认 admin_server 已启动`)
+    }
     const code = data.retcode ?? data.code ?? 0
     if (code !== 0 || !res.ok) {
       throw new Error(data.retmsg || data.message || '登录失败，请检查管理员凭据')
