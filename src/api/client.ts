@@ -417,7 +417,7 @@ class APIClient {
     config?: Omit<RequestConfig, 'headers'>
   ): Promise<T> {
     const formData = new FormData()
-    formData.append('file', file)
+    formData.append('file', file, file.name)
 
     if (additionalData) {
       Object.entries(additionalData).forEach(([key, value]) => {
@@ -449,7 +449,9 @@ class APIClient {
     const formData = new FormData()
     
     files.forEach((file) => {
-      formData.append(`files`, file)
+      // 显式传 file.name 作为文件名，防止 webkitdirectory 选择的文件
+      // 被浏览器自动使用 webkitRelativePath（含文件夹路径）作为文件名
+      formData.append(`files`, file, file.name)
     })
 
     if (additionalData) {
