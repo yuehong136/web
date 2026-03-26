@@ -561,12 +561,13 @@ export interface MetadataFieldDefinition {
 // Metadata 汇总项 (聚合统计)
 export interface MetadataSummaryItem {
   field: string                    // 字段名
-  values: Array<[string | number, number]>  // [值, 出现次数] 数组
+  type?: string
+  values: Array<[string | number, number]>
 }
 
 // Metadata 汇总响应
 export interface MetadataSummaryResponse {
-  summary: Record<string, Array<[string | number, number]>>
+  summary: Record<string, MetadataSummaryItem | Array<[string | number, number]>>
   total_docs?: number
 }
 

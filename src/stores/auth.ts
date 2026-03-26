@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { STORAGE_KEYS } from '@/constants'
 import { apiClient } from '@/api/client'
+import { encryptPassword } from '@/utils/crypt'
 import type { UserInfo, TenantInfo } from '@/types/api'
 
 interface AuthState {
@@ -87,7 +88,7 @@ export const useAuthStore = create<AuthState>()(
           try {
             const response = await apiClient.post('/user/login', {
               username: email,  // 后端期望的是username字段
-              password
+              password: encryptPassword(password)
             })
 
             // 后端返回的数据结构：{ data: user_info, auth: jwt_token, retcode: 200, retmsg: "Welcome back!" }
@@ -127,7 +128,7 @@ export const useAuthStore = create<AuthState>()(
           const response = await apiClient.post('/v1/user/register', {
             email: data.email,
             nickname: data.nickname,
-            password: data.password
+            password: encryptPassword(data.password)
           })
 
           console.log('Full register response:', response)

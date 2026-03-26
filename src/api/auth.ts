@@ -1,4 +1,5 @@
 import { apiClient } from './client'
+import { encryptPassword } from '@/utils/crypt'
 import type {
   LoginRequest,
   RegisterRequest,
@@ -15,11 +16,11 @@ import type { UserSettingsUpdateResponse } from '../types'
 export const authAPI = {
   // 用户登录
   login: (data: LoginRequest): Promise<AuthResponse> =>
-    apiClient.post('/v1/user/login', data, { skipAuth: true }),
+    apiClient.post('/v1/user/login', { ...data, password: encryptPassword(data.password) }, { skipAuth: true }),
 
   // 用户注册
   register: (data: RegisterRequest): Promise<AuthResponse> =>
-    apiClient.post('/v1/user/register', data, { skipAuth: true }),
+    apiClient.post('/v1/user/register', { ...data, password: encryptPassword(data.password) }, { skipAuth: true }),
 
   // OAuth登录
   oauthLogin: (channel: string, data: OAuthLoginRequest): Promise<AuthResponse> =>
