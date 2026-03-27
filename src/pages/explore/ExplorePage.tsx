@@ -24,9 +24,11 @@ import {
   Welcome,
   Attachments
 } from '@ant-design/x'
+import type { Attachment } from '@ant-design/x/es/attachments'
 // 导入 Ant Design X 内部的 Loading 组件用于三点加载动画
 import BubbleLoading from '@ant-design/x/es/bubble/loading'
 import { ConfigProvider, theme, Modal, Input } from 'antd'
+import type { RcFile } from 'antd/es/upload/interface'
 import type { PromptsProps } from '@ant-design/x'
 import XMarkdown from '@ant-design/x-markdown'
 import '@ant-design/x-markdown/dist/x-markdown.css'
@@ -122,6 +124,13 @@ const getAttachmentStatusLabel = (file: UploadFile) => {
   }
 
   return formatBytes(file.size || 0)
+}
+
+const toRcFile = (file: File, uid: string): RcFile => {
+  return Object.assign(file, {
+    uid,
+    lastModifiedDate: new Date(file.lastModified),
+  }) as RcFile
 }
 
 
@@ -299,12 +308,13 @@ export const ExplorePage: React.FC = () => {
     [isUploading, uploadFiles],
   )
   const canSubmitMessage = (!isStreaming && !hasUploadingFiles) && (inputValue.trim().length > 0 || hasReadyUploads)
-  const attachmentItems = React.useMemo(() => {
+  const attachmentItems = React.useMemo<Attachment<unknown>[]>(() => {
     return uploadFiles.map((file) => ({
       ...file,
       className: file.status === 'error' ? 'cursor-pointer' : undefined,
       description: getAttachmentStatusLabel(file),
       icon: file.response ? <FileIcon fileName={file.response.name} size="sm" /> : undefined,
+      originFileObj: file.originFileObj ? toRcFile(file.originFileObj, file.uid) : undefined,
       src: file.thumbUrl,
       onClick: file.status === 'error' ? () => { void retryUploadFile(file.uid) } : undefined,
     }))

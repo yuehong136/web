@@ -13,6 +13,8 @@ src/
 ├── api/           # API 客户端（按领域划分）
 ├── components/    # 可复用组件
 │   ├── ui/        # 48 个基础 UI 组件（Radix UI 封装）
+│   ├── patterns/  # 页面结构块（PageHeader、PageState、SettingsRail 等）
+│   ├── page-templates/ # 页面骨架模板（Console/Workspace/Studio/SplitDetail）
 │   ├── chat/      # 聊天组件
 │   └── knowledge/ # 知识库组件
 ├── pages/         # 页面模块
@@ -138,6 +140,44 @@ export const ChatContainer: React.FC = () => {
 };
 ```
 
+### 页面骨架分层（强制）
+
+页面结构必须遵循四层分工，禁止继续在 `pages/` 里散写整页骨架：
+
+| 层级 | 目录 | 职责 |
+|-----|-----|-----|
+| L1 | `src/components/ui/` | 原子组件，只表达单组件语义 |
+| L2 | `src/components/patterns/` | 页面结构块，如 `PageHeader`、`PageToolbar`、`PageLoadingState` |
+| L3 | `src/components/page-templates/` | 完整页面骨架，如 `ConsolePageTemplate`、`StudioPageTemplate` |
+| L4 | `src/pages/` | 业务编排、数据流、交互逻辑，不自建视觉体系 |
+
+**强制规则**:
+- 新页面必须优先选择 `page-templates`，不得自行定义新的整页壳层
+- 页面结构块必须优先复用 `patterns`，不得散写 page header / empty / error / toolbar
+- `Layout` 仅作为路由入口壳层，整站统一走 `AppShell`
+- `/settings/*` 必须作为主 Shell 下的场景内容，禁止再创建第二套根布局
+
+### 页面模板选择（强制）
+
+| 场景 | 模板 | 适用页面 |
+|-----|-----|-----|
+| Console | `ConsolePageTemplate` | 设置、系统、资源管理、列表页 |
+| Workspace | `WorkspacePageTemplate` | 首页、聊天、搜索工作区 |
+| Studio | `StudioPageTemplate` | Agent Canvas、Prompt Studio、编排页 |
+| Split Detail | `SplitDetailPageTemplate` | 左右分栏、列表详情、检索工作台 |
+
+无法判断时，优先按信息架构选择模板，而不是在页面里重新拼一套布局。
+
+### 页面状态组件（强制）
+
+新的页面级 loading / empty / error 必须使用：
+
+- `PageLoadingState`
+- `PageEmptyState`
+- `PageErrorState`
+
+禁止在页面里继续新增旧式 `spinner + text-gray-*` 或散写空态容器。
+
 ## 设计令牌（强制 - 禁止任意值）
 
 ### 必须使用
@@ -162,6 +202,33 @@ export const ChatContainer: React.FC = () => {
 - **图标**: `icon-sm/md/lg/xl/2xl`
 
 深色模式: 自动适配，禁止使用 `dark:` 前缀。
+
+### 骨架与场景 token（强制）
+
+骨架层、模板层、页面状态只能依赖语义 token，不允许回退到 `white + gray + shadow-sm` 拼装：
+
+- `components-app-shell-*`
+- `components-main-workbench-*`
+- `components-page-header-*`
+- `components-page-toolbar-*`
+- `components-page-state-*`
+- `components-settings-rail-*`
+- `components-console-*`
+- `components-workspace-*`
+- `components-studio-*`
+- `components-split-pane-*`
+
+页面层禁止再用 `bg-white`、`text-gray-*`、`border-gray-*` 临时搭骨架。
+
+### 页面层禁止项（强制）
+
+在 `src/pages/**` 中：
+
+- ❌ 禁止新增 `bg-white`、`text-gray-*`、`border-gray-*`
+- ❌ 禁止新增原生 `<input>` / `<textarea>`，除非组件层不存在能力且有注释说明原因
+- ❌ 禁止用 `style={{ color/backgroundColor/... }}` 表达普通视觉语义
+- ❌ 禁止新增第二套全屏页壳、独立 header 容器或“页面外层白卡”
+- ✅ 必须优先复用 `@/components/ui/*`、`@/components/patterns/*`、`@/components/page-templates/*`
 
 ## 状态管理
 

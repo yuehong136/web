@@ -1,0 +1,5 @@
+export { AppScene } from '@/components/patterns'
+export { ConsolePageTemplate } from './console-page-template'
+export { WorkspacePageTemplate } from './workspace-page-template'
+export { StudioPageTemplate } from './studio-page-template'
+export { SplitDetailPageTemplate } from './split-detail-page-template'

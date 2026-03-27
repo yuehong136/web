@@ -1,13 +1,18 @@
-// src/hooks/use-profile.ts
-// 参考 ragflow 的用户档案管理 hook
-
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { authAPI } from '@/api/auth'
 import { toast } from '@/lib/toast'
 import { useAuthStore } from '@/stores/auth'
+import {
+  defaultProfileData,
+  passwordChangeSchema,
+  profileSchema,
+  ProfileMode,
+  type PasswordChangeFormData,
+  type ProfileData,
+  type ProfileFormErrors,
+} from '@/pages/settings/profile/types'
 
-// 时区列表 - 参考 ragflow 完整的时区列表
 export const TimezoneList = [
   'UTC-12\tPacific/Kwajalein',
   'UTC-11\tPacific/Midway',
@@ -62,176 +67,204 @@ export const TimezoneList = [
   'UTC+12\tPacific/Fiji',
 ]
 
-// 编辑类型
-export const EditType = {
-  editName: 'editName',
-  editTimeZone: 'editTimeZone',
-  editPassword: 'editPassword',
-} as const
+const getProfileFromResponse = (userInfo: {
+  nickname?: string
+  timezone?: string
+  avatar?: string | null
+  email?: string
+}): ProfileData => ({
+  userName: userInfo.nickname || '',
+  timeZone: userInfo.timezone || defaultProfileData.timeZone,
+  avatar: userInfo.avatar || '',
+  email: userInfo.email || '',
+})
 
-export type IEditType = keyof typeof EditType
-
-// 弹窗标题
-export const modalTitle: Record<IEditType, string> = {
-  [EditType.editName]: '修改用户名',
-  [EditType.editTimeZone]: '修改时区',
-  [EditType.editPassword]: '修改密码',
+const getFirstIssueMessage = (errors: Record<string, string[] | undefined>) => {
+  const firstError = Object.values(errors).find((messages) => messages && messages.length > 0)
+  return firstError?.[0]
 }
 
-// Profile 数据接口
-interface ProfileData {
-  userName: string
-  timeZone: string
-  currPasswd?: string
-  newPasswd?: string
-  confirmPasswd?: string
-  avatar: string
-  email: string
-}
-
-// useProfile hook
 export const useProfile = () => {
   const queryClient = useQueryClient()
   const { updateUser } = useAuthStore()
-  
-  const [profile, setProfile] = useState<ProfileData>({
-    userName: '',
-    avatar: '',
-    timeZone: '',
-    email: '',
-    currPasswd: '',
-  })
 
-  const [editType, setEditType] = useState<IEditType>(EditType.editName)
-  const [isEditing, setIsEditing] = useState(false)
-  const [editForm, setEditForm] = useState<Partial<ProfileData>>({})
+  const [profile, setProfile] = useState<ProfileData>(defaultProfileData)
+  const [draft, setDraft] = useState<ProfileData>(defaultProfileData)
+  const [profileErrors, setProfileErrors] = useState<ProfileFormErrors>({})
+  const [mode, setMode] = useState<ProfileMode>(ProfileMode.VIEW)
 
-  // 获取用户信息
-  const { data: userInfo, isLoading: loading, refetch } = useQuery({
+  const { data: userInfo, isLoading: loading } = useQuery({
     queryKey: ['userProfile'],
-    queryFn: async () => {
-      const data = await authAPI.getUserProfile()
-      return data
-    },
+    queryFn: async () => authAPI.getUserProfile(),
     gcTime: 0,
   })
 
-  // 保存设置 mutation
-  const { mutateAsync: saveSetting, isPending: submitLoading } = useMutation({
-    mutationKey: ['saveSetting'],
-    mutationFn: async (data: {
-      nickname?: string
-      timezone?: string
-      avatar?: string
-      password?: string
-      new_password?: string
-    }) => {
-      const response = await authAPI.updateUserSettings(data)
-      return response
-    },
-    onSuccess: (response) => {
-      if (response.retcode === 0) {
-        toast.success('保存成功')
-        queryClient.invalidateQueries({ queryKey: ['userProfile'] })
-        setIsEditing(false)
-        setEditForm({})
-      } else {
-        // 处理业务错误
-        toast.error(response.retmsg || '保存失败')
-      }
-    },
-    onError: (error: any) => {
-      toast.error(error?.message || '保存失败，请稍后重试')
-    },
+  useEffect(() => {
+    if (!userInfo) {
+      return
+    }
+
+    const nextProfile = getProfileFromResponse(userInfo)
+    setProfile(nextProfile)
+
+    if (mode !== ProfileMode.EDIT_PROFILE) {
+      setDraft(nextProfile)
+    }
+
+    updateUser({
+      avatar: userInfo.avatar || '',
+      nickname: userInfo.nickname || '',
+    })
+  }, [mode, updateUser, userInfo])
+
+  const saveProfileMutation = useMutation({
+    mutationKey: ['saveProfile'],
+    mutationFn: async (nextProfile: ProfileData) => authAPI.updateUserSettings({
+      nickname: nextProfile.userName,
+      timezone: nextProfile.timeZone,
+      avatar: nextProfile.avatar,
+    }),
   })
 
-  // 当用户信息更新时，同步到 profile 状态和 authStore
-  useEffect(() => {
-    if (userInfo) {
-      const newProfile = {
-        userName: userInfo.nickname || '',
-        timeZone: userInfo.timezone || 'UTC+8\tAsia/Shanghai',
-        avatar: userInfo.avatar || '',
-        email: userInfo.email || '',
-        currPasswd: userInfo.password ? '********' : '',
-      }
-      setProfile(newProfile)
+  const changePasswordMutation = useMutation({
+    mutationKey: ['changePassword'],
+    mutationFn: async (data: PasswordChangeFormData) => authAPI.updateUserSettings({
+      password: data.currPasswd,
+      new_password: data.newPasswd,
+    }),
+  })
 
-      // 同步 avatar 和 nickname 到 authStore，确保侧边栏显示正确
-      updateUser({
-        avatar: userInfo.avatar || '',
-        nickname: userInfo.nickname || '',
-      })
-    }
-  }, [userInfo, updateUser])
-
-  // 打开编辑弹窗
-  const handleEditClick = useCallback((type: IEditType) => {
-    setEditForm(profile)
-    setEditType(type)
-    setIsEditing(true)
+  const startEditing = useCallback(() => {
+    setDraft(profile)
+    setProfileErrors({})
+    setMode(ProfileMode.EDIT_PROFILE)
   }, [profile])
 
-  // 关闭弹窗
-  const handleCancel = useCallback(() => {
-    setIsEditing(false)
-    setEditForm({})
+  const startChangingPassword = useCallback(() => {
+    setMode(ProfileMode.CHANGE_PASSWORD)
   }, [])
 
-  // 保存修改
-  const handleSave = async (data: ProfileData) => {
-    const newProfile = { ...profile, ...data }
+  const cancelEditing = useCallback(() => {
+    setDraft(profile)
+    setProfileErrors({})
+    setMode(ProfileMode.VIEW)
+  }, [profile])
+
+  const closePasswordDialog = useCallback(() => {
+    setMode(ProfileMode.VIEW)
+  }, [])
+
+  const updateDraft = useCallback((patch: Partial<ProfileData>) => {
+    setDraft((prev) => ({ ...prev, ...patch }))
+
+    setProfileErrors((prev) => ({
+      ...prev,
+      ...(patch.userName !== undefined ? { userName: undefined } : {}),
+      ...(patch.timeZone !== undefined ? { timeZone: undefined } : {}),
+      ...(patch.avatar !== undefined ? { avatar: undefined } : {}),
+    }))
+  }, [])
+
+  const saveProfile = useCallback(async () => {
+    const parsed = profileSchema.safeParse(draft)
+
+    if (!parsed.success) {
+      const flattened = parsed.error.flatten().fieldErrors
+      setProfileErrors({
+        userName: flattened.userName?.[0],
+        timeZone: flattened.timeZone?.[0],
+        avatar: flattened.avatar?.[0],
+      })
+
+      toast.error(getFirstIssueMessage(flattened) || '请完善基础资料后再保存')
+      return false
+    }
+
+    const nextProfile = { ...draft, ...parsed.data }
 
     try {
-      if (editType === EditType.editName && newProfile.userName) {
-        await saveSetting({ nickname: newProfile.userName })
-        setProfile(prev => ({ ...prev, userName: newProfile.userName }))
-        // 同步更新 auth store
-        updateUser({ nickname: newProfile.userName })
-      }
-      
-      if (editType === EditType.editTimeZone && newProfile.timeZone) {
-        await saveSetting({ timezone: newProfile.timeZone })
-        setProfile(prev => ({ ...prev, timeZone: newProfile.timeZone }))
-      }
-      
-      if (editType === EditType.editPassword && data.currPasswd && data.newPasswd) {
-        await saveSetting({
-          password: data.currPasswd,
-          new_password: data.newPasswd,
-        })
-        setProfile(prev => ({ ...prev, currPasswd: '********' }))
-      }
-    } catch (error) {
-      // 错误已在 mutation 的 onError 中处理
-      console.error('Save failed:', error)
-    }
-  }
+      const response = await saveProfileMutation.mutateAsync(nextProfile)
 
-  // 头像上传
-  const handleAvatarUpload = async (avatar: string) => {
+      if (response.retcode !== 0) {
+        toast.error(response.retmsg || '个人资料保存失败')
+        return false
+      }
+
+      setProfile(nextProfile)
+      setDraft(nextProfile)
+      setProfileErrors({})
+      setMode(ProfileMode.VIEW)
+
+      updateUser({
+        avatar: nextProfile.avatar,
+        nickname: nextProfile.userName,
+      })
+
+      queryClient.invalidateQueries({ queryKey: ['userProfile'] })
+      toast.success('个人资料已更新')
+      return true
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : '个人资料保存失败，请稍后重试'
+      toast.error(message)
+      return false
+    }
+  }, [draft, queryClient, saveProfileMutation, updateUser])
+
+  const changePassword = useCallback(async (data: PasswordChangeFormData) => {
+    const parsed = passwordChangeSchema.safeParse(data)
+
+    if (!parsed.success) {
+      toast.error('请检查密码输入后重试')
+      return false
+    }
+
     try {
-      await saveSetting({ avatar })
-      setProfile(prev => ({ ...prev, avatar }))
-      // 同步更新 auth store
-      updateUser({ avatar })
-    } catch (error) {
-      console.error('Avatar upload failed:', error)
-    }
-  }
+      const response = await changePasswordMutation.mutateAsync(parsed.data)
 
-  return {
+      if (response.retcode !== 0) {
+        toast.error(response.retmsg || '密码修改失败，请稍后重试')
+        return false
+      }
+
+      setMode(ProfileMode.VIEW)
+      toast.success('密码修改成功')
+      return true
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : '密码修改失败，请稍后重试'
+      toast.error(message)
+      return false
+    }
+  }, [changePasswordMutation])
+
+  return useMemo(() => ({
     profile,
-    setProfile,
+    draft,
+    profileErrors,
     loading,
-    submitLoading,
-    isEditing,
-    editType,
-    editForm,
-    handleEditClick,
-    handleCancel,
-    handleSave,
-    handleAvatarUpload,
-    refetch,
-  }
+    savingProfile: saveProfileMutation.isPending,
+    changingPassword: changePasswordMutation.isPending,
+    mode,
+    startEditing,
+    startChangingPassword,
+    cancelEditing,
+    closePasswordDialog,
+    updateDraft,
+    saveProfile,
+    changePassword,
+  }), [
+    cancelEditing,
+    changePassword,
+    changePasswordMutation.isPending,
+    closePasswordDialog,
+    draft,
+    loading,
+    mode,
+    profile,
+    profileErrors,
+    saveProfile,
+    saveProfileMutation.isPending,
+    startChangingPassword,
+    startEditing,
+    updateDraft,
+  ])
 }

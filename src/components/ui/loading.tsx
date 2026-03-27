@@ -125,7 +125,7 @@ const Loading = React.forwardRef<HTMLDivElement, LoadingProps>(
         <div
           ref={ref}
           className={cn(
-            "fixed inset-0 z-50 flex items-center justify-center bg-white/80",
+            "fixed inset-0 z-50 flex items-center justify-center bg-background-overlay backdrop-blur-sm",
             className
           )}
           {...props}
@@ -133,7 +133,7 @@ const Loading = React.forwardRef<HTMLDivElement, LoadingProps>(
           <div className="flex flex-col items-center space-y-4">
             <LoadingIcon />
             {text && (
-              <p className="text-sm text-gray-600 animate-pulse">{text}</p>
+              <p className="animate-pulse text-sm text-text-secondary">{text}</p>
             )}
           </div>
         </div>
@@ -149,7 +149,7 @@ const Loading = React.forwardRef<HTMLDivElement, LoadingProps>(
         <div className="flex flex-col items-center space-y-2">
           <LoadingIcon />
           {text && (
-            <p className="text-sm text-gray-600">{text}</p>
+            <p className="text-sm text-text-secondary">{text}</p>
           )}
         </div>
       </div>
@@ -173,7 +173,7 @@ export const Skeleton = React.forwardRef<HTMLDivElement, SkeletonProps>(
         <div
           ref={ref}
           className={cn(
-            "animate-pulse rounded bg-gray-200",
+            "animate-pulse rounded bg-background-subtle",
             className
           )}
           style={{ width, height: height || "1rem" }}
@@ -187,7 +187,7 @@ export const Skeleton = React.forwardRef<HTMLDivElement, SkeletonProps>(
         {Array.from({ length: lines }).map((_, i) => (
           <div
             key={i}
-            className="animate-pulse rounded bg-gray-200 h-4"
+            className="h-4 animate-pulse rounded bg-background-subtle"
             style={{
               width: i === lines - 1 ? "75%" : "100%",
             }}
@@ -205,4 +205,4 @@ export const Spinner: React.FC<Omit<LoadingProps, 'variant'>> = (props) => (
   <Loading variant="spinner" {...props} />
 )
 
-export { Loading, loadingVariants }
+export { Loading }

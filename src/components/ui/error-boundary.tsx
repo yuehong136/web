@@ -1,6 +1,5 @@
 import React from 'react'
-import { AlertTriangle, RefreshCw } from 'lucide-react'
-import { Button } from './button'
+import { PageErrorState } from '@/components/patterns'
 
 interface ErrorBoundaryState {
   hasError: boolean
@@ -39,28 +38,24 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
       }
 
       return (
-        <div className="flex flex-col items-center justify-center p-8 bg-red-50 rounded-lg border border-red-200">
-          <AlertTriangle className="h-12 w-12 text-red-500 mb-4" />
-          <h2 className="text-lg font-semibold text-red-800 mb-2">出现了一个错误</h2>
-          <p className="text-sm text-red-600 mb-4 text-center max-w-md">
-            {this.state.error?.message || '应用程序遇到了意外错误'}
-          </p>
-          <Button
-            onClick={this.handleRetry}
-            className="flex items-center space-x-2"
-            variant="outline"
-          >
-            <RefreshCw className="h-4 w-4" />
-            <span>重试</span>
-          </Button>
-          {process.env.NODE_ENV === 'development' && this.state.error && (
-            <details className="mt-4 w-full">
-              <summary className="text-xs text-gray-500 cursor-pointer">错误详情 (开发模式)</summary>
-              <pre className="mt-2 p-4 bg-gray-100 rounded text-xs overflow-auto">
-                {this.state.error.stack}
-              </pre>
-            </details>
-          )}
+        <div className="flex h-full min-h-[320px] flex-col">
+          <PageErrorState
+            title="出现了一个错误"
+            description={this.state.error?.message || '应用程序遇到了意外错误'}
+            onRetry={this.handleRetry}
+          />
+          {process.env.NODE_ENV === 'development' && this.state.error ? (
+            <div className="px-space-lg pb-space-lg">
+              <details className="rounded-radius-lg border border-border-subtle bg-background-subtle p-space-base">
+                <summary className="cursor-pointer text-xs text-text-secondary">
+                  错误详情 (开发模式)
+                </summary>
+                <pre className="mt-space-sm overflow-auto rounded-radius-md bg-background-surface p-space-sm text-xs text-text-secondary">
+                  {this.state.error.stack}
+                </pre>
+              </details>
+            </div>
+          ) : null}
         </div>
       )
     }

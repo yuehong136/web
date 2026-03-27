@@ -806,6 +806,46 @@ export interface DesignTokens {
   'components-canvas-note-title': string
   'components-canvas-note-text': string
 
+  // ===== 骨架与页面模板 =====
+  'components-app-shell-bg': string
+  'components-app-shell-surface': string
+  'components-app-shell-border': string
+  'components-app-shell-shadow': string
+  'components-main-workbench-bg': string
+  'components-main-workbench-surface': string
+  'components-main-workbench-border': string
+  'components-main-workbench-shadow': string
+  'components-page-header-bg': string
+  'components-page-header-border': string
+  'components-page-header-title': string
+  'components-page-header-description': string
+  'components-page-toolbar-bg': string
+  'components-page-toolbar-border': string
+  'components-page-toolbar-text': string
+  'components-page-state-bg': string
+  'components-page-state-border': string
+  'components-page-state-icon-bg': string
+  'components-page-state-icon': string
+  'components-page-state-title': string
+  'components-page-state-description': string
+  'components-settings-rail-bg': string
+  'components-settings-rail-border': string
+  'components-settings-rail-title': string
+  'components-settings-rail-description': string
+  'components-settings-rail-section-text': string
+  'components-console-bg': string
+  'components-console-surface': string
+  'components-console-border': string
+  'components-workspace-bg': string
+  'components-workspace-surface': string
+  'components-workspace-border': string
+  'components-studio-bg': string
+  'components-studio-surface': string
+  'components-studio-border': string
+  'components-split-pane-bg': string
+  'components-split-pane-surface': string
+  'components-split-pane-border': string
+
   // ===== 设置页面专用 =====
   'components-settings-sidebar-section-text': string
   'components-settings-content-bg': string
@@ -1666,6 +1706,46 @@ export const defaultTokens: DesignTokens = {
   'components-canvas-note-border-selected': '',
   'components-canvas-note-title': '',
   'components-canvas-note-text': '',
+
+  // 骨架与页面模板
+  'components-app-shell-bg': '',
+  'components-app-shell-surface': '',
+  'components-app-shell-border': '',
+  'components-app-shell-shadow': '',
+  'components-main-workbench-bg': '',
+  'components-main-workbench-surface': '',
+  'components-main-workbench-border': '',
+  'components-main-workbench-shadow': '',
+  'components-page-header-bg': '',
+  'components-page-header-border': '',
+  'components-page-header-title': '',
+  'components-page-header-description': '',
+  'components-page-toolbar-bg': '',
+  'components-page-toolbar-border': '',
+  'components-page-toolbar-text': '',
+  'components-page-state-bg': '',
+  'components-page-state-border': '',
+  'components-page-state-icon-bg': '',
+  'components-page-state-icon': '',
+  'components-page-state-title': '',
+  'components-page-state-description': '',
+  'components-settings-rail-bg': '',
+  'components-settings-rail-border': '',
+  'components-settings-rail-title': '',
+  'components-settings-rail-description': '',
+  'components-settings-rail-section-text': '',
+  'components-console-bg': '',
+  'components-console-surface': '',
+  'components-console-border': '',
+  'components-workspace-bg': '',
+  'components-workspace-surface': '',
+  'components-workspace-border': '',
+  'components-studio-bg': '',
+  'components-studio-surface': '',
+  'components-studio-border': '',
+  'components-split-pane-bg': '',
+  'components-split-pane-surface': '',
+  'components-split-pane-border': '',
 
   // 设置页面专用
   'components-settings-sidebar-section-text': '',

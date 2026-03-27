@@ -21,6 +21,8 @@ React 19 + TypeScript 5.8 + Vite 7 Multi-RAG frontend.
 - `src/stores/` - Zustand stores (auth, ui, chat, conversation, knowledge, model)
 - `src/pages/` - Page modules with nested routing
 - `src/components/ui/` - 48 base UI components
+- `src/components/patterns/` - page structure blocks (`PageHeader`, `PageState`, `SettingsRail`)
+- `src/components/page-templates/` - page skeletons (`Console`, `Workspace`, `Studio`, `SplitDetail`)
 - `src/hooks/` - TanStack Query hooks (`use-*-request.ts`)
 - `src/themes/` - Design tokens and theme generation
 
@@ -140,6 +142,42 @@ export const ChatContainer: React.FC = () => {
 };
 ```
 
+### Page Skeleton Layers (MANDATORY)
+
+Pages must follow this layering. Do not keep inventing page shells inside `src/pages/`.
+
+| Layer | Directory | Responsibility |
+|------|-----------|----------------|
+| L1 | `src/components/ui/` | Primitive UI only |
+| L2 | `src/components/patterns/` | Page structure blocks like `PageHeader`, `PageToolbar`, `PageErrorState` |
+| L3 | `src/components/page-templates/` | Full page skeletons |
+| L4 | `src/pages/` | Business orchestration only |
+
+**Required rules**:
+- New pages must choose a `page-template` first instead of defining a new full-page shell
+- Page-level header / empty / error / toolbar blocks must reuse `patterns`
+- `Layout` is only the route entry shell and must stay thin around `AppShell`
+- `/settings/*` must stay inside the main shell; never create a second root layout for settings again
+
+### Page Template Selection (MANDATORY)
+
+| Scene | Template | Typical usage |
+|------|----------|---------------|
+| Console | `ConsolePageTemplate` | settings, system, resources, management pages |
+| Workspace | `WorkspacePageTemplate` | home, chat, search workspaces |
+| Studio | `StudioPageTemplate` | agent canvas, prompt studio, orchestration screens |
+| Split Detail | `SplitDetailPageTemplate` | left/right split, list/detail, search console |
+
+### Page State Components (MANDATORY)
+
+Use these for new page-level states:
+
+- `PageLoadingState`
+- `PageEmptyState`
+- `PageErrorState`
+
+Do not add new page-local `spinner + text-gray-*` state blocks.
+
 ## Design Tokens (MANDATORY - NO ARBITRARY VALUES)
 
 ### Required Usage
@@ -164,6 +202,31 @@ export const ChatContainer: React.FC = () => {
 - **Icons**: `icon-sm/md/lg/xl/2xl`
 
 Dark mode: Automatic via tokens. Never use `dark:` prefix.
+
+### Shell and Scene Tokens (MANDATORY)
+
+Shells, templates, and page states must use scene-level semantic tokens:
+
+- `components-app-shell-*`
+- `components-main-workbench-*`
+- `components-page-header-*`
+- `components-page-toolbar-*`
+- `components-page-state-*`
+- `components-settings-rail-*`
+- `components-console-*`
+- `components-workspace-*`
+- `components-studio-*`
+- `components-split-pane-*`
+
+Do not rebuild skeletons with `bg-white`, `text-gray-*`, or `border-gray-*`.
+
+### Forbidden in `src/pages/**` (MANDATORY)
+
+- ❌ No new `bg-white`, `text-gray-*`, `border-gray-*`
+- ❌ No new native `<input>` / `<textarea>` unless the component layer cannot express the requirement and the file explains why
+- ❌ No page-level `style={{ color/backgroundColor/... }}` for normal visual semantics
+- ❌ No second fullscreen page shell, no standalone page white-card wrapper, no alternate root layout
+- ✅ Prefer `@/components/ui/*`, then `@/components/patterns/*`, then `@/components/page-templates/*`
 
 ## State Management
 

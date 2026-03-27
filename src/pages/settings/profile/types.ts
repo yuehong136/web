@@ -1,27 +1,25 @@
 import { z } from 'zod'
 
-// 基础表单 Schema
-export const baseSchema = z.object({
-  userName: z.string().min(1, { message: '用户名不能为空' }).trim(),
-  timeZone: z.string().min(1, { message: '请选择时区' }).trim(),
+export enum ProfileMode {
+  VIEW = 'view',
+  EDIT_PROFILE = 'edit-profile',
+  CHANGE_PASSWORD = 'change-password',
+}
+
+export const profileSchema = z.object({
+  userName: z.string().trim().min(1, { message: '用户名不能为空' }),
+  timeZone: z.string().trim().min(1, { message: '请选择时区' }),
+  avatar: z.string().optional().default(''),
 })
 
-// 用户名编辑 Schema
-export const nameSchema = baseSchema.extend({
-  currPasswd: z.string().optional(),
-  newPasswd: z.string().optional(),
-  confirmPasswd: z.string().optional(),
-})
-
-// 密码编辑 Schema
-export const passwordSchema = baseSchema
-  .extend({
-    currPasswd: z.string({ message: '请输入当前密码' }).trim().min(1, { message: '请输入当前密码' }),
-    newPasswd: z.string({ message: '请输入新密码' }).trim().min(8, { message: '新密码至少需要8个字符' }),
-    confirmPasswd: z.string({ message: '请确认新密码' }).trim().min(8, { message: '确认密码至少需要8个字符' }),
+export const passwordChangeSchema = z
+  .object({
+    currPasswd: z.string().trim().min(1, { message: '请输入当前密码' }),
+    newPasswd: z.string().trim().min(8, { message: '新密码至少需要8个字符' }),
+    confirmPasswd: z.string().trim().min(8, { message: '确认密码至少需要8个字符' }),
   })
   .superRefine((data, ctx) => {
-    if (data.newPasswd && data.confirmPasswd && data.newPasswd !== data.confirmPasswd) {
+    if (data.newPasswd !== data.confirmPasswd) {
       ctx.addIssue({
         path: ['confirmPasswd'],
         message: '两次输入的密码不一致',
@@ -30,8 +28,22 @@ export const passwordSchema = baseSchema
     }
   })
 
-export type FormData = z.infer<typeof baseSchema> & {
-  currPasswd?: string
-  newPasswd?: string
-  confirmPasswd?: string
+export type ProfileFormData = z.infer<typeof profileSchema>
+export type PasswordChangeFormData = z.infer<typeof passwordChangeSchema>
+
+export interface ProfileData extends ProfileFormData {
+  email: string
+}
+
+export interface ProfileFormErrors {
+  userName?: string
+  timeZone?: string
+  avatar?: string
+}
+
+export const defaultProfileData: ProfileData = {
+  userName: '',
+  avatar: '',
+  timeZone: 'UTC+8\tAsia/Shanghai',
+  email: '',
 }

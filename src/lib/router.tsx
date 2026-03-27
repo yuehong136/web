@@ -1,6 +1,7 @@
 import { Suspense, lazy, type ComponentType } from 'react'
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { Layout } from '@/components/layout/Layout'
+import { AppScene, PageEmptyState, PageLoadingState } from '@/components/patterns'
 import { ROUTES } from '@/constants'
 
 // ---------------------------------------------------------------------------
@@ -12,16 +13,19 @@ import { HomePage } from '@/pages/home'
 // ---------------------------------------------------------------------------
 // Suspense loading fallback
 // ---------------------------------------------------------------------------
-const PageLoading = () => (
-  <div className="flex h-full items-center justify-center">
-    <div className="h-icon-lg w-icon-lg animate-spin rounded-radius-full border-2 border-border-default border-t-transparent" />
-  </div>
+const pageLoadingFallback = (
+  <PageLoadingState
+    scene={AppScene.CONSOLE}
+    compact
+    title="页面加载中"
+    description="正在准备当前内容。"
+  />
 )
 
 /** Wrap a lazy component with Suspense */
 function withLoading(LazyComponent: React.LazyExoticComponent<ComponentType>) {
   return (
-    <Suspense fallback={<PageLoading />}>
+    <Suspense fallback={pageLoadingFallback}>
       <LazyComponent />
     </Suspense>
   )
@@ -86,7 +90,6 @@ const MCPChatPage = lazy(() => import('@/pages/MCPChatPage'))
 // Settings
 const SettingsLayout = lazyNamed(() => import('@/pages/settings/SettingsLayout'), 'SettingsLayout')
 const ProfilePage = lazyNamed(() => import('@/pages/settings/profile'), 'ProfilePage')
-const SecurityPage = lazyNamed(() => import('@/pages/settings/SecurityPage'), 'SecurityPage')
 const ModelProvidersPage = lazyNamed(() => import('@/pages/settings/model-providers'), 'ModelProvidersPage')
 const MCPServersPage = lazyNamed(() => import('@/pages/settings/MCPServersPage'), 'MCPServersPage')
 const MCPToolsPage = lazyNamed(() => import('@/pages/settings/MCPToolsPage'), 'MCPToolsPage')
@@ -105,31 +108,47 @@ const ThemeDemoPage = lazyNamed(() => import('@/pages/theme-demo/ThemeDemoPage')
 // ---------------------------------------------------------------------------
 // Placeholder pages
 // ---------------------------------------------------------------------------
-const Documents = () => (
-  <div className="p-6">
-    <h1 className="text-2xl font-bold mb-4">文件中心</h1>
-    <p className="text-gray-600">文件中心功能开发中...</p>
+const documentsElement = (
+  <div className="flex h-full items-center justify-center p-space-lg">
+    <PageEmptyState
+      scene={AppScene.CONSOLE}
+      title="文件中心即将推出"
+      description="文件中心能力正在整理为统一控制台体验。"
+      compact
+    />
   </div>
 )
 
-const Workflow = () => (
-  <div className="p-6">
-    <h1 className="text-2xl font-bold mb-4">工作流</h1>
-    <p className="text-gray-600">工作流功能开发中...</p>
+const workflowElement = (
+  <div className="flex h-full items-center justify-center p-space-lg">
+    <PageEmptyState
+      scene={AppScene.STUDIO}
+      title="工作流模块即将推出"
+      description="工作流会在后续以统一 Studio 骨架接入。"
+      compact
+    />
   </div>
 )
 
-const NotificationsPage = () => (
-  <div className="p-8">
-    <h2 className="text-2xl font-bold text-gray-900">通知设置</h2>
-    <p className="text-gray-600 mt-2">通知设置功能开发中...</p>
+const notificationsElement = (
+  <div className="flex h-full items-center justify-center p-space-lg">
+    <PageEmptyState
+      scene={AppScene.CONSOLE}
+      title="通知设置即将推出"
+      description="该设置项会复用统一 Console 模板补充。"
+      compact
+    />
   </div>
 )
 
-const AppearancePage = () => (
-  <div className="p-8">
-    <h2 className="text-2xl font-bold text-gray-900">界面设置</h2>
-    <p className="text-gray-600 mt-2">界面设置功能开发中...</p>
+const appearanceElement = (
+  <div className="flex h-full items-center justify-center p-space-lg">
+    <PageEmptyState
+      scene={AppScene.CONSOLE}
+      title="界面设置即将推出"
+      description="界面设置会在新骨架和主题规则稳定后接入。"
+      compact
+    />
   </div>
 )
 
@@ -251,7 +270,7 @@ export const router = createBrowserRouter([
       },
       {
         path: ROUTES.DOCUMENTS,
-        element: <Documents />,
+        element: documentsElement,
       },
       {
         path: ROUTES.AI_TOOLS,
@@ -267,7 +286,7 @@ export const router = createBrowserRouter([
       },
       {
         path: ROUTES.WORKFLOW,
-        element: <Workflow />,
+        element: workflowElement,
       },
       {
         path: ROUTES.AGENTS,
@@ -326,16 +345,12 @@ export const router = createBrowserRouter([
             element: withLoading(TeamPage),
           },
           {
-            path: 'security',
-            element: withLoading(SecurityPage),
-          },
-          {
             path: 'notifications',
-            element: <NotificationsPage />,
+            element: notificationsElement,
           },
           {
             path: 'appearance',
-            element: <AppearancePage />,
+            element: appearanceElement,
           },
           {
             path: 'model-providers',

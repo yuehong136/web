@@ -53,7 +53,7 @@ const SidebarTooltip: React.FC<SidebarTooltipProps> = ({
           <TooltipPrimitive.Content
             side="right"
             sideOffset={12}
-            className="z-50 rounded-lg bg-gray-900 px-3 py-1.5 text-sm text-white shadow-lg animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=right]:slide-in-from-left-2"
+            className="z-50 rounded-radius-md bg-components-tooltip-bg px-space-sm py-space-xs text-sm text-components-tooltip-text shadow-lg animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=right]:slide-in-from-left-2"
           >
             {content}
           </TooltipPrimitive.Content>
@@ -67,6 +67,7 @@ interface SidebarProps {
   className?: string
   collapsed?: boolean
   onCollapsedChange?: (collapsed: boolean) => void
+  allowCollapse?: boolean
 }
 
 interface NavItem {
@@ -127,7 +128,8 @@ const navItems: NavItem[] = [
 export const Sidebar: React.FC<SidebarProps> = ({
                                                   className,
                                                   collapsed = false,
-                                                  onCollapsedChange
+                                                  onCollapsedChange,
+                                                  allowCollapse = true,
                                                 }) => {
   const location = useLocation()
   const { notifications } = useUIStore()
@@ -143,8 +145,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const isHomePage = location.pathname === '/' || location.pathname === '/home'
 
   // 内部折叠状态（如果没有外部控制）
-  const [internalCollapsed, setInternalCollapsed] = React.useState(true) // 默认收起
-  const isCollapsed = onCollapsedChange ? collapsed : internalCollapsed
+  const [internalCollapsed, setInternalCollapsed] = React.useState(false)
+  const resolvedCollapsed = onCollapsedChange ? collapsed : internalCollapsed
+  const isCollapsed = allowCollapse ? resolvedCollapsed : false
   const setCollapsed = onCollapsedChange || setInternalCollapsed
 
   // 使用新的主题系统
@@ -199,8 +202,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <div className="flex items-center justify-between h-12">
             <div
                 className="flex items-center gap-3 cursor-pointer min-w-0"
-                onClick={isCollapsed ? () => setCollapsed(false) : undefined}
-                title={isCollapsed ? "展开侧边栏" : undefined}
+                onClick={allowCollapse && isCollapsed ? () => setCollapsed(false) : undefined}
+                title={allowCollapse && isCollapsed ? "展开侧边栏" : undefined}
             >
               {/* Logo - 固定尺寸，位置不变 */}
               <div
@@ -223,20 +226,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </span>
             </div>
             {/* 折叠按钮 */}
-            <button
-                onClick={() => setCollapsed(!isCollapsed)}
-                className={cn(
-                    "w-7 h-7 flex items-center justify-center rounded-lg flex-shrink-0",
-                    "text-components-icon-button-text hover:text-components-icon-button-text-hover hover:bg-components-icon-button-bg-hover",
-                    "transition-[opacity,transform] duration-200",
-                    isCollapsed
-                        ? "opacity-0 scale-0 pointer-events-none"
-                        : "opacity-100 scale-100 delay-150"
-                )}
-                title={isCollapsed ? "展开侧边栏" : "收起侧边栏"}
-            >
-              <PanelLeftClose className="h-4 w-4" />
-            </button>
+            {allowCollapse ? (
+              <button
+                  onClick={() => setCollapsed(!isCollapsed)}
+                  className={cn(
+                      "w-7 h-7 flex items-center justify-center rounded-lg flex-shrink-0",
+                      "text-components-icon-button-text hover:text-components-icon-button-text-hover hover:bg-components-icon-button-bg-hover",
+                      "transition-[opacity,transform] duration-200",
+                      isCollapsed
+                          ? "opacity-0 scale-0 pointer-events-none"
+                          : "opacity-100 scale-100 delay-150"
+                  )}
+                  title={isCollapsed ? "展开侧边栏" : "收起侧边栏"}
+              >
+                <PanelLeftClose className="h-4 w-4" />
+              </button>
+            ) : null}
           </div>
         </div>
 
