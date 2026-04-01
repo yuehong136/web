@@ -136,11 +136,7 @@ export const consumeStreamingAnswerChunk = (
     }
 
     if (typeof streamPayload.answer === 'string') {
-      if (streamPayload.final === true && streamPayload.answer) {
-        nextFullAnswer = streamPayload.answer
-      } else {
-        nextFullAnswer = mergeAnswerText(nextFullAnswer, streamPayload.answer)
-      }
+      nextFullAnswer = mergeAnswerText(nextFullAnswer, streamPayload.answer)
     }
 
     if (streamPayload.end_to_think === true && hasUnclosedThinkTag(nextFullAnswer)) {

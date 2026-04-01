@@ -434,7 +434,8 @@ export const useHomeChat = ({
         mcp_timeout: 30000,
         verbose_tool_use: true,
         files: [],
-        structured_output: selectedMCPIds.length > 0
+        structured_output: selectedMCPIds.length > 0,
+        delta_stream: true
       }
 
       const parser = new EnhancedSSEParser()

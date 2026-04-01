@@ -718,7 +718,8 @@ export default function MCPChatPage() {
         mcp_timeout: mcpConfig.mcp_timeout,
         verbose_tool_use: mcpConfig.verbose_tool_use,
         files: fileIds, // 传递已上传文件的 ID 列表
-        structured_output: selectedMCPIds.length > 0 // 根据是否有MCP工具自动设置结构化输出
+        structured_output: selectedMCPIds.length > 0, // 根据是否有MCP工具自动设置结构化输出
+        delta_stream: true
       };
 
       // 初始化增强SSE解析器

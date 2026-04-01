@@ -66,6 +66,7 @@ export const conversationAPI = {
     metadata_condition?: MetadataCondition  // 元数据过滤条件
     reasoning?: boolean  // 深度思考开关（参考 ragflow）
     internet?: boolean   // 联网搜索开关（参考 ragflow）
+    stream_output?: 'delta' | 'full'  // 流式输出格式：delta 增量，full 累计全文
   }) => {
     const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
     const fullUrl = `${baseURL}/v1/conversation/completion`
@@ -81,6 +82,7 @@ export const conversationAPI = {
         quote: false,
         stream: true,
         filter_condition: "",
+        stream_output: 'delta',
         ...data
       })
     })

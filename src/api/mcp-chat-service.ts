@@ -29,6 +29,8 @@ export interface MCPChatServiceRequest {
   files?: string[]
   // 结构化输出控制
   structured_output?: boolean
+  // 增量流式输出（后端默认已改为false，前端需要显式传true）
+  delta_stream?: boolean
 }
 
 /**
@@ -152,9 +154,11 @@ export const mcpChatAPI = {
       verbose_tool_use: request.verbose_tool_use !== undefined ? request.verbose_tool_use : false,
       files: request.files || [],
       // 结构化输出控制
-      structured_output: useStructuredOutput
+      structured_output: useStructuredOutput,
+      // 增量流式输出
+      delta_stream: true
     }
-    
+
     return fetch(fullUrl, {
       method: 'POST',
       headers: {
@@ -189,9 +193,11 @@ export const mcpChatAPI = {
       verbose_tool_use: request.verbose_tool_use !== undefined ? request.verbose_tool_use : false,
       files: request.files || [],
       // 结构化输出控制
-      structured_output: useStructuredOutput
+      structured_output: useStructuredOutput,
+      // 增量流式输出
+      delta_stream: true
     }
-    
+
     const response = await apiClient.post<any>('/llm/enhanced_chat_sse', requestData)
     
     // 处理响应数据

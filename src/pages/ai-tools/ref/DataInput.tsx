@@ -243,6 +243,7 @@ const DataInput: React.FC<DataInputProps> = ({
       verbose_tool_use: mcpConfig.verbose_tool_use,
       files: [],
       structured_output: mcpConfig.mcp_ids.length > 0,
+      delta_stream: true,
     }
 
     const parser = new EnhancedSSEParser()
