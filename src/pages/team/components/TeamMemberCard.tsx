@@ -7,68 +7,35 @@ import React from 'react'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Dropdown, DropdownItem } from '@/components/ui/dropdown'
-import { MoreVertical, Trash2, Mail, Clock, User } from 'lucide-react'
-import { cn, formatRelativeTime } from '@/lib/utils'
+import { MoreVertical, Trash2, Mail, Clock, User, ShieldPlus, ShieldMinus } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { RoleBadge } from './RoleBadge'
-import { TenantRole, type TeamMember } from '@/types/team'
+import { TenantRole, type TeamMember, type TeamPermissions } from '@/types/team'
 import type { TimeFormat } from '@/stores/team'
+import { formatTeamTime } from '../utils'
 
 interface TeamMemberCardProps {
   member: TeamMember
-  isOwner: boolean
+  currentUserId?: string
+  permissions: TeamPermissions
   onRemove?: (userId: string, nickname: string) => void
+  onChangeRole?: (userId: string, nickname: string, currentRole: TenantRole) => void
   timeFormat?: TimeFormat
-}
-
-// 将 delta_seconds 转换为可读时间
-const formatDeltaSeconds = (deltaSeconds: number): string => {
-  if (deltaSeconds < 60) return '刚刚'
-  if (deltaSeconds < 3600) return `${Math.floor(deltaSeconds / 60)} 分钟前`
-  if (deltaSeconds < 86400) return `${Math.floor(deltaSeconds / 3600)} 小时前`
-  if (deltaSeconds < 2592000) return `${Math.floor(deltaSeconds / 86400)} 天前`
-  return `${Math.floor(deltaSeconds / 2592000)} 个月前`
-}
-
-// 格式化时间，支持 update_date 字符串和 delta_seconds
-const formatTime = (
-  updateDate: string | undefined,
-  deltaSeconds: number | undefined,
-  format: TimeFormat
-) => {
-  if (format === 'relative' && deltaSeconds !== undefined) {
-    return formatDeltaSeconds(deltaSeconds)
-  }
-  
-  if (!updateDate) return '未知时间'
-  
-  const date = new Date(updateDate)
-  if (isNaN(date.getTime())) return updateDate
-  
-  switch (format) {
-    case 'detailed':
-      return date.toLocaleString('zh-CN', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-      })
-    case 'compact':
-      return date.toLocaleDateString('zh-CN')
-    case 'relative':
-      return formatRelativeTime(date.getTime())
-    default:
-      return date.toLocaleString('zh-CN')
-  }
 }
 
 export const TeamMemberCard: React.FC<TeamMemberCardProps> = ({
   member,
-  isOwner,
+  currentUserId,
+  permissions,
   onRemove,
+  onChangeRole,
   timeFormat = 'detailed',
 }) => {
-  const canRemove = isOwner && member.role !== TenantRole.Owner
+  const isSelf = member.user_id === currentUserId
+  // 不能对自己执行移除或角色变更操作
+  const canRemove = permissions.canRemove && member.role !== TenantRole.Owner && !isSelf
+  const canChangeRole = permissions.canChangeRole && member.role !== TenantRole.Owner && member.role !== TenantRole.Invite && !isSelf
+  const hasActions = canRemove || canChangeRole
   const [isHovered, setIsHovered] = React.useState(false)
 
   return (
@@ -102,13 +69,16 @@ export const TeamMemberCard: React.FC<TeamMemberCardProps> = ({
                 title={member.nickname}
               >
                 {member.nickname || '未命名用户'}
+                {isSelf && (
+                  <span className="ml-1 text-xs font-normal text-text-tertiary">（我）</span>
+                )}
               </h3>
               <RoleBadge role={member.role} className="mt-1" />
             </div>
           </div>
 
-          {/* 操作菜单 - 只有所有者可以移除成员 */}
-          {canRemove && onRemove && (
+          {/* 操作菜单 */}
+          {hasActions && (
             <div onClick={(e) => e.stopPropagation()}>
               <Dropdown
                 trigger={
@@ -121,13 +91,31 @@ export const TeamMemberCard: React.FC<TeamMemberCardProps> = ({
                   </Button>
                 }
               >
-                <DropdownItem
-                  icon={<Trash2 className="h-4 w-4" />}
-                  onClick={() => onRemove(member.user_id, member.nickname)}
-                  danger
-                >
-                  移除成员
-                </DropdownItem>
+                {canChangeRole && member.role === TenantRole.Normal && onChangeRole && (
+                  <DropdownItem
+                    icon={<ShieldPlus className="h-4 w-4" />}
+                    onClick={() => onChangeRole(member.user_id, member.nickname, member.role)}
+                  >
+                    设为管理员
+                  </DropdownItem>
+                )}
+                {canChangeRole && member.role === TenantRole.Admin && onChangeRole && (
+                  <DropdownItem
+                    icon={<ShieldMinus className="h-4 w-4" />}
+                    onClick={() => onChangeRole(member.user_id, member.nickname, member.role)}
+                  >
+                    取消管理员
+                  </DropdownItem>
+                )}
+                {canRemove && onRemove && (
+                  <DropdownItem
+                    icon={<Trash2 className="h-4 w-4" />}
+                    onClick={() => onRemove(member.user_id, member.nickname)}
+                    danger
+                  >
+                    {member.role === TenantRole.Invite ? '撤销邀请' : '移除成员'}
+                  </DropdownItem>
+                )}
               </Dropdown>
             </div>
           )}
@@ -143,7 +131,7 @@ export const TeamMemberCard: React.FC<TeamMemberCardProps> = ({
           </div>
           <div className="flex items-center gap-2">
             <Clock className="h-4 w-4 shrink-0" />
-            <span>{formatTime(member.update_date, member.delta_seconds, timeFormat)}</span>
+            <span>{formatTeamTime(member.update_date, member.delta_seconds, timeFormat)}</span>
           </div>
         </div>
       </div>

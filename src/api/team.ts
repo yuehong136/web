@@ -8,6 +8,8 @@ import type {
   TenantInfo,
   TeamMembersResponse,
   JoinedTeamsResponse,
+  BatchInviteResponse,
+  UpdateRoleResponse,
 } from '@/types/team'
 
 export const teamAPI = {
@@ -15,15 +17,23 @@ export const teamAPI = {
   getTenantInfo: (): Promise<TenantInfo> =>
     apiClient.get('/user/tenant_info'),
 
-  // 获取团队成员列表
+  // 获取团队成员列表（owner 和 admin 均可调用）
   listTeamMembers: (tenantId: string): Promise<TeamMembersResponse> =>
     apiClient.get(`/tenant/${tenantId}/user/list`),
 
-  // 邀请成员加入团队
+  // 邀请单个成员加入团队
   inviteMember: (tenantId: string, email: string): Promise<void> =>
     apiClient.post(`/tenant/${tenantId}/user`, { email }),
 
-  // 移除团队成员
+  // 批量邀请成员加入团队
+  batchInviteMembers: (tenantId: string, emails: string[]): Promise<BatchInviteResponse> =>
+    apiClient.post(`/tenant/${tenantId}/user/batch`, { emails }),
+
+  // 更新成员角色（仅 owner 可调用）
+  updateMemberRole: (tenantId: string, userId: string, role: 'admin' | 'normal'): Promise<UpdateRoleResponse> =>
+    apiClient.put(`/tenant/${tenantId}/user/${userId}/role`, { role }),
+
+  // 移除团队成员 / 撤销邀请
   removeMember: (tenantId: string, userId: string): Promise<void> =>
     apiClient.delete(`/tenant/${tenantId}/user/${userId}`),
 

@@ -6,61 +6,21 @@
 import React from 'react'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { Users, Check, X, LogOut } from 'lucide-react'
-import { cn, formatRelativeTime } from '@/lib/utils'
+import { Users, Check, X, LogOut, Settings } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { RoleBadge } from './RoleBadge'
 import { TenantRole, type JoinedTeam } from '@/types/team'
 import type { TimeFormat } from '@/stores/team'
+import { formatTeamTime } from '../utils'
 
 interface JoinedTeamListRowProps {
   team: JoinedTeam
   onAccept?: (tenantId: string) => void
   onReject?: (tenantId: string) => void
   onLeave?: (tenantId: string, nickname: string) => void
+  onManageTeam?: (tenantId: string) => void
   timeFormat?: TimeFormat
   isLoading?: boolean
-}
-
-// 将 delta_seconds 转换为可读时间
-const formatDeltaSeconds = (deltaSeconds: number): string => {
-  if (deltaSeconds < 60) return '刚刚'
-  if (deltaSeconds < 3600) return `${Math.floor(deltaSeconds / 60)} 分钟前`
-  if (deltaSeconds < 86400) return `${Math.floor(deltaSeconds / 3600)} 小时前`
-  if (deltaSeconds < 2592000) return `${Math.floor(deltaSeconds / 86400)} 天前`
-  return `${Math.floor(deltaSeconds / 2592000)} 个月前`
-}
-
-// 格式化时间，支持 update_date 字符串和 delta_seconds
-const formatTime = (
-  updateDate: string | undefined,
-  deltaSeconds: number | undefined,
-  format: TimeFormat
-) => {
-  if (format === 'relative' && deltaSeconds !== undefined) {
-    return formatDeltaSeconds(deltaSeconds)
-  }
-  
-  if (!updateDate) return '未知时间'
-  
-  const date = new Date(updateDate)
-  if (isNaN(date.getTime())) return updateDate
-  
-  switch (format) {
-    case 'detailed':
-      return date.toLocaleString('zh-CN', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-      })
-    case 'compact':
-      return date.toLocaleDateString('zh-CN')
-    case 'relative':
-      return formatRelativeTime(date.getTime())
-    default:
-      return date.toLocaleString('zh-CN')
-  }
 }
 
 export const JoinedTeamListRow: React.FC<JoinedTeamListRowProps> = ({
@@ -68,12 +28,13 @@ export const JoinedTeamListRow: React.FC<JoinedTeamListRowProps> = ({
   onAccept,
   onReject,
   onLeave,
+  onManageTeam,
   timeFormat = 'detailed',
   isLoading = false,
 }) => {
   const isPending = team.role === TenantRole.Invite
   const isNormal = team.role === TenantRole.Normal
-  const isOwner = team.role === TenantRole.Owner
+  const isManager = team.role === TenantRole.Owner || team.role === TenantRole.Admin
 
   return (
     <div
@@ -120,7 +81,7 @@ export const JoinedTeamListRow: React.FC<JoinedTeamListRowProps> = ({
 
       {/* 更新时间列 */}
       <div className="text-sm text-text-tertiary">
-        {formatTime(team.update_date, team.delta_seconds, timeFormat)}
+        {formatTeamTime(team.update_date, team.delta_seconds, timeFormat)}
       </div>
 
       {/* 操作列 */}
@@ -161,8 +122,16 @@ export const JoinedTeamListRow: React.FC<JoinedTeamListRowProps> = ({
             <LogOut className="h-4 w-4" />
           </Button>
         )}
-        {isOwner && (
-          <span className="text-xs text-text-tertiary px-2">所有者</span>
+        {isManager && (
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => onManageTeam?.(team.tenant_id)}
+            className="opacity-0 group-hover:opacity-100 text-text-tertiary hover:text-text-accent hover:bg-surface-secondary transition-all"
+            title="管理团队"
+          >
+            <Settings className="h-4 w-4" />
+          </Button>
         )}
       </div>
     </div>

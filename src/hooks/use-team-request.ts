@@ -8,6 +8,7 @@ import { teamAPI } from '@/api/team'
 import type {
   TeamMember,
   JoinedTeam,
+  BatchInviteResponse,
 } from '@/types/team'
 
 // Query Keys 统一管理
@@ -42,13 +43,12 @@ export const useFetchTenantInfo = () => {
 }
 
 // 获取团队成员列表
-// 注意：此接口只有团队 owner 才能调用（后端会验证 current_user.id == tenantId）
+// 注意：owner 和 admin 均可调用此接口（后端通过 require_member_manager 校验）
 export const useFetchTeamMembers = (tenantId?: string) => {
   const { data, isFetching, isError, error, refetch } = useQuery({
     queryKey: teamKeys.memberList(tenantId || ''),
     queryFn: async () => {
       if (!tenantId) return []
-      // ragflow 后端直接返回数组，不需要包装
       const response = await teamAPI.listTeamMembers(tenantId)
       return response
     },
@@ -59,7 +59,6 @@ export const useFetchTeamMembers = (tenantId?: string) => {
   })
 
   return {
-    // ragflow 后端直接返回 TeamMember[]，不是 { users: [...] }
     members: (data ?? []) as TeamMember[],
     isLoading: isFetching,
     isError,
@@ -74,7 +73,6 @@ export const useFetchJoinedTeams = () => {
   const { data, isFetching, isError, error, refetch } = useQuery({
     queryKey: teamKeys.joinedTeams(),
     queryFn: async () => {
-      // ragflow 后端直接返回数组，不需要包装
       const response = await teamAPI.listJoinedTeams()
       return response
     },
@@ -84,7 +82,6 @@ export const useFetchJoinedTeams = () => {
   })
 
   return {
-    // ragflow 后端直接返回 JoinedTeam[]，不是 { tenants: [...] }
     joinedTeams: (data ?? []) as JoinedTeam[],
     isLoading: isFetching,
     isError,
@@ -93,7 +90,7 @@ export const useFetchJoinedTeams = () => {
   }
 }
 
-// 邀请成员
+// 邀请单个成员
 export const useInviteMember = () => {
   const queryClient = useQueryClient()
 
@@ -102,13 +99,54 @@ export const useInviteMember = () => {
       await teamAPI.inviteMember(tenantId, email)
     },
     onSuccess: (_, variables) => {
-      // 邀请成功后，刷新成员列表
       queryClient.invalidateQueries({ queryKey: teamKeys.memberList(variables.tenantId) })
     },
   })
 
   return {
     inviteMember: mutateAsync,
+    isLoading: isPending,
+    isError,
+    error,
+  }
+}
+
+// 批量邀请成员
+export const useBatchInviteMembers = () => {
+  const queryClient = useQueryClient()
+
+  const { mutateAsync, isPending, isError, error } = useMutation({
+    mutationFn: async ({ tenantId, emails }: { tenantId: string; emails: string[] }): Promise<BatchInviteResponse> => {
+      return await teamAPI.batchInviteMembers(tenantId, emails)
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: teamKeys.memberList(variables.tenantId) })
+    },
+  })
+
+  return {
+    batchInvite: mutateAsync,
+    isLoading: isPending,
+    isError,
+    error,
+  }
+}
+
+// 更新成员角色（仅 owner 可调用）
+export const useUpdateMemberRole = () => {
+  const queryClient = useQueryClient()
+
+  const { mutateAsync, isPending, isError, error } = useMutation({
+    mutationFn: async ({ tenantId, userId, role }: { tenantId: string; userId: string; role: 'admin' | 'normal' }) => {
+      return await teamAPI.updateMemberRole(tenantId, userId, role)
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: teamKeys.memberList(variables.tenantId) })
+    },
+  })
+
+  return {
+    updateRole: mutateAsync,
     isLoading: isPending,
     isError,
     error,
@@ -124,7 +162,6 @@ export const useRemoveMember = () => {
       await teamAPI.removeMember(tenantId, userId)
     },
     onSuccess: (_, variables) => {
-      // 移除成功后，刷新成员列表
       queryClient.invalidateQueries({ queryKey: teamKeys.memberList(variables.tenantId) })
     },
   })
@@ -146,7 +183,6 @@ export const useAcceptInvitation = () => {
       await teamAPI.acceptInvitation(tenantId)
     },
     onSuccess: () => {
-      // 接受邀请后，刷新已加入团队列表
       queryClient.invalidateQueries({ queryKey: teamKeys.joinedTeams() })
     },
   })
@@ -168,7 +204,6 @@ export const useRejectInvitation = () => {
       await teamAPI.rejectInvitation(tenantId, userId)
     },
     onSuccess: () => {
-      // 拒绝邀请后，刷新已加入团队列表
       queryClient.invalidateQueries({ queryKey: teamKeys.joinedTeams() })
     },
   })

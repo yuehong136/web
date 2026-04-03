@@ -4,7 +4,7 @@
  */
 
 import React from 'react'
-import { Crown, UserCheck, Clock } from 'lucide-react'
+import { Crown, Shield, UserCheck, Clock } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { TenantRole } from '@/types/team'
 
@@ -18,6 +18,11 @@ const roleConfig = {
     label: '所有者',
     icon: Crown,
     className: 'bg-[var(--color-status-warning-bg)] text-[var(--color-status-warning-text)]',
+  },
+  [TenantRole.Admin]: {
+    label: '管理员',
+    icon: Shield,
+    className: 'bg-[var(--color-components-badge-purple-bg)] text-[var(--color-components-badge-purple-text)]',
   },
   [TenantRole.Normal]: {
     label: '成员',

@@ -4,6 +4,7 @@
  */
 
 import { create } from 'zustand'
+import type { BatchInviteResponse } from '@/types/team'
 
 export type TeamViewMode = 'grid' | 'list'
 export type TeamActiveTab = 'my-team' | 'joined-teams'
@@ -11,10 +12,14 @@ export type TimeFormat = 'detailed' | 'compact' | 'relative'
 
 export interface ConfirmDialogState {
   open: boolean
-  type: 'remove' | 'leave' | null
+  type: 'remove' | 'leave' | 'change-role' | null
   target: {
     id: string
     name: string
+  } | null
+  // 角色变更专用
+  roleChangeInfo?: {
+    newRole: 'admin' | 'normal'
   } | null
 }
 
@@ -41,13 +46,25 @@ interface TeamUIState {
   timeFormat: TimeFormat
   setTimeFormat: (format: TimeFormat) => void
 
+  // 当前管理的团队 ID（团队管理 tab 的团队选择器）
+  selectedManagedTenantId: string | null
+  setSelectedManagedTenantId: (id: string | null) => void
+
   // 邀请对话框状态
   inviteDialogOpen: boolean
   setInviteDialogOpen: (open: boolean) => void
 
+  // 批量邀请结果
+  batchInviteResults: BatchInviteResponse | null
+  setBatchInviteResults: (results: BatchInviteResponse | null) => void
+
   // 确认对话框状态
   confirmDialog: ConfirmDialogState
-  openConfirmDialog: (type: 'remove' | 'leave', target: { id: string; name: string }) => void
+  openConfirmDialog: (
+    type: 'remove' | 'leave' | 'change-role',
+    target: { id: string; name: string },
+    roleChangeInfo?: { newRole: 'admin' | 'normal' }
+  ) => void
   closeConfirmDialog: () => void
 
   // 重置所有状态
@@ -61,11 +78,14 @@ const initialState = {
   memberSearchQuery: '',
   teamSearchQuery: '',
   timeFormat: 'detailed' as TimeFormat,
+  selectedManagedTenantId: null as string | null,
   inviteDialogOpen: false,
+  batchInviteResults: null as BatchInviteResponse | null,
   confirmDialog: {
     open: false,
     type: null,
     target: null,
+    roleChangeInfo: null,
   } as ConfirmDialogState,
 }
 
@@ -78,14 +98,17 @@ export const useTeamStore = create<TeamUIState>()((set) => ({
   setMemberSearchQuery: (query) => set({ memberSearchQuery: query }),
   setTeamSearchQuery: (query) => set({ teamSearchQuery: query }),
   setTimeFormat: (format) => set({ timeFormat: format }),
+  setSelectedManagedTenantId: (id) => set({ selectedManagedTenantId: id }),
   setInviteDialogOpen: (open) => set({ inviteDialogOpen: open }),
+  setBatchInviteResults: (results) => set({ batchInviteResults: results }),
 
-  openConfirmDialog: (type, target) =>
+  openConfirmDialog: (type, target, roleChangeInfo) =>
     set({
       confirmDialog: {
         open: true,
         type,
         target,
+        roleChangeInfo: roleChangeInfo ?? null,
       },
     }),
 
@@ -95,6 +118,7 @@ export const useTeamStore = create<TeamUIState>()((set) => ({
         open: false,
         type: null,
         target: null,
+        roleChangeInfo: null,
       },
     }),
 

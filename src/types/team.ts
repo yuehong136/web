@@ -6,8 +6,20 @@
 // 租户角色枚举
 export const enum TenantRole {
   Owner = 'owner',
+  Admin = 'admin',
   Invite = 'invite',
   Normal = 'normal',
+}
+
+// 邀请结果状态枚举
+export const enum InviteResultStatus {
+  Invited = 'invited',
+  AlreadyMember = 'already_member',
+  AlreadyAdmin = 'already_admin',
+  AlreadyOwner = 'already_owner',
+  AlreadyInvited = 'already_invited',
+  UserNotFound = 'user_not_found',
+  InvalidEmail = 'invalid_email',
 }
 
 // 团队成员信息
@@ -59,6 +71,49 @@ export interface InviteMemberRequest {
   email: string
 }
 
+// 批量邀请请求
+export interface BatchInviteRequest {
+  emails: string[]
+}
+
+// 批量邀请单条结果
+export interface BatchInviteResultItem {
+  email: string
+  status: InviteResultStatus
+  message: string
+  user_id?: string | null
+  nickname?: string | null
+}
+
+// 批量邀请汇总
+export interface BatchInviteResultSummary {
+  total: number
+  invited: number
+  already_member: number
+  already_admin: number
+  already_owner: number
+  already_invited: number
+  user_not_found: number
+  invalid_email: number
+}
+
+// 批量邀请响应
+export interface BatchInviteResponse {
+  results: BatchInviteResultItem[]
+  summary: BatchInviteResultSummary
+}
+
+// 更新角色请求
+export interface UpdateRoleRequest {
+  role: 'admin' | 'normal'
+}
+
+// 更新角色响应
+export interface UpdateRoleResponse {
+  user_id: string
+  role: string
+}
+
 // 响应邀请请求
 export interface RespondInvitationRequest {
   agree: boolean
@@ -74,6 +129,14 @@ export type JoinedTeamsResponse = JoinedTeam[]
 export interface TeamStats {
   totalMembers: number
   activeMembers: number
+  adminMembers: number
   pendingInvites: number
   joinedTeams: number
+}
+
+// 团队管理权限
+export interface TeamPermissions {
+  canInvite: boolean
+  canRemove: boolean
+  canChangeRole: boolean
 }
