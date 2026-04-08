@@ -1,5 +1,6 @@
 import merge from 'lodash/merge'
 import type { AgentOperator } from '@/types/agent'
+import { normalizeMessageFormForStore } from '../utils/message-content'
 import {
   Operator,
   initialAgentValues,
@@ -142,7 +143,12 @@ export function mergeOperatorFormWithDefaults(
   operator: OperatorType,
   form?: Record<string, unknown>,
 ): Record<string, unknown> {
-  return merge({}, getOperatorDefaultForm(operator), form || {})
+  const nextForm =
+    operator === Operator.Message
+      ? normalizeMessageFormForStore(form)
+      : form || {}
+
+  return merge({}, getOperatorDefaultForm(operator), nextForm)
 }
 
 export function buildDslOperatorParams(

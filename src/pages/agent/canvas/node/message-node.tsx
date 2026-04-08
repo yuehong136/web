@@ -10,11 +10,10 @@ import { NodeWrapper } from './node-wrapper'
 import { NodeHandleId } from '../../constant'
 import { ToolBar } from './toolbar'
 import { needsSingleStepDebugging, showCopyIcon } from '../../utils'
+import { getMessagePreviewText } from '../../utils/message-content'
 
 function InnerMessageNode({ id, data, isConnectable, selected }: NodeProps<IMessageNode>) {
-  const content = Array.isArray(data.form?.content) 
-    ? data.form.content[0] 
-    : ''
+  const content = getMessagePreviewText(data.form?.content)
 
   return (
     <ToolBar

@@ -3,11 +3,12 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
-import { initialMessageValues } from '../../constant'
-import { useFormValues } from '../../hooks/use-form-values'
-import { useWatchFormChange } from '../../hooks/use-watch-form-change'
 import type { INextOperatorForm } from '../../types'
 import { DynamicStringForm, FormWrapper } from '../components'
+import {
+  useMessageFormValues,
+  useWatchMessageFormChange,
+} from './hooks'
 
 const schema = z.object({
   content: z
@@ -15,33 +16,16 @@ const schema = z.object({
     .optional(),
 })
 
-function normalizeContent(content: unknown): Array<{ value: string }> {
-  if (!content) {
-    return [{ value: '' }]
-  }
-
-  if (Array.isArray(content)) {
-    return content.map((item) =>
-      typeof item === 'string' ? { value: item } : { value: item.value ?? '' },
-    )
-  }
-
-  return [{ value: '' }]
-}
-
 export function MessageForm({ node }: INextOperatorForm) {
   const { t } = useTranslation()
-  const rawValues = useFormValues(initialMessageValues, node)
+  const values = useMessageFormValues(node)
 
   const form = useForm({
     resolver: zodResolver(schema),
-    defaultValues: {
-      ...rawValues,
-      content: normalizeContent(rawValues?.content),
-    },
+    defaultValues: values,
   })
 
-  useWatchFormChange(node?.id, form)
+  useWatchMessageFormChange(node?.id, form)
 
   return (
     <Form {...form}>

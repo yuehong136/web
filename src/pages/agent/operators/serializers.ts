@@ -13,6 +13,7 @@ import { AgentCanvasType as CanvasType } from '@/types/agent'
 import { BeginId, Operator, type Operator as OperatorType } from '../constant'
 import { getOperatorDefaultForm, mergeOperatorFormWithDefaults } from './defaults'
 import { getOperatorDefinition } from './registry'
+import { normalizeMessageFormForStore } from '../utils/message-content'
 import type {
   BuildGraphNodeOptions,
   DeserializeDslOptions,
@@ -48,12 +49,19 @@ export function createDefaultNodeData(
 ): AgentNodeData {
   const definition = getOperatorDefinition(operator)
   const baseForm = getOperatorDefaultForm(operator)
+  const { form, ...restOverrides } = overrides
+  const nextForm =
+    operator === Operator.Message
+      ? normalizeMessageFormForStore(
+          form as Record<string, unknown> | undefined,
+        )
+      : form || {}
 
   return {
     label: operator,
     name: definition?.defaultName || operator,
-    form: merge({}, baseForm, overrides.form || {}),
-    ...overrides,
+    ...restOverrides,
+    form: merge({}, baseForm, nextForm),
   }
 }
 

@@ -3,16 +3,23 @@ import test from 'node:test'
 import { Operator } from '../../../constant'
 import { AgentForm } from '../../../form/agent'
 import { BeginForm } from '../../../form/begin'
+import { DataOperationsForm } from '../../../form/data-operations'
 import { GenerateForm } from '../../../form/generate'
 import { InvokeForm } from '../../../form/invoke'
 import { IterationForm } from '../../../form/iteration'
 import { IterationStartForm } from '../../../form/iteration-start'
+import { ListOperationsForm } from '../../../form/list-operations'
 import { LoopForm } from '../../../form/loop'
 import { MessageForm } from '../../../form/message'
 import { RetrievalForm } from '../../../form/retrieval'
+import { StringTransformForm } from '../../../form/string-transform'
 import { SwitchForm } from '../../../form/switch'
 import { ToolForm } from '../../../form/tool'
+import { UserFillUpForm } from '../../../form/user-fill-up'
+import { VariableAggregatorForm } from '../../../form/variable-aggregator'
+import { VariableAssignerForm } from '../../../form/variable-assigner'
 import { BingForm } from '../../../form/bing-form'
+import { EmailForm } from '../../../form/email-form'
 import { McpForm } from '../../../form/mcp-form'
 import { FormConfigMap } from '../../../form/index'
 import {
@@ -34,20 +41,30 @@ test('migrated operators resolve to directory modules in the form renderer', () 
   assert.equal(resolveFormRendererComponent(Operator.IterationStart), IterationStartForm)
   assert.equal(resolveFormRendererComponent(Operator.Loop), LoopForm)
   assert.equal(resolveFormRendererComponent(Operator.Invoke), InvokeForm)
+  assert.equal(resolveFormRendererComponent(Operator.DataOperations), DataOperationsForm)
+  assert.equal(resolveFormRendererComponent(Operator.ListOperations), ListOperationsForm)
+  assert.equal(resolveFormRendererComponent(Operator.VariableAggregator), VariableAggregatorForm)
+  assert.equal(resolveFormRendererComponent(Operator.VariableAssigner), VariableAssignerForm)
+  assert.equal(resolveFormRendererComponent(Operator.UserFillUp), UserFillUpForm)
+  assert.equal(resolveFormRendererComponent(Operator.StringTransform), StringTransformForm)
   assert.equal(migratedFormRenderers[Operator.Begin], BeginForm)
   assert.equal(migratedFormRenderers[Operator.Agent], AgentForm)
   assert.equal(migratedFormRenderers[Operator.Iteration], IterationForm)
   assert.equal(migratedFormRenderers[Operator.Invoke], InvokeForm)
+  assert.equal(migratedFormRenderers[Operator.DataOperations], DataOperationsForm)
+  assert.equal(migratedFormRenderers[Operator.ListOperations], ListOperationsForm)
+  assert.equal(migratedFormRenderers[Operator.VariableAggregator], VariableAggregatorForm)
+  assert.equal(migratedFormRenderers[Operator.VariableAssigner], VariableAssignerForm)
+  assert.equal(migratedFormRenderers[Operator.UserFillUp], UserFillUpForm)
+  assert.equal(migratedFormRenderers[Operator.StringTransform], StringTransformForm)
 })
 
 test('legacy operators and the MCP renderer stay on compatibility bridges', () => {
   assert.equal(resolveFormRendererComponent(Operator.Bing), BingForm)
+  assert.equal(resolveFormRendererComponent(Operator.Email), EmailForm)
   assert.equal(resolveFormRendererComponent(MCP_FORM_RENDERER_KEY), McpForm)
   assert.equal(legacyFormRenderers[Operator.Bing], BingForm)
-  assert.equal(
-    legacyFormRenderers[Operator.VariableAssigner],
-    FormConfigMap[Operator.VariableAssigner],
-  )
+  assert.equal(legacyFormRenderers[Operator.Email], EmailForm)
   assert.equal(legacyFormRenderers[MCP_FORM_RENDERER_KEY], McpForm)
   assert.equal(resolveFormRendererComponent(undefined), null)
 })
@@ -60,5 +77,11 @@ test('form config map keeps migrated operators available through the compatibili
   assert.equal(FormConfigMap[Operator.IterationStart], IterationStartForm)
   assert.equal(FormConfigMap[Operator.Loop], LoopForm)
   assert.equal(FormConfigMap[Operator.Invoke], InvokeForm)
+  assert.equal(FormConfigMap[Operator.DataOperations], DataOperationsForm)
+  assert.equal(FormConfigMap[Operator.ListOperations], ListOperationsForm)
+  assert.equal(FormConfigMap[Operator.VariableAggregator], VariableAggregatorForm)
+  assert.equal(FormConfigMap[Operator.VariableAssigner], VariableAssignerForm)
+  assert.equal(FormConfigMap[Operator.UserFillUp], UserFillUpForm)
+  assert.equal(FormConfigMap[Operator.StringTransform], StringTransformForm)
   assert.equal(FormConfigMap[Operator.Bing], BingForm)
 })

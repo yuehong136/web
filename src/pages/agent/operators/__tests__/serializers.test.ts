@@ -62,6 +62,66 @@ test('serializeGraphToDsl excludes non-dsl operators and preserves graph edges',
   assert.equal(dsl.graph?.edges[0]?.type, 'buttonEdge')
 })
 
+test('message nodes normalize editor object content back to persisted string arrays', () => {
+  const messageNode = buildGraphNode(Operator.Message, {
+    id: 'message-object',
+    form: {
+      content: [{ value: 'hello' }],
+    },
+  })
+
+  assert.deepEqual(
+    (messageNode.data.form as Record<string, unknown> | undefined)?.content,
+    ['hello'],
+  )
+
+  const dsl = serializeGraphToDsl({
+    graph: { nodes: [messageNode], edges: [] },
+    baseDsl: {
+      history: [],
+      messages: [],
+      reference: [],
+      globals: {},
+      variables: {},
+      retrieval: [],
+    },
+  })
+
+  assert.deepEqual(
+    dsl.components['message-object']?.obj.params.content,
+    ['hello'],
+  )
+
+  const reconstructed = deserializeDslToGraph(
+    {
+      components: {
+        'message-reconstructed': {
+          obj: {
+            component_name: Operator.Message,
+            params: {
+              content: [{ value: 'world' }],
+            },
+          },
+          downstream: [],
+          upstream: [],
+        },
+      },
+      history: [],
+      messages: [],
+      reference: [],
+      globals: {},
+      retrieval: [],
+    },
+    { canvasType: AgentCanvasType.AGENT },
+  )
+
+  assert.deepEqual(
+    (reconstructed.graph.nodes[0]?.data.form as Record<string, unknown> | undefined)
+      ?.content,
+    ['world'],
+  )
+})
+
 test('buildInitialDsl always includes path as an empty array', () => {
   const agentDsl = buildInitialDsl(AgentCanvasType.AGENT)
   const pipelineDsl = buildInitialDsl(AgentCanvasType.PIPELINE)

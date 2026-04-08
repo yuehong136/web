@@ -7,7 +7,7 @@ import { BingForm } from '../../../form/bing-form'
 import { CategorizeForm } from '../../../form/categorize'
 import { CodeForm } from '../../../form/code-form'
 import { CrawlerForm } from '../../../form/crawler-form'
-import { DataOperationsForm } from '../../../form/data-operations-form'
+import { DataOperationsForm } from '../../../form/data-operations'
 import { DuckDuckGoForm } from '../../../form/duckduckgo-form'
 import { EmailForm } from '../../../form/email-form'
 import { ExtractorForm } from '../../../form/extractor-form'
@@ -21,7 +21,7 @@ import { InvokeForm } from '../../../form/invoke'
 import { IterationForm } from '../../../form/iteration'
 import { IterationStartForm } from '../../../form/iteration-start'
 import { KeywordExtractForm } from '../../../form/keyword-extract-form'
-import { ListOperationsForm } from '../../../form/list-operations-form'
+import { ListOperationsForm } from '../../../form/list-operations'
 import { LoopForm } from '../../../form/loop'
 import { McpForm } from '../../../form/mcp-form'
 import { MessageForm } from '../../../form/message'
@@ -33,15 +33,15 @@ import { RetrievalForm } from '../../../form/retrieval'
 import { RewriteQuestionForm } from '../../../form/rewrite-question'
 import { SearXNGForm } from '../../../form/searxng-form'
 import { SplitterForm } from '../../../form/splitter-form'
-import { StringTransformForm } from '../../../form/string-transform-form'
+import { StringTransformForm } from '../../../form/string-transform'
 import { SwitchForm } from '../../../form/switch'
 import { TavilyExtractForm } from '../../../form/tavily-extract-form'
 import { TavilyForm } from '../../../form/tavily-form'
 import { ToolForm } from '../../../form/tool'
 import { TokenizerForm } from '../../../form/tokenizer-form'
-import { UserFillUpForm } from '../../../form/user-fill-up-form'
-import { VariableAggregatorForm } from '../../../form/variable-aggregator-form'
-import { VariableAssignerForm } from '../../../form/variable-assigner-form'
+import { UserFillUpForm } from '../../../form/user-fill-up'
+import { VariableAggregatorForm } from '../../../form/variable-aggregator'
+import { VariableAssignerForm } from '../../../form/variable-assigner'
 import { WenCaiForm } from '../../../form/wencai-form'
 import { WikipediaForm } from '../../../form/wikipedia-form'
 import { YahooFinanceForm } from '../../../form/yahoo-finance-form'
@@ -67,6 +67,12 @@ export const migratedFormRenderers: Record<
   [Operator.IterationStart]: IterationStartForm,
   [Operator.Loop]: LoopForm,
   [Operator.Invoke]: InvokeForm,
+  [Operator.DataOperations]: DataOperationsForm,
+  [Operator.ListOperations]: ListOperationsForm,
+  [Operator.VariableAggregator]: VariableAggregatorForm,
+  [Operator.VariableAssigner]: VariableAssignerForm,
+  [Operator.UserFillUp]: UserFillUpForm,
+  [Operator.StringTransform]: StringTransformForm,
 }
 
 export const legacyFormRenderers: Record<
@@ -77,10 +83,6 @@ export const legacyFormRenderers: Record<
   [Operator.KeywordExtract]: KeywordExtractForm,
   [Operator.Relevant]: RelevantForm,
   [Operator.ExitLoop]: EmptyForm,
-  [Operator.DataOperations]: DataOperationsForm,
-  [Operator.ListOperations]: ListOperationsForm,
-  [Operator.VariableAggregator]: VariableAggregatorForm,
-  [Operator.VariableAssigner]: VariableAssignerForm,
   [Operator.Crawler]: CrawlerForm,
   [Operator.ExeSQL]: ExeSQLForm,
   [Operator.DuckDuckGo]: DuckDuckGoForm,
@@ -97,8 +99,6 @@ export const legacyFormRenderers: Record<
   [Operator.WenCai]: WenCaiForm,
   [Operator.YahooFinance]: YahooFinanceForm,
   [Operator.Email]: EmailForm,
-  [Operator.UserFillUp]: UserFillUpForm,
-  [Operator.StringTransform]: StringTransformForm,
   [Operator.PDFGenerator]: PDFGeneratorForm,
   [Operator.ExcelProcessor]: ToolForm,
   [Operator.WaitingDialogue]: CodeForm,

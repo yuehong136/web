@@ -13,40 +13,31 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { memo } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
-import { useFormValues } from '../hooks/use-form-values'
-import { useWatchFormChange } from '../hooks/use-watch-form-change'
-import type { INextOperatorForm } from '../types'
-import { FormWrapper, Output, QueryVariable, transferOutputs } from './components'
+import { initialListOperationsValues } from '../../constant'
+import { useFormValues } from '../../hooks/use-form-values'
+import { useWatchFormChange } from '../../hooks/use-watch-form-change'
+import type { INextOperatorForm } from '../../types'
+import { FormWrapper, Output, QueryVariable, transferOutputs } from '../components'
+import { listOperationOptions } from './constants'
 
-const schema = z.object({
+const listOperationsSchema = z.object({
   query: z.string().optional(),
   operations: z.string().optional(),
   outputs: z.record(z.string(), z.any()).optional(),
 })
 
-const defaultValues = {
-  operations: 'topN',
-}
-
-const operationOptions = [
-  { label: 'Top N', value: 'topN' },
-  { label: 'Bottom N', value: 'bottomN' },
-  { label: 'Sort', value: 'sort' },
-  { label: 'Reverse', value: 'reverse' },
-  { label: 'Unique', value: 'unique' },
-  { label: 'Flatten', value: 'flatten' },
-  { label: 'Slice', value: 'slice' },
-]
-
-export function ListOperationsForm({ node }: INextOperatorForm) {
+export const ListOperationsForm = memo(function ListOperationsForm({
+  node,
+}: INextOperatorForm) {
   const { t } = useTranslation()
-  const values = useFormValues(defaultValues, node)
+  const values = useFormValues(initialListOperationsValues, node)
 
   const form = useForm({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(listOperationsSchema),
     defaultValues: values,
   })
 
@@ -71,9 +62,9 @@ export function ListOperationsForm({ node }: INextOperatorForm) {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {operationOptions.map((opt) => (
-                      <SelectItem key={opt.value} value={opt.value}>
-                        {opt.label}
+                    {listOperationOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -87,4 +78,4 @@ export function ListOperationsForm({ node }: INextOperatorForm) {
       </FormWrapper>
     </Form>
   )
-}
+})
