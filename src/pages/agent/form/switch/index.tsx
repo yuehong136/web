@@ -1,0 +1,170 @@
+import { Button } from '@/components/ui/button'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from '@/components/ui/form'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { memo } from 'react'
+import { useFieldArray, useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
+import { X } from 'lucide-react'
+import { z } from 'zod'
+import {
+  SwitchLogicOperatorOptions,
+  SwitchOperatorOptions,
+  initialSwitchValues,
+} from '../../constant'
+import { useFormValues } from '../../hooks/use-form-values'
+import { useWatchFormChange } from '../../hooks/use-watch-form-change'
+import type { INextOperatorForm } from '../../types'
+import { FormWrapper } from '../components'
+import { ConditionCards } from './components/condition-cards'
+
+const conditionKey = 'conditions'
+const itemKey = 'items'
+
+const schema = z.object({
+  conditions: z
+    .array(
+      z.object({
+        logical_operator: z.string().optional(),
+        items: z
+          .array(
+            z.object({
+              cpn_id: z.string().optional(),
+              operator: z.string().optional(),
+              value: z.string().optional(),
+            }),
+          )
+          .optional(),
+        to: z.array(z.string()).optional(),
+      }),
+    )
+    .optional(),
+  end_cpn_ids: z.array(z.string()).optional(),
+})
+
+export function SwitchForm({ node }: INextOperatorForm) {
+  const { t } = useTranslation()
+  const values = useFormValues(initialSwitchValues, node)
+
+  const form = useForm({
+    defaultValues: values,
+    resolver: zodResolver(schema),
+  })
+
+  const { fields, remove, append } = useFieldArray({
+    name: conditionKey,
+    control: form.control,
+  })
+
+  useWatchFormChange(node?.id, form)
+
+  return (
+    <Form {...form}>
+      <FormWrapper>
+        {fields.map((field, index) => {
+          const name = `${conditionKey}.${index}`
+          const conditions = form.getValues(`${name}.${itemKey}`)
+          const conditionLength = conditions?.length ?? 0
+
+          return (
+            <div
+              key={field.id}
+              className="rounded-radius-md border border-border-default bg-surface-primary p-space-sm shadow-elevation-low"
+            >
+              <div className="flex items-center justify-between">
+                <section>
+                  <span>{index === 0 ? 'IF' : 'ELSEIF'}</span>
+                  <div className="text-text-secondary">Case {index + 1}</div>
+                </section>
+                {index !== 0 && (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => remove(index)}
+                  >
+                    {t('common.remove')} <X className="ml-space-xs size-4" />
+                  </Button>
+                )}
+              </div>
+              <section className="relative mt-space-sm flex gap-space-sm">
+                {conditionLength > 1 && (
+                  <section className="flex w-[72px] flex-col">
+                    <div className="relative w-1 flex-1 before:absolute before:bottom-0 before:left-10 before:top-20 before:w-px before:bg-border-default" />
+                    <FormField
+                      control={form.control}
+                      name={`${conditionKey}.${index}.logical_operator`}
+                      render={({ field: logicField }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Select
+                              value={logicField.value}
+                              onValueChange={logicField.onChange}
+                            >
+                              <SelectTrigger className="h-9 rounded-radius-md border border-border-default bg-surface-primary px-space-sm py-space-xs text-sm">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {SwitchLogicOperatorOptions.map((operator) => (
+                                  <SelectItem key={operator} value={operator}>
+                                    {t(
+                                      `flow.switchLogicOperatorOptions.${operator}`,
+                                      operator.toUpperCase(),
+                                    )}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <div className="relative w-1 flex-1 before:absolute before:bottom-36 before:left-10 before:top-0 before:w-px before:bg-border-default" />
+                  </section>
+                )}
+                <ConditionCards
+                  name={name}
+                  removeParent={remove}
+                  parentIndex={index}
+                  parentLength={fields.length}
+                />
+              </section>
+            </div>
+          )
+        })}
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full"
+          onClick={() =>
+            append({
+              logical_operator: SwitchLogicOperatorOptions[0],
+              [itemKey]: [
+                {
+                  operator: SwitchOperatorOptions[0]?.value,
+                },
+              ],
+              to: [],
+            })
+          }
+        >
+          {t('common.add')}
+        </Button>
+      </FormWrapper>
+    </Form>
+  )
+}
+
+export default memo(SwitchForm)

@@ -39,7 +39,7 @@ export function adaptAgentFlow(payload: unknown): AgentFlow {
     dsl: {
       components: parsedDsl?.components || {},
       history: parsedDsl?.history || [],
-      path: parsedDsl?.path,
+      path: parsedDsl?.path ?? [],
       answer: parsedDsl?.answer,
       graph: normalizedGraph.graph,
       messages: parsedDsl?.messages || [],

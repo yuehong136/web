@@ -1,5 +1,6 @@
 import { useFetchAgent } from './use-fetch-data'
-import { get, isEmpty } from 'lodash'
+import get from 'lodash/get.js'
+import isEmpty from 'lodash/isEmpty.js'
 import { useCallback } from 'react'
 
 export interface ITraceData {

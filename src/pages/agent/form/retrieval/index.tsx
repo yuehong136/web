@@ -19,13 +19,13 @@ import { ChevronDown } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
-import { initialRetrievalValues } from '../constant'
-import { useFormValues } from '../hooks/use-form-values'
-import { useWatchFormChange } from '../hooks/use-watch-form-change'
-import type { INextOperatorForm } from '../types'
-import { FormWrapper, Output, transferOutputs } from './components'
-import { KnowledgeBaseSelectField } from './components/knowledge-base-select-field'
-import { LLMSelectField } from './components/llm-select-field'
+import { initialRetrievalValues } from '../../constant'
+import { useFormValues } from '../../hooks/use-form-values'
+import { useWatchFormChange } from '../../hooks/use-watch-form-change'
+import type { INextOperatorForm } from '../../types'
+import { FormWrapper, Output, transferOutputs } from '../components'
+import { KnowledgeBaseSelectField } from '../components/knowledge-base-select-field'
+import { LLMSelectField } from '../components/llm-select-field'
 
 const schema = z.object({
   query: z.string().optional(),
@@ -96,7 +96,7 @@ export function RetrievalForm({ node }: INextOperatorForm) {
                       max={1}
                       step={0.01}
                       value={[field.value ?? 0.2]}
-                      onValueChange={([v]) => field.onChange(v)}
+                      onValueChange={([value]) => field.onChange(value)}
                     />
                   </FormControl>
                 </FormItem>
@@ -125,7 +125,7 @@ export function RetrievalForm({ node }: INextOperatorForm) {
                       max={1}
                       step={0.01}
                       value={[field.value ?? 0.3]}
-                      onValueChange={([v]) => field.onChange(v)}
+                      onValueChange={([value]) => field.onChange(value)}
                     />
                   </FormControl>
                 </FormItem>
@@ -144,7 +144,9 @@ export function RetrievalForm({ node }: INextOperatorForm) {
                       min={1}
                       {...field}
                       value={field.value ?? 8}
-                      onChange={(e) => field.onChange(Number(e.target.value))}
+                      onChange={(event) =>
+                        field.onChange(Number(event.target.value))
+                      }
                     />
                   </FormControl>
                 </FormItem>
@@ -163,7 +165,9 @@ export function RetrievalForm({ node }: INextOperatorForm) {
                       min={1}
                       {...field}
                       value={field.value ?? 1024}
-                      onChange={(e) => field.onChange(Number(e.target.value))}
+                      onChange={(event) =>
+                        field.onChange(Number(event.target.value))
+                      }
                     />
                   </FormControl>
                 </FormItem>

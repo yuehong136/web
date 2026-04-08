@@ -62,6 +62,35 @@ test('serializeGraphToDsl excludes non-dsl operators and preserves graph edges',
   assert.equal(dsl.graph?.edges[0]?.type, 'buttonEdge')
 })
 
+test('buildInitialDsl always includes path as an empty array', () => {
+  const agentDsl = buildInitialDsl(AgentCanvasType.AGENT)
+  const pipelineDsl = buildInitialDsl(AgentCanvasType.PIPELINE)
+
+  assert.ok(Array.isArray(agentDsl.path), 'agent dsl.path should be an array')
+  assert.deepEqual(agentDsl.path, [])
+  assert.ok(Array.isArray(pipelineDsl.path), 'pipeline dsl.path should be an array')
+  assert.deepEqual(pipelineDsl.path, [])
+})
+
+test('serializeGraphToDsl defaults path to [] when baseDsl omits it', () => {
+  const beginNode = buildGraphNode(Operator.Begin, { id: BeginId })
+
+  const dsl = serializeGraphToDsl({
+    graph: { nodes: [beginNode], edges: [] },
+    baseDsl: {
+      history: [],
+      messages: [],
+      reference: [],
+      globals: {},
+      variables: {},
+      retrieval: [],
+    },
+  })
+
+  assert.ok(Array.isArray(dsl.path), 'dsl.path should be an array')
+  assert.deepEqual(dsl.path, [])
+})
+
 test('deserializeDslToGraph rebuilds graph from components when graph is absent', () => {
   const dsl = buildInitialDsl(AgentCanvasType.AGENT)
   delete dsl.graph

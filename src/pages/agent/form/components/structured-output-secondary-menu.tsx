@@ -4,7 +4,9 @@ import {
   HoverCardTrigger,
 } from '@/components/ui/hover-card'
 import { cn } from '@/lib/utils'
-import { get, isEmpty, isPlainObject } from 'lodash'
+import get from 'lodash/get.js'
+import isEmpty from 'lodash/isEmpty.js'
+import isPlainObject from 'lodash/isPlainObject.js'
 import { ChevronRight } from 'lucide-react'
 import type { PropsWithChildren, ReactNode } from 'react'
 import { useCallback } from 'react'
@@ -19,9 +21,9 @@ type StructuredOutputSecondaryMenuProps = {
   types?: (typeof JsonSchemaDataType)[keyof typeof JsonSchemaDataType][]
 } & PropsWithChildren
 
-function getStructuredDatatype(value: any) {
-  const type = get(value, 'type', 'string')
-  const itemsType = get(value, 'items.type')
+function getStructuredDatatype(value: unknown) {
+  const type = String(get(value, 'type', 'string'))
+  const itemsType = get(value, 'items.type') as string | undefined
 
   if (type === 'array' && itemsType) {
     return {
@@ -62,7 +64,10 @@ export function StructuredOutputSecondaryMenu({
   }, [click, data, types])
 
   const renderAgentStructuredOutput = useCallback(
-    (values: any, option: { label: ReactNode; value: string }) => {
+    (
+      values: unknown,
+      option: { label: ReactNode; value: string },
+    ) => {
       const properties =
         get(values, 'properties') || get(values, 'items.properties')
 

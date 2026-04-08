@@ -200,7 +200,7 @@ export function serializeGraphToDsl({
   return {
     components: buildDslComponentsByGraph(filteredNodes, filteredEdges),
     history: baseDsl?.history || [],
-    path: baseDsl?.path,
+    path: baseDsl?.path ?? [],
     answer: baseDsl?.answer,
     graph: {
       nodes: filteredNodes,
@@ -233,6 +233,7 @@ export function buildInitialDsl(kind: AgentCanvasType): AgentDsl {
       globals: {},
       variables: {},
       retrieval: [],
+      path: [],
     },
   })
 }

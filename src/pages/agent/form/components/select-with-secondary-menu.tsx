@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/popover'
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
-import { get } from 'lodash'
+import get from 'lodash/get.js'
 import { ChevronDownIcon, XIcon } from 'lucide-react'
 import * as React from 'react'
 import { useTranslation } from 'react-i18next'

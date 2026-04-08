@@ -1,7 +1,7 @@
 import { memo, useMemo } from 'react'
 import type { NodeProps } from '@xyflow/react'
 import { Handle, Position } from '@xyflow/react'
-import { get } from 'lodash'
+import get from 'lodash/get.js'
 import { useTranslation } from 'react-i18next'
 import type { IAgentNode } from '../../types'
 import { AgentExceptionMethod, NodeHandleId } from '../../constant'

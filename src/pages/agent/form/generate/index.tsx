@@ -8,20 +8,22 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from '@/components/ui/form'
 import { Form } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { Switch } from '@/components/ui/switch'
+import { Textarea } from '@/components/ui/textarea'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ChevronDown } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
-import { initialRewriteQuestionValues } from '../constant'
-import { useFormValues } from '../hooks/use-form-values'
-import { useWatchFormChange } from '../hooks/use-watch-form-change'
-import type { INextOperatorForm } from '../types'
-import { FormWrapper } from './components'
-import { LlmSetting } from './components/llm-setting'
+import { initialGenerateValues } from '../../constant'
+import { useFormValues } from '../../hooks/use-form-values'
+import { useWatchFormChange } from '../../hooks/use-watch-form-change'
+import type { INextOperatorForm } from '../../types'
+import { FormWrapper, LlmSetting, Output, transferOutputs } from '../components'
 
 const schema = z.object({
   llm_id: z.string().optional(),
@@ -30,13 +32,16 @@ const schema = z.object({
   presence_penalty: z.coerce.number().optional(),
   frequency_penalty: z.coerce.number().optional(),
   max_tokens: z.coerce.number().optional(),
-  language: z.string().optional(),
+  prompt: z.string().optional(),
+  cite: z.boolean().optional(),
   message_history_window_size: z.coerce.number().optional(),
+  parameters: z.array(z.any()).optional(),
+  outputs: z.record(z.string(), z.any()).optional(),
 })
 
-export function RewriteQuestionForm({ node }: INextOperatorForm) {
+export function GenerateForm({ node }: INextOperatorForm) {
   const { t } = useTranslation()
-  const values = useFormValues(initialRewriteQuestionValues, node)
+  const values = useFormValues(initialGenerateValues, node)
 
   const form = useForm({
     resolver: zodResolver(schema),
@@ -45,20 +50,35 @@ export function RewriteQuestionForm({ node }: INextOperatorForm) {
 
   useWatchFormChange(node?.id, form)
 
+  const outputs = form.getValues('outputs')
+
   return (
     <Form {...form}>
       <FormWrapper>
         <FormField
           control={form.control}
-          name="language"
+          name="prompt"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('flow.language', 'Language')}</FormLabel>
+              <FormLabel>{t('flow.prompt', 'Prompt')}</FormLabel>
               <FormControl>
-                <Input
-                  placeholder={t('flow.languagePlaceholder', 'e.g. English')}
-                  {...field}
-                  value={field.value ?? ''}
+                <Textarea rows={6} {...field} value={field.value ?? ''} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="cite"
+          render={({ field }) => (
+            <FormItem className="flex items-center justify-between">
+              <FormLabel>{t('flow.cite', 'Citation')}</FormLabel>
+              <FormControl>
+                <Switch
+                  checked={field.value ?? false}
+                  onCheckedChange={field.onChange}
                 />
               </FormControl>
             </FormItem>
@@ -78,10 +98,13 @@ export function RewriteQuestionForm({ node }: INextOperatorForm) {
                   type="number"
                   min={0}
                   {...field}
-                  value={field.value ?? 6}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
+                  value={field.value ?? 12}
+                  onChange={(event) =>
+                    field.onChange(Number(event.target.value))
+                  }
                 />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -95,6 +118,8 @@ export function RewriteQuestionForm({ node }: INextOperatorForm) {
             <LlmSetting />
           </CollapsibleContent>
         </Collapsible>
+
+        {outputs && <Output list={transferOutputs(outputs)} />}
       </FormWrapper>
     </Form>
   )

@@ -1,4 +1,5 @@
-import { get, isEmpty } from 'lodash'
+import get from 'lodash/get.js'
+import isEmpty from 'lodash/isEmpty.js'
 import { useCallback, useMemo, useState } from 'react'
 import type { INodeEvent, INodeData } from './use-node-loading'
 

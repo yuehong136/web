@@ -1,5 +1,7 @@
 import type { JSONSchema } from '@/components/jsonjoy-builder/types/json-schema'
-import { get, isPlainObject, toLower } from 'lodash'
+import get from 'lodash/get.js'
+import isPlainObject from 'lodash/isPlainObject.js'
+import toLower from 'lodash/toLower.js'
 import { JsonSchemaDataType } from '../constant'
 
 function getStructuredDatatype(value: any) {

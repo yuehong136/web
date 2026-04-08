@@ -14,7 +14,10 @@ import {
   applyEdgeChanges,
   applyNodeChanges,
 } from '@xyflow/react'
-import { omit, differenceWith, intersectionWith, set as lodashSet } from 'lodash'
+import differenceWith from 'lodash/differenceWith.js'
+import intersectionWith from 'lodash/intersectionWith.js'
+import omit from 'lodash/omit.js'
+import lodashSet from 'lodash/set.js'
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
 import { NodeHandleId, Operator, SwitchElseTo } from './constant'
@@ -547,4 +550,3 @@ const useGraphStore = create<RFState>()(
 )
 
 export default useGraphStore
-

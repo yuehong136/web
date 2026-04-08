@@ -38,12 +38,19 @@ class APIClient {
 
   constructor(baseURL?: string) {
     this.baseURL = baseURL || API_BASE_URL
-    // 初始化时从localStorage获取token
-    this.authToken = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)
+    this.authToken = this.readStorage(STORAGE_KEYS.AUTH_TOKEN)
+  }
+
+  private readStorage(key: string): string | null {
+    if (typeof localStorage === 'undefined') {
+      return null
+    }
+
+    return localStorage.getItem(key)
   }
 
   private getAuthToken(): string | null {
-    return this.authToken || localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)
+    return this.authToken || this.readStorage(STORAGE_KEYS.AUTH_TOKEN)
   }
 
   private hasAuthToken(): boolean {
@@ -52,9 +59,11 @@ class APIClient {
 
   private clearAuthState(): void {
     this.setAuthToken(null)
-    localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN)
-    localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN)
-    localStorage.removeItem(STORAGE_KEYS.USER_INFO)
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN)
+      localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN)
+      localStorage.removeItem(STORAGE_KEYS.USER_INFO)
+    }
   }
 
   private notifyUnauthorized(): void {
@@ -85,6 +94,10 @@ class APIClient {
   // 设置认证token
   setAuthToken(token: string | null): void {
     this.authToken = token
+    if (typeof localStorage === 'undefined') {
+      return
+    }
+
     if (token) {
       localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, token)
     } else {
@@ -469,7 +482,7 @@ class APIClient {
 export const apiClient = new APIClient()
 
 // 在开发环境中将apiClient暴露到全局，便于调试
-if (import.meta.env.DEV) {
+if (import.meta.env?.DEV && typeof window !== 'undefined') {
   ;(window as any).apiClient = apiClient
 }
 

@@ -1,5 +1,5 @@
 import { useUpdateNodeInternals } from '@xyflow/react'
-import { get } from 'lodash'
+import get from 'lodash/get.js'
 import { useEffect, useMemo } from 'react'
 import type { ICategorizeItem, RAGFlowNodeType } from '../../types'
 

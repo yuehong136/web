@@ -20,12 +20,17 @@ import { useFieldArray, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { v4 as uuid } from 'uuid'
 import { z } from 'zod'
-import { initialCategorizeValues } from '../constant'
-import { useFormValues } from '../hooks/use-form-values'
-import { useWatchFormChange } from '../hooks/use-watch-form-change'
-import type { INextOperatorForm } from '../types'
-import { FormWrapper, Output, QueryVariable, transferOutputs } from './components'
-import { LlmSetting } from './components/llm-setting'
+import { initialCategorizeValues } from '../../constant'
+import { useFormValues } from '../../hooks/use-form-values'
+import { useWatchFormChange } from '../../hooks/use-watch-form-change'
+import type { INextOperatorForm } from '../../types'
+import {
+  FormWrapper,
+  LlmSetting,
+  Output,
+  QueryVariable,
+  transferOutputs,
+} from '../components'
 
 const schema = z.object({
   llm_id: z.string().optional(),
@@ -86,7 +91,9 @@ export function CategorizeForm({ node }: INextOperatorForm) {
                   min={0}
                   {...field}
                   value={field.value ?? 1}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
+                  onChange={(event) =>
+                    field.onChange(Number(event.target.value))
+                  }
                 />
               </FormControl>
             </FormItem>
@@ -106,7 +113,7 @@ export function CategorizeForm({ node }: INextOperatorForm) {
                 append({ name: '', description: '', uuid: uuid() })
               }
             >
-              <Plus className="size-4 mr-1" />
+              <Plus className="mr-1 size-4" />
               {t('common.add', 'Add')}
             </Button>
           </div>
@@ -114,7 +121,7 @@ export function CategorizeForm({ node }: INextOperatorForm) {
           {fields.map((field, index) => (
             <div
               key={field.id}
-              className="rounded-radius-md border border-border p-space-sm space-y-2"
+              className="space-y-2 rounded-radius-md border border-border-primary p-space-sm"
             >
               <div className="flex items-center gap-2">
                 <FormField
@@ -144,14 +151,17 @@ export function CategorizeForm({ node }: INextOperatorForm) {
               <FormField
                 control={form.control}
                 name={`items.${index}.description`}
-                render={({ field: descField }) => (
+                render={({ field: descriptionField }) => (
                   <FormItem>
                     <FormControl>
                       <Textarea
                         rows={2}
-                        placeholder={t('flow.categoryDescription', 'Description')}
-                        {...descField}
-                        value={descField.value ?? ''}
+                        placeholder={t(
+                          'flow.categoryDescription',
+                          'Description',
+                        )}
+                        {...descriptionField}
+                        value={descriptionField.value ?? ''}
                       />
                     </FormControl>
                   </FormItem>

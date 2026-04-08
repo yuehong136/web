@@ -1,4 +1,5 @@
-import { get, isArray } from 'lodash'
+import get from 'lodash/get.js'
+import isArray from 'lodash/isArray.js'
 import { type MouseEventHandler, type PropsWithChildren, useCallback, useMemo } from 'react'
 import {
   Popover,

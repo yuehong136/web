@@ -1,4 +1,4 @@
-import { get } from 'lodash'
+import get from 'lodash/get.js'
 import { useCallback, useMemo } from 'react'
 import type { BeginQuery } from '../types'
 import type { IMessage } from '../utils/chat'

@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
-import { get, isEmpty } from 'lodash'
+import get from 'lodash/get.js'
+import isEmpty from 'lodash/isEmpty.js'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { agentAPI } from '@/api/agent'

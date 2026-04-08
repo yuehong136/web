@@ -1,13 +1,11 @@
 import type { Edge, XYPosition } from '@xyflow/react'
 import { humanId } from 'human-id'
-import {
-  get,
-  intersectionWith,
-  isEqual,
-  omit,
-  sample,
-  isObject,
-} from 'lodash'
+import get from 'lodash/get.js'
+import intersectionWith from 'lodash/intersectionWith.js'
+import isEqual from 'lodash/isEqual.js'
+import isObject from 'lodash/isObject.js'
+import omit from 'lodash/omit.js'
+import sample from 'lodash/sample.js'
 import { Operator, CategorizeAnchorPointPositions } from './constant'
 import type {
   RAGFlowNodeType,
@@ -70,15 +68,18 @@ export const generateNodeNamesWithIncreasingIndex = (
 // ==================== 节点复制相关 ====================
 
 export const duplicateNodeForm = (nodeData?: RAGFlowNodeType['data']) => {
-  const form: Record<string, any> = { ...(nodeData?.form ?? {}) }
+  const form: Record<string, unknown> = { ...(nodeData?.form ?? {}) }
 
   // Delete the downstream node corresponding to the to field of the Categorize operator
   if (nodeData?.label === Operator.Categorize) {
-    form.category_description = Object.keys(form.category_description).reduce<
-      Record<string, Record<string, any>>
+    const categoryDescription = (form.category_description ??
+      {}) as Record<string, Record<string, unknown>>
+
+    form.category_description = Object.keys(categoryDescription).reduce<
+      Record<string, Record<string, unknown>>
     >((pre, cur) => {
       pre[cur] = {
-        ...form.category_description[cur],
+        ...categoryDescription[cur],
         to: undefined,
       }
       return pre

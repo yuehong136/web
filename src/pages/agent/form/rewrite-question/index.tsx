@@ -8,23 +8,19 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
 } from '@/components/ui/form'
 import { Form } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Switch } from '@/components/ui/switch'
-import { Textarea } from '@/components/ui/textarea'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ChevronDown } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
-import { initialGenerateValues } from '../constant'
-import { useFormValues } from '../hooks/use-form-values'
-import { useWatchFormChange } from '../hooks/use-watch-form-change'
-import type { INextOperatorForm } from '../types'
-import { FormWrapper, Output, transferOutputs } from './components'
-import { LlmSetting } from './components/llm-setting'
+import { initialRewriteQuestionValues } from '../../constant'
+import { useFormValues } from '../../hooks/use-form-values'
+import { useWatchFormChange } from '../../hooks/use-watch-form-change'
+import type { INextOperatorForm } from '../../types'
+import { FormWrapper, LlmSetting } from '../components'
 
 const schema = z.object({
   llm_id: z.string().optional(),
@@ -33,16 +29,13 @@ const schema = z.object({
   presence_penalty: z.coerce.number().optional(),
   frequency_penalty: z.coerce.number().optional(),
   max_tokens: z.coerce.number().optional(),
-  prompt: z.string().optional(),
-  cite: z.boolean().optional(),
+  language: z.string().optional(),
   message_history_window_size: z.coerce.number().optional(),
-  parameters: z.array(z.any()).optional(),
-  outputs: z.record(z.string(), z.any()).optional(),
 })
 
-export function GenerateForm({ node }: INextOperatorForm) {
+export function RewriteQuestionForm({ node }: INextOperatorForm) {
   const { t } = useTranslation()
-  const values = useFormValues(initialGenerateValues, node)
+  const values = useFormValues(initialRewriteQuestionValues, node)
 
   const form = useForm({
     resolver: zodResolver(schema),
@@ -51,35 +44,20 @@ export function GenerateForm({ node }: INextOperatorForm) {
 
   useWatchFormChange(node?.id, form)
 
-  const outputs = form.getValues('outputs')
-
   return (
     <Form {...form}>
       <FormWrapper>
         <FormField
           control={form.control}
-          name="prompt"
+          name="language"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('flow.prompt', 'Prompt')}</FormLabel>
+              <FormLabel>{t('flow.language', 'Language')}</FormLabel>
               <FormControl>
-                <Textarea rows={6} {...field} value={field.value ?? ''} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="cite"
-          render={({ field }) => (
-            <FormItem className="flex items-center justify-between">
-              <FormLabel>{t('flow.cite', 'Citation')}</FormLabel>
-              <FormControl>
-                <Switch
-                  checked={field.value ?? false}
-                  onCheckedChange={field.onChange}
+                <Input
+                  placeholder={t('flow.languagePlaceholder', 'e.g. English')}
+                  {...field}
+                  value={field.value ?? ''}
                 />
               </FormControl>
             </FormItem>
@@ -99,11 +77,12 @@ export function GenerateForm({ node }: INextOperatorForm) {
                   type="number"
                   min={0}
                   {...field}
-                  value={field.value ?? 12}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
+                  value={field.value ?? 6}
+                  onChange={(event) =>
+                    field.onChange(Number(event.target.value))
+                  }
                 />
               </FormControl>
-              <FormMessage />
             </FormItem>
           )}
         />
@@ -117,10 +96,6 @@ export function GenerateForm({ node }: INextOperatorForm) {
             <LlmSetting />
           </CollapsibleContent>
         </Collapsible>
-
-        {outputs && (
-          <Output list={transferOutputs(outputs)} />
-        )}
       </FormWrapper>
     </Form>
   )

@@ -2,16 +2,16 @@ import { Form } from '@/components/ui/form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
-import { useFormValues } from '../hooks/use-form-values'
-import { useWatchFormChange } from '../hooks/use-watch-form-change'
-import type { INextOperatorForm } from '../types'
+import { useFormValues } from '../../hooks/use-form-values'
+import { useWatchFormChange } from '../../hooks/use-watch-form-change'
+import type { INextOperatorForm } from '../../types'
 import {
   ApiKeyField,
   DescriptionField,
   FormWrapper,
   Output,
   transferOutputs,
-} from './components'
+} from '../components'
 
 const schema = z.object({
   api_key: z.string().optional(),

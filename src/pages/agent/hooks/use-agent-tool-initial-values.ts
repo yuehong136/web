@@ -1,4 +1,5 @@
-import { omit, pick } from 'lodash'
+import omit from 'lodash/omit.js'
+import pick from 'lodash/pick.js'
 import { useCallback } from 'react'
 import { Operator } from '../constant'
 import { useInitializeOperatorParams } from './use-add-node'

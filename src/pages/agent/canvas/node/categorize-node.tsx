@@ -1,6 +1,6 @@
 import type { NodeProps } from '@xyflow/react'
 import { Position } from '@xyflow/react'
-import { get } from 'lodash'
+import get from 'lodash/get.js'
 import { memo } from 'react'
 import type { ICategorizeNode } from '../../types'
 import { LabelCard, LLMLabelCard } from './card'

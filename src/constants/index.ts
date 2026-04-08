@@ -1,5 +1,6 @@
 // API 相关常量
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+export const API_BASE_URL =
+  import.meta.env?.VITE_API_BASE_URL || 'http://localhost:8000'
 export const API_VERSION = 'v1'
 
 // 路由常量

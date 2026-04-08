@@ -1,6 +1,7 @@
 import { type ReactNode, useMemo } from 'react'
 import type { Edge } from '@xyflow/react'
-import { get, isEmpty } from 'lodash'
+import get from 'lodash/get.js'
+import isEmpty from 'lodash/isEmpty.js'
 import { AgentStructuredOutputField, JsonSchemaDataType, Operator } from '../constant'
 import OperatorIcon from '../operator-icon'
 import useGraphStore from '../store'

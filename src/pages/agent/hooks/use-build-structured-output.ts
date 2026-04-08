@@ -1,4 +1,5 @@
-import { get, isPlainObject } from 'lodash'
+import get from 'lodash/get.js'
+import isPlainObject from 'lodash/isPlainObject.js'
 import type { ReactNode } from 'react'
 import { useCallback } from 'react'
 import { AgentStructuredOutputField, JsonSchemaDataType, Operator } from '../constant'

@@ -1,4 +1,4 @@
-import { pick } from 'lodash'
+import pick from 'lodash/pick.js'
 import { useCallback, useRef } from 'react'
 import { Operator } from '../constant'
 import useGraphStore from '../store'

@@ -1,9 +1,4 @@
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible'
-import {
   FormControl,
   FormField,
   FormItem,
@@ -15,16 +10,15 @@ import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ChevronDown } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
-import { initialAgentValues } from '../constant'
-import { useFormValues } from '../hooks/use-form-values'
-import { useWatchFormChange } from '../hooks/use-watch-form-change'
-import type { INextOperatorForm } from '../types'
-import { FormWrapper, Output, transferOutputs } from './components'
-import { LlmSetting } from './components/llm-setting'
+import { initialAgentValues } from '../../constant'
+import { useFormValues } from '../../hooks/use-form-values'
+import { useWatchFormChange } from '../../hooks/use-watch-form-change'
+import type { INextOperatorForm } from '../../types'
+import { FormWrapper, Output, transferOutputs } from '../components'
+import { AgentAdvancedSettings } from './components/agent-advanced-settings'
 
 const schema = z.object({
   llm_id: z.string().optional(),
@@ -126,81 +120,16 @@ export function AgentForm({ node }: INextOperatorForm) {
                   min={0}
                   {...field}
                   value={field.value ?? 12}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
+                  onChange={(event) =>
+                    field.onChange(Number(event.target.value))
+                  }
                 />
               </FormControl>
             </FormItem>
           )}
         />
 
-        <Collapsible>
-          <CollapsibleTrigger className="flex items-center gap-1 text-sm font-medium">
-            <ChevronDown className="size-4" />
-            {t('flow.advancedSettings', 'Advanced Settings')}
-          </CollapsibleTrigger>
-          <CollapsibleContent className="space-y-4 pt-4">
-            <FormField
-              control={form.control}
-              name="max_retries"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('flow.maxRetries', 'Max Retries')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      min={0}
-                      {...field}
-                      value={field.value ?? 3}
-                      onChange={(e) => field.onChange(Number(e.target.value))}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="delay_after_error"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    {t('flow.delayAfterError', 'Delay After Error (s)')}
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      min={0}
-                      {...field}
-                      value={field.value ?? 1}
-                      onChange={(e) => field.onChange(Number(e.target.value))}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="max_rounds"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('flow.maxRounds', 'Max Rounds')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      min={1}
-                      {...field}
-                      value={field.value ?? 1}
-                      onChange={(e) => field.onChange(Number(e.target.value))}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-
-            <LlmSetting />
-          </CollapsibleContent>
-        </Collapsible>
+        <AgentAdvancedSettings />
 
         {outputs && <Output list={transferOutputs(outputs)} />}
       </FormWrapper>
