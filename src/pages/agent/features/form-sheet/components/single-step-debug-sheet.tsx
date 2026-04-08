@@ -1,5 +1,8 @@
 import { useCallback, useMemo, useState } from 'react'
 import {
+  Button,
+} from '@/components/ui/button'
+import {
   Sheet,
   SheetContent,
   SheetDescription,
@@ -128,23 +131,25 @@ export function SingleStepDebugSheet({
             <span className="text-base font-medium text-text-primary">
               测试运行
             </span>
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="icon-sm"
               className="text-text-secondary transition-colors hover:text-text-primary"
               onClick={onClose}
             >
               <X className="size-4" />
-            </button>
+            </Button>
           </div>
         </SheetHeader>
 
         <section className="overflow-y-auto px-space-md py-space-sm">
           <DebugContent
+            canvasId={canvasId}
             parameters={parameters}
             ok={handleRunDebug}
             isNext={false}
             loading={isLoading}
-            submitButtonDisabled={parameters.length === 0}
             className="min-h-0 flex-1 overflow-auto pb-space-md"
             maxHeight="max-h-screen"
           />

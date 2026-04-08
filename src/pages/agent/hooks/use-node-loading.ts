@@ -7,13 +7,13 @@ export interface INodeEvent {
 }
 
 export interface INodeData {
-  component_id: string
+  component_id?: string
   component_type?: string
   component_name?: string
   elapsed_time?: number
   error?: string
-  inputs?: Record<string, any>
-  outputs?: Record<string, any>
+  inputs?: Record<string, unknown>
+  outputs?: Record<string, unknown>
   thoughts?: string
   [key: string]: unknown
 }
@@ -25,14 +25,16 @@ export const NodeMessageEventType = {
 
 export const useNodeLoading = ({
   currentEventListWithoutMessageById,
+  currentMessageId,
 }: {
   currentEventListWithoutMessageById: (messageId: string) => INodeEvent[]
+  currentMessageId?: string
 }) => {
   const [derivedMessages, setDerivedMessages] = useState<IMessage[]>()
 
   const lastMessageId = useMemo(() => {
-    return derivedMessages?.[derivedMessages?.length - 1]?.id
-  }, [derivedMessages])
+    return currentMessageId || derivedMessages?.[derivedMessages.length - 1]?.id
+  }, [currentMessageId, derivedMessages])
 
   const currentEventListWithoutMessage = useMemo(() => {
     if (!lastMessageId) {
@@ -74,7 +76,9 @@ export const useNodeLoading = ({
     if (!startedNodeList) {
       return []
     }
-    return startedNodeList.map((x) => x.data.component_id)
+    return startedNodeList
+      .map((x) => x.data.component_id)
+      .filter((componentId): componentId is string => Boolean(componentId))
   }, [startedNodeList])
 
   const finishNodeIds = useMemo(() => {
@@ -82,9 +86,9 @@ export const useNodeLoading = ({
       return []
     }
     const nodeDataList = filterFinishedNodeList()
-    const finishNodeIdsTemp = nodeDataList.map(
-      (x: INodeData) => x.component_id,
-    )
+    const finishNodeIdsTemp = nodeDataList
+      .map((x: INodeData) => x.component_id)
+      .filter((componentId): componentId is string => Boolean(componentId))
     return Array.from(new Set(finishNodeIdsTemp))
   }, [lastNode, filterFinishedNodeList])
 

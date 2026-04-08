@@ -68,7 +68,12 @@ export const agentAPI = {
       canvas_ids: [id],
     }),
 
-  runAgent: async (payload: RunAgentPayload) => {
+  runAgent: async (
+    payload: RunAgentPayload,
+    options?: {
+      signal?: AbortSignal
+    },
+  ) => {
     const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
     const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)
     const response = await fetch(`${baseURL}/v1/canvas/completion`, {
@@ -84,6 +89,7 @@ export const agentAPI = {
         files: payload.files || [],
         inputs: payload.inputs || {},
       }),
+      signal: options?.signal,
     })
 
     return response

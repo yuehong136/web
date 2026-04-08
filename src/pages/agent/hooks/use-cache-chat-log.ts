@@ -53,6 +53,8 @@ export function useCacheChatLog() {
 
   const clearEventList = useCallback(() => {
     setMessageIdPool({})
+    setLatestTaskId('')
+    setCurrentMessageId('')
   }, [])
 
   const addEventList = useCallback((events: IEventList, message_id: string) => {

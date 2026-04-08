@@ -59,10 +59,14 @@ export const useFetchAgent = (id?: string) => {
     queryFn: async () => adaptAgentFlow(await agentAPI.fetchAgent(agentId)),
   })
 
+  const isInitialLoading =
+    query.isPending || (query.isFetching && !query.data)
+
   return {
     agent: query.data,
     data: query.data,
-    isLoading: query.isFetching,
+    isLoading: isInitialLoading,
+    isFetching: query.isFetching,
     isError: query.isError,
     error: query.error,
     refetch: query.refetch,

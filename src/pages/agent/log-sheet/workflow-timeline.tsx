@@ -22,13 +22,11 @@ export const MessageEventType = {
 
 interface LogFlowTimelineProps {
   currentEventListWithoutMessage: INodeEvent[]
-  currentMessageId?: string
   sendLoading: boolean
 }
 
 export const WorkFlowTimeline = ({
   currentEventListWithoutMessage = [],
-  currentMessageId,
   sendLoading,
 }: LogFlowTimelineProps) => {
   const { t } = useTranslation()
@@ -98,8 +96,11 @@ export const WorkFlowTimeline = ({
   return (
     <div className="space-y-space-base">
       {startedNodeList.map((x, idx) => {
-        const nodeDataList = filterFinishedNodeList(x.data.component_id)
-        const finishNodeIds = nodeDataList.map((n) => n.component_id)
+        const componentId = x.data.component_id || ''
+        const nodeDataList = filterFinishedNodeList(componentId)
+        const finishNodeIds = nodeDataList
+          .map((n) => n.component_id)
+          .filter((nodeId): nodeId is string => Boolean(nodeId))
         const inputs = nodeDataList[0]?.inputs || {}
         const outputs = nodeDataList[0]?.outputs || {}
         const nodeLabel = x.data.component_type
@@ -113,13 +114,13 @@ export const WorkFlowTimeline = ({
 
             {/* 节点指示器 */}
             <div className="absolute left-0 top-0 flex items-center justify-center">
-              <div
-                className={cn(
-                  'flex items-center justify-center size-6 rounded-full border-2',
-                  finishNodeIds.includes(x.data.component_id)
-                    ? 'border-status-success bg-surface-primary'
-                    : sendLoading
-                      ? 'border-status-warning bg-surface-primary animate-pulse'
+                <div
+                  className={cn(
+                    'flex items-center justify-center size-6 rounded-full border-2',
+                    finishNodeIds.includes(componentId)
+                      ? 'border-status-success bg-surface-primary'
+                      : sendLoading
+                        ? 'border-status-warning bg-surface-primary animate-pulse'
                       : 'border-border-default bg-surface-secondary',
                 )}
               >
@@ -139,9 +140,9 @@ export const WorkFlowTimeline = ({
                       <span className="font-medium">
                         {getNodeName(x.data.component_name || '')}
                       </span>
-                      {getElapsedTime(x.data.component_id) && (
+                      {getElapsedTime(componentId) && (
                         <span className="text-text-secondary text-xs">
-                          {getElapsedTime(x.data.component_id)}s
+                          {getElapsedTime(componentId)}s
                         </span>
                       )}
                       <span

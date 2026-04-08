@@ -23,6 +23,11 @@ import { useSaveGraph } from './hooks/use-save-graph'
 import AgentCanvas from './canvas'
 import { EditorRuntimeRail } from './components/editor-runtime-rail'
 import { PlaceholderDialog } from './components/placeholder-dialog'
+import {
+  AgentRuntimeStatus,
+  RuntimeWorkbenchView,
+  type RuntimeWorkbenchSummary,
+} from './features/runtime-workbench'
 import { SettingDialog } from './setting-dialog'
 import { VersionDialog } from './version-dialog'
 import { WebhookSheet } from './webhook-sheet'
@@ -48,11 +53,20 @@ export default function AgentEditorPage() {
   const webhookUrl = useBuildWebhookUrl()
 
   const [title, setTitle] = useState('')
-  const [drawerVisible, setDrawerVisible] = useState(false)
   const [titleDirty, setTitleDirty] = useState(false)
   const [versionsOpen, setVersionsOpen] = useState(false)
   const [webhookOpen, setWebhookOpen] = useState(false)
   const [roadmapOpen, setRoadmapOpen] = useState(false)
+  const [runtimeWorkbenchOpen, setRuntimeWorkbenchOpen] = useState(false)
+  const [runtimeWorkbenchView, setRuntimeWorkbenchView] = useState(
+    RuntimeWorkbenchView.RUN,
+  )
+  const [runtimeSummary, setRuntimeSummary] = useState<RuntimeWorkbenchSummary>({
+    status: AgentRuntimeStatus.IDLE,
+    currentView: RuntimeWorkbenchView.RUN,
+    messageCount: 0,
+    hasLogs: false,
+  })
   const settingState = useSetModalState(false)
 
   useEffect(() => {
@@ -78,6 +92,11 @@ export default function AgentEditorPage() {
     const nextTitle = title.trim() || resolveLocalizedText(flowDetail?.title, '未命名资产')
     await saveGraph(nextTitle)
     setTitleDirty(false)
+  }
+
+  const openRuntimeWorkbench = (view: RuntimeWorkbenchView) => {
+    setRuntimeWorkbenchView(view)
+    setRuntimeWorkbenchOpen(true)
   }
 
   if (loading) {
@@ -153,7 +172,7 @@ export default function AgentEditorPage() {
                     <Save className="mr-space-xs h-4 w-4" />
                     {saving ? '保存中...' : '保存'}
                   </Button>
-                  <Button onClick={() => setDrawerVisible(true)}>
+                  <Button onClick={() => openRuntimeWorkbench(RuntimeWorkbenchView.RUN)}>
                     <Play className="mr-space-xs h-4 w-4" />
                     运行
                   </Button>
@@ -164,7 +183,7 @@ export default function AgentEditorPage() {
               left={
                 <div className="flex items-center gap-space-sm text-sm text-text-secondary">
                   <Sparkles className="h-4 w-4 text-text-accent" />
-                  第一阶段已完成编辑器骨架、右侧运行轨与统一请求层接线。
+                  T4 已正式化普通 Agent 的运行、Conversation 与单步调试工作台。
                 </div>
               }
               right={
@@ -179,6 +198,8 @@ export default function AgentEditorPage() {
           <EditorRuntimeRail
             flow={flowDetail}
             autosaveLabel={autosaveLabel}
+            runtimeSummary={runtimeSummary}
+            onOpenRuntime={openRuntimeWorkbench}
             onOpenExplore={() => navigate(`/agent/${id}/explore`)}
             onOpenVersions={() => setVersionsOpen(true)}
             onOpenWebhook={() => setWebhookOpen(true)}
@@ -190,8 +211,11 @@ export default function AgentEditorPage() {
       >
         <ReactFlowProvider>
           <AgentCanvas
-            drawerVisible={drawerVisible}
-            hideDrawer={() => setDrawerVisible(false)}
+            runtimeWorkbenchOpen={runtimeWorkbenchOpen}
+            runtimeWorkbenchView={runtimeWorkbenchView}
+            onRuntimeWorkbenchOpenChange={setRuntimeWorkbenchOpen}
+            onRuntimeWorkbenchViewChange={setRuntimeWorkbenchView}
+            onRuntimeSummaryChange={setRuntimeSummary}
           />
         </ReactFlowProvider>
       </StudioPageTemplate>
@@ -217,12 +241,12 @@ export default function AgentEditorPage() {
       <PlaceholderDialog
         open={roadmapOpen}
         onOpenChange={setRoadmapOpen}
-        title="阶段一已完成的骨架"
-        description="这里先把大框架、入口和状态反馈固定住，后续再逐个替换旧节点表单和运行体验。"
+        title="T4：Agent 运行与单步调试工作台"
+        description="普通 Agent 已切到统一 runtime workbench，T2/T3 的表单装配和目录化 operator 仍保持正式主路径。"
         bullets={[
-          '已切换到新的 Agent Center / 模板页 / 编辑器页 / Explore 页 / Share 页路由结构。',
-          '已统一共享类型、API 与 query/mutation hooks，后续节点和弹窗可以直接增量接入。',
-          '当前 Canvas 仍复用旧内核，接下来会逐步把节点表单、日志时间线、分享发布能力拆成目录化模块。',
+          '本轮正式化普通 Agent 的 Run / Conversation / Log 单一工作台，并保持 form-sheet renderer 主路径不回退。',
+          '单步调试继续挂在 T2 的 form-sheet header 与 canvas context-menu 上，但输入表单与文件上传已经按 T4 统一。',
+          'Pipeline run/log、Share/Publish/Webhook/Explore 与 session 浏览仍留给后续 T6/T7/T9，不在本轮越界实现。',
         ]}
       />
     </>

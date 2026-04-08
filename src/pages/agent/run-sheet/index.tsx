@@ -1,85 +1,76 @@
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet'
-import { cn } from '@/lib/utils'
-import { useCallback, useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import { BeginId } from '../constant'
+import { memo } from 'react'
+import { SectionCard } from '@/components/patterns'
+import { LegacySheetShell } from '../features/runtime-workbench/components/legacy-sheet-shell'
+import type { AgentRuntimeController } from '../features/runtime-workbench/types'
 import DebugContent from '../debug-content'
-import { useGetBeginNodeDataInputs } from '../hooks/use-get-begin-query'
-import useGraphStore from '../store'
-import type { BeginQuery } from '../types'
+
+interface AgentRunPanelProps {
+  controller: AgentRuntimeController
+}
 
 interface RunSheetProps {
   hideModal?: () => void
   showModal?: () => void
+  controller?: AgentRuntimeController
 }
 
-const RunSheet = ({ hideModal, showModal: showChatModal }: RunSheetProps) => {
-  const { t } = useTranslation()
-  const { updateNodeForm, getNode } = useGraphStore((state) => state)
-  const [loading, setLoading] = useState(false)
-
-  const inputs = useGetBeginNodeDataInputs()
-
-  const handleRunAgent = useCallback(
-    async (nextValues: BeginQuery[]) => {
-      setLoading(true)
-      try {
-        const beginNode = getNode(BeginId)
-        const currentInputs: Record<string, BeginQuery> =
-          beginNode?.data?.form?.inputs || {}
-
-        // 构建新的 inputs
-        const nextInputs = nextValues.reduce(
-          (acc, item) => {
-            if (item.key) {
-              acc[item.key] = item
-            }
-            return acc
-          },
-          { ...currentInputs },
-        )
-
-        // 更新节点表单
-        updateNodeForm(BeginId, nextInputs, ['inputs'])
-
-        // 显示聊天面板
-        showChatModal?.()
-        hideModal?.()
-      } finally {
-        setLoading(false)
-      }
-    },
-    [getNode, showChatModal, hideModal, updateNodeForm],
-  )
-
-  const onOk = useCallback(
-    async (nextValues: any[]) => {
-      handleRunAgent(nextValues)
-    },
-    [handleRunAgent],
-  )
-
+export function AgentRunPanel({ controller }: AgentRunPanelProps) {
   return (
-    <Sheet open onOpenChange={hideModal} modal={false}>
-      <SheetContent className={cn('top-20 px-0 flex flex-col')}>
-        <SheetHeader className="px-space-md">
-          <SheetTitle>{t('flow.testRun', '测试运行')}</SheetTitle>
-        </SheetHeader>
-        <DebugContent
-          ok={onOk}
-          parameters={inputs}
-          loading={loading}
-          className="flex-1 overflow-auto min-h-0 pb-space-lg"
-          maxHeight="max-h-[83vh]"
-        />
-      </SheetContent>
-    </Sheet>
+    <div className="space-y-space-lg p-space-md">
+      <SectionCard title="Begin Inputs" padding="default">
+        <div className="space-y-space-md">
+          <p className="text-sm text-text-secondary">
+            {controller.isTaskMode
+              ? '当前 Begin 节点处于任务模式，提交参数后会直接触发一次测试运行。'
+              : '这里负责同步 Begin 输入。提交后会进入 Conversation 视图，由你继续发送测试消息。'}
+          </p>
+
+          <DebugContent
+            canvasId={controller.canvasId}
+            parameters={controller.beginInputs}
+            ok={controller.handleRun}
+            isNext={false}
+            loading={controller.loading || controller.saving}
+            btnText={controller.isTaskMode ? '开始运行' : '进入对话'}
+            className="min-h-0"
+            maxHeight="max-h-none"
+          />
+        </div>
+      </SectionCard>
+
+      {!controller.beginInputs.length ? (
+        <SectionCard title="运行说明" padding="default">
+          <p className="text-sm text-text-secondary">
+            当前 Begin 节点没有额外输入字段。你仍然可以提交本页，直接进入 Conversation 视图。
+          </p>
+        </SectionCard>
+      ) : null}
+    </div>
   )
 }
 
-export default RunSheet
+const RunSheet = ({ hideModal, controller }: RunSheetProps) => {
+  return (
+    <LegacySheetShell
+      open
+      title="测试运行"
+      description="兼容壳：正式运行路径已收敛到新的 runtime workbench。"
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen) {
+          hideModal?.()
+        }
+      }}
+      className="sm:max-w-[620px]"
+    >
+      {controller ? (
+        <AgentRunPanel controller={controller} />
+      ) : (
+        <div className="p-space-md text-sm text-text-secondary">
+          请通过新的 runtime workbench 打开测试运行面板。
+        </div>
+      )}
+    </LegacySheetShell>
+  )
+}
+
+export default memo(RunSheet)

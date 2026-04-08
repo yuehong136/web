@@ -1,29 +1,32 @@
-import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
-import { cn } from '@/lib/utils'
-import { useTranslation } from 'react-i18next'
-import { useIsTaskMode } from '../hooks/use-get-begin-query'
+import type { AgentRuntimeController } from '../features/runtime-workbench/types'
+import { LegacySheetShell } from '../features/runtime-workbench/components/legacy-sheet-shell'
 import AgentChatBox from './box'
 
 interface ChatSheetProps {
   hideModal?: () => void
+  controller?: AgentRuntimeController
 }
 
-export function ChatSheet({ hideModal }: ChatSheetProps) {
-  const { t } = useTranslation()
-  const isTaskMode = useIsTaskMode()
-
+export function ChatSheet({ hideModal, controller }: ChatSheetProps) {
   return (
-    <Sheet open modal={false} onOpenChange={hideModal}>
-      <SheetContent
-        className={cn('top-20 bottom-0 p-0 flex flex-col h-auto')}
-        onInteractOutside={(e) => e.preventDefault()}
-      >
-        <SheetTitle className="hidden" />
-        <div className="pl-space-lg pt-space-sm text-text-title font-medium">
-          {t(isTaskMode ? 'flow.task' : 'chat.chat', isTaskMode ? '任务' : '对话')}
+    <LegacySheetShell
+      open
+      title="Conversation"
+      description="兼容壳：正式对话路径已收敛到新的 runtime workbench。"
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen) {
+          hideModal?.()
+        }
+      }}
+      className="sm:max-w-[620px]"
+    >
+      {controller ? (
+        <AgentChatBox controller={controller} />
+      ) : (
+        <div className="p-space-md text-sm text-text-secondary">
+          请通过新的 runtime workbench 打开 Conversation 视图。
         </div>
-        <AgentChatBox />
-      </SheetContent>
-    </Sheet>
+      )}
+    </LegacySheetShell>
   )
 }

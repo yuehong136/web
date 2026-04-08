@@ -8,11 +8,18 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { type ReactNode, useCallback, useMemo } from 'react'
+import { type ReactNode, useCallback, useEffect, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
@@ -27,8 +34,9 @@ const StringFields = [
 ]
 
 interface IProps {
+  canvasId?: string
   parameters: BeginQuery[]
-  ok(parameters: any[]): void
+  ok(parameters: BeginQuery[]): void | Promise<void>
   isNext?: boolean
   loading?: boolean
   submitButtonDisabled?: boolean
@@ -37,7 +45,19 @@ interface IProps {
   maxHeight?: string
 }
 
+const resolveOptionValue = (
+  query: BeginQuery,
+  value: unknown,
+) => {
+  if (!Array.isArray(query.options)) {
+    return value
+  }
+
+  return query.options.find((item) => String(item) === String(value)) ?? value
+}
+
 const DebugContent = ({
+  canvasId,
   parameters,
   ok,
   isNext = true,
@@ -52,12 +72,12 @@ const DebugContent = ({
   const formSchemaValues = useMemo(() => {
     const obj = parameters.reduce<{
       schema: Record<string, z.ZodType>
-      values: Record<string, any>
+      values: Record<string, unknown>
     }>(
       (pre, cur, idx) => {
         const type = cur.type
         let fieldSchema: z.ZodType
-        let value: any
+        let value: unknown
 
         if (StringFields.some((x) => x === type)) {
           fieldSchema = z.string().trim()
@@ -65,6 +85,10 @@ const DebugContent = ({
             fieldSchema = (fieldSchema as z.ZodString).min(1)
           }
           value = ''
+        } else if (type === BeginQueryType.File) {
+          const fileSchema = z.array(z.object({}).passthrough())
+          fieldSchema = cur.optional ? fileSchema : fileSchema.min(1)
+          value = []
         } else if (type === BeginQueryType.Boolean) {
           fieldSchema = z.boolean()
           value = false
@@ -96,6 +120,10 @@ const DebugContent = ({
     defaultValues: formSchemaValues.values,
     resolver: zodResolver(formSchemaValues.schema),
   })
+
+  useEffect(() => {
+    form.reset(formSchemaValues.values)
+  }, [form, formSchemaValues.values])
 
   const renderWidget = useCallback(
     (q: BeginQuery, idx: string) => {
@@ -132,6 +160,36 @@ const DebugContent = ({
                 <FormLabel>{props.label}</FormLabel>
                 <FormControl>
                   <Textarea rows={3} {...field} value={field.value as string || ''} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        ),
+        [BeginQueryType.Options]: (
+          <FormField
+            key={idx}
+            control={form.control}
+            name={props.name}
+            render={({ field }) => (
+              <FormItem className="flex-1">
+                <FormLabel>{props.label}</FormLabel>
+                <FormControl>
+                  <Select
+                    value={typeof field.value === 'string' ? field.value : ''}
+                    onValueChange={field.onChange}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={t('common.select', '请选择')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(q.options || []).map((option) => (
+                        <SelectItem key={String(option)} value={String(option)}>
+                          {String(option)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -183,6 +241,7 @@ const DebugContent = ({
                 <FormLabel>{props.label}</FormLabel>
                 <FormControl>
                   <FileUploadDirectUpload
+                    canvasId={canvasId}
                     value={field.value}
                     onChange={field.onChange}
                   />
@@ -199,17 +258,21 @@ const DebugContent = ({
         BeginQueryTypeWidgetMap[BeginQueryType.Paragraph]
       )
     },
-    [form],
+    [canvasId, form, t],
   )
 
   const onSubmit = useCallback(
     (values: z.infer<typeof formSchemaValues.schema>) => {
       const nextValues = Object.entries(values).map(([key, value]) => {
         const item = parameters[Number(key)]
+        if (item.type === BeginQueryType.Options) {
+          return { ...item, value: resolveOptionValue(item, value) }
+        }
+
         return { ...item, value }
       })
 
-      ok(nextValues)
+      ok(nextValues as BeginQuery[])
     },
     [formSchemaValues, ok, parameters],
   )
@@ -231,7 +294,13 @@ const DebugContent = ({
               disabled={loading || submitButtonDisabled}
               className="w-full mt-space-xs"
             >
-              {loading ? t('common.loading', '加载中...') : btnText || t(isNext ? 'common.next' : 'flow.run', isNext ? '下一步' : '运行')}
+              {loading
+                ? t('common.loading', '加载中...')
+                : btnText ||
+                  t(
+                    isNext ? 'common.next' : 'flow.run',
+                    isNext ? '下一步' : '运行',
+                  )}
             </Button>
           </div>
         </form>

@@ -4,7 +4,6 @@ import { useParams } from 'react-router-dom'
 import { Operator } from '../constant'
 import useGraphStore from '../store'
 import { useCacheChatLog } from './use-cache-chat-log'
-import { useGetBeginNodeDataInputs } from './use-get-begin-query'
 import { useSaveGraph } from './use-save-graph'
 import { useFetchAgent as useFetchData } from './use-fetch-data'
 
@@ -85,55 +84,12 @@ export const useShowSingleDebugDrawer = () => {
 const ExcludedNodes = [Operator.Note, Operator.Placeholder, Operator.File]
 
 export function useShowDrawer({
-  drawerVisible,
-  hideDrawer,
+  onOpenSingleDebug,
 }: {
-  drawerVisible: boolean
-  hideDrawer(): void
+  onOpenSingleDebug?: (nodeId: string) => void
 }) {
-  const {
-    visible: runVisible,
-    showModal: showRunModal,
-    hideModal: hideRunModal,
-  } = useSetModalState()
-  const {
-    visible: chatVisible,
-    showModal: showChatModal,
-    hideModal: hideChatModal,
-  } = useSetModalState()
-  const {
-    singleDebugDrawerVisible,
-    showSingleDebugDrawer,
-    hideSingleDebugDrawer,
-  } = useShowSingleDebugDrawer()
   const { formDrawerVisible, hideFormDrawer, showFormDrawer, clickedNode } =
     useShowFormDrawer()
-  const inputs = useGetBeginNodeDataInputs()
-
-  useEffect(() => {
-    if (drawerVisible) {
-      if (inputs.length > 0) {
-        showRunModal()
-        hideChatModal()
-      } else {
-        showChatModal()
-        hideRunModal()
-      }
-    }
-  }, [
-    hideChatModal,
-    hideRunModal,
-    showChatModal,
-    showRunModal,
-    drawerVisible,
-    inputs,
-  ])
-
-  const hideRunOrChatDrawer = useCallback(() => {
-    hideChatModal()
-    hideRunModal()
-    hideDrawer()
-  }, [hideChatModal, hideDrawer, hideRunModal])
 
   const onPaneClick = useCallback(() => {
     hideFormDrawer()
@@ -141,35 +97,28 @@ export function useShowDrawer({
 
   const onNodeClick = useCallback(
     (e: React.MouseEvent<Element>, node: { id: string; data?: { label?: string } }) => {
-      if (!ExcludedNodes.some((x) => x === node.data?.label)) {
-        hideSingleDebugDrawer()
-        showFormDrawer(e, node.id)
-      }
-      // handle single debug icon click
       if (
         get(e.target, 'dataset.play') === 'true' ||
         get(e.target, 'parentNode.dataset.play') === 'true'
       ) {
-        showSingleDebugDrawer()
+        onOpenSingleDebug?.(node.id)
+        return
+      }
+
+      if (!ExcludedNodes.some((x) => x === node.data?.label)) {
+        showFormDrawer(e, node.id)
       }
     },
-    [hideSingleDebugDrawer, showFormDrawer, showSingleDebugDrawer],
+    [onOpenSingleDebug, showFormDrawer],
   )
 
   return {
-    chatVisible,
-    runVisible,
     onPaneClick,
-    singleDebugDrawerVisible,
-    showSingleDebugDrawer,
-    hideSingleDebugDrawer,
     formDrawerVisible,
     showFormDrawer,
     clickedNode,
     onNodeClick,
     hideFormDrawer,
-    hideRunOrChatDrawer,
-    showChatModal,
   }
 }
 

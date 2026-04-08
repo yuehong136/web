@@ -10,33 +10,31 @@ import {
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import { NotebookPen } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FormSheet } from '../features/form-sheet'
 import {
-  AgentChatContext,
-  AgentChatLogContext,
+  RuntimeWorkbench,
+  RuntimeWorkbenchView,
+} from '../features/runtime-workbench'
+import { useAgentRuntimeWorkbench } from '../features/runtime-workbench/hooks/use-agent-runtime-workbench'
+import type { RuntimeWorkbenchSummary } from '../features/runtime-workbench'
+import {
   AgentInstanceContext,
   HandleContext,
 } from '../context'
 import { useAddNode } from '../hooks/use-add-node'
 import { useBeforeDelete } from '../hooks/use-before-delete'
-import { useCacheChatLog } from '../hooks/use-cache-chat-log'
 import { useConnectionDrag } from '../hooks/use-connection-drag'
 import { useDropdownPosition } from '../hooks/use-dropdown-position'
-import { useHideFormSheetOnNodeDeletion, useShowDrawer, useShowLogSheet } from '../hooks/use-show-drawer'
+import { useHideFormSheetOnNodeDeletion, useShowDrawer } from '../hooks/use-show-drawer'
 import { useMoveNote } from '../hooks/use-move-note'
-import { useNodeLoading } from '../hooks/use-node-loading'
 import { usePlaceholderManager } from '../hooks/use-placeholder-manager'
 import { useSelectCanvasData } from '../hooks/use-select-canvas-data'
-import { useStopMessageUnmount } from '../hooks/use-stop-message'
 import { useValidateConnection } from '../hooks/use-validate-connection'
 import { DropdownProvider, useDropdownManager } from './context'
 import { ButtonEdge } from './edge'
 import type { RAGFlowNodeType } from '../types'
-import { ChatSheet } from '../chat/chat-sheet'
-import { LogSheet } from '../log-sheet'
-import RunSheet from '../run-sheet'
 import { NextStepDropdown } from './node/dropdown/next-step-dropdown'
 import { nodeTypes } from './node-types'
 import { CanvasContextMenu } from './context-menu'
@@ -56,15 +54,22 @@ const edgeTypes = {
 }
 
 interface AgentCanvasProps {
-  drawerVisible?: boolean
-  hideDrawer?: () => void
+  runtimeWorkbenchOpen: boolean
+  runtimeWorkbenchView: RuntimeWorkbenchView
+  onRuntimeWorkbenchOpenChange: (open: boolean) => void
+  onRuntimeWorkbenchViewChange: (view: RuntimeWorkbenchView) => void
+  onRuntimeSummaryChange?: (summary: RuntimeWorkbenchSummary) => void
 }
 
-function AgentCanvasInner({ drawerVisible, hideDrawer }: AgentCanvasProps) {
+function AgentCanvasInner({
+  runtimeWorkbenchOpen,
+  runtimeWorkbenchView,
+  onRuntimeWorkbenchOpenChange,
+  onRuntimeWorkbenchViewChange,
+  onRuntimeSummaryChange,
+}: AgentCanvasProps) {
   const { t } = useTranslation()
   const { id: canvasId } = useParams<{ id: string }>()
-  const resolvedDrawerVisible = drawerVisible ?? false
-  const resolvedHideDrawer = hideDrawer ?? (() => {})
   const {
     nodes,
     edges,
@@ -79,38 +84,21 @@ function AgentCanvasInner({ drawerVisible, hideDrawer }: AgentCanvasProps) {
 
   const [reactFlowInstance, setReactFlowInstance] =
     useState<ReactFlowInstance<RAGFlowNodeType, Edge>>()
+  const [singleDebugNodeId, setSingleDebugNodeId] = useState<string | null>(null)
+
+  const handleShowSingleDebug = useCallback((nodeId: string) => {
+    setSingleDebugNodeId(nodeId)
+  }, [])
 
   const {
     onNodeClick,
     clickedNode,
     formDrawerVisible,
     hideFormDrawer,
-    chatVisible,
-    runVisible,
-    hideRunOrChatDrawer,
-    showChatModal,
     showFormDrawer,
   } = useShowDrawer({
-    drawerVisible: resolvedDrawerVisible,
-    hideDrawer: resolvedHideDrawer,
+    onOpenSingleDebug: handleShowSingleDebug,
   })
-
-  const {
-    addEventList,
-    setCurrentMessageId,
-    currentEventListWithoutMessageById,
-    clearEventList,
-    currentMessageId,
-    latestTaskId,
-  } = useCacheChatLog()
-
-  const { stopMessage } = useStopMessageUnmount(chatVisible, latestTaskId)
-
-  const { showLogSheet, logSheetVisible, hideLogSheet } = useShowLogSheet({
-    setCurrentMessageId,
-  })
-  const [lastSendLoading, setLastSendLoading] = useState(false)
-  const [currentSendLoading, setCurrentSendLoading] = useState(false)
 
   const { handleBeforeDelete } = useBeforeDelete()
 
@@ -118,24 +106,7 @@ function AgentCanvasInner({ drawerVisible, hideDrawer }: AgentCanvasProps) {
 
   const { ref, showImage, hideImage, imgVisible, mouse } = useMoveNote()
 
-  useEffect(() => {
-    if (!chatVisible) {
-      stopMessage(latestTaskId)
-      clearEventList()
-    }
-  }, [chatVisible, clearEventList, latestTaskId, stopMessage])
-
-  const setLastSendLoadingFunc = (loading: boolean, messageId: string) => {
-    setCurrentSendLoading(!!loading)
-    if (messageId === currentMessageId) {
-      setLastSendLoading(loading)
-    } else {
-      setLastSendLoading(false)
-    }
-  }
-
   useHideFormSheetOnNodeDeletion({ hideFormDrawer })
-  const [singleDebugNodeId, setSingleDebugNodeId] = useState<string | null>(null)
   const [contextMenu, setContextMenu] = useState<{
     open: boolean
     x: number
@@ -192,10 +163,6 @@ function AgentCanvasInner({ drawerVisible, hideDrawer }: AgentCanvasProps) {
     [],
   )
 
-  const handleShowSingleDebug = useCallback((nodeId: string) => {
-    setSingleDebugNodeId(nodeId)
-  }, [])
-
   const handleCloseSingleDebug = useCallback(() => {
     setSingleDebugNodeId(null)
   }, [])
@@ -226,10 +193,12 @@ function AgentCanvasInner({ drawerVisible, hideDrawer }: AgentCanvasProps) {
     hideImage,
   ])
 
-  const { lastNode, setDerivedMessages, startButNotFinishedNodeIds } =
-    useNodeLoading({
-      currentEventListWithoutMessageById,
-    })
+  const runtimeController = useAgentRuntimeWorkbench({
+    canvasId,
+    currentView: runtimeWorkbenchView,
+    onViewChange: onRuntimeWorkbenchViewChange,
+    onSummaryChange: onRuntimeSummaryChange,
+  })
 
   return (
     <div className="w-full h-full px-space-lg pb-space-lg bg-surface-secondary">
@@ -268,15 +237,15 @@ function AgentCanvasInner({ drawerVisible, hideDrawer }: AgentCanvasProps) {
         </defs>
       </svg>
 
-      <AgentInstanceContext.Provider
-        value={{
-          addCanvasNode,
-          showFormDrawer,
-          lastNode: lastNode?.data?.component_id,
-          currentSendLoading,
-          startButNotFinishedNodeIds,
-        }}
-      >
+        <AgentInstanceContext.Provider
+          value={{
+            addCanvasNode,
+            showFormDrawer,
+            lastNode: runtimeController.lastNodeId,
+            currentSendLoading: runtimeController.loading,
+            startButNotFinishedNodeIds: runtimeController.startButNotFinishedNodeIds,
+          }}
+        >
         <ReactFlow
           connectionMode={ConnectionMode.Loose}
           nodes={nodes}
@@ -367,38 +336,19 @@ function AgentCanvasInner({ drawerVisible, hideDrawer }: AgentCanvasProps) {
               open={formDrawerVisible}
               node={clickedNode}
               onClose={hideFormDrawer}
-              runtimeDrawerVisible={chatVisible || runVisible}
+              runtimeDrawerVisible={runtimeWorkbenchOpen}
               canvasId={canvasId}
             />
           </AgentInstanceContext.Provider>
         )}
 
-        {chatVisible && (
-          <AgentChatContext.Provider
-            value={{ showLogSheet, setLastSendLoadingFunc, setDerivedMessages }}
-          >
-            <AgentChatLogContext.Provider
-              value={{ addEventList, setCurrentMessageId }}
-            >
-              <ChatSheet hideModal={hideRunOrChatDrawer} />
-            </AgentChatLogContext.Provider>
-          </AgentChatContext.Provider>
-        )}
-
-        {runVisible && (
-          <RunSheet hideModal={hideRunOrChatDrawer} showModal={showChatModal} />
-        )}
-
-        {logSheetVisible && (
-          <LogSheet
-            hideModal={hideLogSheet}
-            currentEventListWithoutMessageById={
-              currentEventListWithoutMessageById
-            }
-            currentMessageId={currentMessageId}
-            sendLoading={lastSendLoading}
-          />
-        )}
+        <RuntimeWorkbench
+          open={runtimeWorkbenchOpen}
+          view={runtimeWorkbenchView}
+          controller={runtimeController}
+          onOpenChange={onRuntimeWorkbenchOpenChange}
+          onViewChange={onRuntimeWorkbenchViewChange}
+        />
 
         <CanvasContextMenu
           open={contextMenu.open}
