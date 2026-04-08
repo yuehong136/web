@@ -1,354 +1,370 @@
 # Multi-RAG 前端技术栈开发规范
 
-## 技术栈选型
-- **框架**：React 19 + TypeScript 严格模式  
-- **构建工具**：Vite 7 (快速构建和热重载)
-- **样式**：Tailwind CSS 3.4+ 
-- **状态管理**：Zustand 5.0 + TanStack Query 5.8
-- **路由**：React Router DOM 7.7
-- **包管理**：npm (项目现状)
-- **运行环境**：Node.js 18+
-- **实时通信**：EventSource (SSE) + WebSocket  
-- **文件上传**：react-dropzone 14.3
-- **图表可视化**：recharts 3.1
-- **表单处理**：React Hook Form 7.6 + Zod 4.0
-- **图标库**：Lucide React 0.525
+本文档用于说明本仓库当前采用的前端技术栈、工程边界和开发约束。若与 `AGENTS.md`、`DEVELOPER_GUIDE.md` 冲突，以那两份文档为准。
 
-## 项目架构
-```
+## 1. 当前技术栈
+
+- 框架：React 19
+- 语言：TypeScript 5.8，严格模式
+- 构建工具：Vite 7
+- 路由：React Router 7
+- 服务端状态：TanStack Query 5
+- 客户端状态：Zustand 5
+- 样式系统：Tailwind CSS 3.4 + 语义化设计令牌
+- UI 基础组件：Radix UI 封装组件
+- 表单：React Hook Form 7 + Zod 4
+- 图标：Lucide React
+- 画布编排：@xyflow/react
+- 文件上传：react-dropzone
+- 图表：recharts
+
+不再使用的旧口径：
+
+- 不按 Next.js 体系写规范
+- 不使用 `next-intl`
+- 不使用 Next.js `Image`、`Font`、`dynamic()`
+- 不再以“layout/feature/forms”作为主要目录叙事
+
+## 2. 工程目标
+
+技术栈规范服务于以下目标：
+
+- 页面骨架统一
+- 领域类型统一
+- API 与 hooks 收敛
+- 设计系统语义化
+- 复杂产品页可演进，尤其是 `Workspace`、`Studio`、`Workbench` 场景
+
+## 3. 当前目录结构基线
+
+```text
 src/
-├── api/                    # API 客户端和类型定义
-│   ├── client.ts          # 基础 API 客户端
-│   ├── auth.ts            # 身份验证 API
-│   ├── conversation.ts    # 对话相关 API
-│   ├── knowledge.ts       # 知识库 API
-│   ├── system.ts          # 系统监控 API
-│   └── index.ts           # API 统一导出
-├── components/            # 可复用UI组件
-│   ├── ui/               # 基础组件(Button, Input, Card等)
-│   ├── auth/             # 身份验证组件
-│   ├── feature/          # 功能组件(Chat, Workflow等)
-│   └── layout/           # 布局组件(Header, Sidebar等)
-├── pages/                # 页面组件
-│   ├── auth/             # 认证页面(Login, Register)
-│   ├── dashboard/        # 仪表板页面
-│   ├── chat/             # 智能对话页面
-│   ├── knowledge/        # 知识库管理页面
-│   ├── system/           # 系统监控页面
-│   └── settings/         # 设置页面
-├── stores/               # Zustand 状态管理
-│   ├── auth.ts           # 身份验证状态
-│   ├── ui.ts             # UI 状态
-│   ├── chat.ts           # 对话状态
-│   └── index.ts          # 状态统一导出
-├── hooks/                # 自定义 React Hooks
-├── lib/                  # 工具函数和配置
-│   ├── router.tsx        # 路由配置
-│   ├── query-client.ts   # TanStack Query 配置
-│   └── utils.ts          # 工具函数
-├── types/                # TypeScript类型定义
-├── constants/            # 常量定义
-├── assets/               # 静态资源和图标
-└── public/               # 公共静态文件
+├── api/                # API 客户端
+├── components/
+│   ├── ui/             # 原子 UI
+│   ├── patterns/       # 页面结构块
+│   ├── page-templates/ # 页面骨架模板
+│   ├── chat/           # 聊天组件
+│   ├── knowledge/      # 知识库组件
+│   └── studio/         # Studio/Workbench 复用组件
+├── hooks/              # query/mutation hooks 与通用 hooks
+├── pages/              # 页面模块
+├── stores/             # Zustand stores
+├── themes/             # 设计令牌与主题生成
+├── types/              # 全局类型
+├── lib/                # 工具与领域辅助
+└── assets/             # 静态资源
 ```
 
-## 开发命令
-```bash
-# 依赖安装
-npm install
+统一使用 `@/` 路径别名导入。
 
-# 开发服务器
-npm run dev
+## 4. 页面骨架与模板体系
 
-# 构建生产版本
-npm run build
+页面必须遵循四层分工：
 
-# 预览生产版本
-npm run preview
+| 层级 | 目录 | 职责 |
+| --- | --- | --- |
+| L1 | `components/ui` | 原子组件 |
+| L2 | `components/patterns` | 页面结构块 |
+| L3 | `components/page-templates` | 整页骨架 |
+| L4 | `pages` | 业务编排与交互逻辑 |
 
-# 代码检查
-npm run lint
+页面模板选择规则：
 
-# 类型检查
-npx tsc --noEmit
+| 场景 | 模板 | 典型页面 |
+| --- | --- | --- |
+| Console | `ConsolePageTemplate` | 系统、设置、资源管理 |
+| Workspace | `WorkspacePageTemplate` | 首页、聊天、搜索 |
+| Studio | `StudioPageTemplate` | Agent Canvas、Prompt Studio、流程编排 |
+| Split Detail | `SplitDetailPageTemplate` | 列表详情、检索工作台 |
+
+强制要求：
+
+- 新页面优先复用 `page-templates`
+- 页面级头部、工具条、状态区优先复用 `patterns`
+- 页面层不重新发明一套新的整页布局
+
+## 5. 样式与设计系统
+
+### 5.1 基本原则
+
+- 只使用语义化设计令牌，不硬编码颜色
+- 页面层禁止继续使用 `bg-white`、`text-gray-*`、`border-gray-*`
+- 普通视觉语义不使用内联 `style`
+- 深色模式自动适配，不用 `dark:` 表达业务层语义
+
+### 5.2 必须优先使用的 token
+
+- `surface-*`
+- `text-*`
+- `border-*`
+- `status-*`
+- `space-*`
+- `radius-*`
+- `elevation-*`
+
+骨架层和工作台相关 token：
+
+- `components-app-shell-*`
+- `components-main-workbench-*`
+- `components-page-header-*`
+- `components-page-toolbar-*`
+- `components-page-state-*`
+- `components-console-*`
+- `components-workspace-*`
+- `components-studio-*`
+- `components-split-pane-*`
+
+### 5.3 推荐写法
+
+```tsx
+<div className="rounded-radius-lg border border-border-secondary bg-surface-primary p-space-base">
+  <h2 className="text-text-primary font-medium">标题</h2>
+  <p className="text-text-secondary">说明文字</p>
+</div>
 ```
 
-## 核心依赖配置
-```json
-{
-  "dependencies": {
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "@tanstack/react-query": "^5.83.0",
-    "zustand": "^5.0.6",
-    "react-router-dom": "^7.7.0",
-    "tailwindcss": "^3.4.17",
-    "react-dropzone": "^14.3.8",
-    "react-hook-form": "^7.60.0",
-    "recharts": "^3.1.0",
-    "lucide-react": "^0.525.0",
-    "zod": "^4.0.5",
-    "clsx": "^2.1.1",
-    "tailwind-merge": "^3.3.1"
-  },
-  "devDependencies": {
-    "@types/react": "^19.1.8",
-    "@types/react-dom": "^19.1.6",
-    "@vitejs/plugin-react": "^4.6.0",
-    "typescript": "~5.8.3",
-    "eslint": "^9.30.1",
-    "vite": "^7.0.4"
-  }
+### 5.4 避免写法
+
+```tsx
+<div className="bg-white border border-gray-200 p-4">
+  <h2 className="text-gray-900">标题</h2>
+  <p className="text-gray-600">说明文字</p>
+</div>
+```
+
+## 6. React 组件规范
+
+### 6.1 组件形式
+
+- 使用函数组件 + TypeScript
+- 组件名使用 `PascalCase`
+- 默认优先使用命名导出
+- Props 使用 `组件名 + Props`
+
+### 6.2 展示组件 vs 容器组件
+
+展示组件：
+
+- 只接收 props
+- 不直接访问 store
+- 不直接发请求
+- 不承担页面级副作用
+
+容器组件：
+
+- 负责 hooks、请求、交互编排
+- 位于 `pages/` 或具体 feature 模块中
+
+### 6.3 示例
+
+```tsx
+import type { UserInfo } from '@/types/api'
+
+interface UserProfileProps {
+  user: UserInfo
+  className?: string
 }
-```
 
-## 代码风格规范
-
-### React组件规范
-- **函数组件**：使用函数组件 + TypeScript
-- **组件命名**：PascalCase (`AIChat`, `WorkflowEditor`)
-- **文件命名**：PascalCase (`AIChat.tsx`, `WorkflowEditor.tsx`)
-- **导出方式**：优先使用命名导出
-- **Props接口**：`组件名 + Props` (`AIChatProps`)
-
-**示例组件结构**：
-```typescript
-interface AIChatProps {
-  conversationId: string;
-  onMessageSent: (message: string) => void;
-}
-
-export const AIChat: React.FC<AIChatProps> = ({ 
-  conversationId, 
-  onMessageSent 
-}) => {
-  // 组件逻辑
+export function UserProfile({ user, className }: UserProfileProps) {
   return (
-    <div className="flex flex-col h-full bg-white rounded-lg">
-      {/* 组件内容 */}
+    <div className={className}>
+      <h3 className="text-text-primary font-medium">{user.name}</h3>
+      <p className="text-text-secondary">{user.email}</p>
     </div>
-  );
-};
+  )
+}
 ```
 
-### Tailwind CSS 使用规范
-- **类名顺序**：布局 → 尺寸 → 间距 → 颜色 → 状态
-- **响应式设计**：`sm:` `md:` `lg:` `xl:` `2xl:`
-- **状态变体**：`hover:` `focus:` `active:` `disabled:`
-- **禁用自定义CSS**：只使用Tailwind工具类
+## 7. TypeScript 规范
 
-**示例**：
-```typescript
-<button className="flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50">
-  发送消息
-</button>
-```
+- 所有公开函数参数和返回值应有明确类型
+- 优先使用 `interface` 定义对象结构
+- 避免 `any`，必要时使用 `unknown`
+- 领域实体优先复用 `src/types/`
+- 页面私有类型不要重复定义后端结构
 
-### TypeScript 严格规范
-- **类型注解**：所有函数参数和返回值必须有类型
-- **接口定义**：优先使用`interface`而非`type`
-- **严格模式**：禁用`any`类型，使用`unknown`替代
-- **API类型**：基于OpenAPI生成类型定义
+示例：
 
-**API类型示例**：
-```typescript
+```ts
 interface AITranslateRequest {
-  zh_text: string;
-  llm_name: string;
+  zh_text: string
+  llm_name: string
 }
 
 interface AITranslateResponse {
-  status: 'success' | 'error';
+  status: 'success' | 'error'
   data: {
-    original_text: string;
-    translated_text: string;
-  };
-}
-```
-
-### React Router 路由规范
-- **页面组件**：每个页面一个主组件文件
-- **布局组件**：`Layout.tsx` 作为整体布局
-- **路由保护**：使用 `AuthGuard` 组件保护需要认证的路由
-- **懒加载**：大型页面组件使用 `React.lazy()` 懒加载
-
-**页面组织示例**：
-```
-pages/
-├── auth/
-│   ├── LoginPage.tsx         # 登录页面
-│   ├── RegisterPage.tsx      # 注册页面
-│   └── index.ts              # 导出文件
-├── dashboard/
-│   ├── DashboardPage.tsx     # 仪表板页面
-│   └── index.ts
-├── chat/
-│   ├── ChatPage.tsx          # 聊天页面
-│   └── index.ts
-├── knowledge/
-│   ├── KnowledgeListPage.tsx # 知识库列表页面
-│   └── index.ts
-└── system/
-    ├── SystemPage.tsx        # 系统监控页面
-    └── index.ts
-```
-
-### 状态管理规范
-**Zustand Store结构**：
-```typescript
-interface ChatStore {
-  // 状态
-  conversations: Conversation[];
-  currentConversationId: string | null;
-  isLoading: boolean;
-  
-  // 动作
-  setConversations: (conversations: Conversation[]) => void;
-  addMessage: (conversationId: string, message: Message) => void;
-  createConversation: () => Promise<string>;
-}
-
-export const useChatStore = create<ChatStore>((set, get) => ({
-  conversations: [],
-  currentConversationId: null,
-  isLoading: false,
-  
-  setConversations: (conversations) => set({ conversations }),
-  addMessage: (conversationId, message) => set((state) => ({
-    conversations: state.conversations.map(conv => 
-      conv.id === conversationId 
-        ? { ...conv, messages: [...conv.messages, message] }
-        : conv
-    )
-  })),
-  createConversation: async () => {
-    // 创建对话逻辑
-    return 'new-conversation-id';
-  }
-}));
-```
-
-### SSE (Server-Sent Events) 处理
-```typescript
-export const useSSEConnection = (eventId: string) => {
-  const [data, setData] = useState<any>(null);
-  const [isConnected, setIsConnected] = useState(false);
-  
-  useEffect(() => {
-    const eventSource = new EventSource(`/api/events/${eventId}`);
-    
-    eventSource.onopen = () => setIsConnected(true);
-    eventSource.onmessage = (event) => {
-      const parsedData = JSON.parse(event.data);
-      setData(parsedData);
-    };
-    eventSource.onerror = () => setIsConnected(false);
-    
-    return () => {
-      eventSource.close();
-      setIsConnected(false);
-    };
-  }, [eventId]);
-  
-  return { data, isConnected };
-};
-```
-
-### 文件命名约定
-- **组件文件**：`ChatInterface.tsx`
-- **页面路由**：`chat-interface/page.tsx`
-- **工具函数**：`formatMessage.ts`
-- **类型定义**：`ChatTypes.ts`
-- **Store文件**：`useChatStore.ts`
-- **Hook文件**：`useSSEConnection.ts`
-
-### API客户端规范
-```typescript
-// src/api/client.ts - 统一API客户端
-export class APIClient {
-  private baseURL: string;
-  private defaultTimeout: number = 30000;
-  
-  constructor(baseURL?: string) {
-    this.baseURL = baseURL || import.meta.env.VITE_API_BASE_URL;
-  }
-  
-  // 基础请求方法
-  async request<T>(endpoint: string, config: RequestConfig = {}): Promise<T> {
-    // 请求拦截、错误处理、超时控制等
-  }
-  
-  // HTTP方法
-  async get<T>(endpoint: string, config?: RequestConfig): Promise<T> {
-    return this.request<T>(endpoint, { ...config, method: 'GET' });
-  }
-  
-  async post<T>(endpoint: string, data?: any, config?: RequestConfig): Promise<T> {
-    return this.request<T>(endpoint, {
-      ...config,
-      method: 'POST',
-      body: data ? JSON.stringify(data) : undefined,
-    });
+    original_text: string
+    translated_text: string
   }
 }
-
-// 具体API模块示例
-// src/api/system.ts
-export const systemAPI = {
-  async getStatus(): Promise<SystemStatusResponse> {
-    return apiClient.get<SystemStatusResponse>('/system/status');
-  },
-};
 ```
 
-## 测试规范
-- **测试文件**：`ComponentName.test.tsx`
-- **测试位置**：`__tests__/` 目录或组件同级
-- **测试库**：Jest + React Testing Library
-- **覆盖率要求**：组件测试覆盖率 > 80%
+## 8. API 层规范
 
-## 性能优化规范
-- **代码分割**：使用动态导入 `dynamic()` 
-- **图片优化**：使用Next.js `Image`组件
-- **字体优化**：使用Next.js `Font`优化
-- **缓存策略**：合理使用SWR/React Query缓存
-- **Bundle分析**：定期运行 `pnpm analyze`
+所有请求统一进入 `src/api/`，按领域拆分：
 
-## 安全规范
-- **输入验证**：所有用户输入必须验证
-- **XSS防护**：使用DOMPurify清理HTML内容
-- **CSRF防护**：API请求包含CSRF token
-- **敏感信息**：使用环境变量存储API密钥
+- `api/agent.ts`
+- `api/conversation.ts`
+- `api/knowledge.ts`
+- `api/search.ts`
+- `api/system.ts`
 
-## 国际化规范
-- **国际化库**：next-intl
-- **语言文件**：JSON格式存储在 `locales/` 目录
-- **支持语言**：中文、英文(可扩展)
-- **URL策略**：子路径模式 (`/zh/`, `/en/`)
+强制要求：
 
-## Git工作流规范
-- **分支命名**：`feature/ai-chat-interface` | `fix/translation-error`
-- **提交格式**：Conventional Commits
-  - `feat: 新增AI对话功能`
-  - `fix: 修复翻译接口错误`
-  - `docs: 更新API文档`
-- **提交检查**：pre-commit hooks运行lint和类型检查
-- **PR要求**：必须通过所有CI检查
+- 页面不要直接写 `fetch`
+- 统一经过 API client
+- 类型适配优先放在 `lib/` 或 `adapters/`
+- 不把后端字段差异扩散到页面层
 
-## 部署配置
-- **环境变量**：使用 `.env.local` 配置
-- **构建优化**：Vite 生产模式构建优化
-- **CDN部署**：静态资源使用CDN加速
-- **监控配置**：集成错误监控和性能监控
+## 9. Hooks 规范
 
-## 重要提醒
-1. **组件优化**：合理使用 React.memo 和 useCallback 优化渲染性能
-2. **状态管理**：优先使用 Zustand 进行全局状态管理，TanStack Query 处理服务器状态
-3. **SSE连接管理**：合理处理连接建立和断开
-4. **错误边界**：为每个功能模块设置错误边界
-5. **类型安全**：严格的TypeScript类型检查，避免使用 any
-6. **性能监控**：定期分析Bundle大小和页面性能
-7. **用户体验**：优雅的加载状态和错误处理
-8. **响应式设计**：使用 Tailwind CSS 实现移动优先的响应式布局
-9. **代码分割**：使用 React.lazy 和动态导入进行代码分割
-10. **API集成**：统一使用 API 客户端，确保错误处理和类型安全
+### 9.1 服务器状态
+
+服务器状态统一走 TanStack Query。
+
+命名规范：
+
+- 查询：`useFetch*` / `useGet*`
+- 变更：`useCreate*` / `useUpdate*` / `useDelete*`
+- UI 状态：`useSet*` / `useShow*`
+
+推荐：
+
+```ts
+const { data, isLoading } = useFetchKnowledgeList(params)
+const mutation = useCreateConversation()
+```
+
+避免：
+
+```ts
+useEffect(() => {
+  loadData()
+}, [])
+```
+
+### 9.2 Agent 领域
+
+Agent 相关能力优先复用：
+
+- `src/types/agent.ts`
+- `src/hooks/use-agent-query.ts`
+- `src/hooks/use-agent-mutation.ts`
+- `src/pages/agent/operators/`
+- `src/pages/agent/adapters/`
+- `src/pages/agent/features/form-sheet/`
+
+## 10. Zustand 规范
+
+Zustand 只承接客户端原子状态：
+
+- 主题
+- 侧边栏状态
+- 画布局部状态
+- 节点选中态
+- 局部 UI 面板状态
+
+不要放入 Zustand 的内容：
+
+- 列表接口响应
+- 搜索结果缓存
+- 可由 Query 管理的服务端状态
+- 重副作用逻辑
+
+## 11. 路由规范
+
+- 使用 React Router 7
+- 页面级路由可以使用 `React.lazy`
+- 路由保护通过现有认证组件实现
+- 不再使用 Next.js 风格的文件路由心智
+
+对 Agent 领域的额外要求：
+
+- `/agents`、`/agent/:id`、`/agent/:id/explore`、`/agent/share` 走统一产品流
+- `Studio` 是工作台，不是 demo 聚合页
+
+## 12. Agent / Studio / Workbench 约束
+
+对于 Agent Canvas、Prompt Studio、流程编排页：
+
+- 目标交互是稳定的 `Technical Workflow Studio`
+- 顶部工具栏、主工作区、右侧配置轨必须层级清晰
+- 运行、调试、日志属于工作台正式能力
+- 不要长期依赖过渡性抽屉交互作为终局方案
+
+对当前 Agent 重构的工程要求：
+
+- 参考 RAGFlow 的能力模型，不照搬其旧 UI
+- 保持 `form-sheet`、`operators`、`adapters` 这些平台层稳定
+- 在新壳层上逐步替换旧 canvas 周边能力
+
+## 13. 实时能力规范
+
+如果使用 SSE / WebSocket：
+
+- 连接建立与销毁必须在 hook 内集中管理
+- 页面卸载时必须清理连接
+- 流式状态不要无约束写入全局 store
+- 长任务优先通过 query / adapter / runtime hook 抽象
+
+## 14. 测试规范
+
+- 测试文件：`*.test.ts` / `*.test.tsx`
+- 纯逻辑优先单元测试
+- UI 交互优先 Testing Library
+- 稳定映射逻辑必须有测试：如 serializer、registry、adapter、renderer
+
+## 15. 性能规范
+
+- 合理使用 `React.memo`
+- 仅在收益明确时使用 `useMemo` / `useCallback`
+- 大页面和重模块可使用 `React.lazy`
+- 定期关注 bundle 和页面交互性能
+- 在 React 19 + Zustand 5 场景下，避免 selector 返回新对象导致循环订阅
+
+## 16. 安全与环境变量
+
+- 用户输入必须验证
+- 渲染富文本或 HTML 时使用 DOMPurify
+- 敏感信息只放环境变量
+- 页面层不出现明文密钥逻辑
+
+环境变量示例：
+
+```bash
+VITE_API_BASE_URL=http://localhost:8000
+VITE_APP_VERSION=0.9.8
+```
+
+## 17. Git 与协作规范
+
+- 分支命名：`feature/*`、`fix/*`、`docs/*`、`refactor/*`
+- 提交信息：Conventional Commits
+- 提交前至少执行：
+
+```bash
+npm run lint
+npx tsc --noEmit
+```
+
+## 18. 常用命令
+
+```bash
+npm install
+npm run dev
+npm run build
+npm run lint
+npm run build:themes
+npx tsc --noEmit
+```
+
+## 19. 最后说明
+
+这份文档负责说明“当前技术栈和实现边界应该怎么用”。更细的执行规范请继续参考：
+
+- `AGENTS.md`
+- `DEVELOPER_GUIDE.md`
+- `docs/agent-frontend-rewrite-plan.md`
+- `docs/agent-capability-completion-roadmap.md`
