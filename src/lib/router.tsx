@@ -105,6 +105,9 @@ const DataSourcePage = lazy(() => import('@/pages/settings/datasource'))
 const DataSourceDetailPage = lazy(() => import('@/pages/settings/datasource/detail'))
 const AdminUsersPage = lazyNamed(() => import('@/pages/settings/admin'), 'AdminUsersPage')
 
+// Document Preview
+const DocumentPreviewPage = lazy(() => import('@/pages/document-preview'))
+
 // Theme Demo
 const ThemeDemoPage = lazyNamed(() => import('@/pages/theme-demo/ThemeDemoPage'), 'ThemeDemoPage')
 
@@ -233,6 +236,10 @@ export const router = createBrowserRouter([
       {
         path: '/theme-demo',
         element: withLoading(ThemeDemoPage),
+      },
+      {
+        path: '/document/:docId/preview',
+        element: withLoading(DocumentPreviewPage),
       },
       {
         path: '/knowledge/create',

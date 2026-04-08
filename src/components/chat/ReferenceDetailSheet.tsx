@@ -15,6 +15,7 @@ import {
   Hash,
   Layers,
   Check,
+  ExternalLink,
 } from 'lucide-react'
 import DOMPurify from 'dompurify'
 import {
@@ -269,6 +270,27 @@ export const ReferenceDetailSheet: React.FC<ReferenceDetailSheetProps> = ({
                 </span>
               </div>
             </div>
+            {chunk.document_id && (
+              <button
+                className="flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-md transition-colors"
+                style={{
+                  color: 'var(--color-text-accent)',
+                  backgroundColor: 'var(--color-state-focus-10)',
+                }}
+                onClick={() => {
+                  const params = new URLSearchParams()
+                  if (chunk.document_name) params.set('name', chunk.document_name)
+                  window.open(
+                    `/document/${chunk.document_id}/preview?${params.toString()}`,
+                    '_blank',
+                  )
+                }}
+                title="在新标签页中查看完整文档"
+              >
+                <ExternalLink className="h-3.5 w-3.5" />
+                查看原文
+              </button>
+            )}
           </div>
         </SheetHeader>
         

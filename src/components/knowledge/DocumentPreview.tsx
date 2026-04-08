@@ -74,6 +74,8 @@ interface DocumentPreviewProps {
   onCollapsedChange?: (collapsed: boolean) => void
   /** 关闭预览（通常用于关闭外层预览面板） */
   onClose?: () => void
+  /** 隐藏组件自带的标题栏（由外层页面自行提供 header 时使用） */
+  hideHeader?: boolean
 }
 
 // 支持的图片格式
@@ -1450,6 +1452,7 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
   highlights,
   className,
   onClose,
+  hideHeader = false,
 }) => {
   const fileType = useMemo(() => getFileType(docName, docType), [docName, docType])
   const documentUrl = useMemo(() => getDocumentUrl(docId), [docId])
@@ -1483,39 +1486,41 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
   return (
     <div className={cn("flex flex-col h-full bg-background-default", className)}>
       {/* 标题栏 */}
-      <div className="flex items-center justify-between px-4 py-2.5 border-b border-border-default bg-background-surface">
-        <div className="flex items-center gap-2 min-w-0 flex-1">
-          <FileText className="h-4 w-4 text-text-secondary flex-shrink-0" />
-          <Tooltip content={docName || '文档预览'}>
-            <span className="text-sm font-medium text-text-primary truncate">
-              {docName || '文档预览'}
-            </span>
-          </Tooltip>
-        </div>
-        <div className="flex items-center gap-0.5">
-          <Tooltip content="下载">
-            <Button variant="ghost" size="sm" asChild>
-              <a href={documentUrl} download={docName}>
-                <Download className="h-4 w-4" />
-              </a>
-            </Button>
-          </Tooltip>
-          <Tooltip content="新窗口打开">
-            <Button variant="ghost" size="sm" asChild>
-              <a href={documentUrl} target="_blank" rel="noopener noreferrer">
-                <ExternalLink className="h-4 w-4" />
-              </a>
-            </Button>
-          </Tooltip>
-          {onClose && (
-            <Tooltip content="关闭预览">
-              <Button variant="ghost" size="sm" onClick={onClose}>
-                <X className="h-4 w-4" />
+      {!hideHeader && (
+        <div className="flex items-center justify-between px-4 py-2.5 border-b border-border-default bg-background-surface">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <FileText className="h-4 w-4 text-text-secondary flex-shrink-0" />
+            <Tooltip content={docName || '文档预览'}>
+              <span className="text-sm font-medium text-text-primary truncate">
+                {docName || '文档预览'}
+              </span>
+            </Tooltip>
+          </div>
+          <div className="flex items-center gap-0.5">
+            <Tooltip content="下载">
+              <Button variant="ghost" size="sm" asChild>
+                <a href={documentUrl} download={docName}>
+                  <Download className="h-4 w-4" />
+                </a>
               </Button>
             </Tooltip>
-          )}
+            <Tooltip content="新窗口打开">
+              <Button variant="ghost" size="sm" asChild>
+                <a href={documentUrl} target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="h-4 w-4" />
+                </a>
+              </Button>
+            </Tooltip>
+            {onClose && (
+              <Tooltip content="关闭预览">
+                <Button variant="ghost" size="sm" onClick={onClose}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </Tooltip>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* 预览内容 */}
       <div className="flex-1 overflow-hidden">

@@ -33,6 +33,7 @@ export const ROUTES = {
   SETTINGS_APPEARANCE: '/settings/appearance',
   SETTINGS_MODEL_PROVIDERS: '/settings/model-providers',
   SETTINGS_API_KEYS: '/settings/api-keys',
+  DOCUMENT_PREVIEW: '/document/:docId/preview',
 } as const
 
 // 存储键名

@@ -11,7 +11,8 @@ import {
   Image, 
   Copy,
   FileType,
-  ChevronRight
+  ChevronRight,
+  ExternalLink,
 } from 'lucide-react'
 import DOMPurify from 'dompurify'
 import {
@@ -175,7 +176,7 @@ export const ReferenceMarker: React.FC<ReferenceMarkerProps> = ({
         </sup>
       </PopoverTrigger>
       <PopoverContent 
-        className="w-80 p-0 overflow-hidden" 
+        className="w-80 p-0 overflow-hidden rounded-xl" 
         align="start"
         sideOffset={8}
       >
@@ -183,79 +184,43 @@ export const ReferenceMarker: React.FC<ReferenceMarkerProps> = ({
           className="flex flex-col"
           style={{ backgroundColor: 'var(--color-components-card-bg)' }}
         >
-          {/* 头部 - 文档信息 */}
+          {/* 头部 - 文档信息 + 相似度 badge */}
           <div 
-            className="flex items-center gap-2 px-3 py-2.5"
+            className="flex items-center gap-2.5 px-3.5 py-2.5"
             style={{ 
               borderBottom: '1px solid var(--color-border-subtle)',
               backgroundColor: 'var(--color-background-subtle)'
             }}
           >
             {getDocTypeIcon(chunk.doc_type, chunk.document_name)}
+            <div className="flex-1 min-w-0">
+              <span 
+                className="font-medium text-sm truncate block"
+                style={{ color: 'var(--color-text-primary)' }}
+                title={chunk.document_name}
+              >
+                {chunk.document_name || '未知文档'}
+              </span>
+            </div>
             <span 
-              className="font-medium text-sm truncate flex-1"
-              style={{ color: 'var(--color-text-primary)' }}
-              title={chunk.document_name}
-            >
-              {chunk.document_name || '未知文档'}
-            </span>
-            <span 
-              className="text-xs px-1.5 py-0.5 rounded"
+              className="flex-shrink-0 text-xs font-medium px-2 py-0.5 rounded-full"
               style={{ 
-                backgroundColor: 'var(--color-background-default)',
-                color: 'var(--color-text-tertiary)'
+                backgroundColor: similarityColor,
+                color: '#fff',
+                opacity: 0.9,
               }}
             >
-              {getDocTypeLabel(chunk.doc_type)}
+              {similarityPercent}%
             </span>
-          </div>
-          
-          {/* 相似度指示器 */}
-          <div className="px-3 py-2">
-            <div className="flex items-center justify-between mb-1.5">
-              <span 
-                className="text-xs"
-                style={{ color: 'var(--color-text-secondary)' }}
-              >
-                相似度
-              </span>
-              <span 
-                className="text-xs font-medium"
-                style={{ color: similarityColor }}
-              >
-                {similarityPercent}% · {getSimilarityLabel(similarity)}
-              </span>
-            </div>
-            <div 
-              className="h-1.5 rounded-full overflow-hidden"
-              style={{ backgroundColor: 'var(--color-background-subtle)' }}
-            >
-              <div 
-                className="h-full rounded-full transition-all duration-300"
-                style={{ 
-                  width: `${similarityPercent}%`,
-                  backgroundColor: similarityColor
-                }}
-              />
-            </div>
           </div>
           
           {/* 内容预览 */}
-          <div 
-            className="px-3 py-2"
-            style={{ borderTop: '1px solid var(--color-border-subtle)' }}
-          >
-            <div 
-              className="text-xs mb-1.5"
-              style={{ color: 'var(--color-text-tertiary)' }}
-            >
-              内容预览
-            </div>
+          <div className="px-3.5 py-3">
             {isTableContent ? (
               <div 
-                className="text-sm overflow-auto max-h-32 rounded"
+                className="text-sm overflow-auto max-h-32 rounded-md p-2"
                 style={{ 
-                  backgroundColor: 'var(--color-background-default)',
+                  backgroundColor: 'var(--color-background-subtle)',
                   color: 'var(--color-text-primary)'
                 }}
                 dangerouslySetInnerHTML={{ 
@@ -263,26 +228,28 @@ export const ReferenceMarker: React.FC<ReferenceMarkerProps> = ({
                 }}
               />
             ) : (
-              <div 
-                className="text-sm leading-relaxed line-clamp-3"
+              <p 
+                className="text-sm leading-[1.7] line-clamp-4 m-0"
                 style={{ color: 'var(--color-text-secondary)' }}
               >
-                {truncateContent(chunk.content || '', 150)}
-              </div>
+                {truncateContent(chunk.content || '', 200)}
+              </p>
             )}
           </div>
           
           {/* 操作按钮 */}
           <div 
-            className="flex items-center justify-between px-3 py-2"
+            className="flex items-center gap-1 px-2.5 py-2"
             style={{ 
               borderTop: '1px solid var(--color-border-subtle)',
-              backgroundColor: 'var(--color-background-subtle)'
             }}
           >
             <button
-              className="flex items-center gap-1.5 px-2 py-1 text-xs rounded transition-colors"
-              style={{ color: 'var(--color-text-secondary)' }}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs rounded-md transition-colors hover:opacity-80"
+              style={{ 
+                color: 'var(--color-text-secondary)',
+                backgroundColor: 'transparent',
+              }}
               onClick={(e) => {
                 e.stopPropagation()
                 if (chunk.content) {
@@ -295,8 +262,32 @@ export const ReferenceMarker: React.FC<ReferenceMarkerProps> = ({
               复制
             </button>
             
+            {chunk.document_id && (
+              <button
+                className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs rounded-md transition-colors hover:opacity-80"
+                style={{
+                  color: 'var(--color-text-secondary)',
+                  backgroundColor: 'transparent',
+                }}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  const params = new URLSearchParams()
+                  if (chunk.document_name) params.set('name', chunk.document_name)
+                  window.open(
+                    `/document/${chunk.document_id}/preview?${params.toString()}`,
+                    '_blank',
+                  )
+                }}
+              >
+                <ExternalLink className="h-3 w-3" />
+                原文
+              </button>
+            )}
+
+            <div className="flex-1" />
+
             <button
-              className="flex items-center gap-1 px-2 py-1 text-xs font-medium rounded transition-colors"
+              className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-md transition-colors hover:opacity-80"
               style={{ 
                 color: 'var(--color-text-accent)',
                 backgroundColor: 'var(--color-state-focus-10)'
@@ -306,7 +297,7 @@ export const ReferenceMarker: React.FC<ReferenceMarkerProps> = ({
                 onViewDetail?.(chunk)
               }}
             >
-              查看详情
+              详情
               <ChevronRight className="h-3 w-3" />
             </button>
           </div>
