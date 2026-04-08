@@ -252,7 +252,7 @@ export const knowledgeAPI = {
     }): Promise<{ success_count: number; failed_count: number; errors?: any[] }> =>
       apiClient.post('/v1/document/batch', { operation, ...data }),
 
-    // 文档运行控制 (开始/停止解析) - 匹配后端RunRequest结构
+    // 文档运行控制: 0=未开始/重置, 1=启动/重试, 2=取消当前解析任务
     run: (docIds: string[], run: number, deleteHistory?: boolean): Promise<void> =>
       apiClient.post('/v1/document/run', { 
         doc_ids: docIds, 

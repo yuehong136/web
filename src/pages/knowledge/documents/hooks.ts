@@ -439,7 +439,7 @@ export function useDocumentActions(
   const handleStopParse = useCallback(
     async (docIds: string[]) => {
       try {
-        await runDocument({ docIds, run: 0 })
+        await runDocument({ docIds, run: 2 })
         toast.success(`已停止 ${docIds.length} 个文档的解析`)
         onSuccess?.()
       } catch (error) {
