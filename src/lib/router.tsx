@@ -69,8 +69,11 @@ const SearchListPage = lazyNamed(() => import('@/pages/search'), 'SearchListPage
 const SearchDetailPage = lazyNamed(() => import('@/pages/search/detail/SearchDetailPage'), 'SearchDetailPage')
 
 // Agent
-const AgentListPage = lazy(() => import('@/pages/agent'))
-const AgentCanvasPage = lazy(() => import('@/pages/agent/AgentCanvasPage'))
+const AgentListPage = lazy(() => import('@/pages/agents'))
+const AgentTemplatesPage = lazy(() => import('@/pages/agents/templates'))
+const AgentCanvasPage = lazy(() => import('@/pages/agent'))
+const AgentExplorePage = lazy(() => import('@/pages/agent/explore'))
+const AgentSharePage = lazy(() => import('@/pages/agent/share'))
 
 // Studio
 const StudioPage = lazyNamed(() => import('@/pages/studio'), 'StudioPage')
@@ -171,6 +174,11 @@ if (import.meta.env.VITE_ENABLE_REGISTRATION === 'true') {
 
 export const router = createBrowserRouter([
   ...authRoutes,
+
+  {
+    path: ROUTES.AGENT_SHARE,
+    element: withLoading(AgentSharePage),
+  },
 
   {
     path: '/',
@@ -293,8 +301,16 @@ export const router = createBrowserRouter([
         element: withLoading(AgentListPage),
       },
       {
+        path: ROUTES.AGENT_TEMPLATES,
+        element: withLoading(AgentTemplatesPage),
+      },
+      {
         path: '/agent/:id',
         element: withLoading(AgentCanvasPage),
+      },
+      {
+        path: ROUTES.AGENT_EXPLORE,
+        element: withLoading(AgentExplorePage),
       },
       {
         path: ROUTES.MCP_SERVERS,

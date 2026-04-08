@@ -1,8 +1,12 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { agentAPI } from '@/api/agent'
-import { agentQueryKeys } from './use-agent-query'
-import type { IDebugNodeRequest, ISetAgentRequest } from '@/pages/agent/types'
 import { toast } from '@/lib/toast'
+import { adaptAgentFlow, adaptAgentSession } from '@/pages/agent/adapters'
+import { agentQueryKeys } from './use-agent-query'
+import type {
+  DebugAgentNodePayload,
+  SetAgentPayload,
+} from '@/types/agent'
 
 export interface UploadCanvasFileParams {
   canvasId: string
@@ -15,123 +19,211 @@ export const useSetAgent = (options?: { showToast?: boolean }) => {
   const queryClient = useQueryClient()
   const showToast = options?.showToast ?? true
 
-  const { mutateAsync, isPending, isError, error } = useMutation({
-    mutationFn: async (params: ISetAgentRequest) => agentAPI.setAgent(params),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: agentQueryKeys.lists() })
-      if (variables.id) {
-        queryClient.invalidateQueries({ queryKey: agentQueryKeys.detail(variables.id) })
+  const mutation = useMutation({
+    mutationFn: async (payload: SetAgentPayload) =>
+      adaptAgentFlow(await agentAPI.setAgent(payload)),
+    onSuccess: (data, variables) => {
+      void queryClient.invalidateQueries({ queryKey: agentQueryKeys.lists() })
+      if (variables.id || data.id) {
+        void queryClient.invalidateQueries({
+          queryKey: agentQueryKeys.detail(variables.id || data.id),
+        })
       }
       if (showToast) {
         toast.success('保存成功')
       }
     },
-    onError: (err: Error) => {
+    onError: (error: Error) => {
       if (showToast) {
-        toast.error(`保存失败: ${err.message}`)
+        toast.error(`保存失败: ${error.message}`)
       }
     },
   })
 
-  return { setAgent: mutateAsync, isLoading: isPending, isError, error }
+  return {
+    setAgent: mutation.mutateAsync,
+    isLoading: mutation.isPending,
+    isError: mutation.isError,
+    error: mutation.error,
+  }
 }
 
 export const useDeleteAgent = () => {
   const queryClient = useQueryClient()
-
-  const { mutateAsync, isPending, isError, error } = useMutation({
+  const mutation = useMutation({
     mutationFn: async (id: string) => agentAPI.deleteAgent(id),
     onSuccess: (_, id) => {
-      queryClient.invalidateQueries({ queryKey: agentQueryKeys.lists() })
+      void queryClient.invalidateQueries({ queryKey: agentQueryKeys.lists() })
       queryClient.removeQueries({ queryKey: agentQueryKeys.detail(id) })
-      toast.success('删除成功')
+      toast.success('已删除智能体')
     },
-    onError: (err: Error) => {
-      toast.error(`删除失败: ${err.message}`)
+    onError: (error: Error) => {
+      toast.error(`删除失败: ${error.message}`)
     },
   })
 
-  return { deleteAgent: mutateAsync, isLoading: isPending, isError, error }
+  return {
+    deleteAgent: mutation.mutateAsync,
+    isLoading: mutation.isPending,
+    isError: mutation.isError,
+    error: mutation.error,
+  }
 }
 
 export const useResetAgent = () => {
-  const { mutateAsync, isPending, isError, error } = useMutation({
+  const mutation = useMutation({
     mutationFn: async (id: string) => agentAPI.resetAgent(id),
     onSuccess: () => {
-      toast.success('重置成功')
+      toast.success('执行状态已重置')
     },
-    onError: (err: Error) => {
-      toast.error(`重置失败: ${err.message}`)
+    onError: (error: Error) => {
+      toast.error(`重置失败: ${error.message}`)
     },
   })
 
-  return { resetAgent: mutateAsync, isLoading: isPending, isError, error }
+  return {
+    resetAgent: mutation.mutateAsync,
+    isLoading: mutation.isPending,
+    isError: mutation.isError,
+    error: mutation.error,
+  }
 }
 
 export const useUpdateAgentSetting = () => {
   const queryClient = useQueryClient()
-
-  const { mutateAsync, isPending, isError, error } = useMutation({
-    mutationFn: async (params: {
-      id: string
-      title: string
-      description?: string
-      avatar?: string
-      permission?: string
-    }) => agentAPI.updateSetting(params),
+  const mutation = useMutation({
+    mutationFn: agentAPI.updateSetting,
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: agentQueryKeys.lists() })
-      queryClient.invalidateQueries({ queryKey: agentQueryKeys.detail(variables.id) })
-      toast.success('更新成功')
+      void queryClient.invalidateQueries({ queryKey: agentQueryKeys.lists() })
+      void queryClient.invalidateQueries({
+        queryKey: agentQueryKeys.detail(variables.id),
+      })
+      toast.success('配置已更新')
     },
-    onError: (err: Error) => {
-      toast.error(`更新失败: ${err.message}`)
+    onError: (error: Error) => {
+      toast.error(`更新失败: ${error.message}`)
     },
   })
 
-  return { updateAgentSetting: mutateAsync, isLoading: isPending, isError, error }
+  return {
+    updateAgentSetting: mutation.mutateAsync,
+    isLoading: mutation.isPending,
+    isError: mutation.isError,
+    error: mutation.error,
+  }
 }
 
 export const useUploadCanvasFile = () => {
-  const { mutateAsync, isPending, isError, error } = useMutation({
-    mutationFn: async (params: UploadCanvasFileParams) => {
-      const { canvasId, file, onProgress, signal } = params
+  const mutation = useMutation({
+    mutationFn: async ({
+      canvasId,
+      file,
+      onProgress,
+      signal,
+    }: UploadCanvasFileParams) => {
       if (onProgress || signal) {
-        return agentAPI.uploadCanvasFileWithProgress(canvasId, file, onProgress, signal)
+        return agentAPI.uploadCanvasFileWithProgress(
+          canvasId,
+          file,
+          onProgress,
+          signal,
+        )
       }
+
       return agentAPI.uploadFile(canvasId, file)
     },
-    onError: (err: Error) => {
-      toast.error(`上传失败: ${err.message}`)
+    onError: (error: Error) => {
+      toast.error(`上传失败: ${error.message}`)
     },
   })
 
-  return { uploadCanvasFile: mutateAsync, isLoading: isPending, isError, error }
+  return {
+    uploadCanvasFile: mutation.mutateAsync,
+    isLoading: mutation.isPending,
+    isError: mutation.isError,
+    error: mutation.error,
+  }
 }
 
 export const useDebugSingle = () => {
-  const { mutateAsync, isPending, isError, error } = useMutation({
-    mutationFn: async (params: IDebugNodeRequest) => agentAPI.debugSingle(params),
-    onError: (err: Error) => {
-      toast.error(`调试失败: ${err.message}`)
+  const mutation = useMutation({
+    mutationFn: async (payload: DebugAgentNodePayload) =>
+      agentAPI.debugSingle(payload),
+    onError: (error: Error) => {
+      toast.error(`调试失败: ${error.message}`)
     },
   })
 
-  return { debugSingle: mutateAsync, isLoading: isPending, isError, error }
+  return {
+    debugSingle: mutation.mutateAsync,
+    isLoading: mutation.isPending,
+    isError: mutation.isError,
+    error: mutation.error,
+  }
 }
 
 export const useCancelConversation = () => {
-  const { mutateAsync, isPending, isError, error } = useMutation({
+  const mutation = useMutation({
     mutationFn: async (taskId: string) => agentAPI.cancelTask(taskId),
   })
 
-  return { cancelConversation: mutateAsync, isLoading: isPending, isError, error }
+  return {
+    cancelConversation: mutation.mutateAsync,
+    isLoading: mutation.isPending,
+    isError: mutation.isError,
+    error: mutation.error,
+  }
 }
 
 export const useCancelDataflow = () => {
-  const { mutateAsync, isPending, isError, error } = useMutation({
+  const mutation = useMutation({
     mutationFn: async (taskId: string) => agentAPI.cancelDataflow(taskId),
   })
 
-  return { cancelDataflow: mutateAsync, isLoading: isPending, isError, error }
+  return {
+    cancelDataflow: mutation.mutateAsync,
+    isLoading: mutation.isPending,
+    isError: mutation.isError,
+    error: mutation.error,
+  }
+}
+
+export const useCreateAgentSession = (canvasId: string) => {
+  const queryClient = useQueryClient()
+  const mutation = useMutation({
+    mutationFn: async (name: string) =>
+      adaptAgentSession(await agentAPI.createSession(canvasId, name)),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: agentQueryKeys.sessions(canvasId),
+      })
+    },
+  })
+
+  return {
+    createAgentSession: mutation.mutateAsync,
+    isLoading: mutation.isPending,
+    isError: mutation.isError,
+    error: mutation.error,
+  }
+}
+
+export const useDeleteAgentSession = (canvasId: string) => {
+  const queryClient = useQueryClient()
+  const mutation = useMutation({
+    mutationFn: async (sessionId: string) =>
+      agentAPI.deleteSession(canvasId, sessionId),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: agentQueryKeys.sessions(canvasId),
+      })
+    },
+  })
+
+  return {
+    deleteAgentSession: mutation.mutateAsync,
+    isLoading: mutation.isPending,
+    isError: mutation.isError,
+    error: mutation.error,
+  }
 }

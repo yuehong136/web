@@ -3,6 +3,7 @@ import { get, isEmpty } from 'lodash'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { agentAPI } from '@/api/agent'
+import { adaptAgentTraceItems } from '../adapters'
 import type { ITraceData } from '../types'
 
 export function useFetchPipelineLog(logSheetVisible: boolean) {
@@ -15,7 +16,7 @@ export function useFetchPipelineLog(logSheetVisible: boolean) {
     enabled: !!id && !!messageId && !isStopFetchTrace,
     queryFn: async () => {
       if (!id || !messageId) return []
-      return agentAPI.fetchTrace(id, messageId)
+      return adaptAgentTraceItems(await agentAPI.fetchTrace(id, messageId)) as ITraceData[]
     },
     refetchInterval: isStopFetchTrace ? false : 2000,
     gcTime: 0,

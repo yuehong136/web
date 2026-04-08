@@ -1,233 +1,284 @@
 import { useQuery } from '@tanstack/react-query'
 import { useParams } from 'react-router-dom'
 import { agentAPI } from '@/api/agent'
+import {
+  adaptAgentFlow,
+  adaptAgentListResponse,
+  adaptAgentSession,
+  adaptAgentSessionList,
+  adaptAgentShareSummary,
+  adaptAgentTemplate,
+  adaptAgentTraceItems,
+  adaptAgentVersionSummaries,
+} from '@/pages/agent/adapters'
 import type {
-  IAgentListRequest,
-  IAgentListResponse,
-  IFlow,
-  IInputs,
-  ITraceData,
-} from '@/pages/agent/types'
+  AgentExternalInputs,
+  AgentInputFormSchema,
+  AgentListParams,
+  AgentListResponse,
+  AgentSessionListResponse,
+  AgentTemplate,
+  AgentTraceItem,
+  AgentVersionSummary,
+} from '@/types/agent'
 
 export const agentQueryKeys = {
   all: ['agent'] as const,
   lists: () => [...agentQueryKeys.all, 'list'] as const,
-  list: (params: Record<string, any>) => [...agentQueryKeys.lists(), params] as const,
-  details: () => [...agentQueryKeys.all, 'detail'] as const,
-  detail: (id: string) => [...agentQueryKeys.details(), id] as const,
-  versions: () => [...agentQueryKeys.all, 'versions'] as const,
-  versionList: (id: string) => [...agentQueryKeys.versions(), 'list', id] as const,
-  version: (id: string) => [...agentQueryKeys.versions(), 'detail', id] as const,
+  list: (params: Record<string, unknown>) =>
+    [...agentQueryKeys.lists(), params] as const,
+  detail: (id: string) => [...agentQueryKeys.all, 'detail', id] as const,
+  templates: () => [...agentQueryKeys.all, 'templates'] as const,
+  versions: (id: string) => [...agentQueryKeys.all, 'versions', id] as const,
+  version: (id: string) => [...agentQueryKeys.all, 'version', id] as const,
   trace: (canvasId: string, messageId: string) =>
     [...agentQueryKeys.all, 'trace', canvasId, messageId] as const,
   inputForm: (canvasId: string, componentId: string) =>
-    [...agentQueryKeys.all, 'inputForm', canvasId, componentId] as const,
-  logs: (canvasId: string, params: Record<string, any>) =>
-    [...agentQueryKeys.all, 'logs', canvasId, params] as const,
+    [...agentQueryKeys.all, 'input-form', canvasId, componentId] as const,
+  sessions: (canvasId: string) =>
+    [...agentQueryKeys.all, 'sessions', canvasId] as const,
+  session: (canvasId: string, sessionId: string) =>
+    [...agentQueryKeys.all, 'session', canvasId, sessionId] as const,
   avatar: (id: string) => [...agentQueryKeys.all, 'avatar', id] as const,
   sse: (id: string) => [...agentQueryKeys.all, 'sse', id] as const,
-  externalInputs: (id: string) => [...agentQueryKeys.all, 'external-inputs', id] as const,
+  externalInputs: (id: string, hasBetaToken: boolean) =>
+    [...agentQueryKeys.all, 'external-inputs', id, hasBetaToken ? 'beta' : 'missing-beta'] as const,
 }
 
-const normalizeFlow = (payload: unknown): IFlow => {
-  let flow = payload as any
-  if (Array.isArray(flow)) {
-    flow = flow[1] ?? flow[0] ?? {}
-  }
-
-  if (flow?.dsl && typeof flow.dsl === 'string') {
-    try {
-      flow.dsl = JSON.parse(flow.dsl)
-    } catch {
-      // keep raw string when parsing fails
-    }
-  }
-
-  return flow as IFlow
-}
-
-export const useAgentId = (): string => {
-  const { id } = useParams<{ id: string }>()
-  return id || ''
+function useResolvedAgentId(id?: string) {
+  const params = useParams<{ id: string }>()
+  return id || params.id || ''
 }
 
 export const useFetchAgent = (id?: string) => {
-  const agentId = id || useAgentId()
+  const agentId = useResolvedAgentId(id)
 
-  const { data, isFetching, isError, error, refetch } = useQuery({
+  const query = useQuery({
     queryKey: agentQueryKeys.detail(agentId),
-    enabled: !!agentId,
-    queryFn: async () => {
-      const response = await agentAPI.fetchAgent(agentId)
-      return normalizeFlow(response)
-    },
+    enabled: Boolean(agentId),
+    queryFn: async () => adaptAgentFlow(await agentAPI.fetchAgent(agentId)),
   })
 
   return {
-    agent: data,
-    isLoading: isFetching,
-    isError,
-    error,
-    refetch,
+    agent: query.data,
+    data: query.data,
+    isLoading: query.isFetching,
+    isError: query.isError,
+    error: query.error,
+    refetch: query.refetch,
   }
 }
 
-export const useFetchAgentListByPage = (params: IAgentListRequest = {}) => {
-  const {
-    page = 1,
-    page_size = 20,
-    orderby = 'update_time',
-    desc = true,
-    name,
-    canvas_type,
-  } = params
+export const useFetchAgentList = (params: AgentListParams = {}) => {
+  const queryParams = {
+    page: params.page ?? 1,
+    page_size: params.page_size ?? 12,
+    orderby: params.orderby ?? 'update_time',
+    desc: params.desc ?? true,
+    keywords: params.keywords || params.name || '',
+    canvas_type: params.canvas_type,
+    canvas_category: params.canvas_category,
+  }
 
-  const { data, isFetching, isError, error, refetch } = useQuery({
-    queryKey: agentQueryKeys.list({ page, page_size, orderby, desc, name, canvas_type }),
-    queryFn: async () => {
-      const response = await agentAPI.listAgents({
-        page,
-        page_size,
-        orderby,
-        desc,
-        name,
-        canvas_type,
-      })
-      return response as IAgentListResponse
-    },
-    placeholderData: (previous) => previous ?? { canvas: [], total: 0 },
+  const query = useQuery({
+    queryKey: agentQueryKeys.list(queryParams),
+    queryFn: async () => adaptAgentListResponse(await agentAPI.listAgents(queryParams)),
+    placeholderData: () => ({ canvas: [], total: 0 } satisfies AgentListResponse),
   })
 
   return {
-    agents: data?.canvas ?? [],
-    total: data?.total ?? 0,
-    isLoading: isFetching,
-    isError,
-    error,
-    refetch,
+    agents: query.data?.canvas || [],
+    data: query.data,
+    total: query.data?.total || 0,
+    isLoading: query.isFetching,
+    isError: query.isError,
+    error: query.error,
+    refetch: query.refetch,
+  }
+}
+
+export const useFetchAgentListByPage = useFetchAgentList
+
+export const useFetchAgentTemplates = () => {
+  const query = useQuery({
+    queryKey: agentQueryKeys.templates(),
+    queryFn: async () => (await agentAPI.fetchTemplates()).map(adaptAgentTemplate),
+    placeholderData: () => [] satisfies AgentTemplate[],
+  })
+
+  return {
+    data: query.data || [],
+    isLoading: query.isFetching,
+    isError: query.isError,
+    error: query.error,
+    refetch: query.refetch,
   }
 }
 
 export const useFetchVersionList = (id?: string) => {
-  const agentId = id || useAgentId()
-
-  const { data, isFetching, isError, error } = useQuery({
-    queryKey: agentQueryKeys.versionList(agentId),
-    enabled: !!agentId,
-    queryFn: async () => {
-      return agentAPI.fetchVersions(agentId)
-    },
-    placeholderData: () => [],
+  const agentId = useResolvedAgentId(id)
+  const query = useQuery({
+    queryKey: agentQueryKeys.versions(agentId),
+    enabled: Boolean(agentId),
+    queryFn: async () => adaptAgentVersionSummaries(await agentAPI.fetchVersions(agentId)),
+    placeholderData: () => [] satisfies AgentVersionSummary[],
   })
 
-  return { data: data ?? [], isLoading: isFetching, isError, error }
+  return {
+    data: query.data || [],
+    isLoading: query.isFetching,
+    isError: query.isError,
+    error: query.error,
+  }
 }
 
 export const useFetchVersion = (versionId?: string) => {
-  const { data, isFetching, isError, error } = useQuery({
+  const query = useQuery({
     queryKey: agentQueryKeys.version(versionId || ''),
-    enabled: !!versionId,
-    queryFn: async () => {
-      if (!versionId) return undefined
-      const response = await agentAPI.fetchVersion(versionId)
-      return normalizeFlow(response)
-    },
+    enabled: Boolean(versionId),
+    queryFn: async () => adaptAgentFlow(await agentAPI.fetchVersion(versionId || '')),
   })
 
-  return { data, isLoading: isFetching, isError, error }
+  return {
+    data: query.data,
+    isLoading: query.isFetching,
+    isError: query.isError,
+    error: query.error,
+  }
 }
 
 export const useFetchAgentAvatar = (id?: string) => {
-  const agentId = id || useAgentId()
-
-  const { data, isFetching, isError, error, refetch } = useQuery({
+  const agentId = useResolvedAgentId(id)
+  const query = useQuery({
     queryKey: agentQueryKeys.avatar(agentId),
-    enabled: !!agentId,
-    queryFn: async () => {
-      const response = await agentAPI.fetchAgentAvatar(agentId)
-      return normalizeFlow(response)
-    },
+    enabled: Boolean(agentId),
+    queryFn: async () => adaptAgentFlow(await agentAPI.fetchAgentAvatar(agentId)),
   })
 
-  return { data, isLoading: isFetching, isError, error, refetch }
+  return {
+    data: query.data,
+    isLoading: query.isFetching,
+    isError: query.isError,
+    error: query.error,
+    refetch: query.refetch,
+  }
 }
 
 export const useFetchMessageTrace = (canvasId?: string, messageId?: string) => {
-  const { data, isFetching, isError, error } = useQuery({
+  const query = useQuery({
     queryKey: agentQueryKeys.trace(canvasId || '', messageId || ''),
-    enabled: !!canvasId && !!messageId,
-    queryFn: async () => {
-      if (!canvasId || !messageId) return [] as ITraceData[]
-      return agentAPI.fetchTrace(canvasId, messageId)
-    },
-    placeholderData: () => [],
+    enabled: Boolean(canvasId) && Boolean(messageId),
+    queryFn: async () =>
+      adaptAgentTraceItems(await agentAPI.fetchTrace(canvasId || '', messageId || '')),
+    placeholderData: () => [] satisfies AgentTraceItem[],
   })
 
-  return { data: data ?? [], isLoading: isFetching, isError, error }
+  return {
+    data: query.data || [],
+    isLoading: query.isFetching,
+    isError: query.isError,
+    error: query.error,
+  }
 }
 
 export const useFetchInputForm = (canvasId?: string, componentId?: string) => {
-  const { data, isFetching, isError, error } = useQuery({
+  const query = useQuery({
     queryKey: agentQueryKeys.inputForm(canvasId || '', componentId || ''),
-    enabled: !!canvasId && !!componentId,
-    queryFn: async () => {
-      if (!canvasId || !componentId) return {}
-      return agentAPI.inputForm(canvasId, componentId)
-    },
-    placeholderData: () => ({}),
+    enabled: Boolean(canvasId) && Boolean(componentId),
+    queryFn: async () => agentAPI.inputForm(canvasId || '', componentId || ''),
+    placeholderData: () => ({} satisfies AgentInputFormSchema),
   })
 
-  return { data: data as Record<string, any>, isLoading: isFetching, isError, error }
+  return {
+    data: query.data || ({} as AgentInputFormSchema),
+    isLoading: query.isFetching,
+    isError: query.isError,
+    error: query.error,
+  }
 }
 
-export interface AgentLogParams {
-  page?: number
-  page_size?: number
-}
-
-export const useFetchAgentLog = (canvasId?: string, params: AgentLogParams = {}) => {
-  const { page = 1, page_size = 20 } = params
-
-  const { data, isFetching, isError, error } = useQuery({
-    queryKey: agentQueryKeys.logs(canvasId || '', { page, page_size }),
-    enabled: !!canvasId,
-    queryFn: async () => {
-      if (!canvasId) return { sessions: [], total: 0 }
-      return agentAPI.fetchSessions(canvasId)
-    },
-    placeholderData: () => ({ sessions: [], total: 0 }),
+export const useFetchAgentSessions = (canvasId?: string) => {
+  const resolvedCanvasId = useResolvedAgentId(canvasId)
+  const query = useQuery({
+    queryKey: agentQueryKeys.sessions(resolvedCanvasId),
+    enabled: Boolean(resolvedCanvasId),
+    queryFn: async () =>
+      adaptAgentSessionList(await agentAPI.fetchSessions(resolvedCanvasId)),
+    placeholderData: () =>
+      ({
+        sessions: [],
+        total: 0,
+      } satisfies AgentSessionListResponse),
   })
 
-  return { data, isLoading: isFetching, isError, error }
+  return {
+    data: query.data || { sessions: [], total: 0 },
+    isLoading: query.isFetching,
+    isError: query.isError,
+    error: query.error,
+    refetch: query.refetch,
+  }
+}
+
+export const useFetchAgentLog = useFetchAgentSessions
+
+export const useFetchAgentSession = (canvasId?: string, sessionId?: string) => {
+  const resolvedCanvasId = useResolvedAgentId(canvasId)
+  const query = useQuery({
+    queryKey: agentQueryKeys.session(resolvedCanvasId, sessionId || ''),
+    enabled: Boolean(resolvedCanvasId) && Boolean(sessionId),
+    queryFn: async () => adaptAgentSession(await agentAPI.fetchSession(resolvedCanvasId, sessionId || '')),
+  })
+
+  return {
+    data: query.data,
+    isLoading: query.isFetching,
+    isError: query.isError,
+    error: query.error,
+    refetch: query.refetch,
+  }
 }
 
 export const useFetchFlowSSE = (id?: string) => {
-  const agentId = id || useAgentId()
-
-  const { data, isFetching, isError, error, refetch } = useQuery({
+  const agentId = useResolvedAgentId(id)
+  const query = useQuery({
     queryKey: agentQueryKeys.sse(agentId),
-    enabled: !!agentId,
-    queryFn: async () => {
-      const response = await agentAPI.fetchCanvasSSE(agentId)
-      return normalizeFlow(response)
-    },
+    enabled: Boolean(agentId),
+    queryFn: async () => adaptAgentFlow(await agentAPI.fetchCanvasSSE(agentId)),
   })
 
-  return { data, isLoading: isFetching, isError, error, refetch }
+  return {
+    data: query.data,
+    isLoading: query.isFetching,
+    isError: query.isError,
+    error: query.error,
+    refetch: query.refetch,
+  }
 }
 
-export const useFetchExternalAgentInputs = (canvasId?: string) => {
-  const agentId = canvasId || useAgentId()
-
-  const { data, isFetching, isError, error, refetch } = useQuery<IInputs>({
-    queryKey: agentQueryKeys.externalInputs(agentId),
-    enabled: !!agentId,
-    queryFn: async () => {
-      if (!agentId) return {} as IInputs
-      return agentAPI.fetchExternalAgentInputs(agentId)
-    },
-    placeholderData: () => ({} as IInputs),
+export const useFetchExternalAgentInputs = (canvasId?: string, betaToken?: string) => {
+  const resolvedCanvasId = useResolvedAgentId(canvasId)
+  const query = useQuery({
+    queryKey: agentQueryKeys.externalInputs(resolvedCanvasId, Boolean(betaToken)),
+    enabled: Boolean(resolvedCanvasId) && Boolean(betaToken),
+    retry: false,
+    queryFn: async () =>
+      adaptAgentShareSummary(
+        await agentAPI.fetchExternalAgentInputs(resolvedCanvasId, betaToken || ''),
+      ),
+    placeholderData: () =>
+      ({
+        title: 'Agent Share',
+        mode: 'conversation',
+        inputs: {},
+      } satisfies AgentExternalInputs),
   })
 
-  return { data, isLoading: isFetching, isError, error, refetch }
+  return {
+    data: query.data || ({} as AgentExternalInputs),
+    isLoading: query.isFetching,
+    isError: query.isError,
+    error: query.error,
+    refetch: query.refetch,
+  }
 }

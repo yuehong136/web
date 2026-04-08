@@ -1,801 +1,230 @@
-import React, { useState, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useMemo, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import { ReactFlowProvider } from '@xyflow/react'
+import { StudioPageTemplate } from '@/components/page-templates'
+import {
+  AppScene,
+  PageErrorState,
+  PageHeader,
+  PageLoadingState,
+  PageToolbar,
+} from '@/components/patterns'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Loading } from '@/components/ui/loading'
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
-import { Dropdown, DropdownItem } from '@/components/ui/dropdown'
-import { 
-  Plus, 
-  Workflow, 
-  FileJson, 
-  Sparkles, 
-  Search, 
-  Grid3X3,
-  List as ListIcon,
-  Clock,
-  ArrowUpDown,
-  Zap,
-  ChevronLeft,
-  ChevronRight,
-  MoreVertical,
-  Settings,
-  Trash2,
-  Layers,
-  ChevronRight as ChevronRightIcon,
+import { useSetModalState } from '@/hooks/common-hooks'
+import { formatVersionLabel, resolveLocalizedText } from '@/lib/agent'
+import {
+  useFetchVersionList,
+} from '@/hooks/use-agent-request'
+import { useFetchDataOnMount } from './hooks/use-fetch-data'
+import { useWatchAgentChange } from './hooks/use-watch-agent-change'
+import { useBuildWebhookUrl } from './hooks/use-build-webhook-url'
+import { useSaveGraph } from './hooks/use-save-graph'
+import AgentCanvas from './canvas'
+import { EditorRuntimeRail } from './components/editor-runtime-rail'
+import { PlaceholderDialog } from './components/placeholder-dialog'
+import { SettingDialog } from './setting-dialog'
+import { VersionDialog } from './version-dialog'
+import { WebhookSheet } from './webhook-sheet'
+import {
+  ArrowLeft,
+  Compass,
+  History,
+  Link2,
+  Play,
+  Save,
+  Share2,
+  Sparkles,
+  Settings2,
 } from 'lucide-react'
-import { agentAPI } from '@/api/agent'
-import { useQuery } from '@tanstack/react-query'
-import { QUERY_KEYS } from '@/constants'
-import { humanId } from 'human-id'
-import { Operator, initialBeginValues } from './constant'
-import { Position } from '@xyflow/react'
-import { CreateAgentDialog } from './components/CreateAgentDialog'
-import { TemplatesPage } from './components/TemplatesPage'
-import { AgentCard } from './components/AgentCard'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { FilterPopover, type FilterConfig, type FilterValue } from '@/components/ui/filter-popover'
-import {
-  ResourceListContainer,
-  ResourceListHeader,
-  ResourceListBody,
-} from '@/components/ui/resource-list'
-import { CustomSelect } from '@/components/ui/custom-select'
-import { PageSizeSelector } from '@/components/ui/page-size-selector'
-import { ViewToggle } from '@/components/ui/view-toggle'
-import { toast } from '@/lib/toast'
-import { cn, formatTimestampDetailed, formatTimestampCompact, formatRelativeTime } from '@/lib/utils'
-import type { IFlow } from './types'
 
-// 统计卡片组件 - 使用语义化设计令牌，带彩色阴影和渐变效果
-interface StatsCardProps {
-  title: string
-  value: string | number
-  icon: React.ElementType
-  color: 'info' | 'success' | 'warning' | 'purple'
-}
-
-// 颜色映射到设计令牌 - 使用 components-stats-card-* 令牌
-const colorTokens = {
-  info: {
-    gradient: 'var(--color-components-stats-card-blue-bg)',
-    iconBg: 'var(--color-components-stats-card-blue-icon-bg)',
-    iconText: 'var(--color-components-stats-card-blue-icon-text)',
-    shadow: 'var(--color-components-stats-card-blue-shadow)',
-    borderHover: 'var(--color-components-stats-card-blue-border-hover)',
-  },
-  success: {
-    gradient: 'var(--color-components-stats-card-green-bg)',
-    iconBg: 'var(--color-components-stats-card-green-icon-bg)',
-    iconText: 'var(--color-components-stats-card-green-icon-text)',
-    shadow: 'var(--color-components-stats-card-green-shadow)',
-    borderHover: 'var(--color-components-stats-card-green-border-hover)',
-  },
-  warning: {
-    gradient: 'var(--color-components-stats-card-orange-bg)',
-    iconBg: 'var(--color-components-stats-card-orange-icon-bg)',
-    iconText: 'var(--color-components-stats-card-orange-icon-text)',
-    shadow: 'var(--color-components-stats-card-orange-shadow)',
-    borderHover: 'var(--color-components-stats-card-orange-border-hover)',
-  },
-  purple: {
-    gradient: 'var(--color-components-stats-card-purple-bg)',
-    iconBg: 'var(--color-components-stats-card-purple-icon-bg)',
-    iconText: 'var(--color-components-stats-card-purple-icon-text)',
-    shadow: 'var(--color-components-stats-card-purple-shadow)',
-    borderHover: 'var(--color-components-stats-card-purple-border-hover)',
-  },
-}
-
-const StatsCard: React.FC<StatsCardProps> = ({ title, value, icon: Icon, color }) => {
-  const tokens = colorTokens[color]
-  const [isHovered, setIsHovered] = useState(false)
-  
-  return (
-    <div
-      className={cn(
-        'relative overflow-hidden rounded-2xl p-5 transition-all duration-300',
-        'hover:-translate-y-1',
-        'border'
-      )}
-      style={{
-        backgroundColor: 'var(--color-components-card-bg)',
-        borderColor: isHovered ? tokens.borderHover : 'var(--color-components-card-border)',
-        boxShadow: isHovered ? tokens.shadow : 'none',
-      }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      {/* 背景渐变装饰 - 使用设计令牌中的渐变 */}
-      <div
-        className={cn(
-          'absolute -right-4 -top-4 w-28 h-28 rounded-full blur-2xl transition-all duration-300',
-          isHovered ? 'opacity-80 scale-110' : 'opacity-50'
-        )}
-        style={{ background: tokens.gradient }}
-      />
-      
-      <div className="relative flex items-center gap-4">
-        {/* 图标 - 使用渐变背景令牌 */}
-        <div
-          className={cn(
-            'flex items-center justify-center w-12 h-12 rounded-xl transition-all duration-300',
-            isHovered && 'scale-110'
-          )}
-          style={{ background: tokens.iconBg }}
-        >
-          <Icon className="h-6 w-6" style={{ color: tokens.iconText }} />
-        </div>
-
-        {/* 文本 */}
-        <div className="flex-1 min-w-0">
-          <p
-            className="text-sm font-medium mb-1"
-            style={{ color: 'var(--color-text-secondary)' }}
-          >
-            {title}
-          </p>
-          <p
-            className="text-3xl font-bold tracking-tight"
-            style={{ color: 'var(--color-text-primary)' }}
-          >
-            {typeof value === 'number' ? value.toLocaleString() : value}
-          </p>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// 列表视图行组件
-interface AgentListRowProps {
-  agent: IFlow
-  onDelete: (id: string) => void
-  timeFormat: 'detailed' | 'compact' | 'relative'
-}
-
-const AgentListRow: React.FC<AgentListRowProps> = ({ agent, onDelete, timeFormat }) => {
+export default function AgentEditorPage() {
   const navigate = useNavigate()
-  
-  // 处理多语言标题
-  const title = typeof agent.title === 'object'
-    ? (agent.title.zh || agent.title.en || '未命名')
-    : (agent.title || '未命名')
+  const { id = '' } = useParams<{ id: string }>()
+  const { flowDetail, loading } = useFetchDataOnMount()
+  const { saveGraph, loading: saving } = useSaveGraph(id)
+  const autosaveLabel = useWatchAgentChange()
+  const versionQuery = useFetchVersionList(id)
+  const webhookUrl = useBuildWebhookUrl()
 
-  // 处理多语言描述
-  const description = typeof agent.description === 'object'
-    ? (agent.description.zh || agent.description.en)
-    : agent.description
+  const [title, setTitle] = useState('')
+  const [drawerVisible, setDrawerVisible] = useState(false)
+  const [titleDirty, setTitleDirty] = useState(false)
+  const [versionsOpen, setVersionsOpen] = useState(false)
+  const [webhookOpen, setWebhookOpen] = useState(false)
+  const [roadmapOpen, setRoadmapOpen] = useState(false)
+  const settingState = useSetModalState(false)
 
-  // 判断类型
-  const isPlugin = agent.canvas_type === 'pipeline' || agent.canvas_category === 'Ingestion'
-
-  // 获取节点数量
-  const nodeCount = agent.dsl?.graph?.nodes?.length || 0
-
-  // 格式化时间
-  const formatTime = (timestamp: number) => {
-    switch (timeFormat) {
-      case 'detailed':
-        return formatTimestampDetailed(timestamp)
-      case 'compact':
-        return formatTimestampCompact(timestamp)
-      case 'relative':
-        return formatRelativeTime(timestamp)
-      default:
-        return formatTimestampDetailed(timestamp)
+  useEffect(() => {
+    if (!titleDirty && flowDetail?.title) {
+      setTitle(resolveLocalizedText(flowDetail.title, '未命名资产'))
     }
-  }
+  }, [flowDetail?.title, titleDirty])
 
-  const handleClick = () => {
-    navigate(`/agent/${agent.id}`)
-  }
+  const versions = useMemo(() => {
+    return versionQuery.data.map((version, index) => ({
+      id: version.id || version.version_id || `version-${index}`,
+      name: formatVersionLabel(version, index),
+      createdAt: version.create_date || version.update_date || '',
+      description: version.description,
+    }))
+  }, [versionQuery.data])
 
-  const handleDelete = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    onDelete(agent.id)
-  }
-
-  return (
-    <div
-      className={cn(
-        'group relative grid grid-cols-[2fr_100px_100px_150px_60px] items-center gap-4',
-        'px-4 h-[68px] rounded-xl cursor-pointer',
-        'border border-transparent',
-        'transition-all duration-200 ease-out',
-        'hover:bg-surface-secondary/60 hover:border-state-focus hover:shadow-sm'
-      )}
-      onClick={handleClick}
-    >
-      {/* 名称列 */}
-      <div className="flex items-center gap-4 min-w-0">
-        <Avatar className="h-10 w-10 shrink-0 transition-transform duration-200 group-hover:scale-105">
-          <AvatarImage src={agent.avatar || undefined} alt={title} />
-          <AvatarFallback 
-            className={cn(
-              isPlugin
-                ? 'bg-[var(--color-state-success-subtle)]'
-                : 'bg-[var(--color-state-info-subtle)]'
-            )}
-          >
-            <Workflow 
-              className="h-5 w-5" 
-              style={{ 
-                color: isPlugin 
-                  ? 'var(--color-state-success)' 
-                  : 'var(--color-state-info)' 
-              }} 
-            />
-          </AvatarFallback>
-        </Avatar>
-        
-        <div className="flex-1 min-w-0 h-11 flex flex-col justify-center">
-          <div className="flex items-center gap-1.5">
-            <h3 
-              className="font-medium text-text-primary truncate group-hover:text-text-accent transition-colors duration-200"
-              title={title}
-            >
-              {title}
-            </h3>
-            <ChevronRightIcon className="h-4 w-4 text-text-tertiary opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all duration-200 shrink-0" />
-          </div>
-          {description && (
-            <p 
-              className="text-sm text-text-tertiary truncate mt-0.5"
-              title={description}
-            >
-              {description}
-            </p>
-          )}
-        </div>
-      </div>
-
-      {/* 类型列 */}
-      <div className="flex items-center gap-1.5 text-sm text-text-secondary">
-        <Workflow className="h-3.5 w-3.5" />
-        <span>{isPlugin ? 'Pipeline' : '智能体'}</span>
-      </div>
-
-      {/* 节点数列 */}
-      <div className="flex items-center gap-1.5 text-sm text-text-secondary">
-        <Layers className="h-3.5 w-3.5" />
-        <span>{nodeCount} 节点</span>
-      </div>
-
-      {/* 更新时间列 */}
-      <div className="text-sm text-text-tertiary">
-        {formatTime(agent.update_time)}
-      </div>
-
-      {/* 操作列 */}
-      <div className="flex justify-end" onClick={(e) => e.stopPropagation()}>
-        <Dropdown
-          trigger={
-            <Button 
-              variant="ghost" 
-              size="icon-sm"
-              className="opacity-0 group-hover:opacity-100 transition-opacity"
-            >
-              <MoreVertical className="h-4 w-4" />
-            </Button>
-          }
-        >
-          <DropdownItem
-            icon={<Settings className="h-4 w-4" />}
-            onClick={() => navigate(`/agent/${agent.id}`)}
-          >
-            编辑
-          </DropdownItem>
-          <DropdownItem
-            icon={<Trash2 className="h-4 w-4" />}
-            onClick={handleDelete}
-            danger
-          >
-            删除
-          </DropdownItem>
-        </Dropdown>
-      </div>
-    </div>
-  )
-}
-
-export default function AgentListPage() {
-  const [createDialogOpen, setCreateDialogOpen] = useState(false)
-  const [showTemplates, setShowTemplates] = useState(false)
-  const [searchKeyword, setSearchKeyword] = useState('')
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
-  const [timeFormat, setTimeFormat] = useState<'detailed' | 'compact' | 'relative'>('detailed')
-  const [sortDesc, setSortDesc] = useState(true)
-  const [currentPage, setCurrentPage] = useState(1)
-  const [pageSize, setPageSize] = useState(12)
-  const [filterValue, setFilterValue] = useState<FilterValue>({ type: [] })
-
-  // 获取Agent列表
-  const { data: agentsData, isLoading, refetch } = useQuery({
-    queryKey: [QUERY_KEYS.AGENTS],
-    queryFn: async () => {
-      const result = await agentAPI.listAgents()
-      return result
-    },
-  })
-
-  const agents = agentsData?.canvas || []
-
-  // 筛选器配置
-  const filterConfigs: FilterConfig[] = [
-    {
-      key: 'type',
-      label: '类型',
-      options: [
-        { value: 'agent', label: '智能体流程' },
-        { value: 'pipeline', label: 'Pipeline' },
-      ],
-    },
-  ]
-
-  // 过滤和搜索
-  const filteredAgents = useMemo(() => {
-    return agents.filter((agent) => {
-      // 类型过滤
-      const selectedTypes = filterValue.type || []
-      if (selectedTypes.length > 0) {
-        const isPlugin = agent.canvas_type === 'pipeline' || agent.canvas_category === 'Ingestion'
-        const agentType = isPlugin ? 'pipeline' : 'agent'
-        if (!selectedTypes.includes(agentType)) return false
-      }
-
-      // 搜索过滤
-      if (searchKeyword) {
-        const title = typeof agent.title === 'object'
-          ? (agent.title.zh || agent.title.en || '')
-          : (agent.title || '')
-        return title.toLowerCase().includes(searchKeyword.toLowerCase())
-      }
-
-      return true
-    })
-  }, [agents, filterValue, searchKeyword])
-
-  const sortedAgents = useMemo(() => {
-    const getSortTime = (agent: IFlow) => agent.update_time || 0
-    return [...filteredAgents].sort((a, b) => (
-      sortDesc ? getSortTime(b) - getSortTime(a) : getSortTime(a) - getSortTime(b)
-    ))
-  }, [filteredAgents, sortDesc])
-
-  // 统计数据
-  const stats = useMemo(() => {
-    const agentCount = agents.filter(a => a.canvas_type !== 'pipeline' && a.canvas_category !== 'Ingestion').length
-    const pipelineCount = agents.filter(a => a.canvas_type === 'pipeline' || a.canvas_category === 'Ingestion').length
-    
-    // 计算最近7天活跃的智能体（有更新的）
-    const sevenDaysAgo = Date.now() / 1000 - 7 * 24 * 60 * 60
-    const activeCount = agents.filter(a => a.update_time > sevenDaysAgo).length
-    
-    return {
-      total: agents.length,
-      agentCount,
-      pipelineCount,
-      activeCount,
+  const handleSave = async () => {
+    if (!id) {
+      return
     }
-  }, [agents])
 
-  // 分页计算
-  const totalPages = Math.ceil(sortedAgents.length / pageSize)
-  const paginatedAgents = useMemo(() => {
-    const start = (currentPage - 1) * pageSize
-    return sortedAgents.slice(start, start + pageSize)
-  }, [sortedAgents, currentPage, pageSize])
-
-  // 页码变化时重置到第一页
-  React.useEffect(() => {
-    setCurrentPage(1)
-  }, [searchKeyword, filterValue, pageSize])
-
-  // 从对话框创建Agent
-  const handleCreateFromDialog = async (title: string, canvasType: 'agent' | 'pipeline') => {
-    try {
-      const beginNode = {
-        id: `${Operator.Begin}:${humanId()}`,
-        type: 'beginNode',
-        position: { x: 100, y: 100 },
-        data: {
-          label: Operator.Begin,
-          name: 'Begin',
-          form: initialBeginValues,
-        },
-        sourcePosition: Position.Right,
-        targetPosition: Position.Left,
-      }
-
-      const result = await agentAPI.setAgent({
-        title,
-        description: '',
-        canvas_type: canvasType,
-        dsl: {
-          components: {},
-          history: [],
-          graph: {
-            nodes: [beginNode],
-            edges: [],
-          },
-          messages: [],
-          reference: [],
-          globals: {},
-          retrieval: [],
-        },
-      })
-
-      if (result) {
-        toast.success(`${canvasType === 'agent' ? '智能体' : 'Pipeline'}创建成功`)
-        refetch()
-      }
-    } catch (error) {
-      console.error('Create agent error:', error)
-      toast.error('创建失败')
-    }
+    const nextTitle = title.trim() || resolveLocalizedText(flowDetail?.title, '未命名资产')
+    await saveGraph(nextTitle)
+    setTitleDirty(false)
   }
 
-  // 导入JSON
-  const handleImportJSON = () => {
-    const input = document.createElement('input')
-    input.type = 'file'
-    input.accept = '.json'
-    input.onchange = async (e: Event) => {
-      const file = (e.target as HTMLInputElement).files?.[0]
-      if (!file) return
-
-      try {
-        const text = await file.text()
-        const data = JSON.parse(text)
-
-        if (!data.title || !data.dsl) {
-          toast.error('JSON格式不正确')
-          return
-        }
-
-        const result = await agentAPI.setAgent(data)
-        if (result) {
-          toast.success('导入成功')
-          refetch()
-        }
-      } catch (error) {
-        console.error('Import error:', error)
-        toast.error('导入失败')
-      }
-    }
-    input.click()
-  }
-
-  // 删除Agent
-  const handleDeleteAgent = async (id: string) => {
-    if (window.confirm('确定要删除这个智能体吗？此操作不可恢复。')) {
-      try {
-        await agentAPI.deleteAgent(id)
-        toast.success('删除成功')
-        refetch()
-      } catch (error) {
-        console.error('Delete agent error:', error)
-        toast.error('删除失败')
-      }
-    }
-  }
-
-  // 重命名Agent
-  const handleRenameAgent = (id: string, currentName: string) => {
-    console.log('重命名:', id, currentName)
-    toast.info('重命名功能开发中')
-  }
-
-  // 复制Agent
-  const handleDuplicateAgent = (id: string) => {
-    console.log('复制:', id)
-    toast.info('复制功能开发中')
-  }
-
-  // 如果显示模版页面，则渲染模版页面
-  if (showTemplates) {
+  if (loading) {
     return (
-      <TemplatesPage
-        onBack={() => setShowTemplates(false)}
-        onTemplateSelected={() => {
-          setShowTemplates(false)
-          refetch()
-        }}
+      <PageLoadingState
+        scene={AppScene.STUDIO}
+        title="正在初始化 Agent 编辑器"
+        description="新的 Studio 骨架正在挂载现有 Canvas 内核。"
+      />
+    )
+  }
+
+  if (!flowDetail?.id) {
+    return (
+      <PageErrorState
+        scene={AppScene.STUDIO}
+        title="未找到 Agent 资产"
+        description="请从 Agent Center 重新打开，或检查 `/v1/canvas/get/:id` 接口。"
+        onRetry={() => navigate('/agents')}
+        retryLabel="返回 Agent Center"
       />
     )
   }
 
   return (
-    <div className="h-full flex flex-col p-6">
-      {/* 页面头部 - 标题 + 创建按钮 */}
-      <div className="flex items-start justify-between mb-4">
-        <div>
-          <h1 className="text-xl font-semibold text-text-primary">智能体管理</h1>
-          <p className="text-sm text-text-secondary mt-1">
-            创建和管理您的 AI 工作流智能体
-          </p>
-        </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              创建智能体
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56">
-            <DropdownMenuItem onClick={() => setCreateDialogOpen(true)}>
-              <Workflow className="w-4 h-4 mr-2" />
-              <div>
-                <div className="font-medium">从空白创建</div>
-                <div className="text-xs text-text-tertiary">快速搭建工作流</div>
-              </div>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setShowTemplates(true)}>
-              <Sparkles className="w-4 h-4 mr-2" />
-              <div>
-                <div className="font-medium">从模版创建</div>
-                <div className="text-xs text-text-tertiary">选择预设模版</div>
-              </div>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleImportJSON}>
-              <FileJson className="w-4 h-4 mr-2" />
-              <div>
-                <div className="font-medium">导入JSON</div>
-                <div className="text-xs text-text-tertiary">从文件导入</div>
-              </div>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-
-      {/* 统计卡片 */}
-      <div className="mb-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <StatsCard
-            title="智能体总数"
-            value={stats.total}
-            icon={Workflow}
-            color="info"
-          />
-          <StatsCard
-            title="智能体流程"
-            value={stats.agentCount}
-            icon={Zap}
-            color="success"
-          />
-          <StatsCard
-            title="Pipeline"
-            value={stats.pipelineCount}
-            icon={Workflow}
-            color="info"
-          />
-          <StatsCard
-            title="最近活跃"
-            value={stats.activeCount}
-            icon={Clock}
-            color="warning"
-          />
-        </div>
-      </div>
-
-      {/* 搜索和筛选工具栏 */}
-      <div className="flex items-center space-x-4 mb-4">
-        {/* 左侧：搜索框 */}
-        <div className="flex-1 max-w-md">
-          <Input
-            type="search"
-            placeholder="搜索智能体..."
-            value={searchKeyword}
-            onChange={(e) => setSearchKeyword(e.target.value)}
-            leftIcon={<Search className="h-4 w-4" />}
-          />
-        </div>
-        
-        {/* 右侧：筛选 + 时间格式 + 视图切换 */}
-        <div className="flex items-center space-x-2">
-          {/* 筛选按钮 */}
-          <FilterPopover
-            filters={filterConfigs}
-            value={filterValue}
-            onChange={setFilterValue}
-          />
-          
-          {/* 时间格式选择器 */}
-          <CustomSelect
-            options={[
-              { value: 'detailed', label: '详细时间' },
-              { value: 'compact', label: '简洁时间' },
-              { value: 'relative', label: '相对时间' }
-            ]}
-            value={timeFormat}
-            onChange={(value) => setTimeFormat(value as 'detailed' | 'compact' | 'relative')}
-            size="sm"
-            className="min-w-[100px]"
-          />
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              setSortDesc((prev) => !prev)
-              setCurrentPage(1)
-            }}
-            className="h-9 px-2 flex items-center gap-1 text-xs"
-          >
-            <ArrowUpDown className="h-3.5 w-3.5" />
-            <span>{sortDesc ? '倒序' : '正序'}</span>
-          </Button>
-          
-          {/* 视图切换 */}
-          <ViewToggle
-            value={viewMode}
-            onChange={setViewMode}
-            size="md"
-            options={[
-              { value: 'grid', icon: <Grid3X3 />, label: '网格视图' },
-              { value: 'list', icon: <ListIcon />, label: '列表视图' },
-            ]}
-          />
-        </div>
-      </div>
-
-      {/* 内容区域 */}
-      {isLoading ? (
-        <div className="flex-1 flex items-center justify-center">
-          <Loading variant="spinner" size="lg" />
-        </div>
-      ) : sortedAgents.length === 0 ? (
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <Workflow className="h-12 w-12 mx-auto mb-4" style={{ color: 'var(--color-text-muted)' }} />
-            <h3 className="text-lg font-medium mb-2" style={{ color: 'var(--color-text-primary)' }}>
-              {searchKeyword || filterValue.type?.length ? '未找到匹配的智能体' : '还没有智能体'}
-            </h3>
-            <p className="mb-4" style={{ color: 'var(--color-text-tertiary)' }}>
-              {searchKeyword || filterValue.type?.length
-                ? '尝试调整搜索条件或筛选器'
-                : '创建您的第一个智能体工作流开始使用'}
-            </p>
-            {!searchKeyword && !filterValue.type?.length && (
-              <Button onClick={() => setCreateDialogOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                创建智能体
-              </Button>
-            )}
-          </div>
-        </div>
-      ) : (
-        <>
-          {/* 可滚动内容区域 - pt-1 pb-2 为悬停效果留出空间 */}
-          <div className="flex-1 overflow-y-auto pt-1 pb-2 -mx-1 px-1">
-            {viewMode === 'grid' ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                {paginatedAgents.map((agent) => (
-                  <AgentCard
-                    key={agent.id}
-                    agent={agent}
-                    onDelete={handleDeleteAgent}
-                    onRename={handleRenameAgent}
-                    onDuplicate={handleDuplicateAgent}
-                    timeFormat={timeFormat}
+    <>
+      <StudioPageTemplate
+        toolbar={
+          <>
+            <PageHeader
+              compact
+              title={
+                <div className="flex max-w-xl items-center gap-space-sm">
+                  <Input
+                    value={title}
+                    onChange={(event) => {
+                      setTitleDirty(true)
+                      setTitle(event.target.value)
+                    }}
+                    className="h-11 text-base font-semibold"
+                    placeholder="输入 Agent 名称"
                   />
-                ))}
-              </div>
-            ) : (
-              <ResourceListContainer>
-                <ResourceListHeader
-                  columns={[
-                    { key: 'name', label: '名称' },
-                    { key: 'type', label: '类型' },
-                    { key: 'nodes', label: '节点数' },
-                    { key: 'update_time', label: '更新时间' },
-                    { key: 'actions', label: '操作' },
-                  ]}
-                  showSelect={false}
-                  gridCols="grid-cols-[2fr_100px_100px_150px_60px]"
-                />
-                <ResourceListBody>
-                  {paginatedAgents.map((agent) => (
-                    <AgentListRow
-                      key={agent.id}
-                      agent={agent}
-                      onDelete={handleDeleteAgent}
-                      timeFormat={timeFormat}
-                    />
-                  ))}
-                </ResourceListBody>
-              </ResourceListContainer>
-            )}
-          </div>
-
-          {/* 分页控件 - 固定在底部 */}
-          {totalPages > 0 && (
-            <div className="mt-4 rounded-lg border shadow-sm" style={{
-              borderColor: 'var(--color-components-card-border)',
-              backgroundColor: 'var(--color-components-card-bg)'
-            }}>
-              <div className="px-6 py-4 flex items-center justify-between">
-                <div className="text-sm" style={{ color: 'var(--color-components-pagination-text)' }}>
-                  共 {sortedAgents.length} 项
                 </div>
-                
-                <div className="flex items-center space-x-4">
-                  {/* 每页显示选择器 */}
-                  <PageSizeSelector
-                    pageSize={pageSize}
-                    onChange={(size) => setPageSize(size)}
-                    options={[6, 12, 24, 48]}
-                  />
-                  
-                  {/* 页码导航 */}
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(currentPage - 1)}
-                      disabled={currentPage === 1}
-                    >
-                      <ChevronLeft className="h-4 w-4" />
-                      上一页
-                    </Button>
-                    
-                    <div className="flex items-center space-x-1">
-                      {Array.from({ length: Math.max(1, Math.min(7, totalPages)) }, (_, i) => {
-                        let pageNum = i + 1
-                        
-                        if (totalPages > 7) {
-                          if (currentPage <= 4) {
-                            pageNum = i + 1
-                          } else if (currentPage >= totalPages - 3) {
-                            pageNum = totalPages - 6 + i
-                          } else {
-                            pageNum = currentPage - 3 + i
-                          }
-                        }
-                        
-                        return (
-                          <Button
-                            key={pageNum}
-                            variant={currentPage === pageNum ? 'default' : 'outline'}
-                            size="sm"
-                            onClick={() => setCurrentPage(pageNum)}
-                            className="min-w-[40px]"
-                          >
-                            {pageNum}
-                          </Button>
-                        )
-                      })}
-                    </div>
-                    
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(currentPage + 1)}
-                      disabled={currentPage === totalPages || totalPages === 0}
-                    >
-                      下一页
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  </div>
+              }
+              description={`ID: ${flowDetail.id} · 自动保存 ${autosaveLabel || '待首次保存'}`}
+              actions={
+                <>
+                  <Button variant="outline" onClick={() => navigate('/agents')}>
+                    <ArrowLeft className="mr-space-xs h-4 w-4" />
+                    返回
+                  </Button>
+                  <Button variant="outline" onClick={() => navigate(`/agent/${id}/explore`)}>
+                    <Compass className="mr-space-xs h-4 w-4" />
+                    Explore
+                  </Button>
+                  <Button variant="outline" onClick={() => setVersionsOpen(true)}>
+                    <History className="mr-space-xs h-4 w-4" />
+                    版本
+                  </Button>
+                  <Button variant="outline" onClick={() => setWebhookOpen(true)}>
+                    <Link2 className="mr-space-xs h-4 w-4" />
+                    Webhook
+                  </Button>
+                  <Button variant="outline" onClick={() => navigate(`/agent/share?id=${id}`)}>
+                    <Share2 className="mr-space-xs h-4 w-4" />
+                    Share
+                  </Button>
+                  <Button variant="outline" onClick={settingState.showModal}>
+                    <Settings2 className="mr-space-xs h-4 w-4" />
+                    设置
+                  </Button>
+                  <Button variant="secondary" onClick={handleSave} disabled={saving}>
+                    <Save className="mr-space-xs h-4 w-4" />
+                    {saving ? '保存中...' : '保存'}
+                  </Button>
+                  <Button onClick={() => setDrawerVisible(true)}>
+                    <Play className="mr-space-xs h-4 w-4" />
+                    运行
+                  </Button>
+                </>
+              }
+            />
+            <PageToolbar
+              left={
+                <div className="flex items-center gap-space-sm text-sm text-text-secondary">
+                  <Sparkles className="h-4 w-4 text-text-accent" />
+                  第一阶段已完成编辑器骨架、右侧运行轨与统一请求层接线。
                 </div>
-              </div>
-            </div>
-          )}
-        </>
-      )}
+              }
+              right={
+                <Button variant="outline" onClick={() => setRoadmapOpen(true)}>
+                  查看阶段说明
+                </Button>
+              }
+            />
+          </>
+        }
+        sidePanel={
+          <EditorRuntimeRail
+            flow={flowDetail}
+            autosaveLabel={autosaveLabel}
+            onOpenExplore={() => navigate(`/agent/${id}/explore`)}
+            onOpenVersions={() => setVersionsOpen(true)}
+            onOpenWebhook={() => setWebhookOpen(true)}
+            onOpenSettings={settingState.showModal}
+            onOpenShare={() => navigate(`/agent/share?id=${id}`)}
+            onOpenRoadmap={() => setRoadmapOpen(true)}
+          />
+        }
+      >
+        <ReactFlowProvider>
+          <AgentCanvas
+            drawerVisible={drawerVisible}
+            hideDrawer={() => setDrawerVisible(false)}
+          />
+        </ReactFlowProvider>
+      </StudioPageTemplate>
 
-      {/* 创建对话框 */}
-      <CreateAgentDialog
-        open={createDialogOpen}
-        onClose={() => setCreateDialogOpen(false)}
-        onCreate={handleCreateFromDialog}
+      {versionsOpen ? (
+        <VersionDialog
+          hideModal={() => setVersionsOpen(false)}
+          versions={versions}
+        />
+      ) : null}
+
+      {webhookOpen ? (
+        <WebhookSheet
+          hideModal={() => setWebhookOpen(false)}
+          webhookUrl={webhookUrl}
+        />
+      ) : null}
+
+      {settingState.visible ? (
+        <SettingDialog hideModal={settingState.hideModal} />
+      ) : null}
+
+      <PlaceholderDialog
+        open={roadmapOpen}
+        onOpenChange={setRoadmapOpen}
+        title="阶段一已完成的骨架"
+        description="这里先把大框架、入口和状态反馈固定住，后续再逐个替换旧节点表单和运行体验。"
+        bullets={[
+          '已切换到新的 Agent Center / 模板页 / 编辑器页 / Explore 页 / Share 页路由结构。',
+          '已统一共享类型、API 与 query/mutation hooks，后续节点和弹窗可以直接增量接入。',
+          '当前 Canvas 仍复用旧内核，接下来会逐步把节点表单、日志时间线、分享发布能力拆成目录化模块。',
+        ]}
       />
-    </div>
+    </>
   )
 }

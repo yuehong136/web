@@ -18,7 +18,10 @@ export const ROUTES = {
   AI_TOOLS: '/ai-tools',
   WORKFLOW: '/workflow',
   AGENTS: '/agents',
+  AGENT_TEMPLATES: '/agent-templates',
   AGENT_CANVAS: '/agent/:id',
+  AGENT_EXPLORE: '/agent/:id/explore',
+  AGENT_SHARE: '/agent/share',
   MCP_SERVERS: '/mcp-servers',
   STUDIO: '/studio',
   STUDIO_CREATE_APP: '/studio/create-app',
@@ -34,6 +37,7 @@ export const ROUTES = {
 // 存储键名
 export const STORAGE_KEYS = {
   AUTH_TOKEN: 'auth_token',
+  REFRESH_TOKEN: 'refresh_token',
   USER_INFO: 'user_info',
   THEME: 'theme',
   LANGUAGE: 'language',

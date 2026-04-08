@@ -1,0 +1,65 @@
+import type { Operator } from '../constant'
+
+export const operatorDescriptions: Partial<Record<Operator, string>> = {
+  Begin: '定义会话入口、开场白与输入参数。',
+  Retrieval: '检索知识库或记忆，并将结果注入后续节点。',
+  Generate: '使用模型基于上下文生成答案。',
+  Message: '向用户输出固定或模板化消息。',
+  Categorize: '对输入进行分类，并按条件分发。',
+  Switch: '基于条件判断选择不同执行路径。',
+  Relevant: '判断当前输入或上下文是否满足相关性条件。',
+  RewriteQuestion: '重写用户问题，生成更适合检索或推理的查询。',
+  KeywordExtract: '从输入中抽取关键词集合。',
+  Agent: '定义多轮智能体、工具使用和结构化输出。',
+  Tool: '挂接到 Agent 的工具节点，不单独序列化到 DSL。',
+  WaitingDialogue: '等待用户补充输入后继续执行。',
+  Note: '仅用于画布注释，不参与执行。',
+  Placeholder: '占位节点，用于编排过程中的过渡态。',
+  Iteration: '对数组或列表逐项迭代执行。',
+  IterationItem: '迭代体中的当前项输出节点。',
+  CodeExec: '执行自定义代码逻辑。',
+  DuckDuckGo: '调用 DuckDuckGo 搜索。',
+  Wikipedia: '调用 Wikipedia 搜索。',
+  PubMed: '调用 PubMed 检索。',
+  ArXiv: '调用 ArXiv 检索。',
+  Google: '调用 Google 搜索。',
+  Bing: '调用 Bing 搜索。',
+  GoogleScholar: '调用 Google Scholar 检索。',
+  GitHub: '调用 GitHub 搜索。',
+  SearXNG: '调用 SearXNG 聚合搜索。',
+  TavilySearch: '调用 Tavily Search。',
+  TavilyExtract: '调用 Tavily Extract。',
+  WenCai: '调用问财金融检索。',
+  YahooFinance: '调用 Yahoo Finance 金融信息查询。',
+  ExeSQL: '执行 SQL 并返回结构化结果。',
+  Crawler: '抓取网页并提取内容。',
+  Invoke: '发送 HTTP 请求并使用返回结果。',
+  Email: '发送邮件。',
+  UserFillUp: '等待用户补充表单参数。',
+  StringTransform: '进行字符串拼接、拆分与转换。',
+  PDFGenerator: '生成 PDF 内容。',
+  ExcelProcessor: '处理 Excel 内容。',
+  DataOperations: '对对象数组进行筛选、重命名、合并等操作。',
+  ListOperations: '对列表执行聚合、切片和映射。',
+  VariableAssigner: '写入变量到工作流上下文。',
+  VariableAggregator: '聚合多个变量输出。',
+  Loop: '执行循环控制流。',
+  LoopItem: '循环体中的当前项输出节点。',
+  ExitLoop: '提前结束循环。',
+  File: 'Pipeline 的文件输入根节点。',
+  Parser: '解析文件内容。',
+  Tokenizer: '将文本切分为 token。',
+  Splitter: '将文本拆分为块。',
+  HierarchicalMerger: '对拆分后的内容分层聚合。',
+  Extractor: '从文档块中抽取结构化信息。',
+}
+
+export function resolveOperatorDescription(
+  operator: Operator,
+  fallbackName?: string,
+): string {
+  return (
+    operatorDescriptions[operator] ||
+    `${fallbackName || operator} 节点的配置项会在右侧表单中展示。`
+  )
+}

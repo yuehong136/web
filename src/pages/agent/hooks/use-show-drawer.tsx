@@ -39,14 +39,13 @@ export const useShowFormDrawer = () => {
 
       const operatorType = getOperatorTypeFromId(nodeId)
       if (
-        (operatorType === Operator.Tool && !tool) ||
         operatorType === Operator.LoopStart ||
         operatorType === Operator.ExitLoop
       ) {
         return
       }
       setClickedNodeId(nodeId)
-      setClickedToolId(toolId || tool)
+      setClickedToolId(toolId || tool || '')
       showFormDrawer()
     },
     [getOperatorTypeFromId, setClickedNodeId, setClickedToolId, showFormDrawer],

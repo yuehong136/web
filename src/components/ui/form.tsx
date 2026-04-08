@@ -1,5 +1,7 @@
 'use client'
 
+/* eslint-disable react-refresh/only-export-components */
+
 import * as React from 'react'
 import { Slot } from '@radix-ui/react-slot'
 import {
@@ -136,22 +138,44 @@ interface FormControlProps extends React.ComponentPropsWithoutRef<typeof Slot> {
 const FormControl = React.forwardRef<
   React.ElementRef<typeof Slot>,
   FormControlProps
->(({ horizontal = false, className, ...props }, ref) => {
+>(({ horizontal = false, className, children, ...props }, ref) => {
   const { error, formItemId, formDescriptionId, formMessageId } = useFormField()
+  const controlClassName = cn(horizontal && 'w-3/4', className)
+  const describedBy = !error
+    ? `${formDescriptionId}`
+    : `${formDescriptionId} ${formMessageId}`
+
+  if (
+    React.Children.count(children) !== 1 ||
+    !React.isValidElement(children) ||
+    children.type === React.Fragment
+  ) {
+    return (
+      <div
+        ref={ref as React.Ref<HTMLDivElement>}
+        id={formItemId}
+        aria-describedby={describedBy}
+        aria-invalid={!!error}
+        className={controlClassName}
+        data-form-control-fallback=""
+        {...props}
+      >
+        {children}
+      </div>
+    )
+  }
 
   return (
     <Slot
       ref={ref}
       id={formItemId}
-      aria-describedby={
-        !error
-          ? `${formDescriptionId}`
-          : `${formDescriptionId} ${formMessageId}`
-      }
+      aria-describedby={describedBy}
       aria-invalid={!!error}
-      className={cn(horizontal && 'w-3/4', className)}
+      className={controlClassName}
       {...props}
-    />
+    >
+      {children}
+    </Slot>
   )
 })
 FormControl.displayName = 'FormControl'
@@ -225,4 +249,3 @@ export {
   FormField,
   HorizontalFormItem,
 }
-

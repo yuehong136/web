@@ -4,6 +4,7 @@
  */
 
 import React from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   Plus,
   Grid,
@@ -48,6 +49,7 @@ import { STUDIO_TEXTS } from '@/constants/studio-texts'
 import type { DialogApp } from '@/types/api'
 
 export const StudioPage: React.FC = () => {
+  const navigate = useNavigate()
   // Store state
   const {
     filter,
@@ -135,8 +137,7 @@ export const StudioPage: React.FC = () => {
     if (type === 'app') {
       openCreateAppModal()
     } else {
-      // 智能体创建页面暂未实现
-      console.log('Creating agent - page not implemented yet')
+      navigate('/agents?create=1')
     }
   }
 

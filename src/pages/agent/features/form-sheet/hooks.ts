@@ -1,0 +1,76 @@
+import { useMemo } from 'react'
+import { useFetchMCPServers } from '@/hooks/use-mcp-request'
+import { Operator, type Operator as OperatorType } from '../../constant'
+import { useCalculateSheetRight } from '../../hooks/use-calculate-sheet-right'
+import { getOperatorDefinition } from '../../operators'
+import useGraphStore from '../../store'
+import type { RAGFlowNodeType } from '../../types'
+import type { ResolvedFormSheetContext } from './types'
+import {
+  canShowSingleStepDebug,
+  isFormSheetTitleEditable,
+  resolveFormSheetDescription,
+  resolveFormSheetIconKey,
+  resolveLegacyRendererKey,
+  resolveSelectedToolContext,
+} from './utils'
+
+export function useFormSheetOffsetClass(runtimeDrawerVisible = false) {
+  const runtimeDrawerOffset = useCalculateSheetRight()
+
+  return runtimeDrawerVisible ? runtimeDrawerOffset : ''
+}
+
+export function useResolvedFormSheetContext(
+  node?: RAGFlowNodeType,
+): ResolvedFormSheetContext {
+  const operatorType = node?.data?.label as OperatorType | undefined
+  const operatorDefinition = useMemo(
+    () => getOperatorDefinition(operatorType),
+    [operatorType],
+  )
+  const nodes = useGraphStore((state) => state.nodes)
+  const clickedToolId = useGraphStore((state) => state.clickedToolId)
+  const { data: mcpServersData } = useFetchMCPServers({
+    page_size: 200,
+    enabled: operatorType === Operator.Tool && Boolean(clickedToolId),
+  })
+  const mcpServers = mcpServersData?.mcp_servers
+
+  const toolContext = useMemo(
+    () =>
+      resolveSelectedToolContext({
+        operatorType,
+        clickedToolId,
+        nodes,
+        mcpServers,
+      }),
+    [clickedToolId, mcpServers, nodes, operatorType],
+  )
+
+  return useMemo(
+    () => ({
+      node,
+      operatorType,
+      operatorDefinition,
+      toolContext,
+      iconKey: resolveFormSheetIconKey({
+        operatorType,
+        operatorDefinition,
+        toolContext,
+      }),
+      description: resolveFormSheetDescription({
+        operatorType,
+        operatorDefinition,
+        toolContext,
+      }),
+      titleEditable: isFormSheetTitleEditable(operatorDefinition),
+      debugEnabled: canShowSingleStepDebug(operatorDefinition),
+      rendererKey: resolveLegacyRendererKey(
+        operatorType,
+        Boolean(toolContext?.mcpServer),
+      ),
+    }),
+    [node, operatorType, operatorDefinition, toolContext],
+  )
+}

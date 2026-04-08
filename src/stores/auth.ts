@@ -41,6 +41,7 @@ export const useAuthStore = create<AuthState>()(
           // 清除状态但不调用后端logout API（因为token已经无效）
           apiClient.setAuthToken(null)
           localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN)
+          localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN)
           localStorage.removeItem(STORAGE_KEYS.USER_INFO)
           localStorage.removeItem('tenant_info')
           
@@ -94,7 +95,7 @@ export const useAuthStore = create<AuthState>()(
             // 后端返回的数据结构：{ data: user_info, auth: jwt_token, retcode: 200, retmsg: "Welcome back!" }
             console.log('Full login response:', response)
             
-            const { data: user, auth: access_token } = response
+            const { data: user, auth: access_token, refresh_token } = response
             
             console.log('Extracted user:', user)
             console.log('Extracted token:', access_token)
@@ -114,6 +115,11 @@ export const useAuthStore = create<AuthState>()(
             
             // 保存到本地存储
             localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, access_token)
+            if (refresh_token) {
+              localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refresh_token)
+            } else {
+              localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN)
+            }
             localStorage.setItem(STORAGE_KEYS.USER_INFO, JSON.stringify(user))
           } catch (error) {
             set({ isLoading: false })
@@ -139,7 +145,7 @@ export const useAuthStore = create<AuthState>()(
           }
 
           // 后端返回的数据结构：{ data: user_info, auth: jwt_token, retcode: 200, retmsg: "Welcome aboard!" }
-          const { data: user, auth: access_token } = response
+          const { data: user, auth: access_token, refresh_token } = response
           
           if (!access_token || !user) {
             throw new Error('注册响应数据不完整')
@@ -162,6 +168,11 @@ export const useAuthStore = create<AuthState>()(
           
           // 保存到本地存储
           localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, access_token)
+          if (refresh_token) {
+            localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refresh_token)
+          } else {
+            localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN)
+          }
           localStorage.setItem(STORAGE_KEYS.USER_INFO, JSON.stringify(user))
         } catch (error) {
           set({ isLoading: false })
@@ -184,6 +195,7 @@ export const useAuthStore = create<AuthState>()(
           
           // 清除本地存储
           localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN)
+          localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN)
           localStorage.removeItem(STORAGE_KEYS.USER_INFO)
           localStorage.removeItem('tenant_info')
           
@@ -198,31 +210,7 @@ export const useAuthStore = create<AuthState>()(
 
         // 刷新token
         refreshToken: async () => {
-          const currentToken = get().token
-          if (!currentToken) return
-
-          try {
-            const response = await apiClient.post('/auth/refresh', {})
-            const { data: user, auth: access_token } = response
-            
-            // 设置API客户端的token
-            apiClient.setAuthToken(access_token)
-            
-            // 更新状态
-            set({ 
-              token: access_token, 
-              user,
-              isAuthenticated: true 
-            })
-            
-            // 更新本地存储
-            localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, access_token)
-            localStorage.setItem(STORAGE_KEYS.USER_INFO, JSON.stringify(user))
-          } catch (error) {
-            // 刷新失败，登出用户
-            get().logout()
-            throw error
-          }
+          throw new Error('当前后端未启用 token 刷新接口')
         },
 
         // 更新用户信息

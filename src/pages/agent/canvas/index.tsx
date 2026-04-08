@@ -6,12 +6,13 @@ import {
   Controls,
   Position,
   ReactFlow,
+  type Edge,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import { NotebookPen } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { FormSheet } from '../components/FormSheet'
+import { FormSheet } from '../features/form-sheet'
 import {
   AgentChatContext,
   AgentChatLogContext,
@@ -32,6 +33,7 @@ import { useStopMessageUnmount } from '../hooks/use-stop-message'
 import { useValidateConnection } from '../hooks/use-validate-connection'
 import { DropdownProvider, useDropdownManager } from './context'
 import { ButtonEdge } from './edge'
+import type { RAGFlowNodeType } from '../types'
 import { ChatSheet } from '../chat/chat-sheet'
 import { LogSheet } from '../log-sheet'
 import RunSheet from '../run-sheet'
@@ -76,7 +78,7 @@ function AgentCanvasInner({ drawerVisible, hideDrawer }: AgentCanvasProps) {
   const isValidConnection = useValidateConnection()
 
   const [reactFlowInstance, setReactFlowInstance] =
-    useState<ReactFlowInstance<any, any>>()
+    useState<ReactFlowInstance<RAGFlowNodeType, Edge>>()
 
   const {
     onNodeClick,
@@ -365,6 +367,8 @@ function AgentCanvasInner({ drawerVisible, hideDrawer }: AgentCanvasProps) {
               open={formDrawerVisible}
               node={clickedNode}
               onClose={hideFormDrawer}
+              runtimeDrawerVisible={chatVisible || runVisible}
+              canvasId={canvasId}
             />
           </AgentInstanceContext.Provider>
         )}

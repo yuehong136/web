@@ -1,200 +1,180 @@
+import { API_BASE_URL, STORAGE_KEYS } from '@/constants'
+import { resolveCanvasCategory } from '@/lib/agent'
 import { apiClient } from './client'
 import type {
-  IFlow,
-  IAgentListRequest,
-  ISetAgentRequest,
-  IRunAgentRequest,
-  IDebugNodeRequest,
-} from '@/pages/agent/types'
+  AgentExternalInputs,
+  AgentFlow,
+  AgentInputFormSchema,
+  AgentListParams,
+  AgentListResponse,
+  AgentSession,
+  AgentSessionListResponse,
+  AgentTemplate,
+  AgentTraceItem,
+  AgentVersionSummary,
+  DebugAgentNodePayload,
+  RunAgentPayload,
+  SetAgentPayload,
+  UpdateAgentSettingsPayload,
+} from '@/types/agent'
 
-// Agent相关API - 对接后端 /v1/canvas/* 接口
 export const agentAPI = {
-  // 获取Canvas/Agent列表
-  // 对应: GET /v1/canvas/list
-  // 后端返回: { retcode, retmsg, data: { canvas: [], total: 0 } }
-  // apiClient自动提取data字段，所以这里泛型是data的类型
-  listAgents: async (params?: IAgentListRequest) => {
-    const query = new URLSearchParams()
-    if (params?.page !== undefined) query.append('page', String(params.page))
-    if (params?.page_size) query.append('page_size', String(params.page_size))
-    if (params?.orderby) query.append('orderby', params.orderby)
-    if (params?.desc !== undefined) query.append('desc', String(params.desc))
-    if (params?.name) query.append('keywords', params.name)
-    if (params?.canvas_type) query.append('canvas_category', params.canvas_type)
-    
-    const queryString = query.toString()
-    const url = `/v1/canvas/list${queryString ? '?' + queryString : ''}`
-    
-    return apiClient.get<{ canvas: IFlow[]; total: number }>(url)
+  externalApiBase: {
+    baseURL: `${API_BASE_URL}/api`,
   },
 
-  // 获取Canvas详情
-  // 对应: GET /v1/canvas/get/{canvas_id}
-  fetchAgent: async (id: string) => {
-    return apiClient.get<IFlow>(`/v1/canvas/get/${id}`)
-  },
+  listAgents: async (params: AgentListParams = {}) => {
+    const query: Record<string, string | number | boolean> = {}
 
-  // 创建或更新Canvas
-  // 对应: POST /v1/canvas/set
-  setAgent: async (data: ISetAgentRequest) => {
-    return apiClient.post<IFlow>('/v1/canvas/set', {
-      id: data.id,
-      title: data.title,
-      description: data.description,
-      dsl: typeof data.dsl === 'string' ? data.dsl : JSON.stringify(data.dsl),
-      canvas_category: data.canvas_type === 'pipeline' ? 'Ingestion' : 'Agent',
-      avatar: data.avatar,
+    if (params.page !== undefined) query.page = params.page
+    if (params.page_size !== undefined) query.page_size = params.page_size
+    if (params.orderby) query.orderby = params.orderby
+    if (params.desc !== undefined) query.desc = params.desc
+    if (params.keywords || params.name) query.keywords = params.keywords || params.name || ''
+    if (params.canvas_category) {
+      query.canvas_category = params.canvas_category
+    } else if (params.canvas_type) {
+      query.canvas_category = resolveCanvasCategory(params.canvas_type)
+    }
+
+    return apiClient.get<AgentListResponse>('/v1/canvas/list', {
+      params: query,
     })
   },
 
-  // 删除Canvas
-  // 对应: POST /v1/canvas/rm
-  deleteAgent: async (id: string) => {
-    return apiClient.post('/v1/canvas/rm', {
-      canvas_ids: [id]
-    })
+  fetchAgent: async (id: string) => apiClient.get<AgentFlow>(`/v1/canvas/get/${id}`),
+
+  setAgent: async (payload: SetAgentPayload) => {
+    const nextPayload = {
+      id: payload.id,
+      title: payload.title,
+      description: payload.description,
+      dsl:
+        typeof payload.dsl === 'string' || payload.dsl === undefined
+          ? payload.dsl
+          : JSON.stringify(payload.dsl),
+      canvas_category:
+        payload.canvas_category ||
+        resolveCanvasCategory(payload.canvas_type),
+      avatar: payload.avatar,
+      permission: payload.permission,
+    }
+
+    return apiClient.post<AgentFlow>('/v1/canvas/set', nextPayload)
   },
 
-  // 执行Canvas (SSE)
-  // 对应: POST /v1/canvas/completion
-  runAgent: async (data: IRunAgentRequest) => {
+  deleteAgent: async (id: string) =>
+    apiClient.post('/v1/canvas/rm', {
+      canvas_ids: [id],
+    }),
+
+  runAgent: async (payload: RunAgentPayload) => {
     const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
-    const token = localStorage.getItem('auth_token')
-    
+    const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)
     const response = await fetch(`${baseURL}/v1/canvas/completion`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: JSON.stringify({
-        id: data.id,
-        query: data.query || '',
-        files: data.files || [],
-        inputs: {},
-      })
+        id: payload.id,
+        query: payload.query || '',
+        session_id: payload.session_id,
+        files: payload.files || [],
+        inputs: payload.inputs || {},
+      }),
     })
-    
+
     return response
   },
 
-  // 重置Canvas执行状态
-  // 对应: POST /v1/canvas/reset
-  resetAgent: async (id: string) => {
-    return apiClient.post('/v1/canvas/reset', { id })
-  },
+  resetAgent: async (id: string) => apiClient.post('/v1/canvas/reset', { id }),
 
-  // 单节点调试
-  // 对应: POST /v1/canvas/debug
-  debugNode: async (data: IDebugNodeRequest) => {
-    return apiClient.post('/v1/canvas/debug', {
-      id: data.canvas_id,
-      component_id: data.component_id,
-      params: data.inputs || {},
-    })
-  },
+  debugNode: async (payload: DebugAgentNodePayload) =>
+    apiClient.post('/v1/canvas/debug', {
+      id: payload.canvas_id,
+      component_id: payload.component_id,
+      params: payload.inputs || {},
+    }),
 
-  // 获取版本列表
-  // 对应: GET /v1/canvas/getlistversion/{canvas_id}
-  fetchVersions: async (id: string) => {
-    return apiClient.get(`/v1/canvas/getlistversion/${id}`)
-  },
+  debugSingle: async (payload: DebugAgentNodePayload) =>
+    apiClient.post('/v1/canvas/debug', {
+      id: payload.canvas_id,
+      component_id: payload.component_id,
+      params: payload.inputs || {},
+    }),
 
-  // 获取特定版本
-  // 对应: GET /v1/canvas/getversion/{version_id}
-  fetchVersion: async (versionId: string) => {
-    return apiClient.get(`/v1/canvas/getversion/${versionId}`)
-  },
+  fetchVersions: async (id: string) =>
+    apiClient.get<AgentVersionSummary[]>(`/v1/canvas/getlistversion/${id}`),
 
-  // 获取执行日志/追踪
-  // 对应: GET /v1/canvas/trace
-  fetchTrace: async (canvasId: string, messageId: string) => {
-    const queryString = `?canvas_id=${canvasId}&message_id=${messageId}`
-    return apiClient.get(`/v1/canvas/trace${queryString}`)
-  },
+  fetchVersion: async (versionId: string) =>
+    apiClient.get<AgentFlow>(`/v1/canvas/getversion/${versionId}`),
 
-  // 获取模版列表
-  // 对应: GET /v1/canvas/templates
-  // 后端返回: { retcode, retmsg, data: [...] }
-  // apiClient自动提取data字段，所以这里泛型直接是IFlow[]
-  fetchTemplates: async () => {
-    return apiClient.get<IFlow[]>('/v1/canvas/templates')
-  },
+  fetchTrace: async (canvasId: string, messageId: string) =>
+    apiClient.get<AgentTraceItem[]>(`/v1/canvas/trace`, {
+      params: {
+        canvas_id: canvasId,
+        message_id: messageId,
+      },
+    }),
 
-  // 更新Canvas设置（标题、描述等）
-  // 对应: POST /v1/canvas/setting
-  updateSetting: async (data: { id: string; title: string; description?: string; avatar?: string; permission?: string }) => {
-    return apiClient.post('/v1/canvas/setting', data)
-  },
+  fetchTemplates: async () =>
+    apiClient.get<AgentTemplate[]>('/v1/canvas/templates'),
 
-  // 测试数据库连接（用于ExeSQL节点）
-  // 对应: POST /v1/canvas/test_db_connect
-  testDbConnect: async (data: {
-    db_type: string
-    database: string
-    username: string
-    host: string
-    port: number
-    password: string
-  }) => {
-    return apiClient.post('/v1/canvas/test_db_connect', data)
-  },
+  updateSetting: async (payload: UpdateAgentSettingsPayload) =>
+    apiClient.post('/v1/canvas/setting', payload),
 
-  // 上传文件到Canvas
-  // 对应: POST /v1/canvas/upload/{canvas_id}
-  uploadFile: async (canvasId: string, file: File) => {
-    return apiClient.upload(`/v1/canvas/upload/${canvasId}`, file)
-  },
+  testDbConnect: async (payload: Record<string, unknown>) =>
+    apiClient.post('/v1/canvas/test_db_connect', payload),
 
-  // 获取Canvas SSE详情
-  // 对应: GET /v1/canvas/getsse/{canvas_id}
-  fetchCanvasSSE: async (canvasId: string) => {
-    return apiClient.get(`/v1/canvas/getsse/${canvasId}`)
-  },
+  uploadFile: async (canvasId: string, file: File) =>
+    apiClient.upload(`/v1/canvas/upload/${canvasId}`, file),
 
-  // 获取Agent头像或共享详情
-  // 对应: GET /v1/canvas/getsse/{canvas_id}
-  fetchAgentAvatar: async (canvasId: string) => {
-    return apiClient.get(`/v1/canvas/getsse/${canvasId}`)
-  },
+  fetchCanvasSSE: async (canvasId: string) =>
+    apiClient.get<AgentFlow>(`/v1/canvas/getsse/${canvasId}`),
 
-  // 获取Canvas会话列表
-  // 对应: GET /v1/canvas/{canvas_id}/sessions
-  fetchSessions: async (canvasId: string) => {
-    return apiClient.get(`/v1/canvas/${canvasId}/sessions`)
-  },
+  fetchAgentAvatar: async (canvasId: string) =>
+    apiClient.get<AgentFlow>(`/v1/canvas/getsse/${canvasId}`),
 
-  // 取消正在执行的任务
-  // 对应: PUT /v1/canvas/cancel/{task_id}
-  cancelTask: async (taskId: string) => {
-    return apiClient.put(`/v1/canvas/cancel/${taskId}`)
-  },
+  fetchSessions: async (canvasId: string) =>
+    apiClient.get<AgentSessionListResponse | AgentSession[]>(`/v1/canvas/${canvasId}/sessions`),
 
-  // 取消Pipeline执行
-  // 对应: PUT /v1/canvas/cancel/{task_id}
-  cancelDataflow: async (taskId: string) => {
-    return apiClient.put(`/v1/canvas/cancel/${taskId}`)
-  },
+  fetchSession: async (canvasId: string, sessionId: string) =>
+    apiClient.get<AgentSession>(`/v1/canvas/${canvasId}/sessions/${sessionId}`),
 
-  // 获取输入表单配置
-  // 对应: GET /v1/canvas/input_form?id=xxx&component_id=xxx
-  inputForm: async (canvasId: string, componentId: string) => {
-    return apiClient.get(`/v1/canvas/input_form`, {
+  createSession: async (canvasId: string, name: string) =>
+    apiClient.put<AgentSession>(`/v1/canvas/${canvasId}/sessions`, { name }),
+
+  deleteSession: async (canvasId: string, sessionId: string) =>
+    apiClient.delete(`/v1/canvas/${canvasId}/sessions/${sessionId}`),
+
+  cancelTask: async (taskId: string) =>
+    apiClient.put(`/v1/canvas/cancel/${taskId}`),
+
+  cancelDataflow: async (taskId: string) =>
+    apiClient.put(`/v1/canvas/cancel/${taskId}`),
+
+  inputForm: async (canvasId: string, componentId: string) =>
+    apiClient.get<AgentInputFormSchema>(`/v1/canvas/input_form`, {
       params: {
         id: canvasId,
         component_id: componentId,
       },
-    })
-  },
+    }),
 
-  // 获取外部共享Agent输入
-  // 对应: GET /v1/agentbots/{canvas_id}/inputs
-  fetchExternalAgentInputs: async (canvasId: string) => {
-    return apiClient.get(`/v1/agentbots/${canvasId}/inputs`)
-  },
+  fetchExternalAgentInputs: async (canvasId: string, betaToken: string) =>
+    apiClient.get<AgentExternalInputs>(
+      `/agentbots/${canvasId}/inputs`,
+      {
+        ...agentAPI.externalApiBase,
+        skipAuth: true,
+        headers: {
+          Authorization: `Bearer ${betaToken}`,
+        },
+      },
+    ),
 
-  // 带进度的Canvas文件上传
-  // 对应: POST /v1/canvas/upload/{canvas_id}
   uploadCanvasFileWithProgress: async (
     canvasId: string,
     file: File,
@@ -204,17 +184,17 @@ export const agentAPI = {
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest()
       const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+
       xhr.open('POST', `${baseURL}/v1/canvas/upload/${canvasId}`)
 
-      const token = localStorage.getItem('auth_token')
+      const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)
       if (token) {
         xhr.setRequestHeader('Authorization', `Bearer ${token}`)
       }
 
-      xhr.upload.onprogress = (e) => {
-        if (e.lengthComputable) {
-          const progress = Math.round((e.loaded / e.total) * 100)
-          onProgress?.(progress)
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          onProgress?.(Math.round((event.loaded / event.total) * 100))
         }
       }
 
@@ -224,15 +204,16 @@ export const agentAPI = {
             const response = JSON.parse(xhr.responseText)
             if (response.code === 0 || response.retcode === 0) {
               resolve(response.data)
-            } else {
-              reject(new Error(response.message || response.retmsg || 'Upload failed'))
+              return
             }
-          } catch (e) {
+            reject(new Error(response.message || response.retmsg || 'Upload failed'))
+          } catch {
             reject(new Error('Invalid response format'))
           }
-        } else {
-          reject(new Error(`HTTP ${xhr.status}: ${xhr.statusText}`))
+          return
         }
+
+        reject(new Error(`HTTP ${xhr.status}: ${xhr.statusText}`))
       }
 
       xhr.onerror = () => reject(new Error('Network error'))
@@ -251,20 +232,11 @@ export const agentAPI = {
     })
   },
 
-  // 单节点调试（兼容RAGFlow接口）
-  // 对应: POST /v1/canvas/debug
-  debugSingle: async (data: IDebugNodeRequest) => {
-    return apiClient.post('/v1/canvas/debug', {
-      id: data.canvas_id,
-      component_id: data.component_id,
-      params: data.inputs || {},
-    })
-  },
-
-  // 下载文件
-  // 对应: GET /v1/canvas/download
-  downloadFile: async (fileId: string, chunkId: string) => {
-    const queryString = `?file_id=${fileId}&chunk_id=${chunkId}`
-    return apiClient.get(`/v1/canvas/download${queryString}`)
-  },
+  downloadFile: async (fileId: string, chunkId: string) =>
+    apiClient.get(`/v1/canvas/download`, {
+      params: {
+        file_id: fileId,
+        chunk_id: chunkId,
+      },
+    }),
 }

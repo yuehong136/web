@@ -14,6 +14,11 @@ export const useLogin = () => {
     onSuccess: (response: AuthResponse) => {
       // 存储token和用户信息
       localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, response.access_token)
+      if (response.refresh_token) {
+        localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, response.refresh_token)
+      } else {
+        localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN)
+      }
       localStorage.setItem(STORAGE_KEYS.USER_INFO, JSON.stringify(response.user))
       
       // 更新查询缓存
@@ -34,6 +39,11 @@ export const useRegister = () => {
     onSuccess: (response: AuthResponse) => {
       // 存储token和用户信息
       localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, response.access_token)
+      if (response.refresh_token) {
+        localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, response.refresh_token)
+      } else {
+        localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN)
+      }
       localStorage.setItem(STORAGE_KEYS.USER_INFO, JSON.stringify(response.user))
       
       toast.success('注册成功')
@@ -84,6 +94,7 @@ export const useLogout = () => {
     onSuccess: () => {
       // 清除本地存储
       localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN)
+      localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN)
       localStorage.removeItem(STORAGE_KEYS.USER_INFO)
       
       // 清除所有查询缓存
@@ -97,6 +108,7 @@ export const useLogout = () => {
     onError: (error: any) => {
       // 即使后端退出失败，也要清除本地数据
       localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN)
+      localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN)
       localStorage.removeItem(STORAGE_KEYS.USER_INFO)
       queryClient.clear()
       
@@ -139,6 +151,11 @@ export const useOAuthLogin = () => {
     onSuccess: (response: AuthResponse) => {
       // 存储token和用户信息
       localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, response.access_token)
+      if (response.refresh_token) {
+        localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, response.refresh_token)
+      } else {
+        localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN)
+      }
       localStorage.setItem(STORAGE_KEYS.USER_INFO, JSON.stringify(response.user))
       
       // 更新查询缓存

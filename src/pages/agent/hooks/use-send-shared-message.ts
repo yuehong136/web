@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useFetchExternalAgentInputs } from '@/hooks/use-agent-request'
 import { AgentDialogueMode } from '../constant'
@@ -18,9 +18,15 @@ export const useGetSharedChatSearchParams = () => {
 
   return {
     from: searchParams.get('from') || '',
-    sharedId: searchParams.get('shared_id'),
-    locale: searchParams.get('locale'),
-    theme: searchParams.get('theme'),
+    sharedId: searchParams.get('shared_id') || undefined,
+    agentId: searchParams.get('id') || searchParams.get('agent_id') || undefined,
+    betaToken:
+      searchParams.get('beta') ||
+      searchParams.get('token') ||
+      searchParams.get('shared_id') ||
+      undefined,
+    locale: searchParams.get('locale') || undefined,
+    theme: searchParams.get('theme') || undefined,
     data,
     visibleAvatar: searchParams.get('visible_avatar')
       ? searchParams.get('visible_avatar') !== '1'
@@ -29,12 +35,13 @@ export const useGetSharedChatSearchParams = () => {
 }
 
 export const useSendNextSharedMessage = () => {
-  const { data: inputsData } = useFetchExternalAgentInputs()
+  const { agentId, betaToken } = useGetSharedChatSearchParams()
+  const { data: inputsData } = useFetchExternalAgentInputs(agentId, betaToken)
   const [value, setValue] = useState('')
   const [sendLoading, setSendLoading] = useState(false)
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const messageContainerRef = useRef<HTMLDivElement | null>(null)
-  const [derivedMessages] = useState<any[]>([])
+  const [derivedMessages] = useState<unknown[]>([])
   const [parameterDialogVisible, setParameterDialogVisible] = useState(false)
 
   const isTaskMode = inputsData?.mode === AgentDialogueMode.Task
