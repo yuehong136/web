@@ -1,9 +1,11 @@
 import { apiClient } from './client'
+import { API_BASE_URL, STORAGE_KEYS } from '@/constants'
 import type {
   DialogApp,
+  DialogImportResult,
   RemoveDialogRequest,
   SetDialogRequest,
-} from '../types/api'
+} from '@/types/api'
 
 // Dialog 列表请求参数（与 ragflow 保持一致）
 export interface DialogListParams {
@@ -86,4 +88,52 @@ export const dialogAPI = {
   // 更新对话应用（如需要的话）
   update: (dialogId: string, data: Partial<DialogApp>): Promise<DialogApp> =>
     apiClient.put(`/dialog/${dialogId}`, data),
+
+  exportTemplates: async (dialogIds: string[]): Promise<void> => {
+    const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)
+    const ids = dialogIds.join(',')
+    const response = await fetch(
+      `${API_BASE_URL}/v1/dialog/export?dialog_ids=${encodeURIComponent(ids)}`,
+      {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      },
+    )
+
+    if (!response.ok) {
+      const text = await response.text()
+      try {
+        const json = JSON.parse(text)
+        throw new Error(json.retmsg || json.message || `Export failed (${response.status})`)
+      } catch {
+        throw new Error(`Export failed (${response.status})`)
+      }
+    }
+
+    const contentType = response.headers.get('content-type') || ''
+    const disposition = response.headers.get('content-disposition') || ''
+    let filename = 'template.json'
+
+    const utf8Match = disposition.match(/filename\*=UTF-8''([^;\s]+)/)
+    const asciiMatch = disposition.match(/filename="([^"]+)"/) || disposition.match(/filename=([^;\s]+)/)
+    if (utf8Match) {
+      filename = decodeURIComponent(utf8Match[1])
+    } else if (asciiMatch) {
+      filename = asciiMatch[1]
+    } else if (contentType.includes('application/zip')) {
+      filename = 'dialog-templates.zip'
+    }
+
+    const blob = await response.blob()
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  },
+
+  importTemplates: (file: File): Promise<DialogImportResult> =>
+    apiClient.upload<DialogImportResult>('/dialog/import', file),
 }

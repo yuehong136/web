@@ -12,6 +12,7 @@ import {
   Trash2,
   Clock,
   Database,
+  Download,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -29,6 +30,7 @@ interface AppCardProps {
   data: DialogApp
   onEdit?: (app: DialogApp) => void
   onDelete?: (app: DialogApp) => void
+  onExport?: (app: DialogApp) => void
   selected?: boolean
   onSelect?: (id: string) => void
   timeFormat?: TimeFormatType
@@ -65,6 +67,7 @@ export const AppCard: React.FC<AppCardProps> = ({
   data,
   onEdit,
   onDelete,
+  onExport,
   selected = false,
   onSelect,
   timeFormat = 'detailed',
@@ -95,6 +98,11 @@ export const AppCard: React.FC<AppCardProps> = ({
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation()
     onDelete?.(data)
+  }
+
+  const handleExport = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    onExport?.(data)
   }
 
   // 获取头像渐变色
@@ -197,6 +205,12 @@ export const AppCard: React.FC<AppCardProps> = ({
                 onClick={handleEdit}
               >
                 {STUDIO_TEXTS.edit}
+              </DropdownItem>
+              <DropdownItem
+                icon={<Download className="h-4 w-4" />}
+                onClick={handleExport}
+              >
+                导出模版
               </DropdownItem>
               <DropdownItem
                 icon={<Trash2 className="h-4 w-4" />}

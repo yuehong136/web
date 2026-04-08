@@ -504,6 +504,25 @@ export interface SetDialogRequest {
   }
 }
 
+export interface DialogTemplateFile {
+  format: 'multirag_dialog_template'
+  version: string
+  export_time: string
+  app: Record<string, unknown>
+}
+
+export interface DialogImportResultItem {
+  id: string
+  name: string
+  warnings: string[]
+}
+
+export interface DialogImportResult {
+  imported: DialogImportResultItem[]
+  failed: Array<{ name: string; error: string }>
+  total: number
+}
+
 // ============================================================================
 // 对话和聊天模块
 // ============================================================================

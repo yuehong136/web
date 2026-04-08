@@ -18,6 +18,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Trash2,
+  Download,
+  Upload,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -44,8 +46,9 @@ import {
 import { CreateProjectModal } from './components/CreateProjectModal'
 import { CreateAppModal } from './components/CreateAppModal'
 import { useStudioStore } from '@/stores/studio'
-import { useFetchDialogList, useDeleteDialogApps } from '@/hooks/use-dialog-apps'
+import { useFetchDialogList, useDeleteDialogApps, useExportDialogApps } from '@/hooks/use-dialog-apps'
 import { STUDIO_TEXTS } from '@/constants/studio-texts'
+import { ImportTemplateDialog } from './components/ImportTemplateDialog'
 import type { DialogApp } from '@/types/api'
 
 export const StudioPage: React.FC = () => {
@@ -75,6 +78,7 @@ export const StudioPage: React.FC = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
   const [appToDelete, setAppToDelete] = React.useState<DialogApp | null>(null)
   const [sortDesc, setSortDesc] = React.useState(true)
+  const [importDialogOpen, setImportDialogOpen] = React.useState(false)
 
   // API hooks - 使用后端分页（与 ragflow 一致）
   const {
@@ -86,8 +90,9 @@ export const StudioPage: React.FC = () => {
     setPagination,
   } = useFetchDialogList(12) // 默认每页 12 条，与 ragflow 类似
   
-  // 删除 mutation
+  // Mutations
   const deleteDialogAppsMutation = useDeleteDialogApps()
+  const exportMutation = useExportDialogApps()
 
   const dialogApps = data.dialogs
   const total = data.total
@@ -183,6 +188,22 @@ export const StudioPage: React.FC = () => {
     })
   }
 
+  // 导出单个应用模版
+  const handleExportApp = (app: DialogApp) => {
+    exportMutation.mutate([app.id])
+  }
+
+  // 批量导出
+  const handleBulkExport = () => {
+    if (selectedIds.length === 0) return
+    exportMutation.mutate(selectedIds)
+  }
+
+  // 导入完成回调
+  const handleImportComplete = () => {
+    setImportDialogOpen(false)
+  }
+
   // 筛选器配置
   const filterConfigs: FilterConfig[] = [
     {
@@ -223,15 +244,30 @@ export const StudioPage: React.FC = () => {
         </div>
         <div className="flex items-center space-x-3">
           {selectedIds.length > 0 && (
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={handleBulkDelete}
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              删除 ({selectedIds.length})
-            </Button>
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleBulkExport}
+                disabled={exportMutation.isPending}
+              >
+                <Download className="h-4 w-4 mr-2" />
+                {exportMutation.isPending ? '导出中...' : `导出 (${selectedIds.length})`}
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleBulkDelete}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                删除 ({selectedIds.length})
+              </Button>
+            </>
           )}
+          <Button variant="outline" onClick={() => setImportDialogOpen(true)}>
+            <Upload className="h-4 w-4 mr-2" />
+            导入
+          </Button>
           <Button onClick={openProjectTypeModal}>
             <Plus className="h-4 w-4 mr-2" />
             {STUDIO_TEXTS.createProject}
@@ -353,6 +389,7 @@ export const StudioPage: React.FC = () => {
                         data={app}
                         onEdit={handleEdit}
                         onDelete={handleDeleteClick}
+                        onExport={handleExportApp}
                         selected={selectedIds.includes(app.id)}
                         onSelect={toggleSelect}
                         timeFormat={timeFormat}
@@ -495,6 +532,12 @@ export const StudioPage: React.FC = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* 导入模版弹窗 */}
+      <ImportTemplateDialog
+        isOpen={importDialogOpen}
+        onClose={handleImportComplete}
+      />
     </div>
   )
 }

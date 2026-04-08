@@ -189,3 +189,37 @@ export const useDeleteDialogApps = () => {
     },
   })
 }
+
+// 导出对话应用模版
+export const useExportDialogApps = () => {
+  return useMutation({
+    mutationFn: (dialogIds: string[]) => dialogAPI.exportTemplates(dialogIds),
+    onSuccess: () => {
+      toast.success('模版导出成功')
+    },
+    onError: (error: any) => {
+      toast.error(error.message || '模版导出失败')
+    },
+  })
+}
+
+// 导入对话应用模版
+export const useImportDialogApps = () => {
+  return useMutation({
+    mutationFn: (file: File) => dialogAPI.importTemplates(file),
+    onSuccess: (result) => {
+      const { imported, failed } = result
+      if (imported.length > 0) {
+        invalidateQueries.dialogApps()
+      }
+      if (failed.length > 0) {
+        toast.error(`${failed.length} 个模版导入失败`)
+      } else {
+        toast.success(`成功导入 ${imported.length} 个应用`)
+      }
+    },
+    onError: (error: any) => {
+      toast.error(error.message || '模版导入失败')
+    },
+  })
+}
