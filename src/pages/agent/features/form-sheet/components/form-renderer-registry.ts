@@ -17,12 +17,12 @@ import { GithubForm } from '../../../form/github-form'
 import { GoogleForm } from '../../../form/google-form'
 import { GoogleScholarForm } from '../../../form/google-scholar-form'
 import { HierarchicalMergerForm } from '../../../form/hierarchical-merger-form'
-import { InvokeForm } from '../../../form/invoke-form'
-import { IterationForm } from '../../../form/iteration-form'
-import { IterationStartForm } from '../../../form/iteration-start-form'
+import { InvokeForm } from '../../../form/invoke'
+import { IterationForm } from '../../../form/iteration'
+import { IterationStartForm } from '../../../form/iteration-start'
 import { KeywordExtractForm } from '../../../form/keyword-extract-form'
 import { ListOperationsForm } from '../../../form/list-operations-form'
-import { LoopForm } from '../../../form/loop-form'
+import { LoopForm } from '../../../form/loop'
 import { McpForm } from '../../../form/mcp-form'
 import { MessageForm } from '../../../form/message'
 import { ParserForm } from '../../../form/parser-form'
@@ -63,6 +63,10 @@ export const migratedFormRenderers: Record<
   [Operator.Agent]: AgentForm,
   [Operator.Tool]: ToolForm,
   [Operator.RewriteQuestion]: RewriteQuestionForm,
+  [Operator.Iteration]: IterationForm,
+  [Operator.IterationStart]: IterationStartForm,
+  [Operator.Loop]: LoopForm,
+  [Operator.Invoke]: InvokeForm,
 }
 
 export const legacyFormRenderers: Record<
@@ -72,9 +76,6 @@ export const legacyFormRenderers: Record<
   [Operator.Code]: CodeForm,
   [Operator.KeywordExtract]: KeywordExtractForm,
   [Operator.Relevant]: RelevantForm,
-  [Operator.Iteration]: IterationForm,
-  [Operator.IterationStart]: IterationStartForm,
-  [Operator.Loop]: LoopForm,
   [Operator.ExitLoop]: EmptyForm,
   [Operator.DataOperations]: DataOperationsForm,
   [Operator.ListOperations]: ListOperationsForm,
@@ -82,7 +83,6 @@ export const legacyFormRenderers: Record<
   [Operator.VariableAssigner]: VariableAssignerForm,
   [Operator.Crawler]: CrawlerForm,
   [Operator.ExeSQL]: ExeSQLForm,
-  [Operator.Invoke]: InvokeForm,
   [Operator.DuckDuckGo]: DuckDuckGoForm,
   [Operator.Wikipedia]: WikipediaForm,
   [Operator.PubMed]: PubMedForm,

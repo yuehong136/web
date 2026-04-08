@@ -10,10 +10,11 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
-import { useFormValues } from '../hooks/use-form-values'
-import { useWatchFormChange } from '../hooks/use-watch-form-change'
-import type { INextOperatorForm } from '../types'
-import { FormWrapper, Output, transferOutputs } from './components'
+import { initialLoopValues } from '../../constant'
+import { useFormValues } from '../../hooks/use-form-values'
+import { useWatchFormChange } from '../../hooks/use-watch-form-change'
+import type { INextOperatorForm } from '../../types'
+import { FormWrapper, Output, transferOutputs } from '../components'
 
 const schema = z.object({
   maximum_loop_count: z.coerce.number().optional(),
@@ -22,15 +23,9 @@ const schema = z.object({
   outputs: z.record(z.string(), z.any()).optional(),
 })
 
-const defaultValues = {
-  maximum_loop_count: 10,
-  loop_variables: [],
-  loop_termination_condition: [],
-}
-
 export function LoopForm({ node }: INextOperatorForm) {
   const { t } = useTranslation()
-  const values = useFormValues(defaultValues, node)
+  const values = useFormValues(initialLoopValues, node)
 
   const form = useForm({
     resolver: zodResolver(schema),
@@ -57,8 +52,10 @@ export function LoopForm({ node }: INextOperatorForm) {
                   type="number"
                   min={1}
                   {...field}
-                  value={field.value ?? 10}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
+                  value={field.value ?? initialLoopValues.maximum_loop_count}
+                  onChange={(event) =>
+                    field.onChange(Number(event.target.value))
+                  }
                 />
               </FormControl>
             </FormItem>

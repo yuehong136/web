@@ -19,30 +19,20 @@ import { Textarea } from '@/components/ui/textarea'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import { z } from 'zod'
-import { initialInvokeValues } from '../constant'
-import { useFormValues } from '../hooks/use-form-values'
-import { useWatchFormChange } from '../hooks/use-watch-form-change'
-import type { INextOperatorForm } from '../types'
-import { FormWrapper, Output, transferOutputs } from './components'
-
-const schema = z.object({
-  url: z.string().optional(),
-  method: z.string().optional(),
-  timeout: z.coerce.number().optional(),
-  headers: z.string().optional(),
-  proxy: z.string().optional(),
-  clean_html: z.boolean().optional(),
-  variables: z.array(z.any()).optional(),
-  outputs: z.record(z.string(), z.any()).optional(),
-})
+import { initialInvokeValues } from '../../constant'
+import { useFormValues } from '../../hooks/use-form-values'
+import { useWatchFormChange } from '../../hooks/use-watch-form-change'
+import type { INextOperatorForm } from '../../types'
+import { FormWrapper, Output, transferOutputs } from '../components'
+import { invokeMethodOptions } from './constants'
+import { invokeFormSchema } from './schema'
 
 export function InvokeForm({ node }: INextOperatorForm) {
   const { t } = useTranslation()
   const values = useFormValues(initialInvokeValues, node)
 
   const form = useForm({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(invokeFormSchema),
     defaultValues: values,
   })
 
@@ -79,8 +69,10 @@ export function InvokeForm({ node }: INextOperatorForm) {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {['GET', 'POST', 'PUT', 'DELETE', 'PATCH'].map((m) => (
-                      <SelectItem key={m} value={m}>{m}</SelectItem>
+                    {invokeMethodOptions.map((method) => (
+                      <SelectItem key={method} value={method}>
+                        {method}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -100,8 +92,10 @@ export function InvokeForm({ node }: INextOperatorForm) {
                   type="number"
                   min={1}
                   {...field}
-                  value={field.value ?? 60}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
+                  value={field.value ?? initialInvokeValues.timeout}
+                  onChange={(event) =>
+                    field.onChange(Number(event.target.value))
+                  }
                 />
               </FormControl>
             </FormItem>

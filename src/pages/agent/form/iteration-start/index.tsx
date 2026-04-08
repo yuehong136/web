@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
-import { initialIterationStartValues } from '../constant'
-import { Output, type OutputType } from './components/output'
+import { initialIterationStartValues } from '../../constant'
+import { Output, type OutputType } from '../components/output'
 
 export function IterationStartForm() {
   const outputList = useMemo<OutputType[]>(() => {
