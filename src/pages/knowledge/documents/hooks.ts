@@ -694,3 +694,40 @@ export function formatDate(dateStr: string): string {
     minute: '2-digit',
   })
 }
+
+/**
+ * 智能时间格式化（参考 Google Drive / macOS Finder 风格）
+ *
+ * - < 1 小时：  "X分钟前"
+ * - 今天：      "今天 16:43"
+ * - 昨天：      "昨天 16:43"
+ * - 今年内：    "04/05 16:43"
+ * - 更早：      "2025/12/01"
+ */
+export function formatRelativeTime(dateStr: string): string {
+  const date = new Date(dateStr)
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+
+  if (diffMs < 0 || diffMs < 60_000) return '刚刚'
+
+  const minutes = Math.floor(diffMs / 60_000)
+  if (minutes < 60) return `${minutes}分钟前`
+
+  const timeStr = date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false })
+
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const yesterday = new Date(today.getTime() - 86_400_000)
+  const dateDay = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+
+  if (dateDay.getTime() === today.getTime()) return `今天 ${timeStr}`
+  if (dateDay.getTime() === yesterday.getTime()) return `昨天 ${timeStr}`
+
+  if (date.getFullYear() === now.getFullYear()) {
+    const m = String(date.getMonth() + 1).padStart(2, '0')
+    const d = String(date.getDate()).padStart(2, '0')
+    return `${m}/${d} ${timeStr}`
+  }
+
+  return `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')}`
+}

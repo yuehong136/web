@@ -445,6 +445,12 @@ html[data-theme="light"] {
   --color-components-avatar-gradient-orange-to: #FDBA74;
   --color-components-avatar-gradient-indigo-from: #818CF8;
   --color-components-avatar-gradient-indigo-to: #A5B4FC;
+  --color-components-avatar-gradient-rose-from: #FB7185;
+  --color-components-avatar-gradient-rose-to: #FDA4AF;
+  --color-components-avatar-gradient-teal-from: #2DD4BF;
+  --color-components-avatar-gradient-teal-to: #5EEAD4;
+  --color-components-avatar-gradient-amber-from: #FBBF24;
+  --color-components-avatar-gradient-amber-to: #FCD34D;
   --color-components-task-status-idle-bg: rgba(107, 114, 128, 0.1);
   --color-components-task-status-idle-border: rgba(107, 114, 128, 0.2);
   --color-components-task-status-idle-text: #4b5563;

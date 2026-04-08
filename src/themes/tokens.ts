@@ -353,6 +353,12 @@ export interface DesignTokens {
   'components-avatar-gradient-orange-to': string
   'components-avatar-gradient-indigo-from': string
   'components-avatar-gradient-indigo-to': string
+  'components-avatar-gradient-rose-from': string
+  'components-avatar-gradient-rose-to': string
+  'components-avatar-gradient-teal-from': string
+  'components-avatar-gradient-teal-to': string
+  'components-avatar-gradient-amber-from': string
+  'components-avatar-gradient-amber-to': string
 
   // ===== 任务状态指示器 =====
   'components-task-status-idle-bg': string
@@ -1281,6 +1287,12 @@ export const defaultTokens: DesignTokens = {
   'components-avatar-gradient-orange-to': '',
   'components-avatar-gradient-indigo-from': '',
   'components-avatar-gradient-indigo-to': '',
+  'components-avatar-gradient-rose-from': '',
+  'components-avatar-gradient-rose-to': '',
+  'components-avatar-gradient-teal-from': '',
+  'components-avatar-gradient-teal-to': '',
+  'components-avatar-gradient-amber-from': '',
+  'components-avatar-gradient-amber-to': '',
 
   // 任务状态指示器
   'components-task-status-idle-bg': '',

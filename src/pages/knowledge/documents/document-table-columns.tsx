@@ -2,9 +2,11 @@
  * 文档表格列定义
  */
 
-import { useMemo } from 'react'
+import React, { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { User } from 'lucide-react'
 import { FileIcon, Tooltip, type Column } from '@/components/ui'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Checkbox } from '@/components/ui/checkbox'
 import type { Document } from '@/types/api'
 import {
@@ -14,7 +16,30 @@ import {
 } from './document-status-cell'
 import { DocumentActionCell } from './document-action-cell'
 import { ParserMethodCell } from './parser-method-cell'
-import { formatFileSize, formatDate } from './hooks'
+import { formatFileSize, formatDate, formatRelativeTime } from './hooks'
+
+const AVATAR_GRADIENTS = [
+  'blue', 'green', 'orange', 'purple', 'indigo', 'rose', 'teal', 'amber',
+] as const
+
+const AVATAR_STYLES: React.CSSProperties[] = AVATAR_GRADIENTS.map((name) => ({
+  background: `linear-gradient(135deg, var(--color-components-avatar-gradient-${name}-from), var(--color-components-avatar-gradient-${name}-to))`,
+}))
+
+function getAvatarStyle(name: string): React.CSSProperties {
+  let hash = 0
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash)
+  }
+  return AVATAR_STYLES[Math.abs(hash) % AVATAR_STYLES.length]
+}
+
+function getInitial(name: string): string {
+  if (!name) return '?'
+  const trimmed = name.trim()
+  if (/^[\u4e00-\u9fff]/.test(trimmed)) return trimmed.slice(0, 1)
+  return trimmed.charAt(0).toUpperCase()
+}
 
 interface UseDocumentTableColumnsProps {
   kbId: string
@@ -100,7 +125,6 @@ export function useDocumentTableColumns({
                   <div>大小: {formatFileSize(record.size || 0)}</div>
                   <div>类型: {record.type || '未知'}</div>
                   <div>分块: {record.chunk_num || 0}</div>
-                  <div>创建: {formatDate(record.create_date)}</div>
                 </div>
               </div>
             }
@@ -108,19 +132,10 @@ export function useDocumentTableColumns({
             maxWidth="max-w-md"
           >
             <div
-              className="font-medium truncate cursor-pointer transition-colors"
-              style={{
-                color: 'var(--color-text-primary)',
-              }}
+              className="font-medium truncate cursor-pointer text-text-primary hover:text-text-accent transition-colors"
               onClick={() =>
                 navigate(`/knowledge/${kbId}/documents/${record.id}/chunks`)
               }
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = 'var(--color-text-accent)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = 'var(--color-text-primary)'
-              }}
             >
               {value}
             </div>
@@ -215,39 +230,50 @@ export function useDocumentTableColumns({
         ),
       },
       {
+        key: 'created_by',
+        title: '上传者',
+        width: 130,
+        render: (_, record) => {
+          const displayName = record.nickname || record.created_by || '未知'
+          const avatarStyle = getAvatarStyle(displayName)
+          return (
+            <Tooltip content={displayName}>
+              <div className="flex items-center gap-space-xs min-w-0">
+                <Avatar className="h-6 w-6 shrink-0">
+                  <AvatarFallback
+                    className="text-[11px] font-medium text-white"
+                    style={avatarStyle}
+                  >
+                    {displayName === '未知'
+                      ? <User className="h-3 w-3" />
+                      : getInitial(displayName)}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-sm truncate text-text-secondary">
+                  {displayName}
+                </span>
+              </div>
+            </Tooltip>
+          )
+        },
+      },
+      {
         key: 'create_date',
         title: '创建时间',
         dataIndex: 'create_date',
         sortable: true,
-        width: 160,
+        width: 130,
         render: (value, record) => (
           <Tooltip
             content={
-              <div className="max-w-md">
-                <div
-                  className="font-medium mb-2"
-                  style={{ color: 'var(--color-text-primary)' }}
-                >
-                  创建时间
-                </div>
-                <div
-                  className="text-xs space-y-1"
-                  style={{ color: 'var(--color-text-secondary)' }}
-                >
-                  <div>创建: {formatDate(value)}</div>
-                  <div>更新: {formatDate(record.update_date)}</div>
-                  <div>创建者: {record.nickname || record.created_by || '未知'}</div>
-                </div>
+              <div className="text-xs space-y-1">
+                <div>创建: {formatDate(value)}</div>
+                <div>更新: {formatDate(record.update_date)}</div>
               </div>
             }
-            delayHide={500}
-            maxWidth="max-w-md"
           >
-            <span
-              className="text-sm cursor-help"
-              style={{ color: 'var(--color-text-secondary)' }}
-            >
-              {formatDate(value)}
+            <span className="text-sm cursor-help text-text-secondary">
+              {formatRelativeTime(value)}
             </span>
           </Tooltip>
         ),

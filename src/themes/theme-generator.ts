@@ -351,6 +351,12 @@ export const lightTokens: DesignTokens = {
   'components-avatar-gradient-orange-to': '#FDBA74',    // orange-300，浅橙
   'components-avatar-gradient-indigo-from': '#818CF8',  // indigo-400，柔和靛蓝
   'components-avatar-gradient-indigo-to': '#A5B4FC',    // indigo-300，浅靛蓝
+  'components-avatar-gradient-rose-from': '#FB7185',    // rose-400，柔和玫红
+  'components-avatar-gradient-rose-to': '#FDA4AF',      // rose-300，浅玫红
+  'components-avatar-gradient-teal-from': '#2DD4BF',    // teal-400，柔和青绿
+  'components-avatar-gradient-teal-to': '#5EEAD4',      // teal-300，浅青绿
+  'components-avatar-gradient-amber-from': '#FBBF24',   // amber-400，柔和琥珀
+  'components-avatar-gradient-amber-to': '#FCD34D',     // amber-300，浅琥珀
 
   // 任务状态指示器 - 亮色主题
   'components-task-status-idle-bg': 'rgba(107, 114, 128, 0.1)',
@@ -1234,6 +1240,12 @@ export const darkTokens: DesignTokens = {
   'components-avatar-gradient-orange-to': '#FDBA74',    // orange-300，浅橙
   'components-avatar-gradient-indigo-from': '#818CF8',  // indigo-400，柔和靛蓝
   'components-avatar-gradient-indigo-to': '#A5B4FC',    // indigo-300，浅靛蓝
+  'components-avatar-gradient-rose-from': '#E11D48',    // rose-600，深玫红
+  'components-avatar-gradient-rose-to': '#FB7185',      // rose-400，柔和玫红
+  'components-avatar-gradient-teal-from': '#0D9488',    // teal-600，深青绿
+  'components-avatar-gradient-teal-to': '#2DD4BF',      // teal-400，柔和青绿
+  'components-avatar-gradient-amber-from': '#D97706',   // amber-600，深琥珀
+  'components-avatar-gradient-amber-to': '#FBBF24',     // amber-400，柔和琥珀
 
   // 任务状态指示器 - 暗色主题
   'components-task-status-idle-bg': 'rgba(161, 161, 170, 0.08)',
