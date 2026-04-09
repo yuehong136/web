@@ -19,10 +19,12 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
-import { useFormValues } from '../hooks/use-form-values'
-import { useWatchFormChange } from '../hooks/use-watch-form-change'
-import type { INextOperatorForm } from '../types'
-import { FormWrapper, Output, transferOutputs } from './components'
+import { initialExeSqlValues } from '../../constant'
+import { useFormValues } from '../../hooks/use-form-values'
+import { useWatchFormChange } from '../../hooks/use-watch-form-change'
+import type { INextOperatorForm } from '../../types'
+import { FormWrapper, Output, transferOutputs } from '../components'
+import { dbTypeOptions } from './constants'
 
 const schema = z.object({
   db_type: z.string().optional(),
@@ -36,17 +38,9 @@ const schema = z.object({
   outputs: z.record(z.string(), z.any()).optional(),
 })
 
-const defaultValues = {
-  db_type: 'mysql',
-  database: '',
-  host: 'localhost',
-  port: 3306,
-  max_records: 100,
-}
-
 export function ExeSQLForm({ node }: INextOperatorForm) {
   const { t } = useTranslation()
-  const values = useFormValues(defaultValues, node)
+  const values = useFormValues(initialExeSqlValues, node)
 
   const form = useForm({
     resolver: zodResolver(schema),
@@ -72,7 +66,7 @@ export function ExeSQLForm({ node }: INextOperatorForm) {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {['mysql', 'postgresql', 'mariadb', 'mssql'].map((db) => (
+                    {dbTypeOptions.map((db) => (
                       <SelectItem key={db} value={db}>{db}</SelectItem>
                     ))}
                   </SelectContent>
@@ -183,7 +177,7 @@ export function ExeSQLForm({ node }: INextOperatorForm) {
                   type="number"
                   min={1}
                   {...field}
-                  value={field.value ?? 100}
+                  value={field.value ?? 1024}
                   onChange={(e) => field.onChange(Number(e.target.value))}
                 />
               </FormControl>

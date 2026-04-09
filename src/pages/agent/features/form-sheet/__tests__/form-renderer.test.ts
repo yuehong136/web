@@ -18,6 +18,13 @@ import { ToolForm } from '../../../form/tool'
 import { UserFillUpForm } from '../../../form/user-fill-up'
 import { VariableAggregatorForm } from '../../../form/variable-aggregator'
 import { VariableAssignerForm } from '../../../form/variable-assigner'
+import { ExtractorForm } from '../../../form/extractor'
+import { ExeSQLForm } from '../../../form/exesql'
+import { HierarchicalMergerForm } from '../../../form/hierarchical-merger'
+import { ParserForm } from '../../../form/parser'
+import { PDFGeneratorForm } from '../../../form/pdf-generator'
+import { SplitterForm } from '../../../form/splitter'
+import { TokenizerForm } from '../../../form/tokenizer'
 import { BingForm } from '../../../form/bing-form'
 import { EmailForm } from '../../../form/email-form'
 import { McpForm } from '../../../form/mcp-form'
@@ -47,6 +54,13 @@ test('migrated operators resolve to directory modules in the form renderer', () 
   assert.equal(resolveFormRendererComponent(Operator.VariableAssigner), VariableAssignerForm)
   assert.equal(resolveFormRendererComponent(Operator.UserFillUp), UserFillUpForm)
   assert.equal(resolveFormRendererComponent(Operator.StringTransform), StringTransformForm)
+  assert.equal(resolveFormRendererComponent(Operator.Parser), ParserForm)
+  assert.equal(resolveFormRendererComponent(Operator.Tokenizer), TokenizerForm)
+  assert.equal(resolveFormRendererComponent(Operator.Splitter), SplitterForm)
+  assert.equal(resolveFormRendererComponent(Operator.Extractor), ExtractorForm)
+  assert.equal(resolveFormRendererComponent(Operator.HierarchicalMerger), HierarchicalMergerForm)
+  assert.equal(resolveFormRendererComponent(Operator.PDFGenerator), PDFGeneratorForm)
+  assert.equal(resolveFormRendererComponent(Operator.ExeSQL), ExeSQLForm)
   assert.equal(migratedFormRenderers[Operator.Begin], BeginForm)
   assert.equal(migratedFormRenderers[Operator.Agent], AgentForm)
   assert.equal(migratedFormRenderers[Operator.Iteration], IterationForm)
@@ -57,6 +71,13 @@ test('migrated operators resolve to directory modules in the form renderer', () 
   assert.equal(migratedFormRenderers[Operator.VariableAssigner], VariableAssignerForm)
   assert.equal(migratedFormRenderers[Operator.UserFillUp], UserFillUpForm)
   assert.equal(migratedFormRenderers[Operator.StringTransform], StringTransformForm)
+  assert.equal(migratedFormRenderers[Operator.Parser], ParserForm)
+  assert.equal(migratedFormRenderers[Operator.Tokenizer], TokenizerForm)
+  assert.equal(migratedFormRenderers[Operator.Splitter], SplitterForm)
+  assert.equal(migratedFormRenderers[Operator.Extractor], ExtractorForm)
+  assert.equal(migratedFormRenderers[Operator.HierarchicalMerger], HierarchicalMergerForm)
+  assert.equal(migratedFormRenderers[Operator.PDFGenerator], PDFGeneratorForm)
+  assert.equal(migratedFormRenderers[Operator.ExeSQL], ExeSQLForm)
 })
 
 test('legacy operators and the MCP renderer stay on compatibility bridges', () => {
@@ -84,4 +105,11 @@ test('form config map keeps migrated operators available through the compatibili
   assert.equal(FormConfigMap[Operator.UserFillUp], UserFillUpForm)
   assert.equal(FormConfigMap[Operator.StringTransform], StringTransformForm)
   assert.equal(FormConfigMap[Operator.Bing], BingForm)
+  assert.equal(FormConfigMap[Operator.Parser], ParserForm)
+  assert.equal(FormConfigMap[Operator.Tokenizer], TokenizerForm)
+  assert.equal(FormConfigMap[Operator.Splitter], SplitterForm)
+  assert.equal(FormConfigMap[Operator.Extractor], ExtractorForm)
+  assert.equal(FormConfigMap[Operator.HierarchicalMerger], HierarchicalMergerForm)
+  assert.equal(FormConfigMap[Operator.PDFGenerator], PDFGeneratorForm)
+  assert.equal(FormConfigMap[Operator.ExeSQL], ExeSQLForm)
 })

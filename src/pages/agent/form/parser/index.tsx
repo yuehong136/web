@@ -12,38 +12,19 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Plus, Trash2 } from 'lucide-react'
 import { useFieldArray, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import { z } from 'zod'
-import { initialParserValues } from '../constant'
-import { useFormValues } from '../hooks/use-form-values'
-import { useWatchFormChange } from '../hooks/use-watch-form-change'
-import type { INextOperatorForm } from '../types'
-import { FormWrapper, Output, transferOutputs } from './components'
-
-const schema = z.object({
-  setups: z
-    .array(
-      z.object({
-        fileFormat: z.string().optional(),
-        output_format: z.string().optional(),
-        parse_method: z.string().optional(),
-        lang: z.string().optional(),
-        fields: z.string().optional(),
-        llm_id: z.string().optional(),
-        system_prompt: z.string().optional(),
-        table_result_type: z.string().optional(),
-        markdown_image_response_type: z.string().optional(),
-      }),
-    )
-    .optional(),
-  outputs: z.record(z.string(), z.any()).optional(),
-})
+import { initialParserValues } from '../../constant'
+import { useFormValues } from '../../hooks/use-form-values'
+import { useWatchFormChange } from '../../hooks/use-watch-form-change'
+import type { INextOperatorForm } from '../../types'
+import { FormWrapper, Output, transferOutputs } from '../components'
+import { parserSchema } from './schema'
 
 export function ParserForm({ node }: INextOperatorForm) {
   const { t } = useTranslation()
   const values = useFormValues(initialParserValues, node)
 
   const form = useForm({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(parserSchema),
     defaultValues: values,
   })
 

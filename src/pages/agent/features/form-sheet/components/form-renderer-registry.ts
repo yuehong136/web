@@ -10,13 +10,13 @@ import { CrawlerForm } from '../../../form/crawler-form'
 import { DataOperationsForm } from '../../../form/data-operations'
 import { DuckDuckGoForm } from '../../../form/duckduckgo-form'
 import { EmailForm } from '../../../form/email-form'
-import { ExtractorForm } from '../../../form/extractor-form'
-import { ExeSQLForm } from '../../../form/exesql-form'
+import { ExtractorForm } from '../../../form/extractor'
+import { ExeSQLForm } from '../../../form/exesql'
 import { GenerateForm } from '../../../form/generate'
 import { GithubForm } from '../../../form/github-form'
 import { GoogleForm } from '../../../form/google-form'
 import { GoogleScholarForm } from '../../../form/google-scholar-form'
-import { HierarchicalMergerForm } from '../../../form/hierarchical-merger-form'
+import { HierarchicalMergerForm } from '../../../form/hierarchical-merger'
 import { InvokeForm } from '../../../form/invoke'
 import { IterationForm } from '../../../form/iteration'
 import { IterationStartForm } from '../../../form/iteration-start'
@@ -25,20 +25,20 @@ import { ListOperationsForm } from '../../../form/list-operations'
 import { LoopForm } from '../../../form/loop'
 import { McpForm } from '../../../form/mcp-form'
 import { MessageForm } from '../../../form/message'
-import { ParserForm } from '../../../form/parser-form'
-import { PDFGeneratorForm } from '../../../form/pdf-generator-form'
+import { ParserForm } from '../../../form/parser'
+import { PDFGeneratorForm } from '../../../form/pdf-generator'
 import { PubMedForm } from '../../../form/pubmed-form'
 import { RelevantForm } from '../../../form/relevant-form'
 import { RetrievalForm } from '../../../form/retrieval'
 import { RewriteQuestionForm } from '../../../form/rewrite-question'
 import { SearXNGForm } from '../../../form/searxng-form'
-import { SplitterForm } from '../../../form/splitter-form'
+import { SplitterForm } from '../../../form/splitter'
 import { StringTransformForm } from '../../../form/string-transform'
 import { SwitchForm } from '../../../form/switch'
 import { TavilyExtractForm } from '../../../form/tavily-extract-form'
 import { TavilyForm } from '../../../form/tavily-form'
 import { ToolForm } from '../../../form/tool'
-import { TokenizerForm } from '../../../form/tokenizer-form'
+import { TokenizerForm } from '../../../form/tokenizer'
 import { UserFillUpForm } from '../../../form/user-fill-up'
 import { VariableAggregatorForm } from '../../../form/variable-aggregator'
 import { VariableAssignerForm } from '../../../form/variable-assigner'
@@ -73,6 +73,13 @@ export const migratedFormRenderers: Record<
   [Operator.VariableAssigner]: VariableAssignerForm,
   [Operator.UserFillUp]: UserFillUpForm,
   [Operator.StringTransform]: StringTransformForm,
+  [Operator.Parser]: ParserForm,
+  [Operator.Tokenizer]: TokenizerForm,
+  [Operator.Splitter]: SplitterForm,
+  [Operator.Extractor]: ExtractorForm,
+  [Operator.HierarchicalMerger]: HierarchicalMergerForm,
+  [Operator.PDFGenerator]: PDFGeneratorForm,
+  [Operator.ExeSQL]: ExeSQLForm,
 }
 
 export const legacyFormRenderers: Record<
@@ -84,7 +91,6 @@ export const legacyFormRenderers: Record<
   [Operator.Relevant]: RelevantForm,
   [Operator.ExitLoop]: EmptyForm,
   [Operator.Crawler]: CrawlerForm,
-  [Operator.ExeSQL]: ExeSQLForm,
   [Operator.DuckDuckGo]: DuckDuckGoForm,
   [Operator.Wikipedia]: WikipediaForm,
   [Operator.PubMed]: PubMedForm,
@@ -99,14 +105,8 @@ export const legacyFormRenderers: Record<
   [Operator.WenCai]: WenCaiForm,
   [Operator.YahooFinance]: YahooFinanceForm,
   [Operator.Email]: EmailForm,
-  [Operator.PDFGenerator]: PDFGeneratorForm,
   [Operator.ExcelProcessor]: ToolForm,
   [Operator.WaitingDialogue]: CodeForm,
-  [Operator.Parser]: ParserForm,
-  [Operator.Tokenizer]: TokenizerForm,
-  [Operator.Splitter]: SplitterForm,
-  [Operator.HierarchicalMerger]: HierarchicalMergerForm,
-  [Operator.Extractor]: ExtractorForm,
   [Operator.File]: EmptyForm,
   [Operator.Note]: EmptyForm,
   [Operator.Placeholder]: EmptyForm,

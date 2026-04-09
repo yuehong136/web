@@ -11,19 +11,18 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm, useWatch } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
-import { initialTokenizerValues } from '../constant'
-import { useFormValues } from '../hooks/use-form-values'
-import { useWatchFormChange } from '../hooks/use-watch-form-change'
-import type { INextOperatorForm } from '../types'
-import { FormWrapper } from './components'
+import { initialTokenizerValues } from '../../constant'
+import { useFormValues } from '../../hooks/use-form-values'
+import { useWatchFormChange } from '../../hooks/use-watch-form-change'
+import type { INextOperatorForm } from '../../types'
+import { FormWrapper } from '../components'
+import { SearchMethodOptions } from './constants'
 
 const schema = z.object({
   search_method: z.array(z.string()).optional(),
   filename_embd_weight: z.coerce.number().optional(),
   fields: z.string().optional(),
 })
-
-const SearchMethodOptions = ['embedding', 'full_text']
 
 export function TokenizerForm({ node }: INextOperatorForm) {
   const { t } = useTranslation()

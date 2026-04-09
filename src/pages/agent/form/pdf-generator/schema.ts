@@ -1,0 +1,38 @@
+import { z } from 'zod'
+
+export const pdfGeneratorSchema = z.object({
+  output_format: z.string().optional(),
+  content: z.string().optional(),
+  title: z.string().optional(),
+  subtitle: z.string().optional(),
+  header_text: z.string().optional(),
+  footer_text: z.string().optional(),
+  logo_image: z.string().optional(),
+  logo_position: z.string().optional(),
+  logo_width: z.coerce.number().optional(),
+  logo_height: z.coerce.number().optional(),
+  font_family: z.string().optional(),
+  font_size: z.coerce.number().optional(),
+  title_font_size: z.coerce.number().optional(),
+  heading1_font_size: z.coerce.number().optional(),
+  heading2_font_size: z.coerce.number().optional(),
+  heading3_font_size: z.coerce.number().optional(),
+  text_color: z.string().optional(),
+  title_color: z.string().optional(),
+  page_size: z.string().optional(),
+  orientation: z.string().optional(),
+  margin_top: z.coerce.number().optional(),
+  margin_bottom: z.coerce.number().optional(),
+  margin_left: z.coerce.number().optional(),
+  margin_right: z.coerce.number().optional(),
+  line_spacing: z.coerce.number().optional(),
+  filename: z.string().optional(),
+  output_directory: z.string().optional(),
+  add_page_numbers: z.boolean().optional(),
+  add_timestamp: z.boolean().optional(),
+  watermark_text: z.string().optional(),
+  enable_toc: z.boolean().optional(),
+  outputs: z.record(z.string(), z.any()).optional(),
+})
+
+export type PdfGeneratorFormValues = z.infer<typeof pdfGeneratorSchema>
