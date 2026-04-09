@@ -233,7 +233,7 @@ export const knowledgeAPI = {
 
     // 下载文档
     download: (docId: string, filename?: string): Promise<void> =>
-      apiClient.download(`/v1/document/get/${docId}`, filename),
+      apiClient.download(`/v1/document/get/${docId}?action=download`, filename),
 
     // 获取文档解析状态
     getParseStatus: (docId: string): Promise<{

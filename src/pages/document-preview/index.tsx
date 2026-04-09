@@ -1,10 +1,12 @@
-import { memo, useCallback, useState } from 'react'
+import { memo, useCallback, useMemo, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, Download, FileText, Loader2 } from 'lucide-react'
+import { Watermark } from 'antd'
 import { Button, Tooltip } from '@/components/ui'
 import { DocumentPreview } from '@/components/knowledge/DocumentPreview'
 import { API_BASE_URL, API_VERSION, STORAGE_KEYS } from '@/constants'
 import { toast } from '@/lib/toast'
+import { useAuthStore } from '@/stores'
 
 function buildAuthHeader(): string | null {
   try {
@@ -20,20 +22,33 @@ const DocumentPreviewPage: React.FC = () => {
   const { docId } = useParams<{ docId: string }>()
   const [searchParams] = useSearchParams()
   const [downloading, setDownloading] = useState(false)
+  const user = useAuthStore((s) => s.user)
 
   const docName = searchParams.get('name') || undefined
+
+  const watermarkContent = useMemo(() => {
+    const email = user?.email || user?.nickname || ''
+    const date = new Date().toLocaleDateString('zh-CN')
+    return [email, date]
+  }, [user?.email, user?.nickname])
 
   const handleDownload = useCallback(async () => {
     if (!docId) return
     setDownloading(true)
     try {
-      const url = `${API_BASE_URL}/${API_VERSION}/document/get/${docId}`
+      const url = `${API_BASE_URL}/${API_VERSION}/document/get/${docId}?action=download`
       const auth = buildAuthHeader()
       const headers: HeadersInit = {}
       if (auth) headers.Authorization = auth
 
       const response = await fetch(url, { headers })
       if (!response.ok) throw new Error(`下载失败: ${response.status}`)
+
+      const contentType = response.headers.get('content-type') || ''
+      if (contentType.includes('application/json')) {
+        const data = await response.json()
+        throw new Error(data.retmsg || '下载失败')
+      }
 
       const blob = await response.blob()
       const blobUrl = URL.createObjectURL(blob)
@@ -62,7 +77,6 @@ const DocumentPreviewPage: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full">
-      {/* 单层 header */}
       <div
         className="flex items-center gap-space-sm px-space-md py-space-sm shrink-0"
         style={{
@@ -114,15 +128,14 @@ const DocumentPreviewPage: React.FC = () => {
         </Tooltip>
       </div>
 
-      {/* 文档预览（隐藏组件自带 header） */}
-      <div className="flex-1 min-h-0">
+      <Watermark content={watermarkContent} className="flex-1 min-h-0">
         <DocumentPreview
           docId={docId}
           docName={docName}
           hideHeader
           className="h-full"
         />
-      </div>
+      </Watermark>
     </div>
   )
 }

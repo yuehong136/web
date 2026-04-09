@@ -45,6 +45,7 @@ interface UseDocumentTableColumnsProps {
   kbId: string
   selectedDocs: Set<string>
   hasMetadataEnabled: boolean
+  canDownload: boolean
   onSelectDoc: (docId: string, checked: boolean) => void
   onToggleStatus: (doc: Document) => void
   onStartParse: (doc: Document) => void
@@ -60,6 +61,7 @@ export function useDocumentTableColumns({
   kbId,
   selectedDocs,
   hasMetadataEnabled,
+  canDownload,
   onSelectDoc,
   onToggleStatus,
   onStartParse,
@@ -287,6 +289,7 @@ export function useDocumentTableColumns({
         render: (_, record) => (
           <DocumentActionCell
             document={record}
+            canDownload={canDownload}
             onStartParse={() => onStartParse(record)}
             onStopParse={() => onStopParse(record)}
             onRename={() => onRename(record)}
@@ -300,6 +303,7 @@ export function useDocumentTableColumns({
       kbId,
       selectedDocs,
       hasMetadataEnabled,
+      canDownload,
       onSelectDoc,
       onToggleStatus,
       onStartParse,

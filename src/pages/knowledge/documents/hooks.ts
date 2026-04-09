@@ -549,7 +549,8 @@ export function useDocumentActions(
         await downloadDocument({ docId: doc.id, filename: doc.name })
       } catch (error) {
         console.error('Failed to download document:', error)
-        toast.error('下载失败，请重试')
+        const msg = error instanceof Error ? error.message : '下载失败，请重试'
+        toast.error(msg)
       }
     },
     [downloadDocument]

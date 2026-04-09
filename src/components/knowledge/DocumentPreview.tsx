@@ -76,6 +76,8 @@ interface DocumentPreviewProps {
   onClose?: () => void
   /** 隐藏组件自带的标题栏（由外层页面自行提供 header 时使用） */
   hideHeader?: boolean
+  /** 是否允许下载（false 时下载按钮灰态） */
+  canDownload?: boolean
 }
 
 // 支持的图片格式
@@ -1401,7 +1403,8 @@ const UnsupportedPreview: React.FC<{
   url: string
   filename?: string
   fileType: FileType
-}> = ({ url, filename, fileType }) => {
+  canDownload?: boolean
+}> = ({ url, filename, fileType, canDownload = false }) => {
   const typeLabels: Record<FileType, { label: string; icon: React.ReactNode }> = {
     pdf: { label: 'PDF 文档', icon: <FileText className="h-16 w-16" /> },
     image: { label: '图片', icon: <ImageIcon className="h-16 w-16" /> },
@@ -1424,7 +1427,9 @@ const UnsupportedPreview: React.FC<{
         {label}
       </h3>
       <p className="text-sm text-text-secondary mb-8 text-center max-w-sm">
-        该类型文件暂不支持在线预览，请下载后查看
+        {canDownload
+          ? '该类型文件暂不支持在线预览，请下载后查看'
+          : '该类型文件暂不支持在线预览'}
       </p>
       <div className="flex gap-3">
         <Button variant="outline" asChild>
@@ -1433,12 +1438,21 @@ const UnsupportedPreview: React.FC<{
             新窗口打开
           </a>
         </Button>
-        <Button asChild>
-          <a href={url} download={filename}>
-            <Download className="h-4 w-4 mr-2" />
-            下载文件
-          </a>
-        </Button>
+        <Tooltip content={canDownload ? undefined : '请联系管理员获取下载权限'}>
+          <Button disabled={!canDownload} asChild={canDownload}>
+            {canDownload ? (
+              <a href={url} download={filename}>
+                <Download className="h-4 w-4 mr-2" />
+                下载文件
+              </a>
+            ) : (
+              <>
+                <Download className="h-4 w-4 mr-2" />
+                下载文件
+              </>
+            )}
+          </Button>
+        </Tooltip>
       </div>
     </div>
   )
@@ -1453,11 +1467,11 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
   className,
   onClose,
   hideHeader = false,
+  canDownload = false,
 }) => {
   const fileType = useMemo(() => getFileType(docName, docType), [docName, docType])
   const documentUrl = useMemo(() => getDocumentUrl(docId), [docId])
 
-  // 渲染预览内容
   const renderPreview = () => {
     switch (fileType) {
       case 'pdf':
@@ -1479,13 +1493,12 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
       case 'csv':
         return <CsvPreview url={documentUrl} />
       default:
-        return <UnsupportedPreview url={documentUrl} filename={docName} fileType={fileType} />
+        return <UnsupportedPreview url={documentUrl} filename={docName} fileType={fileType} canDownload={canDownload} />
     }
   }
 
   return (
     <div className={cn("flex flex-col h-full bg-background-default", className)}>
-      {/* 标题栏 */}
       {!hideHeader && (
         <div className="flex items-center justify-between px-4 py-2.5 border-b border-border-default bg-background-surface">
           <div className="flex items-center gap-2 min-w-0 flex-1">
@@ -1497,11 +1510,15 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
             </Tooltip>
           </div>
           <div className="flex items-center gap-0.5">
-            <Tooltip content="下载">
-              <Button variant="ghost" size="sm" asChild>
-                <a href={documentUrl} download={docName}>
+            <Tooltip content={canDownload ? '下载' : '请联系管理员获取下载权限'}>
+              <Button variant="ghost" size="sm" disabled={!canDownload} asChild={canDownload}>
+                {canDownload ? (
+                  <a href={documentUrl} download={docName}>
+                    <Download className="h-4 w-4" />
+                  </a>
+                ) : (
                   <Download className="h-4 w-4" />
-                </a>
+                )}
               </Button>
             </Tooltip>
             <Tooltip content="新窗口打开">
@@ -1522,7 +1539,6 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
         </div>
       )}
 
-      {/* 预览内容 */}
       <div className="flex-1 overflow-hidden">
         {renderPreview()}
       </div>

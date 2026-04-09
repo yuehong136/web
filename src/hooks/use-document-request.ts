@@ -315,7 +315,7 @@ export const useRunDocument = () => {
   const { mutateAsync, isPending, isError, error } = useMutation({
     mutationFn: async (params: {
       docIds: string[]
-      run: 0 | 1 // 0=停止, 1=开始
+      run: 0 | 1 | 2 // 0=停止, 1=开始, 2=取消
       deleteHistory?: boolean
     }) => {
       await knowledgeAPI.document.run(params.docIds, params.run, params.deleteHistory)

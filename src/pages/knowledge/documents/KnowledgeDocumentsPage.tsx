@@ -6,6 +6,7 @@
 
 import React, { useState, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { useAbilities } from '@/hooks/use-abilities'
 import {
   FileText,
   Upload,
@@ -206,11 +207,15 @@ export const KnowledgeDocumentsPage: React.FC = () => {
     currentKnowledgeBase?.enable_metadata === true ||
     currentKnowledgeBase?.parser_config?.enable_metadata === true
 
+  const { canDownloadInTenant } = useAbilities()
+  const canDownload = canDownloadInTenant(currentKnowledgeBase?.tenant_id)
+
   // 表格列配置
   const columns = useDocumentTableColumns({
     kbId: kbId || '',
     selectedDocs: listState.selectedDocs,
     hasMetadataEnabled,
+    canDownload,
     onSelectDoc: listState.selectDoc,
     onToggleStatus: actions.handleToggleStatus,
     onStartParse: handleStartParse,

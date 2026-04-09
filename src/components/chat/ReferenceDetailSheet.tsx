@@ -17,6 +17,7 @@ import {
   Check,
   ExternalLink,
 } from 'lucide-react'
+import { Watermark } from 'antd'
 import DOMPurify from 'dompurify'
 import {
   Sheet,
@@ -27,6 +28,7 @@ import {
 } from '@/components/ui/sheet'
 import { copyToClipboard } from '@/lib/utils'
 import { toast } from '@/lib/toast'
+import { useAuthStore } from '@/stores'
 import type { ReferenceChunk } from '@/utils/reference-replacer'
 
 export interface ReferenceDetailSheetProps {
@@ -200,8 +202,14 @@ export const ReferenceDetailSheet: React.FC<ReferenceDetailSheetProps> = ({
   onCopySuccess
 }) => {
   const [contentCopied, setContentCopied] = React.useState(false)
+  const user = useAuthStore((s) => s.user)
+
+  const watermarkContent = React.useMemo(() => {
+    const email = user?.email || user?.nickname || ''
+    const date = new Date().toLocaleDateString('zh-CN')
+    return [email, date]
+  }, [user?.email, user?.nickname])
   
-  // 获取同文档的其他引用 - hooks 必须在条件返回之前调用
   const relatedChunks = React.useMemo(() => {
     if (!allChunks || !chunk?.document_id) return []
     return allChunks.filter(
@@ -371,28 +379,30 @@ export const ReferenceDetailSheet: React.FC<ReferenceDetailSheetProps> = ({
                 {contentCopied ? '已复制' : '复制'}
               </button>
             </div>
-            <div 
-              className="p-3 rounded-lg overflow-auto max-h-80"
-              style={{ 
-                backgroundColor: 'var(--color-background-subtle)',
-                border: '1px solid var(--color-border-subtle)'
-              }}
-            >
-              {isHtmlContent ? (
-                <div 
-                  className="prose prose-sm max-w-none"
-                  style={{ color: 'var(--color-text-primary)' }}
-                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(chunk.content || '') }}
-                />
-              ) : (
-                <p 
-                  className="text-sm whitespace-pre-wrap"
-                  style={{ color: 'var(--color-text-primary)' }}
-                >
-                  {chunk.content || '无内容'}
-                </p>
-              )}
-            </div>
+            <Watermark content={watermarkContent} font={{ fontSize: 12 }} gap={[80, 80]}>
+              <div 
+                className="p-3 rounded-lg overflow-auto max-h-80"
+                style={{ 
+                  backgroundColor: 'var(--color-background-subtle)',
+                  border: '1px solid var(--color-border-subtle)'
+                }}
+              >
+                {isHtmlContent ? (
+                  <div 
+                    className="prose prose-sm max-w-none"
+                    style={{ color: 'var(--color-text-primary)' }}
+                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(chunk.content || '') }}
+                  />
+                ) : (
+                  <p 
+                    className="text-sm whitespace-pre-wrap"
+                    style={{ color: 'var(--color-text-primary)' }}
+                  >
+                    {chunk.content || '无内容'}
+                  </p>
+                )}
+              </div>
+            </Watermark>
           </div>
           
           {/* 元数据 */}
