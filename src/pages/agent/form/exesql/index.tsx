@@ -1,3 +1,4 @@
+import { PromptEditor } from '@/components/prompt-editor'
 import {
   FormControl,
   FormField,
@@ -14,19 +15,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
 import { initialExeSqlValues } from '../../constant'
+import { useBuildNodeOutputOptions } from '../../hooks/use-build-options'
 import { useFormValues } from '../../hooks/use-form-values'
 import { useWatchFormChange } from '../../hooks/use-watch-form-change'
 import type { INextOperatorForm } from '../../types'
-import { FormWrapper, Output, transferOutputs } from '../components'
+import { FormWrapper, Output, buildOutputList } from '../components'
 import { dbTypeOptions } from './constants'
 
-const schema = z.object({
+const exeSqlSchema = z.object({
   db_type: z.string().optional(),
   database: z.string().optional(),
   username: z.string().optional(),
@@ -40,20 +42,39 @@ const schema = z.object({
 
 export function ExeSQLForm({ node }: INextOperatorForm) {
   const { t } = useTranslation()
+  const promptOptions = useBuildNodeOutputOptions(node?.id)
   const values = useFormValues(initialExeSqlValues, node)
 
   const form = useForm({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(exeSqlSchema),
     defaultValues: values,
   })
 
   useWatchFormChange(node?.id, form)
 
-  const outputs = form.getValues('outputs')
+  const outputs = useMemo(() => buildOutputList(form.getValues('outputs')), [form])
 
   return (
     <Form {...form}>
       <FormWrapper>
+        <FormField
+          control={form.control}
+          name="sql"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('flow.sqlStatement', 'SQL Statement')}</FormLabel>
+              <FormControl>
+                <PromptEditor
+                  value={field.value}
+                  onChange={field.onChange}
+                  options={promptOptions}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <FormField
           control={form.control}
           name="db_type"
@@ -67,7 +88,9 @@ export function ExeSQLForm({ node }: INextOperatorForm) {
                   </SelectTrigger>
                   <SelectContent>
                     {dbTypeOptions.map((db) => (
-                      <SelectItem key={db} value={db}>{db}</SelectItem>
+                      <SelectItem key={db} value={db}>
+                        {db}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -76,116 +99,102 @@ export function ExeSQLForm({ node }: INextOperatorForm) {
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="host"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('flow.host', 'Host')}</FormLabel>
-              <FormControl>
-                <Input {...field} value={field.value ?? ''} />
-              </FormControl>
-            </FormItem>
-          )}
-        />
+        <div className="grid gap-space-md md:grid-cols-2">
+          <FormField
+            control={form.control}
+            name="host"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('flow.host', 'Host')}</FormLabel>
+                <FormControl>
+                  <Input {...field} value={field.value ?? ''} />
+                </FormControl>
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="port"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('flow.port', 'Port')}</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  {...field}
-                  value={field.value ?? 3306}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="port"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('flow.port', 'Port')}</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    {...field}
+                    value={field.value ?? 3306}
+                    onChange={(event) =>
+                      field.onChange(Number(event.target.value))
+                    }
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="database"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('flow.database', 'Database')}</FormLabel>
-              <FormControl>
-                <Input {...field} value={field.value ?? ''} />
-              </FormControl>
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="database"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('flow.database', 'Database')}</FormLabel>
+                <FormControl>
+                  <Input {...field} value={field.value ?? ''} />
+                </FormControl>
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="username"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('flow.username', 'Username')}</FormLabel>
-              <FormControl>
-                <Input {...field} value={field.value ?? ''} />
-              </FormControl>
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="username"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('flow.username', 'Username')}</FormLabel>
+                <FormControl>
+                  <Input {...field} value={field.value ?? ''} />
+                </FormControl>
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('flow.password', 'Password')}</FormLabel>
-              <FormControl>
-                <Input type="password" {...field} value={field.value ?? ''} />
-              </FormControl>
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('flow.password', 'Password')}</FormLabel>
+                <FormControl>
+                  <Input type="password" {...field} value={field.value ?? ''} />
+                </FormControl>
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="sql"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>SQL</FormLabel>
-              <FormControl>
-                <Textarea
-                  rows={6}
-                  className="font-mono text-xs"
-                  placeholder="SELECT * FROM ..."
-                  {...field}
-                  value={field.value ?? ''}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="max_records"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('flow.maxRecords', 'Max Records')}</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    min={1}
+                    {...field}
+                    value={field.value ?? 1024}
+                    onChange={(event) =>
+                      field.onChange(Number(event.target.value))
+                    }
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+        </div>
 
-        <FormField
-          control={form.control}
-          name="max_records"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('flow.maxRecords', 'Max Records')}</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  min={1}
-                  {...field}
-                  value={field.value ?? 1024}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-
-        {outputs && <Output list={transferOutputs(outputs)} />}
+        <Output list={outputs} />
       </FormWrapper>
     </Form>
   )

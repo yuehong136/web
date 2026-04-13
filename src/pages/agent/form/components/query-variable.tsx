@@ -5,27 +5,28 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { useMemo } from 'react'
 import { useFormContext } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
+import { useBuildNodeOutputOptions } from '../../hooks/use-build-options'
 import useGraphStore from '../../store'
+import { GroupedSelectWithSecondaryMenu } from './select-with-secondary-menu'
+import {
+  filterQueryVariableOptionGroupsByTypes,
+  normalizeVariableReference,
+  type QueryVariableOptionGroup,
+} from './query-variable-utils'
 
 type QueryVariableProps = {
   name?: string
   label?: string
   hideLabel?: boolean
   className?: string
+  triggerClassName?: string
   onChange?: (value: string) => void
   types?: string[]
-  triggerClassName?: string
-  contentClassName?: string
+  nodeId?: string
+  optionGroups?: QueryVariableOptionGroup[]
 }
 
 export function QueryVariable({
@@ -33,37 +34,31 @@ export function QueryVariable({
   label,
   hideLabel = false,
   className,
+  triggerClassName,
   onChange,
   types,
-  triggerClassName,
-  contentClassName,
+  nodeId,
+  optionGroups,
 }: QueryVariableProps) {
   const { t } = useTranslation()
   const form = useFormContext()
-  const nodes = useGraphStore((state) => state.nodes)
+  const clickedNodeId = useGraphStore((state) => state.clickedNodeId)
+  const upstreamOptionGroups = useBuildNodeOutputOptions(nodeId || clickedNodeId)
 
-  // Build variable options from upstream nodes
   const options = useMemo(() => {
-    const result: Array<{ label: string; value: string }> = []
-
-    for (const node of nodes) {
-      const nodeLabel = node.data?.label
-      const nodeName = node.data?.name || nodeLabel
-      const form = node.data?.form
-
-      // Add node outputs as selectable variables
-      if (form?.outputs && typeof form.outputs === 'object') {
-        for (const key of Object.keys(form.outputs)) {
-          result.push({
-            label: `${nodeName}.${key}`,
-            value: `{${node.id}@${key}}`,
-          })
-        }
-      }
-    }
-
-    return result
-  }, [nodes])
+    return filterQueryVariableOptionGroupsByTypes(
+      optionGroups || upstreamOptionGroups,
+      types,
+    ).map((group) => ({
+      label: group.label,
+      options: group.options.map((option) => ({
+        label: option.label,
+        value: option.value,
+        parentLabel: group.title,
+        type: (option as { type?: string }).type,
+      })),
+    }))
+  }, [optionGroups, types, upstreamOptionGroups])
 
   return (
     <FormField
@@ -72,29 +67,20 @@ export function QueryVariable({
       render={({ field }) => (
         <FormItem className={className}>
           {!hideLabel && (
-            <FormLabel>
-              {label || t('flow.query', 'Query')}
-            </FormLabel>
+            <FormLabel>{label || t('flow.query', 'Query')}</FormLabel>
           )}
           <FormControl>
-            <Select
-              value={field.value}
-              onValueChange={(val) => {
-                field.onChange(val)
-                onChange?.(val)
+            <GroupedSelectWithSecondaryMenu
+              options={options}
+              value={normalizeVariableReference(field.value)}
+              onChange={(val) => {
+                const nextValue = normalizeVariableReference(val)
+                field.onChange(nextValue)
+                onChange?.(nextValue)
               }}
-            >
-              <SelectTrigger className={triggerClassName}>
-                <SelectValue placeholder={t('flow.selectVariable', 'Select variable')} />
-              </SelectTrigger>
-              <SelectContent className={contentClassName}>
-                {options.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              placeholder={t('flow.selectVariable', 'Select variable')}
+              triggerClassName={triggerClassName}
+            />
           </FormControl>
           <FormMessage />
         </FormItem>

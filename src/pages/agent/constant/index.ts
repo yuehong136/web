@@ -1,3 +1,5 @@
+import { initialParserFormValues } from '../form/parser/utils'
+
 // ==================== 节点类型枚举 ====================
 // 使用常量对象替代enum以符合erasableSyntaxOnly要求
 
@@ -202,11 +204,32 @@ export const initialRetrievalValues = {
   top_n: 8,
   top_k: 1024,
   kb_ids: [],
+  memory_ids: [] as string[],
+  user_id: '',
   rerank_id: '',
   empty_response: '',
   similarity_threshold: 0.2,
   keywords_similarity_weight: 0.3,
   retrieval_from: RetrievalFrom.Dataset,
+  cross_languages: [] as string[],
+  use_kg: false,
+  toc_enhance: false,
+  meta_data_filter: {
+    method: 'manual',
+    logic: 'and',
+    manual: [] as Array<{ key: string; op: string; value: string }>,
+    semi_auto: [] as string[],
+  },
+  outputs: {
+    formalized_content: {
+      value: '',
+      type: 'string',
+    },
+    json: {
+      value: [],
+      type: 'Array<Object>',
+    },
+  },
 }
 
 // Generate节点初始值 (基础LLM配置)
@@ -387,6 +410,7 @@ export const initialInvokeValues = {
 }`,
   proxy: '',
   clean_html: false,
+  datatype: 'json',
   variables: [],
   outputs: {
     result: {
@@ -687,7 +711,7 @@ export const initialTavilyExtractValues = {
 export const initialUserFillUpValues = {
   enable_tips: true,
   tips: '',
-  inputs: [] as any[],
+  inputs: [] as unknown[],
   outputs: {},
 }
 
@@ -809,19 +833,19 @@ export const VariableAssignerLogicalArrayOperator = {
 export const initialVariableAssignerValues = {}
 
 // VariableAggregator节点初始值
-export const initialVariableAggregatorValues = { outputs: {}, groups: [] as any[] }
+export const initialVariableAggregatorValues = { outputs: {}, groups: [] as unknown[] }
 
 // Loop节点初始值
 export const initialLoopValues = {
-  loop_variables: [] as any[],
-  loop_termination_condition: [] as any[],
+  loop_variables: [] as unknown[],
+  loop_termination_condition: [] as unknown[],
   maximum_loop_count: 10,
   outputs: {},
 }
 
 // ExcelProcessor节点初始值
 export const initialExcelProcessorValues = {
-  input_files: [] as any[],
+  input_files: [] as unknown[],
   operation: 'read',
   sheet_selection: 'all',
   merge_strategy: 'concat',
@@ -909,15 +933,7 @@ export const initialFileValues = {
   },
 }
 
-export const initialParserValues = {
-  outputs: {
-    markdown: { type: 'string', value: '' },
-    text: { type: 'string', value: '' },
-    html: { type: 'string', value: '' },
-    json: { type: 'Array<object>', value: [] },
-  },
-  setups: [] as any[],
-}
+export const initialParserValues = initialParserFormValues
 
 export const initialTokenizerValues = {
   search_method: ['embedding', 'full_text'],
@@ -933,7 +949,10 @@ export const initialSplitterValues = {
   chunk_token_size: 512,
   overlapped_percent: 0,
   delimiters: [{ value: '\n' }],
-  image_table_context_window: 0,
+  enable_children: false,
+  children_delimiters: [] as Array<{ value: string }>,
+  table_context_size: 0,
+  image_context_size: 0,
 }
 
 export const initialHierarchicalMergerValues = {
@@ -952,6 +971,9 @@ export const initialHierarchicalMergerValues = {
 export const initialExtractorValues = {
   ...initialLlmBaseValues,
   field_name: 'summary',
+  sys_prompt:
+    'Extract a concise summary for each chunk. Keep factual details and avoid unrelated commentary.',
+  prompts: 'Summarize the following content:\n\n{Parser@text}',
   outputs: {
     chunks: { type: 'Array<Object>', value: [] },
   },

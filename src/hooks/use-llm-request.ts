@@ -6,7 +6,13 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { llmAPI } from '@/api/llm'
-import { isLLMModelEnabled, type MyLLMProvider, type LLMFactoryInterface, type AddLlmParams } from '@/stores/model'
+import {
+  isLLMModelEnabled,
+  type MyLLMModel,
+  type MyLLMProvider,
+  type LLMFactoryInterface,
+  type AddLlmParams,
+} from '@/stores/model'
 
 // Query Keys 统一管理
 export const llmKeys = {
@@ -15,13 +21,30 @@ export const llmKeys = {
   factories: () => [...llmKeys.all, 'factories'] as const,
 }
 
+type SupportedLLMType = MyLLMModel['type']
+
+export type LLMGroupedSelectOption = {
+  label: string
+  value: string
+  providerName: string
+  type: SupportedLLMType
+}
+
+export type LLMGroupedOptionGroup = {
+  label: string
+  providerName: string
+  options: LLMGroupedSelectOption[]
+}
+
+type LLMValueMode = 'name' | 'nameWithProvider'
+
 // 获取我的 LLM 列表
 export const useFetchMyLLMs = () => {
-  const { data, isFetching, isError, error, refetch } = useQuery<Record<string, any>>({
+  const { data, isFetching, isError, error, refetch } = useQuery<MyLLMProvider>({
     queryKey: llmKeys.myLLMs(),
     queryFn: async () => {
       const response = await llmAPI.getMyLLMs()
-      return response as any
+      return response as MyLLMProvider
     },
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
@@ -68,7 +91,7 @@ export const useSetApiKey = () => {
       llmFactory: string
       apiKey: string
       baseUrl?: string
-      additionalParams?: Record<string, any>
+      additionalParams?: Record<string, unknown>
     }) => {
       await llmAPI.setApiKey(
         params.llmFactory, 
@@ -139,10 +162,10 @@ export const useDeleteFactory = () => {
 export const useLLMOptions = (type?: 'chat' | 'embedding' | 'rerank') => {
   const { myLLMs, isLoading } = useFetchMyLLMs()
 
-  const options = Object.entries(myLLMs).flatMap(([providerName, provider]: [string, any]) => {
+  const options = Object.entries(myLLMs).flatMap(([providerName, provider]) => {
     return (provider.llm || [])
-      .filter((model: any) => (!type || model.type === type) && isLLMModelEnabled(model))
-      .map((model: any) => ({
+      .filter((model) => (!type || model.type === type) && isLLMModelEnabled(model))
+      .map((model) => ({
         label: `${providerName} / ${model.name}`,
         value: model.name,
         provider: providerName,
@@ -155,24 +178,53 @@ export const useLLMOptions = (type?: 'chat' | 'embedding' | 'rerank') => {
 
 // 获取模型选项（按 provider 分组，用于 SelectWithSearch）
 export const useLLMGroupedOptions = (type?: 'chat' | 'embedding' | 'rerank') => {
-  const { myLLMs, isLoading } = useFetchMyLLMs()
+  return useLLMGroupedOptionsByTypes(type ? [type] : undefined)
+}
 
-  const options = Object.entries(myLLMs)
-    .map(([providerName, provider]: [string, any]) => {
+function buildLLMValue(
+  modelName: string,
+  providerName: string,
+  valueMode: LLMValueMode,
+) {
+  return valueMode === 'nameWithProvider'
+    ? `${modelName}@${providerName}`
+    : modelName
+}
+
+export const useLLMGroupedOptionsByTypes = (
+  types?: SupportedLLMType[],
+  options?: {
+    valueMode?: LLMValueMode
+  },
+) => {
+  const { myLLMs, isLoading } = useFetchMyLLMs()
+  const allowedTypes = types?.length ? new Set(types) : null
+  const valueMode = options?.valueMode || 'name'
+
+  const groupedOptions = Object.entries(myLLMs)
+    .map(([providerName, provider]) => {
       const models = (provider.llm || [])
-        .filter((model: any) => (!type || model.type === type) && isLLMModelEnabled(model))
-        .map((model: any) => ({
+        .filter(
+          (model) =>
+            (!allowedTypes || allowedTypes.has(model.type)) &&
+            isLLMModelEnabled(model),
+        )
+        .map((model: MyLLMModel) => ({
           label: model.name,
-          value: model.name,
+          value: buildLLMValue(model.name, providerName, valueMode),
+          providerName,
+          type: model.type,
         }))
+
       return {
         label: providerName,
+        providerName,
         options: models,
-      }
+      } satisfies LLMGroupedOptionGroup
     })
     .filter((group) => group.options.length > 0)
 
-  return { options, isLoading }
+  return { options: groupedOptions, isLoading }
 }
 
 // 获取聊天模型选项

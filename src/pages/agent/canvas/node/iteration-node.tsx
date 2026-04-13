@@ -22,9 +22,7 @@ export function InnerIterationNode({
       <section
         className={cn(
           'h-full bg-transparent rounded-radius-md group border border-border-primary border-t-0',
-          {
-            'border-x border-border-accent': selected,
-          },
+          { 'border-[var(--color-components-canvas-node-border-selected)]': selected },
         )}
       >
         <NodeResizeControl style={controlStyle} minWidth={100} minHeight={50}>
@@ -44,9 +42,7 @@ export function InnerIterationNode({
           label={data.label}
           wrapperClassName={cn(
             'bg-surface-secondary p-space-sm rounded-radius-md absolute w-full -top-9 left-0 border-x border-t border-border-primary',
-            {
-              'border-x border-t border-border-accent': selected,
-            },
+            { 'border-[var(--color-components-canvas-node-border-selected)]': selected },
           )}
         />
       </section>

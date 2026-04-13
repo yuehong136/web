@@ -10,7 +10,7 @@ export function LabelCard({ children, className, ...props }: LabelCardProps) {
   return (
     <div
       className={cn(
-        'bg-surface-secondary rounded-radius-sm px-space-xs py-0.5 text-text-secondary text-xs',
+        'rounded-radius-md border border-border-subtle bg-background-subtle px-space-sm py-space-xs text-xs leading-5 text-text-secondary',
         className,
       )}
       {...props}

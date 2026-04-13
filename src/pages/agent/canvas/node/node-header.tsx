@@ -14,10 +14,10 @@ interface NodeHeaderProps {
 
 const NodeHeader = ({ name, label, icon, className, wrapperClassName }: NodeHeaderProps) => {
   return (
-    <section className={cn(wrapperClassName, 'pb-space-sm')}>
+    <section className={cn(wrapperClassName, 'pb-space-base')}>
       <div className={cn(className, 'flex items-center gap-space-sm')}>
         {icon || <OperatorIcon name={label as Operator} />}
-        <span className="truncate text-sm font-semibold text-text-primary">
+        <span className="truncate text-sm font-semibold leading-none text-text-primary">
           {name}
         </span>
       </div>

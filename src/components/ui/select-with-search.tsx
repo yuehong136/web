@@ -28,6 +28,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
+import { buildOptionSearchKeywords } from './select-with-search.utils'
 
 // 单个选项类型
 export interface SelectOption {
@@ -202,6 +203,10 @@ export const SelectWithSearch = forwardRef<
                           <CommandItem
                             key={option.value}
                             value={option.value}
+                            keywords={buildOptionSearchKeywords(option.label, [
+                              option.value,
+                              typeof group.label === 'string' ? group.label : undefined,
+                            ])}
                             disabled={option.disabled}
                             onSelect={handleSelect}
                             className={cn(
@@ -223,6 +228,7 @@ export const SelectWithSearch = forwardRef<
                     <CommandItem
                       key={group.value}
                       value={group.value}
+                      keywords={buildOptionSearchKeywords(group.label, [group.value])}
                       disabled={group.disabled}
                       onSelect={handleSelect}
                       className={cn(

@@ -163,3 +163,169 @@ test('deserializeDslToGraph rebuilds graph from components when graph is absent'
   assert.equal(reconstructed.graph.nodes.length, 1)
   assert.equal(reconstructed.graph.nodes[0]?.data.label, Operator.Begin)
 })
+
+test('high-risk rebuilt operators serialize UI-only form state back to backend request shapes', () => {
+  const parserNode = buildGraphNode(Operator.Parser, {
+    id: 'parser-1',
+    form: {
+      setups: [
+        {
+          fileFormat: 'pdf',
+          preprocess: ['title'],
+        },
+        {
+          fileFormat: 'video',
+          llm_id: 'vision-model@OpenAI',
+          prompt: 'describe the clip',
+        },
+      ],
+    },
+  })
+  const splitterNode = buildGraphNode(Operator.Splitter, {
+    id: 'splitter-1',
+    form: {
+      delimiters: [{ value: '\n' }],
+      enable_children: true,
+      children_delimiters: [{ value: '##' }],
+    },
+  })
+  const mergerNode = buildGraphNode(Operator.HierarchicalMerger, {
+    id: 'merger-1',
+    form: {
+      levels: [
+        { expressions: [{ expression: '^#[^#]' }] },
+        { expressions: [{ expression: '^##[^#]' }] },
+      ],
+    },
+  })
+  const invokeNode = buildGraphNode(Operator.Invoke, {
+    id: 'invoke-1',
+    form: {
+      url: 'https://api.example.com/{begin@user_id}',
+      datatype: 'json',
+      variables: [{ key: 'user_id', ref: '{begin@user_id}', value: '' }],
+    },
+  })
+  const iterationNode = buildGraphNode(Operator.Iteration, {
+    id: 'iteration-1',
+    form: {
+      items_ref: '{retrieval@json}',
+      output_items: [
+        { name: 'docs', ref: '{generate@text}', type: 'Array<string>' },
+      ],
+    },
+  })
+  const aggregatorNode = buildGraphNode(Operator.VariableAggregator, {
+    id: 'aggregator-1',
+    form: {
+      groups: [
+        {
+          group_name: 'documents',
+          variables: ['{retrieval@json}'],
+        },
+      ],
+    },
+  })
+  const retrievalNode = buildGraphNode(Operator.Retrieval, {
+    id: 'retrieval-1',
+    form: {
+      retrieval_from: 'memory',
+      memory_ids: ['memory-1'],
+      meta_data_filter: {
+        method: 'semi_auto',
+        logic: 'or',
+        semi_auto: ['author'],
+      },
+    },
+  })
+
+  const dsl = serializeGraphToDsl({
+    graph: {
+      nodes: [
+        parserNode,
+        splitterNode,
+        mergerNode,
+        invokeNode,
+        iterationNode,
+        aggregatorNode,
+        retrievalNode,
+      ],
+      edges: [],
+    },
+    baseDsl: {
+      history: [],
+      messages: [],
+      reference: [],
+      globals: {},
+      variables: {},
+      retrieval: [],
+    },
+  })
+
+  const parserParams = (dsl.components['parser-1']?.obj.params || {}) as {
+    setups?: Record<
+      string,
+      { preprocess?: string[]; suffix?: string[]; prompt?: string; llm_id?: string }
+    >
+  }
+  const splitterParams = (dsl.components['splitter-1']?.obj.params || {}) as {
+    delimiters?: string[]
+    children_delimiters?: string[]
+  }
+  const mergerParams = (dsl.components['merger-1']?.obj.params || {}) as {
+    levels?: string[][]
+  }
+  const invokeParams = (dsl.components['invoke-1']?.obj.params || {}) as {
+    variables?: Array<{ ref?: string }>
+  }
+  const iterationParams = (dsl.components['iteration-1']?.obj.params || {}) as {
+    outputs?: Record<string, { ref?: string; type?: string }>
+  }
+  const aggregatorParams = (dsl.components['aggregator-1']?.obj.params || {}) as {
+    groups?: Array<{
+      group_name: string
+      type?: string
+      variables?: Array<{ value?: string }>
+    }>
+  }
+  const retrievalParams = (dsl.components['retrieval-1']?.obj.params || {}) as {
+    meta_data_filter?: { method?: string }
+  }
+
+  assert.deepEqual(parserParams.setups?.pdf?.preprocess, [
+    'main_content',
+    'title',
+  ])
+  assert.deepEqual(parserParams.setups?.pdf?.suffix, ['pdf'])
+  assert.deepEqual(parserParams.setups?.video?.suffix, ['mp4', 'avi', 'mkv'])
+  assert.equal(parserParams.setups?.video?.llm_id, 'vision-model@OpenAI')
+  assert.equal(parserParams.setups?.video?.prompt, 'describe the clip')
+  assert.deepEqual(splitterParams.delimiters, ['\n'])
+  assert.deepEqual(splitterParams.children_delimiters, [
+    '##',
+  ])
+  assert.equal(
+    'enable_children' in
+      ((dsl.components['splitter-1']?.obj.params as Record<string, unknown>) || {}),
+    false,
+  )
+  assert.deepEqual(
+    mergerParams.levels?.slice(0, 2),
+    [['^#[^#]'], ['^##[^#]']],
+  )
+  assert.equal(invokeParams.variables?.[0]?.ref, 'begin@user_id')
+  assert.deepEqual(iterationParams.outputs, {
+    docs: {
+      ref: 'generate@text',
+      type: 'Array<string>',
+    },
+  })
+  assert.deepEqual(aggregatorParams.groups, [
+    {
+      group_name: 'documents',
+      type: undefined,
+      variables: [{ value: 'retrieval@json' }],
+    },
+  ])
+  assert.equal(retrievalParams.meta_data_filter?.method, 'semi_auto')
+})

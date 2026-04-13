@@ -1,3 +1,4 @@
+import { PromptEditor } from '@/components/prompt-editor'
 import {
   Collapsible,
   CollapsibleContent,
@@ -12,45 +13,93 @@ import {
 } from '@/components/ui/form'
 import { Form } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { MultiSelectWithSearch } from '@/components/ui/multi-select-with-search'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Slider } from '@/components/ui/slider'
+import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ChevronDown } from 'lucide-react'
-import { useForm } from 'react-hook-form'
+import { useMemo } from 'react'
+import { useForm, useWatch } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
-import { initialRetrievalValues } from '../../constant'
+import { RetrievalFrom, initialRetrievalValues } from '../../constant'
+import { useBuildNodeOutputOptions } from '../../hooks/use-build-options'
 import { useFormValues } from '../../hooks/use-form-values'
 import { useWatchFormChange } from '../../hooks/use-watch-form-change'
 import type { INextOperatorForm } from '../../types'
-import { FormWrapper, Output, transferOutputs } from '../components'
+import {
+  FormWrapper,
+  Output,
+  buildOutputList,
+} from '../components'
 import { KnowledgeBaseSelectField } from '../components/knowledge-base-select-field'
 import { LLMSelectField } from '../components/llm-select-field'
+import { MetadataFilter } from '../components/metadata-filter'
+import { MemorySelectField } from './memory-select-field'
+import { normalizeRetrievalFormForStore } from './utils'
 
-const schema = z.object({
+const retrievalSchema = z.object({
   query: z.string().optional(),
-  similarity_threshold: z.coerce.number().optional(),
-  keywords_similarity_weight: z.coerce.number().optional(),
-  top_n: z.coerce.number().optional(),
-  top_k: z.coerce.number().optional(),
+  similarity_threshold: z.number().optional(),
+  keywords_similarity_weight: z.number().optional(),
+  top_n: z.number().optional(),
+  top_k: z.number().optional(),
   rerank_id: z.string().optional(),
   empty_response: z.string().optional(),
   kb_ids: z.array(z.string()).optional(),
+  memory_ids: z.array(z.string()).optional(),
+  user_id: z.string().optional(),
+  retrieval_from: z.string().optional(),
+  cross_languages: z.array(z.string()).optional(),
+  use_kg: z.boolean().optional(),
+  toc_enhance: z.boolean().optional(),
+  meta_data_filter: z.any().optional(),
   outputs: z.record(z.string(), z.any()).optional(),
 })
 
+const crossLanguageOptions = [
+  'Chinese',
+  'English',
+  'Japanese',
+  'Korean',
+  'French',
+  'German',
+  'Spanish',
+].map((value) => ({
+  label: value,
+  value,
+}))
+
+type RetrievalFormValues = z.input<typeof retrievalSchema>
+
 export function RetrievalForm({ node }: INextOperatorForm) {
   const { t } = useTranslation()
-  const values = useFormValues(initialRetrievalValues, node)
+  const promptOptions = useBuildNodeOutputOptions(node?.id)
+  const values = normalizeRetrievalFormForStore(
+    useFormValues(initialRetrievalValues, node),
+  )
 
-  const form = useForm({
-    resolver: zodResolver(schema),
-    defaultValues: values,
+  const form = useForm<
+    RetrievalFormValues,
+    unknown,
+    z.output<typeof retrievalSchema>
+  >({
+    resolver: zodResolver(retrievalSchema),
+    defaultValues: values as RetrievalFormValues,
   })
 
   useWatchFormChange(node?.id, form)
 
-  const outputs = form.getValues('outputs')
+  const retrievalFrom = useWatch({
+    control: form.control,
+    name: 'retrieval_from',
+  }) as string | undefined
+
+  const isMemoryMode = retrievalFrom === RetrievalFrom.Memory
+
+  const outputs = useMemo(() => buildOutputList(form.getValues('outputs')), [form])
 
   return (
     <Form {...form}>
@@ -62,21 +111,70 @@ export function RetrievalForm({ node }: INextOperatorForm) {
             <FormItem>
               <FormLabel>{t('flow.query', 'Query')}</FormLabel>
               <FormControl>
-                <Input {...field} value={field.value ?? ''} />
+                <PromptEditor
+                  value={field.value ?? ''}
+                  onChange={field.onChange}
+                  options={promptOptions}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
 
-        <KnowledgeBaseSelectField />
+        <FormField
+          control={form.control}
+          name="retrieval_from"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('flow.retrievalFrom', 'Retrieval From')}</FormLabel>
+              <FormControl>
+                <RadioGroup
+                  className="grid grid-cols-2 gap-space-sm"
+                  value={field.value ?? RetrievalFrom.Dataset}
+                  onValueChange={field.onChange}
+                >
+                  <label className="flex items-center gap-space-sm rounded-radius-md border border-border-default px-space-sm py-space-sm">
+                    <RadioGroupItem value={RetrievalFrom.Dataset} />
+                    <span>{t('knowledgeDetails.dataset', 'Dataset')}</span>
+                  </label>
+                  <label className="flex items-center gap-space-sm rounded-radius-md border border-border-default px-space-sm py-space-sm">
+                    <RadioGroupItem value={RetrievalFrom.Memory} />
+                    <span>{t('header.memories', 'Memories')}</span>
+                  </label>
+                </RadioGroup>
+              </FormControl>
+            </FormItem>
+          )}
+        />
 
-        <Collapsible>
-          <CollapsibleTrigger className="flex items-center gap-1 text-sm font-medium">
+        {isMemoryMode ? (
+          <>
+            <MemorySelectField />
+            <FormField
+              control={form.control}
+              name="user_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('flow.userId', 'User ID')}</FormLabel>
+                  <FormControl>
+                    <Input {...field} value={field.value ?? ''} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </>
+        ) : (
+          <KnowledgeBaseSelectField />
+        )}
+
+        <Collapsible defaultOpen>
+          <CollapsibleTrigger className="flex items-center gap-space-xs text-sm font-medium text-text-primary">
             <ChevronDown className="size-4" />
             {t('flow.advancedSettings', 'Advanced Settings')}
           </CollapsibleTrigger>
-          <CollapsibleContent className="space-y-4 pt-4">
+          <CollapsibleContent className="space-y-space-md pt-space-md">
             <FormField
               control={form.control}
               name="similarity_threshold"
@@ -132,49 +230,115 @@ export function RetrievalForm({ node }: INextOperatorForm) {
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="top_n"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('flow.topN', 'Top N')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      min={1}
-                      {...field}
-                      value={field.value ?? 8}
-                      onChange={(event) =>
-                        field.onChange(Number(event.target.value))
-                      }
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+            <div className="grid gap-space-md md:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="top_n"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('flow.topN', 'Top N')}</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min={1}
+                        {...field}
+                        value={field.value ?? 8}
+                        onChange={(event) =>
+                          field.onChange(Number(event.target.value))
+                        }
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="top_k"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('flow.topK', 'Top K')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      min={1}
-                      {...field}
-                      value={field.value ?? 1024}
-                      onChange={(event) =>
-                        field.onChange(Number(event.target.value))
-                      }
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+              <FormField
+                control={form.control}
+                name="top_k"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('flow.topK', 'Top K')}</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min={1}
+                        {...field}
+                        value={field.value ?? 1024}
+                        onChange={(event) =>
+                          field.onChange(Number(event.target.value))
+                        }
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </div>
 
-            <LLMSelectField name="rerank_id" type="rerank" />
+            {!isMemoryMode && (
+              <>
+                <LLMSelectField name="rerank_id" type="rerank" />
+                <MetadataFilter nodeId={node?.id} />
+
+                <FormField
+                  control={form.control}
+                  name="cross_languages"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        {t('flow.crossLanguages', 'Cross Languages')}
+                      </FormLabel>
+                      <FormControl>
+                        <MultiSelectWithSearch
+                          options={crossLanguageOptions}
+                          value={Array.isArray(field.value) ? field.value : []}
+                          onChange={field.onChange}
+                          placeholder={t(
+                            'flow.selectCrossLanguages',
+                            'Select languages',
+                          )}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="use_kg"
+                  render={({ field }) => (
+                    <FormItem className="flex items-center justify-between rounded-radius-md border border-border-default px-space-sm py-space-sm">
+                      <FormLabel>
+                        {t('flow.useKnowledgeGraph', 'Use Knowledge Graph')}
+                      </FormLabel>
+                      <FormControl>
+                        <Switch
+                          checked={field.value ?? false}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="toc_enhance"
+                  render={({ field }) => (
+                    <FormItem className="flex items-center justify-between rounded-radius-md border border-border-default px-space-sm py-space-sm">
+                      <FormLabel>
+                        {t('flow.tocEnhance', 'TOC Enhance')}
+                      </FormLabel>
+                      <FormControl>
+                        <Switch
+                          checked={field.value ?? false}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </>
+            )}
 
             <FormField
               control={form.control}
@@ -185,7 +349,11 @@ export function RetrievalForm({ node }: INextOperatorForm) {
                     {t('flow.emptyResponse', 'Empty Response')}
                   </FormLabel>
                   <FormControl>
-                    <Textarea rows={3} {...field} value={field.value ?? ''} />
+                    <Textarea
+                      rows={3}
+                      {...field}
+                      value={typeof field.value === 'string' ? field.value : ''}
+                    />
                   </FormControl>
                 </FormItem>
               )}
@@ -193,7 +361,7 @@ export function RetrievalForm({ node }: INextOperatorForm) {
           </CollapsibleContent>
         </Collapsible>
 
-        {outputs && <Output list={transferOutputs(outputs)} />}
+        <Output list={outputs} />
       </FormWrapper>
     </Form>
   )

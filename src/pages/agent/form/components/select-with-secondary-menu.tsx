@@ -47,6 +47,7 @@ interface GroupedSelectWithSecondaryMenuProps {
   onChange?: (value: string) => void
   placeholder?: string
   types?: (typeof JsonSchemaDataType)[keyof typeof JsonSchemaDataType][]
+  triggerClassName?: string
 }
 
 export function GroupedSelectWithSecondaryMenu({
@@ -54,6 +55,7 @@ export function GroupedSelectWithSecondaryMenu({
   value,
   onChange,
   placeholder,
+  triggerClassName,
 }: GroupedSelectWithSecondaryMenuProps) {
   const { t } = useTranslation()
   const [open, setOpen] = React.useState(false)
@@ -81,6 +83,7 @@ export function GroupedSelectWithSecondaryMenu({
           aria-expanded={open}
           className={cn(
             'bg-surface-primary hover:bg-surface-secondary border-border-primary w-full justify-between px-space-base font-normal outline-offset-0 outline-none focus-visible:outline-[3px] [&_svg]:pointer-events-auto',
+            triggerClassName,
             !value && 'text-text-secondary',
           )}
         >

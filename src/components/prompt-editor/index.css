@@ -1,77 +1,67 @@
 .typeahead-popover {
-  background: var(--surface-primary, #fff);
-  box-shadow: var(--elevation-medium, 0px 5px 10px rgba(0, 0, 0, 0.3));
-  border-radius: var(--radius-lg, 8px);
-  position: fixed;
+  position: absolute;
+  top: 0;
+  left: 0;
   z-index: 1000;
+  max-width: min(27rem, calc(100vw - 1.5rem));
+  overscroll-behavior: contain;
+  animation: prompt-editor-popover-enter 160ms cubic-bezier(0.16, 1, 0.3, 1);
+  transform-origin: top left;
+  will-change: transform, opacity;
 }
 
-.typeahead-popover ul {
+.typeahead-popover-scroll,
+.typeahead-popover-scroll-viewport {
+  overscroll-behavior: contain;
+}
+
+.typeahead-popover-scroll-viewport {
+  padding-bottom: var(--space-sm, 8px);
+  scrollbar-gutter: stable both-edges;
+}
+
+.typeahead-popover ul,
+.typeahead-popover li {
   list-style: none;
   margin: 0;
   padding: 0;
-  max-height: 200px;
-  overflow-y: scroll;
 }
 
-.typeahead-popover ul::-webkit-scrollbar {
-  display: none;
+.prompt-editor-content {
+  caret-color: var(--color-components-system-accent-text, #00beb4);
 }
 
-.typeahead-popover ul {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-.typeahead-popover ul li {
+.prompt-editor-content .editor-paragraph {
   margin: 0;
-  min-width: 180px;
-  font-size: 14px;
-  outline: none;
-  cursor: pointer;
-  border-radius: var(--radius-md, 8px);
+  min-height: 1.5em;
+  line-height: 1.6;
 }
 
-.typeahead-popover ul li.selected {
-  background: var(--surface-secondary, #eee);
+.prompt-editor-content::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
 }
 
-.typeahead-popover li {
-  margin: 0 8px 0 8px;
-  color: var(--text-primary, #050505);
-  cursor: pointer;
-  line-height: 16px;
-  font-size: 15px;
-  display: flex;
-  align-content: center;
-  flex-direction: row;
-  flex-shrink: 0;
-  background-color: var(--surface-primary, #fff);
-  border: 0;
+.prompt-editor-content::-webkit-scrollbar-thumb {
+  background: var(--color-components-scrollbar-thumb, rgba(0, 0, 0, 0.12));
+  border-radius: 999px;
 }
 
-.typeahead-popover li.active {
-  display: flex;
-  width: 20px;
-  height: 20px;
-  background-size: contain;
+.prompt-editor-variable-node {
+  display: inline-flex;
+  vertical-align: middle;
+  margin-right: var(--space-xs, 4px);
+  margin-bottom: var(--space-xs, 4px);
 }
 
-.typeahead-popover li .text {
-  display: flex;
-  line-height: 20px;
-  flex-grow: 1;
-  min-width: 150px;
-}
+@keyframes prompt-editor-popover-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
 
-.typeahead-popover li .icon {
-  display: flex;
-  width: 20px;
-  height: 20px;
-  user-select: none;
-  margin-right: 8px;
-  line-height: 16px;
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }

@@ -1,6 +1,5 @@
 import { Position, type Edge } from '@xyflow/react'
 import humanIdModule from 'human-id'
-import merge from 'lodash/merge'
 import type {
   AgentCanvasType,
   AgentDsl,
@@ -11,9 +10,11 @@ import type {
 } from '@/types/agent'
 import { AgentCanvasType as CanvasType } from '@/types/agent'
 import { BeginId, Operator, type Operator as OperatorType } from '../constant'
-import { getOperatorDefaultForm, mergeOperatorFormWithDefaults } from './defaults'
+import {
+  buildDslOperatorParams,
+  mergeOperatorFormWithDefaults,
+} from './defaults'
 import { getOperatorDefinition } from './registry'
-import { normalizeMessageFormForStore } from '../utils/message-content'
 import type {
   BuildGraphNodeOptions,
   DeserializeDslOptions,
@@ -48,20 +49,16 @@ export function createDefaultNodeData(
   overrides: Partial<AgentNodeData> = {},
 ): AgentNodeData {
   const definition = getOperatorDefinition(operator)
-  const baseForm = getOperatorDefaultForm(operator)
   const { form, ...restOverrides } = overrides
-  const nextForm =
-    operator === Operator.Message
-      ? normalizeMessageFormForStore(
-          form as Record<string, unknown> | undefined,
-        )
-      : form || {}
 
   return {
     label: operator,
     name: definition?.defaultName || operator,
     ...restOverrides,
-    form: merge({}, baseForm, nextForm),
+    form: mergeOperatorFormWithDefaults(
+      operator,
+      form as Record<string, unknown> | undefined,
+    ),
   }
 }
 
@@ -179,7 +176,7 @@ export function buildDslComponentsByGraph(
     components[node.id] = {
       obj: {
         component_name: operator,
-        params: mergeOperatorFormWithDefaults(
+        params: buildDslOperatorParams(
           operator,
           node.data.form as Record<string, unknown> | undefined,
         ),

@@ -64,7 +64,7 @@ export function LabeledGroupNode({
     <div
       className={cn(
         'h-full w-full rounded-radius-sm border border-border-primary bg-surface-secondary opacity-70',
-        selected && 'border-border-accent',
+        { 'border-[var(--color-components-canvas-node-border-selected)]': selected },
         className,
       )}
       style={style}

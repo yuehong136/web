@@ -1,29 +1,39 @@
 import { Button } from '@/components/ui/button'
 import { X } from 'lucide-react'
+import { useMemo } from 'react'
 import { useFieldArray, useFormContext } from 'react-hook-form'
 import { JsonSchemaDataType } from '../../constant'
-import { DynamicFormHeader } from './dynamic-form-header'
+import { useBuildNodeOutputOptions } from '../../hooks/use-build-options'
 import type { FormListHeaderProps } from './dynamic-form-header'
+import { DynamicFormHeader } from './dynamic-form-header'
 import { QueryVariable } from './query-variable'
+import {
+  filterQueryVariableOptionGroupsByTypes,
+  flattenQueryVariableOptions,
+} from './query-variable-utils'
 
 type QueryVariableListProps = {
+  name?: string
   types?: (typeof JsonSchemaDataType)[keyof typeof JsonSchemaDataType][]
 } & FormListHeaderProps
 
 export function QueryVariableList({
+  name = 'query',
   types,
   label,
   tooltip,
 }: QueryVariableListProps) {
   const form = useFormContext()
-  const name = 'query'
+  const optionGroups = useBuildNodeOutputOptions()
 
-  // TODO: Implement useFilterQueryVariableOptionsByTypes hook
-  const options: Array<{ options: Array<{ value: string }> }> = []
-  const secondOptions = options.flatMap((x) => x.options)
+  const availableValues = useMemo(() => {
+    return flattenQueryVariableOptions(
+      filterQueryVariableOptionGroupsByTypes(optionGroups, types),
+    )
+  }, [optionGroups, types])
 
   const { fields, remove, append } = useFieldArray({
-    name: name,
+    name,
     control: form.control,
   })
 
@@ -32,9 +42,9 @@ export function QueryVariableList({
       <DynamicFormHeader
         label={label}
         tooltip={tooltip}
-        onClick={() => append({ input: secondOptions.at(0)?.value })}
-        disabled={!secondOptions.length}
-      ></DynamicFormHeader>
+        onClick={() => append({ input: availableValues.at(0)?.value ?? '' })}
+        disabled={!availableValues.length}
+      />
       <div className="space-y-space-lg">
         {fields.map((field, index) => {
           const nameField = `${name}.${index}.input`
@@ -46,8 +56,8 @@ export function QueryVariableList({
                 hideLabel
                 className="flex-1"
                 types={types}
-              ></QueryVariable>
-              <Button variant={'ghost'} onClick={() => remove(index)}>
+              />
+              <Button type="button" variant="ghost" onClick={() => remove(index)}>
                 <X className="text-text-secondary" />
               </Button>
             </div>

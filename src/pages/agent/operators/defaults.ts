@@ -2,6 +2,10 @@ import merge from 'lodash/merge'
 import type { AgentOperator } from '@/types/agent'
 import { normalizeMessageFormForStore } from '../utils/message-content'
 import {
+  normalizeOperatorFormForDsl,
+  normalizeOperatorFormForStore,
+} from './normalizers'
+import {
   Operator,
   initialAgentValues,
   initialArXivValues,
@@ -24,6 +28,7 @@ import {
   initialHierarchicalMergerValues,
   initialIterationStartValues,
   initialIterationValues,
+  initialInvokeValues,
   initialKeywordExtractValues,
   initialListOperationsValues,
   initialLoopValues,
@@ -86,25 +91,7 @@ const operatorDefaultValues: Record<OperatorType, Record<string, unknown>> = {
   [Operator.YahooFinance]: initialYahooFinanceValues,
   [Operator.ExeSQL]: initialExeSqlValues,
   [Operator.Crawler]: initialCrawlerValues,
-  [Operator.Invoke]: {
-    url: '',
-    method: 'GET',
-    timeout: 60,
-    headers: `{
-  "Accept": "*/*",
-  "Cache-Control": "no-cache",
-  "Connection": "keep-alive"
-}`,
-    proxy: '',
-    clean_html: false,
-    variables: [],
-    outputs: {
-      result: {
-        value: '',
-        type: 'string',
-      },
-    },
-  },
+  [Operator.Invoke]: initialInvokeValues,
   [Operator.Email]: initialEmailValues,
   [Operator.UserFillUp]: initialUserFillUpValues,
   [Operator.StringTransform]: initialStringTransformValues,
@@ -147,15 +134,26 @@ export function mergeOperatorFormWithDefaults(
     operator === Operator.Message
       ? normalizeMessageFormForStore(form)
       : form || {}
+  const mergedForm = merge({}, getOperatorDefaultForm(operator), nextForm)
 
-  return merge({}, getOperatorDefaultForm(operator), nextForm)
+  if (operator === Operator.Parser && 'setups' in nextForm) {
+    mergedForm.setups = nextForm.setups
+  }
+
+  return normalizeOperatorFormForStore(
+    operator,
+    mergedForm,
+  )
 }
 
 export function buildDslOperatorParams(
   operator: OperatorType,
   form?: Record<string, unknown>,
 ): AgentOperator['obj']['params'] {
-  return mergeOperatorFormWithDefaults(operator, form)
+  return normalizeOperatorFormForDsl(
+    operator,
+    mergeOperatorFormWithDefaults(operator, form),
+  )
 }
 
 export const operatorDefaultsMap = operatorDefaultValues

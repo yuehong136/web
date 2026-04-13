@@ -1,9 +1,11 @@
+import { cn } from '@/lib/utils'
+
 type FormProps = React.ComponentProps<'form'>
 
-export function FormWrapper({ children, ...props }: FormProps) {
+export function FormWrapper({ children, className, ...props }: FormProps) {
   return (
     <form
-      className="space-y-6 p-space-base"
+      className={cn('space-y-space-lg p-space-base', className)}
       autoComplete="off"
       onSubmit={(e) => {
         e.preventDefault()

@@ -1,180 +1,342 @@
-/**
- * Copyright (c) Meta Platforms, Inc. and affiliates.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
- */
-
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
 import {
   LexicalTypeaheadMenuPlugin,
   MenuOption,
-  useBasicTypeaheadTriggerMatch,
 } from '@lexical/react/LexicalTypeaheadMenuPlugin'
 import {
-  $createParagraphNode,
-  $createTextNode,
-  $getRoot,
   $getSelection,
   $isRangeSelection,
+  COMMAND_PRIORITY_CRITICAL,
   TextNode,
 } from 'lexical'
-import type { ReactElement } from 'react'
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-} from 'react'
+import type { JSX } from 'react'
+import React, { useCallback, useDeferredValue, useMemo } from 'react'
 import * as ReactDOM from 'react-dom'
+import {
+  ArrowUpDown,
+  CornerDownLeft,
+  Search,
+  Variable as VariableIcon,
+} from 'lucide-react'
 
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { cn } from '@/lib/utils'
 import { $createVariableNode } from './variable-node'
-import { ProgrammaticTag } from './constant'
-import './index.css'
+import { VariablePickerPopover } from './variable-picker-popover'
+import { getVariableVisual } from './variable-picker-visuals'
+import type { VariableOptionGroup, VariableOptionItem } from './types'
+import { filterVariableOptionGroups } from './utils'
+import { useTranslation } from 'react-i18next'
 
-// Variable option types
-export interface VariableOptionItem {
-  label: string
-  value: string
+if (typeof document !== 'undefined') {
+  void import('./index.css')
 }
 
-export interface VariableOptionGroup {
-  label: ReactElement | string
-  title: string
-  options: VariableOptionItem[]
+function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max)
 }
 
-class VariableInnerOption extends MenuOption {
+class VariableMenuOption extends MenuOption {
   label: string
   value: string
+  parentLabel?: string
+  icon?: VariableOptionItem['icon']
+  type?: string
+  groupTitle: string
+  isDisabled: boolean
 
-  constructor(label: string, value: string) {
+  constructor({
+    groupTitle,
+    label,
+    value,
+    parentLabel,
+    icon,
+    type,
+    isDisabled = false,
+  }: VariableOptionItem & { groupTitle: string; isDisabled?: boolean }) {
     super(value)
     this.label = label
     this.value = value
+    this.parentLabel = parentLabel
+    this.icon = icon
+    this.type = type
+    this.groupTitle = groupTitle
+    this.isDisabled = isDisabled
   }
 }
 
-class VariableOption extends MenuOption {
-  label: ReactElement | string
-  title: string
-  options: VariableInnerOption[]
-
-  constructor(
-    label: ReactElement | string,
-    title: string,
-    options: VariableInnerOption[],
-  ) {
-    super(title)
-    this.label = label
-    this.title = title
-    this.options = options
+function VariableTypeBadge({ type }: { type?: string }) {
+  if (!type) {
+    return null
   }
+
+  return (
+    <span
+      className={cn(
+        'inline-flex shrink-0 items-center rounded-radius-full border border-border-default bg-background-subtle px-space-sm py-0.5 text-xs font-medium',
+        'text-text-secondary',
+      )}
+    >
+      {type}
+    </span>
+  )
 }
 
-function VariablePickerMenuItem({
-  index,
+function VariablePickerEmptyState({ query }: { query: string }) {
+  const { t } = useTranslation()
+
+  return (
+    <div
+      className={cn(
+        'flex flex-col items-center gap-space-sm rounded-radius-xl border border-dashed border-border-default bg-background-subtle px-space-lg py-space-xl text-center',
+      )}
+    >
+      <div className="flex h-10 w-10 items-center justify-center rounded-radius-xl bg-surface-secondary text-text-secondary">
+        <Search className="size-5" />
+      </div>
+      <div className="space-y-space-xs">
+        <div className="text-sm font-medium text-text-primary">
+          {t('flow.variablePickerEmptyTitle', 'No variables found')}
+        </div>
+        <div className="max-w-72 text-xs leading-relaxed text-text-secondary">
+          {query
+            ? t(
+                'flow.variablePickerEmptyQuery',
+                `No matches for "/${query}". Try a variable name, node name, or type.`,
+              )
+            : t(
+                'flow.variablePickerEmptyDefault',
+                'Connect an upstream node or define begin inputs to make variables available here.',
+              )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export interface VariablePickerMenuPluginProps {
+  options?: VariableOptionGroup[]
+}
+
+function VariablePickerItem({
+  isSelected,
   option,
-  selectOptionAndCleanUp,
+  onClick,
+  onMouseEnter,
 }: {
-  index: number
-  option: VariableOption
-  selectOptionAndCleanUp: (
-    option: VariableOption | VariableInnerOption,
-  ) => void
+  isSelected: boolean
+  option: VariableMenuOption
+  onClick: () => void
+  onMouseEnter: () => void
 }) {
+  if (option.isDisabled) {
+    return (
+      <li
+        ref={option.setRefElement}
+        id={`typeahead-item-${option.key}`}
+        role="option"
+        aria-selected={false}
+        aria-disabled
+        tabIndex={-1}
+        className="px-space-xs py-space-xs"
+      >
+        <VariablePickerEmptyState query={option.label} />
+      </li>
+    )
+  }
+
+  const metaLabel = option.parentLabel ?? option.groupTitle
+  const variableVisual = getVariableVisual({
+    groupTitle: option.groupTitle,
+    label: option.label,
+    parentLabel: metaLabel,
+    type: option.type,
+  })
+
   return (
     <li
-      key={option.key}
-      tabIndex={-1}
       ref={option.setRefElement}
+      id={`typeahead-item-${option.key}`}
       role="option"
-      id={'typeahead-item-' + index}
+      aria-selected={isSelected}
+      aria-label={option.label}
+      tabIndex={-1}
+      className={cn(
+        'group flex cursor-pointer items-start gap-space-sm rounded-radius-xl border px-space-sm py-space-sm transition-all',
+        'border-border-default bg-components-dropdown-bg hover:border-components-system-accent-border hover:bg-background-subtle',
+        isSelected &&
+          'border-components-system-accent-border bg-components-system-accent-soft shadow-elevation-low',
+      )}
+      onMouseDown={(event) => {
+        event.preventDefault()
+      }}
+      onClick={onClick}
+      onMouseEnter={onMouseEnter}
     >
-      <div>
-        <span className="text-text-secondary">{option.title}</span>
-        <ul className="pl-space-sm py-space-xs">
-          {option.options.map((x) => (
-            <li
-              key={x.value}
-              onClick={() => selectOptionAndCleanUp(x)}
-              className="hover:bg-surface-secondary p-space-xs rounded-radius-sm cursor-pointer"
-            >
-              {x.label}
-            </li>
-          ))}
-        </ul>
+      <div
+        className={cn(
+          'relative flex h-10 w-10 shrink-0 items-center justify-center rounded-radius-xl border border-border-default bg-background-subtle text-components-system-accent-text',
+          isSelected &&
+            'border-components-system-accent-border bg-surface-primary',
+        )}
+      >
+        <span className="flex items-center justify-center [&_svg]:size-4">
+          {variableVisual.icon}
+        </span>
+
+        <span className="absolute -bottom-1 -right-1 inline-flex min-w-5 items-center justify-center rounded-radius-full border border-components-dropdown-border bg-components-dropdown-bg px-1 py-0.5 text-xs font-semibold leading-none text-text-secondary shadow-elevation-low">
+          {variableVisual.sourceInitials}
+        </span>
+      </div>
+
+      <div className="min-w-0 flex-1">
+        <div className="flex items-start gap-space-sm">
+          <span className="line-clamp-1 flex-1 text-sm font-medium text-text-primary">
+            {option.label}
+          </span>
+          <VariableTypeBadge type={option.type} />
+        </div>
+
+        <div className="mt-space-xs flex flex-wrap items-center gap-space-xs text-xs text-text-secondary">
+          <span className="inline-flex max-w-full items-center rounded-radius-full bg-background-subtle px-space-sm py-0.5">
+            <span className="truncate">{metaLabel}</span>
+          </span>
+          <code className="max-w-full truncate rounded-radius-sm bg-surface-primary px-space-xs py-0.5 font-mono text-xs text-text-tertiary">
+            {`{${option.value}}`}
+          </code>
+        </div>
       </div>
     </li>
   )
 }
 
-export interface VariablePickerMenuPluginProps {
-  value?: string
-  options?: VariableOptionGroup[]
-}
-
 export default function VariablePickerMenuPlugin({
-  value,
   options = [],
-}: VariablePickerMenuPluginProps): React.JSX.Element {
+}: VariablePickerMenuPluginProps): JSX.Element {
   const [editor] = useLexicalComposerContext()
-  const isFirstRender = useRef(true)
+  const { t } = useTranslation()
 
-  const checkForTriggerMatch = useBasicTypeaheadTriggerMatch('/', {
-    minLength: 0,
-  })
+  const triggerFn = useCallback((text: string) => {
+    const triggerRegex = /(^|\s|\()([/]((?:[^/\s()])*))$/
+    const match = triggerRegex.exec(text)
 
-  const [queryString, setQueryString] = React.useState<string | null>('')
+    if (match === null) {
+      return null
+    }
 
-  const filteredOptions = useMemo(() => {
-    if (!queryString) return options
-    const lowerQuery = queryString.toLowerCase()
-    return options
-      .map((x) => ({
-        ...x,
-        options: x.options.filter(
-          (y) =>
-            y.label.toLowerCase().includes(lowerQuery) ||
-            y.value.toLowerCase().includes(lowerQuery),
+    const mayLeadingWhitespace = match[1]
+
+    return {
+      leadOffset: match.index + mayLeadingWhitespace.length,
+      matchingString: match[3],
+      replaceableString: match[2],
+    }
+  }, [])
+
+  const [queryString, setQueryString] = React.useState('')
+  const deferredQueryString = useDeferredValue(queryString)
+
+  const groupedOptions = useMemo(() => {
+    return filterVariableOptionGroups(options, deferredQueryString)
+      .map((group) => ({
+        ...group,
+        options: group.options.map(
+          (option) =>
+            new VariableMenuOption({
+              ...option,
+              groupTitle: group.title,
+              parentLabel: option.parentLabel ?? group.title,
+            }),
         ),
       }))
-      .filter((x) => x.options.length > 0)
-  }, [options, queryString])
+      .filter((group) => group.options.length > 0)
+  }, [deferredQueryString, options])
 
-  const nextOptions: VariableOption[] = filteredOptions.map(
-    (x) =>
-      new VariableOption(
-        x.label,
-        x.title,
-        x.options.map((y) => new VariableInnerOption(y.label, y.value)),
-      ),
+  const emptyOption = useMemo(
+    () =>
+      new VariableMenuOption({
+        groupTitle: t('flow.variablePickerSuggestions', 'Suggestions'),
+        label: queryString,
+        value: '__empty__',
+        parentLabel: '',
+        isDisabled: true,
+      }),
+    [queryString, t],
   )
 
-  const findLabelByValue = useCallback(
-    (value: string) => {
-      const children = options.reduce<Array<{ label: string; value: string }>>(
-        (pre, cur) => {
-          return pre.concat(cur.options)
-        },
-        [],
-      )
+  const renderGroups = useMemo(
+    () =>
+      groupedOptions.length > 0
+        ? groupedOptions
+        : [
+            {
+              label: t('flow.variablePickerSuggestions', 'Suggestions'),
+              title: t('flow.variablePickerSuggestions', 'Suggestions'),
+              options: [emptyOption],
+            },
+          ],
+    [emptyOption, groupedOptions, t],
+  )
 
-      return children.find((x) => x.value === value)?.label
+  const flattenedOptions = useMemo(
+    () => renderGroups.flatMap((group) => group.options),
+    [renderGroups],
+  )
+
+  const selectableOptionCount = useMemo(
+    () => flattenedOptions.filter((option) => !option.isDisabled).length,
+    [flattenedOptions],
+  )
+
+  const scrollViewportRef = React.useRef<HTMLDivElement>(null)
+
+  const stopCanvasGesturePropagation = useCallback(
+    (event: React.SyntheticEvent) => {
+      event.stopPropagation()
     },
-    [options],
+    [],
+  )
+
+  const trapPopoverScroll = useCallback(
+    (event: React.WheelEvent<HTMLDivElement>) => {
+      const viewport = scrollViewportRef.current
+
+      if (viewport) {
+        const nextTop = clamp(
+          viewport.scrollTop + event.deltaY,
+          0,
+          Math.max(0, viewport.scrollHeight - viewport.clientHeight),
+        )
+        const nextLeft = clamp(
+          viewport.scrollLeft + event.deltaX,
+          0,
+          Math.max(0, viewport.scrollWidth - viewport.clientWidth),
+        )
+
+        viewport.scrollTop = nextTop
+        viewport.scrollLeft = nextLeft
+      }
+
+      event.preventDefault()
+      event.stopPropagation()
+    },
+    [],
   )
 
   const onSelectOption = useCallback(
     (
-      selectedOption: VariableOption | VariableInnerOption,
+      selectedOption: VariableMenuOption,
       nodeToRemove: TextNode | null,
       closeMenu: () => void,
     ) => {
       editor.update(() => {
         const selection = $getSelection()
 
-        if (!$isRangeSelection(selection) || selectedOption === null) {
+        if (
+          !$isRangeSelection(selection) ||
+          selectedOption === null ||
+          selectedOption.isDisabled
+        ) {
           return
         }
 
@@ -184,8 +346,17 @@ export default function VariablePickerMenuPlugin({
 
         selection.insertNodes([
           $createVariableNode(
-            (selectedOption as VariableInnerOption).value,
-            selectedOption.label as string,
+            selectedOption.value,
+            selectedOption.label,
+            selectedOption.parentLabel ?? selectedOption.groupTitle,
+            selectedOption.type,
+            getVariableVisual({
+              groupTitle: selectedOption.groupTitle,
+              label: selectedOption.label,
+              parentLabel:
+                selectedOption.parentLabel ?? selectedOption.groupTitle,
+              type: selectedOption.type,
+            }).icon,
           ),
         ])
 
@@ -195,88 +366,171 @@ export default function VariablePickerMenuPlugin({
     [editor],
   )
 
-  const parseTextToVariableNodes = useCallback(
-    (text: string) => {
-      const paragraph = $createParagraphNode()
-
-      // Regular expression to match content within {}
-      const regex = /{([^}]*)}/g
-      let match
-      let lastIndex = 0
-
-      while ((match = regex.exec(text)) !== null) {
-        const { 1: content, index, 0: template } = match
-
-        // Add the previous text part (if any)
-        if (index > lastIndex) {
-          const textNode = $createTextNode(text.slice(lastIndex, index))
-
-          paragraph.append(textNode)
-        }
-
-        // Add variable node or text node
-        const label = findLabelByValue(content)
-        if (label) {
-          paragraph.append($createVariableNode(content, label))
-        } else {
-          paragraph.append($createTextNode(template))
-        }
-
-        // Update index
-        lastIndex = regex.lastIndex
-      }
-
-      // Add the last part of text (if any)
-      if (lastIndex < text.length) {
-        const textNode = $createTextNode(text.slice(lastIndex))
-        paragraph.append(textNode)
-      }
-
-      $getRoot().clear().append(paragraph)
-      if ($isRangeSelection($getSelection())) {
-        $getRoot().selectEnd()
-      }
-    },
-    [findLabelByValue],
-  )
-
-  useEffect(() => {
-    if (editor && value && isFirstRender.current) {
-      isFirstRender.current = false
-      editor.update(
-        () => {
-          parseTextToVariableNodes(value)
-        },
-        { tag: ProgrammaticTag },
-      )
-    }
-  }, [parseTextToVariableNodes, editor, value])
-
   return (
-    <LexicalTypeaheadMenuPlugin<VariableOption | VariableInnerOption>
-      onQueryChange={setQueryString}
+    <LexicalTypeaheadMenuPlugin<VariableMenuOption>
+      commandPriority={COMMAND_PRIORITY_CRITICAL}
+      onQueryChange={(query) => setQueryString(query?.toLowerCase() ?? '')}
       onSelectOption={onSelectOption}
-      triggerFn={checkForTriggerMatch}
-      options={nextOptions}
-      menuRenderFn={(anchorElementRef, { selectOptionAndCleanUp }) =>
-        anchorElementRef.current && options.length
-          ? ReactDOM.createPortal(
-              <div className="typeahead-popover w-[200px] p-space-sm">
-                <ul>
-                  {nextOptions.map((option, i: number) => (
-                    <VariablePickerMenuItem
-                      index={i}
-                      key={option.key}
-                      option={option}
-                      selectOptionAndCleanUp={selectOptionAndCleanUp}
-                    />
-                  ))}
-                </ul>
-              </div>,
-              anchorElementRef.current,
-            )
-          : null
-      }
+      triggerFn={triggerFn}
+      options={flattenedOptions}
+      menuRenderFn={(
+        anchorElementRef,
+        {
+          options: renderedOptions,
+          selectOptionAndCleanUp,
+          selectedIndex,
+          setHighlightedIndex,
+        },
+      ) => {
+        if (!anchorElementRef.current || !flattenedOptions.length) {
+          return null
+        }
+
+        const selectedValue: string =
+          selectedIndex !== null
+            ? (renderedOptions[selectedIndex] as VariableMenuOption | undefined)
+                ?.value ?? ''
+            : ''
+
+        const activeOption = flattenedOptions.find(
+          (option) => !option.isDisabled && option.value === selectedValue,
+        )
+
+        return ReactDOM.createPortal(
+          <VariablePickerPopover
+            anchorElement={anchorElementRef.current}
+            onGestureCapture={stopCanvasGesturePropagation}
+            onWheelCapture={trapPopoverScroll}
+            header={
+              <div className="border-b border-components-dropdown-border px-space-base py-space-sm">
+                <div className="flex items-start justify-between gap-space-sm">
+                  <div className="flex min-w-0 items-start gap-space-sm">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-radius-xl bg-components-system-accent-bg text-components-system-accent-text">
+                      <VariableIcon className="size-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-sm font-medium text-text-primary">
+                        {t('flow.variablePickerTitle', 'Insert Variable')}
+                      </div>
+                      <div className="text-xs text-text-secondary">
+                        {queryString
+                          ? t(
+                              'flow.variablePickerFiltering',
+                              `Filtering results for "/${queryString}"`,
+                            )
+                          : t(
+                              'flow.variablePickerHint',
+                              'Type after / to narrow results, then press Enter to insert.',
+                            )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <span className="inline-flex shrink-0 items-center rounded-radius-full bg-background-subtle px-space-sm py-space-xs text-xs text-text-secondary">
+                    {selectableOptionCount}
+                  </span>
+                </div>
+
+                <div className="mt-space-xs flex flex-wrap items-center gap-space-sm text-xs text-text-secondary">
+                  <span className="inline-flex items-center gap-space-xs">
+                    <ArrowUpDown className="size-3.5" />
+                    {t('flow.variablePickerNavigate', 'Navigate')}
+                  </span>
+                  <span className="inline-flex items-center gap-space-xs">
+                    <CornerDownLeft className="size-3.5" />
+                    {t('flow.variablePickerInsert', 'Insert')}
+                  </span>
+                </div>
+              </div>
+            }
+            footer={
+              <div className="border-t border-components-dropdown-border px-space-base py-space-xs">
+                <div className="flex items-center justify-between gap-space-sm">
+                  <div className="min-w-0">
+                    <div className="truncate text-xs font-medium text-text-primary">
+                      {activeOption
+                        ? `${activeOption.parentLabel ?? activeOption.groupTitle} / ${activeOption.label}`
+                        : t(
+                            'flow.variablePickerFooterTitle',
+                            'Scroll inside this panel to browse more variables',
+                          )}
+                    </div>
+                    <div className="truncate text-xs text-text-secondary">
+                      {activeOption
+                        ? `{${activeOption.value}}`
+                        : t(
+                            'flow.variablePickerFooterHint',
+                            'The canvas will stay still while you explore this list.',
+                          )}
+                    </div>
+                  </div>
+
+                  {activeOption ? (
+                    <VariableTypeBadge type={activeOption.type} />
+                  ) : (
+                    <span className="inline-flex shrink-0 items-center rounded-radius-full bg-background-subtle px-space-sm py-space-xs text-xs text-text-secondary">
+                      {selectableOptionCount}
+                    </span>
+                  )}
+                </div>
+              </div>
+            }
+          >
+            <ScrollArea
+              className="typeahead-popover-scroll min-h-0 flex-1"
+              viewportClassName="typeahead-popover-scroll-viewport p-space-sm"
+              viewportRef={scrollViewportRef}
+            >
+              <div className="space-y-space-md">
+                {renderGroups.map((group) => (
+                  <section key={group.title} className="space-y-space-xs">
+                    <div className="flex items-center justify-between px-space-xs">
+                      <div className="truncate text-xs font-medium uppercase tracking-wide text-text-tertiary">
+                        {group.title}
+                      </div>
+                      {!group.options.some((option) => option.isDisabled) ? (
+                        <span className="inline-flex items-center rounded-radius-full bg-background-subtle px-space-sm py-0.5 text-xs text-text-secondary">
+                          {group.options.length}
+                        </span>
+                      ) : null}
+                    </div>
+
+                    <ul role="group" aria-label={group.title} className="space-y-space-xs">
+                      {group.options.map((option) => (
+                        <VariablePickerItem
+                          key={option.value}
+                          option={option}
+                          isSelected={
+                            !option.isDisabled && option.value === selectedValue
+                          }
+                          onMouseEnter={() => {
+                            if (option.isDisabled) {
+                              return
+                            }
+
+                            const nextIndex = flattenedOptions.findIndex(
+                              (candidate) => candidate.value === option.value,
+                            )
+                            if (nextIndex >= 0) {
+                              setHighlightedIndex(nextIndex)
+                            }
+                          }}
+                          onClick={() => {
+                            if (!option.isDisabled) {
+                              selectOptionAndCleanUp(option)
+                            }
+                          }}
+                        />
+                      ))}
+                    </ul>
+                  </section>
+                ))}
+              </div>
+            </ScrollArea>
+          </VariablePickerPopover>,
+          anchorElementRef.current,
+        )
+      }}
     />
   )
 }

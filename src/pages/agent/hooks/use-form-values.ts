@@ -1,3 +1,4 @@
+import merge from 'lodash/merge'
 import { useMemo } from 'react'
 import type { RAGFlowNodeType } from '../types'
 
@@ -28,7 +29,7 @@ export function useFormValues(
       return defaultValues
     }
 
-    return formData
+    return merge({}, defaultValues, formData)
   }, [defaultValues, node?.data?.form])
 
   return values

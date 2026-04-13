@@ -51,6 +51,9 @@ export default {
     createTime: '创建时间',
     updateTime: '更新时间',
     
+    // 输入提示
+    pleaseInput: '请输入',
+
     // 其他
     name: '名称',
     description: '描述',

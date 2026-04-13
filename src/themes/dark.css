@@ -28,18 +28,18 @@ html[data-theme="dark"] {
   --color-text-inverted: #111827;
 
   /* ===== 背景系统 ===== */
-  --color-background-body: #121212;
-  --color-background-default: #1a1a1a;
-  --color-background-subtle: #262626;
-  --color-background-section: #1e1e1e;
+  --color-background-body: #161618;
+  --color-background-default: #1c1e22;
+  --color-background-subtle: #2a2d33;
+  --color-background-section: #202025;
   --color-background-overlay: rgba(0, 0, 0, 0.75);
-  --color-background-surface: #1e1e1e;
+  --color-background-surface: #202025;
 
   /* ===== 边框系统 ===== */
-  --color-border-default: rgba(255, 255, 255, 0.10);
-  --color-border-subtle: rgba(255, 255, 255, 0.06);
-  --color-border-strong: rgba(255, 255, 255, 0.15);
-  --color-border-accent: rgba(255, 255, 255, 0.12);
+  --color-border-default: rgba(255, 255, 255, 0.12);
+  --color-border-subtle: rgba(255, 255, 255, 0.08);
+  --color-border-strong: rgba(255, 255, 255, 0.18);
+  --color-border-accent: rgba(255, 255, 255, 0.16);
   --color-border-success: #22c55e;
   --color-border-warning: #f59e0b;
   --color-border-error: #ef4444;
@@ -53,23 +53,23 @@ html[data-theme="dark"] {
   --color-components-button-primary-text-disabled: rgba(255, 255, 255, 0.4);
   --color-components-button-primary-border: #3b82f6;
   --color-components-button-primary-border-hover: #2563eb;
-  --color-components-button-secondary-bg: rgba(255, 255, 255, 0.05);
+  --color-components-button-secondary-bg: rgba(255, 255, 255, 0.06);
   --color-components-button-secondary-bg-hover: rgba(255, 255, 255, 0.1);
-  --color-components-button-secondary-bg-active: rgba(255, 255, 255, 0.15);
-  --color-components-button-secondary-bg-disabled: rgba(255, 255, 255, 0.03);
+  --color-components-button-secondary-bg-active: rgba(255, 255, 255, 0.14);
+  --color-components-button-secondary-bg-disabled: rgba(255, 255, 255, 0.04);
   --color-components-button-secondary-text: #ffffff;
   --color-components-button-secondary-text-disabled: rgba(255, 255, 255, 0.4);
   --color-components-button-secondary-border: rgba(255, 255, 255, 0.1);
   --color-components-button-secondary-border-hover: rgba(255, 255, 255, 0.2);
-  --color-components-button-ghost-bg-hover: rgba(255, 255, 255, 0.05);
+  --color-components-button-ghost-bg-hover: rgba(255, 255, 255, 0.06);
   --color-components-button-ghost-text: #ffffff;
   --color-components-button-ghost-text-disabled: rgba(255, 255, 255, 0.4);
 
   /* ===== 输入框组件 ===== */
-  --color-components-input-bg: rgba(255, 255, 255, 0.05);
-  --color-components-input-bg-hover: rgba(255, 255, 255, 0.08);
-  --color-components-input-bg-focus: rgba(255, 255, 255, 0.1);
-  --color-components-input-bg-disabled: rgba(255, 255, 255, 0.03);
+  --color-components-input-bg: rgba(255, 255, 255, 0.06);
+  --color-components-input-bg-hover: rgba(255, 255, 255, 0.09);
+  --color-components-input-bg-focus: rgba(255, 255, 255, 0.12);
+  --color-components-input-bg-disabled: rgba(255, 255, 255, 0.04);
   --color-components-input-border: #64748b;
   --color-components-input-border-hover: #94a3b8;
   --color-components-input-border-focus: #3b82f6;
@@ -79,9 +79,9 @@ html[data-theme="dark"] {
   --color-components-input-text-disabled: #64748b;
 
   /* ===== 卡片组件 ===== */
-  --color-components-card-bg: #1e1e1e;
-  --color-components-card-bg-hover: #2a2a2a;
-  --color-components-card-border: rgba(255, 255, 255, 0.10);
+  --color-components-card-bg: #202025;
+  --color-components-card-bg-hover: #292c32;
+  --color-components-card-border: rgba(255, 255, 255, 0.12);
   --color-components-card-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.2), 0 1px 2px -1px rgba(0, 0, 0, 0.15);
   --color-components-card-meta-title: #ffffff;
   --color-components-card-meta-description: #a1a1aa;
@@ -90,43 +90,43 @@ html[data-theme="dark"] {
   --color-components-card-cover-bg: rgba(255, 255, 255, 0.05);
 
   /* ===== 侧边栏组件 ===== */
-  --color-components-sidebar-bg: rgba(18, 18, 18, 0.98);
-  --color-components-sidebar-border: rgba(255, 255, 255, 0.08);
+  --color-components-sidebar-bg: rgba(22, 22, 24, 0.98);
+  --color-components-sidebar-border: rgba(255, 255, 255, 0.10);
   --color-components-sidebar-item-bg: transparent;
-  --color-components-sidebar-item-bg-hover: rgba(255, 255, 255, 0.06);
+  --color-components-sidebar-item-bg-hover: rgba(255, 255, 255, 0.07);
   --color-components-sidebar-item-bg-active: rgba(99, 102, 241, 0.15);
   --color-components-sidebar-item-text: #a1a1aa;
   --color-components-sidebar-item-text-active: #818cf8;
   --color-components-sidebar-backdrop: blur(12px);
 
   /* ===== 导航组件 ===== */
-  --color-components-nav-bg: #1a1a1a;
-  --color-components-nav-border: rgba(255, 255, 255, 0.10);
+  --color-components-nav-bg: #161618;
+  --color-components-nav-border: rgba(255, 255, 255, 0.12);
   --color-components-nav-item-text: #a1a1aa;
   --color-components-nav-item-text-hover: #ffffff;
   --color-components-nav-item-text-active: #818cf8;
 
   /* ===== 下拉菜单组件 ===== */
-  --color-components-dropdown-bg: #1e1e1e;
-  --color-components-dropdown-border: rgba(255, 255, 255, 0.12);
+  --color-components-dropdown-bg: #202025;
+  --color-components-dropdown-border: rgba(255, 255, 255, 0.14);
   --color-components-dropdown-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
-  --color-components-dropdown-item-bg-hover: rgba(255, 255, 255, 0.06);
+  --color-components-dropdown-item-bg-hover: rgba(255, 255, 255, 0.07);
   --color-components-dropdown-item-text: #ffffff;
 
   /* ===== 模型选择器组件 ===== */
-  --color-components-model-selector-dropdown-bg: #1e1e1e;
-  --color-components-model-selector-dropdown-border: rgba(255, 255, 255, 0.12);
+  --color-components-model-selector-dropdown-bg: #202025;
+  --color-components-model-selector-dropdown-border: rgba(255, 255, 255, 0.14);
   --color-components-model-selector-dropdown-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
-  --color-components-model-selector-search-bg: rgba(255, 255, 255, 0.06);
-  --color-components-model-selector-search-border: rgba(255, 255, 255, 0.12);
+  --color-components-model-selector-search-bg: rgba(255, 255, 255, 0.07);
+  --color-components-model-selector-search-border: rgba(255, 255, 255, 0.14);
   --color-components-model-selector-search-text: #f9fafb;
-  --color-components-model-selector-provider-header-bg: rgba(255, 255, 255, 0.04);
-  --color-components-model-selector-provider-header-border: rgba(255, 255, 255, 0.10);
+  --color-components-model-selector-provider-header-bg: rgba(255, 255, 255, 0.05);
+  --color-components-model-selector-provider-header-border: rgba(255, 255, 255, 0.12);
   --color-components-model-selector-provider-header-text: #ffffff;
-  --color-components-model-selector-item-bg: #1e1e1e;
-  --color-components-model-selector-item-border: rgba(255, 255, 255, 0.10);
+  --color-components-model-selector-item-bg: #202025;
+  --color-components-model-selector-item-border: rgba(255, 255, 255, 0.12);
   --color-components-model-selector-item-text: #ffffff;
-  --color-components-model-selector-item-bg-hover: rgba(255, 255, 255, 0.06);
+  --color-components-model-selector-item-bg-hover: rgba(255, 255, 255, 0.07);
   --color-components-model-selector-item-bg-selected: rgba(99, 102, 241, 0.15);
   --color-components-model-selector-item-text-selected: #818cf8;
   --color-components-model-selector-overlay-bg: rgba(0, 0, 0, 0.6);
@@ -173,23 +173,23 @@ html[data-theme="dark"] {
   --color-chat-bubble-user-text: #ffffff;
 
   /* ===== 模态框组件 ===== */
-  --color-components-modal-bg: #1e1e1e;
+  --color-components-modal-bg: #202025;
   --color-components-modal-overlay: rgba(0, 0, 0, 0.75);
-  --color-components-modal-border: rgba(255, 255, 255, 0.12);
+  --color-components-modal-border: rgba(255, 255, 255, 0.14);
   --color-components-modal-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
 
   /* ===== 表格组件 ===== */
-  --color-components-table-bg: #1a1a1a;
-  --color-components-table-border: rgba(255, 255, 255, 0.10);
-  --color-components-table-header-bg: #141414;
-  --color-components-table-row-bg-hover: rgba(255, 255, 255, 0.05);
+  --color-components-table-bg: #1c1e22;
+  --color-components-table-border: rgba(255, 255, 255, 0.12);
+  --color-components-table-header-bg: #17191d;
+  --color-components-table-row-bg-hover: rgba(255, 255, 255, 0.06);
   --color-components-table-row-bg-selected: rgba(99, 102, 241, 0.15);
 
   /* ===== 交互状态 ===== */
-  --color-state-hover: rgba(255, 255, 255, 0.06);
-  --color-state-active: rgba(255, 255, 255, 0.12);
+  --color-state-hover: rgba(255, 255, 255, 0.07);
+  --color-state-active: rgba(255, 255, 255, 0.14);
   --color-state-focus: #818cf8;
-  --color-state-disabled: rgba(255, 255, 255, 0.05);
+  --color-state-disabled: rgba(255, 255, 255, 0.06);
   --color-state-success: #22c55e;
   --color-state-warning: #f59e0b;
   --color-state-error: #ef4444;
@@ -213,17 +213,17 @@ html[data-theme="dark"] {
   --color-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
 
   /* ===== 表单控件 ===== */
-  --color-components-checkbox-bg: rgba(255, 255, 255, 0.05);
+  --color-components-checkbox-bg: rgba(255, 255, 255, 0.06);
   --color-components-checkbox-bg-checked: #3b82f6;
   --color-components-checkbox-border: #4b5563;
   --color-components-checkbox-border-checked: #3b82f6;
   --color-components-checkbox-icon: #ffffff;
-  --color-components-radio-bg: rgba(255, 255, 255, 0.05);
-  --color-components-radio-bg-checked: rgba(255, 255, 255, 0.05);
+  --color-components-radio-bg: rgba(255, 255, 255, 0.06);
+  --color-components-radio-bg-checked: rgba(255, 255, 255, 0.06);
   --color-components-radio-border: #4b5563;
   --color-components-radio-border-checked: #3b82f6;
   --color-components-radio-dot: #3b82f6;
-  --color-components-select-bg: rgba(255, 255, 255, 0.05);
+  --color-components-select-bg: rgba(255, 255, 255, 0.06);
   --color-components-select-border: #4b5563;
   --color-components-select-border-focus: #3b82f6;
   --color-components-select-text: #f9fafb;
@@ -234,17 +234,17 @@ html[data-theme="dark"] {
   --color-components-switch-thumb-checked: #ffffff;
 
   /* ===== 滚动条系统 ===== */
-  --color-components-scrollbar-track: rgba(255, 255, 255, 0.05);
-  --color-components-scrollbar-thumb: rgba(255, 255, 255, 0.2);
-  --color-components-scrollbar-thumb-hover: rgba(255, 255, 255, 0.3);
+  --color-components-scrollbar-track: rgba(255, 255, 255, 0.06);
+  --color-components-scrollbar-thumb: rgba(255, 255, 255, 0.24);
+  --color-components-scrollbar-thumb-hover: rgba(255, 255, 255, 0.34);
 
   /* ===== 对话框和覆盖层 ===== */
-  --color-components-dialog-bg: #1e293b;
-  --color-components-dialog-border: #475569;
+  --color-components-dialog-bg: #20252d;
+  --color-components-dialog-border: rgba(255, 255, 255, 0.14);
   --color-components-dialog-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
   --color-components-dialog-overlay: rgba(0, 0, 0, 0.75);
-  --color-components-popover-bg: #1e293b;
-  --color-components-popover-border: #475569;
+  --color-components-popover-bg: #20252d;
+  --color-components-popover-border: rgba(255, 255, 255, 0.14);
   --color-components-popover-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
   --color-components-tooltip-bg: #0f172a;
   --color-components-tooltip-text: #ffffff;
@@ -256,8 +256,8 @@ html[data-theme="dark"] {
 
   /* ===== 导航和标签 ===== */
   --color-components-tabs-border: #475569;
-  --color-components-tabs-bg: rgba(255, 255, 255, 0.05);
-  --color-components-tabs-active-bg: rgba(255, 255, 255, 0.1);
+  --color-components-tabs-bg: rgba(255, 255, 255, 0.06);
+  --color-components-tabs-active-bg: rgba(255, 255, 255, 0.11);
   --color-components-tabs-active-text: #60a5fa;
   --color-components-tabs-inactive-text: #cbd5e1;
   --color-components-breadcrumb-text: #cbd5e1;
@@ -348,14 +348,14 @@ html[data-theme="dark"] {
   --color-components-canvas-node-bg: #202025;
   --color-components-canvas-node-border: rgba(255, 255, 255, 0.1);
   --color-components-canvas-node-border-hover: rgba(255, 255, 255, 0.15);
-  --color-components-canvas-node-border-selected: #00BEB4;
+  --color-components-canvas-node-border-selected: #818cf8;
   --color-components-canvas-node-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   --color-components-canvas-edge-stroke: rgb(113, 113, 122);
   --color-components-canvas-edge-stroke-hover: rgb(161, 161, 170);
-  --color-components-canvas-edge-stroke-selected: #00BEB4;
+  --color-components-canvas-edge-stroke-selected: #818cf8;
   --color-components-canvas-edge-marker: rgb(113, 113, 122);
-  --color-components-canvas-edge-marker-selected: #00BEB4;
-  --color-components-canvas-handle-bg: #00BEB4;
+  --color-components-canvas-edge-marker-selected: #818cf8;
+  --color-components-canvas-handle-bg: #818cf8;
   --color-components-canvas-handle-border: #202025;
   --color-components-canvas-handle-icon: #ffffff;
   --color-components-canvas-toolbar-bg: #202025;
@@ -673,46 +673,46 @@ html[data-theme="dark"] {
   --color-components-gradient-secondary: linear-gradient(135deg, #f0abfc 0%, #f472b6 100%);
   --color-components-gradient-accent: linear-gradient(135deg, #67e8f9 0%, #22d3ee 100%);
   --color-components-app-shell-bg: #09090b;
-  --color-components-app-shell-surface: #111214;
-  --color-components-app-shell-border: rgba(255, 255, 255, 0.08);
+  --color-components-app-shell-surface: #15181c;
+  --color-components-app-shell-border: rgba(255, 255, 255, 0.10);
   --color-components-app-shell-shadow: 0 24px 48px -24px rgba(0, 0, 0, 0.6);
-  --color-components-main-workbench-bg: #0f1012;
-  --color-components-main-workbench-surface: #121416;
-  --color-components-main-workbench-border: rgba(255, 255, 255, 0.08);
+  --color-components-main-workbench-bg: #111317;
+  --color-components-main-workbench-surface: #181b20;
+  --color-components-main-workbench-border: rgba(255, 255, 255, 0.10);
   --color-components-main-workbench-shadow: 0 24px 48px -24px rgba(0, 0, 0, 0.65);
-  --color-components-page-header-bg: rgba(18, 20, 22, 0.96);
-  --color-components-page-header-border: rgba(255, 255, 255, 0.08);
+  --color-components-page-header-bg: rgba(22, 22, 24, 0.94);
+  --color-components-page-header-border: rgba(255, 255, 255, 0.10);
   --color-components-page-header-title: #ffffff;
   --color-components-page-header-description: #a1a1aa;
-  --color-components-page-toolbar-bg: rgba(18, 20, 22, 0.94);
-  --color-components-page-toolbar-border: rgba(255, 255, 255, 0.08);
+  --color-components-page-toolbar-bg: rgba(22, 22, 24, 0.92);
+  --color-components-page-toolbar-border: rgba(255, 255, 255, 0.10);
   --color-components-page-toolbar-text: #a1a1aa;
-  --color-components-page-state-bg: #18181b;
-  --color-components-page-state-border: rgba(255, 255, 255, 0.08);
-  --color-components-page-state-icon-bg: rgba(255, 255, 255, 0.06);
+  --color-components-page-state-bg: #202025;
+  --color-components-page-state-border: rgba(255, 255, 255, 0.10);
+  --color-components-page-state-icon-bg: rgba(255, 255, 255, 0.07);
   --color-components-page-state-icon: #33D4CB;
   --color-components-page-state-title: #ffffff;
   --color-components-page-state-description: #a1a1aa;
-  --color-components-settings-rail-bg: #121212;
-  --color-components-settings-rail-border: rgba(255, 255, 255, 0.08);
+  --color-components-settings-rail-bg: #161618;
+  --color-components-settings-rail-border: rgba(255, 255, 255, 0.10);
   --color-components-settings-rail-title: #ffffff;
   --color-components-settings-rail-description: #a1a1aa;
   --color-components-settings-rail-section-text: #6b7280;
-  --color-components-console-bg: #0a0a0a;
-  --color-components-console-surface: #121212;
-  --color-components-console-border: rgba(255, 255, 255, 0.08);
-  --color-components-workspace-bg: #0b0c0f;
-  --color-components-workspace-surface: #121212;
-  --color-components-workspace-border: rgba(255, 255, 255, 0.08);
-  --color-components-studio-bg: #090b10;
-  --color-components-studio-surface: #121418;
-  --color-components-studio-border: rgba(255, 255, 255, 0.08);
-  --color-components-split-pane-bg: #0a0c10;
-  --color-components-split-pane-surface: #121212;
-  --color-components-split-pane-border: rgba(255, 255, 255, 0.08);
-  --color-components-settings-content-bg: #0a0a0a;
-  --color-components-settings-section-bg: #18181b;
-  --color-components-settings-section-border: rgba(255, 255, 255, 0.08);
+  --color-components-console-bg: #121417;
+  --color-components-console-surface: #181b20;
+  --color-components-console-border: rgba(255, 255, 255, 0.10);
+  --color-components-workspace-bg: #121417;
+  --color-components-workspace-surface: #181b20;
+  --color-components-workspace-border: rgba(255, 255, 255, 0.10);
+  --color-components-studio-bg: #101317;
+  --color-components-studio-surface: #181c21;
+  --color-components-studio-border: rgba(255, 255, 255, 0.10);
+  --color-components-split-pane-bg: #111419;
+  --color-components-split-pane-surface: #181b20;
+  --color-components-split-pane-border: rgba(255, 255, 255, 0.10);
+  --color-components-settings-content-bg: #121417;
+  --color-components-settings-section-bg: #202025;
+  --color-components-settings-section-border: rgba(255, 255, 255, 0.10);
   --color-components-settings-section-title: #ffffff;
   --color-components-settings-section-description: #a1a1aa;
   --color-components-settings-user-role-bg: rgba(0, 190, 180, 0.15);

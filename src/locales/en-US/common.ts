@@ -51,6 +51,9 @@ export default {
     createTime: 'Created',
     updateTime: 'Updated',
     
+    // Input hints
+    pleaseInput: 'Please input',
+
     // Others
     name: 'Name',
     description: 'Description',

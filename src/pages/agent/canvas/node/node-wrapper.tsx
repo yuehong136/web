@@ -14,12 +14,13 @@ export const NodeWrapper = forwardRef<HTMLDivElement, NodeWrapperProps>(
   ({ children, selected, className, id }, ref) => {
   const { currentSendLoading, startButNotFinishedNodeIds = [] } =
     useContext(AgentInstanceContext)
+
   return (
     <div
       ref={ref}
       className={cn(
-        'relative w-[200px] bg-surface-primary p-space-sm rounded-radius-md border border-border-primary text-xs group hover:shadow-elevation-medium',
-        selected && 'border-border-accent',
+        'group relative w-[208px] rounded-radius-lg border border-border-subtle bg-components-studio-surface px-space-base py-space-base text-xs shadow-elevation-low transition-[border-color]',
+        { 'border-[var(--color-components-canvas-node-border-selected)]': selected },
         className,
       )}
     >
