@@ -51,8 +51,11 @@ export const DropzoneArea = memo(function DropzoneArea({
     >
       {({ getRootProps, getInputProps, isDragActive, isDragReject }) => (
         <div
-          {...getRootProps()}
-          onClick={isFolderMode ? (e) => { e.stopPropagation(); onFolderClick?.() } : undefined}
+          {...getRootProps(
+            isFolderMode
+              ? { onClick: (e) => { e.stopPropagation(); onFolderClick?.() } }
+              : undefined,
+          )}
           className={cn(
             "relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed transition-all duration-500 cursor-pointer overflow-hidden",
             dropzoneHeight,
