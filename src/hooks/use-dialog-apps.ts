@@ -103,7 +103,7 @@ export const useSetDialogApp = () => {
         prompt_config: data.prompt_config || {
           system: '你是一个智能助手，请提供有帮助的回答。',
           prologue: '您好，我是您的助手！',
-          empty_response: '抱歉，我无法回答这个问题。',
+          empty_response: '',
           parameters: []
         },
         kb_ids: data.kb_ids || []

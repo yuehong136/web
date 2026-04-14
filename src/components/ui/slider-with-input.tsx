@@ -98,9 +98,9 @@ export const SliderWithInput: React.FC<SliderWithInputProps> = ({
   const displayPrecision = step < 1 ? precision : 0
 
   return (
-    <div className={cn('space-y-2', className)}>
+    <div className={cn('space-y-space-sm', className)}>
       {/* 标签行 */}
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-space-xs">
         <span 
           className="text-sm font-medium"
           style={{ color: 'var(--color-text-primary)' }}
@@ -125,7 +125,7 @@ export const SliderWithInput: React.FC<SliderWithInputProps> = ({
       </div>
 
       {/* 控件行：开关 + 滑块 + 输入框 */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-space-base">
         {/* 开关 */}
         {showSwitch && (
           <Switch
@@ -160,7 +160,7 @@ export const SliderWithInput: React.FC<SliderWithInputProps> = ({
             disabled={disabled}
             style={{ width: inputWidth }}
             className={cn(
-              'h-8 rounded-md border border-border bg-background px-2 text-center text-sm',
+              'h-9 rounded-radius-md border border-border bg-background px-space-sm text-center text-sm',
               'focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary',
               '[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none',
               disabled && 'opacity-50 cursor-not-allowed'
@@ -171,58 +171,5 @@ export const SliderWithInput: React.FC<SliderWithInputProps> = ({
     </div>
   )
 }
-
-/**
- * 预设的参数配置（与 LLMParameterControl 保持一致）
- */
-export const SLIDER_PRESETS = {
-  temperature: {
-    label: 'Temperature',
-    tooltip: '控制输出的随机性，值越高越有创意',
-    min: 0,
-    max: 2,
-    step: 0.01,
-    default: 0.5,
-    precision: 2,
-  },
-  topP: {
-    label: 'Top P',
-    tooltip: '核采样参数，控制输出的多样性',
-    min: 0,
-    max: 1,
-    step: 0.01,
-    default: 0.85,
-    precision: 2,
-  },
-  presencePenalty: {
-    label: 'Presence Penalty',
-    tooltip: '降低重复主题的可能性',
-    min: 0,
-    max: 2,
-    step: 0.01,
-    default: 0.2,
-    precision: 2,
-  },
-  frequencyPenalty: {
-    label: 'Frequency Penalty',
-    tooltip: '降低重复用词的可能性',
-    min: 0,
-    max: 2,
-    step: 0.01,
-    default: 0.3,
-    precision: 2,
-  },
-  maxTokens: {
-    label: 'Max Tokens',
-    tooltip: '限制单次回复的最大 token 数量',
-    min: 1,
-    max: 128000,
-    step: 1,
-    default: 4096,
-    inputOnly: true,
-    inputWidth: 100,
-    precision: 0,
-  },
-} as const
 
 export default SliderWithInput
