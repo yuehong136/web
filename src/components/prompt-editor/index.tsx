@@ -62,7 +62,7 @@ function PromptContent({
   onBlur,
 }: PromptContentProps) {
   const [editor] = useLexicalComposerContext()
-  const [isBlur, setIsBlur] = useState(false)
+  const [isFocused, setIsFocused] = useState(false)
   const { t } = useTranslation()
 
   const insertTextAtCursor = useCallback(() => {
@@ -87,26 +87,30 @@ function PromptContent({
   }, [insertTextAtCursor])
 
   const handleBlur = useCallback(() => {
-    setIsBlur(true)
+    setIsFocused(false)
     onBlur?.()
   }, [onBlur])
 
   const handleFocus = useCallback(() => {
-    setIsBlur(false)
+    setIsFocused(true)
   }, [])
 
   return (
     <section
       className={cn(
-        'overflow-hidden rounded-radius-lg border border-border-primary bg-surface-primary transition-colors',
-        { 'border-[var(--color-components-system-accent-border)]': !isBlur },
+        'overflow-hidden rounded-radius-lg border bg-surface-primary transition-[border-color,box-shadow]',
+        isFocused
+          ? 'border-components-system-accent-border ring-1 ring-components-system-accent-border'
+          : 'border-border-primary',
       )}
     >
       {showToolbar && (
         <div
           className={cn(
-            'flex items-center justify-between gap-space-sm border-b border-border-primary px-space-sm py-space-sm transition-colors',
-            { 'border-[var(--color-components-system-accent-border)]': !isBlur },
+            'flex items-center justify-between gap-space-sm border-b px-space-sm py-space-sm transition-colors',
+            isFocused
+              ? 'border-components-system-accent-border'
+              : 'border-border-primary',
           )}
         >
           <div className="min-w-0">

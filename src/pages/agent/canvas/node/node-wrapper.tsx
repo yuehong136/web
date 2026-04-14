@@ -19,10 +19,18 @@ export const NodeWrapper = forwardRef<HTMLDivElement, NodeWrapperProps>(
     <div
       ref={ref}
       className={cn(
-        'group relative w-[208px] rounded-radius-lg border border-border-subtle bg-components-studio-surface px-space-base py-space-base text-xs shadow-elevation-low transition-[border-color]',
-        { 'border-[var(--color-components-canvas-node-border-selected)]': selected },
+        'group relative w-[208px] rounded-radius-lg border border-border-subtle bg-components-studio-surface px-space-base py-space-base text-xs shadow-elevation-low transition-[border-color,outline-color]',
         className,
       )}
+      style={
+        selected
+          ? {
+              borderColor: 'var(--color-components-canvas-node-border-selected)',
+              outline: '2px solid var(--color-components-canvas-node-border-selected)',
+              outlineOffset: '-1px',
+            }
+          : undefined
+      }
     >
       {id &&
         startButNotFinishedNodeIds.indexOf(id) > -1 &&

@@ -836,7 +836,7 @@ export const lightTokens: DesignTokens = {
 
   // ===== 系统状态页面专用 =====
   'components-system-accent-bg': 'rgba(0, 190, 180, 0.12)',
-  'components-system-accent-border': '#33D4CB',
+  'components-system-accent-border': '#00BEB4',
   'components-system-accent-text': '#00BEB4',
   'components-system-accent-soft': 'rgba(0, 190, 180, 0.06)',
   'components-system-page-bg': '#f9fafb',

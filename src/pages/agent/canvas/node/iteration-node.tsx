@@ -21,9 +21,17 @@ export function InnerIterationNode({
     <ToolBar selected={selected} id={id} label={data.label} showRun={false}>
       <section
         className={cn(
-          'h-full bg-transparent rounded-radius-md group border border-border-primary border-t-0',
-          { 'border-[var(--color-components-canvas-node-border-selected)]': selected },
+          'h-full bg-transparent rounded-radius-md group border border-border-primary border-t-0 transition-[border-color,outline-color]',
         )}
+        style={
+          selected
+            ? {
+                borderColor: 'var(--color-components-canvas-node-border-selected)',
+                outline: '2px solid var(--color-components-canvas-node-border-selected)',
+                outlineOffset: '-1px',
+              }
+            : undefined
+        }
       >
         <NodeResizeControl style={controlStyle} minWidth={100} minHeight={50}>
           <ResizeIcon />
@@ -40,10 +48,12 @@ export function InnerIterationNode({
           id={id}
           name={data.name}
           label={data.label}
-          wrapperClassName={cn(
-            'bg-surface-secondary p-space-sm rounded-radius-md absolute w-full -top-9 left-0 border-x border-t border-border-primary',
-            { 'border-[var(--color-components-canvas-node-border-selected)]': selected },
-          )}
+          wrapperClassName="bg-surface-secondary p-space-sm rounded-radius-md absolute w-full -top-9 left-0 border-x border-t border-border-primary transition-colors"
+          wrapperStyle={
+            selected
+              ? { borderColor: 'var(--color-components-canvas-node-border-selected)' }
+              : undefined
+          }
         />
       </section>
     </ToolBar>

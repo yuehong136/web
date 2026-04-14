@@ -63,11 +63,19 @@ export function LabeledGroupNode({
   return (
     <div
       className={cn(
-        'h-full w-full rounded-radius-sm border border-border-primary bg-surface-secondary opacity-70',
-        { 'border-[var(--color-components-canvas-node-border-selected)]': selected },
+        'h-full w-full rounded-radius-sm border border-border-primary bg-surface-secondary opacity-70 transition-[border-color,outline-color]',
         className,
       )}
-      style={style}
+      style={{
+        ...style,
+        ...(selected
+          ? {
+              borderColor: 'var(--color-components-canvas-node-border-selected)',
+              outline: '2px solid var(--color-components-canvas-node-border-selected)',
+              outlineOffset: '-1px',
+            }
+          : {}),
+      }}
     >
       {labelText && (
         <Panel className="m-0 p-0" position={position}>
