@@ -309,6 +309,14 @@ test('high-risk rebuilt operators serialize UI-only form state back to backend r
       ((dsl.components['splitter-1']?.obj.params as Record<string, unknown>) || {}),
     false,
   )
+  const splitterParamsFull = (dsl.components['splitter-1']?.obj.params ||
+    {}) as Record<string, unknown>
+  assert.equal('table_context_size' in splitterParamsFull, false)
+  assert.equal('image_context_size' in splitterParamsFull, false)
+  assert.equal(
+    typeof splitterParamsFull.image_table_context_window,
+    'number',
+  )
   assert.deepEqual(
     mergerParams.levels?.slice(0, 2),
     [['^#[^#]'], ['^##[^#]']],
@@ -320,6 +328,12 @@ test('high-risk rebuilt operators serialize UI-only form state back to backend r
       type: 'Array<string>',
     },
   })
+  assert.equal(
+    'output_items' in
+      ((dsl.components['iteration-1']?.obj.params as Record<string, unknown>) ||
+        {}),
+    false,
+  )
   assert.deepEqual(aggregatorParams.groups, [
     {
       group_name: 'documents',

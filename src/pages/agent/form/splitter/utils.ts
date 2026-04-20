@@ -50,22 +50,26 @@ function toNumber(value: unknown, fallback = 0) {
   return fallback
 }
 
+function resolveContextWindow(form: Record<string, unknown>) {
+  if (form.image_table_context_window !== undefined) {
+    return toNumber(form.image_table_context_window, 0)
+  }
+
+  const table = toNumber(form.table_context_size, 0)
+  const image = toNumber(form.image_context_size, 0)
+  return Math.max(table, image)
+}
+
 export function normalizeSplitterFormForStore(
   form: Record<string, unknown> = {},
 ) {
   const childrenDelimiters = normalizeDelimiterItems(form.children_delimiters)
-  const imageTableContextWindow = toNumber(form.image_table_context_window)
-  const tableContextSize = toNumber(
-    form.table_context_size,
-    imageTableContextWindow,
-  )
-  const imageContextSize = toNumber(
-    form.image_context_size,
-    imageTableContextWindow,
-  )
+  const rest = { ...form }
+  delete rest.table_context_size
+  delete rest.image_context_size
 
   return {
-    ...form,
+    ...rest,
     outputs: splitterOutputs,
     chunk_token_size: toNumber(form.chunk_token_size, 512),
     overlapped_percent: toNumber(form.overlapped_percent, 0),
@@ -75,8 +79,7 @@ export function normalizeSplitterFormForStore(
         ? form.enable_children
         : childrenDelimiters.length > 0,
     children_delimiters: childrenDelimiters,
-    table_context_size: tableContextSize,
-    image_context_size: imageContextSize,
+    image_table_context_window: resolveContextWindow(form),
   }
 }
 
@@ -100,7 +103,6 @@ export function serializeSplitterFormForDsl(
     outputs: splitterOutputs,
     delimiters,
     children_delimiters: childrenDelimiters,
-    table_context_size: toNumber(nextForm.table_context_size),
-    image_context_size: toNumber(nextForm.image_context_size),
+    image_table_context_window: toNumber(nextForm.image_table_context_window),
   }
 }

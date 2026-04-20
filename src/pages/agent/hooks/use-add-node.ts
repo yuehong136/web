@@ -56,7 +56,12 @@ import {
   initialExtractorValues,
 } from '../constant'
 import useGraphStore from '../store'
-import { generateNodeNamesWithIncreasingIndex, getNodeDragHandle } from '../utils'
+import type { RAGFlowNodeType } from '../types'
+import {
+  generateNodeNamesWithIncreasingIndex,
+  getNodeDragHandle,
+  getRelativePositionToIterationNode,
+} from '../utils'
 
 export const useInitializeOperatorParams = () => {
   const initialFormValuesMap = useMemo(() => {
@@ -157,10 +162,46 @@ type CanvasMouseEvent = Pick<
   'clientX' | 'clientY'
 >
 
+const ITERATION_DEFAULT_SIZE = { width: 500, height: 250 }
+const ITERATION_START_OFFSET = { x: 24, y: 108 }
+
 export function useAddNode(reactFlowInstance?: ReactFlowInstance<any, any>) {
-  const { nodes, addEdge, addNode } = useGraphStore((state) => state)
+  const { nodes, addEdge, addNode, getNode, getParentIdById, resizeIterationContainer } =
+    useGraphStore((state) => state)
   const getNodeName = useGetNodeName()
   const { initializeOperatorParams } = useInitializeOperatorParams()
+
+  const resolveParentContext = useCallback(
+    (
+      type: string,
+      sourceNodeId: string | undefined,
+      absPosition: { x: number; y: number } | undefined,
+    ) => {
+      const isIteration =
+        type === Operator.Iteration || type === Operator.Loop
+      if (isIteration || !absPosition) return undefined
+
+      if (sourceNodeId) {
+        const sourceParentId = getParentIdById(sourceNodeId)
+        if (sourceParentId) {
+          const parent = getNode(sourceParentId)
+          if (parent) {
+            const halfW = (parent.width || 0) / 2
+            return {
+              parentId: sourceParentId,
+              position: {
+                x: absPosition.x - parent.position.x + halfW,
+                y: absPosition.y - parent.position.y,
+              },
+            }
+          }
+        }
+      }
+
+      return getRelativePositionToIterationNode(nodes, absPosition)
+    },
+    [getNode, getParentIdById, nodes],
+  )
 
   const addCanvasNode = useCallback(
     (
@@ -175,16 +216,24 @@ export function useAddNode(reactFlowInstance?: ReactFlowInstance<any, any>) {
       },
     ) =>
       (event?: CanvasMouseEvent): string | undefined => {
-        let position = reactFlowInstance?.screenToFlowPosition({
+        const absPosition = reactFlowInstance?.screenToFlowPosition({
           x: event?.clientX || 0,
           y: event?.clientY || 0,
         })
 
+        const isIteration =
+          type === Operator.Iteration || type === Operator.Loop
+
+        const parentCtx = resolveParentContext(type, params.nodeId, absPosition)
+
         const newNode = {
           id: `${type}:${humanId()}`,
           type: NodeMap[type as Operator] || 'ragNode',
-          position: position || { x: 0, y: 0 },
+          position: parentCtx?.position || absPosition || { x: 0, y: 0 },
           draggable: type === Operator.Placeholder ? false : undefined,
+          ...(parentCtx
+            ? { parentId: parentCtx.parentId, extent: 'parent' as const }
+            : {}),
           data: {
             label: type,
             name: generateNodeNamesWithIncreasingIndex(getNodeName(type), nodes),
@@ -193,11 +242,42 @@ export function useAddNode(reactFlowInstance?: ReactFlowInstance<any, any>) {
           sourcePosition: Position.Right,
           targetPosition: Position.Left,
           dragHandle: getNodeDragHandle(type),
-        }
+          ...(isIteration
+            ? {
+                width: ITERATION_DEFAULT_SIZE.width,
+                height: ITERATION_DEFAULT_SIZE.height,
+                style: { ...ITERATION_DEFAULT_SIZE },
+              }
+            : {}),
+        } as unknown as RAGFlowNodeType
 
         addNode(newNode)
 
-        // 如果是从连接拖拽创建的，自动连接
+        if (parentCtx) {
+          resizeIterationContainer(parentCtx.parentId)
+        }
+
+        if (isIteration) {
+          const startType =
+            type === Operator.Loop ? Operator.LoopStart : Operator.IterationStart
+          const startNode = {
+            id: `${startType}:${humanId()}`,
+            type: NodeMap[startType as Operator] || 'iterationStartNode',
+            position: { ...ITERATION_START_OFFSET },
+            parentId: newNode.id,
+            extent: 'parent' as const,
+            draggable: false,
+            data: {
+              label: startType,
+              name: startType,
+              form: initializeOperatorParams(startType as Operator) || {},
+            },
+            sourcePosition: Position.Right,
+            targetPosition: Position.Left,
+          } as unknown as RAGFlowNodeType
+          addNode(startNode)
+        }
+
         if (params.nodeId && params.id) {
           addEdge({
             source: params.nodeId,
@@ -216,6 +296,8 @@ export function useAddNode(reactFlowInstance?: ReactFlowInstance<any, any>) {
       initializeOperatorParams,
       nodes,
       reactFlowInstance,
+      resolveParentContext,
+      resizeIterationContainer,
     ],
   )
 

@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Form,
   FormControl,
@@ -6,20 +6,32 @@ import {
   FormItem,
   FormLabel,
 } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Plus } from 'lucide-react'
 import { memo, useMemo } from 'react'
-import { useFieldArray, useForm, useWatch } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
 import { BeginQueryType, initialUserFillUpValues } from '../../constant'
 import { useFormValues } from '../../hooks/use-form-values'
 import { useWatchFormChange } from '../../hooks/use-watch-form-change'
 import type { INextOperatorForm } from '../../types'
-import { FormWrapper, Output } from '../components'
-import { InputItemCard } from './components/input-item-card'
+import {
+  CompactRecordList,
+  CompactRecordRow,
+  FormWrapper,
+  Output,
+  RecordAdvancedPanel,
+} from '../components'
 import type { UserFillUpFormValues, UserFillUpInputItem } from './types'
 
 const userFillUpSchema = z.object({
@@ -37,13 +49,11 @@ const userFillUpSchema = z.object({
     .optional(),
 })
 
-function createUserFillUpInput(): UserFillUpInputItem {
-  return {
-    name: '',
-    type: BeginQueryType.Line,
-    value: '',
-    optional: false,
-  }
+const defaultInput: UserFillUpInputItem = {
+  name: '',
+  type: BeginQueryType.Line,
+  value: '',
+  optional: false,
 }
 
 export const UserFillUpForm = memo(function UserFillUpForm({
@@ -58,11 +68,6 @@ export const UserFillUpForm = memo(function UserFillUpForm({
   })
 
   useWatchFormChange(node?.id, form)
-
-  const { fields, append, remove } = useFieldArray({
-    name: 'inputs',
-    control: form.control,
-  })
 
   const inputs = useWatch({ control: form.control, name: 'inputs' })
 
@@ -107,30 +112,101 @@ export const UserFillUpForm = memo(function UserFillUpForm({
           )}
         />
 
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <FormLabel>{t('flow.input', 'Inputs')}</FormLabel>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={() => append(createUserFillUpInput())}
+        <CompactRecordList
+          name="inputs"
+          label={t('flow.input', 'Inputs')}
+          addLabel={t('common.add', 'Add')}
+          emptyLabel={t('flow.noInputs', 'No inputs yet')}
+          defaultValue={defaultInput}
+        >
+          {({ field, index, ctx }) => (
+            <CompactRecordRow
+              key={field.id}
+              onRemove={() => ctx.remove(index)}
+              advanced={
+                <RecordAdvancedPanel>
+                  <FormField
+                    control={form.control}
+                    name={`inputs.${index}.value`}
+                    render={({ field: inputField }) => (
+                      <FormItem>
+                        <FormLabel>{t('flow.defaultValue', 'Default')}</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...inputField}
+                            value={inputField.value ?? ''}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </RecordAdvancedPanel>
+              }
             >
-              <Plus className="size-4" />
-            </Button>
-          </div>
-
-          <div className="space-y-3">
-            {fields.map((field, index) => (
-              <InputItemCard
-                key={field.id}
+              <FormField
                 control={form.control}
-                index={index}
-                onRemove={() => remove(index)}
+                name={`inputs.${index}.name`}
+                render={({ field: inputField }) => (
+                  <FormItem className="flex-[2_1_0] min-w-0">
+                    <FormControl>
+                      <Input
+                        {...inputField}
+                        value={inputField.value ?? ''}
+                        placeholder={t('flow.name', 'Name')}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
               />
-            ))}
-          </div>
-        </div>
+
+              <FormField
+                control={form.control}
+                name={`inputs.${index}.type`}
+                render={({ field: inputField }) => (
+                  <FormItem className="flex-[1_1_0] min-w-0">
+                    <FormControl>
+                      <Select
+                        value={inputField.value}
+                        onValueChange={inputField.onChange}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.values(BeginQueryType).map((value) => (
+                            <SelectItem key={value} value={value}>
+                              {t(`flow.${value}`, value)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name={`inputs.${index}.optional`}
+                render={({ field: inputField }) => (
+                  <FormItem className="flex items-center gap-space-xs">
+                    <FormControl>
+                      <Checkbox
+                        checked={!!inputField.value}
+                        onCheckedChange={(value) =>
+                          inputField.onChange(Boolean(value))
+                        }
+                      />
+                    </FormControl>
+                    <FormLabel className="text-xs text-text-secondary">
+                      {t('flow.optional', 'Optional')}
+                    </FormLabel>
+                  </FormItem>
+                )}
+              />
+            </CompactRecordRow>
+          )}
+        </CompactRecordList>
 
         <Output list={outputList} />
       </FormWrapper>

@@ -89,6 +89,7 @@ export type RFState = {
   findAgentToolNodeById: (id: string | null) => string | undefined
   selectNodeIds: (nodeIds: string[]) => void
   hasChildNode: (nodeId: string) => boolean
+  resizeIterationContainer: (parentId: string) => void
 }
 
 const useGraphStore = create<RFState>()(
@@ -545,6 +546,42 @@ const useGraphStore = create<RFState>()(
     hasChildNode: (nodeId) => {
       const { edges } = get()
       return edges.some((edge) => edge.source === nodeId)
+    },
+
+    resizeIterationContainer: (parentId) => {
+      const { nodes, updateNode, getNode } = get()
+      const parent = getNode(parentId)
+      if (!parent) return
+
+      const children = nodes.filter((n) => n.parentId === parentId)
+      if (children.length === 0) return
+
+      const NODE_ESTIMATED_W = 220
+      const NODE_ESTIMATED_H = 90
+      const PADDING = 60
+
+      const maxRight = Math.max(
+        ...children.map((c) => c.position.x + NODE_ESTIMATED_W),
+      )
+      const maxBottom = Math.max(
+        ...children.map((c) => c.position.y + NODE_ESTIMATED_H),
+      )
+
+      const neededWidth = maxRight + PADDING
+      const neededHeight = maxBottom + PADDING
+      const curWidth = parent.width || 500
+      const curHeight = parent.height || 250
+
+      if (neededWidth > curWidth || neededHeight > curHeight) {
+        const newWidth = Math.max(curWidth, neededWidth)
+        const newHeight = Math.max(curHeight, neededHeight)
+        updateNode({
+          ...parent,
+          width: newWidth,
+          height: newHeight,
+          style: { ...((parent.style || {}) as Record<string, unknown>), width: newWidth, height: newHeight },
+        })
+      }
     },
   })),
 )

@@ -74,6 +74,7 @@ export function buildGraphNode(
     type: options.type || definition?.nodeType || 'ragNode',
     position,
     parentId: options.parentId,
+    ...(options.parentId ? { extent: 'parent' as const } : {}),
     data: createDefaultNodeData(operator, {
       name: options.name || definition?.defaultName || operator,
       form: options.form,

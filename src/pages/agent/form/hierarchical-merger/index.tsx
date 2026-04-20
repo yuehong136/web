@@ -29,6 +29,22 @@ import type { INextOperatorForm } from '../../types'
 import { FormWrapper, Output, buildOutputList } from '../components'
 import { normalizeHierarchicalMergerFormForStore } from './utils'
 
+const expressionField = z.string().refine(
+  (value) => {
+    if (!value) {
+      return true
+    }
+
+    try {
+      new RegExp(value)
+      return true
+    } catch {
+      return false
+    }
+  },
+  { message: 'Must be a valid regular expression' },
+)
+
 const hierarchicalMergerSchema = z.object({
   hierarchy: z.string().optional(),
   levels: z
@@ -37,7 +53,7 @@ const hierarchicalMergerSchema = z.object({
         expressions: z
           .array(
             z.object({
-              expression: z.string().optional(),
+              expression: expressionField.optional(),
             }),
           )
           .optional(),

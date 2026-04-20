@@ -25,7 +25,14 @@ import { useBuildNodeOutputOptions } from '../../hooks/use-build-options'
 import { useFormValues } from '../../hooks/use-form-values'
 import { useWatchFormChange } from '../../hooks/use-watch-form-change'
 import type { INextOperatorForm } from '../../types'
-import { FormWrapper, Output, QueryVariable, buildOutputList } from '../components'
+import {
+  CompactRecordList,
+  CompactRecordRow,
+  FormWrapper,
+  Output,
+  QueryVariable,
+  buildOutputList,
+} from '../components'
 import {
   buildVariableAggregatorOutputs,
   normalizeVariableAggregatorGroups,
@@ -63,10 +70,6 @@ function VariableAggregatorGroupSection({
 }: VariableAggregatorGroupSectionProps) {
   const { t } = useTranslation()
   const form = useFormContext<VariableAggregatorFormValues>()
-  const variablesFieldArray = useFieldArray({
-    control,
-    name: `groups.${groupIndex}.variables`,
-  })
   const currentGroupType = form.watch(`groups.${groupIndex}.type`)
 
   return (
@@ -108,13 +111,21 @@ function VariableAggregatorGroupSection({
 
       <Separator />
 
-      <div className="space-y-space-sm">
-        {variablesFieldArray.fields.map((variableField, variableIndex) => (
-          <div key={variableField.id} className="flex items-start gap-space-sm">
+      <CompactRecordList
+        name={`groups.${groupIndex}.variables`}
+        addLabel={t('common.add', 'Add')}
+        emptyLabel={t('flow.noVariables', 'No variables yet')}
+        defaultValue={{ value: '' }}
+      >
+        {({ field, index: variableIndex, ctx }) => (
+          <CompactRecordRow
+            key={field.id}
+            onRemove={() => ctx.remove(variableIndex)}
+          >
             <QueryVariable
               name={`groups.${groupIndex}.variables.${variableIndex}.value`}
               hideLabel
-              className="flex-1"
+              className="flex-1 min-w-0"
               nodeId={nodeId}
               types={currentGroupType ? [currentGroupType] : []}
               onChange={(value) => {
@@ -128,32 +139,16 @@ function VariableAggregatorGroupSection({
                 if (variableIndex === 0) {
                   form.setValue(
                     `groups.${groupIndex}.type`,
-                    (selectedOption as { type?: string } | undefined)?.type || 'unknown',
+                    (selectedOption as { type?: string } | undefined)?.type ||
+                      'unknown',
                     { shouldDirty: true },
                   )
                 }
               }}
             />
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => variablesFieldArray.remove(variableIndex)}
-            >
-              <Trash2 className="size-4" />
-            </Button>
-          </div>
-        ))}
-      </div>
-
-      <Button
-        type="button"
-        variant="outline"
-        className="w-full"
-        onClick={() => variablesFieldArray.append({ value: '' })}
-      >
-        <Plus className="mr-space-xs size-4" />
-        {t('common.add', 'Add')}
-      </Button>
+          </CompactRecordRow>
+        )}
+      </CompactRecordList>
     </div>
   )
 }
@@ -242,7 +237,7 @@ export const VariableAggregatorForm = memo(function VariableAggregatorForm({
           className="w-full"
           onClick={() =>
             groupsFieldArray.append({
-              group_name: `group_${groupsFieldArray.fields.length + 1}`,
+              group_name: `Group${groupsFieldArray.fields.length}`,
               variables: [],
             })
           }

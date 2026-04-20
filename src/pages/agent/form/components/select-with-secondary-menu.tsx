@@ -16,10 +16,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
-import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
 import get from 'lodash/get.js'
-import { ChevronDownIcon, XIcon } from 'lucide-react'
+import { Braces, ChevronDownIcon, XIcon } from 'lucide-react'
 import * as React from 'react'
 import { useTranslation } from 'react-i18next'
 import { JsonSchemaDataType } from '../../constant'
@@ -82,47 +81,54 @@ export function GroupedSelectWithSecondaryMenu({
           role="combobox"
           aria-expanded={open}
           className={cn(
-            'bg-surface-primary hover:bg-surface-secondary border-border-primary w-full justify-between px-space-base font-normal outline-offset-0 outline-none focus-visible:outline-[3px] [&_svg]:pointer-events-auto',
+            'bg-surface-primary hover:bg-surface-secondary border-border-primary w-full justify-between gap-space-sm px-space-sm font-normal outline-offset-0 outline-none focus-visible:outline-[3px] [&_svg]:pointer-events-auto',
             triggerClassName,
-            !value && 'text-text-secondary',
           )}
         >
-          {value ? (
-            <div className="truncate flex items-center gap-space-xs">
-              <span>{get(selectedItem, 'parentLabel')}</span>
-              <span className="text-text-disabled">/</span>
-              <span className="text-text-accent">{selectedItem?.label}</span>
-            </div>
+          {value && selectedItem ? (
+            <span className="inline-flex min-w-0 items-center gap-space-xs rounded-radius-sm bg-components-system-accent-soft px-space-xs py-[2px] text-components-system-accent-text">
+              <Braces className="size-3.5 shrink-0" />
+              <span className="truncate text-xs opacity-75">
+                {get(selectedItem, 'parentLabel')}
+              </span>
+              <span className="opacity-50">/</span>
+              <span className="truncate text-xs font-medium">
+                {selectedItem.label}
+              </span>
+              {(selectedItem as { type?: string }).type && (
+                <span className="ml-space-xs shrink-0 rounded-radius-sm bg-surface-primary/60 px-1 font-mono text-[10px] text-text-secondary">
+                  {(selectedItem as { type?: string }).type}
+                </span>
+              )}
+            </span>
           ) : (
-            <span className="text-text-secondary">
+            <span className="truncate text-text-secondary">
               {placeholder || t('common.selectPlaceholder')}
             </span>
           )}
-          <div className="flex items-center justify-between">
+          <span className="ml-auto flex shrink-0 items-center gap-space-xs">
             {value && (
-              <>
-                <XIcon
-                  className="h-4 mx-space-sm cursor-pointer text-text-secondary"
-                  onClick={handleClear}
-                />
-                <Separator
-                  orientation="vertical"
-                  className="flex min-h-6 h-full"
-                />
-              </>
+              <XIcon
+                className="size-4 cursor-pointer text-text-secondary hover:text-text-primary"
+                onClick={handleClear}
+              />
             )}
             <ChevronDownIcon
               size={16}
-              className="text-text-secondary shrink-0 ml-space-sm"
+              className="text-text-secondary"
               aria-hidden="true"
             />
-          </div>
+          </span>
         </Button>
       </PopoverTrigger>
 
-      <PopoverContent className="p-0" align="start">
+      <PopoverContent
+        className="w-[var(--radix-popover-trigger-width)] min-w-[220px] max-w-[420px] bg-surface-primary p-0 shadow-elevation-medium"
+        align="start"
+        sideOffset={6}
+      >
         <Command value={value}>
-          <CommandInput placeholder="Search..." />
+          <CommandInput placeholder={t('common.searchPlaceholder', 'Search...')} />
           <CommandList className="overflow-auto">
             {options.map((group, idx) => (
               <CommandGroup key={idx} heading={group.label}>

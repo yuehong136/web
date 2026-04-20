@@ -35,8 +35,7 @@ const splitterSchema = z.object({
   children_delimiters: z
     .array(z.object({ value: z.string().optional() }))
     .optional(),
-  table_context_size: z.number().optional(),
-  image_context_size: z.number().optional(),
+  image_table_context_window: z.number().optional(),
   outputs: z.record(z.string(), z.any()).optional(),
 })
 
@@ -180,49 +179,34 @@ export function SplitterForm({ node }: INextOperatorForm) {
           control={form.control}
         />
 
-        <div className="grid gap-space-md md:grid-cols-2">
-          <FormField
-            control={form.control}
-            name="table_context_size"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t('flow.tableContextSize', 'Table Context Size')}</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    min={0}
-                    {...field}
-                    value={field.value ?? 0}
-                    onChange={(event) =>
-                      field.onChange(Number(event.target.value))
-                    }
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="image_context_size"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t('flow.imageContextSize', 'Image Context Size')}</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    min={0}
-                    {...field}
-                    value={field.value ?? 0}
-                    onChange={(event) =>
-                      field.onChange(Number(event.target.value))
-                    }
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-        </div>
+        <FormField
+          control={form.control}
+          name="image_table_context_window"
+          render={({ field }) => (
+            <FormItem>
+              <div className="flex items-center justify-between">
+                <FormLabel>
+                  {t(
+                    'flow.imageTableContextWindow',
+                    'Image & Table Context Window',
+                  )}
+                </FormLabel>
+                <span className="text-xs text-text-secondary">
+                  {field.value ?? 0}
+                </span>
+              </div>
+              <FormControl>
+                <Slider
+                  min={0}
+                  max={256}
+                  step={1}
+                  value={[field.value ?? 0]}
+                  onValueChange={([value]) => field.onChange(value)}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
 
         <FormField
           control={form.control}

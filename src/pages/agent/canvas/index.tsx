@@ -9,6 +9,7 @@ import {
   type Edge,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
+import './overrides.css'
 import { NotebookPen } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -42,6 +43,7 @@ import { SingleDebugSheet } from './single-debug-sheet'
 import { useParams } from 'react-router-dom'
 import { AgentBackground } from '@/components/canvas/background'
 import Spotlight from '@/components/spotlight'
+import { useIsDarkTheme } from '@/themes'
 import {
   TooltipContent,
   TooltipProvider,
@@ -70,6 +72,7 @@ function AgentCanvasInner({
 }: AgentCanvasProps) {
   const { t } = useTranslation()
   const { id: canvasId } = useParams<{ id: string }>()
+  const isDark = useIsDarkTheme()
   const {
     nodes,
     edges,
@@ -202,10 +205,13 @@ function AgentCanvasInner({
 
   return (
     <div className="w-full h-full px-space-lg pb-space-lg bg-surface-secondary">
-      {/* SVG 标记定义 */}
+      {/* SVG 标记定义 - 仅用于声明 <defs>，不参与交互或布局 */}
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        style={{ position: 'absolute', top: 10, left: 0 }}
+        width={0}
+        height={0}
+        style={{ position: 'absolute', pointerEvents: 'none' }}
+        aria-hidden
       >
         <defs>
           <marker
@@ -269,6 +275,7 @@ function AgentCanvasInner({
           onEdgeMouseEnter={onEdgeMouseEnter}
           onEdgeMouseLeave={onEdgeMouseLeave}
           className="h-full"
+          colorMode={isDark ? 'dark' : 'light'}
           defaultEdgeOptions={{
             type: 'buttonEdge',
             markerEnd: 'logo',

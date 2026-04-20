@@ -65,10 +65,7 @@ export function buildVariableAggregatorOutputs(
     const type =
       group.type || (matchedOption as { type?: string } | undefined)?.type || 'unknown'
 
-    acc[group.group_name] = {
-      type,
-      value: '',
-    }
+    acc[group.group_name] = { type }
     return acc
   }, {})
 }

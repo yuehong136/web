@@ -344,7 +344,7 @@ html[data-theme="dark"] {
 
   /* ===== 画布系统 ===== */
   --color-components-canvas-bg: rgb(18, 18, 18);
-  --color-components-canvas-grid: rgba(255, 255, 255, 0.05);
+  --color-components-canvas-grid: rgba(255, 255, 255, 0.12);
   --color-components-canvas-node-bg: #202025;
   --color-components-canvas-node-border: rgba(255, 255, 255, 0.1);
   --color-components-canvas-node-border-hover: rgba(255, 255, 255, 0.15);

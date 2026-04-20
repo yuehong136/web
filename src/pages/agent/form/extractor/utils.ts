@@ -49,6 +49,32 @@ export function getExtractorPromptPreset(fieldName?: string) {
   )
 }
 
+function unwrapPromptsFromDsl(value: unknown): string | undefined {
+  if (typeof value === 'string') {
+    return value
+  }
+
+  if (Array.isArray(value)) {
+    const userEntry = value.find((entry) => {
+      if (!entry || typeof entry !== 'object') {
+        return false
+      }
+      return (entry as { role?: string }).role === 'user'
+    }) as { content?: unknown } | undefined
+
+    if (userEntry && typeof userEntry.content === 'string') {
+      return userEntry.content
+    }
+
+    const firstEntry = value[0] as { content?: unknown } | undefined
+    if (firstEntry && typeof firstEntry.content === 'string') {
+      return firstEntry.content
+    }
+  }
+
+  return undefined
+}
+
 export function normalizeExtractorFormForStore(
   form: Record<string, unknown> = {},
 ) {
@@ -57,14 +83,14 @@ export function normalizeExtractorFormForStore(
       ? form.field_name
       : extractorFieldName.Summary
   const preset = getExtractorPromptPreset(fieldName)
+  const prompts = unwrapPromptsFromDsl(form.prompts)
 
   return {
     ...form,
     field_name: fieldName,
     sys_prompt:
       typeof form.sys_prompt === 'string' ? form.sys_prompt : preset.sys_prompt,
-    prompts:
-      typeof form.prompts === 'string' ? form.prompts : preset.prompts,
+    prompts: typeof prompts === 'string' ? prompts : preset.prompts,
     outputs: extractorOutputs,
   }
 }
@@ -77,11 +103,6 @@ export function serializeExtractorFormForDsl(
   return {
     ...nextForm,
     outputs: extractorOutputs,
-    prompts: [
-      {
-        role: 'user',
-        content: typeof nextForm.prompts === 'string' ? nextForm.prompts : '',
-      },
-    ],
+    prompts: typeof nextForm.prompts === 'string' ? nextForm.prompts : '',
   }
 }

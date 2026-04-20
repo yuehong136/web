@@ -141,14 +141,30 @@ test('splitter bridge converts delimiter cards into backend string arrays', () =
 
   assert.deepEqual(normalized.delimiters, [{ value: '\n' }, { value: '---' }])
   assert.equal(normalized.enable_children, true)
-  assert.equal(normalized.table_context_size, 6)
-  assert.equal(normalized.image_context_size, 6)
+  assert.equal(normalized.image_table_context_window, 6)
+  assert.equal('table_context_size' in normalized, false)
+  assert.equal('image_context_size' in normalized, false)
 
   const serialized = serializeSplitterFormForDsl(normalized)
 
   assert.deepEqual(serialized.delimiters, ['\n', '---'])
   assert.deepEqual(serialized.children_delimiters, ['##'])
   assert.equal('enable_children' in serialized, false)
+  assert.equal(serialized.image_table_context_window, 6)
+  assert.equal('table_context_size' in serialized, false)
+  assert.equal('image_context_size' in serialized, false)
+})
+
+test('splitter normalizer merges legacy split table/image fields into single window', () => {
+  const normalized = normalizeSplitterFormForStore({
+    delimiters: ['\n'],
+    table_context_size: 10,
+    image_context_size: 4,
+  })
+
+  assert.equal(normalized.image_table_context_window, 10)
+  assert.equal('table_context_size' in normalized, false)
+  assert.equal('image_context_size' in normalized, false)
 })
 
 test('hierarchical merger bridge converts regex cards into nested level arrays', () => {
@@ -266,7 +282,6 @@ test('variable aggregator derives outputs from selected variable groups', () => 
   assert.deepEqual(outputs, {
     documents: {
       type: 'Array<Object>',
-      value: '',
     },
   })
 })

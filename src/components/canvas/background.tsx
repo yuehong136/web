@@ -1,4 +1,4 @@
-import { cn } from '@/lib/utils'
+import { Background, BackgroundVariant } from '@xyflow/react'
 
 interface AgentBackgroundProps {
   className?: string
@@ -6,12 +6,13 @@ interface AgentBackgroundProps {
 
 export function AgentBackground({ className }: AgentBackgroundProps) {
   return (
-    <div
-      className={cn(
-        'pointer-events-none absolute inset-0 bg-surface-secondary',
-        className,
-      )}
+    <Background
+      variant={BackgroundVariant.Dots}
+      gap={20}
+      size={1}
+      color="var(--color-components-canvas-grid)"
+      bgColor="var(--color-components-canvas-bg)"
+      className={className}
     />
   )
 }
-

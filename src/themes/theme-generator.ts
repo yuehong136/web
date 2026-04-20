@@ -732,7 +732,7 @@ export const lightTokens: DesignTokens = {
   // ===== 画布系统 (Agent Canvas) - 亮色主题 =====
   // 画布背景
   'components-canvas-bg': 'rgb(246, 246, 247)',
-  'components-canvas-grid': 'rgba(0, 0, 0, 0.05)',
+  'components-canvas-grid': 'rgba(0, 0, 0, 0.15)',
 
   // 节点通用
   'components-canvas-node-bg': '#ffffff',
@@ -1622,7 +1622,7 @@ export const darkTokens: DesignTokens = {
   // ===== 画布系统 (Agent Canvas) - 暗色主题 =====
   // 画布背景
   'components-canvas-bg': 'rgb(18, 18, 18)',
-  'components-canvas-grid': 'rgba(255, 255, 255, 0.05)',
+  'components-canvas-grid': 'rgba(255, 255, 255, 0.12)',
 
   // 节点通用
   'components-canvas-node-bg': '#202025',

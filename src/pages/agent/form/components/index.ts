@@ -20,6 +20,15 @@ export {
 } from './output'
 export { QueryVariable } from './query-variable'
 export { QueryVariableList } from './query-variable-list'
+export {
+  CompactRecordList,
+  CompactRecordRow,
+  RecordAdvancedPanel,
+} from './field-array-records'
+export type {
+  CompactRecordContext,
+  CompactRecordRenderer,
+} from './field-array-records'
 export { SchemaDialog } from './schema-dialog'
 export { SchemaPanel } from './schema-panel'
 export { GroupedSelectWithSecondaryMenu } from './select-with-secondary-menu'

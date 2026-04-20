@@ -3,6 +3,7 @@ import { Position } from '@xyflow/react'
 import get from 'lodash/get.js'
 import { memo } from 'react'
 import type { ICategorizeNode } from '../../types'
+import { needsSingleStepDebugging, showCopyIcon } from '../../utils'
 import { LabelCard, LLMLabelCard } from './card'
 import { CommonHandle, LeftEndHandle } from './handle'
 import { RightHandleStyle } from './handle-styles'
@@ -19,7 +20,7 @@ function InnerCategorizeNode({
   const { positions } = useBuildCategorizeHandlePositions({ data, id })
 
   return (
-    <ToolBar selected={selected} id={id} label={data.label}>
+    <ToolBar selected={selected} id={id} label={data.label} showRun={needsSingleStepDebugging(data.label)} showCopy={showCopyIcon(data.label)}>
       <NodeWrapper selected={selected} id={id}>
         <LeftEndHandle />
         <NodeHeader id={id} name={data.name} label={data.label} />

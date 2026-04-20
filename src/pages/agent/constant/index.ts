@@ -951,8 +951,7 @@ export const initialSplitterValues = {
   delimiters: [{ value: '\n' }],
   enable_children: false,
   children_delimiters: [] as Array<{ value: string }>,
-  table_context_size: 0,
-  image_context_size: 0,
+  image_table_context_window: 0,
 }
 
 export const initialHierarchicalMergerValues = {

@@ -1,5 +1,4 @@
 import { PromptEditor } from '@/components/prompt-editor'
-import { Button } from '@/components/ui/button'
 import {
   FormControl,
   FormField,
@@ -19,9 +18,8 @@ import {
 import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Plus, Trash2 } from 'lucide-react'
 import { useMemo } from 'react'
-import { useFieldArray, useForm } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
 import { initialInvokeValues } from '../../constant'
@@ -30,6 +28,8 @@ import { useFormValues } from '../../hooks/use-form-values'
 import { useWatchFormChange } from '../../hooks/use-watch-form-change'
 import type { INextOperatorForm } from '../../types'
 import {
+  CompactRecordList,
+  CompactRecordRow,
   FormWrapper,
   JsonCodeEditor,
   Output,
@@ -60,11 +60,6 @@ export function InvokeForm({ node }: INextOperatorForm) {
     resolver: zodResolver(invokeFormSchema),
     defaultValues: values as InvokeFormValues,
     mode: 'onChange',
-  })
-
-  const variablesFieldArray = useFieldArray({
-    control: form.control,
-    name: 'variables',
   })
 
   useWatchFormChange(node?.id, form)
@@ -216,76 +211,61 @@ export function InvokeForm({ node }: INextOperatorForm) {
           )}
         />
 
-        <section className="space-y-space-md rounded-radius-md border border-border-default p-space-base">
-          <div className="flex items-center justify-between">
-            <div className="text-sm font-medium text-text-primary">
-              {t('flow.parameter', 'Parameters')}
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() =>
-                variablesFieldArray.append({ key: '', ref: '', value: '' })
-              }
+        <CompactRecordList
+          name="variables"
+          label={t('flow.parameter', 'Parameters')}
+          addLabel={t('common.add', 'Add')}
+          emptyLabel={t('flow.noParameters', 'No parameters yet')}
+          defaultValue={{ key: '', ref: '', value: '' }}
+        >
+          {({ field, index, ctx }) => (
+            <CompactRecordRow
+              key={field.id}
+              onRemove={() => ctx.remove(index)}
             >
-              <Plus className="mr-space-xs size-4" />
-              {t('common.add', 'Add')}
-            </Button>
-          </div>
-
-          {variablesFieldArray.fields.map((variableField, index) => (
-            <div
-              key={variableField.id}
-              className="space-y-space-sm rounded-radius-md border border-border-default p-space-sm"
-            >
-              <div className="grid gap-space-sm md:grid-cols-[0.8fr_1.2fr]">
-                <FormField
-                  control={form.control}
-                  name={`variables.${index}.key`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('flow.key', 'Key')}</FormLabel>
-                      <FormControl>
-                        <Input {...field} value={field.value ?? ''} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <QueryVariable
-                  name={`variables.${index}.ref`}
-                  label={t('flow.ref', 'Ref')}
-                  nodeId={node?.id}
-                />
-              </div>
-
               <FormField
                 control={form.control}
-                name={`variables.${index}.value`}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('flow.value', 'Value')}</FormLabel>
+                name={`variables.${index}.key`}
+                render={({ field: inputField }) => (
+                  <FormItem className="flex-[0_0_8rem]">
                     <FormControl>
-                      <Input {...field} value={field.value ?? ''} />
+                      <Input
+                        {...inputField}
+                        value={inputField.value ?? ''}
+                        placeholder={t('flow.key', 'Key')}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              <div className="flex justify-end">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => variablesFieldArray.remove(index)}
-                >
-                  <Trash2 className="size-4" />
-                </Button>
-              </div>
-            </div>
-          ))}
-        </section>
+              <QueryVariable
+                name={`variables.${index}.ref`}
+                hideLabel
+                className="flex-1 min-w-0"
+                nodeId={node?.id}
+              />
+
+              <FormField
+                control={form.control}
+                name={`variables.${index}.value`}
+                render={({ field: inputField }) => (
+                  <FormItem className="flex-1 min-w-0">
+                    <FormControl>
+                      <Input
+                        {...inputField}
+                        value={inputField.value ?? ''}
+                        placeholder={t('flow.value', 'Value')}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </CompactRecordRow>
+          )}
+        </CompactRecordList>
 
         <Separator />
         <Output list={outputs} />

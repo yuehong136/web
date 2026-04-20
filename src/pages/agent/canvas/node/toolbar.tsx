@@ -12,6 +12,7 @@ interface ToolBarProps extends PropsWithChildren {
   label: string
   showRun?: boolean
   showCopy?: boolean
+  className?: string
 }
 
 function IconWrapper({ className, ...props }: ButtonProps) {
@@ -29,7 +30,7 @@ function IconWrapper({ className, ...props }: ButtonProps) {
 }
 
 export const ToolBar = memo(
-  ({ children, selected, id, label, showRun, showCopy }: ToolBarProps) => {
+  ({ children, selected, id, label, showRun, showCopy, className }: ToolBarProps) => {
     const { deleteNodeById, deleteIterationNodeById, duplicateNode } =
       useGraphStore()
 
@@ -56,7 +57,7 @@ export const ToolBar = memo(
     const toolbarVisible = selected
 
     return (
-      <div className="relative group">
+      <div className={cn('relative group', className)}>
         {children}
         {label !== Operator.Begin && (
           <div
