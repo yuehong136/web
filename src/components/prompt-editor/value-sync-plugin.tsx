@@ -8,11 +8,13 @@ import {
   $isRangeSelection,
 } from 'lexical'
 import { useEffect, useMemo, useRef } from 'react'
+import { useFindAgentStructuredOutputLabel } from '@/pages/agent/hooks/use-build-structured-output'
 import { ProgrammaticTag } from './constant'
-import type { VariableOptionGroup } from './types'
+import type { VariableOptionGroup, VariableOptionItem } from './types'
 import {
   buildVariableOptionLookup,
   buildVariableOptionSignature,
+  flattenVariableOptions,
 } from './utils'
 import { $createVariableNode } from './variable-node'
 
@@ -20,10 +22,17 @@ function normalizeEditorValue(value?: string) {
   return value ?? ''
 }
 
+type StructuredResolver = (
+  value: string,
+  flatOptions: VariableOptionItem[],
+) => VariableOptionItem | undefined
+
 function parseLineContent(
   line: string,
   paragraph: ReturnType<typeof $createParagraphNode>,
   optionLookup: ReturnType<typeof buildVariableOptionLookup>,
+  flatOptions: VariableOptionItem[],
+  resolveStructured: StructuredResolver,
 ) {
   const regex = /{([^}]*)}/g
   let match: RegExpExecArray | null
@@ -38,7 +47,8 @@ function parseLineContent(
       paragraph.append($createTextNode(line.slice(lastIndex, index)))
     }
 
-    const option = optionLookup[matchedValue]
+    const option =
+      optionLookup[matchedValue] ?? resolveStructured(matchedValue, flatOptions)
     if (option) {
       paragraph.append(
         $createVariableNode(
@@ -64,13 +74,21 @@ function parseLineContent(
 function parseTextToNodes(
   value: string,
   optionLookup: ReturnType<typeof buildVariableOptionLookup>,
+  flatOptions: VariableOptionItem[],
+  resolveStructured: StructuredResolver,
 ) {
   const paragraph = $createParagraphNode()
   const lines = value.split('\n')
 
   lines.forEach((line, index) => {
     if (line) {
-      parseLineContent(line, paragraph, optionLookup)
+      parseLineContent(
+        line,
+        paragraph,
+        optionLookup,
+        flatOptions,
+        resolveStructured,
+      )
     }
 
     if (index < lines.length - 1) {
@@ -93,15 +111,33 @@ export function ValueSyncPlugin({
   const [editor] = useLexicalComposerContext()
   const previousValue = useRef('')
   const previousOptionSignature = useRef('')
-  const optionLookup = useMemo(() => buildVariableOptionLookup(options), [options])
+  const findAgentStructuredOutputLabel = useFindAgentStructuredOutputLabel()
+
+  const optionLookup = useMemo(
+    () => buildVariableOptionLookup(options),
+    [options],
+  )
+  const flatOptions = useMemo(
+    () => flattenVariableOptions(options) as VariableOptionItem[],
+    [options],
+  )
   const optionSignature = useMemo(
     () => buildVariableOptionSignature(options),
     [options],
   )
 
-  // Track user edits so echo-back value props are recognized and skipped.
-  // Without this, typing triggers onChange → parent echoes value back →
-  // ValueSyncPlugin re-parses → cursor jumps to end.
+  const resolveStructured = useMemo<StructuredResolver>(
+    () => (value, flat) => {
+      const resolved = findAgentStructuredOutputLabel(value, flat) as
+        | VariableOptionItem
+        | undefined
+      return resolved && typeof resolved.label === 'string'
+        ? resolved
+        : undefined
+    },
+    [findAgentStructuredOutputLabel],
+  )
+
   useEffect(() => {
     return editor.registerUpdateListener(({ editorState, tags }) => {
       if (tags.has(ProgrammaticTag)) return
@@ -124,12 +160,10 @@ export function ValueSyncPlugin({
       return
     }
 
-    const currentValue = editor.getEditorState().read(() =>
-      $getRoot().getTextContent(),
-    )
+    const currentValue = editor
+      .getEditorState()
+      .read(() => $getRoot().getTextContent())
 
-    // If the editor already has the correct text and only the value prop
-    // echoed back (not an options change), just update the ref and skip.
     if (currentValue === nextValue && !optionsChanged) {
       previousValue.current = nextValue
       return
@@ -137,7 +171,12 @@ export function ValueSyncPlugin({
 
     editor.update(
       () => {
-        const paragraph = parseTextToNodes(nextValue, optionLookup)
+        const paragraph = parseTextToNodes(
+          nextValue,
+          optionLookup,
+          flatOptions,
+          resolveStructured,
+        )
         $getRoot().clear().append(paragraph)
         if ($isRangeSelection($getSelection())) {
           $getRoot().selectEnd()
@@ -147,7 +186,7 @@ export function ValueSyncPlugin({
     )
     previousValue.current = nextValue
     previousOptionSignature.current = optionSignature
-  }, [editor, optionLookup, optionSignature, value])
+  }, [editor, flatOptions, optionLookup, optionSignature, resolveStructured, value])
 
   return null
 }

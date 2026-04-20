@@ -1,4 +1,5 @@
 import type { VariableOptionGroup } from '@/components/prompt-editor'
+import { AgentStructuredOutputField, Operator } from '../../constant'
 
 export type QueryVariableOptionGroup = VariableOptionGroup
 
@@ -28,6 +29,25 @@ function isArrayLikeType(type: string) {
   return type === 'array' || type.startsWith('array<')
 }
 
+function isAgentStructuredValue(value?: string) {
+  if (typeof value !== 'string') {
+    return false
+  }
+
+  const [nodeId, field] = value.split('@')
+
+  if (!nodeId || !field) {
+    return false
+  }
+
+  return (
+    nodeId.startsWith(`${Operator.Agent}:`) &&
+    (field === AgentStructuredOutputField ||
+      field.startsWith(`${AgentStructuredOutputField}.`) ||
+      field.startsWith(`${AgentStructuredOutputField}[`))
+  )
+}
+
 export function isQueryVariableTypeMatch(
   candidateType: string | undefined,
   filters: string[] = [],
@@ -49,8 +69,16 @@ export function isQueryVariableTypeMatch(
       return true
     }
 
-    if (isArrayLikeType(normalizedCandidate) && isArrayLikeType(normalizedFilter)) {
-      return normalizedFilter === 'array' || normalizedCandidate === 'array'
+    if (
+      isArrayLikeType(normalizedCandidate) &&
+      isArrayLikeType(normalizedFilter)
+    ) {
+      return (
+        normalizedFilter === 'array' ||
+        normalizedCandidate === 'array' ||
+        normalizedCandidate.startsWith(normalizedFilter) ||
+        normalizedFilter.startsWith(normalizedCandidate)
+      )
     }
 
     return false
@@ -68,9 +96,17 @@ export function filterQueryVariableOptionGroupsByTypes(
   return groups
     .map((group) => ({
       ...group,
-      options: group.options.filter((option) =>
-        isQueryVariableTypeMatch((option as { type?: string }).type, filters),
-      ),
+      options: group.options.filter((option) => {
+        const typedOption = option as { type?: string; value: string }
+
+        // Keep Agent structured-output entries so users can drill into them
+        // via the secondary menu even when the outer type is "object".
+        if (isAgentStructuredValue(typedOption.value)) {
+          return true
+        }
+
+        return isQueryVariableTypeMatch(typedOption.type, filters)
+      }),
     }))
     .filter((group) => group.options.length > 0)
 }
@@ -105,9 +141,10 @@ export function getQueryVariableDisplayLabel(
     return normalizeVariableReference(value)
   }
 
-  const groupLabel = typeof option.groupLabel === 'string'
-    ? option.groupLabel
-    : option.value.split('@')[0]
+  const groupLabel =
+    typeof option.groupLabel === 'string'
+      ? option.groupLabel
+      : option.value.split('@')[0]
 
   return `${groupLabel}.${option.label}`
 }

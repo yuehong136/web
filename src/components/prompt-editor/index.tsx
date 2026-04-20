@@ -5,6 +5,7 @@ import { LexicalComposer } from '@lexical/react/LexicalComposer'
 import { ContentEditable } from '@lexical/react/LexicalContentEditable'
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary'
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin'
+import { useLexicalIsTextContentEmpty } from '@lexical/react/useLexicalIsTextContentEmpty'
 import { HeadingNode, QuoteNode } from '@lexical/rich-text'
 import type { EditorState, Klass, LexicalNode } from 'lexical'
 import { $getRoot, $getSelection } from 'lexical'
@@ -46,6 +47,7 @@ type PromptContentProps = {
   showToolbar?: boolean
   multiLine?: boolean
   onBlur?: () => void
+  placeholder?: ReactNode
 }
 
 type IProps = {
@@ -60,9 +62,11 @@ function PromptContent({
   showToolbar = true,
   multiLine = true,
   onBlur,
+  placeholder,
 }: PromptContentProps) {
   const [editor] = useLexicalComposerContext()
   const [isFocused, setIsFocused] = useState(false)
+  const isTextContentEmpty = useLexicalIsTextContentEmpty(editor, true)
   const { t } = useTranslation()
 
   const insertTextAtCursor = useCallback(() => {
@@ -98,32 +102,21 @@ function PromptContent({
   return (
     <section
       className={cn(
-        'overflow-hidden rounded-radius-lg border bg-surface-primary transition-[border-color,box-shadow]',
+        'overflow-hidden rounded-radius-lg border bg-background-surface transition-[border-color,box-shadow]',
         isFocused
           ? 'border-components-system-accent-border ring-1 ring-components-system-accent-border'
-          : 'border-border-primary',
+          : 'border-border-default',
       )}
     >
       {showToolbar && (
         <div
           className={cn(
-            'flex items-center justify-between gap-space-sm border-b px-space-sm py-space-sm transition-colors',
+            'flex items-center justify-end gap-space-sm border-b px-space-sm py-space-xs transition-colors',
             isFocused
               ? 'border-components-system-accent-border'
-              : 'border-border-primary',
+              : 'border-border-default',
           )}
         >
-          <div className="min-w-0">
-            <div className="text-xs font-medium text-text-primary">
-              {t('flow.promptWorkspace', 'Prompt Workspace')}
-            </div>
-            <div className="truncate text-xs text-text-secondary">
-              {t(
-                'flow.insertVariableTip',
-                'Type / to browse upstream variables',
-              )}
-            </div>
-          </div>
           <Tooltip content={<p>{t('flow.insertVariableTip')}</p>}>
             <Button
               type="button"
@@ -139,17 +132,33 @@ function PromptContent({
           </Tooltip>
         </div>
       )}
-      <ContentEditable
-        className={cn(
-          'prompt-editor-content relative w-full px-space-sm text-sm text-text-primary focus-visible:outline-none',
-          {
-            'max-h-[50vh] min-h-40 overflow-auto py-space-sm': multiLine,
-            'min-h-10 overflow-x-auto overflow-y-hidden py-space-sm whitespace-pre': !multiLine,
-          },
-        )}
-        onBlur={handleBlur}
-        onFocus={handleFocus}
-      />
+      <div className="relative">
+        <ContentEditable
+          className={cn(
+            'prompt-editor-content relative w-full px-space-sm text-base text-text-primary focus-visible:outline-none',
+            {
+              'max-h-[50vh] min-h-40 overflow-auto py-space-sm': multiLine,
+              'min-h-10 overflow-x-auto overflow-y-hidden py-space-sm whitespace-pre': !multiLine,
+            },
+          )}
+          onBlur={handleBlur}
+          onFocus={handleFocus}
+        />
+        {isTextContentEmpty ? (
+          <div
+            aria-hidden="true"
+            className={cn(
+              'pointer-events-none absolute left-space-sm right-space-sm text-base text-text-secondary',
+              {
+                'top-space-sm': multiLine,
+                'top-1/2 -translate-y-1/2 truncate': !multiLine,
+              },
+            )}
+          >
+            {placeholder || t('common.promptPlaceholder')}
+          </div>
+        ) : null}
+      </div>
     </section>
   )
 }
@@ -163,7 +172,6 @@ export function PromptEditor({
   multiLine = true,
   options = [],
 }: IProps) {
-  const { t } = useTranslation()
   const defaultOptions = useBuildPromptVariableOptions()
   const resolvedOptions = useMemo(
     () => (options.length > 0 ? options : defaultOptions),
@@ -191,7 +199,7 @@ export function PromptEditor({
   )
 
   return (
-    <div className="relative">
+    <div>
       <LexicalComposer initialConfig={initialConfig}>
         <RichTextPlugin
           contentEditable={
@@ -199,22 +207,10 @@ export function PromptEditor({
               showToolbar={showToolbar}
               multiLine={multiLine}
               onBlur={onBlur}
+              placeholder={placeholder}
             ></PromptContent>
           }
-          placeholder={
-            <div
-              className={cn(
-                'pointer-events-none absolute left-space-sm right-space-sm text-sm text-text-secondary',
-                {
-                  'top-12': showToolbar,
-                  'top-space-sm': !showToolbar,
-                  truncate: !multiLine,
-                },
-              )}
-            >
-              {placeholder || t('common.promptPlaceholder')}
-            </div>
-          }
+          placeholder={null}
           ErrorBoundary={LexicalErrorBoundary}
         />
         <ValueSyncPlugin value={value} options={resolvedOptions} />

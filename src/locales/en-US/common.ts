@@ -53,6 +53,7 @@ export default {
     
     // Input hints
     pleaseInput: 'Please input',
+    promptPlaceholder: 'Enter a prompt, or type / to quickly insert variables',
 
     // Others
     name: 'Name',

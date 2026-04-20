@@ -53,6 +53,7 @@ export default {
     
     // 输入提示
     pleaseInput: '请输入',
+    promptPlaceholder: '请输入提示词，或输入 / 快速插入变量',
 
     // 其他
     name: '名称',

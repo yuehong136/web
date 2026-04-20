@@ -58,6 +58,7 @@ export default {
     paddleocrParseMethod: 'PaddleOCR parse method',
     doclingParseMethod: 'Docling parse method',
     noParsersConfigured: 'No parsers configured',
+    insertVariable: 'Insert variable',
     insertVariableTip: 'Type / to browse upstream variables',
   },
 }

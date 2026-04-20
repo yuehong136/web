@@ -576,6 +576,7 @@ export default {
     addCategory: '新增分类',
     categoryName: '分类名称',
     nextStep: '下一步',
+    insertVariable: '插入变量',
     insertVariableTip: '输入 / 插入变量',
     setting: '设置',
     settings: {

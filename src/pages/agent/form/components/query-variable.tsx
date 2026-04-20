@@ -80,6 +80,7 @@ export function QueryVariable({
               }}
               placeholder={t('flow.selectVariable', 'Select variable')}
               triggerClassName={triggerClassName}
+              types={types as never}
             />
           </FormControl>
           <FormMessage />

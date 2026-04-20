@@ -3,7 +3,6 @@ import type { LexicalNode, NodeKey, SerializedLexicalNode } from 'lexical'
 import { DecoratorNode } from 'lexical'
 import type { ReactNode } from 'react'
 import i18n from 'i18next'
-import { getVariableVisual } from './variable-picker-visuals'
 
 const prefix = BeginId + '@'
 
@@ -18,7 +17,7 @@ export class VariableNode extends DecoratorNode<ReactNode> {
   __value: string
   __label: string
   __parentLabel: string
-  __type: string
+  __dataType: string
   __icon?: ReactNode
 
   static getType(): string {
@@ -31,7 +30,7 @@ export class VariableNode extends DecoratorNode<ReactNode> {
       node.__label,
       node.__key,
       node.__parentLabel,
-      node.__type,
+      node.__dataType,
       node.__icon,
     )
   }
@@ -51,14 +50,14 @@ export class VariableNode extends DecoratorNode<ReactNode> {
     label = '',
     key?: NodeKey,
     parentLabel = '',
-    type = '',
+    dataType = '',
     icon?: ReactNode,
   ) {
     super(key)
     this.__value = value
     this.__label = label
     this.__parentLabel = parentLabel
-    this.__type = type
+    this.__dataType = dataType
     this.__icon = icon
   }
 
@@ -80,38 +79,27 @@ export class VariableNode extends DecoratorNode<ReactNode> {
       parentLabel = i18n.t('flow.begin')
     }
 
-    const variableVisual = getVariableVisual({
-      label: this.__label,
-      parentLabel,
-      type: this.__type,
-    })
-
     return (
-      <span className="inline-flex max-w-full items-center gap-space-sm rounded-radius-lg border border-border-default bg-background-subtle px-space-sm py-space-xs align-middle shadow-elevation-low">
-        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-radius-md bg-components-system-accent-bg text-components-system-accent-text">
-          <span className="flex items-center justify-center text-xs font-medium [&_svg]:size-3.5">
-            {variableVisual.icon}
+      <span className="inline-flex max-w-full items-center gap-space-xs rounded-radius-sm bg-components-system-accent-soft px-space-sm py-0.5 align-middle text-sm text-components-system-accent-text">
+        {this.__icon ? (
+          <span className="flex items-center justify-center [&_svg]:size-4">
+            {this.__icon}
           </span>
+        ) : null}
+        {parentLabel ? (
+          <>
+            <span className="max-w-28 truncate text-sm opacity-75">
+              {parentLabel}
+            </span>
+            <span className="opacity-50">/</span>
+          </>
+        ) : null}
+        <span className="max-w-40 truncate text-sm font-medium">
+          {this.__label}
         </span>
-
-        <span className="min-w-0 flex items-center gap-space-xs">
-          {parentLabel ? (
-            <>
-              <span className="max-w-28 truncate text-xs text-text-secondary">
-                {parentLabel}
-              </span>
-              <span className="text-text-tertiary">/</span>
-            </>
-          ) : null}
-
-          <span className="max-w-40 truncate text-sm font-medium text-components-system-accent-text">
-            {this.__label}
-          </span>
-        </span>
-
-        {this.__type ? (
-          <span className="inline-flex shrink-0 items-center rounded-radius-full border border-border-default bg-surface-primary px-space-sm py-0.5 text-xs text-text-secondary">
-            {this.__type}
+        {this.__dataType ? (
+          <span className="ml-space-xs shrink-0 rounded-radius-sm bg-background-surface/60 px-1 font-mono text-xs text-text-secondary">
+            {this.__dataType}
           </span>
         ) : null}
       </span>
@@ -130,7 +118,7 @@ export class VariableNode extends DecoratorNode<ReactNode> {
       value: this.__value,
       label: this.__label,
       parentLabel: this.__parentLabel || undefined,
-      variableType: this.__type || undefined,
+      variableType: this.__dataType || undefined,
     }
   }
 }
