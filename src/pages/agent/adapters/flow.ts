@@ -3,7 +3,7 @@ import type {
   AgentListResponse,
   AgentTemplate,
 } from '@/types/agent'
-import { deserializeDslToGraph } from '../operators'
+import { buildDefaultDslGlobals, deserializeDslToGraph } from '../operators'
 
 function parseDslPayload(dsl: AgentFlow['dsl'] | string | undefined) {
   if (!dsl) {
@@ -44,7 +44,7 @@ export function adaptAgentFlow(payload: unknown): AgentFlow {
       graph: normalizedGraph.graph,
       messages: parsedDsl?.messages || [],
       reference: parsedDsl?.reference || [],
-      globals: parsedDsl?.globals || {},
+      globals: { ...buildDefaultDslGlobals(), ...(parsedDsl?.globals || {}) },
       variables: parsedDsl?.variables || {},
       retrieval: parsedDsl?.retrieval || [],
     },

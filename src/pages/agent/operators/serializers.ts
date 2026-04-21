@@ -10,7 +10,9 @@ import type {
 } from '@/types/agent'
 import { AgentCanvasType as CanvasType } from '@/types/agent'
 import { BeginId, Operator, type Operator as OperatorType } from '../constant'
+import { normalizeIterationNodes } from '../iteration-layout'
 import {
+  buildDefaultDslGlobals,
   buildDslOperatorParams,
   mergeOperatorFormWithDefaults,
 } from './defaults'
@@ -120,14 +122,21 @@ export function deserializeDslToGraph(
   const graph = dsl?.graph
 
   if (graph?.nodes?.length || graph?.edges?.length) {
-    const nodes = (graph.nodes || []).map((node) => {
+    const nodes = normalizeIterationNodes((graph.nodes || []).map((node) => {
       const component = dsl?.components?.[node.id]
       const operator = (node.data?.label || component?.obj?.component_name || Operator.Note) as OperatorType
       const definition = getOperatorDefinition(operator)
+      // Legacy DSLs persisted iteration containers under xyflow's built-in
+      // `group` type, which inherits a default 150px width that conflicts
+      // with NodeResizeControl. Migrate them onto our dedicated type.
+      const nextType =
+        node.type === 'group' && operator === Operator.Iteration
+          ? 'iterationNode'
+          : node.type || definition?.nodeType || 'ragNode'
 
       return {
         ...node,
-        type: node.type || definition?.nodeType || 'ragNode',
+        type: nextType,
         data: {
           ...node.data,
           label: operator,
@@ -139,7 +148,7 @@ export function deserializeDslToGraph(
           ),
         },
       }
-    })
+    }))
 
     return {
       graph: {
@@ -158,8 +167,13 @@ export function deserializeDslToGraph(
     }
   }
 
+  const reconstructed = reconstructGraphFromComponents(dsl?.components || {})
+
   return {
-    graph: reconstructGraphFromComponents(dsl?.components || {}),
+    graph: {
+      ...reconstructed,
+      nodes: normalizeIterationNodes(reconstructed.nodes),
+    },
     isReconstructed: true,
   }
 }
@@ -214,7 +228,7 @@ export function serializeGraphToDsl({
     },
     messages: baseDsl?.messages || [],
     reference: baseDsl?.reference || [],
-    globals: baseDsl?.globals || {},
+    globals: { ...buildDefaultDslGlobals(), ...(baseDsl?.globals || {}) },
     variables: (baseDsl?.variables as AgentDsl['variables']) || {},
     retrieval: baseDsl?.retrieval || [],
   }
@@ -236,7 +250,7 @@ export function buildInitialDsl(kind: AgentCanvasType): AgentDsl {
       history: [],
       messages: [],
       reference: [],
-      globals: {},
+      globals: buildDefaultDslGlobals(),
       variables: {},
       retrieval: [],
       path: [],

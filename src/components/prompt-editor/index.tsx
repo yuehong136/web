@@ -56,6 +56,8 @@ type IProps = {
   onBlur?: () => void
   placeholder?: ReactNode
   options?: VariableOptionGroup[]
+  extraOptions?: VariableOptionGroup[]
+  nodeId?: string
 } & Omit<PromptContentProps, 'onBlur'>
 
 function PromptContent({
@@ -171,11 +173,17 @@ export function PromptEditor({
   showToolbar,
   multiLine = true,
   options = [],
+  extraOptions = [],
+  nodeId,
 }: IProps) {
-  const defaultOptions = useBuildPromptVariableOptions()
-  const resolvedOptions = useMemo(
+  const defaultOptions = useBuildPromptVariableOptions(nodeId)
+  const baseOptions = useMemo(
     () => (options.length > 0 ? options : defaultOptions),
     [defaultOptions, options],
+  )
+  const resolvedOptions = useMemo(
+    () => [...baseOptions, ...extraOptions],
+    [baseOptions, extraOptions],
   )
   const initialConfig = useMemo<InitialConfigType>(
     () => ({

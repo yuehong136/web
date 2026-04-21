@@ -29,6 +29,7 @@ export const agentQueryKeys = {
     [...agentQueryKeys.lists(), params] as const,
   detail: (id: string) => [...agentQueryKeys.all, 'detail', id] as const,
   templates: () => [...agentQueryKeys.all, 'templates'] as const,
+  prompts: () => [...agentQueryKeys.all, 'prompts'] as const,
   versions: (id: string) => [...agentQueryKeys.all, 'versions', id] as const,
   version: (id: string) => [...agentQueryKeys.all, 'version', id] as const,
   trace: (canvasId: string, messageId: string) =>
@@ -112,6 +113,22 @@ export const useFetchAgentTemplates = () => {
 
   return {
     data: query.data || [],
+    isLoading: query.isFetching,
+    isError: query.isError,
+    error: query.error,
+    refetch: query.refetch,
+  }
+}
+
+export const useFetchPrompt = () => {
+  const query = useQuery({
+    queryKey: agentQueryKeys.prompts(),
+    queryFn: async () => agentAPI.fetchPrompt(),
+    placeholderData: () => ({} satisfies Record<string, string>),
+  })
+
+  return {
+    data: query.data || {},
     isLoading: query.isFetching,
     isError: query.isError,
     error: query.error,

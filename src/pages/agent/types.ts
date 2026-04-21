@@ -66,9 +66,52 @@ export interface ILLMConfig {
 
 // Begin节点表单
 export interface IBeginForm {
+  enablePrologue?: boolean
   prologue?: string
   mode?: string
   inputs?: Record<string, any>
+  layout_recognize?: string
+  methods?: string[]
+  content_types?: string
+  security?: {
+    auth_type?: string
+    ip_whitelist?: Array<{ value?: string }>
+    token?: {
+      token_header?: string
+      token_value?: string
+    }
+    basic_auth?: {
+      username?: string
+      password?: string
+    }
+    rate_limit?: {
+      limit?: number
+      per?: string
+    }
+    max_body_size?: string
+    jwt?: {
+      algorithm?: string
+      secret?: string
+      issuer?: string
+      audience?: string
+      required_claims?: Array<{ value?: string }>
+    }
+    hmac?: {
+      header?: string
+      secret?: string
+    }
+  }
+  schema?: {
+    query?: Array<{ key?: string; type?: string; required?: boolean }>
+    headers?: Array<{ key?: string; type?: string; required?: boolean }>
+    body?: Array<{ key?: string; type?: string; required?: boolean }>
+  }
+  response?: {
+    status?: number
+    body_template?: string
+  }
+  execution_mode?: string
+  outputs?: Record<string, any>
 }
 
 // Retrieval节点表单
@@ -83,17 +126,14 @@ export interface IRetrievalForm {
   query?: string
 }
 
-// Generate节点表单
-export interface IGenerateForm extends ILLMConfig {
-  cite?: boolean
-  prompt: string
-  parameters?: Array<{ key: string; component_id: string }>
-  message_history_window_size?: number
-}
-
 // Message节点表单
 export interface IMessageForm {
   content: string[]
+  output_format?: string
+  auto_play?: boolean
+  status?: number
+  memory_ids?: string[]
+  user_id?: string
 }
 
 // Categorize节点表单
@@ -166,6 +206,7 @@ export interface IAgentForm extends ILLMConfig {
   user_prompt?: string
   sys_prompt?: string
   prompts?: Array<{ role: string; content: string }>
+  showStructuredOutput?: boolean
   message_history_window_size?: number
   max_retries?: number
   delay_after_error?: number
@@ -199,7 +240,6 @@ export type BaseNode<T = any> = Node<BaseNodeData<T>>
 // 具体节点类型
 export type IBeginNode = BaseNode<IBeginForm>
 export type IRetrievalNode = BaseNode<IRetrievalForm>
-export type IGenerateNode = BaseNode<IGenerateForm>
 export type IMessageNode = BaseNode<IMessageForm>
 export type ICategorizeNode = BaseNode<ICategorizeForm>
 export type ISwitchNode = BaseNode<ISwitchForm>
@@ -220,7 +260,6 @@ export type IPlaceholderNode = BaseNode
 export type RAGFlowNodeType =
   | IBeginNode
   | IRetrievalNode
-  | IGenerateNode
   | IMessageNode
   | ICategorizeNode
   | ISwitchNode
@@ -267,8 +306,13 @@ export interface ILoopForm {
 
 // DataOperations节点表单
 export interface IDataOperationsForm {
-  query?: string[]
+  query?: Array<{ input?: string }>
   operations?: string
+  select_keys?: Array<{ name?: string }>
+  remove_keys?: Array<{ name?: string }>
+  updates?: Array<{ key?: string; value?: string }>
+  rename_keys?: Array<{ old_key?: string; new_key?: string }>
+  filter_values?: Array<{ key?: string; operator?: string; value?: string }>
   outputs?: Record<string, any>
 }
 
@@ -276,6 +320,12 @@ export interface IDataOperationsForm {
 export interface IListOperationsForm {
   query?: string
   operations?: string
+  n?: number
+  sort_method?: string
+  filter?: {
+    operator?: string
+    value?: string
+  }
   outputs?: Record<string, any>
 }
 
@@ -287,7 +337,12 @@ export interface IVariableAggregatorForm {
 
 // VariableAssigner节点表单
 export interface IVariableAssignerForm {
-  [key: string]: any
+  variables?: Array<{
+    variable?: string
+    operator?: string
+    parameter?: string | number | boolean
+  }>
+  outputs?: Record<string, any>
 }
 
 // ExitLoop节点表单
@@ -319,6 +374,7 @@ export interface IUserFillUpForm {
   enable_tips?: boolean
   tips?: string
   inputs?: any[]
+  layout_recognize?: string
   outputs?: Record<string, any>
 }
 
@@ -522,4 +578,3 @@ export interface IDebugNodeRequest {
   component_id: string
   inputs?: Record<string, any>
 }
-

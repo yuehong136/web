@@ -13,7 +13,6 @@ import { DuckDuckGoForm } from './duckduckgo-form'
 import { EmailForm } from './email-form'
 import { ExtractorForm } from './extractor'
 import { ExeSQLForm } from './exesql'
-import { GenerateForm } from './generate'
 import { GithubForm } from './github-form'
 import { GoogleForm } from './google-form'
 import { GoogleScholarForm } from './google-scholar-form'
@@ -53,7 +52,6 @@ export const FormConfigMap: Record<
   ComponentType<INextOperatorForm>
 > = {
   [Operator.Begin]: BeginForm,
-  [Operator.Generate]: GenerateForm,
   [Operator.Retrieval]: RetrievalForm,
   [Operator.Message]: MessageForm,
   [Operator.Categorize]: CategorizeForm,

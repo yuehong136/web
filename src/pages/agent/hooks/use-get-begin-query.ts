@@ -134,6 +134,14 @@ export function useBuildBeginVariableOptions(): VariableOptionGroup[] {
 }
 
 const ConversationVariablePrefix = 'env.'
+const DefaultSystemGlobals: Record<string, string | number | unknown[]> = {
+  [AgentGlobals.SysQuery]: '',
+  [AgentGlobals.SysUserId]: '',
+  [AgentGlobals.SysConversationTurns]: 0,
+  [AgentGlobals.SysFiles]: [],
+  [AgentGlobals.SysHistory]: [],
+  [AgentGlobals.SysDate]: '',
+}
 
 export function useBuildConversationVariableOptions(): VariableOptionGroup[] {
   const { t } = useTranslation()
@@ -172,7 +180,12 @@ export function useBuildGlobalWithBeginVariableOptions(): VariableOptionGroup[] 
       return []
     }
 
-    const globalOptions = Object.entries(data?.dsl?.globals ?? {})
+    const globals = {
+      ...DefaultSystemGlobals,
+      ...(data?.dsl?.globals ?? {}),
+    }
+
+    const globalOptions = Object.entries(globals)
       .filter(([key]) => !key.startsWith(ConversationVariablePrefix))
       .map(([key, value]) => ({
         label: key,

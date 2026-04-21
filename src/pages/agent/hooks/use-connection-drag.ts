@@ -1,5 +1,6 @@
 import type {
   Connection,
+  Edge,
   OnConnectEnd,
   OnConnectStart,
   ReactFlowInstance,
@@ -8,6 +9,7 @@ import { Position } from '@xyflow/react'
 import { useCallback, useRef } from 'react'
 import { useDropdownManager } from '../canvas/context'
 import { Operator, PREVENT_CLOSE_DELAY } from '../constant'
+import type { RAGFlowNodeType } from '../types'
 import { useAddNode } from './use-add-node'
 
 interface ConnectionStartParams {
@@ -32,7 +34,7 @@ export const useConnectionDrag = (
   removePlaceholderNode: () => void,
   clearActiveDropdown: () => void,
   checkAndRemoveExistingPlaceholder: () => void,
-  reactFlowInstance?: ReactFlowInstance<any, any>,
+  reactFlowInstance?: ReactFlowInstance<RAGFlowNodeType, Edge>,
 ) => {
   // Reference for whether connection is established
   const isConnectedRef = useRef(false)

@@ -1,3 +1,4 @@
+import type { Edge } from '@xyflow/react'
 import type { AgentOperatorDefinition } from '@/types/agent'
 import type { MCPServer } from '@/types/mcp'
 import { Operator, type Operator as OperatorType } from '../../constant'
@@ -13,7 +14,9 @@ const MCP_DESCRIPTION = '配置 MCP Server 连接与可用工具。'
 interface ResolveSelectedToolContextOptions {
   operatorType?: OperatorType
   clickedToolId?: string
+  currentNodeId?: string
   nodes: RAGFlowNodeType[]
+  edges?: Edge[]
   mcpServers?: MCPServer[]
 }
 
@@ -28,6 +31,13 @@ interface LegacyToolConfig {
   component_name?: string
   name?: string
   description?: string
+  params?: Record<string, unknown>
+  [key: string]: unknown
+}
+
+interface LegacyMcpConfig {
+  mcp_id?: string
+  tools?: Record<string, unknown>
   [key: string]: unknown
 }
 
@@ -42,47 +52,73 @@ function normalizeOperator(value?: string): OperatorType | undefined {
 export function resolveSelectedToolContext({
   operatorType,
   clickedToolId,
+  currentNodeId,
   nodes,
+  edges = [],
   mcpServers = [],
 }: ResolveSelectedToolContextOptions): SelectedToolContext | undefined {
   if (operatorType !== Operator.Tool || !clickedToolId) {
     return undefined
   }
 
-  const mcpServer = mcpServers.find((server) => server.id === clickedToolId)
-  if (mcpServer) {
-    return {
-      id: clickedToolId,
-      name: mcpServer.name,
-      description: mcpServer.description,
-      mcpServer,
+  const upstreamAgentId = currentNodeId
+    ? edges.find((edge) => edge.target === currentNodeId)?.source
+    : undefined
+  const upstreamAgent = nodes.find(
+    (node) =>
+      node.id === upstreamAgentId && node.data?.label === Operator.Agent,
+  )
+
+  const candidateAgents = upstreamAgent
+    ? [upstreamAgent]
+    : nodes.filter((node) => node.data?.label === Operator.Agent)
+
+  for (const agentNode of candidateAgents) {
+    const configuredTools = Array.isArray(agentNode.data?.form?.tools)
+      ? (agentNode.data.form.tools as LegacyToolConfig[])
+      : []
+    const toolIndex = configuredTools.findIndex(
+      (tool) => (tool.id || tool.component_name) === clickedToolId,
+    )
+
+    if (toolIndex >= 0) {
+      const selectedTool = configuredTools[toolIndex]
+
+      return {
+        id: clickedToolId,
+        agentNodeId: agentNode.id,
+        toolIndex,
+        operator: normalizeOperator(selectedTool.component_name),
+        name:
+          selectedTool.name || selectedTool.component_name || clickedToolId,
+        description: selectedTool.description,
+        tool: selectedTool,
+      }
+    }
+
+    const configuredMcp = Array.isArray(agentNode.data?.form?.mcp)
+      ? (agentNode.data.form.mcp as LegacyMcpConfig[])
+      : []
+    const mcpIndex = configuredMcp.findIndex(
+      (item) => item.mcp_id === clickedToolId,
+    )
+
+    if (mcpIndex >= 0) {
+      const mcpServer = mcpServers.find((server) => server.id === clickedToolId)
+
+      return {
+        id: clickedToolId,
+        agentNodeId: agentNode.id,
+        mcpIndex,
+        name: mcpServer?.name,
+        description: mcpServer?.description,
+        mcpServer,
+        mcp: configuredMcp[mcpIndex],
+      }
     }
   }
 
-  const tools = nodes
-    .filter((node) => node.data?.label === Operator.Agent)
-    .flatMap((node) => {
-      const configuredTools = node.data?.form?.tools
-      return Array.isArray(configuredTools)
-        ? (configuredTools as LegacyToolConfig[])
-        : []
-    })
-
-  const selectedTool = tools.find(
-    (tool) => (tool.id || tool.component_name) === clickedToolId,
-  )
-
-  if (!selectedTool) {
-    return undefined
-  }
-
-  return {
-    id: clickedToolId,
-    operator: normalizeOperator(selectedTool.component_name),
-    name: selectedTool.name || selectedTool.component_name || clickedToolId,
-    description: selectedTool.description,
-    tool: selectedTool,
-  }
+  return undefined
 }
 
 export function isFormSheetTitleEditable(

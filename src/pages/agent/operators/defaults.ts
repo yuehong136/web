@@ -6,6 +6,7 @@ import {
   normalizeOperatorFormForStore,
 } from './normalizers'
 import {
+  AgentGlobals,
   Operator,
   initialAgentValues,
   initialArXivValues,
@@ -21,7 +22,6 @@ import {
   initialExtractorValues,
   initialExeSqlValues,
   initialFileValues,
-  initialGenerateValues,
   initialGithubValues,
   initialGoogleScholarValues,
   initialGoogleValues,
@@ -61,7 +61,6 @@ import {
 const operatorDefaultValues: Record<OperatorType, Record<string, unknown>> = {
   [Operator.Begin]: initialBeginValues,
   [Operator.Retrieval]: initialRetrievalValues,
-  [Operator.Generate]: initialGenerateValues,
   [Operator.Message]: initialMessageValues,
   [Operator.Categorize]: initialCategorizeValues,
   [Operator.Switch]: initialSwitchValues,
@@ -157,3 +156,14 @@ export function buildDslOperatorParams(
 }
 
 export const operatorDefaultsMap = operatorDefaultValues
+
+export function buildDefaultDslGlobals(): Record<string, unknown> {
+  return {
+    [AgentGlobals.SysQuery]: '',
+    [AgentGlobals.SysUserId]: '',
+    [AgentGlobals.SysConversationTurns]: 0,
+    [AgentGlobals.SysFiles]: [],
+    [AgentGlobals.SysHistory]: [],
+    [AgentGlobals.SysDate]: '',
+  }
+}

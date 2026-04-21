@@ -37,6 +37,11 @@ import {
   retrievalMetaDataMethod,
   serializeRetrievalFormForDsl,
 } from '../retrieval/utils'
+import {
+  buildBeginWebhookOutputs,
+  normalizeBeginInputsForEditor,
+  serializeBeginInputsForStore,
+} from '../begin/utils'
 
 test('parser normalizer rebuilds keyed backend setups into file-type cards and back', () => {
   const normalized = normalizeParserSetupsForStore({
@@ -316,4 +321,81 @@ test('retrieval normalizer keeps metadata filter bridge at serializer boundary',
 
   assert.deepEqual(serialized.meta_data_filter, metadataFilter)
   assert.deepEqual(Object.keys(serialized.outputs), ['formalized_content', 'json'])
+})
+
+test('begin input bridge converts keyed input objects into compact-record rows and back', () => {
+  const normalized = normalizeBeginInputsForEditor({
+    user_id: {
+      name: 'User ID',
+      type: 'line',
+      value: '',
+      optional: false,
+    },
+    attachments: {
+      name: 'Attachments',
+      type: 'file',
+      value: '',
+      optional: true,
+    },
+  })
+
+  assert.deepEqual(normalized, [
+    {
+      key: 'user_id',
+      label: undefined,
+      name: 'User ID',
+      type: 'line',
+      value: '',
+      optional: false,
+      required: undefined,
+      options: [],
+    },
+    {
+      key: 'attachments',
+      label: undefined,
+      name: 'Attachments',
+      type: 'file',
+      value: '',
+      optional: true,
+      required: undefined,
+      options: [],
+    },
+  ])
+
+  const serialized = serializeBeginInputsForStore(normalized)
+
+  assert.deepEqual(serialized, {
+    user_id: {
+      name: 'User ID',
+      type: 'line',
+      value: '',
+      optional: false,
+      label: undefined,
+      required: undefined,
+      options: [],
+    },
+    attachments: {
+      name: 'Attachments',
+      type: 'file',
+      value: '',
+      optional: true,
+      label: undefined,
+      required: undefined,
+      options: [],
+    },
+  })
+})
+
+test('begin webhook schema derives direct outputs for query, headers, and body keys', () => {
+  const outputs = buildBeginWebhookOutputs({
+    query: [{ key: 'user_id', type: 'string', required: true }],
+    headers: [{ key: 'authorization', type: 'string', required: true }],
+    body: [{ key: 'payload', type: 'object', required: false }],
+  })
+
+  assert.deepEqual(outputs, {
+    'query.user_id': { type: 'string' },
+    'headers.authorization': { type: 'string' },
+    'body.payload': { type: 'object' },
+  })
 })

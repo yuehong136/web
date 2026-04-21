@@ -3,8 +3,14 @@ import type { NodeProps } from '@xyflow/react'
 import { NodeResizeControl, Position } from '@xyflow/react'
 import { memo, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useShallow } from 'zustand/react/shallow'
 import { NodeHandleId, Operator } from '../../constant'
 import OperatorIcon from '../../operator-icon'
+import {
+  getIterationChildSize,
+  getIterationContentChildren,
+  ITERATION_MIN_SIZE,
+} from '../../iteration-layout'
 import useGraphStore from '../../store'
 import { needsSingleStepDebugging, showCopyIcon } from '../../utils'
 import type { IIterationNode, IIterationStartNode } from '../../types'
@@ -13,8 +19,6 @@ import { NodeWrapper } from './node-wrapper'
 import { ResizeIcon, controlStyle } from './resize-icon'
 import { ToolBar } from './toolbar'
 
-const NODE_EST_W = 220
-const NODE_EST_H = 90
 const MIN_PADDING = 40
 
 export function InnerIterationNode({
@@ -24,34 +28,38 @@ export function InnerIterationNode({
   selected,
 }: NodeProps<IIterationNode>) {
   const { t } = useTranslation()
-  const nodes = useGraphStore((s) => s.nodes)
 
-  const children = useMemo(
-    () => nodes.filter((n) => n.parentId === id),
-    [nodes, id],
+  // Narrow the store selector to this container's children so unrelated node
+  // updates don't re-render every iteration node on the canvas.
+  const children = useGraphStore(
+    useShallow((s) => getIterationContentChildren(s.nodes, id)),
   )
 
-  const hasUserChildren = useMemo(
-    () =>
-      children.some(
-        (n) =>
-          n.data?.label !== Operator.IterationStart &&
-          n.data?.label !== Operator.LoopStart,
-      ),
-    [children],
-  )
+  const hasUserChildren = children.length > 0
 
   const dynamicMin = useMemo(() => {
-    if (children.length === 0) return { width: 320, height: 160 }
+    if (children.length === 0) {
+      return {
+        width: ITERATION_MIN_SIZE.width,
+        height: ITERATION_MIN_SIZE.height,
+      }
+    }
+
     const maxRight = Math.max(
-      ...children.map((c) => c.position.x + NODE_EST_W),
+      ...children.map((child) => {
+        const size = getIterationChildSize(child)
+        return child.position.x + size.width
+      }),
     )
     const maxBottom = Math.max(
-      ...children.map((c) => c.position.y + NODE_EST_H),
+      ...children.map((child) => {
+        const size = getIterationChildSize(child)
+        return child.position.y + size.height
+      }),
     )
     return {
-      width: Math.max(320, maxRight + MIN_PADDING),
-      height: Math.max(160, maxBottom + MIN_PADDING),
+      width: Math.max(ITERATION_MIN_SIZE.width, maxRight + MIN_PADDING),
+      height: Math.max(ITERATION_MIN_SIZE.height, maxBottom + MIN_PADDING),
     }
   }, [children])
 

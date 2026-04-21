@@ -128,6 +128,9 @@ export const agentAPI = {
   fetchTemplates: async () =>
     apiClient.get<AgentTemplate[]>('/v1/canvas/templates'),
 
+  fetchPrompt: async () =>
+    apiClient.get<Record<string, string>>('/v1/canvas/prompts'),
+
   updateSetting: async (payload: UpdateAgentSettingsPayload) =>
     apiClient.post('/v1/canvas/setting', payload),
 

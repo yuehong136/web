@@ -1,20 +1,25 @@
 import { useEffect } from 'react'
-import type { UseFormReturn } from 'react-hook-form'
+import type { FieldValues, UseFormReturn } from 'react-hook-form'
 import { useWatch } from 'react-hook-form'
+import { useFormBinding } from './use-form-binding'
 import useGraphStore from '../store'
 
-export function useWatchFormChange(
+export function useWatchFormChange<
+  TFieldValues extends FieldValues = FieldValues,
+>(
   id?: string,
-  form?: UseFormReturn<any>,
+  form?: UseFormReturn<TFieldValues>,
 ) {
-  let values = useWatch({ control: form?.control })
+  const values = useWatch({ control: form?.control })
+  const binding = useFormBinding()
   const updateNodeForm = useGraphStore((state) => state.updateNodeForm)
+  const nodeId = binding?.nodeId ?? id
+  const path = binding?.path
 
   useEffect(() => {
-    if (id) {
-      values = form?.getValues() || {}
-      const nextValues: any = values
-      updateNodeForm(id, nextValues)
+    if (nodeId) {
+      const nextValues = form?.getValues() || {}
+      updateNodeForm(nodeId, nextValues, path)
     }
-  }, [form?.formState.isDirty, id, updateNodeForm, values])
+  }, [form, form?.formState.isDirty, nodeId, path, updateNodeForm, values])
 }

@@ -1,48 +1,55 @@
-import { Form } from '@/components/ui/form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
-import { z } from 'zod'
-import { useFormValues } from '../../hooks/use-form-values'
-import { useWatchFormChange } from '../../hooks/use-watch-form-change'
 import type { INextOperatorForm } from '../../types'
-import {
-  ApiKeyField,
-  DescriptionField,
-  FormWrapper,
-  Output,
-  transferOutputs,
-} from '../components'
-
-const schema = z.object({
-  api_key: z.string().optional(),
-  description: z.string().optional(),
-  outputs: z.record(z.string(), z.any()).optional(),
-})
-
-const defaultValues = {
-  api_key: '',
-  description: '',
-}
+import { FormWrapper } from '../components'
+import { ToolFormConfigMap } from './constant'
+import { McpForm } from './mcp-form'
+import { useSelectedTool } from './use-selected-tool'
 
 export function ToolForm({ node }: INextOperatorForm) {
-  const values = useFormValues(defaultValues, node)
+  const toolContext = useSelectedTool(node)
 
-  const form = useForm({
-    resolver: zodResolver(schema),
-    defaultValues: values,
-  })
+  if (
+    toolContext?.mcpServer &&
+    toolContext.agentNodeId &&
+    typeof toolContext.mcpIndex === 'number'
+  ) {
+    return (
+      <McpForm
+        key={toolContext.id}
+        agentNodeId={toolContext.agentNodeId}
+        mcpIndex={toolContext.mcpIndex}
+        mcpId={toolContext.id}
+        selectedTools={
+          (toolContext.mcp as { tools?: Record<string, unknown> } | undefined)
+            ?.tools
+        }
+      />
+    )
+  }
 
-  useWatchFormChange(node?.id, form)
+  if (
+    toolContext?.operator &&
+    toolContext.agentNodeId &&
+    typeof toolContext.toolIndex === 'number'
+  ) {
+    const ToolRenderer = ToolFormConfigMap[toolContext.operator]
 
-  const outputs = form.getValues('outputs')
+    if (ToolRenderer) {
+      return <ToolRenderer key={toolContext.id} node={node} />
+    }
+  }
 
   return (
-    <Form {...form}>
-      <FormWrapper>
-        <ApiKeyField />
-        <DescriptionField />
-        {outputs && <Output list={transferOutputs(outputs)} />}
-      </FormWrapper>
-    </Form>
+    <FormWrapper>
+      <div className="rounded-radius-md border border-border-default bg-surface-secondary/40 p-space-base">
+        <div className="text-sm font-medium text-text-primary">
+          {toolContext?.name || 'Tool'}
+        </div>
+        <p className="mt-space-xs text-sm text-text-secondary">
+          {!toolContext
+            ? '请先在 Agent 的工具列表中选择要编辑的工具。'
+            : '当前工具还没有接入最新的 tool-form 参数面板。'}
+        </p>
+      </div>
+    </FormWrapper>
   )
 }

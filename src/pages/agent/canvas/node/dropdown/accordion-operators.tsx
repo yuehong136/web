@@ -42,7 +42,7 @@ export function AccordionOperators({
   return (
     <Accordion
       type="multiple"
-      className="px-space-sm text-text-title max-h-[45vh] overflow-auto"
+      className="max-h-[45vh] overflow-auto px-space-sm text-text-primary"
       defaultValue={['item-1', 'item-2', 'item-3', 'item-4', 'item-5']}
     >
       <AccordionItem value="item-1">

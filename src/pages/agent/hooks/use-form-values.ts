@@ -1,5 +1,6 @@
 import merge from 'lodash/merge'
 import { useMemo } from 'react'
+import { useFormBinding } from './use-form-binding'
 import type { RAGFlowNodeType } from '../types'
 
 function isEmptyValue(value: unknown) {
@@ -22,15 +23,17 @@ export function useFormValues(
   defaultValues: Record<string, unknown>,
   node?: RAGFlowNodeType,
 ) {
+  const binding = useFormBinding()
+
   const values = useMemo(() => {
-    const formData = node?.data?.form
+    const formData = binding?.formData ?? node?.data?.form
 
     if (isEmptyValue(formData)) {
       return defaultValues
     }
 
     return merge({}, defaultValues, formData)
-  }, [defaultValues, node?.data?.form])
+  }, [binding?.formData, defaultValues, node?.data?.form])
 
   return values
 }

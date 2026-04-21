@@ -6,6 +6,7 @@ export interface VariableOptionItem {
   parentLabel?: string
   icon?: ReactNode
   type?: string
+  insertMode?: 'text' | 'variable'
 }
 
 export interface VariableOptionGroup {

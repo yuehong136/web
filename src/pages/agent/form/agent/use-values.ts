@@ -1,0 +1,45 @@
+import get from 'lodash/get.js'
+import isEmpty from 'lodash/isEmpty.js'
+import omit from 'lodash/omit.js'
+import { useMemo } from 'react'
+import { useFetchMyLLMs } from '@/hooks/use-llm-request'
+import { findFirstEnabledModelByType } from '@/stores/model'
+import { AgentStructuredOutputField, initialAgentValues } from '../../constant'
+import type { RAGFlowNodeType } from '../../types'
+
+function omitNonFormFields(values: Record<string, unknown>) {
+  return omit(values, ['mcp', 'tools', 'outputs']) as Record<string, unknown>
+}
+
+export function useValues(node?: RAGFlowNodeType) {
+  const { myLLMs } = useFetchMyLLMs()
+
+  return useMemo(() => {
+    const formData = (node?.data?.form || {}) as Record<string, unknown>
+    const defaultValues = {
+      ...omitNonFormFields(
+        initialAgentValues as unknown as Record<string, unknown>,
+      ),
+      llm_id:
+        findFirstEnabledModelByType(myLLMs, 'chat') ||
+        String(get(initialAgentValues, 'llm_id', '')),
+      prompts: get(initialAgentValues, 'prompts.0.content', ''),
+      showStructuredOutput: false,
+    }
+
+    if (isEmpty(formData)) {
+      return defaultValues
+    }
+
+    return {
+      ...defaultValues,
+      ...omitNonFormFields(formData),
+      prompts:
+        get(formData, 'prompts.0.content', '') ||
+        (typeof formData.user_prompt === 'string' ? formData.user_prompt : ''),
+      showStructuredOutput: Boolean(
+        get(formData, `outputs.${AgentStructuredOutputField}`),
+      ),
+    }
+  }, [myLLMs, node?.data?.form])
+}

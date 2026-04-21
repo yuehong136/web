@@ -30,6 +30,7 @@ export function useResolvedFormSheetContext(
     [operatorType],
   )
   const nodes = useGraphStore((state) => state.nodes)
+  const edges = useGraphStore((state) => state.edges)
   const clickedToolId = useGraphStore((state) => state.clickedToolId)
   const { data: mcpServersData } = useFetchMCPServers({
     page_size: 200,
@@ -42,10 +43,12 @@ export function useResolvedFormSheetContext(
       resolveSelectedToolContext({
         operatorType,
         clickedToolId,
+        currentNodeId: node?.id,
         nodes,
+        edges,
         mcpServers,
       }),
-    [clickedToolId, mcpServers, nodes, operatorType],
+    [clickedToolId, edges, mcpServers, node?.id, nodes, operatorType],
   )
 
   return useMemo(

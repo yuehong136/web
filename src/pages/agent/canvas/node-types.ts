@@ -54,6 +54,10 @@ export const nodeTypes: NodeTypes = {
   variableAggregatorNode: VariableAggregatorNode,
 
   // Iteration / Loop nodes
+  iterationNode: IterationNode,
+  // Legacy alias: xyflow's built-in `group` type applies a default 150px
+  // width that fights NodeResizeControl; kept only to render pre-existing
+  // DSLs while the deserializer migrates them to `iterationNode`.
   group: IterationNode,
   labeledGroupNode: LabeledGroupNode,
   iterationStartNode: IterationStartNode,

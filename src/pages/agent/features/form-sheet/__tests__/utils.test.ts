@@ -46,10 +46,7 @@ test('root nodes stay read-only while normal nodes remain editable', () => {
     isFormSheetTitleEditable(getOperatorDefinition(Operator.File)),
     false,
   )
-  assert.equal(
-    isFormSheetTitleEditable(getOperatorDefinition(Operator.Generate)),
-    true,
-  )
+  assert.equal(isFormSheetTitleEditable(getOperatorDefinition(Operator.Tool)), true)
 })
 
 test('debug availability is driven by registry metadata', () => {
@@ -65,6 +62,7 @@ test('debug availability is driven by registry metadata', () => {
 
 test('tool context resolves legacy tool metadata and MCP context separately', () => {
   const agentNode = buildGraphNode(Operator.Agent, {
+    id: 'agent-1',
     form: {
       tools: [
         {
@@ -72,15 +70,37 @@ test('tool context resolves legacy tool metadata and MCP context separately', ()
           component_name: Operator.Wikipedia,
           name: 'Wiki Search',
           description: 'Search Wikipedia entries.',
+          params: { top_n: 5 },
+        },
+      ],
+      mcp: [
+        {
+          mcp_id: 'mcp-1',
+          tools: {
+            search_docs: {
+              description: 'Search docs',
+            },
+          },
         },
       ],
     },
+  })
+  const toolNode = buildGraphNode(Operator.Tool, {
+    id: 'tool-node-1',
   })
   const operatorDefinition = getOperatorDefinition(Operator.Tool)
   const toolContext = resolveSelectedToolContext({
     operatorType: Operator.Tool,
     clickedToolId: 'wiki-tool',
-    nodes: [agentNode],
+    currentNodeId: 'tool-node-1',
+    nodes: [agentNode, toolNode],
+    edges: [
+      {
+        id: 'agent-tool-edge',
+        source: agentNode.id,
+        target: toolNode.id,
+      },
+    ],
     mcpServers: [],
   })
   const mcpServer: MCPServer = {
@@ -93,11 +113,21 @@ test('tool context resolves legacy tool metadata and MCP context separately', ()
   const mcpContext = resolveSelectedToolContext({
     operatorType: Operator.Tool,
     clickedToolId: 'mcp-1',
-    nodes: [agentNode],
+    currentNodeId: 'tool-node-1',
+    nodes: [agentNode, toolNode],
+    edges: [
+      {
+        id: 'agent-tool-edge',
+        source: agentNode.id,
+        target: toolNode.id,
+      },
+    ],
     mcpServers: [mcpServer],
   })
 
   assert.equal(toolContext?.operator, Operator.Wikipedia)
+  assert.equal(toolContext?.agentNodeId, agentNode.id)
+  assert.equal(toolContext?.toolIndex, 0)
   assert.equal(
     resolveFormSheetDescription({
       operatorType: Operator.Tool,
@@ -120,6 +150,8 @@ test('tool context resolves legacy tool metadata and MCP context separately', ()
   )
 
   assert.equal(mcpContext?.mcpServer?.id, 'mcp-1')
+  assert.equal(mcpContext?.agentNodeId, agentNode.id)
+  assert.equal(mcpContext?.mcpIndex, 0)
   assert.equal(
     resolveFormSheetDescription({
       operatorType: Operator.Tool,

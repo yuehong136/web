@@ -1,75 +1,88 @@
-import { Checkbox } from '@/components/ui/checkbox'
+import { LayoutRecognizeFormField } from '@/components/forms/KnowledgeFormFields'
+import { PromptEditor } from '@/components/prompt-editor'
+import { Button } from '@/components/ui/button'
+import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
+  FormMessage,
   FormLabel,
 } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
-import { Textarea } from '@/components/ui/textarea'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { Plus } from 'lucide-react'
 import { memo, useMemo } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
-import { BeginQueryType, initialUserFillUpValues } from '../../constant'
-import { useFormValues } from '../../hooks/use-form-values'
-import { useWatchFormChange } from '../../hooks/use-watch-form-change'
+import { BeginQueryType } from '../../constant'
+import { useBuildPromptVariableOptions } from '../../hooks/use-get-begin-query'
 import type { INextOperatorForm } from '../../types'
 import {
-  CompactRecordList,
-  CompactRecordRow,
   FormWrapper,
   Output,
-  RecordAdvancedPanel,
 } from '../components'
-import type { UserFillUpFormValues, UserFillUpInputItem } from './types'
+import { ParameterDialog } from '../begin/parameter-dialog'
+import { QueryTable } from '../begin/query-table'
+import { beginInputSchema } from '../begin/schema'
+import { useEditQueryRecord } from '../begin/use-edit-query'
+import type { BeginInputEditorItem } from '../begin/utils'
+import {
+  useValues,
+} from './use-values'
+import {
+  useWatchFormChange,
+} from './use-watch-change'
 
 const userFillUpSchema = z.object({
   enable_tips: z.boolean().optional(),
   tips: z.string().optional(),
-  inputs: z
-    .array(
-      z.object({
-        name: z.string().optional(),
-        type: z.string().optional(),
-        value: z.string().optional(),
-        optional: z.boolean().optional(),
-      }),
-    )
-    .optional(),
+  layout_recognize: z.string().optional(),
+  inputs: z.array(beginInputSchema).optional(),
+  outputs: z.record(z.string(), z.any()).optional(),
 })
 
-const defaultInput: UserFillUpInputItem = {
-  name: '',
-  type: BeginQueryType.Line,
-  value: '',
-  optional: false,
-}
+type UserFillUpFormValues = z.infer<typeof userFillUpSchema>
 
 export const UserFillUpForm = memo(function UserFillUpForm({
   node,
 }: INextOperatorForm) {
   const { t } = useTranslation()
-  const values = useFormValues(initialUserFillUpValues, node)
+  const values = useValues(node)
+  const promptOptions = useBuildPromptVariableOptions(node?.id)
 
   const form = useForm<UserFillUpFormValues>({
     resolver: zodResolver(userFillUpSchema),
-    defaultValues: values,
+    defaultValues: values as UserFillUpFormValues,
+    mode: 'onChange',
   })
 
   useWatchFormChange(node?.id, form)
 
-  const inputs = useWatch({ control: form.control, name: 'inputs' })
+  const watchedInputs = useWatch({ control: form.control, name: 'inputs' })
+  const inputs = useMemo(
+    () => (watchedInputs || []) as BeginInputEditorItem[],
+    [watchedInputs],
+  )
+  const hasFileInput = useMemo(
+    () =>
+      Array.isArray(inputs) &&
+      inputs.some((item) => item?.type === BeginQueryType.File),
+    [inputs],
+  )
+  const {
+    ok,
+    currentRecord,
+    open,
+    hideModal,
+    showModal,
+    otherThanCurrentQuery,
+    handleDeleteRecord,
+  } = useEditQueryRecord({
+    form,
+  })
 
   const outputList = useMemo(
     () =>
@@ -88,13 +101,16 @@ export const UserFillUpForm = memo(function UserFillUpForm({
           name="enable_tips"
           render={({ field }) => (
             <FormItem className="flex items-center justify-between">
-              <FormLabel>{t('flow.guidingQuestion', 'Guiding Question')}</FormLabel>
+              <FormLabel tooltip={t('flow.openingSwitchTip', 'Show a guiding question before the form.')}>
+                {t('flow.guidingQuestion', 'Guiding Question')}
+              </FormLabel>
               <FormControl>
                 <Switch
                   checked={field.value ?? true}
                   onCheckedChange={field.onChange}
                 />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -104,109 +120,66 @@ export const UserFillUpForm = memo(function UserFillUpForm({
           name="tips"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('flow.msg', 'Message')}</FormLabel>
+              <FormLabel tooltip={t('chat.setAnOpenerTip', 'Shown before the user fills in the form.')}>
+                {t('flow.msg', 'Message')}
+              </FormLabel>
               <FormControl>
-                <Textarea rows={3} {...field} value={field.value ?? ''} />
+                <PromptEditor
+                  value={field.value ?? ''}
+                  onChange={field.onChange}
+                  options={promptOptions}
+                  nodeId={node?.id}
+                />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
 
-        <CompactRecordList
+        <FormField
+          control={form.control}
           name="inputs"
-          label={t('flow.input', 'Inputs')}
-          addLabel={t('common.add', 'Add')}
-          emptyLabel={t('flow.noInputs', 'No inputs yet')}
-          defaultValue={defaultInput}
-        >
-          {({ field, index, ctx }) => (
-            <CompactRecordRow
-              key={field.id}
-              onRemove={() => ctx.remove(index)}
-              advanced={
-                <RecordAdvancedPanel>
-                  <FormField
-                    control={form.control}
-                    name={`inputs.${index}.value`}
-                    render={({ field: inputField }) => (
-                      <FormItem>
-                        <FormLabel>{t('flow.defaultValue', 'Default')}</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...inputField}
-                            value={inputField.value ?? ''}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                </RecordAdvancedPanel>
-              }
+          render={() => <div />}
+        />
+        <CollapsibleSection
+          title={t('flow.input', 'Input')}
+          defaultOpen
+          extra={
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              onClick={() => showModal()}
             >
-              <FormField
-                control={form.control}
-                name={`inputs.${index}.name`}
-                render={({ field: inputField }) => (
-                  <FormItem className="flex-[2_1_0] min-w-0">
-                    <FormControl>
-                      <Input
-                        {...inputField}
-                        value={inputField.value ?? ''}
-                        placeholder={t('flow.name', 'Name')}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
+              <Plus className="size-4" />
+            </Button>
+          }
+        >
+          <QueryTable
+            data={inputs}
+            showModal={showModal}
+            deleteRecord={handleDeleteRecord}
+          />
+        </CollapsibleSection>
 
-              <FormField
-                control={form.control}
-                name={`inputs.${index}.type`}
-                render={({ field: inputField }) => (
-                  <FormItem className="flex-[1_1_0] min-w-0">
-                    <FormControl>
-                      <Select
-                        value={inputField.value}
-                        onValueChange={inputField.onChange}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Object.values(BeginQueryType).map((value) => (
-                            <SelectItem key={value} value={value}>
-                              {t(`flow.${value}`, value)}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
+        {hasFileInput && (
+          <LayoutRecognizeFormField
+            name="layout_recognize"
+            horizontal={false}
+          />
+        )}
 
-              <FormField
-                control={form.control}
-                name={`inputs.${index}.optional`}
-                render={({ field: inputField }) => (
-                  <FormItem className="flex items-center gap-space-xs">
-                    <FormControl>
-                      <Checkbox
-                        checked={!!inputField.value}
-                        onCheckedChange={(value) =>
-                          inputField.onChange(Boolean(value))
-                        }
-                      />
-                    </FormControl>
-                    <FormLabel className="text-xs text-text-secondary">
-                      {t('flow.optional', 'Optional')}
-                    </FormLabel>
-                  </FormItem>
-                )}
-              />
-            </CompactRecordRow>
-          )}
-        </CompactRecordList>
+        <ParameterDialog
+          open={open}
+          onOpenChange={(nextOpen) => {
+            if (!nextOpen) {
+              hideModal()
+            }
+          }}
+          initialValue={currentRecord}
+          otherThanCurrentQuery={otherThanCurrentQuery}
+          submit={ok}
+        />
 
         <Output list={outputList} />
       </FormWrapper>

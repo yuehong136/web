@@ -1,28 +1,232 @@
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+} from '@/components/ui/form'
 import { Form } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { SelectWithSearch } from '@/components/ui/select-with-search'
+import { Switch } from '@/components/ui/switch'
+import { Textarea } from '@/components/ui/textarea'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { memo } from 'react'
-import { useForm } from 'react-hook-form'
+import { memo, useMemo } from 'react'
+import { useForm, useFormContext, useWatch } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
-import { initialVariableAssignerValues } from '../../constant'
+import {
+  JsonSchemaDataType,
+  VariableAssignerLogicalArrayOperator,
+  VariableAssignerLogicalNumberOperator,
+  VariableAssignerLogicalOperator,
+  initialVariableAssignerValues,
+} from '../../constant'
+import { useBuildPromptVariableOptions } from '../../hooks/use-get-begin-query'
 import { useFormValues } from '../../hooks/use-form-values'
 import { useWatchFormChange } from '../../hooks/use-watch-form-change'
 import type { INextOperatorForm } from '../../types'
-import { FormWrapper, Output, transferOutputs } from '../components'
+import {
+  CompactRecordList,
+  CompactRecordRow,
+  FormWrapper,
+  QueryVariable,
+  RecordAdvancedPanel,
+} from '../components'
+import { findQueryVariableOption } from '../components/query-variable-utils'
 
 const variableAssignerSchema = z.object({
-  variables: z.array(z.any()).optional(),
+  variables: z
+    .array(
+      z.object({
+        variable: z.string().optional(),
+        operator: z.string().optional(),
+        parameter: z.union([z.string(), z.number(), z.boolean()]).optional(),
+      }),
+    )
+    .optional(),
   outputs: z.record(z.string(), z.any()).optional(),
 })
 
-const variableAssignerDefaultValues = {
-  ...initialVariableAssignerValues,
-  variables: [] as unknown[],
+function getArrayElementType(type?: string) {
+  if (!type) {
+    return 'unknown'
+  }
+
+  const match = type.trim().match(/^array<(.+)>$/i)
+  if (match?.[1]) {
+    return match[1]
+  }
+
+  return 'unknown'
+}
+
+function buildOperatorOptions(type?: string) {
+  const normalized = (type || '').toLowerCase()
+
+  if (normalized.startsWith('array')) {
+    return [
+      VariableAssignerLogicalOperator.Overwrite,
+      VariableAssignerLogicalOperator.Clear,
+      VariableAssignerLogicalArrayOperator.Append,
+      VariableAssignerLogicalArrayOperator.Extend,
+      VariableAssignerLogicalArrayOperator.RemoveFirst,
+      VariableAssignerLogicalArrayOperator.RemoveLast,
+    ].map((value) => ({ label: value, value }))
+  }
+
+  if (normalized === JsonSchemaDataType.Number) {
+    return [
+      VariableAssignerLogicalNumberOperator.Overwrite,
+      VariableAssignerLogicalNumberOperator.Clear,
+      VariableAssignerLogicalNumberOperator.Set,
+      VariableAssignerLogicalNumberOperator.Add,
+      VariableAssignerLogicalNumberOperator.Subtract,
+      VariableAssignerLogicalNumberOperator.Multiply,
+      VariableAssignerLogicalNumberOperator.Divide,
+    ].map((value) => ({ label: value, value }))
+  }
+
+  return [
+    VariableAssignerLogicalOperator.Overwrite,
+    VariableAssignerLogicalOperator.Clear,
+    VariableAssignerLogicalOperator.Set,
+  ].map((value) => ({ label: value, value }))
+}
+
+function needsParameter(operator?: string) {
+  return !([
+    VariableAssignerLogicalOperator.Clear,
+    VariableAssignerLogicalArrayOperator.RemoveFirst,
+    VariableAssignerLogicalArrayOperator.RemoveLast,
+  ] as string[]).includes(operator || '')
+}
+
+function VariableParameterField({
+  index,
+  type,
+}: {
+  index: number
+  type?: string
+}) {
+  const { t } = useTranslation()
+  const form = useFormContext()
+  const operator = useWatch({
+    control: form.control,
+    name: `variables.${index}.operator`,
+  })
+
+  if (!needsParameter(operator)) {
+    return null
+  }
+
+  if (
+    operator === VariableAssignerLogicalOperator.Overwrite ||
+    operator === VariableAssignerLogicalArrayOperator.Extend
+  ) {
+    return (
+      <QueryVariable
+        name={`variables.${index}.parameter`}
+        label={t('flow.parameter', 'Parameter')}
+        types={type ? [type] : []}
+      />
+    )
+  }
+
+  if (operator === VariableAssignerLogicalArrayOperator.Append) {
+    const elementType = getArrayElementType(type)
+
+    return (
+      <QueryVariable
+        name={`variables.${index}.parameter`}
+        label={t('flow.parameter', 'Parameter')}
+        types={elementType ? [elementType] : []}
+      />
+    )
+  }
+
+  if (type === JsonSchemaDataType.Boolean) {
+    return (
+      <FormField
+        control={form.control}
+        name={`variables.${index}.parameter`}
+        render={({ field }) => (
+          <FormItem className="flex items-center justify-between">
+            <FormLabel>{t('flow.parameter', 'Parameter')}</FormLabel>
+            <FormControl>
+              <Switch
+                checked={Boolean(field.value)}
+                onCheckedChange={field.onChange}
+              />
+            </FormControl>
+          </FormItem>
+        )}
+      />
+    )
+  }
+
+  if (type === JsonSchemaDataType.Number || operator?.includes('=')) {
+    return (
+      <FormField
+        control={form.control}
+        name={`variables.${index}.parameter`}
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>{t('flow.parameter', 'Parameter')}</FormLabel>
+            <FormControl>
+              <Input
+                type="number"
+                {...field}
+                value={field.value ?? 0}
+                onChange={(event) =>
+                  field.onChange(Number(event.target.value))
+                }
+              />
+            </FormControl>
+          </FormItem>
+        )}
+      />
+    )
+  }
+
+  if (type === JsonSchemaDataType.Object) {
+    return (
+      <FormField
+        control={form.control}
+        name={`variables.${index}.parameter`}
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>{t('flow.parameter', 'Parameter')}</FormLabel>
+            <FormControl>
+              <Textarea rows={4} {...field} value={field.value ?? ''} />
+            </FormControl>
+          </FormItem>
+        )}
+      />
+    )
+  }
+
+  return (
+    <FormField
+      control={form.control}
+      name={`variables.${index}.parameter`}
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>{t('flow.parameter', 'Parameter')}</FormLabel>
+          <FormControl>
+            <Textarea rows={3} {...field} value={field.value ?? ''} />
+          </FormControl>
+        </FormItem>
+      )}
+    />
+  )
 }
 
 export const VariableAssignerForm = memo(function VariableAssignerForm({
   node,
 }: INextOperatorForm) {
-  const values = useFormValues(variableAssignerDefaultValues, node)
+  const { t } = useTranslation()
+  const variableOptions = useBuildPromptVariableOptions()
+  const values = useFormValues(initialVariableAssignerValues, node)
 
   const form = useForm({
     resolver: zodResolver(variableAssignerSchema),
@@ -31,15 +235,86 @@ export const VariableAssignerForm = memo(function VariableAssignerForm({
 
   useWatchFormChange(node?.id, form)
 
-  const outputs = form.getValues('outputs')
+  const watchedVariables = useWatch({
+    control: form.control,
+    name: 'variables',
+  })
+  const variables = useMemo(
+    () =>
+      (watchedVariables || []) as Array<{
+        variable?: string
+        operator?: string
+      }>,
+    [watchedVariables],
+  )
+
+  const variableTypes = useMemo(
+    () =>
+      variables.map(
+        (item) =>
+          (findQueryVariableOption(variableOptions, item?.variable) as {
+            type?: string
+          } | undefined)?.type,
+      ),
+    [variableOptions, variables],
+  )
 
   return (
     <Form {...form}>
       <FormWrapper>
-        <div className="text-sm text-text-secondary">
-          Variable assignments are configured via the canvas connections.
-        </div>
-        {outputs && <Output list={transferOutputs(outputs)} />}
+        <CompactRecordList
+          name="variables"
+          label={t('flow.variables', 'Variables')}
+          addLabel={t('common.add', 'Add')}
+          emptyLabel={t('flow.noVariables', 'No variables yet')}
+          defaultValue={{
+            variable: '',
+            operator: VariableAssignerLogicalOperator.Overwrite,
+            parameter: '',
+          }}
+        >
+          {({ field, index, ctx }) => {
+            const type = variableTypes[index]
+
+            return (
+              <CompactRecordRow
+                key={field.id}
+                onRemove={() => ctx.remove(index)}
+                chip={type || undefined}
+                advanced={
+                  <RecordAdvancedPanel>
+                    <VariableParameterField index={index} type={type} />
+                  </RecordAdvancedPanel>
+                }
+              >
+                <QueryVariable
+                  name={`variables.${index}.variable`}
+                  hideLabel
+                  className="flex-[2_1_0] min-w-0"
+                />
+
+                <FormField
+                  control={form.control}
+                  name={`variables.${index}.operator`}
+                  render={({ field: operatorField }) => (
+                    <FormItem className="flex-[1_1_0] min-w-0">
+                      <FormControl>
+                        <SelectWithSearch
+                          value={
+                            operatorField.value ||
+                            VariableAssignerLogicalOperator.Overwrite
+                          }
+                          onChange={operatorField.onChange}
+                          options={buildOperatorOptions(type)}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </CompactRecordRow>
+            )
+          }}
+        </CompactRecordList>
       </FormWrapper>
     </Form>
   )

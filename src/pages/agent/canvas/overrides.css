@@ -1,10 +1,15 @@
 /*
- * Our IterationNode is registered as xyflow's `type: 'group'` and renders its
- * own chrome, so the built-in group-wrapper styling (padding / border /
- * background / hover+selected shadows) must be flattened. Overriding the xyflow
- * `-default` CSS variables lets every state (hover, selected, focus) fall
- * through without needing `!important` or duplicating the state selectors.
+ * IterationNode renders its own chrome, so xyflow's default group-wrapper
+ * styling (padding / border / background / hover+selected shadows) has to
+ * be flattened. The `width: 150px` rule from xyflow's base stylesheet on
+ * `.react-flow__node-group` also fights NodeResizeControl — resetting width
+ * here keeps inline dimensions authoritative so resize updates stick.
+ *
+ * New iteration nodes use a dedicated `iterationNode` type. The group
+ * selector is retained only for legacy DSLs still persisted under xyflow's
+ * built-in `group` type.
  */
+.react-flow__node-iterationNode,
 .react-flow__node-group {
   --xy-node-background-color-default: transparent;
   --xy-node-group-background-color-default: transparent;
@@ -13,4 +18,5 @@
   --xy-node-boxshadow-hover-default: none;
   --xy-node-boxshadow-selected-default: none;
   padding: 0;
+  width: auto;
 }

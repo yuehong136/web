@@ -1,39 +1,50 @@
 import { Form } from '@/components/ui/form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
-import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
 import type { INextOperatorForm } from '../../types'
-import { DynamicStringForm, FormWrapper } from '../components'
+import { FormWrapper } from '../components'
+import {
+  MessageAudienceFields,
+  MessageContentListField,
+  MessageOutputSettings,
+  WebhookResponseStatusField,
+} from './fields'
 import {
   useMessageFormValues,
+  useMessageWebhookState,
   useWatchMessageFormChange,
 } from './hooks'
 
-const schema = z.object({
-  content: z
-    .array(z.object({ value: z.string() }))
-    .optional(),
+const messageSchema = z.object({
+  content: z.array(z.object({ value: z.string() })).optional(),
+  output_format: z.string().optional(),
+  auto_play: z.boolean().optional(),
+  status: z.coerce.number().optional(),
+  memory_ids: z.array(z.string()).optional(),
+  user_id: z.string().optional(),
 })
 
 export function MessageForm({ node }: INextOperatorForm) {
-  const { t } = useTranslation()
   const values = useMessageFormValues(node)
 
   const form = useForm({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(messageSchema),
     defaultValues: values,
   })
 
   useWatchMessageFormChange(node?.id, form)
 
+  const { isWebhookMode, showWebhookResponseStatus } =
+    useMessageWebhookState(form)
+
   return (
     <Form {...form}>
       <FormWrapper>
-        <DynamicStringForm
-          name="content"
-          label={t('flow.message', 'Messages')}
-        />
+        {showWebhookResponseStatus && <WebhookResponseStatusField />}
+        <MessageContentListField />
+        {!isWebhookMode && <MessageOutputSettings />}
+        <MessageAudienceFields />
       </FormWrapper>
     </Form>
   )

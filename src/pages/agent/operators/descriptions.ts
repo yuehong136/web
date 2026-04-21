@@ -3,7 +3,6 @@ import type { Operator } from '../constant'
 export const operatorDescriptions: Partial<Record<Operator, string>> = {
   Begin: '定义会话入口、开场白与输入参数。',
   Retrieval: '检索知识库或记忆，并将结果注入后续节点。',
-  Generate: '使用模型基于上下文生成答案。',
   Message: '向用户输出固定或模板化消息。',
   Categorize: '对输入进行分类，并按条件分发。',
   Switch: '基于条件判断选择不同执行路径。',

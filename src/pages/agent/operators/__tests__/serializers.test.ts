@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { AgentCanvasType } from '@/types/agent'
-import { BeginId, Operator } from '../../constant'
+import { AgentGlobals, BeginId, Operator } from '../../constant'
 import { agentOperatorRegistry } from '../registry'
 import {
   buildGraphNode,
@@ -122,6 +122,40 @@ test('message nodes normalize editor object content back to persisted string arr
   )
 })
 
+test('buildInitialDsl seeds globals with all sys.* defaults', () => {
+  const agentDsl = buildInitialDsl(AgentCanvasType.AGENT)
+  const pipelineDsl = buildInitialDsl(AgentCanvasType.PIPELINE)
+
+  for (const dsl of [agentDsl, pipelineDsl]) {
+    assert.equal(dsl.globals?.[AgentGlobals.SysQuery], '')
+    assert.equal(dsl.globals?.[AgentGlobals.SysUserId], '')
+    assert.equal(dsl.globals?.[AgentGlobals.SysConversationTurns], 0)
+    assert.deepEqual(dsl.globals?.[AgentGlobals.SysFiles], [])
+    assert.deepEqual(dsl.globals?.[AgentGlobals.SysHistory], [])
+    assert.equal(dsl.globals?.[AgentGlobals.SysDate], '')
+  }
+})
+
+test('serializeGraphToDsl backfills missing sys.* globals while preserving caller-provided values', () => {
+  const beginNode = buildGraphNode(Operator.Begin, { id: BeginId })
+
+  const dsl = serializeGraphToDsl({
+    graph: { nodes: [beginNode], edges: [] },
+    baseDsl: {
+      history: [],
+      messages: [],
+      reference: [],
+      globals: { [AgentGlobals.SysQuery]: 'kept-by-caller' },
+      variables: {},
+      retrieval: [],
+    },
+  })
+
+  assert.equal(dsl.globals?.[AgentGlobals.SysQuery], 'kept-by-caller')
+  assert.equal(dsl.globals?.[AgentGlobals.SysConversationTurns], 0)
+  assert.deepEqual(dsl.globals?.[AgentGlobals.SysFiles], [])
+})
+
 test('buildInitialDsl always includes path as an empty array', () => {
   const agentDsl = buildInitialDsl(AgentCanvasType.AGENT)
   const pipelineDsl = buildInitialDsl(AgentCanvasType.PIPELINE)
@@ -162,6 +196,88 @@ test('deserializeDslToGraph rebuilds graph from components when graph is absent'
   assert.equal(reconstructed.isReconstructed, true)
   assert.equal(reconstructed.graph.nodes.length, 1)
   assert.equal(reconstructed.graph.nodes[0]?.data.label, Operator.Begin)
+})
+
+test('deserializeDslToGraph fixes iteration child layout metadata', () => {
+  const reconstructed = deserializeDslToGraph(
+    {
+      components: {
+        'iteration-1': {
+          obj: {
+            component_name: Operator.Iteration,
+            params: {},
+          },
+          downstream: [],
+          upstream: [],
+        },
+        'iteration-start-1': {
+          obj: {
+            component_name: Operator.IterationStart,
+            params: {},
+          },
+          downstream: [],
+          upstream: [],
+          parent_id: 'iteration-1',
+        },
+        'agent-1': {
+          obj: {
+            component_name: Operator.Agent,
+            params: {},
+          },
+          downstream: [],
+          upstream: [],
+          parent_id: 'iteration-1',
+        },
+      },
+      history: [],
+      messages: [],
+      reference: [],
+      globals: {},
+      retrieval: [],
+      graph: {
+        nodes: [
+          {
+            id: 'iteration-1',
+            type: 'iterationNode',
+            position: { x: 120, y: 120 },
+            data: { label: Operator.Iteration, name: 'Iteration_1', form: {} },
+          },
+          {
+            id: 'iteration-start-1',
+            type: 'iterationStartNode',
+            parentId: 'iteration-1',
+            position: { x: 420, y: 32 },
+            draggable: false,
+            data: {
+              label: Operator.IterationStart,
+              name: 'Iteration Item',
+              form: {},
+            },
+          },
+          {
+            id: 'agent-1',
+            type: 'agentNode',
+            parentId: 'iteration-1',
+            position: { x: 12, y: 8 },
+            expandParent: true,
+            data: { label: Operator.Agent, name: 'Agent_1', form: {} },
+          },
+        ],
+        edges: [],
+      },
+    },
+    { canvasType: AgentCanvasType.AGENT },
+  )
+
+  const startNode = reconstructed.graph.nodes.find(
+    (node) => node.id === 'iteration-start-1',
+  )
+  const agentNode = reconstructed.graph.nodes.find((node) => node.id === 'agent-1')
+
+  assert.deepEqual(startNode?.position, { x: 24, y: 108 })
+  assert.equal(startNode?.expandParent, false)
+  assert.deepEqual(agentNode?.position, { x: 116, y: 24 })
+  assert.equal(agentNode?.expandParent, false)
 })
 
 test('high-risk rebuilt operators serialize UI-only form state back to backend request shapes', () => {

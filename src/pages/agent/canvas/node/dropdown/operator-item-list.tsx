@@ -58,12 +58,14 @@ export function OperatorItemList({
 
   const renderOperatorItem = (operator: Operator) => {
     const content = (
-      <div 
-        className="hover:bg-surface-secondary py-space-xs px-space-sm cursor-pointer rounded-radius-sm flex gap-space-sm items-center justify-start"
+      <div
+        className="flex cursor-pointer items-center justify-start gap-space-sm rounded-radius-sm px-space-sm py-space-xs transition-colors hover:bg-components-dropdown-item-bg-hover"
         onClick={handleClick(operator)}
       >
         <OperatorIcon name={operator} />
-        <span>{t(`flow.${lowerFirst(operator)}`, operator)}</span>
+        <span className="text-text-primary">
+          {t(`flow.${lowerFirst(operator)}`, operator)}
+        </span>
       </div>
     )
 

@@ -19,6 +19,10 @@ export interface SelectedToolContext {
   description?: string
   mcpServer?: MCPServer
   tool?: Record<string, unknown>
+  agentNodeId?: string
+  toolIndex?: number
+  mcpIndex?: number
+  mcp?: Record<string, unknown>
 }
 
 export interface ResolvedFormSheetContext {

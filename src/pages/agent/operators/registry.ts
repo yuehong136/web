@@ -25,7 +25,6 @@ function defineOperator(
 export const agentOperatorRegistry: OperatorRegistry = {
   [LegacyOperator.Begin]: defineOperator(LegacyOperator.Begin, { category: AgentOperatorCategory.CORE, mode: AgentOperatorMode.AGENT, defaultName: 'Begin', consumesBeginInputs: true, supportsGlobalVariables: true, isRootNode: true }),
   [LegacyOperator.Retrieval]: defineOperator(LegacyOperator.Retrieval, { category: AgentOperatorCategory.CORE, mode: AgentOperatorMode.AGENT, defaultName: 'Retrieval', consumesBeginInputs: true, supportsGlobalVariables: true }),
-  [LegacyOperator.Generate]: defineOperator(LegacyOperator.Generate, { category: AgentOperatorCategory.CORE, mode: AgentOperatorMode.AGENT, defaultName: 'Generate', consumesBeginInputs: true, supportsGlobalVariables: true }),
   [LegacyOperator.Message]: defineOperator(LegacyOperator.Message, { category: AgentOperatorCategory.CORE, mode: AgentOperatorMode.SHARED, defaultName: 'Message', consumesBeginInputs: true }),
   [LegacyOperator.Categorize]: defineOperator(LegacyOperator.Categorize, { category: AgentOperatorCategory.CONTROL, mode: AgentOperatorMode.AGENT, defaultName: 'Categorize', consumesBeginInputs: true }),
   [LegacyOperator.Switch]: defineOperator(LegacyOperator.Switch, { category: AgentOperatorCategory.CONTROL, mode: AgentOperatorMode.SHARED, defaultName: 'Switch' }),

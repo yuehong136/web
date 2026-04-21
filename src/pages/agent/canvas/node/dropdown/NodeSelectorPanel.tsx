@@ -2,7 +2,6 @@ import { useContext } from 'react'
 import { 
   Database, 
   MessageSquare, 
-  Sparkles, 
   Code, 
   GitBranch,
   Search,
@@ -26,7 +25,6 @@ const nodeCategories = [
     title: '核心',
     nodes: [
       { type: Operator.Retrieval, icon: Database, label: '检索', color: 'text-blue-600' },
-      { type: Operator.Generate, icon: Sparkles, label: '生成', color: 'text-purple-600' },
       { type: Operator.Message, icon: MessageSquare, label: '回复', color: 'text-green-600' },
     ],
   },
@@ -124,4 +122,3 @@ export const NodeSelectorPanel = ({
     </div>
   )
 }
-

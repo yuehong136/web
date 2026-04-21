@@ -66,7 +66,13 @@ export function buildVariableOptionLookup(groups: VariableOptionGroup[]) {
 export function buildVariableOptionSignature(groups: VariableOptionGroup[]) {
   return flattenVariableOptions(groups)
     .map((option) =>
-      [option.value, option.label, option.parentLabel, option.type]
+      [
+        option.value,
+        option.label,
+        option.parentLabel,
+        option.type,
+        option.insertMode,
+      ]
         .filter(Boolean)
         .join(':'),
     )

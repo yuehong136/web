@@ -13,7 +13,7 @@ import type {
   ICategorizeItem,
   IPosition,
 } from './types'
-export { hasSubAgent, isBottomSubAgent } from './utils/delete-node'
+export { hasSubAgent, hasSubAgentOrTool, isBottomSubAgent } from './utils/delete-node'
 
 // ==================== 节点名称生成 ====================
 

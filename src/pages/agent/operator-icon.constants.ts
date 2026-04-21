@@ -21,7 +21,6 @@ import {
   Replace,
   Search,
   Settings2,
-  Sparkles,
   StickyNote,
   Type,
   Variable,
@@ -50,7 +49,6 @@ export const OperatorIconFontMap: Record<string, string> = {
 export const LucideIconMap: Record<string, typeof Bot> = {
   [Operator.Begin]: HousePlus,
   [Operator.Retrieval]: Database,
-  [Operator.Generate]: Sparkles,
   [Operator.Message]: MessageSquare,
   [Operator.Categorize]: GitBranch,
   [Operator.Switch]: GitBranch,

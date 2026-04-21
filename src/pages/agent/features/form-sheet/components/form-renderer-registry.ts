@@ -12,7 +12,6 @@ import { DuckDuckGoForm } from '../../../form/duckduckgo-form'
 import { EmailForm } from '../../../form/email-form'
 import { ExtractorForm } from '../../../form/extractor'
 import { ExeSQLForm } from '../../../form/exesql'
-import { GenerateForm } from '../../../form/generate'
 import { GithubForm } from '../../../form/github-form'
 import { GoogleForm } from '../../../form/google-form'
 import { GoogleScholarForm } from '../../../form/google-scholar-form'
@@ -55,7 +54,6 @@ export const migratedFormRenderers: Record<
   ComponentType<INextOperatorForm>
 > = {
   [Operator.Begin]: BeginForm,
-  [Operator.Generate]: GenerateForm,
   [Operator.Retrieval]: RetrievalForm,
   [Operator.Message]: MessageForm,
   [Operator.Categorize]: CategorizeForm,

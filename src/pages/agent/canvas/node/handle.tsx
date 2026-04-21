@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils'
 import type { HandleProps } from '@xyflow/react'
 import { Handle, Position } from '@xyflow/react'
 import { Plus } from 'lucide-react'
-import { memo, useMemo, useState } from 'react'
+import { memo, useMemo } from 'react'
 import { NodeHandleId } from '../../constant'
 import { HandleContext } from '../../context'
 import { useIsPipeline } from '../../hooks/use-is-pipeline'
@@ -17,7 +17,7 @@ export const LeftEndHandle = memo((props: Omit<HandleProps, 'type' | 'position'>
       type="target"
       position={Position.Left}
       id={NodeHandleId.End}
-      className="!bg-surface-accent !size-2 !border-none"
+      className="!size-2 !border-none !bg-components-canvas-handle-bg"
       {...props}
     />
   )
@@ -36,7 +36,6 @@ export const CommonHandle = memo(
       useDropdownManager()
     const { hasChildNode } = useGraphStore((state) => state)
     const isPipeline = useIsPipeline()
-    const [dropdownPosition, setDropdownPosition] = useState({ x: 0, y: 0 })
 
     const canConnectByPipeline = !(isPipeline && hasChildNode(nodeId))
     const isConnectable = (props.isConnectable ?? true) && canConnectByPipeline
@@ -58,7 +57,7 @@ export const CommonHandle = memo(
           {...props}
           isConnectable={isConnectable}
           className={cn(
-            'inline-flex justify-center items-center !bg-surface-accent !border-none group-hover:!size-4 group-hover:!rounded-sm',
+            'inline-flex items-center justify-center !border-none !bg-components-canvas-handle-bg group-hover:!size-4 group-hover:!rounded-sm',
             className,
           )}
           onClick={(e) => {
@@ -72,24 +71,21 @@ export const CommonHandle = memo(
               return
             }
 
-            setDropdownPosition({
-              x: e.clientX + 8,
-              y: e.clientY - 12,
-            })
             setActiveDropdown('handle')
             showModal()
           }}
         >
-          <Plus className="size-3 pointer-events-none text-text-on-accent hidden group-hover:inline-block" />
+          <Plus className="hidden size-3 pointer-events-none text-components-canvas-handle-icon group-hover:inline-block" />
           {visible && (
             <NextStepDropdown
               nodeId={nodeId}
-              position={dropdownPosition}
               hideModal={() => {
                 hideModal()
                 clearActiveDropdown()
               }}
-            />
+            >
+              <span />
+            </NextStepDropdown>
           )}
         </Handle>
       </HandleContext.Provider>

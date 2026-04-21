@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from 'react'
-import type { ReactFlowInstance } from '@xyflow/react'
+import type { Edge, ReactFlowInstance } from '@xyflow/react'
 import { Position } from '@xyflow/react'
 import { humanId } from 'human-id'
 import {
@@ -8,7 +8,6 @@ import {
   NodeHandleId,
   initialBeginValues,
   initialRetrievalValues,
-  initialGenerateValues,
   initialMessageValues,
   initialCategorizeValues,
   initialSwitchValues,
@@ -56,6 +55,12 @@ import {
   initialExtractorValues,
 } from '../constant'
 import useGraphStore from '../store'
+import {
+  clampIterationChildPosition,
+  getFixedIterationStartPosition,
+  isIterationContainerNode,
+  ITERATION_DEFAULT_SIZE,
+} from '../iteration-layout'
 import type { RAGFlowNodeType } from '../types'
 import {
   generateNodeNamesWithIncreasingIndex,
@@ -68,7 +73,6 @@ export const useInitializeOperatorParams = () => {
     return {
       [Operator.Begin]: initialBeginValues,
       [Operator.Retrieval]: initialRetrievalValues,
-      [Operator.Generate]: initialGenerateValues,
       [Operator.Message]: initialMessageValues,
       [Operator.Categorize]: initialCategorizeValues,
       [Operator.Switch]: initialSwitchValues,
@@ -136,7 +140,6 @@ export const useGetNodeName = () => {
     const nameMap: Record<string, string> = {
       [Operator.Begin]: '开始',
       [Operator.Retrieval]: '检索',
-      [Operator.Generate]: '生成',
       [Operator.Message]: '回复',
       [Operator.Categorize]: '分类',
       [Operator.Switch]: '条件',
@@ -162,10 +165,9 @@ type CanvasMouseEvent = Pick<
   'clientX' | 'clientY'
 >
 
-const ITERATION_DEFAULT_SIZE = { width: 500, height: 250 }
-const ITERATION_START_OFFSET = { x: 24, y: 108 }
-
-export function useAddNode(reactFlowInstance?: ReactFlowInstance<any, any>) {
+export function useAddNode(
+  reactFlowInstance?: ReactFlowInstance<RAGFlowNodeType, Edge>,
+) {
   const { nodes, addEdge, addNode, getNode, getParentIdById, resizeIterationContainer } =
     useGraphStore((state) => state)
   const getNodeName = useGetNodeName()
@@ -203,6 +205,49 @@ export function useAddNode(reactFlowInstance?: ReactFlowInstance<any, any>) {
     [getNode, getParentIdById, nodes],
   )
 
+  const resolveFallbackPosition = useCallback(
+    (sourceNodeId?: string, position = Position.Right) => {
+      if (!sourceNodeId) {
+        return undefined
+      }
+
+      const sourceNode = getNode(sourceNodeId)
+      if (!sourceNode) {
+        return undefined
+      }
+
+      const width = sourceNode.width || 208
+      const height = sourceNode.height || 96
+      const horizontalGap = width + 72
+      const verticalGap = height + 72
+
+      switch (position) {
+        case Position.Left:
+          return {
+            x: sourceNode.position.x - horizontalGap,
+            y: sourceNode.position.y,
+          }
+        case Position.Top:
+          return {
+            x: sourceNode.position.x,
+            y: sourceNode.position.y - verticalGap,
+          }
+        case Position.Bottom:
+          return {
+            x: sourceNode.position.x,
+            y: sourceNode.position.y + verticalGap,
+          }
+        case Position.Right:
+        default:
+          return {
+            x: sourceNode.position.x + horizontalGap,
+            y: sourceNode.position.y,
+          }
+      }
+    },
+    [getNode],
+  )
+
   const addCanvasNode = useCallback(
     (
       type: string,
@@ -216,23 +261,41 @@ export function useAddNode(reactFlowInstance?: ReactFlowInstance<any, any>) {
       },
     ) =>
       (event?: CanvasMouseEvent): string | undefined => {
-        const absPosition = reactFlowInstance?.screenToFlowPosition({
-          x: event?.clientX || 0,
-          y: event?.clientY || 0,
-        })
+        const absPosition =
+          event && reactFlowInstance
+            ? reactFlowInstance.screenToFlowPosition({
+                x: event.clientX,
+                y: event.clientY,
+              })
+            : undefined
+        const fallbackPosition =
+          !event && params.nodeId
+            ? resolveFallbackPosition(params.nodeId, params.position)
+            : undefined
+        const nextPosition = absPosition || fallbackPosition
 
         const isIteration =
           type === Operator.Iteration || type === Operator.Loop
 
-        const parentCtx = resolveParentContext(type, params.nodeId, absPosition)
+        const parentCtx = resolveParentContext(type, params.nodeId, nextPosition)
+        const parentNode = parentCtx?.parentId
+          ? getNode(parentCtx.parentId)
+          : undefined
+        const nextNodePosition =
+          parentCtx && isIterationContainerNode(parentNode)
+            ? clampIterationChildPosition(parentCtx.position)
+            : parentCtx?.position || nextPosition || { x: 0, y: 0 }
 
         const newNode = {
           id: `${type}:${humanId()}`,
           type: NodeMap[type as Operator] || 'ragNode',
-          position: parentCtx?.position || absPosition || { x: 0, y: 0 },
+          position: nextNodePosition,
           draggable: type === Operator.Placeholder ? false : undefined,
           ...(parentCtx
-            ? { parentId: parentCtx.parentId, extent: 'parent' as const }
+            ? {
+                parentId: parentCtx.parentId,
+                extent: 'parent' as const,
+              }
             : {}),
           data: {
             label: type,
@@ -246,7 +309,6 @@ export function useAddNode(reactFlowInstance?: ReactFlowInstance<any, any>) {
             ? {
                 width: ITERATION_DEFAULT_SIZE.width,
                 height: ITERATION_DEFAULT_SIZE.height,
-                style: { ...ITERATION_DEFAULT_SIZE },
               }
             : {}),
         } as unknown as RAGFlowNodeType
@@ -263,10 +325,11 @@ export function useAddNode(reactFlowInstance?: ReactFlowInstance<any, any>) {
           const startNode = {
             id: `${startType}:${humanId()}`,
             type: NodeMap[startType as Operator] || 'iterationStartNode',
-            position: { ...ITERATION_START_OFFSET },
+            position: getFixedIterationStartPosition(),
             parentId: newNode.id,
             extent: 'parent' as const,
             draggable: false,
+            expandParent: false,
             data: {
               label: startType,
               name: startType,
@@ -292,10 +355,12 @@ export function useAddNode(reactFlowInstance?: ReactFlowInstance<any, any>) {
     [
       addEdge,
       addNode,
+      getNode,
       getNodeName,
       initializeOperatorParams,
       nodes,
       reactFlowInstance,
+      resolveFallbackPosition,
       resolveParentContext,
       resizeIterationContainer,
     ],

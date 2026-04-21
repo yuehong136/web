@@ -4,6 +4,7 @@ import {
   MenuOption,
 } from '@lexical/react/LexicalTypeaheadMenuPlugin'
 import {
+  $createTextNode,
   $getSelection,
   $isRangeSelection,
   COMMAND_PRIORITY_CRITICAL,
@@ -46,6 +47,7 @@ class VariableMenuOption extends MenuOption {
   icon?: ReactNode
   type?: string
   groupTitle: string
+  insertMode?: 'text' | 'variable'
 
   constructor({
     groupTitle,
@@ -54,6 +56,7 @@ class VariableMenuOption extends MenuOption {
     parentLabel,
     icon,
     type,
+    insertMode,
   }: VariableOptionItem & { groupTitle: string }) {
     super(value)
     this.label = label
@@ -62,6 +65,7 @@ class VariableMenuOption extends MenuOption {
     this.icon = icon
     this.type = type
     this.groupTitle = groupTitle
+    this.insertMode = insertMode
   }
 }
 
@@ -285,6 +289,19 @@ export default function VariablePickerMenuPlugin({
             selectedOption.value,
             flattenedOptions as VariableOptionItem[],
           )?.label ?? selectedOption.label
+
+        if (selectedOption.insertMode === 'text') {
+          if (nodeToRemove) {
+            nodeToRemove.replace($createTextNode(selectedOption.value))
+          } else {
+            const selection = $getSelection()
+            if ($isRangeSelection(selection)) {
+              selection.insertText(selectedOption.value)
+            }
+          }
+          closeMenu()
+          return
+        }
 
         const variableNode = $createVariableNode(
           selectedOption.value,

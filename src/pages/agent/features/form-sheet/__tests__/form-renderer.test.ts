@@ -4,7 +4,6 @@ import { Operator } from '../../../constant'
 import { AgentForm } from '../../../form/agent'
 import { BeginForm } from '../../../form/begin'
 import { DataOperationsForm } from '../../../form/data-operations'
-import { GenerateForm } from '../../../form/generate'
 import { InvokeForm } from '../../../form/invoke'
 import { IterationForm } from '../../../form/iteration'
 import { IterationStartForm } from '../../../form/iteration-start'
@@ -39,7 +38,6 @@ import { MCP_FORM_RENDERER_KEY } from '../utils'
 test('migrated operators resolve to directory modules in the form renderer', () => {
   assert.equal(resolveFormRendererComponent(Operator.Begin), BeginForm)
   assert.equal(resolveFormRendererComponent(Operator.Retrieval), RetrievalForm)
-  assert.equal(resolveFormRendererComponent(Operator.Generate), GenerateForm)
   assert.equal(resolveFormRendererComponent(Operator.Message), MessageForm)
   assert.equal(resolveFormRendererComponent(Operator.Agent), AgentForm)
   assert.equal(resolveFormRendererComponent(Operator.Tool), ToolForm)
@@ -92,7 +90,6 @@ test('legacy operators and the MCP renderer stay on compatibility bridges', () =
 
 test('form config map keeps migrated operators available through the compatibility export', () => {
   assert.equal(FormConfigMap[Operator.Begin], BeginForm)
-  assert.equal(FormConfigMap[Operator.Generate], GenerateForm)
   assert.equal(FormConfigMap[Operator.Tool], ToolForm)
   assert.equal(FormConfigMap[Operator.Iteration], IterationForm)
   assert.equal(FormConfigMap[Operator.IterationStart], IterationStartForm)

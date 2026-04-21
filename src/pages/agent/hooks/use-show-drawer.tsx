@@ -33,8 +33,11 @@ export const useShowFormDrawer = () => {
 
   const handleShow = useCallback(
     (e: React.MouseEvent<Element>, nodeId: string) => {
-      const toolId = (e.target as HTMLElement).dataset.toolId
-      const tool = (e.target as HTMLElement).dataset.tool
+      const target = e.target as HTMLElement
+      const toolId =
+        target.dataset.toolId || target.parentElement?.dataset.toolId
+      const tool =
+        target.dataset.tool || target.parentElement?.dataset.tool
 
       const operatorType = getOperatorTypeFromId(nodeId)
       if (

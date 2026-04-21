@@ -7,7 +7,6 @@ export const Operator = {
   // 核心节点
   Begin: 'Begin',
   Retrieval: 'Retrieval',
-  Generate: 'Generate',
   Message: 'Message',
 
   // 控制流节点
@@ -96,7 +95,6 @@ export type NodeHandleId = (typeof NodeHandleId)[keyof typeof NodeHandleId]
 export const NodeMap: Record<string, string> = {
   [Operator.Begin]: 'beginNode',
   [Operator.Retrieval]: 'retrievalNode',
-  [Operator.Generate]: 'ragNode',
   [Operator.Message]: 'messageNode',
   [Operator.Categorize]: 'categorizeNode',
   [Operator.Switch]: 'switchNode',
@@ -107,7 +105,7 @@ export const NodeMap: Record<string, string> = {
   [Operator.Tool]: 'toolNode',
   [Operator.Note]: 'noteNode',
   [Operator.Placeholder]: 'placeholderNode',
-  [Operator.Iteration]: 'group',
+  [Operator.Iteration]: 'iterationNode',
   [Operator.IterationStart]: 'iterationStartNode',
   [Operator.Code]: 'ragNode',
   [Operator.WaitingDialogue]: 'ragNode',
@@ -165,6 +163,7 @@ export const AgentGlobals = {
   SysConversationTurns: 'sys.conversation_turns',
   SysFiles: 'sys.files',
   SysHistory: 'sys.history',
+  SysDate: 'sys.date',
 } as const
 
 export type AgentGlobals = (typeof AgentGlobals)[keyof typeof AgentGlobals]
@@ -187,8 +186,52 @@ export type AgentQuery = (typeof AgentQuery)[keyof typeof AgentQuery]
 
 // Begin节点初始值
 export const initialBeginValues = {
+  enablePrologue: true,
   mode: AgentDialogueMode.Conversational,
   prologue: `Hi! I'm your assistant. What can I do for you?`,
+  inputs: {} as Record<string, unknown>,
+  layout_recognize: 'DeepDOC',
+  methods: ['GET'],
+  content_types: 'application/json',
+  security: {
+    auth_type: 'basic',
+    ip_whitelist: [] as Array<{ value: string }>,
+    token: {
+      token_header: '',
+      token_value: '',
+    },
+    basic_auth: {
+      username: '',
+      password: '',
+    },
+    rate_limit: {
+      limit: 10,
+      per: 'second',
+    },
+    max_body_size: '1MB',
+    jwt: {
+      algorithm: 'HS256',
+      secret: '',
+      issuer: '',
+      audience: '',
+      required_claims: [] as Array<{ value: string }>,
+    },
+    hmac: {
+      header: '',
+      secret: '',
+    },
+  },
+  schema: {
+    query: [] as Array<{ key: string; type: string; required: boolean }>,
+    headers: [] as Array<{ key: string; type: string; required: boolean }>,
+    body: [] as Array<{ key: string; type: string; required: boolean }>,
+  },
+  response: {
+    status: 200,
+    body_template: '',
+  },
+  execution_mode: 'Immediately',
+  outputs: {} as Record<string, unknown>,
 }
 
 // Retrieval节点初始值
@@ -232,7 +275,7 @@ export const initialRetrievalValues = {
   },
 }
 
-// Generate节点初始值 (基础LLM配置)
+// 通用LLM基础配置
 export const initialLlmBaseValues = {
   llm_id: '',
   temperature: 0.1,
@@ -242,17 +285,14 @@ export const initialLlmBaseValues = {
   max_tokens: 512,
 }
 
-export const initialGenerateValues = {
-  ...initialLlmBaseValues,
-  prompt: 'Please summarize the following content:\n\n{context}',
-  cite: true,
-  message_history_window_size: 12,
-  parameters: [],
-}
-
 // Message节点初始值
 export const initialMessageValues = {
   content: [''],
+  output_format: '',
+  auto_play: false,
+  status: 200,
+  memory_ids: [] as string[],
+  user_id: '',
 }
 
 // Categorize节点初始值
@@ -366,12 +406,12 @@ export const initialAgentValues = {
   tools: [],
   mcp: [],
   cite: true,
+  showStructuredOutput: false,
   outputs: {
     content: {
       type: 'string',
       value: '',
     },
-    [AgentStructuredOutputField]: {},
   },
 }
 
@@ -712,6 +752,7 @@ export const initialUserFillUpValues = {
   enable_tips: true,
   tips: '',
   inputs: [] as unknown[],
+  layout_recognize: 'DeepDOC',
   outputs: {},
 }
 
@@ -774,8 +815,13 @@ export const Operations = {
 } as const
 
 export const initialDataOperationsValues = {
-  query: [] as string[],
+  query: [] as Array<{ input: string }>,
   operations: Operations.SelectKeys,
+  select_keys: [] as Array<{ name: string }>,
+  remove_keys: [] as Array<{ name: string }>,
+  updates: [] as Array<{ key: string; value: string }>,
+  rename_keys: [] as Array<{ old_key: string; new_key: string }>,
+  filter_values: [] as Array<{ key: string; operator: string; value: string }>,
   outputs: {
     result: {
       type: 'Array<Object>',
@@ -801,7 +847,23 @@ export const SortMethod = {
 export const initialListOperationsValues = {
   query: '',
   operations: ListOperations.TopN,
-  outputs: {},
+  n: 1,
+  sort_method: SortMethod.Asc,
+  filter: {
+    operator: ComparisonOperator.Equal,
+    value: '',
+  },
+  outputs: {
+    result: {
+      type: 'Array<unknown>',
+    },
+    first: {
+      type: 'unknown',
+    },
+    last: {
+      type: 'unknown',
+    },
+  },
 }
 
 // VariableAssigner节点初始值
@@ -830,7 +892,14 @@ export const VariableAssignerLogicalArrayOperator = {
   RemoveLast: 'remove_last',
 } as const
 
-export const initialVariableAssignerValues = {}
+export const initialVariableAssignerValues = {
+  variables: [] as Array<{
+    variable: string
+    operator: string
+    parameter: string | number | boolean
+  }>,
+  outputs: {},
+}
 
 // VariableAggregator节点初始值
 export const initialVariableAggregatorValues = { outputs: {}, groups: [] as unknown[] }
@@ -983,7 +1052,6 @@ export const initialExtractorValues = {
 export const RestrictedUpstreamMap: Record<string, Operator[]> = {
   [Operator.Begin]: [Operator.Begin],
   [Operator.Retrieval]: [Operator.Begin, Operator.Retrieval],
-  [Operator.Generate]: [],
   [Operator.Message]: [
     Operator.Begin,
     Operator.Message,

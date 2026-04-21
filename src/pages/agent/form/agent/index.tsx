@@ -1,24 +1,49 @@
+import { zodResolver } from '@hookform/resolvers/zod'
+import get from 'lodash/get.js'
+import { useEffect, useMemo } from 'react'
+import { useForm, useWatch } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
+import { z } from 'zod'
+import { useFetchMyLLMs } from '@/hooks/use-llm-request'
 import {
+  AgentStructuredOutputField,
+  AgentExceptionMethod,
+  NodeHandleId,
+  VariableType,
+} from '../../constant'
+import { useSaveOnBlur } from '../../hooks/use-save-on-blur'
+import { useBuildPromptVariableOptions } from '../../hooks/use-get-begin-query'
+import useGraphStore from '../../store'
+import type { INextOperatorForm } from '../../types'
+import { hasSubAgentOrTool, isBottomSubAgent } from '../../utils'
+import {
+  DescriptionField,
+  FormWrapper,
+  Output,
+  QueryVariable,
+  SchemaDialog,
+  SchemaPanel,
+  transferOutputs,
+} from '../components'
+import { LLMSelectField } from '../components/llm-select-field'
+import { AgentAdvancedSettings } from './components/agent-advanced-settings'
+import { Agents, AgentTools } from './tools'
+import { useBuildPromptExtraPromptOptions } from './use-build-prompt-options'
+import { useStructuredOutputDialog } from './use-show-structured-output-dialog'
+import { useValues } from './use-values'
+import { useWatchFormChange } from './use-watch-change'
+import { PromptEditor } from '@/components/prompt-editor'
+import {
+  Form,
   FormControl,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
-import { Form } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
-import { Textarea } from '@/components/ui/textarea'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
-import { useTranslation } from 'react-i18next'
-import { z } from 'zod'
-import { initialAgentValues } from '../../constant'
-import { useFormValues } from '../../hooks/use-form-values'
-import { useWatchFormChange } from '../../hooks/use-watch-form-change'
-import type { INextOperatorForm } from '../../types'
-import { FormWrapper, Output, transferOutputs } from '../components'
-import { AgentAdvancedSettings } from './components/agent-advanced-settings'
 
 const schema = z.object({
   llm_id: z.string().optional(),
@@ -28,111 +53,210 @@ const schema = z.object({
   frequency_penalty: z.coerce.number().optional(),
   max_tokens: z.coerce.number().optional(),
   sys_prompt: z.string().optional(),
-  user_prompt: z.string().optional(),
   description: z.string().optional(),
+  prompts: z.string().optional(),
+  showStructuredOutput: z.boolean().optional(),
   message_history_window_size: z.coerce.number().optional(),
   max_retries: z.coerce.number().optional(),
   delay_after_error: z.coerce.number().optional(),
   max_rounds: z.coerce.number().optional(),
   cite: z.boolean().optional(),
-  outputs: z.record(z.string(), z.any()).optional(),
-  tools: z.array(z.any()).optional(),
-  mcp: z.array(z.any()).optional(),
-  prompts: z.array(z.any()).optional(),
   exception_method: z.string().optional(),
   exception_goto: z.array(z.string()).optional(),
   exception_default_value: z.string().optional(),
   visual_files_var: z.string().optional(),
 })
 
+type AgentFormValues = z.input<typeof schema>
+
 export function AgentForm({ node }: INextOperatorForm) {
   const { t } = useTranslation()
-  const values = useFormValues(initialAgentValues, node)
+  const { myLLMs } = useFetchMyLLMs()
+  const { handleSaveOnBlur } = useSaveOnBlur()
+  const edges = useGraphStore((state) => state.edges)
+  const deleteEdgesBySourceAndSourceHandle = useGraphStore(
+    (state) => state.deleteEdgesBySourceAndSourceHandle,
+  )
+  const values = useValues(node) as AgentFormValues
 
-  const form = useForm({
+  const form = useForm<AgentFormValues, unknown, z.output<typeof schema>>({
     resolver: zodResolver(schema),
-    defaultValues: values,
+    defaultValues: values as AgentFormValues,
   })
 
   useWatchFormChange(node?.id, form)
 
-  const outputs = form.getValues('outputs')
+  const llmId = useWatch({ control: form.control, name: 'llm_id' })
+  const showStructuredOutput = useWatch({
+    control: form.control,
+    name: 'showStructuredOutput',
+  })
+  const exceptionMethod = useWatch({
+    control: form.control,
+    name: 'exception_method',
+  })
+
+  const outputs = useMemo(
+    () => transferOutputs(node?.data?.form?.outputs),
+    [node?.data?.form?.outputs],
+  )
+  const structuredOutput = get(
+    node,
+    `data.form.outputs.${AgentStructuredOutputField}`,
+  )
+  const isSubAgent = useMemo(
+    () => isBottomSubAgent(edges, node?.id),
+    [edges, node?.id],
+  )
+  const hasRoundControl = useMemo(
+    () => hasSubAgentOrTool(edges, node?.id),
+    [edges, node?.id],
+  )
+  const supportsImageInput = useMemo(() => {
+    if (!llmId) {
+      return false
+    }
+
+    return Object.values(myLLMs).some(
+      (provider) =>
+        provider.llm.some((model) => model.name === llmId) &&
+        provider.tags.includes('IMAGE2TEXT'),
+    )
+  }, [llmId, myLLMs])
+  const promptOptions = useBuildPromptVariableOptions(node?.id)
+  const { extraOptions } = useBuildPromptExtraPromptOptions(edges, node?.id)
+  const structuredOutputDialog = useStructuredOutputDialog(node?.id)
+
+  useEffect(() => {
+    if (
+      node?.id &&
+      exceptionMethod !== AgentExceptionMethod.Goto
+    ) {
+      deleteEdgesBySourceAndSourceHandle(node.id, NodeHandleId.AgentException)
+    }
+  }, [
+    deleteEdgesBySourceAndSourceHandle,
+    exceptionMethod,
+    node?.id,
+  ])
 
   return (
-    <Form {...form}>
-      <FormWrapper>
-        <FormField
-          control={form.control}
-          name="sys_prompt"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                {t('flow.systemPrompt', 'System Prompt')}
-              </FormLabel>
-              <FormControl>
-                <Textarea rows={4} {...field} value={field.value ?? ''} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
+    <>
+      <Form {...form}>
+        <FormWrapper>
+          {isSubAgent && <DescriptionField />}
+
+          <LLMSelectField type="chat" />
+
+          {supportsImageInput && (
+            <QueryVariable
+              name="visual_files_var"
+              label={t('flow.visualInputFile', 'Visual Input File')}
+              types={[VariableType.File]}
+              nodeId={node?.id}
+            />
           )}
-        />
 
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('flow.description', 'Description')}</FormLabel>
-              <FormControl>
-                <Textarea rows={2} {...field} value={field.value ?? ''} />
-              </FormControl>
-            </FormItem>
+          <FormField
+            control={form.control}
+            name="sys_prompt"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('flow.systemPrompt', 'System Prompt')}</FormLabel>
+                <FormControl>
+                  <PromptEditor
+                    value={field.value ?? ''}
+                    onChange={field.onChange}
+                    options={promptOptions}
+                    extraOptions={extraOptions}
+                    nodeId={node?.id}
+                    placeholder={t(
+                      'flow.messagePlaceholder',
+                      'Write the prompt...',
+                    )}
+                    onBlur={handleSaveOnBlur}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {!isSubAgent && (
+            <FormField
+              control={form.control}
+              name="prompts"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('flow.userPrompt', 'User Prompt')}</FormLabel>
+                  <FormControl>
+                    <PromptEditor
+                      value={(field.value as string) ?? ''}
+                      onChange={field.onChange}
+                      options={promptOptions}
+                      nodeId={node?.id}
+                      onBlur={handleSaveOnBlur}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           )}
-        />
 
-        <FormField
-          control={form.control}
-          name="cite"
-          render={({ field }) => (
-            <FormItem className="flex items-center justify-between">
-              <FormLabel>{t('flow.cite', 'Citation')}</FormLabel>
-              <FormControl>
-                <Switch
-                  checked={field.value ?? false}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-            </FormItem>
+          <Separator />
+
+          <AgentTools node={node} />
+          <Agents node={node} />
+
+          <AgentAdvancedSettings showMaxRounds={hasRoundControl} />
+
+          <Output list={outputs}>
+            <div className="flex items-center gap-space-sm">
+              <span className="text-sm text-text-secondary">
+                {t(
+                  'flow.structuredOutput.structuredOutput',
+                  'Structured Output',
+                )}
+              </span>
+              <Switch
+                checked={Boolean(showStructuredOutput)}
+                onCheckedChange={(checked) => {
+                  form.setValue('showStructuredOutput', checked, {
+                    shouldDirty: true,
+                  })
+                  structuredOutputDialog.toggle(checked)
+                }}
+              />
+              {showStructuredOutput && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={structuredOutputDialog.show}
+                >
+                  {t(
+                    'flow.structuredOutput.configuration',
+                    'Configuration',
+                  )}
+                </Button>
+              )}
+            </div>
+          </Output>
+
+          {showStructuredOutput && structuredOutput && (
+            <SchemaPanel value={structuredOutput as never} />
           )}
+        </FormWrapper>
+      </Form>
+
+      {structuredOutputDialog.visible && (
+        <SchemaDialog
+          hideModal={structuredOutputDialog.hide}
+          onOk={structuredOutputDialog.handleOk}
+          initialValues={structuredOutputDialog.initialValues}
         />
-
-        <FormField
-          control={form.control}
-          name="message_history_window_size"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                {t('flow.messageHistoryWindowSize', 'Message History Window')}
-              </FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  min={0}
-                  {...field}
-                  value={field.value ?? 12}
-                  onChange={(event) =>
-                    field.onChange(Number(event.target.value))
-                  }
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-
-        <AgentAdvancedSettings />
-
-        {outputs && <Output list={transferOutputs(outputs)} />}
-      </FormWrapper>
-    </Form>
+      )}
+    </>
   )
 }

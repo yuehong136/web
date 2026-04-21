@@ -3,6 +3,7 @@ import type {
   Edge,
   EdgeChange,
   EdgeMouseHandler,
+  NodeChange,
   OnConnect,
   OnEdgesChange,
   OnNodesChange,
@@ -22,6 +23,19 @@ import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
 import { NodeHandleId, Operator, SwitchElseTo } from './constant'
 import {
+  clampIterationChildPosition,
+  getFixedIterationStartPosition,
+  getIterationChildSize,
+  getIterationContentChildren,
+  isIterationContainerNode,
+  isIterationContentChild,
+  isIterationStartNode,
+  ITERATION_DEFAULT_SIZE,
+  ITERATION_MIN_SIZE,
+  ITERATION_RESIZE_PADDING,
+  normalizeIterationNodes,
+} from './iteration-layout'
+import {
   duplicateNodeForm,
   generateDuplicateNode,
   generateNodeNamesWithIncreasingIndex,
@@ -31,6 +45,123 @@ import {
 } from './utils'
 import { deleteAllDownstreamAgentsAndTool } from './utils/delete-node'
 import type { RAGFlowNodeType } from './types'
+
+function getIterationParentIds(
+  nodes: RAGFlowNodeType[],
+  changes: NodeChange<RAGFlowNodeType>[],
+) {
+  const lookup = new Map(nodes.map((node) => [node.id, node]))
+
+  return new Set(
+    changes.flatMap((change) => {
+      const node = lookup.get(change.id)
+      if (!node?.parentId) {
+        return []
+      }
+
+      const parent = lookup.get(node.parentId)
+      return isIterationContainerNode(parent) ? [node.parentId] : []
+    }),
+  )
+}
+
+function resizeIterationContainers(
+  nodes: RAGFlowNodeType[],
+  parentIds: Iterable<string>,
+) {
+  const updates = new Map<
+    string,
+    Pick<RAGFlowNodeType, 'width' | 'height'>
+  >()
+
+  for (const parentId of parentIds) {
+    const parent = nodes.find((node) => node.id === parentId)
+    if (!isIterationContainerNode(parent)) {
+      continue
+    }
+
+    const children = getIterationContentChildren(nodes, parentId)
+    if (children.length === 0) {
+      continue
+    }
+
+    const maxRight = Math.max(
+      ...children.map((child) => {
+        const size = getIterationChildSize(child)
+        return child.position.x + size.width
+      }),
+    )
+    const maxBottom = Math.max(
+      ...children.map((child) => {
+        const size = getIterationChildSize(child)
+        return child.position.y + size.height
+      }),
+    )
+
+    const currentWidth =
+      parent.width ?? parent.measured?.width ?? ITERATION_DEFAULT_SIZE.width
+    const currentHeight =
+      parent.height ?? parent.measured?.height ?? ITERATION_DEFAULT_SIZE.height
+    const nextWidth = Math.max(
+      currentWidth,
+      ITERATION_MIN_SIZE.width,
+      maxRight + ITERATION_RESIZE_PADDING.x,
+    )
+    const nextHeight = Math.max(
+      currentHeight,
+      ITERATION_MIN_SIZE.height,
+      maxBottom + ITERATION_RESIZE_PADDING.y,
+    )
+
+    if (nextWidth > currentWidth || nextHeight > currentHeight) {
+      updates.set(parentId, { width: nextWidth, height: nextHeight })
+    }
+  }
+
+  if (updates.size === 0) {
+    return nodes
+  }
+
+  return nodes.map((node) => {
+    const update = updates.get(node.id)
+    return update ? { ...node, ...update } : node
+  })
+}
+
+function normalizeIterationNodeChanges(
+  nodes: RAGFlowNodeType[],
+  changes: NodeChange<RAGFlowNodeType>[],
+) {
+  const lookup = new Map(nodes.map((node) => [node.id, node]))
+
+  return changes.map((change) => {
+    if (change.type !== 'position' || !change.position) {
+      return change
+    }
+
+    const node = lookup.get(change.id)
+    if (!node?.parentId) {
+      return change
+    }
+
+    if (isIterationStartNode(node)) {
+      return {
+        ...change,
+        position: getFixedIterationStartPosition(),
+      }
+    }
+
+    const parent = lookup.get(node.parentId)
+    if (!isIterationContainerNode(parent) || !isIterationContentChild(node)) {
+      return change
+    }
+
+    return {
+      ...change,
+      position: clampIterationChildPosition(change.position),
+    }
+  })
+}
 
 export type RFState = {
   nodes: RAGFlowNodeType[]
@@ -49,7 +180,7 @@ export type RFState = {
   setEdgesByNodeId: (nodeId: string, edges: Edge[]) => void
   updateNodeForm: (
     nodeId: string,
-    values: any,
+    values: unknown,
     path?: (string | number)[],
   ) => RAGFlowNodeType[]
   onSelectionChange: OnSelectionChangeFunc
@@ -74,7 +205,7 @@ export type RFState = {
   deleteAgentToolNodeById: (id: string) => void
   deleteIterationNodeById: (id: string) => void
   findNodeByName: (operatorName: Operator) => RAGFlowNodeType | undefined
-  updateMutableNodeFormItem: (id: string, field: string, value: any) => void
+  updateMutableNodeFormItem: (id: string, field: string, value: unknown) => void
   getOperatorTypeFromId: (id?: string | null) => string | undefined
   getParentIdById: (id?: string | null) => string | undefined
   updateNodeName: (id: string, name: string) => void
@@ -102,8 +233,20 @@ const useGraphStore = create<RFState>()(
     clickedToolId: '',
 
     onNodesChange: (changes) => {
+      const normalizedChanges = normalizeIterationNodeChanges(
+        get().nodes,
+        changes,
+      )
+      const nextNodes = normalizeIterationNodes(
+        applyNodeChanges(normalizedChanges, get().nodes),
+      )
+      const resizedNodes = resizeIterationContainers(
+        nextNodes,
+        getIterationParentIds(nextNodes, normalizedChanges),
+      )
+
       set({
-        nodes: applyNodeChanges(changes, get().nodes),
+        nodes: resizedNodes,
       })
     },
 
@@ -142,7 +285,7 @@ const useGraphStore = create<RFState>()(
     },
 
     setNodes: (nodes: RAGFlowNodeType[]) => {
-      set({ nodes })
+      set({ nodes: normalizeIterationNodes(nodes) })
     },
 
     setEdges: (edges: Edge[]) => {
@@ -194,7 +337,7 @@ const useGraphStore = create<RFState>()(
     },
 
     addNode: (node: RAGFlowNodeType) => {
-      set({ nodes: get().nodes.concat(node) })
+      set({ nodes: normalizeIterationNodes(get().nodes.concat(node)) })
     },
 
     updateNode: (node) => {
@@ -205,7 +348,7 @@ const useGraphStore = create<RFState>()(
         }
         return x
       })
-      set({ nodes: nextNodes })
+      set({ nodes: normalizeIterationNodes(nextNodes) })
     },
 
     getNode: (id?: string | null) => {
@@ -292,9 +435,14 @@ const useGraphStore = create<RFState>()(
             'position',
           ]),
           parentId: iterationNode.id,
+          position: isIterationStartNode(x)
+            ? getFixedIterationStartPosition()
+            : x?.position,
         }))
 
-      set({ nodes: nodes.concat(iterationNode, ...children) })
+      set({
+        nodes: normalizeIterationNodes(nodes.concat(iterationNode, ...children)),
+      })
     },
 
     deleteEdge: () => {
@@ -412,7 +560,7 @@ const useGraphStore = create<RFState>()(
 
     updateNodeForm: (
       nodeId: string,
-      values: any,
+      values: unknown,
       path: (string | number)[] = [],
     ) => {
       const nextNodes = get().nodes.map((node) => {
@@ -429,7 +577,7 @@ const useGraphStore = create<RFState>()(
               ...node.data,
               form: nextForm,
             },
-          } as any
+          } as RAGFlowNodeType
         }
 
         return node
@@ -475,7 +623,7 @@ const useGraphStore = create<RFState>()(
       }
     },
 
-    updateMutableNodeFormItem: (id: string, field: string, value: any) => {
+    updateMutableNodeFormItem: (id: string, field: string, value: unknown) => {
       const { nodes } = get()
       const idx = nodes.findIndex((x) => x.id === id)
       if (idx >= 0) {
@@ -553,33 +701,43 @@ const useGraphStore = create<RFState>()(
       const parent = getNode(parentId)
       if (!parent) return
 
-      const children = nodes.filter((n) => n.parentId === parentId)
+      const children = getIterationContentChildren(nodes, parentId)
       if (children.length === 0) return
 
-      const NODE_ESTIMATED_W = 220
-      const NODE_ESTIMATED_H = 90
-      const PADDING = 60
-
       const maxRight = Math.max(
-        ...children.map((c) => c.position.x + NODE_ESTIMATED_W),
+        ...children.map((child) => {
+          const size = getIterationChildSize(child)
+          return child.position.x + size.width
+        }),
       )
       const maxBottom = Math.max(
-        ...children.map((c) => c.position.y + NODE_ESTIMATED_H),
+        ...children.map((child) => {
+          const size = getIterationChildSize(child)
+          return child.position.y + size.height
+        }),
       )
 
-      const neededWidth = maxRight + PADDING
-      const neededHeight = maxBottom + PADDING
-      const curWidth = parent.width || 500
-      const curHeight = parent.height || 250
+      const neededWidth = Math.max(
+        ITERATION_MIN_SIZE.width,
+        maxRight + ITERATION_RESIZE_PADDING.x,
+      )
+      const neededHeight = Math.max(
+        ITERATION_MIN_SIZE.height,
+        maxBottom + ITERATION_RESIZE_PADDING.y,
+      )
+      const curWidth = parent.width || ITERATION_DEFAULT_SIZE.width
+      const curHeight = parent.height || ITERATION_DEFAULT_SIZE.height
 
       if (neededWidth > curWidth || neededHeight > curHeight) {
         const newWidth = Math.max(curWidth, neededWidth)
         const newHeight = Math.max(curHeight, neededHeight)
+        // Only update width/height — NodeResizeControl writes to node.width
+        // (not node.style), so keeping style in sync would desync the two
+        // and cause user-driven resizes to snap back.
         updateNode({
           ...parent,
           width: newWidth,
           height: newHeight,
-          style: { ...((parent.style || {}) as Record<string, unknown>), width: newWidth, height: newHeight },
         })
       }
     },
