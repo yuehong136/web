@@ -3,7 +3,10 @@ import isEmpty from 'lodash/isEmpty.js'
 import omit from 'lodash/omit.js'
 import { useMemo } from 'react'
 import { useFetchMyLLMs } from '@/hooks/use-llm-request'
-import { findFirstEnabledModelByType } from '@/stores/model'
+import {
+  findFirstEnabledModelByType,
+  qualifyLLMValueWithProvider,
+} from '@/stores/model'
 import { AgentStructuredOutputField, initialAgentValues } from '../../constant'
 import type { RAGFlowNodeType } from '../../types'
 
@@ -21,7 +24,9 @@ export function useValues(node?: RAGFlowNodeType) {
         initialAgentValues as unknown as Record<string, unknown>,
       ),
       llm_id:
-        findFirstEnabledModelByType(myLLMs, 'chat') ||
+        findFirstEnabledModelByType(myLLMs, 'chat', {
+          valueMode: 'nameWithProvider',
+        }) ||
         String(get(initialAgentValues, 'llm_id', '')),
       prompts: get(initialAgentValues, 'prompts.0.content', ''),
       showStructuredOutput: false,
@@ -34,6 +39,12 @@ export function useValues(node?: RAGFlowNodeType) {
     return {
       ...defaultValues,
       ...omitNonFormFields(formData),
+      llm_id:
+        qualifyLLMValueWithProvider(
+          myLLMs,
+          typeof formData.llm_id === 'string' ? formData.llm_id : null,
+          true,
+        ) || defaultValues.llm_id,
       prompts:
         get(formData, 'prompts.0.content', '') ||
         (typeof formData.user_prompt === 'string' ? formData.user_prompt : ''),

@@ -89,7 +89,10 @@ export const ParserForm = memo(function ParserForm({
       return
     }
 
-    if (!newParserType || !missingFileFormats.includes(newParserType)) {
+    if (
+      !newParserType ||
+      !(missingFileFormats as string[]).includes(newParserType)
+    ) {
       setNewParserType(missingFileFormats[0] || '')
     }
   }, [missingFileFormats, newParserType])

@@ -28,28 +28,138 @@ export interface MyLLMProvider {
   }
 }
 
+export type LLMValueMode = 'name' | 'nameWithProvider'
+
+export interface ParsedLLMValue {
+  modelName: string
+  providerName: string | null
+}
+
+export interface ResolvedLLMValue extends ParsedLLMValue {
+  matched: boolean
+  value: string
+}
+
+export const parseLLMValue = (
+  value: string | null | undefined,
+): ParsedLLMValue => {
+  const trimmedValue = value?.trim() || ''
+  if (!trimmedValue) {
+    return {
+      modelName: '',
+      providerName: null,
+    }
+  }
+
+  const separatorIndex = trimmedValue.lastIndexOf('@')
+  if (separatorIndex === -1) {
+    return {
+      modelName: trimmedValue,
+      providerName: null,
+    }
+  }
+
+  return {
+    modelName: trimmedValue.slice(0, separatorIndex),
+    providerName: trimmedValue.slice(separatorIndex + 1) || null,
+  }
+}
+
+export const buildLLMValue = (
+  modelName: string,
+  providerName: string,
+  valueMode: LLMValueMode = 'nameWithProvider',
+) => {
+  return valueMode === 'nameWithProvider'
+    ? `${modelName}@${providerName}`
+    : modelName
+}
+
+export const resolveLLMValue = (
+  providers: MyLLMProvider | null | undefined,
+  value: string | null | undefined,
+  enabledOnly = false,
+): ResolvedLLMValue => {
+  const { modelName, providerName } = parseLLMValue(value)
+  if (!providers || !modelName) {
+    return {
+      modelName,
+      providerName,
+      matched: false,
+      value: value?.trim() || '',
+    }
+  }
+
+  const matchesProvider = (
+    currentProviderName: string,
+    model: MyLLMModel,
+  ) => {
+    if (providerName && currentProviderName !== providerName) {
+      return false
+    }
+    if (model.name !== modelName) {
+      return false
+    }
+    if (enabledOnly && !isLLMModelEnabled(model)) {
+      return false
+    }
+    return true
+  }
+
+  for (const [currentProviderName, provider] of Object.entries(providers)) {
+    const matchedModel = provider.llm.find((model) =>
+      matchesProvider(currentProviderName, model),
+    )
+    if (matchedModel) {
+      return {
+        modelName: matchedModel.name,
+        providerName: currentProviderName,
+        matched: true,
+        value: buildLLMValue(matchedModel.name, currentProviderName),
+      }
+    }
+  }
+
+  return {
+    modelName,
+    providerName,
+    matched: false,
+    value: value?.trim() || '',
+  }
+}
+
+export const qualifyLLMValueWithProvider = (
+  providers: MyLLMProvider | null | undefined,
+  value: string | null | undefined,
+  enabledOnly = false,
+) => {
+  const resolvedValue = resolveLLMValue(providers, value, enabledOnly)
+  return resolvedValue.providerName ? resolvedValue.value : value?.trim() || ''
+}
+
 export const hasEnabledModelName = (
   providers: MyLLMProvider | null | undefined,
   modelName: string | null | undefined
 ): boolean => {
-  if (!providers || !modelName) return false
-
-  return Object.values(providers).some((provider) =>
-    provider.llm.some((model) => model.name === modelName && isLLMModelEnabled(model))
-  )
+  return resolveLLMValue(providers, modelName, true).matched
 }
 
 export const findFirstEnabledModelByType = (
   providers: MyLLMProvider | null | undefined,
-  type: MyLLMModel['type']
+  type: MyLLMModel['type'],
+  options?: {
+    valueMode?: LLMValueMode
+  },
 ): string | null => {
   if (!providers) return null
 
-  for (const provider of Object.values(providers)) {
+  const valueMode = options?.valueMode || 'name'
+
+  for (const [providerName, provider] of Object.entries(providers)) {
     const model = provider.llm.find(
       (item) => item.type === type && !!item.name && isLLMModelEnabled(item)
     )
-    if (model) return model.name
+    if (model) return buildLLMValue(model.name, providerName, valueMode)
   }
 
   return null
@@ -60,18 +170,7 @@ export const findProviderNameByModelName = (
   modelName: string | null | undefined,
   enabledOnly = false
 ): string | null => {
-  if (!providers || !modelName) return null
-
-  for (const [providerName, provider] of Object.entries(providers)) {
-    const matched = provider.llm.some((model) => {
-      if (model.name !== modelName) return false
-      if (enabledOnly && !isLLMModelEnabled(model)) return false
-      return true
-    })
-    if (matched) return providerName
-  }
-
-  return null
+  return resolveLLMValue(providers, modelName, enabledOnly).providerName
 }
 
 // 添加本地模型的参数

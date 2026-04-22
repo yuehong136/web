@@ -7,6 +7,7 @@ import {
 } from '@/components/ui/form'
 import { SelectWithSearch } from '@/components/ui/select-with-search'
 import { useLLMGroupedOptions } from '@/hooks/use-llm-request'
+import type { LLMValueMode } from '@/stores/model'
 import { useFormContext } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
@@ -17,6 +18,7 @@ interface LLMSelectFieldProps {
   label?: string
   type?: LLMType
   placeholder?: string
+  valueMode?: LLMValueMode
 }
 
 export function LLMSelectField({
@@ -24,10 +26,11 @@ export function LLMSelectField({
   label,
   type = 'chat',
   placeholder,
+  valueMode,
 }: LLMSelectFieldProps) {
   const { t } = useTranslation()
   const form = useFormContext()
-  const { options, isLoading } = useLLMGroupedOptions(type)
+  const { options, isLoading } = useLLMGroupedOptions(type, { valueMode })
 
   const defaultLabel = type === 'chat'
     ? t('flow.model', 'Model')

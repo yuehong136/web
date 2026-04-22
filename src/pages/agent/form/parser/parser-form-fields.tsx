@@ -5,9 +5,14 @@ import {
 } from '@/components/ui/select-with-search'
 import { Switch } from '@/components/ui/switch'
 import type { ReactNode } from 'react'
-import type { useFormContext } from 'react-hook-form'
+import type { FieldPath, useFormContext } from 'react-hook-form'
 import { FIELD_LABEL_CLASSNAME } from './constants'
 import type { ParserFormValues } from './schema'
+
+type ParserSetupPath = Extract<
+  FieldPath<ParserFormValues>,
+  `setups.${number}.${string}`
+>
 
 export function ParserFieldLabel({ children }: { children: ReactNode }) {
   return <FormLabel className={FIELD_LABEL_CLASSNAME}>{children}</FormLabel>
@@ -25,7 +30,7 @@ export function ParserSelectField({
   triggerClassName,
 }: {
   control: ReturnType<typeof useFormContext<ParserFormValues>>['control']
-  name: `setups.${number}.${string}`
+  name: ParserSetupPath
   label: string
   options: SelectOptionGroup[]
   value?: string
@@ -44,7 +49,7 @@ export function ParserSelectField({
           <FormControl>
             <SelectWithSearch
               options={options}
-              value={value ?? field.value ?? ''}
+              value={value ?? (typeof field.value === 'string' ? field.value : '')}
               onChange={(nextValue) => {
                 onValueChange?.(nextValue)
                 field.onChange(nextValue)
@@ -67,7 +72,7 @@ export function ParserSwitchField({
   label,
 }: {
   control: ReturnType<typeof useFormContext<ParserFormValues>>['control']
-  name: `setups.${number}.${string}`
+  name: ParserSetupPath
   label: string
 }) {
   return (

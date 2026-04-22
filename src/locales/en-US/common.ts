@@ -46,6 +46,7 @@ export default {
     // Empty states
     noData: 'No data',
     noResults: 'No results found',
+    unassigned: 'Unassigned',
     
     // Time
     createTime: 'Created',
@@ -53,6 +54,7 @@ export default {
     
     // Input hints
     pleaseInput: 'Please input',
+    required: 'Required',
     promptPlaceholder: 'Enter a prompt, or type / to quickly insert variables',
 
     // Others

@@ -17,6 +17,13 @@ import useGraphStore from '../store'
 import type { BeginQuery } from '../types'
 import { useTranslation } from 'react-i18next'
 
+type FlattenedVariableOption = {
+  label: string
+  value: string
+  groupTitle: string
+  type?: string
+}
+
 /**
  * 从 inputs 对象构建 BeginQuery 数组
  */
@@ -222,4 +229,130 @@ export function useBuildPromptVariableOptions(nodeId?: string): VariableOptionGr
     ],
     [conversationOptions, globalWithBeginOptions, upstreamOptions],
   )
+}
+
+function normalizeVariableReference(value?: string) {
+  if (typeof value !== 'string') {
+    return ''
+  }
+
+  let nextValue = value.trim()
+
+  while (nextValue.startsWith('{') && nextValue.endsWith('}')) {
+    nextValue = nextValue.slice(1, -1).trim()
+  }
+
+  return nextValue
+}
+
+function flattenVariableOptions(
+  groups: VariableOptionGroup[],
+): FlattenedVariableOption[] {
+  return groups.flatMap((group) =>
+    group.options.map((option) => ({
+      label: option.label,
+      value: option.value,
+      groupTitle: group.title,
+      type: option.type,
+    })),
+  )
+}
+
+function splitVariableReference(value: string) {
+  const separatorIndex = value.indexOf('@')
+
+  if (separatorIndex < 0) {
+    return { nodeId: value, field: '' }
+  }
+
+  return {
+    nodeId: value.slice(0, separatorIndex),
+    field: value.slice(separatorIndex + 1),
+  }
+}
+
+export function useGetVariableLabelOrTypeByValue({
+  nodeId,
+}: {
+  nodeId?: string
+} = {}) {
+  const getNode = useGraphStore((state) => state.getNode)
+  const optionGroups = useBuildPromptVariableOptions(nodeId)
+  const flattenedOptions = useMemo(
+    () => flattenVariableOptions(optionGroups),
+    [optionGroups],
+  )
+
+  const getItem = useCallback(
+    (value?: string) => {
+      const normalizedValue = normalizeVariableReference(value)
+
+      return flattenedOptions.find((option) => option.value === normalizedValue)
+    },
+    [flattenedOptions],
+  )
+
+  const getFallbackLabel = useCallback(
+    (value?: string) => {
+      const normalizedValue = normalizeVariableReference(value)
+
+      if (!normalizedValue) {
+        return ''
+      }
+
+      const { nodeId: sourceNodeId, field } = splitVariableReference(normalizedValue)
+      const sourceNode = getNode(sourceNodeId)
+
+      if (!sourceNode) {
+        return normalizedValue
+      }
+
+      return field
+        ? `${sourceNode.data.name}.${field}`
+        : sourceNode.data.name
+    },
+    [getNode],
+  )
+
+  const getLabel = useCallback(
+    (value?: string) => {
+      const item = getItem(value)
+
+      if (item) {
+        return `${item.groupTitle}.${item.label}`
+      }
+
+      return getFallbackLabel(value)
+    },
+    [getFallbackLabel, getItem],
+  )
+
+  const getType = useCallback(
+    (value?: string) => {
+      const item = getItem(value)
+
+      if (item?.type) {
+        return normalizeBeginInputType(item.type)
+      }
+
+      const normalizedValue = normalizeVariableReference(value)
+
+      if (!normalizedValue) {
+        return ''
+      }
+
+      const { nodeId: sourceNodeId, field } = splitVariableReference(normalizedValue)
+      const sourceNode = getNode(sourceNodeId)
+      const nextType =
+        field && sourceNode?.data?.form
+          ? (sourceNode.data.form as { outputs?: Record<string, { type?: string }> })
+            .outputs?.[field]?.type
+          : undefined
+
+      return nextType ? normalizeBeginInputType(nextType) : undefined
+    },
+    [getItem, getNode],
+  )
+
+  return { getLabel, getType }
 }

@@ -32,10 +32,10 @@ export const agentOperatorRegistry: OperatorRegistry = {
   [LegacyOperator.RewriteQuestion]: defineOperator(LegacyOperator.RewriteQuestion, { category: AgentOperatorCategory.CONTROL, mode: AgentOperatorMode.AGENT, defaultName: 'Rewrite Question', consumesBeginInputs: true }),
   [LegacyOperator.KeywordExtract]: defineOperator(LegacyOperator.KeywordExtract, { category: AgentOperatorCategory.CONTROL, mode: AgentOperatorMode.AGENT, defaultName: 'Keyword Extract', consumesBeginInputs: true }),
   [LegacyOperator.Agent]: defineOperator(LegacyOperator.Agent, { category: AgentOperatorCategory.AGENT, mode: AgentOperatorMode.AGENT, defaultName: 'Agent', allowSingleStepDebug: true, consumesBeginInputs: true, supportsStructuredOutput: true, supportsGlobalVariables: true }),
-  [LegacyOperator.Tool]: defineOperator(LegacyOperator.Tool, { category: AgentOperatorCategory.AGENT, mode: AgentOperatorMode.AGENT, defaultName: 'Tool', excludeFromDsl: true }),
+  [LegacyOperator.Tool]: defineOperator(LegacyOperator.Tool, { category: AgentOperatorCategory.AGENT, mode: AgentOperatorMode.AGENT, defaultName: 'Tool', excludeFromComponents: true }),
   [LegacyOperator.WaitingDialogue]: defineOperator(LegacyOperator.WaitingDialogue, { category: AgentOperatorCategory.AGENT, mode: AgentOperatorMode.AGENT, defaultName: 'Waiting Dialogue', consumesBeginInputs: true }),
-  [LegacyOperator.Note]: defineOperator(LegacyOperator.Note, { category: AgentOperatorCategory.UTILITY, mode: AgentOperatorMode.SHARED, defaultName: 'Note', excludeFromDsl: true }),
-  [LegacyOperator.Placeholder]: defineOperator(LegacyOperator.Placeholder, { category: AgentOperatorCategory.UTILITY, mode: AgentOperatorMode.SHARED, defaultName: 'Placeholder', excludeFromDsl: true }),
+  [LegacyOperator.Note]: defineOperator(LegacyOperator.Note, { category: AgentOperatorCategory.UTILITY, mode: AgentOperatorMode.SHARED, defaultName: 'Note', excludeFromComponents: true }),
+  [LegacyOperator.Placeholder]: defineOperator(LegacyOperator.Placeholder, { category: AgentOperatorCategory.UTILITY, mode: AgentOperatorMode.SHARED, defaultName: 'Placeholder', excludeFromComponents: true, excludeFromGraph: true }),
   [LegacyOperator.Iteration]: defineOperator(LegacyOperator.Iteration, { category: AgentOperatorCategory.CONTROL, mode: AgentOperatorMode.SHARED, defaultName: 'Iteration' }),
   [LegacyOperator.IterationStart]: defineOperator(LegacyOperator.IterationStart, { category: AgentOperatorCategory.CONTROL, mode: AgentOperatorMode.SHARED, defaultName: 'Iteration Item' }),
   [LegacyOperator.Code]: defineOperator(LegacyOperator.Code, { category: AgentOperatorCategory.AGENT, mode: AgentOperatorMode.AGENT, defaultName: 'Code Exec', allowSingleStepDebug: true }),
@@ -84,5 +84,9 @@ export function getOperatorDefinition(type?: string | null) {
 }
 
 export function isDslOperator(type?: string | null): boolean {
-  return !getOperatorDefinition(type)?.excludeFromDsl
+  return !getOperatorDefinition(type)?.excludeFromComponents
+}
+
+export function isPersistedGraphOperator(type?: string | null): boolean {
+  return !getOperatorDefinition(type)?.excludeFromGraph
 }

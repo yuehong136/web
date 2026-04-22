@@ -10,7 +10,8 @@ function flattenReactNodeText(node: ReactNode): string {
   }
 
   if (isValidElement(node)) {
-    return flattenReactNodeText(node.props.children)
+    const { children } = node.props as { children?: ReactNode }
+    return flattenReactNodeText(children)
   }
 
   return ''

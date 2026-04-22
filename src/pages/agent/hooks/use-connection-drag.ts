@@ -1,6 +1,7 @@
 import type {
   Connection,
   Edge,
+  HandleType,
   OnConnectEnd,
   OnConnectStart,
   ReactFlowInstance,
@@ -10,11 +11,13 @@ import { useCallback, useRef } from 'react'
 import { useDropdownManager } from '../canvas/context'
 import { Operator, PREVENT_CLOSE_DELAY } from '../constant'
 import type { RAGFlowNodeType } from '../types'
+import { canStartConnectionDrag, hasValidHandleDirection } from '../utils/connection-handles'
 import { useAddNode } from './use-add-node'
 
 interface ConnectionStartParams {
   nodeId: string
   handleId: string
+  handleType: HandleType
 }
 
 /**
@@ -59,10 +62,17 @@ export const useConnectionDrag = (
       mouseStartPosRef.current = { x: event.clientX, y: event.clientY }
     }
 
-    if (params && params.nodeId && params.handleId) {
+    if (
+      params &&
+      params.nodeId &&
+      params.handleId &&
+      params.handleType &&
+      canStartConnectionDrag(params.handleType)
+    ) {
       connectionStartRef.current = {
         nodeId: params.nodeId,
         handleId: params.handleId,
+        handleType: params.handleType,
       }
     } else {
       connectionStartRef.current = null
@@ -166,6 +176,11 @@ export const useConnectionDrag = (
    */
   const handleConnect = useCallback(
     (connection: Connection) => {
+      if (!hasValidHandleDirection(connection)) {
+        isConnectedRef.current = false
+        return
+      }
+
       onConnect(connection)
       isConnectedRef.current = true
     },

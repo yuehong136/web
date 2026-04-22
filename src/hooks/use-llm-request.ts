@@ -7,7 +7,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { llmAPI } from '@/api/llm'
 import {
+  buildLLMValue,
   isLLMModelEnabled,
+  type LLMValueMode,
   type MyLLMModel,
   type MyLLMProvider,
   type LLMFactoryInterface,
@@ -36,15 +38,13 @@ export type LLMGroupedOptionGroup = {
   options: LLMGroupedSelectOption[]
 }
 
-type LLMValueMode = 'name' | 'nameWithProvider'
-
 // 获取我的 LLM 列表
 export const useFetchMyLLMs = () => {
   const { data, isFetching, isError, error, refetch } = useQuery<MyLLMProvider>({
     queryKey: llmKeys.myLLMs(),
     queryFn: async () => {
       const response = await llmAPI.getMyLLMs()
-      return response as MyLLMProvider
+      return response as unknown as MyLLMProvider
     },
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
@@ -177,18 +177,13 @@ export const useLLMOptions = (type?: 'chat' | 'embedding' | 'rerank') => {
 }
 
 // 获取模型选项（按 provider 分组，用于 SelectWithSearch）
-export const useLLMGroupedOptions = (type?: 'chat' | 'embedding' | 'rerank') => {
-  return useLLMGroupedOptionsByTypes(type ? [type] : undefined)
-}
-
-function buildLLMValue(
-  modelName: string,
-  providerName: string,
-  valueMode: LLMValueMode,
-) {
-  return valueMode === 'nameWithProvider'
-    ? `${modelName}@${providerName}`
-    : modelName
+export const useLLMGroupedOptions = (
+  type?: 'chat' | 'embedding' | 'rerank',
+  options?: {
+    valueMode?: LLMValueMode
+  },
+) => {
+  return useLLMGroupedOptionsByTypes(type ? [type] : undefined, options)
 }
 
 export const useLLMGroupedOptionsByTypes = (

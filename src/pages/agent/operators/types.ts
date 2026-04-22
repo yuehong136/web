@@ -29,7 +29,8 @@ export interface AgentOperatorDefinition {
   consumesBeginInputs?: boolean
   supportsStructuredOutput?: boolean
   supportsGlobalVariables?: boolean
-  excludeFromDsl?: boolean
+  excludeFromComponents?: boolean
+  excludeFromGraph?: boolean
   isRootNode?: boolean
 }
 

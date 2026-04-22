@@ -46,6 +46,7 @@ export default {
     // 空状态
     noData: '暂无数据',
     noResults: '未找到结果',
+    unassigned: '未指定',
     
     // 时间
     createTime: '创建时间',
@@ -53,6 +54,7 @@ export default {
     
     // 输入提示
     pleaseInput: '请输入',
+    required: '必填',
     promptPlaceholder: '请输入提示词，或输入 / 快速插入变量',
 
     // 其他

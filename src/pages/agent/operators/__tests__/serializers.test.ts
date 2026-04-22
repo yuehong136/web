@@ -27,7 +27,7 @@ test('buildInitialGraph creates the correct root node for agent and pipeline', (
   assert.equal(pipelineGraph.nodes[0]?.data.label, Operator.File)
 })
 
-test('serializeGraphToDsl excludes non-dsl operators and preserves graph edges', () => {
+test('serializeGraphToDsl excludes non-component operators but preserves persisted graph nodes', () => {
   const beginNode = buildGraphNode(Operator.Begin, { id: BeginId })
   const messageNode = buildGraphNode(Operator.Message, {
     id: 'message-1',
@@ -37,13 +37,21 @@ test('serializeGraphToDsl excludes non-dsl operators and preserves graph edges',
     id: 'tool-1',
     form: { ignored: true },
   })
+  const noteNode = buildGraphNode(Operator.Note, {
+    id: 'note-1',
+    form: { content: 'sticky' },
+  })
+  const placeholderNode = buildGraphNode(Operator.Placeholder, {
+    id: 'placeholder-1',
+  })
 
   const dsl = serializeGraphToDsl({
     graph: {
-      nodes: [beginNode, messageNode, toolNode],
+      nodes: [beginNode, messageNode, toolNode, noteNode, placeholderNode],
       edges: [
         { id: 'e1', source: BeginId, target: 'message-1' },
         { id: 'e2', source: 'message-1', target: 'tool-1' },
+        { id: 'e3', source: 'message-1', target: 'placeholder-1' },
       ],
     },
     baseDsl: {
@@ -58,7 +66,11 @@ test('serializeGraphToDsl excludes non-dsl operators and preserves graph edges',
 
   assert.deepEqual(Object.keys(dsl.components).sort(), [BeginId, 'message-1'])
   assert.equal(dsl.history[0], 'kept')
-  assert.equal(dsl.graph?.edges.length, 1)
+  assert.deepEqual(
+    dsl.graph?.nodes.map((node) => node.id).sort(),
+    [BeginId, 'message-1', 'note-1', 'tool-1'],
+  )
+  assert.equal(dsl.graph?.edges.length, 2)
   assert.equal(dsl.graph?.edges[0]?.type, 'buttonEdge')
 })
 

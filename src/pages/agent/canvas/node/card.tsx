@@ -1,5 +1,8 @@
 import { cn } from '@/lib/utils'
-import type { PropsWithChildren } from 'react'
+import { useMemo, type PropsWithChildren } from 'react'
+import { useFetchMyLLMs } from '@/hooks/use-llm-request'
+import { resolveLLMValue } from '@/stores/model'
+import { ProviderIcon } from '@/components/ui/provider-icon'
 
 type LabelCardProps = {
   className?: string
@@ -21,9 +24,29 @@ export function LabelCard({ children, className, ...props }: LabelCardProps) {
 }
 
 export function LLMLabelCard({ llmId }: { llmId?: string }) {
+  const { myLLMs } = useFetchMyLLMs()
+  const resolvedLlm = useMemo(
+    () => resolveLLMValue(myLLMs, llmId, false),
+    [llmId, myLLMs],
+  )
+  const isInvalidLlm = Boolean(llmId) && !resolvedLlm.matched
+  const displayName = resolvedLlm.modelName || llmId || 'Default LLM'
+
   return (
-    <LabelCard>
-      {llmId || 'Default LLM'}
+    <LabelCard
+      className={cn(
+        'flex items-center gap-space-sm',
+        isInvalidLlm && 'border-status-error bg-status-error/10 text-status-error',
+      )}
+    >
+      <ProviderIcon
+        provider={resolvedLlm.providerName || ''}
+        className="size-4 shrink-0"
+        size={16}
+      />
+      <span className="min-w-0 flex-1 truncate">
+        {displayName}
+      </span>
     </LabelCard>
   )
 }

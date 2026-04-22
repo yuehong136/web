@@ -71,7 +71,7 @@ function InnerAgentNode({ id, data, isConnectable, selected }: NodeProps<IAgentN
             position={Position.Top}
             isConnectable={false}
             id={NodeHandleId.AgentTop}
-            className="!bg-surface-accent !size-2"
+            className="!size-2 !border-none !bg-components-canvas-handle-bg"
           />
         )}
         
@@ -82,9 +82,12 @@ function InnerAgentNode({ id, data, isConnectable, selected }: NodeProps<IAgentN
           isConnectable={false}
           id={NodeHandleId.AgentBottom}
           style={{ left: 180 }}
-          className={cn('!bg-surface-accent !size-2 invisible', {
+          className={cn(
+            '!size-2 !border-none !bg-components-canvas-handle-bg invisible',
+            {
             visible: hasSubAgent(edges, id),
-          })}
+            },
+          )}
         />
         
         {/* 底部handles：Tool连接点 */}
@@ -94,9 +97,12 @@ function InnerAgentNode({ id, data, isConnectable, selected }: NodeProps<IAgentN
           isConnectable={false}
           id={NodeHandleId.Tool}
           style={{ left: 20 }}
-          className={cn('!bg-surface-accent !size-2 invisible', {
+          className={cn(
+            '!size-2 !border-none !bg-components-canvas-handle-bg invisible',
+            {
             visible: hasTools,
-          })}
+            },
+          )}
         />
         
         <NodeHeader id={id} name={data.name} label={data.label} />

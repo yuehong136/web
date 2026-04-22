@@ -16,7 +16,11 @@ import {
   buildDslOperatorParams,
   mergeOperatorFormWithDefaults,
 } from './defaults'
-import { getOperatorDefinition } from './registry'
+import {
+  getOperatorDefinition,
+  isDslOperator,
+  isPersistedGraphOperator,
+} from './registry'
 import type {
   BuildGraphNodeOptions,
   DeserializeDslOptions,
@@ -122,33 +126,39 @@ export function deserializeDslToGraph(
   const graph = dsl?.graph
 
   if (graph?.nodes?.length || graph?.edges?.length) {
-    const nodes = normalizeIterationNodes((graph.nodes || []).map((node) => {
-      const component = dsl?.components?.[node.id]
-      const operator = (node.data?.label || component?.obj?.component_name || Operator.Note) as OperatorType
-      const definition = getOperatorDefinition(operator)
-      // Legacy DSLs persisted iteration containers under xyflow's built-in
-      // `group` type, which inherits a default 150px width that conflicts
-      // with NodeResizeControl. Migrate them onto our dedicated type.
-      const nextType =
-        node.type === 'group' && operator === Operator.Iteration
-          ? 'iterationNode'
-          : node.type || definition?.nodeType || 'ragNode'
+    const nodes = normalizeIterationNodes(
+      (graph.nodes || []).map((node) => {
+        const component = dsl?.components?.[node.id]
+        const operator = (
+          node.data?.label ||
+          component?.obj?.component_name ||
+          Operator.Note
+        ) as OperatorType
+        const definition = getOperatorDefinition(operator)
+        // Legacy DSLs persisted iteration containers under xyflow's built-in
+        // `group` type, which inherits a default 150px width that conflicts
+        // with NodeResizeControl. Migrate them onto our dedicated type.
+        const nextType =
+          node.type === 'group' && operator === Operator.Iteration
+            ? 'iterationNode'
+            : node.type || definition?.nodeType || 'ragNode'
 
-      return {
-        ...node,
-        type: nextType,
-        data: {
-          ...node.data,
-          label: operator,
-          name: node.data?.name || definition?.defaultName || operator,
-          form: mergeOperatorFormWithDefaults(
-            operator,
-            (component?.obj?.params as Record<string, unknown>) ||
-              (node.data?.form as Record<string, unknown> | undefined),
-          ),
-        },
-      }
-    }))
+        return {
+          ...node,
+          type: nextType,
+          data: {
+            ...node.data,
+            label: operator,
+            name: node.data?.name || definition?.defaultName || operator,
+            form: mergeOperatorFormWithDefaults(
+              operator,
+              (component?.obj?.params as Record<string, unknown>) ||
+                (node.data?.form as Record<string, unknown> | undefined),
+            ),
+          },
+        } as AgentGraphNode
+      }) as AgentGraphNode[],
+    ) as AgentGraphNode[]
 
     return {
       graph: {
@@ -172,7 +182,9 @@ export function deserializeDslToGraph(
   return {
     graph: {
       ...reconstructed,
-      nodes: normalizeIterationNodes(reconstructed.nodes),
+      nodes: normalizeIterationNodes(
+        reconstructed.nodes as AgentGraphNode[],
+      ) as AgentGraphNode[],
     },
     isReconstructed: true,
   }
@@ -184,7 +196,7 @@ export function buildDslComponentsByGraph(
 ): NonNullable<AgentDsl['components']> {
   return nodes.reduce<NonNullable<AgentDsl['components']>>((components, node) => {
     const operator = node.data.label as OperatorType
-    if (!getOperatorDefinition(operator) || getOperatorDefinition(operator)?.excludeFromDsl) {
+    if (!getOperatorDefinition(operator) || !isDslOperator(operator)) {
       return components
     }
 
@@ -210,7 +222,7 @@ export function serializeGraphToDsl({
   baseDsl,
 }: SerializeGraphOptions): AgentDsl {
   const filteredNodes = (graph.nodes || []).filter((node) => {
-    return !getOperatorDefinition(node.data.label as OperatorType)?.excludeFromDsl
+    return isPersistedGraphOperator(node.data.label as OperatorType)
   })
   const filteredNodeIds = new Set(filteredNodes.map((node) => node.id))
   const filteredEdges = (graph.edges || [])

@@ -2,6 +2,7 @@ import { getOutgoers, type Connection, type Edge } from '@xyflow/react'
 import { useCallback } from 'react'
 import { Operator, RestrictedUpstreamMap } from '../constant'
 import type { RAGFlowNodeType } from '../types'
+import { hasValidHandleDirection } from '../utils/connection-handles'
 import useGraphStore from '../store'
 
 export const useValidateConnection = () => {
@@ -48,6 +49,7 @@ export const useValidateConnection = () => {
 
       const ret =
         !isSelfConnected &&
+        hasValidHandleDirection(connection) &&
         RestrictedUpstreamMap[
           getOperatorTypeFromId(connection.source) as Operator
         ]?.every((x) => x !== getOperatorTypeFromId(connection.target)) &&
@@ -60,4 +62,3 @@ export const useValidateConnection = () => {
 
   return isValidConnection
 }
-

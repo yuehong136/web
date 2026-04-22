@@ -142,7 +142,7 @@ export const NodeMap: Record<string, string> = {
   [Operator.Tokenizer]: 'tokenizerNode',
   [Operator.Splitter]: 'splitterNode',
   [Operator.HierarchicalMerger]: 'splitterNode',
-  [Operator.Extractor]: 'ragNode',
+  [Operator.Extractor]: 'contextNode',
 }
 
 // ==================== Agent对话模式 ====================

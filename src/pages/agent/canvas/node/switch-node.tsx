@@ -1,8 +1,10 @@
-import { memo, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { memo, useLayoutEffect, useRef, useState } from 'react'
 import type { NodeProps } from '@xyflow/react'
 import { Position } from '@xyflow/react'
+import { useTranslation } from 'react-i18next'
 import type { ISwitchCondition, ISwitchNode } from '../../types'
-import { SwitchOperatorOptions } from '../../constant'
+import { ComparisonOperator, SwitchOperatorOptions } from '../../constant'
+import { useGetVariableLabelOrTypeByValue } from '../../hooks/use-get-begin-query'
 import { CommonHandle, LeftEndHandle } from './handle'
 import { RightHandleStyle } from './handle-styles'
 import NodeHeader from './node-header'
@@ -22,13 +24,40 @@ const getConditionKey = (idx: number, length: number) => {
   return 'ElseIf'
 }
 
-const getOperatorLabel = (operator?: string) => {
-  return (
-    SwitchOperatorOptions.find((x) => x.value === operator)?.label || operator
-  )
+const SwitchOperatorGlyphMap: Record<string, string> = {
+  [ComparisonOperator.Equal]: '=',
+  [ComparisonOperator.NotEqual]: '!=',
+  [ComparisonOperator.GreatThan]: '>',
+  [ComparisonOperator.GreatEqual]: '>=',
+  [ComparisonOperator.LessThan]: '<',
+  [ComparisonOperator.LessEqual]: '<=',
+  [ComparisonOperator.Contains]: 'has',
+  [ComparisonOperator.NotContains]: '!has',
+  [ComparisonOperator.StartWith]: '^=',
+  [ComparisonOperator.EndWith]: '$=',
+  [ComparisonOperator.Empty]: '0',
+  [ComparisonOperator.NotEmpty]: '!0',
+  [ComparisonOperator.In]: 'in',
+  [ComparisonOperator.NotIn]: '!in',
 }
 
-const ConditionBlock = ({ condition }: { condition: ISwitchCondition }) => {
+const getOperatorLabelKey = (operator?: string) => {
+  return SwitchOperatorOptions.find((x) => x.value === operator)?.label
+}
+
+const getOperatorGlyph = (operator?: string) => {
+  return SwitchOperatorGlyphMap[operator || ''] || operator || '?'
+}
+
+const ConditionBlock = ({
+  condition,
+  nodeId,
+}: {
+  condition: ISwitchCondition
+  nodeId: string
+}) => {
+  const { t } = useTranslation()
+  const { getLabel } = useGetVariableLabelOrTypeByValue({ nodeId })
   const items = condition?.items ?? []
 
   if (items.length === 0) {
@@ -37,20 +66,30 @@ const ConditionBlock = ({ condition }: { condition: ISwitchCondition }) => {
 
   return (
     <div className="bg-surface-secondary rounded-radius-sm p-space-xs flex flex-col gap-space-xs">
-      {items.map((item, idx) => (
-        <section
-          key={idx}
-          className="flex items-center justify-between gap-space-sm text-xs"
-        >
-          <div className="flex-1 truncate text-text-accent">
-            {item?.cpn_id}
-          </div>
-          <span className="text-text-tertiary">
-            {getOperatorLabel(item?.operator)}
-          </span>
-          <div className="flex-1 truncate text-right">{item?.value}</div>
-        </section>
-      ))}
+      {items.map((item, idx) => {
+        const operatorLabelKey = getOperatorLabelKey(item?.operator)
+        const operatorLabel = operatorLabelKey
+          ? t(`flow.switchOperatorOptions.${operatorLabelKey}`, operatorLabelKey)
+          : item?.operator || ''
+
+        return (
+          <section
+            key={idx}
+            className="flex items-center justify-between gap-space-sm text-xs"
+          >
+            <div className="flex-1 truncate text-text-accent">
+              {getLabel(item?.cpn_id)}
+            </div>
+            <span
+              title={operatorLabel}
+              className="inline-flex min-w-10 shrink-0 items-center justify-center rounded-radius-sm border border-border-default bg-surface-primary px-space-xs py-px font-mono text-[11px] leading-5 text-text-secondary"
+            >
+              {getOperatorGlyph(item?.operator)}
+            </span>
+            <div className="flex-1 truncate text-right">{item?.value}</div>
+          </section>
+        )
+      })}
     </div>
   )
 }
@@ -81,7 +120,7 @@ function InnerSwitchNode({ id, data, selected }: NodeProps<ISwitchNode>) {
     setDynamicTops(nextTops as number[])
     updateNodeInternals(id)
   }, [id, positionCount, positions, updateNodeInternals])
-  
+
   return (
     <ToolBar
       selected={selected}
@@ -114,7 +153,7 @@ function InnerSwitchNode({ id, data, selected }: NodeProps<ISwitchNode>) {
                     position.condition?.logical_operator?.toUpperCase()}
                 </span>
                 {position.condition && (
-                  <ConditionBlock condition={position.condition} />
+                  <ConditionBlock condition={position.condition} nodeId={id} />
                 )}
               </section>
 

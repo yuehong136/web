@@ -5,6 +5,7 @@ import { useForm, useWatch } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
 import { useFetchMyLLMs } from '@/hooks/use-llm-request'
+import { resolveLLMValue } from '@/stores/model'
 import {
   AgentStructuredOutputField,
   AgentExceptionMethod,
@@ -117,11 +118,12 @@ export function AgentForm({ node }: INextOperatorForm) {
       return false
     }
 
-    return Object.values(myLLMs).some(
-      (provider) =>
-        provider.llm.some((model) => model.name === llmId) &&
-        provider.tags.includes('IMAGE2TEXT'),
-    )
+    const resolvedLlm = resolveLLMValue(myLLMs, llmId, true)
+    if (!resolvedLlm.providerName || !resolvedLlm.matched) {
+      return false
+    }
+
+    return myLLMs[resolvedLlm.providerName]?.tags?.includes('IMAGE2TEXT') ?? false
   }, [llmId, myLLMs])
   const promptOptions = useBuildPromptVariableOptions(node?.id)
   const { extraOptions } = useBuildPromptExtraPromptOptions(edges, node?.id)
@@ -146,7 +148,7 @@ export function AgentForm({ node }: INextOperatorForm) {
         <FormWrapper>
           {isSubAgent && <DescriptionField />}
 
-          <LLMSelectField type="chat" />
+          <LLMSelectField type="chat" valueMode="nameWithProvider" />
 
           {supportsImageInput && (
             <QueryVariable

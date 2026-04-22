@@ -9,6 +9,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
 import { cn } from '@/lib/utils'
+import type { IParserNode } from '../../types'
 import { CommonHandle, LeftEndHandle } from './handle'
 import { RightHandleStyle } from './handle-styles'
 import NodeHeader from './node-header'
@@ -126,7 +127,7 @@ function ParserNodeCollapsible({
   )
 }
 
-function InnerParserNode({ id, data, isConnectable, selected }: NodeProps) {
+function InnerParserNode({ id, data, isConnectable, selected }: NodeProps<IParserNode>) {
   const setups = data.form?.setups
     ? normalizeParserSetupsForStore(data.form.setups)
     : []
