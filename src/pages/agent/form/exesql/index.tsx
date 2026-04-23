@@ -15,7 +15,6 @@ import { useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { initialExeSqlValues } from '../../constant'
-import { useBuildNodeOutputOptions } from '../../hooks/use-build-options'
 import { useFormValues } from '../../hooks/use-form-values'
 import { useWatchFormChange } from '../../hooks/use-watch-form-change'
 import type { INextOperatorForm } from '../../types'
@@ -25,7 +24,6 @@ import { exeSqlSchema, useSubmitForm } from './use-submit-form'
 
 export function ExeSQLForm({ node }: INextOperatorForm) {
   const { t } = useTranslation()
-  const promptOptions = useBuildNodeOutputOptions(node?.id)
   const values = useFormValues(initialExeSqlValues, node)
   const { testConnection, isLoading } = useSubmitForm()
 
@@ -51,7 +49,7 @@ export function ExeSQLForm({ node }: INextOperatorForm) {
                 <PromptEditor
                   value={field.value}
                   onChange={field.onChange}
-                  options={promptOptions}
+                  nodeId={node?.id}
                 />
               </FormControl>
               <FormMessage />

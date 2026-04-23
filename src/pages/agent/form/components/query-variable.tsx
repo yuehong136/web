@@ -8,8 +8,7 @@ import {
 import { useMemo } from 'react'
 import { useFormContext } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import { useBuildNodeOutputOptions } from '../../hooks/use-build-options'
-import useGraphStore from '../../store'
+import { useBuildPromptVariableOptions } from '../../hooks/use-get-begin-query'
 import { GroupedSelectWithSecondaryMenu } from './select-with-secondary-menu'
 import {
   filterQueryVariableOptionGroupsByTypes,
@@ -42,12 +41,11 @@ export function QueryVariable({
 }: QueryVariableProps) {
   const { t } = useTranslation()
   const form = useFormContext()
-  const clickedNodeId = useGraphStore((state) => state.clickedNodeId)
-  const upstreamOptionGroups = useBuildNodeOutputOptions(nodeId || clickedNodeId)
+  const promptOptionGroups = useBuildPromptVariableOptions(nodeId)
 
   const options = useMemo(() => {
     return filterQueryVariableOptionGroupsByTypes(
-      optionGroups || upstreamOptionGroups,
+      optionGroups || promptOptionGroups,
       types,
     ).map((group) => ({
       label: group.label,
@@ -58,7 +56,7 @@ export function QueryVariable({
         type: (option as { type?: string }).type,
       })),
     }))
-  }, [optionGroups, types, upstreamOptionGroups])
+  }, [optionGroups, promptOptionGroups, types])
 
   return (
     <FormField

@@ -21,8 +21,8 @@ import {
   SortMethod,
   initialListOperationsValues,
 } from '../../constant'
-import { useBuildNodeOutputOptions } from '../../hooks/use-build-options'
 import { useFormValues } from '../../hooks/use-form-values'
+import { useBuildPromptVariableOptions } from '../../hooks/use-get-begin-query'
 import { useWatchFormChange } from '../../hooks/use-watch-form-change'
 import type { INextOperatorForm } from '../../types'
 import {
@@ -92,7 +92,7 @@ export const ListOperationsForm = memo(function ListOperationsForm({
 }: INextOperatorForm) {
   const { t } = useTranslation()
   const values = useFormValues(initialListOperationsValues, node)
-  const optionGroups = useBuildNodeOutputOptions(node?.id)
+  const optionGroups = useBuildPromptVariableOptions(node?.id)
 
   const form = useForm({
     resolver: zodResolver(listOperationsSchema),

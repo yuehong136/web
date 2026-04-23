@@ -419,6 +419,7 @@ export default {
       and: '与',
       or: '或',
     },
+    switchConditionValuePlaceholder: '输入用于比较的值...',
     operator: '操作符',
     value: '值',
     useTemplate: '使用',

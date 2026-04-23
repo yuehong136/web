@@ -23,7 +23,6 @@ import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
 import { initialInvokeValues } from '../../constant'
-import { useBuildNodeOutputOptions } from '../../hooks/use-build-options'
 import { useFormValues } from '../../hooks/use-form-values'
 import { useWatchFormChange } from '../../hooks/use-watch-form-change'
 import type { INextOperatorForm } from '../../types'
@@ -47,7 +46,6 @@ type InvokeFormValues = z.input<typeof invokeFormSchema>
 
 export function InvokeForm({ node }: INextOperatorForm) {
   const { t } = useTranslation()
-  const promptOptions = useBuildNodeOutputOptions(node?.id)
   const values = normalizeInvokeFormForStore(
     useFormValues(initialInvokeValues, node),
   )
@@ -80,7 +78,7 @@ export function InvokeForm({ node }: INextOperatorForm) {
                   value={field.value ?? ''}
                   onChange={field.onChange}
                   placeholder="https://api.example.com/{begin@user_id}"
-                  options={promptOptions}
+                  nodeId={node?.id}
                   showToolbar={false}
                   multiLine={false}
                 />

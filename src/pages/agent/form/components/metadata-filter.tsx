@@ -21,8 +21,6 @@ import { Plus, Trash2 } from 'lucide-react'
 import { useMemo } from 'react'
 import { useFieldArray, useFormContext, useWatch } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import { useBuildNodeOutputOptions } from '../../hooks/use-build-options'
-import useGraphStore from '../../store'
 import {
   retrievalMetaDataLogic,
   retrievalMetaDataMethod,
@@ -42,8 +40,6 @@ export function MetadataFilter({
 }: MetadataFilterProps) {
   const { t } = useTranslation()
   const form = useFormContext()
-  const clickedNodeId = useGraphStore((state) => state.clickedNodeId)
-  const promptOptions = useBuildNodeOutputOptions(nodeId || clickedNodeId)
   const kbIds = useWatch({
     control: form.control,
     name: kbIdsName,
@@ -241,7 +237,7 @@ export function MetadataFilter({
                         <PromptEditor
                           value={field.value}
                           onChange={field.onChange}
-                          options={promptOptions}
+                          nodeId={nodeId}
                           multiLine={false}
                           showToolbar={false}
                         />

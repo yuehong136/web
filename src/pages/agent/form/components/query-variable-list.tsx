@@ -3,7 +3,7 @@ import { X } from 'lucide-react'
 import { useMemo } from 'react'
 import { useFieldArray, useFormContext } from 'react-hook-form'
 import { JsonSchemaDataType } from '../../constant'
-import { useBuildNodeOutputOptions } from '../../hooks/use-build-options'
+import { useBuildPromptVariableOptions } from '../../hooks/use-get-begin-query'
 import type { FormListHeaderProps } from './dynamic-form-header'
 import { DynamicFormHeader } from './dynamic-form-header'
 import { QueryVariable } from './query-variable'
@@ -24,7 +24,7 @@ export function QueryVariableList({
   tooltip,
 }: QueryVariableListProps) {
   const form = useFormContext()
-  const optionGroups = useBuildNodeOutputOptions()
+  const optionGroups = useBuildPromptVariableOptions()
 
   const availableValues = useMemo(() => {
     return flattenQueryVariableOptions(

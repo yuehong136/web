@@ -1,9 +1,10 @@
 import { Position } from '@xyflow/react'
 import { useContext, useMemo, type MouseEventHandler } from 'react'
-import { PencilLine, Wrench, X } from 'lucide-react'
+import { PencilLine, Plus, Wrench, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Tooltip } from '@/components/ui/tooltip'
+import { LabelCard } from '../../canvas/node/card'
 import { AgentInstanceContext } from '../../context'
 import { Operator } from '../../constant'
 import OperatorIcon from '../../operator-icon'
@@ -35,34 +36,68 @@ function ToolRow({
     <Button
       type="button"
       variant="ghost"
-      size="icon"
+      size="icon-sm"
       data-tool-id={toolId}
+      data-tool={toolId}
       onClick={onEdit}
       disabled={!onEdit}
+      className="size-4 rounded-radius-sm bg-transparent p-0 text-text-secondary hover:text-text-primary"
     >
-      <PencilLine className="pointer-events-none size-4" />
+      <PencilLine className="pointer-events-none size-full" />
     </Button>
   )
 
   return (
-    <div className="flex items-center justify-between rounded-radius-md border border-border-default bg-surface-secondary/40 px-space-sm py-space-sm">
-      <div className="flex min-w-0 items-center gap-space-sm">
-        {icon}
-        <span className="truncate text-sm text-text-primary">{title}</span>
-      </div>
-      <div className="flex items-center gap-space-xs">
-        {editDisabledReason ? (
-          <Tooltip content={<p>{editDisabledReason}</p>}>
-            <span>{editButton}</span>
-          </Tooltip>
-        ) : (
-          editButton
-        )}
-        <Button type="button" variant="ghost" size="icon" onClick={onRemove}>
-          <X className="pointer-events-none size-4" />
-        </Button>
-      </div>
-    </div>
+    <li>
+      <LabelCard className="flex items-center justify-between p-space-sm text-sm text-text-primary">
+        <div className="flex min-w-0 items-center gap-space-sm">
+          {icon}
+          <span className="truncate">{title}</span>
+        </div>
+        <div className="flex items-center gap-space-md text-text-secondary">
+          {editDisabledReason ? (
+            <Tooltip content={<p>{editDisabledReason}</p>}>
+              <span>{editButton}</span>
+            </Tooltip>
+          ) : (
+            editButton
+          )}
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            className="size-4 rounded-radius-sm bg-transparent p-0 text-text-secondary hover:text-text-primary"
+            onClick={onRemove}
+          >
+            <X className="pointer-events-none size-full" />
+          </Button>
+        </div>
+      </LabelCard>
+    </li>
+  )
+}
+
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  return <span className="text-sm text-text-secondary">{children}</span>
+}
+
+function DashedActionButton({
+  children,
+  onClick,
+}: {
+  children: React.ReactNode
+  onClick?: React.MouseEventHandler<HTMLButtonElement>
+}) {
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      className="w-full border-dashed border-border-default"
+      onClick={onClick}
+    >
+      <Plus className="size-4" />
+      {children}
+    </Button>
   )
 }
 
@@ -96,18 +131,10 @@ export function AgentTools({ node }: AgentToolsProps) {
 
   return (
     <section className="space-y-space-sm">
-      <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-text-primary">
-          {t('flow.tools', 'Tools')}
-        </span>
-      </div>
+      <SectionTitle>{t('flow.tools', 'Tools')}</SectionTitle>
 
-      {isEmpty ? (
-        <div className="rounded-radius-md border border-dashed border-border-default px-space-sm py-space-sm text-sm text-text-secondary">
-          {t('flow.noToolsSelected', 'No tools selected yet.')}
-        </div>
-      ) : (
-        <div className="space-y-space-sm">
+      {!isEmpty && (
+        <ul className="space-y-space-sm">
           {tools.map((tool) => (
             <ToolRow
               key={tool.id}
@@ -136,7 +163,7 @@ export function AgentTools({ node }: AgentToolsProps) {
               onRemove={() => removeMcp(item.mcp_id)}
             />
           ))}
-        </div>
+        </ul>
       )}
 
       <AgentToolPopover node={node} />
@@ -167,18 +194,10 @@ export function Agents({ node }: INextOperatorForm) {
 
   return (
     <section className="space-y-space-sm">
-      <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-text-primary">
-          {t('flow.agent', 'Agent')}
-        </span>
-      </div>
+      <SectionTitle>{t('flow.agent', 'Agent')}</SectionTitle>
 
-      {subAgentIds.length === 0 ? (
-        <div className="rounded-radius-md border border-dashed border-border-default px-space-sm py-space-sm text-sm text-text-secondary">
-          {t('flow.noAgentsSelected', 'No sub-agents yet.')}
-        </div>
-      ) : (
-        <div className="space-y-space-sm">
+      {subAgentIds.length > 0 && (
+        <ul className="space-y-space-sm">
           {subAgentIds.map((id) => (
             <ToolRow
               key={id}
@@ -189,20 +208,17 @@ export function Agents({ node }: INextOperatorForm) {
               onRemove={() => deleteAgentDownstreamNodesById(id)}
             />
           ))}
-        </div>
+        </ul>
       )}
 
-      <Button
-        type="button"
-        variant="outline"
-        className="w-full"
+      <DashedActionButton
         onClick={addCanvasNode?.(Operator.Agent, {
           nodeId: node?.id,
           position: Position.Bottom,
         })}
       >
         {t('flow.addAgent', 'Add Agent')}
-      </Button>
+      </DashedActionButton>
     </section>
   )
 }

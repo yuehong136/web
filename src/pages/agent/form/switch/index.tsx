@@ -18,7 +18,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { memo } from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import { X } from 'lucide-react'
+import { Plus, X } from 'lucide-react'
 import { z } from 'zod'
 import {
   SwitchLogicOperatorOptions,
@@ -78,10 +78,7 @@ export function SwitchForm({ node }: INextOperatorForm) {
           const conditionLength = conditions?.length ?? 0
 
           return (
-            <section
-              key={field.id}
-              className="space-y-space-md rounded-radius-md border border-border-default bg-surface-primary p-space-sm shadow-elevation-low"
-            >
+            <section key={field.id} className="space-y-space-md">
               <div className="flex items-center justify-between">
                 <section>
                   <span>{index === 0 ? 'IF' : 'ELSEIF'}</span>
@@ -90,16 +87,19 @@ export function SwitchForm({ node }: INextOperatorForm) {
                 {index !== 0 && (
                   <Button
                     type="button"
-                    variant="secondary"
+                    variant="ghost"
+                    size="icon-sm"
+                    className="text-text-secondary hover:text-status-error"
                     onClick={() => remove(index)}
+                    aria-label={t('common.remove')}
                   >
-                    {t('common.remove')} <X className="ml-space-xs size-4" />
+                    <X className="size-4" />
                   </Button>
                 )}
               </div>
               <section className="relative flex gap-space-sm">
                 {conditionLength > 1 && (
-                  <section className="flex w-[72px] flex-col">
+                  <section className="flex w-[72px] shrink-0 flex-col items-center">
                     <div className="relative w-1 flex-1 before:absolute before:bottom-0 before:left-10 before:top-20 before:w-px before:bg-border-default" />
                     <FormField
                       control={form.control}
@@ -111,7 +111,7 @@ export function SwitchForm({ node }: INextOperatorForm) {
                               value={logicField.value}
                               onValueChange={logicField.onChange}
                             >
-                              <SelectTrigger className="h-9 rounded-radius-md border border-border-default bg-surface-primary px-space-sm py-space-xs text-sm">
+                              <SelectTrigger className="h-10 min-w-20 rounded-radius-md border border-border-default bg-surface-primary px-space-sm py-space-xs text-sm shadow-elevation-low">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
@@ -148,7 +148,7 @@ export function SwitchForm({ node }: INextOperatorForm) {
         <Button
           type="button"
           variant="outline"
-          className="w-full"
+          className="w-full border-dashed border-border-default"
           onClick={() =>
             append({
               logical_operator: SwitchLogicOperatorOptions[0],
@@ -162,6 +162,7 @@ export function SwitchForm({ node }: INextOperatorForm) {
             })
           }
         >
+          <Plus className="size-4" />
           {t('common.add')}
         </Button>
       </FormWrapper>

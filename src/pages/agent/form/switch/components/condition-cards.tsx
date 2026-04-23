@@ -6,7 +6,6 @@ import {
   FormItem,
   FormMessage,
 } from '@/components/ui/form'
-import { Separator } from '@/components/ui/separator'
 import {
   Select,
   SelectContent,
@@ -16,7 +15,7 @@ import {
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
-import { X } from 'lucide-react'
+import { Plus, X } from 'lucide-react'
 import { useCallback } from 'react'
 import { useFieldArray, useFormContext } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
@@ -53,12 +52,12 @@ export function ConditionCards({
   )
 
   return (
-    <section className="flex min-w-0 flex-1 flex-col gap-space-sm">
+    <section className="min-w-0 flex-1 space-y-space-sm">
       {fields.map((field, index) => (
-        <div key={field.id} className="flex">
+        <div key={field.id} className="group flex min-w-0 items-start">
           <Card
             className={cn(
-              'relative flex min-w-0 flex-1 rounded-radius-md border border-border-default bg-surface-primary shadow-elevation-low',
+              'relative min-w-0 flex-1 overflow-visible rounded-radius-md border border-border-default bg-transparent p-0 shadow-elevation-low transition-colors group-hover:border-border-strong',
               {
                 'before:absolute before:-left-10 before:top-1/2 before:h-px before:w-10 before:bg-border-default':
                   fields.length > 1 &&
@@ -66,16 +65,17 @@ export function ConditionCards({
               },
             )}
           >
-            <section className="flex items-center justify-between rounded-t-radius-md bg-surface-secondary p-space-sm">
-              <QueryVariable
-                name={`${name}.${index}.cpn_id`}
-                hideLabel
-                nodeId={nodeId}
-                className="min-w-0 flex-1"
-                triggerClassName="h-9 rounded-radius-md border border-border-default bg-surface-primary px-space-sm py-space-xs text-sm"
-              />
-              <div className="flex items-center">
-                <Separator orientation="vertical" className="h-3" />
+            <section className="grid min-w-0 items-center gap-space-sm rounded-t-radius-md bg-surface-secondary p-space-sm lg:grid-cols-[minmax(0,1fr)_8rem_auto]">
+              <div className="min-w-0">
+                <QueryVariable
+                  name={`${name}.${index}.cpn_id`}
+                  hideLabel
+                  nodeId={nodeId}
+                  className="min-w-0"
+                  triggerClassName="h-10 rounded-radius-md border border-border-default bg-surface-primary px-space-sm py-space-xs text-sm shadow-none hover:bg-surface-secondary"
+                />
+              </div>
+              <div className="min-w-0">
                 <FormField
                   control={form.control}
                   name={`${name}.${index}.operator` as const}
@@ -86,7 +86,7 @@ export function ConditionCards({
                           value={operatorField.value}
                           onValueChange={operatorField.onChange}
                         >
-                          <SelectTrigger className="h-9 w-28 rounded-radius-md border border-border-default bg-surface-primary px-space-sm py-space-xs text-sm">
+                          <SelectTrigger className="h-10 min-w-0 rounded-radius-md border border-border-default bg-surface-primary px-space-sm py-space-xs text-sm shadow-none hover:bg-surface-secondary">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -109,6 +109,16 @@ export function ConditionCards({
                   )}
                 />
               </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                className="shrink-0 text-text-secondary hover:text-status-error"
+                onClick={handleRemove(index)}
+                aria-label={t('common.remove')}
+              >
+                <X className="size-4" />
+              </Button>
             </section>
             <CardContent className="p-space-md">
               <FormField
@@ -119,7 +129,11 @@ export function ConditionCards({
                     <FormControl>
                       <Textarea
                         {...valueField}
-                        className="min-h-24 rounded-radius-md border border-border-default bg-surface-primary"
+                        placeholder={t(
+                          'flow.switchConditionValuePlaceholder',
+                          'Enter the value to compare with...',
+                        )}
+                        className="min-h-24 rounded-radius-md border border-border-default bg-transparent px-space-md py-space-sm"
                       />
                     </FormControl>
                     <FormMessage />
@@ -128,23 +142,13 @@ export function ConditionCards({
               />
             </CardContent>
           </Card>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="text-text-secondary hover:text-text-primary"
-            onClick={handleRemove(index)}
-          >
-            <X className="size-4" />
-          </Button>
         </div>
       ))}
       <div className="pr-space-lg">
         <Button
           type="button"
           variant="outline"
-          size="sm"
-          className="mt-space-md"
+          className="mt-space-sm w-full border-dashed border-border-default bg-surface-primary"
           onClick={() =>
             append({
               cpn_id: '',
@@ -152,6 +156,7 @@ export function ConditionCards({
             })
           }
         >
+          <Plus className="size-4" />
           {t('common.add')}
         </Button>
       </div>

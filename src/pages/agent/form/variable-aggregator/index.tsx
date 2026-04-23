@@ -21,8 +21,8 @@ import {
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
 import { initialVariableAggregatorValues } from '../../constant'
-import { useBuildNodeOutputOptions } from '../../hooks/use-build-options'
 import { useFormValues } from '../../hooks/use-form-values'
+import { useBuildPromptVariableOptions } from '../../hooks/use-get-begin-query'
 import { useWatchFormChange } from '../../hooks/use-watch-form-change'
 import type { INextOperatorForm } from '../../types'
 import {
@@ -57,7 +57,7 @@ type VariableAggregatorGroupSectionProps = {
   control: Control<VariableAggregatorFormValues>
   groupIndex: number
   nodeId?: string
-  optionGroups: ReturnType<typeof useBuildNodeOutputOptions>
+  optionGroups: ReturnType<typeof useBuildPromptVariableOptions>
   onRemoveGroup: (index: number) => void
 }
 
@@ -157,7 +157,7 @@ export const VariableAggregatorForm = memo(function VariableAggregatorForm({
   node,
 }: INextOperatorForm) {
   const { t } = useTranslation()
-  const optionGroups = useBuildNodeOutputOptions(node?.id)
+  const optionGroups = useBuildPromptVariableOptions(node?.id)
   const baseValues = useFormValues(initialVariableAggregatorValues, node)
   const defaultValues = useMemo(() => {
     const groups = normalizeVariableAggregatorGroups(

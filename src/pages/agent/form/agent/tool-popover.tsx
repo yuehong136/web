@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Popover,
@@ -10,6 +11,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import type { RAGFlowNodeType } from '../../types'
 import { useAgentToolActions, useAgentToolState } from './tool-hooks'
 import { BuiltInToolCommand, McpToolCommand } from './tool-command'
+
+enum ToolType {
+  Common = 'common',
+  MCP = 'mcp',
+}
 
 interface AgentToolPopoverProps {
   node?: RAGFlowNodeType
@@ -35,27 +41,32 @@ export function AgentToolPopover({ node }: AgentToolPopoverProps) {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button type="button" variant="outline" className="w-full">
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full border-dashed border-border-default"
+        >
+          <Plus className="size-4" />
           {t('flow.addTools', 'Add Tools')}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[360px] p-space-sm" align="start">
-        <Tabs defaultValue="built-in" className="space-y-space-sm">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="built-in">
+      <PopoverContent className="w-80 p-space-md" align="start">
+        <Tabs defaultValue={ToolType.Common} className="space-y-space-sm">
+          <TabsList>
+            <TabsTrigger value={ToolType.Common}>
               {t('flow.builtIn', 'Built-in')}
             </TabsTrigger>
-            <TabsTrigger value="mcp">MCP</TabsTrigger>
+            <TabsTrigger value={ToolType.MCP}>MCP</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="built-in">
+          <TabsContent value={ToolType.Common}>
             <BuiltInToolCommand
               selectedToolNames={selectedToolNames}
               onSelect={toggleTool}
             />
           </TabsContent>
 
-          <TabsContent value="mcp">
+          <TabsContent value={ToolType.MCP}>
             <McpToolCommand
               selectedMcpIdList={selectedMcpIdList}
               onChange={setMcpIds}

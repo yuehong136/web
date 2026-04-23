@@ -25,7 +25,6 @@ import { useForm, useWatch } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
 import { RetrievalFrom, initialRetrievalValues } from '../../constant'
-import { useBuildNodeOutputOptions } from '../../hooks/use-build-options'
 import { useFormValues } from '../../hooks/use-form-values'
 import { useWatchFormChange } from '../../hooks/use-watch-form-change'
 import type { INextOperatorForm } from '../../types'
@@ -76,7 +75,6 @@ type RetrievalFormValues = z.input<typeof retrievalSchema>
 
 export function RetrievalForm({ node }: INextOperatorForm) {
   const { t } = useTranslation()
-  const promptOptions = useBuildNodeOutputOptions(node?.id)
   const values = normalizeRetrievalFormForStore(
     useFormValues(initialRetrievalValues, node),
   )
@@ -114,7 +112,7 @@ export function RetrievalForm({ node }: INextOperatorForm) {
                 <PromptEditor
                   value={field.value ?? ''}
                   onChange={field.onChange}
-                  options={promptOptions}
+                  nodeId={node?.id}
                 />
               </FormControl>
               <FormMessage />
