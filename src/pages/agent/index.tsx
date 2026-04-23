@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { ReactFlowProvider } from '@xyflow/react'
 import { StudioPageTemplate } from '@/components/page-templates'
@@ -15,6 +15,7 @@ import { useSetModalState } from '@/hooks/common-hooks'
 import {
   buildAgentCanvasPath,
   formatVersionLabel,
+  isPipelineFlow,
   resolveLocalizedText,
 } from '@/lib/agent'
 import {
@@ -32,6 +33,10 @@ import {
   RuntimeWorkbenchView,
   type RuntimeWorkbenchSummary,
 } from './features/runtime-workbench'
+import {
+  PipelineWorkbenchView,
+  type PipelineWorkbenchSummary,
+} from './features/pipeline-workbench'
 import { SettingDialog } from './setting-dialog'
 import { VersionDialog } from './version-dialog'
 import { WebhookSheet } from './webhook-sheet'
@@ -62,17 +67,44 @@ export default function AgentEditorPage() {
   const [versionsOpen, setVersionsOpen] = useState(false)
   const [webhookOpen, setWebhookOpen] = useState(false)
   const [roadmapOpen, setRoadmapOpen] = useState(false)
+  const editorMode: 'agent' | 'pipeline' = isPipelineFlow(flowDetail)
+    ? 'pipeline'
+    : 'agent'
+  const defaultRuntimeView =
+    editorMode === 'pipeline'
+      ? PipelineWorkbenchView.RUN
+      : RuntimeWorkbenchView.RUN
   const [runtimeWorkbenchOpen, setRuntimeWorkbenchOpen] = useState(false)
-  const [runtimeWorkbenchView, setRuntimeWorkbenchView] = useState(
-    RuntimeWorkbenchView.RUN,
+  const [runtimeWorkbenchView, setRuntimeWorkbenchView] = useState<string>(
+    defaultRuntimeView,
   )
-  const [runtimeSummary, setRuntimeSummary] = useState<RuntimeWorkbenchSummary>({
-    status: AgentRuntimeStatus.IDLE,
-    currentView: RuntimeWorkbenchView.RUN,
-    messageCount: 0,
-    hasLogs: false,
-  })
+  const buildIdleSummary = useCallback((): RuntimeWorkbenchSummary | PipelineWorkbenchSummary => {
+    if (editorMode === 'pipeline') {
+      return {
+        status: AgentRuntimeStatus.IDLE,
+        currentView: PipelineWorkbenchView.RUN,
+        messageCount: 0,
+        hasLogs: false,
+        outputAvailable: false,
+      }
+    }
+    return {
+      status: AgentRuntimeStatus.IDLE,
+      currentView: RuntimeWorkbenchView.RUN,
+      messageCount: 0,
+      hasLogs: false,
+    }
+  }, [editorMode])
+  const [runtimeSummary, setRuntimeSummary] = useState<
+    RuntimeWorkbenchSummary | PipelineWorkbenchSummary
+  >(buildIdleSummary)
   const settingState = useSetModalState(false)
+
+  useEffect(() => {
+    setRuntimeWorkbenchOpen(false)
+    setRuntimeWorkbenchView(defaultRuntimeView)
+    setRuntimeSummary(buildIdleSummary())
+  }, [buildIdleSummary, defaultRuntimeView, editorMode])
 
   useEffect(() => {
     if (!titleDirty && flowDetail?.title) {
@@ -112,10 +144,22 @@ export default function AgentEditorPage() {
     setTitleDirty(false)
   }
 
-  const openRuntimeWorkbench = (view: RuntimeWorkbenchView) => {
-    setRuntimeWorkbenchView(view)
-    setRuntimeWorkbenchOpen(true)
-  }
+  const openRuntimeWorkbench = useCallback(
+    (view?: string) => {
+      const nextView =
+        view ||
+        (editorMode === 'pipeline' &&
+        (runtimeSummary.status === AgentRuntimeStatus.RUNNING ||
+          runtimeSummary.status === AgentRuntimeStatus.PREPARING) &&
+        runtimeSummary.hasLogs
+          ? PipelineWorkbenchView.LOG
+          : defaultRuntimeView)
+
+      setRuntimeWorkbenchView(nextView)
+      setRuntimeWorkbenchOpen(true)
+    },
+    [defaultRuntimeView, editorMode, runtimeSummary.hasLogs, runtimeSummary.status],
+  )
 
   if (loading) {
     return (
@@ -190,7 +234,7 @@ export default function AgentEditorPage() {
                     <Save className="mr-space-xs h-4 w-4" />
                     {saving ? '保存中...' : '保存'}
                   </Button>
-                  <Button onClick={() => openRuntimeWorkbench(RuntimeWorkbenchView.RUN)}>
+                  <Button onClick={() => openRuntimeWorkbench()}>
                     <Play className="mr-space-xs h-4 w-4" />
                     运行
                   </Button>
@@ -201,7 +245,9 @@ export default function AgentEditorPage() {
               left={
                 <div className="flex items-center gap-space-sm text-sm text-text-secondary">
                   <Sparkles className="h-4 w-4 text-text-accent" />
-                  T4 已正式化普通 Agent 的运行、Conversation 与单步调试工作台。
+                  {editorMode === 'pipeline'
+                    ? 'T6 已正式化 Pipeline 的运行、日志时间线与输出工作台。'
+                    : 'T4 已正式化普通 Agent 的运行、Conversation 与单步调试工作台。'}
                 </div>
               }
               right={
@@ -215,6 +261,7 @@ export default function AgentEditorPage() {
         sidePanel={
           <EditorRuntimeRail
             flow={flowDetail}
+            editorMode={editorMode}
             autosaveLabel={autosaveLabel}
             runtimeSummary={runtimeSummary}
             onOpenRuntime={openRuntimeWorkbench}
@@ -229,6 +276,7 @@ export default function AgentEditorPage() {
       >
         <ReactFlowProvider>
           <AgentCanvas
+            editorMode={editorMode}
             runtimeWorkbenchOpen={runtimeWorkbenchOpen}
             runtimeWorkbenchView={runtimeWorkbenchView}
             onRuntimeWorkbenchOpenChange={setRuntimeWorkbenchOpen}
@@ -259,13 +307,29 @@ export default function AgentEditorPage() {
       <PlaceholderDialog
         open={roadmapOpen}
         onOpenChange={setRoadmapOpen}
-        title="T4：Agent 运行与单步调试工作台"
-        description="普通 Agent 已切到统一 runtime workbench，T2/T3 的表单装配和目录化 operator 仍保持正式主路径。"
-        bullets={[
-          '本轮正式化普通 Agent 的 Run / Conversation / Log 单一工作台，并保持 form-sheet renderer 主路径不回退。',
-          '单步调试继续挂在 T2 的 form-sheet header 与 canvas context-menu 上，但输入表单与文件上传已经按 T4 统一。',
-          'Pipeline run/log、Share/Publish/Webhook/Explore 与 session 浏览仍留给后续 T6/T7/T9，不在本轮越界实现。',
-        ]}
+        title={
+          editorMode === 'pipeline'
+            ? 'T6：Pipeline 运行与日志工作台'
+            : 'T4：Agent 运行与单步调试工作台'
+        }
+        description={
+          editorMode === 'pipeline'
+            ? 'Pipeline 已正式化为独立 workbench：上传/Begin 输入、Pipeline 运行、数据流时间线与 END 输出已串成闭环。'
+            : '普通 Agent 已切到统一 runtime workbench，T2/T3 的表单装配和目录化 operator 仍保持正式主路径。'
+        }
+        bullets={
+          editorMode === 'pipeline'
+            ? [
+                'Pipeline 不再借走 Agent runtime workbench：Run / Log / Output 三视图独立挂载，状态模型与 Agent 互不污染。',
+                '使用 useSaveGraph + agentAPI.runAgent + fetchTrace 轮询 + cancelDataflow 形成完整闭环，旧 page-local pipeline bridge 已被接管。',
+                'Webhook、Publish、Share 与 Explore 仍按现状，留给后续 T7/T9 阶段补齐。',
+              ]
+            : [
+                '本轮正式化普通 Agent 的 Run / Conversation / Log 单一工作台，并保持 form-sheet renderer 主路径不回退。',
+                '单步调试继续挂在 T2 的 form-sheet header 与 canvas context-menu 上，但输入表单与文件上传已经按 T4 统一。',
+                'Pipeline run/log 已在 T6 独立工作台正式化；Share/Publish/Webhook/Explore 与 session 浏览仍留给后续 T7/T9。',
+              ]
+        }
       />
     </>
   )

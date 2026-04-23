@@ -530,15 +530,11 @@ export interface IEventList {
   elapsed_time?: number
 }
 
-export interface ITraceData {
-  component_id: string
-  component_name: string
-  status: string
-  elapsed_time?: number
-  inputs?: Record<string, any>
-  outputs?: Record<string, any>
-  traces?: ITraceData[]
-}
+// `ITraceData` is the legacy alias for the unified domain trace shape from
+// `@/types/agent`. Pipeline workbench (T6) and trace adapter both consume the
+// shared `AgentTraceItem` type — this re-export keeps any historical import
+// paths compatible without diverging the data model again.
+export type { AgentTraceItem as ITraceData } from '@/types/agent'
 
 // ==================== API请求/响应类型 ====================
 

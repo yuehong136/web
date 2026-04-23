@@ -21,6 +21,12 @@ import {
 import { useAgentRuntimeWorkbench } from '../features/runtime-workbench/hooks/use-agent-runtime-workbench'
 import type { RuntimeWorkbenchSummary } from '../features/runtime-workbench'
 import {
+  PipelineWorkbench,
+  PipelineWorkbenchView,
+  type PipelineWorkbenchSummary,
+} from '../features/pipeline-workbench'
+import { usePipelineWorkbench } from '../features/pipeline-workbench/hooks/use-pipeline-workbench'
+import {
   AgentInstanceContext,
   HandleContext,
 } from '../context'
@@ -56,14 +62,18 @@ const edgeTypes = {
 }
 
 interface AgentCanvasProps {
+  editorMode: 'agent' | 'pipeline'
   runtimeWorkbenchOpen: boolean
-  runtimeWorkbenchView: RuntimeWorkbenchView
+  runtimeWorkbenchView: string
   onRuntimeWorkbenchOpenChange: (open: boolean) => void
-  onRuntimeWorkbenchViewChange: (view: RuntimeWorkbenchView) => void
-  onRuntimeSummaryChange?: (summary: RuntimeWorkbenchSummary) => void
+  onRuntimeWorkbenchViewChange: (view: string) => void
+  onRuntimeSummaryChange?: (
+    summary: RuntimeWorkbenchSummary | PipelineWorkbenchSummary,
+  ) => void
 }
 
 function AgentCanvasInner({
+  editorMode,
   runtimeWorkbenchOpen,
   runtimeWorkbenchView,
   onRuntimeWorkbenchOpenChange,
@@ -196,12 +206,35 @@ function AgentCanvasInner({
     hideImage,
   ])
 
-  const runtimeController = useAgentRuntimeWorkbench({
+  const isPipelineMode = editorMode === 'pipeline'
+
+  const agentRuntimeController = useAgentRuntimeWorkbench({
     canvasId,
-    currentView: runtimeWorkbenchView,
-    onViewChange: onRuntimeWorkbenchViewChange,
-    onSummaryChange: onRuntimeSummaryChange,
+    currentView: isPipelineMode
+      ? RuntimeWorkbenchView.RUN
+      : (runtimeWorkbenchView as RuntimeWorkbenchView),
+    onViewChange: (next) => onRuntimeWorkbenchViewChange(next),
+    onSummaryChange: isPipelineMode ? undefined : onRuntimeSummaryChange,
   })
+
+  const pipelineController = usePipelineWorkbench({
+    canvasId,
+    currentView: isPipelineMode
+      ? (runtimeWorkbenchView as PipelineWorkbenchView)
+      : PipelineWorkbenchView.RUN,
+    onViewChange: (next) => onRuntimeWorkbenchViewChange(next),
+    onSummaryChange: isPipelineMode ? onRuntimeSummaryChange : undefined,
+  })
+
+  const railLastNodeId = isPipelineMode
+    ? undefined
+    : agentRuntimeController.lastNodeId
+  const railSendLoading = isPipelineMode
+    ? pipelineController.loading
+    : agentRuntimeController.loading
+  const railStartButNotFinishedNodeIds = isPipelineMode
+    ? []
+    : agentRuntimeController.startButNotFinishedNodeIds
 
   return (
     <div className="w-full h-full px-space-lg pb-space-lg bg-surface-secondary">
@@ -247,9 +280,9 @@ function AgentCanvasInner({
           value={{
             addCanvasNode,
             showFormDrawer,
-            lastNode: runtimeController.lastNodeId,
-            currentSendLoading: runtimeController.loading,
-            startButNotFinishedNodeIds: runtimeController.startButNotFinishedNodeIds,
+            lastNode: railLastNodeId,
+            currentSendLoading: railSendLoading,
+            startButNotFinishedNodeIds: railStartButNotFinishedNodeIds,
           }}
         >
         <ReactFlow
@@ -349,13 +382,23 @@ function AgentCanvasInner({
           </AgentInstanceContext.Provider>
         )}
 
-        <RuntimeWorkbench
-          open={runtimeWorkbenchOpen}
-          view={runtimeWorkbenchView}
-          controller={runtimeController}
-          onOpenChange={onRuntimeWorkbenchOpenChange}
-          onViewChange={onRuntimeWorkbenchViewChange}
-        />
+        {isPipelineMode ? (
+          <PipelineWorkbench
+            open={runtimeWorkbenchOpen}
+            view={runtimeWorkbenchView as PipelineWorkbenchView}
+            controller={pipelineController}
+            onOpenChange={onRuntimeWorkbenchOpenChange}
+            onViewChange={(next) => onRuntimeWorkbenchViewChange(next)}
+          />
+        ) : (
+          <RuntimeWorkbench
+            open={runtimeWorkbenchOpen}
+            view={runtimeWorkbenchView as RuntimeWorkbenchView}
+            controller={agentRuntimeController}
+            onOpenChange={onRuntimeWorkbenchOpenChange}
+            onViewChange={(next) => onRuntimeWorkbenchViewChange(next)}
+          />
+        )}
 
         <CanvasContextMenu
           open={contextMenu.open}

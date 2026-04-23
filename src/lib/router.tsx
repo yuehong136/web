@@ -74,6 +74,7 @@ const AgentTemplatesPage = lazy(() => import('@/pages/agents/templates'))
 const AgentCanvasPage = lazy(() => import('@/pages/agent'))
 const AgentExplorePage = lazy(() => import('@/pages/agent/explore'))
 const AgentSharePage = lazy(() => import('@/pages/agent/share'))
+const PipelineResultPage = lazy(() => import('@/pages/agent/pipeline-result'))
 
 // Studio
 const StudioPage = lazyNamed(() => import('@/pages/studio'), 'StudioPage')
@@ -318,6 +319,10 @@ export const router = createBrowserRouter([
       {
         path: ROUTES.AGENT_EXPLORE,
         element: withLoading(AgentExplorePage),
+      },
+      {
+        path: ROUTES.DATAFLOW_RESULT,
+        element: withLoading(PipelineResultPage),
       },
       {
         path: ROUTES.MCP_SERVERS,

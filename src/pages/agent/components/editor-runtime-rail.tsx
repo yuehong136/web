@@ -10,8 +10,13 @@ import {
   type RuntimeWorkbenchSummary,
 } from '../features/runtime-workbench'
 import {
+  PipelineWorkbenchView,
+  type PipelineWorkbenchSummary,
+} from '../features/pipeline-workbench'
+import {
   Compass,
   Copy,
+  Database,
   GitBranch,
   History,
   Link2,
@@ -20,11 +25,14 @@ import {
   Sparkles,
 } from 'lucide-react'
 
+type RuntimeRailSummary = RuntimeWorkbenchSummary | PipelineWorkbenchSummary
+
 interface EditorRuntimeRailProps {
   flow?: AgentFlow
+  editorMode: 'agent' | 'pipeline'
   autosaveLabel?: string
-  runtimeSummary: RuntimeWorkbenchSummary
-  onOpenRuntime: (view: RuntimeWorkbenchView) => void
+  runtimeSummary: RuntimeRailSummary
+  onOpenRuntime: (view?: string) => void
   onOpenExplore: () => void
   onOpenVersions: () => void
   onOpenWebhook: () => void
@@ -54,8 +62,13 @@ const STATUS_VARIANT_MAP: Record<
   [AgentRuntimeStatus.STOPPED]: 'outline',
 }
 
+const isPipelineSummary = (
+  summary: RuntimeRailSummary,
+): summary is PipelineWorkbenchSummary => 'outputAvailable' in summary
+
 export function EditorRuntimeRail({
   flow,
+  editorMode,
   autosaveLabel,
   runtimeSummary,
   onOpenRuntime,
@@ -69,10 +82,16 @@ export function EditorRuntimeRail({
   const title = resolveLocalizedText(flow?.title, '未命名资产')
   const description = resolveLocalizedText(
     flow?.description,
-    '普通 Agent 已切到统一 runtime workbench，后续阶段继续承接 pipeline 和会话浏览。',
+    editorMode === 'pipeline'
+      ? 'Pipeline 数据流编辑：上传文档触发数据流处理，并在右侧时间线和输出视图查看结果。'
+      : '普通 Agent 已切到统一 runtime workbench，后续阶段继续承接 pipeline 和会话浏览。',
   )
   const nodeCount = countFlowNodes(flow)
   const edgeCount = flow?.dsl.graph?.edges.length || 0
+  const pipelineSummary = isPipelineSummary(runtimeSummary)
+    ? runtimeSummary
+    : undefined
+  const isPipeline = editorMode === 'pipeline'
 
   return (
     <div className="flex h-full flex-col gap-space-lg overflow-auto p-space-lg">
@@ -112,17 +131,22 @@ export function EditorRuntimeRail({
         </div>
       </SectionCard>
 
-      <SectionCard title="运行工作台" padding="default">
+      <SectionCard
+        title={isPipeline ? 'Pipeline 工作台' : '运行工作台'}
+        padding="default"
+      >
         <div className="space-y-space-md">
           <div className="flex items-center justify-between gap-space-sm">
             <div>
               <p className="text-sm font-medium text-text-primary">
-                普通 Agent Runtime
+                {isPipeline ? 'Pipeline Runtime' : '普通 Agent Runtime'}
               </p>
               <p className="mt-space-xs text-sm text-text-secondary">
                 {runtimeSummary.lastRunAt
                   ? `最近一次运行：${formatTimestampDetailed(runtimeSummary.lastRunAt)}`
-                  : '从这里进入统一的 Run / Conversation / Log 工作台。'}
+                  : isPipeline
+                    ? '上传文档触发数据流处理，并在 Log / Output 中查看节点状态、END 输出与轻量结果页。'
+                    : '从这里进入统一的 Run / Conversation / Log 工作台。'}
               </p>
             </div>
             <Badge variant={STATUS_VARIANT_MAP[runtimeSummary.status]}>
@@ -138,37 +162,73 @@ export function EditorRuntimeRail({
 
           <div className="grid grid-cols-2 gap-space-sm text-sm">
             <div className="rounded-radius-lg bg-surface-secondary p-space-sm">
-              <p className="text-text-tertiary">消息</p>
+              <p className="text-text-tertiary">{isPipeline ? '节点事件' : '消息'}</p>
               <p className="mt-space-xs font-medium text-text-primary">
                 {runtimeSummary.messageCount}
               </p>
             </div>
             <div className="rounded-radius-lg bg-surface-secondary p-space-sm">
-              <p className="text-text-tertiary">日志</p>
+              <p className="text-text-tertiary">{isPipeline ? '输出' : '日志'}</p>
               <p className="mt-space-xs font-medium text-text-primary">
-                {runtimeSummary.hasLogs ? '可查看' : '暂无'}
+                {isPipeline
+                  ? pipelineSummary?.outputAvailable
+                    ? pipelineSummary.resultPath
+                      ? '可跳转'
+                      : '可下载'
+                    : '暂无'
+                  : runtimeSummary.hasLogs
+                    ? '可查看'
+                    : '暂无'}
               </p>
             </div>
           </div>
 
           <div className="grid gap-space-sm">
-            <Button onClick={() => onOpenRuntime(RuntimeWorkbenchView.RUN)}>
-              <Play className="mr-space-xs h-4 w-4" />
-              打开工作台
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => onOpenRuntime(RuntimeWorkbenchView.CONVERSATION)}
-            >
-              继续 Conversation
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => onOpenRuntime(RuntimeWorkbenchView.LOG)}
-              disabled={!runtimeSummary.hasLogs}
-            >
-              查看节点日志
-            </Button>
+            {isPipeline ? (
+              <>
+                <Button
+                  onClick={() => onOpenRuntime(PipelineWorkbenchView.RUN)}
+                >
+                  <Play className="mr-space-xs h-4 w-4" />
+                  上传并启动 Pipeline
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => onOpenRuntime(PipelineWorkbenchView.LOG)}
+                  disabled={!runtimeSummary.hasLogs}
+                >
+                  查看数据流时间线
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => onOpenRuntime(PipelineWorkbenchView.OUTPUT)}
+                  disabled={!pipelineSummary?.outputAvailable}
+                >
+                  <Database className="mr-space-xs h-4 w-4" />
+                  查看结果 / END 输出
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button onClick={() => onOpenRuntime(RuntimeWorkbenchView.RUN)}>
+                  <Play className="mr-space-xs h-4 w-4" />
+                  打开工作台
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => onOpenRuntime(RuntimeWorkbenchView.CONVERSATION)}
+                >
+                  继续 Conversation
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => onOpenRuntime(RuntimeWorkbenchView.LOG)}
+                  disabled={!runtimeSummary.hasLogs}
+                >
+                  查看节点日志
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </SectionCard>
@@ -206,7 +266,9 @@ export function EditorRuntimeRail({
           </p>
           <p className="flex items-start gap-space-xs">
             <GitBranch className="mt-[2px] h-4 w-4 shrink-0 text-text-accent" />
-            T4 已把普通 Agent 的运行、测试和单步调试收敛；Pipeline run/log 与 session 浏览留给后续阶段。
+            {isPipeline
+              ? 'T6 已把 Pipeline 的运行 / 数据流时间线 / END 输出独立成专属 workbench，与 T4 普通 Agent runtime 边界清晰。'
+              : 'T4 已把普通 Agent 的运行、测试和单步调试收敛；T6 已正式化 Pipeline run/log workbench；session 浏览仍留给后续阶段。'}
           </p>
           <Button variant="secondary" onClick={onOpenRoadmap}>
             查看阶段说明
