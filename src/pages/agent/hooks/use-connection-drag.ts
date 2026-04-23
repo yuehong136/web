@@ -6,12 +6,18 @@ import type {
   OnConnectStart,
   ReactFlowInstance,
 } from '@xyflow/react'
-import { Position } from '@xyflow/react'
 import { useCallback, useRef } from 'react'
 import { useDropdownManager } from '../canvas/context'
 import { Operator, PREVENT_CLOSE_DELAY } from '../constant'
+import { useIsPipeline } from './use-is-pipeline'
 import type { RAGFlowNodeType } from '../types'
-import { canStartConnectionDrag, hasValidHandleDirection } from '../utils/connection-handles'
+import {
+  canStartConnectionDrag,
+  getConnectionStartPosition,
+  hasValidHandleDirection,
+  violatesPipelineSingleConnection,
+} from '../utils/connection-handles'
+import useGraphStore from '../store'
 import { useAddNode } from './use-add-node'
 
 interface ConnectionStartParams {
@@ -50,6 +56,8 @@ export const useConnectionDrag = (
 
   const { addCanvasNode } = useAddNode(reactFlowInstance)
   const { setActiveDropdown } = useDropdownManager()
+  const isPipeline = useIsPipeline()
+  const { hasDownstreamNode, hasUpstreamNode } = useGraphStore((state) => state)
 
   /**
    * Connection start handler function
@@ -116,7 +124,9 @@ export const useConnectionDrag = (
             nodeId: connectionStartRef.current.nodeId,
             id: connectionStartRef.current.handleId,
             type: 'source' as const,
-            position: Position.Right,
+            position: getConnectionStartPosition(
+              connectionStartRef.current.handleId,
+            ),
             isFromConnectionDrag: true,
           }
 
@@ -181,10 +191,21 @@ export const useConnectionDrag = (
         return
       }
 
+      if (
+        violatesPipelineSingleConnection({
+          isPipeline,
+          sourceHasDownstreamConnection: hasDownstreamNode(connection.source),
+          targetHasUpstreamConnection: hasUpstreamNode(connection.target),
+        })
+      ) {
+        isConnectedRef.current = false
+        return
+      }
+
       onConnect(connection)
       isConnectedRef.current = true
     },
-    [onConnect],
+    [hasDownstreamNode, hasUpstreamNode, isPipeline, onConnect],
   )
 
   /**
@@ -199,7 +220,7 @@ export const useConnectionDrag = (
       nodeId: connectionStartRef.current.nodeId,
       id: connectionStartRef.current.handleId,
       type: 'source' as const,
-      position: Position.Right,
+      position: getConnectionStartPosition(connectionStartRef.current.handleId),
       isFromConnectionDrag: true,
     }
   }, [])

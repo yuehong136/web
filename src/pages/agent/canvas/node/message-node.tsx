@@ -1,14 +1,11 @@
 import { memo } from 'react'
 import type { NodeProps } from '@xyflow/react'
-import { Position } from '@xyflow/react'
 import { MessageSquare } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { IMessageNode } from '../../types'
-import { CommonHandle, LeftEndHandle } from './handle'
-import { RightHandleStyle } from './handle-styles'
+import { LeftEndHandle } from './handle'
 import NodeHeader from './node-header'
 import { NodeWrapper } from './node-wrapper'
-import { NodeHandleId } from '../../constant'
 import { ToolBar } from './toolbar'
 import { needsSingleStepDebugging, showCopyIcon } from '../../utils'
 import { useGetVariableLabelOrTypeByValue } from '../../hooks/use-get-begin-query'
@@ -16,7 +13,7 @@ import { LabelCard } from './card'
 import { SummaryList } from './summary-list'
 import { VariableDisplay } from './variable-display'
 
-function InnerMessageNode({ id, data, isConnectable, selected }: NodeProps<IMessageNode>) {
+function InnerMessageNode({ id, data, selected }: NodeProps<IMessageNode>) {
   const messages = Array.isArray(data.form?.content)
     ? data.form.content
     : []
@@ -31,16 +28,7 @@ function InnerMessageNode({ id, data, isConnectable, selected }: NodeProps<IMess
       showCopy={showCopyIcon(data.label)}
     >
       <NodeWrapper selected={selected} id={id}>
-        <LeftEndHandle />
-        <CommonHandle
-          type="source"
-          position={Position.Right}
-          isConnectable={isConnectable}
-          id={NodeHandleId.Start}
-          style={RightHandleStyle}
-          isConnectableEnd={false}
-          nodeId={id}
-        />
+        <LeftEndHandle nodeId={id} />
         <NodeHeader
           id={id}
           name={data.name}

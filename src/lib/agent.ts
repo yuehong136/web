@@ -13,6 +13,7 @@ import {
   buildInitialGraph as buildInitialGraphFromOperators,
   inferCanvasTypeFromGraph as inferCanvasTypeFromOperators,
 } from '@/pages/agent/operators'
+import { AgentCategory, AgentQuery } from '@/pages/agent/constant'
 
 export function resolveLocalizedText(
   value: LocalizedText | null | undefined,
@@ -38,6 +39,46 @@ export function isPipelineFlow(flow?: Pick<AgentFlow, 'canvas_type' | 'canvas_ca
     flow.canvas_type === AgentCanvasType.PIPELINE ||
     flow.canvas_category === AgentCanvasCategory.INGESTION
   )
+}
+
+function isPipelineRouteKind(
+  value?: Pick<AgentFlow, 'canvas_type' | 'canvas_category'> | AgentCanvasType | string | null,
+) {
+  if (!value) {
+    return false
+  }
+
+  if (typeof value === 'string') {
+    return (
+      value === AgentCanvasType.PIPELINE ||
+      value === AgentCanvasCategory.INGESTION
+    )
+  }
+
+  return isPipelineFlow(value)
+}
+
+export function resolveCanvasKind(
+  value?: Pick<AgentFlow, 'canvas_type' | 'canvas_category'> | AgentCanvasType | string | null,
+): AgentCanvasType {
+  return isPipelineRouteKind(value)
+    ? AgentCanvasType.PIPELINE
+    : AgentCanvasType.AGENT
+}
+
+export function buildAgentCanvasPath(
+  id: string,
+  flowOrKind?: Pick<AgentFlow, 'canvas_type' | 'canvas_category'> | AgentCanvasType | string | null,
+) {
+  if (!isPipelineRouteKind(flowOrKind)) {
+    return `/agent/${id}`
+  }
+
+  const searchParams = new URLSearchParams({
+    [AgentQuery.Category]: AgentCategory.DataflowCanvas,
+  })
+
+  return `/agent/${id}?${searchParams.toString()}`
 }
 
 export function resolveCanvasCategory(

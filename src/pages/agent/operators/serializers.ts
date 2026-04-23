@@ -9,8 +9,21 @@ import type {
   AgentOperator,
 } from '@/types/agent'
 import { AgentCanvasType as CanvasType } from '@/types/agent'
-import { BeginId, Operator, type Operator as OperatorType } from '../constant'
+import {
+  BeginId,
+  FileId,
+  NodeHandleId,
+  Operator,
+  RewriteQuestionHandleId,
+  SwitchElseTo,
+  type Operator as OperatorType,
+} from '../constant'
 import { normalizeIterationNodes } from '../iteration-layout'
+import {
+  buildCategorizeListFromObject,
+  generateSwitchHandleText,
+  isBottomSubAgent,
+} from '../utils'
 import {
   buildDefaultDslGlobals,
   buildDslOperatorParams,
@@ -30,10 +43,24 @@ import type {
 
 const DEFAULT_GRAPH_POSITION = { x: 120, y: 120 }
 const DEFAULT_EDGE_TYPE = 'buttonEdge'
+const COMPONENT_GRID_X_GAP = 280
+const COMPONENT_GRID_Y_GAP = 180
+const AGENT_CHILD_Y_OFFSET = 140
+const AGENT_CHILD_X_OFFSET = 82
+const AGENT_CHILD_X_GAP = 262
+const TOOL_CHILD_X_OFFSET = -82
 const createHumanId =
   (humanIdModule as { default?: () => string; humanId?: () => string }).default ||
   (humanIdModule as { humanId?: () => string }).humanId ||
   (() => crypto.randomUUID())
+
+type FormRecord = Record<string, unknown>
+type AgentToolEntry = {
+  component_name?: string
+  id?: string
+  name?: string
+  params?: FormRecord
+}
 
 function normalizeEdge(edge: Edge): Edge {
   return {
@@ -48,6 +75,103 @@ function buildNodeId(operator: OperatorType) {
   }
 
   return `${operator}:${createHumanId()}`
+}
+
+function toStringArray(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value.filter((item): item is string => typeof item === 'string')
+  }
+
+  if (typeof value === 'string' && value) {
+    return [value]
+  }
+
+  return []
+}
+
+function buildGridPosition(index: number) {
+  return {
+    x: DEFAULT_GRAPH_POSITION.x + (index % 4) * COMPONENT_GRID_X_GAP,
+    y:
+      DEFAULT_GRAPH_POSITION.y +
+      Math.floor(index / 4) * COMPONENT_GRID_Y_GAP,
+  }
+}
+
+function buildEdgeId(
+  source: string,
+  target: string,
+  sourceHandle?: string,
+  targetHandle?: string,
+) {
+  return [
+    source,
+    sourceHandle || 'default-source',
+    target,
+    targetHandle || 'default-target',
+  ].join(':')
+}
+
+function createGraphEdge({
+  source,
+  target,
+  sourceHandle,
+  targetHandle,
+}: {
+  source: string
+  target: string
+  sourceHandle?: string
+  targetHandle?: string
+}) {
+  return normalizeEdge({
+    id: buildEdgeId(source, target, sourceHandle, targetHandle),
+    source,
+    target,
+    sourceHandle,
+    targetHandle,
+  })
+}
+
+function getDefaultSourceHandleId(operator?: OperatorType) {
+  if (operator === Operator.RewriteQuestion) {
+    return RewriteQuestionHandleId.Right
+  }
+
+  return NodeHandleId.Start
+}
+
+function getDefaultTargetHandleId(operator?: OperatorType) {
+  if (operator === Operator.RewriteQuestion) {
+    return RewriteQuestionHandleId.Left
+  }
+
+  return NodeHandleId.End
+}
+
+function normalizeComponentFormForGraph(
+  operator: OperatorType,
+  form?: FormRecord,
+): FormRecord {
+  const nextForm = { ...(form || {}) }
+
+  if (operator === Operator.Agent && Array.isArray(nextForm.tools)) {
+    nextForm.tools = (nextForm.tools as AgentToolEntry[]).filter(
+      (tool) => tool?.component_name !== Operator.Agent,
+    )
+  }
+
+  if (
+    operator === Operator.Categorize &&
+    !Array.isArray(nextForm.items) &&
+    nextForm.category_description &&
+    typeof nextForm.category_description === 'object'
+  ) {
+    nextForm.items = buildCategorizeListFromObject(
+      nextForm.category_description as Record<string, never>,
+    )
+  }
+
+  return nextForm
 }
 
 export function createDefaultNodeData(
@@ -94,27 +218,212 @@ function reconstructGraphFromComponents(
   components: NonNullable<AgentDsl['components']>,
 ): AgentGraph {
   const entries = Object.entries(components)
-  const nodes = entries.map(([id, component], index) => {
-    const operator = component.obj.component_name as OperatorType
-    return buildGraphNode(operator, {
-      id,
-      form: component.obj.params,
-      parentId: component.parent_id,
-      position: {
-        x: DEFAULT_GRAPH_POSITION.x + (index % 4) * 280,
-        y: DEFAULT_GRAPH_POSITION.y + Math.floor(index / 4) * 180,
-      },
+  const nodes: AgentGraphNode[] = []
+  const edges: Edge[] = []
+  const nodeMap = new Map<string, AgentGraphNode>()
+  const edgeMap = new Map<string, Edge>()
+
+  const ensureNode = (node: AgentGraphNode) => {
+    if (!nodeMap.has(node.id)) {
+      nodeMap.set(node.id, node)
+      nodes.push(node)
+    }
+
+    return nodeMap.get(node.id) as AgentGraphNode
+  }
+
+  const ensureEdge = (edge: Edge) => {
+    const normalizedEdge = normalizeEdge(edge)
+    if (!edgeMap.has(normalizedEdge.id)) {
+      edgeMap.set(normalizedEdge.id, normalizedEdge)
+      edges.push(normalizedEdge)
+    }
+  }
+
+  const buildAttachmentGraph = (
+    parentNode: AgentGraphNode,
+    form: FormRecord,
+  ) => {
+    const tools = Array.isArray(form.tools)
+      ? (form.tools as AgentToolEntry[])
+      : []
+    const childAgents = tools.filter(
+      (tool) => tool?.component_name === Operator.Agent,
+    )
+    const hasToolSummary =
+      tools.some((tool) => tool?.component_name !== Operator.Agent) ||
+      (Array.isArray(form.mcp) && form.mcp.length > 0)
+
+    if (hasToolSummary) {
+      const toolNode = ensureNode(
+        buildGraphNode(Operator.Tool, {
+          id: `${Operator.Tool}:${parentNode.id}`,
+          parentId: parentNode.parentId,
+          position: {
+            x: parentNode.position.x + TOOL_CHILD_X_OFFSET,
+            y: parentNode.position.y + AGENT_CHILD_Y_OFFSET,
+          },
+        }),
+      )
+
+      ensureEdge(
+        createGraphEdge({
+          source: parentNode.id,
+          target: toolNode.id,
+          sourceHandle: NodeHandleId.Tool,
+          targetHandle: NodeHandleId.End,
+        }),
+      )
+    }
+
+    childAgents.forEach((tool, index) => {
+      const childNode = ensureNode(
+        buildGraphNode(Operator.Agent, {
+          id: tool.id || buildNodeId(Operator.Agent),
+          name: tool.name,
+          form: normalizeComponentFormForGraph(
+            Operator.Agent,
+            tool.params,
+          ),
+          parentId: parentNode.parentId,
+          position: {
+            x:
+              parentNode.position.x +
+              AGENT_CHILD_X_OFFSET +
+              index * AGENT_CHILD_X_GAP,
+            y: parentNode.position.y + AGENT_CHILD_Y_OFFSET,
+          },
+        }),
+      )
+
+      ensureEdge(
+        createGraphEdge({
+          source: parentNode.id,
+          target: childNode.id,
+          sourceHandle: NodeHandleId.AgentBottom,
+          targetHandle: NodeHandleId.AgentTop,
+        }),
+      )
+
+      buildAttachmentGraph(childNode, tool.params || {})
     })
+
+    toStringArray(form.exception_goto)
+      .filter((target) => nodeMap.has(target))
+      .forEach((target) => {
+        ensureEdge(
+          createGraphEdge({
+            source: parentNode.id,
+            target,
+            sourceHandle: NodeHandleId.AgentException,
+            targetHandle: NodeHandleId.End,
+          }),
+        )
+      })
+  }
+
+  entries.forEach(([id, component], index) => {
+    const operator = component.obj.component_name as OperatorType
+    ensureNode(
+      buildGraphNode(operator, {
+        id,
+        form: normalizeComponentFormForGraph(operator, component.obj.params),
+        parentId: component.parent_id,
+        position: buildGridPosition(index),
+      }),
+    )
   })
 
-  const edges = entries.flatMap(([id, component]) =>
-    (component.downstream || []).map((target, edgeIndex) => ({
-      id: `${id}:${target}:${edgeIndex}`,
-      source: id,
-      target,
-      type: DEFAULT_EDGE_TYPE,
-    })),
-  )
+  entries.forEach(([id, component]) => {
+    const node = nodeMap.get(id)
+    const operator = component.obj.component_name as OperatorType
+    const form = component.obj.params as FormRecord
+
+    if (node) {
+      if (operator !== Operator.Switch && operator !== Operator.Categorize) {
+        ;(component.downstream || []).forEach((target) => {
+          const targetNode = nodeMap.get(target)
+          if (!targetNode) {
+            return
+          }
+
+          ensureEdge(
+            createGraphEdge({
+              source: id,
+              target,
+              sourceHandle: getDefaultSourceHandleId(operator),
+              targetHandle: getDefaultTargetHandleId(
+                targetNode.data.label as OperatorType,
+              ),
+            }),
+          )
+        })
+      }
+
+      if (operator === Operator.Switch) {
+        const conditions = Array.isArray(form.conditions)
+          ? (form.conditions as Array<Record<string, unknown>>)
+          : []
+
+        conditions.forEach((condition, index) => {
+          toStringArray(condition.to)
+            .filter((target) => nodeMap.has(target))
+            .forEach((target) => {
+              ensureEdge(
+                createGraphEdge({
+                  source: id,
+                  target,
+                  sourceHandle: generateSwitchHandleText(index),
+                  targetHandle: NodeHandleId.End,
+                }),
+              )
+            })
+        })
+
+        toStringArray(form[SwitchElseTo] || form.end_cpn_ids || form.end_cpn_id)
+          .filter((target) => nodeMap.has(target))
+          .forEach((target) => {
+            ensureEdge(
+              createGraphEdge({
+                source: id,
+                target,
+                sourceHandle: SwitchElseTo,
+                targetHandle: NodeHandleId.End,
+              }),
+            )
+          })
+      }
+
+      if (operator === Operator.Categorize) {
+        const items = buildCategorizeListFromObject(
+          (form.category_description || {}) as Record<string, never>,
+        )
+
+        items.forEach((item, index) => {
+          const itemWithUuid = item as { uuid?: string; to?: string[] }
+          const sourceHandle =
+            itemWithUuid.uuid || `cat-${index}`
+
+          toStringArray(itemWithUuid.to)
+            .filter((target) => nodeMap.has(target))
+            .forEach((target) => {
+              ensureEdge(
+                createGraphEdge({
+                  source: id,
+                  target,
+                  sourceHandle,
+                  targetHandle: NodeHandleId.End,
+                }),
+              )
+            })
+        })
+      }
+
+      if (operator === Operator.Agent) {
+        buildAttachmentGraph(node, form)
+      }
+    }
+  })
 
   return { nodes, edges }
 }
@@ -152,8 +461,11 @@ export function deserializeDslToGraph(
             name: node.data?.name || definition?.defaultName || operator,
             form: mergeOperatorFormWithDefaults(
               operator,
-              (component?.obj?.params as Record<string, unknown>) ||
-                (node.data?.form as Record<string, unknown> | undefined),
+              normalizeComponentFormForGraph(
+                operator,
+                (node.data?.form as FormRecord | undefined) ||
+                  (component?.obj?.params as FormRecord | undefined),
+              ),
             ),
           },
         } as AgentGraphNode
@@ -194,22 +506,207 @@ export function buildDslComponentsByGraph(
   nodes: AgentGraphNode[],
   edges: Edge[],
 ): NonNullable<AgentDsl['components']> {
+  const buildAgentExceptionGoto = (nodeId: string) =>
+    edges
+      .filter(
+        (edge) =>
+          edge.source === nodeId &&
+          edge.sourceHandle === NodeHandleId.AgentException,
+      )
+      .map((edge) => edge.target)
+
+  const buildComponentDownstreamOrUpstream = (
+    nodeId: string,
+    isBuildDownstream = true,
+  ) =>
+    edges
+      .filter((edge) => {
+        const node = nodes.find((item) => item.id === nodeId)
+        const targetNode = nodes.find((item) => item.id === edge.target)
+        let isNotUpstreamTool = true
+        let isNotUpstreamAgent = true
+        let isNotExceptionGoto = true
+
+        if (isBuildDownstream && node?.data.label === Operator.Agent) {
+          isNotExceptionGoto =
+            edge.sourceHandle !== NodeHandleId.AgentException
+          isNotUpstreamTool = targetNode?.data.label !== Operator.Tool
+          isNotUpstreamAgent = !(
+            targetNode?.data.label === Operator.Agent &&
+            edge.targetHandle === NodeHandleId.AgentTop
+          )
+        }
+
+        return (
+          edge[isBuildDownstream ? 'source' : 'target'] === nodeId &&
+          isNotUpstreamTool &&
+          isNotUpstreamAgent &&
+          isNotExceptionGoto
+        )
+      })
+      .map((edge) => edge[isBuildDownstream ? 'target' : 'source'])
+
+  const buildAgentTools = (nodeId: string): AgentToolEntry[] => {
+    const node = nodes.find((item) => item.id === nodeId)
+    const form = { ...((node?.data.form as FormRecord | undefined) || {}) }
+    const tools = Array.isArray(form.tools)
+      ? (form.tools as AgentToolEntry[]).filter(
+          (tool) => tool?.component_name !== Operator.Agent,
+        )
+      : []
+
+    const childAgents = edges
+      .filter(
+        (edge) =>
+          edge.source === nodeId &&
+          edge.sourceHandle === NodeHandleId.AgentBottom,
+      )
+      .flatMap((edge) => {
+        const childNode = nodes.find((item) => item.id === edge.target)
+        if (!childNode || childNode.data.label !== Operator.Agent) {
+          return []
+        }
+
+        return [
+          {
+            component_name: Operator.Agent,
+            id: childNode.id,
+            name: childNode.data.name,
+            params: buildAgentFormForDsl(childNode.id),
+          },
+        ]
+      })
+
+    return tools.concat(childAgents)
+  }
+
+  const buildAgentFormForDsl = (nodeId: string) => {
+    const node = nodes.find((item) => item.id === nodeId)
+    const form = { ...((node?.data.form as FormRecord | undefined) || {}) }
+
+    return {
+      ...form,
+      tools: buildAgentTools(nodeId),
+      exception_goto: buildAgentExceptionGoto(nodeId),
+    }
+  }
+
+  const buildCategorizeFormForDsl = (nodeId: string) => {
+    const node = nodes.find((item) => item.id === nodeId)
+    const form = { ...((node?.data.form as FormRecord | undefined) || {}) }
+    const items = Array.isArray(form.items)
+      ? (form.items as Array<Record<string, unknown>>)
+      : (buildCategorizeListFromObject(
+          (form.category_description || {}) as Record<string, never>,
+        ) as unknown as Array<Record<string, unknown>>)
+
+    const categoryDescription = items.reduce<Record<string, unknown>>(
+      (result, item, index) => {
+        const name = typeof item.name === 'string' ? item.name : ''
+        if (!name) {
+          return result
+        }
+
+        const sourceHandle =
+          typeof item.uuid === 'string' && item.uuid
+            ? item.uuid
+            : `cat-${index}`
+
+        result[name] = {
+          ...item,
+          examples: Array.isArray(item.examples)
+            ? (item.examples as Array<{ value: unknown }>).map(
+                (example) => example.value,
+              )
+            : [],
+          to: edges
+            .filter(
+              (edge) =>
+                edge.source === nodeId &&
+                edge.sourceHandle === sourceHandle,
+            )
+            .map((edge) => edge.target),
+        }
+        delete (result[name] as Record<string, unknown>).name
+
+        return result
+      },
+      {},
+    )
+
+    const nextForm: FormRecord = {
+      ...form,
+      category_description: categoryDescription,
+    }
+    delete nextForm.items
+
+    return nextForm
+  }
+
+  const buildSwitchFormForDsl = (nodeId: string) => {
+    const node = nodes.find((item) => item.id === nodeId)
+    const form = { ...((node?.data.form as FormRecord | undefined) || {}) }
+    const validNodeIds = new Set(
+      nodes
+        .filter((item) => item.data.label !== Operator.Placeholder)
+        .map((item) => item.id),
+    )
+
+    const conditions = Array.isArray(form.conditions)
+      ? (form.conditions as Array<Record<string, unknown>>).map((condition) => ({
+          ...condition,
+          to: toStringArray(condition.to).filter((target) =>
+            validNodeIds.has(target),
+          ),
+        }))
+      : []
+
+    return {
+      ...form,
+      conditions,
+      [SwitchElseTo]: toStringArray(
+        form[SwitchElseTo] || form.end_cpn_ids || form.end_cpn_id,
+      ).filter((target) => validNodeIds.has(target)),
+    }
+  }
+
   return nodes.reduce<NonNullable<AgentDsl['components']>>((components, node) => {
     const operator = node.data.label as OperatorType
-    if (!getOperatorDefinition(operator) || !isDslOperator(operator)) {
+    if (
+      !getOperatorDefinition(operator) ||
+      !isDslOperator(operator) ||
+      isBottomSubAgent(edges, node.id)
+    ) {
       return components
+    }
+
+    let form = node.data.form as FormRecord | undefined
+    switch (operator) {
+      case Operator.Agent:
+        form = buildAgentFormForDsl(node.id)
+        break
+      case Operator.Categorize:
+        form = buildCategorizeFormForDsl(node.id)
+        break
+      case Operator.Switch:
+        form = buildSwitchFormForDsl(node.id)
+        break
+      default:
+        break
+    }
+
+    const params = buildDslOperatorParams(operator, form)
+    if (operator === Operator.Categorize) {
+      delete (params as FormRecord).items
     }
 
     components[node.id] = {
       obj: {
         component_name: operator,
-        params: buildDslOperatorParams(
-          operator,
-          node.data.form as Record<string, unknown> | undefined,
-        ),
+        params,
       },
-      downstream: edges.filter((edge) => edge.source === node.id).map((edge) => edge.target),
-      upstream: edges.filter((edge) => edge.target === node.id).map((edge) => edge.source),
+      downstream: buildComponentDownstreamOrUpstream(node.id, true),
+      upstream: buildComponentDownstreamOrUpstream(node.id, false),
       parent_id: node.parentId,
     } satisfies AgentOperator
 
@@ -247,10 +744,34 @@ export function serializeGraphToDsl({
 }
 
 export function buildInitialGraph(kind: AgentCanvasType): AgentGraph {
-  const rootOperator =
-    kind === CanvasType.PIPELINE ? Operator.File : Operator.Begin
+  if (kind === CanvasType.PIPELINE) {
+    const fileNode = buildGraphNode(Operator.File, {
+      id: FileId,
+    })
+    const parserNode = buildGraphNode(Operator.Parser, {
+      id: 'Parser:initial',
+      name: 'Parser_0',
+      position: {
+        x: DEFAULT_GRAPH_POSITION.x + COMPONENT_GRID_X_GAP,
+        y: DEFAULT_GRAPH_POSITION.y,
+      },
+    })
+
+    return {
+      nodes: [fileNode, parserNode],
+      edges: [
+        createGraphEdge({
+          source: fileNode.id,
+          target: parserNode.id,
+          sourceHandle: NodeHandleId.Start,
+          targetHandle: NodeHandleId.End,
+        }),
+      ],
+    }
+  }
+
   return {
-    nodes: [buildGraphNode(rootOperator)],
+    nodes: [buildGraphNode(Operator.Begin, { id: BeginId })],
     edges: [],
   }
 }

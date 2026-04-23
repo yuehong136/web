@@ -6,7 +6,7 @@ import { memo } from 'react'
 import { NodeHandleId } from '../../constant'
 import { needsSingleStepDebugging, showCopyIcon } from '../../utils'
 import { CommonHandle, LeftEndHandle } from './handle'
-import { RightHandleStyle } from './handle-styles'
+import { RightHandleStyle } from './handle-icon'
 import NodeHeader from './node-header'
 import { NodeWrapper } from './node-wrapper'
 import { ToolBar } from './toolbar'
@@ -29,7 +29,7 @@ function InnerRagNode({
       showCopy={showCopyIcon(data.label)}
     >
       <NodeWrapper selected={selected} id={id}>
-        <LeftEndHandle />
+        <LeftEndHandle nodeId={id} />
         <CommonHandle
           type="source"
           position={Position.Right}

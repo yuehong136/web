@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Dropdown, DropdownItem } from '@/components/ui/dropdown'
 import { getAvatarGradient } from '@/components/ui/resource-list'
+import { buildAgentCanvasPath, isPipelineFlow } from '@/lib/agent'
 import { Workflow, Clock, MoreVertical, Settings, Trash2, Layers } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { cn, formatTimestampDetailed, formatTimestampCompact, formatRelativeTime } from '@/lib/utils'
@@ -26,8 +27,6 @@ interface AgentCardProps {
 export const AgentCard: React.FC<AgentCardProps> = ({ 
   agent, 
   onDelete,
-  _onRename,
-  _onDuplicate,
   timeFormat = 'detailed'
 }) => {
   const navigate = useNavigate()
@@ -44,7 +43,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
     : agent.description
 
   // 判断类型
-  const isPlugin = agent.canvas_type === 'pipeline' || agent.canvas_category === 'Ingestion'
+  const isPlugin = isPipelineFlow(agent)
 
   // 获取头像渐变色
   const gradient = getAvatarGradient(title)
@@ -84,11 +83,11 @@ export const AgentCard: React.FC<AgentCardProps> = ({
   }
 
   const handleClick = () => {
-    navigate(`/agent/${agent.id}`)
+    navigate(buildAgentCanvasPath(agent.id, agent))
   }
 
   const handleSettings = () => {
-    navigate(`/agent/${agent.id}`)
+    navigate(buildAgentCanvasPath(agent.id, agent))
   }
 
   const handleDelete = () => {
@@ -194,4 +193,3 @@ export const AgentCard: React.FC<AgentCardProps> = ({
 }
 
 AgentCard.displayName = 'AgentCard'
-

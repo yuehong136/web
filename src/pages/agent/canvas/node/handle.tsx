@@ -8,15 +8,38 @@ import { NodeHandleId } from '../../constant'
 import { HandleContext } from '../../context'
 import { useIsPipeline } from '../../hooks/use-is-pipeline'
 import useGraphStore from '../../store'
+import {
+  canOpenHandleDropdown,
+  isPipelineHandleConnectable,
+} from '../../utils/connection-handles'
 import { useDropdownManager } from '../context'
 import { NextStepDropdown } from './dropdown/next-step-dropdown'
 
-export const LeftEndHandle = memo((props: Omit<HandleProps, 'type' | 'position'>) => {
+interface LeftEndHandleProps extends Omit<HandleProps, 'type' | 'position'> {
+  nodeId: string
+}
+
+export const LeftEndHandle = memo(({ nodeId, ...props }: LeftEndHandleProps) => {
+  const isPipeline = useIsPipeline()
+  const hasUpstreamConnection = useGraphStore((state) =>
+    state.hasUpstreamNode(nodeId),
+  )
+  const baseIsConnectable = props.isConnectable ?? true
+  const isConnectable =
+    baseIsConnectable &&
+    isPipelineHandleConnectable({
+      isPipeline,
+      handleType: 'target',
+      hasDownstreamConnection: false,
+      hasUpstreamConnection,
+    })
+
   return (
     <Handle
       type="target"
       position={Position.Left}
       id={NodeHandleId.End}
+      isConnectable={isConnectable}
       className="!size-2 !border-none !bg-components-canvas-handle-bg"
       {...props}
     />
@@ -34,11 +57,29 @@ export const CommonHandle = memo(
     const { visible, hideModal, showModal } = useSetModalState()
     const { canShowDropdown, setActiveDropdown, clearActiveDropdown } =
       useDropdownManager()
-    const { hasChildNode } = useGraphStore((state) => state)
+    const { hasDownstreamNode, hasUpstreamNode } = useGraphStore(
+      (state) => state,
+    )
     const isPipeline = useIsPipeline()
-
-    const canConnectByPipeline = !(isPipeline && hasChildNode(nodeId))
-    const isConnectable = (props.isConnectable ?? true) && canConnectByPipeline
+    const hasDownstreamConnection = hasDownstreamNode(nodeId)
+    const hasUpstreamConnection = hasUpstreamNode(nodeId)
+    const baseIsConnectable = props.isConnectable ?? true
+    const isConnectable =
+      baseIsConnectable &&
+      isPipelineHandleConnectable({
+        isPipeline,
+        handleType: props.type,
+        hasDownstreamConnection,
+        hasUpstreamConnection,
+      })
+    const canShowNextStepDropdown =
+      baseIsConnectable &&
+      canOpenHandleDropdown({
+        isPipeline,
+        handleType: props.type,
+        hasDownstreamConnection,
+        hasUpstreamConnection,
+      })
 
     const value = useMemo(
       () => ({
@@ -63,7 +104,7 @@ export const CommonHandle = memo(
           onClick={(e) => {
             e.stopPropagation()
 
-            if (!isConnectable) {
+            if (!canShowNextStepDropdown) {
               return
             }
 

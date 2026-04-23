@@ -27,6 +27,11 @@ import {
   PencilRuler,
 } from 'lucide-react'
 import { agentAPI } from '@/api/agent'
+import {
+  buildAgentCanvasPath,
+  isPipelineFlow,
+  resolveCanvasCategory,
+} from '@/lib/agent'
 import { toast } from '@/lib/toast'
 import { cn } from '@/lib/utils'
 import type { IFlow } from '../types'
@@ -79,7 +84,7 @@ export const TemplatesPage = ({ onBack }: TemplatesPageProps) => {
   })
 
   // apiClient已经自动提取了data字段，所以templatesData直接是IFlow[]数组
-  const templates = templatesData || []
+  const templates = useMemo(() => templatesData || [], [templatesData])
 
   // 获取模版标题（处理多语言）
   const getTemplateTitle = (template: IFlow) => {
@@ -153,6 +158,11 @@ export const TemplatesPage = ({ onBack }: TemplatesPageProps) => {
         title: newAgentName.trim(),
         description,
         canvas_type: selectedTemplate.canvas_type === 'pipeline' ? 'pipeline' : 'agent',
+        canvas_category:
+          selectedTemplate.canvas_category ||
+          resolveCanvasCategory(
+            selectedTemplate.canvas_type === 'pipeline' ? 'pipeline' : 'agent',
+          ),
         dsl: selectedTemplate.dsl,  // 直接传递dsl，API层会处理
         avatar: selectedTemplate.avatar,
       })
@@ -167,7 +177,7 @@ export const TemplatesPage = ({ onBack }: TemplatesPageProps) => {
         
         // 照抄RAGFlow：创建成功后直接跳转到画布页面
         console.log('🚀 [从模版创建] 跳转到画布:', result.id)
-        navigate(`/agent/${result.id}`)
+        navigate(buildAgentCanvasPath(result.id, result))
       }
     } catch (error) {
       console.error('❌ [从模版创建] 创建失败:', error)
@@ -336,12 +346,12 @@ export const TemplatesPage = ({ onBack }: TemplatesPageProps) => {
                         <span
                           className={cn(
                             'px-3 py-1.5 rounded-lg text-xs font-semibold',
-                            template.canvas_type === 'pipeline' || template.canvas_category === 'Ingestion'
+                            isPipelineFlow(template)
                               ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
                               : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
                           )}
                         >
-                          {template.canvas_type === 'pipeline' || template.canvas_category === 'Ingestion'
+                          {isPipelineFlow(template)
                             ? 'Ingestion Pipeline'
                             : '智能体流程'}
                         </span>

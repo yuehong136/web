@@ -4,8 +4,8 @@ import { Position } from '@xyflow/react'
 import { Scissors } from 'lucide-react'
 import { NodeHandleId } from '../../constant'
 import { LabelCard } from './card'
-import { CommonHandle, LeftEndHandle } from './handle'
-import { RightHandleStyle } from './handle-styles'
+import { CommonHandle } from './handle'
+import { LeftHandleStyle, RightHandleStyle } from './handle-icon'
 import NodeHeader from './node-header'
 import { NodeWrapper } from './node-wrapper'
 import { ToolBar } from './toolbar'
@@ -25,7 +25,14 @@ function InnerSplitterNode({
       showCopy={false}
     >
       <NodeWrapper selected={selected} id={id}>
-        <LeftEndHandle />
+        <CommonHandle
+          id={NodeHandleId.End}
+          type="target"
+          position={Position.Left}
+          isConnectable={isConnectable}
+          style={LeftHandleStyle}
+          nodeId={id}
+        />
         <CommonHandle
           type="source"
           position={Position.Right}

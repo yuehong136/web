@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { ReactFlowProvider } from '@xyflow/react'
 import { StudioPageTemplate } from '@/components/page-templates'
 import {
@@ -12,7 +12,11 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useSetModalState } from '@/hooks/common-hooks'
-import { formatVersionLabel, resolveLocalizedText } from '@/lib/agent'
+import {
+  buildAgentCanvasPath,
+  formatVersionLabel,
+  resolveLocalizedText,
+} from '@/lib/agent'
 import {
   useFetchVersionList,
 } from '@/hooks/use-agent-request'
@@ -45,6 +49,7 @@ import {
 
 export default function AgentEditorPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { id = '' } = useParams<{ id: string }>()
   const { flowDetail, loading } = useFetchDataOnMount()
   const { saveGraph, loading: saving } = useSaveGraph(id)
@@ -74,6 +79,19 @@ export default function AgentEditorPage() {
       setTitle(resolveLocalizedText(flowDetail.title, '未命名资产'))
     }
   }, [flowDetail?.title, titleDirty])
+
+  useEffect(() => {
+    if (!flowDetail?.id) {
+      return
+    }
+
+    const expectedPath = buildAgentCanvasPath(flowDetail.id, flowDetail)
+    const currentPath = `${location.pathname}${location.search}`
+
+    if (currentPath !== expectedPath) {
+      navigate(expectedPath, { replace: true })
+    }
+  }, [flowDetail, location.pathname, location.search, navigate])
 
   const versions = useMemo(() => {
     return versionQuery.data.map((version, index) => ({

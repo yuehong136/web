@@ -11,7 +11,7 @@ import {
 } from '@/components/patterns'
 import { Button } from '@/components/ui/button'
 import { useFetchAgent, useFetchAgentSession, useFetchAgentSessions } from '@/hooks/use-agent-request'
-import { resolveLocalizedText } from '@/lib/agent'
+import { buildAgentCanvasPath, resolveLocalizedText } from '@/lib/agent'
 import { formatRelativeTime } from '@/lib/utils'
 import { ArrowLeft, MessageSquareText } from 'lucide-react'
 
@@ -60,7 +60,12 @@ export default function AgentExplorePage() {
           title={`${resolveLocalizedText(agentQuery.data?.title, 'Agent')} · Explore`}
           description="这里先提供会话浏览与调试入口，后续补全完整的消息时间线、重放与筛选。"
           actions={
-            <Button variant="outline" onClick={() => navigate(`/agent/${id}`)}>
+            <Button
+              variant="outline"
+              onClick={() =>
+                navigate(buildAgentCanvasPath(id, agentQuery.data))
+              }
+            >
               <ArrowLeft className="mr-space-xs h-4 w-4" />
               返回编辑器
             </Button>

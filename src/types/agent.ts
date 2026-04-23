@@ -6,8 +6,8 @@ export enum AgentCanvasType {
 }
 
 export enum AgentCanvasCategory {
-  AGENT = 'Agent',
-  INGESTION = 'Ingestion',
+  AGENT = 'agent_canvas',
+  INGESTION = 'dataflow_canvas',
 }
 
 export enum AgentOperatorCategory {

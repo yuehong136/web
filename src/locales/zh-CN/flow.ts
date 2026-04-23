@@ -815,6 +815,7 @@ Tokenizer 会根据所选方式将内容存储为对应的数据结构。`,
       structuredOutput: '结构化输出',
     },
     noToolsSelected: '暂未选择工具。',
+    noAgentsSelected: '暂未添加子智能体。',
     selectKnowledgeBases: '选择知识库',
     operations: '操作',
     operationsOptions: {

@@ -6,7 +6,11 @@ import NodeHeader from './node-header'
 import { NodeWrapper } from './node-wrapper'
 import { ToolBar } from './toolbar'
 
-function InnerExitLoopNode({ id, data, selected }: NodeProps<BaseNode<any>>) {
+function InnerExitLoopNode({
+  id,
+  data,
+  selected,
+}: NodeProps<BaseNode<Record<string, never>>>) {
   return (
     <ToolBar
       selected={selected}
@@ -16,7 +20,7 @@ function InnerExitLoopNode({ id, data, selected }: NodeProps<BaseNode<any>>) {
       showCopy={false}
     >
       <NodeWrapper selected={selected} id={id}>
-        <LeftEndHandle />
+        <LeftEndHandle nodeId={id} />
         <NodeHeader id={id} name={data.name} label={data.label} />
       </NodeWrapper>
     </ToolBar>

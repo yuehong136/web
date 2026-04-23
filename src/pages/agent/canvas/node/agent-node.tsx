@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next'
 import type { IAgentNode } from '../../types'
 import { AgentExceptionMethod, NodeHandleId } from '../../constant'
 import { CommonHandle, LeftEndHandle } from './handle'
-import { RightHandleStyle } from './handle-styles'
+import { RightHandleStyle } from './handle-icon'
 import NodeHeader from './node-header'
 import { NodeWrapper } from './node-wrapper'
 import { ToolBar } from './toolbar'
@@ -51,7 +51,7 @@ function InnerAgentNode({ id, data, isConnectable, selected }: NodeProps<IAgentN
         {/* 主Agent的handles */}
         {isHeadAgent && (
           <>
-            <LeftEndHandle />
+            <LeftEndHandle nodeId={id} />
             <CommonHandle
               type="source"
               position={Position.Right}

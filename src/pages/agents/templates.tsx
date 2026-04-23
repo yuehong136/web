@@ -14,7 +14,14 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { useFetchAgentTemplates, useSetAgent } from '@/hooks/use-agent-request'
-import { buildInitialDsl, resolveLocalizedText } from '@/lib/agent'
+import {
+  buildAgentCanvasPath,
+  buildInitialDsl,
+  inferCanvasTypeFromGraph,
+  resolveCanvasCategory,
+  resolveCanvasKind,
+  resolveLocalizedText,
+} from '@/lib/agent'
 import { AgentCanvasType, type AgentTemplate } from '@/types/agent'
 import {
   ArrowLeft,
@@ -27,6 +34,19 @@ import { CreateAgentDialog } from './components/create-agent-dialog'
 
 type TemplateFilter = 'all' | 'agent' | 'pipeline'
 
+function resolveTemplateKind(template: AgentTemplate | null) {
+  if (!template) {
+    return AgentCanvasType.AGENT
+  }
+
+  const graphKind = inferCanvasTypeFromGraph(template.dsl?.graph)
+  if (graphKind === AgentCanvasType.PIPELINE) {
+    return graphKind
+  }
+
+  return resolveCanvasKind(template)
+}
+
 export default function AgentTemplatesPage() {
   const navigate = useNavigate()
   const templatesQuery = useFetchAgentTemplates()
@@ -37,11 +57,12 @@ export default function AgentTemplatesPage() {
 
   const filteredTemplates = useMemo(() => {
     return templatesQuery.data.filter((template) => {
+      const templateKind = resolveTemplateKind(template)
       const matchesFilter =
         filter === 'all' ||
         (filter === 'pipeline'
-          ? template.canvas_type === AgentCanvasType.PIPELINE || template.canvas_category === 'Ingestion'
-          : template.canvas_type !== AgentCanvasType.PIPELINE && template.canvas_category !== 'Ingestion')
+          ? templateKind === AgentCanvasType.PIPELINE
+          : templateKind === AgentCanvasType.AGENT)
 
       if (!matchesFilter) {
         return false
@@ -65,15 +86,18 @@ export default function AgentTemplatesPage() {
       return
     }
 
+    const templateKind = resolveTemplateKind(template)
+    const templateCategory = resolveCanvasCategory(templateKind)
+
     const flow = await setAgent.setAgent({
       title: payload.title,
-      canvas_type: payload.kind,
+      canvas_category: templateCategory,
       avatar: template.avatar,
       description: resolveLocalizedText(template.description, ''),
-      dsl: template.dsl || buildInitialDsl(payload.kind),
+      dsl: template.dsl || buildInitialDsl(templateKind),
     })
 
-    navigate(`/agent/${flow.id}`)
+    navigate(buildAgentCanvasPath(flow.id, templateCategory))
   }
 
   const content = (() => {
@@ -222,6 +246,7 @@ export default function AgentTemplatesPage() {
       </ConsolePageTemplate>
 
       <CreateAgentDialog
+        key={selectedTemplate?.id || 'template-create-dialog'}
         open={Boolean(selectedTemplate)}
         onOpenChange={(open) => !open && setSelectedTemplate(null)}
         onConfirm={handleCreateFromTemplate}
@@ -229,10 +254,7 @@ export default function AgentTemplatesPage() {
           selectedTemplate ? resolveLocalizedText(selectedTemplate.title) : ''
         }
         initialKind={
-          selectedTemplate?.canvas_type === AgentCanvasType.PIPELINE ||
-          selectedTemplate?.canvas_category === 'Ingestion'
-            ? AgentCanvasType.PIPELINE
-            : AgentCanvasType.AGENT
+          resolveTemplateKind(selectedTemplate)
         }
         allowKindChange={false}
         title="基于模板创建"

@@ -36,7 +36,7 @@ type ToolSummaryItem =
       title: string
     }
 
-function InnerToolNode({ id, data, selected }: NodeProps) {
+function InnerToolNode({ id, data, selected, isConnectable = true }: NodeProps) {
   const { t } = useTranslation()
   const { edges, getNode, setClickedToolId } = useGraphStore((state) => state)
   const { findMcpById } = useFindMcpById()
@@ -93,7 +93,7 @@ function InnerToolNode({ id, data, selected }: NodeProps) {
         id={NodeHandleId.End}
         type="target"
         position={Position.Top}
-        isConnectable
+        isConnectable={isConnectable}
         className="!size-2 !border-none !bg-components-canvas-handle-bg"
       />
       <NodeHeader

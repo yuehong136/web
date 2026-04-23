@@ -91,6 +91,11 @@ export const NodeHandleId = {
 
 export type NodeHandleId = (typeof NodeHandleId)[keyof typeof NodeHandleId]
 
+export const RewriteQuestionHandleId = {
+  Left: 'c',
+  Right: 'b',
+} as const
+
 // ==================== 节点映射 ====================
 export const NodeMap: Record<string, string> = {
   [Operator.Begin]: 'beginNode',
@@ -100,7 +105,6 @@ export const NodeMap: Record<string, string> = {
   [Operator.Switch]: 'switchNode',
   [Operator.Relevant]: 'relevantNode',
   [Operator.RewriteQuestion]: 'rewriteNode',
-  [Operator.KeywordExtract]: 'keywordNode',
   [Operator.Agent]: 'agentNode',
   [Operator.Tool]: 'toolNode',
   [Operator.Note]: 'noteNode',

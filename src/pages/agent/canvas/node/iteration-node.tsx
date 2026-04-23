@@ -98,7 +98,7 @@ export function InnerIterationNode({
           <ResizeIcon />
         </NodeResizeControl>
 
-        <LeftEndHandle />
+        <LeftEndHandle nodeId={id} />
         <CommonHandle
           id={NodeHandleId.Start}
           type="source"

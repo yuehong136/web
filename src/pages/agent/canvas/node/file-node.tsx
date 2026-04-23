@@ -16,7 +16,7 @@ import { BeginQueryType, NodeHandleId } from '../../constant'
 import { normalizeBeginInputsForEditor } from '../../form/begin/utils'
 import { LabelCard } from './card'
 import { CommonHandle } from './handle'
-import { RightHandleStyle } from './handle-styles'
+import { RightHandleStyle } from './handle-icon'
 import NodeHeader from './node-header'
 import { NodeWrapper } from './node-wrapper'
 import { SummaryList } from './summary-list'
@@ -30,7 +30,7 @@ const FileInputIconMap = {
   [BeginQueryType.Boolean]: ToggleLeft,
 } as const
 
-function InnerFileNode({ id, data, isConnectable, selected }: NodeProps) {
+function InnerFileNode({ id, data, selected }: NodeProps) {
   const { t } = useTranslation()
   const form = (data.form ?? {}) as {
     inputs?: unknown
@@ -45,10 +45,8 @@ function InnerFileNode({ id, data, isConnectable, selected }: NodeProps) {
       <CommonHandle
         type="source"
         position={Position.Right}
-        isConnectable={isConnectable}
         id={NodeHandleId.Start}
         style={RightHandleStyle}
-        isConnectableEnd={false}
         nodeId={id}
       />
       <NodeHeader

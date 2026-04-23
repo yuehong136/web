@@ -6,7 +6,7 @@ import type { ICategorizeNode } from '../../types'
 import { needsSingleStepDebugging, showCopyIcon } from '../../utils'
 import { LabelCard, LLMLabelCard } from './card'
 import { CommonHandle, LeftEndHandle } from './handle'
-import { RightHandleStyle } from './handle-styles'
+import { RightHandleStyle } from './handle-icon'
 import NodeHeader from './node-header'
 import { NodeWrapper } from './node-wrapper'
 import { ToolBar } from './toolbar'
@@ -22,7 +22,7 @@ function InnerCategorizeNode({
   return (
     <ToolBar selected={selected} id={id} label={data.label} showRun={needsSingleStepDebugging(data.label)} showCopy={showCopyIcon(data.label)}>
       <NodeWrapper selected={selected} id={id}>
-        <LeftEndHandle />
+        <LeftEndHandle nodeId={id} />
         <NodeHeader id={id} name={data.name} label={data.label} />
         <section className="flex flex-col gap-space-sm">
           <LLMLabelCard llmId={get(data, 'form.llm_id')} />

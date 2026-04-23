@@ -32,7 +32,13 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { toast } from '@/lib/toast'
-import { buildInitialDsl, inferCanvasTypeFromGraph, isPipelineFlow } from '@/lib/agent'
+import {
+  buildAgentCanvasPath,
+  buildInitialDsl,
+  inferCanvasTypeFromGraph,
+  isPipelineFlow,
+  resolveCanvasCategory,
+} from '@/lib/agent'
 import {
   useDeleteAgent,
   useFetchAgentList,
@@ -105,11 +111,12 @@ export default function AgentsPage() {
     const flow = await setAgent.setAgent({
       title: payload.title,
       canvas_type: payload.kind,
+      canvas_category: resolveCanvasCategory(payload.kind),
       dsl: buildInitialDsl(payload.kind),
     })
 
     toast.success('骨架已创建')
-    navigate(`/agent/${flow.id}`)
+    navigate(buildAgentCanvasPath(flow.id, payload.kind))
   }
 
   const handleImport = async (payload: { title: string; file: File }) => {
@@ -121,6 +128,7 @@ export default function AgentsPage() {
       variables?: Record<string, unknown>
     }
     const graph = parsed.graph || parsed.dsl?.graph
+    const kind = inferCanvasTypeFromGraph(graph)
     const dsl: AgentDsl = parsed.dsl || {
       components: {},
       history: [],
@@ -134,12 +142,13 @@ export default function AgentsPage() {
 
     const flow = await setAgent.setAgent({
       title: payload.title,
-      canvas_type: inferCanvasTypeFromGraph(graph),
+      canvas_type: kind,
+      canvas_category: resolveCanvasCategory(kind),
       dsl,
     })
 
     toast.success('JSON 已导入到新的 Agent 骨架')
-    navigate(`/agent/${flow.id}`)
+    navigate(buildAgentCanvasPath(flow.id, kind))
   }
 
   const handleDelete = async () => {
@@ -232,7 +241,9 @@ export default function AgentsPage() {
               <AgentCard
                 key={flow.id}
                 flow={flow}
-                onOpen={(id) => navigate(`/agent/${id}`)}
+                onOpen={(nextFlow) =>
+                  navigate(buildAgentCanvasPath(nextFlow.id, nextFlow))
+                }
                 onDelete={setFlowToDelete}
               />
             ))}

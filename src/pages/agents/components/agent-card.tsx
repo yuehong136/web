@@ -20,7 +20,7 @@ import {
 
 interface AgentCardProps {
   flow: AgentFlow
-  onOpen: (id: string) => void
+  onOpen: (flow: AgentFlow) => void
   onDelete: (flow: AgentFlow) => void
 }
 
@@ -35,7 +35,7 @@ export function AgentCard({ flow, onOpen, onDelete }: AgentCardProps) {
       variant="interactive"
       padding="default"
       className="flex h-full flex-col gap-space-md rounded-radius-xl"
-      onClick={() => onOpen(flow.id)}
+      onClick={() => onOpen(flow)}
     >
       <div className="flex items-start justify-between gap-space-sm">
         <div className="flex min-w-0 items-center gap-space-sm">
@@ -66,7 +66,7 @@ export function AgentCard({ flow, onOpen, onDelete }: AgentCardProps) {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
-            <DropdownMenuItem onClick={() => onOpen(flow.id)}>
+            <DropdownMenuItem onClick={() => onOpen(flow)}>
               <ArrowRight className="mr-space-xs h-4 w-4" />
               打开编辑器
             </DropdownMenuItem>

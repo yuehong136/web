@@ -6,7 +6,7 @@ import type { ISwitchCondition, ISwitchNode } from '../../types'
 import { ComparisonOperator, SwitchOperatorOptions } from '../../constant'
 import { useGetVariableLabelOrTypeByValue } from '../../hooks/use-get-begin-query'
 import { CommonHandle, LeftEndHandle } from './handle'
-import { RightHandleStyle } from './handle-styles'
+import { RightHandleStyle } from './handle-icon'
 import NodeHeader from './node-header'
 import { NodeWrapper } from './node-wrapper'
 import { ToolBar } from './toolbar'
@@ -130,7 +130,7 @@ function InnerSwitchNode({ id, data, selected }: NodeProps<ISwitchNode>) {
       showCopy={showCopyIcon(data.label)}
     >
       <NodeWrapper ref={containerRef} selected={selected} id={id}>
-        <LeftEndHandle />
+        <LeftEndHandle nodeId={id} />
         <NodeHeader id={id} name={data.name} label={data.label} />
 
         <section className="flex flex-col gap-space-sm">

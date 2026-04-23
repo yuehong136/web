@@ -9,7 +9,6 @@ import { ToolNode } from './node/tool-node'
 import { NoteNode } from './node/note-node'
 import { CategorizeNode } from './node/categorize-node'
 import { RewriteNode } from './node/rewrite-node'
-import { KeywordNode } from './node/keyword-node'
 import { DataOperationsNode } from './node/data-operations-node'
 import { ListOperationsNode } from './node/list-operations-node'
 import { VariableAssignerNode } from './node/variable-assigner-node'
@@ -39,7 +38,6 @@ export const nodeTypes: NodeTypes = {
   switchNode: SwitchNode,
   relevantNode: RagNode,
   rewriteNode: RewriteNode,
-  keywordNode: KeywordNode,
 
   // Agent nodes
   agentNode: AgentNode,

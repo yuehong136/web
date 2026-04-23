@@ -1,9 +1,12 @@
 import { memo } from 'react'
 import type { NodeProps } from '@xyflow/react'
+import { Position } from '@xyflow/react'
 import { Layers } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { NodeHandleId } from '../../constant'
 import { LabelCard } from './card'
-import { LeftEndHandle } from './handle'
+import { CommonHandle } from './handle'
+import { LeftHandleStyle } from './handle-icon'
 import NodeHeader from './node-header'
 import { NodeWrapper } from './node-wrapper'
 import { ToolBar } from './toolbar'
@@ -42,7 +45,14 @@ function InnerTokenizerNode({
       showCopy={false}
     >
       <NodeWrapper selected={selected} id={id}>
-        <LeftEndHandle isConnectable={isConnectable} />
+        <CommonHandle
+          id={NodeHandleId.End}
+          type="target"
+          position={Position.Left}
+          isConnectable={isConnectable}
+          style={LeftHandleStyle}
+          nodeId={id}
+        />
         <NodeHeader
           id={id}
           name={data.name as string}

@@ -10,8 +10,8 @@ import {
 } from '@/components/ui/collapsible'
 import { cn } from '@/lib/utils'
 import type { IParserNode } from '../../types'
-import { CommonHandle, LeftEndHandle } from './handle'
-import { RightHandleStyle } from './handle-styles'
+import { CommonHandle } from './handle'
+import { LeftHandleStyle, RightHandleStyle } from './handle-icon'
 import NodeHeader from './node-header'
 import { NodeWrapper } from './node-wrapper'
 import { LabelCard } from './card'
@@ -141,7 +141,14 @@ function InnerParserNode({ id, data, isConnectable, selected }: NodeProps<IParse
       showCopy={showCopyIcon(data.label as string)}
     >
       <NodeWrapper selected={selected} id={id}>
-        <LeftEndHandle />
+        <CommonHandle
+          id={NodeHandleId.End}
+          type="target"
+          position={Position.Left}
+          isConnectable={isConnectable}
+          style={LeftHandleStyle}
+          nodeId={id}
+        />
         <CommonHandle
           type="source"
           position={Position.Right}

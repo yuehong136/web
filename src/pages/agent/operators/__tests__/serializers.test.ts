@@ -1,7 +1,15 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { AgentCanvasType } from '@/types/agent'
-import { AgentGlobals, BeginId, Operator } from '../../constant'
+import {
+  AgentGlobals,
+  BeginId,
+  FileId,
+  NodeHandleId,
+  Operator,
+  RewriteQuestionHandleId,
+  SwitchElseTo,
+} from '../../constant'
 import { agentOperatorRegistry } from '../registry'
 import {
   buildGraphNode,
@@ -24,7 +32,36 @@ test('buildInitialGraph creates the correct root node for agent and pipeline', (
 
   assert.equal(agentGraph.nodes[0]?.id, BeginId)
   assert.equal(agentGraph.nodes[0]?.data.label, Operator.Begin)
-  assert.equal(pipelineGraph.nodes[0]?.data.label, Operator.File)
+  assert.deepEqual(
+    pipelineGraph.nodes.map((node) => node.id),
+    [FileId, 'Parser:initial'],
+  )
+  assert.deepEqual(
+    pipelineGraph.nodes.map((node) => node.data.label),
+    [Operator.File, Operator.Parser],
+  )
+  assert.deepEqual(pipelineGraph.edges, [
+    {
+      id: `${FileId}:${NodeHandleId.Start}:Parser:initial:${NodeHandleId.End}`,
+      source: FileId,
+      target: 'Parser:initial',
+      sourceHandle: NodeHandleId.Start,
+      targetHandle: NodeHandleId.End,
+      type: 'buttonEdge',
+    },
+  ])
+})
+
+test('keyword extract falls back to ragNode while rewrite question keeps rewriteNode', () => {
+  const keywordNode = buildGraphNode(Operator.KeywordExtract, {
+    id: 'keyword-1',
+  })
+  const rewriteNode = buildGraphNode(Operator.RewriteQuestion, {
+    id: 'rewrite-1',
+  })
+
+  assert.equal(keywordNode.type, 'ragNode')
+  assert.equal(rewriteNode.type, 'rewriteNode')
 })
 
 test('serializeGraphToDsl excludes non-component operators but preserves persisted graph nodes', () => {
@@ -208,6 +245,130 @@ test('deserializeDslToGraph rebuilds graph from components when graph is absent'
   assert.equal(reconstructed.isReconstructed, true)
   assert.equal(reconstructed.graph.nodes.length, 1)
   assert.equal(reconstructed.graph.nodes[0]?.data.label, Operator.Begin)
+})
+
+test('rewrite question keeps ragflow b/c handle ids when graph is authoritative', () => {
+  const beginNode = buildGraphNode(Operator.Begin, { id: BeginId })
+  const rewriteNode = buildGraphNode(Operator.RewriteQuestion, {
+    id: 'rewrite-1',
+    form: { llm_id: 'llm-1' },
+  })
+  const messageNode = buildGraphNode(Operator.Message, {
+    id: 'message-1',
+    form: { content: ['done'] },
+  })
+
+  const dsl = serializeGraphToDsl({
+    graph: {
+      nodes: [beginNode, rewriteNode, messageNode],
+      edges: [
+        {
+          id: 'begin-to-rewrite',
+          source: BeginId,
+          target: 'rewrite-1',
+          sourceHandle: NodeHandleId.Start,
+          targetHandle: RewriteQuestionHandleId.Left,
+        },
+        {
+          id: 'rewrite-to-message',
+          source: 'rewrite-1',
+          target: 'message-1',
+          sourceHandle: RewriteQuestionHandleId.Right,
+          targetHandle: NodeHandleId.End,
+        },
+      ],
+    },
+    baseDsl: {
+      history: [],
+      messages: [],
+      reference: [],
+      globals: {},
+      variables: {},
+      retrieval: [],
+    },
+  })
+
+  assert.equal(
+    dsl.graph?.edges.find((edge) => edge.target === 'rewrite-1')?.targetHandle,
+    RewriteQuestionHandleId.Left,
+  )
+  assert.equal(
+    dsl.graph?.edges.find((edge) => edge.source === 'rewrite-1')?.sourceHandle,
+    RewriteQuestionHandleId.Right,
+  )
+
+  const reconstructed = deserializeDslToGraph(dsl, {
+    canvasType: AgentCanvasType.AGENT,
+  })
+
+  assert.equal(
+    reconstructed.graph.nodes.find((node) => node.id === 'rewrite-1')?.type,
+    'rewriteNode',
+  )
+  assert.equal(
+    reconstructed.graph.edges.find((edge) => edge.target === 'rewrite-1')
+      ?.targetHandle,
+    RewriteQuestionHandleId.Left,
+  )
+  assert.equal(
+    reconstructed.graph.edges.find((edge) => edge.source === 'rewrite-1')
+      ?.sourceHandle,
+    RewriteQuestionHandleId.Right,
+  )
+})
+
+test('components-only rewrite question reconstructs ragflow b/c handles', () => {
+  const reconstructed = deserializeDslToGraph(
+    {
+      components: {
+        [BeginId]: {
+          obj: {
+            component_name: Operator.Begin,
+            params: {},
+          },
+          downstream: ['rewrite-1'],
+          upstream: [],
+        },
+        'rewrite-1': {
+          obj: {
+            component_name: Operator.RewriteQuestion,
+            params: { llm_id: 'llm-1' },
+          },
+          downstream: ['message-1'],
+          upstream: [BeginId],
+        },
+        'message-1': {
+          obj: {
+            component_name: Operator.Message,
+            params: { content: ['done'] },
+          },
+          downstream: [],
+          upstream: ['rewrite-1'],
+        },
+      },
+      history: [],
+      messages: [],
+      reference: [],
+      globals: {},
+      retrieval: [],
+    },
+    { canvasType: AgentCanvasType.AGENT },
+  )
+
+  assert.equal(
+    reconstructed.graph.nodes.find((node) => node.id === 'rewrite-1')?.type,
+    'rewriteNode',
+  )
+  assert.equal(
+    reconstructed.graph.edges.find((edge) => edge.target === 'rewrite-1')
+      ?.targetHandle,
+    RewriteQuestionHandleId.Left,
+  )
+  assert.equal(
+    reconstructed.graph.edges.find((edge) => edge.source === 'rewrite-1')
+      ?.sourceHandle,
+    RewriteQuestionHandleId.Right,
+  )
 })
 
 test('deserializeDslToGraph fixes iteration child layout metadata', () => {
@@ -470,4 +631,355 @@ test('high-risk rebuilt operators serialize UI-only form state back to backend r
     },
   ])
   assert.equal(retrievalParams.meta_data_filter?.method, 'semi_auto')
+})
+
+test('serializeGraphToDsl folds agent sub-agents and exception edges into ragflow agent params', () => {
+  const parentAgent = buildGraphNode(Operator.Agent, {
+    id: 'agent-parent',
+    form: {
+      tools: [
+        {
+          component_name: Operator.Google,
+          id: 'google-tool',
+          name: 'Google',
+          params: { query: 'search' },
+        },
+      ],
+      mcp: [{ mcp_id: 'mcp-1', tools: {} }],
+      exception_method: 'goto',
+    },
+  })
+  const childAgent = buildGraphNode(Operator.Agent, {
+    id: 'agent-child',
+    form: {
+      description: 'child agent',
+    },
+  })
+  const toolNode = buildGraphNode(Operator.Tool, {
+    id: 'Tool:agent-parent',
+  })
+  const messageNode = buildGraphNode(Operator.Message, {
+    id: 'message-1',
+    form: { content: ['done'] },
+  })
+
+  const dsl = serializeGraphToDsl({
+    graph: {
+      nodes: [parentAgent, childAgent, toolNode, messageNode],
+      edges: [
+        {
+          id: 'edge-main',
+          source: 'agent-parent',
+          target: 'message-1',
+          sourceHandle: NodeHandleId.Start,
+          targetHandle: NodeHandleId.End,
+        },
+        {
+          id: 'edge-tool',
+          source: 'agent-parent',
+          target: 'Tool:agent-parent',
+          sourceHandle: NodeHandleId.Tool,
+          targetHandle: NodeHandleId.End,
+        },
+        {
+          id: 'edge-child',
+          source: 'agent-parent',
+          target: 'agent-child',
+          sourceHandle: NodeHandleId.AgentBottom,
+          targetHandle: NodeHandleId.AgentTop,
+        },
+        {
+          id: 'edge-exception',
+          source: 'agent-parent',
+          target: 'message-1',
+          sourceHandle: NodeHandleId.AgentException,
+          targetHandle: NodeHandleId.End,
+        },
+      ],
+    },
+    baseDsl: {
+      history: [],
+      messages: [],
+      reference: [],
+      globals: {},
+      variables: {},
+      retrieval: [],
+    },
+  })
+
+  assert.deepEqual(Object.keys(dsl.components).sort(), ['agent-parent', 'message-1'])
+  assert.deepEqual(dsl.components['agent-parent']?.downstream, ['message-1'])
+
+  const agentParams = (dsl.components['agent-parent']?.obj.params ||
+    {}) as Record<string, unknown>
+  const tools = Array.isArray(agentParams.tools)
+    ? (agentParams.tools as Array<Record<string, unknown>>)
+    : []
+
+  assert.deepEqual(agentParams.exception_goto, ['message-1'])
+  assert.deepEqual(
+    tools.map((tool) => tool.component_name),
+    [Operator.Google, Operator.Agent],
+  )
+  assert.equal(tools[1]?.id, 'agent-child')
+  assert.equal(tools[1]?.name, 'Agent')
+})
+
+test('serializeGraphToDsl writes categorize handle targets back into category_description', () => {
+  const categorizeNode = buildGraphNode(Operator.Categorize, {
+    id: 'categorize-1',
+    form: {
+      items: [
+        {
+          name: 'Approved',
+          uuid: 'cat-approved',
+          index: 0,
+          examples: [{ value: 'ok' }],
+        },
+      ],
+    },
+  })
+  const messageNode = buildGraphNode(Operator.Message, {
+    id: 'message-1',
+    form: { content: ['done'] },
+  })
+
+  const dsl = serializeGraphToDsl({
+    graph: {
+      nodes: [categorizeNode, messageNode],
+      edges: [
+        {
+          id: 'edge-category',
+          source: 'categorize-1',
+          target: 'message-1',
+          sourceHandle: 'cat-approved',
+          targetHandle: NodeHandleId.End,
+        },
+      ],
+    },
+    baseDsl: {
+      history: [],
+      messages: [],
+      reference: [],
+      globals: {},
+      variables: {},
+      retrieval: [],
+    },
+  })
+
+  const params = (dsl.components['categorize-1']?.obj.params ||
+    {}) as Record<string, unknown>
+  const categoryDescription = (params.category_description || {}) as Record<
+    string,
+    Record<string, unknown>
+  >
+
+  assert.equal('items' in params, false)
+  assert.deepEqual(categoryDescription.Approved?.to, ['message-1'])
+  assert.deepEqual(categoryDescription.Approved?.examples, ['ok'])
+})
+
+test('deserializeDslToGraph keeps graph form authoritative when graph and components both exist', () => {
+  const reconstructed = deserializeDslToGraph(
+    {
+      components: {
+        'message-1': {
+          obj: {
+            component_name: Operator.Message,
+            params: {
+              content: ['component-value'],
+            },
+          },
+          downstream: [],
+          upstream: [],
+        },
+      },
+      history: [],
+      messages: [],
+      reference: [],
+      globals: {},
+      retrieval: [],
+      graph: {
+        nodes: [
+          {
+            id: 'message-1',
+            type: 'messageNode',
+            position: { x: 120, y: 120 },
+            data: {
+              label: Operator.Message,
+              name: 'Message',
+              form: {
+                content: ['graph-value'],
+              },
+            },
+          },
+        ],
+        edges: [],
+      },
+    },
+    { canvasType: AgentCanvasType.AGENT },
+  )
+
+  assert.deepEqual(
+    (reconstructed.graph.nodes[0]?.data.form as Record<string, unknown>)?.content,
+    ['graph-value'],
+  )
+})
+
+test('deserializeDslToGraph reconstructs handle-driven edges from components-only dsl', () => {
+  const reconstructed = deserializeDslToGraph(
+    {
+      components: {
+        'agent-parent': {
+          obj: {
+            component_name: Operator.Agent,
+            params: {
+              tools: [
+                {
+                  component_name: Operator.Google,
+                  id: 'google-tool',
+                  name: 'Google',
+                  params: {},
+                },
+                {
+                  component_name: Operator.Agent,
+                  id: 'agent-child',
+                  name: 'Child Agent',
+                  params: {
+                    tools: [],
+                    exception_goto: ['message-1'],
+                  },
+                },
+              ],
+              mcp: [{ mcp_id: 'mcp-1', tools: {} }],
+              exception_goto: ['message-1'],
+            },
+          },
+          downstream: ['message-1'],
+          upstream: [],
+        },
+        'categorize-1': {
+          obj: {
+            component_name: Operator.Categorize,
+            params: {
+              category_description: {
+                Approved: {
+                  index: 0,
+                  uuid: 'cat-approved',
+                  examples: ['ok'],
+                  to: ['message-1'],
+                },
+              },
+            },
+          },
+          downstream: ['message-1'],
+          upstream: [],
+        },
+        'switch-1': {
+          obj: {
+            component_name: Operator.Switch,
+            params: {
+              conditions: [
+                {
+                  logical_operator: 'and',
+                  items: [{ operator: '=' }],
+                  to: ['message-1'],
+                },
+              ],
+              [SwitchElseTo]: ['message-2'],
+            },
+          },
+          downstream: ['message-1', 'message-2'],
+          upstream: [],
+        },
+        'message-1': {
+          obj: {
+            component_name: Operator.Message,
+            params: { content: ['done'] },
+          },
+          downstream: [],
+          upstream: ['agent-parent', 'categorize-1', 'switch-1'],
+        },
+        'message-2': {
+          obj: {
+            component_name: Operator.Message,
+            params: { content: ['fallback'] },
+          },
+          downstream: [],
+          upstream: ['switch-1'],
+        },
+      },
+      history: [],
+      messages: [],
+      reference: [],
+      globals: {},
+      retrieval: [],
+    },
+    { canvasType: AgentCanvasType.AGENT },
+  )
+
+  const graph = reconstructed.graph
+  const agentNode = graph.nodes.find((node) => node.id === 'agent-parent')
+  const toolNode = graph.nodes.find((node) => node.id === 'Tool:agent-parent')
+  const agentForm = (agentNode?.data.form || {}) as Record<string, unknown>
+
+  assert.ok(toolNode)
+  assert.ok(graph.nodes.find((node) => node.id === 'agent-child'))
+  assert.ok(
+    graph.edges.some(
+      (edge) =>
+        edge.source === 'agent-parent' &&
+        edge.target === 'agent-child' &&
+        edge.sourceHandle === NodeHandleId.AgentBottom &&
+        edge.targetHandle === NodeHandleId.AgentTop,
+    ),
+  )
+  assert.ok(
+    graph.edges.some(
+      (edge) =>
+        edge.source === 'agent-parent' &&
+        edge.target === 'Tool:agent-parent' &&
+        edge.sourceHandle === NodeHandleId.Tool,
+    ),
+  )
+  assert.ok(
+    graph.edges.some(
+      (edge) =>
+        edge.source === 'agent-parent' &&
+        edge.target === 'message-1' &&
+        edge.sourceHandle === NodeHandleId.AgentException,
+    ),
+  )
+  assert.ok(
+    graph.edges.some(
+      (edge) =>
+        edge.source === 'categorize-1' &&
+        edge.target === 'message-1' &&
+        edge.sourceHandle === 'cat-approved',
+    ),
+  )
+  assert.ok(
+    graph.edges.some(
+      (edge) =>
+        edge.source === 'switch-1' &&
+        edge.target === 'message-1' &&
+        edge.sourceHandle === 'Case 1',
+    ),
+  )
+  assert.ok(
+    graph.edges.some(
+      (edge) =>
+        edge.source === 'switch-1' &&
+        edge.target === 'message-2' &&
+        edge.sourceHandle === SwitchElseTo,
+    ),
+  )
+
+  const tools = Array.isArray(agentForm.tools)
+    ? (agentForm.tools as Array<Record<string, unknown>>)
+    : []
+  assert.deepEqual(
+    tools.map((tool) => tool.component_name),
+    [Operator.Google],
+  )
 })

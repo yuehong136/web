@@ -45,7 +45,13 @@ export const agentAPI = {
   fetchAgent: async (id: string) => apiClient.get<AgentFlow>(`/v1/canvas/get/${id}`),
 
   setAgent: async (payload: SetAgentPayload) => {
-    const nextPayload = {
+    const canvasCategory =
+      payload.canvas_category ??
+      (payload.canvas_type
+        ? resolveCanvasCategory(payload.canvas_type)
+        : undefined)
+
+    const nextPayload: Record<string, unknown> = {
       id: payload.id,
       title: payload.title,
       description: payload.description,
@@ -53,11 +59,12 @@ export const agentAPI = {
         typeof payload.dsl === 'string' || payload.dsl === undefined
           ? payload.dsl
           : JSON.stringify(payload.dsl),
-      canvas_category:
-        payload.canvas_category ||
-        resolveCanvasCategory(payload.canvas_type),
       avatar: payload.avatar,
       permission: payload.permission,
+    }
+
+    if (canvasCategory) {
+      nextPayload.canvas_category = canvasCategory
     }
 
     return apiClient.post<AgentFlow>('/v1/canvas/set', nextPayload)

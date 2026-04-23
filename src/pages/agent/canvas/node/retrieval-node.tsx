@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils'
 import { NodeHandleId, RetrievalFrom } from '../../constant'
 import type { IRetrievalNode } from '../../types'
 import { CommonHandle, LeftEndHandle } from './handle'
-import { RightHandleStyle } from './handle-styles'
+import { RightHandleStyle } from './handle-icon'
 import { LabelCard } from './card'
 import NodeHeader from './node-header'
 import { NodeWrapper } from './node-wrapper'
@@ -57,7 +57,7 @@ function InnerRetrievalNode({
       showCopy={showCopyIcon(data.label)}
     >
       <NodeWrapper selected={selected} id={id}>
-        <LeftEndHandle />
+        <LeftEndHandle nodeId={id} />
         <CommonHandle
           type="source"
           position={Position.Right}

@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useFetchAgent as useFetchAgentQuery } from '@/hooks/use-agent-query'
+import { isPipelineFlow } from '@/lib/agent'
 import { AgentCanvasType } from '@/types/agent'
 import { useSetGraphInfo } from './use-set-graph'
 import { deserializeDslToGraph } from '../operators'
@@ -23,7 +24,7 @@ export const useFetchDataOnMount = () => {
     setGraphInfo(
       deserializeDslToGraph(data.dsl, {
         canvasType:
-          data.canvas_type === 'pipeline'
+          isPipelineFlow(data)
             ? AgentCanvasType.PIPELINE
             : AgentCanvasType.AGENT,
       }).graph,

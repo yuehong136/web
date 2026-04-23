@@ -23,7 +23,7 @@ import { useBuildWebhookUrl } from '../../hooks/use-build-webhook-url'
 import { useIsPipeline } from '../../hooks/use-is-pipeline'
 import { LabelCard } from './card'
 import { CommonHandle } from './handle'
-import { RightHandleStyle } from './handle-styles'
+import { RightHandleStyle } from './handle-icon'
 import NodeHeader from './node-header'
 import { NodeWrapper } from './node-wrapper'
 
@@ -84,7 +84,7 @@ function getBeginInputTypeLabel(
   }
 }
 
-function InnerBeginNode({ id, data, isConnectable, selected }: NodeProps<IBeginNode>) {
+function InnerBeginNode({ id, data, selected }: NodeProps<IBeginNode>) {
   const { t } = useTranslation()
   const isPipeline = useIsPipeline()
   const webhookUrl = useBuildWebhookUrl()
@@ -102,10 +102,8 @@ function InnerBeginNode({ id, data, isConnectable, selected }: NodeProps<IBeginN
       <CommonHandle
         type="source"
         position={Position.Right}
-        isConnectable={isConnectable}
         id={NodeHandleId.Start}
         style={RightHandleStyle}
-        isConnectableEnd={false}
         nodeId={id}
       />
       <NodeHeader

@@ -220,6 +220,8 @@ export type RFState = {
   findAgentToolNodeById: (id: string | null) => string | undefined
   selectNodeIds: (nodeIds: string[]) => void
   hasChildNode: (nodeId: string) => boolean
+  hasDownstreamNode: (nodeId: string) => boolean
+  hasUpstreamNode: (nodeId: string) => boolean
   resizeIterationContainer: (parentId: string) => void
 }
 
@@ -590,21 +592,26 @@ const useGraphStore = create<RFState>()(
     },
 
     updateSwitchFormData: (source, sourceHandle, target, isConnecting) => {
-      const { updateNodeForm, edges } = get()
+      const { updateNodeForm, edges, getOperatorTypeFromId } = get()
       if (sourceHandle) {
         const currentHandleTargets = edges
           .filter(
             (x) =>
               x.source === source &&
               x.sourceHandle === sourceHandle &&
-              typeof x.target === 'string',
+              typeof x.target === 'string' &&
+              getOperatorTypeFromId(x.target) !== Operator.Placeholder,
           )
           .map((x) => x.target)
 
         let targets: string[] = currentHandleTargets
-        if (target) {
+        const nextTarget =
+          target && getOperatorTypeFromId(target) !== Operator.Placeholder
+            ? target
+            : undefined
+        if (nextTarget) {
           if (!isConnecting) {
-            targets = currentHandleTargets.filter((x) => x !== target)
+            targets = currentHandleTargets.filter((x) => x !== nextTarget)
           }
         }
 
@@ -694,6 +701,16 @@ const useGraphStore = create<RFState>()(
     hasChildNode: (nodeId) => {
       const { edges } = get()
       return edges.some((edge) => edge.source === nodeId)
+    },
+
+    hasDownstreamNode: (nodeId) => {
+      const { edges } = get()
+      return edges.some((edge) => edge.source === nodeId)
+    },
+
+    hasUpstreamNode: (nodeId) => {
+      const { edges } = get()
+      return edges.some((edge) => edge.target === nodeId)
     },
 
     resizeIterationContainer: (parentId) => {

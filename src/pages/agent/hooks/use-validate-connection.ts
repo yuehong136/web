@@ -1,13 +1,25 @@
 import { getOutgoers, type Connection, type Edge } from '@xyflow/react'
 import { useCallback } from 'react'
 import { Operator, RestrictedUpstreamMap } from '../constant'
+import { useIsPipeline } from './use-is-pipeline'
 import type { RAGFlowNodeType } from '../types'
-import { hasValidHandleDirection } from '../utils/connection-handles'
+import {
+  hasValidHandleDirection,
+  violatesPipelineSingleConnection,
+} from '../utils/connection-handles'
 import useGraphStore from '../store'
 
 export const useValidateConnection = () => {
-  const { getOperatorTypeFromId, getParentIdById, edges, nodes } =
+  const {
+    getOperatorTypeFromId,
+    getParentIdById,
+    hasDownstreamNode,
+    hasUpstreamNode,
+    edges,
+    nodes,
+  } =
     useGraphStore((state) => state)
+  const isPipeline = useIsPipeline()
 
   const isSameNodeChild = useCallback(
     (connection: Connection | Edge) => {
@@ -46,10 +58,17 @@ export const useValidateConnection = () => {
   const isValidConnection = useCallback(
     (connection: Connection | Edge) => {
       const isSelfConnected = connection.target === connection.source
+      const violatesPipelineSingleLine =
+        violatesPipelineSingleConnection({
+          isPipeline,
+          sourceHasDownstreamConnection: hasDownstreamNode(connection.source),
+          targetHasUpstreamConnection: hasUpstreamNode(connection.target),
+        })
 
       const ret =
         !isSelfConnected &&
         hasValidHandleDirection(connection) &&
+        !violatesPipelineSingleLine &&
         RestrictedUpstreamMap[
           getOperatorTypeFromId(connection.source) as Operator
         ]?.every((x) => x !== getOperatorTypeFromId(connection.target)) &&
@@ -57,7 +76,14 @@ export const useValidateConnection = () => {
         hasCanvasCycle(connection)
       return ret
     },
-    [getOperatorTypeFromId, hasCanvasCycle, isSameNodeChild],
+    [
+      getOperatorTypeFromId,
+      hasCanvasCycle,
+      hasDownstreamNode,
+      hasUpstreamNode,
+      isPipeline,
+      isSameNodeChild,
+    ],
   )
 
   return isValidConnection

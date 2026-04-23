@@ -168,8 +168,15 @@ type CanvasMouseEvent = Pick<
 export function useAddNode(
   reactFlowInstance?: ReactFlowInstance<RAGFlowNodeType, Edge>,
 ) {
-  const { nodes, addEdge, addNode, getNode, getParentIdById, resizeIterationContainer } =
-    useGraphStore((state) => state)
+  const {
+    edges,
+    nodes,
+    addEdge,
+    addNode,
+    getNode,
+    getParentIdById,
+    resizeIterationContainer,
+  } = useGraphStore((state) => state)
   const getNodeName = useGetNodeName()
   const { initializeOperatorParams } = useInitializeOperatorParams()
 
@@ -248,6 +255,39 @@ export function useAddNode(
     [getNode],
   )
 
+  const resolveSubAgentPosition = useCallback(
+    (sourceNodeId?: string) => {
+      if (!sourceNodeId) {
+        return undefined
+      }
+
+      const sourceNode = getNode(sourceNodeId)
+      if (!sourceNode) {
+        return undefined
+      }
+
+      const childAgentIds = edges
+        .filter(
+          (edge) =>
+            edge.source === sourceNodeId &&
+            edge.sourceHandle === NodeHandleId.AgentBottom,
+        )
+        .map((edge) => edge.target)
+
+      const childAgentXPositions = nodes
+        .filter((node) => childAgentIds.includes(node.id))
+        .map((node) => node.position.x)
+
+      const maxX = Math.max(...childAgentXPositions)
+
+      return {
+        x: childAgentXPositions.length > 0 ? maxX + 262 : sourceNode.position.x + 82,
+        y: sourceNode.position.y + 140,
+      }
+    },
+    [edges, getNode, nodes],
+  )
+
   const addCanvasNode = useCallback(
     (
       type: string,
@@ -268,19 +308,26 @@ export function useAddNode(
                 y: event.clientY,
               })
             : undefined
+        const isBottomSubAgent =
+          type === Operator.Agent && params.position === Position.Bottom
         const fallbackPosition =
           !event && params.nodeId
-            ? resolveFallbackPosition(params.nodeId, params.position)
+            ? isBottomSubAgent
+              ? resolveSubAgentPosition(params.nodeId)
+              : resolveFallbackPosition(params.nodeId, params.position)
             : undefined
         const nextPosition = absPosition || fallbackPosition
 
         const isIteration =
           type === Operator.Iteration || type === Operator.Loop
 
-        const parentCtx = resolveParentContext(type, params.nodeId, nextPosition)
+        const parentCtx = isBottomSubAgent
+          ? undefined
+          : resolveParentContext(type, params.nodeId, nextPosition)
         const parentNode = parentCtx?.parentId
           ? getNode(parentCtx.parentId)
           : undefined
+        const sourceNode = params.nodeId ? getNode(params.nodeId) : undefined
         const nextNodePosition =
           parentCtx && isIterationContainerNode(parentNode)
             ? clampIterationChildPosition(parentCtx.position)
@@ -305,6 +352,12 @@ export function useAddNode(
           sourcePosition: Position.Right,
           targetPosition: Position.Left,
           dragHandle: getNodeDragHandle(type),
+          ...(isBottomSubAgent && sourceNode?.parentId
+            ? {
+                parentId: sourceNode.parentId,
+                extent: 'parent' as const,
+              }
+            : {}),
           ...(isIteration
             ? {
                 width: ITERATION_DEFAULT_SIZE.width,
@@ -341,7 +394,14 @@ export function useAddNode(
           addNode(startNode)
         }
 
-        if (params.nodeId && params.id) {
+        if (isBottomSubAgent && params.nodeId) {
+          addEdge({
+            source: params.nodeId,
+            target: newNode.id,
+            sourceHandle: NodeHandleId.AgentBottom,
+            targetHandle: NodeHandleId.AgentTop,
+          })
+        } else if (params.nodeId && params.id) {
           addEdge({
             source: params.nodeId,
             target: newNode.id,
@@ -362,6 +422,7 @@ export function useAddNode(
       reactFlowInstance,
       resolveFallbackPosition,
       resolveParentContext,
+      resolveSubAgentPosition,
       resizeIterationContainer,
     ],
   )

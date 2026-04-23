@@ -60,7 +60,11 @@ export default {
     noParsersConfigured: 'No parsers configured',
     insertVariable: 'Insert variable',
     insertVariableTip: 'Type / to browse upstream variables',
+    tools: 'Tools',
+    agent: 'Agent',
+    addAgent: 'Add Agent',
     noToolsSelected: 'No tools selected yet.',
+    noAgentsSelected: 'No sub-agents yet.',
     selectKnowledgeBases: 'Select knowledge bases',
   },
 }

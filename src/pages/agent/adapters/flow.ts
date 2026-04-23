@@ -3,6 +3,7 @@ import type {
   AgentListResponse,
   AgentTemplate,
 } from '@/types/agent'
+import { AgentCanvasCategory, AgentCanvasType } from '@/types/agent'
 import { buildDefaultDslGlobals, deserializeDslToGraph } from '../operators'
 
 function parseDslPayload(dsl: AgentFlow['dsl'] | string | undefined) {
@@ -29,7 +30,13 @@ export function adaptAgentFlow(payload: unknown): AgentFlow {
   }
 
   const parsedDsl = parseDslPayload(flow?.dsl)
-  const normalizedGraph = deserializeDslToGraph(parsedDsl)
+  const normalizedGraph = deserializeDslToGraph(parsedDsl, {
+    canvasType:
+      flow?.canvas_type === AgentCanvasType.PIPELINE ||
+      flow?.canvas_category === AgentCanvasCategory.INGESTION
+        ? AgentCanvasType.PIPELINE
+        : AgentCanvasType.AGENT,
+  })
 
   return {
     ...(flow || {}),

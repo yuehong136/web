@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { AgentCanvasType } from '@/types/agent'
+import { AgentCanvasCategory, AgentCanvasType } from '@/types/agent'
 import { Operator } from '../../constant'
 import { adaptAgentFlow } from '../flow'
 import { adaptAgentPublishSummary } from '../publish'
@@ -41,6 +41,32 @@ test('adaptAgentFlow parses dsl strings and normalizes graph', () => {
 
   assert.equal(flow.dsl.graph?.nodes.length, 1)
   assert.equal(flow.dsl.graph?.nodes[0]?.data.label, Operator.Begin)
+})
+
+test('adaptAgentFlow treats dataflow_canvas as pipeline even without canvas_type', () => {
+  const flow = adaptAgentFlow({
+    id: 'flow-pipeline',
+    title: 'Pipeline',
+    description: '',
+    canvas_type: null,
+    canvas_category: AgentCanvasCategory.INGESTION,
+    create_time: 1,
+    update_time: 1,
+    user_id: 'u1',
+    permission: 'write',
+    dsl: {
+      components: {},
+      history: [],
+      graph: { nodes: [], edges: [] },
+      messages: [],
+      reference: [],
+      globals: {},
+      variables: {},
+      retrieval: [],
+    },
+  })
+
+  assert.equal(flow.dsl.graph?.nodes[0]?.data.label, Operator.File)
 })
 
 test('session and trace adapters normalize consumable structures', () => {
