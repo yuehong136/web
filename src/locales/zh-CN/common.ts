@@ -55,6 +55,8 @@ export default {
     // 输入提示
     pleaseInput: '请输入',
     required: '必填',
+    selectPlaceholder: '请选择',
+    searchPlaceholder: '搜索...',
     promptPlaceholder: '请输入提示词，或输入 / 快速插入变量',
 
     // 其他

@@ -55,6 +55,8 @@ export default {
     // Input hints
     pleaseInput: 'Please input',
     required: 'Required',
+    selectPlaceholder: 'Select...',
+    searchPlaceholder: 'Search...',
     promptPlaceholder: 'Enter a prompt, or type / to quickly insert variables',
 
     // Others

@@ -1,18 +1,14 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ConsolePageTemplate } from '@/components/page-templates'
+import { ArrowLeft, Search, Sparkles } from 'lucide-react'
+import { ListPageTemplate } from '@/components/page-templates'
 import {
   AppScene,
-  PageEmptyState,
   PageErrorState,
-  PageHeader,
   PageLoadingState,
-  PageToolbar,
-  SectionCard,
 } from '@/components/patterns'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
 import { useFetchAgentTemplates, useSetAgent } from '@/hooks/use-agent-request'
 import {
   buildAgentCanvasPath,
@@ -23,16 +19,16 @@ import {
   resolveLocalizedText,
 } from '@/lib/agent'
 import { AgentCanvasType, type AgentTemplate } from '@/types/agent'
-import {
-  ArrowLeft,
-  LayoutTemplate,
-  Plus,
-  Search,
-  Sparkles,
-} from 'lucide-react'
 import { CreateAgentDialog } from './components/create-agent-dialog'
-
-type TemplateFilter = 'all' | 'agent' | 'pipeline'
+import { TemplateCard } from './components/template-card'
+import { TemplateCategorySidebar } from './components/template-category-sidebar'
+import { AgentEmptyState } from './components/agent-empty-state'
+import {
+  ALL_CATEGORY_KEY,
+  RECOMMENDED_KEY,
+  getCategory,
+  normalizeCategoryKey,
+} from './components/template-category-config'
 
 function resolveTemplateKind(template: AgentTemplate | null) {
   if (!template) {
@@ -52,30 +48,48 @@ export default function AgentTemplatesPage() {
   const templatesQuery = useFetchAgentTemplates()
   const setAgent = useSetAgent()
   const [keyword, setKeyword] = useState('')
-  const [filter, setFilter] = useState<TemplateFilter>('all')
+  const [selectedKey, setSelectedKey] = useState<string>(ALL_CATEGORY_KEY)
   const [selectedTemplate, setSelectedTemplate] = useState<AgentTemplate | null>(null)
 
-  const filteredTemplates = useMemo(() => {
-    return templatesQuery.data.filter((template) => {
-      const templateKind = resolveTemplateKind(template)
-      const matchesFilter =
-        filter === 'all' ||
-        (filter === 'pipeline'
-          ? templateKind === AgentCanvasType.PIPELINE
-          : templateKind === AgentCanvasType.AGENT)
+  const templates = useMemo(() => templatesQuery.data || [], [templatesQuery.data])
 
-      if (!matchesFilter) {
-        return false
-      }
-
-      if (!keyword.trim()) {
-        return true
-      }
-
-      const text = `${resolveLocalizedText(template.title)} ${resolveLocalizedText(template.description, '')}`
-      return text.toLowerCase().includes(keyword.trim().toLowerCase())
+  const categoryCounts = useMemo(() => {
+    const counts: Record<string, number> = {
+      [ALL_CATEGORY_KEY]: templates.length,
+      [RECOMMENDED_KEY]: 0,
+    }
+    templates.forEach((template) => {
+      const key = normalizeCategoryKey(template.canvas_type)
+      counts[key] = (counts[key] || 0) + 1
     })
-  }, [filter, keyword, templatesQuery.data])
+    return counts
+  }, [templates])
+
+  const keywordMatches = (template: AgentTemplate) => {
+    if (!keyword.trim()) return true
+    const text = `${resolveLocalizedText(template.title)} ${resolveLocalizedText(template.description, '')}`
+    return text.toLowerCase().includes(keyword.trim().toLowerCase())
+  }
+
+  const recommendedTemplates = useMemo(
+    () =>
+      templates.filter(
+        (template) =>
+          normalizeCategoryKey(template.canvas_type) === RECOMMENDED_KEY &&
+          keywordMatches(template),
+      ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [templates, keyword],
+  )
+
+  const filteredTemplates = useMemo(() => {
+    return templates.filter((template) => {
+      if (!keywordMatches(template)) return false
+      if (selectedKey === ALL_CATEGORY_KEY) return true
+      return normalizeCategoryKey(template.canvas_type) === selectedKey
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [templates, keyword, selectedKey])
 
   const handleCreateFromTemplate = async (payload: {
     title: string
@@ -100,150 +114,131 @@ export default function AgentTemplatesPage() {
     navigate(buildAgentCanvasPath(flow.id, templateCategory))
   }
 
-  const content = (() => {
-    if (templatesQuery.isLoading) {
-      return (
-        <PageLoadingState
-          scene={AppScene.CONSOLE}
-          title="正在加载模板"
-          description="先把模板资产整理进新的 Agent 创建链路。"
-        />
-      )
-    }
+  const showRecommendedSection =
+    selectedKey === ALL_CATEGORY_KEY && recommendedTemplates.length > 0
 
-    if (templatesQuery.isError) {
-      return (
-        <PageErrorState
-          scene={AppScene.CONSOLE}
-          title="模板加载失败"
-          description="请检查 `/v1/canvas/templates` 接口。"
-          onRetry={() => {
-            void templatesQuery.refetch()
-          }}
-        />
-      )
-    }
+  const selectedCategory = getCategory(selectedKey)
+  const mainSectionTitle =
+    selectedKey === ALL_CATEGORY_KEY ? '全部模板' : selectedCategory.label
+  const mainSectionTemplates =
+    selectedKey === ALL_CATEGORY_KEY
+      ? filteredTemplates.filter(
+          (template) => normalizeCategoryKey(template.canvas_type) !== RECOMMENDED_KEY,
+        )
+      : filteredTemplates
 
-    if (!filteredTemplates.length) {
-      return (
-        <PageEmptyState
-          scene={AppScene.CONSOLE}
-          title="没有匹配的模板"
-          description="可以先回到 Agent Center 从空白骨架创建。"
-          action={
-            <Button onClick={() => navigate('/agents')}>
-              <ArrowLeft className="mr-space-xs h-4 w-4" />
-              返回 Agent Center
-            </Button>
-          }
-        />
-      )
-    }
+  const gridClasses = 'grid grid-cols-1 gap-space-lg md:grid-cols-2 xl:grid-cols-3'
 
-    return (
-      <div className="grid gap-space-lg md:grid-cols-2 xl:grid-cols-3">
-        {filteredTemplates.map((template) => {
-          const title = resolveLocalizedText(template.title)
-          const description = resolveLocalizedText(template.description, '模板描述将在后续增量补齐。')
+  const renderSectionHeader = (title: string, count: number, tone?: ReactNode) => (
+    <div className="flex min-w-0 items-center gap-space-sm">
+      {tone}
+      <h2 className="truncate text-base font-semibold text-text-primary">{title}</h2>
+      <span className="text-sm font-medium text-text-tertiary">
+        {count} 个模板
+      </span>
+    </div>
+  )
 
-          return (
-            <Card
+  const renderContent = () => (
+    <div className="flex flex-col gap-space-2xl pb-space-md">
+      {showRecommendedSection ? (
+        <section className="flex flex-col gap-space-lg">
+          {renderSectionHeader(
+            '精选推荐',
+            recommendedTemplates.length,
+            <Sparkles className="h-4 w-4 text-components-badge-purple-text" />,
+          )}
+          <div className={gridClasses}>
+            {recommendedTemplates.map((template) => (
+              <TemplateCard
+                key={`recommended-${template.id}`}
+                template={template}
+                onSelect={setSelectedTemplate}
+              />
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      <section className="flex flex-col gap-space-lg">
+        {renderSectionHeader(mainSectionTitle, mainSectionTemplates.length)}
+        <div className={gridClasses}>
+          {mainSectionTemplates.map((template) => (
+            <TemplateCard
               key={template.id}
-              variant="interactive"
-              padding="default"
-              className="flex flex-col gap-space-md rounded-radius-xl"
-              onClick={() => setSelectedTemplate(template)}
-            >
-              <div className="flex items-center gap-space-sm">
-                <div className="flex h-11 w-11 items-center justify-center rounded-radius-xl bg-state-info-subtle text-state-info">
-                  <Sparkles className="h-5 w-5" />
-                </div>
-                <div className="min-w-0">
-                  <p className="truncate text-base font-semibold text-text-primary">{title}</p>
-                  <p className="text-sm text-text-secondary">
-                    {template.canvas_type === AgentCanvasType.PIPELINE ? 'Pipeline 模板' : 'Agent 模板'}
-                  </p>
-                </div>
-              </div>
+              template={template}
+              onSelect={setSelectedTemplate}
+            />
+          ))}
+        </div>
+      </section>
+    </div>
+  )
 
-              <p className="line-clamp-3 min-h-[60px] text-sm text-text-secondary">
-                {description}
-              </p>
-
-              <div className="mt-auto flex items-center justify-between border-t border-border-subtle pt-space-base">
-                <span className="text-sm text-text-tertiary">
-                  {template.dsl.graph?.nodes.length || 0} 节点
-                </span>
-                <Button variant="outline">
-                  <Plus className="mr-space-xs h-4 w-4" />
-                  使用模板
-                </Button>
-              </div>
-            </Card>
-          )
-        })}
-      </div>
-    )
+  const pageState: 'content' | 'loading' | 'empty' | 'error' = (() => {
+    if (templatesQuery.isLoading) return 'loading'
+    if (templatesQuery.isError) return 'error'
+    if (!filteredTemplates.length && !recommendedTemplates.length) return 'empty'
+    return 'content'
   })()
 
   return (
     <>
-      <ConsolePageTemplate
-        header={
-          <PageHeader
+      <div className="flex h-full min-h-0 bg-components-console-bg">
+        <TemplateCategorySidebar
+          value={selectedKey}
+          onChange={setSelectedKey}
+          counts={categoryCounts}
+        />
+
+        <div className="min-w-0 flex-1">
+          <ListPageTemplate
             title="Agent Templates"
-            description="模板页先接入标准创建骨架，后续再细化分类、预览和推荐策略。"
-            actions={
+            description="从官方模板库出发快速构建 Agent 与 Pipeline,按分类浏览或搜索关键词。"
+            headerActions={
               <Button variant="outline" onClick={() => navigate('/agents')}>
-                <ArrowLeft className="mr-space-xs h-4 w-4" />
+                <ArrowLeft className="h-4 w-4 mr-2" />
                 返回 Agent Center
               </Button>
             }
-          />
-        }
-        toolbar={
-          <PageToolbar
-            left={
-              <div className="relative max-w-md flex-1">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-tertiary" />
-                <Input
-                  value={keyword}
-                  onChange={(event) => setKeyword(event.target.value)}
-                  className="pl-9"
-                  placeholder="搜索模板标题或用途"
-                />
-              </div>
+            toolbarLeft={
+              <Input
+                type="search"
+                placeholder="搜索模板标题或用途"
+                value={keyword}
+                onChange={(event) => setKeyword(event.target.value)}
+                leftIcon={<Search className="h-4 w-4" />}
+              />
             }
-            right={
-              <div className="flex items-center gap-space-sm">
-                {(['all', 'agent', 'pipeline'] as const).map((item) => (
-                  <Button
-                    key={item}
-                    variant={filter === item ? 'secondary' : 'outline'}
-                    onClick={() => setFilter(item)}
-                  >
-                    {item === 'all' ? '全部' : item === 'agent' ? 'Agent' : 'Pipeline'}
-                  </Button>
-                ))}
-              </div>
+            state={pageState}
+            loadingState={
+              <PageLoadingState
+                scene={AppScene.CONSOLE}
+                title="正在加载模板"
+                description="先把模板资产整理进新的 Agent 创建链路。"
+              />
             }
-          />
-        }
-      >
-        <div className="p-space-lg">
-          <SectionCard
-            title="模板资产"
-            actions={
-              <div className="flex items-center gap-space-xs text-sm text-text-secondary">
-                <LayoutTemplate className="h-4 w-4" />
-                {filteredTemplates.length} 个结果
-              </div>
+            errorState={
+              <PageErrorState
+                scene={AppScene.CONSOLE}
+                title="模板加载失败"
+                description="请检查 `/v1/canvas/templates` 接口。"
+                onRetry={() => {
+                  void templatesQuery.refetch()
+                }}
+              />
+            }
+            emptyState={
+              <AgentEmptyState
+                type={keyword || selectedKey !== ALL_CATEGORY_KEY ? 'search' : 'list'}
+                onCreate={() => navigate('/agents?create=1')}
+              />
             }
           >
-            {content}
-          </SectionCard>
+            {renderContent()}
+          </ListPageTemplate>
         </div>
-      </ConsolePageTemplate>
+      </div>
 
       <CreateAgentDialog
         key={selectedTemplate?.id || 'template-create-dialog'}
@@ -253,12 +248,10 @@ export default function AgentTemplatesPage() {
         defaultTitle={
           selectedTemplate ? resolveLocalizedText(selectedTemplate.title) : ''
         }
-        initialKind={
-          resolveTemplateKind(selectedTemplate)
-        }
+        initialKind={resolveTemplateKind(selectedTemplate)}
         allowKindChange={false}
         title="基于模板创建"
-        description="先复制模板骨架，再在新的编辑器壳层里增量替换节点与配置。"
+        description="先复制模板骨架,再在新的编辑器壳层里增量替换节点与配置。"
       />
     </>
   )

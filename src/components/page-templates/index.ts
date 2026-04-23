@@ -1,5 +1,6 @@
 export { AppScene } from '@/components/patterns'
 export { ConsolePageTemplate } from './console-page-template'
+export { ListPageTemplate } from './list-page-template'
 export { WorkspacePageTemplate } from './workspace-page-template'
 export { StudioPageTemplate } from './studio-page-template'
 export { StudioTriPanePageTemplate } from './studio-tri-pane-page-template'

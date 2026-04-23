@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { SectionCard } from '@/components/patterns'
 import { formatTimestampDetailed } from '@/lib/utils'
-import { isPipelineFlow, resolveLocalizedText } from '@/lib/agent'
+import { countFlowNodes, isPipelineFlow, resolveLocalizedText } from '@/lib/agent'
 import type { AgentFlow } from '@/types/agent'
 import {
   AgentRuntimeStatus,
@@ -71,7 +71,7 @@ export function EditorRuntimeRail({
     flow?.description,
     '普通 Agent 已切到统一 runtime workbench，后续阶段继续承接 pipeline 和会话浏览。',
   )
-  const nodeCount = flow?.dsl.graph?.nodes.length || 0
+  const nodeCount = countFlowNodes(flow)
   const edgeCount = flow?.dsl.graph?.edges.length || 0
 
   return (

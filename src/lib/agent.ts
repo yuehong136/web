@@ -13,7 +13,7 @@ import {
   buildInitialGraph as buildInitialGraphFromOperators,
   inferCanvasTypeFromGraph as inferCanvasTypeFromOperators,
 } from '@/pages/agent/operators'
-import { AgentCategory, AgentQuery } from '@/pages/agent/constant'
+import { AgentCategory, AgentQuery, Operator } from '@/pages/agent/constant'
 
 export function resolveLocalizedText(
   value: LocalizedText | null | undefined,
@@ -99,6 +99,32 @@ export function buildInitialDsl(kind: AgentCanvasType) {
 
 export function inferCanvasTypeFromGraph(graph: AgentGraph | undefined): AgentCanvasType {
   return inferCanvasTypeFromOperators(graph)
+}
+
+const DECORATIVE_OPERATOR_NAMES = new Set<string>([
+  Operator.Note,
+  Operator.Placeholder,
+])
+
+export function countFlowNodes(
+  flow: Pick<AgentFlow, 'dsl'> | null | undefined,
+): number {
+  if (!flow?.dsl) return 0
+
+  const components = flow.dsl.components || {}
+  const componentEntries = Object.values(components).filter((component) => {
+    const name = component?.obj?.component_name
+    return !!name && !DECORATIVE_OPERATOR_NAMES.has(name)
+  })
+  if (componentEntries.length > 0) {
+    return componentEntries.length
+  }
+
+  const graphNodes = flow.dsl.graph?.nodes || []
+  return graphNodes.filter((node) => {
+    const label = node.data?.label
+    return !label || !DECORATIVE_OPERATOR_NAMES.has(String(label))
+  }).length
 }
 
 export function formatVersionLabel(version: AgentVersionSummary, index: number): string {

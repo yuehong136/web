@@ -640,6 +640,8 @@ export default {
     query: '查询变量',
     queryRequired: '查询变量是必填项',
     queryTip: '选择您想要使用的变量',
+    selectVariable: '选择变量',
+    variablePickerEmptyTitle: '未找到变量',
     agent: '智能体',
     addAgent: '添加智能体',
     agentDescription: '构建具备推理、工具调用和多智能体协同的智能体组件。',

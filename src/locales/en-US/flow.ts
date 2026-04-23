@@ -115,6 +115,8 @@ export default {
     addPageNumbers: 'Add page numbers',
     addTimestamp: 'Add timestamp',
     watermarkText: 'Watermark text',
+    selectVariable: 'Select variable',
+    variablePickerEmptyTitle: 'No variables found',
     selectKnowledgeBases: 'Select knowledge bases',
   },
 }
