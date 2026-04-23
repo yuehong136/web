@@ -118,7 +118,7 @@ function InnerToolNode({ id, data, selected, isConnectable = true }: NodeProps) 
             type="button"
             onClick={handleItemClick(item)}
             data-tool-id={item.id}
-            data-tool={item.kind === 'tool' ? item.operator : undefined}
+            data-tool={item.kind === 'tool' ? item.operator : item.id}
             className={cn(
               'flex w-full items-center gap-space-sm px-space-sm py-space-sm text-left transition-colors',
               withDivider && 'border-t border-border-subtle',

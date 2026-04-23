@@ -324,6 +324,7 @@ export const initialSwitchValues = {
       logical_operator: SwitchLogicOperatorOptions[0],
       items: [
         {
+          cpn_id: '',
           operator: '=',
         },
       ],

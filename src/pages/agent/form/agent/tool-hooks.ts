@@ -1,7 +1,7 @@
 import { useContext, useEffect, useMemo, useCallback } from 'react'
 import { Position } from '@xyflow/react'
 import { humanId } from 'human-id'
-import { useFetchMCPServers } from '@/hooks/use-mcp-request'
+import { hasServerTools, useFetchMCPServers } from '@/hooks/use-mcp-request'
 import { AgentInstanceContext } from '../../context'
 import { NodeHandleId, Operator } from '../../constant'
 import { useAgentToolInitialValues } from '../../hooks/use-agent-tool-initial-values'
@@ -26,11 +26,17 @@ function buildToolId(operator: Operator) {
 }
 
 function buildToolName(operator: Operator, tools: AgentToolRecord[]) {
-  const sameTypeCount = tools.filter(
-    (item) => item.component_name === operator,
-  ).length
+  const lastIndex = tools
+    .filter((item) => item.component_name === operator)
+    .reduce((maxIndex, item) => {
+      const matchedIndex = item.name?.match(/(\d+)$/)?.[1]
+      const nextIndex =
+        typeof matchedIndex === 'string' ? Number(matchedIndex) : NaN
 
-  return sameTypeCount > 0 ? `${operator}_${sameTypeCount}` : operator
+      return Number.isFinite(nextIndex) ? Math.max(maxIndex, nextIndex) : maxIndex
+    }, -1)
+
+  return `${operator}_${lastIndex + 1}`
 }
 
 export function useAgentToolState(node?: RAGFlowNodeType) {
@@ -124,7 +130,8 @@ export function useAgentToolActions(node?: RAGFlowNodeType) {
           return result
         }
 
-        if (data?.mcp_servers?.some((server) => server.id === id)) {
+        const server = data?.mcp_servers?.find((item) => item.id === id)
+        if (server && hasServerTools(server)) {
           result.push({ mcp_id: id, tools: {} })
         }
 

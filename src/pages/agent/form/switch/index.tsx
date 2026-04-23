@@ -6,6 +6,7 @@ import {
   FormItem,
   FormMessage,
 } from '@/components/ui/form'
+import { Separator } from '@/components/ui/separator'
 import {
   Select,
   SelectContent,
@@ -22,43 +23,41 @@ import { z } from 'zod'
 import {
   SwitchLogicOperatorOptions,
   SwitchOperatorOptions,
-  initialSwitchValues,
 } from '../../constant'
-import { useFormValues } from '../../hooks/use-form-values'
 import { useWatchFormChange } from '../../hooks/use-watch-form-change'
 import type { INextOperatorForm } from '../../types'
 import { FormWrapper } from '../components'
 import { ConditionCards } from './components/condition-cards'
+import type { SwitchFormValues } from './types'
+import { useValues } from './use-values'
 
 const conditionKey = 'conditions'
 const itemKey = 'items'
 
 const schema = z.object({
-  conditions: z
-    .array(
-      z.object({
-        logical_operator: z.string().optional(),
-        items: z
-          .array(
-            z.object({
-              cpn_id: z.string().optional(),
-              operator: z.string().optional(),
-              value: z.string().optional(),
-            }),
-          )
-          .optional(),
-        to: z.array(z.string()).optional(),
-      }),
-    )
-    .optional(),
+  conditions: z.array(
+    z.object({
+      logical_operator: z.string(),
+      items: z
+        .array(
+          z.object({
+            cpn_id: z.string(),
+            operator: z.string(),
+            value: z.string().optional(),
+          }),
+        )
+        .optional(),
+      to: z.array(z.string()).optional(),
+    }),
+  ),
   end_cpn_ids: z.array(z.string()).optional(),
 })
 
 export function SwitchForm({ node }: INextOperatorForm) {
   const { t } = useTranslation()
-  const values = useFormValues(initialSwitchValues, node)
+  const values = useValues(node)
 
-  const form = useForm({
+  const form = useForm<SwitchFormValues>({
     defaultValues: values,
     resolver: zodResolver(schema),
   })
@@ -79,9 +78,9 @@ export function SwitchForm({ node }: INextOperatorForm) {
           const conditionLength = conditions?.length ?? 0
 
           return (
-            <div
+            <section
               key={field.id}
-              className="rounded-radius-md border border-border-default bg-surface-primary p-space-sm shadow-elevation-low"
+              className="space-y-space-md rounded-radius-md border border-border-default bg-surface-primary p-space-sm shadow-elevation-low"
             >
               <div className="flex items-center justify-between">
                 <section>
@@ -98,7 +97,7 @@ export function SwitchForm({ node }: INextOperatorForm) {
                   </Button>
                 )}
               </div>
-              <section className="relative mt-space-sm flex gap-space-sm">
+              <section className="relative flex gap-space-sm">
                 {conditionLength > 1 && (
                   <section className="flex w-[72px] flex-col">
                     <div className="relative w-1 flex-1 before:absolute before:bottom-0 before:left-10 before:top-20 before:w-px before:bg-border-default" />
@@ -136,12 +135,14 @@ export function SwitchForm({ node }: INextOperatorForm) {
                 )}
                 <ConditionCards
                   name={name}
+                  nodeId={node?.id}
                   removeParent={remove}
                   parentIndex={index}
                   parentLength={fields.length}
                 />
               </section>
-            </div>
+              <Separator />
+            </section>
           )
         })}
         <Button
@@ -153,7 +154,8 @@ export function SwitchForm({ node }: INextOperatorForm) {
               logical_operator: SwitchLogicOperatorOptions[0],
               [itemKey]: [
                 {
-                  operator: SwitchOperatorOptions[0]?.value,
+                  cpn_id: '',
+                  operator: SwitchOperatorOptions[0]?.value || '',
                 },
               ],
               to: [],

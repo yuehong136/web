@@ -1,81 +1,49 @@
-import { Button } from '@/components/ui/button'
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useMemo } from 'react'
+import { useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
+import { Form } from '@/components/ui/form'
 import {
   FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
 } from '@/components/ui/form'
-import { Form } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { ChevronDown, Plus, Trash2 } from 'lucide-react'
-import { useFieldArray, useForm } from 'react-hook-form'
-import { useTranslation } from 'react-i18next'
-import { v4 as uuid } from 'uuid'
-import { z } from 'zod'
+import { Separator } from '@/components/ui/separator'
 import { initialCategorizeValues } from '../../constant'
 import { useFormValues } from '../../hooks/use-form-values'
-import { useWatchFormChange } from '../../hooks/use-watch-form-change'
 import type { INextOperatorForm } from '../../types'
+import { FormWrapper, Output, QueryVariable, transferOutputs } from '../components'
+import { LLMSelectField } from '../components/llm-select-field'
+import { DynamicCategorize } from './dynamic-categorize'
 import {
-  FormWrapper,
-  LlmSetting,
-  Output,
-  QueryVariable,
-  transferOutputs,
-} from '../components'
+  type CategorizeFormValues,
+  useCreateCategorizeFormSchema,
+} from './use-form-schema'
+import { useWatchFormChange } from './use-watch-change'
 
-const schema = z.object({
-  llm_id: z.string().optional(),
-  temperature: z.coerce.number().optional(),
-  top_p: z.coerce.number().optional(),
-  presence_penalty: z.coerce.number().optional(),
-  frequency_penalty: z.coerce.number().optional(),
-  max_tokens: z.coerce.number().optional(),
-  query: z.string().optional(),
-  parameter: z.string().optional(),
-  message_history_window_size: z.coerce.number().optional(),
-  items: z
-    .array(
-      z.object({
-        name: z.string().min(1),
-        description: z.string().optional(),
-        uuid: z.string(),
-      }),
-    )
-    .optional(),
-  outputs: z.record(z.string(), z.any()).optional(),
-})
+const outputList = transferOutputs(initialCategorizeValues.outputs)
 
 export function CategorizeForm({ node }: INextOperatorForm) {
   const { t } = useTranslation()
   const values = useFormValues(initialCategorizeValues, node)
+  const schema = useCreateCategorizeFormSchema()
 
-  const form = useForm({
+  const form = useForm<CategorizeFormValues>({
+    defaultValues: values as CategorizeFormValues,
     resolver: zodResolver(schema),
-    defaultValues: values,
   })
 
   useWatchFormChange(node?.id, form)
 
-  const { fields, append, remove } = useFieldArray({
-    name: 'items',
-    control: form.control,
-  })
-
-  const outputs = form.getValues('outputs')
+  const resolvedOutputList = useMemo(() => outputList, [])
 
   return (
     <Form {...form}>
       <FormWrapper>
         <QueryVariable />
+        <LLMSelectField type="chat" valueMode="nameWithProvider" />
 
         <FormField
           control={form.control}
@@ -100,88 +68,9 @@ export function CategorizeForm({ node }: INextOperatorForm) {
           )}
         />
 
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">
-              {t('flow.categories', 'Categories')}
-            </span>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() =>
-                append({ name: '', description: '', uuid: uuid() })
-              }
-            >
-              <Plus className="mr-1 size-4" />
-              {t('common.add', 'Add')}
-            </Button>
-          </div>
-
-          {fields.map((field, index) => (
-            <div
-              key={field.id}
-              className="space-y-2 rounded-radius-md border border-border-primary p-space-sm"
-            >
-              <div className="flex items-center gap-2">
-                <FormField
-                  control={form.control}
-                  name={`items.${index}.name`}
-                  render={({ field: nameField }) => (
-                    <FormItem className="flex-1">
-                      <FormControl>
-                        <Input
-                          placeholder={t('flow.categoryName', 'Category name')}
-                          {...nameField}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => remove(index)}
-                >
-                  <Trash2 className="size-4" />
-                </Button>
-              </div>
-              <FormField
-                control={form.control}
-                name={`items.${index}.description`}
-                render={({ field: descriptionField }) => (
-                  <FormItem>
-                    <FormControl>
-                      <Textarea
-                        rows={2}
-                        placeholder={t(
-                          'flow.categoryDescription',
-                          'Description',
-                        )}
-                        {...descriptionField}
-                        value={descriptionField.value ?? ''}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-            </div>
-          ))}
-        </div>
-
-        <Collapsible>
-          <CollapsibleTrigger className="flex items-center gap-1 text-sm font-medium">
-            <ChevronDown className="size-4" />
-            {t('flow.modelSettings', 'Model Settings')}
-          </CollapsibleTrigger>
-          <CollapsibleContent className="pt-4">
-            <LlmSetting />
-          </CollapsibleContent>
-        </Collapsible>
-
-        {outputs && <Output list={transferOutputs(outputs)} />}
+        <Separator />
+        <DynamicCategorize nodeId={node?.id} />
+        <Output list={resolvedOutputList} />
       </FormWrapper>
     </Form>
   )

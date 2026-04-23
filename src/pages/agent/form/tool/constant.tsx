@@ -3,7 +3,6 @@ import { Operator } from '../../constant'
 import type { INextOperatorForm } from '../../types'
 import ArxivToolForm from './arxiv-form'
 import BingToolForm from './bing-form'
-import CodeToolForm from './code-form'
 import CrawlerToolForm from './crawler-form'
 import DuckDuckGoToolForm from './duckduckgo-form'
 import EmailToolForm from './email-form'
@@ -14,8 +13,7 @@ import GoogleScholarToolForm from './google-scholar-form'
 import PubMedToolForm from './pubmed-form'
 import RetrievalToolForm from './retrieval-form'
 import SearXNGToolForm from './searxng-form'
-import TavilyExtractToolForm from './tavily-extract-form'
-import TavilyToolForm from './tavily-form'
+import TavilyToolForm, { TavilyExtractToolForm } from './tavily-form'
 import WenCaiToolForm from './wencai-form'
 import WikipediaToolForm from './wikipedia-form'
 import YahooFinanceToolForm from './yahoo-finance-form'
@@ -25,7 +23,6 @@ export const ToolFormConfigMap: Partial<
 > = {
   [Operator.ArXiv]: ArxivToolForm,
   [Operator.Bing]: BingToolForm,
-  [Operator.Code]: CodeToolForm,
   [Operator.Crawler]: CrawlerToolForm,
   [Operator.DuckDuckGo]: DuckDuckGoToolForm,
   [Operator.Email]: EmailToolForm,

@@ -1,4 +1,5 @@
 import { PromptEditor } from '@/components/prompt-editor'
+import { Button } from '@/components/ui/button'
 import {
   FormControl,
   FormField,
@@ -8,18 +9,11 @@ import {
 } from '@/components/ui/form'
 import { Form } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { SelectWithSearch } from '@/components/ui/select-with-search'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import { z } from 'zod'
 import { initialExeSqlValues } from '../../constant'
 import { useBuildNodeOutputOptions } from '../../hooks/use-build-options'
 import { useFormValues } from '../../hooks/use-form-values'
@@ -27,23 +21,13 @@ import { useWatchFormChange } from '../../hooks/use-watch-form-change'
 import type { INextOperatorForm } from '../../types'
 import { FormWrapper, Output, buildOutputList } from '../components'
 import { dbTypeOptions } from './constants'
-
-const exeSqlSchema = z.object({
-  db_type: z.string().optional(),
-  database: z.string().optional(),
-  username: z.string().optional(),
-  host: z.string().optional(),
-  port: z.coerce.number().optional(),
-  password: z.string().optional(),
-  sql: z.string().optional(),
-  max_records: z.coerce.number().optional(),
-  outputs: z.record(z.string(), z.any()).optional(),
-})
+import { exeSqlSchema, useSubmitForm } from './use-submit-form'
 
 export function ExeSQLForm({ node }: INextOperatorForm) {
   const { t } = useTranslation()
   const promptOptions = useBuildNodeOutputOptions(node?.id)
   const values = useFormValues(initialExeSqlValues, node)
+  const { testConnection, isLoading } = useSubmitForm()
 
   const form = useForm({
     resolver: zodResolver(exeSqlSchema),
@@ -56,7 +40,7 @@ export function ExeSQLForm({ node }: INextOperatorForm) {
 
   return (
     <Form {...form}>
-      <FormWrapper>
+      <FormWrapper onSubmit={form.handleSubmit(testConnection)}>
         <FormField
           control={form.control}
           name="sql"
@@ -82,19 +66,13 @@ export function ExeSQLForm({ node }: INextOperatorForm) {
             <FormItem>
               <FormLabel>{t('flow.dbType', 'Database Type')}</FormLabel>
               <FormControl>
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {dbTypeOptions.map((db) => (
-                      <SelectItem key={db} value={db}>
-                        {db}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <SelectWithSearch
+                  value={field.value ?? initialExeSqlValues.db_type}
+                  onChange={field.onChange}
+                  options={dbTypeOptions}
+                />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -109,6 +87,7 @@ export function ExeSQLForm({ node }: INextOperatorForm) {
                 <FormControl>
                   <Input {...field} value={field.value ?? ''} />
                 </FormControl>
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -129,6 +108,7 @@ export function ExeSQLForm({ node }: INextOperatorForm) {
                     }
                   />
                 </FormControl>
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -142,6 +122,7 @@ export function ExeSQLForm({ node }: INextOperatorForm) {
                 <FormControl>
                   <Input {...field} value={field.value ?? ''} />
                 </FormControl>
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -155,6 +136,7 @@ export function ExeSQLForm({ node }: INextOperatorForm) {
                 <FormControl>
                   <Input {...field} value={field.value ?? ''} />
                 </FormControl>
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -168,6 +150,7 @@ export function ExeSQLForm({ node }: INextOperatorForm) {
                 <FormControl>
                   <Input type="password" {...field} value={field.value ?? ''} />
                 </FormControl>
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -189,9 +172,16 @@ export function ExeSQLForm({ node }: INextOperatorForm) {
                     }
                   />
                 </FormControl>
+                <FormMessage />
               </FormItem>
             )}
           />
+        </div>
+
+        <div className="flex justify-end">
+          <Button type="submit" variant="outline" loading={isLoading}>
+            {t('flow.test', 'Test')}
+          </Button>
         </div>
 
         <Output list={outputs} />

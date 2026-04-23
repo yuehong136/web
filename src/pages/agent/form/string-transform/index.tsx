@@ -4,21 +4,18 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from '@/components/ui/form'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
+import { MultiSelectWithSearch } from '@/components/ui/multi-select-with-search'
+import { SelectWithSearch } from '@/components/ui/select-with-search'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { memo, useEffect } from 'react'
-import { useFieldArray, useForm, useWatch } from 'react-hook-form'
+import { memo, useCallback, useEffect, useMemo } from 'react'
+import { useForm, useWatch } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
+import { PromptEditor } from '@/components/prompt-editor'
 import {
+  StringTransformDelimiter,
   StringTransformMethod,
   initialStringTransformValues,
 } from '../../constant'
@@ -30,7 +27,6 @@ import {
   defaultStringTransformDelimiter,
   stringTransformMethodOptions,
 } from './constants'
-import { DelimiterList } from './components/delimiter-list'
 
 const stringTransformSchema = z.object({
   method: z.string().optional(),
@@ -45,6 +41,26 @@ export const StringTransformForm = memo(function StringTransformForm({
 }: INextOperatorForm) {
   const { t } = useTranslation()
   const values = useFormValues(initialStringTransformValues, node)
+  const delimiterOptionGroups = useMemo(
+    () => [
+      {
+        label: t('flow.delimiters', 'Delimiters'),
+        options: Object.entries(StringTransformDelimiter).map(([key, value]) => ({
+          label: t(`flow.${key.charAt(0).toLowerCase()}${key.slice(1)}`, value),
+          value,
+        })),
+      },
+    ],
+    [t],
+  )
+  const methodOptions = useMemo(
+    () =>
+      stringTransformMethodOptions.map((value) => ({
+        label: t(`flow.${value}`, value),
+        value,
+      })),
+    [t],
+  )
 
   const form = useForm({
     resolver: zodResolver(stringTransformSchema),
@@ -54,29 +70,50 @@ export const StringTransformForm = memo(function StringTransformForm({
   useWatchFormChange(node?.id, form)
 
   const method = useWatch({ control: form.control, name: 'method' })
+  const delimiterValues = useWatch({ control: form.control, name: 'delimiters' })
 
-  const { fields, append, remove } = useFieldArray({
-    name: 'delimiters',
-    control: form.control,
-  })
-
-  useEffect(() => {
-    const isMerge = method === StringTransformMethod.Merge
-    const outputs = {
+  const buildOutputs = useCallback((value?: string) => {
+    const isMerge = value === StringTransformMethod.Merge
+    return {
       ...initialStringTransformValues.outputs,
       result: {
         type: isMerge ? 'string' : 'Array<string>',
       },
     }
+  }, [])
 
-    form.setValue('outputs', outputs, { shouldDirty: true })
+  const handleMethodChange = useCallback(
+    (value: string) => {
+      const isMerge = value === StringTransformMethod.Merge
+      form.setValue('method', value, { shouldDirty: true })
+      form.setValue('outputs', buildOutputs(value), { shouldDirty: true })
+      form.setValue(
+        'delimiters',
+        isMerge ? [defaultStringTransformDelimiter] : [],
+        { shouldDirty: true },
+      )
+    },
+    [buildOutputs, form],
+  )
 
-    if (isMerge && (!form.getValues('delimiters') || fields.length === 0)) {
+  useEffect(() => {
+    const nextDelimiterValues = Array.isArray(delimiterValues) ? delimiterValues : []
+
+    if (!method) {
+      return
+    }
+
+    form.setValue('outputs', buildOutputs(method), { shouldDirty: true })
+
+    if (
+      method === StringTransformMethod.Merge &&
+      nextDelimiterValues.length === 0
+    ) {
       form.setValue('delimiters', [defaultStringTransformDelimiter], {
         shouldDirty: true,
       })
     }
-  }, [fields.length, form, method])
+  }, [buildOutputs, delimiterValues, form, method])
 
   const outputs = form.getValues('outputs')
 
@@ -90,19 +127,13 @@ export const StringTransformForm = memo(function StringTransformForm({
             <FormItem>
               <FormLabel>{t('flow.method', 'Method')}</FormLabel>
               <FormControl>
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {stringTransformMethodOptions.map((value) => (
-                      <SelectItem key={value} value={value}>
-                        {t(`flow.${value}`, value)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <SelectWithSearch
+                  value={field.value ?? StringTransformMethod.Merge}
+                  onChange={handleMethodChange}
+                  options={methodOptions}
+                />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -120,18 +151,43 @@ export const StringTransformForm = memo(function StringTransformForm({
               <FormItem>
                 <FormLabel>{t('flow.script', 'Script')}</FormLabel>
                 <FormControl>
-                  <Textarea rows={4} {...field} value={field.value ?? ''} />
+                  <PromptEditor
+                    value={field.value ?? ''}
+                    onChange={field.onChange}
+                    showToolbar={false}
+                    nodeId={node?.id}
+                  />
                 </FormControl>
+                <FormMessage />
               </FormItem>
             )}
           />
         )}
 
-        <DelimiterList
+        <FormField
           control={form.control}
-          fields={fields}
-          onAppend={() => append(defaultStringTransformDelimiter)}
-          onRemove={remove}
+          name="delimiters"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('flow.delimiters', 'Delimiters')}</FormLabel>
+              <FormControl>
+                {method === StringTransformMethod.Split ? (
+                  <MultiSelectWithSearch
+                    options={delimiterOptionGroups}
+                    value={Array.isArray(field.value) ? field.value : []}
+                    onChange={field.onChange}
+                  />
+                ) : (
+                  <SelectWithSearch
+                    options={delimiterOptionGroups}
+                    value={Array.isArray(field.value) ? (field.value[0] ?? '') : ''}
+                    onChange={(value) => field.onChange(value ? [value] : [])}
+                  />
+                )}
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
 
         {outputs && <Output list={transferOutputs(outputs)} />}

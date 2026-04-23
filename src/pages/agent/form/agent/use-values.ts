@@ -7,6 +7,7 @@ import {
   findFirstEnabledModelByType,
   qualifyLLMValueWithProvider,
 } from '@/stores/model'
+import { useTranslation } from 'react-i18next'
 import { AgentStructuredOutputField, initialAgentValues } from '../../constant'
 import type { RAGFlowNodeType } from '../../types'
 
@@ -15,6 +16,7 @@ function omitNonFormFields(values: Record<string, unknown>) {
 }
 
 export function useValues(node?: RAGFlowNodeType) {
+  const { t } = useTranslation()
   const { myLLMs } = useFetchMyLLMs()
 
   return useMemo(() => {
@@ -28,6 +30,10 @@ export function useValues(node?: RAGFlowNodeType) {
           valueMode: 'nameWithProvider',
         }) ||
         String(get(initialAgentValues, 'llm_id', '')),
+      sys_prompt: t(
+        'flow.sysPromptDefaultValue',
+        String(get(initialAgentValues, 'sys_prompt', '')),
+      ),
       prompts: get(initialAgentValues, 'prompts.0.content', ''),
       showStructuredOutput: false,
     }
@@ -52,5 +58,5 @@ export function useValues(node?: RAGFlowNodeType) {
         get(formData, `outputs.${AgentStructuredOutputField}`),
       ),
     }
-  }, [myLLMs, node?.data?.form])
+  }, [myLLMs, node?.data?.form, t])
 }

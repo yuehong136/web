@@ -1,26 +1,25 @@
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible'
-import {
   FormControl,
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from '@/components/ui/form'
 import { Form } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { SelectWithSearch } from '@/components/ui/select-with-search'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ChevronDown } from 'lucide-react'
+import { useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
 import { initialRewriteQuestionValues } from '../../constant'
 import { useFormValues } from '../../hooks/use-form-values'
+import { GoogleLanguageOptions } from '../../options'
 import { useWatchFormChange } from '../../hooks/use-watch-form-change'
 import type { INextOperatorForm } from '../../types'
-import { FormWrapper, LlmSetting } from '../components'
+import { FormWrapper } from '../components'
+import { LLMSelectField } from '../components/llm-select-field'
 
 const schema = z.object({
   llm_id: z.string().optional(),
@@ -36,6 +35,14 @@ const schema = z.object({
 export function RewriteQuestionForm({ node }: INextOperatorForm) {
   const { t } = useTranslation()
   const values = useFormValues(initialRewriteQuestionValues, node)
+  const languageOptions = useMemo(
+    () =>
+      GoogleLanguageOptions.map((item) => ({
+        label: item.language_name,
+        value: item.language_code,
+      })),
+    [],
+  )
 
   const form = useForm({
     resolver: zodResolver(schema),
@@ -47,6 +54,8 @@ export function RewriteQuestionForm({ node }: INextOperatorForm) {
   return (
     <Form {...form}>
       <FormWrapper>
+        <LLMSelectField type="chat" valueMode="nameWithProvider" />
+
         <FormField
           control={form.control}
           name="language"
@@ -54,12 +63,15 @@ export function RewriteQuestionForm({ node }: INextOperatorForm) {
             <FormItem>
               <FormLabel>{t('flow.language', 'Language')}</FormLabel>
               <FormControl>
-                <Input
-                  placeholder={t('flow.languagePlaceholder', 'e.g. English')}
-                  {...field}
+                <SelectWithSearch
                   value={field.value ?? ''}
+                  onChange={field.onChange}
+                  options={languageOptions}
+                  allowClear
+                  placeholder={t('flow.languagePlaceholder', 'Select language')}
                 />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -83,19 +95,10 @@ export function RewriteQuestionForm({ node }: INextOperatorForm) {
                   }
                 />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
-
-        <Collapsible>
-          <CollapsibleTrigger className="flex items-center gap-1 text-sm font-medium">
-            <ChevronDown className="size-4" />
-            {t('flow.modelSettings', 'Model Settings')}
-          </CollapsibleTrigger>
-          <CollapsibleContent className="pt-4">
-            <LlmSetting />
-          </CollapsibleContent>
-        </Collapsible>
       </FormWrapper>
     </Form>
   )

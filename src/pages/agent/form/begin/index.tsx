@@ -204,6 +204,8 @@ export function BeginForm({ node }: INextOperatorForm) {
               <LayoutRecognizeFormField
                 name="layout_recognize"
                 horizontal={false}
+                showMineruOptions={false}
+                showPaddleocrOptions={false}
               />
             )}
             <ParameterDialog

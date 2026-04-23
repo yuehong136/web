@@ -2,6 +2,9 @@ import { useCallback, useMemo } from 'react'
 import type { Edge, ReactFlowInstance } from '@xyflow/react'
 import { Position } from '@xyflow/react'
 import { humanId } from 'human-id'
+import { t } from 'i18next'
+import { useFetchMyLLMs } from '@/hooks/use-llm-request'
+import { findFirstEnabledModelByType } from '@/stores/model'
 import {
   Operator,
   NodeMap,
@@ -69,18 +72,40 @@ import {
 } from '../utils'
 
 export const useInitializeOperatorParams = () => {
+  const { myLLMs } = useFetchMyLLMs()
+  const defaultChatModel = useMemo(
+    () =>
+      findFirstEnabledModelByType(myLLMs, 'chat', {
+        valueMode: 'nameWithProvider',
+      }) || '',
+    [myLLMs],
+  )
+
   const initialFormValuesMap = useMemo(() => {
     return {
       [Operator.Begin]: initialBeginValues,
       [Operator.Retrieval]: initialRetrievalValues,
       [Operator.Message]: initialMessageValues,
-      [Operator.Categorize]: initialCategorizeValues,
+      [Operator.Categorize]: {
+        ...initialCategorizeValues,
+        llm_id: defaultChatModel,
+      },
       [Operator.Switch]: initialSwitchValues,
       [Operator.Relevant]: initialRelevantValues,
-      [Operator.RewriteQuestion]: initialRewriteQuestionValues,
+      [Operator.RewriteQuestion]: {
+        ...initialRewriteQuestionValues,
+        llm_id: defaultChatModel,
+      },
       [Operator.KeywordExtract]: initialKeywordExtractValues,
       [Operator.Code]: initialCodeValues,
-      [Operator.Agent]: initialAgentValues,
+      [Operator.Agent]: {
+        ...initialAgentValues,
+        llm_id: defaultChatModel,
+        sys_prompt: t(
+          'flow.sysPromptDefaultValue',
+          'You are a helpful AI assistant.',
+        ),
+      },
       [Operator.Tool]: {},
       [Operator.Note]: initialNoteValues,
       [Operator.Placeholder]: initialPlaceholderValues,
@@ -120,13 +145,33 @@ export const useInitializeOperatorParams = () => {
       [Operator.Tokenizer]: initialTokenizerValues,
       [Operator.Splitter]: initialSplitterValues,
       [Operator.HierarchicalMerger]: initialHierarchicalMergerValues,
-      [Operator.Extractor]: initialExtractorValues,
+      [Operator.Extractor]: {
+        ...initialExtractorValues,
+        llm_id: defaultChatModel,
+      },
     }
-  }, [])
+  }, [defaultChatModel])
 
   const initializeOperatorParams = useCallback(
-    (operatorName: Operator) => {
-      return initialFormValuesMap[operatorName as keyof typeof initialFormValuesMap]
+    (operatorName: Operator, position: Position = Position.Right) => {
+      const initialValues =
+        initialFormValuesMap[operatorName as keyof typeof initialFormValuesMap]
+
+      if (operatorName === Operator.Agent && position === Position.Bottom) {
+        return {
+          ...initialValues,
+          description: t(
+            'flow.descriptionMessage',
+            'This is an agent for a specific task.',
+          ),
+          user_prompt: t(
+            'flow.userPromptDefaultValue',
+            'This is the order you need to send to the agent.',
+          ),
+        }
+      }
+
+      return initialValues
     },
     [initialFormValuesMap],
   )
@@ -347,7 +392,7 @@ export function useAddNode(
           data: {
             label: type,
             name: generateNodeNamesWithIncreasingIndex(getNodeName(type), nodes),
-            form: initializeOperatorParams(type as Operator),
+            form: initializeOperatorParams(type as Operator, params.position),
           },
           sourcePosition: Position.Right,
           targetPosition: Position.Left,

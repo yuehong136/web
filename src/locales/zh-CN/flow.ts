@@ -54,14 +54,27 @@ export default {
       '它是迭代过程中的当前元素，可以被后续流程引用和操作。',
     guidingQuestion: '引导问题',
     onFailure: '异常时',
-    userPromptDefaultValue:
-      'This is the order you need to send to the agent.',
+    userPromptDefaultValue: '这是你需要发送给 agent 的指令。',
     descriptionMessage: '这是一个用于特定任务的代理。',
+    sysPromptDefaultValue: `
+<role>
+  你是一名乐于助人的助手，一名专注于为用户解决问题的 AI 助手。
+  如果用户指定了特定领域，你需要在该领域展现专业性；如果没有，则以通用助手的方式工作。
+</role>
+<instructions>
+        1. 理解用户请求。
+        2. 将其分解为逻辑子任务。
+        3. 逐步执行每个子任务，并清晰地进行推理。
+        4. 验证准确性和一致性。
+        5. 清晰地总结最终结果。
+</instructions>`,
     search: '搜索',
     communication: '通信',
     developer: '开发者',
     typeCommandORsearch: '输入命令或或搜索...',
     builtIn: '内置',
+    noResultsFound: '未找到结果。',
+    toolNoConfig: '该工具没有可配置项。',
     goto: '异常分支',
     comment: '默认值',
     ExceptionDefaultValue: '异常处理默认值',
@@ -728,6 +741,15 @@ export default {
     searchMethod: '搜索方法',
     searchMethodTip: `决定该数据集启用的搜索方式，可选择全文、向量，或两者兼有。
 Tokenizer 会根据所选方式将内容存储为对应的数据结构。`,
+    tokenizerSearchMethodOptions: {
+      embedding: '向量检索',
+      full_text: '全文检索',
+    },
+    tokenizerFieldsOptions: {
+      text: '正文',
+      questions: '问题',
+      summary: '增强上下文',
+    },
     filenameEmbdWeight: '文件名嵌入权重',
     parserMethod: '解析方法',
     tableResultType: '表格返回形式',

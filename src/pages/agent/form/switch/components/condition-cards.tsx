@@ -1,7 +1,6 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import {
-  FormControl,
   FormField,
   FormItem,
   FormMessage,
@@ -28,6 +27,7 @@ const itemKey = 'items'
 
 export function ConditionCards({
   name: parentName,
+  nodeId,
   parentIndex,
   removeParent,
   parentLength,
@@ -66,22 +66,12 @@ export function ConditionCards({
             )}
           >
             <section className="flex items-center justify-between rounded-t-radius-md bg-surface-secondary p-space-sm">
-                <FormField
-                  control={form.control}
-                  name={`${name}.${index}.cpn_id` as const}
-                  render={({ field: queryField }) => (
-                  <FormItem className="min-w-0 flex-1">
-                    <FormControl>
-                      <QueryVariable
-                        name={queryField.name}
-                        hideLabel
-                        onChange={queryField.onChange}
-                        triggerClassName="h-9 rounded-radius-md border border-border-default bg-surface-primary px-space-sm py-space-xs text-sm"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+              <QueryVariable
+                name={`${name}.${index}.cpn_id`}
+                hideLabel
+                nodeId={nodeId}
+                className="min-w-0 flex-1"
+                triggerClassName="h-9 rounded-radius-md border border-border-default bg-surface-primary px-space-sm py-space-xs text-sm"
               />
               <div className="flex items-center">
                 <Separator orientation="vertical" className="h-3" />
@@ -154,7 +144,12 @@ export function ConditionCards({
           variant="outline"
           size="sm"
           className="mt-space-md"
-          onClick={() => append({ operator: SwitchOperatorOptions[0]?.value })}
+          onClick={() =>
+            append({
+              cpn_id: '',
+              operator: SwitchOperatorOptions[0]?.value || '',
+            })
+          }
         >
           {t('common.add')}
         </Button>

@@ -1,1 +1,3 @@
-export const dbTypeOptions = ['mysql', 'postgresql', 'mariadb', 'mssql'] as const
+import { ExeSQLOptions } from '../../options'
+
+export const dbTypeOptions = ExeSQLOptions
