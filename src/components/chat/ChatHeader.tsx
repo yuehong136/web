@@ -16,14 +16,11 @@ type ChatLayout = 'default' | 'center' | 'full';
 
 interface ChatHeaderProps {
   onMenuToggle: () => void;
-  isMobileMenuOpen?: boolean;
   selectedMCPIds: string[];
   mcpConfig: MCPChatConfig;
   onMCPSelectionChange: (selectedIds: string[], config: MCPChatConfig) => void;
   selectedModelId?: string;
   onModelChange?: (modelId: string) => void;
-  temporaryChatEnabled?: boolean;
-  onTemporaryChatChange?: (enabled: boolean) => void;
   models?: MyLLMProvider;
   modelsLoading?: boolean;
   chatLayout?: ChatLayout;
@@ -32,14 +29,11 @@ interface ChatHeaderProps {
 
 export function ChatHeader({
   onMenuToggle,
-  isMobileMenuOpen,
   selectedMCPIds,
   mcpConfig,
   onMCPSelectionChange,
   selectedModelId = "",
   onModelChange = () => {},
-  temporaryChatEnabled,
-  onTemporaryChatChange,
   models,
   modelsLoading = false,
   chatLayout = 'default',

@@ -22,12 +22,16 @@ interface LayoutRecognizeFormFieldProps {
   name?: string
   horizontal?: boolean
   className?: string
+  showMineruOptions?: boolean
+  showPaddleocrOptions?: boolean
 }
 
 export function LayoutRecognizeFormField({
   name = 'parser_config.layout_recognize',
   horizontal = true,
   className,
+  showMineruOptions: _showMineruOptions = true,
+  showPaddleocrOptions: _showPaddleocrOptions = true,
 }: LayoutRecognizeFormFieldProps) {
   const form = useFormContext()
 

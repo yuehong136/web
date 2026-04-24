@@ -10,9 +10,6 @@ import type {
   MemoryMessage,
   MemoryFilterState,
   MessageFilterState,
-  MemoryType,
-  StorageType,
-  PermissionType,
 } from '@/types/memory'
 
 // ============ 状态类型 ============

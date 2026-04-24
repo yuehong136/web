@@ -6,14 +6,14 @@ export function useCreateCategorizeFormSchema() {
 
   return z.object({
     llm_id: z.string().optional(),
-    temperature: z.coerce.number().optional(),
-    top_p: z.coerce.number().optional(),
-    presence_penalty: z.coerce.number().optional(),
-    frequency_penalty: z.coerce.number().optional(),
-    max_tokens: z.coerce.number().optional(),
+    temperature: z.number().optional(),
+    top_p: z.number().optional(),
+    presence_penalty: z.number().optional(),
+    frequency_penalty: z.number().optional(),
+    max_tokens: z.number().optional(),
     query: z.string().optional(),
     parameter: z.string().optional(),
-    message_history_window_size: z.coerce.number().optional(),
+    message_history_window_size: z.number().optional(),
     items: z
       .array(
         z.object({

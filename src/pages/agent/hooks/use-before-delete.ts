@@ -2,7 +2,6 @@ import { useCallback } from 'react'
 import type { Node, Edge } from '@xyflow/react'
 import { Operator } from '../constant'
 import useGraphStore from '../store'
-import type { RAGFlowNodeType } from '../types'
 
 /**
  * Hook for pre-delete validation
@@ -18,7 +17,7 @@ export const useBeforeDelete = () => {
 
   const handleBeforeDelete = useCallback(
     async (params: { nodes: Node[]; edges: Edge[] }) => {
-      const { nodes, edges } = params
+      const { nodes } = params
 
       // Check for protected nodes (Begin node)
       const hasProtectedNode = nodes.some((node) => {

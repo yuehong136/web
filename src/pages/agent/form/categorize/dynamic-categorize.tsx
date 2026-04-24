@@ -11,6 +11,7 @@ import {
   useState,
 } from 'react'
 import {
+  type FieldPath,
   type UseFormReturn,
   useFieldArray,
   useFormContext,
@@ -126,7 +127,9 @@ function CategorizeItemFields({ index }: { index: number }) {
   const form = useFormContext<CategorizeFormValues>()
 
   const buildFieldName = useCallback(
-    (name: string) => `items.${index}.${name}` as const,
+    <TName extends 'name' | 'description' | 'uuid' | 'examples'>(
+      name: TName,
+    ) => `items.${index}.${name}` as FieldPath<CategorizeFormValues>,
     [index],
   )
 
@@ -141,6 +144,7 @@ function CategorizeItemFields({ index }: { index: number }) {
             <FormControl>
               <NameInput
                 {...field}
+                value={typeof field.value === 'string' ? field.value : ''}
                 otherNames={getOtherFieldValues(form, index)}
                 validate={(error) => {
                   const fieldName = buildFieldName('name')
@@ -164,7 +168,11 @@ function CategorizeItemFields({ index }: { index: number }) {
           <FormItem>
             <FormLabel>{t('common.description', 'Description')}</FormLabel>
             <FormControl>
-              <Textarea {...field} rows={3} value={field.value ?? ''} />
+              <Textarea
+                {...field}
+                rows={3}
+                value={typeof field.value === 'string' ? field.value : ''}
+              />
             </FormControl>
             <FormMessage />
           </FormItem>

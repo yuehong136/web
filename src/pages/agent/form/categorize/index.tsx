@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMemo } from 'react'
-import { useForm } from 'react-hook-form'
+import { type Resolver, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { Form } from '@/components/ui/form'
 import {
@@ -32,7 +32,7 @@ export function CategorizeForm({ node }: INextOperatorForm) {
 
   const form = useForm<CategorizeFormValues>({
     defaultValues: values as CategorizeFormValues,
-    resolver: zodResolver(schema),
+    resolver: zodResolver(schema) as Resolver<CategorizeFormValues>,
   })
 
   useWatchFormChange(node?.id, form)

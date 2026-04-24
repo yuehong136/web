@@ -86,7 +86,7 @@ export const AppCard: React.FC<AppCardProps> = ({
     navigate(`${ROUTES.STUDIO_CREATE_APP}?${searchParams.toString()}`)
   }
 
-  const handleCheckboxChange = (checked: boolean) => {
+  const handleCheckboxChange = () => {
     onSelect?.(data.id)
   }
 

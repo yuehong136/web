@@ -3,6 +3,7 @@ import type {
   Edge,
   EdgeChange,
   EdgeMouseHandler,
+  NodePositionChange,
   NodeChange,
   OnConnect,
   OnEdgesChange,
@@ -54,6 +55,10 @@ function getIterationParentIds(
 
   return new Set(
     changes.flatMap((change) => {
+      if (!('id' in change)) {
+        return []
+      }
+
       const node = lookup.get(change.id)
       if (!node?.parentId) {
         return []
@@ -76,9 +81,10 @@ function resizeIterationContainers(
 
   for (const parentId of parentIds) {
     const parent = nodes.find((node) => node.id === parentId)
-    if (!isIterationContainerNode(parent)) {
+    if (!parent || !isIterationContainerNode(parent)) {
       continue
     }
+    const parentNode = parent as RAGFlowNodeType
 
     const children = getIterationContentChildren(nodes, parentId)
     if (children.length === 0) {
@@ -99,9 +105,13 @@ function resizeIterationContainers(
     )
 
     const currentWidth =
-      parent.width ?? parent.measured?.width ?? ITERATION_DEFAULT_SIZE.width
+      parentNode.width ??
+      parentNode.measured?.width ??
+      ITERATION_DEFAULT_SIZE.width
     const currentHeight =
-      parent.height ?? parent.measured?.height ?? ITERATION_DEFAULT_SIZE.height
+      parentNode.height ??
+      parentNode.measured?.height ??
+      ITERATION_DEFAULT_SIZE.height
     const nextWidth = Math.max(
       currentWidth,
       ITERATION_MIN_SIZE.width,
@@ -139,6 +149,7 @@ function normalizeIterationNodeChanges(
       return change
     }
 
+    const positionChange = change as NodePositionChange
     const node = lookup.get(change.id)
     if (!node?.parentId) {
       return change
@@ -146,7 +157,7 @@ function normalizeIterationNodeChanges(
 
     if (isIterationStartNode(node)) {
       return {
-        ...change,
+        ...positionChange,
         position: getFixedIterationStartPosition(),
       }
     }
@@ -157,7 +168,7 @@ function normalizeIterationNodeChanges(
     }
 
     return {
-      ...change,
+      ...positionChange,
       position: clampIterationChildPosition(change.position),
     }
   })
@@ -397,18 +408,22 @@ const useGraphStore = create<RFState>()(
         get()
       const node = getNode(id)
 
-      if (node?.data.label === Operator.Iteration) {
+      if (!node) {
+        return
+      }
+
+      if (node.data.label === Operator.Iteration) {
         duplicateIterationNode(id, name)
         return
       }
 
       addNode({
-        ...(node || {}),
+        ...node,
         data: {
-          ...duplicateNodeForm(node?.data),
+          ...duplicateNodeForm(node.data),
           name: generateNodeName(name),
         },
-        ...generateDuplicateNode(node?.position, node?.data?.label),
+        ...generateDuplicateNode(node.position, node.data.label),
       })
     },
 
@@ -416,30 +431,34 @@ const useGraphStore = create<RFState>()(
       const { getNode, generateNodeName, nodes } = get()
       const node = getNode(id)
 
-      const iterationNode: RAGFlowNodeType = {
-        ...(node || {}),
-        data: {
-          ...(node?.data || { label: Operator.Iteration, form: {} }),
-          name: generateNodeName(name),
-        },
-        ...generateDuplicateNode(node?.position, node?.data?.label),
+      if (!node) {
+        return
       }
 
-      const children = nodes
-        .filter((x) => x.parentId === node?.id)
+      const iterationNode: RAGFlowNodeType = {
+        ...node,
+        data: {
+          ...node.data,
+          name: generateNodeName(name),
+        },
+        ...generateDuplicateNode(node.position, node.data.label),
+      }
+
+      const children: RAGFlowNodeType[] = nodes
+        .filter((x) => x.parentId === node.id)
         .map((x) => ({
-          ...(x || {}),
+          ...x,
           data: {
-            ...duplicateNodeForm(x?.data),
+            ...duplicateNodeForm(x.data),
             name: generateNodeName(x.data.name),
           },
-          ...omit(generateDuplicateNode(x?.position, x?.data?.label), [
+          ...omit(generateDuplicateNode(x.position, x.data.label), [
             'position',
           ]),
           parentId: iterationNode.id,
           position: isIterationStartNode(x)
             ? getFixedIterationStartPosition()
-            : x?.position,
+            : x.position,
         }))
 
       set({

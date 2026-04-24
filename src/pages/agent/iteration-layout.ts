@@ -19,12 +19,12 @@ export const ITERATION_CHILD_MIN_POSITION = {
   y: ITERATION_CONTENT_TOP_PADDING,
 } as const
 
-const ITERATION_CONTAINER_LABELS = new Set([
+const ITERATION_CONTAINER_LABELS = new Set<string>([
   Operator.Iteration,
   Operator.Loop,
 ])
 
-const ITERATION_START_LABELS = new Set([
+const ITERATION_START_LABELS = new Set<string>([
   Operator.IterationStart,
   Operator.LoopStart,
 ])
@@ -33,11 +33,11 @@ type NodeWithLabel = Pick<RAGFlowNodeType, 'data'>
 type SizedNode = Pick<RAGFlowNodeType, 'measured' | 'width' | 'height'>
 
 export function isIterationContainerLabel(label?: string) {
-  return !!label && ITERATION_CONTAINER_LABELS.has(label as Operator)
+  return !!label && ITERATION_CONTAINER_LABELS.has(label)
 }
 
 export function isIterationStartLabel(label?: string) {
-  return !!label && ITERATION_START_LABELS.has(label as Operator)
+  return !!label && ITERATION_START_LABELS.has(label)
 }
 
 export function isIterationContainerNode(node?: NodeWithLabel | null) {
@@ -116,7 +116,7 @@ export function normalizeIterationNodes(nodes: RAGFlowNodeType[]) {
     return {
       ...node,
       position: isIterationContentChild(node)
-        ? clampIterationChildPosition(node.position)
+        ? clampIterationChildPosition(node.position) ?? node.position
         : node.position,
       expandParent: false,
     }

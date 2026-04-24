@@ -1,5 +1,5 @@
 // src/utils/variableResolver.ts
-import type { Environment, EnvironmentVariable } from '@/types/api'
+import type { Environment } from '@/types/api'
 
 export class VariableResolver {
   private variables: Map<string, string> = new Map()

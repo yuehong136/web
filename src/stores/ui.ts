@@ -1,6 +1,5 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { STORAGE_KEYS } from '@/constants'
 import { Theme, getResolvedTheme } from '@/themes'
 import type { Language } from '@/types'
 

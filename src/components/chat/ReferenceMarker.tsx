@@ -70,35 +70,12 @@ function getDocTypeIcon(docType?: string, docName?: string) {
 }
 
 /**
- * 获取文档类型标签
- */
-function getDocTypeLabel(docType?: string): string {
-  switch (docType) {
-    case 'table':
-      return '表格'
-    case 'image':
-      return '图片'
-    default:
-      return '文本'
-  }
-}
-
-/**
  * 获取相似度颜色
  */
 function getSimilarityColor(similarity: number): string {
   if (similarity >= 0.8) return 'var(--color-text-success)'
   if (similarity >= 0.6) return 'var(--color-text-accent)'
   return 'var(--color-text-tertiary)'
-}
-
-/**
- * 获取相似度等级标签
- */
-function getSimilarityLabel(similarity: number): string {
-  if (similarity >= 0.8) return '高度匹配'
-  if (similarity >= 0.6) return '较为相关'
-  return '可能相关'
 }
 
 /**

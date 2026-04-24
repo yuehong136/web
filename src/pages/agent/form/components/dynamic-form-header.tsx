@@ -18,7 +18,7 @@ export function DynamicFormHeader({
 }: FormListHeaderProps) {
   return (
     <div className="flex items-center justify-between">
-      <FormLabel>{label}</FormLabel>
+      <FormLabel tooltip={tooltip}>{label}</FormLabel>
       <Button
         variant="ghost"
         type="button"

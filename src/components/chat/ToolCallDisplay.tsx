@@ -114,10 +114,9 @@ function ParamsList({ args }: { args: Record<string, any> }) {
   );
 }
 
-function ResultView({ result, onOpenModal, toolName }: {
+function ResultView({ result, onOpenModal }: {
   result: string | any;
   onOpenModal?: (text: string) => void;
-  toolName?: string;
 }) {
   if (!result) return null;
 
@@ -399,7 +398,6 @@ export function ToolCallDisplay({ toolCalls, parsedToolCalls }: ToolCallDisplayP
                         <ResultView
                           result={output}
                           onOpenModal={(text) => openModal(text, `${toolName} 结果`)}
-                          toolName={toolName}
                         />
                       </div>
                     </div>

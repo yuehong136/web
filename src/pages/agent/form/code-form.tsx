@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm, useWatch } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
 import {
@@ -46,7 +46,6 @@ export function CodeForm({ node }: INextOperatorForm) {
 
   useWatchFormChange(node?.id, form)
 
-  const lang = useWatch({ control: form.control, name: 'lang' })
   const outputs = form.getValues('outputs')
 
   return (

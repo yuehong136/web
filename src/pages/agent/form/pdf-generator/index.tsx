@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMemo } from 'react'
-import { useForm } from 'react-hook-form'
+import { type Resolver, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
 import { PromptEditor } from '@/components/prompt-editor'
@@ -37,23 +37,23 @@ const pdfGeneratorSchema = z.object({
   footer_text: z.string().optional(),
   logo_image: z.string().optional(),
   logo_position: z.string(),
-  logo_width: z.coerce.number(),
-  logo_height: z.coerce.number(),
+  logo_width: z.number(),
+  logo_height: z.number(),
   font_family: z.string(),
-  font_size: z.coerce.number(),
-  title_font_size: z.coerce.number(),
-  heading1_font_size: z.coerce.number(),
-  heading2_font_size: z.coerce.number(),
-  heading3_font_size: z.coerce.number(),
+  font_size: z.number(),
+  title_font_size: z.number(),
+  heading1_font_size: z.number(),
+  heading2_font_size: z.number(),
+  heading3_font_size: z.number(),
   text_color: z.string(),
   title_color: z.string(),
   page_size: z.string(),
   orientation: z.string(),
-  margin_top: z.coerce.number(),
-  margin_bottom: z.coerce.number(),
-  margin_left: z.coerce.number(),
-  margin_right: z.coerce.number(),
-  line_spacing: z.coerce.number(),
+  margin_top: z.number(),
+  margin_bottom: z.number(),
+  margin_left: z.number(),
+  margin_right: z.number(),
+  line_spacing: z.number(),
   filename: z.string().optional(),
   output_directory: z.string(),
   add_page_numbers: z.boolean(),
@@ -95,7 +95,7 @@ export function PDFGeneratorForm({ node }: INextOperatorForm) {
 
   const form = useForm<PdfGeneratorFormValues>({
     defaultValues: values as PdfGeneratorFormValues,
-    resolver: zodResolver(pdfGeneratorSchema),
+    resolver: zodResolver(pdfGeneratorSchema) as Resolver<PdfGeneratorFormValues>,
   })
 
   useWatchFormChange(node?.id, form)

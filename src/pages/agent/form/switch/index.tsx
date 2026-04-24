@@ -73,8 +73,8 @@ export function SwitchForm({ node }: INextOperatorForm) {
     <Form {...form}>
       <FormWrapper>
         {fields.map((field, index) => {
-          const name = `${conditionKey}.${index}`
-          const conditions = form.getValues(`${name}.${itemKey}`)
+          const name = `${conditionKey}.${index}` as const
+          const conditions = form.getValues('conditions')?.[index]?.items
           const conditionLength = conditions?.length ?? 0
 
           return (

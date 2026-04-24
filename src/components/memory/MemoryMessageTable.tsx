@@ -303,7 +303,7 @@ export const MemoryMessageTable: React.FC<MemoryMessageTableProps> = ({
         <Table>
           <TableHeader>
             <TableRow>
-              {columns.map((column, i) => (
+              {columns.map((_, i) => (
                 <TableHead key={i} className="h-12">
                   <div className="h-4 w-20 bg-background-subtle rounded animate-pulse" />
                 </TableHead>

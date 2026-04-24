@@ -7,6 +7,7 @@ interface InputToolbarProps {
   hasSelectedItems: boolean
   disabled?: boolean
   onAtClick: () => void
+  atButtonRef?: React.RefObject<HTMLButtonElement>
   size?: 'normal' | 'compact'
 }
 
@@ -15,6 +16,7 @@ export const InputToolbar: React.FC<InputToolbarProps> = ({
   hasSelectedItems,
   disabled = false,
   onAtClick,
+  atButtonRef,
   size = 'normal',
 }) => {
   const buttonSize = size === 'compact' ? 'w-8 h-8' : 'w-9 h-9'
@@ -23,6 +25,7 @@ export const InputToolbar: React.FC<InputToolbarProps> = ({
   return (
     <div className="flex items-center gap-2">
       <button
+        ref={atButtonRef}
         onClick={onAtClick}
         disabled={disabled}
         className={cn(

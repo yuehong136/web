@@ -14,7 +14,6 @@ import type {
   CreateMemoryParams,
   UpdateMemoryParams,
   MemoryListParams,
-  MessageListParams,
   MemoryListResponse,
   MessageListResponse,
   MessageContentResponse,

@@ -50,6 +50,9 @@ export interface IFlow {
   user_id: string
   permission: string
   nickname?: string
+  release?: boolean
+  release_time?: number
+  last_publish_time?: number
 }
 
 // ==================== 节点表单类型 ====================

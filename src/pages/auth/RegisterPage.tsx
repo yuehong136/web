@@ -1,6 +1,5 @@
 import React from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Loading } from '@/components/ui/loading'
@@ -11,18 +10,6 @@ import { Progress } from '@/components/ui/progress'
 import { Separator } from '@/components/ui/separator'
 import { Label } from '@/components/ui/label'
 import { AuthCarousel } from '@/components/auth/AuthCarousel'
-
-const registerSchema = z.object({
-  nickname: z.string().min(2, '昵称至少2位'),
-  email: z.string().email('请输入有效的邮箱地址'),
-  password: z.string().min(4, '密码至少4位'),
-  confirmPassword: z.string(),
-  company: z.string().optional(),
-  role: z.string().optional(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: '两次输入的密码不一致',
-  path: ['confirmPassword'],
-})
 
 interface FormData {
   nickname: string;

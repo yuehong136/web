@@ -119,6 +119,7 @@ export const ChatInputBox: React.FC<ChatInputBoxProps> = ({
               hasSelectedItems={hasSelectedItems}
               disabled={isStreaming}
               onAtClick={onSkillPanelToggle}
+              atButtonRef={skillPanelRef}
               size={isWelcome ? 'normal' : 'compact'}
             />
           </div>

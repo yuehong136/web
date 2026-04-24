@@ -29,8 +29,6 @@ export interface DocAgg {
 export interface ReferencePanelProps {
   /** 引用的 chunks 列表 */
   chunks: ReferenceChunk[]
-  /** 文档聚合数据（可选） */
-  docAggs?: DocAgg[]
   /** 点击 chunk 时的回调 */
   onChunkClick?: (chunk: ReferenceChunk) => void
   /** 自定义类名 */
@@ -112,7 +110,6 @@ function truncateContent(content: string, maxLength = 80): string {
  */
 function groupChunksByDocument(
   chunks: ReferenceChunk[],
-  docAggs?: DocAgg[]
 ): Map<string, { docName: string; docId: string; chunks: Array<{ chunk: ReferenceChunk; index: number }> }> {
   const groups = new Map<string, { docName: string; docId: string; chunks: Array<{ chunk: ReferenceChunk; index: number }> }>()
   
@@ -210,7 +207,6 @@ const ChunkItem: React.FC<ChunkItemProps> = ({ chunk, index, onClick }) => {
  */
 interface DocumentGroupProps {
   docName: string
-  docId: string
   chunks: Array<{ chunk: ReferenceChunk; index: number }>
   defaultVisible: number
   onChunkClick?: (chunk: ReferenceChunk) => void
@@ -218,7 +214,6 @@ interface DocumentGroupProps {
 
 const DocumentGroup: React.FC<DocumentGroupProps> = ({
   docName,
-  docId,
   chunks,
   defaultVisible,
   onChunkClick
@@ -309,7 +304,6 @@ const DocumentGroup: React.FC<DocumentGroupProps> = ({
  */
 export const ReferencePanel: React.FC<ReferencePanelProps> = ({
   chunks,
-  docAggs,
   onChunkClick,
   className,
   defaultVisiblePerDoc = 2,
@@ -319,8 +313,8 @@ export const ReferencePanel: React.FC<ReferencePanelProps> = ({
   
   // 按文档分组
   const documentGroups = React.useMemo(
-    () => groupChunksByDocument(chunks, docAggs),
-    [chunks, docAggs]
+    () => groupChunksByDocument(chunks),
+    [chunks]
   )
   
   const documentCount = documentGroups.size
@@ -372,7 +366,6 @@ export const ReferencePanel: React.FC<ReferencePanelProps> = ({
             <DocumentGroup
               key={group.docId}
               docName={group.docName}
-              docId={group.docId}
               chunks={group.chunks}
               defaultVisible={defaultVisiblePerDoc}
               onChunkClick={onChunkClick}

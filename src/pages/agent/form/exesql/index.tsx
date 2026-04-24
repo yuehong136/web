@@ -38,7 +38,7 @@ export function ExeSQLForm({ node }: INextOperatorForm) {
 
   return (
     <Form {...form}>
-      <FormWrapper onSubmit={form.handleSubmit(testConnection)}>
+      <FormWrapper onSubmit={form.handleSubmit((data) => void testConnection(data))}>
         <FormField
           control={form.control}
           name="sql"

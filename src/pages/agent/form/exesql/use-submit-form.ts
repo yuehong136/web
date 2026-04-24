@@ -8,9 +8,9 @@ const exeSqlBaseSchema = z.object({
   database: z.string().min(1, 'Database is required'),
   username: z.string().min(1, 'Username is required'),
   host: z.string().min(1, 'Host is required'),
-  port: z.coerce.number(),
+  port: z.number(),
   password: z.string().optional().or(z.literal('')),
-  max_records: z.coerce.number(),
+  max_records: z.number(),
 })
 
 export const exeSqlSchema = exeSqlBaseSchema.extend({

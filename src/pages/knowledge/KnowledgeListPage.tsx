@@ -206,7 +206,7 @@ export const KnowledgeListPage: React.FC = () => {
 
   const [viewMode, setViewMode] = React.useState<'grid' | 'table'>('grid')
   const [selectedBases, setSelectedBases] = React.useState<string[]>([])
-  const [sortBy, setSortBy] = React.useState<'create_time' | 'update_time' | 'name' | 'doc_num'>('update_time')
+  const [sortBy] = React.useState<'create_time' | 'update_time' | 'name' | 'doc_num'>('update_time')
   const [sortDesc, setSortDesc] = React.useState(true)
   const [filterPopoverOpen, setFilterPopoverOpen] = React.useState(false)
   const [timeFormat, setTimeFormat] = React.useState<'detailed' | 'compact' | 'relative'>('detailed')
@@ -322,16 +322,6 @@ export const KnowledgeListPage: React.FC = () => {
         })
       }
     }
-  }
-
-  const handleSort = (field: typeof sortBy) => {
-    if (sortBy === field) {
-      setSortDesc(!sortDesc)
-    } else {
-      setSortBy(field)
-      setSortDesc(true)
-    }
-    setCurrentPage(1) // Reset to first page when sorting changes
   }
 
   const filteredKnowledgeBases = React.useMemo(() => {

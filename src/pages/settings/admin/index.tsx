@@ -24,7 +24,7 @@ import {
   useUpdateUserPassword,
   useGrantAdmin,
 } from './hooks/use-admin-users'
-import { UserStatusFilter, UserRoleFilter } from './types'
+import { UserStatusFilter } from './types'
 import type { AdminUser, CreateUserParams } from './types'
 
 // ─── Filter Select ────────────────────────────────────────────────────────────
@@ -171,7 +171,6 @@ const UsersPanel: React.FC<{ currentUserEmail?: string; onLogout: () => void }> 
 }) => {
   const [keyword, setKeyword] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>(UserStatusFilter.ALL)
-  const [roleFilter, setRoleFilter] = useState<string>(UserRoleFilter.ALL)
   const [createOpen, setCreateOpen] = useState(false)
   const [changePassUser, setChangePassUser] = useState<AdminUser | null>(null)
 

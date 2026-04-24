@@ -1,11 +1,6 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Maximize2 } from 'lucide-react'
-import {
-  useRef,
-  useState,
-  type FC,
-  type MouseEvent as ReactMouseEvent,
-} from 'react'
+import { useRef, useState, type FC } from 'react'
 import { useTranslation } from '../../hooks/use-translation'
 import { cn } from '@/lib/utils'
 import type { JSONSchema } from '../../types/json-schema'
@@ -32,10 +27,7 @@ const JsonSchemaEditor: FC<JsonSchemaEditorProps> = ({
   const t = useTranslation()
 
   const [isFullscreen, setIsFullscreen] = useState(false)
-  const [leftPanelWidth, setLeftPanelWidth] = useState(50) // percentage
-  const resizeRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-  const isDraggingRef = useRef(false)
 
   const toggleFullscreen = () => {
     setIsFullscreen(!isFullscreen)
@@ -44,32 +36,6 @@ const JsonSchemaEditor: FC<JsonSchemaEditorProps> = ({
   const fullscreenClass = isFullscreen
     ? 'fixed inset-0 z-50 bg-surface-primary'
     : ''
-
-  const handleMouseDown = (e: ReactMouseEvent) => {
-    e.preventDefault()
-    isDraggingRef.current = true
-    document.addEventListener('mousemove', handleMouseMove)
-    document.addEventListener('mouseup', handleMouseUp)
-  }
-
-  const handleMouseMove = (e: MouseEvent) => {
-    if (!isDraggingRef.current || !containerRef.current) return
-
-    const containerRect = containerRef.current.getBoundingClientRect()
-    const newWidth =
-      ((e.clientX - containerRect.left) / containerRect.width) * 100
-
-    // Limit the minimum and maximum width
-    if (newWidth >= 20 && newWidth <= 80) {
-      setLeftPanelWidth(newWidth)
-    }
-  }
-
-  const handleMouseUp = () => {
-    isDraggingRef.current = false
-    document.removeEventListener('mousemove', handleMouseMove)
-    document.removeEventListener('mouseup', handleMouseUp)
-  }
 
   return (
     <div

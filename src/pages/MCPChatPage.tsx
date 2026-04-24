@@ -314,7 +314,6 @@ export default function MCPChatPage() {
   // 模型选择相关状态 - 使用真实的模型数据
   const { myLLMs, isLoading: modelsLoading, loadMyLLMs } = useModelStore();
   const [selectedModelId, setSelectedModelId] = useState<string>("");
-  const [temporaryChatEnabled, setTemporaryChatEnabled] = useState<boolean>(false);
 
   const activeSession = sessions.find(s => s.id === activeSessionId);
 
@@ -878,7 +877,6 @@ export default function MCPChatPage() {
             setIsMobileMenuOpen(false);
           }}
           onNewChat={handleNewChat}
-          temporaryChatEnabled={temporaryChatEnabled}
         />
       </div>
 
@@ -896,14 +894,11 @@ export default function MCPChatPage() {
         >
           <ChatHeader 
             onMenuToggle={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            isMobileMenuOpen={isMobileMenuOpen}
             selectedMCPIds={selectedMCPIds}
             mcpConfig={mcpConfig}
             onMCPSelectionChange={handleMCPSelectionChange}
             selectedModelId={selectedModelId}
             onModelChange={setSelectedModelId}
-            temporaryChatEnabled={temporaryChatEnabled}
-            onTemporaryChatChange={setTemporaryChatEnabled}
             models={myLLMs}
             modelsLoading={modelsLoading}
             chatLayout={chatLayout}

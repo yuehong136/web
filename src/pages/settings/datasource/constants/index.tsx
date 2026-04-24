@@ -1,8 +1,8 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Mail, Github } from 'lucide-react'
 import SvgIcon from '@/components/ui/svg-icon'
-import { DataSourceKey, type IDataSourceInfoMap, type FormFieldConfig } from '../types'
+import { DataSourceKey, type IDataSourceInfoMap } from '../types'
 import { getBaseFormFields, getDataSourceFormFields } from './form-fields'
 
 // 导入数据源 SVG 图标

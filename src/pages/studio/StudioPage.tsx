@@ -71,7 +71,6 @@ export const StudioPage: React.FC = () => {
     createAppModalOpen,
     openCreateAppModal,
     closeCreateAppModal,
-    editingApp,
   } = useStudioStore()
 
   // 删除确认弹窗状态
