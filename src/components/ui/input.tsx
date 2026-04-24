@@ -54,7 +54,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     onBlur,
     ...props 
   }, ref) => {
-    const inputId = id || React.useId()
+    const reactId = React.useId()
+    const inputId = id || reactId
     const hasError = !!error
     const effectiveVariant = hasError ? 'destructive' : variant
     const [isFocused, setIsFocused] = React.useState(false)

@@ -1,4 +1,3 @@
-/* eslint-disable react-refresh/only-export-components */
 import { cn } from '@/lib/utils'
 import type { PropsWithChildren } from 'react'
 import { Variable } from 'lucide-react'

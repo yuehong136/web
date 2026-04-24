@@ -50,6 +50,7 @@ export function useGenerationPreset({
   // 这样可以确保初始化时就能正确显示预设标记
   const preset = useMemo(() => {
     return detectMatchingPreset(parameters)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 显式拆分到 4 个标量字段是为了避免 parameters 对象每次渲染重新创建导致误判
   }, [
     parameters.temperature,
     parameters.topP,

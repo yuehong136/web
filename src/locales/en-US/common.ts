@@ -66,5 +66,19 @@ export default {
     type: 'Type',
     action: 'Action',
     total: '{{count}} items',
+
+    // API error messages
+    errors: {
+      network: 'Network connection failed. Please check your connection settings.',
+      timeout: 'Request timed out. Please try again.',
+      unauthorized: 'Your session has expired. Please log in again.',
+      forbidden: 'You do not have permission to access this resource.',
+      notFound: 'The requested resource was not found.',
+      serverError: 'Internal server error. Please try again later.',
+      validationError: 'Invalid input format.',
+      fileTooLarge: 'File size exceeds the limit.',
+      unsupportedFileType: 'Unsupported file type.',
+      unknown: 'Unknown error.',
+    },
   },
 }

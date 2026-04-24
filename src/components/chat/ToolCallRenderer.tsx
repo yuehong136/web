@@ -62,7 +62,7 @@ const detectLang = (content: string): string => {
   try {
     JSON.parse(t);
     return 'json';
-  } catch {}
+  } catch { /* ignore */ }
   return 'plaintext';
 };
 
@@ -100,7 +100,7 @@ const ParamValue: React.FC<{ value: any }> = ({ value }) => {
       if (typeof parsed === 'object' && parsed !== null) {
         return <CodeHighlighter lang="json">{JSON.stringify(parsed, null, 2)}</CodeHighlighter>;
       }
-    } catch {}
+    } catch { /* ignore */ }
     const lang = detectLang(value);
     if (lang !== 'plaintext' || value.length > 80 || value.includes('\n')) {
       return <CodeHighlighter lang={lang}>{value}</CodeHighlighter>;
@@ -168,7 +168,7 @@ const ResultContent: React.FC<{ result: any; status: string }> = ({ result, stat
         }
         return <CodeHighlighter lang="json">{JSON.stringify(parsed, null, 2)}</CodeHighlighter>;
       }
-    } catch {}
+    } catch { /* ignore */ }
     const lang = detectLang(result);
     if (lang !== 'plaintext' || result.includes('\n') || result.length > 100) {
       return <CodeHighlighter lang={lang}>{result}</CodeHighlighter>;

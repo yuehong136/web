@@ -90,6 +90,7 @@ export const MemoryListPage: React.FC = () => {
   const deleteMutation = useDeleteMemory()
 
   // 记忆库列表
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- memory_list 的 || [] fallback 在 useMemo 里重新计算，引用差异可忽略
   const memories = data?.memory_list || []
   const total = data?.total_count || 0
 

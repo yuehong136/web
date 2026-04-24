@@ -329,6 +329,7 @@ const ApiDocumentationPage: React.FC = () => {
                    variables.API_URL ||
                    'https://api.example.com'
     return baseUrl
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 保留 selectedEnvironmentId 依赖以便切换环境时重算 baseUrl
   }, [currentEnvironment, selectedEnvironmentId, getVariableMap])
 
   // 获取完整的API URL
@@ -336,6 +337,7 @@ const ApiDocumentationPage: React.FC = () => {
     const baseUrl = getBaseUrl()
     const fullUrl = resolveText(`${baseUrl}${path}`)
     return fullUrl
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 保留 selectedEnvironmentId/currentEnvironment 依赖以便切换环境时重新绑定 URL
   }, [getBaseUrl, resolveText, selectedEnvironmentId, currentEnvironment])
   
   // API测试相关状态
@@ -458,6 +460,7 @@ const ApiDocumentationPage: React.FC = () => {
       default:
         return '# 输入数据内容'
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- generateExampleFromSchema 在同文件定义，随 selectedAPI 计算，不需要额外依赖
   }, [selectedAPI])
 
   // 请求体格式验证函数
@@ -497,7 +500,7 @@ const ApiDocumentationPage: React.FC = () => {
           JSON.parse(content)
           return { isValid: true, error: null }
         
-        case 'xml':
+        case 'xml': {
           // 简单的XML验证 - 检查是否有成对的标签
           const hasOpenTags = /<\w+/g.test(content)
           const hasCloseTags = /<\/\w+>/g.test(content)
@@ -505,14 +508,16 @@ const ApiDocumentationPage: React.FC = () => {
             return { isValid: false, error: 'XML格式错误：缺少闭合标签' }
           }
           return { isValid: true, error: null }
-        
-        case 'graphql':
+        }
+
+        case 'graphql': {
           // 简单的GraphQL验证 - 检查是否包含query/mutation/subscription关键字
           const hasGraphQLKeyword = /\b(query|mutation|subscription)\b/i.test(content)
           if (!hasGraphQLKeyword) {
             return { isValid: false, error: 'GraphQL格式错误：缺少query、mutation或subscription关键字' }
           }
           return { isValid: true, error: null }
+        }
         
         default:
           return { isValid: true, error: null }
@@ -560,7 +565,7 @@ const ApiDocumentationPage: React.FC = () => {
     
     try {
       switch (type) {
-        case 'json':
+        case 'json': {
           const parsed = JSON.parse(content)
           const formatted = JSON.stringify(parsed, null, 2)
           setFormatMessage({
@@ -568,7 +573,8 @@ const ApiDocumentationPage: React.FC = () => {
             text: 'JSON 格式化成功'
           })
           return formatted
-        case 'xml':
+        }
+        case 'xml': {
           // 简单的XML格式化
           const xmlFormatted = content
             .replace(/></g, '>\n<')
@@ -577,9 +583,9 @@ const ApiDocumentationPage: React.FC = () => {
             .map((line) => {
               const trimmedLine = line.trim()
               if (!trimmedLine) return ''
-              
-              const indent = '  '.repeat(Math.max(0, 
-                (trimmedLine.match(/^<[^\/]/g) ? 1 : 0) - 
+
+              const indent = '  '.repeat(Math.max(0,
+                (trimmedLine.match(/^<[^/]/g) ? 1 : 0) -
                 (trimmedLine.match(/<\//g) || []).length
               ))
               return indent + trimmedLine
@@ -591,7 +597,8 @@ const ApiDocumentationPage: React.FC = () => {
             text: 'XML 格式化成功'
           })
           return xmlFormatted
-        case 'graphql':
+        }
+        case 'graphql': {
           // GraphQL简单格式化
           const graphqlFormatted = content
             .replace(/\s*{\s*/g, ' {\n  ')
@@ -602,6 +609,7 @@ const ApiDocumentationPage: React.FC = () => {
             text: 'GraphQL 格式化成功'
           })
           return graphqlFormatted
+        }
         default:
           return content
       }
@@ -613,6 +621,7 @@ const ApiDocumentationPage: React.FC = () => {
       })
       return content
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- generateExampleFromSchema/selectedAPI 仅在 body 初始化路径使用，不影响格式化
   }, [setFormatMessage])
 
   // 压缩内容
@@ -623,7 +632,7 @@ const ApiDocumentationPage: React.FC = () => {
     
     try {
       switch (type) {
-        case 'json':
+        case 'json': {
           const parsed = JSON.parse(content)
           const minified = JSON.stringify(parsed)
           setFormatMessage({
@@ -631,27 +640,31 @@ const ApiDocumentationPage: React.FC = () => {
             text: 'JSON 压缩成功'
           })
           return minified
-        case 'xml':
+        }
+        case 'xml': {
           const xmlMinified = content.replace(/>\s+</g, '><').replace(/\s+/g, ' ').trim()
           setFormatMessage({
             type: 'success',
             text: 'XML 压缩成功'
           })
           return xmlMinified
-        case 'graphql':
+        }
+        case 'graphql': {
           const graphqlMinified = content.replace(/\s+/g, ' ').trim()
           setFormatMessage({
             type: 'success',
             text: 'GraphQL 压缩成功'
           })
           return graphqlMinified
-        default:
+        }
+        default: {
           const defaultMinified = content.replace(/\s+/g, ' ').trim()
           setFormatMessage({
             type: 'success',
             text: '内容压缩成功'
           })
           return defaultMinified
+        }
       }
     } catch (error) {
       console.error('Minify error:', error)
@@ -771,6 +784,7 @@ const ApiDocumentationPage: React.FC = () => {
   // 数据加载
   useEffect(() => {
     loadAPIData(false) // 默认加载静态数据
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 首次挂载加载一次静态 API 数据
   }, [])
 
   // 当选中API变化时，初始化测试数据
@@ -778,6 +792,7 @@ const ApiDocumentationPage: React.FC = () => {
     if (selectedAPI) {
       initializeTestData(selectedAPI)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- initializeTestData 在组件内，仅随 selectedAPI 变化触发
   }, [selectedAPI])
 
   // 当 API Key 管理弹窗打开时加载数据
@@ -785,6 +800,7 @@ const ApiDocumentationPage: React.FC = () => {
     if (apiKeyManagementOpen) {
       loadApiKeys()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 只在弹窗开关切换时触发一次加载
   }, [apiKeyManagementOpen])
 
   // 当分页、搜索参数变化时重新加载
@@ -792,6 +808,7 @@ const ApiDocumentationPage: React.FC = () => {
     if (apiKeyManagementOpen) {
       loadApiKeys()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 仅在分页变化时触发，loadApiKeys 另有入口
   }, [apiKeyPage, apiKeyPageSize])
 
   // 搜索关键词变化时重新加载（带防抖）
@@ -804,6 +821,7 @@ const ApiDocumentationPage: React.FC = () => {
     }, 300)
 
     return () => clearTimeout(timeoutId)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 搜索防抖仅在 searchQuery 变化时触发，apiKeyManagementOpen/loadApiKeys 另有 effect 管理
   }, [apiKeySearchQuery])
 
   // 初始化分组收起状态
@@ -941,7 +959,7 @@ const ApiDocumentationPage: React.FC = () => {
 
     // 根据数据类型生成示例
     switch (schema.type) {
-      case 'object':
+      case 'object': {
         const obj: any = {}
         if (schema.properties) {
           for (const [key, propSchema] of Object.entries(schema.properties)) {
@@ -963,7 +981,8 @@ const ApiDocumentationPage: React.FC = () => {
           }
         }
         return obj
-      
+      }
+
       case 'array':
         if (schema.items) {
           return [generateExampleFromSchema(schema.items, fieldName)]

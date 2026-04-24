@@ -60,6 +60,7 @@ export const MCPToolsPage: React.FC<MCPToolsPageProps> = ({ serverId }) => {
 
   useEffect(() => {
     loadServersAndTools()
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 首次加载一次，函数引用在组件内稳定
   }, [])
 
   const loadServersAndTools = async () => {

@@ -325,7 +325,7 @@ const AutoFillWorkbenchContent: React.FC = () => {
                       value={jsonInput}
                       onChange={(e) => {
                         setJsonInput(e.target.value)
-                        try { setFormData(JSON.parse(e.target.value)) } catch {}
+                        try { setFormData(JSON.parse(e.target.value)) } catch { /* ignore */ }
                       }}
                       className="font-mono text-sm min-h-[220px]"
                     />

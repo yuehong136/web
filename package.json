@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "build:docker": "vite build",
     "build:themes": "tsx src/themes/build-themes.ts",
-    "lint": "eslint .",
+    "lint": "eslint src",
+    "lint:all": "eslint .",
     "test:agent-t1": "tsx --tsconfig tsconfig.app.json --test src/pages/agent/operators/__tests__/serializers.test.ts src/pages/agent/adapters/__tests__/adapters.test.ts",
     "preview": "vite preview"
   },

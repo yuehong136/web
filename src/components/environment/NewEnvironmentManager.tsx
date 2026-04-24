@@ -32,6 +32,7 @@ export function NewEnvironmentManager({ isOpen, onClose }: NewEnvironmentManager
       loadEnvironments()
       loadGlobalEnvironments()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- store action 引用稳定，只在 isOpen 变化时触发
   }, [isOpen])
 
   // 当环境列表加载完成后，自动选择第一个环境
@@ -40,6 +41,7 @@ export function NewEnvironmentManager({ isOpen, onClose }: NewEnvironmentManager
       const defaultEnv = environments.find(env => env.is_default) || environments[0]
       handleEnvironmentSelect(defaultEnv.id)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 仅在环境列表加载完成后自动选一次，依赖 environments.length 而非 environments 避免重复选择
   }, [isOpen, environments.length, selectedEnvironmentId])
 
   const handleEnvironmentSelect = async (environmentId: string | 'global' | 'create-new') => {

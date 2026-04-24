@@ -28,7 +28,7 @@ export const AIToolsHomePage: React.FC = () => {
   // analytics stubs
   React.useEffect(() => {
     // tools_impression
-    // eslint-disable-next-line no-console
+     
     console.log('tools_impression', { page: 'ai-tools' })
     const t = setTimeout(() => setLoading(false), 600)
     return () => clearTimeout(t)
@@ -37,14 +37,14 @@ export const AIToolsHomePage: React.FC = () => {
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value)
     // tools_search
-    // eslint-disable-next-line no-console
+     
     console.log('tools_search', { keyword: e.target.value })
   }
 
   const handleServiceTypeChange = (v: ServiceType) => {
     setServiceType(v)
     // tools_filter
-    // eslint-disable-next-line no-console
+     
     console.log('tools_filter', { serviceType: v })
   }
 
@@ -107,7 +107,7 @@ export const AIToolsHomePage: React.FC = () => {
 
   const openTool = (id: string) => {
     // tool_open
-    // eslint-disable-next-line no-console
+     
     console.log('tool_open', { id })
     navigate(`/tools/${id}`)
   }

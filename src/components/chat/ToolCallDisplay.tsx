@@ -31,7 +31,7 @@ const detectLang = (content: string): string => {
   try {
     JSON.parse(t);
     return 'json';
-  } catch {}
+  } catch { /* ignore */ }
   return 'plaintext';
 };
 
@@ -69,7 +69,7 @@ function ParamValue({ value }: { value: any }) {
       if (typeof parsed === 'object' && parsed !== null) {
         return <CodeHighlighter lang="json">{JSON.stringify(parsed, null, 2)}</CodeHighlighter>;
       }
-    } catch {}
+    } catch { /* ignore */ }
     const lang = detectLang(value);
     if (lang !== 'plaintext' || value.length > 80 || value.includes('\n')) {
       return <CodeHighlighter lang={lang}>{value}</CodeHighlighter>;
@@ -157,7 +157,7 @@ function ResultView({ result, onOpenModal, toolName }: {
         }
         return <CodeHighlighter lang="json">{JSON.stringify(parsed, null, 2)}</CodeHighlighter>;
       }
-    } catch {}
+    } catch { /* ignore */ }
   }
 
   // Object value directly
@@ -449,7 +449,7 @@ export function ToolCallDisplay({ toolCalls, parsedToolCalls }: ToolCallDisplayP
                 if (typeof parsed === 'object' && parsed !== null) {
                   return <ParamsList args={parsed} />;
                 }
-              } catch {}
+              } catch { /* ignore */ }
               const lang = detectLang(modalText);
               return <CodeHighlighter lang={lang}>{modalText}</CodeHighlighter>;
             })()}

@@ -152,7 +152,6 @@ const MarkdownCode: React.FC<ComponentProps & { block?: boolean }> = ({
   block,
   className,
   children,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   domNode: _domNode,
   streamStatus = 'done',
   ...rest

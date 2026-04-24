@@ -18,8 +18,9 @@ export const CenterConfigSection: React.FC<CenterConfigSectionProps> = ({
   children,
 }) => (
   <Collapsible open={open} onOpenChange={onOpenChange}>
-    <CollapsibleTrigger
-      className="flex w-full items-center justify-between px-space-lg py-space-base text-left transition-colors"
+    {/* header 不使用单一 CollapsibleTrigger 包裹，避免 extra 传入 <Button> 时出现 <button> 嵌套 */}
+    <div
+      className="flex w-full items-center px-space-lg py-space-base transition-colors"
       style={{ backgroundColor: 'transparent' }}
       onMouseEnter={(event) => {
         event.currentTarget.style.backgroundColor = 'var(--color-components-collapse-header-bg-hover)'
@@ -28,12 +29,19 @@ export const CenterConfigSection: React.FC<CenterConfigSectionProps> = ({
         event.currentTarget.style.backgroundColor = 'transparent'
       }}
     >
-      <span className="text-base font-semibold text-text-primary">{title}</span>
+      <CollapsibleTrigger className="flex-1 text-left text-base font-semibold text-text-primary">
+        {title}
+      </CollapsibleTrigger>
       <span className="flex items-center gap-space-xs text-text-tertiary">
         {extra}
-        {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+        <CollapsibleTrigger
+          className="flex items-center"
+          aria-label={open ? '收起' : '展开'}
+        >
+          {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+        </CollapsibleTrigger>
       </span>
-    </CollapsibleTrigger>
+    </div>
     <CollapsibleContent className="space-y-space-lg px-space-lg pb-space-lg">
       {children}
     </CollapsibleContent>

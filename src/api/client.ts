@@ -1,5 +1,8 @@
+import i18n from 'i18next'
 import type { APIResponse } from '@/types/api'
-import { STORAGE_KEYS, API_BASE_URL, API_VERSION, ERROR_MESSAGES } from '@/constants'
+import { STORAGE_KEYS, API_BASE_URL, API_VERSION } from '@/constants'
+
+const te = (key: string) => i18n.t(`common.errors.${key}`)
 
 export class APIError extends Error {
   public status: number
@@ -216,7 +219,7 @@ class APIClient {
           this.handleUnauthorized(config.skipAuth)
 
           // 抛出错误
-          throw new APIError(401, 'UNAUTHORIZED', rawData.detail || rawData.message || ERROR_MESSAGES.UNAUTHORIZED)
+          throw new APIError(401, 'UNAUTHORIZED', rawData.detail || rawData.message || te('unauthorized'))
         }
         
         return rawData as T
@@ -237,13 +240,13 @@ class APIClient {
           this.handleUnauthorized(config.skipAuth)
 
           // 抛出错误让上层处理
-          throw new APIError(401, 'UNAUTHORIZED', ERROR_MESSAGES.UNAUTHORIZED)
+          throw new APIError(401, 'UNAUTHORIZED', te('unauthorized'))
         }
 
         throw new APIError(
           response.status,
           data.retcode?.toString() || 'API_ERROR',
-          data.retmsg || ERROR_MESSAGES.SERVER_ERROR,
+          data.retmsg || te('serverError'),
           data.data
         )
       }
@@ -264,17 +267,17 @@ class APIClient {
 
       const err = error as Error
       if (err.name === 'AbortError') {
-        throw new APIError(408, 'TIMEOUT', '请求超时，请重试')
+        throw new APIError(408, 'TIMEOUT', te('timeout'))
       }
 
       if (!navigator.onLine) {
-        throw new APIError(0, 'NETWORK_ERROR', ERROR_MESSAGES.NETWORK_ERROR)
+        throw new APIError(0, 'NETWORK_ERROR', te('network'))
       }
 
       throw new APIError(
         500,
         'UNKNOWN_ERROR',
-        err.message || ERROR_MESSAGES.SERVER_ERROR
+        err.message || te('serverError')
       )
     }
   }

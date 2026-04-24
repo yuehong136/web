@@ -117,6 +117,7 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({
         onCreate?.(formData)
       }
     })
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- handleClose 是本组件方法，此 callback 失败路径不会触发关闭，无需相互依赖
   }, [formData, navigate, onCreate, setDialogAppMutation, validateName])
 
   const handleNameChange = useCallback((value: string) => {

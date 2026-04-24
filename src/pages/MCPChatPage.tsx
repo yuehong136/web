@@ -637,6 +637,7 @@ export default function MCPChatPage() {
   }, [selectedModelId, modelsLoading, myLLMs]);
 
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- 调用方只在 onClick 时触发，不需要引用稳定
   const handleNewChat = () => {
     const newSession: ChatSession = {
       id: Date.now().toString(),

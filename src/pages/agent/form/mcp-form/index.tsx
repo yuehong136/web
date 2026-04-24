@@ -31,6 +31,7 @@ export function McpForm({ node }: INextOperatorForm) {
 
   useWatchFormChange(node?.id, form)
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- || [] fallback 由下方 useMemo 封装，引用差异不影响渲染正确性
   const selected = useWatch({ control: form.control, name: 'mcp' }) || []
   const servers = data?.mcp_servers || []
 

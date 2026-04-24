@@ -178,7 +178,7 @@ const DataInput: React.FC<DataInputProps> = ({
 
   const handleJsonChange = (value: string) => {
     setJsonInput(value)
-    try { setFormData(JSON.parse(value)); setValidationErrors([]) } catch {}
+    try { setFormData(JSON.parse(value)); setValidationErrors([]) } catch { /* ignore */ }
   }
 
   const buildUserMessage = (userInput: string, data: PlaceholderData) => {

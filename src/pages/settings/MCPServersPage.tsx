@@ -124,6 +124,7 @@ export const MCPServersPage: React.FC<ServerListPageProps> = ({ onServerSelect }
   // 统计数据（基于列表数据计算）
   const stats = useMCPStats()
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- mcp_servers 的 || [] fallback 在下方 useMemo 里重新计算，引用差异可忽略
   const servers = serversData?.mcp_servers || []
 
   // Mutations

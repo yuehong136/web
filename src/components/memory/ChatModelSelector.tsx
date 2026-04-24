@@ -114,6 +114,7 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
     })
 
     return groups
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- SUPPORTED_MODEL_TYPES 为模块级常量，引用稳定
   }, [myLLMs])
 
   // 构建所有支持的模型的 value 映射（用于查找匹配）
@@ -130,6 +131,7 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
         })
     })
     return values
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- SUPPORTED_MODEL_TYPES 为模块级常量，引用稳定
   }, [myLLMs])
 
   // 规范化选中的模型 ID（匹配 API 返回格式与选择器 value 格式）

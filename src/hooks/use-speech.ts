@@ -95,6 +95,7 @@ export function useSpeech(
       console.error('Failed to initialize speech player:', error)
       onError?.(error as Error)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- onEnd 仅通过闭包传入 player init，此处依赖是为了初次绑定，重复初始化会重置播放状态
   }, [isInitialized, onPlay, onPause, onEnd, onError])
 
   // Start speech playback

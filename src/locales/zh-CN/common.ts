@@ -66,6 +66,20 @@ export default {
     type: '类型',
     action: '操作',
     total: '共 {{count}} 条',
+
+    // API 错误消息
+    errors: {
+      network: '网络连接失败，请检查网络设置',
+      timeout: '请求超时，请重试',
+      unauthorized: '登录已过期，请重新登录',
+      forbidden: '没有访问权限',
+      notFound: '请求的资源不存在',
+      serverError: '服务器内部错误，请稍后重试',
+      validationError: '输入数据格式不正确',
+      fileTooLarge: '文件大小超过限制',
+      unsupportedFileType: '不支持的文件类型',
+      unknown: '未知错误',
+    },
   },
   flow: {
     copy: '复制',

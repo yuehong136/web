@@ -374,6 +374,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
       setVerifyResult(null)
       setError('')
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- getDefaultModelType 在组件内，只用于初始化默认值，依赖 isOpen 足矣
   }, [isOpen, defaultBaseUrl, providerName])
 
   const normalizeVerifyResult = (result: unknown): ModelVerifyResult => {
@@ -409,7 +410,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
 
     try {
       const additionalParams: Record<string, any> = {}
-      let finalApiKey = apiKey.trim()
+      const finalApiKey = apiKey.trim()
       let finalBaseUrl = baseUrl.trim() || undefined
       
       // ========== 特殊表单厂商验证和参数构建 ==========

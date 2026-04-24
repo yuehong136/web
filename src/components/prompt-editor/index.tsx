@@ -1,4 +1,3 @@
-/* eslint-disable react-refresh/only-export-components */
 import { CodeHighlightNode, CodeNode } from '@lexical/code'
 import type { InitialConfigType } from '@lexical/react/LexicalComposer'
 import { LexicalComposer } from '@lexical/react/LexicalComposer'

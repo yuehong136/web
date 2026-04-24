@@ -121,6 +121,7 @@ export const DropdownMenuContent: React.FC<DropdownMenuContentProps> = ({
     return () => {
       document.removeEventListener('mousedown', handleClickOutside)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 只监听 context 具体字段，全量 context 作为依赖会被反复创建
   }, [context?.isOpen, context?.closeDropdown, context?.triggerRef])
   
   if (!context) {

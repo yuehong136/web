@@ -89,17 +89,7 @@ export const LANGUAGES = {
   EN_US: 'en-US',
 } as const
 
-// 错误消息
-export const ERROR_MESSAGES = {
-  NETWORK_ERROR: '网络连接失败，请检查网络设置',
-  UNAUTHORIZED: '登录已过期，请重新登录',
-  FORBIDDEN: '没有访问权限',
-  NOT_FOUND: '请求的资源不存在',
-  SERVER_ERROR: '服务器内部错误，请稍后重试',
-  VALIDATION_ERROR: '输入数据格式不正确',
-  FILE_TOO_LARGE: '文件大小超过限制',
-  UNSUPPORTED_FILE_TYPE: '不支持的文件类型',
-} as const
+// API 错误消息现走 i18n，统一在 common.errors.* 下管理
 
 // 成功消息
 export const SUCCESS_MESSAGES = {

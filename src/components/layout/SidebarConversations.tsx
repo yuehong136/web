@@ -23,6 +23,11 @@ export const SidebarConversations: React.FC<SidebarConversationsProps> = ({
 }) => {
   const { conversations, isLoading } = useFetchConversationsByDialog(appId)
 
+  // 按日期分组对话（侧边栏空间有限，不单独显示"昨天"分组）
+  const groupedConversations = React.useMemo(() => {
+    return groupConversationsByDate(conversations, { includeYesterday: false })
+  }, [conversations])
+
   // 调试日志
   console.log('[SidebarConversations] appId:', appId, 'conversations:', conversations, 'isLoading:', isLoading)
 
@@ -30,11 +35,6 @@ export const SidebarConversations: React.FC<SidebarConversationsProps> = ({
 
   // 折叠状态下不显示
   if (isCollapsed) return null
-
-  // 按日期分组对话（侧边栏空间有限，不单独显示"昨天"分组）
-  const groupedConversations = React.useMemo(() => {
-    return groupConversationsByDate(conversations, { includeYesterday: false })
-  }, [conversations])
 
   return (
     <div className="border-t border-border-subtle py-2 flex flex-col min-h-0 flex-1">

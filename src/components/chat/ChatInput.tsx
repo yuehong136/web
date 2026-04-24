@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import type { ReactNode, ComponentType } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -154,7 +154,10 @@ export function ChatInput({
   const currentValue = controlledValue !== undefined ? controlledValue : internalValue;
   
   // 语音配置
-  const speechConfig = typeof allowSpeech === 'object' ? allowSpeech : { enabled: allowSpeech };
+  const speechConfig = useMemo(
+    () => (typeof allowSpeech === 'object' ? allowSpeech : { enabled: allowSpeech }),
+    [allowSpeech],
+  );
   
   // 处理值变化
   const handleChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {

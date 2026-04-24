@@ -223,7 +223,8 @@ export function EnvironmentDetail({
     setResolveResult(null)
     
     console.log('✅ 所有对话框状态已重置')
-  }, [environmentId]) // 只依赖environmentId，避免循环
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 只依赖 environmentId，避免切换时循环触发
+  }, [environmentId])
 
   // 当环境数据变化时更新表单
   useEffect(() => {
@@ -264,6 +265,7 @@ export function EnvironmentDetail({
   }
 
   // 保存环境信息
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- 调用方 useEffect 在 line 463 显式依赖 environmentId，无需包 useCallback
   const saveEnvironmentData = async () => {
     if (environmentId === 'global') return
 
