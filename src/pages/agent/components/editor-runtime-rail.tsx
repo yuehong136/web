@@ -233,24 +233,28 @@ export function EditorRuntimeRail({
         </div>
       </SectionCard>
 
-      <SectionCard title="兼容与扩展" padding="default">
+      <SectionCard title={isPipeline ? '配置' : '交付入口'} padding="default">
         <div className="grid gap-space-sm">
-          <Button variant="outline" onClick={onOpenExplore}>
-            <Compass className="mr-space-xs h-4 w-4" />
-            Explore 会话
-          </Button>
-          <Button variant="outline" onClick={onOpenVersions}>
-            <History className="mr-space-xs h-4 w-4" />
-            版本
-          </Button>
-          <Button variant="outline" onClick={onOpenWebhook}>
-            <Link2 className="mr-space-xs h-4 w-4" />
-            Webhook
-          </Button>
-          <Button variant="outline" onClick={onOpenShare}>
-            <Copy className="mr-space-xs h-4 w-4" />
-            Share
-          </Button>
+          {!isPipeline ? (
+            <>
+              <Button variant="outline" onClick={onOpenExplore}>
+                <Compass className="mr-space-xs h-4 w-4" />
+                Explore 会话
+              </Button>
+              <Button variant="outline" onClick={onOpenVersions}>
+                <History className="mr-space-xs h-4 w-4" />
+                发布
+              </Button>
+              <Button variant="outline" onClick={onOpenWebhook}>
+                <Link2 className="mr-space-xs h-4 w-4" />
+                Webhook
+              </Button>
+              <Button variant="outline" onClick={onOpenShare}>
+                <Copy className="mr-space-xs h-4 w-4" />
+                Share
+              </Button>
+            </>
+          ) : null}
           <Button variant="outline" onClick={onOpenSettings}>
             <Settings2 className="mr-space-xs h-4 w-4" />
             编辑基础设置

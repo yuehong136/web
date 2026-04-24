@@ -40,10 +40,9 @@ import { usePlaceholderManager } from '../hooks/use-placeholder-manager'
 import { useSelectCanvasData } from '../hooks/use-select-canvas-data'
 import { useValidateConnection } from '../hooks/use-validate-connection'
 import { DropdownProvider, useDropdownManager } from './context'
-import { ButtonEdge } from './edge'
 import type { RAGFlowNodeType } from '../types'
 import { NextStepDropdown } from './node/dropdown/next-step-dropdown'
-import { nodeTypes } from './node-types'
+import { edgeTypes, nodeTypes } from './node-types'
 import { CanvasContextMenu } from './context-menu'
 import { SingleDebugSheet } from './single-debug-sheet'
 import { useParams } from 'react-router-dom'
@@ -57,9 +56,17 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 
-const edgeTypes = {
-  buttonEdge: ButtonEdge,
+const defaultEdgeOptions = {
+  type: 'buttonEdge',
+  markerEnd: 'logo',
+  zIndex: 1001,
 }
+
+const nodeOrigin: [number, number] = [0.5, 0]
+
+const reactFlowProOptions = { hideAttribution: true }
+
+const deleteKeyCode = ['Delete', 'Backspace']
 
 interface AgentCanvasProps {
   editorMode: 'agent' | 'pipeline'
@@ -303,20 +310,16 @@ function AgentCanvasInner({
           onPaneClick={onPaneClick}
           onInit={setReactFlowInstance}
           onSelectionChange={onSelectionChange}
-          nodeOrigin={[0.5, 0]}
+          nodeOrigin={nodeOrigin}
           isValidConnection={isValidConnection}
           onEdgeMouseEnter={onEdgeMouseEnter}
           onEdgeMouseLeave={onEdgeMouseLeave}
           className="h-full"
           colorMode={isDark ? 'dark' : 'light'}
-          defaultEdgeOptions={{
-            type: 'buttonEdge',
-            markerEnd: 'logo',
-            zIndex: 1001,
-          }}
-          deleteKeyCode={['Delete', 'Backspace']}
+          defaultEdgeOptions={defaultEdgeOptions}
+          deleteKeyCode={deleteKeyCode}
           onBeforeDelete={handleBeforeDelete}
-          proOptions={{ hideAttribution: true }}
+          proOptions={reactFlowProOptions}
         >
           <AgentBackground />
           <Spotlight className="z-0" opcity={0.7} coverage={70} />

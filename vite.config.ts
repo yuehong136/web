@@ -29,6 +29,14 @@ export default defineConfig(({ mode }) => {
       host: '0.0.0.0',
       port: 5173,
       proxy: {
+        '/api': {
+          target: fallbackApiBase,
+          changeOrigin: true,
+        },
+        '/v1': {
+          target: fallbackApiBase,
+          changeOrigin: true,
+        },
         '/admin-api': {
           target: adminTarget,
           changeOrigin: true,

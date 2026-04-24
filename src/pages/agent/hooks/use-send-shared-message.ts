@@ -1,7 +1,12 @@
-import { useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useFetchExternalAgentInputs } from '@/hooks/use-agent-request'
 import { AgentDialogueMode } from '../constant'
+import {
+  buildShareInputsPayload,
+  type ShareFormValues,
+} from '../share/utils'
+import { parseAgentShareAccess } from '../share/access'
+import { useSharedAgentRunner } from '../share/use-shared-agent-runner'
 
 export const useSendButtonDisabled = (value: string) => {
   return value.trim() === ''
@@ -9,77 +14,44 @@ export const useSendButtonDisabled = (value: string) => {
 
 export const useGetSharedChatSearchParams = () => {
   const [searchParams] = useSearchParams()
-  const dataPrefix = 'data_'
-  const data = Object.fromEntries(
-    Array.from(searchParams.entries())
-      .filter(([key]) => key.startsWith(dataPrefix))
-      .map(([key, value]) => [key.replace(dataPrefix, ''), value]),
-  )
+  const access = parseAgentShareAccess(searchParams)
 
   return {
-    from: searchParams.get('from') || '',
-    sharedId: searchParams.get('shared_id') || undefined,
-    agentId: searchParams.get('id') || searchParams.get('agent_id') || undefined,
-    betaToken:
-      searchParams.get('beta') ||
-      searchParams.get('token') ||
-      searchParams.get('shared_id') ||
-      undefined,
-    locale: searchParams.get('locale') || undefined,
-    theme: searchParams.get('theme') || undefined,
-    data,
-    visibleAvatar: searchParams.get('visible_avatar')
-      ? searchParams.get('visible_avatar') !== '1'
-      : true,
+    from: access.from,
+    sharedId: access.agentId || undefined,
+    agentId: access.agentId || undefined,
+    betaToken: access.betaToken || undefined,
+    release: access.release ? 'true' : undefined,
+    locale: access.locale,
+    theme: access.theme,
+    data: access.data,
+    visibleAvatar: access.visibleAvatar,
+    userId: access.userId,
   }
 }
 
 export const useSendNextSharedMessage = () => {
-  const { agentId, betaToken } = useGetSharedChatSearchParams()
-  const { data: inputsData } = useFetchExternalAgentInputs(agentId, betaToken)
-  const [value, setValue] = useState('')
-  const [sendLoading, setSendLoading] = useState(false)
-  const scrollRef = useRef<HTMLDivElement | null>(null)
-  const messageContainerRef = useRef<HTMLDivElement | null>(null)
-  const [derivedMessages] = useState<unknown[]>([])
-  const [parameterDialogVisible, setParameterDialogVisible] = useState(false)
+  const { agentId, betaToken, release, userId } =
+    useGetSharedChatSearchParams()
+  const { data: inputsData, ...inputsQuery } = useFetchExternalAgentInputs(
+    agentId,
+    betaToken,
+  )
 
-  const isTaskMode = inputsData?.mode === AgentDialogueMode.Task
-
-  const handleInputChange = (next: string) => {
-    setValue(next)
-  }
-
-  const handlePressEnter = async () => {
-    setSendLoading(true)
-    setSendLoading(false)
-  }
-
-  const showParameterDialog = () => setParameterDialogVisible(true)
-  const hideParameterDialog = () => setParameterDialogVisible(false)
+  const runner = useSharedAgentRunner({
+    agentId: agentId || '',
+    betaToken: betaToken || '',
+    release: release === 'true',
+    userId,
+    buildInputs: (values: ShareFormValues) =>
+      buildShareInputsPayload(inputsData.inputs || {}, values),
+  })
 
   return {
-    handlePressEnter,
-    handleInputChange,
-    value,
-    sendLoading,
-    scrollRef,
-    messageContainerRef,
-    derivedMessages,
-    hasError: false,
+    ...runner,
     inputsData: inputsData || {},
-    isTaskMode,
-    stopOutputMessage: () => undefined,
-    findReferenceByMessageId: () => undefined,
-    appendUploadResponseList: () => undefined,
-    parameterDialogVisible,
-    showParameterDialog,
-    hideParameterDialog,
-    sendFormMessage: () => undefined,
-    addNewestOneAnswer: () => undefined,
-    ok: () => undefined,
-    resetSession: () => {
-      setValue('')
-    },
+    inputsQuery,
+    isTaskMode: inputsData?.mode === AgentDialogueMode.Task,
+    hasError: Boolean(runner.lastError || inputsQuery.isError),
   }
 }

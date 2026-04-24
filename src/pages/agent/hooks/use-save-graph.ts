@@ -9,7 +9,13 @@ export const useSaveGraph = (agentId?: string, showMessage: boolean = true) => {
   const { setAgent, isLoading } = useSetAgent({ showToast: showMessage })
 
   const saveGraph = useCallback(
-    async (title: string, currentNodes?: RAGFlowNodeType[]) => {
+    async (
+      title: string,
+      currentNodes?: RAGFlowNodeType[],
+      options?: {
+        release?: boolean
+      },
+    ) => {
       if (!agentId) {
         if (showMessage) {
           toast.error('Agent ID is required')
@@ -24,10 +30,13 @@ export const useSaveGraph = (agentId?: string, showMessage: boolean = true) => {
           id: agentId,
           title,
           dsl,
+          ...(options?.release !== undefined
+            ? { release: options.release }
+            : {}),
         })
 
         return result
-      } catch (error) {
+      } catch {
         return null
       }
     },

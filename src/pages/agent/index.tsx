@@ -21,10 +21,13 @@ import {
 import {
   useFetchVersionList,
 } from '@/hooks/use-agent-request'
+import { toast } from '@/lib/toast'
 import { useFetchDataOnMount } from './hooks/use-fetch-data'
+import { useAgentDeliveryToken } from './hooks/use-agent-delivery-token'
 import { useWatchAgentChange } from './hooks/use-watch-agent-change'
 import { useBuildWebhookUrl } from './hooks/use-build-webhook-url'
 import { useSaveGraph } from './hooks/use-save-graph'
+import { buildAgentShareUrl } from './share/access'
 import AgentCanvas from './canvas'
 import { EditorRuntimeRail } from './components/editor-runtime-rail'
 import { PlaceholderDialog } from './components/placeholder-dialog'
@@ -58,6 +61,12 @@ export default function AgentEditorPage() {
   const { id = '' } = useParams<{ id: string }>()
   const { flowDetail, loading } = useFetchDataOnMount()
   const { saveGraph, loading: saving } = useSaveGraph(id)
+  const editorMode: 'agent' | 'pipeline' = isPipelineFlow(flowDetail)
+    ? 'pipeline'
+    : 'agent'
+  const deliveryToken = useAgentDeliveryToken(
+    Boolean(flowDetail?.id) && editorMode === 'agent',
+  )
   const autosaveLabel = useWatchAgentChange()
   const versionQuery = useFetchVersionList(id)
   const webhookUrl = useBuildWebhookUrl()
@@ -67,9 +76,7 @@ export default function AgentEditorPage() {
   const [versionsOpen, setVersionsOpen] = useState(false)
   const [webhookOpen, setWebhookOpen] = useState(false)
   const [roadmapOpen, setRoadmapOpen] = useState(false)
-  const editorMode: 'agent' | 'pipeline' = isPipelineFlow(flowDetail)
-    ? 'pipeline'
-    : 'agent'
+  const [publishedShareUrl, setPublishedShareUrl] = useState('')
   const defaultRuntimeView =
     editorMode === 'pipeline'
       ? PipelineWorkbenchView.RUN
@@ -131,6 +138,7 @@ export default function AgentEditorPage() {
       name: formatVersionLabel(version, index),
       createdAt: version.create_date || version.update_date || '',
       description: version.description,
+      release: Boolean(version.release),
     }))
   }, [versionQuery.data])
 
@@ -143,6 +151,49 @@ export default function AgentEditorPage() {
     await saveGraph(nextTitle)
     setTitleDirty(false)
   }
+
+  const handlePublish = async (note: string) => {
+    if (!id) {
+      return
+    }
+
+    try {
+      const nextTitle = title.trim() || resolveLocalizedText(flowDetail?.title, '未命名资产')
+      const saved = await saveGraph(nextTitle, undefined, { release: true })
+      if (!saved) {
+        toast.error('发布失败：当前画布保存未完成')
+        return
+      }
+
+      const betaToken = await deliveryToken.ensureToken()
+      const shareUrl = buildAgentShareUrl({
+        agentId: id,
+        betaToken,
+        release: true,
+      })
+
+      setTitleDirty(false)
+      setPublishedShareUrl(shareUrl)
+      toast.success(note ? `发布成功：${note}` : '发布成功')
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : '发布失败')
+    }
+  }
+
+  const handleOpenShare = useCallback(async () => {
+    try {
+      const betaToken = await deliveryToken.ensureToken()
+      navigate(
+        buildAgentShareUrl({
+          agentId: id,
+          betaToken,
+          release: Boolean(flowDetail?.release),
+        }).replace(window.location.origin, ''),
+      )
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : '无法生成 Share 链接')
+    }
+  }, [deliveryToken, flowDetail?.release, id, navigate])
 
   const openRuntimeWorkbench = useCallback(
     (view?: string) => {
@@ -210,22 +261,29 @@ export default function AgentEditorPage() {
                     <ArrowLeft className="mr-space-xs h-4 w-4" />
                     返回
                   </Button>
-                  <Button variant="outline" onClick={() => navigate(`/agent/${id}/explore`)}>
-                    <Compass className="mr-space-xs h-4 w-4" />
-                    Explore
-                  </Button>
-                  <Button variant="outline" onClick={() => setVersionsOpen(true)}>
-                    <History className="mr-space-xs h-4 w-4" />
-                    版本
-                  </Button>
-                  <Button variant="outline" onClick={() => setWebhookOpen(true)}>
-                    <Link2 className="mr-space-xs h-4 w-4" />
-                    Webhook
-                  </Button>
-                  <Button variant="outline" onClick={() => navigate(`/agent/share?id=${id}`)}>
-                    <Share2 className="mr-space-xs h-4 w-4" />
-                    Share
-                  </Button>
+                  {editorMode === 'agent' ? (
+                    <>
+                      <Button variant="outline" onClick={() => navigate(`/agent/${id}/explore`)}>
+                        <Compass className="mr-space-xs h-4 w-4" />
+                        Explore
+                      </Button>
+                      <Button variant="outline" onClick={() => setVersionsOpen(true)}>
+                        <History className="mr-space-xs h-4 w-4" />
+                        发布
+                      </Button>
+                      <Button variant="outline" onClick={() => setWebhookOpen(true)}>
+                        <Link2 className="mr-space-xs h-4 w-4" />
+                        Webhook
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => void handleOpenShare()}
+                      >
+                        <Share2 className="mr-space-xs h-4 w-4" />
+                        Share
+                      </Button>
+                    </>
+                  ) : null}
                   <Button variant="outline" onClick={settingState.showModal}>
                     <Settings2 className="mr-space-xs h-4 w-4" />
                     设置
@@ -269,7 +327,7 @@ export default function AgentEditorPage() {
             onOpenVersions={() => setVersionsOpen(true)}
             onOpenWebhook={() => setWebhookOpen(true)}
             onOpenSettings={settingState.showModal}
-            onOpenShare={() => navigate(`/agent/share?id=${id}`)}
+            onOpenShare={() => void handleOpenShare()}
             onOpenRoadmap={() => setRoadmapOpen(true)}
           />
         }
@@ -289,7 +347,19 @@ export default function AgentEditorPage() {
       {versionsOpen ? (
         <VersionDialog
           hideModal={() => setVersionsOpen(false)}
+          title={title || resolveLocalizedText(flowDetail.title, '未命名资产')}
           versions={versions}
+          isPublished={Boolean(flowDetail.release)}
+          lastPublishedAt={flowDetail.last_publish_time || flowDetail.release_time}
+          publishLoading={saving || deliveryToken.isCreating}
+          publishedShareUrl={publishedShareUrl}
+          tokenReady={Boolean(deliveryToken.token)}
+          onPublish={handlePublish}
+          onOpenWebhook={() => {
+            setVersionsOpen(false)
+            setWebhookOpen(true)
+          }}
+          onOpenExplore={() => navigate(`/agent/${id}/explore`)}
         />
       ) : null}
 
@@ -297,6 +367,7 @@ export default function AgentEditorPage() {
         <WebhookSheet
           hideModal={() => setWebhookOpen(false)}
           webhookUrl={webhookUrl}
+          flow={flowDetail}
         />
       ) : null}
 

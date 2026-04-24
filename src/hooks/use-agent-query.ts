@@ -10,6 +10,7 @@ import {
   adaptAgentTemplate,
   adaptAgentTraceItems,
   adaptAgentVersionSummaries,
+  adaptAgentWebhookTrace,
 } from '@/pages/agent/adapters'
 import type {
   AgentExternalInputs,
@@ -20,6 +21,7 @@ import type {
   AgentTemplate,
   AgentTraceItem,
   AgentVersionSummary,
+  AgentWebhookTraceRequest,
 } from '@/types/agent'
 
 export const agentQueryKeys = {
@@ -42,8 +44,10 @@ export const agentQueryKeys = {
     [...agentQueryKeys.all, 'session', canvasId, sessionId] as const,
   avatar: (id: string) => [...agentQueryKeys.all, 'avatar', id] as const,
   sse: (id: string) => [...agentQueryKeys.all, 'sse', id] as const,
-  externalInputs: (id: string, hasBetaToken: boolean) =>
-    [...agentQueryKeys.all, 'external-inputs', id, hasBetaToken ? 'beta' : 'missing-beta'] as const,
+  externalInputs: (id: string, betaToken?: string) =>
+    [...agentQueryKeys.all, 'external-inputs', id, betaToken || 'missing-beta'] as const,
+  webhookTrace: (id: string, params: AgentWebhookTraceRequest) =>
+    [...agentQueryKeys.all, 'webhook-trace', id, params] as const,
 }
 
 function useResolvedAgentId(id?: string) {
@@ -280,7 +284,7 @@ export const useFetchFlowSSE = (id?: string) => {
 export const useFetchExternalAgentInputs = (canvasId?: string, betaToken?: string) => {
   const resolvedCanvasId = useResolvedAgentId(canvasId)
   const query = useQuery({
-    queryKey: agentQueryKeys.externalInputs(resolvedCanvasId, Boolean(betaToken)),
+    queryKey: agentQueryKeys.externalInputs(resolvedCanvasId, betaToken),
     enabled: Boolean(resolvedCanvasId) && Boolean(betaToken),
     retry: false,
     queryFn: async () =>
@@ -297,6 +301,32 @@ export const useFetchExternalAgentInputs = (canvasId?: string, betaToken?: strin
 
   return {
     data: query.data || ({} as AgentExternalInputs),
+    isLoading: query.isFetching,
+    isError: query.isError,
+    error: query.error,
+    refetch: query.refetch,
+  }
+}
+
+export const useFetchWebhookTrace = (
+  canvasId?: string,
+  params: AgentWebhookTraceRequest = {},
+  enabled = false,
+) => {
+  const resolvedCanvasId = useResolvedAgentId(canvasId)
+  const query = useQuery({
+    queryKey: agentQueryKeys.webhookTrace(resolvedCanvasId, params),
+    enabled: Boolean(resolvedCanvasId) && enabled,
+    refetchOnWindowFocus: false,
+    retry: false,
+    queryFn: async () =>
+      adaptAgentWebhookTrace(
+        await agentAPI.fetchWebhookTrace(resolvedCanvasId, params),
+      ),
+  })
+
+  return {
+    data: query.data,
     isLoading: query.isFetching,
     isError: query.isError,
     error: query.error,

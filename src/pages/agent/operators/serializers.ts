@@ -148,6 +148,18 @@ function getDefaultTargetHandleId(operator?: OperatorType) {
   return NodeHandleId.End
 }
 
+function canBuildDefaultDownstreamEdges(operator?: OperatorType) {
+  return (
+    operator !== Operator.Switch &&
+    operator !== Operator.Categorize &&
+    operator !== Operator.Message &&
+    operator !== Operator.Tokenizer &&
+    operator !== Operator.ExitLoop &&
+    operator !== Operator.Tool &&
+    operator !== Operator.Placeholder
+  )
+}
+
 function normalizeComponentFormForGraph(
   operator: OperatorType,
   form?: FormRecord,
@@ -340,7 +352,7 @@ function reconstructGraphFromComponents(
     const form = component.obj.params as FormRecord
 
     if (node) {
-      if (operator !== Operator.Switch && operator !== Operator.Categorize) {
+      if (canBuildDefaultDownstreamEdges(operator)) {
         ;(component.downstream || []).forEach((target) => {
           const targetNode = nodeMap.get(target)
           if (!targetNode) {
@@ -723,7 +735,10 @@ export function serializeGraphToDsl({
   })
   const filteredNodeIds = new Set(filteredNodes.map((node) => node.id))
   const filteredEdges = (graph.edges || [])
-    .filter((edge) => filteredNodeIds.has(edge.source) && filteredNodeIds.has(edge.target))
+    .filter(
+      (edge) =>
+        filteredNodeIds.has(edge.source) && filteredNodeIds.has(edge.target),
+    )
     .map(normalizeEdge)
 
   return {

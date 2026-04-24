@@ -1,7 +1,8 @@
-import { API_BASE_URL, STORAGE_KEYS } from '@/constants'
+import { STORAGE_KEYS } from '@/constants'
 import { resolveCanvasCategory } from '@/lib/agent'
 import { apiClient } from './client'
 import type {
+  AgentCanvasUploadResult,
   AgentExternalInputs,
   AgentFlow,
   AgentInputFormSchema,
@@ -12,15 +13,21 @@ import type {
   AgentTemplate,
   AgentTraceItem,
   AgentVersionSummary,
+  AgentWebhookTestRequest,
+  AgentWebhookTraceRequest,
+  AgentWebhookTraceResponse,
   DebugAgentNodePayload,
+  ExternalAgentCompletionPayload,
   RunAgentPayload,
   SetAgentPayload,
   UpdateAgentSettingsPayload,
 } from '@/types/agent'
 
+const EXTERNAL_API_BASE_URL = '/api'
+
 export const agentAPI = {
   externalApiBase: {
-    baseURL: `${API_BASE_URL}/api`,
+    baseURL: EXTERNAL_API_BASE_URL,
   },
 
   listAgents: async (params: AgentListParams = {}) => {
@@ -67,6 +74,10 @@ export const agentAPI = {
       nextPayload.canvas_category = canvasCategory
     }
 
+    if (payload.release !== undefined) {
+      nextPayload.release = payload.release
+    }
+
     return apiClient.post<AgentFlow>('/v1/canvas/set', nextPayload)
   },
 
@@ -95,6 +106,8 @@ export const agentAPI = {
         session_id: payload.session_id,
         files: payload.files || [],
         inputs: payload.inputs || {},
+        ...(payload.release !== undefined ? { release: payload.release } : {}),
+        ...(payload.user_id ? { user_id: payload.user_id } : {}),
       }),
       signal: options?.signal,
     })
@@ -191,19 +204,62 @@ export const agentAPI = {
       },
     ),
 
+  runExternalAgent: async (
+    payload: ExternalAgentCompletionPayload,
+    options?: {
+      signal?: AbortSignal
+    },
+  ) => {
+    const search = new URLSearchParams()
+    if (payload.release !== undefined && payload.release !== false) {
+      search.set('release', String(payload.release))
+    }
+    const queryString = search.toString()
+    const response = await fetch(
+      `${EXTERNAL_API_BASE_URL}/v1/agentbots/${payload.id}/completions${queryString ? `?${queryString}` : ''}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${payload.betaToken}`,
+        },
+        body: JSON.stringify({
+          query: payload.query || '',
+          inputs: payload.inputs || {},
+          files: payload.files || [],
+          session_id: payload.session_id,
+          ...(payload.release !== undefined
+            ? { release: payload.release }
+            : {}),
+          ...(payload.user_id ? { user_id: payload.user_id } : {}),
+        }),
+        signal: options?.signal,
+      },
+    )
+
+    return response
+  },
+
   uploadCanvasFileWithProgress: async (
     canvasId: string,
     file: File,
     onProgress?: (progress: number) => void,
     signal?: AbortSignal,
+    options?: {
+      skipAuth?: boolean
+      baseURL?: string
+    },
   ) => {
-    return new Promise((resolve, reject) => {
+    return new Promise<AgentCanvasUploadResult>((resolve, reject) => {
       const xhr = new XMLHttpRequest()
-      const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+      const baseURL =
+        options?.baseURL ?? import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
 
       xhr.open('POST', `${baseURL}/v1/canvas/upload/${canvasId}`)
 
-      const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)
+      const token = options?.skipAuth
+        ? null
+        : localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)
       if (token) {
         xhr.setRequestHeader('Authorization', `Bearer ${token}`)
       }
@@ -247,6 +303,90 @@ export const agentAPI = {
       xhr.send(formData)
     })
   },
+
+  uploadPublicCanvasFileWithProgress: async (
+    canvasId: string,
+    file: File,
+    onProgress?: (progress: number) => void,
+    signal?: AbortSignal,
+  ) =>
+    agentAPI.uploadCanvasFileWithProgress(canvasId, file, onProgress, signal, {
+      skipAuth: true,
+      baseURL: '',
+    }),
+
+  testWebhook: async ({
+    canvasId,
+    method,
+    query,
+    headers,
+    body,
+    contentType,
+  }: AgentWebhookTestRequest) => {
+    const search = new URLSearchParams()
+    Object.entries(query || {}).forEach(([key, value]) => {
+      if (value !== '') {
+        search.set(key, value)
+      }
+    })
+
+    const requestHeaders: Record<string, string> = {
+      ...(headers || {}),
+    }
+
+    let requestBody: BodyInit | undefined
+    const upperMethod = method.toUpperCase()
+
+    if (!['GET', 'HEAD'].includes(upperMethod)) {
+      if (contentType === 'application/x-www-form-urlencoded') {
+        const formBody = new URLSearchParams()
+        Object.entries((body || {}) as Record<string, unknown>).forEach(
+          ([key, value]) => {
+            formBody.set(key, String(value ?? ''))
+          },
+        )
+        requestBody = formBody
+        requestHeaders['Content-Type'] = contentType
+      } else if (contentType === 'text/plain') {
+        requestBody =
+          typeof body === 'string' ? body : JSON.stringify(body ?? {})
+        requestHeaders['Content-Type'] = contentType
+      } else if (contentType === 'multipart/form-data') {
+        const formData = new FormData()
+        Object.entries((body || {}) as Record<string, unknown>).forEach(
+          ([key, value]) => {
+            formData.append(key, value instanceof Blob ? value : String(value ?? ''))
+          },
+        )
+        requestBody = formData
+      } else {
+        requestBody = JSON.stringify(body || {})
+        requestHeaders['Content-Type'] = contentType || 'application/json'
+      }
+    }
+
+    return fetch(
+      `${EXTERNAL_API_BASE_URL}/v1/webhook_test/${canvasId}${search.toString() ? `?${search.toString()}` : ''}`,
+      {
+        method: upperMethod,
+        headers: requestHeaders,
+        body: requestBody,
+      },
+    )
+  },
+
+  fetchWebhookTrace: async (
+    canvasId: string,
+    payload: AgentWebhookTraceRequest = {},
+  ) =>
+    apiClient.get<AgentWebhookTraceResponse>(
+      `/webhook_trace/${canvasId}`,
+      {
+        ...agentAPI.externalApiBase,
+        skipAuth: true,
+        params: payload,
+      },
+    ),
 
   downloadFile: async (fileId: string, chunkId: string) =>
     apiClient.get(`/v1/canvas/download`, {

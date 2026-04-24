@@ -10,6 +10,8 @@ import {
 import { Input } from '@/components/ui/input'
 import { MultiSelectWithSearch } from '@/components/ui/multi-select-with-search'
 import { SelectWithSearch } from '@/components/ui/select-with-search'
+import { toast } from '@/lib/toast'
+import { copyToClipboard } from '@/lib/utils'
 import { useFormContext, useWatch } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import {
@@ -46,13 +48,14 @@ function WebhookUrlCard() {
 
   const handleCopy = useCallback(async () => {
     try {
-      await navigator.clipboard.writeText(text)
+      await copyToClipboard(text)
       setCopied(true)
       window.setTimeout(() => setCopied(false), 1500)
     } catch {
       setCopied(false)
+      toast.error(t('common.copyFailed', 'Copy failed'))
     }
-  }, [text])
+  }, [t, text])
 
   return (
     <div className="rounded-radius-md border border-border-default bg-surface-secondary/40 p-space-base">

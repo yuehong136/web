@@ -1,4 +1,4 @@
-import type { NodeTypes } from '@xyflow/react'
+import type { EdgeTypes, NodeTypes } from '@xyflow/react'
 import { RagNode } from './node'
 import { BeginNode } from './node/begin-node'
 import { RetrievalNode } from './node/retrieval-node'
@@ -25,6 +25,7 @@ import { ParserNode } from './node/parser-node'
 import { TokenizerNode } from './node/tokenizer-node'
 import { SplitterNode } from './node/splitter-node'
 import { ExtractorNode } from './node/extractor-node'
+import { ButtonEdge } from './edge'
 
 export const nodeTypes: NodeTypes = {
   // Base fallback
@@ -71,6 +72,6 @@ export const nodeTypes: NodeTypes = {
   contextNode: ExtractorNode,
 }
 
-export const edgeTypes = {
-  buttonEdge: () => null,
+export const edgeTypes: EdgeTypes = {
+  buttonEdge: ButtonEdge,
 }

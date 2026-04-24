@@ -156,6 +156,7 @@ export interface SetAgentPayload {
   canvas_category?: string
   avatar?: string
   permission?: string
+  release?: boolean
 }
 
 export interface UpdateAgentSettingsPayload {
@@ -172,6 +173,12 @@ export interface RunAgentPayload {
   session_id?: string | null
   files?: unknown[]
   inputs?: Record<string, unknown>
+  release?: boolean | string
+  user_id?: string
+}
+
+export interface ExternalAgentCompletionPayload extends RunAgentPayload {
+  betaToken: string
 }
 
 export interface DebugAgentNodePayload {
@@ -199,10 +206,13 @@ export interface AgentVersionSummary {
   description?: string
   version_id?: string
   label?: string
+  release?: boolean
   create_time?: number
   create_date?: string
   update_time?: number
   update_date?: string
+  release_time?: number
+  last_publish_time?: number
   [key: string]: unknown
 }
 
@@ -285,4 +295,63 @@ export interface AgentWebhookSummary {
   status: 'active' | 'inactive'
   title: string
   lastTriggeredAt?: number
+}
+
+export interface AgentWebhookTestRequest {
+  canvasId: string
+  method: string
+  query?: Record<string, string>
+  headers?: Record<string, string>
+  body?: unknown
+  contentType?: string
+}
+
+export interface AgentWebhookTraceRequest {
+  since_ts?: number
+  webhook_id?: string
+}
+
+export interface AgentWebhookTraceEvent {
+  event?: string
+  message_id?: string
+  task_id?: string
+  timestamp?: number
+  time?: number
+  message?: string
+  data?: Record<string, unknown>
+  [key: string]: unknown
+}
+
+export interface AgentWebhookTraceResponse {
+  webhook_id?: string | null
+  events?: AgentWebhookTraceEvent[]
+  next_since_ts?: number
+  finished?: boolean
+  [key: string]: unknown
+}
+
+export interface AgentWebhookTraceSummary {
+  webhookId?: string
+  events: AgentWebhookTraceEvent[]
+  nextSinceTs?: number
+  finished: boolean
+  status: 'idle' | 'running' | 'success' | 'error'
+  errorMessage?: string
+  firstInput?: unknown
+  latestOutput?: unknown
+}
+
+export interface AgentCanvasUploadResult {
+  id?: string
+  name?: string
+  filename?: string
+  extension?: string
+  mime_type?: string
+  mimeType?: string
+  preview_url?: string | null
+  url?: string
+  size?: number
+  created_at?: number
+  created_by?: string
+  [key: string]: unknown
 }

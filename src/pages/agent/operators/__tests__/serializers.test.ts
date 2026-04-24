@@ -247,6 +247,102 @@ test('deserializeDslToGraph rebuilds graph from components when graph is absent'
   assert.equal(reconstructed.graph.nodes[0]?.data.label, Operator.Begin)
 })
 
+test('components-only reconstruction skips terminal operators without source handles', () => {
+  const reconstructed = deserializeDslToGraph(
+    {
+      components: {
+        [BeginId]: {
+          obj: {
+            component_name: Operator.Begin,
+            params: {},
+          },
+          downstream: ['message-1', 'exit-loop-1'],
+          upstream: [],
+        },
+        'parser-1': {
+          obj: {
+            component_name: Operator.Parser,
+            params: {},
+          },
+          downstream: ['tokenizer-1'],
+          upstream: [],
+        },
+        'tokenizer-1': {
+          obj: {
+            component_name: Operator.Tokenizer,
+            params: {},
+          },
+          downstream: ['splitter-1'],
+          upstream: ['parser-1'],
+        },
+        'splitter-1': {
+          obj: {
+            component_name: Operator.Splitter,
+            params: {},
+          },
+          downstream: [],
+          upstream: ['tokenizer-1'],
+        },
+        'message-1': {
+          obj: {
+            component_name: Operator.Message,
+            params: { content: ['route onward'] },
+          },
+          downstream: ['switch-1'],
+          upstream: [BeginId],
+        },
+        'exit-loop-1': {
+          obj: {
+            component_name: Operator.ExitLoop,
+            params: {},
+          },
+          downstream: ['message-1'],
+          upstream: [BeginId],
+        },
+        'switch-1': {
+          obj: {
+            component_name: Operator.Switch,
+            params: { conditions: [] },
+          },
+          downstream: [],
+          upstream: ['message-1'],
+        },
+      },
+      history: [],
+      messages: [],
+      reference: [],
+      globals: {},
+      retrieval: [],
+    },
+    { canvasType: AgentCanvasType.AGENT },
+  )
+
+  const terminalSources = ['message-1', 'tokenizer-1', 'exit-loop-1']
+
+  assert.ok(
+    reconstructed.graph.edges.some(
+      (item) => item.source === BeginId && item.target === 'message-1',
+    ),
+  )
+  assert.equal(
+    reconstructed.graph.edges.some(
+      (item) => item.source === 'message-1' && item.target === 'switch-1',
+    ),
+    false,
+  )
+  assert.ok(
+    reconstructed.graph.edges.some(
+      (item) => item.source === 'parser-1' && item.target === 'tokenizer-1',
+    ),
+  )
+  assert.deepEqual(
+    reconstructed.graph.edges
+      .filter((item) => terminalSources.includes(item.source))
+      .map((item) => `${item.source}->${item.target}`),
+    [],
+  )
+})
+
 test('rewrite question keeps ragflow b/c handle ids when graph is authoritative', () => {
   const beginNode = buildGraphNode(Operator.Begin, { id: BeginId })
   const rewriteNode = buildGraphNode(Operator.RewriteQuestion, {

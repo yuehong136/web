@@ -5,6 +5,7 @@ import { adaptAgentFlow, adaptAgentSession } from '@/pages/agent/adapters'
 import { agentQueryKeys } from './use-agent-query'
 import type {
   DebugAgentNodePayload,
+  AgentWebhookTestRequest,
   SetAgentPayload,
 } from '@/types/agent'
 
@@ -27,6 +28,9 @@ export const useSetAgent = (options?: { showToast?: boolean }) => {
       if (variables.id || data.id) {
         void queryClient.invalidateQueries({
           queryKey: agentQueryKeys.detail(variables.id || data.id),
+        })
+        void queryClient.invalidateQueries({
+          queryKey: agentQueryKeys.versions(variables.id || data.id),
         })
       }
       if (showToast) {
@@ -139,6 +143,50 @@ export const useUploadCanvasFile = () => {
 
   return {
     uploadCanvasFile: mutation.mutateAsync,
+    isLoading: mutation.isPending,
+    isError: mutation.isError,
+    error: mutation.error,
+  }
+}
+
+export const useUploadPublicCanvasFile = () => {
+  const mutation = useMutation({
+    mutationFn: async ({
+      canvasId,
+      file,
+      onProgress,
+      signal,
+    }: UploadCanvasFileParams) =>
+      agentAPI.uploadPublicCanvasFileWithProgress(
+        canvasId,
+        file,
+        onProgress,
+        signal,
+      ),
+    onError: (error: Error) => {
+      toast.error(`上传失败: ${error.message}`)
+    },
+  })
+
+  return {
+    uploadCanvasFile: mutation.mutateAsync,
+    isLoading: mutation.isPending,
+    isError: mutation.isError,
+    error: mutation.error,
+  }
+}
+
+export const useTestWebhook = () => {
+  const mutation = useMutation({
+    mutationFn: async (payload: AgentWebhookTestRequest) =>
+      agentAPI.testWebhook(payload),
+    onError: (error: Error) => {
+      toast.error(`Webhook 测试失败: ${error.message}`)
+    },
+  })
+
+  return {
+    testWebhook: mutation.mutateAsync,
     isLoading: mutation.isPending,
     isError: mutation.isError,
     error: mutation.error,
