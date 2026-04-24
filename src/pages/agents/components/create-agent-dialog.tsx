@@ -9,9 +9,10 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { AgentCanvasType } from '@/types/agent'
 import { cn } from '@/lib/utils'
-import { Bot, Database, Sparkles } from 'lucide-react'
+import { BrainCircuit, Route, Sparkles } from 'lucide-react'
 
 interface CreateAgentDialogProps {
   open: boolean
@@ -27,16 +28,16 @@ interface CreateAgentDialogProps {
 const kindCards = [
   {
     value: AgentCanvasType.AGENT,
-    title: 'Agent',
-    description: '对话、工具调用、结构化输出、会话探索。',
-    icon: Bot,
+    title: '智能体流程',
+    description: '对话、工具调用、多轮任务编排',
+    icon: BrainCircuit,
     tone: 'bg-state-info-subtle text-state-info',
   },
   {
     value: AgentCanvasType.PIPELINE,
-    title: 'Pipeline',
-    description: '文件解析、切分、抽取、后处理与数据流运行。',
-    icon: Database,
+    title: 'Ingestion pipeline',
+    description: '文件解析、分块、抽取与索引',
+    icon: Route,
     tone: 'bg-state-success-subtle text-state-success',
   },
 ]
@@ -49,7 +50,7 @@ export function CreateAgentDialog({
   initialKind = AgentCanvasType.AGENT,
   allowKindChange = true,
   title = '创建新的 Agent 资产',
-  description = '第一阶段先落正确骨架，后续再持续充实节点配置和运行细节。',
+  description = '选择类型并命名，开始构建 AI 工作流。',
 }: CreateAgentDialogProps) {
   const [name, setName] = useState(defaultTitle)
   const [kind, setKind] = useState(initialKind)
@@ -90,33 +91,49 @@ export function CreateAgentDialog({
 
         <div className="flex flex-col gap-space-lg px-space-lg pb-space-lg">
           {allowKindChange ? (
-            <div className="grid gap-space-sm md:grid-cols-2">
-              {kindCards.map((item) => {
-                const Icon = item.icon
-                const active = kind === item.value
+            <div className="space-y-space-sm">
+              <p className="text-sm font-medium text-text-primary">选择智能体类型</p>
+              <RadioGroup
+                value={kind}
+                onValueChange={(value) => setKind(value as AgentCanvasType)}
+                className="grid gap-space-sm md:grid-cols-2"
+                aria-label="选择智能体类型"
+              >
+                {kindCards.map((item) => {
+                  const Icon = item.icon
+                  const active = kind === item.value
 
-                return (
-                  <button
-                    key={item.value}
-                    type="button"
-                    className={cn(
-                      'rounded-radius-xl border p-space-lg text-left transition-colors',
-                      active
-                        ? 'border-state-focus bg-surface-secondary'
-                        : 'border-border-default hover:border-border-strong hover:bg-surface-secondary',
-                    )}
-                    onClick={() => setKind(item.value)}
-                  >
-                    <div className={cn('mb-space-sm flex h-10 w-10 items-center justify-center rounded-radius-lg', item.tone)}>
-                      <Icon className="h-5 w-5" />
-                    </div>
-                    <p className="mb-space-xs text-base font-semibold text-text-primary">
-                      {item.title}
-                    </p>
-                    <p className="text-sm text-text-secondary">{item.description}</p>
-                  </button>
-                )
-              })}
+                  return (
+                    <label
+                      key={item.value}
+                      className={cn(
+                        'flex cursor-pointer items-center gap-space-base rounded-radius-lg border bg-transparent p-space-md transition-colors focus-within:outline-none focus-within:ring-1 focus-within:ring-state-focus',
+                        active
+                          ? 'border-state-focus bg-state-focus-subtle text-text-primary shadow-elevation-low'
+                          : 'border-border-default text-text-secondary hover:border-border-strong hover:bg-surface-secondary',
+                      )}
+                    >
+                      <div
+                        className={cn(
+                          'flex h-10 w-10 shrink-0 items-center justify-center rounded-radius-lg',
+                          item.tone,
+                        )}
+                      >
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-base font-semibold leading-tight text-text-primary">
+                          {item.title}
+                        </p>
+                        <p className="mt-space-xs text-sm leading-snug text-text-secondary">
+                          {item.description}
+                        </p>
+                      </div>
+                      <RadioGroupItem value={item.value} className="shrink-0" />
+                    </label>
+                  )
+                })}
+              </RadioGroup>
             </div>
           ) : null}
 
@@ -128,7 +145,7 @@ export function CreateAgentDialog({
               id="agent-title"
               value={name}
               onChange={(event) => setName(event.target.value)}
-              placeholder="例如：企业知识助理 / 文档清洗流水线"
+              placeholder="例如：客服助手、文档分析器"
             />
           </div>
         </div>
