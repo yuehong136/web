@@ -9,9 +9,15 @@ import {
 } from '../../share/utils'
 import { adaptAgentFlow } from '../flow'
 import { adaptAgentPublishSummary } from '../publish'
-import { adaptAgentSessionList } from '../session'
+import {
+  adaptAgentSessionList,
+  buildSessionErrorSummary,
+  extractLatestSessionOutput,
+  extractSessionLatestMessageId,
+  extractSessionStatus,
+} from '../session'
 import { adaptAgentShareSummary } from '../share'
-import { adaptAgentTraceItems } from '../trace'
+import { adaptAgentTraceItems, extractTraceErrorMessage } from '../trace'
 import { adaptAgentVersionSummaries } from '../version'
 import { adaptAgentWebhookSummary, adaptAgentWebhookTrace } from '../webhook'
 
@@ -93,6 +99,24 @@ test('session and trace adapters normalize consumable structures', () => {
   assert.equal(sessions.total, 1)
   assert.equal(sessions.sessions[0]?.message_count, 1)
   assert.equal(Array.isArray(traces[0]?.trace), true)
+})
+
+test('trace adapter treats non-array trace responses as empty lists like ragflow', () => {
+  assert.deepEqual(adaptAgentTraceItems(undefined), [])
+  assert.deepEqual(adaptAgentTraceItems({}), [])
+  assert.deepEqual(adaptAgentTraceItems({ data: {} }), [])
+  assert.equal(
+    adaptAgentTraceItems({
+      data: [
+        {
+          component_id: 'agent',
+          component_name: 'Agent',
+          status: 'done',
+        },
+      ],
+    })[0]?.component_id,
+    'agent',
+  )
 })
 
 test('version, share, publish, and webhook adapters expose stable summaries', () => {
@@ -249,4 +273,67 @@ test('webhook trace adapter exposes status, input, output and errors', () => {
   assert.deepEqual(running.latestOutput, { answer: 'world' })
   assert.equal(failed.status, 'error')
   assert.equal(failed.errorMessage, 'boom')
+})
+
+test('session extractors expose status, latest output and real message ids', () => {
+  const empty = adaptAgentSessionList([{ id: 'empty', messages: [] }]).sessions[0]
+  const errored = adaptAgentSessionList([
+    {
+      id: 'error-session',
+      errors: 'model failed',
+      outputs: { _answer: { ok: false } },
+      messages: [
+        { role: 'user', content: 'hi' },
+        { role: 'assistant', content: '', id: 'assistant-123' },
+      ],
+    },
+  ]).sessions[0]
+  const completed = adaptAgentSessionList([
+    {
+      id: 'done-session',
+      messages: [
+        { role: 'user', content: 'hi', id: 'user-1' },
+        { role: 'assistant', content: 'answer', id: 'message-real-1' },
+      ],
+    },
+  ]).sessions[0]
+
+  assert.equal(extractSessionStatus(empty), 'unknown')
+  assert.equal(extractSessionStatus(errored), 'error')
+  assert.equal(extractSessionStatus(completed), 'success')
+  assert.equal(extractSessionLatestMessageId(errored), undefined)
+  assert.equal(extractSessionLatestMessageId(completed), 'message-real-1')
+  assert.deepEqual(extractLatestSessionOutput(errored), {
+    kind: 'json',
+    value: { ok: false },
+  })
+  assert.deepEqual(extractLatestSessionOutput(completed), {
+    kind: 'text',
+    value: 'answer',
+  })
+})
+
+test('trace error extraction walks failed child nodes for session summaries', () => {
+  const trace = adaptAgentTraceItems([
+    {
+      component_id: 'agent',
+      component_name: 'Agent',
+      status: 'success',
+      traces: [
+        {
+          component_id: 'tool',
+          component_name: 'Tool',
+          status: 'failed',
+          message: 'tool failed',
+        },
+      ],
+    },
+  ])
+
+  assert.equal(extractTraceErrorMessage(trace), 'tool failed')
+  assert.equal(buildSessionErrorSummary({ id: 's1' }, trace), 'tool failed')
+  assert.equal(
+    buildSessionErrorSummary({ id: 's2', errors: 'session failed' }, trace),
+    'session failed',
+  )
 })

@@ -40,9 +40,14 @@ export const WorkFlowTimeline = ({
   )
 
   const startedNodeList = useMemo(() => {
-    const duplicateList = currentEventListWithoutMessage.filter(
+    const startedList = currentEventListWithoutMessage.filter(
       (x) => x.event === MessageEventType.NodeStarted,
     )
+    const duplicateList = startedList.length
+      ? startedList
+      : currentEventListWithoutMessage.filter(
+          (x) => x.event === MessageEventType.NodeFinished,
+        )
 
     // 去重
     return duplicateList.reduce<INodeEvent[]>((pre, cur) => {
@@ -85,6 +90,24 @@ export const WorkFlowTimeline = ({
     [currentEventListWithoutMessage],
   )
 
+  const getInputsOrOutputs = useCallback(
+    (
+      nodeEventList: Array<INodeEvent['data']>,
+      field: 'inputs' | 'outputs',
+    ) => {
+      const values = nodeEventList
+        .map((item) => item?.[field])
+        .filter((value) => value !== undefined && value !== null)
+
+      if (values.length < 2) {
+        return values[0] || {}
+      }
+
+      return values
+    },
+    [],
+  )
+
   if (startedNodeList.length === 0) {
     return (
       <div className="text-center text-text-secondary py-space-xl">
@@ -101,8 +124,8 @@ export const WorkFlowTimeline = ({
         const finishNodeIds = nodeDataList
           .map((n) => n.component_id)
           .filter((nodeId): nodeId is string => Boolean(nodeId))
-        const inputs = nodeDataList[0]?.inputs || {}
-        const outputs = nodeDataList[0]?.outputs || {}
+        const inputs = getInputsOrOutputs(nodeDataList, 'inputs')
+        const outputs = getInputsOrOutputs(nodeDataList, 'outputs')
         const nodeLabel = x.data.component_type
 
         return (

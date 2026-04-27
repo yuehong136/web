@@ -1,5 +1,6 @@
 import get from 'lodash/get.js'
 import isEmpty from 'lodash/isEmpty.js'
+import { downloadJsonFile } from '@/lib/download'
 import type { AgentTraceItem } from '@/types/agent'
 import {
   PipelineRuntimeStatus,
@@ -70,18 +71,7 @@ export function findLastFailureMessage(trace?: AgentTraceItem[]): string | undef
   return undefined
 }
 
-export function downloadJsonFile(data: unknown, filename: string): void {
-  const jsonStr = JSON.stringify(data, null, 2)
-  const blob = new Blob([jsonStr], { type: 'application/json' })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = filename
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-  URL.revokeObjectURL(url)
-}
+export { downloadJsonFile }
 
 export function buildPipelineSummary(params: {
   status: PipelineRuntimeStatus

@@ -32,6 +32,7 @@ export interface NormalizedRuntimeEvent {
   sessionId?: string
   data?: unknown
   errorMessage?: string
+  outputContent?: string
   logEvent?: {
     event: string
     message_id: string
@@ -42,6 +43,49 @@ export interface NormalizedRuntimeEvent {
 
 const isRecord = (value: unknown): value is Record<string, unknown> => {
   return typeof value === 'object' && value !== null
+}
+
+const firstString = (...values: unknown[]): string | undefined => {
+  for (const value of values) {
+    if (typeof value === 'string' && value.trim()) {
+      return value
+    }
+  }
+
+  return undefined
+}
+
+const normalizeEventData = (payload: RuntimeEventRecord): unknown => {
+  if (
+    isRecord(payload.data) &&
+    isRecord(payload.data.data) &&
+    !('component_id' in payload.data) &&
+    !('content' in payload.data) &&
+    !('outputs' in payload.data)
+  ) {
+    return payload.data.data
+  }
+
+  return payload.data
+}
+
+const extractRuntimeOutputContent = (data: unknown): string | undefined => {
+  if (!isRecord(data)) {
+    return undefined
+  }
+
+  const outputs = data.outputs
+  if (!isRecord(outputs)) {
+    return firstString(data.content, data.answer)
+  }
+
+  return firstString(
+    outputs.content,
+    outputs.answer,
+    outputs._answer,
+    outputs.result,
+    isRecord(outputs.output) ? outputs.output.content : undefined,
+  )
 }
 
 const toDisplayValue = (value: unknown): string => {
@@ -158,6 +202,7 @@ export function normalizeRuntimeEvent(raw: unknown): NormalizedRuntimeEvent {
   }
 
   const payload = raw as unknown as RuntimeEventRecord
+  const data = normalizeEventData(payload)
   const code =
     typeof payload.retcode === 'number'
       ? payload.retcode
@@ -171,12 +216,12 @@ export function normalizeRuntimeEvent(raw: unknown): NormalizedRuntimeEvent {
       : undefined
 
   const logEvent =
-    payload.event && payload.message_id && isRecord(payload.data)
+    payload.event && payload.message_id && isRecord(data)
       ? {
           event: payload.event,
           message_id: payload.message_id,
           task_id: payload.task_id,
-          data: payload.data as INodeData,
+          data: data as INodeData,
         }
       : undefined
 
@@ -186,11 +231,12 @@ export function normalizeRuntimeEvent(raw: unknown): NormalizedRuntimeEvent {
     taskId: payload.task_id,
     sessionId:
       payload.session_id ||
-      (isRecord(payload.data) && typeof payload.data.session_id === 'string'
-        ? payload.data.session_id
+      (isRecord(data) && typeof data.session_id === 'string'
+        ? data.session_id
         : undefined),
-    data: payload.data,
+    data,
     errorMessage,
+    outputContent: extractRuntimeOutputContent(data),
     logEvent,
   }
 }
@@ -220,6 +266,8 @@ export function buildRuntimeSummary(params: {
   currentView: RuntimeWorkbenchView
   messageCount: number
   hasLogs: boolean
+  sessionId?: string
+  sessionName?: string
   lastRunAt?: number
   lastMessageId?: string
   lastTaskId?: string
@@ -230,6 +278,8 @@ export function buildRuntimeSummary(params: {
     currentView: params.currentView,
     messageCount: params.messageCount,
     hasLogs: params.hasLogs,
+    ...(params.sessionId ? { sessionId: params.sessionId } : {}),
+    ...(params.sessionName ? { sessionName: params.sessionName } : {}),
     lastRunAt: params.lastRunAt,
     lastMessageId: params.lastMessageId,
     lastTaskId: params.lastTaskId,

@@ -236,6 +236,14 @@ export interface AgentSession {
   update_date?: string
   message_count?: number
   messages?: AgentSessionMessage[]
+  errors?: string
+  source?: string
+  round?: number
+  duration?: number
+  tokens?: number
+  reference?: unknown[]
+  latestMessageId?: string
+  latestOutput?: unknown
   [key: string]: unknown
 }
 

@@ -46,6 +46,8 @@ export interface RuntimeWorkbenchSummary {
   currentView: RuntimeWorkbenchView
   messageCount: number
   hasLogs: boolean
+  sessionId?: string
+  sessionName?: string
   lastRunAt?: number
   lastMessageId?: string
   lastTaskId?: string
@@ -69,6 +71,8 @@ export interface AgentRuntimeController {
   canvasId?: string
   beginInputs: BeginQuery[]
   isTaskMode: boolean
+  sessionId?: string
+  viewingSessionId?: string
   messages: RuntimeMessage[]
   logEvents: INodeEvent[]
   summary: RuntimeWorkbenchSummary
@@ -90,4 +94,7 @@ export interface AgentRuntimeController {
   ) => Promise<void>
   handleStop: () => Promise<void>
   handleReset: () => void
+  handleCreateSession: (name?: string) => Promise<void>
+  handleSwitchViewingSession: (id: string | undefined) => void
+  handleAdoptViewingSession: () => void
 }

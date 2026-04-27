@@ -1,6 +1,10 @@
 import { SectionCard } from '@/components/patterns'
 import { LegacySheetShell } from '../features/runtime-workbench/components/legacy-sheet-shell'
-import type { AgentRuntimeController } from '../features/runtime-workbench/types'
+import {
+  AgentRuntimeStatus,
+  type AgentRuntimeController,
+} from '../features/runtime-workbench/types'
+import { LogDetail } from '../features/log-detail'
 import { WorkFlowTimeline } from './workflow-timeline'
 
 interface RuntimeLogPanelProps {
@@ -13,6 +17,19 @@ interface LogSheetProps {
 }
 
 export function RuntimeLogPanel({ controller }: RuntimeLogPanelProps) {
+  const terminal =
+    controller.status === AgentRuntimeStatus.SUCCESS ||
+    controller.status === AgentRuntimeStatus.ERROR ||
+    controller.status === AgentRuntimeStatus.STOPPED
+
+  if (terminal) {
+    return (
+      <div className="p-space-md">
+        <LogDetail mode="live" controller={controller} />
+      </div>
+    )
+  }
+
   return (
     <div className="p-space-md">
       <SectionCard title="节点时间线" padding="default">

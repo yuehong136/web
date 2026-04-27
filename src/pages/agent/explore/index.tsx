@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { SplitDetailPageTemplate } from '@/components/page-templates'
 import {
   AppScene,
@@ -10,31 +10,39 @@ import {
   SectionCard,
 } from '@/components/patterns'
 import { Button } from '@/components/ui/button'
-import { useFetchAgent, useFetchAgentSession, useFetchAgentSessions } from '@/hooks/use-agent-request'
+import { useFetchAgent, useFetchAgentSessions } from '@/hooks/use-agent-request'
 import { buildAgentCanvasPath, resolveLocalizedText } from '@/lib/agent'
 import { formatRelativeTime } from '@/lib/utils'
-import { ArrowLeft, MessageSquareText } from 'lucide-react'
+import { extractSessionStatus } from '../adapters/session'
+import { LogDetail } from '../features/log-detail'
+import { ArrowLeft } from 'lucide-react'
 
 export default function AgentExplorePage() {
   const navigate = useNavigate()
   const { id = '' } = useParams<{ id: string }>()
+  const [searchParams, setSearchParams] = useSearchParams()
   const agentQuery = useFetchAgent(id)
   const sessionsQuery = useFetchAgentSessions(id)
   const [selectedSessionId, setSelectedSessionId] = useState('')
-  const sessionQuery = useFetchAgentSession(id, selectedSessionId)
 
   useEffect(() => {
-    if (!selectedSessionId && sessionsQuery.data.sessions.length > 0) {
+    const sessionFromUrl = searchParams.get('session') || ''
+    if (sessionFromUrl && sessionFromUrl !== selectedSessionId) {
+      setSelectedSessionId(sessionFromUrl)
+      return
+    }
+
+    if (!sessionFromUrl && !selectedSessionId && sessionsQuery.data.sessions.length > 0) {
       setSelectedSessionId(sessionsQuery.data.sessions[0].id)
     }
-  }, [selectedSessionId, sessionsQuery.data.sessions])
+  }, [searchParams, selectedSessionId, sessionsQuery.data.sessions])
 
   if (sessionsQuery.isLoading && !sessionsQuery.data.sessions.length) {
     return (
       <PageLoadingState
         scene={AppScene.SPLIT_DETAIL}
         title="正在加载 Explore 会话"
-        description="第一阶段先把会话浏览骨架接上，聊天细节后续逐步增强。"
+        description="正在读取持久化会话列表。"
       />
     )
   }
@@ -58,7 +66,7 @@ export default function AgentExplorePage() {
         <PageHeader
           compact
           title={`${resolveLocalizedText(agentQuery.data?.title, 'Agent')} · Explore`}
-          description="这里先提供会话浏览与调试入口，后续补全完整的消息时间线、重放与筛选。"
+          description="查看持久化会话的输入、输出、Trace、错误与消息记录。筛选和重放留给 T9。"
           actions={
             <Button
               variant="outline"
@@ -89,7 +97,10 @@ export default function AgentExplorePage() {
                           ? 'border-state-focus bg-surface-secondary'
                           : 'border-border-default hover:bg-surface-secondary'
                       }`}
-                      onClick={() => setSelectedSessionId(session.id)}
+                    onClick={() => {
+                      setSelectedSessionId(session.id)
+                      setSearchParams({ session: session.id })
+                    }}
                     >
                       <div className="flex items-start justify-between gap-space-sm">
                         <div className="min-w-0">
@@ -106,6 +117,9 @@ export default function AgentExplorePage() {
                           {session.message_count || session.messages?.length || 0}
                         </span>
                       </div>
+                      <p className="mt-space-xs text-xs text-text-tertiary">
+                        {extractSessionStatus(session)}
+                      </p>
                     </button>
                   )
                 })}
@@ -115,7 +129,7 @@ export default function AgentExplorePage() {
                 scene={AppScene.SPLIT_DETAIL}
                 compact
                 title="还没有会话"
-                description="运行 Agent 后，Explore 会话会逐步沉淀到这里。"
+                description="运行 Agent 后，持久化会话会显示在这里。"
               />
             )}
           </SectionCard>
@@ -126,22 +140,11 @@ export default function AgentExplorePage() {
           {selectedSessionId ? (
             <>
               <SectionCard title="会话详情" padding="default">
-                {sessionQuery.isLoading ? (
-                  <p className="text-sm text-text-secondary">正在加载会话详情...</p>
-                ) : sessionQuery.isError ? (
-                  <p className="text-sm text-state-error">当前只拿到会话列表，详情接口将在下一阶段补强。</p>
-                ) : (
-                  <pre className="max-h-[320px] overflow-auto rounded-radius-lg bg-surface-secondary p-space-base text-xs text-text-secondary">
-                    {JSON.stringify(sessionQuery.data || {}, null, 2)}
-                  </pre>
-                )}
-              </SectionCard>
-
-              <SectionCard title="阶段说明" padding="default">
-                <p className="flex items-start gap-space-xs text-sm text-text-secondary">
-                  <MessageSquareText className="mt-[2px] h-4 w-4 shrink-0 text-text-accent" />
-                  本阶段先保证会话路由、列表和详情占位稳定存在，下一阶段再替换为完整的消息气泡、筛选与重放体验。
-                </p>
+                <LogDetail
+                  mode="session"
+                  canvasId={id}
+                  sessionId={selectedSessionId}
+                />
               </SectionCard>
             </>
           ) : (

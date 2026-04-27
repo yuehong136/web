@@ -203,6 +203,7 @@ export const useFetchMessageTrace = (canvasId?: string, messageId?: string) => {
     isLoading: query.isFetching,
     isError: query.isError,
     error: query.error,
+    refetch: query.refetch,
   }
 }
 
@@ -245,6 +246,11 @@ export const useFetchAgentSessions = (canvasId?: string) => {
   }
 }
 
+/**
+ * @deprecated There is no independent backend log endpoint. Historical "log"
+ * data is the persisted `t_ai_api4conversations` session row returned by
+ * `useFetchAgentSessions`; T9 should remove this alias after callers migrate.
+ */
 export const useFetchAgentLog = useFetchAgentSessions
 
 export const useFetchAgentSession = (canvasId?: string, sessionId?: string) => {

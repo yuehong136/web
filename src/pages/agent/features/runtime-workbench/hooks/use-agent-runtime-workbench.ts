@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { EventSourceParserStream } from 'eventsource-parser/stream'
-import { useFetchAgent } from '@/hooks/use-agent-request'
+import {
+  useCreateAgentSession,
+  useFetchAgent,
+  useFetchAgentSessions,
+} from '@/hooks/use-agent-request'
 import { resolveLocalizedText } from '@/lib/agent'
 import { toast } from '@/lib/toast'
 import { BeginId } from '../../../constant'
@@ -55,6 +59,8 @@ export function useAgentRuntimeWorkbench({
   const beginInputs = useGetBeginNodeDataInputs()
   const isTaskMode = useIsTaskMode()
   const { agent } = useFetchAgent(canvasId)
+  const sessionsQuery = useFetchAgentSessions(canvasId)
+  const { createAgentSession } = useCreateAgentSession(canvasId || '')
   const { saveGraph, loading: saving } = useSaveGraph(canvasId, false)
   const { stopMessage } = useStopMessage()
   const {
@@ -73,6 +79,7 @@ export function useAgentRuntimeWorkbench({
   const [lastRunAt, setLastRunAt] = useState<number>()
   const [lastError, setLastError] = useState<string>()
   const [sessionId, setSessionId] = useState<string | null>(null)
+  const [viewingSessionId, setViewingSessionId] = useState<string>()
 
   const abortControllerRef = useRef<AbortController | null>(null)
   const messageStateRef = useRef<Record<string, ReturnType<typeof consumeRuntimeMessageChunk>['nextState']>>({})
@@ -95,17 +102,17 @@ export function useAgentRuntimeWorkbench({
   })
   const lastNodeId = startButNotFinishedNodeIds[startButNotFinishedNodeIds.length - 1]
 
-  const clearRuntimeState = useCallback(() => {
+  const clearRuntimeState = useCallback((nextSessionId = sessionId) => {
     abortControllerRef.current?.abort()
     abortControllerRef.current = null
     messageStateRef.current = {}
     setMessages([])
-    setSessionId(null)
+    setSessionId(nextSessionId ?? null)
     clearEventList()
     setCurrentMessageId('')
     setLastError(undefined)
     setStatus(AgentRuntimeStatus.IDLE)
-  }, [clearEventList, setCurrentMessageId])
+  }, [clearEventList, sessionId, setCurrentMessageId])
 
   const updateMessageById = useCallback(
     (
@@ -124,6 +131,15 @@ export function useAgentRuntimeWorkbench({
   const resolveCanvasTitle = useMemo(() => {
     return resolveLocalizedText(agent?.title, '未命名资产')
   }, [agent?.title])
+
+  const sessionName = useMemo(() => {
+    if (!sessionId) {
+      return undefined
+    }
+
+    return sessionsQuery.data.sessions.find((session) => session.id === sessionId)
+      ?.name
+  }, [sessionId, sessionsQuery.data.sessions])
 
   const saveCurrentGraph = useCallback(async () => {
     if (!canvasId) {
@@ -175,6 +191,18 @@ export function useAgentRuntimeWorkbench({
           [normalizedEvent.logEvent],
           normalizedEvent.logEvent.message_id,
         )
+      }
+
+      if (
+        normalizedEvent.event === 'node_finished' &&
+        normalizedEvent.outputContent
+      ) {
+        updateMessageById(assistantId, (message) => ({
+          ...message,
+          content: message.content || normalizedEvent.outputContent || '',
+          messageId: normalizedEvent.messageId || message.messageId,
+          taskId: normalizedEvent.taskId || message.taskId,
+        }))
       }
 
       if (normalizedEvent.errorMessage) {
@@ -235,6 +263,7 @@ export function useAgentRuntimeWorkbench({
 
         const runtimeError =
           typeof outputs?._ERROR === 'string' ? outputs._ERROR : undefined
+        const outputContent = normalizedEvent.outputContent
 
         if (runtimeError) {
           setLastError(runtimeError)
@@ -244,7 +273,7 @@ export function useAgentRuntimeWorkbench({
         updateMessageById(assistantId, (message) => ({
           ...message,
           files: normalizeRuntimeAttachments(outputs?.attachment),
-          content: message.content || runtimeError || '',
+          content: message.content || runtimeError || outputContent || '',
           error: runtimeError ?? message.error,
           isStreaming: false,
           messageId: normalizedEvent.messageId || message.messageId,
@@ -322,7 +351,7 @@ export function useAgentRuntimeWorkbench({
       abortControllerRef.current = abortController
 
       try {
-        const response = await agentAPI.runAgent(
+        const response = await agentAPI.runAgentSession(
           {
             id: canvasId,
             query: content,
@@ -388,6 +417,7 @@ export function useAgentRuntimeWorkbench({
           ...message,
           isStreaming: false,
         }))
+        void sessionsQuery.refetch()
       } catch (error) {
         const isAbortError =
           error instanceof DOMException && error.name === 'AbortError'
@@ -413,6 +443,7 @@ export function useAgentRuntimeWorkbench({
         if (!isAbortError) {
           toast.error(errorMessage)
         }
+        void sessionsQuery.refetch()
       } finally {
         if (abortControllerRef.current === abortController) {
           abortControllerRef.current = null
@@ -425,6 +456,7 @@ export function useAgentRuntimeWorkbench({
       handleNormalizedEvent,
       onViewChange,
       saveCurrentGraph,
+      sessionsQuery,
       sessionId,
       updateMessageById,
     ],
@@ -436,7 +468,7 @@ export function useAgentRuntimeWorkbench({
       const currentInputs = beginNode?.data?.form?.inputs || {}
       const nextInputs = buildBeginQueryWithObject(currentInputs, values)
 
-      clearRuntimeState()
+      clearRuntimeState(sessionId)
       updateNodeForm(BeginId, nextInputs, ['inputs'])
 
       if (isTaskMode) {
@@ -467,6 +499,7 @@ export function useAgentRuntimeWorkbench({
       onViewChange,
       runRequest,
       saveCurrentGraph,
+      sessionId,
       updateNodeForm,
     ],
   )
@@ -509,6 +542,47 @@ export function useAgentRuntimeWorkbench({
     await stopMessage(latestTaskId)
   }, [latestTaskId, stopMessage])
 
+  const handleReset = useCallback(() => {
+    clearRuntimeState(sessionId)
+  }, [clearRuntimeState, sessionId])
+
+  const handleCreateSession = useCallback(
+    async (name?: string) => {
+      if (!canvasId) {
+        toast.error('缺少画布 ID，无法创建会话')
+        return
+      }
+
+      try {
+        const session = await createAgentSession(name || '新会话')
+        clearRuntimeState(session.id)
+        setViewingSessionId(undefined)
+        onViewChange(RuntimeWorkbenchView.CONVERSATION)
+        toast.success('已创建新会话')
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : '创建会话失败')
+      }
+    },
+    [canvasId, clearRuntimeState, createAgentSession, onViewChange],
+  )
+
+  const handleSwitchViewingSession = useCallback(
+    (id: string | undefined) => {
+      setViewingSessionId(id)
+    },
+    [],
+  )
+
+  const handleAdoptViewingSession = useCallback(() => {
+    if (!viewingSessionId) {
+      return
+    }
+
+    clearRuntimeState(viewingSessionId)
+    setViewingSessionId(undefined)
+    onViewChange(RuntimeWorkbenchView.CONVERSATION)
+  }, [clearRuntimeState, onViewChange, viewingSessionId])
+
   const summary = useMemo(
     () =>
       buildRuntimeSummary({
@@ -516,6 +590,8 @@ export function useAgentRuntimeWorkbench({
         currentView,
         messageCount: messages.length,
         hasLogs: logEvents.length > 0,
+        sessionId: sessionId || undefined,
+        sessionName,
         lastRunAt,
         lastMessageId: currentMessageId || undefined,
         lastTaskId: latestTaskId || undefined,
@@ -529,6 +605,8 @@ export function useAgentRuntimeWorkbench({
       latestTaskId,
       logEvents.length,
       messages.length,
+      sessionId,
+      sessionName,
       status,
     ],
   )
@@ -560,6 +638,8 @@ export function useAgentRuntimeWorkbench({
     canvasId,
     beginInputs,
     isTaskMode,
+    sessionId: sessionId || undefined,
+    viewingSessionId,
     messages,
     logEvents,
     summary,
@@ -579,6 +659,9 @@ export function useAgentRuntimeWorkbench({
     handleSendMessage,
     handleSubmitAwaitingInputs,
     handleStop,
-    handleReset: clearRuntimeState,
+    handleReset,
+    handleCreateSession,
+    handleSwitchViewingSession,
+    handleAdoptViewingSession,
   }
 }

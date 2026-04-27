@@ -2,16 +2,22 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { formatRelativeTime } from '@/lib/utils'
 import { cn } from '@/lib/utils'
-import { RotateCcw, X } from 'lucide-react'
+import { ExternalLink, Plus, RotateCcw, X } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import {
   AgentRuntimeStatus,
+  RuntimeWorkbenchView,
+  type AgentRuntimeController,
   type RuntimeWorkbenchSummary,
 } from '../types'
+import { SessionPicker } from './session-picker'
 
 interface RuntimeHeaderProps {
   summary: RuntimeWorkbenchSummary
+  controller: AgentRuntimeController
   onClose: () => void
   onReset: () => void
+  onViewChange: (view: RuntimeWorkbenchView) => void
 }
 
 const STATUS_LABEL_MAP: Record<AgentRuntimeStatus, string> = {
@@ -37,9 +43,17 @@ const STATUS_VARIANT_MAP: Record<
 
 export function RuntimeHeader({
   summary,
+  controller,
   onClose,
   onReset,
+  onViewChange,
 }: RuntimeHeaderProps) {
+  const visibleSessionId = controller.viewingSessionId || summary.sessionId
+  const visibleSessionName =
+    controller.viewingSessionId && controller.viewingSessionId !== summary.sessionId
+      ? '历史会话'
+      : summary.sessionName || 'Live · 未命名'
+
   return (
     <div className="border-b border-border-primary px-space-md py-space-sm">
       <div className="flex items-start justify-between gap-space-sm">
@@ -94,6 +108,49 @@ export function RuntimeHeader({
           >
             <X className="size-4" />
           </Button>
+        </div>
+      </div>
+
+      <div className="mt-space-sm flex flex-wrap items-center justify-between gap-space-sm rounded-radius-md border border-border-default bg-surface-secondary px-space-sm py-space-xs">
+        <div className="min-w-0">
+          <p className="truncate text-xs font-medium text-text-primary">
+            当前会话：{visibleSessionName}
+          </p>
+          <p className="truncate text-xs text-text-tertiary">
+            {visibleSessionId || '运行后由后端返回 session_id'}
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-space-xs">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              void controller.handleCreateSession()
+            }}
+          >
+            <Plus className="size-4" />
+            新建会话
+          </Button>
+          <SessionPicker
+            canvasId={controller.canvasId}
+            currentSessionId={summary.sessionId}
+            viewingSessionId={controller.viewingSessionId}
+            onSelect={(sessionId) => {
+              controller.handleSwitchViewingSession(sessionId)
+              onViewChange(RuntimeWorkbenchView.LOG)
+            }}
+          />
+          {controller.canvasId && visibleSessionId ? (
+            <Button asChild variant="ghost" size="sm">
+              <Link
+                to={`/agent/${controller.canvasId}/explore?session=${encodeURIComponent(visibleSessionId)}`}
+              >
+                <ExternalLink className="size-4" />
+                在 Explore 中查看
+              </Link>
+            </Button>
+          ) : null}
         </div>
       </div>
     </div>

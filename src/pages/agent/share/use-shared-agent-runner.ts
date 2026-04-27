@@ -90,6 +90,16 @@ export function useSharedAgentRunner({
         return
       }
 
+      if (
+        normalizedEvent.event === 'node_finished' &&
+        normalizedEvent.outputContent
+      ) {
+        updateMessageById(assistantId, (message) => ({
+          ...message,
+          content: message.content || normalizedEvent.outputContent || '',
+        }))
+      }
+
       if (normalizedEvent.event === 'message') {
         const previousState = messageStateRef.current[assistantId]
         const nextChunk = consumeRuntimeMessageChunk(
@@ -123,6 +133,7 @@ export function useSharedAgentRunner({
 
         const runtimeError =
           typeof outputs?._ERROR === 'string' ? outputs._ERROR : undefined
+        const outputContent = normalizedEvent.outputContent
 
         if (runtimeError) {
           setLastError(runtimeError)
@@ -130,7 +141,7 @@ export function useSharedAgentRunner({
 
         updateMessageById(assistantId, (message) => ({
           ...message,
-          content: message.content || runtimeError || '',
+          content: message.content || runtimeError || outputContent || '',
           error: runtimeError ?? message.error,
           isStreaming: false,
         }))

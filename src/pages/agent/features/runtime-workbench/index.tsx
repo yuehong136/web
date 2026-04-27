@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { MessageSquareMore, NotebookText, Play, Square } from 'lucide-react'
 import AgentChatBox from '../../chat/box'
+import { LogDetail } from '../log-detail'
 import { RuntimeLogPanel } from '../../log-sheet'
 import { AgentRunPanel } from '../../run-sheet'
 import { RuntimeHeader } from './components/runtime-header'
@@ -64,8 +65,10 @@ export function RuntimeWorkbench({
 
         <RuntimeHeader
           summary={summary}
+          controller={controller}
           onClose={() => onOpenChange(false)}
           onReset={controller.handleReset}
+          onViewChange={onViewChange}
         />
 
         <Tabs
@@ -88,7 +91,11 @@ export function RuntimeWorkbench({
                 </TabsTrigger>
                 <TabsTrigger
                   value={RuntimeWorkbenchView.LOG}
-                  disabled={!controller.hasLogs}
+                  disabled={
+                    !controller.hasLogs &&
+                    !controller.sessionId &&
+                    !controller.viewingSessionId
+                  }
                 >
                   <NotebookText className="mr-space-xs size-4" />
                   Log
@@ -127,7 +134,18 @@ export function RuntimeWorkbench({
             value={RuntimeWorkbenchView.LOG}
             className="mt-0 min-h-0 flex-1 overflow-hidden"
           >
-            <RuntimeLogPanel controller={controller} />
+            {controller.viewingSessionId && controller.canvasId ? (
+              <div className="h-full overflow-auto p-space-md">
+                <LogDetail
+                  mode="session"
+                  canvasId={controller.canvasId}
+                  sessionId={controller.viewingSessionId}
+                  controller={controller}
+                />
+              </div>
+            ) : (
+              <RuntimeLogPanel controller={controller} />
+            )}
           </TabsContent>
         </Tabs>
       </SheetContent>

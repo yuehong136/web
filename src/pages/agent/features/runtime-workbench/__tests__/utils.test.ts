@@ -155,6 +155,7 @@ test('normalizeRuntimeEvent extracts ids, log events, and runtime errors', () =>
   assert.equal(logEvent.messageId, 'message-1')
   assert.equal(logEvent.taskId, 'task-1')
   assert.equal(logEvent.sessionId, 'session-1')
+  assert.equal(logEvent.outputContent, 'done')
   assert.deepEqual(logEvent.logEvent, {
     event: 'node_finished',
     message_id: 'message-1',
@@ -174,6 +175,23 @@ test('normalizeRuntimeEvent extracts ids, log events, and runtime errors', () =>
   })
 
   assert.equal(errorEvent.errorMessage, 'runtime failed')
+
+  const wrappedEvent = normalizeRuntimeEvent({
+    event: 'node_finished',
+    message_id: 'message-2',
+    data: {
+      data: {
+        component_id: 'agent_1',
+        outputs: { content: 'fallback answer' },
+      },
+    },
+  })
+
+  assert.equal(wrappedEvent.outputContent, 'fallback answer')
+  assert.deepEqual(wrappedEvent.logEvent?.data, {
+    component_id: 'agent_1',
+    outputs: { content: 'fallback answer' },
+  })
 })
 
 test('consumeRuntimeMessageChunk keeps main content and thinking content separate', () => {

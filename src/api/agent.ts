@@ -115,6 +115,34 @@ export const agentAPI = {
     return response
   },
 
+  runAgentSession: async (
+    payload: RunAgentPayload,
+    options?: {
+      signal?: AbortSignal
+    },
+  ) => {
+    const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+    const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)
+    const response = await fetch(`${baseURL}/v1/canvas/${payload.id}/completion`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({
+        query: payload.query || '',
+        session_id: payload.session_id,
+        files: payload.files || [],
+        inputs: payload.inputs || {},
+        ...(payload.release !== undefined ? { release: payload.release } : {}),
+        ...(payload.user_id ? { user_id: payload.user_id } : {}),
+      }),
+      signal: options?.signal,
+    })
+
+    return response
+  },
+
   resetAgent: async (id: string) => apiClient.post('/v1/canvas/reset', { id }),
 
   debugNode: async (payload: DebugAgentNodePayload) =>
@@ -137,6 +165,14 @@ export const agentAPI = {
   fetchVersion: async (versionId: string) =>
     apiClient.get<AgentFlow>(`/v1/canvas/getversion/${versionId}`),
 
+  /**
+   * Fetches the transient workflow trace stored under
+   * `{canvas_id}-{message_id}-logs`.
+   *
+   * Backend constraint: trace lives in Redis only and has no frontend-visible
+   * TTL contract. T8 therefore fetches it once after a terminal run/session is
+   * available instead of polling indefinitely.
+   */
   fetchTrace: async (canvasId: string, messageId: string) =>
     apiClient.get<AgentTraceItem[]>(`/v1/canvas/trace`, {
       params: {
@@ -166,6 +202,13 @@ export const agentAPI = {
   fetchAgentAvatar: async (canvasId: string) =>
     apiClient.get<AgentFlow>(`/v1/canvas/getsse/${canvasId}`),
 
+  /**
+   * Lists persisted `t_ai_api4conversations` rows for a canvas.
+   *
+   * Backend supports query params that T8 intentionally does not pass yet:
+   * `page`, `page_size`, `keywords`, `from_date`, `to_date`, `orderby`, `desc`,
+   * and `exp_user_id`. T9 owns Explore filtering, ordering, and pagination.
+   */
   fetchSessions: async (canvasId: string) =>
     apiClient.get<AgentSessionListResponse | AgentSession[]>(`/v1/canvas/${canvasId}/sessions`),
 

@@ -1,46 +1,15 @@
 import { memo, useCallback, useMemo, useState } from 'react'
 import { SectionCard } from '@/components/patterns'
 import { Button } from '@/components/ui/button'
-import { FileIcon } from '@/components/ui/file-icon'
 import { Input } from '@/components/ui/input'
-import { cn } from '@/lib/utils'
 import { MessageSquareDashed, Send, Square } from 'lucide-react'
 import type { AgentRuntimeController, RuntimeAttachment } from '../features/runtime-workbench/types'
+import { RuntimeMessageBubble } from '../components/runtime-message-bubble'
 import DebugContent from '../debug-content'
 import { FileUploadDirectUpload } from '../debug-content/uploader'
 
 interface AgentChatBoxProps {
   controller: AgentRuntimeController
-}
-
-function RuntimeAttachmentList({
-  files = [],
-}: {
-  files?: RuntimeAttachment[]
-}) {
-  if (!files.length) {
-    return null
-  }
-
-  return (
-    <div className="mt-space-sm flex flex-wrap gap-space-sm">
-      {files.map((file, index) => (
-        <div
-          key={`${file.id || file.name}-${index}`}
-          className="flex items-center gap-space-sm rounded-radius-md border border-border-default bg-surface-secondary px-space-sm py-space-xs"
-        >
-          <FileIcon
-            fileType={file.type}
-            fileName={file.name}
-            size="sm"
-          />
-          <span className="max-w-[220px] truncate text-sm text-text-primary">
-            {file.name}
-          </span>
-        </div>
-      ))}
-    </div>
-  )
 }
 
 function AgentChatBox({ controller }: AgentChatBoxProps) {
@@ -100,38 +69,7 @@ function AgentChatBox({ controller }: AgentChatBoxProps) {
               const isLatest = index === controller.messages.length - 1
 
               return (
-                <div
-                  key={message.id}
-                  className={cn(
-                    'flex',
-                    message.role === 'user' ? 'justify-end' : 'justify-start',
-                  )}
-                >
-                  <div
-                    className={cn(
-                      'max-w-[88%] rounded-radius-lg px-space-base py-space-sm',
-                      message.role === 'user'
-                        ? 'bg-surface-accent text-text-on-accent'
-                        : 'bg-surface-secondary text-text-primary',
-                    )}
-                  >
-                    {message.thinking ? (
-                      <div className="mb-space-sm rounded-radius-md border border-border-primary bg-surface-primary p-space-sm text-xs text-text-secondary">
-                        <p className="mb-space-xs font-medium text-text-primary">Thinking</p>
-                        <p className="whitespace-pre-wrap">{message.thinking}</p>
-                      </div>
-                    ) : null}
-
-                    <p className="whitespace-pre-wrap text-sm">{message.content || '...'}</p>
-
-                    {message.tips ? (
-                      <div className="mt-space-sm rounded-radius-md border border-border-primary bg-surface-primary p-space-sm text-sm text-text-secondary">
-                        {message.tips}
-                      </div>
-                    ) : null}
-
-                    <RuntimeAttachmentList files={message.files} />
-
+                <RuntimeMessageBubble key={message.id} message={message}>
                     {message.awaitingInputs?.length && isLatest ? (
                       <div className="mt-space-md rounded-radius-md border border-border-primary bg-surface-primary p-space-sm">
                         <DebugContent
@@ -148,14 +86,7 @@ function AgentChatBox({ controller }: AgentChatBoxProps) {
                         />
                       </div>
                     ) : null}
-
-                    {message.error ? (
-                      <p className="mt-space-sm text-xs text-status-error">
-                        {message.error}
-                      </p>
-                    ) : null}
-                  </div>
-                </div>
+                </RuntimeMessageBubble>
               )
             })}
           </div>
