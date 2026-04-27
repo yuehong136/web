@@ -98,8 +98,9 @@ export default defineConfig(({ mode }) => {
           chunkFileNames: 'js/chunks/[name]-[hash].js',
           assetFileNames: 'assets/[ext]/[name]-[hash].[ext]',
 
-          // Merge tiny chunks (< 20 KB) to reduce HTTP request count
-          experimentalMinChunkSize: 20 * 1024,
+          // Keep Rollup-generated shared helper chunks separate. Merging tiny
+          // chunks can move helpers into lazy vendor chunks and create circular
+          // startup imports between core UI and heavy preview packages.
 
           // ---------------------------------------------------------------
           // Manual chunk splitting — grouped by update frequency & load priority
@@ -107,30 +108,96 @@ export default defineConfig(({ mode }) => {
           // Strategy:
           //   1. vendor-core   — React runtime, almost never changes → long-term cache
           //   2. vendor-ui     — Radix + shadcn primitives, stable
-          //   3. vendor-antd   — Ant Design, heavy, used in mixed pages
-          //   4. vendor-state  — Zustand / TanStack / forms / validation
-          //   5. vendor-graph  — AntV G6 / XYFlow / Cytoscape, page-specific
-          //   6. vendor-editor — Monaco / Lexical / MD editor, page-specific
-          //   7. vendor-markdown — Markdown-it / highlight.js / syntax
-          //   8. vendor-doc-preview — PDF / DOCX / PPTX / Excel / CSV
-          //   9. vendor-chart  — Recharts + D3 ecosystem
-          //  10. vendor-icons  — Lucide icons (tree-shake boundary)
-          //  11. vendor-i18n   — i18next ecosystem
-          //  12. vendor-dnd    — dnd-kit drag & drop
-          //  13. vendor-utils  — lodash, uuid, misc utilities
+          //   3. vendor-markdown — Markdown renderers/editors and unified AST stack
+          //   4. vendor-antdx  — Ant Design X chat/markdown components
+          //   5. vendor-antd   — Ant Design, heavy, used in mixed pages
+          //   6. vendor-state  — Zustand / TanStack / forms / validation
+          //   7. vendor-immer  — shared Immer runtime used by Zustand and Redux Toolkit
+          //   8. vendor-graph  — AntV G6 / XYFlow / Cytoscape, page-specific
+          //   9. vendor-editor — Monaco / Lexical, page-specific
+          //  10. vendor-doc-preview — PDF / DOCX / PPTX / Excel / CSV
+          //  11. vendor-chart  — Recharts + D3 ecosystem
+          //  12. vendor-icons  — Lucide icons (tree-shake boundary)
+          //  13. vendor-i18n   — i18next ecosystem
+          //  14. vendor-dnd    — dnd-kit drag & drop
+          //  15. vendor-utils  — lodash, uuid, misc utilities
           // ---------------------------------------------------------------
           manualChunks(id) {
+            // Keep Rollup's CJS interop helpers with React. If this helper lands
+            // in an AntD/Recharts chunk, vendor-core can import vendor chunks and
+            // create a browser-time circular initialization failure.
+            if (id.includes('commonjsHelpers')) {
+              return 'vendor-core'
+            }
+
             if (!id.includes('node_modules')) return
 
             // 1. React core runtime
             if (
               id.includes('node_modules/react/') ||
               id.includes('node_modules/react-dom/') ||
+              id.includes('node_modules/react-is/') ||
+              id.includes('node_modules/use-sync-external-store/') ||
               id.includes('node_modules/react-router-dom/') ||
               id.includes('node_modules/react-router/') ||
               id.includes('node_modules/scheduler/')
             ) {
               return 'vendor-core'
+            }
+
+            if (id.includes('node_modules/immer/')) {
+              return 'vendor-immer'
+            }
+
+            if (
+              id.includes('node_modules/react-draggable/') ||
+              id.includes('node_modules/react-rnd/') ||
+              id.includes('node_modules/re-resizable/')
+            ) {
+              return 'vendor-doc-preview'
+            }
+
+            if (
+              id.includes('node_modules/@ant-design/x/') ||
+              id.includes('node_modules/@ant-design/x-markdown/')
+            ) {
+              return 'vendor-antdx'
+            }
+
+            // Markdown renderers/editors share unified/hast/prism internals.
+            // Keep them together so UIW Markdown editors and renderers do not
+            // create vendor-markdown <-> vendor-editor cycles.
+            if (
+              id.includes('node_modules/@uiw/') ||
+              id.includes('node_modules/markdown-it') ||
+              id.includes('node_modules/react-markdown/') ||
+              id.includes('node_modules/remark-') ||
+              id.includes('node_modules/rehype-') ||
+              id.includes('node_modules/rehype/') ||
+              id.includes('node_modules/unified/') ||
+              id.includes('node_modules/highlight.js/') ||
+              id.includes('node_modules/react-syntax-highlighter/') ||
+              id.includes('node_modules/lowlight/') ||
+              id.includes('node_modules/refractor/') ||
+              id.includes('node_modules/prismjs/') ||
+              id.includes('node_modules/property-information/') ||
+              id.includes('node_modules/react-property/') ||
+              id.includes('node_modules/style-to-js/') ||
+              id.includes('node_modules/style-to-object/') ||
+              id.includes('node_modules/inline-style-parser/') ||
+              id.includes('node_modules/hast-') ||
+              id.includes('node_modules/hastscript/') ||
+              id.includes('node_modules/mdast-') ||
+              id.includes('node_modules/micromark') ||
+              id.includes('node_modules/unist-') ||
+              id.includes('node_modules/vfile') ||
+              id.includes('node_modules/space-separated-tokens/') ||
+              id.includes('node_modules/comma-separated-tokens/') ||
+              id.includes('node_modules/html-url-attributes/') ||
+              id.includes('node_modules/zwitch/') ||
+              id.includes('node_modules/devlop/')
+            ) {
+              return 'vendor-markdown'
             }
 
             // 2. Radix UI + shadcn/ui primitives
@@ -161,7 +228,6 @@ export default defineConfig(({ mode }) => {
             // 4. State management + data fetching + forms
             if (
               id.includes('node_modules/zustand/') ||
-              id.includes('node_modules/immer/') ||
               id.includes('node_modules/@tanstack/') ||
               id.includes('node_modules/react-hook-form/') ||
               id.includes('node_modules/@hookform/') ||
@@ -184,23 +250,9 @@ export default defineConfig(({ mode }) => {
               id.includes('node_modules/monaco-editor/') ||
               id.includes('node_modules/@monaco-editor/') ||
               id.includes('node_modules/lexical/') ||
-              id.includes('node_modules/@lexical/') ||
-              id.includes('node_modules/@uiw/')
+              id.includes('node_modules/@lexical/')
             ) {
               return 'vendor-editor'
-            }
-
-            // 7. Markdown rendering & syntax highlighting
-            if (
-              id.includes('node_modules/markdown-it') ||
-              id.includes('node_modules/react-markdown/') ||
-              id.includes('node_modules/remark-') ||
-              id.includes('node_modules/rehype-') ||
-              id.includes('node_modules/unified/') ||
-              id.includes('node_modules/highlight.js/') ||
-              id.includes('node_modules/react-syntax-highlighter/')
-            ) {
-              return 'vendor-markdown'
             }
 
             // 8. Document preview (lazy-loaded pages)
