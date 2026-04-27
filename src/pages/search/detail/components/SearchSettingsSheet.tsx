@@ -5,13 +5,18 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { SliderWithInput } from '@/components/ui/slider-with-input'
+import { MultiSelectWithSearch, type SelectOptionGroup } from '@/components/ui/multi-select-with-search'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { AvatarUpload } from '@/components/ui/avatar-upload'
 import { ChatModelSelector } from '@/components/chat/ChatModelSelector'
 import { RerankModelSelector } from '@/components/knowledge/RerankModelSelector'
 import { KnowledgeBaseSelector } from '@/components/knowledge/KnowledgeBaseSelector'
-import { MetadataFilter, type MetadataFilterMode } from '@/components/chat/MetadataFilter'
+import {
+  MetadataFilter,
+  type MetadataFilterMode,
+  type MetadataSemiAutoField,
+} from '@/components/chat/MetadataFilter'
 import { useFetchKnowledgeList } from '@/hooks/use-knowledge-request'
 import { llmAPI } from '@/api/llm'
 import type { LLMModel, MetadataCondition } from '@/types/api'
@@ -80,6 +85,19 @@ const SUMMARY_PRESET_MAP: Record<
 
 type LLMSettingField = 'temperature' | 'top_p' | 'presence_penalty' | 'frequency_penalty'
 
+const CROSS_LANGUAGE_OPTIONS: SelectOptionGroup[] = [
+  'English',
+  'Chinese',
+  'Spanish',
+  'French',
+  'German',
+  'Japanese',
+  'Korean',
+  'Vietnamese',
+  'Arabic',
+  'Turkish',
+].map((language) => ({ label: language, value: language }))
+
 interface RawModelItem {
   id?: string
   name?: string
@@ -97,7 +115,14 @@ interface RawProviderPayload {
 }
 
 const getMetadataMode = (metaDataFilter?: SearchConfig['meta_data_filter']): MetadataFilterMode => {
-  return metaDataFilter?.method === 'manual' ? 'manual' : 'disabled'
+  if (
+    metaDataFilter?.method === 'auto' ||
+    metaDataFilter?.method === 'semi_auto' ||
+    metaDataFilter?.method === 'manual'
+  ) {
+    return metaDataFilter.method
+  }
+  return 'disabled'
 }
 
 const toMetadataCondition = (metaDataFilter?: SearchConfig['meta_data_filter']): MetadataCondition => {
@@ -109,6 +134,15 @@ const toMetadataCondition = (metaDataFilter?: SearchConfig['meta_data_filter']):
       value: item.value || '',
     })),
   }
+}
+
+const toMetadataSemiAutoFields = (metaDataFilter?: SearchConfig['meta_data_filter']): MetadataSemiAutoField[] => {
+  return (metaDataFilter?.semi_auto || [])
+    .map((item) => {
+      if (typeof item === 'string') return { key: item }
+      return { key: item.key, op: item.op }
+    })
+    .filter((item) => Boolean(item.key))
 }
 
 const isEnabledRawModel = (model: RawModelItem) => model.available !== false && model.status !== '0'
@@ -153,6 +187,10 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
 
   const metadataMode = useMemo(() => getMetadataMode(config.meta_data_filter), [config.meta_data_filter])
   const metadataCondition = useMemo(() => toMetadataCondition(config.meta_data_filter), [config.meta_data_filter])
+  const metadataSemiAutoFields = useMemo(
+    () => toMetadataSemiAutoFields(config.meta_data_filter),
+    [config.meta_data_filter]
+  )
 
   const metadataFields = useMemo(() => {
     const fieldSet = new Set<string>()
@@ -197,7 +235,12 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
 
   const handleMetadataModeChange = useCallback(
     (mode: MetadataFilterMode) => {
-      const currentMetaDataFilter = config.meta_data_filter || { method: 'disabled', logic: 'and', manual: [] }
+      const currentMetaDataFilter = config.meta_data_filter || {
+        method: 'disabled',
+        logic: 'and',
+        semi_auto: [],
+        manual: [],
+      }
       onConfigChange({
         meta_data_filter: {
           ...currentMetaDataFilter,
@@ -212,7 +255,8 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
     (condition: MetadataCondition) => {
       onConfigChange({
         meta_data_filter: {
-          method: metadataMode,
+          ...(config.meta_data_filter || { semi_auto: [] }),
+          method: 'manual',
           logic: condition.logic || 'and',
           manual: (condition.conditions || []).map((item) => ({
             key: item.name || '',
@@ -222,7 +266,20 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
         },
       })
     },
-    [metadataMode, onConfigChange]
+    [config.meta_data_filter, onConfigChange]
+  )
+
+  const handleMetadataSemiAutoFieldsChange = useCallback(
+    (fields: MetadataSemiAutoField[]) => {
+      onConfigChange({
+        meta_data_filter: {
+          ...(config.meta_data_filter || { logic: 'and', manual: [] }),
+          method: 'semi_auto',
+          semi_auto: fields.map((item) => (item.op ? { key: item.key, op: item.op } : item.key)),
+        },
+      })
+    },
+    [config.meta_data_filter, onConfigChange]
   )
 
   const handleSummaryPresetChange = useCallback(
@@ -327,7 +384,7 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
   if (!open) return null
 
   return (
-    <aside className="w-[380px] xl:w-[420px] shrink-0 bg-surface-primary px-space-base py-space-sm">
+    <aside className="relative z-20 w-[380px] xl:w-[420px] shrink-0 border-l border-border-default bg-surface-primary px-space-base py-space-sm shadow-elevation-high">
       <div className="h-full min-h-0 bg-surface-primary px-space-sm py-space-base flex flex-col">
         <div className="shrink-0 flex items-center justify-between gap-space-sm">
           <h3 className="text-base font-semibold text-text-primary">搜索设置</h3>
@@ -384,6 +441,9 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
               value={metadataCondition}
               onChange={handleMetadataConditionChange}
               metadataFields={metadataFields}
+              semiAutoFields={metadataSemiAutoFields}
+              onSemiAutoFieldsChange={handleMetadataSemiAutoFieldsChange}
+              enabledModes={['disabled', 'auto', 'semi_auto', 'manual']}
             />
           </section>
 
@@ -539,6 +599,30 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
             <ToggleRow label="相关问题推荐" checked={config.related_search} onCheckedChange={(checked) => onConfigChange({ related_search: checked })} />
             <ToggleRow label="查询思维导图" checked={!!config.query_mindmap} onCheckedChange={(checked) => onConfigChange({ query_mindmap: checked })} />
             <ToggleRow label="知识图谱增强" checked={config.use_kg} onCheckedChange={(checked) => onConfigChange({ use_kg: checked })} />
+
+            <div className="space-y-space-sm">
+              <Label className="text-sm">
+                跨语言翻译
+                {(config.cross_languages?.length || 0) > 0 ? (
+                  <span className="ml-space-xs rounded-radius-full bg-surface-secondary px-space-sm py-0.5 text-xs text-text-secondary">
+                    {config.cross_languages?.length}种语言
+                  </span>
+                ) : null}
+              </Label>
+              <MultiSelectWithSearch
+                options={CROSS_LANGUAGE_OPTIONS}
+                value={config.cross_languages || []}
+                onChange={(languages) => onConfigChange({ cross_languages: languages })}
+                placeholder="选择翻译语言..."
+                emptyText="暂无语言"
+                allowClear
+                maxDisplayItems={100}
+                triggerClassName="min-h-10 bg-components-input-bg hover:bg-components-input-bg-hover focus-visible:border-components-input-border-focus focus-visible:bg-components-input-bg-focus focus-visible:ring-state-focus-subtle"
+              />
+              <p className="text-xs text-text-tertiary">
+                将问题翻译成选中的语言进行检索，提高多语言内容匹配率
+              </p>
+            </div>
           </section>
 
           <Separator className="my-space-sm" />

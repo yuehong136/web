@@ -19,17 +19,27 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Tooltip } from '@/components/ui/tooltip'
 import { PageSizeSelector } from '@/components/ui/page-size-selector'
+import { Slider } from '@/components/ui/slider'
+import { SliderWithInput } from '@/components/ui/slider-with-input'
+import { MultiSelectWithSearch, type SelectOptionGroup } from '@/components/ui/multi-select-with-search'
 import { RerankModelSelector } from '@/components/knowledge/RerankModelSelector'
+import {
+  MetadataFilter,
+  type MetadataFilterMode,
+  type MetadataSemiAutoField,
+} from '@/components/chat/MetadataFilter'
 import { FileIcon } from '@/components/ui/file-icon'
 import { HighlightText } from '@/components/knowledge/HighlightText'
 import { llmAPI } from '@/api/llm'
 import type { LLMModel } from '@/types/api'
+import type { MetadataCondition } from '@/types/api'
 import { useKnowledgeStore } from '@/stores/knowledge'
 import { knowledgeAPI } from '@/api/knowledge'
 
@@ -51,6 +61,68 @@ interface SearchMode {
   weight_dense?: number
   weight_sparse?: number
   weights?: string
+}
+
+type RetrievalMetaDataFilter = {
+  method: 'auto' | 'semi_auto' | 'manual'
+  logic?: 'and' | 'or'
+  semi_auto?: Array<string | { key: string; op?: string }>
+  manual?: Array<{ key: string; op: string; value: string }>
+}
+
+interface RawLLMModel {
+  id?: string
+  name?: string
+  llm_name?: string
+  type?: string
+  mdl_type?: string
+  available?: boolean
+  status?: string
+  max_tokens?: number
+}
+
+interface RawLLMProviderPayload {
+  llm?: RawLLMModel[]
+}
+
+const CROSS_LANGUAGE_OPTIONS: SelectOptionGroup[] = [
+  'English',
+  'Chinese',
+  'Spanish',
+  'French',
+  'German',
+  'Japanese',
+  'Korean',
+  'Vietnamese',
+  'Arabic',
+  'Turkish',
+].map((language) => ({ label: language, value: language }))
+
+const isEnabledRawLLMModel = (model: RawLLMModel) => model.available !== false && model.status !== '0'
+
+const mapRerankModels = (response: Record<string, RawLLMProviderPayload | RawLLMModel[]>): LLMModel[] => {
+  return Object.entries(response).flatMap(([providerName, providerValue]) => {
+    const providerModels = Array.isArray(providerValue) ? providerValue : providerValue.llm || []
+
+    return providerModels
+      .filter((model) => {
+        const modelType = model.mdl_type || model.type
+        return modelType === 'rerank' && isEnabledRawLLMModel(model)
+      })
+      .map((model) => {
+        const modelName = model.llm_name || model.name || model.id || ''
+        return {
+          id: model.id || `${modelName}@${providerName}`,
+          llm_name: modelName,
+          name: model.name,
+          fid: providerName,
+          mdl_type: 'rerank',
+          available: model.available !== false,
+          status: model.status,
+          max_tokens: model.max_tokens,
+        } satisfies LLMModel
+      })
+  })
 }
 
 const KnowledgeSearchPage: React.FC = () => {
@@ -83,7 +155,7 @@ const KnowledgeSearchPage: React.FC = () => {
   const [searchParams, setSearchParams] = React.useState({
     page: 1,
     size: 20,
-    similarity_threshold: 0.0,
+    similarity_threshold: 0.2,
     vector_similarity_weight: 0.3,
     use_kg: false,
     top_k: 1024,
@@ -95,7 +167,12 @@ const KnowledgeSearchPage: React.FC = () => {
   
   // 跨语言搜索状态
   const [selectedLanguages, setSelectedLanguages] = React.useState<string[]>([])
-  const [showLanguageSelector, setShowLanguageSelector] = React.useState(false)
+  const [metadataMode, setMetadataMode] = React.useState<MetadataFilterMode>('disabled')
+  const [metadataCondition, setMetadataCondition] = React.useState<MetadataCondition>({
+    logic: 'and',
+    conditions: [],
+  })
+  const [metadataSemiAutoFields, setMetadataSemiAutoFields] = React.useState<MetadataSemiAutoField[]>([])
   
   // 右侧配置弹窗状态
   const [showConfigPanel, setShowConfigPanel] = React.useState(false)
@@ -109,6 +186,80 @@ const KnowledgeSearchPage: React.FC = () => {
     type: 'fusion',
     weights: '0.05,0.95'
   })
+
+  const metadataFields = React.useMemo(() => {
+    return (currentKnowledgeBase?.metadata_settings || [])
+      .map((field) => field.key)
+      .filter((key): key is string => Boolean(key))
+  }, [currentKnowledgeBase?.metadata_settings])
+
+  const buildMetaDataFilter = React.useCallback((): RetrievalMetaDataFilter | undefined => {
+    if (metadataMode === 'disabled') return undefined
+
+    if (metadataMode === 'auto') {
+      return { method: 'auto' }
+    }
+
+    if (metadataMode === 'semi_auto') {
+      const semiAuto = metadataSemiAutoFields
+        .filter((item) => item.key)
+        .map((item) => item.op ? { key: item.key, op: item.op } : item.key)
+
+      if (semiAuto.length === 0) return undefined
+
+      return {
+        method: 'semi_auto',
+        semi_auto: semiAuto,
+      }
+    }
+
+    const manual = (metadataCondition.conditions || [])
+      .map((condition) => ({
+        key: condition.name?.trim() || '',
+        op: condition.comparison_operator || 'is',
+        value: String(condition.value ?? '').trim(),
+      }))
+      .filter((condition) => condition.key && (
+        condition.op === 'empty' ||
+        condition.op === 'not empty' ||
+        condition.value
+      ))
+
+    if (manual.length === 0) return undefined
+
+    return {
+      method: 'manual',
+      logic: metadataCondition.logic || 'and',
+      manual,
+    }
+  }, [metadataCondition, metadataMode, metadataSemiAutoFields])
+
+  const activeMetaDataFilter = React.useMemo(
+    () => buildMetaDataFilter(),
+    [buildMetaDataFilter]
+  )
+
+  const activeConfigBadges = React.useMemo(() => {
+    const badges = [
+      `阈值 ${searchParams.similarity_threshold.toFixed(2)}`,
+      `向量权重 ${searchParams.vector_similarity_weight.toFixed(2)}`,
+      `Top-K ${searchParams.top_k}`,
+    ]
+
+    if (searchParams.rerank_id) badges.push('Rerank')
+    if (searchParams.use_kg) badges.push('知识图谱')
+    if (searchParams.keyword) badges.push('关键词增强')
+    if (selectedLanguages.length > 0) badges.push(`${selectedLanguages.length} 种跨语言`)
+    if (activeMetaDataFilter?.method === 'auto') badges.push('自动元数据过滤')
+    if (activeMetaDataFilter?.method === 'semi_auto') {
+      badges.push(`${activeMetaDataFilter.semi_auto?.length || 0} 个半自动字段`)
+    }
+    if (activeMetaDataFilter?.method === 'manual') {
+      badges.push(`${activeMetaDataFilter.manual?.length || 0} 条元数据过滤`)
+    }
+
+    return badges
+  }, [activeMetaDataFilter, searchParams, selectedLanguages.length])
 
   // 执行搜索
   const handleSearch = async () => {
@@ -124,6 +275,7 @@ const KnowledgeSearchPage: React.FC = () => {
         size: pageSize,
         doc_ids: selectedDocIds.length > 0 ? selectedDocIds : null,
         cross_languages: selectedLanguages.length > 0 ? selectedLanguages : null,
+        meta_data_filter: activeMetaDataFilter,
         search_mode: searchMode.type !== 'fusion' ? searchMode : {
           type: 'fusion' as const,
           weights: searchMode.weights || '0.05,0.95'
@@ -177,19 +329,6 @@ const KnowledgeSearchPage: React.FC = () => {
     }
   }, [selectedDocIds]) // eslint-disable-line react-hooks/exhaustive-deps
   
-  // 点击外部关闭语言选择器
-  React.useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Element
-      if (showLanguageSelector && !target.closest('.language-selector')) {
-        setShowLanguageSelector(false)
-      }
-    }
-    
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [showLanguageSelector])
-
   // 文档过滤处理函数
   const handleDocFilter = (docId: string, checked: boolean) => {
     if (checked) {
@@ -217,28 +356,7 @@ const KnowledgeSearchPage: React.FC = () => {
           mdl_type: 'rerank',
           available: true 
         })
-        console.log('加载的重排序模型响应:', response, 'Type:', typeof response)
-        
-        // API 返回的是按厂商分组的对象，需要转换为数组
-        const modelArray: LLMModel[] = []
-        if (response && typeof response === 'object' && !Array.isArray(response)) {
-          // 遍历每个厂商的模型
-          Object.values(response).forEach((providerModels: unknown) => {
-            if (Array.isArray(providerModels)) {
-              // 只添加 available 为 true 且 mdl_type 为 rerank 的模型
-              const availableRerankModels = providerModels.filter((model: unknown) => 
-                typeof model === 'object' && model !== null && 
-                'available' in model && 'mdl_type' in model &&
-                (model as { available: boolean; mdl_type: string }).available === true && 
-                (model as { available: boolean; mdl_type: string }).mdl_type === 'rerank'
-              )
-              modelArray.push(...availableRerankModels)
-            }
-          })
-        }
-        
-        console.log('处理后的重排序模型数组:', modelArray)
-        setRerankModels(modelArray)
+        setRerankModels(mapRerankModels(response))
       } catch (error) {
         console.error('加载重排序模型失败:', error)
         setRerankModelsError('加载重排序模型失败，请重试')
@@ -336,7 +454,7 @@ const KnowledgeSearchPage: React.FC = () => {
           {/* 输入区域 */}
           <div className="flex-1 flex flex-col p-6">
             <div className="flex flex-col space-y-4">
-              <textarea
+              <Textarea
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => {
@@ -348,7 +466,7 @@ const KnowledgeSearchPage: React.FC = () => {
                 placeholder="请输入要检索的问题或文本...
 
 按 Enter 开始检索，Shift+Enter 换行"
-                className="h-[120px] w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none text-sm leading-relaxed"
+                className="h-[140px] leading-relaxed"
               />
               
               <div className="flex items-center justify-between">
@@ -372,6 +490,14 @@ const KnowledgeSearchPage: React.FC = () => {
                     </>
                   )}
                 </Button>
+              </div>
+
+              <div className="flex flex-wrap gap-space-xs">
+                {activeConfigBadges.map((badge) => (
+                  <Badge key={badge} variant="secondary" className="text-xs">
+                    {badge}
+                  </Badge>
+                ))}
               </div>
             </div>
           </div>
@@ -490,7 +616,7 @@ const KnowledgeSearchPage: React.FC = () => {
 
           {/* 结果列表 */}
           <div className="flex-1 overflow-y-auto scrollbar-thin">
-            {!searchQuery ? (
+            {!searchQuery && !showConfigPanel ? (
               <div className="flex items-center justify-center h-full">
                 <div className="text-center">
                   <Search className="h-12 w-12 text-gray-300 mx-auto mb-4" />
@@ -512,7 +638,7 @@ const KnowledgeSearchPage: React.FC = () => {
                   </div>
                 </div>
               </div>
-            ) : isSearching ? (
+            ) : !searchQuery ? null : isSearching ? (
               <div className="flex items-center justify-center h-full">
                 <div className="text-center">
                   <Loader2 className="h-8 w-8 text-primary-600 animate-spin mx-auto mb-4" />
@@ -723,19 +849,19 @@ const KnowledgeSearchPage: React.FC = () => {
                 }
               }}
             >
-              <div className="w-[500px] bg-white shadow-lg border-l border-gray-200 flex flex-col">
+              <div className="w-[500px] bg-surface-primary shadow-elevation-high border-l border-border-default flex flex-col">
               {/* 面板头部 */}
-              <div className="p-6 border-b border-gray-200">
+              <div className="p-6 border-b border-border-default">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <SettingsIcon className="h-5 w-5 text-gray-600" />
-                    <h3 className="text-lg font-medium text-gray-900">检索配置</h3>
+                    <SettingsIcon className="h-5 w-5 text-text-secondary" />
+                    <h3 className="text-lg font-medium text-text-primary">检索配置</h3>
                   </div>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => setShowConfigPanel(false)}
-                    className="text-gray-400 hover:text-gray-600"
+                    className="text-text-tertiary hover:text-text-secondary"
                   >
                     <ChevronUp className="h-4 w-4" />
                   </Button>
@@ -788,18 +914,17 @@ const KnowledgeSearchPage: React.FC = () => {
                           {searchMode.type === 'hybrid' && option.value === 'hybrid' && (
                             <div className="mt-2 ml-6 space-y-3">
                               <div>
-                                <label className="block text-xs text-gray-600 mb-2">
+                                <label className="block text-xs text-text-secondary mb-2">
                                   向量权重
                                 </label>
                                 <div className="flex items-center space-x-3">
-                                  <input
-                                    type="range"
-                                    min="0"
-                                    max="1"
-                                    step="0.01"
-                                    value={searchMode.weight_dense || 0.7}
-                                    onChange={(e) => {
-                                      const denseWeight = Number(Number(e.target.value).toFixed(2))
+                                  <Slider
+                                    min={0}
+                                    max={1}
+                                    step={0.01}
+                                    value={[searchMode.weight_dense || 0.7]}
+                                    onValueChange={(value) => {
+                                      const denseWeight = Number(Number(value[0]).toFixed(2))
                                       const sparseWeight = Number((1 - denseWeight).toFixed(2))
                                       setSearchMode(prev => ({
                                         ...prev,
@@ -807,7 +932,7 @@ const KnowledgeSearchPage: React.FC = () => {
                                         weight_sparse: sparseWeight
                                       }))
                                     }}
-                                    className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                                    className="flex-1"
                                   />
                                   <Input
                                     type="number"
@@ -829,23 +954,29 @@ const KnowledgeSearchPage: React.FC = () => {
                                 </div>
                               </div>
                               <div>
-                                <label className="block text-xs text-gray-600 mb-1">
+                                <label className="block text-xs text-text-secondary mb-1">
                                   全文权重 (自动计算)
                                 </label>
                                 <div className="flex items-center space-x-3">
-                                  <div className="flex-1 h-2 bg-gray-100 rounded-lg relative">
+                                  <div
+                                    className="flex-1 h-2 rounded-radius-full relative"
+                                    style={{ backgroundColor: 'var(--color-components-slider-track)' }}
+                                  >
                                     <div
-                                      className="h-full bg-gray-300 rounded-lg"
-                                      style={{ width: `${((searchMode.weight_sparse || 0.3) * 100).toFixed(0)}%` }}
+                                      className="h-full rounded-radius-full"
+                                      style={{
+                                        width: `${((searchMode.weight_sparse || 0.3) * 100).toFixed(0)}%`,
+                                        backgroundColor: 'var(--color-components-slider-range)',
+                                      }}
                                     />
                                   </div>
-                                  <div className="w-16 text-xs text-center py-1 px-2 bg-gray-100 rounded border">
+                                  <div className="w-16 text-xs text-center py-1 px-2 bg-surface-secondary rounded-radius-md border border-border-default text-text-secondary">
                                     {(searchMode.weight_sparse || 0.3).toFixed(2)}
                                   </div>
                                 </div>
                               </div>
-                              <div className="text-xs text-gray-500 bg-blue-50 p-2 rounded">
-                                💡 向量权重 + 全文权重 = 1.00 (精确到小数点后2位)
+                              <div className="text-xs text-text-tertiary bg-surface-secondary border border-border-default p-space-sm rounded-radius-md">
+                                向量权重 + 全文权重 = 1.00 (精确到小数点后2位)
                               </div>
                             </div>
                           )}
@@ -854,25 +985,24 @@ const KnowledgeSearchPage: React.FC = () => {
                           {searchMode.type === 'fusion' && option.value === 'fusion' && (
                             <div className="mt-2 ml-6 space-y-3">
                               <div>
-                                <label className="block text-xs text-gray-600 mb-2">
+                                <label className="block text-xs text-text-secondary mb-2">
                                   文本权重
                                 </label>
                                 <div className="flex items-center space-x-3">
-                                  <input
-                                    type="range"
-                                    min="0"
-                                    max="1"
-                                    step="0.01"
-                                    value={parseFloat((searchMode.weights || '0.05,0.95').split(',')[0])}
-                                    onChange={(e) => {
-                                      const textWeight = Number(Number(e.target.value).toFixed(2))
+                                  <Slider
+                                    min={0}
+                                    max={1}
+                                    step={0.01}
+                                    value={[parseFloat((searchMode.weights || '0.05,0.95').split(',')[0])]}
+                                    onValueChange={(value) => {
+                                      const textWeight = Number(Number(value[0]).toFixed(2))
                                       const vectorWeight = Number((1 - textWeight).toFixed(2))
                                       setSearchMode(prev => ({
                                         ...prev,
                                         weights: `${textWeight},${vectorWeight}`
                                       }))
                                     }}
-                                    className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                                    className="flex-1"
                                   />
                                   <Input
                                     type="number"
@@ -893,23 +1023,29 @@ const KnowledgeSearchPage: React.FC = () => {
                                 </div>
                               </div>
                               <div>
-                                <label className="block text-xs text-gray-600 mb-1">
+                                <label className="block text-xs text-text-secondary mb-1">
                                   向量权重 (自动计算)
                                 </label>
                                 <div className="flex items-center space-x-3">
-                                  <div className="flex-1 h-2 bg-gray-100 rounded-lg relative">
+                                  <div
+                                    className="flex-1 h-2 rounded-radius-full relative"
+                                    style={{ backgroundColor: 'var(--color-components-slider-track)' }}
+                                  >
                                     <div
-                                      className="h-full bg-gray-300 rounded-lg"
-                                      style={{ width: `${(parseFloat((searchMode.weights || '0.05,0.95').split(',')[1]) * 100).toFixed(0)}%` }}
+                                      className="h-full rounded-radius-full"
+                                      style={{
+                                        width: `${(parseFloat((searchMode.weights || '0.05,0.95').split(',')[1]) * 100).toFixed(0)}%`,
+                                        backgroundColor: 'var(--color-components-slider-range)',
+                                      }}
                                     />
                                   </div>
-                                  <div className="w-16 text-xs text-center py-1 px-2 bg-gray-100 rounded border">
+                                  <div className="w-16 text-xs text-center py-1 px-2 bg-surface-secondary rounded-radius-md border border-border-default text-text-secondary">
                                     {parseFloat((searchMode.weights || '0.05,0.95').split(',')[1]).toFixed(2)}
                                   </div>
                                 </div>
                               </div>
-                              <div className="text-xs text-gray-500 bg-green-50 p-2 rounded">
-                                💡 文本权重 + 向量权重 = 1.00 (精确到小数点后2位)
+                              <div className="text-xs text-text-tertiary bg-surface-secondary border border-border-default p-space-sm rounded-radius-md">
+                                文本权重 + 向量权重 = 1.00 (精确到小数点后2位)
                               </div>
                             </div>
                           )}
@@ -922,7 +1058,7 @@ const KnowledgeSearchPage: React.FC = () => {
                   <div>
                     <button
                       onClick={() => setAdvancedOpen(!advancedOpen)}
-                      className="flex items-center justify-between w-full text-sm font-medium text-gray-700 mb-3"
+                      className="flex items-center justify-between w-full text-sm font-medium text-text-secondary hover:text-text-primary mb-3"
                     >
                       <span className="flex items-center">
                         <SettingsIcon className="h-4 w-4 mr-2" />
@@ -932,79 +1068,77 @@ const KnowledgeSearchPage: React.FC = () => {
                     </button>
                     
                     {advancedOpen && (
-                      <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
+                      <div className="space-y-4 p-4 bg-surface-secondary rounded-radius-lg border border-border-default">
                         <div className="grid grid-cols-2 gap-3">
                           <div>
-                            <label className="block text-xs font-medium text-gray-600 mb-1">
+                            <label className="block text-xs font-medium text-text-secondary mb-1">
                               页大小
                             </label>
                             <Input
                               type="number"
                               min="1"
                               max="100"
-                              value={searchParams.size}
-                              onChange={(e) => setSearchParams(prev => ({
-                                ...prev,
-                                size: Number(e.target.value)
-                              }))}
+                              value={pageSize}
+                              onChange={(e) => {
+                                const nextSize = Math.min(100, Math.max(1, Number(e.target.value) || 1))
+                                setPageSize(nextSize)
+                                setCurrentPage(1)
+                                setSearchParams(prev => ({
+                                  ...prev,
+                                  size: nextSize
+                                }))
+                              }}
                               className="text-xs h-8"
                             />
                           </div>
                           
-                          <div>
-                            <label className="block text-xs font-medium text-gray-600 mb-1">
-                              相似度阈值
-                            </label>
-                            <Input
-                              type="number"
-                              min="0"
-                              max="1"
-                              step="0.1"
-                              value={searchParams.similarity_threshold}
-                              onChange={(e) => setSearchParams(prev => ({
-                                ...prev,
-                                similarity_threshold: Number(e.target.value)
-                              }))}
-                              className="text-xs h-8"
-                            />
-                          </div>
+                          <SliderWithInput
+                            label="相似度阈值"
+                            tooltip="低于该混合相似度的片段会被过滤，RAGFlow 默认值为 0.2。"
+                            value={searchParams.similarity_threshold}
+                            onChange={(value) => setSearchParams(prev => ({
+                              ...prev,
+                              similarity_threshold: Number(value.toFixed(2))
+                            }))}
+                            min={0}
+                            max={1}
+                            step={0.01}
+                            precision={2}
+                            showSwitch={false}
+                          />
                         </div>
                         
-                        <div className="grid grid-cols-2 gap-3">
-                          <div>
-                            <label className="block text-xs font-medium text-gray-600 mb-1">
-                              向量权重
-                            </label>
-                            <Input
-                              type="number"
-                              min="0"
-                              max="1"
-                              step="0.1"
-                              value={searchParams.vector_similarity_weight}
-                              onChange={(e) => setSearchParams(prev => ({
-                                ...prev,
-                                vector_similarity_weight: Number(e.target.value)
-                              }))}
-                              className="text-xs h-8"
-                            />
-                          </div>
-                          
-                          <div>
-                            <label className="block text-xs font-medium text-gray-600 mb-1">
-                              Top-K
-                            </label>
-                            <Input
-                              type="number"
-                              min="1"
-                              max="2048"
-                              value={searchParams.top_k}
-                              onChange={(e) => setSearchParams(prev => ({
-                                ...prev,
-                                top_k: Number(e.target.value)
-                              }))}
-                              className="text-xs h-8"
-                            />
-                          </div>
+                        <div className="space-y-4">
+                          <SliderWithInput
+                            label="向量相似度权重"
+                            tooltip="用于关键词相似度与向量相似度或 rerank 分数的融合。"
+                            value={searchParams.vector_similarity_weight}
+                            onChange={(value) => setSearchParams(prev => ({
+                              ...prev,
+                              vector_similarity_weight: Number(value.toFixed(2))
+                            }))}
+                            min={0}
+                            max={1}
+                            step={0.01}
+                            precision={2}
+                            showSwitch={false}
+                          />
+
+                          <SliderWithInput
+                            label="Top-K"
+                            tooltip="初始召回或送入 rerank 模型的片段数量。"
+                            value={searchParams.top_k}
+                            onChange={(value) => setSearchParams(prev => ({
+                              ...prev,
+                              top_k: Math.max(1, Math.round(value))
+                            }))}
+                            min={1}
+                            max={2048}
+                            step={1}
+                            showSwitch={false}
+                            inputOnly
+                            inputWidth={96}
+                          />
                         </div>
                         
                         {/* 重排序模型选择器 */}
@@ -1055,7 +1189,7 @@ const KnowledgeSearchPage: React.FC = () => {
                         
                         {/* 跨语言搜索 */}
                         <div>
-                          <label className="block text-xs font-medium text-gray-600 mb-2">
+                          <label className="block text-xs font-medium text-text-secondary mb-2">
                             跨语言翻译
                             {selectedLanguages.length > 0 && (
                               <Badge variant="secondary" className="ml-2 text-xs">
@@ -1063,65 +1197,38 @@ const KnowledgeSearchPage: React.FC = () => {
                               </Badge>
                             )}
                           </label>
-                          <div className="relative language-selector">
-                            <button
-                              type="button"
-                              onClick={() => setShowLanguageSelector(!showLanguageSelector)}
-                              className="w-full px-3 py-2 text-left text-xs border border-gray-300 rounded-md bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                            >
-                              {selectedLanguages.length === 0 
-                                ? '选择翻译语言...' 
-                                : `已选择 ${selectedLanguages.length} 种语言`
-                              }
-                              <ChevronDown className="absolute right-2 top-2.5 h-3 w-3" />
-                            </button>
-                            
-                            {showLanguageSelector && (
-                              <div className="absolute z-10 w-full mt-1 bg-surface-primary border border-border-default rounded-radius-md shadow-elevation-medium max-h-40 overflow-y-auto scrollbar-thin">
-                                {['English', 'Chinese', 'Spanish', 'French', 'German', 'Japanese', 'Korean', 'Vietnamese'].map((lang) => (
-                                  <label key={lang} className="flex items-center gap-space-xs px-3 py-2 hover:bg-surface-secondary cursor-pointer">
-                                    <Checkbox
-                                      checked={selectedLanguages.includes(lang)}
-                                      onCheckedChange={(checked) => {
-                                        if (checked) {
-                                          setSelectedLanguages(prev => [...prev, lang])
-                                        } else {
-                                          setSelectedLanguages(prev => prev.filter(l => l !== lang))
-                                        }
-                                      }}
-                                    />
-                                    <span className="text-xs text-text-secondary">{lang}</span>
-                                  </label>
-                                ))}
-                              </div>
-                            )}
-                          </div>
+                          <MultiSelectWithSearch
+                            options={CROSS_LANGUAGE_OPTIONS}
+                            value={selectedLanguages}
+                            onChange={setSelectedLanguages}
+                            placeholder="选择翻译语言..."
+                            emptyText="暂无语言"
+                            allowClear
+                            maxDisplayItems={100}
+                            triggerClassName="min-h-10 bg-components-input-bg hover:bg-components-input-bg-hover focus-visible:border-components-input-border-focus focus-visible:bg-components-input-bg-focus focus-visible:ring-state-focus-subtle"
+                          />
                           
-                          {selectedLanguages.length > 0 && (
-                            <div className="mt-2 flex flex-wrap gap-1">
-                              {selectedLanguages.map((lang) => (
-                                <Badge key={lang} variant="secondary" className="text-xs">
-                                  {lang}
-                                  <button
-                                    onClick={() => setSelectedLanguages(prev => prev.filter(l => l !== lang))}
-                                    className="ml-1 hover:text-red-600"
-                                  >
-                                    ×
-                                  </button>
-                                </Badge>
-                              ))}
-                              <button
-                                onClick={() => setSelectedLanguages([])}
-                                className="text-xs text-gray-500 hover:text-gray-700 ml-2"
-                              >
-                                清除全部
-                              </button>
-                            </div>
+                          <div className="text-xs text-text-tertiary mt-1">
+                            将问题翻译成选中的语言进行检索，提高多语言内容匹配率
+                          </div>
+                        </div>
+
+                        <div className="border-t border-border-default pt-space-base">
+                          <MetadataFilter
+                            mode={metadataMode}
+                            onModeChange={setMetadataMode}
+                            value={metadataCondition}
+                            onChange={setMetadataCondition}
+                            metadataFields={metadataFields}
+                            semiAutoFields={metadataSemiAutoFields}
+                            onSemiAutoFieldsChange={setMetadataSemiAutoFields}
+                            enabledModes={['disabled', 'auto', 'semi_auto', 'manual']}
+                          />
+                          {metadataMode === 'manual' && metadataFields.length === 0 && (
+                            <p className="mt-space-xs text-xs text-text-tertiary">
+                              当前知识库未配置元数据模板，也可以手动输入字段名。
+                            </p>
                           )}
-                          
-                          <div className="text-xs text-gray-500 mt-1">
-                            💡 将问题翻译成选中的语言进行检索，提高多语言内容匹配率
-                          </div>
                         </div>
                       </div>
                     )}
@@ -1129,7 +1236,7 @@ const KnowledgeSearchPage: React.FC = () => {
               </div>
               
               {/* 面板底部 */}
-              <div className="p-6 border-t border-gray-200 bg-gray-50">
+              <div className="p-6 border-t border-border-default bg-surface-secondary">
                 <div className="flex justify-end space-x-3">
                   <Button
                     variant="outline"

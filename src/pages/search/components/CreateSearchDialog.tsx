@@ -81,9 +81,11 @@ const CreateSearchDialog: React.FC<CreateSearchDialogProps> = ({
           rerank_id: '',
           web_search: false,
           query_mindmap: false,
+          cross_languages: [],
           meta_data_filter: {
             method: 'disabled',
             logic: 'and',
+            semi_auto: [],
             manual: [],
           },
         },

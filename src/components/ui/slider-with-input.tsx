@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { cn } from '@/lib/utils'
+import { Input } from '@/components/ui/input'
 import { Slider } from '@/components/ui/slider'
 import { Switch } from '@/components/ui/switch'
 import { HelpCircle } from 'lucide-react'
@@ -150,7 +151,7 @@ export const SliderWithInput: React.FC<SliderWithInputProps> = ({
 
         {/* 输入框（仅在启用时显示） */}
         {isActive && (
-          <input
+          <Input
             type="number"
             value={inputOnly ? value : value.toFixed(displayPrecision)}
             onChange={handleInputChange}
@@ -158,10 +159,10 @@ export const SliderWithInput: React.FC<SliderWithInputProps> = ({
             max={max}
             step={step}
             disabled={disabled}
+            inputSize="sm"
             style={{ width: inputWidth }}
             className={cn(
-              'h-9 rounded-radius-md border border-border bg-background px-space-sm text-center text-sm',
-              'focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary',
+              'h-9 rounded-radius-md px-space-sm text-center text-sm',
               '[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none',
               disabled && 'opacity-50 cursor-not-allowed'
             )}

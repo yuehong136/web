@@ -135,8 +135,11 @@ export const RerankModelSelector: React.FC<RerankModelSelectorProps> = ({
     return (
       <div className="space-y-2">
         <label className="block text-xs font-medium text-text-primary">重排序模型</label>
-        <div className="w-full px-3 py-2 border border-border rounded-md bg-accent/20 flex items-center h-10">
-          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-primary"></div>
+        <div className="w-full px-3 py-2 border border-border rounded-md bg-surface-secondary flex items-center h-10">
+          <div
+            className="animate-spin rounded-full h-3 w-3 border-b-2"
+            style={{ borderBottomColor: 'var(--color-components-slider-range)' }}
+          />
           <span className="ml-2 text-text-tertiary text-xs">加载重排序模型中...</span>
         </div>
       </div>

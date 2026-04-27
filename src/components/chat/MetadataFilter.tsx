@@ -1,6 +1,7 @@
 import React from 'react'
 import { Plus, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -31,10 +32,17 @@ export const ComparisonOperators = [
 // 元数据过滤模式
 export const MetadataFilterModes = [
   { value: 'disabled', label: '禁用' },
+  { value: 'auto', label: '自动' },
+  { value: 'semi_auto', label: '半自动' },
   { value: 'manual', label: '手动配置' },
 ] as const
 
 export type MetadataFilterMode = typeof MetadataFilterModes[number]['value']
+
+export interface MetadataSemiAutoField {
+  key: string
+  op?: string
+}
 
 interface MetadataFilterProps {
   /** 过滤模式 */
@@ -47,6 +55,12 @@ interface MetadataFilterProps {
   onChange: (value: MetadataCondition) => void
   /** 可选的元数据字段列表（从知识库获取） */
   metadataFields?: string[]
+  /** 半自动模式下参与 LLM 生成过滤条件的字段 */
+  semiAutoFields?: MetadataSemiAutoField[]
+  /** 半自动字段变更回调 */
+  onSemiAutoFieldsChange?: (fields: MetadataSemiAutoField[]) => void
+  /** 可展示的过滤模式，默认保持旧行为 */
+  enabledModes?: MetadataFilterMode[]
   /** 是否禁用 */
   disabled?: boolean
 }
@@ -61,10 +75,18 @@ export const MetadataFilter: React.FC<MetadataFilterProps> = ({
   value,
   onChange,
   metadataFields = [],
+  semiAutoFields = [],
+  onSemiAutoFieldsChange,
+  enabledModes = ['disabled', 'manual'],
   disabled = false,
 }) => {
   const conditions = value.conditions || []
   const logic = value.logic || 'and'
+  const modeOptions = MetadataFilterModes.filter((option) => enabledModes.includes(option.value))
+  const semiAutoOperatorOptions = [
+    { value: '__auto__', label: '自动判断' },
+    ...ComparisonOperators,
+  ]
 
   // 添加条件
   const handleAddCondition = (fieldName?: string) => {
@@ -112,6 +134,29 @@ export const MetadataFilter: React.FC<MetadataFilterProps> = ({
     return op === 'empty' || op === 'not empty'
   }
 
+  const handleToggleSemiAutoField = (key: string, checked: boolean) => {
+    if (!onSemiAutoFieldsChange) return
+
+    if (checked) {
+      onSemiAutoFieldsChange([...semiAutoFields, { key }])
+      return
+    }
+
+    onSemiAutoFieldsChange(semiAutoFields.filter((item) => item.key !== key))
+  }
+
+  const handleSemiAutoOperatorChange = (key: string, op: string) => {
+    if (!onSemiAutoFieldsChange) return
+
+    onSemiAutoFieldsChange(
+      semiAutoFields.map((item) => (
+        item.key === key
+          ? { key, ...(op === '__auto__' ? {} : { op }) }
+          : item
+      ))
+    )
+  }
+
   return (
     <div className="space-y-4">
       {/* 模式选择 */}
@@ -138,7 +183,7 @@ export const MetadataFilter: React.FC<MetadataFilterProps> = ({
             <SelectValue placeholder="选择过滤模式" />
           </SelectTrigger>
           <SelectContent>
-            {MetadataFilterModes.map((opt) => (
+            {modeOptions.map((opt) => (
               <SelectItem key={opt.value} value={opt.value}>
                 {opt.label}
               </SelectItem>
@@ -146,6 +191,62 @@ export const MetadataFilter: React.FC<MetadataFilterProps> = ({
           </SelectContent>
         </Select>
       </div>
+
+      {mode === 'auto' && (
+        <p className="text-xs text-text-tertiary">
+          后端会根据问题自动生成元数据过滤条件，需要默认聊天模型可用。
+        </p>
+      )}
+
+      {mode === 'semi_auto' && (
+        <div className="space-y-3">
+          <p className="text-xs text-text-tertiary">
+            选择参与判断的元数据字段，后端会基于这些字段自动生成过滤条件。
+          </p>
+          {metadataFields.length === 0 ? (
+            <p className="text-xs text-text-tertiary">
+              当前知识库未配置元数据字段。
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {metadataFields.map((field) => {
+                const selected = semiAutoFields.find((item) => item.key === field)
+                return (
+                  <div
+                    key={field}
+                    className="flex items-center gap-space-sm rounded-radius-md border border-border-default bg-surface-secondary px-space-sm py-space-xs"
+                  >
+                    <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-space-xs">
+                      <Checkbox
+                        checked={Boolean(selected)}
+                        onCheckedChange={(checked) => handleToggleSemiAutoField(field, checked === true)}
+                        disabled={disabled}
+                      />
+                      <span className="truncate text-sm text-text-secondary">{field}</span>
+                    </label>
+                    <Select
+                      value={selected?.op || '__auto__'}
+                      onValueChange={(op) => handleSemiAutoOperatorChange(field, op)}
+                      disabled={disabled || !selected}
+                    >
+                      <SelectTrigger className="h-8 w-28">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {semiAutoOperatorOptions.map((op) => (
+                          <SelectItem key={op.value} value={op.value}>
+                            {op.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* 手动配置模式下显示条件编辑器 */}
       {mode === 'manual' && (

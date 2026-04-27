@@ -16,9 +16,11 @@ const buildDefaultConfig = (): SearchConfig => ({
   use_kg: DEFAULT_SEARCH_CONFIG.use_kg,
   web_search: false,
   query_mindmap: false,
+  cross_languages: [],
   meta_data_filter: {
     method: 'disabled',
     logic: 'and',
+    semi_auto: [],
     manual: [],
   },
 })
@@ -34,9 +36,11 @@ const normalizeModelConfig = (rawConfig: Partial<SearchConfig>): SearchConfig =>
     rerank_id: rawConfig.rerank_id || '',
     web_search: rawConfig.web_search || false,
     query_mindmap: rawConfig.query_mindmap || false,
+    cross_languages: rawConfig.cross_languages || [],
     meta_data_filter: rawConfig.meta_data_filter || {
       method: 'disabled',
       logic: 'and',
+      semi_auto: [],
       manual: [],
     },
   }

@@ -181,17 +181,26 @@ export const useSearchExecution = (searchApp: SearchApp | null, appliedConfig?: 
       setPhase(SearchExecutionPhase.RETRIEVING)
 
       try {
-        const metadataCondition =
-          config.meta_data_filter?.method === 'manual' && config.meta_data_filter.manual?.length
-            ? {
-                logic: config.meta_data_filter.logic || 'and',
-                conditions: config.meta_data_filter.manual.map((item) => ({
-                  name: item.key,
-                  comparison_operator: item.op,
-                  value: item.value,
-                })),
-              }
-            : undefined
+        const rawMetaDataFilter = config.meta_data_filter
+        const metaDataFilter =
+          rawMetaDataFilter?.method === 'auto'
+            ? { method: 'auto' as const }
+            : rawMetaDataFilter?.method === 'semi_auto' && rawMetaDataFilter.semi_auto?.length
+              ? {
+                  method: 'semi_auto' as const,
+                  semi_auto: rawMetaDataFilter.semi_auto,
+                }
+              : rawMetaDataFilter?.method === 'manual' && rawMetaDataFilter.manual?.length
+                ? {
+                    method: 'manual' as const,
+                    logic: rawMetaDataFilter.logic || 'and',
+                    manual: rawMetaDataFilter.manual.map((item) => ({
+                      key: item.key,
+                      op: item.op,
+                      value: item.value,
+                    })),
+                  }
+                : undefined
 
         const retrievalPromise = knowledgeAPI.retrievalTest
           .test({
@@ -206,7 +215,8 @@ export const useSearchExecution = (searchApp: SearchApp | null, appliedConfig?: 
             rerank_id: config.use_rerank ? config.rerank_id || null : null,
             highlight: true,
             keyword: true,
-            metadata_condition: metadataCondition,
+            cross_languages: config.cross_languages?.length ? config.cross_languages : null,
+            meta_data_filter: metaDataFilter,
           })
           .then((result) => {
             if (signal.aborted) return

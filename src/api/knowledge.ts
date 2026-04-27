@@ -540,6 +540,12 @@ export const knowledgeAPI = {
         weights?: string
       } | null
       cross_languages?: string[] | null
+      meta_data_filter?: {
+        method: 'auto' | 'semi_auto' | 'manual'
+        logic?: 'and' | 'or'
+        semi_auto?: Array<string | { key: string; op?: string }>
+        manual?: Array<{ key: string; op: string; value: string }>
+      }
       metadata_condition?: MetadataCondition
     }): Promise<{
       total: number

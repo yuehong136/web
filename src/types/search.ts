@@ -45,10 +45,12 @@ export interface SearchConfig {
   use_kg: boolean
   web_search?: boolean
   query_mindmap?: boolean
+  cross_languages?: string[]
   meta_data_filter?: {
-    method: string
+    method: 'disabled' | 'auto' | 'semi_auto' | 'manual'
     logic?: 'and' | 'or'
-    manual: Array<{ key: string; op: string; value: string }>
+    semi_auto?: Array<string | { key: string; op?: string }>
+    manual?: Array<{ key: string; op: string; value: string }>
   }
 }
 
