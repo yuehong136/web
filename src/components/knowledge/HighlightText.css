@@ -12,40 +12,24 @@
   line-height: 1.6;
 }
 
-/* 高亮标签样式 - 亮色主题 */
+/* 高亮标签样式 */
 .highlight-text em {
   color: var(--color-text-error); /* 使用主题错误色作为高亮色 */
   font-style: normal; /* 不使用斜体 */
   font-weight: 600; /* 加粗 */
-  background-color: rgba(220, 38, 38, 0.08); /* 淡红色背景 */
+  background-color: color-mix(in srgb, var(--color-text-error) 10%, transparent);
   padding: 1px 3px;
   border-radius: 3px;
   transition: all 0.2s ease-in-out;
 }
 
-/* 鼠标悬停效果 - 亮色主题 */
+/* 鼠标悬停效果 */
 .highlight-text em:hover {
-  background-color: rgba(220, 38, 38, 0.12);
-  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.1);
+  background-color: color-mix(in srgb, var(--color-text-error) 16%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-text-error) 12%, transparent);
 }
 
-/* 嵌套的 em 标签提供更深的高亮 - 亮色主题 */
+/* 嵌套的 em 标签提供更深的高亮 */
 .highlight-text em em {
-  background-color: rgba(220, 38, 38, 0.15);
+  background-color: color-mix(in srgb, var(--color-text-error) 22%, transparent);
 }
-
-/* 暗色主题支持 - 使用 data-theme 属性 */
-html[data-theme="dark"] .highlight-text em {
-  color: var(--color-text-error); /* 暗色主题的错误色 */
-  background-color: rgba(248, 113, 113, 0.15); /* 暗色主题淡红色背景 */
-}
-
-html[data-theme="dark"] .highlight-text em:hover {
-  background-color: rgba(248, 113, 113, 0.25);
-  box-shadow: 0 0 0 2px rgba(248, 113, 113, 0.2);
-}
-
-html[data-theme="dark"] .highlight-text em em {
-  background-color: rgba(248, 113, 113, 0.3);
-}
-

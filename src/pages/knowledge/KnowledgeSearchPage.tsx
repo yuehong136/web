@@ -2,14 +2,11 @@ import React from 'react'
 import { useParams } from 'react-router-dom'
 import { 
   Search, 
-  Play, 
   Settings as SettingsIcon, 
-  FileText, 
   Star, 
 
   ChevronDown,
   ChevronUp,
-  Loader2,
   BookOpen,
   Zap,
   Layers,
@@ -19,13 +16,9 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { Tooltip } from '@/components/ui/tooltip'
-import { PageSizeSelector } from '@/components/ui/page-size-selector'
 import { Slider } from '@/components/ui/slider'
 import { SliderWithInput } from '@/components/ui/slider-with-input'
 import { MultiSelectWithSearch, type SelectOptionGroup } from '@/components/ui/multi-select-with-search'
@@ -42,26 +35,7 @@ import type { LLMModel } from '@/types/api'
 import type { MetadataCondition } from '@/types/api'
 import { useKnowledgeStore } from '@/stores/knowledge'
 import { knowledgeAPI } from '@/api/knowledge'
-
-interface RetrievalResult {
-  chunk_id: string
-  text: string
-  doc_id: string
-  docnm_kwd: string
-  kb_id: string
-  similarity: number
-  vector_similarity: number
-  term_similarity: number
-  highlight?: string
-  positions?: number[][]
-}
-
-interface SearchMode {
-  type: 'sparse' | 'dense' | 'hybrid' | 'fusion'
-  weight_dense?: number
-  weight_sparse?: number
-  weights?: string
-}
+import { ResultPanel, SearchPanel, type RetrievalDocAgg, type RetrievalResult, type SearchMode } from './search-workbench'
 
 type RetrievalMetaDataFilter = {
   method: 'auto' | 'semi_auto' | 'manual'
@@ -134,7 +108,7 @@ const KnowledgeSearchPage: React.FC = () => {
   const [isSearching, setIsSearching] = React.useState(false)
   const [results, setResults] = React.useState<RetrievalResult[]>([])
   const [totalResults, setTotalResults] = React.useState(0)
-  const [docAggs, setDocAggs] = React.useState<Array<{doc_name: string, doc_id: string, count: number}>>([])
+  const [docAggs, setDocAggs] = React.useState<RetrievalDocAgg[]>([])
   
   // 分页状态
   const [currentPage, setCurrentPage] = React.useState(1)
@@ -376,6 +350,12 @@ const KnowledgeSearchPage: React.FC = () => {
     }))
   }
 
+  const openResultPreview = React.useCallback((result: RetrievalResult) => {
+    setShowConfigPanel(false)
+    setSelectedResult(result)
+    setIsMarkdownPreview(false)
+  }, [])
+
 
   // 搜索模式选项
   const searchModeOptions = [
@@ -405,476 +385,99 @@ const KnowledgeSearchPage: React.FC = () => {
     }
   ]
 
+  const searchModeLabel = searchModeOptions.find((option) => option.value === searchMode.type)?.label || '检索配置'
+  const totalPages = Math.max(1, Math.ceil(totalResults / pageSize))
+  const pageNumbers = Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+    if (totalPages <= 5) return i + 1
+    if (currentPage <= 3) return i + 1
+    if (currentPage >= totalPages - 2) return totalPages - 4 + i
+    return currentPage - 2 + i
+  })
+
   return (
-    <div className="h-full flex flex-col">
-      {/* 页面头部 */}
-      <div className="border-b border-gray-200 bg-white px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">检索测试</h1>
-            <p className="text-gray-600 mt-1">
-              测试知识库 "{currentKnowledgeBase?.name}" 的检索效果
-            </p>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Badge variant="outline" className="text-xs">
-              <FileText className="h-3 w-3 mr-1" />
-              {currentKnowledgeBase?.doc_num || 0} 文档
-            </Badge>
-          </div>
+    <div className="relative flex h-full flex-col overflow-hidden bg-background-surface">
+      {/* 主要内容区域 - 左右布局 */}
+      <div className="flex-1 min-h-0 overflow-hidden px-space-xl py-space-lg">
+        <div className="flex h-full min-h-0">
+          <SearchPanel
+            query={searchQuery}
+            isSearching={isSearching}
+            searchModeLabel={searchModeLabel}
+            activeConfigBadges={activeConfigBadges}
+            onQueryChange={setSearchQuery}
+            onSearch={handleSearch}
+            onOpenConfig={() => setShowConfigPanel(true)}
+          />
+
+          <ResultPanel
+            query={searchQuery}
+            isSearching={isSearching}
+            results={results}
+            totalResults={totalResults}
+            docAggs={docAggs}
+            selectedDocIds={selectedDocIds}
+            showDocFilter={showDocFilter}
+            highlight={searchParams.highlight}
+            similarityThreshold={searchParams.similarity_threshold}
+            currentPage={currentPage}
+            pageSize={pageSize}
+            totalPages={totalPages}
+            pageNumbers={pageNumbers}
+            onToggleDocFilter={() => setShowDocFilter((open) => !open)}
+            onDocFilter={handleDocFilter}
+            onClearDocFilter={clearDocFilter}
+            onSelectAllDocs={selectAllDocs}
+            onOpenResultPreview={openResultPreview}
+            onPageChange={handlePageChange}
+            onPageSizeChange={handlePageSizeChange}
+          />
         </div>
       </div>
-
-      {/* 主要内容区域 - 左右布局 */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* 左侧：源文本输入区域 */}
-        <div className="w-96 border-r border-gray-200 bg-white flex flex-col">
-          {/* 标题栏 */}
-          <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <FileText className="h-5 w-5 text-gray-600" />
-              <span className="font-medium text-gray-900">源文本</span>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowConfigPanel(true)}
-              className="flex items-center space-x-2"
-            >
-              <SettingsIcon className="h-4 w-4" />
-              <span>
-                {searchMode.type === 'fusion' ? '融合检索' : 
-                 searchMode.type === 'sparse' ? '稀疏检索' : 
-                 searchMode.type === 'hybrid' ? '混合检索' : 
-                 searchMode.type === 'dense' ? '密集检索' : '检索配置'}
-              </span>
-            </Button>
-          </div>
-          
-          {/* 输入区域 */}
-          <div className="flex-1 flex flex-col p-6">
-            <div className="flex flex-col space-y-4">
-              <Textarea
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault()
-                    handleSearch()
-                  }
-                }}
-                placeholder="请输入要检索的问题或文本...
-
-按 Enter 开始检索，Shift+Enter 换行"
-                className="h-[140px] leading-relaxed"
-              />
-              
-              <div className="flex items-center justify-between">
-                <div className="text-xs text-gray-500">
-                  {searchQuery.length} 字符
-                </div>
-                <Button 
-                  onClick={handleSearch}
-                  disabled={!searchQuery.trim() || isSearching}
-                  className="px-6"
-                >
-                  {isSearching ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      检索中...
-                    </>
-                  ) : (
-                    <>
-                      <Play className="h-4 w-4 mr-2" />
-                      开始检索
-                    </>
-                  )}
-                </Button>
-              </div>
-
-              <div className="flex flex-wrap gap-space-xs">
-                {activeConfigBadges.map((badge) => (
-                  <Badge key={badge} variant="secondary" className="text-xs">
-                    {badge}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-          </div>
-
-        </div>
-
-        {/* 右侧：搜索结果展示 */}
-        <div className="flex-1 flex flex-col overflow-hidden relative">
-          {/* 结果统计 */}
-          {(results.length > 0 || isSearching) && (
-            <div className="border-b border-gray-200 bg-white px-6 py-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <span className="text-sm text-gray-600">
-                    {isSearching ? '检索中...' : `找到 ${totalResults} 个相关片段`}
-                    {selectedDocIds.length > 0 && (
-                      <span className="text-primary-600 ml-2">
-                        (已过滤到 {selectedDocIds.length} 个文档)
-                      </span>
-                    )}
-                  </span>
-                  {docAggs.length > 0 && (
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm text-gray-400">来自</span>
-                      <div className="flex items-center space-x-1">
-                        {docAggs.slice(0, 3).map((doc) => (
-                          <Tooltip key={doc.doc_id} content={`${doc.doc_name}: ${doc.count} 个片段`}>
-                            <Badge variant="secondary" className="text-xs">
-                              {doc.doc_name.length > 10 ? doc.doc_name.substring(0, 10) + '...' : doc.doc_name}
-                            </Badge>
-                          </Tooltip>
-                        ))}
-                        {docAggs.length > 3 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{docAggs.length - 3} 个文档
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Badge variant="outline" className="text-xs">
-                    {searchMode.type === 'fusion' ? '融合检索' : 
-                     searchMode.type === 'sparse' ? '稀疏检索' : 
-                     searchMode.type === 'hybrid' ? '混合检索' : '密集检索'}
-                  </Badge>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* 文档过滤条 */}
-          {docAggs.length > 0 && (
-            <div className="border-b border-gray-200 bg-white px-6 py-3">
-              <div className="flex items-center justify-between mb-3">
-                <button
-                  onClick={() => setShowDocFilter(!showDocFilter)}
-                  className="flex items-center space-x-2 text-sm font-medium text-gray-700 hover:text-gray-900"
-                >
-                  <FileText className="h-4 w-4" />
-                  <span>文档过滤</span>
-                  {selectedDocIds.length > 0 && (
-                    <Badge variant="secondary" className="text-xs">
-                      {selectedDocIds.length}
-                    </Badge>
-                  )}
-                  {showDocFilter ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                </button>
-                
-                {selectedDocIds.length > 0 && (
-                  <div className="flex items-center space-x-2">
-                    <span className="text-xs text-gray-500">
-                      已选择 {selectedDocIds.length} 个文档
-                    </span>
-                    <button
-                      onClick={clearDocFilter}
-                      className="text-xs text-gray-600 hover:text-gray-700"
-                    >
-                      清除
-                    </button>
-                  </div>
-                )}
-              </div>
-              
-              {showDocFilter && (
-                <div className="flex flex-wrap gap-2">
-                  {docAggs.map((doc) => (
-                    <label 
-                      key={doc.doc_id} 
-                      className="flex items-center gap-space-xs px-3 py-1 bg-surface-secondary hover:bg-surface-tertiary rounded-full cursor-pointer transition-colors"
-                    >
-                      <Checkbox
-                        checked={selectedDocIds.includes(doc.doc_id)}
-                        onCheckedChange={(checked) => handleDocFilter(doc.doc_id, checked as boolean)}
-                      />
-                      <span className="text-sm text-text-secondary truncate max-w-[200px]">
-                        {doc.doc_name}
-                      </span>
-                      <Badge variant="outline" className="text-xs">
-                        {doc.count}
-                      </Badge>
-                    </label>
-                  ))}
-                  
-                  <button
-                    onClick={selectAllDocs}
-                    className="px-3 py-1 text-xs text-text-accent hover:text-text-accent/80 border border-border-accent rounded-full transition-colors"
-                  >
-                    全选
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* 结果列表 */}
-          <div className="flex-1 overflow-y-auto scrollbar-thin">
-            {!searchQuery && !showConfigPanel ? (
-              <div className="flex items-center justify-center h-full">
-                <div className="text-center">
-                  <Search className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">开始检索测试</h3>
-                  <p className="text-gray-500 mb-6">在左侧输入问题，选择检索模式，开始测试知识库的检索效果</p>
-                  <div className="text-left max-w-md mx-auto space-y-2">
-                    <div className="flex items-center text-sm text-gray-600">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
-                      支持多种检索模式：融合、稀疏、混合检索
-                    </div>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
-                      可调节相似度阈值和权重参数
-                    </div>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <div className="w-2 h-2 bg-purple-500 rounded-full mr-3"></div>
-                      支持高亮显示和知识图谱增强
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : !searchQuery ? null : isSearching ? (
-              <div className="flex items-center justify-center h-full">
-                <div className="text-center">
-                  <Loader2 className="h-8 w-8 text-primary-600 animate-spin mx-auto mb-4" />
-                  <p className="text-gray-600">正在检索中，请稍候...</p>
-                </div>
-              </div>
-            ) : results.length === 0 ? (
-              <div className="flex items-center justify-center h-full">
-                <div className="text-center">
-                  <Search className="h-8 w-8 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">未找到相关结果</h3>
-                  <p className="text-gray-500 mb-4">请尝试调整搜索词或降低相似度阈值</p>
-                  <div className="text-sm text-gray-400">
-                    <p>搜索词："{searchQuery}"</p>
-                    <p>相似度阈值：{searchParams.similarity_threshold}</p>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="p-6 space-y-4">
-                {results.map((result, index) => (
-                  <Card key={result.chunk_id} variant="interactive" className="hover:shadow-md transition-shadow">
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center space-x-3">
-                          <div className="flex items-center justify-center w-6 h-6 bg-primary-100 text-primary-700 rounded-full text-xs font-medium">
-                            {index + 1}
-                          </div>
-                          <div>
-                            <p className="text-xs text-gray-500">ID: {result.chunk_id}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-3 text-xs text-gray-500">
-                          <Tooltip content={`总相似度: ${(result.similarity * 100).toFixed(1)}%`}>
-                            <Badge 
-                              variant={result.similarity > 0.8 ? 'default' : result.similarity > 0.6 ? 'secondary' : 'outline'}
-                              className="text-xs"
-                            >
-                              <Star className="h-3 w-3 mr-1" />
-                              {(result.similarity * 100).toFixed(1)}%
-                            </Badge>
-                          </Tooltip>
-                          <span className="flex items-center">
-                            <Zap className="h-3 w-3 mr-1" />
-                            向量: {(result.vector_similarity * 100).toFixed(1)}%
-                          </span>
-                          <span className="flex items-center">
-                            <Search className="h-3 w-3 mr-1" />
-                            文本: {(result.term_similarity * 100).toFixed(1)}%
-                          </span>
-                        </div>
-                      </div>
-                      
-                      <div className="mb-4 relative">
-                        <div 
-                          className="text-sm text-gray-700 leading-relaxed h-20 overflow-hidden cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors"
-                          onClick={() => {
-                            setSelectedResult(result)
-                            setIsMarkdownPreview(false)
-                          }}
-                        >
-                          <HighlightText
-                            html={result.highlight}
-                            text={result.text}
-                            enableHighlight={searchParams.highlight}
-                            truncate={true}
-                            truncateLength={200}
-                          />
-                        </div>
-                        {(result.text.length > 200 || (result.highlight && result.highlight.length > 200)) && (
-                          <div className="absolute bottom-0 right-0 bg-gradient-to-l from-white via-white to-transparent pl-8 pr-2">
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="h-6 px-2 text-xs text-primary-600 hover:text-primary-700"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                setSelectedResult(result)
-                                setIsMarkdownPreview(false)
-                              }}
-                            >
-                              展开
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                      
-                      {/* 分割线 */}
-                      <div className="border-t border-gray-100 pt-3 mb-3">
-                        {/* 文档信息 */}
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            <FileIcon 
-                              fileName={result.docnm_kwd}
-                              fileType={result.docnm_kwd.split('.').pop() || 'txt'}
-                              size="sm"
-                            />
-                            <div>
-                              <div className="text-sm font-medium text-gray-700">
-                                {result.docnm_kwd}
-                              </div>
-                              <div className="text-xs text-gray-500 mt-1">
-                                来自文档
-                              </div>
-                            </div>
-                          </div>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="h-7 px-2 text-xs flex-shrink-0"
-                            onClick={() => {
-                              // 可以添加查看详情的逻辑
-                              console.log('查看详情:', result)
-                            }}
-                          >
-                            <FileText className="h-3 w-3 mr-1" />
-                            详情
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-            
-            {/* 分页组件 */}
-            {results.length > 0 && (
-              <div className="sticky bottom-0 border-t border-gray-200 bg-white/95 backdrop-blur-sm shadow-lg">
-                <div className="px-6 py-4 flex items-center justify-between">
-                  <div className="text-sm text-gray-600">
-                    共 {totalResults} 个结果
-                  </div>
-                  
-                  <div className="flex items-center space-x-4">
-                    {/* 每页显示选择器 */}
-                    <PageSizeSelector
-                      pageSize={pageSize}
-                      onChange={handlePageSizeChange}
-                      options={[10, 20, 50, 100]}
-                    />
-                    
-                    {/* 页码导航 */}
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handlePageChange(currentPage - 1)}
-                        disabled={currentPage <= 1}
-                      >
-                        上一页
-                      </Button>
-                      
-                      <div className="flex items-center space-x-1">
-                        {/* 页码按钮 */}
-                        {Array.from({ length: Math.min(5, Math.ceil(totalResults / pageSize)) }, (_, i) => {
-                          const totalPages = Math.ceil(totalResults / pageSize)
-                          let pageNum
-                          
-                          if (totalPages <= 5) {
-                            pageNum = i + 1
-                          } else {
-                            if (currentPage <= 3) {
-                              pageNum = i + 1
-                            } else if (currentPage >= totalPages - 2) {
-                              pageNum = totalPages - 4 + i
-                            } else {
-                              pageNum = currentPage - 2 + i
-                            }
-                          }
-                          
-                          return (
-                            <Button
-                              key={pageNum}
-                              variant={currentPage === pageNum ? "default" : "outline"}
-                              size="sm"
-                              onClick={() => handlePageChange(pageNum)}
-                              className="min-w-[32px]"
-                            >
-                              {pageNum}
-                            </Button>
-                          )
-                        })}
-                      </div>
-                      
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handlePageChange(currentPage + 1)}
-                        disabled={currentPage >= Math.ceil(totalResults / pageSize)}
-                      >
-                        下一页
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
           
           {/* 配置面板 */}
           {showConfigPanel && (
-            <div 
-              className="absolute inset-0 z-30 flex justify-end"
+            <div
+              className="absolute inset-y-0 right-0 z-40 flex justify-end"
               onClick={(e) => {
                 if (e.target === e.currentTarget) {
                   setShowConfigPanel(false)
                 }
               }}
             >
-              <div className="w-[500px] bg-surface-primary shadow-elevation-high border-l border-border-default flex flex-col">
+              <div
+                className="flex h-full w-[440px] max-w-[calc(100vw-2rem)] flex-col border-l border-border-default bg-background-surface"
+              >
               {/* 面板头部 */}
-              <div className="p-6 border-b border-border-default">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <SettingsIcon className="h-5 w-5 text-text-secondary" />
-                    <h3 className="text-lg font-medium text-text-primary">检索配置</h3>
+              <div className="border-b border-border-default px-space-lg py-space-base">
+                <div className="flex items-start justify-between gap-space-base">
+                  <div className="flex items-start gap-space-sm">
+                    <SettingsIcon className="mt-0.5 h-4 w-4 text-text-secondary" />
+                    <div>
+                      <h3 className="text-base font-semibold text-text-primary">检索配置</h3>
+                      <p className="mt-space-xs text-xs text-text-tertiary">
+                        当前模式：{searchModeLabel}
+                      </p>
+                    </div>
                   </div>
                   <Button
                     variant="ghost"
-                    size="sm"
+                    size="icon-sm"
                     onClick={() => setShowConfigPanel(false)}
-                    className="text-text-tertiary hover:text-text-secondary"
+                    className="shrink-0 text-text-tertiary hover:text-text-secondary"
                   >
-                    <ChevronUp className="h-4 w-4" />
+                    <X className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
               
               {/* 面板内容 */}
-              <div className="flex-1 p-6 space-y-6 overflow-y-auto scrollbar-thin">
+              <div className="min-h-0 flex-1 space-y-space-xl overflow-y-auto px-space-lg py-space-lg scrollbar-thin">
                   {/* 搜索模式选择 */}
-                  <div>
-                    <label className="block text-sm font-medium text-text-primary mb-space-sm">
-                      检索模式
-                    </label>
+                  <section className="space-y-space-sm">
+                    <div>
+                      <h4 className="text-sm font-semibold text-text-primary">检索模式</h4>
+                      <p className="mt-space-xs text-xs text-text-tertiary">选择本次检索使用的召回策略。</p>
+                    </div>
                     <RadioGroup
                       value={searchMode.type}
                       onValueChange={(value) => {
@@ -890,7 +493,13 @@ const KnowledgeSearchPage: React.FC = () => {
                     >
                       {searchModeOptions.map((option) => (
                         <div key={option.value}>
-                          <label className="flex items-start gap-space-sm p-space-sm border border-border-default rounded-radius-lg cursor-pointer hover:bg-surface-secondary transition-colors">
+                          <label
+                            className={`flex items-start gap-space-sm rounded-radius-md border px-space-sm py-space-sm transition-colors ${
+                              searchMode.type === option.value
+                                ? 'border-components-input-border-focus bg-components-input-bg-focus'
+                                : 'border-transparent hover:bg-background-default'
+                            } ${option.value === 'dense' ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
+                          >
                             <RadioGroupItem
                               value={option.value}
                               disabled={option.value === 'dense'}
@@ -912,7 +521,7 @@ const KnowledgeSearchPage: React.FC = () => {
                           
                           {/* 混合检索权重设置 */}
                           {searchMode.type === 'hybrid' && option.value === 'hybrid' && (
-                            <div className="mt-2 ml-6 space-y-3">
+                            <div className="ml-space-lg mt-space-sm space-y-space-md border-l border-border-default pl-space-base">
                               <div>
                                 <label className="block text-xs text-text-secondary mb-2">
                                   向量权重
@@ -970,12 +579,12 @@ const KnowledgeSearchPage: React.FC = () => {
                                       }}
                                     />
                                   </div>
-                                  <div className="w-16 text-xs text-center py-1 px-2 bg-surface-secondary rounded-radius-md border border-border-default text-text-secondary">
+                                  <div className="w-16 rounded-radius-md border border-border-default px-space-xs py-space-xs text-center text-xs text-text-secondary">
                                     {(searchMode.weight_sparse || 0.3).toFixed(2)}
                                   </div>
                                 </div>
                               </div>
-                              <div className="text-xs text-text-tertiary bg-surface-secondary border border-border-default p-space-sm rounded-radius-md">
+                              <div className="text-xs text-text-tertiary">
                                 向量权重 + 全文权重 = 1.00 (精确到小数点后2位)
                               </div>
                             </div>
@@ -983,7 +592,7 @@ const KnowledgeSearchPage: React.FC = () => {
                           
                           {/* 融合检索权重设置 */}
                           {searchMode.type === 'fusion' && option.value === 'fusion' && (
-                            <div className="mt-2 ml-6 space-y-3">
+                            <div className="ml-space-lg mt-space-sm space-y-space-md border-l border-border-default pl-space-base">
                               <div>
                                 <label className="block text-xs text-text-secondary mb-2">
                                   文本权重
@@ -1039,12 +648,12 @@ const KnowledgeSearchPage: React.FC = () => {
                                       }}
                                     />
                                   </div>
-                                  <div className="w-16 text-xs text-center py-1 px-2 bg-surface-secondary rounded-radius-md border border-border-default text-text-secondary">
+                                  <div className="w-16 rounded-radius-md border border-border-default px-space-xs py-space-xs text-center text-xs text-text-secondary">
                                     {parseFloat((searchMode.weights || '0.05,0.95').split(',')[1]).toFixed(2)}
                                   </div>
                                 </div>
                               </div>
-                              <div className="text-xs text-text-tertiary bg-surface-secondary border border-border-default p-space-sm rounded-radius-md">
+                              <div className="text-xs text-text-tertiary">
                                 文本权重 + 向量权重 = 1.00 (精确到小数点后2位)
                               </div>
                             </div>
@@ -1052,24 +661,24 @@ const KnowledgeSearchPage: React.FC = () => {
                         </div>
                       ))}
                     </RadioGroup>
-                  </div>
+                  </section>
 
                   {/* 高级参数 */}
-                  <div>
+                  <section className="border-t border-border-default pt-space-lg">
                     <button
                       onClick={() => setAdvancedOpen(!advancedOpen)}
-                      className="flex items-center justify-between w-full text-sm font-medium text-text-secondary hover:text-text-primary mb-3"
+                      className="mb-space-base flex w-full items-center justify-between text-sm font-semibold text-text-primary"
                     >
-                      <span className="flex items-center">
-                        <SettingsIcon className="h-4 w-4 mr-2" />
+                      <span className="flex items-center gap-space-xs">
+                        <SettingsIcon className="h-4 w-4 text-text-secondary" />
                         高级参数
                       </span>
                       {advancedOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                     </button>
                     
                     {advancedOpen && (
-                      <div className="space-y-4 p-4 bg-surface-secondary rounded-radius-lg border border-border-default">
-                        <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-space-lg">
+                        <div className="grid grid-cols-2 gap-space-base">
                           <div>
                             <label className="block text-xs font-medium text-text-secondary mb-1">
                               页大小
@@ -1152,7 +761,7 @@ const KnowledgeSearchPage: React.FC = () => {
                           />
                         </div>
                         
-                        <div className="space-y-3">
+                        <div className="grid grid-cols-1 gap-space-sm">
                           <label className="flex items-center gap-space-xs cursor-pointer">
                             <Checkbox
                               checked={searchParams.use_kg}
@@ -1232,12 +841,12 @@ const KnowledgeSearchPage: React.FC = () => {
                         </div>
                       </div>
                     )}
-                  </div>
+                  </section>
               </div>
               
               {/* 面板底部 */}
-              <div className="p-6 border-t border-border-default bg-surface-secondary">
-                <div className="flex justify-end space-x-3">
+              <div className="border-t border-border-default bg-background-surface px-space-lg py-space-base">
+                <div className="flex justify-end gap-space-sm">
                   <Button
                     variant="outline"
                     onClick={() => setShowConfigPanel(false)}
@@ -1262,10 +871,20 @@ const KnowledgeSearchPage: React.FC = () => {
           
           {/* 内容预览弹窗 */}
           {selectedResult && (
-            <div className="absolute inset-0 bg-black bg-opacity-50 z-40 flex items-center justify-center">
-              <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col">
+            <div
+              className="fixed inset-0 z-[1200] flex items-center justify-center bg-components-modal-overlay p-space-lg"
+              onClick={() => {
+                setSelectedResult(null)
+                setIsMarkdownPreview(false)
+              }}
+            >
+              <div
+                className="bg-components-modal-bg border border-components-modal-border rounded-radius-lg max-w-4xl w-full max-h-[90vh] flex flex-col"
+                style={{ boxShadow: 'var(--color-components-modal-shadow)' }}
+                onClick={(event) => event.stopPropagation()}
+              >
                 {/* 弹窗头部 */}
-                <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+                <div className="p-6 border-b border-border-default flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <FileIcon 
                       fileName={selectedResult.docnm_kwd}
@@ -1273,8 +892,8 @@ const KnowledgeSearchPage: React.FC = () => {
                       size="sm"
                     />
                     <div>
-                      <h3 className="text-lg font-medium text-gray-900">内容预览</h3>
-                      <p className="text-sm text-gray-500">{selectedResult.docnm_kwd}</p>
+                      <h3 className="text-lg font-medium text-text-primary">内容预览</h3>
+                      <p className="text-sm text-text-tertiary">{selectedResult.docnm_kwd}</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-3">
@@ -1285,7 +904,7 @@ const KnowledgeSearchPage: React.FC = () => {
                         size="sm"
                         onClick={() => setIsMarkdownPreview(!isMarkdownPreview)}
                         className={`text-xs flex items-center space-x-1 ${
-                          isMarkdownPreview ? "bg-blue-50 text-blue-600 border-blue-300" : ""
+                          isMarkdownPreview ? "bg-state-focus-subtle text-text-accent border-border-accent" : ""
                         }`}
                       >
                         {isMarkdownPreview ? (
@@ -1300,9 +919,7 @@ const KnowledgeSearchPage: React.FC = () => {
                           </>
                         )}
                       </Button>
-                      <span className="inline-flex items-center px-2 py-1 rounded text-xs bg-orange-100 text-orange-600 font-medium">
-                        Beta
-                      </span>
+                      <Badge variant="warning" className="text-xs">Beta</Badge>
                     </div>
                     <Button
                       variant="ghost"
@@ -1311,7 +928,7 @@ const KnowledgeSearchPage: React.FC = () => {
                         setSelectedResult(null)
                         setIsMarkdownPreview(false)
                       }}
-                      className="text-gray-400 hover:text-gray-600"
+                      className="text-text-tertiary hover:text-text-secondary"
                     >
                       <X className="h-4 w-4" />
                     </Button>
@@ -1321,7 +938,7 @@ const KnowledgeSearchPage: React.FC = () => {
                 {/* 弹窗内容 */}
                 <div className="flex-1 p-6 overflow-y-auto scrollbar-thin">
                   {isMarkdownPreview ? (
-                    <div className="w-full h-full px-4 py-3 border border-gray-300 rounded-md bg-gray-50 overflow-y-auto scrollbar-thin">
+                    <div className="w-full h-full px-4 py-3 border border-border-default rounded-radius-md bg-background-subtle overflow-y-auto scrollbar-thin">
                       <div 
                         className="prose prose-sm max-w-none text-sm leading-relaxed"
                         dangerouslySetInnerHTML={{
@@ -1331,22 +948,22 @@ const KnowledgeSearchPage: React.FC = () => {
                             // Markdown语法处理逻辑
                             content = content
                               // 标题处理
-                              .replace(/^### (.*?)$/gm, '<h3 class="text-lg font-semibold mt-4 mb-2 text-gray-900">$1</h3>')
-                              .replace(/^## (.*?)$/gm, '<h2 class="text-xl font-semibold mt-4 mb-2 text-gray-900">$1</h2>')
-                              .replace(/^# (.*?)$/gm, '<h1 class="text-2xl font-bold mt-4 mb-2 text-gray-900">$1</h1>')
+                              .replace(/^### (.*?)$/gm, '<h3 class="text-lg font-semibold mt-4 mb-2 text-text-primary">$1</h3>')
+                              .replace(/^## (.*?)$/gm, '<h2 class="text-xl font-semibold mt-4 mb-2 text-text-primary">$1</h2>')
+                              .replace(/^# (.*?)$/gm, '<h1 class="text-2xl font-bold mt-4 mb-2 text-text-primary">$1</h1>')
                               // 列表处理
                               .replace(/^[\s]*[-*+] (.*?)$/gm, '<ul class="list-disc ml-4 my-2"><li class="my-1">$1</li></ul>')
                               .replace(/^[\s]*\d+\. (.*?)$/gm, '<ol class="list-decimal ml-4 my-2"><li class="my-1">$1</li></ol>')
                               // 代码块处理
-                              .replace(/```([\s\S]*?)```/g, '<pre class="bg-gray-100 p-3 rounded-md my-3 overflow-x-auto"><code class="text-sm font-mono">$1</code></pre>')
+                              .replace(/```([\s\S]*?)```/g, '<pre class="bg-components-card-bg-hover p-3 rounded-radius-md my-3 overflow-x-auto"><code class="text-sm font-mono">$1</code></pre>')
                               // 行内代码
-                              .replace(/`([^`]*)`/g, '<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">$1</code>')
+                              .replace(/`([^`]*)`/g, '<code class="bg-components-card-bg-hover px-1 py-0.5 rounded-radius-sm text-sm font-mono">$1</code>')
                               // 粗体
                               .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold">$1</strong>')
                               // 斜体
                               .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
                               // 链接
-                              .replace(/\[([^\]]*)\]\(([^)]*)\)/g, '<a href="$2" class="text-blue-600 hover:text-blue-800 underline" target="_blank">$1</a>')
+                              .replace(/\[([^\]]*)\]\(([^)]*)\)/g, '<a href="$2" class="text-text-accent hover:text-text-accent underline" target="_blank">$1</a>')
                               // 换行处理
                               .replace(/\n\n/g, '</p><p class="mb-3">')
                               .replace(/\n/g, '<br>')
@@ -1357,8 +974,8 @@ const KnowledgeSearchPage: React.FC = () => {
                       />
                     </div>
                   ) : (
-                    <div className="w-full h-full px-4 py-3 border border-gray-300 rounded-md bg-white overflow-y-auto scrollbar-thin">
-                      <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+                    <div className="w-full h-full px-4 py-3 border border-border-default rounded-radius-md bg-background-subtle overflow-y-auto scrollbar-thin">
+                      <div className="text-sm text-text-secondary leading-relaxed whitespace-pre-wrap">
                         <HighlightText
                           html={selectedResult.highlight}
                           text={selectedResult.text}
@@ -1370,8 +987,8 @@ const KnowledgeSearchPage: React.FC = () => {
                 </div>
                 
                 {/* 弹窗底部信息 */}
-                <div className="p-6 border-t border-gray-200 bg-gray-50">
-                  <div className="flex items-center justify-between text-sm text-gray-600">
+                <div className="p-6 border-t border-border-default bg-background-subtle">
+                  <div className="flex items-center justify-between text-sm text-text-secondary">
                     <div className="flex items-center space-x-4">
                       <span>ID: {selectedResult.chunk_id}</span>
                       <span className="flex items-center">
@@ -1387,7 +1004,7 @@ const KnowledgeSearchPage: React.FC = () => {
                         文本: {(selectedResult.term_similarity * 100).toFixed(1)}%
                       </span>
                     </div>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-text-tertiary">
                       字符数: {selectedResult.text.length}
                     </div>
                   </div>
@@ -1395,8 +1012,6 @@ const KnowledgeSearchPage: React.FC = () => {
               </div>
             </div>
           )}
-        </div>
-      </div>
     </div>
   )
 }

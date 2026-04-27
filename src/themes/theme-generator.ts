@@ -958,7 +958,7 @@ export const darkTokens: DesignTokens = {
   'components-input-bg-disabled': 'rgba(255, 255, 255, 0.04)',
   'components-input-border': '#64748b',
   'components-input-border-hover': '#94a3b8',
-  'components-input-border-focus': '#3b82f6',
+  'components-input-border-focus': '#818cf8',
   'components-input-border-error': '#ef4444',
   'components-input-text': '#ffffff',
   'components-input-text-placeholder': '#94a3b8',

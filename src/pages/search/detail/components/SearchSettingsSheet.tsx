@@ -384,8 +384,8 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
   if (!open) return null
 
   return (
-    <aside className="relative z-20 w-[380px] xl:w-[420px] shrink-0 border-l border-border-default bg-surface-primary px-space-base py-space-sm shadow-elevation-high">
-      <div className="h-full min-h-0 bg-surface-primary px-space-sm py-space-base flex flex-col">
+    <aside className="relative z-20 w-[380px] xl:w-[420px] shrink-0 border-l border-border-default bg-background-surface px-space-base py-space-sm shadow-elevation-high">
+      <div className="h-full min-h-0 bg-background-surface px-space-sm py-space-base flex flex-col">
         <div className="shrink-0 flex items-center justify-between gap-space-sm">
           <h3 className="text-base font-semibold text-text-primary">搜索设置</h3>
           <Button variant="ghost" size="icon-sm" onClick={() => onOpenChange(false)} title="收起配置">
@@ -604,7 +604,7 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
               <Label className="text-sm">
                 跨语言翻译
                 {(config.cross_languages?.length || 0) > 0 ? (
-                  <span className="ml-space-xs rounded-radius-full bg-surface-secondary px-space-sm py-0.5 text-xs text-text-secondary">
+                  <span className="ml-space-xs rounded-radius-full bg-background-subtle px-space-sm py-0.5 text-xs text-text-secondary">
                     {config.cross_languages?.length}种语言
                   </span>
                 ) : null}

@@ -72,7 +72,7 @@ html[data-theme="dark"] {
   --color-components-input-bg-disabled: rgba(255, 255, 255, 0.04);
   --color-components-input-border: #64748b;
   --color-components-input-border-hover: #94a3b8;
-  --color-components-input-border-focus: #3b82f6;
+  --color-components-input-border-focus: #818cf8;
   --color-components-input-border-error: #ef4444;
   --color-components-input-text: #ffffff;
   --color-components-input-text-placeholder: #94a3b8;
