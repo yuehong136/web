@@ -24,15 +24,13 @@ import {
   Welcome,
   Attachments
 } from '@ant-design/x'
-import type { Attachment } from '@ant-design/x/es/attachments'
-// 导入 Ant Design X 内部的 Loading 组件用于三点加载动画
-import BubbleLoading from '@ant-design/x/es/bubble/loading'
+import type { AttachmentsProps } from '@ant-design/x'
 import { ConfigProvider, theme, Modal, Input } from 'antd'
 import type { RcFile } from 'antd/es/upload/interface'
 import type { PromptsProps } from '@ant-design/x'
 import XMarkdown from '@ant-design/x-markdown'
-import '@ant-design/x-markdown/dist/x-markdown.css'
-import { markdownConfig, markdownStreamingComponents } from '@/components/chat/MarkdownCodeBlock'
+import { ChatBubbleLoading } from '@/components/chat/ChatBubbleLoading'
+import { getMarkdownStreamingOptions, markdownConfig, markdownStreamingComponents } from '@/components/chat/MarkdownCodeBlock'
 import { Button } from '@/components/ui/button'
 import { FileIcon, getFileCategory } from '@/components/ui/file-icon'
 import { cn, copyToClipboard, formatBytes } from '@/lib/utils'
@@ -69,6 +67,8 @@ import { consumeStreamingAnswerChunk, createInitialStreamingAnswerState } from '
 
 // SSE 流解析库（参考 ragflow 最佳实践）
 import { EventSourceParserStream } from 'eventsource-parser/stream'
+
+type ExploreAttachment = NonNullable<AttachmentsProps['items']>[number]
 
 // 获取应用图标
 const getAppIcon = (app: any, size: 'sm' | 'md' = 'sm') => {
@@ -308,7 +308,7 @@ export const ExplorePage: React.FC = () => {
     [isUploading, uploadFiles],
   )
   const canSubmitMessage = (!isStreaming && !hasUploadingFiles) && (inputValue.trim().length > 0 || hasReadyUploads)
-  const attachmentItems = React.useMemo<Attachment<unknown>[]>(() => {
+  const attachmentItems = React.useMemo<ExploreAttachment[]>(() => {
     return uploadFiles.map((file) => ({
       ...file,
       className: file.status === 'error' ? 'cursor-pointer' : undefined,
@@ -969,7 +969,7 @@ export const ExplorePage: React.FC = () => {
                 config={markdownConfig}
                 components={{ ...markdownStreamingComponents, sup: SupComponent }}
                 paragraphTag="div"
-                streaming={isCurrentStreamingMessage ? { hasNextChunk: true, enableAnimation: true } : undefined}
+                streaming={getMarkdownStreamingOptions(isCurrentStreamingMessage)}
               >
                 {mainContentWithSup}
               </XMarkdown>
@@ -989,7 +989,7 @@ export const ExplorePage: React.FC = () => {
                   config={markdownConfig}
                   components={{ ...markdownStreamingComponents, sup: SupComponent }}
                   paragraphTag="div"
-                  streaming={isCurrentStreamingMessage ? { hasNextChunk: true, enableAnimation: true } : undefined}
+                  streaming={getMarkdownStreamingOptions(isCurrentStreamingMessage)}
                 >
                   {part}
                 </XMarkdown>
@@ -1035,7 +1035,7 @@ export const ExplorePage: React.FC = () => {
           
             {/* 如果没有内容且没有思考内容，显示 Ant Design X 三点加载动画 */}
             {!thinkContent && !mainContent && (
-              <BubbleLoading prefixCls="ant-bubble" />
+              <ChatBubbleLoading />
             )}
             
             {/* 图片引用轮播列表 - 汇总展示消息中引用的所有图片 */}

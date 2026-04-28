@@ -7,8 +7,7 @@ import { User, Bot, Paperclip, Square, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ProviderIcon } from '@/components/ui/provider-icon';
 import XMarkdown, { type ComponentProps } from '@ant-design/x-markdown';
-import '@ant-design/x-markdown/dist/x-markdown.css';
-import { markdownConfig, markdownStreamingComponents } from '@/components/chat/MarkdownCodeBlock';
+import { getMarkdownStreamingOptions, markdownConfig, markdownStreamingComponents } from '@/components/chat/MarkdownCodeBlock';
 import type { MCPChatServiceRequest } from "@/api/mcp-chat-service";
 import { EnhancedSSEParser, type SSEMessage, type ToolCallInfo } from "@/components/chat/EnhancedSSEParser";
 import { ToolCallRenderer } from "@/components/chat/ToolCallRenderer";
@@ -78,7 +77,12 @@ const StableMarkdown = React.memo(({ content }: { content: string }) => {
   
   return (
     <div className="prose prose-sm max-w-none dark:prose-invert bubble-copy-text markdown-content">
-      <XMarkdown paragraphTag="div" config={markdownConfig} components={markdownStreamingComponents}>
+      <XMarkdown
+        paragraphTag="div"
+        config={markdownConfig}
+        components={markdownStreamingComponents}
+        streaming={getMarkdownStreamingOptions(false)}
+      >
         {stableContent}
       </XMarkdown>
     </div>
@@ -103,7 +107,7 @@ const StreamingMarkdown = React.memo(({ content, isStreaming }: { content: strin
         paragraphTag="div"
         config={markdownConfig}
         components={markdownStreamingComponents}
-        streaming={isStreaming ? { hasNextChunk: true, enableAnimation: true } : undefined}
+        streaming={getMarkdownStreamingOptions(isStreaming)}
       >
         {content}
       </XMarkdown>

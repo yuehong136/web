@@ -1,6 +1,5 @@
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Sender } from '@ant-design/x'
-import type { SenderRef } from '@ant-design/x/es/sender'
 import { AudioLines, ChevronDown, MicOff, Sparkles, WandSparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from '@/lib/toast'
@@ -112,7 +111,7 @@ const SearchComposer: React.FC<SearchComposerProps> = ({
   prefillText,
   prefillVersion,
 }) => {
-  const senderRef = useRef<SenderRef | null>(null)
+  const senderRef = useRef<React.ElementRef<typeof Sender> | null>(null)
   const speechRecognitionRef = useRef<BrowserSpeechRecognitionInstance | null>(null)
   const [value, setValue] = useState('')
   const [semanticMode, setSemanticMode] = useState(false)

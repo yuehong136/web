@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import XMarkdown, { type ComponentProps } from '@ant-design/x-markdown'
-import { markdownCodeComponents, markdownConfig } from '@/components/chat/MarkdownCodeBlock'
+import { getMarkdownStreamingOptions, markdownCodeComponents, markdownConfig } from '@/components/chat/MarkdownCodeBlock'
 
 interface HybridStreamingMarkdownProps {
   content: string
@@ -12,7 +12,12 @@ const MarkdownBlock = React.memo(
   ({ content, components }: { content: string; components?: Record<string, React.ComponentType<ComponentProps>> }) => {
     if (!content || !content.trim()) return null
     return (
-      <XMarkdown paragraphTag="div" config={markdownConfig} components={{ ...markdownCodeComponents, ...components }}>
+      <XMarkdown
+        paragraphTag="div"
+        config={markdownConfig}
+        components={{ ...markdownCodeComponents, ...components }}
+        streaming={getMarkdownStreamingOptions(false)}
+      >
         {content}
       </XMarkdown>
     )

@@ -159,7 +159,8 @@ export default defineConfig(({ mode }) => {
 
             if (
               id.includes('node_modules/@ant-design/x/') ||
-              id.includes('node_modules/@ant-design/x-markdown/')
+              id.includes('node_modules/@ant-design/x-markdown/') ||
+              id.includes('node_modules/@ant-design/x-sdk/')
             ) {
               return 'vendor-antdx'
             }

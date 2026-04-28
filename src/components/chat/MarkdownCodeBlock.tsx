@@ -1,6 +1,6 @@
 import React, { memo } from 'react'
 import { CodeHighlighter, Mermaid } from '@ant-design/x'
-import type { ComponentProps } from '@ant-design/x-markdown'
+import type { ComponentProps, XMarkdownProps } from '@ant-design/x-markdown'
 import type { MarkedExtension } from 'marked'
 import Latex from '@ant-design/x-markdown/plugins/Latex'
 
@@ -148,11 +148,12 @@ const SafeMermaid: React.FC<{ code: string; streamStatus: ComponentProps['stream
  * For inline code:
  *   - renders styled <code> tag
  */
-const MarkdownCode: React.FC<ComponentProps & { block?: boolean }> = ({
+const MarkdownCode: React.FC<ComponentProps> = ({
   block,
   className,
   children,
   domNode: _domNode,
+  lang: markdownLang,
   streamStatus = 'done',
   ...rest
 }) => {
@@ -167,7 +168,7 @@ const MarkdownCode: React.FC<ComponentProps & { block?: boolean }> = ({
     )
   }
 
-  const lang = parseLang(className)
+  const lang = markdownLang || parseLang(className)
   const code = extractText(children)
 
   if (lang === 'mermaid') {
@@ -234,6 +235,21 @@ export const markdownStreamingComponents: Record<string, React.ComponentType<Com
   'incomplete-emphasis': memo(IncompleteMarkdownToken),
   'incomplete-list': memo(IncompleteMarkdownToken),
   'incomplete-table': memo(IncompleteMarkdownToken),
+  'incomplete-inline-code': memo(IncompleteMarkdownToken),
+}
+
+export function getMarkdownStreamingOptions(isStreaming: boolean): XMarkdownProps['streaming'] {
+  if (isStreaming) {
+    return {
+      hasNextChunk: true,
+      enableAnimation: true,
+      tail: true,
+    }
+  }
+
+  return {
+    hasNextChunk: false,
+  }
 }
 
 /**

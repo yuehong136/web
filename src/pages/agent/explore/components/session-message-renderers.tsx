@@ -1,9 +1,9 @@
 import React from 'react'
 import { Bot, User } from 'lucide-react'
 import XMarkdown, { type ComponentProps } from '@ant-design/x-markdown'
-import '@ant-design/x-markdown/dist/x-markdown.css'
 import { FileIcon } from '@/components/ui/file-icon'
 import {
+  getMarkdownStreamingOptions,
   markdownConfig,
   markdownStreamingComponents,
 } from '@/components/chat/MarkdownCodeBlock'
@@ -58,9 +58,7 @@ export function SessionMarkdown({
         paragraphTag="div"
         config={markdownConfig}
         components={{ ...markdownStreamingComponents, ...components }}
-        streaming={
-          streaming ? { hasNextChunk: true, enableAnimation: true } : undefined
-        }
+        streaming={getMarkdownStreamingOptions(streaming)}
       >
         {content}
       </XMarkdown>

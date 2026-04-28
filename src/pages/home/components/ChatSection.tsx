@@ -1,10 +1,9 @@
 import React, { useRef, useCallback, useMemo, useEffect, useState } from 'react'
 import { Bot, User } from 'lucide-react'
 import { Bubble } from '@ant-design/x'
-// 导入 Ant Design X 内部的 Loading 组件用于三点加载动画
-import BubbleLoading from '@ant-design/x/es/bubble/loading'
 import XMarkdown, { type ComponentProps } from '@ant-design/x-markdown'
-import { markdownConfig, markdownStreamingComponents } from '@/components/chat/MarkdownCodeBlock'
+import { ChatBubbleLoading } from '@/components/chat/ChatBubbleLoading'
+import { getMarkdownStreamingOptions, markdownConfig, markdownStreamingComponents } from '@/components/chat/MarkdownCodeBlock'
 import {
   findFirstEnabledModelByType,
   findProviderNameByModelName,
@@ -60,7 +59,12 @@ const StableMarkdown = React.memo(({ content, components }: StableMarkdownProps)
 
   return (
     <div className="prose prose-sm max-w-none dark:prose-invert bubble-copy-text markdown-content">
-      <XMarkdown paragraphTag="div" config={markdownConfig} components={{ ...markdownStreamingComponents, ...components }}>
+      <XMarkdown
+        paragraphTag="div"
+        config={markdownConfig}
+        components={{ ...markdownStreamingComponents, ...components }}
+        streaming={getMarkdownStreamingOptions(false)}
+      >
         {stableContent}
       </XMarkdown>
     </div>
@@ -88,7 +92,7 @@ const StreamingMarkdown = React.memo(({ content, isStreaming, components }: Stre
         paragraphTag="div"
         config={markdownConfig}
         components={{ ...markdownStreamingComponents, ...components }}
-        streaming={isStreaming ? { hasNextChunk: true, enableAnimation: true } : undefined}
+        streaming={getMarkdownStreamingOptions(isStreaming)}
       >
         {content}
       </XMarkdown>
@@ -374,7 +378,7 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
               
               {/* Loading 状态（应用模式流式输出时，没有内容显示 loading） */}
               {showLoading && (
-                <BubbleLoading prefixCls="ant-bubble" />
+                <ChatBubbleLoading />
               )}
               
               {/* 图片引用列表 */}
@@ -465,7 +469,7 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
             )}
             {/* 如果没有任何内容，显示 Ant Design X 三点加载动画 */}
             {!thinkContent && !mainContent && !isToolAnalyzing && streamingToolCalls.length === 0 && (
-              <BubbleLoading prefixCls="ant-bubble" />
+              <ChatBubbleLoading />
             )}
           </div>
         ),

@@ -12,7 +12,6 @@ import React, { useState, useCallback } from 'react'
 import { useHomeStore } from '@/stores/home'
 import { WelcomeSection, ChatSection } from './components'
 import { useHomeChat } from './hooks'
-import '@ant-design/x-markdown/dist/x-markdown.css'
 
 export const HomePage: React.FC = () => {
   const [inputValue, setInputValue] = useState('')

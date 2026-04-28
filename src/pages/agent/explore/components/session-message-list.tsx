@@ -1,6 +1,6 @@
 import { Fragment, useCallback, useMemo, useState } from 'react'
 import { Bubble } from '@ant-design/x'
-import BubbleLoading from '@ant-design/x/es/bubble/loading'
+import { ChatBubbleLoading } from '@/components/chat/ChatBubbleLoading'
 import { ThinkWrapper } from '@/components/chat/ThinkWrapper'
 import { MessageActionsFooter } from '@/components/chat/MessageActionsFooter'
 import { ReferencePanel } from '@/components/chat/ReferencePanel'
@@ -185,7 +185,7 @@ export function SessionMessageList({
                 {renderContentWithCarousels()}
 
                 {isStreaming && !thinkContent && !mainContent ? (
-                  <BubbleLoading prefixCls="ant-bubble" />
+                  <ChatBubbleLoading />
                 ) : null}
 
                 <RuntimeAttachmentList message={message} />
