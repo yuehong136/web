@@ -4,6 +4,7 @@ import { Bug, ChevronLeft, ChevronRight, Eye, LayoutGrid, RefreshCw, Square } fr
 import { StudioPanelShell } from '@/components/patterns'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { CHAT_TEXT_TYPING, shouldUseBubbleTyping } from '@/components/chat/antx-chat-config'
 import type { CreateAppPageController } from '../hooks/use-create-app-page'
 import { renderMarkdown } from '../utils'
 
@@ -33,11 +34,17 @@ export const PreviewPane: React.FC<PreviewPaneProps> = ({ controller }) => {
       const isUser = message.role === 'user'
       const isLastAssistant = !isUser && index === previewMessages.length - 1
       const isCurrentStreaming = isStreaming && isLastAssistant
+      const useTextTyping =
+        !isUser &&
+        message.id.startsWith('prologue-') &&
+        !isCurrentStreaming &&
+        !message.thinking &&
+        shouldUseBubbleTyping(message.content)
 
       return {
         key: message.id,
         role: message.role,
-        content: (
+        content: useTextTyping ? message.content : (
           <div className="leading-relaxed">
             {message.thinking ? (
               <div
@@ -69,6 +76,7 @@ export const PreviewPane: React.FC<PreviewPaneProps> = ({ controller }) => {
             ) : null}
           </div>
         ),
+        typing: useTextTyping ? CHAT_TEXT_TYPING : false,
         placement: (isUser ? 'end' : 'start') as 'start' | 'end',
         loading: isCurrentStreaming && !message.content && !message.thinking,
         avatar: isUser ? (

@@ -1,6 +1,6 @@
 import React, { memo, useCallback, useMemo } from 'react'
 import XMarkdown from '@ant-design/x-markdown'
-import { getMarkdownStreamingOptions, markdownConfig, markdownStreamingComponents } from '@/components/chat/MarkdownCodeBlock'
+import { getMarkdownStreamingOptions, markdownConfig, mergeMarkdownComponents } from '@/components/chat/MarkdownCodeBlock'
 import { Sparkles } from 'lucide-react'
 import { ReferenceImageList } from '@/components/chat/ReferenceImageList'
 import { createReferenceMarkerComponent } from '@/components/chat/ReferenceMarker'
@@ -61,6 +61,10 @@ const SearchSummaryCard: React.FC<SearchSummaryCardProps> = ({
         },
       }),
     [handleViewReferenceDetail, referenceChunks]
+  )
+  const markdownComponents = useMemo(
+    () => mergeMarkdownComponents(referenceChunks.length > 0 ? { sup: SupComponent } : undefined),
+    [referenceChunks.length, SupComponent]
   )
 
   if (!summary && !isStreaming) return null
@@ -136,7 +140,7 @@ const SearchSummaryCard: React.FC<SearchSummaryCardProps> = ({
               <XMarkdown
                 paragraphTag="div"
                 config={markdownConfig}
-                components={{ ...markdownStreamingComponents, ...(referenceChunks.length > 0 ? { sup: SupComponent } : {}) }}
+                components={markdownComponents}
                 streaming={getMarkdownStreamingOptions(isStreaming)}
               >
                 {referenceChunks.length > 0 ? summaryWithSup : summary}

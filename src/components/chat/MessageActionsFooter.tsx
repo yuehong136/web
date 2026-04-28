@@ -6,15 +6,10 @@
  */
 import React from 'react'
 import { 
-  Copy, 
   RotateCcw, 
-  ThumbsUp, 
-  ThumbsDown,
-  Volume2,
-  Pause,
-  Loader2
 } from 'lucide-react'
 import { Actions } from '@ant-design/x'
+import type { ActionsProps } from '@ant-design/x'
 import { useSpeech } from '@/hooks/use-speech'
 
 export interface MessageActionsFooterProps {
@@ -68,89 +63,82 @@ export const MessageActionsFooter: React.FC<MessageActionsFooterProps> = React.m
   className
 }) => {
   const { isPlaying, isLoading, handleTogglePlay, audioRef } = useSpeech(content)
+  const [feedbackValue, setFeedbackValue] = React.useState<'like' | 'dislike' | 'default'>('default')
+  const [visible, setVisible] = React.useState(false)
+
+  React.useEffect(() => {
+    const frame = requestAnimationFrame(() => setVisible(true))
+    return () => cancelAnimationFrame(frame)
+  }, [])
+
+  const handleFeedbackChange = React.useCallback((value: 'like' | 'dislike' | 'default') => {
+    setFeedbackValue(value)
+    if (value === 'like') {
+      onLike?.()
+    }
+    if (value === 'dislike') {
+      onDislike?.()
+    }
+  }, [onLike, onDislike])
 
   // 构建操作项列表
-  const actionItems = React.useMemo(() => {
-    const items: Array<{
-      key: string
-      label: string
-      icon: React.ReactNode
-    }> = [
+  const actionItems = React.useMemo<ActionsProps['items']>(() => {
+    const items: ActionsProps['items'] = [
       {
         key: 'copy',
-        label: '复制',
-        icon: <Copy className="h-3 w-3" style={{ color: 'var(--color-text-tertiary)' }} />
+        actionRender: () => <Actions.Copy text={content} onClick={onCopy} />,
       }
     ]
 
     if (showTTS) {
       items.push({
         key: 'tts',
-        label: isPlaying ? '暂停' : '朗读',
-        icon: isLoading ? (
-          <Loader2 className="h-3 w-3 animate-spin" style={{ color: 'var(--color-text-accent)' }} />
-        ) : isPlaying ? (
-          <Pause className="h-3 w-3" style={{ color: 'var(--color-text-accent)' }} />
-        ) : (
-          <Volume2 className="h-3 w-3" style={{ color: 'var(--color-text-tertiary)' }} />
-        )
+        actionRender: () => (
+          <Actions.Audio
+            status={isLoading ? 'loading' : isPlaying ? 'running' : 'default'}
+            onClick={handleTogglePlay}
+          />
+        ),
       })
     }
 
     if (showRegenerate && onRegenerate) {
       items.push({
         key: 'regenerate',
-        label: '重新生成',
-        icon: <RotateCcw className="h-3 w-3" style={{ color: 'var(--color-text-tertiary)' }} />
+        actionRender: () => (
+          <Actions.Item
+            defaultIcon={<RotateCcw className="h-3 w-3" />}
+            label="重新生成"
+            onClick={onRegenerate}
+          />
+        ),
       })
     }
 
-    if (showFeedback) {
-      if (onLike) {
-        items.push({
-          key: 'like',
-          label: '点赞',
-          icon: <ThumbsUp className="h-3 w-3" style={{ color: 'var(--color-text-tertiary)' }} />
-        })
-      }
-      if (onDislike) {
-        items.push({
-          key: 'dislike',
-          label: '踩',
-          icon: <ThumbsDown className="h-3 w-3" style={{ color: 'var(--color-text-tertiary)' }} />
-        })
-      }
+    if (showFeedback && (onLike || onDislike)) {
+      items.push({
+        key: 'feedback',
+        actionRender: () => (
+          <Actions.Feedback value={feedbackValue} onChange={handleFeedbackChange} />
+        ),
+      })
     }
 
     return items
-  }, [isPlaying, isLoading, showTTS, showRegenerate, showFeedback, onRegenerate, onLike, onDislike])
-
-  const handleAction = React.useCallback((key: string) => {
-    switch (key) {
-      case 'copy':
-        onCopy()
-        break
-      case 'tts':
-        handleTogglePlay()
-        break
-      case 'regenerate':
-        onRegenerate?.()
-        break
-      case 'like':
-        onLike?.()
-        break
-      case 'dislike':
-        onDislike?.()
-        break
-    }
-  }, [onCopy, handleTogglePlay, onRegenerate, onLike, onDislike])
+  }, [content, feedbackValue, handleFeedbackChange, handleTogglePlay, isLoading, isPlaying, onCopy, onRegenerate, onLike, onDislike, showFeedback, showRegenerate, showTTS])
 
   return (
-    <div className={className || "mt-2 flex justify-end"}>
+    <div
+      className={className || "mt-2 flex justify-start"}
+      style={{
+        opacity: visible ? 1 : 0,
+        transform: visible ? 'translateY(0)' : 'translateY(4px)',
+        transition: 'opacity 180ms ease, transform 180ms ease',
+      }}
+    >
       <Actions
         items={actionItems}
         variant="borderless"
-        onClick={({ key }) => handleAction(key)}
       />
       {/* Hidden audio element for TTS playback */}
       {showTTS && <audio ref={audioRef} style={{ display: 'none' }} />}

@@ -357,7 +357,7 @@ export function useSharedAgentRunner({
       return [
         ...previous,
         {
-          id: createMessageId('assistant'),
+          id: createMessageId('prologue'),
           role: 'assistant',
           content,
           isStreaming: false,

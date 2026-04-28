@@ -1,5 +1,6 @@
 import { Fragment, useCallback, useMemo, useState } from 'react'
 import { Bubble } from '@ant-design/x'
+import type { BubbleListProps } from '@ant-design/x'
 import { ChatBubbleLoading } from '@/components/chat/ChatBubbleLoading'
 import { ThinkWrapper } from '@/components/chat/ThinkWrapper'
 import { MessageActionsFooter } from '@/components/chat/MessageActionsFooter'
@@ -8,6 +9,8 @@ import { ReferenceImageList } from '@/components/chat/ReferenceImageList'
 import { ReferenceDetailSheet } from '@/components/chat/ReferenceDetailSheet'
 import { createReferenceMarkerComponent } from '@/components/chat/ReferenceMarker'
 import { CarouselWrapper } from '@/components/chat/CarouselWrapper'
+import { mergeMarkdownComponents } from '@/components/chat/MarkdownCodeBlock'
+import { CHAT_TEXT_TYPING, shouldUseBubbleTyping } from '@/components/chat/antx-chat-config'
 import { copyToClipboard } from '@/lib/utils'
 import { toast } from '@/lib/toast'
 import { convertReferencesToSup, processContentForCarousel } from '@/utils/message-utils'
@@ -43,6 +46,9 @@ export function SessionMessageList({
   const [detailOpen, setDetailOpen] = useState(false)
   const [selectedChunk, setSelectedChunk] = useState<ReferenceChunk | null>(null)
   const [detailChunks, setDetailChunks] = useState<ReferenceChunk[]>([])
+  const [completedTypingMessageIds, setCompletedTypingMessageIds] = useState<Set<string>>(
+    () => new Set(),
+  )
 
   const handleViewDetail = useCallback(
     (chunk: ReferenceChunk, chunks: ReferenceChunk[]) => {
@@ -62,7 +68,7 @@ export function SessionMessageList({
     }
   }, [])
 
-  const bubbleItems = useMemo(() => {
+  const bubbleItems = useMemo<BubbleListProps['items']>(() => {
     return messages.map((message, index) => {
       const isUser = message.role === 'user'
       const isLatest = index === messages.length - 1
@@ -90,6 +96,20 @@ export function SessionMessageList({
             },
           })
         : undefined
+      const markdownComponents = SupComponent
+        ? mergeMarkdownComponents({ sup: SupComponent })
+        : undefined
+      const useTextTyping =
+        !isUser &&
+        message.id.startsWith('prologue-') &&
+        !isStreaming &&
+        !thinkContent &&
+        !message.error &&
+        !message.awaitingInputs?.length &&
+        !message.files?.length &&
+        references.length === 0 &&
+        shouldUseBubbleTyping(mainContent)
+      const showFooter = !isUser && !isStreaming && (!useTextTyping || completedTypingMessageIds.has(message.id))
 
       const renderContentWithCarousels = () => {
         if (!contentWithSup.trim()) {
@@ -101,7 +121,7 @@ export function SessionMessageList({
             <SessionMarkdown
               content={contentWithSup}
               streaming={isStreaming}
-              components={SupComponent ? { sup: SupComponent } : undefined}
+              components={markdownComponents}
             />
           )
         }
@@ -117,7 +137,7 @@ export function SessionMessageList({
                   <SessionMarkdown
                     content={part}
                     streaming={isStreaming}
-                    components={SupComponent ? { sup: SupComponent } : undefined}
+                    components={markdownComponents}
                   />
                 ) : null}
                 {partIndex < carouselGroups.length ? (
@@ -135,12 +155,25 @@ export function SessionMessageList({
       return {
         key: `${message.role}_${message.id || index}`,
         role: message.role,
-        content: message.content || '',
+        content: useTextTyping ? mainContent : message.content || '',
         placement: isUser ? ('end' as const) : ('start' as const),
         avatar: isUser ? <UserAvatar /> : <AssistantAvatar />,
         loading: isStreaming && !thinkContent && !mainContent,
         streaming: isStreaming,
-        footerPlacement: isUser ? undefined : ('outer-end' as const),
+        typing: useTextTyping ? CHAT_TEXT_TYPING : false,
+        onTypingComplete: useTextTyping
+          ? () => {
+              setCompletedTypingMessageIds((previous) => {
+                if (previous.has(message.id)) {
+                  return previous
+                }
+                const next = new Set(previous)
+                next.add(message.id)
+                return next
+              })
+            }
+          : undefined,
+        footerPlacement: isUser ? undefined : ('outer-start' as const),
         variant: 'borderless' as const,
         styles: isUser
           ? {
@@ -161,7 +194,7 @@ export function SessionMessageList({
                 padding: '0',
               },
             },
-        contentRender: () => (
+        contentRender: useTextTyping ? undefined : () => (
           <div className="space-y-space-sm">
             {isUser ? (
               <>
@@ -230,7 +263,7 @@ export function SessionMessageList({
           </div>
         ),
         footer:
-          !isUser && !isStreaming ? (
+          showFooter ? (
             <MessageActionsFooter
               content={mainContent}
               onCopy={() => {
@@ -242,13 +275,13 @@ export function SessionMessageList({
           ) : undefined,
       }
     })
-  }, [canvasId, handleCopyContent, handleViewDetail, messages, onSubmitAwaitingInputs, status])
+  }, [canvasId, completedTypingMessageIds, handleCopyContent, handleViewDetail, messages, onSubmitAwaitingInputs, status])
 
   return (
     <>
       <div className="agent-explore-session-chat mx-auto w-full max-w-4xl px-space-lg py-space-lg">
         <Bubble.List
-          items={bubbleItems as Parameters<typeof Bubble.List>[0]['items']}
+          items={bubbleItems}
           autoScroll
           style={{ minHeight: '100%', paddingBottom: '8px' }}
         />

@@ -24,13 +24,13 @@ import {
   Welcome,
   Attachments
 } from '@ant-design/x'
-import type { AttachmentsProps } from '@ant-design/x'
+import type { AttachmentsProps, BubbleListProps } from '@ant-design/x'
 import { ConfigProvider, theme, Modal, Input } from 'antd'
 import type { RcFile } from 'antd/es/upload/interface'
 import type { PromptsProps } from '@ant-design/x'
 import XMarkdown from '@ant-design/x-markdown'
 import { ChatBubbleLoading } from '@/components/chat/ChatBubbleLoading'
-import { getMarkdownStreamingOptions, markdownConfig, markdownStreamingComponents } from '@/components/chat/MarkdownCodeBlock'
+import { getMarkdownStreamingOptions, markdownConfig, mergeMarkdownComponents } from '@/components/chat/MarkdownCodeBlock'
 import { Button } from '@/components/ui/button'
 import { FileIcon, getFileCategory } from '@/components/ui/file-icon'
 import { cn, copyToClipboard, formatBytes } from '@/lib/utils'
@@ -57,6 +57,11 @@ import { extractThinkContent, type ThinkingStatus } from '@/utils/think-utils'
 import { ThinkWrapper } from '@/components/chat/ThinkWrapper'
 import { MessageActionsFooter } from '@/components/chat/MessageActionsFooter'
 import { CarouselWrapper } from '@/components/chat/CarouselWrapper'
+import {
+  CHAT_BUBBLE_ROLES,
+  CHAT_TEXT_TYPING,
+  shouldUseBubbleTyping,
+} from '@/components/chat/antx-chat-config'
 
 // 新版引用组件
 import { ReferencePanel } from '@/components/chat/ReferencePanel'
@@ -758,6 +763,8 @@ export const ExplorePage: React.FC = () => {
 
   // 获取当前选中应用的信息
   const currentApp = dialogApps.find(app => app.id === selectedApp)
+  const currentAppPrologue = currentApp?.prompt_config?.prologue?.trim() || ''
+  const showCurrentAppPrologue = shouldUseBubbleTyping(currentAppPrologue)
   
   // 获取应用图标 URL
   const getAppIconUrl = React.useCallback((app: typeof currentApp) => {
@@ -879,7 +886,7 @@ export const ExplorePage: React.FC = () => {
   }, [])
   
   // 转换消息为 Bubble 格式
-  const bubbleItems = messages.map((msg, index) => {
+  const bubbleItems = React.useMemo<BubbleListProps['items']>(() => messages.map((msg, index) => {
     const references = msg.references || []
 
     // 使用新的 createReferenceMarkerComponent 创建内联引用组件
@@ -887,6 +894,7 @@ export const ExplorePage: React.FC = () => {
       onViewDetail: (chunk) => handleViewDetail(chunk, references),
       onCopy: handleCopyContent
     })
+    const markdownComponents = mergeMarkdownComponents({ sup: SupComponent })
 
     // 判断当前消息是否正在流式输出
     const lastAssistantMsgIndex = [...messages].reverse().findIndex(m => m.role === 'assistant')
@@ -904,8 +912,8 @@ export const ExplorePage: React.FC = () => {
       // 一旦有 content 或 thinking，就显示实际内容
       loading: isCurrentStreamingMessage && !msg.content && !msg.thinking,
       placement: (msg.role === 'user' ? 'end' : 'start') as 'start' | 'end',
-      // 底部操作栏位置：助手消息放在外部底部，用户消息不显示
-      footerPlacement: msg.role === 'assistant' ? 'outer-end' as const : undefined,
+      // 底部操作栏固定在助手消息行头，避免随内容宽度漂移
+      footerPlacement: msg.role === 'assistant' ? 'outer-start' as const : undefined,
       avatar: msg.role === 'user'
         ? (
             <div 
@@ -967,7 +975,7 @@ export const ExplorePage: React.FC = () => {
             return (
               <XMarkdown
                 config={markdownConfig}
-                components={{ ...markdownStreamingComponents, sup: SupComponent }}
+                components={markdownComponents}
                 paragraphTag="div"
                 streaming={getMarkdownStreamingOptions(isCurrentStreamingMessage)}
               >
@@ -987,7 +995,7 @@ export const ExplorePage: React.FC = () => {
                 <XMarkdown
                   key={`text-${idx}`}
                   config={markdownConfig}
-                  components={{ ...markdownStreamingComponents, sup: SupComponent }}
+                  components={markdownComponents}
                   paragraphTag="div"
                   streaming={getMarkdownStreamingOptions(isCurrentStreamingMessage)}
                 >
@@ -1064,7 +1072,7 @@ export const ExplorePage: React.FC = () => {
           {renderMessageAttachments(msg.files)}
         </div>
       ) : undefined,
-      footer: msg.role === 'assistant' ? (
+      footer: msg.role === 'assistant' && !isCurrentStreamingMessage ? (
         <MessageActionsFooter
           content={msg.content || ''}
           onCopy={async () => {
@@ -1105,7 +1113,16 @@ export const ExplorePage: React.FC = () => {
             }
           },
     }
-  })
+  }), [
+    currentApp?.name,
+    currentAppIconUrl,
+    handleCopyContent,
+    handleRegenerateMessage,
+    handleViewDetail,
+    isStreaming,
+    messages,
+    renderMessageAttachments,
+  ])
 
   // 提示词
   const promptItems: PromptsProps['items'] = [
@@ -1672,6 +1689,47 @@ export const ExplorePage: React.FC = () => {
                       title={currentApp?.name || '智能助手'}
                       description={currentApp?.description || '有什么可以帮你的吗？'}
                     />
+                    {showCurrentAppPrologue ? (
+                      <div className="mt-6 w-full max-w-2xl">
+                        <Bubble
+                          content={currentAppPrologue}
+                          placement="start"
+                          variant="borderless"
+                          shape="round"
+                          typing={CHAT_TEXT_TYPING}
+                          avatar={
+                            currentAppIconUrl ? (
+                              <div className="h-8 min-h-[32px] w-8 min-w-[32px] shrink-0 overflow-hidden rounded-full">
+                                <img
+                                  src={currentAppIconUrl}
+                                  alt={currentApp?.name || 'AI'}
+                                  className="h-full w-full object-cover"
+                                />
+                              </div>
+                            ) : (
+                              <div
+                                className="flex h-8 min-h-[32px] w-8 min-w-[32px] shrink-0 items-center justify-center rounded-full"
+                                style={{ background: 'var(--color-components-gradient-primary)' }}
+                              >
+                                <span className="text-sm font-bold text-white">AI</span>
+                              </div>
+                            )
+                          }
+                          styles={{
+                            content: {
+                              backgroundColor: 'var(--color-chat-bubble-ai-bg)',
+                              color: 'var(--color-chat-bubble-ai-text)',
+                              border: 'none',
+                              boxShadow: 'none',
+                              borderRadius: '16px',
+                              padding: '12px 16px',
+                              fontSize: '14px',
+                              lineHeight: 1.6,
+                            },
+                          }}
+                        />
+                      </div>
+                    ) : null}
                     <div className="mt-8">
                       <Prompts
                         items={promptItems}
@@ -1761,22 +1819,10 @@ export const ExplorePage: React.FC = () => {
                       }
                     `}</style>
                     <Bubble.List
-                      items={bubbleItems as any}
+                      items={bubbleItems}
                       autoScroll
                       style={{ height: '100%' }}
-                      role={{
-                        // 用户消息默认配置
-                        user: {
-                          placement: 'end',
-                          variant: 'filled',
-                          shape: 'round',
-                        },
-                        // AI 助手消息默认配置
-                        assistant: {
-                          placement: 'start',
-                          variant: 'borderless',
-                        },
-                      }}
+                      role={CHAT_BUBBLE_ROLES}
                     />
                   </div>
                 )}

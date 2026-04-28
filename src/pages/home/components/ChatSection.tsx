@@ -1,9 +1,16 @@
 import React, { useRef, useCallback, useMemo, useEffect, useState } from 'react'
 import { Bot, User } from 'lucide-react'
 import { Bubble } from '@ant-design/x'
-import XMarkdown, { type ComponentProps } from '@ant-design/x-markdown'
+import type { BubbleListProps } from '@ant-design/x'
+import XMarkdown from '@ant-design/x-markdown'
 import { ChatBubbleLoading } from '@/components/chat/ChatBubbleLoading'
-import { getMarkdownStreamingOptions, markdownConfig, markdownStreamingComponents } from '@/components/chat/MarkdownCodeBlock'
+import {
+  getMarkdownStreamingOptions,
+  mergeMarkdownComponents,
+  markdownConfig,
+  type MarkdownComponents,
+  useMarkdownComponents,
+} from '@/components/chat/MarkdownCodeBlock'
 import {
   findFirstEnabledModelByType,
   findProviderNameByModelName,
@@ -36,12 +43,13 @@ import type { ReferenceChunk } from '@/utils/reference-replacer'
 // 稳定的 Markdown 渲染组件，支持引用标记
 interface StableMarkdownProps {
   content: string
-  components?: Record<string, React.ComponentType<ComponentProps>>
+  components?: Partial<MarkdownComponents>
 }
 
 const StableMarkdown = React.memo(({ content, components }: StableMarkdownProps) => {
   const stableContentRef = React.useRef(content)
   const [stableContent, setStableContent] = React.useState(content)
+  const markdownComponents = useMarkdownComponents(components)
 
   React.useEffect(() => {
     if (content !== stableContentRef.current) {
@@ -62,7 +70,7 @@ const StableMarkdown = React.memo(({ content, components }: StableMarkdownProps)
       <XMarkdown
         paragraphTag="div"
         config={markdownConfig}
-        components={{ ...markdownStreamingComponents, ...components }}
+        components={markdownComponents}
         streaming={getMarkdownStreamingOptions(false)}
       >
         {stableContent}
@@ -78,10 +86,12 @@ const StableMarkdown = React.memo(({ content, components }: StableMarkdownProps)
 interface StreamingMarkdownProps {
   content: string
   isStreaming: boolean
-  components?: Record<string, React.ComponentType<ComponentProps>>
+  components?: Partial<MarkdownComponents>
 }
 
 const StreamingMarkdown = React.memo(({ content, isStreaming, components }: StreamingMarkdownProps) => {
+  const markdownComponents = useMarkdownComponents(components)
+
   if (!content || !content.trim()) {
     return null
   }
@@ -91,7 +101,7 @@ const StreamingMarkdown = React.memo(({ content, isStreaming, components }: Stre
       <XMarkdown
         paragraphTag="div"
         config={markdownConfig}
-        components={{ ...markdownStreamingComponents, ...components }}
+        components={markdownComponents}
         streaming={getMarkdownStreamingOptions(isStreaming)}
       >
         {content}
@@ -271,7 +281,7 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
   }, [isStreaming, messages])
 
   // 转换消息为 Bubble.List 格式
-  const bubbleItems = useMemo(() => {
+  const bubbleItems = useMemo<BubbleListProps['items']>(() => {
     const items = messages.map((msg, index) => {
       // 判断是否是当前正在流式输出的消息（应用模式）
       const isCurrentStreamingMsg = isAppModeStreaming && index === messages.length - 1 && msg.role === 'assistant'
@@ -329,6 +339,9 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
                 onCopy: handleCopyReference
               })
             : undefined
+          const markdownComponents = SupComponent
+            ? mergeMarkdownComponents({ sup: SupComponent })
+            : undefined
           
           // 判断是否显示 loading（没有任何内容时）
           const showLoading = isCurrentStreamingMsg && !thinkContent && !mainContent
@@ -366,12 +379,12 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
                   <StreamingMarkdown
                     content={contentWithSup}
                     isStreaming={true}
-                    components={SupComponent ? { sup: SupComponent } : undefined}
+                    components={markdownComponents}
                   />
                 ) : (
                   <StableMarkdown 
                     content={contentWithSup} 
-                    components={SupComponent ? { sup: SupComponent } : undefined}
+                    components={markdownComponents}
                   />
                 )
               )}
@@ -552,7 +565,7 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
             </div>
           ) : (
             <Bubble.List
-              items={bubbleItems as Parameters<typeof Bubble.List>[0]['items']}
+              items={bubbleItems}
               autoScroll={true}
               style={{ minHeight: '100%', paddingBottom: '8px' }}
             />

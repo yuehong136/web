@@ -4,6 +4,8 @@ import type { ComponentProps, XMarkdownProps } from '@ant-design/x-markdown'
 import type { MarkedExtension } from 'marked'
 import Latex from '@ant-design/x-markdown/plugins/Latex'
 
+export type MarkdownComponents = Record<string, React.ComponentType<ComponentProps>>
+
 /**
  * Extract plain text from React children (may be string, element tree, or mixed).
  * CodeHighlighter and Mermaid expect a `string` child.
@@ -218,7 +220,7 @@ const IncompleteMarkdownToken: React.FC<ComponentProps> = ({ domNode }) => {
  * <XMarkdown components={{ ...markdownCodeComponents, sup: SupComponent }}>
  * ```
  */
-export const markdownCodeComponents: Record<string, React.ComponentType<ComponentProps>> = {
+export const markdownCodeComponents: MarkdownComponents = {
   pre: memo(MarkdownPre),
   code: memo(MarkdownCode),
 }
@@ -227,7 +229,7 @@ export const markdownCodeComponents: Record<string, React.ComponentType<Componen
  * Components map with placeholders for incomplete markdown tokens during streaming.
  * This keeps the "typing" feel while allowing XMarkdown to finalize syntax safely.
  */
-export const markdownStreamingComponents: Record<string, React.ComponentType<ComponentProps>> = {
+export const markdownStreamingComponents: MarkdownComponents = {
   ...markdownCodeComponents,
   'incomplete-link': memo(IncompleteMarkdownToken),
   'incomplete-image': memo(IncompleteMarkdownToken),
@@ -236,6 +238,28 @@ export const markdownStreamingComponents: Record<string, React.ComponentType<Com
   'incomplete-list': memo(IncompleteMarkdownToken),
   'incomplete-table': memo(IncompleteMarkdownToken),
   'incomplete-inline-code': memo(IncompleteMarkdownToken),
+}
+
+export function mergeMarkdownComponents(components?: Partial<MarkdownComponents>): MarkdownComponents {
+  if (!components || Object.keys(components).length === 0) {
+    return markdownStreamingComponents
+  }
+
+  const merged: MarkdownComponents = {
+    ...markdownStreamingComponents,
+  }
+
+  Object.entries(components).forEach(([name, Component]) => {
+    if (Component) {
+      merged[name] = Component
+    }
+  })
+
+  return merged
+}
+
+export function useMarkdownComponents(components?: Partial<MarkdownComponents>): MarkdownComponents {
+  return React.useMemo(() => mergeMarkdownComponents(components), [components])
 }
 
 export function getMarkdownStreamingOptions(isStreaming: boolean): XMarkdownProps['streaming'] {

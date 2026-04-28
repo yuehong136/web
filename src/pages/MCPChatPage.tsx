@@ -3,11 +3,12 @@ import { ChatSidebar } from "@/components/chat/ChatSidebar";
 import { ChatHeader } from "@/components/chat/ChatHeader";
 import { WelcomeMessage } from "@/components/chat/WelcomeMessage";
 import { Bubble, Think, Sender, Attachments } from "@ant-design/x";
+import type { AttachmentsProps, BubbleListProps } from "@ant-design/x";
 import { User, Bot, Paperclip, Square, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ProviderIcon } from '@/components/ui/provider-icon';
 import XMarkdown, { type ComponentProps } from '@ant-design/x-markdown';
-import { getMarkdownStreamingOptions, markdownConfig, markdownStreamingComponents } from '@/components/chat/MarkdownCodeBlock';
+import { getMarkdownStreamingOptions, markdownConfig, useMarkdownComponents } from '@/components/chat/MarkdownCodeBlock';
 import type { MCPChatServiceRequest } from "@/api/mcp-chat-service";
 import { EnhancedSSEParser, type SSEMessage, type ToolCallInfo } from "@/components/chat/EnhancedSSEParser";
 import { ToolCallRenderer } from "@/components/chat/ToolCallRenderer";
@@ -57,6 +58,7 @@ const StableMarkdown = React.memo(({ content }: { content: string }) => {
   // 使用 ref 存储最后稳定的内容，避免频繁更新触发 XMarkdown 内部状态循环
   const stableContentRef = React.useRef(content)
   const [stableContent, setStableContent] = React.useState(content)
+  const markdownComponents = useMarkdownComponents()
   
   // 使用 debounce 效果，避免流式输出时过于频繁的更新
   React.useEffect(() => {
@@ -80,7 +82,7 @@ const StableMarkdown = React.memo(({ content }: { content: string }) => {
       <XMarkdown
         paragraphTag="div"
         config={markdownConfig}
-        components={markdownStreamingComponents}
+        components={markdownComponents}
         streaming={getMarkdownStreamingOptions(false)}
       >
         {stableContent}
@@ -97,6 +99,8 @@ const StableMarkdown = React.memo(({ content }: { content: string }) => {
 })
 
 const StreamingMarkdown = React.memo(({ content, isStreaming }: { content: string; isStreaming: boolean }) => {
+  const markdownComponents = useMarkdownComponents()
+
   if (!content || !content.trim()) {
     return null
   }
@@ -106,7 +110,7 @@ const StreamingMarkdown = React.memo(({ content, isStreaming }: { content: strin
       <XMarkdown
         paragraphTag="div"
         config={markdownConfig}
-        components={markdownStreamingComponents}
+        components={markdownComponents}
         streaming={getMarkdownStreamingOptions(isStreaming)}
       >
         {content}
@@ -263,6 +267,10 @@ export default function MCPChatPage() {
     getFileIds,
     setFiles: setUploadFiles,
   } = useMcpUpload();
+  const attachmentItems = useMemo<NonNullable<AttachmentsProps['items']>>(
+    () => uploadFiles.map(({ originFileObj: _originFileObj, ...file }) => file),
+    [uploadFiles],
+  )
   
   // 全局拖拽事件处理
   useEffect(() => {
@@ -444,9 +452,9 @@ export default function MCPChatPage() {
     </div>
   ), [])
 
-  const historyBubbleItems = React.useMemo(() => {
+  const historyBubbleItems = React.useMemo<BubbleListProps['items']>(() => {
     if (!activeSession?.messages) return []
-    return activeSession.messages.map((msg, index) => ({
+    return activeSession.messages.map((msg) => ({
       key: msg.id,
       role: msg.role as 'user' | 'assistant',
       content: msg.content || '',
@@ -455,11 +463,6 @@ export default function MCPChatPage() {
       placement: (msg.role === 'user' ? 'end' : 'start') as 'start' | 'end',
       // 设置头像
       avatar: msg.role === 'user' ? getUserAvatar() : getAssistantAvatar(),
-      // 只对最新的助手消息启用打字效果（且不在流式输出时）
-      typing: msg.role === 'assistant' &&
-              index === activeSession.messages.length - 1 &&
-              !isStreaming ? { step: 50, interval: 10 } : false,
-      timestamp: msg.timestamp,
       // 消息样式
       styles: msg.role === 'user' ? {
         content: {
@@ -516,12 +519,11 @@ export default function MCPChatPage() {
           </div>
         )
       }) : undefined,
-      toolCalls: undefined,
     }))
-  }, [activeSession?.messages, isStreaming, getUserAvatar, getAssistantAvatar])
+  }, [activeSession?.messages, getUserAvatar, getAssistantAvatar])
 
   // 转换消息数据为 Bubble.List 需要的格式
-  const bubbleItems = React.useMemo(() => {
+  const bubbleItems = React.useMemo<BubbleListProps['items']>(() => {
     const sessionMessages = [...historyBubbleItems]
 
     // 如果正在流式输出，添加流式消息
@@ -534,7 +536,6 @@ export default function MCPChatPage() {
         content: streamingContent || '',
         loading: false,
         typing: false,
-        timestamp: new Date().toLocaleTimeString(),
         // 设置消息位置：AI 消息在左边
         placement: 'start' as const,
         // 设置 AI 头像
@@ -595,7 +596,6 @@ export default function MCPChatPage() {
             )}
           </div>
         ),
-        toolCalls: undefined,
       });
     }
     
@@ -966,7 +966,7 @@ export default function MCPChatPage() {
                   }
                 `}</style>
                 <Bubble.List
-                  items={bubbleItems as any}
+                  items={bubbleItems}
                   ref={bubbleListRef}
                   autoScroll={!isUserScrolling}
                   style={{ 
@@ -1173,7 +1173,7 @@ export default function MCPChatPage() {
                     }}
                   >
                     <Attachments
-                      items={uploadFiles as any}
+                      items={attachmentItems}
                       maxCount={uploadConfig.maxCount}
                       getDropContainer={() => dropContainerRef.current}
                       onChange={(info) => {

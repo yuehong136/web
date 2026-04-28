@@ -1,21 +1,28 @@
 import React, { useEffect, useRef, useState } from 'react'
-import XMarkdown, { type ComponentProps } from '@ant-design/x-markdown'
-import { getMarkdownStreamingOptions, markdownCodeComponents, markdownConfig } from '@/components/chat/MarkdownCodeBlock'
+import XMarkdown from '@ant-design/x-markdown'
+import {
+  getMarkdownStreamingOptions,
+  markdownConfig,
+  type MarkdownComponents,
+  useMarkdownComponents,
+} from '@/components/chat/MarkdownCodeBlock'
 
 interface HybridStreamingMarkdownProps {
   content: string
   isStreaming: boolean
-  components?: Record<string, React.ComponentType<ComponentProps>>
+  components?: Partial<MarkdownComponents>
 }
 
 const MarkdownBlock = React.memo(
-  ({ content, components }: { content: string; components?: Record<string, React.ComponentType<ComponentProps>> }) => {
+  ({ content, components }: { content: string; components?: Partial<MarkdownComponents> }) => {
+    const markdownComponents = useMarkdownComponents(components)
+
     if (!content || !content.trim()) return null
     return (
       <XMarkdown
         paragraphTag="div"
         config={markdownConfig}
-        components={{ ...markdownCodeComponents, ...components }}
+        components={markdownComponents}
         streaming={getMarkdownStreamingOptions(false)}
       >
         {content}

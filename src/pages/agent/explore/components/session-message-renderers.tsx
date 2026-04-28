@@ -1,11 +1,12 @@
 import React from 'react'
 import { Bot, User } from 'lucide-react'
-import XMarkdown, { type ComponentProps } from '@ant-design/x-markdown'
+import XMarkdown from '@ant-design/x-markdown'
 import { FileIcon } from '@/components/ui/file-icon'
 import {
   getMarkdownStreamingOptions,
   markdownConfig,
-  markdownStreamingComponents,
+  type MarkdownComponents,
+  useMarkdownComponents,
 } from '@/components/chat/MarkdownCodeBlock'
 import {
   extractReferencesFromSSEData,
@@ -16,7 +17,7 @@ import type { RuntimeMessage } from '../../features/runtime-workbench/types'
 interface SessionMarkdownProps {
   content: string
   streaming?: boolean
-  components?: Record<string, React.ComponentType<ComponentProps>>
+  components?: Partial<MarkdownComponents>
 }
 
 export function getReferenceChunks(reference: unknown): ReferenceChunk[] {
@@ -48,6 +49,8 @@ export function SessionMarkdown({
   streaming = false,
   components,
 }: SessionMarkdownProps) {
+  const markdownComponents = useMarkdownComponents(components)
+
   if (!content.trim()) {
     return null
   }
@@ -57,7 +60,7 @@ export function SessionMarkdown({
       <XMarkdown
         paragraphTag="div"
         config={markdownConfig}
-        components={{ ...markdownStreamingComponents, ...components }}
+        components={markdownComponents}
         streaming={getMarkdownStreamingOptions(streaming)}
       >
         {content}
