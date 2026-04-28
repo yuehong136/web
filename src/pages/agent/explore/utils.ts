@@ -83,9 +83,14 @@ export function createDefaultExploreSessionParams(): ExploreSessionListParams {
   }
 }
 
-export function getBeginInputsFromAgent(agent?: AgentFlow): BeginQuery[] {
+function getBeginForm(agent?: AgentFlow) {
   const beginNode = agent?.dsl?.graph?.nodes?.find((node) => node.id === BeginId)
-  const inputs = beginNode?.data?.form?.inputs
+  const data = isRecord(beginNode?.data) ? beginNode.data : undefined
+  return isRecord(data?.form) ? data.form : undefined
+}
+
+export function getBeginInputsFromAgent(agent?: AgentFlow): BeginQuery[] {
+  const inputs = getBeginForm(agent)?.inputs
 
   if (!isRecord(inputs)) {
     return []
@@ -101,8 +106,7 @@ export function getBeginInputsFromAgent(agent?: AgentFlow): BeginQuery[] {
 }
 
 export function isExploreTaskMode(agent?: AgentFlow) {
-  const beginNode = agent?.dsl?.graph?.nodes?.find((node) => node.id === BeginId)
-  return beginNode?.data?.form?.mode === AgentDialogueMode.Task
+  return getBeginForm(agent)?.mode === AgentDialogueMode.Task
 }
 
 function stringifyContent(value: unknown) {

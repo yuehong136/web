@@ -28,6 +28,7 @@ import { useWatchAgentChange } from './hooks/use-watch-agent-change'
 import { useBuildWebhookUrl } from './hooks/use-build-webhook-url'
 import { useSaveGraph } from './hooks/use-save-graph'
 import { buildAgentShareUrl } from './share/access'
+import { ShareEmbedDialog } from './share/share-embed-dialog'
 import AgentCanvas from './canvas'
 import { EditorRuntimeRail } from './components/editor-runtime-rail'
 import { PlaceholderDialog } from './components/placeholder-dialog'
@@ -75,6 +76,7 @@ export default function AgentEditorPage() {
   const [titleDirty, setTitleDirty] = useState(false)
   const [versionsOpen, setVersionsOpen] = useState(false)
   const [webhookOpen, setWebhookOpen] = useState(false)
+  const [shareOpen, setShareOpen] = useState(false)
   const [roadmapOpen, setRoadmapOpen] = useState(false)
   const [publishedShareUrl, setPublishedShareUrl] = useState('')
   const defaultRuntimeView =
@@ -181,19 +183,9 @@ export default function AgentEditorPage() {
   }
 
   const handleOpenShare = useCallback(async () => {
-    try {
-      const betaToken = await deliveryToken.ensureToken()
-      navigate(
-        buildAgentShareUrl({
-          agentId: id,
-          betaToken,
-          release: Boolean(flowDetail?.release),
-        }).replace(window.location.origin, ''),
-      )
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : '无法生成 Share 链接')
-    }
-  }, [deliveryToken, flowDetail?.release, id, navigate])
+    setShareOpen(true)
+    await deliveryToken.refetch()
+  }, [deliveryToken])
 
   const openRuntimeWorkbench = useCallback(
     (view?: string) => {
@@ -351,7 +343,7 @@ export default function AgentEditorPage() {
           versions={versions}
           isPublished={Boolean(flowDetail.release)}
           lastPublishedAt={flowDetail.last_publish_time || flowDetail.release_time}
-          publishLoading={saving || deliveryToken.isCreating}
+          publishLoading={saving || deliveryToken.isLoading}
           publishedShareUrl={publishedShareUrl}
           tokenReady={Boolean(deliveryToken.token)}
           onPublish={handlePublish}
@@ -360,6 +352,22 @@ export default function AgentEditorPage() {
             setWebhookOpen(true)
           }}
           onOpenExplore={() => navigate(`/agent/${id}/explore`)}
+        />
+      ) : null}
+
+      {shareOpen ? (
+        <ShareEmbedDialog
+          open={shareOpen}
+          onOpenChange={setShareOpen}
+          agentId={id}
+          title={title || resolveLocalizedText(flowDetail.title, '未命名资产')}
+          betaToken={deliveryToken.token}
+          releaseDefault={Boolean(flowDetail.release)}
+          tokenLoading={deliveryToken.isLoading}
+          tokenError={deliveryToken.isError}
+          onRefreshToken={() => {
+            void deliveryToken.refetch()
+          }}
         />
       ) : null}
 

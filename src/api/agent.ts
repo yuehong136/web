@@ -26,6 +26,14 @@ import type {
 
 const EXTERNAL_API_BASE_URL = '/api'
 
+const getRuntimeApiBaseUrl = () =>
+  import.meta.env?.VITE_API_BASE_URL || 'http://localhost:8000'
+
+const getAuthToken = () =>
+  typeof localStorage === 'undefined'
+    ? null
+    : localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)
+
 export function buildAgentSessionListQuery(
   params: AgentSessionListParams = {},
 ) {
@@ -110,8 +118,8 @@ export const agentAPI = {
       signal?: AbortSignal
     },
   ) => {
-    const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
-    const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)
+    const baseURL = getRuntimeApiBaseUrl()
+    const token = getAuthToken()
     const response = await fetch(`${baseURL}/v1/canvas/completion`, {
       method: 'POST',
       headers: {
@@ -139,8 +147,8 @@ export const agentAPI = {
       signal?: AbortSignal
     },
   ) => {
-    const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
-    const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)
+    const baseURL = getRuntimeApiBaseUrl()
+    const token = getAuthToken()
     const response = await fetch(`${baseURL}/v1/canvas/${payload.id}/completion`, {
       method: 'POST',
       headers: {

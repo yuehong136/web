@@ -3,6 +3,8 @@ import { EventSourceParserStream } from 'eventsource-parser/stream'
 import { agentAPI } from '@/api/agent'
 import {
   consumeRuntimeMessageChunk,
+  normalizeRuntimeAttachments,
+  normalizeRuntimeAwaitingInputs,
   normalizeRuntimeEvent,
 } from '../features/runtime-workbench/utils'
 import type { ShareRuntimeMessage } from './types'
@@ -86,6 +88,8 @@ export function useSharedAgentRunner({
           content: message.content || normalizedEvent.errorMessage || '',
           error: normalizedEvent.errorMessage,
           isStreaming: false,
+          messageId: normalizedEvent.messageId || message.messageId,
+          taskId: normalizedEvent.taskId || message.taskId,
         }))
         return
       }
@@ -97,6 +101,8 @@ export function useSharedAgentRunner({
         updateMessageById(assistantId, (message) => ({
           ...message,
           content: message.content || normalizedEvent.outputContent || '',
+          messageId: normalizedEvent.messageId || message.messageId,
+          taskId: normalizedEvent.taskId || message.taskId,
         }))
       }
 
@@ -113,14 +119,25 @@ export function useSharedAgentRunner({
           content: nextChunk.nextState.content,
           thinking: nextChunk.nextState.thinking,
           isStreaming: true,
+          messageId: normalizedEvent.messageId || message.messageId,
+          taskId: normalizedEvent.taskId || message.taskId,
         }))
         return
       }
 
       if (normalizedEvent.event === 'message_end') {
+        const reference =
+          isRecord(normalizedEvent.data) &&
+          'reference' in normalizedEvent.data
+            ? normalizedEvent.data.reference
+            : undefined
+
         updateMessageById(assistantId, (message) => ({
           ...message,
+          reference: reference ?? message.reference,
           isStreaming: false,
+          messageId: normalizedEvent.messageId || message.messageId,
+          taskId: normalizedEvent.taskId || message.taskId,
         }))
         return
       }
@@ -141,9 +158,27 @@ export function useSharedAgentRunner({
 
         updateMessageById(assistantId, (message) => ({
           ...message,
+          files: normalizeRuntimeAttachments(outputs?.attachment),
           content: message.content || runtimeError || outputContent || '',
           error: runtimeError ?? message.error,
           isStreaming: false,
+          messageId: normalizedEvent.messageId || message.messageId,
+          taskId: normalizedEvent.taskId || message.taskId,
+        }))
+        return
+      }
+
+      if (normalizedEvent.event === 'user_inputs') {
+        const payload = isRecord(normalizedEvent.data) ? normalizedEvent.data : {}
+
+        updateMessageById(assistantId, (message) => ({
+          ...message,
+          tips:
+            typeof payload.tips === 'string' ? payload.tips : message.tips,
+          awaitingInputs: normalizeRuntimeAwaitingInputs(payload.inputs),
+          isStreaming: false,
+          messageId: normalizedEvent.messageId || message.messageId,
+          taskId: normalizedEvent.taskId || message.taskId,
         }))
       }
     },
@@ -156,11 +191,13 @@ export function useSharedAgentRunner({
       values,
       files = [],
       userMessage,
+      inputPayload,
     }: {
       query?: string
       values: ShareFormValues
       files?: unknown[]
       userMessage?: string
+      inputPayload?: Record<string, unknown>
     }) => {
       if (!agentId || !betaToken || isRunning) {
         return
@@ -191,7 +228,7 @@ export function useSharedAgentRunner({
             id: agentId,
             betaToken,
             query,
-            inputs: buildInputs(values),
+            inputs: inputPayload || buildInputs(values),
             files,
             session_id: sessionId,
             release,
@@ -286,6 +323,13 @@ export function useSharedAgentRunner({
     abortControllerRef.current?.abort()
   }, [])
 
+  const clearAwaitingInputs = useCallback((messageId: string) => {
+    updateMessageById(messageId, (message) => ({
+      ...message,
+      awaitingInputs: undefined,
+    }))
+  }, [updateMessageById])
+
   const reset = useCallback(() => {
     abortControllerRef.current?.abort()
     abortControllerRef.current = null
@@ -296,6 +340,32 @@ export function useSharedAgentRunner({
     setIsRunning(false)
   }, [])
 
+  const appendAssistantMessage = useCallback((content: string) => {
+    if (!content.trim()) {
+      return
+    }
+
+    setMessages((previous) => {
+      const exists = previous.some(
+        (message) =>
+          message.role === 'assistant' && message.content === content,
+      )
+      if (exists) {
+        return previous
+      }
+
+      return [
+        ...previous,
+        {
+          id: createMessageId('assistant'),
+          role: 'assistant',
+          content,
+          isStreaming: false,
+        },
+      ]
+    })
+  }, [])
+
   return useMemo(
     () => ({
       messages,
@@ -303,6 +373,8 @@ export function useSharedAgentRunner({
       isRunning,
       lastError,
       sessionId,
+      appendAssistantMessage,
+      clearAwaitingInputs,
       submit,
       stop,
       reset,
@@ -312,6 +384,8 @@ export function useSharedAgentRunner({
       isRunning,
       lastError,
       messages,
+      appendAssistantMessage,
+      clearAwaitingInputs,
       reset,
       sessionId,
       stop,

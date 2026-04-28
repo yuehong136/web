@@ -74,6 +74,7 @@ const AgentTemplatesPage = lazy(() => import('@/pages/agents/templates'))
 const AgentCanvasPage = lazy(() => import('@/pages/agent'))
 const AgentExplorePage = lazy(() => import('@/pages/agent/explore'))
 const AgentSharePage = lazy(() => import('@/pages/agent/share'))
+const AgentWidgetPage = lazy(() => import('@/pages/agent/share/widget'))
 const PipelineResultPage = lazy(() => import('@/pages/agent/pipeline-result'))
 
 // Studio
@@ -182,6 +183,11 @@ export const router = createBrowserRouter([
   {
     path: ROUTES.AGENT_SHARE,
     element: withLoading(AgentSharePage),
+  },
+
+  {
+    path: ROUTES.CHAT_WIDGET,
+    element: withLoading(AgentWidgetPage),
   },
 
   {

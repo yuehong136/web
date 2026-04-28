@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { WorkspacePageTemplate } from '@/components/page-templates'
 import {
   AppScene,
@@ -7,21 +7,28 @@ import {
   PageErrorState,
   PageHeader,
   PageLoadingState,
-  SectionCard,
 } from '@/components/patterns'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
 import {
   useFetchExternalAgentInputs,
   useUploadPublicCanvasFile,
 } from '@/hooks/use-agent-request'
 import { toast } from '@/lib/toast'
 import { copyToClipboard } from '@/lib/utils'
-import { ArrowLeft, Copy, Play, RotateCcw, Send, Square } from 'lucide-react'
+import { changeLanguage } from '@/locales/i18n'
+import { Copy, RotateCcw } from 'lucide-react'
+import {
+  AgentRuntimeStatus,
+} from '../features/runtime-workbench/types'
+import {
+  buildRuntimeInputObject,
+  formatRuntimeInputSummary,
+} from '../features/runtime-workbench/utils'
 import { AgentDialogueMode } from '../constant'
-import { ShareInputField } from './share-input-field'
+import { ShareComposer } from './share-composer'
 import { ShareMessageList } from './share-message-list'
+import { ShareParameterDialog } from './share-parameter-dialog'
 import { buildAgentSharePath, parseAgentShareAccess } from './access'
 import { useSharedAgentRunner } from './use-shared-agent-runner'
 import {
@@ -32,6 +39,7 @@ import {
   isRequiredShareInput,
   type ShareFormValues,
 } from './utils'
+import type { BeginQuery } from '../types'
 import type { AgentCanvasUploadResult } from '@/types/agent'
 
 const isEmptyValue = (value: unknown) => {
@@ -41,8 +49,12 @@ const isEmptyValue = (value: unknown) => {
   return value === undefined || value === null || value === ''
 }
 
+const collectUploadedFiles = (values: ShareFormValues) =>
+  Object.values(values).flatMap((value) =>
+    Array.isArray(value) ? (value as AgentCanvasUploadResult[]) : [],
+  )
+
 export default function AgentSharePage() {
-  const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const access = useMemo(
     () => parseAgentShareAccess(searchParams),
@@ -54,9 +66,16 @@ export default function AgentSharePage() {
   )
   const { uploadCanvasFile, isLoading: uploading } =
     useUploadPublicCanvasFile()
+  const attachmentInputRef = useRef<HTMLInputElement | null>(null)
   const [formValues, setFormValues] = useState<ShareFormValues>({})
   const [messageValue, setMessageValue] = useState('')
+  const [messageFiles, setMessageFiles] = useState<AgentCanvasUploadResult[]>([])
   const [formError, setFormError] = useState<string>()
+  const [parameterDialogOpen, setParameterDialogOpen] = useState(false)
+  const [beginReady, setBeginReady] = useState(false)
+  const [pendingMessage, setPendingMessage] = useState<string | null>(null)
+  const [promptedBeginInputs, setPromptedBeginInputs] = useState(false)
+  const [taskStarted, setTaskStarted] = useState(false)
 
   const inputEntries = useMemo(
     () => getShareInputEntries(shareQuery.data.inputs),
@@ -71,21 +90,24 @@ export default function AgentSharePage() {
             betaToken: access.betaToken,
             release: access.release,
             userId: access.userId,
+            locale: access.locale,
+            theme: access.theme,
+            visibleAvatar: access.visibleAvatar,
           })
         : '',
-    [access.agentId, access.betaToken, access.release, access.userId],
+    [
+      access.agentId,
+      access.betaToken,
+      access.locale,
+      access.release,
+      access.theme,
+      access.userId,
+      access.visibleAvatar,
+    ],
   )
   const isCanonical =
     canonicalPath &&
     `${window.location.pathname}${window.location.search}` === canonicalPath
-  const handleCopyLink = useCallback(async () => {
-    try {
-      await copyToClipboard(window.location.href)
-      toast.success('Share 链接已复制')
-    } catch {
-      toast.error('复制失败，请手动复制 Share 链接')
-    }
-  }, [])
 
   const runner = useSharedAgentRunner({
     agentId: access.agentId,
@@ -95,12 +117,72 @@ export default function AgentSharePage() {
     buildInputs: (values) =>
       buildShareInputsPayload(shareQuery.data.inputs || {}, values),
   })
+  const status = runnerStatusFromState(runner.isRunning, runner.lastError)
+
+  useEffect(() => {
+    if (access.locale === 'zh-CN' || access.locale === 'en-US') {
+      changeLanguage(access.locale)
+    }
+  }, [access.locale])
 
   useEffect(() => {
     setFormValues(
       buildInitialShareValues(shareQuery.data.inputs, access.data),
     )
   }, [access.data, shareQuery.data.inputs])
+
+  useEffect(() => {
+    setBeginReady(inputEntries.length === 0)
+    setPromptedBeginInputs(false)
+    setTaskStarted(false)
+    setPendingMessage(null)
+    setFormError(undefined)
+  }, [access.agentId, inputEntries.length, isTaskMode])
+
+  useEffect(() => {
+    if (!isTaskMode && shareQuery.data.prologue) {
+      runner.appendAssistantMessage(shareQuery.data.prologue)
+    }
+  }, [isTaskMode, runner, shareQuery.data.prologue])
+
+  useEffect(() => {
+    if (!shareQuery.data.title || promptedBeginInputs || runner.isRunning) {
+      return
+    }
+
+    if (inputEntries.length > 0) {
+      setParameterDialogOpen(true)
+      setPromptedBeginInputs(true)
+      return
+    }
+
+    if (isTaskMode && !taskStarted) {
+      setTaskStarted(true)
+      void runner.submit({
+        query: '',
+        values: formValues,
+        files: [],
+        userMessage: '启动任务',
+      })
+    }
+  }, [
+    formValues,
+    inputEntries.length,
+    isTaskMode,
+    promptedBeginInputs,
+    runner,
+    shareQuery.data.title,
+    taskStarted,
+  ])
+
+  const handleCopyLink = useCallback(async () => {
+    try {
+      await copyToClipboard(window.location.href)
+      toast.success('Share 链接已复制')
+    } catch {
+      toast.error('复制失败，请手动复制 Share 链接')
+    }
+  }, [])
 
   const handleChange = useCallback((key: string, value: unknown) => {
     setFormValues((previous) => ({
@@ -140,6 +222,27 @@ export default function AgentSharePage() {
     [access.agentId, uploadCanvasFile],
   )
 
+  const handleMessageFileUpload = useCallback(
+    async (files: FileList) => {
+      if (!access.agentId) {
+        return
+      }
+
+      const uploaded: AgentCanvasUploadResult[] = []
+      for (const file of Array.from(files)) {
+        const result = await uploadCanvasFile({
+          canvasId: access.agentId,
+          file,
+        })
+        uploaded.push(result)
+      }
+
+      setMessageFiles((previous) => [...previous, ...uploaded])
+      toast.success('附件已上传')
+    },
+    [access.agentId, uploadCanvasFile],
+  )
+
   const validateInputs = useCallback(() => {
     const missing = inputEntries.find(({ key, field }) => {
       return isRequiredShareInput(field) && isEmptyValue(formValues[key])
@@ -150,38 +253,105 @@ export default function AgentSharePage() {
       return false
     }
 
-    if (!isTaskMode && !messageValue.trim()) {
-      setFormError('请输入要发送给 Agent 的消息')
-      return false
-    }
-
     return true
-  }, [formValues, inputEntries, isTaskMode, messageValue])
+  }, [formValues, inputEntries])
 
-  const handleSubmit = useCallback(async () => {
+  const submitConversation = useCallback(
+    async (content: string) => {
+      const trimmed = content.trim()
+      if (!trimmed && messageFiles.length === 0) {
+        return
+      }
+
+      const files = [...collectUploadedFiles(formValues), ...messageFiles]
+      await runner.submit({
+        query: trimmed,
+        values: formValues,
+        files,
+        userMessage: trimmed,
+      })
+      setMessageValue('')
+      setMessageFiles([])
+    },
+    [formValues, messageFiles, runner],
+  )
+
+  const handleSendMessage = useCallback(
+    async (content: string) => {
+      if (runner.isRunning || uploading) {
+        return
+      }
+
+      if (inputEntries.length > 0 && !beginReady) {
+        setPendingMessage(content)
+        setParameterDialogOpen(true)
+        return
+      }
+
+      await submitConversation(content)
+    },
+    [
+      beginReady,
+      inputEntries.length,
+      runner.isRunning,
+      submitConversation,
+      uploading,
+    ],
+  )
+
+  const handleParameterSubmit = useCallback(async () => {
     if (!validateInputs()) {
       return
     }
 
-    const files = Object.values(formValues).flatMap((value) =>
-      Array.isArray(value) ? value : [],
-    )
-    const query = isTaskMode ? '' : messageValue.trim()
-    const userMessage = isTaskMode
-      ? formatShareInputSummary(formValues) || '启动任务'
-      : messageValue.trim()
+    setParameterDialogOpen(false)
+    setBeginReady(true)
 
-    await runner.submit({
-      query,
-      values: formValues,
-      files,
-      userMessage,
-    })
-
-    if (!isTaskMode) {
-      setMessageValue('')
+    if (isTaskMode) {
+      setTaskStarted(true)
+      await runner.submit({
+        query: '',
+        values: formValues,
+        files: collectUploadedFiles(formValues),
+        userMessage: formatShareInputSummary(formValues) || '启动任务',
+      })
+      return
     }
-  }, [formValues, isTaskMode, messageValue, runner, validateInputs])
+
+    if (pendingMessage !== null) {
+      const nextMessage = pendingMessage
+      setPendingMessage(null)
+      await submitConversation(nextMessage)
+    }
+  }, [
+    formValues,
+    isTaskMode,
+    pendingMessage,
+    runner,
+    submitConversation,
+    validateInputs,
+  ])
+
+  const handleSubmitAwaitingInputs = useCallback(
+    async (messageId: string, values: BeginQuery[]) => {
+      runner.clearAwaitingInputs(messageId)
+      await runner.submit({
+        query: '',
+        values: {},
+        files: [],
+        userMessage: formatRuntimeInputSummary(values),
+        inputPayload: buildRuntimeInputObject(values),
+      })
+    },
+    [runner],
+  )
+
+  const handleResetSession = useCallback(() => {
+    runner.reset()
+    setBeginReady(inputEntries.length === 0)
+    setTaskStarted(false)
+    setPromptedBeginInputs(false)
+  }, [inputEntries.length, runner])
 
   if (!access.agentId) {
     return (
@@ -232,124 +402,132 @@ export default function AgentSharePage() {
           title={shareQuery.data.title || 'Agent Share'}
           description={
             shareQuery.data.prologue ||
-            '公共运行页使用 Agent external inputs 与 beta token 执行，不读取本地登录态。'
+            '公共运行页只消费 shared_id 与 auth，不读取本地登录态。'
           }
           actions={
             <>
-              <Button variant="outline" onClick={() => navigate(-1)}>
-                <ArrowLeft className="mr-space-xs h-4 w-4" />
-                返回
+              <Badge variant={isTaskMode ? 'purple' : 'blue'}>
+                {isTaskMode ? 'Task' : 'Conversation'}
+              </Badge>
+              <Button variant="outline" onClick={() => void handleCopyLink()}>
+                <Copy className="mr-space-xs h-4 w-4" />
+                复制链接
               </Button>
               <Button
                 variant="outline"
-                onClick={() => void handleCopyLink()}
+                onClick={handleResetSession}
+                disabled={runner.isRunning}
               >
-                <Copy className="mr-space-xs h-4 w-4" />
-                复制链接
+                <RotateCcw className="mr-space-xs h-4 w-4" />
+                重置会话
               </Button>
             </>
           }
         />
       }
     >
-      <div className="grid gap-space-lg p-space-lg xl:grid-cols-[0.9fr_1.1fr]">
-        <div className="space-y-space-lg">
-          <SectionCard
-            title="输入"
-            actions={
-              <Badge variant={isTaskMode ? 'purple' : 'blue'}>
-                {isTaskMode ? 'Task' : 'Conversation'}
-              </Badge>
-            }
-            padding="default"
-          >
-            <div className="space-y-space-md">
-              {canonicalPath && !isCanonical ? (
-                <div className="rounded-radius-md border border-border-subtle bg-surface-secondary p-space-sm text-xs text-text-secondary">
-                  当前链接来自旧别名入口。正式 Share 链接为：
-                  <span className="ml-space-xs break-all text-text-primary">
-                    {canonicalPath}
-                  </span>
-                </div>
-              ) : null}
+      <div className="flex h-[calc(100vh-168px)] min-h-[620px] flex-col">
+        {canonicalPath && !isCanonical ? (
+          <div className="mx-auto mt-space-base w-full max-w-4xl rounded-radius-md border border-border-subtle bg-surface-secondary p-space-sm text-xs text-text-secondary">
+            当前链接来自旧别名入口。正式 Share 链接为：
+            <span className="ml-space-xs break-all text-text-primary">
+              {canonicalPath}
+            </span>
+          </div>
+        ) : null}
 
-              {inputEntries.length ? (
-                inputEntries.map(({ key, field }) => (
-                  <ShareInputField
-                    key={key}
-                    fieldKey={key}
-                    field={field}
-                    value={formValues[key]}
-                    disabled={runner.isRunning || uploading}
-                    onChange={handleChange}
-                    onUpload={handleUpload}
-                  />
-                ))
-              ) : (
-                <PageEmptyState
-                  scene={AppScene.WORKSPACE}
-                  compact
-                  title="无外部输入"
-                  description="该 Agent 没有 Begin inputs，提交时只会发送用户消息。"
-                />
-              )}
+        {runner.lastError ? (
+          <div className="mx-auto mt-space-base w-full max-w-4xl rounded-radius-md border border-status-error bg-surface-secondary p-space-sm text-sm text-status-error">
+            {runner.lastError}
+          </div>
+        ) : null}
 
-              {!isTaskMode ? (
-                <div className="space-y-space-sm">
-                  <p className="text-sm font-medium text-text-primary">
-                    消息
-                  </p>
-                  <Textarea
-                    rows={4}
-                    value={messageValue}
-                    disabled={runner.isRunning}
-                    onChange={(event) => {
-                      setMessageValue(event.target.value)
-                      setFormError(undefined)
-                    }}
-                    placeholder="输入要发送给 Agent 的消息"
-                  />
-                </div>
-              ) : null}
-
-              {formError || runner.lastError ? (
-                <div className="rounded-radius-md border border-status-error bg-surface-secondary p-space-sm text-sm text-status-error">
-                  {formError || runner.lastError}
-                </div>
-              ) : null}
-
-              <div className="flex flex-wrap gap-space-sm">
-                <Button
-                  onClick={() => void handleSubmit()}
-                  disabled={runner.isRunning || uploading}
-                >
-                  {isTaskMode ? (
-                    <Play className="mr-space-xs h-4 w-4" />
-                  ) : (
-                    <Send className="mr-space-xs h-4 w-4" />
-                  )}
-                  {runner.isRunning ? '运行中...' : isTaskMode ? '启动任务' : '发送'}
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={runner.isRunning ? runner.stop : runner.reset}
-                >
-                  {runner.isRunning ? (
-                    <Square className="mr-space-xs h-4 w-4" />
-                  ) : (
-                    <RotateCcw className="mr-space-xs h-4 w-4" />
-                  )}
-                  {runner.isRunning ? '停止' : '重置'}
-                </Button>
-              </div>
-            </div>
-          </SectionCard>
+        <div className="min-h-0 flex-1 overflow-auto">
+          <ShareMessageList
+            canvasId={access.agentId}
+            messages={runner.messages}
+            status={status}
+            title={shareQuery.data.title}
+            prologue={shareQuery.data.prologue}
+            onSubmitAwaitingInputs={handleSubmitAwaitingInputs}
+          />
         </div>
 
-        <SectionCard title="结果" padding="default">
-          <ShareMessageList messages={runner.messages} />
-        </SectionCard>
+        {isTaskMode ? (
+          <div className="shrink-0 border-t border-border-subtle bg-surface-primary px-space-lg py-space-base">
+            <div className="mx-auto flex w-full max-w-4xl flex-wrap items-center justify-between gap-space-sm rounded-radius-xl border border-border-default bg-surface-secondary p-space-sm shadow-elevation-low">
+              <div className="flex items-center gap-space-sm text-sm text-text-secondary">
+                <Badge variant="purple">Task</Badge>
+                {runner.isRunning ? '任务运行中' : '任务模式通过 Begin inputs 启动运行'}
+              </div>
+              <div className="flex flex-wrap gap-space-sm">
+                {inputEntries.length > 0 ? (
+                  <Button
+                    variant="outline"
+                    onClick={() => setParameterDialogOpen(true)}
+                    disabled={runner.isRunning || uploading}
+                  >
+                    参数
+                  </Button>
+                ) : null}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <ShareComposer
+            value={messageValue}
+            files={messageFiles}
+            isRunning={runner.isRunning}
+            uploading={uploading}
+            hasParameters={inputEntries.length > 0}
+            attachmentInputRef={attachmentInputRef}
+            onChange={setMessageValue}
+            onSubmit={(value) => {
+              void handleSendMessage(value)
+            }}
+            onStop={runner.stop}
+            onOpenParameters={() => setParameterDialogOpen(true)}
+            onUploadFiles={(files) => {
+              void handleMessageFileUpload(files)
+            }}
+          />
+        )}
       </div>
+
+      <ShareParameterDialog
+        open={parameterDialogOpen}
+        title={isTaskMode ? '启动任务参数' : '会话参数'}
+        description={
+          isTaskMode
+            ? '填写 Begin inputs 后立即启动任务。'
+            : '填写 Begin inputs 后继续当前会话。'
+        }
+        entries={inputEntries}
+        values={formValues}
+        error={formError}
+        disabled={runner.isRunning || uploading}
+        onOpenChange={setParameterDialogOpen}
+        onChange={handleChange}
+        onUpload={handleUpload}
+        onSubmit={() => {
+          void handleParameterSubmit()
+        }}
+      />
     </WorkspacePageTemplate>
   )
+}
+
+function runnerStatusFromState(
+  isRunning: boolean,
+  lastError?: string,
+): AgentRuntimeStatus {
+  if (isRunning) {
+    return AgentRuntimeStatus.RUNNING
+  }
+
+  if (lastError) {
+    return AgentRuntimeStatus.ERROR
+  }
+
+  return AgentRuntimeStatus.IDLE
 }

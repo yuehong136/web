@@ -31,7 +31,12 @@ export async function consumeRuntimeStream(
 ) {
   await assertRuntimeStreamResponse(response)
 
-  const reader = response.body
+  const body = response.body
+  if (!body) {
+    throw new Error('运行接口没有返回可读的数据流')
+  }
+
+  const reader = body
     .pipeThrough(new TextDecoderStream())
     .pipeThrough(new EventSourceParserStream())
     .getReader()

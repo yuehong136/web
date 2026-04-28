@@ -65,14 +65,16 @@ export const FormTooltip: React.FC<{ tooltip: React.ReactNode }> = ({ tooltip })
   return (
     <TooltipProvider delayDuration={200}>
       <TooltipRoot>
-        <TooltipTrigger
-          tabIndex={-1}
-          onClick={(e) => {
-            e.preventDefault()
-          }}
-          className="inline-flex"
-        >
-          <CircleHelp className="w-3 h-3 ml-1 text-text-tertiary hover:text-text-secondary transition-colors" />
+        <TooltipTrigger asChild>
+          <span
+            tabIndex={-1}
+            onClick={(e) => {
+              e.preventDefault()
+            }}
+            className="inline-flex cursor-help"
+          >
+            <CircleHelp className="w-3 h-3 ml-1 text-text-tertiary hover:text-text-secondary transition-colors" />
+          </span>
         </TooltipTrigger>
         <TooltipContent>{tooltip}</TooltipContent>
       </TooltipRoot>

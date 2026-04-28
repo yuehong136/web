@@ -351,7 +351,7 @@ export function useAgentRuntimeWorkbench({
       abortControllerRef.current = abortController
 
       try {
-        const response = await agentAPI.runAgentSession(
+        const response = await agentAPI.runAgent(
           {
             id: canvasId,
             query: content,

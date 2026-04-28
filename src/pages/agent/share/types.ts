@@ -1,11 +1,3 @@
-import type { AgentCanvasUploadResult } from '@/types/agent'
+import type { RuntimeMessage } from '../features/runtime-workbench/types'
 
-export interface ShareRuntimeMessage {
-  id: string
-  role: 'user' | 'assistant' | 'system'
-  content: string
-  thinking?: string
-  error?: string
-  isStreaming?: boolean
-  files?: AgentCanvasUploadResult[]
-}
+export type ShareRuntimeMessage = RuntimeMessage

@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { systemAPI } from '@/api/system'
 
 const deliveryTokenQueryKey = ['agent', 'delivery-token'] as const
@@ -8,30 +8,15 @@ const pickToken = (
     | Awaited<ReturnType<typeof systemAPI.getTokenList>>
     | undefined,
 ) => {
-  const token = tokens?.find((item) => item.beta || item.token)
-  return token?.beta || token?.token || ''
+  return tokens?.[0]?.beta || ''
 }
 
 export function useAgentDeliveryToken(enabled = true) {
-  const queryClient = useQueryClient()
   const query = useQuery({
     queryKey: deliveryTokenQueryKey,
     queryFn: () => systemAPI.getTokenList(),
     enabled,
     staleTime: 60_000,
-  })
-
-  const mutation = useMutation({
-    mutationFn: () =>
-      systemAPI.createToken({
-        name: 'Agent delivery token',
-        description: 'Created for Agent Share / Publish / Webhook access',
-      }),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({
-        queryKey: deliveryTokenQueryKey,
-      })
-    },
   })
 
   const ensureToken = async () => {
@@ -41,17 +26,20 @@ export function useAgentDeliveryToken(enabled = true) {
       return current
     }
 
-    const created = await mutation.mutateAsync()
-    return created.beta || created.token
+    if (!currentTokens?.length) {
+      throw new Error('未检测到系统 API Token，请先在系统 Token 管理中创建 Token。')
+    }
+
+    throw new Error('第一条系统 API Token 缺少 beta，无法生成 RAGFlow 标准 Share 链接。')
   }
 
   return {
     token: pickToken(query.data),
     tokens: query.data || [],
     isLoading: query.isFetching,
-    isCreating: mutation.isPending,
-    isError: query.isError || mutation.isError,
-    error: query.error || mutation.error,
+    isCreating: false,
+    isError: query.isError,
+    error: query.error,
     ensureToken,
     refetch: query.refetch,
   }

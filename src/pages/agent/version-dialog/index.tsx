@@ -128,7 +128,7 @@ export function VersionDialog({
 
             {!tokenReady ? (
               <div className="rounded-radius-md border border-border-subtle bg-surface-secondary p-space-sm text-sm text-text-secondary">
-                未检测到 beta token。确认发布时会通过系统 token API 创建一个默认交付 token，用于生成 Share 链接。
+                未检测到第一条系统 API Token 的 beta。发布不会自动创建 Token；如需生成 Share 链接，请先到系统 Token 管理创建或刷新。
               </div>
             ) : null}
 

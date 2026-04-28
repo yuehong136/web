@@ -3,7 +3,12 @@ import test from 'node:test'
 import { AgentCanvasCategory, AgentCanvasType } from '@/types/agent'
 import { buildAgentSessionListQuery } from '@/api/agent'
 import { Operator } from '../../constant'
-import { buildAgentSharePath, parseAgentShareAccess } from '../../share/access'
+import {
+  buildAgentEmbedCode,
+  buildAgentSharePath,
+  buildAgentWidgetSharePath,
+  parseAgentShareAccess,
+} from '../../share/access'
 import {
   buildInitialShareValues,
   buildShareInputsPayload,
@@ -248,6 +253,62 @@ test('share access parser keeps canonical shared_id/auth contract', () => {
     path,
     '/agent/share?shared_id=canonical-agent&from=agent&auth=canonical-beta&release=true',
   )
+})
+
+test('share access builders generate fullscreen and widget embed contracts', () => {
+  const fullscreenPath = buildAgentSharePath({
+    agentId: 'agent-1',
+    betaToken: 'beta-1',
+    release: true,
+    visibleAvatar: true,
+    locale: 'zh-CN',
+    theme: 'light',
+    userId: 'external-user',
+  })
+  const widgetPath = buildAgentWidgetSharePath({
+    agentId: 'agent-1',
+    betaToken: 'beta-1',
+    release: true,
+    visibleAvatar: true,
+    locale: 'zh-CN',
+    userId: 'external-user',
+    mode: 'master',
+    streaming: true,
+  })
+
+  assert.equal(
+    fullscreenPath,
+    '/agent/share?shared_id=agent-1&from=agent&auth=beta-1&release=true&userId=external-user&locale=zh-CN&visible_avatar=1&theme=light',
+  )
+  assert.equal(
+    widgetPath,
+    '/chats/widget?shared_id=agent-1&from=agent&auth=beta-1&release=true&userId=external-user&locale=zh-CN&visible_avatar=1&mode=master&streaming=true',
+  )
+})
+
+test('share embed code switches between fullscreen iframe and widget script', () => {
+  const fullscreen = buildAgentEmbedCode({
+    embedType: 'fullscreen',
+    agentId: 'agent-1',
+    betaToken: 'beta-1',
+    origin: 'https://example.test',
+    theme: 'light',
+  })
+  const widget = buildAgentEmbedCode({
+    embedType: 'widget',
+    agentId: 'agent-1',
+    betaToken: 'beta-1',
+    origin: 'https://example.test',
+    streaming: false,
+  })
+
+  assert.match(fullscreen, /src="https:\/\/example\.test\/agent\/share\?/)
+  assert.match(fullscreen, /min-height:600px/)
+  assert.match(widget, /src="https:\/\/example\.test\/chats\/widget\?/)
+  assert.match(widget, /mode=master/)
+  assert.match(widget, /streaming=false/)
+  assert.match(widget, /CREATE_CHAT_WINDOW/)
+  assert.match(widget, /TOGGLE_CHAT/)
 })
 
 test('share input utilities build values and completion payload', () => {

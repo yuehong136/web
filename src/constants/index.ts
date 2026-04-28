@@ -23,6 +23,7 @@ export const ROUTES = {
   AGENT_CANVAS: '/agent/:id',
   AGENT_EXPLORE: '/agent/:id/explore',
   AGENT_SHARE: '/agent/share',
+  CHAT_WIDGET: '/chats/widget',
   DATAFLOW_RESULT: '/dataflow-result',
   MCP_SERVERS: '/mcp-servers',
   STUDIO: '/studio',
