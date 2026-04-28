@@ -109,7 +109,12 @@ export const ReferenceMarker: React.FC<ReferenceMarkerProps> = ({
   onCopy,
   children,
 }) => {
-  const displayIndex = typeof children === 'number' ? children + 1 : (index + 1)
+  const displayIndex =
+    chunk?.reference_index !== undefined
+      ? chunk.reference_index
+      : typeof children === 'number'
+        ? children + 1
+        : index + 1
   
   // 如果找不到对应引用，显示普通上标
   if (!chunk) {
@@ -296,7 +301,9 @@ export function createReferenceMarkerComponent(
 ) {
   return function SupComponent(props: { children?: React.ReactNode }) {
     const refIndex = parseInt(`${props?.children}` || '0', 10)
-    const chunk = references[refIndex]
+    const chunk =
+      references.find((item) => item.reference_index === refIndex) ||
+      references[refIndex]
     
     return (
       <ReferenceMarker

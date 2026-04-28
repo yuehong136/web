@@ -32,6 +32,7 @@ import {
   normalizeRuntimeAwaitingInputs,
   normalizeRuntimeEvent,
 } from '../utils'
+import { shouldStoreRuntimeThoughtEvent } from '../thought-chain-utils'
 import {
   consumeRuntimeStream,
   createLocalRuntimeMessageId,
@@ -191,6 +192,26 @@ export function useAgentRuntimeWorkbench({
           [normalizedEvent.logEvent],
           normalizedEvent.logEvent.message_id,
         )
+
+        if (
+          shouldStoreRuntimeThoughtEvent(
+            normalizedEvent.logEvent.event,
+            normalizedEvent.logEvent.data,
+          )
+        ) {
+          updateMessageById(assistantId, (message) => ({
+            ...message,
+            logEvents: [
+              ...(message.logEvents || []),
+              {
+                event: normalizedEvent.logEvent.event,
+                data: normalizedEvent.logEvent.data,
+              },
+            ],
+            messageId: normalizedEvent.messageId || message.messageId,
+            taskId: normalizedEvent.taskId || message.taskId,
+          }))
+        }
       }
 
       if (

@@ -31,6 +31,7 @@ export interface RuntimeMessage {
   role: 'user' | 'assistant' | 'system'
   content: string
   thinking?: string
+  logEvents?: INodeEvent[]
   tips?: string
   awaitingInputs?: BeginQuery[]
   files?: RuntimeAttachment[]

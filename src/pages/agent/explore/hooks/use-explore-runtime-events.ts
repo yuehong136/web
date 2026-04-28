@@ -10,6 +10,7 @@ import {
   normalizeRuntimeAwaitingInputs,
   normalizeRuntimeEvent,
 } from '../../features/runtime-workbench/utils'
+import { shouldStoreRuntimeThoughtEvent } from '../../features/runtime-workbench/thought-chain-utils'
 
 const isRecord = (value: unknown): value is Record<string, unknown> => {
   return typeof value === 'object' && value !== null
@@ -58,6 +59,27 @@ export function useExploreRuntimeEvents({
 
       if (normalizedEvent.taskId) {
         setLatestTaskId(normalizedEvent.taskId)
+      }
+
+      if (
+        normalizedEvent.logEvent &&
+        shouldStoreRuntimeThoughtEvent(
+          normalizedEvent.logEvent.event,
+          normalizedEvent.logEvent.data,
+        )
+      ) {
+        updateMessageById(assistantId, (message) => ({
+          ...message,
+          logEvents: [
+            ...(message.logEvents || []),
+            {
+              event: normalizedEvent.logEvent.event,
+              data: normalizedEvent.logEvent.data,
+            },
+          ],
+          messageId: normalizedEvent.messageId || message.messageId,
+          taskId: normalizedEvent.taskId || message.taskId,
+        }))
       }
 
       if (

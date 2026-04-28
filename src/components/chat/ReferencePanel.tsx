@@ -144,6 +144,7 @@ const ChunkItem: React.FC<ChunkItemProps> = ({ chunk, index, onClick }) => {
   const similarity = chunk.similarity ?? 0
   const similarityPercent = Math.round(similarity * 100)
   const similarityColor = getSimilarityColor(similarity)
+  const displayIndex = chunk.reference_index ?? index + 1
   
   return (
     <button
@@ -161,7 +162,7 @@ const ChunkItem: React.FC<ChunkItemProps> = ({ chunk, index, onClick }) => {
           color: 'var(--color-text-accent)'
         }}
       >
-        {index + 1}
+        {displayIndex}
       </span>
       
       {/* 内容区域 */}

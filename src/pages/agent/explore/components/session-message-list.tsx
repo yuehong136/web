@@ -17,6 +17,7 @@ import { convertReferencesToSup, processContentForCarousel } from '@/utils/messa
 import type { ReferenceChunk } from '@/utils/reference-replacer'
 import { extractThinkContent, type ThinkingStatus } from '@/utils/think-utils'
 import DebugContent from '../../debug-content'
+import { RuntimeTracePanel } from '../../features/runtime-workbench/components/runtime-trace-panel'
 import { AgentRuntimeStatus, type RuntimeMessage } from '../../features/runtime-workbench/types'
 import type { BeginQuery } from '../../types'
 import {
@@ -207,6 +208,14 @@ export function SessionMessageList({
               </>
             ) : (
               <>
+                {message.logEvents?.length ? (
+                  <RuntimeTracePanel
+                    messages={[message]}
+                    loading={isStreaming}
+                    placement="message"
+                  />
+                ) : null}
+
                 {thinkContent ? (
                   <ThinkWrapper status={thinkingStatus} messageId={message.id}>
                     <div className="whitespace-pre-wrap text-sm text-text-secondary">

@@ -121,9 +121,10 @@ export const ReferenceImageList: React.FC<ReferenceImageListProps> = ({
     return referenceChunks
       .map((chunk, idx) => ({ chunk, idx }))
       .filter(({ chunk, idx }) => {
+        const referenceIndex = chunk.reference_index ?? idx
         // 只保留：1. 在消息中被引用的 2. 是图片类型的 3. 有 image_id 的
         return (
-          referencedIndices.includes(idx) &&
+          referencedIndices.includes(referenceIndex) &&
           isImageChunk(chunk) &&
           chunk.image_id
         )

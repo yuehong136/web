@@ -26,6 +26,8 @@ export interface ReferenceChunk {
   vector_similarity?: number
   term_similarity?: number
   doc_type?: string
+  reference_index?: number
+  reference_key?: string
 }
 
 /**
@@ -127,10 +129,34 @@ export function extractReferencesFromSSEData(data: any): ReferenceChunk[] {
   if (data.reference && Array.isArray(data.reference.chunks)) {
     return data.reference.chunks
   }
+
+  if (
+    data.reference &&
+    data.reference.chunks &&
+    typeof data.reference.chunks === 'object'
+  ) {
+    return Object.entries(data.reference.chunks)
+      .sort(([left], [right]) => Number(left) - Number(right))
+      .map(([key, chunk]) => ({
+        ...(chunk as ReferenceChunk),
+        reference_index: Number.isFinite(Number(key)) ? Number(key) : undefined,
+        reference_key: key,
+      }))
+  }
   
   // 检查旧格式：data.chunks
   if (Array.isArray(data.chunks)) {
     return data.chunks
+  }
+
+  if (data.chunks && typeof data.chunks === 'object') {
+    return Object.entries(data.chunks)
+      .sort(([left], [right]) => Number(left) - Number(right))
+      .map(([key, chunk]) => ({
+        ...(chunk as ReferenceChunk),
+        reference_index: Number.isFinite(Number(key)) ? Number(key) : undefined,
+        reference_key: key,
+      }))
   }
   
   return []
@@ -151,4 +177,3 @@ export function isImageChunk(chunk?: ReferenceChunk): boolean {
   if (!chunk?.doc_type) return false
   return IMAGE_DOC_TYPES.includes(chunk.doc_type)
 }
-

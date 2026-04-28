@@ -1,15 +1,33 @@
 import { FileIcon } from '@/components/ui/file-icon'
 import { cn } from '@/lib/utils'
-import { MarkdownRenderer } from '@/components/chat/MarkdownRenderer'
-import { ReferenceDocumentList } from '@/components/chat/ReferenceDocumentList'
+import { ReferencePanel } from '@/components/chat/ReferencePanel'
+import { ReferenceImageList } from '@/components/chat/ReferenceImageList'
+import { ReferenceDetailSheet } from '@/components/chat/ReferenceDetailSheet'
+import { createReferenceMarkerComponent } from '@/components/chat/ReferenceMarker'
+import {
+  getMarkdownStreamingOptions,
+  mergeMarkdownComponents,
+  markdownConfig,
+  type MarkdownComponents,
+  useMarkdownComponents,
+} from '@/components/chat/MarkdownCodeBlock'
 import { extractReferencesFromSSEData, type ReferenceChunk } from '@/utils/reference-replacer'
+import { convertReferencesToSup } from '@/utils/message-utils'
+import { copyToClipboard } from '@/lib/utils'
+import { toast } from '@/lib/toast'
+import XMarkdown from '@ant-design/x-markdown'
 import type { ReactNode } from 'react'
+import { useCallback, useState } from 'react'
+import { RuntimeTracePanel } from '../features/runtime-workbench/components/runtime-trace-panel'
 import type { RuntimeAttachment } from '../features/runtime-workbench/types'
+import type { INodeEvent } from '../hooks/use-node-loading'
 
 export interface RuntimeMessageBubbleData {
   role?: string
   content?: string
   thinking?: string
+  logEvents?: INodeEvent[]
+  isStreaming?: boolean
   tips?: string
   files?: RuntimeAttachment[]
   reference?: unknown
@@ -19,6 +37,37 @@ export interface RuntimeMessageBubbleData {
 interface RuntimeMessageBubbleProps {
   message: RuntimeMessageBubbleData
   children?: ReactNode
+}
+
+interface RuntimeMarkdownProps {
+  content: string
+  streaming?: boolean
+  components?: Partial<MarkdownComponents>
+}
+
+function RuntimeMarkdown({
+  content,
+  streaming = false,
+  components,
+}: RuntimeMarkdownProps) {
+  const markdownComponents = useMarkdownComponents(components)
+
+  if (!content.trim()) {
+    return null
+  }
+
+  return (
+    <div className="prose prose-sm max-w-none dark:prose-invert bubble-copy-text markdown-content">
+      <XMarkdown
+        paragraphTag="div"
+        config={markdownConfig}
+        components={markdownComponents}
+        streaming={getMarkdownStreamingOptions(streaming)}
+      >
+        {content}
+      </XMarkdown>
+    </div>
+  )
 }
 
 function RuntimeAttachmentList({
@@ -61,62 +110,114 @@ export function RuntimeMessageBubble({
 }: RuntimeMessageBubbleProps) {
   const isUser = message.role === 'user'
   const referenceChunks = getReferenceChunks(message.reference)
+  const hasReferences = referenceChunks.length > 0
+  const [detailOpen, setDetailOpen] = useState(false)
+  const [selectedChunk, setSelectedChunk] = useState<ReferenceChunk | null>(null)
+
+  const handleViewDetail = useCallback((chunk: ReferenceChunk) => {
+    setSelectedChunk(chunk)
+    setDetailOpen(true)
+  }, [])
+
+  const handleCopyReference = useCallback(async (content: string) => {
+    try {
+      await copyToClipboard(content)
+      toast.success('已复制到剪贴板')
+    } catch {
+      toast.error('复制失败')
+    }
+  }, [])
+
+  const contentWithSup =
+    hasReferences && message.content
+      ? convertReferencesToSup(message.content)
+      : message.content || ''
+  const SupComponent = hasReferences
+    ? createReferenceMarkerComponent(referenceChunks, {
+        onViewDetail: handleViewDetail,
+        onCopy: handleCopyReference,
+      })
+    : undefined
+  const markdownComponents = SupComponent
+    ? mergeMarkdownComponents({ sup: SupComponent })
+    : undefined
 
   return (
-    <div className={cn('flex', isUser ? 'justify-end' : 'justify-start')}>
-      <div
-        className={cn(
-          'max-w-[88%] rounded-radius-lg px-space-base py-space-sm',
-          isUser
-            ? 'bg-surface-accent text-text-on-accent'
-            : 'bg-surface-secondary text-text-primary',
-        )}
-      >
-        {message.thinking ? (
-          <div className="mb-space-sm rounded-radius-md border border-border-primary bg-surface-primary p-space-sm text-xs text-text-secondary">
-            <p className="mb-space-xs font-medium text-text-primary">
-              Thinking
+    <>
+      <div className={cn('flex', isUser ? 'justify-end' : 'justify-start')}>
+        <div
+          className={cn(
+            'max-w-[88%] rounded-radius-lg px-space-base py-space-sm',
+            isUser
+              ? 'bg-surface-accent text-text-on-accent'
+              : 'bg-surface-secondary text-text-primary',
+          )}
+        >
+          {!isUser && message.logEvents?.length ? (
+            <RuntimeTracePanel
+              messages={[message]}
+              loading={Boolean(message.isStreaming)}
+              placement="message"
+            />
+          ) : null}
+
+          {message.thinking ? (
+            <div className="mb-space-sm rounded-radius-md border border-border-primary bg-surface-primary p-space-sm text-xs text-text-secondary">
+              <p className="mb-space-xs font-medium text-text-primary">
+                Thinking
+              </p>
+              <p className="whitespace-pre-wrap">{message.thinking}</p>
+            </div>
+          ) : null}
+
+          {message.content ? (
+            <RuntimeMarkdown
+              content={contentWithSup}
+              streaming={Boolean(message.isStreaming)}
+              components={markdownComponents}
+            />
+          ) : (
+            <p className="whitespace-pre-wrap text-sm">...</p>
+          )}
+
+          {message.tips ? (
+            <div className="mt-space-sm rounded-radius-md border border-border-primary bg-surface-primary p-space-sm text-sm text-text-secondary">
+              {message.tips}
+            </div>
+          ) : null}
+
+          <RuntimeAttachmentList files={message.files} />
+          {hasReferences && !message.isStreaming ? (
+            <ReferenceImageList
+              referenceChunks={referenceChunks}
+              messageContent={message.content || ''}
+              className="mt-space-base"
+              onImageClick={(chunk) => handleViewDetail(chunk)}
+            />
+          ) : null}
+          {hasReferences && !message.isStreaming ? (
+            <ReferencePanel
+              chunks={referenceChunks}
+              onChunkClick={handleViewDetail}
+              className="mt-space-sm"
+              defaultVisiblePerDoc={2}
+            />
+          ) : null}
+          {children}
+
+          {message.error ? (
+            <p className="mt-space-sm text-xs text-status-error">
+              {message.error}
             </p>
-            <p className="whitespace-pre-wrap">{message.thinking}</p>
-          </div>
-        ) : null}
-
-        {message.content ? (
-          <MarkdownRenderer
-            content={message.content}
-            references={referenceChunks}
-            className={cn(
-              '[&>*:first-child]:mt-0 [&>*:last-child]:mb-0',
-              isUser && '[&_*]:text-current',
-            )}
-          />
-        ) : (
-          <p className="whitespace-pre-wrap text-sm">...</p>
-        )}
-
-        {message.tips ? (
-          <div className="mt-space-sm rounded-radius-md border border-border-primary bg-surface-primary p-space-sm text-sm text-text-secondary">
-            {message.tips}
-          </div>
-        ) : null}
-
-        <RuntimeAttachmentList files={message.files} />
-        {referenceChunks.length ? (
-          <ReferenceDocumentList
-            chunks={referenceChunks}
-            mode="card"
-            className="mt-space-sm"
-            maxItems={6}
-          />
-        ) : null}
-        {children}
-
-        {message.error ? (
-          <p className="mt-space-sm text-xs text-status-error">
-            {message.error}
-          </p>
-        ) : null}
+          ) : null}
+        </div>
       </div>
-    </div>
+      <ReferenceDetailSheet
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+        chunk={selectedChunk}
+        allChunks={referenceChunks}
+      />
+    </>
   )
 }
