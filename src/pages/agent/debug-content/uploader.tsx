@@ -1,9 +1,10 @@
 import { Button } from '@/components/ui/button'
+import type { ButtonProps } from '@/components/ui/button'
 import { useUploadCanvasFile } from '@/hooks/use-agent-request'
 import { cn } from '@/lib/utils'
 import { toast } from '@/lib/toast'
 import { Upload, X } from 'lucide-react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
 interface FileUploadDirectUploadProps {
@@ -15,6 +16,13 @@ interface FileUploadDirectUploadProps {
   multiple?: boolean
   compact?: boolean
   buttonLabel?: string
+  buttonVariant?: ButtonProps['variant']
+  buttonSize?: ButtonProps['size']
+  buttonClassName?: string
+  disabled?: boolean
+  iconOnly?: boolean
+  showFileList?: boolean
+  triggerIcon?: ReactNode
 }
 
 export function FileUploadDirectUpload({
@@ -26,6 +34,13 @@ export function FileUploadDirectUpload({
   multiple = false,
   compact = false,
   buttonLabel,
+  buttonVariant = 'outline',
+  buttonSize,
+  buttonClassName,
+  disabled = false,
+  iconOnly = false,
+  showFileList = true,
+  triggerIcon,
 }: FileUploadDirectUploadProps) {
   const { t } = useTranslation()
   const { uploadCanvasFile, isLoading } = useUploadCanvasFile()
@@ -112,17 +127,26 @@ export function FileUploadDirectUpload({
       
       <Button
         type="button"
-        variant="outline"
-        size={compact ? 'sm' : 'default'}
+        variant={buttonVariant}
+        size={buttonSize || (compact ? 'sm' : 'default')}
         onClick={handleClick}
-        className={cn('border-dashed', compact ? 'w-auto' : 'w-full')}
-        disabled={isLoading}
+        className={cn(
+          buttonVariant === 'outline' && 'border-dashed',
+          compact ? 'w-auto' : 'w-full',
+          iconOnly && 'px-0',
+          buttonClassName,
+        )}
+        disabled={disabled || isLoading}
+        aria-label={iconOnly ? buttonLabel || t('common.uploadFile', '上传文件') : undefined}
+        title={iconOnly ? buttonLabel || t('common.uploadFile', '上传文件') : undefined}
       >
-        <Upload className="mr-space-xs size-4" />
-        {buttonLabel || t('common.uploadFile', '上传文件')}
+        {triggerIcon || (
+          <Upload className={cn('size-4', !iconOnly && 'mr-space-xs')} />
+        )}
+        {iconOnly ? null : buttonLabel || t('common.uploadFile', '上传文件')}
       </Button>
 
-      {files.length > 0 && (
+      {showFileList && files.length > 0 && (
         <div className={cn(compact ? 'flex flex-wrap gap-space-xs' : 'space-y-space-xs')}>
           {files.map((file, index) => (
             <div

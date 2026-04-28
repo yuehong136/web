@@ -41,6 +41,17 @@ function pickStructuredAnswer(record: Record<string, unknown>) {
   )
 }
 
+function getSessionMessages(payload: AgentSession | undefined) {
+  if (Array.isArray(payload?.messages)) {
+    return payload.messages
+  }
+
+  const record = payload as Record<string, unknown> | undefined
+  return Array.isArray(record?.message)
+    ? (record.message as AgentSessionMessage[])
+    : []
+}
+
 export function adaptAgentSessionMessage(
   payload: AgentSessionMessage | undefined,
 ): AgentSessionMessage {
@@ -57,7 +68,7 @@ export function adaptAgentSessionMessage(
 export function adaptAgentSession(
   payload: AgentSession | undefined,
 ): AgentSession {
-  const messages = (payload?.messages || []).map(adaptAgentSessionMessage)
+  const messages = getSessionMessages(payload).map(adaptAgentSessionMessage)
   const session = {
     ...payload,
     id: payload?.id || '',

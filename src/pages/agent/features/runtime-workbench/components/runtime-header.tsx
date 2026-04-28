@@ -144,7 +144,7 @@ export function RuntimeHeader({
           {controller.canvasId && visibleSessionId ? (
             <Button asChild variant="ghost" size="sm">
               <Link
-                to={`/agent/${controller.canvasId}/explore?session=${encodeURIComponent(visibleSessionId)}`}
+                to={`/agent/${controller.canvasId}/explore?sessionId=${encodeURIComponent(visibleSessionId)}`}
               >
                 <ExternalLink className="size-4" />
                 在 Explore 中查看

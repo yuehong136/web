@@ -243,7 +243,7 @@ export const useCreateAgentSession = (canvasId: string) => {
       adaptAgentSession(await agentAPI.createSession(canvasId, name)),
     onSuccess: () => {
       void queryClient.invalidateQueries({
-        queryKey: agentQueryKeys.sessions(canvasId),
+        queryKey: [...agentQueryKeys.all, 'sessions', canvasId],
       })
     },
   })
@@ -263,7 +263,7 @@ export const useDeleteAgentSession = (canvasId: string) => {
       agentAPI.deleteSession(canvasId, sessionId),
     onSuccess: () => {
       void queryClient.invalidateQueries({
-        queryKey: agentQueryKeys.sessions(canvasId),
+        queryKey: [...agentQueryKeys.all, 'sessions', canvasId],
       })
     },
   })

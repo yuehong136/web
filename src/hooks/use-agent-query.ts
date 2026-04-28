@@ -17,6 +17,7 @@ import type {
   AgentInputFormSchema,
   AgentListParams,
   AgentListResponse,
+  AgentSessionListParams,
   AgentSessionListResponse,
   AgentTemplate,
   AgentTraceItem,
@@ -38,8 +39,8 @@ export const agentQueryKeys = {
     [...agentQueryKeys.all, 'trace', canvasId, messageId] as const,
   inputForm: (canvasId: string, componentId: string) =>
     [...agentQueryKeys.all, 'input-form', canvasId, componentId] as const,
-  sessions: (canvasId: string) =>
-    [...agentQueryKeys.all, 'sessions', canvasId] as const,
+  sessions: (canvasId: string, params?: AgentSessionListParams) =>
+    [...agentQueryKeys.all, 'sessions', canvasId, params || {}] as const,
   session: (canvasId: string, sessionId: string) =>
     [...agentQueryKeys.all, 'session', canvasId, sessionId] as const,
   avatar: (id: string) => [...agentQueryKeys.all, 'avatar', id] as const,
@@ -223,13 +224,28 @@ export const useFetchInputForm = (canvasId?: string, componentId?: string) => {
   }
 }
 
-export const useFetchAgentSessions = (canvasId?: string) => {
+export const useFetchAgentSessions = (
+  canvasId?: string,
+  params: AgentSessionListParams = {},
+) => {
   const resolvedCanvasId = useResolvedAgentId(canvasId)
+  const queryParams: AgentSessionListParams = {
+    page: params.page ?? 1,
+    page_size: params.page_size ?? 12,
+    orderby: params.orderby ?? 'update_time',
+    desc: params.desc ?? true,
+    keywords: params.keywords || '',
+    from_date: params.from_date || '',
+    to_date: params.to_date || '',
+    exp_user_id: params.exp_user_id || '',
+  }
   const query = useQuery({
-    queryKey: agentQueryKeys.sessions(resolvedCanvasId),
+    queryKey: agentQueryKeys.sessions(resolvedCanvasId, queryParams),
     enabled: Boolean(resolvedCanvasId),
     queryFn: async () =>
-      adaptAgentSessionList(await agentAPI.fetchSessions(resolvedCanvasId)),
+      adaptAgentSessionList(
+        await agentAPI.fetchSessions(resolvedCanvasId, queryParams),
+      ),
     placeholderData: () =>
       ({
         sessions: [],

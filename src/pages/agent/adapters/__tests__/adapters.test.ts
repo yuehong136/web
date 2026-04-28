@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { AgentCanvasCategory, AgentCanvasType } from '@/types/agent'
+import { buildAgentSessionListQuery } from '@/api/agent'
 import { Operator } from '../../constant'
 import { buildAgentSharePath, parseAgentShareAccess } from '../../share/access'
 import {
@@ -99,6 +100,49 @@ test('session and trace adapters normalize consumable structures', () => {
   assert.equal(sessions.total, 1)
   assert.equal(sessions.sessions[0]?.message_count, 1)
   assert.equal(Array.isArray(traces[0]?.trace), true)
+})
+
+test('session adapter accepts ragflow message alias and preserves real assistant message ids', () => {
+  const sessions = adaptAgentSessionList([
+    {
+      id: 's1',
+      message: [
+        { role: 'user', content: 'hi' },
+        { id: 'message-real-1', role: 'assistant', content: 'hello' },
+      ],
+    },
+  ])
+
+  assert.equal(sessions.sessions[0]?.messages?.length, 2)
+  assert.equal(
+    extractSessionLatestMessageId(sessions.sessions[0]),
+    'message-real-1',
+  )
+})
+
+test('agent session list query keeps supported backend filters explicit', () => {
+  assert.deepEqual(
+    buildAgentSessionListQuery({
+      page: 2,
+      page_size: 24,
+      keywords: 'demo',
+      from_date: '2026-04-01',
+      to_date: '2026-04-27',
+      orderby: 'update_time',
+      desc: false,
+      exp_user_id: 'external-user',
+    }),
+    {
+      page: 2,
+      page_size: 24,
+      keywords: 'demo',
+      from_date: '2026-04-01',
+      to_date: '2026-04-27',
+      orderby: 'update_time',
+      desc: false,
+      exp_user_id: 'external-user',
+    },
+  )
 })
 
 test('trace adapter treats non-array trace responses as empty lists like ragflow', () => {

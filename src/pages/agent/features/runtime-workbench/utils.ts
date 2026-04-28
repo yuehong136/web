@@ -152,7 +152,7 @@ export function normalizeRuntimeAttachments(value: unknown): RuntimeAttachment[]
       return result
     }
 
-    const name = item.name || item.filename || item.id
+    const name = item.name || item.filename || item.file_name || item.id
 
     if (typeof name !== 'string') {
       return result
@@ -166,7 +166,9 @@ export function normalizeRuntimeAttachments(value: unknown): RuntimeAttachment[]
           ? item.type
           : typeof item.extension === 'string'
             ? item.extension
-            : undefined,
+            : typeof item.format === 'string'
+              ? item.format
+              : undefined,
       mimeType:
         typeof item.mime_type === 'string'
           ? item.mime_type

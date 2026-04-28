@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { EventSourceParserStream } from 'eventsource-parser/stream'
 import {
   useCreateAgentSession,
   useFetchAgent,
@@ -33,6 +32,10 @@ import {
   normalizeRuntimeAwaitingInputs,
   normalizeRuntimeEvent,
 } from '../utils'
+import {
+  consumeRuntimeStream,
+  createLocalRuntimeMessageId,
+} from '../runtime-stream'
 
 interface UseAgentRuntimeWorkbenchOptions {
   canvasId?: string
@@ -40,9 +43,6 @@ interface UseAgentRuntimeWorkbenchOptions {
   onViewChange: (view: RuntimeWorkbenchView) => void
   onSummaryChange?: (summary: ReturnType<typeof buildRuntimeSummary>) => void
 }
-
-const createLocalMessageId = (prefix: string) =>
-  `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 
 const isRecord = (value: unknown): value is Record<string, unknown> => {
   return typeof value === 'object' && value !== null
@@ -158,7 +158,7 @@ export function useAgentRuntimeWorkbench({
   }, [canvasId, resolveCanvasTitle, saveGraph])
 
   const appendAssistantPlaceholder = useCallback(() => {
-    const assistantId = createLocalMessageId('assistant')
+    const assistantId = createLocalRuntimeMessageId('assistant')
     setMessages((previous) => [
       ...previous,
       {
@@ -333,7 +333,7 @@ export function useAgentRuntimeWorkbench({
         setMessages((previous) => [
           ...previous,
           {
-            id: createLocalMessageId('user'),
+            id: createLocalRuntimeMessageId('user'),
             role: 'user',
             content: userMessageContent || content.trim(),
             files,
@@ -364,49 +364,9 @@ export function useAgentRuntimeWorkbench({
           },
         )
 
-        if (!response.ok) {
-          let errorMessage = `HTTP ${response.status}: ${response.statusText}`
-
-          try {
-            const errorBody = await response.clone().json()
-            errorMessage =
-              errorBody?.message ||
-              errorBody?.retmsg ||
-              errorMessage
-          } catch {
-            // ignore json parsing errors for non-json error bodies
-          }
-
-          throw new Error(errorMessage)
-        }
-
-        if (!response.body) {
-          throw new Error('运行接口没有返回可读的数据流')
-        }
-
-        const reader = response.body
-          .pipeThrough(new TextDecoderStream())
-          .pipeThrough(new EventSourceParserStream())
-          .getReader()
-
-        while (true) {
-          const { done, value } = await reader.read()
-          if (done) {
-            break
-          }
-
-          const rawData = value?.data
-          if (!rawData) {
-            continue
-          }
-
-          try {
-            const parsedEvent = JSON.parse(rawData)
-            handleNormalizedEvent(assistantId, parsedEvent)
-          } catch {
-            // ignore malformed chunks
-          }
-        }
+        await consumeRuntimeStream(response, (parsedEvent) => {
+          handleNormalizedEvent(assistantId, parsedEvent)
+        })
 
         setStatus((current) =>
           current === AgentRuntimeStatus.ERROR

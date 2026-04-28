@@ -1,5 +1,8 @@
 import { FileIcon } from '@/components/ui/file-icon'
 import { cn } from '@/lib/utils'
+import { MarkdownRenderer } from '@/components/chat/MarkdownRenderer'
+import { ReferenceDocumentList } from '@/components/chat/ReferenceDocumentList'
+import { extractReferencesFromSSEData, type ReferenceChunk } from '@/utils/reference-replacer'
 import type { ReactNode } from 'react'
 import type { RuntimeAttachment } from '../features/runtime-workbench/types'
 
@@ -9,6 +12,7 @@ export interface RuntimeMessageBubbleData {
   thinking?: string
   tips?: string
   files?: RuntimeAttachment[]
+  reference?: unknown
   error?: string
 }
 
@@ -43,11 +47,20 @@ function RuntimeAttachmentList({
   )
 }
 
+function getReferenceChunks(reference: unknown): ReferenceChunk[] {
+  if (Array.isArray(reference)) {
+    return reference as ReferenceChunk[]
+  }
+
+  return extractReferencesFromSSEData({ reference })
+}
+
 export function RuntimeMessageBubble({
   message,
   children,
 }: RuntimeMessageBubbleProps) {
   const isUser = message.role === 'user'
+  const referenceChunks = getReferenceChunks(message.reference)
 
   return (
     <div className={cn('flex', isUser ? 'justify-end' : 'justify-start')}>
@@ -68,7 +81,18 @@ export function RuntimeMessageBubble({
           </div>
         ) : null}
 
-        <p className="whitespace-pre-wrap text-sm">{message.content || '...'}</p>
+        {message.content ? (
+          <MarkdownRenderer
+            content={message.content}
+            references={referenceChunks}
+            className={cn(
+              '[&>*:first-child]:mt-0 [&>*:last-child]:mb-0',
+              isUser && '[&_*]:text-current',
+            )}
+          />
+        ) : (
+          <p className="whitespace-pre-wrap text-sm">...</p>
+        )}
 
         {message.tips ? (
           <div className="mt-space-sm rounded-radius-md border border-border-primary bg-surface-primary p-space-sm text-sm text-text-secondary">
@@ -77,6 +101,14 @@ export function RuntimeMessageBubble({
         ) : null}
 
         <RuntimeAttachmentList files={message.files} />
+        {referenceChunks.length ? (
+          <ReferenceDocumentList
+            chunks={referenceChunks}
+            mode="card"
+            className="mt-space-sm"
+            maxItems={6}
+          />
+        ) : null}
         {children}
 
         {message.error ? (

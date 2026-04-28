@@ -113,6 +113,11 @@ test('normalizeRuntimeAttachments handles upload payloads and scalar values', ()
       type: 'png',
       url: '/preview/image.png',
     },
+    {
+      doc_id: 'doc-1',
+      file_name: 'ragflow-report.docx',
+      format: 'docx',
+    },
   ])
 
   assert.deepEqual(attachments, [
@@ -134,6 +139,16 @@ test('normalizeRuntimeAttachments handles upload payloads and scalar values', ()
       name: 'image.png',
       mimeType: undefined,
       size: undefined,
+    },
+    {
+      doc_id: 'doc-1',
+      file_name: 'ragflow-report.docx',
+      format: 'docx',
+      name: 'ragflow-report.docx',
+      type: 'docx',
+      mimeType: undefined,
+      size: undefined,
+      url: undefined,
     },
   ])
 })

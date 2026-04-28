@@ -142,6 +142,17 @@ export interface AgentListParams {
   canvas_category?: string
 }
 
+export interface AgentSessionListParams {
+  page?: number
+  page_size?: number
+  keywords?: string
+  from_date?: string
+  to_date?: string
+  orderby?: string
+  desc?: boolean
+  exp_user_id?: string
+}
+
 export interface AgentListResponse {
   canvas: AgentFlow[]
   total: number

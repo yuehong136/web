@@ -8,6 +8,7 @@ import type {
   AgentInputFormSchema,
   AgentListParams,
   AgentListResponse,
+  AgentSessionListParams,
   AgentSession,
   AgentSessionListResponse,
   AgentTemplate,
@@ -24,6 +25,23 @@ import type {
 } from '@/types/agent'
 
 const EXTERNAL_API_BASE_URL = '/api'
+
+export function buildAgentSessionListQuery(
+  params: AgentSessionListParams = {},
+) {
+  const query: Record<string, string | number | boolean> = {}
+
+  if (params.page !== undefined) query.page = params.page
+  if (params.page_size !== undefined) query.page_size = params.page_size
+  if (params.keywords) query.keywords = params.keywords
+  if (params.from_date) query.from_date = params.from_date
+  if (params.to_date) query.to_date = params.to_date
+  if (params.orderby) query.orderby = params.orderby
+  if (params.desc !== undefined) query.desc = params.desc
+  if (params.exp_user_id) query.exp_user_id = params.exp_user_id
+
+  return query
+}
 
 export const agentAPI = {
   externalApiBase: {
@@ -209,8 +227,16 @@ export const agentAPI = {
    * `page`, `page_size`, `keywords`, `from_date`, `to_date`, `orderby`, `desc`,
    * and `exp_user_id`. T9 owns Explore filtering, ordering, and pagination.
    */
-  fetchSessions: async (canvasId: string) =>
-    apiClient.get<AgentSessionListResponse | AgentSession[]>(`/v1/canvas/${canvasId}/sessions`),
+  fetchSessions: async (
+    canvasId: string,
+    params: AgentSessionListParams = {},
+  ) =>
+    apiClient.get<AgentSessionListResponse | AgentSession[]>(
+      `/v1/canvas/${canvasId}/sessions`,
+      {
+        params: buildAgentSessionListQuery(params),
+      },
+    ),
 
   fetchSession: async (canvasId: string, sessionId: string) =>
     apiClient.get<AgentSession>(`/v1/canvas/${canvasId}/sessions/${sessionId}`),
