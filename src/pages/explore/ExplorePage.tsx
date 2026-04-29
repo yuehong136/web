@@ -132,10 +132,9 @@ const getAttachmentStatusLabel = (file: UploadFile) => {
 }
 
 const toRcFile = (file: File, uid: string): RcFile => {
-  return Object.assign(file, {
-    uid,
-    lastModifiedDate: new Date(file.lastModified),
-  }) as RcFile
+  const rcFile = file as RcFile
+  rcFile.uid = uid
+  return rcFile
 }
 
 
