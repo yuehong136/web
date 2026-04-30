@@ -81,16 +81,40 @@ export const useNodeLoading = ({
       .filter((componentId): componentId is string => Boolean(componentId))
   }, [startedNodeList])
 
+  const finishedNodeDataList = useMemo(() => {
+    return filterFinishedNodeList()
+  }, [filterFinishedNodeList])
+
   const finishNodeIds = useMemo(() => {
-    if (!lastNode) {
-      return []
-    }
-    const nodeDataList = filterFinishedNodeList()
-    const finishNodeIdsTemp = nodeDataList
+    const ids = finishedNodeDataList
       .map((x: INodeData) => x.component_id)
       .filter((componentId): componentId is string => Boolean(componentId))
-    return Array.from(new Set(finishNodeIdsTemp))
-  }, [lastNode, filterFinishedNodeList])
+    return Array.from(new Set(ids))
+  }, [finishedNodeDataList])
+
+  const errorNodeIds = useMemo(() => {
+    const ids = finishedNodeDataList
+      .filter((x) => Boolean(x?.error))
+      .map((x: INodeData) => x.component_id)
+      .filter((componentId): componentId is string => Boolean(componentId))
+    return Array.from(new Set(ids))
+  }, [finishedNodeDataList])
+
+  const successNodeIds = useMemo(() => {
+    const errorSet = new Set(errorNodeIds)
+    return finishNodeIds.filter((id) => !errorSet.has(id))
+  }, [errorNodeIds, finishNodeIds])
+
+  const nodeElapsedMap = useMemo(() => {
+    return finishedNodeDataList.reduce<Record<string, number>>((acc, item) => {
+      const id = item?.component_id
+      const elapsed = item?.elapsed_time
+      if (typeof id === 'string' && typeof elapsed === 'number') {
+        acc[id] = elapsed
+      }
+      return acc
+    }, {})
+  }, [finishedNodeDataList])
 
   const startButNotFinishedNodeIds = useMemo(() => {
     return startNodeIds.filter((x) => !finishNodeIds.includes(x))
@@ -99,6 +123,10 @@ export const useNodeLoading = ({
   return {
     lastNode,
     startButNotFinishedNodeIds,
+    finishNodeIds,
+    successNodeIds,
+    errorNodeIds,
+    nodeElapsedMap,
     filterFinishedNodeList,
     setDerivedMessages,
   }

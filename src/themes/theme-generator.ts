@@ -741,10 +741,22 @@ export const lightTokens: DesignTokens = {
   'components-canvas-node-border-selected': '#00BEB4',
   'components-canvas-node-shadow': '0 2px 8px rgba(0, 0, 0, 0.08)',
 
+  // 节点运行态
+  'components-canvas-node-status-running-border': '#0ea5e9',          // sky-500
+  'components-canvas-node-status-running-halo': 'rgba(14, 165, 233, 0.18)',
+  'components-canvas-node-status-running-icon': '#0ea5e9',
+  'components-canvas-node-status-success-border': '#10b981',          // emerald-500
+  'components-canvas-node-status-success-bg': 'rgba(16, 185, 129, 0.12)',
+  'components-canvas-node-status-success-text': '#047857',            // emerald-700
+  'components-canvas-node-status-error-border': '#ef4444',            // red-500
+  'components-canvas-node-status-error-bg': 'rgba(239, 68, 68, 0.12)',
+  'components-canvas-node-status-error-text': '#b91c1c',              // red-700
+
   // 边线
   'components-canvas-edge-stroke': 'rgb(156, 163, 175)',
   'components-canvas-edge-stroke-hover': 'rgb(107, 114, 128)',
   'components-canvas-edge-stroke-selected': '#00BEB4',
+  'components-canvas-edge-stroke-flowing': '#0ea5e9',                  // sky-500
   'components-canvas-edge-marker': 'rgb(156, 163, 175)',
   'components-canvas-edge-marker-selected': '#00BEB4',
 
@@ -1631,10 +1643,22 @@ export const darkTokens: DesignTokens = {
   'components-canvas-node-border-selected': '#818cf8',
   'components-canvas-node-shadow': '0 2px 8px rgba(0, 0, 0, 0.3)',
 
+  // 节点运行态
+  'components-canvas-node-status-running-border': '#38bdf8',          // sky-400
+  'components-canvas-node-status-running-halo': 'rgba(56, 189, 248, 0.22)',
+  'components-canvas-node-status-running-icon': '#7dd3fc',            // sky-300
+  'components-canvas-node-status-success-border': '#22c55e',          // green-500
+  'components-canvas-node-status-success-bg': 'rgba(34, 197, 94, 0.18)',
+  'components-canvas-node-status-success-text': '#86efac',            // green-300
+  'components-canvas-node-status-error-border': '#f87171',            // red-400
+  'components-canvas-node-status-error-bg': 'rgba(248, 113, 113, 0.18)',
+  'components-canvas-node-status-error-text': '#fca5a5',              // red-300
+
   // 边线
   'components-canvas-edge-stroke': 'rgb(113, 113, 122)',
   'components-canvas-edge-stroke-hover': 'rgb(161, 161, 170)',
   'components-canvas-edge-stroke-selected': '#818cf8',
+  'components-canvas-edge-stroke-flowing': '#38bdf8',                  // sky-400
   'components-canvas-edge-marker': 'rgb(113, 113, 122)',
   'components-canvas-edge-marker-selected': '#818cf8',
 

@@ -768,10 +768,22 @@ export interface DesignTokens {
   'components-canvas-node-border-selected': string
   'components-canvas-node-shadow': string
 
+  // 节点运行态（运行时画布执行可视化）
+  'components-canvas-node-status-running-border': string
+  'components-canvas-node-status-running-halo': string
+  'components-canvas-node-status-running-icon': string
+  'components-canvas-node-status-success-border': string
+  'components-canvas-node-status-success-bg': string
+  'components-canvas-node-status-success-text': string
+  'components-canvas-node-status-error-border': string
+  'components-canvas-node-status-error-bg': string
+  'components-canvas-node-status-error-text': string
+
   // 边线
   'components-canvas-edge-stroke': string
   'components-canvas-edge-stroke-hover': string
   'components-canvas-edge-stroke-selected': string
+  'components-canvas-edge-stroke-flowing': string
   'components-canvas-edge-marker': string
   'components-canvas-edge-marker-selected': string
 
@@ -1686,9 +1698,19 @@ export const defaultTokens: DesignTokens = {
   'components-canvas-node-border-hover': '',
   'components-canvas-node-border-selected': '',
   'components-canvas-node-shadow': '',
+  'components-canvas-node-status-running-border': '',
+  'components-canvas-node-status-running-halo': '',
+  'components-canvas-node-status-running-icon': '',
+  'components-canvas-node-status-success-border': '',
+  'components-canvas-node-status-success-bg': '',
+  'components-canvas-node-status-success-text': '',
+  'components-canvas-node-status-error-border': '',
+  'components-canvas-node-status-error-bg': '',
+  'components-canvas-node-status-error-text': '',
   'components-canvas-edge-stroke': '',
   'components-canvas-edge-stroke-hover': '',
   'components-canvas-edge-stroke-selected': '',
+  'components-canvas-edge-stroke-flowing': '',
   'components-canvas-edge-marker': '',
   'components-canvas-edge-marker-selected': '',
   'components-canvas-handle-bg': '',

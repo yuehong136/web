@@ -102,7 +102,12 @@ export function useAgentRuntimeWorkbench({
     return currentEventListWithoutMessageById(currentMessageId)
   }, [currentEventListWithoutMessageById, currentMessageId])
 
-  const { startButNotFinishedNodeIds } = useNodeLoading({
+  const {
+    startButNotFinishedNodeIds,
+    successNodeIds,
+    errorNodeIds,
+    nodeElapsedMap,
+  } = useNodeLoading({
     currentEventListWithoutMessageById,
     currentMessageId,
   })
@@ -650,16 +655,6 @@ export function useAgentRuntimeWorkbench({
   }, [onSummaryChange, summary])
 
   useEffect(() => {
-    if (
-      status === AgentRuntimeStatus.RUNNING &&
-      startButNotFinishedNodeIds.length === 0 &&
-      currentMessageId
-    ) {
-      setStatus(AgentRuntimeStatus.SUCCESS)
-    }
-  }, [currentMessageId, startButNotFinishedNodeIds.length, status])
-
-  useEffect(() => {
     return () => {
       abortControllerRef.current?.abort()
       if (latestTaskIdRef.current) {
@@ -688,6 +683,9 @@ export function useAgentRuntimeWorkbench({
     hasLogs: logEvents.length > 0,
     lastNodeId,
     startButNotFinishedNodeIds,
+    successNodeIds,
+    errorNodeIds,
+    nodeElapsedMap,
     lastError,
     handleRun,
     handleSendMessage,

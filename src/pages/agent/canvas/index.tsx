@@ -242,6 +242,15 @@ function AgentCanvasInner({
   const railStartButNotFinishedNodeIds = isPipelineMode
     ? []
     : agentRuntimeController.startButNotFinishedNodeIds
+  const railSuccessNodeIds = isPipelineMode
+    ? []
+    : agentRuntimeController.successNodeIds
+  const railErrorNodeIds = isPipelineMode
+    ? []
+    : agentRuntimeController.errorNodeIds
+  const railNodeElapsedMap = isPipelineMode
+    ? {}
+    : agentRuntimeController.nodeElapsedMap
 
   return (
     <div className="w-full h-full px-space-lg pb-space-lg bg-surface-secondary">
@@ -290,6 +299,9 @@ function AgentCanvasInner({
             lastNode: railLastNodeId,
             currentSendLoading: railSendLoading,
             startButNotFinishedNodeIds: railStartButNotFinishedNodeIds,
+            successNodeIds: railSuccessNodeIds,
+            errorNodeIds: railErrorNodeIds,
+            nodeElapsedMap: railNodeElapsedMap,
           }}
         >
         <ReactFlow

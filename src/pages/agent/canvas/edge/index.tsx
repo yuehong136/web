@@ -7,13 +7,15 @@ import {
   EdgeLabelRenderer,
   getBezierPath,
 } from '@xyflow/react'
-import { memo, useMemo } from 'react'
+import { memo, useContext, useMemo } from 'react'
 import useGraphStore from '../../store'
 import { cn } from '@/lib/utils'
 import { NodeHandleId, Operator } from '../../constant'
+import { AgentInstanceContext } from '../../context'
 
 function InnerButtonEdge({
   id,
+  source,
   sourceX,
   sourceY,
   targetX,
@@ -31,15 +33,25 @@ function InnerButtonEdge({
     (state) => state,
   )
 
-  // 调试日志
-  console.log('🔗 [ButtonEdge] 渲染边:', {
-    id,
-    sourceX,
-    sourceY,
-    targetX,
-    targetY,
+  const {
+    currentSendLoading,
+    startButNotFinishedNodeIds = [],
+    successNodeIds = [],
+  } = useContext(AgentInstanceContext)
+
+  const isFlowing = useMemo(() => {
+    if (!currentSendLoading || !source || !target) return false
+    return (
+      startButNotFinishedNodeIds.includes(target) &&
+      successNodeIds.includes(source)
+    )
+  }, [
+    currentSendLoading,
+    source,
+    startButNotFinishedNodeIds,
+    successNodeIds,
     target,
-  })
+  ])
 
   const [edgePath, labelX, labelY] = getBezierPath({
     sourceX,
@@ -85,6 +97,16 @@ function InnerButtonEdge({
     ? 'url(#selected-marker)'
     : markerEnd
 
+  const flowingStyle = useMemo<React.CSSProperties>(() => {
+    if (!isFlowing) return {}
+    return {
+      stroke: 'var(--color-components-canvas-edge-stroke-flowing)',
+      strokeWidth: 2,
+      strokeDasharray: '6 4',
+      animation: 'canvas-edge-flow 0.6s linear infinite',
+    }
+  }, [isFlowing])
+
   return (
     <>
       <BaseEdge
@@ -94,6 +116,7 @@ function InnerButtonEdge({
           ...style,
           ...selectedStyle,
           ...placeholderHighlightStyle,
+          ...flowingStyle,
         }}
         className="text-text-tertiary"
       />

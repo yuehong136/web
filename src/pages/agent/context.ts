@@ -32,6 +32,9 @@ export type AgentInstanceContextType = {
   lastNode?: string
   currentSendLoading?: boolean
   startButNotFinishedNodeIds?: string[]
+  successNodeIds?: string[]
+  errorNodeIds?: string[]
+  nodeElapsedMap?: Record<string, number>
 }
 
 export const AgentInstanceContext = createContext<AgentInstanceContextType>({

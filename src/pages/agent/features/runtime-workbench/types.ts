@@ -94,6 +94,9 @@ export interface AgentRuntimeController {
   hasLogs: boolean
   lastNodeId?: string
   startButNotFinishedNodeIds: string[]
+  successNodeIds: string[]
+  errorNodeIds: string[]
+  nodeElapsedMap: Record<string, number>
   lastError?: string
   handleRun: (values: BeginQuery[]) => Promise<void>
   handleSendMessage: (request: StartRuntimeRequest) => Promise<void>

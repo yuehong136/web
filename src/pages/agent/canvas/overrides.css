@@ -20,3 +20,44 @@
   padding: 0;
   width: auto;
 }
+
+/*
+ * Runtime visualization: pulsing halo on the node currently executing,
+ * and flowing dashes on edges feeding a running target. Colors come from
+ * canvas-scene status tokens so dark mode stays consistent.
+ */
+@keyframes canvas-node-running-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 var(--color-components-canvas-node-status-running-halo);
+  }
+  50% {
+    box-shadow: 0 0 0 6px var(--color-components-canvas-node-status-running-halo);
+  }
+}
+
+.canvas-node-running {
+  border-color: var(--color-components-canvas-node-status-running-border) !important;
+  animation: canvas-node-running-pulse 1.6s ease-in-out infinite;
+}
+
+.canvas-node-success {
+  border-color: var(--color-components-canvas-node-status-success-border) !important;
+}
+
+.canvas-node-error {
+  border-color: var(--color-components-canvas-node-status-error-border) !important;
+}
+
+@keyframes canvas-edge-flow {
+  to {
+    stroke-dashoffset: -16;
+  }
+}
+
+.react-flow__edge.canvas-edge-flowing .react-flow__edge-path {
+  stroke: var(--color-components-canvas-edge-stroke-flowing);
+  stroke-width: 2;
+  stroke-dasharray: 6 4;
+  animation: canvas-edge-flow 0.6s linear infinite;
+}
