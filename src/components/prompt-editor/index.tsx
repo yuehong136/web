@@ -4,10 +4,9 @@ import { LexicalComposer } from '@lexical/react/LexicalComposer'
 import { ContentEditable } from '@lexical/react/LexicalContentEditable'
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary'
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin'
-import { useLexicalIsTextContentEmpty } from '@lexical/react/useLexicalIsTextContentEmpty'
 import { HeadingNode, QuoteNode } from '@lexical/rich-text'
-import type { EditorState, Klass, LexicalNode } from 'lexical'
-import { $getRoot, $getSelection } from 'lexical'
+import type { EditorState, Klass, LexicalEditor, LexicalNode } from 'lexical'
+import { $getRoot, $getSelection, $isDecoratorNode, $isElementNode } from 'lexical'
 
 import { Button } from '@/components/ui/button'
 import { Tooltip } from '@/components/ui/tooltip'
@@ -16,7 +15,7 @@ import { useBuildPromptVariableOptions } from '@/pages/agent/hooks/use-get-begin
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
 import { Variable } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { EnterKeyPlugin } from './enter-key-plugin'
 import { PasteHandlerPlugin } from './paste-handler-plugin'
@@ -41,6 +40,35 @@ const Nodes: Array<Klass<LexicalNode>> = [
   CodeNode,
   VariableNode,
 ]
+
+function hasDecoratorDescendant(node: LexicalNode): boolean {
+  if ($isDecoratorNode(node)) return true
+  if ($isElementNode(node)) {
+    return node.getChildren().some(hasDecoratorDescendant)
+  }
+  return false
+}
+
+function useIsEditorEmpty(editor: LexicalEditor) {
+  const [isEmpty, setIsEmpty] = useState(true)
+
+  useEffect(() => {
+    const compute = () => {
+      editor.getEditorState().read(() => {
+        const root = $getRoot()
+        if (root.getTextContent().trim().length > 0) {
+          setIsEmpty(false)
+          return
+        }
+        setIsEmpty(!hasDecoratorDescendant(root))
+      })
+    }
+    compute()
+    return editor.registerUpdateListener(compute)
+  }, [editor])
+
+  return isEmpty
+}
 
 type PromptContentProps = {
   showToolbar?: boolean
@@ -67,7 +95,7 @@ function PromptContent({
 }: PromptContentProps) {
   const [editor] = useLexicalComposerContext()
   const [isFocused, setIsFocused] = useState(false)
-  const isTextContentEmpty = useLexicalIsTextContentEmpty(editor, true)
+  const isEditorEmpty = useIsEditorEmpty(editor)
   const { t } = useTranslation()
 
   const insertTextAtCursor = useCallback(() => {
@@ -145,7 +173,7 @@ function PromptContent({
           onBlur={handleBlur}
           onFocus={handleFocus}
         />
-        {isTextContentEmpty ? (
+        {isEditorEmpty ? (
           <div
             aria-hidden="true"
             className={cn(

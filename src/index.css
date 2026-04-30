@@ -323,6 +323,22 @@
   .gap-space-xl { gap: var(--space-xl); }
   .gap-space-2xl { gap: var(--space-2xl); }
 
+  .space-y-space-xs > :not([hidden]) ~ :not([hidden]) { margin-top: var(--space-xs); }
+  .space-y-space-sm > :not([hidden]) ~ :not([hidden]) { margin-top: var(--space-sm); }
+  .space-y-space-base > :not([hidden]) ~ :not([hidden]) { margin-top: var(--space-base); }
+  .space-y-space-md > :not([hidden]) ~ :not([hidden]) { margin-top: var(--space-md); }
+  .space-y-space-lg > :not([hidden]) ~ :not([hidden]) { margin-top: var(--space-lg); }
+  .space-y-space-xl > :not([hidden]) ~ :not([hidden]) { margin-top: var(--space-xl); }
+  .space-y-space-2xl > :not([hidden]) ~ :not([hidden]) { margin-top: var(--space-2xl); }
+
+  .space-x-space-xs > :not([hidden]) ~ :not([hidden]) { margin-left: var(--space-xs); }
+  .space-x-space-sm > :not([hidden]) ~ :not([hidden]) { margin-left: var(--space-sm); }
+  .space-x-space-base > :not([hidden]) ~ :not([hidden]) { margin-left: var(--space-base); }
+  .space-x-space-md > :not([hidden]) ~ :not([hidden]) { margin-left: var(--space-md); }
+  .space-x-space-lg > :not([hidden]) ~ :not([hidden]) { margin-left: var(--space-lg); }
+  .space-x-space-xl > :not([hidden]) ~ :not([hidden]) { margin-left: var(--space-xl); }
+  .space-x-space-2xl > :not([hidden]) ~ :not([hidden]) { margin-left: var(--space-2xl); }
+
   .top-space-xs { top: var(--space-xs); }
   .top-space-sm { top: var(--space-sm); }
   .top-space-base { top: var(--space-base); }

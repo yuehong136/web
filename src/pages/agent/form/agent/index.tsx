@@ -206,7 +206,7 @@ export function AgentForm({ node }: INextOperatorForm) {
             />
           )}
 
-          <Separator />
+          <Separator className="my-space-xs" />
 
           <AgentTools node={node} />
           <Agents node={node} />

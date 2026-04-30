@@ -1,8 +1,7 @@
 import { memo, useMemo } from 'react'
 import type { NodeProps } from '@xyflow/react'
-import { GalleryVerticalEnd } from 'lucide-react'
+import { GalleryVerticalEnd, Layers, BookOpen } from 'lucide-react'
 import type { IA2UINode } from '../../types'
-import { A2UIBasicCatalogId } from '../../constant'
 import { LeftEndHandle } from './handle'
 import NodeHeader from './node-header'
 import { NodeWrapper } from './node-wrapper'
@@ -10,6 +9,9 @@ import { ToolBar } from './toolbar'
 import { needsSingleStepDebugging, showCopyIcon } from '../../utils'
 import { LabelCard } from './card'
 import { SummaryList } from './summary-list'
+import { cn } from '@/lib/utils'
+
+const CATALOG_LABEL = 'Basic v0.9'
 
 function parseCommands(commands: unknown) {
   if (!Array.isArray(commands)) return []
@@ -35,9 +37,9 @@ function parseCommands(commands: unknown) {
 }
 
 function InnerA2UINode({ id, data, selected }: NodeProps<IA2UINode>) {
-  const summary = useMemo(() => {
+  const surfaceIds = useMemo(() => {
     const parsedCommands = parseCommands(data.form?.commands)
-    const surfaceIds = parsedCommands
+    const ids = parsedCommands
       .map((command) => {
         if (typeof command !== 'object' || command === null) return undefined
         const record = command as Record<string, Record<string, unknown>>
@@ -49,11 +51,7 @@ function InnerA2UINode({ id, data, selected }: NodeProps<IA2UINode>) {
         )
       })
       .filter((surfaceId): surfaceId is string => typeof surfaceId === 'string')
-
-    return {
-      firstSurfaceId: surfaceIds[0],
-      surfaceCount: new Set(surfaceIds).size,
-    }
+    return Array.from(new Set(ids))
   }, [data.form?.commands])
 
   return (
@@ -72,14 +70,37 @@ function InnerA2UINode({ id, data, selected }: NodeProps<IA2UINode>) {
           label={data.label}
           icon={<GalleryVerticalEnd className="h-icon-md w-icon-md text-text-secondary" />}
         />
+        <section className="flex flex-col gap-space-xs px-space-sm pb-space-xs">
+          <LabelCard className="flex items-center gap-space-sm">
+            <BookOpen className="size-3.5 shrink-0 text-text-tertiary" />
+            <span className="text-text-tertiary">Catalog</span>
+            <span className="ml-auto truncate font-medium text-text-primary">
+              {CATALOG_LABEL}
+            </span>
+          </LabelCard>
+        </section>
         <SummaryList
-          items={[
-            `Catalog: ${A2UIBasicCatalogId}`,
-            `Surfaces: ${summary.surfaceCount || 0}`,
-            summary.firstSurfaceId ? `First: ${summary.firstSurfaceId}` : '',
-          ].filter(Boolean)}
-          empty={<LabelCard>暂无卡片命令</LabelCard>}
-          renderItem={(item) => <LabelCard key={item}>{item}</LabelCard>}
+          items={surfaceIds}
+          empty={
+            <LabelCard className="flex items-center gap-space-sm text-text-tertiary">
+              <Layers className="size-3.5 shrink-0" />
+              <span>暂无 Surface</span>
+            </LabelCard>
+          }
+          renderItem={(surfaceId, index, { withDivider }) => (
+            <section
+              key={`${id}-surface-${surfaceId}`}
+              className={cn(withDivider && 'border-t border-border-subtle pt-space-sm')}
+            >
+              <LabelCard className="flex items-center gap-space-sm">
+                <Layers className="size-3.5 shrink-0 text-text-tertiary" />
+                <span className="min-w-0 flex-1 truncate font-medium text-text-primary">
+                  {surfaceId}
+                </span>
+                <span className="shrink-0 text-text-tertiary">#{index + 1}</span>
+              </LabelCard>
+            </section>
+          )}
         />
       </NodeWrapper>
     </ToolBar>
