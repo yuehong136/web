@@ -1,5 +1,5 @@
 import { PageEmptyState, AppScene } from '@/components/patterns'
-import { SessionMessageList } from '../explore/components/session-message-list'
+import { RuntimeChatMessageList } from '../components/runtime-chat'
 import { AgentRuntimeStatus } from '../features/runtime-workbench/types'
 import type { AgentXCardActionPayload } from '../x-card'
 import type { BeginQuery } from '../types'
@@ -41,7 +41,7 @@ export function ShareMessageList({
   }
 
   return (
-    <SessionMessageList
+    <RuntimeChatMessageList
       canvasId={canvasId}
       messages={messages}
       status={status}

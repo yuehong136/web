@@ -1,24 +1,32 @@
 import { Fragment, useCallback, useMemo, useState } from 'react'
 import { Bubble } from '@ant-design/x'
 import type { BubbleListProps } from '@ant-design/x'
-import { ChatBubbleLoading } from '@/components/chat/ChatBubbleLoading'
-import { ThinkWrapper } from '@/components/chat/ThinkWrapper'
-import { MessageActionsFooter } from '@/components/chat/MessageActionsFooter'
-import { ReferencePanel } from '@/components/chat/ReferencePanel'
-import { ReferenceImageList } from '@/components/chat/ReferenceImageList'
-import { ReferenceDetailSheet } from '@/components/chat/ReferenceDetailSheet'
-import { createReferenceMarkerComponent } from '@/components/chat/ReferenceMarker'
 import { CarouselWrapper } from '@/components/chat/CarouselWrapper'
+import { MessageActionsFooter } from '@/components/chat/MessageActionsFooter'
+import { ReferenceDetailSheet } from '@/components/chat/ReferenceDetailSheet'
+import { ReferenceImageList } from '@/components/chat/ReferenceImageList'
+import { createReferenceMarkerComponent } from '@/components/chat/ReferenceMarker'
+import { ReferencePanel } from '@/components/chat/ReferencePanel'
+import { ThinkWrapper } from '@/components/chat/ThinkWrapper'
 import { mergeMarkdownComponents } from '@/components/chat/MarkdownCodeBlock'
-import { CHAT_TEXT_TYPING, shouldUseBubbleTyping } from '@/components/chat/antx-chat-config'
-import { copyToClipboard } from '@/lib/utils'
+import {
+  CHAT_TEXT_TYPING,
+  shouldUseBubbleTyping,
+} from '@/components/chat/antx-chat-config'
+import { cn, copyToClipboard } from '@/lib/utils'
 import { toast } from '@/lib/toast'
-import { convertReferencesToSup, processContentForCarousel } from '@/utils/message-utils'
+import {
+  convertReferencesToSup,
+  processContentForCarousel,
+} from '@/utils/message-utils'
 import type { ReferenceChunk } from '@/utils/reference-replacer'
 import { extractThinkContent, type ThinkingStatus } from '@/utils/think-utils'
 import DebugContent from '../../debug-content'
 import { RuntimeTracePanel } from '../../features/runtime-workbench/components/runtime-trace-panel'
-import { AgentRuntimeStatus, type RuntimeMessage } from '../../features/runtime-workbench/types'
+import {
+  AgentRuntimeStatus,
+  type RuntimeMessage,
+} from '../../features/runtime-workbench/types'
 import { hideRawA2UICommandContent } from '../../features/runtime-workbench/utils'
 import type { BeginQuery } from '../../types'
 import {
@@ -26,17 +34,23 @@ import {
   type AgentXCardActionPayload,
 } from '../../x-card'
 import {
+  shouldShowRuntimeBubbleLoading,
+  shouldShowRuntimeMessageFooter,
+} from './runtime-message-render-state'
+import {
   AssistantAvatar,
   getReferenceChunks,
   RuntimeAttachmentList,
-  SessionMarkdown,
+  RuntimeChatMarkdown,
   UserAvatar,
-} from './session-message-renderers'
+} from './runtime-chat-renderers'
 
-interface SessionMessageListProps {
+interface RuntimeChatMessageListProps {
   canvasId: string
   messages: RuntimeMessage[]
   status: AgentRuntimeStatus
+  density?: 'comfortable' | 'compact'
+  className?: string
   onSubmitAwaitingInputs: (
     messageId: string,
     values: BeginQuery[],
@@ -44,13 +58,15 @@ interface SessionMessageListProps {
   onXCardAction?: (payload: AgentXCardActionPayload) => void | Promise<void>
 }
 
-export function SessionMessageList({
+export function RuntimeChatMessageList({
   canvasId,
   messages,
   status,
+  density = 'comfortable',
+  className,
   onSubmitAwaitingInputs,
   onXCardAction,
-}: SessionMessageListProps) {
+}: RuntimeChatMessageListProps) {
   const [detailOpen, setDetailOpen] = useState(false)
   const [selectedChunk, setSelectedChunk] = useState<ReferenceChunk | null>(null)
   const [detailChunks, setDetailChunks] = useState<ReferenceChunk[]>([])
@@ -102,6 +118,13 @@ export function SessionMessageList({
       const contentWithSup = references.length
         ? convertReferencesToSup(processedContent)
         : processedContent
+      const renderState = {
+        message,
+        mainContent,
+        thinkContent,
+        referencesLength: references.length,
+        hasXCard,
+      }
       const SupComponent = references.length
         ? createReferenceMarkerComponent(references, {
             onViewDetail: (chunk) => handleViewDetail(chunk, references),
@@ -123,11 +146,13 @@ export function SessionMessageList({
         !message.files?.length &&
         references.length === 0 &&
         shouldUseBubbleTyping(visibleMainContent)
-      const showFooter =
-        !isUser &&
-        !isStreaming &&
-        (!useTextTyping || completedTypingMessageIds.has(message.id)) &&
-        Boolean(mainContent.trim())
+      const showFooter = shouldShowRuntimeMessageFooter({
+        isUser,
+        isStreaming,
+        mainContent,
+        useTextTyping,
+        typingCompleted: completedTypingMessageIds.has(message.id),
+      })
 
       const renderContentWithCarousels = () => {
         if (!contentWithSup.trim()) {
@@ -136,7 +161,7 @@ export function SessionMessageList({
 
         if (carouselGroups.length === 0) {
           return (
-            <SessionMarkdown
+            <RuntimeChatMarkdown
               content={contentWithSup}
               streaming={isStreaming}
               components={markdownComponents}
@@ -152,7 +177,7 @@ export function SessionMessageList({
             {parts.map((part, partIndex) => (
               <Fragment key={`part-${partIndex}`}>
                 {part.trim() ? (
-                  <SessionMarkdown
+                  <RuntimeChatMarkdown
                     content={part}
                     streaming={isStreaming}
                     components={markdownComponents}
@@ -176,7 +201,7 @@ export function SessionMessageList({
         content: useTextTyping ? mainContent : message.content || '',
         placement: isUser ? ('end' as const) : ('start' as const),
         avatar: isUser ? <UserAvatar /> : <AssistantAvatar />,
-        loading: isStreaming && !thinkContent && !mainContent,
+        loading: shouldShowRuntimeBubbleLoading(renderState, isStreaming),
         streaming: isStreaming,
         typing: useTextTyping ? CHAT_TEXT_TYPING : false,
         onTypingComplete: useTextTyping
@@ -250,10 +275,6 @@ export function SessionMessageList({
                   onAction={onXCardAction}
                 />
 
-                {isStreaming && !thinkContent && !mainContent ? (
-                  <ChatBubbleLoading />
-                ) : null}
-
                 <RuntimeAttachmentList message={message} />
 
                 {references.length && !isStreaming ? (
@@ -312,7 +333,15 @@ export function SessionMessageList({
 
   return (
     <>
-      <div className="agent-explore-session-chat mx-auto w-full max-w-4xl px-space-lg py-space-lg">
+      <div
+        className={cn(
+          'runtime-chat-message-list mx-auto w-full py-space-lg',
+          density === 'compact'
+            ? 'max-w-full px-space-md'
+            : 'max-w-4xl px-space-lg',
+          className,
+        )}
+      >
         <Bubble.List
           items={bubbleItems}
           autoScroll

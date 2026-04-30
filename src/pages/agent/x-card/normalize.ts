@@ -14,15 +14,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
 }
 
-function decodeJsonPointerSegment(segment: string) {
-  return segment.replace(/~1/g, '/').replace(/~0/g, '~')
-}
-
-function getPathLeaf(path: string) {
-  const parts = path.split('/').filter(Boolean)
-  return parts.length ? decodeJsonPointerSegment(parts[parts.length - 1]) : undefined
-}
-
 export function getCommandSurfaceId(command: AgentXCardCommand) {
   const record = command as unknown as Record<string, unknown>
   for (const key of COMMAND_KEYS) {

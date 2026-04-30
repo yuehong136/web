@@ -1,6 +1,5 @@
-import React from 'react'
-import { Bot, User } from 'lucide-react'
 import XMarkdown from '@ant-design/x-markdown'
+import { Bot, User } from 'lucide-react'
 import { FileIcon } from '@/components/ui/file-icon'
 import {
   getMarkdownStreamingOptions,
@@ -14,7 +13,7 @@ import {
 } from '@/utils/reference-replacer'
 import type { RuntimeMessage } from '../../features/runtime-workbench/types'
 
-interface SessionMarkdownProps {
+interface RuntimeChatMarkdownProps {
   content: string
   streaming?: boolean
   components?: Partial<MarkdownComponents>
@@ -44,11 +43,11 @@ export function UserAvatar() {
   )
 }
 
-export function SessionMarkdown({
+export function RuntimeChatMarkdown({
   content,
   streaming = false,
   components,
-}: SessionMarkdownProps) {
+}: RuntimeChatMarkdownProps) {
   const markdownComponents = useMarkdownComponents(components)
 
   if (!content.trim()) {

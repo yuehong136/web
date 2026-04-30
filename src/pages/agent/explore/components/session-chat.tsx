@@ -18,8 +18,10 @@ import { AgentRuntimeStatus } from '../../features/runtime-workbench/types'
 import type { RuntimeMessage } from '../../features/runtime-workbench/types'
 import type { AgentXCardActionPayload } from '../../x-card'
 import type { ExploreSendRequest } from '../types'
-import { SessionComposer } from './session-composer'
-import { SessionMessageList } from './session-message-list'
+import {
+  RuntimeChatComposer,
+  RuntimeChatMessageList,
+} from '../../components/runtime-chat'
 
 interface SessionChatProps {
   canvasId: string
@@ -80,7 +82,7 @@ export function SessionChat({
           />
         ) : (
           <ScrollArea className="h-full">
-            <SessionMessageList
+            <RuntimeChatMessageList
               canvasId={canvasId}
               messages={messages}
               status={status}
@@ -92,7 +94,7 @@ export function SessionChat({
       </div>
 
       {active ? (
-        <SessionComposer
+        <RuntimeChatComposer
           canvasId={canvasId}
           status={status}
           isTaskMode={isTaskMode}

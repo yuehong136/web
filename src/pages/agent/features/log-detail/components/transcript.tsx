@@ -4,7 +4,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion'
-import { RuntimeMessageBubble } from '@/pages/agent/components/runtime-message-bubble'
+import { RuntimeChatMessageList } from '@/pages/agent/components/runtime-chat'
+import { AgentRuntimeStatus } from '@/pages/agent/features/runtime-workbench'
 import { mapSessionMessageToRuntimeMessage } from '@/pages/agent/explore/utils'
 import type { AgentSessionMessage } from '@/types/agent'
 
@@ -28,14 +29,15 @@ export function Transcript({ messages }: TranscriptProps) {
           Transcript（{messages.length}）
         </AccordionTrigger>
         <AccordionContent>
-          <div className="space-y-space-md">
-            {messages.map((message, index) => (
-              <RuntimeMessageBubble
-                key={message.id || `${message.role || 'message'}-${index}`}
-                message={mapSessionMessageToRuntimeMessage(message, index)}
-              />
-            ))}
-          </div>
+          <RuntimeChatMessageList
+            canvasId=""
+            messages={messages.map((message, index) =>
+              mapSessionMessageToRuntimeMessage(message, index),
+            )}
+            status={AgentRuntimeStatus.IDLE}
+            density="compact"
+            onSubmitAwaitingInputs={() => undefined}
+          />
         </AccordionContent>
       </AccordionItem>
     </Accordion>

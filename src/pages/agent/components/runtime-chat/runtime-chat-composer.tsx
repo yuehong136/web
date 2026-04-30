@@ -6,25 +6,31 @@ import { FileIcon } from '@/components/ui/file-icon'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import { FileUploadDirectUpload } from '../../debug-content/uploader'
-import type { RuntimeAttachment } from '../../features/runtime-workbench/types'
-import { AgentRuntimeStatus } from '../../features/runtime-workbench/types'
-import type { ExploreSendRequest } from '../types'
+import {
+  AgentRuntimeStatus,
+  type RuntimeAttachment,
+} from '../../features/runtime-workbench/types'
+import type { RuntimeChatSendRequest } from './types'
 
-interface SessionComposerProps {
-  canvasId: string
+interface RuntimeChatComposerProps {
+  canvasId?: string
   status: AgentRuntimeStatus
-  isTaskMode: boolean
-  onSend: (request: ExploreSendRequest) => Promise<void>
+  isTaskMode?: boolean
+  density?: 'comfortable' | 'compact'
+  placeholder?: string
+  onSend: (request: RuntimeChatSendRequest) => Promise<void>
   onStop: () => Promise<void>
 }
 
-export function SessionComposer({
+export function RuntimeChatComposer({
   canvasId,
   status,
-  isTaskMode,
+  isTaskMode = false,
+  density = 'comfortable',
+  placeholder,
   onSend,
   onStop,
-}: SessionComposerProps) {
+}: RuntimeChatComposerProps) {
   const [value, setValue] = useState('')
   const [files, setFiles] = useState<RuntimeAttachment[]>([])
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -35,18 +41,16 @@ export function SessionComposer({
     if (!textareaRef.current) {
       return
     }
+
     textareaRef.current.style.height = 'auto'
     textareaRef.current.style.height = `${Math.min(
       textareaRef.current.scrollHeight,
-      120,
+      density === 'compact' ? 96 : 120,
     )}px`
-  }, [value])
+  }, [density, value])
 
   const handleSend = useCallback(async () => {
-    if (loading) {
-      return
-    }
-    if (!isTaskMode && !value.trim() && files.length === 0) {
+    if (loading || sendDisabled) {
       return
     }
 
@@ -57,7 +61,7 @@ export function SessionComposer({
     })
     setValue('')
     setFiles([])
-  }, [files, isTaskMode, loading, onSend, value])
+  }, [files, loading, onSend, sendDisabled, value])
 
   const handleKeyDown = useCallback(
     (event: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -78,8 +82,20 @@ export function SessionComposer({
   }, [])
 
   return (
-    <div className="border-t border-border-primary bg-surface-primary px-space-lg py-space-base">
-      <div className="mx-auto w-full max-w-4xl">
+    <div
+      className={cn(
+        'border-t border-border-primary bg-surface-primary',
+        density === 'compact'
+          ? 'px-space-md py-space-sm'
+          : 'px-space-lg py-space-base',
+      )}
+    >
+      <div
+        className={cn(
+          'mx-auto w-full',
+          density === 'compact' ? 'max-w-full' : 'max-w-4xl',
+        )}
+      >
         <div className="rounded-radius-xl border border-components-card-border bg-components-card-bg p-space-base shadow-elevation-low">
           {files.length > 0 ? (
             <div className="mb-space-sm flex flex-wrap gap-space-xs">
@@ -115,11 +131,15 @@ export function SessionComposer({
             onChange={(event) => setValue(event.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={
-              isTaskMode
-                ? '给我发消息或布置任务'
-                : '继续发送会话消息...'
+              placeholder ||
+              (isTaskMode ? '给我发消息或布置任务' : '继续发送会话消息...')
             }
-            className="min-h-[60px] w-full text-base placeholder:text-text-tertiary"
+            className={cn(
+              'w-full placeholder:text-text-tertiary',
+              density === 'compact'
+                ? 'min-h-[48px] text-sm'
+                : 'min-h-[60px] text-base',
+            )}
             rows={1}
             disabled={loading}
           />
