@@ -113,6 +113,7 @@ export default function AgentExplorePage() {
               onParameterDialogOpenChange={chat.setParameterDialogOpen}
               onParametersOk={chat.handleParametersOk}
               onSubmitAwaitingInputs={chat.handleSubmitAwaitingInputs}
+              onXCardAction={chat.handleXCardAction}
               onSend={chat.handleSendMessage}
               onStop={chat.handleStop}
             />

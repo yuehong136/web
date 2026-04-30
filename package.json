@@ -10,11 +10,13 @@
     "build:themes": "tsx src/themes/build-themes.ts",
     "lint": "eslint src",
     "lint:all": "eslint .",
+    "postinstall": "patch-package",
     "test:agent-t1": "tsx --tsconfig tsconfig.app.json --test src/pages/agent/operators/__tests__/serializers.test.ts src/pages/agent/adapters/__tests__/adapters.test.ts",
     "preview": "vite preview"
   },
   "dependencies": {
     "@ant-design/x": "^2.6.0",
+    "@ant-design/x-card": "^2.6.0",
     "@ant-design/x-markdown": "^2.6.0",
     "@ant-design/x-sdk": "^2.6.0",
     "@antv/g6": "^5.0.51",
@@ -130,6 +132,7 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^16.3.0",
+    "patch-package": "^8.0.1",
     "tailwind-scrollbar": "^3.0.4",
     "terser": "^5.46.1",
     "tsx": "^4.20.3",

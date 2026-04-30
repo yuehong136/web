@@ -450,6 +450,7 @@ export default function AgentSharePage() {
             title={shareQuery.data.title}
             prologue={shareQuery.data.prologue}
             onSubmitAwaitingInputs={handleSubmitAwaitingInputs}
+            onXCardAction={runner.submitXCardAction}
           />
         </div>
 

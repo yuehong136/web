@@ -1,13 +1,14 @@
 import { useContext } from 'react'
-import { 
-  Database, 
-  MessageSquare, 
-  Code, 
+import {
+  Code,
+  Database,
+  FileText,
+  GalleryVerticalEnd,
   GitBranch,
-  Search,
-  Mail,
   Globe,
-  FileText
+  Mail,
+  MessageSquare,
+  Search,
 } from 'lucide-react'
 import { AgentInstanceContext, HandleContext } from '../../../context'
 import { Operator } from '../../../constant'
@@ -26,6 +27,7 @@ const nodeCategories = [
     nodes: [
       { type: Operator.Retrieval, icon: Database, label: '检索', color: 'text-blue-600' },
       { type: Operator.Message, icon: MessageSquare, label: '回复', color: 'text-green-600' },
+      { type: Operator.A2UI, icon: GalleryVerticalEnd, label: 'A2UI 卡片', color: 'text-text-secondary' },
     ],
   },
   {

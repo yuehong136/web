@@ -5,7 +5,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion'
 import { RuntimeMessageBubble } from '@/pages/agent/components/runtime-message-bubble'
-import { normalizeRuntimeAttachments } from '../../runtime-workbench/utils'
+import { mapSessionMessageToRuntimeMessage } from '@/pages/agent/explore/utils'
 import type { AgentSessionMessage } from '@/types/agent'
 
 interface TranscriptProps {
@@ -32,15 +32,7 @@ export function Transcript({ messages }: TranscriptProps) {
             {messages.map((message, index) => (
               <RuntimeMessageBubble
                 key={message.id || `${message.role || 'message'}-${index}`}
-                message={{
-                  role: message.role,
-                  content: message.content,
-                  files: normalizeRuntimeAttachments(message.files),
-                  error:
-                    typeof message.error === 'string'
-                      ? message.error
-                      : undefined,
-                }}
+                message={mapSessionMessageToRuntimeMessage(message, index)}
               />
             ))}
           </div>

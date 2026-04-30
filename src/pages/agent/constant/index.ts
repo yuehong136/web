@@ -8,6 +8,7 @@ export const Operator = {
   Begin: 'Begin',
   Retrieval: 'Retrieval',
   Message: 'Message',
+  A2UI: 'A2UI',
 
   // 控制流节点
   Categorize: 'Categorize',
@@ -101,6 +102,7 @@ export const NodeMap: Record<string, string> = {
   [Operator.Begin]: 'beginNode',
   [Operator.Retrieval]: 'retrievalNode',
   [Operator.Message]: 'messageNode',
+  [Operator.A2UI]: 'a2uiNode',
   [Operator.Categorize]: 'categorizeNode',
   [Operator.Switch]: 'switchNode',
   [Operator.Relevant]: 'relevantNode',
@@ -297,6 +299,44 @@ export const initialMessageValues = {
   status: 200,
   memory_ids: [] as string[],
   user_id: '',
+}
+
+export const A2UIBasicCatalogId = 'https://a2ui.org/specification/v0_9/basic_catalog.json'
+
+export const initialA2UIValues = {
+  commands: [
+    JSON.stringify(
+      [
+        {
+          version: 'v0.9',
+          createSurface: {
+            surfaceId: 'message-card',
+            catalogId: A2UIBasicCatalogId,
+          },
+        },
+        {
+          version: 'v0.9',
+          updateComponents: {
+            surfaceId: 'message-card',
+            components: [
+              {
+                id: 'root',
+                component: 'Card',
+                child: 'content',
+              },
+              {
+                id: 'content',
+                component: 'Text',
+                text: 'Hello A2UI',
+              },
+            ],
+          },
+        },
+      ],
+      null,
+      2,
+    ),
+  ],
 }
 
 // Categorize节点初始值
@@ -1060,10 +1100,12 @@ export const RestrictedUpstreamMap: Record<string, Operator[]> = {
   [Operator.Message]: [
     Operator.Begin,
     Operator.Message,
+    Operator.A2UI,
     Operator.Retrieval,
     Operator.RewriteQuestion,
     Operator.Categorize,
   ],
+  [Operator.A2UI]: [Operator.Begin, Operator.Message, Operator.A2UI],
   [Operator.Categorize]: [Operator.Begin],
   [Operator.Switch]: [Operator.Begin],
   [Operator.Relevant]: [Operator.Begin],
@@ -1125,6 +1167,7 @@ export const RestrictedUpstreamMap: Record<string, Operator[]> = {
 export const NoDebugOperatorsList = [
   Operator.Begin,
   Operator.Message,
+  Operator.A2UI,
   Operator.RewriteQuestion,
   Operator.Switch,
   Operator.Iteration,
@@ -1364,6 +1407,7 @@ export const AgentOperatorList = [
   Operator.Retrieval,
   Operator.Categorize,
   Operator.Message,
+  Operator.A2UI,
   Operator.RewriteQuestion,
   Operator.Switch,
   Operator.Iteration,

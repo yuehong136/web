@@ -10,11 +10,20 @@ import {
   buildRuntimeSummary,
   consumeRuntimeMessageChunk,
   formatRuntimeInputSummary,
+  hideRawA2UICommandContent,
   normalizeRuntimeAttachments,
   normalizeRuntimeEvent,
 } from '../utils'
 import { buildRuntimeThoughtChainNodes } from '../thought-chain-utils'
 import { extractReferencesFromSSEData } from '@/utils/reference-replacer'
+import {
+  A2UI_INTERNAL_DATA_PATH_PREFIX,
+  A2UI_CATALOG_ID,
+  XCardStatus,
+  buildA2UIDisplayContext,
+  buildA2UIActionInput,
+  normalizeCommandsForXCardRenderer,
+} from '../../../x-card'
 
 test('buildRuntimeInputObject preserves mixed begin-query field metadata', () => {
   const inputs = buildRuntimeInputObject([
@@ -211,6 +220,391 @@ test('normalizeRuntimeEvent extracts ids, log events, and runtime errors', () =>
   })
 })
 
+test('normalizeRuntimeEvent extracts A2UI v0.9 commands incrementally', () => {
+  const normalized = normalizeRuntimeEvent({
+    event: 'a2ui_command',
+    data: {
+      surface_id: 'message-card',
+      commands: [
+        {
+          version: 'v0.9',
+          createSurface: {
+            surfaceId: 'message-card',
+            catalogId: A2UI_CATALOG_ID,
+          },
+        },
+        {
+          version: 'v0.8',
+          surfaceUpdate: {
+            surfaceId: 'legacy',
+            components: [],
+          },
+        },
+      ],
+    },
+  })
+
+  assert.equal(normalized.event, 'a2ui_command')
+  assert.equal(normalized.xCardStatus, XCardStatus.READY)
+  assert.deepEqual(normalized.xCardSurfaceIds, ['message-card'])
+  assert.equal(normalized.xCardCommands?.length, 1)
+  const command = normalized.xCardCommands?.[0] as
+    | { createSurface?: { surfaceId?: string } }
+    | undefined
+  assert.equal(
+    command?.createSurface?.surfaceId,
+    'message-card',
+  )
+})
+
+test('normalizeRuntimeEvent preserves raw A2UI JSON from node output fallback', () => {
+  const content =
+    '[{"version":"v0.9","createSurface":{"surfaceId":"message-card","catalogId":"https://a2ui.org/specification/v0_9/basic_catalog.json"}}]'
+  const normalized = normalizeRuntimeEvent({
+    event: 'node_finished',
+    message_id: 'message-1',
+    data: {
+      component_id: 'agent_1',
+      outputs: {
+        content,
+      },
+    },
+  })
+
+  assert.equal(normalized.outputContent, content)
+})
+
+test('hideRawA2UICommandContent hides only raw A2UI command payloads', () => {
+  assert.equal(
+    hideRawA2UICommandContent(
+      'before [{"version":"v0.9","createSurface":{"surfaceId":"message-card","catalogId":"https://a2ui.org/specification/v0_9/basic_catalog.json"}}] after',
+    ),
+    'before [{"version":"v0.9","createSurface":{"surfaceId":"message-card","catalogId":"https://a2ui.org/specification/v0_9/basic_catalog.json"}}] after',
+  )
+  assert.equal(
+    hideRawA2UICommandContent(
+      '[{"version":"v0.9","createSurface":{"surfaceId":"message-card","catalogId":"https://a2ui.org/specification/v0_9/basic_catalog.json"}}]',
+    ),
+    '',
+  )
+  assert.equal(
+    hideRawA2UICommandContent(
+      '{"version":"v0.9","updateDataModel":{"surfaceId":"message-card","path":"/name","value":"Alice"}}\n{"version":"v0.9","deleteSurface":{"surfaceId":"message-card"}}',
+    ),
+    '',
+  )
+})
+
+test('buildA2UIActionInput builds standard A2UI action request metadata', () => {
+  const input = buildA2UIActionInput({
+    name: 'submit',
+    surfaceId: 'message-card',
+    sourceComponentId: 'submit-button',
+    timestamp: '2026-04-29T09:00:00.000Z',
+    context: { name: 'Alice' },
+  })
+
+  assert.equal(
+    input.query,
+    [
+      '用户触发了卡片操作：submit',
+      '',
+      'A2UI action:',
+      '- surfaceId: message-card',
+      '- sourceComponentId: submit-button',
+      '',
+      '表单数据(JSON):',
+      '{\n  "name": "Alice"\n}',
+    ].join('\n'),
+  )
+  assert.deepEqual(input.a2ui, [
+    {
+      version: 'v0.9',
+      action: {
+        name: 'submit',
+        surfaceId: 'message-card',
+        sourceComponentId: 'submit-button',
+        timestamp: '2026-04-29T09:00:00.000Z',
+        context: { name: 'Alice' },
+      },
+    },
+  ])
+  assert.deepEqual(input.metadata, {
+    a2uiClientCapabilities: {
+      'v0.9': {
+        supportedCatalogIds: [A2UI_CATALOG_ID],
+        inlineCatalogs: [],
+      },
+    },
+    a2uiClientDataModel: {
+      version: 'v0.9',
+      surfaces: {
+        'message-card': { name: 'Alice' },
+      },
+    },
+    a2uiClientDisplayContext: {
+      version: 'v0.9',
+      surfaces: {
+        'message-card': { name: 'Alice' },
+      },
+    },
+  })
+  assert.equal('inputs' in input, false)
+})
+
+test('buildA2UIDisplayContext maps ChoicePicker values to visible labels', () => {
+  const commands = normalizeCommandsForXCardRenderer([
+    {
+      version: 'v0.9',
+      updateComponents: {
+        surfaceId: 'sports-registration',
+        components: [
+          {
+            id: 'grade',
+            component: 'ChoicePicker',
+            value: { path: '/grade' },
+            options: [
+              { value: 'grade-1', label: '高一' },
+              { value: 'grade-2', label: '高二' },
+            ],
+          },
+          {
+            id: 'submit-button',
+            component: 'Button',
+            child: 'submit-label',
+            action: {
+              event: {
+                name: 'submitSportsRegistration',
+                context: {
+                  grade: { path: '/grade' },
+                  studentId: { path: '/studentId' },
+                },
+              },
+            },
+          },
+        ],
+      },
+    },
+  ])
+
+  const displayContext = buildA2UIDisplayContext(commands, {
+    name: 'submitSportsRegistration',
+    surfaceId: 'sports-registration',
+    sourceComponentId: 'submit-button',
+    timestamp: '2026-04-29T09:00:00.000Z',
+    context: {
+      grade: ['grade-1'],
+      studentId: '2006',
+    },
+  })
+
+  assert.deepEqual(displayContext, {
+    grade: ['高一'],
+    studentId: '2006',
+  })
+})
+
+test('normalizeCommandsForXCardRenderer derives internal writable dataPath strings', () => {
+  const commands = normalizeCommandsForXCardRenderer([
+    {
+      version: 'v0.9',
+      updateComponents: {
+        surfaceId: 'message-card',
+        components: [
+          {
+            id: 'query',
+            component: 'TextField',
+            value: { path: '/sqlQuery' },
+          },
+        ],
+      },
+    },
+  ])
+
+  const command = commands[0] as
+    | {
+        updateComponents?: {
+          components?: Array<{ dataPath?: string }>
+        }
+      }
+    | undefined
+
+  assert.equal(
+    command?.updateComponents?.components?.[0]?.dataPath,
+    `${A2UI_INTERNAL_DATA_PATH_PREFIX}/sqlQuery`,
+  )
+})
+
+test('normalizeCommandsForXCardRenderer infers Basic Catalog writable paths', () => {
+  const commands = normalizeCommandsForXCardRenderer([
+    {
+      version: 'v0.9',
+      updateComponents: {
+        surfaceId: 'message-card',
+        components: [
+          {
+            id: 'email',
+            component: 'TextField',
+            value: { path: '/form/email' },
+          },
+          {
+            id: 'plan',
+            component: 'ChoicePicker',
+            value: { path: '/form/plan' },
+          },
+        ],
+      },
+    },
+  ])
+
+  const command = commands[0] as
+    | {
+        updateComponents?: {
+          components?: Array<{ dataPath?: string }>
+        }
+      }
+    | undefined
+
+  assert.equal(
+    command?.updateComponents?.components?.[0]?.dataPath,
+    `${A2UI_INTERNAL_DATA_PATH_PREFIX}/form/email`,
+  )
+  assert.equal(
+    command?.updateComponents?.components?.[1]?.dataPath,
+    `${A2UI_INTERNAL_DATA_PATH_PREFIX}/form/plan`,
+  )
+})
+
+test('normalizeCommandsForXCardRenderer adapts Basic Catalog List and Tabs shapes', () => {
+  const commands = normalizeCommandsForXCardRenderer([
+    {
+      version: 'v0.9',
+      updateComponents: {
+        surfaceId: 'message-card',
+        components: [
+          {
+            id: 'record-list',
+            component: 'List',
+            children: {
+              path: '/records',
+              componentId: 'record-item',
+            } as unknown as string[],
+          },
+          {
+            id: 'tabs',
+            component: 'Tabs',
+            tabs: [
+              { title: '今日', child: 'today' },
+              { title: '本周', child: 'week' },
+            ],
+          },
+        ],
+      },
+    },
+  ])
+
+  const command = commands[0] as
+    | {
+        updateComponents?: {
+          components?: Array<{
+            children?: unknown
+            items?: unknown
+            itemsPath?: string
+            tabTitles?: string[]
+          }>
+        }
+      }
+    | undefined
+
+  assert.equal(command?.updateComponents?.components?.[0]?.children, undefined)
+  assert.deepEqual(
+    command?.updateComponents?.components?.[0]?.items,
+    { path: '/records' },
+  )
+  assert.equal(
+    command?.updateComponents?.components?.[0]?.itemsPath,
+    '/records',
+  )
+  assert.deepEqual(
+    command?.updateComponents?.components?.[1]?.children,
+    ['today', 'week'],
+  )
+  assert.deepEqual(
+    command?.updateComponents?.components?.[1]?.tabTitles,
+    ['今日', '本周'],
+  )
+})
+
+test('normalizeCommandsForXCardRenderer preserves canonical component payloads without legacy props flattening', () => {
+  const commands = normalizeCommandsForXCardRenderer([
+    {
+      version: 'v0.9',
+      updateComponents: {
+        surfaceId: 'message-card',
+        components: [
+          {
+            id: 'root',
+            component: 'Column',
+            children: ['title-card', 'name'],
+          },
+          {
+            id: 'title-card',
+            component: 'Card',
+            props: { title: '考勤', children: ['name'] },
+          },
+          {
+            id: 'name',
+            component: 'Text',
+            props: {
+              text: { value: { path: '/user/name' } },
+            },
+          },
+          {
+            id: 'confirm',
+            component: 'CheckBox',
+            props: {
+              checked: { value: { path: '/form/confirmed' } },
+            },
+          },
+          {
+            id: 'submit',
+            component: 'Button',
+            props: { text: '提交' },
+            actions: [{ event: { name: 'submit' } }],
+          },
+        ],
+      },
+    },
+  ])
+
+  const command = commands[0] as
+    | {
+        updateComponents?: {
+          components?: Array<{
+            action?: unknown
+            checked?: unknown
+            children?: unknown
+            props?: unknown
+            text?: unknown
+            value?: unknown
+          }>
+        }
+      }
+    | undefined
+  const components = command?.updateComponents?.components || []
+
+  assert.deepEqual(components[0]?.children, ['title-card', 'name'])
+  assert.deepEqual(components[1]?.props, { title: '考勤', children: ['name'] })
+  assert.deepEqual(components[2]?.props, {
+    text: { value: { path: '/user/name' } },
+  })
+  assert.deepEqual(components[3]?.props, {
+    checked: { value: { path: '/form/confirmed' } },
+  })
+  assert.equal(components[3]?.value, undefined)
+  assert.equal(components[4]?.action, undefined)
+})
+
 test('consumeRuntimeMessageChunk keeps main content and thinking content separate', () => {
   const first = consumeRuntimeMessageChunk(undefined, {
     content: 'Answer: ',
@@ -233,6 +627,17 @@ test('consumeRuntimeMessageChunk keeps main content and thinking content separat
   assert.equal(fourth.nextState.content, 'Answer: done')
   assert.equal(fourth.nextState.thinking, 'reason about tools')
   assert.equal(fourth.isFinal, true)
+})
+
+test('consumeRuntimeMessageChunk preserves raw A2UI command JSON in message state', () => {
+  const content =
+    '[{"version":"v0.9","createSurface":{"surfaceId":"message-card","catalogId":"https://a2ui.org/specification/v0_9/basic_catalog.json"}}]'
+  const chunk = consumeRuntimeMessageChunk(undefined, {
+    content,
+    final: true,
+  })
+
+  assert.equal(chunk.nextState.content, content)
 })
 
 test('buildRuntimeThoughtChainNodes maps SSE node events to chain status', () => {

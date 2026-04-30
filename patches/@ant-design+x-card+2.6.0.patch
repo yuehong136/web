@@ -1,0 +1,167 @@
+diff --git a/node_modules/@ant-design/x-card/es/A2UI/Card.js b/node_modules/@ant-design/x-card/es/A2UI/Card.js
+index 5e7324b..6458974 100644
+--- a/node_modules/@ant-design/x-card/es/A2UI/Card.js
++++ b/node_modules/@ant-design/x-card/es/A2UI/Card.js
+@@ -5,7 +5,7 @@ import { createComponentTransformer } from "./format/components";
+ import { resolvePropsV08, extractDataUpdatesV08, applyDataModelUpdateV08 } from "./Card.v0.8";
+ 
+ // v0.9 specific logic
+-import { resolvePropsV09, extractDataUpdatesV09, applyDataModelUpdateV09 } from "./Card.v0.9";
++import { resolvePropsV09, extractDataUpdatesV09, applyDataModelUpdateV09, resolveActionContextV09 } from "./Card.v0.9";
+ 
+ // Shared logic
+ import { setValueByPath, validateComponentAgainstCatalog } from "./utils";
+@@ -15,6 +15,7 @@ function renderNode(nodeId, transformer, components, dataModel, onAction, onData
+   if (!node) return null;
+   return /*#__PURE__*/React.createElement(NodeRenderer, {
+     key: nodeId,
++    nodeId: nodeId,
+     node: node,
+     transformer: transformer,
+     components: components,
+@@ -26,6 +27,7 @@ function renderNode(nodeId, transformer, components, dataModel, onAction, onData
+   });
+ }
+ const NodeRenderer = ({
++  nodeId,
+   node,
+   transformer,
+   components,
+@@ -78,7 +80,7 @@ const NodeRenderer = ({
+     resolvedProps.onAction = (name, context) => {
+       // Get action configuration from resolvedProps (path binding already resolved)
+       const actionConfig = resolvedProps.action;
+-      onAction?.(name, context, actionConfig);
++      onAction?.(name, context, actionConfig, nodeId);
+     };
+ 
+     // Inject onDataChange for components to directly update dataModel
+@@ -272,7 +274,7 @@ const Card = ({
+    * Handler when action is triggered
+    * Use different extractDataUpdates and resolveActionContext based on version
+    */
+-  const handleAction = (name, context, actionConfig) => {
++  const handleAction = (name, context, actionConfig, sourceComponentId) => {
+     // Use different extractDataUpdates based on version
+     const dataUpdates = commandVersion === 'v0.9' ? extractDataUpdatesV09(actionConfig, context) : extractDataUpdatesV08(actionConfig, context);
+ 
+@@ -288,12 +290,16 @@ const Card = ({
+       setDataModel(newDataModel);
+     }
+ 
++    const resolvedActionContext = commandVersion === 'v0.9' ? resolveActionContextV09(actionConfig, newDataModel) : undefined;
++
+     // Report event to upper layer
+     onAction?.({
+       name,
+       surfaceId: id,
++      sourceComponentId: sourceComponentId || 'unknown',
++      timestamp: new Date().toISOString(),
+       context: {
+-        ...context
++        ...(resolvedActionContext || context)
+       }
+     });
+   };
+@@ -303,6 +309,7 @@ const Card = ({
+     setDataModel(prev => setValueByPath(prev, path, value));
+   };
+   return /*#__PURE__*/React.createElement(NodeRenderer, {
++    nodeId: rootNode.id,
+     node: rootNode,
+     transformer: transformerRef.current,
+     components: components,
+diff --git a/node_modules/@ant-design/x-card/es/A2UI/types/box.d.ts b/node_modules/@ant-design/x-card/es/A2UI/types/box.d.ts
+index 6611efb..406f52d 100644
+--- a/node_modules/@ant-design/x-card/es/A2UI/types/box.d.ts
++++ b/node_modules/@ant-design/x-card/es/A2UI/types/box.d.ts
+@@ -8,6 +8,10 @@ export interface ActionPayload {
+     name: string;
+     /** 触发该 action 的 surfaceId */
+     surfaceId: string;
++    /** 触发该 action 的组件 ID */
++    sourceComponentId: string;
++    /** action 触发时间，ISO 8601 字符串 */
++    timestamp: string;
+     /** 当前 surface 的完整 dataModel 快照，作为 context */
+     context: Record<string, any>;
+ }
+diff --git a/node_modules/@ant-design/x-card/lib/A2UI/Card.js b/node_modules/@ant-design/x-card/lib/A2UI/Card.js
+index 258265d..4bfa864 100644
+--- a/node_modules/@ant-design/x-card/lib/A2UI/Card.js
++++ b/node_modules/@ant-design/x-card/lib/A2UI/Card.js
+@@ -24,6 +24,7 @@ function renderNode(nodeId, transformer, components, dataModel, onAction, onData
+   if (!node) return null;
+   return /*#__PURE__*/_react.default.createElement(NodeRenderer, {
+     key: nodeId,
++    nodeId: nodeId,
+     node: node,
+     transformer: transformer,
+     components: components,
+@@ -35,6 +36,7 @@ function renderNode(nodeId, transformer, components, dataModel, onAction, onData
+   });
+ }
+ const NodeRenderer = ({
++  nodeId,
+   node,
+   transformer,
+   components,
+@@ -87,7 +89,7 @@ const NodeRenderer = ({
+     resolvedProps.onAction = (name, context) => {
+       // Get action configuration from resolvedProps (path binding already resolved)
+       const actionConfig = resolvedProps.action;
+-      onAction?.(name, context, actionConfig);
++      onAction?.(name, context, actionConfig, nodeId);
+     };
+ 
+     // Inject onDataChange for components to directly update dataModel
+@@ -281,7 +283,7 @@ const Card = ({
+    * Handler when action is triggered
+    * Use different extractDataUpdates and resolveActionContext based on version
+    */
+-  const handleAction = (name, context, actionConfig) => {
++  const handleAction = (name, context, actionConfig, sourceComponentId) => {
+     // Use different extractDataUpdates based on version
+     const dataUpdates = commandVersion === 'v0.9' ? (0, _CardV2.extractDataUpdatesV09)(actionConfig, context) : (0, _CardV.extractDataUpdatesV08)(actionConfig, context);
+ 
+@@ -297,12 +299,16 @@ const Card = ({
+       setDataModel(newDataModel);
+     }
+ 
++    const resolvedActionContext = commandVersion === 'v0.9' ? (0, _CardV2.resolveActionContextV09)(actionConfig, newDataModel) : undefined;
++
+     // Report event to upper layer
+     onAction?.({
+       name,
+       surfaceId: id,
++      sourceComponentId: sourceComponentId || 'unknown',
++      timestamp: new Date().toISOString(),
+       context: {
+-        ...context
++        ...(resolvedActionContext || context)
+       }
+     });
+   };
+@@ -312,6 +318,7 @@ const Card = ({
+     setDataModel(prev => (0, _utils.setValueByPath)(prev, path, value));
+   };
+   return /*#__PURE__*/_react.default.createElement(NodeRenderer, {
++    nodeId: rootNode.id,
+     node: rootNode,
+     transformer: transformerRef.current,
+     components: components,
+diff --git a/node_modules/@ant-design/x-card/lib/A2UI/types/box.d.ts b/node_modules/@ant-design/x-card/lib/A2UI/types/box.d.ts
+index 6611efb..406f52d 100644
+--- a/node_modules/@ant-design/x-card/lib/A2UI/types/box.d.ts
++++ b/node_modules/@ant-design/x-card/lib/A2UI/types/box.d.ts
+@@ -8,6 +8,10 @@ export interface ActionPayload {
+     name: string;
+     /** 触发该 action 的 surfaceId */
+     surfaceId: string;
++    /** 触发该 action 的组件 ID */
++    sourceComponentId: string;
++    /** action 触发时间，ISO 8601 字符串 */
++    timestamp: string;
+     /** 当前 surface 的完整 dataModel 快照，作为 context */
+     context: Record<string, any>;
+ }

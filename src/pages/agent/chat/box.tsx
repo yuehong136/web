@@ -69,7 +69,11 @@ function AgentChatBox({ controller }: AgentChatBoxProps) {
               const isLatest = index === controller.messages.length - 1
 
               return (
-                <RuntimeMessageBubble key={message.id} message={message}>
+                <RuntimeMessageBubble
+                  key={message.id}
+                  message={message}
+                  onXCardAction={controller.handleXCardAction}
+                >
                     {message.awaitingInputs?.length && isLatest ? (
                       <div className="mt-space-md rounded-radius-md border border-border-primary bg-surface-primary p-space-sm">
                         <DebugContent

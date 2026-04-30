@@ -11,6 +11,7 @@ import {
   normalizeRuntimeEvent,
 } from '../../features/runtime-workbench/utils'
 import { shouldStoreRuntimeThoughtEvent } from '../../features/runtime-workbench/thought-chain-utils'
+import { mergeSurfaceIds } from '../../x-card'
 
 const isRecord = (value: unknown): value is Record<string, unknown> => {
   return typeof value === 'object' && value !== null
@@ -61,20 +62,19 @@ export function useExploreRuntimeEvents({
         setLatestTaskId(normalizedEvent.taskId)
       }
 
+      const logEvent = normalizedEvent.logEvent
+
       if (
-        normalizedEvent.logEvent &&
-        shouldStoreRuntimeThoughtEvent(
-          normalizedEvent.logEvent.event,
-          normalizedEvent.logEvent.data,
-        )
+        logEvent &&
+        shouldStoreRuntimeThoughtEvent(logEvent.event, logEvent.data)
       ) {
         updateMessageById(assistantId, (message) => ({
           ...message,
           logEvents: [
             ...(message.logEvents || []),
             {
-              event: normalizedEvent.logEvent.event,
-              data: normalizedEvent.logEvent.data,
+              event: logEvent.event,
+              data: logEvent.data,
             },
           ],
           messageId: normalizedEvent.messageId || message.messageId,
@@ -102,6 +102,25 @@ export function useExploreRuntimeEvents({
           content: message.content || normalizedEvent.errorMessage || '',
           error: normalizedEvent.errorMessage,
           isStreaming: false,
+          messageId: normalizedEvent.messageId || message.messageId,
+          taskId: normalizedEvent.taskId || message.taskId,
+        }))
+        return
+      }
+
+      if (normalizedEvent.event === 'a2ui_command') {
+        updateMessageById(assistantId, (message) => ({
+          ...message,
+          content: message.content || '',
+          xCardCommands: [
+            ...(message.xCardCommands || []),
+            ...(normalizedEvent.xCardCommands || []),
+          ],
+          xCardSurfaceIds: mergeSurfaceIds(
+            message.xCardSurfaceIds,
+            normalizedEvent.xCardSurfaceIds,
+          ),
+          xCardStatus: normalizedEvent.xCardStatus || message.xCardStatus,
           messageId: normalizedEvent.messageId || message.messageId,
           taskId: normalizedEvent.taskId || message.taskId,
         }))

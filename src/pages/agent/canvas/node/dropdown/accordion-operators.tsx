@@ -63,7 +63,7 @@ export function AccordionOperators({
         </OperatorAccordionTrigger>
         <AccordionContent className="flex flex-col gap-space-base text-text-primary">
           <OperatorItemList
-            operators={[Operator.Message, Operator.UserFillUp]}
+            operators={[Operator.Message, Operator.A2UI, Operator.UserFillUp]}
             isCustomDropdown={isCustomDropdown}
             mousePosition={mousePosition}
           />

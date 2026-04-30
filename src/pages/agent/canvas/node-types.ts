@@ -3,6 +3,7 @@ import { RagNode } from './node'
 import { BeginNode } from './node/begin-node'
 import { RetrievalNode } from './node/retrieval-node'
 import { MessageNode } from './node/message-node'
+import { A2UINode } from './node/a2ui-node'
 import { SwitchNode } from './node/switch-node'
 import { AgentNode } from './node/agent-node'
 import { ToolNode } from './node/tool-node'
@@ -35,6 +36,7 @@ export const nodeTypes: NodeTypes = {
   beginNode: BeginNode,
   retrievalNode: RetrievalNode,
   messageNode: MessageNode,
+  a2uiNode: A2UINode,
   categorizeNode: CategorizeNode,
   switchNode: SwitchNode,
   relevantNode: RagNode,

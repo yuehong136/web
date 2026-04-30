@@ -2,6 +2,7 @@ import type { ComponentType } from 'react'
 import { Operator } from '../constant'
 import type { INextOperatorForm } from '../types'
 import { AgentForm } from './agent'
+import { A2UIForm } from './a2ui'
 import { ArxivForm } from './arxiv-form'
 import { BeginForm } from './begin'
 import { BingForm } from './bing-form'
@@ -54,6 +55,7 @@ export const FormConfigMap: Record<
   [Operator.Begin]: BeginForm,
   [Operator.Retrieval]: RetrievalForm,
   [Operator.Message]: MessageForm,
+  [Operator.A2UI]: A2UIForm,
   [Operator.Categorize]: CategorizeForm,
   [Operator.Switch]: SwitchForm,
   [Operator.Agent]: AgentForm,

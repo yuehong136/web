@@ -8,6 +8,7 @@ import {
 import {
   AgentGlobals,
   Operator,
+  initialA2UIValues,
   initialAgentValues,
   initialArXivValues,
   initialBeginValues,
@@ -62,6 +63,7 @@ const operatorDefaultValues: Record<OperatorType, Record<string, unknown>> = {
   [Operator.Begin]: initialBeginValues,
   [Operator.Retrieval]: initialRetrievalValues,
   [Operator.Message]: initialMessageValues,
+  [Operator.A2UI]: initialA2UIValues,
   [Operator.Categorize]: initialCategorizeValues,
   [Operator.Switch]: initialSwitchValues,
   [Operator.Relevant]: initialRelevantValues,

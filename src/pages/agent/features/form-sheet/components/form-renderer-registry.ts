@@ -1,6 +1,7 @@
 import type { ComponentType } from 'react'
 import { Operator } from '../../../constant'
 import { AgentForm } from '../../../form/agent'
+import { A2UIForm } from '../../../form/a2ui'
 import { ArxivForm } from '../../../form/arxiv-form'
 import { BeginForm } from '../../../form/begin'
 import { BingForm } from '../../../form/bing-form'
@@ -56,6 +57,7 @@ export const migratedFormRenderers: Record<
   [Operator.Begin]: BeginForm,
   [Operator.Retrieval]: RetrievalForm,
   [Operator.Message]: MessageForm,
+  [Operator.A2UI]: A2UIForm,
   [Operator.Categorize]: CategorizeForm,
   [Operator.Switch]: SwitchForm,
   [Operator.Agent]: AgentForm,

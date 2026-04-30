@@ -20,7 +20,14 @@ import type { ReactNode } from 'react'
 import { useCallback, useState } from 'react'
 import { RuntimeTracePanel } from '../features/runtime-workbench/components/runtime-trace-panel'
 import type { RuntimeAttachment } from '../features/runtime-workbench/types'
+import { hideRawA2UICommandContent } from '../features/runtime-workbench/utils'
 import type { INodeEvent } from '../hooks/use-node-loading'
+import {
+  AgentXCardRenderer,
+  type AgentXCardActionPayload,
+  type AgentXCardCommand,
+  type XCardStatus,
+} from '../x-card'
 
 export interface RuntimeMessageBubbleData {
   role?: string
@@ -32,11 +39,15 @@ export interface RuntimeMessageBubbleData {
   files?: RuntimeAttachment[]
   reference?: unknown
   error?: string
+  xCardCommands?: AgentXCardCommand[]
+  xCardSurfaceIds?: string[]
+  xCardStatus?: XCardStatus
 }
 
 interface RuntimeMessageBubbleProps {
   message: RuntimeMessageBubbleData
   children?: ReactNode
+  onXCardAction?: (payload: AgentXCardActionPayload) => void | Promise<void>
 }
 
 interface RuntimeMarkdownProps {
@@ -107,6 +118,7 @@ function getReferenceChunks(reference: unknown): ReferenceChunk[] {
 export function RuntimeMessageBubble({
   message,
   children,
+  onXCardAction,
 }: RuntimeMessageBubbleProps) {
   const isUser = message.role === 'user'
   const referenceChunks = getReferenceChunks(message.reference)
@@ -128,10 +140,16 @@ export function RuntimeMessageBubble({
     }
   }, [])
 
+  const hasXCard = Boolean(
+    message.xCardCommands?.length && message.xCardSurfaceIds?.length,
+  )
+  const visibleContent = hasXCard
+    ? hideRawA2UICommandContent(message.content || '')
+    : message.content || ''
   const contentWithSup =
-    hasReferences && message.content
-      ? convertReferencesToSup(message.content)
-      : message.content || ''
+    hasReferences && visibleContent
+      ? convertReferencesToSup(visibleContent)
+      : visibleContent
   const SupComponent = hasReferences
     ? createReferenceMarkerComponent(referenceChunks, {
         onViewDetail: handleViewDetail,
@@ -170,15 +188,24 @@ export function RuntimeMessageBubble({
             </div>
           ) : null}
 
-          {message.content ? (
+          {visibleContent ? (
             <RuntimeMarkdown
               content={contentWithSup}
               streaming={Boolean(message.isStreaming)}
               components={markdownComponents}
             />
-          ) : (
+          ) : !hasXCard ? (
             <p className="whitespace-pre-wrap text-sm">...</p>
-          )}
+          ) : null}
+
+          {!isUser && hasXCard ? (
+            <AgentXCardRenderer
+              commands={message.xCardCommands}
+              surfaceIds={message.xCardSurfaceIds}
+              status={message.xCardStatus}
+              onAction={onXCardAction}
+            />
+          ) : null}
 
           {message.tips ? (
             <div className="mt-space-sm rounded-radius-md border border-border-primary bg-surface-primary p-space-sm text-sm text-text-secondary">

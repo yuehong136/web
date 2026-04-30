@@ -12,6 +12,7 @@ import {
   initialBeginValues,
   initialRetrievalValues,
   initialMessageValues,
+  initialA2UIValues,
   initialCategorizeValues,
   initialSwitchValues,
   initialRelevantValues,
@@ -86,6 +87,7 @@ export const useInitializeOperatorParams = () => {
       [Operator.Begin]: initialBeginValues,
       [Operator.Retrieval]: initialRetrievalValues,
       [Operator.Message]: initialMessageValues,
+      [Operator.A2UI]: initialA2UIValues,
       [Operator.Categorize]: {
         ...initialCategorizeValues,
         llm_id: defaultChatModel,
@@ -186,6 +188,7 @@ export const useGetNodeName = () => {
       [Operator.Begin]: '开始',
       [Operator.Retrieval]: '检索',
       [Operator.Message]: '回复',
+      [Operator.A2UI]: 'A2UI 卡片',
       [Operator.Categorize]: '分类',
       [Operator.Switch]: '条件',
       [Operator.Relevant]: '相关性',

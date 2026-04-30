@@ -139,6 +139,10 @@ export interface IMessageForm {
   user_id?: string
 }
 
+export interface IA2UIForm {
+  commands: string[]
+}
+
 // Categorize节点表单
 export interface ICategorizeItem {
   name: string
@@ -244,6 +248,7 @@ export type BaseNode<T = any> = Node<BaseNodeData<T>>
 export type IBeginNode = BaseNode<IBeginForm>
 export type IRetrievalNode = BaseNode<IRetrievalForm>
 export type IMessageNode = BaseNode<IMessageForm>
+export type IA2UINode = BaseNode<IA2UIForm>
 export type ICategorizeNode = BaseNode<ICategorizeForm>
 export type ISwitchNode = BaseNode<ISwitchForm>
 export type IRelevantNode = BaseNode<IRelevantForm>
@@ -264,6 +269,7 @@ export type RAGFlowNodeType =
   | IBeginNode
   | IRetrievalNode
   | IMessageNode
+  | IA2UINode
   | ICategorizeNode
   | ISwitchNode
   | IRelevantNode

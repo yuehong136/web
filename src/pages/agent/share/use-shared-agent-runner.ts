@@ -8,6 +8,11 @@ import {
   normalizeRuntimeEvent,
 } from '../features/runtime-workbench/utils'
 import { shouldStoreRuntimeThoughtEvent } from '../features/runtime-workbench/thought-chain-utils'
+import {
+  buildA2UIActionInput,
+  mergeSurfaceIds,
+  type AgentXCardActionPayload,
+} from '../x-card'
 import type { ShareRuntimeMessage } from './types'
 import type { ShareFormValues } from './utils'
 
@@ -82,20 +87,19 @@ export function useSharedAgentRunner({
         setSessionId(normalizedEvent.sessionId)
       }
 
+      const logEvent = normalizedEvent.logEvent
+
       if (
-        normalizedEvent.logEvent &&
-        shouldStoreRuntimeThoughtEvent(
-          normalizedEvent.logEvent.event,
-          normalizedEvent.logEvent.data,
-        )
+        logEvent &&
+        shouldStoreRuntimeThoughtEvent(logEvent.event, logEvent.data)
       ) {
         updateMessageById(assistantId, (message) => ({
           ...message,
           logEvents: [
             ...(message.logEvents || []),
             {
-              event: normalizedEvent.logEvent.event,
-              data: normalizedEvent.logEvent.data,
+              event: logEvent.event,
+              data: logEvent.data,
             },
           ],
           messageId: normalizedEvent.messageId || message.messageId,
@@ -110,6 +114,25 @@ export function useSharedAgentRunner({
           content: message.content || normalizedEvent.errorMessage || '',
           error: normalizedEvent.errorMessage,
           isStreaming: false,
+          messageId: normalizedEvent.messageId || message.messageId,
+          taskId: normalizedEvent.taskId || message.taskId,
+        }))
+        return
+      }
+
+      if (normalizedEvent.event === 'a2ui_command') {
+        updateMessageById(assistantId, (message) => ({
+          ...message,
+          content: message.content || '',
+          xCardCommands: [
+            ...(message.xCardCommands || []),
+            ...(normalizedEvent.xCardCommands || []),
+          ],
+          xCardSurfaceIds: mergeSurfaceIds(
+            message.xCardSurfaceIds,
+            normalizedEvent.xCardSurfaceIds,
+          ),
+          xCardStatus: normalizedEvent.xCardStatus || message.xCardStatus,
           messageId: normalizedEvent.messageId || message.messageId,
           taskId: normalizedEvent.taskId || message.taskId,
         }))
@@ -214,12 +237,16 @@ export function useSharedAgentRunner({
       files = [],
       userMessage,
       inputPayload,
+      a2ui,
+      metadata,
     }: {
       query?: string
       values: ShareFormValues
       files?: unknown[]
       userMessage?: string
       inputPayload?: Record<string, unknown>
+      a2ui?: Array<Record<string, unknown>>
+      metadata?: Record<string, unknown>
     }) => {
       if (!agentId || !betaToken || isRunning) {
         return
@@ -251,6 +278,8 @@ export function useSharedAgentRunner({
             betaToken,
             query,
             inputs: inputPayload || buildInputs(values),
+            a2ui,
+            metadata,
             files,
             session_id: sessionId,
             release,
@@ -345,6 +374,22 @@ export function useSharedAgentRunner({
     abortControllerRef.current?.abort()
   }, [])
 
+  const submitXCardAction = useCallback(
+    async (payload: AgentXCardActionPayload) => {
+      const actionInput = buildA2UIActionInput(payload)
+
+      await submit({
+        query: actionInput.query,
+        values: {} as ShareFormValues,
+        userMessage: actionInput.query,
+        inputPayload: {},
+        a2ui: actionInput.a2ui,
+        metadata: actionInput.metadata,
+      })
+    },
+    [submit],
+  )
+
   const clearAwaitingInputs = useCallback((messageId: string) => {
     updateMessageById(messageId, (message) => ({
       ...message,
@@ -398,6 +443,7 @@ export function useSharedAgentRunner({
       appendAssistantMessage,
       clearAwaitingInputs,
       submit,
+      submitXCardAction,
       stop,
       reset,
     }),
@@ -412,6 +458,7 @@ export function useSharedAgentRunner({
       sessionId,
       stop,
       submit,
+      submitXCardAction,
     ],
   )
 }

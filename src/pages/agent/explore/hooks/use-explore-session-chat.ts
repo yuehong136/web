@@ -17,6 +17,10 @@ import {
   formatRuntimeInputSummary,
 } from '../../features/runtime-workbench/utils'
 import {
+  buildA2UIActionInput,
+  type AgentXCardActionPayload,
+} from '../../x-card'
+import {
   consumeRuntimeStream,
   createLocalRuntimeMessageId,
 } from '../../features/runtime-workbench/runtime-stream'
@@ -151,10 +155,14 @@ export function useExploreSessionChat({
       content = '',
       files = [],
       runtimeInputs,
+      a2ui,
+      metadata,
       appendUserMessage,
       userMessageContent,
     }: ExploreSendRequest & {
       runtimeInputs: Record<string, unknown>
+      a2ui?: Array<Record<string, unknown>>
+      metadata?: Record<string, unknown>
       appendUserMessage: boolean
       userMessageContent?: string
     }) => {
@@ -201,6 +209,8 @@ export function useExploreSessionChat({
             session_id: activeSessionId,
             files,
             inputs: runtimeInputs,
+            a2ui,
+            metadata,
           },
           {
             signal: abortController.signal,
@@ -327,6 +337,26 @@ export function useExploreSessionChat({
     [runRequest, updateMessageById],
   )
 
+  const handleXCardAction = useCallback(
+    async (payload: AgentXCardActionPayload) => {
+      if (status === AgentRuntimeStatus.RUNNING) {
+        return
+      }
+
+      const actionInput = buildA2UIActionInput(payload)
+
+      await runRequest({
+        content: actionInput.query,
+        runtimeInputs: buildRuntimeInputObject(submittedBeginInputs || beginInputs),
+        a2ui: actionInput.a2ui,
+        metadata: actionInput.metadata,
+        appendUserMessage: true,
+        userMessageContent: actionInput.query,
+      })
+    },
+    [beginInputs, runRequest, status, submittedBeginInputs],
+  )
+
   const handleStop = useCallback(async () => {
     abortControllerRef.current?.abort()
     if (latestTaskId) {
@@ -361,6 +391,7 @@ export function useExploreSessionChat({
     handleParametersOk,
     handleSendMessage,
     handleSubmitAwaitingInputs,
+    handleXCardAction,
     handleStop,
   }
 }

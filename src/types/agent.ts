@@ -184,6 +184,8 @@ export interface RunAgentPayload {
   session_id?: string | null
   files?: unknown[]
   inputs?: Record<string, unknown>
+  a2ui?: Array<Record<string, unknown>>
+  metadata?: Record<string, unknown>
   release?: boolean | string
   user_id?: string
 }

@@ -37,6 +37,11 @@ import {
   consumeRuntimeStream,
   createLocalRuntimeMessageId,
 } from '../runtime-stream'
+import {
+  buildA2UIActionInput,
+  mergeSurfaceIds,
+  type AgentXCardActionPayload,
+} from '../../../x-card'
 
 interface UseAgentRuntimeWorkbenchOptions {
   canvasId?: string
@@ -187,16 +192,18 @@ export function useAgentRuntimeWorkbench({
         setCurrentMessageId(normalizedEvent.messageId)
       }
 
-      if (normalizedEvent.logEvent) {
+      const logEvent = normalizedEvent.logEvent
+
+      if (logEvent) {
         addEventList(
-          [normalizedEvent.logEvent],
-          normalizedEvent.logEvent.message_id,
+          [logEvent],
+          logEvent.message_id,
         )
 
         if (
           shouldStoreRuntimeThoughtEvent(
-            normalizedEvent.logEvent.event,
-            normalizedEvent.logEvent.data,
+            logEvent.event,
+            logEvent.data,
           )
         ) {
           updateMessageById(assistantId, (message) => ({
@@ -204,8 +211,8 @@ export function useAgentRuntimeWorkbench({
             logEvents: [
               ...(message.logEvents || []),
               {
-                event: normalizedEvent.logEvent.event,
-                data: normalizedEvent.logEvent.data,
+                event: logEvent.event,
+                data: logEvent.data,
               },
             ],
             messageId: normalizedEvent.messageId || message.messageId,
@@ -234,6 +241,25 @@ export function useAgentRuntimeWorkbench({
           content: message.content || normalizedEvent.errorMessage || '',
           error: normalizedEvent.errorMessage,
           isStreaming: false,
+          messageId: normalizedEvent.messageId || message.messageId,
+          taskId: normalizedEvent.taskId || message.taskId,
+        }))
+        return
+      }
+
+      if (normalizedEvent.event === 'a2ui_command') {
+        updateMessageById(assistantId, (message) => ({
+          ...message,
+          content: message.content || '',
+          xCardCommands: [
+            ...(message.xCardCommands || []),
+            ...(normalizedEvent.xCardCommands || []),
+          ],
+          xCardSurfaceIds: mergeSurfaceIds(
+            message.xCardSurfaceIds,
+            normalizedEvent.xCardSurfaceIds,
+          ),
+          xCardStatus: normalizedEvent.xCardStatus || message.xCardStatus,
           messageId: normalizedEvent.messageId || message.messageId,
           taskId: normalizedEvent.taskId || message.taskId,
         }))
@@ -325,6 +351,8 @@ export function useAgentRuntimeWorkbench({
       content = '',
       files = [],
       runtimeInputs,
+      a2ui,
+      metadata,
       appendUserMessage,
       userMessageContent,
       skipSave = false,
@@ -332,6 +360,8 @@ export function useAgentRuntimeWorkbench({
       content?: string
       files?: RuntimeAttachment[]
       runtimeInputs: Record<string, unknown>
+      a2ui?: Array<Record<string, unknown>>
+      metadata?: Record<string, unknown>
       appendUserMessage: boolean
       userMessageContent?: string
       skipSave?: boolean
@@ -379,6 +409,8 @@ export function useAgentRuntimeWorkbench({
             session_id: sessionId,
             files,
             inputs: runtimeInputs,
+            a2ui,
+            metadata,
           },
           {
             signal: abortController.signal,
@@ -518,6 +550,27 @@ export function useAgentRuntimeWorkbench({
     [runRequest, updateMessageById],
   )
 
+  const handleXCardAction = useCallback(
+    async (payload: AgentXCardActionPayload) => {
+      if (status === AgentRuntimeStatus.RUNNING) {
+        return
+      }
+
+      const actionInput = buildA2UIActionInput(payload)
+
+      await runRequest({
+        content: actionInput.query,
+        runtimeInputs: buildRuntimeInputObject(beginInputs),
+        a2ui: actionInput.a2ui,
+        metadata: actionInput.metadata,
+        appendUserMessage: true,
+        userMessageContent: actionInput.query,
+        skipSave: true,
+      })
+    },
+    [beginInputs, runRequest, status],
+  )
+
   const handleStop = useCallback(async () => {
     abortControllerRef.current?.abort()
     await stopMessage(latestTaskId)
@@ -639,6 +692,7 @@ export function useAgentRuntimeWorkbench({
     handleRun,
     handleSendMessage,
     handleSubmitAwaitingInputs,
+    handleXCardAction,
     handleStop,
     handleReset,
     handleCreateSession,

@@ -19,7 +19,12 @@ import { extractThinkContent, type ThinkingStatus } from '@/utils/think-utils'
 import DebugContent from '../../debug-content'
 import { RuntimeTracePanel } from '../../features/runtime-workbench/components/runtime-trace-panel'
 import { AgentRuntimeStatus, type RuntimeMessage } from '../../features/runtime-workbench/types'
+import { hideRawA2UICommandContent } from '../../features/runtime-workbench/utils'
 import type { BeginQuery } from '../../types'
+import {
+  AgentXCardRenderer,
+  type AgentXCardActionPayload,
+} from '../../x-card'
 import {
   AssistantAvatar,
   getReferenceChunks,
@@ -36,6 +41,7 @@ interface SessionMessageListProps {
     messageId: string,
     values: BeginQuery[],
   ) => void | Promise<void>
+  onXCardAction?: (payload: AgentXCardActionPayload) => void | Promise<void>
 }
 
 export function SessionMessageList({
@@ -43,6 +49,7 @@ export function SessionMessageList({
   messages,
   status,
   onSubmitAwaitingInputs,
+  onXCardAction,
 }: SessionMessageListProps) {
   const [detailOpen, setDetailOpen] = useState(false)
   const [selectedChunk, setSelectedChunk] = useState<ReferenceChunk | null>(null)
@@ -78,6 +85,12 @@ export function SessionMessageList({
       const thinkContent = message.thinking || fallback.thinkContent
       const mainContent =
         message.thinking !== undefined ? message.content : fallback.mainContent
+      const hasXCard = Boolean(
+        message.xCardCommands?.length && message.xCardSurfaceIds?.length,
+      )
+      const visibleMainContent = hasXCard
+        ? hideRawA2UICommandContent(mainContent)
+        : mainContent
       const isStreaming = Boolean(message.isStreaming)
       const thinkingStatus: ThinkingStatus = thinkContent
         ? isStreaming
@@ -85,7 +98,7 @@ export function SessionMessageList({
           : 'complete'
         : 'none'
       const { content: processedContent, carouselGroups } =
-        processContentForCarousel(mainContent, references)
+        processContentForCarousel(visibleMainContent, references)
       const contentWithSup = references.length
         ? convertReferencesToSup(processedContent)
         : processedContent
@@ -109,8 +122,12 @@ export function SessionMessageList({
         !message.awaitingInputs?.length &&
         !message.files?.length &&
         references.length === 0 &&
-        shouldUseBubbleTyping(mainContent)
-      const showFooter = !isUser && !isStreaming && (!useTextTyping || completedTypingMessageIds.has(message.id))
+        shouldUseBubbleTyping(visibleMainContent)
+      const showFooter =
+        !isUser &&
+        !isStreaming &&
+        (!useTextTyping || completedTypingMessageIds.has(message.id)) &&
+        Boolean(mainContent.trim())
 
       const renderContentWithCarousels = () => {
         if (!contentWithSup.trim()) {
@@ -226,6 +243,13 @@ export function SessionMessageList({
 
                 {renderContentWithCarousels()}
 
+                <AgentXCardRenderer
+                  commands={message.xCardCommands}
+                  surfaceIds={message.xCardSurfaceIds}
+                  status={message.xCardStatus}
+                  onAction={onXCardAction}
+                />
+
                 {isStreaming && !thinkContent && !mainContent ? (
                   <ChatBubbleLoading />
                 ) : null}
@@ -284,7 +308,7 @@ export function SessionMessageList({
           ) : undefined,
       }
     })
-  }, [canvasId, completedTypingMessageIds, handleCopyContent, handleViewDetail, messages, onSubmitAwaitingInputs, status])
+  }, [canvasId, completedTypingMessageIds, handleCopyContent, handleViewDetail, messages, onSubmitAwaitingInputs, onXCardAction, status])
 
   return (
     <>

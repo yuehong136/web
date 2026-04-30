@@ -1,5 +1,10 @@
 import type { INodeEvent } from '../../hooks/use-node-loading'
 import type { BeginQuery } from '../../types'
+import type {
+  AgentXCardActionPayload,
+  AgentXCardCommand,
+  XCardStatus,
+} from '../../x-card'
 
 export enum RuntimeWorkbenchView {
   RUN = 'run',
@@ -38,6 +43,9 @@ export interface RuntimeMessage {
   reference?: unknown
   error?: string
   isStreaming?: boolean
+  xCardCommands?: AgentXCardCommand[]
+  xCardSurfaceIds?: string[]
+  xCardStatus?: XCardStatus
   messageId?: string
   taskId?: string
 }
@@ -93,6 +101,7 @@ export interface AgentRuntimeController {
     messageId: string,
     values: BeginQuery[],
   ) => Promise<void>
+  handleXCardAction: (payload: AgentXCardActionPayload) => Promise<void>
   handleStop: () => Promise<void>
   handleReset: () => void
   handleCreateSession: (name?: string) => Promise<void>

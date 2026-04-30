@@ -6,6 +6,7 @@ import type {
   RuntimeMessage,
 } from '../features/runtime-workbench/types'
 import { normalizeRuntimeAttachments } from '../features/runtime-workbench/utils'
+import { XCardStatus, type AgentXCardCommand } from '../x-card'
 import type {
   ExploreSession,
   ExploreSessionListParams,
@@ -136,6 +137,18 @@ export function mapSessionMessageToRuntimeMessage(
 ): RuntimeMessage {
   const record = message as Record<string, unknown>
   const files = normalizeRuntimeAttachments(message.files)
+  const a2ui = isRecord(record.a2ui) ? record.a2ui : undefined
+  const xCardCommands = Array.isArray(a2ui?.commands)
+    ? a2ui.commands.filter(
+        (command): command is AgentXCardCommand =>
+          isRecord(command) && command.version === 'v0.9',
+      )
+    : undefined
+  const xCardSurfaceIds = Array.isArray(a2ui?.surface_ids)
+    ? a2ui.surface_ids.filter(
+        (surfaceId): surfaceId is string => typeof surfaceId === 'string',
+      )
+    : undefined
 
   return {
     id: message.id || `session-message-${index}`,
@@ -144,6 +157,9 @@ export function mapSessionMessageToRuntimeMessage(
     files: files as RuntimeAttachment[],
     reference: record.reference,
     error: typeof record.error === 'string' ? record.error : undefined,
+    xCardCommands,
+    xCardSurfaceIds,
+    xCardStatus: xCardCommands?.length ? XCardStatus.READY : undefined,
     messageId: message.id,
   }
 }

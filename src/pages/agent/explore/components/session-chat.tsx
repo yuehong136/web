@@ -16,6 +16,7 @@ import DebugContent from '../../debug-content'
 import type { BeginQuery } from '../../types'
 import { AgentRuntimeStatus } from '../../features/runtime-workbench/types'
 import type { RuntimeMessage } from '../../features/runtime-workbench/types'
+import type { AgentXCardActionPayload } from '../../x-card'
 import type { ExploreSendRequest } from '../types'
 import { SessionComposer } from './session-composer'
 import { SessionMessageList } from './session-message-list'
@@ -35,6 +36,7 @@ interface SessionChatProps {
     messageId: string,
     values: BeginQuery[],
   ) => void | Promise<void>
+  onXCardAction?: (payload: AgentXCardActionPayload) => void | Promise<void>
   onSend: (request: ExploreSendRequest) => Promise<void>
   onStop: () => Promise<void>
 }
@@ -51,6 +53,7 @@ export function SessionChat({
   onParameterDialogOpenChange,
   onParametersOk,
   onSubmitAwaitingInputs,
+  onXCardAction,
   onSend,
   onStop,
 }: SessionChatProps) {
@@ -82,6 +85,7 @@ export function SessionChat({
               messages={messages}
               status={status}
               onSubmitAwaitingInputs={onSubmitAwaitingInputs}
+              onXCardAction={onXCardAction}
             />
           </ScrollArea>
         )}

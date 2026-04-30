@@ -1,6 +1,7 @@
 import { PageEmptyState, AppScene } from '@/components/patterns'
 import { SessionMessageList } from '../explore/components/session-message-list'
 import { AgentRuntimeStatus } from '../features/runtime-workbench/types'
+import type { AgentXCardActionPayload } from '../x-card'
 import type { BeginQuery } from '../types'
 import type { ShareRuntimeMessage } from './types'
 
@@ -14,6 +15,7 @@ interface ShareMessageListProps {
     messageId: string,
     values: BeginQuery[],
   ) => void | Promise<void>
+  onXCardAction?: (payload: AgentXCardActionPayload) => void | Promise<void>
 }
 
 export function ShareMessageList({
@@ -23,6 +25,7 @@ export function ShareMessageList({
   title,
   prologue,
   onSubmitAwaitingInputs,
+  onXCardAction,
 }: ShareMessageListProps) {
   if (!messages.length) {
     return (
@@ -43,6 +46,7 @@ export function ShareMessageList({
       messages={messages}
       status={status}
       onSubmitAwaitingInputs={onSubmitAwaitingInputs}
+      onXCardAction={onXCardAction}
     />
   )
 }

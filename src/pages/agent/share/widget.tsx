@@ -299,6 +299,7 @@ function WidgetChatWindow({
             title={shareQuery.data.title}
             prologue={shareQuery.data.prologue}
             onSubmitAwaitingInputs={handleSubmitAwaitingInputs}
+            onXCardAction={runner.submitXCardAction}
           />
         )}
       </div>

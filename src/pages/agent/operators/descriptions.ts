@@ -4,6 +4,7 @@ export const operatorDescriptions: Partial<Record<Operator, string>> = {
   Begin: '定义会话入口、开场白与输入参数。',
   Retrieval: '检索知识库或记忆，并将结果注入后续节点。',
   Message: '向用户输出固定或模板化消息。',
+  A2UI: '输出官方 A2UI v0.9 Basic Catalog 结构化卡片命令。',
   Categorize: '对输入进行分类，并按条件分发。',
   Switch: '基于条件判断选择不同执行路径。',
   Relevant: '判断当前输入或上下文是否满足相关性条件。',

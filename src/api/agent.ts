@@ -132,6 +132,8 @@ export const agentAPI = {
         session_id: payload.session_id,
         files: payload.files || [],
         inputs: payload.inputs || {},
+        ...(payload.a2ui ? { a2ui: payload.a2ui } : {}),
+        ...(payload.metadata ? { metadata: payload.metadata } : {}),
         ...(payload.release !== undefined ? { release: payload.release } : {}),
         ...(payload.user_id ? { user_id: payload.user_id } : {}),
       }),
@@ -160,6 +162,8 @@ export const agentAPI = {
         session_id: payload.session_id,
         files: payload.files || [],
         inputs: payload.inputs || {},
+        ...(payload.a2ui ? { a2ui: payload.a2ui } : {}),
+        ...(payload.metadata ? { metadata: payload.metadata } : {}),
         ...(payload.release !== undefined ? { release: payload.release } : {}),
         ...(payload.user_id ? { user_id: payload.user_id } : {}),
       }),
@@ -303,6 +307,8 @@ export const agentAPI = {
         body: JSON.stringify({
           query: payload.query || '',
           inputs: payload.inputs || {},
+          ...(payload.a2ui ? { a2ui: payload.a2ui } : {}),
+          ...(payload.metadata ? { metadata: payload.metadata } : {}),
           files: payload.files || [],
           session_id: payload.session_id,
           ...(payload.release !== undefined

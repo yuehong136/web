@@ -12,6 +12,11 @@ import {
   type RuntimeWorkbenchSummary,
 } from './types'
 import type { INodeData } from '../../hooks/use-node-loading'
+import {
+  XCardStatus,
+  normalizeA2UICommandEventData,
+  type AgentXCardCommand,
+} from '../../x-card'
 
 interface RuntimeEventRecord {
   event: string
@@ -33,6 +38,9 @@ export interface NormalizedRuntimeEvent {
   data?: unknown
   errorMessage?: string
   outputContent?: string
+  xCardCommands?: AgentXCardCommand[]
+  xCardSurfaceIds?: string[]
+  xCardStatus?: XCardStatus
   logEvent?: {
     event: string
     message_id: string
@@ -45,6 +53,55 @@ const isRecord = (value: unknown): value is Record<string, unknown> => {
   return typeof value === 'object' && value !== null
 }
 
+const A2UI_COMMAND_KEYS = new Set([
+  'createSurface',
+  'updateComponents',
+  'updateDataModel',
+  'deleteSurface',
+])
+
+const isA2UICommandRecord = (value: unknown): value is Record<string, unknown> => {
+  if (!isRecord(value) || value.version !== 'v0.9') {
+    return false
+  }
+
+  return Object.keys(value).some((key) => A2UI_COMMAND_KEYS.has(key))
+}
+
+const parseJsonSafely = (content: string): unknown => {
+  try {
+    return JSON.parse(content)
+  } catch {
+    return undefined
+  }
+}
+
+export const isRawA2UICommandContent = (content: string) => {
+  const trimmed = content.trim()
+  if (!trimmed) {
+    return false
+  }
+
+  const parsed = parseJsonSafely(trimmed)
+  if (Array.isArray(parsed)) {
+    return parsed.length > 0 && parsed.every(isA2UICommandRecord)
+  }
+
+  if (isA2UICommandRecord(parsed)) {
+    return true
+  }
+
+  const lines = trimmed
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+
+  return (
+    lines.length > 1 &&
+    lines.every((line) => isA2UICommandRecord(parseJsonSafely(line)))
+  )
+}
+
 const firstString = (...values: unknown[]): string | undefined => {
   for (const value of values) {
     if (typeof value === 'string' && value.trim()) {
@@ -54,6 +111,9 @@ const firstString = (...values: unknown[]): string | undefined => {
 
   return undefined
 }
+
+export const hideRawA2UICommandContent = (content: string) =>
+  isRawA2UICommandContent(content) ? '' : content
 
 const normalizeEventData = (payload: RuntimeEventRecord): unknown => {
   if (
@@ -75,17 +135,21 @@ const extractRuntimeOutputContent = (data: unknown): string | undefined => {
   }
 
   const outputs = data.outputs
-  if (!isRecord(outputs)) {
-    return firstString(data.content, data.answer)
+  const content = !isRecord(outputs)
+    ? firstString(data.content, data.answer)
+    : firstString(
+        outputs.content,
+        outputs.answer,
+        outputs._answer,
+        outputs.result,
+        isRecord(outputs.output) ? outputs.output.content : undefined,
+      )
+
+  if (!content) {
+    return undefined
   }
 
-  return firstString(
-    outputs.content,
-    outputs.answer,
-    outputs._answer,
-    outputs.result,
-    isRecord(outputs.output) ? outputs.output.content : undefined,
-  )
+  return content
 }
 
 const toDisplayValue = (value: unknown): string => {
@@ -218,13 +282,21 @@ export function normalizeRuntimeEvent(raw: unknown): NormalizedRuntimeEvent {
       : undefined
 
   const logEvent =
-    payload.event && payload.message_id && isRecord(data)
+    payload.event &&
+    payload.event !== 'a2ui_command' &&
+    payload.message_id &&
+    isRecord(data)
       ? {
           event: payload.event,
           message_id: payload.message_id,
           task_id: payload.task_id,
           data: data as INodeData,
         }
+      : undefined
+
+  const a2ui =
+    payload.event === 'a2ui_command'
+      ? normalizeA2UICommandEventData(data)
       : undefined
 
   return {
@@ -239,6 +311,13 @@ export function normalizeRuntimeEvent(raw: unknown): NormalizedRuntimeEvent {
     data,
     errorMessage,
     outputContent: extractRuntimeOutputContent(data),
+    xCardCommands: a2ui?.commands,
+    xCardSurfaceIds: a2ui?.surface_ids,
+    xCardStatus: a2ui
+      ? a2ui.commands?.length
+        ? XCardStatus.READY
+        : XCardStatus.ERROR
+      : undefined,
     logEvent,
   }
 }
@@ -257,10 +336,12 @@ export function consumeRuntimeMessageChunk(
         }
       : payload
 
-  return consumeStreamingAnswerChunk(
+  const result = consumeStreamingAnswerChunk(
     previousState || createInitialStreamingAnswerState(),
     { retcode: 0, data: mappedPayload },
   )
+
+  return result
 }
 
 export function buildRuntimeSummary(params: {
