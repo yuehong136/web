@@ -14,7 +14,7 @@ export const MainWorkbench: React.FC<MainWorkbenchProps> = ({
   ...props
 }) => {
   return (
-    <div className={cn('flex min-w-0 flex-1 flex-col bg-components-main-workbench-bg', className)} {...props}>
+    <div className={cn('flex min-w-0 flex-1 flex-col', className)} {...props}>
       <MainSurface>
         <AppTopBar onOpenSidebar={onOpenSidebar} />
         <div className="min-h-0 flex-1 overflow-hidden">{children}</div>

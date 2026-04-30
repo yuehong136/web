@@ -17,7 +17,7 @@ export const PageToolbar: React.FC<PageToolbarProps> = ({
   return (
     <div
       className={cn(
-        'z-10 flex items-center justify-between gap-space-base border-b border-components-page-toolbar-border bg-components-page-toolbar-bg px-space-lg py-space-sm text-components-page-toolbar-text',
+        'z-10 flex items-center justify-between gap-space-base border-b border-components-page-toolbar-border px-space-lg py-space-sm text-components-page-toolbar-text',
         sticky && 'sticky top-0',
         className,
       )}

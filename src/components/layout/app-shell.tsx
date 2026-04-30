@@ -11,10 +11,7 @@ export const AppShell: React.FC<React.PropsWithChildren> = ({ children }) => {
 
   return (
     <div className="h-screen overflow-hidden bg-components-app-shell-bg p-space-sm lg:p-space-base">
-      <div
-        className="flex h-full gap-space-base rounded-radius-xl border border-components-app-shell-border bg-components-app-shell-surface p-space-xs lg:p-space-sm"
-        style={{ boxShadow: 'var(--color-components-app-shell-shadow)' }}
-      >
+      <div className="flex h-full gap-space-base">
         <div className="hidden h-full shrink-0 lg:block">
           <Sidebar
             collapsed={sidebarCollapsed}

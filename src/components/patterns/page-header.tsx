@@ -21,7 +21,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   return (
     <header
       className={cn(
-        'border-b border-components-page-header-border bg-components-page-header-bg',
+        'border-b border-components-page-header-border',
         compact ? 'px-space-lg py-space-base' : 'px-space-lg py-space-lg',
         className,
       )}

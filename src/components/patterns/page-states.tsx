@@ -28,27 +28,19 @@ interface PageErrorStateProps extends BasePageStateProps {
   onRetry?: () => void
 }
 
-const sceneClasses: Record<AppScene, string> = {
-  [AppScene.CONSOLE]: 'bg-components-console-bg',
-  [AppScene.WORKSPACE]: 'bg-components-workspace-bg',
-  [AppScene.STUDIO]: 'bg-components-studio-bg',
-  [AppScene.SPLIT_DETAIL]: 'bg-components-split-pane-bg',
-}
-
 const PageStateShell: React.FC<
   React.PropsWithChildren<BasePageStateProps & { className?: string }>
-> = ({ scene = AppScene.CONSOLE, compact = false, className, children, ...props }) => {
+> = ({ scene: _scene = AppScene.CONSOLE, compact = false, className, children, ...props }) => {
   return (
     <div
       className={cn(
         'flex h-full min-h-[240px] w-full items-center justify-center',
-        sceneClasses[scene],
         compact ? 'p-space-base' : 'p-space-lg',
         className,
       )}
       {...props}
     >
-      <div className="flex w-full max-w-xl flex-col items-center gap-space-md rounded-radius-xl border border-components-page-state-border bg-components-page-state-bg p-space-xl text-center">
+      <div className="flex w-full max-w-xl flex-col items-center gap-space-md p-space-xl text-center">
         {children}
       </div>
     </div>

@@ -19,16 +19,16 @@ export const SplitDetailPageTemplate: React.FC<SplitDetailPageTemplateProps> = (
   ...props
 }) => {
   return (
-    <div className={cn('flex h-full min-h-0 flex-col bg-components-split-pane-bg', className)} {...props}>
+    <div className={cn('flex h-full min-h-0 flex-col', className)} {...props}>
       {header}
       <div className="flex min-h-0 flex-1">
         <aside
-          className="shrink-0 overflow-auto border-r border-components-split-pane-border bg-components-split-pane-surface"
+          className="shrink-0 overflow-auto border-r border-components-split-pane-border"
           style={{ width: leftWidth, minWidth: minLeft }}
         >
           {leftPane}
         </aside>
-        <div className="min-w-0 flex-1 overflow-auto bg-components-split-pane-surface">{rightPane}</div>
+        <div className="min-w-0 flex-1 overflow-auto">{rightPane}</div>
       </div>
     </div>
   )

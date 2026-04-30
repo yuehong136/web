@@ -39,7 +39,7 @@ export const SettingsRail: React.FC<SettingsRailProps> = ({
   return (
     <aside
       className={cn(
-        'flex h-full w-[280px] shrink-0 flex-col border-r border-components-settings-rail-border bg-components-settings-rail-bg',
+        'flex h-full w-[280px] shrink-0 flex-col border-r border-components-settings-rail-border',
         className,
       )}
       {...props}
