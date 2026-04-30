@@ -22,7 +22,7 @@ export const SectionCard: React.FC<SectionCardProps> = ({
       variant="default"
       padding="none"
       className={cn(
-        'overflow-hidden rounded-radius-xl border border-components-console-border bg-components-console-surface',
+        'rounded-radius-xl border border-components-console-border bg-components-console-surface',
         className,
       )}
       {...props}

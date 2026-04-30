@@ -34,11 +34,13 @@ export function SettingDialog({ hideModal }: SettingDialogProps) {
 
   return (
     <Dialog open onOpenChange={() => hideModal?.()}>
-      <DialogContent>
+      <DialogContent size="md">
         <DialogHeader>
           <DialogTitle>{t('common.edit', '编辑')}</DialogTitle>
         </DialogHeader>
-        <SettingForm submit={submit} />
+        <div className="px-6 pb-4">
+          <SettingForm submit={submit} />
+        </div>
         <DialogFooter>
           <Button type="submit" form="agent-setting-form" disabled={loading}>
             {loading ? t('common.saving', '保存中...') : t('common.save', '保存')}

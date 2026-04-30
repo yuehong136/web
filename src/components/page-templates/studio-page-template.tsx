@@ -20,7 +20,7 @@ export const StudioPageTemplate: React.FC<StudioPageTemplateProps> = ({
       <div className="flex min-h-0 flex-1">
         <div className="min-w-0 flex-1 overflow-auto">{children}</div>
         {sidePanel ? (
-          <aside className="w-80 shrink-0 border-l border-components-studio-border">
+          <aside className="flex w-80 min-h-0 shrink-0 flex-col border-l border-components-studio-border">
             {sidePanel}
           </aside>
         ) : null}

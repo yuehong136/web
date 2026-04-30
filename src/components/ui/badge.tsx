@@ -26,7 +26,7 @@ const Badge: React.FC<BadgeProps> = ({ className, variant = 'default', ...props 
   return (
     <div
       className={cn(
-        'inline-flex items-center rounded-full px-2 py-1 text-xs font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+        'inline-flex shrink-0 items-center whitespace-nowrap rounded-full px-2 py-1 text-xs font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
         className
       )}
       style={getVariantStyles(variant)}

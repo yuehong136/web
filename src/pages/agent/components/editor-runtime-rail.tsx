@@ -94,8 +94,8 @@ export function EditorRuntimeRail({
   const isPipeline = editorMode === 'pipeline'
 
   return (
-    <div className="flex h-full flex-col gap-space-lg overflow-auto p-space-lg">
-      <SectionCard title="当前资产" padding="default">
+    <div className="grid h-full min-h-0 auto-rows-max gap-space-lg overflow-y-auto overscroll-contain p-space-lg pb-space-2xl">
+      <SectionCard title="当前资产" padding="default" className="min-h-0">
         <div className="space-y-space-md">
           <div>
             <p className="text-base font-semibold text-text-primary">{title}</p>
@@ -134,10 +134,11 @@ export function EditorRuntimeRail({
       <SectionCard
         title={isPipeline ? 'Pipeline 工作台' : '运行工作台'}
         padding="default"
+        className="min-h-0"
       >
         <div className="space-y-space-md">
           <div className="flex items-center justify-between gap-space-sm">
-            <div>
+            <div className="min-w-0">
               <p className="text-sm font-medium text-text-primary">
                 {isPipeline ? 'Pipeline Runtime' : '普通 Agent Runtime'}
               </p>
@@ -149,7 +150,10 @@ export function EditorRuntimeRail({
                     : '从这里进入统一的 Run / Conversation / Log 工作台。'}
               </p>
             </div>
-            <Badge variant={STATUS_VARIANT_MAP[runtimeSummary.status]}>
+            <Badge
+              variant={STATUS_VARIANT_MAP[runtimeSummary.status]}
+              className="shrink-0"
+            >
               {STATUS_LABEL_MAP[runtimeSummary.status]}
             </Badge>
           </div>
@@ -233,7 +237,11 @@ export function EditorRuntimeRail({
         </div>
       </SectionCard>
 
-      <SectionCard title={isPipeline ? '配置' : '交付入口'} padding="default">
+      <SectionCard
+        title={isPipeline ? '配置' : '交付入口'}
+        padding="default"
+        className="min-h-0"
+      >
         <div className="grid gap-space-sm">
           {!isPipeline ? (
             <>
@@ -262,7 +270,7 @@ export function EditorRuntimeRail({
         </div>
       </SectionCard>
 
-      <SectionCard title="阶段路线" padding="default">
+      <SectionCard title="阶段路线" padding="default" className="min-h-0">
         <div className="space-y-space-sm text-sm text-text-secondary">
           <p className="flex items-start gap-space-xs">
             <Sparkles className="mt-[2px] h-4 w-4 shrink-0 text-text-accent" />
