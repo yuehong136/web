@@ -64,7 +64,7 @@ export const NodeWrapper = forwardRef<HTMLDivElement, NodeWrapperProps>(
       <div
         ref={ref}
         className={cn(
-          'group relative w-[208px] rounded-radius-lg border border-border-subtle bg-components-studio-surface px-space-base py-space-base text-xs shadow-elevation-low transition-[border-color,box-shadow,outline-color]',
+          'group relative w-[208px] rounded-radius-lg border border-components-canvas-node-border bg-components-canvas-node-bg px-space-base py-space-base text-xs shadow-elevation-low transition-[border-color,box-shadow,outline-color]',
           status === 'running' && 'canvas-node-running',
           status === 'success' && !selected && 'canvas-node-success',
           status === 'error' && !selected && 'canvas-node-error',

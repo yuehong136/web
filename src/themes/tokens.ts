@@ -760,6 +760,7 @@ export interface DesignTokens {
   // 画布背景
   'components-canvas-bg': string
   'components-canvas-grid': string
+  'components-canvas-spotlight': string
 
   // 节点通用
   'components-canvas-node-bg': string
@@ -1693,6 +1694,7 @@ export const defaultTokens: DesignTokens = {
   // 画布系统 (Agent Canvas)
   'components-canvas-bg': '',
   'components-canvas-grid': '',
+  'components-canvas-spotlight': '',
   'components-canvas-node-bg': '',
   'components-canvas-node-border': '',
   'components-canvas-node-border-hover': '',
