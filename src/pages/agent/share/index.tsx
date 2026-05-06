@@ -17,6 +17,7 @@ import {
 import { toast } from '@/lib/toast'
 import { copyToClipboard } from '@/lib/utils'
 import { changeLanguage } from '@/locales/i18n'
+import { ScopedTheme } from '@/themes'
 import { Copy, RotateCcw } from 'lucide-react'
 import {
   AgentRuntimeStatus,
@@ -355,48 +356,57 @@ export default function AgentSharePage() {
 
   if (!access.agentId) {
     return (
-      <PageEmptyState
-        scene={AppScene.WORKSPACE}
-        title="缺少分享资产 ID"
-        description="当前链接缺少 `shared_id` 参数。`id` 与 `agent_id` 只作为旧入口别名，生成链接会统一使用 `shared_id`。"
-      />
+      <ScopedTheme theme={access.theme}>
+        <PageEmptyState
+          scene={AppScene.WORKSPACE}
+          title="缺少分享资产 ID"
+          description="当前链接缺少 `shared_id` 参数。`id` 与 `agent_id` 只作为旧入口别名，生成链接会统一使用 `shared_id`。"
+        />
+      </ScopedTheme>
     )
   }
 
   if (!access.betaToken) {
     return (
-      <PageEmptyState
-        scene={AppScene.WORKSPACE}
-        title="缺少分享访问令牌"
-        description="Share 公共运行必须通过 `auth` 参数传入 beta token，并由外部接口写入 `Authorization: Bearer <beta>`。"
-      />
+      <ScopedTheme theme={access.theme}>
+        <PageEmptyState
+          scene={AppScene.WORKSPACE}
+          title="缺少分享访问令牌"
+          description="Share 公共运行必须通过 `auth` 参数传入 beta token，并由外部接口写入 `Authorization: Bearer <beta>`。"
+        />
+      </ScopedTheme>
     )
   }
 
   if (shareQuery.isLoading) {
     return (
-      <PageLoadingState
-        scene={AppScene.WORKSPACE}
-        title="正在准备公共运行页"
-        description="正在读取 Agent 的 external inputs、发布模式和公共输入契约。"
-      />
+      <ScopedTheme theme={access.theme}>
+        <PageLoadingState
+          scene={AppScene.WORKSPACE}
+          title="正在准备公共运行页"
+          description="正在读取 Agent 的 external inputs、发布模式和公共输入契约。"
+        />
+      </ScopedTheme>
     )
   }
 
   if (shareQuery.isError) {
     return (
-      <PageErrorState
-        scene={AppScene.WORKSPACE}
-        title="分享信息加载失败"
-        description="请检查链接中的 `shared_id` 与 `auth` 是否匹配，并确认 beta token 仍有效。"
-        onRetry={() => void shareQuery.refetch()}
-        retryLabel="重新加载"
-      />
+      <ScopedTheme theme={access.theme}>
+        <PageErrorState
+          scene={AppScene.WORKSPACE}
+          title="分享信息加载失败"
+          description="请检查链接中的 `shared_id` 与 `auth` 是否匹配，并确认 beta token 仍有效。"
+          onRetry={() => void shareQuery.refetch()}
+          retryLabel="重新加载"
+        />
+      </ScopedTheme>
     )
   }
 
   return (
-    <WorkspacePageTemplate
+    <ScopedTheme theme={access.theme}>
+      <WorkspacePageTemplate
       header={
         <PageHeader
           title={shareQuery.data.title || 'Agent Share'}
@@ -514,7 +524,8 @@ export default function AgentSharePage() {
           void handleParameterSubmit()
         }}
       />
-    </WorkspacePageTemplate>
+      </WorkspacePageTemplate>
+    </ScopedTheme>
   )
 }
 

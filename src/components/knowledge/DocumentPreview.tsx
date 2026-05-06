@@ -734,7 +734,7 @@ const VideoPreviewInner: React.FC<{
           {/* 视频控制栏 */}
           <div className="px-4 py-3 bg-gray-900/90 backdrop-blur-sm">
             <div className="flex items-center gap-3">
-              <Button variant="ghost" size="sm" onClick={togglePlay} className="text-white hover:bg-white/20">
+              <Button variant="ghost" size="sm" onClick={togglePlay} className="text-white hover:bg-background-surface/20">
                 {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
               </Button>
               <span className="text-xs text-white/80 min-w-[40px]">
@@ -746,12 +746,12 @@ const VideoPreviewInner: React.FC<{
                 max="100"
                 value={progress}
                 onChange={handleSeek}
-                className="flex-1 h-1 bg-white/30 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full"
+                className="flex-1 h-1 bg-background-surface/30 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-background-surface [&::-webkit-slider-thumb]:rounded-full"
               />
               <span className="text-xs text-white/80 min-w-[40px]">
                 {formatTime(duration)}
               </span>
-              <Button variant="ghost" size="sm" onClick={toggleMute} className="text-white hover:bg-white/20">
+              <Button variant="ghost" size="sm" onClick={toggleMute} className="text-white hover:bg-background-surface/20">
                 {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
               </Button>
             </div>
@@ -1114,7 +1114,7 @@ const ExcelPreviewInner: React.FC<{
   }
 
   return (
-    <div className="relative w-full h-full overflow-hidden bg-white">
+    <div className="relative w-full h-full overflow-hidden bg-background-surface">
       {loading && (
         <div className="absolute inset-0 z-10">
           <LoadingState message="加载 Excel 中..." />

@@ -103,7 +103,7 @@ export const MCPDashboard: React.FC = () => {
   ]
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background-subtle">
       <div className="max-w-7xl mx-auto p-6">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           {/* 顶部导航 */}
@@ -153,7 +153,7 @@ export const MCPDashboard: React.FC = () => {
                     </div>
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">服务器总数</p>
-                      <p className="text-2xl font-bold text-gray-900">{stats.totalServers}</p>
+                      <p className="text-2xl font-bold text-text-primary">{stats.totalServers}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -167,7 +167,7 @@ export const MCPDashboard: React.FC = () => {
                     </div>
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">活跃服务器</p>
-                      <p className="text-2xl font-bold text-gray-900">{stats.activeServers}</p>
+                      <p className="text-2xl font-bold text-text-primary">{stats.activeServers}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -181,7 +181,7 @@ export const MCPDashboard: React.FC = () => {
                     </div>
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">可用工具</p>
-                      <p className="text-2xl font-bold text-gray-900">{stats.totalTools}</p>
+                      <p className="text-2xl font-bold text-text-primary">{stats.totalTools}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -195,7 +195,7 @@ export const MCPDashboard: React.FC = () => {
                     </div>
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">成功连接</p>
-                      <p className="text-2xl font-bold text-gray-900">{stats.successfulConnections}</p>
+                      <p className="text-2xl font-bold text-text-primary">{stats.successfulConnections}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -209,7 +209,7 @@ export const MCPDashboard: React.FC = () => {
                     </div>
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">平均响应</p>
-                      <p className="text-2xl font-bold text-gray-900">{stats.avgResponseTime}ms</p>
+                      <p className="text-2xl font-bold text-text-primary">{stats.avgResponseTime}ms</p>
                     </div>
                   </div>
                 </CardContent>
@@ -223,7 +223,7 @@ export const MCPDashboard: React.FC = () => {
                     </div>
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">协议类型</p>
-                      <p className="text-2xl font-bold text-gray-900">{stats.protocolTypes}</p>
+                      <p className="text-2xl font-bold text-text-primary">{stats.protocolTypes}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -242,7 +242,7 @@ export const MCPDashboard: React.FC = () => {
                       {quickActions.map((action, index) => (
                         <div
                           key={index}
-                          className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors group"
+                          className="p-4 border border-border-default rounded-lg hover:bg-background-subtle cursor-pointer transition-colors group"
                           onClick={action.action}
                         >
                           <div className="flex items-center gap-4">
@@ -250,7 +250,7 @@ export const MCPDashboard: React.FC = () => {
                               <action.icon className="h-6 w-6 text-white" />
                             </div>
                             <div className="flex-1">
-                              <h3 className="font-semibold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors">
+                              <h3 className="font-semibold text-text-primary mb-1 group-hover:text-blue-600 transition-colors">
                                 {action.title}
                               </h3>
                               <p className="text-sm text-muted-foreground">{action.description}</p>
@@ -275,12 +275,12 @@ export const MCPDashboard: React.FC = () => {
                 <CardContent>
                   <div className="space-y-4 max-h-96 overflow-y-auto">
                     {recentActivities.map((activity, index) => (
-                      <div key={index} className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                      <div key={index} className="flex items-start gap-3 p-3 rounded-lg hover:bg-background-subtle transition-colors">
                         <div className={`p-1 rounded-full ${activity.color}`}>
                           <activity.icon className="h-4 w-4" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-gray-900 text-sm">{activity.title}</p>
+                          <p className="font-medium text-text-primary text-sm">{activity.title}</p>
                           <p className="text-sm text-muted-foreground">{activity.description}</p>
                           <p className="text-xs text-muted-foreground mt-1">{activity.time}</p>
                         </div>

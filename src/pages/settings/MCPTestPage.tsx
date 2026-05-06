@@ -258,26 +258,26 @@ export const MCPTestPage: React.FC = () => {
                 <TabsContent value="basic" className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <label className="text-sm font-medium text-gray-700">
+                      <label className="text-sm font-medium text-text-secondary">
                         服务器URL <span className="text-red-500">*</span>
                       </label>
                       <Input
                         value={testForm.url}
                         onChange={(e) => setTestForm(prev => ({ ...prev, url: e.target.value }))}
                         placeholder="输入服务器URL，如: http://localhost:3000"
-                        className="border-0 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500/20"
+                        className="border-0 bg-background-subtle focus:bg-background-surface focus:ring-2 focus:ring-blue-500/20"
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-sm font-medium text-gray-700">
+                      <label className="text-sm font-medium text-text-secondary">
                         协议类型 <span className="text-red-500">*</span>
                       </label>
                       <Select 
                         value={testForm.server_type} 
                         onValueChange={(value) => setTestForm(prev => ({ ...prev, server_type: value }))}
                       >
-                        <SelectTrigger className="border-0 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500/20">
+                        <SelectTrigger className="border-0 bg-background-subtle focus:bg-background-surface focus:ring-2 focus:ring-blue-500/20">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -298,14 +298,14 @@ export const MCPTestPage: React.FC = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">超时设置 (毫秒)</label>
+                    <label className="text-sm font-medium text-text-secondary">超时设置 (毫秒)</label>
                     <Input
                       type="number"
                       value={testForm.timeout}
                       onChange={(e) => setTestForm(prev => ({ ...prev, timeout: parseInt(e.target.value) || 10000 }))}
                       min={1000}
                       max={60000}
-                      className="border-0 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500/20"
+                      className="border-0 bg-background-subtle focus:bg-background-surface focus:ring-2 focus:ring-blue-500/20"
                     />
                   </div>
 
@@ -330,7 +330,7 @@ export const MCPTestPage: React.FC = () => {
                 <TabsContent value="headers" className="space-y-4">
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <label className="text-sm font-medium text-gray-700">HTTP请求头</label>
+                      <label className="text-sm font-medium text-text-secondary">HTTP请求头</label>
                       <Button size="sm" variant="outline" onClick={addHeaderEntry}>
                         添加请求头
                       </Button>
@@ -341,14 +341,14 @@ export const MCPTestPage: React.FC = () => {
                           placeholder="Header名称"
                           value={entry.key}
                           onChange={(e) => handleHeaderChange(index, 'key', e.target.value)}
-                          className="border-0 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500/20"
+                          className="border-0 bg-background-subtle focus:bg-background-surface focus:ring-2 focus:ring-blue-500/20"
                         />
                         <div className="flex gap-2">
                           <Input
                             placeholder="Header值"
                             value={entry.value}
                             onChange={(e) => handleHeaderChange(index, 'value', e.target.value)}
-                            className="border-0 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500/20 flex-1"
+                            className="border-0 bg-background-subtle focus:bg-background-surface focus:ring-2 focus:ring-blue-500/20 flex-1"
                           />
                           <Button
                             size="sm"
@@ -372,7 +372,7 @@ export const MCPTestPage: React.FC = () => {
                 <TabsContent value="variables" className="space-y-4">
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <label className="text-sm font-medium text-gray-700">环境变量</label>
+                      <label className="text-sm font-medium text-text-secondary">环境变量</label>
                       <Button size="sm" variant="outline" onClick={addVariableEntry}>
                         添加变量
                       </Button>
@@ -383,14 +383,14 @@ export const MCPTestPage: React.FC = () => {
                           placeholder="变量名"
                           value={entry.key}
                           onChange={(e) => handleVariableChange(index, 'key', e.target.value)}
-                          className="border-0 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500/20"
+                          className="border-0 bg-background-subtle focus:bg-background-surface focus:ring-2 focus:ring-blue-500/20"
                         />
                         <div className="flex gap-2">
                           <Input
                             placeholder="变量值 (支持JSON)"
                             value={entry.value}
                             onChange={(e) => handleVariableChange(index, 'value', e.target.value)}
-                            className="border-0 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500/20 flex-1 font-mono text-sm"
+                            className="border-0 bg-background-subtle focus:bg-background-surface focus:ring-2 focus:ring-blue-500/20 flex-1 font-mono text-sm"
                           />
                           <Button
                             size="sm"
@@ -448,10 +448,10 @@ export const MCPTestPage: React.FC = () => {
                           {testResult.tools.map((tool, index) => (
                             <div 
                               key={index}
-                              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                              className="flex items-center justify-between p-3 bg-background-subtle rounded-lg"
                             >
                               <div>
-                                <span className="font-medium text-gray-900">{tool.name}</span>
+                                <span className="font-medium text-text-primary">{tool.name}</span>
                                 <p className="text-sm text-muted-foreground">{tool.description}</p>
                               </div>
                               <Badge className="bg-green-100 text-green-800 border-green-200">
@@ -509,12 +509,12 @@ export const MCPTestPage: React.FC = () => {
                   {servers.map((server) => (
                     <div
                       key={server.id}
-                      className="p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                      className="p-3 border border-border-default rounded-lg hover:bg-background-subtle cursor-pointer transition-colors"
                       onClick={() => handleServerSelect(server)}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="font-medium text-gray-900 text-sm">{server.name}</span>
-                        <Badge className="bg-gray-100 text-gray-800 text-xs">
+                        <span className="font-medium text-text-primary text-sm">{server.name}</span>
+                        <Badge className="bg-background-subtle text-text-primary text-xs">
                           {server.server_type.toUpperCase()}
                         </Badge>
                       </div>
@@ -544,7 +544,7 @@ export const MCPTestPage: React.FC = () => {
               ) : (
                 <div className="space-y-3 max-h-80 overflow-y-auto">
                   {testHistory.map((result, index) => (
-                    <div key={index} className="p-3 border border-gray-200 rounded-lg">
+                    <div key={index} className="p-3 border border-border-default rounded-lg">
                       <div className="flex items-center gap-2 mb-2">
                         {result.success ? (
                           <CheckCircle className="h-4 w-4 text-green-600" />

@@ -41,9 +41,9 @@ const nodeCategories = [
   {
     title: '工具',
     nodes: [
-      { type: Operator.Code, icon: Code, label: '代码', color: 'text-gray-700' },
+      { type: Operator.Code, icon: Code, label: '代码', color: 'text-text-secondary' },
       { type: Operator.DuckDuckGo, icon: Search, label: 'DuckDuckGo', color: 'text-red-600' },
-      { type: Operator.Wikipedia, icon: Globe, label: 'Wikipedia', color: 'text-gray-600' },
+      { type: Operator.Wikipedia, icon: Globe, label: 'Wikipedia', color: 'text-text-secondary' },
       { type: Operator.Invoke, icon: FileText, label: 'HTTP请求', color: 'text-indigo-600' },
       { type: Operator.Email, icon: Mail, label: '邮箱', color: 'text-blue-500' },
     ],
@@ -83,17 +83,17 @@ export const NodeSelectorPanel = ({
       }}
       onClick={(e) => e.stopPropagation()}
     >
-      <div className="w-[320px] bg-white border border-gray-200 rounded-lg shadow-xl overflow-hidden">
+      <div className="w-[320px] bg-background-surface border border-border-default rounded-lg shadow-xl overflow-hidden">
         {/* 标题 */}
-        <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
-          <h3 className="text-sm font-semibold text-gray-900">下一步</h3>
+        <div className="px-4 py-3 border-b border-border-default bg-background-subtle">
+          <h3 className="text-sm font-semibold text-text-primary">下一步</h3>
         </div>
 
         {/* 节点列表 */}
         <div className="max-h-[500px] overflow-y-auto">
           {nodeCategories.map((category) => (
             <div key={category.title} className="py-2">
-              <div className="px-4 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <div className="px-4 py-2 text-xs font-medium text-text-tertiary uppercase tracking-wider">
                 {category.title}
               </div>
               <div className="space-y-1 px-2">
@@ -105,12 +105,12 @@ export const NodeSelectorPanel = ({
                       onClick={() => handleNodeClick(node.type as Operator)}
                       className={cn(
                         'w-full flex items-center gap-3 px-3 py-2.5 rounded-md',
-                        'hover:bg-gray-50 transition-colors text-left',
+                        'hover:bg-background-subtle transition-colors text-left',
                         'group',
                       )}
                     >
                       <Icon className={cn('w-4 h-4', node.color)} />
-                      <span className="text-sm text-gray-700 group-hover:text-gray-900">
+                      <span className="text-sm text-text-secondary group-hover:text-text-primary">
                         {node.label}
                       </span>
                     </button>

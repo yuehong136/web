@@ -123,11 +123,11 @@ export const ParserTypeSelector: React.FC<ParserTypeSelectorProps> = ({
   return (
     <div className="space-y-2">
       <div className="flex items-center space-x-1 mb-1">
-        <label className="block text-xs font-medium text-gray-700">
+        <label className="block text-xs font-medium text-text-secondary">
           解析器类型
         </label>
         <Tooltip content="选择适合您文档类型的解析器，不同解析器适用于不同的文档格式">
-          <HelpCircle className="h-3 w-3 text-gray-400 hover:text-gray-600" />
+          <HelpCircle className="h-3 w-3 text-text-muted hover:text-text-secondary" />
         </Tooltip>
       </div>
       
@@ -138,9 +138,9 @@ export const ParserTypeSelector: React.FC<ParserTypeSelectorProps> = ({
           type="button"
           onClick={() => setIsOpen(!isOpen)}
           className={cn(
-            "w-full px-3 py-2 text-left border rounded-md bg-white transition-all duration-200 h-8 text-xs",
+            "w-full px-3 py-2 text-left border rounded-md bg-background-surface transition-all duration-200 h-8 text-xs",
             "hover:border-blue-300 focus:outline-none focus:ring-1 focus:ring-blue-500/20 focus:border-blue-500",
-            isOpen ? "border-blue-500 ring-1 ring-blue-500/20" : "border-gray-300"
+            isOpen ? "border-blue-500 ring-1 ring-blue-500/20" : "border-border-subtle"
           )}
         >
           <div className="flex items-center justify-between">
@@ -149,18 +149,18 @@ export const ParserTypeSelector: React.FC<ParserTypeSelectorProps> = ({
                 <>
                   <span className="text-sm">{getParserIcon(selectedParserId!)}</span>
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-gray-900 truncate text-xs">
+                    <div className="font-medium text-text-primary truncate text-xs">
                       {selectedParser}
                     </div>
                   </div>
                 </>
               ) : (
-                <div className="text-gray-500 text-xs">请选择解析器类型</div>
+                <div className="text-text-tertiary text-xs">请选择解析器类型</div>
               )}
             </div>
             <ChevronDown 
               className={cn(
-                "h-3 w-3 text-gray-400 transition-transform duration-200",
+                "h-3 w-3 text-text-muted transition-transform duration-200",
                 isOpen && "rotate-180"
               )}
             />
@@ -173,7 +173,7 @@ export const ParserTypeSelector: React.FC<ParserTypeSelectorProps> = ({
             <div className="fixed inset-0 z-[9998]" onClick={() => setIsOpen(false)} />
             <div 
               ref={dropdownRef}
-              className="fixed z-[9999] bg-white border border-gray-200 rounded-md shadow-lg max-h-72 overflow-hidden"
+              className="fixed z-[9999] bg-background-surface border border-border-default rounded-md shadow-lg max-h-72 overflow-hidden"
               style={{
                 top: dropdownPosition.top,
                 left: dropdownPosition.left,
@@ -187,7 +187,7 @@ export const ParserTypeSelector: React.FC<ParserTypeSelectorProps> = ({
                   placeholder="搜索解析器类型..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500/20 focus:border-blue-500"
+                  className="w-full px-2 py-1 text-xs border border-border-subtle rounded focus:outline-none focus:ring-1 focus:ring-blue-500/20 focus:border-blue-500"
                 />
               </div>
 
@@ -203,7 +203,7 @@ export const ParserTypeSelector: React.FC<ParserTypeSelectorProps> = ({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <span className="text-sm">🚫</span>
-                    <div className="text-gray-900 font-medium">不选择解析器</div>
+                    <div className="text-text-primary font-medium">不选择解析器</div>
                   </div>
                   {selectedParserId === null && (
                     <Check className="h-3 w-3 text-blue-500" />
@@ -214,7 +214,7 @@ export const ParserTypeSelector: React.FC<ParserTypeSelectorProps> = ({
               {/* 解析器选项列表 */}
               <div className="max-h-56 overflow-y-auto">
                 {filteredParsers.length === 0 ? (
-                  <div className="p-3 text-center text-gray-500 text-xs">
+                  <div className="p-3 text-center text-text-tertiary text-xs">
                     未找到匹配的解析器类型
                   </div>
                 ) : (
@@ -232,10 +232,10 @@ export const ParserTypeSelector: React.FC<ParserTypeSelectorProps> = ({
                         <div className="flex items-center space-x-2 flex-1 min-w-0">
                           <span className="text-sm">{getParserIcon(value)}</span>
                           <div className="flex-1 min-w-0">
-                            <div className="font-medium text-gray-900 truncate">
+                            <div className="font-medium text-text-primary truncate">
                               {label}
                             </div>
-                            <div className="text-xs text-gray-500 truncate">
+                            <div className="text-xs text-text-tertiary truncate">
                               {DOCUMENT_PARSER_TYPE_DESCRIPTIONS[value as DocumentParserType]?.substring(0, 40)}...
                             </div>
                           </div>

@@ -4,6 +4,20 @@
     <!-- 防闪烁：在 CSS 加载前立即设置主题 -->
     <script>
       (function() {
+        var path = window.location.pathname || '';
+        var isShareRoute = path.indexOf('/agent/share') === 0 || path.indexOf('/chats/widget') === 0;
+
+        if (isShareRoute) {
+          // 分享 / 嵌入路由：URL 上的 theme 严格优先，避免被宿主 localStorage 干扰
+          try {
+            var urlTheme = new URLSearchParams(window.location.search).get('theme');
+            if (urlTheme === 'light' || urlTheme === 'dark') {
+              document.documentElement.setAttribute('data-theme', urlTheme);
+              return;
+            }
+          } catch (_) {}
+        }
+
         var theme = localStorage.getItem('theme');
         if (theme === 'light' || theme === 'dark') {
           document.documentElement.setAttribute('data-theme', theme);

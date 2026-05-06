@@ -262,7 +262,7 @@ export const MCPBatchPage: React.FC = () => {
       case 'streamable-http':
         return 'bg-blue-100 text-blue-800'
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-background-subtle text-text-primary'
     }
   }
 
@@ -280,7 +280,7 @@ export const MCPBatchPage: React.FC = () => {
       case 'import': return 'text-blue-600'
       case 'export': return 'text-green-600'
       case 'delete': return 'text-red-600'
-      default: return 'text-gray-600'
+      default: return 'text-text-secondary'
     }
   }
 
@@ -332,7 +332,7 @@ export const MCPBatchPage: React.FC = () => {
                 <TabsContent value="import" className="space-y-4">
                   <div className="space-y-4">
                     <div>
-                      <label className="text-sm font-medium text-gray-700 mb-2 block">
+                      <label className="text-sm font-medium text-text-secondary mb-2 block">
                         配置数据 (JSON格式)
                       </label>
                       <Textarea
@@ -346,7 +346,7 @@ export const MCPBatchPage: React.FC = () => {
     "authorization_token": "your-token"
   }
 }`}
-                        className="min-h-[200px] font-mono text-sm border-0 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500/20"
+                        className="min-h-[200px] font-mono text-sm border-0 bg-background-subtle focus:bg-background-surface focus:ring-2 focus:ring-blue-500/20"
                       />
                     </div>
                     <div className="flex justify-end">
@@ -399,7 +399,7 @@ export const MCPBatchPage: React.FC = () => {
                     {exportResult && (
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
-                          <label className="text-sm font-medium text-gray-700">导出结果</label>
+                          <label className="text-sm font-medium text-text-secondary">导出结果</label>
                           <div className="flex gap-2">
                             <Button
                               size="sm"
@@ -422,7 +422,7 @@ export const MCPBatchPage: React.FC = () => {
                         <Textarea
                           value={exportResult}
                           readOnly
-                          className="min-h-[200px] font-mono text-sm border-0 bg-gray-50"
+                          className="min-h-[200px] font-mono text-sm border-0 bg-background-subtle"
                         />
                       </div>
                     )}
@@ -496,7 +496,7 @@ export const MCPBatchPage: React.FC = () => {
                     placeholder="搜索服务器..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="h-8 w-48 text-sm border-0 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500/20"
+                    className="h-8 w-48 text-sm border-0 bg-background-subtle focus:bg-background-surface focus:ring-2 focus:ring-blue-500/20"
                   />
                 </div>
               </CardTitle>
@@ -509,7 +509,7 @@ export const MCPBatchPage: React.FC = () => {
                 </div>
               ) : filteredServers.length === 0 ? (
                 <div className="text-center py-8">
-                  <Database className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <Database className="h-12 w-12 text-text-muted mx-auto mb-4" />
                   <p className="text-muted-foreground">
                     {searchTerm ? '未找到匹配的服务器' : '暂无可用服务器'}
                   </p>
@@ -522,7 +522,7 @@ export const MCPBatchPage: React.FC = () => {
                       className={`p-4 border rounded-lg cursor-pointer transition-all ${
                         selectedServers.has(server.id) 
                           ? 'border-blue-500 bg-blue-50' 
-                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                          : 'border-border-default hover:border-border-subtle hover:bg-background-subtle'
                       }`}
                       onClick={() => handleSelectServer(server.id)}
                     >
@@ -533,12 +533,12 @@ export const MCPBatchPage: React.FC = () => {
                           className="flex-shrink-0"
                         />
                         <div className="flex items-center gap-3 flex-1">
-                          <div className="p-2 bg-gray-100 rounded-lg">
-                            <Globe className="h-4 w-4 text-gray-600" />
+                          <div className="p-2 bg-background-subtle rounded-lg">
+                            <Globe className="h-4 w-4 text-text-secondary" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
-                              <span className="font-medium text-gray-900">{server.name}</span>
+                              <span className="font-medium text-text-primary">{server.name}</span>
                               <Badge className={`${getServerTypeColor(server.server_type)} text-xs`}>
                                 {server.server_type.toUpperCase()}
                               </Badge>
@@ -614,7 +614,7 @@ export const MCPBatchPage: React.FC = () => {
                     const iconColor = getOperationColor(operation.type)
                     
                     return (
-                      <div key={index} className="p-3 border border-gray-200 rounded-lg">
+                      <div key={index} className="p-3 border border-border-default rounded-lg">
                         <div className="flex items-center gap-2 mb-2">
                           <Icon className={`h-4 w-4 ${iconColor}`} />
                           <span className="text-sm font-medium capitalize">

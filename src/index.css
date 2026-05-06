@@ -138,60 +138,6 @@
     opacity: 0.8;
   }
 
-  /* 通用颜色类重写 - 仅在暗黑模式下应用，避免覆盖自定义组件，排除MCP聊天和AutoFill页面 */
-  html[data-theme="dark"] .text-gray-900:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not(.mcp-chat-page *):not(.autofill-page *) {
-    color: var(--color-text-primary);
-  }
-
-  html[data-theme="dark"] .text-gray-800:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not(.mcp-chat-page *):not(.autofill-page *) {
-    color: var(--color-text-primary);
-  }
-
-  html[data-theme="dark"] .text-gray-700:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not(.mcp-chat-page *):not(.autofill-page *) {
-    color: var(--color-text-secondary);
-  }
-
-  html[data-theme="dark"] .text-gray-600:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not(.mcp-chat-page *):not(.autofill-page *) {
-    color: var(--color-text-secondary);
-  }
-
-  html[data-theme="dark"] .text-gray-500:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not(.mcp-chat-page *):not(.autofill-page *) {
-    color: var(--color-text-tertiary);
-  }
-
-  html[data-theme="dark"] .text-gray-400:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not(.mcp-chat-page *):not(.autofill-page *) {
-    color: var(--color-text-muted);
-  }
-
-  html[data-theme="dark"] .text-black:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not(.mcp-chat-page *):not(.autofill-page *) {
-    color: var(--color-text-primary);
-  }
-
-  /* 背景颜色重写 - 更谨慎的选择器，避免影响弹窗和下拉框，排除MCP聊天和AutoFill页面 */
-  html[data-theme="dark"] .bg-white:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not([class*="select-"]):not([role="dialog"]):not([role="menu"]):not([role="listbox"]):not(.mcp-chat-page *):not(.autofill-page *) {
-    background-color: var(--color-background-surface);
-  }
-
-  html[data-theme="dark"] .bg-gray-50:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not([class*="select-"]):not([role="dialog"]):not([role="menu"]):not([role="listbox"]):not(.mcp-chat-page *):not(.autofill-page *) {
-    background-color: var(--color-background-subtle);
-  }
-
-  html[data-theme="dark"] .bg-gray-100:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not([class*="select-"]):not([role="dialog"]):not([role="menu"]):not([role="listbox"]):not(.mcp-chat-page *):not(.autofill-page *) {
-    background-color: var(--color-background-subtle);
-  }
-
-  html[data-theme="dark"] .bg-gray-200:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not([class*="select-"]):not([role="dialog"]):not([role="menu"]):not([role="listbox"]):not(.mcp-chat-page *):not(.autofill-page *) {
-    background-color: var(--color-border-default);
-  }
-
-  /* 边框颜色重写 - 排除MCP聊天和AutoFill页面 */
-  html[data-theme="dark"] .border-gray-200:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not([class*="select-"]):not(.mcp-chat-page *):not(.autofill-page *) {
-    border-color: var(--color-border-default);
-  }
-
-  html[data-theme="dark"] .border-gray-300:not([class*="custom-"]):not([class*="dropdown-"]):not([class*="modal-"]):not([class*="popover-"]):not([class*="select-"]):not(.mcp-chat-page *):not(.autofill-page *) {
-    border-color: var(--color-border-subtle);
-  }
 }
 
 @layer utilities {
@@ -800,51 +746,11 @@
   margin-bottom: 0 !important;
 }
 
-/* 强制全局暗黑模式背景 - 最高优先级 */
-html[data-theme="dark"] {
-  background-color: var(--color-background-body) !important;
-  color: var(--color-text-primary) !important;
-  /* 确保字体渲染优化应用 */
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
 /* 暗黑模式下的文本清晰度优化 */
 html[data-theme="dark"] .text-xs,
 html[data-theme="dark"] .text-sm {
   /* 增加字间距，提升小字体可读性 */
   letter-spacing: 0.015em;
-}
-
-html[data-theme="dark"] body {
-  background-color: var(--color-background-body) !important;
-  color: var(--color-text-primary) !important;
-}
-
-html[data-theme="dark"] #root {
-  background-color: var(--color-background-body) !important;
-  color: var(--color-text-primary) !important;
-}
-
-/* 确保所有页面容器都使用正确的背景色 */
-html[data-theme="dark"] .min-h-screen,
-html[data-theme="dark"] .h-screen,
-html[data-theme="dark"] .h-full {
-  background-color: var(--color-background-body) !important;
-}
-
-/* 修复可能存在的主要内容区域背景 */
-html[data-theme="dark"] main,
-html[data-theme="dark"] .main-content,
-html[data-theme="dark"] .page-content {
-  background-color: var(--color-background-body) !important;
-  color: var(--color-text-primary) !important;
-}
-
-/* 修复布局容器的背景 */
-html[data-theme="dark"] .flex.flex-col.min-h-screen,
-html[data-theme="dark"] .grid.min-h-screen {
-  background-color: var(--color-background-body) !important;
 }
 
 /* Antd Tabs 自定义样式 - API 页面 */

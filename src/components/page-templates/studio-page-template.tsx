@@ -15,7 +15,7 @@ export const StudioPageTemplate: React.FC<StudioPageTemplateProps> = ({
   ...props
 }) => {
   return (
-    <div className={cn('flex h-full min-h-0 flex-col', className)} {...props}>
+    <div className={cn('flex h-full min-h-0 flex-col bg-components-studio-bg', className)} {...props}>
       {toolbar}
       <div className="flex min-h-0 flex-1">
         <div className="min-w-0 flex-1 overflow-auto">{children}</div>

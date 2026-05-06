@@ -1376,13 +1376,13 @@ const DocumentChunksPage: React.FC = () => {
                                     return match
                                   }
                                   
-                                  let tableHtml = '<table class="min-w-full border-collapse border border-gray-300 my-4">'
+                                  let tableHtml = '<table class="min-w-full border-collapse border border-border-subtle my-4">'
                                   
                                   // 表头
-                                  tableHtml += '<thead class="bg-gray-50">'
+                                  tableHtml += '<thead class="bg-background-subtle">'
                                   tableHtml += '<tr>'
                                   headers.forEach(header => {
-                                    tableHtml += `<th class="border border-gray-300 px-3 py-2 text-left font-semibold text-gray-900">${header}</th>`
+                                    tableHtml += `<th class="border border-border-subtle px-3 py-2 text-left font-semibold text-text-primary">${header}</th>`
                                   })
                                   tableHtml += '</tr>'
                                   tableHtml += '</thead>'
@@ -1390,15 +1390,15 @@ const DocumentChunksPage: React.FC = () => {
                                   // 表格内容
                                   tableHtml += '<tbody>'
                                   rows.forEach((row, index) => {
-                                    tableHtml += `<tr class="${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}">`
+                                    tableHtml += `<tr class="${index % 2 === 0 ? 'bg-background-surface' : 'bg-background-subtle'}">`
                                     row.forEach((cell, cellIndex) => {
                                       if (cellIndex < headers.length) {
-                                        tableHtml += `<td class="border border-gray-300 px-3 py-2 text-gray-700">${cell}</td>`
+                                        tableHtml += `<td class="border border-border-subtle px-3 py-2 text-text-secondary">${cell}</td>`
                                       }
                                     })
                                     // 填充空单元格
                                     for (let i = row.length; i < headers.length; i++) {
-                                      tableHtml += '<td class="border border-gray-300 px-3 py-2 text-gray-700"></td>'
+                                      tableHtml += '<td class="border border-border-subtle px-3 py-2 text-text-secondary"></td>'
                                     }
                                     tableHtml += '</tr>'
                                   })
@@ -1411,16 +1411,16 @@ const DocumentChunksPage: React.FC = () => {
                                 // 其他 Markdown 语法处理
                                 content = content
                                   // 标题
-                                  .replace(/^### (.*?)$/gm, '<h3 class="text-lg font-semibold mt-4 mb-2 text-gray-900">$1</h3>')
-                                  .replace(/^## (.*?)$/gm, '<h2 class="text-xl font-semibold mt-4 mb-2 text-gray-900">$1</h2>')
-                                  .replace(/^# (.*?)$/gm, '<h1 class="text-2xl font-bold mt-4 mb-2 text-gray-900">$1</h1>')
+                                  .replace(/^### (.*?)$/gm, '<h3 class="text-lg font-semibold mt-4 mb-2 text-text-primary">$1</h3>')
+                                  .replace(/^## (.*?)$/gm, '<h2 class="text-xl font-semibold mt-4 mb-2 text-text-primary">$1</h2>')
+                                  .replace(/^# (.*?)$/gm, '<h1 class="text-2xl font-bold mt-4 mb-2 text-text-primary">$1</h1>')
                                   // 列表
                                   .replace(/^[\s]*[-*+] (.*?)$/gm, '<ul class="list-disc ml-4 my-2"><li class="my-1">$1</li></ul>')
                                   .replace(/^[\s]*\d+\. (.*?)$/gm, '<ol class="list-decimal ml-4 my-2"><li class="my-1">$1</li></ol>')
                                   // 代码块
-                                  .replace(/```([\s\S]*?)```/g, '<pre class="bg-gray-100 p-3 rounded-md my-3 overflow-x-auto scrollbar-thin"><code class="text-sm font-mono">$1</code></pre>')
+                                  .replace(/```([\s\S]*?)```/g, '<pre class="bg-background-subtle p-3 rounded-md my-3 overflow-x-auto scrollbar-thin"><code class="text-sm font-mono">$1</code></pre>')
                                   // 行内代码
-                                  .replace(/`(.*?)`/g, '<code class="bg-gray-200 px-1.5 py-0.5 rounded text-sm font-mono">$1</code>')
+                                  .replace(/`(.*?)`/g, '<code class="bg-background-subtle px-1.5 py-0.5 rounded text-sm font-mono">$1</code>')
                                   // 粗体和斜体
                                   .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold">$1</strong>')
                                   .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')

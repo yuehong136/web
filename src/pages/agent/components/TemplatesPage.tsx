@@ -362,7 +362,7 @@ export const TemplatesPage = ({ onBack }: TemplatesPageProps) => {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-8">
                       <Button
                         size="lg"
-                        className="shadow-2xl bg-white text-gray-900 hover:bg-gray-100"
+                        className="shadow-2xl bg-background-surface text-text-primary hover:bg-background-subtle"
                         onClick={(e) => {
                           e.stopPropagation()
                           handleTemplateClick(template)

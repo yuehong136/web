@@ -61,8 +61,8 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
       return (
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">访问被拒绝</h2>
-            <p className="text-gray-600">您没有访问此页面的权限</p>
+            <h2 className="text-2xl font-bold text-text-primary mb-2">访问被拒绝</h2>
+            <p className="text-text-secondary">您没有访问此页面的权限</p>
           </div>
         </div>
       )
@@ -76,8 +76,8 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
       return (
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">访问被拒绝</h2>
-            <p className="text-gray-600">您没有访问此页面的角色权限</p>
+            <h2 className="text-2xl font-bold text-text-primary mb-2">访问被拒绝</h2>
+            <p className="text-text-secondary">您没有访问此页面的角色权限</p>
           </div>
         </div>
       )

@@ -116,7 +116,7 @@ const Dropdown: React.FC<DropdownProps> = ({
         ref={dropdownRef}
         className={cn(
           "fixed z-[9999] min-w-[160px] rounded-lg shadow-lg",
-          "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700",
+          "bg-background-surface dark:bg-gray-800 border border-border-default dark:border-gray-700",
           className
         )}
         style={{
@@ -124,7 +124,7 @@ const Dropdown: React.FC<DropdownProps> = ({
           ...(align === 'right' ? { right: position.right } : { left: position.left }),
         }}
       >
-        <div className="py-1 bg-white dark:bg-gray-800 rounded-lg">
+        <div className="py-1 bg-background-surface dark:bg-gray-800 rounded-lg">
           {items ? items.map((item, index) => (
             <DropdownItem
               key={index}
@@ -178,7 +178,7 @@ const DropdownItem: React.FC<DropdownItemProps> = ({
         "w-full flex items-center gap-2 px-3 py-2.5 text-sm text-left",
         danger 
           ? "text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20" 
-          : "text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700",
+          : "text-text-secondary hover:bg-background-subtle dark:text-gray-200 dark:hover:bg-gray-700",
         className
       )}
       onClick={handleClick}

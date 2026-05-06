@@ -39,7 +39,7 @@ const DialogListPage: React.FC = () => {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-500">加载中...</p>
+          <p className="text-text-tertiary">加载中...</p>
         </div>
       </div>
     )
@@ -49,12 +49,12 @@ const DialogListPage: React.FC = () => {
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">对话应用</h1>
-          <p className="text-gray-500 mt-1">管理您的AI对话应用 (共 {total} 个)</p>
+          <h1 className="text-2xl font-bold text-text-primary">对话应用</h1>
+          <p className="text-text-tertiary mt-1">管理您的AI对话应用 (共 {total} 个)</p>
         </div>
         <div className="flex items-center gap-4">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-text-muted" />
             <Input
               type="text"
               placeholder="搜索应用..."
@@ -81,21 +81,21 @@ const DialogListPage: React.FC = () => {
                   </span>
                 </div>
                 <div>
-                  <h3 className="font-medium text-gray-900">{dialog.name}</h3>
-                  <p className="text-sm text-gray-500">{dialog.description}</p>
+                  <h3 className="font-medium text-text-primary">{dialog.name}</h3>
+                  <p className="text-sm text-text-tertiary">{dialog.description}</p>
                 </div>
               </div>
             </div>
             
             <div className="mb-4">
-              <p className="text-xs text-gray-500 mb-2">系统提示词预览:</p>
-              <div className="bg-gray-50 rounded-md p-3 text-sm text-gray-700 max-h-20 overflow-hidden">
+              <p className="text-xs text-text-tertiary mb-2">系统提示词预览:</p>
+              <div className="bg-background-subtle rounded-md p-3 text-sm text-text-secondary max-h-20 overflow-hidden">
                 {dialog.prompt_config.system || '未设置系统提示词'}
               </div>
             </div>
 
             <div className="flex items-center justify-between">
-              <div className="text-xs text-gray-500">
+              <div className="text-xs text-text-tertiary">
                 模型: {dialog.llm_id}
               </div>
               <div className="flex space-x-2">
@@ -123,15 +123,15 @@ const DialogListPage: React.FC = () => {
 
       {dialogs.length === 0 && !loading && (
         <div className="text-center py-12">
-          <div className="text-gray-400 mb-4">
+          <div className="text-text-muted mb-4">
             <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
             </svg>
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
+          <h3 className="text-lg font-medium text-text-primary mb-2">
             {searchString ? '未找到匹配的应用' : '暂无对话应用'}
           </h3>
-          <p className="text-gray-500 mb-4">
+          <p className="text-text-tertiary mb-4">
             {searchString ? '请尝试其他搜索关键词' : '创建您的第一个AI对话应用'}
           </p>
           {!searchString && (
@@ -154,7 +154,7 @@ const DialogListPage: React.FC = () => {
           >
             上一页
           </Button>
-          <span className="text-sm text-gray-600">
+          <span className="text-sm text-text-secondary">
             第 {pagination.current} / {Math.ceil(total / pagination.pageSize)} 页
           </span>
           <Button

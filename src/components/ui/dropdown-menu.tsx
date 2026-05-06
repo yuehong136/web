@@ -141,7 +141,7 @@ export const DropdownMenuContent: React.FC<DropdownMenuContentProps> = ({
       <div 
         ref={dropdownRef}
         className={cn(
-          "fixed z-[9999] min-w-[160px] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg",
+          "fixed z-[9999] min-w-[160px] bg-background-surface dark:bg-gray-800 border border-border-default dark:border-gray-700 rounded-md shadow-lg",
           className
         )}
         style={{
@@ -177,7 +177,7 @@ export const DropdownMenuItem: React.FC<DropdownMenuItemProps> = ({
   return (
     <BaseDropdownItem
       className={cn(
-        "w-full flex items-center space-x-2 px-4 py-2 text-sm text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-200",
+        "w-full flex items-center space-x-2 px-4 py-2 text-sm text-left hover:bg-background-subtle dark:hover:bg-gray-700 transition-colors text-text-secondary dark:text-gray-200",
         className
       )}
       onClick={handleClick}
@@ -208,7 +208,7 @@ export const DropdownMenuLabel: React.FC<DropdownMenuLabelProps> = ({
 }) => {
   return (
     <div 
-      className={cn("px-2 py-1.5 text-sm font-semibold text-gray-900", className)}
+      className={cn("px-2 py-1.5 text-sm font-semibold text-text-primary", className)}
       role="label"
     >
       {children}

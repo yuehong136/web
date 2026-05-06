@@ -90,8 +90,8 @@ export function AuthCarousel({
                     onClick={() => setCurrentSlide(index)}
                     className={`w-2 h-2 rounded-full transition-all duration-300 ${
                         index === currentSlide
-                            ? "bg-white w-8"
-                            : "bg-white/50 hover:bg-white/70"
+                            ? "bg-background-surface w-8"
+                            : "bg-background-surface/50 hover:bg-background-surface/70"
                     }`}
                     aria-label={`转到幻灯片 ${index + 1}`}
                 />

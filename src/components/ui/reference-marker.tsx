@@ -73,29 +73,29 @@ export function ReferenceList({ references, className }: ReferenceListProps) {
   if (!references.length) return null
 
   return (
-    <div className={cn('reference-list border-t border-gray-200 pt-4 mt-6', className)}>
-      <h3 className="text-sm font-medium text-gray-900 mb-3">参考文献</h3>
+    <div className={cn('reference-list border-t border-border-default pt-4 mt-6', className)}>
+      <h3 className="text-sm font-medium text-text-primary mb-3">参考文献</h3>
       <div className="space-y-2">
         {references.map((ref) => (
           <div
             key={ref.id}
-            className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg text-sm"
+            className="flex items-start space-x-3 p-3 bg-background-subtle rounded-lg text-sm"
           >
             <span className="flex-shrink-0 inline-block px-1.5 py-0.5 text-xs font-medium rounded bg-blue-100 text-blue-700 border border-blue-200">
               [{ref.displayNumber}]
             </span>
             <div className="flex-1">
               {ref.documentName && (
-                <div className="font-medium text-gray-900 mb-1">
+                <div className="font-medium text-text-primary mb-1">
                   {ref.documentName}
                   {ref.similarity && (
-                    <span className="ml-2 text-xs text-gray-500">
+                    <span className="ml-2 text-xs text-text-tertiary">
                       相似度: {Math.round(ref.similarity * 100)}%
                     </span>
                   )}
                 </div>
               )}
-              <div className="text-gray-700 line-clamp-3">
+              <div className="text-text-secondary line-clamp-3">
                 {ref.content}
               </div>
               {ref.url && (

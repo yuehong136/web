@@ -8,6 +8,7 @@ import {
   useUploadPublicCanvasFile,
 } from '@/hooks/use-agent-request'
 import { changeLanguage } from '@/locales/i18n'
+import { ScopedTheme } from '@/themes'
 import { Send } from 'lucide-react'
 import type { AgentCanvasUploadResult } from '@/types/agent'
 import { AgentDialogueMode } from '../constant'
@@ -47,11 +48,15 @@ export default function AgentWidgetPage() {
 
   useTransparentDocument()
 
-  if (access.mode === 'master') {
-    return <WidgetLauncher />
-  }
-
-  return <WidgetChatWindow access={access} />
+  return (
+    <ScopedTheme theme={access.theme}>
+      {access.mode === 'master' ? (
+        <WidgetLauncher />
+      ) : (
+        <WidgetChatWindow access={access} />
+      )}
+    </ScopedTheme>
+  )
 }
 
 function WidgetChatWindow({

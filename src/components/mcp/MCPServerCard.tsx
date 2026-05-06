@@ -169,7 +169,7 @@ export const MCPServerCard: React.FC<MCPServerCardProps> = ({
                   size="sm"
                   className={cn(
                     'h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity',
-                    'hover:bg-black/5 dark:hover:bg-white/10'
+                    'hover:bg-black/5 dark:hover:bg-background-surface/10'
                   )}
                   onClick={(e) => e.stopPropagation()}
                 >
@@ -245,7 +245,7 @@ export const MCPServerCard: React.FC<MCPServerCardProps> = ({
           {/* 服务器地址 */}
           <Tooltip content={copied ? '已复制!' : '点击复制地址'}>
             <div
-              className="flex items-center gap-2 px-3 py-2 rounded-lg mb-4 cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+              className="flex items-center gap-2 px-3 py-2 rounded-lg mb-4 cursor-pointer hover:bg-black/5 dark:hover:bg-background-surface/5 transition-colors"
               style={{ backgroundColor: 'var(--color-background-subtle)' }}
               onClick={handleCopyUrl}
             >

@@ -19,7 +19,7 @@ export const SplitDetailPageTemplate: React.FC<SplitDetailPageTemplateProps> = (
   ...props
 }) => {
   return (
-    <div className={cn('flex h-full min-h-0 flex-col', className)} {...props}>
+    <div className={cn('flex h-full min-h-0 flex-col bg-components-split-pane-bg', className)} {...props}>
       {header}
       <div className="flex min-h-0 flex-1">
         <aside

@@ -147,7 +147,7 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
               >
                 <span
                   className={cn(
-                    'absolute top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform',
+                    'absolute top-0.5 h-4 w-4 rounded-full bg-background-surface shadow-sm transition-transform',
                     isAdmin ? 'translate-x-4' : 'translate-x-0.5'
                   )}
                 />

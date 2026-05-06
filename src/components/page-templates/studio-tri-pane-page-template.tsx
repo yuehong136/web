@@ -32,7 +32,7 @@ export const StudioTriPanePageTemplate: React.FC<StudioTriPanePageTemplateProps>
   ...props
 }) => {
   return (
-    <div className={cn('flex h-full min-h-0 flex-col', className)} {...props}>
+    <div className={cn('flex h-full min-h-0 flex-col bg-components-studio-bg', className)} {...props}>
       {header}
       <div className="min-h-0 flex-1 overflow-hidden">
         <ResizablePanelGroup

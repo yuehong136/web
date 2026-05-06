@@ -44,9 +44,9 @@ const APIKeyModal: React.FC<{
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4">
+      <div className="bg-background-surface rounded-xl shadow-xl max-w-md w-full mx-4">
         <div className="flex items-center justify-between p-6 border-b">
-          <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+          <h3 className="text-lg font-semibold text-text-primary flex items-center">
             <Key className="w-5 h-5 mr-2 text-blue-600" />
             设置 {providerName} API Key
           </h3>
@@ -57,7 +57,7 @@ const APIKeyModal: React.FC<{
         
         <div className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-text-secondary mb-2">
               API Key *
             </label>
             <input
@@ -65,12 +65,12 @@ const APIKeyModal: React.FC<{
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
               placeholder="请输入API Key"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-border-subtle rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-text-secondary mb-2">
               Base URL (可选)
             </label>
             <input
@@ -78,12 +78,12 @@ const APIKeyModal: React.FC<{
               value={baseUrl}
               onChange={(e) => setBaseUrl(e.target.value)}
               placeholder="https://api.example.com/v1"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-border-subtle rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
         </div>
         
-        <div className="flex justify-end space-x-3 p-6 border-t bg-gray-50 rounded-b-xl">
+        <div className="flex justify-end space-x-3 p-6 border-t bg-background-subtle rounded-b-xl">
           <Button variant="outline" onClick={handleCancel} disabled={isLoading}>
             取消
           </Button>
@@ -109,7 +109,7 @@ const getModelTypeColor = (type: string) => {
     tts: 'bg-pink-100 text-pink-800 border-pink-200',
     speech2text: 'bg-indigo-100 text-indigo-800 border-indigo-200'
   }
-  return colors[type as keyof typeof colors] || 'bg-gray-100 text-gray-800 border-gray-200'
+  return colors[type as keyof typeof colors] || 'bg-background-subtle text-text-primary border-border-default'
 }
 
 const getModelTypeLabel = (type: string) => {
@@ -143,18 +143,18 @@ const CollapsibleProviderCard: React.FC<{
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-white rounded-xl shadow-sm border flex items-center justify-center">
+            <div className="w-12 h-12 bg-background-surface rounded-xl shadow-sm border flex items-center justify-center">
               <ProviderIcon provider={providerName} className="w-8 h-8" size={32} />
             </div>
             
             <div>
-              <h3 className="font-semibold text-gray-900 text-lg">{providerName}</h3>
+              <h3 className="font-semibold text-text-primary text-lg">{providerName}</h3>
               <div className="flex items-center space-x-4 mt-1">
-                <span className="text-sm text-gray-500 flex items-center">
+                <span className="text-sm text-text-tertiary flex items-center">
                   <Database className="w-3 h-3 mr-1" />
                   {providerData.llm.length} 个模型
                 </span>
-                <span className="text-sm text-gray-500 flex items-center">
+                <span className="text-sm text-text-tertiary flex items-center">
                   <BarChart3 className="w-3 h-3 mr-1" />
                   {totalTokens.toLocaleString()} tokens
                 </span>
@@ -185,7 +185,7 @@ const CollapsibleProviderCard: React.FC<{
               "transition-transform duration-200",
               isExpanded ? "rotate-180" : "rotate-0"
             )}>
-              <ChevronDown className="h-5 w-5 text-gray-400" />
+              <ChevronDown className="h-5 w-5 text-text-muted" />
             </div>
           </div>
         </div>
@@ -195,7 +195,7 @@ const CollapsibleProviderCard: React.FC<{
           {providerData.tags.split(',').map((tag: string, index: number) => (
             <span
               key={index}
-              className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded-md border"
+              className="px-2 py-1 text-xs font-medium bg-background-subtle text-text-secondary rounded-md border"
             >
               {tag.trim()}
             </span>
@@ -205,15 +205,15 @@ const CollapsibleProviderCard: React.FC<{
 
       {/* 展开的模型列表 */}
       {isExpanded && (
-        <div className="border-t bg-white">
+        <div className="border-t bg-background-surface">
           <div className="p-6">
-            <h4 className="font-medium text-gray-900 mb-4 flex items-center">
+            <h4 className="font-medium text-text-primary mb-4 flex items-center">
               <Database className="w-4 h-4 mr-2" />
               模型列表
             </h4>
             <div className="grid gap-3">
               {providerData.llm.map((model: any, index: number) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
+                <div key={index} className="flex items-center justify-between p-3 bg-background-subtle rounded-lg border">
                   <div className="flex items-center space-x-3">
                     <span className={cn(
                       "px-2 py-1 rounded-md text-xs font-medium border",
@@ -222,14 +222,14 @@ const CollapsibleProviderCard: React.FC<{
                       {getModelTypeLabel(model.type)}
                     </span>
                     <div>
-                      <div className="font-medium text-gray-900 text-sm">{model.name}</div>
+                      <div className="font-medium text-text-primary text-sm">{model.name}</div>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-sm font-medium text-gray-900">
+                    <div className="text-sm font-medium text-text-primary">
                       {model.used_token.toLocaleString()}
                     </div>
-                    <div className="text-xs text-gray-500">tokens</div>
+                    <div className="text-xs text-text-tertiary">tokens</div>
                   </div>
                 </div>
               ))}
@@ -250,13 +250,13 @@ const AvailableProviderCard: React.FC<{
     <Card className="p-6 hover:shadow-lg transition-all duration-200 border-0 shadow-md">
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center space-x-3">
-          <div className="w-12 h-12 bg-gray-50 rounded-xl border flex items-center justify-center">
+          <div className="w-12 h-12 bg-background-subtle rounded-xl border flex items-center justify-center">
             <ProviderIcon provider={factory.name} className="w-8 h-8" size={32} />
           </div>
           <div>
-            <h4 className="font-semibold text-gray-900">{factory.name}</h4>
+            <h4 className="font-semibold text-text-primary">{factory.name}</h4>
             <div className="flex items-center space-x-2 mt-1">
-              <span className="text-sm text-gray-500 flex items-center">
+              <span className="text-sm text-text-tertiary flex items-center">
                 <Database className="w-3 h-3 mr-1" />
                 {factory.model_types.length} 种模型
               </span>
@@ -399,7 +399,7 @@ export const ModelProvidersPage: React.FC = () => {
       <div className="h-full flex items-center justify-center">
         <div className="text-center">
           <Loading variant="spinner" size="lg" />
-          <p className="text-gray-500 mt-4">加载中...</p>
+          <p className="text-text-tertiary mt-4">加载中...</p>
         </div>
       </div>
     )
@@ -408,11 +408,11 @@ export const ModelProvidersPage: React.FC = () => {
   return (
     <div className="h-full flex flex-col">
       {/* 页面标题 */}
-      <div className="flex-shrink-0 px-8 py-6 border-b border-gray-200">
+      <div className="flex-shrink-0 px-8 py-6 border-b border-border-default">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">AI模型管理</h2>
-            <p className="text-gray-600 mt-1">
+            <h2 className="text-2xl font-bold text-text-primary">AI模型管理</h2>
+            <p className="text-text-secondary mt-1">
               管理您的AI模型供应商配置和使用情况
             </p>
           </div>
@@ -434,20 +434,20 @@ export const ModelProvidersPage: React.FC = () => {
         <div className="p-8 space-y-8">
           {/* 已添加的供应商 */}
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 flex items-center mb-6">
+            <h3 className="text-lg font-semibold text-text-primary flex items-center mb-6">
               <Zap className="h-5 w-5 mr-2 text-green-600" />
               已配置的供应商
             </h3>
 
             {Object.keys(myLLMs).length === 0 ? (
               <Card className="p-12 text-center border-dashed border-2">
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Settings className="h-8 w-8 text-gray-400" />
+                <div className="w-16 h-16 bg-background-subtle rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Settings className="h-8 w-8 text-text-muted" />
                 </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                <h3 className="text-lg font-medium text-text-primary mb-2">
                   还没有配置任何供应商
                 </h3>
-                <p className="text-gray-500">
+                <p className="text-text-tertiary">
                   从下方的可用供应商中选择并添加您需要的AI模型服务
                 </p>
               </Card>
@@ -469,20 +469,20 @@ export const ModelProvidersPage: React.FC = () => {
 
           {/* 可用的供应商 */}
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 flex items-center mb-6">
+            <h3 className="text-lg font-semibold text-text-primary flex items-center mb-6">
               <Plus className="h-5 w-5 mr-2 text-blue-600" />
               可用的供应商
             </h3>
 
             {factories.length === 0 ? (
               <Card className="p-12 text-center">
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Plus className="h-8 w-8 text-gray-400" />
+                <div className="w-16 h-16 bg-background-subtle rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Plus className="h-8 w-8 text-text-muted" />
                 </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                <h3 className="text-lg font-medium text-text-primary mb-2">
                   暂无可用供应商
                 </h3>
-                <p className="text-gray-500">
+                <p className="text-text-tertiary">
                   系统中暂时没有可添加的模型供应商
                 </p>
               </Card>

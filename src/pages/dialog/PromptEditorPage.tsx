@@ -68,7 +68,7 @@ const PromptEditorPage: React.FC = () => {
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-500">加载中...</p>
+          <p className="text-text-tertiary">加载中...</p>
         </div>
       </div>
     )
@@ -78,7 +78,7 @@ const PromptEditorPage: React.FC = () => {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">
-          <p className="text-gray-500 mb-4">未找到对话配置</p>
+          <p className="text-text-tertiary mb-4">未找到对话配置</p>
           <Button onClick={handleBack}>返回列表</Button>
         </div>
       </div>
@@ -86,26 +86,26 @@ const PromptEditorPage: React.FC = () => {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50">
+    <div className="h-screen flex flex-col bg-background-subtle">
       {/* 顶部导航栏 */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
+      <div className="bg-background-surface border-b border-border-default px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <Button
               variant="ghost"
               size="sm"
               onClick={handleBack}
-              className="text-gray-600 hover:text-gray-900"
+              className="text-text-secondary hover:text-text-primary"
             >
               <ArrowLeft className="h-4 w-4 mr-1" />
               返回
             </Button>
             <div className="h-6 w-px bg-gray-300" />
             <div>
-              <h1 className="text-xl font-semibold text-gray-900">
+              <h1 className="text-xl font-semibold text-text-primary">
                 编辑系统提示词
               </h1>
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm text-text-tertiary mt-1">
                 对话应用: {dialog.name}
               </p>
             </div>
@@ -145,17 +145,17 @@ const PromptEditorPage: React.FC = () => {
       {/* 主要内容区域 */}
       <div className="flex-1 p-6 overflow-hidden">
         <Card className="h-full flex flex-col">
-          <div className="p-4 border-b border-gray-200">
+          <div className="p-4 border-b border-border-default">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-medium text-gray-900">
+                <h2 className="text-lg font-medium text-text-primary">
                   系统提示词 (System Prompt)
                 </h2>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-text-tertiary mt-1">
                   定义AI助手的角色、行为和回答风格。支持Markdown格式。
                 </p>
               </div>
-              <div className="text-xs text-gray-400">
+              <div className="text-xs text-text-muted">
                 字符数: {systemPrompt.length}
               </div>
             </div>
@@ -185,8 +185,8 @@ const PromptEditorPage: React.FC = () => {
           </div>
           
           {/* 底部提示信息 */}
-          <div className="p-4 border-t border-gray-200 bg-gray-50">
-            <div className="flex items-center justify-between text-sm text-gray-500">
+          <div className="p-4 border-t border-border-default bg-background-subtle">
+            <div className="flex items-center justify-between text-sm text-text-tertiary">
               <div className="flex items-center space-x-4">
                 <span>💡 提示: 支持Markdown语法</span>
                 <span>📝 字符限制: 建议控制在2000字符以内</span>

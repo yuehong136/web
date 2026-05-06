@@ -2550,7 +2550,7 @@ const ApiDocumentationPage: React.FC = () => {
                                           variant="outline"
                                           size="sm"
                                           onClick={() => setEditorTheme(prev => prev === 'vs' ? 'vs-dark' : 'vs')}
-                                          className="hover:bg-gray-50 hover:border-gray-200"
+                                          className="hover:bg-background-subtle hover:border-border-default"
                                           title="切换编辑器主题"
                                         >
                                           {editorTheme === 'vs' ? '🌙' : '☀️'}
@@ -3113,7 +3113,7 @@ const ApiDocumentationPage: React.FC = () => {
                                         variant="outline"
                                         size="sm"
                                         onClick={() => setEditorTheme(prev => prev === 'vs' ? 'vs-dark' : 'vs')}
-                                        className="hover:bg-gray-50 hover:border-gray-200"
+                                        className="hover:bg-background-subtle hover:border-border-default"
                                         title="切换编辑器主题"
                                       >
                                         {editorTheme === 'vs' ? '🌙' : '☀️'}
@@ -3234,7 +3234,7 @@ const ApiDocumentationPage: React.FC = () => {
               return (
                 <div 
                   key={apiKeyId}
-                  className="fixed w-40 bg-white border border-gray-200 rounded-md shadow-lg z-[9999]"
+                  className="fixed w-40 bg-background-surface border border-border-default rounded-md shadow-lg z-[9999]"
                   style={{
                     top: position.top,
                     right: position.right
@@ -3248,7 +3248,7 @@ const ApiDocumentationPage: React.FC = () => {
                         setOpenDropdowns(new Set())
                       }}
                       disabled={operatingKeys.has(apiKey.tenant_id)}
-                      className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full px-4 py-2 text-left text-sm hover:bg-background-subtle transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Edit2 className="h-4 w-4" />
                       编辑
@@ -3259,7 +3259,7 @@ const ApiDocumentationPage: React.FC = () => {
                         setOpenDropdowns(new Set())
                       }}
                       disabled={operatingKeys.has(apiKey.tenant_id)}
-                      className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full px-4 py-2 text-left text-sm hover:bg-background-subtle transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <RefreshCw className="h-4 w-4" />
                       重新生成
@@ -3270,7 +3270,7 @@ const ApiDocumentationPage: React.FC = () => {
                         setOpenDropdowns(new Set())
                       }}
                       disabled={operatingKeys.has(apiKey.tenant_id)}
-                      className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 transition-colors flex items-center gap-2 text-red-600 hover:text-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full px-4 py-2 text-left text-sm hover:bg-background-subtle transition-colors flex items-center gap-2 text-red-600 hover:text-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Trash2 className="h-4 w-4" />
                       删除

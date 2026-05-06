@@ -167,7 +167,7 @@ const QuickEditModal: React.FC<QuickEditModalProps> = ({
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-text-secondary mb-2">
             知识库名称 *
           </label>
           <Input
@@ -177,13 +177,13 @@ const QuickEditModal: React.FC<QuickEditModalProps> = ({
             title="知识库名称必须以字母开头，只能包含字母、数字和下划线"
             required
           />
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-text-tertiary mt-1">
             名称必须以字母开头，只能包含字母、数字和下划线
           </p>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-text-secondary mb-2">
             描述
           </label>
           <textarea
@@ -191,7 +191,7 @@ const QuickEditModal: React.FC<QuickEditModalProps> = ({
             onChange={handleInputChange('description')}
             placeholder="请输入知识库描述"
             rows={3}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="w-full px-3 py-2 border border-border-subtle rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
           />
         </div>
       </form>

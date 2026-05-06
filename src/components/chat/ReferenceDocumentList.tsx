@@ -84,7 +84,7 @@ function getDocumentIcon(docName: string) {
       return <FileText className="h-4 w-4 text-orange-500" />
     case 'md':
     case 'txt':
-      return <FileText className="h-4 w-4 text-gray-500" />
+      return <FileText className="h-4 w-4 text-text-tertiary" />
     default:
       return <FileText className="h-4 w-4" style={{ color: 'var(--color-text-tertiary)' }} />
   }

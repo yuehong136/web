@@ -6,7 +6,7 @@
  * 如需修改主题，请编辑 theme-generator.ts 文件
  */
 
-html[data-theme="light"] {
+html[data-theme="light"], [data-theme="light"] {
   /* ===== Tailwind 通道变量 (用于 /alpha 透明度支持) ===== */
   --twc-primary: 30 64 175;
   --twc-primary-foreground: 255 255 255;
