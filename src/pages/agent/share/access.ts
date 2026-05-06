@@ -35,17 +35,6 @@ export interface BuildAgentEmbedCodeOptions extends BuildAgentShareUrlOptions {
   embedType: AgentEmbedType
 }
 
-const readParam = (params: URLSearchParams, keys: string[]) => {
-  for (const key of keys) {
-    const value = params.get(key)
-    if (value) {
-      return value
-    }
-  }
-
-  return ''
-}
-
 export function parseAgentShareAccess(
   searchParams: URLSearchParams,
 ): AgentShareAccess {
@@ -59,8 +48,8 @@ export function parseAgentShareAccess(
   const mode = searchParams.get('mode')
 
   return {
-    agentId: readParam(searchParams, ['shared_id', 'id', 'agent_id']),
-    betaToken: readParam(searchParams, ['auth', 'beta', 'token']),
+    agentId: searchParams.get('shared_id') || '',
+    betaToken: searchParams.get('auth') || '',
     from: searchParams.get('from') || 'agent',
     release: ['true', '1'].includes(
       (searchParams.get('release') || '').toLowerCase(),

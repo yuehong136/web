@@ -30,7 +30,7 @@ import { AgentDialogueMode } from '../constant'
 import { ShareComposer } from './share-composer'
 import { ShareMessageList } from './share-message-list'
 import { ShareParameterDialog } from './share-parameter-dialog'
-import { buildAgentSharePath, parseAgentShareAccess } from './access'
+import { parseAgentShareAccess } from './access'
 import { useSharedAgentRunner } from './use-shared-agent-runner'
 import {
   buildInitialShareValues,
@@ -83,32 +83,6 @@ export default function AgentSharePage() {
     [shareQuery.data.inputs],
   )
   const isTaskMode = shareQuery.data.mode === AgentDialogueMode.Task
-  const canonicalPath = useMemo(
-    () =>
-      access.agentId && access.betaToken
-        ? buildAgentSharePath({
-            agentId: access.agentId,
-            betaToken: access.betaToken,
-            release: access.release,
-            userId: access.userId,
-            locale: access.locale,
-            theme: access.theme,
-            visibleAvatar: access.visibleAvatar,
-          })
-        : '',
-    [
-      access.agentId,
-      access.betaToken,
-      access.locale,
-      access.release,
-      access.theme,
-      access.userId,
-      access.visibleAvatar,
-    ],
-  )
-  const isCanonical =
-    canonicalPath &&
-    `${window.location.pathname}${window.location.search}` === canonicalPath
 
   const runner = useSharedAgentRunner({
     agentId: access.agentId,
@@ -436,16 +410,7 @@ export default function AgentSharePage() {
         />
       }
     >
-      <div className="flex h-[calc(100vh-168px)] min-h-[620px] flex-col">
-        {canonicalPath && !isCanonical ? (
-          <div className="mx-auto mt-space-base w-full max-w-4xl rounded-radius-md border border-border-subtle bg-surface-secondary p-space-sm text-xs text-text-secondary">
-            当前链接来自旧别名入口。正式 Share 链接为：
-            <span className="ml-space-xs break-all text-text-primary">
-              {canonicalPath}
-            </span>
-          </div>
-        ) : null}
-
+      <div className="flex h-full min-h-0 flex-col">
         {runner.lastError ? (
           <div className="mx-auto mt-space-base w-full max-w-4xl rounded-radius-md border border-status-error bg-surface-secondary p-space-sm text-sm text-status-error">
             {runner.lastError}
