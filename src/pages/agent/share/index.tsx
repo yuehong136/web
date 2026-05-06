@@ -264,14 +264,14 @@ export default function AgentSharePage() {
       }
 
       const files = [...collectUploadedFiles(formValues), ...messageFiles]
+      setMessageValue('')
+      setMessageFiles([])
       await runner.submit({
         query: trimmed,
         values: formValues,
         files,
         userMessage: trimmed,
       })
-      setMessageValue('')
-      setMessageFiles([])
     },
     [formValues, messageFiles, runner],
   )

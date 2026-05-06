@@ -67,22 +67,8 @@ export function ShareComposer({
             .agent-share-composer .ant-sender input::placeholder {
               color: var(--color-components-input-text-placeholder) !important;
             }
-            .agent-share-composer .ant-sender-actions {
-              align-self: flex-start !important;
-              padding: 0 !important;
-              margin: 0 !important;
-            }
-            .agent-share-composer .ant-sender-actions-btn {
-              background: var(--color-components-button-primary-bg) !important;
-              color: var(--color-components-button-primary-text) !important;
-              border: none !important;
-            }
-            .agent-share-composer .ant-sender-actions-btn:hover {
-              background: var(--color-components-button-primary-bg-hover) !important;
-            }
-            .agent-share-composer .ant-sender-actions-btn:disabled {
-              background: var(--color-components-button-primary-bg-disabled) !important;
-              color: var(--color-components-button-primary-text-disabled) !important;
+            .agent-share-composer .ant-sender-actions-list {
+              display: none !important;
             }
           `}</style>
 
@@ -105,7 +91,6 @@ export function ShareComposer({
               disabled={uploading}
               onSubmit={onSubmit}
               onCancel={onStop}
-              suffix={() => null}
             />
           </div>
 
