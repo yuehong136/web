@@ -1,6 +1,7 @@
-import Editor, { loader } from '@monaco-editor/react'
+import Editor from '@monaco-editor/react'
+import { configureMonacoLoader } from '@/components/jsonjoy-builder/lib/configure-monaco-loader'
 
-loader.config({ paths: { vs: '/vs' } })
+configureMonacoLoader()
 
 type JsonCodeEditorProps = {
   value?: string

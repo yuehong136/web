@@ -2,8 +2,13 @@ import get from 'lodash/get.js'
 import omit from 'lodash/omit.js'
 import { useCallback, useMemo, useState } from 'react'
 import type { JSONSchema } from '@/components/jsonjoy-builder/types/json-schema'
-import { AgentStructuredOutputField } from '../../constant'
+import { AgentStructuredOutputField, initialAgentValues } from '../../constant'
 import useGraphStore from '../../store'
+
+const DEFAULT_STRUCTURED_OUTPUT_SCHEMA: JSONSchema = {
+  type: 'object',
+  properties: {},
+}
 
 export function useStructuredOutputDialog(nodeId?: string) {
   const [visible, setVisible] = useState(false)
@@ -47,7 +52,11 @@ export function useStructuredOutputDialog(nodeId?: string) {
       if (nextValue) {
         updateNodeForm(
           nodeId,
-          get(outputs, AgentStructuredOutputField, { type: 'object' }),
+          get(
+            outputs,
+            AgentStructuredOutputField,
+            DEFAULT_STRUCTURED_OUTPUT_SCHEMA,
+          ),
           ['outputs', AgentStructuredOutputField],
         )
         return
@@ -55,7 +64,10 @@ export function useStructuredOutputDialog(nodeId?: string) {
 
       updateNodeForm(
         nodeId,
-        omit(outputs, [AgentStructuredOutputField]),
+        {
+          ...initialAgentValues.outputs,
+          ...omit(outputs, [AgentStructuredOutputField]),
+        },
         ['outputs'],
       )
     },

@@ -22,6 +22,10 @@ export interface Translation {
   readonly fieldAddNewBadge: string
   readonly fieldAddNewCancel: string
   readonly fieldAddNewConfirm: string
+  readonly fieldSaveConfirm: string
+  readonly fieldNameDuplicate: string
+  readonly fieldNameInvalid: string
+  readonly fieldNameRequired: string
   readonly fieldTypeTextLabel: string
   readonly fieldTypeTextDescription: string
   readonly fieldTypeNumberLabel: string
@@ -118,8 +122,12 @@ export interface Translation {
   readonly visualizerDownloadTitle: string
   readonly visualizerDownloadFileName: string
   readonly visualizerSource: string
+  readonly visualizerLoadTimeoutTitle: string
+  readonly visualizerLoadTimeoutDescription: string
   readonly visualEditorNoFieldsHint1: string
   readonly visualEditorNoFieldsHint2: string
+  readonly visualEditorFieldsLabel: string
+  readonly visualEditorRequiredLabel: string
   readonly typeValidationErrorNegativeLength: string
   readonly typeValidationErrorIntValue: string
   readonly typeValidationErrorPositive: string

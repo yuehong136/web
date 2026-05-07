@@ -26,6 +26,7 @@ import {
   normalizeIterationOutputItems,
 } from '../iteration/utils'
 import type { QueryVariableOptionGroup } from '../components/query-variable-utils'
+import { filterQueryVariableOptionGroupsByTypes } from '../components/query-variable-utils'
 import {
   buildVariableAggregatorOutputs,
   normalizeVariableAggregatorGroups,
@@ -42,6 +43,34 @@ import {
   normalizeBeginInputsForEditor,
   serializeBeginInputsForStore,
 } from '../begin/utils'
+
+test('query variable type filtering keeps agent structured output drilldown entry', () => {
+  const groups: QueryVariableOptionGroup[] = [
+    {
+      label: 'Agent',
+      title: 'Agent',
+      options: [
+        {
+          label: 'structured',
+          value: 'Agent:demo@structured',
+          type: 'object',
+        },
+        {
+          label: 'content',
+          value: 'Agent:demo@content',
+          type: 'string',
+        },
+      ],
+    },
+  ]
+
+  const filtered = filterQueryVariableOptionGroupsByTypes(groups, ['number'])
+
+  assert.deepEqual(
+    filtered.flatMap((group) => group.options.map((option) => option.value)),
+    ['Agent:demo@structured'],
+  )
+})
 
 test('parser normalizer rebuilds keyed backend setups into file-type cards and back', () => {
   const normalized = normalizeParserSetupsForStore({

@@ -13,6 +13,15 @@ function getNodeId(value: string) {
   return splitValue(value).at(0)
 }
 
+function getStructuredField(value?: string) {
+  return splitValue(value).at(1) || ''
+}
+
+function getStructuredBaseValue(value?: string) {
+  const nodeId = getNodeId(value || '')
+  return nodeId ? `${nodeId}@${AgentStructuredOutputField}` : ''
+}
+
 function getStructuredDatatype(value: Record<string, any> | unknown) {
   const dataType = get(value, 'type', JsonSchemaDataType.String) as string
   const arrayItemsType = get(value, 'items.type', JsonSchemaDataType.String)
@@ -80,7 +89,8 @@ export function useFindAgentStructuredOutputLabel() {
         getOperatorTypeFromId(fields.at(0)) === Operator.Agent &&
         fields.at(1)?.startsWith(AgentStructuredOutputField)
       ) {
-        const agentOption = options.find((x) => value.includes(x.value))
+        const baseValue = getStructuredBaseValue(value)
+        const agentOption = options.find((x) => x.value === baseValue)
         const jsonSchemaFields = fields
           .at(1)
           ?.slice(AgentStructuredOutputField.length)
@@ -163,8 +173,9 @@ export function useFindAgentStructuredOutputLabelByValue() {
     (value?: string) => {
       if (value) {
         const operatorName = getNode(getNodeId(value ?? ''))?.data.name
+        const structuredField = getStructuredField(value)
         if (operatorName) {
-          return operatorName + ' / ' + splitValue(value).at(1)
+          return structuredField ? operatorName + ' / ' + structuredField : operatorName
         }
       }
       return ''

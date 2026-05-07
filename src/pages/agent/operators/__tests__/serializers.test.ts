@@ -205,6 +205,81 @@ test('serializeGraphToDsl backfills missing sys.* globals while preserving calle
   assert.deepEqual(dsl.globals?.[AgentGlobals.SysFiles], [])
 })
 
+test('serializeGraphToDsl writes conversation variables to variables and env globals', () => {
+  const beginNode = buildGraphNode(Operator.Begin, { id: BeginId })
+
+  const dsl = serializeGraphToDsl({
+    graph: { nodes: [beginNode], edges: [] },
+    baseDsl: {
+      history: [],
+      messages: [],
+      reference: [],
+      globals: {
+        [AgentGlobals.SysQuery]: 'kept-query',
+        [AgentGlobals.SysUserId]: 'user-1',
+        'env.old': 'remove-me',
+      },
+      variables: {
+        old: {
+          name: 'old',
+          type: 'string',
+          value: 'remove-me',
+        },
+      },
+      retrieval: [],
+    },
+    globalVariables: {
+      city: {
+        name: 'city',
+        type: 'string',
+        value: 'Shanghai',
+        description: 'current city',
+      },
+      count: {
+        name: 'count',
+        type: 'number',
+        value: 3,
+      },
+    },
+  })
+
+  assert.equal(dsl.globals?.[AgentGlobals.SysQuery], 'kept-query')
+  assert.equal(dsl.globals?.[AgentGlobals.SysUserId], 'user-1')
+  assert.equal(dsl.globals?.['env.city'], 'Shanghai')
+  assert.equal(dsl.globals?.['env.count'], 3)
+  assert.equal('env.old' in dsl.globals, false)
+  assert.deepEqual(Object.keys(dsl.variables || {}).sort(), ['city', 'count'])
+  assert.equal(dsl.variables?.city?.description, 'current city')
+})
+
+test('serializeGraphToDsl preserves existing variables when no global variable override is provided', () => {
+  const beginNode = buildGraphNode(Operator.Begin, { id: BeginId })
+
+  const dsl = serializeGraphToDsl({
+    graph: { nodes: [beginNode], edges: [] },
+    baseDsl: {
+      history: [],
+      messages: [],
+      reference: [],
+      globals: {
+        [AgentGlobals.SysQuery]: 'kept-query',
+        'env.city': 'Shanghai',
+      },
+      variables: {
+        city: {
+          name: 'city',
+          type: 'string',
+          value: 'Shanghai',
+        },
+      },
+      retrieval: [],
+    },
+  })
+
+  assert.equal(dsl.globals?.['env.city'], 'Shanghai')
+  assert.equal(dsl.variables?.city?.value, 'Shanghai')
+})
+
 test('buildInitialDsl always includes path as an empty array', () => {
   const agentDsl = buildInitialDsl(AgentCanvasType.AGENT)
   const pipelineDsl = buildInitialDsl(AgentCanvasType.PIPELINE)

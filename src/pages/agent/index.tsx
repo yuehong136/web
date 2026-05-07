@@ -29,6 +29,7 @@ import { useBuildWebhookUrl } from './hooks/use-build-webhook-url'
 import { useSaveGraph } from './hooks/use-save-graph'
 import { buildAgentShareUrl } from './share/access'
 import { ShareEmbedDialog } from './share/share-embed-dialog'
+import { GlobalVariableSheet } from './global-variable-sheet'
 import AgentCanvas from './canvas'
 import { EditorRuntimeRail } from './components/editor-runtime-rail'
 import { PlaceholderDialog } from './components/placeholder-dialog'
@@ -49,6 +50,7 @@ import {
   Compass,
   History,
   Link2,
+  MessageSquareCode,
   Play,
   Save,
   Share2,
@@ -77,6 +79,7 @@ export default function AgentEditorPage() {
   const [versionsOpen, setVersionsOpen] = useState(false)
   const [webhookOpen, setWebhookOpen] = useState(false)
   const [shareOpen, setShareOpen] = useState(false)
+  const [globalVariablesOpen, setGlobalVariablesOpen] = useState(false)
   const [roadmapOpen, setRoadmapOpen] = useState(false)
   const [publishedShareUrl, setPublishedShareUrl] = useState('')
   const defaultRuntimeView =
@@ -274,6 +277,13 @@ export default function AgentEditorPage() {
                         <Share2 className="mr-space-xs h-4 w-4" />
                         Share
                       </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => setGlobalVariablesOpen(true)}
+                      >
+                        <MessageSquareCode className="mr-space-xs h-4 w-4" />
+                        会话变量
+                      </Button>
                     </>
                   ) : null}
                   <Button variant="outline" onClick={settingState.showModal}>
@@ -320,6 +330,7 @@ export default function AgentEditorPage() {
             onOpenWebhook={() => setWebhookOpen(true)}
             onOpenSettings={settingState.showModal}
             onOpenShare={() => void handleOpenShare()}
+            onOpenVariables={() => setGlobalVariablesOpen(true)}
             onOpenRoadmap={() => setRoadmapOpen(true)}
           />
         }
@@ -377,6 +388,10 @@ export default function AgentEditorPage() {
           webhookUrl={webhookUrl}
           flow={flowDetail}
         />
+      ) : null}
+
+      {globalVariablesOpen && editorMode === 'agent' ? (
+        <GlobalVariableSheet hideModal={setGlobalVariablesOpen} />
       ) : null}
 
       {settingState.visible ? (

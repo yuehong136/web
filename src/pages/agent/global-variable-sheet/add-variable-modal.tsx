@@ -1,3 +1,9 @@
+import { useCallback, useEffect } from 'react'
+import { useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
+import { z } from 'zod'
+import { zodResolver } from '@hookform/resolvers/zod'
+import type { AgentGlobalVariable } from '@/types/agent'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -22,35 +28,35 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useCallback } from 'react'
-import { useForm } from 'react-hook-form'
-import { useTranslation } from 'react-i18next'
-import { z } from 'zod'
-
-const variableTypeOptions = [
-  { label: 'String', value: 'string' },
-  { label: 'Number', value: 'number' },
-  { label: 'Boolean', value: 'boolean' },
-  { label: 'Object', value: 'object' },
-  { label: 'Array<String>', value: 'array<string>' },
-  { label: 'Array<Number>', value: 'array<number>' },
-  { label: 'Array<Object>', value: 'array<object>' },
-]
+import { Textarea } from '@/components/ui/textarea'
+import {
+  DEFAULT_GLOBAL_VARIABLE_FORM_VALUES,
+  GLOBAL_VARIABLE_TYPE_OPTIONS,
+  JSON_VALUE_TYPES,
+} from './constants'
+import {
+  formatGlobalVariableFormValue,
+  getDefaultValueForType,
+  parseGlobalVariableValue,
+  type GlobalVariableFormValues,
+} from './utils'
 
 const variableSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
+  name: z
+    .string()
+    .min(1, 'Name is required')
+    .regex(/^[a-zA-Z_0-9]+$/, 'Only letters, numbers and underscores are allowed'),
   type: z.string().min(1, 'Type is required'),
-  value: z.any(),
+  value: z.string(),
+  description: z.string().optional(),
 })
-
-type VariableFormValues = z.infer<typeof variableSchema>
 
 interface AddVariableModalProps {
   visible: boolean
   hideModal: () => void
-  onSubmit: (values: VariableFormValues) => void
-  defaultValues?: Partial<VariableFormValues> | null
+  onSubmit: (values: GlobalVariableFormValues) => Promise<void> | void
+  defaultValues?: Partial<AgentGlobalVariable> | null
+  loading?: boolean
 }
 
 export function AddVariableModal({
@@ -58,28 +64,47 @@ export function AddVariableModal({
   hideModal,
   onSubmit,
   defaultValues,
+  loading,
 }: AddVariableModalProps) {
   const { t } = useTranslation()
-
-  const form = useForm<VariableFormValues>({
+  const form = useForm<GlobalVariableFormValues>({
     resolver: zodResolver(variableSchema),
-    defaultValues: {
-      name: defaultValues?.name || '',
-      type: defaultValues?.type || 'string',
-      value: defaultValues?.value || '',
-    },
+    defaultValues: DEFAULT_GLOBAL_VARIABLE_FORM_VALUES,
   })
+  const type = form.watch('type')
+
+  useEffect(() => {
+    form.reset(formatGlobalVariableFormValue(defaultValues))
+  }, [defaultValues, form])
+
+  const handleTypeChange = useCallback(
+    (nextType: string, onChange: (value: string) => void) => {
+      onChange(nextType)
+      form.setValue('value', getDefaultValueForType(nextType), {
+        shouldDirty: true,
+      })
+    },
+    [form],
+  )
 
   const handleSubmit = useCallback(
-    (values: VariableFormValues) => {
-      onSubmit(values)
-      form.reset()
+    async (values: GlobalVariableFormValues) => {
+      try {
+        parseGlobalVariableValue(values.type, values.value)
+      } catch {
+        form.setError('value', {
+          message: t('flow.formatTypeError', 'Invalid value format'),
+        })
+        return
+      }
+
+      await onSubmit(values)
     },
-    [form, onSubmit],
+    [form, onSubmit, t],
   )
 
   return (
-    <Dialog open={visible} onOpenChange={hideModal}>
+    <Dialog open={visible} onOpenChange={(open) => !open && hideModal()}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
@@ -114,14 +139,21 @@ export function AddVariableModal({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('common.type', '类型')}</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select
+                    onValueChange={(value) =>
+                      handleTypeChange(value, field.onChange)
+                    }
+                    value={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder={t('common.selectType', '选择类型')} />
+                        <SelectValue
+                          placeholder={t('common.selectType', '选择类型')}
+                        />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {variableTypeOptions.map((option) => (
+                      {GLOBAL_VARIABLE_TYPE_OPTIONS.map((option) => (
                         <SelectItem key={option.value} value={option.value}>
                           {option.label}
                         </SelectItem>
@@ -140,11 +172,25 @@ export function AddVariableModal({
                 <FormItem>
                   <FormLabel>{t('common.defaultValue', '默认值')}</FormLabel>
                   <FormControl>
-                    <Input
-                      {...field}
-                      value={typeof field.value === 'string' ? field.value : JSON.stringify(field.value)}
-                      onChange={(e) => field.onChange(e.target.value)}
-                    />
+                    {JSON_VALUE_TYPES.has(type) ? (
+                      <Textarea {...field} className="min-h-32 font-mono" />
+                    ) : (
+                      <Input {...field} />
+                    )}
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('flow.description', 'Description')}</FormLabel>
+                  <FormControl>
+                    <Textarea {...field} className="min-h-24" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -155,7 +201,9 @@ export function AddVariableModal({
               <Button type="button" variant="outline" onClick={hideModal}>
                 {t('common.cancel', '取消')}
               </Button>
-              <Button type="submit">{t('common.confirm', '确认')}</Button>
+              <Button type="submit" disabled={loading}>
+                {loading ? t('common.saving', '保存中...') : t('common.confirm', '确认')}
+              </Button>
             </DialogFooter>
           </form>
         </Form>

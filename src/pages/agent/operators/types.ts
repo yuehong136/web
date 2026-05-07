@@ -1,4 +1,9 @@
-import type { AgentCanvasType, AgentGraph, AgentGraphNode } from '@/types/agent'
+import type {
+  AgentCanvasType,
+  AgentGlobalVariable,
+  AgentGraph,
+  AgentGraphNode,
+} from '@/types/agent'
 import type { Operator } from '../constant'
 
 export enum AgentOperatorCategory {
@@ -46,6 +51,7 @@ export interface SerializeGraphOptions {
     variables: Record<string, unknown>
     retrieval: unknown[]
   }>
+  globalVariables?: Record<string, AgentGlobalVariable>
 }
 
 export interface BuildGraphNodeOptions {

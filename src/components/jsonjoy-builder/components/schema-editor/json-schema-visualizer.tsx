@@ -1,16 +1,25 @@
 import Editor, { type BeforeMount, type OnMount } from '@monaco-editor/react'
-import { Download, FileJson, Loader2 } from 'lucide-react'
-import { useRef, type FC } from 'react'
+import { AlertCircle, Download, FileJson, Loader2 } from 'lucide-react'
+import { useEffect, useRef, useState, type FC } from 'react'
 import { useMonacoTheme } from '../../hooks/use-monaco-theme'
 import { useTranslation } from '../../hooks/use-translation'
 import { cn } from '@/lib/utils'
-import type { JSONSchema } from '../../types/json-schema'
+import { configureMonacoLoader } from '../../lib/configure-monaco-loader'
+import { jsonSchemaType, type JSONSchema } from '../../types/json-schema'
+
+configureMonacoLoader()
+
+export type JsonSchemaValidationState = {
+  valid: boolean
+  message?: string
+}
 
 /** @public */
 export interface JsonSchemaVisualizerProps {
   schema: JSONSchema
   className?: string
   onChange?: (schema: JSONSchema) => void
+  onValidationChange?: (state: JsonSchemaValidationState) => void
   readOnly?: boolean
   showHeader?: boolean
 }
@@ -20,10 +29,12 @@ const JsonSchemaVisualizer: FC<JsonSchemaVisualizerProps> = ({
   schema,
   className,
   onChange,
+  onValidationChange,
   readOnly = false,
   showHeader = true,
 }) => {
   const editorRef = useRef<Parameters<OnMount>[0] | null>(null)
+  const [loadTimedOut, setLoadTimedOut] = useState(false)
   const {
     currentTheme,
     defineMonacoThemes,
@@ -33,6 +44,21 @@ const JsonSchemaVisualizer: FC<JsonSchemaVisualizerProps> = ({
 
   const t = useTranslation()
 
+  useEffect(() => {
+    onValidationChange?.({ valid: true })
+  }, [onValidationChange, schema])
+
+  useEffect(() => {
+    setLoadTimedOut(false)
+    const timer = window.setTimeout(() => {
+      if (!editorRef.current) {
+        setLoadTimedOut(true)
+      }
+    }, 8000)
+
+    return () => window.clearTimeout(timer)
+  }, [])
+
   const handleBeforeMount: BeforeMount = (monaco) => {
     defineMonacoThemes(monaco)
     configureJsonDefaults(monaco)
@@ -40,19 +66,39 @@ const JsonSchemaVisualizer: FC<JsonSchemaVisualizerProps> = ({
 
   const handleEditorDidMount: OnMount = (editor) => {
     editorRef.current = editor
+    setLoadTimedOut(false)
     editor.focus()
   }
 
   const handleEditorChange = (value: string | undefined) => {
-    if (!value) return
+    if (!value) {
+      onValidationChange?.({
+        valid: false,
+        message: 'JSON Schema source is empty',
+      })
+      return
+    }
 
     try {
       const parsedJson = JSON.parse(value)
-      if (onChange && typeof parsedJson !== 'number') {
-        onChange(parsedJson)
+      const validationResult = jsonSchemaType.safeParse(parsedJson)
+      if (!validationResult.success) {
+        onValidationChange?.({
+          valid: false,
+          message: validationResult.error.issues[0]?.message,
+        })
+        return
+      }
+
+      onValidationChange?.({ valid: true })
+      if (onChange) {
+        onChange(validationResult.data)
       }
     } catch (_error) {
-      // Monaco will show the error inline, no need for additional error handling
+      onValidationChange?.({
+        valid: false,
+        message: 'Invalid JSON Schema source',
+      })
     }
   }
 
@@ -93,6 +139,21 @@ const JsonSchemaVisualizer: FC<JsonSchemaVisualizerProps> = ({
         </div>
       )}
       <div className="grow flex min-h-0">
+        {loadTimedOut && (
+          <div className="absolute inset-x-space-md bottom-space-md z-10 rounded-radius-md border border-status-warning bg-surface-primary p-space-sm shadow-elevation-low">
+            <div className="flex items-start gap-space-sm">
+              <AlertCircle className="mt-0.5 h-icon-sm w-icon-sm shrink-0 text-status-warning" />
+              <div className="space-y-space-xs">
+                <p className="text-sm font-medium text-text-primary">
+                  {t.visualizerLoadTimeoutTitle}
+                </p>
+                <p className="text-xs text-text-secondary">
+                  {t.visualizerLoadTimeoutDescription}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
         <Editor
           height="100%"
           defaultLanguage="json"

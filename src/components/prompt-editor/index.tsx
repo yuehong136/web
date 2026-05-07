@@ -21,6 +21,7 @@ import { EnterKeyPlugin } from './enter-key-plugin'
 import { PasteHandlerPlugin } from './paste-handler-plugin'
 import theme from './theme'
 import type { VariableOptionGroup } from './types'
+import { extractMissingVariableReferences } from './utils'
 import { ValueSyncPlugin } from './value-sync-plugin'
 import { VariableNode } from './variable-node'
 import { VariableOnChangePlugin } from './variable-on-change-plugin'
@@ -212,6 +213,10 @@ export function PromptEditor({
     () => [...baseOptions, ...extraOptions],
     [baseOptions, extraOptions],
   )
+  const missingReferences = useMemo(
+    () => extractMissingVariableReferences(value, resolvedOptions),
+    [resolvedOptions, value],
+  )
   const initialConfig = useMemo<InitialConfigType>(
     () => ({
       namespace: 'PromptEditor',
@@ -234,7 +239,7 @@ export function PromptEditor({
   )
 
   return (
-    <div>
+    <div className="space-y-space-xs">
       <LexicalComposer initialConfig={initialConfig}>
         <RichTextPlugin
           contentEditable={
@@ -258,6 +263,11 @@ export function PromptEditor({
           onChange={onValueChange}
         ></VariableOnChangePlugin>
       </LexicalComposer>
+      {missingReferences.length > 0 ? (
+        <p className="text-xs text-status-warning">
+          {`Missing variables: ${missingReferences.join(', ')}`}
+        </p>
+      ) : null}
     </div>
   )
 }

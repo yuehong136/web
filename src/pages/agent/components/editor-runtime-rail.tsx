@@ -20,6 +20,7 @@ import {
   GitBranch,
   History,
   Link2,
+  MessageSquareCode,
   Play,
   Settings2,
   Sparkles,
@@ -38,6 +39,7 @@ interface EditorRuntimeRailProps {
   onOpenWebhook: () => void
   onOpenSettings: () => void
   onOpenShare: () => void
+  onOpenVariables: () => void
   onOpenRoadmap: () => void
 }
 
@@ -77,6 +79,7 @@ export function EditorRuntimeRail({
   onOpenWebhook,
   onOpenSettings,
   onOpenShare,
+  onOpenVariables,
   onOpenRoadmap,
 }: EditorRuntimeRailProps) {
   const title = resolveLocalizedText(flow?.title, '未命名资产')
@@ -260,6 +263,10 @@ export function EditorRuntimeRail({
               <Button variant="outline" onClick={onOpenShare}>
                 <Copy className="mr-space-xs h-4 w-4" />
                 Share
+              </Button>
+              <Button variant="outline" onClick={onOpenVariables}>
+                <MessageSquareCode className="mr-space-xs h-4 w-4" />
+                会话变量
               </Button>
             </>
           ) : null}

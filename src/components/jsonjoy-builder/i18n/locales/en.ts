@@ -25,6 +25,11 @@ export const en: Translation = {
   fieldAddNewConfirm: 'Add Field',
   fieldAddNewDescription: 'Create a new field for your JSON schema',
   fieldAddNewLabel: 'Add New Field',
+  fieldSaveConfirm: 'Save Field',
+  fieldNameDuplicate: 'A field with this name already exists.',
+  fieldNameInvalid:
+    'Use a valid field name that starts with a letter or underscore and contains only letters, numbers, underscores, or dollar signs.',
+  fieldNameRequired: 'Field name is required.',
 
   fieldTypeTextLabel: 'Text',
   fieldTypeTextDescription: 'For text values like names, descriptions, etc.',
@@ -141,9 +146,14 @@ export const en: Translation = {
   visualizerDownloadTitle: 'Download Schema',
   visualizerDownloadFileName: 'schema.json',
   visualizerSource: 'JSON Schema Source',
+  visualizerLoadTimeoutTitle: 'Monaco editor is still loading',
+  visualizerLoadTimeoutDescription:
+    'Check that /vs/loader.js is available in the current deployment.',
 
   visualEditorNoFieldsHint1: 'No fields defined yet',
   visualEditorNoFieldsHint2: 'Add your first field to get started',
+  visualEditorFieldsLabel: 'Fields',
+  visualEditorRequiredLabel: 'Required',
 
   typeValidationErrorNegativeLength: 'Length values cannot be negative.',
   typeValidationErrorIntValue: 'Value must be an integer.',

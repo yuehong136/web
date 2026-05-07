@@ -3,6 +3,7 @@ import humanIdModule from 'human-id'
 import type {
   AgentCanvasType,
   AgentDsl,
+  AgentGlobalVariable,
   AgentGraph,
   AgentGraphNode,
   AgentNodeData,
@@ -726,9 +727,47 @@ export function buildDslComponentsByGraph(
   }, {})
 }
 
+function isSystemGlobalKey(key: string) {
+  return key.startsWith('sys.')
+}
+
+function buildDslGlobalsWithConversationVariables({
+  baseGlobals,
+  globalVariables,
+}: {
+  baseGlobals?: Record<string, unknown>
+  globalVariables?: Record<string, AgentGlobalVariable>
+}) {
+  const systemGlobals = Object.entries({
+    ...buildDefaultDslGlobals(),
+    ...(baseGlobals || {}),
+  }).reduce<Record<string, unknown>>((acc, [key, value]) => {
+    if (isSystemGlobalKey(key)) {
+      acc[key] = value
+    }
+    return acc
+  }, {})
+
+  if (!globalVariables) {
+    return {
+      ...buildDefaultDslGlobals(),
+      ...(baseGlobals || {}),
+    }
+  }
+
+  return Object.entries(globalVariables).reduce<Record<string, unknown>>(
+    (acc, [key, variable]) => {
+      acc[`env.${key}`] = variable?.value
+      return acc
+    },
+    systemGlobals,
+  )
+}
+
 export function serializeGraphToDsl({
   graph,
   baseDsl,
+  globalVariables,
 }: SerializeGraphOptions): AgentDsl {
   const filteredNodes = (graph.nodes || []).filter((node) => {
     return isPersistedGraphOperator(node.data.label as OperatorType)
@@ -752,8 +791,12 @@ export function serializeGraphToDsl({
     },
     messages: baseDsl?.messages || [],
     reference: baseDsl?.reference || [],
-    globals: { ...buildDefaultDslGlobals(), ...(baseDsl?.globals || {}) },
-    variables: (baseDsl?.variables as AgentDsl['variables']) || {},
+    globals: buildDslGlobalsWithConversationVariables({
+      baseGlobals: baseDsl?.globals,
+      globalVariables,
+    }),
+    variables:
+      globalVariables ?? ((baseDsl?.variables as AgentDsl['variables']) || {}),
     retrieval: baseDsl?.retrieval || [],
   }
 }

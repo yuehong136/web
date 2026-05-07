@@ -35,6 +35,49 @@ export function updateObjectProperty(
   return newSchema
 }
 
+export function renameObjectProperty(
+  schema: ObjectJSONSchema,
+  currentName: string,
+  nextName: string,
+  propertySchema: JSONSchema,
+  required: boolean,
+): ObjectJSONSchema {
+  if (!isObjectSchema(schema)) return schema
+  if (currentName === nextName) {
+    return updatePropertyRequired(
+      updateObjectProperty(schema, nextName, propertySchema),
+      nextName,
+      required,
+    )
+  }
+
+  const newSchema = copySchema(schema)
+  const properties = Object.entries(newSchema.properties || {})
+  newSchema.properties = properties.reduce<Record<string, JSONSchema>>(
+    (nextProperties, [propertyName, value]) => {
+      if (propertyName === currentName) {
+        nextProperties[nextName] = propertySchema
+      } else if (propertyName !== nextName) {
+        nextProperties[propertyName] = value
+      }
+      return nextProperties
+    },
+    {},
+  )
+
+  const renamedRequired = (newSchema.required || []).map((propertyName) =>
+    propertyName === currentName ? nextName : propertyName,
+  )
+  newSchema.required = renamedRequired.filter(
+    (propertyName, index, array) =>
+      propertyName !== nextName
+        ? true
+        : array.indexOf(propertyName) === index,
+  )
+
+  return updatePropertyRequired(newSchema, nextName, required)
+}
+
 /**
  * Removes a property from an object schema
  */
@@ -116,7 +159,10 @@ export function createFieldSchema(field: NewField): JSONSchema {
       ...validation,
     }
   }
-  return validation || { type }
+  return {
+    type,
+    description: description || undefined,
+  }
 }
 
 /**

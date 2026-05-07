@@ -1,4 +1,5 @@
 import type { Edge, Node } from '@xyflow/react'
+import type { AgentGlobalVariable } from '@/types/agent'
 
 // ==================== DSL相关类型 ====================
 
@@ -25,6 +26,7 @@ export interface DSL {
   messages: any[]
   reference: any[]
   globals: Record<string, any>
+  variables?: Record<string, AgentGlobalVariable>
   retrieval: any[]
 }
 

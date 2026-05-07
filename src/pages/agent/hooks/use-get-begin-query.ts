@@ -5,6 +5,10 @@ import { createElement, useCallback, useMemo } from 'react'
 import OperatorIcon from '../operator-icon'
 import { useBuildNodeOutputOptions } from './use-build-options'
 import {
+  useFindAgentStructuredOutputLabelByValue,
+  useFindAgentStructuredOutputTypeByValue,
+} from './use-build-structured-output'
+import {
   AgentDialogueMode,
   AgentGlobals,
   BeginId,
@@ -277,6 +281,10 @@ export function useGetVariableLabelOrTypeByValue({
   nodeId?: string
 } = {}) {
   const getNode = useGraphStore((state) => state.getNode)
+  const findAgentStructuredOutputTypeByValue =
+    useFindAgentStructuredOutputTypeByValue()
+  const findAgentStructuredOutputLabelByValue =
+    useFindAgentStructuredOutputLabelByValue()
   const optionGroups = useBuildPromptVariableOptions(nodeId)
   const flattenedOptions = useMemo(
     () => flattenVariableOptions(optionGroups),
@@ -322,9 +330,9 @@ export function useGetVariableLabelOrTypeByValue({
         return `${item.groupTitle}.${item.label}`
       }
 
-      return getFallbackLabel(value)
+      return findAgentStructuredOutputLabelByValue(value) || getFallbackLabel(value)
     },
-    [getFallbackLabel, getItem],
+    [findAgentStructuredOutputLabelByValue, getFallbackLabel, getItem],
   )
 
   const getType = useCallback(
@@ -333,6 +341,11 @@ export function useGetVariableLabelOrTypeByValue({
 
       if (item?.type) {
         return normalizeBeginInputType(item.type)
+      }
+
+      const structuredType = findAgentStructuredOutputTypeByValue(value)
+      if (structuredType) {
+        return normalizeBeginInputType(structuredType)
       }
 
       const normalizedValue = normalizeVariableReference(value)
@@ -351,7 +364,7 @@ export function useGetVariableLabelOrTypeByValue({
 
       return nextType ? normalizeBeginInputType(nextType) : undefined
     },
-    [getItem, getNode],
+    [findAgentStructuredOutputTypeByValue, getItem, getNode],
   )
 
   return { getLabel, getType }

@@ -7,6 +7,7 @@ import {
   Plus, Minus, Save, Archive, Edit2, Trash2, MoreHorizontal, Settings2
 } from "lucide-react"
 import Editor from '@monaco-editor/react'
+import { configureMonacoLoader } from '@/components/jsonjoy-builder/lib/configure-monaco-loader'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -32,6 +33,8 @@ import type {
 } from '@/types/api'
 import { systemAPI } from '@/api/system'
 import type { SystemAPIToken, APITokenCreateRequest } from '@/types/api'
+
+configureMonacoLoader()
 
 // API端点简化定义
 interface APIEndpoint {

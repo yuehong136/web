@@ -320,7 +320,11 @@ export default {
     "stockCode": "Stock code",
     "structuredOutput":  {
       "configuration": "Configuration",
+      "invalidSource": "Invalid JSON Schema source",
+      "jsonMode": "JSON",
+      "rootObjectError": "Structured output schema root must be a JSON object",
       "structuredOutput": "Structured output",
+      "visualMode": "Visual",
     },
     "subject": "Subject",
     "suggestedValues": "Suggested values",
