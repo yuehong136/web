@@ -1,17 +1,8 @@
 diff --git a/node_modules/@ant-design/x-card/es/A2UI/Card.js b/node_modules/@ant-design/x-card/es/A2UI/Card.js
-index 5e7324b..6458974 100644
+index b9fe3d4..a2cbe7b 100644
 --- a/node_modules/@ant-design/x-card/es/A2UI/Card.js
 +++ b/node_modules/@ant-design/x-card/es/A2UI/Card.js
-@@ -5,7 +5,7 @@ import { createComponentTransformer } from "./format/components";
- import { resolvePropsV08, extractDataUpdatesV08, applyDataModelUpdateV08 } from "./Card.v0.8";
- 
- // v0.9 specific logic
--import { resolvePropsV09, extractDataUpdatesV09, applyDataModelUpdateV09 } from "./Card.v0.9";
-+import { resolvePropsV09, extractDataUpdatesV09, applyDataModelUpdateV09, resolveActionContextV09 } from "./Card.v0.9";
- 
- // Shared logic
- import { setValueByPath, validateComponentAgainstCatalog } from "./utils";
-@@ -15,6 +15,7 @@ function renderNode(nodeId, transformer, components, dataModel, onAction, onData
+@@ -16,6 +16,7 @@ function renderNode(nodeId, transformer, components, dataModel, onAction, onData
    if (!node) return null;
    return /*#__PURE__*/React.createElement(NodeRenderer, {
      key: nodeId,
@@ -19,7 +10,7 @@ index 5e7324b..6458974 100644
      node: node,
      transformer: transformer,
      components: components,
-@@ -26,6 +27,7 @@ function renderNode(nodeId, transformer, components, dataModel, onAction, onData
+@@ -27,6 +28,7 @@ function renderNode(nodeId, transformer, components, dataModel, onAction, onData
    });
  }
  const NodeRenderer = ({
@@ -27,7 +18,7 @@ index 5e7324b..6458974 100644
    node,
    transformer,
    components,
-@@ -78,7 +80,7 @@ const NodeRenderer = ({
+@@ -79,7 +81,7 @@ const NodeRenderer = ({
      resolvedProps.onAction = (name, context) => {
        // Get action configuration from resolvedProps (path binding already resolved)
        const actionConfig = resolvedProps.action;
@@ -36,7 +27,7 @@ index 5e7324b..6458974 100644
      };
  
      // Inject onDataChange for components to directly update dataModel
-@@ -272,7 +274,7 @@ const Card = ({
+@@ -273,7 +275,7 @@ const Card = ({
     * Handler when action is triggered
     * Use different extractDataUpdates and resolveActionContext based on version
     */
@@ -45,26 +36,17 @@ index 5e7324b..6458974 100644
      // Use different extractDataUpdates based on version
      const dataUpdates = commandVersion === 'v0.9' ? extractDataUpdatesV09(actionConfig, context) : extractDataUpdatesV08(actionConfig, context);
  
-@@ -288,12 +290,16 @@ const Card = ({
-       setDataModel(newDataModel);
-     }
- 
-+    const resolvedActionContext = commandVersion === 'v0.9' ? resolveActionContextV09(actionConfig, newDataModel) : undefined;
-+
-     // Report event to upper layer
+@@ -295,6 +297,8 @@ const Card = ({
      onAction?.({
        name,
        surfaceId: id,
 +      sourceComponentId: sourceComponentId || 'unknown',
 +      timestamp: new Date().toISOString(),
-       context: {
--        ...context
-+        ...(resolvedActionContext || context)
-       }
+       context: resolvedContext
      });
    };
-@@ -303,6 +309,7 @@ const Card = ({
-     setDataModel(prev => setValueByPath(prev, path, value));
+@@ -379,6 +383,7 @@ const Card = ({
+     return componentContext;
    };
    return /*#__PURE__*/React.createElement(NodeRenderer, {
 +    nodeId: rootNode.id,
@@ -87,10 +69,10 @@ index 6611efb..406f52d 100644
      context: Record<string, any>;
  }
 diff --git a/node_modules/@ant-design/x-card/lib/A2UI/Card.js b/node_modules/@ant-design/x-card/lib/A2UI/Card.js
-index 258265d..4bfa864 100644
+index ef683ff..8492633 100644
 --- a/node_modules/@ant-design/x-card/lib/A2UI/Card.js
 +++ b/node_modules/@ant-design/x-card/lib/A2UI/Card.js
-@@ -24,6 +24,7 @@ function renderNode(nodeId, transformer, components, dataModel, onAction, onData
+@@ -26,6 +26,7 @@ function renderNode(nodeId, transformer, components, dataModel, onAction, onData
    if (!node) return null;
    return /*#__PURE__*/_react.default.createElement(NodeRenderer, {
      key: nodeId,
@@ -98,7 +80,7 @@ index 258265d..4bfa864 100644
      node: node,
      transformer: transformer,
      components: components,
-@@ -35,6 +36,7 @@ function renderNode(nodeId, transformer, components, dataModel, onAction, onData
+@@ -37,6 +38,7 @@ function renderNode(nodeId, transformer, components, dataModel, onAction, onData
    });
  }
  const NodeRenderer = ({
@@ -106,7 +88,7 @@ index 258265d..4bfa864 100644
    node,
    transformer,
    components,
-@@ -87,7 +89,7 @@ const NodeRenderer = ({
+@@ -89,7 +91,7 @@ const NodeRenderer = ({
      resolvedProps.onAction = (name, context) => {
        // Get action configuration from resolvedProps (path binding already resolved)
        const actionConfig = resolvedProps.action;
@@ -115,7 +97,7 @@ index 258265d..4bfa864 100644
      };
  
      // Inject onDataChange for components to directly update dataModel
-@@ -281,7 +283,7 @@ const Card = ({
+@@ -283,7 +285,7 @@ const Card = ({
     * Handler when action is triggered
     * Use different extractDataUpdates and resolveActionContext based on version
     */
@@ -124,26 +106,17 @@ index 258265d..4bfa864 100644
      // Use different extractDataUpdates based on version
      const dataUpdates = commandVersion === 'v0.9' ? (0, _CardV2.extractDataUpdatesV09)(actionConfig, context) : (0, _CardV.extractDataUpdatesV08)(actionConfig, context);
  
-@@ -297,12 +299,16 @@ const Card = ({
-       setDataModel(newDataModel);
-     }
- 
-+    const resolvedActionContext = commandVersion === 'v0.9' ? (0, _CardV2.resolveActionContextV09)(actionConfig, newDataModel) : undefined;
-+
-     // Report event to upper layer
+@@ -305,6 +307,8 @@ const Card = ({
      onAction?.({
        name,
        surfaceId: id,
 +      sourceComponentId: sourceComponentId || 'unknown',
 +      timestamp: new Date().toISOString(),
-       context: {
--        ...context
-+        ...(resolvedActionContext || context)
-       }
+       context: resolvedContext
      });
    };
-@@ -312,6 +318,7 @@ const Card = ({
-     setDataModel(prev => (0, _utils.setValueByPath)(prev, path, value));
+@@ -389,6 +393,7 @@ const Card = ({
+     return componentContext;
    };
    return /*#__PURE__*/_react.default.createElement(NodeRenderer, {
 +    nodeId: rootNode.id,
