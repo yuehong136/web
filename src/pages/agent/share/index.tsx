@@ -173,14 +173,11 @@ export default function AgentSharePage() {
         return
       }
 
-      const uploaded: AgentCanvasUploadResult[] = []
-      for (const file of Array.from(files)) {
-        const result = await uploadCanvasFile({
-          canvasId: access.agentId,
-          file,
-        })
-        uploaded.push(result)
-      }
+      const result = await uploadCanvasFile({
+        canvasId: access.agentId,
+        file: Array.from(files),
+      })
+      const uploaded = Array.isArray(result) ? result : [result]
 
       setFormValues((previous) => {
         const current = Array.isArray(previous[key])
@@ -203,14 +200,11 @@ export default function AgentSharePage() {
         return
       }
 
-      const uploaded: AgentCanvasUploadResult[] = []
-      for (const file of Array.from(files)) {
-        const result = await uploadCanvasFile({
-          canvasId: access.agentId,
-          file,
-        })
-        uploaded.push(result)
-      }
+      const result = await uploadCanvasFile({
+        canvasId: access.agentId,
+        file: Array.from(files),
+      })
+      const uploaded = Array.isArray(result) ? result : [result]
 
       setMessageFiles((previous) => [...previous, ...uploaded])
       toast.success('附件已上传')
@@ -481,6 +475,7 @@ export default function AgentSharePage() {
         entries={inputEntries}
         values={formValues}
         error={formError}
+        theme={access.theme}
         disabled={runner.isRunning || uploading}
         onOpenChange={setParameterDialogOpen}
         onChange={handleChange}

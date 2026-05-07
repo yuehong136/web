@@ -223,8 +223,27 @@ export const agentAPI = {
   testDbConnect: async (payload: Record<string, unknown>) =>
     apiClient.post('/v1/canvas/test_db_connect', payload),
 
-  uploadFile: async (canvasId: string, file: File) =>
-    apiClient.upload(`/v1/canvas/upload/${canvasId}`, file),
+  uploadFile: async (canvasId: string, file: File | File[]) =>
+    Array.isArray(file)
+      ? apiClient.uploadRepeated(`/v1/canvas/upload/${canvasId}`, 'file', file)
+      : apiClient.upload(`/v1/canvas/upload/${canvasId}`, file),
+
+  uploadPublicFile: async (canvasId: string, file: File | File[]) =>
+    Array.isArray(file)
+      ? apiClient.uploadRepeated(
+          `/v1/canvas/upload/${canvasId}`,
+          'file',
+          file,
+          undefined,
+          {
+            skipAuth: true,
+            baseURL: '',
+          },
+        )
+      : apiClient.upload(`/v1/canvas/upload/${canvasId}`, file, undefined, {
+          skipAuth: true,
+          baseURL: '',
+        }),
 
   fetchCanvasSSE: async (canvasId: string) =>
     apiClient.get<AgentFlow>(`/v1/canvas/getsse/${canvasId}`),

@@ -1,6 +1,7 @@
 import * as React from "react"
 import { createPortal } from "react-dom"
 import { ChevronDown, Check } from "lucide-react"
+import { useNearestPortalTheme } from "./portal-theme"
 
 export interface SelectProps {
   value?: string
@@ -177,8 +178,10 @@ export const SelectValue: React.FC<SelectValueProps> = ({ placeholder }) => {
 
 export const SelectContent: React.FC<SelectContentProps> = ({ children, className = "" }) => {
   const { isOpen, selectRef } = React.useContext(SelectContext)
+  const fallbackRef = React.useRef<HTMLDivElement>(null)
 
   const [position, setPosition] = React.useState<{ left: number; top: number; width: number }>({ left: 0, top: 0, width: 0 })
+  const theme = useNearestPortalTheme(selectRef ?? fallbackRef, isOpen)
 
   const updatePosition = React.useCallback(() => {
     if (!selectRef?.current) return
@@ -209,6 +212,7 @@ export const SelectContent: React.FC<SelectContentProps> = ({ children, classNam
 
   const content = (
     <div 
+      data-theme={theme}
       className={`z-[1000] mt-1 max-h-60 overflow-auto scrollbar-thin rounded-xl border shadow-lg ${className}`}
       style={{
         position: 'fixed',

@@ -2,6 +2,7 @@ import * as React from "react"
 import { createPortal } from "react-dom"
 import { cn } from "@/lib/utils"
 import { DropdownItem as BaseDropdownItem } from "./dropdown"
+import { useNearestPortalTheme } from "./portal-theme"
 
 export interface DropdownMenuProps {
   children: React.ReactNode
@@ -87,7 +88,9 @@ export const DropdownMenuContent: React.FC<DropdownMenuContentProps> = ({
 }) => {
   const context = React.useContext(DropdownMenuContext)
   const dropdownRef = React.useRef<HTMLDivElement>(null)
+  const fallbackRef = React.useRef<HTMLDivElement>(null)
   const [position, setPosition] = React.useState({ top: 0, left: 0 })
+  const theme = useNearestPortalTheme(context?.triggerRef ?? fallbackRef, Boolean(context?.isOpen))
 
   // 计算下拉菜单位置
   React.useEffect(() => {
@@ -135,13 +138,14 @@ export const DropdownMenuContent: React.FC<DropdownMenuContentProps> = ({
   return createPortal(
     <>
       {/* Backdrop */}
-      <div className="fixed inset-0 z-[9998]" onClick={() => context.closeDropdown?.()} />
+      <div data-theme={theme} className="fixed inset-0 z-[9998]" onClick={() => context.closeDropdown?.()} />
       
       {/* Dropdown content */}
       <div 
+        data-theme={theme}
         ref={dropdownRef}
         className={cn(
-          "fixed z-[9999] min-w-[160px] bg-background-surface dark:bg-gray-800 border border-border-default dark:border-gray-700 rounded-md shadow-lg",
+          "fixed z-[9999] min-w-[160px] bg-background-surface border border-border-default rounded-md shadow-lg",
           className
         )}
         style={{
@@ -177,7 +181,7 @@ export const DropdownMenuItem: React.FC<DropdownMenuItemProps> = ({
   return (
     <BaseDropdownItem
       className={cn(
-        "w-full flex items-center space-x-2 px-4 py-2 text-sm text-left hover:bg-background-subtle dark:hover:bg-gray-700 transition-colors text-text-secondary dark:text-gray-200",
+        "w-full flex items-center space-x-2 px-4 py-2 text-sm text-left hover:bg-background-subtle transition-colors text-text-secondary",
         className
       )}
       onClick={handleClick}

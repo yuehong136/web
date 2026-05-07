@@ -3,6 +3,7 @@ import { createPortal } from "react-dom"
 import { X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "./button"
+import { useActivePortalTheme } from "./portal-theme"
 
 export interface ModalProps {
   open: boolean
@@ -20,6 +21,7 @@ export interface ModalProps {
   showCloseButton?: boolean
   footer?: React.ReactNode
   className?: string
+  theme?: string | null
   /** 内容区域的自定义类名 */
   contentClassName?: string
 }
@@ -54,9 +56,11 @@ export const Modal: React.FC<ModalProps> = ({
   showCloseButton = true,
   footer,
   className,
+  theme,
   contentClassName,
 }) => {
   const modalRef = React.useRef<HTMLDivElement>(null)
+  const scopedTheme = useActivePortalTheme(open, theme)
 
   // Handle escape key
   React.useEffect(() => {
@@ -88,6 +92,7 @@ export const Modal: React.FC<ModalProps> = ({
 
   const modalContent = (
     <div
+      data-theme={scopedTheme}
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       role="dialog"
       aria-modal="true"

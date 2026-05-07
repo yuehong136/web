@@ -347,7 +347,40 @@ class APIClient {
       })
     }
 
-    const token = this.getAuthToken()
+    const token = config?.skipAuth ? null : this.getAuthToken()
+    const headers: HeadersInit = {}
+    if (token) {
+      headers.Authorization = `Bearer ${token}`
+    }
+
+    return this.request<T>(endpoint, {
+      ...config,
+      method: 'POST',
+      body: formData,
+      headers,
+    })
+  }
+
+  async uploadRepeated<T = any>(
+    endpoint: string,
+    fieldName: string,
+    files: File[],
+    additionalData?: Record<string, any>,
+    config?: Omit<RequestConfig, 'headers'>
+  ): Promise<T> {
+    const formData = new FormData()
+
+    files.forEach((file) => {
+      formData.append(fieldName, file, file.name)
+    })
+
+    if (additionalData) {
+      Object.entries(additionalData).forEach(([key, value]) => {
+        formData.append(key, value)
+      })
+    }
+
+    const token = config?.skipAuth ? null : this.getAuthToken()
     const headers: HeadersInit = {}
     if (token) {
       headers.Authorization = `Bearer ${token}`
@@ -382,7 +415,7 @@ class APIClient {
       })
     }
 
-    const token = this.getAuthToken()
+    const token = config?.skipAuth ? null : this.getAuthToken()
     const headers: HeadersInit = {}
     if (token) {
       headers.Authorization = `Bearer ${token}`

@@ -2,6 +2,7 @@ import * as React from "react"
 import { createPortal } from "react-dom"
 import { cn } from "@/lib/utils" 
 import { Button, type ButtonProps } from "./button"
+import { useActivePortalTheme } from "./portal-theme"
 
 export interface AlertDialogProps {
   open: boolean
@@ -9,7 +10,9 @@ export interface AlertDialogProps {
   children: React.ReactNode
 }
 
-export interface AlertDialogContentProps extends React.HTMLAttributes<HTMLDivElement> {}
+export interface AlertDialogContentProps extends React.HTMLAttributes<HTMLDivElement> {
+  theme?: string | null
+}
 export interface AlertDialogHeaderProps extends React.HTMLAttributes<HTMLDivElement> {}
 export interface AlertDialogFooterProps extends React.HTMLAttributes<HTMLDivElement> {}
 export interface AlertDialogTitleProps extends React.HTMLAttributes<HTMLHeadingElement> {}
@@ -63,13 +66,14 @@ export const AlertDialogTrigger: React.FC<React.ButtonHTMLAttributes<HTMLButtonE
  */
 export const AlertDialogContent: React.FC<AlertDialogContentProps & {
   children: React.ReactNode
-}> = ({ className, children, ...props }) => {
+}> = ({ className, children, theme, ...props }) => {
   const context = React.useContext(AlertDialogContext)
   if (!context) {
     throw new Error('AlertDialogContent must be used within AlertDialog')
   }
 
   const { open } = context
+  const scopedTheme = useActivePortalTheme(open, theme)
 
   // Handle escape key - AlertDialog 不响应 ESC 关闭
   React.useEffect(() => {
@@ -85,6 +89,7 @@ export const AlertDialogContent: React.FC<AlertDialogContentProps & {
 
   const content = (
     <div
+      data-theme={scopedTheme}
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       role="alertdialog"
       aria-modal="true"

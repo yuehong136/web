@@ -3,6 +3,7 @@
 import * as React from 'react'
 import * as ContextMenuPrimitive from '@radix-ui/react-context-menu'
 import { cn } from '@/lib/utils'
+import { useActivePortalTheme } from './portal-theme'
 
 const ContextMenu = ContextMenuPrimitive.Root
 const ContextMenuTrigger = ContextMenuPrimitive.Trigger
@@ -14,18 +15,23 @@ const ContextMenuRadioGroup = ContextMenuPrimitive.RadioGroup
 const ContextMenuContent = React.forwardRef<
   React.ComponentRef<typeof ContextMenuPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.Content>
->(({ className, ...props }, ref) => (
-  <ContextMenuPortal>
-    <ContextMenuPrimitive.Content
-      ref={ref}
-      className={cn(
-        'z-50 min-w-[180px] rounded-radius-md border border-border-primary bg-surface-primary p-space-xs text-text-primary shadow-elevation-medium',
-        className,
-      )}
-      {...props}
-    />
-  </ContextMenuPortal>
-))
+>(({ className, ...props }, ref) => {
+  const theme = useActivePortalTheme(true)
+
+  return (
+    <ContextMenuPortal>
+      <ContextMenuPrimitive.Content
+        ref={ref}
+        data-theme={theme}
+        className={cn(
+          'z-50 min-w-[180px] rounded-radius-md border border-border-primary bg-surface-primary p-space-xs text-text-primary shadow-elevation-medium',
+          className,
+        )}
+        {...props}
+      />
+    </ContextMenuPortal>
+  )
+})
 ContextMenuContent.displayName = ContextMenuPrimitive.Content.displayName
 
 const ContextMenuItem = React.forwardRef<
@@ -82,4 +88,3 @@ export {
   ContextMenuSub,
   ContextMenuRadioGroup,
 }
-

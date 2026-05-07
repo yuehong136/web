@@ -363,6 +363,7 @@ function WidgetChatWindow({
         entries={inputEntries}
         values={formValues}
         error={formError}
+        theme={access.theme}
         disabled={runner.isRunning || uploading}
         onOpenChange={setParameterDialogOpen}
         onChange={(key, value) => {
@@ -370,15 +371,11 @@ function WidgetChatWindow({
           setFormError(undefined)
         }}
         onUpload={async (key, files) => {
-          const uploaded: AgentCanvasUploadResult[] = []
-          for (const file of Array.from(files)) {
-            uploaded.push(
-              await uploadCanvasFile({
-                canvasId: access.agentId,
-                file,
-              }),
-            )
-          }
+          const result = await uploadCanvasFile({
+            canvasId: access.agentId,
+            file: Array.from(files),
+          })
+          const uploaded = Array.isArray(result) ? result : [result]
           setFormValues((previous) => ({
             ...previous,
             [key]: uploaded,

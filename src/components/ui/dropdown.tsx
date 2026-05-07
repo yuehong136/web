@@ -1,6 +1,7 @@
 import * as React from "react"
 import { createPortal } from "react-dom"
 import { cn } from "@/lib/utils"
+import { useNearestPortalTheme } from "./portal-theme"
 
 // Context 用于传递关闭函数
 const DropdownContext = React.createContext<{ close: () => void } | null>(null)
@@ -31,6 +32,7 @@ const Dropdown: React.FC<DropdownProps> = ({
   const [position, setPosition] = React.useState({ top: 0, left: 0, right: 0 })
   const triggerRef = React.useRef<HTMLDivElement>(null)
   const dropdownRef = React.useRef<HTMLDivElement>(null)
+  const theme = useNearestPortalTheme(triggerRef, isOpen)
 
   // 计算下拉菜单位置
   const updatePosition = React.useCallback(() => {
@@ -107,16 +109,18 @@ const Dropdown: React.FC<DropdownProps> = ({
     <DropdownContext.Provider value={contextValue}>
       {/* Backdrop */}
       <div 
+        data-theme={theme}
         className="fixed inset-0 z-[9998]" 
         onClick={() => setIsOpen(false)} 
       />
       
       {/* Dropdown content - 使用 Portal 渲染到 body */}
       <div 
+        data-theme={theme}
         ref={dropdownRef}
         className={cn(
           "fixed z-[9999] min-w-[160px] rounded-lg shadow-lg",
-          "bg-background-surface dark:bg-gray-800 border border-border-default dark:border-gray-700",
+          "bg-background-surface border border-border-default",
           className
         )}
         style={{
@@ -124,7 +128,7 @@ const Dropdown: React.FC<DropdownProps> = ({
           ...(align === 'right' ? { right: position.right } : { left: position.left }),
         }}
       >
-        <div className="py-1 bg-background-surface dark:bg-gray-800 rounded-lg">
+        <div className="py-1 bg-background-surface rounded-lg">
           {items ? items.map((item, index) => (
             <DropdownItem
               key={index}
@@ -177,8 +181,8 @@ const DropdownItem: React.FC<DropdownItemProps> = ({
       className={cn(
         "w-full flex items-center gap-2 px-3 py-2.5 text-sm text-left",
         danger 
-          ? "text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20" 
-          : "text-text-secondary hover:bg-background-subtle dark:text-gray-200 dark:hover:bg-gray-700",
+          ? "text-status-error hover:bg-state-error-subtle" 
+          : "text-text-secondary hover:bg-background-subtle",
         className
       )}
       onClick={handleClick}

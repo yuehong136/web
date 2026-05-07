@@ -18,6 +18,7 @@ interface ShareParameterDialogProps {
   entries: ShareInputEntry[]
   values: ShareFormValues
   error?: string
+  theme?: string | null
   disabled?: boolean
   onOpenChange: (open: boolean) => void
   onChange: (key: string, value: ShareFormValue) => void
@@ -32,6 +33,7 @@ export function ShareParameterDialog({
   entries,
   values,
   error,
+  theme,
   disabled,
   onOpenChange,
   onChange,
@@ -40,7 +42,7 @@ export function ShareParameterDialog({
 }: ShareParameterDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent size="xl" className="overflow-hidden">
+      <DialogContent size="xl" theme={theme} className="overflow-hidden">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>

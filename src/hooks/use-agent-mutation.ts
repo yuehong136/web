@@ -11,7 +11,7 @@ import type {
 
 export interface UploadCanvasFileParams {
   canvasId: string
-  file: File
+  file: File | File[]
   onProgress?: (progress: number) => void
   signal?: AbortSignal
 }
@@ -126,6 +126,10 @@ export const useUploadCanvasFile = () => {
       signal,
     }: UploadCanvasFileParams) => {
       if (onProgress || signal) {
+        if (Array.isArray(file)) {
+          throw new Error('批量文件上传暂不支持进度回调')
+        }
+
         return agentAPI.uploadCanvasFileWithProgress(
           canvasId,
           file,
@@ -156,13 +160,22 @@ export const useUploadPublicCanvasFile = () => {
       file,
       onProgress,
       signal,
-    }: UploadCanvasFileParams) =>
-      agentAPI.uploadPublicCanvasFileWithProgress(
-        canvasId,
-        file,
-        onProgress,
-        signal,
-      ),
+    }: UploadCanvasFileParams) => {
+      if (onProgress || signal) {
+        if (Array.isArray(file)) {
+          throw new Error('批量文件上传暂不支持进度回调')
+        }
+
+        return agentAPI.uploadPublicCanvasFileWithProgress(
+          canvasId,
+          file,
+          onProgress,
+          signal,
+        )
+      }
+
+      return agentAPI.uploadPublicFile(canvasId, file)
+    },
     onError: (error: Error) => {
       toast.error(`上传失败: ${error.message}`)
     },

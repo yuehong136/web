@@ -244,6 +244,8 @@ const DebugContent = ({
                     canvasId={canvasId}
                     value={field.value}
                     onChange={field.onChange}
+                    multiple
+                    maxFiles={5}
                   />
                 </FormControl>
                 <FormMessage />

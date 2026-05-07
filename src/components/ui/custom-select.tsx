@@ -2,6 +2,7 @@ import React from 'react'
 import { createPortal } from 'react-dom'
 import { Check, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useNearestPortalTheme } from './portal-theme'
 
 interface SelectOption {
   value: string
@@ -52,6 +53,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   const buttonRef = React.useRef<HTMLButtonElement>(null)
   const menuRef = React.useRef<HTMLDivElement>(null)
   const [dropdownPosition, setDropdownPosition] = React.useState({ top: 0, left: 0, width: 0 })
+  const theme = useNearestPortalTheme(buttonRef, isOpen)
 
   const selectedOption = options.find(option => option.value === value)
 
@@ -174,11 +176,13 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
         <Portal>
           <>
             <div 
+              data-theme={theme}
               className="fixed inset-0 bg-transparent"
               style={{ zIndex: zIndex - 1 }}
               onClick={() => setIsOpen(false)} 
             />
             <div 
+              data-theme={theme}
               ref={menuRef}
               className="fixed rounded-lg max-h-64 overflow-hidden"
               style={{

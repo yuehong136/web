@@ -2,6 +2,7 @@ import * as React from "react"
 import { createPortal } from "react-dom"
 import { X } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useActivePortalTheme } from "./portal-theme"
 
 export interface DialogProps {
   open: boolean
@@ -12,6 +13,8 @@ export interface DialogProps {
 export interface DialogContentProps {
   className?: string
   children: React.ReactNode
+  /** 覆盖 Portal 根节点主题，供 ScopedTheme 子树内弹窗使用 */
+  theme?: string | null
   /** 弹窗尺寸 */
   size?: "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "full"
   /** 是否显示关闭按钮 */
@@ -104,6 +107,7 @@ export const DialogClose: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement>
 export const DialogContent: React.FC<DialogContentProps> = ({ 
   className, 
   children,
+  theme,
   size = "lg",
   showCloseButton = true,
   closeOnOverlayClick = true,
@@ -114,6 +118,7 @@ export const DialogContent: React.FC<DialogContentProps> = ({
   }
 
   const { open, onOpenChange } = context
+  const scopedTheme = useActivePortalTheme(open, theme)
 
   // Handle escape key
   React.useEffect(() => {
@@ -142,9 +147,9 @@ export const DialogContent: React.FC<DialogContentProps> = ({
   }
 
   if (!open) return null
-
   const content = (
     <div
+      data-theme={scopedTheme}
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       role="dialog"
       aria-modal="true"

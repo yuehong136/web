@@ -72,7 +72,7 @@ export function PipelineRunPanel({ controller }: PipelineRunPanelProps) {
       <SectionCard title="快速运行" padding="default">
         <div className="space-y-space-md">
           <p className="text-sm text-text-secondary">
-            当前 Begin 节点没有定义输入字段。直接上传一份样本文档即可启动 Pipeline 数据流。
+            当前 Begin 节点没有定义输入字段。直接上传样本文档即可启动 Pipeline 数据流。
           </p>
           <FileUploadDirectUpload
             canvasId={canvasId}
@@ -80,6 +80,8 @@ export function PipelineRunPanel({ controller }: PipelineRunPanelProps) {
             onChange={(value) =>
               setQuickFiles(Array.isArray(value) ? value : value ? [value] : [])
             }
+            multiple
+            maxFiles={5}
             buttonLabel="选择样本文档"
           />
           <Button

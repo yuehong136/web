@@ -23,6 +23,22 @@ interface FileUploadDirectUploadProps {
   iconOnly?: boolean
   showFileList?: boolean
   triggerIcon?: ReactNode
+  maxFiles?: number
+}
+
+const normalizeUploadResults = (result: unknown): Record<string, unknown>[] => {
+  if (Array.isArray(result)) {
+    return result.filter(
+      (item): item is Record<string, unknown> =>
+        !!item && typeof item === 'object',
+    )
+  }
+
+  if (result && typeof result === 'object') {
+    return [result as Record<string, unknown>]
+  }
+
+  return []
 }
 
 export function FileUploadDirectUpload({
@@ -41,6 +57,7 @@ export function FileUploadDirectUpload({
   iconOnly = false,
   showFileList = true,
   triggerIcon,
+  maxFiles,
 }: FileUploadDirectUploadProps) {
   const { t } = useTranslation()
   const { uploadCanvasFile, isLoading } = useUploadCanvasFile()
@@ -75,13 +92,25 @@ export function FileUploadDirectUpload({
       }
 
       try {
-        const uploadedFiles = await Promise.all(
-          selectedFiles.map((file) =>
-            uploadCanvasFile({
-              canvasId,
-              file,
-            }),
-          ),
+        const remainingSlots =
+          multiple && typeof maxFiles === 'number'
+            ? Math.max(maxFiles - files.length, 0)
+            : undefined
+        const uploadFiles =
+          remainingSlots === undefined
+            ? selectedFiles
+            : selectedFiles.slice(0, remainingSlots)
+
+        if (uploadFiles.length === 0) {
+          toast.error(`最多只能上传 ${maxFiles} 个文件`)
+          return
+        }
+
+        const uploadedFiles = normalizeUploadResults(
+          await uploadCanvasFile({
+            canvasId,
+            file: multiple ? uploadFiles : uploadFiles[0],
+          }),
         )
 
         const nextFiles = multiple
@@ -98,7 +127,7 @@ export function FileUploadDirectUpload({
         e.target.value = ''
       }
     },
-    [canvasId, files, multiple, onChange, uploadCanvasFile],
+    [canvasId, files, maxFiles, multiple, onChange, uploadCanvasFile],
   )
 
   const handleRemoveFile = useCallback(

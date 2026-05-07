@@ -29,7 +29,7 @@ export function getReferenceChunks(reference: unknown): ReferenceChunk[] {
 
 export function AssistantAvatar() {
   return (
-    <div className="flex size-8 shrink-0 items-center justify-center rounded-radius-full bg-surface-accent text-text-on-accent">
+    <div className="flex size-8 shrink-0 items-center justify-center rounded-radius-full bg-chat-bubble-assistant-avatar-bg text-chat-bubble-assistant-avatar-text">
       <Bot className="size-4" />
     </div>
   )
@@ -37,7 +37,7 @@ export function AssistantAvatar() {
 
 export function UserAvatar() {
   return (
-    <div className="flex size-8 shrink-0 items-center justify-center rounded-radius-full bg-surface-tertiary text-text-secondary">
+    <div className="flex size-8 shrink-0 items-center justify-center rounded-radius-full bg-chat-bubble-user-avatar-bg text-chat-bubble-user-avatar-text">
       <User className="size-4" />
     </div>
   )
