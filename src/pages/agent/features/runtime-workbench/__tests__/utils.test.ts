@@ -20,7 +20,7 @@ import {
   A2UI_INTERNAL_DATA_PATH_PREFIX,
   A2UI_CATALOG_ID,
   XCardStatus,
-  buildA2UIDisplayContext,
+  enrichContextWithLabels,
   buildA2UIActionInput,
   normalizeCommandsForXCardRenderer,
 } from '../../../x-card'
@@ -336,13 +336,7 @@ test('buildA2UIActionInput builds standard A2UI action request metadata', () => 
         inlineCatalogs: [],
       },
     },
-    a2uiClientDataModel: {
-      version: 'v0.9',
-      surfaces: {
-        'message-card': { name: 'Alice' },
-      },
-    },
-    a2uiClientDisplayContext: {
+    a2uiClientContext: {
       version: 'v0.9',
       surfaces: {
         'message-card': { name: 'Alice' },
@@ -352,7 +346,7 @@ test('buildA2UIActionInput builds standard A2UI action request metadata', () => 
   assert.equal('inputs' in input, false)
 })
 
-test('buildA2UIDisplayContext maps ChoicePicker values to visible labels', () => {
+test('enrichContextWithLabels pairs ChoicePicker values with their visible labels', () => {
   const commands = normalizeCommandsForXCardRenderer([
     {
       version: 'v0.9',
@@ -387,7 +381,7 @@ test('buildA2UIDisplayContext maps ChoicePicker values to visible labels', () =>
     },
   ])
 
-  const displayContext = buildA2UIDisplayContext(commands, {
+  const enriched = enrichContextWithLabels(commands, {
     name: 'submitSportsRegistration',
     surfaceId: 'sports-registration',
     sourceComponentId: 'submit-button',
@@ -398,8 +392,8 @@ test('buildA2UIDisplayContext maps ChoicePicker values to visible labels', () =>
     },
   })
 
-  assert.deepEqual(displayContext, {
-    grade: ['高一'],
+  assert.deepEqual(enriched, {
+    grade: [{ value: 'grade-1', label: '高一' }],
     studentId: '2006',
   })
 })

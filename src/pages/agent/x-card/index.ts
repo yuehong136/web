@@ -7,9 +7,10 @@ export {
 } from './types'
 export {
   A2UI_INTERNAL_DATA_PATH_PREFIX,
-  buildA2UIDisplayContext,
+  enrichContextWithLabels,
   buildA2UIActionInput,
   mergeSurfaceIds,
   normalizeA2UICommandEventData,
   normalizeCommandsForXCardRenderer,
 } from './normalize'
+export type { ValueLabelPair } from './normalize'

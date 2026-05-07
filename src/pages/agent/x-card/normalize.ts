@@ -94,15 +94,14 @@ function buildA2UIActionQuery(params: {
 export function buildA2UIActionInput(payload: AgentXCardActionPayload) {
   const timestamp = payload.timestamp || new Date().toISOString()
   const sourceComponentId = payload.sourceComponentId || 'unknown'
-  const context = payload.context || {}
-  const displayContext = payload.displayContext || context
+  const enrichedContext = payload.displayContext || payload.context || {}
 
   return {
     query: buildA2UIActionQuery({
       name: payload.name,
       surfaceId: payload.surfaceId,
       sourceComponentId,
-      context: displayContext,
+      context: enrichedContext,
     }),
     a2ui: [
       {
@@ -112,7 +111,7 @@ export function buildA2UIActionInput(payload: AgentXCardActionPayload) {
           surfaceId: payload.surfaceId,
           sourceComponentId,
           timestamp,
-          context,
+          context: enrichedContext,
         },
       },
     ],
@@ -125,16 +124,10 @@ export function buildA2UIActionInput(payload: AgentXCardActionPayload) {
           inlineCatalogs: [],
         },
       },
-      a2uiClientDataModel: {
+      a2uiClientContext: {
         version: 'v0.9',
         surfaces: {
-          [payload.surfaceId]: context,
-        },
-      },
-      a2uiClientDisplayContext: {
-        version: 'v0.9',
-        surfaces: {
-          [payload.surfaceId]: displayContext,
+          [payload.surfaceId]: enrichedContext,
         },
       },
     },
@@ -167,19 +160,33 @@ function normalizeChoiceOptions(value: unknown) {
   )
 }
 
-function translateChoiceValue(value: unknown, labels: Map<string, string>): unknown {
+export interface ValueLabelPair {
+  value: unknown
+  label: unknown
+}
+
+function pairChoiceValue(
+  value: unknown,
+  labels: Map<string, string>,
+): ValueLabelPair | ValueLabelPair[] | unknown {
   if (Array.isArray(value)) {
-    return value.map((item) => translateChoiceValue(item, labels))
+    return value.map((item) => pairChoiceValue(item, labels)) as ValueLabelPair[]
   }
 
   if (typeof value === 'string') {
-    return labels.get(value) || value
+    const label = labels.get(value)
+    if (label === undefined && import.meta.env?.DEV) {
+      console.warn(
+        `[a2ui] enrichContextWithLabels: value "${value}" missing from ChoicePicker options`,
+      )
+    }
+    return { value, label: label ?? value }
   }
 
   return value
 }
 
-export function buildA2UIDisplayContext(
+export function enrichContextWithLabels(
   commands: AgentXCardCommand[] = [],
   payload: AgentXCardActionPayload,
 ): Record<string, unknown> {
@@ -232,7 +239,7 @@ export function buildA2UIDisplayContext(
   return Object.entries(context).reduce<Record<string, unknown>>((result, [key, value]) => {
     const path = pathsByActionKey.get(key) || `/${key}`
     const labels = labelsByPath.get(path)
-    result[key] = labels ? translateChoiceValue(value, labels) : value
+    result[key] = labels ? pairChoiceValue(value, labels) : value
     return result
   }, {})
 }

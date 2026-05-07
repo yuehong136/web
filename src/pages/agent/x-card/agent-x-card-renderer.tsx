@@ -2,7 +2,7 @@ import { memo, useMemo } from 'react'
 import { XCard } from '@ant-design/x-card'
 import { AlertTriangle } from 'lucide-react'
 import { agentXCardComponents } from './components'
-import { buildA2UIDisplayContext, normalizeCommandsForXCardRenderer } from './normalize'
+import { enrichContextWithLabels, normalizeCommandsForXCardRenderer } from './normalize'
 import type { AgentXCardActionPayload, AgentXCardCommand } from './types'
 
 interface AgentXCardRendererProps {
@@ -48,7 +48,7 @@ function AgentXCardRendererBase({
         onAction={(payload) => {
           void onAction?.({
             ...payload,
-            displayContext: buildA2UIDisplayContext(normalizedCommands, payload),
+            displayContext: enrichContextWithLabels(normalizedCommands, payload),
           })
         }}
       >
