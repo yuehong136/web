@@ -289,7 +289,7 @@ export const MCPBatchPage: React.FC = () => {
       {/* 页面头部 */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent">
+          <h1 className="text-2xl font-bold text-text-primary">
             MCP批量操作
           </h1>
           <p className="text-muted-foreground mt-1">批量管理MCP服务器配置，支持导入、导出和删除操作</p>
@@ -666,7 +666,7 @@ export const MCPBatchPage: React.FC = () => {
                   <p>删除：批量删除选中的服务器（不可恢复）</p>
                 </div>
                 <div className="flex gap-2">
-                  <div className="w-1.5 h-1.5 bg-gray-500 rounded-full mt-2 flex-shrink-0"></div>
+                  <div className="w-1.5 h-1.5 bg-text-tertiary rounded-full mt-2 flex-shrink-0"></div>
                   <p>支持搜索和全选功能，提高操作效率</p>
                 </div>
               </div>

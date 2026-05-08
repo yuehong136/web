@@ -38,24 +38,9 @@ export default {
         border: 'rgb(var(--twc-border) / <alpha-value>)',
         input: 'var(--color-components-input-border)',
         ring: 'rgb(var(--twc-ring) / <alpha-value>)',
-        // ⚠️ DEPRECATED: 项目规范禁用 gray-*；这里保留只是为了让 16 处遗留 usage
-        // 在被逐一替换为语义 token 之前不破坏构建。新代码必须使用
-        // surface-*/text-*/border-* 等语义 token。详见 AGENTS.md / CLAUDE.md。
-        gray: {
-          50: '#f9fafb',
-          100: '#f3f4f6',
-          200: '#e5e7eb',
-          300: '#d1d5db',
-          400: '#9ca3af',
-          500: '#6b7280',
-          600: '#4b5563',
-          700: '#374151',
-          800: '#1f2937',
-          900: '#111827',
-          950: '#030712',
-        },
-        // success/warning/error 数字色阶已删除：项目统一使用 status-* 语义 token。
-        // 如需要旧色阶请走 tokens.ts，不要在 tailwind 配置层重新引入。
+        // gray/success/warning/error 数字色阶已统一删除。
+        // 状态色走 status-* 语义 token；中性色走 background-*/text-*/border-* token。
+        // 不要在 tailwind 配置层重新引入硬编码调色盘。
       },
       borderRadius: {
         lg: 'var(--radius)',

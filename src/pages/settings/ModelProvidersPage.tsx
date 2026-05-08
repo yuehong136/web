@@ -137,8 +137,8 @@ const CollapsibleProviderCard: React.FC<{
   return (
     <Card className="overflow-hidden border-0 shadow-md hover:shadow-lg transition-all duration-200">
       {/* 卡片头部 - 点击展开/收起 */}
-      <div 
-        className="p-6 cursor-pointer bg-gradient-to-r from-gray-50 to-white hover:from-gray-100 hover:to-gray-50 transition-colors"
+      <div
+        className="p-6 cursor-pointer bg-components-card-bg hover:bg-components-card-bg-hover transition-colors"
         onClick={onToggle}
       >
         <div className="flex items-center justify-between">

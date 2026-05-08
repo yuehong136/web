@@ -109,7 +109,7 @@ const CreateSearchDialog: React.FC<CreateSearchDialogProps> = ({
     }
   }, [name, description, kbIds, createSearch, addNotification, navigate, resetForm, onClose, onSuccess])
 
-  const gradient = name ? getAvatarGradient(name) : 'from-gray-400 to-gray-500'
+  const gradient = name ? getAvatarGradient(name) : 'from-text-tertiary to-text-muted'
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>

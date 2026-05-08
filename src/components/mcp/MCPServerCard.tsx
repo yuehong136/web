@@ -89,7 +89,7 @@ export const MCPServerCard: React.FC<MCPServerCardProps> = ({
     label: server.server_type.toUpperCase(),
     bgColor: 'var(--color-background-subtle)',
     textColor: 'var(--color-text-secondary)',
-    gradient: 'from-gray-500/10 to-slate-500/10',
+    gradient: 'from-text-tertiary/10 to-text-tertiary/10',
   }
 
   const handleCopyUrl = useCallback(async (e: React.MouseEvent) => {
@@ -328,7 +328,7 @@ export const MCPServerCard: React.FC<MCPServerCardProps> = ({
         {/* 悬浮工具预览（最多显示3个） */}
         {isHovered && tools.length > 0 && (
           <div
-            className="absolute left-0 right-0 bottom-0 p-3 bg-gradient-to-t from-white via-white to-transparent dark:from-gray-900 dark:via-gray-900"
+            className="absolute left-0 right-0 bottom-0 p-3 bg-gradient-to-t from-components-card-bg via-components-card-bg to-transparent"
             style={{ transform: 'translateY(100%)', zIndex: 10 }}
           >
             {/* 这部分可以在未来添加工具预览 */}

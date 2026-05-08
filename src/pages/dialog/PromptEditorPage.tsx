@@ -100,7 +100,7 @@ const PromptEditorPage: React.FC = () => {
               <ArrowLeft className="h-4 w-4 mr-1" />
               返回
             </Button>
-            <div className="h-6 w-px bg-gray-300" />
+            <div className="h-6 w-px bg-border-default" />
             <div>
               <h1 className="text-xl font-semibold text-text-primary">
                 编辑系统提示词

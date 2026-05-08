@@ -221,7 +221,7 @@ export const MCPTestPage: React.FC = () => {
       {/* 页面头部 */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent">
+          <h1 className="text-2xl font-bold text-text-primary">
             MCP连接测试
           </h1>
           <p className="text-muted-foreground mt-1">测试MCP服务器连接性能和可用性</p>

@@ -1921,7 +1921,7 @@ const ApiDocumentationPage: React.FC = () => {
                                               }}
                                             >
                                               {operatingKeys.has(apiKey.tenant_id) ? (
-                                                <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                                                <div className="w-4 h-4 border-2 border-text-tertiary border-t-transparent rounded-full animate-spin" />
                                               ) : (
                                                 <MoreHorizontal className="h-4 w-4" />
                                               )}

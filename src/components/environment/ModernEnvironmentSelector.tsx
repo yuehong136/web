@@ -56,7 +56,7 @@ export function ModernEnvironmentSelector({
       'dev': 'bg-blue-500',
       'test': 'bg-purple-500',
       'testing': 'bg-purple-500',
-      'local': 'bg-gray-500'
+      'local': 'bg-text-tertiary'
     }
     
     return colorMap[normalized] || 'bg-violet-500'

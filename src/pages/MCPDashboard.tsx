@@ -110,7 +110,7 @@ export const MCPDashboard: React.FC = () => {
           <div className="mb-8">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent">
+                <h1 className="text-3xl font-bold text-text-primary">
                   MCP服务器管理系统
                 </h1>
                 <p className="text-muted-foreground mt-2">

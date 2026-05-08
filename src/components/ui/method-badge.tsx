@@ -12,7 +12,7 @@ const methodBadgeVariants = cva(
         PUT: "bg-components-method-put-bg text-components-method-put-text border-components-method-put-border",
         DELETE: "bg-components-method-delete-bg text-components-method-delete-text border-components-method-delete-border",
         PATCH: "bg-components-method-patch-bg text-components-method-patch-text border-components-method-patch-border",
-        HEAD: "bg-background-subtle text-text-secondary border-border-default dark:bg-gray-950/50 dark:text-text-muted dark:border-gray-800",
+        HEAD: "bg-background-subtle text-text-secondary border-border-default",
         OPTIONS: "bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/50 dark:text-indigo-400 dark:border-indigo-800",
       },
       size: {

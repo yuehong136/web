@@ -181,7 +181,7 @@ export const ParserTypeSelector: React.FC<ParserTypeSelectorProps> = ({
                 minWidth: '320px'
               }}>
               {/* 搜索框 */}
-              <div className="p-2 border-b border-gray-100">
+              <div className="p-2 border-b border-border-subtle">
                 <input
                   type="text"
                   placeholder="搜索解析器类型..."
@@ -196,7 +196,7 @@ export const ParserTypeSelector: React.FC<ParserTypeSelectorProps> = ({
                 type="button"
                 onClick={() => handleSelect(null)}
                 className={cn(
-                  "w-full px-3 py-2 text-left hover:bg-blue-50 transition-colors duration-150 border-b border-gray-50 text-xs",
+                  "w-full px-3 py-2 text-left hover:bg-state-hover transition-colors duration-150 border-b border-border-subtle text-xs",
                   selectedParserId === null && "bg-blue-50 border-blue-100"
                 )}
               >
@@ -224,7 +224,7 @@ export const ParserTypeSelector: React.FC<ParserTypeSelectorProps> = ({
                       type="button"
                       onClick={() => handleSelect(value)}
                       className={cn(
-                        "w-full px-3 py-2 text-left hover:bg-blue-50 transition-colors duration-150 border-b border-gray-50 last:border-b-0 text-xs",
+                        "w-full px-3 py-2 text-left hover:bg-state-hover transition-colors duration-150 border-b border-border-subtle last:border-b-0 text-xs",
                         selectedParserId === value && "bg-blue-50 border-blue-100"
                       )}
                     >

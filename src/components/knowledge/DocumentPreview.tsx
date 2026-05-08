@@ -732,7 +732,7 @@ const VideoPreviewInner: React.FC<{
             />
           </div>
           {/* 视频控制栏 */}
-          <div className="px-4 py-3 bg-gray-900/90 backdrop-blur-sm">
+          <div className="px-4 py-3 bg-background-overlay backdrop-blur-sm">
             <div className="flex items-center gap-3">
               <Button variant="ghost" size="sm" onClick={togglePlay} className="text-white hover:bg-background-surface/20">
                 {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
