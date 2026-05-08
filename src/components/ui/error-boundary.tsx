@@ -12,7 +12,10 @@ interface ErrorBoundaryProps {
   fallback?: (error: Error, retry: () => void) => React.ReactNode
 }
 
-export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+export class ErrorBoundary extends React.Component<
+  ErrorBoundaryProps,
+  ErrorBoundaryState
+> {
   constructor(props: ErrorBoundaryProps) {
     super(props)
     this.state = { hasError: false }
@@ -22,7 +25,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
     return { hasError: true, error }
   }
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+  override componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('ErrorBoundary caught an error:', error, errorInfo)
     this.setState({ error, errorInfo })
   }
@@ -31,7 +34,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
     this.setState({ hasError: false, error: undefined, errorInfo: undefined })
   }
 
-  render() {
+  override render() {
     if (this.state.hasError) {
       if (this.props.fallback && this.state.error) {
         return this.props.fallback(this.state.error, this.handleRetry)
@@ -46,11 +49,11 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
           />
           {process.env.NODE_ENV === 'development' && this.state.error ? (
             <div className="px-space-lg pb-space-lg">
-              <details className="rounded-radius-lg border border-border-subtle bg-background-subtle p-space-base">
+              <details className="rounded-radius-lg p-space-base border border-border-subtle bg-background-subtle">
                 <summary className="cursor-pointer text-xs text-text-secondary">
                   错误详情 (开发模式)
                 </summary>
-                <pre className="mt-space-sm overflow-auto rounded-radius-md bg-background-surface p-space-sm text-xs text-text-secondary">
+                <pre className="mt-space-sm rounded-radius-md p-space-sm overflow-auto bg-background-surface text-xs text-text-secondary">
                   {this.state.error.stack}
                 </pre>
               </details>
@@ -67,14 +70,14 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
 // 函数组件包装器
 export const withErrorBoundary = <P extends object>(
   Component: React.ComponentType<P>,
-  fallback?: (error: Error, retry: () => void) => React.ReactNode
+  fallback?: (error: Error, retry: () => void) => React.ReactNode,
 ) => {
   const WrappedComponent = (props: P) => (
     <ErrorBoundary fallback={fallback}>
       <Component {...props} />
     </ErrorBoundary>
   )
-  
+
   WrappedComponent.displayName = `withErrorBoundary(${Component.displayName || Component.name})`
   return WrappedComponent
-} 
+}

@@ -1,12 +1,16 @@
-/** @type {import('tailwindcss').Config} */
+import forms from '@tailwindcss/forms'
+import typography from '@tailwindcss/typography'
+import containerQueries from '@tailwindcss/container-queries'
+import scrollbar from 'tailwind-scrollbar'
+import type { Config } from 'tailwindcss'
 import tailwindVars from './src/themes/tailwind-vars'
 
-export default {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-  ],
+const config = {
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   darkMode: ['class', '[data-theme="dark"]'],
+  future: {
+    hoverOnlyWhenSupported: true,
+  },
   theme: {
     extend: {
       colors: {
@@ -84,9 +88,11 @@ export default {
     },
   },
   plugins: [
-    require('@tailwindcss/forms'),
-    require('@tailwindcss/typography'),
-    require('tailwind-scrollbar')({ nocompatible: true }),
-    require('@tailwindcss/container-queries'),
+    forms,
+    typography,
+    scrollbar({ nocompatible: true }),
+    containerQueries,
   ],
-}
+} satisfies Config
+
+export default config

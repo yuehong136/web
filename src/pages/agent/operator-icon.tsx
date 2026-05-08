@@ -18,13 +18,13 @@ class IconErrorBoundary extends Component<{
   children: ReactNode
   fallback?: ReactNode
 }> {
-  state = { hasError: false }
+  override state = { hasError: false }
 
   static getDerivedStateFromError() {
     return { hasError: true }
   }
 
-  render() {
+  override render() {
     if (this.state.hasError) {
       return this.props.fallback || <Empty />
     }
@@ -34,7 +34,8 @@ class IconErrorBoundary extends Component<{
 }
 
 const OperatorIcon = ({ name, className }: IProps) => {
-  const iconFontName = OperatorIconFontMap[name as keyof typeof OperatorIconFontMap]
+  const iconFontName =
+    OperatorIconFontMap[name as keyof typeof OperatorIconFontMap]
   const LucideIcon = LucideIconMap[name as keyof typeof LucideIconMap]
 
   // Begin 节点特殊样式
@@ -42,11 +43,11 @@ const OperatorIcon = ({ name, className }: IProps) => {
     return (
       <div
         className={cn(
-          'inline-flex items-center justify-center p-1 bg-surface-accent rounded-radius-sm',
+          'bg-surface-accent rounded-radius-sm inline-flex items-center justify-center p-1',
           className,
         )}
       >
-        <HousePlus className="size-3 text-text-on-accent" />
+        <HousePlus className="text-text-on-accent size-3" />
       </div>
     )
   }
@@ -54,7 +55,15 @@ const OperatorIcon = ({ name, className }: IProps) => {
   // 优先使用 IconFont（如果存在）
   if (iconFontName) {
     return (
-      <IconErrorBoundary fallback={LucideIcon ? <LucideIcon className={cn('size-5', className)} /> : <Empty />}>
+      <IconErrorBoundary
+        fallback={
+          LucideIcon ? (
+            <LucideIcon className={cn('size-5', className)} />
+          ) : (
+            <Empty />
+          )
+        }
+      >
         <IconFontFill name={iconFontName} className={cn('size-5', className)} />
       </IconErrorBoundary>
     )

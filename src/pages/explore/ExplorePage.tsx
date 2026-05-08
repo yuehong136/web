@@ -16,13 +16,13 @@ import {
   Square,
   Upload,
 } from 'lucide-react'
-import { 
+import {
   Conversations,
-  Bubble, 
-  Sender, 
+  Bubble,
+  Sender,
   Prompts,
   Welcome,
-  Attachments
+  Attachments,
 } from '@ant-design/x'
 import type { AttachmentsProps, BubbleListProps } from '@ant-design/x'
 import { ConfigProvider, theme, Modal, Input } from 'antd'
@@ -30,29 +30,55 @@ import type { RcFile } from 'antd/es/upload/interface'
 import type { PromptsProps } from '@ant-design/x'
 import XMarkdown from '@ant-design/x-markdown'
 import { ChatBubbleLoading } from '@/components/chat/ChatBubbleLoading'
-import { getMarkdownStreamingOptions, markdownConfig, mergeMarkdownComponents } from '@/components/chat/MarkdownCodeBlock'
+import {
+  getMarkdownStreamingOptions,
+  markdownConfig,
+  mergeMarkdownComponents,
+} from '@/components/chat/MarkdownCodeBlock'
 import { Button } from '@/components/ui/button'
 import { FileIcon, getFileCategory } from '@/components/ui/file-icon'
 import { cn, copyToClipboard, formatBytes } from '@/lib/utils'
 import { toast } from '@/lib/toast'
 import { useChatStore } from '@/stores/chat'
-import { findFirstEnabledModelByType, hasEnabledModelName, useModelStore } from '@/stores/model'
+import {
+  findFirstEnabledModelByType,
+  hasEnabledModelName,
+  useModelStore,
+} from '@/stores/model'
 import { useDialogApps } from '@/hooks/use-dialog-apps'
-import { 
-  useChatSettings, 
-  useKnowledgeBases, 
+import {
+  useChatSettings,
+  useKnowledgeBases,
   useRerankModels,
 } from '@/hooks/use-chat-settings'
 import { useChatUpload } from '@/hooks/use-chat-upload'
 import { conversationAPI } from '@/api/conversation'
 import { useQuery } from '@tanstack/react-query'
-import { chatConfig, type ChatMessage, type ChatServiceRequest, type SSEResponse, uploadConfig, type UploadFile, type UploadedFileInfo } from '@/config/chat'
-import { extractReferencesFromSSEData, type ReferenceChunk } from '@/utils/reference-replacer'
-import { ChatSettingsPanel, defaultChatSettings, type ChatSettings } from '@/components/chat/ChatSettingsPanel'
+import {
+  chatConfig,
+  type ChatMessage,
+  type ChatServiceRequest,
+  type SSEResponse,
+  uploadConfig,
+  type UploadFile,
+  type UploadedFileInfo,
+} from '@/config/chat'
+import {
+  extractReferencesFromSSEData,
+  type ReferenceChunk,
+} from '@/utils/reference-replacer'
+import {
+  ChatSettingsPanel,
+  defaultChatSettings,
+  type ChatSettings,
+} from '@/components/chat/ChatSettingsPanel'
 import { getConversationDateGroup } from '@/utils/conversation-utils'
 
 // 公共工具函数和组件
-import { convertReferencesToSup, processContentForCarousel } from '@/utils/message-utils'
+import {
+  convertReferencesToSup,
+  processContentForCarousel,
+} from '@/utils/message-utils'
 import { extractThinkContent, type ThinkingStatus } from '@/utils/think-utils'
 import { ThinkWrapper } from '@/components/chat/ThinkWrapper'
 import { MessageActionsFooter } from '@/components/chat/MessageActionsFooter'
@@ -68,7 +94,10 @@ import { ReferencePanel } from '@/components/chat/ReferencePanel'
 import { ReferenceDetailSheet } from '@/components/chat/ReferenceDetailSheet'
 import { createReferenceMarkerComponent } from '@/components/chat/ReferenceMarker'
 import { ReferenceImageList } from '@/components/chat/ReferenceImageList'
-import { consumeStreamingAnswerChunk, createInitialStreamingAnswerState } from '@/utils/streaming-answer'
+import {
+  consumeStreamingAnswerChunk,
+  createInitialStreamingAnswerState,
+} from '@/utils/streaming-answer'
 
 // SSE 流解析库（参考 ragflow 最佳实践）
 import { EventSourceParserStream } from 'eventsource-parser/stream'
@@ -78,14 +107,15 @@ type ExploreAttachment = NonNullable<AttachmentsProps['items']>[number]
 // 获取应用图标
 const getAppIcon = (app: any, size: 'sm' | 'md' = 'sm') => {
   const sizeClass = size === 'md' ? 'h-6 w-6' : 'h-4 w-4'
-  
+
   if (app?.icon) {
-    const iconSrc = app.icon.startsWith('data:') || app.icon.startsWith('http') 
-      ? app.icon 
-      : `data:image/png;base64,${app.icon}`
+    const iconSrc =
+      app.icon.startsWith('data:') || app.icon.startsWith('http')
+        ? app.icon
+        : `data:image/png;base64,${app.icon}`
     return (
-      <img 
-        src={iconSrc} 
+      <img
+        src={iconSrc}
         alt={app.name}
         className={`${sizeClass} rounded object-cover`}
         onError={(e) => {
@@ -95,7 +125,12 @@ const getAppIcon = (app: any, size: 'sm' | 'md' = 'sm') => {
       />
     )
   }
-  return <Sparkles className={sizeClass} style={{ color: 'var(--color-components-button-primary-bg)' }} />
+  return (
+    <Sparkles
+      className={sizeClass}
+      style={{ color: 'var(--color-components-button-primary-bg)' }}
+    />
+  )
 }
 
 const ATTACHMENT_ONLY_PROMPT = '请分析这些附件'
@@ -137,7 +172,6 @@ const toRcFile = (file: File, uid: string): RcFile => {
   return rcFile
 }
 
-
 // 消息类型
 interface ChatMessageItem {
   role: 'user' | 'assistant'
@@ -152,58 +186,72 @@ interface ChatMessageItem {
 export const ExplorePage: React.FC = () => {
   const { clearChat } = useChatStore()
   const { myLLMs, isLoading: modelsLoading, loadMyLLMs } = useModelStore()
-  
+
   // 获取对话应用列表
-  const { 
-    data: dialogApps = [], 
+  const {
+    data: dialogApps = [],
     isLoading: dialogAppsLoading,
-    error: dialogAppsError 
+    error: dialogAppsError,
   } = useDialogApps()
 
   // 状态管理
-  const [activeTab, setActiveTab] = React.useState<'workspace' | 'topics' | 'settings'>('workspace')
+  const [activeTab, setActiveTab] = React.useState<
+    'workspace' | 'topics' | 'settings'
+  >('workspace')
   const [selectedApp, setSelectedApp] = React.useState<string>('')
   const [mode, setMode] = React.useState<'chat' | 'market'>('chat')
-  const [selectedConversationDetail, setSelectedConversationDetail] = React.useState<any>(null)
-  const [activeConversationKey, setActiveConversationKey] = React.useState<string | undefined>(undefined)
+  const [selectedConversationDetail, setSelectedConversationDetail] =
+    React.useState<any>(null)
+  const [activeConversationKey, setActiveConversationKey] = React.useState<
+    string | undefined
+  >(undefined)
   const [, setLoadingConversationDetail] = React.useState(false)
   const [messages, setMessages] = React.useState<ChatMessageItem[]>([])
   const [isStreaming, setIsStreaming] = React.useState(false)
   const [inputValue, setInputValue] = React.useState('')
   const [selectedModel, setSelectedModel] = React.useState<string | null>(null)
-  const [renamingConversationId, setRenamingConversationId] = React.useState<string | null>(null)
+  const [renamingConversationId, setRenamingConversationId] = React.useState<
+    string | null
+  >(null)
   const [newConversationName, setNewConversationName] = React.useState('')
-  const [chatLayout, setChatLayout] = React.useState<'default' | 'center' | 'full'>('default')
+  const [chatLayout, setChatLayout] = React.useState<
+    'default' | 'center' | 'full'
+  >('default')
   const [settingsPanelOpen, setSettingsPanelOpen] = React.useState(false)
-  const [chatSettings, setChatSettings] = React.useState<ChatSettings>(defaultChatSettings)
-  
+  const [chatSettings, setChatSettings] =
+    React.useState<ChatSettings>(defaultChatSettings)
+
   // 引用详情侧边栏状态
   const [detailSheetOpen, setDetailSheetOpen] = React.useState(false)
-  const [selectedChunk, setSelectedChunk] = React.useState<ReferenceChunk | null>(null)
-  const [currentMessageReferences, setCurrentMessageReferences] = React.useState<ReferenceChunk[]>([])
-  
+  const [selectedChunk, setSelectedChunk] =
+    React.useState<ReferenceChunk | null>(null)
+  const [currentMessageReferences, setCurrentMessageReferences] =
+    React.useState<ReferenceChunk[]>([])
+
   // 文件上传面板状态（参考 ragflow）
   const [headerOpen, setHeaderOpen] = React.useState(false)
-  
+
   // 拖拽状态
   const [isDragging, setIsDragging] = React.useState(false)
   const dropContainerRef = React.useRef<HTMLDivElement>(null)
   const dragCounterRef = React.useRef(0)
-  
+
   // 功能开关状态（参考 ragflow）
   const [enableReasoning, setEnableReasoning] = React.useState(false)
   const [enableInternet, setEnableInternet] = React.useState(false)
-  
+
   // 流式输出控制器（用于停止输出）
   const abortControllerRef = React.useRef<AbortController | null>(null)
 
   // 用于存储最新的 handleSendMessage 引用，解决 useCallback 闭包陈旧问题
-  const handleSendMessageRef = React.useRef<(
-    message: string,
-    baseMessages?: ChatMessageItem[],
-    overrideFiles?: UploadedFileInfo[],
-  ) => Promise<void>>(null!)
-  
+  const handleSendMessageRef = React.useRef<
+    (
+      message: string,
+      baseMessages?: ChatMessageItem[],
+      overrideFiles?: UploadedFileInfo[],
+    ) => Promise<void>
+  >(null!)
+
   // 全局拖拽事件处理
   React.useEffect(() => {
     const handleDragEnter = (e: DragEvent) => {
@@ -215,7 +263,7 @@ export const ExplorePage: React.FC = () => {
         setHeaderOpen(true) // 自动打开上传面板
       }
     }
-    
+
     const handleDragLeave = (e: DragEvent) => {
       e.preventDefault()
       e.stopPropagation()
@@ -224,12 +272,12 @@ export const ExplorePage: React.FC = () => {
         setIsDragging(false)
       }
     }
-    
+
     const handleDragOver = (e: DragEvent) => {
       e.preventDefault()
       e.stopPropagation()
     }
-    
+
     const handleDrop = (e: DragEvent) => {
       e.preventDefault()
       e.stopPropagation()
@@ -237,14 +285,14 @@ export const ExplorePage: React.FC = () => {
       setIsDragging(false)
       // 文件会由 Attachments 组件处理
     }
-    
+
     const container = dropContainerRef.current
     if (container) {
       container.addEventListener('dragenter', handleDragEnter)
       container.addEventListener('dragleave', handleDragLeave)
       container.addEventListener('dragover', handleDragOver)
       container.addEventListener('drop', handleDrop)
-      
+
       return () => {
         container.removeEventListener('dragenter', handleDragEnter)
         container.removeEventListener('dragleave', handleDragLeave)
@@ -252,17 +300,18 @@ export const ExplorePage: React.FC = () => {
         container.removeEventListener('drop', handleDrop)
       }
     }
+    return undefined
   }, [])
 
   // 获取选中应用的详情和设置
-  const { 
+  const {
     dialog: _selectedAppDetail,
     settings: dialogSettings,
     loading: settingsLoading,
     saving: savingSettings,
     saveSettings,
   } = useChatSettings(selectedApp || undefined)
-  
+
   // 文件上传 Hook（参考 ragflow）
   const {
     files: uploadFiles,
@@ -278,7 +327,7 @@ export const ExplorePage: React.FC = () => {
 
   // 获取知识库列表
   const { knowledgeBases, loadKnowledgeBases } = useKnowledgeBases()
-  
+
   // 获取重排序模型列表（LLMModel[] 格式）
   const rerankModels = useRerankModels(myLLMs)
 
@@ -292,11 +341,11 @@ export const ExplorePage: React.FC = () => {
   }, [selectedApp, dialogSettings])
 
   // 获取选中应用的对话列表
-  const { 
-    data: dialogConversationsData, 
+  const {
+    data: dialogConversationsData,
     isLoading: dialogConversationsLoading,
     error: dialogConversationsError,
-    refetch: refetchConversations
+    refetch: refetchConversations,
   } = useQuery({
     queryKey: ['dialogConversations', selectedApp],
     queryFn: async () => conversationAPI.getConversationsByDialog(selectedApp),
@@ -305,22 +354,38 @@ export const ExplorePage: React.FC = () => {
   })
 
   const dialogConversations = dialogConversationsData || []
-  const uploadedAttachments = React.useMemo(() => getUploadedFiles(), [getUploadedFiles])
+  const uploadedAttachments = React.useMemo(
+    () => getUploadedFiles(),
+    [getUploadedFiles],
+  )
   const hasReadyUploads = uploadedAttachments.length > 0
   const hasUploadingFiles = React.useMemo(
-    () => isUploading || uploadFiles.some((file) => file.status === 'uploading'),
+    () =>
+      isUploading || uploadFiles.some((file) => file.status === 'uploading'),
     [isUploading, uploadFiles],
   )
-  const canSubmitMessage = (!isStreaming && !hasUploadingFiles) && (inputValue.trim().length > 0 || hasReadyUploads)
+  const canSubmitMessage =
+    !isStreaming &&
+    !hasUploadingFiles &&
+    (inputValue.trim().length > 0 || hasReadyUploads)
   const attachmentItems = React.useMemo<ExploreAttachment[]>(() => {
     return uploadFiles.map((file) => ({
       ...file,
       className: file.status === 'error' ? 'cursor-pointer' : undefined,
       description: getAttachmentStatusLabel(file),
-      icon: file.response ? <FileIcon fileName={file.response.name} size="sm" /> : undefined,
-      originFileObj: file.originFileObj ? toRcFile(file.originFileObj, file.uid) : undefined,
+      icon: file.response ? (
+        <FileIcon fileName={file.response.name} size="sm" />
+      ) : undefined,
+      originFileObj: file.originFileObj
+        ? toRcFile(file.originFileObj, file.uid)
+        : undefined,
       src: file.thumbUrl,
-      onClick: file.status === 'error' ? () => { void retryUploadFile(file.uid) } : undefined,
+      onClick:
+        file.status === 'error'
+          ? () => {
+              void retryUploadFile(file.uid)
+            }
+          : undefined,
     }))
   }, [retryUploadFile, uploadFiles])
 
@@ -347,7 +412,7 @@ export const ExplorePage: React.FC = () => {
   // 自动选择第一个应用
   React.useEffect(() => {
     if (!selectedApp && dialogApps.length > 0 && !dialogAppsLoading) {
-      const activeApp = dialogApps.find(app => app.status === '1')
+      const activeApp = dialogApps.find((app) => app.status === '1')
       if (activeApp) setSelectedApp(activeApp.id)
     }
   }, [selectedApp, dialogApps, dialogAppsLoading])
@@ -355,26 +420,29 @@ export const ExplorePage: React.FC = () => {
   // 获取对话详情
   const fetchConversationDetail = async (conversationId: string) => {
     if (!conversationId) return
-    
+
     try {
       setLoadingConversationDetail(true)
       // 先清空消息，避免新旧消息混合
       setMessages([])
-      
-      const response = await conversationAPI.getConversationDetail(conversationId)
+
+      const response =
+        await conversationAPI.getConversationDetail(conversationId)
       setSelectedConversationDetail(response)
-      
+
       // 设置消息列表，如果对话没有消息则清空
       if (response?.message && Array.isArray(response.message)) {
-        setMessages(response.message.map((msg: any) => ({
-          role: msg.role,
-          content: msg.content,
-          // 参考 ragflow buildMessageUuid：优先使用后端返回的 ID
-          id: msg.id,
-          // 保留引用信息（如果有）
-          references: msg.reference?.chunks || [],
-          files: Array.isArray(msg.files) ? msg.files : [],
-        })))
+        setMessages(
+          response.message.map((msg: any) => ({
+            role: msg.role,
+            content: msg.content,
+            // 参考 ragflow buildMessageUuid：优先使用后端返回的 ID
+            id: msg.id,
+            // 保留引用信息（如果有）
+            references: msg.reference?.chunks || [],
+            files: Array.isArray(msg.files) ? msg.files : [],
+          })),
+        )
       }
     } catch (error) {
       console.error('Failed to fetch conversation detail:', error)
@@ -396,30 +464,33 @@ export const ExplorePage: React.FC = () => {
 
   // 重新生成消息（参考 ragflow 的 useRegenerateMessage 实现）
   // 当点击助手消息的重新生成按钮时，找到对应的用户消息并重新发送
-  const handleRegenerateMessage = React.useCallback((assistantMessageIndex: number) => {
-    if (isStreaming) return
+  const handleRegenerateMessage = React.useCallback(
+    (assistantMessageIndex: number) => {
+      if (isStreaming) return
 
-    // 找到这个助手消息之前的用户消息
-    const userMessageIndex = assistantMessageIndex - 1
-    if (userMessageIndex < 0 || messages[userMessageIndex]?.role !== 'user') {
-      toast.error('无法找到对应的用户消息')
-      return
-    }
+      // 找到这个助手消息之前的用户消息
+      const userMessageIndex = assistantMessageIndex - 1
+      if (userMessageIndex < 0 || messages[userMessageIndex]?.role !== 'user') {
+        toast.error('无法找到对应的用户消息')
+        return
+      }
 
-    const userContent = messages[userMessageIndex].content
-    const userFiles = messages[userMessageIndex].files || []
-    // 保留用户消息之前的所有消息（不包括用户消息本身，因为 handleSendMessage 会重新添加）
-    const baseMessages = messages.slice(0, userMessageIndex)
+      const userContent = messages[userMessageIndex].content
+      const userFiles = messages[userMessageIndex].files || []
+      // 保留用户消息之前的所有消息（不包括用户消息本身，因为 handleSendMessage 会重新添加）
+      const baseMessages = messages.slice(0, userMessageIndex)
 
-    // 先立即更新 UI，移除当前用户消息和助手消息
-    setMessages(baseMessages)
+      // 先立即更新 UI，移除当前用户消息和助手消息
+      setMessages(baseMessages)
 
-    // 使用 queueMicrotask 确保 state 更新后再发送新消息
-    // 通过 ref 调用最新的 handleSendMessage，避免闭包陈旧问题
-    queueMicrotask(() => {
-      handleSendMessageRef.current?.(userContent, baseMessages, userFiles)
-    })
-  }, [isStreaming, messages])
+      // 使用 queueMicrotask 确保 state 更新后再发送新消息
+      // 通过 ref 调用最新的 handleSendMessage，避免闭包陈旧问题
+      queueMicrotask(() => {
+        handleSendMessageRef.current?.(userContent, baseMessages, userFiles)
+      })
+    },
+    [isStreaming, messages],
+  )
 
   // 发送消息（支持附件与失败恢复）
   // baseMessages 参数用于重新生成场景，传入截断后的消息列表
@@ -432,8 +503,11 @@ export const ExplorePage: React.FC = () => {
 
     const pendingFiles = overrideFiles ?? uploadedAttachments
     const normalizedMessage = message.trim()
-    const messageContent = normalizedMessage || (pendingFiles.length > 0 ? ATTACHMENT_ONLY_PROMPT : '')
-    const conversationSeed = normalizedMessage || pendingFiles[0]?.name || messageContent
+    const messageContent =
+      normalizedMessage ||
+      (pendingFiles.length > 0 ? ATTACHMENT_ONLY_PROMPT : '')
+    const conversationSeed =
+      normalizedMessage || pendingFiles[0]?.name || messageContent
 
     if (!messageContent) return
 
@@ -456,22 +530,29 @@ export const ExplorePage: React.FC = () => {
     // 解析会话 ID：如果没有会话但有选中的应用，自动创建新会话
     // 参考首页 sendAppMessage 的实现方式
     let conversationId = selectedConversationDetail?.id
-    const existingUserMessages = previousMessages.filter(m => m.role === 'user')
+    const existingUserMessages = previousMessages.filter(
+      (m) => m.role === 'user',
+    )
     const isFirstUserMessage = existingUserMessages.length === 0
 
     if (!conversationId && selectedApp) {
       // 自动创建新会话，使用消息内容作为名称（参考 RAGFlow 命名逻辑）
-      const conversationName = conversationSeed.slice(0, 50) + (conversationSeed.length > 50 ? '...' : '')
+      const conversationName =
+        conversationSeed.slice(0, 50) +
+        (conversationSeed.length > 50 ? '...' : '')
       try {
         const newConversation = await conversationAPI.setConversation({
           dialog_id: selectedApp,
           name: conversationName,
-          is_new: true
+          is_new: true,
         })
         if (newConversation?.id) {
           conversationId = newConversation.id
           setActiveConversationKey(newConversation.id)
-          setSelectedConversationDetail({ id: newConversation.id, name: conversationName })
+          setSelectedConversationDetail({
+            id: newConversation.id,
+            name: conversationName,
+          })
           refetchConversations()
         }
       } catch (error) {
@@ -479,21 +560,25 @@ export const ExplorePage: React.FC = () => {
       }
     } else if (isFirstUserMessage && activeConversationKey && selectedApp) {
       // 对于已存在的会话，如果是第一条用户消息，用消息内容更新会话名称
-      const conversationName = conversationSeed.slice(0, 50) + (conversationSeed.length > 50 ? '...' : '')
+      const conversationName =
+        conversationSeed.slice(0, 50) +
+        (conversationSeed.length > 50 ? '...' : '')
       try {
         await conversationAPI.setConversation({
           dialog_id: selectedApp,
           conversation_id: activeConversationKey,
           name: conversationName,
-          is_new: false
+          is_new: false,
         })
-        setSelectedConversationDetail((prev: any) => prev ? { ...prev, name: conversationName } : prev)
+        setSelectedConversationDetail((prev: any) =>
+          prev ? { ...prev, name: conversationName } : prev,
+        )
         refetchConversations()
       } catch (error) {
         console.error('Failed to update conversation name:', error)
       }
     }
-    
+
     // 创建新的 AbortController 用于停止输出
     abortControllerRef.current = new AbortController()
     let hasReceivedContent = false
@@ -506,10 +591,10 @@ export const ExplorePage: React.FC = () => {
         id: `msg-${Date.now()}-ai-${Math.random().toString(36).substr(2, 9)}`,
         references: [],
         thinking: '',
-        thinkingComplete: false
+        thinkingComplete: false,
       }
 
-      setMessages(prev => [...prev, aiMessage])
+      setMessages((prev) => [...prev, aiMessage])
 
       // 根据模式选择 API：有会话 ID 时使用 completion，否则回退到 chat_service_sse
       if (conversationId) {
@@ -521,7 +606,9 @@ export const ExplorePage: React.FC = () => {
         }))
 
         // 会话模式 - 使用 completion API（支持话题模式和工作区自动创建的会话）
-        const completionParams: Parameters<typeof conversationAPI.completion>[0] = {
+        const completionParams: Parameters<
+          typeof conversationAPI.completion
+        >[0] = {
           conversation_id: conversationId,
           messages: completionMessages,
           quote: chatSettings.quote,
@@ -531,75 +618,82 @@ export const ExplorePage: React.FC = () => {
         }
 
         // 如果启用了元数据过滤且有条件，添加到请求中
-        if (chatSettings.metadataFilterMode === 'manual' && 
-            chatSettings.metadataCondition.conditions && 
-            chatSettings.metadataCondition.conditions.length > 0) {
+        if (
+          chatSettings.metadataFilterMode === 'manual' &&
+          chatSettings.metadataCondition.conditions &&
+          chatSettings.metadataCondition.conditions.length > 0
+        ) {
           completionParams.metadata_condition = chatSettings.metadataCondition
         }
-        
+
         const response = await conversationAPI.completion(completionParams)
 
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
+        if (!response.ok)
+          throw new Error(`HTTP error! status: ${response.status}`)
         if (!response.body) throw new Error('No response body')
 
-      // 使用 EventSourceParserStream 处理 SSE 流（参考 ragflow 最佳实践）
-      // 自动处理 TCP 分包、SSE 格式解析等边界情况
-      const reader = response.body
-        .pipeThrough(new TextDecoderStream())
-        .pipeThrough(new EventSourceParserStream())
-        .getReader()
+        // 使用 EventSourceParserStream 处理 SSE 流（参考 ragflow 最佳实践）
+        // 自动处理 TCP 分包、SSE 格式解析等边界情况
+        const reader = response.body
+          .pipeThrough(new TextDecoderStream())
+          .pipeThrough(new EventSourceParserStream())
+          .getReader()
 
-      let streamState = createInitialStreamingAnswerState()
+        let streamState = createInitialStreamingAnswerState()
 
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
 
-        try {
-          // value 已经是解析好的 SSE 事件对象
-          const jsonStr = value?.data
-          if (!jsonStr) continue
-          
-          const data = JSON.parse(jsonStr)
-          const chunk = consumeStreamingAnswerChunk(streamState, data)
-          streamState = chunk.nextState
-          if (chunk.isDone) continue
+          try {
+            // value 已经是解析好的 SSE 事件对象
+            const jsonStr = value?.data
+            if (!jsonStr) continue
 
-          const chunkData = chunk.payload && typeof chunk.payload === 'object'
-            ? (chunk.payload as Record<string, unknown>)
-            : null
-          hasReceivedContent = true
-          // 只有当 SSE 返回了 references 数据时才更新，避免空数组覆盖之前的有效数据
-          const newReferences = chunkData ? extractReferencesFromSSEData(chunkData) : []
-          const cleanContent = streamState.content
-          const thinking = streamState.thinking
-          
-          setMessages(prev => {
-            const newMsgs = [...prev]
-            const lastIdx = newMsgs.length - 1
-            if (lastIdx >= 0 && newMsgs[lastIdx].role === 'assistant') {
-              // 只有当新的 references 有数据时才更新，否则保留之前的
-              const existingReferences = newMsgs[lastIdx].references || []
-              const references = newReferences.length > 0 ? newReferences : existingReferences
-                
-              newMsgs[lastIdx] = {
-                ...newMsgs[lastIdx],
-                content: cleanContent,
-                references,
-                thinking
+            const data = JSON.parse(jsonStr)
+            const chunk = consumeStreamingAnswerChunk(streamState, data)
+            streamState = chunk.nextState
+            if (chunk.isDone) continue
+
+            const chunkData =
+              chunk.payload && typeof chunk.payload === 'object'
+                ? (chunk.payload as Record<string, unknown>)
+                : null
+            hasReceivedContent = true
+            // 只有当 SSE 返回了 references 数据时才更新，避免空数组覆盖之前的有效数据
+            const newReferences = chunkData
+              ? extractReferencesFromSSEData(chunkData)
+              : []
+            const cleanContent = streamState.content
+            const thinking = streamState.thinking
+
+            setMessages((prev) => {
+              const newMsgs = [...prev]
+              const lastIdx = newMsgs.length - 1
+              if (lastIdx >= 0 && newMsgs[lastIdx].role === 'assistant') {
+                // 只有当新的 references 有数据时才更新，否则保留之前的
+                const existingReferences = newMsgs[lastIdx].references || []
+                const references =
+                  newReferences.length > 0 ? newReferences : existingReferences
+
+                newMsgs[lastIdx] = {
+                  ...newMsgs[lastIdx],
+                  content: cleanContent,
+                  references,
+                  thinking,
+                }
               }
-            }
-            return newMsgs
-          })
-        } catch (e) {
-          // JSON 解析错误，忽略
+              return newMsgs
+            })
+          } catch (e) {
+            // JSON 解析错误，忽略
+          }
         }
-      }
       } else {
         // 回退：无应用或创建会话失败时，使用 chat_service_sse 直接聊天
-        const historyMessages: ChatMessage[] = updatedMessages.map(msg => ({
+        const historyMessages: ChatMessage[] = updatedMessages.map((msg) => ({
           role: msg.role,
-          content: msg.content
+          content: msg.content,
         }))
 
         const requestBody: ChatServiceRequest = {
@@ -611,20 +705,22 @@ export const ExplorePage: React.FC = () => {
           tavily_api_key: '',
         }
 
-        const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+        const baseURL =
+          import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
         const fullUrl = `${baseURL}/v1${chatConfig.apiEndpoint}`
         const token = localStorage.getItem('auth_token')
-        
+
         const response = await fetch(fullUrl, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            ...(token && { 'Authorization': `Bearer ${token}` })
+            ...(token && { Authorization: `Bearer ${token}` }),
           },
-          body: JSON.stringify(requestBody)
+          body: JSON.stringify(requestBody),
         })
 
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
+        if (!response.ok)
+          throw new Error(`HTTP error! status: ${response.status}`)
         if (!response.body) throw new Error('No response body')
 
         // 使用 EventSourceParserStream 处理 SSE 流（参考 ragflow 最佳实践）
@@ -643,21 +739,21 @@ export const ExplorePage: React.FC = () => {
             // value 已经是解析好的 SSE 事件对象
             const jsonStr = value?.data
             if (!jsonStr) continue
-            
+
             const data: SSEResponse = JSON.parse(jsonStr)
             const chunk = consumeStreamingAnswerChunk(streamState, data)
             streamState = chunk.nextState
             if (chunk.isDone) continue
 
-            setMessages(prev => {
+            setMessages((prev) => {
               const newMsgs = [...prev]
               const lastIdx = newMsgs.length - 1
-            if (lastIdx >= 0 && newMsgs[lastIdx].role === 'assistant') {
-              hasReceivedContent = true
-              newMsgs[lastIdx] = {
-                ...newMsgs[lastIdx],
-                content: streamState.content,
-                  thinking: streamState.thinking
+              if (lastIdx >= 0 && newMsgs[lastIdx].role === 'assistant') {
+                hasReceivedContent = true
+                newMsgs[lastIdx] = {
+                  ...newMsgs[lastIdx],
+                  content: streamState.content,
+                  thinking: streamState.thinking,
                 }
               }
               return newMsgs
@@ -673,26 +769,28 @@ export const ExplorePage: React.FC = () => {
         setMessages(previousMessages)
         setInputValue(messageContent)
         if (pendingFiles.length > 0 && !overrideFiles?.length) {
-          setUploadFiles(pendingFiles.map((file, index) => ({
-            uid: `${file.id}-${index}`,
-            name: file.name,
-            size: file.size,
-            type: file.mime_type,
-            status: 'done' as const,
-            percent: 100,
-            response: file,
-            thumbUrl: file.preview_url ?? undefined,
-          })))
+          setUploadFiles(
+            pendingFiles.map((file, index) => ({
+              uid: `${file.id}-${index}`,
+              name: file.name,
+              size: file.size,
+              type: file.mime_type,
+              status: 'done' as const,
+              percent: 100,
+              response: file,
+              thumbUrl: file.preview_url ?? undefined,
+            })),
+          )
           setHeaderOpen(true)
         }
       } else {
-        setMessages(prev => {
+        setMessages((prev) => {
           const newMsgs = [...prev]
           const lastIdx = newMsgs.length - 1
           if (lastIdx >= 0 && newMsgs[lastIdx].role === 'assistant') {
             newMsgs[lastIdx] = {
               ...newMsgs[lastIdx],
-              content: '抱歉，发生了错误，请重试。'
+              content: '抱歉，发生了错误，请重试。',
             }
           }
           return newMsgs
@@ -714,11 +812,11 @@ export const ExplorePage: React.FC = () => {
       const newConversation = await conversationAPI.setConversation({
         dialog_id: selectedApp,
         name: 'New conversation',
-        is_new: true
+        is_new: true,
       })
-      
+
       refetchConversations()
-      
+
       if (newConversation?.id) {
         // 立即更新选中状态
         setActiveConversationKey(newConversation.id)
@@ -734,25 +832,26 @@ export const ExplorePage: React.FC = () => {
 
   // 重命名对话
   const confirmRenameConversation = async () => {
-    if (!renamingConversationId || !newConversationName.trim() || !selectedApp) return
+    if (!renamingConversationId || !newConversationName.trim() || !selectedApp)
+      return
 
     try {
       await conversationAPI.setConversation({
         dialog_id: selectedApp,
         conversation_id: renamingConversationId,
         name: newConversationName.trim(),
-        is_new: false
+        is_new: false,
       })
-      
+
       refetchConversations()
-      
+
       if (selectedConversationDetail?.id === renamingConversationId) {
         setSelectedConversationDetail((prev: any) => ({
           ...prev,
-          name: newConversationName.trim()
+          name: newConversationName.trim(),
         }))
       }
-      
+
       setRenamingConversationId(null)
       setNewConversationName('')
     } catch (error) {
@@ -761,367 +860,427 @@ export const ExplorePage: React.FC = () => {
   }
 
   // 获取当前选中应用的信息
-  const currentApp = dialogApps.find(app => app.id === selectedApp)
+  const currentApp = dialogApps.find((app) => app.id === selectedApp)
   const currentAppPrologue = currentApp?.prompt_config?.prologue?.trim() || ''
   const showCurrentAppPrologue = shouldUseBubbleTyping(currentAppPrologue)
-  
+
   // 获取应用图标 URL
   const getAppIconUrl = React.useCallback((app: typeof currentApp) => {
     if (!app?.icon) return null
-    return app.icon.startsWith('data:') || app.icon.startsWith('http') 
-      ? app.icon 
+    return app.icon.startsWith('data:') || app.icon.startsWith('http')
+      ? app.icon
       : `data:image/png;base64,${app.icon}`
   }, [])
 
   // 当前应用的图标 URL
-  const currentAppIconUrl = React.useMemo(() => getAppIconUrl(currentApp), [currentApp, getAppIconUrl])
-  
+  const currentAppIconUrl = React.useMemo(
+    () => getAppIconUrl(currentApp),
+    [currentApp, getAppIconUrl],
+  )
 
   // 处理引用点击事件 - 打开详情侧边栏
-  const _handleReferenceClick = React.useCallback((reference: ReferenceChunk, _index: number, allReferences?: ReferenceChunk[]) => {
-    console.log('Reference clicked:', reference)
-    setSelectedChunk(reference)
-    if (allReferences) {
-      setCurrentMessageReferences(allReferences)
-    }
-    setDetailSheetOpen(true)
-  }, [])
-  
+  const _handleReferenceClick = React.useCallback(
+    (
+      reference: ReferenceChunk,
+      _index: number,
+      allReferences?: ReferenceChunk[],
+    ) => {
+      console.log('Reference clicked:', reference)
+      setSelectedChunk(reference)
+      if (allReferences) {
+        setCurrentMessageReferences(allReferences)
+      }
+      setDetailSheetOpen(true)
+    },
+    [],
+  )
+
   // 处理查看详情
-  const handleViewDetail = React.useCallback((chunk: ReferenceChunk, allReferences?: ReferenceChunk[]) => {
-    setSelectedChunk(chunk)
-    if (allReferences) {
-      setCurrentMessageReferences(allReferences)
-    }
-    setDetailSheetOpen(true)
-  }, [])
-  
+  const handleViewDetail = React.useCallback(
+    (chunk: ReferenceChunk, allReferences?: ReferenceChunk[]) => {
+      setSelectedChunk(chunk)
+      if (allReferences) {
+        setCurrentMessageReferences(allReferences)
+      }
+      setDetailSheetOpen(true)
+    },
+    [],
+  )
+
   // 处理复制
   const handleCopyContent = React.useCallback((content: string) => {
     copyToClipboard(content)
     toast.success('已复制到剪贴板')
   }, [])
 
-  const renderMessageAttachments = React.useCallback((files?: UploadedFileInfo[]) => {
-    if (!files?.length) {
-      return null
-    }
+  const renderMessageAttachments = React.useCallback(
+    (files?: UploadedFileInfo[]) => {
+      if (!files?.length) {
+        return null
+      }
 
-    const imageFiles = files.filter(isImageAttachment)
-    const otherFiles = files.filter(f => !isImageAttachment(f))
+      const imageFiles = files.filter(isImageAttachment)
+      const otherFiles = files.filter((f) => !isImageAttachment(f))
 
-    return (
-      <div className="mt-3 grid gap-2">
-        {/* 图片附件：较大预览 */}
-        {imageFiles.length > 0 && (
-          <div className={`grid gap-2 ${imageFiles.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
-            {imageFiles.map((file) => {
-              const imgUrl = getImagePreviewUrl(file)
-              return (
-                <div
-                  key={file.id}
-                  className="overflow-hidden rounded-xl border"
-                  style={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.14)',
-                    borderColor: 'rgba(255, 255, 255, 0.18)',
-                  }}
-                >
-                  {imgUrl ? (
-                    <img
-                      src={imgUrl}
-                      alt={file.name}
-                      className="w-full max-h-64 object-contain cursor-pointer"
-                      style={{ backgroundColor: 'rgba(0, 0, 0, 0.03)' }}
-                      onClick={() => window.open(imgUrl, '_blank')}
-                    />
-                  ) : (
-                    <div
-                      className="flex h-32 items-center justify-center"
-                      style={{ backgroundColor: 'rgba(255, 255, 255, 0.12)' }}
-                    >
-                      <FileIcon fileName={file.name} size="md" />
-                    </div>
-                  )}
-                  <div className="px-3 py-1.5">
-                    <div className="truncate text-xs opacity-80">
-                      {file.name} · {formatBytes(file.size || 0)}
-                    </div>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        )}
-
-        {/* 非图片附件：文件卡片 */}
-        {otherFiles.map((file) => {
-          const category = getFileCategory(file.extension || '')
-          return (
+      return (
+        <div className="mt-3 grid gap-2">
+          {/* 图片附件：较大预览 */}
+          {imageFiles.length > 0 && (
             <div
-              key={file.id}
-              className="flex items-center gap-3 rounded-xl border px-3 py-2"
-              style={{
-                backgroundColor: 'rgba(255, 255, 255, 0.14)',
-                borderColor: 'rgba(255, 255, 255, 0.18)',
-              }}
+              className={`grid gap-2 ${imageFiles.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}
             >
-              <div
-                className="flex h-10 w-10 items-center justify-center rounded-lg"
-                style={{ backgroundColor: 'rgba(255, 255, 255, 0.12)' }}
-              >
-                <FileIcon fileName={file.name} size="md" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="truncate text-sm font-medium">{file.name}</div>
-                <div className="text-xs opacity-80">
-                  {category === 'image' ? '图片' : file.extension?.toUpperCase() || 'FILE'} · {formatBytes(file.size || 0)}
-                </div>
-              </div>
-            </div>
-          )
-        })}
-      </div>
-    )
-  }, [])
-  
-  // 转换消息为 Bubble 格式
-  const bubbleItems = React.useMemo<BubbleListProps['items']>(() => messages.map((msg, index) => {
-    const references = msg.references || []
-
-    // 使用新的 createReferenceMarkerComponent 创建内联引用组件
-    const SupComponent = createReferenceMarkerComponent(references, {
-      onViewDetail: (chunk) => handleViewDetail(chunk, references),
-      onCopy: handleCopyContent
-    })
-    const markdownComponents = mergeMarkdownComponents({ sup: SupComponent })
-
-    // 判断当前消息是否正在流式输出
-    const lastAssistantMsgIndex = [...messages].reverse().findIndex(m => m.role === 'assistant')
-    const actualLastIndex = lastAssistantMsgIndex >= 0 ? messages.length - 1 - lastAssistantMsgIndex : -1
-    const isCurrentStreamingMessage = isStreaming && msg.role === 'assistant' && index === actualLastIndex
-
-    return {
-      // 参考 ragflow buildMessageUuidWithRole：使用 role_id 格式确保唯一性
-      key: `${msg.role}_${msg.id || index}`,
-      role: msg.role,
-      content: msg.content || '',
-      // 使用 streaming 属性优化流式体验，避免动画异常
-      streaming: isCurrentStreamingMessage,
-      // 只在消息刚创建、还没有任何内容时显示三个点动画
-      // 一旦有 content 或 thinking，就显示实际内容
-      loading: isCurrentStreamingMessage && !msg.content && !msg.thinking,
-      placement: (msg.role === 'user' ? 'end' : 'start') as 'start' | 'end',
-      // 底部操作栏固定在助手消息行头，避免随内容宽度漂移
-      footerPlacement: msg.role === 'assistant' ? 'outer-start' as const : undefined,
-      avatar: msg.role === 'user'
-        ? (
-            <div 
-              className="w-8 h-8 min-w-[32px] min-h-[32px] rounded-full flex items-center justify-center text-sm font-medium flex-shrink-0"
-              style={{ 
-                background: 'var(--color-chat-bubble-user-avatar-bg)', 
-                color: 'var(--color-chat-bubble-user-avatar-text)' 
-              }}
-            >
-              U
-        </div>
-          )
-        : currentAppIconUrl ? (
-            <div className="w-8 h-8 min-w-[32px] min-h-[32px] rounded-full overflow-hidden flex-shrink-0">
-              <img 
-                src={currentAppIconUrl} 
-                alt={currentApp?.name || 'AI'}
-                className="w-full h-full object-cover"
-              />
-            </div>
-          ) : (
-            <div 
-              className="w-8 h-8 min-w-[32px] min-h-[32px] rounded-full flex items-center justify-center flex-shrink-0"
-              style={{ background: 'var(--color-components-gradient-primary)' }}
-            >
-              <span className="text-white text-sm font-bold">AI</span>
+              {imageFiles.map((file) => {
+                const imgUrl = getImagePreviewUrl(file)
+                return (
+                  <div
+                    key={file.id}
+                    className="overflow-hidden rounded-xl border"
+                    style={{
+                      backgroundColor: 'rgba(255, 255, 255, 0.14)',
+                      borderColor: 'rgba(255, 255, 255, 0.18)',
+                    }}
+                  >
+                    {imgUrl ? (
+                      <img
+                        src={imgUrl}
+                        alt={file.name}
+                        className="max-h-64 w-full cursor-pointer object-contain"
+                        style={{ backgroundColor: 'rgba(0, 0, 0, 0.03)' }}
+                        onClick={() => window.open(imgUrl, '_blank')}
+                      />
+                    ) : (
+                      <div
+                        className="flex h-32 items-center justify-center"
+                        style={{ backgroundColor: 'rgba(255, 255, 255, 0.12)' }}
+                      >
+                        <FileIcon fileName={file.name} size="md" />
+                      </div>
+                    )}
+                    <div className="px-3 py-1.5">
+                      <div className="truncate text-xs opacity-80">
+                        {file.name} · {formatBytes(file.size || 0)}
+                      </div>
+                    </div>
                   </div>
-          ),
-      contentRender: msg.role === 'assistant' ? () => {
-        // 优先使用流式输出时提取的 thinking 字段，回退到从 content 提取（针对历史消息）
-        const fallback = extractThinkContent(msg.content || '')
-        const thinkContent = msg.thinking || fallback.thinkContent
-        const mainContent = msg.thinking ? (msg.content || '') : fallback.mainContent
-        
-        // 确定思考状态：
-        // - 服务端返回的是累积式流式数据，每个 chunk 都包含完整的 <think>...</think>
-        // - 所以不能用闭合标签来判断，而是用 isStreaming 状态
-        // - 如果正在流式输出且有思考内容，就是 thinking 状态
-        // - 如果流式输出结束或者是历史消息，就是 complete 状态
-        let status: ThinkingStatus = 'none'
-        if (thinkContent) {
-          // 检查是否是当前正在流式输出的消息（最后一条助手消息且 isStreaming 为 true）
-          const lastAssistantMsg = [...messages].reverse().find(m => m.role === 'assistant')
-          const isLastAssistantMsg = lastAssistantMsg?.id === msg.id
-          const isCurrentlyStreaming = isStreaming && isLastAssistantMsg
-          status = isCurrentlyStreaming ? 'thinking' : 'complete'
-        }
-        
-        // 处理连续图片引用，分析轮播组
-        const { content: processedContent, carouselGroups } = processContentForCarousel(mainContent, references)
-        
-        // 对处理后的内容转换剩余引用格式
-        const mainContentWithSup = convertReferencesToSup(processedContent)
-        
-        // 渲染内容片段（在轮播占位符处分割）
-        const renderContentWithCarousels = () => {
-          if (carouselGroups.length === 0) {
-            // 没有轮播组，直接渲染
+                )
+              })}
+            </div>
+          )}
+
+          {/* 非图片附件：文件卡片 */}
+          {otherFiles.map((file) => {
+            const category = getFileCategory(file.extension || '')
             return (
-              <XMarkdown
-                config={markdownConfig}
-                components={markdownComponents}
-                paragraphTag="div"
-                streaming={getMarkdownStreamingOptions(isCurrentStreamingMessage)}
+              <div
+                key={file.id}
+                className="flex items-center gap-3 rounded-xl border px-3 py-2"
+                style={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.14)',
+                  borderColor: 'rgba(255, 255, 255, 0.18)',
+                }}
               >
-                {mainContentWithSup}
-              </XMarkdown>
-            )
-          }
-          
-          // 有轮播组，分割渲染
-          const parts = mainContentWithSup.split(/<carousel-placeholder[^>]*><\/carousel-placeholder>/g)
-          const elements: React.ReactNode[] = []
-          
-          parts.forEach((part, idx) => {
-            // 渲染文本部分
-            if (part.trim()) {
-              elements.push(
-                <XMarkdown
-                  key={`text-${idx}`}
-                  config={markdownConfig}
-                  components={markdownComponents}
-                  paragraphTag="div"
-                  streaming={getMarkdownStreamingOptions(isCurrentStreamingMessage)}
+                <div
+                  className="flex h-10 w-10 items-center justify-center rounded-lg"
+                  style={{ backgroundColor: 'rgba(255, 255, 255, 0.12)' }}
                 >
-                  {part}
-                </XMarkdown>
-              )
-            }
-            
-            // 在文本部分之间插入轮播（除了最后一个部分）
-            if (idx < carouselGroups.length) {
-              const group = carouselGroups[idx]
-              elements.push(
-                <CarouselWrapper 
-                  key={`carousel-${idx}`}
-                  group={group}
-                  chunks={references}
-                />
-              )
-            }
-          })
-          
-          return <>{elements}</>
-        }
-        
-        return (
-          <div className="space-y-3">
-            {/* Think 组件展示思考过程 - 使用外部定义的 ThinkWrapper 组件 */}
-            {thinkContent && (
-              <ThinkWrapper status={status} messageId={msg.id}>
-                <div 
-                  className="text-sm whitespace-pre-wrap" 
-                  style={{ color: 'var(--color-text-secondary)' }}
-                >
-                  {thinkContent}
+                  <FileIcon fileName={file.name} size="md" />
                 </div>
-              </ThinkWrapper>
-            )}
-            
-            {/* 使用 XMarkdown 渲染主内容，支持轮播组件 */}
-            {mainContentWithSup && (
-              <div className="leading-relaxed markdown-content">
-                {renderContentWithCarousels()}
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-medium">
+                    {file.name}
+                  </div>
+                  <div className="text-xs opacity-80">
+                    {category === 'image'
+                      ? '图片'
+                      : file.extension?.toUpperCase() || 'FILE'}{' '}
+                    · {formatBytes(file.size || 0)}
+                  </div>
+                </div>
               </div>
-            )}
-          
-            {/* 如果没有内容且没有思考内容，显示 Ant Design X 三点加载动画 */}
-            {!thinkContent && !mainContent && (
-              <ChatBubbleLoading />
-            )}
-            
-            {/* 图片引用轮播列表 - 汇总展示消息中引用的所有图片 */}
-            {references.length > 0 && (
-              <ReferenceImageList
-                referenceChunks={references}
-                messageContent={mainContent}
-                className="mt-4"
-                onImageClick={(chunk) => handleViewDetail(chunk, references)}
-              />
-            )}
-            
-            {/* 底部汇总显示所有引用来源 - 使用新的 ReferencePanel 组件 */}
-            {references.length > 0 && (
-              <ReferencePanel
-                chunks={references}
-                onChunkClick={(chunk) => handleViewDetail(chunk, references)}
-                defaultVisiblePerDoc={2}
-              />
-            )}
-          </div>
-        )
-      } : msg.files?.length ? () => (
-        <div>
-          <div className="whitespace-pre-wrap break-words">{msg.content}</div>
-          {renderMessageAttachments(msg.files)}
+            )
+          })}
         </div>
-      ) : undefined,
-      footer: msg.role === 'assistant' && !isCurrentStreamingMessage ? (
-        <MessageActionsFooter
-          content={msg.content || ''}
-          onCopy={async () => {
-            try {
-              await copyToClipboard(msg.content || '')
-              toast.success('已复制到剪贴板')
-            } catch {
-              toast.error('复制失败')
-            }
-          }}
-          onRegenerate={() => handleRegenerateMessage(index)}
-          onLike={() => toast.success('感谢您的反馈')}
-          onDislike={() => toast.success('感谢您的反馈，我们会继续改进')}
-        />
-      ) : undefined,
-      variant: 'borderless' as const,
-      styles: msg.role === 'user' 
-        ? {
-            // 用户消息：保持气泡框样式
-            content: {
-              backgroundColor: 'var(--color-chat-bubble-user-bg)',
-              color: 'var(--color-chat-bubble-user-text)',
-              borderRadius: '18px',
-              padding: '12px 16px',
-              boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
-              maxWidth: 'min(640px, 100%)',
-            }
-          }
-        : {
-            // AI 消息：透明背景，融入页面
-            content: {
-              backgroundColor: 'transparent',
-              color: 'var(--color-text-primary)',
-              borderRadius: '0',
-              padding: '0',
-          border: 'none',
-          boxShadow: 'none',
-            }
-          },
-    }
-  }), [
-    currentApp?.name,
-    currentAppIconUrl,
-    handleCopyContent,
-    handleRegenerateMessage,
-    handleViewDetail,
-    isStreaming,
-    messages,
-    renderMessageAttachments,
-  ])
+      )
+    },
+    [],
+  )
+
+  // 转换消息为 Bubble 格式
+  const bubbleItems = React.useMemo<BubbleListProps['items']>(
+    () =>
+      messages.map((msg, index) => {
+        const references = msg.references || []
+
+        // 使用新的 createReferenceMarkerComponent 创建内联引用组件
+        const SupComponent = createReferenceMarkerComponent(references, {
+          onViewDetail: (chunk) => handleViewDetail(chunk, references),
+          onCopy: handleCopyContent,
+        })
+        const markdownComponents = mergeMarkdownComponents({
+          sup: SupComponent,
+        })
+
+        // 判断当前消息是否正在流式输出
+        const lastAssistantMsgIndex = [...messages]
+          .reverse()
+          .findIndex((m) => m.role === 'assistant')
+        const actualLastIndex =
+          lastAssistantMsgIndex >= 0
+            ? messages.length - 1 - lastAssistantMsgIndex
+            : -1
+        const isCurrentStreamingMessage =
+          isStreaming && msg.role === 'assistant' && index === actualLastIndex
+
+        return {
+          // 参考 ragflow buildMessageUuidWithRole：使用 role_id 格式确保唯一性
+          key: `${msg.role}_${msg.id || index}`,
+          role: msg.role,
+          content: msg.content || '',
+          // 使用 streaming 属性优化流式体验，避免动画异常
+          streaming: isCurrentStreamingMessage,
+          // 只在消息刚创建、还没有任何内容时显示三个点动画
+          // 一旦有 content 或 thinking，就显示实际内容
+          loading: isCurrentStreamingMessage && !msg.content && !msg.thinking,
+          placement: (msg.role === 'user' ? 'end' : 'start') as 'start' | 'end',
+          // 底部操作栏固定在助手消息行头，避免随内容宽度漂移
+          footerPlacement:
+            msg.role === 'assistant' ? ('outer-start' as const) : undefined,
+          avatar:
+            msg.role === 'user' ? (
+              <div
+                className="flex h-8 min-h-[32px] w-8 min-w-[32px] flex-shrink-0 items-center justify-center rounded-full text-sm font-medium"
+                style={{
+                  background: 'var(--color-chat-bubble-user-avatar-bg)',
+                  color: 'var(--color-chat-bubble-user-avatar-text)',
+                }}
+              >
+                U
+              </div>
+            ) : currentAppIconUrl ? (
+              <div className="h-8 min-h-[32px] w-8 min-w-[32px] flex-shrink-0 overflow-hidden rounded-full">
+                <img
+                  src={currentAppIconUrl}
+                  alt={currentApp?.name || 'AI'}
+                  className="h-full w-full object-cover"
+                />
+              </div>
+            ) : (
+              <div
+                className="flex h-8 min-h-[32px] w-8 min-w-[32px] flex-shrink-0 items-center justify-center rounded-full"
+                style={{
+                  background: 'var(--color-components-gradient-primary)',
+                }}
+              >
+                <span className="text-sm font-bold text-white">AI</span>
+              </div>
+            ),
+          contentRender:
+            msg.role === 'assistant'
+              ? () => {
+                  // 优先使用流式输出时提取的 thinking 字段，回退到从 content 提取（针对历史消息）
+                  const fallback = extractThinkContent(msg.content || '')
+                  const thinkContent = msg.thinking || fallback.thinkContent
+                  const mainContent = msg.thinking
+                    ? msg.content || ''
+                    : fallback.mainContent
+
+                  // 确定思考状态：
+                  // - 服务端返回的是累积式流式数据，每个 chunk 都包含完整的 <think>...</think>
+                  // - 所以不能用闭合标签来判断，而是用 isStreaming 状态
+                  // - 如果正在流式输出且有思考内容，就是 thinking 状态
+                  // - 如果流式输出结束或者是历史消息，就是 complete 状态
+                  let status: ThinkingStatus = 'none'
+                  if (thinkContent) {
+                    // 检查是否是当前正在流式输出的消息（最后一条助手消息且 isStreaming 为 true）
+                    const lastAssistantMsg = [...messages]
+                      .reverse()
+                      .find((m) => m.role === 'assistant')
+                    const isLastAssistantMsg = lastAssistantMsg?.id === msg.id
+                    const isCurrentlyStreaming =
+                      isStreaming && isLastAssistantMsg
+                    status = isCurrentlyStreaming ? 'thinking' : 'complete'
+                  }
+
+                  // 处理连续图片引用，分析轮播组
+                  const { content: processedContent, carouselGroups } =
+                    processContentForCarousel(mainContent, references)
+
+                  // 对处理后的内容转换剩余引用格式
+                  const mainContentWithSup =
+                    convertReferencesToSup(processedContent)
+
+                  // 渲染内容片段（在轮播占位符处分割）
+                  const renderContentWithCarousels = () => {
+                    if (carouselGroups.length === 0) {
+                      // 没有轮播组，直接渲染
+                      return (
+                        <XMarkdown
+                          config={markdownConfig}
+                          components={markdownComponents}
+                          paragraphTag="div"
+                          streaming={getMarkdownStreamingOptions(
+                            isCurrentStreamingMessage,
+                          )}
+                        >
+                          {mainContentWithSup}
+                        </XMarkdown>
+                      )
+                    }
+
+                    // 有轮播组，分割渲染
+                    const parts = mainContentWithSup.split(
+                      /<carousel-placeholder[^>]*><\/carousel-placeholder>/g,
+                    )
+                    const elements: React.ReactNode[] = []
+
+                    parts.forEach((part, idx) => {
+                      // 渲染文本部分
+                      if (part.trim()) {
+                        elements.push(
+                          <XMarkdown
+                            key={`text-${idx}`}
+                            config={markdownConfig}
+                            components={markdownComponents}
+                            paragraphTag="div"
+                            streaming={getMarkdownStreamingOptions(
+                              isCurrentStreamingMessage,
+                            )}
+                          >
+                            {part}
+                          </XMarkdown>,
+                        )
+                      }
+
+                      // 在文本部分之间插入轮播（除了最后一个部分）
+                      if (idx < carouselGroups.length) {
+                        const group = carouselGroups[idx]
+                        elements.push(
+                          <CarouselWrapper
+                            key={`carousel-${idx}`}
+                            group={group}
+                            chunks={references}
+                          />,
+                        )
+                      }
+                    })
+
+                    return <>{elements}</>
+                  }
+
+                  return (
+                    <div className="space-y-3">
+                      {/* Think 组件展示思考过程 - 使用外部定义的 ThinkWrapper 组件 */}
+                      {thinkContent && (
+                        <ThinkWrapper status={status} messageId={msg.id}>
+                          <div
+                            className="whitespace-pre-wrap text-sm"
+                            style={{ color: 'var(--color-text-secondary)' }}
+                          >
+                            {thinkContent}
+                          </div>
+                        </ThinkWrapper>
+                      )}
+
+                      {/* 使用 XMarkdown 渲染主内容，支持轮播组件 */}
+                      {mainContentWithSup && (
+                        <div className="markdown-content leading-relaxed">
+                          {renderContentWithCarousels()}
+                        </div>
+                      )}
+
+                      {/* 如果没有内容且没有思考内容，显示 Ant Design X 三点加载动画 */}
+                      {!thinkContent && !mainContent && <ChatBubbleLoading />}
+
+                      {/* 图片引用轮播列表 - 汇总展示消息中引用的所有图片 */}
+                      {references.length > 0 && (
+                        <ReferenceImageList
+                          referenceChunks={references}
+                          messageContent={mainContent}
+                          className="mt-4"
+                          onImageClick={(chunk) =>
+                            handleViewDetail(chunk, references)
+                          }
+                        />
+                      )}
+
+                      {/* 底部汇总显示所有引用来源 - 使用新的 ReferencePanel 组件 */}
+                      {references.length > 0 && (
+                        <ReferencePanel
+                          chunks={references}
+                          onChunkClick={(chunk) =>
+                            handleViewDetail(chunk, references)
+                          }
+                          defaultVisiblePerDoc={2}
+                        />
+                      )}
+                    </div>
+                  )
+                }
+              : msg.files?.length
+                ? () => (
+                    <div>
+                      <div className="whitespace-pre-wrap break-words">
+                        {msg.content}
+                      </div>
+                      {renderMessageAttachments(msg.files)}
+                    </div>
+                  )
+                : undefined,
+          footer:
+            msg.role === 'assistant' && !isCurrentStreamingMessage ? (
+              <MessageActionsFooter
+                content={msg.content || ''}
+                onCopy={async () => {
+                  try {
+                    await copyToClipboard(msg.content || '')
+                    toast.success('已复制到剪贴板')
+                  } catch {
+                    toast.error('复制失败')
+                  }
+                }}
+                onRegenerate={() => handleRegenerateMessage(index)}
+                onLike={() => toast.success('感谢您的反馈')}
+                onDislike={() => toast.success('感谢您的反馈，我们会继续改进')}
+              />
+            ) : undefined,
+          variant: 'borderless' as const,
+          styles:
+            msg.role === 'user'
+              ? {
+                  // 用户消息：保持气泡框样式
+                  content: {
+                    backgroundColor: 'var(--color-chat-bubble-user-bg)',
+                    color: 'var(--color-chat-bubble-user-text)',
+                    borderRadius: '18px',
+                    padding: '12px 16px',
+                    boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
+                    maxWidth: 'min(640px, 100%)',
+                  },
+                }
+              : {
+                  // AI 消息：透明背景，融入页面
+                  content: {
+                    backgroundColor: 'transparent',
+                    color: 'var(--color-text-primary)',
+                    borderRadius: '0',
+                    padding: '0',
+                    border: 'none',
+                    boxShadow: 'none',
+                  },
+                },
+        }
+      }),
+    [
+      currentApp?.name,
+      currentAppIconUrl,
+      handleCopyContent,
+      handleRegenerateMessage,
+      handleViewDetail,
+      isStreaming,
+      messages,
+      renderMessageAttachments,
+    ],
+  )
 
   // 提示词
   const promptItems: PromptsProps['items'] = [
@@ -1130,7 +1289,6 @@ export const ExplorePage: React.FC = () => {
     { key: '3', label: '总结要点', description: '快速提取' },
     { key: '4', label: '翻译文本', description: '多语言' },
   ]
-
 
   // 处理事件
   const handleDiscoverClick = () => {
@@ -1158,90 +1316,117 @@ export const ExplorePage: React.FC = () => {
   }
 
   return (
-    <div 
+    <div
       ref={dropContainerRef}
-      className="h-full flex" 
+      className="flex h-full"
       style={{ backgroundColor: 'var(--color-chat-content-bg)' }}
     >
       {/* 全屏拖拽指示器 */}
       {isDragging && (
-        <div 
-          className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none"
-          style={{ 
-            backgroundColor: 'rgba(var(--color-surface-primary-rgb, 0, 0, 0), 0.6)',
-            backdropFilter: 'blur(4px)'
+        <div
+          className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center"
+          style={{
+            backgroundColor:
+              'rgba(var(--color-surface-primary-rgb, 0, 0, 0), 0.6)',
+            backdropFilter: 'blur(4px)',
           }}
         >
-          <div 
-            className="flex flex-col items-center gap-4 p-8 rounded-2xl"
-            style={{ 
+          <div
+            className="flex flex-col items-center gap-4 rounded-2xl p-8"
+            style={{
               backgroundColor: 'var(--color-components-card-bg)',
               border: '3px dashed var(--color-border-accent)',
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)'
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
             }}
           >
-            <Upload className="w-16 h-16" style={{ color: 'var(--color-text-accent)' }} />
-            <div className="text-lg font-medium" style={{ color: 'var(--color-text-primary)' }}>
+            <Upload
+              className="h-16 w-16"
+              style={{ color: 'var(--color-text-accent)' }}
+            />
+            <div
+              className="text-lg font-medium"
+              style={{ color: 'var(--color-text-primary)' }}
+            >
               释放以上传文件
             </div>
-            <div className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+            <div
+              className="text-sm"
+              style={{ color: 'var(--color-text-secondary)' }}
+            >
               支持图片、文档等格式
             </div>
           </div>
         </div>
       )}
-      
+
       {/* 左侧边栏 */}
-      <div 
-        className="w-64 flex flex-col"
-        style={{ 
+      <div
+        className="flex w-64 flex-col"
+        style={{
           backgroundColor: 'var(--color-components-sidebar-bg)',
-          borderRight: '1px solid var(--color-components-sidebar-border)'
+          borderRight: '1px solid var(--color-components-sidebar-border)',
         }}
       >
         {/* 顶部导航 */}
-        <div className="p-4" style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
+        <div
+          className="p-4"
+          style={{ borderBottom: '1px solid var(--color-border-subtle)' }}
+        >
           <div className="flex space-x-1">
             {['workspace', 'topics', 'settings'].map((tab) => (
-            <button
+              <button
                 key={tab}
-                onClick={() => tab === 'topics' ? handleTopicsClick() : setActiveTab(tab as any)}
+                onClick={() =>
+                  tab === 'topics'
+                    ? handleTopicsClick()
+                    : setActiveTab(tab as any)
+                }
                 disabled={tab === 'topics' && !selectedApp}
-              className={cn(
-                "flex-1 py-2 px-3 text-sm font-medium rounded-lg transition-colors",
-                  tab === 'topics' && !selectedApp && "opacity-50 cursor-not-allowed"
+                className={cn(
+                  'flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                  tab === 'topics' &&
+                    !selectedApp &&
+                    'cursor-not-allowed opacity-50',
                 )}
                 style={{
-                  backgroundColor: activeTab === tab 
-                    ? 'var(--color-components-sidebar-item-bg-active)' 
-                    : 'var(--color-components-sidebar-item-bg)',
-                  color: activeTab === tab 
-                    ? 'var(--color-components-sidebar-item-text-active)' 
-                    : 'var(--color-components-sidebar-item-text)'
+                  backgroundColor:
+                    activeTab === tab
+                      ? 'var(--color-components-sidebar-item-bg-active)'
+                      : 'var(--color-components-sidebar-item-bg)',
+                  color:
+                    activeTab === tab
+                      ? 'var(--color-components-sidebar-item-text-active)'
+                      : 'var(--color-components-sidebar-item-text)',
                 }}
               >
-                {tab === 'workspace' ? '工作区' : tab === 'topics' ? '话题' : '设置'}
-            </button>
+                {tab === 'workspace'
+                  ? '工作区'
+                  : tab === 'topics'
+                    ? '话题'
+                    : '设置'}
+              </button>
             ))}
           </div>
         </div>
 
         {/* 内容区域 */}
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex flex-1 flex-col overflow-hidden">
           {activeTab === 'workspace' ? (
             <>
               {/* 发现按钮 */}
               <div className="p-4">
                 <button
                   onClick={handleDiscoverClick}
-                  className="w-full py-3 px-4 text-left text-sm font-medium rounded-lg transition-colors flex items-center space-x-2"
+                  className="flex w-full items-center space-x-2 rounded-lg px-4 py-3 text-left text-sm font-medium transition-colors"
                   style={{
-                    backgroundColor: mode === 'market' 
-                      ? 'var(--color-components-sidebar-item-bg-active)' 
-                      : 'var(--color-components-sidebar-item-bg)',
-                    color: mode === 'market' 
-                      ? 'var(--color-components-sidebar-item-text-active)' 
-                      : 'var(--color-components-sidebar-item-text)'
+                    backgroundColor:
+                      mode === 'market'
+                        ? 'var(--color-components-sidebar-item-bg-active)'
+                        : 'var(--color-components-sidebar-item-bg)',
+                    color:
+                      mode === 'market'
+                        ? 'var(--color-components-sidebar-item-text-active)'
+                        : 'var(--color-components-sidebar-item-text)',
                   }}
                 >
                   <Search className="h-4 w-4" />
@@ -1249,63 +1434,108 @@ export const ExplorePage: React.FC = () => {
                 </button>
               </div>
 
-              <div className="mx-4" style={{ borderTop: '1px solid var(--color-border-subtle)' }} />
+              <div
+                className="mx-4"
+                style={{ borderTop: '1px solid var(--color-border-subtle)' }}
+              />
 
               {/* 应用列表 */}
-              <div className="flex-1 p-4 space-y-1 overflow-y-auto">
+              <div className="flex-1 space-y-1 overflow-y-auto p-4">
                 {dialogAppsLoading ? (
-                  <div className="text-center py-8 text-sm" style={{ color: 'var(--color-text-tertiary)' }}>加载应用中...</div>
+                  <div
+                    className="py-8 text-center text-sm"
+                    style={{ color: 'var(--color-text-tertiary)' }}
+                  >
+                    加载应用中...
+                  </div>
                 ) : dialogAppsError ? (
-                  <div className="text-center py-8 text-sm" style={{ color: 'var(--color-text-error)' }}>加载失败</div>
+                  <div
+                    className="py-8 text-center text-sm"
+                    style={{ color: 'var(--color-text-error)' }}
+                  >
+                    加载失败
+                  </div>
                 ) : dialogApps.length === 0 ? (
-                  <div className="text-center py-8 text-sm" style={{ color: 'var(--color-text-tertiary)' }}>暂无应用</div>
+                  <div
+                    className="py-8 text-center text-sm"
+                    style={{ color: 'var(--color-text-tertiary)' }}
+                  >
+                    暂无应用
+                  </div>
                 ) : (
-                  dialogApps.filter(app => app.status === '1').map((app) => (
-                        <button
-                          key={app.id}
-                          onClick={() => handleAppSelect(app.id)}
-                          className="w-full py-3 px-4 text-left text-sm rounded-lg transition-colors flex items-center space-x-3"
-                          style={{
-                            backgroundColor: selectedApp === app.id && mode === 'chat'
+                  dialogApps
+                    .filter((app) => app.status === '1')
+                    .map((app) => (
+                      <button
+                        key={app.id}
+                        onClick={() => handleAppSelect(app.id)}
+                        className="flex w-full items-center space-x-3 rounded-lg px-4 py-3 text-left text-sm transition-colors"
+                        style={{
+                          backgroundColor:
+                            selectedApp === app.id && mode === 'chat'
                               ? 'var(--color-components-sidebar-item-bg-active)'
                               : 'var(--color-components-sidebar-item-bg)',
-                            color: selectedApp === app.id && mode === 'chat'
+                          color:
+                            selectedApp === app.id && mode === 'chat'
                               ? 'var(--color-components-sidebar-item-text-active)'
-                              : 'var(--color-components-sidebar-item-text)'
-                          }}
-                    >
-                            {getAppIcon(app)}
-                          <span>{app.name}</span>
-                        </button>
-                  ))
+                              : 'var(--color-components-sidebar-item-text)',
+                        }}
+                      >
+                        {getAppIcon(app)}
+                        <span>{app.name}</span>
+                      </button>
+                    ))
                 )}
               </div>
             </>
           ) : activeTab === 'topics' ? (
-            <div className="flex-1 flex flex-col overflow-hidden">
+            <div className="flex flex-1 flex-col overflow-hidden">
               {!selectedApp ? (
-                <div className="flex-1 flex items-center justify-center">
+                <div className="flex flex-1 items-center justify-center">
                   <div className="text-center">
-                    <MessageSquare className="h-12 w-12 mx-auto mb-3" style={{ color: 'var(--color-text-tertiary)' }} />
-                    <p className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>请先选择一个应用</p>
+                    <MessageSquare
+                      className="mx-auto mb-3 h-12 w-12"
+                      style={{ color: 'var(--color-text-tertiary)' }}
+                    />
+                    <p
+                      className="text-sm"
+                      style={{ color: 'var(--color-text-tertiary)' }}
+                    >
+                      请先选择一个应用
+                    </p>
                   </div>
                 </div>
               ) : (
                 <>
                   {/* 应用信息和新建按钮 */}
-                  <div className="p-4" style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
-                    <div 
-                      className="flex items-center mb-3 p-2 rounded-lg"
-                      style={{ backgroundColor: 'var(--color-background-subtle)' }}
+                  <div
+                    className="p-4"
+                    style={{
+                      borderBottom: '1px solid var(--color-border-subtle)',
+                    }}
+                  >
+                    <div
+                      className="mb-3 flex items-center rounded-lg p-2"
+                      style={{
+                        backgroundColor: 'var(--color-background-subtle)',
+                      }}
                     >
-                        {getAppIcon(dialogApps.find(app => app.id === selectedApp), 'md')}
-                      <div className="ml-3 flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate" style={{ color: 'var(--color-text-primary)' }}>
-                          {dialogApps.find(app => app.id === selectedApp)?.name}
+                      {getAppIcon(
+                        dialogApps.find((app) => app.id === selectedApp),
+                        'md',
+                      )}
+                      <div className="ml-3 min-w-0 flex-1">
+                        <p
+                          className="truncate text-sm font-medium"
+                          style={{ color: 'var(--color-text-primary)' }}
+                        >
+                          {
+                            dialogApps.find((app) => app.id === selectedApp)
+                              ?.name
+                          }
                         </p>
                       </div>
                     </div>
-                    
                   </div>
 
                   {/* 对话列表 - 使用 ant-design/x Conversations 组件（带分组和新建功能） */}
@@ -1394,13 +1624,23 @@ export const ExplorePage: React.FC = () => {
                       `}</style>
                       <ConfigProvider
                         theme={{
-                          algorithm: document.documentElement.classList.contains('dark') ? theme.darkAlgorithm : theme.defaultAlgorithm,
+                          algorithm:
+                            document.documentElement.classList.contains('dark')
+                              ? theme.darkAlgorithm
+                              : theme.defaultAlgorithm,
                         }}
                       >
                         {dialogConversationsLoading ? (
-                          <div className="explore-conversations-empty">加载中...</div>
+                          <div className="explore-conversations-empty">
+                            加载中...
+                          </div>
                         ) : dialogConversationsError ? (
-                          <div className="explore-conversations-empty" style={{ color: 'var(--color-text-error)' }}>加载失败</div>
+                          <div
+                            className="explore-conversations-empty"
+                            style={{ color: 'var(--color-text-error)' }}
+                          >
+                            加载失败
+                          </div>
                         ) : (
                           <Conversations
                             activeKey={activeConversationKey}
@@ -1414,42 +1654,76 @@ export const ExplorePage: React.FC = () => {
                             groupable={{
                               label: (group) => group,
                             }}
-                            items={dialogConversations.length === 0 ? [] : dialogConversations
-                              .sort((a: any, b: any) => {
-                                const timeA = a.update_time > 1000000000000 ? a.update_time : a.update_time * 1000
-                                const timeB = b.update_time > 1000000000000 ? b.update_time : b.update_time * 1000
-                                return timeB - timeA
-                              })
-                              .map((conv: any) => ({
-                                key: conv.id,
-                                label: conv.name || 'New conversation',
-                                // 添加分组信息（今天、昨天、最近7天、更早）
-                                group: getConversationDateGroup(conv.update_time),
-                              }))}
+                            items={
+                              dialogConversations.length === 0
+                                ? []
+                                : dialogConversations
+                                    .sort((a: any, b: any) => {
+                                      const timeA =
+                                        a.update_time > 1000000000000
+                                          ? a.update_time
+                                          : a.update_time * 1000
+                                      const timeB =
+                                        b.update_time > 1000000000000
+                                          ? b.update_time
+                                          : b.update_time * 1000
+                                      return timeB - timeA
+                                    })
+                                    .map((conv: any) => ({
+                                      key: conv.id,
+                                      label: conv.name || 'New conversation',
+                                      // 添加分组信息（今天、昨天、最近7天、更早）
+                                      group: getConversationDateGroup(
+                                        conv.update_time,
+                                      ),
+                                    }))
+                            }
                             menu={(conversation) => ({
                               items: [
-                                { label: '重命名', key: 'rename', icon: <Edit3 className="h-3 w-3" /> },
-                                { label: '删除', key: 'delete', icon: <Trash2 className="h-3 w-3" />, danger: true },
+                                {
+                                  label: '重命名',
+                                  key: 'rename',
+                                  icon: <Edit3 className="h-3 w-3" />,
+                                },
+                                {
+                                  label: '删除',
+                                  key: 'delete',
+                                  icon: <Trash2 className="h-3 w-3" />,
+                                  danger: true,
+                                },
                               ],
                               onClick: async (menuInfo) => {
                                 menuInfo.domEvent.stopPropagation()
-                                const convData = dialogConversations.find((c: any) => c.id === conversation.key)
-                                
+                                const convData = dialogConversations.find(
+                                  (c: any) => c.id === conversation.key,
+                                )
+
                                 if (menuInfo.key === 'rename' && convData) {
-                                  setRenamingConversationId(conversation.key as string)
-                                  setNewConversationName(convData.name || 'New conversation')
+                                  setRenamingConversationId(
+                                    conversation.key as string,
+                                  )
+                                  setNewConversationName(
+                                    convData.name || 'New conversation',
+                                  )
                                 } else if (menuInfo.key === 'delete') {
                                   try {
-                                    await conversationAPI.removeConversation([conversation.key as string])
+                                    await conversationAPI.removeConversation([
+                                      conversation.key as string,
+                                    ])
                                     refetchConversations()
-                                    if (activeConversationKey === conversation.key) {
+                                    if (
+                                      activeConversationKey === conversation.key
+                                    ) {
                                       setActiveConversationKey(undefined)
                                       setSelectedConversationDetail(null)
                                       setMessages([])
                                     }
                                     toast.success('对话已删除')
                                   } catch (error) {
-                                    console.error('Failed to delete conversation:', error)
+                                    console.error(
+                                      'Failed to delete conversation:',
+                                      error,
+                                    )
                                     toast.error('删除失败')
                                   }
                                 }
@@ -1472,7 +1746,7 @@ export const ExplorePage: React.FC = () => {
                       </ConfigProvider>
                     </div>
                   </div>
-                  
+
                   {/* 重命名对话 Modal（更现代化的交互） */}
                   <Modal
                     title="重命名对话"
@@ -1499,148 +1773,194 @@ export const ExplorePage: React.FC = () => {
             </div>
           ) : (
             <div className="flex-1 p-4">
-              <p className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>设置功能开发中...</p>
+              <p
+                className="text-sm"
+                style={{ color: 'var(--color-text-tertiary)' }}
+              >
+                设置功能开发中...
+              </p>
             </div>
           )}
         </div>
       </div>
 
       {/* 右侧主内容区 */}
-      <div className="flex-1 flex" style={{ backgroundColor: 'var(--color-chat-content-bg)' }}>
+      <div
+        className="flex flex-1"
+        style={{ backgroundColor: 'var(--color-chat-content-bg)' }}
+      >
         {/* 聊天内容区 */}
-        <div className="flex-1 flex flex-col min-w-0">
-        {/* 顶部工具栏 */}
-        <div 
-          className="flex items-center justify-between px-6 py-3"
-          style={{ 
-            backgroundColor: 'var(--color-chat-header-bg)',
-            borderBottom: '1px solid var(--color-chat-header-border)',
-            backdropFilter: 'var(--color-chat-header-backdrop)'
-          }}
-        >
-          <div className="flex items-center space-x-3">
-            {/* 显示当前应用图标 */}
-            {mode === 'chat' && currentApp && (
-              <div className="flex-shrink-0">
-                {currentApp.icon ? (
-                  <img 
-                    src={currentApp.icon.startsWith('data:') || currentApp.icon.startsWith('http') 
-                      ? currentApp.icon 
-                      : `data:image/png;base64,${currentApp.icon}`}
-                    alt={currentApp.name}
-                    className="w-8 h-8 rounded-lg object-cover"
-                  />
-                ) : (
-                  <div 
-                    className="w-8 h-8 rounded-lg flex items-center justify-center"
-                    style={{ background: 'var(--color-components-gradient-primary)' }}
+        <div className="flex min-w-0 flex-1 flex-col">
+          {/* 顶部工具栏 */}
+          <div
+            className="flex items-center justify-between px-6 py-3"
+            style={{
+              backgroundColor: 'var(--color-chat-header-bg)',
+              borderBottom: '1px solid var(--color-chat-header-border)',
+              backdropFilter: 'var(--color-chat-header-backdrop)',
+            }}
+          >
+            <div className="flex items-center space-x-3">
+              {/* 显示当前应用图标 */}
+              {mode === 'chat' && currentApp && (
+                <div className="flex-shrink-0">
+                  {currentApp.icon ? (
+                    <img
+                      src={
+                        currentApp.icon.startsWith('data:') ||
+                        currentApp.icon.startsWith('http')
+                          ? currentApp.icon
+                          : `data:image/png;base64,${currentApp.icon}`
+                      }
+                      alt={currentApp.name}
+                      className="h-8 w-8 rounded-lg object-cover"
+                    />
+                  ) : (
+                    <div
+                      className="flex h-8 w-8 items-center justify-center rounded-lg"
+                      style={{
+                        background: 'var(--color-components-gradient-primary)',
+                      }}
+                    >
+                      <Sparkles className="h-4 w-4 text-white" />
+                    </div>
+                  )}
+                </div>
+              )}
+              <h1
+                className="text-lg font-semibold"
+                style={{ color: 'var(--color-text-primary)' }}
+              >
+                {mode === 'market'
+                  ? '应用市场'
+                  : activeTab === 'topics'
+                    ? selectedConversationDetail?.name ||
+                      currentApp?.name ||
+                      '话题'
+                    : currentApp?.name || '智能助手'}
+              </h1>
+            </div>
+
+            {mode === 'chat' && (
+              <div className="flex items-center gap-3">
+                {/* 布局切换按钮组 */}
+                <div
+                  className="hidden items-center gap-1 rounded-lg p-1 md:flex"
+                  style={{ border: '1px solid var(--color-border-default)' }}
+                >
+                  <Button
+                    variant={chatLayout === 'default' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setChatLayout('default')}
+                    className="h-7 px-3 py-1"
+                    title="默认布局"
                   >
-                    <Sparkles className="h-4 w-4 text-white" />
+                    <LayoutGrid className="h-3 w-3" />
+                  </Button>
+                  <Button
+                    variant={chatLayout === 'center' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setChatLayout('center')}
+                    className="h-7 px-3 py-1"
+                    title="居中布局"
+                  >
+                    <AlignCenter className="h-3 w-3" />
+                  </Button>
+                  <Button
+                    variant={chatLayout === 'full' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setChatLayout('full')}
+                    className="h-7 px-3 py-1"
+                    title="全屏布局"
+                  >
+                    <Maximize2 className="h-3 w-3" />
+                  </Button>
+                </div>
+
+                <Button
+                  variant={settingsPanelOpen ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setSettingsPanelOpen(!settingsPanelOpen)}
+                  title="聊天设置"
+                >
+                  <SlidersHorizontal className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {/* 主内容区 */}
+          <div className="flex flex-1 flex-col overflow-hidden">
+            {mode === 'market' ? (
+              // 应用市场
+              <div className="flex-1 overflow-y-auto p-6">
+                {dialogAppsLoading ? (
+                  <div
+                    className="py-16 text-center"
+                    style={{ color: 'var(--color-text-tertiary)' }}
+                  >
+                    加载应用中...
+                  </div>
+                ) : dialogApps.length === 0 ? (
+                  <div
+                    className="py-16 text-center"
+                    style={{ color: 'var(--color-text-tertiary)' }}
+                  >
+                    暂无应用
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {dialogApps.map((app) => (
+                      <div
+                        key={app.id}
+                        className="rounded-lg p-6 transition-shadow hover:shadow-md"
+                        style={{
+                          backgroundColor: 'var(--color-components-card-bg)',
+                          border:
+                            '1px solid var(--color-components-card-border)',
+                        }}
+                      >
+                        <div className="mb-3 flex items-center space-x-3">
+                          {getAppIcon(app, 'md')}
+                          <h3
+                            className="font-medium"
+                            style={{
+                              color: 'var(--color-components-card-meta-title)',
+                            }}
+                          >
+                            {app.name}
+                          </h3>
+                        </div>
+                        <p
+                          className="mb-4 text-sm"
+                          style={{
+                            color:
+                              'var(--color-components-card-meta-description)',
+                          }}
+                        >
+                          {app.description}
+                        </p>
+                        <Button
+                          size="sm"
+                          className="w-full"
+                          variant={app.status === '1' ? 'outline' : 'default'}
+                          disabled={app.status === '1'}
+                        >
+                          {app.status === '1' ? '已添加' : '添加到工作区'}
+                        </Button>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
-            )}
-            <h1 className="text-lg font-semibold" style={{ color: 'var(--color-text-primary)' }}>
-              {mode === 'market' 
-                ? '应用市场' 
-                : activeTab === 'topics' 
-                  ? (selectedConversationDetail?.name || currentApp?.name || '话题')
-                  : currentApp?.name || '智能助手'
-              }
-            </h1>
-          </div>
-          
-          {mode === 'chat' && (
-            <div className="flex items-center gap-3">
-              {/* 布局切换按钮组 */}
-              <div className="hidden md:flex items-center gap-1 rounded-lg p-1" style={{ border: '1px solid var(--color-border-default)' }}>
-                <Button
-                  variant={chatLayout === 'default' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setChatLayout('default')}
-                  className="px-3 py-1 h-7"
-                  title="默认布局"
-                >
-                  <LayoutGrid className="w-3 h-3" />
-                </Button>
-                <Button
-                  variant={chatLayout === 'center' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setChatLayout('center')}
-                  className="px-3 py-1 h-7"
-                  title="居中布局"
-                >
-                  <AlignCenter className="w-3 h-3" />
-                </Button>
-                <Button
-                  variant={chatLayout === 'full' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setChatLayout('full')}
-                  className="px-3 py-1 h-7"
-                  title="全屏布局"
-                >
-                  <Maximize2 className="w-3 h-3" />
-                </Button>
-              </div>
-              
-              <Button 
-                variant={settingsPanelOpen ? "default" : "ghost"} 
-                size="sm"
-                onClick={() => setSettingsPanelOpen(!settingsPanelOpen)}
-                title="聊天设置"
-              >
-                <SlidersHorizontal className="h-4 w-4" />
-              </Button>
-            </div>
-          )}
-        </div>
-
-        {/* 主内容区 */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-          {mode === 'market' ? (
-            // 应用市场
-            <div className="flex-1 p-6 overflow-y-auto">
-              {dialogAppsLoading ? (
-                <div className="text-center py-16" style={{ color: 'var(--color-text-tertiary)' }}>加载应用中...</div>
-              ) : dialogApps.length === 0 ? (
-                <div className="text-center py-16" style={{ color: 'var(--color-text-tertiary)' }}>暂无应用</div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {dialogApps.map((app) => (
-                    <div 
-                      key={app.id} 
-                      className="rounded-lg p-6 hover:shadow-md transition-shadow"
-                      style={{
-                        backgroundColor: 'var(--color-components-card-bg)',
-                        border: '1px solid var(--color-components-card-border)'
-                      }}
-                    >
-                        <div className="flex items-center space-x-3 mb-3">
-                            {getAppIcon(app, 'md')}
-                          <h3 className="font-medium" style={{ color: 'var(--color-components-card-meta-title)' }}>{app.name}</h3>
-                        </div>
-                        <p className="text-sm mb-4" style={{ color: 'var(--color-components-card-meta-description)' }}>{app.description}</p>
-                        <Button 
-                          size="sm" 
-                          className="w-full"
-                        variant={app.status === '1' ? "outline" : "default"}
-                        disabled={app.status === '1'}
-                      >
-                        {app.status === '1' ? '已添加' : '添加到工作区'}
-                        </Button>
-                      </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          ) : (
-            // 聊天模式
-            <>
-              {/* 消息区域 */}
-              <div className="flex-1 overflow-y-auto px-6 py-8">
-                {messages.length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center explore-welcome-area">
-                    <style>{`
+            ) : (
+              // 聊天模式
+              <>
+                {/* 消息区域 */}
+                <div className="flex-1 overflow-y-auto px-6 py-8">
+                  {messages.length === 0 ? (
+                    <div className="explore-welcome-area flex h-full flex-col items-center justify-center">
+                      <style>{`
                       /* Welcome 组件样式 */
                       .explore-welcome-area .ant-welcome-title {
                         color: var(--color-text-primary) !important;
@@ -1665,88 +1985,111 @@ export const ExplorePage: React.FC = () => {
                         color: var(--color-text-secondary) !important;
                       }
                     `}</style>
-                    <Welcome
-                      variant="borderless"
-                      icon={
-                        currentApp?.icon ? (
-                          <img 
-                            src={currentApp.icon.startsWith('data:') || currentApp.icon.startsWith('http') 
-                              ? currentApp.icon 
-                              : `data:image/png;base64,${currentApp.icon}`}
-                            alt={currentApp.name}
-                            className="w-16 h-16 rounded-2xl object-cover"
+                      <Welcome
+                        variant="borderless"
+                        icon={
+                          currentApp?.icon ? (
+                            <img
+                              src={
+                                currentApp.icon.startsWith('data:') ||
+                                currentApp.icon.startsWith('http')
+                                  ? currentApp.icon
+                                  : `data:image/png;base64,${currentApp.icon}`
+                              }
+                              alt={currentApp.name}
+                              className="h-16 w-16 rounded-2xl object-cover"
+                            />
+                          ) : (
+                            <div
+                              className="flex h-16 w-16 items-center justify-center rounded-2xl"
+                              style={{
+                                background:
+                                  'var(--color-components-gradient-primary)',
+                              }}
+                            >
+                              <span className="text-2xl font-bold text-white">
+                                AI
+                              </span>
+                            </div>
+                          )
+                        }
+                        title={currentApp?.name || '智能助手'}
+                        description={
+                          currentApp?.description || '有什么可以帮你的吗？'
+                        }
+                      />
+                      {showCurrentAppPrologue ? (
+                        <div className="mt-6 w-full max-w-2xl">
+                          <Bubble
+                            content={currentAppPrologue}
+                            placement="start"
+                            variant="borderless"
+                            shape="round"
+                            typing={CHAT_TEXT_TYPING}
+                            avatar={
+                              currentAppIconUrl ? (
+                                <div className="h-8 min-h-[32px] w-8 min-w-[32px] shrink-0 overflow-hidden rounded-full">
+                                  <img
+                                    src={currentAppIconUrl}
+                                    alt={currentApp?.name || 'AI'}
+                                    className="h-full w-full object-cover"
+                                  />
+                                </div>
+                              ) : (
+                                <div
+                                  className="flex h-8 min-h-[32px] w-8 min-w-[32px] shrink-0 items-center justify-center rounded-full"
+                                  style={{
+                                    background:
+                                      'var(--color-components-gradient-primary)',
+                                  }}
+                                >
+                                  <span className="text-sm font-bold text-white">
+                                    AI
+                                  </span>
+                                </div>
+                              )
+                            }
+                            styles={{
+                              content: {
+                                backgroundColor:
+                                  'var(--color-chat-bubble-ai-bg)',
+                                color: 'var(--color-chat-bubble-ai-text)',
+                                border: 'none',
+                                boxShadow: 'none',
+                                borderRadius: '16px',
+                                padding: '12px 16px',
+                                fontSize: '14px',
+                                lineHeight: 1.6,
+                              },
+                            }}
                           />
-                        ) : (
-                          <div 
-                            className="w-16 h-16 rounded-2xl flex items-center justify-center"
-                            style={{ background: 'var(--color-components-gradient-primary)' }}
-                          >
-                            <span className="text-white text-2xl font-bold">AI</span>
-                          </div>
-                        )
-                      }
-                      title={currentApp?.name || '智能助手'}
-                      description={currentApp?.description || '有什么可以帮你的吗？'}
-                    />
-                    {showCurrentAppPrologue ? (
-                      <div className="mt-6 w-full max-w-2xl">
-                        <Bubble
-                          content={currentAppPrologue}
-                          placement="start"
-                          variant="borderless"
-                          shape="round"
-                          typing={CHAT_TEXT_TYPING}
-                          avatar={
-                            currentAppIconUrl ? (
-                              <div className="h-8 min-h-[32px] w-8 min-w-[32px] shrink-0 overflow-hidden rounded-full">
-                                <img
-                                  src={currentAppIconUrl}
-                                  alt={currentApp?.name || 'AI'}
-                                  className="h-full w-full object-cover"
-                                />
-                              </div>
-                            ) : (
-                              <div
-                                className="flex h-8 min-h-[32px] w-8 min-w-[32px] shrink-0 items-center justify-center rounded-full"
-                                style={{ background: 'var(--color-components-gradient-primary)' }}
-                              >
-                                <span className="text-sm font-bold text-white">AI</span>
-                              </div>
-                            )
-                          }
-                          styles={{
-                            content: {
-                              backgroundColor: 'var(--color-chat-bubble-ai-bg)',
-                              color: 'var(--color-chat-bubble-ai-text)',
-                              border: 'none',
-                              boxShadow: 'none',
-                              borderRadius: '16px',
-                              padding: '12px 16px',
-                              fontSize: '14px',
-                              lineHeight: 1.6,
-                            },
+                        </div>
+                      ) : null}
+                      <div className="mt-8">
+                        <Prompts
+                          items={promptItems}
+                          onItemClick={(info) => {
+                            if (typeof info.data.label === 'string') {
+                              setInputValue(info.data.label)
+                            }
                           }}
+                          wrap
                         />
                       </div>
-                    ) : null}
-                    <div className="mt-8">
-                      <Prompts
-                        items={promptItems}
-                        onItemClick={(info) => {
-                          if (typeof info.data.label === 'string') {
-                            setInputValue(info.data.label)
-                          }
-                        }}
-                        wrap
-                                          />
-                                        </div>
-                  </div>
-                ) : (
-                  <div className={cn(
-                    "mx-auto explore-chat-area",
-                    chatLayout === 'full' ? 'max-w-none px-4' : chatLayout === 'center' ? 'max-w-4xl' : 'max-w-3xl'
-                  )} style={{ height: '100%' }}>
-                    <style>{`
+                    </div>
+                  ) : (
+                    <div
+                      className={cn(
+                        'explore-chat-area mx-auto',
+                        chatLayout === 'full'
+                          ? 'max-w-none px-4'
+                          : chatLayout === 'center'
+                            ? 'max-w-4xl'
+                            : 'max-w-3xl',
+                      )}
+                      style={{ height: '100%' }}
+                    >
+                      <style>{`
                       /* Think 组件主题适配 */
                       .explore-chat-area .ant-think-status-wrapper,
                       .explore-chat-area .ant-think-title {
@@ -1817,31 +2160,36 @@ export const ExplorePage: React.FC = () => {
                         background-color: var(--color-surface-primary) !important;
                       }
                     `}</style>
-                    <Bubble.List
-                      items={bubbleItems}
-                      autoScroll
-                      style={{ height: '100%' }}
-                      role={CHAT_BUBBLE_ROLES}
-                    />
-                  </div>
-                )}
-              </div>
+                      <Bubble.List
+                        items={bubbleItems}
+                        autoScroll
+                        style={{ height: '100%' }}
+                        role={CHAT_BUBBLE_ROLES}
+                      />
+                    </div>
+                  )}
+                </div>
 
-              {/* 输入区域（参考 ragflow 重构） */}
-              {(activeTab !== 'topics' || selectedConversationDetail) && (
-                <div className="px-6 pb-6">
-                  <div 
-                    className={cn(
-                      "mx-auto explore-sender-area rounded-2xl overflow-hidden",
-                      chatLayout === 'full' ? 'max-w-none px-4' : chatLayout === 'center' ? 'max-w-4xl' : 'max-w-3xl'
-                    )}
-                    style={{
-                      border: '1px solid var(--color-components-input-border)',
-                      backgroundColor: 'var(--color-components-input-bg)',
-                    }}
-                  >
-                    {/* Sender 和 Attachments 样式覆盖 - 使用项目语义令牌 */}
-                    <style>{`
+                {/* 输入区域（参考 ragflow 重构） */}
+                {(activeTab !== 'topics' || selectedConversationDetail) && (
+                  <div className="px-6 pb-6">
+                    <div
+                      className={cn(
+                        'explore-sender-area mx-auto overflow-hidden rounded-2xl',
+                        chatLayout === 'full'
+                          ? 'max-w-none px-4'
+                          : chatLayout === 'center'
+                            ? 'max-w-4xl'
+                            : 'max-w-3xl',
+                      )}
+                      style={{
+                        border:
+                          '1px solid var(--color-components-input-border)',
+                        backgroundColor: 'var(--color-components-input-bg)',
+                      }}
+                    >
+                      {/* Sender 和 Attachments 样式覆盖 - 使用项目语义令牌 */}
+                      <style>{`
                       /* Sender 输入框样式 - 现代化无高亮设计，边框在外层容器 */
                       .explore-sender-area .ant-sender {
                         background-color: transparent !important;
@@ -1969,284 +2317,339 @@ export const ExplorePage: React.FC = () => {
                         color: var(--color-text-primary) !important;
                       }
                     `}</style>
-                    
-                    <Sender
-                      value={inputValue}
-                      onChange={setInputValue}
-                      placeholder="输入消息，按 Enter 发送，也可直接发送附件"
-                      loading={isStreaming}
-                      // 文件上传面板（参考 ragflow）
-                      header={
-                        <Sender.Header
-                          title={
-                            <span style={{ 
-                              display: 'flex', 
-                              alignItems: 'center', 
-                              gap: '8px',
-                              color: 'var(--color-text-primary)',
-                              fontWeight: 500,
-                              fontSize: '14px',
-                            }}>
-                              <Upload className="w-4 h-4" style={{ color: 'var(--color-state-focus)' }} />
-                              上传文件
-                            </span>
-                          }
-                          open={headerOpen}
-                          onOpenChange={setHeaderOpen}
-                          styles={{
-                            header: {
-                              backgroundColor: 'var(--color-components-card-bg)',
-                              borderRadius: '16px 16px 0 0',
-                              border: 'none',
-                              borderBottom: '1px solid var(--color-border-default)',
-                              padding: '12px 16px',
-                            },
-                            content: {
-                              padding: 0,
-                              backgroundColor: 'var(--color-components-card-bg)',
-                              border: 'none',
-                            },
-                          }}
-                        >
-                          <Attachments
-                            items={attachmentItems}
-                            maxCount={uploadConfig.maxCount}
-                            disabled={hasUploadingFiles}
-                            getDropContainer={() => dropContainerRef.current}
-                            onRemove={(file) => {
-                              if (file && typeof file === 'object' && 'uid' in file) {
-                                removeUploadFile((file as UploadFile).uid)
-                              }
-                            }}
-                            overflow="scrollX"
-                            placeholder={(type) => ({
-                              icon: (
-                                <div style={{
-                                  width: '44px',
-                                  height: '44px',
-                                  borderRadius: '12px',
-                                  backgroundColor: type === 'drop' ? 'var(--color-state-focus-10)' : 'var(--color-surface-secondary)',
+
+                      <Sender
+                        value={inputValue}
+                        onChange={setInputValue}
+                        placeholder="输入消息，按 Enter 发送，也可直接发送附件"
+                        loading={isStreaming}
+                        // 文件上传面板（参考 ragflow）
+                        header={
+                          <Sender.Header
+                            title={
+                              <span
+                                style={{
                                   display: 'flex',
                                   alignItems: 'center',
-                                  justifyContent: 'center',
-                                  marginBottom: '12px',
-                                  transition: 'all 0.2s ease',
-                                }}>
-                                  <Upload 
-                                    className="w-5 h-5" 
-                                    style={{ 
-                                      color: type === 'drop' ? 'var(--color-state-focus)' : 'var(--color-text-tertiary)',
-                                      transition: 'color 0.2s ease',
-                                    }} 
-                                  />
-                                </div>
-                              ),
-                              title: (
-                                <span style={{ 
-                                  color: 'var(--color-text-primary)', 
+                                  gap: '8px',
+                                  color: 'var(--color-text-primary)',
                                   fontWeight: 500,
                                   fontSize: '14px',
-                                }}>
-                                  {type === 'drop' ? '释放以上传' : '点击或拖拽文件到此处'}
-                                </span>
-                              ),
-                              description: (
-                                <span style={{ 
+                                }}
+                              >
+                                <Upload
+                                  className="h-4 w-4"
+                                  style={{ color: 'var(--color-state-focus)' }}
+                                />
+                                上传文件
+                              </span>
+                            }
+                            open={headerOpen}
+                            onOpenChange={setHeaderOpen}
+                            styles={{
+                              header: {
+                                backgroundColor:
+                                  'var(--color-components-card-bg)',
+                                borderRadius: '16px 16px 0 0',
+                                border: 'none',
+                                borderBottom:
+                                  '1px solid var(--color-border-default)',
+                                padding: '12px 16px',
+                              },
+                              content: {
+                                padding: 0,
+                                backgroundColor:
+                                  'var(--color-components-card-bg)',
+                                border: 'none',
+                              },
+                            }}
+                          >
+                            <Attachments
+                              items={attachmentItems}
+                              maxCount={uploadConfig.maxCount}
+                              disabled={hasUploadingFiles}
+                              getDropContainer={() => dropContainerRef.current}
+                              onRemove={(file) => {
+                                if (
+                                  file &&
+                                  typeof file === 'object' &&
+                                  'uid' in file
+                                ) {
+                                  removeUploadFile((file as UploadFile).uid)
+                                }
+                              }}
+                              overflow="scrollX"
+                              placeholder={(type) => ({
+                                icon: (
+                                  <div
+                                    style={{
+                                      width: '44px',
+                                      height: '44px',
+                                      borderRadius: '12px',
+                                      backgroundColor:
+                                        type === 'drop'
+                                          ? 'var(--color-state-focus-10)'
+                                          : 'var(--color-surface-secondary)',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      marginBottom: '12px',
+                                      transition: 'all 0.2s ease',
+                                    }}
+                                  >
+                                    <Upload
+                                      className="h-5 w-5"
+                                      style={{
+                                        color:
+                                          type === 'drop'
+                                            ? 'var(--color-state-focus)'
+                                            : 'var(--color-text-tertiary)',
+                                        transition: 'color 0.2s ease',
+                                      }}
+                                    />
+                                  </div>
+                                ),
+                                title: (
+                                  <span
+                                    style={{
+                                      color: 'var(--color-text-primary)',
+                                      fontWeight: 500,
+                                      fontSize: '14px',
+                                    }}
+                                  >
+                                    {type === 'drop'
+                                      ? '释放以上传'
+                                      : '点击或拖拽文件到此处'}
+                                  </span>
+                                ),
+                                description: (
+                                  <span
+                                    style={{
+                                      color: 'var(--color-text-tertiary)',
+                                      fontSize: '12px',
+                                      marginTop: '4px',
+                                      display: 'block',
+                                    }}
+                                  >
+                                    {`支持图片、文档等，最多 ${uploadConfig.maxCount} 个，单个最大 ${Math.round(uploadConfig.maxSize / 1024 / 1024)}MB`}
+                                  </span>
+                                ),
+                              })}
+                              styles={{
+                                root: {
+                                  backgroundColor:
+                                    'var(--color-components-card-bg)',
+                                  padding: '20px 16px',
+                                  transition: 'background-color 0.2s ease',
+                                },
+                                placeholder: {
+                                  padding: 0,
+                                  margin: 0,
+                                  border: 'none',
+                                  background: 'transparent',
+                                },
+                                list: {
+                                  padding: '0 0 8px 0',
+                                  gap: '8px',
+                                },
+                                card: {
+                                  backgroundColor:
+                                    'var(--color-components-input-bg)',
+                                  border:
+                                    '1px solid var(--color-border-default)',
+                                  borderRadius: '10px',
+                                  padding: '8px 12px',
+                                  transition: 'all 0.2s ease',
+                                },
+                                name: {
+                                  color: 'var(--color-text-primary)',
+                                  fontWeight: 500,
+                                  fontSize: '13px',
+                                },
+                                description: {
                                   color: 'var(--color-text-tertiary)',
                                   fontSize: '12px',
-                                  marginTop: '4px',
-                                  display: 'block',
-                                }}>
-                                  {`支持图片、文档等，最多 ${uploadConfig.maxCount} 个，单个最大 ${Math.round(uploadConfig.maxSize / 1024 / 1024)}MB`}
-                                </span>
-                              ),
-                            })}
-                            styles={{
-                              root: {
-                                backgroundColor: 'var(--color-components-card-bg)',
-                                padding: '20px 16px',
-                                transition: 'background-color 0.2s ease',
-                              },
-                              placeholder: {
-                                padding: 0,
-                                margin: 0,
-                                border: 'none',
-                                background: 'transparent',
-                              },
-                              list: {
-                                padding: '0 0 8px 0',
-                                gap: '8px',
-                              },
-                              card: {
-                                backgroundColor: 'var(--color-components-input-bg)',
-                                border: '1px solid var(--color-border-default)',
-                                borderRadius: '10px',
-                                padding: '8px 12px',
-                                transition: 'all 0.2s ease',
-                              },
-                              name: {
-                                color: 'var(--color-text-primary)',
-                                fontWeight: 500,
-                                fontSize: '13px',
-                              },
-                              description: {
-                                color: 'var(--color-text-tertiary)',
-                                fontSize: '12px',
-                              },
-                            }}
-                            // 自定义上传请求，通过 useChatUpload 统一管理状态
-                            customRequest={async (options) => {
-                              const { file, onSuccess, onError } = options
-                              try {
-                                const result = await uploadFile(file as File)
-                                if (result) {
-                                  onSuccess?.(result, new XMLHttpRequest())
-                                  toast.success(`文件 ${(file as File).name} 上传成功`)
-                                } else {
-                                  onError?.(new Error('Upload failed'))
+                                },
+                              }}
+                              // 自定义上传请求，通过 useChatUpload 统一管理状态
+                              customRequest={async (options) => {
+                                const { file, onSuccess, onError } = options
+                                try {
+                                  const result = await uploadFile(file as File)
+                                  if (result) {
+                                    onSuccess?.(result, new XMLHttpRequest())
+                                    toast.success(
+                                      `文件 ${(file as File).name} 上传成功`,
+                                    )
+                                  } else {
+                                    onError?.(new Error('Upload failed'))
+                                  }
+                                } catch (error) {
+                                  console.error('Upload error:', error)
+                                  onError?.(error as Error)
+                                  toast.error(
+                                    `上传失败: ${(error as Error).message}`,
+                                  )
                                 }
-                              } catch (error) {
-                                console.error('Upload error:', error)
-                                onError?.(error as Error)
-                                toast.error(`上传失败: ${(error as Error).message}`)
-                              }
-                            }}
-                          />
-                        </Sender.Header>
-                      }
-                      // 右侧操作区：停止按钮或发送按钮
-                      suffix={(_, { components }) => (
-                        isStreaming ? (
-                          <Button 
-                            variant="destructive" 
-                            size="sm"
-                            className="h-8 w-8 p-0"
-                            onClick={handleStopOutput}
-                            title="停止输出"
-                          >
-                            <Square className="w-4 h-4" />
-                          </Button>
-                        ) : (
-                          <components.SendButton disabled={!canSubmitMessage} />
-                        )
-                      )}
-                      onSubmit={(message) => {
-                        if (!canSubmitMessage) return
-                        void handleSendMessage(message)
-                        setHeaderOpen(false)
-                      }}
-                      onCancel={handleStopOutput}
-                      onPasteFile={(files) => {
-                        if (files.length > 0) setHeaderOpen(true)
-                        for (let i = 0; i < files.length; i++) {
-                          const file = files[i]
-                          if (file.size <= uploadConfig.maxSize) {
-                            void uploadFile(file)
-                          } else {
-                            toast.error(`文件 ${file.name} 超过大小限制`)
-                          }
+                              }}
+                            />
+                          </Sender.Header>
                         }
-                      }}
-                      style={{
-                        borderRadius: '0',
-                        border: 'none',
-                        backgroundColor: 'transparent',
-                      }}
-                      styles={{
-                        input: {
-                          color: 'var(--color-components-input-text)',
-                        },
-                      }}
-                    />
-                    
-                    {/* 输入框下方工具栏 - 与输入框无缝融合，参考 Claude 设计 */}
-                    <div 
-                      className="flex items-center justify-between"
-                      style={{ 
-                        paddingLeft: '12px',
-                        paddingRight: '12px',
-                        paddingBottom: '10px',
-                        paddingTop: '4px',
-                      }}
-                    >
-                      <div className="flex items-center gap-1">
-                        {/* 附件按钮 */}
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          className="h-7 px-1.5 gap-1.5"
-                          onClick={() => setHeaderOpen(!headerOpen)}
-                          title="上传文件"
+                        // 右侧操作区：停止按钮或发送按钮
+                        suffix={(_, { components }) =>
+                          isStreaming ? (
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              className="h-8 w-8 p-0"
+                              onClick={handleStopOutput}
+                              title="停止输出"
+                            >
+                              <Square className="h-4 w-4" />
+                            </Button>
+                          ) : (
+                            <components.SendButton
+                              disabled={!canSubmitMessage}
+                            />
+                          )
+                        }
+                        onSubmit={(message) => {
+                          if (!canSubmitMessage) return
+                          void handleSendMessage(message)
+                          setHeaderOpen(false)
+                        }}
+                        onCancel={handleStopOutput}
+                        onPasteFile={(files) => {
+                          if (files.length > 0) setHeaderOpen(true)
+                          for (let i = 0; i < files.length; i++) {
+                            const file = files[i]
+                            if (file.size <= uploadConfig.maxSize) {
+                              void uploadFile(file)
+                            } else {
+                              toast.error(`文件 ${file.name} 超过大小限制`)
+                            }
+                          }
+                        }}
+                        style={{
+                          borderRadius: '0',
+                          border: 'none',
+                          backgroundColor: 'transparent',
+                        }}
+                        styles={{
+                          input: {
+                            color: 'var(--color-components-input-text)',
+                          },
+                        }}
+                      />
+
+                      {/* 输入框下方工具栏 - 与输入框无缝融合，参考 Claude 设计 */}
+                      <div
+                        className="flex items-center justify-between"
+                        style={{
+                          paddingLeft: '12px',
+                          paddingRight: '12px',
+                          paddingBottom: '10px',
+                          paddingTop: '4px',
+                        }}
+                      >
+                        <div className="flex items-center gap-1">
+                          {/* 附件按钮 */}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 gap-1.5 px-1.5"
+                            onClick={() => setHeaderOpen(!headerOpen)}
+                            title="上传文件"
+                          >
+                            <Paperclip
+                              className="h-4 w-4"
+                              style={{
+                                color: headerOpen
+                                  ? 'var(--color-text-accent)'
+                                  : 'var(--color-text-tertiary)',
+                              }}
+                            />
+                            {uploadFiles.length > 0 && (
+                              <span
+                                className="text-xs"
+                                style={{ color: 'var(--color-text-secondary)' }}
+                              >
+                                {
+                                  uploadFiles.filter((f) => f.status === 'done')
+                                    .length
+                                }
+                              </span>
+                            )}
+                          </Button>
+
+                          {/* 深度思考按钮 */}
+                          <Button
+                            variant={enableReasoning ? 'default' : 'ghost'}
+                            size="sm"
+                            className={cn(
+                              'h-7 gap-1.5 px-2 transition-colors',
+                              enableReasoning
+                                ? 'bg-[var(--color-components-button-primary-bg)] text-[var(--color-components-button-primary-text)] hover:bg-[var(--color-components-button-primary-bg-hover)]'
+                                : 'text-[var(--color-text-tertiary)]',
+                            )}
+                            onClick={() => setEnableReasoning(!enableReasoning)}
+                            title="深度思考"
+                          >
+                            <Atom className="h-4 w-4" />
+                            <span className="text-xs">Thinking</span>
+                          </Button>
+
+                          {/* 联网搜索按钮 */}
+                          <Button
+                            variant={enableInternet ? 'default' : 'ghost'}
+                            size="sm"
+                            className={cn(
+                              'h-7 gap-1.5 px-2 transition-colors',
+                              enableInternet
+                                ? 'bg-[var(--color-components-button-primary-bg)] text-[var(--color-components-button-primary-text)] hover:bg-[var(--color-components-button-primary-bg-hover)]'
+                                : 'text-[var(--color-text-tertiary)]',
+                            )}
+                            onClick={() => setEnableInternet(!enableInternet)}
+                            title="联网搜索"
+                          >
+                            <Globe className="h-4 w-4" />
+                          </Button>
+                        </div>
+
+                        {/* 右侧状态提示 */}
+                        <div
+                          className="flex items-center gap-2 text-xs"
+                          style={{ color: 'var(--color-text-tertiary)' }}
                         >
-                          <Paperclip className="w-4 h-4" style={{ color: headerOpen ? 'var(--color-text-accent)' : 'var(--color-text-tertiary)' }} />
-                          {uploadFiles.length > 0 && (
-                            <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
-                              {uploadFiles.filter(f => f.status === 'done').length}
+                          {hasUploadingFiles && (
+                            <div className="flex items-center gap-1">
+                              <div className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                              <span>上传中...</span>
+                            </div>
+                          )}
+                          {!hasUploadingFiles && hasReadyUploads && (
+                            <div className="flex items-center gap-1">
+                              <span>
+                                {uploadedAttachments.length} 个附件已就绪
+                              </span>
+                              {!inputValue.trim() && <span>可直接发送</span>}
+                            </div>
+                          )}
+                          {hasUploadError && (
+                            <span style={{ color: 'var(--color-text-error)' }}>
+                              有附件上传失败，可点击卡片重试
                             </span>
                           )}
-                        </Button>
-                        
-                        {/* 深度思考按钮 */}
-                        <Button 
-                          variant={enableReasoning ? "default" : "ghost"}
-                          size="sm"
-                          className={cn(
-                            "h-7 px-2 gap-1.5 transition-colors",
-                            enableReasoning 
-                              ? "bg-[var(--color-components-button-primary-bg)] text-[var(--color-components-button-primary-text)] hover:bg-[var(--color-components-button-primary-bg-hover)]" 
-                              : "text-[var(--color-text-tertiary)]"
-                          )}
-                          onClick={() => setEnableReasoning(!enableReasoning)}
-                          title="深度思考"
-                        >
-                          <Atom className="w-4 h-4" />
-                          <span className="text-xs">Thinking</span>
-                        </Button>
-                        
-                        {/* 联网搜索按钮 */}
-                        <Button 
-                          variant={enableInternet ? "default" : "ghost"}
-                          size="sm"
-                          className={cn(
-                            "h-7 px-2 gap-1.5 transition-colors",
-                            enableInternet 
-                              ? "bg-[var(--color-components-button-primary-bg)] text-[var(--color-components-button-primary-text)] hover:bg-[var(--color-components-button-primary-bg-hover)]" 
-                              : "text-[var(--color-text-tertiary)]"
-                          )}
-                          onClick={() => setEnableInternet(!enableInternet)}
-                          title="联网搜索"
-                        >
-                          <Globe className="w-4 h-4" />
-                        </Button>
-                      </div>
-                      
-                      {/* 右侧状态提示 */}
-                      <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
-                        {hasUploadingFiles && (
-                          <div className="flex items-center gap-1">
-                            <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                            <span>上传中...</span>
-                          </div>
-                        )}
-                        {!hasUploadingFiles && hasReadyUploads && (
-                          <div className="flex items-center gap-1">
-                            <span>{uploadedAttachments.length} 个附件已就绪</span>
-                            {!inputValue.trim() && <span>可直接发送</span>}
-                          </div>
-                        )}
-                        {hasUploadError && (
-                          <span style={{ color: 'var(--color-text-error)' }}>有附件上传失败，可点击卡片重试</span>
-                        )}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              )}
-            </>
-          )}
+                )}
+              </>
+            )}
+          </div>
         </div>
-        </div>
-        
+
         {/* 聊天设置面板 */}
         {mode === 'chat' && (
           <ChatSettingsPanel
@@ -2264,14 +2667,16 @@ export const ExplorePage: React.FC = () => {
             onLoadKnowledgeBases={loadKnowledgeBases}
           />
         )}
-        
+
         {/* 引用详情侧边栏 */}
         <ReferenceDetailSheet
           open={detailSheetOpen}
           onOpenChange={setDetailSheetOpen}
           chunk={selectedChunk}
           allChunks={currentMessageReferences}
-          onCopySuccess={() => { /* 组件内部已处理 toast */ }}
+          onCopySuccess={() => {
+            /* 组件内部已处理 toast */
+          }}
         />
       </div>
     </div>

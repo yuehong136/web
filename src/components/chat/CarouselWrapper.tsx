@@ -8,7 +8,9 @@ import type { ReferenceGroup } from '@/utils/reference-utils'
 import type { ReferenceChunk } from '@/utils/reference-replacer'
 
 // 延迟加载 ImageCarousel 组件，避免 embla-carousel 初始化问题
-const ImageCarousel = React.lazy(() => import('@/components/chat/ImageCarousel'))
+const ImageCarousel = React.lazy(
+  () => import('@/components/chat/ImageCarousel'),
+)
 
 export interface CarouselWrapperProps {
   /** 引用分组 */
@@ -37,12 +39,12 @@ class ErrorBoundaryWrapper extends React.Component<
     return { hasError: true }
   }
 
-  componentDidCatch(error: Error) {
+  override componentDidCatch(error: Error) {
     console.error('ImageCarousel error:', error)
     this.props.onError()
   }
 
-  render() {
+  override render() {
     if (this.state.hasError) {
       return null
     }
@@ -52,12 +54,12 @@ class ErrorBoundaryWrapper extends React.Component<
 
 /**
  * 轮播包装组件
- * 
+ *
  * 特性：
  * - 懒加载 ImageCarousel 组件
  * - 错误边界保护，出错时降级显示图片列表
  * - 支持自定义图片点击回调
- * 
+ *
  * @example
  * <CarouselWrapper
  *   group={referenceGroup}
@@ -65,40 +67,44 @@ class ErrorBoundaryWrapper extends React.Component<
  *   onImageClick={(chunk) => handleViewDetail(chunk)}
  * />
  */
-export const CarouselWrapper: React.FC<CarouselWrapperProps> = ({ 
-  group, 
+export const CarouselWrapper: React.FC<CarouselWrapperProps> = ({
+  group,
   chunks,
   onImageClick,
-  className = "my-4"
+  className = 'my-4',
 }) => {
   const [hasError, setHasError] = React.useState(false)
 
   // 默认图片点击处理
-  const handleImageClick = React.useCallback((chunk: ReferenceChunk) => {
-    if (onImageClick) {
-      onImageClick(chunk)
-    } else if (chunk.url) {
-      window.open(chunk.url, '_blank', 'noopener,noreferrer')
-    } else {
-      toast.success(`查看图片: Fig. ${parseInt(chunk.id || '0', 10) + 1}`)
-    }
-  }, [onImageClick])
+  const handleImageClick = React.useCallback(
+    (chunk: ReferenceChunk) => {
+      if (onImageClick) {
+        onImageClick(chunk)
+      } else if (chunk.url) {
+        window.open(chunk.url, '_blank', 'noopener,noreferrer')
+      } else {
+        toast.success(`查看图片: Fig. ${parseInt(chunk.id || '0', 10) + 1}`)
+      }
+    },
+    [onImageClick],
+  )
 
   if (hasError) {
     // 出错时显示简单的图片列表作为降级方案
     return (
-      <div className={`flex flex-wrap gap-2 justify-center ${className}`}>
+      <div className={`flex flex-wrap justify-center gap-2 ${className}`}>
         {group.map((ref) => {
           const chunkIndex = parseInt(ref.id, 10)
           const chunk = chunks[chunkIndex]
           if (!chunk?.image_id) return null
-          const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+          const baseUrl =
+            import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
           return (
             <img
               key={ref.id}
               src={`${baseUrl}/v1/document/image/${chunk.image_id}`}
               alt={`Fig. ${chunkIndex + 1}`}
-              className="max-h-36 object-contain rounded-lg cursor-pointer"
+              className="max-h-36 cursor-pointer rounded-lg object-contain"
               style={{ border: '1px solid var(--color-border-subtle)' }}
               onClick={() => handleImageClick(chunk)}
             />
@@ -109,11 +115,15 @@ export const CarouselWrapper: React.FC<CarouselWrapperProps> = ({
   }
 
   return (
-    <React.Suspense fallback={
-      <div className={`flex items-center justify-center h-36 ${className}`}>
-        <span style={{ color: 'var(--color-text-tertiary)' }}>加载图片...</span>
-      </div>
-    }>
+    <React.Suspense
+      fallback={
+        <div className={`flex h-36 items-center justify-center ${className}`}>
+          <span style={{ color: 'var(--color-text-tertiary)' }}>
+            加载图片...
+          </span>
+        </div>
+      }
+    >
       <ErrorBoundaryWrapper onError={() => setHasError(true)}>
         <ImageCarousel
           group={group}

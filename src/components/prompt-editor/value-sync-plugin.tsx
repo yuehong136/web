@@ -42,6 +42,9 @@ function parseLineContent(
     const matchedValue = match[1]
     const index = match.index
     const matchedText = match[0]
+    if (!matchedValue) {
+      continue
+    }
 
     if (index > lastIndex) {
       paragraph.append($createTextNode(line.slice(lastIndex, index)))
@@ -104,10 +107,7 @@ type ValueSyncPluginProps = {
   options?: VariableOptionGroup[]
 }
 
-export function ValueSyncPlugin({
-  value,
-  options = [],
-}: ValueSyncPluginProps) {
+export function ValueSyncPlugin({ value, options = [] }: ValueSyncPluginProps) {
   const [editor] = useLexicalComposerContext()
   const previousValue = useRef('')
   const previousOptionSignature = useRef('')
@@ -186,7 +186,14 @@ export function ValueSyncPlugin({
     )
     previousValue.current = nextValue
     previousOptionSignature.current = optionSignature
-  }, [editor, flatOptions, optionLookup, optionSignature, resolveStructured, value])
+  }, [
+    editor,
+    flatOptions,
+    optionLookup,
+    optionSignature,
+    resolveStructured,
+    value,
+  ])
 
   return null
 }

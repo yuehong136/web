@@ -42,10 +42,13 @@ export const extractorPromptPresetMap: Record<
   },
 }
 
-export function getExtractorPromptPreset(fieldName?: string) {
+export function getExtractorPromptPreset(fieldName?: string): {
+  sys_prompt: string
+  prompts: string
+} {
   return (
     extractorPromptPresetMap[fieldName || ''] ||
-    extractorPromptPresetMap[extractorFieldName.Summary]
+    extractorPromptPresetMap[extractorFieldName.Summary]!
   )
 }
 

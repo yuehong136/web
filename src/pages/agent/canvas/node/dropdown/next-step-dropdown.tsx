@@ -33,11 +33,9 @@ function NextStepDropdownBody({
   'hideModal' | 'onNodeCreated' | 'nodeId' | 'position'
 > & { isPipeline: boolean; title: string }) {
   return (
-    <div className="w-[300px] overflow-hidden rounded-radius-md border border-components-dropdown-border bg-components-dropdown-bg font-semibold text-text-primary shadow-elevation-medium">
-      <div className="border-b border-components-dropdown-border px-space-sm py-space-sm">
-        <div className="text-sm font-medium text-text-primary">
-          {title}
-        </div>
+    <div className="rounded-radius-md shadow-elevation-medium w-[300px] overflow-hidden border border-components-dropdown-border bg-components-dropdown-bg font-semibold text-text-primary">
+      <div className="px-space-sm py-space-sm border-b border-components-dropdown-border">
+        <div className="text-sm font-medium text-text-primary">{title}</div>
       </div>
       <HideModalContext.Provider value={hideModal}>
         <OnNodeCreatedContext.Provider value={onNodeCreated}>
@@ -93,6 +91,7 @@ export function InnerNextStepDropdown({
         document.removeEventListener('pointerdown', handlePointerDown, true)
       }
     }
+    return undefined
   }, [position, hideModal])
 
   if (!position) {
@@ -111,7 +110,7 @@ export function InnerNextStepDropdown({
           side="right"
           sideOffset={12}
           onClick={(e) => e.stopPropagation()}
-          className="z-[1100] w-[300px] border-components-dropdown-border bg-components-dropdown-bg p-0 text-text-primary shadow-elevation-medium"
+          className="shadow-elevation-medium z-[1100] w-[300px] border-components-dropdown-border bg-components-dropdown-bg p-0 text-text-primary"
         >
           <NextStepDropdownBody
             hideModal={hideModal}
@@ -148,7 +147,9 @@ export function InnerNextStepDropdown({
     </div>
   )
 
-  return typeof document !== 'undefined' ? createPortal(content, document.body) : content
+  return typeof document !== 'undefined'
+    ? createPortal(content, document.body)
+    : content
 }
 
 export const NextStepDropdown = memo(InnerNextStepDropdown)

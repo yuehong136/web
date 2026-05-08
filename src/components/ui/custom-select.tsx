@@ -43,19 +43,23 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   options,
   value,
   onChange,
-  placeholder = "请选择",
+  placeholder = '请选择',
   className,
-  size = 'md'
+  size = 'md',
 }) => {
   const [isOpen, setIsOpen] = React.useState(false)
   const [zIndex, setZIndex] = React.useState(globalZIndex)
   const dropdownRef = React.useRef<HTMLDivElement>(null)
   const buttonRef = React.useRef<HTMLButtonElement>(null)
   const menuRef = React.useRef<HTMLDivElement>(null)
-  const [dropdownPosition, setDropdownPosition] = React.useState({ top: 0, left: 0, width: 0 })
+  const [dropdownPosition, setDropdownPosition] = React.useState({
+    top: 0,
+    left: 0,
+    width: 0,
+  })
   const theme = useNearestPortalTheme(buttonRef, isOpen)
 
-  const selectedOption = options.find(option => option.value === value)
+  const selectedOption = options.find((option) => option.value === value)
 
   // 点击外部关闭 - 需要同时检查触发按钮和 Portal 中的下拉菜单
   React.useEffect(() => {
@@ -63,7 +67,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
       const target = event.target as Node
       const isInsideTrigger = dropdownRef.current?.contains(target)
       const isInsideMenu = menuRef.current?.contains(target)
-      
+
       if (!isInsideTrigger && !isInsideMenu) {
         setIsOpen(false)
       }
@@ -73,6 +77,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
       document.addEventListener('mousedown', handleClickOutside)
       return () => document.removeEventListener('mousedown', handleClickOutside)
     }
+    return undefined
   }, [isOpen])
 
   const handleSelect = (optionValue: string) => {
@@ -88,7 +93,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
     }
     setIsOpen(!isOpen)
   }
-  
+
   // 计算下拉菜单位置
   const updateDropdownPosition = React.useCallback(() => {
     if (buttonRef.current) {
@@ -96,27 +101,28 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
       setDropdownPosition({
         top: rect.bottom + window.scrollY + 4,
         left: rect.left + window.scrollX,
-        width: rect.width
+        width: rect.width,
       })
     }
   }, [])
-  
+
   // 当打开下拉菜单时更新位置
   React.useEffect(() => {
     if (isOpen) {
       updateDropdownPosition()
-      
+
       const handleScroll = () => updateDropdownPosition()
       const handleResize = () => updateDropdownPosition()
-      
+
       window.addEventListener('scroll', handleScroll, true) // 使用capture来捕获所有滚动事件
       window.addEventListener('resize', handleResize)
-      
+
       return () => {
         window.removeEventListener('scroll', handleScroll, true)
         window.removeEventListener('resize', handleResize)
       }
     }
+    return undefined
   }, [isOpen, updateDropdownPosition])
 
   const getSizeClasses = () => {
@@ -131,21 +137,25 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   }
 
   return (
-    <div className={cn("relative", className)} ref={dropdownRef}>
+    <div className={cn('relative', className)} ref={dropdownRef}>
       {/* 选择器按钮 */}
       <button
         ref={buttonRef}
         type="button"
         onClick={handleToggle}
         className={cn(
-          "w-full text-left border rounded-lg transition-all duration-200",
-          "focus:outline-none focus:ring-2",
-          getSizeClasses()
+          'w-full rounded-lg border text-left transition-all duration-200',
+          'focus:outline-none focus:ring-2',
+          getSizeClasses(),
         )}
         style={{
           backgroundColor: 'var(--color-components-input-bg)',
-          borderColor: isOpen ? 'var(--color-state-focus)' : 'var(--color-components-input-border)',
-          boxShadow: isOpen ? '0 0 0 2px var(--color-state-focus-10)' : undefined
+          borderColor: isOpen
+            ? 'var(--color-state-focus)'
+            : 'var(--color-components-input-border)',
+          boxShadow: isOpen
+            ? '0 0 0 2px var(--color-state-focus-10)'
+            : undefined,
         }}
       >
         <div className="flex items-center justify-between">
@@ -155,16 +165,20 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                 {selectedOption.icon && (
                   <span className="text-lg">{selectedOption.icon}</span>
                 )}
-                <span style={{ color: 'var(--color-text-primary)' }}>{selectedOption.label}</span>
+                <span style={{ color: 'var(--color-text-primary)' }}>
+                  {selectedOption.label}
+                </span>
               </>
             ) : (
-              <span style={{ color: 'var(--color-text-tertiary)' }}>{placeholder}</span>
+              <span style={{ color: 'var(--color-text-tertiary)' }}>
+                {placeholder}
+              </span>
             )}
           </div>
-          <ChevronDown 
+          <ChevronDown
             className={cn(
-              "h-5 w-5 transition-transform duration-200",
-              isOpen && "rotate-180"
+              'h-5 w-5 transition-transform duration-200',
+              isOpen && 'rotate-180',
             )}
             style={{ color: 'var(--color-text-muted)' }}
           />
@@ -175,16 +189,16 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
       {isOpen && (
         <Portal>
           <>
-            <div 
+            <div
               data-theme={theme}
               className="fixed inset-0 bg-transparent"
               style={{ zIndex: zIndex - 1 }}
-              onClick={() => setIsOpen(false)} 
+              onClick={() => setIsOpen(false)}
             />
-            <div 
+            <div
               data-theme={theme}
               ref={menuRef}
-              className="fixed rounded-lg max-h-64 overflow-hidden"
+              className="fixed max-h-64 overflow-hidden rounded-lg"
               style={{
                 top: dropdownPosition.top,
                 left: dropdownPosition.left,
@@ -192,7 +206,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                 zIndex: zIndex,
                 backgroundColor: 'var(--color-components-dropdown-bg)',
                 border: '1px solid var(--color-components-dropdown-border)',
-                boxShadow: 'var(--color-components-dropdown-shadow)'
+                boxShadow: 'var(--color-components-dropdown-shadow)',
               }}
             >
               <div className="max-h-64 overflow-y-auto scrollbar-thin">
@@ -201,18 +215,25 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                     key={option.value}
                     type="button"
                     onClick={() => handleSelect(option.value)}
-                    className="w-full px-4 py-3 text-left transition-colors duration-150 border-b last:border-b-0"
+                    className="w-full border-b px-4 py-3 text-left transition-colors duration-150 last:border-b-0"
                     style={{
-                      backgroundColor: value === option.value ? 'var(--color-state-focus-10)' : undefined,
-                      borderColor: 'var(--color-border-subtle)'
+                      backgroundColor:
+                        value === option.value
+                          ? 'var(--color-state-focus-10)'
+                          : undefined,
+                      borderColor: 'var(--color-border-subtle)',
                     }}
                     onMouseEnter={(e) => {
                       if (value !== option.value) {
-                        e.currentTarget.style.backgroundColor = 'var(--color-components-dropdown-item-bg-hover)'
+                        e.currentTarget.style.backgroundColor =
+                          'var(--color-components-dropdown-item-bg-hover)'
                       }
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = value === option.value ? 'var(--color-state-focus-10)' : ''
+                      e.currentTarget.style.backgroundColor =
+                        value === option.value
+                          ? 'var(--color-state-focus-10)'
+                          : ''
                     }}
                   >
                     <div className="flex items-center justify-between">
@@ -220,10 +241,15 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                         {option.icon && (
                           <span className="text-lg">{option.icon}</span>
                         )}
-                        <span style={{ color: 'var(--color-text-primary)' }}>{option.label}</span>
+                        <span style={{ color: 'var(--color-text-primary)' }}>
+                          {option.label}
+                        </span>
                       </div>
                       {value === option.value && (
-                        <Check className="h-4 w-4" style={{ color: 'var(--color-state-focus)' }} />
+                        <Check
+                          className="h-4 w-4"
+                          style={{ color: 'var(--color-state-focus)' }}
+                        />
                       )}
                     </div>
                   </button>

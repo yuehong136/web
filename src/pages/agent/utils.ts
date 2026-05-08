@@ -13,7 +13,11 @@ import type {
   ICategorizeItem,
   IPosition,
 } from './types'
-export { hasSubAgent, hasSubAgentOrTool, isBottomSubAgent } from './utils/delete-node'
+export {
+  hasSubAgent,
+  hasSubAgentOrTool,
+  isBottomSubAgent,
+} from './utils/delete-node'
 
 // ==================== 节点名称生成 ====================
 
@@ -56,6 +60,9 @@ export const generateNodeNamesWithIncreasingIndex = (
   for (let i = 0; i < templateNameList.length; i++) {
     const idx = templateNameList[i]?.idx
     const nextIdx = templateNameList[i + 1]?.idx
+    if (idx === undefined) {
+      continue
+    }
     if (idx + 1 !== nextIdx) {
       index = idx + 1
       break
@@ -72,8 +79,10 @@ export const duplicateNodeForm = (nodeData?: RAGFlowNodeType['data']) => {
 
   // Delete the downstream node corresponding to the to field of the Categorize operator
   if (nodeData?.label === Operator.Categorize) {
-    const categoryDescription = (form.category_description ??
-      {}) as Record<string, Record<string, unknown>>
+    const categoryDescription = (form.category_description ?? {}) as Record<
+      string,
+      Record<string, unknown>
+    >
 
     form.category_description = Object.keys(categoryDescription).reduce<
       Record<string, Record<string, unknown>>
@@ -155,6 +164,9 @@ export const buildCategorizeListFromObject = (
   return Object.keys(categorizeItem)
     .reduce<Array<Omit<ICategorizeItem, 'uuid'>>>((pre, cur) => {
       const item = categorizeItem[cur]
+      if (!item) {
+        return pre
+      }
       const examples = Array.isArray(item.examples)
         ? item.examples.map((x) => ({ value: x }))
         : []
@@ -222,9 +234,11 @@ export const buildNewPositionMap = (
       (_item, idx) => idx,
     ).filter((x) => !indexesInUse.some((y) => y === x))
     const idx = sample(effectiveIdxes)
-    if (idx !== undefined) {
+    const position =
+      idx === undefined ? undefined : CategorizeAnchorPointPositions[idx]
+    if (idx !== undefined && position) {
       indexesInUse.push(idx)
-      pre[cur] = { ...CategorizeAnchorPointPositions[idx], idx }
+      pre[cur] = { ...position, idx }
     }
 
     return pre
@@ -304,6 +318,7 @@ export function getRelativePositionToIterationNode(
       }
     }
   }
+  return undefined
 }
 
 // ==================== 表单相关 ====================

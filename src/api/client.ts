@@ -9,12 +9,7 @@ export class APIError extends Error {
   public code: string
   public details?: any
 
-  constructor(
-    status: number,
-    code: string,
-    message: string,
-    details?: any
-  ) {
+  constructor(status: number, code: string, message: string, details?: any) {
     super(message)
     this.name = 'APIError'
     this.status = status
@@ -74,9 +69,11 @@ class APIClient {
       return
     }
 
-    window.dispatchEvent(new CustomEvent('auth:logout', {
-      detail: { reason: 'token_expired' },
-    }))
+    window.dispatchEvent(
+      new CustomEvent('auth:logout', {
+        detail: { reason: 'token_expired' },
+      }),
+    )
 
     const currentUrl = new URL(window.location.href)
     if (!currentUrl.pathname.startsWith('/auth/')) {
@@ -110,7 +107,7 @@ class APIClient {
 
   private async request<T = any>(
     endpoint: string,
-    config: RequestConfig = {}
+    config: RequestConfig = {},
   ): Promise<T> {
     const {
       timeout = this.defaultTimeout,
@@ -128,7 +125,9 @@ class APIClient {
       url = endpoint
     } else {
       // 如果endpoint不以/v1开头，则添加API版本前缀
-      const apiPath = endpoint.startsWith(`/${API_VERSION}`) ? endpoint : `/${API_VERSION}${endpoint}`
+      const apiPath = endpoint.startsWith(`/${API_VERSION}`)
+        ? endpoint
+        : `/${API_VERSION}${endpoint}`
       url = `${baseURL}${apiPath}`
     }
     if (params && Object.keys(params).length > 0) {
@@ -140,18 +139,21 @@ class APIClient {
       if (q) url += (url.includes('?') ? '&' : '?') + q
     }
     if (data !== undefined && !requestConfig.body) {
-      requestConfig.body = typeof data === 'object' ? JSON.stringify(data) : (data as BodyInit)
+      requestConfig.body =
+        typeof data === 'object' ? JSON.stringify(data) : (data as BodyInit)
     }
 
     // 设置请求头
     const requestHeaders: Record<string, string> = {
       // 只在非FormData时设置Content-Type
-      ...(!(requestConfig.body instanceof FormData) && { 'Content-Type': 'application/json' }),
+      ...(!(requestConfig.body instanceof FormData) && {
+        'Content-Type': 'application/json',
+      }),
       ...(headers as Record<string, string>),
     }
-    
+
     // 过滤掉undefined值
-    Object.keys(requestHeaders).forEach(key => {
+    Object.keys(requestHeaders).forEach((key) => {
       if (requestHeaders[key] === undefined) {
         delete requestHeaders[key]
       }
@@ -188,11 +190,11 @@ class APIClient {
           if (response.status === 401) {
             this.handleUnauthorized(config.skipAuth)
           }
-          
+
           throw new APIError(
             response.status,
             'HTTP_ERROR',
-            `HTTP ${response.status}: ${response.statusText}`
+            `HTTP ${response.status}: ${response.statusText}`,
           )
         }
         return response as any
@@ -200,7 +202,7 @@ class APIClient {
 
       // 解析JSON响应
       const rawData = await response.json()
-      
+
       // 兼容不同的响应格式
       let data: APIResponse<T>
       if (rawData.retcode !== undefined) {
@@ -211,7 +213,7 @@ class APIClient {
         data = {
           retcode: rawData.code,
           retmsg: rawData.message,
-          data: rawData.data
+          data: rawData.data,
         } as APIResponse<T>
       } else {
         // 直接返回数据的格式，但先检查是否是401错误
@@ -219,17 +221,24 @@ class APIClient {
           this.handleUnauthorized(config.skipAuth)
 
           // 抛出错误
-          throw new APIError(401, 'UNAUTHORIZED', rawData.detail || rawData.message || te('unauthorized'))
+          throw new APIError(
+            401,
+            'UNAUTHORIZED',
+            rawData.detail || rawData.message || te('unauthorized'),
+          )
         }
-        
+
         return rawData as T
       }
 
       // 对于登录接口，从响应头中提取token
-      if (endpoint.includes('/user/login') || endpoint.includes('/user/register')) {
+      if (
+        endpoint.includes('/user/login') ||
+        endpoint.includes('/user/register')
+      ) {
         const token = response.headers.get('Authorization')
         if (token) {
-          (data as any).auth = token
+          ;(data as any).auth = token
         }
       }
 
@@ -247,16 +256,19 @@ class APIClient {
           response.status,
           data.retcode?.toString() || 'API_ERROR',
           data.retmsg || te('serverError'),
-          data.data
+          data.data,
         )
       }
 
       // 对于登录等特殊接口，需要返回完整数据（包含auth字段）
       // 检查URL是否是登录接口
-      if (endpoint.includes('/user/login') || endpoint.includes('/user/register')) {
+      if (
+        endpoint.includes('/user/login') ||
+        endpoint.includes('/user/register')
+      ) {
         return data as T
       }
-      
+
       return data.data as T
     } catch (error) {
       clearTimeout(timeoutId)
@@ -274,11 +286,7 @@ class APIClient {
         throw new APIError(0, 'NETWORK_ERROR', te('network'))
       }
 
-      throw new APIError(
-        500,
-        'UNKNOWN_ERROR',
-        err.message || te('serverError')
-      )
+      throw new APIError(500, 'UNKNOWN_ERROR', err.message || te('serverError'))
     }
   }
 
@@ -291,7 +299,7 @@ class APIClient {
   async post<T = any>(
     endpoint: string,
     data?: any,
-    config?: RequestConfig
+    config?: RequestConfig,
   ): Promise<T> {
     return this.request<T>(endpoint, {
       ...config,
@@ -304,7 +312,7 @@ class APIClient {
   async put<T = any>(
     endpoint: string,
     data?: any,
-    config?: RequestConfig
+    config?: RequestConfig,
   ): Promise<T> {
     return this.request<T>(endpoint, {
       ...config,
@@ -317,7 +325,7 @@ class APIClient {
   async patch<T = any>(
     endpoint: string,
     data?: any,
-    config?: RequestConfig
+    config?: RequestConfig,
   ): Promise<T> {
     return this.request<T>(endpoint, {
       ...config,
@@ -336,7 +344,7 @@ class APIClient {
     endpoint: string,
     file: File,
     additionalData?: Record<string, any>,
-    config?: Omit<RequestConfig, 'headers'>
+    config?: Omit<RequestConfig, 'headers'>,
   ): Promise<T> {
     const formData = new FormData()
     formData.append('file', file, file.name)
@@ -366,7 +374,7 @@ class APIClient {
     fieldName: string,
     files: File[],
     additionalData?: Record<string, any>,
-    config?: Omit<RequestConfig, 'headers'>
+    config?: Omit<RequestConfig, 'headers'>,
   ): Promise<T> {
     const formData = new FormData()
 
@@ -399,10 +407,10 @@ class APIClient {
     endpoint: string,
     files: File[],
     additionalData?: Record<string, any>,
-    config?: Omit<RequestConfig, 'headers'>
+    config?: Omit<RequestConfig, 'headers'>,
   ): Promise<T> {
     const formData = new FormData()
-    
+
     files.forEach((file) => {
       // 显式传 file.name 作为文件名，防止 webkitdirectory 选择的文件
       // 被浏览器自动使用 webkitRelativePath（含文件夹路径）作为文件名
@@ -433,7 +441,7 @@ class APIClient {
   async download(
     endpoint: string,
     filename?: string,
-    config?: RequestConfig
+    config?: RequestConfig,
   ): Promise<void> {
     const response = await this.request<Response>(endpoint, {
       ...config,
@@ -447,19 +455,24 @@ class APIClient {
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      
+
       // 优先使用传入的文件名，否则从响应头中获取
       let downloadFilename = filename
       if (!downloadFilename) {
         const contentDisposition = response.headers.get('Content-Disposition')
         if (contentDisposition) {
-          const matches = contentDisposition.match(/filename\*=UTF-8''(.+)|filename="(.+)"|filename=(.+)/)
+          const matches = contentDisposition.match(
+            /filename\*=UTF-8''(.+)|filename="(.+)"|filename=(.+)/,
+          )
           if (matches) {
-            downloadFilename = decodeURIComponent(matches[1] || matches[2] || matches[3])
+            const headerFilename = matches[1] || matches[2] || matches[3]
+            if (headerFilename) {
+              downloadFilename = decodeURIComponent(headerFilename)
+            }
           }
         }
       }
-      
+
       link.download = downloadFilename || 'download'
       document.body.appendChild(link)
       link.click()
@@ -475,9 +488,11 @@ class APIClient {
       onMessage?: (data: any) => void
       onError?: (error: Event) => void
       onOpen?: (event: Event) => void
-    }
+    },
   ): EventSource {
-    const url = endpoint.startsWith('http') ? endpoint : `${this.baseURL}${endpoint}`
+    const url = endpoint.startsWith('http')
+      ? endpoint
+      : `${this.baseURL}${endpoint}`
     const eventSource = new EventSource(url)
 
     if (options?.onMessage) {

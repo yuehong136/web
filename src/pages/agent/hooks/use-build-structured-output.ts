@@ -2,7 +2,11 @@ import get from 'lodash/get.js'
 import isPlainObject from 'lodash/isPlainObject.js'
 import type { ReactNode } from 'react'
 import { useCallback } from 'react'
-import { AgentStructuredOutputField, JsonSchemaDataType, Operator } from '../constant'
+import {
+  AgentStructuredOutputField,
+  JsonSchemaDataType,
+  Operator,
+} from '../constant'
 import useGraphStore from '../store'
 
 function splitValue(value?: string) {
@@ -27,9 +31,7 @@ function getStructuredDatatype(value: Record<string, any> | unknown) {
   const arrayItemsType = get(value, 'items.type', JsonSchemaDataType.String)
 
   const compositeDataType =
-    dataType === 'array'
-      ? `${dataType}<${arrayItemsType}>`
-      : dataType
+    dataType === 'array' ? `${dataType}<${arrayItemsType}>` : dataType
 
   return { dataType, compositeDataType }
 }
@@ -101,6 +103,7 @@ export function useFindAgentStructuredOutputLabel() {
           value: value,
         }
       }
+      return undefined
     },
     [getOperatorTypeFromId],
   )
@@ -113,7 +116,11 @@ export function useFindAgentStructuredOutputTypeByValue() {
   const filterStructuredOutput = useGetStructuredOutputByValue()
 
   const findTypeByValue = useCallback(
-    (values: unknown, target: string, path: string = ''): string | undefined => {
+    (
+      values: unknown,
+      target: string,
+      path: string = '',
+    ): string | undefined => {
       const properties =
         get(values, 'properties') || get(values, 'items.properties')
 
@@ -126,9 +133,7 @@ export function useFindAgentStructuredOutputTypeByValue() {
             return compositeDataType
           }
 
-          if (
-            ['object', 'array'].includes(dataType)
-          ) {
+          if (['object', 'array'].includes(dataType)) {
             const type = findTypeByValue(value, target, nextPath)
             if (type) {
               return type
@@ -136,6 +141,7 @@ export function useFindAgentStructuredOutputTypeByValue() {
           }
         }
       }
+      return undefined
     },
     [],
   )
@@ -159,6 +165,7 @@ export function useFindAgentStructuredOutputTypeByValue() {
           return findTypeByValue(jsonSchema, jsonSchemaFields)
         }
       }
+      return undefined
     },
     [filterStructuredOutput, findTypeByValue, getOperatorTypeFromId],
   )
@@ -175,7 +182,9 @@ export function useFindAgentStructuredOutputLabelByValue() {
         const operatorName = getNode(getNodeId(value ?? ''))?.data.name
         const structuredField = getStructuredField(value)
         if (operatorName) {
-          return structuredField ? operatorName + ' / ' + structuredField : operatorName
+          return structuredField
+            ? operatorName + ' / ' + structuredField
+            : operatorName
         }
       }
       return ''

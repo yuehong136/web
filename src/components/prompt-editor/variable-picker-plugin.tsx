@@ -96,7 +96,7 @@ const VariablePickerRow = forwardRef<
       onMouseEnter={onMouseEnter}
       onClick={onClick}
       className={cn(
-        'flex cursor-pointer items-center justify-between gap-space-sm rounded-radius-sm px-space-sm py-space-xs text-sm text-text-primary',
+        'gap-space-sm rounded-radius-sm px-space-sm py-space-xs flex cursor-pointer items-center justify-between text-sm text-text-primary',
         'hover:bg-components-dropdown-item-bg-hover focus-visible:bg-components-dropdown-item-bg-hover',
         isSelected && 'bg-components-dropdown-item-bg-hover',
         className,
@@ -133,7 +133,7 @@ function VariablePickerGroup({
   return (
     <ul role="group" aria-label={title} className="space-y-[2px]">
       <li role="presentation" className="px-space-xs">
-        <div className="cursor-auto py-space-xs text-xs font-medium uppercase tracking-wide text-text-tertiary">
+        <div className="py-space-xs cursor-auto text-xs font-medium uppercase tracking-wide text-text-tertiary">
           {title}
         </div>
       </li>
@@ -205,12 +205,18 @@ export default function VariablePickerMenuPlugin({
       return null
     }
 
-    const mayLeadingWhitespace = match[1]
+    const mayLeadingWhitespace = match[1] ?? ''
+    const replaceableString = match[2]
+    const matchingString = match[3]
+
+    if (!replaceableString || matchingString === undefined) {
+      return null
+    }
 
     return {
       leadOffset: match.index + mayLeadingWhitespace.length,
-      matchingString: match[3],
-      replaceableString: match[2],
+      matchingString,
+      replaceableString,
     }
   }, [])
 
@@ -247,16 +253,13 @@ export default function VariablePickerMenuPlugin({
     [],
   )
 
-  const preventPopoverMouseDown = useCallback(
-    (event: React.MouseEvent) => {
-      // Prevent the ContentEditable from losing focus when clicking inside
-      // the popover — otherwise the Lexical selection becomes null and
-      // selection.insertNodes() silently no-ops on click.
-      event.preventDefault()
-      event.stopPropagation()
-    },
-    [],
-  )
+  const preventPopoverMouseDown = useCallback((event: React.MouseEvent) => {
+    // Prevent the ContentEditable from losing focus when clicking inside
+    // the popover — otherwise the Lexical selection becomes null and
+    // selection.insertNodes() silently no-ops on click.
+    event.preventDefault()
+    event.stopPropagation()
+  }, [])
 
   const trapPopoverScroll = useCallback(
     (event: React.WheelEvent<HTMLDivElement>) => {
@@ -349,14 +352,14 @@ export default function VariablePickerMenuPlugin({
 
         const selectedValue: string =
           selectedIndex !== null
-            ? flattenedOptions[selectedIndex]?.value ?? ''
+            ? (flattenedOptions[selectedIndex]?.value ?? '')
             : ''
 
         return ReactDOM.createPortal(
           <SelectedValueContext.Provider value={selectedValue}>
             <div
               className={cn(
-                'typeahead-popover nodrag nopan nowheel flex w-80 flex-col overflow-hidden rounded-radius-md border border-border-default bg-components-dropdown-bg shadow-lg',
+                'typeahead-popover nodrag nopan nowheel rounded-radius-md flex w-80 flex-col overflow-hidden border border-border-default bg-components-dropdown-bg shadow-lg',
               )}
               onWheelCapture={trapPopoverScroll}
               onMouseDown={preventPopoverMouseDown}
@@ -364,7 +367,7 @@ export default function VariablePickerMenuPlugin({
               onTouchStart={stopCanvasGesturePropagation}
               onTouchMove={stopCanvasGesturePropagation}
             >
-              <div className="flex items-center gap-space-xs border-b border-border-default px-space-sm py-space-xs">
+              <div className="gap-space-xs px-space-sm py-space-xs flex items-center border-b border-border-default">
                 <Variable className="size-3.5 text-text-secondary" />
                 <span className="text-xs text-text-secondary">
                   {queryString ? `/${queryString}` : '/'}
@@ -375,7 +378,7 @@ export default function VariablePickerMenuPlugin({
                 viewportClassName="typeahead-popover-scroll-viewport p-space-xs"
                 viewportRef={scrollViewportRef}
               >
-                <div className="max-h-64 space-y-space-sm">
+                <div className="space-y-space-sm max-h-64">
                   {groupedOptions.map((group) => (
                     <VariablePickerGroup
                       key={group.title}

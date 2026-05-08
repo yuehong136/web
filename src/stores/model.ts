@@ -3,7 +3,14 @@ import { apiClient } from '@/api/client'
 
 // 根据您提供的数据结构定义类型
 export interface MyLLMModel {
-  type: 'chat' | 'embedding' | 'rerank' | 'image2text' | 'tts' | 'speech2text' | 'ocr'
+  type:
+    | 'chat'
+    | 'embedding'
+    | 'rerank'
+    | 'image2text'
+    | 'tts'
+    | 'speech2text'
+    | 'ocr'
   name: string
   used_token: number
   status?: '0' | '1'
@@ -15,7 +22,9 @@ export interface LLMModelAvailability {
   available?: boolean
 }
 
-export const isLLMModelEnabled = (model?: LLMModelAvailability | null): boolean => {
+export const isLLMModelEnabled = (
+  model?: LLMModelAvailability | null,
+): boolean => {
   if (!model) return false
   if (model.available === false) return false
   return model.status !== '0'
@@ -90,10 +99,7 @@ export const resolveLLMValue = (
     }
   }
 
-  const matchesProvider = (
-    currentProviderName: string,
-    model: MyLLMModel,
-  ) => {
+  const matchesProvider = (currentProviderName: string, model: MyLLMModel) => {
     if (providerName && currentProviderName !== providerName) {
       return false
     }
@@ -139,7 +145,7 @@ export const qualifyLLMValueWithProvider = (
 
 export const hasEnabledModelName = (
   providers: MyLLMProvider | null | undefined,
-  modelName: string | null | undefined
+  modelName: string | null | undefined,
 ): boolean => {
   return resolveLLMValue(providers, modelName, true).matched
 }
@@ -157,7 +163,7 @@ export const findFirstEnabledModelByType = (
 
   for (const [providerName, provider] of Object.entries(providers)) {
     const model = provider.llm.find(
-      (item) => item.type === type && !!item.name && isLLMModelEnabled(item)
+      (item) => item.type === type && !!item.name && isLLMModelEnabled(item),
     )
     if (model) return buildLLMValue(model.name, providerName, valueMode)
   }
@@ -168,7 +174,7 @@ export const findFirstEnabledModelByType = (
 export const findProviderNameByModelName = (
   providers: MyLLMProvider | null | undefined,
   modelName: string | null | undefined,
-  enabledOnly = false
+  enabledOnly = false,
 ): string | null => {
   return resolveLLMValue(providers, modelName, enabledOnly).providerName
 }
@@ -179,7 +185,7 @@ export interface AddLlmParams {
   llm_name: string
   mdl_type: string
   api_base?: string
-  api_key?: string | Record<string, any>  // 支持字符串或对象（MinerU 等厂商需要传递配置对象）
+  api_key?: string | Record<string, any> // 支持字符串或对象（MinerU 等厂商需要传递配置对象）
   max_tokens?: number
   // VolcEngine 特殊字段
   endpoint_id?: string
@@ -336,7 +342,7 @@ export const IconMap: Record<string, string> = {
   [LLMFactory.MinerU]: 'mineru',
   [LLMFactory.PaddleOCR]: 'paddleocr',
   [LLMFactory.N1n]: 'n1n',
-};
+}
 
 export interface LLMFactoryInterface {
   name: string
@@ -357,7 +363,7 @@ interface ModelState {
   factories: LLMFactoryInterface[]
   isLoading: boolean
   selectedProvider: string | null
-  
+
   // 动作
   loadMyLLMs: () => Promise<void>
   loadFactories: () => Promise<void>
@@ -369,12 +375,19 @@ interface ModelState {
     apiKey: string,
     baseUrl?: string,
     additionalParams?: Record<string, any>,
-    verify?: boolean
+    verify?: boolean,
   ) => Promise<void | ModelVerifyResult>
-  addLlm: (params: AddLlmParams, verify?: boolean) => Promise<void | ModelVerifyResult>
-  enableLlm: (llmFactory: string, llmName: string, enabled: boolean) => Promise<void>
+  addLlm: (
+    params: AddLlmParams,
+    verify?: boolean,
+  ) => Promise<void | ModelVerifyResult>
+  enableLlm: (
+    llmFactory: string,
+    llmName: string,
+    enabled: boolean,
+  ) => Promise<void>
   deleteFactory: (llmFactory: string) => Promise<void>
-  
+
   // 工具方法
   setLoading: (loading: boolean) => void
   setSelectedProvider: (provider: string | null) => void
@@ -383,356 +396,350 @@ interface ModelState {
   getTotalTokens: () => number
 }
 
-export const useModelStore = create<ModelState>()(
-  (set, get) => ({
-      // 初始状态
-      myLLMs: {},
-      factories: [],
-      isLoading: false,
-      selectedProvider: null,
+export const useModelStore = create<ModelState>()((set, get) => ({
+  // 初始状态
+  myLLMs: {},
+  factories: [],
+  isLoading: false,
+  selectedProvider: null,
 
-      // 加载我的模型供应商
-      loadMyLLMs: async () => {
-        try {
-          set({ isLoading: true })
-          const response = await apiClient.get('/llm/my_llms')
-          
-          console.log('loadMyLLMs API response:', response)
-          
-          // apiClient已经处理了错误情况，这里直接使用返回的数据
-          set({ 
-            myLLMs: response || {},
-            isLoading: false 
-          })
-        } catch (error: any) {
-          console.error('Failed to load my LLMs:', error)
-          set({ isLoading: false })
-          
-          // 处理认证错误
-          if (error?.status === 401) {
-            const { useAuthStore } = await import('./auth')
-            const authStore = useAuthStore.getState()
-            await authStore.logout()
-            window.location.href = '/auth/login'
-            return
-          }
-          
-          // 创建模拟数据用于开发测试
-          const mockMyLLMs: MyLLMProvider = {
-            "BAAI": {
-              "tags": "TEXT EMBEDDING, TEXT RE-RANK",
-              "llm": [
-                {
-                  "type": "rerank",
-                  "name": "BAAI/bge-reranker-v2-m3",
-                  "used_token": 0
-                },
-                {
-                  "type": "embedding",
-                  "name": "BAAI/bge-large-zh-v1.5",
-                  "used_token": 0
-                }
-              ]
-            },
-            "Tencent Hunyuan": {
-              "tags": "LLM,IMAGE2TEXT",
-              "llm": [
-                {
-                  "type": "chat",
-                  "name": "hunyuan-turbos-latest",
-                  "used_token": 341
-                },
-                {
-                  "type": "chat",
-                  "name": "hunyuan-turbos-longtext-128k-20250325",
-                  "used_token": 231
-                },
-                {
-                  "type": "chat",
-                  "name": "hunyuan-standard",
-                  "used_token": 553
-                },
-                {
-                  "type": "chat",
-                  "name": "hunyuan-lite",
-                  "used_token": 0
-                },
-                {
-                  "type": "chat",
-                  "name": "hunyuan-large",
-                  "used_token": 0
-                },
-                {
-                  "type": "image2text",
-                  "name": "hunyuan-vision",
-                  "used_token": 0
-                },
-                {
-                  "type": "chat",
-                  "name": "hunyuan-t1-latest",
-                  "used_token": 1351
-                }
-              ]
-            }
-          }
-          
-          set({ 
-            myLLMs: mockMyLLMs,
-            isLoading: false 
-          })
-        }
-      },
+  // 加载我的模型供应商
+  loadMyLLMs: async () => {
+    try {
+      set({ isLoading: true })
+      const response = await apiClient.get('/llm/my_llms')
 
-      // 加载可用的模型工厂
-      loadFactories: async () => {
-        try {
-          set({ isLoading: true })
-          const response = await apiClient.get('/llm/factories')
-          
-          console.log('loadFactories API response:', response)
-          
-          // apiClient已经处理了错误情况，这里直接使用返回的数据
-          set({ 
-            factories: response || [],
-            isLoading: false 
-          })
-        } catch (error: any) {
-          console.error('Failed to load factories:', error)
-          set({ isLoading: false })
-          
-          // 处理认证错误
-          if (error?.status === 401) {
-            const { useAuthStore } = await import('./auth')
-            const authStore = useAuthStore.getState()
-            await authStore.logout()
-            window.location.href = '/auth/login'
-            return
-          }
-          
-          // 创建模拟数据用于开发测试
-          const mockFactories: LLMFactoryInterface[] = [
+      console.log('loadMyLLMs API response:', response)
+
+      // apiClient已经处理了错误情况，这里直接使用返回的数据
+      set({
+        myLLMs: response || {},
+        isLoading: false,
+      })
+    } catch (error: any) {
+      console.error('Failed to load my LLMs:', error)
+      set({ isLoading: false })
+
+      // 处理认证错误
+      if (error?.status === 401) {
+        const { useAuthStore } = await import('./auth')
+        const authStore = useAuthStore.getState()
+        await authStore.logout()
+        window.location.href = '/auth/login'
+        return
+      }
+
+      // 创建模拟数据用于开发测试
+      const mockMyLLMs: MyLLMProvider = {
+        BAAI: {
+          tags: 'TEXT EMBEDDING, TEXT RE-RANK',
+          llm: [
             {
-              "name": "OpenAI",
-              "logo": "",
-              "tags": "LLM,TEXT EMBEDDING,TTS,TEXT RE-RANK,SPEECH2TEXT,MODERATION",
-              "status": "1",
-              "id": "1f0c51a2-fd08-4497-a3a0-2d24cfc6a9fc",
-              "create_date": "2024-12-12T18:38:09.456643",
-              "update_date": "2024-12-12T18:38:09.456687",
-              "create_time": 1733999892492,
-              "update_time": 1733999892492,
-              "model_types": [
-                "speech2text",
-                "embedding",
-                "tts",
-                "chat"
-              ]
+              type: 'rerank',
+              name: 'BAAI/bge-reranker-v2-m3',
+              used_token: 0,
             },
             {
-              "name": "Tongyi-Qianwen",
-              "logo": "",
-              "tags": "LLM,TEXT EMBEDDING,TEXT RE-RANK,TTS,SPEECH2TEXT,MODERATION",
-              "status": "1",
-              "id": "2492d0c3-9715-4f0d-acc0-8d9db04ccb54",
-              "create_date": "2024-12-12T18:38:09.456643",
-              "update_date": "2024-12-12T18:38:09.456687",
-              "create_time": 1733999892505,
-              "update_time": 1733999892505,
-              "model_types": [
-                "image2text",
-                "tts",
-                "rerank",
-                "embedding",
-                "chat"
-              ]
-            }
-          ]
-          
-          set({ 
-            factories: mockFactories,
-            isLoading: false 
-          })
-        }
-      },
+              type: 'embedding',
+              name: 'BAAI/bge-large-zh-v1.5',
+              used_token: 0,
+            },
+          ],
+        },
+        'Tencent Hunyuan': {
+          tags: 'LLM,IMAGE2TEXT',
+          llm: [
+            {
+              type: 'chat',
+              name: 'hunyuan-turbos-latest',
+              used_token: 341,
+            },
+            {
+              type: 'chat',
+              name: 'hunyuan-turbos-longtext-128k-20250325',
+              used_token: 231,
+            },
+            {
+              type: 'chat',
+              name: 'hunyuan-standard',
+              used_token: 553,
+            },
+            {
+              type: 'chat',
+              name: 'hunyuan-lite',
+              used_token: 0,
+            },
+            {
+              type: 'chat',
+              name: 'hunyuan-large',
+              used_token: 0,
+            },
+            {
+              type: 'image2text',
+              name: 'hunyuan-vision',
+              used_token: 0,
+            },
+            {
+              type: 'chat',
+              name: 'hunyuan-t1-latest',
+              used_token: 1351,
+            },
+          ],
+        },
+      }
 
-      // 添加供应商
-      addProvider: async (providerId: string) => {
-        try {
-          await apiClient.post(`/llm/factories/${providerId}/add`, {})
-          
-          // apiClient已经处理了错误情况，请求成功后重新加载模型列表
-          await get().loadMyLLMs()
-        } catch (error) {
-          console.error('Failed to add provider:', error)
-          throw error
-        }
-      },
+      set({
+        myLLMs: mockMyLLMs,
+        isLoading: false,
+      })
+    }
+  },
 
-      // 移除供应商
-      removeProvider: async (providerName: string) => {
-        try {
-          await apiClient.delete(`/llm/providers/${encodeURIComponent(providerName)}`)
-          
-          // apiClient已经处理了错误情况，请求成功后从本地状态中移除
-          const newMyLLMs = { ...get().myLLMs }
-          delete newMyLLMs[providerName]
-          set({ myLLMs: newMyLLMs })
-        } catch (error) {
-          console.error('Failed to remove provider:', error)
-          throw error
-        }
-      },
+  // 加载可用的模型工厂
+  loadFactories: async () => {
+    try {
+      set({ isLoading: true })
+      const response = await apiClient.get('/llm/factories')
 
-      // 更新供应商配置
-      updateProviderConfig: async (providerId: string, config: any) => {
-        try {
-          await apiClient.put(`/llm/providers/${providerId}/config`, config)
-          
-          // apiClient已经处理了错误情况，请求成功后重新加载模型列表
-          await get().loadMyLLMs()
-        } catch (error) {
-          console.error('Failed to update provider config:', error)
-          throw error
-        }
-      },
+      console.log('loadFactories API response:', response)
 
-      // 设置API Key（用于云服务厂商）
-      setApiKey: async (
-        llmFactory: string,
-        apiKey: string,
-        baseUrl?: string,
-        additionalParams?: Record<string, any>,
-        verify = false
-      ) => {
-        try {
-          const requestData: any = {
-            llm_factory: llmFactory,
-            api_key: apiKey,
-            verify,
-            ...additionalParams
-          }
+      // apiClient已经处理了错误情况，这里直接使用返回的数据
+      set({
+        factories: response || [],
+        isLoading: false,
+      })
+    } catch (error: any) {
+      console.error('Failed to load factories:', error)
+      set({ isLoading: false })
 
-          if (baseUrl) {
-            requestData.base_url = baseUrl
-          }
+      // 处理认证错误
+      if (error?.status === 401) {
+        const { useAuthStore } = await import('./auth')
+        const authStore = useAuthStore.getState()
+        await authStore.logout()
+        window.location.href = '/auth/login'
+        return
+      }
 
-          // SILICONFLOW 国际版：根据 base_url 判断使用哪个模型源
-          if (llmFactory === LLMFactory.SILICONFLOW) {
-            requestData.source_fid = (baseUrl || '')
-              .toLowerCase()
-              .includes('api.siliconflow.com')
-              ? 'siliconflow_intl'
-              : LLMFactory.SILICONFLOW
-          }
-          
-          const response = await apiClient.post('/llm/set_api_key', requestData)
+      // 创建模拟数据用于开发测试
+      const mockFactories: LLMFactoryInterface[] = [
+        {
+          name: 'OpenAI',
+          logo: '',
+          tags: 'LLM,TEXT EMBEDDING,TTS,TEXT RE-RANK,SPEECH2TEXT,MODERATION',
+          status: '1',
+          id: '1f0c51a2-fd08-4497-a3a0-2d24cfc6a9fc',
+          create_date: '2024-12-12T18:38:09.456643',
+          update_date: '2024-12-12T18:38:09.456687',
+          create_time: 1733999892492,
+          update_time: 1733999892492,
+          model_types: ['speech2text', 'embedding', 'tts', 'chat'],
+        },
+        {
+          name: 'Tongyi-Qianwen',
+          logo: '',
+          tags: 'LLM,TEXT EMBEDDING,TEXT RE-RANK,TTS,SPEECH2TEXT,MODERATION',
+          status: '1',
+          id: '2492d0c3-9715-4f0d-acc0-8d9db04ccb54',
+          create_date: '2024-12-12T18:38:09.456643',
+          update_date: '2024-12-12T18:38:09.456687',
+          create_time: 1733999892505,
+          update_time: 1733999892505,
+          model_types: ['image2text', 'tts', 'rerank', 'embedding', 'chat'],
+        },
+      ]
 
-          // verify 模式只返回验证结果，不刷新列表
-          if (verify) {
-            return {
-              isValid: !!response?.success,
-              logs: response?.message || ''
-            } as ModelVerifyResult
-          }
+      set({
+        factories: mockFactories,
+        isLoading: false,
+      })
+    }
+  },
 
-          // apiClient已经处理了错误情况，请求成功后重新加载模型列表
-          await get().loadMyLLMs()
-        } catch (error) {
-          console.error('Failed to set API key:', error)
-          throw error
-        }
-      },
+  // 添加供应商
+  addProvider: async (providerId: string) => {
+    try {
+      await apiClient.post(`/llm/factories/${providerId}/add`, {})
 
-      // 添加本地模型（用于 Ollama、Xinference 等本地服务）
-      addLlm: async (params: AddLlmParams, verify = false) => {
-        try {
-          const requestData = {
-            ...params,
-            verify,
-          }
+      // apiClient已经处理了错误情况，请求成功后重新加载模型列表
+      await get().loadMyLLMs()
+    } catch (error) {
+      console.error('Failed to add provider:', error)
+      throw error
+    }
+  },
 
-          const response = await apiClient.post('/llm/add_llm', requestData)
+  // 移除供应商
+  removeProvider: async (providerName: string) => {
+    try {
+      await apiClient.delete(
+        `/llm/providers/${encodeURIComponent(providerName)}`,
+      )
 
-          // verify 模式只返回验证结果，不刷新列表
-          if (verify) {
-            return {
-              isValid: !!response?.success,
-              logs: response?.message || ''
-            } as ModelVerifyResult
-          }
+      // apiClient已经处理了错误情况，请求成功后从本地状态中移除
+      const newMyLLMs = { ...get().myLLMs }
+      delete newMyLLMs[providerName]
+      set({ myLLMs: newMyLLMs })
+    } catch (error) {
+      console.error('Failed to remove provider:', error)
+      throw error
+    }
+  },
 
-          // 请求成功后重新加载模型列表
-          await get().loadMyLLMs()
-        } catch (error) {
-          console.error('Failed to add LLM:', error)
-          throw error
-        }
-      },
+  // 更新供应商配置
+  updateProviderConfig: async (providerId: string, config: any) => {
+    try {
+      await apiClient.put(`/llm/providers/${providerId}/config`, config)
 
-      // 启用/禁用指定模型
-      enableLlm: async (llmFactory: string, llmName: string, enabled: boolean) => {
-        try {
-          await apiClient.post('/llm/enable_llm', {
-            llm_factory: llmFactory,
-            llm_name: llmName,
-            status: enabled ? '1' : '0',
-          })
+      // apiClient已经处理了错误情况，请求成功后重新加载模型列表
+      await get().loadMyLLMs()
+    } catch (error) {
+      console.error('Failed to update provider config:', error)
+      throw error
+    }
+  },
 
-          // 请求成功后重新加载模型列表
-          await get().loadMyLLMs()
-        } catch (error) {
-          console.error('Failed to enable/disable LLM:', error)
-          throw error
-        }
-      },
+  // 设置API Key（用于云服务厂商）
+  setApiKey: async (
+    llmFactory: string,
+    apiKey: string,
+    baseUrl?: string,
+    additionalParams?: Record<string, any>,
+    verify = false,
+  ) => {
+    try {
+      const requestData: any = {
+        llm_factory: llmFactory,
+        api_key: apiKey,
+        verify,
+        ...additionalParams,
+      }
 
-      // 删除模型供应商
-      deleteFactory: async (llmFactory: string) => {
-        try {
-          // 后端接口使用 POST 方法传递 llm_factory 参数
-          await apiClient.post('/llm/delete_factory', { 
-            llm_factory: llmFactory 
-          })
-          
-          // 请求成功后重新加载模型列表
-          await get().loadMyLLMs()
-        } catch (error) {
-          console.error('Failed to delete factory:', error)
-          throw error
-        }
-      },
+      if (baseUrl) {
+        requestData.base_url = baseUrl
+      }
 
-      // 设置加载状态
-      setLoading: (loading: boolean) => {
-        set({ isLoading: loading })
-      },
+      // SILICONFLOW 国际版：根据 base_url 判断使用哪个模型源
+      if (llmFactory === LLMFactory.SILICONFLOW) {
+        requestData.source_fid = (baseUrl || '')
+          .toLowerCase()
+          .includes('api.siliconflow.com')
+          ? 'siliconflow_intl'
+          : LLMFactory.SILICONFLOW
+      }
 
-      // 设置选中的供应商
-      setSelectedProvider: (provider: string | null) => {
-        set({ selectedProvider: provider })
-      },
+      const response = await apiClient.post('/llm/set_api_key', requestData)
 
-      // 根据名称获取供应商
-      getProviderByName: (name: string) => {
-        return get().myLLMs[name] || null
-      },
+      // verify 模式只返回验证结果，不刷新列表
+      if (verify) {
+        return {
+          isValid: !!response?.success,
+          logs: response?.message || '',
+        } as ModelVerifyResult
+      }
 
-      // 获取模型总数
-      getTotalModels: () => {
-        const myLLMs = get().myLLMs
-        return Object.values(myLLMs).reduce((total, provider) => {
-          return total + provider.llm.length
+      // apiClient已经处理了错误情况，请求成功后重新加载模型列表
+      await get().loadMyLLMs()
+      return undefined
+    } catch (error) {
+      console.error('Failed to set API key:', error)
+      throw error
+    }
+  },
+
+  // 添加本地模型（用于 Ollama、Xinference 等本地服务）
+  addLlm: async (params: AddLlmParams, verify = false) => {
+    try {
+      const requestData = {
+        ...params,
+        verify,
+      }
+
+      const response = await apiClient.post('/llm/add_llm', requestData)
+
+      // verify 模式只返回验证结果，不刷新列表
+      if (verify) {
+        return {
+          isValid: !!response?.success,
+          logs: response?.message || '',
+        } as ModelVerifyResult
+      }
+
+      // 请求成功后重新加载模型列表
+      await get().loadMyLLMs()
+      return undefined
+    } catch (error) {
+      console.error('Failed to add LLM:', error)
+      throw error
+    }
+  },
+
+  // 启用/禁用指定模型
+  enableLlm: async (llmFactory: string, llmName: string, enabled: boolean) => {
+    try {
+      await apiClient.post('/llm/enable_llm', {
+        llm_factory: llmFactory,
+        llm_name: llmName,
+        status: enabled ? '1' : '0',
+      })
+
+      // 请求成功后重新加载模型列表
+      await get().loadMyLLMs()
+    } catch (error) {
+      console.error('Failed to enable/disable LLM:', error)
+      throw error
+    }
+  },
+
+  // 删除模型供应商
+  deleteFactory: async (llmFactory: string) => {
+    try {
+      // 后端接口使用 POST 方法传递 llm_factory 参数
+      await apiClient.post('/llm/delete_factory', {
+        llm_factory: llmFactory,
+      })
+
+      // 请求成功后重新加载模型列表
+      await get().loadMyLLMs()
+    } catch (error) {
+      console.error('Failed to delete factory:', error)
+      throw error
+    }
+  },
+
+  // 设置加载状态
+  setLoading: (loading: boolean) => {
+    set({ isLoading: loading })
+  },
+
+  // 设置选中的供应商
+  setSelectedProvider: (provider: string | null) => {
+    set({ selectedProvider: provider })
+  },
+
+  // 根据名称获取供应商
+  getProviderByName: (name: string) => {
+    return get().myLLMs[name] || null
+  },
+
+  // 获取模型总数
+  getTotalModels: () => {
+    const myLLMs = get().myLLMs
+    return Object.values(myLLMs).reduce((total, provider) => {
+      return total + provider.llm.length
+    }, 0)
+  },
+
+  // 获取总token使用量
+  getTotalTokens: () => {
+    const myLLMs = get().myLLMs
+    return Object.values(myLLMs).reduce((total, provider) => {
+      return (
+        total +
+        provider.llm.reduce((providerTotal, model) => {
+          return providerTotal + model.used_token
         }, 0)
-      },
-
-      // 获取总token使用量
-      getTotalTokens: () => {
-        const myLLMs = get().myLLMs
-        return Object.values(myLLMs).reduce((total, provider) => {
-          return total + provider.llm.reduce((providerTotal, model) => {
-            return providerTotal + model.used_token
-          }, 0)
-        }, 0)
-      },
-    })
-)
+      )
+    }, 0)
+  },
+}))

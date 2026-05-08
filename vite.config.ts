@@ -1,7 +1,35 @@
 import fs from 'node:fs'
+import { execSync } from 'node:child_process'
 import { defineConfig, loadEnv, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
+import { visualizer } from 'rollup-plugin-visualizer'
+
+function readPackageVersion(): string {
+  try {
+    const packageJson = JSON.parse(
+      fs.readFileSync(path.resolve(__dirname, 'package.json'), 'utf-8'),
+    ) as { version?: string }
+    return packageJson.version ?? '0.0.0'
+  } catch {
+    return '0.0.0'
+  }
+}
+
+function readGitCommitSha(): string {
+  try {
+    return (
+      execSync('git rev-parse --short HEAD', {
+        cwd: __dirname,
+        stdio: ['ignore', 'pipe', 'ignore'],
+      })
+        .toString()
+        .trim() || 'unknown'
+    )
+  } catch {
+    return 'unknown'
+  }
+}
 
 function monacoStaticAssetsPlugin(): Plugin {
   const sourceDir = path.resolve(__dirname, 'node_modules/monaco-editor/min/vs')
@@ -55,6 +83,10 @@ function monacoStaticAssetsPlugin(): Plugin {
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   const fallbackApiBase = env.VITE_API_BASE_URL || 'http://localhost:8000'
+  const shouldAnalyze = env.VITE_ANALYZE === 'true' || mode === 'analyze'
+  const appVersion = readPackageVersion()
+  const appCommitSha = env.VITE_COMMIT_SHA || readGitCommitSha()
+  const appBuildTime = new Date().toISOString()
 
   let adminTarget = 'http://localhost:8130'
   try {
@@ -69,7 +101,23 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       monacoStaticAssetsPlugin(),
+      ...(shouldAnalyze
+        ? [
+            visualizer({
+              filename: 'dist/stats.html',
+              template: 'treemap',
+              gzipSize: true,
+              brotliSize: true,
+            }) as unknown as Plugin,
+          ]
+        : []),
     ],
+
+    define: {
+      __APP_VERSION__: JSON.stringify(appVersion),
+      __APP_COMMIT_SHA__: JSON.stringify(appCommitSha),
+      __APP_BUILD_TIME__: JSON.stringify(appBuildTime),
+    },
 
     resolve: {
       alias: {
@@ -78,7 +126,6 @@ export default defineConfig(({ mode }) => {
     },
 
     server: {
-      host: '0.0.0.0',
       port: 5173,
       proxy: {
         '/api': {
@@ -120,31 +167,23 @@ export default defineConfig(({ mode }) => {
       exclude: ['pdfjs-dist'],
     },
 
+    worker: {
+      format: 'es',
+    },
+
     // ---------------------------------------------------------------------------
     // Production build
     // ---------------------------------------------------------------------------
     build: {
       // Match tsconfig target — modern syntax = smaller output
-      target: 'es2022',
-
-      // Terser produces ~5-8 % smaller output than esbuild and strips console
-      minify: 'terser',
-      terserOptions: {
-        compress: {
-          drop_console: true,
-          drop_debugger: true,
-          pure_funcs: ['console.log', 'console.info', 'console.debug'],
-        },
-        format: {
-          comments: false,
-        },
-      },
+      target: 'es2023',
 
       // 'hidden' = sourcemaps are generated but not referenced from bundles,
       // so they don't get served to the browser. Upload them to your error
-      // tracker (Sentry/Datadog) and keep them out of public dist deploys.
+      // tracker (Sentry/Datadog) and exclude .map files from public dist deploys.
       sourcemap: 'hidden',
       cssCodeSplit: true,
+      reportCompressedSize: false,
       chunkSizeWarningLimit: 500,
 
       rollupOptions: {

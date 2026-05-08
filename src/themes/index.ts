@@ -13,26 +13,29 @@ export type { ScopedThemeValue } from './scoped-theme'
 export const Theme = {
   LIGHT: 'light' as const,
   DARK: 'dark' as const,
-  SYSTEM: 'system' as const
+  SYSTEM: 'system' as const,
 }
 
-export type Theme = typeof Theme[keyof typeof Theme]
+export type Theme = (typeof Theme)[keyof typeof Theme]
 
 // 主题工具函数
 export const setTheme = (theme: Theme) => {
   // 添加过渡控制标记，临时禁用过渡动画防止闪烁（借鉴 Dify）
   document.documentElement.setAttribute('data-changing-theme', '')
-  
+
   if (theme === Theme.SYSTEM) {
     // 系统模式：检测系统偏好并设置对应主题
     const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light')
+    document.documentElement.setAttribute(
+      'data-theme',
+      isDark ? 'dark' : 'light',
+    )
     localStorage.removeItem('theme')
   } else {
     document.documentElement.setAttribute('data-theme', theme)
     localStorage.setItem('theme', theme)
   }
-  
+
   // 下一帧移除标记，恢复过渡动画
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
@@ -52,7 +55,9 @@ export const getTheme = (): Theme => {
 export const getResolvedTheme = (): 'light' | 'dark' => {
   const theme = getTheme()
   if (theme === Theme.SYSTEM) {
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+    return window.matchMedia('(prefers-color-scheme: dark)').matches
+      ? 'dark'
+      : 'light'
   }
   return theme as 'light' | 'dark'
 }
@@ -67,14 +72,15 @@ export const initTheme = () => {
       const resolvedTheme = mediaQuery.matches ? 'dark' : 'light'
       document.documentElement.setAttribute('data-theme', resolvedTheme)
     }
-    
+
     updateTheme()
     mediaQuery.addEventListener('change', updateTheme)
-    
+
     return () => mediaQuery.removeEventListener('change', updateTheme)
   } else {
     document.documentElement.setAttribute('data-theme', theme)
   }
+  return undefined
 }
 
 // React hook: 检测当前是否为暗黑模式
@@ -94,7 +100,7 @@ export const useIsDarkTheme = (): boolean => {
 
     observer.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ['data-theme']
+      attributeFilter: ['data-theme'],
     })
 
     // 监听系统主题变化

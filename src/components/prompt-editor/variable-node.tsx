@@ -20,11 +20,11 @@ export class VariableNode extends DecoratorNode<ReactNode> {
   __dataType: string
   __icon?: ReactNode
 
-  static getType(): string {
+  static override getType(): string {
     return 'variable'
   }
 
-  static clone(node: VariableNode): VariableNode {
+  static override clone(node: VariableNode): VariableNode {
     return new VariableNode(
       node.__value,
       node.__label,
@@ -35,7 +35,9 @@ export class VariableNode extends DecoratorNode<ReactNode> {
     )
   }
 
-  static importJSON(serializedNode: SerializedVariableNode): VariableNode {
+  static override importJSON(
+    serializedNode: SerializedVariableNode,
+  ): VariableNode {
     return new VariableNode(
       serializedNode.value,
       serializedNode.label,
@@ -61,18 +63,18 @@ export class VariableNode extends DecoratorNode<ReactNode> {
     this.__icon = icon
   }
 
-  createDOM(): HTMLElement {
+  override createDOM(): HTMLElement {
     const dom = document.createElement('span')
     dom.className = 'prompt-editor-variable-node'
 
     return dom
   }
 
-  updateDOM(): false {
+  override updateDOM(): false {
     return false
   }
 
-  decorate(): ReactNode {
+  override decorate(): ReactNode {
     let parentLabel = this.__parentLabel
 
     if (this.__value.startsWith(prefix)) {
@@ -80,7 +82,7 @@ export class VariableNode extends DecoratorNode<ReactNode> {
     }
 
     return (
-      <span className="inline-flex max-w-full items-center gap-space-xs rounded-radius-sm bg-components-system-accent-soft px-space-sm py-0.5 align-middle text-sm text-components-system-accent-text">
+      <span className="gap-space-xs rounded-radius-sm px-space-sm inline-flex max-w-full items-center bg-components-system-accent-soft py-0.5 align-middle text-sm text-components-system-accent-text">
         {this.__icon ? (
           <span className="flex items-center justify-center [&_svg]:size-4">
             {this.__icon}
@@ -98,7 +100,7 @@ export class VariableNode extends DecoratorNode<ReactNode> {
           {this.__label}
         </span>
         {this.__dataType ? (
-          <span className="ml-space-xs shrink-0 rounded-radius-sm bg-background-surface/60 px-1 font-mono text-xs text-text-secondary">
+          <span className="ml-space-xs rounded-radius-sm bg-background-surface/60 shrink-0 px-1 font-mono text-xs text-text-secondary">
             {this.__dataType}
           </span>
         ) : null}
@@ -106,11 +108,11 @@ export class VariableNode extends DecoratorNode<ReactNode> {
     )
   }
 
-  getTextContent(): string {
+  override getTextContent(): string {
     return `{${this.__value}}`
   }
 
-  exportJSON(): SerializedVariableNode {
+  override exportJSON(): SerializedVariableNode {
     return {
       ...super.exportJSON(),
       type: VariableNode.getType(),

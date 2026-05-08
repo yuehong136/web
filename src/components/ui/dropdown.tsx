@@ -1,7 +1,7 @@
-import * as React from "react"
-import { createPortal } from "react-dom"
-import { cn } from "@/lib/utils"
-import { useNearestPortalTheme } from "./portal-theme"
+import * as React from 'react'
+import { createPortal } from 'react-dom'
+import { cn } from '@/lib/utils'
+import { useNearestPortalTheme } from './portal-theme'
 
 // Context 用于传递关闭函数
 const DropdownContext = React.createContext<{ close: () => void } | null>(null)
@@ -21,12 +21,12 @@ interface DropdownProps {
   className?: string
 }
 
-const Dropdown: React.FC<DropdownProps> = ({ 
-  trigger, 
+const Dropdown: React.FC<DropdownProps> = ({
+  trigger,
   children,
   items,
   align = 'right',
-  className 
+  className,
 }) => {
   const [isOpen, setIsOpen] = React.useState(false)
   const [position, setPosition] = React.useState({ top: 0, left: 0, right: 0 })
@@ -58,7 +58,7 @@ const Dropdown: React.FC<DropdownProps> = ({
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Node
       if (
-        triggerRef.current && 
+        triggerRef.current &&
         !triggerRef.current.contains(target) &&
         dropdownRef.current &&
         !dropdownRef.current.contains(target)
@@ -100,45 +100,53 @@ const Dropdown: React.FC<DropdownProps> = ({
       window.addEventListener('scroll', handleScroll, true)
       return () => window.removeEventListener('scroll', handleScroll, true)
     }
+    return undefined
   }, [isOpen])
 
   // Context value
-  const contextValue = React.useMemo(() => ({ close: () => setIsOpen(false) }), [])
+  const contextValue = React.useMemo(
+    () => ({ close: () => setIsOpen(false) }),
+    [],
+  )
 
   const dropdownContent = isOpen && (
     <DropdownContext.Provider value={contextValue}>
       {/* Backdrop */}
-      <div 
+      <div
         data-theme={theme}
-        className="fixed inset-0 z-[9998]" 
-        onClick={() => setIsOpen(false)} 
+        className="fixed inset-0 z-[9998]"
+        onClick={() => setIsOpen(false)}
       />
-      
+
       {/* Dropdown content - 使用 Portal 渲染到 body */}
-      <div 
+      <div
         data-theme={theme}
         ref={dropdownRef}
         className={cn(
-          "fixed z-[9999] min-w-[160px] rounded-lg shadow-lg",
-          "bg-background-surface border border-border-default",
-          className
+          'fixed z-[9999] min-w-[160px] rounded-lg shadow-lg',
+          'border border-border-default bg-background-surface',
+          className,
         )}
         style={{
           top: position.top,
-          ...(align === 'right' ? { right: position.right } : { left: position.left }),
+          ...(align === 'right'
+            ? { right: position.right }
+            : { left: position.left }),
         }}
       >
-        <div className="py-1 bg-background-surface rounded-lg">
-          {items ? items.map((item, index) => (
-            <DropdownItem
-              key={index}
-              icon={item.icon}
-              danger={item.destructive}
-              onClick={item.onClick}
-            >
-              {item.label}
-            </DropdownItem>
-          )) : children}
+        <div className="rounded-lg bg-background-surface py-1">
+          {items
+            ? items.map((item, index) => (
+                <DropdownItem
+                  key={index}
+                  icon={item.icon}
+                  danger={item.destructive}
+                  onClick={item.onClick}
+                >
+                  {item.label}
+                </DropdownItem>
+              ))
+            : children}
         </div>
       </div>
     </DropdownContext.Provider>
@@ -146,9 +154,7 @@ const Dropdown: React.FC<DropdownProps> = ({
 
   return (
     <div className="relative inline-block text-left" ref={triggerRef}>
-      <div onClick={() => setIsOpen(!isOpen)}>
-        {trigger}
-      </div>
+      <div onClick={() => setIsOpen(!isOpen)}>{trigger}</div>
       {createPortal(dropdownContent, document.body)}
     </div>
   )
@@ -160,13 +166,13 @@ interface DropdownItemProps extends React.ButtonHTMLAttributes<HTMLButtonElement
   danger?: boolean
 }
 
-const DropdownItem: React.FC<DropdownItemProps> = ({ 
-  children, 
-  icon, 
-  danger = false, 
+const DropdownItem: React.FC<DropdownItemProps> = ({
+  children,
+  icon,
+  danger = false,
   className,
   onClick,
-  ...props 
+  ...props
 }) => {
   const context = React.useContext(DropdownContext)
 
@@ -179,11 +185,11 @@ const DropdownItem: React.FC<DropdownItemProps> = ({
   return (
     <button
       className={cn(
-        "w-full flex items-center gap-2 px-3 py-2.5 text-sm text-left",
-        danger 
-          ? "text-status-error hover:bg-state-error-subtle" 
-          : "text-text-secondary hover:bg-background-subtle",
-        className
+        'flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm',
+        danger
+          ? 'text-status-error hover:bg-state-error-subtle'
+          : 'text-text-secondary hover:bg-background-subtle',
+        className,
       )}
       onClick={handleClick}
       {...props}
