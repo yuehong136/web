@@ -44,7 +44,7 @@ Multi-RAG 平台的企业级 React 前端：智能对话、知识库管理、Age
 | ------------- | ----------------------------------------------------------------------------- | ----------- |
 | 框架          | React                                                                         | 19.1        |
 | 语言          | TypeScript（strict）                                                          | 5.8         |
-| 构建          | Vite                                                                          | 7.3         |
+| 构建          | Vite                                                                          | 8.0         |
 | 路由          | react-router-dom                                                              | 7.7         |
 | 服务器状态    | TanStack Query                                                                | 5.83        |
 | 客户端状态    | Zustand                                                                       | 5.0         |
@@ -156,7 +156,7 @@ VITE_WS_BASE_URL=ws://localhost:8000
 
 ## 浏览器支持
 
-Chrome/Edge 107+、Firefox 104+、Safari 16+。
+Chrome/Edge 111+、Firefox 114+、Safari 16.4+。
 
 ## 许可证
 
@@ -164,4 +164,4 @@ Chrome/Edge 107+、Firefox 104+、Safari 16+。
 
 ---
 
-**版本**：0.9.8 — 基于 React 19 · TypeScript 5.8 · Vite 7
+**版本**：0.9.8 — 基于 React 19 · TypeScript 5.8 · Vite 8

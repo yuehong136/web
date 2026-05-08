@@ -79,6 +79,32 @@ function monacoStaticAssetsPlugin(): Plugin {
   }
 }
 
+function normalizeModuleId(id: string): string {
+  return id.replaceAll('\\', '/')
+}
+
+function isPackage(id: string, packageName: string): boolean {
+  const normalized = normalizeModuleId(id)
+  return (
+    normalized.includes(`/node_modules/${packageName}/`) ||
+    normalized.endsWith(`/node_modules/${packageName}`)
+  )
+}
+
+function isPackagePrefix(id: string, packagePrefix: string): boolean {
+  return normalizeModuleId(id).includes(`/node_modules/${packagePrefix}`)
+}
+
+function isAnyPackage(id: string, packageNames: string[]): boolean {
+  return packageNames.some((packageName) => isPackage(id, packageName))
+}
+
+function isAnyPackagePrefix(id: string, packagePrefixes: string[]): boolean {
+  return packagePrefixes.some((packagePrefix) =>
+    isPackagePrefix(id, packagePrefix),
+  )
+}
+
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
@@ -186,228 +212,204 @@ export default defineConfig(({ mode }) => {
       reportCompressedSize: false,
       chunkSizeWarningLimit: 500,
 
-      rollupOptions: {
+      rolldownOptions: {
         output: {
           // Organized output paths
           entryFileNames: 'js/[name]-[hash].js',
           chunkFileNames: 'js/chunks/[name]-[hash].js',
           assetFileNames: 'assets/[ext]/[name]-[hash].[ext]',
 
-          // Keep Rollup-generated shared helper chunks separate. Merging tiny
-          // chunks can move helpers into lazy vendor chunks and create circular
-          // startup imports between core UI and heavy preview packages.
-
-          // ---------------------------------------------------------------
-          // Manual chunk splitting — grouped by update frequency & load priority
-          //
-          // Strategy:
-          //   1. vendor-core   — React runtime, almost never changes → long-term cache
-          //   2. vendor-ui     — Radix + shadcn primitives, stable
-          //   3. vendor-markdown — Markdown renderers/editors and unified AST stack
-          //   4. vendor-antdx  — Ant Design X chat/markdown components
-          //   5. vendor-antd   — Ant Design, heavy, used in mixed pages
-          //   6. vendor-state  — Zustand / TanStack / forms / validation
-          //   7. vendor-immer  — shared Immer runtime used by Zustand and Redux Toolkit
-          //   8. vendor-graph  — AntV G6 / XYFlow / Cytoscape, page-specific
-          //   9. vendor-editor — Monaco / Lexical, page-specific
-          //  10. vendor-doc-preview — PDF / DOCX / PPTX / Excel / CSV
-          //  11. vendor-chart  — Recharts + D3 ecosystem
-          //  12. vendor-icons  — Lucide icons (tree-shake boundary)
-          //  13. vendor-i18n   — i18next ecosystem
-          //  14. vendor-dnd    — dnd-kit drag & drop
-          //  15. vendor-utils  — lodash, uuid, misc utilities
-          // ---------------------------------------------------------------
-          manualChunks(id) {
-            // Keep Rollup's CJS interop helpers with React. If this helper lands
-            // in an AntD/Recharts chunk, vendor-core can import vendor chunks and
-            // create a browser-time circular initialization failure.
-            if (id.includes('commonjsHelpers')) {
-              return 'vendor-core'
-            }
-
-            if (!id.includes('node_modules')) return
-
-            // 1. React core runtime
-            if (
-              id.includes('node_modules/react/') ||
-              id.includes('node_modules/react-dom/') ||
-              id.includes('node_modules/react-is/') ||
-              id.includes('node_modules/use-sync-external-store/') ||
-              id.includes('node_modules/react-router-dom/') ||
-              id.includes('node_modules/react-router/') ||
-              id.includes('node_modules/scheduler/')
-            ) {
-              return 'vendor-core'
-            }
-
-            if (id.includes('node_modules/immer/')) {
-              return 'vendor-immer'
-            }
-
-            if (
-              id.includes('node_modules/react-draggable/') ||
-              id.includes('node_modules/react-rnd/') ||
-              id.includes('node_modules/re-resizable/')
-            ) {
-              return 'vendor-doc-preview'
-            }
-
-            if (
-              id.includes('node_modules/@ant-design/x/') ||
-              id.includes('node_modules/@ant-design/x-markdown/') ||
-              id.includes('node_modules/@ant-design/x-sdk/')
-            ) {
-              return 'vendor-antdx'
-            }
-
-            // Markdown renderers/editors share unified/hast/prism internals.
-            // Keep them together so UIW Markdown editors and renderers do not
-            // create vendor-markdown <-> vendor-editor cycles.
-            if (
-              id.includes('node_modules/@uiw/') ||
-              id.includes('node_modules/markdown-it') ||
-              id.includes('node_modules/react-markdown/') ||
-              id.includes('node_modules/remark-') ||
-              id.includes('node_modules/rehype-') ||
-              id.includes('node_modules/rehype/') ||
-              id.includes('node_modules/unified/') ||
-              id.includes('node_modules/highlight.js/') ||
-              id.includes('node_modules/react-syntax-highlighter/') ||
-              id.includes('node_modules/lowlight/') ||
-              id.includes('node_modules/refractor/') ||
-              id.includes('node_modules/prismjs/') ||
-              id.includes('node_modules/property-information/') ||
-              id.includes('node_modules/react-property/') ||
-              id.includes('node_modules/style-to-js/') ||
-              id.includes('node_modules/style-to-object/') ||
-              id.includes('node_modules/inline-style-parser/') ||
-              id.includes('node_modules/hast-') ||
-              id.includes('node_modules/hastscript/') ||
-              id.includes('node_modules/mdast-') ||
-              id.includes('node_modules/micromark') ||
-              id.includes('node_modules/unist-') ||
-              id.includes('node_modules/vfile') ||
-              id.includes('node_modules/space-separated-tokens/') ||
-              id.includes('node_modules/comma-separated-tokens/') ||
-              id.includes('node_modules/html-url-attributes/') ||
-              id.includes('node_modules/zwitch/') ||
-              id.includes('node_modules/devlop/')
-            ) {
-              return 'vendor-markdown'
-            }
-
-            // 2. Radix UI + shadcn/ui primitives
-            if (
-              id.includes('node_modules/@radix-ui/') ||
-              id.includes('node_modules/class-variance-authority/') ||
-              id.includes('node_modules/clsx/') ||
-              id.includes('node_modules/tailwind-merge/') ||
-              id.includes('node_modules/cmdk/') ||
-              id.includes('node_modules/sonner/') ||
-              id.includes('node_modules/vaul/') ||
-              id.includes('node_modules/embla-carousel') ||
-              id.includes('node_modules/input-otp/') ||
-              id.includes('node_modules/react-day-picker/') ||
-              id.includes('node_modules/next-themes/')
-            ) {
-              return 'vendor-ui'
-            }
-
-            // 3. Ant Design ecosystem
-            if (
-              id.includes('node_modules/antd/') ||
-              id.includes('node_modules/@ant-design/')
-            ) {
-              return 'vendor-antd'
-            }
-
-            // 4. State management + data fetching + forms
-            if (
-              id.includes('node_modules/zustand/') ||
-              id.includes('node_modules/@tanstack/') ||
-              id.includes('node_modules/react-hook-form/') ||
-              id.includes('node_modules/@hookform/') ||
-              id.includes('node_modules/zod/')
-            ) {
-              return 'vendor-state'
-            }
-
-            // 5. Graph & flow visualization
-            if (
-              id.includes('node_modules/@antv/') ||
-              id.includes('node_modules/@xyflow/') ||
-              id.includes('node_modules/cytoscape')
-            ) {
-              return 'vendor-graph'
-            }
-
-            // 6. Code & rich-text editors
-            if (
-              id.includes('node_modules/monaco-editor/') ||
-              id.includes('node_modules/@monaco-editor/') ||
-              id.includes('node_modules/lexical/') ||
-              id.includes('node_modules/@lexical/')
-            ) {
-              return 'vendor-editor'
-            }
-
-            // 8. Document preview (lazy-loaded pages)
-            if (
-              id.includes('node_modules/docx-preview/') ||
-              id.includes('node_modules/pptx-preview/') ||
-              id.includes('node_modules/@js-preview/') ||
-              id.includes('node_modules/mammoth/') ||
-              id.includes('node_modules/react-pdf') ||
-              id.includes('node_modules/pdfjs-dist/') ||
-              id.includes('node_modules/papaparse/')
-            ) {
-              return 'vendor-doc-preview'
-            }
-
-            // 9. Charts & D3 ecosystem
-            if (
-              id.includes('node_modules/recharts/') ||
-              id.includes('node_modules/d3/') ||
-              id.includes('node_modules/d3-')
-            ) {
-              return 'vendor-chart'
-            }
-
-            // 10. Icons
-            if (id.includes('node_modules/lucide-react/')) {
-              return 'vendor-icons'
-            }
-
-            // 11. i18n
-            if (
-              id.includes('node_modules/i18next') ||
-              id.includes('node_modules/react-i18next/')
-            ) {
-              return 'vendor-i18n'
-            }
-
-            // 12. Drag & drop
-            if (id.includes('node_modules/@dnd-kit/')) {
-              return 'vendor-dnd'
-            }
-
-            // 13. Security / crypto
-            if (
-              id.includes('node_modules/jsencrypt/') ||
-              id.includes('node_modules/dompurify/')
-            ) {
-              return 'vendor-security'
-            }
-
-            // 14. Remaining utilities
-            if (
-              id.includes('node_modules/lodash') ||
-              id.includes('node_modules/uuid/') ||
-              id.includes('node_modules/eventsource-parser/') ||
-              id.includes('node_modules/human-id/')
-            ) {
-              return 'vendor-utils'
-            }
+          codeSplitting: {
+            minSize: 20 * 1024,
+            includeDependenciesRecursively: true,
+            groups: [
+              {
+                name: 'vendor-core',
+                priority: 100,
+                test: (id: string) =>
+                  isAnyPackage(id, [
+                    'react',
+                    'react-dom',
+                    'react-is',
+                    'react-router',
+                    'react-router-dom',
+                    'scheduler',
+                    'use-sync-external-store',
+                  ]),
+              },
+              {
+                name: 'vendor-antdx',
+                priority: 95,
+                test: (id: string) =>
+                  isAnyPackage(id, [
+                    '@ant-design/x',
+                    '@ant-design/x-card',
+                    '@ant-design/x-markdown',
+                    '@ant-design/x-sdk',
+                  ]),
+              },
+              {
+                name: 'vendor-markdown',
+                priority: 90,
+                entriesAware: true,
+                maxSize: 1024 * 1024,
+                test: (id: string) =>
+                  isAnyPackage(id, [
+                    '@uiw/react-md-editor',
+                    'highlight.js',
+                    'hastscript',
+                    'html-url-attributes',
+                    'inline-style-parser',
+                    'lowlight',
+                    'markdown-it',
+                    'markdown-it-container',
+                    'markdown-it-highlightjs',
+                    'markdown-it-mathjax3',
+                    'prismjs',
+                    'property-information',
+                    'react-markdown',
+                    'react-property',
+                    'react-syntax-highlighter',
+                    'rehype',
+                    'space-separated-tokens',
+                    'style-to-js',
+                    'style-to-object',
+                    'unified',
+                    'vfile',
+                    'zwitch',
+                  ]) ||
+                  isAnyPackagePrefix(id, [
+                    'comma-separated-tokens',
+                    'hast-',
+                    'mdast-',
+                    'micromark',
+                    'rehype-',
+                    'remark-',
+                    'unist-',
+                  ]),
+              },
+              {
+                name: 'vendor-ui',
+                priority: 80,
+                test: (id: string) =>
+                  isAnyPackage(id, [
+                    'class-variance-authority',
+                    'clsx',
+                    'cmdk',
+                    'embla-carousel',
+                    'embla-carousel-react',
+                    'input-otp',
+                    'next-themes',
+                    'react-day-picker',
+                    'sonner',
+                    'tailwind-merge',
+                    'vaul',
+                  ]) || isPackagePrefix(id, '@radix-ui/'),
+              },
+              {
+                name: 'vendor-antd',
+                priority: 75,
+                test: (id: string) =>
+                  isPackage(id, 'antd') || isPackagePrefix(id, '@ant-design/'),
+              },
+              {
+                name: 'vendor-state',
+                priority: 70,
+                test: (id: string) =>
+                  isAnyPackage(id, [
+                    '@hookform/resolvers',
+                    'react-hook-form',
+                    'zod',
+                    'zustand',
+                  ]) || isPackagePrefix(id, '@tanstack/'),
+              },
+              {
+                name: 'vendor-graph',
+                priority: 65,
+                entriesAware: true,
+                maxSize: 1024 * 1024,
+                test: (id: string) =>
+                  isPackagePrefix(id, '@antv/') ||
+                  isPackagePrefix(id, '@xyflow/') ||
+                  isPackagePrefix(id, 'cytoscape'),
+              },
+              {
+                name: 'vendor-editor',
+                priority: 60,
+                entriesAware: true,
+                maxSize: 1024 * 1024,
+                test: (id: string) =>
+                  isPackage(id, 'monaco-editor') ||
+                  isPackagePrefix(id, '@monaco-editor/') ||
+                  isPackage(id, 'lexical') ||
+                  isPackagePrefix(id, '@lexical/'),
+              },
+              {
+                name: 'vendor-doc-preview',
+                priority: 55,
+                entriesAware: true,
+                maxSize: 1024 * 1024,
+                test: (id: string) =>
+                  isAnyPackage(id, [
+                    '@js-preview/excel',
+                    'docx-preview',
+                    'mammoth',
+                    'papaparse',
+                    'pdfjs-dist',
+                    'pptx-preview',
+                    'react-draggable',
+                    'react-pdf-highlighter',
+                    'react-rnd',
+                    're-resizable',
+                  ]) || isPackagePrefix(id, 'react-pdf'),
+              },
+              {
+                name: 'vendor-chart',
+                priority: 50,
+                entriesAware: true,
+                maxSize: 1024 * 1024,
+                test: (id: string) =>
+                  isPackage(id, 'recharts') || isPackagePrefix(id, 'd3'),
+              },
+              {
+                name: 'vendor-icons',
+                priority: 45,
+                test: (id: string) => isPackage(id, 'lucide-react'),
+              },
+              {
+                name: 'vendor-i18n',
+                priority: 40,
+                test: (id: string) =>
+                  isAnyPackage(id, ['i18next', 'react-i18next']),
+              },
+              {
+                name: 'vendor-dnd',
+                priority: 35,
+                test: (id: string) => isPackagePrefix(id, '@dnd-kit/'),
+              },
+              {
+                name: 'vendor-security',
+                priority: 30,
+                test: (id: string) =>
+                  isAnyPackage(id, ['dompurify', 'jsencrypt']),
+              },
+              {
+                name: 'vendor-immer',
+                priority: 25,
+                test: (id: string) => isPackage(id, 'immer'),
+              },
+              {
+                name: 'vendor-utils',
+                priority: 20,
+                test: (id: string) =>
+                  isAnyPackage(id, [
+                    'eventsource-parser',
+                    'human-id',
+                    'lodash',
+                    'uuid',
+                  ]),
+              },
+            ],
           },
         },
       },

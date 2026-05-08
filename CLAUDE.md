@@ -26,7 +26,7 @@ There is **no generic `test`, `format`, or `typecheck` npm script**. Full type c
 | -------------------------- | ----------------------------------------------------------------------------- | ---------------------------- |
 | Framework                  | React                                                                         | 19.1                         |
 | Language                   | TypeScript                                                                    | 5.8 (strict)                 |
-| Build                      | Vite                                                                          | 7.3                          |
+| Build                      | Vite                                                                          | 8.0                          |
 | Routing                    | react-router-dom                                                              | 7.7                          |
 | Server state               | @tanstack/react-query                                                         | 5.83                         |
 | Client state               | Zustand                                                                       | 5.0                          |
@@ -49,6 +49,8 @@ There is **no generic `test`, `format`, or `typecheck` npm script**. Full type c
 | Resizable panels           | react-resizable-panels                                                        | 2.1                          |
 
 `patch-package` runs on postinstall — when patches break, fix the patch, do not delete.
+
+Vite 8 now uses the Rolldown/Oxc build pipeline. Production chunking must use `build.rolldownOptions.output.codeSplitting.groups`; do not add or restore `build.rollupOptions.output.manualChunks`. For dependency optimization or minification config, prefer Vite 8 `rolldownOptions` / `oxc` semantics and only add temporary compatibility after verifying a third-party plugin gap.
 
 ## Project Layout
 

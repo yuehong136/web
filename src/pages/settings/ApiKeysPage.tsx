@@ -413,9 +413,8 @@ const ApiDocumentationPage: React.FC = () => {
       const baseUrl = getBaseUrl()
       const fullUrl = resolveText(`${baseUrl}${path}`)
       return fullUrl
-      // eslint-disable-next-line react-hooks/exhaustive-deps -- 保留 selectedEnvironmentId/currentEnvironment 依赖以便切换环境时重新绑定 URL
     },
-    [getBaseUrl, resolveText, selectedEnvironmentId, currentEnvironment],
+    [getBaseUrl, resolveText],
   )
 
   // API测试相关状态
@@ -510,6 +509,108 @@ const ApiDocumentationPage: React.FC = () => {
     return undefined
   }, [formatMessage])
 
+  // 根据schema生成示例数据
+  const generateExampleFromSchema = useCallback(
+    (schema: any, fieldName?: string): any => {
+      if (!schema) return null
+
+      // 如果schema有直接的example，优先使用
+      if (schema.example !== undefined) {
+        return schema.example
+      }
+
+      // 如果是引用类型 ($ref)，解析引用
+      if (schema.$ref && apiSpec) {
+        const refPath = schema.$ref.replace('#/', '').split('/')
+        let referencedSchema: any = apiSpec
+
+        // 遍历路径找到引用的schema
+        for (const pathSegment of refPath) {
+          referencedSchema = referencedSchema[pathSegment]
+          if (!referencedSchema) break
+        }
+
+        // 如果找到了引用的schema，递归生成示例
+        if (referencedSchema) {
+          return generateExampleFromSchema(referencedSchema, fieldName)
+        }
+      }
+
+      // 根据数据类型生成示例
+      switch (schema.type) {
+        case 'object': {
+          const obj: any = {}
+          if (schema.properties) {
+            for (const [key, propSchema] of Object.entries(schema.properties)) {
+              // 检查是否是必需字段或有默认值
+              const isRequired = schema.required?.includes(key)
+              const hasDefault = (propSchema as any).default !== undefined
+
+              if (isRequired || hasDefault) {
+                // 优先使用默认值
+                if (hasDefault) {
+                  obj[key] = (propSchema as any).default
+                } else {
+                  obj[key] = generateExampleFromSchema(propSchema, key)
+                }
+              } else {
+                // 非必需字段也生成示例，但使用更简单的值
+                obj[key] = generateExampleFromSchema(propSchema, key)
+              }
+            }
+          }
+          return obj
+        }
+
+        case 'array':
+          if (schema.items) {
+            return [generateExampleFromSchema(schema.items, fieldName)]
+          }
+          return []
+
+        case 'string':
+          // 根据字段名生成更有意义的示例
+          if (schema.enum) {
+            return schema.enum[0]
+          }
+          // 根据字段名生成更有意义的示例值
+          if (fieldName) {
+            const lowerFieldName = fieldName.toLowerCase()
+            if (lowerFieldName.includes('question')) {
+              return 'What is your question?'
+            } else if (lowerFieldName.includes('industry')) {
+              return 'Technology'
+            } else if (
+              lowerFieldName.includes('title') ||
+              lowerFieldName.includes('name')
+            ) {
+              return 'Example Title'
+            } else if (lowerFieldName.includes('email')) {
+              return 'user@example.com'
+            } else if (lowerFieldName.includes('id')) {
+              return 'example-id-123'
+            }
+          }
+          return 'example string'
+
+        case 'number':
+        case 'integer':
+          return schema.minimum !== undefined
+            ? schema.minimum
+            : schema.default !== undefined
+              ? schema.default
+              : 1
+
+        case 'boolean':
+          return schema.default !== undefined ? schema.default : false
+
+        default:
+          return null
+      }
+    },
+    [apiSpec],
+  )
+
   // 主面板模式切换：接口详情 vs 测试面板
   const [mainMode, setMainMode] = useState<'interface' | 'test'>('interface')
 
@@ -549,9 +650,8 @@ const ApiDocumentationPage: React.FC = () => {
         default:
           return '# 输入数据内容'
       }
-      // eslint-disable-next-line react-hooks/exhaustive-deps -- generateExampleFromSchema 在同文件定义，随 selectedAPI 计算，不需要额外依赖
     },
-    [selectedAPI],
+    [selectedAPI, generateExampleFromSchema],
   )
 
   // 请求体格式验证函数
@@ -737,9 +837,8 @@ const ApiDocumentationPage: React.FC = () => {
         })
         return content
       }
-      // eslint-disable-next-line react-hooks/exhaustive-deps -- generateExampleFromSchema/selectedAPI 仅在 body 初始化路径使用，不影响格式化
     },
-    [setFormatMessage],
+    [generateExampleFromSchema, selectedAPI, setFormatMessage],
   )
 
   // 压缩内容
@@ -1082,108 +1181,6 @@ const ApiDocumentationPage: React.FC = () => {
       setTestBody('')
     }
   }
-
-  // 根据schema生成示例数据
-  const generateExampleFromSchema = useCallback(
-    (schema: any, fieldName?: string): any => {
-      if (!schema) return null
-
-      // 如果schema有直接的example，优先使用
-      if (schema.example !== undefined) {
-        return schema.example
-      }
-
-      // 如果是引用类型 ($ref)，解析引用
-      if (schema.$ref && apiSpec) {
-        const refPath = schema.$ref.replace('#/', '').split('/')
-        let referencedSchema: any = apiSpec
-
-        // 遍历路径找到引用的schema
-        for (const pathSegment of refPath) {
-          referencedSchema = referencedSchema[pathSegment]
-          if (!referencedSchema) break
-        }
-
-        // 如果找到了引用的schema，递归生成示例
-        if (referencedSchema) {
-          return generateExampleFromSchema(referencedSchema, fieldName)
-        }
-      }
-
-      // 根据数据类型生成示例
-      switch (schema.type) {
-        case 'object': {
-          const obj: any = {}
-          if (schema.properties) {
-            for (const [key, propSchema] of Object.entries(schema.properties)) {
-              // 检查是否是必需字段或有默认值
-              const isRequired = schema.required?.includes(key)
-              const hasDefault = (propSchema as any).default !== undefined
-
-              if (isRequired || hasDefault) {
-                // 优先使用默认值
-                if (hasDefault) {
-                  obj[key] = (propSchema as any).default
-                } else {
-                  obj[key] = generateExampleFromSchema(propSchema, key)
-                }
-              } else {
-                // 非必需字段也生成示例，但使用更简单的值
-                obj[key] = generateExampleFromSchema(propSchema, key)
-              }
-            }
-          }
-          return obj
-        }
-
-        case 'array':
-          if (schema.items) {
-            return [generateExampleFromSchema(schema.items, fieldName)]
-          }
-          return []
-
-        case 'string':
-          // 根据字段名生成更有意义的示例
-          if (schema.enum) {
-            return schema.enum[0]
-          }
-          // 根据字段名生成更有意义的示例值
-          if (fieldName) {
-            const lowerFieldName = fieldName.toLowerCase()
-            if (lowerFieldName.includes('question')) {
-              return 'What is your question?'
-            } else if (lowerFieldName.includes('industry')) {
-              return 'Technology'
-            } else if (
-              lowerFieldName.includes('title') ||
-              lowerFieldName.includes('name')
-            ) {
-              return 'Example Title'
-            } else if (lowerFieldName.includes('email')) {
-              return 'user@example.com'
-            } else if (lowerFieldName.includes('id')) {
-              return 'example-id-123'
-            }
-          }
-          return 'example string'
-
-        case 'number':
-        case 'integer':
-          return schema.minimum !== undefined
-            ? schema.minimum
-            : schema.default !== undefined
-              ? schema.default
-              : 1
-
-        case 'boolean':
-          return schema.default !== undefined ? schema.default : false
-
-        default:
-          return null
-      }
-    },
-    [apiSpec],
-  )
 
   // 将OpenAPI规范转换为内部API端点格式
   const convertToAPIEndpoints = useCallback(

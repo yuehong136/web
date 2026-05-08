@@ -44,7 +44,7 @@ This README is the project front door — it intentionally stays short. The auth
 | ----------------- | ----------------------------------------------------------------------------- | ----------- |
 | Framework         | React                                                                         | 19.1        |
 | Language          | TypeScript (strict)                                                           | 5.8         |
-| Build             | Vite                                                                          | 7.3         |
+| Build             | Vite                                                                          | 8.0         |
 | Routing           | react-router-dom                                                              | 7.7         |
 | Server state      | TanStack Query                                                                | 5.83        |
 | Client state      | Zustand                                                                       | 5.0         |
@@ -156,7 +156,7 @@ Browser-exposed env vars must use the `VITE_*` prefix. Never inline secrets.
 
 ## Browser Support
 
-Chrome/Edge 107+, Firefox 104+, and Safari 16+.
+Chrome/Edge 111+, Firefox 114+, and Safari 16.4+.
 
 ## License
 
@@ -164,4 +164,4 @@ Proprietary. All rights reserved.
 
 ---
 
-**Version**: 0.9.8 — built with React 19 · TypeScript 5.8 · Vite 7
+**Version**: 0.9.8 — built with React 19 · TypeScript 5.8 · Vite 8

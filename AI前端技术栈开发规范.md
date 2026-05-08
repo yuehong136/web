@@ -25,7 +25,7 @@ Multi-RAG Frontend 是企业级 AI 前端，覆盖：
 
 - 65+ 原子 UI 组件、6 个页面模板、约 1452 个设计 token
 - 13 个 Zustand store、20+ 测试文件
-- React 19 / TypeScript 5.8 / Vite 7 / TanStack Query 5 / React Router 7
+- React 19 / TypeScript 5.8 / Vite 8 / TanStack Query 5 / React Router 7
 
 ## 2. 技术栈一览（已校核版本）
 
@@ -33,7 +33,7 @@ Multi-RAG Frontend 是企业级 AI 前端，覆盖：
 | ------------------------ | ----------------------------------------------------------------------------- | ----------- |
 | 框架                     | React                                                                         | 19.1        |
 | 语言                     | TypeScript（strict）                                                          | 5.8         |
-| 构建                     | Vite                                                                          | 7.3         |
+| 构建                     | Vite                                                                          | 8.0         |
 | 路由                     | react-router-dom                                                              | 7.7         |
 | 服务器状态               | TanStack Query                                                                | 5.83        |
 | 客户端状态               | Zustand                                                                       | 5.0         |
@@ -63,6 +63,7 @@ Multi-RAG Frontend 是企业级 AI 前端，覆盖：
 - ❌ Jest（存量正式测试仍用 `tsx --test`；Vitest 基础配置已落地用于后续新增/迁移）
 - ❌ Emotion / styled-components / 任意 CSS-in-JS（统一 Tailwind + token）
 - ❌ 自带的或第三方的图标库（`heroicons`、`react-icons`、`@ant-design/icons` 之外的等等）
+- ❌ Vite 7 时代的 `build.rollupOptions.output.manualChunks` 拆包配置（Vite 8 统一走 Rolldown `codeSplitting.groups`）
 
 ## 3. 目录结构基线
 
@@ -621,7 +622,7 @@ const Monaco = lazy(() => import('@monaco-editor/react'))
 - locale 资源按语言分包
 - 监控 `npm run build` 输出，单 chunk > 500KB 必须分析
 - 使用 `npm run build:analyze` 生成 `dist/stats.html` 做 bundle treemap 分析；`stats.html` 与 `.map` 文件不得进入公开部署包
-- `manualChunks` 先量化后调整，禁止无基线地整段删除
+- Vite 8 生产拆包通过 `build.rolldownOptions.output.codeSplitting.groups` 管理；调整前先量化，禁止无基线地整段删除或回退到 Rollup `manualChunks`
 - 关注 LCP（首屏首字节）与 TTI（流式 TPS、tokens/s）
 
 ## 20. 可访问性（a11y）

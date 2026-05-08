@@ -26,7 +26,7 @@ npm run test:agent-t1 # 通过 tsx 跑 node --test（目前唯一正式测试脚
 | ------------------------ | ----------------------------------------------------------------------------- | ------------- |
 | 框架                     | React                                                                         | 19.1          |
 | 语言                     | TypeScript                                                                    | 5.8（strict） |
-| 构建                     | Vite                                                                          | 7.3           |
+| 构建                     | Vite                                                                          | 8.0           |
 | 路由                     | react-router-dom                                                              | 7.7           |
 | 服务器状态               | @tanstack/react-query                                                         | 5.83          |
 | 客户端状态               | Zustand                                                                       | 5.0           |
@@ -49,6 +49,8 @@ npm run test:agent-t1 # 通过 tsx 跑 node --test（目前唯一正式测试脚
 | 可拖动分栏               | react-resizable-panels                                                        | 2.1           |
 
 `patch-package` 在 postinstall 时跑：补丁失败要修补丁，**不要直接删**。
+
+Vite 8 已切到 Rolldown/Oxc 构建链路：生产拆包使用 `build.rolldownOptions.output.codeSplitting.groups`，不要再新增或恢复 `build.rollupOptions.output.manualChunks`。遇到依赖预构建或压缩配置时优先用 Vite 8 的 `rolldownOptions` / `oxc` 语义，只有明确验证第三方插件不兼容时才考虑临时兼容。
 
 ## 目录结构
 
