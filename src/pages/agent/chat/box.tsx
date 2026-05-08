@@ -1,12 +1,28 @@
-import { memo } from 'react'
+import { memo, useCallback } from 'react'
+import { toast } from '@/lib/toast'
 import { RuntimeChatPanel } from '../components/runtime-chat'
-import type { AgentRuntimeController } from '../features/runtime-workbench/types'
+import { downloadRuntimeAttachment } from '../components/runtime-chat/download-runtime-attachment'
+import type {
+  AgentRuntimeController,
+  RuntimeAttachment,
+} from '../features/runtime-workbench/types'
 
 interface AgentChatBoxProps {
   controller: AgentRuntimeController
 }
 
 function AgentChatBox({ controller }: AgentChatBoxProps) {
+  const handleDownloadAttachment = useCallback(
+    async (file: RuntimeAttachment) => {
+      try {
+        await downloadRuntimeAttachment(file)
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : '附件下载失败')
+      }
+    },
+    [],
+  )
+
   return (
     <RuntimeChatPanel
       canvasId={controller.canvasId}
@@ -23,6 +39,7 @@ function AgentChatBox({ controller }: AgentChatBoxProps) {
       onStop={controller.handleStop}
       onSubmitAwaitingInputs={controller.handleSubmitAwaitingInputs}
       onXCardAction={controller.handleXCardAction}
+      onDownloadAttachment={handleDownloadAttachment}
     />
   )
 }

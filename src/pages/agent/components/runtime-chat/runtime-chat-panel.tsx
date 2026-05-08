@@ -2,6 +2,7 @@ import { AppScene, PageEmptyState } from '@/components/patterns'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   AgentRuntimeStatus,
+  type RuntimeAttachment,
   type RuntimeMessage,
 } from '../../features/runtime-workbench/types'
 import type { BeginQuery } from '../../types'
@@ -28,6 +29,7 @@ interface RuntimeChatPanelProps {
     values: BeginQuery[],
   ) => void | Promise<void>
   onXCardAction?: (payload: AgentXCardActionPayload) => void | Promise<void>
+  onDownloadAttachment?: (file: RuntimeAttachment) => void | Promise<void>
 }
 
 export function RuntimeChatPanel({
@@ -45,6 +47,7 @@ export function RuntimeChatPanel({
   onStop,
   onSubmitAwaitingInputs,
   onXCardAction,
+  onDownloadAttachment,
 }: RuntimeChatPanelProps) {
   const showComposer =
     composerMode !== 'hidden' && !isTaskMode && Boolean(canvasId)
@@ -73,6 +76,7 @@ export function RuntimeChatPanel({
               density={density}
               onSubmitAwaitingInputs={onSubmitAwaitingInputs}
               onXCardAction={onXCardAction}
+              onDownloadAttachment={onDownloadAttachment}
             />
           </ScrollArea>
         )}

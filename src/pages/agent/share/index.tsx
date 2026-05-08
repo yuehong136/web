@@ -21,6 +21,7 @@ import { ScopedTheme } from '@/themes'
 import { Copy, RotateCcw } from 'lucide-react'
 import {
   AgentRuntimeStatus,
+  type RuntimeAttachment,
 } from '../features/runtime-workbench/types'
 import {
   buildRuntimeInputObject,
@@ -28,6 +29,7 @@ import {
 } from '../features/runtime-workbench/utils'
 import { AgentDialogueMode } from '../constant'
 import { ShareComposer } from './share-composer'
+import { downloadShareAttachment } from './download-attachment'
 import { ShareMessageList } from './share-message-list'
 import { ShareParameterDialog } from './share-parameter-dialog'
 import { parseAgentShareAccess } from './access'
@@ -315,6 +317,21 @@ export default function AgentSharePage() {
     [runner],
   )
 
+  const handleDownloadAttachment = useCallback(
+    async (file: RuntimeAttachment) => {
+      try {
+        await downloadShareAttachment({
+          file,
+          agentId: access.agentId,
+          betaToken: access.betaToken,
+        })
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : '附件下载失败')
+      }
+    },
+    [access.agentId, access.betaToken],
+  )
+
   const handleResetSession = useCallback(() => {
     runner.reset()
     setBeginReady(inputEntries.length === 0)
@@ -420,6 +437,7 @@ export default function AgentSharePage() {
             prologue={shareQuery.data.prologue}
             onSubmitAwaitingInputs={handleSubmitAwaitingInputs}
             onXCardAction={runner.submitXCardAction}
+            onDownloadAttachment={handleDownloadAttachment}
           />
         </div>
 

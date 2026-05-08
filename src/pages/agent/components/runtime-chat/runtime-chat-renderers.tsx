@@ -1,6 +1,7 @@
+import { FileCard } from '@ant-design/x'
 import XMarkdown from '@ant-design/x-markdown'
+import type { ComponentProps } from 'react'
 import { Bot, User } from 'lucide-react'
-import { FileIcon } from '@/components/ui/file-icon'
 import {
   getMarkdownStreamingOptions,
   markdownConfig,
@@ -11,7 +12,10 @@ import {
   extractReferencesFromSSEData,
   type ReferenceChunk,
 } from '@/utils/reference-replacer'
-import type { RuntimeMessage } from '../../features/runtime-workbench/types'
+import type {
+  RuntimeAttachment,
+  RuntimeMessage,
+} from '../../features/runtime-workbench/types'
 
 interface RuntimeChatMarkdownProps {
   content: string
@@ -68,7 +72,52 @@ export function RuntimeChatMarkdown({
   )
 }
 
-export function RuntimeAttachmentList({ message }: { message: RuntimeMessage }) {
+const fileCardIconMap: Record<string, ComponentProps<typeof FileCard>['icon']> = {
+  csv: 'excel',
+  doc: 'word',
+  docx: 'word',
+  html: 'default',
+  jpeg: 'image',
+  jpg: 'image',
+  js: 'javascript',
+  markdown: 'markdown',
+  md: 'markdown',
+  mdx: 'markdown',
+  mp3: 'audio',
+  mp4: 'video',
+  pdf: 'pdf',
+  png: 'image',
+  ppt: 'ppt',
+  pptx: 'ppt',
+  py: 'python',
+  txt: 'default',
+  wav: 'audio',
+  xls: 'excel',
+  xlsx: 'excel',
+  zip: 'zip',
+}
+
+const getAttachmentExtension = (file: RuntimeAttachment) => {
+  const explicitType =
+    typeof file.type === 'string' ? file.type : undefined
+  const explicitFormat =
+    typeof file.format === 'string' ? file.format : undefined
+  const extensionFromName = file.name.includes('.')
+    ? file.name.split('.').pop()
+    : undefined
+
+  return (explicitType || explicitFormat || extensionFromName || '')
+    .toLowerCase()
+    .replace(/^\./, '')
+}
+
+export function RuntimeAttachmentList({
+  message,
+  onDownloadAttachment,
+}: {
+  message: RuntimeMessage
+  onDownloadAttachment?: (file: RuntimeAttachment) => void | Promise<void>
+}) {
   if (!message.files?.length) {
     return null
   }
@@ -76,15 +125,23 @@ export function RuntimeAttachmentList({ message }: { message: RuntimeMessage }) 
   return (
     <div className="mt-space-sm flex flex-wrap gap-space-sm">
       {message.files.map((file, index) => (
-        <div
+        <FileCard
           key={`${file.id || file.name}-${index}`}
-          className="flex items-center gap-space-sm rounded-radius-md border border-border-default bg-surface-secondary px-space-sm py-space-xs"
-        >
-          <FileIcon fileType={file.type} fileName={file.name} size="sm" />
-          <span className="max-w-[220px] truncate text-sm text-text-primary">
-            {file.name}
-          </span>
-        </div>
+          name={file.name}
+          byte={file.size}
+          size="small"
+          type="file"
+          icon={fileCardIconMap[getAttachmentExtension(file)] || 'default'}
+          description={onDownloadAttachment ? '点击下载' : undefined}
+          className={onDownloadAttachment ? 'cursor-pointer' : undefined}
+          onClick={
+            onDownloadAttachment
+              ? () => {
+                  void onDownloadAttachment(file)
+                }
+              : undefined
+          }
+        />
       ))}
     </div>
   )

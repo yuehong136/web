@@ -13,6 +13,7 @@ import {
   useFetchExternalAgentInputs,
   useUploadPublicCanvasFile,
 } from '@/hooks/use-agent-request'
+import { toast } from '@/lib/toast'
 import { changeLanguage } from '@/locales/i18n'
 import { ScopedTheme } from '@/themes'
 import type { AgentCanvasUploadResult } from '@/types/agent'
@@ -22,8 +23,10 @@ import {
   buildRuntimeInputObject,
   formatRuntimeInputSummary,
 } from '../features/runtime-workbench/utils'
+import type { RuntimeAttachment } from '../features/runtime-workbench/types'
 import type { BeginQuery } from '../types'
 import { parseAgentShareAccess } from './access'
+import { downloadShareAttachment } from './download-attachment'
 import { ShareComposer } from './share-composer'
 import { ShareMessageList } from './share-message-list'
 import { ShareParameterDialog } from './share-parameter-dialog'
@@ -365,6 +368,21 @@ function WidgetChatWindow({
     [runner],
   )
 
+  const handleDownloadAttachment = useCallback(
+    async (file: RuntimeAttachment) => {
+      try {
+        await downloadShareAttachment({
+          file,
+          agentId: access.agentId,
+          betaToken: access.betaToken,
+        })
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : '附件下载失败')
+      }
+    },
+    [access.agentId, access.betaToken],
+  )
+
   if (!access.agentId || !access.betaToken) {
     return (
       <WidgetShell title="Agent Widget" variant={shellVariant}>
@@ -407,6 +425,7 @@ function WidgetChatWindow({
             prologue={shareQuery.data.prologue}
             onSubmitAwaitingInputs={handleSubmitAwaitingInputs}
             onXCardAction={runner.submitXCardAction}
+            onDownloadAttachment={handleDownloadAttachment}
           />
         )}
       </div>

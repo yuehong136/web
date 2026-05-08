@@ -1,6 +1,9 @@
 import { PageEmptyState, AppScene } from '@/components/patterns'
 import { RuntimeChatMessageList } from '../components/runtime-chat'
-import { AgentRuntimeStatus } from '../features/runtime-workbench/types'
+import {
+  AgentRuntimeStatus,
+  type RuntimeAttachment,
+} from '../features/runtime-workbench/types'
 import type { AgentXCardActionPayload } from '../x-card'
 import type { BeginQuery } from '../types'
 import type { ShareRuntimeMessage } from './types'
@@ -16,6 +19,7 @@ interface ShareMessageListProps {
     values: BeginQuery[],
   ) => void | Promise<void>
   onXCardAction?: (payload: AgentXCardActionPayload) => void | Promise<void>
+  onDownloadAttachment?: (file: RuntimeAttachment) => void | Promise<void>
 }
 
 export function ShareMessageList({
@@ -26,6 +30,7 @@ export function ShareMessageList({
   prologue,
   onSubmitAwaitingInputs,
   onXCardAction,
+  onDownloadAttachment,
 }: ShareMessageListProps) {
   if (!messages.length) {
     return (
@@ -47,6 +52,7 @@ export function ShareMessageList({
       status={status}
       onSubmitAwaitingInputs={onSubmitAwaitingInputs}
       onXCardAction={onXCardAction}
+      onDownloadAttachment={onDownloadAttachment}
     />
   )
 }

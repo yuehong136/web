@@ -25,6 +25,7 @@ import DebugContent from '../../debug-content'
 import { RuntimeTracePanel } from '../../features/runtime-workbench/components/runtime-trace-panel'
 import {
   AgentRuntimeStatus,
+  type RuntimeAttachment,
   type RuntimeMessage,
 } from '../../features/runtime-workbench/types'
 import { hideRawA2UICommandContent } from '../../features/runtime-workbench/utils'
@@ -56,6 +57,7 @@ interface RuntimeChatMessageListProps {
     values: BeginQuery[],
   ) => void | Promise<void>
   onXCardAction?: (payload: AgentXCardActionPayload) => void | Promise<void>
+  onDownloadAttachment?: (file: RuntimeAttachment) => void | Promise<void>
 }
 
 export function RuntimeChatMessageList({
@@ -66,6 +68,7 @@ export function RuntimeChatMessageList({
   className,
   onSubmitAwaitingInputs,
   onXCardAction,
+  onDownloadAttachment,
 }: RuntimeChatMessageListProps) {
   const [detailOpen, setDetailOpen] = useState(false)
   const [selectedChunk, setSelectedChunk] = useState<ReferenceChunk | null>(null)
@@ -246,7 +249,9 @@ export function RuntimeChatMessageList({
                     {message.content}
                   </div>
                 ) : null}
-                <RuntimeAttachmentList message={message} />
+                <RuntimeAttachmentList
+                  message={message}
+                />
               </>
             ) : (
               <>
@@ -275,7 +280,10 @@ export function RuntimeChatMessageList({
                   onAction={onXCardAction}
                 />
 
-                <RuntimeAttachmentList message={message} />
+                <RuntimeAttachmentList
+                  message={message}
+                  onDownloadAttachment={onDownloadAttachment}
+                />
 
                 {references.length && !isStreaming ? (
                   <ReferenceImageList
@@ -329,7 +337,7 @@ export function RuntimeChatMessageList({
           ) : undefined,
       }
     })
-  }, [canvasId, completedTypingMessageIds, handleCopyContent, handleViewDetail, messages, onSubmitAwaitingInputs, onXCardAction, status])
+  }, [canvasId, completedTypingMessageIds, handleCopyContent, handleViewDetail, messages, onDownloadAttachment, onSubmitAwaitingInputs, onXCardAction, status])
 
   return (
     <>
