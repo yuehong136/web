@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 import { MessageCircle, X } from 'lucide-react'
 
 export function WidgetLauncher() {
@@ -44,12 +45,19 @@ export function WidgetLauncher() {
 export function WidgetShell({
   title,
   children,
+  variant = 'iframe',
 }: {
   title: string
   children: ReactNode
+  variant?: 'iframe' | 'panel'
 }) {
   return (
-    <div className="flex h-screen w-screen flex-col overflow-hidden rounded-radius-lg border border-border-default bg-surface-primary shadow-elevation-high">
+    <div
+      className={cn(
+        'flex flex-col overflow-hidden rounded-radius-lg border border-border-default bg-surface-primary shadow-elevation-high',
+        variant === 'iframe' ? 'h-screen w-screen' : 'h-full w-full',
+      )}
+    >
       <header className="flex items-center justify-between border-b border-border-subtle px-space-base py-space-sm">
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold text-text-primary">
