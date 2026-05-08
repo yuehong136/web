@@ -1,4 +1,3 @@
-import { CodeHighlightNode, CodeNode } from '@lexical/code'
 import type { InitialConfigType } from '@lexical/react/LexicalComposer'
 import { LexicalComposer } from '@lexical/react/LexicalComposer'
 import { ContentEditable } from '@lexical/react/LexicalContentEditable'
@@ -6,7 +5,12 @@ import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary'
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin'
 import { HeadingNode, QuoteNode } from '@lexical/rich-text'
 import type { EditorState, Klass, LexicalEditor, LexicalNode } from 'lexical'
-import { $getRoot, $getSelection, $isDecoratorNode, $isElementNode } from 'lexical'
+import {
+  $getRoot,
+  $getSelection,
+  $isDecoratorNode,
+  $isElementNode,
+} from 'lexical'
 
 import { Button } from '@/components/ui/button'
 import { Tooltip } from '@/components/ui/tooltip'
@@ -34,13 +38,7 @@ function onError(error: Error) {
   console.error(error)
 }
 
-const Nodes: Array<Klass<LexicalNode>> = [
-  HeadingNode,
-  QuoteNode,
-  CodeHighlightNode,
-  CodeNode,
-  VariableNode,
-]
+const Nodes: Array<Klass<LexicalNode>> = [HeadingNode, QuoteNode, VariableNode]
 
 function hasDecoratorDescendant(node: LexicalNode): boolean {
   if ($isDecoratorNode(node)) return true
@@ -132,7 +130,7 @@ function PromptContent({
   return (
     <section
       className={cn(
-        'overflow-hidden rounded-radius-lg border bg-background-surface transition-[border-color,box-shadow]',
+        'rounded-radius-lg overflow-hidden border bg-background-surface transition-[border-color,box-shadow]',
         isFocused
           ? 'border-components-system-accent-border ring-1 ring-components-system-accent-border'
           : 'border-border-default',
@@ -141,7 +139,7 @@ function PromptContent({
       {showToolbar && (
         <div
           className={cn(
-            'flex items-center justify-end gap-space-sm border-b px-space-sm py-space-xs transition-colors',
+            'gap-space-sm px-space-sm py-space-xs flex items-center justify-end border-b transition-colors',
             isFocused
               ? 'border-components-system-accent-border'
               : 'border-border-default',
@@ -165,10 +163,11 @@ function PromptContent({
       <div className="relative">
         <ContentEditable
           className={cn(
-            'prompt-editor-content relative w-full px-space-sm text-base text-text-primary focus-visible:outline-none',
+            'prompt-editor-content px-space-sm relative w-full text-base text-text-primary focus-visible:outline-none',
             {
-              'max-h-[50vh] min-h-40 overflow-auto py-space-sm': multiLine,
-              'min-h-10 overflow-x-auto overflow-y-hidden py-space-sm whitespace-pre': !multiLine,
+              'py-space-sm max-h-[50vh] min-h-40 overflow-auto': multiLine,
+              'py-space-sm min-h-10 overflow-x-auto overflow-y-hidden whitespace-pre':
+                !multiLine,
             },
           )}
           onBlur={handleBlur}
@@ -178,7 +177,7 @@ function PromptContent({
           <div
             aria-hidden="true"
             className={cn(
-              'pointer-events-none absolute left-space-sm right-space-sm text-base text-text-secondary',
+              'left-space-sm right-space-sm pointer-events-none absolute text-base text-text-secondary',
               {
                 'top-space-sm': multiLine,
                 'top-1/2 -translate-y-1/2 truncate': !multiLine,
@@ -264,7 +263,7 @@ export function PromptEditor({
         ></VariableOnChangePlugin>
       </LexicalComposer>
       {missingReferences.length > 0 ? (
-        <p className="text-xs text-status-warning">
+        <p className="text-status-warning text-xs">
           {`Missing variables: ${missingReferences.join(', ')}`}
         </p>
       ) : null}
@@ -273,4 +272,8 @@ export function PromptEditor({
 }
 
 export type { VariableOptionGroup } from './types'
-export { VariableNode, $createVariableNode, $isVariableNode } from './variable-node'
+export {
+  VariableNode,
+  $createVariableNode,
+  $isVariableNode,
+} from './variable-node'

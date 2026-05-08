@@ -7,7 +7,7 @@ import type { CreateAppPageController } from '../hooks/use-create-app-page'
 import '@uiw/react-md-editor/markdown-editor.css'
 import '@uiw/react-markdown-preview/markdown.css'
 
-const MDEditor = lazy(() => import('@uiw/react-md-editor'))
+const MDEditor = lazy(() => import('@uiw/react-md-editor/nohighlight'))
 
 interface PromptPaneProps {
   controller: CreateAppPageController
@@ -27,43 +27,54 @@ export const PromptPane: React.FC<PromptPaneProps> = ({ controller }) => {
     <StudioPanelShell
       title="人设与回复逻辑"
       collapsed={leftCollapsed}
-      collapsedContent={(
-        <div className="flex h-full flex-col items-center gap-space-sm py-space-sm">
+      collapsedContent={
+        <div className="gap-space-sm py-space-sm flex h-full flex-col items-center">
           <Button
             variant="ghost"
             size="icon"
             onClick={expandLeftPanel}
             title="展开人设与回复逻辑"
           >
-            <ChevronRight className="h-4 w-4" style={{ color: 'var(--color-components-icon-button-text)' }} />
+            <ChevronRight
+              className="h-4 w-4"
+              style={{ color: 'var(--color-components-icon-button-text)' }}
+            />
           </Button>
           <div className="h-px w-5 bg-components-studio-border" />
-          <Pencil className="h-4 w-4" style={{ color: 'var(--color-text-tertiary)' }} />
+          <Pencil
+            className="h-4 w-4"
+            style={{ color: 'var(--color-text-tertiary)' }}
+          />
         </div>
-      )}
-      actions={(
+      }
+      actions={
         <Button
           variant="ghost"
           size="icon-sm"
           onClick={collapseLeftPanel}
           title="收起人设与回复逻辑"
         >
-          <ArrowLeft className="h-4 w-4" style={{ color: 'var(--color-components-icon-button-text)' }} />
+          <ArrowLeft
+            className="h-4 w-4"
+            style={{ color: 'var(--color-components-icon-button-text)' }}
+          />
         </Button>
-      )}
+      }
       bodyClassName="flex min-h-0 flex-col overflow-hidden p-space-base"
     >
       <div className="min-h-0 flex-1 overflow-hidden">
         <Suspense
-          fallback={(
-            <div className="flex h-full items-center justify-center bg-surface-secondary">
+          fallback={
+            <div className="bg-surface-secondary flex h-full items-center justify-center">
               <span className="text-text-tertiary">加载编辑器...</span>
             </div>
-          )}
+          }
         >
           <MDEditor
             value={config.systemPrompt}
-            onChange={(value) => handleConfigChange('systemPrompt', value || '')}
+            onChange={(value) =>
+              handleConfigChange('systemPrompt', value || '')
+            }
             data-color-mode={currentTheme}
             height="100%"
             visibleDragbar={false}
@@ -72,7 +83,8 @@ export const PromptPane: React.FC<PromptPaneProps> = ({ controller }) => {
               style: {
                 fontSize: 14,
                 lineHeight: 1.6,
-                fontFamily: 'ui-monospace, SFMono-Regular, Monaco, Consolas, monospace',
+                fontFamily:
+                  'ui-monospace, SFMono-Regular, Monaco, Consolas, monospace',
               },
               spellCheck: false,
             }}
@@ -81,7 +93,7 @@ export const PromptPane: React.FC<PromptPaneProps> = ({ controller }) => {
         </Suspense>
       </div>
 
-      <div className="mt-space-base border-t border-border-subtle pt-space-base">
+      <div className="mt-space-base pt-space-base border-t border-border-subtle">
         <div className="flex items-center justify-between text-xs text-text-tertiary">
           <span>支持 Markdown 语法</span>
           <span>字符数: {config.systemPrompt.length}</span>
