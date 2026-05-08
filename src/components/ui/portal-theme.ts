@@ -7,11 +7,16 @@ export function resolvePortalTheme(value?: string | null): PortalTheme | undefin
 }
 
 export function getElementPortalTheme(element?: Element | null): PortalTheme | undefined {
-  const scopedTheme = element
-    ?.closest<HTMLElement>('[data-theme]')
-    ?.getAttribute('data-theme')
+  const target = element?.closest<HTMLElement>('[data-theme]')
 
-  return resolvePortalTheme(scopedTheme)
+  // 全局 <html data-theme> 已经通过 CSS 继承传给 portal 出去的弹层，无需再 stamp 一次。
+  // 只有当 closest 命中的是 <html> 之外的 scoped 节点（如 agent-share 内的 ScopedTheme 容器）
+  // 时，才把那个 scoped 主题复制到 portal 上，让 portal 跟随子树主题而非宿主主题。
+  if (!target || (typeof document !== 'undefined' && target === document.documentElement)) {
+    return undefined
+  }
+
+  return resolvePortalTheme(target.getAttribute('data-theme'))
 }
 
 export function getActiveElementPortalTheme(): PortalTheme | undefined {
