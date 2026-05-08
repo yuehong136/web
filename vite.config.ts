@@ -210,9 +210,23 @@ export default defineConfig(({ mode }) => {
       sourcemap: 'hidden',
       cssCodeSplit: true,
       reportCompressedSize: false,
-      chunkSizeWarningLimit: 500,
+      // @js-preview/excel is a lazy-loaded single-file previewer chunk. Keep the
+      // warning limit above that known boundary while retaining warnings for
+      // larger accidental entry/vendor chunks.
+      chunkSizeWarningLimit: 1700,
 
       rolldownOptions: {
+        onLog(level, log, defaultHandler) {
+          const sourceFile =
+            log.id || log.loc?.file || log.frame || log.message || ''
+          if (
+            log.code === 'EVAL' &&
+            sourceFile.includes('node_modules/pdfjs-dist/legacy/build/pdf.js')
+          ) {
+            return
+          }
+          defaultHandler(level, log)
+        },
         output: {
           // Organized output paths
           entryFileNames: 'js/[name]-[hash].js',
@@ -240,6 +254,8 @@ export default defineConfig(({ mode }) => {
               {
                 name: 'vendor-antdx',
                 priority: 95,
+                entriesAware: true,
+                maxSize: 1024 * 1024,
                 test: (id: string) =>
                   isAnyPackage(id, [
                     '@ant-design/x',

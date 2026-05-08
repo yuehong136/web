@@ -4,7 +4,7 @@
   "version": "0.9.8",
   "type": "module",
   "engines": {
-    "node": ">=22",
+    "node": ">=22.12.0",
     "npm": ">=10"
   },
   "packageManager": "npm@11.9.0",
@@ -25,10 +25,10 @@
     "preview": "vite preview"
   },
   "browserslist": [
-    "Chrome >= 107",
-    "Edge >= 107",
-    "Firefox >= 104",
-    "Safari >= 16"
+    "Chrome >= 111",
+    "Edge >= 111",
+    "Firefox >= 114",
+    "Safari >= 16.4"
   ],
   "lint-staged": {
     "*.{js,jsx,ts,tsx,json,css,md}": "prettier --write",
