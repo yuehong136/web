@@ -285,7 +285,7 @@ export const AIToolsHomePage: React.FC = () => {
       {showCategoriesDrawer && (
         <div className="fixed inset-0 z-50">
           <div className="absolute inset-0 bg-black/40" onClick={() => setShowCategoriesDrawer(false)} />
-          <div className="absolute inset-y-0 left-0 w-72 bg-components-card-bg border-r border-components-card-border shadow-large p-4 animate-slide-down">
+          <div className="absolute inset-y-0 left-0 w-72 bg-components-card-bg border-r border-components-card-border shadow-elevation-high p-4 animate-slide-down">
             <div className="text-sm font-medium text-text-tertiary mb-3">分类</div>
             <div className="space-y-1">
               {['全部', '表单与流程', '数据分析', '图像与OCR', '文案与翻译', '开发与运维'].map((name) => {

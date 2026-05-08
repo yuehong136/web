@@ -115,8 +115,9 @@ export default defineConfig(({ mode }) => {
         'tailwind-merge',
         'class-variance-authority',
         'lucide-react',
-        'pdfjs-dist',
       ],
+      // pdfjs-dist ships its own worker — pre-bundling breaks worker URL resolution.
+      exclude: ['pdfjs-dist'],
     },
 
     // ---------------------------------------------------------------------------
@@ -139,7 +140,10 @@ export default defineConfig(({ mode }) => {
         },
       },
 
-      sourcemap: true,
+      // 'hidden' = sourcemaps are generated but not referenced from bundles,
+      // so they don't get served to the browser. Upload them to your error
+      // tracker (Sentry/Datadog) and keep them out of public dist deploys.
+      sourcemap: 'hidden',
       cssCodeSplit: true,
       chunkSizeWarningLimit: 500,
 

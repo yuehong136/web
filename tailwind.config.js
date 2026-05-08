@@ -38,7 +38,9 @@ export default {
         border: 'rgb(var(--twc-border) / <alpha-value>)',
         input: 'var(--color-components-input-border)',
         ring: 'rgb(var(--twc-ring) / <alpha-value>)',
-        // 保持原有的灰色系
+        // ⚠️ DEPRECATED: 项目规范禁用 gray-*；这里保留只是为了让 16 处遗留 usage
+        // 在被逐一替换为语义 token 之前不破坏构建。新代码必须使用
+        // surface-*/text-*/border-* 等语义 token。详见 AGENTS.md / CLAUDE.md。
         gray: {
           50: '#f9fafb',
           100: '#f3f4f6',
@@ -52,43 +54,8 @@ export default {
           900: '#111827',
           950: '#030712',
         },
-        // 语义化颜色
-        success: {
-          50: '#f0fdf4',
-          100: '#dcfce7',
-          200: '#bbf7d0',
-          300: '#86efac',
-          400: '#4ade80',
-          500: '#22c55e', // 主色
-          600: '#16a34a',
-          700: '#15803d',
-          800: '#166534',
-          900: '#14532d',
-        },
-        warning: {
-          50: '#fffbeb',
-          100: '#fef3c7',
-          200: '#fde68a',
-          300: '#fcd34d',
-          400: '#fbbf24',
-          500: '#f59e0b', // 主色
-          600: '#d97706',
-          700: '#b45309',
-          800: '#92400e',
-          900: '#78350f',
-        },
-        error: {
-          50: '#fef2f2',
-          100: '#fee2e2',
-          200: '#fecaca',
-          300: '#fca5a5',
-          400: '#f87171',
-          500: '#ef4444', // 主色
-          600: '#dc2626',
-          700: '#b91c1c',
-          800: '#991b1b',
-          900: '#7f1d1d',
-        },
+        // success/warning/error 数字色阶已删除：项目统一使用 status-* 语义 token。
+        // 如需要旧色阶请走 tokens.ts，不要在 tailwind 配置层重新引入。
       },
       borderRadius: {
         lg: 'var(--radius)',
@@ -98,11 +65,7 @@ export default {
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },
-      boxShadow: {
-        'soft': '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)',
-        'medium': '0 4px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-        'large': '0 10px 50px -10px rgba(0, 0, 0, 0.15), 0 20px 25px -5px rgba(0, 0, 0, 0.1)',
-      },
+      // boxShadow.soft/medium/large 已删除：项目统一使用 elevation-low/medium/high token。
       animation: {
         'fade-in': 'fadeIn 0.5s ease-in-out',
         'slide-up': 'slideUp 0.3s ease-out',

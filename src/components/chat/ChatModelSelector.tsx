@@ -213,8 +213,8 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
               "flex items-center gap-space-sm h-10 px-space-md rounded-radius-lg transition-all",
               "text-base font-medium",
               isOpen
-                ? "bg-state-focus-subtle text-state-focus shadow-soft"
-                : "bg-transparent text-text-tertiary hover:bg-background-subtle hover:shadow-soft",
+                ? "bg-state-focus-subtle text-state-focus shadow-elevation-low"
+                : "bg-transparent text-text-tertiary hover:bg-background-subtle hover:shadow-elevation-low",
               disabled && "opacity-50 cursor-not-allowed",
               triggerClassName
             )}
@@ -329,8 +329,8 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
               "border border-border",
               "text-base font-medium",
               isOpen
-                ? "bg-state-focus-subtle text-state-focus shadow-soft border-transparent"
-                : "bg-transparent text-text-tertiary hover:bg-background-subtle hover:shadow-soft",
+                ? "bg-state-focus-subtle text-state-focus shadow-elevation-low border-transparent"
+                : "bg-transparent text-text-tertiary hover:bg-background-subtle hover:shadow-elevation-low",
               disabled && "opacity-50 cursor-not-allowed",
               triggerClassName
             )}

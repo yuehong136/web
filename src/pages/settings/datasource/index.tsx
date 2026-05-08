@@ -22,7 +22,7 @@ function AvailableSourceCard({ id, name, description, icon, onAdd }: AvailableSo
   return (
     <div
       className="group relative p-4 bg-components-card-bg border border-components-card-border rounded-lg 
-                 hover:bg-components-card-bg-hover hover:shadow-soft
+                 hover:bg-components-card-bg-hover hover:shadow-elevation-low
                  cursor-pointer transition-all duration-200"
       onClick={() => onAdd({ id, name, description, icon })}
     >

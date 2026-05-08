@@ -41,7 +41,7 @@ export function DataSourceCard({ name, icon, list }: DataSourceCardProps) {
 
   return (
     <div className="bg-components-card-bg border border-components-card-border rounded-lg 
-                    overflow-hidden shadow-sm hover:shadow-soft transition-shadow duration-200">
+                    overflow-hidden shadow-sm hover:shadow-elevation-low transition-shadow duration-200">
       {/* 类型头部 */}
       <div className="flex items-center gap-3 px-4 py-3 
                       bg-background-subtle border-b border-border-default">

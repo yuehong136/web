@@ -16,7 +16,7 @@ export default tseslint.config([
       reactRefresh.configs.vite,
     ],
     languageOptions: {
-      ecmaVersion: 2020,
+      ecmaVersion: 'latest',
       globals: globals.browser,
     },
     rules: {
@@ -26,8 +26,8 @@ export default tseslint.config([
       'react-refresh/only-export-components': 'off',
       // shadcn 风格 UI 组件的 "interface Foo extends X {}" 是合理模式
       '@typescript-eslint/no-empty-object-type': 'off',
-      // 依赖漏项保留可见性但不阻塞构建
-      'react-hooks/exhaustive-deps': 'warn',
+      // 流式 UI / AbortController / SSE 订阅漏 dep 直接导致内存泄漏与流堆叠，按 error 处理
+      'react-hooks/exhaustive-deps': 'error',
       // 允许 _ 前缀形参/变量作为"故意未使用"的信号；caught errors 与 ragflow 默认一致允许忽略
       '@typescript-eslint/no-unused-vars': [
         'error',

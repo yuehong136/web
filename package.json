@@ -3,6 +3,11 @@
   "private": true,
   "version": "0.9.8",
   "type": "module",
+  "engines": {
+    "node": ">=22",
+    "npm": ">=10"
+  },
+  "packageManager": "npm@11.9.0",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
