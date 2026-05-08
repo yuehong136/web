@@ -40,28 +40,28 @@ Multi-RAG 平台的企业级 React 前端：智能对话、知识库管理、Age
 
 ## 技术栈
 
-| 层 | 选型 | 版本 |
-|---|---|---|
-| 框架 | React | 19.1 |
-| 语言 | TypeScript（strict） | 5.8 |
-| 构建 | Vite | 7.3 |
-| 路由 | react-router-dom | 7.7 |
-| 服务器状态 | TanStack Query | 5.83 |
-| 客户端状态 | Zustand | 5.0 |
-| 样式 | Tailwind CSS + 语义化 token | 3.4 |
-| 原子组件 | Radix UI（16 个包） | 1.1 – 2.2 |
-| 聊天 UI | @ant-design/x 套件 | 2.7 |
-| 表单 | react-hook-form + zod | 7.60 / 4.0 |
-| 图标 | lucide-react（**唯一**） | 0.525 |
-| 画布 | @xyflow/react / @antv/g6 | 12.9 / 5.0 |
-| 编辑器 | @monaco-editor/react、@lexical/react | 4.7 / 0.40 |
-| Markdown | react-markdown + markdown-it + remark-gfm + mathjax3 | — |
-| 流式 | eventsource-parser | 3.0 |
-| 拖拽 | @dnd-kit/core + sortable + utilities | — |
-| 文档预览 | docx-preview、pptx-preview、mammoth、@js-preview/excel、react-pdf-highlighter | — |
-| 图表 / 流程图 | recharts / mermaid | 3.1 / 11.12 |
-| 净化 | DOMPurify | 3.3 |
-| 国际化 | react-i18next + i18next + browser-languagedetector | 16.5 / 25.8 |
+| 层            | 选型                                                                          | 版本        |
+| ------------- | ----------------------------------------------------------------------------- | ----------- |
+| 框架          | React                                                                         | 19.1        |
+| 语言          | TypeScript（strict）                                                          | 5.8         |
+| 构建          | Vite                                                                          | 7.3         |
+| 路由          | react-router-dom                                                              | 7.7         |
+| 服务器状态    | TanStack Query                                                                | 5.83        |
+| 客户端状态    | Zustand                                                                       | 5.0         |
+| 样式          | Tailwind CSS + 语义化 token                                                   | 3.4         |
+| 原子组件      | Radix UI（16 个包）                                                           | 1.1 – 2.2   |
+| 聊天 UI       | @ant-design/x 套件                                                            | 2.7         |
+| 表单          | react-hook-form + zod                                                         | 7.60 / 4.0  |
+| 图标          | lucide-react（**唯一**）                                                      | 0.525       |
+| 画布          | @xyflow/react / @antv/g6                                                      | 12.9 / 5.0  |
+| 编辑器        | @monaco-editor/react、@lexical/react                                          | 4.7 / 0.40  |
+| Markdown      | react-markdown + markdown-it + remark-gfm + mathjax3                          | —           |
+| 流式          | eventsource-parser                                                            | 3.0         |
+| 拖拽          | @dnd-kit/core + sortable + utilities                                          | —           |
+| 文档预览      | docx-preview、pptx-preview、mammoth、@js-preview/excel、react-pdf-highlighter | —           |
+| 图表 / 流程图 | recharts / mermaid                                                            | 3.1 / 11.12 |
+| 净化          | DOMPurify                                                                     | 3.3         |
+| 国际化        | react-i18next + i18next + browser-languagedetector                            | 16.5 / 25.8 |
 
 完整依赖见 `package.json`。
 
@@ -94,8 +94,8 @@ src/
 
 ### 环境要求
 
-- Node.js 18+
-- npm
+- Node.js 22+
+- npm 10+
 
 ### 安装
 
@@ -105,22 +105,26 @@ cd web
 npm install
 cp .env.example .env.local        # 然后编辑
 npm run dev                        # http://localhost:5173
+npm run dev:host                   # 可选：绑定 0.0.0.0 用于局域网联调
 ```
 
 ### 脚本
 
 ```bash
-npm run dev             # Vite 开发服务器（5173）
+npm run dev             # Vite 开发服务器，默认仅本机访问（5173）
+npm run dev:host        # 绑定 0.0.0.0，用于局域网联调
 npm run build           # tsc -b && vite build
+npm run build:analyze   # 生成 dist/stats.html bundle treemap（不部署）
 npm run preview         # 预览生产构建
 npm run lint            # eslint src
 npm run lint:all        # eslint .
+npm run lint:typed      # type-aware lint，先覆盖 Agent 关键目录
+npm run typecheck:agent-strict # Agent 关键目录严格类型检查
 npm run build:themes    # 修改 tokens.ts 后重新生成 themes/{light,dark}.css
 npm run test:agent-t1   # 通过 tsx --test 运行 agent T1 测试
-npx tsc --noEmit        # 类型检查
 ```
 
-目前**没有** `test`、`format`、`typecheck` 脚本。类型检查由 `npm run build` 完成。测试用 `tsx --test`（node 原生 runner），Vitest 迁移已规划但未落地。
+目前**没有**通用 `test`、`format`、`typecheck` 脚本。类型检查由 `npm run build` 完成，Agent 关键目录可补充跑 `npm run typecheck:agent-strict`。格式化通过 Prettier + lint-staged 作用于 staged 文件，不做全仓格式化。现有正式测试仍用 `tsx --test`，Vitest 基础配置已落地用于后续新增/迁移。
 
 ### 环境变量
 
@@ -146,13 +150,13 @@ VITE_WS_BASE_URL=ws://localhost:8000
 
 1. Fork 与分支：`feature/*`、`fix/*`、`refactor/*`、`docs/*`、`perf/*`、`chore/*`
 2. 读 `AGENTS.md`（规范）和 `AI前端技术栈开发规范.md`（为什么）
-3. push 前：`npm run lint && npx tsc --noEmit`（高风险改动跑完整 `npm run build`）
+3. push 前：`npm run lint && npm run build`；接触 Agent serializer/adapter/operator 时补充 `npm run lint:typed && npm run typecheck:agent-strict && npm run test:agent-t1`
 4. UI 改动 PR 必须附明暗双主题截图
 5. 用 [Conventional Commits](https://www.conventionalcommits.org/)：`feat`、`fix`、`docs`、`refactor`、`chore`、`perf`、`test`、`style`（可选 scope）
 
 ## 浏览器支持
 
-Chrome / Firefox / Safari / Edge 最新两个版本。
+Chrome/Edge 107+、Firefox 104+、Safari 16+。
 
 ## 许可证
 

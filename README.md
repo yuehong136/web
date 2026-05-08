@@ -10,7 +10,7 @@ This README is the project front door — it intentionally stays short. The auth
 
 - **[`CLAUDE.md`](./CLAUDE.md)** — mandatory rules for AI coding agents (English)
 - **[`AGENTS.md`](./AGENTS.md)** — same rules in Chinese, for Cursor / other agent tools
-- **[`AI前端技术栈开发规范.md`](./AI前端技术栈开发规范.md)** — full team handbook (Chinese, the *why* behind every rule)
+- **[`AI前端技术栈开发规范.md`](./AI前端技术栈开发规范.md)** — full team handbook (Chinese, the _why_ behind every rule)
 - **`src/themes/{design-system,development-guide,migration-guide}.md`** — design token system specifics
 - **`docs/agent-frontend-rewrite-plan.md`** & **`docs/agent-capability-completion-roadmap.md`** — agent program roadmap
 - **`docs/agent-t1` … `agent-t10` summaries** — landed capabilities per phase
@@ -40,28 +40,28 @@ This README is the project front door — it intentionally stays short. The auth
 
 ## Tech Stack
 
-| Layer | Choice | Version |
-|---|---|---|
-| Framework | React | 19.1 |
-| Language | TypeScript (strict) | 5.8 |
-| Build | Vite | 7.3 |
-| Routing | react-router-dom | 7.7 |
-| Server state | TanStack Query | 5.83 |
-| Client state | Zustand | 5.0 |
-| Styling | Tailwind CSS + semantic tokens | 3.4 |
-| UI primitives | Radix UI (16 packages) | 1.1 – 2.2 |
-| Chat UI | @ant-design/x suite | 2.7 |
-| Forms | react-hook-form + zod | 7.60 / 4.0 |
-| Icons | lucide-react (only allowed) | 0.525 |
-| Canvas | @xyflow/react / @antv/g6 | 12.9 / 5.0 |
-| Editors | @monaco-editor/react, @lexical/react | 4.7 / 0.40 |
-| Markdown | react-markdown + markdown-it + remark-gfm + mathjax3 | — |
-| Streaming | eventsource-parser | 3.0 |
-| Drag & drop | @dnd-kit/core + sortable + utilities | — |
-| Doc preview | docx-preview, pptx-preview, mammoth, @js-preview/excel, react-pdf-highlighter | — |
-| Charts / Diagrams | recharts / mermaid | 3.1 / 11.12 |
-| Sanitization | DOMPurify | 3.3 |
-| i18n | react-i18next + i18next + browser-languagedetector | 16.5 / 25.8 |
+| Layer             | Choice                                                                        | Version     |
+| ----------------- | ----------------------------------------------------------------------------- | ----------- |
+| Framework         | React                                                                         | 19.1        |
+| Language          | TypeScript (strict)                                                           | 5.8         |
+| Build             | Vite                                                                          | 7.3         |
+| Routing           | react-router-dom                                                              | 7.7         |
+| Server state      | TanStack Query                                                                | 5.83        |
+| Client state      | Zustand                                                                       | 5.0         |
+| Styling           | Tailwind CSS + semantic tokens                                                | 3.4         |
+| UI primitives     | Radix UI (16 packages)                                                        | 1.1 – 2.2   |
+| Chat UI           | @ant-design/x suite                                                           | 2.7         |
+| Forms             | react-hook-form + zod                                                         | 7.60 / 4.0  |
+| Icons             | lucide-react (only allowed)                                                   | 0.525       |
+| Canvas            | @xyflow/react / @antv/g6                                                      | 12.9 / 5.0  |
+| Editors           | @monaco-editor/react, @lexical/react                                          | 4.7 / 0.40  |
+| Markdown          | react-markdown + markdown-it + remark-gfm + mathjax3                          | —           |
+| Streaming         | eventsource-parser                                                            | 3.0         |
+| Drag & drop       | @dnd-kit/core + sortable + utilities                                          | —           |
+| Doc preview       | docx-preview, pptx-preview, mammoth, @js-preview/excel, react-pdf-highlighter | —           |
+| Charts / Diagrams | recharts / mermaid                                                            | 3.1 / 11.12 |
+| Sanitization      | DOMPurify                                                                     | 3.3         |
+| i18n              | react-i18next + i18next + browser-languagedetector                            | 16.5 / 25.8 |
 
 Full list lives in `package.json`.
 
@@ -88,14 +88,14 @@ src/
 └── assets/
 ```
 
-For the *why* behind this layout (page-skeleton four-layer rule, presentational/container split, file-size limits), see `AI前端技术栈开发规范.md` and `AGENTS.md`.
+For the _why_ behind this layout (page-skeleton four-layer rule, presentational/container split, file-size limits), see `AI前端技术栈开发规范.md` and `AGENTS.md`.
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js 18+
-- npm
+- Node.js 22+
+- npm 10+
 
 ### Setup
 
@@ -105,22 +105,26 @@ cd web
 npm install
 cp .env.example .env.local        # then edit
 npm run dev                        # http://localhost:5173
+npm run dev:host                   # optional: expose as 0.0.0.0 for LAN testing
 ```
 
 ### Scripts
 
 ```bash
-npm run dev             # Vite dev server (5173)
+npm run dev             # Vite dev server, localhost-only by default (5173)
+npm run dev:host        # Bind 0.0.0.0 for LAN testing
 npm run build           # tsc -b && vite build
+npm run build:analyze   # Generate dist/stats.html bundle treemap (do not deploy)
 npm run preview         # Preview production build
 npm run lint            # eslint src
 npm run lint:all        # eslint .
+npm run lint:typed      # Type-aware lint for Agent critical directories
+npm run typecheck:agent-strict # Strict type check for Agent critical directories
 npm run build:themes    # Regenerate themes/{light,dark}.css after tokens.ts changes
 npm run test:agent-t1   # Run agent T1 tests via tsx --test
-npx tsc --noEmit        # Type check
 ```
 
-There is no `test`, `format`, or `typecheck` script today. Type checking happens inside `npm run build`. Tests run via `tsx --test` (Node native test runner); Vitest migration is planned but not landed.
+There is no generic `test`, `format`, or `typecheck` script today. Type checking happens inside `npm run build`, with stricter Agent-slice checks available via `npm run typecheck:agent-strict`. Formatting is handled by Prettier + lint-staged for staged files only; do not run a whole-repo format pass. Existing formal tests run via `tsx --test`; Vitest baseline config exists for future additions/migration.
 
 ### Environment
 
@@ -146,13 +150,13 @@ Browser-exposed env vars must use the `VITE_*` prefix. Never inline secrets.
 
 1. Fork & branch: `feature/*`, `fix/*`, `refactor/*`, `docs/*`, `perf/*`, `chore/*`
 2. Read `AGENTS.md` (the rules) and `AI前端技术栈开发规范.md` (the why)
-3. Before pushing: `npm run lint && npx tsc --noEmit` (and `npm run build` for risky changes)
+3. Before pushing: `npm run lint && npm run build`; for Agent serializers/adapters/operators also run `npm run lint:typed && npm run typecheck:agent-strict && npm run test:agent-t1`
 4. PR description must include both light/dark theme screenshots for any UI change
 5. Use [Conventional Commits](https://www.conventionalcommits.org/): `feat`, `fix`, `docs`, `refactor`, `chore`, `perf`, `test`, `style` (with optional scope)
 
 ## Browser Support
 
-Latest two versions of Chrome, Firefox, Safari, and Edge.
+Chrome/Edge 107+, Firefox 104+, and Safari 16+.
 
 ## License
 

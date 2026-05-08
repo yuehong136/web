@@ -1,6 +1,7 @@
 # Multi-RAG 前端技术栈开发规范（团队手册）
 
 面向团队成员的详尽规范。讲清楚**做什么、不做什么、为什么**。
+
 - 强约束清单见 `AGENTS.md`（中文）/ `CLAUDE.md`（英文）
 - 设计令牌细节见 `src/themes/design-system.md` / `development-guide.md` / `migration-guide.md`
 - Agent 领域专项见 `docs/agent-*` 系列
@@ -21,43 +22,45 @@ Multi-RAG Frontend 是企业级 AI 前端，覆盖：
 - 系统设置与资源管理
 
 当前代码体量（2026-05 校核）：
+
 - 65+ 原子 UI 组件、6 个页面模板、约 1452 个设计 token
 - 13 个 Zustand store、20+ 测试文件
 - React 19 / TypeScript 5.8 / Vite 7 / TanStack Query 5 / React Router 7
 
 ## 2. 技术栈一览（已校核版本）
 
-| 层 | 选型 | 版本 |
-|---|---|---|
-| 框架 | React | 19.1 |
-| 语言 | TypeScript（strict） | 5.8 |
-| 构建 | Vite | 7.3 |
-| 路由 | react-router-dom | 7.7 |
-| 服务器状态 | TanStack Query | 5.83 |
-| 客户端状态 | Zustand | 5.0 |
-| 样式 | Tailwind CSS + 语义化 token | 3.4 |
-| 原子组件 | Radix UI | 1.1 – 2.2 |
-| 表单 | react-hook-form + zod | 7.60 / 4.0 |
-| 图标 | lucide-react（**唯一**） | 0.525 |
-| 聊天 UI | @ant-design/x 套件（x、x-card、x-markdown、x-sdk） | 2.7 |
-| 画布 | @xyflow/react、@antv/g6 | 12.9 / 5.0 |
-| 编辑器 | @monaco-editor/react、@lexical/react | 4.7 / 0.40 |
-| Markdown | react-markdown + markdown-it + remark-gfm + mathjax3 | — |
-| 流式 | eventsource-parser | 3.0 |
-| 拖拽 | @dnd-kit/core / sortable / utilities | — |
-| 文档预览 | docx-preview、pptx-preview、mammoth、@js-preview/excel、react-pdf-highlighter | — |
-| 图表 | recharts | 3.1 |
-| 流程图 | mermaid | 11.12 |
-| 净化 | DOMPurify | 3.3 |
-| 国际化 | react-i18next + i18next + browser-languagedetector | 16.5 / 25.8 |
-| Toast / Drawer / Command | sonner / vaul / cmdk | — |
-| 可拖动分栏 | react-resizable-panels | 2.1 |
+| 层                       | 选型                                                                          | 版本        |
+| ------------------------ | ----------------------------------------------------------------------------- | ----------- |
+| 框架                     | React                                                                         | 19.1        |
+| 语言                     | TypeScript（strict）                                                          | 5.8         |
+| 构建                     | Vite                                                                          | 7.3         |
+| 路由                     | react-router-dom                                                              | 7.7         |
+| 服务器状态               | TanStack Query                                                                | 5.83        |
+| 客户端状态               | Zustand                                                                       | 5.0         |
+| 样式                     | Tailwind CSS + 语义化 token                                                   | 3.4         |
+| 原子组件                 | Radix UI                                                                      | 1.1 – 2.2   |
+| 表单                     | react-hook-form + zod                                                         | 7.60 / 4.0  |
+| 图标                     | lucide-react（**唯一**）                                                      | 0.525       |
+| 聊天 UI                  | @ant-design/x 套件（x、x-card、x-markdown、x-sdk）                            | 2.7         |
+| 画布                     | @xyflow/react、@antv/g6                                                       | 12.9 / 5.0  |
+| 编辑器                   | @monaco-editor/react、@lexical/react                                          | 4.7 / 0.40  |
+| Markdown                 | react-markdown + markdown-it + remark-gfm + mathjax3                          | —           |
+| 流式                     | eventsource-parser                                                            | 3.0         |
+| 拖拽                     | @dnd-kit/core / sortable / utilities                                          | —           |
+| 文档预览                 | docx-preview、pptx-preview、mammoth、@js-preview/excel、react-pdf-highlighter | —           |
+| 图表                     | recharts                                                                      | 3.1         |
+| 流程图                   | mermaid                                                                       | 11.12       |
+| 净化                     | DOMPurify                                                                     | 3.3         |
+| 国际化                   | react-i18next + i18next + browser-languagedetector                            | 16.5 / 25.8 |
+| Toast / Drawer / Command | sonner / vaul / cmdk                                                          | —           |
+| 可拖动分栏               | react-resizable-panels                                                        | 2.1         |
 
 **已正式弃用 / 不再使用**：
+
 - ❌ Next.js 体系（不写 SSR、不用 `next-intl`、不用 `next/image`、不用 `dynamic()`）
 - ❌ "layout/feature/forms" 旧目录叙事
 - ❌ Day.js 之外的旧 moment 系（避免新增）
-- ❌ Jest（测试用 `tsx --test`，未来迁 Vitest）
+- ❌ Jest（存量正式测试仍用 `tsx --test`；Vitest 基础配置已落地用于后续新增/迁移）
 - ❌ Emotion / styled-components / 任意 CSS-in-JS（统一 Tailwind + token）
 - ❌ 自带的或第三方的图标库（`heroicons`、`react-icons`、`@ant-design/icons` 之外的等等）
 
@@ -98,23 +101,23 @@ src/
 
 ### 4.1 四层分工（强制）
 
-| 层 | 目录 | 职责 |
-|---|---|---|
-| L1 | `components/ui/` | 单组件语义，纯展示 |
-| L2 | `components/patterns/` | 页面结构块（PageHeader、PageToolbar、page-states、SettingsRail、StatCard、StudioPanelShell …） |
-| L3 | `components/page-templates/` | 整页骨架 |
-| L4 | `pages/` | 业务编排，不自建视觉体系 |
+| 层  | 目录                         | 职责                                                                                           |
+| --- | ---------------------------- | ---------------------------------------------------------------------------------------------- |
+| L1  | `components/ui/`             | 单组件语义，纯展示                                                                             |
+| L2  | `components/patterns/`       | 页面结构块（PageHeader、PageToolbar、page-states、SettingsRail、StatCard、StudioPanelShell …） |
+| L3  | `components/page-templates/` | 整页骨架                                                                                       |
+| L4  | `pages/`                     | 业务编排，不自建视觉体系                                                                       |
 
 ### 4.2 页面模板选择
 
-| 场景 | 模板 | 典型 |
-|---|---|---|
-| Console | `ConsolePageTemplate` | 设置、系统、资源管理 |
-| Workspace | `WorkspacePageTemplate` | 首页、聊天、搜索 |
-| Studio | `StudioPageTemplate` | Agent Canvas、Prompt Studio |
-| Studio 三栏 | `StudioTriPanePageTemplate` | 左 + 中 + 右轨工作台 |
-| Split Detail | `SplitDetailPageTemplate` | 列表/详情、检索工作台 |
-| List | `ListPageTemplate` | 可筛选资源列表 |
+| 场景         | 模板                        | 典型                        |
+| ------------ | --------------------------- | --------------------------- |
+| Console      | `ConsolePageTemplate`       | 设置、系统、资源管理        |
+| Workspace    | `WorkspacePageTemplate`     | 首页、聊天、搜索            |
+| Studio       | `StudioPageTemplate`        | Agent Canvas、Prompt Studio |
+| Studio 三栏  | `StudioTriPanePageTemplate` | 左 + 中 + 右轨工作台        |
+| Split Detail | `SplitDetailPageTemplate`   | 列表/详情、检索工作台       |
+| List         | `ListPageTemplate`          | 可筛选资源列表              |
 
 **强制**：新页面优先选 template；页面层不重新发明整页布局。
 
@@ -142,6 +145,7 @@ src/
 - 图标：`icon-sm/md/lg/xl/2xl`
 
 **场景 token**（壳层、模板、状态块强制使用）：
+
 - `components-app-shell-*`
 - `components-main-workbench-*`
 - `components-page-header-*`
@@ -189,11 +193,13 @@ src/
 ### 6.2 展示组件 vs 容器组件
 
 **展示组件**（`components/ui`、`components/patterns`、`components/vendor`）：
+
 - 只接收 props
 - 不读 store、不发请求、不做页面级副作用
 - 局部 UI 态（开/关、hover）允许
 
 **容器组件**（`pages/`、feature 目录）：
+
 - 编排 hooks、queries、mutations、store 读写
 - 组合展示组件
 
@@ -208,7 +214,7 @@ interface UserProfileProps {
 export function UserProfile({ user, className }: UserProfileProps) {
   return (
     <div className={className}>
-      <h3 className="text-text-primary font-medium">{user.name}</h3>
+      <h3 className="font-medium text-text-primary">{user.name}</h3>
       <p className="text-text-secondary">{user.email}</p>
     </div>
   )
@@ -217,12 +223,12 @@ export function UserProfile({ user, className }: UserProfileProps) {
 
 ### 6.3 文件大小硬约束
 
-| 行数 | 状态 | 操作 |
-|---|---|---|
-| < 300 | ✅ 理想 | — |
+| 行数    | 状态    | 操作     |
+| ------- | ------- | -------- |
+| < 300   | ✅ 理想 | —        |
 | 300–400 | ⚠️ 警告 | 考虑拆分 |
 | 400–600 | 🔶 注意 | 排期重构 |
-| > 600 | ❌ 禁止 | 必须拆 |
+| > 600   | ❌ 禁止 | 必须拆   |
 
 **已知技术债（不得继续扩张）**：
 `ApiKeysPage.tsx`(3293)、`ExplorePage.tsx`(2279)、`DocumentChunksPage.tsx`(2239)、`api-key-modal.tsx`(1757)、`agent/options/google.ts`(1589)、`agent/constant/index.ts`(1443)、`MCPChatPage.tsx`(1409)、`KnowledgeListPage.tsx`(1219)。修改时必须减少或拆分。
@@ -271,12 +277,12 @@ interface AITranslateRequest {
 
 ### 8.2 Hooks 命名
 
-| 用途 | 模式 | 示例 |
-|---|---|---|
-| 查询 | `useFetch*` / `useGet*` | `useFetchKnowledgeList` |
-| 变更 | `useCreate*` / `useUpdate*` / `useDelete*` | `useCreateConversation` |
-| UI 状态 | `useSet*` / `useShow*` / `useToggle*` | `useSetModalState` |
-| 领域编排 | `use<Feature>` | `useCreateAppPage` |
+| 用途     | 模式                                       | 示例                    |
+| -------- | ------------------------------------------ | ----------------------- |
+| 查询     | `useFetch*` / `useGet*`                    | `useFetchKnowledgeList` |
+| 变更     | `useCreate*` / `useUpdate*` / `useDelete*` | `useCreateConversation` |
+| UI 状态  | `useSet*` / `useShow*` / `useToggle*`      | `useSetModalState`      |
+| 领域编排 | `use<Feature>`                             | `useCreateAppPage`      |
 
 ### 8.3 服务器状态走 TanStack Query
 
@@ -286,7 +292,9 @@ const { data, isLoading } = useFetchKnowledgeList(params)
 const createConversation = useCreateConversation()
 
 // ❌
-useEffect(() => { loadKnowledgeList(params) }, [params])
+useEffect(() => {
+  loadKnowledgeList(params)
+}, [params])
 ```
 
 合理设置 `staleTime`、`gcTime`；mutation 成功用 `queryClient.invalidateQueries` 失效，不要手写同步 cache。
@@ -294,6 +302,7 @@ useEffect(() => { loadKnowledgeList(params) }, [params])
 ### 8.4 Agent 领域
 
 Agent 相关复用：
+
 - `src/types/agent.ts`
 - `src/hooks/use-agent-*.ts`
 - `src/pages/agent/operators/`（节点定义、序列化）
@@ -328,15 +337,15 @@ Agent 相关复用：
 
 ```ts
 // ❌ 每次返回新对象 — getSnapshot 死循环
-const { a, b } = useStore(s => ({ a: s.a, b: s.b }))
+const { a, b } = useStore((s) => ({ a: s.a, b: s.b }))
 
 // ✅ 用 useShallow
 import { useShallow } from 'zustand/react/shallow'
-const { a, b } = useStore(useShallow(s => ({ a: s.a, b: s.b })))
+const { a, b } = useStore(useShallow((s) => ({ a: s.a, b: s.b })))
 
 // ✅ 或拆原子 selector
-const a = useStore(s => s.a)
-const b = useStore(s => s.b)
+const a = useStore((s) => s.a)
+const b = useStore((s) => s.b)
 ```
 
 ## 10. 路由与页面
@@ -350,7 +359,11 @@ const b = useStore(s => s.b)
 ### 10.2 推荐写法
 
 ```tsx
-import { PageErrorState, PageHeader, PageLoadingState } from '@/components/patterns'
+import {
+  PageErrorState,
+  PageHeader,
+  PageLoadingState,
+} from '@/components/patterns'
 import { StudioPageTemplate } from '@/components/page-templates'
 import { Button } from '@/components/ui/button'
 
@@ -362,7 +375,9 @@ export function ExampleStudioPage() {
 
   return (
     <StudioPageTemplate
-      toolbar={<PageHeader title="Agent Studio" actions={<Button>保存</Button>} />}
+      toolbar={
+        <PageHeader title="Agent Studio" actions={<Button>保存</Button>} />
+      }
     >
       <div className="p-space-lg">{/* 内容 */}</div>
     </StudioPageTemplate>
@@ -390,7 +405,10 @@ const KnowledgePage = lazy(() => import('@/pages/knowledge'))
 聊天发送、收藏、改名等乐观更新优先用 `useOptimistic`，在 mutation 的 `onSettled` 里对账。
 
 ```tsx
-const [optimisticMessages, addOptimistic] = useOptimistic(messages, (state, msg) => [...state, msg])
+const [optimisticMessages, addOptimistic] = useOptimistic(
+  messages,
+  (state, msg) => [...state, msg],
+)
 
 const send = (text: string) => {
   addOptimistic({ id: 'temp', text, pending: true })
@@ -431,6 +449,7 @@ queryClient.setQueryData(['conversation', id], finalSnapshot)
 ### 12.2 AbortController 必须自持
 
 每条流配一个 `AbortController`：
+
 - 组件卸载 → abort
 - 用户取消 → abort
 - 上游请求 key（会话 id 等）变化 → abort 旧的、起新的
@@ -480,6 +499,7 @@ useEffect(() => {
 ### 13.1 单一真相源：JSON Schema
 
 Schema → 表单 / 渲染走：
+
 - `src/components/jsonjoy-builder/`
 - `src/components/ui/schema-editor`
 - `src/pages/agent/features/form-sheet/`
@@ -548,7 +568,8 @@ Widget bundle 是关键链路 — 重型依赖（Lexical、Monaco、mermaid、pd
 
 - 20+ `*.test.ts(x)` 文件，跑在 `tsx --test`（node native test runner）
 - 覆盖：`pages/agent/operators`、`adapters`、`runtime-workbench`、`pipeline-workbench`、`prompt-editor`、`schema-editor`、`api/agent`、`lib/agent`、`lib/search`
-- 唯一脚本：`npm run test:agent-t1`
+- 唯一正式测试脚本：`npm run test:agent-t1`
+- `vitest.config.ts` 已存在，但不迁移存量测试；新 Vitest 测试必须范围明确，不得替代 `test:agent-t1` 门禁
 
 ### 18.2 必须测的层
 
@@ -559,13 +580,13 @@ Widget bundle 是关键链路 — 重型依赖（Lexical、Monaco、mermaid、pd
 
 ### 18.3 不要
 
-- ❌ 引入 Jest（明确决定走 Vitest 路径，但暂未迁移）
+- ❌ 引入 Jest（明确决定走 Vitest 路径，但存量尚未迁移）
 - ❌ 测实现细节，只测稳定外部行为
 - ❌ Mock 真实流（用 fixture）
 
 ### 18.4 待办
 
-Vitest 迁移已规划，迁移前沿用 `tsx --test` 风格，文件放 `__tests__/` 目录。
+Vitest 迁移已规划。迁移前存量沿用 `tsx --test` 风格，文件放 `__tests__/` 目录；后续新增 Vitest 测试应先覆盖独立纯逻辑，不做大面积测试框架替换。
 
 ## 19. 性能
 
@@ -599,6 +620,8 @@ const Monaco = lazy(() => import('@monaco-editor/react'))
 
 - locale 资源按语言分包
 - 监控 `npm run build` 输出，单 chunk > 500KB 必须分析
+- 使用 `npm run build:analyze` 生成 `dist/stats.html` 做 bundle treemap 分析；`stats.html` 与 `.map` 文件不得进入公开部署包
+- `manualChunks` 先量化后调整，禁止无基线地整段删除
 - 关注 LCP（首屏首字节）与 TTI（流式 TPS、tokens/s）
 
 ## 20. 可访问性（a11y）
@@ -659,6 +682,7 @@ VITE_APP_VERSION=0.9.8
 ### 23.2 提交信息
 
 Conventional Commits：
+
 ```
 feat(agent): support downloadable runtime attachments
 fix(agent-share): support multi-file uploads
@@ -670,7 +694,11 @@ docs: refresh handbook for 2026 stack
 
 ```bash
 npm run lint
-npx tsc --noEmit   # 或 npm run build
+npm run build
+# 接触 Agent serializer/adapter/operator 时补充：
+npm run lint:typed
+npm run typecheck:agent-strict
+npm run test:agent-t1
 ```
 
 UI 改动：附明暗双主题截图。
@@ -702,14 +730,17 @@ UI 改动：附明暗双主题截图。
 
 ```bash
 npm install
-npm run dev               # 开发服务器（5173）
+npm run dev               # 开发服务器，默认仅本机访问（5173）
+npm run dev:host          # 绑定 0.0.0.0，用于局域网联调
 npm run build             # tsc -b && vite build
+npm run build:analyze     # 生成 dist/stats.html bundle treemap（不部署）
 npm run preview           # 预览生产构建
 npm run lint              # eslint src
 npm run lint:all          # eslint .
+npm run lint:typed        # type-aware lint，先覆盖 Agent 关键目录
+npm run typecheck:agent-strict # Agent 关键目录严格类型检查
 npm run build:themes      # 重生 themes/{light,dark}.css
 npm run test:agent-t1     # 跑 agent T1 相关测试
-npx tsc --noEmit          # 类型检查
 ```
 
 ## 26. 总结：什么是"现代 AI 前端"在这里的含义
