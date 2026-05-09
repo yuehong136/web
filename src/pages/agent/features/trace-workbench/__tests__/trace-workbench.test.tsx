@@ -12,6 +12,7 @@ import {
   createTraceWorkbenchDebugBundle,
   resolveDefaultTraceSpanId,
 } from '../hooks/use-trace-workbench'
+import { formatTraceDuration, formatTracePayload } from '../utils'
 
 test('trace workbench defaults to the first error span', () => {
   const viewModel = buildTraceRunViewModel({
@@ -148,12 +149,36 @@ test('trace workbench source does not parse raw trace field names', () => {
     'src/pages/agent/features/trace-workbench/components/trace-span-tree.tsx',
     'src/pages/agent/features/trace-workbench/components/trace-span-row.tsx',
     'src/pages/agent/features/trace-workbench/components/trace-span-detail.tsx',
+    'src/pages/agent/features/trace-workbench/components/trace-insight-panel.tsx',
     'src/pages/agent/features/trace-workbench/components/trace-io-panel.tsx',
+    'src/pages/agent/features/trace-workbench/components/trace-json-viewer.tsx',
     'src/pages/agent/features/trace-workbench/components/trace-raw-panel.tsx',
+    'src/pages/agent/features/trace-workbench/components/trace-error-panel.tsx',
     'src/pages/agent/features/trace-workbench/components/trace-debug-actions.tsx',
     'src/pages/agent/features/trace-workbench/components/trace-empty-state.tsx',
   ]
   const source = files.map((file) => readFileSync(file, 'utf8')).join('\n')
 
   assert.doesNotMatch(source, /tool_name|elapsed_time|component_id/)
+})
+
+test('trace workbench formats durations in seconds without rounding to zero', () => {
+  assert.equal(formatTraceDuration(0), '未记录')
+  assert.equal(formatTraceDuration(0.0004), '0.001s')
+  assert.equal(formatTraceDuration(0.0012), '0.001s')
+  assert.equal(formatTraceDuration(0.008), '0.008s')
+  assert.equal(formatTraceDuration(1.606), '1.606s')
+})
+
+test('trace workbench dedupes identical input and output array entries for display', () => {
+  const payload = formatTracePayload(
+    [{ query: 'openclaw' }, { query: 'openclaw' }, { query: 'ragflow' }],
+    'empty',
+    { dedupeArrays: true },
+  )
+
+  assert.equal(
+    payload.text,
+    JSON.stringify([{ query: 'openclaw' }, { query: 'ragflow' }], null, 2),
+  )
 })

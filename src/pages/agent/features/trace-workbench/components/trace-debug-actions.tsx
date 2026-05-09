@@ -1,4 +1,4 @@
-import { Copy, ShieldCheck } from 'lucide-react'
+import { Copy } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toast } from '@/lib/toast'
 import { copyToClipboard } from '@/lib/utils'
@@ -28,17 +28,20 @@ export function TraceDebugActions({
   return (
     <div className="gap-space-base px-space-lg py-space-base flex items-center justify-between border-t border-components-split-pane-border">
       <div className="min-w-0 text-xs text-text-tertiary">
-        <div className="gap-space-xs flex items-center font-medium text-text-secondary">
-          <ShieldCheck className="size-4" />
-          Debug bundle
-        </div>
+        <div className="font-medium text-text-secondary">脱敏调试包</div>
         <p className="mt-space-2xs truncate">
-          token、api key、password、secret、authorization、cookie 已脱敏。
+          仅用于排查，敏感字段会在复制前脱敏。
         </p>
       </div>
-      <Button type="button" variant="outline" size="sm" onClick={handleCopy}>
-        <Copy className="size-4" />
-        复制
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        className="px-space-xs h-7 text-xs text-text-secondary hover:text-text-primary"
+        onClick={handleCopy}
+      >
+        <Copy className="size-3.5" />
+        复制调试包
       </Button>
     </div>
   )

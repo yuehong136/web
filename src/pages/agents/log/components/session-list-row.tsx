@@ -1,6 +1,4 @@
-import { AlertTriangle, Clock, Copy, MessageSquare, Zap } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { toast } from '@/lib/toast'
+import { AlertTriangle } from 'lucide-react'
 import { cn, formatTimestampCompact } from '@/lib/utils'
 import {
   buildSessionErrorSummary,
@@ -17,17 +15,21 @@ interface SessionListRowProps {
   onSelect: (sessionId: string) => void
 }
 
-const STATUS_CLASSES: Record<AgentLogStatus, string> = {
-  [AgentLogStatus.ALL]:
-    'bg-background-subtle text-text-secondary border-border-subtle',
-  [AgentLogStatus.OK]:
-    'bg-state-success-subtle text-state-success border-state-success',
+const STATUS_TEXT_CLASSES: Record<AgentLogStatus, string> = {
+  [AgentLogStatus.ALL]: 'text-text-tertiary',
+  [AgentLogStatus.OK]: 'text-text-tertiary',
   [AgentLogStatus.ERR]:
-    'bg-state-error-subtle text-state-error border-state-error',
-  [AgentLogStatus.RUN]:
-    'bg-state-info-subtle text-state-info border-state-info',
-  [AgentLogStatus.WARN]:
-    'bg-state-warning-subtle text-state-warning border-state-warning',
+    'border border-state-error bg-state-error-subtle px-space-xs py-[2px] text-state-error',
+  [AgentLogStatus.RUN]: 'text-text-secondary',
+  [AgentLogStatus.WARN]: 'text-status-warning',
+}
+
+const STATUS_DOT_CLASSES: Record<AgentLogStatus, string> = {
+  [AgentLogStatus.ALL]: 'bg-text-caption',
+  [AgentLogStatus.OK]: 'bg-state-success',
+  [AgentLogStatus.ERR]: 'bg-state-error',
+  [AgentLogStatus.RUN]: 'bg-state-info',
+  [AgentLogStatus.WARN]: 'bg-status-warning',
 }
 
 function formatDuration(duration?: number): string {
@@ -44,81 +46,56 @@ export function SessionListRow({
 }: SessionListRowProps) {
   const status = extractAgentLogStatus(session)
   const errorSummary = buildSessionErrorSummary(session)
-  const shortId = session.id.slice(0, 8)
-
-  const handleCopy = async (event: React.MouseEvent<HTMLButtonElement>) => {
-    event.stopPropagation()
-    await navigator.clipboard?.writeText(session.id)
-    toast.success('Session ID 已复制')
-  }
+  const updateTime = session.update_time
+    ? formatTimestampCompact(session.update_time)
+    : '-'
 
   return (
     <div
       className={cn(
-        'relative border-b border-border-subtle',
+        'group/session relative border-b border-border-subtle',
         active && 'bg-state-info-subtle',
       )}
     >
       {active ? (
         <div className="absolute bottom-0 left-0 top-0 w-[2px] bg-state-focus" />
       ) : null}
-      <div className="right-space-sm top-space-sm absolute z-10">
-        <Button variant="ghost" size="icon-sm" onClick={handleCopy}>
-          <Copy className="h-4 w-4" />
-        </Button>
-      </div>
       <button
         type="button"
-        className="gap-space-xs px-space-base py-space-sm hover:bg-surface-secondary pr-space-2xl flex w-full flex-col text-left transition-colors"
+        className="gap-space-sm px-space-base py-space-base hover:bg-surface-secondary flex w-full flex-col text-left transition-colors"
         onClick={() => onSelect(session.id)}
       >
-        <div className="gap-space-xs flex min-w-0 items-center">
+        <div className="gap-space-sm flex min-w-0 items-start">
           <span
             className={cn(
-              'gap-space-xs rounded-radius-full px-space-xs inline-flex shrink-0 items-center border py-[2px] text-[11px] font-medium',
-              STATUS_CLASSES[status],
+              'rounded-radius-full mt-[7px] h-1.5 w-1.5 shrink-0',
+              STATUS_DOT_CLASSES[status],
             )}
-          >
-            <span className="rounded-radius-full h-1.5 w-1.5 bg-current" />
-            {AGENT_LOG_STATUS_LABELS[status]}
-          </span>
+          />
           <span className="min-w-0 flex-1 truncate text-sm font-semibold text-text-primary">
             {extractSessionTitle(session)}
+          </span>
+          <span
+            className={cn(
+              'gap-space-xs rounded-radius-full inline-flex shrink-0 items-center text-[11px] font-medium',
+              STATUS_TEXT_CLASSES[status],
+            )}
+          >
+            {AGENT_LOG_STATUS_LABELS[status]}
           </span>
         </div>
 
         <div className="gap-space-xs flex min-w-0 items-center text-xs text-text-tertiary">
-          <span className="font-mono">{shortId}</span>
-          <span className="rounded-radius-full bg-text-caption h-[3px] w-[3px]" />
-          <span>{session.source || '-'}</span>
-          <span className="rounded-radius-full bg-text-caption h-[3px] w-[3px]" />
-          <span>{String(session.user_id || session.exp_user_id || '-')}</span>
-          <span className="rounded-radius-full bg-text-caption h-[3px] w-[3px]" />
-          <span>
-            {session.update_time
-              ? formatTimestampCompact(session.update_time)
-              : '-'}
-          </span>
-        </div>
-
-        <div className="gap-space-md flex items-center text-xs text-text-tertiary">
-          <span className="gap-space-xs inline-flex items-center">
-            <Clock className="h-3.5 w-3.5" />
-            {formatDuration(session.duration)}
-          </span>
-          <span className="gap-space-xs inline-flex items-center">
-            <Zap className="h-3.5 w-3.5" />
-            {session.tokens ?? 0}
-          </span>
-          <span className="gap-space-xs inline-flex items-center">
-            <MessageSquare className="h-3.5 w-3.5" />
-            {session.round ?? session.message_count ?? 0} 轮
-          </span>
+          <span className="shrink-0 font-mono">{updateTime}</span>
+          <span className="rounded-radius-full bg-text-caption h-[3px] w-[3px] shrink-0" />
+          <span>{session.round ?? session.message_count ?? 0} 轮</span>
+          <span className="rounded-radius-full bg-text-caption h-[3px] w-[3px] shrink-0" />
+          <span>耗时 {formatDuration(session.duration)}</span>
         </div>
 
         {errorSummary ? (
           <div className="gap-space-xs rounded-radius-sm px-space-sm py-space-xs flex min-w-0 items-center border border-state-error bg-state-error-subtle text-xs text-state-error">
-            <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+            <AlertTriangle className="size-3.5 shrink-0" />
             <span className="truncate">{errorSummary}</span>
           </div>
         ) : null}

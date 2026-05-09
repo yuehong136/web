@@ -73,11 +73,11 @@ export function SessionListPane({
           <span>共 {isFiltered ? filteredTotal : total} 条</span>
           <Button variant="ghost" size="sm" className="px-space-xs h-7 text-xs">
             最近更新
-            <ChevronDown className="h-3.5 w-3.5" />
+            <ChevronDown className="size-3.5" />
           </Button>
         </div>
       </div>
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto overscroll-contain">
         {sessions.length > 0 ? (
           sessions.map((session) => (
             <SessionListRow
@@ -95,7 +95,7 @@ export function SessionListPane({
             description="当前筛选条件下没有可查看的 Session。"
             action={
               <Button variant="outline" size="sm" onClick={onOpenExplore}>
-                <ExternalLink className="h-4 w-4" />
+                <ExternalLink className="size-3.5" />
                 打开 Explore
               </Button>
             }
@@ -130,55 +130,32 @@ function CompactPagination({
   onPageChange: (page: number) => void
 }) {
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
-  const pageItems = [1, 2, 3].filter((item) => item <= totalPages)
-  const showLast = totalPages > 4
-
   return (
-    <div className="px-space-base flex h-12 shrink-0 items-center justify-between border-t border-border-subtle text-xs text-text-tertiary">
-      <span>
+    <div className="gap-space-sm px-space-base py-space-base flex shrink-0 flex-col border-t border-border-subtle text-xs text-text-tertiary">
+      <span className="leading-none">
         第 {page} / {totalPages} 页
         {isFiltered ? ` · 服务器共 ${serverTotal}` : ''}
       </span>
       <div className="gap-space-xs flex items-center">
         <Button
           variant="outline"
-          size="icon-sm"
+          size="sm"
+          className="min-w-0 flex-1"
           disabled={page <= 1}
           onClick={() => onPageChange(page - 1)}
         >
-          <ChevronLeft className="h-3.5 w-3.5" />
+          <ChevronLeft className="size-3.5" />
+          上一页
         </Button>
-        {pageItems.map((item) => (
-          <Button
-            key={item}
-            variant={page === item ? 'default' : 'outline'}
-            size="sm"
-            className="px-space-xs h-8 min-w-8"
-            onClick={() => onPageChange(item)}
-          >
-            {item}
-          </Button>
-        ))}
-        {showLast ? (
-          <>
-            <span className="px-space-xs">...</span>
-            <Button
-              variant={page === totalPages ? 'default' : 'outline'}
-              size="sm"
-              className="px-space-xs h-8 min-w-8"
-              onClick={() => onPageChange(totalPages)}
-            >
-              {totalPages}
-            </Button>
-          </>
-        ) : null}
         <Button
           variant="outline"
-          size="icon-sm"
+          size="sm"
+          className="min-w-0 flex-1"
           disabled={page >= totalPages}
           onClick={() => onPageChange(page + 1)}
         >
-          <ChevronRight className="h-3.5 w-3.5" />
+          下一页
+          <ChevronRight className="size-3.5" />
         </Button>
       </div>
     </div>

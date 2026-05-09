@@ -51,7 +51,7 @@ export function CanvasSelector({
                 getAvatarGradient(title),
               )}
             >
-              {selectedAgent ? initial : <Bot className="h-3.5 w-3.5" />}
+              {selectedAgent ? initial : <Bot className="size-3.5" />}
             </span>
             <span className="min-w-0 text-left">
               <span className="block truncate text-xs font-medium text-text-primary">
@@ -62,7 +62,7 @@ export function CanvasSelector({
               </span>
             </span>
           </span>
-          <ChevronsUpDown className="h-4 w-4 text-text-tertiary" />
+          <ChevronsUpDown className="size-4 text-text-tertiary" />
         </Button>
       </PopoverTrigger>
       <PopoverContent align="start" className="p-space-sm w-[360px]">
@@ -72,7 +72,7 @@ export function CanvasSelector({
           placeholder="搜索 Agent"
           value={picker.keyword}
           onChange={(event) => picker.setKeyword(event.target.value)}
-          leftIcon={<Search className="h-4 w-4" />}
+          leftIcon={<Search className="size-4" />}
         />
         <div className="mt-space-sm max-h-[320px] overflow-auto">
           <div className="mb-space-xs px-space-xs text-xs font-medium text-text-tertiary">
@@ -106,7 +106,7 @@ export function CanvasSelector({
                     </span>
                   </span>
                   {active ? (
-                    <Check className="h-4 w-4 text-state-success" />
+                    <Check className="size-4 text-state-success" />
                   ) : null}
                 </button>
               )

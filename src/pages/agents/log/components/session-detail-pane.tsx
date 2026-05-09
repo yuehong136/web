@@ -14,7 +14,7 @@ export function SessionDetailPane({
     return (
       <div className="p-space-xl flex h-full flex-col items-center justify-center bg-components-split-pane-bg text-center">
         <div className="mb-space-base rounded-radius-lg shadow-elevation-low flex h-14 w-14 items-center justify-center border border-border-default bg-components-console-surface text-text-tertiary">
-          <MessageSquare className="h-6 w-6" />
+          <MessageSquare className="size-6" />
         </div>
         <h3 className="text-base font-semibold text-text-primary">
           从左侧选择一条 session

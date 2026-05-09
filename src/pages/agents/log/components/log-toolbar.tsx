@@ -1,4 +1,4 @@
-import { Clock, ListFilter, Search, UserRound } from 'lucide-react'
+import { Search } from 'lucide-react'
 import { PageToolbar } from '@/components/patterns'
 import { Button } from '@/components/ui/button'
 import { CustomSelect } from '@/components/ui/custom-select'
@@ -19,6 +19,15 @@ interface LogToolbarProps {
 }
 
 export function LogToolbar({ agent, params, onChange }: LogToolbarProps) {
+  const hasActiveFilters = Boolean(
+    params.keywords ||
+    params.from ||
+    params.to ||
+    params.user ||
+    params.source ||
+    params.status !== AgentLogStatus.ALL,
+  )
+
   return (
     <PageToolbar
       left={
@@ -49,44 +58,34 @@ export function LogToolbar({ agent, params, onChange }: LogToolbarProps) {
                 label: AGENT_LOG_STATUS_LABELS[status],
               }))}
             />
-            <Button variant="outline" size="sm">
-              <Clock className="h-4 w-4" />
-              {params.from || params.to ? '自定义时间' : '近 24 小时'}
-            </Button>
-            <Button variant="outline" size="sm">
-              <UserRound className="h-4 w-4" />
-              {params.user ? params.user : '所有用户'}
-            </Button>
             <Input
               type="search"
               inputSize="sm"
-              className="w-[300px]"
+              className="w-[320px]"
               placeholder="搜索 session id / query / 用户"
               value={params.keywords || ''}
               onChange={(event) => onChange({ keywords: event.target.value })}
-              leftIcon={<Search className="h-4 w-4" />}
+              leftIcon={<Search className="size-4" />}
             />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() =>
-                onChange({
-                  status: AgentLogStatus.ALL,
-                  source: undefined,
-                  from: undefined,
-                  to: undefined,
-                  user: undefined,
-                  keywords: undefined,
-                  page: 1,
-                })
-              }
-            >
-              重置
-            </Button>
-            <Button variant="outline" size="sm">
-              <ListFilter className="h-4 w-4" />
-              更多筛选
-            </Button>
+            {hasActiveFilters ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  onChange({
+                    status: AgentLogStatus.ALL,
+                    source: undefined,
+                    from: undefined,
+                    to: undefined,
+                    user: undefined,
+                    keywords: undefined,
+                    page: 1,
+                  })
+                }
+              >
+                重置
+              </Button>
+            ) : null}
           </>
         ) : null
       }

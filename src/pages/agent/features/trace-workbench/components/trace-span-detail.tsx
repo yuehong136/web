@@ -1,8 +1,9 @@
-import { AlertTriangle, Clock, Fingerprint, GitBranch } from 'lucide-react'
+import { AlertTriangle } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Badge } from '@/components/ui/badge'
 import type { TraceSpanViewModel } from '@/pages/agent/adapters/trace'
 import { TRACE_SPAN_KIND_LABELS, TRACE_SPAN_STATUS_LABELS } from '../constants'
+import { formatTraceDuration } from '../utils'
 
 const STATUS_VARIANT_MAP: Record<
   TraceSpanViewModel['status'],
@@ -14,12 +15,14 @@ const STATUS_VARIANT_MAP: Record<
   unknown: 'outline',
 }
 
-function formatDuration(duration?: number) {
-  if (typeof duration !== 'number') {
-    return '接口未提供'
+function formatShortId(value?: string) {
+  if (!value) {
+    return '-'
   }
 
-  return `${duration.toFixed(3)}s`
+  return value.length > 18
+    ? `${value.slice(0, 10)}...${value.slice(-6)}`
+    : value
 }
 
 function DetailRow({ label, value }: { label: string; value: ReactNode }) {
@@ -37,7 +40,7 @@ export function TraceSpanDetail({ span }: { span?: TraceSpanViewModel }) {
   if (!span) {
     return (
       <section className="p-space-lg text-sm text-text-secondary">
-        请选择一个 span。
+        请选择一个节点。
       </section>
     )
   }
@@ -56,17 +59,13 @@ export function TraceSpanDetail({ span }: { span?: TraceSpanViewModel }) {
               </Badge>
             </div>
             <div className="mt-space-xs gap-x-space-base gap-y-space-xs flex flex-wrap items-center text-xs text-text-tertiary">
-              <span className="gap-space-xs inline-flex items-center">
-                <GitBranch className="size-4" />
-                {TRACE_SPAN_KIND_LABELS[span.kind]}
-              </span>
-              <span className="gap-space-xs inline-flex items-center">
-                <Clock className="size-4" />
-                {formatDuration(span.duration)}
-              </span>
-              <span className="gap-space-xs inline-flex min-w-0 items-center">
-                <Fingerprint className="size-4 shrink-0" />
-                <span className="truncate font-mono">{span.id}</span>
+              <span>类型 {TRACE_SPAN_KIND_LABELS[span.kind]}</span>
+              <span>耗时 {formatTraceDuration(span.duration)}</span>
+              <span className="inline-flex min-w-0 items-center">
+                ID{' '}
+                <span className="truncate font-mono">
+                  {formatShortId(span.id)}
+                </span>
               </span>
             </div>
           </div>
@@ -75,8 +74,8 @@ export function TraceSpanDetail({ span }: { span?: TraceSpanViewModel }) {
         {span.error ? (
           <div className="mt-space-base rounded-radius-md border-status-error bg-status-error/10 p-space-sm text-status-error border">
             <div className="mb-space-xs gap-space-xs flex items-center text-xs font-semibold">
-              <AlertTriangle className="size-4" />
-              Error
+              <AlertTriangle className="size-3.5" />
+              错误
             </div>
             <pre className="whitespace-pre-wrap break-words text-xs">
               {span.error}
@@ -86,10 +85,13 @@ export function TraceSpanDetail({ span }: { span?: TraceSpanViewModel }) {
       </div>
 
       <div className="px-space-lg py-space-sm md:gap-x-space-xl grid border-t border-border-subtle md:grid-cols-2">
-        <DetailRow label="Component" value={span.componentId || '-'} />
-        <DetailRow label="Parent" value={span.parentId || '-'} />
-        <DetailRow label="Confidence" value={span.confidence} />
-        <DetailRow label="Message" value={span.message || '-'} />
+        {span.componentId ? (
+          <DetailRow label="组件" value={span.componentId} />
+        ) : null}
+        {span.parentId ? (
+          <DetailRow label="父节点" value={formatShortId(span.parentId)} />
+        ) : null}
+        {span.message ? <DetailRow label="消息" value={span.message} /> : null}
       </div>
     </section>
   )

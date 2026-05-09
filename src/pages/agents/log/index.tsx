@@ -1,5 +1,10 @@
 import { useNavigate } from 'react-router-dom'
 import { ConsolePageTemplate } from '@/components/page-templates'
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from '@/components/ui/resizable'
 import { useFetchAgent } from '@/hooks/use-agent-request'
 import { useAgentLogExport } from './hooks/use-agent-log-export'
 import { useAgentLogList } from './hooks/use-agent-log-list'
@@ -75,8 +80,16 @@ export default function AgentLogsPage() {
           onSelectAgent={(canvas) => logList.setParams({ canvas, page: 1 })}
         />
       ) : (
-        <div className="flex h-full min-h-0 bg-components-split-pane-bg">
-          <div className="w-[360px] shrink-0 border-r border-components-split-pane-border">
+        <ResizablePanelGroup
+          direction="horizontal"
+          className="h-full min-h-0 bg-components-split-pane-bg"
+        >
+          <ResizablePanel
+            defaultSize={16}
+            minSize={12}
+            maxSize={22}
+            className="min-w-[280px] bg-components-console-surface"
+          >
             <SessionListPane
               params={logList.params}
               sessions={logList.filteredSessions}
@@ -91,14 +104,15 @@ export default function AgentLogsPage() {
               }}
               onOpenExplore={() => navigate(openExplorePath)}
             />
-          </div>
-          <div className="min-w-0 flex-1">
+          </ResizablePanel>
+          <ResizableHandle className="w-px bg-transparent transition-colors hover:bg-border-accent" />
+          <ResizablePanel defaultSize={72} minSize={52} className="min-w-0">
             <SessionDetailPane
               canvasId={canvasId}
               sessionId={logList.params.sessionId}
             />
-          </div>
-        </div>
+          </ResizablePanel>
+        </ResizablePanelGroup>
       )}
     </ConsolePageTemplate>
   )

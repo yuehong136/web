@@ -20,7 +20,7 @@ export function LogEmptyState({
         compact
         title="请选择一个 Agent 查看运行记录"
         description="运维日志按 Agent 聚合。先选择 Agent，再筛选 Session、查看 Trace 或导出 CSV。"
-        icon={<ClipboardList className="h-6 w-6" />}
+        icon={<ClipboardList className="size-6" />}
       />
       {recentAgents.length > 0 ? (
         <div className="w-full max-w-3xl">
@@ -36,7 +36,7 @@ export function LogEmptyState({
                 onClick={() => onSelectAgent(agent.id)}
               >
                 <div className="rounded-radius-md flex h-9 w-9 items-center justify-center bg-components-page-state-icon-bg text-components-page-state-icon">
-                  <Bot className="h-4 w-4" />
+                  <Bot className="size-4" />
                 </div>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-medium text-text-primary">
