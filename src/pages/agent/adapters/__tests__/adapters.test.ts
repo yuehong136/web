@@ -24,7 +24,16 @@ import {
   extractSessionTitle,
 } from '../session'
 import { adaptAgentShareSummary } from '../share'
-import { adaptAgentTraceItems, extractTraceErrorMessage } from '../trace'
+import {
+  adaptAgentTraceItems,
+  buildTraceDebugBundle,
+  buildTraceRunViewModel,
+  buildTraceSpansFromRuntimeEvents,
+  buildTraceSpansFromTraceItems,
+  extractTraceErrorMessage,
+  extractTraceIssues,
+  extractTraceToolCalls,
+} from '../trace'
 import { adaptAgentVersionSummaries } from '../version'
 import { adaptAgentWebhookSummary, adaptAgentWebhookTrace } from '../webhook'
 
@@ -167,6 +176,234 @@ test('trace adapter treats non-array trace responses as empty lists like ragflow
     })[0]?.component_id,
     'agent',
   )
+})
+
+test('trace view model builds node spans from ragflow style trace items', () => {
+  const traceItems = adaptAgentTraceItems([
+    {
+      component_id: 'agent_0',
+      component_name: 'Agent',
+      status: 'success',
+      elapsed_time: 1.25,
+      inputs: { query: 'hello' },
+      outputs: { answer: 'world' },
+      trace: [],
+    },
+  ])
+  const spans = buildTraceSpansFromTraceItems(traceItems)
+
+  assert.equal(spans.length, 1)
+  assert.equal(spans[0]?.componentId, 'agent_0')
+  assert.equal(spans[0]?.name, 'Agent')
+  assert.equal(spans[0]?.kind, 'llm')
+  assert.equal(spans[0]?.status, 'success')
+  assert.equal(spans[0]?.duration, 1.25)
+  assert.deepEqual(spans[0]?.input, { query: 'hello' })
+})
+
+test('trace view model attaches tool calls from trace rows to node spans', () => {
+  const traceItems = adaptAgentTraceItems([
+    {
+      component_id: 'agent_0',
+      component_name: 'Agent',
+      status: 'success',
+      trace: [
+        {
+          tool_name: 'tavily_search',
+          path: 'Agent-->Search',
+          arguments: { query: 'ragflow' },
+          result: '{"items":[1]}',
+          elapsed_time: 2.5,
+        },
+      ],
+    },
+  ])
+  const spans = buildTraceSpansFromTraceItems(traceItems)
+  const toolCalls = extractTraceToolCalls(traceItems)
+  const toolSpan = spans[0]?.children[0]
+
+  assert.equal(toolCalls.length, 1)
+  assert.equal(toolSpan?.kind, 'tool')
+  assert.equal(toolSpan?.parentId, spans[0]?.id)
+  assert.equal(toolSpan?.name, 'tavily_search')
+  assert.deepEqual(toolSpan?.input, { query: 'ragflow' })
+  assert.deepEqual(toolSpan?.output, { items: [1] })
+  assert.equal(toolSpan?.duration, 2.5)
+})
+
+test('trace view model builds running success and error spans from runtime events', () => {
+  const spans = buildTraceSpansFromRuntimeEvents([
+    {
+      event: 'node_started',
+      data: {
+        component_id: 'agent_0',
+        component_name: 'Agent',
+        component_type: 'Agent',
+      },
+    },
+    {
+      event: 'node_finished',
+      data: {
+        component_id: 'retrieval_0',
+        component_name: 'Retrieval',
+        component_type: 'Retrieval',
+        elapsed_time: 0.75,
+        outputs: { docs: 2 },
+      },
+    },
+    {
+      event: 'error',
+      message: 'runtime failed',
+      data: {
+        component_id: 'tool_0',
+        component_name: 'Tool',
+        component_type: 'Tool',
+      },
+    },
+  ])
+
+  assert.equal(
+    spans.find((span) => span.componentId === 'agent_0')?.status,
+    'running',
+  )
+  assert.equal(
+    spans.find((span) => span.componentId === 'retrieval_0')?.status,
+    'success',
+  )
+  assert.equal(
+    spans.find((span) => span.componentId === 'tool_0')?.status,
+    'error',
+  )
+  assert.equal(
+    spans.find((span) => span.componentId === 'tool_0')?.error,
+    'runtime failed',
+  )
+})
+
+test('trace view model classifies empty trace with message id as unavailable', () => {
+  const evicted = buildTraceRunViewModel({
+    canvasId: 'canvas-1',
+    messageId: 'message-1',
+    traceItems: [],
+  })
+  const backendEmpty = buildTraceRunViewModel({
+    canvasId: 'canvas-1',
+    messageId: 'message-1',
+    traceItems: [],
+    unavailableReason: 'backend-empty',
+  })
+
+  assert.equal(evicted.status, 'missing')
+  assert.equal(evicted.unavailableReason, 'redis-evicted')
+  assert.equal(backendEmpty.unavailableReason, 'backend-empty')
+  assert.equal(backendEmpty.issues[0]?.severity, 'warning')
+})
+
+test('trace view model classifies missing message id as no-message-id', () => {
+  const viewModel = buildTraceRunViewModel({
+    canvasId: 'canvas-1',
+    traceItems: [],
+  })
+
+  assert.equal(viewModel.status, 'missing')
+  assert.equal(viewModel.unavailableReason, 'no-message-id')
+  assert.match(viewModel.issues[0]?.message || '', /message id/)
+})
+
+test('trace view model extracts failed spans and issues from error traces', () => {
+  const viewModel = buildTraceRunViewModel({
+    canvasId: 'canvas-1',
+    messageId: 'message-1',
+    traceItems: adaptAgentTraceItems([
+      {
+        component_id: 'tool_0',
+        component_name: 'Tool',
+        status: 'failed',
+        trace: [{ message: 'tool exploded' }],
+      },
+    ]),
+  })
+  const issues = extractTraceIssues(viewModel.spans)
+
+  assert.equal(viewModel.status, 'error')
+  assert.equal(viewModel.spans[0]?.status, 'error')
+  assert.equal(viewModel.spans[0]?.error, 'tool exploded')
+  assert.equal(issues[0]?.message, 'tool exploded')
+})
+
+test('trace debug bundle masks common sensitive fields', () => {
+  const viewModel = buildTraceRunViewModel({
+    canvasId: 'canvas-1',
+    messageId: 'message-1',
+    traceItems: adaptAgentTraceItems([
+      {
+        component_id: 'agent_0',
+        component_name: 'Agent',
+        status: 'success',
+        inputs: {
+          token: 'token-value',
+          nested: { api_key: 'api-key-value' },
+        },
+        trace: [
+          {
+            tool_name: 'http_request',
+            arguments: {
+              authorization: 'Bearer secret-token',
+              cookie: 'sid=secret-cookie',
+            },
+            result: { password: 'secret-password', ok: true },
+          },
+        ],
+      },
+    ]),
+    raw: {
+      secret: 'raw-secret',
+    },
+  })
+  const bundle = buildTraceDebugBundle(viewModel)
+  const serialized = JSON.stringify(bundle)
+
+  assert.match(serialized, /\[MASKED\]/)
+  assert.doesNotMatch(serialized, /token-value/)
+  assert.doesNotMatch(serialized, /api-key-value/)
+  assert.doesNotMatch(serialized, /secret-token/)
+  assert.doesNotMatch(serialized, /secret-cookie/)
+  assert.doesNotMatch(serialized, /secret-password/)
+  assert.doesNotMatch(serialized, /raw-secret/)
+})
+
+test('trace view model duration summary identifies the slowest span', () => {
+  const viewModel = buildTraceRunViewModel({
+    canvasId: 'canvas-1',
+    messageId: 'message-1',
+    traceItems: adaptAgentTraceItems([
+      {
+        component_id: 'agent_0',
+        component_name: 'Agent',
+        status: 'success',
+        elapsed_time: 1,
+        trace: [
+          {
+            tool_name: 'slow_tool',
+            elapsed_time: 3.5,
+            arguments: {},
+            result: {},
+          },
+        ],
+      },
+      {
+        component_id: 'message_0',
+        component_name: 'Message',
+        status: 'success',
+        elapsed_time: 0.5,
+      },
+    ]),
+  })
+
+  assert.equal(viewModel.summary.spanCount, 3)
+  assert.equal(viewModel.summary.toolCallCount, 1)
+  assert.equal(viewModel.summary.slowestSpan?.name, 'slow_tool')
+  assert.equal(viewModel.summary.slowestSpan?.duration, 3.5)
 })
 
 test('version, share, publish, and webhook adapters expose stable summaries', () => {
