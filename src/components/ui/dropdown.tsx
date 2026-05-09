@@ -109,6 +109,27 @@ const Dropdown: React.FC<DropdownProps> = ({
     [],
   )
 
+  const handleTriggerClick = React.useCallback(
+    (event: React.MouseEvent<HTMLElement>) => {
+      event.stopPropagation()
+      setIsOpen((open) => !open)
+    },
+    [],
+  )
+
+  const triggerNode = React.isValidElement<React.HTMLAttributes<HTMLElement>>(
+    trigger,
+  )
+    ? React.cloneElement(trigger, {
+        onClick: (event: React.MouseEvent<HTMLElement>) => {
+          trigger.props.onClick?.(event)
+          if (!event.defaultPrevented) {
+            handleTriggerClick(event)
+          }
+        },
+      })
+    : null
+
   const dropdownContent = isOpen && (
     <DropdownContext.Provider value={contextValue}>
       {/* Backdrop */}
@@ -154,7 +175,7 @@ const Dropdown: React.FC<DropdownProps> = ({
 
   return (
     <div className="relative inline-block text-left" ref={triggerRef}>
-      <div onClick={() => setIsOpen(!isOpen)}>{trigger}</div>
+      {triggerNode || <div onClick={handleTriggerClick}>{trigger}</div>}
       {createPortal(dropdownContent, document.body)}
     </div>
   )

@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { cn, formatTimestampDetailed } from '@/lib/utils'
 import type { AgentSession } from '@/types/agent'
 import type { LogDetailSource, LogDetailViewModel } from './types'
+import { TraceWorkbench } from '../trace-workbench'
 import { ErrorBanner } from './components/error-banner'
 import { InputsSummary } from './components/inputs-summary'
 import { LatestOutput } from './components/latest-output'
@@ -237,7 +238,7 @@ function RuntimeSummary({
 }
 
 export function LogDetail(props: LogDetailProps) {
-  const { viewModel, isLoading, isError, error, refetchTrace } =
+  const { viewModel, isLoading, isError, error, isTraceLoading, refetchTrace } =
     useLogDetail(props)
   const session = asSession(viewModel.rawSession)
 
@@ -254,6 +255,18 @@ export function LogDetail(props: LogDetailProps) {
       <div className="p-space-md text-status-error text-sm">
         {error instanceof Error ? error.message : '会话详情加载失败'}
       </div>
+    )
+  }
+
+  if (props.mode === 'session') {
+    return (
+      <TraceWorkbench
+        viewModel={viewModel.traceRun}
+        isLoading={isTraceLoading}
+        onRefresh={() => {
+          void refetchTrace()
+        }}
+      />
     )
   }
 

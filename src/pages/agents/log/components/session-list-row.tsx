@@ -62,9 +62,14 @@ export function SessionListRow({
       {active ? (
         <div className="absolute bottom-0 left-0 top-0 w-[2px] bg-state-focus" />
       ) : null}
+      <div className="right-space-sm top-space-sm absolute z-10">
+        <Button variant="ghost" size="icon-sm" onClick={handleCopy}>
+          <Copy className="h-4 w-4" />
+        </Button>
+      </div>
       <button
         type="button"
-        className="gap-space-xs px-space-base py-space-sm hover:bg-surface-secondary flex w-full flex-col text-left transition-colors"
+        className="gap-space-xs px-space-base py-space-sm hover:bg-surface-secondary pr-space-2xl flex w-full flex-col text-left transition-colors"
         onClick={() => onSelect(session.id)}
       >
         <div className="gap-space-xs flex min-w-0 items-center">
@@ -80,9 +85,6 @@ export function SessionListRow({
           <span className="min-w-0 flex-1 truncate text-sm font-semibold text-text-primary">
             {extractSessionTitle(session)}
           </span>
-          <Button variant="ghost" size="icon-sm" onClick={handleCopy}>
-            <Copy className="h-4 w-4" />
-          </Button>
         </div>
 
         <div className="gap-space-xs flex min-w-0 items-center text-xs text-text-tertiary">

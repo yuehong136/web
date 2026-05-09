@@ -4,6 +4,7 @@ import type {
   AgentSessionMessage,
   AgentTraceItem,
 } from '@/types/agent'
+import type { TraceRuntimeEvent } from './trace'
 import { extractTraceErrorMessage } from './trace'
 
 export type AgentSessionRuntimeStatus = 'success' | 'error' | 'unknown'
@@ -39,6 +40,133 @@ function pickStructuredAnswer(record: Record<string, unknown>) {
     record.output ??
     record.outputs
   )
+}
+
+function parseSessionDsl(
+  session: AgentSession | undefined,
+): Record<string, unknown> | undefined {
+  const dsl = (session as Record<string, unknown> | undefined)?.dsl
+  if (!dsl) {
+    return undefined
+  }
+
+  if (typeof dsl === 'string') {
+    try {
+      return JSON.parse(dsl) as Record<string, unknown>
+    } catch {
+      return undefined
+    }
+  }
+
+  return isRecord(dsl) ? dsl : undefined
+}
+
+function unwrapOutputValue(value: unknown): unknown {
+  if (isRecord(value) && 'value' in value) {
+    return value.value
+  }
+
+  if (isRecord(value) && typeof value.type === 'string') {
+    return undefined
+  }
+
+  return value
+}
+
+function unwrapComponentOutputs(value: unknown): Record<string, unknown> {
+  if (!isRecord(value)) {
+    return {}
+  }
+
+  const outputs: Record<string, unknown> = {}
+
+  Object.entries(value).forEach(([key, output]) => {
+    outputs[key] = unwrapOutputValue(output)
+  })
+
+  return outputs
+}
+
+function unwrapComponentInputs(
+  value: unknown,
+): Record<string, unknown> | undefined {
+  if (!isRecord(value)) {
+    return undefined
+  }
+
+  const inputs: Record<string, unknown> = {}
+
+  Object.entries(value).forEach(([key, input]) => {
+    const normalizedInput = unwrapOutputValue(input)
+    if (
+      normalizedInput !== undefined &&
+      normalizedInput !== null &&
+      normalizedInput !== ''
+    ) {
+      inputs[key] = normalizedInput
+    }
+  })
+
+  return Object.keys(inputs).length > 0 ? inputs : undefined
+}
+
+function compactVisibleOutputs(
+  outputs: Record<string, unknown>,
+): Record<string, unknown> {
+  const visibleOutputs: Record<string, unknown> = {}
+
+  Object.entries(outputs).forEach(([key, output]) => {
+    if (key.startsWith('_')) {
+      return
+    }
+
+    if (output === undefined || output === null || output === '') {
+      return
+    }
+
+    if (Array.isArray(output) && output.length === 0) {
+      return
+    }
+
+    if (isRecord(output) && Object.keys(output).length === 0) {
+      return
+    }
+
+    visibleOutputs[key] = output
+  })
+
+  return visibleOutputs
+}
+
+function normalizeDslPath(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return []
+  }
+
+  return value.flatMap((item) => {
+    if (Array.isArray(item)) {
+      return item.filter(
+        (nodeId): nodeId is string => typeof nodeId === 'string',
+      )
+    }
+
+    return typeof item === 'string' ? [item] : []
+  })
+}
+
+function getLatestUserContent(session: AgentSession | undefined) {
+  const messages = session?.messages || []
+
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    const message = messages[index]
+    if (message?.role !== 'user') {
+      continue
+    }
+
+    return typeof message.content === 'string' ? message.content : undefined
+  }
+
+  return undefined
 }
 
 function getSessionMessages(payload: AgentSession | undefined) {
@@ -158,6 +286,69 @@ export function extractLatestSessionOutput(
   }
 
   return normalizeOutput(pickStructuredAnswer(outputs) ?? outputs)
+}
+
+export function extractSessionRuntimeEvents(
+  session: AgentSession | undefined,
+): TraceRuntimeEvent[] {
+  const dsl = parseSessionDsl(session)
+  const components = isRecord(dsl?.components) ? dsl.components : undefined
+  if (!components) {
+    return []
+  }
+
+  const path = normalizeDslPath(dsl?.path)
+  if (path.length === 0) {
+    return []
+  }
+
+  const latestUserContent = getLatestUserContent(session)
+  const events: TraceRuntimeEvent[] = []
+
+  path.forEach((componentId) => {
+    const component = components[componentId]
+    if (!isRecord(component)) {
+      return
+    }
+
+    const obj = isRecord(component.obj) ? component.obj : undefined
+    const params = isRecord(obj?.params) ? obj.params : undefined
+    const inputs =
+      unwrapComponentInputs(params?.inputs) ||
+      (componentId === 'begin' && latestUserContent
+        ? { query: latestUserContent }
+        : undefined)
+    const outputs = unwrapComponentOutputs(params?.outputs)
+
+    if (!obj) {
+      return
+    }
+
+    const componentName =
+      typeof obj.component_name === 'string' ? obj.component_name : componentId
+    const error =
+      typeof outputs._ERROR === 'string' ? outputs._ERROR : undefined
+    const elapsedTime =
+      typeof outputs._elapsed_time === 'number'
+        ? outputs._elapsed_time
+        : undefined
+
+    events.push({
+      event: 'node_finished',
+      data: {
+        component_id: componentId,
+        component_name: componentName,
+        component_type: componentName,
+        inputs,
+        outputs: compactVisibleOutputs(outputs),
+        error,
+        elapsed_time: elapsedTime,
+      },
+      raw: component,
+    })
+  })
+
+  return events
 }
 
 export function extractSessionTitle(

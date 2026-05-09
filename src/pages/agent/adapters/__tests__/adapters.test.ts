@@ -20,6 +20,7 @@ import {
   buildSessionErrorSummary,
   extractLatestSessionOutput,
   extractSessionLatestMessageId,
+  extractSessionRuntimeEvents,
   extractSessionStatus,
   extractSessionTitle,
 } from '../session'
@@ -133,6 +134,153 @@ test('session adapter accepts ragflow message alias and preserves real assistant
     extractSessionLatestMessageId(sessions.sessions[0]),
     'message-real-1',
   )
+})
+
+test('session adapter derives runtime events from persisted canvas dsl outputs', () => {
+  const sessions = adaptAgentSessionList([
+    {
+      id: 's1',
+      message: [
+        { role: 'user', content: 'hi', id: 'pair-1' },
+        { role: 'assistant', content: 'hello', id: 'pair-1' },
+      ],
+      dsl: JSON.stringify({
+        path: ['begin', 'agent'],
+        components: {
+          begin: {
+            obj: {
+              component_name: Operator.Begin,
+              params: {
+                outputs: {
+                  query: { value: 'hi' },
+                  _elapsed_time: { value: 0.01 },
+                },
+              },
+            },
+          },
+          agent: {
+            obj: {
+              component_name: Operator.Agent,
+              params: {
+                outputs: {
+                  content: { value: 'hello' },
+                  _elapsed_time: { value: 1.2 },
+                },
+              },
+            },
+          },
+        },
+      }),
+    },
+  ])
+
+  const events = extractSessionRuntimeEvents(sessions.sessions[0])
+  const viewModel = buildTraceRunViewModel({
+    canvasId: 'canvas-1',
+    sessionId: 's1',
+    messageId: extractSessionLatestMessageId(sessions.sessions[0]),
+    traceItems: [],
+    runtimeEvents: events,
+  })
+
+  assert.equal(events.length, 2)
+  assert.equal(events[1]?.event, 'node_finished')
+  assert.equal(events[1]?.data?.component_id, 'agent')
+  assert.deepEqual(events[0]?.data?.inputs, { query: 'hi' })
+  assert.equal(viewModel.unavailableReason, undefined)
+  assert.equal(viewModel.summary.spanCount, 2)
+  assert.equal(
+    (viewModel.spans[1]?.output as Record<string, unknown> | undefined)
+      ?.content,
+    'hello',
+  )
+})
+
+test('session adapter does not treat design-time dsl components as executed path', () => {
+  const sessions = adaptAgentSessionList([
+    {
+      id: 's1',
+      message: [
+        { role: 'user', content: 'hi', id: 'pair-1' },
+        { role: 'assistant', content: 'hello', id: 'pair-1' },
+      ],
+      dsl: {
+        path: [],
+        components: {
+          begin: {
+            obj: {
+              component_name: Operator.Begin,
+              params: {
+                outputs: {
+                  query: { type: 'string', value: '' },
+                },
+              },
+            },
+          },
+          agent: {
+            obj: {
+              component_name: Operator.Agent,
+              params: {
+                outputs: {
+                  content: { type: 'string', value: '' },
+                  structured: { type: 'object', properties: {} },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  ])
+
+  const events = extractSessionRuntimeEvents(sessions.sessions[0])
+
+  assert.equal(events.length, 0)
+})
+
+test('session adapter keeps executed path but drops design-time output defaults', () => {
+  const sessions = adaptAgentSessionList([
+    {
+      id: 's1',
+      message: [
+        { role: 'user', content: 'hi', id: 'pair-1' },
+        { role: 'assistant', content: 'hello', id: 'pair-1' },
+      ],
+      dsl: {
+        path: ['begin', 'agent'],
+        components: {
+          begin: {
+            obj: {
+              component_name: Operator.Begin,
+              params: {
+                outputs: {
+                  query: { type: 'string', value: '' },
+                },
+              },
+            },
+          },
+          agent: {
+            obj: {
+              component_name: Operator.Agent,
+              params: {
+                outputs: {
+                  content: { type: 'string', value: '' },
+                  structured: { type: 'object', properties: {} },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  ])
+
+  const events = extractSessionRuntimeEvents(sessions.sessions[0])
+
+  assert.equal(events.length, 2)
+  assert.deepEqual(events[0]?.data?.inputs, { query: 'hi' })
+  assert.deepEqual(events[0]?.data?.outputs, {})
+  assert.deepEqual(events[1]?.data?.outputs, {})
 })
 
 test('agent session list query keeps supported backend filters explicit', () => {

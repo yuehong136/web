@@ -6,19 +6,22 @@ import {
 import {
   buildSessionErrorSummary,
   extractLatestSessionOutput,
+  extractSessionRuntimeEvents,
   extractSessionLatestMessageId,
   extractSessionStatus,
 } from '@/pages/agent/adapters/session'
+import { buildTraceRunViewModel } from '@/pages/agent/adapters/trace'
 import {
   AgentRuntimeStatus,
   type RuntimeMessage,
 } from '../../runtime-workbench/types'
-import type { AgentSession, AgentSessionMessage, AgentTraceItem } from '@/types/agent'
-import type { BeginQuery } from '../../../types'
 import type {
-  LogDetailSource,
-  LogDetailViewModel,
-} from '../types'
+  AgentSession,
+  AgentSessionMessage,
+  AgentTraceItem,
+} from '@/types/agent'
+import type { BeginQuery } from '../../../types'
+import type { LogDetailSource, LogDetailViewModel } from '../types'
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -74,7 +77,9 @@ function mapRuntimeMessage(message: RuntimeMessage): AgentSessionMessage {
   }
 }
 
-function mapRuntimeStatus(status: AgentRuntimeStatus): LogDetailViewModel['status'] {
+function mapRuntimeStatus(
+  status: AgentRuntimeStatus,
+): LogDetailViewModel['status'] {
   if (
     status === AgentRuntimeStatus.RUNNING ||
     status === AgentRuntimeStatus.PREPARING
@@ -84,7 +89,10 @@ function mapRuntimeStatus(status: AgentRuntimeStatus): LogDetailViewModel['statu
   if (status === AgentRuntimeStatus.SUCCESS) {
     return 'success'
   }
-  if (status === AgentRuntimeStatus.ERROR || status === AgentRuntimeStatus.STOPPED) {
+  if (
+    status === AgentRuntimeStatus.ERROR ||
+    status === AgentRuntimeStatus.STOPPED
+  ) {
     return 'error'
   }
   if (status === AgentRuntimeStatus.IDLE) {
@@ -100,10 +108,12 @@ function isTerminalStatus(status: LogDetailViewModel['status']) {
 
 export function buildLiveLogDetailViewModel(params: {
   controllerStatus: AgentRuntimeStatus
+  controllerCanvasId?: string
   controllerSessionId?: string
   controllerSessionName?: string
   beginInputs: BeginQuery[]
   messages: RuntimeMessage[]
+  runtimeEvents?: RuntimeMessage['logEvents']
   currentMessageId?: string
   traceItems: AgentTraceItem[]
   traceLoading?: boolean
@@ -126,6 +136,20 @@ export function buildLiveLogDetailViewModel(params: {
       : undefined,
     transcript: params.messages.map(mapRuntimeMessage),
     traceItems: terminal ? params.traceItems : [],
+    traceRun: buildTraceRunViewModel({
+      canvasId: params.controllerCanvasId,
+      sessionId: params.controllerSessionId,
+      messageId,
+      traceItems: terminal ? params.traceItems : [],
+      runtimeEvents: params.runtimeEvents?.map((event) => ({
+        event: event.event,
+        data: event.data,
+      })),
+      raw: {
+        messages: params.messages,
+        traceItems: terminal ? params.traceItems : [],
+      },
+    }),
     traceUnavailableReason:
       terminal && !messageId
         ? 'no-message-id'
@@ -140,9 +164,11 @@ export function buildLiveLogDetailViewModel(params: {
 
 export function buildSessionLogDetailViewModel(params: {
   session?: AgentSession
+  canvasId?: string
   traceItems: AgentTraceItem[]
   traceLoading?: boolean
   latestMessageId?: string
+  traceError?: unknown
 }): LogDetailViewModel {
   const session = params.session
   const status = session ? extractSessionStatus(session) : 'unknown'
@@ -152,7 +178,10 @@ export function buildSessionLogDetailViewModel(params: {
       : undefined
   const latestOutput = extractLatestSessionOutput(session)
   const errorMessage = buildSessionErrorSummary(session, params.traceItems)
-  const inputs = toBeginInputs((session as Record<string, unknown> | undefined)?.inputs)
+  const inputs = toBeginInputs(
+    (session as Record<string, unknown> | undefined)?.inputs,
+  )
+  const runtimeEvents = extractSessionRuntimeEvents(session)
 
   return {
     sessionId: session?.id,
@@ -165,14 +194,26 @@ export function buildSessionLogDetailViewModel(params: {
     latestOutput,
     transcript: session?.messages || [],
     traceItems: params.traceItems,
-    traceUnavailableReason:
-      !params.latestMessageId
-        ? 'no-message-id'
-        : params.traceLoading
-          ? 'fetching'
-          : params.traceItems.length === 0
-            ? 'redis-evicted'
-            : undefined,
+    traceRun: buildTraceRunViewModel({
+      canvasId: params.canvasId,
+      sessionId: session?.id,
+      messageId: params.latestMessageId,
+      traceItems: params.traceItems,
+      runtimeEvents,
+      queryError: params.traceError,
+      raw: {
+        session,
+        traceItems: params.traceItems,
+        runtimeEvents,
+      },
+    }),
+    traceUnavailableReason: !params.latestMessageId
+      ? 'no-message-id'
+      : params.traceLoading
+        ? 'fetching'
+        : params.traceItems.length === 0
+          ? 'redis-evicted'
+          : undefined,
     canRetry: false,
     rawSession: session,
   }
@@ -214,10 +255,12 @@ export function useLogDetail(source: LogDetailSource) {
     if (source.mode === 'live') {
       return buildLiveLogDetailViewModel({
         controllerStatus: source.controller.status,
+        controllerCanvasId: source.controller.canvasId,
         controllerSessionId: source.controller.sessionId,
         controllerSessionName: source.controller.summary.sessionName,
         beginInputs: source.controller.beginInputs,
         messages: source.controller.messages,
+        runtimeEvents: source.controller.logEvents,
         currentMessageId: liveMessageId,
         traceItems: traceQuery.data,
         traceLoading: traceQuery.isLoading,
@@ -227,9 +270,11 @@ export function useLogDetail(source: LogDetailSource) {
 
     return buildSessionLogDetailViewModel({
       session: sessionQuery.data,
+      canvasId: source.canvasId,
       traceItems: traceQuery.data,
       traceLoading: traceQuery.isLoading,
       latestMessageId: sessionLatestMessageId,
+      traceError: traceQuery.isError ? traceQuery.error : undefined,
     })
   }, [
     liveMessageId,
@@ -237,6 +282,8 @@ export function useLogDetail(source: LogDetailSource) {
     sessionQuery.data,
     source,
     traceQuery.data,
+    traceQuery.error,
+    traceQuery.isError,
     traceQuery.isLoading,
   ])
 
@@ -244,8 +291,12 @@ export function useLogDetail(source: LogDetailSource) {
     viewModel,
     isLoading:
       source.mode === 'session' ? sessionQuery.isLoading : traceQuery.isLoading,
-    isError: source.mode === 'session' ? sessionQuery.isError : traceQuery.isError,
+    isError:
+      source.mode === 'session' ? sessionQuery.isError : traceQuery.isError,
     error: source.mode === 'session' ? sessionQuery.error : traceQuery.error,
+    isTraceLoading: traceQuery.isLoading,
+    isTraceError: traceQuery.isError,
+    traceError: traceQuery.error,
     refetchTrace: traceQuery.refetch,
   }
 }

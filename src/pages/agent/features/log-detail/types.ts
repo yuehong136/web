@@ -1,4 +1,5 @@
 import type { AgentSessionMessage, AgentTraceItem } from '@/types/agent'
+import type { TraceRunViewModel } from '@/pages/agent/adapters/trace'
 import type { BeginQuery } from '../../types'
 import type {
   AgentRuntimeController,
@@ -25,6 +26,7 @@ export interface LogDetailViewModel {
   latestOutput?: { kind: 'text' | 'json'; value: unknown }
   transcript: AgentSessionMessage[]
   traceItems: AgentTraceItem[]
+  traceRun: TraceRunViewModel
   traceUnavailableReason?:
     | 'no-message-id'
     | 'redis-evicted'
