@@ -1,5 +1,13 @@
-import React from 'react'
-import { ArrowRight, Clock, GitBranch, Trash2 } from 'lucide-react'
+import type { FC } from 'react'
+import {
+  ArrowRight,
+  Clock,
+  Download,
+  FilePenLine,
+  GitBranch,
+  History,
+  Trash2,
+} from 'lucide-react'
 import {
   ResourceListBody,
   ResourceListContainer,
@@ -15,7 +23,12 @@ import {
   formatTimestampCompact,
   formatTimestampDetailed,
 } from '@/lib/utils'
-import { countFlowNodes, isPipelineFlow, resolveLocalizedText } from '@/lib/agent'
+import {
+  countFlowNodes,
+  downloadFlowJson,
+  isPipelineFlow,
+  resolveLocalizedText,
+} from '@/lib/agent'
 import type { AgentFlow } from '@/types/agent'
 import type { AgentTimeFormat } from './agent-card'
 
@@ -27,6 +40,8 @@ interface AgentListViewProps {
   timeFormat?: AgentTimeFormat
   onOpen: (flow: AgentFlow) => void
   onDelete: (flow: AgentFlow) => void
+  onRename?: (flow: AgentFlow) => void
+  onViewLogs?: (flow: AgentFlow) => void
 }
 
 const GRID_COLS = 'grid-cols-[2fr_100px_100px_180px_60px]'
@@ -54,7 +69,10 @@ const formatTime = (timestamp: number, format: AgentTimeFormat): string => {
   }
 }
 
-const AgentAvatar: React.FC<{ name: string; avatar?: string }> = ({ name, avatar }) => {
+const AgentAvatar: FC<{ name: string; avatar?: string }> = ({
+  name,
+  avatar,
+}) => {
   if (avatar) {
     const src =
       avatar.startsWith('data:') || avatar.startsWith('http')
@@ -64,7 +82,7 @@ const AgentAvatar: React.FC<{ name: string; avatar?: string }> = ({ name, avatar
       <img
         src={src}
         alt={name}
-        className="h-12 w-12 rounded-radius-lg object-cover"
+        className="rounded-radius-lg h-12 w-12 object-cover"
         onError={(e) => {
           e.currentTarget.style.display = 'none'
         }}
@@ -75,8 +93,8 @@ const AgentAvatar: React.FC<{ name: string; avatar?: string }> = ({ name, avatar
   return (
     <div
       className={cn(
-        'flex h-12 w-12 items-center justify-center rounded-radius-lg',
-        'bg-gradient-to-br shadow-elevation-low',
+        'rounded-radius-lg flex h-12 w-12 items-center justify-center',
+        'shadow-elevation-low bg-gradient-to-br',
         gradient,
       )}
     >
@@ -87,12 +105,14 @@ const AgentAvatar: React.FC<{ name: string; avatar?: string }> = ({ name, avatar
   )
 }
 
-const AgentListRow: React.FC<{
+const AgentListRow: FC<{
   flow: AgentFlow
   timeFormat: AgentTimeFormat
   onOpen: () => void
   onDelete: () => void
-}> = ({ flow, timeFormat, onOpen, onDelete }) => {
+  onRename?: () => void
+  onViewLogs?: () => void
+}> = ({ flow, timeFormat, onOpen, onDelete, onRename, onViewLogs }) => {
   const title = resolveLocalizedText(flow.title, '未命名智能体')
   const description = resolveLocalizedText(flow.description, '')
   const pipeline = isPipelineFlow(flow)
@@ -112,6 +132,24 @@ const AgentListRow: React.FC<{
           onClick: onOpen,
         },
         {
+          key: 'rename',
+          label: '重命名',
+          icon: <FilePenLine className="h-4 w-4" />,
+          onClick: onRename || (() => undefined),
+        },
+        {
+          key: 'export-json',
+          label: '导出 JSON',
+          icon: <Download className="h-4 w-4" />,
+          onClick: () => downloadFlowJson(flow),
+        },
+        {
+          key: 'view-logs',
+          label: '查看运行记录',
+          icon: <History className="h-4 w-4" />,
+          onClick: onViewLogs || (() => undefined),
+        },
+        {
           key: 'delete',
           label: '删除',
           icon: <Trash2 className="h-4 w-4" />,
@@ -124,10 +162,10 @@ const AgentListRow: React.FC<{
       <div className="flex items-center">
         <span
           className={cn(
-            'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium truncate',
+            'inline-flex items-center truncate rounded-full px-2 py-0.5 text-xs font-medium',
             pipeline
-              ? 'text-text-secondary bg-background-subtle'
-              : 'text-state-success bg-state-success-subtle',
+              ? 'bg-background-subtle text-text-secondary'
+              : 'bg-state-success-subtle text-state-success',
           )}
         >
           {pipeline ? 'Pipeline' : 'Agent'}
@@ -147,12 +185,14 @@ const AgentListRow: React.FC<{
   )
 }
 
-export const AgentListView: React.FC<AgentListViewProps> = ({
+export const AgentListView: FC<AgentListViewProps> = ({
   data,
   isLoading = false,
   timeFormat = 'detailed',
   onOpen,
   onDelete,
+  onRename,
+  onViewLogs,
 }) => {
   return (
     <ResourceListContainer>
@@ -177,6 +217,8 @@ export const AgentListView: React.FC<AgentListViewProps> = ({
               timeFormat={timeFormat}
               onOpen={() => onOpen(flow)}
               onDelete={() => onDelete(flow)}
+              onRename={() => onRename?.(flow)}
+              onViewLogs={() => onViewLogs?.(flow)}
             />
           ))
         )}

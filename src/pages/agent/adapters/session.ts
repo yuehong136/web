@@ -61,7 +61,9 @@ export function adaptAgentSessionMessage(
 
   return {
     ...payload,
-    id: payload.id || `${payload.role || 'message'}-${payload.create_time || payload.update_time || Date.now()}`,
+    id:
+      payload.id ||
+      `${payload.role || 'message'}-${payload.create_time || payload.update_time || Date.now()}`,
   }
 }
 
@@ -156,6 +158,24 @@ export function extractLatestSessionOutput(
   }
 
   return normalizeOutput(pickStructuredAnswer(outputs) ?? outputs)
+}
+
+export function extractSessionTitle(
+  session: AgentSession | undefined,
+  fallback = '未命名会话',
+): string {
+  if (session?.name?.trim()) {
+    return session.name
+  }
+
+  const firstUserMessage = (session?.messages || []).find(
+    (message) => message.role === 'user',
+  )
+  const content = firstUserMessage?.content
+
+  return typeof content === 'string' && content.trim()
+    ? content.trim()
+    : fallback
 }
 
 export function extractSessionStatus(

@@ -1,5 +1,5 @@
 import { Suspense, lazy, type ComponentType } from 'react'
-import { createBrowserRouter, Navigate } from 'react-router-dom'
+import { createBrowserRouter, Navigate, useParams } from 'react-router-dom'
 import { Layout } from '@/components/layout/Layout'
 import {
   AppScene,
@@ -122,6 +122,7 @@ const SearchDetailPage = lazyNamed(
 
 // Agent
 const AgentListPage = lazy(() => import('@/pages/agents'))
+const AgentLogsPage = lazy(() => import('@/pages/agents/log'))
 const AgentTemplatesPage = lazy(() => import('@/pages/agents/templates'))
 const AgentEditorPage = lazy(() => import('@/pages/agent'))
 const AgentExplorePage = lazy(() => import('@/pages/agent/explore'))
@@ -255,6 +256,16 @@ const appearanceElement = (
     />
   </div>
 )
+
+function AgentLogRedirect() {
+  const { id } = useParams<{ id: string }>()
+  return (
+    <Navigate
+      to={`/agents/log${id ? `?canvas=${encodeURIComponent(id)}` : ''}`}
+      replace
+    />
+  )
+}
 
 // ---------------------------------------------------------------------------
 // Route configuration
@@ -411,8 +422,16 @@ export const router = createBrowserRouter([
         element: withLoading(AgentListPage),
       },
       {
+        path: ROUTES.AGENT_LOGS,
+        element: withLoading(AgentLogsPage),
+      },
+      {
         path: ROUTES.AGENT_TEMPLATES,
         element: withLoading(AgentTemplatesPage),
+      },
+      {
+        path: ROUTES.AGENT_LOG_REDIRECT,
+        element: <AgentLogRedirect />,
       },
       {
         path: '/agent/:id',

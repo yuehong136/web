@@ -19,6 +19,8 @@ export const ROUTES = {
   AI_TOOLS: '/ai-tools',
   WORKFLOW: '/workflow',
   AGENTS: '/agents',
+  AGENT_LOGS: '/agents/log',
+  AGENT_LOG_REDIRECT: '/agent/:id/log',
   AGENT_TEMPLATES: '/agent-templates',
   AGENT_CANVAS: '/agent/:id',
   AGENT_EXPLORE: '/agent/:id/explore',
@@ -66,9 +68,9 @@ export const SUPPORTED_FILE_TYPES = {
 // 最大文件大小 (字节)
 export const MAX_FILE_SIZE = {
   DOCUMENT: 10 * 1024 * 1024, // 10MB
-  IMAGE: 5 * 1024 * 1024,     // 5MB
-  AUDIO: 20 * 1024 * 1024,    // 20MB
-  VIDEO: 100 * 1024 * 1024,   // 100MB
+  IMAGE: 5 * 1024 * 1024, // 5MB
+  AUDIO: 20 * 1024 * 1024, // 20MB
+  VIDEO: 100 * 1024 * 1024, // 100MB
 } as const
 
 // 分页配置

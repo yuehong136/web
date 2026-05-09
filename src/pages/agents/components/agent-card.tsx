@@ -1,17 +1,17 @@
-import React, { useState } from 'react'
+import type { MouseEvent } from 'react'
 import {
   Clock,
+  Download,
   Edit,
+  FilePenLine,
   GitBranch,
+  History,
   MoreVertical,
   Trash2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import {
-  Dropdown,
-  DropdownItem,
-} from '@/components/ui/dropdown'
+import { Dropdown, DropdownItem } from '@/components/ui/dropdown'
 import { getAvatarGradient } from '@/components/ui/resource-list'
 import {
   cn,
@@ -19,7 +19,12 @@ import {
   formatTimestampCompact,
   formatTimestampDetailed,
 } from '@/lib/utils'
-import { countFlowNodes, isPipelineFlow, resolveLocalizedText } from '@/lib/agent'
+import {
+  countFlowNodes,
+  downloadFlowJson,
+  isPipelineFlow,
+  resolveLocalizedText,
+} from '@/lib/agent'
 import type { AgentFlow } from '@/types/agent'
 
 export type AgentTimeFormat = 'detailed' | 'compact' | 'relative'
@@ -28,6 +33,8 @@ interface AgentCardProps {
   flow: AgentFlow
   onOpen: (flow: AgentFlow) => void
   onDelete: (flow: AgentFlow) => void
+  onRename?: (flow: AgentFlow) => void
+  onViewLogs?: (flow: AgentFlow) => void
   timeFormat?: AgentTimeFormat
 }
 
@@ -48,24 +55,39 @@ export function AgentCard({
   flow,
   onOpen,
   onDelete,
+  onRename,
+  onViewLogs,
   timeFormat = 'detailed',
 }: AgentCardProps) {
-  const [isHovered, setIsHovered] = useState(false)
-
   const title = resolveLocalizedText(flow.title, '未命名智能体')
   const description = resolveLocalizedText(flow.description, '')
   const pipeline = isPipelineFlow(flow)
   const nodeCount = countFlowNodes(flow)
   const avatarGradient = getAvatarGradient(title)
 
-  const handleEdit = (event: React.MouseEvent) => {
+  const handleEdit = (event: MouseEvent) => {
     event.stopPropagation()
     onOpen(flow)
   }
 
-  const handleDelete = (event: React.MouseEvent) => {
+  const handleDelete = (event: MouseEvent) => {
     event.stopPropagation()
     onDelete(flow)
+  }
+
+  const handleRename = (event: MouseEvent) => {
+    event.stopPropagation()
+    onRename?.(flow)
+  }
+
+  const handleExport = (event: MouseEvent) => {
+    event.stopPropagation()
+    downloadFlowJson(flow)
+  }
+
+  const handleViewLogs = (event: MouseEvent) => {
+    event.stopPropagation()
+    onViewLogs?.(flow)
   }
 
   const renderAvatar = () => {
@@ -92,106 +114,118 @@ export function AgentCard({
   return (
     <div
       className={cn(
-        'group relative rounded-2xl border transition-all duration-300 cursor-pointer',
-        'hover:shadow-lg hover:shadow-black/5 hover:-translate-y-0.5',
-        isHovered && 'ring-2 ring-blue-500/20',
+        'rounded-radius-xl shadow-elevation-low group relative border border-components-card-border bg-components-card-bg transition-all duration-300',
+        'hover:shadow-elevation-medium hover:-translate-y-0.5 hover:border-state-focus',
       )}
-      style={{
-        backgroundColor: 'var(--color-components-card-bg)',
-        borderColor: isHovered
-          ? 'var(--color-state-focus)'
-          : 'var(--color-components-card-border)',
-      }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      onClick={() => onOpen(flow)}
     >
-      <div className="relative p-4 pt-5">
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex items-center gap-3 flex-1 min-w-0">
-            <div className="relative">
-              {renderAvatar()}
-              <div
-                className={cn(
-                  'w-12 h-12 rounded-xl flex items-center justify-center',
-                  'bg-gradient-to-br shadow-sm',
-                  avatarGradient,
-                  flow.avatar && 'hidden',
-                )}
-              >
-                <span className="text-white font-semibold text-xl">
-                  {title.charAt(0).toUpperCase()}
+      <div className="right-space-sm top-space-sm absolute z-10">
+        <Dropdown
+          trigger={
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="opacity-0 transition-opacity group-hover:opacity-100"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <MoreVertical className="h-4 w-4" />
+            </Button>
+          }
+        >
+          <DropdownItem
+            icon={<Edit className="h-4 w-4" />}
+            onClick={handleEdit}
+          >
+            打开编辑器
+          </DropdownItem>
+          <DropdownItem
+            icon={<FilePenLine className="h-4 w-4" />}
+            onClick={handleRename}
+          >
+            重命名
+          </DropdownItem>
+          <DropdownItem
+            icon={<Download className="h-4 w-4" />}
+            onClick={handleExport}
+          >
+            导出 JSON
+          </DropdownItem>
+          <DropdownItem
+            icon={<History className="h-4 w-4" />}
+            onClick={handleViewLogs}
+          >
+            查看运行记录
+          </DropdownItem>
+          <div className="my-1 border-t border-border-subtle" />
+          <DropdownItem
+            icon={<Trash2 className="h-4 w-4" />}
+            onClick={handleDelete}
+            danger
+          >
+            删除
+          </DropdownItem>
+        </Dropdown>
+      </div>
+      <button
+        type="button"
+        className="block w-full cursor-pointer text-left"
+        onClick={() => onOpen(flow)}
+      >
+        <div className="relative p-4 pt-5">
+          <div className="pr-space-xl mb-3 flex items-start justify-between">
+            <div className="flex min-w-0 flex-1 items-center gap-3">
+              <div className="relative">
+                {renderAvatar()}
+                <div
+                  className={cn(
+                    'flex h-12 w-12 items-center justify-center rounded-xl',
+                    'shadow-elevation-low bg-gradient-to-br',
+                    avatarGradient,
+                    flow.avatar && 'hidden',
+                  )}
+                >
+                  <span className="text-xl font-semibold text-white">
+                    {title.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <h3 className="truncate font-semibold text-text-primary">
+                  {title}
+                </h3>
+                <span className="text-sm text-text-tertiary">
+                  {pipeline ? 'Pipeline' : 'Agent'}
                 </span>
               </div>
             </div>
+          </div>
 
-            <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-text-primary truncate">
-                {title}
-              </h3>
-              <span className="text-sm text-text-tertiary">
-                {pipeline ? 'Pipeline' : 'Agent'}
-              </span>
+          {description ? (
+            <p className="mb-3 line-clamp-2 min-h-[40px] text-sm text-text-secondary">
+              {description}
+            </p>
+          ) : (
+            <div className="mb-3 min-h-[40px]" />
+          )}
+
+          <div className="mb-3 flex flex-wrap gap-1.5">
+            <Badge variant={pipeline ? 'blue' : 'green'} className="text-xs">
+              {pipeline ? 'Pipeline' : 'Agent'}
+            </Badge>
+            <Badge variant="secondary" className="text-xs">
+              <GitBranch className="mr-1 h-3 w-3" />
+              {nodeCount} 节点
+            </Badge>
+          </div>
+
+          <div className="flex items-center justify-between text-sm text-text-tertiary">
+            <div className="flex items-center gap-1">
+              <Clock className="h-3.5 w-3.5" />
+              <span>{formatTime(flow.update_time, timeFormat)}</span>
             </div>
           </div>
-
-          <div onClick={(event) => event.stopPropagation()}>
-            <Dropdown
-              trigger={
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  className="opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <MoreVertical className="h-4 w-4" />
-                </Button>
-              }
-            >
-              <DropdownItem
-                icon={<Edit className="h-4 w-4" />}
-                onClick={handleEdit}
-              >
-                打开编辑器
-              </DropdownItem>
-              <DropdownItem
-                icon={<Trash2 className="h-4 w-4" />}
-                onClick={handleDelete}
-                danger
-              >
-                删除
-              </DropdownItem>
-            </Dropdown>
-          </div>
         </div>
-
-        {description ? (
-          <p className="text-sm text-text-secondary mb-3 line-clamp-2 min-h-[40px]">
-            {description}
-          </p>
-        ) : (
-          <div className="min-h-[40px] mb-3" />
-        )}
-
-        <div className="flex flex-wrap gap-1.5 mb-3">
-          <Badge
-            variant={pipeline ? 'blue' : 'green'}
-            className="text-xs"
-          >
-            {pipeline ? 'Pipeline' : 'Agent'}
-          </Badge>
-          <Badge variant="secondary" className="text-xs">
-            <GitBranch className="w-3 h-3 mr-1" />
-            {nodeCount} 节点
-          </Badge>
-        </div>
-
-        <div className="flex items-center justify-between text-sm text-text-tertiary">
-          <div className="flex items-center gap-1">
-            <Clock className="h-3.5 w-3.5" />
-            <span>{formatTime(flow.update_time, timeFormat)}</span>
-          </div>
-        </div>
-      </div>
+      </button>
     </div>
   )
 }

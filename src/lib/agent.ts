@@ -4,16 +4,14 @@ import type {
   AgentVersionSummary,
   LocalizedText,
 } from '@/types/agent'
-import {
-  AgentCanvasCategory,
-  AgentCanvasType,
-} from '@/types/agent'
+import { AgentCanvasCategory, AgentCanvasType } from '@/types/agent'
 import {
   buildInitialDsl as buildInitialDslFromOperators,
   buildInitialGraph as buildInitialGraphFromOperators,
   inferCanvasTypeFromGraph as inferCanvasTypeFromOperators,
 } from '@/pages/agent/operators'
 import { AgentCategory, AgentQuery, Operator } from '@/pages/agent/constant'
+import { downloadJsonFile } from './download'
 
 export function resolveLocalizedText(
   value: LocalizedText | null | undefined,
@@ -30,7 +28,9 @@ export function resolveLocalizedText(
   return value.zh || value.en || Object.values(value).find(Boolean) || fallback
 }
 
-export function isPipelineFlow(flow?: Pick<AgentFlow, 'canvas_type' | 'canvas_category'> | null) {
+export function isPipelineFlow(
+  flow?: Pick<AgentFlow, 'canvas_type' | 'canvas_category'> | null,
+) {
   if (!flow) {
     return false
   }
@@ -42,7 +42,11 @@ export function isPipelineFlow(flow?: Pick<AgentFlow, 'canvas_type' | 'canvas_ca
 }
 
 function isPipelineRouteKind(
-  value?: Pick<AgentFlow, 'canvas_type' | 'canvas_category'> | AgentCanvasType | string | null,
+  value?:
+    | Pick<AgentFlow, 'canvas_type' | 'canvas_category'>
+    | AgentCanvasType
+    | string
+    | null,
 ) {
   if (!value) {
     return false
@@ -59,7 +63,11 @@ function isPipelineRouteKind(
 }
 
 export function resolveCanvasKind(
-  value?: Pick<AgentFlow, 'canvas_type' | 'canvas_category'> | AgentCanvasType | string | null,
+  value?:
+    | Pick<AgentFlow, 'canvas_type' | 'canvas_category'>
+    | AgentCanvasType
+    | string
+    | null,
 ): AgentCanvasType {
   return isPipelineRouteKind(value)
     ? AgentCanvasType.PIPELINE
@@ -68,7 +76,11 @@ export function resolveCanvasKind(
 
 export function buildAgentCanvasPath(
   id: string,
-  flowOrKind?: Pick<AgentFlow, 'canvas_type' | 'canvas_category'> | AgentCanvasType | string | null,
+  flowOrKind?:
+    | Pick<AgentFlow, 'canvas_type' | 'canvas_category'>
+    | AgentCanvasType
+    | string
+    | null,
 ) {
   if (!isPipelineRouteKind(flowOrKind)) {
     return `/agent/${id}`
@@ -97,7 +109,9 @@ export function buildInitialDsl(kind: AgentCanvasType) {
   return buildInitialDslFromOperators(kind)
 }
 
-export function inferCanvasTypeFromGraph(graph: AgentGraph | undefined): AgentCanvasType {
+export function inferCanvasTypeFromGraph(
+  graph: AgentGraph | undefined,
+): AgentCanvasType {
   return inferCanvasTypeFromOperators(graph)
 }
 
@@ -127,11 +141,41 @@ export function countFlowNodes(
   }).length
 }
 
-export function formatVersionLabel(version: AgentVersionSummary, index: number): string {
+export function formatVersionLabel(
+  version: AgentVersionSummary,
+  index: number,
+): string {
   return (
     version.title ||
     version.description ||
     version.version_id ||
     `版本 ${index + 1}`
+  )
+}
+
+function slugify(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9-]+/g, '-')
+    .replace(/^-|-$/g, '')
+}
+
+export function downloadFlowJson(flow: AgentFlow): void {
+  const title = resolveLocalizedText(flow.title, 'agent')
+  const slug = slugify(title) || 'agent'
+  const filename = `agent-${slug}-${flow.id.slice(0, 8)}.json`
+
+  downloadJsonFile(
+    {
+      title: flow.title,
+      description: flow.description,
+      canvas_type: flow.canvas_type,
+      canvas_category: flow.canvas_category,
+      avatar: flow.avatar,
+      dsl: flow.dsl,
+      exportedAt: new Date().toISOString(),
+      schemaVersion: '1.0',
+    },
+    filename,
   )
 }

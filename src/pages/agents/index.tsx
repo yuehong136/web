@@ -10,10 +10,7 @@ import {
 } from '@/components/patterns'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import {
-  FilterPopover,
-  type FilterValue,
-} from '@/components/ui/filter-popover'
+import { FilterPopover, type FilterValue } from '@/components/ui/filter-popover'
 import { CustomSelect } from '@/components/ui/custom-select'
 import { ViewToggle } from '@/components/ui/view-toggle'
 import { MemoryStatsCard } from '@/components/memory'
@@ -50,6 +47,7 @@ import {
 import {
   ArrowUpDown,
   Bot,
+  ClipboardList,
   Database,
   FileInput,
   Grid,
@@ -61,9 +59,14 @@ import {
 } from 'lucide-react'
 import { AgentCard } from './components/agent-card'
 import { AgentEmptyState } from './components/agent-empty-state'
-import { AgentListView, type AgentTimeFormat } from './components/agent-list-view'
+import {
+  AgentListView,
+  type AgentTimeFormat,
+} from './components/agent-list-view'
 import { CreateAgentDialog } from './components/create-agent-dialog'
 import { ImportAgentDialog } from './components/import-agent-dialog'
+import { RenameAgentDialog } from './components/rename-agent-dialog'
+import { useRenameAgent } from './hooks/use-rename-agent'
 
 const DEFAULT_PAGE_SIZE = 12
 
@@ -80,6 +83,7 @@ export default function AgentsPage() {
   const [createOpen, setCreateOpen] = useState(false)
   const [importOpen, setImportOpen] = useState(false)
   const [flowToDelete, setFlowToDelete] = useState<AgentFlow | null>(null)
+  const [flowToRename, setFlowToRename] = useState<AgentFlow | null>(null)
 
   const listQuery = useFetchAgentList({
     page,
@@ -88,6 +92,7 @@ export default function AgentsPage() {
     canvas_type: kind === 'all' ? undefined : kind,
   })
   const setAgent = useSetAgent()
+  const renameAgent = useRenameAgent()
   const deleteAgent = useDeleteAgent()
 
   useEffect(() => {
@@ -111,11 +116,11 @@ export default function AgentsPage() {
 
   const sortedAgents = useMemo(() => {
     const list = listQuery.agents || []
-    return [...list].sort((a, b) => (
+    return [...list].sort((a, b) =>
       sortDesc
         ? (b.update_time || 0) - (a.update_time || 0)
-        : (a.update_time || 0) - (b.update_time || 0)
-    ))
+        : (a.update_time || 0) - (b.update_time || 0),
+    )
   }, [listQuery.agents, sortDesc])
 
   const handleCreate = async (payload: {
@@ -188,8 +193,22 @@ export default function AgentsPage() {
     navigate(buildAgentCanvasPath(flow.id, flow))
   }
 
+  const handleViewLogs = (flow: AgentFlow) => {
+    navigate(`/agents/log?canvas=${encodeURIComponent(flow.id)}`)
+  }
+
+  const handleRename = async (nextTitle: string) => {
+    if (!flowToRename) {
+      return
+    }
+
+    await renameAgent.rename(flowToRename, nextTitle)
+    setFlowToRename(null)
+  }
+
   const showEmptyState = !listQuery.isLoading && sortedAgents.length === 0
-  const emptyStateType: 'list' | 'search' = keyword || kind !== 'all' ? 'search' : 'list'
+  const emptyStateType: 'list' | 'search' =
+    keyword || kind !== 'all' ? 'search' : 'list'
 
   const pageState: 'content' | 'loading' | 'empty' | 'error' = (() => {
     if (listQuery.isLoading && page === 1) return 'loading'
@@ -205,26 +224,53 @@ export default function AgentsPage() {
         description="先把信息架构、路由、类型与运行入口搭好,再逐步增量替换每个节点表单和运行细节。"
         headerActions={
           <>
-            <Button variant="outline" onClick={() => navigate('/agent-templates')}>
-              <LayoutTemplate className="h-4 w-4 mr-2" />
+            <Button
+              variant="outline"
+              onClick={() => navigate('/agent-templates')}
+            >
+              <LayoutTemplate className="mr-2 h-4 w-4" />
               模板
             </Button>
+            <Button variant="outline" onClick={() => navigate('/agents/log')}>
+              <ClipboardList className="mr-2 h-4 w-4" />
+              运维日志
+            </Button>
             <Button variant="outline" onClick={() => setImportOpen(true)}>
-              <FileInput className="h-4 w-4 mr-2" />
+              <FileInput className="mr-2 h-4 w-4" />
               导入 JSON
             </Button>
             <Button onClick={() => setCreateOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className="mr-2 h-4 w-4" />
               新建资产
             </Button>
           </>
         }
         stats={
           <StatGrid>
-            <MemoryStatsCard title="总资产" value={stats.total} icon={Sparkles} color="info" />
-            <MemoryStatsCard title="Agents" value={stats.agentCount} icon={Bot} color="success" />
-            <MemoryStatsCard title="Pipelines" value={stats.pipelineCount} icon={Database} color="warning" />
-            <MemoryStatsCard title="已扩展节点" value={stats.readyForBuild} icon={LayoutTemplate} color="purple" />
+            <MemoryStatsCard
+              title="总资产"
+              value={stats.total}
+              icon={Sparkles}
+              color="info"
+            />
+            <MemoryStatsCard
+              title="Agents"
+              value={stats.agentCount}
+              icon={Bot}
+              color="success"
+            />
+            <MemoryStatsCard
+              title="Pipelines"
+              value={stats.pipelineCount}
+              icon={Database}
+              color="warning"
+            />
+            <MemoryStatsCard
+              title="已扩展节点"
+              value={stats.readyForBuild}
+              icon={LayoutTemplate}
+              color="purple"
+            />
           </StatGrid>
         }
         toolbarLeft={
@@ -270,7 +316,7 @@ export default function AgentsPage() {
               variant="outline"
               size="sm"
               onClick={() => setSortDesc((prev) => !prev)}
-              className="h-9 px-2 flex items-center gap-1 text-xs"
+              className="flex h-9 items-center gap-1 px-2 text-xs"
             >
               <ArrowUpDown className="h-3.5 w-3.5" />
               <span>{sortDesc ? '倒序' : '正序'}</span>
@@ -326,12 +372,12 @@ export default function AgentsPage() {
         }
       >
         {viewMode === 'grid' ? (
-          <div className="grid grid-cols-1 gap-space-lg md:grid-cols-2 xl:grid-cols-3">
+          <div className="gap-space-lg grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
             {listQuery.isLoading
               ? [...Array(6)].map((_, i) => (
                   <div
                     key={i}
-                    className="h-[180px] animate-pulse rounded-radius-lg bg-surface-secondary"
+                    className="rounded-radius-lg bg-surface-secondary h-[180px] animate-pulse"
                   />
                 ))
               : sortedAgents.map((flow) => (
@@ -340,6 +386,8 @@ export default function AgentsPage() {
                     flow={flow}
                     onOpen={handleOpen}
                     onDelete={setFlowToDelete}
+                    onRename={setFlowToRename}
+                    onViewLogs={handleViewLogs}
                     timeFormat={timeFormat}
                   />
                 ))}
@@ -351,6 +399,8 @@ export default function AgentsPage() {
             timeFormat={timeFormat}
             onOpen={handleOpen}
             onDelete={setFlowToDelete}
+            onRename={setFlowToRename}
+            onViewLogs={handleViewLogs}
           />
         )}
       </ListPageTemplate>
@@ -367,7 +417,18 @@ export default function AgentsPage() {
         onImport={handleImport}
       />
 
-      <AlertDialog open={Boolean(flowToDelete)} onOpenChange={(open) => !open && setFlowToDelete(null)}>
+      <RenameAgentDialog
+        flow={flowToRename}
+        open={Boolean(flowToRename)}
+        isLoading={renameAgent.isLoading}
+        onOpenChange={(open) => !open && setFlowToRename(null)}
+        onConfirm={handleRename}
+      />
+
+      <AlertDialog
+        open={Boolean(flowToDelete)}
+        onOpenChange={(open) => !open && setFlowToDelete(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>删除 Agent 资产</AlertDialogTitle>
@@ -390,5 +451,7 @@ export default function AgentsPage() {
 }
 
 function resolveLabel(flow: AgentFlow) {
-  return typeof flow.title === 'string' ? flow.title : flow.title?.zh || flow.title?.en || '未命名资产'
+  return typeof flow.title === 'string'
+    ? flow.title
+    : flow.title?.zh || flow.title?.en || '未命名资产'
 }

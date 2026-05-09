@@ -21,6 +21,7 @@ import {
   extractLatestSessionOutput,
   extractSessionLatestMessageId,
   extractSessionStatus,
+  extractSessionTitle,
 } from '../session'
 import { adaptAgentShareSummary } from '../share'
 import { adaptAgentTraceItems, extractTraceErrorMessage } from '../trace'
@@ -381,7 +382,8 @@ test('webhook trace adapter exposes status, input, output and errors', () => {
 })
 
 test('session extractors expose status, latest output and real message ids', () => {
-  const empty = adaptAgentSessionList([{ id: 'empty', messages: [] }]).sessions[0]
+  const empty = adaptAgentSessionList([{ id: 'empty', messages: [] }])
+    .sessions[0]
   const errored = adaptAgentSessionList([
     {
       id: 'error-session',
@@ -441,4 +443,19 @@ test('trace error extraction walks failed child nodes for session summaries', ()
     buildSessionErrorSummary({ id: 's2', errors: 'session failed' }, trace),
     'session failed',
   )
+})
+
+test('extractSessionTitle falls back to first user message content', () => {
+  assert.equal(
+    extractSessionTitle({
+      id: 's1',
+      messages: [
+        { role: 'assistant', content: 'hello' },
+        { role: 'user', content: '用户问题' },
+      ],
+    }),
+    '用户问题',
+  )
+  assert.equal(extractSessionTitle({ id: 's2', name: '命名会话' }), '命名会话')
+  assert.equal(extractSessionTitle({ id: 's3' }), '未命名会话')
 })

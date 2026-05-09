@@ -1,11 +1,9 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import {
-  AgentCanvasCategory,
-  AgentCanvasType,
-} from '@/types/agent'
+import { AgentCanvasCategory, AgentCanvasType } from '@/types/agent'
 import {
   buildAgentCanvasPath,
+  downloadFlowJson,
   isPipelineFlow,
   resolveCanvasCategory,
   resolveCanvasKind,
@@ -70,4 +68,77 @@ test('resolveCanvasKind normalizes route and backend category values', () => {
     }),
     AgentCanvasType.AGENT,
   )
+})
+
+test('downloadFlowJson exports a round-trippable agent json payload', async () => {
+  let capturedBlob: Blob | undefined
+  let capturedDownload = ''
+  const originalCreateObjectURL = URL.createObjectURL
+  const originalRevokeObjectURL = URL.revokeObjectURL
+  const originalDocument = globalThis.document
+
+  URL.createObjectURL = ((blob: Blob) => {
+    capturedBlob = blob
+    return 'blob:agent-export'
+  }) as typeof URL.createObjectURL
+  URL.revokeObjectURL = (() => undefined) as typeof URL.revokeObjectURL
+  globalThis.document = {
+    createElement: () => ({
+      href: '',
+      click: () => undefined,
+      set download(value: string) {
+        capturedDownload = value
+      },
+      get download() {
+        return capturedDownload
+      },
+    }),
+    body: {
+      appendChild: () => undefined,
+      removeChild: () => undefined,
+    },
+  } as unknown as Document
+
+  try {
+    downloadFlowJson({
+      id: 'agent-1234567890',
+      title: 'Sales Agent',
+      description: 'Handles leads',
+      canvas_type: AgentCanvasType.AGENT,
+      canvas_category: AgentCanvasCategory.AGENT,
+      avatar: 'avatar',
+      dsl: {
+        graph: { nodes: [], edges: [] },
+        components: {},
+        history: [],
+        messages: [],
+        reference: [],
+        globals: {},
+        retrieval: [],
+      },
+      update_time: 0,
+      create_time: 0,
+      user_id: 'u1',
+      permission: 'me',
+    })
+  } finally {
+    URL.createObjectURL = originalCreateObjectURL
+    URL.revokeObjectURL = originalRevokeObjectURL
+    globalThis.document = originalDocument
+  }
+
+  assert.equal(capturedDownload, 'agent-sales-agent-agent-12.json')
+  const exported = JSON.parse(await capturedBlob!.text())
+  assert.deepEqual(Object.keys(exported).sort(), [
+    'avatar',
+    'canvas_category',
+    'canvas_type',
+    'description',
+    'dsl',
+    'exportedAt',
+    'schemaVersion',
+    'title',
+  ])
+  assert.deepEqual(exported.dsl.graph, { nodes: [], edges: [] })
+  assert.deepEqual(exported.dsl.components, {})
 })
