@@ -46,7 +46,12 @@ export const agentQueryKeys = {
   avatar: (id: string) => [...agentQueryKeys.all, 'avatar', id] as const,
   sse: (id: string) => [...agentQueryKeys.all, 'sse', id] as const,
   externalInputs: (id: string, betaToken?: string) =>
-    [...agentQueryKeys.all, 'external-inputs', id, betaToken || 'missing-beta'] as const,
+    [
+      ...agentQueryKeys.all,
+      'external-inputs',
+      id,
+      betaToken || 'missing-beta',
+    ] as const,
   webhookTrace: (id: string, params: AgentWebhookTraceRequest) =>
     [...agentQueryKeys.all, 'webhook-trace', id, params] as const,
 }
@@ -65,8 +70,7 @@ export const useFetchAgent = (id?: string) => {
     queryFn: async () => adaptAgentFlow(await agentAPI.fetchAgent(agentId)),
   })
 
-  const isInitialLoading =
-    query.isPending || (query.isFetching && !query.data)
+  const isInitialLoading = query.isPending || (query.isFetching && !query.data)
 
   return {
     agent: query.data,
@@ -92,8 +96,10 @@ export const useFetchAgentList = (params: AgentListParams = {}) => {
 
   const query = useQuery({
     queryKey: agentQueryKeys.list(queryParams),
-    queryFn: async () => adaptAgentListResponse(await agentAPI.listAgents(queryParams)),
-    placeholderData: () => ({ canvas: [], total: 0 } satisfies AgentListResponse),
+    queryFn: async () =>
+      adaptAgentListResponse(await agentAPI.listAgents(queryParams)),
+    placeholderData: () =>
+      ({ canvas: [], total: 0 }) satisfies AgentListResponse,
   })
 
   return {
@@ -112,7 +118,8 @@ export const useFetchAgentListByPage = useFetchAgentList
 export const useFetchAgentTemplates = () => {
   const query = useQuery({
     queryKey: agentQueryKeys.templates(),
-    queryFn: async () => (await agentAPI.fetchTemplates()).map(adaptAgentTemplate),
+    queryFn: async () =>
+      (await agentAPI.fetchTemplates()).map(adaptAgentTemplate),
     placeholderData: () => [] satisfies AgentTemplate[],
   })
 
@@ -129,7 +136,7 @@ export const useFetchPrompt = () => {
   const query = useQuery({
     queryKey: agentQueryKeys.prompts(),
     queryFn: async () => agentAPI.fetchPrompt(),
-    placeholderData: () => ({} satisfies Record<string, string>),
+    placeholderData: () => ({}) satisfies Record<string, string>,
   })
 
   return {
@@ -146,7 +153,8 @@ export const useFetchVersionList = (id?: string) => {
   const query = useQuery({
     queryKey: agentQueryKeys.versions(agentId),
     enabled: Boolean(agentId),
-    queryFn: async () => adaptAgentVersionSummaries(await agentAPI.fetchVersions(agentId)),
+    queryFn: async () =>
+      adaptAgentVersionSummaries(await agentAPI.fetchVersions(agentId)),
     placeholderData: () => [] satisfies AgentVersionSummary[],
   })
 
@@ -162,7 +170,8 @@ export const useFetchVersion = (versionId?: string) => {
   const query = useQuery({
     queryKey: agentQueryKeys.version(versionId || ''),
     enabled: Boolean(versionId),
-    queryFn: async () => adaptAgentFlow(await agentAPI.fetchVersion(versionId || '')),
+    queryFn: async () =>
+      adaptAgentFlow(await agentAPI.fetchVersion(versionId || '')),
   })
 
   return {
@@ -178,7 +187,8 @@ export const useFetchAgentAvatar = (id?: string) => {
   const query = useQuery({
     queryKey: agentQueryKeys.avatar(agentId),
     enabled: Boolean(agentId),
-    queryFn: async () => adaptAgentFlow(await agentAPI.fetchAgentAvatar(agentId)),
+    queryFn: async () =>
+      adaptAgentFlow(await agentAPI.fetchAgentAvatar(agentId)),
   })
 
   return {
@@ -195,7 +205,9 @@ export const useFetchMessageTrace = (canvasId?: string, messageId?: string) => {
     queryKey: agentQueryKeys.trace(canvasId || '', messageId || ''),
     enabled: Boolean(canvasId) && Boolean(messageId),
     queryFn: async () =>
-      adaptAgentTraceItems(await agentAPI.fetchTrace(canvasId || '', messageId || '')),
+      adaptAgentTraceItems(
+        await agentAPI.fetchTrace(canvasId || '', messageId || ''),
+      ),
     placeholderData: () => [] satisfies AgentTraceItem[],
   })
 
@@ -213,7 +225,7 @@ export const useFetchInputForm = (canvasId?: string, componentId?: string) => {
     queryKey: agentQueryKeys.inputForm(canvasId || '', componentId || ''),
     enabled: Boolean(canvasId) && Boolean(componentId),
     queryFn: async () => agentAPI.inputForm(canvasId || '', componentId || ''),
-    placeholderData: () => ({} satisfies AgentInputFormSchema),
+    placeholderData: () => ({}) satisfies AgentInputFormSchema,
   })
 
   return {
@@ -250,7 +262,7 @@ export const useFetchAgentSessions = (
       ({
         sessions: [],
         total: 0,
-      } satisfies AgentSessionListResponse),
+      }) satisfies AgentSessionListResponse,
   })
 
   return {
@@ -262,19 +274,15 @@ export const useFetchAgentSessions = (
   }
 }
 
-/**
- * @deprecated There is no independent backend log endpoint. Historical "log"
- * data is the persisted `t_ai_api4conversations` session row returned by
- * `useFetchAgentSessions`; T9 should remove this alias after callers migrate.
- */
-export const useFetchAgentLog = useFetchAgentSessions
-
 export const useFetchAgentSession = (canvasId?: string, sessionId?: string) => {
   const resolvedCanvasId = useResolvedAgentId(canvasId)
   const query = useQuery({
     queryKey: agentQueryKeys.session(resolvedCanvasId, sessionId || ''),
     enabled: Boolean(resolvedCanvasId) && Boolean(sessionId),
-    queryFn: async () => adaptAgentSession(await agentAPI.fetchSession(resolvedCanvasId, sessionId || '')),
+    queryFn: async () =>
+      adaptAgentSession(
+        await agentAPI.fetchSession(resolvedCanvasId, sessionId || ''),
+      ),
   })
 
   return {
@@ -303,7 +311,10 @@ export const useFetchFlowSSE = (id?: string) => {
   }
 }
 
-export const useFetchExternalAgentInputs = (canvasId?: string, betaToken?: string) => {
+export const useFetchExternalAgentInputs = (
+  canvasId?: string,
+  betaToken?: string,
+) => {
   const resolvedCanvasId = useResolvedAgentId(canvasId)
   const query = useQuery({
     queryKey: agentQueryKeys.externalInputs(resolvedCanvasId, betaToken),
@@ -311,14 +322,17 @@ export const useFetchExternalAgentInputs = (canvasId?: string, betaToken?: strin
     retry: false,
     queryFn: async () =>
       adaptAgentShareSummary(
-        await agentAPI.fetchExternalAgentInputs(resolvedCanvasId, betaToken || ''),
+        await agentAPI.fetchExternalAgentInputs(
+          resolvedCanvasId,
+          betaToken || '',
+        ),
       ),
     placeholderData: () =>
       ({
         title: 'Agent Share',
         mode: 'conversation',
         inputs: {},
-      } satisfies AgentExternalInputs),
+      }) satisfies AgentExternalInputs,
   })
 
   return {

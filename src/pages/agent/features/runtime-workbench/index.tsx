@@ -4,33 +4,19 @@ import {
   SheetDescription,
   SheetTitle,
 } from '@/components/ui/sheet'
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/tabs'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { MessageSquareMore, NotebookText, Play, Square } from 'lucide-react'
-import AgentChatBox from '../../chat/box'
 import { LogDetail } from '../log-detail'
-import { RuntimeLogPanel } from '../../log-sheet'
-import { AgentRunPanel } from '../../run-sheet'
+import { AgentChatBox } from './components/agent-chat-box'
+import { AgentRunPanel } from './components/agent-run-panel'
+import { RuntimeLogPanel } from './components/runtime-log-panel'
 import { RuntimeHeader } from './components/runtime-header'
-import {
-  RuntimeWorkbenchView,
-  type RuntimeWorkbenchProps,
-} from './types'
+import { RuntimeWorkbenchView, type RuntimeWorkbenchProps } from './types'
 
-export type {
-  AgentRuntimeController,
-  RuntimeWorkbenchSummary,
-} from './types'
-export {
-  AgentRuntimeStatus,
-  RuntimeWorkbenchView,
-} from './types'
+export type { AgentRuntimeController, RuntimeWorkbenchSummary } from './types'
+export { AgentRuntimeStatus, RuntimeWorkbenchView } from './types'
 
 export function RuntimeWorkbench({
   open,
@@ -45,11 +31,7 @@ export function RuntimeWorkbench({
   }
 
   return (
-    <Sheet
-      open={open}
-      onOpenChange={onOpenChange}
-      modal={false}
-    >
+    <Sheet open={open} onOpenChange={onOpenChange} modal={false}>
       <SheetContent
         showCloseButton={false}
         className={cn(
@@ -78,8 +60,8 @@ export function RuntimeWorkbench({
           }
           className="flex min-h-0 flex-1 flex-col"
         >
-          <div className="border-b border-border-primary px-space-md py-space-sm">
-            <div className="flex items-center justify-between gap-space-sm">
+          <div className="border-border-primary px-space-md py-space-sm border-b">
+            <div className="gap-space-sm flex items-center justify-between">
               <TabsList className="w-full justify-start">
                 <TabsTrigger value={RuntimeWorkbenchView.RUN}>
                   <Play className="mr-space-xs size-4" />
@@ -135,7 +117,7 @@ export function RuntimeWorkbench({
             className="mt-0 min-h-0 flex-1 overflow-hidden"
           >
             {controller.viewingSessionId && controller.canvasId ? (
-              <div className="h-full overflow-auto p-space-md">
+              <div className="p-space-md h-full overflow-auto">
                 <LogDetail
                   mode="session"
                   canvasId={controller.canvasId}

@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
-import type { INodeEvent } from '../hooks/use-node-loading'
-import { RuntimeThoughtChain } from '../features/runtime-workbench/components/runtime-thought-chain'
+import type { INodeEvent } from '../../../hooks/use-node-loading'
+import { RuntimeThoughtChain } from './runtime-thought-chain'
 
 interface LogFlowTimelineProps {
   currentEventListWithoutMessage: INodeEvent[]
@@ -15,7 +15,7 @@ export const WorkFlowTimeline = ({
 
   if (currentEventListWithoutMessage.length === 0) {
     return (
-      <div className="text-center text-text-secondary py-space-xl">
+      <div className="py-space-xl text-center text-text-secondary">
         {t('flow.noLogs', '暂无日志')}
       </div>
     )

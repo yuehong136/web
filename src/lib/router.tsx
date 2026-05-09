@@ -1,7 +1,11 @@
 import { Suspense, lazy, type ComponentType } from 'react'
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { Layout } from '@/components/layout/Layout'
-import { AppScene, PageEmptyState, PageLoadingState } from '@/components/patterns'
+import {
+  AppScene,
+  PageEmptyState,
+  PageLoadingState,
+} from '@/components/patterns'
 import { ROUTES } from '@/constants'
 
 // ---------------------------------------------------------------------------
@@ -38,7 +42,7 @@ function lazyNamed<K extends string>(
   factory: () => Promise<Record<K, ComponentType>>,
   name: K,
 ) {
-  return lazy(() => factory().then(m => ({ default: m[name] })))
+  return lazy(() => factory().then((m) => ({ default: m[name] })))
 }
 
 // ---------------------------------------------------------------------------
@@ -46,32 +50,80 @@ function lazyNamed<K extends string>(
 // ---------------------------------------------------------------------------
 
 // Knowledge
-const KnowledgeListPage = lazyNamed(() => import('@/pages/knowledge/KnowledgeListPage'), 'KnowledgeListPage')
-const KnowledgeDetailLayout = lazyNamed(() => import('@/pages/knowledge/KnowledgeDetailLayout'), 'KnowledgeDetailLayout')
-const KnowledgeDocumentsPage = lazyNamed(() => import('@/pages/knowledge/documents'), 'KnowledgeDocumentsPage')
-const KnowledgeSearchPage = lazyNamed(() => import('@/pages/knowledge/KnowledgeSearchPage'), 'KnowledgeSearchPage')
-const KnowledgeGraphPage = lazyNamed(() => import('@/pages/knowledge/graph'), 'KnowledgeGraphPage')
-const KnowledgeSettingsPage = lazyNamed(() => import('@/pages/knowledge/KnowledgeSettingsPage'), 'KnowledgeSettingsPage')
-const KnowledgeCreatePage = lazyNamed(() => import('@/pages/knowledge/KnowledgeCreatePage'), 'KnowledgeCreatePage')
-const KnowledgeImportPage = lazyNamed(() => import('@/pages/knowledge/KnowledgeImportPage'), 'KnowledgeImportPage')
-const DocumentChunksPage = lazyNamed(() => import('@/pages/knowledge/DocumentChunksPage'), 'DocumentChunksPage')
-const KnowledgeLogsPage = lazyNamed(() => import('@/pages/knowledge/logs'), 'KnowledgeLogsPage')
+const KnowledgeListPage = lazyNamed(
+  () => import('@/pages/knowledge/KnowledgeListPage'),
+  'KnowledgeListPage',
+)
+const KnowledgeDetailLayout = lazyNamed(
+  () => import('@/pages/knowledge/KnowledgeDetailLayout'),
+  'KnowledgeDetailLayout',
+)
+const KnowledgeDocumentsPage = lazyNamed(
+  () => import('@/pages/knowledge/documents'),
+  'KnowledgeDocumentsPage',
+)
+const KnowledgeSearchPage = lazyNamed(
+  () => import('@/pages/knowledge/KnowledgeSearchPage'),
+  'KnowledgeSearchPage',
+)
+const KnowledgeGraphPage = lazyNamed(
+  () => import('@/pages/knowledge/graph'),
+  'KnowledgeGraphPage',
+)
+const KnowledgeSettingsPage = lazyNamed(
+  () => import('@/pages/knowledge/KnowledgeSettingsPage'),
+  'KnowledgeSettingsPage',
+)
+const KnowledgeCreatePage = lazyNamed(
+  () => import('@/pages/knowledge/KnowledgeCreatePage'),
+  'KnowledgeCreatePage',
+)
+const KnowledgeImportPage = lazyNamed(
+  () => import('@/pages/knowledge/KnowledgeImportPage'),
+  'KnowledgeImportPage',
+)
+const DocumentChunksPage = lazyNamed(
+  () => import('@/pages/knowledge/DocumentChunksPage'),
+  'DocumentChunksPage',
+)
+const KnowledgeLogsPage = lazyNamed(
+  () => import('@/pages/knowledge/logs'),
+  'KnowledgeLogsPage',
+)
 
 // Memory
-const MemoryListPage = lazyNamed(() => import('@/pages/memory'), 'MemoryListPage')
-const MemoryDetailLayout = lazyNamed(() => import('@/pages/memory'), 'MemoryDetailLayout')
-const MemoryMessagesPage = lazyNamed(() => import('@/pages/memory'), 'MemoryMessagesPage')
-const MemorySettingsPage = lazyNamed(() => import('@/pages/memory'), 'MemorySettingsPage')
+const MemoryListPage = lazyNamed(
+  () => import('@/pages/memory'),
+  'MemoryListPage',
+)
+const MemoryDetailLayout = lazyNamed(
+  () => import('@/pages/memory'),
+  'MemoryDetailLayout',
+)
+const MemoryMessagesPage = lazyNamed(
+  () => import('@/pages/memory'),
+  'MemoryMessagesPage',
+)
+const MemorySettingsPage = lazyNamed(
+  () => import('@/pages/memory'),
+  'MemorySettingsPage',
+)
 
 // Explore & Search
 const ExplorePage = lazyNamed(() => import('@/pages/explore'), 'ExplorePage')
-const SearchListPage = lazyNamed(() => import('@/pages/search'), 'SearchListPage')
-const SearchDetailPage = lazyNamed(() => import('@/pages/search/detail/SearchDetailPage'), 'SearchDetailPage')
+const SearchListPage = lazyNamed(
+  () => import('@/pages/search'),
+  'SearchListPage',
+)
+const SearchDetailPage = lazyNamed(
+  () => import('@/pages/search/detail/SearchDetailPage'),
+  'SearchDetailPage',
+)
 
 // Agent
 const AgentListPage = lazy(() => import('@/pages/agents'))
 const AgentTemplatesPage = lazy(() => import('@/pages/agents/templates'))
-const AgentCanvasPage = lazy(() => import('@/pages/agent'))
+const AgentEditorPage = lazy(() => import('@/pages/agent'))
 const AgentExplorePage = lazy(() => import('@/pages/agent/explore'))
 const AgentSharePage = lazy(() => import('@/pages/agent/share'))
 const AgentWidgetPage = lazy(() => import('@/pages/agent/share/widget'))
@@ -79,45 +131,89 @@ const PipelineResultPage = lazy(() => import('@/pages/agent/pipeline-result'))
 
 // Studio
 const StudioPage = lazyNamed(() => import('@/pages/studio'), 'StudioPage')
-const CreateAppPage = lazyNamed(() => import('@/pages/studio/CreateAppPage'), 'CreateAppPage')
+const CreateAppPage = lazyNamed(
+  () => import('@/pages/studio/CreateAppPage'),
+  'CreateAppPage',
+)
 
 // Dialog
-const PromptEditorPage = lazyNamed(() => import('@/pages/dialog/PromptEditorPage'), 'PromptEditorPage')
-const DialogListPage = lazyNamed(() => import('@/pages/dialog/DialogListPage'), 'DialogListPage')
+const PromptEditorPage = lazyNamed(
+  () => import('@/pages/dialog/PromptEditorPage'),
+  'PromptEditorPage',
+)
+const DialogListPage = lazyNamed(
+  () => import('@/pages/dialog/DialogListPage'),
+  'DialogListPage',
+)
 
 // AI Tools
-const AIToolsHomePage = lazyNamed(() => import('@/pages/ai-tools'), 'AIToolsHomePage')
-const AutoFillWorkbenchPage = lazyNamed(() => import('@/pages/ai-tools'), 'AutoFillWorkbenchPage')
+const AIToolsHomePage = lazyNamed(
+  () => import('@/pages/ai-tools'),
+  'AIToolsHomePage',
+)
+const AutoFillWorkbenchPage = lazyNamed(
+  () => import('@/pages/ai-tools'),
+  'AutoFillWorkbenchPage',
+)
 
 // MCP Chat
 const MCPChatPage = lazy(() => import('@/pages/MCPChatPage'))
 
 // Settings
-const SettingsLayout = lazyNamed(() => import('@/pages/settings/SettingsLayout'), 'SettingsLayout')
-const ProfilePage = lazyNamed(() => import('@/pages/settings/profile'), 'ProfilePage')
-const ModelProvidersPage = lazyNamed(() => import('@/pages/settings/model-providers'), 'ModelProvidersPage')
-const MCPServersPage = lazyNamed(() => import('@/pages/settings/MCPServersPage'), 'MCPServersPage')
-const MCPToolsPage = lazyNamed(() => import('@/pages/settings/MCPToolsPage'), 'MCPToolsPage')
-const MCPTestPage = lazyNamed(() => import('@/pages/settings/MCPTestPage'), 'MCPTestPage')
-const MCPBatchPage = lazyNamed(() => import('@/pages/settings/MCPBatchPage'), 'MCPBatchPage')
+const SettingsLayout = lazyNamed(
+  () => import('@/pages/settings/SettingsLayout'),
+  'SettingsLayout',
+)
+const ProfilePage = lazyNamed(
+  () => import('@/pages/settings/profile'),
+  'ProfilePage',
+)
+const ModelProvidersPage = lazyNamed(
+  () => import('@/pages/settings/model-providers'),
+  'ModelProvidersPage',
+)
+const MCPServersPage = lazyNamed(
+  () => import('@/pages/settings/MCPServersPage'),
+  'MCPServersPage',
+)
+const MCPToolsPage = lazyNamed(
+  () => import('@/pages/settings/MCPToolsPage'),
+  'MCPToolsPage',
+)
+const MCPTestPage = lazyNamed(
+  () => import('@/pages/settings/MCPTestPage'),
+  'MCPTestPage',
+)
+const MCPBatchPage = lazyNamed(
+  () => import('@/pages/settings/MCPBatchPage'),
+  'MCPBatchPage',
+)
 const ApiKeysPage = lazy(() => import('@/pages/settings/ApiKeysPage'))
 const SystemPage = lazyNamed(() => import('@/pages/system'), 'SystemPage')
 const TeamPage = lazyNamed(() => import('@/pages/team'), 'TeamPage')
 const DataSourcePage = lazy(() => import('@/pages/settings/datasource'))
-const DataSourceDetailPage = lazy(() => import('@/pages/settings/datasource/detail'))
-const AdminUsersPage = lazyNamed(() => import('@/pages/settings/admin'), 'AdminUsersPage')
+const DataSourceDetailPage = lazy(
+  () => import('@/pages/settings/datasource/detail'),
+)
+const AdminUsersPage = lazyNamed(
+  () => import('@/pages/settings/admin'),
+  'AdminUsersPage',
+)
 
 // Document Preview
 const DocumentPreviewPage = lazy(() => import('@/pages/document-preview'))
 
 // Theme Demo
-const ThemeDemoPage = lazyNamed(() => import('@/pages/theme-demo/ThemeDemoPage'), 'ThemeDemoPage')
+const ThemeDemoPage = lazyNamed(
+  () => import('@/pages/theme-demo/ThemeDemoPage'),
+  'ThemeDemoPage',
+)
 
 // ---------------------------------------------------------------------------
 // Placeholder pages
 // ---------------------------------------------------------------------------
 const documentsElement = (
-  <div className="flex h-full items-center justify-center p-space-lg">
+  <div className="p-space-lg flex h-full items-center justify-center">
     <PageEmptyState
       scene={AppScene.CONSOLE}
       title="文件中心即将推出"
@@ -128,7 +224,7 @@ const documentsElement = (
 )
 
 const workflowElement = (
-  <div className="flex h-full items-center justify-center p-space-lg">
+  <div className="p-space-lg flex h-full items-center justify-center">
     <PageEmptyState
       scene={AppScene.STUDIO}
       title="工作流模块即将推出"
@@ -139,7 +235,7 @@ const workflowElement = (
 )
 
 const notificationsElement = (
-  <div className="flex h-full items-center justify-center p-space-lg">
+  <div className="p-space-lg flex h-full items-center justify-center">
     <PageEmptyState
       scene={AppScene.CONSOLE}
       title="通知设置即将推出"
@@ -150,7 +246,7 @@ const notificationsElement = (
 )
 
 const appearanceElement = (
-  <div className="flex h-full items-center justify-center p-space-lg">
+  <div className="p-space-lg flex h-full items-center justify-center">
     <PageEmptyState
       scene={AppScene.CONSOLE}
       title="界面设置即将推出"
@@ -167,7 +263,7 @@ const authRoutes: { path: string; element: React.ReactElement }[] = [
   {
     path: ROUTES.LOGIN,
     element: <LoginPage />,
-  }
+  },
 ]
 
 if (import.meta.env.VITE_ENABLE_REGISTRATION === 'true') {
@@ -320,7 +416,7 @@ export const router = createBrowserRouter([
       },
       {
         path: '/agent/:id',
-        element: withLoading(AgentCanvasPage),
+        element: withLoading(AgentEditorPage),
       },
       {
         path: ROUTES.AGENT_EXPLORE,

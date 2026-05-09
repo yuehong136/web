@@ -27,7 +27,6 @@ import { TokenizerForm } from '../../../form/tokenizer'
 import { BingForm } from '../../../form/bing-form'
 import { EmailForm } from '../../../form/email-form'
 import { McpForm } from '../../../form/mcp-form'
-import { FormConfigMap } from '../../../form/index'
 import {
   legacyFormRenderers,
   migratedFormRenderers,
@@ -43,37 +42,82 @@ test('migrated operators resolve to directory modules in the form renderer', () 
   assert.equal(resolveFormRendererComponent(Operator.Tool), ToolForm)
   assert.equal(resolveFormRendererComponent(Operator.Switch), SwitchForm)
   assert.equal(resolveFormRendererComponent(Operator.Iteration), IterationForm)
-  assert.equal(resolveFormRendererComponent(Operator.IterationStart), IterationStartForm)
+  assert.equal(
+    resolveFormRendererComponent(Operator.IterationStart),
+    IterationStartForm,
+  )
   assert.equal(resolveFormRendererComponent(Operator.Loop), LoopForm)
   assert.equal(resolveFormRendererComponent(Operator.Invoke), InvokeForm)
-  assert.equal(resolveFormRendererComponent(Operator.DataOperations), DataOperationsForm)
-  assert.equal(resolveFormRendererComponent(Operator.ListOperations), ListOperationsForm)
-  assert.equal(resolveFormRendererComponent(Operator.VariableAggregator), VariableAggregatorForm)
-  assert.equal(resolveFormRendererComponent(Operator.VariableAssigner), VariableAssignerForm)
-  assert.equal(resolveFormRendererComponent(Operator.UserFillUp), UserFillUpForm)
-  assert.equal(resolveFormRendererComponent(Operator.StringTransform), StringTransformForm)
+  assert.equal(
+    resolveFormRendererComponent(Operator.DataOperations),
+    DataOperationsForm,
+  )
+  assert.equal(
+    resolveFormRendererComponent(Operator.ListOperations),
+    ListOperationsForm,
+  )
+  assert.equal(
+    resolveFormRendererComponent(Operator.VariableAggregator),
+    VariableAggregatorForm,
+  )
+  assert.equal(
+    resolveFormRendererComponent(Operator.VariableAssigner),
+    VariableAssignerForm,
+  )
+  assert.equal(
+    resolveFormRendererComponent(Operator.UserFillUp),
+    UserFillUpForm,
+  )
+  assert.equal(
+    resolveFormRendererComponent(Operator.StringTransform),
+    StringTransformForm,
+  )
   assert.equal(resolveFormRendererComponent(Operator.Parser), ParserForm)
   assert.equal(resolveFormRendererComponent(Operator.Tokenizer), TokenizerForm)
   assert.equal(resolveFormRendererComponent(Operator.Splitter), SplitterForm)
   assert.equal(resolveFormRendererComponent(Operator.Extractor), ExtractorForm)
-  assert.equal(resolveFormRendererComponent(Operator.HierarchicalMerger), HierarchicalMergerForm)
-  assert.equal(resolveFormRendererComponent(Operator.PDFGenerator), PDFGeneratorForm)
+  assert.equal(
+    resolveFormRendererComponent(Operator.HierarchicalMerger),
+    HierarchicalMergerForm,
+  )
+  assert.equal(
+    resolveFormRendererComponent(Operator.PDFGenerator),
+    PDFGeneratorForm,
+  )
   assert.equal(resolveFormRendererComponent(Operator.ExeSQL), ExeSQLForm)
   assert.equal(migratedFormRenderers[Operator.Begin], BeginForm)
   assert.equal(migratedFormRenderers[Operator.Agent], AgentForm)
   assert.equal(migratedFormRenderers[Operator.Iteration], IterationForm)
   assert.equal(migratedFormRenderers[Operator.Invoke], InvokeForm)
-  assert.equal(migratedFormRenderers[Operator.DataOperations], DataOperationsForm)
-  assert.equal(migratedFormRenderers[Operator.ListOperations], ListOperationsForm)
-  assert.equal(migratedFormRenderers[Operator.VariableAggregator], VariableAggregatorForm)
-  assert.equal(migratedFormRenderers[Operator.VariableAssigner], VariableAssignerForm)
+  assert.equal(
+    migratedFormRenderers[Operator.DataOperations],
+    DataOperationsForm,
+  )
+  assert.equal(
+    migratedFormRenderers[Operator.ListOperations],
+    ListOperationsForm,
+  )
+  assert.equal(
+    migratedFormRenderers[Operator.VariableAggregator],
+    VariableAggregatorForm,
+  )
+  assert.equal(
+    migratedFormRenderers[Operator.VariableAssigner],
+    VariableAssignerForm,
+  )
   assert.equal(migratedFormRenderers[Operator.UserFillUp], UserFillUpForm)
-  assert.equal(migratedFormRenderers[Operator.StringTransform], StringTransformForm)
+  assert.equal(
+    migratedFormRenderers[Operator.StringTransform],
+    StringTransformForm,
+  )
   assert.equal(migratedFormRenderers[Operator.Parser], ParserForm)
   assert.equal(migratedFormRenderers[Operator.Tokenizer], TokenizerForm)
   assert.equal(migratedFormRenderers[Operator.Splitter], SplitterForm)
   assert.equal(migratedFormRenderers[Operator.Extractor], ExtractorForm)
-  assert.equal(migratedFormRenderers[Operator.HierarchicalMerger], HierarchicalMergerForm)
+  assert.equal(
+    migratedFormRenderers[Operator.HierarchicalMerger],
+    HierarchicalMergerForm,
+  )
   assert.equal(migratedFormRenderers[Operator.PDFGenerator], PDFGeneratorForm)
   assert.equal(migratedFormRenderers[Operator.ExeSQL], ExeSQLForm)
 })
@@ -88,25 +132,22 @@ test('legacy operators and the MCP renderer stay on compatibility bridges', () =
   assert.equal(resolveFormRendererComponent(undefined), null)
 })
 
-test('form config map keeps migrated operators available through the compatibility export', () => {
-  assert.equal(FormConfigMap[Operator.Begin], BeginForm)
-  assert.equal(FormConfigMap[Operator.Tool], ToolForm)
-  assert.equal(FormConfigMap[Operator.Iteration], IterationForm)
-  assert.equal(FormConfigMap[Operator.IterationStart], IterationStartForm)
-  assert.equal(FormConfigMap[Operator.Loop], LoopForm)
-  assert.equal(FormConfigMap[Operator.Invoke], InvokeForm)
-  assert.equal(FormConfigMap[Operator.DataOperations], DataOperationsForm)
-  assert.equal(FormConfigMap[Operator.ListOperations], ListOperationsForm)
-  assert.equal(FormConfigMap[Operator.VariableAggregator], VariableAggregatorForm)
-  assert.equal(FormConfigMap[Operator.VariableAssigner], VariableAssignerForm)
-  assert.equal(FormConfigMap[Operator.UserFillUp], UserFillUpForm)
-  assert.equal(FormConfigMap[Operator.StringTransform], StringTransformForm)
-  assert.equal(FormConfigMap[Operator.Bing], BingForm)
-  assert.equal(FormConfigMap[Operator.Parser], ParserForm)
-  assert.equal(FormConfigMap[Operator.Tokenizer], TokenizerForm)
-  assert.equal(FormConfigMap[Operator.Splitter], SplitterForm)
-  assert.equal(FormConfigMap[Operator.Extractor], ExtractorForm)
-  assert.equal(FormConfigMap[Operator.HierarchicalMerger], HierarchicalMergerForm)
-  assert.equal(FormConfigMap[Operator.PDFGenerator], PDFGeneratorForm)
-  assert.equal(FormConfigMap[Operator.ExeSQL], ExeSQLForm)
+test('every operator in the renderer registry resolves to a real form component', () => {
+  const allRenderers: Record<string, unknown> = {
+    ...migratedFormRenderers,
+    ...legacyFormRenderers,
+  }
+
+  for (const [key, value] of Object.entries(allRenderers)) {
+    assert.equal(
+      typeof value,
+      'function',
+      `Operator "${key}" must register a renderer`,
+    )
+    assert.equal(
+      resolveFormRendererComponent(key),
+      value,
+      `Operator "${key}" must resolve through resolveFormRendererComponent`,
+    )
+  }
 })

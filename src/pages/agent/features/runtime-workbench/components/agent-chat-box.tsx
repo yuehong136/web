@@ -1,17 +1,14 @@
 import { memo, useCallback } from 'react'
 import { toast } from '@/lib/toast'
-import { RuntimeChatPanel } from '../components/runtime-chat'
-import { downloadRuntimeAttachment } from '../components/runtime-chat/download-runtime-attachment'
-import type {
-  AgentRuntimeController,
-  RuntimeAttachment,
-} from '../features/runtime-workbench/types'
+import { RuntimeChatPanel } from '../../../components/runtime-chat'
+import { downloadRuntimeAttachment } from '../../../components/runtime-chat/download-runtime-attachment'
+import type { AgentRuntimeController, RuntimeAttachment } from '../types'
 
 interface AgentChatBoxProps {
   controller: AgentRuntimeController
 }
 
-function AgentChatBox({ controller }: AgentChatBoxProps) {
+function AgentChatBoxBase({ controller }: AgentChatBoxProps) {
   const handleDownloadAttachment = useCallback(
     async (file: RuntimeAttachment) => {
       try {
@@ -44,4 +41,4 @@ function AgentChatBox({ controller }: AgentChatBoxProps) {
   )
 }
 
-export default memo(AgentChatBox)
+export const AgentChatBox = memo(AgentChatBoxBase)

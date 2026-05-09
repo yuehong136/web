@@ -41,18 +41,3 @@ export const AgentInstanceContext = createContext<AgentInstanceContextType>({
   addCanvasNode: () => () => undefined,
   showFormDrawer: undefined,
 })
-
-export type AgentChatContextType = {
-  showLogSheet?: (messageId: string) => void
-  setLastSendLoadingFunc?: (loading: boolean, messageId: string) => void
-  setDerivedMessages?: (messages: any[]) => void
-}
-
-export const AgentChatContext = createContext<AgentChatContextType>({})
-
-export type AgentChatLogContextType = {
-  addEventList?: (events: any[], messageId: string) => void
-  setCurrentMessageId?: (messageId: string) => void
-}
-
-export const AgentChatLogContext = createContext<AgentChatLogContextType>({})
