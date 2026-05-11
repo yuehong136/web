@@ -5,12 +5,7 @@ import {
   SheetDescription,
   SheetTitle,
 } from '@/components/ui/sheet'
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/tabs'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { cn } from '@/lib/utils'
 import { FileOutput, NotebookText, Play, Square } from 'lucide-react'
 import { SectionCard } from '@/components/patterns'
@@ -59,7 +54,8 @@ export function PipelineWorkbench({
       >
         <SheetTitle className="sr-only">Pipeline 运行与日志工作台</SheetTitle>
         <SheetDescription className="sr-only">
-          上传文档或填写 Begin 输入，启动 Pipeline 数据流，查看节点时间线与最终输出
+          上传文档或填写 Begin 输入，启动 Pipeline
+          数据流，查看节点时间线与最终输出
         </SheetDescription>
 
         <PipelineHeader
@@ -75,26 +71,26 @@ export function PipelineWorkbench({
           }
           className="flex min-h-0 flex-1 flex-col"
         >
-          <div className="border-b border-border-primary px-space-md py-space-sm">
-            <div className="flex items-center justify-between gap-space-sm">
+          <div className="border-border-primary px-space-md py-space-sm border-b">
+            <div className="gap-space-sm flex items-center justify-between">
               <TabsList className="w-full justify-start">
                 <TabsTrigger value={PipelineWorkbenchView.RUN}>
                   <Play className="mr-space-xs size-4" />
-                  Run
+                  运行
                 </TabsTrigger>
                 <TabsTrigger
                   value={PipelineWorkbenchView.LOG}
                   disabled={!controller.hasLogs}
                 >
                   <NotebookText className="mr-space-xs size-4" />
-                  Log
+                  日志
                 </TabsTrigger>
                 <TabsTrigger
                   value={PipelineWorkbenchView.OUTPUT}
                   disabled={!controller.outputAvailable}
                 >
                   <FileOutput className="mr-space-xs size-4" />
-                  Output
+                  输出
                 </TabsTrigger>
               </TabsList>
 

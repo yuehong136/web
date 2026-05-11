@@ -6,7 +6,8 @@
  * 如需修改主题，请编辑 theme-generator.ts 文件
  */
 
-html[data-theme="light"], [data-theme="light"] {
+html[data-theme='light'],
+[data-theme='light'] {
   /* ===== Tailwind 通道变量 (用于 /alpha 透明度支持) ===== */
   --twc-primary: 30 64 175;
   --twc-primary-foreground: 255 255 255;
@@ -72,7 +73,7 @@ html[data-theme="light"], [data-theme="light"] {
   --color-components-input-bg-disabled: #f5f5f5;
   --color-components-input-border: #e2e8f0;
   --color-components-input-border-hover: #cbd5e1;
-  --color-components-input-border-focus: #00BEB4;
+  --color-components-input-border-focus: #00beb4;
   --color-components-input-border-error: #ef4444;
   --color-components-input-text: #111827;
   --color-components-input-text-placeholder: #9ca3af;
@@ -82,7 +83,8 @@ html[data-theme="light"], [data-theme="light"] {
   --color-components-card-bg: #ffffff;
   --color-components-card-bg-hover: #fafafa;
   --color-components-card-border: rgba(0, 0, 0, 0.08);
-  --color-components-card-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  --color-components-card-shadow:
+    0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
   --color-components-card-meta-title: #1f2937;
   --color-components-card-meta-description: #6b7280;
   --color-components-card-actions-bg: #f9fafb;
@@ -90,13 +92,13 @@ html[data-theme="light"], [data-theme="light"] {
   --color-components-card-cover-bg: #f3f4f6;
 
   /* ===== 侧边栏组件 ===== */
-  --color-components-sidebar-bg: rgba(255, 255, 255, 0.98);
+  --color-components-sidebar-bg: #f7f8fa;
   --color-components-sidebar-border: rgba(0, 0, 0, 0.06);
   --color-components-sidebar-item-bg: transparent;
   --color-components-sidebar-item-bg-hover: rgba(0, 0, 0, 0.04);
   --color-components-sidebar-item-bg-active: rgba(59, 130, 246, 0.08);
   --color-components-sidebar-item-text: #6b7280;
-  --color-components-sidebar-item-text-active: #00D4C8;
+  --color-components-sidebar-item-text-active: #00d4c8;
   --color-components-sidebar-backdrop: blur(12px);
 
   /* ===== 导航组件 ===== */
@@ -104,19 +106,21 @@ html[data-theme="light"], [data-theme="light"] {
   --color-components-nav-border: #e5e7eb;
   --color-components-nav-item-text: #6b7280;
   --color-components-nav-item-text-hover: #374151;
-  --color-components-nav-item-text-active: #00BEB4;
+  --color-components-nav-item-text-active: #00beb4;
 
   /* ===== 下拉菜单组件 ===== */
   --color-components-dropdown-bg: #ffffff;
   --color-components-dropdown-border: #e5e7eb;
-  --color-components-dropdown-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --color-components-dropdown-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   --color-components-dropdown-item-bg-hover: #f3f4f6;
   --color-components-dropdown-item-text: #374151;
 
   /* ===== 模型选择器组件 ===== */
   --color-components-model-selector-dropdown-bg: #ffffff;
   --color-components-model-selector-dropdown-border: #e5e7eb;
-  --color-components-model-selector-dropdown-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --color-components-model-selector-dropdown-shadow:
+    0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   --color-components-model-selector-search-bg: #f9fafb;
   --color-components-model-selector-search-border: #d1d5db;
   --color-components-model-selector-search-text: #111827;
@@ -128,7 +132,7 @@ html[data-theme="light"], [data-theme="light"] {
   --color-components-model-selector-item-text: #374151;
   --color-components-model-selector-item-bg-hover: #f3f4f6;
   --color-components-model-selector-item-bg-selected: rgba(59, 130, 246, 0.1);
-  --color-components-model-selector-item-text-selected: #33D4CB;
+  --color-components-model-selector-item-text-selected: #33d4cb;
   --color-components-model-selector-overlay-bg: rgba(0, 0, 0, 0.3);
 
   /* ===== 编辑器组件 ===== */
@@ -152,8 +156,17 @@ html[data-theme="light"], [data-theme="light"] {
   --color-chat-input-area-bg: rgba(255, 255, 255, 0.98);
   --color-chat-input-area-border: rgba(0, 0, 0, 0.06);
   --color-chat-input-area-shadow: 0 -1px 3px rgba(0, 0, 0, 0.05);
-  --color-chat-gradient-primary: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(147, 197, 253, 0.08) 50%, rgba(219, 234, 254, 0.05) 100%);
-  --color-chat-gradient-secondary: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(110, 231, 183, 0.08) 100%);
+  --color-chat-gradient-primary: linear-gradient(
+    135deg,
+    rgba(59, 130, 246, 0.05) 0%,
+    rgba(147, 197, 253, 0.08) 50%,
+    rgba(219, 234, 254, 0.05) 100%
+  );
+  --color-chat-gradient-secondary: linear-gradient(
+    135deg,
+    rgba(16, 185, 129, 0.05) 0%,
+    rgba(110, 231, 183, 0.08) 100%
+  );
   --color-chat-welcome-border: rgba(59, 130, 246, 0.1);
   --color-chat-welcome-shadow: 0 4px 20px rgba(59, 130, 246, 0.08);
   --color-chat-input-area-backdrop: blur(20px);
@@ -188,7 +201,7 @@ html[data-theme="light"], [data-theme="light"] {
   /* ===== 交互状态 ===== */
   --color-state-hover: #f3f4f6;
   --color-state-active: #e5e7eb;
-  --color-state-focus: #00BEB4;
+  --color-state-focus: #00beb4;
   --color-state-disabled: #e5e7eb;
   --color-state-success: #10b981;
   --color-state-warning: #f59e0b;
@@ -208,28 +221,31 @@ html[data-theme="light"], [data-theme="light"] {
 
   /* ===== 阴影系统 ===== */
   --color-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --color-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --color-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --color-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --color-shadow-md:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --color-shadow-lg:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --color-shadow-xl:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 
   /* ===== 表单控件 ===== */
   --color-components-checkbox-bg: #ffffff;
-  --color-components-checkbox-bg-checked: #00BEB4;
+  --color-components-checkbox-bg-checked: #00beb4;
   --color-components-checkbox-border: #d1d5db;
-  --color-components-checkbox-border-checked: #00BEB4;
+  --color-components-checkbox-border-checked: #00beb4;
   --color-components-checkbox-icon: #ffffff;
   --color-components-radio-bg: #ffffff;
   --color-components-radio-bg-checked: #ffffff;
   --color-components-radio-border: #d1d5db;
-  --color-components-radio-border-checked: #00BEB4;
-  --color-components-radio-dot: #00BEB4;
+  --color-components-radio-border-checked: #00beb4;
+  --color-components-radio-dot: #00beb4;
   --color-components-select-bg: #ffffff;
   --color-components-select-border: #d1d5db;
-  --color-components-select-border-focus: #00BEB4;
+  --color-components-select-border-focus: #00beb4;
   --color-components-select-text: #111827;
   --color-components-select-placeholder: #9ca3af;
   --color-components-switch-bg: #e5e7eb;
-  --color-components-switch-bg-checked: #00BEB4;
+  --color-components-switch-bg-checked: #00beb4;
   --color-components-switch-thumb: #ffffff;
   --color-components-switch-thumb-checked: #ffffff;
 
@@ -245,10 +261,12 @@ html[data-theme="light"], [data-theme="light"] {
   --color-components-dialog-overlay: rgba(0, 0, 0, 0.5);
   --color-components-popover-bg: #ffffff;
   --color-components-popover-border: #e5e7eb;
-  --color-components-popover-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --color-components-popover-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   --color-components-tooltip-bg: #1f2937;
   --color-components-tooltip-text: #ffffff;
-  --color-components-tooltip-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --color-components-tooltip-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   --color-components-system-chart-tooltip-bg: #ffffff;
   --color-components-system-chart-tooltip-border: #e5e7eb;
   --color-components-system-chart-tooltip-text: #1f2937;
@@ -266,8 +284,8 @@ html[data-theme="light"], [data-theme="light"] {
 
   /* ===== 状态和通知 ===== */
   --color-components-alert-info-bg: #eff6ff;
-  --color-components-alert-info-border: #00BEB4;
-  --color-components-alert-info-text: #00BEB4;
+  --color-components-alert-info-border: #00beb4;
+  --color-components-alert-info-text: #00beb4;
   --color-components-alert-success-bg: #f0fdf4;
   --color-components-alert-success-border: #22c55e;
   --color-components-alert-success-text: #15803d;
@@ -281,18 +299,26 @@ html[data-theme="light"], [data-theme="light"] {
   /* ===== 加载和进度 ===== */
   --color-components-skeleton-bg: #f3f4f6;
   --color-components-progress-bg: #e5e7eb;
-  --color-components-progress-fill: #00BEB4;
-  --color-components-spinner-color: #00BEB4;
+  --color-components-progress-fill: #00beb4;
+  --color-components-spinner-color: #00beb4;
   --color-components-task-status-running-progress-bg: rgba(107, 114, 128, 0.2);
-  --color-components-task-status-running-progress-fill: linear-gradient(to right, #33D4CB, #8b5cf6);
-  --color-components-task-status-running-progress-glow: linear-gradient(to right, rgba(59, 130, 246, 0.5), rgba(139, 92, 246, 0.5));
-  --color-components-loader-primary: #00BEB4;
+  --color-components-task-status-running-progress-fill: linear-gradient(
+    to right,
+    #33d4cb,
+    #8b5cf6
+  );
+  --color-components-task-status-running-progress-glow: linear-gradient(
+    to right,
+    rgba(59, 130, 246, 0.5),
+    rgba(139, 92, 246, 0.5)
+  );
+  --color-components-loader-primary: #00beb4;
   --color-components-loader-secondary: #d1d5db;
   --color-components-skeleton-base: #f3f4f6;
   --color-components-skeleton-shimmer: #ffffff;
   --color-components-skeleton-text: #e5e7eb;
   --color-components-upload-progress-bg: #e5e7eb;
-  --color-components-upload-progress-fill: #00BEB4;
+  --color-components-upload-progress-fill: #00beb4;
   --color-components-canvas-skeleton-bg: #e5e7eb;
 
   /* ===== 代码和预格式化文本 ===== */
@@ -309,37 +335,81 @@ html[data-theme="light"], [data-theme="light"] {
   --color-components-icon-button-bg-hover: #f3f4f6;
 
   /* ===== 应用头像 ===== */
-  --color-components-app-avatar-bg: linear-gradient(135deg, #8b5cf6 0%, #33D4CB 100%);
+  --color-components-app-avatar-bg: linear-gradient(
+    135deg,
+    #8b5cf6 0%,
+    #33d4cb 100%
+  );
   --color-components-app-avatar-border: rgba(139, 92, 246, 0.2);
 
   /* ===== 推荐卡片 ===== */
-  --color-components-recommend-card-bg-1: #F0EDE8;
-  --color-components-recommend-card-bg-2: #E8E4DF;
-  --color-components-recommend-card-bg-3: #F5F3F0;
-  --color-components-recommend-card-bg-4: #EDEDED;
+  --color-components-recommend-card-bg-1: #f0ede8;
+  --color-components-recommend-card-bg-2: #e8e4df;
+  --color-components-recommend-card-bg-3: #f5f3f0;
+  --color-components-recommend-card-bg-4: #ededed;
   --color-components-recommend-card-text: #1f2937;
   --color-components-recommend-card-tag: #9ca3af;
 
   /* ===== 统计卡片 ===== */
-  --color-components-stats-card-blue-bg: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(14, 165, 233, 0.08));
-  --color-components-stats-card-blue-icon-bg: linear-gradient(135deg, #dbeafe, #e0f2fe);
+  --color-components-stats-card-blue-bg: linear-gradient(
+    135deg,
+    rgba(59, 130, 246, 0.15),
+    rgba(14, 165, 233, 0.08)
+  );
+  --color-components-stats-card-blue-icon-bg: linear-gradient(
+    135deg,
+    #dbeafe,
+    #e0f2fe
+  );
   --color-components-stats-card-blue-icon-text: #2563eb;
-  --color-components-stats-card-blue-shadow: 0 8px 24px -4px rgba(59, 130, 246, 0.25), 0 4px 8px -2px rgba(59, 130, 246, 0.1);
+  --color-components-stats-card-blue-shadow:
+    0 8px 24px -4px rgba(59, 130, 246, 0.25),
+    0 4px 8px -2px rgba(59, 130, 246, 0.1);
   --color-components-stats-card-blue-border-hover: rgba(59, 130, 246, 0.4);
-  --color-components-stats-card-green-bg: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(16, 185, 129, 0.08));
-  --color-components-stats-card-green-icon-bg: linear-gradient(135deg, #dcfce7, #d1fae5);
+  --color-components-stats-card-green-bg: linear-gradient(
+    135deg,
+    rgba(34, 197, 94, 0.15),
+    rgba(16, 185, 129, 0.08)
+  );
+  --color-components-stats-card-green-icon-bg: linear-gradient(
+    135deg,
+    #dcfce7,
+    #d1fae5
+  );
   --color-components-stats-card-green-icon-text: #16a34a;
-  --color-components-stats-card-green-shadow: 0 8px 24px -4px rgba(34, 197, 94, 0.25), 0 4px 8px -2px rgba(34, 197, 94, 0.1);
+  --color-components-stats-card-green-shadow:
+    0 8px 24px -4px rgba(34, 197, 94, 0.25),
+    0 4px 8px -2px rgba(34, 197, 94, 0.1);
   --color-components-stats-card-green-border-hover: rgba(34, 197, 94, 0.4);
-  --color-components-stats-card-purple-bg: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(168, 85, 247, 0.08));
-  --color-components-stats-card-purple-icon-bg: linear-gradient(135deg, #ede9fe, #f3e8ff);
+  --color-components-stats-card-purple-bg: linear-gradient(
+    135deg,
+    rgba(139, 92, 246, 0.15),
+    rgba(168, 85, 247, 0.08)
+  );
+  --color-components-stats-card-purple-icon-bg: linear-gradient(
+    135deg,
+    #ede9fe,
+    #f3e8ff
+  );
   --color-components-stats-card-purple-icon-text: #7c3aed;
-  --color-components-stats-card-purple-shadow: 0 8px 24px -4px rgba(139, 92, 246, 0.25), 0 4px 8px -2px rgba(139, 92, 246, 0.1);
+  --color-components-stats-card-purple-shadow:
+    0 8px 24px -4px rgba(139, 92, 246, 0.25),
+    0 4px 8px -2px rgba(139, 92, 246, 0.1);
   --color-components-stats-card-purple-border-hover: rgba(139, 92, 246, 0.4);
-  --color-components-stats-card-orange-bg: linear-gradient(135deg, rgba(249, 115, 22, 0.15), rgba(245, 158, 11, 0.08));
-  --color-components-stats-card-orange-icon-bg: linear-gradient(135deg, #ffedd5, #fef3c7);
+  --color-components-stats-card-orange-bg: linear-gradient(
+    135deg,
+    rgba(249, 115, 22, 0.15),
+    rgba(245, 158, 11, 0.08)
+  );
+  --color-components-stats-card-orange-icon-bg: linear-gradient(
+    135deg,
+    #ffedd5,
+    #fef3c7
+  );
   --color-components-stats-card-orange-icon-text: #ea580c;
-  --color-components-stats-card-orange-shadow: 0 8px 24px -4px rgba(249, 115, 22, 0.25), 0 4px 8px -2px rgba(249, 115, 22, 0.1);
+  --color-components-stats-card-orange-shadow:
+    0 8px 24px -4px rgba(249, 115, 22, 0.25),
+    0 4px 8px -2px rgba(249, 115, 22, 0.1);
   --color-components-stats-card-orange-border-hover: rgba(249, 115, 22, 0.4);
 
   /* ===== 画布系统 ===== */
@@ -349,7 +419,7 @@ html[data-theme="light"], [data-theme="light"] {
   --color-components-canvas-node-bg: #ffffff;
   --color-components-canvas-node-border: rgba(0, 0, 0, 0.1);
   --color-components-canvas-node-border-hover: rgba(0, 0, 0, 0.15);
-  --color-components-canvas-node-border-selected: #00BEB4;
+  --color-components-canvas-node-border-selected: #00beb4;
   --color-components-canvas-node-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   --color-components-canvas-node-status-running-border: #0ea5e9;
   --color-components-canvas-node-status-running-halo: rgba(14, 165, 233, 0.18);
@@ -362,11 +432,11 @@ html[data-theme="light"], [data-theme="light"] {
   --color-components-canvas-node-status-error-text: #b91c1c;
   --color-components-canvas-edge-stroke: rgb(156, 163, 175);
   --color-components-canvas-edge-stroke-hover: rgb(107, 114, 128);
-  --color-components-canvas-edge-stroke-selected: #00BEB4;
+  --color-components-canvas-edge-stroke-selected: #00beb4;
   --color-components-canvas-edge-stroke-flowing: #0ea5e9;
   --color-components-canvas-edge-marker: rgb(156, 163, 175);
-  --color-components-canvas-edge-marker-selected: #00BEB4;
-  --color-components-canvas-handle-bg: #00BEB4;
+  --color-components-canvas-edge-marker-selected: #00beb4;
+  --color-components-canvas-handle-bg: #00beb4;
   --color-components-canvas-handle-border: #ffffff;
   --color-components-canvas-handle-icon: #ffffff;
   --color-components-canvas-toolbar-bg: #ffffff;
@@ -399,8 +469,8 @@ html[data-theme="light"], [data-theme="light"] {
   --color-components-method-get-text: #166534;
   --color-components-method-get-border: #22c55e;
   --color-components-method-post-bg: rgba(59, 130, 246, 0.1);
-  --color-components-method-post-text: #00BEB4;
-  --color-components-method-post-border: #33D4CB;
+  --color-components-method-post-text: #00beb4;
+  --color-components-method-post-border: #33d4cb;
   --color-components-method-put-bg: rgba(245, 158, 11, 0.1);
   --color-components-method-put-text: #d97706;
   --color-components-method-put-border: #f59e0b;
@@ -414,12 +484,12 @@ html[data-theme="light"], [data-theme="light"] {
   --color-components-env-prod-text: #ffffff;
   --color-components-env-staging-bg: #f59e0b;
   --color-components-env-staging-text: #ffffff;
-  --color-components-env-dev-bg: #33D4CB;
+  --color-components-env-dev-bg: #33d4cb;
   --color-components-env-dev-text: #ffffff;
   --color-components-slider-track: #e5e7eb;
-  --color-components-slider-range: #00BEB4;
+  --color-components-slider-range: #00beb4;
   --color-components-slider-thumb: #ffffff;
-  --color-components-slider-thumb-border: #00BEB4;
+  --color-components-slider-thumb-border: #00beb4;
   --color-components-tool-call-bg: #eff6ff;
   --color-components-tool-call-border: #bfdbfe;
   --color-components-tool-call-title: #1e40af;
@@ -435,7 +505,7 @@ html[data-theme="light"], [data-theme="light"] {
   --color-components-badge-error-bg: #fee2e2;
   --color-components-badge-error-text: #991b1b;
   --color-components-badge-info-bg: #dbeafe;
-  --color-components-badge-info-text: #00BEB4;
+  --color-components-badge-info-text: #00beb4;
   --color-components-badge-neutral-bg: #f3f4f6;
   --color-components-badge-neutral-text: #6b7280;
   --color-components-badge-blue-bg: #dbeafe;
@@ -446,30 +516,34 @@ html[data-theme="light"], [data-theme="light"] {
   --color-components-badge-purple-text: #7c3aed;
   --color-components-badge-green-bg: #dcfce7;
   --color-components-badge-green-text: #15803d;
-  --color-components-avatar-gradient-purple-from: #A78BFA;
-  --color-components-avatar-gradient-purple-to: #C4B5FD;
-  --color-components-avatar-gradient-blue-from: #60A5FA;
-  --color-components-avatar-gradient-blue-to: #93C5FD;
-  --color-components-avatar-gradient-green-from: #4ADE80;
-  --color-components-avatar-gradient-green-to: #86EFAC;
-  --color-components-avatar-gradient-orange-from: #FB923C;
-  --color-components-avatar-gradient-orange-to: #FDBA74;
-  --color-components-avatar-gradient-indigo-from: #818CF8;
-  --color-components-avatar-gradient-indigo-to: #A5B4FC;
-  --color-components-avatar-gradient-rose-from: #FB7185;
-  --color-components-avatar-gradient-rose-to: #FDA4AF;
-  --color-components-avatar-gradient-teal-from: #2DD4BF;
-  --color-components-avatar-gradient-teal-to: #5EEAD4;
-  --color-components-avatar-gradient-amber-from: #FBBF24;
-  --color-components-avatar-gradient-amber-to: #FCD34D;
+  --color-components-avatar-gradient-purple-from: #a78bfa;
+  --color-components-avatar-gradient-purple-to: #c4b5fd;
+  --color-components-avatar-gradient-blue-from: #60a5fa;
+  --color-components-avatar-gradient-blue-to: #93c5fd;
+  --color-components-avatar-gradient-green-from: #4ade80;
+  --color-components-avatar-gradient-green-to: #86efac;
+  --color-components-avatar-gradient-orange-from: #fb923c;
+  --color-components-avatar-gradient-orange-to: #fdba74;
+  --color-components-avatar-gradient-indigo-from: #818cf8;
+  --color-components-avatar-gradient-indigo-to: #a5b4fc;
+  --color-components-avatar-gradient-rose-from: #fb7185;
+  --color-components-avatar-gradient-rose-to: #fda4af;
+  --color-components-avatar-gradient-teal-from: #2dd4bf;
+  --color-components-avatar-gradient-teal-to: #5eead4;
+  --color-components-avatar-gradient-amber-from: #fbbf24;
+  --color-components-avatar-gradient-amber-to: #fcd34d;
   --color-components-task-status-idle-bg: rgba(107, 114, 128, 0.1);
   --color-components-task-status-idle-border: rgba(107, 114, 128, 0.2);
   --color-components-task-status-idle-text: #4b5563;
   --color-components-task-status-idle-dot: #9ca3af;
-  --color-components-task-status-running-bg: linear-gradient(to right, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
+  --color-components-task-status-running-bg: linear-gradient(
+    to right,
+    rgba(59, 130, 246, 0.1),
+    rgba(139, 92, 246, 0.1)
+  );
   --color-components-task-status-running-border: rgba(59, 130, 246, 0.2);
-  --color-components-task-status-running-text: #00D4C8;
-  --color-components-task-status-running-dot: #33D4CB;
+  --color-components-task-status-running-text: #00d4c8;
+  --color-components-task-status-running-dot: #33d4cb;
   --color-components-task-status-cancelled-bg: rgba(245, 158, 11, 0.1);
   --color-components-task-status-cancelled-border: rgba(245, 158, 11, 0.2);
   --color-components-task-status-cancelled-text: #d97706;
@@ -511,7 +585,7 @@ html[data-theme="light"], [data-theme="light"] {
   --color-components-divider-text: #9ca3af;
   --color-components-timeline-line: #e5e7eb;
   --color-components-timeline-dot: #d1d5db;
-  --color-components-timeline-dot-active: #00BEB4;
+  --color-components-timeline-dot-active: #00beb4;
   --color-components-timeline-content-bg: #ffffff;
   --color-components-timeline-content-border: #e5e7eb;
   --color-components-calendar-bg: #ffffff;
@@ -521,10 +595,10 @@ html[data-theme="light"], [data-theme="light"] {
   --color-components-calendar-cell-bg: #ffffff;
   --color-components-calendar-cell-text: #374151;
   --color-components-calendar-cell-bg-hover: #f3f4f6;
-  --color-components-calendar-cell-bg-selected: #00BEB4;
+  --color-components-calendar-cell-bg-selected: #00beb4;
   --color-components-calendar-cell-text-selected: #ffffff;
   --color-components-calendar-cell-bg-today: #eff6ff;
-  --color-components-calendar-cell-text-today: #00D4C8;
+  --color-components-calendar-cell-text-today: #00d4c8;
   --color-components-calendar-cell-bg-disabled: #f9fafb;
   --color-components-calendar-cell-text-disabled: #d1d5db;
   --color-components-drawer-bg: #ffffff;
@@ -546,7 +620,7 @@ html[data-theme="light"], [data-theme="light"] {
   --color-components-tree-node-bg-hover: #f3f4f6;
   --color-components-tree-node-bg-selected: #eff6ff;
   --color-components-tree-node-text: #374151;
-  --color-components-tree-node-text-selected: #00D4C8;
+  --color-components-tree-node-text-selected: #00d4c8;
   --color-components-tree-indent-line: #e5e7eb;
   --color-components-tree-expand-icon: #9ca3af;
   --color-components-transfer-bg: #ffffff;
@@ -557,7 +631,7 @@ html[data-theme="light"], [data-theme="light"] {
   --color-components-transfer-item-bg-hover: #f3f4f6;
   --color-components-transfer-item-bg-selected: #eff6ff;
   --color-components-transfer-item-text: #374151;
-  --color-components-transfer-item-text-selected: #00D4C8;
+  --color-components-transfer-item-text-selected: #00d4c8;
   --color-components-upload-bg: transparent;
   --color-components-upload-bg-dragover: rgba(3, 2, 19, 0.05);
   --color-components-upload-border: rgba(113, 113, 130, 0.25);
@@ -574,7 +648,7 @@ html[data-theme="light"], [data-theme="light"] {
   --color-components-result-icon-success: #10b981;
   --color-components-result-icon-error: #ef4444;
   --color-components-result-icon-warning: #f59e0b;
-  --color-components-result-icon-info: #00BEB4;
+  --color-components-result-icon-info: #00beb4;
   --color-components-result-title: #1f2937;
   --color-components-result-subtitle: #6b7280;
   --color-components-rate-star: #d1d5db;
@@ -583,7 +657,7 @@ html[data-theme="light"], [data-theme="light"] {
   --color-components-anchor-bg: #ffffff;
   --color-components-anchor-border: #e5e7eb;
   --color-components-anchor-link: #6b7280;
-  --color-components-anchor-link-active: #00BEB4;
+  --color-components-anchor-link-active: #00beb4;
   --color-components-anchor-link-hover: #374151;
   --color-components-backtop-bg: #ffffff;
   --color-components-backtop-text: #6b7280;
@@ -658,7 +732,7 @@ html[data-theme="light"], [data-theme="light"] {
   --color-components-http-method-get-text: #15803d;
   --color-components-http-method-get-border: #bbf7d0;
   --color-components-http-method-post-bg: #eff6ff;
-  --color-components-http-method-post-text: #00BEB4;
+  --color-components-http-method-post-text: #00beb4;
   --color-components-http-method-post-border: #bfdbfe;
   --color-components-http-method-put-bg: #fffbeb;
   --color-components-http-method-put-text: #d97706;
@@ -671,18 +745,34 @@ html[data-theme="light"], [data-theme="light"] {
   --color-components-http-method-patch-border: #e9d5ff;
   --color-components-api-docs-bg: #ffffff;
   --color-components-api-docs-border: #e5e7eb;
-  --color-components-api-docs-header-bg: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(147, 197, 253, 0.08) 100%);
+  --color-components-api-docs-header-bg: linear-gradient(
+    135deg,
+    rgba(59, 130, 246, 0.05) 0%,
+    rgba(147, 197, 253, 0.08) 100%
+  );
   --color-components-api-docs-header-border: rgba(0, 0, 0, 0.08);
   --color-components-api-docs-content-bg: #ffffff;
   --color-components-api-docs-search-bg: #ffffff;
   --color-components-api-docs-search-border: #d1d5db;
-  --color-components-api-docs-search-focus-border: #33D4CB;
+  --color-components-api-docs-search-focus-border: #33d4cb;
   --color-components-glassmorphism-bg: rgba(255, 255, 255, 0.75);
   --color-components-glassmorphism-border: rgba(255, 255, 255, 0.2);
   --color-components-glassmorphism-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
-  --color-components-gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --color-components-gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  --color-components-gradient-accent: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  --color-components-gradient-primary: linear-gradient(
+    135deg,
+    #667eea 0%,
+    #764ba2 100%
+  );
+  --color-components-gradient-secondary: linear-gradient(
+    135deg,
+    #f093fb 0%,
+    #f5576c 100%
+  );
+  --color-components-gradient-accent: linear-gradient(
+    135deg,
+    #4facfe 0%,
+    #00f2fe 100%
+  );
   --color-components-app-shell-bg: #f3f4f6;
   --color-components-app-shell-surface: rgba(255, 255, 255, 0.96);
   --color-components-app-shell-border: rgba(0, 0, 0, 0.08);
@@ -690,7 +780,8 @@ html[data-theme="light"], [data-theme="light"] {
   --color-components-main-workbench-bg: #ffffff;
   --color-components-main-workbench-surface: #ffffff;
   --color-components-main-workbench-border: rgba(0, 0, 0, 0.08);
-  --color-components-main-workbench-shadow: 0 18px 36px -24px rgba(15, 23, 42, 0.28);
+  --color-components-main-workbench-shadow: 0 18px 36px -24px
+    rgba(15, 23, 42, 0.28);
   --color-components-page-header-bg: rgba(255, 255, 255, 0.94);
   --color-components-page-header-border: rgba(0, 0, 0, 0.06);
   --color-components-page-header-title: #0f172a;
@@ -701,7 +792,7 @@ html[data-theme="light"], [data-theme="light"] {
   --color-components-page-state-bg: #ffffff;
   --color-components-page-state-border: rgba(0, 0, 0, 0.08);
   --color-components-page-state-icon-bg: rgba(0, 0, 0, 0.04);
-  --color-components-page-state-icon: #00BEB4;
+  --color-components-page-state-icon: #00beb4;
   --color-components-page-state-title: #0f172a;
   --color-components-page-state-description: #6b7280;
   --color-components-settings-rail-bg: #ffffff;
@@ -728,8 +819,8 @@ html[data-theme="light"], [data-theme="light"] {
   --color-components-settings-section-description: #6b7280;
   --color-components-settings-user-role-bg: rgba(0, 190, 180, 0.1);
   --color-components-system-accent-bg: rgba(0, 190, 180, 0.12);
-  --color-components-system-accent-border: #00BEB4;
-  --color-components-system-accent-text: #00BEB4;
+  --color-components-system-accent-border: #00beb4;
+  --color-components-system-accent-text: #00beb4;
   --color-components-system-accent-soft: rgba(0, 190, 180, 0.06);
   --color-components-system-page-bg: #f9fafb;
   --color-components-system-header-title: #1f2937;
@@ -771,5 +862,4 @@ html[data-theme="light"], [data-theme="light"] {
   --color-components-system-chart-lag: #9ca3af;
   --color-components-system-chart-info-pill-bg: #f3f4f6;
   --color-components-system-chart-info-pill-text: #6b7280;
-
 }

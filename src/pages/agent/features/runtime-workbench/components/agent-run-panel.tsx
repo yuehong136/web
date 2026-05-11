@@ -9,12 +9,12 @@ interface AgentRunPanelProps {
 export function AgentRunPanel({ controller }: AgentRunPanelProps) {
   return (
     <div className="space-y-space-lg p-space-md">
-      <SectionCard title="Begin Inputs" padding="default">
+      <SectionCard title="开始输入" padding="default">
         <div className="space-y-space-md">
           <p className="text-sm text-text-secondary">
             {controller.isTaskMode
               ? '当前 Begin 节点处于任务模式，提交参数后会直接触发一次测试运行。'
-              : '这里负责同步 Begin 输入。提交后会进入 Conversation 视图，由你继续发送测试消息。'}
+              : '提交 Begin 输入后进入会话，你可以继续发送测试消息。'}
           </p>
 
           <DebugContent
@@ -33,8 +33,7 @@ export function AgentRunPanel({ controller }: AgentRunPanelProps) {
       {!controller.beginInputs.length ? (
         <SectionCard title="运行说明" padding="default">
           <p className="text-sm text-text-secondary">
-            当前 Begin 节点没有额外输入字段。你仍然可以提交本页，直接进入
-            Conversation 视图。
+            当前 Begin 节点没有额外输入字段。你仍然可以提交本页，直接进入 会话。
           </p>
         </SectionCard>
       ) : null}

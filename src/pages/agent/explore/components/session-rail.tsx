@@ -17,10 +17,7 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area'
 import type { QueryObserverResult } from '@tanstack/react-query'
 import type { AgentSessionListResponse } from '@/types/agent'
-import type {
-  ExploreSession,
-  ExploreSessionListParams,
-} from '../types'
+import type { ExploreSession, ExploreSessionListParams } from '../types'
 import { SessionCard } from './session-card'
 import { ChevronLeft, ChevronRight, Plus, Search } from 'lucide-react'
 
@@ -58,7 +55,7 @@ export function SessionRail({
   const totalPages = Math.max(1, Math.ceil(total / params.page_size))
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-space-base p-space-lg">
+    <div className="gap-space-base p-space-lg flex h-full min-h-0 flex-col">
       <SectionCard
         title="Explore 会话"
         padding="sm"
@@ -85,7 +82,7 @@ export function SessionRail({
             }
           />
 
-          <div className="grid grid-cols-2 gap-space-sm">
+          <div className="gap-space-sm grid grid-cols-2">
             <Input
               inputSize="sm"
               type="date"
@@ -104,12 +101,12 @@ export function SessionRail({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-space-sm">
+          <div className="gap-space-sm grid grid-cols-2">
             <Select
               value={params.orderby}
               onValueChange={(value) => onChangeParams({ orderby: value })}
             >
-              <SelectTrigger className="h-10 rounded-radius-md">
+              <SelectTrigger className="rounded-radius-md h-10">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -120,9 +117,11 @@ export function SessionRail({
             </Select>
             <Select
               value={params.desc ? 'desc' : 'asc'}
-              onValueChange={(value) => onChangeParams({ desc: value === 'desc' })}
+              onValueChange={(value) =>
+                onChangeParams({ desc: value === 'desc' })
+              }
             >
-              <SelectTrigger className="h-10 rounded-radius-md">
+              <SelectTrigger className="rounded-radius-md h-10">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -147,7 +146,7 @@ export function SessionRail({
             scene={AppScene.SPLIT_DETAIL}
             compact
             title="会话加载失败"
-            description="请检查 `/v1/canvas/:id/sessions` 接口。"
+            description="暂时无法读取会话列表，请稍后重试。"
             onRetry={() => {
               void onRetry()
             }}
@@ -160,7 +159,7 @@ export function SessionRail({
             description="新建会话并发送第一条消息后会显示在这里。"
           />
         ) : (
-          <ScrollArea className="h-full pr-space-xs">
+          <ScrollArea className="pr-space-xs h-full">
             <div className="space-y-space-sm">
               {sessions.map((session) => (
                 <SessionCard
@@ -187,11 +186,11 @@ export function SessionRail({
       </div>
 
       <SectionCard padding="sm">
-        <div className="flex items-center justify-between gap-space-sm">
+        <div className="gap-space-sm flex items-center justify-between">
           <p className="text-xs text-text-tertiary">
             共 {total} 条 · 第 {params.page} / {totalPages} 页
           </p>
-          <div className="flex items-center gap-space-xs">
+          <div className="gap-space-xs flex items-center">
             <Button
               type="button"
               variant="outline"

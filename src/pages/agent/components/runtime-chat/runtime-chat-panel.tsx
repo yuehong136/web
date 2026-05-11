@@ -42,7 +42,7 @@ export function RuntimeChatPanel({
   emptyTitle = '还没有消息',
   emptyDescription = '发送第一条消息后开始会话。',
   taskModeEmptyTitle = '任务模式会话',
-  taskModeEmptyDescription = '请先在 Run 视图提交 Begin 输入，运行后这里会展示消息与执行链路。',
+  taskModeEmptyDescription = '请先在运行页提交开始输入，运行后这里会展示消息与执行链路。',
   onSend,
   onStop,
   onSubmitAwaitingInputs,
@@ -54,10 +54,10 @@ export function RuntimeChatPanel({
   const isCompact = density === 'compact'
 
   return (
-    <section className="flex min-h-0 flex-1 flex-col bg-surface-primary">
+    <section className="bg-surface-primary flex min-h-0 flex-1 flex-col">
       <div className="min-h-0 flex-1">
         {messages.length === 0 ? (
-          <div className="flex h-full min-h-[240px] items-center justify-center p-space-lg">
+          <div className="p-space-lg flex h-full min-h-[240px] items-center justify-center">
             <PageEmptyState
               scene={AppScene.WORKSPACE}
               compact={isCompact}

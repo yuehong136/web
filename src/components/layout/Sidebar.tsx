@@ -1,11 +1,6 @@
 import React from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import {
-  BookOpen,
-  HardDrive,
-  Wrench,
-  Server,
-  Briefcase,
   Settings,
   User,
   Bell,
@@ -13,55 +8,16 @@ import {
   Moon,
   Monitor,
   LogOut,
-  Compass,
-  Search,
   Check,
-  Workflow,
-  Home,
   PanelLeftClose,
 } from 'lucide-react'
-import * as TooltipPrimitive from '@radix-ui/react-tooltip'
 import { cn } from '@/lib/utils'
 import { ROUTES } from '@/constants'
 import { useUIStore, useAuthStore, useHomeStore } from '@/stores'
 import { Theme, setTheme as setAppTheme, getTheme } from '@/themes'
 import { SidebarConversations } from './SidebarConversations'
-
-// 侧边栏专用 Tooltip 组件（黑色背景样式）
-interface SidebarTooltipProps {
-  content: React.ReactNode
-  children: React.ReactNode
-  enabled?: boolean
-}
-
-const SidebarTooltip: React.FC<SidebarTooltipProps> = ({
-  content,
-  children,
-  enabled = true,
-}) => {
-  if (!enabled) {
-    return <>{children}</>
-  }
-
-  return (
-    <TooltipPrimitive.Provider delayDuration={100}>
-      <TooltipPrimitive.Root>
-        <TooltipPrimitive.Trigger asChild>
-          {children}
-        </TooltipPrimitive.Trigger>
-        <TooltipPrimitive.Portal>
-          <TooltipPrimitive.Content
-            side="right"
-            sideOffset={12}
-            className="z-50 rounded-radius-md bg-components-tooltip-bg px-space-sm py-space-xs text-sm text-components-tooltip-text shadow-lg animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=right]:slide-in-from-left-2"
-          >
-            {content}
-          </TooltipPrimitive.Content>
-        </TooltipPrimitive.Portal>
-      </TooltipPrimitive.Root>
-    </TooltipPrimitive.Provider>
-  )
-}
+import { navItems } from './sidebar-config'
+import { SidebarTooltip } from './sidebar-tooltip'
 
 interface SidebarProps {
   className?: string
@@ -70,75 +26,20 @@ interface SidebarProps {
   allowCollapse?: boolean
 }
 
-interface NavItem {
-  title: string
-  href: string
-  icon: React.ComponentType<{ className?: string }>
-  children?: Array<{ title: string; href: string; icon?: React.ComponentType<{ className?: string }> }>
-}
-
-const navItems: NavItem[] = [
-  {
-    title: '首页',
-    href: ROUTES.HOME,
-    icon: Home,
-  },
-  {
-    title: '探索',
-    href: ROUTES.EXPLORE,
-    icon: Compass,
-  },
-  {
-    title: '搜索',
-    href: ROUTES.SEARCH,
-    icon: Search,
-  },
-  {
-    title: '知识库',
-    href: ROUTES.KNOWLEDGE,
-    icon: BookOpen,
-  },
-  {
-    title: '记忆库',
-    href: ROUTES.MEMORY,
-    icon: HardDrive,
-  },
-  {
-    title: '智能体',
-    href: ROUTES.AGENTS,
-    icon: Workflow,
-  },
-  {
-    title: '工作室',
-    href: ROUTES.STUDIO,
-    icon: Briefcase,
-  },
-  {
-    title: '工具箱',
-    href: ROUTES.AI_TOOLS,
-    icon: Wrench,
-  },
-  {
-    title: 'MCP',
-    href: ROUTES.MCP_SERVERS,
-    icon: Server,
-  },
-]
-
 export const Sidebar: React.FC<SidebarProps> = ({
-                                                  className,
-                                                  collapsed = false,
-                                                  onCollapsedChange,
-                                                  allowCollapse = true,
-                                                }) => {
+  className,
+  collapsed = false,
+  onCollapsedChange,
+  allowCollapse = true,
+}) => {
   const location = useLocation()
   const { notifications } = useUIStore()
   const { user, isAuthenticated, logout } = useAuthStore()
-  
+
   // 首页状态（用于显示应用对话历史）
-  const { 
-    selectedApps, 
-    selectedConversationId, 
+  const {
+    selectedApps,
+    selectedConversationId,
     selectConversation,
     startNewConversation,
   } = useHomeStore()
@@ -188,459 +89,508 @@ export const Sidebar: React.FC<SidebarProps> = ({
   }
 
   return (
-      <aside
-          className={cn(
-              "bg-components-sidebar-bg h-full flex flex-col rounded-2xl",
-              // 使用 will-change 优化动画性能
-              "transition-[width] duration-300 ease-out will-change-[width]",
-              isCollapsed ? "w-16" : "w-56",
-              className
-          )}
-      >
-        {/* Logo区域 - 固定高度(预留2行文字空间)避免展开/收起时跳动 */}
-        <div className="p-3 border-b border-border-subtle">
-          <div className="flex items-center justify-between h-12">
+    <aside
+      className={cn(
+        'flex h-full flex-col rounded-none bg-components-sidebar-bg',
+        // 使用 will-change 优化动画性能
+        'transition-[width] duration-300 ease-out will-change-[width]',
+        isCollapsed ? 'w-16' : 'w-56',
+        className,
+      )}
+    >
+      {/* Logo区域 - 固定高度(预留2行文字空间)避免展开/收起时跳动 */}
+      <div className="px-space-sm pb-space-md pt-space-sm">
+        <div className="flex h-12 items-center justify-between">
+          <div
+            className="flex min-w-0 cursor-pointer items-center gap-3"
+            onClick={
+              allowCollapse && isCollapsed
+                ? () => setCollapsed(false)
+                : undefined
+            }
+            title={allowCollapse && isCollapsed ? '展开侧边栏' : undefined}
+          >
+            {/* Logo - 固定尺寸，位置不变 */}
             <div
-                className="flex items-center gap-3 cursor-pointer min-w-0"
-                onClick={allowCollapse && isCollapsed ? () => setCollapsed(false) : undefined}
-                title={allowCollapse && isCollapsed ? "展开侧边栏" : undefined}
+              className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl"
+              style={{ background: 'var(--color-components-gradient-primary)' }}
             >
-              {/* Logo - 固定尺寸，位置不变 */}
-              <div
-                  className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-                  style={{ background: 'var(--color-components-gradient-primary)' }}
-              >
-                <span className="text-text-inverted font-bold text-sm">MR</span>
-              </div>
-              {/* 文字区域 - 支持换行，最多2行 */}
-              <span
-                  className={cn(
-                      "text-base font-semibold text-text-primary leading-tight",
-                      "transition-[opacity,transform] duration-300 ease-out",
-                      isCollapsed
-                          ? "opacity-0 w-0 overflow-hidden translate-x-[-10px] pointer-events-none"
-                          : "opacity-100 w-auto max-w-[120px] translate-x-0 delay-100 break-words line-clamp-2"
-                  )}
-              >
+              <span className="text-sm font-bold text-text-inverted">MR</span>
+            </div>
+            {/* 文字区域 - 支持换行，最多2行 */}
+            <span
+              className={cn(
+                'text-base font-semibold leading-tight text-text-primary',
+                'transition-[opacity,transform] duration-300 ease-out',
+                isCollapsed
+                  ? 'pointer-events-none w-0 translate-x-[-10px] overflow-hidden opacity-0'
+                  : 'line-clamp-2 w-auto max-w-[120px] translate-x-0 break-words opacity-100 delay-100',
+              )}
+            >
               AI平台
             </span>
-            </div>
-            {/* 折叠按钮 */}
-            {allowCollapse ? (
-              <button
-                  onClick={() => setCollapsed(!isCollapsed)}
-                  className={cn(
-                      "w-7 h-7 flex items-center justify-center rounded-lg flex-shrink-0",
-                      "text-components-icon-button-text hover:text-components-icon-button-text-hover hover:bg-components-icon-button-bg-hover",
-                      "transition-[opacity,transform] duration-200",
-                      isCollapsed
-                          ? "opacity-0 scale-0 pointer-events-none"
-                          : "opacity-100 scale-100 delay-150"
-                  )}
-                  title={isCollapsed ? "展开侧边栏" : "收起侧边栏"}
-              >
-                <PanelLeftClose className="h-4 w-4" />
-              </button>
-            ) : null}
           </div>
-        </div>
-
-        {/* 导航菜单 */}
-        <nav className="py-4">
-          <div className={cn(
-              "space-y-1 transition-[padding] duration-300",
-              isCollapsed ? "px-2" : "px-3"
-          )}>
-            {navItems.map((item, index) => {
-              const Icon = item.icon
-              const isActive = item.href === ROUTES.AI_TOOLS
-                ? (location.pathname.startsWith(ROUTES.AI_TOOLS) || location.pathname.startsWith('/tools'))
-                : item.href === ROUTES.HOME
-                  ? (location.pathname === ROUTES.HOME || location.pathname === '/')
-                  : location.pathname.startsWith(item.href) ||
-                    item.children?.some((child) => location.pathname.startsWith(child.href))
-
-              return (
-                <div key={item.href} className="space-y-1">
-                  <SidebarTooltip content={item.title} enabled={isCollapsed}>
-                    <NavLink
-                      to={item.href}
-                      className={cn(
-                        "relative flex items-center rounded-xl group",
-                        "transition-all duration-200 ease-out",
-                        isCollapsed
-                          ? "justify-center p-2.5"
-                          : "gap-3 px-3 py-2.5",
-                        isActive
-                          ? "bg-components-sidebar-item-bg-active text-components-sidebar-item-text-active"
-                          : "text-components-sidebar-item-text hover:bg-components-sidebar-item-bg-hover hover:text-text-primary"
-                      )}
-                    >
-                      <Icon className={cn(
-                        "flex-shrink-0 h-5 w-5 transition-transform duration-200",
-                        isActive ? "text-components-sidebar-item-text-active" : ""
-                      )} />
-                      <span
-                        className={cn(
-                          "text-sm font-medium whitespace-nowrap",
-                          "transition-all duration-300 ease-out",
-                          isCollapsed
-                            ? "opacity-0 w-0 translate-x-[-10px] pointer-events-none"
-                            : "opacity-100 w-auto translate-x-0"
-                        )}
-                        style={{
-                          transitionDelay: isCollapsed ? '0ms' : `${50 + index * 20}ms`
-                        }}
-                      >
-                        {item.title}
-                      </span>
-                    </NavLink>
-                  </SidebarTooltip>
-
-                  {!isCollapsed && item.children?.length ? (
-                    <div className="ml-11 space-y-1">
-                      {item.children.map((child) => {
-                        const ChildIcon = child.icon
-                        const childActive = location.pathname.startsWith(child.href)
-
-                        return (
-                          <NavLink
-                            key={child.href}
-                            to={child.href}
-                            className={cn(
-                              "flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs transition-colors",
-                              childActive
-                                ? "bg-components-sidebar-item-bg-active text-components-sidebar-item-text-active"
-                                : "text-components-sidebar-item-text hover:bg-components-sidebar-item-bg-hover"
-                            )}
-                          >
-                            {ChildIcon ? <ChildIcon className="h-3.5 w-3.5" /> : null}
-                            <span>{child.title}</span>
-                          </NavLink>
-                        )
-                      })}
-                    </div>
-                  ) : null}
-                </div>
-              )
-            })}
-          </div>
-        </nav>
-
-        {/* 首页应用对话历史 - 条件渲染，使用 flex-1 充分利用空间 */}
-        {isHomePage && selectedApps.length > 0 ? (
-          <SidebarConversations
-            appId={selectedApps[0]?.id}
-            appName={selectedApps[0]?.name}
-            currentConversationId={selectedConversationId}
-            onSelectConversation={(conversationId) => selectConversation(conversationId)}
-            onCreateNew={startNewConversation}
-            isCollapsed={isCollapsed}
-          />
-        ) : (
-          /* 中间空白区域 - 将底部推到最下面（仅在非首页或无选中应用时显示） */
-          <div className="flex-1" />
-        )}
-
-        {/* 底部功能区域 */}
-        <div className={cn(
-            "border-t border-border-subtle space-y-1 py-2",
-            "transition-[padding] duration-300",
-            isCollapsed ? "px-2" : "px-3"
-        )}>
-          {/* 通知按钮 */}
-          <div className="relative">
-            <SidebarTooltip content="通知" enabled={isCollapsed}>
-              <button
-                  onClick={() => setShowNotifications(!showNotifications)}
-                  className={cn(
-                      "w-full flex items-center rounded-xl transition-all duration-200",
-                      isCollapsed
-                          ? "justify-center p-2.5"
-                          : "gap-3 px-3 py-2",
-                      "text-components-sidebar-item-text hover:bg-components-sidebar-item-bg-hover hover:text-text-primary"
-                  )}
-              >
-              <Bell className="h-5 w-5 flex-shrink-0" />
-              <span
-                  className={cn(
-                      "text-sm whitespace-nowrap",
-                      "transition-all duration-300 ease-out",
-                      isCollapsed
-                          ? "opacity-0 w-0 translate-x-[-10px] pointer-events-none"
-                          : "opacity-100 w-auto translate-x-0 delay-[250ms]"
-                  )}
-              >
-              通知
-            </span>
-              {unreadCount > 0 && (
-                  <span className={cn(
-                      "bg-state-error text-text-inverted text-xs rounded-full min-w-[18px] text-center",
-                      isCollapsed ? "absolute -top-1 -right-1 w-4 h-4 flex items-center justify-center" : "ml-auto px-1.5 py-0.5"
-                  )}>
-                {isCollapsed ? '•' : (unreadCount > 9 ? '9+' : unreadCount)}
-              </span>
+          {/* 折叠按钮 */}
+          {allowCollapse ? (
+            <button
+              onClick={() => setCollapsed(!isCollapsed)}
+              className={cn(
+                'flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg',
+                'text-components-icon-button-text hover:bg-components-icon-button-bg-hover hover:text-components-icon-button-text-hover',
+                'transition-[opacity,transform] duration-200',
+                isCollapsed
+                  ? 'pointer-events-none scale-0 opacity-0'
+                  : 'scale-100 opacity-100 delay-150',
               )}
-              </button>
-            </SidebarTooltip>
+              title={isCollapsed ? '展开侧边栏' : '收起侧边栏'}
+            >
+              <PanelLeftClose className="h-4 w-4" />
+            </button>
+          ) : null}
+        </div>
+      </div>
 
-            {showNotifications && (
-                <div className={cn(
-                    "absolute bottom-full mb-2 bg-components-dropdown-bg border border-border-default rounded-xl shadow-lg py-2 z-50",
-                    isCollapsed ? "left-full ml-2 w-80" : "left-0 right-0 w-80"
-                )}>
-                  <div className="px-4 py-2 border-b border-border-subtle">
-                    <h3 className="font-medium text-text-primary">通知</h3>
-                  </div>
-                  <div className="max-h-64 overflow-y-auto">
-                    {notifications.length === 0 ? (
-                        <div className="px-4 py-8 text-center text-text-muted text-sm">
-                          暂无通知
-                        </div>
-                    ) : (
-                        notifications.map((notification) => (
-                            <div
-                                key={notification.id}
-                                className="px-4 py-3 hover:bg-components-dropdown-item-bg-hover border-b border-border-subtle last:border-b-0"
-                            >
-                              <div className="flex items-start gap-3">
-                                <div className={cn(
-                                    "w-2 h-2 rounded-full mt-2",
-                                    notification.type === 'error' ? 'bg-state-error' :
-                                        notification.type === 'warning' ? 'bg-state-warning' :
-                                            notification.type === 'success' ? 'bg-state-success' :
-                                                'bg-text-accent'
-                                )} />
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-medium text-text-primary">
-                                    {notification.title}
-                                  </p>
-                                  <p className="text-sm text-text-secondary mt-1">
-                                    {notification.message}
-                                  </p>
-                                  <p className="text-xs text-text-muted mt-1">
-                                    {new Date(notification.timestamp).toLocaleTimeString()}
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-                        ))
-                    )}
-                  </div>
-                </div>
-            )}
-          </div>
+      {/* 导航菜单 */}
+      <nav className="py-space-sm">
+        <div
+          className={cn(
+            'space-y-space-2xs transition-[padding] duration-300',
+            isCollapsed ? 'px-space-xs' : 'px-space-sm',
+          )}
+        >
+          {navItems.map((item, index) => {
+            const Icon = item.icon
+            const isActive =
+              item.href === ROUTES.AI_TOOLS
+                ? location.pathname.startsWith(ROUTES.AI_TOOLS) ||
+                  location.pathname.startsWith('/tools')
+                : item.href === ROUTES.HOME
+                  ? location.pathname === ROUTES.HOME ||
+                    location.pathname === '/'
+                  : item.href === ROUTES.AGENTS
+                    ? location.pathname.startsWith(ROUTES.AGENTS) ||
+                      location.pathname.startsWith('/agent')
+                    : location.pathname.startsWith(item.href) ||
+                      item.children?.some((child) =>
+                        location.pathname.startsWith(child.href),
+                      )
 
-          {/* 主题切换 */}
-          <div className="relative">
-            <SidebarTooltip content="主题" enabled={isCollapsed}>
-              <button
-                  onClick={() => setShowThemeMenu(!showThemeMenu)}
-                  className={cn(
-                      "w-full flex items-center rounded-xl transition-all duration-200",
-                      isCollapsed
-                          ? "justify-center p-2.5"
-                          : "gap-3 px-3 py-2",
-                      "text-components-sidebar-item-text hover:bg-components-sidebar-item-bg-hover hover:text-text-primary"
-                  )}
-              >
-                <ThemeIcon />
-                <span
+            return (
+              <div key={item.href} className="space-y-1">
+                <SidebarTooltip content={item.title} enabled={isCollapsed}>
+                  <NavLink
+                    to={item.href}
                     className={cn(
-                        "text-sm whitespace-nowrap",
-                        "transition-all duration-300 ease-out",
-                        isCollapsed
-                            ? "opacity-0 w-0 translate-x-[-10px] pointer-events-none"
-                            : "opacity-100 w-auto translate-x-0 delay-[270ms]"
+                      'group relative flex items-center rounded-xl',
+                      'transition-all duration-200 ease-out',
+                      isCollapsed
+                        ? 'justify-center p-2.5'
+                        : 'gap-3 px-3 py-2.5',
+                      isActive
+                        ? 'shadow-elevation-low bg-components-sidebar-item-bg-active text-components-sidebar-item-text-active'
+                        : 'text-components-sidebar-item-text hover:bg-components-sidebar-item-bg-hover hover:text-text-primary',
                     )}
-                >
-                主题
-              </span>
-              </button>
-            </SidebarTooltip>
-
-            {showThemeMenu && (
-                <div className={cn(
-                    "absolute bottom-full mb-2 bg-components-dropdown-bg border border-border-default rounded-xl shadow-lg py-1 z-50",
-                    isCollapsed ? "left-full ml-2 w-36" : "left-0 w-36"
-                )}>
-                  <button
-                      onClick={() => handleThemeChange(Theme.LIGHT)}
-                      className={cn(
-                          "w-full px-3 py-2 text-left text-sm hover:bg-components-dropdown-item-bg-hover flex items-center gap-2 text-components-dropdown-item-text transition-colors",
-                          currentTheme === Theme.LIGHT && "bg-components-dropdown-item-bg-hover"
-                      )}
                   >
-                    <Sun className="h-4 w-4" />
-                    浅色主题
-                    {currentTheme === Theme.LIGHT && <Check className="h-4 w-4 ml-auto" />}
-                  </button>
-                  <button
-                      onClick={() => handleThemeChange(Theme.DARK)}
+                    <Icon
                       className={cn(
-                          "w-full px-3 py-2 text-left text-sm hover:bg-components-dropdown-item-bg-hover flex items-center gap-2 text-components-dropdown-item-text transition-colors",
-                          currentTheme === Theme.DARK && "bg-components-dropdown-item-bg-hover"
+                        'h-5 w-5 flex-shrink-0 transition-transform duration-200',
+                        isActive
+                          ? 'text-components-sidebar-item-text-active'
+                          : '',
                       )}
-                  >
-                    <Moon className="h-4 w-4" />
-                    深色主题
-                    {currentTheme === Theme.DARK && <Check className="h-4 w-4 ml-auto" />}
-                  </button>
-                  <button
-                      onClick={() => handleThemeChange(Theme.SYSTEM)}
-                      className={cn(
-                          "w-full px-3 py-2 text-left text-sm hover:bg-components-dropdown-item-bg-hover flex items-center gap-2 text-components-dropdown-item-text transition-colors",
-                          currentTheme === Theme.SYSTEM && "bg-components-dropdown-item-bg-hover"
-                      )}
-                  >
-                    <Monitor className="h-4 w-4" />
-                    跟随系统
-                    {currentTheme === Theme.SYSTEM && <Check className="h-4 w-4 ml-auto" />}
-                  </button>
-                </div>
-            )}
-          </div>
-
-          {/* 用户信息 */}
-          {isAuthenticated ? (
-              <div className="relative">
-                <SidebarTooltip content={user?.nickname || user?.username || '用户'} enabled={isCollapsed}>
-                  <button
-                      onClick={() => setShowUserMenu(!showUserMenu)}
-                      className={cn(
-                          "w-full flex items-center rounded-xl transition-all duration-200",
-                          isCollapsed
-                              ? "justify-center p-2.5"
-                              : "gap-3 px-3 py-2",
-                          "text-components-sidebar-item-text hover:bg-components-sidebar-item-bg-hover hover:text-text-primary"
-                      )}
-                  >
-                    {/* 头像：优先显示用户上传的头像，没有则显示首字母 */}
-                    {user?.avatar ? (
-                      <img
-                        src={user.avatar}
-                        alt="avatar"
-                        className="w-6 h-6 rounded-lg object-cover flex-shrink-0"
-                      />
-                    ) : (
-                      <div
-                          className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0"
-                          style={{ background: 'var(--color-components-gradient-secondary)' }}
-                      >
-                        <span className="text-text-inverted text-xs font-bold">
-                          {user?.nickname?.[0] || user?.username?.[0] || 'U'}
-                        </span>
-                      </div>
-                    )}
+                    />
                     <span
-                        className={cn(
-                            "text-sm truncate whitespace-nowrap",
-                            "transition-all duration-300 ease-out",
-                            isCollapsed
-                                ? "opacity-0 w-0 translate-x-[-10px] pointer-events-none"
-                                : "opacity-100 w-auto translate-x-0 delay-[290ms]"
-                        )}
+                      className={cn(
+                        'whitespace-nowrap text-sm font-medium',
+                        'transition-all duration-300 ease-out',
+                        isCollapsed
+                          ? 'pointer-events-none w-0 translate-x-[-10px] opacity-0'
+                          : 'w-auto translate-x-0 opacity-100',
+                      )}
+                      style={{
+                        transitionDelay: isCollapsed
+                          ? '0ms'
+                          : `${50 + index * 20}ms`,
+                      }}
                     >
-                  {user?.nickname || user?.username || '用户'}
-                </span>
-                  </button>
+                      {item.title}
+                    </span>
+                  </NavLink>
                 </SidebarTooltip>
 
-                {showUserMenu && (
-                    <div className={cn(
-                        "absolute bottom-full mb-2 bg-components-dropdown-bg border border-border-default rounded-xl shadow-lg py-1 z-50",
-                        isCollapsed ? "left-full ml-2 w-48" : "left-0 right-0"
-                    )}>
-                      <div className="px-3 py-2 border-b border-border-subtle">
-                        <p className="text-sm font-medium text-text-primary">
-                          {user?.nickname || user?.username}
-                        </p>
-                        <p className="text-xs text-text-secondary">{user?.email}</p>
-                      </div>
+                {!isCollapsed && item.children?.length ? (
+                  <div className="ml-11 space-y-1">
+                    {item.children.map((child) => {
+                      const ChildIcon = child.icon
+                      const childActive = location.pathname.startsWith(
+                        child.href,
+                      )
 
-                      <NavLink
-                          to="/settings/profile"
-                          className="w-full px-3 py-2 text-left text-sm hover:bg-components-dropdown-item-bg-hover flex items-center gap-2 text-components-dropdown-item-text"
-                          onClick={() => setShowUserMenu(false)}
-                      >
-                        <User className="h-4 w-4" />
-                        个人资料
-                      </NavLink>
-
-                      <NavLink
-                          to="/settings"
-                          className="w-full px-3 py-2 text-left text-sm hover:bg-components-dropdown-item-bg-hover flex items-center gap-2 text-components-dropdown-item-text"
-                          onClick={() => setShowUserMenu(false)}
-                      >
-                        <Settings className="h-4 w-4" />
-                        设置
-                      </NavLink>
-
-                      <div className="border-t border-border-subtle mt-1 pt-1">
-                        <button
-                            onClick={handleLogout}
-                            className="w-full px-3 py-2 text-left text-sm flex items-center gap-2 text-text-secondary hover:bg-state-error-subtle hover:text-text-error rounded-lg transition-colors duration-150"
+                      return (
+                        <NavLink
+                          key={child.href}
+                          to={child.href}
+                          className={cn(
+                            'flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs transition-colors',
+                            childActive
+                              ? 'bg-components-sidebar-item-bg-active text-components-sidebar-item-text-active'
+                              : 'text-components-sidebar-item-text hover:bg-components-sidebar-item-bg-hover',
+                          )}
                         >
-                          <LogOut className="h-4 w-4" />
-                          退出登录
-                        </button>
+                          {ChildIcon ? (
+                            <ChildIcon className="h-3.5 w-3.5" />
+                          ) : null}
+                          <span>{child.title}</span>
+                        </NavLink>
+                      )
+                    })}
+                  </div>
+                ) : null}
+              </div>
+            )
+          })}
+        </div>
+      </nav>
+
+      {/* 首页应用对话历史 - 条件渲染，使用 flex-1 充分利用空间 */}
+      {isHomePage && selectedApps.length > 0 ? (
+        <SidebarConversations
+          appId={selectedApps[0]?.id}
+          appName={selectedApps[0]?.name}
+          currentConversationId={selectedConversationId}
+          onSelectConversation={(conversationId) =>
+            selectConversation(conversationId)
+          }
+          onCreateNew={startNewConversation}
+          isCollapsed={isCollapsed}
+        />
+      ) : (
+        /* 中间空白区域 - 将底部推到最下面（仅在非首页或无选中应用时显示） */
+        <div className="flex-1" />
+      )}
+
+      {/* 底部功能区域 */}
+      <div
+        className={cn(
+          'm-space-sm space-y-space-2xs rounded-radius-xl p-space-xs bg-background-subtle',
+          'transition-[margin,padding] duration-300',
+          isCollapsed && 'mx-space-xs',
+        )}
+      >
+        {/* 通知按钮 */}
+        <div className="relative">
+          <SidebarTooltip content="通知" enabled={isCollapsed}>
+            <button
+              onClick={() => setShowNotifications(!showNotifications)}
+              className={cn(
+                'flex w-full items-center rounded-xl transition-all duration-200',
+                isCollapsed ? 'justify-center p-2.5' : 'gap-3 px-3 py-2',
+                'text-components-sidebar-item-text hover:bg-components-sidebar-item-bg-hover hover:text-text-primary',
+              )}
+            >
+              <Bell className="h-5 w-5 flex-shrink-0" />
+              <span
+                className={cn(
+                  'whitespace-nowrap text-sm',
+                  'transition-all duration-300 ease-out',
+                  isCollapsed
+                    ? 'pointer-events-none w-0 translate-x-[-10px] opacity-0'
+                    : 'w-auto translate-x-0 opacity-100 delay-[250ms]',
+                )}
+              >
+                通知
+              </span>
+              {unreadCount > 0 && (
+                <span
+                  className={cn(
+                    'min-w-[18px] rounded-full bg-state-error text-center text-xs text-text-inverted',
+                    isCollapsed
+                      ? 'absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center'
+                      : 'ml-auto px-1.5 py-0.5',
+                  )}
+                >
+                  {isCollapsed ? '•' : unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </button>
+          </SidebarTooltip>
+
+          {showNotifications && (
+            <div
+              className={cn(
+                'absolute bottom-full z-50 mb-2 rounded-xl border border-border-default bg-components-dropdown-bg py-2 shadow-lg',
+                isCollapsed ? 'left-full ml-2 w-80' : 'left-0 right-0 w-80',
+              )}
+            >
+              <div className="border-b border-border-subtle px-4 py-2">
+                <h3 className="font-medium text-text-primary">通知</h3>
+              </div>
+              <div className="max-h-64 overflow-y-auto">
+                {notifications.length === 0 ? (
+                  <div className="px-4 py-8 text-center text-sm text-text-muted">
+                    暂无通知
+                  </div>
+                ) : (
+                  notifications.map((notification) => (
+                    <div
+                      key={notification.id}
+                      className="border-b border-border-subtle px-4 py-3 last:border-b-0 hover:bg-components-dropdown-item-bg-hover"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div
+                          className={cn(
+                            'mt-2 h-2 w-2 rounded-full',
+                            notification.type === 'error'
+                              ? 'bg-state-error'
+                              : notification.type === 'warning'
+                                ? 'bg-state-warning'
+                                : notification.type === 'success'
+                                  ? 'bg-state-success'
+                                  : 'bg-text-accent',
+                          )}
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium text-text-primary">
+                            {notification.title}
+                          </p>
+                          <p className="mt-1 text-sm text-text-secondary">
+                            {notification.message}
+                          </p>
+                          <p className="mt-1 text-xs text-text-muted">
+                            {new Date(
+                              notification.timestamp,
+                            ).toLocaleTimeString()}
+                          </p>
+                        </div>
                       </div>
                     </div>
+                  ))
                 )}
               </div>
-          ) : (
-              <SidebarTooltip content="登录" enabled={isCollapsed}>
-                <NavLink
-                    to="/auth/login"
-                    className={cn(
-                        "flex items-center rounded-xl transition-all duration-200",
-                        isCollapsed
-                            ? "justify-center p-2.5"
-                            : "gap-3 px-3 py-2",
-                        "text-components-sidebar-item-text hover:bg-components-sidebar-item-bg-hover hover:text-text-primary"
-                    )}
-                >
-                  <User className="h-5 w-5 flex-shrink-0" />
-                  <span
-                      className={cn(
-                          "text-sm whitespace-nowrap",
-                          "transition-all duration-300 ease-out",
-                          isCollapsed
-                              ? "opacity-0 w-0 translate-x-[-10px] pointer-events-none"
-                              : "opacity-100 w-auto translate-x-0 delay-[290ms]"
-                      )}
-                  >
-                登录
-              </span>
-                </NavLink>
-              </SidebarTooltip>
+            </div>
           )}
-
-          {/* 版本信息 */}
-          <div
-              className={cn(
-                  "text-center pt-2 overflow-hidden",
-                  "transition-all duration-300 ease-out",
-                  isCollapsed
-                      ? "opacity-0 h-0"
-                      : "opacity-100 h-auto delay-[350ms]"
-              )}
-          >
-            <p className="text-xs text-text-muted whitespace-nowrap">v0.9.8</p>
-          </div>
         </div>
 
-        {/* 点击外部关闭菜单的处理 */}
-        {(showUserMenu || showThemeMenu || showNotifications) && (
+        {/* 主题切换 */}
+        <div className="relative">
+          <SidebarTooltip content="主题" enabled={isCollapsed}>
+            <button
+              onClick={() => setShowThemeMenu(!showThemeMenu)}
+              className={cn(
+                'flex w-full items-center rounded-xl transition-all duration-200',
+                isCollapsed ? 'justify-center p-2.5' : 'gap-3 px-3 py-2',
+                'text-components-sidebar-item-text hover:bg-components-sidebar-item-bg-hover hover:text-text-primary',
+              )}
+            >
+              <ThemeIcon />
+              <span
+                className={cn(
+                  'whitespace-nowrap text-sm',
+                  'transition-all duration-300 ease-out',
+                  isCollapsed
+                    ? 'pointer-events-none w-0 translate-x-[-10px] opacity-0'
+                    : 'w-auto translate-x-0 opacity-100 delay-[270ms]',
+                )}
+              >
+                主题
+              </span>
+            </button>
+          </SidebarTooltip>
+
+          {showThemeMenu && (
             <div
-                className="fixed inset-0 z-40"
-                onClick={() => {
-                  setShowUserMenu(false)
-                  setShowThemeMenu(false)
-                  setShowNotifications(false)
-                }}
-            />
+              className={cn(
+                'absolute bottom-full z-50 mb-2 rounded-xl border border-border-default bg-components-dropdown-bg py-1 shadow-lg',
+                isCollapsed ? 'left-full ml-2 w-36' : 'left-0 w-36',
+              )}
+            >
+              <button
+                onClick={() => handleThemeChange(Theme.LIGHT)}
+                className={cn(
+                  'flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-components-dropdown-item-text transition-colors hover:bg-components-dropdown-item-bg-hover',
+                  currentTheme === Theme.LIGHT &&
+                    'bg-components-dropdown-item-bg-hover',
+                )}
+              >
+                <Sun className="h-4 w-4" />
+                浅色主题
+                {currentTheme === Theme.LIGHT && (
+                  <Check className="ml-auto h-4 w-4" />
+                )}
+              </button>
+              <button
+                onClick={() => handleThemeChange(Theme.DARK)}
+                className={cn(
+                  'flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-components-dropdown-item-text transition-colors hover:bg-components-dropdown-item-bg-hover',
+                  currentTheme === Theme.DARK &&
+                    'bg-components-dropdown-item-bg-hover',
+                )}
+              >
+                <Moon className="h-4 w-4" />
+                深色主题
+                {currentTheme === Theme.DARK && (
+                  <Check className="ml-auto h-4 w-4" />
+                )}
+              </button>
+              <button
+                onClick={() => handleThemeChange(Theme.SYSTEM)}
+                className={cn(
+                  'flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-components-dropdown-item-text transition-colors hover:bg-components-dropdown-item-bg-hover',
+                  currentTheme === Theme.SYSTEM &&
+                    'bg-components-dropdown-item-bg-hover',
+                )}
+              >
+                <Monitor className="h-4 w-4" />
+                跟随系统
+                {currentTheme === Theme.SYSTEM && (
+                  <Check className="ml-auto h-4 w-4" />
+                )}
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* 用户信息 */}
+        {isAuthenticated ? (
+          <div className="relative">
+            <SidebarTooltip
+              content={user?.nickname || user?.username || '用户'}
+              enabled={isCollapsed}
+            >
+              <button
+                onClick={() => setShowUserMenu(!showUserMenu)}
+                className={cn(
+                  'flex w-full items-center rounded-xl transition-all duration-200',
+                  isCollapsed ? 'justify-center p-2.5' : 'gap-3 px-3 py-2',
+                  'text-components-sidebar-item-text hover:bg-components-sidebar-item-bg-hover hover:text-text-primary',
+                )}
+              >
+                {/* 头像：优先显示用户上传的头像，没有则显示首字母 */}
+                {user?.avatar ? (
+                  <img
+                    src={user.avatar}
+                    alt="avatar"
+                    className="h-6 w-6 flex-shrink-0 rounded-lg object-cover"
+                  />
+                ) : (
+                  <div
+                    className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-lg"
+                    style={{
+                      background: 'var(--color-components-gradient-secondary)',
+                    }}
+                  >
+                    <span className="text-xs font-bold text-text-inverted">
+                      {user?.nickname?.[0] || user?.username?.[0] || 'U'}
+                    </span>
+                  </div>
+                )}
+                <span
+                  className={cn(
+                    'truncate whitespace-nowrap text-sm',
+                    'transition-all duration-300 ease-out',
+                    isCollapsed
+                      ? 'pointer-events-none w-0 translate-x-[-10px] opacity-0'
+                      : 'w-auto translate-x-0 opacity-100 delay-[290ms]',
+                  )}
+                >
+                  {user?.nickname || user?.username || '用户'}
+                </span>
+              </button>
+            </SidebarTooltip>
+
+            {showUserMenu && (
+              <div
+                className={cn(
+                  'absolute bottom-full z-50 mb-2 rounded-xl border border-border-default bg-components-dropdown-bg py-1 shadow-lg',
+                  isCollapsed ? 'left-full ml-2 w-48' : 'left-0 right-0',
+                )}
+              >
+                <div className="border-b border-border-subtle px-3 py-2">
+                  <p className="text-sm font-medium text-text-primary">
+                    {user?.nickname || user?.username}
+                  </p>
+                  <p className="text-xs text-text-secondary">{user?.email}</p>
+                </div>
+
+                <NavLink
+                  to="/settings/profile"
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-components-dropdown-item-text hover:bg-components-dropdown-item-bg-hover"
+                  onClick={() => setShowUserMenu(false)}
+                >
+                  <User className="h-4 w-4" />
+                  个人资料
+                </NavLink>
+
+                <NavLink
+                  to="/settings"
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-components-dropdown-item-text hover:bg-components-dropdown-item-bg-hover"
+                  onClick={() => setShowUserMenu(false)}
+                >
+                  <Settings className="h-4 w-4" />
+                  设置
+                </NavLink>
+
+                <div className="mt-1 border-t border-border-subtle pt-1">
+                  <button
+                    onClick={handleLogout}
+                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-text-secondary transition-colors duration-150 hover:bg-state-error-subtle hover:text-text-error"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    退出登录
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <SidebarTooltip content="登录" enabled={isCollapsed}>
+            <NavLink
+              to="/auth/login"
+              className={cn(
+                'flex items-center rounded-xl transition-all duration-200',
+                isCollapsed ? 'justify-center p-2.5' : 'gap-3 px-3 py-2',
+                'text-components-sidebar-item-text hover:bg-components-sidebar-item-bg-hover hover:text-text-primary',
+              )}
+            >
+              <User className="h-5 w-5 flex-shrink-0" />
+              <span
+                className={cn(
+                  'whitespace-nowrap text-sm',
+                  'transition-all duration-300 ease-out',
+                  isCollapsed
+                    ? 'pointer-events-none w-0 translate-x-[-10px] opacity-0'
+                    : 'w-auto translate-x-0 opacity-100 delay-[290ms]',
+                )}
+              >
+                登录
+              </span>
+            </NavLink>
+          </SidebarTooltip>
         )}
-      </aside>
+
+        {/* 版本信息 */}
+        <div
+          className={cn(
+            'overflow-hidden pt-2 text-center',
+            'transition-all duration-300 ease-out',
+            isCollapsed ? 'h-0 opacity-0' : 'h-auto opacity-100 delay-[350ms]',
+          )}
+        >
+          <p className="whitespace-nowrap text-xs text-text-muted">v0.9.8</p>
+        </div>
+      </div>
+
+      {/* 点击外部关闭菜单的处理 */}
+      {(showUserMenu || showThemeMenu || showNotifications) && (
+        <div
+          className="fixed inset-0 z-40"
+          onClick={() => {
+            setShowUserMenu(false)
+            setShowThemeMenu(false)
+            setShowNotifications(false)
+          }}
+        />
+      )}
+    </aside>
   )
 }

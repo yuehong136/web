@@ -2,7 +2,11 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { SectionCard } from '@/components/patterns'
 import { formatTimestampDetailed } from '@/lib/utils'
-import { countFlowNodes, isPipelineFlow, resolveLocalizedText } from '@/lib/agent'
+import {
+  countFlowNodes,
+  isPipelineFlow,
+  resolveLocalizedText,
+} from '@/lib/agent'
 import type { AgentFlow } from '@/types/agent'
 import {
   AgentRuntimeStatus,
@@ -14,16 +18,15 @@ import {
   type PipelineWorkbenchSummary,
 } from '../features/pipeline-workbench'
 import {
+  Activity,
   Compass,
   Copy,
   Database,
-  GitBranch,
   History,
   Link2,
   MessageSquareCode,
   Play,
   Settings2,
-  Sparkles,
 } from 'lucide-react'
 
 type RuntimeRailSummary = RuntimeWorkbenchSummary | PipelineWorkbenchSummary
@@ -40,7 +43,6 @@ interface EditorRuntimeRailProps {
   onOpenSettings: () => void
   onOpenShare: () => void
   onOpenVariables: () => void
-  onOpenRoadmap: () => void
 }
 
 const STATUS_LABEL_MAP: Record<AgentRuntimeStatus, string> = {
@@ -80,14 +82,13 @@ export function EditorRuntimeRail({
   onOpenSettings,
   onOpenShare,
   onOpenVariables,
-  onOpenRoadmap,
 }: EditorRuntimeRailProps) {
   const title = resolveLocalizedText(flow?.title, '未命名资产')
   const description = resolveLocalizedText(
     flow?.description,
     editorMode === 'pipeline'
-      ? 'Pipeline 数据流编辑：上传文档触发数据流处理，并在右侧时间线和输出视图查看结果。'
-      : '普通 Agent 已切到统一 runtime workbench，后续阶段继续承接 pipeline 和会话浏览。',
+      ? '上传文档、处理数据流，并查看节点输出。'
+      : '编排对话、工具调用和交付入口。',
   )
   const nodeCount = countFlowNodes(flow)
   const edgeCount = flow?.dsl.graph?.edges.length || 0
@@ -97,14 +98,16 @@ export function EditorRuntimeRail({
   const isPipeline = editorMode === 'pipeline'
 
   return (
-    <div className="grid h-full min-h-0 auto-rows-max gap-space-lg overflow-y-auto overscroll-contain p-space-lg pb-space-2xl">
+    <div className="gap-space-lg p-space-lg pb-space-2xl grid h-full min-h-0 auto-rows-max overflow-y-auto overscroll-contain">
       <SectionCard title="当前资产" padding="default" className="min-h-0">
         <div className="space-y-space-md">
           <div>
             <p className="text-base font-semibold text-text-primary">{title}</p>
-            <p className="mt-space-xs text-sm text-text-secondary">{description}</p>
+            <p className="mt-space-xs text-sm text-text-secondary">
+              {description}
+            </p>
           </div>
-          <div className="grid grid-cols-2 gap-space-sm text-sm">
+          <div className="gap-space-sm grid grid-cols-2 text-sm">
             <div className="rounded-radius-lg bg-surface-secondary p-space-sm">
               <p className="text-text-tertiary">类型</p>
               <p className="mt-space-xs font-medium text-text-primary">
@@ -119,11 +122,15 @@ export function EditorRuntimeRail({
             </div>
             <div className="rounded-radius-lg bg-surface-secondary p-space-sm">
               <p className="text-text-tertiary">节点</p>
-              <p className="mt-space-xs font-medium text-text-primary">{nodeCount}</p>
+              <p className="mt-space-xs font-medium text-text-primary">
+                {nodeCount}
+              </p>
             </div>
             <div className="rounded-radius-lg bg-surface-secondary p-space-sm">
               <p className="text-text-tertiary">连线</p>
-              <p className="mt-space-xs font-medium text-text-primary">{edgeCount}</p>
+              <p className="mt-space-xs font-medium text-text-primary">
+                {edgeCount}
+              </p>
             </div>
           </div>
           {flow?.update_time ? (
@@ -140,17 +147,19 @@ export function EditorRuntimeRail({
         className="min-h-0"
       >
         <div className="space-y-space-md">
-          <div className="flex items-center justify-between gap-space-sm">
+          <div className="gap-space-sm flex items-center justify-between">
             <div className="min-w-0">
               <p className="text-sm font-medium text-text-primary">
-                {isPipeline ? 'Pipeline Runtime' : '普通 Agent Runtime'}
+                {isPipeline ? 'Pipeline 运行' : 'Agent 运行'}
               </p>
               <p className="mt-space-xs text-sm text-text-secondary">
-                {runtimeSummary.lastRunAt
-                  ? `最近一次运行：${formatTimestampDetailed(runtimeSummary.lastRunAt)}`
-                  : isPipeline
-                    ? '上传文档触发数据流处理，并在 Log / Output 中查看节点状态、END 输出与轻量结果页。'
-                    : '从这里进入统一的 Run / Conversation / Log 工作台。'}
+                {runtimeSummary.status === AgentRuntimeStatus.RUNNING
+                  ? '正在运行，可打开工作台查看实时进度。'
+                  : runtimeSummary.lastRunAt
+                    ? `最近一次运行：${formatTimestampDetailed(runtimeSummary.lastRunAt)}`
+                    : isPipeline
+                      ? '上传文档触发数据流处理，并在日志和输出中查看结果。'
+                      : '从这里进入运行、会话和日志工作台。'}
               </p>
             </div>
             <Badge
@@ -162,20 +171,24 @@ export function EditorRuntimeRail({
           </div>
 
           {runtimeSummary.lastError ? (
-            <div className="rounded-radius-md border border-border-primary bg-surface-secondary px-space-sm py-space-xs text-xs text-status-error">
+            <div className="rounded-radius-md border-border-primary bg-surface-secondary px-space-sm py-space-xs text-status-error border text-xs">
               {runtimeSummary.lastError}
             </div>
           ) : null}
 
-          <div className="grid grid-cols-2 gap-space-sm text-sm">
+          <div className="gap-space-sm grid grid-cols-2 text-sm">
             <div className="rounded-radius-lg bg-surface-secondary p-space-sm">
-              <p className="text-text-tertiary">{isPipeline ? '节点事件' : '消息'}</p>
+              <p className="text-text-tertiary">
+                {isPipeline ? '节点事件' : '消息'}
+              </p>
               <p className="mt-space-xs font-medium text-text-primary">
                 {runtimeSummary.messageCount}
               </p>
             </div>
             <div className="rounded-radius-lg bg-surface-secondary p-space-sm">
-              <p className="text-text-tertiary">{isPipeline ? '输出' : '日志'}</p>
+              <p className="text-text-tertiary">
+                {isPipeline ? '输出' : '日志'}
+              </p>
               <p className="mt-space-xs font-medium text-text-primary">
                 {isPipeline
                   ? pipelineSummary?.outputAvailable
@@ -190,7 +203,7 @@ export function EditorRuntimeRail({
             </div>
           </div>
 
-          <div className="grid gap-space-sm">
+          <div className="gap-space-sm grid">
             {isPipeline ? (
               <>
                 <Button
@@ -223,9 +236,11 @@ export function EditorRuntimeRail({
                 </Button>
                 <Button
                   variant="outline"
-                  onClick={() => onOpenRuntime(RuntimeWorkbenchView.CONVERSATION)}
+                  onClick={() =>
+                    onOpenRuntime(RuntimeWorkbenchView.CONVERSATION)
+                  }
                 >
-                  继续 Conversation
+                  继续会话
                 </Button>
                 <Button
                   variant="outline"
@@ -241,11 +256,11 @@ export function EditorRuntimeRail({
       </SectionCard>
 
       <SectionCard
-        title={isPipeline ? '配置' : '交付入口'}
+        title={isPipeline ? '配置' : '交付与调试'}
         padding="default"
         className="min-h-0"
       >
-        <div className="grid gap-space-sm">
+        <div className="gap-space-sm grid">
           {!isPipeline ? (
             <>
               <Button variant="outline" onClick={onOpenExplore}>
@@ -270,28 +285,48 @@ export function EditorRuntimeRail({
               </Button>
             </>
           ) : null}
-          <Button variant="outline" onClick={onOpenSettings}>
+          <Button
+            variant="ghost"
+            className="bg-surface-secondary text-text-secondary hover:text-text-primary"
+            onClick={onOpenSettings}
+          >
             <Settings2 className="mr-space-xs h-4 w-4" />
             编辑基础设置
           </Button>
         </div>
       </SectionCard>
 
-      <SectionCard title="阶段路线" padding="default" className="min-h-0">
-        <div className="space-y-space-sm text-sm text-text-secondary">
-          <p className="flex items-start gap-space-xs">
-            <Sparkles className="mt-[2px] h-4 w-4 shrink-0 text-text-accent" />
-            T1/T2/T3 已稳定的 operator registry、form-sheet 与目录化节点表单继续作为正式主路径。
-          </p>
-          <p className="flex items-start gap-space-xs">
-            <GitBranch className="mt-[2px] h-4 w-4 shrink-0 text-text-accent" />
-            {isPipeline
-              ? 'T6 已把 Pipeline 的运行 / 数据流时间线 / END 输出独立成专属 workbench，与 T4 普通 Agent runtime 边界清晰。'
-              : 'T4 已把普通 Agent 的运行、测试和单步调试收敛；T6 已正式化 Pipeline run/log workbench；session 浏览仍留给后续阶段。'}
-          </p>
-          <Button variant="secondary" onClick={onOpenRoadmap}>
-            查看阶段说明
-          </Button>
+      <SectionCard title="最近活动" padding="default" className="min-h-0">
+        <div className="space-y-space-sm text-sm">
+          <div className="gap-space-sm rounded-radius-lg bg-surface-secondary p-space-sm flex items-start">
+            <Activity className="h-icon-sm w-icon-sm mt-[2px] shrink-0 text-text-accent" />
+            <div className="min-w-0">
+              <p className="font-medium text-text-primary">
+                {runtimeSummary.lastRunAt ? '最近运行' : '等待首次运行'}
+              </p>
+              <p className="mt-space-2xs text-text-secondary">
+                {runtimeSummary.lastRunAt
+                  ? formatTimestampDetailed(runtimeSummary.lastRunAt)
+                  : isPipeline
+                    ? '上传文档后会生成运行日志和输出。'
+                    : '运行后会生成会话消息和节点日志。'}
+              </p>
+            </div>
+          </div>
+          <div className="rounded-radius-lg bg-surface-secondary p-space-sm">
+            <p className="text-text-tertiary">保存状态</p>
+            <p className="mt-space-xs font-medium text-text-primary">
+              {autosaveLabel || '待首次保存'}
+            </p>
+          </div>
+          {flow?.update_time ? (
+            <div className="rounded-radius-lg bg-surface-secondary p-space-sm">
+              <p className="text-text-tertiary">更新时间</p>
+              <p className="mt-space-xs font-medium text-text-primary">
+                {formatTimestampDetailed(flow.update_time)}
+              </p>
+            </div>
+          ) : null}
         </div>
       </SectionCard>
     </div>

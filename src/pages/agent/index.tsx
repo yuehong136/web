@@ -7,7 +7,6 @@ import {
   PageErrorState,
   PageHeader,
   PageLoadingState,
-  PageToolbar,
 } from '@/components/patterns'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -18,9 +17,7 @@ import {
   isPipelineFlow,
   resolveLocalizedText,
 } from '@/lib/agent'
-import {
-  useFetchVersionList,
-} from '@/hooks/use-agent-request'
+import { useFetchVersionList } from '@/hooks/use-agent-request'
 import { toast } from '@/lib/toast'
 import { useFetchDataOnMount } from './hooks/use-fetch-data'
 import { useAgentDeliveryToken } from './hooks/use-agent-delivery-token'
@@ -32,7 +29,6 @@ import { ShareEmbedDialog } from './share/share-embed-dialog'
 import { GlobalVariableSheet } from './global-variable-sheet'
 import AgentCanvas from './canvas'
 import { EditorRuntimeRail } from './components/editor-runtime-rail'
-import { PlaceholderDialog } from './components/placeholder-dialog'
 import {
   AgentRuntimeStatus,
   RuntimeWorkbenchView,
@@ -45,18 +41,7 @@ import {
 import { SettingDialog } from './setting-dialog'
 import { VersionDialog } from './version-dialog'
 import { WebhookSheet } from './webhook-sheet'
-import {
-  ArrowLeft,
-  Compass,
-  History,
-  Link2,
-  MessageSquareCode,
-  Play,
-  Save,
-  Share2,
-  Sparkles,
-  Settings2,
-} from 'lucide-react'
+import { ArrowLeft, Play, Save } from 'lucide-react'
 
 export default function AgentEditorPage() {
   const navigate = useNavigate()
@@ -80,17 +65,17 @@ export default function AgentEditorPage() {
   const [webhookOpen, setWebhookOpen] = useState(false)
   const [shareOpen, setShareOpen] = useState(false)
   const [globalVariablesOpen, setGlobalVariablesOpen] = useState(false)
-  const [roadmapOpen, setRoadmapOpen] = useState(false)
   const [publishedShareUrl, setPublishedShareUrl] = useState('')
   const defaultRuntimeView =
     editorMode === 'pipeline'
       ? PipelineWorkbenchView.RUN
       : RuntimeWorkbenchView.RUN
   const [runtimeWorkbenchOpen, setRuntimeWorkbenchOpen] = useState(false)
-  const [runtimeWorkbenchView, setRuntimeWorkbenchView] = useState<string>(
-    defaultRuntimeView,
-  )
-  const buildIdleSummary = useCallback((): RuntimeWorkbenchSummary | PipelineWorkbenchSummary => {
+  const [runtimeWorkbenchView, setRuntimeWorkbenchView] =
+    useState<string>(defaultRuntimeView)
+  const buildIdleSummary = useCallback(():
+    | RuntimeWorkbenchSummary
+    | PipelineWorkbenchSummary => {
     if (editorMode === 'pipeline') {
       return {
         status: AgentRuntimeStatus.IDLE,
@@ -152,7 +137,8 @@ export default function AgentEditorPage() {
       return
     }
 
-    const nextTitle = title.trim() || resolveLocalizedText(flowDetail?.title, '未命名资产')
+    const nextTitle =
+      title.trim() || resolveLocalizedText(flowDetail?.title, '未命名资产')
     await saveGraph(nextTitle)
     setTitleDirty(false)
   }
@@ -163,7 +149,8 @@ export default function AgentEditorPage() {
     }
 
     try {
-      const nextTitle = title.trim() || resolveLocalizedText(flowDetail?.title, '未命名资产')
+      const nextTitle =
+        title.trim() || resolveLocalizedText(flowDetail?.title, '未命名资产')
       const saved = await saveGraph(nextTitle, undefined, { release: true })
       if (!saved) {
         toast.error('发布失败：当前画布保存未完成')
@@ -204,15 +191,20 @@ export default function AgentEditorPage() {
       setRuntimeWorkbenchView(nextView)
       setRuntimeWorkbenchOpen(true)
     },
-    [defaultRuntimeView, editorMode, runtimeSummary.hasLogs, runtimeSummary.status],
+    [
+      defaultRuntimeView,
+      editorMode,
+      runtimeSummary.hasLogs,
+      runtimeSummary.status,
+    ],
   )
 
   if (loading) {
     return (
       <PageLoadingState
         scene={AppScene.STUDIO}
-        title="正在初始化 Agent 编辑器"
-        description="新的 Studio 骨架正在挂载现有 Canvas 内核。"
+        title="正在打开 Agent 编辑器"
+        description="正在加载画布、节点配置和运行状态。"
       />
     )
   }
@@ -222,9 +214,9 @@ export default function AgentEditorPage() {
       <PageErrorState
         scene={AppScene.STUDIO}
         title="未找到 Agent 资产"
-        description="请从 Agent Center 重新打开，或检查 `/v1/canvas/get/:id` 接口。"
+        description="请从智能体列表重新打开，或确认当前资产仍然可用。"
         onRetry={() => navigate('/agents')}
-        retryLabel="返回 Agent Center"
+        retryLabel="返回智能体列表"
       />
     )
   }
@@ -236,8 +228,11 @@ export default function AgentEditorPage() {
           <>
             <PageHeader
               compact
+              align="center"
+              surface="elevated"
+              className="shadow-elevation-medium border-b-0"
               title={
-                <div className="flex max-w-xl items-center gap-space-sm">
+                <div className="gap-space-sm flex min-w-[280px] max-w-xl items-center">
                   <Input
                     value={title}
                     onChange={(event) => {
@@ -256,41 +251,11 @@ export default function AgentEditorPage() {
                     <ArrowLeft className="mr-space-xs h-4 w-4" />
                     返回
                   </Button>
-                  {editorMode === 'agent' ? (
-                    <>
-                      <Button variant="outline" onClick={() => navigate(`/agent/${id}/explore`)}>
-                        <Compass className="mr-space-xs h-4 w-4" />
-                        Explore
-                      </Button>
-                      <Button variant="outline" onClick={() => setVersionsOpen(true)}>
-                        <History className="mr-space-xs h-4 w-4" />
-                        发布
-                      </Button>
-                      <Button variant="outline" onClick={() => setWebhookOpen(true)}>
-                        <Link2 className="mr-space-xs h-4 w-4" />
-                        Webhook
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={() => void handleOpenShare()}
-                      >
-                        <Share2 className="mr-space-xs h-4 w-4" />
-                        Share
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={() => setGlobalVariablesOpen(true)}
-                      >
-                        <MessageSquareCode className="mr-space-xs h-4 w-4" />
-                        会话变量
-                      </Button>
-                    </>
-                  ) : null}
-                  <Button variant="outline" onClick={settingState.showModal}>
-                    <Settings2 className="mr-space-xs h-4 w-4" />
-                    设置
-                  </Button>
-                  <Button variant="secondary" onClick={handleSave} disabled={saving}>
+                  <Button
+                    variant="secondary"
+                    onClick={handleSave}
+                    disabled={saving}
+                  >
                     <Save className="mr-space-xs h-4 w-4" />
                     {saving ? '保存中...' : '保存'}
                   </Button>
@@ -299,21 +264,6 @@ export default function AgentEditorPage() {
                     运行
                   </Button>
                 </>
-              }
-            />
-            <PageToolbar
-              left={
-                <div className="flex items-center gap-space-sm text-sm text-text-secondary">
-                  <Sparkles className="h-4 w-4 text-text-accent" />
-                  {editorMode === 'pipeline'
-                    ? 'T6 已正式化 Pipeline 的运行、日志时间线与输出工作台。'
-                    : 'T4 已正式化普通 Agent 的运行、Conversation 与单步调试工作台。'}
-                </div>
-              }
-              right={
-                <Button variant="outline" onClick={() => setRoadmapOpen(true)}>
-                  查看阶段说明
-                </Button>
               }
             />
           </>
@@ -331,7 +281,6 @@ export default function AgentEditorPage() {
             onOpenSettings={settingState.showModal}
             onOpenShare={() => void handleOpenShare()}
             onOpenVariables={() => setGlobalVariablesOpen(true)}
-            onOpenRoadmap={() => setRoadmapOpen(true)}
           />
         }
       >
@@ -353,7 +302,9 @@ export default function AgentEditorPage() {
           title={title || resolveLocalizedText(flowDetail.title, '未命名资产')}
           versions={versions}
           isPublished={Boolean(flowDetail.release)}
-          lastPublishedAt={flowDetail.last_publish_time || flowDetail.release_time}
+          lastPublishedAt={
+            flowDetail.last_publish_time || flowDetail.release_time
+          }
           publishLoading={saving || deliveryToken.isLoading}
           publishedShareUrl={publishedShareUrl}
           tokenReady={Boolean(deliveryToken.token)}
@@ -397,34 +348,6 @@ export default function AgentEditorPage() {
       {settingState.visible ? (
         <SettingDialog hideModal={settingState.hideModal} />
       ) : null}
-
-      <PlaceholderDialog
-        open={roadmapOpen}
-        onOpenChange={setRoadmapOpen}
-        title={
-          editorMode === 'pipeline'
-            ? 'T6：Pipeline 运行与日志工作台'
-            : 'T4：Agent 运行与单步调试工作台'
-        }
-        description={
-          editorMode === 'pipeline'
-            ? 'Pipeline 已正式化为独立 workbench：上传/Begin 输入、Pipeline 运行、数据流时间线与 END 输出已串成闭环。'
-            : '普通 Agent 已切到统一 runtime workbench，T2/T3 的表单装配和目录化 operator 仍保持正式主路径。'
-        }
-        bullets={
-          editorMode === 'pipeline'
-            ? [
-                'Pipeline 不再借走 Agent runtime workbench：Run / Log / Output 三视图独立挂载，状态模型与 Agent 互不污染。',
-                '使用 useSaveGraph + agentAPI.runAgent + fetchTrace 轮询 + cancelDataflow 形成完整闭环，旧 page-local pipeline bridge 已被接管。',
-                'Webhook、Publish、Share 与 Explore 仍按现状，留给后续 T7/T9 阶段补齐。',
-              ]
-            : [
-                '本轮正式化普通 Agent 的 Run / Conversation / Log 单一工作台，并保持 form-sheet renderer 主路径不回退。',
-                '单步调试继续挂在 T2 的 form-sheet header 与 canvas context-menu 上，但输入表单与文件上传已经按 T4 统一。',
-                'Pipeline run/log 已在 T6 独立工作台正式化；Share/Publish/Webhook/Explore 与 session 浏览仍留给后续 T7/T9。',
-              ]
-        }
-      />
     </>
   )
 }

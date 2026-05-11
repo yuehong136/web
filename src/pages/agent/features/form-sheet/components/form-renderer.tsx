@@ -21,15 +21,16 @@ export function FormRenderer({
   if (!FormComponent) {
     return (
       <div className="space-y-space-md p-space-base">
-        <div className="rounded-radius-md border border-border-primary bg-surface-secondary p-space-base">
+        <div className="rounded-radius-md border-border-primary bg-surface-secondary p-space-base border">
           <div className="text-sm font-medium text-text-primary">
-            该节点尚未接入 T2 表单装配映射
+            暂不支持编辑该节点配置
           </div>
           <p className="mt-space-xs text-sm text-text-secondary">
-            当前节点类型为 {operatorType || 'unknown'}，后续可在 T3 中继续迁移内容层。
+            当前节点类型为 {operatorType || 'unknown'}
+            。你可以继续在画布中连接、运行或保存该节点。
           </p>
         </div>
-        <pre className="max-h-[24rem] overflow-auto rounded-radius-md border border-border-primary bg-surface-secondary p-space-base text-xs text-text-secondary">
+        <pre className="rounded-radius-md border-border-primary bg-surface-secondary p-space-base max-h-[24rem] overflow-auto border text-xs text-text-secondary">
           {JSON.stringify(node.data?.form || {}, null, 2)}
         </pre>
       </div>

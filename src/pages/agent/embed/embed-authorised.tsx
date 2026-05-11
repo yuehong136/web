@@ -173,7 +173,6 @@ export function EmbedAuthorised({
       // Share is permanently disabled in embed mode — never bridge it.
       onOpenShare={() => undefined}
       onOpenVariables={() => navRequest('variables')}
-      onOpenRoadmap={() => undefined}
     />
   )
 

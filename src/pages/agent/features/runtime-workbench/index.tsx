@@ -40,7 +40,7 @@ export function RuntimeWorkbench({
         )}
         onInteractOutside={(event) => event.preventDefault()}
       >
-        <SheetTitle className="sr-only">Agent 运行与单步调试工作台</SheetTitle>
+        <SheetTitle className="sr-only">Agent 运行工作台</SheetTitle>
         <SheetDescription className="sr-only">
           配置 Begin 输入、查看运行消息与节点执行时间线
         </SheetDescription>
@@ -65,11 +65,11 @@ export function RuntimeWorkbench({
               <TabsList className="w-full justify-start">
                 <TabsTrigger value={RuntimeWorkbenchView.RUN}>
                   <Play className="mr-space-xs size-4" />
-                  Run
+                  运行
                 </TabsTrigger>
                 <TabsTrigger value={RuntimeWorkbenchView.CONVERSATION}>
                   <MessageSquareMore className="mr-space-xs size-4" />
-                  Conversation
+                  会话
                 </TabsTrigger>
                 <TabsTrigger
                   value={RuntimeWorkbenchView.LOG}
@@ -80,7 +80,7 @@ export function RuntimeWorkbench({
                   }
                 >
                   <NotebookText className="mr-space-xs size-4" />
-                  Log
+                  日志
                 </TabsTrigger>
               </TabsList>
 

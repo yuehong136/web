@@ -51,9 +51,9 @@ export default function PipelineResultPage() {
       <PageErrorState
         scene={AppScene.CONSOLE}
         title="缺少 Pipeline 结果上下文"
-        description="当前链接没有携带 agent_id 或 message_id，无法读取本次运行 trace。"
+        description="当前链接缺少运行结果所需的信息，无法读取本次 Pipeline 输出。"
         onRetry={() => navigate('/agents')}
-        retryLabel="返回 Agent Center"
+        retryLabel="返回智能体列表"
       />
     )
   }
@@ -63,17 +63,25 @@ export default function PipelineResultPage() {
       header={
         <PageHeader
           title="Pipeline 运行结果"
-          description="轻量结果页用于当前阶段测试：对齐 RAGFlow 的 View Result 跳转路径，并展示本次运行上下文与 END 输出。"
+          description="查看本次 Pipeline 运行上下文、END 节点输出，并按需下载结果 JSON。"
           actions={
             <>
-              <Button variant="outline" onClick={() => navigate(`/agent/${agentId}`)}>
+              <Button
+                variant="outline"
+                onClick={() => navigate(`/agent/${agentId}`)}
+              >
                 <ArrowLeft className="mr-space-xs size-4" />
                 返回 Pipeline
               </Button>
               <Button
                 variant="outline"
                 disabled={!outputAvailable}
-                onClick={() => downloadJsonFile(output, `${agentTitle || 'pipeline-output'}.json`)}
+                onClick={() =>
+                  downloadJsonFile(
+                    output,
+                    `${agentTitle || 'pipeline-output'}.json`,
+                  )
+                }
               >
                 <Download className="mr-space-xs size-4" />
                 下载 JSON
@@ -91,7 +99,7 @@ export default function PipelineResultPage() {
           description="根据 agent_id 与 message_id 获取本次运行结果。"
         />
       ) : (
-        <div className="grid gap-space-lg p-space-lg lg:grid-cols-[320px_minmax(0,1fr)]">
+        <div className="gap-space-lg p-space-lg grid lg:grid-cols-[320px_minmax(0,1fr)]">
           <SectionCard title="运行上下文" padding="default">
             <dl className="space-y-space-sm text-sm">
               {metadata.map(([label, value]) => (
@@ -110,12 +118,13 @@ export default function PipelineResultPage() {
 
           <SectionCard title="END 节点输出" padding="default">
             {outputAvailable ? (
-              <pre className="max-h-[640px] overflow-auto rounded-radius-md bg-surface-secondary p-space-sm text-xs">
+              <pre className="rounded-radius-md bg-surface-secondary p-space-sm max-h-[640px] overflow-auto text-xs">
                 {JSON.stringify(output, null, 2)}
               </pre>
             ) : (
               <p className="text-sm text-text-secondary">
-                当前 trace 中还没有可展示的 END 输出。完整文档预览、parser/splitter 结果编辑与局部重跑仍留给 T11 知识库联动阶段。
+                当前运行还没有可展示的 END 节点输出。请返回 Pipeline
+                检查运行日志，或重新运行后再查看结果。
               </p>
             )}
           </SectionCard>

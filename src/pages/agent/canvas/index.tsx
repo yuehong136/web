@@ -26,15 +26,15 @@ import {
   type PipelineWorkbenchSummary,
 } from '../features/pipeline-workbench'
 import { usePipelineWorkbench } from '../features/pipeline-workbench/hooks/use-pipeline-workbench'
-import {
-  AgentInstanceContext,
-  HandleContext,
-} from '../context'
+import { AgentInstanceContext, HandleContext } from '../context'
 import { useAddNode } from '../hooks/use-add-node'
 import { useBeforeDelete } from '../hooks/use-before-delete'
 import { useConnectionDrag } from '../hooks/use-connection-drag'
 import { useDropdownPosition } from '../hooks/use-dropdown-position'
-import { useHideFormSheetOnNodeDeletion, useShowDrawer } from '../hooks/use-show-drawer'
+import {
+  useHideFormSheetOnNodeDeletion,
+  useShowDrawer,
+} from '../hooks/use-show-drawer'
 import { useMoveNote } from '../hooks/use-move-note'
 import { usePlaceholderManager } from '../hooks/use-placeholder-manager'
 import { useSelectCanvasData } from '../hooks/use-select-canvas-data'
@@ -104,7 +104,9 @@ function AgentCanvasInner({
 
   const [reactFlowInstance, setReactFlowInstance] =
     useState<ReactFlowInstance<RAGFlowNodeType, Edge>>()
-  const [singleDebugNodeId, setSingleDebugNodeId] = useState<string | null>(null)
+  const [singleDebugNodeId, setSingleDebugNodeId] = useState<string | null>(
+    null,
+  )
 
   const handleShowSingleDebug = useCallback((nodeId: string) => {
     setSingleDebugNodeId(nodeId)
@@ -253,7 +255,7 @@ function AgentCanvasInner({
     : agentRuntimeController.nodeElapsedMap
 
   return (
-    <div className="w-full h-full px-space-lg pb-space-lg bg-surface-secondary">
+    <div className="bg-surface-secondary h-full w-full">
       {/* SVG 标记定义 - 仅用于声明 <defs>，不参与交互或布局 */}
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -292,18 +294,18 @@ function AgentCanvasInner({
         </defs>
       </svg>
 
-        <AgentInstanceContext.Provider
-          value={{
-            addCanvasNode,
-            showFormDrawer,
-            lastNode: railLastNodeId,
-            currentSendLoading: railSendLoading,
-            startButNotFinishedNodeIds: railStartButNotFinishedNodeIds,
-            successNodeIds: railSuccessNodeIds,
-            errorNodeIds: railErrorNodeIds,
-            nodeElapsedMap: railNodeElapsedMap,
-          }}
-        >
+      <AgentInstanceContext.Provider
+        value={{
+          addCanvasNode,
+          showFormDrawer,
+          lastNode: railLastNodeId,
+          currentSendLoading: railSendLoading,
+          startButNotFinishedNodeIds: railStartButNotFinishedNodeIds,
+          successNodeIds: railSuccessNodeIds,
+          errorNodeIds: railErrorNodeIds,
+          nodeElapsedMap: railNodeElapsedMap,
+        }}
+      >
         <ReactFlow
           connectionMode={ConnectionMode.Loose}
           nodes={nodes}
@@ -338,13 +340,16 @@ function AgentCanvasInner({
           <Controls
             position={'bottom-center'}
             orientation="horizontal"
-            className="bg-surface-primary px-space-base py-space-sm h-auto w-auto [&>button]:bg-transparent [&>button]:border-0 [&>button]:text-text-primary [&>button]:hover:bg-surface-secondary [&>button]:p-0 [&>button]:size-4 gap-space-sm rounded-radius-md shadow-elevation-low"
+            className="bg-surface-primary px-space-base py-space-sm [&>button]:hover:bg-surface-secondary gap-space-sm rounded-radius-md shadow-elevation-low h-auto w-auto [&>button]:size-4 [&>button]:border-0 [&>button]:bg-transparent [&>button]:p-0 [&>button]:text-text-primary"
           >
             <ControlButton>
               <TooltipProvider delayDuration={200}>
                 <TooltipRoot>
                   <TooltipTrigger asChild>
-                    <NotebookPen className="!fill-none size-4" onClick={showImage} />
+                    <NotebookPen
+                      className="size-4 !fill-none"
+                      onClick={showImage}
+                    />
                   </TooltipTrigger>
                   <TooltipContent>{t('flow.note', '笔记')}</TooltipContent>
                 </TooltipRoot>
@@ -379,7 +384,7 @@ function AgentCanvasInner({
         )}
 
         <NotebookPen
-          className={`hidden absolute size-6 ${imgVisible ? 'block' : ''}`}
+          className={`absolute hidden size-6 ${imgVisible ? 'block' : ''}`}
           ref={ref}
         />
 
@@ -419,9 +424,7 @@ function AgentCanvasInner({
           open={contextMenu.open}
           position={{ x: contextMenu.x, y: contextMenu.y }}
           nodeId={contextMenu.nodeId}
-          onOpenChange={(open) =>
-            setContextMenu((prev) => ({ ...prev, open }))
-          }
+          onOpenChange={(open) => setContextMenu((prev) => ({ ...prev, open }))}
           onDebug={handleShowSingleDebug}
         />
 

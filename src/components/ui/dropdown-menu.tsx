@@ -1,8 +1,7 @@
-import * as React from "react"
-import { createPortal } from "react-dom"
-import { cn } from "@/lib/utils"
-import { DropdownItem as BaseDropdownItem } from "./dropdown"
-import { useNearestPortalTheme } from "./portal-theme"
+import * as React from 'react'
+import { createPortal } from 'react-dom'
+import { cn } from '@/lib/utils'
+import { useNearestPortalTheme } from './portal-theme'
 
 export interface DropdownMenuProps {
   children: React.ReactNode
@@ -25,21 +24,29 @@ export interface DropdownMenuItemProps extends React.ButtonHTMLAttributes<HTMLBu
   children: React.ReactNode
 }
 
-const DropdownMenuContext = React.createContext<{
-  isOpen: boolean
-  setIsOpen: (open: boolean) => void
-  closeDropdown?: () => void
-  triggerRef: React.RefObject<HTMLDivElement | null>
-} | undefined>(undefined)
+const DropdownMenuContext = React.createContext<
+  | {
+      isOpen: boolean
+      setIsOpen: (open: boolean) => void
+      closeDropdown?: () => void
+      triggerRef: React.RefObject<HTMLDivElement | null>
+    }
+  | undefined
+>(undefined)
+
+const DROPDOWN_MENU_OFFSET = 8
+const DROPDOWN_VIEWPORT_MARGIN = 8
 
 export const DropdownMenu: React.FC<DropdownMenuProps> = ({ children }) => {
   const [isOpen, setIsOpen] = React.useState(false)
   const triggerRef = React.useRef<HTMLDivElement>(null)
-  
+
   const closeDropdown = React.useCallback(() => setIsOpen(false), [])
 
   return (
-    <DropdownMenuContext.Provider value={{ isOpen, setIsOpen, closeDropdown, triggerRef }}>
+    <DropdownMenuContext.Provider
+      value={{ isOpen, setIsOpen, closeDropdown, triggerRef }}
+    >
       <div ref={triggerRef} className="relative inline-block text-left">
         {children}
       </div>
@@ -47,11 +54,11 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({ children }) => {
   )
 }
 
-export const DropdownMenuTrigger: React.FC<DropdownMenuTriggerProps> = ({ 
-  asChild = false, 
+export const DropdownMenuTrigger: React.FC<DropdownMenuTriggerProps> = ({
+  asChild = false,
   children,
   className,
-  ...props 
+  ...props
 }) => {
   const context = React.useContext(DropdownMenuContext)
   if (!context) {
@@ -71,44 +78,61 @@ export const DropdownMenuTrigger: React.FC<DropdownMenuTriggerProps> = ({
   }
 
   return (
-    <button
-      className={className}
-      onClick={handleClick}
-      {...props}
-    >
+    <button className={className} onClick={handleClick} {...props}>
       {children}
     </button>
   )
 }
 
-export const DropdownMenuContent: React.FC<DropdownMenuContentProps> = ({ 
+export const DropdownMenuContent: React.FC<DropdownMenuContentProps> = ({
   align = 'right',
   className,
-  children 
+  children,
 }) => {
   const context = React.useContext(DropdownMenuContext)
   const dropdownRef = React.useRef<HTMLDivElement>(null)
   const fallbackRef = React.useRef<HTMLDivElement>(null)
   const [position, setPosition] = React.useState({ top: 0, left: 0 })
-  const theme = useNearestPortalTheme(context?.triggerRef ?? fallbackRef, Boolean(context?.isOpen))
+  const theme = useNearestPortalTheme(
+    context?.triggerRef ?? fallbackRef,
+    Boolean(context?.isOpen),
+  )
 
   // 计算下拉菜单位置
-  React.useEffect(() => {
-    if (context?.isOpen && context.triggerRef.current) {
-      const rect = context.triggerRef.current.getBoundingClientRect()
-      const top = rect.bottom + window.scrollY + 8
-      const left = align === 'right' 
-        ? rect.right + window.scrollX - 160 // 160 是 min-width
-        : rect.left + window.scrollX
-      setPosition({ top, left: Math.max(8, left) })
+  const updatePosition = React.useCallback(() => {
+    if (!context?.isOpen || !context.triggerRef.current) {
+      return
     }
-  }, [context?.isOpen, context?.triggerRef, align])
+
+    const rect = context.triggerRef.current.getBoundingClientRect()
+    const menuWidth = dropdownRef.current?.offsetWidth ?? 180
+    const preferredLeft = align === 'right' ? rect.right - menuWidth : rect.left
+    const maxLeft = window.innerWidth - menuWidth - DROPDOWN_VIEWPORT_MARGIN
+
+    setPosition({
+      top: rect.bottom + DROPDOWN_MENU_OFFSET,
+      left: Math.min(
+        Math.max(DROPDOWN_VIEWPORT_MARGIN, preferredLeft),
+        Math.max(DROPDOWN_VIEWPORT_MARGIN, maxLeft),
+      ),
+    })
+  }, [align, context?.isOpen, context?.triggerRef])
+
+  React.useLayoutEffect(() => {
+    if (!context?.isOpen) {
+      return undefined
+    }
+
+    updatePosition()
+    window.addEventListener('resize', updatePosition)
+    return () => window.removeEventListener('resize', updatePosition)
+  }, [context?.isOpen, updatePosition])
 
   // 处理点击外部关闭
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
-        dropdownRef.current && 
+        dropdownRef.current &&
         !dropdownRef.current.contains(event.target as Node) &&
         context?.triggerRef.current &&
         !context.triggerRef.current.contains(event.target as Node)
@@ -126,7 +150,7 @@ export const DropdownMenuContent: React.FC<DropdownMenuContentProps> = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- 只监听 context 具体字段，全量 context 作为依赖会被反复创建
   }, [context?.isOpen, context?.closeDropdown, context?.triggerRef])
-  
+
   if (!context) {
     throw new Error('DropdownMenuContent must be used within DropdownMenu')
   }
@@ -138,38 +162,40 @@ export const DropdownMenuContent: React.FC<DropdownMenuContentProps> = ({
   return createPortal(
     <>
       {/* Backdrop */}
-      <div data-theme={theme} className="fixed inset-0 z-[9998]" onClick={() => context.closeDropdown?.()} />
-      
+      <div
+        data-theme={theme}
+        className="fixed inset-0 z-[9998]"
+        onClick={() => context.closeDropdown?.()}
+      />
+
       {/* Dropdown content */}
-      <div 
+      <div
         data-theme={theme}
         ref={dropdownRef}
         className={cn(
-          "fixed z-[9999] min-w-[160px] bg-background-surface border border-border-default rounded-md shadow-lg",
-          className
+          'rounded-radius-md bg-surface-primary p-space-xs shadow-elevation-medium fixed z-[9999] min-w-[180px] border border-border-default',
+          className,
         )}
         style={{
           top: position.top,
           left: position.left,
         }}
       >
-        <div className="py-1">
-          {children}
-        </div>
+        {children}
       </div>
     </>,
-    document.body
+    document.body,
   )
 }
 
-export const DropdownMenuItem: React.FC<DropdownMenuItemProps> = ({ 
+export const DropdownMenuItem: React.FC<DropdownMenuItemProps> = ({
   className,
   children,
   onClick,
-  ...props 
+  ...props
 }) => {
   const context = React.useContext(DropdownMenuContext)
-  
+
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (onClick) {
       onClick(e)
@@ -179,24 +205,30 @@ export const DropdownMenuItem: React.FC<DropdownMenuItemProps> = ({
   }
 
   return (
-    <BaseDropdownItem
+    <button
+      type="button"
       className={cn(
-        "w-full flex items-center space-x-2 px-4 py-2 text-sm text-left hover:bg-background-subtle transition-colors text-text-secondary",
-        className
+        'gap-space-sm rounded-radius-sm px-space-sm hover:bg-surface-secondary [&_svg]:h-icon-sm [&_svg]:w-icon-sm flex h-8 w-full items-center text-left text-sm font-medium text-text-primary transition-colors disabled:pointer-events-none disabled:opacity-50 [&_svg]:shrink-0 [&_svg]:stroke-[1.75] [&_svg]:text-text-secondary',
+        className,
       )}
       onClick={handleClick}
       {...props}
     >
       {children}
-    </BaseDropdownItem>
+    </button>
   )
 }
 
-export const DropdownMenuSeparator: React.FC<{ className?: string }> = ({ className }) => {
+export const DropdownMenuSeparator: React.FC<{ className?: string }> = ({
+  className,
+}) => {
   return (
-    <div 
-      className={cn("h-px bg-border mx-2 my-1", className)} 
-      role="separator" 
+    <div
+      className={cn(
+        'mx-space-xs my-space-xs h-px bg-border-default',
+        className,
+      )}
+      role="separator"
     />
   )
 }
@@ -206,13 +238,16 @@ export interface DropdownMenuLabelProps {
   children: React.ReactNode
 }
 
-export const DropdownMenuLabel: React.FC<DropdownMenuLabelProps> = ({ 
+export const DropdownMenuLabel: React.FC<DropdownMenuLabelProps> = ({
   className,
-  children 
+  children,
 }) => {
   return (
-    <div 
-      className={cn("px-2 py-1.5 text-sm font-semibold text-text-primary", className)}
+    <div
+      className={cn(
+        'px-2 py-1.5 text-sm font-semibold text-text-primary',
+        className,
+      )}
       role="label"
     >
       {children}

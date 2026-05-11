@@ -10,8 +10,11 @@ export const AppShell: React.FC<React.PropsWithChildren> = ({ children }) => {
   const [mobileSidebarOpen, setMobileSidebarOpen] = React.useState(false)
 
   return (
-    <div className="h-screen overflow-hidden bg-components-app-shell-bg p-space-sm lg:p-space-base">
-      <div className="flex h-full gap-space-base">
+    <div className="p-space-sm lg:p-space-base h-screen overflow-hidden bg-components-app-shell-bg">
+      <div
+        className="rounded-radius-xl flex h-full gap-0 overflow-hidden border border-components-main-workbench-border"
+        style={{ boxShadow: 'var(--color-components-main-workbench-shadow)' }}
+      >
         <div className="hidden h-full shrink-0 lg:block">
           <Sidebar
             collapsed={sidebarCollapsed}
