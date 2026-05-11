@@ -284,6 +284,20 @@ if (import.meta.env.VITE_ENABLE_REGISTRATION === 'true') {
   })
 }
 
+// Temporary embed route — gated by env flag. See `src/pages/agent/embed/README.md`
+// for the full removal checklist when the third-party requirement winds down.
+// The lazy() call lives inside the conditional so the embed chunk is fully
+// tree-shaken when the flag is off.
+const embedRoutes: { path: string; element: React.ReactElement }[] =
+  import.meta.env.VITE_ENABLE_AGENT_EMBED === 'true'
+    ? (() => {
+        const AgentEmbedPage = lazy(() => import('@/pages/agent/embed'))
+        return [
+          { path: '/agent/:id/embed', element: withLoading(AgentEmbedPage) },
+        ]
+      })()
+    : []
+
 export const router = createBrowserRouter([
   ...authRoutes,
 
@@ -296,6 +310,8 @@ export const router = createBrowserRouter([
     path: ROUTES.CHAT_WIDGET,
     element: withLoading(AgentWidgetPage),
   },
+
+  ...embedRoutes,
 
   {
     path: '/',
