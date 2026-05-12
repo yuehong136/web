@@ -45,18 +45,20 @@ export const SettingsRail: React.FC<SettingsRailProps> = ({
       {...props}
     >
       {user ? (
-        <div className="border-b border-border-subtle px-space-lg py-space-base">
-          <div className="flex items-center gap-space-base">
+        <div className="px-space-lg py-space-base border-b border-border-subtle">
+          <div className="gap-space-base flex items-center">
             {user.avatar ? (
               <img
                 src={user.avatar}
                 alt="avatar"
-                className="h-10 w-10 rounded-radius-full object-cover"
+                className="rounded-radius-full h-10 w-10 object-cover"
               />
             ) : (
               <div
-                className="flex h-10 w-10 items-center justify-center rounded-radius-full text-sm font-semibold text-text-inverted"
-                style={{ background: 'var(--color-components-gradient-secondary)' }}
+                className="rounded-radius-full flex h-10 w-10 items-center justify-center text-sm font-semibold text-text-inverted"
+                style={{
+                  background: 'var(--color-components-gradient-secondary)',
+                }}
               >
                 {user.nickname?.[0] || user.username?.[0] || 'U'}
               </div>
@@ -73,26 +75,27 @@ export const SettingsRail: React.FC<SettingsRailProps> = ({
         </div>
       ) : null}
 
-      <div className="flex-1 overflow-auto py-space-sm">
-        {groups.map((group, groupIndex) => (
+      <div className="py-space-sm flex-1 overflow-auto">
+        {groups.map((group) => (
           <div key={group.label}>
-            {groupIndex > 0 ? <div className="mx-space-lg my-space-sm border-t border-border-subtle" /> : null}
             <div className="px-space-lg pb-space-xs pt-space-sm">
               <span className="text-xs font-medium uppercase tracking-wider text-components-settings-rail-section-text">
                 {group.label}
               </span>
             </div>
-            <div className="space-y-1 px-space-sm">
+            <div className="px-space-sm space-y-1">
               {group.items.map((item) => {
                 const Icon = item.icon
-                const isActive = item.matcher ? item.matcher(currentPath) : currentPath === item.href
+                const isActive = item.matcher
+                  ? item.matcher(currentPath)
+                  : currentPath === item.href
 
                 return (
                   <Link
                     key={item.href}
                     to={item.href}
                     className={cn(
-                      'relative flex items-center gap-space-sm rounded-radius-lg px-space-base py-space-sm text-sm transition-colors',
+                      'gap-space-sm rounded-radius-lg px-space-base py-space-sm relative flex items-center text-sm transition-colors',
                       isActive
                         ? 'bg-components-sidebar-item-bg-active font-semibold text-components-sidebar-item-text-active shadow-sm before:absolute before:bottom-2 before:left-0 before:top-2 before:w-1 before:rounded-r-full before:bg-state-focus'
                         : 'font-medium text-components-sidebar-item-text hover:bg-components-sidebar-item-bg-hover hover:text-text-primary',
@@ -108,7 +111,7 @@ export const SettingsRail: React.FC<SettingsRailProps> = ({
         ))}
       </div>
 
-      {footer ? <div className="border-t border-border-subtle px-space-sm py-space-sm">{footer}</div> : null}
+      {footer ? <div className="px-space-sm py-space-sm">{footer}</div> : null}
     </aside>
   )
 }

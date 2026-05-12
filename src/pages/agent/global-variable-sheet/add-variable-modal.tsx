@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -41,15 +42,7 @@ import {
   type GlobalVariableFormValues,
 } from './utils'
 
-const variableSchema = z.object({
-  name: z
-    .string()
-    .min(1, 'Name is required')
-    .regex(/^[a-zA-Z_0-9]+$/, 'Only letters, numbers and underscores are allowed'),
-  type: z.string().min(1, 'Type is required'),
-  value: z.string(),
-  description: z.string().optional(),
-})
+const formId = 'global-variable-form'
 
 interface AddVariableModalProps {
   visible: boolean
@@ -67,9 +60,29 @@ export function AddVariableModal({
   loading,
 }: AddVariableModalProps) {
   const { t } = useTranslation()
+  const variableSchema = useMemo(
+    () =>
+      z.object({
+        name: z
+          .string()
+          .trim()
+          .min(1, t('flow.variableNameRequired', '变量名称不能为空'))
+          .regex(
+            /^[a-zA-Z_0-9]+$/,
+            t('flow.variableNameMessage', '名称只能包含字母、数字和下划线'),
+          ),
+        type: z
+          .string()
+          .min(1, t('flow.variableTypeRequired', '变量类型不能为空')),
+        value: z.string(),
+        description: z.string().optional(),
+      }),
+    [t],
+  )
   const form = useForm<GlobalVariableFormValues>({
     resolver: zodResolver(variableSchema),
     defaultValues: DEFAULT_GLOBAL_VARIABLE_FORM_VALUES,
+    mode: 'onChange',
   })
   const type = form.watch('type')
 
@@ -89,8 +102,14 @@ export function AddVariableModal({
 
   const handleSubmit = useCallback(
     async (values: GlobalVariableFormValues) => {
+      const normalizedValues = {
+        ...values,
+        name: values.name.trim(),
+        description: values.description?.trim(),
+      }
+
       try {
-        parseGlobalVariableValue(values.type, values.value)
+        parseGlobalVariableValue(normalizedValues.type, normalizedValues.value)
       } catch {
         form.setError('value', {
           message: t('flow.formatTypeError', 'Invalid value format'),
@@ -98,111 +117,150 @@ export function AddVariableModal({
         return
       }
 
-      await onSubmit(values)
+      await onSubmit(normalizedValues)
     },
     [form, onSubmit, t],
   )
 
   return (
     <Dialog open={visible} onOpenChange={(open) => !open && hideModal()}>
-      <DialogContent>
+      <DialogContent size="md" className="overflow-hidden">
         <DialogHeader>
           <DialogTitle>
             {defaultValues
               ? t('flow.editVariable', '编辑变量')
               : t('flow.addVariable', '添加变量')}
           </DialogTitle>
+          <DialogDescription>
+            {t(
+              'flow.conversationVariableFormDescription',
+              '配置 Agent 运行时可通过 env.* 引用的会话变量。',
+            )}
+          </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
           <form
+            id={formId}
             onSubmit={form.handleSubmit(handleSubmit)}
-            className="space-y-space-base"
+            className="flex min-h-0 flex-col"
           >
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('common.name', '名称')}</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('common.type', '类型')}</FormLabel>
-                  <Select
-                    onValueChange={(value) =>
-                      handleTypeChange(value, field.onChange)
-                    }
-                    value={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue
-                          placeholder={t('common.selectType', '选择类型')}
+            <div className="px-space-lg pb-space-lg min-h-0 overflow-y-auto">
+              <div className="space-y-space-md">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel required>{t('common.name', '名称')}</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          autoComplete="off"
+                          placeholder={t(
+                            'flow.variableNamePlaceholder',
+                            '例如 user_name',
+                          )}
+                          onBlur={(event) => {
+                            field.onChange(event.target.value.trim())
+                            field.onBlur()
+                          }}
                         />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {GLOBAL_VARIABLE_TYPE_OPTIONS.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-            <FormField
-              control={form.control}
-              name="value"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('common.defaultValue', '默认值')}</FormLabel>
-                  <FormControl>
-                    {JSON_VALUE_TYPES.has(type) ? (
-                      <Textarea {...field} className="min-h-32 font-mono" />
-                    ) : (
-                      <Input {...field} />
-                    )}
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                <FormField
+                  control={form.control}
+                  name="type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel required>{t('common.type', '类型')}</FormLabel>
+                      <Select
+                        onValueChange={(value) =>
+                          handleTypeChange(value, field.onChange)
+                        }
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue
+                              placeholder={t('common.selectType', '选择类型')}
+                            />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {GLOBAL_VARIABLE_TYPE_OPTIONS.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('flow.description', 'Description')}</FormLabel>
-                  <FormControl>
-                    <Textarea {...field} className="min-h-24" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                <FormField
+                  control={form.control}
+                  name="value"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('flow.defaultValue', '默认值')}</FormLabel>
+                      <FormControl>
+                        {JSON_VALUE_TYPES.has(type) ? (
+                          <Textarea
+                            {...field}
+                            className="font-mono"
+                            placeholder={getDefaultValueForType(type)}
+                            rows={5}
+                          />
+                        ) : (
+                          <Input
+                            {...field}
+                            placeholder={getDefaultValueForType(type)}
+                          />
+                        )}
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        {t('flow.description', 'Description')}
+                      </FormLabel>
+                      <FormControl>
+                        <Textarea
+                          {...field}
+                          placeholder={t(
+                            'flow.variableDescription',
+                            '变量的描述',
+                          )}
+                          rows={3}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={hideModal}>
                 {t('common.cancel', '取消')}
               </Button>
-              <Button type="submit" disabled={loading}>
-                {loading ? t('common.saving', '保存中...') : t('common.confirm', '确认')}
+              <Button type="submit" loading={loading}>
+                {t('common.confirm', '确认')}
               </Button>
             </DialogFooter>
           </form>

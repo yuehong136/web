@@ -99,10 +99,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
       )}
     >
       {/* Logo区域 - 固定高度(预留2行文字空间)避免展开/收起时跳动 */}
-      <div className="px-space-sm pb-space-md pt-space-sm">
-        <div className="flex h-12 items-center justify-between">
+      <div
+        className={cn(
+          'pb-space-md pt-space-sm transition-[padding] duration-300',
+          isCollapsed ? 'px-space-xs' : 'px-space-sm',
+        )}
+      >
+        <div
+          className={cn(
+            'flex h-12 items-center',
+            isCollapsed ? 'justify-center' : 'justify-between',
+          )}
+        >
           <div
-            className="flex min-w-0 cursor-pointer items-center gap-3"
+            className={cn(
+              'flex min-w-0 cursor-pointer items-center',
+              isCollapsed ? 'h-10 w-10 justify-center gap-0' : 'gap-3',
+            )}
             onClick={
               allowCollapse && isCollapsed
                 ? () => setCollapsed(false)
@@ -131,16 +144,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </span>
           </div>
           {/* 折叠按钮 */}
-          {allowCollapse ? (
+          {allowCollapse && !isCollapsed ? (
             <button
               onClick={() => setCollapsed(!isCollapsed)}
               className={cn(
                 'flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg',
                 'text-components-icon-button-text hover:bg-components-icon-button-bg-hover hover:text-components-icon-button-text-hover',
                 'transition-[opacity,transform] duration-200',
-                isCollapsed
-                  ? 'pointer-events-none scale-0 opacity-0'
-                  : 'scale-100 opacity-100 delay-150',
+                'scale-100 opacity-100 delay-150',
               )}
               title={isCollapsed ? '展开侧边栏' : '收起侧边栏'}
             >
