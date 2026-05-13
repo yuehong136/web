@@ -1,0 +1,32 @@
+export default {
+  layout: {
+    brandName: 'AI平台',
+    sidebar: {
+      expand: '展开侧边栏',
+      collapse: '收起侧边栏',
+      notifications: '通知',
+      noNotifications: '暂无通知',
+      theme: '主题',
+      lightTheme: '浅色主题',
+      darkTheme: '深色主题',
+      systemTheme: '跟随系统',
+      language: '语言',
+      login: '登录',
+      user: '用户',
+      profile: '个人资料',
+      settings: '设置',
+      logout: '退出登录',
+    },
+    nav: {
+      home: '首页',
+      explore: '探索',
+      search: '搜索',
+      knowledge: '知识库',
+      memory: '记忆库',
+      agents: '智能体',
+      studio: '工作室',
+      tools: '工具箱',
+      mcp: 'MCP',
+    },
+  },
+}

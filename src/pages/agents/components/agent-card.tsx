@@ -1,4 +1,5 @@
 import type { MouseEvent } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Clock,
   Download,
@@ -59,7 +60,11 @@ export function AgentCard({
   onViewLogs,
   timeFormat = 'detailed',
 }: AgentCardProps) {
-  const title = resolveLocalizedText(flow.title, '未命名智能体')
+  const { t } = useTranslation()
+  const title = resolveLocalizedText(
+    flow.title,
+    t('agent.unnamedAgent', '未命名 Agent'),
+  )
   const description = resolveLocalizedText(flow.description, '')
   const pipeline = isPipelineFlow(flow)
   const nodeCount = countFlowNodes(flow)
@@ -135,25 +140,25 @@ export function AgentCard({
             icon={<Edit className="h-4 w-4" />}
             onClick={handleEdit}
           >
-            打开编辑器
+            {t('agent.center.openEditor', '打开编辑器')}
           </DropdownItem>
           <DropdownItem
             icon={<FilePenLine className="h-4 w-4" />}
             onClick={handleRename}
           >
-            重命名
+            {t('agent.center.rename', '重命名')}
           </DropdownItem>
           <DropdownItem
             icon={<Download className="h-4 w-4" />}
             onClick={handleExport}
           >
-            导出 JSON
+            {t('agent.center.exportJson', '导出 JSON')}
           </DropdownItem>
           <DropdownItem
             icon={<History className="h-4 w-4" />}
             onClick={handleViewLogs}
           >
-            查看运行记录
+            {t('agent.center.viewLogs', '查看运行记录')}
           </DropdownItem>
           <div className="my-1 border-t border-border-subtle" />
           <DropdownItem
@@ -161,7 +166,7 @@ export function AgentCard({
             onClick={handleDelete}
             danger
           >
-            删除
+            {t('agent.center.delete', '删除')}
           </DropdownItem>
         </Dropdown>
       </div>
@@ -194,7 +199,9 @@ export function AgentCard({
                   {title}
                 </h3>
                 <span className="text-sm text-text-tertiary">
-                  {pipeline ? 'Pipeline' : 'Agent'}
+                  {pipeline
+                    ? t('agent.pipeline', 'Pipeline')
+                    : t('agent.agent', 'Agent')}
                 </span>
               </div>
             </div>
@@ -210,11 +217,13 @@ export function AgentCard({
 
           <div className="mb-3 flex flex-wrap gap-1.5">
             <Badge variant={pipeline ? 'blue' : 'green'} className="text-xs">
-              {pipeline ? 'Pipeline' : 'Agent'}
+              {pipeline
+                ? t('agent.pipeline', 'Pipeline')
+                : t('agent.agent', 'Agent')}
             </Badge>
             <Badge variant="secondary" className="text-xs">
               <GitBranch className="mr-1 h-3 w-3" />
-              {nodeCount} 节点
+              {t('agents.nodeCount', '{{count}} 节点', { count: nodeCount })}
             </Badge>
           </div>
 

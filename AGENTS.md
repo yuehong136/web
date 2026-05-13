@@ -12,6 +12,7 @@ npm run build:analyze # 生成 dist/stats.html bundle treemap（不部署）
 npm run lint         # eslint src
 npm run lint:all     # eslint .
 npm run lint:typed   # type-aware lint，先覆盖 Agent 关键目录
+npm run lint:i18n-agent # 扫描 Agent/Layout 新增硬编码中文 UI 文案
 npm run typecheck:agent-strict # Agent 关键目录严格类型检查
 npm run build:themes # 修改 tokens.ts 后重新生成 src/themes/{light,dark}.css
 npm run preview      # 预览生产构建
@@ -312,10 +313,31 @@ agent share 表面（`src/pages/agent/share/` 及相关运行时组件）通过 
 
 ## 国际化（强制）
 
-- 所有用户可见字符串走 `react-i18next`。locale 在 `src/locales/{en-US,zh-CN}/`。
+- 所有用户可见字符串走 `react-i18next`。locale 在 `src/locales/{en-US,zh-CN}/`，语言清单统一登记在 `src/locales/locale-registry.ts`。
 - 按 feature 拆 namespace（`common`、`datasource`、`flow`…）。新 namespace 单独建，不要塞 `common`。
-- 默认语言由 `i18next-browser-languagedetector` 检测；**禁止**在组件里硬写 `lng`。
+- 产品界面语言只有一个统一来源：`src/locales/locale-registry.ts` 维护 `localeRegistry`，并自动推导 `ProductLocale`、`supportedLocales`、初始化 resources；`src/locales/i18n.ts` 只负责 `setProductLanguage` / `getCurrentLanguage` / `applyRouteLocale` 等运行时服务，再同步到 `useUIStore.language`。不要在组件、页面或业务 hook 里直接维护第二套语言状态。
+- 新增语言时只允许通过 `localeRegistry` 加语言元数据和资源入口；不要在侧边栏、弹窗或 share/embed 页面额外写死语言列表。`ensureLocaleLoaded()` 是未来切换动态 import / i18next backend 的预留入口，目前中英资源仍随主包加载。
+- 默认语言由 `i18next-browser-languagedetector` 检测；**禁止**在组件里硬写 `lng`。所有进入 i18n 的语言码必须先经 `normalizeLocale` 归一到 `zh-CN` / `en-US`。
+- `src/locales/i18n.ts` 中不要随意启用 `supportedLngs`、`cleanCode`、`nonExplicitSupportedLngs`。本项目资源键是 `zh-CN` / `en-US`，错误组合会导致 i18next 把合法语言判为 unsupported，表现为侧边栏显示 English 但 `t()` 仍回退中文。若必须调整配置，先用浏览器控制台确认没有 `rejecting language code not found in supportedLngs`。
+- 侧边栏语言切换是产品级设置，只写本地偏好，不调用后端 `/setting`；Chat/Agent 模型回复语言、检索跨语言、工具参数 `language` 不得与产品界面语言混用。
+- `/agent/share`、`/chats/widget`、embed `set-locale` 只能用 `applyRouteLocale` 做路由级临时语言，**不得**覆盖用户本地产品语言偏好。
+- 切换语言必须同步 `document.documentElement.lang` 和 `dir`；日期、相对时间、数字格式化统一从 `getCurrentLanguage()` 派生，不要硬写 `toLocaleString('zh-CN')`。
+- Agent/画布节点的协议字段、operator id、DSL 字段、后端枚举、第三方语言选项值不翻译；只翻译 UI label/description。节点自定义名称按用户数据展示，缺省名称才可走 i18n fallback。
 - 复数与插值用 i18next API（`{{ count }}`、`_plural` keys），**禁止**字符串拼接。
+- 接触 `src/components/layout`、`src/pages/agent`、`src/pages/agents` 的用户可见文案后，至少跑 `npm run lint:i18n-agent`；触碰 locale 服务再补 `npm run build`。
+
+### i18n 开发流程（强制）
+
+按主流现代 AI 产品做法，先把“产品界面语言”当成全局产品能力设计，再实现具体页面文案：
+
+1. 需求拆分时先标记三类语言：产品 UI 文案、用户/模型生成内容、业务参数语言。只有产品 UI 文案进入 `src/locales`；用户数据、LLM 输出、DSL、工具参数不翻译。
+2. 新功能先选 namespace：通用短词复用 `common`，领域文案放 `agent`、`agents`、`flow`、`datasource` 等 feature namespace；新领域单独建 namespace，不把整页文案塞进 `common`。
+3. key 使用稳定语义名，不用中文或完整英文句子当 key；同一含义复用同一个 key，不为了页面局部措辞复制近义 key。
+4. 中英资源必须同 PR 同步提交。新增第三语言时先补完整 namespace，再把语言加入 `localeRegistry`；临时 fallback 只能作为开发兜底，不能代替 locale 文件；看到 `i18next::translator: missingKey` 要补资源文件。
+5. 组件内只调用 `const { t } = useTranslation()` 和 `t('namespace.key', fallback)`；不要在组件里判断当前语言拼接字符串，也不要维护本地语言 state。
+6. 日期、时间、数字、相对时间等格式化走项目 helper 或 `getCurrentLanguage()`；不要散落 `zh-CN` / `en-US` 常量。
+7. 对外 share/widget/embed、预览页、iframe 内页面必须验证“临时 locale 只影响当前路由”，不能污染主应用侧边栏语言偏好。
+8. 验收必须覆盖：中文 → English → 中文即时切换、刷新后持久化、公开 share/widget 语言隔离、控制台无 missingKey/unsupported language 警告。
 
 ## 性能
 

@@ -1,0 +1,32 @@
+export default {
+  layout: {
+    brandName: 'AI Platform',
+    sidebar: {
+      expand: 'Expand sidebar',
+      collapse: 'Collapse sidebar',
+      notifications: 'Notifications',
+      noNotifications: 'No notifications',
+      theme: 'Theme',
+      lightTheme: 'Light',
+      darkTheme: 'Dark',
+      systemTheme: 'System',
+      language: 'Language',
+      login: 'Log in',
+      user: 'User',
+      profile: 'Profile',
+      settings: 'Settings',
+      logout: 'Log out',
+    },
+    nav: {
+      home: 'Home',
+      explore: 'Explore',
+      search: 'Search',
+      knowledge: 'Knowledge',
+      memory: 'Memory',
+      agents: 'Agents',
+      studio: 'Studio',
+      tools: 'Tools',
+      mcp: 'MCP',
+    },
+  },
+}

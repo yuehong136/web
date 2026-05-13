@@ -22,13 +22,13 @@ export default {
     submit: '提交',
     settings: '设置',
     more: '更多',
-    
+
     // 状态
     loading: '加载中...',
     saving: '保存中...',
     deleting: '删除中...',
     processing: '处理中...',
-    
+
     // 结果
     success: '成功',
     failed: '失败',
@@ -38,20 +38,23 @@ export default {
     saved: '已保存',
     deleted: '已删除',
     saveFailed: '保存失败',
-    
+
     // 确认
     confirmDelete: '确认删除',
     confirmDeleteMessage: '确定要删除吗？此操作不可撤销。',
-    
+
     // 空状态
     noData: '暂无数据',
     noResults: '未找到结果',
     unassigned: '未指定',
-    
+    invalidTime: '无效时间',
+    justNow: '刚刚',
+    yesterday: '昨天',
+
     // 时间
     createTime: '创建时间',
     updateTime: '更新时间',
-    
+
     // 输入提示
     pleaseInput: '请输入',
     required: '必填',

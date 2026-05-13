@@ -13,11 +13,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { Badge } from '@/components/ui/badge'
 import type { IBeginNode } from '../../types'
-import {
-  AgentDialogueMode,
-  BeginQueryType,
-  NodeHandleId,
-} from '../../constant'
+import { AgentDialogueMode, BeginQueryType, NodeHandleId } from '../../constant'
 import { normalizeBeginInputsForEditor } from '../../form/begin/utils'
 import { useBuildWebhookUrl } from '../../hooks/use-build-webhook-url'
 import { useIsPipeline } from '../../hooks/use-is-pipeline'
@@ -38,11 +34,14 @@ const BeginInputIconMap = {
   [BeginQueryType.Boolean]: ToggleLeft,
 } as const
 
-function getBeginModeLabel(t: ReturnType<typeof useTranslation>['t'], mode?: string) {
-  switch (mode) {
+function getBeginModeLabel(
+  t: ReturnType<typeof useTranslation>['t'],
+  mode?: string,
+) {
+  switch (String(mode ?? '').toLowerCase()) {
     case AgentDialogueMode.Task:
       return t('flow.task', 'Task')
-    case AgentDialogueMode.Webhook:
+    case AgentDialogueMode.Webhook.toLowerCase():
       return t('flow.webhook.name', 'Webhook')
     case AgentDialogueMode.Conversational:
     default:
@@ -51,10 +50,10 @@ function getBeginModeLabel(t: ReturnType<typeof useTranslation>['t'], mode?: str
 }
 
 function getBeginModeVariant(mode?: string) {
-  switch (mode) {
+  switch (String(mode ?? '').toLowerCase()) {
     case AgentDialogueMode.Task:
       return 'orange' as const
-    case AgentDialogueMode.Webhook:
+    case AgentDialogueMode.Webhook.toLowerCase():
       return 'purple' as const
     case AgentDialogueMode.Conversational:
     default:
@@ -117,7 +116,7 @@ function InnerBeginNode({ id, data, selected }: NodeProps<IBeginNode>) {
           />
         }
       />
-      <section className="flex flex-col gap-space-sm">
+      <section className="gap-space-sm flex flex-col">
         {!isPipeline && (
           <div>
             <Badge variant={getBeginModeVariant(mode)}>
@@ -127,21 +126,20 @@ function InnerBeginNode({ id, data, selected }: NodeProps<IBeginNode>) {
         )}
 
         {isWebhookMode ? (
-          <LabelCard className="flex items-center gap-space-sm">
+          <LabelCard className="gap-space-sm flex items-center">
             <span className="shrink-0 font-medium text-text-primary">URL</span>
             <span className="min-w-0 flex-1 truncate">{webhookUrl}</span>
           </LabelCard>
         ) : visibleInputs.length > 0 ? (
           <>
             {visibleInputs.map((input, index) => {
-              const Icon = BeginInputIconMap[
-                input.type as keyof typeof BeginInputIconMap
-              ]
+              const Icon =
+                BeginInputIconMap[input.type as keyof typeof BeginInputIconMap]
 
               return (
                 <LabelCard
                   key={`${input.key || input.name || 'input'}-${index}`}
-                  className="flex items-center gap-space-sm"
+                  className="gap-space-sm flex items-center"
                 >
                   {Icon ? (
                     <Icon className="size-3.5 shrink-0 text-text-secondary" />
@@ -150,11 +148,15 @@ function InnerBeginNode({ id, data, selected }: NodeProps<IBeginNode>) {
                   )}
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-text-primary">
-                      {input.name || input.key || t('common.unassigned', 'Unassigned')}
+                      {input.name ||
+                        input.key ||
+                        t('common.unassigned', 'Unassigned')}
                     </div>
                     <div className="truncate text-text-tertiary">
                       {[
-                        input.key && input.key !== input.name ? input.key : null,
+                        input.key && input.key !== input.name
+                          ? input.key
+                          : null,
                         input.optional
                           ? t('flow.optional', 'Optional')
                           : t('common.required', 'Required'),
@@ -176,9 +178,7 @@ function InnerBeginNode({ id, data, selected }: NodeProps<IBeginNode>) {
             )}
           </>
         ) : (
-          <LabelCard>
-            {t('flow.noInputs', 'No inputs configured')}
-          </LabelCard>
+          <LabelCard>{t('flow.noInputs', 'No inputs configured')}</LabelCard>
         )}
       </section>
     </NodeWrapper>

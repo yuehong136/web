@@ -15,6 +15,7 @@
     "build:analyze": "VITE_ANALYZE=true npm run build",
     "build:docker": "vite build",
     "build:themes": "tsx src/themes/build-themes.ts",
+    "lint:i18n-agent": "node scripts/check-agent-i18n-hardcoded.mjs",
     "lint": "eslint src",
     "lint:all": "eslint .",
     "lint:typed": "ESLINT_TYPED=true eslint src/lib/agent.ts src/pages/agent/operators src/pages/agent/adapters",

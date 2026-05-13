@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { ReactFlowProvider } from '@xyflow/react'
 import { StudioPageTemplate } from '@/components/page-templates'
 import {
@@ -44,6 +45,7 @@ import { WebhookSheet } from './webhook-sheet'
 import { ArrowLeft, Play, Save } from 'lucide-react'
 
 export default function AgentEditorPage() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const location = useLocation()
   const { id = '' } = useParams<{ id: string }>()
@@ -105,9 +107,14 @@ export default function AgentEditorPage() {
 
   useEffect(() => {
     if (!titleDirty && flowDetail?.title) {
-      setTitle(resolveLocalizedText(flowDetail.title, '未命名资产'))
+      setTitle(
+        resolveLocalizedText(
+          flowDetail.title,
+          t('agent.unnamedAsset', '未命名资产'),
+        ),
+      )
     }
-  }, [flowDetail?.title, titleDirty])
+  }, [flowDetail?.title, t, titleDirty])
 
   useEffect(() => {
     if (!flowDetail?.id) {
@@ -138,7 +145,11 @@ export default function AgentEditorPage() {
     }
 
     const nextTitle =
-      title.trim() || resolveLocalizedText(flowDetail?.title, '未命名资产')
+      title.trim() ||
+      resolveLocalizedText(
+        flowDetail?.title,
+        t('agent.unnamedAsset', '未命名资产'),
+      )
     await saveGraph(nextTitle)
     setTitleDirty(false)
   }
@@ -150,10 +161,16 @@ export default function AgentEditorPage() {
 
     try {
       const nextTitle =
-        title.trim() || resolveLocalizedText(flowDetail?.title, '未命名资产')
+        title.trim() ||
+        resolveLocalizedText(
+          flowDetail?.title,
+          t('agent.unnamedAsset', '未命名资产'),
+        )
       const saved = await saveGraph(nextTitle, undefined, { release: true })
       if (!saved) {
-        toast.error('发布失败：当前画布保存未完成')
+        toast.error(
+          t('agent.editor.publishSaveFailed', '发布失败：当前画布保存未完成'),
+        )
         return
       }
 
@@ -166,9 +183,19 @@ export default function AgentEditorPage() {
 
       setTitleDirty(false)
       setPublishedShareUrl(shareUrl)
-      toast.success(note ? `发布成功：${note}` : '发布成功')
+      toast.success(
+        note
+          ? t('agent.editor.publishSuccessWithNote', '发布成功：{{note}}', {
+              note,
+            })
+          : t('agent.editor.publishSuccess', '发布成功'),
+      )
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : '发布失败')
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : t('agent.editor.publishFailed', '发布失败'),
+      )
     }
   }
 
@@ -203,8 +230,11 @@ export default function AgentEditorPage() {
     return (
       <PageLoadingState
         scene={AppScene.STUDIO}
-        title="正在打开 Agent 编辑器"
-        description="正在加载画布、节点配置和运行状态。"
+        title={t('agent.editor.openingTitle', '正在打开 Agent 编辑器')}
+        description={t(
+          'agent.editor.openingDescription',
+          '正在加载画布、节点配置和运行状态。',
+        )}
       />
     )
   }
@@ -213,10 +243,13 @@ export default function AgentEditorPage() {
     return (
       <PageErrorState
         scene={AppScene.STUDIO}
-        title="未找到 Agent 资产"
-        description="请从智能体列表重新打开，或确认当前资产仍然可用。"
+        title={t('agent.editor.notFoundTitle', '未找到 Agent 资产')}
+        description={t(
+          'agent.editor.notFoundDescription',
+          '请从智能体列表重新打开，或确认当前资产仍然可用。',
+        )}
         onRetry={() => navigate('/agents')}
-        retryLabel="返回智能体列表"
+        retryLabel={t('agent.editor.backToList', '返回智能体列表')}
       />
     )
   }
@@ -240,16 +273,28 @@ export default function AgentEditorPage() {
                       setTitle(event.target.value)
                     }}
                     className="h-11 text-base font-semibold"
-                    placeholder="输入 Agent 名称"
+                    placeholder={t(
+                      'agent.editor.namePlaceholder',
+                      '输入 Agent 名称',
+                    )}
                   />
                 </div>
               }
-              description={`ID: ${flowDetail.id} · 自动保存 ${autosaveLabel || '待首次保存'}`}
+              description={t(
+                'agent.editor.autosaveDescription',
+                'ID: {{id}} · 自动保存 {{time}}',
+                {
+                  id: flowDetail.id,
+                  time:
+                    autosaveLabel ||
+                    t('agent.editor.autosavePending', '待首次保存'),
+                },
+              )}
               actions={
                 <>
                   <Button variant="outline" onClick={() => navigate('/agents')}>
                     <ArrowLeft className="mr-space-xs h-4 w-4" />
-                    返回
+                    {t('agent.editor.back', '返回')}
                   </Button>
                   <Button
                     variant="secondary"
@@ -257,11 +302,13 @@ export default function AgentEditorPage() {
                     disabled={saving}
                   >
                     <Save className="mr-space-xs h-4 w-4" />
-                    {saving ? '保存中...' : '保存'}
+                    {saving
+                      ? t('common.saving', '保存中...')
+                      : t('agent.editor.save', '保存')}
                   </Button>
                   <Button onClick={() => openRuntimeWorkbench()}>
                     <Play className="mr-space-xs h-4 w-4" />
-                    运行
+                    {t('agent.editor.run', '运行')}
                   </Button>
                 </>
               }
@@ -299,7 +346,13 @@ export default function AgentEditorPage() {
       {versionsOpen ? (
         <VersionDialog
           hideModal={() => setVersionsOpen(false)}
-          title={title || resolveLocalizedText(flowDetail.title, '未命名资产')}
+          title={
+            title ||
+            resolveLocalizedText(
+              flowDetail.title,
+              t('agent.unnamedAsset', '未命名资产'),
+            )
+          }
           versions={versions}
           isPublished={Boolean(flowDetail.release)}
           lastPublishedAt={
@@ -322,7 +375,13 @@ export default function AgentEditorPage() {
           open={shareOpen}
           onOpenChange={setShareOpen}
           agentId={id}
-          title={title || resolveLocalizedText(flowDetail.title, '未命名资产')}
+          title={
+            title ||
+            resolveLocalizedText(
+              flowDetail.title,
+              t('agent.unnamedAsset', '未命名资产'),
+            )
+          }
           betaToken={deliveryToken.token}
           releaseDefault={Boolean(flowDetail.release)}
           tokenLoading={deliveryToken.isLoading}

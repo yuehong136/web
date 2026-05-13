@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ScopedTheme } from '@/themes'
-import { changeLanguage } from '@/locales/i18n'
+import { applyRouteLocale } from '@/locales/i18n'
 import { useEmbedAccess } from './use-embed-access'
 import { useEmbedBridge } from './use-embed-bridge'
 import {
@@ -49,7 +49,7 @@ function EmbedRoot({ access }: { access: EmbedAccess }) {
     (msg: Extract<EmbedInbound, { type: 'embed-init' }>) => {
       setEmbedJwt(msg.jwt)
       if (msg.theme) setTheme(msg.theme)
-      if (msg.locale) changeLanguage(msg.locale)
+      if (msg.locale) applyRouteLocale(msg.locale)
       setAuthState('authorised')
     },
     [],
@@ -72,7 +72,7 @@ function EmbedRoot({ access }: { access: EmbedAccess }) {
 
   const handleSetLocale = useCallback(
     (msg: Extract<EmbedInbound, { type: 'set-locale' }>) => {
-      changeLanguage(msg.locale)
+      applyRouteLocale(msg.locale)
     },
     [],
   )
@@ -104,7 +104,7 @@ function EmbedRoot({ access }: { access: EmbedAccess }) {
 
   // Apply locale on initial mount if URL carried one.
   useEffect(() => {
-    if (access.locale) changeLanguage(access.locale)
+    if (access.locale) applyRouteLocale(access.locale)
   }, [access.locale])
 
   if (authState === 'pending') {

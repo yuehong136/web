@@ -1,26 +1,31 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { Theme, getResolvedTheme } from '@/themes'
+import i18n, {
+  getCurrentLanguage,
+  normalizeLocale,
+  setProductLanguage,
+} from '@/locales/i18n'
 import type { Language } from '@/types'
 
 interface UIState {
   // 主题设置
   theme: Theme
-  
+
   // 语言设置
   language: Language
-  
+
   // 布局设置
   sidebarCollapsed: boolean
   sidebarWidth: number
-  
+
   // 模态框和弹窗状态
   modals: Record<string, boolean>
-  
+
   // 加载状态
   globalLoading: boolean
   loadingMessage: string
-  
+
   // 通知设置
   notifications: Array<{
     id: string
@@ -30,27 +35,29 @@ interface UIState {
     duration?: number
     timestamp: number
   }>
-  
+
   // 动作
   setTheme: (theme: Theme) => void
   setLanguage: (language: Language) => void
   toggleSidebar: () => void
   setSidebarCollapsed: (collapsed: boolean) => void
   setSidebarWidth: (width: number) => void
-  
+
   // 模态框管理
   openModal: (modalId: string) => void
   closeModal: (modalId: string) => void
   toggleModal: (modalId: string) => void
-  
+
   // 加载状态管理
   setGlobalLoading: (loading: boolean, message?: string) => void
-  
+
   // 通知管理
-  addNotification: (notification: Omit<UIState['notifications'][0], 'id' | 'timestamp'>) => void
+  addNotification: (
+    notification: Omit<UIState['notifications'][0], 'id' | 'timestamp'>,
+  ) => void
   removeNotification: (id: string) => void
   clearNotifications: () => void
-  
+
   // 工具方法
   getEffectiveTheme: () => 'light' | 'dark'
   isMobile: () => boolean
@@ -61,7 +68,7 @@ export const useUIStore = create<UIState>()(
     (set, get) => ({
       // 初始状态
       theme: Theme.SYSTEM,
-      language: 'zh-CN',
+      language: getCurrentLanguage(),
       sidebarCollapsed: false,
       sidebarWidth: 256,
       modals: {},
@@ -77,8 +84,11 @@ export const useUIStore = create<UIState>()(
 
       // 设置语言
       setLanguage: (language) => {
-        set({ language })
-        document.documentElement.lang = language
+        const nextLanguage = normalizeLocale(language) ?? getCurrentLanguage()
+        set({ language: nextLanguage })
+        void setProductLanguage(nextLanguage).then((resolvedLanguage) => {
+          set({ language: resolvedLanguage })
+        })
       },
 
       // 切换侧边栏
@@ -94,25 +104,29 @@ export const useUIStore = create<UIState>()(
       setSidebarWidth: (width) => set({ sidebarWidth: width }),
 
       // 打开模态框
-      openModal: (modalId) => set((state) => ({
-        modals: { ...state.modals, [modalId]: true }
-      })),
+      openModal: (modalId) =>
+        set((state) => ({
+          modals: { ...state.modals, [modalId]: true },
+        })),
 
       // 关闭模态框
-      closeModal: (modalId) => set((state) => ({
-        modals: { ...state.modals, [modalId]: false }
-      })),
+      closeModal: (modalId) =>
+        set((state) => ({
+          modals: { ...state.modals, [modalId]: false },
+        })),
 
       // 切换模态框
-      toggleModal: (modalId) => set((state) => ({
-        modals: { ...state.modals, [modalId]: !state.modals[modalId] }
-      })),
+      toggleModal: (modalId) =>
+        set((state) => ({
+          modals: { ...state.modals, [modalId]: !state.modals[modalId] },
+        })),
 
       // 设置全局加载状态
-      setGlobalLoading: (loading, message = '') => set({ 
-        globalLoading: loading, 
-        loadingMessage: message 
-      }),
+      setGlobalLoading: (loading, message = '') =>
+        set({
+          globalLoading: loading,
+          loadingMessage: message,
+        }),
 
       // 添加通知
       addNotification: (notification) => {
@@ -122,9 +136,9 @@ export const useUIStore = create<UIState>()(
           id,
           timestamp: Date.now(),
         }
-        
+
         set((state) => ({
-          notifications: [...state.notifications, newNotification]
+          notifications: [...state.notifications, newNotification],
         }))
 
         // 自动移除通知
@@ -138,9 +152,10 @@ export const useUIStore = create<UIState>()(
       },
 
       // 移除通知
-      removeNotification: (id) => set((state) => ({
-        notifications: state.notifications.filter(n => n.id !== id)
-      })),
+      removeNotification: (id) =>
+        set((state) => ({
+          notifications: state.notifications.filter((n) => n.id !== id),
+        })),
 
       // 清除所有通知
       clearNotifications: () => set({ notifications: [] }),
@@ -167,12 +182,22 @@ export const useUIStore = create<UIState>()(
         if (state) {
           // 应用主题
           state.setTheme(state.theme)
-          // 应用语言
-          state.setLanguage(state.language)
-          
+          // 应用语言：优先使用统一 i18n 偏好，避免旧 ui-storage 覆盖产品语言。
+          state.setLanguage(getCurrentLanguage())
+
           // 新的主题系统会自动处理系统主题变化
         }
       },
-    }
-  )
+    },
+  ),
 )
+
+i18n.on('languageChanged', (language) => {
+  const nextLanguage = normalizeLocale(language)
+  if (!nextLanguage) return
+
+  const state = useUIStore.getState()
+  if (state.language !== nextLanguage) {
+    useUIStore.setState({ language: nextLanguage })
+  }
+})

@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { Upload } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { BeginQueryType } from '../constant'
 import { isRequiredShareInput, type ShareFormValue } from './utils'
 import type {
@@ -40,14 +41,15 @@ export function ShareInputField({
   onChange,
   onUpload,
 }: ShareInputFieldProps) {
+  const { t } = useTranslation()
   const label = field.label || field.name || fieldKey
   const required = isRequiredShareInput(field)
   const description = `${fieldKey} · ${field.type || BeginQueryType.Line}`
   const fileList = asFileList(value)
 
   return (
-    <div className="space-y-space-sm rounded-radius-lg border border-border-default bg-surface-secondary/50 p-space-base">
-      <div className="flex flex-wrap items-center justify-between gap-space-sm">
+    <div className="space-y-space-sm rounded-radius-lg bg-surface-secondary/50 p-space-base border border-border-default">
+      <div className="gap-space-sm flex flex-wrap items-center justify-between">
         <div>
           <Label className="text-sm font-medium text-text-primary">
             {label}
@@ -57,7 +59,9 @@ export function ShareInputField({
           </p>
         </div>
         <Badge variant={required ? 'warning' : 'secondary'}>
-          {required ? '必填' : '可选'}
+          {required
+            ? t('agent.share.required', 'Required')
+            : t('agent.share.optional', 'Optional')}
         </Badge>
       </div>
 
@@ -67,7 +71,7 @@ export function ShareInputField({
           rows={4}
           disabled={disabled}
           onChange={(event) => onChange(fieldKey, event.target.value)}
-          placeholder="输入文本"
+          placeholder={t('agent.share.inputTextPlaceholder', 'Enter text')}
         />
       ) : field.type === BeginQueryType.Options ? (
         <Select
@@ -76,7 +80,12 @@ export function ShareInputField({
           disabled={disabled}
         >
           <SelectTrigger>
-            <SelectValue placeholder="请选择" />
+            <SelectValue
+              placeholder={t(
+                'agent.share.selectPlaceholder',
+                'Select an option',
+              )}
+            />
           </SelectTrigger>
           <SelectContent>
             {(field.options || []).map((option) => (
@@ -87,13 +96,13 @@ export function ShareInputField({
           </SelectContent>
         </Select>
       ) : field.type === BeginQueryType.Boolean ? (
-        <label className="flex items-center gap-space-sm text-sm text-text-primary">
+        <label className="gap-space-sm flex items-center text-sm text-text-primary">
           <Checkbox
             checked={Boolean(value)}
             disabled={disabled}
             onCheckedChange={(checked) => onChange(fieldKey, Boolean(checked))}
           />
-          启用
+          {t('agent.share.enable', 'Enable')}
         </label>
       ) : field.type === BeginQueryType.File ? (
         <div className="space-y-space-sm">
@@ -109,7 +118,7 @@ export function ShareInputField({
             }}
           />
           {fileList.length ? (
-            <div className="flex flex-wrap gap-space-xs">
+            <div className="gap-space-xs flex flex-wrap">
               {fileList.map((file) => (
                 <Badge key={file.id || file.name} variant="outline">
                   {file.name || file.filename || file.id}
@@ -124,7 +133,7 @@ export function ShareInputField({
               className="pointer-events-none"
             >
               <Upload className="mr-space-xs h-4 w-4" />
-              等待上传文件
+              {t('agent.share.waitingUpload', 'Waiting for uploaded files')}
             </Button>
           )}
         </div>
@@ -143,7 +152,10 @@ export function ShareInputField({
                 : event.target.value,
             )
           }
-          placeholder="输入内容"
+          placeholder={t(
+            'agent.share.inputContentPlaceholder',
+            'Enter content',
+          )}
         />
       )}
     </div>

@@ -1,5 +1,6 @@
 import React from 'react'
 import { Bot, FileInput, LayoutTemplate, Plus, Search } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
@@ -14,13 +15,18 @@ interface AgentEmptyStateProps {
 const stateConfig = {
   list: {
     icon: Bot,
-    title: '还没有 Agent 资产',
-    description: '从空白创建、模板创建或导入 JSON 开始构建你的第一个 Agent 或 Pipeline。',
+    titleKey: 'agent.center.emptyTitle',
+    title: 'No Agent assets yet',
+    descriptionKey: 'agent.center.emptyDescription',
+    description:
+      'Create from blank, use a template, or import JSON to build your first Agent or Pipeline.',
   },
   search: {
     icon: Search,
-    title: '没有匹配的资产',
-    description: '换个关键词或调整筛选条件试试。',
+    titleKey: 'agent.center.noMatchTitle',
+    title: 'No matching assets',
+    descriptionKey: 'agent.center.noMatchDescription',
+    description: 'Try another keyword or adjust filters.',
   },
 }
 
@@ -31,54 +37,63 @@ export const AgentEmptyState: React.FC<AgentEmptyStateProps> = ({
   onImport,
   className,
 }) => {
+  const { t } = useTranslation()
   const config = stateConfig[type]
   const Icon = config.icon
 
   return (
     <div
       className={cn(
-        'flex flex-col items-center justify-center py-16 px-4 text-center',
+        'flex flex-col items-center justify-center px-4 py-16 text-center',
         className,
       )}
     >
       <div className="mb-space-lg relative">
         <div
           className={cn(
-            'w-20 h-20 rounded-radius-xl flex items-center justify-center',
-            'bg-gradient-to-br from-components-avatar-gradient-purple-from/10 to-components-avatar-gradient-purple-to/10',
+            'rounded-radius-xl flex h-20 w-20 items-center justify-center',
+            'from-components-avatar-gradient-purple-from/10 to-components-avatar-gradient-purple-to/10 bg-gradient-to-br',
           )}
         >
           <Icon className="w-icon-2xl h-icon-2xl text-components-badge-purple-text" />
         </div>
-        <div className="absolute -top-1 -right-1 w-3 h-3 bg-components-avatar-gradient-purple-from rounded-full animate-pulse" />
-        <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-components-avatar-gradient-purple-to rounded-full animate-pulse delay-150" />
+        <div className="absolute -right-1 -top-1 h-3 w-3 animate-pulse rounded-full bg-components-avatar-gradient-purple-from" />
+        <div className="absolute -bottom-1 -left-1 h-2 w-2 animate-pulse rounded-full bg-components-avatar-gradient-purple-to delay-150" />
       </div>
 
-      <h3 className="text-lg font-semibold text-text-primary mb-space-sm">
-        {config.title}
+      <h3 className="mb-space-sm text-lg font-semibold text-text-primary">
+        {t(config.titleKey, config.title)}
       </h3>
-      <p className="text-sm text-text-secondary max-w-sm mb-space-lg">
-        {config.description}
+      <p className="mb-space-lg max-w-sm text-sm text-text-secondary">
+        {t(config.descriptionKey, config.description)}
       </p>
 
       {type === 'list' ? (
-        <div className="flex flex-wrap items-center justify-center gap-space-sm">
+        <div className="gap-space-sm flex flex-wrap items-center justify-center">
           {onCreate && (
             <Button onClick={onCreate} className="gap-space-sm">
               <Plus className="w-icon-sm h-icon-sm" />
-              新建资产
+              {t('agents.createAsset', '新建资产')}
             </Button>
           )}
           {onTemplate && (
-            <Button variant="outline" onClick={onTemplate} className="gap-space-sm">
+            <Button
+              variant="outline"
+              onClick={onTemplate}
+              className="gap-space-sm"
+            >
               <LayoutTemplate className="w-icon-sm h-icon-sm" />
-              从模板创建
+              {t('agents.createFromTemplate', '从模板创建')}
             </Button>
           )}
           {onImport && (
-            <Button variant="outline" onClick={onImport} className="gap-space-sm">
+            <Button
+              variant="outline"
+              onClick={onImport}
+              className="gap-space-sm"
+            >
               <FileInput className="w-icon-sm h-icon-sm" />
-              导入 JSON
+              {t('agents.importJson', '导入 JSON')}
             </Button>
           )}
         </div>

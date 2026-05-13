@@ -10,11 +10,14 @@ import {
   LogOut,
   Check,
   PanelLeftClose,
+  Languages,
 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { ROUTES } from '@/constants'
 import { useUIStore, useAuthStore, useHomeStore } from '@/stores'
 import { Theme, setTheme as setAppTheme, getTheme } from '@/themes'
+import { supportedLocales, type ProductLocale } from '@/locales/i18n'
 import { SidebarConversations } from './SidebarConversations'
 import { navItems } from './sidebar-config'
 import { SidebarTooltip } from './sidebar-tooltip'
@@ -32,8 +35,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onCollapsedChange,
   allowCollapse = true,
 }) => {
+  const { t } = useTranslation()
   const location = useLocation()
-  const { notifications } = useUIStore()
+  const notifications = useUIStore((state) => state.notifications)
+  const language = useUIStore((state) => state.language)
+  const setLanguage = useUIStore((state) => state.setLanguage)
   const { user, isAuthenticated, logout } = useAuthStore()
 
   // 首页状态（用于显示应用对话历史）
@@ -56,14 +62,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const [showUserMenu, setShowUserMenu] = React.useState(false)
   const [showThemeMenu, setShowThemeMenu] = React.useState(false)
+  const [showLanguageMenu, setShowLanguageMenu] = React.useState(false)
   const [showNotifications, setShowNotifications] = React.useState(false)
 
   const unreadCount = notifications.length
+  const currentLocale =
+    supportedLocales.find((locale) => locale.code === language) ??
+    supportedLocales[0]
 
   const handleThemeChange = (newTheme: Theme) => {
     setAppTheme(newTheme)
     setCurrentTheme(newTheme)
     setShowThemeMenu(false)
+  }
+
+  const handleLanguageChange = (nextLanguage: ProductLocale) => {
+    setLanguage(nextLanguage)
+    setShowLanguageMenu(false)
   }
 
   const handleLogout = async () => {
@@ -121,7 +136,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 ? () => setCollapsed(false)
                 : undefined
             }
-            title={allowCollapse && isCollapsed ? '展开侧边栏' : undefined}
+            title={
+              allowCollapse && isCollapsed
+                ? t('layout.sidebar.expand', '展开侧边栏')
+                : undefined
+            }
+            aria-label={t('layout.sidebar.expand', '展开侧边栏')}
           >
             {/* Logo - 固定尺寸，位置不变 */}
             <div
@@ -140,7 +160,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   : 'line-clamp-2 w-auto max-w-[120px] translate-x-0 break-words opacity-100 delay-100',
               )}
             >
-              AI平台
+              {t('layout.brandName', 'AI平台')}
             </span>
           </div>
           {/* 折叠按钮 */}
@@ -153,7 +173,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 'transition-[opacity,transform] duration-200',
                 'scale-100 opacity-100 delay-150',
               )}
-              title={isCollapsed ? '展开侧边栏' : '收起侧边栏'}
+              title={
+                isCollapsed
+                  ? t('layout.sidebar.expand', '展开侧边栏')
+                  : t('layout.sidebar.collapse', '收起侧边栏')
+              }
+              aria-label={
+                isCollapsed
+                  ? t('layout.sidebar.expand', '展开侧边栏')
+                  : t('layout.sidebar.collapse', '收起侧边栏')
+              }
             >
               <PanelLeftClose className="h-4 w-4" />
             </button>
@@ -171,6 +200,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         >
           {navItems.map((item, index) => {
             const Icon = item.icon
+            const title = t(item.titleKey, item.title)
             const isActive =
               item.href === ROUTES.AI_TOOLS
                 ? location.pathname.startsWith(ROUTES.AI_TOOLS) ||
@@ -188,7 +218,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
             return (
               <div key={item.href} className="space-y-1">
-                <SidebarTooltip content={item.title} enabled={isCollapsed}>
+                <SidebarTooltip content={title} enabled={isCollapsed}>
                   <NavLink
                     to={item.href}
                     className={cn(
@@ -224,7 +254,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                           : `${50 + index * 20}ms`,
                       }}
                     >
-                      {item.title}
+                      {title}
                     </span>
                   </NavLink>
                 </SidebarTooltip>
@@ -233,6 +263,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <div className="ml-11 space-y-1">
                     {item.children.map((child) => {
                       const ChildIcon = child.icon
+                      const childTitle = child.titleKey
+                        ? t(child.titleKey, child.title)
+                        : child.title
                       const childActive = location.pathname.startsWith(
                         child.href,
                       )
@@ -251,7 +284,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                           {ChildIcon ? (
                             <ChildIcon className="h-3.5 w-3.5" />
                           ) : null}
-                          <span>{child.title}</span>
+                          <span>{childTitle}</span>
                         </NavLink>
                       )
                     })}
@@ -290,9 +323,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
       >
         {/* 通知按钮 */}
         <div className="relative">
-          <SidebarTooltip content="通知" enabled={isCollapsed}>
+          <SidebarTooltip
+            content={t('layout.sidebar.notifications', '通知')}
+            enabled={isCollapsed}
+          >
             <button
-              onClick={() => setShowNotifications(!showNotifications)}
+              onClick={() => {
+                setShowNotifications(!showNotifications)
+                setShowThemeMenu(false)
+                setShowLanguageMenu(false)
+                setShowUserMenu(false)
+              }}
               className={cn(
                 'flex w-full items-center rounded-xl transition-all duration-200',
                 isCollapsed ? 'justify-center p-2.5' : 'gap-3 px-3 py-2',
@@ -309,7 +350,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     : 'w-auto translate-x-0 opacity-100 delay-[250ms]',
                 )}
               >
-                通知
+                {t('layout.sidebar.notifications', '通知')}
               </span>
               {unreadCount > 0 && (
                 <span
@@ -334,12 +375,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
               )}
             >
               <div className="border-b border-border-subtle px-4 py-2">
-                <h3 className="font-medium text-text-primary">通知</h3>
+                <h3 className="font-medium text-text-primary">
+                  {t('layout.sidebar.notifications', '通知')}
+                </h3>
               </div>
               <div className="max-h-64 overflow-y-auto">
                 {notifications.length === 0 ? (
                   <div className="px-4 py-8 text-center text-sm text-text-muted">
-                    暂无通知
+                    {t('layout.sidebar.noNotifications', '暂无通知')}
                   </div>
                 ) : (
                   notifications.map((notification) => (
@@ -384,9 +427,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* 主题切换 */}
         <div className="relative">
-          <SidebarTooltip content="主题" enabled={isCollapsed}>
+          <SidebarTooltip
+            content={t('layout.sidebar.theme', '主题')}
+            enabled={isCollapsed}
+          >
             <button
-              onClick={() => setShowThemeMenu(!showThemeMenu)}
+              onClick={() => {
+                setShowThemeMenu(!showThemeMenu)
+                setShowLanguageMenu(false)
+                setShowNotifications(false)
+                setShowUserMenu(false)
+              }}
               className={cn(
                 'flex w-full items-center rounded-xl transition-all duration-200',
                 isCollapsed ? 'justify-center p-2.5' : 'gap-3 px-3 py-2',
@@ -403,7 +454,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     : 'w-auto translate-x-0 opacity-100 delay-[270ms]',
                 )}
               >
-                主题
+                {t('layout.sidebar.theme', '主题')}
               </span>
             </button>
           </SidebarTooltip>
@@ -424,7 +475,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 )}
               >
                 <Sun className="h-4 w-4" />
-                浅色主题
+                {t('layout.sidebar.lightTheme', '浅色主题')}
                 {currentTheme === Theme.LIGHT && (
                   <Check className="ml-auto h-4 w-4" />
                 )}
@@ -438,7 +489,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 )}
               >
                 <Moon className="h-4 w-4" />
-                深色主题
+                {t('layout.sidebar.darkTheme', '深色主题')}
                 {currentTheme === Theme.DARK && (
                   <Check className="ml-auto h-4 w-4" />
                 )}
@@ -452,7 +503,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 )}
               >
                 <Monitor className="h-4 w-4" />
-                跟随系统
+                {t('layout.sidebar.systemTheme', '跟随系统')}
                 {currentTheme === Theme.SYSTEM && (
                   <Check className="ml-auto h-4 w-4" />
                 )}
@@ -461,15 +512,85 @@ export const Sidebar: React.FC<SidebarProps> = ({
           )}
         </div>
 
+        {/* 语言切换 */}
+        <div className="relative">
+          <SidebarTooltip
+            content={t('layout.sidebar.language', '语言')}
+            enabled={isCollapsed}
+          >
+            <button
+              onClick={() => {
+                setShowLanguageMenu(!showLanguageMenu)
+                setShowThemeMenu(false)
+                setShowNotifications(false)
+                setShowUserMenu(false)
+              }}
+              className={cn(
+                'flex w-full items-center rounded-xl transition-all duration-200',
+                isCollapsed ? 'justify-center p-2.5' : 'gap-3 px-3 py-2',
+                'text-components-sidebar-item-text hover:bg-components-sidebar-item-bg-hover hover:text-text-primary',
+              )}
+            >
+              <Languages className="h-5 w-5 flex-shrink-0" />
+              <span
+                className={cn(
+                  'whitespace-nowrap text-sm',
+                  'transition-all duration-300 ease-out',
+                  isCollapsed
+                    ? 'pointer-events-none w-0 translate-x-[-10px] opacity-0'
+                    : 'w-auto translate-x-0 opacity-100 delay-[280ms]',
+                )}
+              >
+                {currentLocale.nativeLabel}
+              </span>
+            </button>
+          </SidebarTooltip>
+
+          {showLanguageMenu && (
+            <div
+              className={cn(
+                'absolute bottom-full z-50 mb-2 rounded-xl border border-border-default bg-components-dropdown-bg py-1 shadow-lg',
+                isCollapsed ? 'left-full ml-2 w-44' : 'left-0 w-44',
+              )}
+            >
+              {supportedLocales.map((locale) => (
+                <button
+                  key={locale.code}
+                  onClick={() => handleLanguageChange(locale.code)}
+                  className={cn(
+                    'flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-components-dropdown-item-text transition-colors hover:bg-components-dropdown-item-bg-hover',
+                    language === locale.code &&
+                      'bg-components-dropdown-item-bg-hover',
+                  )}
+                >
+                  <span>{locale.nativeLabel}</span>
+                  {language === locale.code && (
+                    <Check className="ml-auto h-4 w-4" />
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
         {/* 用户信息 */}
         {isAuthenticated ? (
           <div className="relative">
             <SidebarTooltip
-              content={user?.nickname || user?.username || '用户'}
+              content={
+                user?.nickname ||
+                user?.username ||
+                t('layout.sidebar.user', '用户')
+              }
               enabled={isCollapsed}
             >
               <button
-                onClick={() => setShowUserMenu(!showUserMenu)}
+                onClick={() => {
+                  setShowUserMenu(!showUserMenu)
+                  setShowThemeMenu(false)
+                  setShowLanguageMenu(false)
+                  setShowNotifications(false)
+                }}
                 className={cn(
                   'flex w-full items-center rounded-xl transition-all duration-200',
                   isCollapsed ? 'justify-center p-2.5' : 'gap-3 px-3 py-2',
@@ -504,7 +625,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       : 'w-auto translate-x-0 opacity-100 delay-[290ms]',
                   )}
                 >
-                  {user?.nickname || user?.username || '用户'}
+                  {user?.nickname ||
+                    user?.username ||
+                    t('layout.sidebar.user', '用户')}
                 </span>
               </button>
             </SidebarTooltip>
@@ -529,7 +652,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   onClick={() => setShowUserMenu(false)}
                 >
                   <User className="h-4 w-4" />
-                  个人资料
+                  {t('layout.sidebar.profile', '个人资料')}
                 </NavLink>
 
                 <NavLink
@@ -538,7 +661,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   onClick={() => setShowUserMenu(false)}
                 >
                   <Settings className="h-4 w-4" />
-                  设置
+                  {t('layout.sidebar.settings', '设置')}
                 </NavLink>
 
                 <div className="mt-1 border-t border-border-subtle pt-1">
@@ -547,14 +670,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-text-secondary transition-colors duration-150 hover:bg-state-error-subtle hover:text-text-error"
                   >
                     <LogOut className="h-4 w-4" />
-                    退出登录
+                    {t('layout.sidebar.logout', '退出登录')}
                   </button>
                 </div>
               </div>
             )}
           </div>
         ) : (
-          <SidebarTooltip content="登录" enabled={isCollapsed}>
+          <SidebarTooltip
+            content={t('layout.sidebar.login', '登录')}
+            enabled={isCollapsed}
+          >
             <NavLink
               to="/auth/login"
               className={cn(
@@ -573,7 +699,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     : 'w-auto translate-x-0 opacity-100 delay-[290ms]',
                 )}
               >
-                登录
+                {t('layout.sidebar.login', '登录')}
               </span>
             </NavLink>
           </SidebarTooltip>
@@ -592,12 +718,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* 点击外部关闭菜单的处理 */}
-      {(showUserMenu || showThemeMenu || showNotifications) && (
+      {(showUserMenu ||
+        showThemeMenu ||
+        showLanguageMenu ||
+        showNotifications) && (
         <div
           className="fixed inset-0 z-40"
           onClick={() => {
             setShowUserMenu(false)
             setShowThemeMenu(false)
+            setShowLanguageMenu(false)
             setShowNotifications(false)
           }}
         />

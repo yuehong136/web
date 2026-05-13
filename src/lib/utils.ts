@@ -1,5 +1,6 @@
-import { type ClassValue, clsx } from "clsx"
-import { twMerge } from "tailwind-merge"
+import { type ClassValue, clsx } from 'clsx'
+import { twMerge } from 'tailwind-merge'
+import i18n, { getCurrentLanguage } from '@/locales/i18n'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -7,7 +8,7 @@ export function cn(...inputs: ClassValue[]) {
 
 export function formatDate(date: Date | string | number): string {
   const d = new Date(date)
-  return new Intl.DateTimeFormat('zh-CN', {
+  return new Intl.DateTimeFormat(getCurrentLanguage(), {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
@@ -20,27 +21,28 @@ export function formatDate(date: Date | string | number): string {
 export function formatTimestamp(timestamp: number): string {
   // 处理毫秒级时间戳
   // 检查时间戳是否合理（应该在1970年之后，2100年之前）
-  if (timestamp < 0 || timestamp > 4102444800000) { // 2100年的时间戳
+  if (timestamp < 0 || timestamp > 4102444800000) {
+    // 2100年的时间戳
     console.warn('Invalid timestamp:', timestamp)
-    return '无效时间'
+    return i18n.t('common.invalidTime', '无效时间')
   }
-  
+
   const date = new Date(timestamp)
-  
+
   // 检查日期是否有效
   if (isNaN(date.getTime())) {
     console.warn('Invalid date from timestamp:', timestamp)
-    return '无效时间'
+    return i18n.t('common.invalidTime', '无效时间')
   }
-  
-  return new Intl.DateTimeFormat('zh-CN', {
+
+  return new Intl.DateTimeFormat(getCurrentLanguage(), {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
-    hour12: false // 使用24小时制
+    hour12: false, // 使用24小时制
   }).format(date)
 }
 
@@ -48,58 +50,63 @@ export function formatTimestamp(timestamp: number): string {
 export function formatTimestampCompact(timestamp: number): string {
   if (timestamp < 0 || timestamp > 4102444800000) {
     console.warn('Invalid timestamp:', timestamp)
-    return '无效时间'
+    return i18n.t('common.invalidTime', '无效时间')
   }
-  
+
   const date = new Date(timestamp)
-  
+
   if (isNaN(date.getTime())) {
     console.warn('Invalid date from timestamp:', timestamp)
-    return '无效时间'
+    return i18n.t('common.invalidTime', '无效时间')
   }
-  
+
+  const locale = getCurrentLanguage()
+
   const now = new Date()
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
   const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000)
   const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate())
-  
+
   // 如果是今天，只显示时分
   if (dateOnly.getTime() === today.getTime()) {
-    return new Intl.DateTimeFormat('zh-CN', {
+    return new Intl.DateTimeFormat(locale, {
       hour: '2-digit',
       minute: '2-digit',
-      hour12: false
+      hour12: false,
     }).format(date)
   }
-  
+
   // 如果是昨天，显示"昨天 时:分"
   if (dateOnly.getTime() === yesterday.getTime()) {
-    return `昨天 ${new Intl.DateTimeFormat('zh-CN', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false
-    }).format(date)}`
+    return `${i18n.t('common.yesterday', '昨天')} ${new Intl.DateTimeFormat(
+      locale,
+      {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      },
+    ).format(date)}`
   }
-  
+
   // 如果是今年，显示月-日 时:分
   if (date.getFullYear() === now.getFullYear()) {
-    return new Intl.DateTimeFormat('zh-CN', {
+    return new Intl.DateTimeFormat(locale, {
       month: '2-digit',
       day: '2-digit',
       hour: '2-digit',
       minute: '2-digit',
-      hour12: false
+      hour12: false,
     }).format(date)
   }
-  
+
   // 其他情况显示年-月-日 时:分
-  return new Intl.DateTimeFormat('zh-CN', {
+  return new Intl.DateTimeFormat(locale, {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
     hour: '2-digit',
     minute: '2-digit',
-    hour12: false
+    hour12: false,
   }).format(date)
 }
 
@@ -107,17 +114,17 @@ export function formatTimestampCompact(timestamp: number): string {
 export function formatTimestampDetailed(timestamp: number): string {
   if (timestamp < 0 || timestamp > 4102444800000) {
     console.warn('Invalid timestamp:', timestamp)
-    return '无效时间'
+    return i18n.t('common.invalidTime', '无效时间')
   }
-  
+
   const date = new Date(timestamp)
-  
+
   if (isNaN(date.getTime())) {
     console.warn('Invalid date from timestamp:', timestamp)
-    return '无效时间'
+    return i18n.t('common.invalidTime', '无效时间')
   }
-  
-  return new Intl.DateTimeFormat('zh-CN', {
+
+  return new Intl.DateTimeFormat(getCurrentLanguage(), {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
@@ -131,9 +138,9 @@ export function formatTimestampDetailed(timestamp: number): string {
 export function formatRelativeTime(timestamp: number): string {
   if (timestamp < 0 || timestamp > 4102444800000) {
     console.warn('Invalid timestamp:', timestamp)
-    return '无效时间'
+    return i18n.t('common.invalidTime', '无效时间')
   }
-  
+
   const now = Date.now()
   const diff = now - timestamp
   const minutes = Math.floor(diff / 60000)
@@ -141,13 +148,19 @@ export function formatRelativeTime(timestamp: number): string {
   const days = Math.floor(diff / 86400000)
 
   if (minutes < 1) {
-    return '刚刚'
+    return i18n.t('common.justNow', '刚刚')
   } else if (minutes < 60) {
-    return `${minutes}分钟前`
+    return new Intl.RelativeTimeFormat(getCurrentLanguage(), {
+      numeric: 'auto',
+    }).format(-minutes, 'minute')
   } else if (hours < 24) {
-    return `${hours}小时前`
+    return new Intl.RelativeTimeFormat(getCurrentLanguage(), {
+      numeric: 'auto',
+    }).format(-hours, 'hour')
   } else if (days < 30) {
-    return `${days}天前`
+    return new Intl.RelativeTimeFormat(getCurrentLanguage(), {
+      numeric: 'auto',
+    }).format(-days, 'day')
   } else {
     return formatTimestamp(timestamp)
   }
@@ -171,7 +184,7 @@ export function generateId(): string {
 
 export function debounce<T extends (...args: any[]) => any>(
   func: T,
-  wait: number
+  wait: number,
 ): (...args: Parameters<T>) => void {
   let timeout: NodeJS.Timeout | null = null
 
@@ -183,7 +196,7 @@ export function debounce<T extends (...args: any[]) => any>(
 
 export function throttle<T extends (...args: any[]) => any>(
   func: T,
-  limit: number
+  limit: number,
 ): (...args: Parameters<T>) => void {
   let inThrottle: boolean
 
@@ -203,17 +216,17 @@ export function copyToClipboard(text: string): Promise<void> {
       navigator.clipboard.writeText(text).then(resolve).catch(reject)
       return
     }
-    
+
     // 回退方案：使用 execCommand
     // 创建一个临时的 textarea 元素
     const textArea = document.createElement('textarea')
-    
+
     // 设置要复制的文本
     textArea.value = text
-    
+
     // 设置为只读，防止移动设备上弹出键盘
     textArea.setAttribute('readonly', '')
-    
+
     // 将元素放在屏幕外
     textArea.style.cssText = `
       position: fixed;
@@ -227,29 +240,29 @@ export function copyToClipboard(text: string): Promise<void> {
       box-shadow: none;
       background: transparent;
     `
-    
+
     // 获取当前活跃元素，用于确定插入位置
     // 在模态框（如 Sheet）中，将 textarea 插入到模态框内部，避免被 focus trap 干扰
     const activeElement = document.activeElement as HTMLElement
     const container = activeElement?.closest('[role="dialog"]') || document.body
-    
+
     container.appendChild(textArea)
-    
+
     // 选中文本
     textArea.focus()
     textArea.select()
     textArea.setSelectionRange(0, text.length)
-    
+
     let successful = false
     try {
       successful = document.execCommand('copy')
     } catch {
       // execCommand 失败，将返回 reject
     }
-    
+
     // 移除临时元素
     textArea.remove()
-    
+
     // 恢复焦点
     if (activeElement && typeof activeElement.focus === 'function') {
       try {
@@ -258,7 +271,7 @@ export function copyToClipboard(text: string): Promise<void> {
         // 忽略焦点恢复失败
       }
     }
-    
+
     if (successful) {
       resolve()
     } else {
@@ -280,25 +293,25 @@ export function truncateText(text: string, maxLength: number): string {
 export function getInitials(name: string): string {
   return name
     .split(' ')
-    .map(n => n[0])
+    .map((n) => n[0])
     .join('')
     .toUpperCase()
     .slice(0, 2)
 }
 
 export function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms))
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 /**
  * 将 File 对象转换为 Base64 字符串
- * 
+ *
  * 用于图片上传场景，将用户选择的图片文件转换为纯 Base64 编码字符串，
  * 去除 Data URL 前缀（如 "data:image/png;base64,"），便于通过 JSON 接口传输。
- * 
+ *
  * @param file - 要转换的 File 对象
  * @returns 返回纯 Base64 编码字符串的 Promise，如果文件为空则返回 undefined
- * 
+ *
  * @example
  * const file = inputElement.files[0];
  * const base64 = await fileToBase64(file);
@@ -311,17 +324,17 @@ export async function fileToBase64(file: File): Promise<string | undefined> {
 
   return new Promise<string>((resolve, reject) => {
     const reader = new FileReader()
-    
+
     reader.addEventListener('load', () => {
       // 去除 Data URL 前缀（如 "data:image/png;base64,"），只保留纯 Base64 内容
       const result = reader.result?.toString() ?? ''
       resolve(result.replace(/^data:[^;]+;base64,/, ''))
     })
-    
+
     reader.addEventListener('error', () => {
       reject(new Error('文件读取失败'))
     })
-    
+
     reader.readAsDataURL(file)
   })
 }

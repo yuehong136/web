@@ -1,4 +1,5 @@
 import { PageEmptyState, AppScene } from '@/components/patterns'
+import { useTranslation } from 'react-i18next'
 import { RuntimeChatMessageList } from '../components/runtime-chat'
 import {
   AgentRuntimeStatus,
@@ -32,14 +33,22 @@ export function ShareMessageList({
   onXCardAction,
   onDownloadAttachment,
 }: ShareMessageListProps) {
+  const { t } = useTranslation()
+
   if (!messages.length) {
     return (
-      <div className="flex min-h-[320px] items-center justify-center p-space-lg">
+      <div className="p-space-lg flex min-h-[320px] items-center justify-center">
         <PageEmptyState
           scene={AppScene.WORKSPACE}
           compact
-          title={title || 'Agent Share'}
-          description={prologue || '输入消息或提交参数后开始公共运行。'}
+          title={title || t('agent.share.agentShare', 'Agent Share')}
+          description={
+            prologue ||
+            t(
+              'agent.share.emptyDescription',
+              'Type a message or submit parameters to start.',
+            )
+          }
         />
       </div>
     )

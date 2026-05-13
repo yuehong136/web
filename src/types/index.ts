@@ -58,7 +58,7 @@ export enum StatusEnum {
   PROCESSING = 'processing',
   COMPLETED = 'completed',
   ERROR = 'error',
-  DELETED = 'deleted'
+  DELETED = 'deleted',
 }
 
 // 排序参数
@@ -302,7 +302,11 @@ export interface api__apps__conversation__CompletionRequest {
       parameters: Record<string, any>
     }
   }>
-  tool_choice?: 'auto' | 'none' | 'required' | { type: string; function: { name: string } }
+  tool_choice?:
+    | 'auto'
+    | 'none'
+    | 'required'
+    | { type: string; function: { name: string } }
 }
 
 // 通用完成请求
@@ -375,7 +379,12 @@ export interface HybridSearchMode {
 // ============ 知识库和文档管理相关类型 ============
 
 // 知识库状态
-export type KnowledgeBaseStatus = 'ready' | 'processing' | 'error' | 'empty' | 'training'
+export type KnowledgeBaseStatus =
+  | 'ready'
+  | 'processing'
+  | 'error'
+  | 'empty'
+  | 'training'
 
 // 知识库实体
 export interface KnowledgeBase {
@@ -473,7 +482,13 @@ export interface KnowledgeEdge {
 }
 
 // 文档状态
-export type DocumentStatus = 'uploading' | 'processing' | 'ready' | 'error' | 'pending' | 'failed'
+export type DocumentStatus =
+  | 'uploading'
+  | 'processing'
+  | 'ready'
+  | 'error'
+  | 'pending'
+  | 'failed'
 
 // 文档实体
 export interface Document {
@@ -597,7 +612,12 @@ export interface ChangeParserRequest {
 // ============ 文件上传和处理相关类型 ============
 
 // 文件上传状态
-export type FileUploadStatus = 'pending' | 'uploading' | 'processing' | 'completed' | 'failed'
+export type FileUploadStatus =
+  | 'pending'
+  | 'uploading'
+  | 'processing'
+  | 'completed'
+  | 'failed'
 
 // 文件实体
 export interface FileEntity {
@@ -781,7 +801,14 @@ export interface api__apps__chunk__HybridSearchMode {
 // ============ 工作流相关类型 ============
 
 // 工作流节点类型
-export type WorkflowNodeType = 'input' | 'output' | 'llm' | 'function' | 'condition' | 'loop' | 'script'
+export type WorkflowNodeType =
+  | 'input'
+  | 'output'
+  | 'llm'
+  | 'function'
+  | 'condition'
+  | 'loop'
+  | 'script'
 
 // 工作流节点
 export interface WorkflowNode {
@@ -1581,7 +1608,7 @@ export const enum SemanticElementType {
   TABLE = 'table',
   CODE = 'code',
   FORMULA = 'formula',
-  IMAGE = 'image'
+  IMAGE = 'image',
 }
 
 // 语义层请求
@@ -1595,7 +1622,7 @@ export interface SemanticLayerRequest {
 export const enum OwnerType {
   USER = 'user',
   TENANT = 'tenant',
-  SYSTEM = 'system'
+  SYSTEM = 'system',
 }
 
 // 按元素类型删除请求
@@ -1839,7 +1866,7 @@ export interface FormState<T = any> {
 export type Theme = 'light' | 'dark' | 'system'
 
 // 语言类型
-export type Language = 'zh-CN' | 'en-US'
+export type { ProductLocale as Language } from '@/locales/locale-registry'
 
 // 状态类型
 export type LoadingState = 'idle' | 'loading' | 'success' | 'error'
@@ -1871,7 +1898,13 @@ export type ID = string
 export type Timestamp = string
 
 // JSON类型定义
-export type JSONValue = string | number | boolean | null | JSONObject | JSONArray
+export type JSONValue =
+  | string
+  | number
+  | boolean
+  | null
+  | JSONObject
+  | JSONArray
 export type JSONObject = { [key: string]: JSONValue }
 export type JSONArray = JSONValue[]
 
@@ -1935,7 +1968,13 @@ export interface MetadataEntity {
 }
 
 // 完整实体类型（包含所有常用字段）
-export interface FullEntity extends UserEntity, StatusEntity, TaggableEntity, CategorizableEntity, MetadataEntity {
+export interface FullEntity
+  extends
+    UserEntity,
+    StatusEntity,
+    TaggableEntity,
+    CategorizableEntity,
+    MetadataEntity {
   name: string
   description?: string
 }
@@ -1951,7 +1990,7 @@ export const enum HttpStatus {
   NOT_FOUND = 404,
   CONFLICT = 409,
   UNPROCESSABLE_ENTITY = 422,
-  INTERNAL_SERVER_ERROR = 500
+  INTERNAL_SERVER_ERROR = 500,
 }
 
 // WebSocket消息类型
@@ -1995,7 +2034,7 @@ export interface SystemConfig {
 export type ChatRequest = api__apps__conversation__CompletionRequest
 export type CompletionRequest = api__apps__api__CompletionRequest
 
-// 搜索相关别名  
+// 搜索相关别名
 export type ChunkFusionSearchMode = api__apps__chunk__FusionSearchMode
 export type ChunkHybridSearchMode = api__apps__chunk__HybridSearchMode
 export type ConversationFusionSearchMode = FusionSearchMode
@@ -2006,7 +2045,7 @@ export type DialogHybridSearchMode = api__apps__dialog__HybridSearchMode
 // 文件操作别名
 export type FileRemoveRequest = api__apps__file__RemoveRequest
 export type FileRenameRequest = api__apps__file__RenameRequest
-export type DocumentRemoveAPIRequest = api__apps__document__RemoveRequest  
+export type DocumentRemoveAPIRequest = api__apps__document__RemoveRequest
 export type DocumentRenameAPIRequest = api__apps__document__RenameRequest
 
 // NL2SQL别名
@@ -2014,9 +2053,9 @@ export type NL2SQLReQueryRequest = api__apps__nl2sql__ReQueryRequest
 export type AskDataReQueryRequest = api__apps__askdata__ReQueryRequest
 
 // ============ 导出说明 ============
-// 
+//
 // 此文件包含了Multi-RAG系统的完整API类型定义，涵盖：
-// 
+//
 // 1. 基础API类型 - 通用响应、分页、错误处理
 // 2. 用户认证和授权 - 登录、注册、权限管理
 // 3. MCP服务器管理 - 创建、更新、导入导出MCP服务器

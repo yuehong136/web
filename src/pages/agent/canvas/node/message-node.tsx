@@ -1,6 +1,7 @@
 import { memo } from 'react'
 import type { NodeProps } from '@xyflow/react'
 import { MessageSquare } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import type { IMessageNode } from '../../types'
 import { LeftEndHandle } from './handle'
@@ -14,9 +15,8 @@ import { SummaryList } from './summary-list'
 import { VariableDisplay } from './variable-display'
 
 function InnerMessageNode({ id, data, selected }: NodeProps<IMessageNode>) {
-  const messages = Array.isArray(data.form?.content)
-    ? data.form.content
-    : []
+  const { t } = useTranslation()
+  const messages = Array.isArray(data.form?.content) ? data.form.content : []
   const { getLabel } = useGetVariableLabelOrTypeByValue({ nodeId: id })
 
   return (
@@ -33,15 +33,22 @@ function InnerMessageNode({ id, data, selected }: NodeProps<IMessageNode>) {
           id={id}
           name={data.name}
           label={data.label}
-          icon={<MessageSquare className="w-4 h-4" style={{ color: 'var(--color-components-canvas-icon-message)' }} />}
+          icon={
+            <MessageSquare
+              className="h-4 w-4"
+              style={{ color: 'var(--color-components-canvas-icon-message)' }}
+            />
+          }
         />
         <SummaryList
           items={messages}
-          empty={<LabelCard>暂无内容</LabelCard>}
+          empty={<LabelCard>{t('flow.noContent', 'No content')}</LabelCard>}
           renderItem={(message, index, { withDivider }) => (
             <section
               key={`${id}-message-${index}`}
-              className={cn(withDivider && 'border-t border-border-subtle pt-space-sm')}
+              className={cn(
+                withDivider && 'pt-space-sm border-t border-border-subtle',
+              )}
             >
               <LabelCard>
                 <VariableDisplay content={message} getLabel={getLabel} />

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { ListPageTemplate } from '@/components/page-templates'
 import {
   AppScene,
@@ -71,6 +72,7 @@ import { useRenameAgent } from './hooks/use-rename-agent'
 const DEFAULT_PAGE_SIZE = 12
 
 export default function AgentsPage() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const [page, setPage] = useState(1)
@@ -134,7 +136,7 @@ export default function AgentsPage() {
       dsl: buildInitialDsl(payload.kind),
     })
 
-    toast.success('骨架已创建')
+    toast.success(t('agents.created', '骨架已创建'))
     navigate(buildAgentCanvasPath(flow.id, payload.kind))
   }
 
@@ -166,7 +168,7 @@ export default function AgentsPage() {
       dsl,
     })
 
-    toast.success('JSON 已导入到新的 Agent 骨架')
+    toast.success(t('agents.imported', 'JSON 已导入到新的 Agent 骨架'))
     navigate(buildAgentCanvasPath(flow.id, kind))
   }
 
@@ -220,8 +222,11 @@ export default function AgentsPage() {
   return (
     <>
       <ListPageTemplate
-        title="Agent Center"
-        description="先把信息架构、路由、类型与运行入口搭好,再逐步增量替换每个节点表单和运行细节。"
+        title={t('agents.center', 'Agent Center')}
+        description={t(
+          'agents.centerDescription',
+          '先把信息架构、路由、类型与运行入口搭好，再逐步增量替换每个节点表单和运行细节。',
+        )}
         headerActions={
           <>
             <Button
@@ -229,26 +234,26 @@ export default function AgentsPage() {
               onClick={() => navigate('/agent-templates')}
             >
               <LayoutTemplate className="mr-2 h-4 w-4" />
-              模板
+              {t('agents.templatesButton', '模板')}
             </Button>
             <Button variant="outline" onClick={() => navigate('/agents/log')}>
               <ClipboardList className="mr-2 h-4 w-4" />
-              运维日志
+              {t('agents.opsLogs', '运维日志')}
             </Button>
             <Button variant="outline" onClick={() => setImportOpen(true)}>
               <FileInput className="mr-2 h-4 w-4" />
-              导入 JSON
+              {t('agents.importJson', '导入 JSON')}
             </Button>
             <Button onClick={() => setCreateOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
-              新建资产
+              {t('agents.createAsset', '新建资产')}
             </Button>
           </>
         }
         stats={
           <StatGrid>
             <MemoryStatsCard
-              title="总资产"
+              title={t('agents.totalAssets', '总资产')}
               value={stats.total}
               icon={Sparkles}
               color="info"
@@ -266,7 +271,7 @@ export default function AgentsPage() {
               color="warning"
             />
             <MemoryStatsCard
-              title="已扩展节点"
+              title={t('agents.expandedNodes', '已扩展节点')}
               value={stats.readyForBuild}
               icon={LayoutTemplate}
               color="purple"
@@ -276,7 +281,7 @@ export default function AgentsPage() {
         toolbarLeft={
           <Input
             type="search"
-            placeholder="搜索标题或资产意图"
+            placeholder={t('agents.searchPlaceholder', '搜索标题或资产意图')}
             value={keyword}
             onChange={(event) => {
               setPage(1)
@@ -291,7 +296,7 @@ export default function AgentsPage() {
               filters={[
                 {
                   key: 'kind',
-                  label: '类型',
+                  label: t('agents.type', '类型'),
                   options: [
                     { value: AgentCanvasType.AGENT, label: 'Agent' },
                     { value: AgentCanvasType.PIPELINE, label: 'Pipeline' },
@@ -303,9 +308,18 @@ export default function AgentsPage() {
             />
             <CustomSelect
               options={[
-                { value: 'detailed', label: '详细时间' },
-                { value: 'compact', label: '简洁时间' },
-                { value: 'relative', label: '相对时间' },
+                {
+                  value: 'detailed',
+                  label: t('agents.detailedTime', '详细时间'),
+                },
+                {
+                  value: 'compact',
+                  label: t('agents.compactTime', '简洁时间'),
+                },
+                {
+                  value: 'relative',
+                  label: t('agents.relativeTime', '相对时间'),
+                },
               ]}
               value={timeFormat}
               onChange={(value) => setTimeFormat(value as AgentTimeFormat)}
@@ -319,15 +333,27 @@ export default function AgentsPage() {
               className="flex h-9 items-center gap-1 px-2 text-xs"
             >
               <ArrowUpDown className="h-3.5 w-3.5" />
-              <span>{sortDesc ? '倒序' : '正序'}</span>
+              <span>
+                {sortDesc
+                  ? t('agents.descending', '倒序')
+                  : t('agents.ascending', '正序')}
+              </span>
             </Button>
             <ViewToggle
               value={viewMode}
               onChange={setViewMode}
               size="md"
               options={[
-                { value: 'grid', icon: <Grid />, label: '网格视图' },
-                { value: 'list', icon: <ListIcon />, label: '列表视图' },
+                {
+                  value: 'grid',
+                  icon: <Grid />,
+                  label: t('agents.gridView', '网格视图'),
+                },
+                {
+                  value: 'list',
+                  icon: <ListIcon />,
+                  label: t('agents.listView', '列表视图'),
+                },
               ]}
             />
           </>
@@ -348,15 +374,21 @@ export default function AgentsPage() {
         loadingState={
           <PageLoadingState
             scene={AppScene.CONSOLE}
-            title="正在加载 Agent 资产"
-            description="新的管理骨架正在整理列表、模板与导入入口。"
+            title={t('agents.loadingTitle', '正在加载 Agent 资产')}
+            description={t(
+              'agents.loadingDescription',
+              '新的管理骨架正在整理列表、模板与导入入口。',
+            )}
           />
         }
         errorState={
           <PageErrorState
             scene={AppScene.CONSOLE}
-            title="Agent 列表加载失败"
-            description="请检查后端 canvas 接口或稍后重试。"
+            title={t('agents.loadFailedTitle', 'Agent 列表加载失败')}
+            description={t(
+              'agents.loadFailedDescription',
+              '请检查后端 canvas 接口或稍后重试。',
+            )}
             onRetry={() => {
               void listQuery.refetch()
             }}
@@ -431,17 +463,23 @@ export default function AgentsPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>删除 Agent 资产</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t('agents.deleteTitle', '删除 Agent 资产')}
+            </AlertDialogTitle>
             <AlertDialogDescription>
               {flowToDelete
-                ? `将删除「${resolveLabel(flowToDelete)}」。当前阶段不保留回收站。`
-                : '删除后无法恢复。'}
+                ? t(
+                    'agents.deleteDescription',
+                    '将删除「{{name}}」。当前阶段不保留回收站。',
+                    { name: resolveLabel(flowToDelete) },
+                  )
+                : t('agents.deleteFallback', '删除后无法恢复。')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogCancel>{t('common.cancel', '取消')}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete}>
-              确认删除
+              {t('agents.confirmDelete', '确认删除')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

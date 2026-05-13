@@ -1,6 +1,7 @@
 import { memo, useMemo } from 'react'
 import type { NodeProps } from '@xyflow/react'
 import { GalleryVerticalEnd, Layers, BookOpen } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import type { IA2UINode } from '../../types'
 import { LeftEndHandle } from './handle'
 import NodeHeader from './node-header'
@@ -37,6 +38,7 @@ function parseCommands(commands: unknown) {
 }
 
 function InnerA2UINode({ id, data, selected }: NodeProps<IA2UINode>) {
+  const { t } = useTranslation()
   const surfaceIds = useMemo(() => {
     const parsedCommands = parseCommands(data.form?.commands)
     const ids = parsedCommands
@@ -68,12 +70,16 @@ function InnerA2UINode({ id, data, selected }: NodeProps<IA2UINode>) {
           id={id}
           name={data.name}
           label={data.label}
-          icon={<GalleryVerticalEnd className="h-icon-md w-icon-md text-text-secondary" />}
+          icon={
+            <GalleryVerticalEnd className="h-icon-md w-icon-md text-text-secondary" />
+          }
         />
-        <section className="flex flex-col gap-space-xs px-space-sm pb-space-xs">
-          <LabelCard className="flex items-center gap-space-sm">
+        <section className="gap-space-xs px-space-sm pb-space-xs flex flex-col">
+          <LabelCard className="gap-space-sm flex items-center">
             <BookOpen className="size-3.5 shrink-0 text-text-tertiary" />
-            <span className="text-text-tertiary">Catalog</span>
+            <span className="text-text-tertiary">
+              {t('flow.catalog', 'Catalog')}
+            </span>
             <span className="ml-auto truncate font-medium text-text-primary">
               {CATALOG_LABEL}
             </span>
@@ -82,22 +88,26 @@ function InnerA2UINode({ id, data, selected }: NodeProps<IA2UINode>) {
         <SummaryList
           items={surfaceIds}
           empty={
-            <LabelCard className="flex items-center gap-space-sm text-text-tertiary">
+            <LabelCard className="gap-space-sm flex items-center text-text-tertiary">
               <Layers className="size-3.5 shrink-0" />
-              <span>暂无 Surface</span>
+              <span>{t('flow.noSurface', 'No Surface')}</span>
             </LabelCard>
           }
           renderItem={(surfaceId, index, { withDivider }) => (
             <section
               key={`${id}-surface-${surfaceId}`}
-              className={cn(withDivider && 'border-t border-border-subtle pt-space-sm')}
+              className={cn(
+                withDivider && 'pt-space-sm border-t border-border-subtle',
+              )}
             >
-              <LabelCard className="flex items-center gap-space-sm">
+              <LabelCard className="gap-space-sm flex items-center">
                 <Layers className="size-3.5 shrink-0 text-text-tertiary" />
                 <span className="min-w-0 flex-1 truncate font-medium text-text-primary">
                   {surfaceId}
                 </span>
-                <span className="shrink-0 text-text-tertiary">#{index + 1}</span>
+                <span className="shrink-0 text-text-tertiary">
+                  #{index + 1}
+                </span>
               </LabelCard>
             </section>
           )}

@@ -1,4 +1,5 @@
 import type { FC } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   ArrowRight,
   Clock,
@@ -45,14 +46,6 @@ interface AgentListViewProps {
 }
 
 const GRID_COLS = 'grid-cols-[2fr_100px_100px_180px_60px]'
-
-const HEADER_COLUMNS = [
-  { key: 'name', label: '名称' },
-  { key: 'type', label: '类型' },
-  { key: 'nodes', label: '节点数' },
-  { key: 'update_time', label: '更新时间' },
-  { key: 'actions', label: '操作' },
-]
 
 const SKELETON_WIDTHS = ['w-14', 'w-10', 'w-28']
 
@@ -113,7 +106,11 @@ const AgentListRow: FC<{
   onRename?: () => void
   onViewLogs?: () => void
 }> = ({ flow, timeFormat, onOpen, onDelete, onRename, onViewLogs }) => {
-  const title = resolveLocalizedText(flow.title, '未命名智能体')
+  const { t } = useTranslation()
+  const title = resolveLocalizedText(
+    flow.title,
+    t('agent.unnamedAgent', '未命名 Agent'),
+  )
   const description = resolveLocalizedText(flow.description, '')
   const pipeline = isPipelineFlow(flow)
   const nodeCount = countFlowNodes(flow)
@@ -127,31 +124,31 @@ const AgentListRow: FC<{
       actions={[
         {
           key: 'open',
-          label: '打开编辑器',
+          label: t('agent.center.openEditor', '打开编辑器'),
           icon: <ArrowRight className="h-4 w-4" />,
           onClick: onOpen,
         },
         {
           key: 'rename',
-          label: '重命名',
+          label: t('agent.center.rename', '重命名'),
           icon: <FilePenLine className="h-4 w-4" />,
           onClick: onRename || (() => undefined),
         },
         {
           key: 'export-json',
-          label: '导出 JSON',
+          label: t('agent.center.exportJson', '导出 JSON'),
           icon: <Download className="h-4 w-4" />,
           onClick: () => downloadFlowJson(flow),
         },
         {
           key: 'view-logs',
-          label: '查看运行记录',
+          label: t('agent.center.viewLogs', '查看运行记录'),
           icon: <History className="h-4 w-4" />,
           onClick: onViewLogs || (() => undefined),
         },
         {
           key: 'delete',
-          label: '删除',
+          label: t('agent.center.delete', '删除'),
           icon: <Trash2 className="h-4 w-4" />,
           onClick: onDelete,
           danger: true,
@@ -168,7 +165,9 @@ const AgentListRow: FC<{
               : 'bg-state-success-subtle text-state-success',
           )}
         >
-          {pipeline ? 'Pipeline' : 'Agent'}
+          {pipeline
+            ? t('agent.pipeline', 'Pipeline')
+            : t('agent.agent', 'Agent')}
         </span>
       </div>
 
@@ -194,9 +193,18 @@ export const AgentListView: FC<AgentListViewProps> = ({
   onRename,
   onViewLogs,
 }) => {
+  const { t } = useTranslation()
+  const headerColumns = [
+    { key: 'name', label: t('agent.center.name', '名称') },
+    { key: 'type', label: t('agent.center.type', '类型') },
+    { key: 'nodes', label: t('agent.center.nodes', '节点数') },
+    { key: 'update_time', label: t('agent.center.updateTime', '更新时间') },
+    { key: 'actions', label: t('agent.center.actions', '操作') },
+  ]
+
   return (
     <ResourceListContainer>
-      <ResourceListHeader columns={HEADER_COLUMNS} gridCols={GRID_COLS} />
+      <ResourceListHeader columns={headerColumns} gridCols={GRID_COLS} />
 
       <ResourceListBody>
         {isLoading ? (

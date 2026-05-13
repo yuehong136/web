@@ -22,13 +22,13 @@ export default {
     submit: 'Submit',
     settings: 'Settings',
     more: 'More',
-    
+
     // Status
     loading: 'Loading...',
     saving: 'Saving...',
     deleting: 'Deleting...',
     processing: 'Processing...',
-    
+
     // Results
     success: 'Success',
     failed: 'Failed',
@@ -38,20 +38,24 @@ export default {
     saved: 'Saved',
     deleted: 'Deleted',
     saveFailed: 'Save failed',
-    
+
     // Confirmation
     confirmDelete: 'Confirm Delete',
-    confirmDeleteMessage: 'Are you sure you want to delete? This action cannot be undone.',
-    
+    confirmDeleteMessage:
+      'Are you sure you want to delete? This action cannot be undone.',
+
     // Empty states
     noData: 'No data',
     noResults: 'No results found',
     unassigned: 'Unassigned',
-    
+    invalidTime: 'Invalid time',
+    justNow: 'Just now',
+    yesterday: 'Yesterday',
+
     // Time
     createTime: 'Created',
     updateTime: 'Updated',
-    
+
     // Input hints
     pleaseInput: 'Please input',
     required: 'Required',
@@ -69,7 +73,8 @@ export default {
 
     // API error messages
     errors: {
-      network: 'Network connection failed. Please check your connection settings.',
+      network:
+        'Network connection failed. Please check your connection settings.',
       timeout: 'Request timed out. Please try again.',
       unauthorized: 'Your session has expired. Please log in again.',
       forbidden: 'You do not have permission to access this resource.',

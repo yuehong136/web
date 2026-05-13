@@ -12,6 +12,7 @@ npm run build:analyze # Generate dist/stats.html bundle treemap (do not deploy)
 npm run lint         # eslint src
 npm run lint:all     # eslint .
 npm run lint:typed   # Type-aware lint for Agent critical directories
+npm run lint:i18n-agent # Scan Agent/Layout diffs for newly hardcoded Chinese UI text
 npm run typecheck:agent-strict # Strict type check for Agent critical directories
 npm run build:themes # Regenerate src/themes/{light,dark}.css after tokens.ts changes
 npm run preview      # Preview production build
@@ -314,10 +315,31 @@ The agent share surface (`src/pages/agent/share/`, related runtime components) i
 
 ## i18n (MANDATORY)
 
-- All user-visible strings go through `react-i18next`. Locales live in `src/locales/{en-US,zh-CN}/`.
+- All user-visible strings go through `react-i18next`. Locales live in `src/locales/{en-US,zh-CN}/`; the language list is registered in `src/locales/locale-registry.ts`.
 - Per-feature namespaces (`common`, `datasource`, `flow`, …) — add a namespace, do not bloat `common`.
-- Default language is detected by `i18next-browser-languagedetector`; do not hardcode a `lng` in component code.
+- Product UI language has one source of truth: `localeRegistry` in `src/locales/locale-registry.ts`, deriving `ProductLocale`, `supportedLocales`, and init resources automatically; `src/locales/i18n.ts` owns runtime services such as `setProductLanguage`, `getCurrentLanguage`, and `applyRouteLocale`, synchronized into `useUIStore.language`. Do not maintain a second language state in components, pages, or business hooks.
+- Add languages only through `localeRegistry` metadata and resource entries; do not hardcode language lists in the sidebar, dialogs, or share/embed routes. `ensureLocaleLoaded()` is the reserved entry point for future dynamic import / i18next backend loading; current zh/en resources remain eagerly bundled.
+- Default language is detected by `i18next-browser-languagedetector`; do not hardcode a `lng` in component code. All language values entering i18n must pass through `normalizeLocale` and become `zh-CN` or `en-US`.
+- Do not casually enable `supportedLngs`, `cleanCode`, or `nonExplicitSupportedLngs` in `src/locales/i18n.ts`. This repo’s resource keys are `zh-CN` / `en-US`; the wrong combination makes i18next reject valid languages as unsupported, causing the sidebar to show English while `t()` still falls back to Chinese. If this config is changed, verify in the browser console that there is no `rejecting language code not found in supportedLngs`.
+- Sidebar language switching is a product-level local preference and must not call backend `/setting`. Chat/Agent response language, cross-language retrieval, and tool `language` parameters are separate business concepts and must not be coupled to the product UI language.
+- `/agent/share`, `/chats/widget`, and embed `set-locale` use `applyRouteLocale` for route-scoped temporary language only; they must not overwrite the user’s local product language preference.
+- Language changes must sync `document.documentElement.lang` and `dir`; date, relative-time, and number formatting should derive from `getCurrentLanguage()`, never hardcode `toLocaleString('zh-CN')`.
+- Agent/canvas protocol fields, operator ids, DSL fields, backend enums, and third-party language option values are not translated. Translate only UI labels/descriptions. User-defined node names are displayed as user data; only default names may use i18n fallback.
 - Pluralization and interpolation: use the i18next API (`{{ count }}`, `_plural` keys), never string concat.
+- After touching user-visible text in `src/components/layout`, `src/pages/agent`, or `src/pages/agents`, run at least `npm run lint:i18n-agent`; if the locale service changed, also run `npm run build`.
+
+### i18n Development Workflow (MANDATORY)
+
+Follow the same model used by modern AI products: product UI language is a global product capability, then each page wires its copy into that capability.
+
+1. During requirements/design, classify language into three buckets: product UI copy, user/model-generated content, and business language parameters. Only product UI copy goes into `src/locales`; user data, LLM output, DSL, and tool parameters are not translated.
+2. Choose the namespace before coding. Reuse `common` only for short shared terms; domain copy belongs in feature namespaces such as `agent`, `agents`, `flow`, or `datasource`. New domains get a new namespace; do not dump page copy into `common`.
+3. Use stable semantic key names, never Chinese text or full English sentences as keys. Reuse an existing key for the same concept; do not create near-duplicate keys for local wording.
+4. English and Chinese resources must land in the same PR. When adding a third language, fill every namespace first, then register it in `localeRegistry`. Fallback strings are only development safeguards, not a replacement for locale files. Any `i18next::translator: missingKey` warning means the locale files must be patched.
+5. Components only use `const { t } = useTranslation()` and `t('namespace.key', fallback)`. Do not branch on the current language, concatenate local strings, or keep local language state.
+6. Date, time, number, and relative-time formatting must use project helpers or `getCurrentLanguage()`. Do not scatter `zh-CN` / `en-US` constants in UI code.
+7. Public share/widget/embed routes, preview pages, and iframe surfaces must prove that temporary locale only affects the current route and never overwrites the main app sidebar language preference.
+8. Acceptance must cover: Chinese → English → Chinese live switching, persistence after refresh, public share/widget isolation, and no missingKey/unsupported-language warnings in the console.
 
 ## Performance
 

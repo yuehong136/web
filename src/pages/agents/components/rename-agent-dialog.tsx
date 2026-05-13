@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -27,6 +28,7 @@ export function RenameAgentDialog({
   onOpenChange,
   onConfirm,
 }: RenameAgentDialogProps) {
+  const { t } = useTranslation()
   const initialTitle = useMemo(
     () => resolveLocalizedText(flow?.title, ''),
     [flow?.title],
@@ -55,13 +57,13 @@ export function RenameAgentDialog({
       <DialogContent size="md">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>重命名 Agent</DialogTitle>
+            <DialogTitle>{t('agents.renameTitle', '重命名 Agent')}</DialogTitle>
           </DialogHeader>
           <div className="px-space-xl pb-space-lg">
             <Input
               value={title}
               onChange={(event) => setTitle(event.target.value)}
-              placeholder="输入 Agent 名称"
+              placeholder={t('agent.editor.namePlaceholder', '输入 Agent 名称')}
             />
           </div>
           <DialogFooter>
@@ -70,10 +72,10 @@ export function RenameAgentDialog({
               variant="outline"
               onClick={() => onOpenChange(false)}
             >
-              取消
+              {t('common.cancel', '取消')}
             </Button>
             <Button type="submit" disabled={disabled}>
-              确认
+              {t('common.confirm', '确认')}
             </Button>
           </DialogFooter>
         </form>

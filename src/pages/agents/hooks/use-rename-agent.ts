@@ -1,4 +1,5 @@
 import { toast } from '@/lib/toast'
+import i18n from '@/locales/i18n'
 import { useSetAgent } from '@/hooks/use-agent-request'
 import type { AgentFlow } from '@/types/agent'
 
@@ -29,7 +30,7 @@ export function useRenameAgent() {
         permission:
           typeof flow.permission === 'string' ? flow.permission : undefined,
       })
-      toast.success('已更新名称')
+      toast.success(i18n.t('agents.renameSuccess', '已更新名称'))
     },
   }
 }

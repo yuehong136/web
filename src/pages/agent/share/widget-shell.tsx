@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { MessageCircle, X } from 'lucide-react'
 
 export function WidgetLauncher() {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
 
   useEffect(() => {
@@ -34,9 +36,17 @@ export function WidgetLauncher() {
         size="icon-lg"
         className="rounded-radius-full shadow-elevation-high"
         onClick={toggle}
-        aria-label={open ? '关闭聊天浮窗' : '打开聊天浮窗'}
+        aria-label={
+          open
+            ? t('agent.share.closeWidget', '关闭聊天浮窗')
+            : t('agent.share.openWidget', '打开聊天浮窗')
+        }
       >
-        {open ? <X className="h-5 w-5" /> : <MessageCircle className="h-5 w-5" />}
+        {open ? (
+          <X className="h-5 w-5" />
+        ) : (
+          <MessageCircle className="h-5 w-5" />
+        )}
       </Button>
     </div>
   )
@@ -51,19 +61,22 @@ export function WidgetShell({
   children: ReactNode
   variant?: 'iframe' | 'panel'
 }) {
+  const { t } = useTranslation()
   return (
     <div
       className={cn(
-        'flex flex-col overflow-hidden rounded-radius-lg border border-border-default bg-surface-primary shadow-elevation-high',
+        'rounded-radius-lg bg-surface-primary shadow-elevation-high flex flex-col overflow-hidden border border-border-default',
         variant === 'iframe' ? 'h-screen w-screen' : 'h-full w-full',
       )}
     >
-      <header className="flex items-center justify-between border-b border-border-subtle px-space-base py-space-sm">
+      <header className="px-space-base py-space-sm flex items-center justify-between border-b border-border-subtle">
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold text-text-primary">
             {title}
           </p>
-          <p className="text-xs text-text-secondary">Agent Widget</p>
+          <p className="text-xs text-text-secondary">
+            {t('agent.share.agentWidget', 'Agent Widget')}
+          </p>
         </div>
       </header>
       {children}

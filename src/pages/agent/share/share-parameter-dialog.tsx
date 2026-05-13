@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button'
+import { useTranslation } from 'react-i18next'
 import {
   Dialog,
   DialogContent,
@@ -7,7 +8,11 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { ShareInputField } from './share-input-field'
-import type { ShareFormValue, ShareFormValues, getShareInputEntries } from './utils'
+import type {
+  ShareFormValue,
+  ShareFormValues,
+  getShareInputEntries,
+} from './utils'
 
 type ShareInputEntry = ReturnType<typeof getShareInputEntries>[number]
 
@@ -28,8 +33,8 @@ interface ShareParameterDialogProps {
 
 export function ShareParameterDialog({
   open,
-  title = '运行参数',
-  description = '填写 Begin inputs 后继续运行。',
+  title,
+  description,
   entries,
   values,
   error,
@@ -40,15 +45,24 @@ export function ShareParameterDialog({
   onUpload,
   onSubmit,
 }: ShareParameterDialogProps) {
+  const { t } = useTranslation()
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent size="xl" theme={theme} className="overflow-hidden">
         <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
+          <DialogTitle>
+            {title ?? t('agent.share.parameters', 'Run parameters')}
+          </DialogTitle>
+          <DialogDescription>
+            {description ??
+              t(
+                'agent.share.parameterDialogDescription',
+                'Fill Begin inputs to continue.',
+              )}
+          </DialogDescription>
         </DialogHeader>
 
-        <div className="max-h-[64vh] space-y-space-md overflow-auto px-space-lg pb-space-lg">
+        <div className="space-y-space-md px-space-lg pb-space-lg max-h-[64vh] overflow-auto">
           {entries.map(({ key, field }) => (
             <ShareInputField
               key={key}
@@ -62,21 +76,21 @@ export function ShareParameterDialog({
           ))}
 
           {error ? (
-            <div className="rounded-radius-md border border-status-error bg-surface-secondary p-space-sm text-sm text-status-error">
+            <div className="rounded-radius-md border-status-error bg-surface-secondary p-space-sm text-status-error border text-sm">
               {error}
             </div>
           ) : null}
 
-          <div className="flex justify-end gap-space-sm">
+          <div className="gap-space-sm flex justify-end">
             <Button
               variant="outline"
               onClick={() => onOpenChange(false)}
               disabled={disabled}
             >
-              取消
+              {t('common.cancel', '取消')}
             </Button>
             <Button onClick={onSubmit} disabled={disabled}>
-              确认
+              {t('common.confirm', '确认')}
             </Button>
           </div>
         </div>

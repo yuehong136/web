@@ -1,8 +1,15 @@
 import { Sender } from '@ant-design/x'
 import type { RefObject } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { ArrowUp, Paperclip, SlidersHorizontal, Square, Upload } from 'lucide-react'
+import {
+  ArrowUp,
+  Paperclip,
+  SlidersHorizontal,
+  Square,
+  Upload,
+} from 'lucide-react'
 import type { AgentCanvasUploadResult } from '@/types/agent'
 
 interface ShareComposerProps {
@@ -32,12 +39,13 @@ export function ShareComposer({
   onOpenParameters,
   onUploadFiles,
 }: ShareComposerProps) {
+  const { t } = useTranslation()
   const canSend = Boolean(value.trim() || files.length > 0)
 
   return (
-    <div className="shrink-0 bg-surface-primary px-space-lg py-space-base">
+    <div className="bg-surface-primary px-space-lg py-space-base shrink-0">
       <div className="mx-auto w-full max-w-4xl">
-        <div className="agent-share-composer overflow-hidden rounded-radius-xl border border-components-input-border bg-components-input-bg shadow-elevation-low transition-colors focus-within:border-components-input-border-focus">
+        <div className="agent-share-composer rounded-radius-xl shadow-elevation-low overflow-hidden border border-components-input-border bg-components-input-bg transition-colors focus-within:border-components-input-border-focus">
           <style>{`
             .agent-share-composer .ant-sender {
               background: transparent !important;
@@ -73,7 +81,7 @@ export function ShareComposer({
           `}</style>
 
           {files.length ? (
-            <div className="flex flex-wrap gap-space-xs border-b border-border-subtle px-space-base py-space-sm">
+            <div className="gap-space-xs px-space-base py-space-sm flex flex-wrap border-b border-border-subtle">
               {files.map((file) => (
                 <Badge key={file.id || file.name} variant="outline">
                   {file.name || file.filename || file.id}
@@ -86,7 +94,10 @@ export function ShareComposer({
             <Sender
               value={value}
               onChange={onChange}
-              placeholder="输入消息，按 Enter 发送"
+              placeholder={t(
+                'agent.share.messagePlaceholder',
+                '输入消息，按 Enter 发送',
+              )}
               loading={isRunning}
               disabled={uploading}
               onSubmit={onSubmit}
@@ -94,8 +105,8 @@ export function ShareComposer({
             />
           </div>
 
-          <div className="flex items-center justify-between gap-space-sm px-space-base pb-space-sm pt-space-xs">
-            <div className="flex items-center gap-space-xs">
+          <div className="gap-space-sm px-space-base pb-space-sm pt-space-xs flex items-center justify-between">
+            <div className="gap-space-xs flex items-center">
               {/* Hidden file input is required because the shared Input wrapper renders visible layout chrome. */}
               <input
                 ref={attachmentInputRef}
@@ -114,8 +125,16 @@ export function ShareComposer({
                 size="icon-sm"
                 onClick={() => attachmentInputRef.current?.click()}
                 disabled={isRunning || uploading}
-                title={uploading ? '上传中' : '上传附件'}
-                aria-label={uploading ? '上传中' : '上传附件'}
+                title={
+                  uploading
+                    ? t('agent.share.uploading', '上传中')
+                    : t('agent.share.uploadAttachment', '上传附件')
+                }
+                aria-label={
+                  uploading
+                    ? t('agent.share.uploading', '上传中')
+                    : t('agent.share.uploadAttachment', '上传附件')
+                }
               >
                 {uploading ? (
                   <Upload className="h-4 w-4" />
@@ -129,8 +148,8 @@ export function ShareComposer({
                   size="icon-sm"
                   onClick={onOpenParameters}
                   disabled={isRunning || uploading}
-                  title="运行参数"
-                  aria-label="运行参数"
+                  title={t('agent.share.parameters', '运行参数')}
+                  aria-label={t('agent.share.parameters', '运行参数')}
                 >
                   <SlidersHorizontal className="h-4 w-4" />
                 </Button>
@@ -142,8 +161,8 @@ export function ShareComposer({
                 variant="destructive"
                 size="icon-sm"
                 onClick={onStop}
-                title="停止输出"
-                aria-label="停止输出"
+                title={t('agent.share.stop', '停止输出')}
+                aria-label={t('agent.share.stop', '停止输出')}
               >
                 <Square className="h-4 w-4" />
               </Button>
@@ -152,8 +171,8 @@ export function ShareComposer({
                 size="icon-sm"
                 onClick={() => onSubmit(value)}
                 disabled={uploading || !canSend}
-                title="发送"
-                aria-label="发送"
+                title={t('agent.share.send', '发送')}
+                aria-label={t('agent.share.send', '发送')}
               >
                 <ArrowUp className="h-4 w-4" />
               </Button>

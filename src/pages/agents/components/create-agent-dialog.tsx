@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Dialog,
   DialogContent,
@@ -17,7 +18,10 @@ import { BrainCircuit, Route, Sparkles } from 'lucide-react'
 interface CreateAgentDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onConfirm: (payload: { title: string; kind: AgentCanvasType }) => Promise<void> | void
+  onConfirm: (payload: {
+    title: string
+    kind: AgentCanvasType
+  }) => Promise<void> | void
   defaultTitle?: string
   initialKind?: AgentCanvasType
   allowKindChange?: boolean
@@ -28,15 +32,19 @@ interface CreateAgentDialogProps {
 const kindCards = [
   {
     value: AgentCanvasType.AGENT,
-    title: '智能体流程',
-    description: '对话、工具调用、多轮任务编排',
+    titleKey: 'agent.center.createAgent',
+    title: 'Agent workflow',
+    descriptionKey: 'agent.center.createAgentDescription',
+    description: 'Chat, tool calling, and multi-turn orchestration',
     icon: BrainCircuit,
     tone: 'bg-state-info-subtle text-state-info',
   },
   {
     value: AgentCanvasType.PIPELINE,
+    titleKey: 'agent.center.createPipeline',
     title: 'Ingestion pipeline',
-    description: '文件解析、分块、抽取与索引',
+    descriptionKey: 'agent.center.createPipelineDescription',
+    description: 'File parsing, chunking, extraction, and indexing',
     icon: Route,
     tone: 'bg-state-success-subtle text-state-success',
   },
@@ -49,9 +57,10 @@ export function CreateAgentDialog({
   defaultTitle = '',
   initialKind = AgentCanvasType.AGENT,
   allowKindChange = true,
-  title = '创建新的 Agent 资产',
-  description = '选择类型并命名，开始构建 AI 工作流。',
+  title,
+  description,
 }: CreateAgentDialogProps) {
+  const { t } = useTranslation()
   const [name, setName] = useState(defaultTitle)
   const [kind, setKind] = useState(initialKind)
   const [submitting, setSubmitting] = useState(false)
@@ -82,22 +91,32 @@ export function CreateAgentDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent size="lg">
         <DialogHeader>
-          <div className="mb-space-sm flex h-11 w-11 items-center justify-center rounded-radius-xl bg-components-studio-surface">
+          <div className="mb-space-sm rounded-radius-xl flex h-11 w-11 items-center justify-center bg-components-studio-surface">
             <Sparkles className="h-5 w-5 text-text-accent" />
           </div>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
+          <DialogTitle>
+            {title ?? t('agent.center.createTitle', 'Create Agent asset')}
+          </DialogTitle>
+          <DialogDescription>
+            {description ??
+              t(
+                'agent.center.createDescription',
+                'Choose a type and name it to start building.',
+              )}
+          </DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col gap-space-lg px-space-lg pb-space-lg">
+        <div className="gap-space-lg px-space-lg pb-space-lg flex flex-col">
           {allowKindChange ? (
             <div className="space-y-space-sm">
-              <p className="text-sm font-medium text-text-primary">选择智能体类型</p>
+              <p className="text-sm font-medium text-text-primary">
+                {t('agent.center.chooseAgentType', '选择智能体类型')}
+              </p>
               <RadioGroup
                 value={kind}
                 onValueChange={(value) => setKind(value as AgentCanvasType)}
-                className="grid gap-space-sm md:grid-cols-2"
-                aria-label="选择智能体类型"
+                className="gap-space-sm grid md:grid-cols-2"
+                aria-label={t('agent.center.chooseAgentType', '选择智能体类型')}
               >
                 {kindCards.map((item) => {
                   const Icon = item.icon
@@ -107,15 +126,15 @@ export function CreateAgentDialog({
                     <label
                       key={item.value}
                       className={cn(
-                        'flex cursor-pointer items-center gap-space-base rounded-radius-lg border bg-transparent p-space-md transition-colors focus-within:outline-none focus-within:ring-1 focus-within:ring-state-focus',
+                        'gap-space-base rounded-radius-lg p-space-md flex cursor-pointer items-center border bg-transparent transition-colors focus-within:outline-none focus-within:ring-1 focus-within:ring-state-focus',
                         active
-                          ? 'border-state-focus bg-state-focus-subtle text-text-primary shadow-elevation-low'
-                          : 'border-border-default text-text-secondary hover:border-border-strong hover:bg-surface-secondary',
+                          ? 'shadow-elevation-low border-state-focus bg-state-focus-subtle text-text-primary'
+                          : 'hover:bg-surface-secondary border-border-default text-text-secondary hover:border-border-strong',
                       )}
                     >
                       <div
                         className={cn(
-                          'flex h-10 w-10 shrink-0 items-center justify-center rounded-radius-lg',
+                          'rounded-radius-lg flex h-10 w-10 shrink-0 items-center justify-center',
                           item.tone,
                         )}
                       >
@@ -123,10 +142,10 @@ export function CreateAgentDialog({
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="text-base font-semibold leading-tight text-text-primary">
-                          {item.title}
+                          {t(item.titleKey, item.title)}
                         </p>
                         <p className="mt-space-xs text-sm leading-snug text-text-secondary">
-                          {item.description}
+                          {t(item.descriptionKey, item.description)}
                         </p>
                       </div>
                       <RadioGroupItem value={item.value} className="shrink-0" />
@@ -138,24 +157,32 @@ export function CreateAgentDialog({
           ) : null}
 
           <div className="space-y-space-sm">
-            <label htmlFor="agent-title" className="text-sm font-medium text-text-primary">
-              名称
+            <label
+              htmlFor="agent-title"
+              className="text-sm font-medium text-text-primary"
+            >
+              {t('common.name', '名称')}
             </label>
             <Input
               id="agent-title"
               value={name}
               onChange={(event) => setName(event.target.value)}
-              placeholder="例如：客服助手、文档分析器"
+              placeholder={t(
+                'agent.center.namePlaceholder',
+                '例如：客服助手、文档分析器',
+              )}
             />
           </div>
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            取消
+            {t('common.cancel', '取消')}
           </Button>
           <Button onClick={handleConfirm} disabled={!name.trim() || submitting}>
-            {submitting ? '创建中...' : '继续'}
+            {submitting
+              ? t('agent.center.creating', '创建中...')
+              : t('agent.center.continue', '继续')}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -8,11 +8,16 @@ import { queryClient } from './lib/query-client'
 import { router } from './lib/router'
 import { buildAntdTheme } from './lib/antd-theme'
 import { initializeStores } from './stores'
+import i18n, {
+  applyDocumentLocale,
+  getCurrentLanguage,
+  normalizeLocale,
+} from './locales/i18n'
 
 function App() {
   // 检测暗色模式 - 使用 data-theme 属性
-  const [isDark, setIsDark] = React.useState(() => 
-    document.documentElement.getAttribute('data-theme') === 'dark'
+  const [isDark, setIsDark] = React.useState(
+    () => document.documentElement.getAttribute('data-theme') === 'dark',
   )
 
   // 初始化stores
@@ -20,18 +25,34 @@ function App() {
     initializeStores()
   }, [])
 
+  React.useEffect(() => {
+    applyDocumentLocale(getCurrentLanguage())
+
+    const handleLanguageChanged = (language: string) => {
+      applyDocumentLocale(normalizeLocale(language) ?? getCurrentLanguage())
+    }
+
+    i18n.on('languageChanged', handleLanguageChanged)
+    return () => {
+      i18n.off('languageChanged', handleLanguageChanged)
+    }
+  }, [])
+
   // 监听暗色模式变化
   React.useEffect(() => {
     const checkDarkMode = () => {
       setIsDark(document.documentElement.getAttribute('data-theme') === 'dark')
     }
-    
+
     // 初始检查
     checkDarkMode()
-    
+
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
-        if (mutation.attributeName === 'data-theme' || mutation.attributeName === 'class') {
+        if (
+          mutation.attributeName === 'data-theme' ||
+          mutation.attributeName === 'class'
+        ) {
           checkDarkMode()
         }
       })

@@ -7,6 +7,7 @@ import {
   type WheelEvent,
 } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -14,7 +15,7 @@ import {
   useUploadPublicCanvasFile,
 } from '@/hooks/use-agent-request'
 import { toast } from '@/lib/toast'
-import { changeLanguage } from '@/locales/i18n'
+import { applyRouteLocale } from '@/locales/i18n'
 import { ScopedTheme } from '@/themes'
 import type { AgentCanvasUploadResult } from '@/types/agent'
 import { MessageCircle, X } from 'lucide-react'
@@ -36,10 +37,7 @@ import {
   WidgetShell,
   useTransparentDocument,
 } from './widget-shell'
-import {
-  isEmptyShareValue,
-  runnerStatusFromState,
-} from './widget-utils'
+import { isEmptyShareValue, runnerStatusFromState } from './widget-utils'
 import {
   buildInitialShareValues,
   buildShareInputsPayload,
@@ -94,18 +92,19 @@ function WidgetStandalonePreview({
 }: {
   access: ReturnType<typeof parseAgentShareAccess>
 }) {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(true)
 
   return (
-    <div className="min-h-screen bg-surface-secondary">
+    <div className="bg-surface-secondary min-h-screen">
       {open ? (
-        <div className="fixed bottom-24 right-6 h-[500px] w-[380px] max-w-[calc(100vw-48px)] overflow-hidden rounded-radius-lg">
+        <div className="rounded-radius-lg fixed bottom-24 right-6 h-[500px] w-[380px] max-w-[calc(100vw-48px)] overflow-hidden">
           <Button
             variant="ghost"
             size="icon-sm"
-            className="absolute right-space-sm top-space-sm z-10"
+            className="right-space-sm top-space-sm absolute z-10"
             onClick={() => setOpen(false)}
-            aria-label="关闭聊天浮窗"
+            aria-label={t('agent.share.closeWidget', '关闭聊天浮窗')}
           >
             <X className="h-4 w-4" />
           </Button>
@@ -114,9 +113,9 @@ function WidgetStandalonePreview({
       ) : (
         <Button
           size="icon-lg"
-          className="fixed bottom-6 right-24 rounded-radius-full shadow-elevation-high"
+          className="rounded-radius-full shadow-elevation-high fixed bottom-6 right-24"
           onClick={() => setOpen(true)}
-          aria-label="打开聊天浮窗"
+          aria-label={t('agent.share.openWidget', '打开聊天浮窗')}
         >
           <MessageCircle className="h-5 w-5" />
         </Button>
@@ -132,16 +131,18 @@ function WidgetChatWindow({
   access: ReturnType<typeof parseAgentShareAccess>
   shellVariant?: 'iframe' | 'panel'
 }) {
+  const { t } = useTranslation()
   const shareQuery = useFetchExternalAgentInputs(
     access.agentId,
     access.betaToken,
   )
-  const { uploadCanvasFile, isLoading: uploading } =
-    useUploadPublicCanvasFile()
+  const { uploadCanvasFile, isLoading: uploading } = useUploadPublicCanvasFile()
   const attachmentInputRef = useRef<HTMLInputElement | null>(null)
   const [formValues, setFormValues] = useState<ShareFormValues>({})
   const [messageValue, setMessageValue] = useState('')
-  const [messageFiles, setMessageFiles] = useState<AgentCanvasUploadResult[]>([])
+  const [messageFiles, setMessageFiles] = useState<AgentCanvasUploadResult[]>(
+    [],
+  )
   const [formError, setFormError] = useState<string>()
   const [parameterDialogOpen, setParameterDialogOpen] = useState(false)
   const [beginReady, setBeginReady] = useState(false)
@@ -195,15 +196,11 @@ function WidgetChatWindow({
   )
 
   useEffect(() => {
-    if (access.locale === 'zh-CN' || access.locale === 'en-US') {
-      changeLanguage(access.locale)
-    }
+    applyRouteLocale(access.locale)
   }, [access.locale])
 
   useEffect(() => {
-    setFormValues(
-      buildInitialShareValues(shareQuery.data.inputs, access.data),
-    )
+    setFormValues(buildInitialShareValues(shareQuery.data.inputs, access.data))
   }, [access.data, shareQuery.data.inputs])
 
   useEffect(() => {
@@ -236,7 +233,7 @@ function WidgetChatWindow({
         query: '',
         values: formValues,
         files: [],
-        userMessage: '启动任务',
+        userMessage: t('agent.share.startTask', '启动任务'),
       })
     }
   }, [
@@ -248,6 +245,7 @@ function WidgetChatWindow({
     runner,
     shareQuery.data.title,
     taskStarted,
+    t,
   ])
 
   const validateInputs = useCallback(() => {
@@ -256,12 +254,16 @@ function WidgetChatWindow({
     })
 
     if (missing) {
-      setFormError(`请填写必填输入：${missing.field.label || missing.key}`)
+      setFormError(
+        t('agent.share.requiredInput', '请填写必填输入：{{name}}', {
+          name: missing.field.label || missing.key,
+        }),
+      )
       return false
     }
 
     return true
-  }, [formValues, inputEntries])
+  }, [formValues, inputEntries, t])
 
   const submitConversation = useCallback(
     async (content: string) => {
@@ -300,26 +302,29 @@ function WidgetChatWindow({
     [access.agentId, uploadCanvasFile],
   )
 
-  const handleSendMessage = useCallback(async (content = messageValue) => {
-    if (runner.isRunning || uploading) {
-      return
-    }
+  const handleSendMessage = useCallback(
+    async (content = messageValue) => {
+      if (runner.isRunning || uploading) {
+        return
+      }
 
-    if (inputEntries.length > 0 && !beginReady) {
-      setPendingMessage(content)
-      setParameterDialogOpen(true)
-      return
-    }
+      if (inputEntries.length > 0 && !beginReady) {
+        setPendingMessage(content)
+        setParameterDialogOpen(true)
+        return
+      }
 
-    await submitConversation(content)
-  }, [
-    beginReady,
-    inputEntries.length,
-    messageValue,
-    runner.isRunning,
-    submitConversation,
-    uploading,
-  ])
+      await submitConversation(content)
+    },
+    [
+      beginReady,
+      inputEntries.length,
+      messageValue,
+      runner.isRunning,
+      submitConversation,
+      uploading,
+    ],
+  )
 
   const handleParameterSubmit = useCallback(async () => {
     if (!validateInputs()) {
@@ -335,7 +340,9 @@ function WidgetChatWindow({
         query: '',
         values: formValues,
         files: [],
-        userMessage: formatShareInputSummary(formValues) || '启动任务',
+        userMessage:
+          formatShareInputSummary(formValues) ||
+          t('agent.share.startTask', '启动任务'),
       })
       return
     }
@@ -351,6 +358,7 @@ function WidgetChatWindow({
     pendingMessage,
     runner,
     submitConversation,
+    t,
     validateInputs,
   ])
 
@@ -377,17 +385,27 @@ function WidgetChatWindow({
           betaToken: access.betaToken,
         })
       } catch (error) {
-        toast.error(error instanceof Error ? error.message : '附件下载失败')
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : t('agent.share.attachmentDownloadFailed', '附件下载失败'),
+        )
       }
     },
-    [access.agentId, access.betaToken],
+    [access.agentId, access.betaToken, t],
   )
 
   if (!access.agentId || !access.betaToken) {
     return (
-      <WidgetShell title="Agent Widget" variant={shellVariant}>
-        <div className="p-space-lg text-sm text-status-error">
-          缺少 shared_id 或 auth，无法加载浮窗。
+      <WidgetShell
+        title={t('agent.share.agentWidget', 'Agent Widget')}
+        variant={shellVariant}
+      >
+        <div className="p-space-lg text-status-error text-sm">
+          {t(
+            'agent.share.widgetMissingAccess',
+            '缺少 shared_id 或 auth，无法加载浮窗。',
+          )}
         </div>
       </WidgetShell>
     )
@@ -395,7 +413,9 @@ function WidgetChatWindow({
 
   return (
     <WidgetShell
-      title={shareQuery.data.title || 'Agent Widget'}
+      title={
+        shareQuery.data.title || t('agent.share.agentWidget', 'Agent Widget')
+      }
       variant={shellVariant}
     >
       <div
@@ -404,16 +424,22 @@ function WidgetChatWindow({
       >
         {shareQuery.isLoading ? (
           <div className="p-space-lg text-sm text-text-secondary">
-            正在准备公共运行页...
+            {t('agent.share.loadingTitle', '正在准备公共运行页')}
           </div>
         ) : shareQuery.isError ? (
-          <div className="p-space-lg text-sm text-status-error">
-            分享信息加载失败，请检查 shared_id 与 auth。
+          <div className="p-space-lg text-status-error text-sm">
+            {t(
+              'agent.share.widgetLoadFailed',
+              '分享信息加载失败，请检查 shared_id 与 auth。',
+            )}
           </div>
         ) : isWebhookMode ? (
           <div className="p-space-lg">
-            <div className="rounded-radius-md border border-border-default bg-surface-secondary p-space-base text-sm text-text-secondary">
-              Webhook Agent 通过外部 HTTP 请求触发，不使用浮窗对话输入框。
+            <div className="rounded-radius-md bg-surface-secondary p-space-base border border-border-default text-sm text-text-secondary">
+              {t(
+                'agent.share.webhookWidgetHint',
+                'Webhook Agent 通过外部 HTTP 请求触发，不使用浮窗对话输入框。',
+              )}
             </div>
           </div>
         ) : (
@@ -431,16 +457,16 @@ function WidgetChatWindow({
       </div>
 
       {isWebhookMode ? null : isTaskMode ? (
-        <div className="border-t border-border-subtle p-space-base">
-          <div className="flex items-center justify-between gap-space-sm">
-            <Badge variant="purple">Task</Badge>
+        <div className="p-space-base border-t border-border-subtle">
+          <div className="gap-space-sm flex items-center justify-between">
+            <Badge variant="purple">{t('agent.share.task', 'Task')}</Badge>
             <Button
               size="sm"
               variant="outline"
               onClick={() => setParameterDialogOpen(true)}
               disabled={runner.isRunning || uploading}
             >
-              参数
+              {t('agent.share.parameters', '运行参数')}
             </Button>
           </div>
         </div>
@@ -466,11 +492,21 @@ function WidgetChatWindow({
 
       <ShareParameterDialog
         open={parameterDialogOpen}
-        title={isTaskMode ? '启动任务参数' : '会话参数'}
+        title={
+          isTaskMode
+            ? t('agent.share.taskParameters', '启动任务参数')
+            : t('agent.share.conversationParameters', '会话参数')
+        }
         description={
           isTaskMode
-            ? '填写 Begin inputs 后立即启动任务。'
-            : '填写 Begin inputs 后继续当前会话。'
+            ? t(
+                'agent.share.taskParametersDescription',
+                '填写 Begin inputs 后立即启动任务。',
+              )
+            : t(
+                'agent.share.conversationParametersDescription',
+                '填写 Begin inputs 后继续当前会话。',
+              )
         }
         entries={inputEntries}
         values={formValues}
