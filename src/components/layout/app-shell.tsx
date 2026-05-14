@@ -10,7 +10,7 @@ export const AppShell: React.FC<React.PropsWithChildren> = ({ children }) => {
   const [mobileSidebarOpen, setMobileSidebarOpen] = React.useState(false)
 
   return (
-    <div className="p-space-sm lg:p-space-base h-screen overflow-hidden bg-components-app-shell-bg">
+    <div className="p-space-sm lg:p-space-base h-dvh overflow-hidden bg-components-app-shell-bg">
       <div
         className="rounded-radius-xl flex h-full gap-0 overflow-hidden border border-components-main-workbench-border"
         style={{ boxShadow: 'var(--color-components-main-workbench-shadow)' }}

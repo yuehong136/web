@@ -9,9 +9,19 @@ interface PageHeaderProps extends Omit<
   description?: React.ReactNode
   actions?: React.ReactNode
   breadcrumb?: React.ReactNode
+  /**
+   * Content rendered to the left of the title block (avatar, icon, back button).
+   * Vertically centered with the title group.
+   */
+  leading?: React.ReactNode
   compact?: boolean
   align?: 'start' | 'center'
   surface?: 'default' | 'elevated'
+  /**
+   * Title font size. Defaults to `'lg'` (text-2xl). Use `'md'` (text-xl) for
+   * dense detail headers (e.g. resource detail with avatar + stats).
+   */
+  titleSize?: 'md' | 'lg'
 }
 
 export const PageHeader: React.FC<PageHeaderProps> = ({
@@ -19,9 +29,11 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   description,
   actions,
   breadcrumb,
+  leading,
   compact = false,
   align = 'start',
   surface = 'default',
+  titleSize = 'lg',
   className,
   ...props
 }) => {
@@ -43,21 +55,33 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
           align === 'center' ? 'items-center' : 'items-start',
         )}
       >
-        <div className="min-w-0 flex-1">
-          {breadcrumb ? (
-            <div className={cn(compact ? 'mb-space-xs' : 'mb-space-sm')}>
-              {breadcrumb}
+        <div className="gap-space-base flex min-w-0 flex-1 items-center">
+          {leading ? (
+            <div className="gap-space-sm flex shrink-0 items-center">
+              {leading}
             </div>
           ) : null}
-          <div className="gap-space-xs flex flex-col">
-            <h1 className="text-2xl font-semibold text-components-page-header-title">
-              {title}
-            </h1>
-            {description ? (
-              <p className="max-w-3xl text-sm text-components-page-header-description">
-                {description}
-              </p>
+          <div className="min-w-0 flex-1">
+            {breadcrumb ? (
+              <div className={cn(compact ? 'mb-space-xs' : 'mb-space-sm')}>
+                {breadcrumb}
+              </div>
             ) : null}
+            <div className="gap-space-xs flex flex-col">
+              <h1
+                className={cn(
+                  'font-semibold text-components-page-header-title',
+                  titleSize === 'md' ? 'text-xl' : 'text-2xl',
+                )}
+              >
+                {title}
+              </h1>
+              {description ? (
+                <p className="max-w-3xl text-sm text-components-page-header-description">
+                  {description}
+                </p>
+              ) : null}
+            </div>
           </div>
         </div>
 

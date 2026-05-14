@@ -9,7 +9,7 @@ export const MainSurface: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
   return (
     <div
       className={cn(
-        'flex min-h-0 flex-1 flex-col overflow-hidden bg-components-main-workbench-surface',
+        'flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-components-main-workbench-surface',
         className,
       )}
       {...props}

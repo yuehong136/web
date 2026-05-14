@@ -1,7 +1,22 @@
 import React from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Outlet, useParams, useNavigate, Link, useLocation, useMatch } from 'react-router-dom'
-import { ArrowLeft, FileText, Search, Settings, Database, House, ScrollText, Network } from 'lucide-react'
+import {
+  Outlet,
+  useParams,
+  useNavigate,
+  useLocation,
+  useMatch,
+} from 'react-router-dom'
+import {
+  ArrowLeft,
+  FileText,
+  Search,
+  Settings,
+  Database,
+  House,
+  ScrollText,
+  Network,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Loading } from '@/components/ui/loading'
@@ -10,6 +25,12 @@ import { ROUTES } from '@/constants'
 import { knowledgeAPI } from '@/api/knowledge'
 import { getAvatarGradient } from '@/components/ui/resource-list'
 import { cn } from '@/lib/utils'
+import { ConsolePageTemplate } from '@/components/page-templates'
+import {
+  PageHeader,
+  SettingsRail,
+  type SettingsRailGroup,
+} from '@/components/patterns'
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -18,12 +39,49 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
+import type { KnowledgeBase } from '@/types/api'
+
+const KnowledgeAvatar: React.FC<{ kb: KnowledgeBase }> = ({ kb }) => {
+  if (kb.avatar) {
+    return (
+      <Avatar className="h-10 w-10">
+        <AvatarImage src={kb.avatar} alt={kb.name} />
+        <AvatarFallback>
+          <Database className="h-5 w-5" />
+        </AvatarFallback>
+      </Avatar>
+    )
+  }
+  return (
+    <div
+      aria-hidden
+      className={cn(
+        'flex h-10 w-10 items-center justify-center rounded-xl',
+        'bg-gradient-to-br shadow-sm',
+        getAvatarGradient(kb.name),
+      )}
+    >
+      <span className="text-lg font-semibold text-text-inverted">
+        {kb.name.charAt(0).toUpperCase()}
+      </span>
+    </div>
+  )
+}
+
+const KnowledgeStats: React.FC<{ kb: KnowledgeBase }> = ({ kb }) => (
+  <div className="gap-space-base flex items-center text-sm text-text-secondary">
+    <span>{kb.doc_num || 0} 个文档</span>
+    <span>{kb.chunk_num || 0} 个块</span>
+    <span>{(kb.token_num || 0).toLocaleString()} Token</span>
+  </div>
+)
 
 const KnowledgeDetailLayout: React.FC = () => {
   const { id, docId } = useParams<{ id: string; docId?: string }>()
   const navigate = useNavigate()
   const location = useLocation()
-  const { currentKnowledgeBase, isLoading, getKnowledgeBase } = useKnowledgeStore()
+  const { currentKnowledgeBase, isLoading, getKnowledgeBase } =
+    useKnowledgeStore()
   const chunksMatch = useMatch('/knowledge/:id/documents/:docId/chunks')
   const isChunksRoute = Boolean(chunksMatch)
 
@@ -33,67 +91,75 @@ const KnowledgeDetailLayout: React.FC = () => {
     }
   }, [id, getKnowledgeBase])
 
-  const sidebarItems = [
-    {
-      key: 'documents',
-      label: '文档',
-      icon: FileText,
-      path: `/knowledge/${id}/documents`,
-    },
-    {
-      key: 'graph',
-      label: '知识图谱',
-      icon: Network,
-      path: `/knowledge/${id}/graph`,
-    },
-    {
-      key: 'search',
-      label: '检索测试',
-      icon: Search,
-      path: `/knowledge/${id}/search`,
-    },
-    {
-      key: 'logs',
-      label: '日志',
-      icon: ScrollText,
-      path: `/knowledge/${id}/logs`,
-    },
-    {
-      key: 'settings',
-      label: '设置',
-      icon: Settings,
-      path: `/knowledge/${id}/settings`,
-    },
-  ]
+  const navGroups: SettingsRailGroup[] = React.useMemo(() => {
+    if (!id) return []
+    const base = `/knowledge/${id}`
+    const startsWith = (prefix: string) => (pathname: string) =>
+      pathname === prefix || pathname.startsWith(`${prefix}/`)
+    return [
+      {
+        items: [
+          {
+            title: '文档',
+            href: `${base}/documents`,
+            icon: FileText,
+            matcher: startsWith(`${base}/documents`),
+          },
+          {
+            title: '知识图谱',
+            href: `${base}/graph`,
+            icon: Network,
+            matcher: startsWith(`${base}/graph`),
+          },
+          {
+            title: '检索测试',
+            href: `${base}/search`,
+            icon: Search,
+            matcher: startsWith(`${base}/search`),
+          },
+          {
+            title: '日志',
+            href: `${base}/logs`,
+            icon: ScrollText,
+            matcher: startsWith(`${base}/logs`),
+          },
+          {
+            title: '设置',
+            href: `${base}/settings`,
+            icon: Settings,
+            matcher: startsWith(`${base}/settings`),
+          },
+        ],
+      },
+    ]
+  }, [id])
 
-  const currentPath = location.pathname
-  
   const { data: currentDocument } = useQuery({
     queryKey: ['documentDetail', docId],
     enabled: Boolean(isChunksRoute && docId),
-    queryFn: async () => {
-      return knowledgeAPI.document.get(docId!)
-    },
+    queryFn: async () => knowledgeAPI.document.get(docId!),
   })
 
   if (isLoading || !currentKnowledgeBase) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="flex h-64 items-center justify-center">
         <Loading variant="spinner" size="lg" />
       </div>
     )
   }
 
-  return (
-    <div className="h-full flex flex-col">
-      {/* 头部导航 */}
-      {isChunksRoute ? (
-        <header className="flex items-center bg-card border-b border-border px-5 py-4 shrink-0">
+  if (isChunksRoute) {
+    return (
+      <div className="flex h-full min-h-0 flex-col bg-components-console-bg">
+        <header
+          aria-label="切片导航"
+          className="px-space-lg py-space-md flex shrink-0 items-center border-b border-border-default bg-background-surface"
+        >
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
                 <BreadcrumbLink onClick={() => navigate(ROUTES.HOME)}>
-                  <House className="w-4 h-4" />
+                  <House className="h-4 w-4" />
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
@@ -104,7 +170,9 @@ const KnowledgeDetailLayout: React.FC = () => {
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbLink onClick={() => navigate(`/knowledge/${id}/documents`)}>
+                <BreadcrumbLink
+                  onClick={() => navigate(`/knowledge/${id}/documents`)}
+                >
                   {currentKnowledgeBase.name}
                 </BreadcrumbLink>
               </BreadcrumbItem>
@@ -124,125 +192,50 @@ const KnowledgeDetailLayout: React.FC = () => {
             </BreadcrumbList>
           </Breadcrumb>
         </header>
-      ) : (
-        <div 
-          className="px-6 py-4"
-          style={{
-            backgroundColor: 'var(--color-background-surface)',
-            borderBottom: '1px solid var(--color-border-default)'
-          }}
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
+        <div className="min-h-0 flex-1 overflow-hidden">
+          <Outlet />
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <ConsolePageTemplate
+      bodyOverflow="hidden"
+      rail={
+        <SettingsRail
+          navAriaLabel="知识库导航"
+          groups={navGroups}
+          currentPath={location.pathname}
+        />
+      }
+      header={
+        <PageHeader
+          align="center"
+          compact
+          surface="elevated"
+          titleSize="md"
+          leading={
+            <>
               <Button
                 variant="ghost"
                 size="icon-sm"
+                aria-label="返回知识库列表"
                 onClick={() => navigate(ROUTES.KNOWLEDGE)}
               >
                 <ArrowLeft className="h-4 w-4" />
               </Button>
-              <div className="flex items-center space-x-3">
-                {currentKnowledgeBase.avatar ? (
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage src={currentKnowledgeBase.avatar} alt={currentKnowledgeBase.name} />
-                    <AvatarFallback><Database className="h-5 w-5" /></AvatarFallback>
-                  </Avatar>
-                ) : (
-                  <div
-                    className={cn(
-                      'w-10 h-10 rounded-xl flex items-center justify-center',
-                      'bg-gradient-to-br shadow-sm',
-                      getAvatarGradient(currentKnowledgeBase.name)
-                    )}
-                  >
-                    <span className="text-white font-semibold text-lg">
-                      {currentKnowledgeBase.name.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                )}
-                <div>
-                  <h1 
-                    className="text-xl font-semibold"
-                    style={{ color: 'var(--color-text-primary)' }}
-                  >
-                    {currentKnowledgeBase.name}
-                  </h1>
-                  <p 
-                    className="text-sm"
-                    style={{ color: 'var(--color-text-secondary)' }}
-                  >
-                    {currentKnowledgeBase.description || '暂无描述'}
-                  </p>
-                </div>
-              </div>
-            </div>
-            
-            <div 
-              className="flex items-center space-x-3 text-sm"
-              style={{ color: 'var(--color-text-secondary)' }}
-            >
-              <span>{currentKnowledgeBase.doc_num || 0} 个文档</span>
-              <span>{currentKnowledgeBase.chunk_num || 0} 个块</span>
-              <span>{(currentKnowledgeBase.token_num || 0).toLocaleString()} Token</span>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="flex flex-1 overflow-hidden">
-        {/* 侧边栏 */}
-        {!isChunksRoute && (
-          <div 
-            className="w-64 p-4"
-            style={{
-              backgroundColor: 'var(--color-components-sidebar-bg)',
-              borderRight: '1px solid var(--color-components-sidebar-border)'
-            }}
-          >
-            <nav className="space-y-1">
-              {sidebarItems.map((item) => {
-                const Icon = item.icon
-                const isActive = currentPath === item.path || currentPath.startsWith(item.path + '/')
-                
-                return (
-                  <Link
-                    key={item.key}
-                    to={item.path}
-                    className="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
-                    style={{
-                      backgroundColor: isActive 
-                        ? 'var(--color-components-sidebar-item-bg-active)' 
-                        : 'transparent',
-                      color: isActive 
-                        ? 'var(--color-components-sidebar-item-text-active)' 
-                        : 'var(--color-components-sidebar-item-text)'
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!isActive) {
-                        e.currentTarget.style.backgroundColor = 'var(--color-components-sidebar-item-bg-hover)'
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!isActive) {
-                        e.currentTarget.style.backgroundColor = 'transparent'
-                      }
-                    }}
-                  >
-                    <Icon className="h-4 w-4" />
-                    <span>{item.label}</span>
-                  </Link>
-                )
-              })}
-            </nav>
-          </div>
-        )}
-
-        {/* 主内容区 */}
-        <div className="flex-1 overflow-auto">
-          <Outlet />
-        </div>
-      </div>
-    </div>
+              <KnowledgeAvatar kb={currentKnowledgeBase} />
+            </>
+          }
+          title={currentKnowledgeBase.name}
+          description={currentKnowledgeBase.description || '暂无描述'}
+          actions={<KnowledgeStats kb={currentKnowledgeBase} />}
+        />
+      }
+    >
+      <Outlet />
+    </ConsolePageTemplate>
   )
 }
 

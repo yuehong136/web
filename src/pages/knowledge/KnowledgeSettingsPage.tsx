@@ -4,19 +4,29 @@ import React from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Save, Settings2 } from 'lucide-react'
+import { Save } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Form } from '@/components/ui/form'
-import { Divider } from '@/components/ui/divider'
-import { SelectWithSearch, type SelectOptionGroup } from '@/components/ui/select-with-search'
+import {
+  SelectWithSearch,
+  type SelectOptionGroup,
+} from '@/components/ui/select-with-search'
 import { IconFontFill } from '@/components/ui/icon-font'
 import { useKnowledgeStore } from '@/stores/knowledge'
 import { useUIStore } from '@/stores/ui'
-import { useModelStore, IconMap, LLMFactory, isLLMModelEnabled } from '@/stores/model'
+import {
+  useModelStore,
+  IconMap,
+  LLMFactory,
+  isLLMModelEnabled,
+} from '@/stores/model'
 import { useIsDarkTheme } from '@/themes'
 import { ROUTES } from '@/constants'
 import type { KnowledgeBase, UpdateKBRequest } from '@/types/api'
-import { DocumentParserType, DOCUMENT_PARSER_TYPE_LABELS, DOCUMENT_PARSER_TYPE_DESCRIPTIONS } from '@/types/document-parser'
+import {
+  DocumentParserType,
+  DOCUMENT_PARSER_TYPE_LABELS,
+  DOCUMENT_PARSER_TYPE_DESCRIPTIONS,
+} from '@/types/document-parser'
 import {
   knowledgeSettingsFormSchema,
   getDefaultFormValues,
@@ -24,6 +34,7 @@ import {
   type KnowledgeSettingsFormData,
 } from '@/types/knowledge-form'
 import {
+  Form,
   FormField,
   FormItem,
   FormLabel,
@@ -41,6 +52,9 @@ import { LinkDataSource } from './settings/LinkDataSource'
 import ParserVisualizationPanel from './settings/ParserVisualizationPanel'
 import { ManageMetadataModal } from './metadata/ManageMetadataModal'
 import { MetadataManageType } from '@/types/api'
+import { PageEmptyState, PageHeader, SectionCard } from '@/components/patterns'
+
+const KB_SETTINGS_FORM_ID = 'kb-settings-form'
 
 type KnowledgeBaseWithPipeline = KnowledgeBase & {
   pipeline_id?: string | null
@@ -64,23 +78,25 @@ const getIconName = (provider: string, isDark: boolean): string => {
 }
 
 // 构建带图标的选项 Label（与模型提供商页面保持一致）
-const ModelOptionLabel: React.FC<{ provider: string; modelName: string }> = ({ 
-  provider, 
-  modelName
+const ModelOptionLabel: React.FC<{ provider: string; modelName: string }> = ({
+  provider,
+  modelName,
 }) => {
   const isDark = useIsDarkTheme()
   const iconName = getIconName(provider, isDark)
-  
+
   return (
-    <div className="flex items-center gap-2 min-w-0 w-full">
-      <IconFontFill name={iconName} className="w-5 h-5 shrink-0" />
+    <div className="flex w-full min-w-0 items-center gap-2">
+      <IconFontFill name={iconName} className="h-5 w-5 shrink-0" />
       <span className="truncate">{modelName}</span>
     </div>
   )
 }
 
 // 解析器类型选项
-const parserTypeOptions: SelectOptionGroup[] = Object.values(DocumentParserType).map((type) => ({
+const parserTypeOptions: SelectOptionGroup[] = Object.values(
+  DocumentParserType,
+).map((type) => ({
   label: DOCUMENT_PARSER_TYPE_LABELS[type],
   value: type,
 }))
@@ -113,13 +129,6 @@ const buildKnowledgeSettingsFormValues = (
   }
 
   return knowledgeSettingsFormSchema.parse(rawValues)
-}
-
-// 区块标题组件
-function SectionTitle({ children }: { children: React.ReactNode }) {
-  return (
-    <h3 className="text-base font-medium text-text-primary">{children}</h3>
-  )
 }
 
 const KnowledgeSettingsPage: React.FC = () => {
@@ -190,8 +199,10 @@ const KnowledgeSettingsPage: React.FC = () => {
     const values: Map<string, string> = new Map()
     Object.entries(myLLMs).forEach(([providerName, providerData]) => {
       providerData.llm
-        .filter(model => model.type === 'embedding' && isLLMModelEnabled(model))
-        .forEach(model => {
+        .filter(
+          (model) => model.type === 'embedding' && isLLMModelEnabled(model),
+        )
+        .forEach((model) => {
           const fullValue = `${model.name}@${providerName}`
           // 存储多种可能的匹配格式
           values.set(fullValue.toLowerCase(), fullValue)
@@ -202,47 +213,56 @@ const KnowledgeSettingsPage: React.FC = () => {
   }, [myLLMs])
 
   // 规范化嵌入模型 ID（匹配 API 返回格式与选择器 value 格式）
-  const normalizeEmbdId = React.useCallback((value: string): string => {
-    if (!value) return ''
-    const lowerValue = value.toLowerCase()
-    // 直接匹配
-    if (allEmbeddingModelValues.has(lowerValue)) {
-      return allEmbeddingModelValues.get(lowerValue)!
-    }
-    // 尝试匹配（忽略大小写和连字符变化）
-    for (const [key, fullValue] of allEmbeddingModelValues) {
-      if (key.replace(/-/g, '').includes(lowerValue.replace(/-/g, '').replace(/@.*$/, ''))) {
-        return fullValue
+  const normalizeEmbdId = React.useCallback(
+    (value: string): string => {
+      if (!value) return ''
+      const lowerValue = value.toLowerCase()
+      // 直接匹配
+      if (allEmbeddingModelValues.has(lowerValue)) {
+        return allEmbeddingModelValues.get(lowerValue)!
       }
-    }
-    return value
-  }, [allEmbeddingModelValues])
+      // 尝试匹配（忽略大小写和连字符变化）
+      for (const [key, fullValue] of allEmbeddingModelValues) {
+        if (
+          key
+            .replace(/-/g, '')
+            .includes(lowerValue.replace(/-/g, '').replace(/@.*$/, ''))
+        ) {
+          return fullValue
+        }
+      }
+      return value
+    },
+    [allEmbeddingModelValues],
+  )
 
   // 初始化表单数据
   React.useEffect(() => {
     if (currentKnowledgeBase) {
-      form.reset(buildKnowledgeSettingsFormValues(currentKnowledgeBase, normalizeEmbdId))
+      form.reset(
+        buildKnowledgeSettingsFormValues(currentKnowledgeBase, normalizeEmbdId),
+      )
     }
   }, [currentKnowledgeBase, form, normalizeEmbdId])
 
   // 嵌入模型选项（带厂商图标），复用与模型提供商页面相同的逻辑
   const embeddingModelOptions: SelectOptionGroup[] = React.useMemo(() => {
     const groups: SelectOptionGroup[] = []
-    
+
     Object.entries(myLLMs).forEach(([providerName, providerData]) => {
       // 过滤出 embedding 类型的模型
       const embeddingModels = providerData.llm.filter(
-        model => model.type === 'embedding' && isLLMModelEnabled(model)
+        (model) => model.type === 'embedding' && isLLMModelEnabled(model),
       )
-      
+
       if (embeddingModels.length > 0) {
         groups.push({
           label: providerName,
           options: embeddingModels.map((model) => ({
             label: (
-              <ModelOptionLabel 
-                provider={providerName} 
-                modelName={model.name} 
+              <ModelOptionLabel
+                provider={providerName}
+                modelName={model.name}
               />
             ),
             // 使用 name@provider 格式作为 value，与系统设置页面保持一致
@@ -251,7 +271,7 @@ const KnowledgeSettingsPage: React.FC = () => {
         })
       }
     })
-    
+
     return groups
   }, [myLLMs])
 
@@ -273,12 +293,15 @@ const KnowledgeSettingsPage: React.FC = () => {
       setIsLoading(true)
 
       // 处理 parser_config，添加字段映射
-      const parserConfig = data.parseType === 1 && data.parser_config ? {
-        ...data.parser_config,
-        // 将 image_table_context_window 映射到后端的两个字段
-        image_context_size: data.parser_config.image_table_context_window,
-        table_context_size: data.parser_config.image_table_context_window,
-      } : null
+      const parserConfig =
+        data.parseType === 1 && data.parser_config
+          ? {
+              ...data.parser_config,
+              // 将 image_table_context_window 映射到后端的两个字段
+              image_context_size: data.parser_config.image_table_context_window,
+              table_context_size: data.parser_config.image_table_context_window,
+            }
+          : null
 
       const updateData: UpdateKBRequest = {
         kb_id: id,
@@ -315,10 +338,11 @@ const KnowledgeSettingsPage: React.FC = () => {
   // 重置表单
   const handleReset = () => {
     if (currentKnowledgeBase) {
-      form.reset(buildKnowledgeSettingsFormValues(currentKnowledgeBase, normalizeEmbdId))
+      form.reset(
+        buildKnowledgeSettingsFormValues(currentKnowledgeBase, normalizeEmbdId),
+      )
     }
   }
-
 
   const parserDescription = selectedParserId
     ? DOCUMENT_PARSER_TYPE_DESCRIPTIONS[selectedParserId as DocumentParserType]
@@ -326,129 +350,124 @@ const KnowledgeSettingsPage: React.FC = () => {
 
   if (!currentKnowledgeBase) {
     return (
-      <div className="p-6">
-        <div className="text-center py-12">
-          <p className="text-text-tertiary">知识库不存在</p>
-          <Button className="mt-4" onClick={() => navigate(ROUTES.KNOWLEDGE)}>
+      <PageEmptyState
+        title="知识库不存在"
+        description="该知识库可能已被删除或您没有访问权限。"
+        action={
+          <Button onClick={() => navigate(ROUTES.KNOWLEDGE)}>
             返回知识库列表
           </Button>
-        </div>
-      </div>
+        }
+      />
     )
   }
 
   return (
-    <div className="h-full bg-background flex flex-col overflow-hidden">
-      {/* 固定头部 */}
-      <div className="border-b border-border px-6 py-4 flex-shrink-0">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-semibold text-text-primary flex items-center">
-              <Settings2 className="h-5 w-5 text-primary mr-2" />
-              知识库设置
-            </h1>
-            <p className="text-sm text-text-tertiary mt-1">配置解析方式和参数选项</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <Button type="button" variant="outline" onClick={handleReset} disabled={isLoading}>
-              取消
-            </Button>
-            <Button
-              loading={isLoading}
-              leftIcon={<Save className="h-4 w-4" />}
-              onClick={form.handleSubmit(handleSubmit)}
+    <Form {...form}>
+      <div className="flex h-full min-h-0 flex-col overflow-hidden bg-components-console-bg">
+        <PageHeader
+          compact
+          surface="elevated"
+          titleSize="md"
+          title="知识库设置"
+          description="配置解析方式和参数选项"
+          actions={
+            <>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleReset}
+                disabled={isLoading}
+              >
+                取消
+              </Button>
+              <Button
+                type="submit"
+                form={KB_SETTINGS_FORM_ID}
+                loading={isLoading}
+                leftIcon={<Save className="h-4 w-4" />}
+              >
+                保存
+              </Button>
+            </>
+          }
+        />
+
+        <div className="gap-space-md p-space-md flex min-h-0 flex-1 overflow-hidden">
+          <aside
+            aria-label="设置表单"
+            className="rounded-radius-lg flex min-h-0 w-[720px] shrink-0 flex-col overflow-hidden border border-components-console-border bg-components-console-surface"
+          >
+            <form
+              id={KB_SETTINGS_FORM_ID}
+              onSubmit={form.handleSubmit(handleSubmit)}
+              className="space-y-space-md p-space-lg min-h-0 flex-1 overflow-y-auto overscroll-contain scrollbar-thin"
             >
-              保存
-            </Button>
-          </div>
-        </div>
-      </div>
+              <SectionCard title="基本信息">
+                <GeneralForm
+                  embeddingModelOptions={embeddingModelOptions}
+                  embeddingModelLoading={isLoadingModels}
+                />
+              </SectionCard>
 
-      {/* 内容区域 */}
-      <div className="flex-1 flex gap-10 overflow-hidden p-6">
-        <Form {...form}>
-          <form className="flex-1 flex gap-10 overflow-hidden">
-            {/* 左侧配置面板 */}
-            <div className="w-[720px] shrink-0 overflow-y-auto pr-2 scrollbar-thin">
-              <div className="space-y-1 text-text-secondary">
-                {/* ==================== 1. 基本信息 ==================== */}
-                <SectionTitle>基本信息</SectionTitle>
-                <div className="mt-4">
-                  <GeneralForm
-                    embeddingModelOptions={embeddingModelOptions}
-                    embeddingModelLoading={isLoadingModels}
-                  />
-                </div>
-
-                <Divider />
-
-                {/* ==================== 2. 全局索引 ==================== */}
-                <SectionTitle>全局索引</SectionTitle>
-                
-                {/* GraphRAG 配置 */}
-                <div className="mt-4">
+              <SectionCard title="全局索引">
+                <div className="space-y-space-lg">
                   <GraphRagFormFields />
+                  <div className="pt-space-md border-t border-border-subtle">
+                    <RaptorFormFields />
+                  </div>
                 </div>
+              </SectionCard>
 
-                <Divider className="my-3" />
-
-                {/* RAPTOR 配置 */}
-                <div>
-                  <RaptorFormFields />
-                </div>
-
-                <Divider />
-
-                {/* ==================== 3. 数据管道 (Ingestion Pipeline) ==================== */}
-                <SectionTitle>数据管道</SectionTitle>
-                
-                <div className="mt-4 space-y-4">
-                  {/* 解析类型选择：内置 / 手动设置 */}
+              <SectionCard title="数据管道">
+                <div className="space-y-space-md">
                   <FormField
                     control={form.control}
                     name="parseType"
                     render={({ field }) => (
-                      <FormItem className="flex items-center gap-1 space-y-0">
-                        <FormLabel className="text-sm text-text-secondary w-1/4 shrink-0">
+                      <FormItem className="gap-space-xs flex items-center space-y-0">
+                        <FormLabel className="w-1/4 shrink-0 text-sm text-text-secondary">
                           解析类型
                         </FormLabel>
                         <div className="w-3/4">
                           <FormControl>
                             <RadioGroup
                               value={String(field.value)}
-                              onValueChange={(val) => field.onChange(Number(val))}
-                              className="flex gap-6"
+                              onValueChange={(val) =>
+                                field.onChange(Number(val))
+                              }
+                              className="gap-space-lg flex"
                             >
                               {ParseTypeOptions.map((opt) => (
                                 <label
                                   key={opt.value}
-                                  className="flex items-center gap-2 cursor-pointer"
+                                  className="gap-space-sm flex cursor-pointer items-center"
                                 >
                                   <RadioGroupItem value={String(opt.value)} />
-                                  <span className="text-sm text-text-secondary">{opt.label}</span>
+                                  <span className="text-sm text-text-secondary">
+                                    {opt.label}
+                                  </span>
                                 </label>
                               ))}
                             </RadioGroup>
                           </FormControl>
-                          <FormMessage className="mt-1" />
+                          <FormMessage className="mt-space-xs" />
                         </div>
                       </FormItem>
                     )}
                   />
 
-                  {/* 内置解析器选项 */}
                   {parseType === 1 && (
                     <>
-                      {/* 分块方法选择 */}
                       <FormField
                         control={form.control}
                         name="parser_id"
                         render={({ field }) => (
-                          <FormItem className="flex items-center gap-1 space-y-0">
+                          <FormItem className="gap-space-xs flex items-center space-y-0">
                             <FormLabel
                               required
                               tooltip="选择文档的解析方式，不同的解析器适用于不同类型的文档。"
-                              className="text-sm text-text-secondary w-1/4 shrink-0"
+                              className="w-1/4 shrink-0 text-sm text-text-secondary"
                             >
                               分块方法
                             </FormLabel>
@@ -461,38 +480,38 @@ const KnowledgeSettingsPage: React.FC = () => {
                                   placeholder="请选择分块方法"
                                 />
                               </FormControl>
-                              <FormMessage className="mt-1" />
+                              <FormMessage className="mt-space-xs" />
                             </div>
                           </FormItem>
                         )}
                       />
 
-                      {/* 解析器说明 */}
-                      {parserDescription && (
-                        <div className="flex items-start gap-1">
+                      {parserDescription ? (
+                        <div className="gap-space-xs flex items-start">
                           <div className="w-1/4" />
-                          <div className="w-3/4 px-3 py-2 bg-primary/5 border border-primary/20 rounded-md">
-                            <p className="text-sm text-primary">{parserDescription}</p>
+                          <div className="rounded-radius-md px-space-base py-space-sm w-3/4 border border-primary/20 bg-primary/5">
+                            <p className="text-sm text-primary">
+                              {parserDescription}
+                            </p>
                           </div>
                         </div>
-                      )}
+                      ) : null}
 
-                      {/* 解析器配置参数 */}
-                      {selectedParserId && (
-                        <div className="border-t border-border pt-4 space-y-4">
+                      {selectedParserId ? (
+                        <div className="space-y-space-md pt-space-md border-t border-border-subtle">
                           <ChunkMethodForm />
-
-                          {/* 自动元数据设置 - 使用独立组件，带设置按钮 */}
                           <AutoMetadataFormField
                             onSettingsClick={() => setMetadataModalOpen(true)}
-                            metadataCount={currentKnowledgeBase?.metadata_settings?.length ?? 0}
+                            metadataCount={
+                              currentKnowledgeBase?.metadata_settings?.length ??
+                              0
+                            }
                           />
                         </div>
-                      )}
+                      ) : null}
                     </>
                   )}
 
-                  {/* 手动设置 Pipeline 选项 */}
                   {parseType === 2 && (
                     <PipelineSelect
                       options={pipelineOptions}
@@ -500,37 +519,40 @@ const KnowledgeSettingsPage: React.FC = () => {
                     />
                   )}
                 </div>
+              </SectionCard>
 
-                <Divider />
-
-                {/* ==================== 5. 数据源 ==================== */}
+              <SectionCard>
                 <LinkDataSource kbId={id!} />
-              </div>
-            </div>
+              </SectionCard>
+            </form>
+          </aside>
 
-            {/* 右侧可视化面板 */}
-            <div className="flex-1 min-w-[360px] overflow-y-auto bg-background rounded-xl border border-border/50">
-              {parseType === 1 && (
+          <section
+            aria-label="解析预览"
+            className="rounded-radius-lg flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden border border-components-console-border bg-components-console-surface"
+          >
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain scrollbar-thin">
+              {parseType === 1 ? (
                 <ParserVisualizationPanel selectedParser={selectedParserId} />
-              )}
-              {parseType === 2 && (
-                <div className="p-6">
-                  <h3 className="text-base font-medium text-text-primary mb-4">数据管道</h3>
+              ) : (
+                <div className="space-y-space-sm p-space-lg">
+                  <h3 className="text-base font-medium text-text-primary">
+                    数据管道
+                  </h3>
                   <p className="text-sm text-text-tertiary">
                     使用数据管道可以自定义文档的处理流程，包括解析、清洗、分块等步骤。
                   </p>
-                  <p className="text-sm text-text-tertiary mt-2">
+                  <p className="text-sm text-text-tertiary">
                     如果没有合适的数据管道，可以点击「从头创建」来创建新的数据管道。
                   </p>
                 </div>
               )}
             </div>
-          </form>
-        </Form>
+          </section>
+        </div>
       </div>
 
-      {/* Metadata 设置模态框 */}
-      {id && (
+      {id ? (
         <ManageMetadataModal
           open={metadataModalOpen}
           onClose={() => setMetadataModalOpen(false)}
@@ -538,12 +560,11 @@ const KnowledgeSettingsPage: React.FC = () => {
           mode={MetadataManageType.SETTING}
           initialSettings={currentKnowledgeBase?.metadata_settings || []}
           onSuccess={() => {
-            // 刷新知识库详情以获取最新的 metadata_settings
-            // 这里依赖 useUpdateKBMetadataSettings 的缓存失效逻辑
+            // 依赖 useUpdateKBMetadataSettings 的缓存失效逻辑
           }}
         />
-      )}
-    </div>
+      ) : null}
+    </Form>
   )
 }
 

@@ -10,7 +10,7 @@ export interface SettingsRailItem {
 }
 
 export interface SettingsRailGroup {
-  label: string
+  label?: string
   items: SettingsRailItem[]
 }
 
@@ -26,6 +26,11 @@ interface SettingsRailProps extends React.HTMLAttributes<HTMLElement> {
   currentPath: string
   footer?: React.ReactNode
   user?: SettingsRailUser | null
+  /**
+   * Accessible label for the inner `<nav>` landmark. Recommended whenever the
+   * rail is used as primary navigation (e.g. settings rail, knowledge nav).
+   */
+  navAriaLabel?: string
 }
 
 export const SettingsRail: React.FC<SettingsRailProps> = ({
@@ -33,6 +38,7 @@ export const SettingsRail: React.FC<SettingsRailProps> = ({
   currentPath,
   footer,
   user,
+  navAriaLabel,
   className,
   ...props
 }) => {
@@ -75,14 +81,19 @@ export const SettingsRail: React.FC<SettingsRailProps> = ({
         </div>
       ) : null}
 
-      <div className="py-space-sm flex-1 overflow-auto">
-        {groups.map((group) => (
-          <div key={group.label}>
-            <div className="px-space-lg pb-space-xs pt-space-sm">
-              <span className="text-xs font-medium uppercase tracking-wider text-components-settings-rail-section-text">
-                {group.label}
-              </span>
-            </div>
+      <nav
+        aria-label={navAriaLabel}
+        className="py-space-sm flex-1 overflow-auto"
+      >
+        {groups.map((group, groupIndex) => (
+          <div key={group.label ?? `group-${groupIndex}`}>
+            {group.label ? (
+              <div className="px-space-lg pb-space-xs pt-space-sm">
+                <span className="text-xs font-medium uppercase tracking-wider text-components-settings-rail-section-text">
+                  {group.label}
+                </span>
+              </div>
+            ) : null}
             <div className="px-space-sm space-y-1">
               {group.items.map((item) => {
                 const Icon = item.icon
@@ -109,7 +120,7 @@ export const SettingsRail: React.FC<SettingsRailProps> = ({
             </div>
           </div>
         ))}
-      </div>
+      </nav>
 
       {footer ? <div className="px-space-sm py-space-sm">{footer}</div> : null}
     </aside>
