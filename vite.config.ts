@@ -105,6 +105,36 @@ function isAnyPackagePrefix(id: string, packagePrefixes: string[]): boolean {
   )
 }
 
+// pdfjs-dist 2.x's legacy subpaths (`legacy/build/pdf`, `legacy/web/pdf_viewer`)
+// are UMD/AMD webpack bundles. esbuild's CJS analyzer can't statically detect
+// their named exports, so the pre-bundled files only emit
+// `export default require_…();`. react-pdf-highlighter does
+// `import { EventBus, … } from 'pdfjs-dist/legacy/web/pdf_viewer'` and
+// `import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist/legacy/build/pdf'`,
+// which then throw at runtime.
+//
+// This plugin transparently redirects consumers to per-subpath shims that
+// re-export the named members. When a shim itself imports the same specifier,
+// the plugin gets out of the way so Vite's optimizeDeps pipeline can deliver
+// the real (pre-bundled) default-only module.
+function pdfjsShimPlugin(shims: Record<string, string>): Plugin {
+  const shimIds = new Set(
+    Object.values(shims).map((shimPath) => normalizeModuleId(shimPath)),
+  )
+  return {
+    name: 'pdfjs-shim',
+    enforce: 'pre',
+    resolveId(source, importer) {
+      const target = shims[source]
+      if (!target) return null
+      if (importer && shimIds.has(normalizeModuleId(importer))) {
+        return null
+      }
+      return target
+    },
+  }
+}
+
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
@@ -127,6 +157,16 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       monacoStaticAssetsPlugin(),
+      pdfjsShimPlugin({
+        'pdfjs-dist/legacy/web/pdf_viewer': path.resolve(
+          __dirname,
+          './src/lib/vendor/pdfjs-viewer.ts',
+        ),
+        'pdfjs-dist/legacy/build/pdf': path.resolve(
+          __dirname,
+          './src/lib/vendor/pdfjs-build.ts',
+        ),
+      }),
       ...(shouldAnalyze
         ? [
             visualizer({
@@ -188,8 +228,17 @@ export default defineConfig(({ mode }) => {
         'tailwind-merge',
         'class-variance-authority',
         'lucide-react',
+        // Force pre-bundling of the legacy pdfjs-dist subpaths so the shims in
+        // src/lib/vendor/pdfjs-*.ts receive proper ESM modules with `default`
+        // exports. The shims re-export named members back out to consumers
+        // (react-pdf-highlighter), bypassing esbuild's inability to detect
+        // named exports inside the UMD/AMD webpack bundles.
+        'pdfjs-dist/legacy/web/pdf_viewer',
+        'pdfjs-dist/legacy/build/pdf',
       ],
-      // pdfjs-dist ships its own worker — pre-bundling breaks worker URL resolution.
+      // pdfjs-dist's bare entry stays excluded — its worker URL resolution
+      // relies on serving the package raw. The legacy subpaths above are opted
+      // back in explicitly via include.
       exclude: ['pdfjs-dist'],
     },
 
