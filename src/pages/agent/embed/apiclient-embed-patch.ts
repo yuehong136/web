@@ -34,8 +34,20 @@ const internal = apiClient as unknown as ApiClientInternal
 
 let patched = false
 
+const BEARER_PREFIX_PATTERN = /^Bearer\s+/i
+
 export interface EmbedAuthRuntime {
   onAuthExpired: () => void
+}
+
+export function normalizeEmbedJwt(jwt: string): string {
+  let normalized = jwt.trim()
+
+  while (BEARER_PREFIX_PATTERN.test(normalized)) {
+    normalized = normalized.replace(BEARER_PREFIX_PATTERN, '').trim()
+  }
+
+  return normalized
 }
 
 export function installApiClientPatch(runtime: EmbedAuthRuntime): void {
@@ -59,7 +71,7 @@ export function installApiClientPatch(runtime: EmbedAuthRuntime): void {
  * to avoid `setAuthToken`'s side effect of persisting to localStorage.
  */
 export function setEmbedJwt(jwt: string): void {
-  internal.authToken = jwt
+  internal.authToken = normalizeEmbedJwt(jwt)
 }
 
 /**

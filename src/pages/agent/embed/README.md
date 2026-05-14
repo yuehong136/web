@@ -122,6 +122,8 @@ iframe 加载 URL：
 
   let currentJwt = '<由你的后端通过现有集成颁发>'
 
+  // 推荐传纯 token；若第三方误传 "Bearer xxx"，iframe 会兼容剥离前缀。
+
   window.addEventListener('message', (event) => {
     if (event.origin !== PLATFORM_ORIGIN) return
     const msg = event.data

@@ -6,6 +6,7 @@ import {
   clearEmbedJwt,
   installApiClientPatch,
   isApiClientPatched,
+  normalizeEmbedJwt,
   setEmbedJwt,
 } from '../apiclient-embed-patch'
 
@@ -53,6 +54,18 @@ test('setEmbedJwt writes to in-memory field only', () => {
       globalThis.localStorage.setItem = realSet
     }
   }
+})
+
+test('setEmbedJwt accepts Bearer-prefixed JWT values from hosts', () => {
+  __resetApiClientPatchForTests()
+  installApiClientPatch({ onAuthExpired: () => undefined })
+
+  assert.equal(normalizeEmbedJwt('Bearer jwt-prefixed'), 'jwt-prefixed')
+  assert.equal(normalizeEmbedJwt(' bearer   jwt-lower '), 'jwt-lower')
+  assert.equal(normalizeEmbedJwt('Bearer Bearer jwt-double'), 'jwt-double')
+
+  setEmbedJwt('Bearer jwt-ddd')
+  assert.equal(internal().authToken, 'jwt-ddd')
 })
 
 test('patched clearAuthState only clears in-memory token (no localStorage write)', () => {
