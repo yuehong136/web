@@ -6,6 +6,7 @@
 
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import {
   MoreVertical,
   Edit,
@@ -19,8 +20,12 @@ import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Dropdown, DropdownItem } from '@/components/ui/dropdown'
-import { cn, formatRelativeTime, formatTimestampDetailed, formatTimestampCompact } from '@/lib/utils'
-import { MEMORY_TEXTS } from '@/constants/memory-texts'
+import {
+  cn,
+  formatRelativeTime,
+  formatTimestampDetailed,
+  formatTimestampCompact,
+} from '@/lib/utils'
 import type { Memory, MemoryType } from '@/types/memory'
 
 export type TimeFormatType = 'detailed' | 'compact' | 'relative'
@@ -35,21 +40,15 @@ interface MemoryCardProps {
 }
 
 // 记忆类型颜色映射 - 使用 Badge variant
-const memoryTypeVariants: Record<MemoryType, 'blue' | 'purple' | 'green' | 'orange'> = {
+const memoryTypeVariants: Record<
+  MemoryType,
+  'blue' | 'purple' | 'green' | 'orange'
+> = {
   raw: 'blue',
   semantic: 'purple',
   episodic: 'green',
   procedural: 'orange',
 }
-
-// 记忆类型标签
-const memoryTypeLabels: Record<MemoryType, string> = {
-  raw: MEMORY_TEXTS.memories.raw,
-  semantic: MEMORY_TEXTS.memories.semantic,
-  episodic: MEMORY_TEXTS.memories.episodic,
-  procedural: MEMORY_TEXTS.memories.procedural,
-}
-
 
 // 根据时间格式返回格式化后的时间
 const formatTime = (timestamp: number, format: TimeFormatType): string => {
@@ -73,6 +72,7 @@ export const MemoryCard: React.FC<MemoryCardProps> = ({
   onSelect,
   timeFormat = 'detailed',
 }) => {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const [isHovered, setIsHovered] = useState(false)
 
@@ -110,14 +110,16 @@ export const MemoryCard: React.FC<MemoryCardProps> = ({
   return (
     <div
       className={cn(
-        'group relative rounded-2xl border transition-all duration-300 cursor-pointer',
-        'hover:shadow-lg hover:shadow-black/5 hover:-translate-y-0.5',
+        'group relative cursor-pointer rounded-2xl border transition-all duration-300',
+        'hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/5',
         isHovered && 'ring-2 ring-blue-500/20',
-        selected && 'ring-2 ring-text-accent'
+        selected && 'ring-2 ring-text-accent',
       )}
       style={{
         backgroundColor: 'var(--color-components-card-bg)',
-        borderColor: isHovered ? 'var(--color-state-focus)' : 'var(--color-components-card-border)',
+        borderColor: isHovered
+          ? 'var(--color-state-focus)'
+          : 'var(--color-components-card-border)',
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -126,8 +128,8 @@ export const MemoryCard: React.FC<MemoryCardProps> = ({
       {/* 卡片内容 */}
       <div className="relative p-4 pt-5">
         {/* 头部：头像、名称、操作 */}
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex items-center gap-3 flex-1 min-w-0">
+        <div className="mb-3 flex items-start justify-between">
+          <div className="flex min-w-0 flex-1 items-center gap-3">
             {/* 选择框 */}
             {onSelect && (
               <Checkbox
@@ -136,34 +138,36 @@ export const MemoryCard: React.FC<MemoryCardProps> = ({
                 onClick={(e) => e.stopPropagation()}
               />
             )}
-            
+
             {/* 头像 */}
             {data.avatar ? (
               <Avatar className="h-10 w-10">
                 <AvatarImage src={data.avatar} alt={data.name} />
-                <AvatarFallback><Database className="h-5 w-5" /></AvatarFallback>
+                <AvatarFallback>
+                  <Database className="h-5 w-5" />
+                </AvatarFallback>
               </Avatar>
             ) : (
               <div
                 className={cn(
-                  'w-12 h-12 rounded-xl flex items-center justify-center',
+                  'flex h-12 w-12 items-center justify-center rounded-xl',
                   'bg-gradient-to-br shadow-sm',
-                  avatarGradient
+                  avatarGradient,
                 )}
               >
-                <span className="text-white font-semibold text-xl">
+                <span className="text-xl font-semibold text-white">
                   {data.name.charAt(0).toUpperCase()}
                 </span>
               </div>
             )}
-            
+
             {/* 名称和描述 */}
-            <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-text-primary truncate">
+            <div className="min-w-0 flex-1">
+              <h3 className="truncate font-semibold text-text-primary">
                 {data.name}
               </h3>
               {data.description && (
-                <p className="text-sm text-text-secondary truncate">
+                <p className="truncate text-sm text-text-secondary">
                   {data.description}
                 </p>
               )}
@@ -183,28 +187,28 @@ export const MemoryCard: React.FC<MemoryCardProps> = ({
                 icon={<Edit className="h-4 w-4" />}
                 onClick={handleEdit}
               >
-                {MEMORY_TEXTS.common.edit}
+                {t('common.edit', '编辑')}
               </DropdownItem>
               <DropdownItem
                 icon={<Trash2 className="h-4 w-4" />}
                 onClick={handleDelete}
                 danger
               >
-                {MEMORY_TEXTS.common.delete}
+                {t('common.delete', '删除')}
               </DropdownItem>
             </Dropdown>
           </div>
         </div>
 
         {/* 记忆类型标签 */}
-        <div className="flex flex-wrap gap-1.5 mb-3">
+        <div className="mb-3 flex flex-wrap gap-1.5">
           {data.memory_type.map((type) => (
             <Badge
               key={type}
               variant={memoryTypeVariants[type]}
               className="text-xs"
             >
-              {memoryTypeLabels[type]}
+              {t(`memory.filters.${type}`, type)}
             </Badge>
           ))}
         </div>

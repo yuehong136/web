@@ -1,4 +1,5 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { PageSizeSelector } from '@/components/ui/page-size-selector'
@@ -22,6 +23,7 @@ export const ListPagination: React.FC<ListPaginationProps> = ({
   pageSizeOptions = [6, 12, 24, 48],
   extraInfo,
 }) => {
+  const { t } = useTranslation()
   const totalPages = Math.ceil(total / pageSize)
   if (totalPages <= 0) return null
 
@@ -35,12 +37,13 @@ export const ListPagination: React.FC<ListPaginationProps> = ({
         backgroundColor: 'var(--color-components-card-bg)',
       }}
     >
-      <div className="px-6 py-4 flex items-center justify-between">
+      <div className="flex items-center justify-between px-6 py-4">
         <div
           className="text-sm"
           style={{ color: 'var(--color-components-pagination-text)' }}
         >
-          共 {total} 项{extraInfo}
+          {t('common.totalItems', { count: total })}
+          {extraInfo}
         </div>
 
         <div className="flex items-center space-x-4">
@@ -60,7 +63,7 @@ export const ListPagination: React.FC<ListPaginationProps> = ({
               disabled={page === 1}
             >
               <ChevronLeft className="h-4 w-4" />
-              上一页
+              {t('common.previousPage')}
             </Button>
 
             <div className="flex items-center space-x-1">
@@ -95,7 +98,7 @@ export const ListPagination: React.FC<ListPaginationProps> = ({
               onClick={() => onPageChange(page + 1)}
               disabled={page === totalPages || totalPages === 0}
             >
-              下一页
+              {t('common.nextPage')}
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>

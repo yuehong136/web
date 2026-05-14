@@ -6,6 +6,7 @@
 
 import React, { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import {
   MoreVertical,
   Edit,
@@ -19,8 +20,12 @@ import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Dropdown, DropdownItem } from '@/components/ui/dropdown'
 import { getAvatarGradient } from '@/components/ui/resource-list'
-import { cn, formatRelativeTime, formatTimestampDetailed, formatTimestampCompact } from '@/lib/utils'
-import { STUDIO_TEXTS } from '@/constants/studio-texts'
+import {
+  cn,
+  formatRelativeTime,
+  formatTimestampDetailed,
+  formatTimestampCompact,
+} from '@/lib/utils'
 import { ROUTES } from '@/constants'
 import type { DialogApp } from '@/types/api'
 
@@ -40,12 +45,6 @@ interface AppCardProps {
 const statusColors: Record<string, string> = {
   '1': 'bg-components-badge-green-bg text-components-badge-green-text',
   '0': 'bg-components-badge-gray-bg text-components-badge-gray-text',
-}
-
-// 状态标签
-const statusLabels: Record<string, string> = {
-  '1': STUDIO_TEXTS.statusPublished,
-  '0': STUDIO_TEXTS.statusDraft,
 }
 
 // 根据时间格式返回格式化后的时间
@@ -72,6 +71,7 @@ export const AppCard: React.FC<AppCardProps> = ({
   onSelect,
   timeFormat = 'detailed',
 }) => {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const [isHovered, setIsHovered] = useState(false)
 
@@ -81,7 +81,7 @@ export const AppCard: React.FC<AppCardProps> = ({
       id: data.id,
       name: data.name,
       description: data.description,
-      ...(data.icon && { icon: data.icon })
+      ...(data.icon && { icon: data.icon }),
     })
     navigate(`${ROUTES.STUDIO_CREATE_APP}?${searchParams.toString()}`)
   }
@@ -106,19 +106,23 @@ export const AppCard: React.FC<AppCardProps> = ({
   }
 
   // 获取头像渐变色
-  const avatarGradient = useMemo(() => getAvatarGradient(data.name), [data.name])
+  const avatarGradient = useMemo(
+    () => getAvatarGradient(data.name),
+    [data.name],
+  )
 
   // 获取应用图标
   const getAppIcon = () => {
     if (data.icon) {
-      const iconSrc = data.icon.startsWith('data:') || data.icon.startsWith('http')
-        ? data.icon
-        : `data:image/png;base64,${data.icon}`
+      const iconSrc =
+        data.icon.startsWith('data:') || data.icon.startsWith('http')
+          ? data.icon
+          : `data:image/png;base64,${data.icon}`
       return (
         <img
           src={iconSrc}
           alt={data.name}
-          className="w-12 h-12 rounded-xl object-cover"
+          className="h-12 w-12 rounded-xl object-cover"
           onError={(e) => {
             e.currentTarget.style.display = 'none'
             e.currentTarget.nextElementSibling?.classList.remove('hidden')
@@ -132,14 +136,16 @@ export const AppCard: React.FC<AppCardProps> = ({
   return (
     <div
       className={cn(
-        'group relative rounded-2xl border transition-all duration-300 cursor-pointer',
-        'hover:shadow-lg hover:shadow-black/5 hover:-translate-y-0.5',
+        'group relative cursor-pointer rounded-2xl border transition-all duration-300',
+        'hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/5',
         isHovered && 'ring-2 ring-blue-500/20',
-        selected && 'ring-2 ring-text-accent'
+        selected && 'ring-2 ring-text-accent',
       )}
       style={{
         backgroundColor: 'var(--color-components-card-bg)',
-        borderColor: isHovered ? 'var(--color-state-focus)' : 'var(--color-components-card-border)',
+        borderColor: isHovered
+          ? 'var(--color-state-focus)'
+          : 'var(--color-components-card-border)',
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -148,8 +154,8 @@ export const AppCard: React.FC<AppCardProps> = ({
       {/* 卡片内容 */}
       <div className="relative p-4 pt-5">
         {/* 头部：头像、名称、操作 */}
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex items-center gap-3 flex-1 min-w-0">
+        <div className="mb-3 flex items-start justify-between">
+          <div className="flex min-w-0 flex-1 items-center gap-3">
             {/* 选择框 */}
             {onSelect && (
               <Checkbox
@@ -164,25 +170,25 @@ export const AppCard: React.FC<AppCardProps> = ({
               {getAppIcon()}
               <div
                 className={cn(
-                  'w-12 h-12 rounded-xl flex items-center justify-center',
+                  'flex h-12 w-12 items-center justify-center rounded-xl',
                   'bg-gradient-to-br shadow-sm',
                   avatarGradient,
-                  data.icon && 'hidden'
+                  data.icon && 'hidden',
                 )}
               >
-                <span className="text-white font-semibold text-xl">
+                <span className="text-xl font-semibold text-white">
                   {data.name.charAt(0).toUpperCase()}
                 </span>
               </div>
             </div>
 
             {/* 名称和类型 */}
-            <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-text-primary truncate">
+            <div className="min-w-0 flex-1">
+              <h3 className="truncate font-semibold text-text-primary">
                 {data.name}
               </h3>
               <span className="text-sm text-text-tertiary">
-                {STUDIO_TEXTS.app}
+                {t('studio.card.app', '应用')}
               </span>
             </div>
           </div>
@@ -194,7 +200,7 @@ export const AppCard: React.FC<AppCardProps> = ({
                 <Button
                   variant="ghost"
                   size="icon-sm"
-                  className="opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="opacity-0 transition-opacity group-hover:opacity-100"
                 >
                   <MoreVertical className="h-4 w-4" />
                 </Button>
@@ -204,20 +210,20 @@ export const AppCard: React.FC<AppCardProps> = ({
                 icon={<Edit className="h-4 w-4" />}
                 onClick={handleEdit}
               >
-                {STUDIO_TEXTS.edit}
+                {t('studio.card.edit', '编辑')}
               </DropdownItem>
               <DropdownItem
                 icon={<Download className="h-4 w-4" />}
                 onClick={handleExport}
               >
-                导出模版
+                {t('studio.card.exportTemplate', '导出模版')}
               </DropdownItem>
               <DropdownItem
                 icon={<Trash2 className="h-4 w-4" />}
                 onClick={handleDelete}
                 danger
               >
-                {STUDIO_TEXTS.delete}
+                {t('studio.card.delete', '删除')}
               </DropdownItem>
             </Dropdown>
           </div>
@@ -225,26 +231,31 @@ export const AppCard: React.FC<AppCardProps> = ({
 
         {/* 描述 */}
         {data.description && (
-          <p className="text-sm text-text-secondary mb-3 line-clamp-2">
+          <p className="mb-3 line-clamp-2 text-sm text-text-secondary">
             {data.description}
           </p>
         )}
 
         {/* 状态标签 */}
-        <div className="flex flex-wrap gap-1.5 mb-3">
+        <div className="mb-3 flex flex-wrap gap-1.5">
           <Badge
             variant="secondary"
-            className={cn('text-xs', statusColors[data.status] || statusColors['0'])}
+            className={cn(
+              'text-xs',
+              statusColors[data.status] || statusColors['0'],
+            )}
           >
-            {statusLabels[data.status] || statusLabels['0']}
+            {data.status === '1'
+              ? t('studio.filters.published', '已发布')
+              : t('studio.filters.draft', '草稿')}
           </Badge>
           {data.kb_ids && data.kb_ids.length > 0 && (
             <Badge
               variant="secondary"
-              className="text-xs bg-components-badge-blue-bg text-components-badge-blue-text"
+              className="bg-components-badge-blue-bg text-xs text-components-badge-blue-text"
             >
-              <Database className="w-3 h-3 mr-1" />
-              {data.kb_ids.length} {STUDIO_TEXTS.knowledgeBases}
+              <Database className="mr-1 h-3 w-3" />
+              {data.kb_ids.length} {t('studio.card.knowledgeBases', '知识库')}
             </Badge>
           )}
         </div>

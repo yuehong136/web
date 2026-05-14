@@ -4,6 +4,7 @@
  */
 
 import React, { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Filter, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -52,11 +53,14 @@ export const FilterPopover: React.FC<FilterPopoverProps> = ({
   filters,
   value,
   onChange,
-  buttonText = '筛选',
-  title = '筛选条件',
+  buttonText,
+  title,
   trigger,
   className,
 }) => {
+  const { t } = useTranslation()
+  const resolvedButtonText = buttonText ?? t('common.filter')
+  const resolvedTitle = title ?? t('common.filterConditions')
   // 计算活跃筛选数量
   const filterCount = useMemo(() => {
     if (!value || typeof value !== 'object') return 0
@@ -72,9 +76,9 @@ export const FilterPopover: React.FC<FilterPopoverProps> = ({
   const toggleFilterValue = (filterKey: string, optionValue: string) => {
     const currentValues = value[filterKey] || []
     const newValues = currentValues.includes(optionValue)
-      ? currentValues.filter(v => v !== optionValue)
+      ? currentValues.filter((v) => v !== optionValue)
       : [...currentValues, optionValue]
-    
+
     onChange({
       ...value,
       [filterKey]: newValues,
@@ -84,7 +88,7 @@ export const FilterPopover: React.FC<FilterPopoverProps> = ({
   // 清除所有筛选
   const clearAllFilters = () => {
     const clearedValue: FilterValue = {}
-    filters.forEach(filter => {
+    filters.forEach((filter) => {
       clearedValue[filter.key] = []
     })
     onChange(clearedValue)
@@ -102,13 +106,13 @@ export const FilterPopover: React.FC<FilterPopoverProps> = ({
             className={cn(
               'h-9',
               filterCount > 0 && 'border-text-accent text-text-accent',
-              className
+              className,
             )}
           >
-            <Filter className="h-4 w-4 mr-2" />
-            {buttonText}
+            <Filter className="mr-2 h-4 w-4" />
+            {resolvedButtonText}
             {filterCount > 0 && (
-              <span className="ml-1 px-1.5 py-0.5 text-xs bg-text-accent text-white rounded-full">
+              <span className="ml-1 rounded-full bg-text-accent px-1.5 py-0.5 text-xs text-white">
                 {filterCount}
               </span>
             )}
@@ -119,7 +123,9 @@ export const FilterPopover: React.FC<FilterPopoverProps> = ({
         <div className="space-y-4">
           {/* 筛选器头部 */}
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-text-primary">{title}</span>
+            <span className="text-sm font-medium text-text-primary">
+              {resolvedTitle}
+            </span>
             {filterCount > 0 && (
               <Button
                 variant="ghost"
@@ -128,7 +134,7 @@ export const FilterPopover: React.FC<FilterPopoverProps> = ({
                 className="h-7 px-2 text-xs text-text-tertiary hover:text-text-primary"
               >
                 <X className="w-icon-xs h-icon-xs mr-1" />
-                清除
+                {t('common.clear')}
               </Button>
             )}
           </div>
@@ -136,25 +142,29 @@ export const FilterPopover: React.FC<FilterPopoverProps> = ({
           {/* 筛选器列表 */}
           {filters.map((filter) => (
             <div key={filter.key}>
-              <Label className="text-xs font-medium text-text-secondary mb-2 block">
+              <Label className="mb-2 block text-xs font-medium text-text-secondary">
                 {filter.label}
               </Label>
               <div className="space-y-2">
                 {filter.options.map((option) => {
-                  const isChecked = (value[filter.key] || []).includes(option.value)
+                  const isChecked = (value[filter.key] || []).includes(
+                    option.value,
+                  )
                   return (
                     <div
                       key={option.value}
-                      className="flex items-center gap-space-sm"
+                      className="gap-space-sm flex items-center"
                     >
                       <Checkbox
                         id={`${filter.key}-${option.value}`}
                         checked={isChecked}
-                        onCheckedChange={() => toggleFilterValue(filter.key, option.value)}
+                        onCheckedChange={() =>
+                          toggleFilterValue(filter.key, option.value)
+                        }
                       />
                       <Label
                         htmlFor={`${filter.key}-${option.value}`}
-                        className="text-sm text-text-secondary cursor-pointer"
+                        className="cursor-pointer text-sm text-text-secondary"
                       >
                         {option.label}
                       </Label>

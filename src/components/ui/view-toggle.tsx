@@ -1,10 +1,11 @@
 import * as React from 'react'
+import { useTranslation } from 'react-i18next'
 import { cn } from './utils'
 
 /**
  * 视图切换组件
  * 用于在不同视图模式之间切换（如网格/列表视图）
- * 
+ *
  * 设计规范：
  * - 选中状态使用 components-button-primary 令牌（浅色黑/深色蓝）
  * - 未选中状态使用透明背景 + 次要文字色
@@ -59,22 +60,23 @@ export function ViewToggle<T extends string = string>({
   className,
   disabled = false,
 }: ViewToggleProps<T>) {
+  const { t } = useTranslation()
   const sizes = sizeClasses[size]
 
   return (
     <div
       className={cn(
-        'inline-flex items-center rounded-lg gap-0.5',
+        'inline-flex items-center gap-0.5 rounded-lg',
         sizes.container,
-        disabled && 'opacity-50 cursor-not-allowed',
-        className
+        disabled && 'cursor-not-allowed opacity-50',
+        className,
       )}
       style={{
         border: '1px solid var(--color-border-default)',
         backgroundColor: 'var(--color-background-subtle)',
       }}
       role="group"
-      aria-label="视图切换"
+      aria-label={t('common.viewToggle')}
     >
       {options.map((option) => {
         const isSelected = value === option.value
@@ -96,7 +98,7 @@ export function ViewToggle<T extends string = string>({
               // 选中/未选中状态 - 使用 CSS 类确保样式正确应用
               isSelected ? 'view-toggle-selected' : 'view-toggle-unselected',
               // 禁用状态
-              disabled && 'pointer-events-none'
+              disabled && 'pointer-events-none',
             )}
           >
             <span className={cn(sizes.icon, '[&>svg]:h-full [&>svg]:w-full')}>

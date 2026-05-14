@@ -1,5 +1,6 @@
-import React, { useCallback } from 'react'
+import React, { useCallback, useMemo } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import {
   Database,
   Server,
@@ -34,96 +35,141 @@ const McpIcon: React.FC<{ className?: string }> = ({ className }) => (
   <IconFontFill name="mcp" className={className} />
 )
 
-const settingsGroups: SettingsRailGroup[] = [
-  {
-    label: '工作空间',
-    items: [
-      { title: '数据源', href: '/settings/datasource', icon: Database },
-      { title: '模型提供商', href: '/settings/model-providers', icon: Server },
-      {
-        title: 'MCP',
-        href: '/settings/mcp-servers',
-        icon: McpIcon,
-        matcher: (pathname) => pathname.startsWith('/settings/mcp'),
-      },
-    ],
-  },
-  {
-    label: '团队与协作',
-    items: [{ title: '团队', href: '/settings/team', icon: Users }],
-  },
-  {
-    label: '账户',
-    items: [{ title: '个人资料', href: '/settings/profile', icon: User }],
-  },
-  {
-    label: '开发者',
-    items: [{ title: 'API', href: '/settings/api-keys', icon: Key }],
-  },
-  {
-    label: '系统',
-    items: [{ title: '系统状态', href: '/settings/system', icon: Activity }],
-  },
-  {
-    label: '管理',
-    items: [{ title: '用户管理', href: '/settings/admin', icon: UserCog }],
-  },
-]
-
-const defaultPageDescription =
-  '统一管理工作空间配置、团队能力和开发者接入能力。'
-
-const pageMeta: Record<string, { title: string; description: string }> = {
-  '/settings/datasource': {
-    title: '数据源',
-    description: defaultPageDescription,
-  },
-  '/settings/model-providers': {
-    title: '模型提供商',
-    description: defaultPageDescription,
-  },
-  '/settings/mcp-servers': {
-    title: 'MCP',
-    description: defaultPageDescription,
-  },
-  '/settings/mcp-tools': {
-    title: 'MCP工具',
-    description: defaultPageDescription,
-  },
-  '/settings/mcp-test': {
-    title: 'MCP测试',
-    description: defaultPageDescription,
-  },
-  '/settings/mcp-batch': {
-    title: 'MCP批处理',
-    description: defaultPageDescription,
-  },
-  '/settings/team': {
-    title: '团队',
-    description: defaultPageDescription,
-  },
-  '/settings/profile': {
-    title: '个人资料',
-    description: '管理您的头像、身份信息和账户安全设置。',
-  },
-  '/settings/system': {
-    title: '系统状态',
-    description: defaultPageDescription,
-  },
-  '/settings/api-keys': {
-    title: 'API',
-    description: defaultPageDescription,
-  },
-  '/settings/admin': {
-    title: '用户管理',
-    description: defaultPageDescription,
-  },
-}
-
 export const SettingsLayout: React.FC = () => {
+  const { t } = useTranslation()
   const location = useLocation()
   const navigate = useNavigate()
   const logout = useAuthStore((state) => state.logout)
+
+  const defaultPageDescription = t('settings.description')
+  const settingsGroups = useMemo<SettingsRailGroup[]>(
+    () => [
+      {
+        label: t('settings.groups.workspace'),
+        items: [
+          {
+            title: t('settings.nav.datasource'),
+            href: '/settings/datasource',
+            icon: Database,
+          },
+          {
+            title: t('settings.nav.modelProviders'),
+            href: '/settings/model-providers',
+            icon: Server,
+          },
+          {
+            title: t('settings.nav.mcp'),
+            href: '/settings/mcp-servers',
+            icon: McpIcon,
+            matcher: (pathname) => pathname.startsWith('/settings/mcp'),
+          },
+        ],
+      },
+      {
+        label: t('settings.groups.collaboration'),
+        items: [
+          {
+            title: t('settings.nav.team'),
+            href: '/settings/team',
+            icon: Users,
+          },
+        ],
+      },
+      {
+        label: t('settings.groups.account'),
+        items: [
+          {
+            title: t('settings.nav.profile'),
+            href: '/settings/profile',
+            icon: User,
+          },
+        ],
+      },
+      {
+        label: t('settings.groups.developer'),
+        items: [
+          {
+            title: t('settings.nav.api'),
+            href: '/settings/api-keys',
+            icon: Key,
+          },
+        ],
+      },
+      {
+        label: t('settings.groups.system'),
+        items: [
+          {
+            title: t('settings.nav.systemStatus'),
+            href: '/settings/system',
+            icon: Activity,
+          },
+        ],
+      },
+      {
+        label: t('settings.groups.admin'),
+        items: [
+          {
+            title: t('settings.nav.userManagement'),
+            href: '/settings/admin',
+            icon: UserCog,
+          },
+        ],
+      },
+    ],
+    [t],
+  )
+
+  const pageMeta = useMemo<
+    Record<string, { title: string; description: string }>
+  >(
+    () => ({
+      '/settings/datasource': {
+        title: t('settings.nav.datasource'),
+        description: defaultPageDescription,
+      },
+      '/settings/model-providers': {
+        title: t('settings.nav.modelProviders'),
+        description: defaultPageDescription,
+      },
+      '/settings/mcp-servers': {
+        title: t('settings.nav.mcp'),
+        description: defaultPageDescription,
+      },
+      '/settings/mcp-tools': {
+        title: t('settings.nav.mcpTools'),
+        description: defaultPageDescription,
+      },
+      '/settings/mcp-test': {
+        title: t('settings.nav.mcpTest'),
+        description: defaultPageDescription,
+      },
+      '/settings/mcp-batch': {
+        title: t('settings.nav.mcpBatch'),
+        description: defaultPageDescription,
+      },
+      '/settings/team': {
+        title: t('settings.nav.team'),
+        description: defaultPageDescription,
+      },
+      '/settings/profile': {
+        title: t('settings.nav.profile'),
+        description: t('settings.profileDescription'),
+      },
+      '/settings/system': {
+        title: t('settings.nav.systemStatus'),
+        description: defaultPageDescription,
+      },
+      '/settings/api-keys': {
+        title: t('settings.nav.api'),
+        description: defaultPageDescription,
+      },
+      '/settings/admin': {
+        title: t('settings.nav.userManagement'),
+        description: defaultPageDescription,
+      },
+    }),
+    [defaultPageDescription, t],
+  )
 
   const handleLogout = useCallback(async () => {
     try {
@@ -134,7 +180,7 @@ export const SettingsLayout: React.FC = () => {
   }, [logout])
 
   const currentMeta = pageMeta[location.pathname] || {
-    title: '设置',
+    title: t('settings.title'),
     description: defaultPageDescription,
   }
 
@@ -156,7 +202,7 @@ export const SettingsLayout: React.FC = () => {
             className="gap-space-xs inline-flex items-center"
           >
             <SettingsIcon className="h-4 w-4" />
-            设置
+            {t('settings.title')}
           </BreadcrumbLink>
         </BreadcrumbItem>
         <BreadcrumbSeparator />
@@ -175,7 +221,7 @@ export const SettingsLayout: React.FC = () => {
         onClick={handleLogout}
       >
         <LogOut className="h-4 w-4" />
-        退出登录
+        {t('settings.logout')}
       </Button>
     </div>
   )

@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { MessageSquare, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useFetchConversationsByDialog } from '@/hooks/use-chat-request'
@@ -22,15 +23,17 @@ export const AppList: React.FC<AppListProps> = ({
   isLoading,
   searchTerm,
 }) => {
+  const { t } = useTranslation()
   const [hoveredAppId, setHoveredAppId] = useState<string | null>(null)
-  
+
   // 获取 hover 应用的历史对话
-  const { conversations, isLoading: loadingHistory } = useFetchConversationsByDialog(hoveredAppId)
+  const { conversations, isLoading: loadingHistory } =
+    useFetchConversationsByDialog(hoveredAppId)
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <div className="w-5 h-5 border-2 border-text-tertiary border-t-transparent rounded-full animate-spin" />
+        <div className="h-5 w-5 animate-spin rounded-full border-2 border-text-tertiary border-t-transparent" />
       </div>
     )
   }
@@ -38,9 +41,11 @@ export const AppList: React.FC<AppListProps> = ({
   if (apps.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-8 text-center">
-        <MessageSquare className="w-8 h-8 text-text-tertiary mb-2" />
+        <MessageSquare className="mb-2 h-8 w-8 text-text-tertiary" />
         <p className="text-sm text-text-secondary">
-          {searchTerm ? '没有找到匹配的应用' : '暂无可用应用'}
+          {searchTerm
+            ? t('home.skillPanel.noAppMatch', '没有找到匹配的应用')
+            : t('home.skillPanel.noApps', '暂无可用应用')}
         </p>
       </div>
     )
@@ -51,7 +56,7 @@ export const AppList: React.FC<AppListProps> = ({
       {apps.map((app) => {
         const isSelected = selectedAppIds.includes(app.id)
         const isHovered = hoveredAppId === app.id
-        
+
         return (
           <div
             key={app.id}
@@ -63,47 +68,47 @@ export const AppList: React.FC<AppListProps> = ({
             <button
               onClick={() => onSelectApp(app, null)}
               className={cn(
-                'w-full flex items-center gap-3 px-4 py-3 text-left transition-colors',
+                'flex w-full items-center gap-3 px-4 py-3 text-left transition-colors',
                 isSelected
                   ? 'bg-state-focus-subtle'
-                  : 'hover:bg-background-subtle'
+                  : 'hover:bg-background-subtle',
               )}
             >
               <div
                 className={cn(
-                  'w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden',
+                  'flex h-8 w-8 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg',
                   isSelected
                     ? 'bg-state-focus text-text-inverted'
-                    : 'bg-background-subtle text-text-secondary'
+                    : 'bg-background-subtle text-text-secondary',
                 )}
               >
                 {app.icon ? (
                   <img
                     src={app.icon}
                     alt={app.name}
-                    className="w-full h-full object-cover"
+                    className="h-full w-full object-cover"
                     onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = 'none'
+                      ;(e.target as HTMLImageElement).style.display = 'none'
                     }}
                   />
                 ) : (
-                  <MessageSquare className="w-4 h-4" />
+                  <MessageSquare className="h-4 w-4" />
                 )}
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-text-primary truncate">
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-sm font-medium text-text-primary">
                   {app.name}
                 </div>
                 {app.description && (
-                  <div className="text-xs text-text-tertiary truncate">
+                  <div className="truncate text-xs text-text-tertiary">
                     {app.description}
                   </div>
                 )}
               </div>
               {/* 右箭头，表示有子菜单 */}
-              <ChevronRight className="w-4 h-4 text-text-tertiary flex-shrink-0" />
+              <ChevronRight className="h-4 w-4 flex-shrink-0 text-text-tertiary" />
             </button>
-            
+
             {/* 向右展开的历史面板 */}
             {isHovered && (
               <AppHistoryPanel

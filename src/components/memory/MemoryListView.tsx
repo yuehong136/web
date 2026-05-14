@@ -5,6 +5,7 @@
 
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { Edit, Trash2, Database, User, Users, Layers } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
@@ -17,8 +18,12 @@ import {
   ResourceListEmpty,
   getAvatarGradient,
 } from '@/components/ui/resource-list'
-import { cn, formatRelativeTime, formatTimestampDetailed, formatTimestampCompact } from '@/lib/utils'
-import { MEMORY_TEXTS } from '@/constants/memory-texts'
+import {
+  cn,
+  formatRelativeTime,
+  formatTimestampDetailed,
+  formatTimestampCompact,
+} from '@/lib/utils'
 import type { Memory, MemoryType } from '@/types/memory'
 
 export type TimeFormatType = 'detailed' | 'compact' | 'relative'
@@ -37,34 +42,18 @@ interface MemoryListViewProps {
 // Grid 布局：名称 | 记忆类型 | 存储类型 | 权限 | 创建时间 | 更新时间 | 操作
 const GRID_COLS = 'grid-cols-[2fr_1fr_100px_90px_150px_150px_60px]'
 
-// 表头列配置
-const HEADER_COLUMNS = [
-  { key: 'name', label: MEMORY_TEXTS.memories.name },
-  { key: 'memory_type', label: MEMORY_TEXTS.memories.memoryType },
-  { key: 'storage_type', label: MEMORY_TEXTS.config.storageType },
-  { key: 'permissions', label: MEMORY_TEXTS.config.permission },
-  { key: 'create_time', label: '创建时间' },
-  { key: 'update_time', label: '更新时间' },
-  { key: 'actions', label: '操作' },
-]
-
 // 骨架屏列宽度
 const SKELETON_WIDTHS = ['w-24', 'w-14', 'w-12', 'w-28', 'w-28']
 
 // 记忆类型颜色
-const memoryTypeVariants: Record<MemoryType, 'blue' | 'purple' | 'green' | 'orange'> = {
+const memoryTypeVariants: Record<
+  MemoryType,
+  'blue' | 'purple' | 'green' | 'orange'
+> = {
   raw: 'blue',
   semantic: 'purple',
   episodic: 'green',
   procedural: 'orange',
-}
-
-// 记忆类型标签
-const memoryTypeLabels: Record<MemoryType, string> = {
-  raw: MEMORY_TEXTS.memories.raw,
-  semantic: MEMORY_TEXTS.memories.semantic,
-  episodic: MEMORY_TEXTS.memories.episodic,
-  procedural: MEMORY_TEXTS.memories.procedural,
 }
 
 // 时间格式化
@@ -99,12 +88,12 @@ const MemoryAvatar: React.FC<{ memory: Memory }> = ({ memory }) => {
   return (
     <div
       className={cn(
-        'w-12 h-12 rounded-xl flex items-center justify-center',
+        'flex h-12 w-12 items-center justify-center rounded-xl',
         'bg-gradient-to-br shadow-sm',
-        gradient
+        gradient,
       )}
     >
-      <span className="text-white font-semibold text-xl">
+      <span className="text-xl font-semibold text-white">
         {memory.name.charAt(0).toUpperCase()}
       </span>
     </div>
@@ -120,6 +109,7 @@ const MemoryListRow: React.FC<{
   onDelete?: () => void
   timeFormat: TimeFormatType
 }> = ({ memory, selected, onSelect, onEdit, onDelete, timeFormat }) => {
+  const { t } = useTranslation()
   const navigate = useNavigate()
 
   const handleClick = () => {
@@ -130,7 +120,7 @@ const MemoryListRow: React.FC<{
   if (onEdit) {
     actions.push({
       key: 'edit',
-      label: MEMORY_TEXTS.common.edit,
+      label: t('common.edit', '编辑'),
       icon: <Edit className="h-4 w-4" />,
       onClick: onEdit,
     })
@@ -138,7 +128,7 @@ const MemoryListRow: React.FC<{
   if (onDelete) {
     actions.push({
       key: 'delete',
-      label: MEMORY_TEXTS.common.delete,
+      label: t('common.delete', '删除'),
       icon: <Trash2 className="h-4 w-4" />,
       onClick: onDelete,
       danger: true,
@@ -162,9 +152,9 @@ const MemoryListRow: React.FC<{
           <Badge
             key={type}
             variant={memoryTypeVariants[type]}
-            className="text-xs px-1.5 py-0"
+            className="px-1.5 py-0 text-xs"
           >
-            {memoryTypeLabels[type]}
+            {t(`memory.filters.${type}`, type)}
           </Badge>
         ))}
       </div>
@@ -174,12 +164,12 @@ const MemoryListRow: React.FC<{
         {memory.storage_type === 'graph' ? (
           <>
             <Layers className="h-3.5 w-3.5" />
-            <span>{MEMORY_TEXTS.config.graph}</span>
+            <span>{t('memory.fields.graph', '图')}</span>
           </>
         ) : (
           <>
             <Database className="h-3.5 w-3.5" />
-            <span>{MEMORY_TEXTS.config.table}</span>
+            <span>{t('memory.fields.table', '表格')}</span>
           </>
         )}
       </div>
@@ -189,12 +179,12 @@ const MemoryListRow: React.FC<{
         {memory.permissions === 'me' ? (
           <>
             <User className="h-3.5 w-3.5" />
-            <span>{MEMORY_TEXTS.config.onlyMe}</span>
+            <span>{t('memory.fields.onlyMe', '仅自己')}</span>
           </>
         ) : (
           <>
             <Users className="h-3.5 w-3.5" />
-            <span>{MEMORY_TEXTS.config.team}</span>
+            <span>{t('memory.fields.team', '团队')}</span>
           </>
         )}
       </div>
@@ -222,13 +212,23 @@ export const MemoryListView: React.FC<MemoryListViewProps> = ({
   isLoading = false,
   timeFormat = 'detailed',
 }) => {
+  const { t } = useTranslation()
   const allSelected = data.length > 0 && selectedIds.length === data.length
+  const headerColumns = [
+    { key: 'name', label: t('memory.fields.name', '名称') },
+    { key: 'memory_type', label: t('memory.filters.memoryType', '记忆类型') },
+    { key: 'storage_type', label: t('memory.fields.storageType', '存储类型') },
+    { key: 'permissions', label: t('memory.fields.permission', '权限') },
+    { key: 'create_time', label: t('memory.fields.createdAt', '创建时间') },
+    { key: 'update_time', label: t('memory.fields.updatedAt', '更新时间') },
+    { key: 'actions', label: t('common.action', '操作') },
+  ]
 
   return (
     <ResourceListContainer>
       {/* 表头 */}
       <ResourceListHeader
-        columns={HEADER_COLUMNS}
+        columns={headerColumns}
         allSelected={allSelected}
         onSelectAll={onSelectAll}
         showSelect={!!onSelect}

@@ -4,6 +4,7 @@
  */
 
 import React, { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Globe, Activity, Zap, Settings2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -48,11 +49,13 @@ const StatCard: React.FC<StatCardProps> = ({
       className={cn(
         'relative overflow-hidden rounded-2xl p-5 transition-all duration-300',
         'hover:-translate-y-1',
-        'border'
+        'border',
       )}
       style={{
         backgroundColor: 'var(--color-components-card-bg)',
-        borderColor: isHovered ? borderHover : 'var(--color-components-card-border)',
+        borderColor: isHovered
+          ? borderHover
+          : 'var(--color-components-card-border)',
         boxShadow: isHovered ? shadow : 'none',
         animationDelay: `${delay}ms`,
       }}
@@ -62,18 +65,18 @@ const StatCard: React.FC<StatCardProps> = ({
       {/* 背景渐变装饰 - 使用设计令牌中的渐变 */}
       <div
         className={cn(
-          'absolute -right-4 -top-4 w-28 h-28 rounded-full blur-2xl transition-all duration-300',
-          isHovered ? 'opacity-80 scale-110' : 'opacity-50'
+          'absolute -right-4 -top-4 h-28 w-28 rounded-full blur-2xl transition-all duration-300',
+          isHovered ? 'scale-110 opacity-80' : 'opacity-50',
         )}
         style={{ background: gradient }}
       />
-      
+
       <div className="relative flex items-center gap-4">
         {/* 图标 - 使用渐变背景令牌 */}
         <div
           className={cn(
-            'flex items-center justify-center w-12 h-12 rounded-xl transition-all duration-300',
-            isHovered && 'scale-110'
+            'flex h-12 w-12 items-center justify-center rounded-xl transition-all duration-300',
+            isHovered && 'scale-110',
           )}
           style={{ background: iconBg }}
         >
@@ -81,16 +84,16 @@ const StatCard: React.FC<StatCardProps> = ({
         </div>
 
         {/* 文本 */}
-        <div className="flex-1 min-w-0">
+        <div className="min-w-0 flex-1">
           <p
-            className="text-sm font-medium mb-1"
+            className="mb-1 text-sm font-medium"
             style={{ color: 'var(--color-text-secondary)' }}
           >
             {label}
           </p>
           {isLoading ? (
             <div
-              className="h-8 w-16 rounded-lg animate-pulse"
+              className="h-8 w-16 animate-pulse rounded-lg"
               style={{ backgroundColor: 'var(--color-background-subtle)' }}
             />
           ) : (
@@ -114,11 +117,12 @@ export const MCPStatsCards: React.FC<MCPStatsCardsProps> = ({
   serverTypes,
   isLoading = false,
 }) => {
+  const { t } = useTranslation()
   // 使用 components-stats-card-* 语义化设计令牌
   const stats = [
     {
-      icon: <Globe className="w-6 h-6" />,
-      label: '总服务器',
+      icon: <Globe className="h-6 w-6" />,
+      label: t('mcp.servers.stats.totalServers', '总服务器'),
       value: totalServers,
       gradient: 'var(--color-components-stats-card-blue-bg)',
       iconBg: 'var(--color-components-stats-card-blue-icon-bg)',
@@ -127,8 +131,8 @@ export const MCPStatsCards: React.FC<MCPStatsCardsProps> = ({
       borderHover: 'var(--color-components-stats-card-blue-border-hover)',
     },
     {
-      icon: <Activity className="w-6 h-6" />,
-      label: '活跃连接',
+      icon: <Activity className="h-6 w-6" />,
+      label: t('mcp.servers.stats.activeConnections', '活跃连接'),
       value: activeServers,
       gradient: 'var(--color-components-stats-card-green-bg)',
       iconBg: 'var(--color-components-stats-card-green-icon-bg)',
@@ -137,8 +141,8 @@ export const MCPStatsCards: React.FC<MCPStatsCardsProps> = ({
       borderHover: 'var(--color-components-stats-card-green-border-hover)',
     },
     {
-      icon: <Zap className="w-6 h-6" />,
-      label: '可用工具',
+      icon: <Zap className="h-6 w-6" />,
+      label: t('mcp.servers.stats.availableTools', '可用工具'),
       value: totalTools,
       gradient: 'var(--color-components-stats-card-purple-bg)',
       iconBg: 'var(--color-components-stats-card-purple-icon-bg)',
@@ -147,8 +151,8 @@ export const MCPStatsCards: React.FC<MCPStatsCardsProps> = ({
       borderHover: 'var(--color-components-stats-card-purple-border-hover)',
     },
     {
-      icon: <Settings2 className="w-6 h-6" />,
-      label: '协议类型',
+      icon: <Settings2 className="h-6 w-6" />,
+      label: t('mcp.servers.stats.protocolTypes', '协议类型'),
       value: serverTypes,
       gradient: 'var(--color-components-stats-card-orange-bg)',
       iconBg: 'var(--color-components-stats-card-orange-icon-bg)',
@@ -159,9 +163,14 @@ export const MCPStatsCards: React.FC<MCPStatsCardsProps> = ({
   ]
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {stats.map((stat, index) => (
-        <StatCard key={stat.label} {...stat} isLoading={isLoading} delay={index * 50} />
+        <StatCard
+          key={stat.label}
+          {...stat}
+          isLoading={isLoading}
+          delay={index * 50}
+        />
       ))}
     </div>
   )

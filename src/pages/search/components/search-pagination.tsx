@@ -1,4 +1,5 @@
 import React, { memo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { PageSizeSelector } from '@/components/ui/page-size-selector'
@@ -36,6 +37,7 @@ const SearchPagination: React.FC<SearchPaginationProps> = ({
   onPageChange,
   onPageSizeChange,
 }) => {
+  const { t } = useTranslation()
   const totalPages = Math.ceil(total / pageSize)
 
   if (totalPages <= 0) {
@@ -52,9 +54,14 @@ const SearchPagination: React.FC<SearchPaginationProps> = ({
         backgroundColor: 'var(--color-components-card-bg)',
       }}
     >
-      <div className="px-6 py-4 flex items-center justify-between">
-        <div className="text-sm" style={{ color: 'var(--color-components-pagination-text)' }}>
-          共 {total} 项
+      <div className="flex items-center justify-between px-6 py-4">
+        <div
+          className="text-sm"
+          style={{ color: 'var(--color-components-pagination-text)' }}
+        >
+          {t('searchPage.pagination.total', '共 {{count}} 项', {
+            count: total,
+          })}
         </div>
 
         <div className="flex items-center space-x-4">
@@ -72,7 +79,7 @@ const SearchPagination: React.FC<SearchPaginationProps> = ({
               disabled={currentPage <= 1}
             >
               <ChevronLeft className="h-4 w-4" />
-              上一页
+              {t('searchPage.pagination.previous', '上一页')}
             </Button>
 
             <div className="flex items-center space-x-1">
@@ -95,7 +102,7 @@ const SearchPagination: React.FC<SearchPaginationProps> = ({
               onClick={() => onPageChange(currentPage + 1)}
               disabled={currentPage >= totalPages}
             >
-              下一页
+              {t('searchPage.pagination.next', '下一页')}
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>

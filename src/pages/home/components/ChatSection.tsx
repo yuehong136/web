@@ -1,4 +1,5 @@
 import React, { useRef, useCallback, useMemo, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Bot, User } from 'lucide-react'
 import { Bubble } from '@ant-design/x'
 import type { BubbleListProps } from '@ant-design/x'
@@ -149,6 +150,7 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
   isToolAnalyzing,
   isLoadingHistory = false,
 }) => {
+  const { t } = useTranslation()
   const chatContainerRef = useRef<HTMLDivElement>(null)
   const atButtonRef = useRef<HTMLButtonElement>(
     null!,
@@ -633,7 +635,7 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
               <div className="flex flex-col items-center gap-3">
                 <div className="border-3 h-8 w-8 animate-spin rounded-full border-text-tertiary border-t-text-accent" />
                 <span className="text-sm text-text-tertiary">
-                  加载对话历史...
+                  {t('home.input.loadingHistory', '加载对话历史...')}
                 </span>
               </div>
             </div>
@@ -654,7 +656,10 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
             inputValue={inputValue}
             onInputChange={handleInputChangeInternal}
             onKeyDown={handleKeyDown}
-            placeholder="输入消息，按 Enter 发送"
+            placeholder={t(
+              'home.input.chatPlaceholder',
+              '输入消息，按 Enter 发送',
+            )}
             selectedMCPServers={selectedMCPServers}
             selectedApps={selectedApps}
             onRemoveSkill={removeSkill}

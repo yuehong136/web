@@ -1,0 +1,60 @@
+export default {
+  memory: {
+    page: {
+      title: '记忆库管理',
+      description: '管理您的 AI 记忆，让对话更智能',
+      create: '创建记忆库',
+    },
+    stats: {
+      totalMemories: '记忆库总数',
+      totalMessages: '总消息数',
+      totalStorage: '总存储量',
+      activeMemories: '活跃数',
+    },
+    filters: {
+      memoryType: '记忆类型',
+      raw: '原始',
+      semantic: '语义',
+      episodic: '情景',
+      procedural: '程序',
+      searchPlaceholder: '搜索记忆库...',
+    },
+    fields: {
+      name: '名称',
+      storageType: '存储类型',
+      permission: '权限',
+      createdAt: '创建时间',
+      updatedAt: '更新时间',
+      graph: '图',
+      table: '表格',
+      onlyMe: '仅自己',
+      team: '团队',
+    },
+    empty: {
+      listTitle: '还没有记忆库',
+      listDescription: '创建您的第一个记忆库，让 AI 记住与您的对话',
+      searchTitle: '未找到匹配的记忆库',
+      searchDescription: '尝试调整搜索条件或筛选器',
+      messagesTitle: '暂无消息',
+      messagesDescription: '当智能体使用此记忆库时，对话内容将自动记录在这里',
+    },
+    toolbar: {
+      detailedTime: '详细时间',
+      compactTime: '简洁时间',
+      relativeTime: '相对时间',
+      descending: '倒序',
+      ascending: '正序',
+      gridView: '网格视图',
+      listView: '列表视图',
+    },
+    pagination: {
+      total: '共 {{count}} 项',
+      previous: '上一页',
+      next: '下一页',
+    },
+    deleteDialog: {
+      title: '删除记忆库',
+      description: '删除后，此记忆中的所有消息都将被删除，智能体将无法检索。',
+    },
+  },
+}

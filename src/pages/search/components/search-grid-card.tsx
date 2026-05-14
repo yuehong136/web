@@ -1,5 +1,14 @@
 import React, { memo, useState } from 'react'
-import { Clock, Database, MoreVertical, Settings, Sparkles, Trash2, Workflow } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import {
+  Clock,
+  Database,
+  MoreVertical,
+  Settings,
+  Sparkles,
+  Trash2,
+  Workflow,
+} from 'lucide-react'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Dropdown, DropdownItem } from '@/components/ui/dropdown'
@@ -29,6 +38,7 @@ const SearchGridCard: React.FC<SearchGridCardProps> = ({
   onDelete,
   timeFormat,
 }) => {
+  const { t } = useTranslation()
   const [isHovered, setIsHovered] = useState(false)
   const gradient = getAvatarGradient(app.name)
   const kbCount = resolveKbCount(app)
@@ -38,62 +48,72 @@ const SearchGridCard: React.FC<SearchGridCardProps> = ({
   return (
     <div
       className={cn(
-        'group relative rounded-2xl border transition-all duration-300 cursor-pointer',
-        'hover:shadow-lg hover:shadow-black/5 hover:-translate-y-0.5',
-        isHovered && 'ring-2 ring-blue-500/20'
+        'group relative cursor-pointer rounded-2xl border transition-all duration-300',
+        'hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/5',
+        isHovered && 'ring-2 ring-blue-500/20',
       )}
       style={{
         backgroundColor: 'var(--color-components-card-bg)',
-        borderColor: isHovered ? 'var(--color-state-focus)' : 'var(--color-components-card-border)',
+        borderColor: isHovered
+          ? 'var(--color-state-focus)'
+          : 'var(--color-components-card-border)',
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={() => onOpen(app.id)}
     >
       <div className="p-5">
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex items-center gap-3 flex-1 min-w-0">
+        <div className="mb-4 flex items-start justify-between">
+          <div className="flex min-w-0 flex-1 items-center gap-3">
             {app.avatar ? (
               <Avatar className="h-10 w-10">
                 <AvatarImage src={app.avatar} alt={app.name} />
-                <AvatarFallback><Database className="h-5 w-5" /></AvatarFallback>
+                <AvatarFallback>
+                  <Database className="h-5 w-5" />
+                </AvatarFallback>
               </Avatar>
             ) : (
               <div
                 className={cn(
-                  'w-10 h-10 rounded-xl flex items-center justify-center',
+                  'flex h-10 w-10 items-center justify-center rounded-xl',
                   'bg-gradient-to-br shadow-sm',
-                  gradient
+                  gradient,
                 )}
               >
-                <span className="text-white font-semibold text-lg">
+                <span className="text-lg font-semibold text-white">
                   {app.name.charAt(0).toUpperCase()}
                 </span>
               </div>
             )}
 
-            <div className="flex-1 min-w-0">
-              <h3 className="font-semibold truncate text-text-primary">{app.name}</h3>
-              <div className="flex flex-wrap gap-1 mt-1">
+            <div className="min-w-0 flex-1">
+              <h3 className="truncate font-semibold text-text-primary">
+                {app.name}
+              </h3>
+              <div className="mt-1 flex flex-wrap gap-1">
                 <span
                   className={cn(
-                    'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium',
+                    'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium',
                     summaryEnabled
-                      ? 'text-text-success bg-[var(--color-state-success-10)]'
-                      : 'text-text-secondary bg-background-subtle'
+                      ? 'bg-[var(--color-state-success-10)] text-text-success'
+                      : 'bg-background-subtle text-text-secondary',
                   )}
                 >
-                  {summaryEnabled ? '摘要开启' : '摘要关闭'}
+                  {summaryEnabled
+                    ? t('searchPage.card.summaryOn', '摘要开启')
+                    : t('searchPage.card.summaryOff', '摘要关闭')}
                 </span>
                 <span
                   className={cn(
-                    'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium',
+                    'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium',
                     relatedEnabled
-                      ? 'text-text-accent bg-[var(--color-state-info-10)]'
-                      : 'text-text-secondary bg-background-subtle'
+                      ? 'bg-[var(--color-state-info-10)] text-text-accent'
+                      : 'bg-background-subtle text-text-secondary',
                   )}
                 >
-                  {relatedEnabled ? '相关问题开启' : '相关问题关闭'}
+                  {relatedEnabled
+                    ? t('searchPage.card.relatedOn', '相关问题开启')
+                    : t('searchPage.card.relatedOff', '相关问题关闭')}
                 </span>
               </div>
             </div>
@@ -101,42 +121,62 @@ const SearchGridCard: React.FC<SearchGridCardProps> = ({
 
           <div onClick={(e) => e.stopPropagation()}>
             <Dropdown
-              trigger={(
+              trigger={
                 <Button variant="ghost" size="icon-sm">
                   <MoreVertical className="h-4 w-4" />
                 </Button>
-              )}
+              }
             >
-              <DropdownItem icon={<Settings className="h-4 w-4" />} onClick={() => onEdit(app.id)}>
-                设置
+              <DropdownItem
+                icon={<Settings className="h-4 w-4" />}
+                onClick={() => onEdit(app.id)}
+              >
+                {t('searchPage.card.settings', '设置')}
               </DropdownItem>
-              <DropdownItem icon={<Trash2 className="h-4 w-4" />} onClick={() => onDelete(app)} danger>
-                删除
+              <DropdownItem
+                icon={<Trash2 className="h-4 w-4" />}
+                onClick={() => onDelete(app)}
+                danger
+              >
+                {t('searchPage.card.delete', '删除')}
               </DropdownItem>
             </Dropdown>
           </div>
         </div>
 
         {app.description ? (
-          <p className="text-sm mb-4 line-clamp-2 text-text-secondary">{app.description}</p>
+          <p className="mb-4 line-clamp-2 text-sm text-text-secondary">
+            {app.description}
+          </p>
         ) : null}
 
-        <div className={cn('grid grid-cols-2 gap-3 text-sm text-text-tertiary', !app.description && 'mt-4')}>
+        <div
+          className={cn(
+            'grid grid-cols-2 gap-3 text-sm text-text-tertiary',
+            !app.description && 'mt-4',
+          )}
+        >
           <div className="flex items-center">
-            <Database className="h-4 w-4 mr-1.5" />
-            {kbCount} 知识库
+            <Database className="mr-1.5 h-4 w-4" />
+            {t('searchPage.card.knowledgeBases', '{{count}} 知识库', {
+              count: kbCount,
+            })}
           </div>
           <div className="flex items-center">
-            <Clock className="h-4 w-4 mr-1.5" />
+            <Clock className="mr-1.5 h-4 w-4" />
             {formatSearchTime(app.update_time, timeFormat)}
           </div>
           <div className="flex items-center">
-            <Sparkles className="h-4 w-4 mr-1.5" />
-            {summaryEnabled ? '摘要开启' : '摘要关闭'}
+            <Sparkles className="mr-1.5 h-4 w-4" />
+            {summaryEnabled
+              ? t('searchPage.card.summaryOn', '摘要开启')
+              : t('searchPage.card.summaryOff', '摘要关闭')}
           </div>
           <div className="flex items-center">
-            <Workflow className="h-4 w-4 mr-1.5" />
-            {relatedEnabled ? '相关问题开启' : '相关问题关闭'}
+            <Workflow className="mr-1.5 h-4 w-4" />
+            {relatedEnabled
+              ? t('searchPage.card.relatedOn', '相关问题开启')
+              : t('searchPage.card.relatedOff', '相关问题关闭')}
           </div>
         </div>
       </div>

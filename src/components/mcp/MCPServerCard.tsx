@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Edit,
   Trash2,
@@ -81,6 +82,7 @@ export const MCPServerCard: React.FC<MCPServerCardProps> = ({
   onViewDetail,
   isTesting = false,
 }) => {
+  const { t } = useTranslation()
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [copied, setCopied] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
@@ -92,18 +94,21 @@ export const MCPServerCard: React.FC<MCPServerCardProps> = ({
     gradient: 'from-text-tertiary/10 to-text-tertiary/10',
   }
 
-  const handleCopyUrl = useCallback(async (e: React.MouseEvent) => {
-    e.stopPropagation()
-    try {
-      await copyToClipboard(server.url)
-      setCopied(true)
-      toast.success('地址已复制到剪贴板')
-      setTimeout(() => setCopied(false), 2000)
-    } catch (err) {
-      console.error('Failed to copy URL:', err)
-      toast.error('复制失败，请手动复制')
-    }
-  }, [server.url])
+  const handleCopyUrl = useCallback(
+    async (e: React.MouseEvent) => {
+      e.stopPropagation()
+      try {
+        await copyToClipboard(server.url)
+        setCopied(true)
+        toast.success(t('mcp.servers.card.copyToast', '地址已复制到剪贴板'))
+        setTimeout(() => setCopied(false), 2000)
+      } catch (err) {
+        console.error('Failed to copy URL:', err)
+        toast.error(t('mcp.servers.card.copyFailed', '复制失败，请手动复制'))
+      }
+    },
+    [server.url, t],
+  )
 
   const handleDeleteConfirm = useCallback(() => {
     onDelete?.(server)
@@ -114,13 +119,15 @@ export const MCPServerCard: React.FC<MCPServerCardProps> = ({
     <>
       <div
         className={cn(
-          'group relative rounded-2xl border transition-all duration-300 cursor-pointer overflow-hidden',
-          'hover:shadow-lg hover:shadow-black/5 hover:-translate-y-0.5',
-          isHovered && 'ring-2 ring-blue-500/20'
+          'group relative cursor-pointer overflow-hidden rounded-2xl border transition-all duration-300',
+          'hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/5',
+          isHovered && 'ring-2 ring-blue-500/20',
         )}
         style={{
           backgroundColor: 'var(--color-components-card-bg)',
-          borderColor: isHovered ? 'var(--color-state-focus)' : 'var(--color-components-card-border)',
+          borderColor: isHovered
+            ? 'var(--color-state-focus)'
+            : 'var(--color-components-card-border)',
         }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
@@ -131,33 +138,41 @@ export const MCPServerCard: React.FC<MCPServerCardProps> = ({
           className={cn(
             'absolute inset-x-0 top-0 h-24 bg-gradient-to-b opacity-60 transition-opacity',
             typeConfig.gradient,
-            isHovered && 'opacity-100'
+            isHovered && 'opacity-100',
           )}
         />
 
         {/* 卡片内容 */}
         <div className="relative p-5">
           {/* 头部：状态 + 操作 */}
-          <div className="flex items-start justify-between mb-4">
+          <div className="mb-4 flex items-start justify-between">
             {/* 状态指示器 */}
             <div className="flex items-center gap-2">
               <div
                 className={cn(
-                  'w-2.5 h-2.5 rounded-full transition-all',
-                  isOnline && 'animate-pulse'
+                  'h-2.5 w-2.5 rounded-full transition-all',
+                  isOnline && 'animate-pulse',
                 )}
                 style={{
                   backgroundColor: isOnline
                     ? 'var(--color-state-success)'
                     : 'var(--color-text-disabled)',
-                  boxShadow: isOnline ? '0 0 8px var(--color-state-success)' : 'none',
+                  boxShadow: isOnline
+                    ? '0 0 8px var(--color-state-success)'
+                    : 'none',
                 }}
               />
               <span
                 className="text-xs font-medium"
-                style={{ color: isOnline ? 'var(--color-state-success)' : 'var(--color-text-disabled)' }}
+                style={{
+                  color: isOnline
+                    ? 'var(--color-state-success)'
+                    : 'var(--color-text-disabled)',
+                }}
               >
-                {isOnline ? '在线' : '离线'}
+                {isOnline
+                  ? t('mcp.servers.status.online', '在线')
+                  : t('mcp.servers.status.offline', '离线')}
               </span>
             </div>
 
@@ -168,12 +183,12 @@ export const MCPServerCard: React.FC<MCPServerCardProps> = ({
                   variant="ghost"
                   size="sm"
                   className={cn(
-                    'h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity',
-                    'hover:bg-black/5 dark:hover:bg-background-surface/10'
+                    'h-8 w-8 p-0 opacity-0 transition-opacity group-hover:opacity-100',
+                    'dark:hover:bg-background-surface/10 hover:bg-black/5',
                   )}
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <MoreHorizontal className="w-4 h-4" />
+                  <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="right" className="min-w-[140px]">
@@ -185,19 +200,19 @@ export const MCPServerCard: React.FC<MCPServerCardProps> = ({
                   disabled={isTesting}
                 >
                   {isTesting ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   ) : (
-                    <TestTube className="w-4 h-4 mr-2" />
+                    <TestTube className="mr-2 h-4 w-4" />
                   )}
-                  测试连接
+                  {t('mcp.servers.actions.test', '测试连接')}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleCopyUrl}>
                   {copied ? (
-                    <Check className="w-4 h-4 mr-2 text-green-500" />
+                    <Check className="mr-2 h-4 w-4 text-green-500" />
                   ) : (
-                    <Copy className="w-4 h-4 mr-2" />
+                    <Copy className="mr-2 h-4 w-4" />
                   )}
-                  复制地址
+                  {t('mcp.servers.actions.copy', '复制地址')}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
@@ -206,18 +221,18 @@ export const MCPServerCard: React.FC<MCPServerCardProps> = ({
                     onEdit?.(server)
                   }}
                 >
-                  <Edit className="w-4 h-4 mr-2" />
-                  编辑配置
+                  <Edit className="mr-2 h-4 w-4" />
+                  {t('mcp.servers.actions.edit', '编辑配置')}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={(e) => {
                     e.stopPropagation()
                     setShowDeleteDialog(true)
                   }}
-                  className="text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950/50"
+                  className="text-red-600 focus:bg-red-50 focus:text-red-600 dark:focus:bg-red-950/50"
                 >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  删除服务器
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  {t('mcp.servers.actions.delete', '删除服务器')}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -226,13 +241,13 @@ export const MCPServerCard: React.FC<MCPServerCardProps> = ({
           {/* 服务器名称 */}
           <div className="mb-3">
             <h3
-              className="text-lg font-semibold truncate mb-1 group-hover:text-blue-600 transition-colors"
+              className="mb-1 truncate text-lg font-semibold transition-colors group-hover:text-blue-600"
               style={{ color: 'var(--color-text-primary)' }}
             >
               {server.name}
             </h3>
             <Badge
-              className="text-xs font-medium border-0"
+              className="border-0 text-xs font-medium"
               style={{
                 backgroundColor: typeConfig.bgColor,
                 color: typeConfig.textColor,
@@ -243,15 +258,24 @@ export const MCPServerCard: React.FC<MCPServerCardProps> = ({
           </div>
 
           {/* 服务器地址 */}
-          <Tooltip content={copied ? '已复制!' : '点击复制地址'}>
+          <Tooltip
+            content={
+              copied
+                ? t('mcp.servers.card.copied', '已复制!')
+                : t('mcp.servers.card.copyTip', '点击复制地址')
+            }
+          >
             <div
-              className="flex items-center gap-2 px-3 py-2 rounded-lg mb-4 cursor-pointer hover:bg-black/5 dark:hover:bg-background-surface/5 transition-colors"
+              className="dark:hover:bg-background-surface/5 mb-4 flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2 transition-colors hover:bg-black/5"
               style={{ backgroundColor: 'var(--color-background-subtle)' }}
               onClick={handleCopyUrl}
             >
-              <Globe className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--color-text-tertiary)' }} />
+              <Globe
+                className="h-3.5 w-3.5 flex-shrink-0"
+                style={{ color: 'var(--color-text-tertiary)' }}
+              />
               <code
-                className="text-xs font-mono truncate flex-1"
+                className="flex-1 truncate font-mono text-xs"
                 style={{ color: 'var(--color-text-secondary)' }}
               >
                 {server.url}
@@ -262,7 +286,7 @@ export const MCPServerCard: React.FC<MCPServerCardProps> = ({
           {/* 描述（如果有） */}
           {server.description && (
             <p
-              className="text-sm line-clamp-2 mb-4"
+              className="mb-4 line-clamp-2 text-sm"
               style={{ color: 'var(--color-text-secondary)' }}
             >
               {server.description}
@@ -271,27 +295,44 @@ export const MCPServerCard: React.FC<MCPServerCardProps> = ({
 
           {/* 工具信息 */}
           <div
-            className="flex items-center justify-between pt-4 border-t"
+            className="flex items-center justify-between border-t pt-4"
             style={{ borderColor: 'var(--color-border-default)' }}
           >
             <div className="flex items-center gap-2">
               <div
-                className="flex items-center justify-center w-8 h-8 rounded-lg"
+                className="flex h-8 w-8 items-center justify-center rounded-lg"
                 style={{ backgroundColor: 'var(--color-state-focus-subtle)' }}
               >
-                <Zap className="w-4 h-4" style={{ color: 'var(--color-state-focus)' }} />
+                <Zap
+                  className="h-4 w-4"
+                  style={{ color: 'var(--color-state-focus)' }}
+                />
               </div>
               <div>
-                <p className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
-                  可用工具
+                <p
+                  className="text-xs"
+                  style={{ color: 'var(--color-text-tertiary)' }}
+                >
+                  {t('mcp.servers.stats.availableTools', '可用工具')}
                 </p>
                 {isLoadingTools ? (
                   <div className="flex items-center gap-1">
-                    <Loader2 className="w-3 h-3 animate-spin" style={{ color: 'var(--color-text-tertiary)' }} />
-                    <span className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>加载中</span>
+                    <Loader2
+                      className="h-3 w-3 animate-spin"
+                      style={{ color: 'var(--color-text-tertiary)' }}
+                    />
+                    <span
+                      className="text-sm"
+                      style={{ color: 'var(--color-text-tertiary)' }}
+                    >
+                      {t('mcp.servers.card.loading', '加载中')}
+                    </span>
                   </div>
                 ) : (
-                  <p className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>
+                  <p
+                    className="text-lg font-bold"
+                    style={{ color: 'var(--color-text-primary)' }}
+                  >
                     {tools.length}
                   </p>
                 )}
@@ -303,9 +344,9 @@ export const MCPServerCard: React.FC<MCPServerCardProps> = ({
               variant="outline"
               size="sm"
               className={cn(
-                'h-8 opacity-0 group-hover:opacity-100 transition-all',
-                'hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200',
-                'dark:hover:bg-blue-950/50'
+                'h-8 opacity-0 transition-all group-hover:opacity-100',
+                'hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600',
+                'dark:hover:bg-blue-950/50',
               )}
               onClick={(e) => {
                 e.stopPropagation()
@@ -314,11 +355,11 @@ export const MCPServerCard: React.FC<MCPServerCardProps> = ({
               disabled={isTesting}
             >
               {isTesting ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
               ) : (
                 <>
-                  <TestTube className="w-3.5 h-3.5 mr-1" />
-                  测试
+                  <TestTube className="mr-1 h-3.5 w-3.5" />
+                  {t('mcp.servers.actions.testShort', '测试')}
                 </>
               )}
             </Button>
@@ -328,7 +369,7 @@ export const MCPServerCard: React.FC<MCPServerCardProps> = ({
         {/* 悬浮工具预览（最多显示3个） */}
         {isHovered && tools.length > 0 && (
           <div
-            className="absolute left-0 right-0 bottom-0 p-3 bg-gradient-to-t from-components-card-bg via-components-card-bg to-transparent"
+            className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-components-card-bg via-components-card-bg to-transparent p-3"
             style={{ transform: 'translateY(100%)', zIndex: 10 }}
           >
             {/* 这部分可以在未来添加工具预览 */}
@@ -340,22 +381,27 @@ export const MCPServerCard: React.FC<MCPServerCardProps> = ({
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>确认删除服务器</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t('mcp.servers.card.deleteTitle', '确认删除服务器')}
+            </AlertDialogTitle>
             <AlertDialogDescription>
               <div>
                 <div
-                  className="flex items-center gap-3 p-3 rounded-lg my-3"
+                  className="my-3 flex items-center gap-3 rounded-lg p-3"
                   style={{ backgroundColor: 'var(--color-background-subtle)' }}
                 >
                   <div
-                    className={cn('w-2.5 h-2.5 rounded-full')}
+                    className={cn('h-2.5 w-2.5 rounded-full')}
                     style={{
                       backgroundColor: isOnline
                         ? 'var(--color-state-success)'
                         : 'var(--color-text-disabled)',
                     }}
                   />
-                  <span className="font-medium" style={{ color: 'var(--color-text-primary)' }}>
+                  <span
+                    className="font-medium"
+                    style={{ color: 'var(--color-text-primary)' }}
+                  >
                     {server.name}
                   </span>
                   <Badge
@@ -369,18 +415,21 @@ export const MCPServerCard: React.FC<MCPServerCardProps> = ({
                   </Badge>
                 </div>
                 <p style={{ color: 'var(--color-text-secondary)' }}>
-                  删除后将移除该服务器的所有配置和工具缓存，此操作无法撤销。
+                  {t(
+                    'mcp.servers.card.deleteDescription',
+                    '删除后将移除该服务器的所有配置和工具缓存，此操作无法撤销。',
+                  )}
                 </p>
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogCancel>{t('common.cancel', '取消')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
               className="bg-red-600 text-white hover:bg-red-700"
             >
-              确认删除
+              {t('mcp.servers.card.confirmDelete', '确认删除')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -1,0 +1,63 @@
+export default {
+  searchPage: {
+    title: '搜索应用',
+    description: '在选定知识库之上完成检索与 AI 总结，打造专用搜索应用。',
+    create: '创建搜索应用',
+    stats: {
+      total: '搜索应用总数',
+      summary: '已启用 AI 摘要',
+      related: '已启用相关问题',
+      knowledgeBases: '关联知识库总数',
+    },
+    filters: {
+      summary: 'AI 摘要',
+      related: '相关问题',
+      enabled: '已开启',
+      disabled: '已关闭',
+    },
+    toolbar: {
+      searchPlaceholder: '搜索应用名称...',
+      sortUpdated: '按更新时间',
+      sortCreated: '按创建时间',
+      sortName: '按名称',
+      detailedTime: '详细时间',
+      compactTime: '简洁时间',
+      relativeTime: '相对时间',
+      descending: '倒序',
+      ascending: '正序',
+      gridView: '网格视图',
+      listView: '列表视图',
+    },
+    card: {
+      summaryOn: '摘要开启',
+      summaryOff: '摘要关闭',
+      relatedOn: '相关问题开启',
+      relatedOff: '相关问题关闭',
+      knowledgeBases: '{{count}} 知识库',
+      settings: '设置',
+      delete: '删除',
+    },
+    empty: {
+      searchTitle: '未找到匹配的搜索应用',
+      listTitle: '还没有搜索应用',
+      searchDescription: '尝试调整搜索条件或筛选器后重试。',
+      listDescription:
+        '创建搜索应用，配置知识库和检索参数，快速从文档中查找信息并生成 AI 摘要',
+    },
+    pagination: {
+      total: '共 {{count}} 项',
+      previous: '上一页',
+      next: '下一页',
+    },
+    notifications: {
+      deleteSuccessTitle: '删除成功',
+      deleteSuccessMessage: '搜索应用已删除',
+      deleteFailedTitle: '删除失败',
+      deleteFailedMessage: '删除搜索应用时发生错误',
+    },
+    deleteDialog: {
+      title: '删除搜索应用',
+      description: '将永久删除「{{name}}」，该操作不可撤销。',
+    },
+  },
+}

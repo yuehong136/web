@@ -4,7 +4,20 @@
  */
 
 import React from 'react'
-import { Plus, Grid, List as ListIcon, Database, MessageSquare, HardDrive, Zap, Search, ChevronLeft, ChevronRight, ArrowUpDown } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import {
+  Plus,
+  Grid,
+  List as ListIcon,
+  Database,
+  MessageSquare,
+  HardDrive,
+  Zap,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  ArrowUpDown,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -17,7 +30,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { FilterPopover, type FilterConfig, type FilterValue } from '@/components/ui/filter-popover'
+import {
+  FilterPopover,
+  type FilterConfig,
+  type FilterValue,
+} from '@/components/ui/filter-popover'
 import { CustomSelect } from '@/components/ui/custom-select'
 import { PageSizeSelector } from '@/components/ui/page-size-selector'
 import { ViewToggle } from '@/components/ui/view-toggle'
@@ -36,10 +53,15 @@ import {
   useDeleteMemory,
   useDebouncedSearch,
 } from '@/hooks/use-memory'
-import { MEMORY_TEXTS } from '@/constants/memory-texts'
-import { MemoryType, type Memory, type CreateMemoryParams, type UpdateMemoryParams } from '@/types/memory'
+import {
+  MemoryType,
+  type Memory,
+  type CreateMemoryParams,
+  type UpdateMemoryParams,
+} from '@/types/memory'
 
 export const MemoryListPage: React.FC = () => {
+  const { t } = useTranslation()
   // Store state
   const {
     filter,
@@ -63,10 +85,14 @@ export const MemoryListPage: React.FC = () => {
 
   // 删除确认弹窗状态
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
-  const [memoryToDelete, setMemoryToDelete] = React.useState<Memory | null>(null)
-  
+  const [memoryToDelete, setMemoryToDelete] = React.useState<Memory | null>(
+    null,
+  )
+
   // 时间格式
-  const [timeFormat, setTimeFormat] = React.useState<'detailed' | 'compact' | 'relative'>('detailed')
+  const [timeFormat, setTimeFormat] = React.useState<
+    'detailed' | 'compact' | 'relative'
+  >('detailed')
   const [sortDesc, setSortDesc] = React.useState(true)
 
   // 更新筛选条件（搜索词变化时）
@@ -95,10 +121,13 @@ export const MemoryListPage: React.FC = () => {
   const total = data?.total_count || 0
 
   const sortedMemories = React.useMemo(() => {
-    const getSortTime = (memory: Memory) => memory.update_time ?? memory.create_time ?? 0
-    return [...memories].sort((a, b) => (
-      sortDesc ? getSortTime(b) - getSortTime(a) : getSortTime(a) - getSortTime(b)
-    ))
+    const getSortTime = (memory: Memory) =>
+      memory.update_time ?? memory.create_time ?? 0
+    return [...memories].sort((a, b) =>
+      sortDesc
+        ? getSortTime(b) - getSortTime(a)
+        : getSortTime(a) - getSortTime(b),
+    )
   }, [memories, sortDesc])
 
   // 统计数据（示例数据，实际应从 API 获取）
@@ -143,12 +172,21 @@ export const MemoryListPage: React.FC = () => {
   const filterConfigs: FilterConfig[] = [
     {
       key: 'memoryType',
-      label: MEMORY_TEXTS.memories.memoryType,
+      label: t('memory.filters.memoryType', '记忆类型'),
       options: [
-        { value: MemoryType.Raw, label: MEMORY_TEXTS.memories.raw },
-        { value: MemoryType.Semantic, label: MEMORY_TEXTS.memories.semantic },
-        { value: MemoryType.Episodic, label: MEMORY_TEXTS.memories.episodic },
-        { value: MemoryType.Procedural, label: MEMORY_TEXTS.memories.procedural },
+        { value: MemoryType.Raw, label: t('memory.filters.raw', '原始') },
+        {
+          value: MemoryType.Semantic,
+          label: t('memory.filters.semantic', '语义'),
+        },
+        {
+          value: MemoryType.Episodic,
+          label: t('memory.filters.episodic', '情景'),
+        },
+        {
+          value: MemoryType.Procedural,
+          label: t('memory.filters.procedural', '程序'),
+        },
       ],
     },
   ]
@@ -168,46 +206,46 @@ export const MemoryListPage: React.FC = () => {
   const emptyStateType = filter.keywords ? 'search' : 'list'
 
   return (
-    <div className="h-full flex flex-col p-6">
+    <div className="flex h-full flex-col p-6">
       {/* 页面头部 - 标题 + 创建按钮 */}
-      <div className="flex items-start justify-between mb-4">
+      <div className="mb-4 flex items-start justify-between">
         <div>
           <h1 className="text-xl font-semibold text-text-primary">
-            {MEMORY_TEXTS.memories.pageTitle}
+            {t('memory.page.title', '记忆库管理')}
           </h1>
-          <p className="text-sm text-text-secondary mt-1">
-            {MEMORY_TEXTS.memories.pageDescription}
+          <p className="mt-1 text-sm text-text-secondary">
+            {t('memory.page.description', '管理您的 AI 记忆，让对话更智能')}
           </p>
         </div>
         <Button onClick={openCreateModal}>
-          <Plus className="h-4 w-4 mr-2" />
-          {MEMORY_TEXTS.memories.createMemory}
+          <Plus className="mr-2 h-4 w-4" />
+          {t('memory.page.create', '创建记忆库')}
         </Button>
       </div>
 
       {/* 统计卡片 - 与知识库页面保持一致的布局 */}
       <div className="mb-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           <MemoryStatsCard
-            title={MEMORY_TEXTS.memories.totalMemories}
+            title={t('memory.stats.totalMemories', '记忆库总数')}
             value={stats.totalMemories}
             icon={Database}
             color="info"
           />
           <MemoryStatsCard
-            title={MEMORY_TEXTS.memories.totalMessages}
+            title={t('memory.stats.totalMessages', '总消息数')}
             value={stats.totalMessages}
             icon={MessageSquare}
             color="success"
           />
           <MemoryStatsCard
-            title={MEMORY_TEXTS.memories.totalStorage}
+            title={t('memory.stats.totalStorage', '总存储量')}
             value={stats.totalStorage}
             icon={HardDrive}
             color="info"
           />
           <MemoryStatsCard
-            title={MEMORY_TEXTS.memories.activeMemories}
+            title={t('memory.stats.activeMemories', '活跃数')}
             value={stats.activeMemories}
             icon={Zap}
             color="warning"
@@ -216,18 +254,18 @@ export const MemoryListPage: React.FC = () => {
       </div>
 
       {/* 搜索和筛选工具栏 */}
-      <div className="flex items-center space-x-4 mb-4">
+      <div className="mb-4 flex items-center space-x-4">
         {/* 左侧：搜索框 */}
-        <div className="flex-1 max-w-md">
+        <div className="max-w-md flex-1">
           <Input
             type="search"
-            placeholder={MEMORY_TEXTS.memories.searchPlaceholder}
+            placeholder={t('memory.filters.searchPlaceholder', '搜索记忆库...')}
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             leftIcon={<Search className="h-4 w-4" />}
           />
         </div>
-        
+
         {/* 右侧：筛选 + 时间格式 + 视图切换 */}
         <div className="flex items-center space-x-2">
           {/* 筛选按钮 */}
@@ -236,16 +274,27 @@ export const MemoryListPage: React.FC = () => {
             value={filterValue}
             onChange={handleFilterChange}
           />
-          
+
           {/* 时间格式选择器 */}
           <CustomSelect
             options={[
-              { value: 'detailed', label: '详细时间' },
-              { value: 'compact', label: '简洁时间' },
-              { value: 'relative', label: '相对时间' }
+              {
+                value: 'detailed',
+                label: t('memory.toolbar.detailedTime', '详细时间'),
+              },
+              {
+                value: 'compact',
+                label: t('memory.toolbar.compactTime', '简洁时间'),
+              },
+              {
+                value: 'relative',
+                label: t('memory.toolbar.relativeTime', '相对时间'),
+              },
             ]}
             value={timeFormat}
-            onChange={(value) => setTimeFormat(value as 'detailed' | 'compact' | 'relative')}
+            onChange={(value) =>
+              setTimeFormat(value as 'detailed' | 'compact' | 'relative')
+            }
             size="sm"
             className="min-w-[100px]"
           />
@@ -254,20 +303,32 @@ export const MemoryListPage: React.FC = () => {
             variant="outline"
             size="sm"
             onClick={() => setSortDesc((prev) => !prev)}
-            className="h-9 px-2 flex items-center gap-1 text-xs"
+            className="flex h-9 items-center gap-1 px-2 text-xs"
           >
             <ArrowUpDown className="h-3.5 w-3.5" />
-            <span>{sortDesc ? '倒序' : '正序'}</span>
+            <span>
+              {sortDesc
+                ? t('memory.toolbar.descending', '倒序')
+                : t('memory.toolbar.ascending', '正序')}
+            </span>
           </Button>
-          
+
           {/* 视图切换 */}
           <ViewToggle
             value={viewMode}
             onChange={setViewMode}
             size="md"
             options={[
-              { value: 'grid', icon: <Grid />, label: '网格视图' },
-              { value: 'list', icon: <ListIcon />, label: '列表视图' },
+              {
+                value: 'grid',
+                icon: <Grid />,
+                label: t('memory.toolbar.gridView', '网格视图'),
+              },
+              {
+                value: 'list',
+                icon: <ListIcon />,
+                label: t('memory.toolbar.listView', '列表视图'),
+              },
             ]}
           />
         </div>
@@ -275,22 +336,22 @@ export const MemoryListPage: React.FC = () => {
 
       {/* 内容区域 */}
       {showEmptyState ? (
-        <div className="flex-1 flex items-center justify-center">
+        <div className="flex flex-1 items-center justify-center">
           <MemoryEmptyState type={emptyStateType} onAction={openCreateModal} />
         </div>
       ) : (
         <>
           {/* 可滚动内容区域 - pt-1 pb-2 为悬停效果留出空间 */}
-          <div className="flex-1 overflow-y-auto pt-1 pb-2 -mx-1 px-1">
+          <div className="-mx-1 flex-1 overflow-y-auto px-1 pb-2 pt-1">
             {viewMode === 'grid' ? (
               /* 卡片网格视图 */
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {isLoading
                   ? // 加载骨架屏
                     [...Array(8)].map((_, i) => (
                       <div
                         key={i}
-                        className="h-[180px] rounded-lg bg-surface-secondary animate-pulse"
+                        className="bg-surface-secondary h-[180px] animate-pulse rounded-lg"
                       />
                     ))
                   : sortedMemories.map((memory) => (
@@ -319,15 +380,23 @@ export const MemoryListPage: React.FC = () => {
           {(() => {
             const totalPages = Math.ceil(total / pageSize)
             return totalPages > 0 ? (
-              <div className="mt-4 rounded-lg border shadow-sm" style={{
-                borderColor: 'var(--color-components-card-border)',
-                backgroundColor: 'var(--color-components-card-bg)'
-              }}>
-                <div className="px-6 py-4 flex items-center justify-between">
-                  <div className="text-sm" style={{ color: 'var(--color-components-pagination-text)' }}>
-                    共 {total} 项
+              <div
+                className="mt-4 rounded-lg border shadow-sm"
+                style={{
+                  borderColor: 'var(--color-components-card-border)',
+                  backgroundColor: 'var(--color-components-card-bg)',
+                }}
+              >
+                <div className="flex items-center justify-between px-6 py-4">
+                  <div
+                    className="text-sm"
+                    style={{ color: 'var(--color-components-pagination-text)' }}
+                  >
+                    {t('memory.pagination.total', '共 {{count}} 项', {
+                      count: total,
+                    })}
                   </div>
-                  
+
                   <div className="flex items-center space-x-4">
                     {/* 每页显示选择器 */}
                     <PageSizeSelector
@@ -335,7 +404,7 @@ export const MemoryListPage: React.FC = () => {
                       onChange={(size) => setPageSize(size)}
                       options={[6, 12, 24, 48]}
                     />
-                    
+
                     {/* 页码导航 */}
                     <div className="flex items-center space-x-2">
                       <Button
@@ -345,45 +414,50 @@ export const MemoryListPage: React.FC = () => {
                         disabled={page === 1}
                       >
                         <ChevronLeft className="h-4 w-4" />
-                        上一页
+                        {t('memory.pagination.previous', '上一页')}
                       </Button>
-                      
+
                       <div className="flex items-center space-x-1">
-                        {Array.from({ length: Math.max(1, Math.min(7, totalPages)) }, (_, i) => {
-                          let pageNum = i + 1
-                          
-                          // Show first page, last page, current page and surrounding pages
-                          if (totalPages > 7) {
-                            if (page <= 4) {
-                              pageNum = i + 1
-                            } else if (page >= totalPages - 3) {
-                              pageNum = totalPages - 6 + i
-                            } else {
-                              pageNum = page - 3 + i
+                        {Array.from(
+                          { length: Math.max(1, Math.min(7, totalPages)) },
+                          (_, i) => {
+                            let pageNum = i + 1
+
+                            // Show first page, last page, current page and surrounding pages
+                            if (totalPages > 7) {
+                              if (page <= 4) {
+                                pageNum = i + 1
+                              } else if (page >= totalPages - 3) {
+                                pageNum = totalPages - 6 + i
+                              } else {
+                                pageNum = page - 3 + i
+                              }
                             }
-                          }
-                          
-                          return (
-                            <Button
-                              key={pageNum}
-                              variant={page === pageNum ? 'default' : 'outline'}
-                              size="sm"
-                              onClick={() => setPage(pageNum)}
-                              className="min-w-[40px]"
-                            >
-                              {pageNum}
-                            </Button>
-                          )
-                        })}
+
+                            return (
+                              <Button
+                                key={pageNum}
+                                variant={
+                                  page === pageNum ? 'default' : 'outline'
+                                }
+                                size="sm"
+                                onClick={() => setPage(pageNum)}
+                                className="min-w-[40px]"
+                              >
+                                {pageNum}
+                              </Button>
+                            )
+                          },
+                        )}
                       </div>
-                      
+
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => setPage(page + 1)}
                         disabled={page === totalPages || totalPages === 0}
                       >
-                        下一页
+                        {t('memory.pagination.next', '下一页')}
                         <ChevronRight className="h-4 w-4" />
                       </Button>
                     </div>
@@ -410,19 +484,22 @@ export const MemoryListPage: React.FC = () => {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {MEMORY_TEXTS.memories.deleteMemory}
+              {t('memory.deleteDialog.title', '删除记忆库')}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {MEMORY_TEXTS.memories.delMemoryWarn}
+              {t(
+                'memory.deleteDialog.description',
+                '删除后，此记忆中的所有消息都将被删除，智能体将无法检索。',
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{MEMORY_TEXTS.common.cancel}</AlertDialogCancel>
+            <AlertDialogCancel>{t('common.cancel', '取消')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmDelete}
-              className="bg-state-error hover:bg-state-error/90"
+              className="hover:bg-state-error/90 bg-state-error"
             >
-              {MEMORY_TEXTS.common.delete}
+              {t('common.delete', '删除')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

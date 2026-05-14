@@ -4,10 +4,10 @@
  */
 
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import { Sparkles, Search, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { STUDIO_TEXTS } from '@/constants/studio-texts'
 
 interface AppEmptyStateProps {
   type: 'list' | 'search'
@@ -18,15 +18,21 @@ interface AppEmptyStateProps {
 const emptyStates = {
   list: {
     icon: Sparkles,
-    title: STUDIO_TEXTS.noApps,
-    description: STUDIO_TEXTS.noAppsDescription,
-    actionText: STUDIO_TEXTS.createFirstApp,
+    titleKey: 'studio.empty.listTitle',
+    title: '还没有应用',
+    descriptionKey: 'studio.empty.listDescription',
+    description: '开始创建您的第一个 AI 应用，让 AI 为您的业务赋能',
+    actionTextKey: 'studio.empty.createFirst',
+    actionText: '创建第一个应用',
     showAction: true,
   },
   search: {
     icon: Search,
-    title: STUDIO_TEXTS.noResults,
-    description: STUDIO_TEXTS.noResultsDescription,
+    titleKey: 'studio.empty.searchTitle',
+    title: '未找到匹配的应用',
+    descriptionKey: 'studio.empty.searchDescription',
+    description: '尝试调整搜索条件或筛选器',
+    actionTextKey: undefined,
     actionText: '',
     showAction: false,
   },
@@ -37,46 +43,49 @@ export const AppEmptyState: React.FC<AppEmptyStateProps> = ({
   onAction,
   className,
 }) => {
+  const { t } = useTranslation()
   const config = emptyStates[type]
   const Icon = config.icon
 
   return (
     <div
       className={cn(
-        'flex flex-col items-center justify-center py-16 px-4 text-center',
-        className
+        'flex flex-col items-center justify-center px-4 py-16 text-center',
+        className,
       )}
     >
       {/* 图标 */}
       <div className="mb-space-lg relative">
         <div
           className={cn(
-            'w-20 h-20 rounded-radius-xl flex items-center justify-center',
-            'bg-gradient-to-br from-components-avatar-gradient-purple-from/10 to-components-avatar-gradient-purple-to/10'
+            'rounded-radius-xl flex h-20 w-20 items-center justify-center',
+            'from-components-avatar-gradient-purple-from/10 to-components-avatar-gradient-purple-to/10 bg-gradient-to-br',
           )}
         >
           <Icon className="w-icon-2xl h-icon-2xl text-components-badge-purple-text" />
         </div>
         {/* 装饰点 */}
-        <div className="absolute -top-1 -right-1 w-3 h-3 bg-components-avatar-gradient-purple-from rounded-full animate-pulse" />
-        <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-components-avatar-gradient-purple-to rounded-full animate-pulse delay-150" />
+        <div className="absolute -right-1 -top-1 h-3 w-3 animate-pulse rounded-full bg-components-avatar-gradient-purple-from" />
+        <div className="absolute -bottom-1 -left-1 h-2 w-2 animate-pulse rounded-full bg-components-avatar-gradient-purple-to delay-150" />
       </div>
 
       {/* 标题 */}
-      <h3 className="text-lg font-semibold text-text-primary mb-space-sm">
-        {config.title}
+      <h3 className="mb-space-sm text-lg font-semibold text-text-primary">
+        {t(config.titleKey, config.title)}
       </h3>
 
       {/* 描述 */}
-      <p className="text-sm text-text-secondary max-w-sm mb-space-lg">
-        {config.description}
+      <p className="mb-space-lg max-w-sm text-sm text-text-secondary">
+        {t(config.descriptionKey, config.description)}
       </p>
 
       {/* 操作按钮 */}
       {config.showAction && onAction && (
         <Button onClick={onAction} className="gap-space-sm">
           <Plus className="w-icon-sm h-icon-sm" />
-          {config.actionText}
+          {config.actionTextKey
+            ? t(config.actionTextKey, config.actionText)
+            : config.actionText}
         </Button>
       )}
     </div>

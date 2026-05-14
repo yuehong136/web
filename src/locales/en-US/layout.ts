@@ -4,6 +4,7 @@ export default {
     sidebar: {
       expand: 'Expand sidebar',
       collapse: 'Collapse sidebar',
+      openNavigation: 'Open navigation',
       notifications: 'Notifications',
       noNotifications: 'No notifications',
       theme: 'Theme',
@@ -13,6 +14,7 @@ export default {
       language: 'Language',
       login: 'Log in',
       user: 'User',
+      userAvatar: 'User avatar',
       profile: 'Profile',
       settings: 'Settings',
       logout: 'Log out',

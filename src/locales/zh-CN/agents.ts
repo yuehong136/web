@@ -1,11 +1,11 @@
 export default {
   agents: {
-    center: 'Agent Center',
+    center: '智能体中心',
     centerDescription:
       '先把信息架构、路由、类型与运行入口搭好，再逐步增量替换每个节点表单和运行细节。',
-    templates: 'Agent Templates',
-    agents: 'Agents',
-    pipelines: 'Pipelines',
+    templates: '智能体模板',
+    agents: '智能体',
+    pipelines: '流水线',
     logs: '运行记录',
     opsLogs: '运维日志',
     templatesButton: '模板',

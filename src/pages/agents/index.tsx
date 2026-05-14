@@ -259,13 +259,13 @@ export default function AgentsPage() {
               color="info"
             />
             <MemoryStatsCard
-              title="Agents"
+              title={t('agents.agents', 'Agents')}
               value={stats.agentCount}
               icon={Bot}
               color="success"
             />
             <MemoryStatsCard
-              title="Pipelines"
+              title={t('agents.pipelines', 'Pipelines')}
               value={stats.pipelineCount}
               icon={Database}
               color="warning"

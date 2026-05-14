@@ -601,7 +601,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 {user?.avatar ? (
                   <img
                     src={user.avatar}
-                    alt="avatar"
+                    alt={t('layout.sidebar.userAvatar', '用户头像')}
                     className="h-6 w-6 flex-shrink-0 rounded-lg object-cover"
                   />
                 ) : (

@@ -1,0 +1,62 @@
+export default {
+  home: {
+    greeting: {
+      lateNight: 'It is late',
+      beforeDawn: 'Good early morning',
+      morning: 'Good morning',
+      forenoon: 'Good morning',
+      noon: 'Good noon',
+      afternoon: 'Good afternoon',
+      evening: 'Good evening',
+      question: '{{greeting}}! What work should we handle?',
+    },
+    input: {
+      welcomePlaceholder: 'Message me or assign a task',
+      chatPlaceholder: 'Type a message, press Enter to send',
+      loadingHistory: 'Loading conversation history...',
+      talk: 'Chat',
+      stop: 'Stop generating',
+    },
+    tabs: {
+      writing: 'Writing',
+      ppt: 'PPT',
+      video: 'Video',
+      design: 'Design',
+      excel: 'Excel',
+      web: 'Web',
+      podcast: 'Podcast',
+      chart: 'Charts',
+    },
+    recommendations: {
+      silverEconomy:
+        'What new opportunities are emerging behind the rise of the silver economy?',
+      sideBusiness:
+        'If a side business earns more than your main job, should you go full time?',
+      animalEncyclopedia: 'Create an animal encyclopedia in one step',
+      shuibeiRisk:
+        'What is the latest status after the Shuibei risk incident drew official attention?',
+      methRiverImpact:
+        'How long would ecological recovery take after 4.7 million meth pills fell into a Thai river?',
+      guess: 'Suggested',
+      creativeDesign: 'Creative design',
+      hotTopic: 'Trending',
+    },
+    skillPanel: {
+      loadFailed: 'Failed to load skills',
+      searchPlaceholder: 'Search skills or apps',
+      skills: 'Skills',
+      apps: 'Apps',
+      noSkillMatch: 'No matching skills',
+      noSkills: 'No skills available',
+      noAppMatch: 'No matching apps',
+      noApps: 'No apps available',
+      historyTitle: '{{name}} conversation history',
+      newConversation: 'Start a new conversation',
+      noHistory: 'No conversation history',
+      unnamedConversation: 'Untitled conversation',
+      minutesAgo: '{{count}} minutes ago',
+      hoursAgo: '{{count}} hours ago',
+      daysAgo: '{{count}} days ago',
+    },
+  },
+}

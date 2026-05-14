@@ -1,34 +1,59 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { Search, Star, Download, ChevronRight, Filter } from 'lucide-react'
 import { Input } from '@/components/vendor/ui/input'
-import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/vendor/ui/select'
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from '@/components/vendor/ui/select'
 import { Segmented, SegmentedItem } from '@/components/vendor/ui/segmented'
 import { Card, CardContent } from '@/components/vendor/ui/card'
 import { Badge } from '@/components/vendor/ui/badge'
 import { Button } from '@/components/vendor/ui/button'
 import { Tag } from '@/components/vendor/ui/tag'
-import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '@/components/vendor/ui/tooltip'
+import {
+  TooltipProvider,
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from '@/components/vendor/ui/tooltip'
 import { Skeleton } from '@/components/ui/loading'
 import { cn } from '@/lib/utils'
 
 type ServiceType = 'all' | 'hosted' | 'local'
+type SortKey = 'latest' | 'popular' | 'name'
+type CategoryKey = 'all' | 'forms'
+
+const DESKTOP_CATEGORIES = [
+  { key: 'all', count: 1, disabled: false },
+  { key: 'forms', count: 1, disabled: false },
+  { key: 'data', count: 0, disabled: true },
+  { key: 'ocr', count: 0, disabled: true },
+  { key: 'writing', count: 0, disabled: true },
+  { key: 'devops', count: 0, disabled: true },
+] as const
 
 export const AIToolsHomePage: React.FC = () => {
+  const { t } = useTranslation()
   const navigate = useNavigate()
 
   // UI state
   const [loading, setLoading] = React.useState(true)
   const [search, setSearch] = React.useState('')
   const [serviceType, setServiceType] = React.useState<ServiceType>('all')
-  const [sortBy, setSortBy] = React.useState<'最新' | '最热' | '名称'>('最新')
-  const [selectedCategory, setSelectedCategory] = React.useState<'全部' | '表单与流程'>('全部')
+  const [sortBy, setSortBy] = React.useState<SortKey>('latest')
+  const [selectedCategory, setSelectedCategory] =
+    React.useState<CategoryKey>('all')
   const [showCategoriesDrawer, setShowCategoriesDrawer] = React.useState(false)
 
   // analytics stubs
   React.useEffect(() => {
     // tools_impression
-     
+
     console.log('tools_impression', { page: 'ai-tools' })
     const t = setTimeout(() => setLoading(false), 600)
     return () => clearTimeout(t)
@@ -37,55 +62,70 @@ export const AIToolsHomePage: React.FC = () => {
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value)
     // tools_search
-     
+
     console.log('tools_search', { keyword: e.target.value })
   }
 
   const handleServiceTypeChange = (v: ServiceType) => {
     setServiceType(v)
     // tools_filter
-     
+
     console.log('tools_filter', { serviceType: v })
   }
 
   const resetFilters = () => {
     setSearch('')
     setServiceType('all')
-    setSortBy('最新')
-    setSelectedCategory('全部')
+    setSortBy('latest')
+    setSelectedCategory('all')
   }
 
   // Tool cards (static demo)
   const tools = [
     {
       id: 'auto-fill',
-      title: '自动填表',
-      description: '将结构化/半结构化数据快速映射至固定模板，实现批量高效填报，适配多种字段类型。',
-      tags: ['字段映射', '模板', '批量填充'],
+      title: t('tools.card.autoFillTitle', '自动填表'),
+      description: t(
+        'tools.card.autoFillDescription',
+        '将结构化/半结构化数据快速映射至固定模板，实现批量高效填报，适配多种字段类型。',
+      ),
+      tags: [
+        t('tools.card.fieldMapping', '字段映射'),
+        t('tools.card.template', '模板'),
+        t('tools.card.batchFill', '批量填充'),
+      ],
       service: 'hosted' as const,
       stars: 4.8,
       downloads: '12.3k',
-      category: '表单与流程' as const,
+      category: 'forms' as const,
     },
   ]
 
   // visual-only filtering (does not affect the single card result)
   const filtered = tools.filter((t) => {
-    const matchCategory = selectedCategory === '全部' || t.category === selectedCategory
-    const matchSearch = !search || [t.title, t.description, ...t.tags].some((x) => x.toLowerCase().includes(search.toLowerCase()))
+    const matchCategory =
+      selectedCategory === 'all' || t.category === selectedCategory
+    const matchSearch =
+      !search ||
+      [t.title, t.description, ...t.tags].some((x) =>
+        x.toLowerCase().includes(search.toLowerCase()),
+      )
     const matchService = serviceType === 'all' || t.service === serviceType
     return matchCategory && matchSearch && matchService
   })
 
   // render helpers
   const renderSkeletonGrid = () => (
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
       {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} className="rounded-lg border border-components-card-border bg-components-card-bg p-6 shadow-components-card-shadow">
-          <Skeleton height="1.25rem" className="w-2/3 mb-4" />
-          <Skeleton height="0.875rem" className="w-full mb-2" />
-          <Skeleton height="0.875rem" className="w-5/6 mb-4" />
-          <div className="flex gap-2 mb-4">
+        <div
+          key={i}
+          className="rounded-lg border border-components-card-border bg-components-card-bg p-6 shadow-components-card-shadow"
+        >
+          <Skeleton height="1.25rem" className="mb-4 w-2/3" />
+          <Skeleton height="0.875rem" className="mb-2 w-full" />
+          <Skeleton height="0.875rem" className="mb-4 w-5/6" />
+          <div className="mb-4 flex gap-2">
             <Skeleton height="1.25rem" className="w-16 rounded-full" />
             <Skeleton height="1.25rem" className="w-14 rounded-full" />
             <Skeleton height="1.25rem" className="w-16 rounded-full" />
@@ -97,224 +137,378 @@ export const AIToolsHomePage: React.FC = () => {
   )
 
   const renderEmpty = () => (
-    <div className="flex flex-col items-center justify-center py-20 text-center bg-components-empty-bg rounded-lg border border-border-subtle">
-      <div className="w-12 h-12 rounded-full bg-background-subtle text-text-muted flex items-center justify-center mb-3">:)</div>
-      <p className="text-text-secondary mb-2">未找到匹配的工具</p>
-      <p className="text-sm text-text-tertiary mb-4">试试调整搜索关键词或清空筛选条件</p>
-      <Button variant="outline" onClick={resetFilters}>清空筛选</Button>
+    <div className="flex flex-col items-center justify-center rounded-lg border border-border-subtle bg-components-empty-bg py-20 text-center">
+      <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-background-subtle text-text-muted">
+        :)
+      </div>
+      <p className="mb-2 text-text-secondary">
+        {t('tools.empty.title', '未找到匹配的工具')}
+      </p>
+      <p className="mb-4 text-sm text-text-tertiary">
+        {t('tools.empty.description', '试试调整搜索关键词或清空筛选条件')}
+      </p>
+      <Button variant="outline" onClick={resetFilters}>
+        {t('tools.empty.clear', '清空筛选')}
+      </Button>
     </div>
   )
 
   const openTool = (id: string) => {
     // tool_open
-     
+
     console.log('tool_open', { id })
     navigate(`/tools/${id}`)
   }
 
   return (
     <TooltipProvider>
-    <div className="p-6">
-      {/* Breadcrumb */}
-      <div className="mb-4 text-sm text-text-secondary flex items-center gap-2">
-        <span className="hover:text-text-primary cursor-default">首页</span>
-        <ChevronRight className="h-4 w-4 text-components-breadcrumb-separator" />
-        <span className="text-text-primary">工具箱</span>
-      </div>
-
-      {/* Page title and quick filter (right aligned) */}
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-text-primary">工具箱</h1>
-        <div className="hidden md:block">
-          <Segmented value={serviceType} onValueChange={(v) => handleServiceTypeChange(v as ServiceType)}>
-            <SegmentedItem value="all">All</SegmentedItem>
-            <SegmentedItem value="hosted">Hosted</SegmentedItem>
-            <SegmentedItem value="local">Local</SegmentedItem>
-          </Segmented>
+      <div className="p-6">
+        {/* Breadcrumb */}
+        <div className="mb-4 flex items-center gap-2 text-sm text-text-secondary">
+          <span className="cursor-default hover:text-text-primary">
+            {t('tools.breadcrumbHome', '首页')}
+          </span>
+          <ChevronRight className="h-4 w-4 text-components-breadcrumb-separator" />
+          <span className="text-text-primary">
+            {t('tools.title', '工具箱')}
+          </span>
         </div>
-      </div>
 
-      <div className="flex gap-6">
-        {/* Left categories - sticky, scrollable */}
-        <aside className="hidden md:block w-60 shrink-0">
-          <div className="sticky top-20">
-            <div className="mb-3 text-sm font-medium text-text-tertiary">分类</div>
-            <nav className="bg-components-card-bg rounded-xl border border-components-card-border shadow-components-card-shadow divide-y divide-border-subtle">
-              {[
-                { key: '全部', count: 1, disabled: false },
-                { key: '表单与流程', count: 1, disabled: false },
-                { key: '数据分析', count: 0, disabled: true },
-                { key: '图像与OCR', count: 0, disabled: true },
-                { key: '文案与翻译', count: 0, disabled: true },
-                { key: '开发与运维', count: 0, disabled: true },
-              ].map((c) => {
-                const active = selectedCategory === (c.key as '全部' | '表单与流程')
-                return (
-                  <button
-                    key={c.key}
-                    className={cn(
-                      'w-full flex items-center justify-between px-4 py-3 text-left text-sm',
-                      active && 'bg-components-sidebar-item-bg-active text-text-primary',
-                      !active && 'hover:bg-components-sidebar-item-bg-hover text-text-secondary',
-                      c.disabled && 'opacity-50 cursor-not-allowed'
+        {/* Page title and quick filter (right aligned) */}
+        <div className="mb-4 flex items-center justify-between">
+          <h1 className="text-2xl font-semibold text-text-primary">
+            {t('tools.title', '工具箱')}
+          </h1>
+          <div className="hidden md:block">
+            <Segmented
+              value={serviceType}
+              onValueChange={(v) => handleServiceTypeChange(v as ServiceType)}
+            >
+              <SegmentedItem value="all">
+                {t('tools.service.all', 'All')}
+              </SegmentedItem>
+              <SegmentedItem value="hosted">
+                {t('tools.service.hosted', 'Hosted')}
+              </SegmentedItem>
+              <SegmentedItem value="local">
+                {t('tools.service.local', 'Local')}
+              </SegmentedItem>
+            </Segmented>
+          </div>
+        </div>
+
+        <div className="flex gap-6">
+          {/* Left categories - sticky, scrollable */}
+          <aside className="hidden w-60 shrink-0 md:block">
+            <div className="sticky top-20">
+              <div className="mb-3 text-sm font-medium text-text-tertiary">
+                {t('tools.categories.title', '分类')}
+              </div>
+              <nav className="divide-y divide-border-subtle rounded-xl border border-components-card-border bg-components-card-bg shadow-components-card-shadow">
+                {DESKTOP_CATEGORIES.map((c) => {
+                  const active = selectedCategory === c.key
+                  const label = t(`tools.categories.${c.key}`, c.key)
+                  return (
+                    <button
+                      key={c.key}
+                      className={cn(
+                        'flex w-full items-center justify-between px-4 py-3 text-left text-sm',
+                        active &&
+                          'bg-components-sidebar-item-bg-active text-text-primary',
+                        !active &&
+                          'text-text-secondary hover:bg-components-sidebar-item-bg-hover',
+                        c.disabled && 'cursor-not-allowed opacity-50',
+                      )}
+                      onClick={() =>
+                        !c.disabled && setSelectedCategory(c.key as CategoryKey)
+                      }
+                      aria-disabled={c.disabled}
+                    >
+                      <span>{label}</span>
+                      <span
+                        className={cn(
+                          'rounded-full border px-2 py-0.5 text-xs',
+                          c.disabled
+                            ? 'border-border-subtle text-text-tertiary'
+                            : 'border-border-default text-text-secondary',
+                        )}
+                      >
+                        {c.count}
+                      </span>
+                    </button>
+                  )
+                })}
+              </nav>
+            </div>
+          </aside>
+
+          {/* Main content */}
+          <section className="min-w-0 flex-1">
+            {/* Toolbar: search + segmented (mobile) + sort + reset */}
+            <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex-1">
+                <div className="relative">
+                  <Search
+                    className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                    aria-hidden
+                  />
+                  <Input
+                    placeholder={t(
+                      'tools.toolbar.searchPlaceholder',
+                      '搜索工具…',
                     )}
-                    onClick={() => !c.disabled && setSelectedCategory(c.key as '全部' | '表单与流程')}
-                    aria-disabled={c.disabled}
+                    value={search}
+                    onChange={handleSearchChange}
+                    className="pl-9"
+                    aria-label={t('tools.toolbar.searchLabel', '搜索工具')}
+                  />
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="md:hidden">
+                  <Segmented
+                    value={serviceType}
+                    onValueChange={(v) =>
+                      handleServiceTypeChange(v as ServiceType)
+                    }
                   >
-                    <span>{c.key}</span>
-                    <span className={cn('px-2 py-0.5 rounded-full text-xs border', c.disabled ? 'text-text-tertiary border-border-subtle' : 'text-text-secondary border-border-default')}>{c.count}</span>
-                  </button>
-                )
-              })}
-            </nav>
-          </div>
-        </aside>
-
-        {/* Main content */}
-        <section className="flex-1 min-w-0">
-          {/* Toolbar: search + segmented (mobile) + sort + reset */}
-          <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" aria-hidden />
-                <Input
-                  placeholder="搜索工具…"
-                  value={search}
-                  onChange={handleSearchChange}
-                  className="pl-9"
-                  aria-label="搜索工具"
-                />
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="md:hidden">
-                <Segmented value={serviceType} onValueChange={(v) => handleServiceTypeChange(v as ServiceType)}>
-                  <SegmentedItem value="all">All</SegmentedItem>
-                  <SegmentedItem value="hosted">Hosted</SegmentedItem>
-                  <SegmentedItem value="local">Local</SegmentedItem>
-                </Segmented>
-              </div>
-              <div className="w-40">
-                <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
-                  <SelectTrigger aria-label="排序选项">
-                    <SelectValue placeholder="排序" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="最新">最新</SelectItem>
-                    <SelectItem value="最热">最热</SelectItem>
-                    <SelectItem value="名称">名称</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <Button variant="outline" onClick={resetFilters}>重置</Button>
-              <Button variant="secondary" className="md:hidden" onClick={() => setShowCategoriesDrawer(true)}>
-                <Filter className="h-4 w-4 mr-2" />
-                筛选
-              </Button>
-            </div>
-          </div>
-
-          {/* Cards grid */}
-          {loading ? (
-            renderSkeletonGrid()
-          ) : filtered.length === 0 ? (
-            renderEmpty()
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
-              {filtered.map((tool) => (
-                <Card
-                  key={tool.id}
-                  className="relative h-full focus-visible:ring-2 focus-visible:ring-offset-2 outline-none"
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => openTool(tool.id)}
-                  onKeyDown={(e) => { if (e.key === 'Enter') openTool(tool.id) }}
-                  aria-label={`打开工具 ${tool.title}`}
+                    <SegmentedItem value="all">
+                      {t('tools.service.all', 'All')}
+                    </SegmentedItem>
+                    <SegmentedItem value="hosted">
+                      {t('tools.service.hosted', 'Hosted')}
+                    </SegmentedItem>
+                    <SegmentedItem value="local">
+                      {t('tools.service.local', 'Local')}
+                    </SegmentedItem>
+                  </Segmented>
+                </div>
+                <div className="w-40">
+                  <Select
+                    value={sortBy}
+                    onValueChange={(v) => setSortBy(v as SortKey)}
+                  >
+                    <SelectTrigger
+                      aria-label={t('tools.sort.placeholder', '排序')}
+                    >
+                      <SelectValue
+                        placeholder={t('tools.sort.placeholder', '排序')}
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="latest">
+                        {t('tools.sort.latest', '最新')}
+                      </SelectItem>
+                      <SelectItem value="popular">
+                        {t('tools.sort.popular', '最热')}
+                      </SelectItem>
+                      <SelectItem value="name">
+                        {t('tools.sort.name', '名称')}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button variant="outline" onClick={resetFilters}>
+                  {t('tools.toolbar.reset', '重置')}
+                </Button>
+                <Button
+                  variant="secondary"
+                  className="md:hidden"
+                  onClick={() => setShowCategoriesDrawer(true)}
                 >
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="min-w-0">
-                        <h3 className="text-lg font-medium text-text-primary truncate">{tool.title}</h3>
-                        <p className="mt-1 text-sm text-text-secondary leading-6 max-h-[44px] overflow-hidden">{tool.description}</p>
-                      </div>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Badge
-                            variant="outline"
-                            aria-label={tool.service === 'hosted' ? '托管服务' : '本地服务'}
-                            className={cn('shrink-0', tool.service === 'hosted' ? 'border-components-badge-info-bg text-components-badge-info-text bg-components-badge-info-bg' : 'border-components-badge-success-bg text-components-badge-success-text bg-components-badge-success-bg')}
-                          >
-                            {tool.service === 'hosted' ? 'Hosted' : 'Local'}
-                          </Badge>
-                        </TooltipTrigger>
-                        <TooltipContent>{tool.service === 'hosted' ? '云端托管服务' : '本地运行服务'}</TooltipContent>
-                      </Tooltip>
-                    </div>
-
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {tool.tags.map((tag) => (
-                        <Tag key={tag} variant="outline" aria-label={`标签 ${tag}`}>{tag}</Tag>
-                      ))}
-                    </div>
-
-                    <div className="mt-4 flex items-center justify-between">
-                      <div className="flex items-center gap-4 text-sm text-text-secondary">
-                        <span className="inline-flex items-center gap-1"><Star className="h-4 w-4 text-state-warning" aria-hidden />{tool.stars}</span>
-                        <span className="inline-flex items-center gap-1"><Download className="h-4 w-4" aria-hidden />{tool.downloads}</span>
-                      </div>
-                      <Button onClick={(e) => { e.stopPropagation(); openTool(tool.id) }}>进入</Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                  <Filter className="mr-2 h-4 w-4" />
+                  {t('tools.toolbar.filter', '筛选')}
+                </Button>
+              </div>
             </div>
-          )}
 
-          {/* Pagination placeholder */}
-          <div className="mt-6 flex items-center justify-between text-sm text-text-secondary">
-            <span>共 1 页</span>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" disabled>上一页</Button>
-              <Button variant="outline" disabled>下一页</Button>
-            </div>
-          </div>
-        </section>
-      </div>
-
-      {/* Mobile categories drawer (simple overlay) */}
-      {showCategoriesDrawer && (
-        <div className="fixed inset-0 z-50">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setShowCategoriesDrawer(false)} />
-          <div className="absolute inset-y-0 left-0 w-72 bg-components-card-bg border-r border-components-card-border shadow-elevation-high p-4 animate-slide-down">
-            <div className="text-sm font-medium text-text-tertiary mb-3">分类</div>
-            <div className="space-y-1">
-              {['全部', '表单与流程', '数据分析', '图像与OCR', '文案与翻译', '开发与运维'].map((name) => {
-                const disabled = name !== '全部' && name !== '表单与流程'
-                const active = selectedCategory === name
-                return (
-                  <button
-                    key={name}
-                    className={cn('w-full text-left px-3 py-2 rounded-lg', active ? 'bg-components-sidebar-item-bg-active text-text-primary' : 'hover:bg-components-sidebar-item-bg-hover text-text-secondary', disabled && 'opacity-50 cursor-not-allowed')}
-                    onClick={() => { if (!disabled) { setSelectedCategory(name as any); setShowCategoriesDrawer(false) } }}
-                    aria-disabled={disabled}
+            {/* Cards grid */}
+            {loading ? (
+              renderSkeletonGrid()
+            ) : filtered.length === 0 ? (
+              renderEmpty()
+            ) : (
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+                {filtered.map((tool) => (
+                  <Card
+                    key={tool.id}
+                    className="relative h-full outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => openTool(tool.id)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') openTool(tool.id)
+                    }}
+                    aria-label={t('tools.card.openLabel', '打开工具 {{name}}', {
+                      name: tool.title,
+                    })}
                   >
-                    {name}
-                  </button>
-                )
-              })}
+                    <CardContent className="p-6">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="min-w-0">
+                          <h3 className="truncate text-lg font-medium text-text-primary">
+                            {tool.title}
+                          </h3>
+                          <p className="mt-1 max-h-[44px] overflow-hidden text-sm leading-6 text-text-secondary">
+                            {tool.description}
+                          </p>
+                        </div>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Badge
+                              variant="outline"
+                              aria-label={
+                                tool.service === 'hosted'
+                                  ? t('tools.service.hostedLabel', '托管服务')
+                                  : t('tools.service.localLabel', '本地服务')
+                              }
+                              className={cn(
+                                'shrink-0',
+                                tool.service === 'hosted'
+                                  ? 'border-components-badge-info-bg bg-components-badge-info-bg text-components-badge-info-text'
+                                  : 'border-components-badge-success-bg bg-components-badge-success-bg text-components-badge-success-text',
+                              )}
+                            >
+                              {tool.service === 'hosted' ? 'Hosted' : 'Local'}
+                            </Badge>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            {tool.service === 'hosted'
+                              ? t('tools.service.hostedTip', '云端托管服务')
+                              : t('tools.service.localTip', '本地运行服务')}
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {tool.tags.map((tag) => (
+                          <Tag
+                            key={tag}
+                            variant="outline"
+                            aria-label={t(
+                              'tools.card.tagLabel',
+                              '标签 {{name}}',
+                              { name: tag },
+                            )}
+                          >
+                            {tag}
+                          </Tag>
+                        ))}
+                      </div>
+
+                      <div className="mt-4 flex items-center justify-between">
+                        <div className="flex items-center gap-4 text-sm text-text-secondary">
+                          <span className="inline-flex items-center gap-1">
+                            <Star
+                              className="h-4 w-4 text-state-warning"
+                              aria-hidden
+                            />
+                            {tool.stars}
+                          </span>
+                          <span className="inline-flex items-center gap-1">
+                            <Download className="h-4 w-4" aria-hidden />
+                            {tool.downloads}
+                          </span>
+                        </div>
+                        <Button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            openTool(tool.id)
+                          }}
+                        >
+                          {t('tools.card.enter', '进入')}
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+
+            {/* Pagination placeholder */}
+            <div className="mt-6 flex items-center justify-between text-sm text-text-secondary">
+              <span>
+                {t('tools.pagination.totalPages', '共 {{count}} 页', {
+                  count: 1,
+                })}
+              </span>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" disabled>
+                  {t('tools.pagination.previous', '上一页')}
+                </Button>
+                <Button variant="outline" disabled>
+                  {t('tools.pagination.next', '下一页')}
+                </Button>
+              </div>
             </div>
-            <div className="mt-4 flex gap-2">
-              <Button variant="outline" onClick={() => setShowCategoriesDrawer(false)}>关闭</Button>
-              <Button variant="secondary" onClick={() => { resetFilters(); setShowCategoriesDrawer(false) }}>重置</Button>
+          </section>
+        </div>
+
+        {/* Mobile categories drawer (simple overlay) */}
+        {showCategoriesDrawer && (
+          <div className="fixed inset-0 z-50">
+            <div
+              className="absolute inset-0 bg-black/40"
+              onClick={() => setShowCategoriesDrawer(false)}
+            />
+            <div className="shadow-elevation-high absolute inset-y-0 left-0 w-72 animate-slide-down border-r border-components-card-border bg-components-card-bg p-4">
+              <div className="mb-3 text-sm font-medium text-text-tertiary">
+                {t('tools.categories.title', '分类')}
+              </div>
+              <div className="space-y-1">
+                {DESKTOP_CATEGORIES.map((category) => {
+                  const disabled = category.disabled
+                  const active = selectedCategory === category.key
+                  const name = t(
+                    `tools.categories.${category.key}`,
+                    category.key,
+                  )
+                  return (
+                    <button
+                      key={name}
+                      className={cn(
+                        'w-full rounded-lg px-3 py-2 text-left',
+                        active
+                          ? 'bg-components-sidebar-item-bg-active text-text-primary'
+                          : 'text-text-secondary hover:bg-components-sidebar-item-bg-hover',
+                        disabled && 'cursor-not-allowed opacity-50',
+                      )}
+                      onClick={() => {
+                        if (!disabled) {
+                          setSelectedCategory(category.key as CategoryKey)
+                          setShowCategoriesDrawer(false)
+                        }
+                      }}
+                      aria-disabled={disabled}
+                    >
+                      {name}
+                    </button>
+                  )
+                })}
+              </div>
+              <div className="mt-4 flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowCategoriesDrawer(false)}
+                >
+                  {t('tools.drawer.close', '关闭')}
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    resetFilters()
+                    setShowCategoriesDrawer(false)
+                  }}
+                >
+                  {t('tools.drawer.reset', '重置')}
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
     </TooltipProvider>
   )
 }
 
 export default AIToolsHomePage
-
-

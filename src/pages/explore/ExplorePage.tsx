@@ -54,6 +54,8 @@ import {
 import { useChatUpload } from '@/hooks/use-chat-upload'
 import { conversationAPI } from '@/api/conversation'
 import { useQuery } from '@tanstack/react-query'
+import type { TFunction } from 'i18next'
+import { useTranslation } from 'react-i18next'
 import {
   chatConfig,
   type ChatMessage,
@@ -133,8 +135,6 @@ const getAppIcon = (app: any, size: 'sm' | 'md' = 'sm') => {
   )
 }
 
-const ATTACHMENT_ONLY_PROMPT = '请分析这些附件'
-
 const isImageAttachment = (file?: UploadedFileInfo) => {
   return !!file?.mime_type?.startsWith('image/')
 }
@@ -149,21 +149,37 @@ const getImagePreviewUrl = (file: UploadedFileInfo): string | null => {
   return null
 }
 
-const getAttachmentStatusLabel = (file: UploadFile) => {
+const getAttachmentStatusLabel = (file: UploadFile, t: TFunction) => {
   if (file.status === 'uploading') {
-    return `上传中 ${Math.round(file.percent || 0)}%`
+    return t('explore.attachmentStatus.uploading', {
+      percent: Math.round(file.percent || 0),
+    })
   }
 
   if (file.status === 'error') {
-    return '上传失败，点击重试'
+    return t('explore.attachmentStatus.error')
   }
 
   if (file.response) {
     const typeLabel = file.response.extension?.toUpperCase() || 'FILE'
-    return `已就绪 · ${typeLabel} · ${formatBytes(file.response.size || file.size || 0)}`
+    return t('explore.attachmentStatus.ready', {
+      type: typeLabel,
+      size: formatBytes(file.response.size || file.size || 0),
+    })
   }
 
   return formatBytes(file.size || 0)
+}
+
+const translateConversationGroup = (group: string, t: TFunction): string => {
+  const keyMap: Record<string, string> = {
+    今天: 'explore.conversations.groups.today',
+    昨天: 'explore.conversations.groups.yesterday',
+    '最近 7 天': 'explore.conversations.groups.last7Days',
+    更早: 'explore.conversations.groups.earlier',
+  }
+
+  return keyMap[group] ? t(keyMap[group]) : group
 }
 
 const toRcFile = (file: File, uid: string): RcFile => {
@@ -184,6 +200,7 @@ interface ChatMessageItem {
 }
 
 export const ExplorePage: React.FC = () => {
+  const { t } = useTranslation()
   const { clearChat } = useChatStore()
   const { myLLMs, isLoading: modelsLoading, loadMyLLMs } = useModelStore()
 
@@ -372,7 +389,7 @@ export const ExplorePage: React.FC = () => {
     return uploadFiles.map((file) => ({
       ...file,
       className: file.status === 'error' ? 'cursor-pointer' : undefined,
-      description: getAttachmentStatusLabel(file),
+      description: getAttachmentStatusLabel(file, t),
       icon: file.response ? (
         <FileIcon fileName={file.response.name} size="sm" />
       ) : undefined,
@@ -387,7 +404,7 @@ export const ExplorePage: React.FC = () => {
             }
           : undefined,
     }))
-  }, [retryUploadFile, uploadFiles])
+  }, [retryUploadFile, t, uploadFiles])
 
   // 加载模型列表
   React.useEffect(() => {
@@ -471,7 +488,7 @@ export const ExplorePage: React.FC = () => {
       // 找到这个助手消息之前的用户消息
       const userMessageIndex = assistantMessageIndex - 1
       if (userMessageIndex < 0 || messages[userMessageIndex]?.role !== 'user') {
-        toast.error('无法找到对应的用户消息')
+        toast.error(t('explore.toast.missingUserMessage'))
         return
       }
 
@@ -489,7 +506,7 @@ export const ExplorePage: React.FC = () => {
         handleSendMessageRef.current?.(userContent, baseMessages, userFiles)
       })
     },
-    [isStreaming, messages],
+    [isStreaming, messages, t],
   )
 
   // 发送消息（支持附件与失败恢复）
@@ -505,7 +522,7 @@ export const ExplorePage: React.FC = () => {
     const normalizedMessage = message.trim()
     const messageContent =
       normalizedMessage ||
-      (pendingFiles.length > 0 ? ATTACHMENT_ONLY_PROMPT : '')
+      (pendingFiles.length > 0 ? t('explore.attachmentOnlyPrompt') : '')
     const conversationSeed =
       normalizedMessage || pendingFiles[0]?.name || messageContent
 
@@ -790,7 +807,7 @@ export const ExplorePage: React.FC = () => {
           if (lastIdx >= 0 && newMsgs[lastIdx].role === 'assistant') {
             newMsgs[lastIdx] = {
               ...newMsgs[lastIdx],
-              content: '抱歉，发生了错误，请重试。',
+              content: t('explore.toast.assistantError'),
             }
           }
           return newMsgs
@@ -811,7 +828,7 @@ export const ExplorePage: React.FC = () => {
     try {
       const newConversation = await conversationAPI.setConversation({
         dialog_id: selectedApp,
-        name: 'New conversation',
+        name: t('explore.conversations.fallbackName'),
         is_new: true,
       })
 
@@ -908,10 +925,13 @@ export const ExplorePage: React.FC = () => {
   )
 
   // 处理复制
-  const handleCopyContent = React.useCallback((content: string) => {
-    copyToClipboard(content)
-    toast.success('已复制到剪贴板')
-  }, [])
+  const handleCopyContent = React.useCallback(
+    (content: string) => {
+      copyToClipboard(content)
+      toast.success(t('explore.toast.copied'))
+    },
+    [t],
+  )
 
   const renderMessageAttachments = React.useCallback(
     (files?: UploadedFileInfo[]) => {
@@ -991,7 +1011,7 @@ export const ExplorePage: React.FC = () => {
                   </div>
                   <div className="text-xs opacity-80">
                     {category === 'image'
-                      ? '图片'
+                      ? t('explore.attachmentStatus.image')
                       : file.extension?.toUpperCase() || 'FILE'}{' '}
                     · {formatBytes(file.size || 0)}
                   </div>
@@ -1002,7 +1022,7 @@ export const ExplorePage: React.FC = () => {
         </div>
       )
     },
-    [],
+    [t],
   )
 
   // 转换消息为 Bubble 格式
@@ -1233,14 +1253,14 @@ export const ExplorePage: React.FC = () => {
                 onCopy={async () => {
                   try {
                     await copyToClipboard(msg.content || '')
-                    toast.success('已复制到剪贴板')
+                    toast.success(t('explore.toast.copied'))
                   } catch {
-                    toast.error('复制失败')
+                    toast.error(t('explore.toast.copyFailed'))
                   }
                 }}
                 onRegenerate={() => handleRegenerateMessage(index)}
-                onLike={() => toast.success('感谢您的反馈')}
-                onDislike={() => toast.success('感谢您的反馈，我们会继续改进')}
+                onLike={() => toast.success(t('explore.toast.like'))}
+                onDislike={() => toast.success(t('explore.toast.dislike'))}
               />
             ) : undefined,
           variant: 'borderless' as const,
@@ -1279,15 +1299,32 @@ export const ExplorePage: React.FC = () => {
       isStreaming,
       messages,
       renderMessageAttachments,
+      t,
     ],
   )
 
   // 提示词
   const promptItems: PromptsProps['items'] = [
-    { key: '1', label: '解释这个概念', description: '深入了解' },
-    { key: '2', label: '写一段代码', description: '编程助手' },
-    { key: '3', label: '总结要点', description: '快速提取' },
-    { key: '4', label: '翻译文本', description: '多语言' },
+    {
+      key: '1',
+      label: t('explore.prompts.explain.label'),
+      description: t('explore.prompts.explain.description'),
+    },
+    {
+      key: '2',
+      label: t('explore.prompts.code.label'),
+      description: t('explore.prompts.code.description'),
+    },
+    {
+      key: '3',
+      label: t('explore.prompts.summarize.label'),
+      description: t('explore.prompts.summarize.description'),
+    },
+    {
+      key: '4',
+      label: t('explore.prompts.translate.label'),
+      description: t('explore.prompts.translate.description'),
+    },
   ]
 
   // 处理事件
@@ -1347,13 +1384,13 @@ export const ExplorePage: React.FC = () => {
               className="text-lg font-medium"
               style={{ color: 'var(--color-text-primary)' }}
             >
-              释放以上传文件
+              {t('explore.dragUpload.title')}
             </div>
             <div
               className="text-sm"
               style={{ color: 'var(--color-text-secondary)' }}
             >
-              支持图片、文档等格式
+              {t('explore.dragUpload.description')}
             </div>
           </div>
         </div>
@@ -1400,10 +1437,10 @@ export const ExplorePage: React.FC = () => {
                 }}
               >
                 {tab === 'workspace'
-                  ? '工作区'
+                  ? t('explore.tabs.workspace')
                   : tab === 'topics'
-                    ? '话题'
-                    : '设置'}
+                    ? t('explore.tabs.topics')
+                    : t('explore.tabs.settings')}
               </button>
             ))}
           </div>
@@ -1430,7 +1467,7 @@ export const ExplorePage: React.FC = () => {
                   }}
                 >
                   <Search className="h-4 w-4" />
-                  <span>发现</span>
+                  <span>{t('explore.sidebar.discover')}</span>
                 </button>
               </div>
 
@@ -1446,21 +1483,21 @@ export const ExplorePage: React.FC = () => {
                     className="py-8 text-center text-sm"
                     style={{ color: 'var(--color-text-tertiary)' }}
                   >
-                    加载应用中...
+                    {t('explore.sidebar.loadingApps')}
                   </div>
                 ) : dialogAppsError ? (
                   <div
                     className="py-8 text-center text-sm"
                     style={{ color: 'var(--color-text-error)' }}
                   >
-                    加载失败
+                    {t('explore.sidebar.loadFailed')}
                   </div>
                 ) : dialogApps.length === 0 ? (
                   <div
                     className="py-8 text-center text-sm"
                     style={{ color: 'var(--color-text-tertiary)' }}
                   >
-                    暂无应用
+                    {t('explore.sidebar.noApps')}
                   </div>
                 ) : (
                   dialogApps
@@ -1501,7 +1538,7 @@ export const ExplorePage: React.FC = () => {
                       className="text-sm"
                       style={{ color: 'var(--color-text-tertiary)' }}
                     >
-                      请先选择一个应用
+                      {t('explore.sidebar.selectAppFirst')}
                     </p>
                   </div>
                 </div>
@@ -1632,14 +1669,14 @@ export const ExplorePage: React.FC = () => {
                       >
                         {dialogConversationsLoading ? (
                           <div className="explore-conversations-empty">
-                            加载中...
+                            {t('explore.conversations.loading')}
                           </div>
                         ) : dialogConversationsError ? (
                           <div
                             className="explore-conversations-empty"
                             style={{ color: 'var(--color-text-error)' }}
                           >
-                            加载失败
+                            {t('explore.sidebar.loadFailed')}
                           </div>
                         ) : (
                           <Conversations
@@ -1647,12 +1684,13 @@ export const ExplorePage: React.FC = () => {
                             // 新建对话功能（使用 Conversations 组件的 creation 属性）
                             creation={{
                               icon: <Plus className="h-4 w-4" />,
-                              label: '新建对话',
+                              label: t('explore.conversations.new'),
                               onClick: handleCreateConversation,
                             }}
                             // 按日期分组
                             groupable={{
-                              label: (group) => group,
+                              label: (group) =>
+                                translateConversationGroup(String(group), t),
                             }}
                             items={
                               dialogConversations.length === 0
@@ -1671,7 +1709,9 @@ export const ExplorePage: React.FC = () => {
                                     })
                                     .map((conv: any) => ({
                                       key: conv.id,
-                                      label: conv.name || 'New conversation',
+                                      label:
+                                        conv.name ||
+                                        t('explore.conversations.fallbackName'),
                                       // 添加分组信息（今天、昨天、最近7天、更早）
                                       group: getConversationDateGroup(
                                         conv.update_time,
@@ -1681,12 +1721,12 @@ export const ExplorePage: React.FC = () => {
                             menu={(conversation) => ({
                               items: [
                                 {
-                                  label: '重命名',
+                                  label: t('explore.conversations.rename'),
                                   key: 'rename',
                                   icon: <Edit3 className="h-3 w-3" />,
                                 },
                                 {
-                                  label: '删除',
+                                  label: t('explore.conversations.delete'),
                                   key: 'delete',
                                   icon: <Trash2 className="h-3 w-3" />,
                                   danger: true,
@@ -1703,7 +1743,8 @@ export const ExplorePage: React.FC = () => {
                                     conversation.key as string,
                                   )
                                   setNewConversationName(
-                                    convData.name || 'New conversation',
+                                    convData.name ||
+                                      t('explore.conversations.fallbackName'),
                                   )
                                 } else if (menuInfo.key === 'delete') {
                                   try {
@@ -1718,13 +1759,17 @@ export const ExplorePage: React.FC = () => {
                                       setSelectedConversationDetail(null)
                                       setMessages([])
                                     }
-                                    toast.success('对话已删除')
+                                    toast.success(
+                                      t('explore.conversations.deleted'),
+                                    )
                                   } catch (error) {
                                     console.error(
                                       'Failed to delete conversation:',
                                       error,
                                     )
-                                    toast.error('删除失败')
+                                    toast.error(
+                                      t('explore.conversations.deleteFailed'),
+                                    )
                                   }
                                 }
                               },
@@ -1749,22 +1794,22 @@ export const ExplorePage: React.FC = () => {
 
                   {/* 重命名对话 Modal（更现代化的交互） */}
                   <Modal
-                    title="重命名对话"
+                    title={t('explore.conversations.renameTitle')}
                     open={!!renamingConversationId}
                     onOk={confirmRenameConversation}
                     onCancel={() => {
                       setRenamingConversationId(null)
                       setNewConversationName('')
                     }}
-                    okText="确认"
-                    cancelText="取消"
+                    okText={t('common.confirm')}
+                    cancelText={t('common.cancel')}
                     destroyOnHidden
                   >
                     <Input
                       value={newConversationName}
                       onChange={(e) => setNewConversationName(e.target.value)}
                       onPressEnter={confirmRenameConversation}
-                      placeholder="请输入对话名称"
+                      placeholder={t('explore.conversations.namePlaceholder')}
                       autoFocus
                     />
                   </Modal>
@@ -1777,7 +1822,7 @@ export const ExplorePage: React.FC = () => {
                 className="text-sm"
                 style={{ color: 'var(--color-text-tertiary)' }}
               >
-                设置功能开发中...
+                {t('explore.sidebar.settingsComingSoon')}
               </p>
             </div>
           )}
@@ -1832,12 +1877,12 @@ export const ExplorePage: React.FC = () => {
                 style={{ color: 'var(--color-text-primary)' }}
               >
                 {mode === 'market'
-                  ? '应用市场'
+                  ? t('explore.header.market')
                   : activeTab === 'topics'
                     ? selectedConversationDetail?.name ||
                       currentApp?.name ||
-                      '话题'
-                    : currentApp?.name || '智能助手'}
+                      t('explore.tabs.topics')
+                    : currentApp?.name || t('explore.assistantFallback')}
               </h1>
             </div>
 
@@ -1853,7 +1898,7 @@ export const ExplorePage: React.FC = () => {
                     size="sm"
                     onClick={() => setChatLayout('default')}
                     className="h-7 px-3 py-1"
-                    title="默认布局"
+                    title={t('explore.header.defaultLayout')}
                   >
                     <LayoutGrid className="h-3 w-3" />
                   </Button>
@@ -1862,7 +1907,7 @@ export const ExplorePage: React.FC = () => {
                     size="sm"
                     onClick={() => setChatLayout('center')}
                     className="h-7 px-3 py-1"
-                    title="居中布局"
+                    title={t('explore.header.centerLayout')}
                   >
                     <AlignCenter className="h-3 w-3" />
                   </Button>
@@ -1871,7 +1916,7 @@ export const ExplorePage: React.FC = () => {
                     size="sm"
                     onClick={() => setChatLayout('full')}
                     className="h-7 px-3 py-1"
-                    title="全屏布局"
+                    title={t('explore.header.fullLayout')}
                   >
                     <Maximize2 className="h-3 w-3" />
                   </Button>
@@ -1881,7 +1926,7 @@ export const ExplorePage: React.FC = () => {
                   variant={settingsPanelOpen ? 'default' : 'ghost'}
                   size="sm"
                   onClick={() => setSettingsPanelOpen(!settingsPanelOpen)}
-                  title="聊天设置"
+                  title={t('explore.header.chatSettings')}
                 >
                   <SlidersHorizontal className="h-4 w-4" />
                 </Button>
@@ -1899,14 +1944,14 @@ export const ExplorePage: React.FC = () => {
                     className="py-16 text-center"
                     style={{ color: 'var(--color-text-tertiary)' }}
                   >
-                    加载应用中...
+                    {t('explore.sidebar.loadingApps')}
                   </div>
                 ) : dialogApps.length === 0 ? (
                   <div
                     className="py-16 text-center"
                     style={{ color: 'var(--color-text-tertiary)' }}
                   >
-                    暂无应用
+                    {t('explore.sidebar.noApps')}
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -1946,7 +1991,9 @@ export const ExplorePage: React.FC = () => {
                           variant={app.status === '1' ? 'outline' : 'default'}
                           disabled={app.status === '1'}
                         >
-                          {app.status === '1' ? '已添加' : '添加到工作区'}
+                          {app.status === '1'
+                            ? t('explore.market.added')
+                            : t('explore.market.addToWorkspace')}
                         </Button>
                       </div>
                     ))}
@@ -2013,9 +2060,12 @@ export const ExplorePage: React.FC = () => {
                             </div>
                           )
                         }
-                        title={currentApp?.name || '智能助手'}
+                        title={
+                          currentApp?.name || t('explore.assistantFallback')
+                        }
                         description={
-                          currentApp?.description || '有什么可以帮你的吗？'
+                          currentApp?.description ||
+                          t('explore.welcomeDescription')
                         }
                       />
                       {showCurrentAppPrologue ? (
@@ -2321,7 +2371,7 @@ export const ExplorePage: React.FC = () => {
                       <Sender
                         value={inputValue}
                         onChange={setInputValue}
-                        placeholder="输入消息，按 Enter 发送，也可直接发送附件"
+                        placeholder={t('explore.sender.placeholder')}
                         loading={isStreaming}
                         // 文件上传面板（参考 ragflow）
                         header={
@@ -2341,7 +2391,7 @@ export const ExplorePage: React.FC = () => {
                                   className="h-4 w-4"
                                   style={{ color: 'var(--color-state-focus)' }}
                                 />
-                                上传文件
+                                {t('explore.sender.uploadFile')}
                               </span>
                             }
                             open={headerOpen}
@@ -2418,8 +2468,8 @@ export const ExplorePage: React.FC = () => {
                                     }}
                                   >
                                     {type === 'drop'
-                                      ? '释放以上传'
-                                      : '点击或拖拽文件到此处'}
+                                      ? t('explore.dragUpload.titleShort')
+                                      : t('explore.dragUpload.action')}
                                   </span>
                                 ),
                                 description: (
@@ -2431,7 +2481,12 @@ export const ExplorePage: React.FC = () => {
                                       display: 'block',
                                     }}
                                   >
-                                    {`支持图片、文档等，最多 ${uploadConfig.maxCount} 个，单个最大 ${Math.round(uploadConfig.maxSize / 1024 / 1024)}MB`}
+                                    {t('explore.dragUpload.limits', {
+                                      count: uploadConfig.maxCount,
+                                      size: Math.round(
+                                        uploadConfig.maxSize / 1024 / 1024,
+                                      ),
+                                    })}
                                   </span>
                                 ),
                               })}
@@ -2479,7 +2534,9 @@ export const ExplorePage: React.FC = () => {
                                   if (result) {
                                     onSuccess?.(result, new XMLHttpRequest())
                                     toast.success(
-                                      `文件 ${(file as File).name} 上传成功`,
+                                      t('explore.toast.uploadSuccess', {
+                                        name: (file as File).name,
+                                      }),
                                     )
                                   } else {
                                     onError?.(new Error('Upload failed'))
@@ -2488,7 +2545,9 @@ export const ExplorePage: React.FC = () => {
                                   console.error('Upload error:', error)
                                   onError?.(error as Error)
                                   toast.error(
-                                    `上传失败: ${(error as Error).message}`,
+                                    t('explore.toast.uploadFailed', {
+                                      message: (error as Error).message,
+                                    }),
                                   )
                                 }
                               }}
@@ -2503,7 +2562,7 @@ export const ExplorePage: React.FC = () => {
                               size="sm"
                               className="h-8 w-8 p-0"
                               onClick={handleStopOutput}
-                              title="停止输出"
+                              title={t('explore.sender.stop')}
                             >
                               <Square className="h-4 w-4" />
                             </Button>
@@ -2526,7 +2585,11 @@ export const ExplorePage: React.FC = () => {
                             if (file.size <= uploadConfig.maxSize) {
                               void uploadFile(file)
                             } else {
-                              toast.error(`文件 ${file.name} 超过大小限制`)
+                              toast.error(
+                                t('explore.toast.fileTooLarge', {
+                                  name: file.name,
+                                }),
+                              )
                             }
                           }
                         }}
@@ -2559,7 +2622,7 @@ export const ExplorePage: React.FC = () => {
                             size="sm"
                             className="h-7 gap-1.5 px-1.5"
                             onClick={() => setHeaderOpen(!headerOpen)}
-                            title="上传文件"
+                            title={t('explore.sender.uploadFile')}
                           >
                             <Paperclip
                               className="h-4 w-4"
@@ -2593,7 +2656,7 @@ export const ExplorePage: React.FC = () => {
                                 : 'text-[var(--color-text-tertiary)]',
                             )}
                             onClick={() => setEnableReasoning(!enableReasoning)}
-                            title="深度思考"
+                            title={t('explore.sender.thinking')}
                           >
                             <Atom className="h-4 w-4" />
                             <span className="text-xs">Thinking</span>
@@ -2610,7 +2673,7 @@ export const ExplorePage: React.FC = () => {
                                 : 'text-[var(--color-text-tertiary)]',
                             )}
                             onClick={() => setEnableInternet(!enableInternet)}
-                            title="联网搜索"
+                            title={t('explore.sender.onlineSearch')}
                           >
                             <Globe className="h-4 w-4" />
                           </Button>
@@ -2624,20 +2687,26 @@ export const ExplorePage: React.FC = () => {
                           {hasUploadingFiles && (
                             <div className="flex items-center gap-1">
                               <div className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                              <span>上传中...</span>
+                              <span>{t('explore.sender.uploading')}</span>
                             </div>
                           )}
                           {!hasUploadingFiles && hasReadyUploads && (
                             <div className="flex items-center gap-1">
                               <span>
-                                {uploadedAttachments.length} 个附件已就绪
+                                {t('explore.sender.attachmentsReady', {
+                                  count: uploadedAttachments.length,
+                                })}
                               </span>
-                              {!inputValue.trim() && <span>可直接发送</span>}
+                              {!inputValue.trim() && (
+                                <span>
+                                  {t('explore.sender.canSendDirectly')}
+                                </span>
+                              )}
                             </div>
                           )}
                           {hasUploadError && (
                             <span style={{ color: 'var(--color-text-error)' }}>
-                              有附件上传失败，可点击卡片重试
+                              {t('explore.sender.uploadErrorHint')}
                             </span>
                           )}
                         </div>

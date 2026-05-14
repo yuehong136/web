@@ -4,6 +4,7 @@ export default {
     sidebar: {
       expand: '展开侧边栏',
       collapse: '收起侧边栏',
+      openNavigation: '打开导航',
       notifications: '通知',
       noNotifications: '暂无通知',
       theme: '主题',
@@ -13,6 +14,7 @@ export default {
       language: '语言',
       login: '登录',
       user: '用户',
+      userAvatar: '用户头像',
       profile: '个人资料',
       settings: '设置',
       logout: '退出登录',

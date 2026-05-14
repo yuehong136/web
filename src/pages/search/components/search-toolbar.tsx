@@ -1,9 +1,14 @@
 import React, { memo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { ArrowUpDown, LayoutGrid, List, Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { ViewToggle } from '@/components/ui/view-toggle'
 import { CustomSelect } from '@/components/ui/custom-select'
-import { FilterPopover, type FilterConfig, type FilterValue } from '@/components/ui/filter-popover'
+import {
+  FilterPopover,
+  type FilterConfig,
+  type FilterValue,
+} from '@/components/ui/filter-popover'
 import type { SearchTimeFormat } from './utils'
 
 interface SearchToolbarProps {
@@ -37,13 +42,18 @@ const SearchToolbar: React.FC<SearchToolbarProps> = ({
   filterValue,
   onFilterChange,
 }) => {
+  const { t } = useTranslation()
+
   return (
     <div className="flex items-center space-x-4">
-      <div className="flex-1 max-w-md">
+      <div className="max-w-md flex-1">
         <Input
           type="search"
           value={keyword}
-          placeholder="搜索应用名称..."
+          placeholder={t(
+            'searchPage.toolbar.searchPlaceholder',
+            '搜索应用名称...',
+          )}
           onChange={(e) => onKeywordChange(e.target.value)}
           leftIcon={<Search className="h-4 w-4" />}
         />
@@ -60,20 +70,40 @@ const SearchToolbar: React.FC<SearchToolbarProps> = ({
           <CustomSelect
             value={sortBy}
             size="sm"
-            onChange={(value) => onSortByChange(value as 'update_time' | 'create_time' | 'name')}
+            onChange={(value) =>
+              onSortByChange(value as 'update_time' | 'create_time' | 'name')
+            }
             options={[
-              { value: 'update_time', label: '按更新时间' },
-              { value: 'create_time', label: '按创建时间' },
-              { value: 'name', label: '按名称' },
+              {
+                value: 'update_time',
+                label: t('searchPage.toolbar.sortUpdated', '按更新时间'),
+              },
+              {
+                value: 'create_time',
+                label: t('searchPage.toolbar.sortCreated', '按创建时间'),
+              },
+              {
+                value: 'name',
+                label: t('searchPage.toolbar.sortName', '按名称'),
+              },
             ]}
           />
         </div>
 
         <CustomSelect
           options={[
-            { value: 'detailed', label: '详细时间' },
-            { value: 'compact', label: '简洁时间' },
-            { value: 'relative', label: '相对时间' },
+            {
+              value: 'detailed',
+              label: t('searchPage.toolbar.detailedTime', '详细时间'),
+            },
+            {
+              value: 'compact',
+              label: t('searchPage.toolbar.compactTime', '简洁时间'),
+            },
+            {
+              value: 'relative',
+              label: t('searchPage.toolbar.relativeTime', '相对时间'),
+            },
           ]}
           value={timeFormat}
           onChange={(value) => onTimeFormatChange(value as SearchTimeFormat)}
@@ -84,10 +114,14 @@ const SearchToolbar: React.FC<SearchToolbarProps> = ({
         <button
           type="button"
           onClick={onSortDescToggle}
-          className="h-9 px-2 rounded-radius-md border border-border-default bg-background-subtle flex items-center gap-1 text-xs text-text-secondary hover:bg-surface-secondary"
+          className="rounded-radius-md hover:bg-surface-secondary flex h-9 items-center gap-1 border border-border-default bg-background-subtle px-2 text-xs text-text-secondary"
         >
           <ArrowUpDown className="h-3.5 w-3.5" />
-          <span>{sortDesc ? '倒序' : '正序'}</span>
+          <span>
+            {sortDesc
+              ? t('searchPage.toolbar.descending', '倒序')
+              : t('searchPage.toolbar.ascending', '正序')}
+          </span>
         </button>
 
         <ViewToggle
@@ -95,10 +129,18 @@ const SearchToolbar: React.FC<SearchToolbarProps> = ({
           onChange={onViewModeChange}
           size="md"
           options={[
-            { value: 'grid', icon: <LayoutGrid /> },
-              { value: 'list', icon: <List /> },
-            ]}
-          />
+            {
+              value: 'grid',
+              icon: <LayoutGrid />,
+              label: t('searchPage.toolbar.gridView', '网格视图'),
+            },
+            {
+              value: 'list',
+              icon: <List />,
+              label: t('searchPage.toolbar.listView', '列表视图'),
+            },
+          ]}
+        />
       </div>
     </div>
   )

@@ -5,6 +5,7 @@
 
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import {
   Plus,
   Grid,
@@ -33,25 +34,29 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { FilterPopover, type FilterConfig, type FilterValue } from '@/components/ui/filter-popover'
+import {
+  FilterPopover,
+  type FilterConfig,
+  type FilterValue,
+} from '@/components/ui/filter-popover'
 import { CustomSelect } from '@/components/ui/custom-select'
 import { PageSizeSelector } from '@/components/ui/page-size-selector'
 import { ViewToggle } from '@/components/ui/view-toggle'
 import { MemoryStatsCard } from '@/components/memory'
-import {
-  AppCard,
-  AppListView,
-  AppEmptyState,
-} from '@/components/studio'
+import { AppCard, AppListView, AppEmptyState } from '@/components/studio'
 import { CreateProjectModal } from './components/CreateProjectModal'
 import { CreateAppModal } from './components/CreateAppModal'
 import { useStudioStore } from '@/stores/studio'
-import { useFetchDialogList, useDeleteDialogApps, useExportDialogApps } from '@/hooks/use-dialog-apps'
-import { STUDIO_TEXTS } from '@/constants/studio-texts'
+import {
+  useFetchDialogList,
+  useDeleteDialogApps,
+  useExportDialogApps,
+} from '@/hooks/use-dialog-apps'
 import { ImportTemplateDialog } from './components/ImportTemplateDialog'
 import type { DialogApp } from '@/types/api'
 
 export const StudioPage: React.FC = () => {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   // Store state
   const {
@@ -88,7 +93,7 @@ export const StudioPage: React.FC = () => {
     pagination,
     setPagination,
   } = useFetchDialogList(12) // 默认每页 12 条，与 ragflow 类似
-  
+
   // Mutations
   const deleteDialogAppsMutation = useDeleteDialogApps()
   const exportMutation = useExportDialogApps()
@@ -104,10 +109,13 @@ export const StudioPage: React.FC = () => {
   }, [dialogApps, filter.status])
 
   const sortedApps = React.useMemo(() => {
-    const getSortTime = (app: DialogApp) => app.update_time || app.create_time || 0
-    return [...filteredApps].sort((a, b) => (
-      sortDesc ? getSortTime(b) - getSortTime(a) : getSortTime(a) - getSortTime(b)
-    ))
+    const getSortTime = (app: DialogApp) =>
+      app.update_time || app.create_time || 0
+    return [...filteredApps].sort((a, b) =>
+      sortDesc
+        ? getSortTime(b) - getSortTime(a)
+        : getSortTime(a) - getSortTime(b),
+    )
   }, [filteredApps, sortDesc])
 
   const totalPages = Math.ceil(total / pagination.pageSize)
@@ -118,7 +126,7 @@ export const StudioPage: React.FC = () => {
     const draft = dialogApps.filter((app) => app.status !== '1').length
     const oneWeekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000
     const recentUpdated = dialogApps.filter(
-      (app) => new Date(app.update_date).getTime() > oneWeekAgo
+      (app) => new Date(app.update_date).getTime() > oneWeekAgo,
     ).length
 
     return {
@@ -133,7 +141,8 @@ export const StudioPage: React.FC = () => {
   const page = pagination.current
   const pageSize = pagination.pageSize
   const setPage = (p: number) => setPagination({ current: p, pageSize })
-  const setPageSize = (size: number) => setPagination({ current: 1, pageSize: size })
+  const setPageSize = (size: number) =>
+    setPagination({ current: 1, pageSize: size })
 
   // 处理创建项目类型选择
   const handleCreateProject = (type: 'app' | 'agent') => {
@@ -146,7 +155,11 @@ export const StudioPage: React.FC = () => {
   }
 
   // 处理创建应用
-  const handleCreateApp = (appData: { name: string; description: string; icon?: string }) => {
+  const handleCreateApp = (appData: {
+    name: string
+    description: string
+    icon?: string
+  }) => {
     console.log('App created successfully:', appData)
   }
 
@@ -157,7 +170,7 @@ export const StudioPage: React.FC = () => {
       id: app.id,
       name: app.name,
       description: app.description,
-      ...(app.icon && { icon: app.icon })
+      ...(app.icon && { icon: app.icon }),
     })
     window.location.href = `/studio/create-app?${searchParams.toString()}`
   }
@@ -207,10 +220,10 @@ export const StudioPage: React.FC = () => {
   const filterConfigs: FilterConfig[] = [
     {
       key: 'status',
-      label: STUDIO_TEXTS.filterStatus,
+      label: t('studio.filters.status', '状态'),
       options: [
-        { value: '1', label: STUDIO_TEXTS.statusPublished },
-        { value: '0', label: STUDIO_TEXTS.statusDraft },
+        { value: '1', label: t('studio.filters.published', '已发布') },
+        { value: '0', label: t('studio.filters.draft', '草稿') },
       ],
     },
   ]
@@ -227,18 +240,19 @@ export const StudioPage: React.FC = () => {
 
   // 判断是否显示空状态
   const showEmptyState = !isLoading && sortedApps.length === 0
-  const emptyStateType = searchString || filter.status.length > 0 ? 'search' : 'list'
+  const emptyStateType =
+    searchString || filter.status.length > 0 ? 'search' : 'list'
 
   return (
-    <div className="h-full flex flex-col p-6">
+    <div className="flex h-full flex-col p-6">
       {/* 页面头部 - 标题 + 创建按钮 */}
-      <div className="flex items-start justify-between mb-4">
+      <div className="mb-4 flex items-start justify-between">
         <div>
           <h1 className="text-xl font-semibold text-text-primary">
-            {STUDIO_TEXTS.pageTitle}
+            {t('studio.page.title', '工作室')}
           </h1>
-          <p className="text-sm text-text-secondary mt-1">
-            {STUDIO_TEXTS.pageDescription}
+          <p className="mt-1 text-sm text-text-secondary">
+            {t('studio.page.description', '创建和管理您的 AI 应用和智能体')}
           </p>
         </div>
         <div className="flex items-center space-x-3">
@@ -250,53 +264,59 @@ export const StudioPage: React.FC = () => {
                 onClick={handleBulkExport}
                 disabled={exportMutation.isPending}
               >
-                <Download className="h-4 w-4 mr-2" />
-                {exportMutation.isPending ? '导出中...' : `导出 (${selectedIds.length})`}
+                <Download className="mr-2 h-4 w-4" />
+                {exportMutation.isPending
+                  ? t('studio.page.exporting', '导出中...')
+                  : t('studio.page.exportSelected', '导出 ({{count}})', {
+                      count: selectedIds.length,
+                    })}
               </Button>
               <Button
                 variant="destructive"
                 size="sm"
                 onClick={handleBulkDelete}
               >
-                <Trash2 className="h-4 w-4 mr-2" />
-                删除 ({selectedIds.length})
+                <Trash2 className="mr-2 h-4 w-4" />
+                {t('studio.page.deleteSelected', '删除 ({{count}})', {
+                  count: selectedIds.length,
+                })}
               </Button>
             </>
           )}
           <Button variant="outline" onClick={() => setImportDialogOpen(true)}>
-            <Upload className="h-4 w-4 mr-2" />
-            导入
+            <Upload className="mr-2 h-4 w-4" />
+            {t('studio.page.import', '导入')}
           </Button>
           <Button onClick={openProjectTypeModal}>
-            <Plus className="h-4 w-4 mr-2" />
-            {STUDIO_TEXTS.createProject}
+            <Plus className="mr-2 h-4 w-4" />
+            {t('studio.page.createProject', '新建项目')}
           </Button>
         </div>
       </div>
 
       {/* 统计卡片 - 与记忆库/知识库页面保持一致的布局 */}
       <div className="mb-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           <MemoryStatsCard
-            title={STUDIO_TEXTS.stats.totalApps}
+            title={t('studio.stats.totalApps', '应用总数')}
             value={stats.total}
             icon={Sparkles}
             color="info"
           />
           <MemoryStatsCard
-            title={STUDIO_TEXTS.stats.published}
+            title={t('studio.stats.published', '已发布')}
             value={stats.published}
             icon={CheckCircle}
             color="success"
           />
           <MemoryStatsCard
-            title={STUDIO_TEXTS.stats.draft}
+            title={t('studio.stats.draft', '草稿')}
             value={stats.draft}
             icon={FileEdit}
             color="warning"
           />
           <MemoryStatsCard
-            title={STUDIO_TEXTS.stats.recentUpdated}
+            title={t('studio.stats.recentUpdated', '最近更新')}
             value={stats.recentUpdated}
             icon={Clock}
             color="info"
@@ -305,12 +325,12 @@ export const StudioPage: React.FC = () => {
       </div>
 
       {/* 搜索和筛选工具栏 */}
-      <div className="flex items-center space-x-4 mb-4">
+      <div className="mb-4 flex items-center space-x-4">
         {/* 左侧：搜索框 - 使用后端分页的搜索 */}
-        <div className="flex-1 max-w-md">
+        <div className="max-w-md flex-1">
           <Input
             type="search"
-            placeholder={STUDIO_TEXTS.searchPlaceholder}
+            placeholder={t('studio.filters.searchPlaceholder', '搜索应用...')}
             value={searchString}
             onChange={(e) => handleInputChange(e.target.value)}
             leftIcon={<Search className="h-4 w-4" />}
@@ -329,12 +349,23 @@ export const StudioPage: React.FC = () => {
           {/* 时间格式选择器 */}
           <CustomSelect
             options={[
-              { value: 'detailed', label: STUDIO_TEXTS.timeFormatDetailed },
-              { value: 'compact', label: STUDIO_TEXTS.timeFormatCompact },
-              { value: 'relative', label: STUDIO_TEXTS.timeFormatRelative },
+              {
+                value: 'detailed',
+                label: t('studio.toolbar.detailedTime', '详细时间'),
+              },
+              {
+                value: 'compact',
+                label: t('studio.toolbar.compactTime', '简洁时间'),
+              },
+              {
+                value: 'relative',
+                label: t('studio.toolbar.relativeTime', '相对时间'),
+              },
             ]}
             value={timeFormat}
-            onChange={(value) => setTimeFormat(value as 'detailed' | 'compact' | 'relative')}
+            onChange={(value) =>
+              setTimeFormat(value as 'detailed' | 'compact' | 'relative')
+            }
             size="sm"
             className="min-w-[100px]"
           />
@@ -343,10 +374,14 @@ export const StudioPage: React.FC = () => {
             variant="outline"
             size="sm"
             onClick={() => setSortDesc((prev) => !prev)}
-            className="h-9 px-2 flex items-center gap-1 text-xs"
+            className="flex h-9 items-center gap-1 px-2 text-xs"
           >
             <ArrowUpDown className="h-3.5 w-3.5" />
-            <span>{sortDesc ? '倒序' : '正序'}</span>
+            <span>
+              {sortDesc
+                ? t('studio.toolbar.descending', '倒序')
+                : t('studio.toolbar.ascending', '正序')}
+            </span>
           </Button>
 
           {/* 视图切换 */}
@@ -355,8 +390,16 @@ export const StudioPage: React.FC = () => {
             onChange={setViewMode}
             size="md"
             options={[
-              { value: 'grid', icon: <Grid />, label: '网格视图' },
-              { value: 'list', icon: <List />, label: '列表视图' },
+              {
+                value: 'grid',
+                icon: <Grid />,
+                label: t('studio.toolbar.gridView', '网格视图'),
+              },
+              {
+                value: 'list',
+                icon: <List />,
+                label: t('studio.toolbar.listView', '列表视图'),
+              },
             ]}
           />
         </div>
@@ -364,22 +407,25 @@ export const StudioPage: React.FC = () => {
 
       {/* 内容区域 */}
       {showEmptyState ? (
-        <div className="flex-1 flex items-center justify-center">
-          <AppEmptyState type={emptyStateType} onAction={openProjectTypeModal} />
+        <div className="flex flex-1 items-center justify-center">
+          <AppEmptyState
+            type={emptyStateType}
+            onAction={openProjectTypeModal}
+          />
         </div>
       ) : (
         <>
           {/* 可滚动内容区域 - pt-1 pb-2 为悬停效果留出空间 */}
-          <div className="flex-1 overflow-y-auto pt-1 pb-2 -mx-1 px-1">
+          <div className="-mx-1 flex-1 overflow-y-auto px-1 pb-2 pt-1">
             {viewMode === 'grid' ? (
               /* 卡片网格视图 */
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {isLoading
                   ? // 加载骨架屏
                     [...Array(6)].map((_, i) => (
                       <div
                         key={i}
-                        className="h-[180px] rounded-2xl bg-surface-secondary animate-pulse"
+                        className="bg-surface-secondary h-[180px] animate-pulse rounded-2xl"
                       />
                     ))
                   : sortedApps.map((app) => (
@@ -419,13 +465,22 @@ export const StudioPage: React.FC = () => {
                 backgroundColor: 'var(--color-components-card-bg)',
               }}
             >
-              <div className="px-6 py-4 flex items-center justify-between">
+              <div className="flex items-center justify-between px-6 py-4">
                 <div
                   className="text-sm"
                   style={{ color: 'var(--color-components-pagination-text)' }}
                 >
-                  共 {total} 项
-                  {selectedIds.length > 0 && ` • 已选择 ${selectedIds.length} 个`}
+                  {t('studio.pagination.total', '共 {{count}} 项', {
+                    count: total,
+                  })}
+                  {selectedIds.length > 0 &&
+                    ` • ${t(
+                      'studio.pagination.selected',
+                      '已选择 {{count}} 个',
+                      {
+                        count: selectedIds.length,
+                      },
+                    )}`}
                 </div>
 
                 <div className="flex items-center space-x-4">
@@ -445,7 +500,7 @@ export const StudioPage: React.FC = () => {
                       disabled={page === 1}
                     >
                       <ChevronLeft className="h-4 w-4" />
-                      上一页
+                      {t('studio.pagination.previous', '上一页')}
                     </Button>
 
                     <div className="flex items-center space-x-1">
@@ -476,7 +531,7 @@ export const StudioPage: React.FC = () => {
                               {pageNum}
                             </Button>
                           )
-                        }
+                        },
                       )}
                     </div>
 
@@ -486,7 +541,7 @@ export const StudioPage: React.FC = () => {
                       onClick={() => setPage(page + 1)}
                       disabled={page === totalPages || totalPages === 0}
                     >
-                      下一页
+                      {t('studio.pagination.next', '下一页')}
                       <ChevronRight className="h-4 w-4" />
                     </Button>
                   </div>
@@ -515,18 +570,23 @@ export const StudioPage: React.FC = () => {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{STUDIO_TEXTS.deleteApp}</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t('studio.deleteDialog.title', '删除应用')}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              {STUDIO_TEXTS.deleteAppConfirm}
+              {t(
+                'studio.deleteDialog.description',
+                '确定要删除这个应用吗？此操作不可撤销。',
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{STUDIO_TEXTS.common.cancel}</AlertDialogCancel>
+            <AlertDialogCancel>{t('common.cancel', '取消')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmDelete}
-              className="bg-state-error hover:bg-state-error/90"
+              className="hover:bg-state-error/90 bg-state-error"
             >
-              {STUDIO_TEXTS.common.delete}
+              {t('common.delete', '删除')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

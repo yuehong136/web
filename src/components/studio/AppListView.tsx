@@ -6,6 +6,7 @@
 
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { Settings, Trash2, Clock, Database } from 'lucide-react'
 import {
   ResourceListContainer,
@@ -16,8 +17,12 @@ import {
   ResourceListEmpty,
   getAvatarGradient,
 } from '@/components/ui/resource-list'
-import { cn, formatRelativeTime, formatTimestampDetailed, formatTimestampCompact } from '@/lib/utils'
-import { STUDIO_TEXTS } from '@/constants/studio-texts'
+import {
+  cn,
+  formatRelativeTime,
+  formatTimestampDetailed,
+  formatTimestampCompact,
+} from '@/lib/utils'
 import { ROUTES } from '@/constants'
 import type { DialogApp } from '@/types/api'
 import type { TimeFormatType } from './AppCard'
@@ -36,16 +41,6 @@ interface AppListViewProps {
 // Grid 布局：名称 | 状态 | 知识库 | 创建时间 | 更新时间 | 操作
 const GRID_COLS = 'grid-cols-[2fr_90px_80px_150px_150px_60px]'
 
-// 表头列配置
-const HEADER_COLUMNS = [
-  { key: 'name', label: '名称' },
-  { key: 'status', label: '状态' },
-  { key: 'kb_ids', label: '知识库' },
-  { key: 'create_date', label: '创建时间' },
-  { key: 'update_date', label: '更新时间' },
-  { key: 'actions', label: '操作' },
-]
-
 // 骨架屏列宽度
 const SKELETON_WIDTHS = ['w-14', 'w-8', 'w-28', 'w-28']
 
@@ -54,10 +49,6 @@ const getStatusColor = (status: string) =>
   status === '1'
     ? 'text-text-success bg-[var(--color-state-success-10)]'
     : 'text-text-secondary bg-background-subtle'
-
-// 状态文本
-const getStatusText = (status: string) =>
-  status === '1' ? STUDIO_TEXTS.statusPublished : STUDIO_TEXTS.statusDraft
 
 // 时间格式化
 const formatTime = (dateString: string, format: TimeFormatType): string => {
@@ -87,7 +78,7 @@ const AppAvatar: React.FC<{ app: DialogApp }> = ({ app }) => {
       <img
         src={iconSrc}
         alt={app.name}
-        className="w-12 h-12 rounded-xl object-cover"
+        className="h-12 w-12 rounded-xl object-cover"
         onError={(e) => {
           // 图片加载失败时隐藏
           e.currentTarget.style.display = 'none'
@@ -99,12 +90,12 @@ const AppAvatar: React.FC<{ app: DialogApp }> = ({ app }) => {
   return (
     <div
       className={cn(
-        'w-12 h-12 rounded-xl flex items-center justify-center',
+        'flex h-12 w-12 items-center justify-center rounded-xl',
         'bg-gradient-to-br shadow-sm',
-        gradient
+        gradient,
       )}
     >
-      <span className="text-white font-semibold text-xl">
+      <span className="text-xl font-semibold text-white">
         {app.name.charAt(0).toUpperCase()}
       </span>
     </div>
@@ -120,6 +111,7 @@ const AppListRow: React.FC<{
   onDelete: () => void
   timeFormat: TimeFormatType
 }> = ({ app, selected, onSelect, onEdit, onDelete, timeFormat }) => {
+  const { t } = useTranslation()
   const navigate = useNavigate()
 
   const handleClick = () => {
@@ -143,13 +135,13 @@ const AppListRow: React.FC<{
       actions={[
         {
           key: 'settings',
-          label: STUDIO_TEXTS.settings,
+          label: t('studio.card.settings', '设置'),
           icon: <Settings className="h-4 w-4" />,
           onClick: onEdit,
         },
         {
           key: 'delete',
-          label: STUDIO_TEXTS.delete,
+          label: t('studio.card.delete', '删除'),
           icon: <Trash2 className="h-4 w-4" />,
           onClick: onDelete,
           danger: true,
@@ -161,11 +153,13 @@ const AppListRow: React.FC<{
       <div className="flex items-center">
         <span
           className={cn(
-            'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium truncate',
-            getStatusColor(app.status)
+            'inline-flex items-center truncate rounded-full px-2 py-0.5 text-xs font-medium',
+            getStatusColor(app.status),
           )}
         >
-          {getStatusText(app.status)}
+          {app.status === '1'
+            ? t('studio.filters.published', '已发布')
+            : t('studio.filters.draft', '草稿')}
         </span>
       </div>
 
@@ -200,13 +194,22 @@ export const AppListView: React.FC<AppListViewProps> = ({
   isLoading = false,
   timeFormat = 'detailed',
 }) => {
+  const { t } = useTranslation()
   const allSelected = data.length > 0 && selectedIds.length === data.length
+  const headerColumns = [
+    { key: 'name', label: t('common.name', '名称') },
+    { key: 'status', label: t('common.status', '状态') },
+    { key: 'kb_ids', label: t('studio.card.knowledgeBases', '知识库') },
+    { key: 'create_date', label: t('common.createTime', '创建时间') },
+    { key: 'update_date', label: t('common.updateTime', '更新时间') },
+    { key: 'actions', label: t('common.action', '操作') },
+  ]
 
   return (
     <ResourceListContainer>
       {/* 表头 */}
       <ResourceListHeader
-        columns={HEADER_COLUMNS}
+        columns={headerColumns}
         allSelected={allSelected}
         onSelectAll={() => {
           if (allSelected) {
