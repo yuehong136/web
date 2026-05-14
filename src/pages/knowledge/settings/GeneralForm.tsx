@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { useTranslation } from 'react-i18next'
 import { useFormContext } from 'react-hook-form'
 import { Upload, Database } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -36,6 +37,7 @@ export function GeneralForm({
   embeddingModelDisabled = false,
   className,
 }: GeneralFormProps) {
+  const { t } = useTranslation()
   const form = useFormContext()
   const fileInputRef = React.useRef<HTMLInputElement>(null)
 
@@ -63,13 +65,15 @@ export function GeneralForm({
         name="avatar"
         render={() => (
           <FormItem className="flex items-center gap-1 space-y-0">
-            <FormLabel className="text-sm text-text-secondary w-1/4 shrink-0">
-              知识库头像
+            <FormLabel className="w-1/4 shrink-0 text-sm text-text-secondary">
+              {t('knowledge.settings.fields.avatar')}
             </FormLabel>
-            <div className="w-3/4 flex items-center gap-4">
+            <div className="flex w-3/4 items-center gap-4">
               <Avatar className="h-12 w-12 ring-2 ring-border">
                 <AvatarImage src={avatarValue || undefined} alt={nameValue} />
-                <AvatarFallback><Database className="h-6 w-6 text-text-tertiary" /></AvatarFallback>
+                <AvatarFallback>
+                  <Database className="h-6 w-6 text-text-tertiary" />
+                </AvatarFallback>
               </Avatar>
               <div>
                 <input
@@ -87,10 +91,10 @@ export function GeneralForm({
                   className="gap-1.5"
                 >
                   <Upload className="h-4 w-4" />
-                  上传头像
+                  {t('knowledge.settings.fields.uploadAvatar')}
                 </Button>
-                <p className="text-xs text-text-tertiary mt-1.5">
-                  支持 JPG, PNG 格式，建议尺寸 128x128 像素
+                <p className="mt-1.5 text-xs text-text-tertiary">
+                  {t('knowledge.settings.fields.avatarTip')}
                 </p>
               </div>
             </div>
@@ -106,15 +110,15 @@ export function GeneralForm({
           <FormItem className="flex items-center gap-1 space-y-0">
             <FormLabel
               required
-              className="text-sm text-text-secondary w-1/4 shrink-0"
+              className="w-1/4 shrink-0 text-sm text-text-secondary"
             >
-              知识库名称
+              {t('knowledge.settings.fields.name')}
             </FormLabel>
             <div className="w-3/4">
               <FormControl>
                 <Input
                   {...field}
-                  placeholder="请输入知识库名称"
+                  placeholder={t('knowledge.settings.fields.namePlaceholder')}
                   className="h-9"
                 />
               </FormControl>
@@ -133,14 +137,16 @@ export function GeneralForm({
         name="description"
         render={({ field }) => (
           <FormItem className="flex items-start gap-1 space-y-0">
-            <FormLabel className="text-sm text-text-secondary w-1/4 shrink-0 pt-2">
-              描述信息
+            <FormLabel className="w-1/4 shrink-0 pt-2 text-sm text-text-secondary">
+              {t('knowledge.settings.fields.description')}
             </FormLabel>
             <div className="w-3/4">
               <FormControl>
                 <Textarea
                   {...field}
-                  placeholder="请输入知识库描述"
+                  placeholder={t(
+                    'knowledge.settings.fields.descriptionPlaceholder',
+                  )}
                   rows={3}
                   className="resize-none"
                 />

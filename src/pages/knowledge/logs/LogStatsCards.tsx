@@ -1,4 +1,5 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import { Files, Download, Loader2, HelpCircle } from 'lucide-react'
 import { Tooltip } from '@/components/ui/tooltip'
 
@@ -77,16 +78,16 @@ const StatCard: React.FC<StatCardProps> = ({
       }}
     >
       {/* 装饰性背景 */}
-      <div 
-        className="absolute -right-4 -top-4 w-24 h-24 rounded-full blur-2xl opacity-20"
+      <div
+        className="absolute -right-4 -top-4 h-24 w-24 rounded-full opacity-20 blur-2xl"
         style={{ background: getDecorationColor(variant) }}
       />
-      
+
       <div className="relative z-10">
         {/* 头部：标题和图标 */}
-        <div className="flex items-center justify-between mb-3">
+        <div className="mb-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <h3 
+            <h3
               className="text-sm font-medium"
               style={{ color: 'var(--color-text-secondary)' }}
             >
@@ -94,15 +95,15 @@ const StatCard: React.FC<StatCardProps> = ({
             </h3>
             {tooltip && (
               <Tooltip content={<p className="max-w-xs text-xs">{tooltip}</p>}>
-                <HelpCircle 
-                  className="w-3.5 h-3.5 cursor-help"
+                <HelpCircle
+                  className="h-3.5 w-3.5 cursor-help"
                   style={{ color: 'var(--color-text-tertiary)' }}
                 />
               </Tooltip>
             )}
           </div>
-          <div 
-            className="p-2 rounded-lg"
+          <div
+            className="rounded-lg p-2"
             style={{ backgroundColor: getIconBgColor(variant) }}
           >
             {icon}
@@ -110,8 +111,8 @@ const StatCard: React.FC<StatCardProps> = ({
         </div>
 
         {/* 数值 */}
-        <div 
-          className="text-3xl font-bold mb-3 tabular-nums"
+        <div
+          className="mb-3 text-3xl font-bold tabular-nums"
           style={{ color: 'var(--color-text-primary)' }}
         >
           {value.toLocaleString()}
@@ -119,9 +120,12 @@ const StatCard: React.FC<StatCardProps> = ({
 
         {/* 子内容区域（如成功/失败统计） */}
         {children && (
-          <div 
+          <div
             className="pt-3"
-            style={{ borderTopWidth: '1px', borderColor: 'var(--color-border-subtle)' }}
+            style={{
+              borderTopWidth: '1px',
+              borderColor: 'var(--color-border-subtle)',
+            }}
           >
             {children}
           </div>
@@ -144,23 +148,23 @@ const CardFooterProcess: React.FC<CardFooterProcessProps> = ({
   failedTip,
 }) => {
   const SuccessItem = (
-    <div 
-      className="flex-1 flex items-center justify-between p-2 rounded-lg cursor-default"
+    <div
+      className="flex flex-1 cursor-default items-center justify-between rounded-lg p-2"
       style={{ backgroundColor: 'var(--color-state-success-10)' }}
     >
       <div className="flex items-center gap-1.5">
-        <span 
-          className="w-1.5 h-1.5 rounded-full"
+        <span
+          className="h-1.5 w-1.5 rounded-full"
           style={{ backgroundColor: 'var(--color-state-success)' }}
         />
-        <span 
+        <span
           className="text-xs"
           style={{ color: 'var(--color-text-secondary)' }}
         >
           {successLabel}
         </span>
       </div>
-      <span 
+      <span
         className="text-sm font-semibold"
         style={{ color: 'var(--color-state-success)' }}
       >
@@ -170,23 +174,23 @@ const CardFooterProcess: React.FC<CardFooterProcessProps> = ({
   )
 
   const FailedItem = (
-    <div 
-      className="flex-1 flex items-center justify-between p-2 rounded-lg cursor-default"
+    <div
+      className="flex flex-1 cursor-default items-center justify-between rounded-lg p-2"
       style={{ backgroundColor: 'var(--color-state-error-10)' }}
     >
       <div className="flex items-center gap-1.5">
-        <span 
-          className="w-1.5 h-1.5 rounded-full"
+        <span
+          className="h-1.5 w-1.5 rounded-full"
           style={{ backgroundColor: 'var(--color-state-error)' }}
         />
-        <span 
+        <span
           className="text-xs"
           style={{ color: 'var(--color-text-secondary)' }}
         >
           {failedLabel}
         </span>
       </div>
-      <span 
+      <span
         className="text-sm font-semibold"
         style={{ color: 'var(--color-state-error)' }}
       >
@@ -229,14 +233,15 @@ const LogStatsCards: React.FC<LogStatsCardsProps> = ({
   processFailed,
   isLoading,
 }) => {
+  const { t } = useTranslation()
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
         {[1, 2, 3].map((i) => (
           <div
             key={i}
-            className="h-40 rounded-xl animate-pulse"
-            style={{ 
+            className="h-40 animate-pulse rounded-xl"
+            style={{
               backgroundColor: 'var(--color-background-subtle)',
               borderWidth: '1px',
               borderColor: 'var(--color-border-subtle)',
@@ -248,60 +253,64 @@ const LogStatsCards: React.FC<LogStatsCardsProps> = ({
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
       {/* 总文件数 */}
       <StatCard
-        title="总文件数"
+        title={t('knowledge.logs.stats.totalFiles')}
         value={totalFiles}
         icon={
-          <Files 
-            className="w-5 h-5" 
+          <Files
+            className="h-5 w-5"
             style={{ color: 'var(--color-state-focus)' }}
           />
         }
         variant="default"
-        tooltip="知识库中的文件总数"
+        tooltip={t('knowledge.logs.stats.totalFilesTooltip')}
       />
 
       {/* 下载中 */}
       <StatCard
-        title="下载中"
+        title={t('knowledge.logs.stats.downloading')}
         value={downloading}
         icon={
-          <Download 
-            className="w-5 h-5" 
+          <Download
+            className="h-5 w-5"
             style={{ color: 'var(--color-state-focus)' }}
           />
         }
         variant="info"
-        tooltip="正在下载的文件数量"
+        tooltip={t('knowledge.logs.stats.downloadingTooltip')}
       >
         <CardFooterProcess
           success={downloadSuccess}
           failed={downloadFailed}
-          successTip="下载成功的文件数"
-          failedTip="下载失败的文件数"
+          successLabel={t('knowledge.logs.stats.success')}
+          failedLabel={t('knowledge.logs.stats.failed')}
+          successTip={t('knowledge.logs.stats.downloadSuccessTip')}
+          failedTip={t('knowledge.logs.stats.downloadFailedTip')}
         />
       </StatCard>
 
       {/* 处理中 */}
       <StatCard
-        title="处理中"
+        title={t('knowledge.logs.stats.processing')}
         value={processing}
         icon={
-          <Loader2 
-            className="w-5 h-5 animate-spin" 
+          <Loader2
+            className="h-5 w-5 animate-spin"
             style={{ color: 'var(--color-state-warning)' }}
           />
         }
         variant="warning"
-        tooltip="正在处理（解析）的文件数量"
+        tooltip={t('knowledge.logs.stats.processingTooltip')}
       >
         <CardFooterProcess
           success={processSuccess}
           failed={processFailed}
-          successTip="处理成功的文件数"
-          failedTip="处理失败的文件数"
+          successLabel={t('knowledge.logs.stats.success')}
+          failedLabel={t('knowledge.logs.stats.failed')}
+          successTip={t('knowledge.logs.stats.processSuccessTip')}
+          failedTip={t('knowledge.logs.stats.processFailedTip')}
         />
       </StatCard>
     </div>

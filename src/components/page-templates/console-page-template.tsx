@@ -39,9 +39,14 @@ export const ConsolePageTemplate: React.FC<ConsolePageTemplateProps> = ({
         {header}
         {toolbar}
         <div
+          data-scroll-root={
+            bodyOverflow === 'auto' ? 'console-body' : undefined
+          }
           className={cn(
             'min-h-0 flex-1',
-            bodyOverflow === 'hidden' ? 'overflow-hidden' : 'overflow-auto',
+            bodyOverflow === 'hidden'
+              ? 'overflow-hidden'
+              : 'scroll-area overflow-auto',
           )}
         >
           {children}

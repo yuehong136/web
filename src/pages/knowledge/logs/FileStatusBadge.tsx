@@ -1,6 +1,7 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
-import { RunningStatus, RunningStatusMap } from './constants'
+import { RunningStatus, RunningStatusI18nKey } from './constants'
 
 interface FileStatusBadgeProps {
   status: RunningStatus | string
@@ -68,16 +69,21 @@ const FileStatusBadge: React.FC<FileStatusBadgeProps> = ({
   className,
   showDot = true,
 }) => {
+  const { t } = useTranslation()
   const statusKey = status as RunningStatus
   const colors = getStatusColors(statusKey)
-  const displayName = name || RunningStatusMap[statusKey] || '未知'
+  const displayName =
+    name ||
+    (RunningStatusI18nKey[statusKey]
+      ? t(RunningStatusI18nKey[statusKey])
+      : t('knowledge.logs.status.unknown'))
   const isRunning = status === RunningStatus.RUNNING
 
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all duration-200',
-        className
+        'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-all duration-200',
+        className,
       )}
       style={{
         backgroundColor: colors.bg,
@@ -87,15 +93,15 @@ const FileStatusBadge: React.FC<FileStatusBadgeProps> = ({
       {showDot && (
         <span
           className={cn(
-            'w-1.5 h-1.5 rounded-full flex-shrink-0',
-            isRunning && 'animate-pulse'
+            'h-1.5 w-1.5 flex-shrink-0 rounded-full',
+            isRunning && 'animate-pulse',
           )}
           style={{
             backgroundColor: colors.dot,
           }}
         />
       )}
-      <span className="truncate max-w-[80px]">{displayName}</span>
+      <span className="max-w-[80px] truncate">{displayName}</span>
     </span>
   )
 }

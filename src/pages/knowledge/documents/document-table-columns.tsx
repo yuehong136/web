@@ -3,6 +3,7 @@
  */
 
 import React, { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { User } from 'lucide-react'
 import { FileIcon, Tooltip, type Column } from '@/components/ui'
@@ -19,7 +20,14 @@ import { ParserMethodCell } from './parser-method-cell'
 import { formatFileSize, formatDate, formatRelativeTime } from './hooks'
 
 const AVATAR_GRADIENTS = [
-  'blue', 'green', 'orange', 'purple', 'indigo', 'rose', 'teal', 'amber',
+  'blue',
+  'green',
+  'orange',
+  'purple',
+  'indigo',
+  'rose',
+  'teal',
+  'amber',
 ] as const
 
 const AVATAR_STYLES: React.CSSProperties[] = AVATAR_GRADIENTS.map((name) => ({
@@ -73,18 +81,21 @@ export function useDocumentTableColumns({
   onShowChunkMethodModal,
 }: UseDocumentTableColumnsProps): Column<Document>[] {
   const navigate = useNavigate()
+  const { t } = useTranslation()
 
   return useMemo(
     () => [
       {
         key: 'select',
-        title: '选择',
+        title: t('knowledge.documents.table.select'),
         width: 48,
         fixed: 'left',
         render: (_, record) => (
           <Checkbox
             checked={selectedDocs.has(record.id)}
-            onCheckedChange={(checked) => onSelectDoc(record.id, checked as boolean)}
+            onCheckedChange={(checked) =>
+              onSelectDoc(record.id, checked as boolean)
+            }
           />
         ),
       },
@@ -93,7 +104,12 @@ export function useDocumentTableColumns({
         title: '',
         width: 48,
         render: (_, record) => (
-          <Tooltip content={`文件类型: ${record.type || '未知'}`}>
+          <Tooltip
+            content={
+              t('knowledge.documents.table.fileType') +
+              `: ${record.type || t('knowledge.documents.unknown')}`
+            }
+          >
             <div className="flex items-center justify-center">
               <FileIcon
                 fileName={record.name}
@@ -106,7 +122,7 @@ export function useDocumentTableColumns({
       },
       {
         key: 'name',
-        title: '文件名',
+        title: t('knowledge.documents.table.fileName'),
         dataIndex: 'name',
         sortable: true,
         width: 280,
@@ -115,18 +131,27 @@ export function useDocumentTableColumns({
             content={
               <div className="max-w-md">
                 <div
-                  className="font-medium mb-2"
+                  className="mb-2 font-medium"
                   style={{ color: 'var(--color-text-primary)' }}
                 >
                   {value}
                 </div>
                 <div
-                  className="text-xs space-y-1"
+                  className="space-y-1 text-xs"
                   style={{ color: 'var(--color-text-secondary)' }}
                 >
-                  <div>大小: {formatFileSize(record.size || 0)}</div>
-                  <div>类型: {record.type || '未知'}</div>
-                  <div>分块: {record.chunk_num || 0}</div>
+                  <div>
+                    {t('knowledge.documents.table.size')}:{' '}
+                    {formatFileSize(record.size || 0)}
+                  </div>
+                  <div>
+                    {t('knowledge.documents.table.type')}:{' '}
+                    {record.type || t('knowledge.documents.unknown')}
+                  </div>
+                  <div>
+                    {t('knowledge.documents.table.chunks')}:{' '}
+                    {record.chunk_num || 0}
+                  </div>
                 </div>
               </div>
             }
@@ -134,7 +159,7 @@ export function useDocumentTableColumns({
             maxWidth="max-w-md"
           >
             <div
-              className="font-medium truncate cursor-pointer text-text-primary hover:text-text-accent transition-colors"
+              className="cursor-pointer truncate font-medium text-text-primary transition-colors hover:text-text-accent"
               onClick={() =>
                 navigate(`/knowledge/${kbId}/documents/${record.id}/chunks`)
               }
@@ -146,14 +171,18 @@ export function useDocumentTableColumns({
       },
       {
         key: 'size',
-        title: '大小',
+        title: t('knowledge.documents.table.size'),
         dataIndex: 'size',
         sortable: true,
         width: 100,
         render: (value) => (
-          <Tooltip content={`文件大小: ${value || 0} 字节`}>
+          <Tooltip
+            content={t('knowledge.documents.table.fileSizeBytes', {
+              bytes: value || 0,
+            })}
+          >
             <span
-              className="text-sm cursor-help"
+              className="cursor-help text-sm"
               style={{ color: 'var(--color-text-secondary)' }}
             >
               {formatFileSize(value || 0)}
@@ -163,15 +192,18 @@ export function useDocumentTableColumns({
       },
       {
         key: 'chunk_num',
-        title: '分块数',
+        title: t('knowledge.documents.table.chunks'),
         dataIndex: 'chunk_num',
         width: 80,
         render: (value, record) => (
           <Tooltip
-            content={`文档已分为 ${value || 0} 个文本块，Token数: ${record.token_num || 0}`}
+            content={t('knowledge.documents.table.chunksTooltip', {
+              chunks: value || 0,
+              tokens: record.token_num || 0,
+            })}
           >
             <span
-              className="text-sm cursor-help"
+              className="cursor-help text-sm"
               style={{ color: 'var(--color-text-secondary)' }}
             >
               {value || 0}
@@ -181,10 +213,10 @@ export function useDocumentTableColumns({
       },
       {
         key: 'parser_id',
-        title: '解析方式',
+        title: t('knowledge.documents.table.parser'),
         dataIndex: 'parser_id',
         width: 120,
-        render: (_, record) => (
+        render: (_, record) =>
           onShowChunkMethodModal ? (
             <ParserMethodCell
               document={record}
@@ -195,14 +227,13 @@ export function useDocumentTableColumns({
               className="text-sm"
               style={{ color: 'var(--color-text-secondary)' }}
             >
-              {record.parser_id || '默认'}
+              {record.parser_id || t('knowledge.documents.defaultParser')}
             </span>
-          )
-        ),
+          ),
       },
       {
         key: 'metadata',
-        title: '元数据',
+        title: t('knowledge.documents.table.metadata'),
         width: 80,
         render: (_, record) => (
           <DocumentMetadataCell
@@ -214,7 +245,7 @@ export function useDocumentTableColumns({
       },
       {
         key: 'status',
-        title: '启用',
+        title: t('knowledge.documents.table.enabled'),
         width: 80,
         render: (_, record) => (
           <DocumentEnableSwitch
@@ -225,7 +256,7 @@ export function useDocumentTableColumns({
       },
       {
         key: 'run',
-        title: '任务状态',
+        title: t('knowledge.documents.table.taskStatus'),
         width: 150,
         render: (_, record) => (
           <DocumentStatusCell document={record} onShowLog={onShowLog} />
@@ -233,25 +264,30 @@ export function useDocumentTableColumns({
       },
       {
         key: 'created_by',
-        title: '上传者',
+        title: t('knowledge.documents.table.uploader'),
         width: 130,
         render: (_, record) => {
-          const displayName = record.nickname || record.created_by || '未知'
+          const displayName =
+            record.nickname ||
+            record.created_by ||
+            t('knowledge.documents.unknown')
           const avatarStyle = getAvatarStyle(displayName)
           return (
             <Tooltip content={displayName}>
-              <div className="flex items-center gap-space-xs min-w-0">
+              <div className="gap-space-xs flex min-w-0 items-center">
                 <Avatar className="h-6 w-6 shrink-0">
                   <AvatarFallback
                     className="text-[11px] font-medium text-white"
                     style={avatarStyle}
                   >
-                    {displayName === '未知'
-                      ? <User className="h-3 w-3" />
-                      : getInitial(displayName)}
+                    {displayName === t('knowledge.documents.unknown') ? (
+                      <User className="h-3 w-3" />
+                    ) : (
+                      getInitial(displayName)
+                    )}
                   </AvatarFallback>
                 </Avatar>
-                <span className="text-sm truncate text-text-secondary">
+                <span className="truncate text-sm text-text-secondary">
                   {displayName}
                 </span>
               </div>
@@ -261,20 +297,28 @@ export function useDocumentTableColumns({
       },
       {
         key: 'create_date',
-        title: '创建时间',
+        title: t('knowledge.documents.table.createdAt'),
         dataIndex: 'create_date',
         sortable: true,
         width: 130,
         render: (value, record) => (
           <Tooltip
             content={
-              <div className="text-xs space-y-1">
-                <div>创建: {formatDate(value)}</div>
-                <div>更新: {formatDate(record.update_date)}</div>
+              <div className="space-y-1 text-xs">
+                <div>
+                  {t('knowledge.documents.table.created', {
+                    value: formatDate(value),
+                  })}
+                </div>
+                <div>
+                  {t('knowledge.documents.table.updated', {
+                    value: formatDate(record.update_date),
+                  })}
+                </div>
               </div>
             }
           >
-            <span className="text-sm cursor-help text-text-secondary">
+            <span className="cursor-help text-sm text-text-secondary">
               {formatRelativeTime(value)}
             </span>
           </Tooltip>
@@ -282,7 +326,7 @@ export function useDocumentTableColumns({
       },
       {
         key: 'actions',
-        title: '操作',
+        title: t('knowledge.documents.table.actions'),
         width: 160,
         fixed: 'right',
         align: 'right',
@@ -314,6 +358,7 @@ export function useDocumentTableColumns({
       onShowLog,
       onShowChunkMethodModal,
       navigate,
-    ]
+      t,
+    ],
   )
 }

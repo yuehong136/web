@@ -1,4 +1,5 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import { Plus, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -15,29 +16,56 @@ import type { MetadataCondition, MetadataFilterCondition } from '@/types/api'
 
 // 比较操作符选项
 export const ComparisonOperators = [
-  { value: 'is', label: '等于' },
-  { value: 'not is', label: '不等于' },
-  { value: 'contains', label: '包含' },
-  { value: 'not contains', label: '不包含' },
-  { value: 'start with', label: '开头是' },
-  { value: 'end with', label: '结尾是' },
-  { value: 'empty', label: '为空' },
-  { value: 'not empty', label: '不为空' },
-  { value: '>', label: '大于' },
-  { value: '<', label: '小于' },
-  { value: '≥', label: '大于等于' },
-  { value: '≤', label: '小于等于' },
+  { value: 'is', labelKey: 'knowledge.search.metadataFilter.operators.is' },
+  {
+    value: 'not is',
+    labelKey: 'knowledge.search.metadataFilter.operators.not is',
+  },
+  {
+    value: 'contains',
+    labelKey: 'knowledge.search.metadataFilter.operators.contains',
+  },
+  {
+    value: 'not contains',
+    labelKey: 'knowledge.search.metadataFilter.operators.not contains',
+  },
+  {
+    value: 'start with',
+    labelKey: 'knowledge.search.metadataFilter.operators.start with',
+  },
+  {
+    value: 'end with',
+    labelKey: 'knowledge.search.metadataFilter.operators.end with',
+  },
+  {
+    value: 'empty',
+    labelKey: 'knowledge.search.metadataFilter.operators.empty',
+  },
+  {
+    value: 'not empty',
+    labelKey: 'knowledge.search.metadataFilter.operators.not empty',
+  },
+  { value: '>', labelKey: 'knowledge.search.metadataFilter.operators.>' },
+  { value: '<', labelKey: 'knowledge.search.metadataFilter.operators.<' },
+  { value: '≥', labelKey: 'knowledge.search.metadataFilter.operators.≥' },
+  { value: '≤', labelKey: 'knowledge.search.metadataFilter.operators.≤' },
 ] as const
 
 // 元数据过滤模式
 export const MetadataFilterModes = [
-  { value: 'disabled', label: '禁用' },
-  { value: 'auto', label: '自动' },
-  { value: 'semi_auto', label: '半自动' },
-  { value: 'manual', label: '手动配置' },
+  {
+    value: 'disabled',
+    labelKey: 'knowledge.search.metadataFilter.modes.disabled',
+  },
+  { value: 'auto', labelKey: 'knowledge.search.metadataFilter.modes.auto' },
+  {
+    value: 'semi_auto',
+    labelKey: 'knowledge.search.metadataFilter.modes.semi_auto',
+  },
+  { value: 'manual', labelKey: 'knowledge.search.metadataFilter.modes.manual' },
 ] as const
 
-export type MetadataFilterMode = typeof MetadataFilterModes[number]['value']
+export type MetadataFilterMode = (typeof MetadataFilterModes)[number]['value']
 
 export interface MetadataSemiAutoField {
   key: string
@@ -80,11 +108,17 @@ export const MetadataFilter: React.FC<MetadataFilterProps> = ({
   enabledModes = ['disabled', 'manual'],
   disabled = false,
 }) => {
+  const { t } = useTranslation()
   const conditions = value.conditions || []
   const logic = value.logic || 'and'
-  const modeOptions = MetadataFilterModes.filter((option) => enabledModes.includes(option.value))
+  const modeOptions = MetadataFilterModes.filter((option) =>
+    enabledModes.includes(option.value),
+  )
   const semiAutoOperatorOptions = [
-    { value: '__auto__', label: '自动判断' },
+    {
+      value: '__auto__',
+      labelKey: 'knowledge.search.metadataFilter.autoOperator',
+    },
     ...ComparisonOperators,
   ]
 
@@ -111,9 +145,12 @@ export const MetadataFilter: React.FC<MetadataFilterProps> = ({
   }
 
   // 更新条件
-  const handleUpdateCondition = (index: number, updates: Partial<MetadataFilterCondition>) => {
-    const newConditions = conditions.map((cond, i) => 
-      i === index ? { ...cond, ...updates } : cond
+  const handleUpdateCondition = (
+    index: number,
+    updates: Partial<MetadataFilterCondition>,
+  ) => {
+    const newConditions = conditions.map((cond, i) =>
+      i === index ? { ...cond, ...updates } : cond,
     )
     onChange({
       ...value,
@@ -149,11 +186,9 @@ export const MetadataFilter: React.FC<MetadataFilterProps> = ({
     if (!onSemiAutoFieldsChange) return
 
     onSemiAutoFieldsChange(
-      semiAutoFields.map((item) => (
-        item.key === key
-          ? { key, ...(op === '__auto__' ? {} : { op }) }
-          : item
-      ))
+      semiAutoFields.map((item) =>
+        item.key === key ? { key, ...(op === '__auto__' ? {} : { op }) } : item,
+      ),
     )
   }
 
@@ -161,18 +196,18 @@ export const MetadataFilter: React.FC<MetadataFilterProps> = ({
     <div className="space-y-4">
       {/* 模式选择 */}
       <div className="space-y-2">
-        <Label 
+        <Label
           className="text-sm font-medium"
           style={{ color: 'var(--color-text-primary)' }}
         >
-          元数据过滤
+          {t('knowledge.search.metadataFilter.label')}
         </Label>
         <Select
           value={mode}
           onValueChange={(v) => onModeChange(v as MetadataFilterMode)}
           disabled={disabled}
         >
-          <SelectTrigger 
+          <SelectTrigger
             className="w-full"
             style={{
               backgroundColor: 'var(--color-components-input-bg)',
@@ -180,12 +215,14 @@ export const MetadataFilter: React.FC<MetadataFilterProps> = ({
               color: 'var(--color-components-input-text)',
             }}
           >
-            <SelectValue placeholder="选择过滤模式" />
+            <SelectValue
+              placeholder={t('knowledge.search.metadataFilter.selectMode')}
+            />
           </SelectTrigger>
           <SelectContent>
             {modeOptions.map((opt) => (
               <SelectItem key={opt.value} value={opt.value}>
-                {opt.label}
+                {t(opt.labelKey)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -194,39 +231,47 @@ export const MetadataFilter: React.FC<MetadataFilterProps> = ({
 
       {mode === 'auto' && (
         <p className="text-xs text-text-tertiary">
-          后端会根据问题自动生成元数据过滤条件，需要默认聊天模型可用。
+          {t('knowledge.search.metadataFilter.autoHelp')}
         </p>
       )}
 
       {mode === 'semi_auto' && (
         <div className="space-y-3">
           <p className="text-xs text-text-tertiary">
-            选择参与判断的元数据字段，后端会基于这些字段自动生成过滤条件。
+            {t('knowledge.search.metadataFilter.semiAutoHelp')}
           </p>
           {metadataFields.length === 0 ? (
             <p className="text-xs text-text-tertiary">
-              当前知识库未配置元数据字段。
+              {t('knowledge.search.metadataFilter.noFields')}
             </p>
           ) : (
             <div className="space-y-2">
               {metadataFields.map((field) => {
-                const selected = semiAutoFields.find((item) => item.key === field)
+                const selected = semiAutoFields.find(
+                  (item) => item.key === field,
+                )
                 return (
                   <div
                     key={field}
-                    className="flex items-center gap-space-sm rounded-radius-md border border-border-default bg-surface-secondary px-space-sm py-space-xs"
+                    className="gap-space-sm rounded-radius-md bg-surface-secondary px-space-sm py-space-xs flex items-center border border-border-default"
                   >
-                    <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-space-xs">
+                    <label className="gap-space-xs flex min-w-0 flex-1 cursor-pointer items-center">
                       <Checkbox
                         checked={Boolean(selected)}
-                        onCheckedChange={(checked) => handleToggleSemiAutoField(field, checked === true)}
+                        onCheckedChange={(checked) =>
+                          handleToggleSemiAutoField(field, checked === true)
+                        }
                         disabled={disabled}
                       />
-                      <span className="truncate text-sm text-text-secondary">{field}</span>
+                      <span className="truncate text-sm text-text-secondary">
+                        {field}
+                      </span>
                     </label>
                     <Select
                       value={selected?.op || '__auto__'}
-                      onValueChange={(op) => handleSemiAutoOperatorChange(field, op)}
+                      onValueChange={(op) =>
+                        handleSemiAutoOperatorChange(field, op)
+                      }
                       disabled={disabled || !selected}
                     >
                       <SelectTrigger className="h-8 w-28">
@@ -235,7 +280,7 @@ export const MetadataFilter: React.FC<MetadataFilterProps> = ({
                       <SelectContent>
                         {semiAutoOperatorOptions.map((op) => (
                           <SelectItem key={op.value} value={op.value}>
-                            {op.label}
+                            {t(op.labelKey)}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -254,18 +299,18 @@ export const MetadataFilter: React.FC<MetadataFilterProps> = ({
           {/* 逻辑操作符选择（当有多个条件时显示） */}
           {conditions.length > 1 && (
             <div className="flex items-center gap-2">
-              <span 
+              <span
                 className="text-sm"
                 style={{ color: 'var(--color-text-secondary)' }}
               >
-                条件逻辑：
+                {t('knowledge.search.metadataFilter.logic')}
               </span>
               <Select
                 value={logic}
                 onValueChange={(v) => handleLogicChange(v as 'and' | 'or')}
                 disabled={disabled}
               >
-                <SelectTrigger 
+                <SelectTrigger
                   className="w-24"
                   style={{
                     backgroundColor: 'var(--color-components-input-bg)',
@@ -276,8 +321,12 @@ export const MetadataFilter: React.FC<MetadataFilterProps> = ({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="and">且 (AND)</SelectItem>
-                  <SelectItem value="or">或 (OR)</SelectItem>
+                  <SelectItem value="and">
+                    {t('knowledge.search.metadataFilter.and')}
+                  </SelectItem>
+                  <SelectItem value="or">
+                    {t('knowledge.search.metadataFilter.or')}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -286,9 +335,9 @@ export const MetadataFilter: React.FC<MetadataFilterProps> = ({
           {/* 条件列表 */}
           <div className="space-y-3">
             {conditions.map((condition, index) => (
-              <div 
+              <div
                 key={index}
-                className="flex flex-col gap-2 p-3 rounded-lg"
+                className="flex flex-col gap-2 rounded-lg p-3"
                 style={{
                   backgroundColor: 'var(--color-background-subtle)',
                   border: '1px solid var(--color-border-subtle)',
@@ -299,10 +348,12 @@ export const MetadataFilter: React.FC<MetadataFilterProps> = ({
                   {metadataFields.length > 0 ? (
                     <Select
                       value={condition.name}
-                      onValueChange={(v) => handleUpdateCondition(index, { name: v })}
+                      onValueChange={(v) =>
+                        handleUpdateCondition(index, { name: v })
+                      }
                       disabled={disabled}
                     >
-                      <SelectTrigger 
+                      <SelectTrigger
                         className="flex-1"
                         style={{
                           backgroundColor: 'var(--color-components-input-bg)',
@@ -310,7 +361,11 @@ export const MetadataFilter: React.FC<MetadataFilterProps> = ({
                           color: 'var(--color-components-input-text)',
                         }}
                       >
-                        <SelectValue placeholder="选择字段" />
+                        <SelectValue
+                          placeholder={t(
+                            'knowledge.search.metadataFilter.selectField',
+                          )}
+                        />
                       </SelectTrigger>
                       <SelectContent>
                         {metadataFields.map((field) => (
@@ -323,8 +378,12 @@ export const MetadataFilter: React.FC<MetadataFilterProps> = ({
                   ) : (
                     <Input
                       value={condition.name}
-                      onChange={(e) => handleUpdateCondition(index, { name: e.target.value })}
-                      placeholder="字段名"
+                      onChange={(e) =>
+                        handleUpdateCondition(index, { name: e.target.value })
+                      }
+                      placeholder={t(
+                        'knowledge.search.metadataFilter.fieldName',
+                      )}
                       disabled={disabled}
                       className="flex-1"
                       style={{
@@ -341,17 +400,22 @@ export const MetadataFilter: React.FC<MetadataFilterProps> = ({
                     disabled={disabled}
                     className="h-8 w-8 p-0"
                   >
-                    <X className="h-4 w-4" style={{ color: 'var(--color-text-tertiary)' }} />
+                    <X
+                      className="h-4 w-4"
+                      style={{ color: 'var(--color-text-tertiary)' }}
+                    />
                   </Button>
                 </div>
 
                 {/* 操作符选择 */}
                 <Select
                   value={condition.comparison_operator}
-                  onValueChange={(v) => handleUpdateCondition(index, { comparison_operator: v })}
+                  onValueChange={(v) =>
+                    handleUpdateCondition(index, { comparison_operator: v })
+                  }
                   disabled={disabled}
                 >
-                  <SelectTrigger 
+                  <SelectTrigger
                     className="w-full"
                     style={{
                       backgroundColor: 'var(--color-components-input-bg)',
@@ -359,12 +423,16 @@ export const MetadataFilter: React.FC<MetadataFilterProps> = ({
                       color: 'var(--color-components-input-text)',
                     }}
                   >
-                    <SelectValue placeholder="选择操作符" />
+                    <SelectValue
+                      placeholder={t(
+                        'knowledge.search.metadataFilter.selectOperator',
+                      )}
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     {ComparisonOperators.map((op) => (
                       <SelectItem key={op.value} value={op.value}>
-                        {op.label}
+                        {t(op.labelKey)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -374,8 +442,12 @@ export const MetadataFilter: React.FC<MetadataFilterProps> = ({
                 {!isValuelessOperator(condition.comparison_operator) && (
                   <Input
                     value={String(condition.value || '')}
-                    onChange={(e) => handleUpdateCondition(index, { value: e.target.value })}
-                    placeholder="输入值"
+                    onChange={(e) =>
+                      handleUpdateCondition(index, { value: e.target.value })
+                    }
+                    placeholder={t(
+                      'knowledge.search.metadataFilter.inputValue',
+                    )}
                     disabled={disabled}
                     style={{
                       backgroundColor: 'var(--color-components-input-bg)',
@@ -400,8 +472,8 @@ export const MetadataFilter: React.FC<MetadataFilterProps> = ({
               color: 'var(--color-text-secondary)',
             }}
           >
-            <Plus className="h-4 w-4 mr-2" />
-            添加条件
+            <Plus className="mr-2 h-4 w-4" />
+            {t('knowledge.search.metadataFilter.addCondition')}
           </Button>
         </div>
       )}

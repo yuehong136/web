@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, memo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Plus, Trash2, HelpCircle, Settings2 } from 'lucide-react'
 import {
   Dialog,
@@ -67,6 +68,7 @@ const ValueInputItem = memo(
     onDelete,
     onBlur,
     disabled,
+    placeholder,
   }: {
     value: string
     index: number
@@ -74,6 +76,7 @@ const ValueInputItem = memo(
     onDelete: (index: number) => void
     onBlur: (index: number) => void
     disabled?: boolean
+    placeholder: string
   }) => {
     return (
       <div className="flex items-center gap-2">
@@ -81,7 +84,7 @@ const ValueInputItem = memo(
           value={value}
           onChange={(e) => onChange(index, e.target.value)}
           onBlur={() => onBlur(index)}
-          placeholder="输入值..."
+          placeholder={placeholder}
           className="flex-1"
           disabled={disabled}
         />
@@ -91,13 +94,13 @@ const ValueInputItem = memo(
           size="sm"
           onClick={() => onDelete(index)}
           disabled={disabled}
-          className="h-9 w-9 p-0 hover:bg-status-error/10 hover:text-status-error shrink-0"
+          className="hover:bg-status-error/10 hover:text-status-error h-9 w-9 shrink-0 p-0"
         >
-          <Trash2 className="w-4 h-4" />
+          <Trash2 className="h-4 w-4" />
         </Button>
       </div>
     )
-  }
+  },
 )
 ValueInputItem.displayName = 'ValueInputItem'
 
@@ -105,7 +108,9 @@ ValueInputItem.displayName = 'ValueInputItem'
  * Metadata 字段编辑模态框
  * 参照 ragflow 的 ManageValuesModal 设计
  */
-export const MetadataFieldEditorModal: React.FC<MetadataFieldEditorModalProps> = ({
+export const MetadataFieldEditorModal: React.FC<
+  MetadataFieldEditorModalProps
+> = ({
   open,
   onClose,
   initialData,
@@ -114,7 +119,10 @@ export const MetadataFieldEditorModal: React.FC<MetadataFieldEditorModalProps> =
   onSave,
   loading = false,
 }) => {
-  const isSettingMode = mode === MetadataManageType.SETTING || mode === MetadataManageType.SINGLE_FILE_SETTING
+  const { t } = useTranslation()
+  const isSettingMode =
+    mode === MetadataManageType.SETTING ||
+    mode === MetadataManageType.SINGLE_FILE_SETTING
   const isNew = !initialData?.field
 
   // 表单数据状态
@@ -172,7 +180,7 @@ export const MetadataFieldEditorModal: React.FC<MetadataFieldEditorModalProps> =
       if (existingKeys.includes(value)) {
         setErrors((prev) => ({
           ...prev,
-          field: '字段名已存在',
+          field: t('knowledge.metadata.editor.duplicateField'),
         }))
       } else {
         setErrors((prev) => ({
@@ -181,7 +189,7 @@ export const MetadataFieldEditorModal: React.FC<MetadataFieldEditorModalProps> =
         }))
       }
     },
-    [existingKeys]
+    [existingKeys, t],
   )
 
   // 处理描述变化
@@ -195,27 +203,30 @@ export const MetadataFieldEditorModal: React.FC<MetadataFieldEditorModalProps> =
   }, [])
 
   // 处理值变化
-  const handleValueChange = useCallback((index: number, value: string) => {
-    setTempValues((prev) => {
-      // 检查值是否重复（排除当前正在编辑的项）
-      const otherValues = prev.filter((_, i) => i !== index)
-      if (value && otherValues.includes(value)) {
-        setErrors((prevErrors) => ({
-          ...prevErrors,
-          values: '值已存在',
-        }))
-      } else {
-        setErrors((prevErrors) => ({
-          ...prevErrors,
-          values: undefined,
-        }))
-      }
+  const handleValueChange = useCallback(
+    (index: number, value: string) => {
+      setTempValues((prev) => {
+        // 检查值是否重复（排除当前正在编辑的项）
+        const otherValues = prev.filter((_, i) => i !== index)
+        if (value && otherValues.includes(value)) {
+          setErrors((prevErrors) => ({
+            ...prevErrors,
+            values: t('knowledge.metadata.editor.duplicateValue'),
+          }))
+        } else {
+          setErrors((prevErrors) => ({
+            ...prevErrors,
+            values: undefined,
+          }))
+        }
 
-      const newValues = [...prev]
-      newValues[index] = value
-      return newValues
-    })
-  }, [])
+        const newValues = [...prev]
+        newValues[index] = value
+        return newValues
+      })
+    },
+    [t],
+  )
 
   // 处理值输入框失焦
   const handleValueBlur = useCallback(() => {
@@ -250,7 +261,10 @@ export const MetadataFieldEditorModal: React.FC<MetadataFieldEditorModalProps> =
   const handleSave = useCallback(() => {
     // 验证字段名
     if (!formData.field.trim()) {
-      setErrors((prev) => ({ ...prev, field: '请输入字段名' }))
+      setErrors((prev) => ({
+        ...prev,
+        field: t('knowledge.metadata.editor.requiredField'),
+      }))
       return
     }
 
@@ -277,7 +291,7 @@ export const MetadataFieldEditorModal: React.FC<MetadataFieldEditorModalProps> =
       ...formData,
       values: finalValues,
     })
-  }, [formData, tempValues, errors.field, errors.values, onSave])
+  }, [formData, tempValues, errors.field, errors.values, onSave, t])
 
   // 处理关闭
   const handleClose = useCallback(() => {
@@ -294,15 +308,15 @@ export const MetadataFieldEditorModal: React.FC<MetadataFieldEditorModalProps> =
 
   const title = isNew
     ? isSettingMode
-      ? '添加字段'
-      : '添加元数据'
+      ? t('knowledge.metadata.editor.addField')
+      : t('knowledge.metadata.editor.addMetadata')
     : isSettingMode
-      ? '编辑字段'
-      : '编辑元数据'
+      ? t('knowledge.metadata.editor.editField')
+      : t('knowledge.metadata.editor.editMetadata')
 
   const description = isSettingMode
-    ? '配置元数据字段的名称、描述和可选值'
-    : '设置此元数据字段的值'
+    ? t('knowledge.metadata.editor.settingDescription')
+    : t('knowledge.metadata.editor.valueDescription')
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleClose()}>
@@ -310,10 +324,10 @@ export const MetadataFieldEditorModal: React.FC<MetadataFieldEditorModalProps> =
         {/* 头部 */}
         <DialogHeader>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600">
               <Settings2 className="h-5 w-5 text-white" />
             </div>
-            <div className="flex-1 min-w-0">
+            <div className="min-w-0 flex-1">
               <DialogTitle>{title}</DialogTitle>
               <DialogDescription>{description}</DialogDescription>
             </div>
@@ -321,10 +335,10 @@ export const MetadataFieldEditorModal: React.FC<MetadataFieldEditorModalProps> =
         </DialogHeader>
 
         {/* 内容区域 */}
-        <div className="px-6 py-4 space-y-5 max-h-[50vh] overflow-y-auto">
+        <div className="max-h-[50vh] space-y-5 overflow-y-auto px-6 py-4">
           {/* 字段名显示（非编辑模式）*/}
           {!isNew && !isSettingMode && (
-            <div className="p-4 bg-surface-secondary rounded-lg border border-border-default">
+            <div className="bg-surface-secondary rounded-lg border border-border-default p-4">
               <span className="text-base font-medium text-text-primary">
                 {formData.field}
               </span>
@@ -335,16 +349,18 @@ export const MetadataFieldEditorModal: React.FC<MetadataFieldEditorModalProps> =
           {(isNew || isSettingMode) && (
             <div className="space-y-2">
               <Label className="text-sm font-medium text-text-primary">
-                字段名
+                {t('knowledge.metadata.editor.fieldName')}
               </Label>
               <Input
                 value={formData.field}
                 onChange={(e) => handleFieldChange(e.target.value)}
-                placeholder="仅支持英文字母和下划线"
+                placeholder={t(
+                  'knowledge.metadata.editor.fieldNamePlaceholder',
+                )}
                 disabled={loading}
               />
               {errors.field && (
-                <p className="text-xs text-status-error">{errors.field}</p>
+                <p className="text-status-error text-xs">{errors.field}</p>
               )}
             </div>
           )}
@@ -354,16 +370,16 @@ export const MetadataFieldEditorModal: React.FC<MetadataFieldEditorModalProps> =
             <div className="space-y-2">
               <div className="flex items-center gap-1.5">
                 <Label className="text-sm font-medium text-text-primary">
-                  描述
+                  {t('knowledge.metadata.editor.description')}
                 </Label>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <HelpCircle className="w-3.5 h-3.5 text-text-tertiary cursor-help" />
+                      <HelpCircle className="h-3.5 w-3.5 cursor-help text-text-tertiary" />
                     </TooltipTrigger>
                     <TooltipContent>
                       <p className="max-w-[200px] text-xs">
-                        描述此字段的用途，帮助 AI 更准确地提取元数据
+                        {t('knowledge.metadata.editor.descriptionTooltip')}
                       </p>
                     </TooltipContent>
                   </Tooltip>
@@ -372,7 +388,9 @@ export const MetadataFieldEditorModal: React.FC<MetadataFieldEditorModalProps> =
               <Textarea
                 value={formData.description}
                 onChange={(e) => handleDescriptionChange(e.target.value)}
-                placeholder="描述此字段的含义和用途..."
+                placeholder={t(
+                  'knowledge.metadata.editor.descriptionPlaceholder',
+                )}
                 rows={2}
                 disabled={loading}
               />
@@ -384,16 +402,18 @@ export const MetadataFieldEditorModal: React.FC<MetadataFieldEditorModalProps> =
             <div className="flex items-center justify-between py-2">
               <div className="flex items-center gap-1.5">
                 <Label className="text-sm font-medium text-text-primary">
-                  限制为预定义值
+                  {t('knowledge.metadata.editor.restrictDefinedValues')}
                 </Label>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <HelpCircle className="w-3.5 h-3.5 text-text-tertiary cursor-help" />
+                      <HelpCircle className="h-3.5 w-3.5 cursor-help text-text-tertiary" />
                     </TooltipTrigger>
                     <TooltipContent>
                       <p className="max-w-[200px] text-xs">
-                        开启后，AI 提取的值将被限制在下方定义的可选值范围内
+                        {t(
+                          'knowledge.metadata.editor.restrictDefinedValuesTooltip',
+                        )}
                       </p>
                     </TooltipContent>
                   </Tooltip>
@@ -412,7 +432,9 @@ export const MetadataFieldEditorModal: React.FC<MetadataFieldEditorModalProps> =
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <Label className="text-sm font-medium text-text-primary">
-                  {isSettingMode ? '可选值' : '值'}
+                  {isSettingMode
+                    ? t('knowledge.metadata.editor.optionalValues')
+                    : t('knowledge.metadata.editor.values')}
                 </Label>
                 <Button
                   type="button"
@@ -422,15 +444,15 @@ export const MetadataFieldEditorModal: React.FC<MetadataFieldEditorModalProps> =
                   disabled={loading}
                   className="h-7 px-2 text-text-secondary hover:text-text-primary"
                 >
-                  <Plus className="w-4 h-4 mr-1" />
-                  添加
+                  <Plus className="mr-1 h-4 w-4" />
+                  {t('knowledge.metadata.editor.add')}
                 </Button>
               </div>
 
               <div className="space-y-2">
                 {tempValues.length === 0 ? (
                   <div className="py-4 text-center text-sm text-text-tertiary">
-                    暂无值，点击「添加」开始
+                    {t('knowledge.metadata.editor.emptyValues')}
                   </div>
                 ) : (
                   tempValues.map((value, index) => (
@@ -442,13 +464,16 @@ export const MetadataFieldEditorModal: React.FC<MetadataFieldEditorModalProps> =
                       onDelete={handleDeleteValue}
                       onBlur={handleValueBlur}
                       disabled={loading}
+                      placeholder={t(
+                        'knowledge.metadata.editor.valuePlaceholder',
+                      )}
                     />
                   ))
                 )}
               </div>
 
               {errors.values && (
-                <p className="text-xs text-status-error">{errors.values}</p>
+                <p className="text-status-error text-xs">{errors.values}</p>
               )}
             </div>
           )}
@@ -457,16 +482,19 @@ export const MetadataFieldEditorModal: React.FC<MetadataFieldEditorModalProps> =
         {/* 底部按钮 */}
         <DialogFooter>
           <Button variant="outline" onClick={handleClose} disabled={loading}>
-            取消
+            {t('knowledge.common.cancel')}
           </Button>
-          <Button onClick={handleSave} disabled={loading || !!errors.field || !!errors.values}>
+          <Button
+            onClick={handleSave}
+            disabled={loading || !!errors.field || !!errors.values}
+          >
             {loading ? (
               <>
-                <div className="animate-spin w-4 h-4 border-2 border-current border-t-transparent rounded-full mr-2" />
-                保存中...
+                <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                {t('knowledge.metadata.editor.saving')}
               </>
             ) : (
-              '确认'
+              t('knowledge.metadata.editor.confirm')
             )}
           </Button>
         </DialogFooter>

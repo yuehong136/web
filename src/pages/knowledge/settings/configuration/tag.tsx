@@ -3,15 +3,14 @@
 import {
   ConfigurationFormContainer,
   MainContainer,
+  ParserConfigurationEmptyState,
 } from '../configuration-form-container'
 
 export function TagConfiguration() {
   return (
     <MainContainer>
       <ConfigurationFormContainer>
-        <div className="text-sm text-text-tertiary py-4 text-center">
-          标签解析器用于创建标签知识库，无需额外配置。
-        </div>
+        <ParserConfigurationEmptyState i18nKey="knowledge.settings.configuration.tagEmpty" />
       </ConfigurationFormContainer>
     </MainContainer>
   )

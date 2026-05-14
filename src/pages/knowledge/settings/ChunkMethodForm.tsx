@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { useTranslation } from 'react-i18next'
 import { useFormContext, useWatch } from 'react-hook-form'
 import { DocumentParserType } from '@/types/document-parser'
 
@@ -28,7 +29,10 @@ export interface ConfigurationComponentProps {
 }
 
 // 配置组件映射
-const ConfigurationComponentMap: Record<string, React.ComponentType<ConfigurationComponentProps>> = {
+const ConfigurationComponentMap: Record<
+  string,
+  React.ComponentType<ConfigurationComponentProps>
+> = {
   [DocumentParserType.Naive]: NaiveConfiguration,
   [DocumentParserType.Qa]: QAConfiguration,
   [DocumentParserType.Resume]: ResumeConfiguration,
@@ -47,9 +51,11 @@ const ConfigurationComponentMap: Record<string, React.ComponentType<Configuratio
 }
 
 function EmptyConfiguration() {
+  const { t } = useTranslation()
+
   return (
     <div className="flex items-center justify-center py-8 text-text-tertiary">
-      请先选择解析器类型
+      {t('knowledge.settings.configuration.selectParser')}
     </div>
   )
 }
@@ -62,7 +68,7 @@ interface ChunkMethodFormProps {
   metadataCount?: number
 }
 
-export function ChunkMethodForm({ 
+export function ChunkMethodForm({
   className,
   onMetadataSettingsClick,
   metadataCount,
@@ -83,7 +89,7 @@ export function ChunkMethodForm({
 
   return (
     <div className={className}>
-      <ConfigurationComponent 
+      <ConfigurationComponent
         onMetadataSettingsClick={onMetadataSettingsClick}
         metadataCount={metadataCount}
       />
@@ -92,7 +98,3 @@ export function ChunkMethodForm({
 }
 
 export default ChunkMethodForm
-
-
-
-

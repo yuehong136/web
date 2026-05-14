@@ -17,7 +17,7 @@ export type TaskStatus = (typeof TaskStatus)[keyof typeof TaskStatus]
 export const TaskStatusConfig: Record<
   TaskStatus,
   {
-    text: string
+    textKey: string
     bgToken: string
     borderToken: string
     textToken: string
@@ -25,35 +25,35 @@ export const TaskStatusConfig: Record<
   }
 > = {
   [TaskStatus.UNSTART]: {
-    text: '未开始',
+    textKey: 'knowledge.documents.taskStatus.unstart',
     bgToken: 'var(--color-components-task-status-idle-bg)',
     borderToken: 'var(--color-components-task-status-idle-border)',
     textToken: 'var(--color-components-task-status-idle-text)',
     dotToken: 'var(--color-components-task-status-idle-dot)',
   },
   [TaskStatus.RUNNING]: {
-    text: '运行中',
+    textKey: 'knowledge.documents.taskStatus.running',
     bgToken: 'var(--color-components-task-status-running-bg)',
     borderToken: 'var(--color-components-task-status-running-border)',
     textToken: 'var(--color-components-task-status-running-text)',
     dotToken: 'var(--color-components-task-status-running-dot)',
   },
   [TaskStatus.CANCEL]: {
-    text: '已取消',
+    textKey: 'knowledge.documents.taskStatus.cancel',
     bgToken: 'var(--color-components-task-status-cancelled-bg)',
     borderToken: 'var(--color-components-task-status-cancelled-border)',
     textToken: 'var(--color-components-task-status-cancelled-text)',
     dotToken: 'var(--color-components-task-status-cancelled-dot)',
   },
   [TaskStatus.DONE]: {
-    text: '已完成',
+    textKey: 'knowledge.documents.taskStatus.done',
     bgToken: 'var(--color-components-task-status-completed-bg)',
     borderToken: 'var(--color-components-task-status-completed-border)',
     textToken: 'var(--color-components-task-status-completed-text)',
     dotToken: 'var(--color-components-task-status-completed-dot)',
   },
   [TaskStatus.FAIL]: {
-    text: '失败',
+    textKey: 'knowledge.documents.taskStatus.fail',
     bgToken: 'var(--color-components-task-status-failed-bg)',
     borderToken: 'var(--color-components-task-status-failed-border)',
     textToken: 'var(--color-components-task-status-failed-text)',
@@ -63,11 +63,11 @@ export const TaskStatusConfig: Record<
 
 // 运行状态选项 (用于筛选器)
 export const runStatusOptions = [
-  { value: '0', label: '未开始' },
-  { value: '1', label: '运行中' },
-  { value: '2', label: '已取消' },
-  { value: '3', label: '已完成' },
-  { value: '4', label: '失败' },
+  { value: '0', labelKey: 'knowledge.documents.taskStatus.unstart' },
+  { value: '1', labelKey: 'knowledge.documents.taskStatus.running' },
+  { value: '2', labelKey: 'knowledge.documents.taskStatus.cancel' },
+  { value: '3', labelKey: 'knowledge.documents.taskStatus.done' },
+  { value: '4', labelKey: 'knowledge.documents.taskStatus.fail' },
 ]
 
 // 特殊筛选字段：无元数据

@@ -6,6 +6,7 @@
  */
 
 import { useState, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { toast } from '@/lib/toast'
 import {
   GenerateTaskType,
@@ -17,8 +18,11 @@ import {
 import { TASK_TYPE_CONFIG } from './constants'
 
 export function useGenerateState(kbId: string) {
+  const { t } = useTranslation()
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
-  const [deletingType, setDeletingType] = useState<GenerateTaskType | null>(null)
+  const [deletingType, setDeletingType] = useState<GenerateTaskType | null>(
+    null,
+  )
 
   const graph = useTraceKnowledgeTask({
     kbId,
@@ -41,26 +45,44 @@ export function useGenerateState(kbId: string) {
     async (type: GenerateTaskType) => {
       try {
         await runTask({ kbId, type })
-        toast.success(`${TASK_TYPE_CONFIG[type].label} 任务已启动`)
+        toast.success(
+          t('knowledge.documents.generate.runSuccess', {
+            label: t(TASK_TYPE_CONFIG[type].labelKey),
+          }),
+        )
       } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : `启动 ${TASK_TYPE_CONFIG[type].label} 失败`
+        const msg =
+          err instanceof Error
+            ? err.message
+            : t('knowledge.documents.generate.runError', {
+                label: t(TASK_TYPE_CONFIG[type].labelKey),
+              })
         toast.error(msg)
       }
     },
-    [kbId, runTask]
+    [kbId, runTask, t],
   )
 
   const handlePause = useCallback(
     async (taskId: string, type: GenerateTaskType) => {
       try {
         await pauseTask({ taskId, kbId, type })
-        toast.success(`${TASK_TYPE_CONFIG[type].label} 任务已暂停`)
+        toast.success(
+          t('knowledge.documents.generate.pauseSuccess', {
+            label: t(TASK_TYPE_CONFIG[type].labelKey),
+          }),
+        )
       } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : `暂停 ${TASK_TYPE_CONFIG[type].label} 失败`
+        const msg =
+          err instanceof Error
+            ? err.message
+            : t('knowledge.documents.generate.pauseError', {
+                label: t(TASK_TYPE_CONFIG[type].labelKey),
+              })
         toast.error(msg)
       }
     },
-    [kbId, pauseTask]
+    [kbId, pauseTask, t],
   )
 
   const handleDeleteRequest = useCallback((type: GenerateTaskType) => {
@@ -72,15 +94,22 @@ export function useGenerateState(kbId: string) {
     if (!deletingType) return
     try {
       await unbindTask({ kbId, type: deletingType })
-      toast.success(`${TASK_TYPE_CONFIG[deletingType].label} 生成结果已删除`)
+      toast.success(
+        t('knowledge.documents.generate.deleteSuccess', {
+          label: t(TASK_TYPE_CONFIG[deletingType].labelKey),
+        }),
+      )
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : '删除失败'
+      const msg =
+        err instanceof Error
+          ? err.message
+          : t('knowledge.documents.generate.deleteError')
       toast.error(msg)
     } finally {
       setDeleteConfirmOpen(false)
       setDeletingType(null)
     }
-  }, [kbId, deletingType, unbindTask])
+  }, [kbId, deletingType, unbindTask, t])
 
   const handleDeleteCancel = useCallback(() => {
     setDeleteConfirmOpen(false)

@@ -5,6 +5,7 @@
  */
 
 import React, { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { FileText } from 'lucide-react'
 import { Modal, Button } from '@/components/ui'
 import { Tooltip } from '@/components/ui/tooltip'
@@ -37,19 +38,28 @@ const InfoItem: React.FC<{
   className?: string
   fullWidth?: boolean
   overflowTip?: boolean // 是否支持鼠标悬浮显示完整内容
-}> = ({ label, value, className = '', fullWidth = false, overflowTip = false }) => {
+}> = ({
+  label,
+  value,
+  className = '',
+  fullWidth = false,
+  overflowTip = false,
+}) => {
   return (
-    <div className={`flex flex-col mb-4 ${fullWidth ? 'w-full' : 'w-1/2'} ${className}`}>
-      <span
-        className="text-sm"
-        style={{ color: 'var(--color-text-tertiary)' }}
-      >
+    <div
+      className={`mb-4 flex flex-col ${fullWidth ? 'w-full' : 'w-1/2'} ${className}`}
+    >
+      <span className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>
         {label}
       </span>
       {overflowTip ? (
-        <Tooltip content={value} position="bottom" className="max-w-[300px] break-words">
+        <Tooltip
+          content={value}
+          position="bottom"
+          className="max-w-[300px] break-words"
+        >
           <span
-            className="mt-1 truncate w-full"
+            className="mt-1 w-full truncate"
             style={{ color: 'var(--color-text-primary)' }}
           >
             {value}
@@ -69,11 +79,14 @@ const InfoItem: React.FC<{
 
 // 状态徽章组件
 const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
-  const config = TaskStatusConfig[status as TaskStatus] || TaskStatusConfig[TaskStatus.UNSTART]
+  const { t } = useTranslation()
+  const config =
+    TaskStatusConfig[status as TaskStatus] ||
+    TaskStatusConfig[TaskStatus.UNSTART]
 
   return (
     <span
-      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium"
+      className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium"
       style={{
         backgroundColor: config.bgToken,
         border: `1px solid ${config.borderToken}`,
@@ -84,7 +97,7 @@ const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
         className="inline-flex h-1.5 w-1.5 rounded-full"
         style={{ backgroundColor: config.dotToken }}
       />
-      {config.text}
+      {t(config.textKey)}
     </span>
   )
 }
@@ -111,18 +124,17 @@ const highlightErrors = (text: string): React.ReactNode => {
   })
 }
 
-// 字段标签映射
-const fieldLabels: Record<keyof LogInfo, string> = {
-  fileType: '文件类型',
-  uploadedBy: '创建者',
-  fileName: '文件名',
-  uploadDate: '上传日期',
-  fileSize: '文件大小',
-  processBeginAt: '开始于',
-  chunkNumber: '分块数',
-  duration: '耗时',
-  status: '状态',
-  details: '详情',
+const fieldLabelKeys: Record<keyof LogInfo, string> = {
+  fileType: 'knowledge.documents.processLog.fileType',
+  uploadedBy: 'knowledge.documents.processLog.uploadedBy',
+  fileName: 'knowledge.documents.processLog.fileName',
+  uploadDate: 'knowledge.documents.processLog.uploadDate',
+  fileSize: 'knowledge.documents.processLog.fileSize',
+  processBeginAt: 'knowledge.documents.processLog.processBeginAt',
+  chunkNumber: 'knowledge.documents.processLog.chunkNumber',
+  duration: 'knowledge.documents.processLog.duration',
+  status: 'knowledge.documents.processLog.status',
+  details: 'knowledge.documents.processLog.details',
 }
 
 // 字段显示顺序
@@ -144,6 +156,7 @@ export const ProcessLogModal: React.FC<ProcessLogModalProps> = ({
   onClose,
   logInfo,
 }) => {
+  const { t } = useTranslation()
   // 过滤掉空值的字段
   const displayFields = useMemo(() => {
     return fieldOrder.filter((key) => {
@@ -156,12 +169,14 @@ export const ProcessLogModal: React.FC<ProcessLogModalProps> = ({
     <Modal
       open={visible}
       onClose={onClose}
-      title="文件"
+      title={t('knowledge.documents.processLog.title')}
       icon={<FileText className="h-5 w-5" />}
       size="lg"
       footer={
         <div className="flex justify-end">
-          <Button onClick={onClose}>关闭</Button>
+          <Button onClick={onClose}>
+            {t('knowledge.documents.processLog.close')}
+          </Button>
         </div>
       }
     >
@@ -169,18 +184,18 @@ export const ProcessLogModal: React.FC<ProcessLogModalProps> = ({
         <div className="flex flex-wrap">
           {displayFields.map((key) => {
             const value = logInfo[key]
-            const label = fieldLabels[key]
+            const label = t(fieldLabelKeys[key])
 
             // 详情日志 - 全宽展示
             if (key === 'details') {
               return (
-                <div className="w-full mt-2" key={key}>
+                <div className="mt-2 w-full" key={key}>
                   <InfoItem
                     label={label}
                     fullWidth
                     value={
                       <div
-                        className="w-full whitespace-pre-line text-wrap rounded-lg h-fit max-h-[350px] overflow-y-auto scrollbar-thin p-3 mt-1"
+                        className="mt-1 h-fit max-h-[350px] w-full overflow-y-auto whitespace-pre-line text-wrap rounded-lg p-3 scrollbar-thin"
                         style={{
                           backgroundColor: 'var(--color-surface-secondary)',
                           color: 'var(--color-text-secondary)',
@@ -197,7 +212,7 @@ export const ProcessLogModal: React.FC<ProcessLogModalProps> = ({
             // 状态字段 - 使用状态徽章
             if (key === 'status') {
               return (
-                <div className="flex flex-col w-1/2 mb-4" key={key}>
+                <div className="mb-4 flex w-1/2 flex-col" key={key}>
                   <span
                     className="text-sm"
                     style={{ color: 'var(--color-text-tertiary)' }}

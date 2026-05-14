@@ -49,12 +49,17 @@ export const SplitDetailPageTemplate: React.FC<
             'min-h-0 shrink-0',
             card
               ? 'rounded-radius-lg flex flex-col overflow-hidden border border-components-console-border bg-components-console-surface'
-              : 'overflow-auto border-r border-components-split-pane-border',
+              : 'scroll-area overflow-auto border-r border-components-split-pane-border',
           )}
           style={{ width: leftWidth, minWidth: minLeft }}
         >
           {card ? (
-            <div className="min-h-0 flex-1 overflow-auto">{leftPane}</div>
+            <div
+              data-scroll-root="split-left"
+              className="scroll-area min-h-0 flex-1 overflow-auto"
+            >
+              {leftPane}
+            </div>
           ) : (
             leftPane
           )}
@@ -64,11 +69,16 @@ export const SplitDetailPageTemplate: React.FC<
             'min-h-0 min-w-0 flex-1',
             card
               ? 'rounded-radius-lg flex flex-col overflow-hidden border border-components-console-border bg-components-console-surface'
-              : 'overflow-auto',
+              : 'scroll-area overflow-auto',
           )}
         >
           {card ? (
-            <div className="min-h-0 flex-1 overflow-auto">{rightPane}</div>
+            <div
+              data-scroll-root="split-right"
+              className="scroll-area min-h-0 flex-1 overflow-auto"
+            >
+              {rightPane}
+            </div>
           ) : (
             rightPane
           )}

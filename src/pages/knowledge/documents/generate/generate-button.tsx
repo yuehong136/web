@@ -7,6 +7,7 @@
  */
 
 import React, { memo, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { WandSparkles } from 'lucide-react'
 import { Button } from '@/components/ui'
 import { Tooltip } from '@/components/ui/tooltip'
@@ -45,6 +46,7 @@ const GenerateButtonComponent: React.FC<GenerateButtonProps> = ({
   onPause,
   onDelete,
 }) => {
+  const { t } = useTranslation()
   const hasRunning =
     graphStatus === GenerateTaskStatus.Running ||
     raptorStatus === GenerateTaskStatus.Running
@@ -66,19 +68,25 @@ const GenerateButtonComponent: React.FC<GenerateButtonProps> = ({
 
   return (
     <DropdownMenu>
-      <Tooltip content={disabled ? '请先解析文档以生成切片' : '生成知识图谱 / RAPTOR'}>
+      <Tooltip
+        content={
+          disabled
+            ? t('knowledge.documents.generate.disabledTooltip')
+            : t('knowledge.documents.generate.tooltip')
+        }
+      >
         <DropdownMenuTrigger asChild>
           <div className="relative inline-flex">
             <Button variant="outline" disabled={disabled}>
               <WandSparkles
-                className={`h-4 w-4 mr-2 ${hasRunning ? 'animate-pulse' : ''}`}
+                className={`mr-2 h-4 w-4 ${hasRunning ? 'animate-pulse' : ''}`}
               />
-              生成
+              {t('knowledge.documents.generate.button')}
             </Button>
             {/* 状态指示圆点 */}
             {dotColor && !disabled && (
               <span
-                className={`absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full border-2 ${hasRunning ? 'animate-pulse' : ''}`}
+                className={`absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full border-2 ${hasRunning ? 'animate-pulse' : ''}`}
                 style={{
                   backgroundColor: dotColor,
                   borderColor: 'var(--color-background-surface)',

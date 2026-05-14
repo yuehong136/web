@@ -69,6 +69,10 @@ export default {
     type: '类型',
     action: '操作',
     total: '共 {{count}} 条',
+    pagination: {
+      pageSizePrefix: '每页显示',
+      pageSizeSuffix: '项',
+    },
 
     // API 错误消息
     errors: {

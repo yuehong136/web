@@ -7,7 +7,6 @@
 // `pdfjs-dist/legacy/build/pdf` here, but lets this file's own import of the
 // same specifier fall through to Vite's optimizeDeps pipeline — which produces
 // an ESM module with a usable `default` export.
-// @ts-expect-error — pdfjs-dist 2.x ships no types for the legacy build subpath.
 import pdfModule from 'pdfjs-dist/legacy/build/pdf'
 
 const mod =

@@ -6,6 +6,7 @@
  */
 
 import React, { memo, useState, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   CirclePause,
   RotateCcw,
@@ -52,6 +53,7 @@ const TaskItemComponent: React.FC<TaskItemProps> = ({
   onPause,
   onDelete,
 }) => {
+  const { t } = useTranslation()
   const [logExpanded, setLogExpanded] = useState(false)
   const typeConfig = TASK_TYPE_CONFIG[type]
   const statusConfig = TASK_STATUS_CONFIG[status]
@@ -81,7 +83,9 @@ const TaskItemComponent: React.FC<TaskItemProps> = ({
     onDelete(type)
   }, [onDelete, type])
 
-  const isQuiet = status === GenerateTaskStatus.Start || status === GenerateTaskStatus.Completed
+  const isQuiet =
+    status === GenerateTaskStatus.Start ||
+    status === GenerateTaskStatus.Completed
 
   // 紧凑模式：已完成/未开始 → 单行内联
   if (compact && isQuiet) {
@@ -93,30 +97,54 @@ const TaskItemComponent: React.FC<TaskItemProps> = ({
           backgroundColor: statusConfig.bgToken,
         }}
       >
-        <div className="flex items-center gap-2 min-w-0">
-          <Icon className="h-3.5 w-3.5 shrink-0" style={{ color: statusConfig.textToken }} />
-          <span className="text-sm font-medium truncate" style={{ color: 'var(--color-text-primary)' }}>
-            {typeConfig.label}
+        <div className="flex min-w-0 items-center gap-2">
+          <Icon
+            className="h-3.5 w-3.5 shrink-0"
+            style={{ color: statusConfig.textToken }}
+          />
+          <span
+            className="truncate text-sm font-medium"
+            style={{ color: 'var(--color-text-primary)' }}
+          >
+            {t(typeConfig.labelKey)}
           </span>
           <span
-            className="text-xs px-1.5 py-0.5 rounded-full shrink-0"
-            style={{ color: statusConfig.textToken, border: `1px solid ${statusConfig.borderToken}` }}
+            className="shrink-0 rounded-full px-1.5 py-0.5 text-xs"
+            style={{
+              color: statusConfig.textToken,
+              border: `1px solid ${statusConfig.borderToken}`,
+            }}
           >
-            {statusConfig.text}
+            {t(statusConfig.textKey)}
           </span>
         </div>
-        <div className="flex items-center gap-1 shrink-0 ml-2">
+        <div className="ml-2 flex shrink-0 items-center gap-1">
           {canTrigger && (
-            <Tooltip content={statusConfig.actionText}>
-              <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={handleAction} disabled={disabled || isActionPending}>
+            <Tooltip content={t(statusConfig.actionTextKey)}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0"
+                onClick={handleAction}
+                disabled={disabled || isActionPending}
+              >
                 <Play className="h-3 w-3" />
               </Button>
             </Tooltip>
           )}
           {status === GenerateTaskStatus.Completed && (
-            <Tooltip content="删除生成结果">
-              <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={handleDelete} disabled={isActionPending}>
-                <Trash2 className="h-3 w-3" style={{ color: 'var(--color-state-error)' }} />
+            <Tooltip content={t('knowledge.documents.generate.deleteResult')}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0"
+                onClick={handleDelete}
+                disabled={isActionPending}
+              >
+                <Trash2
+                  className="h-3 w-3"
+                  style={{ color: 'var(--color-state-error)' }}
+                />
               </Button>
             </Tooltip>
           )}
@@ -135,43 +163,74 @@ const TaskItemComponent: React.FC<TaskItemProps> = ({
       }}
     >
       {/* 标题行 */}
-      <div className="flex items-center justify-between mb-1.5">
+      <div className="mb-1.5 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Icon className="h-4 w-4" style={{ color: statusConfig.textToken }} />
-          <span className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
-            {typeConfig.label}
+          <span
+            className="text-sm font-medium"
+            style={{ color: 'var(--color-text-primary)' }}
+          >
+            {t(typeConfig.labelKey)}
           </span>
           <span
-            className="text-xs px-1.5 py-0.5 rounded-full"
+            className="rounded-full px-1.5 py-0.5 text-xs"
             style={{
               color: statusConfig.textToken,
               backgroundColor: statusConfig.bgToken,
               border: `1px solid ${statusConfig.borderToken}`,
             }}
           >
-            {statusConfig.text}
+            {t(statusConfig.textKey)}
           </span>
         </div>
 
         <div className="flex items-center gap-1">
           {canTrigger && (
-            <Tooltip content={statusConfig.actionText}>
-              <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={handleAction} disabled={disabled || isActionPending}>
-                {status === GenerateTaskStatus.Failed ? <RotateCcw className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5" />}
+            <Tooltip content={t(statusConfig.actionTextKey)}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 w-7 p-0"
+                onClick={handleAction}
+                disabled={disabled || isActionPending}
+              >
+                {status === GenerateTaskStatus.Failed ? (
+                  <RotateCcw className="h-3.5 w-3.5" />
+                ) : (
+                  <Play className="h-3.5 w-3.5" />
+                )}
               </Button>
             </Tooltip>
           )}
           {status === GenerateTaskStatus.Running && (
-            <Tooltip content="暂停">
-              <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={handlePause} disabled={isActionPending}>
-                <CirclePause className="h-3.5 w-3.5" style={{ color: 'var(--color-state-warning)' }} />
+            <Tooltip content={t('knowledge.documents.generate.pause')}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 w-7 p-0"
+                onClick={handlePause}
+                disabled={isActionPending}
+              >
+                <CirclePause
+                  className="h-3.5 w-3.5"
+                  style={{ color: 'var(--color-state-warning)' }}
+                />
               </Button>
             </Tooltip>
           )}
           {status === GenerateTaskStatus.Completed && (
-            <Tooltip content="删除生成结果">
-              <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={handleDelete} disabled={isActionPending}>
-                <Trash2 className="h-3.5 w-3.5" style={{ color: 'var(--color-state-error)' }} />
+            <Tooltip content={t('knowledge.documents.generate.deleteResult')}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 w-7 p-0"
+                onClick={handleDelete}
+                disabled={isActionPending}
+              >
+                <Trash2
+                  className="h-3.5 w-3.5"
+                  style={{ color: 'var(--color-state-error)' }}
+                />
               </Button>
             </Tooltip>
           )}
@@ -180,13 +239,17 @@ const TaskItemComponent: React.FC<TaskItemProps> = ({
 
       {/* 描述行（仅 start/completed） */}
       {isQuiet && (
-        <p className="text-xs mb-0" style={{ color: 'var(--color-text-tertiary)' }}>
-          {typeConfig.description}
+        <p
+          className="mb-0 text-xs"
+          style={{ color: 'var(--color-text-tertiary)' }}
+        >
+          {t(typeConfig.descriptionKey)}
         </p>
       )}
 
       {/* 进度区（running/failed） */}
-      {(status === GenerateTaskStatus.Running || status === GenerateTaskStatus.Failed) && (
+      {(status === GenerateTaskStatus.Running ||
+        status === GenerateTaskStatus.Failed) && (
         <div className="space-y-1.5">
           <div className="flex items-center gap-2">
             <div className="flex-1">
@@ -195,14 +258,16 @@ const TaskItemComponent: React.FC<TaskItemProps> = ({
                 className="h-1.5"
                 style={
                   status === GenerateTaskStatus.Failed
-                    ? { '--progress-fill': 'var(--color-state-error)' } as React.CSSProperties
+                    ? ({
+                        '--progress-fill': 'var(--color-state-error)',
+                      } as React.CSSProperties)
                     : undefined
                 }
               />
             </div>
             {status === GenerateTaskStatus.Running && (
               <span
-                className="text-xs font-medium tabular-nums min-w-[32px] text-right"
+                className="min-w-[32px] text-right text-xs font-medium tabular-nums"
                 style={{ color: statusConfig.textToken }}
               >
                 {percent}%
@@ -214,8 +279,10 @@ const TaskItemComponent: React.FC<TaskItemProps> = ({
           {traceData?.progress_msg && (
             <div>
               <div
-                className={`text-xs leading-relaxed whitespace-pre-line overflow-hidden transition-all duration-200 ${
-                  logExpanded ? 'max-h-[200px] overflow-y-auto scrollbar-thin' : 'max-h-[3.6em]'
+                className={`overflow-hidden whitespace-pre-line text-xs leading-relaxed transition-all duration-200 ${
+                  logExpanded
+                    ? 'max-h-[200px] overflow-y-auto scrollbar-thin'
+                    : 'max-h-[3.6em]'
                 }`}
                 style={{ color: 'var(--color-text-tertiary)' }}
               >
@@ -223,19 +290,19 @@ const TaskItemComponent: React.FC<TaskItemProps> = ({
               </div>
               <button
                 type="button"
-                className="flex items-center gap-0.5 mt-1 text-xs transition-colors hover:opacity-80"
+                className="mt-1 flex items-center gap-0.5 text-xs transition-colors hover:opacity-80"
                 style={{ color: statusConfig.textToken }}
                 onClick={() => setLogExpanded((v) => !v)}
               >
                 {logExpanded ? (
                   <>
                     <ChevronUp className="h-3 w-3" />
-                    收起
+                    {t('knowledge.documents.generate.collapse')}
                   </>
                 ) : (
                   <>
                     <ChevronDown className="h-3 w-3" />
-                    展开日志
+                    {t('knowledge.documents.generate.expandLogs')}
                   </>
                 )}
               </button>

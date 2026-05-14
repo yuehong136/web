@@ -58,6 +58,10 @@ const KnowledgeDetailLayout = lazyNamed(
   () => import('@/pages/knowledge/KnowledgeDetailLayout'),
   'KnowledgeDetailLayout',
 )
+const KnowledgeChunksLayout = lazyNamed(
+  () => import('@/pages/knowledge'),
+  'KnowledgeChunksLayout',
+)
 const KnowledgeDocumentsPage = lazyNamed(
   () => import('@/pages/knowledge/documents'),
   'KnowledgeDocumentsPage',
@@ -407,8 +411,14 @@ export const router = createBrowserRouter([
             path: 'settings',
             element: withLoading(KnowledgeSettingsPage),
           },
+        ],
+      },
+      {
+        path: '/knowledge/:id/documents/:docId/chunks',
+        element: withLoading(KnowledgeChunksLayout),
+        children: [
           {
-            path: 'documents/:docId/chunks',
+            index: true,
             element: withLoading(DocumentChunksPage),
           },
         ],

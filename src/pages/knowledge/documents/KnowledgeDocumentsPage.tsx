@@ -5,16 +5,10 @@
  */
 
 import React, { useState, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAbilities } from '@/hooks/use-abilities'
-import {
-  FileText,
-  Upload,
-  Plus,
-  Search,
-  RefreshCw,
-  Tag,
-} from 'lucide-react'
+import { FileText, Upload, Plus, Search, RefreshCw, Tag } from 'lucide-react'
 import {
   Button,
   Input,
@@ -52,8 +46,11 @@ import {
   GenerateDeleteConfirm,
 } from './generate'
 import { useGenerateState } from './generate/hooks'
+import { ListPageTemplate } from '@/components/page-templates'
+import { PageEmptyState } from '@/components/patterns'
 
 export const KnowledgeDocumentsPage: React.FC = () => {
+  const { t } = useTranslation()
   const { id: kbId } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { currentKnowledgeBase } = useKnowledgeStore()
@@ -72,7 +69,9 @@ export const KnowledgeDocumentsPage: React.FC = () => {
   })
 
   // 日志弹窗
-  const { showLog, hideLog, logVisible, logInfo } = useShowLog(listState.documents)
+  const { showLog, hideLog, logVisible, logInfo } = useShowLog(
+    listState.documents,
+  )
 
   // 生成任务（GraphRAG / RAPTOR）
   const generate = useGenerateState(kbId || '')
@@ -92,10 +91,13 @@ export const KnowledgeDocumentsPage: React.FC = () => {
   const [docMetadataModalOpen, setDocMetadataModalOpen] = useState(false)
   const [editingDocMeta, setEditingDocMeta] = useState<Document | null>(null)
   const [chunkMethodModalOpen, setChunkMethodModalOpen] = useState(false)
-  const [editingParserDoc, setEditingParserDoc] = useState<Document | null>(null)
+  const [editingParserDoc, setEditingParserDoc] = useState<Document | null>(
+    null,
+  )
 
   // 更新文档解析器 hook
-  const { updateDocumentParser, isLoading: isUpdatingParser } = useUpdateDocumentParser()
+  const { updateDocumentParser, isLoading: isUpdatingParser } =
+    useUpdateDocumentParser()
 
   // 检查是否需要显示解析确认弹窗
   const needsParseConfirmation = useCallback(
@@ -106,7 +108,7 @@ export const KnowledgeDocumentsPage: React.FC = () => {
         currentKnowledgeBase?.parser_config?.enable_metadata === true
       return hasChunks || hasMetadataEnabled
     },
-    [currentKnowledgeBase]
+    [currentKnowledgeBase],
   )
 
   // 开始解析处理
@@ -119,7 +121,7 @@ export const KnowledgeDocumentsPage: React.FC = () => {
         actions.handleStartParse([doc.id], false)
       }
     },
-    [needsParseConfirmation, actions]
+    [needsParseConfirmation, actions],
   )
 
   // 批量开始解析处理
@@ -131,7 +133,7 @@ export const KnowledgeDocumentsPage: React.FC = () => {
     } else {
       actions.handleStartParse(
         docs.map((d) => d.id),
-        false
+        false,
       )
       listState.clearSelection()
     }
@@ -139,13 +141,16 @@ export const KnowledgeDocumentsPage: React.FC = () => {
 
   // 确认解析弹窗回调
   const handleConfirmParse = useCallback(
-    async (options: { deleteChunks: boolean; applyMetadataSettings: boolean }) => {
+    async (options: {
+      deleteChunks: boolean
+      applyMetadataSettings: boolean
+    }) => {
       if (reparsingDocs.length === 0) return
       setIsReparsing(true)
       try {
         await actions.handleStartParse(
           reparsingDocs.map((d) => d.id),
-          options.deleteChunks
+          options.deleteChunks,
         )
         setReparseModalOpen(false)
         setReparsingDocs([])
@@ -154,7 +159,7 @@ export const KnowledgeDocumentsPage: React.FC = () => {
         setIsReparsing(false)
       }
     },
-    [reparsingDocs, actions, listState]
+    [reparsingDocs, actions, listState],
   )
 
   // 重命名处理
@@ -178,12 +183,12 @@ export const KnowledgeDocumentsPage: React.FC = () => {
   const handleBulkDelete = useCallback(async () => {
     const docIds = Array.from(listState.selectedDocs)
     const confirmed = window.confirm(
-      `确定要删除选中的 ${docIds.length} 个文档吗？`
+      t('knowledge.documents.bulkDeleteConfirm', { count: docIds.length }),
     )
     if (!confirmed) return
     await actions.handleDelete(docIds)
     listState.clearSelection()
-  }, [listState, actions])
+  }, [listState, actions, t])
 
   // 显示解析方式配置弹窗
   const handleShowChunkMethodModal = useCallback((doc: Document) => {
@@ -193,13 +198,17 @@ export const KnowledgeDocumentsPage: React.FC = () => {
 
   // 提交解析方式配置
   const handleChunkMethodSubmit = useCallback(
-    async (data: { docId: string; parserId: string; parserConfig?: Record<string, any> }) => {
+    async (data: {
+      docId: string
+      parserId: string
+      parserConfig?: Record<string, any>
+    }) => {
       await updateDocumentParser(data)
       setChunkMethodModalOpen(false)
       setEditingParserDoc(null)
       listState.refetch()
     },
-    [updateDocumentParser, listState]
+    [updateDocumentParser, listState],
   )
 
   // 知识库是否启用元数据
@@ -235,15 +244,18 @@ export const KnowledgeDocumentsPage: React.FC = () => {
   })
 
   return (
-    <div className="h-full flex flex-col p-6">
+    <ListPageTemplate
+      title={t('knowledge.documents.title')}
+      description={t('knowledge.documents.description')}
+    >
       {/* 搜索和筛选栏 */}
       <Card className="mb-6">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4 flex-1">
+          <div className="flex flex-1 items-center space-x-4">
             <div className="max-w-md flex-1">
               <Input
                 type="search"
-                placeholder="搜索文档..."
+                placeholder={t('knowledge.documents.searchPlaceholder')}
                 value={listState.searchKeywords}
                 onChange={(e) => listState.setSearchKeywords(e.target.value)}
                 leftIcon={<Search className="h-4 w-4" />}
@@ -265,9 +277,9 @@ export const KnowledgeDocumentsPage: React.FC = () => {
           <div className="flex items-center space-x-3">
             <Button variant="outline" onClick={listState.refetch}>
               <RefreshCw
-                className={`h-4 w-4 mr-2 ${listState.isFetching ? 'animate-spin' : ''}`}
+                className={`mr-2 h-4 w-4 ${listState.isFetching ? 'animate-spin' : ''}`}
               />
-              刷新
+              {t('knowledge.common.refresh')}
             </Button>
             <GenerateButton
               disabled={chunkNum <= 0}
@@ -280,13 +292,16 @@ export const KnowledgeDocumentsPage: React.FC = () => {
               onPause={generate.handlePause}
               onDelete={generate.handleDeleteRequest}
             />
-            <Button variant="outline" onClick={() => setMetadataModalOpen(true)}>
-              <Tag className="h-4 w-4 mr-2" />
-              管理元数据
+            <Button
+              variant="outline"
+              onClick={() => setMetadataModalOpen(true)}
+            >
+              <Tag className="mr-2 h-4 w-4" />
+              {t('knowledge.documents.manageMetadata')}
             </Button>
             <Button onClick={() => setUploadModalOpen(true)}>
-              <Upload className="h-4 w-4 mr-2" />
-              导入文档
+              <Upload className="mr-2 h-4 w-4" />
+              {t('knowledge.documents.import')}
             </Button>
           </div>
         </div>
@@ -308,36 +323,36 @@ export const KnowledgeDocumentsPage: React.FC = () => {
 
       {/* 文档列表 */}
       {!listState.isLoading && listState.documents.length > 0 && (
-        <div
-          className="rounded-lg shadow-sm overflow-hidden flex flex-col flex-1 min-h-0"
-          style={{ backgroundColor: 'var(--color-background-surface)' }}
-        >
+        <div className="rounded-radius-lg shadow-elevation-low flex min-h-0 flex-1 flex-col overflow-hidden bg-background-surface">
           {/* 列表头部控制 */}
-          <div
-            className="px-6 py-4"
-            style={{ borderBottom: '1px solid var(--color-border-default)' }}
-          >
+          <div className="border-b border-border-default px-6 py-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-space-md">
-                <label className="flex items-center gap-space-xs cursor-pointer">
+              <div className="gap-space-md flex items-center">
+                <label className="gap-space-xs flex cursor-pointer items-center">
                   <Checkbox
                     checked={listState.allSelected}
-                    onCheckedChange={(checked) => listState.selectAll(checked as boolean)}
+                    onCheckedChange={(checked) =>
+                      listState.selectAll(checked as boolean)
+                    }
                   />
                   <span className="text-sm text-text-secondary">
-                    全选 (
+                    {t('knowledge.documents.selectAll')} (
                     {listState.selectedDocs.size > 0
-                      ? `已选 ${listState.selectedDocs.size} 个`
-                      : `共 ${listState.total} 个文档`}
+                      ? t('knowledge.documents.selectedCount', {
+                          count: listState.selectedDocs.size,
+                        })
+                      : t('knowledge.documents.totalDocuments', {
+                          count: listState.total,
+                        })}
                     )
                   </span>
                 </label>
               </div>
-              <div
-                className="text-sm"
-                style={{ color: 'var(--color-text-tertiary)' }}
-              >
-                显示 {listState.documents.length} / {listState.total} 个文档
+              <div className="text-sm text-text-tertiary">
+                {t('knowledge.documents.displayCount', {
+                  visible: listState.documents.length,
+                  total: listState.total,
+                })}
               </div>
             </div>
           </div>
@@ -365,22 +380,16 @@ export const KnowledgeDocumentsPage: React.FC = () => {
 
           {/* 分页控件 */}
           {listState.total > 0 && (
-            <div
-              className="sticky bottom-0 backdrop-blur-sm shadow-lg"
-              style={{
-                borderTop: '1px solid var(--color-components-pagination-border)',
-                backgroundColor: 'var(--color-components-pagination-bg)',
-                backdropFilter: 'blur(12px)',
-              }}
-            >
-              <div className="px-6 py-4 flex items-center justify-between">
-                <div
-                  className="text-sm"
-                  style={{ color: 'var(--color-components-pagination-text)' }}
-                >
-                  共 {listState.total} 项
+            <div className="shadow-elevation-high sticky bottom-0 border-t border-components-pagination-border bg-components-pagination-bg backdrop-blur-sm">
+              <div className="flex items-center justify-between px-6 py-4">
+                <div className="text-sm text-components-pagination-text">
+                  {t('knowledge.documents.totalItems', {
+                    count: listState.total,
+                  })}
                   {listState.selectedDocs.size > 0 &&
-                    ` • 已选择 ${listState.selectedDocs.size} 个`}
+                    ` • ${t('knowledge.documents.selectedCount', {
+                      count: listState.selectedDocs.size,
+                    })}`}
                 </div>
 
                 <div className="flex items-center space-x-4">
@@ -400,7 +409,7 @@ export const KnowledgeDocumentsPage: React.FC = () => {
                       onClick={() => listState.setPage(listState.page - 1)}
                       disabled={listState.page <= 1}
                     >
-                      上一页
+                      {t('knowledge.documents.previousPage')}
                     </Button>
 
                     <div className="flex items-center space-x-1">
@@ -408,12 +417,12 @@ export const KnowledgeDocumentsPage: React.FC = () => {
                         {
                           length: Math.min(
                             5,
-                            Math.ceil(listState.total / listState.pageSize)
+                            Math.ceil(listState.total / listState.pageSize),
                           ),
                         },
                         (_, i) => {
                           const totalPages = Math.ceil(
-                            listState.total / listState.pageSize
+                            listState.total / listState.pageSize,
                           )
                           let pageNum
                           if (totalPages <= 5) {
@@ -429,7 +438,9 @@ export const KnowledgeDocumentsPage: React.FC = () => {
                             <Button
                               key={pageNum}
                               variant={
-                                listState.page === pageNum ? 'default' : 'outline'
+                                listState.page === pageNum
+                                  ? 'default'
+                                  : 'outline'
                               }
                               size="sm"
                               onClick={() => listState.setPage(pageNum)}
@@ -438,7 +449,7 @@ export const KnowledgeDocumentsPage: React.FC = () => {
                               {pageNum}
                             </Button>
                           )
-                        }
+                        },
                       )}
                     </div>
 
@@ -451,7 +462,7 @@ export const KnowledgeDocumentsPage: React.FC = () => {
                         Math.ceil(listState.total / listState.pageSize)
                       }
                     >
-                      下一页
+                      {t('knowledge.documents.nextPage')}
                     </Button>
                   </div>
                 </div>
@@ -463,26 +474,18 @@ export const KnowledgeDocumentsPage: React.FC = () => {
 
       {/* 空状态 */}
       {!listState.isLoading && listState.documents.length === 0 && (
-        <Card className="flex-1 flex items-center justify-center">
-          <div className="text-center py-12">
-            <FileText
-              className="h-12 w-12 mx-auto mb-4"
-              style={{ color: 'var(--color-text-muted)' }}
-            />
-            <h3
-              className="text-lg font-medium mb-2"
-              style={{ color: 'var(--color-text-primary)' }}
-            >
-              暂无文档
-            </h3>
-            <p className="mb-4" style={{ color: 'var(--color-text-tertiary)' }}>
-              还没有上传任何文档，开始添加文档吧
-            </p>
-            <Button onClick={() => setUploadModalOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              添加文档
-            </Button>
-          </div>
+        <Card className="flex flex-1 items-center justify-center">
+          <PageEmptyState
+            title={t('knowledge.documents.emptyTitle')}
+            description={t('knowledge.documents.emptyDescription')}
+            icon={<FileText className="h-6 w-6" />}
+            action={
+              <Button onClick={() => setUploadModalOpen(true)}>
+                <Plus className="mr-2 h-4 w-4" />
+                {t('knowledge.documents.addDocument')}
+              </Button>
+            }
+          />
         </Card>
       )}
 
@@ -508,30 +511,29 @@ export const KnowledgeDocumentsPage: React.FC = () => {
       <Modal
         open={renameModalOpen}
         onClose={() => setRenameModalOpen(false)}
-        title="重命名文档"
+        title={t('knowledge.documents.renameTitle')}
       >
         <div className="space-y-4">
           <div>
             <label
               htmlFor="newDocName"
-              className="block text-sm font-medium"
-              style={{ color: 'var(--color-text-primary)' }}
+              className="block text-sm font-medium text-text-primary"
             >
-              新名称
+              {t('knowledge.documents.newName')}
             </label>
             <Input
               id="newDocName"
               value={newDocName}
               onChange={(e) => setNewDocName(e.target.value)}
-              placeholder="输入新名称"
+              placeholder={t('knowledge.documents.newNamePlaceholder')}
             />
           </div>
           <div className="flex justify-end space-x-2">
             <Button variant="outline" onClick={() => setRenameModalOpen(false)}>
-              取消
+              {t('knowledge.common.cancel')}
             </Button>
             <Button onClick={handleRename} loading={actions.isRenaming}>
-              确定
+              {t('knowledge.documents.confirm')}
             </Button>
           </div>
         </div>
@@ -542,8 +544,8 @@ export const KnowledgeDocumentsPage: React.FC = () => {
         open={deleteConfirmOpen}
         onClose={() => setDeleteConfirmOpen(false)}
         onConfirm={handleDelete}
-        title="确认删除"
-        description="确定要删除这个文档吗？此操作不可逆。"
+        title={t('knowledge.documents.deleteTitle')}
+        description={t('knowledge.documents.deleteDescription')}
       />
 
       {/* 文件上传模态框 */}
@@ -625,6 +627,6 @@ export const KnowledgeDocumentsPage: React.FC = () => {
         onConfirm={generate.handleDeleteConfirm}
         onClose={generate.handleDeleteCancel}
       />
-    </div>
+    </ListPageTemplate>
   )
 }

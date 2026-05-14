@@ -3,6 +3,7 @@
  */
 
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   FileText,
   CheckCircle,
@@ -35,11 +36,12 @@ export const BulkActionToolbar: React.FC<BulkActionToolbarProps> = ({
   onClearSelection,
   isLoading = false,
 }) => {
+  const { t } = useTranslation()
   if (selectedCount === 0) return null
 
   return (
     <div
-      className="fixed bottom-6 left-1/2 transform -translate-x-1/2 rounded-lg shadow-lg p-4 z-50"
+      className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 transform rounded-lg p-4 shadow-lg"
       style={{
         backgroundColor: 'var(--color-background-surface)',
         border: '1px solid var(--color-border-default)',
@@ -49,7 +51,7 @@ export const BulkActionToolbar: React.FC<BulkActionToolbarProps> = ({
         {/* 选中计数 */}
         <div className="flex items-center space-x-2">
           <div
-            className="p-2 rounded-lg"
+            className="rounded-lg p-2"
             style={{ backgroundColor: 'var(--color-state-info-subtle)' }}
           >
             <FileText
@@ -61,7 +63,9 @@ export const BulkActionToolbar: React.FC<BulkActionToolbarProps> = ({
             className="text-sm"
             style={{ color: 'var(--color-text-secondary)' }}
           >
-            已选择 {selectedCount} 个文档
+            {t('knowledge.documents.bulkActions.selected', {
+              count: selectedCount,
+            })}
           </span>
         </div>
 
@@ -83,8 +87,8 @@ export const BulkActionToolbar: React.FC<BulkActionToolbarProps> = ({
               borderColor: 'var(--color-border-success)',
             }}
           >
-            <CheckCircle className="h-4 w-4 mr-1" />
-            启用
+            <CheckCircle className="mr-1 h-4 w-4" />
+            {t('knowledge.documents.bulkActions.enable')}
           </Button>
           <Button
             variant="outline"
@@ -96,8 +100,8 @@ export const BulkActionToolbar: React.FC<BulkActionToolbarProps> = ({
               borderColor: 'var(--color-border-default)',
             }}
           >
-            <XCircle className="h-4 w-4 mr-1" />
-            禁用
+            <XCircle className="mr-1 h-4 w-4" />
+            {t('knowledge.documents.bulkActions.disable')}
           </Button>
           <Button
             variant="outline"
@@ -109,8 +113,8 @@ export const BulkActionToolbar: React.FC<BulkActionToolbarProps> = ({
               borderColor: 'var(--color-border-accent)',
             }}
           >
-            <Play className="h-4 w-4 mr-1" />
-            开始解析
+            <Play className="mr-1 h-4 w-4" />
+            {t('knowledge.documents.bulkActions.startParse')}
           </Button>
           <Button
             variant="outline"
@@ -122,8 +126,8 @@ export const BulkActionToolbar: React.FC<BulkActionToolbarProps> = ({
               borderColor: 'var(--color-border-warning)',
             }}
           >
-            <Square className="h-4 w-4 mr-1" />
-            停止任务
+            <Square className="mr-1 h-4 w-4" />
+            {t('knowledge.documents.bulkActions.stopTask')}
           </Button>
           <Button
             variant="destructive"
@@ -131,8 +135,8 @@ export const BulkActionToolbar: React.FC<BulkActionToolbarProps> = ({
             onClick={onDelete}
             disabled={isLoading}
           >
-            <Trash2 className="h-4 w-4 mr-1" />
-            删除
+            <Trash2 className="mr-1 h-4 w-4" />
+            {t('knowledge.documents.bulkActions.delete')}
           </Button>
           <Button
             variant="ghost"
@@ -141,8 +145,8 @@ export const BulkActionToolbar: React.FC<BulkActionToolbarProps> = ({
             disabled={isLoading}
             style={{ color: 'var(--color-text-tertiary)' }}
           >
-            <X className="h-4 w-4 mr-1" />
-            取消选择
+            <X className="mr-1 h-4 w-4" />
+            {t('knowledge.documents.bulkActions.clearSelection')}
           </Button>
         </div>
       </div>

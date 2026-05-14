@@ -5,6 +5,7 @@
  */
 
 import { useState, useCallback, useMemo, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import {
@@ -34,7 +35,7 @@ import {
 
 const sanitizeFilterValueByCollections = (
   value: FilterValue,
-  collections: FilterCollection[]
+  collections: FilterCollection[],
 ): FilterValue => {
   const baseAllowedMap = collections.reduce<Record<string, Set<string>>>(
     (pre, cur) => {
@@ -43,18 +44,18 @@ const sanitizeFilterValueByCollections = (
       }
       return pre
     },
-    {}
+    {},
   )
 
   const metadataAllowedMap =
-    collections.find((item) => item.field === 'metadata')?.list.reduce<
-      Record<string, Set<string>>
-    >((pre, field) => {
-      pre[field.id.toString()] = new Set(
-        (field.list || []).map((subItem) => subItem.id.toString())
-      )
-      return pre
-    }, {}) || {}
+    collections
+      .find((item) => item.field === 'metadata')
+      ?.list.reduce<Record<string, Set<string>>>((pre, field) => {
+        pre[field.id.toString()] = new Set(
+          (field.list || []).map((subItem) => subItem.id.toString()),
+        )
+        return pre
+      }, {}) || {}
 
   const nextValue: FilterValue = {}
 
@@ -122,7 +123,10 @@ export function useDocumentListState(): DocumentListState {
   const [selectedDocs, setSelectedDocs] = useState<Set<string>>(new Set())
 
   // 防抖搜索
-  const debouncedKeywords = useDebouncedValue(searchKeywords, SEARCH_DEBOUNCE_MS)
+  const debouncedKeywords = useDebouncedValue(
+    searchKeywords,
+    SEARCH_DEBOUNCE_MS,
+  )
 
   // 将 filterValue 转换为 API 需要的 DocumentFilter 格式
   const documentFilter = useMemo((): DocumentFilter => {
@@ -144,29 +148,24 @@ export function useDocumentListState(): DocumentListState {
     return {
       suffix: typeValues.length > 0 ? typeValues : undefined,
       run_status: runValues.length > 0 ? runValues : undefined,
-      metadata: Object.keys(metadataValues).length > 0 ? metadataValues : undefined,
+      metadata:
+        Object.keys(metadataValues).length > 0 ? metadataValues : undefined,
       return_empty_metadata: returnEmptyMetadata || undefined,
     }
   }, [filterValue])
 
   // 获取文档列表 (使用智能轮询)
-  const {
-    documents,
-    total,
-    isLoading,
-    isFetching,
-    isError,
-    refetch,
-  } = useFetchDocumentList({
-    knowledgeBaseId: kbId,
-    page,
-    page_size: pageSize,
-    keywords: debouncedKeywords,
-    orderby: sortConfig.orderby,
-    desc: sortConfig.desc,
-    filter_params: documentFilter,
-    enableSmartPolling: true,
-  })
+  const { documents, total, isLoading, isFetching, isError, refetch } =
+    useFetchDocumentList({
+      knowledgeBaseId: kbId,
+      page,
+      page_size: pageSize,
+      keywords: debouncedKeywords,
+      orderby: sortConfig.orderby,
+      desc: sortConfig.desc,
+      filter_params: documentFilter,
+      enableSmartPolling: true,
+    })
 
   // 获取筛选选项
   const {
@@ -194,9 +193,12 @@ export function useDocumentListState(): DocumentListState {
             return pre + cur.length
           }
           if (typeof cur === 'object') {
-            return pre + Object.values(cur).reduce((innerPre, innerCur) => {
-              return innerPre + (innerCur?.length || 0)
-            }, 0)
+            return (
+              pre +
+              Object.values(cur).reduce((innerPre, innerCur) => {
+                return innerPre + (innerCur?.length || 0)
+              }, 0)
+            )
           }
           return pre
         }, 0)
@@ -207,7 +209,8 @@ export function useDocumentListState(): DocumentListState {
   const hasActiveFilters = filterCount > 0 || searchKeywords.trim() !== ''
 
   // 全选状态
-  const allSelected = documents.length > 0 && selectedDocs.size === documents.length
+  const allSelected =
+    documents.length > 0 && selectedDocs.size === documents.length
 
   // 获取选中的文档对象
   const selectedDocuments = useMemo(() => {
@@ -236,7 +239,7 @@ export function useDocumentListState(): DocumentListState {
         setSelectedDocs(new Set())
       }
     },
-    [documents]
+    [documents],
   )
 
   // 清除选择
@@ -319,14 +322,31 @@ export function useDocumentListState(): DocumentListState {
  * 构建筛选器列表 - 参照 ragflow 的 use-select-filters.ts
  */
 export function useFilterCollections(
-  filterOptions: DocumentListState['filterOptions']
+  filterOptions: DocumentListState['filterOptions'],
 ): FilterCollection[] {
+  const { t } = useTranslation()
   return useMemo<FilterCollection[]>(() => {
     if (!filterOptions) {
       return [
-        { field: 'type', label: '文件类型', list: [] },
-        { field: 'run', label: '任务状态', list: runStatusOptions.map((o) => ({ id: o.value, label: o.label })) },
-        { field: 'metadata', label: '元数据', canSearch: true, list: [] },
+        {
+          field: 'type',
+          label: t('knowledge.documents.filters.fileType'),
+          list: [],
+        },
+        {
+          field: 'run',
+          label: t('knowledge.documents.filters.taskStatus'),
+          list: runStatusOptions.map((o) => ({
+            id: o.value,
+            label: t(o.labelKey),
+          })),
+        },
+        {
+          field: 'metadata',
+          label: t('knowledge.documents.filters.metadata'),
+          canSearch: true,
+          list: [],
+        },
       ]
     }
 
@@ -347,9 +367,9 @@ export function useFilterCollections(
       Object.entries(filterOptions.run_status).forEach(([status, count]) => {
         fileStatus.push({
           id: status,
-          label:
-            runStatusOptions.find((o) => o.value === status)?.label ||
-            `状态${status}`,
+          label: runStatusOptions.find((o) => o.value === status)?.labelKey
+            ? t(runStatusOptions.find((o) => o.value === status)!.labelKey)
+            : t('knowledge.documents.filters.statusFallback', { status }),
           count,
         })
       })
@@ -362,7 +382,7 @@ export function useFilterCollections(
       if (emptyCount > 0) {
         fileStatus.push({
           id: EMPTY_METADATA_FIELD,
-          label: '无元数据',
+          label: t('knowledge.documents.filters.noMetadata'),
           count: emptyCount,
         })
       }
@@ -388,22 +408,36 @@ export function useFilterCollections(
       : []
 
     return [
-      { field: 'type', label: '文件类型', list: fileTypes },
-      { field: 'run', label: '任务状态', list: fileStatus },
-      { field: 'metadata', label: '元数据', canSearch: true, list: metaDataList },
+      {
+        field: 'type',
+        label: t('knowledge.documents.filters.fileType'),
+        list: fileTypes,
+      },
+      {
+        field: 'run',
+        label: t('knowledge.documents.filters.taskStatus'),
+        list: fileStatus,
+      },
+      {
+        field: 'metadata',
+        label: t('knowledge.documents.filters.metadata'),
+        canSearch: true,
+        list: metaDataList,
+      },
     ]
-  }, [filterOptions])
+  }, [filterOptions, t])
 }
 
 /**
  * 筛选器分组配置
  */
 export function useFilterGroup(): Record<string, string[]> {
+  const { t } = useTranslation()
   return useMemo(
     () => ({
-      系统属性: ['type', 'run'],
+      [t('knowledge.documents.filters.system')]: ['type', 'run'],
     }),
-    []
+    [t],
   )
 }
 
@@ -412,10 +446,11 @@ export function useFilterGroup(): Record<string, string[]> {
  */
 export function useDocumentActions(
   _kbId: string | undefined,
-  onSuccess?: () => void
+  onSuccess?: () => void,
 ) {
   const { runDocument, isLoading: isRunning } = useRunDocument()
-  const { changeStatus, isLoading: isChangingStatus } = useChangeDocumentStatus()
+  const { changeStatus, isLoading: isChangingStatus } =
+    useChangeDocumentStatus()
   const { renameDocument, isLoading: isRenaming } = useRenameDocument()
   const { deleteDocument, isLoading: isDeleting } = useDeleteDocument()
   const { downloadDocument, isLoading: isDownloading } = useDownloadDocument()
@@ -432,7 +467,7 @@ export function useDocumentActions(
         toast.error('开始解析失败，请重试')
       }
     },
-    [runDocument, onSuccess]
+    [runDocument, onSuccess],
   )
 
   // 停止解析
@@ -447,7 +482,7 @@ export function useDocumentActions(
         toast.error('停止任务失败')
       }
     },
-    [runDocument, onSuccess]
+    [runDocument, onSuccess],
   )
 
   // 切换启用状态
@@ -455,7 +490,10 @@ export function useDocumentActions(
     async (doc: Document) => {
       const newStatus = doc.status === '1' ? 0 : 1
       try {
-        const result = await changeStatus({ docIds: [doc.id], status: newStatus as 0 | 1 })
+        const result = await changeStatus({
+          docIds: [doc.id],
+          status: newStatus as 0 | 1,
+        })
         const docResult = result[doc.id]
         if (docResult?.error) {
           toast.error(`状态切换失败: ${docResult.error}`)
@@ -468,7 +506,7 @@ export function useDocumentActions(
         toast.error('状态切换失败，请重试')
       }
     },
-    [changeStatus, onSuccess]
+    [changeStatus, onSuccess],
   )
 
   // 批量启用
@@ -486,7 +524,9 @@ export function useDocumentActions(
           }
         })
         if (errorCount > 0) {
-          toast.warning(`批量启用完成: 成功 ${successCount} 个，失败 ${errorCount} 个`)
+          toast.warning(
+            `批量启用完成: 成功 ${successCount} 个，失败 ${errorCount} 个`,
+          )
         } else {
           toast.success(`成功启用 ${successCount} 个文档`)
         }
@@ -496,7 +536,7 @@ export function useDocumentActions(
         toast.error('批量启用失败，请重试')
       }
     },
-    [changeStatus, onSuccess]
+    [changeStatus, onSuccess],
   )
 
   // 批量禁用
@@ -514,7 +554,9 @@ export function useDocumentActions(
           }
         })
         if (errorCount > 0) {
-          toast.warning(`批量禁用完成: 成功 ${successCount} 个，失败 ${errorCount} 个`)
+          toast.warning(
+            `批量禁用完成: 成功 ${successCount} 个，失败 ${errorCount} 个`,
+          )
         } else {
           toast.success(`成功禁用 ${successCount} 个文档`)
         }
@@ -524,7 +566,7 @@ export function useDocumentActions(
         toast.error('批量禁用失败，请重试')
       }
     },
-    [changeStatus, onSuccess]
+    [changeStatus, onSuccess],
   )
 
   // 重命名
@@ -539,7 +581,7 @@ export function useDocumentActions(
         toast.error('重命名失败，请重试')
       }
     },
-    [renameDocument, onSuccess]
+    [renameDocument, onSuccess],
   )
 
   // 下载
@@ -553,7 +595,7 @@ export function useDocumentActions(
         toast.error(msg)
       }
     },
-    [downloadDocument]
+    [downloadDocument],
   )
 
   // 删除
@@ -568,7 +610,7 @@ export function useDocumentActions(
         toast.error('删除失败，请重试')
       }
     },
-    [deleteDocument, onSuccess]
+    [deleteDocument, onSuccess],
   )
 
   return {
@@ -679,7 +721,8 @@ export function formatDuration(seconds: number): string {
 export function formatFileSize(size: number): string {
   if (size < 1024) return `${size} B`
   if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`
-  if (size < 1024 * 1024 * 1024) return `${(size / (1024 * 1024)).toFixed(1)} MB`
+  if (size < 1024 * 1024 * 1024)
+    return `${(size / (1024 * 1024)).toFixed(1)} MB`
   return `${(size / (1024 * 1024 * 1024)).toFixed(1)} GB`
 }
 
@@ -715,7 +758,11 @@ export function formatRelativeTime(dateStr: string): string {
   const minutes = Math.floor(diffMs / 60_000)
   if (minutes < 60) return `${minutes}分钟前`
 
-  const timeStr = date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false })
+  const timeStr = date.toLocaleTimeString('zh-CN', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  })
 
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
   const yesterday = new Date(today.getTime() - 86_400_000)

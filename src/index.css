@@ -134,6 +134,11 @@
     color: var(--color-text-primary);
   }
 
+  .scroll-area {
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+  }
+
   /* 确保所有文本元素继承主题颜色 */
   h1,
   h2,

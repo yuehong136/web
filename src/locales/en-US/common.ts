@@ -70,6 +70,10 @@ export default {
     type: 'Type',
     action: 'Action',
     total: '{{count}} items',
+    pagination: {
+      pageSizePrefix: 'Items per page',
+      pageSizeSuffix: 'items',
+    },
 
     // API error messages
     errors: {

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Plus, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -61,6 +62,7 @@ export const DocumentMetadataEditor: React.FC<DocumentMetadataEditorProps> = ({
   compact = false,
   className,
 }) => {
+  const { t } = useTranslation()
   // 将 Record 转换为数组便于编辑
   const [entries, setEntries] = useState<MetadataEntry[]>([])
 
@@ -80,7 +82,10 @@ export const DocumentMetadataEditor: React.FC<DocumentMetadataEditorProps> = ({
       if (key.trim()) {
         // 如果值包含逗号，转换为数组
         if (val.includes(',')) {
-          newValue[key.trim()] = val.split(',').map((v) => v.trim()).filter(Boolean)
+          newValue[key.trim()] = val
+            .split(',')
+            .map((v) => v.trim())
+            .filter(Boolean)
         } else {
           newValue[key.trim()] = val.trim()
         }
@@ -96,9 +101,13 @@ export const DocumentMetadataEditor: React.FC<DocumentMetadataEditorProps> = ({
   }
 
   // 更新条目
-  const handleUpdate = (index: number, field: 'key' | 'value', newValue: string) => {
+  const handleUpdate = (
+    index: number,
+    field: 'key' | 'value',
+    newValue: string,
+  ) => {
     const newEntries = entries.map((entry, i) =>
-      i === index ? { ...entry, [field]: newValue } : entry
+      i === index ? { ...entry, [field]: newValue } : entry,
     )
     setEntries(newEntries)
     syncToParent(newEntries)
@@ -125,16 +134,20 @@ export const DocumentMetadataEditor: React.FC<DocumentMetadataEditorProps> = ({
 
   if (readOnly) {
     return (
-      <div className={cn('flex flex-col gap-space-xs', className)}>
+      <div className={cn('gap-space-xs flex flex-col', className)}>
         {entries.length === 0 ? (
-          <span className="text-text-tertiary text-body-sm">无元数据</span>
+          <span className="text-body-sm text-text-tertiary">
+            {t('knowledge.metadata.editor.noMetadata')}
+          </span>
         ) : (
           entries.map(({ key, value: val }, index) => (
-            <div key={index} className="flex items-center gap-space-sm">
-              <span className="text-text-secondary text-body-sm min-w-[80px]">
+            <div key={index} className="gap-space-sm flex items-center">
+              <span className="text-body-sm min-w-[80px] text-text-secondary">
                 {key}:
               </span>
-              <span className="text-text-primary text-body-sm">{val || '-'}</span>
+              <span className="text-body-sm text-text-primary">
+                {val || '-'}
+              </span>
             </div>
           ))
         )}
@@ -143,7 +156,7 @@ export const DocumentMetadataEditor: React.FC<DocumentMetadataEditorProps> = ({
   }
 
   return (
-    <div className={cn('flex flex-col gap-space-sm', className)}>
+    <div className={cn('gap-space-sm flex flex-col', className)}>
       {/* 条目列表 */}
       {entries.map((entry, index) => {
         const enumValues = getFieldEnum(entry.key)
@@ -153,8 +166,8 @@ export const DocumentMetadataEditor: React.FC<DocumentMetadataEditorProps> = ({
           <div
             key={index}
             className={cn(
-              'flex items-center gap-space-xs',
-              compact ? 'gap-space-xs' : 'gap-space-sm'
+              'gap-space-xs flex items-center',
+              compact ? 'gap-space-xs' : 'gap-space-sm',
             )}
           >
             {/* 字段名 */}
@@ -164,8 +177,12 @@ export const DocumentMetadataEditor: React.FC<DocumentMetadataEditorProps> = ({
                 onValueChange={(val) => handleUpdate(index, 'key', val)}
                 disabled={disabled}
               >
-                <SelectTrigger className={cn(compact ? 'w-[100px]' : 'w-[120px]')}>
-                  <SelectValue placeholder="选择字段" />
+                <SelectTrigger
+                  className={cn(compact ? 'w-[100px]' : 'w-[120px]')}
+                >
+                  <SelectValue
+                    placeholder={t('knowledge.metadata.editor.selectField')}
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {/* 当前选中的 */}
@@ -184,7 +201,7 @@ export const DocumentMetadataEditor: React.FC<DocumentMetadataEditorProps> = ({
               <Input
                 value={entry.key}
                 onChange={(e) => handleUpdate(index, 'key', e.target.value)}
-                placeholder="字段名"
+                placeholder={t('knowledge.metadata.editor.fieldPlaceholder')}
                 disabled={disabled}
                 className={cn(compact ? 'w-[100px]' : 'w-[120px]')}
               />
@@ -198,7 +215,9 @@ export const DocumentMetadataEditor: React.FC<DocumentMetadataEditorProps> = ({
                 disabled={disabled}
               >
                 <SelectTrigger className="flex-1">
-                  <SelectValue placeholder="选择值" />
+                  <SelectValue
+                    placeholder={t('knowledge.metadata.editor.selectValue')}
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {enumValues.map((v) => (
@@ -212,7 +231,9 @@ export const DocumentMetadataEditor: React.FC<DocumentMetadataEditorProps> = ({
               <Input
                 value={entry.value}
                 onChange={(e) => handleUpdate(index, 'value', e.target.value)}
-                placeholder="值（多个值用逗号分隔）"
+                placeholder={t(
+                  'knowledge.metadata.editor.valueInputPlaceholder',
+                )}
                 disabled={disabled}
                 className="flex-1"
               />
@@ -225,7 +246,7 @@ export const DocumentMetadataEditor: React.FC<DocumentMetadataEditorProps> = ({
               size="sm"
               onClick={() => handleRemove(index)}
               disabled={disabled}
-              className="h-[32px] w-[32px] p-0 hover:text-status-error shrink-0"
+              className="hover:text-status-error h-[32px] w-[32px] shrink-0 p-0"
             >
               <X className="w-icon-sm h-icon-sm" />
             </Button>
@@ -243,14 +264,14 @@ export const DocumentMetadataEditor: React.FC<DocumentMetadataEditorProps> = ({
           className="w-full"
         >
           <Plus className="w-icon-sm h-icon-sm mr-space-xs" />
-          添加元数据
+          {t('knowledge.metadata.editor.addMetadataButton')}
         </Button>
       )}
 
       {/* 空状态 */}
       {entries.length === 0 && disabled && (
-        <span className="text-text-tertiary text-body-sm text-center py-space-sm">
-          暂无元数据
+        <span className="text-body-sm py-space-sm text-center text-text-tertiary">
+          {t('knowledge.metadata.editor.noMetadata')}
         </span>
       )}
     </div>

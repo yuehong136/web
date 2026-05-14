@@ -5,6 +5,7 @@
  */
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { ChevronDown, ChevronUp, Funnel } from 'lucide-react'
 import { Button } from '@/components/ui'
 import { Input } from '@/components/ui/input'
@@ -42,29 +43,28 @@ const FilterField: React.FC<FilterFieldProps> = ({
   const handleCheckChange = (
     checked: boolean,
     isNestedField = false,
-    parentId = ''
+    parentId = '',
   ) => {
     if (isNestedField && parentId) {
       // 嵌套字段（如 metadata.author）
       const fieldName = parent.field
-      const currentValue =
-        (value[fieldName] as Record<string, string[]>) || {}
+      const currentValue = (value[fieldName] as Record<string, string[]>) || {}
       const currentParentValues = currentValue[parentId] || []
 
       const newParentValues = checked
         ? [...currentParentValues, item.id.toString()]
         : currentParentValues.filter((v) => v !== item.id.toString())
 
-      const newFieldValue = newParentValues.length > 0
-        ? { ...currentValue, [parentId]: newParentValues }
-        : Object.fromEntries(
-            Object.entries(currentValue).filter(([key]) => key !== parentId)
-          )
+      const newFieldValue =
+        newParentValues.length > 0
+          ? { ...currentValue, [parentId]: newParentValues }
+          : Object.fromEntries(
+              Object.entries(currentValue).filter(([key]) => key !== parentId),
+            )
 
       onChange({
         ...value,
-        [fieldName]:
-          Object.keys(newFieldValue).length > 0 ? newFieldValue : {},
+        [fieldName]: Object.keys(newFieldValue).length > 0 ? newFieldValue : {},
       })
     } else {
       // 普通字段（如 type, run）
@@ -98,7 +98,7 @@ const FilterField: React.FC<FilterFieldProps> = ({
     return (
       <div className={`flex flex-col gap-2 ${level > 0 ? 'ml-1' : ''}`}>
         <div
-          className="flex items-center justify-between cursor-pointer py-1 hover:bg-[var(--color-surface-secondary)] rounded transition-colors"
+          className="flex cursor-pointer items-center justify-between rounded py-1 transition-colors hover:bg-[var(--color-surface-secondary)]"
           onClick={() => setShowAll(!showAll)}
         >
           <span
@@ -169,10 +169,10 @@ const FilterField: React.FC<FilterFieldProps> = ({
 
   return (
     <div
-      className={`flex items-center justify-between text-xs group ${level > 0 ? 'ml-4' : ''}`}
+      className={`group flex items-center justify-between text-xs ${level > 0 ? 'ml-4' : ''}`}
     >
       <div
-        className="flex items-center gap-2 flex-1 min-w-0 py-1.5 px-1 -mx-1 rounded cursor-pointer hover:bg-[var(--color-surface-secondary)] transition-colors"
+        className="-mx-1 flex min-w-0 flex-1 cursor-pointer items-center gap-2 rounded px-1 py-1.5 transition-colors hover:bg-[var(--color-surface-secondary)]"
         onClick={() => handleCheckChange(!checked, isNestedChild, parentId)}
       >
         <Checkbox
@@ -185,7 +185,7 @@ const FilterField: React.FC<FilterFieldProps> = ({
           className="shrink-0"
         />
         <span
-          className="truncate select-none"
+          className="select-none truncate"
           style={{ color: 'var(--color-text-primary)' }}
           title={item.label}
         >
@@ -194,7 +194,7 @@ const FilterField: React.FC<FilterFieldProps> = ({
       </div>
       {item.count !== undefined && (
         <span
-          className="text-xs ml-2 tabular-nums"
+          className="ml-2 text-xs tabular-nums"
           style={{ color: 'var(--color-text-tertiary)' }}
         >
           {item.count}
@@ -220,7 +220,7 @@ interface FilterPopoverProps {
 
 const filterNestedList = (
   list: FilterType[],
-  searchTerm: string
+  searchTerm: string,
 ): FilterType[] => {
   if (!searchTerm) return list
 
@@ -258,6 +258,7 @@ export const FilterPopover: React.FC<FilterPopoverProps> = ({
   onOpenChange,
   filterGroup,
 }) => {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const [localValue, setLocalValue] = useState<FilterValue>(value)
   const [searchTerms, setSearchTerms] = useState<Record<string, string>>({})
@@ -285,7 +286,7 @@ export const FilterPopover: React.FC<FilterPopoverProps> = ({
     const emptyValue: FilterValue = {}
     filters.forEach((f) => {
       const hasNested = f.list?.some(
-        (item) => item.list && item.list.length > 0
+        (item) => item.list && item.list.length > 0,
       )
       emptyValue[f.field] = hasNested ? {} : []
     })
@@ -312,7 +313,7 @@ export const FilterPopover: React.FC<FilterPopoverProps> = ({
         list: filterNestedList(collection.list || [], searchTerm),
       }
     },
-    [searchTerms]
+    [searchTerms],
   )
 
   // 计算属于分组的 field 列表
@@ -335,7 +336,7 @@ export const FilterPopover: React.FC<FilterPopoverProps> = ({
     <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>{children}</PopoverTrigger>
       <PopoverContent className="w-80 p-0" align="end">
-        <div className="px-4 py-3 space-y-4 max-h-[60vh] overflow-y-auto scrollbar-thin">
+        <div className="max-h-[60vh] space-y-4 overflow-y-auto px-4 py-3 scrollbar-thin">
           {/* 渲染分组筛选器 */}
           {filterGroup &&
             Object.entries(filterGroup).map(([groupName, fieldKeys]) => {
@@ -369,10 +370,16 @@ export const FilterPopover: React.FC<FilterPopoverProps> = ({
                         </div>
                         {collection.canSearch && (
                           <Input
-                            placeholder={`搜索${collection.label}...`}
+                            placeholder={t(
+                              'knowledge.documents.filterSearchPlaceholder',
+                              { label: collection.label },
+                            )}
                             value={searchTerms[collection.field] || ''}
                             onChange={(e) =>
-                              handleSearchChange(collection.field, e.target.value)
+                              handleSearchChange(
+                                collection.field,
+                                e.target.value,
+                              )
                             }
                             className="h-8"
                           />
@@ -404,7 +411,10 @@ export const FilterPopover: React.FC<FilterPopoverProps> = ({
               </div>
               {collection.canSearch && (
                 <Input
-                  placeholder={`搜索${collection.label}...`}
+                  placeholder={t(
+                    'knowledge.documents.filterSearchPlaceholder',
+                    { label: collection.label },
+                  )}
                   value={searchTerms[collection.field] || ''}
                   onChange={(e) =>
                     handleSearchChange(collection.field, e.target.value)
@@ -427,14 +437,14 @@ export const FilterPopover: React.FC<FilterPopoverProps> = ({
           ))}
         </div>
         <div
-          className="flex justify-end gap-3 px-4 py-3 border-t"
+          className="flex justify-end gap-3 border-t px-4 py-3"
           style={{ borderColor: 'var(--color-border-default)' }}
         >
           <Button variant="outline" size="sm" onClick={handleReset}>
-            清除
+            {t('knowledge.documents.clear')}
           </Button>
           <Button size="sm" onClick={handleSubmit}>
-            确定
+            {t('knowledge.documents.confirm')}
           </Button>
         </div>
       </PopoverContent>
@@ -463,6 +473,7 @@ export const FilterButton: React.FC<FilterButtonProps> = ({
   filterGroup,
   onOpenChange,
 }) => {
+  const { t } = useTranslation()
   return (
     <FilterPopover
       filters={filters}
@@ -484,11 +495,11 @@ export const FilterButton: React.FC<FilterButtonProps> = ({
             : {}
         }
       >
-        <Funnel className="h-4 w-4 mr-2" />
-        筛选
+        <Funnel className="mr-2 h-4 w-4" />
+        {t('knowledge.documents.filter')}
         {filterCount > 0 && (
           <span
-            className="ml-1 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none rounded-full"
+            className="ml-1 inline-flex items-center justify-center rounded-full px-2 py-1 text-xs font-bold leading-none"
             style={{
               color: '#ffffff',
               backgroundColor: 'var(--color-state-focus)',

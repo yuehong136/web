@@ -1,5 +1,13 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react'
-import { Plus, Settings2, AlertCircle, Database, AlertTriangle, Sparkles } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import {
+  Plus,
+  Settings2,
+  AlertCircle,
+  Database,
+  AlertTriangle,
+  Sparkles,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
   Dialog,
@@ -31,10 +39,7 @@ import {
   tableDataToSettings,
   settingsToTableData,
 } from '@/hooks/use-metadata'
-import type {
-  MetadataTableData,
-  MetadataFieldDefinition,
-} from '@/types/api'
+import type { MetadataTableData, MetadataFieldDefinition } from '@/types/api'
 import { MetadataManageType } from '@/types/api'
 
 // ============================================================================
@@ -49,24 +54,26 @@ type DeleteTextConfig = {
 }
 
 const getDeleteTextConfig = (
-  mode: (typeof MetadataManageType)[keyof typeof MetadataManageType]
+  mode: (typeof MetadataManageType)[keyof typeof MetadataManageType],
+  t: ReturnType<typeof useTranslation>['t'],
 ): DeleteTextConfig => {
-  const isGlobalMode = mode === MetadataManageType.MANAGE || mode === MetadataManageType.SETTING
-  
+  const isGlobalMode =
+    mode === MetadataManageType.MANAGE || mode === MetadataManageType.SETTING
+
   if (isGlobalMode) {
     return {
-      fieldTitle: '删除元数据字段',
-      fieldWarn: '此字段及其所有对应值将从所有关联文件中删除，此操作不可撤销。',
-      valueTitle: '删除元数据值',
-      valueWarn: '此值将从所有关联文件中删除，此操作不可撤销。',
+      fieldTitle: t('knowledge.metadata.delete.fieldTitle'),
+      fieldWarn: t('knowledge.metadata.delete.globalFieldWarn'),
+      valueTitle: t('knowledge.metadata.delete.valueTitle'),
+      valueWarn: t('knowledge.metadata.delete.globalValueWarn'),
     }
   } else {
     // UPDATE_SINGLE 或 SINGLE_FILE_SETTING
     return {
-      fieldTitle: '删除元数据字段',
-      fieldWarn: '此字段及其所有对应值将从此文件中删除。',
-      valueTitle: '删除元数据值',
-      valueWarn: '此值将从此文件中删除。',
+      fieldTitle: t('knowledge.metadata.delete.fieldTitle'),
+      fieldWarn: t('knowledge.metadata.delete.singleFieldWarn'),
+      valueTitle: t('knowledge.metadata.delete.valueTitle'),
+      valueWarn: t('knowledge.metadata.delete.singleValueWarn'),
     }
   }
 }
@@ -135,9 +142,13 @@ export const ManageMetadataModal: React.FC<ManageMetadataModalProps> = ({
   onSuccess,
   onNavigateToSettings,
 }) => {
-  const isSettingMode = mode === MetadataManageType.SETTING || mode === MetadataManageType.SINGLE_FILE_SETTING
+  const { t } = useTranslation()
+  const isSettingMode =
+    mode === MetadataManageType.SETTING ||
+    mode === MetadataManageType.SINGLE_FILE_SETTING
   const isManageMode = mode === MetadataManageType.MANAGE
-  const isSingleFileSettingMode = mode === MetadataManageType.SINGLE_FILE_SETTING
+  const isSingleFileSettingMode =
+    mode === MetadataManageType.SINGLE_FILE_SETTING
 
   // 表格数据状态
   const [tableData, setTableData] = useState<MetadataTableData[]>([])
@@ -165,7 +176,10 @@ export const ManageMetadataModal: React.FC<ManageMetadataModalProps> = ({
   >([])
 
   // 数据获取（仅 Manage 模式）
-  const { data: summaryData, isLoading } = useMetadataSummary(kbId, isManageMode && open)
+  const { data: summaryData, isLoading } = useMetadataSummary(
+    kbId,
+    isManageMode && open,
+  )
 
   // Mutations
   const batchUpdateMutation = useBatchUpdateMetadata()
@@ -196,7 +210,7 @@ export const ManageMetadataModal: React.FC<ManageMetadataModalProps> = ({
   // 已存在的字段名
   const existingKeys = useMemo(
     () => tableData.map((item) => item.field),
-    [tableData]
+    [tableData],
   )
 
   // 隐藏删除确认对话框
@@ -224,7 +238,7 @@ export const ManageMetadataModal: React.FC<ManageMetadataModalProps> = ({
         },
       })
     },
-    [hideDeleteConfirm]
+    [hideDeleteConfirm],
   )
 
   // 添加字段
@@ -246,11 +260,14 @@ export const ManageMetadataModal: React.FC<ManageMetadataModalProps> = ({
       setEditingData(tableData[index])
       setEditorOpen(true)
     },
-    [tableData]
+    [tableData],
   )
 
   // 获取删除文案配置
-  const deleteTextConfig = useMemo(() => getDeleteTextConfig(mode), [mode])
+  const deleteTextConfig = useMemo(
+    () => getDeleteTextConfig(mode, t),
+    [mode, t],
+  )
 
   // 删除字段
   const handleDeleteField = useCallback(
@@ -265,10 +282,10 @@ export const ManageMetadataModal: React.FC<ManageMetadataModalProps> = ({
             setPendingDeletes((prev) => [...prev, { key: item.field }])
           }
           setTableData((prev) => prev.filter((_, i) => i !== index))
-        }
+        },
       )
     },
-    [isManageMode, tableData, showDeleteConfirm, deleteTextConfig]
+    [isManageMode, tableData, showDeleteConfirm, deleteTextConfig],
   )
 
   // 删除单个值
@@ -287,13 +304,13 @@ export const ManageMetadataModal: React.FC<ManageMetadataModalProps> = ({
             prev.map((item, i) =>
               i === fieldIndex
                 ? { ...item, values: item.values.filter((v) => v !== value) }
-                : item
-            )
+                : item,
+            ),
           )
-        }
+        },
       )
     },
-    [isManageMode, tableData, showDeleteConfirm, deleteTextConfig]
+    [isManageMode, tableData, showDeleteConfirm, deleteTextConfig],
   )
 
   // 保存字段编辑
@@ -305,13 +322,17 @@ export const ManageMetadataModal: React.FC<ManageMetadataModalProps> = ({
           return prev.map((item, i) => (i === editingIndex ? data : item))
         } else {
           // 添加新字段 - 检查是否存在同名字段并合并
-          const existingIndex = prev.findIndex((item) => item.field === data.field)
+          const existingIndex = prev.findIndex(
+            (item) => item.field === data.field,
+          )
           if (existingIndex >= 0) {
             // 合并值
             const existing = prev[existingIndex]
-            const mergedValues = [...new Set([...existing.values, ...data.values])]
+            const mergedValues = [
+              ...new Set([...existing.values, ...data.values]),
+            ]
             return prev.map((item, i) =>
-              i === existingIndex ? { ...data, values: mergedValues } : item
+              i === existingIndex ? { ...data, values: mergedValues } : item,
             )
           }
           return [...prev, data]
@@ -321,7 +342,7 @@ export const ManageMetadataModal: React.FC<ManageMetadataModalProps> = ({
       setEditingIndex(null)
       setEditingData(null)
     },
-    [editingIndex]
+    [editingIndex],
   )
 
   // 保存所有更改
@@ -382,27 +403,27 @@ export const ManageMetadataModal: React.FC<ManageMetadataModalProps> = ({
     switch (mode) {
       case MetadataManageType.MANAGE:
         return {
-          title: '管理元数据',
-          subtitle: '查看并管理知识库中所有文档的元数据',
+          title: t('knowledge.metadata.modal.manageTitle'),
+          subtitle: t('knowledge.metadata.modal.manageSubtitle'),
         }
       case MetadataManageType.SETTING:
         return {
-          title: '元数据生成设置',
-          subtitle: '定义元数据字段，新解析的文档将自动提取这些字段',
+          title: t('knowledge.metadata.modal.settingTitle'),
+          subtitle: t('knowledge.metadata.modal.settingSubtitle'),
         }
       case MetadataManageType.SINGLE_FILE_SETTING:
         return {
-          title: '文档元数据设置',
-          subtitle: '为此文档单独配置元数据字段',
+          title: t('knowledge.metadata.modal.singleFileSettingTitle'),
+          subtitle: t('knowledge.metadata.modal.singleFileSettingSubtitle'),
         }
       case MetadataManageType.UPDATE_SINGLE:
         return {
-          title: '编辑元数据',
-          subtitle: '编辑此文档的元数据值',
+          title: t('knowledge.metadata.modal.updateSingleTitle'),
+          subtitle: t('knowledge.metadata.modal.updateSingleSubtitle'),
         }
       default:
         return {
-          title: '元数据',
+          title: t('knowledge.metadata.modal.fallbackTitle'),
           subtitle: '',
         }
     }
@@ -421,27 +442,23 @@ export const ManageMetadataModal: React.FC<ManageMetadataModalProps> = ({
           {/* 头部 */}
           <DialogHeader>
             <div className="flex items-start gap-3">
-              <div className={cn(
-                'flex items-center justify-center w-10 h-10 rounded-xl shrink-0',
-                isSettingMode 
-                  ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]' 
-                  : 'bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)]'
-              )}>
+              <div
+                className={cn(
+                  'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl',
+                  isSettingMode
+                    ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]'
+                    : 'bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)]',
+                )}
+              >
                 {isSettingMode ? (
-                  <Sparkles className="w-5 h-5" />
+                  <Sparkles className="h-5 w-5" />
                 ) : (
-                  <Database className="w-5 h-5" />
+                  <Database className="h-5 w-5" />
                 )}
               </div>
-              <div className="flex-1 min-w-0 pr-6">
-                <DialogTitle>
-                  {title}
-                </DialogTitle>
-                {subtitle && (
-                  <DialogDescription>
-                    {subtitle}
-                  </DialogDescription>
-                )}
+              <div className="min-w-0 flex-1 pr-6">
+                <DialogTitle>{title}</DialogTitle>
+                {subtitle && <DialogDescription>{subtitle}</DialogDescription>}
               </div>
             </div>
           </DialogHeader>
@@ -449,11 +466,13 @@ export const ManageMetadataModal: React.FC<ManageMetadataModalProps> = ({
           {/* 内容区域 */}
           <div className="flex-1 overflow-y-auto px-6 pb-4 scrollbar-thin">
             {/* 工具栏 */}
-            <div className="flex items-center justify-between mb-4">
+            <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-text-primary">字段列表</span>
+                <span className="text-sm font-medium text-text-primary">
+                  {t('knowledge.metadata.modal.fieldList')}
+                </span>
                 {tableData.length > 0 && (
-                  <span className="inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-medium text-text-tertiary bg-surface-secondary rounded">
+                  <span className="bg-surface-secondary inline-flex items-center justify-center rounded px-1.5 py-0.5 text-xs font-medium text-text-tertiary">
                     {tableData.length}
                   </span>
                 )}
@@ -469,19 +488,19 @@ export const ManageMetadataModal: React.FC<ManageMetadataModalProps> = ({
                       onNavigateToSettings()
                     }}
                   >
-                    <Settings2 className="w-4 h-4 mr-1.5" />
-                    模板设置
+                    <Settings2 className="mr-1.5 h-4 w-4" />
+                    {t('knowledge.metadata.modal.templateSettings')}
                   </Button>
                 )}
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={handleAddField} 
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleAddField}
                   disabled={isSaving}
                   className="hover:border-surface-accent hover:text-surface-accent"
                 >
-                  <Plus className="w-4 h-4 mr-1" />
-                  添加字段
+                  <Plus className="mr-1 h-4 w-4" />
+                  {t('knowledge.metadata.modal.addField')}
                 </Button>
               </div>
             </div>
@@ -489,56 +508,60 @@ export const ManageMetadataModal: React.FC<ManageMetadataModalProps> = ({
             {/* 表格容器 */}
             <div
               className={cn(
-                'border border-border-default rounded-xl overflow-hidden',
-                'bg-surface-primary shadow-sm'
+                'overflow-hidden rounded-xl border border-border-default',
+                'bg-surface-primary shadow-sm',
               )}
             >
               {/* 表头 */}
-              <div className="flex items-center bg-surface-secondary/40 border-b border-border-default/60">
+              <div className="bg-surface-secondary/40 border-border-default/60 flex items-center border-b">
                 <div className="w-[140px] shrink-0 px-4 py-2.5">
-                  <span className="text-xs font-medium text-text-secondary uppercase tracking-wider">
-                    字段名
+                  <span className="text-xs font-medium uppercase tracking-wider text-text-secondary">
+                    {t('knowledge.metadata.modal.fieldName')}
                   </span>
                 </div>
                 {isSettingMode && (
                   <div className="w-[160px] shrink-0 px-4 py-2.5">
-                    <span className="text-xs font-medium text-text-secondary uppercase tracking-wider">
-                      描述
+                    <span className="text-xs font-medium uppercase tracking-wider text-text-secondary">
+                      {t('knowledge.metadata.modal.description')}
                     </span>
                   </div>
                 )}
                 <div className="flex-1 px-4 py-2.5">
-                  <span className="text-xs font-medium text-text-secondary uppercase tracking-wider">
-                    {isSettingMode ? '可选值' : '值'}
+                  <span className="text-xs font-medium uppercase tracking-wider text-text-secondary">
+                    {isSettingMode
+                      ? t('knowledge.metadata.modal.optionalValues')
+                      : t('knowledge.metadata.modal.values')}
                   </span>
                 </div>
                 <div className="w-[88px] shrink-0 px-4 py-2.5">
-                  <span className="text-xs font-medium text-text-secondary uppercase tracking-wider">
-                    操作
+                  <span className="text-xs font-medium uppercase tracking-wider text-text-secondary">
+                    {t('knowledge.metadata.modal.actions')}
                   </span>
                 </div>
               </div>
 
               {/* 数据行 */}
-              <div className="max-h-[360px] overflow-y-auto scrollbar-thin scrollbar-thumb-border-default scrollbar-track-transparent">
+              <div className="max-h-[360px] overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-border-default">
                 {isLoading ? (
                   <div className="flex flex-col items-center justify-center py-16 text-text-secondary">
-                    <div className="relative w-10 h-10 mb-3">
+                    <div className="relative mb-3 h-10 w-10">
                       <div className="absolute inset-0 rounded-full border-2 border-border-default" />
-                      <div className="absolute inset-0 rounded-full border-2 border-surface-accent border-t-transparent animate-spin" />
+                      <div className="border-surface-accent absolute inset-0 animate-spin rounded-full border-2 border-t-transparent" />
                     </div>
-                    <span className="text-sm">加载中...</span>
+                    <span className="text-sm">
+                      {t('knowledge.metadata.modal.loading')}
+                    </span>
                   </div>
                 ) : tableData.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-16 text-center">
-                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-surface-secondary to-surface-tertiary flex items-center justify-center mb-4 shadow-sm">
-                      <Database className="w-7 h-7 text-text-tertiary" />
+                    <div className="from-surface-secondary to-surface-tertiary mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br shadow-sm">
+                      <Database className="h-7 w-7 text-text-tertiary" />
                     </div>
-                    <p className="text-sm font-medium text-text-secondary mb-1">
-                      暂无元数据字段
+                    <p className="mb-1 text-sm font-medium text-text-secondary">
+                      {t('knowledge.metadata.modal.emptyTitle')}
                     </p>
-                    <p className="text-xs text-text-tertiary max-w-[200px]">
-                      点击上方「添加字段」按钮开始定义元数据
+                    <p className="max-w-[200px] text-xs text-text-tertiary">
+                      {t('knowledge.metadata.modal.emptyDescription')}
                     </p>
                   </div>
                 ) : (
@@ -562,22 +585,22 @@ export const ManageMetadataModal: React.FC<ManageMetadataModalProps> = ({
 
             {/* 提示信息 - 增强设计 */}
             {isManageMode && tableData.length > 0 && (
-              <div className="flex items-start gap-2.5 mt-4 p-3 bg-surface-accent/5 border border-surface-accent/15 rounded-lg">
-                <div className="flex items-center justify-center w-5 h-5 rounded-full bg-surface-accent/10 shrink-0 mt-0.5">
-                  <AlertCircle className="w-3.5 h-3.5 text-surface-accent" />
+              <div className="bg-surface-accent/5 border-surface-accent/15 mt-4 flex items-start gap-2.5 rounded-lg border p-3">
+                <div className="bg-surface-accent/10 mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full">
+                  <AlertCircle className="text-surface-accent h-3.5 w-3.5" />
                 </div>
-                <p className="text-xs text-text-secondary leading-relaxed">
-                  在此处删除字段或值将影响所有关联文档。如需修改字段定义模板，请前往知识库设置。
+                <p className="text-xs leading-relaxed text-text-secondary">
+                  {t('knowledge.metadata.modal.manageTip')}
                 </p>
               </div>
             )}
 
             {/* Setting 模式提示 */}
             {isSettingMode && tableData.length > 0 && (
-              <div className="flex items-start gap-2.5 mt-4 p-3 bg-status-info/5 border border-status-info/15 rounded-lg">
-                <Sparkles className="w-4 h-4 text-status-info shrink-0 mt-0.5" />
-                <p className="text-xs text-text-secondary leading-relaxed">
-                  定义的字段将用于 AI 自动提取元数据。描述越清晰，提取效果越好。
+              <div className="bg-status-info/5 border-status-info/15 mt-4 flex items-start gap-2.5 rounded-lg border p-3">
+                <Sparkles className="text-status-info mt-0.5 h-4 w-4 shrink-0" />
+                <p className="text-xs leading-relaxed text-text-secondary">
+                  {t('knowledge.metadata.modal.settingTip')}
                 </p>
               </div>
             )}
@@ -585,18 +608,11 @@ export const ManageMetadataModal: React.FC<ManageMetadataModalProps> = ({
 
           {/* 底部按钮 */}
           <DialogFooter>
-            <Button 
-              variant="outline" 
-              onClick={onClose} 
-              disabled={isSaving}
-            >
-              取消
+            <Button variant="outline" onClick={onClose} disabled={isSaving}>
+              {t('knowledge.common.cancel')}
             </Button>
-            <Button 
-              onClick={handleSave} 
-              loading={isSaving}
-            >
-              保存
+            <Button onClick={handleSave} loading={isSaving}>
+              {t('knowledge.common.save')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -624,8 +640,8 @@ export const ManageMetadataModal: React.FC<ManageMetadataModalProps> = ({
         <AlertDialogContent className="max-w-[400px]">
           <AlertDialogHeader className="pb-2">
             <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-status-error/10">
-                <AlertTriangle className="w-5 h-5 text-status-error" />
+              <div className="bg-status-error/10 flex h-10 w-10 items-center justify-center rounded-full">
+                <AlertTriangle className="text-status-error h-5 w-5" />
               </div>
               <AlertDialogTitle className="text-base">
                 {deleteConfirm.title}
@@ -635,27 +651,29 @@ export const ManageMetadataModal: React.FC<ManageMetadataModalProps> = ({
           <AlertDialogDescription>
             <div className="space-y-3 pl-[52px]">
               {/* 被删除项显示 */}
-              <div className="inline-flex items-center px-3 py-1.5 bg-surface-secondary border border-border-default rounded-md">
-                <span className="font-medium text-text-primary text-sm truncate max-w-[260px]">
+              <div className="bg-surface-secondary inline-flex items-center rounded-md border border-border-default px-3 py-1.5">
+                <span className="max-w-[260px] truncate text-sm font-medium text-text-primary">
                   {deleteConfirm.name}
                 </span>
               </div>
               {/* 警告提示 */}
-              <div className="flex items-start gap-2 p-2.5 bg-status-warning/5 border border-status-warning/20 rounded-md">
-                <AlertCircle className="w-4 h-4 text-status-warning shrink-0 mt-0.5" />
-                <p className="text-xs text-text-secondary leading-relaxed">
+              <div className="bg-status-warning/5 border-status-warning/20 flex items-start gap-2 rounded-md border p-2.5">
+                <AlertCircle className="text-status-warning mt-0.5 h-4 w-4 shrink-0" />
+                <p className="text-xs leading-relaxed text-text-secondary">
                   {deleteConfirm.warnText}
                 </p>
               </div>
             </div>
           </AlertDialogDescription>
           <AlertDialogFooter className="pt-4">
-            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogCancel>
+              {t('knowledge.common.cancel')}
+            </AlertDialogCancel>
             <AlertDialogAction
               variant="destructive"
               onClick={deleteConfirm.onConfirm}
             >
-              确认删除
+              {t('knowledge.metadata.modal.confirmDelete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

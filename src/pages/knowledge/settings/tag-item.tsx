@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useFormContext, useWatch } from 'react-hook-form'
 import { X, Check, ChevronsUpDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -40,6 +41,7 @@ export function TagSetItem({
   name = 'parser_config.tag_kb_ids',
   className,
 }: TagSetItemProps) {
+  const { t } = useTranslation()
   const form = useFormContext()
   const { knowledgeBases } = useKnowledgeStore()
   const [open, setOpen] = useState(false)
@@ -59,8 +61,10 @@ export function TagSetItem({
       control={form.control}
       name={name}
       render={({ field }) => {
-        const selectedValues: string[] = Array.isArray(field.value) ? field.value : []
-        
+        const selectedValues: string[] = Array.isArray(field.value)
+          ? field.value
+          : []
+
         const handleSelect = (value: string) => {
           const newValues = selectedValues.includes(value)
             ? selectedValues.filter((v) => v !== value)
@@ -73,17 +77,21 @@ export function TagSetItem({
         }
 
         return (
-          <FormItem className={cn('flex items-center gap-1 space-y-0', className)}>
+          <FormItem
+            className={cn('flex items-center gap-1 space-y-0', className)}
+          >
             <FormLabel
               tooltip={
                 <div>
-                  <p>请选择一个或多个标签集或标签知识库，用于对知识库中的每个文本块进行标记。</p>
-                  <p className="mt-1">标签知识库需要使用 Tag 解析器创建。</p>
+                  <p>{t('knowledge.settings.fields.tagSetTooltip1')}</p>
+                  <p className="mt-1">
+                    {t('knowledge.settings.fields.tagSetTooltip2')}
+                  </p>
                 </div>
               }
-              className="text-sm text-text-secondary w-1/4 shrink-0"
+              className="w-1/4 shrink-0 text-sm text-text-secondary"
             >
-              标签集
+              {t('knowledge.settings.fields.tagSet')}
             </FormLabel>
             <div className="w-3/4">
               <Popover open={open} onOpenChange={setOpen}>
@@ -93,15 +101,21 @@ export function TagSetItem({
                       variant="outline"
                       role="combobox"
                       aria-expanded={open}
-                      className="w-full justify-between min-h-9 h-auto py-1.5"
+                      className="h-auto min-h-9 w-full justify-between py-1.5"
                       type="button"
                     >
                       <div className="flex flex-wrap gap-1">
                         {selectedValues.length > 0 ? (
                           selectedValues.map((value) => {
-                            const option = tagKnowledgeOptions.find((opt) => opt.value === value)
+                            const option = tagKnowledgeOptions.find(
+                              (opt) => opt.value === value,
+                            )
                             return (
-                              <Badge key={value} variant="secondary" className="mr-1">
+                              <Badge
+                                key={value}
+                                variant="secondary"
+                                className="mr-1"
+                              >
                                 {option?.label || value}
                                 <button
                                   type="button"
@@ -117,7 +131,9 @@ export function TagSetItem({
                             )
                           })
                         ) : (
-                          <span className="text-text-tertiary">选择标签知识库</span>
+                          <span className="text-text-tertiary">
+                            {t('knowledge.settings.fields.tagSetPlaceholder')}
+                          </span>
                         )}
                       </div>
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -126,9 +142,15 @@ export function TagSetItem({
                 </PopoverTrigger>
                 <PopoverContent className="w-[300px] p-0" align="start">
                   <Command>
-                    <CommandInput placeholder="搜索知识库..." />
+                    <CommandInput
+                      placeholder={t(
+                        'knowledge.settings.fields.tagSetSearchPlaceholder',
+                      )}
+                    />
                     <CommandList>
-                      <CommandEmpty>暂无可用的标签知识库</CommandEmpty>
+                      <CommandEmpty>
+                        {t('knowledge.settings.fields.tagSetEmpty')}
+                      </CommandEmpty>
                       <CommandGroup>
                         {tagKnowledgeOptions.map((option) => (
                           <CommandItem
@@ -141,7 +163,7 @@ export function TagSetItem({
                                 'mr-2 h-4 w-4',
                                 selectedValues.includes(option.value)
                                   ? 'opacity-100'
-                                  : 'opacity-0'
+                                  : 'opacity-0',
                               )}
                             />
                             {option.label}
@@ -153,8 +175,8 @@ export function TagSetItem({
                 </PopoverContent>
               </Popover>
               {tagKnowledgeOptions.length === 0 && (
-                <p className="text-xs text-text-tertiary mt-1">
-                  暂无可用的标签知识库，请先创建一个使用 Tag 解析器的知识库
+                <p className="mt-1 text-xs text-text-tertiary">
+                  {t('knowledge.settings.fields.tagSetTip')}
                 </p>
               )}
             </div>
@@ -176,11 +198,13 @@ export function TopNTagsItem({
   name = 'parser_config.topn_tags',
   className,
 }: TopNTagsItemProps) {
+  const { t } = useTranslation()
+
   return (
     <SliderInputFormField
       name={name}
-      label="标签数量"
-      tooltip="为每个文本块分配的最大标签数量。"
+      label={t('knowledge.settings.fields.topNTags')}
+      tooltip={t('knowledge.settings.fields.topNTagsTooltip')}
       min={1}
       max={10}
       step={1}
@@ -196,9 +220,7 @@ interface TagItemsProps {
   className?: string
 }
 
-export function TagItems({
-  className,
-}: TagItemsProps) {
+export function TagItems({ className }: TagItemsProps) {
   const form = useFormContext()
 
   const tagKbIds = useWatch({

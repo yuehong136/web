@@ -3,6 +3,7 @@
  */
 
 import React, { useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Play, Square, Edit2, Download, Trash2 } from 'lucide-react'
 import { Button, Tooltip } from '@/components/ui'
 import { toast } from '@/lib/toast'
@@ -28,19 +29,26 @@ export const DocumentActionCell: React.FC<DocumentActionCellProps> = ({
   onDownload,
   onDelete,
 }) => {
+  const { t } = useTranslation()
   const isRunning = document.run === TaskStatus.RUNNING
 
   const handleDownloadClick = useCallback(() => {
     if (!canDownload) {
-      toast.warning('请联系管理员获取下载权限')
+      toast.warning(t('knowledge.documents.actions.noDownloadPermission'))
       return
     }
     onDownload()
-  }, [canDownload, onDownload])
+  }, [canDownload, onDownload, t])
 
   return (
     <div className="flex items-center justify-end space-x-2">
-      <Tooltip content={isRunning ? '停止当前任务' : '开始解析'}>
+      <Tooltip
+        content={
+          isRunning
+            ? t('knowledge.documents.actions.stopTask')
+            : t('knowledge.documents.actions.startParse')
+        }
+      >
         <Button
           variant="ghost"
           size="icon-sm"
@@ -53,12 +61,18 @@ export const DocumentActionCell: React.FC<DocumentActionCellProps> = ({
           )}
         </Button>
       </Tooltip>
-      <Tooltip content="重命名文档">
+      <Tooltip content={t('knowledge.documents.actions.rename')}>
         <Button variant="ghost" size="icon-sm" onClick={onRename}>
           <Edit2 className="h-4 w-4" />
         </Button>
       </Tooltip>
-      <Tooltip content={canDownload ? '下载文档到本地' : '请联系管理员获取下载权限'}>
+      <Tooltip
+        content={
+          canDownload
+            ? t('knowledge.documents.actions.download')
+            : t('knowledge.documents.actions.noDownloadPermission')
+        }
+      >
         <Button
           variant="ghost"
           size="icon-sm"
@@ -68,7 +82,7 @@ export const DocumentActionCell: React.FC<DocumentActionCellProps> = ({
           <Download className="h-4 w-4" />
         </Button>
       </Tooltip>
-      <Tooltip content="删除文档（不可恢复）">
+      <Tooltip content={t('knowledge.documents.actions.delete')}>
         <Button
           variant="ghost"
           size="icon-sm"

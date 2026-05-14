@@ -42,34 +42,45 @@ export const ListPageTemplate: React.FC<ListPageTemplateProps> = ({
   const renderBody = () => {
     if (state === 'empty' && emptyState) {
       return (
-        <div className="flex-1 flex items-center justify-center">{emptyState}</div>
+        <div className="flex flex-1 items-center justify-center">
+          {emptyState}
+        </div>
       )
     }
     if (state === 'loading' && loadingState) {
       return (
-        <div className="flex-1 flex items-center justify-center">{loadingState}</div>
+        <div className="flex flex-1 items-center justify-center">
+          {loadingState}
+        </div>
       )
     }
     if (state === 'error' && errorState) {
       return (
-        <div className="flex-1 flex items-center justify-center">{errorState}</div>
+        <div className="flex flex-1 items-center justify-center">
+          {errorState}
+        </div>
       )
     }
     return (
       <>
-        <div className="flex-1 overflow-y-auto pt-1 pb-2 -mx-1 px-1">{children}</div>
+        <div
+          data-scroll-root="list-body"
+          className="scroll-area -mx-1 flex flex-1 flex-col overflow-y-auto px-1 pb-2 pt-1"
+        >
+          {children}
+        </div>
         {pagination}
       </>
     )
   }
 
   return (
-    <div className={cn('h-full flex flex-col p-6', className)}>
-      <div className="flex items-start justify-between mb-4">
+    <div className={cn('p-space-lg flex h-full min-h-0 flex-col', className)}>
+      <div className="mb-4 flex items-start justify-between">
         <div>
           <h1 className="text-xl font-semibold text-text-primary">{title}</h1>
           {description ? (
-            <p className="text-sm text-text-secondary mt-1">{description}</p>
+            <p className="mt-1 text-sm text-text-secondary">{description}</p>
           ) : null}
         </div>
         {headerActions ? (
@@ -80,9 +91,9 @@ export const ListPageTemplate: React.FC<ListPageTemplateProps> = ({
       {stats ? <div className="mb-4">{stats}</div> : null}
 
       {toolbarLeft || toolbarRight ? (
-        <div className="flex items-center space-x-4 mb-4">
+        <div className="mb-4 flex items-center space-x-4">
           {toolbarLeft ? (
-            <div className="flex-1 max-w-md">{toolbarLeft}</div>
+            <div className="max-w-md flex-1">{toolbarLeft}</div>
           ) : (
             <div className="flex-1" />
           )}

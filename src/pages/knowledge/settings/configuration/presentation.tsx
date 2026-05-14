@@ -8,21 +8,22 @@ import {
 } from '@/components/forms/KnowledgeFormFields'
 import {
   ConfigurationFormContainer,
+  BasicSectionTitle,
+  EnhancementSectionTitle,
   MainContainer,
-  SectionTitle,
 } from '../configuration-form-container'
 
 export function PresentationConfiguration() {
   return (
     <MainContainer>
       <ConfigurationFormContainer>
-        <SectionTitle>基础配置</SectionTitle>
+        <BasicSectionTitle />
         <LayoutRecognizeFormField />
         <MinerUOptionsFormField />
       </ConfigurationFormContainer>
 
       <ConfigurationFormContainer>
-        <SectionTitle>智能增强</SectionTitle>
+        <EnhancementSectionTitle />
         <AutoKeywordsFormField />
         <AutoQuestionsFormField />
       </ConfigurationFormContainer>

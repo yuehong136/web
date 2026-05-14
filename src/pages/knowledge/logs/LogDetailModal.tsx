@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Dialog,
   DialogContent,
@@ -10,9 +11,17 @@ import {
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { FileStatusBadge } from './FileStatusBadge'
-import { RunningStatus, RunningStatusMap, LogTabType } from './constants'
+import { RunningStatus, LogTabType } from './constants'
 import { formatDate, formatSecondsToHumanReadable } from './hooks'
-import { FileText, Database, Clock, Upload, Hash, Play, Timer } from 'lucide-react'
+import {
+  FileText,
+  Database,
+  Clock,
+  Upload,
+  Hash,
+  Play,
+  Timer,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { LogTableItem } from './LogTable'
 
@@ -34,23 +43,23 @@ interface InfoItemProps {
   fullWidth?: boolean
 }
 
-const InfoItem: React.FC<InfoItemProps> = ({ 
+const InfoItem: React.FC<InfoItemProps> = ({
   icon,
-  label, 
-  value, 
+  label,
+  value,
   className,
   fullWidth = false,
 }) => (
-  <div className={cn(
-    'flex flex-col gap-1.5',
-    fullWidth && 'col-span-2',
-    className
-  )}>
+  <div
+    className={cn(
+      'flex flex-col gap-1.5',
+      fullWidth && 'col-span-2',
+      className,
+    )}
+  >
     <div className="flex items-center gap-1.5">
       {icon && (
-        <span className="text-[var(--color-text-tertiary)]">
-          {icon}
-        </span>
+        <span className="text-[var(--color-text-tertiary)]">{icon}</span>
       )}
       <span className="text-xs font-medium text-[var(--color-text-tertiary)]">
         {label}
@@ -72,16 +81,16 @@ interface ProgressBarProps {
 
 const ProgressBar: React.FC<ProgressBarProps> = ({ progress, className }) => {
   const percentage = Math.min(100, Math.round(progress * 100))
-  
+
   return (
     <div className={cn('flex items-center gap-3', className)}>
-      <div className="flex-1 h-2 rounded-full overflow-hidden bg-[var(--color-components-progress-bg)]">
+      <div className="h-2 flex-1 overflow-hidden rounded-full bg-[var(--color-components-progress-bg)]">
         <div
-          className="h-full rounded-full transition-all duration-300 ease-out bg-[var(--color-components-progress-fill)]"
+          className="h-full rounded-full bg-[var(--color-components-progress-fill)] transition-all duration-300 ease-out"
           style={{ width: `${percentage}%` }}
         />
       </div>
-      <span className="text-xs font-medium tabular-nums text-[var(--color-text-secondary)] min-w-[3rem] text-right">
+      <span className="min-w-[3rem] text-right text-xs font-medium tabular-nums text-[var(--color-text-secondary)]">
         {percentage}%
       </span>
     </div>
@@ -104,8 +113,8 @@ const highlightLogText = (text: string): React.ReactNode => {
   return parts.map((part, index) => {
     if (part.includes('[ERROR]')) {
       return (
-        <span 
-          key={index} 
+        <span
+          key={index}
           className="font-medium text-[var(--color-state-error)]"
         >
           {part}
@@ -114,20 +123,14 @@ const highlightLogText = (text: string): React.ReactNode => {
     }
     if (part.includes('[WARNING]')) {
       return (
-        <span 
-          key={index}
-          className="text-[var(--color-state-warning)]"
-        >
+        <span key={index} className="text-[var(--color-state-warning)]">
           {part}
         </span>
       )
     }
     if (part.includes('[INFO]')) {
       return (
-        <span 
-          key={index}
-          className="text-[var(--color-state-focus)]"
-        >
+        <span key={index} className="text-[var(--color-state-focus)]">
           {part}
         </span>
       )
@@ -138,7 +141,7 @@ const highlightLogText = (text: string): React.ReactNode => {
 
 /**
  * 日志详情模态框组件
- * 
+ *
  * 展示文件或数据集的处理日志详情
  */
 const LogDetailModal: React.FC<LogDetailModalProps> = ({
@@ -147,6 +150,7 @@ const LogDetailModal: React.FC<LogDetailModalProps> = ({
   logInfo,
   activeTab,
 }) => {
+  const { t } = useTranslation()
   // 计算展示的信息
   const displayInfo = useMemo(() => {
     if (!logInfo) return null
@@ -165,7 +169,9 @@ const LogDetailModal: React.FC<LogDetailModalProps> = ({
   }, [logInfo])
 
   const isFileLogs = activeTab === LogTabType.FILE_LOGS
-  const title = isFileLogs ? '文件日志详情' : '数据集日志详情'
+  const title = isFileLogs
+    ? t('knowledge.logs.detail.fileTitle')
+    : t('knowledge.logs.detail.datasetTitle')
   const HeaderIcon = isFileLogs ? FileText : Database
 
   return (
@@ -173,41 +179,41 @@ const LogDetailModal: React.FC<LogDetailModalProps> = ({
       <DialogContent size="md">
         <DialogHeader>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[var(--color-state-focus-10)] flex items-center justify-center">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--color-state-focus-10)]">
               <HeaderIcon className="h-5 w-5 text-[var(--color-state-focus)]" />
             </div>
-            <div className="flex-1 min-w-0">
+            <div className="min-w-0 flex-1">
               <DialogTitle>{title}</DialogTitle>
               <DialogDescription>
-                查看日志的详细信息和处理进度
+                {t('knowledge.logs.detail.description')}
               </DialogDescription>
             </div>
           </div>
         </DialogHeader>
 
         {displayInfo && (
-          <div className="px-6 py-4 space-y-6 overflow-y-auto max-h-[calc(80vh-200px)]">
+          <div className="max-h-[calc(80vh-200px)] space-y-6 overflow-y-auto px-6 py-4">
             {/* 基本信息网格 */}
             <div className="grid grid-cols-2 gap-x-6 gap-y-4">
               {/* 文件名 / 任务ID */}
               {isFileLogs && displayInfo.fileName && (
-                <InfoItem 
+                <InfoItem
                   icon={<FileText className="h-3.5 w-3.5" />}
-                  label="文件名" 
+                  label={t('knowledge.logs.detail.fileName')}
                   value={
-                    <span className="font-medium break-all">
+                    <span className="break-all font-medium">
                       {displayInfo.fileName}
                     </span>
                   }
                 />
               )}
-              
+
               {displayInfo.taskId && (
                 <InfoItem
                   icon={<Hash className="h-3.5 w-3.5" />}
-                  label="任务ID"
+                  label={t('knowledge.logs.detail.taskId')}
                   value={
-                    <code className="font-mono text-xs px-1.5 py-0.5 rounded bg-[var(--color-background-subtle)] text-[var(--color-text-secondary)] break-all">
+                    <code className="break-all rounded bg-[var(--color-background-subtle)] px-1.5 py-0.5 font-mono text-xs text-[var(--color-text-secondary)]">
                       {displayInfo.taskId}
                     </code>
                   }
@@ -218,18 +224,22 @@ const LogDetailModal: React.FC<LogDetailModalProps> = ({
               {isFileLogs && displayInfo.source && (
                 <InfoItem
                   icon={<Upload className="h-3.5 w-3.5" />}
-                  label="来源"
-                  value={displayInfo.source === 'local' ? '本地上传' : displayInfo.source}
+                  label={t('knowledge.logs.detail.source')}
+                  value={
+                    displayInfo.source === 'local'
+                      ? t('knowledge.logs.detail.localUpload')
+                      : displayInfo.source
+                  }
                 />
               )}
 
               {/* 任务类型 */}
               {displayInfo.task && (
-                <InfoItem 
+                <InfoItem
                   icon={<Play className="h-3.5 w-3.5" />}
-                  label="任务类型" 
+                  label={t('knowledge.logs.detail.taskType')}
                   value={
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-[var(--color-background-subtle)] text-[var(--color-text-secondary)] text-xs font-medium">
+                    <span className="inline-flex items-center rounded-md bg-[var(--color-background-subtle)] px-2 py-0.5 text-xs font-medium text-[var(--color-text-secondary)]">
                       {displayInfo.task}
                     </span>
                   }
@@ -237,34 +247,29 @@ const LogDetailModal: React.FC<LogDetailModalProps> = ({
               )}
 
               {/* 开始时间 */}
-              <InfoItem 
+              <InfoItem
                 icon={<Clock className="h-3.5 w-3.5" />}
-                label="开始时间" 
-                value={displayInfo.startDate} 
+                label={t('knowledge.logs.detail.startTime')}
+                value={displayInfo.startDate}
               />
 
               {/* 持续时间 */}
-              <InfoItem 
+              <InfoItem
                 icon={<Timer className="h-3.5 w-3.5" />}
-                label="持续时间" 
-                value={displayInfo.duration} 
+                label={t('knowledge.logs.detail.duration')}
+                value={displayInfo.duration}
               />
 
               {/* 状态 */}
               <InfoItem
-                label="状态"
-                value={
-                  <FileStatusBadge
-                    status={displayInfo.status}
-                    name={RunningStatusMap[displayInfo.status]}
-                  />
-                }
+                label={t('knowledge.logs.detail.status')}
+                value={<FileStatusBadge status={displayInfo.status} />}
               />
 
               {/* 进度 */}
               {displayInfo.progress !== undefined && (
                 <InfoItem
-                  label="进度"
+                  label={t('knowledge.logs.detail.progress')}
                   value={<ProgressBar progress={displayInfo.progress} />}
                 />
               )}
@@ -274,15 +279,17 @@ const LogDetailModal: React.FC<LogDetailModalProps> = ({
             {displayInfo.details && (
               <div className="space-y-2">
                 <span className="text-xs font-medium text-[var(--color-text-tertiary)]">
-                  详细日志
+                  {t('knowledge.logs.detail.details')}
                 </span>
                 <ScrollArea className="h-[200px]">
-                  <pre className={cn(
-                    'p-4 rounded-lg text-xs font-mono whitespace-pre-wrap break-words',
-                    'bg-[var(--color-components-pre-bg)]',
-                    'border border-[var(--color-components-pre-border)]',
-                    'text-[var(--color-components-pre-text)]'
-                  )}>
+                  <pre
+                    className={cn(
+                      'whitespace-pre-wrap break-words rounded-lg p-4 font-mono text-xs',
+                      'bg-[var(--color-components-pre-bg)]',
+                      'border border-[var(--color-components-pre-border)]',
+                      'text-[var(--color-components-pre-text)]',
+                    )}
+                  >
                     {highlightLogText(displayInfo.details)}
                   </pre>
                 </ScrollArea>
@@ -292,7 +299,7 @@ const LogDetailModal: React.FC<LogDetailModalProps> = ({
         )}
 
         <DialogFooter>
-          <Button onClick={onClose}>关闭</Button>
+          <Button onClick={onClose}>{t('knowledge.logs.detail.close')}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

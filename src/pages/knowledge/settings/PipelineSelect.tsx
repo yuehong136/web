@@ -1,11 +1,15 @@
 'use client'
 
 import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useFormContext } from 'react-hook-form'
 import { ArrowUpRight } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { cn } from '@/lib/utils'
-import { SelectWithSearch, type SelectOptionGroup } from '@/components/ui/select-with-search'
+import {
+  SelectWithSearch,
+  type SelectOptionGroup,
+} from '@/components/ui/select-with-search'
 import {
   FormField,
   FormItem,
@@ -35,6 +39,7 @@ export function PipelineSelect({
   horizontal = true,
   className,
 }: PipelineSelectProps) {
+  const { t } = useTranslation()
   const form = useFormContext()
   const navigate = useNavigate()
 
@@ -54,15 +59,20 @@ export function PipelineSelect({
       control={form.control}
       name={name}
       render={({ field }) => (
-        <FormItem className={cn(horizontal && 'flex items-center gap-1 space-y-0', className)}>
+        <FormItem
+          className={cn(
+            horizontal && 'flex items-center gap-1 space-y-0',
+            className,
+          )}
+        >
           <FormLabel
-            tooltip="选择一个已创建的数据管道来处理文档。数据管道可以自定义解析流程。"
+            tooltip={t('knowledge.settings.fields.pipelineTooltip')}
             className={cn(
               'text-sm text-text-secondary',
-              horizontal && 'w-1/4 shrink-0'
+              horizontal && 'w-1/4 shrink-0',
             )}
           >
-            数据管道
+            {t('knowledge.settings.fields.pipeline')}
           </FormLabel>
           <div className={cn(horizontal ? 'w-3/4' : 'w-full', 'space-y-2')}>
             {showNavigateLink && (
@@ -70,9 +80,9 @@ export function PipelineSelect({
                 <button
                   type="button"
                   onClick={handleNavigateToAgents}
-                  className="text-sm text-primary hover:text-primary/80 flex items-center gap-0.5 transition-colors"
+                  className="flex items-center gap-0.5 text-sm text-primary transition-colors hover:text-primary/80"
                 >
-                  从头创建
+                  {t('knowledge.settings.fields.createFromScratch')}
                   <ArrowUpRight className="h-3.5 w-3.5" />
                 </button>
               </div>
@@ -82,8 +92,8 @@ export function PipelineSelect({
                 value={field.value}
                 onChange={field.onChange}
                 options={selectOptions}
-                placeholder="请选择数据管道"
-                emptyText="暂无可用的数据管道"
+                placeholder={t('knowledge.settings.fields.pipelinePlaceholder')}
+                emptyText={t('knowledge.settings.fields.pipelineEmpty')}
               />
             </FormControl>
             <FormMessage />
@@ -95,7 +105,3 @@ export function PipelineSelect({
 }
 
 export default PipelineSelect
-
-
-
-

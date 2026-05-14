@@ -1,5 +1,13 @@
 import React from 'react'
-import { ChevronDown, ChevronUp, FileText, Loader2, Search, Star } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import {
+  ChevronDown,
+  ChevronUp,
+  FileText,
+  Loader2,
+  Search,
+  Star,
+} from 'lucide-react'
 
 import { HighlightText } from '@/components/knowledge/HighlightText'
 import { Badge } from '@/components/ui/badge'
@@ -56,35 +64,57 @@ export const ResultPanel: React.FC<ResultPanelProps> = ({
   onPageChange,
   onPageSizeChange,
 }) => {
+  const { t } = useTranslation()
+
   return (
-    <section className="relative flex h-full min-w-0 flex-1 flex-col overflow-hidden pl-space-xl">
+    <section className="p-space-lg relative flex h-full min-w-0 flex-1 flex-col overflow-hidden">
       <div className="pb-space-base">
-        <div className="flex flex-wrap items-start justify-between gap-space-base">
+        <div className="gap-space-base flex flex-wrap items-start justify-between">
           <div className="min-w-0">
-            <div className="flex items-center gap-space-sm">
+            <div className="gap-space-sm flex items-center">
               <FileText className="h-5 w-5 text-text-secondary" />
-              <h2 className="text-base font-semibold text-text-primary">检索结果</h2>
+              <h2 className="text-base font-semibold text-text-primary">
+                {t('knowledge.search.resultsTitle')}
+              </h2>
             </div>
-            <div className="mt-space-xs flex flex-wrap items-center gap-space-sm text-sm text-text-secondary">
-              <span>{isSearching ? '检索中...' : `找到 ${totalResults} 个相关片段`}</span>
+            <div className="mt-space-xs gap-space-sm flex flex-wrap items-center text-sm text-text-secondary">
+              <span>
+                {isSearching
+                  ? t('knowledge.search.searching')
+                  : t('knowledge.search.foundResults', {
+                      count: totalResults,
+                    })}
+              </span>
               {selectedDocIds.length > 0 && (
                 <Badge variant="blue" className="text-xs">
-                  已过滤 {selectedDocIds.length} 个文档
+                  {t('knowledge.search.filteredDocs', {
+                    count: selectedDocIds.length,
+                  })}
                 </Badge>
               )}
               {docAggs.length > 0 && (
                 <>
-                  <span className="text-text-tertiary">来源</span>
+                  <span className="text-text-tertiary">
+                    {t('knowledge.search.source')}
+                  </span>
                   {docAggs.slice(0, 3).map((doc) => (
-                    <Tooltip key={doc.doc_id} content={`${doc.doc_name}: ${doc.count} 个片段`}>
-                      <Badge variant="secondary" className="max-w-[160px] truncate text-xs">
+                    <Tooltip
+                      key={doc.doc_id}
+                      content={`${doc.doc_name}: ${t('knowledge.search.chunksCount', { count: doc.count })}`}
+                    >
+                      <Badge
+                        variant="secondary"
+                        className="max-w-[160px] truncate text-xs"
+                      >
                         {doc.doc_name}
                       </Badge>
                     </Tooltip>
                   ))}
                   {docAggs.length > 3 && (
                     <Badge variant="outline" className="text-xs">
-                      +{docAggs.length - 3} 个文档
+                      {t('knowledge.search.moreDocs', {
+                        count: docAggs.length - 3,
+                      })}
                     </Badge>
                   )}
                 </>
@@ -94,55 +124,63 @@ export const ResultPanel: React.FC<ResultPanelProps> = ({
         </div>
 
         {docAggs.length > 0 && (
-          <div className="mt-space-base border-t border-border-default pt-space-base">
-            <div className="flex flex-wrap items-center justify-between gap-space-sm">
+          <div className="mt-space-base pt-space-base border-t border-border-default">
+            <div className="gap-space-sm flex flex-wrap items-center justify-between">
               <button
                 onClick={onToggleDocFilter}
-                className="flex items-center gap-space-xs text-sm font-medium text-text-secondary hover:text-text-primary"
+                className="gap-space-xs flex items-center text-sm font-medium text-text-secondary hover:text-text-primary"
               >
                 <FileText className="h-4 w-4" />
-                <span>文档过滤</span>
+                <span>{t('knowledge.search.docFilter')}</span>
                 {selectedDocIds.length > 0 && (
                   <Badge variant="secondary" className="text-xs">
                     {selectedDocIds.length}
                   </Badge>
                 )}
-                {showDocFilter ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                {showDocFilter ? (
+                  <ChevronUp className="h-4 w-4" />
+                ) : (
+                  <ChevronDown className="h-4 w-4" />
+                )}
               </button>
 
-              <div className="flex items-center gap-space-sm">
+              <div className="gap-space-sm flex items-center">
                 {selectedDocIds.length > 0 && (
                   <>
                     <span className="text-xs text-text-tertiary">
-                      已选择 {selectedDocIds.length} 个文档
+                      {t('knowledge.search.selectedDocsCount', {
+                        count: selectedDocIds.length,
+                      })}
                     </span>
                     <button
                       onClick={onClearDocFilter}
                       className="text-xs text-text-secondary hover:text-text-primary"
                     >
-                      清除
+                      {t('knowledge.search.clear')}
                     </button>
                   </>
                 )}
                 <button
                   onClick={onSelectAllDocs}
-                  className="rounded-radius-full border border-border-accent px-space-sm py-space-xs text-xs text-text-accent transition-colors hover:bg-background-subtle"
+                  className="rounded-radius-full px-space-sm py-space-xs border border-border-accent text-xs text-text-accent transition-colors hover:bg-background-subtle"
                 >
-                  全部
+                  {t('knowledge.search.all')}
                 </button>
               </div>
             </div>
 
             {showDocFilter && (
-              <div className="mt-space-sm flex flex-wrap gap-space-xs">
+              <div className="mt-space-sm gap-space-xs flex flex-wrap">
                 {docAggs.map((doc) => (
                   <label
                     key={doc.doc_id}
-                    className="flex cursor-pointer items-center gap-space-xs rounded-radius-full border border-border-default bg-background-subtle px-space-sm py-space-xs transition-colors hover:bg-components-card-bg-hover"
+                    className="gap-space-xs rounded-radius-full px-space-sm py-space-xs flex cursor-pointer items-center border border-border-default bg-background-subtle transition-colors hover:bg-components-card-bg-hover"
                   >
                     <Checkbox
                       checked={selectedDocIds.includes(doc.doc_id)}
-                      onCheckedChange={(checked) => onDocFilter(doc.doc_id, checked as boolean)}
+                      onCheckedChange={(checked) =>
+                        onDocFilter(doc.doc_id, checked as boolean)
+                      }
                     />
                     <span className="max-w-[220px] truncate text-sm text-text-secondary">
                       {doc.doc_name}
@@ -158,31 +196,45 @@ export const ResultPanel: React.FC<ResultPanelProps> = ({
         )}
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto py-space-lg scrollbar-thin">
+      <div className="py-space-lg min-h-0 flex-1 overflow-y-auto scrollbar-thin">
         {!query ? (
           <div className="flex h-full items-center justify-center">
             <div className="text-center">
-              <Search className="mx-auto mb-space-base h-12 w-12 text-text-muted" />
-              <h3 className="mb-space-xs text-lg font-medium text-text-primary">开始检索测试</h3>
-              <p className="text-text-tertiary">在左侧输入问题，选择检索模式，开始测试知识库的检索效果</p>
+              <Search className="mb-space-base mx-auto h-12 w-12 text-text-muted" />
+              <h3 className="mb-space-xs text-lg font-medium text-text-primary">
+                {t('knowledge.search.startTitle')}
+              </h3>
+              <p className="text-text-tertiary">
+                {t('knowledge.search.startDescription')}
+              </p>
             </div>
           </div>
         ) : isSearching ? (
           <div className="flex h-full items-center justify-center">
             <div className="text-center">
-              <Loader2 className="mx-auto mb-space-base h-8 w-8 animate-spin text-text-accent" />
-              <p className="text-text-secondary">正在检索中，请稍候...</p>
+              <Loader2 className="mb-space-base mx-auto h-8 w-8 animate-spin text-text-accent" />
+              <p className="text-text-secondary">
+                {t('knowledge.search.searchingDescription')}
+              </p>
             </div>
           </div>
         ) : results.length === 0 ? (
           <div className="flex h-full items-center justify-center">
             <div className="text-center">
-              <Search className="mx-auto mb-space-base h-8 w-8 text-text-muted" />
-              <h3 className="mb-space-xs text-lg font-medium text-text-primary">未找到相关结果</h3>
-              <p className="mb-space-base text-text-tertiary">请尝试调整搜索词或降低相似度阈值</p>
+              <Search className="mb-space-base mx-auto h-8 w-8 text-text-muted" />
+              <h3 className="mb-space-xs text-lg font-medium text-text-primary">
+                {t('knowledge.search.noResultsTitle')}
+              </h3>
+              <p className="mb-space-base text-text-tertiary">
+                {t('knowledge.search.noResultsDescription')}
+              </p>
               <div className="text-sm text-text-tertiary">
-                <p>搜索词："{query}"</p>
-                <p>相似度阈值：{similarityThreshold}</p>
+                <p>{t('knowledge.search.querySummary', { query })}</p>
+                <p>
+                  {t('knowledge.search.thresholdSummary', {
+                    value: similarityThreshold,
+                  })}
+                </p>
               </div>
             </div>
           </div>
@@ -202,28 +254,30 @@ export const ResultPanel: React.FC<ResultPanelProps> = ({
       </div>
 
       {results.length > 0 && (
-        <div className="border-t border-border-default bg-background-surface px-space-base py-space-sm">
-          <div className="flex flex-wrap items-center justify-between gap-space-base">
-            <div className="text-sm text-text-secondary">共 {totalResults} 个结果</div>
+        <div className="px-space-base py-space-sm border-t border-border-default bg-background-surface">
+          <div className="gap-space-base flex flex-wrap items-center justify-between">
+            <div className="text-sm text-text-secondary">
+              {t('knowledge.search.totalResults', { count: totalResults })}
+            </div>
 
-            <div className="flex flex-wrap items-center gap-space-base">
+            <div className="gap-space-base flex flex-wrap items-center">
               <PageSizeSelector
                 pageSize={pageSize}
                 onChange={onPageSizeChange}
                 options={[10, 20, 50, 100]}
               />
 
-              <div className="flex items-center gap-space-xs">
+              <div className="gap-space-xs flex items-center">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => onPageChange(currentPage - 1)}
                   disabled={currentPage <= 1}
                 >
-                  上一页
+                  {t('knowledge.search.previousPage')}
                 </Button>
 
-                <div className="flex items-center gap-space-xs">
+                <div className="gap-space-xs flex items-center">
                   {pageNumbers.map((pageNum) => (
                     <Button
                       key={pageNum}
@@ -243,7 +297,7 @@ export const ResultPanel: React.FC<ResultPanelProps> = ({
                   onClick={() => onPageChange(currentPage + 1)}
                   disabled={currentPage >= totalPages}
                 >
-                  下一页
+                  {t('knowledge.search.nextPage')}
                 </Button>
               </div>
             </div>
@@ -267,73 +321,90 @@ const RetrievalResultCard: React.FC<RetrievalResultCardProps> = ({
   highlight,
   onOpen,
 }) => {
-  const hasMore = result.text.length > 200 || Boolean(result.highlight && result.highlight.length > 200)
+  const { t } = useTranslation()
+  const hasMore =
+    result.text.length > 200 ||
+    Boolean(result.highlight && result.highlight.length > 200)
 
   return (
-    <article className="rounded-radius-lg border border-border-default bg-background-surface p-space-base transition-colors hover:bg-components-card-bg-hover">
-        <div className="mb-space-base flex flex-wrap items-start justify-between gap-space-base">
-          <div className="flex min-w-0 items-center gap-space-sm">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-radius-full bg-state-success-subtle text-sm font-semibold text-text-success">
-              {order}
-            </div>
-            <p className="truncate text-xs text-text-tertiary">ID: {result.chunk_id}</p>
+    <article className="rounded-radius-lg p-space-base border border-border-default bg-background-surface transition-colors hover:bg-components-card-bg-hover">
+      <div className="mb-space-base gap-space-base flex flex-wrap items-start justify-between">
+        <div className="gap-space-sm flex min-w-0 items-center">
+          <div className="rounded-radius-full flex h-8 w-8 shrink-0 items-center justify-center bg-state-success-subtle text-sm font-semibold text-text-success">
+            {order}
           </div>
-          <div className="flex flex-wrap items-center justify-end gap-space-xs">
-            <Tooltip content={`综合相似度: ${(result.similarity * 100).toFixed(1)}%`}>
-              <Badge variant="blue" className="text-xs">
-                <Star className="h-3 w-3 mr-1" />
-                综合 {(result.similarity * 100).toFixed(1)}%
-              </Badge>
-            </Tooltip>
-            <Badge variant="green" className="text-xs">
-              向量 {(result.vector_similarity * 100).toFixed(1)}%
-            </Badge>
-            <Badge variant="purple" className="text-xs">
-              文本 {(result.term_similarity * 100).toFixed(1)}%
-            </Badge>
-          </div>
+          <p className="truncate text-xs text-text-tertiary">
+            ID: {result.chunk_id}
+          </p>
         </div>
+        <div className="gap-space-xs flex flex-wrap items-center justify-end">
+          <Tooltip
+            content={`${t('knowledge.search.similarity')}: ${(result.similarity * 100).toFixed(1)}%`}
+          >
+            <Badge variant="blue" className="text-xs">
+              <Star className="mr-1 h-3 w-3" />
+              {t('knowledge.search.similarityShort')}{' '}
+              {(result.similarity * 100).toFixed(1)}%
+            </Badge>
+          </Tooltip>
+          <Badge variant="green" className="text-xs">
+            {t('knowledge.search.vector')}{' '}
+            {(result.vector_similarity * 100).toFixed(1)}%
+          </Badge>
+          <Badge variant="purple" className="text-xs">
+            {t('knowledge.search.text')}{' '}
+            {(result.term_similarity * 100).toFixed(1)}%
+          </Badge>
+        </div>
+      </div>
 
-        <button
-          type="button"
-          className="mb-space-base block w-full rounded-radius-md p-space-xs text-left text-sm leading-relaxed text-text-secondary transition-colors hover:bg-background-subtle"
-          onClick={onOpen}
-        >
-          <HighlightText
-            html={result.highlight}
-            text={result.text}
-            enableHighlight={highlight}
-            truncate
-            truncateLength={200}
-          />
-          {hasMore && (
-            <span className="mt-space-xs inline-flex text-xs font-medium text-text-accent">
-              展开
-            </span>
-          )}
-        </button>
+      <button
+        type="button"
+        className="mb-space-base rounded-radius-md p-space-xs block w-full text-left text-sm leading-relaxed text-text-secondary transition-colors hover:bg-background-subtle"
+        onClick={onOpen}
+      >
+        <HighlightText
+          html={result.highlight}
+          text={result.text}
+          enableHighlight={highlight}
+          truncate
+          truncateLength={200}
+        />
+        {hasMore && (
+          <span className="mt-space-xs inline-flex text-xs font-medium text-text-accent">
+            {t('knowledge.search.expand')}
+          </span>
+        )}
+      </button>
 
-        <div className="border-t border-border-default pt-space-sm">
-          <div className="flex flex-wrap items-center justify-between gap-space-sm">
-            <div className="flex min-w-0 items-center gap-space-sm">
-              <FileIcon
-                fileName={result.docnm_kwd}
-                fileType={result.docnm_kwd.split('.').pop() || 'txt'}
-                size="sm"
-              />
-              <div className="min-w-0">
-                <div className="truncate text-sm font-medium text-text-secondary">
-                  {result.docnm_kwd}
-                </div>
-                <div className="mt-1 text-xs text-text-tertiary">来自文档</div>
+      <div className="pt-space-sm border-t border-border-default">
+        <div className="gap-space-sm flex flex-wrap items-center justify-between">
+          <div className="gap-space-sm flex min-w-0 items-center">
+            <FileIcon
+              fileName={result.docnm_kwd}
+              fileType={result.docnm_kwd.split('.').pop() || 'txt'}
+              size="sm"
+            />
+            <div className="min-w-0">
+              <div className="truncate text-sm font-medium text-text-secondary">
+                {result.docnm_kwd}
+              </div>
+              <div className="mt-1 text-xs text-text-tertiary">
+                {t('knowledge.search.fromDocument')}
               </div>
             </div>
-            <Button variant="ghost" size="sm" className="h-7 shrink-0 px-2 text-xs" onClick={onOpen}>
-              <FileText className="h-3 w-3 mr-1" />
-              详情
-            </Button>
           </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 shrink-0 px-2 text-xs"
+            onClick={onOpen}
+          >
+            <FileText className="mr-1 h-3 w-3" />
+            {t('knowledge.search.details')}
+          </Button>
         </div>
+      </div>
     </article>
   )
 }

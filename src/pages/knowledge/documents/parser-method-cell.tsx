@@ -5,6 +5,7 @@
  */
 
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -26,8 +27,11 @@ interface ParserMethodCellProps {
 /**
  * 获取解析器的友好显示名称
  */
-function getParserLabel(parserId: string | undefined): string {
-  if (!parserId) return '默认'
+function getParserLabel(
+  parserId: string | undefined,
+  defaultLabel: string,
+): string {
+  if (!parserId) return defaultLabel
   if (parserId === 'naive') return 'General'
   return DOCUMENT_PARSER_TYPE_LABELS[parserId as DocumentParserType] || parserId
 }
@@ -36,21 +40,24 @@ export const ParserMethodCell: React.FC<ParserMethodCellProps> = ({
   document,
   onShowChunkMethodModal,
 }) => {
-  const parserLabel = getParserLabel(document.parser_id)
+  const { t } = useTranslation()
+  const parserLabel = getParserLabel(
+    document.parser_id,
+    t('knowledge.documents.defaultParser'),
+  )
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <div
-          className="cursor-pointer px-2 py-1 rounded-sm transition-colors inline-flex items-center"
+          className="inline-flex cursor-pointer items-center rounded-sm px-2 py-1 transition-colors"
           style={{
             backgroundColor: 'transparent',
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.backgroundColor =
               'var(--color-state-hover, rgba(0, 0, 0, 0.05))'
-            e.currentTarget.style.boxShadow =
-              '0 1px 3px rgba(0, 0, 0, 0.1)'
+            e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)'
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.backgroundColor = 'transparent'
@@ -58,7 +65,7 @@ export const ParserMethodCell: React.FC<ParserMethodCellProps> = ({
           }}
         >
           <span
-            className="text-sm truncate max-w-[80px]"
+            className="max-w-[80px] truncate text-sm"
             style={{ color: 'var(--color-text-secondary)' }}
           >
             {parserLabel}
@@ -67,8 +74,8 @@ export const ParserMethodCell: React.FC<ParserMethodCellProps> = ({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="left">
         <DropdownMenuItem onClick={() => onShowChunkMethodModal(document)}>
-          <Settings2 className="h-4 w-4 mr-2" />
-          配置解析方式
+          <Settings2 className="mr-2 h-4 w-4" />
+          {t('knowledge.documents.configureParser')}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

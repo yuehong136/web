@@ -2,45 +2,45 @@ import { GenerateTaskType, GenerateTaskStatus } from '@/hooks/use-generate-task'
 
 export const TASK_TYPE_CONFIG = {
   [GenerateTaskType.GraphRAG]: {
-    label: '知识图谱',
-    description: '基于文本块构建知识图谱，提升多跳问答能力',
+    labelKey: 'knowledge.documents.generate.types.graph.label',
+    descriptionKey: 'knowledge.documents.generate.types.graph.description',
     icon: 'Network' as const,
   },
   [GenerateTaskType.Raptor]: {
-    label: 'RAPTOR',
-    description: '层次化摘要聚类，增强复杂问题的召回',
+    labelKey: 'knowledge.documents.generate.types.raptor.label',
+    descriptionKey: 'knowledge.documents.generate.types.raptor.description',
     icon: 'TreePine' as const,
   },
 } as const
 
 export const TASK_STATUS_CONFIG = {
   [GenerateTaskStatus.Start]: {
-    text: '未生成',
-    actionText: '开始生成',
+    textKey: 'knowledge.documents.generate.status.start',
+    actionTextKey: 'knowledge.documents.generate.action.start',
     bgToken: 'var(--color-components-task-status-idle-bg)',
     borderToken: 'var(--color-components-task-status-idle-border)',
     textToken: 'var(--color-components-task-status-idle-text)',
     dotToken: 'var(--color-components-task-status-idle-dot)',
   },
   [GenerateTaskStatus.Running]: {
-    text: '生成中',
-    actionText: '暂停',
+    textKey: 'knowledge.documents.generate.status.running',
+    actionTextKey: 'knowledge.documents.generate.action.running',
     bgToken: 'var(--color-components-task-status-running-bg)',
     borderToken: 'var(--color-components-task-status-running-border)',
     textToken: 'var(--color-components-task-status-running-text)',
     dotToken: 'var(--color-components-task-status-running-dot)',
   },
   [GenerateTaskStatus.Completed]: {
-    text: '已完成',
-    actionText: '重新生成',
+    textKey: 'knowledge.documents.generate.status.completed',
+    actionTextKey: 'knowledge.documents.generate.action.completed',
     bgToken: 'var(--color-components-task-status-completed-bg)',
     borderToken: 'var(--color-components-task-status-completed-border)',
     textToken: 'var(--color-components-task-status-completed-text)',
     dotToken: 'var(--color-components-task-status-completed-dot)',
   },
   [GenerateTaskStatus.Failed]: {
-    text: '失败',
-    actionText: '重试',
+    textKey: 'knowledge.documents.generate.status.failed',
+    actionTextKey: 'knowledge.documents.generate.action.failed',
     bgToken: 'var(--color-components-task-status-failed-bg)',
     borderToken: 'var(--color-components-task-status-failed-border)',
     textToken: 'var(--color-components-task-status-failed-text)',

@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useParams } from 'react-router-dom'
 import { knowledgeAPI } from '@/api/knowledge'
 import { LogTabType, DEFAULT_PAGE_SIZE } from './constants'
+import { getCurrentLanguage } from '@/locales/i18n'
 
 // 分页状态接口
 interface PaginationState {
@@ -51,10 +52,10 @@ export function useFetchLogStats() {
  */
 export function useFetchFileLogs(enabled: boolean = true) {
   const { id } = useParams<{ id: string }>()
-  
+
   // 搜索关键词
   const [searchString, setSearchString] = useState('')
-  
+
   // 分页状态
   const [pagination, setPagination] = useState<PaginationState>({
     page: 1,
@@ -66,7 +67,14 @@ export function useFetchFileLogs(enabled: boolean = true) {
   const [filterValue, setFilterValue] = useState<FilterValue>({})
 
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ['fileLogs', id, pagination.page, pagination.pageSize, searchString, filterValue],
+    queryKey: [
+      'fileLogs',
+      id,
+      pagination.page,
+      pagination.pageSize,
+      searchString,
+      filterValue,
+    ],
     queryFn: async () => {
       if (!id) return { logs: [], total: 0 }
       return knowledgeAPI.logs.listFileLogs({
@@ -82,24 +90,30 @@ export function useFetchFileLogs(enabled: boolean = true) {
   })
 
   // 更新分页状态
-  const handlePaginationChange = useCallback((newPage: number, newPageSize?: number) => {
-    setPagination(prev => ({
-      ...prev,
-      page: newPage,
-      pageSize: newPageSize || prev.pageSize,
-    }))
-  }, [])
+  const handlePaginationChange = useCallback(
+    (newPage: number, newPageSize?: number) => {
+      setPagination((prev) => ({
+        ...prev,
+        page: newPage,
+        pageSize: newPageSize || prev.pageSize,
+      }))
+    },
+    [],
+  )
 
   // 处理搜索输入
-  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchString(e.target.value)
-    setPagination(prev => ({ ...prev, page: 1 })) // 搜索时重置到第一页
-  }, [])
+  const handleSearchChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setSearchString(e.target.value)
+      setPagination((prev) => ({ ...prev, page: 1 })) // 搜索时重置到第一页
+    },
+    [],
+  )
 
   // 处理筛选提交
   const handleFilterSubmit = useCallback((value: FilterValue) => {
     setFilterValue(value)
-    setPagination(prev => ({ ...prev, page: 1 })) // 筛选时重置到第一页
+    setPagination((prev) => ({ ...prev, page: 1 })) // 筛选时重置到第一页
   }, [])
 
   return {
@@ -125,10 +139,10 @@ export function useFetchFileLogs(enabled: boolean = true) {
  */
 export function useFetchDatasetLogs(enabled: boolean = true) {
   const { id } = useParams<{ id: string }>()
-  
+
   // 搜索关键词
   const [searchString, setSearchString] = useState('')
-  
+
   // 分页状态
   const [pagination, setPagination] = useState<PaginationState>({
     page: 1,
@@ -140,7 +154,14 @@ export function useFetchDatasetLogs(enabled: boolean = true) {
   const [filterValue, setFilterValue] = useState<FilterValue>({})
 
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ['datasetLogs', id, pagination.page, pagination.pageSize, searchString, filterValue],
+    queryKey: [
+      'datasetLogs',
+      id,
+      pagination.page,
+      pagination.pageSize,
+      searchString,
+      filterValue,
+    ],
     queryFn: async () => {
       if (!id) return { logs: [], total: 0 }
       return knowledgeAPI.logs.listDatasetLogs({
@@ -156,24 +177,30 @@ export function useFetchDatasetLogs(enabled: boolean = true) {
   })
 
   // 更新分页状态
-  const handlePaginationChange = useCallback((newPage: number, newPageSize?: number) => {
-    setPagination(prev => ({
-      ...prev,
-      page: newPage,
-      pageSize: newPageSize || prev.pageSize,
-    }))
-  }, [])
+  const handlePaginationChange = useCallback(
+    (newPage: number, newPageSize?: number) => {
+      setPagination((prev) => ({
+        ...prev,
+        page: newPage,
+        pageSize: newPageSize || prev.pageSize,
+      }))
+    },
+    [],
+  )
 
   // 处理搜索输入
-  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchString(e.target.value)
-    setPagination(prev => ({ ...prev, page: 1 }))
-  }, [])
+  const handleSearchChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setSearchString(e.target.value)
+      setPagination((prev) => ({ ...prev, page: 1 }))
+    },
+    [],
+  )
 
   // 处理筛选提交
   const handleFilterSubmit = useCallback((value: FilterValue) => {
     setFilterValue(value)
-    setPagination(prev => ({ ...prev, page: 1 }))
+    setPagination((prev) => ({ ...prev, page: 1 }))
   }, [])
 
   return {
@@ -200,7 +227,9 @@ export function useFetchDatasetLogs(enabled: boolean = true) {
  */
 export function useFetchLogs(activeTab: LogTabType) {
   const fileLogsHook = useFetchFileLogs(activeTab === LogTabType.FILE_LOGS)
-  const datasetLogsHook = useFetchDatasetLogs(activeTab === LogTabType.DATASET_LOGS)
+  const datasetLogsHook = useFetchDatasetLogs(
+    activeTab === LogTabType.DATASET_LOGS,
+  )
 
   return useMemo(() => {
     if (activeTab === LogTabType.FILE_LOGS) {
@@ -214,16 +243,20 @@ export function useFetchLogs(activeTab: LogTabType) {
  * 格式化时间为人类可读格式
  */
 export function formatSecondsToHumanReadable(seconds: number): string {
+  const isEnglish = getCurrentLanguage() === 'en-US'
   if (seconds < 60) {
-    return `${Math.round(seconds)}秒`
+    const rounded = Math.round(seconds)
+    return isEnglish ? `${rounded}s` : `${rounded}秒`
   }
   if (seconds < 3600) {
     const mins = Math.floor(seconds / 60)
     const secs = Math.round(seconds % 60)
+    if (isEnglish) return secs > 0 ? `${mins}m ${secs}s` : `${mins}m`
     return secs > 0 ? `${mins}分${secs}秒` : `${mins}分钟`
   }
   const hours = Math.floor(seconds / 3600)
   const mins = Math.floor((seconds % 3600) / 60)
+  if (isEnglish) return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`
   return mins > 0 ? `${hours}小时${mins}分` : `${hours}小时`
 }
 
@@ -234,7 +267,7 @@ export function formatDate(dateString: string | null): string {
   if (!dateString) return '-'
   try {
     const date = new Date(dateString)
-    return date.toLocaleString('zh-CN', {
+    return date.toLocaleString(getCurrentLanguage(), {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
@@ -246,4 +279,3 @@ export function formatDate(dateString: string | null): string {
     return dateString
   }
 }
-

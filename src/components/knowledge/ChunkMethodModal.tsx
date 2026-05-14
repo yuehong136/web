@@ -6,10 +6,14 @@
  */
 
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import { useForm, FormProvider, useWatch } from 'react-hook-form'
 import { Modal, Button } from '@/components/ui'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { SelectWithSearch, type SelectOptionGroup } from '@/components/ui/select-with-search'
+import {
+  SelectWithSearch,
+  type SelectOptionGroup,
+} from '@/components/ui/select-with-search'
 import { Settings2 } from 'lucide-react'
 import type { Document } from '@/types/api'
 import { DocumentParserType } from '@/types/document-parser'
@@ -59,23 +63,28 @@ const ParseTypeSelector: React.FC<{
   value: 1 | 2
   onChange: (value: 1 | 2) => void
 }> = ({ value, onChange }) => {
+  const { t } = useTranslation()
   return (
     <div className="rounded-radius-lg p-space-base bg-surface-secondary border border-border-default">
-      <label className="block text-sm font-medium mb-space-sm text-text-primary">
-        解析方法
+      <label className="mb-space-sm block text-sm font-medium text-text-primary">
+        {t('knowledge.documents.chunkMethodModal.parseMethod')}
       </label>
       <RadioGroup
         value={String(value)}
         onValueChange={(val) => onChange(Number(val) as 1 | 2)}
-        className="flex items-center gap-space-lg"
+        className="gap-space-lg flex items-center"
       >
-        <label className="flex items-center gap-space-xs cursor-pointer">
+        <label className="gap-space-xs flex cursor-pointer items-center">
           <RadioGroupItem value="1" />
-          <span className="text-sm text-text-secondary">内置</span>
+          <span className="text-sm text-text-secondary">
+            {t('knowledge.documents.chunkMethodModal.builtin')}
+          </span>
         </label>
-        <label className="flex items-center gap-space-xs cursor-pointer">
+        <label className="gap-space-xs flex cursor-pointer items-center">
           <RadioGroupItem value="2" />
-          <span className="text-sm text-text-secondary">选择pipeline</span>
+          <span className="text-sm text-text-secondary">
+            {t('knowledge.documents.chunkMethodModal.selectPipeline')}
+          </span>
         </label>
       </RadioGroup>
     </div>
@@ -89,6 +98,7 @@ const BuiltInParserSelector: React.FC<{
   value: string
   onChange: (value: string) => void
 }> = ({ value, onChange }) => {
+  const { t } = useTranslation()
   return (
     <div className="space-y-2">
       <label
@@ -96,14 +106,16 @@ const BuiltInParserSelector: React.FC<{
         style={{ color: 'var(--color-text-primary)' }}
       >
         <span className="text-red-500">*</span>
-        内置
+        {t('knowledge.documents.chunkMethodModal.builtin')}
       </label>
       <SelectWithSearch
         value={value}
         onChange={onChange}
         options={PARSER_OPTIONS}
-        placeholder="请选择解析器"
-        emptyText="暂无匹配的解析器"
+        placeholder={t(
+          'knowledge.documents.chunkMethodModal.parserPlaceholder',
+        )}
+        emptyText={t('knowledge.documents.chunkMethodModal.parserEmpty')}
       />
     </div>
   )
@@ -117,6 +129,7 @@ const PipelineSelector: React.FC<{
   onChange: (value: string) => void
   options?: SelectOptionGroup[]
 }> = ({ value, onChange, options = [] }) => {
+  const { t } = useTranslation()
   return (
     <div className="space-y-2">
       <label
@@ -124,20 +137,19 @@ const PipelineSelector: React.FC<{
         style={{ color: 'var(--color-text-primary)' }}
       >
         <span className="text-red-500">*</span>
-        选择pipeline
+        {t('knowledge.documents.chunkMethodModal.selectPipeline')}
       </label>
       <SelectWithSearch
         value={value}
         onChange={onChange}
         options={options}
-        placeholder="请选择pipeline"
-        emptyText="暂无可用的pipeline"
+        placeholder={t(
+          'knowledge.documents.chunkMethodModal.pipelinePlaceholder',
+        )}
+        emptyText={t('knowledge.documents.chunkMethodModal.pipelineEmpty')}
       />
-      <p
-        className="text-xs"
-        style={{ color: 'var(--color-text-tertiary)' }}
-      >
-        选择已配置的数据处理pipeline
+      <p className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
+        {t('knowledge.documents.chunkMethodModal.pipelineTip')}
       </p>
     </div>
   )
@@ -150,33 +162,32 @@ const MetadataSettingsModal: React.FC<{
   open: boolean
   onClose: () => void
 }> = ({ open, onClose }) => {
+  const { t } = useTranslation()
   return (
     <Modal
       open={open}
       onClose={onClose}
-      title="元数据生成设置"
+      title={t('knowledge.documents.chunkMethodModal.metadataTitle')}
       size="lg"
       footer={
-        <div className="flex gap-3 justify-end w-full">
+        <div className="flex w-full justify-end gap-3">
           <Button variant="outline" onClick={onClose}>
-            取消
+            {t('knowledge.common.cancel')}
           </Button>
-          <Button onClick={onClose}>
-            确定
-          </Button>
+          <Button onClick={onClose}>{t('knowledge.documents.confirm')}</Button>
         </div>
       }
     >
       <div className="space-y-4">
         <p className="text-sm text-text-secondary">
-          配置自动元数据提取的字段和规则。修改将影响新解析的文档。
+          {t('knowledge.documents.chunkMethodModal.metadataDescription')}
         </p>
         {/* TODO: 实现元数据字段配置列表 */}
-        <div 
-          className="border rounded-lg p-4 text-center text-text-tertiary"
+        <div
+          className="rounded-lg border p-4 text-center text-text-tertiary"
           style={{ borderColor: 'var(--color-border-default)' }}
         >
-          元数据配置功能开发中...
+          {t('knowledge.documents.chunkMethodModal.metadataTodo')}
         </div>
       </div>
     </Modal>
@@ -190,8 +201,9 @@ export const ChunkMethodModal: React.FC<ChunkMethodModalProps> = ({
   onSubmit,
   isLoading = false,
 }) => {
+  const { t } = useTranslation()
   const [metadataModalOpen, setMetadataModalOpen] = React.useState(false)
-  
+
   const methods = useForm<FormValues>({
     defaultValues: {
       parseType: 1,
@@ -249,19 +261,19 @@ export const ChunkMethodModal: React.FC<ChunkMethodModalProps> = ({
       <Modal
         open={open}
         onClose={onClose}
-        title="切片方法"
+        title={t('knowledge.settings.fields.chunkMethod')}
         icon={<Settings2 className="h-5 w-5" />}
         size="lg"
         footer={
-          <div className="flex gap-3 justify-end w-full">
+          <div className="flex w-full justify-end gap-3">
             <Button variant="outline" onClick={onClose} disabled={isLoading}>
-              取消
+              {t('knowledge.common.cancel')}
             </Button>
             <Button
               onClick={methods.handleSubmit(handleSubmit)}
               loading={isLoading}
             >
-              保存
+              {t('knowledge.common.save')}
             </Button>
           </div>
         }
@@ -283,7 +295,7 @@ export const ChunkMethodModal: React.FC<ChunkMethodModalProps> = ({
             {/* 内置解析器选择 */}
             {parseType === 1 && (
               <div
-                className="rounded-lg p-4 space-y-4"
+                className="space-y-4 rounded-lg p-4"
                 style={{
                   backgroundColor: 'var(--color-surface-secondary)',
                   border: '1px solid var(--color-border-default)',
@@ -318,7 +330,7 @@ export const ChunkMethodModal: React.FC<ChunkMethodModalProps> = ({
 
             {/* 解析器配置 - 仅在内置模式下显示 */}
             {parseType === 1 && currentParserId && (
-              <ChunkMethodForm 
+              <ChunkMethodForm
                 onMetadataSettingsClick={handleMetadataSettingsClick}
               />
             )}

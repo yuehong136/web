@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Dialog,
   DialogContent,
@@ -61,6 +62,7 @@ export const DocumentMetadataModal: React.FC<DocumentMetadataModalProps> = ({
   fieldDefinitions = [],
   onSuccess,
 }) => {
+  const { t } = useTranslation()
   // 本地编辑状态
   const [localMeta, setLocalMeta] = useState<Record<string, any>>({})
 
@@ -92,17 +94,21 @@ export const DocumentMetadataModal: React.FC<DocumentMetadataModalProps> = ({
       <DialogContent size="md">
         <DialogHeader>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[var(--color-surface-accent)] flex items-center justify-center">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--color-surface-accent)]">
               <FileText className="h-5 w-5 text-[var(--color-text-on-accent)]" />
             </div>
-            <div className="flex-1 min-w-0">
-              <DialogTitle>编辑元数据</DialogTitle>
-              <DialogDescription className="truncate">{docName}</DialogDescription>
+            <div className="min-w-0 flex-1">
+              <DialogTitle>
+                {t('knowledge.metadata.editor.editMetadata')}
+              </DialogTitle>
+              <DialogDescription className="truncate">
+                {docName}
+              </DialogDescription>
             </div>
           </div>
         </DialogHeader>
 
-        <div className="px-6 py-4 space-y-4 overflow-y-auto max-h-[calc(90vh-200px)]">
+        <div className="max-h-[calc(90vh-200px)] space-y-4 overflow-y-auto px-6 py-4">
           {/* 编辑器 */}
           <DocumentMetadataEditor
             value={localMeta}
@@ -113,10 +119,10 @@ export const DocumentMetadataModal: React.FC<DocumentMetadataModalProps> = ({
 
           {/* 提示信息 */}
           {fieldDefinitions.length > 0 && (
-            <div className="flex items-start gap-2 p-3 rounded-lg bg-[var(--color-surface-secondary)]">
-              <Info className="h-4 w-4 text-[var(--color-text-tertiary)] mt-0.5 shrink-0" />
-              <p className="text-[var(--color-text-tertiary)] text-sm">
-                字段列表来自知识库的元数据模板设置
+            <div className="flex items-start gap-2 rounded-lg bg-[var(--color-surface-secondary)] p-3">
+              <Info className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-text-tertiary)]" />
+              <p className="text-sm text-[var(--color-text-tertiary)]">
+                {t('knowledge.metadata.modal.settingTip')}
               </p>
             </div>
           )}
@@ -124,11 +130,13 @@ export const DocumentMetadataModal: React.FC<DocumentMetadataModalProps> = ({
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={isSaving}>
-            取消
+            {t('knowledge.common.cancel')}
           </Button>
           <Button onClick={handleSave} disabled={isSaving}>
-            {isSaving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-            {isSaving ? '保存中...' : '保存'}
+            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isSaving
+              ? t('knowledge.metadata.editor.saving')
+              : t('knowledge.common.save')}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -3,6 +3,7 @@
  */
 
 import React, { memo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { ConfirmModal } from '@/components/ui'
 import { GenerateTaskType } from '@/hooks/use-generate-task'
 import { TASK_TYPE_CONFIG } from './constants'
@@ -20,15 +21,18 @@ const GenerateDeleteConfirmComponent: React.FC<GenerateDeleteConfirmProps> = ({
   onConfirm,
   onClose,
 }) => {
-  const label = type ? TASK_TYPE_CONFIG[type].label : ''
+  const { t } = useTranslation()
+  const label = type ? t(TASK_TYPE_CONFIG[type].labelKey) : ''
 
   return (
     <ConfirmModal
       open={open}
       onClose={onClose}
       onConfirm={onConfirm}
-      title={`删除 ${label} 生成结果`}
-      description={`确定要删除${label}的生成结果吗？删除后需要重新生成。`}
+      title={t('knowledge.documents.generate.deleteTitle', { label })}
+      description={t('knowledge.documents.generate.deleteDescription', {
+        label,
+      })}
     />
   )
 }

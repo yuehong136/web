@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Search, Filter, X, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -8,7 +9,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
-import { LogTabType, LogTabOptions, RunningStatus, RunningStatusMap } from './constants'
+import { LogTabType, LogTabOptions, RunningStatus } from './constants'
 import { FileStatusBadge } from './FileStatusBadge'
 
 interface FilterValue {
@@ -35,15 +36,21 @@ const TabButton: React.FC<{
   <button
     onClick={onClick}
     className={cn(
-      'px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200',
-      'focus:outline-none focus:ring-2 focus:ring-offset-1'
+      'rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200',
+      'focus:outline-none focus:ring-2 focus:ring-offset-1',
     )}
-    style={{
-      backgroundColor: active ? 'var(--color-background-default)' : 'transparent',
-      color: active ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
-      boxShadow: active ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
-      '--tw-ring-color': 'var(--color-state-focus-10)',
-    } as React.CSSProperties}
+    style={
+      {
+        backgroundColor: active
+          ? 'var(--color-background-default)'
+          : 'transparent',
+        color: active
+          ? 'var(--color-text-primary)'
+          : 'var(--color-text-secondary)',
+        boxShadow: active ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+        '--tw-ring-color': 'var(--color-state-focus-10)',
+      } as React.CSSProperties
+    }
   >
     {children}
   </button>
@@ -60,14 +67,14 @@ const FilterOption: React.FC<{
   <button
     onClick={onToggle}
     className={cn(
-      'flex items-center justify-between w-full px-3 py-2 rounded-md text-sm transition-colors',
-      'hover:bg-[var(--color-background-subtle)]'
+      'flex w-full items-center justify-between rounded-md px-3 py-2 text-sm transition-colors',
+      'hover:bg-[var(--color-background-subtle)]',
     )}
   >
-    <FileStatusBadge status={status} name={RunningStatusMap[status]} />
+    <FileStatusBadge status={status} />
     {selected && (
-      <Check 
-        className="w-4 h-4"
+      <Check
+        className="h-4 w-4"
         style={{ color: 'var(--color-state-focus)' }}
       />
     )}
@@ -85,6 +92,7 @@ const LogTabFilter: React.FC<LogTabFilterProps> = ({
   filterValue,
   onFilterChange,
 }) => {
+  const { t } = useTranslation()
   const [filterOpen, setFilterOpen] = useState(false)
 
   // 计算已选筛选数量
@@ -97,9 +105,9 @@ const LogTabFilter: React.FC<LogTabFilterProps> = ({
   const toggleStatusFilter = (status: RunningStatus) => {
     const currentStatus = filterValue.operation_status || []
     const newStatus = currentStatus.includes(status)
-      ? currentStatus.filter(s => s !== status)
+      ? currentStatus.filter((s) => s !== status)
       : [...currentStatus, status]
-    
+
     onFilterChange({
       ...filterValue,
       operation_status: newStatus.length > 0 ? newStatus : undefined,
@@ -114,15 +122,15 @@ const LogTabFilter: React.FC<LogTabFilterProps> = ({
   // 可用的状态筛选选项
   const statusOptions = useMemo(() => {
     return Object.values(RunningStatus).filter(
-      status => status !== RunningStatus.SCHEDULE // 排除调度状态
+      (status) => status !== RunningStatus.SCHEDULE, // 排除调度状态
     )
   }, [])
 
   return (
-    <div className="flex items-center justify-between mb-4 gap-4">
+    <div className="mb-4 flex items-center justify-between gap-4">
       {/* Tab切换 */}
-      <div 
-        className="flex items-center p-1 rounded-lg"
+      <div
+        className="flex items-center rounded-lg p-1"
         style={{ backgroundColor: 'var(--color-background-subtle)' }}
       >
         {LogTabOptions.map((tab) => (
@@ -131,7 +139,7 @@ const LogTabFilter: React.FC<LogTabFilterProps> = ({
             active={activeTab === tab.key}
             onClick={() => onTabChange(tab.key)}
           >
-            {tab.label}
+            {t(tab.labelKey)}
           </TabButton>
         ))}
       </div>
@@ -146,16 +154,18 @@ const LogTabFilter: React.FC<LogTabFilterProps> = ({
               size="sm"
               className="gap-1.5"
               style={{
-                borderColor: filterCount > 0 ? 'var(--color-state-focus)' : undefined,
-                backgroundColor: filterCount > 0 ? 'var(--color-state-focus-10)' : undefined,
+                borderColor:
+                  filterCount > 0 ? 'var(--color-state-focus)' : undefined,
+                backgroundColor:
+                  filterCount > 0 ? 'var(--color-state-focus-10)' : undefined,
               }}
             >
-              <Filter className="w-4 h-4" />
-              <span>筛选</span>
+              <Filter className="h-4 w-4" />
+              <span>{t('knowledge.logs.filter.button')}</span>
               {filterCount > 0 && (
                 <span
-                  className="ml-1 h-5 min-w-5 px-1.5 inline-flex items-center justify-center rounded-full text-xs font-medium"
-                  style={{ 
+                  className="ml-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-xs font-medium"
+                  style={{
                     backgroundColor: 'var(--color-state-focus)',
                     color: '#ffffff',
                   }}
@@ -168,11 +178,11 @@ const LogTabFilter: React.FC<LogTabFilterProps> = ({
           <PopoverContent className="w-64 p-3" align="end">
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <h4 
+                <h4
                   className="text-sm font-medium"
                   style={{ color: 'var(--color-text-primary)' }}
                 >
-                  按状态筛选
+                  {t('knowledge.logs.filter.byStatus')}
                 </h4>
                 {filterCount > 0 && (
                   <Button
@@ -182,7 +192,7 @@ const LogTabFilter: React.FC<LogTabFilterProps> = ({
                     style={{ color: 'var(--color-text-tertiary)' }}
                     onClick={clearFilters}
                   >
-                    清除
+                    {t('knowledge.logs.filter.clear')}
                   </Button>
                 )}
               </div>
@@ -191,7 +201,9 @@ const LogTabFilter: React.FC<LogTabFilterProps> = ({
                   <FilterOption
                     key={status}
                     status={status}
-                    selected={filterValue.operation_status?.includes(status) || false}
+                    selected={
+                      filterValue.operation_status?.includes(status) || false
+                    }
                     onToggle={() => toggleStatusFilter(status)}
                   />
                 ))}
@@ -202,18 +214,22 @@ const LogTabFilter: React.FC<LogTabFilterProps> = ({
 
         {/* 搜索框 */}
         <Input
-          placeholder="搜索..."
+          placeholder={t('knowledge.logs.filter.searchPlaceholder')}
           value={searchValue}
           onChange={onSearchChange}
-          className="w-48 h-9 text-sm"
-          leftIcon={<Search className="w-4 h-4" />}
+          className="h-9 w-48 text-sm"
+          leftIcon={<Search className="h-4 w-4" />}
           rightIcon={
             searchValue ? (
               <button
-                onClick={() => onSearchChange({ target: { value: '' } } as React.ChangeEvent<HTMLInputElement>)}
-                className="p-0.5 rounded hover:bg-surface-subtle"
+                onClick={() =>
+                  onSearchChange({
+                    target: { value: '' },
+                  } as React.ChangeEvent<HTMLInputElement>)
+                }
+                className="hover:bg-surface-subtle rounded p-0.5"
               >
-                <X className="w-3.5 h-3.5" />
+                <X className="h-3.5 w-3.5" />
               </button>
             ) : undefined
           }

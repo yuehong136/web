@@ -1,9 +1,6 @@
 import React from 'react'
-import {
-  Eye,
-  FileText,
-  MonitorUp,
-} from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import { Eye, FileText, MonitorUp } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Table,
@@ -16,7 +13,12 @@ import {
 import { Tooltip } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 import { FileStatusBadge } from './FileStatusBadge'
-import { LogTabType, RunningStatus, RunningStatusMap, ProcessingTypeMap, ProcessingType } from './constants'
+import {
+  LogTabType,
+  RunningStatus,
+  ProcessingTypeI18nKey,
+  ProcessingType,
+} from './constants'
 import { formatDate } from './hooks'
 import type { IFileLogItem } from '@/types/api'
 
@@ -60,9 +62,12 @@ const getAvatarColors = (name: string): { bg: string; text: string } => {
     { bg: 'var(--color-state-success-10)', text: 'var(--color-state-success)' },
     { bg: 'var(--color-state-warning-10)', text: 'var(--color-state-warning)' },
     { bg: 'var(--color-state-error-10)', text: 'var(--color-state-error)' },
-    { bg: 'var(--color-state-neutral-10)', text: 'var(--color-text-secondary)' },
+    {
+      bg: 'var(--color-state-neutral-10)',
+      text: 'var(--color-text-secondary)',
+    },
   ]
-  
+
   // 根据名称生成一致的索引
   let hash = 0
   for (let i = 0; i < name.length; i++) {
@@ -83,15 +88,18 @@ const getInitials = (name: string): string => {
 /**
  * 首字母头像组件
  */
-const InitialsAvatar: React.FC<{ name: string; size?: 'sm' | 'md' }> = ({ name, size = 'sm' }) => {
+const InitialsAvatar: React.FC<{ name: string; size?: 'sm' | 'md' }> = ({
+  name,
+  size = 'sm',
+}) => {
   const colors = getAvatarColors(name || 'default')
   const initials = getInitials(name)
-  
+
   return (
     <div
       className={cn(
         'flex items-center justify-center rounded-full font-medium',
-        size === 'sm' ? 'w-5 h-5 text-xs' : 'w-6 h-6 text-sm'
+        size === 'sm' ? 'h-5 w-5 text-xs' : 'h-6 w-6 text-sm',
       )}
       style={{
         backgroundColor: colors.bg,
@@ -106,20 +114,20 @@ const InitialsAvatar: React.FC<{ name: string; size?: 'sm' | 'md' }> = ({ name, 
 /**
  * 空状态组件
  */
-const EmptyState: React.FC<{ message?: string }> = ({ message = '暂无数据' }) => (
-  <div className="flex flex-col items-center justify-center py-16">
-    <FileText 
-      className="w-12 h-12 mb-3 opacity-30"
-      style={{ color: 'var(--color-text-tertiary)' }}
-    />
-    <p 
-      className="text-sm"
-      style={{ color: 'var(--color-text-tertiary)' }}
-    >
-      {message}
-    </p>
-  </div>
-)
+const EmptyState: React.FC<{ message?: string }> = ({ message }) => {
+  const { t } = useTranslation()
+  return (
+    <div className="flex flex-col items-center justify-center py-16">
+      <FileText
+        className="mb-3 h-12 w-12 opacity-30"
+        style={{ color: 'var(--color-text-tertiary)' }}
+      />
+      <p className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>
+        {message || t('knowledge.logs.table.empty')}
+      </p>
+    </div>
+  )
+}
 
 /**
  * 加载状态骨架屏
@@ -127,9 +135,9 @@ const EmptyState: React.FC<{ message?: string }> = ({ message = '暂无数据' }
 const TableSkeleton: React.FC<{ rows?: number }> = ({ rows = 5 }) => (
   <div className="space-y-3">
     {Array.from({ length: rows }).map((_, i) => (
-      <div 
-        key={i} 
-        className="h-12 rounded-lg animate-pulse"
+      <div
+        key={i}
+        className="h-12 animate-pulse rounded-lg"
         style={{ backgroundColor: 'var(--color-background-subtle)' }}
       />
     ))}
@@ -145,15 +153,17 @@ const Pagination: React.FC<{
   total: number
   onChange: (page: number, pageSize?: number) => void
 }> = ({ page, pageSize, total, onChange }) => {
+  const { t } = useTranslation()
   const totalPages = Math.ceil(total / pageSize)
 
   return (
     <div className="flex items-center justify-between px-2 py-4">
-      <div 
-        className="text-sm"
-        style={{ color: 'var(--color-text-secondary)' }}
-      >
-        共 {total} 条记录，第 {page} / {totalPages || 1} 页
+      <div className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+        {t('knowledge.logs.table.pagination', {
+          total,
+          page,
+          totalPages: totalPages || 1,
+        })}
       </div>
       <div className="flex items-center gap-2">
         <Button
@@ -162,7 +172,7 @@ const Pagination: React.FC<{
           onClick={() => onChange(page - 1)}
           disabled={page <= 1}
         >
-          上一页
+          {t('knowledge.logs.table.previous')}
         </Button>
         <Button
           variant="outline"
@@ -170,7 +180,7 @@ const Pagination: React.FC<{
           onClick={() => onChange(page + 1)}
           disabled={page >= totalPages}
         >
-          下一页
+          {t('knowledge.logs.table.next')}
         </Button>
       </div>
     </div>
@@ -183,119 +193,127 @@ const Pagination: React.FC<{
 const FileLogRow: React.FC<{
   item: LogTableItem
   onViewDetail: (item: LogTableItem) => void
-}> = ({ item, onViewDetail }) => (
-  <TableRow 
-    className="group transition-colors"
-    style={{ '--hover-bg': 'var(--color-background-subtle)' } as React.CSSProperties}
-  >
-    {/* ID列 - 显示完整ID */}
-    <TableCell>
-      <span 
-        className="text-xs font-mono whitespace-nowrap"
-        style={{ color: 'var(--color-text-tertiary)' }}
-      >
-        {item.id || '-'}
-      </span>
-    </TableCell>
-    
-    {/* 文件名列 */}
-    <TableCell className="max-w-[240px]">
-      <Tooltip content={<span>{item.document_name}</span>}>
-        <div className="flex items-center gap-2 cursor-default">
-          <FileText 
-            className="w-4 h-4 flex-shrink-0"
-            style={{ color: getFileIconColor(item.document_suffix) }}
-          />
-          <span 
-            className="truncate text-sm"
+}> = ({ item, onViewDetail }) => {
+  const { t } = useTranslation()
+  return (
+    <TableRow
+      className="group transition-colors"
+      style={
+        {
+          '--hover-bg': 'var(--color-background-subtle)',
+        } as React.CSSProperties
+      }
+    >
+      {/* ID列 - 显示完整ID */}
+      <TableCell>
+        <span
+          className="whitespace-nowrap font-mono text-xs"
+          style={{ color: 'var(--color-text-tertiary)' }}
+        >
+          {item.id || '-'}
+        </span>
+      </TableCell>
+
+      {/* 文件名列 */}
+      <TableCell className="max-w-[240px]">
+        <Tooltip content={<span>{item.document_name}</span>}>
+          <div className="flex cursor-default items-center gap-2">
+            <FileText
+              className="h-4 w-4 flex-shrink-0"
+              style={{ color: getFileIconColor(item.document_suffix) }}
+            />
+            <span
+              className="truncate text-sm"
+              style={{ color: 'var(--color-text-primary)' }}
+            >
+              {item.document_name || '-'}
+            </span>
+          </div>
+        </Tooltip>
+      </TableCell>
+
+      {/* 来源列 */}
+      <TableCell>
+        {!item.source_from ||
+        item.source_from === 'local' ||
+        item.source_from === '' ? (
+          <div
+            className="flex h-7 w-7 items-center justify-center rounded-full"
+            style={{ backgroundColor: 'var(--color-state-focus-10)' }}
+          >
+            <MonitorUp
+              className="h-4 w-4"
+              style={{ color: 'var(--color-state-focus)' }}
+            />
+          </div>
+        ) : (
+          <span
+            className="text-sm capitalize"
+            style={{ color: 'var(--color-text-secondary)' }}
+          >
+            {item.source_from}
+          </span>
+        )}
+      </TableCell>
+
+      {/* 数据管道列 - 使用首字母头像 */}
+      <TableCell>
+        <div className="flex items-center gap-2 whitespace-nowrap">
+          <InitialsAvatar name={item.pipeline_title || 'general'} />
+          <span
+            className="text-sm"
             style={{ color: 'var(--color-text-primary)' }}
           >
-            {item.document_name || '-'}
+            {item.pipeline_title === 'naive'
+              ? 'general'
+              : item.pipeline_title || '-'}
           </span>
         </div>
-      </Tooltip>
-    </TableCell>
-    
-    {/* 来源列 */}
-    <TableCell>
-      {(!item.source_from || item.source_from === 'local' || item.source_from === '') ? (
-        <div 
-          className="flex items-center justify-center w-7 h-7 rounded-full"
-          style={{ backgroundColor: 'var(--color-state-focus-10)' }}
-        >
-          <MonitorUp 
-            className="w-4 h-4"
-            style={{ color: 'var(--color-state-focus)' }}
-          />
-        </div>
-      ) : (
-        <span 
-          className="text-sm capitalize"
+      </TableCell>
+
+      {/* 开始时间列 */}
+      <TableCell>
+        <span
+          className="whitespace-nowrap text-sm"
           style={{ color: 'var(--color-text-secondary)' }}
         >
-          {item.source_from}
+          {formatDate(item.process_begin_at || null)}
         </span>
-      )}
-    </TableCell>
-    
-    {/* 数据管道列 - 使用首字母头像 */}
-    <TableCell>
-      <div className="flex items-center gap-2 whitespace-nowrap">
-        <InitialsAvatar name={item.pipeline_title || 'general'} />
-        <span 
-          className="text-sm"
+      </TableCell>
+
+      {/* 任务类型列 */}
+      <TableCell>
+        <span
+          className="whitespace-nowrap text-sm"
           style={{ color: 'var(--color-text-primary)' }}
         >
-          {item.pipeline_title === 'naive' ? 'general' : item.pipeline_title || '-'}
+          {item.task_type || '-'}
         </span>
-      </div>
-    </TableCell>
-    
-    {/* 开始时间列 */}
-    <TableCell>
-      <span 
-        className="text-sm whitespace-nowrap"
-        style={{ color: 'var(--color-text-secondary)' }}
-      >
-        {formatDate(item.process_begin_at || null)}
-      </span>
-    </TableCell>
-    
-    {/* 任务类型列 */}
-    <TableCell>
-      <span 
-        className="text-sm whitespace-nowrap"
-        style={{ color: 'var(--color-text-primary)' }}
-      >
-        {item.task_type || '-'}
-      </span>
-    </TableCell>
-    
-    {/* 状态列 */}
-    <TableCell>
-      <FileStatusBadge
-        status={item.operation_status as RunningStatus}
-        name={RunningStatusMap[item.operation_status as RunningStatus]}
-      />
-    </TableCell>
-    
-    {/* 操作列 */}
-    <TableCell>
-      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-        <Tooltip content="查看详情">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={() => onViewDetail(item)}
-          >
-            <Eye className="h-4 w-4" />
-          </Button>
-        </Tooltip>
-      </div>
-    </TableCell>
-  </TableRow>
-)
+      </TableCell>
+
+      {/* 状态列 */}
+      <TableCell>
+        <FileStatusBadge status={item.operation_status as RunningStatus} />
+      </TableCell>
+
+      {/* 操作列 */}
+      <TableCell>
+        <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+          <Tooltip content={t('knowledge.logs.table.viewDetail')}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => onViewDetail(item)}
+            >
+              <Eye className="h-4 w-4" />
+            </Button>
+          </Tooltip>
+        </div>
+      </TableCell>
+    </TableRow>
+  )
+}
 
 /**
  * 数据集日志表格行
@@ -303,66 +321,73 @@ const FileLogRow: React.FC<{
 const DatasetLogRow: React.FC<{
   item: LogTableItem
   onViewDetail: (item: LogTableItem) => void
-}> = ({ item, onViewDetail }) => (
-  <TableRow 
-    className="group transition-colors"
-    style={{ '--hover-bg': 'var(--color-background-subtle)' } as React.CSSProperties}
-  >
-    {/* ID列 - 显示完整ID */}
-    <TableCell>
-      <span 
-        className="text-xs font-mono whitespace-nowrap"
-        style={{ color: 'var(--color-text-tertiary)' }}
-      >
-        {item.id || '-'}
-      </span>
-    </TableCell>
-    
-    {/* 开始时间列 */}
-    <TableCell>
-      <span 
-        className="text-sm whitespace-nowrap"
-        style={{ color: 'var(--color-text-secondary)' }}
-      >
-        {formatDate(item.process_begin_at || null)}
-      </span>
-    </TableCell>
-    
-    {/* 处理类型列 */}
-    <TableCell>
-      <span 
-        className="text-sm whitespace-nowrap"
-        style={{ color: 'var(--color-text-primary)' }}
-      >
-        {ProcessingTypeMap[item.task_type as ProcessingType] || item.task_type || '-'}
-      </span>
-    </TableCell>
-    
-    {/* 状态列 */}
-    <TableCell>
-      <FileStatusBadge
-        status={item.operation_status as RunningStatus}
-        name={RunningStatusMap[item.operation_status as RunningStatus]}
-      />
-    </TableCell>
-    
-    {/* 操作列 */}
-    <TableCell>
-      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-        <Tooltip content="查看详情">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={() => onViewDetail(item)}
-          >
-            <Eye className="h-4 w-4" />
-          </Button>
-        </Tooltip>
-      </div>
-    </TableCell>
-  </TableRow>
-)
+}> = ({ item, onViewDetail }) => {
+  const { t } = useTranslation()
+  const taskType = item.task_type as ProcessingType
+  return (
+    <TableRow
+      className="group transition-colors"
+      style={
+        {
+          '--hover-bg': 'var(--color-background-subtle)',
+        } as React.CSSProperties
+      }
+    >
+      {/* ID列 - 显示完整ID */}
+      <TableCell>
+        <span
+          className="whitespace-nowrap font-mono text-xs"
+          style={{ color: 'var(--color-text-tertiary)' }}
+        >
+          {item.id || '-'}
+        </span>
+      </TableCell>
+
+      {/* 开始时间列 */}
+      <TableCell>
+        <span
+          className="whitespace-nowrap text-sm"
+          style={{ color: 'var(--color-text-secondary)' }}
+        >
+          {formatDate(item.process_begin_at || null)}
+        </span>
+      </TableCell>
+
+      {/* 处理类型列 */}
+      <TableCell>
+        <span
+          className="whitespace-nowrap text-sm"
+          style={{ color: 'var(--color-text-primary)' }}
+        >
+          {ProcessingTypeI18nKey[taskType]
+            ? t(ProcessingTypeI18nKey[taskType])
+            : item.task_type || '-'}
+        </span>
+      </TableCell>
+
+      {/* 状态列 */}
+      <TableCell>
+        <FileStatusBadge status={item.operation_status as RunningStatus} />
+      </TableCell>
+
+      {/* 操作列 */}
+      <TableCell>
+        <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+          <Tooltip content={t('knowledge.logs.table.viewDetail')}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => onViewDetail(item)}
+            >
+              <Eye className="h-4 w-4" />
+            </Button>
+          </Tooltip>
+        </div>
+      </TableCell>
+    </TableRow>
+  )
+}
 
 /**
  * 日志表格组件
@@ -375,6 +400,7 @@ const LogTable: React.FC<LogTableProps> = ({
   onPaginationChange,
   onViewDetail,
 }) => {
+  const { t } = useTranslation()
   if (isLoading) {
     return <TableSkeleton />
   }
@@ -387,8 +413,8 @@ const LogTable: React.FC<LogTableProps> = ({
 
   return (
     <div className="space-y-4">
-      <div 
-        className="rounded-lg overflow-hidden"
+      <div
+        className="overflow-hidden rounded-lg"
         style={{
           borderWidth: '1px',
           borderColor: 'var(--color-border-default)',
@@ -396,71 +422,81 @@ const LogTable: React.FC<LogTableProps> = ({
       >
         <Table>
           <TableHeader>
-            <TableRow 
+            <TableRow
               style={{ backgroundColor: 'var(--color-background-subtle)' }}
             >
-              <TableHead 
-                className="font-medium whitespace-nowrap"
+              <TableHead
+                className="whitespace-nowrap font-medium"
                 style={{ color: 'var(--color-text-secondary)' }}
               >
                 ID
               </TableHead>
               {isFileLogs && (
                 <>
-                  <TableHead 
+                  <TableHead
                     className="font-medium"
                     style={{ color: 'var(--color-text-secondary)' }}
                   >
-                    文件名
+                    {t('knowledge.logs.table.fileName')}
                   </TableHead>
-                  <TableHead 
-                    className="font-medium whitespace-nowrap"
+                  <TableHead
+                    className="whitespace-nowrap font-medium"
                     style={{ color: 'var(--color-text-secondary)' }}
                   >
-                    来源
+                    {t('knowledge.logs.table.source')}
                   </TableHead>
-                  <TableHead 
-                    className="font-medium whitespace-nowrap"
+                  <TableHead
+                    className="whitespace-nowrap font-medium"
                     style={{ color: 'var(--color-text-secondary)' }}
                   >
-                    数据管道
+                    {t('knowledge.logs.table.pipeline')}
                   </TableHead>
                 </>
               )}
-              <TableHead 
-                className="font-medium whitespace-nowrap"
+              <TableHead
+                className="whitespace-nowrap font-medium"
                 style={{ color: 'var(--color-text-secondary)' }}
               >
-                开始时间
+                {t('knowledge.logs.table.startTime')}
               </TableHead>
-              <TableHead 
-                className="font-medium whitespace-nowrap"
+              <TableHead
+                className="whitespace-nowrap font-medium"
                 style={{ color: 'var(--color-text-secondary)' }}
               >
-                {isFileLogs ? '任务类型' : '处理类型'}
+                {isFileLogs
+                  ? t('knowledge.logs.table.taskType')
+                  : t('knowledge.logs.table.processingType')}
               </TableHead>
-              <TableHead 
-                className="font-medium whitespace-nowrap"
+              <TableHead
+                className="whitespace-nowrap font-medium"
                 style={{ color: 'var(--color-text-secondary)' }}
               >
-                状态
+                {t('knowledge.logs.table.status')}
               </TableHead>
-              <TableHead 
-                className="font-medium whitespace-nowrap"
+              <TableHead
+                className="whitespace-nowrap font-medium"
                 style={{ color: 'var(--color-text-secondary)' }}
               >
-                操作
+                {t('knowledge.logs.table.actions')}
               </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {data.map((item) => (
+            {data.map((item) =>
               isFileLogs ? (
-                <FileLogRow key={item.id} item={item} onViewDetail={onViewDetail} />
+                <FileLogRow
+                  key={item.id}
+                  item={item}
+                  onViewDetail={onViewDetail}
+                />
               ) : (
-                <DatasetLogRow key={item.id} item={item} onViewDetail={onViewDetail} />
-              )
-            ))}
+                <DatasetLogRow
+                  key={item.id}
+                  item={item}
+                  onViewDetail={onViewDetail}
+                />
+              ),
+            )}
           </TableBody>
         </Table>
       </div>

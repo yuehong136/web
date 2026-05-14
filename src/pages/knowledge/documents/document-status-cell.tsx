@@ -3,6 +3,7 @@
  */
 
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import { X, CheckCircle, XCircle } from 'lucide-react'
 import { Tooltip } from '@/components/ui'
 import { Switch } from '@/components/ui/switch'
@@ -18,6 +19,7 @@ export const DocumentStatusCell: React.FC<DocumentStatusCellProps> = ({
   document,
   onShowLog,
 }) => {
+  const { t } = useTranslation()
   const { run, progress } = document
 
   // 点击处理
@@ -31,7 +33,7 @@ export const DocumentStatusCell: React.FC<DocumentStatusCellProps> = ({
     return (
       <div className="inline-flex items-center gap-2">
         <div
-          className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-full"
+          className="inline-flex items-center gap-2 rounded-full px-2.5 py-1.5"
           style={{
             background: 'var(--color-components-task-status-running-bg)',
             border:
@@ -41,14 +43,14 @@ export const DocumentStatusCell: React.FC<DocumentStatusCellProps> = ({
           {/* 脉冲动画点 */}
           <span className="relative flex h-2 w-2">
             <span
-              className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+              className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75"
               style={{
                 backgroundColor:
                   'var(--color-components-task-status-running-dot)',
               }}
             />
             <span
-              className="relative inline-flex rounded-full h-2 w-2"
+              className="relative inline-flex h-2 w-2 rounded-full"
               style={{
                 backgroundColor:
                   'var(--color-components-task-status-running-dot)',
@@ -57,7 +59,7 @@ export const DocumentStatusCell: React.FC<DocumentStatusCellProps> = ({
           </span>
           {/* 进度条 */}
           <div
-            className="relative w-16 h-1.5 rounded-full overflow-hidden"
+            className="relative h-1.5 w-16 overflow-hidden rounded-full"
             style={{
               background:
                 'var(--color-components-task-status-running-progress-bg)',
@@ -73,7 +75,7 @@ export const DocumentStatusCell: React.FC<DocumentStatusCellProps> = ({
             />
             {/* 光晕效果 */}
             <div
-              className="absolute inset-y-0 left-0 rounded-full blur-sm opacity-50 transition-all duration-300"
+              className="absolute inset-y-0 left-0 rounded-full opacity-50 blur-sm transition-all duration-300"
               style={{
                 width: `${progressPercent}%`,
                 background:
@@ -84,18 +86,21 @@ export const DocumentStatusCell: React.FC<DocumentStatusCellProps> = ({
           {/* 百分比 */}
           <span
             className="text-xs font-medium tabular-nums"
-            style={{ color: 'var(--color-components-task-status-running-text)' }}
+            style={{
+              color: 'var(--color-components-task-status-running-text)',
+            }}
           >
             {progressPercent}%
           </span>
         </div>
         {/* 查看详情按钮 - 小圆点 */}
-        <Tooltip content="查看详情">
+        <Tooltip content={t('knowledge.documents.actions.viewDetail')}>
           <button
             onClick={handleClick}
-            className="w-2 h-2 rounded-full transition-all hover:scale-150 cursor-pointer"
+            className="h-2 w-2 cursor-pointer rounded-full transition-all hover:scale-150"
             style={{
-              backgroundColor: 'var(--color-components-task-status-running-dot)',
+              backgroundColor:
+                'var(--color-components-task-status-running-dot)',
             }}
           />
         </Tooltip>
@@ -104,7 +109,8 @@ export const DocumentStatusCell: React.FC<DocumentStatusCellProps> = ({
   }
 
   // 其他状态
-  const statusConfig = TaskStatusConfig[run as TaskStatus] || TaskStatusConfig[TaskStatus.UNSTART]
+  const statusConfig =
+    TaskStatusConfig[run as TaskStatus] || TaskStatusConfig[TaskStatus.UNSTART]
 
   // 状态图标
   const getStatusIcon = () => {
@@ -128,7 +134,7 @@ export const DocumentStatusCell: React.FC<DocumentStatusCellProps> = ({
   return (
     <div className="inline-flex items-center gap-2">
       <span
-        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium"
+        className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium"
         style={{
           backgroundColor: statusConfig.bgToken,
           border: `1px solid ${statusConfig.borderToken}`,
@@ -136,13 +142,13 @@ export const DocumentStatusCell: React.FC<DocumentStatusCellProps> = ({
         }}
       >
         {getStatusIcon()}
-        {statusConfig.text}
+        {t(statusConfig.textKey)}
       </span>
       {/* 查看详情按钮 - 小圆点，颜色与状态一致 */}
-      <Tooltip content="查看详情">
+      <Tooltip content={t('knowledge.documents.actions.viewDetail')}>
         <button
           onClick={handleClick}
-          className="w-2 h-2 rounded-full transition-all hover:scale-150 cursor-pointer"
+          className="h-2 w-2 cursor-pointer rounded-full transition-all hover:scale-150"
           style={{
             backgroundColor: statusConfig.dotToken,
           }}
@@ -167,6 +173,7 @@ export const DocumentMetadataCell: React.FC<DocumentMetadataCellProps> = ({
   hasMetadataEnabled = false,
   onClickReparse,
 }) => {
+  const { t } = useTranslation()
   const hasMetadata =
     document.meta_fields && Object.keys(document.meta_fields).length > 0
   const metadataCount = hasMetadata
@@ -179,13 +186,15 @@ export const DocumentMetadataCell: React.FC<DocumentMetadataCellProps> = ({
         content={
           <div className="max-w-xs">
             <div
-              className="font-medium mb-1"
+              className="mb-1 font-medium"
               style={{ color: 'var(--color-text-primary)' }}
             >
-              已配置 {metadataCount} 个字段
+              {t('knowledge.documents.metadataCell.configured', {
+                count: metadataCount,
+              })}
             </div>
             <div
-              className="text-xs space-y-0.5"
+              className="space-y-0.5 text-xs"
               style={{ color: 'var(--color-text-secondary)' }}
             >
               {Object.entries(document.meta_fields!)
@@ -197,16 +206,18 @@ export const DocumentMetadataCell: React.FC<DocumentMetadataCellProps> = ({
                 ))}
               {metadataCount > 5 && (
                 <div className="text-text-tertiary">
-                  ... 还有 {metadataCount - 5} 个
+                  {t('knowledge.documents.metadataCell.moreFields', {
+                    count: metadataCount - 5,
+                  })}
                 </div>
               )}
             </div>
           </div>
         }
       >
-        <div className="flex items-center gap-1 cursor-help">
+        <div className="flex cursor-help items-center gap-1">
           <div
-            className="w-2 h-2 rounded-full"
+            className="h-2 w-2 rounded-full"
             style={{ backgroundColor: 'var(--color-state-success)' }}
           />
           <span
@@ -225,8 +236,8 @@ export const DocumentMetadataCell: React.FC<DocumentMetadataCellProps> = ({
     <Tooltip
       content={
         hasMetadataEnabled
-          ? '点击重新解析以提取元数据'
-          : '未配置元数据'
+          ? t('knowledge.documents.metadataCell.reparseTip')
+          : t('knowledge.documents.metadataCell.notConfigured')
       }
     >
       <div
@@ -234,14 +245,14 @@ export const DocumentMetadataCell: React.FC<DocumentMetadataCellProps> = ({
         onClick={hasMetadataEnabled ? onClickReparse : undefined}
       >
         <div
-          className="w-2 h-2 rounded-full"
+          className="h-2 w-2 rounded-full"
           style={{ backgroundColor: 'var(--color-state-warning)' }}
         />
         <span
           className="text-xs"
           style={{ color: 'var(--color-text-tertiary)' }}
         >
-          无
+          {t('knowledge.documents.metadataCell.none')}
         </span>
       </div>
     </Tooltip>
@@ -261,15 +272,18 @@ export const DocumentEnableSwitch: React.FC<DocumentEnableSwitchProps> = ({
   document,
   onToggle,
 }) => {
+  const { t } = useTranslation()
   const isEnabled = document.status === '1'
 
   return (
-    <Tooltip content={isEnabled ? '点击禁用文档' : '点击启用文档'}>
-      <Switch
-        size="sm"
-        checked={isEnabled}
-        onCheckedChange={onToggle}
-      />
+    <Tooltip
+      content={
+        isEnabled
+          ? t('knowledge.documents.actions.disableDocument')
+          : t('knowledge.documents.actions.enableDocument')
+      }
+    >
+      <Switch size="sm" checked={isEnabled} onCheckedChange={onToggle} />
     </Tooltip>
   )
 }

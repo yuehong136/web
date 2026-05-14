@@ -1,6 +1,10 @@
 import React, { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Zap, AlertCircle, X } from 'lucide-react'
-import { SelectWithSearch, type SelectOptionGroup } from '@/components/ui/select-with-search'
+import {
+  SelectWithSearch,
+  type SelectOptionGroup,
+} from '@/components/ui/select-with-search'
 import { FormTooltip } from '@/components/ui/tooltip'
 import { IconFontFill } from '@/components/ui/icon-font'
 import { IconMap, LLMFactory } from '@/stores/model'
@@ -43,21 +47,21 @@ const formatTokens = (tokens: number | undefined) => {
 }
 
 // 带图标的模型选项 Label
-const ModelOptionLabel: React.FC<{ 
+const ModelOptionLabel: React.FC<{
   provider: string
   modelName: string
   maxTokens?: number
 }> = ({ provider, modelName, maxTokens }) => {
   const isDark = useIsDarkTheme()
   const iconName = getIconName(provider, isDark)
-  
+
   return (
-    <div className="flex items-center gap-2 min-w-0 w-full">
-      <IconFontFill name={iconName} className="w-4 h-4 shrink-0" />
-      <div className="flex-1 min-w-0">
-        <span className="truncate block">{modelName}</span>
+    <div className="flex w-full min-w-0 items-center gap-2">
+      <IconFontFill name={iconName} className="h-4 w-4 shrink-0" />
+      <div className="min-w-0 flex-1">
+        <span className="block truncate">{modelName}</span>
       </div>
-      <div className="flex items-center gap-1 shrink-0 text-text-tertiary text-xs">
+      <div className="flex shrink-0 items-center gap-1 text-xs text-text-tertiary">
         <Zap className="h-3 w-3 text-success" />
         <span>{formatTokens(maxTokens)}</span>
       </div>
@@ -66,34 +70,38 @@ const ModelOptionLabel: React.FC<{
 }
 
 // 不使用重排序选项 Label
-const NoRerankLabel: React.FC = () => (
-  <div className="flex items-center gap-2 min-w-0 w-full text-text-secondary">
-    <X className="w-4 h-4 shrink-0" />
-    <span>不使用重排序</span>
-  </div>
-)
+const NoRerankLabel: React.FC = () => {
+  const { t } = useTranslation()
+  return (
+    <div className="flex w-full min-w-0 items-center gap-2 text-text-secondary">
+      <X className="h-4 w-4 shrink-0" />
+      <span>{t('knowledge.search.rerank.none')}</span>
+    </div>
+  )
+}
 
 export const RerankModelSelector: React.FC<RerankModelSelectorProps> = ({
   models,
   selectedModelId,
   onSelect,
   loading = false,
-  error
+  error,
 }) => {
+  const { t } = useTranslation()
   // 按厂商分组选项，并添加"不使用重排序"选项
   const groupedOptions = useMemo((): SelectOptionGroup[] => {
     const result: SelectOptionGroup[] = []
-    
+
     // 添加"不使用重排序"选项
     result.push({
       label: <NoRerankLabel />,
       value: NO_RERANK_VALUE,
     })
-    
+
     // 按厂商分组
     const groups: Record<string, LLMModel[]> = {}
-    models.forEach(model => {
-      const provider = model.fid || '其他'
+    models.forEach((model) => {
+      const provider = model.fid || t('knowledge.search.rerank.providerOther')
       if (!groups[provider]) {
         groups[provider] = []
       }
@@ -103,21 +111,21 @@ export const RerankModelSelector: React.FC<RerankModelSelectorProps> = ({
     Object.entries(groups).forEach(([provider, providerModels]) => {
       result.push({
         label: provider,
-        options: providerModels.map(model => ({
+        options: providerModels.map((model) => ({
           label: (
-            <ModelOptionLabel 
-              provider={provider} 
-              modelName={model.llm_name} 
+            <ModelOptionLabel
+              provider={provider}
+              modelName={model.llm_name}
               maxTokens={model.max_tokens}
             />
           ),
-          value: model.llm_name
-        }))
+          value: model.llm_name,
+        })),
       })
     })
 
     return result
-  }, [models])
+  }, [models, t])
 
   // 处理值转换（null <-> NO_RERANK_VALUE）
   const handleChange = (value: string) => {
@@ -129,18 +137,25 @@ export const RerankModelSelector: React.FC<RerankModelSelectorProps> = ({
   }
 
   // 当前值（null 转为 NO_RERANK_VALUE）
-  const currentValue = selectedModelId === null ? NO_RERANK_VALUE : (selectedModelId || '')
+  const currentValue =
+    selectedModelId === null ? NO_RERANK_VALUE : selectedModelId || ''
 
   if (loading) {
     return (
       <div className="space-y-2">
-        <label className="block text-xs font-medium text-text-primary">重排序模型</label>
-        <div className="w-full px-3 py-2 border border-border rounded-md bg-surface-secondary flex items-center h-10">
+        <label className="block text-xs font-medium text-text-primary">
+          {t('knowledge.search.rerank.label')}
+        </label>
+        <div className="bg-surface-secondary flex h-10 w-full items-center rounded-md border border-border px-3 py-2">
           <div
-            className="animate-spin rounded-full h-3 w-3 border-b-2"
-            style={{ borderBottomColor: 'var(--color-components-slider-range)' }}
+            className="h-3 w-3 animate-spin rounded-full border-b-2"
+            style={{
+              borderBottomColor: 'var(--color-components-slider-range)',
+            }}
           />
-          <span className="ml-2 text-text-tertiary text-xs">加载重排序模型中...</span>
+          <span className="ml-2 text-xs text-text-tertiary">
+            {t('knowledge.search.rerank.loading')}
+          </span>
         </div>
       </div>
     )
@@ -149,10 +164,12 @@ export const RerankModelSelector: React.FC<RerankModelSelectorProps> = ({
   if (error) {
     return (
       <div className="space-y-2">
-        <label className="block text-xs font-medium text-text-primary">重排序模型</label>
-        <div className="w-full px-3 py-2 border border-error rounded-md bg-error/10 flex items-center h-10">
+        <label className="block text-xs font-medium text-text-primary">
+          {t('knowledge.search.rerank.label')}
+        </label>
+        <div className="bg-error/10 flex h-10 w-full items-center rounded-md border border-error px-3 py-2">
           <AlertCircle className="h-3 w-3 text-error" />
-          <span className="ml-2 text-error text-xs">{error}</span>
+          <span className="ml-2 text-xs text-error">{error}</span>
         </div>
       </div>
     )
@@ -160,17 +177,19 @@ export const RerankModelSelector: React.FC<RerankModelSelectorProps> = ({
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center mb-1">
-        <label className="block text-xs font-medium text-text-primary">重排序模型</label>
-        <FormTooltip tooltip="可选。用于对初始检索结果进行重新排序，提高结果质量" />
+      <div className="mb-1 flex items-center">
+        <label className="block text-xs font-medium text-text-primary">
+          {t('knowledge.search.rerank.label')}
+        </label>
+        <FormTooltip tooltip={t('knowledge.search.rerank.tooltip')} />
       </div>
-      
+
       <SelectWithSearch
         value={currentValue}
         options={groupedOptions}
         onChange={handleChange}
-        placeholder="选择重排序模型"
-        emptyText="未找到匹配的重排序模型"
+        placeholder={t('knowledge.search.rerank.placeholder')}
+        emptyText={t('knowledge.search.rerank.empty')}
         triggerClassName="h-10"
       />
     </div>

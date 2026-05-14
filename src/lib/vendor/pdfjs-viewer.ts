@@ -7,7 +7,6 @@
 // `pdfjs-dist/legacy/web/pdf_viewer` here, but lets this file's own import of the
 // same specifier fall through to Vite's optimizeDeps pipeline — which produces an
 // ESM module with a usable `default` export.
-// @ts-expect-error — pdfjs-dist 2.x ships no types for the legacy viewer subpath.
 import pdfViewer from 'pdfjs-dist/legacy/web/pdf_viewer'
 
 const viewer =

@@ -6,15 +6,15 @@ import {
 } from '@/components/forms/KnowledgeFormFields'
 import {
   ConfigurationFormContainer,
+  EnhancementSectionTitle,
   MainContainer,
-  SectionTitle,
 } from '../configuration-form-container'
 
 export function AudioConfiguration() {
   return (
     <MainContainer>
       <ConfigurationFormContainer>
-        <SectionTitle>智能增强</SectionTitle>
+        <EnhancementSectionTitle />
         <AutoKeywordsFormField />
         <AutoQuestionsFormField />
       </ConfigurationFormContainer>

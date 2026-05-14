@@ -6,6 +6,7 @@
  */
 
 import React, { memo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { ExternalLink } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui'
@@ -30,7 +31,10 @@ interface TaskDockProps {
 }
 
 function needsAttention(status: GenerateTaskStatus) {
-  return status === GenerateTaskStatus.Running || status === GenerateTaskStatus.Failed
+  return (
+    status === GenerateTaskStatus.Running ||
+    status === GenerateTaskStatus.Failed
+  )
 }
 
 const TaskDockComponent: React.FC<TaskDockProps> = ({
@@ -45,6 +49,7 @@ const TaskDockComponent: React.FC<TaskDockProps> = ({
   onPause,
   onDelete,
 }) => {
+  const { t } = useTranslation()
   const navigate = useNavigate()
 
   const items = [
@@ -56,18 +61,18 @@ const TaskDockComponent: React.FC<TaskDockProps> = ({
 
   return (
     <div
-      className="rounded-lg mb-4 p-4"
+      className="mb-4 rounded-lg p-4"
       style={{
         backgroundColor: 'var(--color-background-surface)',
         border: '1px solid var(--color-border-default)',
       }}
     >
-      <div className="flex items-center justify-between mb-3">
+      <div className="mb-3 flex items-center justify-between">
         <h4
           className="text-sm font-medium"
           style={{ color: 'var(--color-text-primary)' }}
         >
-          生成任务
+          {t('knowledge.documents.generate.tasksTitle')}
         </h4>
         <Button
           variant="ghost"
@@ -75,12 +80,14 @@ const TaskDockComponent: React.FC<TaskDockProps> = ({
           className="h-7 text-xs"
           onClick={() => navigate(`/knowledge/${kbId}/logs`)}
         >
-          <ExternalLink className="h-3 w-3 mr-1" />
-          查看日志
+          <ExternalLink className="mr-1 h-3 w-3" />
+          {t('knowledge.documents.generate.viewLogs')}
         </Button>
       </div>
 
-      <div className={`grid gap-3 ${items.length > 1 ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'}`}>
+      <div
+        className={`grid gap-3 ${items.length > 1 ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'}`}
+      >
         {items.map((item) => (
           <TaskItem
             key={item.type}

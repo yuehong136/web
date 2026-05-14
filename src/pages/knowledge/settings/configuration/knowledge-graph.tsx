@@ -6,15 +6,15 @@ import {
 } from '@/components/forms/KnowledgeFormFields'
 import {
   ConfigurationFormContainer,
+  BasicSectionTitle,
   MainContainer,
-  SectionTitle,
 } from '../configuration-form-container'
 
 export function KnowledgeGraphConfiguration() {
   return (
     <MainContainer>
       <ConfigurationFormContainer>
-        <SectionTitle>基础配置</SectionTitle>
+        <BasicSectionTitle />
         <MaxTokenNumberFormField max={16384} />
         <DelimiterFormField />
       </ConfigurationFormContainer>

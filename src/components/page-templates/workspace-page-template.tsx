@@ -15,9 +15,20 @@ export const WorkspacePageTemplate: React.FC<WorkspacePageTemplateProps> = ({
   ...props
 }) => {
   return (
-    <div className={cn('flex h-screen min-h-0 flex-col bg-components-workspace-bg', className)} {...props}>
+    <div
+      className={cn(
+        'flex h-dvh min-h-0 flex-col bg-components-workspace-bg',
+        className,
+      )}
+      {...props}
+    >
       {header}
-      <div className="flex-1 min-h-0 overflow-auto">{children}</div>
+      <div
+        data-scroll-root="workspace-body"
+        className="scroll-area min-h-0 flex-1 overflow-auto"
+      >
+        {children}
+      </div>
       {footer}
     </div>
   )
