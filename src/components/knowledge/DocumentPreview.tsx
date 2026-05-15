@@ -36,17 +36,24 @@ import {
   Popup,
 } from 'react-pdf-highlighter'
 import type { IHighlight } from 'react-pdf-highlighter'
+// v8 ships CSS as a separate file; the JS entry no longer side-effect imports
+// it. Without this, the internal PDFViewer container isn't absolutely
+// positioned and pdfjs-dist 4.x throws "container must be absolutely
+// positioned" at runtime.
+import 'react-pdf-highlighter/dist/style.css'
 import { v4 as uuid } from 'uuid'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import mammoth from 'mammoth'
 import Papa from 'papaparse'
 
-// 扩展 PdfLoader props 类型，添加 httpHeaders 支持（参考 ragflow）
-type PdfLoaderProps = React.ComponentProps<typeof PdfLoader> & {
-  httpHeaders?: Record<string, string>
-}
-const Loader = PdfLoader as React.ComponentType<PdfLoaderProps>
+// Vite hashes the worker URL at build time and serves it from the dev server in
+// dev, so we never ship the worker by hand. pdfjs-dist 4.x exposes the ESM
+// worker as `pdf.worker.min.mjs`.
+const pdfWorkerSrc = new URL(
+  'pdfjs-dist/build/pdf.worker.min.mjs',
+  import.meta.url,
+).toString()
 
 // 文件类型枚举
 type FileType =
@@ -284,6 +291,125 @@ const ErrorState: React.FC<{
 )
 
 // ==================== PDF 预览组件 ====================
+
+// PdfBody renders the highlighter for a loaded pdfDocument.
+//
+// Critical: PdfHighlighter@8 runs its viewer setup in an async `init()` that
+// dereferences `this.viewer` inside `componentDidUpdate`'s `renderHighlightLayers`
+// path. If the `highlights` prop reference changes between mount and the moment
+// `init()`'s `await import(...)` resolves, React fires componentDidUpdate while
+// `this.viewer` is still undefined and the lib throws
+// `Cannot read properties of undefined (reading 'getPageView')`.
+//
+// To avoid that race we wait until `pageSize` is measured before mounting
+// PdfHighlighter at all. That way the first highlights prop is also the final
+// one, no componentDidUpdate runs from a highlights-identity change, and we
+// dodge the lib's missing null check.
+type PdfDocument = Parameters<
+  React.ComponentProps<typeof PdfLoader>['children']
+>[0]
+
+const PdfBody: React.FC<{
+  pdfDocument: PdfDocument
+  rawHighlights?: RawHighlight[]
+}> = ({ pdfDocument, rawHighlights }) => {
+  const [pageSize, setPageSize] = useState<{
+    width: number
+    height: number
+  } | null>(null)
+  const scrollToRef = useRef<(highlight: IHighlight) => void>(() => {})
+
+  useEffect(() => {
+    let cancelled = false
+    setPageSize(null)
+    pdfDocument
+      .getPage(1)
+      .then((page) => {
+        if (cancelled) return
+        const viewport = page.getViewport({ scale: 1 })
+        setPageSize({ width: viewport.width, height: viewport.height })
+      })
+      .catch(() => {
+        if (cancelled) return
+        // Fallback to a sensible default so the viewer can still mount.
+        setPageSize({ width: 849, height: 1200 })
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [pdfDocument])
+
+  const highlights = useMemo(
+    () => (pageSize ? buildPdfHighlights(rawHighlights, pageSize) : []),
+    [rawHighlights, pageSize],
+  )
+
+  useEffect(() => {
+    if (highlights.length === 0) return undefined
+    const timeoutId = setTimeout(() => {
+      try {
+        scrollToRef.current?.(highlights[0])
+      } catch (err) {
+        console.warn('[PDF] Failed to scroll to highlight:', err)
+      }
+    }, 100)
+    return () => clearTimeout(timeoutId)
+  }, [highlights])
+
+  if (!pageSize) {
+    return <LoadingState message="渲染 PDF 中..." />
+  }
+
+  return (
+    <PdfHighlighter
+      pdfDocument={pdfDocument}
+      enableAreaSelection={(event) => event.altKey}
+      onScrollChange={() => {}}
+      scrollRef={(scrollTo) => {
+        scrollToRef.current = scrollTo
+      }}
+      onSelectionFinished={() => null}
+      highlightTransform={(
+        highlight,
+        index,
+        setTip,
+        hideTip,
+        _viewportToScaled,
+        _screenshot,
+        isScrolledTo,
+      ) => {
+        const isTextHighlight = !(highlight.content && highlight.content.image)
+        const component = isTextHighlight ? (
+          <Highlight
+            isScrolledTo={isScrolledTo}
+            position={highlight.position}
+            comment={highlight.comment}
+          />
+        ) : (
+          <AreaHighlight
+            isScrolledTo={isScrolledTo}
+            highlight={highlight}
+            onChange={() => {}}
+          />
+        )
+        return (
+          <Popup
+            popupContent={<HighlightPopup {...highlight} />}
+            onMouseOver={(popupContent) =>
+              setTip(highlight, () => popupContent)
+            }
+            onMouseOut={hideTip}
+            key={index}
+          >
+            {component}
+          </Popup>
+        )
+      }}
+      highlights={highlights}
+    />
+  )
+}
+
 const PdfPreviewInner: React.FC<{
   url: string
   highlights?: RawHighlight[]
@@ -291,8 +417,6 @@ const PdfPreviewInner: React.FC<{
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [blobUrl, setBlobUrl] = useState<string | null>(null)
-  const [pageSize, setPageSize] = useState({ width: 849, height: 1200 })
-  const scrollToRef = useRef<(highlight: IHighlight) => void>(() => {})
   const blobUrlRef = useRef<string | null>(null)
 
   useEffect(() => {
@@ -365,25 +489,6 @@ const PdfPreviewInner: React.FC<{
     }
   }, [])
 
-  const highlights = useMemo(() => {
-    return buildPdfHighlights(rawHighlights, pageSize)
-  }, [rawHighlights, pageSize])
-
-  useEffect(() => {
-    if (highlights.length > 0) {
-      // 延迟执行滚动，确保 PdfHighlighter 的 viewport 已经准备好
-      const timeoutId = setTimeout(() => {
-        try {
-          scrollToRef.current?.(highlights[0])
-        } catch (err) {
-          console.warn('[PDF] Failed to scroll to highlight:', err)
-        }
-      }, 100)
-      return () => clearTimeout(timeoutId)
-    }
-    return undefined
-  }, [highlights])
-
   if (loading) {
     return <LoadingState message="加载 PDF 中..." />
   }
@@ -401,10 +506,10 @@ const PdfPreviewInner: React.FC<{
 
   return (
     <div className="pdf-highlighter-container relative h-full w-full overflow-hidden">
-      <Loader
+      <PdfLoader
         url={blobUrl}
         beforeLoad={<LoadingState message="渲染 PDF 中..." />}
-        workerSrc="/pdfjs-dist/pdf.worker.min.js"
+        workerSrc={pdfWorkerSrc}
         cMapUrl="/pdfjs-dist/cmaps/"
         cMapPacked={true}
         onError={(err) => {
@@ -419,73 +524,10 @@ const PdfPreviewInner: React.FC<{
           />
         }
       >
-        {(pdfDocument) => {
-          pdfDocument.getPage(1).then((page) => {
-            const viewport = page.getViewport({ scale: 1 })
-            const width = viewport.width
-            const height = viewport.height
-            setPageSize((prev) => {
-              if (prev.height !== height || prev.width !== width) {
-                return { height, width }
-              }
-              return prev
-            })
-          })
-
-          return (
-            <PdfHighlighter
-              pdfDocument={pdfDocument}
-              enableAreaSelection={(event) => event.altKey}
-              onScrollChange={() => {}}
-              scrollRef={(scrollTo) => {
-                scrollToRef.current = scrollTo
-              }}
-              onSelectionFinished={() => null}
-              highlightTransform={(
-                highlight,
-                index,
-                setTip,
-                hideTip,
-                _viewportToScaled,
-                _screenshot,
-                isScrolledTo,
-              ) => {
-                const isTextHighlight = !(
-                  highlight.content && highlight.content.image
-                )
-
-                const component = isTextHighlight ? (
-                  <Highlight
-                    isScrolledTo={isScrolledTo}
-                    position={highlight.position}
-                    comment={highlight.comment}
-                  />
-                ) : (
-                  <AreaHighlight
-                    isScrolledTo={isScrolledTo}
-                    highlight={highlight}
-                    onChange={() => {}}
-                  />
-                )
-
-                return (
-                  <Popup
-                    popupContent={<HighlightPopup {...highlight} />}
-                    onMouseOver={(popupContent) =>
-                      setTip(highlight, () => popupContent)
-                    }
-                    onMouseOut={hideTip}
-                    key={index}
-                  >
-                    {component}
-                  </Popup>
-                )
-              }}
-              highlights={highlights}
-            />
-          )
-        }}
-      </Loader>
+        {(pdfDocument) => (
+          <PdfBody pdfDocument={pdfDocument} rawHighlights={rawHighlights} />
+        )}
+      </PdfLoader>
     </div>
   )
 }

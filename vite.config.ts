@@ -105,36 +105,6 @@ function isAnyPackagePrefix(id: string, packagePrefixes: string[]): boolean {
   )
 }
 
-// pdfjs-dist 2.x's legacy subpaths (`legacy/build/pdf`, `legacy/web/pdf_viewer`)
-// are UMD/AMD webpack bundles. esbuild's CJS analyzer can't statically detect
-// their named exports, so the pre-bundled files only emit
-// `export default require_…();`. react-pdf-highlighter does
-// `import { EventBus, … } from 'pdfjs-dist/legacy/web/pdf_viewer'` and
-// `import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist/legacy/build/pdf'`,
-// which then throw at runtime.
-//
-// This plugin transparently redirects consumers to per-subpath shims that
-// re-export the named members. When a shim itself imports the same specifier,
-// the plugin gets out of the way so Vite's optimizeDeps pipeline can deliver
-// the real (pre-bundled) default-only module.
-function pdfjsShimPlugin(shims: Record<string, string>): Plugin {
-  const shimIds = new Set(
-    Object.values(shims).map((shimPath) => normalizeModuleId(shimPath)),
-  )
-  return {
-    name: 'pdfjs-shim',
-    enforce: 'pre',
-    resolveId(source, importer) {
-      const target = shims[source]
-      if (!target) return null
-      if (importer && shimIds.has(normalizeModuleId(importer))) {
-        return null
-      }
-      return target
-    },
-  }
-}
-
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
@@ -157,16 +127,6 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       monacoStaticAssetsPlugin(),
-      pdfjsShimPlugin({
-        'pdfjs-dist/legacy/web/pdf_viewer': path.resolve(
-          __dirname,
-          './src/lib/vendor/pdfjs-viewer.ts',
-        ),
-        'pdfjs-dist/legacy/build/pdf': path.resolve(
-          __dirname,
-          './src/lib/vendor/pdfjs-build.ts',
-        ),
-      }),
       ...(shouldAnalyze
         ? [
             visualizer({
@@ -228,18 +188,26 @@ export default defineConfig(({ mode }) => {
         'tailwind-merge',
         'class-variance-authority',
         'lucide-react',
-        // Force pre-bundling of the legacy pdfjs-dist subpaths so the shims in
-        // src/lib/vendor/pdfjs-*.ts receive proper ESM modules with `default`
-        // exports. The shims re-export named members back out to consumers
-        // (react-pdf-highlighter), bypassing esbuild's inability to detect
-        // named exports inside the UMD/AMD webpack bundles.
-        'pdfjs-dist/legacy/web/pdf_viewer',
-        'pdfjs-dist/legacy/build/pdf',
+        // Transitive deps of react-pdf-highlighter (excluded below). They are
+        // CJS or CJS-mixed packages that need esbuild's ESM interop wrapper
+        // before the browser can do `import Draggable from 'react-draggable'`.
+        // Without these explicit entries the chain
+        // react-pdf-highlighter → react-rnd → react-draggable / re-resizable
+        // would be served raw and fail with "does not provide an export named
+        // 'default'".
+        'react-rnd',
+        'react-draggable',
+        're-resizable',
       ],
-      // pdfjs-dist's bare entry stays excluded — its worker URL resolution
-      // relies on serving the package raw. The legacy subpaths above are opted
-      // back in explicitly via include.
-      exclude: ['pdfjs-dist'],
+      // react-pdf-highlighter@8.0.0-rc.0 vendors a copy of pdfjs-dist at
+      // dist/node_modules/pdfjs-dist/ and reaches it via a relative dynamic
+      // import (`await import("../../node_modules/pdfjs-dist/web/pdf_viewer.js")`).
+      // Letting Vite pre-bundle the library reparents that relative path to
+      // .vite/deps/, which resolves to the app's pdfjs-dist@4.x — that copy
+      // ships `pdf_viewer.mjs` (not `.js`), so the import 404s and
+      // PdfHighlighter.init throws before assigning `this.viewer`. Serving the
+      // library unbundled keeps the vendored relative path intact.
+      exclude: ['react-pdf-highlighter'],
     },
 
     worker: {
@@ -265,17 +233,6 @@ export default defineConfig(({ mode }) => {
       chunkSizeWarningLimit: 1700,
 
       rolldownOptions: {
-        onLog(level, log, defaultHandler) {
-          const sourceFile =
-            log.id || log.loc?.file || log.frame || log.message || ''
-          if (
-            log.code === 'EVAL' &&
-            sourceFile.includes('node_modules/pdfjs-dist/legacy/build/pdf.js')
-          ) {
-            return
-          }
-          defaultHandler(level, log)
-        },
         output: {
           // Organized output paths
           entryFileNames: 'js/[name]-[hash].js',
