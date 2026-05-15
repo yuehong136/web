@@ -978,6 +978,8 @@ export default {
         title: 'Document information',
         collapsePanel: 'Collapse panel',
         expandPanel: 'Expand information panel',
+        resizePreviewPanel: 'Resize preview panel',
+        resizeInfoPanel: 'Resize information panel',
         selectedChunk: 'Selected chunk',
         editHint: 'Double-click a chunk or click edit to enter edit mode.',
         metadataTitle: 'Metadata',

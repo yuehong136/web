@@ -942,6 +942,8 @@ export default {
         title: '文档信息',
         collapsePanel: '折叠面板',
         expandPanel: '展开信息面板',
+        resizePreviewPanel: '调整预览面板宽度',
+        resizeInfoPanel: '调整信息面板宽度',
         selectedChunk: '已选中分段',
         editHint: '双击分块或点击编辑按钮进入编辑模式',
         metadataTitle: '元数据',

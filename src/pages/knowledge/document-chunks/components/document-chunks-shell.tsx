@@ -2,7 +2,7 @@ import type { MouseEvent, ReactNode } from 'react'
 import { PanelRightOpen } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Button, Tooltip } from '@/components/ui'
-import { DocumentPreview } from '@/components/knowledge/DocumentPreview'
+import { DocumentPreview } from '@/components/knowledge/document-preview'
 import { cn } from '@/lib/utils'
 import type { ChunkData, ChunkListDocument, CSSVarStyle } from '../types'
 
@@ -33,6 +33,8 @@ export const DocumentPreviewPane = ({
   onClose,
   onResizeStart,
 }: DocumentPreviewPaneProps) => {
+  const { t } = useTranslation()
+
   if (!open) return null
 
   return (
@@ -62,6 +64,7 @@ export const DocumentPreviewPane = ({
         </div>
       )}
       <ResizeHandle
+        ariaLabel={t('knowledge.chunks.info.resizePreviewPanel')}
         onMouseDown={(event) => onResizeStart('preview', event.clientX, width)}
       />
     </>
@@ -95,6 +98,7 @@ export const DocumentInfoShell = ({
     <>
       {open && (
         <ResizeHandle
+          ariaLabel={t('knowledge.chunks.info.resizeInfoPanel')}
           onMouseDown={(event) => onResizeStart('info', event.clientX, width)}
         />
       )}
@@ -124,12 +128,16 @@ export const DocumentInfoShell = ({
 }
 
 const ResizeHandle = ({
+  ariaLabel,
   onMouseDown,
 }: {
-  onMouseDown: (event: MouseEvent<HTMLDivElement>) => void
+  ariaLabel: string
+  onMouseDown: (event: MouseEvent<HTMLButtonElement>) => void
 }) => (
-  <div
-    className="hidden w-1 cursor-col-resize bg-transparent hover:bg-border-subtle lg:block"
+  <button
+    type="button"
+    aria-label={ariaLabel}
+    className="hidden w-1 cursor-col-resize appearance-none border-0 bg-transparent p-0 hover:bg-border-subtle lg:block"
     onMouseDown={(event) => {
       event.preventDefault()
       onMouseDown(event)

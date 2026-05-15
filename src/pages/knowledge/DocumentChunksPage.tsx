@@ -122,12 +122,7 @@ const DocumentChunksPage = () => {
   useEffect(() => {
     setPage(1)
     setSelectedChunkIds([])
-  }, [searchKeyword])
-
-  useEffect(() => {
-    setPage(1)
-    setSelectedChunkIds([])
-  }, [filterStatus])
+  }, [filterStatus, searchKeyword])
 
   useEffect(() => {
     setSelectedChunkIds([])
@@ -399,29 +394,23 @@ const DocumentChunksPage = () => {
     })
   }
 
-  const handleBulkEnable = async () => {
+  const mutateSelectedChunksStatus = async (
+    availableInt: number,
+    errorKey: 'bulkEnable' | 'bulkDisable',
+  ) => {
     if (selectedChunkIds.length === 0) return
     try {
       await bulkSwitchChunksMutation.mutateAsync({
         chunkIds: selectedChunkIds,
-        availableInt: 1,
+        availableInt,
       })
     } catch (error) {
-      console.error('Failed to bulk enable chunks:', error)
-      toast.error(t('knowledge.chunks.errors.bulkEnable'))
-    }
-  }
-
-  const handleBulkDisable = async () => {
-    if (selectedChunkIds.length === 0) return
-    try {
-      await bulkSwitchChunksMutation.mutateAsync({
-        chunkIds: selectedChunkIds,
-        availableInt: 0,
-      })
-    } catch (error) {
-      console.error('Failed to bulk disable chunks:', error)
-      toast.error(t('knowledge.chunks.errors.bulkDisable'))
+      console.error('Failed to bulk update chunks:', error)
+      const errorMessageKey =
+        errorKey === 'bulkEnable'
+          ? 'knowledge.chunks.errors.bulkEnable'
+          : 'knowledge.chunks.errors.bulkDisable'
+      toast.error(t(errorMessageKey))
     }
   }
 
@@ -484,8 +473,8 @@ const DocumentChunksPage = () => {
             selectedCount={selectedChunkIds.length}
             hasSelected={hasSelected}
             onSelectAll={handleSelectAll}
-            onBulkEnable={handleBulkEnable}
-            onBulkDisable={handleBulkDisable}
+            onBulkEnable={() => mutateSelectedChunksStatus(1, 'bulkEnable')}
+            onBulkDisable={() => mutateSelectedChunksStatus(0, 'bulkDisable')}
             onBulkDeleteClick={() => setDeleteSelectedConfirmOpen(true)}
             isBulkSwitchPending={bulkSwitchChunksMutation.isPending}
             isDeletePending={deleteChunksMutation.isPending}

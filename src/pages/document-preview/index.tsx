@@ -3,7 +3,7 @@ import { useParams, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, Download, FileText, Loader2 } from 'lucide-react'
 import { Watermark } from 'antd'
 import { Button, Tooltip } from '@/components/ui'
-import { DocumentPreview } from '@/components/knowledge/DocumentPreview'
+import { DocumentPreview } from '@/components/knowledge/document-preview'
 import { API_BASE_URL, API_VERSION, STORAGE_KEYS } from '@/constants'
 import { toast } from '@/lib/toast'
 import { useAuthStore } from '@/stores'
@@ -76,9 +76,9 @@ const DocumentPreviewPage: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex h-full flex-col">
       <div
-        className="flex items-center gap-space-sm px-space-md py-space-sm shrink-0"
+        className="gap-space-sm px-space-md py-space-sm flex shrink-0 items-center"
         style={{
           backgroundColor: 'var(--color-background-surface)',
           borderBottom: '1px solid var(--color-border-default)',
@@ -105,7 +105,7 @@ const DocumentPreviewPage: React.FC = () => {
           style={{ color: 'var(--color-text-secondary)' }}
         />
         <span
-          className="text-sm font-medium truncate flex-1 min-w-0"
+          className="min-w-0 flex-1 truncate text-sm font-medium"
           style={{ color: 'var(--color-text-primary)' }}
           title={docName}
         >
@@ -128,7 +128,7 @@ const DocumentPreviewPage: React.FC = () => {
         </Tooltip>
       </div>
 
-      <Watermark content={watermarkContent} className="flex-1 min-h-0">
+      <Watermark content={watermarkContent} className="min-h-0 flex-1">
         <DocumentPreview
           docId={docId}
           docName={docName}
