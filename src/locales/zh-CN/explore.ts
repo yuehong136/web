@@ -16,6 +16,7 @@ export default {
       settings: '设置',
     },
     sidebar: {
+      navigation: '探索导航',
       discover: '发现',
       loadingApps: '加载应用中...',
       loadFailed: '加载失败',
@@ -85,6 +86,7 @@ export default {
       error: '上传失败，点击重试',
       ready: '已就绪 · {{type}} · {{size}}',
       image: '图片',
+      openPreview: '打开 {{name}} 预览',
     },
     toast: {
       copied: '已复制到剪贴板',

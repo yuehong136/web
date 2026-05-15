@@ -1,11 +1,14 @@
-import React from 'react'
 import {
-  MessageSquare,
-  Search,
-  Plus,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type FC,
+  type ReactNode,
+} from 'react'
+import {
   Sparkles,
-  Edit3,
-  Trash2,
   LayoutGrid,
   AlignCenter,
   Maximize2,
@@ -17,17 +20,16 @@ import {
   Upload,
 } from 'lucide-react'
 import {
-  Conversations,
   Bubble,
   Sender,
   Prompts,
   Welcome,
   Attachments,
+  type AttachmentsProps,
+  type BubbleListProps,
+  type PromptsProps,
 } from '@ant-design/x'
-import type { AttachmentsProps, BubbleListProps } from '@ant-design/x'
-import { ConfigProvider, theme, Modal, Input } from 'antd'
 import type { RcFile } from 'antd/es/upload/interface'
-import type { PromptsProps } from '@ant-design/x'
 import XMarkdown from '@ant-design/x-markdown'
 import { ChatBubbleLoading } from '@/components/chat/ChatBubbleLoading'
 import {
@@ -74,9 +76,6 @@ import {
   defaultChatSettings,
   type ChatSettings,
 } from '@/components/chat/ChatSettingsPanel'
-import { getConversationDateGroup } from '@/utils/conversation-utils'
-
-// 公共工具函数和组件
 import {
   convertReferencesToSup,
   processContentForCarousel,
@@ -90,8 +89,6 @@ import {
   CHAT_TEXT_TYPING,
   shouldUseBubbleTyping,
 } from '@/components/chat/antx-chat-config'
-
-// 新版引用组件
 import { ReferencePanel } from '@/components/chat/ReferencePanel'
 import { ReferenceDetailSheet } from '@/components/chat/ReferenceDetailSheet'
 import { createReferenceMarkerComponent } from '@/components/chat/ReferenceMarker'
@@ -100,40 +97,11 @@ import {
   consumeStreamingAnswerChunk,
   createInitialStreamingAnswerState,
 } from '@/utils/streaming-answer'
-
-// SSE 流解析库（参考 ragflow 最佳实践）
 import { EventSourceParserStream } from 'eventsource-parser/stream'
+import { ExploreSidebar, type ExploreTab } from './components/explore-sidebar'
+import { getExploreAppIcon } from './components/explore-app-icon'
 
 type ExploreAttachment = NonNullable<AttachmentsProps['items']>[number]
-
-// 获取应用图标
-const getAppIcon = (app: any, size: 'sm' | 'md' = 'sm') => {
-  const sizeClass = size === 'md' ? 'h-6 w-6' : 'h-4 w-4'
-
-  if (app?.icon) {
-    const iconSrc =
-      app.icon.startsWith('data:') || app.icon.startsWith('http')
-        ? app.icon
-        : `data:image/png;base64,${app.icon}`
-    return (
-      <img
-        src={iconSrc}
-        alt={app.name}
-        className={`${sizeClass} rounded object-cover`}
-        onError={(e) => {
-          const target = e.currentTarget as HTMLImageElement
-          target.style.display = 'none'
-        }}
-      />
-    )
-  }
-  return (
-    <Sparkles
-      className={sizeClass}
-      style={{ color: 'var(--color-components-button-primary-bg)' }}
-    />
-  )
-}
 
 const isImageAttachment = (file?: UploadedFileInfo) => {
   return !!file?.mime_type?.startsWith('image/')
@@ -171,17 +139,6 @@ const getAttachmentStatusLabel = (file: UploadFile, t: TFunction) => {
   return formatBytes(file.size || 0)
 }
 
-const translateConversationGroup = (group: string, t: TFunction): string => {
-  const keyMap: Record<string, string> = {
-    今天: 'explore.conversations.groups.today',
-    昨天: 'explore.conversations.groups.yesterday',
-    '最近 7 天': 'explore.conversations.groups.last7Days',
-    更早: 'explore.conversations.groups.earlier',
-  }
-
-  return keyMap[group] ? t(keyMap[group]) : group
-}
-
 const toRcFile = (file: File, uid: string): RcFile => {
   const rcFile = file as RcFile
   rcFile.uid = uid
@@ -199,7 +156,33 @@ interface ChatMessageItem {
   files?: UploadedFileInfo[]
 }
 
-export const ExplorePage: React.FC = () => {
+interface ConversationDetailMessage {
+  role?: string
+  content?: string
+  id?: string
+  reference?: {
+    chunks?: ReferenceChunk[]
+  }
+  files?: UploadedFileInfo[]
+}
+
+interface ConversationDetail {
+  id?: string
+  name?: string
+  message?: ConversationDetailMessage[]
+}
+
+const toChatMessageItem = (
+  message: ConversationDetailMessage,
+): ChatMessageItem => ({
+  role: message.role === 'user' ? 'user' : 'assistant',
+  content: message.content ?? '',
+  id: message.id,
+  references: message.reference?.chunks || [],
+  files: Array.isArray(message.files) ? message.files : [],
+})
+
+export const ExplorePage: FC = () => {
   const { t } = useTranslation()
   const { clearChat } = useChatStore()
   const { myLLMs, isLoading: modelsLoading, loadMyLLMs } = useModelStore()
@@ -212,56 +195,56 @@ export const ExplorePage: React.FC = () => {
   } = useDialogApps()
 
   // 状态管理
-  const [activeTab, setActiveTab] = React.useState<
-    'workspace' | 'topics' | 'settings'
-  >('workspace')
-  const [selectedApp, setSelectedApp] = React.useState<string>('')
-  const [mode, setMode] = React.useState<'chat' | 'market'>('chat')
+  const [activeTab, setActiveTab] = useState<ExploreTab>('workspace')
+  const [selectedApp, setSelectedApp] = useState<string>('')
+  const [mode, setMode] = useState<'chat' | 'market'>('chat')
   const [selectedConversationDetail, setSelectedConversationDetail] =
-    React.useState<any>(null)
-  const [activeConversationKey, setActiveConversationKey] = React.useState<
+    useState<ConversationDetail | null>(null)
+  const [activeConversationKey, setActiveConversationKey] = useState<
     string | undefined
   >(undefined)
-  const [, setLoadingConversationDetail] = React.useState(false)
-  const [messages, setMessages] = React.useState<ChatMessageItem[]>([])
-  const [isStreaming, setIsStreaming] = React.useState(false)
-  const [inputValue, setInputValue] = React.useState('')
-  const [selectedModel, setSelectedModel] = React.useState<string | null>(null)
-  const [renamingConversationId, setRenamingConversationId] = React.useState<
+  const [, setLoadingConversationDetail] = useState(false)
+  const [messages, setMessages] = useState<ChatMessageItem[]>([])
+  const [isStreaming, setIsStreaming] = useState(false)
+  const [inputValue, setInputValue] = useState('')
+  const [selectedModel, setSelectedModel] = useState<string | null>(null)
+  const [renamingConversationId, setRenamingConversationId] = useState<
     string | null
   >(null)
-  const [newConversationName, setNewConversationName] = React.useState('')
-  const [chatLayout, setChatLayout] = React.useState<
-    'default' | 'center' | 'full'
-  >('default')
-  const [settingsPanelOpen, setSettingsPanelOpen] = React.useState(false)
+  const [newConversationName, setNewConversationName] = useState('')
+  const [chatLayout, setChatLayout] = useState<'default' | 'center' | 'full'>(
+    'default',
+  )
+  const [settingsPanelOpen, setSettingsPanelOpen] = useState(false)
   const [chatSettings, setChatSettings] =
-    React.useState<ChatSettings>(defaultChatSettings)
+    useState<ChatSettings>(defaultChatSettings)
 
   // 引用详情侧边栏状态
-  const [detailSheetOpen, setDetailSheetOpen] = React.useState(false)
-  const [selectedChunk, setSelectedChunk] =
-    React.useState<ReferenceChunk | null>(null)
-  const [currentMessageReferences, setCurrentMessageReferences] =
-    React.useState<ReferenceChunk[]>([])
+  const [detailSheetOpen, setDetailSheetOpen] = useState(false)
+  const [selectedChunk, setSelectedChunk] = useState<ReferenceChunk | null>(
+    null,
+  )
+  const [currentMessageReferences, setCurrentMessageReferences] = useState<
+    ReferenceChunk[]
+  >([])
 
   // 文件上传面板状态（参考 ragflow）
-  const [headerOpen, setHeaderOpen] = React.useState(false)
+  const [headerOpen, setHeaderOpen] = useState(false)
 
   // 拖拽状态
-  const [isDragging, setIsDragging] = React.useState(false)
-  const dropContainerRef = React.useRef<HTMLDivElement>(null)
-  const dragCounterRef = React.useRef(0)
+  const [isDragging, setIsDragging] = useState(false)
+  const dropContainerRef = useRef<HTMLDivElement>(null)
+  const dragCounterRef = useRef(0)
 
   // 功能开关状态（参考 ragflow）
-  const [enableReasoning, setEnableReasoning] = React.useState(false)
-  const [enableInternet, setEnableInternet] = React.useState(false)
+  const [enableReasoning, setEnableReasoning] = useState(false)
+  const [enableInternet, setEnableInternet] = useState(false)
 
   // 流式输出控制器（用于停止输出）
-  const abortControllerRef = React.useRef<AbortController | null>(null)
+  const abortControllerRef = useRef<AbortController | null>(null)
 
   // 用于存储最新的 handleSendMessage 引用，解决 useCallback 闭包陈旧问题
-  const handleSendMessageRef = React.useRef<
+  const handleSendMessageRef = useRef<
     (
       message: string,
       baseMessages?: ChatMessageItem[],
@@ -270,7 +253,7 @@ export const ExplorePage: React.FC = () => {
   >(null!)
 
   // 全局拖拽事件处理
-  React.useEffect(() => {
+  useEffect(() => {
     const handleDragEnter = (e: DragEvent) => {
       e.preventDefault()
       e.stopPropagation()
@@ -350,7 +333,7 @@ export const ExplorePage: React.FC = () => {
 
   // 当 dialog 设置加载完成后，同步到本地状态
   // 使用 selectedApp 和 dialogSettings 作为依赖，确保切换应用时能正确更新
-  React.useEffect(() => {
+  useEffect(() => {
     if (selectedApp) {
       // 当应用变化时，使用从服务器获取的设置更新本地状态
       setChatSettings(dialogSettings)
@@ -371,12 +354,12 @@ export const ExplorePage: React.FC = () => {
   })
 
   const dialogConversations = dialogConversationsData || []
-  const uploadedAttachments = React.useMemo(
+  const uploadedAttachments = useMemo(
     () => getUploadedFiles(),
     [getUploadedFiles],
   )
   const hasReadyUploads = uploadedAttachments.length > 0
-  const hasUploadingFiles = React.useMemo(
+  const hasUploadingFiles = useMemo(
     () =>
       isUploading || uploadFiles.some((file) => file.status === 'uploading'),
     [isUploading, uploadFiles],
@@ -385,7 +368,7 @@ export const ExplorePage: React.FC = () => {
     !isStreaming &&
     !hasUploadingFiles &&
     (inputValue.trim().length > 0 || hasReadyUploads)
-  const attachmentItems = React.useMemo<ExploreAttachment[]>(() => {
+  const attachmentItems = useMemo<ExploreAttachment[]>(() => {
     return uploadFiles.map((file) => ({
       ...file,
       className: file.status === 'error' ? 'cursor-pointer' : undefined,
@@ -407,13 +390,13 @@ export const ExplorePage: React.FC = () => {
   }, [retryUploadFile, t, uploadFiles])
 
   // 加载模型列表
-  React.useEffect(() => {
+  useEffect(() => {
     loadMyLLMs()
     // eslint-disable-next-line react-hooks/exhaustive-deps -- 首次加载一次，store action 引用稳定
   }, [])
 
   // 自动选择第一个可用的聊天模型
-  React.useEffect(() => {
+  useEffect(() => {
     if (!modelsLoading && myLLMs && Object.keys(myLLMs).length > 0) {
       if (hasEnabledModelName(myLLMs, selectedModel)) {
         return
@@ -427,7 +410,7 @@ export const ExplorePage: React.FC = () => {
   }, [selectedModel, modelsLoading, myLLMs])
 
   // 自动选择第一个应用
-  React.useEffect(() => {
+  useEffect(() => {
     if (!selectedApp && dialogApps.length > 0 && !dialogAppsLoading) {
       const activeApp = dialogApps.find((app) => app.status === '1')
       if (activeApp) setSelectedApp(activeApp.id)
@@ -443,23 +426,14 @@ export const ExplorePage: React.FC = () => {
       // 先清空消息，避免新旧消息混合
       setMessages([])
 
-      const response =
-        await conversationAPI.getConversationDetail(conversationId)
+      const response = (await conversationAPI.getConversationDetail(
+        conversationId,
+      )) as ConversationDetail
       setSelectedConversationDetail(response)
 
       // 设置消息列表，如果对话没有消息则清空
       if (response?.message && Array.isArray(response.message)) {
-        setMessages(
-          response.message.map((msg: any) => ({
-            role: msg.role,
-            content: msg.content,
-            // 参考 ragflow buildMessageUuid：优先使用后端返回的 ID
-            id: msg.id,
-            // 保留引用信息（如果有）
-            references: msg.reference?.chunks || [],
-            files: Array.isArray(msg.files) ? msg.files : [],
-          })),
-        )
+        setMessages(response.message.map(toChatMessageItem))
       }
     } catch (error) {
       console.error('Failed to fetch conversation detail:', error)
@@ -471,7 +445,7 @@ export const ExplorePage: React.FC = () => {
   }
 
   // 停止输出
-  const handleStopOutput = React.useCallback(() => {
+  const handleStopOutput = useCallback(() => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort()
       abortControllerRef.current = null
@@ -481,7 +455,7 @@ export const ExplorePage: React.FC = () => {
 
   // 重新生成消息（参考 ragflow 的 useRegenerateMessage 实现）
   // 当点击助手消息的重新生成按钮时，找到对应的用户消息并重新发送
-  const handleRegenerateMessage = React.useCallback(
+  const handleRegenerateMessage = useCallback(
     (assistantMessageIndex: number) => {
       if (isStreaming) return
 
@@ -587,7 +561,7 @@ export const ExplorePage: React.FC = () => {
           name: conversationName,
           is_new: false,
         })
-        setSelectedConversationDetail((prev: any) =>
+        setSelectedConversationDetail((prev) =>
           prev ? { ...prev, name: conversationName } : prev,
         )
         refetchConversations()
@@ -863,10 +837,9 @@ export const ExplorePage: React.FC = () => {
       refetchConversations()
 
       if (selectedConversationDetail?.id === renamingConversationId) {
-        setSelectedConversationDetail((prev: any) => ({
-          ...prev,
-          name: newConversationName.trim(),
-        }))
+        setSelectedConversationDetail((prev) =>
+          prev ? { ...prev, name: newConversationName.trim() } : prev,
+        )
       }
 
       setRenamingConversationId(null)
@@ -882,7 +855,7 @@ export const ExplorePage: React.FC = () => {
   const showCurrentAppPrologue = shouldUseBubbleTyping(currentAppPrologue)
 
   // 获取应用图标 URL
-  const getAppIconUrl = React.useCallback((app: typeof currentApp) => {
+  const getAppIconUrl = useCallback((app: typeof currentApp) => {
     if (!app?.icon) return null
     return app.icon.startsWith('data:') || app.icon.startsWith('http')
       ? app.icon
@@ -890,13 +863,13 @@ export const ExplorePage: React.FC = () => {
   }, [])
 
   // 当前应用的图标 URL
-  const currentAppIconUrl = React.useMemo(
+  const currentAppIconUrl = useMemo(
     () => getAppIconUrl(currentApp),
     [currentApp, getAppIconUrl],
   )
 
   // 处理引用点击事件 - 打开详情侧边栏
-  const _handleReferenceClick = React.useCallback(
+  const _handleReferenceClick = useCallback(
     (
       reference: ReferenceChunk,
       _index: number,
@@ -913,7 +886,7 @@ export const ExplorePage: React.FC = () => {
   )
 
   // 处理查看详情
-  const handleViewDetail = React.useCallback(
+  const handleViewDetail = useCallback(
     (chunk: ReferenceChunk, allReferences?: ReferenceChunk[]) => {
       setSelectedChunk(chunk)
       if (allReferences) {
@@ -925,7 +898,7 @@ export const ExplorePage: React.FC = () => {
   )
 
   // 处理复制
-  const handleCopyContent = React.useCallback(
+  const handleCopyContent = useCallback(
     (content: string) => {
       copyToClipboard(content)
       toast.success(t('explore.toast.copied'))
@@ -933,7 +906,7 @@ export const ExplorePage: React.FC = () => {
     [t],
   )
 
-  const renderMessageAttachments = React.useCallback(
+  const renderMessageAttachments = useCallback(
     (files?: UploadedFileInfo[]) => {
       if (!files?.length) {
         return null
@@ -961,13 +934,21 @@ export const ExplorePage: React.FC = () => {
                     }}
                   >
                     {imgUrl ? (
-                      <img
-                        src={imgUrl}
-                        alt={file.name}
-                        className="max-h-64 w-full cursor-pointer object-contain"
-                        style={{ backgroundColor: 'rgba(0, 0, 0, 0.03)' }}
+                      <button
+                        type="button"
+                        className="block w-full cursor-pointer"
+                        aria-label={t('explore.attachmentStatus.openPreview', {
+                          name: file.name,
+                        })}
                         onClick={() => window.open(imgUrl, '_blank')}
-                      />
+                      >
+                        <img
+                          src={imgUrl}
+                          alt={file.name}
+                          className="max-h-64 w-full object-contain"
+                          style={{ backgroundColor: 'rgba(0, 0, 0, 0.03)' }}
+                        />
+                      </button>
                     ) : (
                       <div
                         className="flex h-32 items-center justify-center"
@@ -1026,7 +1007,7 @@ export const ExplorePage: React.FC = () => {
   )
 
   // 转换消息为 Bubble 格式
-  const bubbleItems = React.useMemo<BubbleListProps['items']>(
+  const bubbleItems = useMemo<BubbleListProps['items']>(
     () =>
       messages.map((msg, index) => {
         const references = msg.references || []
@@ -1151,7 +1132,7 @@ export const ExplorePage: React.FC = () => {
                     const parts = mainContentWithSup.split(
                       /<carousel-placeholder[^>]*><\/carousel-placeholder>/g,
                     )
-                    const elements: React.ReactNode[] = []
+                    const elements: ReactNode[] = []
 
                     parts.forEach((part, idx) => {
                       // 渲染文本部分
@@ -1352,6 +1333,47 @@ export const ExplorePage: React.FC = () => {
     setMessages([])
   }
 
+  const handleTabChange = (tab: ExploreTab) => {
+    setActiveTab(tab)
+  }
+
+  const handleConversationSelect = (key?: string) => {
+    setActiveConversationKey(key)
+    setMessages([])
+
+    if (key) {
+      void fetchConversationDetail(key)
+    } else {
+      setSelectedConversationDetail(null)
+    }
+  }
+
+  const handleRenameConversation = (conversationId: string, name: string) => {
+    setRenamingConversationId(conversationId)
+    setNewConversationName(name)
+  }
+
+  const handleCloseRenameConversation = () => {
+    setRenamingConversationId(null)
+    setNewConversationName('')
+  }
+
+  const handleDeleteConversation = async (conversationId: string) => {
+    try {
+      await conversationAPI.removeConversation([conversationId])
+      refetchConversations()
+      if (activeConversationKey === conversationId) {
+        setActiveConversationKey(undefined)
+        setSelectedConversationDetail(null)
+        setMessages([])
+      }
+      toast.success(t('explore.conversations.deleted'))
+    } catch (error) {
+      console.error('Failed to delete conversation:', error)
+      toast.error(t('explore.conversations.deleteFailed'))
+    }
+  }
+
   return (
     <div
       ref={dropContainerRef}
@@ -1396,438 +1418,32 @@ export const ExplorePage: React.FC = () => {
         </div>
       )}
 
-      {/* 左侧边栏 */}
-      <div
-        className="flex w-64 flex-col"
-        style={{
-          backgroundColor: 'var(--color-components-sidebar-bg)',
-          borderRight: '1px solid var(--color-components-sidebar-border)',
-        }}
-      >
-        {/* 顶部导航 */}
-        <div
-          className="p-4"
-          style={{ borderBottom: '1px solid var(--color-border-subtle)' }}
-        >
-          <div className="flex space-x-1">
-            {['workspace', 'topics', 'settings'].map((tab) => (
-              <button
-                key={tab}
-                onClick={() =>
-                  tab === 'topics'
-                    ? handleTopicsClick()
-                    : setActiveTab(tab as any)
-                }
-                disabled={tab === 'topics' && !selectedApp}
-                className={cn(
-                  'flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-                  tab === 'topics' &&
-                    !selectedApp &&
-                    'cursor-not-allowed opacity-50',
-                )}
-                style={{
-                  backgroundColor:
-                    activeTab === tab
-                      ? 'var(--color-components-sidebar-item-bg-active)'
-                      : 'var(--color-components-sidebar-item-bg)',
-                  color:
-                    activeTab === tab
-                      ? 'var(--color-components-sidebar-item-text-active)'
-                      : 'var(--color-components-sidebar-item-text)',
-                }}
-              >
-                {tab === 'workspace'
-                  ? t('explore.tabs.workspace')
-                  : tab === 'topics'
-                    ? t('explore.tabs.topics')
-                    : t('explore.tabs.settings')}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* 内容区域 */}
-        <div className="flex flex-1 flex-col overflow-hidden">
-          {activeTab === 'workspace' ? (
-            <>
-              {/* 发现按钮 */}
-              <div className="p-4">
-                <button
-                  onClick={handleDiscoverClick}
-                  className="flex w-full items-center space-x-2 rounded-lg px-4 py-3 text-left text-sm font-medium transition-colors"
-                  style={{
-                    backgroundColor:
-                      mode === 'market'
-                        ? 'var(--color-components-sidebar-item-bg-active)'
-                        : 'var(--color-components-sidebar-item-bg)',
-                    color:
-                      mode === 'market'
-                        ? 'var(--color-components-sidebar-item-text-active)'
-                        : 'var(--color-components-sidebar-item-text)',
-                  }}
-                >
-                  <Search className="h-4 w-4" />
-                  <span>{t('explore.sidebar.discover')}</span>
-                </button>
-              </div>
-
-              <div
-                className="mx-4"
-                style={{ borderTop: '1px solid var(--color-border-subtle)' }}
-              />
-
-              {/* 应用列表 */}
-              <div className="flex-1 space-y-1 overflow-y-auto p-4">
-                {dialogAppsLoading ? (
-                  <div
-                    className="py-8 text-center text-sm"
-                    style={{ color: 'var(--color-text-tertiary)' }}
-                  >
-                    {t('explore.sidebar.loadingApps')}
-                  </div>
-                ) : dialogAppsError ? (
-                  <div
-                    className="py-8 text-center text-sm"
-                    style={{ color: 'var(--color-text-error)' }}
-                  >
-                    {t('explore.sidebar.loadFailed')}
-                  </div>
-                ) : dialogApps.length === 0 ? (
-                  <div
-                    className="py-8 text-center text-sm"
-                    style={{ color: 'var(--color-text-tertiary)' }}
-                  >
-                    {t('explore.sidebar.noApps')}
-                  </div>
-                ) : (
-                  dialogApps
-                    .filter((app) => app.status === '1')
-                    .map((app) => (
-                      <button
-                        key={app.id}
-                        onClick={() => handleAppSelect(app.id)}
-                        className="flex w-full items-center space-x-3 rounded-lg px-4 py-3 text-left text-sm transition-colors"
-                        style={{
-                          backgroundColor:
-                            selectedApp === app.id && mode === 'chat'
-                              ? 'var(--color-components-sidebar-item-bg-active)'
-                              : 'var(--color-components-sidebar-item-bg)',
-                          color:
-                            selectedApp === app.id && mode === 'chat'
-                              ? 'var(--color-components-sidebar-item-text-active)'
-                              : 'var(--color-components-sidebar-item-text)',
-                        }}
-                      >
-                        {getAppIcon(app)}
-                        <span>{app.name}</span>
-                      </button>
-                    ))
-                )}
-              </div>
-            </>
-          ) : activeTab === 'topics' ? (
-            <div className="flex flex-1 flex-col overflow-hidden">
-              {!selectedApp ? (
-                <div className="flex flex-1 items-center justify-center">
-                  <div className="text-center">
-                    <MessageSquare
-                      className="mx-auto mb-3 h-12 w-12"
-                      style={{ color: 'var(--color-text-tertiary)' }}
-                    />
-                    <p
-                      className="text-sm"
-                      style={{ color: 'var(--color-text-tertiary)' }}
-                    >
-                      {t('explore.sidebar.selectAppFirst')}
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  {/* 应用信息和新建按钮 */}
-                  <div
-                    className="p-4"
-                    style={{
-                      borderBottom: '1px solid var(--color-border-subtle)',
-                    }}
-                  >
-                    <div
-                      className="mb-3 flex items-center rounded-lg p-2"
-                      style={{
-                        backgroundColor: 'var(--color-background-subtle)',
-                      }}
-                    >
-                      {getAppIcon(
-                        dialogApps.find((app) => app.id === selectedApp),
-                        'md',
-                      )}
-                      <div className="ml-3 min-w-0 flex-1">
-                        <p
-                          className="truncate text-sm font-medium"
-                          style={{ color: 'var(--color-text-primary)' }}
-                        >
-                          {
-                            dialogApps.find((app) => app.id === selectedApp)
-                              ?.name
-                          }
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* 对话列表 - 使用 ant-design/x Conversations 组件（带分组和新建功能） */}
-                  <div className="flex-1 overflow-y-auto">
-                    <div className="explore-conversations">
-                      <style>{`
-                        .explore-conversations .ant-conversations {
-                          background-color: transparent !important;
-                        }
-                        /* 新建对话按钮样式 */
-                        .explore-conversations .ant-conversations-creation {
-                          margin: 8px 12px !important;
-                          padding: 10px 12px !important;
-                          border-radius: 8px !important;
-                          background-color: var(--color-components-sidebar-item-bg-active) !important;
-                          color: var(--color-components-sidebar-item-text-active) !important;
-                          border: 1px solid var(--color-border-accent) !important;
-                          transition: all 0.2s ease !important;
-                          font-weight: 500 !important;
-                        }
-                        .explore-conversations .ant-conversations-creation .ant-typography,
-                        .explore-conversations .ant-conversations-creation span {
-                          color: var(--color-components-sidebar-item-text-active) !important;
-                        }
-                        .explore-conversations .ant-conversations-creation:hover {
-                          background-color: var(--color-components-button-primary-bg) !important;
-                          color: var(--color-components-button-primary-text) !important;
-                        }
-                        .explore-conversations .ant-conversations-creation:hover .ant-typography,
-                        .explore-conversations .ant-conversations-creation:hover span {
-                          color: var(--color-components-button-primary-text) !important;
-                        }
-                        /* 分组标题样式 */
-                        .explore-conversations .ant-conversations-group-title,
-                        .explore-conversations .ant-conversations-group-title .ant-typography {
-                          color: var(--color-text-tertiary) !important;
-                          font-size: 12px !important;
-                          padding: 12px 16px 4px !important;
-                          font-weight: 500 !important;
-                        }
-                        /* 会话项样式 */
-                        .explore-conversations .ant-conversations-list .ant-conversations-item {
-                          background-color: transparent !important;
-                          border-radius: 8px !important;
-                          margin: 2px 8px !important;
-                          padding: 8px 12px !important;
-                          transition: all 0.2s ease !important;
-                        }
-                        .explore-conversations .ant-conversations-list .ant-conversations-item:hover {
-                          background-color: var(--color-components-sidebar-item-bg-hover) !important;
-                        }
-                        .explore-conversations .ant-conversations-list .ant-conversations-item-active {
-                          background-color: var(--color-components-sidebar-item-bg-active) !important;
-                        }
-                        .explore-conversations .ant-conversations-list .ant-conversations-item-active .ant-conversations-item-label {
-                          color: var(--color-components-sidebar-item-text-active) !important;
-                        }
-                        .explore-conversations .ant-conversations-item-label {
-                          color: var(--color-text-primary) !important;
-                          font-size: 14px !important;
-                        }
-                        /* 覆盖 Typography 组件的文字颜色（Conversations 内部使用 Typography 渲染标签） */
-                        .explore-conversations .ant-typography,
-                        .explore-conversations .ant-conversations-label,
-                        .explore-conversations span.ant-typography.ant-conversations-label {
-                          color: var(--color-text-primary) !important;
-                        }
-                        .explore-conversations .ant-conversations-item-active .ant-typography,
-                        .explore-conversations .ant-conversations-item-active .ant-conversations-label,
-                        .explore-conversations .ant-conversations-item-active span.ant-typography.ant-conversations-label {
-                          color: var(--color-components-sidebar-item-text-active) !important;
-                        }
-                        .explore-conversations .ant-conversations-item .anticon {
-                          color: var(--color-text-tertiary) !important;
-                        }
-                        .explore-conversations .ant-conversations-item:hover .anticon {
-                          color: var(--color-text-secondary) !important;
-                        }
-                        /* 空状态提示 */
-                        .explore-conversations-empty {
-                          text-align: center;
-                          padding: 32px 16px;
-                          color: var(--color-text-tertiary);
-                          font-size: 14px;
-                        }
-                      `}</style>
-                      <ConfigProvider
-                        theme={{
-                          algorithm:
-                            document.documentElement.classList.contains('dark')
-                              ? theme.darkAlgorithm
-                              : theme.defaultAlgorithm,
-                        }}
-                      >
-                        {dialogConversationsLoading ? (
-                          <div className="explore-conversations-empty">
-                            {t('explore.conversations.loading')}
-                          </div>
-                        ) : dialogConversationsError ? (
-                          <div
-                            className="explore-conversations-empty"
-                            style={{ color: 'var(--color-text-error)' }}
-                          >
-                            {t('explore.sidebar.loadFailed')}
-                          </div>
-                        ) : (
-                          <Conversations
-                            activeKey={activeConversationKey}
-                            // 新建对话功能（使用 Conversations 组件的 creation 属性）
-                            creation={{
-                              icon: <Plus className="h-4 w-4" />,
-                              label: t('explore.conversations.new'),
-                              onClick: handleCreateConversation,
-                            }}
-                            // 按日期分组
-                            groupable={{
-                              label: (group) =>
-                                translateConversationGroup(String(group), t),
-                            }}
-                            items={
-                              dialogConversations.length === 0
-                                ? []
-                                : dialogConversations
-                                    .sort((a: any, b: any) => {
-                                      const timeA =
-                                        a.update_time > 1000000000000
-                                          ? a.update_time
-                                          : a.update_time * 1000
-                                      const timeB =
-                                        b.update_time > 1000000000000
-                                          ? b.update_time
-                                          : b.update_time * 1000
-                                      return timeB - timeA
-                                    })
-                                    .map((conv: any) => ({
-                                      key: conv.id,
-                                      label:
-                                        conv.name ||
-                                        t('explore.conversations.fallbackName'),
-                                      // 添加分组信息（今天、昨天、最近7天、更早）
-                                      group: getConversationDateGroup(
-                                        conv.update_time,
-                                      ),
-                                    }))
-                            }
-                            menu={(conversation) => ({
-                              items: [
-                                {
-                                  label: t('explore.conversations.rename'),
-                                  key: 'rename',
-                                  icon: <Edit3 className="h-3 w-3" />,
-                                },
-                                {
-                                  label: t('explore.conversations.delete'),
-                                  key: 'delete',
-                                  icon: <Trash2 className="h-3 w-3" />,
-                                  danger: true,
-                                },
-                              ],
-                              onClick: async (menuInfo) => {
-                                menuInfo.domEvent.stopPropagation()
-                                const convData = dialogConversations.find(
-                                  (c: any) => c.id === conversation.key,
-                                )
-
-                                if (menuInfo.key === 'rename' && convData) {
-                                  setRenamingConversationId(
-                                    conversation.key as string,
-                                  )
-                                  setNewConversationName(
-                                    convData.name ||
-                                      t('explore.conversations.fallbackName'),
-                                  )
-                                } else if (menuInfo.key === 'delete') {
-                                  try {
-                                    await conversationAPI.removeConversation([
-                                      conversation.key as string,
-                                    ])
-                                    refetchConversations()
-                                    if (
-                                      activeConversationKey === conversation.key
-                                    ) {
-                                      setActiveConversationKey(undefined)
-                                      setSelectedConversationDetail(null)
-                                      setMessages([])
-                                    }
-                                    toast.success(
-                                      t('explore.conversations.deleted'),
-                                    )
-                                  } catch (error) {
-                                    console.error(
-                                      'Failed to delete conversation:',
-                                      error,
-                                    )
-                                    toast.error(
-                                      t('explore.conversations.deleteFailed'),
-                                    )
-                                  }
-                                }
-                              },
-                            })}
-                            onActiveChange={(key) => {
-                              // 受控模式：更新 activeKey 状态
-                              setActiveConversationKey(key)
-                              // 先清空消息，避免新旧消息混合导致 key 重复
-                              setMessages([])
-                              // 加载对话详情
-                              if (key) {
-                                fetchConversationDetail(key)
-                              } else {
-                                setSelectedConversationDetail(null)
-                              }
-                            }}
-                          />
-                        )}
-                      </ConfigProvider>
-                    </div>
-                  </div>
-
-                  {/* 重命名对话 Modal（更现代化的交互） */}
-                  <Modal
-                    title={t('explore.conversations.renameTitle')}
-                    open={!!renamingConversationId}
-                    onOk={confirmRenameConversation}
-                    onCancel={() => {
-                      setRenamingConversationId(null)
-                      setNewConversationName('')
-                    }}
-                    okText={t('common.confirm')}
-                    cancelText={t('common.cancel')}
-                    destroyOnHidden
-                  >
-                    <Input
-                      value={newConversationName}
-                      onChange={(e) => setNewConversationName(e.target.value)}
-                      onPressEnter={confirmRenameConversation}
-                      placeholder={t('explore.conversations.namePlaceholder')}
-                      autoFocus
-                    />
-                  </Modal>
-                </>
-              )}
-            </div>
-          ) : (
-            <div className="flex-1 p-4">
-              <p
-                className="text-sm"
-                style={{ color: 'var(--color-text-tertiary)' }}
-              >
-                {t('explore.sidebar.settingsComingSoon')}
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
+      <ExploreSidebar
+        activeTab={activeTab}
+        mode={mode}
+        selectedApp={selectedApp}
+        dialogApps={dialogApps}
+        dialogAppsLoading={dialogAppsLoading}
+        dialogAppsError={dialogAppsError}
+        dialogConversations={dialogConversations}
+        dialogConversationsLoading={dialogConversationsLoading}
+        dialogConversationsError={dialogConversationsError}
+        activeConversationKey={activeConversationKey}
+        renamingConversationId={renamingConversationId}
+        newConversationName={newConversationName}
+        t={t}
+        onTabChange={handleTabChange}
+        onTopicsClick={handleTopicsClick}
+        onDiscoverClick={handleDiscoverClick}
+        onAppSelect={handleAppSelect}
+        onCreateConversation={handleCreateConversation}
+        onConversationSelect={handleConversationSelect}
+        onRenameConversation={handleRenameConversation}
+        onDeleteConversation={handleDeleteConversation}
+        onConfirmRenameConversation={confirmRenameConversation}
+        onNewConversationNameChange={setNewConversationName}
+        onCloseRenameConversation={handleCloseRenameConversation}
+      />
 
       {/* 右侧主内容区 */}
       <div
@@ -1966,7 +1582,7 @@ export const ExplorePage: React.FC = () => {
                         }}
                       >
                         <div className="mb-3 flex items-center space-x-3">
-                          {getAppIcon(app, 'md')}
+                          {getExploreAppIcon(app, 'md')}
                           <h3
                             className="font-medium"
                             style={{

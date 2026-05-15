@@ -17,6 +17,7 @@ export default {
       settings: 'Settings',
     },
     sidebar: {
+      navigation: 'Explore navigation',
       discover: 'Discover',
       loadingApps: 'Loading apps...',
       loadFailed: 'Failed to load',
@@ -87,6 +88,7 @@ export default {
       error: 'Upload failed. Click to retry',
       ready: 'Ready · {{type}} · {{size}}',
       image: 'Image',
+      openPreview: 'Open preview for {{name}}',
     },
     toast: {
       copied: 'Copied to clipboard',
