@@ -6,6 +6,7 @@ import React, {
   memo,
   useCallback,
 } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   FileText,
   Download,
@@ -229,20 +230,22 @@ const HighlightPopup = ({
     </div>
   ) : null
 
-// 通用加载状态组件
-const LoadingState: React.FC<{ message?: string }> = ({
-  message = '加载中...',
-}) => (
-  <div className="flex h-full w-full items-center justify-center bg-background-subtle">
-    <div className="flex flex-col items-center gap-3">
-      <div
-        className="h-10 w-10 animate-spin rounded-full border-b-2"
-        style={{ borderColor: 'var(--color-text-accent)' }}
-      />
-      <span className="text-sm text-text-secondary">{message}</span>
+const LoadingState: React.FC<{ message?: string }> = ({ message }) => {
+  const { t } = useTranslation()
+  return (
+    <div className="flex h-full w-full items-center justify-center bg-background-subtle">
+      <div className="flex flex-col items-center gap-3">
+        <div
+          className="h-10 w-10 animate-spin rounded-full border-b-2"
+          style={{ borderColor: 'var(--color-text-accent)' }}
+        />
+        <span className="text-sm text-text-secondary">
+          {message ?? t('knowledge.preview.loading')}
+        </span>
+      </div>
     </div>
-  </div>
-)
+  )
+}
 
 // 通用错误状态组件
 const ErrorState: React.FC<{
@@ -253,42 +256,47 @@ const ErrorState: React.FC<{
   filename?: string
 }> = ({
   icon = <FileText className="h-16 w-16" />,
-  title = '加载失败',
-  message = '未知错误',
+  title,
+  message,
   url,
   filename,
-}) => (
-  <div className="flex h-full w-full flex-col items-center justify-center bg-background-subtle p-8">
-    <div className="mb-4 text-text-muted">{icon}</div>
-    <p className="mb-2 text-base font-medium text-text-primary">{title}</p>
-    <p className="mb-6 max-w-sm text-center text-sm text-text-secondary">
-      {message}
-    </p>
-    {url && (
-      <div className="flex gap-3">
-        <a
-          href={url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 rounded-lg border border-border-default bg-background-surface px-4 py-2 text-text-accent transition-colors hover:bg-state-hover"
-        >
-          <ExternalLink className="h-4 w-4" />
-          在新窗口打开
-        </a>
-        {filename && (
+}) => {
+  const { t } = useTranslation()
+  return (
+    <div className="flex h-full w-full flex-col items-center justify-center bg-background-subtle p-8">
+      <div className="mb-4 text-text-muted">{icon}</div>
+      <p className="mb-2 text-base font-medium text-text-primary">
+        {title ?? t('knowledge.preview.loadFailed')}
+      </p>
+      <p className="mb-6 max-w-sm text-center text-sm text-text-secondary">
+        {message ?? t('knowledge.preview.unknownError')}
+      </p>
+      {url && (
+        <div className="flex gap-3">
           <a
             href={url}
-            download={filename}
-            className="inline-flex items-center gap-2 rounded-lg border border-border-default bg-background-surface px-4 py-2 text-text-primary transition-colors hover:bg-state-hover"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-lg border border-border-default bg-background-surface px-4 py-2 text-text-accent transition-colors hover:bg-state-hover"
           >
-            <Download className="h-4 w-4" />
-            下载
+            <ExternalLink className="h-4 w-4" />
+            {t('knowledge.preview.openInNewWindow')}
           </a>
-        )}
-      </div>
-    )}
-  </div>
-)
+          {filename && (
+            <a
+              href={url}
+              download={filename}
+              className="inline-flex items-center gap-2 rounded-lg border border-border-default bg-background-surface px-4 py-2 text-text-primary transition-colors hover:bg-state-hover"
+            >
+              <Download className="h-4 w-4" />
+              {t('knowledge.preview.download')}
+            </a>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
 
 // ==================== PDF 预览组件 ====================
 
@@ -313,6 +321,7 @@ const PdfBody: React.FC<{
   pdfDocument: PdfDocument
   rawHighlights?: RawHighlight[]
 }> = ({ pdfDocument, rawHighlights }) => {
+  const { t } = useTranslation()
   const [pageSize, setPageSize] = useState<{
     width: number
     height: number
@@ -357,7 +366,7 @@ const PdfBody: React.FC<{
   }, [highlights])
 
   if (!pageSize) {
-    return <LoadingState message="渲染 PDF 中..." />
+    return <LoadingState message={t('knowledge.preview.renderingPdf')} />
   }
 
   return (
@@ -414,6 +423,7 @@ const PdfPreviewInner: React.FC<{
   url: string
   highlights?: RawHighlight[]
 }> = ({ url, highlights: rawHighlights }) => {
+  const { t } = useTranslation()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [blobUrl, setBlobUrl] = useState<string | null>(null)
@@ -436,25 +446,31 @@ const PdfPreviewInner: React.FC<{
         const response = await fetchWithAuth(url)
 
         if (!response.ok) {
-          throw new Error(`PDF 加载失败: ${response.status}`)
+          throw new Error(
+            t('knowledge.preview.pdfLoadFailedWithStatus', {
+              status: response.status,
+            }),
+          )
         }
 
         const contentType = response.headers.get('content-type') || ''
         if (contentType.includes('application/json')) {
           const errorData = await response.json().catch(() => null)
           throw new Error(
-            errorData?.message || errorData?.retmsg || 'PDF 加载失败',
+            errorData?.message ||
+              errorData?.retmsg ||
+              t('knowledge.preview.pdfLoadFailed'),
           )
         }
 
         if (contentType.includes('text/html')) {
-          throw new Error('认证失败，请重新登录')
+          throw new Error(t('knowledge.preview.authFailed'))
         }
 
         const blob = await response.blob()
 
         if (blob.size === 0) {
-          throw new Error('PDF 文件为空')
+          throw new Error(t('knowledge.preview.pdfEmpty'))
         }
 
         const newBlobUrl = URL.createObjectURL(blob)
@@ -467,7 +483,11 @@ const PdfPreviewInner: React.FC<{
       } catch (err) {
         console.error('[PDF] Load error:', err)
         if (mounted) {
-          setError(err instanceof Error ? err.message : 'PDF 加载失败')
+          setError(
+            err instanceof Error
+              ? err.message
+              : t('knowledge.preview.pdfLoadFailed'),
+          )
           setLoading(false)
         }
       }
@@ -478,7 +498,7 @@ const PdfPreviewInner: React.FC<{
     return () => {
       mounted = false
     }
-  }, [url])
+  }, [t, url])
 
   useEffect(() => {
     return () => {
@@ -490,15 +510,15 @@ const PdfPreviewInner: React.FC<{
   }, [])
 
   if (loading) {
-    return <LoadingState message="加载 PDF 中..." />
+    return <LoadingState message={t('knowledge.preview.loadingPdf')} />
   }
 
   if (error || !blobUrl) {
     return (
       <ErrorState
         icon={<FileText className="h-16 w-16" />}
-        title="PDF 加载失败"
-        message={error || '未知错误'}
+        title={t('knowledge.preview.pdfLoadFailed')}
+        message={error || t('knowledge.preview.unknownError')}
         url={url}
       />
     )
@@ -508,7 +528,9 @@ const PdfPreviewInner: React.FC<{
     <div className="pdf-highlighter-container relative h-full w-full overflow-hidden">
       <PdfLoader
         url={blobUrl}
-        beforeLoad={<LoadingState message="渲染 PDF 中..." />}
+        beforeLoad={
+          <LoadingState message={t('knowledge.preview.renderingPdf')} />
+        }
         workerSrc={pdfWorkerSrc}
         cMapUrl="/pdfjs-dist/cmaps/"
         cMapPacked={true}
@@ -518,8 +540,8 @@ const PdfPreviewInner: React.FC<{
         errorMessage={
           <ErrorState
             icon={<FileText className="h-16 w-16" />}
-            title="PDF 渲染失败"
-            message="请尝试在新窗口中打开"
+            title={t('knowledge.preview.pdfRenderFailed')}
+            message={t('knowledge.preview.tryOpenInNewWindow')}
             url={url}
           />
         }
@@ -539,6 +561,7 @@ const ImagePreviewInner: React.FC<{
   url: string
   alt?: string
 }> = ({ url, alt }) => {
+  const { t } = useTranslation()
   const [scale, setScale] = useState(1)
   const [rotation, setRotation] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -568,7 +591,11 @@ const ImagePreviewInner: React.FC<{
 
         const response = await fetchWithAuth(url)
         if (!response.ok) {
-          throw new Error(`图片加载失败: ${response.status}`)
+          throw new Error(
+            t('knowledge.preview.imageLoadFailedWithStatus', {
+              status: response.status,
+            }),
+          )
         }
 
         const blob = await response.blob()
@@ -595,7 +622,7 @@ const ImagePreviewInner: React.FC<{
         URL.revokeObjectURL(objectUrl)
       }
     }
-  }, [url])
+  }, [t, url])
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (scale > 1) {
@@ -625,14 +652,14 @@ const ImagePreviewInner: React.FC<{
   }
 
   if (loading) {
-    return <LoadingState message="加载图片中..." />
+    return <LoadingState message={t('knowledge.preview.loadingImage')} />
   }
 
   if (error) {
     return (
       <ErrorState
         icon={<ImageIcon className="h-16 w-16" />}
-        title="图片加载失败"
+        title={t('knowledge.preview.imageLoadFailed')}
         url={url}
       />
     )
@@ -642,7 +669,7 @@ const ImagePreviewInner: React.FC<{
     <div className="relative flex h-full w-full flex-col bg-background-subtle">
       {/* 工具栏 */}
       <div className="flex items-center justify-center gap-1 border-b border-border-default bg-background-surface px-4 py-2">
-        <Tooltip content="缩小 (-)">
+        <Tooltip content={t('knowledge.preview.zoomOut')}>
           <Button
             variant="ghost"
             size="sm"
@@ -655,7 +682,7 @@ const ImagePreviewInner: React.FC<{
         <span className="min-w-[50px] text-center font-mono text-xs text-text-secondary">
           {Math.round(scale * 100)}%
         </span>
-        <Tooltip content="放大 (+)">
+        <Tooltip content={t('knowledge.preview.zoomIn')}>
           <Button
             variant="ghost"
             size="sm"
@@ -666,12 +693,12 @@ const ImagePreviewInner: React.FC<{
           </Button>
         </Tooltip>
         <div className="mx-2 h-4 w-px bg-border-default" />
-        <Tooltip content="旋转 90°">
+        <Tooltip content={t('knowledge.preview.rotate90')}>
           <Button variant="ghost" size="sm" onClick={handleRotate}>
             <RotateCw className="h-4 w-4" />
           </Button>
         </Tooltip>
-        <Tooltip content="重置">
+        <Tooltip content={t('knowledge.preview.reset')}>
           <Button variant="ghost" size="sm" onClick={handleReset}>
             <RotateCcw className="h-4 w-4" />
           </Button>
@@ -693,7 +720,7 @@ const ImagePreviewInner: React.FC<{
         {blobUrl && (
           <img
             src={blobUrl}
-            alt={alt || '图片预览'}
+            alt={alt || t('knowledge.preview.imagePreview')}
             className="max-h-full max-w-full select-none object-contain transition-transform duration-200"
             style={{
               transform: `scale(${scale}) rotate(${rotation}deg) translate(${position.x / scale}px, ${position.y / scale}px)`,
@@ -712,6 +739,7 @@ const ImagePreview = memo(ImagePreviewInner)
 const VideoPreviewInner: React.FC<{
   url: string
 }> = ({ url }) => {
+  const { t } = useTranslation()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
   const [blobUrl, setBlobUrl] = useState<string | null>(null)
@@ -732,7 +760,11 @@ const VideoPreviewInner: React.FC<{
 
         const response = await fetchWithAuth(url)
         if (!response.ok) {
-          throw new Error(`视频加载失败: ${response.status}`)
+          throw new Error(
+            t('knowledge.preview.videoLoadFailedWithStatus', {
+              status: response.status,
+            }),
+          )
         }
 
         const blob = await response.blob()
@@ -759,7 +791,7 @@ const VideoPreviewInner: React.FC<{
         URL.revokeObjectURL(objectUrl)
       }
     }
-  }, [url])
+  }, [t, url])
 
   const togglePlay = () => {
     if (videoRef.current) {
@@ -809,14 +841,14 @@ const VideoPreviewInner: React.FC<{
   }
 
   if (loading) {
-    return <LoadingState message="加载视频中..." />
+    return <LoadingState message={t('knowledge.preview.loadingVideo')} />
   }
 
   if (error) {
     return (
       <ErrorState
         icon={<Video className="h-16 w-16" />}
-        title="视频加载失败"
+        title={t('knowledge.preview.videoLoadFailed')}
         url={url}
       />
     )
@@ -893,6 +925,7 @@ const VideoPreview = memo(VideoPreviewInner)
 const TxtPreviewInner: React.FC<{
   url: string
 }> = ({ url }) => {
+  const { t } = useTranslation()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [content, setContent] = useState('')
@@ -907,7 +940,11 @@ const TxtPreviewInner: React.FC<{
 
         const response = await fetchWithAuth(url)
         if (!response.ok) {
-          throw new Error(`文件加载失败: ${response.status}`)
+          throw new Error(
+            t('knowledge.preview.fileLoadFailedWithStatus', {
+              status: response.status,
+            }),
+          )
         }
 
         const text = await response.text()
@@ -919,7 +956,11 @@ const TxtPreviewInner: React.FC<{
       } catch (err) {
         console.error('Txt load error:', err)
         if (mounted) {
-          setError(err instanceof Error ? err.message : '加载失败')
+          setError(
+            err instanceof Error
+              ? err.message
+              : t('knowledge.preview.loadFailed'),
+          )
           setLoading(false)
         }
       }
@@ -930,17 +971,17 @@ const TxtPreviewInner: React.FC<{
     return () => {
       mounted = false
     }
-  }, [url])
+  }, [t, url])
 
   if (loading) {
-    return <LoadingState message="加载文件中..." />
+    return <LoadingState message={t('knowledge.preview.loadingFile')} />
   }
 
   if (error) {
     return (
       <ErrorState
         icon={<FileCode className="h-16 w-16" />}
-        title="文件加载失败"
+        title={t('knowledge.preview.fileLoadFailed')}
         message={error}
         url={url}
       />
@@ -962,6 +1003,7 @@ const TxtPreview = memo(TxtPreviewInner)
 const MdPreviewInner: React.FC<{
   url: string
 }> = ({ url }) => {
+  const { t } = useTranslation()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [content, setContent] = useState('')
@@ -976,7 +1018,11 @@ const MdPreviewInner: React.FC<{
 
         const response = await fetchWithAuth(url)
         if (!response.ok) {
-          throw new Error(`文件加载失败: ${response.status}`)
+          throw new Error(
+            t('knowledge.preview.fileLoadFailedWithStatus', {
+              status: response.status,
+            }),
+          )
         }
 
         const text = await response.text()
@@ -988,7 +1034,11 @@ const MdPreviewInner: React.FC<{
       } catch (err) {
         console.error('Markdown load error:', err)
         if (mounted) {
-          setError(err instanceof Error ? err.message : '加载失败')
+          setError(
+            err instanceof Error
+              ? err.message
+              : t('knowledge.preview.loadFailed'),
+          )
           setLoading(false)
         }
       }
@@ -999,17 +1049,17 @@ const MdPreviewInner: React.FC<{
     return () => {
       mounted = false
     }
-  }, [url])
+  }, [t, url])
 
   if (loading) {
-    return <LoadingState message="加载文档中..." />
+    return <LoadingState message={t('knowledge.preview.loadingDocument')} />
   }
 
   if (error) {
     return (
       <ErrorState
         icon={<FileCode className="h-16 w-16" />}
-        title="文档加载失败"
+        title={t('knowledge.preview.documentLoadFailed')}
         message={error}
         url={url}
       />
@@ -1031,6 +1081,7 @@ const MdPreview = memo(MdPreviewInner)
 const DocxPreviewInner: React.FC<{
   url: string
 }> = ({ url }) => {
+  const { t } = useTranslation()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [htmlContent, setHtmlContent] = useState<string>('')
@@ -1059,7 +1110,11 @@ const DocxPreviewInner: React.FC<{
 
         const response = await fetchWithAuth(url)
         if (!response.ok) {
-          throw new Error(`文档加载失败: ${response.status}`)
+          throw new Error(
+            t('knowledge.preview.documentLoadFailedWithStatus', {
+              status: response.status,
+            }),
+          )
         }
 
         const blob = await response.blob()
@@ -1074,11 +1129,10 @@ const DocxPreviewInner: React.FC<{
               <div class="flex h-full items-center justify-center">
                 <div class="border border-dashed border-border-default rounded-xl p-8 max-w-2xl text-center">
                   <p class="text-xl font-bold mb-4 text-text-primary">
-                    该 Word 文档暂不支持预览
+                    ${t('knowledge.preview.wordUnsupportedTitle')}
                   </p>
                   <p class="text-sm text-text-secondary leading-relaxed">
-                    Mammoth 仅支持现代 <code class="bg-background-subtle px-1 rounded">.docx</code> 文件。<br/>
-                    该文件可能是旧版 <code class="bg-background-subtle px-1 rounded">.doc</code> 格式。
+                    ${t('knowledge.preview.wordUnsupportedDescription')}
                   </p>
                 </div>
               </div>
@@ -1154,7 +1208,11 @@ const DocxPreviewInner: React.FC<{
       } catch (err) {
         if (mounted) {
           console.error('Docx preview error:', err)
-          setError(err instanceof Error ? err.message : '文档预览失败')
+          setError(
+            err instanceof Error
+              ? err.message
+              : t('knowledge.preview.documentPreviewFailed'),
+          )
           setLoading(false)
         }
       }
@@ -1165,17 +1223,17 @@ const DocxPreviewInner: React.FC<{
     return () => {
       mounted = false
     }
-  }, [url])
+  }, [t, url])
 
   if (loading) {
-    return <LoadingState message="加载文档中..." />
+    return <LoadingState message={t('knowledge.preview.loadingDocument')} />
   }
 
   if (error) {
     return (
       <ErrorState
         icon={<FileText className="h-16 w-16" />}
-        title="文档预览失败"
+        title={t('knowledge.preview.documentPreviewFailed')}
         message={error}
         url={url}
       />
@@ -1198,6 +1256,7 @@ const DocxPreview = memo(DocxPreviewInner)
 const ExcelPreviewInner: React.FC<{
   url: string
 }> = ({ url }) => {
+  const { t } = useTranslation()
   const containerRef = useRef<HTMLDivElement>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -1221,7 +1280,11 @@ const ExcelPreviewInner: React.FC<{
 
         const response = await fetchWithAuth(url)
         if (!response.ok) {
-          throw new Error(`Excel 加载失败: ${response.status}`)
+          throw new Error(
+            t('knowledge.preview.excelLoadFailedWithStatus', {
+              status: response.status,
+            }),
+          )
         }
 
         const arrayBuffer = await response.arrayBuffer()
@@ -1244,7 +1307,11 @@ const ExcelPreviewInner: React.FC<{
       } catch (err) {
         if (mounted) {
           console.error('Excel preview error:', err)
-          setError(err instanceof Error ? err.message : 'Excel 预览失败')
+          setError(
+            err instanceof Error
+              ? err.message
+              : t('knowledge.preview.excelPreviewFailed'),
+          )
           setLoading(false)
         }
       }
@@ -1260,13 +1327,13 @@ const ExcelPreviewInner: React.FC<{
         previewerRef.current = null
       }
     }
-  }, [url])
+  }, [t, url])
 
   if (error) {
     return (
       <ErrorState
         icon={<FileSpreadsheet className="h-16 w-16" />}
-        title="Excel 预览失败"
+        title={t('knowledge.preview.excelPreviewFailed')}
         message={error}
         url={url}
       />
@@ -1277,7 +1344,7 @@ const ExcelPreviewInner: React.FC<{
     <div className="relative h-full w-full overflow-hidden bg-background-surface">
       {loading && (
         <div className="absolute inset-0 z-10">
-          <LoadingState message="加载 Excel 中..." />
+          <LoadingState message={t('knowledge.preview.loadingExcel')} />
         </div>
       )}
       <div
@@ -1292,6 +1359,7 @@ const ExcelPreview = memo(ExcelPreviewInner)
 
 // ==================== PPT 预览组件 ====================
 const PptPreviewInner: React.FC<{ url: string }> = ({ url }) => {
+  const { t } = useTranslation()
   const measureRef = useRef<HTMLDivElement>(null)
   const wrapperRef = useRef<HTMLDivElement>(null)
   const [loading, setLoading] = useState(true)
@@ -1314,7 +1382,13 @@ const PptPreviewInner: React.FC<{ url: string }> = ({ url }) => {
         const pptxPreview = await import('pptx-preview')
 
         const response = await fetchWithAuth(url)
-        if (!response.ok) throw new Error(`PPT 加载失败: ${response.status}`)
+        if (!response.ok) {
+          throw new Error(
+            t('knowledge.preview.pptLoadFailedWithStatus', {
+              status: response.status,
+            }),
+          )
+        }
 
         const arrayBuffer = await response.arrayBuffer()
         if (!mounted || !measureRef.current || !wrapperRef.current) return
@@ -1340,7 +1414,11 @@ const PptPreviewInner: React.FC<{ url: string }> = ({ url }) => {
       } catch (err) {
         if (mounted) {
           console.error('PPT preview error:', err)
-          setError(err instanceof Error ? err.message : 'PPT 预览失败')
+          setError(
+            err instanceof Error
+              ? err.message
+              : t('knowledge.preview.pptPreviewFailed'),
+          )
           setLoading(false)
         }
       }
@@ -1350,13 +1428,13 @@ const PptPreviewInner: React.FC<{ url: string }> = ({ url }) => {
     return () => {
       mounted = false
     }
-  }, [url])
+  }, [t, url])
 
   if (error) {
     return (
       <ErrorState
         icon={<Presentation className="h-16 w-16" />}
-        title="PPT 预览失败"
+        title={t('knowledge.preview.pptPreviewFailed')}
         message={error}
         url={url}
       />
@@ -1370,9 +1448,13 @@ const PptPreviewInner: React.FC<{ url: string }> = ({ url }) => {
         <div className="gap-space-xs flex items-center text-text-secondary">
           <Presentation className="h-4 w-4 shrink-0" />
           {!loading && slideCount > 0 && (
-            <span className="text-sm">{slideCount} 张幻灯片</span>
+            <span className="text-sm">
+              {t('knowledge.preview.slideCount', { count: slideCount })}
+            </span>
           )}
-          {loading && <span className="text-sm">加载中...</span>}
+          {loading && (
+            <span className="text-sm">{t('knowledge.preview.loading')}</span>
+          )}
         </div>
         <div className="gap-space-xs flex items-center">
           <Button
@@ -1412,7 +1494,7 @@ const PptPreviewInner: React.FC<{ url: string }> = ({ url }) => {
       <div className="ppt-scroll-area flex-1 overflow-auto">
         {loading ? (
           <div className="flex h-full items-center justify-center">
-            <LoadingState message="加载 PPT 中..." />
+            <LoadingState message={t('knowledge.preview.loadingPpt')} />
           </div>
         ) : (
           <div
@@ -1442,6 +1524,7 @@ interface CSVData {
 const CsvPreviewInner: React.FC<{
   url: string
 }> = ({ url }) => {
+  const { t } = useTranslation()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [data, setData] = useState<CSVData | null>(null)
@@ -1469,7 +1552,11 @@ const CsvPreviewInner: React.FC<{
 
         const response = await fetchWithAuth(url)
         if (!response.ok) {
-          throw new Error(`CSV 加载失败: ${response.status}`)
+          throw new Error(
+            t('knowledge.preview.csvLoadFailedWithStatus', {
+              status: response.status,
+            }),
+          )
         }
 
         const text = await response.text()
@@ -1482,7 +1569,11 @@ const CsvPreviewInner: React.FC<{
       } catch (err) {
         if (mounted) {
           console.error('CSV load error:', err)
-          setError(err instanceof Error ? err.message : 'CSV 加载失败')
+          setError(
+            err instanceof Error
+              ? err.message
+              : t('knowledge.preview.csvLoadFailed'),
+          )
           setLoading(false)
         }
       }
@@ -1494,17 +1585,17 @@ const CsvPreviewInner: React.FC<{
       mounted = false
       setData(null)
     }
-  }, [url, parseCSV])
+  }, [t, url, parseCSV])
 
   if (loading) {
-    return <LoadingState message="加载 CSV 中..." />
+    return <LoadingState message={t('knowledge.preview.loadingCsv')} />
   }
 
   if (error) {
     return (
       <ErrorState
         icon={<FileSpreadsheet className="h-16 w-16" />}
-        title="CSV 加载失败"
+        title={t('knowledge.preview.csvLoadFailed')}
         message={error}
         url={url}
       />
@@ -1515,7 +1606,7 @@ const CsvPreviewInner: React.FC<{
     return (
       <ErrorState
         icon={<FileSpreadsheet className="h-16 w-16" />}
-        title="CSV 数据为空"
+        title={t('knowledge.preview.csvEmpty')}
         url={url}
       />
     )
@@ -1531,7 +1622,8 @@ const CsvPreviewInner: React.FC<{
                 key={`header-${index}`}
                 className="border-b border-border-default px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-primary"
               >
-                {header || `列 ${index + 1}`}
+                {header ||
+                  t('knowledge.preview.columnLabel', { no: index + 1 })}
               </th>
             ))}
           </tr>
@@ -1567,27 +1659,46 @@ const UnsupportedPreview: React.FC<{
   fileType: FileType
   canDownload?: boolean
 }> = ({ url, filename, fileType, canDownload = false }) => {
+  const { t } = useTranslation()
   const typeLabels: Record<FileType, { label: string; icon: React.ReactNode }> =
     {
-      pdf: { label: 'PDF 文档', icon: <FileText className="h-16 w-16" /> },
-      image: { label: '图片', icon: <ImageIcon className="h-16 w-16" /> },
-      video: { label: '视频', icon: <Video className="h-16 w-16" /> },
-      docx: { label: 'Word 文档', icon: <FileText className="h-16 w-16" /> },
+      pdf: {
+        label: t('knowledge.preview.fileTypes.pdf'),
+        icon: <FileText className="h-16 w-16" />,
+      },
+      image: {
+        label: t('knowledge.preview.fileTypes.image'),
+        icon: <ImageIcon className="h-16 w-16" />,
+      },
+      video: {
+        label: t('knowledge.preview.fileTypes.video'),
+        icon: <Video className="h-16 w-16" />,
+      },
+      docx: {
+        label: t('knowledge.preview.fileTypes.docx'),
+        icon: <FileText className="h-16 w-16" />,
+      },
       xlsx: {
-        label: 'Excel 表格',
+        label: t('knowledge.preview.fileTypes.xlsx'),
         icon: <FileSpreadsheet className="h-16 w-16" />,
       },
       pptx: {
         label: 'PowerPoint',
         icon: <Presentation className="h-16 w-16" />,
       },
-      txt: { label: '文本文件', icon: <FileCode className="h-16 w-16" /> },
+      txt: {
+        label: t('knowledge.preview.fileTypes.txt'),
+        icon: <FileCode className="h-16 w-16" />,
+      },
       md: { label: 'Markdown', icon: <FileCode className="h-16 w-16" /> },
       csv: {
-        label: 'CSV 表格',
+        label: t('knowledge.preview.fileTypes.csv'),
         icon: <FileSpreadsheet className="h-16 w-16" />,
       },
-      unknown: { label: '文件', icon: <FileText className="h-16 w-16" /> },
+      unknown: {
+        label: t('knowledge.preview.fileTypes.unknown'),
+        icon: <FileText className="h-16 w-16" />,
+      },
     }
 
   const { label, icon } = typeLabels[fileType] || typeLabels.unknown
@@ -1598,27 +1709,31 @@ const UnsupportedPreview: React.FC<{
       <h3 className="mb-2 text-lg font-medium text-text-primary">{label}</h3>
       <p className="mb-8 max-w-sm text-center text-sm text-text-secondary">
         {canDownload
-          ? '该类型文件暂不支持在线预览，请下载后查看'
-          : '该类型文件暂不支持在线预览'}
+          ? t('knowledge.preview.unsupportedWithDownload')
+          : t('knowledge.preview.unsupported')}
       </p>
       <div className="flex gap-3">
         <Button variant="outline" asChild>
           <a href={url} target="_blank" rel="noopener noreferrer">
             <ExternalLink className="mr-2 h-4 w-4" />
-            新窗口打开
+            {t('knowledge.preview.openInNewWindow')}
           </a>
         </Button>
-        <Tooltip content={canDownload ? undefined : '请联系管理员获取下载权限'}>
+        <Tooltip
+          content={
+            canDownload ? undefined : t('knowledge.preview.downloadDisabled')
+          }
+        >
           <Button disabled={!canDownload} asChild={canDownload}>
             {canDownload ? (
               <a href={url} download={filename}>
                 <Download className="mr-2 h-4 w-4" />
-                下载文件
+                {t('knowledge.preview.downloadFile')}
               </a>
             ) : (
               <>
                 <Download className="mr-2 h-4 w-4" />
-                下载文件
+                {t('knowledge.preview.downloadFile')}
               </>
             )}
           </Button>
@@ -1639,6 +1754,7 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
   hideHeader = false,
   canDownload = false,
 }) => {
+  const { t } = useTranslation()
   const fileType = useMemo(
     () => getFileType(docName, docType),
     [docName, docType],
@@ -1685,15 +1801,21 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
         <div className="flex items-center justify-between border-b border-border-default bg-background-surface px-4 py-2.5">
           <div className="flex min-w-0 flex-1 items-center gap-2">
             <FileText className="h-4 w-4 flex-shrink-0 text-text-secondary" />
-            <Tooltip content={docName || '文档预览'}>
+            <Tooltip
+              content={docName || t('knowledge.preview.documentPreview')}
+            >
               <span className="truncate text-sm font-medium text-text-primary">
-                {docName || '文档预览'}
+                {docName || t('knowledge.preview.documentPreview')}
               </span>
             </Tooltip>
           </div>
           <div className="flex items-center gap-0.5">
             <Tooltip
-              content={canDownload ? '下载' : '请联系管理员获取下载权限'}
+              content={
+                canDownload
+                  ? t('knowledge.preview.download')
+                  : t('knowledge.preview.downloadDisabled')
+              }
             >
               <Button
                 variant="ghost"
@@ -1710,7 +1832,7 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
                 )}
               </Button>
             </Tooltip>
-            <Tooltip content="新窗口打开">
+            <Tooltip content={t('knowledge.preview.openInNewWindow')}>
               <Button variant="ghost" size="sm" asChild>
                 <a href={documentUrl} target="_blank" rel="noopener noreferrer">
                   <ExternalLink className="h-4 w-4" />
@@ -1718,7 +1840,7 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
               </Button>
             </Tooltip>
             {onClose && (
-              <Tooltip content="关闭预览">
+              <Tooltip content={t('knowledge.preview.closePreview')}>
                 <Button variant="ghost" size="sm" onClick={onClose}>
                   <X className="h-4 w-4" />
                 </Button>
