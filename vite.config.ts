@@ -303,15 +303,14 @@ export default defineConfig(({ mode }) => {
               {
                 name: 'vendor-antdx',
                 priority: 95,
-                entriesAware: true,
-                maxSize: 1024 * 1024,
                 test: (id: string) =>
                   isAnyPackage(id, [
+                    'antd',
                     '@ant-design/x',
                     '@ant-design/x-card',
                     '@ant-design/x-markdown',
                     '@ant-design/x-sdk',
-                  ]),
+                  ]) || isPackagePrefix(id, '@ant-design/'),
               },
               {
                 name: 'vendor-markdown',
@@ -370,12 +369,6 @@ export default defineConfig(({ mode }) => {
                     'tailwind-merge',
                     'vaul',
                   ]) || isPackagePrefix(id, '@radix-ui/'),
-              },
-              {
-                name: 'vendor-antd',
-                priority: 75,
-                test: (id: string) =>
-                  isPackage(id, 'antd') || isPackagePrefix(id, '@ant-design/'),
               },
               {
                 name: 'vendor-state',
