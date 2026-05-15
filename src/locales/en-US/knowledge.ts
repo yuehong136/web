@@ -25,6 +25,188 @@ export default {
       chunks: 'Chunks',
       documentFallback: 'Document',
     },
+    list: {
+      title: 'Knowledge bases',
+      description:
+        'Manage knowledge bases, upload documents, and tune retrieval.',
+      searchPlaceholder: 'Search knowledge bases...',
+      actions: {
+        create: 'Create knowledge base',
+        delete: 'Delete',
+        deleteSelected: 'Delete ({{count}})',
+        settings: 'Settings',
+      },
+      stats: {
+        totalKnowledgeBases: 'Knowledge bases',
+        totalDocuments: 'Documents',
+        totalChunks: 'Chunks',
+        totalTokens: 'Tokens',
+      },
+      status: {
+        hasContent: 'Has content',
+        empty: 'Empty',
+        unknown: 'Unknown',
+      },
+      filters: {
+        title: 'Filters',
+        trigger: 'Filter',
+        clear: 'Clear filters',
+        autoApply: 'Filters apply automatically',
+        activeTitle: 'Active filters',
+        activeKeyword: 'Keyword: {{keyword}}',
+        activePermission: 'Permission: {{value}}',
+        activeLanguage: 'Language: {{value}}',
+        activeParser: 'Parser: {{value}}',
+        activeEmbedding: 'Embedding model: {{value}}',
+        activeTime: 'Time: {{value}}',
+        language: 'Language',
+        parser: 'Parser',
+        embedding: 'Embedding model',
+        permission: {
+          title: 'Permission',
+          me: 'Mine',
+          team: 'Team',
+        },
+        time: {
+          title: 'Time range',
+          all: 'All time',
+          today: 'Today',
+          week: 'Last week',
+          month: 'Last month',
+          quarter: 'Last three months',
+        },
+      },
+      timeFormat: {
+        detailed: 'Detailed',
+        compact: 'Compact',
+        relative: 'Relative',
+      },
+      sort: {
+        asc: 'Ascending',
+        desc: 'Descending',
+      },
+      view: {
+        grid: 'Grid view',
+        table: 'Table view',
+      },
+      empty: {
+        title: 'No knowledge bases yet',
+        description: 'Create your first knowledge base to get started.',
+        filteredTitle: 'No matching knowledge bases',
+        filteredDescription: 'Adjust the search query or filters.',
+      },
+      pagination: {
+        total: '{{count}} items',
+        selected: ' · {{count}} selected',
+        previous: 'Previous',
+        next: 'Next',
+      },
+      table: {
+        name: 'Name',
+        status: 'Status',
+        documents: 'Documents',
+        chunks: 'Chunks',
+        tokens: 'Tokens',
+        updatedAt: 'Updated',
+        actions: 'Actions',
+      },
+      confirm: {
+        deleteSingle:
+          'Delete this knowledge base? This action cannot be undone.',
+        deleteBulk:
+          'Delete the selected {{count}} knowledge bases? This action cannot be undone.',
+      },
+      notifications: {
+        deleteSuccessTitle: 'Deleted',
+        deleteSuccessMessage: 'Knowledge base deleted.',
+        deleteErrorTitle: 'Delete failed',
+        deleteErrorMessage:
+          'An error occurred while deleting the knowledge base.',
+        bulkDeleteSuccessTitle: 'Deleted',
+        bulkDeleteSuccessMessage: '{{count}} knowledge bases deleted.',
+        bulkDeleteErrorTitle: 'Bulk delete failed',
+      },
+    },
+    create: {
+      title: 'Create knowledge base',
+      description: 'Create a knowledge base to manage and retrieve documents.',
+      actions: {
+        back: 'Back',
+        create: 'Create',
+        submit: 'Create knowledge base',
+        creating: 'Creating...',
+      },
+      fields: {
+        name: 'Knowledge base name',
+        nameTooltip:
+          'The name must start with a letter and can contain only letters, numbers, and underscores.',
+        namePlaceholder: 'Example: my_knowledge_base',
+        nameRule:
+          'Start with a letter. Use only letters, numbers, and underscores. Max 100 characters.',
+        description: 'Description',
+        descriptionTooltip:
+          'Briefly describe the purpose and contents of this knowledge base.',
+        descriptionPlaceholder: 'Enter a knowledge base description',
+        language: 'Language',
+        languageTooltip:
+          'Select the primary language of documents in this knowledge base.',
+        languagePlaceholder: 'Select a language',
+        permission: 'Permission',
+        permissionTooltip:
+          'Set who can access this knowledge base. You can change it later.',
+        permissionPlaceholder: 'Select permission',
+      },
+      options: {
+        language: {
+          Chinese: 'Chinese',
+          English: 'English',
+          Japanese: 'Japanese',
+          Korean: 'Korean',
+        },
+        permission: {
+          me: 'Only me',
+          team: 'Team visible',
+        },
+      },
+      tip: {
+        title: 'Tip',
+        description:
+          'After creating a knowledge base, upload documents for parsing and vectorization, then reference it in applications for retrieval-augmented generation.',
+      },
+      validation: {
+        title: 'Validation failed',
+        nameRequired: 'Knowledge base name is required',
+        namePattern:
+          'The name must start with a letter and can contain only letters, numbers, and underscores.',
+        nameMaxLength: 'Name cannot exceed {{count}} characters',
+        embeddingRequired: 'Select an embedding model',
+      },
+      success: {
+        title: 'Created',
+        message: 'Knowledge base created.',
+      },
+      errors: {
+        title: 'Create failed',
+        generic: 'An error occurred while creating the knowledge base.',
+        nameType: 'Knowledge base name must be a string.',
+        nameTooLong: 'Knowledge base name is too long. Use a shorter name.',
+        nameExists:
+          'This knowledge base name already exists. Use another name.',
+        tenantMissing: 'User information was not found. Sign in again.',
+        parserMissing:
+          'System configuration error: parser configuration is missing.',
+        integrity: 'Database constraint error. Check required fields.',
+      },
+    },
+    embeddingSelector: {
+      label: 'Embedding model',
+      loading: 'Loading embedding models...',
+      empty: 'No embedding models available. Add one in model providers first.',
+      tooltip:
+        'Embedding model used to vectorize documents and affect retrieval quality. It is the default embedding model for newly created knowledge bases. If no model appears, check whether you are using MultiRAG slim without embedding models, or confirm that your provider offers an embedding model.',
+      placeholder: 'Select an embedding model',
+      noResults: 'No matching embedding models',
+    },
     settings: {
       title: 'Knowledge settings',
       description: 'Configure parsing methods and options.',
