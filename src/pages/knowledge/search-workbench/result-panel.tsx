@@ -17,12 +17,13 @@ import { FileIcon } from '@/components/ui/file-icon'
 import { PageSizeSelector } from '@/components/ui/page-size-selector'
 import { Tooltip } from '@/components/ui/tooltip'
 
-import type { RetrievalDocAgg, RetrievalResult } from './types'
+import { PAGE_SIZE_OPTIONS } from './constants'
+import type { RetrievalDocAgg, RetrievalResultView } from './types'
 
 interface ResultPanelProps {
   query: string
   isSearching: boolean
-  results: RetrievalResult[]
+  results: RetrievalResultView[]
   totalResults: number
   docAggs: RetrievalDocAgg[]
   selectedDocIds: string[]
@@ -37,10 +38,12 @@ interface ResultPanelProps {
   onDocFilter: (docId: string, checked: boolean) => void
   onClearDocFilter: () => void
   onSelectAllDocs: () => void
-  onOpenResultPreview: (result: RetrievalResult) => void
+  onOpenResultPreview: (result: RetrievalResultView) => void
   onPageChange: (page: number) => void
   onPageSizeChange: (size: number) => void
 }
+
+const formatPercent = (value: number): string => `${(value * 100).toFixed(1)}%`
 
 export const ResultPanel: React.FC<ResultPanelProps> = ({
   query,
@@ -242,7 +245,7 @@ export const ResultPanel: React.FC<ResultPanelProps> = ({
           <div className="space-y-space-base">
             {results.map((result, index) => (
               <RetrievalResultCard
-                key={result.chunk_id}
+                key={result.id}
                 result={result}
                 order={(currentPage - 1) * pageSize + index + 1}
                 highlight={highlight}
@@ -264,7 +267,7 @@ export const ResultPanel: React.FC<ResultPanelProps> = ({
               <PageSizeSelector
                 pageSize={pageSize}
                 onChange={onPageSizeChange}
-                options={[10, 20, 50, 100]}
+                options={[...PAGE_SIZE_OPTIONS]}
               />
 
               <div className="gap-space-xs flex items-center">
@@ -309,7 +312,7 @@ export const ResultPanel: React.FC<ResultPanelProps> = ({
 }
 
 interface RetrievalResultCardProps {
-  result: RetrievalResult
+  result: RetrievalResultView
   order: number
   highlight: boolean
   onOpen: () => void
@@ -333,27 +336,23 @@ const RetrievalResultCard: React.FC<RetrievalResultCardProps> = ({
           <div className="rounded-radius-full flex h-8 w-8 shrink-0 items-center justify-center bg-state-success-subtle text-sm font-semibold text-text-success">
             {order}
           </div>
-          <p className="truncate text-xs text-text-tertiary">
-            ID: {result.chunk_id}
-          </p>
+          <p className="truncate text-xs text-text-tertiary">ID: {result.id}</p>
         </div>
         <div className="gap-space-xs flex flex-wrap items-center justify-end">
           <Tooltip
-            content={`${t('knowledge.search.similarity')}: ${(result.similarity * 100).toFixed(1)}%`}
+            content={`${t('knowledge.search.similarity')}: ${formatPercent(result.scores.combined)}`}
           >
             <Badge variant="blue" className="text-xs">
               <Star className="mr-1 h-3 w-3" />
               {t('knowledge.search.similarityShort')}{' '}
-              {(result.similarity * 100).toFixed(1)}%
+              {formatPercent(result.scores.combined)}
             </Badge>
           </Tooltip>
           <Badge variant="green" className="text-xs">
-            {t('knowledge.search.vector')}{' '}
-            {(result.vector_similarity * 100).toFixed(1)}%
+            {t('knowledge.search.vector')} {formatPercent(result.scores.vector)}
           </Badge>
           <Badge variant="purple" className="text-xs">
-            {t('knowledge.search.text')}{' '}
-            {(result.term_similarity * 100).toFixed(1)}%
+            {t('knowledge.search.text')} {formatPercent(result.scores.term)}
           </Badge>
         </div>
       </div>
@@ -381,13 +380,13 @@ const RetrievalResultCard: React.FC<RetrievalResultCardProps> = ({
         <div className="gap-space-sm flex flex-wrap items-center justify-between">
           <div className="gap-space-sm flex min-w-0 items-center">
             <FileIcon
-              fileName={result.docnm_kwd}
-              fileType={result.docnm_kwd.split('.').pop() || 'txt'}
+              fileName={result.doc.name}
+              fileType={result.doc.extension}
               size="sm"
             />
             <div className="min-w-0">
               <div className="truncate text-sm font-medium text-text-secondary">
-                {result.docnm_kwd}
+                {result.doc.name}
               </div>
               <div className="mt-1 text-xs text-text-tertiary">
                 {t('knowledge.search.fromDocument')}
