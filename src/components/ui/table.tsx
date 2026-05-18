@@ -1,5 +1,5 @@
-import * as React from "react"
-import { cn } from "@/lib/utils"
+import * as React from 'react'
+import { cn } from '@/lib/utils'
 
 type SortDirection = 'asc' | 'desc'
 
@@ -21,7 +21,10 @@ interface SortConfig {
   direction?: SortDirection
 }
 
-export interface DataTableProps<T> extends Omit<React.TableHTMLAttributes<HTMLTableElement>, 'children'> {
+export interface DataTableProps<T> extends Omit<
+  React.TableHTMLAttributes<HTMLTableElement>,
+  'children'
+> {
   columns?: Column<T>[]
   data?: T[]
   dataSource?: T[]
@@ -29,9 +32,15 @@ export interface DataTableProps<T> extends Omit<React.TableHTMLAttributes<HTMLTa
   rowKey?: keyof T | ((record: T) => React.Key) | string
   sortConfig?: SortConfig
   onSort?: (field: string, direction: SortDirection) => void
-  onRow?: (record: T, index: number) => React.HTMLAttributes<HTMLTableRowElement>
+  onRow?: (
+    record: T,
+    index: number,
+  ) => React.HTMLAttributes<HTMLTableRowElement>
   striped?: boolean
   hoverable?: boolean
+  stickyHeader?: boolean
+  tableLayout?: 'auto' | 'fixed'
+  wrapperClassName?: string
   children?: React.ReactNode
 }
 
@@ -41,10 +50,16 @@ function getByPath(record: any, path?: string | number) {
   if (typeof path !== 'string') return record?.[String(path)]
   if (!path) return record
   if (path.indexOf('.') === -1) return record?.[path]
-  return path.split('.').reduce((obj, key) => (obj == null ? obj : obj[key]), record)
+  return path
+    .split('.')
+    .reduce((obj, key) => (obj == null ? obj : obj[key]), record)
 }
 
-function resolveRowKey<T>(record: T, rowKey: DataTableProps<T>["rowKey"], index: number): React.Key {
+function resolveRowKey<T>(
+  record: T,
+  rowKey: DataTableProps<T>['rowKey'],
+  index: number,
+): React.Key {
   if (typeof rowKey === 'function') return rowKey(record)
   if (typeof rowKey === 'string') return (record as any)?.[rowKey] ?? index
   if (rowKey) return (record as any)?.[String(rowKey)] ?? index
@@ -56,53 +71,91 @@ const TableInner = <T,>(
     columns,
     data,
     dataSource,
-    loading: _loading, // 仅用于屏蔽向 DOM 透传，渲染上不处理覆盖
+    loading: _loading,
     rowKey,
     sortConfig,
     onSort,
     onRow,
     striped,
     hoverable,
+    stickyHeader,
+    tableLayout,
+    wrapperClassName,
     className,
     children,
     ...htmlProps
   }: DataTableProps<T>,
-  ref: React.Ref<HTMLTableElement>
+  ref: React.Ref<HTMLTableElement>,
 ) => {
   const rows = (data ?? dataSource) as T[] | undefined
+  const tableClasses = cn(
+    'w-full caption-bottom text-sm',
+    tableLayout === 'fixed' && 'table-fixed',
+    className,
+  )
 
-  // 数据表模式（提供 columns 和 data）
   if (Array.isArray(columns) && Array.isArray(rows)) {
     return (
-      <div className="relative w-full overflow-auto">
-        <table ref={ref} className={cn("w-full caption-bottom text-sm", className)} {...htmlProps}>
-          <thead className={cn("[&_tr]:border-b")}> 
+      <div className={cn('relative w-full overflow-auto', wrapperClassName)}>
+        <table ref={ref} className={tableClasses} {...htmlProps}>
+          <colgroup>
+            {columns.map((col) => {
+              const style: React.CSSProperties = {}
+              if (col.width !== undefined) style.width = col.width
+              if (col.minWidth !== undefined) style.minWidth = col.minWidth
+              return <col key={col.key} style={style} />
+            })}
+          </colgroup>
+          <thead
+            className={cn(
+              '[&_tr]:border-b',
+              stickyHeader && 'sticky top-0 z-20 bg-background-surface',
+            )}
+          >
             <tr>
               {columns.map((col) => {
                 const field = String(col.dataIndex ?? col.key)
                 const isActive = sortConfig?.field === field
                 const direction = sortConfig?.direction ?? 'asc'
                 const thClasses = cn(
-                  "h-12 px-4 text-left align-middle font-medium text-muted-foreground",
-                  col.align === 'right' && "text-right",
-                  col.align === 'center' && "text-center"
+                  'h-12 px-4 text-left align-middle font-medium text-muted-foreground',
+                  stickyHeader && 'bg-background-surface',
+                  col.align === 'right' && 'text-right',
+                  col.align === 'center' && 'text-center',
                 )
                 const style: React.CSSProperties = {}
-                if (col.width !== undefined) style.width = col.width as any
-                if (col.minWidth !== undefined) style.minWidth = col.minWidth as any
+                if (col.width !== undefined) style.width = col.width
+                if (col.minWidth !== undefined) style.minWidth = col.minWidth
 
                 const handleSort = () => {
                   if (!onSort || !col.sortable) return
-                  const next: SortDirection = isActive ? (direction === 'asc' ? 'desc' : 'asc') : 'asc'
+                  const next: SortDirection = isActive
+                    ? direction === 'asc'
+                      ? 'desc'
+                      : 'asc'
+                    : 'asc'
                   onSort(field, next)
                 }
 
                 return (
-                  <th key={col.key} className={thClasses} style={style} onClick={col.sortable && onSort ? handleSort : undefined}>
-                    <span className={cn(col.sortable && onSort ? "cursor-pointer select-none inline-flex items-center gap-1" : undefined)}>
+                  <th
+                    key={col.key}
+                    className={thClasses}
+                    style={style}
+                    onClick={col.sortable && onSort ? handleSort : undefined}
+                  >
+                    <span
+                      className={cn(
+                        col.sortable && onSort
+                          ? 'inline-flex cursor-pointer select-none items-center gap-1'
+                          : undefined,
+                      )}
+                    >
                       {col.title ?? field}
                       {col.sortable && onSort && (
-                        <span className="text-xs opacity-70">{isActive ? (direction === 'asc' ? '▲' : '▼') : '↕'}</span>
+                        <span className="text-xs opacity-70">
+                          {isActive ? (direction === 'asc' ? '▲' : '▼') : '↕'}
+                        </span>
                       )}
                     </span>
                   </th>
@@ -110,31 +163,34 @@ const TableInner = <T,>(
               })}
             </tr>
           </thead>
-          <tbody className={cn("[&_tr:last-child]:border-0")}>
+          <tbody className={cn('[&_tr:last-child]:border-0')}>
             {rows.map((record, index) => {
               const rowAttrs = onRow ? onRow(record, index) : undefined
               const rowClass = cn(
-                "border-b transition-colors",
-                hoverable ? "hover:bg-muted/50" : undefined,
-                striped ? "odd:bg-muted/30" : undefined,
-                rowAttrs?.className
+                'border-b transition-colors',
+                hoverable ? 'hover:bg-muted/50' : undefined,
+                striped ? 'odd:bg-muted/30' : undefined,
+                rowAttrs?.className,
               )
               const rowKeyValue = resolveRowKey(record, rowKey, index)
-              // 从 rowAttrs 中剔除 className，避免重复应用
-              const { className: _rowClassName, ...restRowAttrs } = rowAttrs || {}
+              const { className: _rowClassName, ...restRowAttrs } =
+                rowAttrs || {}
               return (
                 <tr key={rowKeyValue} className={rowClass} {...restRowAttrs}>
                   {columns.map((col) => {
                     const tdClasses = cn(
-                      "p-4 align-middle",
-                      col.align === 'right' && "text-right",
-                      col.align === 'center' && "text-center"
+                      'p-4 align-middle',
+                      col.align === 'right' && 'text-right',
+                      col.align === 'center' && 'text-center',
                     )
                     const style: React.CSSProperties = {}
-                    if (col.width !== undefined) style.width = col.width as any
-                    if (col.minWidth !== undefined) style.minWidth = col.minWidth as any
+                    if (col.width !== undefined) style.width = col.width
+                    if (col.minWidth !== undefined)
+                      style.minWidth = col.minWidth
                     const raw = getByPath(record as any, col.dataIndex as any)
-                    const content = col.render ? col.render(raw, record, index) : (raw ?? '')
+                    const content = col.render
+                      ? col.render(raw, record, index)
+                      : (raw ?? '')
                     return (
                       <td key={col.key} className={tdClasses} style={style}>
                         {content}
@@ -150,10 +206,9 @@ const TableInner = <T,>(
     )
   }
 
-  // 子组件模式（与原有语义保持兼容）
   return (
-    <div className="relative w-full overflow-auto">
-      <table ref={ref} className={cn("w-full caption-bottom text-sm", className)} {...htmlProps}>
+    <div className={cn('relative w-full overflow-auto', wrapperClassName)}>
+      <table ref={ref} className={tableClasses} {...htmlProps}>
         {children}
       </table>
     </div>
@@ -161,17 +216,17 @@ const TableInner = <T,>(
 }
 
 const Table = React.forwardRef(TableInner) as <T>(
-  props: DataTableProps<T> & { ref?: React.Ref<HTMLTableElement> }
+  props: DataTableProps<T> & { ref?: React.Ref<HTMLTableElement> },
 ) => React.ReactNode
-;(Table as React.FC).displayName = "Table"
+;(Table as React.FC).displayName = 'Table'
 
 const TableHeader = React.forwardRef<
   HTMLTableSectionElement,
   React.HTMLAttributes<HTMLTableSectionElement>
 >(({ className, ...props }, ref) => (
-  <thead ref={ref} className={cn("[&_tr]:border-b", className)} {...props} />
+  <thead ref={ref} className={cn('[&_tr]:border-b', className)} {...props} />
 ))
-TableHeader.displayName = "TableHeader"
+TableHeader.displayName = 'TableHeader'
 
 const TableBody = React.forwardRef<
   HTMLTableSectionElement,
@@ -179,11 +234,11 @@ const TableBody = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <tbody
     ref={ref}
-    className={cn("[&_tr:last-child]:border-0", className)}
+    className={cn('[&_tr:last-child]:border-0', className)}
     {...props}
   />
 ))
-TableBody.displayName = "TableBody"
+TableBody.displayName = 'TableBody'
 
 const TableFooter = React.forwardRef<
   HTMLTableSectionElement,
@@ -191,11 +246,14 @@ const TableFooter = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <tfoot
     ref={ref}
-    className={cn("border-t bg-muted/50 font-medium [&>tr]:last:border-b-0", className)}
+    className={cn(
+      'bg-muted/50 border-t font-medium [&>tr]:last:border-b-0',
+      className,
+    )}
     {...props}
   />
 ))
-TableFooter.displayName = "TableFooter"
+TableFooter.displayName = 'TableFooter'
 
 const TableRow = React.forwardRef<
   HTMLTableRowElement,
@@ -204,13 +262,13 @@ const TableRow = React.forwardRef<
   <tr
     ref={ref}
     className={cn(
-      "border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted",
-      className
+      'hover:bg-muted/50 border-b transition-colors data-[state=selected]:bg-muted',
+      className,
     )}
     {...props}
   />
 ))
-TableRow.displayName = "TableRow"
+TableRow.displayName = 'TableRow'
 
 const TableHead = React.forwardRef<
   HTMLTableCellElement,
@@ -219,13 +277,13 @@ const TableHead = React.forwardRef<
   <th
     ref={ref}
     className={cn(
-      "h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0",
-      className
+      'h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0',
+      className,
     )}
     {...props}
   />
 ))
-TableHead.displayName = "TableHead"
+TableHead.displayName = 'TableHead'
 
 const TableCell = React.forwardRef<
   HTMLTableCellElement,
@@ -233,11 +291,11 @@ const TableCell = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <td
     ref={ref}
-    className={cn("p-4 align-middle [&:has([role=checkbox])]:pr-0", className)}
+    className={cn('p-4 align-middle [&:has([role=checkbox])]:pr-0', className)}
     {...props}
   />
 ))
-TableCell.displayName = "TableCell"
+TableCell.displayName = 'TableCell'
 
 const TableCaption = React.forwardRef<
   HTMLTableCaptionElement,
@@ -245,11 +303,11 @@ const TableCaption = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <caption
     ref={ref}
-    className={cn("mt-4 text-sm text-muted-foreground", className)}
+    className={cn('mt-4 text-sm text-muted-foreground', className)}
     {...props}
   />
 ))
-TableCaption.displayName = "TableCaption"
+TableCaption.displayName = 'TableCaption'
 
 export {
   Table,

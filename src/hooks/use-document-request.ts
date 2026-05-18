@@ -26,7 +26,7 @@ export const documentKeys = {
 // 获取当前知识库 ID
 export const useKnowledgeBaseIdFromRoute = (): string => {
   const { id, knowledgeBaseId } = useParams()
-  return (knowledgeBaseId || id) as string || ''
+  return ((knowledgeBaseId || id) as string) || ''
 }
 
 // 文档运行状态常量
@@ -53,7 +53,9 @@ export interface UseFetchDocumentListParams {
   pollingInterval?: number
 }
 
-export const useFetchDocumentList = (params: UseFetchDocumentListParams = {}) => {
+export const useFetchDocumentList = (
+  params: UseFetchDocumentListParams = {},
+) => {
   const routeKbId = useKnowledgeBaseIdFromRoute()
   const {
     knowledgeBaseId = routeKbId,
@@ -79,7 +81,7 @@ export const useFetchDocumentList = (params: UseFetchDocumentListParams = {}) =>
     queryFn: async () => {
       const response = await knowledgeAPI.document.list({
         kb_id: knowledgeBaseId,
-        page: page - 1, // API 使用 0 基索引
+        page,
         page_size,
         keywords,
         orderby,
@@ -96,7 +98,9 @@ export const useFetchDocumentList = (params: UseFetchDocumentListParams = {}) =>
     refetchInterval: enableSmartPolling
       ? (query) => {
           const docs = query.state.data?.docs || []
-          const hasParsingDocs = docs.some((doc) => doc.run === TaskStatus.RUNNING)
+          const hasParsingDocs = docs.some(
+            (doc) => doc.run === TaskStatus.RUNNING,
+          )
           return hasParsingDocs ? pollingInterval : false
         }
       : false,
@@ -154,16 +158,20 @@ export const useUploadDocument = () => {
       }
     }) => {
       const kbId = params.knowledgeBaseId || knowledgeBaseId
-      const response = await knowledgeAPI.document.upload(kbId, params.files, params.options)
+      const response = await knowledgeAPI.document.upload(
+        kbId,
+        params.files,
+        params.options,
+      )
       return { knowledgeBaseId: kbId, documents: response }
     },
     onSuccess: ({ knowledgeBaseId: kbId }) => {
-      queryClient.invalidateQueries({ 
+      queryClient.invalidateQueries({
         queryKey: documentKeys.lists(),
         predicate: (query) => {
           const key = query.queryKey as string[]
           return key[0] === 'documents' && key[1] === 'list' && key[2] === kbId
-        }
+        },
       })
     },
   })
@@ -232,7 +240,10 @@ export const useUpdateDocumentStatus = () => {
       documentIds: string[]
       status: '0' | '1'
     }) => {
-      await knowledgeAPI.document.updateStatus(params.documentIds, params.status)
+      await knowledgeAPI.document.updateStatus(
+        params.documentIds,
+        params.status,
+      )
       return params
     },
     onSuccess: () => {
@@ -318,7 +329,11 @@ export const useRunDocument = () => {
       run: 0 | 1 | 2 // 0=停止, 1=开始, 2=取消
       deleteHistory?: boolean
     }) => {
-      await knowledgeAPI.document.run(params.docIds, params.run, params.deleteHistory)
+      await knowledgeAPI.document.run(
+        params.docIds,
+        params.run,
+        params.deleteHistory,
+      )
       return params
     },
     onSuccess: () => {
@@ -365,7 +380,10 @@ export const useRenameDocument = () => {
 
   const { mutateAsync, isPending, isError, error } = useMutation({
     mutationFn: async (params: { docId: string; name: string }) => {
-      const result = await knowledgeAPI.document.rename(params.docId, params.name)
+      const result = await knowledgeAPI.document.rename(
+        params.docId,
+        params.name,
+      )
       return result
     },
     onSuccess: () => {

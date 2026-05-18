@@ -1,8 +1,5 @@
-/**
- * 文档上传模态框组件
- */
-
-import React, { useState, useCallback } from 'react'
+import { useState, useCallback } from 'react'
+import { Trans, useTranslation } from 'react-i18next'
 import {
   Modal,
   Button,
@@ -10,9 +7,13 @@ import {
   Switch,
   type UploadFile,
   type FileRejection,
+  type FileUploaderTexts,
 } from '@/components/ui'
 import { knowledgeAPI } from '@/api/knowledge'
 import { toast } from '@/lib/toast'
+
+const DOCUMENT_UPLOAD_MAX_SIZE = 1024 * 1024 * 1024
+const DOCUMENT_UPLOAD_MAX_FILE_COUNT = 32
 
 interface DocumentUploadModalProps {
   open: boolean
@@ -21,44 +22,91 @@ interface DocumentUploadModalProps {
   onSuccess: () => void
 }
 
-export const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
+export function DocumentUploadModal({
   open,
   onClose,
   kbId,
   onSuccess,
-}) => {
+}: DocumentUploadModalProps) {
+  const { t } = useTranslation()
   const [uploadFiles, setUploadFiles] = useState<UploadFile[]>([])
   const [uploading, setUploading] = useState(false)
   const [parseOnUpload, setParseOnUpload] = useState(true)
+  const uploadTexts: Partial<FileUploaderTexts> = {
+    fileTab: t('knowledge.documents.upload.fileTab'),
+    folderTab: t('knowledge.documents.upload.folderTab'),
+    dropActiveTitle: t('knowledge.documents.upload.dropActiveTitle'),
+    fileDropTitle: t('knowledge.documents.upload.fileDropTitle'),
+    folderDropTitle: t('knowledge.documents.upload.folderDropTitle'),
+    fileDropDescription: (
+      <Trans
+        i18nKey="knowledge.documents.upload.description"
+        components={{
+          strong: <span className="font-medium text-text-primary" />,
+        }}
+      />
+    ),
+    folderDropDescription: t(
+      'knowledge.documents.upload.folderDropDescription',
+    ),
+    selectFile: t('knowledge.documents.upload.selectFile'),
+    selectFolder: t('knowledge.documents.upload.selectFolder'),
+    selectedFiles: (count, maxFileCount) => (
+      <>
+        {t('knowledge.documents.upload.selectedFiles', { count })}
+        <span className="text-text-tertiary"> / {maxFileCount}</span>
+      </>
+    ),
+    clearAll: t('knowledge.documents.upload.clearAll'),
+    totalSize: t('knowledge.documents.upload.totalSize'),
+    remainingFiles: (count) =>
+      t('knowledge.documents.upload.remainingFiles', { count }),
+    uploadSuccess: t('knowledge.documents.upload.uploadSuccessStatus'),
+    uploadFailed: t('knowledge.documents.upload.failed'),
+    uploading: t('knowledge.documents.upload.uploading'),
+    retryUpload: t('knowledge.documents.upload.retryUpload'),
+    removeFile: t('knowledge.documents.upload.removeFile'),
+    tooManyFiles: (count) =>
+      t('knowledge.documents.upload.tooManyFilesWithLimit', { count }),
+  }
 
-  // 文件上传变化处理
   const handleUploadFilesChange = useCallback((files: UploadFile[]) => {
     setUploadFiles(files)
   }, [])
 
-  // 文件被拒绝处理
-  const handleFilesRejected = useCallback((rejectedFiles: FileRejection[]) => {
-    rejectedFiles.forEach(({ file, errors }) => {
-      const errorMessages = errors.map((e) => {
-        if (e.code === 'file-too-large')
-          return `文件 "${file.name}" 超过大小限制`
-        if (e.code === 'file-invalid-type')
-          return `文件 "${file.name}" 类型不支持`
-        if (e.code === 'too-many-files') return `文件数量超过限制`
-        return e.message
+  const handleFilesRejected = useCallback(
+    (rejectedFiles: FileRejection[]) => {
+      rejectedFiles.forEach(({ file, errors }) => {
+        const errorMessages = errors.map((e) => {
+          if (e.code === 'file-too-large') {
+            return t('knowledge.documents.upload.fileTooLarge', {
+              name: file.name,
+            })
+          }
+          if (e.code === 'file-invalid-type') {
+            return t('knowledge.documents.upload.fileInvalidType', {
+              name: file.name,
+            })
+          }
+          if (e.code === 'too-many-files') {
+            return t('knowledge.documents.upload.tooManyFilesWithLimit', {
+              count: DOCUMENT_UPLOAD_MAX_FILE_COUNT,
+            })
+          }
+          return e.message
+        })
+        toast.error(errorMessages.join('; '))
       })
-      toast.error(errorMessages.join('; '))
-    })
-  }, [])
+    },
+    [t],
+  )
 
-  // 执行上传
   const handleUpload = async () => {
     if (!kbId || uploadFiles.length === 0) return
 
-    // 获取待上传的文件（排除已成功的）
     const filesToUpload = uploadFiles.filter((f) => f.status !== 'success')
     if (filesToUpload.length === 0) {
-      toast.info('所有文件已上传完成')
+      toast.info(t('knowledge.documents.upload.allUploaded'))
       handleClose()
       return
     }
@@ -66,86 +114,96 @@ export const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
     try {
       setUploading(true)
 
-      // 更新所有待上传文件为上传中状态
       setUploadFiles((prev) =>
         prev.map((f) =>
           f.status !== 'success'
             ? { ...f, status: 'uploading' as const, progress: 0 }
-            : f
-        )
+            : f,
+        ),
       )
 
-      // 使用API客户端上传所有文件
       const uploadedDocs = await knowledgeAPI.document.upload(
         kbId,
-        filesToUpload
+        filesToUpload,
       )
 
       if (uploadedDocs && uploadedDocs.length > 0) {
-        // 更新文件状态为成功
         setUploadFiles((prev) =>
           prev.map((f) => ({
             ...f,
             status: 'success' as const,
             progress: 100,
-          }))
+          })),
         )
 
-        toast.success(`成功上传 ${uploadedDocs.length} 个文档`)
+        toast.success(
+          t('knowledge.documents.upload.success', {
+            count: uploadedDocs.length,
+          }),
+        )
 
-        // 如果开启了"创建时解析"，自动触发解析
         if (parseOnUpload) {
           try {
             const docIds = uploadedDocs.map((doc) => doc.id)
             await knowledgeAPI.document.run(docIds, 1, false)
-            toast.success(`已开始解析 ${docIds.length} 个文档`)
+            toast.success(
+              t('knowledge.documents.toasts.parseStarted', {
+                count: docIds.length,
+              }),
+            )
           } catch (parseError) {
-            console.error('自动解析失败:', parseError)
-            toast.error('文档上传成功，但自动解析失败，请手动触发解析')
+            console.error('Auto parse failed:', parseError)
+            toast.error(t('knowledge.documents.upload.autoParseError'))
           }
         }
 
-        // 稍等片刻让用户看到成功状态，然后关闭
         setTimeout(() => {
           handleClose()
           onSuccess()
         }, 800)
       } else {
-        // 更新文件状态为失败
         setUploadFiles((prev) =>
           prev.map((f) =>
             f.status === 'uploading'
-              ? { ...f, status: 'error' as const, error: '服务器响应异常' }
-              : f
-          )
+              ? {
+                  ...f,
+                  status: 'error' as const,
+                  error: t('knowledge.documents.upload.serverResponseError'),
+                }
+              : f,
+          ),
         )
-        toast.error('上传失败：服务器响应异常')
+        toast.error(t('knowledge.documents.upload.serverResponseErrorToast'))
       }
     } catch (error) {
-      console.error('文档上传失败:', error)
-      const errorMessage = error instanceof Error ? error.message : '未知错误'
+      console.error('Document upload failed:', error)
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : t('knowledge.documents.upload.unknownError')
 
-      // 更新文件状态为失败
       setUploadFiles((prev) =>
         prev.map((f) =>
           f.status === 'uploading'
             ? { ...f, status: 'error' as const, error: errorMessage }
-            : f
-        )
+            : f,
+        ),
       )
 
-      toast.error(`文档上传失败: ${errorMessage}`)
+      toast.error(
+        t('knowledge.documents.upload.failedWithMessage', {
+          message: errorMessage,
+        }),
+      )
     } finally {
       setUploading(false)
     }
   }
 
-  // 重试上传失败的文件
   const handleRetryUpload = useCallback(
     async (file: UploadFile, index: number) => {
       if (!kbId) return
 
-      // 更新单个文件状态为上传中
       setUploadFiles((prev) =>
         prev.map((f, i) =>
           i === index
@@ -155,8 +213,8 @@ export const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
                 progress: 0,
                 error: undefined,
               }
-            : f
-        )
+            : f,
+        ),
       )
 
       try {
@@ -167,34 +225,44 @@ export const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
             prev.map((f, i) =>
               i === index
                 ? { ...f, status: 'success' as const, progress: 100 }
-                : f
-            )
+                : f,
+            ),
           )
-          toast.success(`文件 "${file.name}" 上传成功`)
+          toast.success(
+            t('knowledge.documents.upload.fileUploadSuccess', {
+              name: file.name,
+            }),
+          )
         } else {
           setUploadFiles((prev) =>
             prev.map((f, i) =>
               i === index
-                ? { ...f, status: 'error' as const, error: '上传失败' }
-                : f
-            )
+                ? {
+                    ...f,
+                    status: 'error' as const,
+                    error: t('knowledge.documents.upload.failed'),
+                  }
+                : f,
+            ),
           )
         }
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : '上传失败'
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : t('knowledge.documents.upload.failed')
         setUploadFiles((prev) =>
           prev.map((f, i) =>
             i === index
               ? { ...f, status: 'error' as const, error: errorMessage }
-              : f
-          )
+              : f,
+          ),
         )
       }
     },
-    [kbId]
+    [kbId, t],
   )
 
-  // 关闭模态框
   const handleClose = () => {
     if (!uploading) {
       setUploadFiles([])
@@ -203,60 +271,35 @@ export const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
   }
 
   return (
-    <Modal open={open} onClose={handleClose} title="上传文档" size="lg">
+    <Modal
+      open={open}
+      onClose={handleClose}
+      title={t('knowledge.documents.upload.title')}
+      size="lg"
+    >
       <div className="space-y-6">
-        {/* 使用增强的 FileUploader 组件 */}
         <FileUploader
           value={uploadFiles}
           onValueChange={handleUploadFilesChange}
           onFilesRejected={handleFilesRejected}
           onRetry={handleRetryUpload}
-          maxSize={1024 * 1024 * 1024} // 1GB
-          maxFileCount={32}
+          maxSize={DOCUMENT_UPLOAD_MAX_SIZE}
+          maxFileCount={DOCUMENT_UPLOAD_MAX_FILE_COUNT}
           multiple={true}
           showProgress={true}
           disabled={uploading}
           dropzoneHeight="min-h-[180px]"
           listMaxHeight="max-h-[240px]"
-          description={
-            <>
-              支持 PDF、Word、Excel、PPT、Markdown、代码文件、图片、音视频等多种格式。
-              单次上传文件总大小上限为{' '}
-              <span
-                className="font-medium"
-                style={{ color: 'var(--color-text-primary)' }}
-              >
-                1GB
-              </span>
-              ， 单次批量上传文件数不超过{' '}
-              <span
-                className="font-medium"
-                style={{ color: 'var(--color-text-primary)' }}
-              >
-                32
-              </span>{' '}
-              个
-            </>
-          }
+          texts={uploadTexts}
         />
 
-        {/* 创建时解析开关 */}
-        <div
-          className="flex items-center justify-between py-3 px-4 rounded-lg"
-          style={{ backgroundColor: 'var(--color-surface-secondary)' }}
-        >
+        <div className="rounded-radius-lg bg-surface-secondary flex items-center justify-between px-4 py-3">
           <div className="flex flex-col">
-            <span
-              className="text-sm font-medium"
-              style={{ color: 'var(--color-text-primary)' }}
-            >
-              创建时解析
+            <span className="text-sm font-medium text-text-primary">
+              {t('knowledge.documents.upload.parseOnUpload')}
             </span>
-            <span
-              className="text-xs"
-              style={{ color: 'var(--color-text-tertiary)' }}
-            >
-              上传成功后自动开始解析文档
+            <span className="text-xs text-text-tertiary">
+              {t('knowledge.documents.upload.parseOnUploadDescription')}
             </span>
           </div>
           <Switch
@@ -266,13 +309,9 @@ export const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
           />
         </div>
 
-        {/* 操作按钮 */}
-        <div
-          className="flex justify-end space-x-3 pt-4"
-          style={{ borderTop: '1px solid var(--color-border-subtle)' }}
-        >
+        <div className="flex justify-end space-x-3 border-t border-border-subtle pt-4">
           <Button variant="outline" onClick={handleClose} disabled={uploading}>
-            取消
+            {t('knowledge.common.cancel')}
           </Button>
           <Button
             onClick={handleUpload}
@@ -283,10 +322,15 @@ export const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
             }
           >
             {uploading
-              ? '上传中...'
+              ? t('knowledge.documents.upload.uploading')
               : uploadFiles.some((f) => f.status === 'success')
-                ? `上传剩余 ${uploadFiles.filter((f) => f.status !== 'success').length} 个文件`
-                : `上传 ${uploadFiles.length} 个文件`}
+                ? t('knowledge.documents.upload.uploadRemaining', {
+                    count: uploadFiles.filter((f) => f.status !== 'success')
+                      .length,
+                  })
+                : t('knowledge.documents.upload.uploadCount', {
+                    count: uploadFiles.length,
+                  })}
           </Button>
         </div>
       </div>

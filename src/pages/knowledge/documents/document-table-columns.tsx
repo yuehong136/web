@@ -1,8 +1,4 @@
-/**
- * 文档表格列定义
- */
-
-import React, { useMemo } from 'react'
+import { useMemo, type CSSProperties } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { User } from 'lucide-react'
@@ -17,7 +13,11 @@ import {
 } from './document-status-cell'
 import { DocumentActionCell } from './document-action-cell'
 import { ParserMethodCell } from './parser-method-cell'
-import { formatFileSize, formatDate, formatRelativeTime } from './hooks'
+import {
+  formatDocumentDate,
+  formatDocumentFileSize,
+  formatDocumentRelativeTime,
+} from './utils/format'
 
 const AVATAR_GRADIENTS = [
   'blue',
@@ -30,11 +30,11 @@ const AVATAR_GRADIENTS = [
   'amber',
 ] as const
 
-const AVATAR_STYLES: React.CSSProperties[] = AVATAR_GRADIENTS.map((name) => ({
+const AVATAR_STYLES: CSSProperties[] = AVATAR_GRADIENTS.map((name) => ({
   background: `linear-gradient(135deg, var(--color-components-avatar-gradient-${name}-from), var(--color-components-avatar-gradient-${name}-to))`,
 }))
 
-function getAvatarStyle(name: string): React.CSSProperties {
+function getAvatarStyle(name: string): CSSProperties {
   let hash = 0
   for (let i = 0; i < name.length; i++) {
     hash = name.charCodeAt(i) + ((hash << 5) - hash)
@@ -87,11 +87,17 @@ export function useDocumentTableColumns({
     () => [
       {
         key: 'select',
-        title: t('knowledge.documents.table.select'),
-        width: 48,
+        title: (
+          <span className="whitespace-nowrap">
+            {t('knowledge.documents.table.select')}
+          </span>
+        ),
+        width: 72,
+        align: 'center',
         fixed: 'left',
         render: (_, record) => (
           <Checkbox
+            aria-label={t('knowledge.documents.table.select')}
             checked={selectedDocs.has(record.id)}
             onCheckedChange={(checked) =>
               onSelectDoc(record.id, checked as boolean)
@@ -102,7 +108,8 @@ export function useDocumentTableColumns({
       {
         key: 'icon',
         title: '',
-        width: 48,
+        width: 64,
+        align: 'center',
         render: (_, record) => (
           <Tooltip
             content={
@@ -110,11 +117,11 @@ export function useDocumentTableColumns({
               `: ${record.type || t('knowledge.documents.unknown')}`
             }
           >
-            <div className="flex items-center justify-center">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center">
               <FileIcon
                 fileName={record.name}
                 fileType={record.suffix || record.type}
-                size="md"
+                size="lg"
               />
             </div>
           </Tooltip>
@@ -130,19 +137,13 @@ export function useDocumentTableColumns({
           <Tooltip
             content={
               <div className="max-w-md">
-                <div
-                  className="mb-2 font-medium"
-                  style={{ color: 'var(--color-text-primary)' }}
-                >
+                <div className="mb-2 font-medium text-text-primary">
                   {value}
                 </div>
-                <div
-                  className="space-y-1 text-xs"
-                  style={{ color: 'var(--color-text-secondary)' }}
-                >
+                <div className="space-y-1 text-xs text-text-secondary">
                   <div>
                     {t('knowledge.documents.table.size')}:{' '}
-                    {formatFileSize(record.size || 0)}
+                    {formatDocumentFileSize(record.size || 0)}
                   </div>
                   <div>
                     {t('knowledge.documents.table.type')}:{' '}
@@ -158,14 +159,15 @@ export function useDocumentTableColumns({
             delayHide={500}
             maxWidth="max-w-md"
           >
-            <div
-              className="cursor-pointer truncate font-medium text-text-primary transition-colors hover:text-text-accent"
+            <button
+              type="button"
+              className="w-full truncate text-left font-medium text-text-primary transition-colors hover:text-text-accent"
               onClick={() =>
                 navigate(`/knowledge/${kbId}/documents/${record.id}/chunks`)
               }
             >
               {value}
-            </div>
+            </button>
           </Tooltip>
         ),
       },
@@ -181,11 +183,8 @@ export function useDocumentTableColumns({
               bytes: value || 0,
             })}
           >
-            <span
-              className="cursor-help text-sm"
-              style={{ color: 'var(--color-text-secondary)' }}
-            >
-              {formatFileSize(value || 0)}
+            <span className="cursor-help text-sm text-text-secondary">
+              {formatDocumentFileSize(value || 0)}
             </span>
           </Tooltip>
         ),
@@ -202,10 +201,7 @@ export function useDocumentTableColumns({
               tokens: record.token_num || 0,
             })}
           >
-            <span
-              className="cursor-help text-sm"
-              style={{ color: 'var(--color-text-secondary)' }}
-            >
+            <span className="cursor-help text-sm text-text-secondary">
               {value || 0}
             </span>
           </Tooltip>
@@ -223,10 +219,7 @@ export function useDocumentTableColumns({
               onShowChunkMethodModal={onShowChunkMethodModal}
             />
           ) : (
-            <span
-              className="text-sm"
-              style={{ color: 'var(--color-text-secondary)' }}
-            >
+            <span className="text-sm text-text-secondary">
               {record.parser_id || t('knowledge.documents.defaultParser')}
             </span>
           ),
@@ -307,19 +300,19 @@ export function useDocumentTableColumns({
               <div className="space-y-1 text-xs">
                 <div>
                   {t('knowledge.documents.table.created', {
-                    value: formatDate(value),
+                    value: formatDocumentDate(value),
                   })}
                 </div>
                 <div>
                   {t('knowledge.documents.table.updated', {
-                    value: formatDate(record.update_date),
+                    value: formatDocumentDate(record.update_date),
                   })}
                 </div>
               </div>
             }
           >
             <span className="cursor-help text-sm text-text-secondary">
-              {formatRelativeTime(value)}
+              {formatDocumentRelativeTime(value)}
             </span>
           </Tooltip>
         ),

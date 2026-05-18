@@ -22,9 +22,7 @@ export {
   useFilterCollections,
   useFilterGroup,
   useDocumentActions,
-  formatFileSize,
-  formatDate,
-} from './hooks'
+} from './hooks/index'
 
 // 常量导出
 export {

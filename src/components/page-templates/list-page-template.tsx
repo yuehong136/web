@@ -1,33 +1,35 @@
-import React from 'react'
+import type { FC, ReactNode } from 'react'
 import { cn } from '@/lib/utils'
 
 type ListPageState = 'content' | 'loading' | 'empty' | 'error'
 
 interface ListPageTemplateProps {
-  title: React.ReactNode
-  description?: React.ReactNode
-  headerActions?: React.ReactNode
+  title?: ReactNode
+  description?: ReactNode
+  headerActions?: ReactNode
+  hideHeader?: boolean
 
-  stats?: React.ReactNode
+  stats?: ReactNode
 
-  toolbarLeft?: React.ReactNode
-  toolbarRight?: React.ReactNode
+  toolbarLeft?: ReactNode
+  toolbarRight?: ReactNode
 
-  pagination?: React.ReactNode
+  pagination?: ReactNode
 
   state?: ListPageState
-  emptyState?: React.ReactNode
-  loadingState?: React.ReactNode
-  errorState?: React.ReactNode
+  emptyState?: ReactNode
+  loadingState?: ReactNode
+  errorState?: ReactNode
 
   className?: string
-  children: React.ReactNode
+  children: ReactNode
 }
 
-export const ListPageTemplate: React.FC<ListPageTemplateProps> = ({
+export const ListPageTemplate: FC<ListPageTemplateProps> = ({
   title,
   description,
   headerActions,
+  hideHeader,
   stats,
   toolbarLeft,
   toolbarRight,
@@ -76,17 +78,23 @@ export const ListPageTemplate: React.FC<ListPageTemplateProps> = ({
 
   return (
     <div className={cn('p-space-lg flex h-full min-h-0 flex-col', className)}>
-      <div className="mb-4 flex items-start justify-between">
-        <div>
-          <h1 className="text-xl font-semibold text-text-primary">{title}</h1>
-          {description ? (
-            <p className="mt-1 text-sm text-text-secondary">{description}</p>
+      {!hideHeader && (title || description || headerActions) ? (
+        <div className="mb-4 flex items-start justify-between">
+          <div>
+            {title ? (
+              <h1 className="text-xl font-semibold text-text-primary">
+                {title}
+              </h1>
+            ) : null}
+            {description ? (
+              <p className="mt-1 text-sm text-text-secondary">{description}</p>
+            ) : null}
+          </div>
+          {headerActions ? (
+            <div className="flex items-center space-x-3">{headerActions}</div>
           ) : null}
         </div>
-        {headerActions ? (
-          <div className="flex items-center space-x-3">{headerActions}</div>
-        ) : null}
-      </div>
+      ) : null}
 
       {stats ? <div className="mb-4">{stats}</div> : null}
 

@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import type { FileRejection } from 'react-dropzone'
-import type { UploadFile, FileUploadStatus } from './types'
+import type { FileUploaderTexts, UploadFile, FileUploadStatus } from './types'
 
 interface UseFileUploaderOptions {
   value?: UploadFile[]
@@ -8,6 +8,7 @@ interface UseFileUploaderOptions {
   maxFileCount: number
   onFilesRejected?: (rejected: FileRejection[]) => void
   onRetry?: (file: UploadFile, index: number) => void
+  texts: FileUploaderTexts
 }
 
 export function useFileUploader({
@@ -16,6 +17,7 @@ export function useFileUploader({
   maxFileCount,
   onFilesRejected,
   onRetry,
+  texts,
 }: UseFileUploaderOptions) {
   const [files, setFilesInternal] = useState<UploadFile[]>(value ?? [])
   const fileIdCounter = useRef(0)
@@ -30,43 +32,60 @@ export function useFileUploader({
     return `file-${Date.now()}-${++fileIdCounter.current}`
   }, [])
 
-  const setFiles = useCallback((newFiles: UploadFile[]) => {
-    setFilesInternal(newFiles)
-    onValueChange?.(newFiles)
-  }, [onValueChange])
+  const setFiles = useCallback(
+    (newFiles: UploadFile[]) => {
+      setFilesInternal(newFiles)
+      onValueChange?.(newFiles)
+    },
+    [onValueChange],
+  )
 
   const reachesMaxFileCount = files.length >= maxFileCount
   const isDisabled = files.length >= maxFileCount
 
-  // 核心文件处理逻辑 - 供 onDrop 和 folder 模式共享
-  const processAcceptedFiles = useCallback((acceptedFiles: File[]): UploadFile[] => {
-    const availableSlots = maxFileCount - files.length
-    if (availableSlots <= 0) return []
+  const processAcceptedFiles = useCallback(
+    (acceptedFiles: File[]): UploadFile[] => {
+      const availableSlots = maxFileCount - files.length
+      if (availableSlots <= 0) return []
 
-    const filesToAdd = acceptedFiles.slice(0, availableSlots)
+      const filesToAdd = acceptedFiles.slice(0, availableSlots)
 
-    // 去重
-    const existingFiles = new Map(files.map(f => [`${f.name}-${f.size}`, true]))
-    const uniqueFiles = filesToAdd.filter(f => !existingFiles.has(`${f.name}-${f.size}`))
+      const existingFiles = new Map(
+        files.map((f) => [`${f.name}-${f.size}`, true]),
+      )
+      const uniqueFiles = filesToAdd.filter(
+        (f) => !existingFiles.has(`${f.name}-${f.size}`),
+      )
 
-    return uniqueFiles.map((file) => {
-      return Object.assign(file, {
-        preview: file.type?.startsWith('image/') ? URL.createObjectURL(file) : undefined,
-        status: 'pending' as FileUploadStatus,
-        progress: 0,
-        uid: generateFileId(),
+      return uniqueFiles.map((file) => {
+        return Object.assign(file, {
+          preview: file.type?.startsWith('image/')
+            ? URL.createObjectURL(file)
+            : undefined,
+          status: 'pending' as FileUploadStatus,
+          progress: 0,
+          uid: generateFileId(),
+        })
       })
-    })
-  }, [files, maxFileCount, generateFileId])
+    },
+    [files, maxFileCount, generateFileId],
+  )
 
   const onDrop = useCallback(
     (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
       const availableSlots = maxFileCount - files.length
       if (availableSlots <= 0) {
-        onFilesRejected?.([{
-          file: acceptedFiles[0],
-          errors: [{ code: 'too-many-files', message: `最多只能上传 ${maxFileCount} 个文件` }]
-        }])
+        onFilesRejected?.([
+          {
+            file: acceptedFiles[0],
+            errors: [
+              {
+                code: 'too-many-files',
+                message: texts.tooManyFiles(maxFileCount),
+              },
+            ],
+          },
+        ])
         return
       }
 
@@ -78,36 +97,51 @@ export function useFileUploader({
         onFilesRejected?.(rejectedFiles)
       }
     },
-    [files, maxFileCount, setFiles, onFilesRejected, processAcceptedFiles]
+    [
+      files,
+      maxFileCount,
+      setFiles,
+      onFilesRejected,
+      processAcceptedFiles,
+      texts,
+    ],
   )
 
-  // 文件夹选择处理
-  const processFilesFromFolder = useCallback((folderFiles: File[]) => {
-    const newFiles = processAcceptedFiles(folderFiles)
-    if (newFiles.length > 0) {
-      const updatedFiles = [...files, ...newFiles]
-      setFiles(updatedFiles)
-    }
-  }, [files, setFiles, processAcceptedFiles])
+  const processFilesFromFolder = useCallback(
+    (folderFiles: File[]) => {
+      const newFiles = processAcceptedFiles(folderFiles)
+      if (newFiles.length > 0) {
+        const updatedFiles = [...files, ...newFiles]
+        setFiles(updatedFiles)
+      }
+    },
+    [files, setFiles, processAcceptedFiles],
+  )
 
-  const handleRemove = useCallback((index: number) => {
-    const file = files[index]
-    if (file.preview) {
-      URL.revokeObjectURL(file.preview)
-    }
-    const newFiles = files.filter((_, i) => i !== index)
-    setFiles(newFiles)
-  }, [files, setFiles])
+  const handleRemove = useCallback(
+    (index: number) => {
+      const file = files[index]
+      if (file.preview) {
+        URL.revokeObjectURL(file.preview)
+      }
+      const newFiles = files.filter((_, i) => i !== index)
+      setFiles(newFiles)
+    },
+    [files, setFiles],
+  )
 
-  const handleRetry = useCallback((index: number) => {
-    const file = files[index]
-    if (onRetry) {
-      onRetry(file, index)
-    }
-  }, [files, onRetry])
+  const handleRetry = useCallback(
+    (index: number) => {
+      const file = files[index]
+      if (onRetry) {
+        onRetry(file, index)
+      }
+    },
+    [files, onRetry],
+  )
 
   const handleClearAll = useCallback(() => {
-    files.forEach(file => {
+    files.forEach((file) => {
       if (file.preview) {
         URL.revokeObjectURL(file.preview)
       }
@@ -115,7 +149,6 @@ export function useFileUploader({
     setFiles([])
   }, [files, setFiles])
 
-  // 清理预览 URL
   useEffect(() => {
     return () => {
       files.forEach((file) => {

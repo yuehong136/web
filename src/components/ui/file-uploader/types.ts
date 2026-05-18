@@ -2,19 +2,10 @@ import type { DropzoneProps, FileRejection } from 'react-dropzone'
 
 export type { FileRejection }
 
-/**
- * 文件上传状态
- */
 export type FileUploadStatus = 'pending' | 'uploading' | 'success' | 'error'
 
-/**
- * 上传模式
- */
 export type UploadMode = 'files' | 'folder'
 
-/**
- * 带状态的文件对象
- */
 export interface UploadFile extends File {
   preview?: string
   status?: FileUploadStatus
@@ -23,16 +14,38 @@ export interface UploadFile extends File {
   uid?: string
 }
 
-/**
- * 上传进度回调参数
- */
 export interface UploadProgressInfo {
   file: UploadFile
   progress: number
   status: FileUploadStatus
 }
 
-export interface FileUploaderProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'title' | 'onChange'> {
+export interface FileUploaderTexts {
+  fileTab: React.ReactNode
+  folderTab: React.ReactNode
+  dropActiveTitle: React.ReactNode
+  fileDropTitle: React.ReactNode
+  folderDropTitle: React.ReactNode
+  fileDropDescription: React.ReactNode
+  folderDropDescription: React.ReactNode
+  selectFile: React.ReactNode
+  selectFolder: React.ReactNode
+  selectedFiles: (count: number, maxFileCount: number) => React.ReactNode
+  clearAll: React.ReactNode
+  totalSize: React.ReactNode
+  remainingFiles: (count: number) => React.ReactNode
+  uploadSuccess: React.ReactNode
+  uploadFailed: React.ReactNode
+  uploading: React.ReactNode
+  retryUpload: React.ReactNode
+  removeFile: React.ReactNode
+  tooManyFiles: (maxFileCount: number) => string
+}
+
+export interface FileUploaderProps extends Omit<
+  React.HTMLAttributes<HTMLDivElement>,
+  'title' | 'onChange'
+> {
   value?: UploadFile[]
   onValueChange?: (files: UploadFile[]) => void
   accept?: DropzoneProps['accept']
@@ -50,4 +63,5 @@ export interface FileUploaderProps extends Omit<React.HTMLAttributes<HTMLDivElem
   listMaxHeight?: string
   onRetry?: (file: UploadFile, index: number) => void
   enableFolderUpload?: boolean
+  texts?: Partial<FileUploaderTexts>
 }
