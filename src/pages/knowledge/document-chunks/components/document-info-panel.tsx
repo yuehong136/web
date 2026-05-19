@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import {
   ChevronDown,
   ChevronRight,
@@ -9,7 +9,7 @@ import {
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Button, Card, Tooltip } from '@/components/ui'
-import { formatDate } from '@/lib/utils'
+import { cn, formatDate } from '@/lib/utils'
 import { formatChunkFileSize } from '../utils'
 import type { ChunkData, ChunkListDocument } from '../types'
 import { ParserConfigDetails } from './parser-config-details'
@@ -17,8 +17,6 @@ import { ParserConfigDetails } from './parser-config-details'
 interface DocumentInfoPanelProps {
   docInfo: ChunkListDocument | null
   selectedChunk: ChunkData | null
-  showParserConfig: boolean
-  onShowParserConfigChange: (show: boolean) => void
   onCollapsePanel: () => void
   onClearSelectedChunk: () => void
   onStartMetaAnnotation: () => void
@@ -27,13 +25,12 @@ interface DocumentInfoPanelProps {
 export const DocumentInfoPanel = ({
   docInfo,
   selectedChunk,
-  showParserConfig,
-  onShowParserConfigChange,
   onCollapsePanel,
   onClearSelectedChunk,
   onStartMetaAnnotation,
 }: DocumentInfoPanelProps) => {
   const { t } = useTranslation()
+  const [showParserConfig, setShowParserConfig] = useState(false)
 
   return (
     <>
@@ -51,21 +48,16 @@ export const DocumentInfoPanel = ({
       {selectedChunk && (
         <div className="border-b border-border-default p-4">
           <div className="flex items-center justify-between">
-            <div
-              className="flex items-center gap-2 text-sm"
-              style={{ color: 'var(--color-text-secondary)' }}
-            >
-              <FileText
-                className="h-4 w-4"
-                style={{ color: 'var(--color-text-accent)' }}
-              />
+            <div className="flex items-center gap-2 text-sm text-text-secondary">
+              <FileText className="h-4 w-4 text-text-accent" />
               <span>{t('knowledge.chunks.info.selectedChunk')}</span>
               <span
-                className={
+                className={cn(
+                  'rounded px-1.5 py-0.5 text-xs',
                   selectedChunk.available_int === 1
-                    ? 'bg-status-success-subtle text-status-success rounded px-1.5 py-0.5 text-xs'
-                    : 'bg-status-error-subtle text-status-error rounded px-1.5 py-0.5 text-xs'
-                }
+                    ? 'bg-components-badge-success-bg text-components-badge-success-text'
+                    : 'bg-components-badge-error-bg text-components-badge-error-text',
+                )}
               >
                 {selectedChunk.available_int === 1
                   ? t('knowledge.chunks.list.statusEnabled')
@@ -80,10 +72,7 @@ export const DocumentInfoPanel = ({
               <X className="h-3 w-3" />
             </Button>
           </div>
-          <p
-            className="mt-2 text-xs"
-            style={{ color: 'var(--color-text-tertiary)' }}
-          >
+          <p className="mt-2 text-xs text-text-tertiary">
             {t('knowledge.chunks.info.editHint')}
           </p>
         </div>
@@ -92,17 +81,11 @@ export const DocumentInfoPanel = ({
       <div className="h-full space-y-6 overflow-y-auto p-6 scrollbar-thin">
         <Card>
           <div className="p-4">
-            <h3
-              className="mb-4 text-lg font-medium"
-              style={{ color: 'var(--color-text-primary)' }}
-            >
+            <h3 className="mb-4 text-lg font-medium text-text-primary">
               {t('knowledge.chunks.info.metadataTitle')}
             </h3>
             <div className="space-y-4">
-              <div
-                className="text-sm leading-relaxed"
-                style={{ color: 'var(--color-text-secondary)' }}
-              >
+              <div className="text-sm leading-relaxed text-text-secondary">
                 <p>{t('knowledge.chunks.info.metadataDescription')}</p>
               </div>
               <Button
@@ -120,10 +103,7 @@ export const DocumentInfoPanel = ({
         {docInfo && (
           <Card>
             <div className="p-4">
-              <h3
-                className="mb-4 text-lg font-medium"
-                style={{ color: 'var(--color-text-primary)' }}
-              >
+              <h3 className="mb-4 text-lg font-medium text-text-primary">
                 {t('knowledge.chunks.info.documentInfo')}
               </h3>
               <div className="space-y-4">
@@ -132,7 +112,7 @@ export const DocumentInfoPanel = ({
                 <TechnicalSummary
                   docInfo={docInfo}
                   showParserConfig={showParserConfig}
-                  onShowParserConfigChange={onShowParserConfigChange}
+                  onShowParserConfigChange={setShowParserConfig}
                 />
               </div>
             </div>
@@ -150,28 +130,18 @@ const MetadataSummary = ({ docInfo }: { docInfo: ChunkListDocument }) => {
   return (
     <div>
       <SectionTitle>{t('knowledge.chunks.info.metadataInfo')}</SectionTitle>
-      <div
-        className="rounded-lg p-3"
-        style={{ backgroundColor: 'var(--color-background-subtle)' }}
-      >
+      <div className="rounded-lg bg-background-subtle p-3">
         {Object.keys(metaFields).length > 0 ? (
           <div className="space-y-1 text-xs">
             {Object.entries(metaFields).map(([key, value]) => (
               <div key={key} className="flex justify-between">
-                <span style={{ color: 'var(--color-text-secondary)' }}>
-                  {key}:
-                </span>
-                <span style={{ color: 'var(--color-text-primary)' }}>
-                  {String(value)}
-                </span>
+                <span className="text-text-secondary">{key}:</span>
+                <span className="text-text-primary">{String(value)}</span>
               </div>
             ))}
           </div>
         ) : (
-          <span
-            className="text-xs"
-            style={{ color: 'var(--color-text-muted)' }}
-          >
+          <span className="text-xs text-text-muted">
             {t('knowledge.chunks.info.noMetadata')}
           </span>
         )}
@@ -234,15 +204,14 @@ const TechnicalSummary = ({
           value={docInfo.parser_id}
         />
         <div className="flex items-center justify-between">
-          <span style={{ color: 'var(--color-text-secondary)' }}>
+          <span className="text-text-secondary">
             {t('knowledge.chunks.info.parserConfig')}
           </span>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => onShowParserConfigChange(!showParserConfig)}
-            className="flex h-6 items-center gap-1 px-2 text-xs"
-            style={{ color: 'var(--color-text-accent)' }}
+            className="flex h-6 items-center gap-1 px-2 text-xs text-text-accent"
           >
             {showParserConfig ? (
               <>
@@ -267,12 +236,7 @@ const TechnicalSummary = ({
 }
 
 const SectionTitle = ({ children }: { children: ReactNode }) => (
-  <h4
-    className="mb-2 text-sm font-medium"
-    style={{ color: 'var(--color-text-primary)' }}
-  >
-    {children}
-  </h4>
+  <h4 className="mb-2 text-sm font-medium text-text-primary">{children}</h4>
 )
 
 interface InfoRowProps {
@@ -282,11 +246,8 @@ interface InfoRowProps {
 
 const InfoRow = ({ label, value }: InfoRowProps) => (
   <div className="flex justify-between">
-    <span style={{ color: 'var(--color-text-secondary)' }}>{label}</span>
-    <span
-      className="ml-2 break-all text-right font-medium"
-      style={{ color: 'var(--color-text-primary)' }}
-    >
+    <span className="text-text-secondary">{label}</span>
+    <span className="ml-2 break-all text-right font-medium text-text-primary">
       {value}
     </span>
   </div>

@@ -211,30 +211,36 @@ export const ChunkToolbar = ({
 
         {hasSelected && (
           <>
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={onBulkEnable}
               disabled={isBulkSwitchPending}
-              className="flex cursor-pointer items-center gap-1 text-sm text-text-secondary hover:text-text-primary disabled:opacity-50"
+              className="gap-1 text-text-secondary hover:text-text-primary"
             >
               <CheckCircle className="h-4 w-4" />
               <span>{t('knowledge.chunks.toolbar.enable')}</span>
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={onBulkDisable}
               disabled={isBulkSwitchPending}
-              className="flex cursor-pointer items-center gap-1 text-sm text-text-secondary hover:text-text-primary disabled:opacity-50"
+              className="gap-1 text-text-secondary hover:text-text-primary"
             >
               <Ban className="h-4 w-4" />
               <span>{t('knowledge.chunks.toolbar.disable')}</span>
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={onBulkDeleteClick}
               disabled={isDeletePending}
-              className="flex cursor-pointer items-center gap-1 text-sm text-red-400 hover:text-red-500 disabled:opacity-50"
+              className="hover:text-text-error/80 gap-1 text-text-error"
             >
               <Trash2 className="h-4 w-4" />
               <span>{t('knowledge.chunks.toolbar.delete')}</span>
-            </button>
+            </Button>
           </>
         )}
 
@@ -276,6 +282,7 @@ const FilterOption = ({
   tone,
 }: FilterOptionProps) => (
   <button
+    type="button"
     onClick={onClick}
     className={cn(
       'flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm transition-colors',
@@ -286,13 +293,10 @@ const FilterOption = ({
   >
     {tone && (
       <span
-        className="h-2 w-2 rounded-full"
-        style={{
-          backgroundColor:
-            tone === 'success'
-              ? 'var(--color-state-success)'
-              : 'var(--color-state-error)',
-        }}
+        className={cn(
+          'h-2 w-2 rounded-full',
+          tone === 'success' ? 'bg-state-success' : 'bg-state-error',
+        )}
       />
     )}
     <span className="flex-1">{label}</span>

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
+import { cn } from '@/lib/utils'
 
 interface ParserConfigDetailsProps {
   parserConfig: Record<string, any>
@@ -11,25 +12,13 @@ export const ParserConfigDetails = ({
   const { t } = useTranslation()
 
   return (
-    <div
-      className="mt-2 space-y-3 rounded-lg p-3"
-      style={{
-        backgroundColor: 'var(--color-background-subtle)',
-        border: '1px solid var(--color-border-default)',
-      }}
-    >
+    <div className="mt-2 space-y-3 rounded-lg border border-border-default bg-background-subtle p-3">
       <div className="space-y-2">
         {parserConfig.layout_recognize && (
           <ConfigRow
             label={t('knowledge.chunks.info.layoutRecognize')}
             value={
-              <span
-                className="rounded px-2 py-0.5 text-xs"
-                style={{
-                  backgroundColor: 'var(--color-primary-subtle)',
-                  color: 'var(--color-text-accent)',
-                }}
-              >
+              <span className="rounded bg-components-badge-info-bg px-2 py-0.5 text-xs text-components-badge-info-text">
                 {parserConfig.layout_recognize}
               </span>
             }
@@ -45,13 +34,7 @@ export const ParserConfigDetails = ({
           <ConfigRow
             label={t('knowledge.chunks.info.delimiter')}
             value={
-              <code
-                className="rounded px-1.5 py-0.5 text-xs"
-                style={{
-                  backgroundColor: 'var(--color-background-muted)',
-                  color: 'var(--color-text-secondary)',
-                }}
-              >
+              <code className="rounded bg-background-subtle px-1.5 py-0.5 text-xs text-text-secondary">
                 {parserConfig.delimiter === '\n'
                   ? '\\n'
                   : parserConfig.delimiter}
@@ -93,7 +76,7 @@ export const ParserConfigDetails = ({
 
       {parserConfig.raptor?.use_raptor && (
         <ConfigSection
-          color="#8b5cf6"
+          dotClassName="bg-components-badge-blue-bg"
           title={t('knowledge.chunks.info.raptorEnhancement')}
         >
           {parserConfig.raptor.scope !== undefined && (
@@ -133,15 +116,7 @@ export const ParserConfigDetails = ({
           {parserConfig.raptor.prompt && (
             <div className="flex flex-col gap-1">
               <NestedLabel>{t('knowledge.chunks.info.prompt')}</NestedLabel>
-              <div
-                className="max-h-20 overflow-y-auto rounded p-2 text-xs scrollbar-thin"
-                style={{
-                  backgroundColor: 'var(--color-background-muted)',
-                  color: 'var(--color-text-secondary)',
-                  whiteSpace: 'pre-wrap',
-                  wordBreak: 'break-word',
-                }}
-              >
+              <div className="max-h-20 overflow-y-auto whitespace-pre-wrap break-words rounded bg-background-subtle p-2 text-xs text-text-secondary scrollbar-thin">
                 {parserConfig.raptor.prompt}
               </div>
             </div>
@@ -151,7 +126,7 @@ export const ParserConfigDetails = ({
 
       {parserConfig.graphrag?.use_graphrag && (
         <ConfigSection
-          color="#f59e0b"
+          dotClassName="bg-components-badge-warning-bg"
           title={t('knowledge.chunks.info.graphRagEnhancement')}
         >
           {parserConfig.graphrag.method !== undefined && (
@@ -186,11 +161,7 @@ export const ParserConfigDetails = ({
                   (type: string, index: number) => (
                     <span
                       key={`${type}-${index}`}
-                      className="rounded px-1.5 py-0.5 text-xs"
-                      style={{
-                        backgroundColor: 'var(--color-background-muted)',
-                        color: 'var(--color-text-secondary)',
-                      }}
+                      className="rounded bg-background-subtle px-1.5 py-0.5 text-xs text-text-secondary"
                     >
                       {type}
                     </span>
@@ -212,16 +183,9 @@ interface RowProps {
 
 const ConfigRow = ({ label, value }: RowProps) => (
   <div className="flex items-center justify-between">
-    <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
-      {label}
-    </span>
+    <span className="text-xs text-text-secondary">{label}</span>
     {typeof value === 'string' || typeof value === 'number' ? (
-      <span
-        className="text-xs font-medium"
-        style={{ color: 'var(--color-text-primary)' }}
-      >
-        {value}
-      </span>
+      <span className="text-xs font-medium text-text-primary">{value}</span>
     ) : (
       value
     )}
@@ -232,12 +196,7 @@ const NestedConfigRow = ({ label, value }: RowProps) => (
   <div className="flex justify-between">
     <NestedLabel>{label}</NestedLabel>
     {typeof value === 'string' || typeof value === 'number' ? (
-      <span
-        className="text-xs"
-        style={{ color: 'var(--color-text-secondary)' }}
-      >
-        {value}
-      </span>
+      <span className="text-xs text-text-secondary">{value}</span>
     ) : (
       value
     )}
@@ -245,48 +204,33 @@ const NestedConfigRow = ({ label, value }: RowProps) => (
 )
 
 interface ConfigSectionProps {
-  color: string
+  dotClassName: string
   title: string
   children: ReactNode
 }
 
-const ConfigSection = ({ color, title, children }: ConfigSectionProps) => (
-  <div
-    className="border-t pt-2"
-    style={{ borderColor: 'var(--color-border-subtle)' }}
-  >
+const ConfigSection = ({
+  dotClassName,
+  title,
+  children,
+}: ConfigSectionProps) => (
+  <div className="border-t border-border-subtle pt-2">
     <div className="mb-2 flex items-center gap-1.5">
-      <div
-        className="h-1.5 w-1.5 rounded-full"
-        style={{ backgroundColor: color }}
-      />
-      <span
-        className="text-xs font-medium"
-        style={{ color: 'var(--color-text-primary)' }}
-      >
-        {title}
-      </span>
+      <div className={cn('h-1.5 w-1.5 rounded-full', dotClassName)} />
+      <span className="text-xs font-medium text-text-primary">{title}</span>
     </div>
     <div className="space-y-1.5 pl-3">{children}</div>
   </div>
 )
 
 const NestedLabel = ({ children }: { children: ReactNode }) => (
-  <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
-    {children}
-  </span>
+  <span className="text-xs text-text-muted">{children}</span>
 )
 
 const EnabledBadge = () => {
   const { t } = useTranslation()
   return (
-    <span
-      className="rounded px-1.5 py-0.5 text-xs"
-      style={{
-        backgroundColor: 'rgba(16, 185, 129, 0.1)',
-        color: '#10b981',
-      }}
-    >
+    <span className="rounded bg-components-badge-success-bg px-1.5 py-0.5 text-xs text-components-badge-success-text">
       {t('knowledge.chunks.info.enabled')}
     </span>
   )

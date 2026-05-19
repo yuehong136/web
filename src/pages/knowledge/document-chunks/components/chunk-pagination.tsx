@@ -20,19 +20,9 @@ export const ChunkPagination = ({
   const totalPages = Math.ceil(total / pageSize)
 
   return (
-    <div
-      className="z-10 shrink-0 shadow-lg backdrop-blur-sm"
-      style={{
-        borderTop: '1px solid var(--color-components-pagination-border)',
-        backgroundColor: 'var(--color-components-pagination-bg)',
-        backdropFilter: 'blur(12px)',
-      }}
-    >
+    <div className="z-10 shrink-0 border-t border-components-pagination-border bg-components-pagination-bg shadow-lg backdrop-blur-sm">
       <div className="flex items-center justify-between px-4 py-3">
-        <div
-          className="text-sm"
-          style={{ color: 'var(--color-components-pagination-text)' }}
-        >
+        <div className="text-sm text-components-pagination-text">
           {t('knowledge.chunks.toolbar.totalChunks', { count: total })}
         </div>
 
