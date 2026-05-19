@@ -6,6 +6,7 @@ import { useKnowledgeStore } from '@/stores/knowledge'
 import { useUIStore } from '@/stores/ui'
 import type { KnowledgeBase } from '@/types/api'
 import { DEFAULT_KNOWLEDGE_FILTERS, DEFAULT_PAGE_SIZE } from './constants'
+import { useQuickEdit } from './use-quick-edit'
 import {
   formatKnowledgeTime,
   getStatusClassName,
@@ -271,6 +272,11 @@ export const useKnowledgeListPage = () => {
     }
   }, [addNotification, deleteKnowledgeBase, selectedBases, t])
 
+  const { handleQuickEditSubmit, isQuickEditSubmitting } = useQuickEdit({
+    editingKnowledgeBase,
+    onUpdated: () => setEditingKnowledgeBase(null),
+  })
+
   const toggleSelectedBase = useCallback((knowledgeBaseId: string) => {
     setSelectedBases((prev) =>
       prev.includes(knowledgeBaseId)
@@ -313,9 +319,11 @@ export const useKnowledgeListPage = () => {
     handleBulkDelete,
     handleCreateSuccess,
     handleDelete,
+    handleQuickEditSubmit,
     handleView,
     hasActiveFilters,
     isLoading,
+    isQuickEditSubmitting,
     knowledgeBases,
     languageOptions,
     parserOptions,

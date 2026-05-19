@@ -1,23 +1,17 @@
-/**
- * 切片方法配置弹窗
- *
- * 用于修改单个文档的解析方式和配置
- * 参照 RAGFlow 的 ChunkMethodDialog 实现
- */
-
-import React from 'react'
+import type { FC } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useForm, FormProvider, useWatch } from 'react-hook-form'
-import { Modal, Button } from '@/components/ui'
+import { FormProvider, useForm, useWatch } from 'react-hook-form'
+import { Settings2 } from 'lucide-react'
+import { Button, Modal } from '@/components/ui'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import {
   SelectWithSearch,
   type SelectOptionGroup,
 } from '@/components/ui/select-with-search'
-import { Settings2 } from 'lucide-react'
+import { ChunkMethodForm } from '@/pages/knowledge/settings/ChunkMethodForm'
 import type { Document } from '@/types/api'
 import { DocumentParserType } from '@/types/document-parser'
-import { ChunkMethodForm } from '@/pages/knowledge/settings/ChunkMethodForm'
 
 interface ChunkMethodModalProps {
   open: boolean
@@ -26,22 +20,18 @@ interface ChunkMethodModalProps {
   onSubmit: (data: {
     docId: string
     parserId: string
-    parserConfig?: Record<string, any>
+    parserConfig?: Record<string, unknown>
   }) => Promise<void>
   isLoading?: boolean
 }
 
 interface FormValues {
-  parseType: 1 | 2 // 1 = 内置, 2 = 选择pipeline
+  parseType: 1 | 2
   parser_id: string
   pipeline_id: string
-  parser_config: Record<string, any>
+  parser_config: Record<string, unknown>
 }
 
-/**
- * 解析器列表 - 与 RAGFlow 保持一致
- * 排除: email, picture, audio (这些不在文档配置中显示)
- */
 const PARSER_OPTIONS: SelectOptionGroup[] = [
   { value: 'naive', label: 'General' },
   { value: 'qa', label: 'Q&A' },
@@ -56,58 +46,51 @@ const PARSER_OPTIONS: SelectOptionGroup[] = [
   { value: 'tag', label: 'Tag' },
 ]
 
-/**
- * 解析方法切换组件 - 内置 vs 选择pipeline
- */
-const ParseTypeSelector: React.FC<{
+const ParseTypeSelector: FC<{
   value: 1 | 2
   onChange: (value: 1 | 2) => void
 }> = ({ value, onChange }) => {
   const { t } = useTranslation()
+
   return (
-    <div className="rounded-radius-lg p-space-base bg-surface-secondary border border-border-default">
-      <label className="mb-space-sm block text-sm font-medium text-text-primary">
+    <div className="rounded-radius-lg bg-surface-secondary p-space-base border border-border-default">
+      <div className="mb-space-sm block text-sm font-medium text-text-primary">
         {t('knowledge.documents.chunkMethodModal.parseMethod')}
-      </label>
+      </div>
       <RadioGroup
         value={String(value)}
         onValueChange={(val) => onChange(Number(val) as 1 | 2)}
         className="gap-space-lg flex items-center"
       >
-        <label className="gap-space-xs flex cursor-pointer items-center">
+        <div className="gap-space-xs flex cursor-pointer items-center">
           <RadioGroupItem value="1" />
           <span className="text-sm text-text-secondary">
             {t('knowledge.documents.chunkMethodModal.builtin')}
           </span>
-        </label>
-        <label className="gap-space-xs flex cursor-pointer items-center">
+        </div>
+        <div className="gap-space-xs flex cursor-pointer items-center">
           <RadioGroupItem value="2" />
           <span className="text-sm text-text-secondary">
             {t('knowledge.documents.chunkMethodModal.selectPipeline')}
           </span>
-        </label>
+        </div>
       </RadioGroup>
     </div>
   )
 }
 
-/**
- * 内置解析器选择组件 - 使用 SelectWithSearch
- */
-const BuiltInParserSelector: React.FC<{
+const BuiltInParserSelector: FC<{
   value: string
   onChange: (value: string) => void
 }> = ({ value, onChange }) => {
   const { t } = useTranslation()
+
   return (
     <div className="space-y-2">
-      <label
-        className="flex items-center gap-1 text-sm font-medium"
-        style={{ color: 'var(--color-text-primary)' }}
-      >
-        <span className="text-red-500">*</span>
+      <div className="flex items-center gap-1 text-sm font-medium text-text-primary">
+        <span className="text-text-error">*</span>
         {t('knowledge.documents.chunkMethodModal.builtin')}
-      </label>
+      </div>
       <SelectWithSearch
         value={value}
         onChange={onChange}
@@ -121,24 +104,19 @@ const BuiltInParserSelector: React.FC<{
   )
 }
 
-/**
- * Pipeline选择组件 - 使用 SelectWithSearch
- */
-const PipelineSelector: React.FC<{
+const PipelineSelector: FC<{
   value: string
   onChange: (value: string) => void
   options?: SelectOptionGroup[]
 }> = ({ value, onChange, options = [] }) => {
   const { t } = useTranslation()
+
   return (
     <div className="space-y-2">
-      <label
-        className="flex items-center gap-1 text-sm font-medium"
-        style={{ color: 'var(--color-text-primary)' }}
-      >
-        <span className="text-red-500">*</span>
+      <div className="flex items-center gap-1 text-sm font-medium text-text-primary">
+        <span className="text-text-error">*</span>
         {t('knowledge.documents.chunkMethodModal.selectPipeline')}
-      </label>
+      </div>
       <SelectWithSearch
         value={value}
         onChange={onChange}
@@ -148,21 +126,19 @@ const PipelineSelector: React.FC<{
         )}
         emptyText={t('knowledge.documents.chunkMethodModal.pipelineEmpty')}
       />
-      <p className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
+      <p className="text-xs text-text-tertiary">
         {t('knowledge.documents.chunkMethodModal.pipelineTip')}
       </p>
     </div>
   )
 }
 
-/**
- * 元数据设置弹窗
- */
-const MetadataSettingsModal: React.FC<{
+const MetadataSettingsModal: FC<{
   open: boolean
   onClose: () => void
 }> = ({ open, onClose }) => {
   const { t } = useTranslation()
+
   return (
     <Modal
       open={open}
@@ -182,11 +158,7 @@ const MetadataSettingsModal: React.FC<{
         <p className="text-sm text-text-secondary">
           {t('knowledge.documents.chunkMethodModal.metadataDescription')}
         </p>
-        {/* TODO: 实现元数据字段配置列表 */}
-        <div
-          className="rounded-lg border p-4 text-center text-text-tertiary"
-          style={{ borderColor: 'var(--color-border-default)' }}
-        >
+        <div className="rounded-radius-lg p-space-base border border-border-default text-center text-text-tertiary">
           {t('knowledge.documents.chunkMethodModal.metadataTodo')}
         </div>
       </div>
@@ -194,7 +166,7 @@ const MetadataSettingsModal: React.FC<{
   )
 }
 
-export const ChunkMethodModal: React.FC<ChunkMethodModalProps> = ({
+export const ChunkMethodModal: FC<ChunkMethodModalProps> = ({
   open,
   onClose,
   document,
@@ -202,7 +174,7 @@ export const ChunkMethodModal: React.FC<ChunkMethodModalProps> = ({
   isLoading = false,
 }) => {
   const { t } = useTranslation()
-  const [metadataModalOpen, setMetadataModalOpen] = React.useState(false)
+  const [metadataModalOpen, setMetadataModalOpen] = useState(false)
 
   const methods = useForm<FormValues>({
     defaultValues: {
@@ -213,8 +185,7 @@ export const ChunkMethodModal: React.FC<ChunkMethodModalProps> = ({
     },
   })
 
-  // 当文档变化时重置表单
-  React.useEffect(() => {
+  useEffect(() => {
     if (document && open) {
       methods.reset({
         parseType: 1,
@@ -223,12 +194,11 @@ export const ChunkMethodModal: React.FC<ChunkMethodModalProps> = ({
         parser_config: document.parser_config || {},
       })
     }
-  }, [document, open, methods])
+  }, [document, methods, open])
 
   const handleSubmit = async (data: FormValues) => {
     if (!document) return
 
-    // 如果选择了pipeline模式但没有选择pipeline，阻止提交
     if (data.parseType === 2 && !data.pipeline_id) {
       return
     }
@@ -240,7 +210,7 @@ export const ChunkMethodModal: React.FC<ChunkMethodModalProps> = ({
     })
   }
 
-  const handleMetadataSettingsClick = React.useCallback(() => {
+  const handleMetadataSettingsClick = useCallback(() => {
     setMetadataModalOpen(true)
   }, [])
 
@@ -280,47 +250,30 @@ export const ChunkMethodModal: React.FC<ChunkMethodModalProps> = ({
       >
         <FormProvider {...methods}>
           <form className="space-y-4">
-            {/* 解析方法切换: 内置 vs 选择pipeline */}
             <ParseTypeSelector
               value={parseType}
               onChange={(value) => {
                 methods.setValue('parseType', value)
-                // 切换时清空另一个模式的选择
                 if (value === 1) {
                   methods.setValue('pipeline_id', '')
                 }
               }}
             />
 
-            {/* 内置解析器选择 */}
             {parseType === 1 && (
-              <div
-                className="space-y-4 rounded-lg p-4"
-                style={{
-                  backgroundColor: 'var(--color-surface-secondary)',
-                  border: '1px solid var(--color-border-default)',
-                }}
-              >
+              <div className="rounded-radius-lg bg-surface-secondary p-space-base space-y-4 border border-border-default">
                 <BuiltInParserSelector
                   value={currentParserId}
                   onChange={(value) => {
                     methods.setValue('parser_id', value)
-                    // 切换解析器时重置配置为空对象
                     methods.setValue('parser_config', {})
                   }}
                 />
               </div>
             )}
 
-            {/* Pipeline选择 */}
             {parseType === 2 && (
-              <div
-                className="rounded-lg p-4"
-                style={{
-                  backgroundColor: 'var(--color-surface-secondary)',
-                  border: '1px solid var(--color-border-default)',
-                }}
-              >
+              <div className="rounded-radius-lg bg-surface-secondary p-space-base border border-border-default">
                 <PipelineSelector
                   value={methods.watch('pipeline_id')}
                   onChange={(value) => methods.setValue('pipeline_id', value)}
@@ -328,7 +281,6 @@ export const ChunkMethodModal: React.FC<ChunkMethodModalProps> = ({
               </div>
             )}
 
-            {/* 解析器配置 - 仅在内置模式下显示 */}
             {parseType === 1 && currentParserId && (
               <ChunkMethodForm
                 onMetadataSettingsClick={handleMetadataSettingsClick}
@@ -338,7 +290,6 @@ export const ChunkMethodModal: React.FC<ChunkMethodModalProps> = ({
         </FormProvider>
       </Modal>
 
-      {/* 元数据设置弹窗 */}
       <MetadataSettingsModal
         open={metadataModalOpen}
         onClose={() => setMetadataModalOpen(false)}
@@ -346,5 +297,3 @@ export const ChunkMethodModal: React.FC<ChunkMethodModalProps> = ({
     </>
   )
 }
-
-export default ChunkMethodModal

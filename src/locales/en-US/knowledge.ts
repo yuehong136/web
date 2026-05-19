@@ -25,6 +25,18 @@ export default {
       chunks: 'Chunks',
       documentFallback: 'Document',
     },
+    shared: {
+      knowledgeBaseSelector: {
+        label: 'Knowledge base',
+        placeholder: 'Select knowledge bases',
+        searchPlaceholder: 'Search...',
+        searching: 'Searching...',
+        noResults: 'No matching knowledge bases',
+        empty: 'No knowledge bases available',
+        clear: 'Clear',
+        close: 'Close',
+      },
+    },
     list: {
       title: 'Knowledge bases',
       description:
@@ -125,6 +137,42 @@ export default {
         bulkDeleteSuccessTitle: 'Deleted',
         bulkDeleteSuccessMessage: '{{count}} knowledge bases deleted.',
         bulkDeleteErrorTitle: 'Bulk delete failed',
+      },
+      quickEdit: {
+        title: 'Edit knowledge base',
+        actions: {
+          cancel: 'Cancel',
+          save: 'Save',
+        },
+        fields: {
+          name: 'Knowledge base name',
+          namePlaceholder: 'Example: my_knowledge_base',
+          nameTooltip:
+            'The name must start with a letter and can contain only letters, numbers, and underscores.',
+          nameRule:
+            'Start with a letter and use only letters, numbers, and underscores.',
+          description: 'Description',
+          descriptionPlaceholder: 'Enter a knowledge base description',
+        },
+        validation: {
+          title: 'Validation failed',
+          nameRequired: 'Knowledge base name is required',
+          namePattern:
+            'The name must start with a letter and can contain only letters, numbers, and underscores.',
+          nameMaxLength: 'Name cannot exceed {{count}} characters',
+        },
+        success: {
+          title: 'Updated',
+          message: 'Knowledge base updated.',
+        },
+        errors: {
+          title: 'Update failed',
+          generic: 'An error occurred while updating the knowledge base.',
+          nameType: 'Knowledge base name must be a string.',
+          duplicateName:
+            'A knowledge base with this name already exists. Use another name.',
+          tenantNotFound: 'User information was not found. Sign in again.',
+        },
       },
     },
     create: {

@@ -113,14 +113,20 @@ export const KnowledgeCard: FC<KnowledgeCardProps> = ({
           >
             <DropdownItem
               icon={<Settings className="h-4 w-4" />}
-              onClick={onSettings}
+              onClick={(event) => {
+                event.stopPropagation()
+                onSettings()
+              }}
             >
               {t('knowledge.list.actions.settings')}
             </DropdownItem>
             <DropdownItem
               danger
               icon={<Trash2 className="h-4 w-4" />}
-              onClick={onDelete}
+              onClick={(event) => {
+                event.stopPropagation()
+                onDelete()
+              }}
             >
               {t('knowledge.list.actions.delete')}
             </DropdownItem>

@@ -19,7 +19,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { ViewToggle } from '@/components/ui/view-toggle'
-import { QuickEditModal, KnowledgeListView } from '@/components/knowledge'
+import { KnowledgeListView } from '@/components/knowledge'
 import { ListPageTemplate } from '@/components/page-templates'
 import { PageEmptyState } from '@/components/patterns/page-states'
 import { CreateKnowledgeModal } from './components/CreateKnowledgeModal'
@@ -27,6 +27,7 @@ import { KnowledgeCard } from './list/knowledge-card'
 import { KnowledgeFilterPanel } from './list/knowledge-filter-panel'
 import { KnowledgeListPagination } from './list/knowledge-list-pagination'
 import { KnowledgeListStats } from './list/knowledge-list-stats'
+import { KnowledgeQuickEditDialog } from './list/quick-edit-modal'
 import { useKnowledgeListPage } from './list/use-knowledge-list-page'
 
 export const KnowledgeListPage: FC = () => {
@@ -243,10 +244,12 @@ export const KnowledgeListPage: FC = () => {
       </ListPageTemplate>
 
       {page.editingKnowledgeBase ? (
-        <QuickEditModal
-          isOpen
+        <KnowledgeQuickEditDialog
+          open
           knowledgeBase={page.editingKnowledgeBase}
+          submitting={page.isQuickEditSubmitting}
           onClose={() => page.setEditingKnowledgeBase(null)}
+          onSubmit={page.handleQuickEditSubmit}
         />
       ) : null}
 

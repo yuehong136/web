@@ -25,6 +25,18 @@ export default {
       chunks: '切片',
       documentFallback: '文档',
     },
+    shared: {
+      knowledgeBaseSelector: {
+        label: '知识库',
+        placeholder: '选择知识库',
+        searchPlaceholder: '搜索...',
+        searching: '搜索中...',
+        noResults: '未找到匹配的知识库',
+        empty: '暂无可用知识库',
+        clear: '清除',
+        close: '关闭',
+      },
+    },
     list: {
       title: '知识库管理',
       description: '管理您的知识库，上传文档，配置检索参数',
@@ -121,6 +133,38 @@ export default {
         bulkDeleteSuccessTitle: '批量删除成功',
         bulkDeleteSuccessMessage: '已成功删除 {{count}} 个知识库',
         bulkDeleteErrorTitle: '批量删除失败',
+      },
+      quickEdit: {
+        title: '编辑知识库',
+        actions: {
+          cancel: '取消',
+          save: '保存',
+        },
+        fields: {
+          name: '知识库名称',
+          namePlaceholder: '例如：my_knowledge_base',
+          nameTooltip: '知识库名称必须以字母开头，只能包含字母、数字和下划线',
+          nameRule: '名称必须以字母开头，只能包含字母、数字和下划线',
+          description: '描述',
+          descriptionPlaceholder: '请输入知识库描述',
+        },
+        validation: {
+          title: '验证失败',
+          nameRequired: '知识库名称不能为空',
+          namePattern: '知识库名称必须以字母开头，只能包含字母、数字和下划线',
+          nameMaxLength: '知识库名称长度不能超过 {{count}} 个字符',
+        },
+        success: {
+          title: '更新成功',
+          message: '知识库信息已成功更新',
+        },
+        errors: {
+          title: '更新失败',
+          generic: '更新知识库信息时发生错误',
+          nameType: '知识库名称必须是字符串格式',
+          duplicateName: '该知识库名称已存在，请使用其他名称',
+          tenantNotFound: '用户信息未找到，请重新登录',
+        },
       },
     },
     create: {
