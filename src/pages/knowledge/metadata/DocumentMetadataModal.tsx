@@ -15,43 +15,16 @@ import { FileText, Loader2, Info } from 'lucide-react'
 import type { MetadataFieldDefinition } from '@/types/api'
 
 interface DocumentMetadataModalProps {
-  /**
-   * 是否显示
-   */
   open: boolean
-  /**
-   * 关闭回调
-   */
   onClose: () => void
-  /**
-   * 文档 ID
-   */
   docId: string
-  /**
-   * 文档名称
-   */
   docName: string
-  /**
-   * 知识库 ID（用于刷新缓存）
-   */
   kbId?: string
-  /**
-   * 当前 metadata 值
-   */
   metaFields: Record<string, any>
-  /**
-   * 知识库定义的字段模板
-   */
   fieldDefinitions?: MetadataFieldDefinition[]
-  /**
-   * 保存成功回调
-   */
   onSuccess?: () => void
 }
 
-/**
- * 单文档 Metadata 编辑模态框
- */
 export const DocumentMetadataModal: React.FC<DocumentMetadataModalProps> = ({
   open,
   onClose,
@@ -63,20 +36,16 @@ export const DocumentMetadataModal: React.FC<DocumentMetadataModalProps> = ({
   onSuccess,
 }) => {
   const { t } = useTranslation()
-  // 本地编辑状态
   const [localMeta, setLocalMeta] = useState<Record<string, any>>({})
 
-  // Mutation
   const updateMetaMutation = useUpdateDocumentMeta()
 
-  // 初始化
   useEffect(() => {
     if (open) {
       setLocalMeta(metaFields || {})
     }
   }, [open, metaFields])
 
-  // 保存
   const handleSave = async () => {
     await updateMetaMutation.mutateAsync({
       docId,
@@ -94,8 +63,8 @@ export const DocumentMetadataModal: React.FC<DocumentMetadataModalProps> = ({
       <DialogContent size="md">
         <DialogHeader>
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--color-surface-accent)]">
-              <FileText className="h-5 w-5 text-[var(--color-text-on-accent)]" />
+            <div className="bg-status-info/10 flex h-10 w-10 items-center justify-center rounded-xl">
+              <FileText className="text-status-info h-5 w-5" />
             </div>
             <div className="min-w-0 flex-1">
               <DialogTitle>
@@ -109,7 +78,6 @@ export const DocumentMetadataModal: React.FC<DocumentMetadataModalProps> = ({
         </DialogHeader>
 
         <div className="max-h-[calc(90vh-200px)] space-y-4 overflow-y-auto px-6 py-4">
-          {/* 编辑器 */}
           <DocumentMetadataEditor
             value={localMeta}
             onChange={setLocalMeta}
@@ -117,11 +85,10 @@ export const DocumentMetadataModal: React.FC<DocumentMetadataModalProps> = ({
             disabled={isSaving}
           />
 
-          {/* 提示信息 */}
           {fieldDefinitions.length > 0 && (
-            <div className="flex items-start gap-2 rounded-lg bg-[var(--color-surface-secondary)] p-3">
-              <Info className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-text-tertiary)]" />
-              <p className="text-sm text-[var(--color-text-tertiary)]">
+            <div className="bg-surface-secondary flex items-start gap-2 rounded-lg p-3">
+              <Info className="mt-0.5 h-4 w-4 shrink-0 text-text-tertiary" />
+              <p className="text-sm text-text-tertiary">
                 {t('knowledge.metadata.modal.settingTip')}
               </p>
             </div>

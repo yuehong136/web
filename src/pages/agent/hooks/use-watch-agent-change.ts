@@ -7,7 +7,7 @@ import { formatRelativeTime } from '@/lib/utils'
 
 // 格式化时间显示
 const formatDate = (timestamp: number) => {
-  return formatRelativeTime(timestamp * 1000)
+  return formatRelativeTime(timestamp)
 }
 
 // 监听画布变化并自动保存
