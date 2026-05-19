@@ -26,8 +26,10 @@ import {
   Trash2,
   MoreHorizontal,
   Settings2,
+  AlertTriangle,
+  Lightbulb,
 } from 'lucide-react'
-import Editor from '@monaco-editor/react'
+import MonacoEditor from '@monaco-editor/react'
 import { configureMonacoLoader } from '@/components/jsonjoy-builder/lib/configure-monaco-loader'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -76,137 +78,30 @@ import {
 import { EditApiKeyDialog } from '@/pages/settings/components/edit-api-key-dialog'
 import { useEnvironmentStore } from '@/stores/environmentStore'
 
-import type { OpenAPISpec } from '@/types/api'
 import { systemAPI } from '@/api/system'
-import type { SystemAPIToken, APITokenCreateRequest } from '@/types/api'
+import type { OpenAPISpec, APITokenCreateRequest } from '@/types/api'
+import {
+  isRecord,
+  isHttpMethod,
+  type APIEndpoint,
+  type ApiKey,
+  type BodyType,
+  type FormDataRow,
+  type HeaderRow,
+  type OpenAPIParameter,
+  type OpenAPIPathItem,
+  type OpenAPIRequestBody,
+  type OpenAPIResponseObject,
+  type Parameter,
+  type ParamRow,
+  type RequestBody,
+  type Response,
+  type Schema,
+  type TestResponse,
+  type UrlEncodedRow,
+} from '@/pages/settings/api-keys-types'
 
 configureMonacoLoader()
-
-// API端点简化定义
-interface APIEndpoint {
-  id: string
-  operationId?: string
-  summary: string
-  description?: string
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS'
-  path: string
-  tags?: string[]
-  parameters?: Parameter[]
-  requestBody?: RequestBody
-  responses?: Response[]
-  security?: Record<string, string[]>[]
-  deprecated?: boolean
-}
-
-interface Parameter {
-  name: string
-  in: 'query' | 'header' | 'path' | 'cookie'
-  schema?: Schema
-  type?: string
-  required: boolean
-  description: string
-  example?: any
-}
-
-interface Schema {
-  type: string
-  properties?: Record<string, Schema>
-  required?: string[]
-  example?: any
-  description?: string
-  format?: string
-  items?: Schema
-  enum?: string[]
-  $ref?: string
-}
-
-interface RequestBody {
-  description?: string
-  required?: boolean
-  content: Record<
-    string,
-    {
-      schema: Schema
-      example?: any
-    }
-  >
-}
-
-interface Response {
-  status: number
-  description: string
-  content?: Record<
-    string,
-    {
-      schema: Schema
-      example?: any
-    }
-  >
-  headers?: Record<string, Parameter>
-}
-
-// 参数行接口定义
-interface ParamRow {
-  id: string
-  enabled: boolean
-  name: string
-  value: string
-  type: string
-  description: string
-  required?: boolean
-  in?: string
-}
-
-// Header行接口定义
-interface HeaderRow {
-  id: string
-  enabled: boolean
-  name: string
-  value: string
-  description: string
-}
-
-// 请求体类型定义
-type BodyType =
-  | 'none'
-  | 'form-data'
-  | 'x-www-form-urlencoded'
-  | 'json'
-  | 'xml'
-  | 'raw'
-  | 'binary'
-  | 'graphql'
-  | 'msgpack'
-
-// Form-data行接口定义
-interface FormDataRow {
-  id: string
-  enabled: boolean
-  key: string
-  value: string
-  type: 'text' | 'file'
-  description?: string
-}
-
-// URL-encoded行接口定义
-interface UrlEncodedRow {
-  id: string
-  enabled: boolean
-  key: string
-  value: string
-  type:
-    | 'string'
-    | 'integer'
-    | 'number'
-    | 'boolean'
-    | 'file'
-    | 'array'
-    | 'object'
-  description?: string
-}
-
-// API Key 接口定义 - 使用系统API Token类型
-type ApiKey = SystemAPIToken
 
 const tagIcons = {
   // 标准的tag图标映射
@@ -295,7 +190,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
 
   return (
     <div className="relative h-full border-0">
-      <Editor
+      <MonacoEditor
         height={height}
         language={language}
         value={value}
@@ -419,7 +314,7 @@ const ApiDocumentationPage: React.FC = () => {
 
   // API测试相关状态
   const [testLoading, setTestLoading] = useState(false)
-  const [testResponse, setTestResponse] = useState<any>(null)
+  const [testResponse, setTestResponse] = useState<TestResponse | null>(null)
   const [formattedResponse, setFormattedResponse] = useState<string>('')
   const [copiedStates, setCopiedStates] = useState<Record<string, boolean>>({})
 
@@ -450,26 +345,29 @@ const ApiDocumentationPage: React.FC = () => {
   const [editorTheme, setEditorTheme] = useState<'vs' | 'vs-dark'>('vs')
 
   // 响应数据语言检测函数
-  const detectResponseLanguage = useCallback((response: any) => {
-    if (!response || !response.headers) return 'json'
+  const detectResponseLanguage = useCallback(
+    (response: TestResponse | null) => {
+      if (!response || !response.headers) return 'json'
 
-    const contentType =
-      (Object.entries(response.headers).find(
-        ([key]) => key.toLowerCase() === 'content-type',
-      )?.[1] as string) || ''
+      const contentType =
+        (Object.entries(response.headers).find(
+          ([key]) => key.toLowerCase() === 'content-type',
+        )?.[1] as string) || ''
 
-    if (contentType.includes('json')) return 'json'
-    if (contentType.includes('xml')) return 'xml'
-    if (contentType.includes('html')) return 'html'
-    if (contentType.includes('text/plain')) return 'plaintext'
-    if (contentType.includes('javascript')) return 'javascript'
-    if (contentType.includes('css')) return 'css'
+      if (contentType.includes('json')) return 'json'
+      if (contentType.includes('xml')) return 'xml'
+      if (contentType.includes('html')) return 'html'
+      if (contentType.includes('text/plain')) return 'plaintext'
+      if (contentType.includes('javascript')) return 'javascript'
+      if (contentType.includes('css')) return 'css'
 
-    return 'json' // 默认使用JSON高亮
-  }, [])
+      return 'json' // 默认使用JSON高亮
+    },
+    [],
+  )
 
   // 格式化响应数据
-  const formatResponseData = useCallback((response: any) => {
+  const formatResponseData = useCallback((response: TestResponse | null) => {
     if (!response?.data) return ''
 
     try {
@@ -511,7 +409,7 @@ const ApiDocumentationPage: React.FC = () => {
 
   // 根据schema生成示例数据
   const generateExampleFromSchema = useCallback(
-    (schema: any, fieldName?: string): any => {
+    (schema: Schema | undefined, fieldName?: string): unknown => {
       if (!schema) return null
 
       // 如果schema有直接的example，优先使用
@@ -522,34 +420,41 @@ const ApiDocumentationPage: React.FC = () => {
       // 如果是引用类型 ($ref)，解析引用
       if (schema.$ref && apiSpec) {
         const refPath = schema.$ref.replace('#/', '').split('/')
-        let referencedSchema: any = apiSpec
+        let referencedSchema: unknown = apiSpec
 
         // 遍历路径找到引用的schema
         for (const pathSegment of refPath) {
+          if (!isRecord(referencedSchema)) {
+            referencedSchema = undefined
+            break
+          }
           referencedSchema = referencedSchema[pathSegment]
           if (!referencedSchema) break
         }
 
         // 如果找到了引用的schema，递归生成示例
-        if (referencedSchema) {
-          return generateExampleFromSchema(referencedSchema, fieldName)
+        if (isRecord(referencedSchema)) {
+          return generateExampleFromSchema(
+            referencedSchema as Schema,
+            fieldName,
+          )
         }
       }
 
       // 根据数据类型生成示例
       switch (schema.type) {
         case 'object': {
-          const obj: any = {}
+          const obj: Record<string, unknown> = {}
           if (schema.properties) {
             for (const [key, propSchema] of Object.entries(schema.properties)) {
               // 检查是否是必需字段或有默认值
               const isRequired = schema.required?.includes(key)
-              const hasDefault = (propSchema as any).default !== undefined
+              const hasDefault = propSchema.default !== undefined
 
               if (isRequired || hasDefault) {
                 // 优先使用默认值
                 if (hasDefault) {
-                  obj[key] = (propSchema as any).default
+                  obj[key] = propSchema.default
                 } else {
                   obj[key] = generateExampleFromSchema(propSchema, key)
                 }
@@ -912,7 +817,11 @@ const ApiDocumentationPage: React.FC = () => {
   }, [])
 
   const updateFormDataRow = useCallback(
-    (id: string, field: keyof FormDataRow, value: any) => {
+    <K extends keyof FormDataRow>(
+      id: string,
+      field: K,
+      value: FormDataRow[K],
+    ) => {
       setFormDataRows((prev) =>
         prev.map((row) => (row.id === id ? { ...row, [field]: value } : row)),
       )
@@ -947,7 +856,11 @@ const ApiDocumentationPage: React.FC = () => {
   }, [])
 
   const updateUrlEncodedRow = useCallback(
-    (id: string, field: keyof UrlEncodedRow, value: any) => {
+    <K extends keyof UrlEncodedRow>(
+      id: string,
+      field: K,
+      value: UrlEncodedRow[K],
+    ) => {
       setUrlEncodedRows((prev) =>
         prev.map((row) => (row.id === id ? { ...row, [field]: value } : row)),
       )
@@ -979,10 +892,10 @@ const ApiDocumentationPage: React.FC = () => {
 
   // 解析 $ref 引用的 schema，支持嵌套与数组
   const resolveSchemaRef = useCallback(
-    (input: any): any => {
+    (input: Schema | undefined): Schema | undefined => {
       if (!input) return input
       const seen = new Set<string>()
-      const resolveOnce = (schema: any): any => {
+      const resolveOnce = (schema: Schema | undefined): Schema | undefined => {
         if (!schema) return schema
         if (schema.$ref && typeof schema.$ref === 'string') {
           const ref = schema.$ref as string
@@ -990,10 +903,10 @@ const ApiDocumentationPage: React.FC = () => {
           seen.add(ref)
           const match = ref.match(/^#\/components\/schemas\/(.+)$/)
           const refName = match?.[1]
-          const target =
-            refName && apiSpec?.components?.schemas
-              ? (apiSpec.components.schemas as any)[refName]
-              : undefined
+          const schemas = apiSpec?.components?.schemas as
+            | Record<string, Schema | undefined>
+            | undefined
+          const target = refName && schemas ? schemas[refName] : undefined
           return target ? resolveOnce(target) : schema
         }
         if (schema.type === 'array' && schema.items) {
@@ -1007,11 +920,11 @@ const ApiDocumentationPage: React.FC = () => {
   )
 
   const getSchemaType = useCallback(
-    (schema: any): string => {
+    (schema: Schema | undefined): string => {
       const s = resolveSchemaRef(schema)
       if (!s) return 'unknown'
       if (s.type === 'array') {
-        const itemType = getSchemaType((s as any).items)
+        const itemType = getSchemaType(s.items)
         return `array<${itemType}>`
       }
       if (s.enum) return 'enum'
@@ -1159,7 +1072,7 @@ const ApiDocumentationPage: React.FC = () => {
         }
         // 如果没有 application/json，尝试其他 content type
         else {
-          const firstContent = Object.values(content)[0] as any
+          const firstContent = Object.values(content)[0]
           if (firstContent?.example) {
             exampleBody =
               typeof firstContent.example === 'string'
@@ -1187,12 +1100,13 @@ const ApiDocumentationPage: React.FC = () => {
     (spec: OpenAPISpec): APIEndpoint[] => {
       const endpoints: APIEndpoint[] = []
 
-      for (const [path, pathItem] of Object.entries(spec.paths)) {
+      for (const [path, pathItem] of Object.entries(
+        spec.paths as Record<string, OpenAPIPathItem>,
+      )) {
         for (const [method, operation] of Object.entries(pathItem)) {
-          if (typeof operation !== 'object' || !operation) continue
+          if (!isHttpMethod(method) || !operation) continue
 
-          // Type assertion for OpenAPI operation object
-          const op = operation as any
+          const op = operation
 
           const endpoint: APIEndpoint = {
             id: op.operationId || `${method}-${path}`.replace(/[^\w-]/g, '-'),
@@ -1218,7 +1132,7 @@ const ApiDocumentationPage: React.FC = () => {
     [],
   )
 
-  const convertParameters = (params: any[]): Parameter[] => {
+  const convertParameters = (params: OpenAPIParameter[]): Parameter[] => {
     return params.map((param) => ({
       name: param.name,
       in: param.in,
@@ -1230,7 +1144,9 @@ const ApiDocumentationPage: React.FC = () => {
     }))
   }
 
-  const convertRequestBody = (requestBody: any): RequestBody | undefined => {
+  const convertRequestBody = (
+    requestBody: OpenAPIRequestBody | undefined,
+  ): RequestBody | undefined => {
     if (!requestBody) return undefined
 
     return {
@@ -1240,15 +1156,15 @@ const ApiDocumentationPage: React.FC = () => {
     }
   }
 
-  const convertResponses = (responses: any): Response[] => {
-    return Object.entries(responses).map(
-      ([status, response]: [string, any]) => ({
-        status: parseInt(status),
-        description: response.description || '',
-        content: response.content,
-        headers: response.headers,
-      }),
-    )
+  const convertResponses = (
+    responses: Record<string, OpenAPIResponseObject>,
+  ): Response[] => {
+    return Object.entries(responses).map(([status, response]) => ({
+      status: parseInt(status),
+      description: response.description || '',
+      content: response.content,
+      headers: response.headers,
+    }))
   }
 
   // 加载静态OpenAPI数据
@@ -1622,7 +1538,11 @@ const ApiDocumentationPage: React.FC = () => {
   }
 
   // 处理参数表格更新
-  const updateParamRow = (id: string, field: keyof ParamRow, value: any) => {
+  const updateParamRow = <K extends keyof ParamRow>(
+    id: string,
+    field: K,
+    value: ParamRow[K],
+  ) => {
     setTestParams((prev) =>
       prev.map((param) =>
         param.id === id ? { ...param, [field]: value } : param,
@@ -1631,7 +1551,11 @@ const ApiDocumentationPage: React.FC = () => {
   }
 
   // 处理Header表格更新
-  const updateHeaderRow = (id: string, field: keyof HeaderRow, value: any) => {
+  const updateHeaderRow = <K extends keyof HeaderRow>(
+    id: string,
+    field: K,
+    value: HeaderRow[K],
+  ) => {
     setTestHeaders((prev) =>
       prev.map((header) =>
         header.id === id ? { ...header, [field]: value } : header,
@@ -1809,13 +1733,20 @@ const ApiDocumentationPage: React.FC = () => {
                     功能特性
                   </span>
                 </div>
-                <p className="text-sm leading-relaxed text-foreground">
-                  📋 完整的API接口文档浏览
-                  <br />
-                  🧪 在线接口测试工具
-                  <br />
-                  🔑 API密钥管理与权限控制
-                </p>
+                <div className="space-y-1 text-sm leading-relaxed text-foreground">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-muted-foreground" />
+                    <span>完整的API接口文档浏览</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Play className="h-4 w-4 text-muted-foreground" />
+                    <span>在线接口测试工具</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Key className="h-4 w-4 text-muted-foreground" />
+                    <span>API密钥管理与权限控制</span>
+                  </div>
+                </div>
               </div>
               {/* 装饰性背景 */}
               <div className="absolute right-0 top-0 h-16 w-16 -translate-y-8 translate-x-8 rounded-full bg-gradient-to-br from-blue-500/5 to-purple-500/5"></div>
@@ -1824,7 +1755,10 @@ const ApiDocumentationPage: React.FC = () => {
             {/* 错误提示 */}
             {loadingError && (
               <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-3">
-                <p className="text-sm text-yellow-800">⚠️ {loadingError}</p>
+                <p className="flex items-center gap-2 text-sm text-yellow-800">
+                  <AlertTriangle className="h-4 w-4" />
+                  <span>{loadingError}</span>
+                </p>
               </div>
             )}
 
@@ -1955,10 +1889,7 @@ const ApiDocumentationPage: React.FC = () => {
                         >
                           <div className="mb-2 flex items-center justify-between">
                             <div className="flex min-w-0 flex-1 items-center gap-2">
-                              <MethodBadge
-                                method={api.method as any}
-                                size="sm"
-                              />
+                              <MethodBadge method={api.method} size="sm" />
                               {/* 显示路径的关键部分 */}
                               <Tooltip
                                 content={api.path}
@@ -2033,7 +1964,7 @@ const ApiDocumentationPage: React.FC = () => {
                       open={apiKeyManagementOpen}
                       onOpenChange={setApiKeyManagementOpen}
                     >
-                      <DialogTrigger>
+                      <DialogTrigger asChild>
                         <Button
                           variant="outline"
                           size="default"
@@ -2384,7 +2315,7 @@ const ApiDocumentationPage: React.FC = () => {
                         {/* API 头部信息 */}
                         <div className="mb-8">
                           <div className="mb-4 flex items-center gap-3">
-                            <MethodBadge method={selectedAPI.method as any} />
+                            <MethodBadge method={selectedAPI.method} />
                             <code className="rounded-lg border bg-muted px-4 py-2 font-mono text-lg">
                               {getFullApiUrl(selectedAPI.path)}
                             </code>
@@ -2477,7 +2408,8 @@ const ApiDocumentationPage: React.FC = () => {
                                                     className="prose-xs [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-xs [&_p]:mb-1 [&_p]:text-sm [&_p]:text-muted-foreground [&_strong]:font-medium"
                                                   />
                                                 </div>
-                                                {param.example && (
+                                                {param.example !==
+                                                  undefined && (
                                                   <code className="mt-1 block rounded bg-muted px-2 py-1 text-xs">
                                                     示例:{' '}
                                                     {JSON.stringify(
@@ -2509,13 +2441,10 @@ const ApiDocumentationPage: React.FC = () => {
                                   {Object.entries(
                                     selectedAPI.requestBody.content,
                                   ).map(([mime, content]) => {
-                                    const rawSchema: any = (content as any)
-                                      .schema
-                                    const schema: any =
-                                      resolveSchemaRef(rawSchema)
+                                    const rawSchema = content.schema
+                                    const schema = resolveSchemaRef(rawSchema)
                                     const example =
-                                      (content as any).example ||
-                                      schema?.example
+                                      content.example || schema?.example
                                     const properties =
                                       (schema?.type === 'object'
                                         ? schema?.properties
@@ -2563,7 +2492,7 @@ const ApiDocumentationPage: React.FC = () => {
                                               </div>
                                               <div className="divide-y">
                                                 {Object.entries(properties).map(
-                                                  ([name, propSchema]: any) => {
+                                                  ([name, propSchema]) => {
                                                     const resolved =
                                                       resolveSchemaRef(
                                                         propSchema,
@@ -2603,24 +2532,25 @@ const ApiDocumentationPage: React.FC = () => {
                                             </div>
                                           )}
 
-                                        {example && (
-                                          <div className="bg-muted/30 rounded border">
-                                            <div className="p-3">
-                                              <div className="mb-2 text-sm font-medium">
-                                                示例
+                                        {example !== undefined &&
+                                          example !== null && (
+                                            <div className="bg-muted/30 rounded border">
+                                              <div className="p-3">
+                                                <div className="mb-2 text-sm font-medium">
+                                                  示例
+                                                </div>
+                                                <pre className="overflow-x-auto text-xs">
+                                                  <code>
+                                                    {JSON.stringify(
+                                                      example,
+                                                      null,
+                                                      2,
+                                                    )}
+                                                  </code>
+                                                </pre>
                                               </div>
-                                              <pre className="overflow-x-auto text-xs">
-                                                <code>
-                                                  {JSON.stringify(
-                                                    example,
-                                                    null,
-                                                    2,
-                                                  )}
-                                                </code>
-                                              </pre>
                                             </div>
-                                          </div>
-                                        )}
+                                          )}
                                       </div>
                                     )
                                   })}
@@ -2707,7 +2637,7 @@ const ApiDocumentationPage: React.FC = () => {
                       <div className="to-muted/20 flex-shrink-0 border-b bg-gradient-to-r from-background px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className="flex h-10 items-center">
-                            <MethodBadge method={selectedAPI.method as any} />
+                            <MethodBadge method={selectedAPI.method} />
                           </div>
                           <div className="bg-muted/50 flex h-10 flex-1 items-center rounded-lg border px-3 py-2 font-mono text-sm">
                             {getFullApiUrl(selectedAPI.path)}
@@ -3009,9 +2939,7 @@ const ApiDocumentationPage: React.FC = () => {
                                           {param.description && (
                                             <div className="col-span-12 -mx-1 mt-2 rounded-md bg-blue-50/50 py-2 pl-4 dark:bg-blue-950/20">
                                               <div className="flex items-start gap-2">
-                                                <span className="mt-0.5 text-blue-500">
-                                                  💡
-                                                </span>
+                                                <Lightbulb className="mt-0.5 h-4 w-4 text-blue-500" />
                                                 <div className="flex-1 text-sm">
                                                   <MarkdownRenderer
                                                     content={param.description}
@@ -3279,7 +3207,7 @@ const ApiDocumentationPage: React.FC = () => {
                                                     updateFormDataRow(
                                                       row.id,
                                                       'type',
-                                                      value,
+                                                      value as FormDataRow['type'],
                                                     )
                                                   }
                                                 >
@@ -3310,25 +3238,35 @@ const ApiDocumentationPage: React.FC = () => {
                                                   />
                                                 ) : (
                                                   <div className="flex-1">
-                                                    <label className="flex cursor-pointer items-center gap-2">
-                                                      <div className="hover:bg-muted/50 rounded-md border border-dashed px-3 py-2 text-sm text-muted-foreground">
-                                                        选择文件...
-                                                      </div>
-                                                      <input
-                                                        type="file"
-                                                        className="hidden"
-                                                        onChange={(e) => {
-                                                          const file =
-                                                            e.target.files?.[0]
-                                                          if (file)
-                                                            updateFormDataRow(
-                                                              row.id,
-                                                              'value',
-                                                              file.name,
-                                                            )
-                                                        }}
-                                                      />
-                                                    </label>
+                                                    <Input
+                                                      id={`form-data-file-${row.id}`}
+                                                      type="file"
+                                                      className="sr-only"
+                                                      onChange={(e) => {
+                                                        const file =
+                                                          e.target.files?.[0]
+                                                        if (file)
+                                                          updateFormDataRow(
+                                                            row.id,
+                                                            'value',
+                                                            file.name,
+                                                          )
+                                                      }}
+                                                    />
+                                                    <Button
+                                                      variant="outline"
+                                                      size="sm"
+                                                      type="button"
+                                                      onClick={() =>
+                                                        document
+                                                          .getElementById(
+                                                            `form-data-file-${row.id}`,
+                                                          )
+                                                          ?.click()
+                                                      }
+                                                    >
+                                                      选择文件...
+                                                    </Button>
                                                   </div>
                                                 )}
                                                 <Button
@@ -3469,7 +3407,7 @@ const ApiDocumentationPage: React.FC = () => {
                                                           updateUrlEncodedRow(
                                                             row.id,
                                                             'type',
-                                                            value,
+                                                            value as UrlEncodedRow['type'],
                                                           )
                                                         }
                                                       >
@@ -3622,27 +3560,34 @@ const ApiDocumentationPage: React.FC = () => {
                                           <p className="mb-4 text-sm">
                                             选择要上传的二进制文件
                                           </p>
-                                          <label className="cursor-pointer">
-                                            <Button
-                                              variant="outline"
-                                              className="gap-2"
-                                            >
-                                              <Plus className="h-4 w-4" />
-                                              选择文件
-                                            </Button>
-                                            <input
-                                              type="file"
-                                              className="hidden"
-                                              onChange={(e) => {
-                                                const file = e.target.files?.[0]
-                                                if (file) {
-                                                  setTestBody(
-                                                    `[Binary File: ${file.name}, Size: ${file.size} bytes]`,
-                                                  )
-                                                }
-                                              }}
-                                            />
-                                          </label>
+                                          <Input
+                                            id="api-test-binary-file"
+                                            type="file"
+                                            className="sr-only"
+                                            onChange={(e) => {
+                                              const file = e.target.files?.[0]
+                                              if (file) {
+                                                setTestBody(
+                                                  `[Binary File: ${file.name}, Size: ${file.size} bytes]`,
+                                                )
+                                              }
+                                            }}
+                                          />
+                                          <Button
+                                            variant="outline"
+                                            className="gap-2"
+                                            type="button"
+                                            onClick={() =>
+                                              document
+                                                .getElementById(
+                                                  'api-test-binary-file',
+                                                )
+                                                ?.click()
+                                            }
+                                          >
+                                            <Plus className="h-4 w-4" />
+                                            选择文件
+                                          </Button>
                                         </div>
                                       </div>
                                     )}
@@ -3777,9 +3722,7 @@ const ApiDocumentationPage: React.FC = () => {
                                           {header.description && (
                                             <div className="col-span-12 -mx-1 mt-2 rounded-md bg-green-50/50 py-2 pl-4 dark:bg-green-950/20">
                                               <div className="flex items-start gap-2">
-                                                <span className="mt-0.5 text-green-500">
-                                                  💡
-                                                </span>
+                                                <Lightbulb className="mt-0.5 h-4 w-4 text-green-500" />
                                                 <div className="flex-1 text-sm">
                                                   <MarkdownRenderer
                                                     content={header.description}
@@ -4075,7 +4018,6 @@ const ApiDocumentationPage: React.FC = () => {
                       top: position.top,
                       right: position.right,
                     }}
-                    onClick={(e) => e.stopPropagation()}
                   >
                     <div className="py-1">
                       <button

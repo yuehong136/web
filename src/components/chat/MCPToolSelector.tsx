@@ -36,12 +36,12 @@ export interface MCPToolSelectorProps {
 const getServerIcon = (serverType: string) => {
   switch (serverType) {
     case 'sse':
-      return <Globe className="w-4 h-4" />
+      return <Globe className="h-4 w-4" />
     case 'streamable-http':
     case 'http':
-      return <Server className="w-4 h-4" />
+      return <Server className="h-4 w-4" />
     default:
-      return <Wrench className="w-4 h-4" />
+      return <Wrench className="h-4 w-4" />
   }
 }
 
@@ -54,45 +54,49 @@ interface ServerCardProps {
   onToggle: (enabled: boolean) => void
 }
 
-const ServerCard: React.FC<ServerCardProps> = ({ server, isSelected, onToggle }) => {
+const ServerCard: React.FC<ServerCardProps> = ({
+  server,
+  isSelected,
+  onToggle,
+}) => {
   return (
     <div
       className={cn(
         'relative rounded-lg border p-4 transition-all duration-200',
         isSelected
           ? 'border-[var(--color-components-input-border-focus)] bg-[var(--color-state-focus-subtle)]'
-          : 'border-[var(--color-border-default)] bg-[var(--color-background-surface)] hover:border-[var(--color-border-accent)]'
+          : 'border-[var(--color-border-default)] bg-[var(--color-background-surface)] hover:border-[var(--color-border-accent)]',
       )}
     >
       <div className="flex items-center justify-between gap-4">
-        <div className="flex items-start gap-3 flex-1 min-w-0">
+        <div className="flex min-w-0 flex-1 items-start gap-3">
           <div
             className={cn(
-              'flex items-center justify-center w-8 h-8 rounded-lg shrink-0',
+              'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg',
               isSelected
                 ? 'bg-[var(--color-state-focus-subtle)] text-[var(--color-state-focus)]'
-                : 'bg-[var(--color-background-subtle)] text-[var(--color-text-secondary)]'
+                : 'bg-[var(--color-background-subtle)] text-[var(--color-text-secondary)]',
             )}
           >
             {getServerIcon(server.server_type)}
           </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="font-medium text-[var(--color-text-primary)] truncate">
+          <div className="min-w-0 flex-1">
+            <div className="mb-1 flex items-center gap-2">
+              <span className="truncate font-medium text-[var(--color-text-primary)]">
                 {server.name}
               </span>
               <Badge
                 variant="outline"
-                className="text-xs shrink-0 bg-[var(--color-background-subtle)] border-[var(--color-border-subtle)]"
+                className="shrink-0 border-[var(--color-border-subtle)] bg-[var(--color-background-subtle)] text-xs"
               >
                 {server.server_type}
               </Badge>
             </div>
-            <p className="text-sm text-[var(--color-text-secondary)] line-clamp-2">
+            <p className="line-clamp-2 text-sm text-[var(--color-text-secondary)]">
               {server.description || '暂无描述'}
             </p>
             {server.url && (
-              <p className="text-xs text-[var(--color-text-tertiary)] mt-1 truncate">
+              <p className="mt-1 truncate text-xs text-[var(--color-text-tertiary)]">
                 {server.url}
               </p>
             )}
@@ -115,7 +119,8 @@ export function MCPToolSelector({
 }: MCPToolSelectorProps) {
   const [open, setOpen] = useState(false)
   const [localConfig, setLocalConfig] = useState<MCPChatConfig>(mcpConfig)
-  const [localSelectedIds, setLocalSelectedIds] = useState<string[]>(selectedMCPIds)
+  const [localSelectedIds, setLocalSelectedIds] =
+    useState<string[]>(selectedMCPIds)
   const [servers, setServers] = useState<MCPServer[]>([])
   const [loading, setLoading] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
@@ -143,7 +148,7 @@ export function MCPToolSelector({
         {
           page: 1,
           page_size: 100,
-        }
+        },
       )
 
       setServers(response.mcp_servers || [])
@@ -162,7 +167,7 @@ export function MCPToolSelector({
     return servers.filter(
       (server) =>
         server.name.toLowerCase().includes(term) ||
-        server.description?.toLowerCase().includes(term)
+        server.description?.toLowerCase().includes(term),
     )
   }, [servers, searchTerm])
 
@@ -174,7 +179,10 @@ export function MCPToolSelector({
     }
   }
 
-  const handleConfigChange = (key: keyof MCPChatConfig, value: number | boolean) => {
+  const handleConfigChange = (
+    key: keyof MCPChatConfig,
+    value: number | boolean,
+  ) => {
     setLocalConfig((prev) => ({ ...prev, [key]: value }))
   }
 
@@ -194,9 +202,9 @@ export function MCPToolSelector({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger>
+      <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="gap-2">
-          <Wrench className="w-4 h-4" />
+          <Wrench className="h-4 w-4" />
           MCP工具
           {selectedMCPIds.length > 0 && (
             <Badge variant="secondary" className="ml-1">
@@ -210,10 +218,10 @@ export function MCPToolSelector({
         {/* 头部 */}
         <DialogHeader>
           <div className="flex items-start gap-3">
-            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-[var(--color-state-focus-subtle)] shrink-0">
-              <Plug className="w-5 h-5 text-[var(--color-state-focus)]" />
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--color-state-focus-subtle)]">
+              <Plug className="h-5 w-5 text-[var(--color-state-focus)]" />
             </div>
-            <div className="flex-1 min-w-0 pr-6">
+            <div className="min-w-0 flex-1 pr-6">
               <DialogTitle>MCP 工具配置</DialogTitle>
               <DialogDescription>
                 选择要启用的 MCP 服务器，配置对话中可使用的工具
@@ -223,7 +231,7 @@ export function MCPToolSelector({
         </DialogHeader>
 
         {/* 内容区域 */}
-        <div className="flex-1 overflow-y-auto px-6 pb-4 space-y-6 max-h-[calc(90vh-220px)]">
+        <div className="max-h-[calc(90vh-220px)] flex-1 space-y-6 overflow-y-auto px-6 pb-4">
           {/* 搜索框 */}
           <Input
             placeholder="搜索 MCP 服务器..."
@@ -235,13 +243,13 @@ export function MCPToolSelector({
 
           {/* 服务器选择 */}
           <div>
-            <div className="flex items-center justify-between mb-3">
+            <div className="mb-3 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium text-[var(--color-text-primary)]">
                   可用服务器
                 </span>
                 {servers.length > 0 && (
-                  <span className="inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-medium text-[var(--color-text-tertiary)] bg-[var(--color-background-subtle)] rounded">
+                  <span className="inline-flex items-center justify-center rounded bg-[var(--color-background-subtle)] px-1.5 py-0.5 text-xs font-medium text-[var(--color-text-tertiary)]">
                     {servers.length}
                   </span>
                 )}
@@ -255,38 +263,40 @@ export function MCPToolSelector({
 
             {loading ? (
               <div className="flex flex-col items-center justify-center py-12 text-[var(--color-text-secondary)]">
-                <div className="relative w-10 h-10 mb-3">
+                <div className="relative mb-3 h-10 w-10">
                   <div className="absolute inset-0 rounded-full border-2 border-[var(--color-border-default)]" />
-                  <div className="absolute inset-0 rounded-full border-2 border-[var(--color-state-focus)] border-t-transparent animate-spin" />
+                  <div className="absolute inset-0 animate-spin rounded-full border-2 border-[var(--color-state-focus)] border-t-transparent" />
                 </div>
                 <span className="text-sm">加载中...</span>
               </div>
             ) : filteredServers.length > 0 ? (
-              <div className="space-y-3 max-h-[280px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-[var(--color-border-default)] scrollbar-track-transparent">
+              <div className="scrollbar-thumb-[var(--color-border-default)] max-h-[280px] space-y-3 overflow-y-auto pr-1 scrollbar-thin scrollbar-track-transparent">
                 {filteredServers.map((server) => (
                   <ServerCard
                     key={server.id}
                     server={server}
                     isSelected={localSelectedIds.includes(server.id)}
-                    onToggle={(enabled) => handleServerToggle(server.id, enabled)}
+                    onToggle={(enabled) =>
+                      handleServerToggle(server.id, enabled)
+                    }
                   />
                 ))}
               </div>
             ) : servers.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[var(--color-background-subtle)] to-[var(--color-background-default)] flex items-center justify-center mb-4 shadow-sm">
-                  <Plug className="w-7 h-7 text-[var(--color-text-tertiary)]" />
+                <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[var(--color-background-subtle)] to-[var(--color-background-default)] shadow-sm">
+                  <Plug className="h-7 w-7 text-[var(--color-text-tertiary)]" />
                 </div>
-                <p className="text-sm font-medium text-[var(--color-text-secondary)] mb-1">
+                <p className="mb-1 text-sm font-medium text-[var(--color-text-secondary)]">
                   暂无可用的 MCP 服务器
                 </p>
-                <p className="text-xs text-[var(--color-text-tertiary)] max-w-[200px]">
+                <p className="max-w-[200px] text-xs text-[var(--color-text-tertiary)]">
                   请先在设置中添加 MCP 服务器
                 </p>
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-8 text-center">
-                <Search className="w-8 h-8 text-[var(--color-text-tertiary)] mb-3" />
+                <Search className="mb-3 h-8 w-8 text-[var(--color-text-tertiary)]" />
                 <p className="text-sm text-[var(--color-text-secondary)]">
                   没有找到匹配的服务器
                 </p>
@@ -296,14 +306,14 @@ export function MCPToolSelector({
 
           {/* 高级配置 */}
           <div className="border-t border-[var(--color-border-subtle)] pt-6">
-            <div className="flex items-center gap-2 mb-4">
-              <Settings2 className="w-4 h-4 text-[var(--color-text-secondary)]" />
+            <div className="mb-4 flex items-center gap-2">
+              <Settings2 className="h-4 w-4 text-[var(--color-text-secondary)]" />
               <span className="text-sm font-medium text-[var(--color-text-primary)]">
                 高级配置
               </span>
             </div>
             <div className="space-y-4">
-              <div className="flex items-center justify-between p-3 rounded-lg bg-[var(--color-background-subtle)]">
+              <div className="flex items-center justify-between rounded-lg bg-[var(--color-background-subtle)] p-3">
                 <div className="space-y-0.5">
                   <Label
                     htmlFor="timeout"
@@ -320,7 +330,10 @@ export function MCPToolSelector({
                   type="number"
                   value={localConfig.mcp_timeout}
                   onChange={(e) =>
-                    handleConfigChange('mcp_timeout', parseInt(e.target.value) || 5000)
+                    handleConfigChange(
+                      'mcp_timeout',
+                      parseInt(e.target.value) || 5000,
+                    )
                   }
                   min={100}
                   max={30000}
@@ -328,7 +341,7 @@ export function MCPToolSelector({
                 />
               </div>
 
-              <div className="flex items-center justify-between p-3 rounded-lg bg-[var(--color-background-subtle)]">
+              <div className="flex items-center justify-between rounded-lg bg-[var(--color-background-subtle)] p-3">
                 <div className="space-y-0.5">
                   <Label
                     htmlFor="verbose"
