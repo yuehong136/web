@@ -884,6 +884,25 @@ export default {
       errorTitle: '加载知识图谱失败',
       emptyTitle: '暂无知识图谱数据',
       emptyDescription: '请先上传文档并运行 GraphRAG 生成知识图谱',
+      stats: {
+        nodes: '{{count}} 节点',
+        edges: '{{count}} 关系',
+      },
+      controls: {
+        zoomIn: '放大',
+        zoomOut: '缩小',
+        fitView: '适应屏幕',
+        fullscreen: '全屏',
+        exitFullscreen: '退出全屏',
+      },
+      panel: {
+        properties: '属性',
+        relations: '关系 ({{count}})',
+        neighbors: '相邻节点 ({{count}})',
+        nodeDetails: '节点详情',
+        edgeDetails: '关系详情',
+        close: '关闭详情',
+      },
     },
     logs: {
       title: '日志管理',
@@ -910,6 +929,7 @@ export default {
         button: '筛选',
         byStatus: '按状态筛选',
         clear: '清除',
+        clearSearch: '清除搜索',
         searchPlaceholder: '搜索...',
       },
       status: {

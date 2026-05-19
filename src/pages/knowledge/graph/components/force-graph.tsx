@@ -5,13 +5,38 @@ import {
   useImperativeHandle,
   useMemo,
   useRef,
+  useState,
 } from 'react'
-import { Graph, GraphEvent, type IElementEvent, type ElementDatum, type NodeData, type EdgeData, type ComboData } from '@antv/g6'
+import {
+  Graph,
+  GraphEvent,
+  type IElementEvent,
+  type NodeData,
+  type EdgeData,
+  type ComboData,
+} from '@antv/g6'
 import { useIsDarkTheme } from '@/themes'
 import type { KnowledgeGraph } from '@/types/api'
-import { NODE_TYPE_PALETTE, NODE_TYPE_PALETTE_DARK, COMBO_LAYOUT_CONFIG, FORCE_LAYOUT_CONFIG, DEFAULT_COMBO_LABEL } from '../constants'
+import {
+  NODE_TYPE_PALETTE,
+  NODE_TYPE_PALETTE_DARK,
+  COMBO_LAYOUT_CONFIG,
+  FORCE_LAYOUT_CONFIG,
+  DEFAULT_COMBO_LABEL,
+} from '../constants'
 import { LayoutMode } from '../types'
-import { detectLayoutMode, buildCombosFromCommunities, spreadInitialPositions } from '../utils'
+import {
+  detectLayoutMode,
+  buildCombosFromCommunities,
+  spreadInitialPositions,
+} from '../utils'
+import { getGraphTheme } from './graph-theme'
+import { buildTypeColorMap } from './graph-node-colors'
+import {
+  getGraphTooltipData,
+  GraphTooltip,
+  type GraphTooltipData,
+} from './graph-tooltip'
 
 interface ForceGraphProps {
   data: KnowledgeGraph
@@ -27,20 +52,15 @@ export interface ForceGraphHandle {
   fitView: () => void
 }
 
-function buildTypeColorMap(types: string[], isDark: boolean) {
-  const palette = isDark ? NODE_TYPE_PALETTE_DARK : NODE_TYPE_PALETTE
-  const map: Record<string, string> = {}
-  types.forEach((t, i) => {
-    map[t] = palette[i % palette.length]
-  })
-  return map
-}
-
 export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
   ({ data, selectedNodeId, onNodeClick, onEdgeClick, onCanvasClick }, ref) => {
     const containerRef = useRef<HTMLDivElement>(null)
     const graphRef = useRef<Graph | null>(null)
+    const pendingRenderRef = useRef(new WeakMap<Graph, Promise<void>>())
+    const selectedNodeIdRef = useRef(selectedNodeId)
+    const [tooltip, setTooltip] = useState<GraphTooltipData | null>(null)
     const isDark = useIsDarkTheme()
+    selectedNodeIdRef.current = selectedNodeId
 
     const nodeTypes = useMemo(
       () => [...new Set(data.nodes.map((n) => n.type).filter(Boolean))],
@@ -81,29 +101,82 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
       }))
 
       if (layoutMode === LayoutMode.COMBO) {
-        const { nodes: comboNodes, combos } = buildCombosFromCommunities(baseNodes)
+        const { nodes: comboNodes, combos } =
+          buildCombosFromCommunities(baseNodes)
         return { nodes: comboNodes, edges, combos }
       }
 
       return { nodes: baseNodes, edges }
     }, [data, layoutMode])
 
-    useImperativeHandle(ref, () => ({
-      zoomIn: () => graphRef.current?.zoomBy(1.3, { duration: 300 }),
-      zoomOut: () => graphRef.current?.zoomBy(0.7, { duration: 300 }),
-      fitView: () => graphRef.current?.fitView(undefined, { duration: 400 }),
-    }))
+    const handleGraphError = useCallback((graph: Graph, error: unknown) => {
+      if (graph.destroyed || graphRef.current !== graph) return
+      console.error(error)
+    }, [])
 
-    const textColor = isDark ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.85)'
-    const textColorSub = isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.35)'
-    const edgeColor = isDark ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.12)'
-    const edgeActiveColor = isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.5)'
+    const runGraphAction = useCallback(
+      (action: (graph: Graph) => Promise<void>) => {
+        const graph = graphRef.current
+        if (!graph || graph.destroyed) return
+        void action(graph).catch((error) => handleGraphError(graph, error))
+      },
+      [handleGraphError],
+    )
+
+    const destroyGraph = useCallback((graph: Graph | null) => {
+      if (!graph || graph.destroyed) return
+      const pendingRender = pendingRenderRef.current.get(graph)
+      if (pendingRender) {
+        void pendingRender.finally(() => {
+          if (!graph.destroyed) {
+            graph.destroy()
+          }
+        })
+        return
+      }
+      graph.destroy()
+    }, [])
+
+    const applySelectedState = useCallback(
+      (graph: Graph, nodeId?: string) => {
+        if (graph.destroyed || graphRef.current !== graph || !graph.rendered)
+          return
+        const states = Object.fromEntries(
+          graph
+            .getNodeData()
+            .map((node) => [node.id, node.id === nodeId ? ['selected'] : []]),
+        )
+        void graph.setElementState(states, false).catch((error) => {
+          handleGraphError(graph, error)
+        })
+      },
+      [handleGraphError],
+    )
+
+    useImperativeHandle(
+      ref,
+      () => ({
+        zoomIn: () =>
+          runGraphAction((graph) => graph.zoomBy(1.3, { duration: 300 })),
+        zoomOut: () =>
+          runGraphAction((graph) => graph.zoomBy(0.7, { duration: 300 })),
+        fitView: () =>
+          runGraphAction((graph) =>
+            graph.fitView(undefined, { duration: 400 }),
+          ),
+      }),
+      [runGraphAction],
+    )
 
     const render = useCallback(() => {
-      if (!containerRef.current) return
+      const container = containerRef.current
+      if (!container) return
+
+      const palette = isDark ? NODE_TYPE_PALETTE_DARK : NODE_TYPE_PALETTE
+      const graphTheme = getGraphTheme(container)
 
       const graph = new Graph({
-        container: containerRef.current,
+        container,
         autoFit: 'view',
         autoResize: true,
         padding: 60,
@@ -112,34 +185,21 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
           'zoom-canvas',
           'drag-element',
           { type: 'hover-activate', degree: 1 },
-          ...(layoutMode === LayoutMode.COMBO ? ['collapse-expand' as const] : []),
+          ...(layoutMode === LayoutMode.COMBO
+            ? ['collapse-expand' as const]
+            : []),
         ],
         plugins: [
           {
-            type: 'tooltip',
-            enterable: true,
-            getContent: (_e: IElementEvent, items: ElementDatum[]) => {
-              if (!Array.isArray(items) || items.length === 0) return undefined
-              const item = items[0]
-              if (item?.data?.label) {
-                return `<div style="padding:6px 10px;font-size:13px;max-width:260px;line-height:1.5;color:${textColor};background:${isDark ? 'rgba(30,30,30,0.95)' : 'rgba(255,255,255,0.97)'};border-radius:8px;border:1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)'};box-shadow:0 4px 16px ${isDark ? 'rgba(0,0,0,0.4)' : 'rgba(0,0,0,0.08)'}">
-                  <div style="font-weight:600;margin-bottom:2px">${item.data.label}</div>
-                  ${item.data.entityType ? `<div style="font-size:11px;color:${textColorSub}">${item.data.entityType}</div>` : ''}
-                </div>`
-              }
-              if (item?.id) {
-                return `<div style="padding:4px 8px;font-size:12px;color:${textColorSub};background:${isDark ? 'rgba(30,30,30,0.95)' : 'rgba(255,255,255,0.97)'};border-radius:6px;border:1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)'}">${item.id}</div>`
-              }
-              return undefined
-            },
-          },
-          {
             type: 'grid-line',
             size: 40,
-            stroke: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)',
+            stroke: graphTheme.workspaceBorderColor,
           },
         ],
-        layout: layoutMode === LayoutMode.COMBO ? COMBO_LAYOUT_CONFIG : FORCE_LAYOUT_CONFIG,
+        layout:
+          layoutMode === LayoutMode.COMBO
+            ? COMBO_LAYOUT_CONFIG
+            : FORCE_LAYOUT_CONFIG,
         node: {
           style: {
             size: (d: NodeData) => {
@@ -148,22 +208,22 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
             },
             fill: (d: NodeData) => {
               const type = d.data?.entityType as string
-              return colorMap[type] || (isDark ? '#818cf8' : '#6366f1')
+              return colorMap[type] || palette[0]
             },
             stroke: (d: NodeData) => {
               const type = d.data?.entityType as string
-              const base = colorMap[type] || (isDark ? '#818cf8' : '#6366f1')
+              const base = colorMap[type] || palette[0]
               return `${base}44`
             },
             lineWidth: 2,
-            shadowColor: isDark ? 'rgba(0,0,0,0.4)' : 'rgba(0,0,0,0.08)',
+            shadowColor: graphTheme.borderColor,
             shadowBlur: 12,
             shadowOffsetY: 4,
             labelText: (d: NodeData) => {
               const label = (d.data?.label as string) || d.id
               return label.length > 10 ? `${label.slice(0, 10)}...` : label
             },
-            labelFill: textColor,
+            labelFill: graphTheme.textColor,
             labelFontSize: 11,
             labelFontWeight: 500,
             labelOffsetY: 4,
@@ -181,15 +241,15 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
             },
             selected: {
               lineWidth: 4,
-              stroke: isDark ? '#a78bfa' : '#6366f1',
+              stroke: graphTheme.accentColor,
               shadowBlur: 24,
-              shadowColor: isDark ? 'rgba(167,139,250,0.4)' : 'rgba(99,102,241,0.3)',
+              shadowColor: graphTheme.focusColor,
             },
           },
         },
         edge: {
           style: {
-            stroke: edgeColor,
+            stroke: graphTheme.edgeColor,
             lineWidth: (d: EdgeData) => {
               const weight = Number(d.data?.weight) || 1
               return Math.min(Math.max(weight * 1.5, 1), 5)
@@ -201,16 +261,16 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
               if (!label) return ''
               return label.length > 12 ? `${label.slice(0, 12)}...` : label
             },
-            labelFill: textColorSub,
+            labelFill: graphTheme.textColorSub,
             labelFontSize: 10,
             labelBackground: true,
-            labelBackgroundFill: isDark ? 'rgba(20,20,25,0.8)' : 'rgba(255,255,255,0.8)',
+            labelBackgroundFill: graphTheme.surfaceColor,
             labelBackgroundRadius: 4,
             labelPadding: [2, 6],
           },
           state: {
             active: {
-              stroke: edgeActiveColor,
+              stroke: graphTheme.edgeActiveColor,
               lineWidth: 2.5,
             },
             inactive: {
@@ -224,8 +284,8 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
               return { stroke: 'transparent', fill: 'transparent' }
             }
             return {
-              stroke: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.08)',
-              fill: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+              stroke: graphTheme.workspaceBorderColor,
+              fill: graphTheme.surfaceSubtleColor,
               lineWidth: 1,
               lineDash: [4, 4],
             }
@@ -233,66 +293,102 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
         },
       })
 
-      if (graphRef.current) {
-        graphRef.current.destroy()
-      }
+      destroyGraph(graphRef.current)
       graphRef.current = graph
 
       graph.setData(graphData)
 
       graph.once(GraphEvent.AFTER_LAYOUT, () => {
-        graph.fitView(undefined, { duration: 500 })
+        if (graph.destroyed || graphRef.current !== graph) return
+        void graph.fitView(undefined, { duration: 500 }).catch((error) => {
+          handleGraphError(graph, error)
+        })
       })
 
-      graph.render()
-
       graph.on('node:click', (e: IElementEvent) => {
+        if (graph.destroyed || graphRef.current !== graph) return
         const nodeId = e.target?.id
         if (nodeId) onNodeClick(String(nodeId))
       })
 
       graph.on('edge:click', (e: IElementEvent) => {
+        if (graph.destroyed || graphRef.current !== graph) return
         const edgeId = e.target?.id
         if (edgeId) onEdgeClick(String(edgeId))
       })
 
+      const showTooltip = (event: IElementEvent) => {
+        if (graph.destroyed || graphRef.current !== graph) return
+        setTooltip(getGraphTooltipData(graph, event, container))
+      }
+
+      const hideTooltip = () => {
+        if (graph.destroyed || graphRef.current !== graph) return
+        setTooltip(null)
+      }
+
+      graph.on('node:pointerover', showTooltip)
+      graph.on('node:pointermove', showTooltip)
+      graph.on('edge:pointerover', showTooltip)
+      graph.on('edge:pointermove', showTooltip)
+      graph.on('combo:pointerover', showTooltip)
+      graph.on('combo:pointermove', showTooltip)
+      graph.on('canvas:pointermove', hideTooltip)
+      graph.on('node:drag', hideTooltip)
+      graph.on('canvas:click', hideTooltip)
+
       graph.on('canvas:click', () => {
+        if (graph.destroyed || graphRef.current !== graph) return
         onCanvasClick()
       })
-    }, [graphData, colorMap, isDark, textColor, textColorSub, edgeColor, edgeActiveColor, onNodeClick, onEdgeClick, onCanvasClick, layoutMode])
+
+      const renderTask = graph
+        .render()
+        .then(() => {
+          applySelectedState(graph, selectedNodeIdRef.current)
+        })
+        .catch((error) => {
+          handleGraphError(graph, error)
+        })
+        .finally(() => {
+          pendingRenderRef.current.delete(graph)
+        })
+      pendingRenderRef.current.set(graph, renderTask)
+    }, [
+      graphData,
+      colorMap,
+      isDark,
+      onNodeClick,
+      onEdgeClick,
+      onCanvasClick,
+      layoutMode,
+      destroyGraph,
+      handleGraphError,
+      applySelectedState,
+    ])
 
     useEffect(() => {
       if (graphData.nodes.length > 0) {
         render()
       }
       return () => {
-        if (graphRef.current) {
-          graphRef.current.destroy()
-          graphRef.current = null
-        }
+        const graph = graphRef.current
+        graphRef.current = null
+        setTooltip(null)
+        destroyGraph(graph)
       }
-    }, [render, graphData.nodes.length])
+    }, [render, graphData.nodes.length, destroyGraph])
 
     useEffect(() => {
       const graph = graphRef.current
       if (!graph) return
-      try {
-        graph.setElementState(
-          Object.fromEntries(graph.getNodeData().map((n) => [n.id, []])),
-        )
-        if (selectedNodeId) {
-          graph.setElementState({ [selectedNodeId]: ['selected'] })
-        }
-      } catch {
-        // graph not ready yet
-      }
-    }, [selectedNodeId])
+      applySelectedState(graph, selectedNodeId)
+    }, [applySelectedState, selectedNodeId])
 
     return (
-      <div
-        ref={containerRef}
-        className="w-full h-full"
-      />
+      <div ref={containerRef} className="relative h-full w-full">
+        <GraphTooltip data={tooltip} />
+      </div>
     )
   },
 )

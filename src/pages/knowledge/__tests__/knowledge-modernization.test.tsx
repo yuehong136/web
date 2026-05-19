@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs'
 import test from 'node:test'
 import zhCN from '@/locales/zh-CN/knowledge'
 import enUS from '@/locales/en-US/knowledge'
+import { createI18nResources } from '@/locales/locale-registry'
 import { DocumentParserType } from '@/types/document-parser'
 import { getParserImageFileNames } from '../settings/parser-image-map'
 
@@ -18,6 +19,24 @@ test('knowledge locale namespace keeps zh-CN and en-US keys in sync', () => {
   assert.deepEqual(flattenKeys(zhCN).sort(), flattenKeys(enUS).sort())
 })
 
+test('knowledge graph KR-7 locale keys are present in runtime resources', () => {
+  const resources = createI18nResources()
+  const enUSKnowledge = resources['en-US'].translation.knowledge
+  const zhCNKnowledge = resources['zh-CN'].translation.knowledge
+
+  for (const knowledge of [enUSKnowledge, zhCNKnowledge]) {
+    assert.equal(typeof knowledge.graph.controls.zoomIn, 'string')
+    assert.equal(typeof knowledge.graph.controls.zoomOut, 'string')
+    assert.equal(typeof knowledge.graph.controls.fitView, 'string')
+    assert.equal(typeof knowledge.graph.controls.fullscreen, 'string')
+    assert.equal(typeof knowledge.graph.controls.exitFullscreen, 'string')
+    assert.equal(typeof knowledge.graph.panel.properties, 'string')
+    assert.equal(typeof knowledge.graph.panel.nodeDetails, 'string')
+    assert.equal(typeof knowledge.graph.panel.edgeDetails, 'string')
+    assert.equal(typeof knowledge.graph.panel.close, 'string')
+  }
+})
+
 test('knowledge page templates expose stable scroll roots', () => {
   const readTemplate = (name: string) =>
     readFileSync(
@@ -27,7 +46,7 @@ test('knowledge page templates expose stable scroll roots', () => {
 
   assert.match(
     readTemplate('console-page-template.tsx'),
-    /data-scroll-root=.*console-body/,
+    /data-scroll-root=[\s\S]*console-body/,
   )
   assert.match(
     readTemplate('list-page-template.tsx'),

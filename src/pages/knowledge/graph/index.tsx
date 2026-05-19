@@ -1,4 +1,4 @@
-import React, { memo } from 'react'
+import { memo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useFetchKnowledgeGraph } from '@/hooks/use-knowledge-request'
 import { Loading } from '@/components/ui/loading'
@@ -10,13 +10,13 @@ import { GraphSidePanel } from './components/graph-side-panel'
 import { GraphControls } from './components/graph-controls'
 import { useGraphSelection, useGraphStats } from './hooks'
 
-const KnowledgeGraphPage: React.FC = () => {
+function KnowledgeGraphPageComponent() {
   const { t } = useTranslation()
   const { data, isLoading, isError, refetch } = useFetchKnowledgeGraph()
   const { selectedElement, selectNode, selectEdge, clearSelection } =
     useGraphSelection(data)
   const stats = useGraphStats(data)
-  const graphRef = React.useRef<{
+  const graphRef = useRef<{
     zoomIn: () => void
     zoomOut: () => void
     fitView: () => void
@@ -51,14 +51,14 @@ const KnowledgeGraphPage: React.FC = () => {
       <PageEmptyState
         title={t('knowledge.graph.emptyTitle')}
         description={t('knowledge.graph.emptyDescription')}
-        icon={<Network className="h-6 w-6" />}
+        icon={<Network className="size-6" />}
       />
     )
   }
 
   return (
     <WorkspacePageTemplate className="h-full">
-      <div className="relative h-full w-full overflow-hidden bg-background-body">
+      <div className="relative h-full w-full overflow-hidden bg-components-workspace-bg">
         <ForceGraph
           ref={graphRef}
           data={data}
@@ -84,5 +84,4 @@ const KnowledgeGraphPage: React.FC = () => {
   )
 }
 
-export default memo(KnowledgeGraphPage)
-export { KnowledgeGraphPage }
+export const KnowledgeGraphPage = memo(KnowledgeGraphPageComponent)

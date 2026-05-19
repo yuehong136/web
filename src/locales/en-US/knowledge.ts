@@ -925,6 +925,25 @@ export default {
       emptyTitle: 'No knowledge graph data',
       emptyDescription:
         'Upload documents and run GraphRAG to generate a knowledge graph.',
+      stats: {
+        nodes: '{{count}} nodes',
+        edges: '{{count}} relations',
+      },
+      controls: {
+        zoomIn: 'Zoom in',
+        zoomOut: 'Zoom out',
+        fitView: 'Fit view',
+        fullscreen: 'Fullscreen',
+        exitFullscreen: 'Exit fullscreen',
+      },
+      panel: {
+        properties: 'Properties',
+        relations: 'Relations ({{count}})',
+        neighbors: 'Neighbor nodes ({{count}})',
+        nodeDetails: 'Node details',
+        edgeDetails: 'Relation details',
+        close: 'Close details',
+      },
     },
     logs: {
       title: 'Logs',
@@ -951,6 +970,7 @@ export default {
         button: 'Filter',
         byStatus: 'Filter by status',
         clear: 'Clear',
+        clearSearch: 'Clear search',
         searchPlaceholder: 'Search...',
       },
       status: {

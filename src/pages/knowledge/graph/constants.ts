@@ -1,3 +1,6 @@
+// G6 node/content palette. These hex values color graph entities themselves,
+// not page chrome; keep them local to the graph adapter instead of registering
+// Tailwind UI tokens.
 export const NODE_TYPE_PALETTE = [
   '#6366f1', // indigo
   '#8b5cf6', // violet

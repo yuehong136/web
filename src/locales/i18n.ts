@@ -66,6 +66,10 @@ const syncI18nResources = (resources = createI18nResources()) => {
   })
 }
 
+const syncRuntimeLanguage = () => {
+  void i18n.changeLanguage(i18n.resolvedLanguage ?? i18n.language)
+}
+
 i18n
   .use(LanguageDetector) // 自动检测用户语言
   .use(initReactI18next) // 传递 i18n 实例给 react-i18next
@@ -93,12 +97,56 @@ i18n.on('languageChanged', (lang) => {
 })
 
 if (import.meta.hot) {
+  const reloadLocaleResources = async () => {
+    const nextRegistry = await import('./locale-registry')
+    syncI18nResources(nextRegistry.createI18nResources())
+    syncRuntimeLanguage()
+  }
+
   import.meta.hot.accept('./locale-registry', (nextRegistry) => {
     if (!nextRegistry) return
 
     syncI18nResources(nextRegistry.createI18nResources())
-    void i18n.changeLanguage(i18n.resolvedLanguage ?? i18n.language)
+    syncRuntimeLanguage()
   })
+
+  import.meta.hot.accept(
+    [
+      './zh-CN',
+      './en-US',
+      './zh-CN/knowledge',
+      './en-US/knowledge',
+      './zh-CN/common',
+      './en-US/common',
+      './zh-CN/layout',
+      './en-US/layout',
+      './zh-CN/settings',
+      './en-US/settings',
+      './zh-CN/agent',
+      './en-US/agent',
+      './zh-CN/agents',
+      './en-US/agents',
+      './zh-CN/flow',
+      './en-US/flow',
+      './zh-CN/datasource',
+      './en-US/datasource',
+      './zh-CN/search',
+      './en-US/search',
+      './zh-CN/explore',
+      './en-US/explore',
+      './zh-CN/home',
+      './en-US/home',
+      './zh-CN/memory',
+      './en-US/memory',
+      './zh-CN/studio',
+      './en-US/studio',
+      './zh-CN/tools',
+      './en-US/tools',
+      './zh-CN/mcp',
+      './en-US/mcp',
+    ],
+    reloadLocaleResources,
+  )
 }
 
 export default i18n
