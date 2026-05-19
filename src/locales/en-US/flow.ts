@@ -36,6 +36,7 @@ export default {
     fileFormats: 'File formats',
     fields: 'Fields',
     questions: 'Questions',
+    guidingQuestionTip: 'Shown before the user fills in the form.',
     summary: 'Summary',
     searchMethod: 'Search method',
     searchMethodTip:
@@ -277,6 +278,7 @@ export default {
     oldKey: 'Old key',
     onFailure: 'On failure',
     openingCopy: 'Opening greeting',
+    openingCopyTip: 'Shown before the conversation begins.',
     openingSwitch: 'Opening switch',
     openingSwitchTip:
       'Your users will see this welcome message at the beginning.',

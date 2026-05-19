@@ -95,6 +95,9 @@ export default {
       unknown: '未知错误',
     },
   },
+  modal: {
+    okText: '确定',
+  },
   flow: {
     copy: '复制',
     debug: '调试',

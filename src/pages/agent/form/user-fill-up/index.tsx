@@ -20,21 +20,14 @@ import { z } from 'zod'
 import { BeginQueryType } from '../../constant'
 import { useBuildPromptVariableOptions } from '../../hooks/use-get-begin-query'
 import type { INextOperatorForm } from '../../types'
-import {
-  FormWrapper,
-  Output,
-} from '../components'
+import { FormWrapper, Output } from '../components'
 import { ParameterDialog } from '../begin/parameter-dialog'
 import { QueryTable } from '../begin/query-table'
 import { beginInputSchema } from '../begin/schema'
 import { useEditQueryRecord } from '../begin/use-edit-query'
 import type { BeginInputEditorItem } from '../begin/utils'
-import {
-  useValues,
-} from './use-values'
-import {
-  useWatchFormChange,
-} from './use-watch-change'
+import { useValues } from './use-values'
+import { useWatchFormChange } from './use-watch-change'
 
 const userFillUpSchema = z.object({
   enable_tips: z.boolean().optional(),
@@ -101,7 +94,12 @@ export const UserFillUpForm = memo(function UserFillUpForm({
           name="enable_tips"
           render={({ field }) => (
             <FormItem className="flex items-center justify-between">
-              <FormLabel tooltip={t('flow.openingSwitchTip', 'Show a guiding question before the form.')}>
+              <FormLabel
+                tooltip={t(
+                  'flow.guidingQuestionTip',
+                  'Show a guiding question before the form.',
+                )}
+              >
                 {t('flow.guidingQuestion', 'Guiding Question')}
               </FormLabel>
               <FormControl>
@@ -120,7 +118,12 @@ export const UserFillUpForm = memo(function UserFillUpForm({
           name="tips"
           render={({ field }) => (
             <FormItem>
-              <FormLabel tooltip={t('chat.setAnOpenerTip', 'Shown before the user fills in the form.')}>
+              <FormLabel
+                tooltip={t(
+                  'flow.guidingQuestionTip',
+                  'Shown before the user fills in the form.',
+                )}
+              >
                 {t('flow.msg', 'Message')}
               </FormLabel>
               <FormControl>

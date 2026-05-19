@@ -97,4 +97,7 @@ export default {
       unknown: 'Unknown error.',
     },
   },
+  modal: {
+    okText: 'OK',
+  },
 }
