@@ -12,12 +12,12 @@ import { useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
-import { initialBingValues } from '../constant'
-import { BingCountryOptions, BingLanguageOptions } from '../options'
-import { useFormValues } from '../hooks/use-form-values'
-import { useWatchFormChange } from '../hooks/use-watch-form-change'
-import type { INextOperatorForm } from '../types'
-import { FormWrapper, QueryVariable } from './components'
+import { initialBingValues } from '../../constant'
+import { BingCountryOptions, BingLanguageOptions } from '../../options'
+import { useFormValues } from '../../hooks/use-form-values'
+import { useWatchFormChange } from '../../hooks/use-watch-form-change'
+import type { INextOperatorForm } from '../../types'
+import { FormWrapper, QueryVariable } from '../components'
 
 const schema = z.object({
   query: z.string().optional(),

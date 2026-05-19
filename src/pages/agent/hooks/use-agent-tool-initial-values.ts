@@ -14,7 +14,7 @@ export function useAgentToolInitialValues() {
       switch (operatorName) {
         case Operator.Retrieval:
           return {
-            ...omit(initialValues, 'query'),
+            ...omit(initialValues, 'query', 'outputs'),
             description: '',
           }
         case Operator.TavilySearch:
@@ -23,11 +23,11 @@ export function useAgentToolInitialValues() {
             api_key: '',
           }
         case Operator.ExeSQL:
-          return omit(initialValues, 'sql')
+          return omit(initialValues, 'sql', 'outputs')
         case Operator.Bing:
-          return omit(initialValues, 'query')
+          return omit(initialValues, 'query', 'outputs')
         case Operator.YahooFinance:
-          return omit(initialValues, 'stock_code')
+          return omit(initialValues, 'stock_code', 'outputs')
         case Operator.Email:
           return pick(
             initialValues,
@@ -57,8 +57,10 @@ export function useAgentToolInitialValues() {
           return {}
         case Operator.SearXNG:
           return pick(initialValues, 'searxng_url', 'top_n')
+        case Operator.Crawler:
+          return pick(initialValues, 'proxy', 'extract_type')
         default:
-          return initialValues
+          return omit(initialValues, 'query', 'outputs')
       }
     },
     [initialFormValuesMap],

@@ -22,11 +22,11 @@ import {
   TavilyExtractDepth,
   TavilyExtractFormat,
   initialTavilyExtractValues,
-} from '../constant'
-import { useFormValues } from '../hooks/use-form-values'
-import { useWatchFormChange } from '../hooks/use-watch-form-change'
-import type { INextOperatorForm } from '../types'
-import { FormWrapper, Output, transferOutputs } from './components'
+} from '../../constant'
+import { useFormValues } from '../../hooks/use-form-values'
+import { useWatchFormChange } from '../../hooks/use-watch-form-change'
+import type { INextOperatorForm } from '../../types'
+import { FormWrapper, Output, transferOutputs } from '../components'
 
 const schema = z.object({
   urls: z.string().optional(),
@@ -48,14 +48,8 @@ export function TavilyExtractForm({ node }: INextOperatorForm) {
 
   const outputs = form.getValues('outputs')
 
-  const depthOptions = useMemo(
-    () => Object.values(TavilyExtractDepth),
-    [],
-  )
-  const formatOptions = useMemo(
-    () => Object.values(TavilyExtractFormat),
-    [],
-  )
+  const depthOptions = useMemo(() => Object.values(TavilyExtractDepth), [])
+  const formatOptions = useMemo(() => Object.values(TavilyExtractFormat), [])
 
   return (
     <Form {...form}>

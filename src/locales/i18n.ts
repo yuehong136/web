@@ -54,6 +54,18 @@ export const applyDocumentLocale = (lang: ProductLocale) => {
   document.documentElement.dir = i18n.dir(lang)
 }
 
+const syncI18nResources = (resources = createI18nResources()) => {
+  Object.entries(resources).forEach(([locale, resource]) => {
+    i18n.addResourceBundle(
+      locale,
+      'translation',
+      resource.translation,
+      true,
+      true,
+    )
+  })
+}
+
 i18n
   .use(LanguageDetector) // 自动检测用户语言
   .use(initReactI18next) // 传递 i18n 实例给 react-i18next
@@ -79,6 +91,15 @@ i18n
 i18n.on('languageChanged', (lang) => {
   applyDocumentLocale(normalizeLocale(lang) ?? DEFAULT_PRODUCT_LANGUAGE)
 })
+
+if (import.meta.hot) {
+  import.meta.hot.accept('./locale-registry', (nextRegistry) => {
+    if (!nextRegistry) return
+
+    syncI18nResources(nextRegistry.createI18nResources())
+    void i18n.changeLanguage(i18n.resolvedLanguage ?? i18n.language)
+  })
+}
 
 export default i18n
 

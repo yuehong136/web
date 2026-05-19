@@ -13,27 +13,36 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Checkbox } from '@/components/ui/checkbox'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
-import { initialArXivValues } from '../constant'
-import { useFormValues } from '../hooks/use-form-values'
-import { useWatchFormChange } from '../hooks/use-watch-form-change'
-import type { INextOperatorForm } from '../types'
-import { FormWrapper, Output, QueryVariable, transferOutputs } from './components'
+import { initialGoogleScholarValues } from '../../constant'
+import { useFormValues } from '../../hooks/use-form-values'
+import { useWatchFormChange } from '../../hooks/use-watch-form-change'
+import type { INextOperatorForm } from '../../types'
+import {
+  FormWrapper,
+  Output,
+  QueryVariable,
+  transferOutputs,
+} from '../components'
 
 const schema = z.object({
   query: z.string().optional(),
   top_n: z.coerce.number().optional(),
   sort_by: z.string().optional(),
+  year_low: z.coerce.number().optional(),
+  year_high: z.coerce.number().optional(),
+  patents: z.boolean().optional(),
   outputs: z.record(z.string(), z.any()).optional(),
 })
 
-export function ArxivForm({ node }: INextOperatorForm) {
+export function GoogleScholarForm({ node }: INextOperatorForm) {
   const { t } = useTranslation()
-  const values = useFormValues(initialArXivValues, node)
+  const values = useFormValues(initialGoogleScholarValues, node)
 
   const form = useForm({
     resolver: zodResolver(schema),
@@ -44,10 +53,7 @@ export function ArxivForm({ node }: INextOperatorForm) {
 
   const outputs = form.getValues('outputs')
 
-  const sortOptions = useMemo(
-    () => ['submittedDate', 'lastUpdatedDate', 'relevance'],
-    [],
-  )
+  const sortOptions = useMemo(() => ['relevance', 'date'], [])
 
   return (
     <Form {...form}>
@@ -93,6 +99,60 @@ export function ArxivForm({ node }: INextOperatorForm) {
                   </SelectContent>
                 </Select>
               </FormControl>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="year_low"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('flow.yearLow', 'Year Low')}</FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  min={0}
+                  {...field}
+                  value={field.value ?? ''}
+                  onChange={(e) => field.onChange(Number(e.target.value))}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="year_high"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('flow.yearHigh', 'Year High')}</FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  min={0}
+                  {...field}
+                  value={field.value ?? ''}
+                  onChange={(e) => field.onChange(Number(e.target.value))}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="patents"
+          render={({ field }) => (
+            <FormItem className="gap-space-sm flex items-center">
+              <FormControl>
+                <Checkbox
+                  checked={!!field.value}
+                  onCheckedChange={(val) => field.onChange(Boolean(val))}
+                />
+              </FormControl>
+              <FormLabel>{t('flow.patents', 'Patents')}</FormLabel>
             </FormItem>
           )}
         />

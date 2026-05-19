@@ -11,16 +11,17 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
-import { initialEmailValues } from '../constant'
-import { useFormValues } from '../hooks/use-form-values'
-import { useWatchFormChange } from '../hooks/use-watch-form-change'
-import type { INextOperatorForm } from '../types'
-import { FormWrapper, Output, transferOutputs } from './components'
+import { initialEmailValues } from '../../constant'
+import { useFormValues } from '../../hooks/use-form-values'
+import { useWatchFormChange } from '../../hooks/use-watch-form-change'
+import type { INextOperatorForm } from '../../types'
+import { FormWrapper, Output, transferOutputs } from '../components'
 
 const schema = z.object({
   smtp_server: z.string().optional(),
   smtp_port: z.coerce.number().optional(),
   email: z.string().optional(),
+  smtp_username: z.string().optional(),
   password: z.string().optional(),
   sender_name: z.string().optional(),
   to_email: z.string().optional(),
@@ -150,6 +151,19 @@ export function EmailForm({ node }: INextOperatorForm) {
               <FormLabel>{t('flow.authCode', 'Auth Code')}</FormLabel>
               <FormControl>
                 <Input {...field} type="password" />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="smtp_username"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('flow.smtpUsername', 'SMTP Username')}</FormLabel>
+              <FormControl>
+                <Input {...field} />
               </FormControl>
             </FormItem>
           )}

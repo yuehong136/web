@@ -18,11 +18,16 @@ import WenCaiToolForm from './wencai-form'
 import WikipediaToolForm from './wikipedia-form'
 import YahooFinanceToolForm from './yahoo-finance-form'
 
+function EmptyToolConfig() {
+  return null
+}
+
 export const ToolFormConfigMap: Partial<
   Record<Operator, ComponentType<INextOperatorForm>>
 > = {
   [Operator.ArXiv]: ArxivToolForm,
   [Operator.Bing]: BingToolForm,
+  [Operator.Code]: EmptyToolConfig,
   [Operator.Crawler]: CrawlerToolForm,
   [Operator.DuckDuckGo]: DuckDuckGoToolForm,
   [Operator.Email]: EmailToolForm,

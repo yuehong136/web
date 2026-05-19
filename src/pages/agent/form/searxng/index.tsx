@@ -10,22 +10,27 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
-import { initialPubMedValues } from '../constant'
-import { useFormValues } from '../hooks/use-form-values'
-import { useWatchFormChange } from '../hooks/use-watch-form-change'
-import type { INextOperatorForm } from '../types'
-import { FormWrapper, Output, QueryVariable, transferOutputs } from './components'
+import { initialSearXNGValues } from '../../constant'
+import { useFormValues } from '../../hooks/use-form-values'
+import { useWatchFormChange } from '../../hooks/use-watch-form-change'
+import type { INextOperatorForm } from '../../types'
+import {
+  FormWrapper,
+  Output,
+  QueryVariable,
+  transferOutputs,
+} from '../components'
 
 const schema = z.object({
   query: z.string().optional(),
-  top_n: z.coerce.number().optional(),
-  email: z.string().optional(),
+  top_n: z.union([z.string(), z.number()]).optional(),
+  searxng_url: z.string().optional(),
   outputs: z.record(z.string(), z.any()).optional(),
 })
 
-export function PubMedForm({ node }: INextOperatorForm) {
+export function SearXNGForm({ node }: INextOperatorForm) {
   const { t } = useTranslation()
-  const values = useFormValues(initialPubMedValues, node)
+  const values = useFormValues(initialSearXNGValues, node)
 
   const form = useForm({
     resolver: zodResolver(schema),
@@ -52,8 +57,8 @@ export function PubMedForm({ node }: INextOperatorForm) {
                   type="number"
                   min={1}
                   {...field}
-                  value={field.value ?? 12}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
+                  value={Number(field.value ?? 10)}
+                  onChange={(e) => field.onChange(e.target.value)}
                 />
               </FormControl>
             </FormItem>
@@ -62,12 +67,12 @@ export function PubMedForm({ node }: INextOperatorForm) {
 
         <FormField
           control={form.control}
-          name="email"
+          name="searxng_url"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('flow.email', 'Email')}</FormLabel>
+              <FormLabel>{t('flow.searxngUrl', 'SearXNG URL')}</FormLabel>
               <FormControl>
-                <Input type="email" {...field} />
+                <Input {...field} placeholder="https://searx.example.com" />
               </FormControl>
             </FormItem>
           )}

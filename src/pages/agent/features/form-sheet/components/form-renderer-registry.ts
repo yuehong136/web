@@ -2,20 +2,20 @@ import type { ComponentType } from 'react'
 import { Operator } from '../../../constant'
 import { AgentForm } from '../../../form/agent'
 import { A2UIForm } from '../../../form/a2ui'
-import { ArxivForm } from '../../../form/arxiv-form'
+import { ArxivForm } from '../../../form/arxiv'
 import { BeginForm } from '../../../form/begin'
-import { BingForm } from '../../../form/bing-form'
+import { BingForm } from '../../../form/bing'
 import { CategorizeForm } from '../../../form/categorize'
 import { CodeForm } from '../../../form/code-form'
-import { CrawlerForm } from '../../../form/crawler-form'
+import { CrawlerForm } from '../../../form/crawler'
 import { DataOperationsForm } from '../../../form/data-operations'
-import { DuckDuckGoForm } from '../../../form/duckduckgo-form'
-import { EmailForm } from '../../../form/email-form'
+import { DuckDuckGoForm } from '../../../form/duckduckgo'
+import { EmailForm } from '../../../form/email'
 import { ExtractorForm } from '../../../form/extractor'
 import { ExeSQLForm } from '../../../form/exesql'
-import { GithubForm } from '../../../form/github-form'
-import { GoogleForm } from '../../../form/google-form'
-import { GoogleScholarForm } from '../../../form/google-scholar-form'
+import { GithubForm } from '../../../form/github'
+import { GoogleForm } from '../../../form/google'
+import { GoogleScholarForm } from '../../../form/google-scholar'
 import { HierarchicalMergerForm } from '../../../form/hierarchical-merger'
 import { InvokeForm } from '../../../form/invoke'
 import { IterationForm } from '../../../form/iteration'
@@ -27,24 +27,24 @@ import { McpForm } from '../../../form/mcp-form'
 import { MessageForm } from '../../../form/message'
 import { ParserForm } from '../../../form/parser'
 import { PDFGeneratorForm } from '../../../form/pdf-generator'
-import { PubMedForm } from '../../../form/pubmed-form'
+import { PubMedForm } from '../../../form/pubmed'
 import { RelevantForm } from '../../../form/relevant-form'
 import { RetrievalForm } from '../../../form/retrieval'
 import { RewriteQuestionForm } from '../../../form/rewrite-question'
-import { SearXNGForm } from '../../../form/searxng-form'
+import { SearXNGForm } from '../../../form/searxng'
 import { SplitterForm } from '../../../form/splitter'
 import { StringTransformForm } from '../../../form/string-transform'
 import { SwitchForm } from '../../../form/switch'
-import { TavilyExtractForm } from '../../../form/tavily-extract-form'
-import { TavilyForm } from '../../../form/tavily-form'
+import { TavilyExtractForm } from '../../../form/tavily-extract'
+import { TavilyForm } from '../../../form/tavily'
 import { ToolForm } from '../../../form/tool'
 import { TokenizerForm } from '../../../form/tokenizer'
 import { UserFillUpForm } from '../../../form/user-fill-up'
 import { VariableAggregatorForm } from '../../../form/variable-aggregator'
 import { VariableAssignerForm } from '../../../form/variable-assigner'
-import { WenCaiForm } from '../../../form/wencai-form'
-import { WikipediaForm } from '../../../form/wikipedia-form'
-import { YahooFinanceForm } from '../../../form/yahoo-finance-form'
+import { WenCaiForm } from '../../../form/wencai'
+import { WikipediaForm } from '../../../form/wikipedia'
+import { YahooFinanceForm } from '../../../form/yahoo-finance'
 import type { INextOperatorForm } from '../../../types'
 import { MCP_FORM_RENDERER_KEY } from '../utils'
 
@@ -80,16 +80,6 @@ export const migratedFormRenderers: Record<
   [Operator.HierarchicalMerger]: HierarchicalMergerForm,
   [Operator.PDFGenerator]: PDFGeneratorForm,
   [Operator.ExeSQL]: ExeSQLForm,
-}
-
-export const legacyFormRenderers: Record<
-  string,
-  ComponentType<INextOperatorForm>
-> = {
-  [Operator.Code]: CodeForm,
-  [Operator.KeywordExtract]: KeywordExtractForm,
-  [Operator.Relevant]: RelevantForm,
-  [Operator.ExitLoop]: EmptyForm,
   [Operator.Crawler]: CrawlerForm,
   [Operator.DuckDuckGo]: DuckDuckGoForm,
   [Operator.Wikipedia]: WikipediaForm,
@@ -105,6 +95,16 @@ export const legacyFormRenderers: Record<
   [Operator.WenCai]: WenCaiForm,
   [Operator.YahooFinance]: YahooFinanceForm,
   [Operator.Email]: EmailForm,
+}
+
+export const legacyFormRenderers: Record<
+  string,
+  ComponentType<INextOperatorForm>
+> = {
+  [Operator.Code]: CodeForm,
+  [Operator.KeywordExtract]: KeywordExtractForm,
+  [Operator.Relevant]: RelevantForm,
+  [Operator.ExitLoop]: EmptyForm,
   [Operator.ExcelProcessor]: ToolForm,
   [Operator.WaitingDialogue]: CodeForm,
   [Operator.File]: EmptyForm,

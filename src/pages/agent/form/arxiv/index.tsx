@@ -18,23 +18,27 @@ import { useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
-import { initialWenCaiValues } from '../constant'
-import { WenCaiQueryTypeOptions } from '../options'
-import { useFormValues } from '../hooks/use-form-values'
-import { useWatchFormChange } from '../hooks/use-watch-form-change'
-import type { INextOperatorForm } from '../types'
-import { FormWrapper, Output, QueryVariable, transferOutputs } from './components'
+import { initialArXivValues } from '../../constant'
+import { useFormValues } from '../../hooks/use-form-values'
+import { useWatchFormChange } from '../../hooks/use-watch-form-change'
+import type { INextOperatorForm } from '../../types'
+import {
+  FormWrapper,
+  Output,
+  QueryVariable,
+  transferOutputs,
+} from '../components'
 
 const schema = z.object({
   query: z.string().optional(),
   top_n: z.coerce.number().optional(),
-  query_type: z.string().optional(),
+  sort_by: z.string().optional(),
   outputs: z.record(z.string(), z.any()).optional(),
 })
 
-export function WenCaiForm({ node }: INextOperatorForm) {
+export function ArxivForm({ node }: INextOperatorForm) {
   const { t } = useTranslation()
-  const values = useFormValues(initialWenCaiValues, node)
+  const values = useFormValues(initialArXivValues, node)
 
   const form = useForm({
     resolver: zodResolver(schema),
@@ -45,13 +49,9 @@ export function WenCaiForm({ node }: INextOperatorForm) {
 
   const outputs = form.getValues('outputs')
 
-  const queryTypeOptions = useMemo(
-    () =>
-      WenCaiQueryTypeOptions.map((value) => ({
-        value,
-        label: t(`flow.wenCaiQueryTypeOptions.${value}`, value),
-      })),
-    [t],
+  const sortOptions = useMemo(
+    () => ['submittedDate', 'lastUpdatedDate', 'relevance'],
+    [],
   )
 
   return (
@@ -70,7 +70,7 @@ export function WenCaiForm({ node }: INextOperatorForm) {
                   type="number"
                   min={1}
                   {...field}
-                  value={field.value ?? 20}
+                  value={field.value ?? 12}
                   onChange={(e) => field.onChange(Number(e.target.value))}
                 />
               </FormControl>
@@ -80,19 +80,19 @@ export function WenCaiForm({ node }: INextOperatorForm) {
 
         <FormField
           control={form.control}
-          name="query_type"
+          name="sort_by"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('flow.queryType', 'Query Type')}</FormLabel>
+              <FormLabel>{t('flow.sortBy', 'Sort By')}</FormLabel>
               <FormControl>
                 <Select value={field.value} onValueChange={field.onChange}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {queryTypeOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
+                    {sortOptions.map((value) => (
+                      <SelectItem key={value} value={value}>
+                        {t(`flow.${value}`, value)}
                       </SelectItem>
                     ))}
                   </SelectContent>

@@ -10,11 +10,16 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
-import { initialYahooFinanceValues } from '../constant'
-import { useFormValues } from '../hooks/use-form-values'
-import { useWatchFormChange } from '../hooks/use-watch-form-change'
-import type { INextOperatorForm } from '../types'
-import { FormWrapper, Output, QueryVariable, transferOutputs } from './components'
+import { initialYahooFinanceValues } from '../../constant'
+import { useFormValues } from '../../hooks/use-form-values'
+import { useWatchFormChange } from '../../hooks/use-watch-form-change'
+import type { INextOperatorForm } from '../../types'
+import {
+  FormWrapper,
+  Output,
+  QueryVariable,
+  transferOutputs,
+} from '../components'
 
 const schema = z.object({
   stock_code: z.string().optional(),

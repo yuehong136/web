@@ -101,7 +101,9 @@ export function BeginForm({ node }: INextOperatorForm) {
           name="mode"
           render={({ field }) => (
             <FormItem>
-              <FormLabel tooltip={t('flow.modeTip', 'Choose how the flow starts.')}>
+              <FormLabel
+                tooltip={t('flow.modeTip', 'Choose how the flow starts.')}
+              >
                 {t('flow.mode', 'Mode')}
               </FormLabel>
               <FormControl>
@@ -134,17 +136,22 @@ export function BeginForm({ node }: INextOperatorForm) {
         />
 
         {mode === AgentDialogueMode.Conversational && (
-            <FormField
-              control={form.control}
-              name="enablePrologue"
-              render={({ field }) => (
-                <FormItem className="flex items-center justify-between">
-                  <FormLabel tooltip={t('flow.openingSwitchTip', 'Turn on the opening message.')}>
-                    {t('flow.openingSwitch', 'Enable opening')}
-                  </FormLabel>
-                  <FormControl>
-                    <Switch
-                      checked={field.value ?? true}
+          <FormField
+            control={form.control}
+            name="enablePrologue"
+            render={({ field }) => (
+              <FormItem className="flex items-center justify-between">
+                <FormLabel
+                  tooltip={t(
+                    'flow.openingSwitchTip',
+                    'Turn on the opening message.',
+                  )}
+                >
+                  {t('flow.openingSwitch', 'Enable opening')}
+                </FormLabel>
+                <FormControl>
+                  <Switch
+                    checked={field.value ?? true}
                     onCheckedChange={field.onChange}
                   />
                 </FormControl>
@@ -154,16 +161,21 @@ export function BeginForm({ node }: INextOperatorForm) {
         )}
 
         {mode === AgentDialogueMode.Conversational && enablePrologue && (
-            <FormField
-              control={form.control}
-              name="prologue"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel tooltip={t('chat.setAnOpenerTip', 'Shown before the conversation begins.')}>
-                    {t('flow.openingCopy', 'Opening')}
-                  </FormLabel>
-                  <FormControl>
-                    <Textarea rows={5} {...field} value={field.value ?? ''} />
+          <FormField
+            control={form.control}
+            name="prologue"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel
+                  tooltip={t(
+                    'flow.openingCopyTip',
+                    'Shown before the conversation begins.',
+                  )}
+                >
+                  {t('flow.openingCopy', 'Opening')}
+                </FormLabel>
+                <FormControl>
+                  <Textarea rows={5} {...field} value={field.value ?? ''} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

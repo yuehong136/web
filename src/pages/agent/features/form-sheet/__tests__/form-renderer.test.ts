@@ -24,9 +24,22 @@ import { ParserForm } from '../../../form/parser'
 import { PDFGeneratorForm } from '../../../form/pdf-generator'
 import { SplitterForm } from '../../../form/splitter'
 import { TokenizerForm } from '../../../form/tokenizer'
-import { BingForm } from '../../../form/bing-form'
-import { EmailForm } from '../../../form/email-form'
+import { ArxivForm } from '../../../form/arxiv'
+import { BingForm } from '../../../form/bing'
+import { CrawlerForm } from '../../../form/crawler'
+import { DuckDuckGoForm } from '../../../form/duckduckgo'
+import { EmailForm } from '../../../form/email'
+import { GithubForm } from '../../../form/github'
+import { GoogleForm } from '../../../form/google'
+import { GoogleScholarForm } from '../../../form/google-scholar'
 import { McpForm } from '../../../form/mcp-form'
+import { PubMedForm } from '../../../form/pubmed'
+import { SearXNGForm } from '../../../form/searxng'
+import { TavilyExtractForm } from '../../../form/tavily-extract'
+import { TavilyForm } from '../../../form/tavily'
+import { WenCaiForm } from '../../../form/wencai'
+import { WikipediaForm } from '../../../form/wikipedia'
+import { YahooFinanceForm } from '../../../form/yahoo-finance'
 import {
   legacyFormRenderers,
   migratedFormRenderers,
@@ -85,6 +98,33 @@ test('migrated operators resolve to directory modules in the form renderer', () 
     PDFGeneratorForm,
   )
   assert.equal(resolveFormRendererComponent(Operator.ExeSQL), ExeSQLForm)
+  assert.equal(resolveFormRendererComponent(Operator.Crawler), CrawlerForm)
+  assert.equal(
+    resolveFormRendererComponent(Operator.DuckDuckGo),
+    DuckDuckGoForm,
+  )
+  assert.equal(resolveFormRendererComponent(Operator.Wikipedia), WikipediaForm)
+  assert.equal(resolveFormRendererComponent(Operator.PubMed), PubMedForm)
+  assert.equal(resolveFormRendererComponent(Operator.ArXiv), ArxivForm)
+  assert.equal(resolveFormRendererComponent(Operator.Google), GoogleForm)
+  assert.equal(resolveFormRendererComponent(Operator.Bing), BingForm)
+  assert.equal(
+    resolveFormRendererComponent(Operator.GoogleScholar),
+    GoogleScholarForm,
+  )
+  assert.equal(resolveFormRendererComponent(Operator.GitHub), GithubForm)
+  assert.equal(resolveFormRendererComponent(Operator.SearXNG), SearXNGForm)
+  assert.equal(resolveFormRendererComponent(Operator.TavilySearch), TavilyForm)
+  assert.equal(
+    resolveFormRendererComponent(Operator.TavilyExtract),
+    TavilyExtractForm,
+  )
+  assert.equal(resolveFormRendererComponent(Operator.WenCai), WenCaiForm)
+  assert.equal(
+    resolveFormRendererComponent(Operator.YahooFinance),
+    YahooFinanceForm,
+  )
+  assert.equal(resolveFormRendererComponent(Operator.Email), EmailForm)
   assert.equal(migratedFormRenderers[Operator.Begin], BeginForm)
   assert.equal(migratedFormRenderers[Operator.Agent], AgentForm)
   assert.equal(migratedFormRenderers[Operator.Iteration], IterationForm)
@@ -120,14 +160,29 @@ test('migrated operators resolve to directory modules in the form renderer', () 
   )
   assert.equal(migratedFormRenderers[Operator.PDFGenerator], PDFGeneratorForm)
   assert.equal(migratedFormRenderers[Operator.ExeSQL], ExeSQLForm)
+  assert.equal(migratedFormRenderers[Operator.Crawler], CrawlerForm)
+  assert.equal(migratedFormRenderers[Operator.DuckDuckGo], DuckDuckGoForm)
+  assert.equal(migratedFormRenderers[Operator.Wikipedia], WikipediaForm)
+  assert.equal(migratedFormRenderers[Operator.PubMed], PubMedForm)
+  assert.equal(migratedFormRenderers[Operator.ArXiv], ArxivForm)
+  assert.equal(migratedFormRenderers[Operator.Google], GoogleForm)
+  assert.equal(migratedFormRenderers[Operator.Bing], BingForm)
+  assert.equal(migratedFormRenderers[Operator.GoogleScholar], GoogleScholarForm)
+  assert.equal(migratedFormRenderers[Operator.GitHub], GithubForm)
+  assert.equal(migratedFormRenderers[Operator.SearXNG], SearXNGForm)
+  assert.equal(migratedFormRenderers[Operator.TavilySearch], TavilyForm)
+  assert.equal(migratedFormRenderers[Operator.TavilyExtract], TavilyExtractForm)
+  assert.equal(migratedFormRenderers[Operator.WenCai], WenCaiForm)
+  assert.equal(migratedFormRenderers[Operator.YahooFinance], YahooFinanceForm)
+  assert.equal(migratedFormRenderers[Operator.Email], EmailForm)
 })
 
 test('legacy operators and the MCP renderer stay on compatibility bridges', () => {
   assert.equal(resolveFormRendererComponent(Operator.Bing), BingForm)
   assert.equal(resolveFormRendererComponent(Operator.Email), EmailForm)
   assert.equal(resolveFormRendererComponent(MCP_FORM_RENDERER_KEY), McpForm)
-  assert.equal(legacyFormRenderers[Operator.Bing], BingForm)
-  assert.equal(legacyFormRenderers[Operator.Email], EmailForm)
+  assert.equal(legacyFormRenderers[Operator.Bing], undefined)
+  assert.equal(legacyFormRenderers[Operator.Email], undefined)
   assert.equal(legacyFormRenderers[MCP_FORM_RENDERER_KEY], McpForm)
   assert.equal(resolveFormRendererComponent(undefined), null)
 })

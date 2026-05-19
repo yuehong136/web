@@ -25,17 +25,17 @@ import {
   TavilySearchDepth,
   TavilyTopic,
   initialTavilyValues,
-} from '../constant'
-import { useFormValues } from '../hooks/use-form-values'
-import { useWatchFormChange } from '../hooks/use-watch-form-change'
-import type { INextOperatorForm } from '../types'
+} from '../../constant'
+import { useFormValues } from '../../hooks/use-form-values'
+import { useWatchFormChange } from '../../hooks/use-watch-form-change'
+import type { INextOperatorForm } from '../../types'
 import {
   ApiKeyField,
   FormWrapper,
   Output,
   QueryVariable,
   transferOutputs,
-} from './components'
+} from '../components'
 
 const schema = z.object({
   api_key: z.string().optional(),
@@ -80,7 +80,7 @@ function StringArrayField({ name, label }: StringArrayFieldProps) {
       </div>
       <div className="space-y-2">
         {fields.map((field, index) => (
-          <div key={field.id} className="flex items-center gap-space-sm">
+          <div key={field.id} className="gap-space-sm flex items-center">
             <FormField
               control={form.control}
               name={`${name}.${index}`}
@@ -120,10 +120,7 @@ export function TavilyForm({ node }: INextOperatorForm) {
 
   const outputs = form.getValues('outputs')
 
-  const searchDepthOptions = useMemo(
-    () => Object.values(TavilySearchDepth),
-    [],
-  )
+  const searchDepthOptions = useMemo(() => Object.values(TavilySearchDepth), [])
   const topicOptions = useMemo(() => Object.values(TavilyTopic), [])
 
   return (

@@ -1,4 +1,4 @@
-import { isEmpty } from 'lodash'
+import isEmpty from 'lodash/isEmpty.js'
 import { useMemo } from 'react'
 import { initialSwitchValues } from '../../constant'
 import type { RAGFlowNodeType } from '../../types'

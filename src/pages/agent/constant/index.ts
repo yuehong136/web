@@ -158,7 +158,8 @@ export const AgentDialogueMode = {
   Webhook: 'Webhook',
 } as const
 
-export type AgentDialogueMode = (typeof AgentDialogueMode)[keyof typeof AgentDialogueMode]
+export type AgentDialogueMode =
+  (typeof AgentDialogueMode)[keyof typeof AgentDialogueMode]
 
 // ==================== 初始值配置 ====================
 
@@ -301,7 +302,8 @@ export const initialMessageValues = {
   user_id: '',
 }
 
-export const A2UIBasicCatalogId = 'https://a2ui.org/specification/v0_9/basic_catalog.json'
+export const A2UIBasicCatalogId =
+  'https://a2ui.org/specification/v0_9/basic_catalog.json'
 
 export const initialA2UIValues = {
   commands: [
@@ -510,6 +512,7 @@ export const initialEmailValues = {
   smtp_server: '',
   smtp_port: 465,
   email: '',
+  smtp_username: '',
   password: '',
   sender_name: '',
   to_email: '',
@@ -708,6 +711,7 @@ export const initialYahooFinanceValues = {
 
 // Crawler节点初始值
 export const initialCrawlerValues = {
+  proxy: '',
   extract_type: 'markdown',
   query: '',
 }
@@ -947,7 +951,10 @@ export const initialVariableAssignerValues = {
 }
 
 // VariableAggregator节点初始值
-export const initialVariableAggregatorValues = { outputs: {}, groups: [] as unknown[] }
+export const initialVariableAggregatorValues = {
+  outputs: {},
+  groups: [] as unknown[],
+}
 
 // Loop节点初始值
 export const initialLoopValues = {
@@ -1260,7 +1267,8 @@ export const AgentExceptionMethod = {
   Goto: 'goto',
 } as const
 
-export type AgentExceptionMethod = (typeof AgentExceptionMethod)[keyof typeof AgentExceptionMethod]
+export type AgentExceptionMethod =
+  (typeof AgentExceptionMethod)[keyof typeof AgentExceptionMethod]
 
 // ==================== 变量类型 ====================
 export const VariableType = {
@@ -1281,7 +1289,8 @@ export const BeginQueryType = {
   Boolean: 'boolean',
 } as const
 
-export type BeginQueryType = (typeof BeginQueryType)[keyof typeof BeginQueryType]
+export type BeginQueryType =
+  (typeof BeginQueryType)[keyof typeof BeginQueryType]
 
 // ==================== JSON Schema数据类型 ====================
 export const JsonSchemaDataType = {
@@ -1307,7 +1316,8 @@ export const TypesWithArray = {
   ArrayObject: 'array<object>',
 } as const
 
-export type TypesWithArray = (typeof TypesWithArray)[keyof typeof TypesWithArray]
+export type TypesWithArray =
+  (typeof TypesWithArray)[keyof typeof TypesWithArray]
 
 export const ArrayFields = [
   JsonSchemaDataType.Array,

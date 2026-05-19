@@ -11,18 +11,18 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
-import { initialGoogleValues } from '../constant'
-import { GoogleCountryOptions, GoogleLanguageOptions } from '../options'
-import { useFormValues } from '../hooks/use-form-values'
-import { useWatchFormChange } from '../hooks/use-watch-form-change'
-import type { INextOperatorForm } from '../types'
+import { initialGoogleValues } from '../../constant'
+import { GoogleCountryOptions, GoogleLanguageOptions } from '../../options'
+import { useFormValues } from '../../hooks/use-form-values'
+import { useWatchFormChange } from '../../hooks/use-watch-form-change'
+import type { INextOperatorForm } from '../../types'
 import {
   ApiKeyField,
   FormWrapper,
   Output,
   QueryVariable,
   transferOutputs,
-} from './components'
+} from '../components'
 
 const schema = z.object({
   q: z.string().optional(),
