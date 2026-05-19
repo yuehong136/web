@@ -1,6 +1,13 @@
 'use client'
 
-import React, { useState, useMemo, useEffect } from 'react'
+import {
+  useEffect,
+  useId,
+  useMemo,
+  useState,
+  type FC,
+  type ReactNode,
+} from 'react'
 import { useTranslation } from 'react-i18next'
 import { createPortal } from 'react-dom'
 import { Play, Trash2, Tag, AlertCircle, FileText, X } from 'lucide-react'
@@ -16,23 +23,12 @@ interface ReparseConfirmModalProps {
     deleteChunks: boolean
     applyMetadataSettings: boolean
   }) => void
-  /** 要解析的文档列表 */
   documents: Document[]
-  /** 当前知识库信息 */
   knowledgeBase: KnowledgeBase | null
-  /** 是否正在处理 */
   isLoading?: boolean
 }
 
-/**
- * 解析确认弹窗
- *
- * 参考 ragflow 的交互设计：
- * - 简洁现代的视觉风格
- * - 清晰的信息层次
- * - 卡片式选项
- */
-export const ReparseConfirmModal: React.FC<ReparseConfirmModalProps> = ({
+export const ReparseConfirmModal: FC<ReparseConfirmModalProps> = ({
   open,
   onClose,
   onConfirm,
@@ -41,12 +37,9 @@ export const ReparseConfirmModal: React.FC<ReparseConfirmModalProps> = ({
   isLoading = false,
 }) => {
   const { t } = useTranslation()
-  // 是否清空已有 chunks
   const [deleteChunks, setDeleteChunks] = useState(true)
-  // 是否应用元数据设置
   const [applyMetadataSettings, setApplyMetadataSettings] = useState(true)
 
-  // 计算统计数据
   const stats = useMemo(() => {
     let totalChunks = 0
     let docsWithChunks = 0
@@ -66,13 +59,11 @@ export const ReparseConfirmModal: React.FC<ReparseConfirmModalProps> = ({
     return { totalChunks, docsWithChunks, docsWithMetadata }
   }, [documents])
 
-  // 检查知识库是否启用了自动元数据
   const hasMetadataEnabled =
     knowledgeBase?.enable_metadata === true ||
     knowledgeBase?.parser_config?.enable_metadata === true
   const metadataFieldCount = knowledgeBase?.metadata_settings?.length ?? 0
 
-  // 是否有已解析的文档
   const hasExistingChunks = stats.totalChunks > 0
 
   const handleConfirm = () => {
@@ -82,7 +73,6 @@ export const ReparseConfirmModal: React.FC<ReparseConfirmModalProps> = ({
     })
   }
 
-  // 控制 body 滚动
   useEffect(() => {
     if (open) {
       document.body.style.overflow = 'hidden'
@@ -97,7 +87,9 @@ export const ReparseConfirmModal: React.FC<ReparseConfirmModalProps> = ({
   const content = (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Overlay */}
-      <div
+      <button
+        type="button"
+        aria-label={t('knowledge.common.close')}
         className="animate-in fade-in-0 fixed inset-0 bg-black/50 backdrop-blur-sm duration-200"
         onClick={onClose}
       />
@@ -106,6 +98,8 @@ export const ReparseConfirmModal: React.FC<ReparseConfirmModalProps> = ({
       <div className="animate-in fade-in-0 zoom-in-95 relative z-10 mx-4 w-full max-w-[480px] rounded-xl bg-[var(--color-background-surface)] shadow-2xl duration-200">
         {/* Close button */}
         <button
+          type="button"
+          aria-label={t('knowledge.common.close')}
           onClick={onClose}
           className="absolute right-4 top-4 rounded-md p-1.5 text-[var(--color-text-tertiary)] transition-colors hover:bg-[var(--color-surface-secondary)] hover:text-[var(--color-text-primary)]"
         >
@@ -126,7 +120,6 @@ export const ReparseConfirmModal: React.FC<ReparseConfirmModalProps> = ({
 
         {/* Content */}
         <div className="space-y-4 px-6 pb-6">
-          {/* 文档信息 */}
           <div className="flex items-center gap-3 rounded-lg bg-[var(--color-surface-secondary)] px-4 py-3">
             <FileText className="h-5 w-5 text-[var(--color-text-secondary)]" />
             <span className="text-sm text-[var(--color-text-primary)]">
@@ -136,9 +129,7 @@ export const ReparseConfirmModal: React.FC<ReparseConfirmModalProps> = ({
             </span>
           </div>
 
-          {/* 选项卡片 */}
           <div className="space-y-3">
-            {/* 选项 1: 清空已有 chunks */}
             {hasExistingChunks && (
               <OptionCard
                 checked={deleteChunks}
@@ -155,7 +146,6 @@ export const ReparseConfirmModal: React.FC<ReparseConfirmModalProps> = ({
               />
             )}
 
-            {/* 选项 2: 应用全局自动元数据设置 - 仅当知识库启用了自动元数据时显示 */}
             {hasMetadataEnabled && (
               <OptionCard
                 checked={applyMetadataSettings}
@@ -185,7 +175,6 @@ export const ReparseConfirmModal: React.FC<ReparseConfirmModalProps> = ({
             )}
           </div>
 
-          {/* 无选项时的提示 */}
           {!hasExistingChunks && !hasMetadataEnabled && (
             <div className="rounded-lg bg-[var(--color-surface-secondary)] px-4 py-3 text-sm text-[var(--color-text-secondary)]">
               {t('knowledge.documents.reparse.defaultTip')}
@@ -210,21 +199,18 @@ export const ReparseConfirmModal: React.FC<ReparseConfirmModalProps> = ({
   return createPortal(content, document.body)
 }
 
-/**
- * 选项卡片组件
- */
 interface OptionCardProps {
   checked: boolean
   onChange: (checked: boolean) => void
   disabled?: boolean
-  icon: React.ReactNode
+  icon: ReactNode
   iconColor?: string
   title: string
   description?: string
   warning?: string
 }
 
-const OptionCard: React.FC<OptionCardProps> = ({
+const OptionCard: FC<OptionCardProps> = ({
   checked,
   onChange,
   disabled = false,
@@ -234,6 +220,8 @@ const OptionCard: React.FC<OptionCardProps> = ({
   description,
   warning,
 }) => {
+  const checkboxId = useId()
+
   return (
     <div
       className={cn(
@@ -245,13 +233,9 @@ const OptionCard: React.FC<OptionCardProps> = ({
             : 'border-[var(--color-border-default)] bg-[var(--color-background-surface)] hover:border-[var(--color-border-accent)]',
       )}
     >
-      <label
-        className={cn(
-          'flex items-start gap-3 p-4',
-          disabled ? 'cursor-not-allowed' : 'cursor-pointer',
-        )}
-      >
+      <div className="flex items-start gap-3 p-4">
         <Checkbox
+          id={checkboxId}
           checked={checked}
           onCheckedChange={(c) => !disabled && onChange(c === true)}
           disabled={disabled}
@@ -260,7 +244,12 @@ const OptionCard: React.FC<OptionCardProps> = ({
         <div className="min-w-0 flex-1 space-y-1">
           <div className="flex items-center gap-2">
             <span className={cn('shrink-0', iconColor)}>{icon}</span>
-            <span className="text-sm font-medium text-[var(--color-text-primary)]">
+            <span
+              className={cn(
+                'text-sm font-medium text-[var(--color-text-primary)]',
+                disabled ? 'cursor-not-allowed' : 'cursor-default',
+              )}
+            >
               {title}
             </span>
           </div>
@@ -276,9 +265,7 @@ const OptionCard: React.FC<OptionCardProps> = ({
             </p>
           )}
         </div>
-      </label>
+      </div>
     </div>
   )
 }
-
-export default ReparseConfirmModal

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, type FC } from 'react'
+import { useMemo, type FC } from 'react'
 import { useTranslation } from 'react-i18next'
 import { AlertCircle } from 'lucide-react'
 import {
@@ -8,16 +8,18 @@ import {
 import { FormTooltip } from '@/components/ui/tooltip'
 import { IconFontFill } from '@/components/ui/icon-font'
 import {
-  useModelStore,
   IconMap,
   LLMFactory,
   isLLMModelEnabled,
+  type MyLLMProvider,
 } from '@/stores/model'
 import { useIsDarkTheme } from '@/themes'
 
-interface EmbeddingModelSelectorProps {
+export interface EmbeddingModelSelectorProps {
   selectedModelId: string | null
   onSelect: (modelId: string | null) => void
+  modelProviders: MyLLMProvider
+  isLoadingModels?: boolean
   disabled?: boolean
   error?: string
   showLabel?: boolean
@@ -56,23 +58,18 @@ const ModelOptionLabel: FC<{
 export const EmbeddingModelSelector: FC<EmbeddingModelSelectorProps> = ({
   selectedModelId,
   onSelect,
+  modelProviders,
+  isLoadingModels = false,
   disabled = false,
   error,
   showLabel = true,
 }) => {
   const { t } = useTranslation()
-  const { myLLMs, loadMyLLMs, isLoading } = useModelStore()
-
-  useEffect(() => {
-    if (Object.keys(myLLMs).length === 0) {
-      loadMyLLMs()
-    }
-  }, [myLLMs, loadMyLLMs])
 
   const groupedOptions = useMemo((): SelectOptionGroup[] => {
     const groups: SelectOptionGroup[] = []
 
-    Object.entries(myLLMs).forEach(([providerName, providerData]) => {
+    Object.entries(modelProviders).forEach(([providerName, providerData]) => {
       const embeddingModels = providerData.llm.filter(
         (model) => model.type === 'embedding' && isLLMModelEnabled(model),
       )
@@ -94,11 +91,11 @@ export const EmbeddingModelSelector: FC<EmbeddingModelSelectorProps> = ({
     })
 
     return groups
-  }, [myLLMs])
+  }, [modelProviders])
 
   const allModelValues = useMemo(() => {
     const values: Map<string, string> = new Map()
-    Object.entries(myLLMs).forEach(([providerName, providerData]) => {
+    Object.entries(modelProviders).forEach(([providerName, providerData]) => {
       providerData.llm
         .filter(
           (model) => model.type === 'embedding' && isLLMModelEnabled(model),
@@ -110,7 +107,7 @@ export const EmbeddingModelSelector: FC<EmbeddingModelSelectorProps> = ({
         })
     })
     return values
-  }, [myLLMs])
+  }, [modelProviders])
 
   const normalizedValue = useMemo(() => {
     if (!selectedModelId) return ''
@@ -135,7 +132,7 @@ export const EmbeddingModelSelector: FC<EmbeddingModelSelectorProps> = ({
   const hasModels = groupedOptions.length > 0
   const label = t('knowledge.embeddingSelector.label')
 
-  if (isLoading) {
+  if (isLoadingModels) {
     return (
       <div className="space-y-2">
         {showLabel && (
@@ -161,9 +158,9 @@ export const EmbeddingModelSelector: FC<EmbeddingModelSelectorProps> = ({
             {label}
           </div>
         )}
-        <div className="border-status-error bg-status-error/10 flex h-10 w-full items-center rounded-md border px-3 py-2">
-          <AlertCircle className="text-status-error h-3 w-3" />
-          <span className="text-status-error ml-2 text-sm">{error}</span>
+        <div className="flex h-10 w-full items-center rounded-md border border-state-error bg-state-error-subtle px-3 py-2">
+          <AlertCircle className="h-3 w-3 text-state-error" />
+          <span className="ml-2 text-sm text-state-error">{error}</span>
         </div>
       </div>
     )
@@ -177,9 +174,9 @@ export const EmbeddingModelSelector: FC<EmbeddingModelSelectorProps> = ({
             {label}
           </div>
         )}
-        <div className="border-status-warning bg-status-warning/10 flex h-10 w-full items-center rounded-md border px-3 py-2">
-          <AlertCircle className="text-status-warning h-3 w-3" />
-          <span className="text-status-warning ml-2 text-sm">
+        <div className="flex h-10 w-full items-center rounded-md border border-state-warning bg-state-warning-subtle px-3 py-2">
+          <AlertCircle className="h-3 w-3 text-state-warning" />
+          <span className="ml-2 text-sm text-state-warning">
             {t('knowledge.embeddingSelector.empty')}
           </span>
         </div>

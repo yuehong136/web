@@ -1,11 +1,10 @@
 /**
- * 创建/编辑记忆库弹窗组件
- * 
- * 创建模式：显示所有字段（名称、头像、记忆类型、嵌入模型、LLM 模型）
- * 编辑模式：只显示名称和头像（其他配置在设置页面修改）
+ * Create/edit memory dialog.
+ *
+ * Create mode shows all fields; edit mode only changes name and avatar.
  */
 
-import React from 'react'
+import { useEffect, useMemo, type FC } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -34,10 +33,15 @@ import { ChatModelSelector } from './ChatModelSelector'
 import { AvatarUpload } from './AvatarUpload'
 import { EmbeddingModelSelector } from '@/components/knowledge/EmbeddingModelSelector'
 import { cn } from '@/lib/utils'
+import { useModelStore } from '@/stores/model'
 import { MEMORY_TEXTS } from '@/constants/memory-texts'
-import type { Memory, CreateMemoryParams, UpdateMemoryParams } from '@/types/memory'
+import type {
+  Memory,
+  CreateMemoryParams,
+  UpdateMemoryParams,
+} from '@/types/memory'
 
-// ============ 创建模式的表单 Schema ============
+// ============ Create form schema ============
 const createMemorySchema = z.object({
   name: z.string().min(1, MEMORY_TEXTS.memories.nameRequired),
   avatar: z.string().optional(),
@@ -51,7 +55,7 @@ const createMemorySchema = z.object({
   llm_id: z.string().min(1, MEMORY_TEXTS.memories.selectLlmRequired),
 })
 
-// ============ 编辑模式的表单 Schema（只有名称和头像） ============
+// ============ Edit form schema ============
 const editMemorySchema = z.object({
   name: z.string().min(1, MEMORY_TEXTS.memories.nameRequired),
   avatar: z.string().optional(),
@@ -63,16 +67,13 @@ type EditMemoryFormValues = z.infer<typeof editMemorySchema>
 interface CreateMemoryDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  /** 创建时调用 */
   onCreate?: (data: CreateMemoryParams) => void
-  /** 编辑时调用 */
   onUpdate?: (id: string, data: UpdateMemoryParams) => void
   isLoading?: boolean
-  /** 编辑时传入的数据 */
   initialData?: Memory | null
 }
 
-export const CreateMemoryDialog: React.FC<CreateMemoryDialogProps> = ({
+export const CreateMemoryDialog: FC<CreateMemoryDialogProps> = ({
   open,
   onOpenChange,
   onCreate,
@@ -81,9 +82,11 @@ export const CreateMemoryDialog: React.FC<CreateMemoryDialogProps> = ({
   initialData,
 }) => {
   const isEditMode = !!initialData
+  const modelProviders = useModelStore((state) => state.myLLMs)
+  const isLoadingModels = useModelStore((state) => state.isLoading)
+  const loadMyLLMs = useModelStore((state) => state.loadMyLLMs)
 
-  // 生成渐变背景类 - 使用语义令牌
-  const avatarGradient = React.useMemo(() => {
+  const avatarGradient = useMemo(() => {
     const name = initialData?.name || 'M'
     const gradients = [
       'from-components-avatar-gradient-purple-from to-components-avatar-gradient-purple-to',
@@ -96,7 +99,13 @@ export const CreateMemoryDialog: React.FC<CreateMemoryDialogProps> = ({
     return gradients[index]
   }, [initialData?.name])
 
-  // ============ 创建模式表单 ============
+  useEffect(() => {
+    if (Object.keys(modelProviders).length === 0) {
+      void loadMyLLMs()
+    }
+  }, [loadMyLLMs, modelProviders])
+
+  // ============ Create form ============
   const createForm = useForm<CreateMemoryFormValues>({
     resolver: zodResolver(createMemorySchema),
     defaultValues: {
@@ -108,7 +117,7 @@ export const CreateMemoryDialog: React.FC<CreateMemoryDialogProps> = ({
     },
   })
 
-  // ============ 编辑模式表单 ============
+  // ============ Edit form ============
   const editForm = useForm<EditMemoryFormValues>({
     resolver: zodResolver(editMemorySchema),
     defaultValues: {
@@ -117,8 +126,7 @@ export const CreateMemoryDialog: React.FC<CreateMemoryDialogProps> = ({
     },
   })
 
-  // 当 initialData 变化时重置表单
-  React.useEffect(() => {
+  useEffect(() => {
     if (isEditMode && initialData) {
       editForm.reset({
         name: initialData.name,
@@ -135,18 +143,15 @@ export const CreateMemoryDialog: React.FC<CreateMemoryDialogProps> = ({
     }
   }, [initialData, isEditMode, createForm, editForm])
 
-  // 创建提交
   const handleCreateSubmit = (values: CreateMemoryFormValues) => {
     onCreate?.({
       name: values.name,
       memory_type: values.memory_type,
       embd_id: values.embd_id,
       llm_id: values.llm_id,
-      // avatar 需要单独处理，可能需要先上传再更新
     })
   }
 
-  // 编辑提交
   const handleEditSubmit = (values: EditMemoryFormValues) => {
     if (initialData) {
       onUpdate?.(initialData.id, {
@@ -156,7 +161,7 @@ export const CreateMemoryDialog: React.FC<CreateMemoryDialogProps> = ({
     }
   }
 
-  // ============ 编辑模式 UI ============
+  // ============ Edit mode UI ============
   if (isEditMode) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
@@ -165,17 +170,17 @@ export const CreateMemoryDialog: React.FC<CreateMemoryDialogProps> = ({
             <div className="flex items-center gap-3">
               <div
                 className={cn(
-                  'w-10 h-10 rounded-radius-lg flex items-center justify-center',
+                  'rounded-radius-lg flex h-10 w-10 items-center justify-center',
                   'bg-gradient-to-br',
-                  avatarGradient
+                  avatarGradient,
                 )}
               >
                 <Brain className="w-icon-md h-icon-md text-white" />
               </div>
-              <div className="flex-1 min-w-0">
+              <div className="min-w-0 flex-1">
                 <DialogTitle>{MEMORY_TEXTS.memories.editMemory}</DialogTitle>
                 <DialogDescription>
-                  修改记忆库的名称和头像
+                  {MEMORY_TEXTS.memories.editMemoryDescription}
                 </DialogDescription>
               </div>
             </div>
@@ -183,8 +188,7 @@ export const CreateMemoryDialog: React.FC<CreateMemoryDialogProps> = ({
 
           <Form {...editForm}>
             <form onSubmit={editForm.handleSubmit(handleEditSubmit)}>
-              <div className="px-6 py-4 space-y-5">
-                {/* 头像 */}
+              <div className="space-y-5 px-6 py-4">
                 <FormField
                   control={editForm.control}
                   name="avatar"
@@ -194,16 +198,17 @@ export const CreateMemoryDialog: React.FC<CreateMemoryDialogProps> = ({
                         value={field.value}
                         onChange={field.onChange}
                         size="lg"
-                        fallbackLetter={editForm.watch('name')?.charAt(0) || 'M'}
+                        fallbackLetter={
+                          editForm.watch('name')?.charAt(0) || 'M'
+                        }
                         gradientClass={avatarGradient}
-                        tips="支持 JPG、PNG，最大 5MB"
+                        tips={MEMORY_TEXTS.memories.avatarUploadTips}
                       />
                       <FormMessage />
                     </FormItem>
                   )}
                 />
 
-                {/* 名称 */}
                 <FormField
                   control={editForm.control}
                   name="name"
@@ -214,7 +219,9 @@ export const CreateMemoryDialog: React.FC<CreateMemoryDialogProps> = ({
                       </FormLabel>
                       <FormControl>
                         <Input
-                          placeholder={MEMORY_TEXTS.memories.memoryNamePlaceholder}
+                          placeholder={
+                            MEMORY_TEXTS.memories.memoryNamePlaceholder
+                          }
                           {...field}
                         />
                       </FormControl>
@@ -223,8 +230,8 @@ export const CreateMemoryDialog: React.FC<CreateMemoryDialogProps> = ({
                   )}
                 />
 
-                <p className="text-xs text-[var(--color-text-tertiary)] text-center">
-                  更多配置请前往设置页面修改
+                <p className="text-center text-xs text-[var(--color-text-tertiary)]">
+                  {MEMORY_TEXTS.memories.editSettingsTip}
                 </p>
               </div>
 
@@ -238,7 +245,9 @@ export const CreateMemoryDialog: React.FC<CreateMemoryDialogProps> = ({
                   {MEMORY_TEXTS.common.cancel}
                 </Button>
                 <Button type="submit" disabled={isLoading}>
-                  {isLoading && <Loader2 className="w-icon-sm h-icon-sm mr-space-sm animate-spin" />}
+                  {isLoading && (
+                    <Loader2 className="w-icon-sm h-icon-sm mr-space-sm animate-spin" />
+                  )}
                   {MEMORY_TEXTS.common.save}
                 </Button>
               </DialogFooter>
@@ -249,7 +258,7 @@ export const CreateMemoryDialog: React.FC<CreateMemoryDialogProps> = ({
     )
   }
 
-  // ============ 创建模式 UI ============
+  // ============ Create mode UI ============
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent size="md">
@@ -257,16 +266,16 @@ export const CreateMemoryDialog: React.FC<CreateMemoryDialogProps> = ({
           <div className="flex items-center gap-3">
             <div
               className={cn(
-                'w-10 h-10 rounded-radius-lg flex items-center justify-center',
-                'bg-gradient-to-br from-components-avatar-gradient-purple-from to-components-avatar-gradient-purple-to'
+                'rounded-radius-lg flex h-10 w-10 items-center justify-center',
+                'bg-gradient-to-br from-components-avatar-gradient-purple-from to-components-avatar-gradient-purple-to',
               )}
             >
               <Brain className="w-icon-md h-icon-md text-white" />
             </div>
-            <div className="flex-1 min-w-0">
+            <div className="min-w-0 flex-1">
               <DialogTitle>{MEMORY_TEXTS.memories.createMemory}</DialogTitle>
               <DialogDescription>
-                配置记忆库的基本信息和模型设置
+                {MEMORY_TEXTS.memories.createMemoryDescription}
               </DialogDescription>
             </div>
           </div>
@@ -274,8 +283,7 @@ export const CreateMemoryDialog: React.FC<CreateMemoryDialogProps> = ({
 
         <Form {...createForm}>
           <form onSubmit={createForm.handleSubmit(handleCreateSubmit)}>
-            <div className="px-6 py-4 space-y-5 overflow-y-auto max-h-[calc(80vh-200px)]">
-              {/* 名称 */}
+            <div className="max-h-[calc(80vh-200px)] space-y-5 overflow-y-auto px-6 py-4">
               <FormField
                 control={createForm.control}
                 name="name"
@@ -286,7 +294,9 @@ export const CreateMemoryDialog: React.FC<CreateMemoryDialogProps> = ({
                     </FormLabel>
                     <FormControl>
                       <Input
-                        placeholder={MEMORY_TEXTS.memories.memoryNamePlaceholder}
+                        placeholder={
+                          MEMORY_TEXTS.memories.memoryNamePlaceholder
+                        }
                         {...field}
                       />
                     </FormControl>
@@ -295,7 +305,6 @@ export const CreateMemoryDialog: React.FC<CreateMemoryDialogProps> = ({
                 )}
               />
 
-              {/* 记忆类型 */}
               <FormField
                 control={createForm.control}
                 name="memory_type"
@@ -305,7 +314,9 @@ export const CreateMemoryDialog: React.FC<CreateMemoryDialogProps> = ({
                       <FormLabel className="text-sm font-medium text-[var(--color-text-primary)]">
                         {MEMORY_TEXTS.memories.memoryType}
                       </FormLabel>
-                      <FormTooltip tooltip={MEMORY_TEXTS.memories.memoryTypeTooltip} />
+                      <FormTooltip
+                        tooltip={MEMORY_TEXTS.memories.memoryTypeTooltip}
+                      />
                     </div>
                     <FormControl>
                       <MemoryTypeSelect
@@ -318,7 +329,6 @@ export const CreateMemoryDialog: React.FC<CreateMemoryDialogProps> = ({
                 )}
               />
 
-              {/* 嵌入模型 */}
               <FormField
                 control={createForm.control}
                 name="embd_id"
@@ -328,10 +338,14 @@ export const CreateMemoryDialog: React.FC<CreateMemoryDialogProps> = ({
                       <FormLabel className="text-sm font-medium text-[var(--color-text-primary)]">
                         {MEMORY_TEXTS.memories.embeddingModel}
                       </FormLabel>
-                      <FormTooltip tooltip={MEMORY_TEXTS.memories.embeddingModelTooltip} />
+                      <FormTooltip
+                        tooltip={MEMORY_TEXTS.memories.embeddingModelTooltip}
+                      />
                     </div>
                     <FormControl>
                       <EmbeddingModelSelector
+                        isLoadingModels={isLoadingModels}
+                        modelProviders={modelProviders}
                         selectedModelId={field.value}
                         onSelect={(id) => field.onChange(id || '')}
                         showLabel={false}
@@ -342,7 +356,6 @@ export const CreateMemoryDialog: React.FC<CreateMemoryDialogProps> = ({
                 )}
               />
 
-              {/* LLM 模型 */}
               <FormField
                 control={createForm.control}
                 name="llm_id"
@@ -377,7 +390,9 @@ export const CreateMemoryDialog: React.FC<CreateMemoryDialogProps> = ({
                 {MEMORY_TEXTS.common.cancel}
               </Button>
               <Button type="submit" disabled={isLoading}>
-                {isLoading && <Loader2 className="w-icon-sm h-icon-sm mr-space-sm animate-spin" />}
+                {isLoading && (
+                  <Loader2 className="w-icon-sm h-icon-sm mr-space-sm animate-spin" />
+                )}
                 {MEMORY_TEXTS.common.create}
               </Button>
             </DialogFooter>

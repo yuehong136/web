@@ -15,6 +15,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Tooltip } from '@/components/ui/tooltip'
 import { EmbeddingModelSelector } from '@/components/knowledge/EmbeddingModelSelector'
 import { cn } from '@/lib/utils'
+import { useModelStore } from '@/stores/model'
 import { LANGUAGE_OPTIONS, PERMISSION_OPTIONS } from './constants'
 import { useCreateKnowledge } from './use-create-knowledge'
 import type { KnowledgePermission } from './types'
@@ -37,6 +38,9 @@ export const CreateKnowledgeForm: FC<CreateKnowledgeFormProps> = ({
   submitLabel,
 }) => {
   const { t } = useTranslation()
+  const modelProviders = useModelStore((state) => state.myLLMs)
+  const isLoadingModels = useModelStore((state) => state.isLoading)
+  const loadMyLLMs = useModelStore((state) => state.loadMyLLMs)
   const {
     canSubmit,
     formData,
@@ -51,6 +55,12 @@ export const CreateKnowledgeForm: FC<CreateKnowledgeFormProps> = ({
   useEffect(() => {
     onSubmittingChange?.(isLoading)
   }, [isLoading, onSubmittingChange])
+
+  useEffect(() => {
+    if (Object.keys(modelProviders).length === 0) {
+      void loadMyLLMs()
+    }
+  }, [loadMyLLMs, modelProviders])
 
   const languageOptions = useMemo(
     () =>
@@ -140,6 +150,8 @@ export const CreateKnowledgeForm: FC<CreateKnowledgeFormProps> = ({
         </div>
 
         <EmbeddingModelSelector
+          isLoadingModels={isLoadingModels}
+          modelProviders={modelProviders}
           onSelect={handleModelSelect}
           selectedModelId={formData.embd_id || null}
         />
