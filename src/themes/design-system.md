@@ -140,16 +140,15 @@ Tailwind 集成 (tailwind.config.js):
 - 弱底色用 `-10` 或 `-subtle`：`bg-status-info-10`、`bg-status-success-subtle`；
 - 也可用 Tailwind 斜杠透明度叠加：`bg-status-success/10`、`hover:bg-status-error/10`。
 
-#### 3) Legacy alias：`state-{success,warning,error,info}`（强制）
+#### 3) 历史 alias `state-{success,warning,error,info}` —— 已移除（强制）
 
-历史上反馈色曾写作 `state-success/warning/error/info`（含 `-10`/`-subtle`）。现已确立 `status-*` 为反馈态 canonical，`state-*` 反馈 token **保留为等值 legacy alias**，仅用于在 alias 物理删除前兼容存量代码：
+历史上反馈色曾写作 `state-success/warning/error/info`（含 `-10`/`-subtle`），并在迁移过渡期作为 `status-*` 的等值 legacy alias 保留。该 alias（12 个 key）现已**物理删除**，反馈态统一用 canonical `status-*`：
 
-- ✅ 新代码反馈态**只写 `status-*`**；
-- ❌ **不要新写**反馈态 `state-success/warning/error/info`；这一条已由 ESLint 规则 `design-tokens/no-feedback-state-token`（`error` 级，覆盖 `src/**/*.{ts,tsx}`，排除 `src/themes/**`）强制，新写会直接报错；
-- ❌ alias 物理删除前**不要删除**这些定义（使用面大，且可能存在动态拼接 / embed 引用，删除需另开 deprecate 任务并先做全仓零引用核实）；
-- ✅ 交互态 `state-hover/active/focus/disabled/loading` 不受影响，继续使用。
+- ✅ 反馈态**只写 `status-*`**（`status-{success,warning,error,info}` 及 `-10`/`-subtle`）；
+- ❌ **禁止以任何形式复活** `state-success/warning/error/info`：class（含 `from-/via-/to-` 渐变档位）、`var(--color-state-*)`、裸字符串 / `readCssVar()` / 拼接均被 ESLint 规则 `design-tokens/no-feedback-state-token`（`error` 级，覆盖 `src/**/*.{ts,tsx}`，排除 `src/themes/**`）拦截，新写会直接报错；
+- ✅ 交互态 `state-hover/active/focus/disabled/loading`（含 `state-focus-10`/`-subtle`）与中性 `state-neutral-10` 不受影响，继续使用。
 
-**全仓迁移状态**：反馈态 `state-*` → `status-*` 已在全仓完成（知识库见 KR-11，其余模块见 `docs/design-tokens/2026-05-20-design-token-feedback-migration-summary.md`）。live code 中的反馈态 `state-*` 已为 0；`state-*` 反馈 token 仅作为 legacy alias 等待独立 deprecate 任务物理删除。唯一刻意保留的例外是 `src/pages/search/detail/mindmap/indented-tree.tsx` 里 `readCssVar('state-*')` 的分类调色板（非反馈语义），后续应迁到 category/data-viz palette token。
+**全仓状态**：反馈态 `state-*` → `status-*` 迁移与 alias 删除均已完成（迁移见 `docs/design-tokens/2026-05-20-design-token-feedback-migration-summary.md`，alias 删除见 `docs/design-tokens/2026-05-20-feedback-state-alias-deprecate-summary.md`）。原先唯一刻意保留的例外 `src/pages/search/detail/mindmap/indented-tree.tsx` 分类调色板，已迁至独立的 `data-viz-categorical-1..6`（非反馈、非交互的分类/层级着色 token）。
 
 > 注：基础令牌里的 `text-success/warning/error`、`border-success/warning/error` 是「文本/边框」专用语义键，与反馈意图色独立，不在本次 `state-*`→`status-*` 迁移范围内。
 

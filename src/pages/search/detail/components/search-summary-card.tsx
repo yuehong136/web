@@ -1,6 +1,10 @@
 import React, { memo, useCallback, useMemo } from 'react'
 import XMarkdown from '@ant-design/x-markdown'
-import { getMarkdownStreamingOptions, markdownConfig, mergeMarkdownComponents } from '@/components/chat/MarkdownCodeBlock'
+import {
+  getMarkdownStreamingOptions,
+  markdownConfig,
+  mergeMarkdownComponents,
+} from '@/components/chat/MarkdownCodeBlock'
 import { Sparkles } from 'lucide-react'
 import { ReferenceImageList } from '@/components/chat/ReferenceImageList'
 import { createReferenceMarkerComponent } from '@/components/chat/ReferenceMarker'
@@ -39,16 +43,24 @@ const SearchSummaryCard: React.FC<SearchSummaryCardProps> = ({
   references,
   onViewDetail,
 }) => {
-  const referenceChunks = useMemo(() => references.map(toReferenceChunk), [references])
-  const summaryWithSup = useMemo(() => convertReferencesToSup(summary), [summary])
+  const referenceChunks = useMemo(
+    () => references.map(toReferenceChunk),
+    [references],
+  )
+  const summaryWithSup = useMemo(
+    () => convertReferencesToSup(summary),
+    [summary],
+  )
 
   const handleViewReferenceDetail = useCallback(
     (referenceChunk: ReferenceChunk) => {
-      const sourceChunk = references.find((chunk) => chunk.chunk_id === referenceChunk.id)
+      const sourceChunk = references.find(
+        (chunk) => chunk.chunk_id === referenceChunk.id,
+      )
       if (!sourceChunk) return
       onViewDetail(sourceChunk, references)
     },
-    [onViewDetail, references]
+    [onViewDetail, references],
   )
 
   const SupComponent = useMemo(
@@ -60,27 +72,32 @@ const SearchSummaryCard: React.FC<SearchSummaryCardProps> = ({
           toast.success('已复制到剪贴板')
         },
       }),
-    [handleViewReferenceDetail, referenceChunks]
+    [handleViewReferenceDetail, referenceChunks],
   )
   const markdownComponents = useMemo(
-    () => mergeMarkdownComponents(referenceChunks.length > 0 ? { sup: SupComponent } : undefined),
-    [referenceChunks.length, SupComponent]
+    () =>
+      mergeMarkdownComponents(
+        referenceChunks.length > 0 ? { sup: SupComponent } : undefined,
+      ),
+    [referenceChunks.length, SupComponent],
   )
 
   if (!summary && !isStreaming) return null
 
   return (
-    <div className="overflow-hidden rounded-radius-xl border border-border-default bg-surface-primary">
-      <div className="h-1 bg-gradient-to-r from-text-accent via-state-info to-state-success" />
+    <div className="rounded-radius-xl bg-surface-primary overflow-hidden border border-border-default">
+      <div className="h-1 bg-gradient-to-r from-text-accent via-status-info to-status-success" />
       <div className="p-space-base">
-        <div className="mb-space-sm flex items-center gap-space-xs">
+        <div className="mb-space-sm gap-space-xs flex items-center">
           <Sparkles className="h-4 w-4 text-text-accent" />
-          <span className="text-sm font-semibold text-text-accent">AI 摘要</span>
+          <span className="text-sm font-semibold text-text-accent">
+            AI 摘要
+          </span>
         </div>
 
         {summary ? (
           <div className="space-y-space-sm text-text-primary">
-            <div className="bubble-copy-text search-summary-markdown max-w-none text-sm leading-7 text-text-primary [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_h1]:mb-space-sm [&_h1]:mt-space-sm [&_h1]:text-lg [&_h1]:font-semibold [&_h1]:text-text-primary [&_h2]:mb-space-sm [&_h2]:mt-space-sm [&_h2]:text-base [&_h2]:font-semibold [&_h2]:text-text-primary [&_h3]:mb-space-xs [&_h3]:mt-space-sm [&_h3]:text-base [&_h3]:font-semibold [&_h3]:text-text-primary [&_li]:my-space-xs [&_li]:leading-7 [&_li]:text-text-primary [&_ol]:my-space-sm [&_p]:my-space-sm [&_p]:leading-7 [&_p]:text-text-primary [&_strong]:font-semibold [&_strong]:text-text-primary [&_ul]:my-space-sm">
+            <div className="bubble-copy-text search-summary-markdown [&_h1]:mb-space-sm [&_h1]:mt-space-sm [&_h2]:mb-space-sm [&_h2]:mt-space-sm [&_h3]:mb-space-xs [&_h3]:mt-space-sm [&_li]:my-space-xs [&_ol]:my-space-sm [&_p]:my-space-sm [&_ul]:my-space-sm max-w-none text-sm leading-7 text-text-primary [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_h1]:text-lg [&_h1]:font-semibold [&_h1]:text-text-primary [&_h2]:text-base [&_h2]:font-semibold [&_h2]:text-text-primary [&_h3]:text-base [&_h3]:font-semibold [&_h3]:text-text-primary [&_li]:leading-7 [&_li]:text-text-primary [&_p]:leading-7 [&_p]:text-text-primary [&_strong]:font-semibold [&_strong]:text-text-primary">
               <style>{`
                 .search-summary-markdown {
                   color: var(--color-text-primary) !important;
@@ -161,19 +178,21 @@ const SearchSummaryCard: React.FC<SearchSummaryCardProps> = ({
               </>
             ) : null}
             {isStreaming ? (
-              <span className="inline-block mt-1 h-4 w-1.5 rounded-radius-sm bg-text-accent animate-pulse" />
+              <span className="rounded-radius-sm mt-1 inline-block h-4 w-1.5 animate-pulse bg-text-accent" />
             ) : null}
           </div>
         ) : isStreaming && thinking ? (
-          <div className="rounded-radius-lg border border-border-default bg-surface-secondary px-space-sm py-space-sm">
-            <p className="text-xs text-text-tertiary mb-space-xs">思考中</p>
-            <p className="line-clamp-6 whitespace-pre-wrap text-sm leading-relaxed text-text-secondary">{thinking}</p>
+          <div className="rounded-radius-lg bg-surface-secondary px-space-sm py-space-sm border border-border-default">
+            <p className="mb-space-xs text-xs text-text-tertiary">思考中</p>
+            <p className="line-clamp-6 whitespace-pre-wrap text-sm leading-relaxed text-text-secondary">
+              {thinking}
+            </p>
           </div>
         ) : (
           <div className="space-y-space-xs">
-            <div className="h-4 rounded-radius-md bg-background-subtle animate-pulse w-full" />
-            <div className="h-4 rounded-radius-md bg-background-subtle animate-pulse w-4/5" />
-            <div className="h-4 rounded-radius-md bg-background-subtle animate-pulse w-3/5" />
+            <div className="rounded-radius-md h-4 w-full animate-pulse bg-background-subtle" />
+            <div className="rounded-radius-md h-4 w-4/5 animate-pulse bg-background-subtle" />
+            <div className="rounded-radius-md h-4 w-3/5 animate-pulse bg-background-subtle" />
           </div>
         )}
       </div>

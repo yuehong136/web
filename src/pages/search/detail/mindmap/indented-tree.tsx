@@ -41,11 +41,21 @@ const NODE_COLORS = [
 
 let extensionRegistered = false
 
+const warnedTokens = new Set<string>()
+
 const readCssVar = (token: string, fallback: string) => {
   if (typeof window === 'undefined') return fallback
   const value = getComputedStyle(document.documentElement)
     .getPropertyValue(`--color-${token}`)
     .trim()
+  // 失败即响：token 名失效（被删除 / 拼错 / 动态拼接出错）时 --color-* 会解析为空，
+  // 静态 lint 无法覆盖运行期拼接，这里在 dev 下按 token 去重告警，使静默回退变成可见信号。
+  if (import.meta.env.DEV && !value && !warnedTokens.has(token)) {
+    warnedTokens.add(token)
+    console.warn(
+      `[design-token] --color-${token} 解析为空，回退到 ${fallback}。请确认 token 名是否有效。`,
+    )
+  }
   return value || fallback
 }
 
@@ -313,12 +323,12 @@ const IndentedTree = forwardRef<IndentedTreeRef, IndentedTreeProps>(
     const isDark = useIsDarkTheme()
     const theme = useMemo(() => {
       const palette = [
-        readCssVar('state-info', NODE_COLORS[0]),
-        readCssVar('state-success', NODE_COLORS[2]),
-        readCssVar('state-focus', NODE_COLORS[1]),
-        readCssVar('state-warning', NODE_COLORS[3]),
-        readCssVar('state-error', NODE_COLORS[4]),
-        readCssVar('text-accent', NODE_COLORS[5]),
+        readCssVar('data-viz-categorical-1', NODE_COLORS[0]),
+        readCssVar('data-viz-categorical-2', NODE_COLORS[2]),
+        readCssVar('data-viz-categorical-3', NODE_COLORS[1]),
+        readCssVar('data-viz-categorical-4', NODE_COLORS[3]),
+        readCssVar('data-viz-categorical-5', NODE_COLORS[4]),
+        readCssVar('data-viz-categorical-6', NODE_COLORS[5]),
       ]
 
       return {

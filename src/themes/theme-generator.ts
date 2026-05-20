@@ -143,26 +143,14 @@ export const lightTokens: DesignTokens = {
   'state-active': '#e5e7eb',
   'state-focus': '#00BEB4',
   'state-disabled': '#e5e7eb',
-  'state-success': '#10b981',
-  'state-warning': '#f59e0b',
-  'state-error': '#ef4444',
-  'state-info': '#0ea5e9',
 
   // ===== 状态透明度变体 (10% opacity) =====
   'state-focus-10': 'rgba(0, 190, 180, 0.1)',
-  'state-success-10': 'rgba(16, 185, 129, 0.1)',
-  'state-warning-10': 'rgba(245, 158, 11, 0.1)',
-  'state-error-10': 'rgba(239, 68, 68, 0.1)',
   'state-neutral-10': 'rgba(107, 114, 128, 0.1)',
-  'state-info-10': 'rgba(14, 165, 233, 0.1)',
   // 语义化别名（subtle = 10% opacity）
   'state-focus-subtle': 'rgba(0, 190, 180, 0.1)',
-  'state-success-subtle': 'rgba(16, 185, 129, 0.1)',
-  'state-warning-subtle': 'rgba(245, 158, 11, 0.1)',
-  'state-error-subtle': 'rgba(239, 68, 68, 0.1)',
-  'state-info-subtle': 'rgba(14, 165, 233, 0.1)',
 
-  // ===== 反馈状态 status-* (canonical, 数值镜像 state 反馈态) =====
+  // ===== 反馈状态 status-* (canonical feedback palette) =====
   'status-success': '#10b981',
   'status-warning': '#f59e0b',
   'status-error': '#ef4444',
@@ -175,6 +163,17 @@ export const lightTokens: DesignTokens = {
   'status-warning-subtle': 'rgba(245, 158, 11, 0.1)',
   'status-error-subtle': 'rgba(239, 68, 68, 0.1)',
   'status-info-subtle': 'rgba(14, 165, 233, 0.1)',
+
+  // ===== 数据可视化分类调色板 (data-viz categorical) =====
+  // 思维导图/图表的分类层级着色（非反馈、非交互）。6 个彼此区分、可读的色相：
+  // sky / emerald / teal / amber / red / violet。1-5 沿用历史 mindmap 配色；
+  // 6 取分类紫（与 indented-tree NODE_COLORS 兜底意图一致），替换历史误继承的近黑 text-accent。
+  'data-viz-categorical-1': '#0ea5e9',
+  'data-viz-categorical-2': '#10b981',
+  'data-viz-categorical-3': '#00BEB4',
+  'data-viz-categorical-4': '#f59e0b',
+  'data-viz-categorical-5': '#ef4444',
+  'data-viz-categorical-6': '#8b5cf6',
 
   // ===== HTTP方法颜色系统 =====
   'components-method-get-bg': 'rgba(34, 197, 94, 0.1)',
@@ -1095,26 +1094,14 @@ export const darkTokens: DesignTokens = {
   'state-active': 'rgba(255, 255, 255, 0.14)',
   'state-focus': '#818cf8',
   'state-disabled': 'rgba(255, 255, 255, 0.06)',
-  'state-success': '#22c55e',
-  'state-warning': '#f59e0b',
-  'state-error': '#ef4444',
-  'state-info': '#38bdf8',
 
   // ===== 状态透明度变体 (10% opacity) =====
   'state-focus-10': 'rgba(129, 140, 248, 0.15)',
-  'state-success-10': 'rgba(34, 197, 94, 0.12)',
-  'state-warning-10': 'rgba(245, 158, 11, 0.12)',
-  'state-error-10': 'rgba(239, 68, 68, 0.12)',
   'state-neutral-10': 'rgba(161, 161, 170, 0.12)',
-  'state-info-10': 'rgba(56, 189, 248, 0.12)',
   // 语义化别名（subtle = 10% opacity）
   'state-focus-subtle': 'rgba(129, 140, 248, 0.15)',
-  'state-success-subtle': 'rgba(34, 197, 94, 0.12)',
-  'state-warning-subtle': 'rgba(245, 158, 11, 0.12)',
-  'state-error-subtle': 'rgba(239, 68, 68, 0.12)',
-  'state-info-subtle': 'rgba(56, 189, 248, 0.12)',
 
-  // ===== 反馈状态 status-* (canonical, 数值镜像 state 反馈态) =====
+  // ===== 反馈状态 status-* (canonical feedback palette) =====
   'status-success': '#22c55e',
   'status-warning': '#f59e0b',
   'status-error': '#ef4444',
@@ -1127,6 +1114,17 @@ export const darkTokens: DesignTokens = {
   'status-warning-subtle': 'rgba(245, 158, 11, 0.12)',
   'status-error-subtle': 'rgba(239, 68, 68, 0.12)',
   'status-info-subtle': 'rgba(56, 189, 248, 0.12)',
+
+  // ===== 数据可视化分类调色板 (data-viz categorical) =====
+  // 思维导图/图表的分类层级着色（非反馈、非交互）。6 个彼此区分、可读的色相：
+  // sky / emerald / indigo / amber / red / violet。1-5 沿用历史 mindmap 配色；
+  // 6 取分类紫（与 NODE_COLORS 兜底意图一致），避免与 slot-1 蓝撞色，替换历史误继承的 text-accent 蓝。
+  'data-viz-categorical-1': '#38bdf8',
+  'data-viz-categorical-2': '#22c55e',
+  'data-viz-categorical-3': '#818cf8',
+  'data-viz-categorical-4': '#f59e0b',
+  'data-viz-categorical-5': '#ef4444',
+  'data-viz-categorical-6': '#a78bfa',
 
   // ===== HTTP方法颜色系统 =====
   'components-method-get-bg': 'rgba(34, 197, 94, 0.2)',

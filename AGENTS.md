@@ -224,7 +224,7 @@ if (doc.status === '1') {
 
 - **反馈态**（success / warning / error / info）→ **`status-*`**（canonical）：`status-{success,warning,error,info}` 及 `-10`、`-subtle` 变体。示例：`text-status-error`、`bg-status-info-10`、`border-status-warning-subtle`、`bg-status-success/10`。
 - **交互态**（hover / active / focus / disabled / loading）→ **`state-*`**：`state-hover`、`state-active`、`state-focus`、`state-disabled`、`state-loading`（及 `state-focus-10`/`state-focus-subtle`）。它们不是反馈色，**不要**迁移到 `status-*`。
-- `state-{success,warning,error,info}`（含 `-10`/`-subtle`）是 `status-*` 反馈 token 的 **legacy alias**，数值等同，仅在全仓迁移完成前保留。**新代码反馈态一律用 `status-*`，不要新写反馈态 `state-*`，迁移完成前也不要删除 alias。** 知识库模块已完成迁移（见 `docs/knowledge-refactor/2026-05-20-knowledge-status-token-audit-summary.md`）。
+- `state-{success,warning,error,info}`（含 `-10`/`-subtle`）曾是 `status-*` 反馈 token 的 legacy alias；全仓迁移已完成，这 12 个 alias 已**物理删除**（tokens/theme/CSS）。**反馈态一律用 `status-*`** —— `error` 级 lint 规则 `design-tokens/no-feedback-state-token` 现在拦截任何反馈态 `state-*` 形式（class 含 `from-/via-/to-` 渐变档位、`var(--color-state-*)`、裸字符串 / `readCssVar()` / 拼接）。详见 `docs/design-tokens/2026-05-20-feedback-state-alias-deprecate-summary.md`。分类/层级 data-viz 着色（如搜索 mindmap）用 `data-viz-categorical-1..6`。
 
 ### 场景 token（壳层 / 模板 / 状态块强制）
 

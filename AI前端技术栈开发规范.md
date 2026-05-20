@@ -139,13 +139,13 @@ src/
 
 `src/themes/tokens.ts` 包含约 1452 个 token。常用：
 
-- 颜色：`surface-*`、`text-*`、`border-*`、`status-*`（反馈态）、`state-*`（交互态）
+- 颜色：`surface-*`、`text-*`、`border-*`、`status-*`（反馈态）、`state-*`（交互态）、`data-viz-categorical-*`（分类/层级着色）
 - 间距：`space-xs/sm/base/md/lg/xl/2xl`
 - 圆角：`radius-sm/md/lg/xl/full`
 - 阴影：`elevation-low/medium/high`
 - 图标：`icon-sm/md/lg/xl/2xl`
 
-> **反馈态 vs 交互态（强制）**：反馈色（success/warning/error/info）用 canonical `status-*`（含 `-10`/`-subtle`）；交互色（hover/active/focus/disabled/loading）用 `state-*`。`state-success/warning/error/info` 是 `status-*` 的 legacy alias，仅在全仓迁移完成前保留——新代码反馈态只写 `status-*`，不要新写反馈态 `state-*`，也不要删 alias。详见 `src/themes/design-system.md`。
+> **反馈态 vs 交互态（强制）**：反馈色（success/warning/error/info）用 canonical `status-*`（含 `-10`/`-subtle`）；交互色（hover/active/focus/disabled/loading）用 `state-*`。历史的 `state-success/warning/error/info` 反馈 alias（含 `-10`/`-subtle`）已**物理删除**，反馈态一律 `status-*`——`error` 级 lint 规则 `design-tokens/no-feedback-state-token` 会拦截任何反馈态 `state-*` 形式（class 含 `from-/via-/to-` 渐变档位、`var(--color-state-*)`、裸字符串/`readCssVar()`/拼接）。分类/层级 data-viz 着色（如搜索 mindmap）用 `data-viz-categorical-1..6`。详见 `src/themes/design-system.md` 与 `docs/design-tokens/2026-05-20-feedback-state-alias-deprecate-summary.md`。
 
 **场景 token**（壳层、模板、状态块强制使用）：
 

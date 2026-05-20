@@ -136,7 +136,7 @@ const SearchTurnItem: React.FC<SearchTurnItemProps> = ({
   return (
     <section className="rounded-radius-xl bg-surface-primary overflow-hidden border border-border-default">
       {isLatest ? (
-        <div className="h-0.5 bg-gradient-to-r from-text-accent via-state-info to-state-success" />
+        <div className="h-0.5 bg-gradient-to-r from-text-accent via-status-info to-status-success" />
       ) : null}
       <div className="p-space-base space-y-space-sm">
         <div className="gap-space-sm flex items-center justify-between">

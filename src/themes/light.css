@@ -203,21 +203,9 @@ html[data-theme='light'],
   --color-state-active: #e5e7eb;
   --color-state-focus: #00beb4;
   --color-state-disabled: #e5e7eb;
-  --color-state-success: #10b981;
-  --color-state-warning: #f59e0b;
-  --color-state-error: #ef4444;
-  --color-state-info: #0ea5e9;
   --color-state-focus-10: rgba(0, 190, 180, 0.1);
-  --color-state-success-10: rgba(16, 185, 129, 0.1);
-  --color-state-warning-10: rgba(245, 158, 11, 0.1);
-  --color-state-error-10: rgba(239, 68, 68, 0.1);
   --color-state-neutral-10: rgba(107, 114, 128, 0.1);
-  --color-state-info-10: rgba(14, 165, 233, 0.1);
   --color-state-focus-subtle: rgba(0, 190, 180, 0.1);
-  --color-state-success-subtle: rgba(16, 185, 129, 0.1);
-  --color-state-warning-subtle: rgba(245, 158, 11, 0.1);
-  --color-state-error-subtle: rgba(239, 68, 68, 0.1);
-  --color-state-info-subtle: rgba(14, 165, 233, 0.1);
 
   /* ===== 阴影系统 ===== */
   --color-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
@@ -477,6 +465,12 @@ html[data-theme='light'],
   --color-status-warning-subtle: rgba(245, 158, 11, 0.1);
   --color-status-error-subtle: rgba(239, 68, 68, 0.1);
   --color-status-info-subtle: rgba(14, 165, 233, 0.1);
+  --color-data-viz-categorical-1: #0ea5e9;
+  --color-data-viz-categorical-2: #10b981;
+  --color-data-viz-categorical-3: #00beb4;
+  --color-data-viz-categorical-4: #f59e0b;
+  --color-data-viz-categorical-5: #ef4444;
+  --color-data-viz-categorical-6: #8b5cf6;
   --color-components-method-get-bg: rgba(34, 197, 94, 0.1);
   --color-components-method-get-text: #166534;
   --color-components-method-get-border: #22c55e;

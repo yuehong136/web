@@ -213,21 +213,9 @@ html[data-theme='dark'],
   --color-state-active: rgba(255, 255, 255, 0.14);
   --color-state-focus: #818cf8;
   --color-state-disabled: rgba(255, 255, 255, 0.06);
-  --color-state-success: #22c55e;
-  --color-state-warning: #f59e0b;
-  --color-state-error: #ef4444;
-  --color-state-info: #38bdf8;
   --color-state-focus-10: rgba(129, 140, 248, 0.15);
-  --color-state-success-10: rgba(34, 197, 94, 0.12);
-  --color-state-warning-10: rgba(245, 158, 11, 0.12);
-  --color-state-error-10: rgba(239, 68, 68, 0.12);
   --color-state-neutral-10: rgba(161, 161, 170, 0.12);
-  --color-state-info-10: rgba(56, 189, 248, 0.12);
   --color-state-focus-subtle: rgba(129, 140, 248, 0.15);
-  --color-state-success-subtle: rgba(34, 197, 94, 0.12);
-  --color-state-warning-subtle: rgba(245, 158, 11, 0.12);
-  --color-state-error-subtle: rgba(239, 68, 68, 0.12);
-  --color-state-info-subtle: rgba(56, 189, 248, 0.12);
 
   /* ===== 阴影系统 ===== */
   --color-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
@@ -487,6 +475,12 @@ html[data-theme='dark'],
   --color-status-warning-subtle: rgba(245, 158, 11, 0.12);
   --color-status-error-subtle: rgba(239, 68, 68, 0.12);
   --color-status-info-subtle: rgba(56, 189, 248, 0.12);
+  --color-data-viz-categorical-1: #38bdf8;
+  --color-data-viz-categorical-2: #22c55e;
+  --color-data-viz-categorical-3: #818cf8;
+  --color-data-viz-categorical-4: #f59e0b;
+  --color-data-viz-categorical-5: #ef4444;
+  --color-data-viz-categorical-6: #a78bfa;
   --color-components-method-get-bg: rgba(34, 197, 94, 0.2);
   --color-components-method-get-text: #4ade80;
   --color-components-method-get-border: #22c55e;

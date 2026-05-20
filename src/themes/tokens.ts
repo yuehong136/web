@@ -141,28 +141,16 @@ export interface DesignTokens {
   'state-active': string
   'state-focus': string
   'state-disabled': string
-  'state-success': string
-  'state-warning': string
-  'state-error': string
-  'state-info': string
 
   // ===== 状态透明度变体 (10% opacity) =====
   'state-focus-10': string
-  'state-success-10': string
-  'state-warning-10': string
-  'state-error-10': string
   'state-neutral-10': string
-  'state-info-10': string
   // 语义化别名（subtle = 10% opacity）
   'state-focus-subtle': string
-  'state-success-subtle': string
-  'state-warning-subtle': string
-  'state-error-subtle': string
-  'state-info-subtle': string
 
   // ===== 反馈状态 status-* (canonical feedback palette) =====
-  // status-* 是反馈态（success/warning/error/info）的 canonical token。
-  // state-success/warning/error/info 及其 -10/-subtle 变体暂作为 legacy alias 保留，数值与 status-* 等同。
+  // status-* 是反馈态（success/warning/error/info）的 canonical token，含 -10/-subtle 变体。
+  // 历史 legacy alias state-success/warning/error/info 已物理删除，反馈态一律用 status-*。
   // 交互态 state-hover/active/focus/disabled 不属于反馈态，不要迁移到 status-*。
   'status-success': string
   'status-warning': string
@@ -176,6 +164,16 @@ export interface DesignTokens {
   'status-warning-subtle': string
   'status-error-subtle': string
   'status-info-subtle': string
+
+  // ===== 数据可视化分类调色板 (data-viz categorical) =====
+  // 用于图表/思维导图等的「分类/层级」着色（非反馈、非交互语义）。
+  // 当前消费者：src/pages/search/detail/mindmap/indented-tree.tsx 缩进树调色板。
+  'data-viz-categorical-1': string
+  'data-viz-categorical-2': string
+  'data-viz-categorical-3': string
+  'data-viz-categorical-4': string
+  'data-viz-categorical-5': string
+  'data-viz-categorical-6': string
 
   // ===== HTTP方法颜色系统 =====
   'components-method-get-bg': string
@@ -1094,24 +1092,12 @@ export const defaultTokens: DesignTokens = {
   'state-active': '',
   'state-focus': '',
   'state-disabled': '',
-  'state-success': '',
-  'state-warning': '',
-  'state-error': '',
-  'state-info': '',
 
   // 状态透明度变体 (10% opacity)
   'state-focus-10': '',
-  'state-success-10': '',
-  'state-warning-10': '',
-  'state-error-10': '',
   'state-neutral-10': '',
-  'state-info-10': '',
   // 语义化别名（subtle = 10% opacity）
   'state-focus-subtle': '',
-  'state-success-subtle': '',
-  'state-warning-subtle': '',
-  'state-error-subtle': '',
-  'state-info-subtle': '',
 
   // 反馈状态 status-* (canonical feedback palette)
   'status-success': '',
@@ -1126,6 +1112,14 @@ export const defaultTokens: DesignTokens = {
   'status-warning-subtle': '',
   'status-error-subtle': '',
   'status-info-subtle': '',
+
+  // 数据可视化分类调色板 (data-viz categorical)
+  'data-viz-categorical-1': '',
+  'data-viz-categorical-2': '',
+  'data-viz-categorical-3': '',
+  'data-viz-categorical-4': '',
+  'data-viz-categorical-5': '',
+  'data-viz-categorical-6': '',
 
   // HTTP方法颜色系统
   'components-method-get-bg': '',
