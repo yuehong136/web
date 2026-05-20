@@ -157,7 +157,7 @@ export const ChatInputBox: React.FC<ChatInputBoxProps> = ({
               onClick={onStop}
               aria-label={t('home.input.stop', '停止')}
               className={cn(
-                'hover:bg-state-error/90 flex items-center justify-center rounded-full bg-state-error text-text-inverted transition-colors',
+                'hover:bg-status-error/90 flex items-center justify-center rounded-full bg-status-error text-text-inverted transition-colors',
                 isWelcome ? 'h-10 w-10' : 'h-9 w-9',
               )}
             >

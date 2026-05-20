@@ -162,7 +162,7 @@ const AgentListRow: FC<{
             'inline-flex items-center truncate rounded-full px-2 py-0.5 text-xs font-medium',
             pipeline
               ? 'bg-background-subtle text-text-secondary'
-              : 'bg-state-success-subtle text-state-success',
+              : 'bg-status-success-subtle text-status-success',
           )}
         >
           {pipeline

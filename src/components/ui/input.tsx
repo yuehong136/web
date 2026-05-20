@@ -1,32 +1,33 @@
-import * as React from "react"
-import { cva, type VariantProps } from "class-variance-authority"
-import { cn } from "@/lib/utils"
+import * as React from 'react'
+import { cva, type VariantProps } from 'class-variance-authority'
+import { cn } from '@/lib/utils'
 
 const inputVariants = cva(
-  "flex w-full rounded-xl border px-4 py-3 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus:ring-0 focus-visible:ring-0 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 transition-colors",
+  'flex w-full rounded-xl border px-4 py-3 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus:ring-0 focus-visible:ring-0 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 transition-colors',
   {
     variants: {
       variant: {
-        default: "",
-        destructive: "",
-        success: "",
-        warning: "",
+        default: '',
+        destructive: '',
+        success: '',
+        warning: '',
       },
       inputSize: {
-        default: "h-12",
-        sm: "h-10 text-xs",
-        lg: "h-14",
+        default: 'h-12',
+        sm: 'h-10 text-xs',
+        lg: 'h-14',
       },
     },
     defaultVariants: {
-      variant: "default",
-      inputSize: "default",
+      variant: 'default',
+      inputSize: 'default',
     },
-  }
+  },
 )
 
 export interface InputProps
-  extends React.InputHTMLAttributes<HTMLInputElement>,
+  extends
+    React.InputHTMLAttributes<HTMLInputElement>,
     VariantProps<typeof inputVariants> {
   leftIcon?: React.ReactNode
   rightIcon?: React.ReactNode
@@ -37,23 +38,26 @@ export interface InputProps
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ 
-    className, 
-    variant, 
-    inputSize, 
-    type, 
-    leftIcon, 
-    rightIcon, 
-    error, 
-    helpText, 
-    label, 
-    required,
-    id,
-    style,
-    onFocus,
-    onBlur,
-    ...props 
-  }, ref) => {
+  (
+    {
+      className,
+      variant,
+      inputSize,
+      type,
+      leftIcon,
+      rightIcon,
+      error,
+      helpText,
+      label,
+      required,
+      id,
+      style,
+      onFocus,
+      onBlur,
+      ...props
+    },
+    ref,
+  ) => {
     const reactId = React.useId()
     const inputId = id || reactId
     const hasError = !!error
@@ -104,12 +108,22 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             style={{ color: 'var(--color-text-primary)' }}
           >
             {label}
-            {required && <span style={{ color: 'var(--color-state-error-text)' }} className="ml-1">*</span>}
+            {required && (
+              <span
+                style={{ color: 'var(--color-status-error-text)' }}
+                className="ml-1"
+              >
+                *
+              </span>
+            )}
           </label>
         )}
         <div className="relative">
           {leftIcon && (
-            <div className="absolute left-4 top-1/2 transform -translate-y-1/2" style={{ color: 'var(--color-text-tertiary)' }}>
+            <div
+              className="absolute left-4 top-1/2 -translate-y-1/2 transform"
+              style={{ color: 'var(--color-text-tertiary)' }}
+            >
               {leftIcon}
             </div>
           )}
@@ -117,15 +131,17 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             type={type}
             className={cn(
               inputVariants({ variant: effectiveVariant, inputSize }),
-              leftIcon && "pl-11",
-              rightIcon && "pr-11",
-              className
+              leftIcon && 'pl-11',
+              rightIcon && 'pr-11',
+              className,
             )}
             style={{
-              backgroundColor: isFocused ? 'var(--color-components-input-bg-focus)' : 'var(--color-components-input-bg)',
+              backgroundColor: isFocused
+                ? 'var(--color-components-input-bg-focus)'
+                : 'var(--color-components-input-bg)',
               borderColor: getBorderColor(),
               color: 'var(--color-components-input-text)',
-              ...style
+              ...style,
             }}
             ref={ref}
             id={inputId}
@@ -134,13 +150,19 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             {...props}
           />
           {rightIcon && (
-            <div className="absolute right-4 top-1/2 transform -translate-y-1/2" style={{ color: 'var(--color-text-tertiary)' }}>
+            <div
+              className="absolute right-4 top-1/2 -translate-y-1/2 transform"
+              style={{ color: 'var(--color-text-tertiary)' }}
+            >
               {rightIcon}
             </div>
           )}
         </div>
         {error && (
-          <p className="text-sm flex items-center gap-1" style={{ color: 'var(--color-state-error-text)' }}>
+          <p
+            className="flex items-center gap-1 text-sm"
+            style={{ color: 'var(--color-status-error-text)' }}
+          >
             <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
               <path
                 fillRule="evenodd"
@@ -152,13 +174,18 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           </p>
         )}
         {helpText && !error && (
-          <p className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>{helpText}</p>
+          <p
+            className="text-sm"
+            style={{ color: 'var(--color-text-tertiary)' }}
+          >
+            {helpText}
+          </p>
         )}
       </div>
     )
-  }
+  },
 )
 
-Input.displayName = "Input"
+Input.displayName = 'Input'
 
 export { Input, inputVariants }

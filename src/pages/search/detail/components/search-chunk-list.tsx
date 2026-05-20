@@ -12,7 +12,18 @@ interface SearchChunkListProps {
 
 const sanitizeContent = (content: string) => {
   return DOMPurify.sanitize(content, {
-    ALLOWED_TAGS: ['mark', 'b', 'strong', 'i', 'em', 'p', 'br', 'span', 'code', 'pre'],
+    ALLOWED_TAGS: [
+      'mark',
+      'b',
+      'strong',
+      'i',
+      'em',
+      'p',
+      'br',
+      'span',
+      'code',
+      'pre',
+    ],
     ALLOWED_ATTR: ['class'],
   })
 }
@@ -25,19 +36,22 @@ const SearchChunkCard: React.FC<{
 }> = ({ chunk, index, allChunks, onViewDetail }) => {
   const [expanded, setExpanded] = useState(false)
   const similarity = Math.round((chunk.similarity || 0) * 100)
-  const rawContent = chunk.highlight || chunk.content_with_weight || chunk.text || ''
+  const rawContent =
+    chunk.highlight || chunk.content_with_weight || chunk.text || ''
   const html = useMemo(() => sanitizeContent(rawContent), [rawContent])
   const longContent = rawContent.length > 400
 
   return (
-    <div className="rounded-radius-xl border border-border-default bg-surface-primary p-space-sm">
-      <div className="flex items-center justify-between mb-space-xs">
-        <div className="flex items-center gap-2 min-w-0">
-          <span className="h-6 w-6 rounded-radius-md bg-surface-accent-subtle text-text-accent text-xs flex items-center justify-center font-medium">
+    <div className="rounded-radius-xl bg-surface-primary p-space-sm border border-border-default">
+      <div className="mb-space-xs flex items-center justify-between">
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="rounded-radius-md bg-surface-accent-subtle flex h-6 w-6 items-center justify-center text-xs font-medium text-text-accent">
             {index + 1}
           </span>
           <FileText className="h-3.5 w-3.5 text-text-tertiary" />
-          <span className="text-sm text-text-primary font-medium truncate">{chunk.docnm_kwd}</span>
+          <span className="truncate text-sm font-medium text-text-primary">
+            {chunk.docnm_kwd}
+          </span>
         </div>
         <button
           type="button"
@@ -49,14 +63,21 @@ const SearchChunkCard: React.FC<{
       </div>
 
       <div className="mb-space-xs flex items-center gap-2 text-xs text-text-tertiary">
-        <span className="inline-flex h-1.5 w-16 rounded-radius-full bg-background-subtle overflow-hidden">
-          <span className="h-full bg-state-success" style={{ width: `${similarity}%` }} />
+        <span className="rounded-radius-full inline-flex h-1.5 w-16 overflow-hidden bg-background-subtle">
+          <span
+            className="h-full bg-status-success"
+            style={{ width: `${similarity}%` }}
+          />
         </span>
         <span>{similarity}%</span>
       </div>
 
       <div
-        className={!expanded && longContent ? 'line-clamp-5 text-sm text-text-secondary leading-relaxed' : 'text-sm text-text-secondary leading-relaxed'}
+        className={
+          !expanded && longContent
+            ? 'line-clamp-5 text-sm leading-relaxed text-text-secondary'
+            : 'text-sm leading-relaxed text-text-secondary'
+        }
         dangerouslySetInnerHTML={{ __html: html }}
       />
 
@@ -67,7 +88,11 @@ const SearchChunkCard: React.FC<{
           className="mt-space-xs inline-flex items-center gap-1 text-xs text-text-accent hover:underline"
         >
           {expanded ? '收起' : '展开'}
-          {expanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+          {expanded ? (
+            <ChevronUp className="h-3 w-3" />
+          ) : (
+            <ChevronDown className="h-3 w-3" />
+          )}
         </button>
       ) : null}
     </div>
@@ -84,11 +109,14 @@ const SearchChunkList: React.FC<SearchChunkListProps> = ({
     return (
       <div className="space-y-3">
         {Array.from({ length: 3 }).map((_, index) => (
-          <div key={index} className="rounded-radius-xl border border-border-default bg-surface-primary p-space-sm">
-            <div className="h-4 w-1/3 rounded-radius-md bg-background-subtle animate-pulse mb-3" />
-            <div className="h-3 w-full rounded-radius-md bg-background-subtle animate-pulse mb-2" />
-            <div className="h-3 w-5/6 rounded-radius-md bg-background-subtle animate-pulse mb-2" />
-            <div className="h-3 w-3/4 rounded-radius-md bg-background-subtle animate-pulse" />
+          <div
+            key={index}
+            className="rounded-radius-xl bg-surface-primary p-space-sm border border-border-default"
+          >
+            <div className="rounded-radius-md mb-3 h-4 w-1/3 animate-pulse bg-background-subtle" />
+            <div className="rounded-radius-md mb-2 h-3 w-full animate-pulse bg-background-subtle" />
+            <div className="rounded-radius-md mb-2 h-3 w-5/6 animate-pulse bg-background-subtle" />
+            <div className="rounded-radius-md h-3 w-3/4 animate-pulse bg-background-subtle" />
           </div>
         ))}
       </div>
@@ -97,7 +125,7 @@ const SearchChunkList: React.FC<SearchChunkListProps> = ({
 
   if (!chunks.length) {
     return (
-      <div className="rounded-radius-xl border border-border-default bg-surface-primary p-space-base text-sm text-text-tertiary">
+      <div className="rounded-radius-xl bg-surface-primary p-space-base border border-border-default text-sm text-text-tertiary">
         没有命中文档片段。可尝试放宽阈值、提高 Top K，或改写问题表述。
       </div>
     )
@@ -105,7 +133,7 @@ const SearchChunkList: React.FC<SearchChunkListProps> = ({
 
   return (
     <div>
-      <div className="flex items-center gap-2 mb-space-xs">
+      <div className="mb-space-xs flex items-center gap-2">
         <Layers className="h-4 w-4 text-text-tertiary" />
         <span className="text-sm font-medium text-text-primary">检索结果</span>
         <span className="text-xs text-text-tertiary">共 {total} 条</span>

@@ -67,7 +67,11 @@ const CreateSearchDialog: React.FC<CreateSearchDialogProps> = ({
       return
     }
     if (kbIds.length === 0) {
-      addNotification({ type: 'error', title: '请选择知识库', message: '至少选择一个知识库' })
+      addNotification({
+        type: 'error',
+        title: '请选择知识库',
+        message: '至少选择一个知识库',
+      })
       return
     }
 
@@ -91,7 +95,11 @@ const CreateSearchDialog: React.FC<CreateSearchDialogProps> = ({
         },
       })
 
-      addNotification({ type: 'success', title: '创建成功', message: '搜索应用已成功创建' })
+      addNotification({
+        type: 'success',
+        title: '创建成功',
+        message: '搜索应用已成功创建',
+      })
       resetForm()
       onClose()
 
@@ -102,40 +110,61 @@ const CreateSearchDialog: React.FC<CreateSearchDialogProps> = ({
       }
     } catch (error: unknown) {
       const msg =
-        (error as { response?: { data?: { message?: string } }; message?: string })?.response?.data?.message ||
+        (
+          error as {
+            response?: { data?: { message?: string } }
+            message?: string
+          }
+        )?.response?.data?.message ||
         (error as { message?: string })?.message ||
         '创建失败'
       addNotification({ type: 'error', title: '创建失败', message: msg })
     }
-  }, [name, description, kbIds, createSearch, addNotification, navigate, resetForm, onClose, onSuccess])
+  }, [
+    name,
+    description,
+    kbIds,
+    createSearch,
+    addNotification,
+    navigate,
+    resetForm,
+    onClose,
+    onSuccess,
+  ])
 
-  const gradient = name ? getAvatarGradient(name) : 'from-text-tertiary to-text-muted'
+  const gradient = name
+    ? getAvatarGradient(name)
+    : 'from-text-tertiary to-text-muted'
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent size="lg" className="overflow-hidden max-h-[90vh]">
+      <DialogContent size="lg" className="max-h-[90vh] overflow-hidden">
         <DialogHeader className="pb-0">
-          <div className="flex items-center gap-3 mb-2">
+          <div className="mb-2 flex items-center gap-3">
             <div
               className={cn(
-                'w-10 h-10 rounded-xl flex items-center justify-center',
+                'flex h-10 w-10 items-center justify-center rounded-xl',
                 'bg-gradient-to-br shadow-sm',
-                gradient
+                gradient,
               )}
             >
               <Search className="h-5 w-5 text-white" />
             </div>
             <div>
               <DialogTitle>创建搜索应用</DialogTitle>
-              <DialogDescription>配置知识库和检索参数，快速查找文档信息</DialogDescription>
+              <DialogDescription>
+                配置知识库和检索参数，快速查找文档信息
+              </DialogDescription>
             </div>
           </div>
         </DialogHeader>
 
-        <div className="px-6 py-5 space-y-5 overflow-y-auto max-h-[calc(90vh-200px)]">
+        <div className="max-h-[calc(90vh-200px)] space-y-5 overflow-y-auto px-6 py-5">
           {/* Name */}
           <div className="space-y-2">
-            <Label>名称 <span className="text-state-error">*</span></Label>
+            <Label>
+              名称 <span className="text-status-error">*</span>
+            </Label>
             <Input
               value={name}
               onChange={(e) => {
@@ -143,9 +172,11 @@ const CreateSearchDialog: React.FC<CreateSearchDialogProps> = ({
                 if (nameError) setNameError(null)
               }}
               placeholder="输入搜索应用名称"
-              className={cn(nameError && 'border-state-error')}
+              className={cn(nameError && 'border-status-error')}
             />
-            {nameError && <p className="text-xs text-state-error">{nameError}</p>}
+            {nameError && (
+              <p className="text-xs text-status-error">{nameError}</p>
+            )}
           </div>
 
           {/* Description */}
@@ -161,7 +192,9 @@ const CreateSearchDialog: React.FC<CreateSearchDialogProps> = ({
 
           {/* Knowledge Base Selection */}
           <div className="space-y-2">
-            <Label>知识库 <span className="text-state-error">*</span></Label>
+            <Label>
+              知识库 <span className="text-status-error">*</span>
+            </Label>
             <MultiSelectWithSearch
               options={[{ label: '知识库', options: kbOptions }]}
               value={kbIds}
@@ -180,7 +213,7 @@ const CreateSearchDialog: React.FC<CreateSearchDialogProps> = ({
             取消
           </Button>
           <Button onClick={handleSubmit} disabled={isLoading || !name.trim()}>
-            {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             创建
           </Button>
         </DialogFooter>

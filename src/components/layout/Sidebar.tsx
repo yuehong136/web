@@ -355,7 +355,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               {unreadCount > 0 && (
                 <span
                   className={cn(
-                    'min-w-[18px] rounded-full bg-state-error text-center text-xs text-text-inverted',
+                    'min-w-[18px] rounded-full bg-status-error text-center text-xs text-text-inverted',
                     isCollapsed
                       ? 'absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center'
                       : 'ml-auto px-1.5 py-0.5',
@@ -395,11 +395,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
                           className={cn(
                             'mt-2 h-2 w-2 rounded-full',
                             notification.type === 'error'
-                              ? 'bg-state-error'
+                              ? 'bg-status-error'
                               : notification.type === 'warning'
-                                ? 'bg-state-warning'
+                                ? 'bg-status-warning'
                                 : notification.type === 'success'
-                                  ? 'bg-state-success'
+                                  ? 'bg-status-success'
                                   : 'bg-text-accent',
                           )}
                         />
@@ -667,7 +667,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <div className="mt-1 border-t border-border-subtle pt-1">
                   <button
                     onClick={handleLogout}
-                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-text-secondary transition-colors duration-150 hover:bg-state-error-subtle hover:text-text-error"
+                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-text-secondary transition-colors duration-150 hover:bg-status-error-subtle hover:text-text-error"
                   >
                     <LogOut className="h-4 w-4" />
                     {t('layout.sidebar.logout', '退出登录')}

@@ -41,22 +41,27 @@ const SearchStarterView: React.FC<SearchStarterViewProps> = ({
   onPrefill,
 }) => {
   return (
-    <div className="h-full flex items-center justify-center">
+    <div className="flex h-full items-center justify-center">
       <div className="relative w-full max-w-5xl">
-        <div className="text-center mb-space-2xl">
+        <div className="mb-space-2xl text-center">
           <p
-            className="text-2xl font-semibold tracking-tight text-transparent bg-clip-text"
-            style={{ backgroundImage: 'linear-gradient(90deg, var(--color-text-accent), var(--color-state-info))' }}
+            className="bg-clip-text text-2xl font-semibold tracking-tight text-transparent"
+            style={{
+              backgroundImage:
+                'linear-gradient(90deg, var(--color-text-accent), var(--color-status-info))',
+            }}
           >
             AI SEARCH
           </p>
-          <h3 className="mt-space-sm text-3xl font-semibold tracking-tight text-text-primary">开始一次深度检索</h3>
+          <h3 className="mt-space-sm text-3xl font-semibold tracking-tight text-text-primary">
+            开始一次深度检索
+          </h3>
           <p className="mt-space-base text-base text-text-secondary">
             融合知识检索、证据引用与结构化总结，快速产出高质量答案。
           </p>
         </div>
 
-        <div className="mt-space-xl w-full max-w-4xl mx-auto rounded-radius-xl border border-border-default bg-components-card-bg p-space-xl">
+        <div className="mt-space-xl rounded-radius-xl p-space-xl mx-auto w-full max-w-4xl border border-border-default bg-components-card-bg">
           <SearchComposer
             variant="hero"
             onSearch={onSearch}
@@ -67,7 +72,7 @@ const SearchStarterView: React.FC<SearchStarterViewProps> = ({
           />
         </div>
 
-        <div className="mt-space-2xl grid grid-cols-1 md:grid-cols-3 gap-space-xl">
+        <div className="mt-space-2xl gap-space-xl grid grid-cols-1 md:grid-cols-3">
           {STARTER_PROMPTS.map((prompt) => {
             const Icon = prompt.icon
             return (
@@ -75,13 +80,17 @@ const SearchStarterView: React.FC<SearchStarterViewProps> = ({
                 key={prompt.title}
                 type="button"
                 onClick={() => onPrefill(prompt.query)}
-                className="group rounded-radius-xl border border-border-default bg-surface-primary p-space-lg text-left transition-all duration-200 hover:border-border-accent hover:bg-[var(--color-state-focus-10)]"
+                className="rounded-radius-xl bg-surface-primary p-space-lg group border border-border-default text-left transition-all duration-200 hover:border-border-accent hover:bg-[var(--color-state-focus-10)]"
               >
-                <span className="inline-flex h-10 w-10 items-center justify-center rounded-radius-lg bg-surface-secondary text-text-accent transition-colors group-hover:bg-[var(--color-state-focus-10)] group-hover:text-text-accent">
+                <span className="rounded-radius-lg bg-surface-secondary inline-flex h-10 w-10 items-center justify-center text-text-accent transition-colors group-hover:bg-[var(--color-state-focus-10)] group-hover:text-text-accent">
                   <Icon className="h-4 w-4" />
                 </span>
-                <p className="mt-space-sm text-base font-medium text-text-primary group-hover:text-text-accent">{prompt.title}</p>
-                <p className="mt-space-xs text-xs text-text-secondary leading-relaxed">{prompt.description}</p>
+                <p className="mt-space-sm text-base font-medium text-text-primary group-hover:text-text-accent">
+                  {prompt.title}
+                </p>
+                <p className="mt-space-xs text-xs leading-relaxed text-text-secondary">
+                  {prompt.description}
+                </p>
               </button>
             )
           })}

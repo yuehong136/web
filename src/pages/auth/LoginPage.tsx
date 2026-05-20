@@ -26,9 +26,10 @@ export const LoginPage: React.FC = () => {
   const { login, isLoading } = useAuthStore()
   const [showPassword, setShowPassword] = React.useState(false)
   const [showExpiredAlert, setShowExpiredAlert] = React.useState(false)
-  
+
   // 检查是否启用注册功能
-  const isRegistrationEnabled = import.meta.env.VITE_ENABLE_REGISTRATION === 'true'
+  const isRegistrationEnabled =
+    import.meta.env.VITE_ENABLE_REGISTRATION === 'true'
 
   // 检查是否因为token过期而重定向
   React.useEffect(() => {
@@ -64,7 +65,8 @@ export const LoginPage: React.FC = () => {
       await login(data.email, data.password, data.remember)
       navigate(ROUTES.HOME)
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : '登录失败，请重试'
+      const errorMessage =
+        error instanceof Error ? error.message : '登录失败，请重试'
       setError('root', {
         message: errorMessage,
       })
@@ -76,25 +78,23 @@ export const LoginPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex">
+    <div className="flex min-h-screen">
       <AuthCarousel
         gradientFrom="from-components-button-primary-bg"
         gradientTo="to-state-focus"
       />
-      <div className="flex-1 flex flex-col justify-center px-8 py-12 lg:px-12 bg-background-body">
-        <div className="w-full max-w-md mx-auto">
+      <div className="flex flex-1 flex-col justify-center bg-background-body px-8 py-12 lg:px-12">
+        <div className="mx-auto w-full max-w-md">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-2xl mb-2 font-bold">登录您的账户</h1>
-            <p className="text-text-secondary">
-              欢迎回来，继续您的工作之旅
-            </p>
+            <h1 className="mb-2 text-2xl font-bold">登录您的账户</h1>
+            <p className="text-text-secondary">欢迎回来，继续您的工作之旅</p>
           </div>
 
           {/* 登录过期提示 */}
           {showExpiredAlert && (
             <div
-              className="mb-6 border border-components-alert-warning-border bg-components-alert-warning-bg text-components-alert-warning-text px-space-md py-space-base rounded-radius-lg shadow-elevation-low animate-fade-in"
+              className="px-space-md py-space-base rounded-radius-lg shadow-elevation-low mb-6 animate-fade-in border border-components-alert-warning-border bg-components-alert-warning-bg text-components-alert-warning-text"
               role="alert"
             >
               <div className="flex items-center">
@@ -103,12 +103,14 @@ export const LoginPage: React.FC = () => {
                 </div>
                 <div className="ml-3 flex-1">
                   <h3 className="text-sm font-medium">登录已过期</h3>
-                  <p className="mt-1 text-xs">您的登录状态已过期，请重新登录以继续使用</p>
+                  <p className="mt-1 text-xs">
+                    您的登录状态已过期，请重新登录以继续使用
+                  </p>
                 </div>
                 <div className="ml-4 flex-shrink-0">
                   <button
                     onClick={() => setShowExpiredAlert(false)}
-                    className="rounded-radius-md p-space-xs text-components-alert-warning-text hover:bg-state-warning-subtle focus:outline-none focus:ring-2 focus:ring-state-focus focus:ring-offset-2 focus:ring-offset-background-body"
+                    className="rounded-radius-md p-space-xs text-components-alert-warning-text hover:bg-status-warning-subtle focus:outline-none focus:ring-2 focus:ring-state-focus focus:ring-offset-2 focus:ring-offset-background-body"
                     aria-label="关闭提示"
                   >
                     <X className="h-3 w-3" />
@@ -119,13 +121,13 @@ export const LoginPage: React.FC = () => {
           )}
 
           {/* Social Login */}
-          <div className="grid grid-cols-2 gap-3 mb-6">
+          <div className="mb-6 grid grid-cols-2 gap-3">
             <Button
               variant="outline"
               onClick={() => handleOAuthLogin('github')}
               className="w-full"
             >
-              <Github className="h-4 w-4 mr-2" />
+              <Github className="mr-2 h-4 w-4" />
               GitHub
             </Button>
             <Button
@@ -133,7 +135,7 @@ export const LoginPage: React.FC = () => {
               onClick={() => handleOAuthLogin('google')}
               className="w-full"
             >
-              <svg className="h-4 w-4 mr-2" viewBox="0 0 24 24">
+              <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
                 <path
                   fill="#4285F4"
                   d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -170,7 +172,7 @@ export const LoginPage: React.FC = () => {
           <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
             {errors.root && (
               <div
-                className="border border-components-alert-error-border bg-components-alert-error-bg text-components-alert-error-text px-space-md py-space-base rounded-radius-md"
+                className="px-space-md py-space-base rounded-radius-md border border-components-alert-error-border bg-components-alert-error-bg text-components-alert-error-text"
                 role="alert"
               >
                 {errors.root.message}
@@ -204,7 +206,7 @@ export const LoginPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="text-text-tertiary hover:text-text-secondary transition-colors"
+                    className="text-text-tertiary transition-colors hover:text-text-secondary"
                     aria-label={showPassword ? '隐藏密码' : '显示密码'}
                   >
                     {showPassword ? (
@@ -218,7 +220,7 @@ export const LoginPage: React.FC = () => {
             </div>
 
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-space-xs">
+              <div className="gap-space-xs flex items-center">
                 <Controller
                   name="remember"
                   control={control}
@@ -230,7 +232,10 @@ export const LoginPage: React.FC = () => {
                     />
                   )}
                 />
-                <label htmlFor="remember-me" className="text-sm text-text-primary cursor-pointer">
+                <label
+                  htmlFor="remember-me"
+                  className="cursor-pointer text-sm text-text-primary"
+                >
                   记住我
                 </label>
               </div>
@@ -238,18 +243,14 @@ export const LoginPage: React.FC = () => {
               <div className="text-sm">
                 <Link
                   to="/auth/forgot-password"
-                  className="text-text-accent hover:text-text-accent/80 font-medium"
+                  className="hover:text-text-accent/80 font-medium text-text-accent"
                 >
                   忘记密码？
                 </Link>
               </div>
             </div>
 
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isLoading}
-            >
+            <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? (
                 <>
                   <Loading variant="spinner" size="sm" className="mr-2" />
@@ -264,10 +265,10 @@ export const LoginPage: React.FC = () => {
           {/* Footer */}
           {isRegistrationEnabled && (
             <div className="mt-8 text-center text-sm text-text-secondary">
-              还没有账户？{" "}
+              还没有账户？{' '}
               <Link
                 to={ROUTES.REGISTER}
-                className="text-text-accent hover:text-text-accent/80 font-medium"
+                className="hover:text-text-accent/80 font-medium text-text-accent"
               >
                 立即注册
               </Link>

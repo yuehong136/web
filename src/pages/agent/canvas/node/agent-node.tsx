@@ -10,12 +10,22 @@ import { RightHandleStyle } from './handle-icon'
 import NodeHeader from './node-header'
 import { NodeWrapper } from './node-wrapper'
 import { ToolBar } from './toolbar'
-import { needsSingleStepDebugging, showCopyIcon, hasSubAgent, isBottomSubAgent } from '../../utils'
+import {
+  needsSingleStepDebugging,
+  showCopyIcon,
+  hasSubAgent,
+  isBottomSubAgent,
+} from '../../utils'
 import useGraphStore from '../../store'
 import { cn } from '@/lib/utils'
 import { LLMLabelCard } from './card'
 
-function InnerAgentNode({ id, data, isConnectable, selected }: NodeProps<IAgentNode>) {
+function InnerAgentNode({
+  id,
+  data,
+  isConnectable,
+  selected,
+}: NodeProps<IAgentNode>) {
   const edges = useGraphStore((state) => state.edges)
   const { t } = useTranslation()
 
@@ -63,7 +73,7 @@ function InnerAgentNode({ id, data, isConnectable, selected }: NodeProps<IAgentN
             />
           </>
         )}
-        
+
         {/* 子Agent的顶部handle */}
         {!isHeadAgent && (
           <Handle
@@ -74,7 +84,7 @@ function InnerAgentNode({ id, data, isConnectable, selected }: NodeProps<IAgentN
             className="!size-2 !border-none !bg-components-canvas-handle-bg"
           />
         )}
-        
+
         {/* 底部handles：子Agent连接点 */}
         <Handle
           type="source"
@@ -83,13 +93,13 @@ function InnerAgentNode({ id, data, isConnectable, selected }: NodeProps<IAgentN
           id={NodeHandleId.AgentBottom}
           style={{ left: 180 }}
           className={cn(
-            '!size-2 !border-none !bg-components-canvas-handle-bg invisible',
+            'invisible !size-2 !border-none !bg-components-canvas-handle-bg',
             {
-            visible: hasSubAgent(edges, id),
+              visible: hasSubAgent(edges, id),
             },
           )}
         />
-        
+
         {/* 底部handles：Tool连接点 */}
         <Handle
           type="source"
@@ -98,21 +108,22 @@ function InnerAgentNode({ id, data, isConnectable, selected }: NodeProps<IAgentN
           id={NodeHandleId.Tool}
           style={{ left: 20 }}
           className={cn(
-            '!size-2 !border-none !bg-components-canvas-handle-bg invisible',
+            'invisible !size-2 !border-none !bg-components-canvas-handle-bg',
             {
-            visible: hasTools,
+              visible: hasTools,
             },
           )}
         />
-        
+
         <NodeHeader id={id} name={data.name} label={data.label} />
 
-        <section className="flex flex-col gap-space-sm">
+        <section className="gap-space-sm flex flex-col">
           <LLMLabelCard llmId={get(data, 'form.llm_id')} />
-          {(isGotoMethod || exceptionMethod === AgentExceptionMethod.Comment) && (
-            <div className="bg-surface-secondary rounded-radius-sm p-space-xs flex justify-between gap-space-sm">
+          {(isGotoMethod ||
+            exceptionMethod === AgentExceptionMethod.Comment) && (
+            <div className="bg-surface-secondary rounded-radius-sm p-space-xs gap-space-sm flex justify-between">
               <span className="text-text-secondary">{t('flow.onFailure')}</span>
-              <span className="truncate flex-1 text-right">
+              <span className="flex-1 truncate text-right">
                 {t(`flow.${exceptionMethod}`)}
               </span>
             </div>
@@ -124,7 +135,7 @@ function InnerAgentNode({ id, data, isConnectable, selected }: NodeProps<IAgentN
             type="source"
             position={Position.Right}
             isConnectable={isConnectable}
-            className="!bg-state-error"
+            className="!bg-status-error"
             style={{ ...RightHandleStyle, top: 94 }}
             nodeId={id}
             id={NodeHandleId.AgentException}

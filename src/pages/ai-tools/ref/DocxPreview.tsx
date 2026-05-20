@@ -13,7 +13,11 @@ interface DocxPreviewProps {
   title?: string
 }
 
-const DocxPreview: React.FC<DocxPreviewProps> = ({ fileData, className, title = '文档预览' }) => {
+const DocxPreview: React.FC<DocxPreviewProps> = ({
+  fileData,
+  className,
+  title = '文档预览',
+}) => {
   const containerRef = useRef<HTMLDivElement>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -82,18 +86,23 @@ const DocxPreview: React.FC<DocxPreviewProps> = ({ fileData, className, title = 
 
   if (!fileData) {
     return (
-      <div className={cn('flex flex-col items-center justify-center h-full text-text-secondary', className)}>
-        <AlertCircle className="w-12 h-12 mb-4 opacity-50" />
+      <div
+        className={cn(
+          'flex h-full flex-col items-center justify-center text-text-secondary',
+          className,
+        )}
+      >
+        <AlertCircle className="mb-4 h-12 w-12 opacity-50" />
         <p className="text-sm">暂无文档预览</p>
-        <p className="text-xs mt-1">上传文档后将在此处显示预览</p>
+        <p className="mt-1 text-xs">上传文档后将在此处显示预览</p>
       </div>
     )
   }
 
   return (
-    <div className={cn('flex flex-col h-full', className)}>
+    <div className={cn('flex h-full flex-col', className)}>
       {/* 工具栏 */}
-      <div className="shrink-0 flex items-center justify-between px-4 py-2 border-b border-border-default bg-background-subtle">
+      <div className="flex shrink-0 items-center justify-between border-b border-border-default bg-background-subtle px-4 py-2">
         <span className="text-sm text-text-secondary">{title}</span>
         <div className="flex items-center gap-1">
           <Button
@@ -103,9 +112,9 @@ const DocxPreview: React.FC<DocxPreviewProps> = ({ fileData, className, title = 
             disabled={zoom <= 50}
             className="h-7 w-7 p-0"
           >
-            <ZoomOut className="w-4 h-4" />
+            <ZoomOut className="h-4 w-4" />
           </Button>
-          <span className="text-xs text-text-secondary min-w-[3rem] text-center">
+          <span className="min-w-[3rem] text-center text-xs text-text-secondary">
             {zoom}%
           </span>
           <Button
@@ -115,7 +124,7 @@ const DocxPreview: React.FC<DocxPreviewProps> = ({ fileData, className, title = 
             disabled={zoom >= 200}
             className="h-7 w-7 p-0"
           >
-            <ZoomIn className="w-4 h-4" />
+            <ZoomIn className="h-4 w-4" />
           </Button>
           <Button
             variant="ghost"
@@ -123,7 +132,7 @@ const DocxPreview: React.FC<DocxPreviewProps> = ({ fileData, className, title = 
             onClick={handleResetZoom}
             className="h-7 w-7 p-0"
           >
-            <RotateCcw className="w-4 h-4" />
+            <RotateCcw className="h-4 w-4" />
           </Button>
         </div>
       </div>
@@ -131,14 +140,14 @@ const DocxPreview: React.FC<DocxPreviewProps> = ({ fileData, className, title = 
       {/* 预览区域 */}
       <div className="flex-1 overflow-auto bg-background-subtle">
         {loading && (
-          <div className="flex items-center justify-center h-full">
-            <Loader2 className="w-8 h-8 animate-spin text-state-info" />
+          <div className="flex h-full items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-status-info" />
           </div>
         )}
 
         {error && (
-          <div className="flex flex-col items-center justify-center h-full text-state-error">
-            <AlertCircle className="w-12 h-12 mb-4" />
+          <div className="flex h-full flex-col items-center justify-center text-status-error">
+            <AlertCircle className="mb-4 h-12 w-12" />
             <p className="text-sm">{error}</p>
           </div>
         )}
@@ -146,8 +155,8 @@ const DocxPreview: React.FC<DocxPreviewProps> = ({ fileData, className, title = 
         <div
           ref={containerRef}
           className={cn(
-            'docx-preview-container p-4 transition-transform origin-top-left',
-            loading && 'hidden'
+            'docx-preview-container origin-top-left p-4 transition-transform',
+            loading && 'hidden',
           )}
           style={{
             transform: `scale(${zoom / 100})`,
@@ -195,4 +204,3 @@ const DocxPreview: React.FC<DocxPreviewProps> = ({ fileData, className, title = 
 }
 
 export default DocxPreview
-

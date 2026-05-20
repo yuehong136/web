@@ -77,13 +77,13 @@ const SERVER_TYPE_CONFIG: Record<
 > = {
   'streamable-http': {
     label: 'HTTP',
-    bgColor: 'var(--color-state-info-subtle)',
-    textColor: 'var(--color-state-info)',
+    bgColor: 'var(--color-status-info-subtle)',
+    textColor: 'var(--color-status-info)',
   },
   sse: {
     label: 'SSE',
-    bgColor: 'var(--color-state-success-subtle)',
-    textColor: 'var(--color-state-success)',
+    bgColor: 'var(--color-status-success-subtle)',
+    textColor: 'var(--color-status-success)',
   },
 }
 
@@ -301,13 +301,15 @@ export const MCPServersPage: React.FC<ServerListPageProps> = ({
                 <div
                   className={cn(
                     'relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl',
-                    online ? 'bg-state-success-subtle' : 'bg-surface-secondary',
+                    online
+                      ? 'bg-status-success-subtle'
+                      : 'bg-surface-secondary',
                   )}
                 >
                   <Globe
                     className={cn(
                       'h-5 w-5',
-                      online ? 'text-state-success' : 'text-text-disabled',
+                      online ? 'text-status-success' : 'text-text-disabled',
                     )}
                   />
                 </div>
@@ -395,7 +397,7 @@ export const MCPServersPage: React.FC<ServerListPageProps> = ({
                   <DropdownItem
                     icon={
                       copiedId === server.id ? (
-                        <Check className="h-4 w-4 text-state-success" />
+                        <Check className="h-4 w-4 text-status-success" />
                       ) : (
                         <Copy className="h-4 w-4" />
                       )
@@ -564,12 +566,12 @@ export const MCPServersPage: React.FC<ServerListPageProps> = ({
               style={{
                 backgroundColor:
                   typeFilter !== 'all'
-                    ? 'var(--color-state-info-subtle)'
+                    ? 'var(--color-status-info-subtle)'
                     : undefined,
                 borderColor:
-                  typeFilter !== 'all' ? 'var(--color-state-info)' : undefined,
+                  typeFilter !== 'all' ? 'var(--color-status-info)' : undefined,
                 color:
-                  typeFilter !== 'all' ? 'var(--color-state-info)' : undefined,
+                  typeFilter !== 'all' ? 'var(--color-status-info)' : undefined,
               }}
             >
               <Filter className="mr-2 h-4 w-4" />

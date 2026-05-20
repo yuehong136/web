@@ -10,15 +10,19 @@ const buttonVariants = cva(
       variant: {
         default:
           'bg-components-button-primary-bg text-components-button-primary-text shadow-sm hover:bg-components-button-primary-bg-hover active:bg-components-button-primary-bg-active border border-components-button-primary-border hover:border-components-button-primary-border-hover',
-        destructive: 'bg-state-error text-text-inverted shadow-sm hover:brightness-90',
+        destructive:
+          'bg-status-error text-text-inverted shadow-sm hover:brightness-90',
         outline:
           'border bg-components-button-secondary-bg text-components-button-secondary-text shadow-sm hover:bg-components-button-secondary-bg-hover border-components-button-secondary-border hover:border-components-button-secondary-border-hover',
         secondary:
           'bg-components-button-secondary-bg text-components-button-secondary-text shadow-sm hover:bg-components-button-secondary-bg-hover',
-        ghost: 'hover:bg-components-button-ghost-bg-hover text-components-button-ghost-text',
+        ghost:
+          'hover:bg-components-button-ghost-bg-hover text-components-button-ghost-text',
         link: 'text-text-accent underline-offset-4 hover:underline',
-        success: 'bg-state-success text-text-inverted shadow-sm hover:brightness-90',
-        warning: 'bg-state-warning text-text-inverted shadow-sm hover:brightness-90',
+        success:
+          'bg-status-success text-text-inverted shadow-sm hover:brightness-90',
+        warning:
+          'bg-status-warning text-text-inverted shadow-sm hover:brightness-90',
       },
       size: {
         default: 'h-9 px-4 py-2 has-[>svg]:px-3',
@@ -38,7 +42,8 @@ const buttonVariants = cva(
 )
 
 export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+  extends
+    React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean
   loading?: boolean

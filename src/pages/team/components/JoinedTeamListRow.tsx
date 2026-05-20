@@ -34,36 +34,37 @@ export const JoinedTeamListRow: React.FC<JoinedTeamListRowProps> = ({
 }) => {
   const isPending = team.role === TenantRole.Invite
   const isNormal = team.role === TenantRole.Normal
-  const isManager = team.role === TenantRole.Owner || team.role === TenantRole.Admin
+  const isManager =
+    team.role === TenantRole.Owner || team.role === TenantRole.Admin
 
   return (
     <div
       className={cn(
         'group relative grid grid-cols-[2fr_1fr_1fr_120px_100px] items-center gap-4',
-        'px-4 h-[68px] rounded-xl',
+        'h-[68px] rounded-xl px-4',
         'border border-transparent',
         'transition-all duration-200 ease-out',
         'hover:bg-surface-secondary/60 hover:border-state-focus hover:shadow-sm',
-        isPending && 'bg-state-info-subtle/30'
+        isPending && 'bg-status-info-subtle/30',
       )}
     >
       {/* 团队信息列 */}
-      <div className="flex items-center gap-4 min-w-0">
+      <div className="flex min-w-0 items-center gap-4">
         <Avatar className="h-10 w-10 shrink-0 transition-transform duration-200 group-hover:scale-105">
           <AvatarImage src={team.avatar || undefined} alt={team.nickname} />
-          <AvatarFallback className="bg-state-success-subtle">
-            <Users className="h-5 w-5 text-state-success" />
+          <AvatarFallback className="bg-status-success-subtle">
+            <Users className="h-5 w-5 text-status-success" />
           </AvatarFallback>
         </Avatar>
 
-        <div className="flex-1 min-w-0 h-11 flex flex-col justify-center">
+        <div className="flex h-11 min-w-0 flex-1 flex-col justify-center">
           <h3
-            className="font-medium text-text-primary truncate group-hover:text-text-accent transition-colors duration-200"
+            className="truncate font-medium text-text-primary transition-colors duration-200 group-hover:text-text-accent"
             title={team.nickname}
           >
             {team.nickname || '未命名团队'}
           </h3>
-          <p className="text-sm text-text-tertiary truncate" title={team.email}>
+          <p className="truncate text-sm text-text-tertiary" title={team.email}>
             {team.email}
           </p>
         </div>
@@ -75,7 +76,7 @@ export const JoinedTeamListRow: React.FC<JoinedTeamListRowProps> = ({
       </div>
 
       {/* 邮箱列 */}
-      <div className="text-sm text-text-secondary truncate" title={team.email}>
+      <div className="truncate text-sm text-text-secondary" title={team.email}>
         {team.email}
       </div>
 
@@ -85,7 +86,10 @@ export const JoinedTeamListRow: React.FC<JoinedTeamListRowProps> = ({
       </div>
 
       {/* 操作列 */}
-      <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="flex justify-end gap-1"
+        onClick={(e) => e.stopPropagation()}
+      >
         {isPending && (
           <>
             <Button
@@ -93,7 +97,7 @@ export const JoinedTeamListRow: React.FC<JoinedTeamListRowProps> = ({
               size="icon-sm"
               onClick={() => onAccept?.(team.tenant_id)}
               disabled={isLoading}
-              className="text-state-success hover:bg-state-success-subtle"
+              className="text-status-success hover:bg-status-success-subtle"
               title="接受邀请"
             >
               <Check className="h-4 w-4" />
@@ -103,7 +107,7 @@ export const JoinedTeamListRow: React.FC<JoinedTeamListRowProps> = ({
               size="icon-sm"
               onClick={() => onReject?.(team.tenant_id)}
               disabled={isLoading}
-              className="text-text-tertiary hover:text-state-error hover:bg-state-error-subtle"
+              className="text-text-tertiary hover:bg-status-error-subtle hover:text-status-error"
               title="拒绝邀请"
             >
               <X className="h-4 w-4" />
@@ -116,7 +120,7 @@ export const JoinedTeamListRow: React.FC<JoinedTeamListRowProps> = ({
             size="icon-sm"
             onClick={() => onLeave?.(team.tenant_id, team.nickname)}
             disabled={isLoading}
-            className="opacity-0 group-hover:opacity-100 text-text-tertiary hover:text-state-error hover:bg-state-error-subtle transition-all"
+            className="text-text-tertiary opacity-0 transition-all group-hover:opacity-100 hover:bg-status-error-subtle hover:text-status-error"
             title="退出团队"
           >
             <LogOut className="h-4 w-4" />
@@ -127,7 +131,7 @@ export const JoinedTeamListRow: React.FC<JoinedTeamListRowProps> = ({
             variant="ghost"
             size="icon-sm"
             onClick={() => onManageTeam?.(team.tenant_id)}
-            className="opacity-0 group-hover:opacity-100 text-text-tertiary hover:text-text-accent hover:bg-surface-secondary transition-all"
+            className="hover:bg-surface-secondary text-text-tertiary opacity-0 transition-all group-hover:opacity-100 hover:text-text-accent"
             title="管理团队"
           >
             <Settings className="h-4 w-4" />

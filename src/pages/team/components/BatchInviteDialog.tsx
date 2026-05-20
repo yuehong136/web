@@ -53,11 +53,11 @@ export const BatchInviteDialog: React.FC<BatchInviteDialogProps> = ({
   const parsedEmails = React.useMemo(() => parseEmails(input), [input])
   const invalidEmails = React.useMemo(
     () => parsedEmails.filter((e) => !EMAIL_REGEX.test(e)),
-    [parsedEmails]
+    [parsedEmails],
   )
   const validEmails = React.useMemo(
     () => parsedEmails.filter((e) => EMAIL_REGEX.test(e)),
-    [parsedEmails]
+    [parsedEmails],
   )
 
   const handleSubmit = useCallback(async () => {
@@ -120,7 +120,9 @@ export const BatchInviteDialog: React.FC<BatchInviteDialogProps> = ({
               <Label htmlFor="emails">邮箱地址</Label>
               <Textarea
                 id="emails"
-                placeholder={'user1@example.com\nuser2@example.com\nuser3@example.com'}
+                placeholder={
+                  'user1@example.com\nuser2@example.com\nuser3@example.com'
+                }
                 value={input}
                 onChange={(e) => {
                   setInput(e.target.value)
@@ -141,13 +143,16 @@ export const BatchInviteDialog: React.FC<BatchInviteDialogProps> = ({
 
               {/* 无效邮箱预览 */}
               {invalidEmails.length > 0 && (
-                <div className="text-xs text-state-warning bg-state-warning-subtle/50 rounded-lg px-3 py-2">
+                <div className="bg-status-warning-subtle/50 rounded-lg px-3 py-2 text-xs text-status-warning">
                   格式无效：{invalidEmails.join(', ')}
                 </div>
               )}
 
               {error && (
-                <p className="text-sm" style={{ color: 'var(--color-status-error-text)' }}>
+                <p
+                  className="text-sm"
+                  style={{ color: 'var(--color-status-error-text)' }}
+                >
                   {error}
                 </p>
               )}
@@ -156,7 +161,10 @@ export const BatchInviteDialog: React.FC<BatchInviteDialogProps> = ({
 
           {/* 结果阶段 */}
           {phase === 'results' && results && (
-            <InviteResultsView results={results.results} summary={results.summary} />
+            <InviteResultsView
+              results={results.results}
+              summary={results.summary}
+            />
           )}
         </div>
 
@@ -170,22 +178,31 @@ export const BatchInviteDialog: React.FC<BatchInviteDialogProps> = ({
             </>
           ) : (
             <>
-              <Button variant="outline" onClick={handleClose} disabled={phase === 'submitting'}>
+              <Button
+                variant="outline"
+                onClick={handleClose}
+                disabled={phase === 'submitting'}
+              >
                 取消
               </Button>
               <Button
                 onClick={handleSubmit}
-                disabled={phase === 'submitting' || isLoading || parsedEmails.length === 0}
+                disabled={
+                  phase === 'submitting' ||
+                  isLoading ||
+                  parsedEmails.length === 0
+                }
               >
                 {phase === 'submitting' ? (
                   <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     发送中...
                   </>
                 ) : (
                   <>
-                    <Send className="h-4 w-4 mr-2" />
-                    发送邀请{validEmails.length > 0 ? ` (${validEmails.length})` : ''}
+                    <Send className="mr-2 h-4 w-4" />
+                    发送邀请
+                    {validEmails.length > 0 ? ` (${validEmails.length})` : ''}
                   </>
                 )}
               </Button>

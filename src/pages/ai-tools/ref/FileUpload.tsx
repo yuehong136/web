@@ -1,7 +1,14 @@
 import React, { useRef, useState } from 'react'
 import { Button } from '@/components/vendor/ui/button'
 import { toast } from '@/lib/toast'
-import { Upload, FileText, Loader2, CheckCircle2, AlertTriangle, FileUp } from 'lucide-react'
+import {
+  Upload,
+  FileText,
+  Loader2,
+  CheckCircle2,
+  AlertTriangle,
+  FileUp,
+} from 'lucide-react'
 import { documentAPI } from '@/api/document'
 import { cn } from '@/lib/utils'
 
@@ -21,7 +28,12 @@ interface FileUploadProps {
   setIsLoading: (loading: boolean) => void
 }
 
-const FileUpload: React.FC<FileUploadProps> = ({ onFileUploaded, onFileProcessed, isLoading, setIsLoading }) => {
+const FileUpload: React.FC<FileUploadProps> = ({
+  onFileUploaded,
+  onFileProcessed,
+  isLoading,
+  setIsLoading,
+}) => {
   const [dragActive, setDragActive] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -52,7 +64,10 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileUploaded, onFileProcessed
     setIsLoading(true)
     try {
       const result = await documentAPI.processDocx(file)
-      onFileProcessed({ placeholders: result.placeholders || {}, file: result.file })
+      onFileProcessed({
+        placeholders: result.placeholders || {},
+        file: result.file,
+      })
       toast.success('文档解析成功！')
     } catch (e) {
       console.error(e)
@@ -67,7 +82,8 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileUploaded, onFileProcessed
     e.preventDefault()
     e.stopPropagation()
     setDragActive(false)
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0])
+    if (e.dataTransfer.files && e.dataTransfer.files[0])
+      processFile(e.dataTransfer.files[0])
   }
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -87,11 +103,16 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileUploaded, onFileProcessed
       {/* 上传区域 */}
       <div
         className={cn(
-          'relative rounded-2xl border-2 border-dashed transition-all duration-200 cursor-pointer group',
-          dragActive && 'border-components-upload-border-dragover bg-components-upload-bg-dragover scale-[1.01]',
-          selectedFile && !isLoading && 'border-state-success bg-state-success-subtle',
-          !dragActive && !selectedFile && 'border-components-upload-border hover:border-components-upload-border-hover hover:bg-background-subtle',
-          isLoading && 'pointer-events-none'
+          'group relative cursor-pointer rounded-2xl border-2 border-dashed transition-all duration-200',
+          dragActive &&
+            'scale-[1.01] border-components-upload-border-dragover bg-components-upload-bg-dragover',
+          selectedFile &&
+            !isLoading &&
+            'border-status-success bg-status-success-subtle',
+          !dragActive &&
+            !selectedFile &&
+            'border-components-upload-border hover:border-components-upload-border-hover hover:bg-background-subtle',
+          isLoading && 'pointer-events-none',
         )}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
@@ -108,61 +129,68 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileUploaded, onFileProcessed
           disabled={isLoading}
         />
 
-        <div className="flex flex-col items-center justify-center py-16 px-8">
+        <div className="flex flex-col items-center justify-center px-8 py-16">
           {/* 图标 */}
           <div
             className={cn(
-              'w-16 h-16 rounded-2xl flex items-center justify-center mb-6 transition-all',
-              isLoading && 'bg-state-info-subtle',
-              selectedFile && !isLoading && 'bg-state-success-subtle',
-              !selectedFile && !isLoading && 'bg-background-subtle group-hover:bg-state-info-subtle'
+              'mb-6 flex h-16 w-16 items-center justify-center rounded-2xl transition-all',
+              isLoading && 'bg-status-info-subtle',
+              selectedFile && !isLoading && 'bg-status-success-subtle',
+              !selectedFile &&
+                !isLoading &&
+                'bg-background-subtle group-hover:bg-status-info-subtle',
             )}
           >
             {isLoading ? (
-              <Loader2 className="w-8 h-8 text-state-info animate-spin" />
+              <Loader2 className="h-8 w-8 animate-spin text-status-info" />
             ) : selectedFile ? (
-              <CheckCircle2 className="w-8 h-8 text-state-success" />
+              <CheckCircle2 className="h-8 w-8 text-status-success" />
             ) : (
-              <FileUp className="w-8 h-8 text-text-secondary group-hover:text-state-info transition-colors" />
+              <FileUp className="h-8 w-8 text-text-secondary transition-colors group-hover:text-status-info" />
             )}
           </div>
 
           {/* 文字内容 */}
           {isLoading ? (
             <div className="text-center">
-              <h3 className="text-lg font-medium text-text-primary mb-2">正在解析文档...</h3>
+              <h3 className="mb-2 text-lg font-medium text-text-primary">
+                正在解析文档...
+              </h3>
               <p className="text-sm text-text-secondary">
                 系统正在识别文档中的占位符
               </p>
             </div>
           ) : selectedFile ? (
             <div className="text-center">
-              <h3 className="text-lg font-medium text-text-primary mb-2">
+              <h3 className="mb-2 text-lg font-medium text-text-primary">
                 {selectedFile.name}
               </h3>
-              <p className="text-sm text-text-secondary mb-4">
+              <p className="mb-4 text-sm text-text-secondary">
                 {formatFileSize(selectedFile.size)}
               </p>
               <Button
                 variant="outline"
                 size="sm"
-                onClick={(e) => { e.stopPropagation(); handleButtonClick() }}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleButtonClick()
+                }}
               >
                 更换文件
               </Button>
             </div>
           ) : (
             <div className="text-center">
-              <h3 className="text-lg font-medium text-text-primary mb-2">
+              <h3 className="mb-2 text-lg font-medium text-text-primary">
                 拖放文件到此处
               </h3>
-              <p className="text-sm text-text-secondary mb-4">
+              <p className="mb-4 text-sm text-text-secondary">
                 或点击选择文件上传
               </p>
               <Button variant="default" size="sm">
-                <Upload className="w-4 h-4 mr-2" />
+                <Upload className="mr-2 h-4 w-4" />
                 选择文件
-            </Button>
+              </Button>
             </div>
           )}
         </div>
@@ -170,8 +198,8 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileUploaded, onFileProcessed
 
       {/* 文件要求说明 */}
       <div className="grid gap-3 md:grid-cols-2">
-        <div className="flex items-start gap-3 p-4 rounded-xl bg-background-subtle border border-border-default">
-          <FileText className="w-5 h-5 text-text-secondary shrink-0 mt-0.5" />
+        <div className="flex items-start gap-3 rounded-xl border border-border-default bg-background-subtle p-4">
+          <FileText className="mt-0.5 h-5 w-5 shrink-0 text-text-secondary" />
           <div>
             <p className="text-sm font-medium text-text-primary">支持格式</p>
             <p className="text-sm text-text-secondary">
@@ -179,8 +207,8 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileUploaded, onFileProcessed
             </p>
           </div>
         </div>
-        <div className="flex items-start gap-3 p-4 rounded-xl bg-background-subtle border border-border-default">
-          <AlertTriangle className="w-5 h-5 text-text-secondary shrink-0 mt-0.5" />
+        <div className="flex items-start gap-3 rounded-xl border border-border-default bg-background-subtle p-4">
+          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-text-secondary" />
           <div>
             <p className="text-sm font-medium text-text-primary">占位符格式</p>
             <p className="text-sm text-text-secondary">

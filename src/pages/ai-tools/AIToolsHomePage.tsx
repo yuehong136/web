@@ -400,7 +400,7 @@ export const AIToolsHomePage: React.FC = () => {
                         <div className="flex items-center gap-4 text-sm text-text-secondary">
                           <span className="inline-flex items-center gap-1">
                             <Star
-                              className="h-4 w-4 text-state-warning"
+                              className="h-4 w-4 text-status-warning"
                               aria-hidden
                             />
                             {tool.stars}

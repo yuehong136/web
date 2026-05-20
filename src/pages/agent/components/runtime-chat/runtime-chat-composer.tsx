@@ -78,13 +78,15 @@ export function RuntimeChatComposer({
   )
 
   const handleRemoveFile = useCallback((index: number) => {
-    setFiles((previous) => previous.filter((_, itemIndex) => itemIndex !== index))
+    setFiles((previous) =>
+      previous.filter((_, itemIndex) => itemIndex !== index),
+    )
   }, [])
 
   return (
     <div
       className={cn(
-        'border-t border-border-primary bg-surface-primary',
+        'border-border-primary bg-surface-primary border-t',
         density === 'compact'
           ? 'px-space-md py-space-sm'
           : 'px-space-lg py-space-base',
@@ -96,15 +98,19 @@ export function RuntimeChatComposer({
           density === 'compact' ? 'max-w-full' : 'max-w-4xl',
         )}
       >
-        <div className="rounded-radius-xl border border-components-card-border bg-components-card-bg p-space-base shadow-elevation-low">
+        <div className="rounded-radius-xl p-space-base shadow-elevation-low border border-components-card-border bg-components-card-bg">
           {files.length > 0 ? (
-            <div className="mb-space-sm flex flex-wrap gap-space-xs">
+            <div className="mb-space-sm gap-space-xs flex flex-wrap">
               {files.map((file, index) => (
                 <div
                   key={`${file.id || file.name}-${index}`}
-                  className="flex items-center gap-space-xs rounded-radius-md border border-border-default bg-surface-secondary px-space-sm py-space-xs"
+                  className="gap-space-xs rounded-radius-md bg-surface-secondary px-space-sm py-space-xs flex items-center border border-border-default"
                 >
-                  <FileIcon fileType={file.type} fileName={file.name} size="sm" />
+                  <FileIcon
+                    fileType={file.type}
+                    fileName={file.name}
+                    size="sm"
+                  />
                   <span className="max-w-[220px] truncate text-sm text-text-secondary">
                     {file.name}
                   </span>
@@ -145,11 +151,13 @@ export function RuntimeChatComposer({
           />
 
           <div className="mt-space-sm flex items-center justify-between">
-            <div className="flex items-center gap-space-xs">
+            <div className="gap-space-xs flex items-center">
               <FileUploadDirectUpload
                 canvasId={canvasId}
                 value={files}
-                onChange={(nextValue) => setFiles(nextValue as RuntimeAttachment[])}
+                onChange={(nextValue) =>
+                  setFiles(nextValue as RuntimeAttachment[])
+                }
                 multiple
                 compact
                 iconOnly
@@ -168,7 +176,7 @@ export function RuntimeChatComposer({
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="rounded-radius-full bg-state-error text-text-inverted hover:bg-state-error/90"
+                className="rounded-radius-full hover:bg-status-error/90 bg-status-error text-text-inverted"
                 onClick={() => {
                   void onStop()
                 }}

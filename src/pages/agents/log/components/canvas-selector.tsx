@@ -106,7 +106,7 @@ export function CanvasSelector({
                     </span>
                   </span>
                   {active ? (
-                    <Check className="size-4 text-state-success" />
+                    <Check className="size-4 text-status-success" />
                   ) : null}
                 </button>
               )

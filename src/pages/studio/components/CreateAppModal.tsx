@@ -27,7 +27,11 @@ import { cn } from '@/lib/utils'
 interface CreateAppModalProps {
   isOpen: boolean
   onClose: () => void
-  onCreate?: (appData: { name: string; description: string; icon?: string }) => void
+  onCreate?: (appData: {
+    name: string
+    description: string
+    icon?: string
+  }) => void
 }
 
 export const CreateAppModal: React.FC<CreateAppModalProps> = ({
@@ -45,29 +49,35 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({
   const [nameError, setNameError] = useState<string | null>(null)
   const setDialogAppMutation = useSetDialogApp()
 
-  const handleIconUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+  const handleIconUpload = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0]
+      if (!file) return
 
-    const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png' || file.type === 'image/svg+xml'
-    if (!isJpgOrPng) {
-      toast.error('只能上传 JPG/PNG/SVG 格式的图片!')
-      return
-    }
-    const isLt2M = file.size / 1024 / 1024 < 2
-    if (!isLt2M) {
-      toast.error('图片大小不能超过 2MB!')
-      return
-    }
+      const isJpgOrPng =
+        file.type === 'image/jpeg' ||
+        file.type === 'image/png' ||
+        file.type === 'image/svg+xml'
+      if (!isJpgOrPng) {
+        toast.error('只能上传 JPG/PNG/SVG 格式的图片!')
+        return
+      }
+      const isLt2M = file.size / 1024 / 1024 < 2
+      if (!isLt2M) {
+        toast.error('图片大小不能超过 2MB!')
+        return
+      }
 
-    // 转换为base64
-    const reader = new FileReader()
-    reader.onload = () => {
-      const result = reader.result as string
-      setFormData(prev => ({ ...prev, icon: result }))
-    }
-    reader.readAsDataURL(file)
-  }, [])
+      // 转换为base64
+      const reader = new FileReader()
+      reader.onload = () => {
+        const result = reader.result as string
+        setFormData((prev) => ({ ...prev, icon: result }))
+      }
+      reader.readAsDataURL(file)
+    },
+    [],
+  )
 
   const validateName = useCallback((name: string): string | null => {
     if (name.trim() === '') {
@@ -97,33 +107,39 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({
     }
 
     // 使用新的API创建应用
-    setDialogAppMutation.mutate({
-      name: formData.name,
-      description: formData.description,
-      icon: formData.icon,
-    }, {
-      onSuccess: (createdApp) => {
-        handleClose()
-        // 跳转到应用配置页面
-        const searchParams = new URLSearchParams({
-          id: createdApp.id,
-          name: formData.name,
-          description: formData.description,
-          ...(formData.icon && { icon: formData.icon })
-        })
-        navigate(`${ROUTES.STUDIO_CREATE_APP}?${searchParams.toString()}`)
+    setDialogAppMutation.mutate(
+      {
+        name: formData.name,
+        description: formData.description,
+        icon: formData.icon,
+      },
+      {
+        onSuccess: (createdApp) => {
+          handleClose()
+          // 跳转到应用配置页面
+          const searchParams = new URLSearchParams({
+            id: createdApp.id,
+            name: formData.name,
+            description: formData.description,
+            ...(formData.icon && { icon: formData.icon }),
+          })
+          navigate(`${ROUTES.STUDIO_CREATE_APP}?${searchParams.toString()}`)
 
-        // 如果有回调函数，也调用它（兼容性）
-        onCreate?.(formData)
-      }
-    })
+          // 如果有回调函数，也调用它（兼容性）
+          onCreate?.(formData)
+        },
+      },
+    )
     // eslint-disable-next-line react-hooks/exhaustive-deps -- handleClose 是本组件方法，此 callback 失败路径不会触发关闭，无需相互依赖
   }, [formData, navigate, onCreate, setDialogAppMutation, validateName])
 
-  const handleNameChange = useCallback((value: string) => {
-    setFormData(prev => ({ ...prev, name: value }))
-    setNameError(validateName(value))
-  }, [validateName])
+  const handleNameChange = useCallback(
+    (value: string) => {
+      setFormData((prev) => ({ ...prev, name: value }))
+      setNameError(validateName(value))
+    },
+    [validateName],
+  )
 
   const handleClose = useCallback(() => {
     setFormData({
@@ -144,13 +160,13 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({
           <div className="flex items-center gap-3">
             <div
               className={cn(
-                'w-10 h-10 rounded-xl flex items-center justify-center',
-                'bg-gradient-to-br from-components-avatar-gradient-purple-from to-components-avatar-gradient-blue-to'
+                'flex h-10 w-10 items-center justify-center rounded-xl',
+                'bg-gradient-to-br from-components-avatar-gradient-purple-from to-components-avatar-gradient-blue-to',
               )}
             >
               <Sparkles className="h-5 w-5 text-white" />
             </div>
-            <div className="flex-1 min-w-0">
+            <div className="min-w-0 flex-1">
               <DialogTitle className="text-text-primary">
                 {STUDIO_TEXTS.createAppModal.title}
               </DialogTitle>
@@ -161,7 +177,7 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({
           </div>
         </DialogHeader>
 
-        <div className="px-6 py-4 space-y-6 overflow-y-auto max-h-[calc(80vh-200px)]">
+        <div className="max-h-[calc(80vh-200px)] space-y-6 overflow-y-auto px-6 py-4">
           {/* 应用图标 */}
           <div className="space-y-3">
             <Label className="text-sm font-medium text-text-primary">
@@ -170,15 +186,19 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({
             <div className="flex items-center gap-4">
               <div
                 className={cn(
-                  'w-16 h-16 rounded-xl flex items-center justify-center overflow-hidden',
+                  'flex h-16 w-16 items-center justify-center overflow-hidden rounded-xl',
                   'border-2 border-dashed border-border-default',
                   formData.icon
-                    ? 'bg-transparent border-solid'
-                    : 'bg-gradient-to-br from-components-avatar-gradient-purple-from to-components-avatar-gradient-blue-to'
+                    ? 'border-solid bg-transparent'
+                    : 'bg-gradient-to-br from-components-avatar-gradient-purple-from to-components-avatar-gradient-blue-to',
                 )}
               >
                 {formData.icon ? (
-                  <img src={formData.icon} alt="App icon" className="w-full h-full object-cover" />
+                  <img
+                    src={formData.icon}
+                    alt="App icon"
+                    className="h-full w-full object-cover"
+                  />
                 ) : (
                   <Sparkles className="h-7 w-7 text-white" />
                 )}
@@ -196,7 +216,7 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="gap-1.5 pointer-events-none"
+                    className="pointer-events-none gap-1.5"
                     disabled={isLoading}
                   >
                     <ImagePlus className="h-4 w-4" />
@@ -208,8 +228,10 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({
                     type="button"
                     variant="ghost"
                     size="sm"
-                    onClick={() => setFormData(prev => ({ ...prev, icon: '' }))}
-                    className="text-state-error hover:text-state-error hover:bg-state-error/10 gap-1.5"
+                    onClick={() =>
+                      setFormData((prev) => ({ ...prev, icon: '' }))
+                    }
+                    className="hover:bg-status-error/10 gap-1.5 text-status-error hover:text-status-error"
                     disabled={isLoading}
                   >
                     <Trash2 className="h-4 w-4" />
@@ -226,17 +248,18 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({
           {/* 应用名称 */}
           <div className="space-y-2">
             <Label className="text-sm font-medium text-text-primary">
-              {STUDIO_TEXTS.createAppModal.nameLabel} <span className="text-state-error">*</span>
+              {STUDIO_TEXTS.createAppModal.nameLabel}{' '}
+              <span className="text-status-error">*</span>
             </Label>
             <Input
               value={formData.name}
               onChange={(e) => handleNameChange(e.target.value)}
               placeholder={STUDIO_TEXTS.createAppModal.namePlaceholder}
               disabled={isLoading}
-              className={cn(nameError && 'border-state-error')}
+              className={cn(nameError && 'border-status-error')}
             />
             {nameError && (
-              <p className="text-xs text-state-error">{nameError}</p>
+              <p className="text-xs text-status-error">{nameError}</p>
             )}
             <p className="text-xs text-text-tertiary">
               最多255字节（中文字符约85个字）
@@ -247,7 +270,8 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label className="text-sm font-medium text-text-primary">
-                {STUDIO_TEXTS.createAppModal.descriptionLabel} <span className="text-state-error">*</span>
+                {STUDIO_TEXTS.createAppModal.descriptionLabel}{' '}
+                <span className="text-status-error">*</span>
               </Label>
               <span className="text-xs text-text-tertiary">
                 {formData.description.length}/200
@@ -255,7 +279,12 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({
             </div>
             <Textarea
               value={formData.description}
-              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value.slice(0, 200) }))}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  description: e.target.value.slice(0, 200),
+                }))
+              }
               placeholder={STUDIO_TEXTS.createAppModal.descriptionPlaceholder}
               rows={4}
               disabled={isLoading}
@@ -264,14 +293,17 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({
 
           {/* 提示信息 */}
           <div
-            className="flex items-start gap-2.5 p-3 rounded-lg"
+            className="flex items-start gap-2.5 rounded-lg p-3"
             style={{
-              backgroundColor: 'var(--color-state-info-subtle)',
-              border: '1px solid var(--color-state-info-subtle)',
+              backgroundColor: 'var(--color-status-info-subtle)',
+              border: '1px solid var(--color-status-info-subtle)',
             }}
           >
-            <Sparkles className="h-4 w-4 mt-0.5 shrink-0" style={{ color: 'var(--color-state-info)' }} />
-            <p className="text-xs text-text-secondary leading-relaxed">
+            <Sparkles
+              className="mt-0.5 h-4 w-4 shrink-0"
+              style={{ color: 'var(--color-status-info)' }}
+            />
+            <p className="text-xs leading-relaxed text-text-secondary">
               <strong className="text-text-primary">提示：</strong>
               创建应用后，您将进入应用配置页面，可以设置模型参数、提示词模板、对话记忆等高级功能。
             </p>
@@ -282,7 +314,11 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({
           <Button variant="outline" onClick={handleClose} disabled={isLoading}>
             {STUDIO_TEXTS.common.cancel}
           </Button>
-          <Button onClick={handleCreate} disabled={isLoading} className="gap-1.5">
+          <Button
+            onClick={handleCreate}
+            disabled={isLoading}
+            className="gap-1.5"
+          >
             {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
             {isLoading ? '创建中...' : STUDIO_TEXTS.createApp}
           </Button>

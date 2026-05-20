@@ -64,12 +64,12 @@ export const TeamPage: React.FC = () => {
   }
 
   return (
-    <div className="h-full flex flex-col p-6">
+    <div className="flex h-full flex-col p-6">
       {/* 页面头部 */}
-      <div className="flex items-start justify-between mb-4">
+      <div className="mb-4 flex items-start justify-between">
         <div>
           <h1 className="text-xl font-semibold text-text-primary">团队管理</h1>
-          <p className="text-sm text-text-secondary mt-1">
+          <p className="mt-1 text-sm text-text-secondary">
             管理您的团队成员和已加入的团队
           </p>
         </div>
@@ -77,37 +77,64 @@ export const TeamPage: React.FC = () => {
 
       {/* 统计卡片 */}
       <div className="mb-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-          <TeamStatsCard title="成员总数" value={stats.totalMembers} icon={Users} color="info" />
-          <TeamStatsCard title="活跃成员" value={stats.activeMembers} icon={UserCheck} color="success" />
-          <TeamStatsCard title="管理员" value={stats.adminMembers} icon={Shield} color="purple" />
-          <TeamStatsCard title="待处理邀请" value={stats.pendingInvites + pendingTeamInvites} icon={Clock} color="warning" />
-          <TeamStatsCard title="已加入团队" value={stats.joinedTeams} icon={Building2} color="purple" />
+        <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
+          <TeamStatsCard
+            title="成员总数"
+            value={stats.totalMembers}
+            icon={Users}
+            color="info"
+          />
+          <TeamStatsCard
+            title="活跃成员"
+            value={stats.activeMembers}
+            icon={UserCheck}
+            color="success"
+          />
+          <TeamStatsCard
+            title="管理员"
+            value={stats.adminMembers}
+            icon={Shield}
+            color="purple"
+          />
+          <TeamStatsCard
+            title="待处理邀请"
+            value={stats.pendingInvites + pendingTeamInvites}
+            icon={Clock}
+            color="warning"
+          />
+          <TeamStatsCard
+            title="已加入团队"
+            value={stats.joinedTeams}
+            icon={Building2}
+            color="purple"
+          />
         </div>
       </div>
 
       {/* Tabs */}
       <Tabs
         value={activeTab}
-        onValueChange={(value) => setActiveTab(value as 'my-team' | 'joined-teams')}
-        className="flex-1 flex flex-col min-h-0"
+        onValueChange={(value) =>
+          setActiveTab(value as 'my-team' | 'joined-teams')
+        }
+        className="flex min-h-0 flex-1 flex-col"
       >
-        <div className="flex items-center justify-center mb-4">
+        <div className="mb-4 flex items-center justify-center">
           <TabsList>
             <TabsTrigger value="my-team">
-              <Users className="h-4 w-4 mr-2" />
+              <Users className="mr-2 h-4 w-4" />
               团队管理
               {stats.pendingInvites > 0 && (
-                <span className="ml-2 px-1.5 py-0.5 text-xs rounded-full bg-state-warning-subtle text-state-warning">
+                <span className="ml-2 rounded-full bg-status-warning-subtle px-1.5 py-0.5 text-xs text-status-warning">
                   {stats.pendingInvites}
                 </span>
               )}
             </TabsTrigger>
             <TabsTrigger value="joined-teams">
-              <Building2 className="h-4 w-4 mr-2" />
+              <Building2 className="mr-2 h-4 w-4" />
               已加入的团队
               {pendingTeamInvites > 0 && (
-                <span className="ml-2 px-1.5 py-0.5 text-xs rounded-full bg-state-info-subtle text-state-info">
+                <span className="ml-2 rounded-full bg-status-info-subtle px-1.5 py-0.5 text-xs text-status-info">
                   {pendingTeamInvites}
                 </span>
               )}
@@ -115,7 +142,7 @@ export const TeamPage: React.FC = () => {
           </TabsList>
         </div>
 
-        <TabsContent value="my-team" className="flex-1 flex flex-col min-h-0">
+        <TabsContent value="my-team" className="flex min-h-0 flex-1 flex-col">
           <TeamManagementTab
             tenantInfo={tenantInfo}
             manageableTeams={manageableTeams}
@@ -131,7 +158,10 @@ export const TeamPage: React.FC = () => {
           />
         </TabsContent>
 
-        <TabsContent value="joined-teams" className="flex-1 flex flex-col min-h-0">
+        <TabsContent
+          value="joined-teams"
+          className="flex min-h-0 flex-1 flex-col"
+        >
           <JoinedTeamsTab
             joinedTeams={joinedTeams}
             teamsLoading={teamsLoading}
@@ -160,7 +190,11 @@ export const TeamPage: React.FC = () => {
         targetName={confirmDialog.target?.name ?? ''}
         roleChangeInfo={confirmDialog.roleChangeInfo}
         onConfirm={handleConfirm}
-        isLoading={loadingStates.removeLoading || loadingStates.respondLoading || loadingStates.roleLoading}
+        isLoading={
+          loadingStates.removeLoading ||
+          loadingStates.respondLoading ||
+          loadingStates.roleLoading
+        }
       />
     </div>
   )

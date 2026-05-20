@@ -34,22 +34,23 @@ export function DeleteConfirmModal({
 
   return (
     <Dialog open={visible} onOpenChange={(open) => !open && onCancel()}>
-      <DialogContent size="sm" className="p-0 gap-0 overflow-hidden">
+      <DialogContent size="sm" className="gap-0 overflow-hidden p-0">
         {/* 警示头部 */}
-        <DialogHeader className="px-6 pt-6 pb-4">
+        <DialogHeader className="px-6 pb-4 pt-6">
           <div className="flex items-start gap-4">
-            <div className="flex-shrink-0 w-12 h-12 rounded-full 
-                            bg-state-error-10
-                            flex items-center justify-center">
-              <AlertTriangle className="h-6 w-6 text-state-error" />
+            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-status-error-10">
+              <AlertTriangle className="h-6 w-6 text-status-error" />
             </div>
-            <div className="flex-1 min-w-0 pt-1">
+            <div className="min-w-0 flex-1 pt-1">
               <DialogTitle className="text-base font-semibold text-text-primary">
                 {t('datasource.deleteConfirmTitle')}
               </DialogTitle>
-              <DialogDescription className="mt-2 text-sm text-text-secondary leading-relaxed">
+              <DialogDescription className="mt-2 text-sm leading-relaxed text-text-secondary">
                 {t('datasource.deleteConfirmMessage', { name: '' })}
-                <span className="font-semibold text-text-primary"> {sourceName}</span>
+                <span className="font-semibold text-text-primary">
+                  {' '}
+                  {sourceName}
+                </span>
                 ？
               </DialogDescription>
             </div>
@@ -57,22 +58,22 @@ export function DeleteConfirmModal({
         </DialogHeader>
 
         {/* 底部操作 */}
-        <DialogFooter className="px-6 py-4 bg-background-subtle border-t border-border-default">
-          <Button 
-            variant="outline" 
-            onClick={onCancel} 
+        <DialogFooter className="border-t border-border-default bg-background-subtle px-6 py-4">
+          <Button
+            variant="outline"
+            onClick={onCancel}
             disabled={loading}
-            className="px-5 h-9 text-sm font-medium"
+            className="h-9 px-5 text-sm font-medium"
           >
             {t('common.cancel')}
           </Button>
-          <Button 
-            variant="destructive" 
-            onClick={onConfirm} 
+          <Button
+            variant="destructive"
+            onClick={onConfirm}
             disabled={loading}
-            className="px-5 h-9 text-sm font-medium gap-2"
+            className="h-9 gap-2 px-5 text-sm font-medium"
           >
-            {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+            {loading && <Loader2 className="h-4 w-4 animate-spin" />}
             {loading ? t('common.deleting') : t('common.delete')}
           </Button>
         </DialogFooter>

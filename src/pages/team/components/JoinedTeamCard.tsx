@@ -34,20 +34,23 @@ export const JoinedTeamCard: React.FC<JoinedTeamCardProps> = ({
 }) => {
   const isPending = team.role === TenantRole.Invite
   const isNormal = team.role === TenantRole.Normal
-  const isManager = team.role === TenantRole.Owner || team.role === TenantRole.Admin
+  const isManager =
+    team.role === TenantRole.Owner || team.role === TenantRole.Admin
   const [isHovered, setIsHovered] = React.useState(false)
 
   return (
     <div
       className={cn(
         'group relative rounded-2xl border transition-all duration-200',
-        'hover:shadow-shadow-md hover:-translate-y-0.5',
-        isPending ? 'ring-2 ring-state-info/20' : isHovered && 'ring-2 ring-state-focus/20'
+        'hover:-translate-y-0.5 hover:shadow-shadow-md',
+        isPending
+          ? 'ring-status-info/20 ring-2'
+          : isHovered && 'ring-state-focus/20 ring-2',
       )}
       style={{
         backgroundColor: 'var(--color-components-card-bg)',
         borderColor: isPending
-          ? 'var(--color-state-info)'
+          ? 'var(--color-status-info)'
           : isHovered
             ? 'var(--color-state-focus)'
             : 'var(--color-components-card-border)',
@@ -57,17 +60,20 @@ export const JoinedTeamCard: React.FC<JoinedTeamCardProps> = ({
     >
       <div className="p-5">
         {/* 头部：头像 + 团队名称 + 角色 */}
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex items-center gap-3 flex-1 min-w-0">
+        <div className="mb-4 flex items-start justify-between">
+          <div className="flex min-w-0 flex-1 items-center gap-3">
             <Avatar className="h-12 w-12 shrink-0">
               <AvatarImage src={team.avatar || undefined} alt={team.nickname} />
-              <AvatarFallback className="bg-[var(--color-state-success-subtle)]">
-                <Users className="h-5 w-5" style={{ color: 'var(--color-state-success)' }} />
+              <AvatarFallback className="bg-[var(--color-status-success-subtle)]">
+                <Users
+                  className="h-5 w-5"
+                  style={{ color: 'var(--color-status-success)' }}
+                />
               </AvatarFallback>
             </Avatar>
-            <div className="flex-1 min-w-0">
+            <div className="min-w-0 flex-1">
               <h3
-                className="font-semibold truncate"
+                className="truncate font-semibold"
                 style={{ color: 'var(--color-text-primary)' }}
                 title={team.nickname}
               >
@@ -79,7 +85,10 @@ export const JoinedTeamCard: React.FC<JoinedTeamCardProps> = ({
         </div>
 
         {/* 团队信息 */}
-        <div className="space-y-2 text-sm mb-4" style={{ color: 'var(--color-text-tertiary)' }}>
+        <div
+          className="mb-4 space-y-2 text-sm"
+          style={{ color: 'var(--color-text-tertiary)' }}
+        >
           <div className="flex items-center gap-2">
             <Mail className="h-4 w-4 shrink-0" />
             <span className="truncate" title={team.email}>
@@ -88,7 +97,9 @@ export const JoinedTeamCard: React.FC<JoinedTeamCardProps> = ({
           </div>
           <div className="flex items-center gap-2">
             <Clock className="h-4 w-4 shrink-0" />
-            <span>{formatTeamTime(team.update_date, team.delta_seconds, timeFormat)}</span>
+            <span>
+              {formatTeamTime(team.update_date, team.delta_seconds, timeFormat)}
+            </span>
           </div>
         </div>
 
@@ -102,7 +113,7 @@ export const JoinedTeamCard: React.FC<JoinedTeamCardProps> = ({
                 disabled={isLoading}
                 className="flex-1"
               >
-                <Check className="h-4 w-4 mr-1" />
+                <Check className="mr-1 h-4 w-4" />
                 接受
               </Button>
               <Button
@@ -112,7 +123,7 @@ export const JoinedTeamCard: React.FC<JoinedTeamCardProps> = ({
                 disabled={isLoading}
                 className="flex-1"
               >
-                <X className="h-4 w-4 mr-1" />
+                <X className="mr-1 h-4 w-4" />
                 拒绝
               </Button>
             </>
@@ -123,9 +134,9 @@ export const JoinedTeamCard: React.FC<JoinedTeamCardProps> = ({
               size="sm"
               onClick={() => onLeave?.(team.tenant_id, team.nickname)}
               disabled={isLoading}
-              className="w-full text-state-error border-state-error/30 hover:bg-state-error-subtle hover:border-state-error/50"
+              className="border-status-error/30 hover:border-status-error/50 w-full text-status-error hover:bg-status-error-subtle"
             >
-              <LogOut className="h-4 w-4 mr-1" />
+              <LogOut className="mr-1 h-4 w-4" />
               退出团队
             </Button>
           )}
@@ -136,7 +147,7 @@ export const JoinedTeamCard: React.FC<JoinedTeamCardProps> = ({
               onClick={() => onManageTeam?.(team.tenant_id)}
               className="w-full"
             >
-              <Settings className="h-4 w-4 mr-1" />
+              <Settings className="mr-1 h-4 w-4" />
               管理团队
             </Button>
           )}

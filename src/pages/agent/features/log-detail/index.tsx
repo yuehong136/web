@@ -41,9 +41,9 @@ const STATUS_VARIANT_MAP: Record<
 }
 
 const STATUS_CLASS_MAP: Record<LogDetailViewModel['status'], string> = {
-  running: 'bg-state-info-subtle text-state-info border-state-info',
-  success: 'bg-state-success-subtle text-state-success border-state-success',
-  error: 'bg-state-error-subtle text-state-error border-state-error',
+  running: 'bg-status-info-subtle text-status-info border-status-info',
+  success: 'bg-status-success-subtle text-status-success border-status-success',
+  error: 'bg-status-error-subtle text-status-error border-status-error',
   unknown: 'bg-background-subtle text-text-secondary border-border-subtle',
   idle: 'bg-background-subtle text-text-secondary border-border-subtle',
 }
@@ -188,7 +188,7 @@ function RuntimeSummary({
 
         {viewModel.errorMessage ? (
           <div className="px-space-lg py-space-base border-b border-border-subtle">
-            <div className="rounded-radius-md p-space-sm border border-state-error bg-state-error-subtle text-xs text-state-error">
+            <div className="rounded-radius-md p-space-sm border border-status-error bg-status-error-subtle text-xs text-status-error">
               <div className="mb-space-xs gap-space-xs flex items-center font-semibold">
                 <AlertTriangle className="h-3.5 w-3.5" />
                 错误摘要
@@ -252,7 +252,7 @@ export function LogDetail(props: LogDetailProps) {
 
   if (isError) {
     return (
-      <div className="p-space-md text-status-error text-sm">
+      <div className="p-space-md text-sm text-status-error">
         {error instanceof Error ? error.message : '会话详情加载失败'}
       </div>
     )

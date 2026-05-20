@@ -2,7 +2,16 @@ import React, { useEffect, useRef, useState } from 'react'
 import { renderAsync } from 'docx-preview'
 import { Button } from '@/components/vendor/ui/button'
 import { Badge } from '@/components/vendor/ui/badge'
-import { X, Download, ZoomIn, ZoomOut, RotateCcw, Maximize2, FileText, Loader2 } from 'lucide-react'
+import {
+  X,
+  Download,
+  ZoomIn,
+  ZoomOut,
+  RotateCcw,
+  Maximize2,
+  FileText,
+  Loader2,
+} from 'lucide-react'
 
 interface DocumentPreviewProps {
   fileData: string
@@ -11,7 +20,12 @@ interface DocumentPreviewProps {
   onDownload: () => void
 }
 
-const DocumentPreview: React.FC<DocumentPreviewProps> = ({ fileData, originalFileName, onClose, onDownload }) => {
+const DocumentPreview: React.FC<DocumentPreviewProps> = ({
+  fileData,
+  originalFileName,
+  onClose,
+  onDownload,
+}) => {
   const containerRef = useRef<HTMLDivElement>(null)
   const [zoom, setZoom] = useState(100)
   const [loading, setLoading] = useState(true)
@@ -87,26 +101,32 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({ fileData, originalFil
   }, [isFullscreen, onClose])
 
   return (
-    <div className="fixed inset-0 bg-background-overlay z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background-overlay p-4">
       <div
-        className={`bg-background-body rounded-xl shadow-2xl flex flex-col transition-all duration-200 ${
-          isFullscreen ? 'w-full h-full max-w-none max-h-none rounded-none' : 'w-full max-w-6xl h-full max-h-[90vh]'
+        className={`flex flex-col rounded-xl bg-background-body shadow-2xl transition-all duration-200 ${
+          isFullscreen
+            ? 'h-full max-h-none w-full max-w-none rounded-none'
+            : 'h-full max-h-[90vh] w-full max-w-6xl'
         }`}
       >
         {/* 工具栏 */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-border-default bg-components-card-bg shrink-0">
+        <div className="flex shrink-0 items-center justify-between border-b border-border-default bg-components-card-bg px-4 py-3">
           <div className="flex items-center gap-3">
-            <FileText className="w-5 h-5 text-state-info" />
+            <FileText className="h-5 w-5 text-status-info" />
             <div>
-              <h3 className="font-medium text-text-primary text-sm">{originalFileName}</h3>
+              <h3 className="text-sm font-medium text-text-primary">
+                {originalFileName}
+              </h3>
               <p className="text-xs text-text-secondary">文档预览</p>
             </div>
-            <Badge variant="secondary" className="ml-2">已填充</Badge>
+            <Badge variant="secondary" className="ml-2">
+              已填充
+            </Badge>
           </div>
 
           <div className="flex items-center gap-2">
             {/* 缩放控制 */}
-            <div className="flex items-center gap-1 bg-background-subtle rounded-lg p-1">
+            <div className="flex items-center gap-1 rounded-lg bg-background-subtle p-1">
               <Button
                 variant="ghost"
                 size="sm"
@@ -114,34 +134,51 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({ fileData, originalFil
                 disabled={zoom <= 50}
                 className="h-7 w-7 p-0"
               >
-                <ZoomOut className="w-4 h-4" />
+                <ZoomOut className="h-4 w-4" />
               </Button>
-              <span className="text-sm px-2 min-w-[3rem] text-center text-text-secondary">{zoom}%</span>
-              <Button 
-                variant="ghost" 
-                size="sm" 
+              <span className="min-w-[3rem] px-2 text-center text-sm text-text-secondary">
+                {zoom}%
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => setZoom((z) => Math.min(200, z + 10))}
                 disabled={zoom >= 200}
                 className="h-7 w-7 p-0"
               >
-                <ZoomIn className="w-4 h-4" />
+                <ZoomIn className="h-4 w-4" />
               </Button>
             </div>
-            
-            <Button variant="outline" size="sm" onClick={() => setZoom(100)} className="h-8">
-              <RotateCcw className="w-4 h-4 mr-1" />
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setZoom(100)}
+              className="h-8"
+            >
+              <RotateCcw className="mr-1 h-4 w-4" />
               重置
             </Button>
-            <Button variant="outline" size="sm" onClick={handleFullscreen} className="h-8">
-              <Maximize2 className="w-4 h-4 mr-1" />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleFullscreen}
+              className="h-8"
+            >
+              <Maximize2 className="mr-1 h-4 w-4" />
               {isFullscreen ? '退出' : '全屏'}
             </Button>
             <Button onClick={onDownload} size="sm" className="h-8">
-              <Download className="w-4 h-4 mr-1" />
+              <Download className="mr-1 h-4 w-4" />
               下载
             </Button>
-            <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0">
-              <X className="w-4 h-4" />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onClose}
+              className="h-8 w-8 p-0"
+            >
+              <X className="h-4 w-4" />
             </Button>
           </div>
         </div>
@@ -149,20 +186,20 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({ fileData, originalFil
         {/* 预览区域 */}
         <div className="flex-1 overflow-auto bg-background-subtle">
           {loading && (
-            <div className="flex items-center justify-center h-full">
+            <div className="flex h-full items-center justify-center">
               <div className="flex flex-col items-center gap-3">
-                <Loader2 className="w-8 h-8 animate-spin text-state-info" />
+                <Loader2 className="h-8 w-8 animate-spin text-status-info" />
                 <p className="text-sm text-text-secondary">正在渲染文档...</p>
               </div>
             </div>
           )}
 
           {error && (
-            <div className="flex items-center justify-center h-full">
-              <div className="text-center text-state-error">
+            <div className="flex h-full items-center justify-center">
+              <div className="text-center text-status-error">
                 <p className="text-sm">{error}</p>
+              </div>
             </div>
-          </div>
           )}
 
           <div

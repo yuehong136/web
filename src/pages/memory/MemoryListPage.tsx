@@ -497,7 +497,7 @@ export const MemoryListPage: React.FC = () => {
             <AlertDialogCancel>{t('common.cancel', '取消')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmDelete}
-              className="hover:bg-state-error/90 bg-state-error"
+              className="hover:bg-status-error/90 bg-status-error"
             >
               {t('common.delete', '删除')}
             </AlertDialogAction>

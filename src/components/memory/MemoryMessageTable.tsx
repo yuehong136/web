@@ -59,7 +59,10 @@ interface MemoryMessageTableProps {
 }
 
 // 记忆类型颜色映射 - 使用 Badge variant
-const memoryTypeVariants: Record<MemoryType, 'blue' | 'purple' | 'green' | 'orange'> = {
+const memoryTypeVariants: Record<
+  MemoryType,
+  'blue' | 'purple' | 'green' | 'orange'
+> = {
   raw: 'blue',
   semantic: 'purple',
   episodic: 'green',
@@ -83,9 +86,12 @@ export const MemoryMessageTable: React.FC<MemoryMessageTableProps> = ({
 }) => {
   const [expanded, setExpanded] = React.useState<Record<string, boolean>>({})
   const [forgetDialogOpen, setForgetDialogOpen] = React.useState(false)
-  const [messageToForget, setMessageToForget] = React.useState<string | null>(null)
+  const [messageToForget, setMessageToForget] = React.useState<string | null>(
+    null,
+  )
   const [contentSheetOpen, setContentSheetOpen] = React.useState(false)
-  const [selectedMessage, setSelectedMessage] = React.useState<MemoryMessage | null>(null)
+  const [selectedMessage, setSelectedMessage] =
+    React.useState<MemoryMessage | null>(null)
   const [copiedId, setCopiedId] = React.useState<string | null>(null)
 
   // 复制到剪贴板
@@ -124,7 +130,8 @@ export const MemoryMessageTable: React.FC<MemoryMessageTableProps> = ({
       id: 'expander',
       header: () => null,
       cell: ({ row }) => {
-        const hasExtract = row.original.extract && row.original.extract.length > 0
+        const hasExtract =
+          row.original.extract && row.original.extract.length > 0
         if (!hasExtract) return null
         return (
           <Button
@@ -151,7 +158,7 @@ export const MemoryMessageTable: React.FC<MemoryMessageTableProps> = ({
         const id = getValue<string>()
         return (
           <div className="flex items-center gap-2">
-            <span className="font-mono text-xs truncate max-w-[120px]">
+            <span className="max-w-[120px] truncate font-mono text-xs">
               {id}
             </span>
             <Button
@@ -184,10 +191,7 @@ export const MemoryMessageTable: React.FC<MemoryMessageTableProps> = ({
       cell: ({ getValue }) => {
         const type = getValue<MemoryType>()
         return (
-          <Badge
-            variant={memoryTypeVariants[type]}
-            className="text-xs"
-          >
+          <Badge variant={memoryTypeVariants[type]} className="text-xs">
             {memoryTypeLabels[type]}
           </Badge>
         )
@@ -234,7 +238,7 @@ export const MemoryMessageTable: React.FC<MemoryMessageTableProps> = ({
             variant="ghost"
             size="icon-sm"
             onClick={() => handleOpenForgetDialog(row.original.id)}
-            className="text-text-error hover:text-text-error/80 hover:bg-state-error-subtle"
+            className="hover:text-text-error/80 text-text-error hover:bg-status-error-subtle"
             title={MEMORY_TEXTS.messages.forget}
           >
             <Trash2 className="w-icon-sm h-icon-sm" />
@@ -266,25 +270,25 @@ export const MemoryMessageTable: React.FC<MemoryMessageTableProps> = ({
     return (
       <TableRow className="bg-background-subtle/50">
         <TableCell colSpan={columns.length} className="p-0">
-          <div className="p-4 pl-12 space-y-2">
-            <p className="text-xs text-text-tertiary mb-2">
+          <div className="space-y-2 p-4 pl-12">
+            <p className="mb-2 text-xs text-text-tertiary">
               {MEMORY_TEXTS.messages.content}
             </p>
             {extractMessages.map((msg, index) => (
               <div
                 key={index}
                 className={cn(
-                  'p-3 rounded-lg text-sm',
-                  'bg-background-surface border border-border-default'
+                  'rounded-lg p-3 text-sm',
+                  'border border-border-default bg-background-surface',
                 )}
               >
                 <div className="flex items-start justify-between gap-3">
-                  <p className="text-text-primary flex-1 line-clamp-3">
+                  <p className="line-clamp-3 flex-1 text-text-primary">
                     {msg.content}
                   </p>
                   <Badge
                     variant={memoryTypeVariants[msg.message_type]}
-                    className="text-xs shrink-0"
+                    className="shrink-0 text-xs"
                   >
                     {memoryTypeLabels[msg.message_type]}
                   </Badge>
@@ -305,7 +309,7 @@ export const MemoryMessageTable: React.FC<MemoryMessageTableProps> = ({
             <TableRow>
               {columns.map((_, i) => (
                 <TableHead key={i} className="h-12">
-                  <div className="h-4 w-20 bg-background-subtle rounded animate-pulse" />
+                  <div className="h-4 w-20 animate-pulse rounded bg-background-subtle" />
                 </TableHead>
               ))}
             </TableRow>
@@ -315,7 +319,7 @@ export const MemoryMessageTable: React.FC<MemoryMessageTableProps> = ({
               <TableRow key={i}>
                 {columns.map((_, j) => (
                   <TableCell key={j} className="h-14">
-                    <div className="h-4 w-full bg-background-subtle rounded animate-pulse" />
+                    <div className="h-4 w-full animate-pulse rounded bg-background-subtle" />
                   </TableCell>
                 ))}
               </TableRow>
@@ -328,7 +332,7 @@ export const MemoryMessageTable: React.FC<MemoryMessageTableProps> = ({
 
   return (
     <>
-      <div className="rounded-lg border border-border-default overflow-hidden">
+      <div className="overflow-hidden rounded-lg border border-border-default">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -342,7 +346,7 @@ export const MemoryMessageTable: React.FC<MemoryMessageTableProps> = ({
                       ? null
                       : flexRender(
                           header.column.columnDef.header,
-                          header.getContext()
+                          header.getContext(),
                         )}
                   </TableHead>
                 ))}
@@ -365,14 +369,14 @@ export const MemoryMessageTable: React.FC<MemoryMessageTableProps> = ({
                   <TableRow
                     className={cn(
                       'transition-colors',
-                      row.getIsExpanded() && 'bg-background-subtle/30'
+                      row.getIsExpanded() && 'bg-background-subtle/30',
                     )}
                   >
                     {row.getVisibleCells().map((cell) => (
                       <TableCell key={cell.id}>
                         {flexRender(
                           cell.column.columnDef.cell,
-                          cell.getContext()
+                          cell.getContext(),
                         )}
                       </TableCell>
                     ))}
@@ -389,7 +393,9 @@ export const MemoryMessageTable: React.FC<MemoryMessageTableProps> = ({
       <AlertDialog open={forgetDialogOpen} onOpenChange={setForgetDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{MEMORY_TEXTS.messages.forgetMessage}</AlertDialogTitle>
+            <AlertDialogTitle>
+              {MEMORY_TEXTS.messages.forgetMessage}
+            </AlertDialogTitle>
             <AlertDialogDescription>
               {MEMORY_TEXTS.messages.delMessageWarn}
             </AlertDialogDescription>
@@ -398,7 +404,7 @@ export const MemoryMessageTable: React.FC<MemoryMessageTableProps> = ({
             <AlertDialogCancel>{MEMORY_TEXTS.common.cancel}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmForget}
-              className="bg-state-error hover:bg-state-error/90"
+              className="hover:bg-status-error/90 bg-status-error"
             >
               {MEMORY_TEXTS.messages.forget}
             </AlertDialogAction>
@@ -416,11 +422,11 @@ export const MemoryMessageTable: React.FC<MemoryMessageTableProps> = ({
             <div className="mt-6 space-y-4">
               {/* 内容 */}
               <div>
-                <label className="text-sm font-medium text-text-secondary mb-2 block">
+                <label className="mb-2 block text-sm font-medium text-text-secondary">
                   {MEMORY_TEXTS.messages.content}
                 </label>
-                <div className="p-4 rounded-lg bg-background-subtle border border-border-default">
-                  <p className="text-sm text-text-primary whitespace-pre-wrap">
+                <div className="rounded-lg border border-border-default bg-background-subtle p-4">
+                  <p className="whitespace-pre-wrap text-sm text-text-primary">
                     {selectedMessage.content}
                   </p>
                 </div>
@@ -429,11 +435,11 @@ export const MemoryMessageTable: React.FC<MemoryMessageTableProps> = ({
               {/* 嵌入向量（如果有） */}
               {selectedMessage.content_embed && (
                 <div>
-                  <label className="text-sm font-medium text-text-secondary mb-2 block">
+                  <label className="mb-2 block text-sm font-medium text-text-secondary">
                     {MEMORY_TEXTS.messages.contentEmbed}
                   </label>
-                  <div className="p-4 rounded-lg bg-background-subtle border border-border-default">
-                    <p className="text-xs text-text-tertiary font-mono break-all line-clamp-10">
+                  <div className="rounded-lg border border-border-default bg-background-subtle p-4">
+                    <p className="line-clamp-10 break-all font-mono text-xs text-text-tertiary">
                       {selectedMessage.content_embed}
                     </p>
                   </div>

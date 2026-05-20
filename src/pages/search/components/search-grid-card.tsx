@@ -95,7 +95,7 @@ const SearchGridCard: React.FC<SearchGridCardProps> = ({
                   className={cn(
                     'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium',
                     summaryEnabled
-                      ? 'bg-[var(--color-state-success-10)] text-text-success'
+                      ? 'bg-[var(--color-status-success-10)] text-text-success'
                       : 'bg-background-subtle text-text-secondary',
                   )}
                 >
@@ -107,7 +107,7 @@ const SearchGridCard: React.FC<SearchGridCardProps> = ({
                   className={cn(
                     'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium',
                     relatedEnabled
-                      ? 'bg-[var(--color-state-info-10)] text-text-accent'
+                      ? 'bg-[var(--color-status-info-10)] text-text-accent'
                       : 'bg-background-subtle text-text-secondary',
                   )}
                 >

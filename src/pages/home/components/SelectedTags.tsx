@@ -14,12 +14,12 @@ interface SelectedTagsProps {
 const getServerIcon = (serverType: string) => {
   switch (serverType) {
     case 'sse':
-      return <Globe className="w-3.5 h-3.5" />
+      return <Globe className="h-3.5 w-3.5" />
     case 'streamable-http':
     case 'http':
-      return <Server className="w-3.5 h-3.5" />
+      return <Server className="h-3.5 w-3.5" />
     default:
-      return <Wrench className="w-3.5 h-3.5" />
+      return <Wrench className="h-3.5 w-3.5" />
   }
 }
 
@@ -34,12 +34,12 @@ export const SelectedTags: React.FC<SelectedTagsProps> = ({
   }
 
   return (
-    <div className="flex flex-wrap gap-2 mb-3">
+    <div className="mb-3 flex flex-wrap gap-2">
       {/* 已选技能 */}
       {selectedMCPServers.map((server) => (
         <div
           key={`skill-${server.id}`}
-          className="flex items-center gap-1.5 px-2.5 py-1 bg-state-focus-subtle text-state-focus rounded-full text-xs font-medium"
+          className="flex items-center gap-1.5 rounded-full bg-state-focus-subtle px-2.5 py-1 text-xs font-medium text-state-focus"
         >
           {getServerIcon(server.server_type)}
           <span>{server.name}</span>
@@ -47,7 +47,7 @@ export const SelectedTags: React.FC<SelectedTagsProps> = ({
             onClick={() => onRemoveSkill(server.id)}
             className="hover:bg-state-focus/20 rounded-full p-0.5"
           >
-            <X className="w-3 h-3" />
+            <X className="h-3 w-3" />
           </button>
         </div>
       ))}
@@ -55,15 +55,15 @@ export const SelectedTags: React.FC<SelectedTagsProps> = ({
       {selectedApps.map((app) => (
         <div
           key={`app-${app.id}`}
-          className="flex items-center gap-1.5 px-2.5 py-1 bg-state-success-subtle text-state-success rounded-full text-xs font-medium"
+          className="flex items-center gap-1.5 rounded-full bg-status-success-subtle px-2.5 py-1 text-xs font-medium text-status-success"
         >
-          <MessageSquare className="w-3.5 h-3.5" />
+          <MessageSquare className="h-3.5 w-3.5" />
           <span>{app.name}</span>
           <button
             onClick={() => onRemoveApp(app.id)}
-            className="hover:bg-state-success/20 rounded-full p-0.5"
+            className="hover:bg-status-success/20 rounded-full p-0.5"
           >
-            <X className="w-3 h-3" />
+            <X className="h-3 w-3" />
           </button>
         </div>
       ))}

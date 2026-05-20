@@ -484,7 +484,7 @@ const IndentedTree = forwardRef<IndentedTreeRef, IndentedTreeProps>(
       <ErrorBoundary
         fallback={(error, retry) => (
           <div className="gap-space-sm flex h-full flex-col items-center justify-center">
-            <p className="text-sm text-state-error">{error.message}</p>
+            <p className="text-sm text-status-error">{error.message}</p>
             <button
               type="button"
               onClick={retry}

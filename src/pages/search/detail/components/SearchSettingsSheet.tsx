@@ -5,8 +5,17 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { SliderWithInput } from '@/components/ui/slider-with-input'
-import { MultiSelectWithSearch, type SelectOptionGroup } from '@/components/ui/multi-select-with-search'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  MultiSelectWithSearch,
+  type SelectOptionGroup,
+} from '@/components/ui/multi-select-with-search'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { AvatarUpload } from '@/components/ui/avatar-upload'
 import { ChatModelSelector } from '@/components/chat/ChatModelSelector'
@@ -30,7 +39,9 @@ interface SearchSettingsSheetProps {
   name: string
   description?: string
   avatar?: string
-  onBasicInfoChange: (partial: Partial<Pick<SearchApp, 'name' | 'description' | 'avatar'>>) => void
+  onBasicInfoChange: (
+    partial: Partial<Pick<SearchApp, 'name' | 'description' | 'avatar'>>,
+  ) => void
   config: SearchConfig
   onConfigChange: (partial: Partial<SearchConfig>) => void
   onSave: () => void
@@ -83,7 +94,11 @@ const SUMMARY_PRESET_MAP: Record<
   },
 }
 
-type LLMSettingField = 'temperature' | 'top_p' | 'presence_penalty' | 'frequency_penalty'
+type LLMSettingField =
+  | 'temperature'
+  | 'top_p'
+  | 'presence_penalty'
+  | 'frequency_penalty'
 
 const CROSS_LANGUAGE_OPTIONS: SelectOptionGroup[] = [
   'English',
@@ -114,7 +129,9 @@ interface RawProviderPayload {
   llm?: RawModelItem[]
 }
 
-const getMetadataMode = (metaDataFilter?: SearchConfig['meta_data_filter']): MetadataFilterMode => {
+const getMetadataMode = (
+  metaDataFilter?: SearchConfig['meta_data_filter'],
+): MetadataFilterMode => {
   if (
     metaDataFilter?.method === 'auto' ||
     metaDataFilter?.method === 'semi_auto' ||
@@ -125,7 +142,9 @@ const getMetadataMode = (metaDataFilter?: SearchConfig['meta_data_filter']): Met
   return 'disabled'
 }
 
-const toMetadataCondition = (metaDataFilter?: SearchConfig['meta_data_filter']): MetadataCondition => {
+const toMetadataCondition = (
+  metaDataFilter?: SearchConfig['meta_data_filter'],
+): MetadataCondition => {
   return {
     logic: metaDataFilter?.logic || 'and',
     conditions: (metaDataFilter?.manual || []).map((item) => ({
@@ -136,7 +155,9 @@ const toMetadataCondition = (metaDataFilter?: SearchConfig['meta_data_filter']):
   }
 }
 
-const toMetadataSemiAutoFields = (metaDataFilter?: SearchConfig['meta_data_filter']): MetadataSemiAutoField[] => {
+const toMetadataSemiAutoFields = (
+  metaDataFilter?: SearchConfig['meta_data_filter'],
+): MetadataSemiAutoField[] => {
   return (metaDataFilter?.semi_auto || [])
     .map((item) => {
       if (typeof item === 'string') return { key: item }
@@ -145,18 +166,26 @@ const toMetadataSemiAutoFields = (metaDataFilter?: SearchConfig['meta_data_filte
     .filter((item) => Boolean(item.key))
 }
 
-const isEnabledRawModel = (model: RawModelItem) => model.available !== false && model.status !== '0'
+const isEnabledRawModel = (model: RawModelItem) =>
+  model.available !== false && model.status !== '0'
 
 const matchSummaryPreset = (llmSetting?: SearchConfig['llm_setting']) => {
   if (!llmSetting) return SummaryPreset.BALANCED
 
-  const keys: LLMSettingField[] = ['temperature', 'top_p', 'presence_penalty', 'frequency_penalty']
+  const keys: LLMSettingField[] = [
+    'temperature',
+    'top_p',
+    'presence_penalty',
+    'frequency_penalty',
+  ]
   const allEnabled = keys.every((key) => llmSetting[key] !== undefined)
   if (!allEnabled) return SummaryPreset.CUSTOM
 
   const isMatched = (preset: Exclude<SummaryPreset, SummaryPreset.CUSTOM>) => {
     const target = SUMMARY_PRESET_MAP[preset]
-    return keys.every((key) => Math.abs((llmSetting[key] as number) - target[key]) < 0.0001)
+    return keys.every(
+      (key) => Math.abs((llmSetting[key] as number) - target[key]) < 0.0001,
+    )
   }
 
   if (isMatched(SummaryPreset.PRECISE)) return SummaryPreset.PRECISE
@@ -179,17 +208,27 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
   isDirty,
 }) => {
   const { knowledgeBases } = useFetchKnowledgeList({ page_size: 1000 })
-  const [chatModelProviders, setChatModelProviders] = useState<MyLLMProvider>({})
-  const [chatModelNameById, setChatModelNameById] = useState<Record<string, string>>({})
+  const [chatModelProviders, setChatModelProviders] = useState<MyLLMProvider>(
+    {},
+  )
+  const [chatModelNameById, setChatModelNameById] = useState<
+    Record<string, string>
+  >({})
   const [rerankModels, setRerankModels] = useState<LLMModel[]>([])
   const [modelLoading, setModelLoading] = useState(false)
   const [modelError, setModelError] = useState<string | undefined>()
 
-  const metadataMode = useMemo(() => getMetadataMode(config.meta_data_filter), [config.meta_data_filter])
-  const metadataCondition = useMemo(() => toMetadataCondition(config.meta_data_filter), [config.meta_data_filter])
+  const metadataMode = useMemo(
+    () => getMetadataMode(config.meta_data_filter),
+    [config.meta_data_filter],
+  )
+  const metadataCondition = useMemo(
+    () => toMetadataCondition(config.meta_data_filter),
+    [config.meta_data_filter],
+  )
   const metadataSemiAutoFields = useMemo(
     () => toMetadataSemiAutoFields(config.meta_data_filter),
-    [config.meta_data_filter]
+    [config.meta_data_filter],
   )
 
   const metadataFields = useMemo(() => {
@@ -204,7 +243,10 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
     return Array.from(fieldSet)
   }, [config.kb_ids, knowledgeBases])
 
-  const summaryPreset = useMemo(() => matchSummaryPreset(config.llm_setting), [config.llm_setting])
+  const summaryPreset = useMemo(
+    () => matchSummaryPreset(config.llm_setting),
+    [config.llm_setting],
+  )
 
   const selectedSummaryModelName = useMemo(() => {
     const selectedModel = config.chat_id || config.llm_id
@@ -213,8 +255,9 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
   }, [chatModelNameById, config.chat_id, config.llm_id])
 
   const getLLMValue = useCallback(
-    (field: LLMSettingField) => config.llm_setting?.[field] ?? DEFAULT_LLM_SETTING[field],
-    [config.llm_setting]
+    (field: LLMSettingField) =>
+      config.llm_setting?.[field] ?? DEFAULT_LLM_SETTING[field],
+    [config.llm_setting],
   )
 
   const updateLLMField = useCallback(
@@ -227,10 +270,12 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
       }
 
       onConfigChange({
-        llm_setting: Object.keys(nextLLMSetting).length ? nextLLMSetting : undefined,
+        llm_setting: Object.keys(nextLLMSetting).length
+          ? nextLLMSetting
+          : undefined,
       })
     },
-    [config.llm_setting, onConfigChange]
+    [config.llm_setting, onConfigChange],
   )
 
   const handleMetadataModeChange = useCallback(
@@ -248,7 +293,7 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
         },
       })
     },
-    [config.meta_data_filter, onConfigChange]
+    [config.meta_data_filter, onConfigChange],
   )
 
   const handleMetadataConditionChange = useCallback(
@@ -266,7 +311,7 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
         },
       })
     },
-    [config.meta_data_filter, onConfigChange]
+    [config.meta_data_filter, onConfigChange],
   )
 
   const handleMetadataSemiAutoFieldsChange = useCallback(
@@ -275,11 +320,13 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
         meta_data_filter: {
           ...(config.meta_data_filter || { logic: 'and', manual: [] }),
           method: 'semi_auto',
-          semi_auto: fields.map((item) => (item.op ? { key: item.key, op: item.op } : item.key)),
+          semi_auto: fields.map((item) =>
+            item.op ? { key: item.key, op: item.op } : item.key,
+          ),
         },
       })
     },
-    [config.meta_data_filter, onConfigChange]
+    [config.meta_data_filter, onConfigChange],
   )
 
   const handleSummaryPresetChange = useCallback(
@@ -297,7 +344,7 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
         },
       })
     },
-    [config.llm_setting, onConfigChange]
+    [config.llm_setting, onConfigChange],
   )
 
   useEffect(() => {
@@ -307,66 +354,74 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
         setModelError(undefined)
 
         const response = await llmAPI.list({ available: true })
-        const providers = Object.entries(response as Record<string, unknown>).reduce<MyLLMProvider>(
-          (acc, [providerName, providerValue]) => {
-            const payload = providerValue as RawProviderPayload | RawModelItem[]
-            const llmList = Array.isArray(payload) ? payload : payload?.llm || []
-            const llm = llmList
-              .filter((model) => {
-                const modelType = model.mdl_type || model.type
-                return (
-                  isEnabledRawModel(model) &&
-                  (modelType === 'chat' || modelType === 'image2text') &&
-                  !!(model.llm_name || model.name || model.id)
-                )
-              })
-              .map((model) => ({
-                type: (model.mdl_type || model.type) as 'chat' | 'image2text',
-                name: model.llm_name || model.name || model.id || '',
-                used_token: model.used_token || 0,
-                status: model.status as '0' | '1' | undefined,
-                available: model.available,
-              }))
+        const providers = Object.entries(
+          response as Record<string, unknown>,
+        ).reduce<MyLLMProvider>((acc, [providerName, providerValue]) => {
+          const payload = providerValue as RawProviderPayload | RawModelItem[]
+          const llmList = Array.isArray(payload) ? payload : payload?.llm || []
+          const llm = llmList
+            .filter((model) => {
+              const modelType = model.mdl_type || model.type
+              return (
+                isEnabledRawModel(model) &&
+                (modelType === 'chat' || modelType === 'image2text') &&
+                !!(model.llm_name || model.name || model.id)
+              )
+            })
+            .map((model) => ({
+              type: (model.mdl_type || model.type) as 'chat' | 'image2text',
+              name: model.llm_name || model.name || model.id || '',
+              used_token: model.used_token || 0,
+              status: model.status as '0' | '1' | undefined,
+              available: model.available,
+            }))
 
-            if (llm.length) {
-              acc[providerName] = {
-                tags: Array.isArray(payload) ? '' : payload.tags || '',
-                llm,
-              }
+          if (llm.length) {
+            acc[providerName] = {
+              tags: Array.isArray(payload) ? '' : payload.tags || '',
+              llm,
             }
+          }
 
-            return acc
-          },
-          {}
-        )
+          return acc
+        }, {})
 
-        const allModels = Object.entries(response as Record<string, unknown>).flatMap(([providerName, providerValue]) => {
+        const allModels = Object.entries(
+          response as Record<string, unknown>,
+        ).flatMap(([providerName, providerValue]) => {
           const payload = providerValue as RawProviderPayload | RawModelItem[]
           const llmList = Array.isArray(payload) ? payload : payload?.llm || []
           return llmList
             .filter((model) => isEnabledRawModel(model))
             .map(
               (model): LLMModel => ({
-                id: model.id || `${model.llm_name || model.name || 'model'}@${providerName}`,
+                id:
+                  model.id ||
+                  `${model.llm_name || model.name || 'model'}@${providerName}`,
                 llm_name: model.llm_name || model.name || model.id || '',
                 fid: providerName,
-                mdl_type: (model.mdl_type || model.type || 'chat') as LLMModel['mdl_type'],
+                mdl_type: (model.mdl_type ||
+                  model.type ||
+                  'chat') as LLMModel['mdl_type'],
                 available: model.available !== false,
                 status: model.status,
                 name: model.name,
-              })
+              }),
             )
         })
 
         const idToNameMap: Record<string, string> = {}
         allModels.forEach((model) => {
-          if (model.mdl_type !== 'chat' && model.mdl_type !== 'image2text') return
+          if (model.mdl_type !== 'chat' && model.mdl_type !== 'image2text')
+            return
           const modelName = model.llm_name || model.name || model.id
           if (!modelName) return
           idToNameMap[model.id || modelName] = modelName
         })
 
-        setRerankModels(allModels.filter((model) => model.mdl_type === 'rerank'))
+        setRerankModels(
+          allModels.filter((model) => model.mdl_type === 'rerank'),
+        )
         setChatModelProviders(providers)
         setChatModelNameById(idToNameMap)
       } catch {
@@ -384,30 +439,44 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
   if (!open) return null
 
   return (
-    <aside className="relative z-20 w-[380px] xl:w-[420px] shrink-0 border-l border-border-default bg-background-surface px-space-base py-space-sm shadow-elevation-high">
-      <div className="h-full min-h-0 bg-background-surface px-space-sm py-space-base flex flex-col">
-        <div className="shrink-0 flex items-center justify-between gap-space-sm">
-          <h3 className="text-base font-semibold text-text-primary">搜索设置</h3>
-          <Button variant="ghost" size="icon-sm" onClick={() => onOpenChange(false)} title="收起配置">
+    <aside className="px-space-base py-space-sm shadow-elevation-high relative z-20 w-[380px] shrink-0 border-l border-border-default bg-background-surface xl:w-[420px]">
+      <div className="px-space-sm py-space-base flex h-full min-h-0 flex-col bg-background-surface">
+        <div className="gap-space-sm flex shrink-0 items-center justify-between">
+          <h3 className="text-base font-semibold text-text-primary">
+            搜索设置
+          </h3>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => onOpenChange(false)}
+            title="收起配置"
+          >
             <X className="h-4 w-4" />
           </Button>
         </div>
 
-        <div className="mt-space-lg flex-1 min-h-0 overflow-y-auto pr-space-xs">
-          <section className="space-y-4 pb-space-lg">
+        <div className="mt-space-lg pr-space-xs min-h-0 flex-1 overflow-y-auto">
+          <section className="pb-space-lg space-y-4">
             <div className="space-y-space-sm">
               <Label className="text-sm">头像</Label>
-              <AvatarUpload value={avatar} onChange={(value) => onBasicInfoChange({ avatar: value })} tips="你可以上传4MB的文件" size={64} />
+              <AvatarUpload
+                value={avatar}
+                onChange={(value) => onBasicInfoChange({ avatar: value })}
+                tips="你可以上传4MB的文件"
+                size={64}
+              />
             </div>
 
             <div className="space-y-space-sm">
               <Label className="text-sm">
-                <span className="text-state-error mr-1">*</span>
+                <span className="mr-1 text-status-error">*</span>
                 姓名
               </Label>
               <Input
                 value={name}
-                onChange={(event) => onBasicInfoChange({ name: event.target.value })}
+                onChange={(event) =>
+                  onBasicInfoChange({ name: event.target.value })
+                }
                 placeholder="请输入名称"
                 className="h-11"
               />
@@ -417,7 +486,9 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
               <Label className="text-sm">描述</Label>
               <Textarea
                 value={description || ''}
-                onChange={(event) => onBasicInfoChange({ description: event.target.value })}
+                onChange={(event) =>
+                  onBasicInfoChange({ description: event.target.value })
+                }
                 placeholder="请输入描述"
                 rows={3}
                 className="resize-none"
@@ -427,7 +498,7 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
 
           <Separator className="my-space-sm" />
 
-          <section className="space-y-4 py-space-lg">
+          <section className="py-space-lg space-y-4">
             <KnowledgeBaseSelector
               selectedIds={config.kb_ids}
               onChange={(kbIds) => onConfigChange({ kb_ids: kbIds })}
@@ -449,12 +520,14 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
 
           <Separator className="my-space-sm" />
 
-          <section className="space-y-4 py-space-lg">
+          <section className="py-space-lg space-y-4">
             <SliderWithInput
               label="相似度阈值"
               tooltip="只有相似度高于此阈值的内容才会被检索。"
               value={config.similarity_threshold}
-              onChange={(value) => onConfigChange({ similarity_threshold: value })}
+              onChange={(value) =>
+                onConfigChange({ similarity_threshold: value })
+              }
               min={0}
               max={1}
               step={0.01}
@@ -467,16 +540,20 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
                 label="向量相似度权重"
                 tooltip="向量召回与全文召回的融合权重。"
                 value={config.vector_similarity_weight}
-                onChange={(value) => onConfigChange({ vector_similarity_weight: value })}
+                onChange={(value) =>
+                  onConfigChange({ vector_similarity_weight: value })
+                }
                 min={0}
                 max={1}
                 step={0.01}
                 precision={2}
                 showSwitch={false}
               />
-              <div className="flex items-center justify-between text-xs text-text-secondary px-space-xs">
+              <div className="px-space-xs flex items-center justify-between text-xs text-text-secondary">
                 <span>vector {config.vector_similarity_weight.toFixed(2)}</span>
-                <span>full-text {(1 - config.vector_similarity_weight).toFixed(2)}</span>
+                <span>
+                  full-text {(1 - config.vector_similarity_weight).toFixed(2)}
+                </span>
               </div>
             </div>
 
@@ -495,11 +572,17 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
 
           <Separator className="my-space-sm" />
 
-          <section className="space-y-4 py-space-lg">
-            <ToggleRow label="AI 总结" checked={config.summary} onCheckedChange={(checked) => onConfigChange({ summary: checked })} />
+          <section className="py-space-lg space-y-4">
+            <ToggleRow
+              label="AI 总结"
+              checked={config.summary}
+              onCheckedChange={(checked) =>
+                onConfigChange({ summary: checked })
+              }
+            />
 
             {config.summary ? (
-              <div className="space-y-4 pl-space-xs">
+              <div className="pl-space-xs space-y-4">
                 <div className="space-y-space-sm">
                   <Label className="text-sm">模型</Label>
                   <ChatModelSelector
@@ -507,7 +590,10 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
                     selectedModelName={selectedSummaryModelName}
                     onSelect={(modelName) => {
                       if (!modelName) {
-                        onConfigChange({ chat_id: undefined, llm_id: undefined })
+                        onConfigChange({
+                          chat_id: undefined,
+                          llm_id: undefined,
+                        })
                         return
                       }
                       onConfigChange({ chat_id: modelName, llm_id: modelName })
@@ -521,15 +607,26 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
 
                 <div className="space-y-space-sm">
                   <Label className="text-sm">自由度</Label>
-                  <Select value={summaryPreset} onValueChange={handleSummaryPresetChange}>
-                    <SelectTrigger className="w-full h-11 rounded-radius-lg">
+                  <Select
+                    value={summaryPreset}
+                    onValueChange={handleSummaryPresetChange}
+                  >
+                    <SelectTrigger className="rounded-radius-lg h-11 w-full">
                       <SelectValue placeholder="请选择" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={SummaryPreset.PRECISE}>精准（低随机）</SelectItem>
-                      <SelectItem value={SummaryPreset.BALANCED}>平衡（推荐）</SelectItem>
-                      <SelectItem value={SummaryPreset.CREATIVE}>创意（高发散）</SelectItem>
-                      <SelectItem value={SummaryPreset.CUSTOM}>自定义</SelectItem>
+                      <SelectItem value={SummaryPreset.PRECISE}>
+                        精准（低随机）
+                      </SelectItem>
+                      <SelectItem value={SummaryPreset.BALANCED}>
+                        平衡（推荐）
+                      </SelectItem>
+                      <SelectItem value={SummaryPreset.CREATIVE}>
+                        创意（高发散）
+                      </SelectItem>
+                      <SelectItem value={SummaryPreset.CUSTOM}>
+                        自定义
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -538,10 +635,16 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
                   label="温度"
                   tooltip="控制输出随机性，值越高越有创造性。"
                   value={getLLMValue('temperature')}
-                  onChange={(value) => updateLLMField('temperature', true, value)}
+                  onChange={(value) =>
+                    updateLLMField('temperature', true, value)
+                  }
                   enabled={config.llm_setting?.temperature !== undefined}
                   onEnabledChange={(enabled) =>
-                    updateLLMField('temperature', enabled, getLLMValue('temperature'))
+                    updateLLMField(
+                      'temperature',
+                      enabled,
+                      getLLMValue('temperature'),
+                    )
                   }
                   min={0}
                   max={2}
@@ -568,10 +671,16 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
                   label="存在处罚"
                   tooltip="降低模型重复提及同一主题的概率。"
                   value={getLLMValue('presence_penalty')}
-                  onChange={(value) => updateLLMField('presence_penalty', true, value)}
+                  onChange={(value) =>
+                    updateLLMField('presence_penalty', true, value)
+                  }
                   enabled={config.llm_setting?.presence_penalty !== undefined}
                   onEnabledChange={(enabled) =>
-                    updateLLMField('presence_penalty', enabled, getLLMValue('presence_penalty'))
+                    updateLLMField(
+                      'presence_penalty',
+                      enabled,
+                      getLLMValue('presence_penalty'),
+                    )
                   }
                   min={0}
                   max={2}
@@ -583,10 +692,16 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
                   label="频率惩罚"
                   tooltip="降低模型重复使用相同词语的概率。"
                   value={getLLMValue('frequency_penalty')}
-                  onChange={(value) => updateLLMField('frequency_penalty', true, value)}
+                  onChange={(value) =>
+                    updateLLMField('frequency_penalty', true, value)
+                  }
                   enabled={config.llm_setting?.frequency_penalty !== undefined}
                   onEnabledChange={(enabled) =>
-                    updateLLMField('frequency_penalty', enabled, getLLMValue('frequency_penalty'))
+                    updateLLMField(
+                      'frequency_penalty',
+                      enabled,
+                      getLLMValue('frequency_penalty'),
+                    )
                   }
                   min={0}
                   max={2}
@@ -596,15 +711,31 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
               </div>
             ) : null}
 
-            <ToggleRow label="相关问题推荐" checked={config.related_search} onCheckedChange={(checked) => onConfigChange({ related_search: checked })} />
-            <ToggleRow label="查询思维导图" checked={!!config.query_mindmap} onCheckedChange={(checked) => onConfigChange({ query_mindmap: checked })} />
-            <ToggleRow label="知识图谱增强" checked={config.use_kg} onCheckedChange={(checked) => onConfigChange({ use_kg: checked })} />
+            <ToggleRow
+              label="相关问题推荐"
+              checked={config.related_search}
+              onCheckedChange={(checked) =>
+                onConfigChange({ related_search: checked })
+              }
+            />
+            <ToggleRow
+              label="查询思维导图"
+              checked={!!config.query_mindmap}
+              onCheckedChange={(checked) =>
+                onConfigChange({ query_mindmap: checked })
+              }
+            />
+            <ToggleRow
+              label="知识图谱增强"
+              checked={config.use_kg}
+              onCheckedChange={(checked) => onConfigChange({ use_kg: checked })}
+            />
 
             <div className="space-y-space-sm">
               <Label className="text-sm">
                 跨语言翻译
                 {(config.cross_languages?.length || 0) > 0 ? (
-                  <span className="ml-space-xs rounded-radius-full bg-background-subtle px-space-sm py-0.5 text-xs text-text-secondary">
+                  <span className="ml-space-xs rounded-radius-full px-space-sm bg-background-subtle py-0.5 text-xs text-text-secondary">
                     {config.cross_languages?.length}种语言
                   </span>
                 ) : null}
@@ -612,7 +743,9 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
               <MultiSelectWithSearch
                 options={CROSS_LANGUAGE_OPTIONS}
                 value={config.cross_languages || []}
-                onChange={(languages) => onConfigChange({ cross_languages: languages })}
+                onChange={(languages) =>
+                  onConfigChange({ cross_languages: languages })
+                }
                 placeholder="选择翻译语言..."
                 emptyText="暂无语言"
                 allowClear
@@ -627,7 +760,7 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
 
           <Separator className="my-space-sm" />
 
-          <section className="space-y-4 py-space-lg">
+          <section className="py-space-lg space-y-4">
             <ToggleRow
               label="rerank 模型"
               checked={config.use_rerank}
@@ -645,15 +778,23 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
                 loading={modelLoading}
                 error={modelError}
                 selectedModelId={config.rerank_id || null}
-                onSelect={(modelId) => onConfigChange({ rerank_id: modelId || '' })}
+                onSelect={(modelId) =>
+                  onConfigChange({ rerank_id: modelId || '' })
+                }
               />
             ) : null}
           </section>
         </div>
 
         <div className="mt-space-base pt-space-sm">
-          <Button className="w-full" onClick={onSave} disabled={isSaving || !isDirty || !config.kb_ids.length}>
-            {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+          <Button
+            className="w-full"
+            onClick={onSave}
+            disabled={isSaving || !isDirty || !config.kb_ids.length}
+          >
+            {isSaving ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : null}
             保存配置
           </Button>
         </div>

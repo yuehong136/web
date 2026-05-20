@@ -37,7 +37,7 @@ const kindCards = [
     descriptionKey: 'agent.center.createAgentDescription',
     description: 'Chat, tool calling, and multi-turn orchestration',
     icon: BrainCircuit,
-    tone: 'bg-state-info-subtle text-state-info',
+    tone: 'bg-status-info-subtle text-status-info',
   },
   {
     value: AgentCanvasType.PIPELINE,
@@ -46,7 +46,7 @@ const kindCards = [
     descriptionKey: 'agent.center.createPipelineDescription',
     description: 'File parsing, chunking, extraction, and indexing',
     icon: Route,
-    tone: 'bg-state-success-subtle text-state-success',
+    tone: 'bg-status-success-subtle text-status-success',
   },
 ]
 

@@ -6,7 +6,11 @@
 import React from 'react'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover'
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from '@/components/ui/popover'
 import { ChevronDown, Crown, Shield, Users } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { TenantRole, type TenantInfo, type JoinedTeam } from '@/types/team'
@@ -31,7 +35,11 @@ export const TeamSelector: React.FC<TeamSelectorProps> = ({
   const selectedTeam = React.useMemo(() => {
     if (!selectedTenantId || selectedTenantId === ownTenant?.tenant_id) {
       return ownTenant
-        ? { name: ownTenant.name, role: TenantRole.Owner, avatar: null as string | null }
+        ? {
+            name: ownTenant.name,
+            role: TenantRole.Owner,
+            avatar: null as string | null,
+          }
         : null
     }
     const team = manageableTeams.find((t) => t.tenant_id === selectedTenantId)
@@ -54,9 +62,9 @@ export const TeamSelector: React.FC<TeamSelectorProps> = ({
         <Button
           variant="outline"
           size="sm"
-          className="gap-2 min-w-[200px] justify-between"
+          className="min-w-[200px] justify-between gap-2"
         >
-          <div className="flex items-center gap-2 min-w-0">
+          <div className="flex min-w-0 items-center gap-2">
             {selectedTeam && (
               <>
                 <span className="truncate text-sm font-medium">
@@ -66,7 +74,12 @@ export const TeamSelector: React.FC<TeamSelectorProps> = ({
               </>
             )}
           </div>
-          <ChevronDown className={cn('h-4 w-4 shrink-0 transition-transform', open && 'rotate-180')} />
+          <ChevronDown
+            className={cn(
+              'h-4 w-4 shrink-0 transition-transform',
+              open && 'rotate-180',
+            )}
+          />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[280px] p-1" align="start">
@@ -79,18 +92,22 @@ export const TeamSelector: React.FC<TeamSelectorProps> = ({
             <button
               onClick={() => handleSelect(ownTenant.tenant_id)}
               className={cn(
-                'w-full flex items-center gap-3 px-2 py-2 rounded-lg text-left transition-colors',
+                'flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors',
                 'hover:bg-surface-secondary',
-                selectedTenantId === ownTenant.tenant_id && 'bg-surface-secondary'
+                selectedTenantId === ownTenant.tenant_id &&
+                  'bg-surface-secondary',
               )}
             >
               <Avatar className="h-8 w-8 shrink-0">
                 <AvatarFallback className="bg-[var(--color-status-warning-bg)]">
-                  <Crown className="h-4 w-4" style={{ color: 'var(--color-status-warning-text)' }} />
+                  <Crown
+                    className="h-4 w-4"
+                    style={{ color: 'var(--color-status-warning-text)' }}
+                  />
                 </AvatarFallback>
               </Avatar>
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-text-primary truncate">
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-sm font-medium text-text-primary">
                   {ownTenant.name || '我的团队'}
                 </div>
               </div>
@@ -102,7 +119,7 @@ export const TeamSelector: React.FC<TeamSelectorProps> = ({
         {/* 管理的团队 */}
         {manageableTeams.length > 0 && (
           <>
-            <div className="px-2 py-1.5 text-xs font-medium text-text-tertiary mt-1">
+            <div className="mt-1 px-2 py-1.5 text-xs font-medium text-text-tertiary">
               管理的团队
             </div>
             {manageableTeams.map((team) => (
@@ -110,26 +127,29 @@ export const TeamSelector: React.FC<TeamSelectorProps> = ({
                 key={team.tenant_id}
                 onClick={() => handleSelect(team.tenant_id)}
                 className={cn(
-                  'w-full flex items-center gap-3 px-2 py-2 rounded-lg text-left transition-colors',
+                  'flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors',
                   'hover:bg-surface-secondary',
-                  selectedTenantId === team.tenant_id && 'bg-surface-secondary'
+                  selectedTenantId === team.tenant_id && 'bg-surface-secondary',
                 )}
               >
                 <Avatar className="h-8 w-8 shrink-0">
-                  <AvatarImage src={team.avatar || undefined} alt={team.nickname} />
-                  <AvatarFallback className="bg-state-success-subtle">
+                  <AvatarImage
+                    src={team.avatar || undefined}
+                    alt={team.nickname}
+                  />
+                  <AvatarFallback className="bg-status-success-subtle">
                     {team.role === TenantRole.Admin ? (
                       <Shield className="h-4 w-4 text-[var(--color-components-badge-purple-text)]" />
                     ) : (
-                      <Users className="h-4 w-4 text-state-success" />
+                      <Users className="h-4 w-4 text-status-success" />
                     )}
                   </AvatarFallback>
                 </Avatar>
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-text-primary truncate">
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-medium text-text-primary">
                     {team.nickname || '未命名团队'}
                   </div>
-                  <div className="text-xs text-text-tertiary truncate">
+                  <div className="truncate text-xs text-text-tertiary">
                     {team.email}
                   </div>
                 </div>

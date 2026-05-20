@@ -89,7 +89,7 @@
 // 变体：status-*-10（10% 弱底色）、status-*-subtle（卡片/提示条底色）
 ```
 
-> **强制**：反馈态一律用 `status-*`。`state-success/warning/error/info`（含 `-10`/`-subtle`）是 `status-*` 的 legacy alias，仅在全仓迁移完成前保留——不要新写反馈态 `state-*`，迁移完成前也不要删 alias。交互态 `state-hover/active/focus/disabled/loading` 照常使用。
+> **强制**：反馈态一律用 `status-*`。`state-success/warning/error/info`（含 `-10`/`-subtle`）是 `status-*` 的 legacy alias。全仓反馈态 `state-*` → `status-*` 迁移**已完成**（live code 零命中），并由 ESLint 规则 `design-tokens/no-feedback-state-token`（`error` 级）强制——新写反馈态 `state-*` 会直接报错。alias 仅作兼容保留，等独立 deprecate 任务物理删除前不要删。交互态 `state-hover/active/focus/disabled/loading` 照常使用。
 
 ## 🛠️ 使用方法
 

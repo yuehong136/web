@@ -4,7 +4,10 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { AppScene } from './types'
 
-interface BasePageStateProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'title'> {
+interface BasePageStateProps extends Omit<
+  React.HTMLAttributes<HTMLDivElement>,
+  'title'
+> {
   scene?: AppScene
   compact?: boolean
 }
@@ -30,7 +33,13 @@ interface PageErrorStateProps extends BasePageStateProps {
 
 const PageStateShell: React.FC<
   React.PropsWithChildren<BasePageStateProps & { className?: string }>
-> = ({ scene: _scene = AppScene.CONSOLE, compact = false, className, children, ...props }) => {
+> = ({
+  scene: _scene = AppScene.CONSOLE,
+  compact = false,
+  className,
+  children,
+  ...props
+}) => {
   return (
     <div
       className={cn(
@@ -40,7 +49,7 @@ const PageStateShell: React.FC<
       )}
       {...props}
     >
-      <div className="flex w-full max-w-xl flex-col items-center gap-space-md p-space-xl text-center">
+      <div className="gap-space-md p-space-xl flex w-full max-w-xl flex-col items-center text-center">
         {children}
       </div>
     </div>
@@ -54,13 +63,17 @@ export const PageLoadingState: React.FC<PageLoadingStateProps> = ({
 }) => {
   return (
     <PageStateShell {...props}>
-      <div className="flex h-12 w-12 items-center justify-center rounded-radius-full bg-components-page-state-icon-bg text-components-page-state-icon">
+      <div className="rounded-radius-full flex h-12 w-12 items-center justify-center bg-components-page-state-icon-bg text-components-page-state-icon">
         <Loader2 className="h-6 w-6 animate-spin" />
       </div>
-      <div className="flex flex-col gap-space-xs">
-        <h2 className="text-lg font-semibold text-components-page-state-title">{title}</h2>
+      <div className="gap-space-xs flex flex-col">
+        <h2 className="text-lg font-semibold text-components-page-state-title">
+          {title}
+        </h2>
         {description ? (
-          <p className="text-sm text-components-page-state-description">{description}</p>
+          <p className="text-sm text-components-page-state-description">
+            {description}
+          </p>
         ) : null}
       </div>
     </PageStateShell>
@@ -76,16 +89,22 @@ export const PageEmptyState: React.FC<PageEmptyStateProps> = ({
 }) => {
   return (
     <PageStateShell {...props}>
-      <div className="flex h-12 w-12 items-center justify-center rounded-radius-full bg-components-page-state-icon-bg text-components-page-state-icon">
+      <div className="rounded-radius-full flex h-12 w-12 items-center justify-center bg-components-page-state-icon-bg text-components-page-state-icon">
         {icon ?? <Inbox className="h-6 w-6" />}
       </div>
-      <div className="flex flex-col gap-space-xs">
-        <h2 className="text-lg font-semibold text-components-page-state-title">{title}</h2>
+      <div className="gap-space-xs flex flex-col">
+        <h2 className="text-lg font-semibold text-components-page-state-title">
+          {title}
+        </h2>
         {description ? (
-          <p className="text-sm text-components-page-state-description">{description}</p>
+          <p className="text-sm text-components-page-state-description">
+            {description}
+          </p>
         ) : null}
       </div>
-      {action ? <div className="flex items-center gap-space-sm">{action}</div> : null}
+      {action ? (
+        <div className="gap-space-sm flex items-center">{action}</div>
+      ) : null}
     </PageStateShell>
   )
 }
@@ -99,13 +118,17 @@ export const PageErrorState: React.FC<PageErrorStateProps> = ({
 }) => {
   return (
     <PageStateShell {...props}>
-      <div className="flex h-12 w-12 items-center justify-center rounded-radius-full bg-state-error-subtle text-state-error">
+      <div className="rounded-radius-full flex h-12 w-12 items-center justify-center bg-status-error-subtle text-status-error">
         <AlertTriangle className="h-6 w-6" />
       </div>
-      <div className="flex flex-col gap-space-xs">
-        <h2 className="text-lg font-semibold text-components-page-state-title">{title}</h2>
+      <div className="gap-space-xs flex flex-col">
+        <h2 className="text-lg font-semibold text-components-page-state-title">
+          {title}
+        </h2>
         {description ? (
-          <p className="text-sm text-components-page-state-description">{description}</p>
+          <p className="text-sm text-components-page-state-description">
+            {description}
+          </p>
         ) : null}
       </div>
       {onRetry ? (

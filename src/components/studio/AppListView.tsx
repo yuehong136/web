@@ -47,7 +47,7 @@ const SKELETON_WIDTHS = ['w-14', 'w-8', 'w-28', 'w-28']
 // 状态颜色
 const getStatusColor = (status: string) =>
   status === '1'
-    ? 'text-text-success bg-[var(--color-state-success-10)]'
+    ? 'text-text-success bg-[var(--color-status-success-10)]'
     : 'text-text-secondary bg-background-subtle'
 
 // 时间格式化

@@ -142,14 +142,14 @@ Tailwind 集成 (tailwind.config.js):
 
 #### 3) Legacy alias：`state-{success,warning,error,info}`（强制）
 
-历史上反馈色曾写作 `state-success/warning/error/info`（含 `-10`/`-subtle`）。现已确立 `status-*` 为反馈态 canonical，`state-*` 反馈 token **保留为等值 legacy alias**，仅用于在全仓迁移完成前兼容存量代码：
+历史上反馈色曾写作 `state-success/warning/error/info`（含 `-10`/`-subtle`）。现已确立 `status-*` 为反馈态 canonical，`state-*` 反馈 token **保留为等值 legacy alias**，仅用于在 alias 物理删除前兼容存量代码：
 
 - ✅ 新代码反馈态**只写 `status-*`**；
-- ❌ **不要新写**反馈态 `state-success/warning/error/info`；
-- ❌ 全仓迁移完成前**不要删除**这些 alias（使用面大，删除会大范围回归）；
+- ❌ **不要新写**反馈态 `state-success/warning/error/info`；这一条已由 ESLint 规则 `design-tokens/no-feedback-state-token`（`error` 级，覆盖 `src/**/*.{ts,tsx}`，排除 `src/themes/**`）强制，新写会直接报错；
+- ❌ alias 物理删除前**不要删除**这些定义（使用面大，且可能存在动态拼接 / embed 引用，删除需另开 deprecate 任务并先做全仓零引用核实）；
 - ✅ 交互态 `state-hover/active/focus/disabled/loading` 不受影响，继续使用。
 
-知识库模块已完成迁移作为参考实现，见 `docs/knowledge-refactor/2026-05-20-knowledge-status-token-audit-summary.md`；其余模块的反馈态 `state-*` → `status-*` 全仓迁移作为后续 “Design Token semantic migration” 任务推进。
+**全仓迁移状态**：反馈态 `state-*` → `status-*` 已在全仓完成（知识库见 KR-11，其余模块见 `docs/design-tokens/2026-05-20-design-token-feedback-migration-summary.md`）。live code 中的反馈态 `state-*` 已为 0；`state-*` 反馈 token 仅作为 legacy alias 等待独立 deprecate 任务物理删除。唯一刻意保留的例外是 `src/pages/search/detail/mindmap/indented-tree.tsx` 里 `readCssVar('state-*')` 的分类调色板（非反馈语义），后续应迁到 category/data-viz palette token。
 
 > 注：基础令牌里的 `text-success/warning/error`、`border-success/warning/error` 是「文本/边框」专用语义键，与反馈意图色独立，不在本次 `state-*`→`status-*` 迁移范围内。
 

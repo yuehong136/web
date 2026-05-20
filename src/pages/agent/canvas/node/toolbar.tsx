@@ -21,7 +21,7 @@ function IconWrapper({ className, ...props }: ButtonProps) {
       variant="secondary"
       size="icon-sm"
       className={cn(
-        'size-7 p-0 bg-surface-primary text-text-secondary hover:text-text-primary',
+        'bg-surface-primary size-7 p-0 text-text-secondary hover:text-text-primary',
         className,
       )}
       {...props}
@@ -30,7 +30,15 @@ function IconWrapper({ className, ...props }: ButtonProps) {
 }
 
 export const ToolBar = memo(
-  ({ children, selected, id, label, showRun, showCopy, className }: ToolBarProps) => {
+  ({
+    children,
+    selected,
+    id,
+    label,
+    showRun,
+    showCopy,
+    className,
+  }: ToolBarProps) => {
     const { deleteNodeById, deleteIterationNodeById, duplicateNode } =
       useGraphStore()
 
@@ -57,15 +65,15 @@ export const ToolBar = memo(
     const toolbarVisible = selected
 
     return (
-      <div className={cn('relative group', className)}>
+      <div className={cn('group relative', className)}>
         {children}
         {label !== Operator.Begin && (
           <div
             className={cn(
-              'absolute -top-10 left-1/2 -translate-x-1/2 flex items-center gap-space-xs rounded-radius-md border border-border-primary bg-surface-primary px-space-xs py-space-xs shadow-elevation-low transition-opacity',
+              'gap-space-xs rounded-radius-md border-border-primary bg-surface-primary px-space-xs py-space-xs shadow-elevation-low absolute -top-10 left-1/2 flex -translate-x-1/2 items-center border transition-opacity',
               toolbarVisible
-                ? 'opacity-100 pointer-events-auto'
-                : 'opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto',
+                ? 'pointer-events-auto opacity-100'
+                : 'pointer-events-none opacity-0 group-hover:pointer-events-auto group-hover:opacity-100',
             )}
           >
             {showRun && (
@@ -79,7 +87,7 @@ export const ToolBar = memo(
               </IconWrapper>
             )}
             <IconWrapper
-              className="hover:text-state-error"
+              className="hover:text-status-error"
               onClick={handleDelete}
               title="删除节点"
             >

@@ -58,7 +58,7 @@ export function ShareOutputBlock({
           aria-label={copyLabel}
         >
           {status === 'copied' ? (
-            <Check className="text-status-success h-4 w-4" />
+            <Check className="h-4 w-4 text-status-success" />
           ) : (
             <Copy className="h-4 w-4" />
           )}
@@ -80,7 +80,7 @@ export function ShareOutputBlock({
           <div className="gap-space-xs px-space-base py-space-sm flex items-center border-t border-border-subtle text-xs">
             {status === 'copied' ? (
               <>
-                <Check className="text-status-success h-3.5 w-3.5" />
+                <Check className="h-3.5 w-3.5 text-status-success" />
                 <span className="text-text-secondary">
                   {t('agent.share.copiedToClipboard', 'Copied to clipboard')}
                 </span>
@@ -141,7 +141,7 @@ function highlightHtmlLine(line: string) {
 
     if (segment.startsWith('"http')) {
       return (
-        <span key={`${segment}-${index}`} className="text-state-info">
+        <span key={`${segment}-${index}`} className="text-status-info">
           {segment}
         </span>
       )

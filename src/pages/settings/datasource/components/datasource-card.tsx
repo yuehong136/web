@@ -40,21 +40,15 @@ export function DataSourceCard({ name, icon, list }: DataSourceCardProps) {
   if (list.length === 0) return null
 
   return (
-    <div className="bg-components-card-bg border border-components-card-border rounded-lg 
-                    overflow-hidden shadow-sm hover:shadow-elevation-low transition-shadow duration-200">
+    <div className="hover:shadow-elevation-low overflow-hidden rounded-lg border border-components-card-border bg-components-card-bg shadow-sm transition-shadow duration-200">
       {/* 类型头部 */}
-      <div className="flex items-center gap-3 px-4 py-3 
-                      bg-background-subtle border-b border-border-default">
-        <div className="w-8 h-8 rounded-md bg-background-body 
-                        flex items-center justify-center shadow-sm">
-          <div className="w-5 h-5 flex items-center justify-center">
-            {icon}
-          </div>
+      <div className="flex items-center gap-3 border-b border-border-default bg-background-subtle px-4 py-3">
+        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-background-body shadow-sm">
+          <div className="flex h-5 w-5 items-center justify-center">{icon}</div>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium text-text-primary">{name}</span>
-          <span className="px-2 py-0.5 text-xs font-medium text-text-tertiary 
-                           bg-background-default rounded-full">
+          <span className="rounded-full bg-background-default px-2 py-0.5 text-xs font-medium text-text-tertiary">
             {list.length}
           </span>
         </div>
@@ -66,27 +60,22 @@ export function DataSourceCard({ name, icon, list }: DataSourceCardProps) {
           {list.map((item) => (
             <div
               key={item.id}
-              className="group flex items-center justify-between px-3 py-2.5 
-                         rounded-md bg-background-subtle/50
-                         hover:bg-background-subtle transition-colors duration-150"
+              className="bg-background-subtle/50 group flex items-center justify-between rounded-md px-3 py-2.5 transition-colors duration-150 hover:bg-background-subtle"
             >
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-2 h-2 rounded-full bg-state-success flex-shrink-0" />
-                <span className="text-sm text-text-primary font-medium truncate">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="h-2 w-2 flex-shrink-0 rounded-full bg-status-success" />
+                <span className="truncate text-sm font-medium text-text-primary">
                   {item.name}
                 </span>
               </div>
 
               {/* 操作按钮 */}
-              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 
-                              transition-opacity duration-150">
+              <div className="flex items-center gap-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
                 <Tooltip content={t('common.settings')}>
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-7 w-7 p-0 rounded-md 
-                               text-text-secondary hover:text-text-primary
-                               hover:bg-background-default"
+                    className="h-7 w-7 rounded-md p-0 text-text-secondary hover:bg-background-default hover:text-text-primary"
                     onClick={() => handleSettings(item.id)}
                   >
                     <Settings className="h-4 w-4" />
@@ -96,9 +85,7 @@ export function DataSourceCard({ name, icon, list }: DataSourceCardProps) {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-7 w-7 p-0 rounded-md 
-                               text-text-secondary hover:text-state-error
-                               hover:bg-state-error-10"
+                    className="h-7 w-7 rounded-md p-0 text-text-secondary hover:bg-status-error-10 hover:text-status-error"
                     onClick={() => setDeleteTarget(item)}
                   >
                     <Trash2 className="h-4 w-4" />

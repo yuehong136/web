@@ -208,7 +208,7 @@ const DropdownItem: React.FC<DropdownItemProps> = ({
       className={cn(
         'flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm',
         danger
-          ? 'text-status-error hover:bg-state-error-subtle'
+          ? 'text-status-error hover:bg-status-error-subtle'
           : 'text-text-secondary hover:bg-background-subtle',
         className,
       )}

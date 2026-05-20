@@ -53,18 +53,22 @@ export function ImportAgentDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent size="lg">
         <DialogHeader>
-          <div className="mb-space-sm flex h-11 w-11 items-center justify-center rounded-radius-xl bg-state-warning-subtle text-state-warning">
+          <div className="mb-space-sm rounded-radius-xl flex h-11 w-11 items-center justify-center bg-status-warning-subtle text-status-warning">
             <FileJson className="h-5 w-5" />
           </div>
           <DialogTitle>导入 JSON</DialogTitle>
           <DialogDescription>
-            支持导入历史 Agent / Pipeline DSL，第一阶段会自动归类并落到新的管理骨架里。
+            支持导入历史 Agent / Pipeline
+            DSL，第一阶段会自动归类并落到新的管理骨架里。
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col gap-space-lg px-space-lg pb-space-lg">
+        <div className="gap-space-lg px-space-lg pb-space-lg flex flex-col">
           <div className="space-y-space-sm">
-            <label htmlFor="import-title" className="text-sm font-medium text-text-primary">
+            <label
+              htmlFor="import-title"
+              className="text-sm font-medium text-text-primary"
+            >
               导入名称
             </label>
             <Input

@@ -7,7 +7,15 @@ import React from 'react'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Dropdown, DropdownItem } from '@/components/ui/dropdown'
-import { MoreVertical, Trash2, Mail, Clock, User, ShieldPlus, ShieldMinus } from 'lucide-react'
+import {
+  MoreVertical,
+  Trash2,
+  Mail,
+  Clock,
+  User,
+  ShieldPlus,
+  ShieldMinus,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { RoleBadge } from './RoleBadge'
 import { TenantRole, type TeamMember, type TeamPermissions } from '@/types/team'
@@ -19,7 +27,11 @@ interface TeamMemberCardProps {
   currentUserId?: string
   permissions: TeamPermissions
   onRemove?: (userId: string, nickname: string) => void
-  onChangeRole?: (userId: string, nickname: string, currentRole: TenantRole) => void
+  onChangeRole?: (
+    userId: string,
+    nickname: string,
+    currentRole: TenantRole,
+  ) => void
   timeFormat?: TimeFormat
 }
 
@@ -33,8 +45,13 @@ export const TeamMemberCard: React.FC<TeamMemberCardProps> = ({
 }) => {
   const isSelf = member.user_id === currentUserId
   // 不能对自己执行移除或角色变更操作
-  const canRemove = permissions.canRemove && member.role !== TenantRole.Owner && !isSelf
-  const canChangeRole = permissions.canChangeRole && member.role !== TenantRole.Owner && member.role !== TenantRole.Invite && !isSelf
+  const canRemove =
+    permissions.canRemove && member.role !== TenantRole.Owner && !isSelf
+  const canChangeRole =
+    permissions.canChangeRole &&
+    member.role !== TenantRole.Owner &&
+    member.role !== TenantRole.Invite &&
+    !isSelf
   const hasActions = canRemove || canChangeRole
   const [isHovered, setIsHovered] = React.useState(false)
 
@@ -42,35 +59,45 @@ export const TeamMemberCard: React.FC<TeamMemberCardProps> = ({
     <div
       className={cn(
         'group relative rounded-2xl border transition-all duration-200',
-        'hover:shadow-shadow-md hover:-translate-y-0.5',
-        isHovered && 'ring-2 ring-state-focus/20'
+        'hover:-translate-y-0.5 hover:shadow-shadow-md',
+        isHovered && 'ring-state-focus/20 ring-2',
       )}
       style={{
         backgroundColor: 'var(--color-components-card-bg)',
-        borderColor: isHovered ? 'var(--color-state-focus)' : 'var(--color-components-card-border)',
+        borderColor: isHovered
+          ? 'var(--color-state-focus)'
+          : 'var(--color-components-card-border)',
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <div className="p-5">
         {/* 头部：头像 + 名称 + 角色 + 操作菜单 */}
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex items-center gap-3 flex-1 min-w-0">
+        <div className="mb-4 flex items-start justify-between">
+          <div className="flex min-w-0 flex-1 items-center gap-3">
             <Avatar className="h-12 w-12 shrink-0">
-              <AvatarImage src={member.avatar || undefined} alt={member.nickname} />
-              <AvatarFallback className="bg-[var(--color-state-info-subtle)]">
-                <User className="h-5 w-5" style={{ color: 'var(--color-state-info)' }} />
+              <AvatarImage
+                src={member.avatar || undefined}
+                alt={member.nickname}
+              />
+              <AvatarFallback className="bg-[var(--color-status-info-subtle)]">
+                <User
+                  className="h-5 w-5"
+                  style={{ color: 'var(--color-status-info)' }}
+                />
               </AvatarFallback>
             </Avatar>
-            <div className="flex-1 min-w-0">
+            <div className="min-w-0 flex-1">
               <h3
-                className="font-semibold truncate"
+                className="truncate font-semibold"
                 style={{ color: 'var(--color-text-primary)' }}
                 title={member.nickname}
               >
                 {member.nickname || '未命名用户'}
                 {isSelf && (
-                  <span className="ml-1 text-xs font-normal text-text-tertiary">（我）</span>
+                  <span className="ml-1 text-xs font-normal text-text-tertiary">
+                    （我）
+                  </span>
                 )}
               </h3>
               <RoleBadge role={member.role} className="mt-1" />
@@ -85,35 +112,53 @@ export const TeamMemberCard: React.FC<TeamMemberCardProps> = ({
                   <Button
                     variant="ghost"
                     size="icon-sm"
-                    className="opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="opacity-0 transition-opacity group-hover:opacity-100"
                   >
                     <MoreVertical className="h-4 w-4" />
                   </Button>
                 }
               >
-                {canChangeRole && member.role === TenantRole.Normal && onChangeRole && (
-                  <DropdownItem
-                    icon={<ShieldPlus className="h-4 w-4" />}
-                    onClick={() => onChangeRole(member.user_id, member.nickname, member.role)}
-                  >
-                    设为管理员
-                  </DropdownItem>
-                )}
-                {canChangeRole && member.role === TenantRole.Admin && onChangeRole && (
-                  <DropdownItem
-                    icon={<ShieldMinus className="h-4 w-4" />}
-                    onClick={() => onChangeRole(member.user_id, member.nickname, member.role)}
-                  >
-                    取消管理员
-                  </DropdownItem>
-                )}
+                {canChangeRole &&
+                  member.role === TenantRole.Normal &&
+                  onChangeRole && (
+                    <DropdownItem
+                      icon={<ShieldPlus className="h-4 w-4" />}
+                      onClick={() =>
+                        onChangeRole(
+                          member.user_id,
+                          member.nickname,
+                          member.role,
+                        )
+                      }
+                    >
+                      设为管理员
+                    </DropdownItem>
+                  )}
+                {canChangeRole &&
+                  member.role === TenantRole.Admin &&
+                  onChangeRole && (
+                    <DropdownItem
+                      icon={<ShieldMinus className="h-4 w-4" />}
+                      onClick={() =>
+                        onChangeRole(
+                          member.user_id,
+                          member.nickname,
+                          member.role,
+                        )
+                      }
+                    >
+                      取消管理员
+                    </DropdownItem>
+                  )}
                 {canRemove && onRemove && (
                   <DropdownItem
                     icon={<Trash2 className="h-4 w-4" />}
                     onClick={() => onRemove(member.user_id, member.nickname)}
                     danger
                   >
-                    {member.role === TenantRole.Invite ? '撤销邀请' : '移除成员'}
+                    {member.role === TenantRole.Invite
+                      ? '撤销邀请'
+                      : '移除成员'}
                   </DropdownItem>
                 )}
               </Dropdown>
@@ -122,7 +167,10 @@ export const TeamMemberCard: React.FC<TeamMemberCardProps> = ({
         </div>
 
         {/* 成员信息 */}
-        <div className="space-y-2 text-sm" style={{ color: 'var(--color-text-tertiary)' }}>
+        <div
+          className="space-y-2 text-sm"
+          style={{ color: 'var(--color-text-tertiary)' }}
+        >
           <div className="flex items-center gap-2">
             <Mail className="h-4 w-4 shrink-0" />
             <span className="truncate" title={member.email}>
@@ -131,7 +179,13 @@ export const TeamMemberCard: React.FC<TeamMemberCardProps> = ({
           </div>
           <div className="flex items-center gap-2">
             <Clock className="h-4 w-4 shrink-0" />
-            <span>{formatTeamTime(member.update_date, member.delta_seconds, timeFormat)}</span>
+            <span>
+              {formatTeamTime(
+                member.update_date,
+                member.delta_seconds,
+                timeFormat,
+              )}
+            </span>
           </div>
         </div>
       </div>

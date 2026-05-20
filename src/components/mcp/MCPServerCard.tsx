@@ -47,14 +47,14 @@ const SERVER_TYPE_CONFIG: Record<
 > = {
   'streamable-http': {
     label: 'HTTP',
-    bgColor: 'var(--color-state-info-subtle)',
-    textColor: 'var(--color-state-info)',
+    bgColor: 'var(--color-status-info-subtle)',
+    textColor: 'var(--color-status-info)',
     gradient: 'from-blue-500/10 to-cyan-500/10',
   },
   sse: {
     label: 'SSE',
-    bgColor: 'var(--color-state-success-subtle)',
-    textColor: 'var(--color-state-success)',
+    bgColor: 'var(--color-status-success-subtle)',
+    textColor: 'var(--color-status-success)',
     gradient: 'from-green-500/10 to-emerald-500/10',
   },
 }
@@ -155,10 +155,10 @@ export const MCPServerCard: React.FC<MCPServerCardProps> = ({
                 )}
                 style={{
                   backgroundColor: isOnline
-                    ? 'var(--color-state-success)'
+                    ? 'var(--color-status-success)'
                     : 'var(--color-text-disabled)',
                   boxShadow: isOnline
-                    ? '0 0 8px var(--color-state-success)'
+                    ? '0 0 8px var(--color-status-success)'
                     : 'none',
                 }}
               />
@@ -166,7 +166,7 @@ export const MCPServerCard: React.FC<MCPServerCardProps> = ({
                 className="text-xs font-medium"
                 style={{
                   color: isOnline
-                    ? 'var(--color-state-success)'
+                    ? 'var(--color-status-success)'
                     : 'var(--color-text-disabled)',
                 }}
               >
@@ -394,7 +394,7 @@ export const MCPServerCard: React.FC<MCPServerCardProps> = ({
                     className={cn('h-2.5 w-2.5 rounded-full')}
                     style={{
                       backgroundColor: isOnline
-                        ? 'var(--color-state-success)'
+                        ? 'var(--color-status-success)'
                         : 'var(--color-text-disabled)',
                     }}
                   />

@@ -7,6 +7,7 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import tailwindcss from 'eslint-plugin-tailwindcss'
 import tseslint from 'typescript-eslint'
 import { globalIgnores } from 'eslint/config'
+import noFeedbackStateToken from './eslint-rules/no-feedback-state-token.js'
 
 const typedLint = process.env.ESLINT_TYPED === 'true'
 const jsxA11yWarningRules = Object.fromEntries(
@@ -116,6 +117,21 @@ export default tseslint.config([
             '页面层请优先使用 @/components/ui/input 或 textarea，例外需写明 UI 层缺口。',
         },
       ],
+    },
+  },
+  {
+    // 反馈态 token 防回归：禁止新写 legacy 反馈态 state-*，一律用 canonical status-*。
+    // 独立规则名，避免与上面 pages 的 no-restricted-syntax 互相覆盖。
+    // 排除 src/themes/**：alias 定义在迁移彻底完成前保留。
+    files: ['src/**/*.{ts,tsx}'],
+    ignores: ['src/themes/**'],
+    plugins: {
+      'design-tokens': {
+        rules: { 'no-feedback-state-token': noFeedbackStateToken },
+      },
+    },
+    rules: {
+      'design-tokens/no-feedback-state-token': 'error',
     },
   },
 ])

@@ -1,5 +1,12 @@
 import React, { memo, useEffect, useMemo, useRef } from 'react'
-import { BrainCircuit, Maximize2, Minimize, Minimize2, RefreshCw, X } from 'lucide-react'
+import {
+  BrainCircuit,
+  Maximize2,
+  Minimize,
+  Minimize2,
+  RefreshCw,
+  X,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import IndentedTree, { type IndentedTreeRef } from './indented-tree'
@@ -26,9 +33,13 @@ const SearchMindmapDrawer: React.FC<SearchMindmapDrawerProps> = ({
   fallbackChunks = [],
 }) => {
   const treeRef = useRef<IndentedTreeRef | null>(null)
-  const { mindmap, error, progress, isLoading, request, refresh } = useSearchMindmap()
+  const { mindmap, error, progress, isLoading, request, refresh } =
+    useSearchMindmap()
 
-  const shouldRequest = useMemo(() => open && question.trim() && kbIds.length > 0, [kbIds.length, open, question])
+  const shouldRequest = useMemo(
+    () => open && question.trim() && kbIds.length > 0,
+    [kbIds.length, open, question],
+  )
 
   useEffect(() => {
     if (!shouldRequest) return
@@ -51,81 +62,108 @@ const SearchMindmapDrawer: React.FC<SearchMindmapDrawerProps> = ({
 
   const fallbackTree = useMemo(
     () => buildFallbackMindmapTree(question, fallbackChunks),
-    [fallbackChunks, question]
+    [fallbackChunks, question],
   )
   const treeData = mindmap || fallbackTree
 
   if (!open) return null
 
   return (
-    <aside className="h-full w-[480px] lg:w-[520px] xl:w-[580px] shrink-0 border-l border-border-default bg-surface-primary">
-      <div className="h-full min-h-0 flex flex-col">
-        <header className="shrink-0 border-b border-border-default px-space-base py-space-sm bg-surface-primary">
-          <div className="flex items-start justify-between gap-space-sm">
+    <aside className="bg-surface-primary h-full w-[480px] shrink-0 border-l border-border-default lg:w-[520px] xl:w-[580px]">
+      <div className="flex h-full min-h-0 flex-col">
+        <header className="px-space-base py-space-sm bg-surface-primary shrink-0 border-b border-border-default">
+          <div className="gap-space-sm flex items-start justify-between">
             <div className="min-w-0">
-              <h3 className="flex items-center gap-space-sm text-text-primary text-base font-semibold">
-                <span className="inline-flex h-8 w-8 items-center justify-center rounded-radius-md bg-surface-accent-subtle text-text-accent">
+              <h3 className="gap-space-sm flex items-center text-base font-semibold text-text-primary">
+                <span className="rounded-radius-md bg-surface-accent-subtle inline-flex h-8 w-8 items-center justify-center text-text-accent">
                   <BrainCircuit className="h-4 w-4" />
                 </span>
                 问题思维导图
               </h3>
-              <p className="mt-space-xs text-xs text-text-tertiary line-clamp-2">
+              <p className="mt-space-xs line-clamp-2 text-xs text-text-tertiary">
                 {question || '当前轮次暂无问题内容'}
               </p>
             </div>
             <button
               type="button"
               onClick={() => onOpenChange(false)}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-radius-md text-text-tertiary transition-colors hover:bg-surface-secondary hover:text-text-primary"
+              className="rounded-radius-md hover:bg-surface-secondary inline-flex h-8 w-8 items-center justify-center text-text-tertiary transition-colors hover:text-text-primary"
               aria-label="关闭思维导图"
             >
               <X className="h-4 w-4" />
             </button>
           </div>
 
-          <div className="mt-space-sm flex flex-wrap items-center gap-space-xs">
-            <Button variant="outline" size="sm" className="h-8 px-space-sm" onClick={() => treeRef.current?.fitView()}>
-              <Minimize className="h-3.5 w-3.5 mr-1" />
+          <div className="mt-space-sm gap-space-xs flex flex-wrap items-center">
+            <Button
+              variant="outline"
+              size="sm"
+              className="px-space-sm h-8"
+              onClick={() => treeRef.current?.fitView()}
+            >
+              <Minimize className="mr-1 h-3.5 w-3.5" />
               适配视图
             </Button>
-            <Button variant="outline" size="sm" className="h-8 px-space-sm" onClick={() => treeRef.current?.expandAll()}>
-              <Maximize2 className="h-3.5 w-3.5 mr-1" />
+            <Button
+              variant="outline"
+              size="sm"
+              className="px-space-sm h-8"
+              onClick={() => treeRef.current?.expandAll()}
+            >
+              <Maximize2 className="mr-1 h-3.5 w-3.5" />
               全部展开
             </Button>
-            <Button variant="outline" size="sm" className="h-8 px-space-sm" onClick={() => treeRef.current?.collapseAll()}>
-              <Minimize2 className="h-3.5 w-3.5 mr-1" />
+            <Button
+              variant="outline"
+              size="sm"
+              className="px-space-sm h-8"
+              onClick={() => treeRef.current?.collapseAll()}
+            >
+              <Minimize2 className="mr-1 h-3.5 w-3.5" />
               全部折叠
             </Button>
-            <Button variant="outline" size="sm" className="h-8 px-space-sm" onClick={refresh} disabled={isLoading}>
-              <RefreshCw className={`h-3.5 w-3.5 mr-1 ${isLoading ? 'animate-spin' : ''}`} />
+            <Button
+              variant="outline"
+              size="sm"
+              className="px-space-sm h-8"
+              onClick={refresh}
+              disabled={isLoading}
+            >
+              <RefreshCw
+                className={`mr-1 h-3.5 w-3.5 ${isLoading ? 'animate-spin' : ''}`}
+              />
               重新生成
             </Button>
           </div>
         </header>
 
-        <div className="flex-1 min-h-0 p-space-base">
+        <div className="p-space-base min-h-0 flex-1">
           {isLoading ? (
-            <div className="h-full rounded-radius-xl border border-border-default bg-surface-secondary p-space-base">
-              <p className="text-xs text-text-tertiary mb-space-sm">正在分析问题结构并生成脑图...</p>
+            <div className="rounded-radius-xl bg-surface-secondary p-space-base h-full border border-border-default">
+              <p className="mb-space-sm text-xs text-text-tertiary">
+                正在分析问题结构并生成脑图...
+              </p>
               <Progress value={progress || 20} className="h-1.5" />
               <div className="mt-space-base space-y-space-sm">
-                <div className="h-6 rounded-radius-md bg-surface-primary animate-pulse" />
-                <div className="h-6 rounded-radius-md bg-surface-primary animate-pulse w-4/5" />
-                <div className="h-6 rounded-radius-md bg-surface-primary animate-pulse w-3/5" />
+                <div className="rounded-radius-md bg-surface-primary h-6 animate-pulse" />
+                <div className="rounded-radius-md bg-surface-primary h-6 w-4/5 animate-pulse" />
+                <div className="rounded-radius-md bg-surface-primary h-6 w-3/5 animate-pulse" />
               </div>
             </div>
           ) : null}
 
           {!isLoading && !treeData ? (
-            <div className="h-full rounded-radius-xl border border-border-default bg-surface-secondary p-space-lg flex items-center justify-center">
-              <p className="text-sm text-text-tertiary">当前暂无可展示的思维导图数据。</p>
+            <div className="rounded-radius-xl bg-surface-secondary p-space-lg flex h-full items-center justify-center border border-border-default">
+              <p className="text-sm text-text-tertiary">
+                当前暂无可展示的思维导图数据。
+              </p>
             </div>
           ) : null}
 
           {!isLoading && treeData ? (
-            <div className="h-full rounded-radius-xl border border-border-default bg-surface-secondary p-space-sm overflow-hidden">
+            <div className="rounded-radius-xl bg-surface-secondary p-space-sm h-full overflow-hidden border border-border-default">
               {error ? (
-                <div className="mb-space-xs rounded-radius-md border border-state-warning bg-state-warning-subtle px-space-sm py-space-xs text-xs text-text-secondary">
+                <div className="mb-space-xs rounded-radius-md px-space-sm py-space-xs border border-status-warning bg-status-warning-subtle text-xs text-text-secondary">
                   脑图接口暂不可用，当前展示基于检索结果的本地结构图。
                 </div>
               ) : null}

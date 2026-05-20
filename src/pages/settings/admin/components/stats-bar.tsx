@@ -10,29 +10,35 @@ interface StatCardProps {
   highlight?: boolean
 }
 
-const StatCard: React.FC<StatCardProps> = memo(({ icon, label, value, highlight }) => (
-  <div
-    className={cn(
-      'flex items-center gap-space-lg rounded-radius-xl p-space-xl',
-      highlight
-        ? 'bg-background-subtle'
-        : 'bg-background-surface'
-    )}
-  >
+const StatCard: React.FC<StatCardProps> = memo(
+  ({ icon, label, value, highlight }) => (
     <div
       className={cn(
-        'flex h-12 w-12 items-center justify-center rounded-radius-xl flex-shrink-0',
-        highlight ? 'bg-state-success-subtle' : 'bg-background-default'
+        'gap-space-lg rounded-radius-xl p-space-xl flex items-center',
+        highlight ? 'bg-background-subtle' : 'bg-background-surface',
       )}
     >
-      <span className={highlight ? 'text-text-success' : 'text-text-secondary'}>{icon}</span>
+      <div
+        className={cn(
+          'rounded-radius-xl flex h-12 w-12 flex-shrink-0 items-center justify-center',
+          highlight ? 'bg-status-success-subtle' : 'bg-background-default',
+        )}
+      >
+        <span
+          className={highlight ? 'text-text-success' : 'text-text-secondary'}
+        >
+          {icon}
+        </span>
+      </div>
+      <div className="min-w-0">
+        <p className="text-3xl font-bold tabular-nums leading-none text-text-primary">
+          {value}
+        </p>
+        <p className="mt-0.5 truncate text-sm text-text-tertiary">{label}</p>
+      </div>
     </div>
-    <div className="min-w-0">
-      <p className="text-3xl font-bold tabular-nums text-text-primary leading-none">{value}</p>
-      <p className="mt-0.5 text-sm text-text-tertiary truncate">{label}</p>
-    </div>
-  </div>
-))
+  ),
+)
 StatCard.displayName = 'StatCard'
 
 interface StatsBarProps {
@@ -41,11 +47,11 @@ interface StatsBarProps {
 
 export const StatsBar: React.FC<StatsBarProps> = memo(({ users }) => {
   const total = users.length
-  const active = users.filter(u => u.is_active).length
-  const inactive = users.filter(u => !u.is_active).length
+  const active = users.filter((u) => u.is_active).length
+  const inactive = users.filter((u) => !u.is_active).length
 
   return (
-    <div className="grid grid-cols-1 gap-space-md md:grid-cols-3 md:gap-space-lg">
+    <div className="gap-space-md md:gap-space-lg grid grid-cols-1 md:grid-cols-3">
       <StatCard
         icon={<Users className="h-5 w-5" />}
         label="总用户"

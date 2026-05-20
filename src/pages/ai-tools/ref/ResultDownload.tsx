@@ -2,7 +2,16 @@ import React, { useState } from 'react'
 import { Button } from '@/components/vendor/ui/button'
 import { toast } from '@/lib/toast'
 import DocumentPreview from './DocumentPreview'
-import { Download, CheckCircle2, RotateCcw, Eye, FileText, Clock, HardDrive, ArrowLeft } from 'lucide-react'
+import {
+  Download,
+  CheckCircle2,
+  RotateCcw,
+  Eye,
+  FileText,
+  Clock,
+  HardDrive,
+  ArrowLeft,
+} from 'lucide-react'
 
 interface ResultDownloadProps {
   fileData: string
@@ -11,7 +20,12 @@ interface ResultDownloadProps {
   onBackToFill?: () => void
 }
 
-const ResultDownload: React.FC<ResultDownloadProps> = ({ fileData, onReset, originalFileName, onBackToFill }) => {
+const ResultDownload: React.FC<ResultDownloadProps> = ({
+  fileData,
+  onReset,
+  originalFileName,
+  onBackToFill,
+}) => {
   const [isDownloading, setIsDownloading] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
 
@@ -20,9 +34,12 @@ const ResultDownload: React.FC<ResultDownloadProps> = ({ fileData, onReset, orig
       setIsDownloading(true)
       const byteChars = atob(fileData)
       const byteNumbers = new Array(byteChars.length)
-      for (let i = 0; i < byteChars.length; i++) byteNumbers[i] = byteChars.charCodeAt(i)
+      for (let i = 0; i < byteChars.length; i++)
+        byteNumbers[i] = byteChars.charCodeAt(i)
       const byteArray = new Uint8Array(byteNumbers)
-      const blob = new Blob([byteArray], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' })
+      const blob = new Blob([byteArray], {
+        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      })
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
@@ -47,7 +64,7 @@ const ResultDownload: React.FC<ResultDownloadProps> = ({ fileData, onReset, orig
     month: '2-digit',
     day: '2-digit',
     hour: '2-digit',
-    minute: '2-digit'
+    minute: '2-digit',
   })
 
   const formatFileSize = (base64: string) => {
@@ -60,38 +77,42 @@ const ResultDownload: React.FC<ResultDownloadProps> = ({ fileData, onReset, orig
   return (
     <div className="space-y-8">
       {/* 成功状态 */}
-      <div className="text-center py-8">
-        <div className="w-16 h-16 rounded-full bg-state-success-subtle flex items-center justify-center mx-auto mb-4">
-          <CheckCircle2 className="w-8 h-8 text-state-success" />
+      <div className="py-8 text-center">
+        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-status-success-subtle">
+          <CheckCircle2 className="h-8 w-8 text-status-success" />
         </div>
-        <h2 className="text-xl font-semibold text-text-primary mb-2">文档填充完成</h2>
-        <p className="text-text-secondary">所有占位符已成功替换为您提供的数据</p>
+        <h2 className="mb-2 text-xl font-semibold text-text-primary">
+          文档填充完成
+        </h2>
+        <p className="text-text-secondary">
+          所有占位符已成功替换为您提供的数据
+        </p>
       </div>
 
       {/* 文件信息卡片 */}
       <div className="rounded-xl border border-border-default bg-background-subtle p-5">
         <div className="flex items-start gap-4">
-          <div className="w-12 h-12 rounded-lg bg-state-info-subtle flex items-center justify-center shrink-0">
-            <FileText className="w-6 h-6 text-state-info" />
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-status-info-subtle">
+            <FileText className="h-6 w-6 text-status-info" />
           </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="font-medium text-text-primary truncate mb-3">
+          <div className="min-w-0 flex-1">
+            <h3 className="mb-3 truncate font-medium text-text-primary">
               {originalFileName}
             </h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-2 text-sm">
+            <div className="grid grid-cols-2 gap-y-2 text-sm sm:grid-cols-3">
               <div className="flex items-center gap-1.5 text-text-secondary">
-                <HardDrive className="w-3.5 h-3.5" />
+                <HardDrive className="h-3.5 w-3.5" />
                 <span>{formatFileSize(fileData)}</span>
               </div>
               <div className="flex items-center gap-1.5 text-text-secondary">
-                <Clock className="w-3.5 h-3.5" />
+                <Clock className="h-3.5 w-3.5" />
                 <span>{currentTime}</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-state-success-subtle text-state-success">
+                <span className="inline-flex items-center rounded-full bg-status-success-subtle px-2 py-0.5 text-xs font-medium text-status-success">
                   已完成
                 </span>
-            </div>
+              </div>
             </div>
           </div>
         </div>
@@ -105,7 +126,7 @@ const ResultDownload: React.FC<ResultDownloadProps> = ({ fileData, onReset, orig
           size="lg"
           className="w-full"
         >
-          <Download className="w-4 h-4 mr-2" />
+          <Download className="mr-2 h-4 w-4" />
           {isDownloading ? '正在下载...' : '下载文档'}
         </Button>
         <Button
@@ -114,24 +135,29 @@ const ResultDownload: React.FC<ResultDownloadProps> = ({ fileData, onReset, orig
           className="w-full"
           onClick={() => setShowPreview(true)}
         >
-          <Eye className="w-4 h-4 mr-2" />
+          <Eye className="mr-2 h-4 w-4" />
           在线预览
         </Button>
       </div>
 
       {/* 底部操作 */}
-      <div className="flex items-center justify-between pt-4 border-t border-border-default">
+      <div className="flex items-center justify-between border-t border-border-default pt-4">
         {onBackToFill && (
           <Button variant="ghost" size="sm" onClick={onBackToFill}>
-            <ArrowLeft className="w-4 h-4 mr-1" />
+            <ArrowLeft className="mr-1 h-4 w-4" />
             返回编辑
           </Button>
         )}
-        <Button variant="outline" size="sm" onClick={onReset} className="ml-auto">
-          <RotateCcw className="w-4 h-4 mr-1" />
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onReset}
+          className="ml-auto"
+        >
+          <RotateCcw className="mr-1 h-4 w-4" />
           处理新文档
         </Button>
-          </div>
+      </div>
 
       {/* 预览弹窗 */}
       {showPreview && (

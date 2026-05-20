@@ -1,12 +1,5 @@
-import type {
-  Edge,
-  EdgeProps,
-} from '@xyflow/react'
-import {
-  BaseEdge,
-  EdgeLabelRenderer,
-  getBezierPath,
-} from '@xyflow/react'
+import type { Edge, EdgeProps } from '@xyflow/react'
+import { BaseEdge, EdgeLabelRenderer, getBezierPath } from '@xyflow/react'
 import { memo, useContext, useMemo } from 'react'
 import useGraphStore from '../../store'
 import { cn } from '@/lib/utils'
@@ -64,7 +57,10 @@ function InnerButtonEdge({
 
   const selectedStyle = useMemo(() => {
     return selected
-      ? { strokeWidth: 2, stroke: 'var(--color-components-canvas-edge-stroke-selected)' }
+      ? {
+          strokeWidth: 2,
+          stroke: 'var(--color-components-canvas-edge-stroke-selected)',
+        }
       : {}
   }, [selected])
 
@@ -75,7 +71,10 @@ function InnerButtonEdge({
   const placeholderHighlightStyle = useMemo(() => {
     const isHighlighted = isTargetPlaceholder
     return isHighlighted
-      ? { strokeWidth: 2, stroke: 'var(--color-components-canvas-edge-stroke-selected)' }
+      ? {
+          strokeWidth: 2,
+          stroke: 'var(--color-components-canvas-edge-stroke-selected)',
+        }
       : {}
   }, [isTargetPlaceholder])
 
@@ -93,9 +92,8 @@ function InnerButtonEdge({
     )
   }, [data?.isHovered, isTargetPlaceholder, sourceHandleId, target])
 
-  const activeMarkerEnd = selected || isTargetPlaceholder
-    ? 'url(#selected-marker)'
-    : markerEnd
+  const activeMarkerEnd =
+    selected || isTargetPlaceholder ? 'url(#selected-marker)' : markerEnd
 
   const flowingStyle = useMemo<React.CSSProperties>(() => {
     if (!isFlowing) return {}
@@ -134,7 +132,7 @@ function InnerButtonEdge({
         >
           <button
             className={cn(
-              'size-4 border border-state-error text-state-error rounded-full leading-none bg-surface-primary hover:bg-state-error-subtle',
+              'bg-surface-primary size-4 rounded-full border border-status-error leading-none text-status-error hover:bg-status-error-subtle',
               'invisible',
               { visible },
             )}
@@ -150,4 +148,3 @@ function InnerButtonEdge({
 }
 
 export const ButtonEdge = memo(InnerButtonEdge)
-

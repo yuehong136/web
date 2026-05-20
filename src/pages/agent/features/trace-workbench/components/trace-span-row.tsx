@@ -18,22 +18,22 @@ const STATUS_DOT_CLASSES: Record<TraceSpanStatus, string> = {
 
 const KIND_TONE_CLASSES: Record<TraceSpanKind, string> = {
   node: 'text-text-tertiary bg-surface-secondary',
-  llm: 'text-state-info bg-state-info-subtle',
+  llm: 'text-status-info bg-status-info-subtle',
   tool: 'text-status-warning bg-status-warning/10',
   retrieval: 'text-status-success bg-status-success/10',
   control: 'text-text-secondary bg-surface-secondary',
-  data: 'text-state-info bg-state-info-subtle',
+  data: 'text-status-info bg-status-info-subtle',
   webhook: 'text-status-warning bg-status-warning/10',
   system: 'text-text-tertiary bg-surface-secondary',
 }
 
 const KIND_BAR_CLASSES: Record<TraceSpanKind, string> = {
   node: 'bg-text-caption',
-  llm: 'bg-state-info',
+  llm: 'bg-status-info',
   tool: 'bg-status-warning',
   retrieval: 'bg-status-success',
   control: 'bg-text-secondary',
-  data: 'bg-state-info',
+  data: 'bg-status-info',
   webhook: 'bg-status-warning',
   system: 'bg-text-caption',
 }

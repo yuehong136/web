@@ -19,16 +19,16 @@ const STATUS_TEXT_CLASSES: Record<AgentLogStatus, string> = {
   [AgentLogStatus.ALL]: 'text-text-tertiary',
   [AgentLogStatus.OK]: 'text-text-tertiary',
   [AgentLogStatus.ERR]:
-    'border border-state-error bg-state-error-subtle px-space-xs py-[2px] text-state-error',
+    'border border-status-error bg-status-error-subtle px-space-xs py-[2px] text-status-error',
   [AgentLogStatus.RUN]: 'text-text-secondary',
   [AgentLogStatus.WARN]: 'text-status-warning',
 }
 
 const STATUS_DOT_CLASSES: Record<AgentLogStatus, string> = {
   [AgentLogStatus.ALL]: 'bg-text-caption',
-  [AgentLogStatus.OK]: 'bg-state-success',
-  [AgentLogStatus.ERR]: 'bg-state-error',
-  [AgentLogStatus.RUN]: 'bg-state-info',
+  [AgentLogStatus.OK]: 'bg-status-success',
+  [AgentLogStatus.ERR]: 'bg-status-error',
+  [AgentLogStatus.RUN]: 'bg-status-info',
   [AgentLogStatus.WARN]: 'bg-status-warning',
 }
 
@@ -54,7 +54,7 @@ export function SessionListRow({
     <div
       className={cn(
         'group/session relative border-b border-border-subtle',
-        active && 'bg-state-info-subtle',
+        active && 'bg-status-info-subtle',
       )}
     >
       {active ? (
@@ -94,7 +94,7 @@ export function SessionListRow({
         </div>
 
         {errorSummary ? (
-          <div className="gap-space-xs rounded-radius-sm px-space-sm py-space-xs flex min-w-0 items-center border border-state-error bg-state-error-subtle text-xs text-state-error">
+          <div className="gap-space-xs rounded-radius-sm px-space-sm py-space-xs flex min-w-0 items-center border border-status-error bg-status-error-subtle text-xs text-status-error">
             <AlertTriangle className="size-3.5 shrink-0" />
             <span className="truncate">{errorSummary}</span>
           </div>

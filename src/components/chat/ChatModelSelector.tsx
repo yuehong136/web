@@ -1,7 +1,10 @@
 import React, { useMemo, useState, Fragment } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AlertCircle, ChevronDown, Check, Settings } from 'lucide-react'
-import { SelectWithSearch, type SelectOptionGroup } from '@/components/ui/select-with-search'
+import {
+  SelectWithSearch,
+  type SelectOptionGroup,
+} from '@/components/ui/select-with-search'
 import { FormTooltip } from '@/components/ui/tooltip'
 import { IconFontFill } from '@/components/ui/icon-font'
 import { IconMap, LLMFactory, isLLMModelEnabled } from '@/stores/model'
@@ -31,7 +34,7 @@ interface ChatModelSelectorProps {
   loading?: boolean
   error?: string
   modelTypes?: ('chat' | 'image2text')[]
-  /** 
+  /**
    * 显示变体：
    * - default: 带 label 的表单样式
    * - compact: 紧凑的选择框样式（有边框）
@@ -66,16 +69,16 @@ const getIconName = (provider: string, isDark: boolean): string => {
 }
 
 // 带图标的模型选项 Label
-const ModelOptionLabel: React.FC<{ 
+const ModelOptionLabel: React.FC<{
   provider: string
   modelName: string
 }> = ({ provider, modelName }) => {
   const isDark = useIsDarkTheme()
   const iconName = getIconName(provider, isDark)
-  
+
   return (
-    <div className="flex items-center gap-2 min-w-0 w-full">
-      <IconFontFill name={iconName} className="w-5 h-5 shrink-0" />
+    <div className="flex w-full min-w-0 items-center gap-2">
+      <IconFontFill name={iconName} className="h-5 w-5 shrink-0" />
       <span className="truncate">{modelName}</span>
     </div>
   )
@@ -104,20 +107,25 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
   }
 
   // 兼容旧的 compact 属性
-  const actualVariant: ChatModelSelectorVariant = variant || (compact ? 'compact' : 'default')
+  const actualVariant: ChatModelSelectorVariant =
+    variant || (compact ? 'compact' : 'default')
 
   // 获取所有可用的聊天和图像识别模型
   const allAvailableModels = useMemo(() => {
     const filtered: { provider: string; model: MyLLMModel }[] = []
-    
-    if (!models || typeof models !== 'object' || Object.keys(models).length === 0) {
+
+    if (
+      !models ||
+      typeof models !== 'object' ||
+      Object.keys(models).length === 0
+    ) {
       return []
     }
-    
+
     try {
       Object.entries(models).forEach(([providerName, providerData]) => {
         if (providerData?.llm && Array.isArray(providerData.llm)) {
-          providerData.llm.forEach(model => {
+          providerData.llm.forEach((model) => {
             if (
               model?.type &&
               model?.name &&
@@ -140,8 +148,8 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
   // 构建分组选项
   const groupedOptions = useMemo((): SelectOptionGroup[] => {
     const groups: Record<string, { provider: string; model: MyLLMModel }[]> = {}
-    
-    allAvailableModels.forEach(item => {
+
+    allAvailableModels.forEach((item) => {
       if (!groups[item.provider]) {
         groups[item.provider] = []
       }
@@ -150,32 +158,29 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
 
     return Object.entries(groups).map(([provider, items]) => ({
       label: provider,
-      options: items.map(item => ({
+      options: items.map((item) => ({
         label: (
-          <ModelOptionLabel 
-            provider={provider} 
-            modelName={item.model.name} 
-          />
+          <ModelOptionLabel provider={provider} modelName={item.model.name} />
         ),
-        value: item.model.name
-      }))
+        value: item.model.name,
+      })),
     }))
   }, [allAvailableModels])
 
   // 找到当前选中模型的信息
   const selectedModelInfo = useMemo(() => {
     if (!selectedModelName) return null
-    return allAvailableModels.find(item => item.model.name === selectedModelName)
+    return allAvailableModels.find(
+      (item) => item.model.name === selectedModelName,
+    )
   }, [selectedModelName, allAvailableModels])
-
-
 
   // minimal 模式：无边框触发按钮，下拉内容与 SelectWithSearch 完全一致
   if (actualVariant === 'minimal') {
     if (loading) {
       return (
         <div className="flex items-center gap-1 text-text-tertiary">
-          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-text-tertiary"></div>
+          <div className="h-3 w-3 animate-spin rounded-full border-b-2 border-text-tertiary"></div>
         </div>
       )
     }
@@ -185,14 +190,14 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
         <button
           onClick={handleGoToModelProviders}
           className={cn(
-            "flex items-center gap-space-sm h-10 px-space-md rounded-radius-lg transition-all",
-            "text-base font-medium",
-            "text-state-warning hover:bg-state-warning-subtle",
-            triggerClassName
+            'gap-space-sm px-space-md rounded-radius-lg flex h-10 items-center transition-all',
+            'text-base font-medium',
+            'text-status-warning hover:bg-status-warning-subtle',
+            triggerClassName,
           )}
           title="点击配置模型"
         >
-          <Settings className="w-4 h-4 shrink-0" />
+          <Settings className="h-4 w-4 shrink-0" />
           <span className="whitespace-nowrap">配置模型</span>
         </button>
       )
@@ -210,32 +215,34 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
           <button
             disabled={disabled}
             className={cn(
-              "flex items-center gap-space-sm h-10 px-space-md rounded-radius-lg transition-all",
-              "text-base font-medium",
+              'gap-space-sm px-space-md rounded-radius-lg flex h-10 items-center transition-all',
+              'text-base font-medium',
               isOpen
-                ? "bg-state-focus-subtle text-state-focus shadow-elevation-low"
-                : "bg-transparent text-text-tertiary hover:bg-background-subtle hover:shadow-elevation-low",
-              disabled && "opacity-50 cursor-not-allowed",
-              triggerClassName
+                ? 'shadow-elevation-low bg-state-focus-subtle text-state-focus'
+                : 'hover:shadow-elevation-low bg-transparent text-text-tertiary hover:bg-background-subtle',
+              disabled && 'cursor-not-allowed opacity-50',
+              triggerClassName,
             )}
           >
             {selectedModelInfo && (
               <IconFontFill
                 name={getIconName(selectedModelInfo.provider, isDark)}
-                className="w-5 h-5 shrink-0"
+                className="h-5 w-5 shrink-0"
               />
             )}
             <span className="whitespace-nowrap">
               {selectedModelName || '选择模型'}
             </span>
-            <ChevronDown className={cn(
-              "w-4 h-4 transition-transform shrink-0 ml-1",
-              isOpen ? "rotate-180 text-state-focus" : "text-text-tertiary"
-            )} />
+            <ChevronDown
+              className={cn(
+                'ml-1 h-4 w-4 shrink-0 transition-transform',
+                isOpen ? 'rotate-180 text-state-focus' : 'text-text-tertiary',
+              )}
+            />
           </button>
         </PopoverTrigger>
         <PopoverContent
-          className="border-border w-full min-w-[var(--radix-popper-anchor-width)] p-0"
+          className="w-full min-w-[var(--radix-popper-anchor-width)] border-border p-0"
           align="end"
           side={dropdownDirection === 'up' ? 'top' : 'bottom'}
         >
@@ -262,12 +269,16 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
                             onSelect={handleSelect}
                             className={cn(
                               'min-h-9',
-                              selectedModelName === option.value ? 'bg-background-subtle' : ''
+                              selectedModelName === option.value
+                                ? 'bg-background-subtle'
+                                : '',
                             )}
                           >
-                            <span className="leading-none flex-1">{option.label}</span>
+                            <span className="flex-1 leading-none">
+                              {option.label}
+                            </span>
                             {selectedModelName === option.value && (
-                              <Check className="w-4 h-4 ml-auto text-primary" />
+                              <Check className="ml-auto h-4 w-4 text-primary" />
                             )}
                           </CommandItem>
                         ))}
@@ -288,8 +299,8 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
   if (actualVariant === 'compact') {
     if (loading) {
       return (
-        <div className="h-10 px-3 rounded-lg bg-surface-secondary animate-pulse flex items-center">
-          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-primary"></div>
+        <div className="bg-surface-secondary flex h-10 animate-pulse items-center rounded-lg px-3">
+          <div className="h-3 w-3 animate-spin rounded-full border-b-2 border-primary"></div>
         </div>
       )
     }
@@ -299,15 +310,15 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
         <button
           onClick={handleGoToModelProviders}
           className={cn(
-            "flex items-center gap-space-sm h-10 px-space-md rounded-radius-lg transition-all",
-            "border border-state-warning",
-            "text-base font-medium",
-            "text-state-warning hover:bg-state-warning-subtle",
-            triggerClassName
+            'gap-space-sm px-space-md rounded-radius-lg flex h-10 items-center transition-all',
+            'border border-status-warning',
+            'text-base font-medium',
+            'text-status-warning hover:bg-status-warning-subtle',
+            triggerClassName,
           )}
           title="点击配置模型"
         >
-          <Settings className="w-4 h-4 shrink-0" />
+          <Settings className="h-4 w-4 shrink-0" />
           <span className="whitespace-nowrap">配置模型</span>
         </button>
       )
@@ -325,33 +336,35 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
           <button
             disabled={disabled}
             className={cn(
-              "flex items-center gap-space-sm h-10 px-space-md rounded-radius-lg transition-all",
-              "border border-border",
-              "text-base font-medium",
+              'gap-space-sm px-space-md rounded-radius-lg flex h-10 items-center transition-all',
+              'border border-border',
+              'text-base font-medium',
               isOpen
-                ? "bg-state-focus-subtle text-state-focus shadow-elevation-low border-transparent"
-                : "bg-transparent text-text-tertiary hover:bg-background-subtle hover:shadow-elevation-low",
-              disabled && "opacity-50 cursor-not-allowed",
-              triggerClassName
+                ? 'shadow-elevation-low border-transparent bg-state-focus-subtle text-state-focus'
+                : 'hover:shadow-elevation-low bg-transparent text-text-tertiary hover:bg-background-subtle',
+              disabled && 'cursor-not-allowed opacity-50',
+              triggerClassName,
             )}
           >
             {selectedModelInfo && (
-              <IconFontFill 
-                name={getIconName(selectedModelInfo.provider, isDark)} 
-                className="w-5 h-5 shrink-0" 
+              <IconFontFill
+                name={getIconName(selectedModelInfo.provider, isDark)}
+                className="h-5 w-5 shrink-0"
               />
             )}
             <span className="whitespace-nowrap">
               {selectedModelName || '选择模型'}
             </span>
-            <ChevronDown className={cn(
-              "w-4 h-4 transition-transform shrink-0 ml-1",
-              isOpen ? "rotate-180 text-state-focus" : "text-text-tertiary"
-            )} />
+            <ChevronDown
+              className={cn(
+                'ml-1 h-4 w-4 shrink-0 transition-transform',
+                isOpen ? 'rotate-180 text-state-focus' : 'text-text-tertiary',
+              )}
+            />
           </button>
         </PopoverTrigger>
         <PopoverContent
-          className="border-border w-full min-w-[var(--radix-popper-anchor-width)] p-0"
+          className="w-full min-w-[var(--radix-popper-anchor-width)] border-border p-0"
           align="end"
           side={dropdownDirection === 'up' ? 'top' : 'bottom'}
         >
@@ -378,12 +391,16 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
                             onSelect={handleSelect}
                             className={cn(
                               'min-h-9',
-                              selectedModelName === option.value ? 'bg-background-subtle' : ''
+                              selectedModelName === option.value
+                                ? 'bg-background-subtle'
+                                : '',
                             )}
                           >
-                            <span className="leading-none flex-1">{option.label}</span>
+                            <span className="flex-1 leading-none">
+                              {option.label}
+                            </span>
                             {selectedModelName === option.value && (
-                              <Check className="w-4 h-4 ml-auto text-primary" />
+                              <Check className="ml-auto h-4 w-4 text-primary" />
                             )}
                           </CommandItem>
                         ))}
@@ -404,10 +421,12 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
   if (loading) {
     return (
       <div className="space-y-2">
-        <label className="block text-xs font-medium text-text-primary">聊天模型</label>
-        <div className="w-full px-3 py-2 border border-border rounded-md bg-accent/20 flex items-center h-10">
-          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-primary"></div>
-          <span className="ml-2 text-text-tertiary text-xs">加载模型中...</span>
+        <label className="block text-xs font-medium text-text-primary">
+          聊天模型
+        </label>
+        <div className="bg-accent/20 flex h-10 w-full items-center rounded-md border border-border px-3 py-2">
+          <div className="h-3 w-3 animate-spin rounded-full border-b-2 border-primary"></div>
+          <span className="ml-2 text-xs text-text-tertiary">加载模型中...</span>
         </div>
       </div>
     )
@@ -416,10 +435,12 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
   if (error) {
     return (
       <div className="space-y-2">
-        <label className="block text-xs font-medium text-text-primary">聊天模型</label>
-        <div className="w-full px-3 py-2 border border-error rounded-md bg-error/10 flex items-center h-10">
+        <label className="block text-xs font-medium text-text-primary">
+          聊天模型
+        </label>
+        <div className="bg-error/10 flex h-10 w-full items-center rounded-md border border-error px-3 py-2">
           <AlertCircle className="h-3 w-3 text-error" />
-          <span className="ml-2 text-error text-xs">{error}</span>
+          <span className="ml-2 text-xs text-error">{error}</span>
         </div>
       </div>
     )
@@ -428,14 +449,18 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
   if (allAvailableModels.length === 0) {
     return (
       <div className="space-y-2">
-        <label className="block text-xs font-medium text-text-primary">聊天模型</label>
+        <label className="block text-xs font-medium text-text-primary">
+          聊天模型
+        </label>
         <button
           onClick={handleGoToModelProviders}
-          className="w-full px-3 py-2 border border-state-warning rounded-md bg-state-warning-subtle flex items-center h-10 hover:bg-state-warning/20 transition-colors cursor-pointer"
+          className="hover:bg-status-warning/20 flex h-10 w-full cursor-pointer items-center rounded-md border border-status-warning bg-status-warning-subtle px-3 py-2 transition-colors"
         >
-          <AlertCircle className="h-3 w-3 text-state-warning shrink-0" />
-          <span className="ml-2 text-state-warning text-xs">暂无可用模型，点击前往配置</span>
-          <Settings className="h-3 w-3 text-state-warning ml-auto shrink-0" />
+          <AlertCircle className="h-3 w-3 shrink-0 text-status-warning" />
+          <span className="ml-2 text-xs text-status-warning">
+            暂无可用模型，点击前往配置
+          </span>
+          <Settings className="ml-auto h-3 w-3 shrink-0 text-status-warning" />
         </button>
       </div>
     )
@@ -443,11 +468,13 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center mb-1">
-        <label className="block text-xs font-medium text-text-primary">聊天模型</label>
+      <div className="mb-1 flex items-center">
+        <label className="block text-xs font-medium text-text-primary">
+          聊天模型
+        </label>
         <FormTooltip tooltip="选择用于对话或图像识别的模型" />
       </div>
-      
+
       <SelectWithSearch
         value={selectedModelName || ''}
         options={groupedOptions}
@@ -455,7 +482,7 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
         placeholder="请选择聊天模型"
         emptyText="未找到匹配的聊天模型"
         disabled={disabled}
-        triggerClassName={triggerClassName || "h-10"}
+        triggerClassName={triggerClassName || 'h-10'}
       />
     </div>
   )
