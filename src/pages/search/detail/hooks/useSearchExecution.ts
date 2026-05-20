@@ -4,7 +4,11 @@ import { conversationAPI } from '@/api/conversation'
 import { knowledgeAPI } from '@/api/knowledge'
 import { llmAPI } from '@/api/llm'
 import { searchAPI } from '@/api/search'
-import { consumeStreamingAnswerChunk, createInitialStreamingAnswerState } from '@/utils/streaming-answer'
+import {
+  consumeStreamingAnswerChunk,
+  createInitialStreamingAnswerState,
+  finalizeStreamingAnswerState,
+} from '@/utils/streaming-answer'
 import {
   SearchExecutionPhase,
   SearchExecutionMode,
@@ -15,7 +19,10 @@ import {
   type SearchConfig,
   type SearchTurn,
 } from '@/types/search'
-import { buildRuntimeConfig, type SearchRuntimeOptions } from './search-runtime-config'
+import {
+  buildRuntimeConfig,
+  type SearchRuntimeOptions,
+} from './search-runtime-config'
 
 const isRunningPhase = (phase: SearchExecutionPhase) => {
   return (
@@ -39,18 +46,63 @@ interface RawProviderPayload {
   llm?: RawModelItem[]
 }
 
-export const useSearchExecution = (searchApp: SearchApp | null, appliedConfig?: SearchConfig) => {
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null
+
+const getStreamErrorMessage = (data: unknown): string | null => {
+  if (!isRecord(data)) return null
+
+  const code =
+    typeof data.retcode === 'number'
+      ? data.retcode
+      : typeof data.code === 'number'
+        ? data.code
+        : 0
+
+  if (code === 0) return null
+
+  const payload = data.data
+  const payloadAnswer =
+    isRecord(payload) && typeof payload.answer === 'string'
+      ? payload.answer
+      : ''
+  const message =
+    (typeof data.retmsg === 'string' && data.retmsg) ||
+    (typeof data.message === 'string' && data.message) ||
+    payloadAnswer ||
+    `搜索摘要生成失败，错误码 ${code}`
+
+  return message.replace(/^\*\*ERROR\*\*:\s*/, '')
+}
+
+export const useSearchExecution = (
+  searchApp: SearchApp | null,
+  appliedConfig?: SearchConfig,
+) => {
   const [turns, setTurns] = useState<SearchTurn[]>([])
-  const [phase, setPhase] = useState<SearchExecutionPhase>(SearchExecutionPhase.IDLE)
+  const [phase, setPhase] = useState<SearchExecutionPhase>(
+    SearchExecutionPhase.IDLE,
+  )
   const abortControllerRef = useRef<AbortController | null>(null)
   const streamFrameRef = useRef<number | null>(null)
-  const pendingStreamPatchRef = useRef<{ turnId: string; summary: string; thinking: string } | null>(null)
+  const pendingStreamPatchRef = useRef<{
+    turnId: string
+    summary: string
+    thinking: string
+  } | null>(null)
   const rerankModelNameByIdRef = useRef<Record<string, string>>({})
   const rerankModelMapLoadedRef = useRef(false)
 
-  const updateTurn = useCallback((turnId: string, partial: Partial<SearchTurn>) => {
-    setTurns((prev) => prev.map((turn) => (turn.id === turnId ? { ...turn, ...partial } : turn)))
-  }, [])
+  const updateTurn = useCallback(
+    (turnId: string, partial: Partial<SearchTurn>) => {
+      setTurns((prev) =>
+        prev.map((turn) =>
+          turn.id === turnId ? { ...turn, ...partial } : turn,
+        ),
+      )
+    },
+    [],
+  )
 
   const resetPendingStreamPatch = useCallback(() => {
     if (streamFrameRef.current !== null) {
@@ -92,7 +144,7 @@ export const useSearchExecution = (searchApp: SearchApp | null, appliedConfig?: 
         })
       })
     },
-    [updateTurn]
+    [updateTurn],
   )
 
   const ensureRerankModelMap = useCallback(async () => {
@@ -100,21 +152,23 @@ export const useSearchExecution = (searchApp: SearchApp | null, appliedConfig?: 
     const response = await llmAPI.list({ available: true })
     const modelMap: Record<string, string> = {}
 
-    Object.values(response as Record<string, unknown>).forEach((providerValue) => {
-      const payload = providerValue as RawProviderPayload | RawModelItem[]
-      const llmList = Array.isArray(payload) ? payload : payload?.llm || []
+    Object.values(response as Record<string, unknown>).forEach(
+      (providerValue) => {
+        const payload = providerValue as RawProviderPayload | RawModelItem[]
+        const llmList = Array.isArray(payload) ? payload : payload?.llm || []
 
-      llmList.forEach((model) => {
-        const modelType = model.mdl_type || model.type
-        if (modelType !== 'rerank') return
-        if (model.available === false || model.status === '0') return
+        llmList.forEach((model) => {
+          const modelType = model.mdl_type || model.type
+          if (modelType !== 'rerank') return
+          if (model.available === false || model.status === '0') return
 
-        const displayName = model.llm_name || model.name || model.id
-        if (!displayName) return
-        if (model.id) modelMap[model.id] = displayName
-        modelMap[displayName] = displayName
-      })
-    })
+          const displayName = model.llm_name || model.name || model.id
+          if (!displayName) return
+          if (model.id) modelMap[model.id] = displayName
+          modelMap[displayName] = displayName
+        })
+      },
+    )
 
     rerankModelNameByIdRef.current = modelMap
     rerankModelMapLoadedRef.current = true
@@ -131,8 +185,14 @@ export const useSearchExecution = (searchApp: SearchApp | null, appliedConfig?: 
         resetPendingStreamPatch()
         setTurns((prev) =>
           prev.map((turn) =>
-            turn.isStreaming ? { ...turn, isStreaming: false, phase: SearchExecutionPhase.STOPPED } : turn
-          )
+            turn.isStreaming
+              ? {
+                  ...turn,
+                  isStreaming: false,
+                  phase: SearchExecutionPhase.STOPPED,
+                }
+              : turn,
+          ),
         )
       }
 
@@ -140,17 +200,23 @@ export const useSearchExecution = (searchApp: SearchApp | null, appliedConfig?: 
       abortControllerRef.current = abortController
       const { signal } = abortController
       const startedAt = Date.now()
-      const executionMode = options?.executionMode || SearchExecutionMode.DEEP_RESEARCH
+      const executionMode =
+        options?.executionMode || SearchExecutionMode.DEEP_RESEARCH
       const sourceMode = options?.sourceMode || SearchSourceMode.KNOWLEDGE_BASE
 
       const turnId = `turn-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
-      const config = buildRuntimeConfig(effectiveConfig, executionMode, sourceMode)
-      const rerankModelId = config.use_rerank ? (config.rerank_id || '') : ''
+      const config = buildRuntimeConfig(
+        effectiveConfig,
+        executionMode,
+        sourceMode,
+      )
+      const rerankModelId = config.use_rerank ? config.rerank_id || '' : ''
       let rerankModelName = rerankModelId
       if (rerankModelId) {
         try {
           await ensureRerankModelMap()
-          rerankModelName = rerankModelNameByIdRef.current[rerankModelId] || rerankModelId
+          rerankModelName =
+            rerankModelNameByIdRef.current[rerankModelId] || rerankModelId
         } catch {
           rerankModelName = rerankModelId
         }
@@ -185,12 +251,14 @@ export const useSearchExecution = (searchApp: SearchApp | null, appliedConfig?: 
         const metaDataFilter =
           rawMetaDataFilter?.method === 'auto'
             ? { method: 'auto' as const }
-            : rawMetaDataFilter?.method === 'semi_auto' && rawMetaDataFilter.semi_auto?.length
+            : rawMetaDataFilter?.method === 'semi_auto' &&
+                rawMetaDataFilter.semi_auto?.length
               ? {
                   method: 'semi_auto' as const,
                   semi_auto: rawMetaDataFilter.semi_auto,
                 }
-              : rawMetaDataFilter?.method === 'manual' && rawMetaDataFilter.manual?.length
+              : rawMetaDataFilter?.method === 'manual' &&
+                  rawMetaDataFilter.manual?.length
                 ? {
                     method: 'manual' as const,
                     logic: rawMetaDataFilter.logic || 'and',
@@ -215,7 +283,9 @@ export const useSearchExecution = (searchApp: SearchApp | null, appliedConfig?: 
             rerank_id: config.use_rerank ? config.rerank_id || null : null,
             highlight: true,
             keyword: true,
-            cross_languages: config.cross_languages?.length ? config.cross_languages : null,
+            cross_languages: config.cross_languages?.length
+              ? config.cross_languages
+              : null,
             meta_data_filter: metaDataFilter,
           })
           .then((result) => {
@@ -235,14 +305,11 @@ export const useSearchExecution = (searchApp: SearchApp | null, appliedConfig?: 
         const summaryPromise = config.summary
           ? (async () => {
               setPhase(SearchExecutionPhase.SUMMARIZING)
-              const summaryModel = config.chat_id || config.llm_id
 
               const response = await searchAPI.askStream({
                 question: query.trim(),
                 kb_ids: config.kb_ids,
                 search_id: searchApp.id,
-                model: summaryModel,
-                doc_ids: options?.docIds,
                 signal,
               })
 
@@ -265,25 +332,55 @@ export const useSearchExecution = (searchApp: SearchApp | null, appliedConfig?: 
                   break
                 }
 
-                try {
-                  const jsonStr = value?.data
-                  if (!jsonStr) continue
-                  const data = JSON.parse(jsonStr)
-                  const chunk = consumeStreamingAnswerChunk(streamState, data)
-                  streamState = chunk.nextState
-                  if (chunk.isDone) continue
+                const jsonStr = value?.data
+                if (!jsonStr) continue
 
-                  scheduleStreamPatch(turnId, streamState.content, streamState.thinking)
+                let data: unknown
+                try {
+                  data = JSON.parse(jsonStr)
                 } catch {
                   // Ignore malformed SSE chunk.
+                  continue
                 }
+
+                const streamError = getStreamErrorMessage(data)
+                if (streamError) throw new Error(streamError)
+
+                const chunk = consumeStreamingAnswerChunk(streamState, data)
+                streamState = chunk.nextState
+                if (chunk.isDone || chunk.isFinal) {
+                  streamState = finalizeStreamingAnswerState(streamState)
+                }
+
+                scheduleStreamPatch(
+                  turnId,
+                  streamState.content,
+                  streamState.thinking,
+                )
+                if (chunk.isDone) continue
               }
 
+              streamState = finalizeStreamingAnswerState(streamState)
+              scheduleStreamPatch(
+                turnId,
+                streamState.content,
+                streamState.thinking,
+              )
               flushPendingStreamPatch()
             })()
           : Promise.resolve()
 
-        await Promise.allSettled([retrievalPromise, summaryPromise])
+        const settledResults = await Promise.allSettled([
+          retrievalPromise,
+          summaryPromise,
+        ])
+        const rejectedResult = settledResults.find(
+          (result): result is PromiseRejectedResult =>
+            result.status === 'rejected',
+        )
+        if (rejectedResult) {
+          throw rejectedResult.reason
+        }
 
         if (signal.aborted) {
           updateTurn(turnId, {
@@ -301,10 +398,13 @@ export const useSearchExecution = (searchApp: SearchApp | null, appliedConfig?: 
           try {
             const related = await conversationAPI.generateRelatedQuestions({
               question: query.trim(),
+              search_id: searchApp.id,
             })
 
             if (!signal.aborted) {
-              updateTurn(turnId, { relatedQuestions: related?.slice(0, 5) ?? [] })
+              updateTurn(turnId, {
+                relatedQuestions: related?.slice(0, 5) ?? [],
+              })
             }
           } catch {
             // Non-critical failure.
@@ -318,7 +418,8 @@ export const useSearchExecution = (searchApp: SearchApp | null, appliedConfig?: 
         })
         setPhase(SearchExecutionPhase.COMPLETE)
       } catch (error: unknown) {
-        const aborted = signal.aborted || (error as { name?: string })?.name === 'AbortError'
+        const aborted =
+          signal.aborted || (error as { name?: string })?.name === 'AbortError'
         if (aborted) {
           updateTurn(turnId, {
             isStreaming: false,
@@ -333,12 +434,23 @@ export const useSearchExecution = (searchApp: SearchApp | null, appliedConfig?: 
           isStreaming: false,
           phase: SearchExecutionPhase.ERROR,
           latencyMs: Date.now() - startedAt,
-          errorMessage: '搜索执行失败，请稍后重试。',
+          errorMessage:
+            error instanceof Error && error.message
+              ? error.message
+              : '搜索执行失败，请稍后重试。',
         })
         setPhase(SearchExecutionPhase.ERROR)
       }
     },
-    [appliedConfig, ensureRerankModelMap, flushPendingStreamPatch, resetPendingStreamPatch, scheduleStreamPatch, searchApp, updateTurn]
+    [
+      appliedConfig,
+      ensureRerankModelMap,
+      flushPendingStreamPatch,
+      resetPendingStreamPatch,
+      scheduleStreamPatch,
+      searchApp,
+      updateTurn,
+    ],
   )
 
   const stop = useCallback(() => {
@@ -350,8 +462,8 @@ export const useSearchExecution = (searchApp: SearchApp | null, appliedConfig?: 
       prev.map((turn) =>
         turn.isStreaming
           ? { ...turn, isStreaming: false, phase: SearchExecutionPhase.STOPPED }
-          : turn
-      )
+          : turn,
+      ),
     )
     setPhase(SearchExecutionPhase.STOPPED)
   }, [resetPendingStreamPatch])

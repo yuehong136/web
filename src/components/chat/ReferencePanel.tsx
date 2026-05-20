@@ -1,18 +1,18 @@
 /**
  * 引用面板组件
  * 用于在消息底部展示引用的文档来源，支持按文档分组、折叠展开
- * 
+ *
  * 展示组件原则：只接收 props，不包含业务逻辑
  */
-import React from 'react'
-import { 
-  FileText, 
-  Table2, 
-  Image, 
-  ChevronDown, 
+import { useMemo, useState, type FC } from 'react'
+import {
+  FileText,
+  Table2,
+  Image,
+  ChevronDown,
   ChevronRight,
   BookOpen,
-  FileType
+  FileType,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { ReferenceChunk } from '@/utils/reference-replacer'
@@ -42,34 +42,73 @@ export interface ReferencePanelProps {
 /**
  * 获取文档类型图标
  */
-function getDocTypeIcon(docType?: string, docName?: string, size: 'sm' | 'md' = 'sm') {
+function getDocTypeIcon(
+  docType?: string,
+  docName?: string,
+  size: 'sm' | 'md' = 'sm',
+) {
   const sizeClass = size === 'sm' ? 'h-3.5 w-3.5' : 'h-4 w-4'
-  
+
   if (docType === 'table') {
-    return <Table2 className={sizeClass} style={{ color: 'var(--color-text-accent)' }} />
+    return (
+      <Table2
+        className={sizeClass}
+        style={{ color: 'var(--color-text-accent)' }}
+      />
+    )
   }
   if (docType === 'image') {
-    return <Image className={sizeClass} style={{ color: 'var(--color-text-success)' }} />
+    return (
+      <Image
+        className={sizeClass}
+        style={{ color: 'var(--color-text-success)' }}
+      />
+    )
   }
-  
+
   if (docName) {
     const ext = docName.split('.').pop()?.toLowerCase()
     switch (ext) {
       case 'pdf':
-        return <FileText className={sizeClass} style={{ color: 'var(--color-text-error)' }} />
+        return (
+          <FileText
+            className={sizeClass}
+            style={{ color: 'var(--color-text-error)' }}
+          />
+        )
       case 'doc':
       case 'docx':
-        return <FileText className={sizeClass} style={{ color: 'var(--color-text-accent)' }} />
+        return (
+          <FileText
+            className={sizeClass}
+            style={{ color: 'var(--color-text-accent)' }}
+          />
+        )
       case 'xls':
       case 'xlsx':
-        return <Table2 className={sizeClass} style={{ color: 'var(--color-text-success)' }} />
+        return (
+          <Table2
+            className={sizeClass}
+            style={{ color: 'var(--color-text-success)' }}
+          />
+        )
       case 'md':
       case 'mdx':
-        return <FileType className={sizeClass} style={{ color: 'var(--color-text-secondary)' }} />
+        return (
+          <FileType
+            className={sizeClass}
+            style={{ color: 'var(--color-text-secondary)' }}
+          />
+        )
     }
   }
-  
-  return <FileText className={sizeClass} style={{ color: 'var(--color-text-tertiary)' }} />
+
+  return (
+    <FileText
+      className={sizeClass}
+      style={{ color: 'var(--color-text-tertiary)' }}
+    />
+  )
 }
 
 /**
@@ -100,7 +139,10 @@ function getSimilarityColor(similarity: number): string {
  */
 function truncateContent(content: string, maxLength = 80): string {
   if (!content) return ''
-  const textContent = content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
+  const textContent = content
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
   if (textContent.length <= maxLength) return textContent
   return textContent.slice(0, maxLength) + '...'
 }
@@ -108,26 +150,38 @@ function truncateContent(content: string, maxLength = 80): string {
 /**
  * 按文档分组 chunks
  */
-function groupChunksByDocument(
-  chunks: ReferenceChunk[],
-): Map<string, { docName: string; docId: string; chunks: Array<{ chunk: ReferenceChunk; index: number }> }> {
-  const groups = new Map<string, { docName: string; docId: string; chunks: Array<{ chunk: ReferenceChunk; index: number }> }>()
-  
+function groupChunksByDocument(chunks: ReferenceChunk[]): Map<
+  string,
+  {
+    docName: string
+    docId: string
+    chunks: Array<{ chunk: ReferenceChunk; index: number }>
+  }
+> {
+  const groups = new Map<
+    string,
+    {
+      docName: string
+      docId: string
+      chunks: Array<{ chunk: ReferenceChunk; index: number }>
+    }
+  >()
+
   chunks.forEach((chunk, index) => {
     const docId = chunk.document_id || 'unknown'
     const existing = groups.get(docId)
-    
+
     if (existing) {
       existing.chunks.push({ chunk, index })
     } else {
       groups.set(docId, {
         docName: chunk.document_name || '未知文档',
         docId,
-        chunks: [{ chunk, index }]
+        chunks: [{ chunk, index }],
       })
     }
   })
-  
+
   return groups
 }
 
@@ -140,46 +194,46 @@ interface ChunkItemProps {
   onClick?: (chunk: ReferenceChunk) => void
 }
 
-const ChunkItem: React.FC<ChunkItemProps> = ({ chunk, index, onClick }) => {
+const ChunkItem: FC<ChunkItemProps> = ({ chunk, index, onClick }) => {
   const similarity = chunk.similarity ?? 0
   const similarityPercent = Math.round(similarity * 100)
   const similarityColor = getSimilarityColor(similarity)
   const displayIndex = chunk.reference_index ?? index + 1
-  
+
   return (
     <button
       className={cn(
-        "w-full flex items-start gap-2 px-3 py-2 text-left rounded-md transition-colors",
-        "hover:bg-[var(--color-state-hover)]"
+        'flex w-full items-start gap-2 rounded-md px-3 py-2 text-left transition-colors',
+        'hover:bg-[var(--color-state-hover)]',
       )}
       onClick={() => onClick?.(chunk)}
     >
       {/* 索引标记 */}
-      <span 
-        className="flex-shrink-0 flex items-center justify-center w-5 h-5 text-xs font-medium rounded"
-        style={{ 
+      <span
+        className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded text-xs font-medium"
+        style={{
           backgroundColor: 'var(--color-state-focus-10)',
-          color: 'var(--color-text-accent)'
+          color: 'var(--color-text-accent)',
         }}
       >
         {displayIndex}
       </span>
-      
+
       {/* 内容区域 */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-0.5">
+      <div className="min-w-0 flex-1">
+        <div className="mb-0.5 flex items-center gap-2">
           {/* 类型标签 */}
-          <span 
-            className="text-xs px-1.5 py-0.5 rounded"
-            style={{ 
+          <span
+            className="rounded px-1.5 py-0.5 text-xs"
+            style={{
               backgroundColor: 'var(--color-background-subtle)',
-              color: 'var(--color-text-tertiary)'
+              color: 'var(--color-text-tertiary)',
             }}
           >
             {getDocTypeLabel(chunk.doc_type)}
           </span>
           {/* 相似度 */}
-          <span 
+          <span
             className="text-xs font-medium"
             style={{ color: similarityColor }}
           >
@@ -187,16 +241,16 @@ const ChunkItem: React.FC<ChunkItemProps> = ({ chunk, index, onClick }) => {
           </span>
         </div>
         {/* 内容摘要 */}
-        <p 
-          className="text-sm line-clamp-2"
+        <p
+          className="line-clamp-2 text-sm"
           style={{ color: 'var(--color-text-secondary)' }}
         >
           {truncateContent(chunk.content || '', 100)}
         </p>
       </div>
-      
-      <ChevronRight 
-        className="flex-shrink-0 h-4 w-4 mt-0.5" 
+
+      <ChevronRight
+        className="mt-0.5 h-4 w-4 flex-shrink-0"
         style={{ color: 'var(--color-text-tertiary)' }}
       />
     </button>
@@ -213,73 +267,76 @@ interface DocumentGroupProps {
   onChunkClick?: (chunk: ReferenceChunk) => void
 }
 
-const DocumentGroup: React.FC<DocumentGroupProps> = ({
+const DocumentGroup: FC<DocumentGroupProps> = ({
   docName,
   chunks,
   defaultVisible,
-  onChunkClick
+  onChunkClick,
 }) => {
-  const [expanded, setExpanded] = React.useState(false)
+  const [expanded, setExpanded] = useState(false)
   const visibleChunks = expanded ? chunks : chunks.slice(0, defaultVisible)
   const hasMore = chunks.length > defaultVisible
-  
+
   // 获取文档的主要类型图标（取第一个 chunk 的类型）
   const primaryChunk = chunks[0]?.chunk
-  
+
   return (
-    <div 
-      className="rounded-lg overflow-hidden"
-      style={{ 
+    <div
+      className="overflow-hidden rounded-lg"
+      style={{
         backgroundColor: 'var(--color-components-card-bg)',
-        border: '1px solid var(--color-components-card-border)'
+        border: '1px solid var(--color-components-card-border)',
       }}
     >
       {/* 文档头部 */}
-      <div 
+      <div
         className="flex items-center gap-2 px-3 py-2"
-        style={{ 
+        style={{
           backgroundColor: 'var(--color-background-subtle)',
-          borderBottom: '1px solid var(--color-border-subtle)'
+          borderBottom: '1px solid var(--color-border-subtle)',
         }}
       >
         {getDocTypeIcon(primaryChunk?.doc_type, docName, 'md')}
-        <span 
-          className="flex-1 font-medium text-sm truncate"
+        <span
+          className="flex-1 truncate text-sm font-medium"
           style={{ color: 'var(--color-text-primary)' }}
           title={docName}
         >
           {docName}
         </span>
-        <span 
-          className="text-xs px-1.5 py-0.5 rounded-full"
-          style={{ 
+        <span
+          className="rounded-full px-1.5 py-0.5 text-xs"
+          style={{
             backgroundColor: 'var(--color-background-default)',
-            color: 'var(--color-text-tertiary)'
+            color: 'var(--color-text-tertiary)',
           }}
         >
           {chunks.length} 条引用
         </span>
       </div>
-      
+
       {/* Chunk 列表 */}
-      <div className="divide-y" style={{ borderColor: 'var(--color-border-subtle)' }}>
+      <div
+        className="divide-y"
+        style={{ borderColor: 'var(--color-border-subtle)' }}
+      >
         {visibleChunks.map(({ chunk, index }) => (
           <ChunkItem
-            key={chunk.id || `chunk-${index}`}
+            key={`${chunk.id || chunk.document_id || 'chunk'}-${index}`}
             chunk={chunk}
             index={index}
             onClick={onChunkClick}
           />
         ))}
       </div>
-      
+
       {/* 展开更多按钮 */}
       {hasMore && (
         <button
-          className="w-full flex items-center justify-center gap-1 px-3 py-2 text-xs font-medium transition-colors"
-          style={{ 
+          className="flex w-full items-center justify-center gap-1 px-3 py-2 text-xs font-medium transition-colors"
+          style={{
             color: 'var(--color-text-accent)',
-            borderTop: '1px solid var(--color-border-subtle)'
+            borderTop: '1px solid var(--color-border-subtle)',
           }}
           onClick={() => setExpanded(!expanded)}
         >
@@ -303,63 +360,66 @@ const DocumentGroup: React.FC<DocumentGroupProps> = ({
 /**
  * 引用面板组件
  */
-export const ReferencePanel: React.FC<ReferencePanelProps> = ({
+export const ReferencePanel: FC<ReferencePanelProps> = ({
   chunks,
   onChunkClick,
   className,
   defaultVisiblePerDoc = 2,
-  defaultExpanded = false
+  defaultExpanded = false,
 }) => {
-  const [isExpanded, setIsExpanded] = React.useState(defaultExpanded)
-  
+  const [isExpanded, setIsExpanded] = useState(defaultExpanded)
+
   // 按文档分组
-  const documentGroups = React.useMemo(
-    () => groupChunksByDocument(chunks),
-    [chunks]
-  )
-  
+  const documentGroups = useMemo(() => groupChunksByDocument(chunks), [chunks])
+
   const documentCount = documentGroups.size
   const totalChunks = chunks.length
-  
+
   if (totalChunks === 0) return null
-  
+
   return (
-    <div className={cn("mt-4", className)}>
+    <div className={cn('mt-4', className)}>
       {/* 面板头部 */}
       <button
-        className="w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-colors"
-        style={{ 
+        className="flex w-full items-center gap-2 rounded-lg px-3 py-2 transition-colors"
+        style={{
           backgroundColor: 'var(--color-background-subtle)',
-          border: '1px solid var(--color-border-subtle)'
+          border: '1px solid var(--color-border-subtle)',
         }}
         onClick={() => setIsExpanded(!isExpanded)}
       >
-        <BookOpen 
-          className="h-4 w-4" 
+        <BookOpen
+          className="h-4 w-4"
           style={{ color: 'var(--color-text-accent)' }}
         />
-        <span 
+        <span
           className="flex-1 text-left text-sm font-medium"
           style={{ color: 'var(--color-text-primary)' }}
         >
           引用来源
         </span>
-        <span 
-          className="text-xs px-2 py-0.5 rounded-full"
-          style={{ 
+        <span
+          className="rounded-full px-2 py-0.5 text-xs"
+          style={{
             backgroundColor: 'var(--color-state-focus-10)',
-            color: 'var(--color-text-accent)'
+            color: 'var(--color-text-accent)',
           }}
         >
           {documentCount} 个文档 · {totalChunks} 条引用
         </span>
         {isExpanded ? (
-          <ChevronDown className="h-4 w-4" style={{ color: 'var(--color-text-tertiary)' }} />
+          <ChevronDown
+            className="h-4 w-4"
+            style={{ color: 'var(--color-text-tertiary)' }}
+          />
         ) : (
-          <ChevronRight className="h-4 w-4" style={{ color: 'var(--color-text-tertiary)' }} />
+          <ChevronRight
+            className="h-4 w-4"
+            style={{ color: 'var(--color-text-tertiary)' }}
+          />
         )}
       </button>
-      
+
       {/* 展开内容 */}
       {isExpanded && (
         <div className="mt-2 space-y-2">

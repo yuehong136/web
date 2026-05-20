@@ -11,7 +11,8 @@ export interface SearchMindmapParams {
   isShareMode?: boolean
 }
 
-const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max)
+const clamp = (value: number, min: number, max: number) =>
+  Math.min(Math.max(value, min), max)
 
 export const useSearchMindmap = () => {
   const [mindmap, setMindmap] = useState<MindmapTreeNode | null>(null)
@@ -22,39 +23,19 @@ export const useSearchMindmap = () => {
 
   const mutation = useMutation({
     mutationFn: async (params: SearchMindmapParams) => {
-      try {
-        const payload = params.isShareMode
-          ? await searchAPI.mindmapShare({
-              question: params.question,
-              kb_ids: params.kbIds,
-              search_id: params.searchId,
-            })
-          : await searchAPI.mindmap({
-              question: params.question,
-              kb_ids: params.kbIds,
-              search_id: params.searchId,
-              searchId: params.searchId,
-              doc_ids: params.docIds,
-            })
-        return normalizeMindmapTree(payload)
-      } catch (error) {
-        // Fallback request shape for older/variant backend implementations.
-        const payload = params.isShareMode
-          ? await searchAPI.mindmapShare({
-              question: params.question,
-              kb_ids: params.kbIds,
-            })
-          : await searchAPI.mindmap({
-              question: params.question,
-              kb_ids: params.kbIds,
-              doc_ids: params.docIds,
-            })
-        const normalized = normalizeMindmapTree(payload)
-        if (!normalized) {
-          throw error
-        }
-        return normalized
-      }
+      const payload = params.isShareMode
+        ? await searchAPI.mindmapShare({
+            question: params.question,
+            kb_ids: params.kbIds,
+            search_id: params.searchId,
+          })
+        : await searchAPI.mindmap({
+            question: params.question,
+            kb_ids: params.kbIds,
+            search_id: params.searchId,
+            doc_ids: params.docIds,
+          })
+      return normalizeMindmapTree(payload)
     },
     onSuccess: (data, params) => {
       setMindmap(data)
@@ -94,7 +75,8 @@ export const useSearchMindmap = () => {
         question: normalizedQuestion,
       }
       const requestKey = JSON.stringify(nextParams)
-      const shouldSkip = !options?.force && latestRequestKeyRef.current === requestKey
+      const shouldSkip =
+        !options?.force && latestRequestKeyRef.current === requestKey
       if (shouldSkip) return
 
       latestRequestKeyRef.current = requestKey
@@ -102,7 +84,7 @@ export const useSearchMindmap = () => {
       setProgress(12)
       await mutation.mutateAsync(nextParams)
     },
-    [mutation]
+    [mutation],
   )
 
   const refresh = useCallback(async () => {
@@ -130,6 +112,15 @@ export const useSearchMindmap = () => {
       reset,
       lastParams,
     }),
-    [error, lastParams, mindmap, mutation.isPending, progress, refresh, request, reset]
+    [
+      error,
+      lastParams,
+      mindmap,
+      mutation.isPending,
+      progress,
+      refresh,
+      request,
+      reset,
+    ],
   )
 }

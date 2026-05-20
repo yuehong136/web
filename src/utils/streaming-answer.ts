@@ -38,12 +38,34 @@ const normalizeMainContent = (value: string): string => {
 }
 
 const hasUnclosedThinkTag = (value: string): boolean => {
-  const openCount = (value.match(/<think>/g) || []).length + (value.match(/<thinking>/g) || []).length
-  const closeCount = (value.match(/<\/think>/g) || []).length + (value.match(/<\/thinking>/g) || []).length
+  const openCount =
+    (value.match(/<think>/g) || []).length +
+    (value.match(/<thinking>/g) || []).length
+  const closeCount =
+    (value.match(/<\/think>/g) || []).length +
+    (value.match(/<\/thinking>/g) || []).length
   return openCount > closeCount
 }
 
-const extractThinkContentStrict = (raw: string): { content: string; thinking: string } => {
+const startsWithThinkOpenTag = (value: string): boolean => {
+  return /^\s*<think(?:ing)?>/i.test(value)
+}
+
+const applyThinkStartMarker = (value: string, incoming = ''): string => {
+  if (hasUnclosedThinkTag(value) || startsWithThinkOpenTag(incoming)) {
+    return value
+  }
+  return value + THINK_OPEN_TAG
+}
+
+const applyThinkEndMarker = (value: string): string => {
+  if (!hasUnclosedThinkTag(value)) return value
+  return value + THINK_CLOSE_TAG
+}
+
+const extractThinkContentStrict = (
+  raw: string,
+): { content: string; thinking: string } => {
   if (!raw) {
     return { content: '', thinking: '' }
   }
@@ -75,7 +97,9 @@ const extractThinkContentStrict = (raw: string): { content: string; thinking: st
   const contentAfterThink = raw.slice(closeEnd)
 
   return {
-    content: normalizeMainContent(`${contentBeforeThink}${contentAfterThink}`).trim(),
+    content: normalizeMainContent(
+      `${contentBeforeThink}${contentAfterThink}`,
+    ).trim(),
     thinking: thinking.trim(),
   }
 }
@@ -85,6 +109,21 @@ export const createInitialStreamingAnswerState = (): StreamingAnswerState => ({
   content: '',
   thinking: '',
 })
+
+export const finalizeStreamingAnswerState = (
+  state: StreamingAnswerState,
+): StreamingAnswerState => {
+  if (state.content.trim() || !state.thinking.trim()) return state
+
+  const splitThinking = state.thinking.match(/^([\s\S]*?)\n\n+(\S[\s\S]*)$/)
+  if (!splitThinking) return state
+
+  return {
+    ...state,
+    content: splitThinking[2].trim(),
+    thinking: splitThinking[1].trim(),
+  }
+}
 
 export const consumeStreamingAnswerChunk = (
   previousState: StreamingAnswerState,
@@ -110,9 +149,12 @@ export const consumeStreamingAnswerChunk = (
     }
   }
 
-  const retcode = typeof rawChunk.retcode === 'number'
-    ? rawChunk.retcode
-    : (typeof rawChunk.code === 'number' ? rawChunk.code : 0)
+  const retcode =
+    typeof rawChunk.retcode === 'number'
+      ? rawChunk.retcode
+      : typeof rawChunk.code === 'number'
+        ? rawChunk.code
+        : 0
 
   if (retcode !== 0) {
     return {
@@ -125,22 +167,35 @@ export const consumeStreamingAnswerChunk = (
 
   let nextFullAnswer = previousState.fullAnswer
   let isFinal = false
+  const startToThink = rawChunk.start_to_think === true
+  const endToThink = rawChunk.end_to_think === true
 
   if (typeof payload === 'string') {
+    if (startToThink) {
+      nextFullAnswer = applyThinkStartMarker(nextFullAnswer, payload)
+    }
+    if (endToThink) {
+      nextFullAnswer = applyThinkEndMarker(nextFullAnswer)
+    }
     nextFullAnswer = mergeAnswerText(nextFullAnswer, payload)
   } else if (isRecord(payload)) {
     const streamPayload = payload as StreamingPayload
+    const answer =
+      typeof streamPayload.answer === 'string' ? streamPayload.answer : ''
+    const chunkStartsThinking =
+      startToThink || streamPayload.start_to_think === true
+    const chunkEndsThinking = endToThink || streamPayload.end_to_think === true
 
-    if (streamPayload.start_to_think === true && !hasUnclosedThinkTag(nextFullAnswer)) {
-      nextFullAnswer += THINK_OPEN_TAG
+    if (chunkStartsThinking) {
+      nextFullAnswer = applyThinkStartMarker(nextFullAnswer, answer)
     }
 
-    if (typeof streamPayload.answer === 'string') {
-      nextFullAnswer = mergeAnswerText(nextFullAnswer, streamPayload.answer)
+    if (chunkEndsThinking) {
+      nextFullAnswer = applyThinkEndMarker(nextFullAnswer)
     }
 
-    if (streamPayload.end_to_think === true && hasUnclosedThinkTag(nextFullAnswer)) {
-      nextFullAnswer += THINK_CLOSE_TAG
+    if (answer) {
+      nextFullAnswer = mergeAnswerText(nextFullAnswer, answer)
     }
 
     isFinal = streamPayload.final === true

@@ -9,7 +9,9 @@ import type {
 
 export const searchAPI = {
   // 获取搜索应用列表
-  list: (params?: ListSearchRequest): Promise<{ search_apps: SearchAppListItem[]; total: number }> => {
+  list: (
+    params?: ListSearchRequest,
+  ): Promise<{ search_apps: SearchAppListItem[]; total: number }> => {
     const queryParams = new URLSearchParams({
       page: (params?.page ?? 1).toString(),
       page_size: (params?.page_size ?? 12).toString(),
@@ -43,8 +45,6 @@ export const searchAPI = {
     question: string
     kb_ids: string[]
     search_id?: string
-    model?: string
-    doc_ids?: string[]
     signal?: AbortSignal
   }): Promise<Response> => {
     const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
@@ -60,9 +60,6 @@ export const searchAPI = {
         question: data.question,
         kb_ids: data.kb_ids,
         search_id: data.search_id,
-        model: data.model,
-        doc_ids: data.doc_ids,
-        stream: true,
       }),
     })
   },
@@ -72,15 +69,12 @@ export const searchAPI = {
     question: string
     kb_ids: string[]
     search_id?: string
-    searchId?: string
     doc_ids?: string[]
   }): Promise<unknown> =>
     apiClient.post('/v1/conversation/mindmap', {
       question: data.question,
       kb_ids: data.kb_ids,
-      // Keep both naming styles for compatibility with different backend branches.
-      search_id: data.search_id || data.searchId,
-      searchId: data.searchId || data.search_id,
+      search_id: data.search_id,
       doc_ids: data.doc_ids,
     }),
 

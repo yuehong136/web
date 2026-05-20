@@ -1,5 +1,5 @@
-import React, { memo, useMemo, useState } from 'react'
-import DOMPurify from 'dompurify'
+import { memo, useMemo, useState, type FC } from 'react'
+import purify from 'dompurify'
 import { ChevronDown, ChevronUp, FileText, Layers } from 'lucide-react'
 import type { ChunkResult } from '@/types/search'
 
@@ -11,7 +11,7 @@ interface SearchChunkListProps {
 }
 
 const sanitizeContent = (content: string) => {
-  return DOMPurify.sanitize(content, {
+  return purify.sanitize(content, {
     ALLOWED_TAGS: [
       'mark',
       'b',
@@ -28,7 +28,7 @@ const sanitizeContent = (content: string) => {
   })
 }
 
-const SearchChunkCard: React.FC<{
+const SearchChunkCard: FC<{
   chunk: ChunkResult
   index: number
   allChunks: ChunkResult[]
@@ -99,7 +99,7 @@ const SearchChunkCard: React.FC<{
   )
 }
 
-const SearchChunkList: React.FC<SearchChunkListProps> = ({
+const SearchChunkList: FC<SearchChunkListProps> = ({
   chunks,
   total,
   isLoading,
@@ -142,7 +142,7 @@ const SearchChunkList: React.FC<SearchChunkListProps> = ({
       <div className="space-y-3">
         {chunks.map((chunk, index) => (
           <SearchChunkCard
-            key={chunk.chunk_id || `${chunk.doc_id}-${index}`}
+            key={`${chunk.chunk_id || chunk.doc_id || 'chunk'}-${index}`}
             chunk={chunk}
             index={index}
             allChunks={chunks}
