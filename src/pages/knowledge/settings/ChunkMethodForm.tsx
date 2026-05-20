@@ -96,5 +96,3 @@ export function ChunkMethodForm({
     </div>
   )
 }
-
-export default ChunkMethodForm

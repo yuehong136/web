@@ -41,9 +41,9 @@ interface FilterGroupProps {
 }
 
 const toneClassNames = {
-  info: 'bg-state-info-subtle text-state-info',
-  success: 'bg-state-success-subtle text-state-success',
-  warning: 'bg-state-warning-subtle text-state-warning',
+  info: 'bg-status-info-subtle text-status-info',
+  success: 'bg-status-success-subtle text-status-success',
+  warning: 'bg-status-warning-subtle text-status-warning',
 }
 
 const FilterGroup: FC<FilterGroupProps> = ({
@@ -125,7 +125,7 @@ export const KnowledgeFilterPanel: FC<KnowledgeFilterPanelProps> = ({
       padding="default"
       title={
         <div className="gap-space-xs flex items-center">
-          <span className="rounded-radius-md bg-state-info-subtle p-1.5 text-state-info">
+          <span className="rounded-radius-md bg-status-info-subtle p-1.5 text-status-info">
             <Filter className="h-4 w-4" />
           </span>
           {t('knowledge.list.filters.title')}
@@ -196,7 +196,7 @@ export const KnowledgeFilterPanel: FC<KnowledgeFilterPanelProps> = ({
 
         <div className="rounded-radius-lg p-space-sm border border-border-default bg-background-surface">
           <div className="mb-space-sm gap-space-xs flex items-center text-sm font-medium text-text-primary">
-            <span className="rounded-radius-md bg-state-warning-subtle p-1 text-state-warning">
+            <span className="rounded-radius-md bg-status-warning-subtle p-1 text-status-warning">
               <Clock className="h-3 w-3" />
             </span>
             {t('knowledge.list.filters.time.title')}
@@ -214,7 +214,7 @@ export const KnowledgeFilterPanel: FC<KnowledgeFilterPanelProps> = ({
       {hasActiveFilters ? (
         <div className="mt-space-base rounded-radius-lg p-space-sm border-t border-border-default bg-background-surface">
           <div className="mb-space-sm gap-space-xs flex items-center">
-            <span className="rounded-radius-md bg-state-info-subtle p-1 text-state-info">
+            <span className="rounded-radius-md bg-status-info-subtle p-1 text-status-info">
               <CheckCircle className="h-3 w-3" />
             </span>
             <div className="text-sm font-medium text-text-secondary">
@@ -223,7 +223,7 @@ export const KnowledgeFilterPanel: FC<KnowledgeFilterPanelProps> = ({
           </div>
           <div className="gap-space-xs flex flex-wrap">
             {searchQuery.trim() ? (
-              <span className="rounded-radius-full px-space-sm bg-state-info-subtle py-0.5 text-xs font-medium text-state-info">
+              <span className="rounded-radius-full px-space-sm bg-status-info-subtle py-0.5 text-xs font-medium text-status-info">
                 {t('knowledge.list.filters.activeKeyword', {
                   keyword: searchQuery,
                 })}
@@ -231,7 +231,7 @@ export const KnowledgeFilterPanel: FC<KnowledgeFilterPanelProps> = ({
             ) : null}
             {filters.permissions.map((permission) => (
               <span
-                className="rounded-radius-full px-space-sm bg-state-success-subtle py-0.5 text-xs font-medium text-state-success"
+                className="rounded-radius-full px-space-sm bg-status-success-subtle py-0.5 text-xs font-medium text-status-success"
                 key={permission}
               >
                 {t('knowledge.list.filters.activePermission', {
@@ -241,7 +241,7 @@ export const KnowledgeFilterPanel: FC<KnowledgeFilterPanelProps> = ({
             ))}
             {filters.languages.map((language) => (
               <span
-                className="rounded-radius-full px-space-sm bg-state-info-subtle py-0.5 text-xs font-medium text-state-info"
+                className="rounded-radius-full px-space-sm bg-status-info-subtle py-0.5 text-xs font-medium text-status-info"
                 key={language}
               >
                 {t('knowledge.list.filters.activeLanguage', {
@@ -251,7 +251,7 @@ export const KnowledgeFilterPanel: FC<KnowledgeFilterPanelProps> = ({
             ))}
             {filters.parser_ids.map((parser) => (
               <span
-                className="rounded-radius-full px-space-sm bg-state-warning-subtle py-0.5 text-xs font-medium text-state-warning"
+                className="rounded-radius-full px-space-sm bg-status-warning-subtle py-0.5 text-xs font-medium text-status-warning"
                 key={parser}
               >
                 {t('knowledge.list.filters.activeParser', { value: parser })}
@@ -259,7 +259,7 @@ export const KnowledgeFilterPanel: FC<KnowledgeFilterPanelProps> = ({
             ))}
             {filters.embd_ids.map((embedding) => (
               <span
-                className="rounded-radius-full px-space-sm bg-state-error-subtle py-0.5 text-xs font-medium text-state-error"
+                className="rounded-radius-full px-space-sm bg-status-error-subtle py-0.5 text-xs font-medium text-status-error"
                 key={embedding}
               >
                 {t('knowledge.list.filters.activeEmbedding', {
@@ -268,7 +268,7 @@ export const KnowledgeFilterPanel: FC<KnowledgeFilterPanelProps> = ({
               </span>
             ))}
             {filters.time_range !== 'all' && selectedTimeRange ? (
-              <span className="rounded-radius-full px-space-sm bg-state-warning-subtle py-0.5 text-xs font-medium text-state-warning">
+              <span className="rounded-radius-full px-space-sm bg-status-warning-subtle py-0.5 text-xs font-medium text-status-warning">
                 {t('knowledge.list.filters.activeTime', {
                   value: selectedTimeRange.label,
                 })}

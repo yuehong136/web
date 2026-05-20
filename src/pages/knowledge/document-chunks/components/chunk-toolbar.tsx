@@ -295,7 +295,7 @@ const FilterOption = ({
       <span
         className={cn(
           'h-2 w-2 rounded-full',
-          tone === 'success' ? 'bg-state-success' : 'bg-state-error',
+          tone === 'success' ? 'bg-status-success' : 'bg-status-error',
         )}
       />
     )}

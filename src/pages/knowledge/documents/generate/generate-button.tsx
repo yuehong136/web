@@ -61,8 +61,8 @@ const GenerateButtonComponent: React.FC<GenerateButtonProps> = ({
 
   const dotColor = useMemo(() => {
     if (hasRunning) return 'var(--color-state-focus)'
-    if (hasFailed) return 'var(--color-state-error)'
-    if (hasCompleted) return 'var(--color-state-success)'
+    if (hasFailed) return 'var(--color-status-error)'
+    if (hasCompleted) return 'var(--color-status-success)'
     return null
   }, [hasRunning, hasFailed, hasCompleted])
 

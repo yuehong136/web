@@ -333,7 +333,7 @@ const RetrievalResultCard: React.FC<RetrievalResultCardProps> = ({
     <article className="rounded-radius-lg p-space-base border border-border-default bg-background-surface transition-colors hover:bg-components-card-bg-hover">
       <div className="mb-space-base gap-space-base flex flex-wrap items-start justify-between">
         <div className="gap-space-sm flex min-w-0 items-center">
-          <div className="rounded-radius-full flex h-8 w-8 shrink-0 items-center justify-center bg-state-success-subtle text-sm font-semibold text-text-success">
+          <div className="rounded-radius-full flex h-8 w-8 shrink-0 items-center justify-center bg-status-success-subtle text-sm font-semibold text-text-success">
             {order}
           </div>
           <p className="truncate text-xs text-text-tertiary">ID: {result.id}</p>

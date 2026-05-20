@@ -92,21 +92,21 @@ export const CreateKnowledgeForm: FC<CreateKnowledgeFormProps> = ({
           <div className="gap-space-xs flex items-center">
             <Label className="text-sm font-medium text-text-primary">
               {t('knowledge.create.fields.name')}
-              <span className="ml-1 text-state-error">*</span>
+              <span className="ml-1 text-status-error">*</span>
             </Label>
             <Tooltip content={t('knowledge.create.fields.nameTooltip')}>
               <HelpCircle className="h-4 w-4 cursor-help text-text-tertiary hover:text-text-secondary" />
             </Tooltip>
           </div>
           <Input
-            className={cn(nameError && 'border-state-error')}
+            className={cn(nameError && 'border-status-error')}
             disabled={isLoading}
             onChange={(event) => handleNameChange(event.target.value)}
             placeholder={t('knowledge.create.fields.namePlaceholder')}
             value={formData.name}
           />
           {nameError ? (
-            <p className="text-xs text-state-error">{nameError}</p>
+            <p className="text-xs text-status-error">{nameError}</p>
           ) : null}
           <p className="text-xs text-text-tertiary">
             {t('knowledge.create.fields.nameRule')}
@@ -176,8 +176,8 @@ export const CreateKnowledgeForm: FC<CreateKnowledgeFormProps> = ({
           />
         </div>
 
-        <div className="gap-space-sm rounded-radius-xl p-space-base flex items-start bg-state-info-subtle">
-          <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-state-info" />
+        <div className="gap-space-sm rounded-radius-xl p-space-base flex items-start bg-status-info-subtle">
+          <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-status-info" />
           <div className="space-y-1">
             <p className="text-sm font-medium text-text-primary">
               {t('knowledge.create.tip.title')}

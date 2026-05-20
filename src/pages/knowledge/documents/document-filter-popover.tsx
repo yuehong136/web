@@ -98,34 +98,18 @@ const FilterField: React.FC<FilterFieldProps> = ({
     return (
       <div className={`flex flex-col gap-2 ${level > 0 ? 'ml-1' : ''}`}>
         <div
-          className="flex cursor-pointer items-center justify-between rounded py-1 transition-colors hover:bg-[var(--color-surface-secondary)]"
+          className="hover:bg-surface-secondary flex cursor-pointer items-center justify-between rounded py-1 transition-colors"
           onClick={() => setShowAll(!showAll)}
         >
-          <span
-            className="text-sm"
-            style={{ color: 'var(--color-text-secondary)' }}
-          >
-            {item.label}
-          </span>
+          <span className="text-sm text-text-secondary">{item.label}</span>
           <div className="flex items-center gap-2">
             {item.count !== undefined && (
-              <span
-                className="text-xs"
-                style={{ color: 'var(--color-text-tertiary)' }}
-              >
-                {item.count}
-              </span>
+              <span className="text-xs text-text-tertiary">{item.count}</span>
             )}
             {showAll ? (
-              <ChevronUp
-                className="h-3 w-3"
-                style={{ color: 'var(--color-text-tertiary)' }}
-              />
+              <ChevronUp className="h-3 w-3 text-text-tertiary" />
             ) : (
-              <ChevronDown
-                className="h-3 w-3"
-                style={{ color: 'var(--color-text-tertiary)' }}
-              />
+              <ChevronDown className="h-3 w-3 text-text-tertiary" />
             )}
           </div>
         </div>
@@ -172,7 +156,7 @@ const FilterField: React.FC<FilterFieldProps> = ({
       className={`group flex items-center justify-between text-xs ${level > 0 ? 'ml-4' : ''}`}
     >
       <div
-        className="-mx-1 flex min-w-0 flex-1 cursor-pointer items-center gap-2 rounded px-1 py-1.5 transition-colors hover:bg-[var(--color-surface-secondary)]"
+        className="hover:bg-surface-secondary -mx-1 flex min-w-0 flex-1 cursor-pointer items-center gap-2 rounded px-1 py-1.5 transition-colors"
         onClick={() => handleCheckChange(!checked, isNestedChild, parentId)}
       >
         <Checkbox
@@ -185,18 +169,14 @@ const FilterField: React.FC<FilterFieldProps> = ({
           className="shrink-0"
         />
         <span
-          className="select-none truncate"
-          style={{ color: 'var(--color-text-primary)' }}
+          className="select-none truncate text-text-primary"
           title={item.label}
         >
           {item.label}
         </span>
       </div>
       {item.count !== undefined && (
-        <span
-          className="ml-2 text-xs tabular-nums"
-          style={{ color: 'var(--color-text-tertiary)' }}
-        >
+        <span className="ml-2 text-xs tabular-nums text-text-tertiary">
           {item.count}
         </span>
       )}
@@ -348,24 +328,17 @@ export const FilterPopover: React.FC<FilterPopoverProps> = ({
               return (
                 <div
                   key={groupName}
-                  className="flex flex-col space-y-3 border-b pb-4"
-                  style={{ borderColor: 'var(--color-border-default)' }}
+                  className="flex flex-col space-y-3 border-b border-border-default pb-4"
                 >
                   {/* 组标题 */}
-                  <div
-                    className="text-sm font-medium"
-                    style={{ color: 'var(--color-text-primary)' }}
-                  >
+                  <div className="text-sm font-medium text-text-primary">
                     {groupName}
                   </div>
                   {/* 组内筛选器 - 直接渲染每个筛选器的选项列表 */}
                   <div className="flex flex-col space-y-3">
                     {groupFilters.map((collection) => (
                       <div key={collection.field} className="space-y-1">
-                        <div
-                          className="text-xs font-medium"
-                          style={{ color: 'var(--color-text-secondary)' }}
-                        >
+                        <div className="text-xs font-medium text-text-secondary">
                           {collection.label}
                         </div>
                         {collection.canSearch && (
@@ -403,10 +376,7 @@ export const FilterPopover: React.FC<FilterPopoverProps> = ({
           {/* 渲染未分组的筛选器 */}
           {ungroupedFilters.map((collection) => (
             <div key={collection.field} className="space-y-3">
-              <div
-                className="text-sm font-medium"
-                style={{ color: 'var(--color-text-primary)' }}
-              >
+              <div className="text-sm font-medium text-text-primary">
                 {collection.label}
               </div>
               {collection.canSearch && (
@@ -436,10 +406,7 @@ export const FilterPopover: React.FC<FilterPopoverProps> = ({
             </div>
           ))}
         </div>
-        <div
-          className="flex justify-end gap-3 border-t px-4 py-3"
-          style={{ borderColor: 'var(--color-border-default)' }}
-        >
+        <div className="flex justify-end gap-3 border-t border-border-default px-4 py-3">
           <Button variant="outline" size="sm" onClick={handleReset}>
             {t('knowledge.documents.clear')}
           </Button>
@@ -485,26 +452,16 @@ export const FilterButton: React.FC<FilterButtonProps> = ({
       <Button
         variant="outline"
         size="sm"
-        style={
+        className={
           filterCount > 0
-            ? {
-                backgroundColor: 'var(--color-state-focus-10)',
-                color: 'var(--color-state-focus)',
-                borderColor: 'var(--color-state-focus)',
-              }
-            : {}
+            ? 'border-state-focus bg-state-focus-10 text-state-focus'
+            : undefined
         }
       >
         <Funnel className="mr-2 h-4 w-4" />
         {t('knowledge.documents.filter')}
         {filterCount > 0 && (
-          <span
-            className="ml-1 inline-flex items-center justify-center rounded-full px-2 py-1 text-xs font-bold leading-none"
-            style={{
-              color: '#ffffff',
-              backgroundColor: 'var(--color-state-focus)',
-            }}
-          >
+          <span className="ml-1 inline-flex items-center justify-center rounded-full bg-state-focus px-2 py-1 text-xs font-bold leading-none text-text-inverted">
             {filterCount}
           </span>
         )}

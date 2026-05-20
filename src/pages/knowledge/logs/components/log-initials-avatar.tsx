@@ -2,9 +2,9 @@ import { cn } from '@/lib/utils'
 
 const AVATAR_CLASS_PALETTE = [
   'bg-state-focus-10 text-state-focus',
-  'bg-state-success-10 text-state-success',
-  'bg-state-warning-10 text-state-warning',
-  'bg-state-error-10 text-state-error',
+  'bg-status-success-10 text-status-success',
+  'bg-status-warning-10 text-status-warning',
+  'bg-status-error-10 text-status-error',
   'bg-state-neutral-10 text-text-secondary',
 ] as const
 

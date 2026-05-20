@@ -103,5 +103,3 @@ export function PipelineSelect({
     />
   )
 }
-
-export default PipelineSelect

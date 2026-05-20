@@ -6,7 +6,8 @@
  * 如需修改主题，请编辑 theme-generator.ts 文件
  */
 
-html[data-theme="dark"], [data-theme="dark"] {
+html[data-theme='dark'],
+[data-theme='dark'] {
   /* ===== Tailwind 通道变量 (用于 /alpha 透明度支持) ===== */
   --twc-primary: 129 140 248;
   --twc-primary-foreground: 255 255 255;
@@ -82,16 +83,17 @@ html[data-theme="dark"], [data-theme="dark"] {
   --color-components-card-bg: #202025;
   --color-components-card-bg-hover: #292c32;
   --color-components-card-border: rgba(255, 255, 255, 0.12);
-  --color-components-card-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.2), 0 1px 2px -1px rgba(0, 0, 0, 0.15);
+  --color-components-card-shadow:
+    0 1px 3px 0 rgba(0, 0, 0, 0.2), 0 1px 2px -1px rgba(0, 0, 0, 0.15);
   --color-components-card-meta-title: #ffffff;
   --color-components-card-meta-description: #a1a1aa;
   --color-components-card-actions-bg: #141414;
-  --color-components-card-actions-border: rgba(255, 255, 255, 0.10);
+  --color-components-card-actions-border: rgba(255, 255, 255, 0.1);
   --color-components-card-cover-bg: rgba(255, 255, 255, 0.05);
 
   /* ===== 侧边栏组件 ===== */
   --color-components-sidebar-bg: rgba(22, 22, 24, 0.98);
-  --color-components-sidebar-border: rgba(255, 255, 255, 0.10);
+  --color-components-sidebar-border: rgba(255, 255, 255, 0.1);
   --color-components-sidebar-item-bg: transparent;
   --color-components-sidebar-item-bg-hover: rgba(255, 255, 255, 0.07);
   --color-components-sidebar-item-bg-active: rgba(99, 102, 241, 0.15);
@@ -109,19 +111,31 @@ html[data-theme="dark"], [data-theme="dark"] {
   /* ===== 下拉菜单组件 ===== */
   --color-components-dropdown-bg: #202025;
   --color-components-dropdown-border: rgba(255, 255, 255, 0.14);
-  --color-components-dropdown-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
+  --color-components-dropdown-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
   --color-components-dropdown-item-bg-hover: rgba(255, 255, 255, 0.07);
   --color-components-dropdown-item-text: #ffffff;
 
   /* ===== 模型选择器组件 ===== */
   --color-components-model-selector-dropdown-bg: #202025;
   --color-components-model-selector-dropdown-border: rgba(255, 255, 255, 0.14);
-  --color-components-model-selector-dropdown-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
+  --color-components-model-selector-dropdown-shadow:
+    0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
   --color-components-model-selector-search-bg: rgba(255, 255, 255, 0.07);
   --color-components-model-selector-search-border: rgba(255, 255, 255, 0.14);
   --color-components-model-selector-search-text: #f9fafb;
-  --color-components-model-selector-provider-header-bg: rgba(255, 255, 255, 0.05);
-  --color-components-model-selector-provider-header-border: rgba(255, 255, 255, 0.12);
+  --color-components-model-selector-provider-header-bg: rgba(
+    255,
+    255,
+    255,
+    0.05
+  );
+  --color-components-model-selector-provider-header-border: rgba(
+    255,
+    255,
+    255,
+    0.12
+  );
   --color-components-model-selector-provider-header-text: #ffffff;
   --color-components-model-selector-item-bg: #202025;
   --color-components-model-selector-item-border: rgba(255, 255, 255, 0.12);
@@ -135,7 +149,7 @@ html[data-theme="dark"], [data-theme="dark"] {
   --color-components-editor-bg: #1e1e1e;
   --color-components-editor-toolbar-bg: #141414;
   --color-components-editor-text: #ffffff;
-  --color-components-editor-border: rgba(255, 255, 255, 0.10);
+  --color-components-editor-border: rgba(255, 255, 255, 0.1);
 
   /* ===== 面板组件 ===== */
   --color-components-panel-header-bg: #141414;
@@ -152,8 +166,17 @@ html[data-theme="dark"], [data-theme="dark"] {
   --color-chat-input-area-bg: rgba(18, 18, 18, 0.98);
   --color-chat-input-area-border: rgba(255, 255, 255, 0.08);
   --color-chat-input-area-shadow: 0 -1px 3px rgba(0, 0, 0, 0.4);
-  --color-chat-gradient-primary: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(165, 180, 252, 0.12) 50%, rgba(79, 70, 229, 0.06) 100%);
-  --color-chat-gradient-secondary: linear-gradient(135deg, rgba(34, 197, 94, 0.08) 0%, rgba(134, 239, 172, 0.12) 100%);
+  --color-chat-gradient-primary: linear-gradient(
+    135deg,
+    rgba(99, 102, 241, 0.08) 0%,
+    rgba(165, 180, 252, 0.12) 50%,
+    rgba(79, 70, 229, 0.06) 100%
+  );
+  --color-chat-gradient-secondary: linear-gradient(
+    135deg,
+    rgba(34, 197, 94, 0.08) 0%,
+    rgba(134, 239, 172, 0.12) 100%
+  );
   --color-chat-welcome-border: rgba(99, 102, 241, 0.2);
   --color-chat-welcome-shadow: 0 4px 20px rgba(99, 102, 241, 0.15);
   --color-chat-input-area-backdrop: blur(20px);
@@ -208,9 +231,12 @@ html[data-theme="dark"], [data-theme="dark"] {
 
   /* ===== 阴影系统 ===== */
   --color-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-  --color-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
-  --color-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
-  --color-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+  --color-shadow-md:
+    0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+  --color-shadow-lg:
+    0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+  --color-shadow-xl:
+    0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
 
   /* ===== 表单控件 ===== */
   --color-components-checkbox-bg: rgba(255, 255, 255, 0.06);
@@ -245,10 +271,12 @@ html[data-theme="dark"], [data-theme="dark"] {
   --color-components-dialog-overlay: rgba(0, 0, 0, 0.75);
   --color-components-popover-bg: #20252d;
   --color-components-popover-border: rgba(255, 255, 255, 0.14);
-  --color-components-popover-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+  --color-components-popover-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
   --color-components-tooltip-bg: #0f172a;
   --color-components-tooltip-text: #ffffff;
-  --color-components-tooltip-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+  --color-components-tooltip-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
   --color-components-system-chart-tooltip-bg: #1e1e1e;
   --color-components-system-chart-tooltip-border: rgba(255, 255, 255, 0.12);
   --color-components-system-chart-tooltip-text: #ffffff;
@@ -284,8 +312,16 @@ html[data-theme="dark"], [data-theme="dark"] {
   --color-components-progress-fill: #3b82f6;
   --color-components-spinner-color: #3b82f6;
   --color-components-task-status-running-progress-bg: rgba(161, 161, 170, 0.15);
-  --color-components-task-status-running-progress-fill: linear-gradient(to right, #818cf8, #a78bfa);
-  --color-components-task-status-running-progress-glow: linear-gradient(to right, rgba(99, 102, 241, 0.4), rgba(139, 92, 246, 0.4));
+  --color-components-task-status-running-progress-fill: linear-gradient(
+    to right,
+    #818cf8,
+    #a78bfa
+  );
+  --color-components-task-status-running-progress-glow: linear-gradient(
+    to right,
+    rgba(99, 102, 241, 0.4),
+    rgba(139, 92, 246, 0.4)
+  );
   --color-components-loader-primary: #818cf8;
   --color-components-loader-secondary: #52525b;
   --color-components-skeleton-base: rgba(255, 255, 255, 0.08);
@@ -309,37 +345,81 @@ html[data-theme="dark"], [data-theme="dark"] {
   --color-components-icon-button-bg-hover: rgba(255, 255, 255, 0.06);
 
   /* ===== 应用头像 ===== */
-  --color-components-app-avatar-bg: linear-gradient(135deg, #a78bfa 0%, #818cf8 100%);
+  --color-components-app-avatar-bg: linear-gradient(
+    135deg,
+    #a78bfa 0%,
+    #818cf8 100%
+  );
   --color-components-app-avatar-border: rgba(167, 139, 250, 0.3);
 
   /* ===== 推荐卡片 ===== */
   --color-components-recommend-card-bg-1: rgba(120, 113, 98, 0.45);
-  --color-components-recommend-card-bg-2: rgba(120, 113, 98, 0.50);
-  --color-components-recommend-card-bg-3: rgba(120, 113, 98, 0.40);
+  --color-components-recommend-card-bg-2: rgba(120, 113, 98, 0.5);
+  --color-components-recommend-card-bg-3: rgba(120, 113, 98, 0.4);
   --color-components-recommend-card-bg-4: rgba(120, 113, 98, 0.55);
   --color-components-recommend-card-text: #ffffff;
   --color-components-recommend-card-tag: #d4d4d8;
 
   /* ===== 统计卡片 ===== */
-  --color-components-stats-card-blue-bg: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(14, 165, 233, 0.1));
-  --color-components-stats-card-blue-icon-bg: linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(14, 165, 233, 0.2));
+  --color-components-stats-card-blue-bg: linear-gradient(
+    135deg,
+    rgba(59, 130, 246, 0.2),
+    rgba(14, 165, 233, 0.1)
+  );
+  --color-components-stats-card-blue-icon-bg: linear-gradient(
+    135deg,
+    rgba(59, 130, 246, 0.3),
+    rgba(14, 165, 233, 0.2)
+  );
   --color-components-stats-card-blue-icon-text: #93c5fd;
-  --color-components-stats-card-blue-shadow: 0 8px 24px -4px rgba(59, 130, 246, 0.35), 0 4px 8px -2px rgba(59, 130, 246, 0.15);
+  --color-components-stats-card-blue-shadow:
+    0 8px 24px -4px rgba(59, 130, 246, 0.35),
+    0 4px 8px -2px rgba(59, 130, 246, 0.15);
   --color-components-stats-card-blue-border-hover: rgba(59, 130, 246, 0.5);
-  --color-components-stats-card-green-bg: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(16, 185, 129, 0.1));
-  --color-components-stats-card-green-icon-bg: linear-gradient(135deg, rgba(34, 197, 94, 0.3), rgba(16, 185, 129, 0.2));
+  --color-components-stats-card-green-bg: linear-gradient(
+    135deg,
+    rgba(34, 197, 94, 0.2),
+    rgba(16, 185, 129, 0.1)
+  );
+  --color-components-stats-card-green-icon-bg: linear-gradient(
+    135deg,
+    rgba(34, 197, 94, 0.3),
+    rgba(16, 185, 129, 0.2)
+  );
   --color-components-stats-card-green-icon-text: #86efac;
-  --color-components-stats-card-green-shadow: 0 8px 24px -4px rgba(34, 197, 94, 0.35), 0 4px 8px -2px rgba(34, 197, 94, 0.15);
+  --color-components-stats-card-green-shadow:
+    0 8px 24px -4px rgba(34, 197, 94, 0.35),
+    0 4px 8px -2px rgba(34, 197, 94, 0.15);
   --color-components-stats-card-green-border-hover: rgba(34, 197, 94, 0.5);
-  --color-components-stats-card-purple-bg: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(168, 85, 247, 0.1));
-  --color-components-stats-card-purple-icon-bg: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(168, 85, 247, 0.2));
+  --color-components-stats-card-purple-bg: linear-gradient(
+    135deg,
+    rgba(139, 92, 246, 0.2),
+    rgba(168, 85, 247, 0.1)
+  );
+  --color-components-stats-card-purple-icon-bg: linear-gradient(
+    135deg,
+    rgba(139, 92, 246, 0.3),
+    rgba(168, 85, 247, 0.2)
+  );
   --color-components-stats-card-purple-icon-text: #c4b5fd;
-  --color-components-stats-card-purple-shadow: 0 8px 24px -4px rgba(139, 92, 246, 0.35), 0 4px 8px -2px rgba(139, 92, 246, 0.15);
+  --color-components-stats-card-purple-shadow:
+    0 8px 24px -4px rgba(139, 92, 246, 0.35),
+    0 4px 8px -2px rgba(139, 92, 246, 0.15);
   --color-components-stats-card-purple-border-hover: rgba(139, 92, 246, 0.5);
-  --color-components-stats-card-orange-bg: linear-gradient(135deg, rgba(249, 115, 22, 0.2), rgba(245, 158, 11, 0.1));
-  --color-components-stats-card-orange-icon-bg: linear-gradient(135deg, rgba(249, 115, 22, 0.3), rgba(245, 158, 11, 0.2));
+  --color-components-stats-card-orange-bg: linear-gradient(
+    135deg,
+    rgba(249, 115, 22, 0.2),
+    rgba(245, 158, 11, 0.1)
+  );
+  --color-components-stats-card-orange-icon-bg: linear-gradient(
+    135deg,
+    rgba(249, 115, 22, 0.3),
+    rgba(245, 158, 11, 0.2)
+  );
   --color-components-stats-card-orange-icon-text: #fdba74;
-  --color-components-stats-card-orange-shadow: 0 8px 24px -4px rgba(249, 115, 22, 0.35), 0 4px 8px -2px rgba(249, 115, 22, 0.15);
+  --color-components-stats-card-orange-shadow:
+    0 8px 24px -4px rgba(249, 115, 22, 0.35),
+    0 4px 8px -2px rgba(249, 115, 22, 0.15);
   --color-components-stats-card-orange-border-hover: rgba(249, 115, 22, 0.5);
 
   /* ===== 画布系统 ===== */
@@ -395,6 +475,18 @@ html[data-theme="dark"], [data-theme="dark"] {
   --color-components-canvas-note-text: #fef08a;
 
   /* ===== 其他组件 ===== */
+  --color-status-success: #22c55e;
+  --color-status-warning: #f59e0b;
+  --color-status-error: #ef4444;
+  --color-status-info: #38bdf8;
+  --color-status-success-10: rgba(34, 197, 94, 0.12);
+  --color-status-warning-10: rgba(245, 158, 11, 0.12);
+  --color-status-error-10: rgba(239, 68, 68, 0.12);
+  --color-status-info-10: rgba(56, 189, 248, 0.12);
+  --color-status-success-subtle: rgba(34, 197, 94, 0.12);
+  --color-status-warning-subtle: rgba(245, 158, 11, 0.12);
+  --color-status-error-subtle: rgba(239, 68, 68, 0.12);
+  --color-status-info-subtle: rgba(56, 189, 248, 0.12);
   --color-components-method-get-bg: rgba(34, 197, 94, 0.2);
   --color-components-method-get-text: #4ade80;
   --color-components-method-get-border: #22c55e;
@@ -446,40 +538,44 @@ html[data-theme="dark"], [data-theme="dark"] {
   --color-components-badge-purple-text: #c4b5fd;
   --color-components-badge-green-bg: rgba(34, 197, 94, 0.2);
   --color-components-badge-green-text: #86efac;
-  --color-components-avatar-gradient-purple-from: #A78BFA;
-  --color-components-avatar-gradient-purple-to: #C4B5FD;
-  --color-components-avatar-gradient-blue-from: #60A5FA;
-  --color-components-avatar-gradient-blue-to: #93C5FD;
-  --color-components-avatar-gradient-green-from: #4ADE80;
-  --color-components-avatar-gradient-green-to: #86EFAC;
-  --color-components-avatar-gradient-orange-from: #FB923C;
-  --color-components-avatar-gradient-orange-to: #FDBA74;
-  --color-components-avatar-gradient-indigo-from: #818CF8;
-  --color-components-avatar-gradient-indigo-to: #A5B4FC;
-  --color-components-avatar-gradient-rose-from: #E11D48;
-  --color-components-avatar-gradient-rose-to: #FB7185;
-  --color-components-avatar-gradient-teal-from: #0D9488;
-  --color-components-avatar-gradient-teal-to: #2DD4BF;
-  --color-components-avatar-gradient-amber-from: #D97706;
-  --color-components-avatar-gradient-amber-to: #FBBF24;
+  --color-components-avatar-gradient-purple-from: #a78bfa;
+  --color-components-avatar-gradient-purple-to: #c4b5fd;
+  --color-components-avatar-gradient-blue-from: #60a5fa;
+  --color-components-avatar-gradient-blue-to: #93c5fd;
+  --color-components-avatar-gradient-green-from: #4ade80;
+  --color-components-avatar-gradient-green-to: #86efac;
+  --color-components-avatar-gradient-orange-from: #fb923c;
+  --color-components-avatar-gradient-orange-to: #fdba74;
+  --color-components-avatar-gradient-indigo-from: #818cf8;
+  --color-components-avatar-gradient-indigo-to: #a5b4fc;
+  --color-components-avatar-gradient-rose-from: #e11d48;
+  --color-components-avatar-gradient-rose-to: #fb7185;
+  --color-components-avatar-gradient-teal-from: #0d9488;
+  --color-components-avatar-gradient-teal-to: #2dd4bf;
+  --color-components-avatar-gradient-amber-from: #d97706;
+  --color-components-avatar-gradient-amber-to: #fbbf24;
   --color-components-task-status-idle-bg: rgba(161, 161, 170, 0.08);
   --color-components-task-status-idle-border: rgba(161, 161, 170, 0.15);
   --color-components-task-status-idle-text: #a1a1aa;
   --color-components-task-status-idle-dot: #71717a;
-  --color-components-task-status-running-bg: linear-gradient(to right, rgba(99, 102, 241, 0.12), rgba(139, 92, 246, 0.12));
+  --color-components-task-status-running-bg: linear-gradient(
+    to right,
+    rgba(99, 102, 241, 0.12),
+    rgba(139, 92, 246, 0.12)
+  );
   --color-components-task-status-running-border: rgba(99, 102, 241, 0.25);
   --color-components-task-status-running-text: #a5b4fc;
   --color-components-task-status-running-dot: #818cf8;
-  --color-components-task-status-cancelled-bg: rgba(245, 158, 11, 0.10);
-  --color-components-task-status-cancelled-border: rgba(245, 158, 11, 0.20);
+  --color-components-task-status-cancelled-bg: rgba(245, 158, 11, 0.1);
+  --color-components-task-status-cancelled-border: rgba(245, 158, 11, 0.2);
   --color-components-task-status-cancelled-text: #fcd34d;
   --color-components-task-status-cancelled-dot: #fbbf24;
-  --color-components-task-status-completed-bg: rgba(34, 197, 94, 0.10);
-  --color-components-task-status-completed-border: rgba(34, 197, 94, 0.20);
+  --color-components-task-status-completed-bg: rgba(34, 197, 94, 0.1);
+  --color-components-task-status-completed-border: rgba(34, 197, 94, 0.2);
   --color-components-task-status-completed-text: #86efac;
   --color-components-task-status-completed-dot: #22c55e;
-  --color-components-task-status-failed-bg: rgba(239, 68, 68, 0.10);
-  --color-components-task-status-failed-border: rgba(239, 68, 68, 0.20);
+  --color-components-task-status-failed-bg: rgba(239, 68, 68, 0.1);
+  --color-components-task-status-failed-border: rgba(239, 68, 68, 0.2);
   --color-components-task-status-failed-text: #fca5a5;
   --color-components-task-status-failed-dot: #f87171;
   --color-components-tag-bg: rgba(255, 255, 255, 0.08);
@@ -489,7 +585,7 @@ html[data-theme="dark"], [data-theme="dark"] {
   --color-components-tag-close-hover: #ef4444;
   --color-components-pagination-bg: #1a1a1a;
   --color-components-pagination-text: #a1a1aa;
-  --color-components-pagination-border: rgba(255, 255, 255, 0.10);
+  --color-components-pagination-border: rgba(255, 255, 255, 0.1);
   --color-components-pagination-item-bg: rgba(255, 255, 255, 0.05);
   --color-components-pagination-item-bg-hover: rgba(255, 255, 255, 0.08);
   --color-components-pagination-item-bg-active: #818cf8;
@@ -498,24 +594,24 @@ html[data-theme="dark"], [data-theme="dark"] {
   --color-components-pagination-disabled-bg: rgba(255, 255, 255, 0.03);
   --color-components-pagination-disabled-text: #52525b;
   --color-components-steps-bg: #1a1a1a;
-  --color-components-steps-border: rgba(255, 255, 255, 0.10);
+  --color-components-steps-border: rgba(255, 255, 255, 0.1);
   --color-components-steps-completed-bg: #22c55e;
   --color-components-steps-completed-text: #ffffff;
   --color-components-steps-active-bg: #818cf8;
   --color-components-steps-active-text: #ffffff;
   --color-components-steps-inactive-bg: rgba(255, 255, 255, 0.05);
   --color-components-steps-inactive-text: #71717a;
-  --color-components-steps-line: rgba(255, 255, 255, 0.10);
+  --color-components-steps-line: rgba(255, 255, 255, 0.1);
   --color-components-steps-line-completed: #22c55e;
-  --color-components-divider-bg: rgba(255, 255, 255, 0.10);
+  --color-components-divider-bg: rgba(255, 255, 255, 0.1);
   --color-components-divider-text: #71717a;
-  --color-components-timeline-line: rgba(255, 255, 255, 0.10);
+  --color-components-timeline-line: rgba(255, 255, 255, 0.1);
   --color-components-timeline-dot: #52525b;
   --color-components-timeline-dot-active: #818cf8;
   --color-components-timeline-content-bg: #1e1e1e;
-  --color-components-timeline-content-border: rgba(255, 255, 255, 0.10);
+  --color-components-timeline-content-border: rgba(255, 255, 255, 0.1);
   --color-components-calendar-bg: #1a1a1a;
-  --color-components-calendar-border: rgba(255, 255, 255, 0.10);
+  --color-components-calendar-border: rgba(255, 255, 255, 0.1);
   --color-components-calendar-header-bg: #141414;
   --color-components-calendar-header-text: #ffffff;
   --color-components-calendar-cell-bg: rgba(255, 255, 255, 0.03);
@@ -529,28 +625,28 @@ html[data-theme="dark"], [data-theme="dark"] {
   --color-components-calendar-cell-text-disabled: #52525b;
   --color-components-drawer-bg: #1e1e1e;
   --color-components-drawer-overlay: rgba(0, 0, 0, 0.75);
-  --color-components-drawer-border: rgba(255, 255, 255, 0.10);
+  --color-components-drawer-border: rgba(255, 255, 255, 0.1);
   --color-components-drawer-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
   --color-components-drawer-header-bg: #141414;
-  --color-components-drawer-header-border: rgba(255, 255, 255, 0.10);
+  --color-components-drawer-header-border: rgba(255, 255, 255, 0.1);
   --color-components-collapse-bg: #1e1e1e;
-  --color-components-collapse-border: rgba(255, 255, 255, 0.10);
+  --color-components-collapse-border: rgba(255, 255, 255, 0.1);
   --color-components-collapse-header-bg: rgba(255, 255, 255, 0.03);
   --color-components-collapse-header-bg-hover: rgba(255, 255, 255, 0.06);
   --color-components-collapse-header-text: #ffffff;
   --color-components-collapse-content-bg: #1e1e1e;
-  --color-components-collapse-content-border: rgba(255, 255, 255, 0.10);
+  --color-components-collapse-content-border: rgba(255, 255, 255, 0.1);
   --color-components-tree-bg: #1a1a1a;
-  --color-components-tree-border: rgba(255, 255, 255, 0.10);
+  --color-components-tree-border: rgba(255, 255, 255, 0.1);
   --color-components-tree-node-bg: transparent;
   --color-components-tree-node-bg-hover: rgba(255, 255, 255, 0.06);
   --color-components-tree-node-bg-selected: rgba(99, 102, 241, 0.15);
   --color-components-tree-node-text: #ffffff;
   --color-components-tree-node-text-selected: #a5b4fc;
-  --color-components-tree-indent-line: rgba(255, 255, 255, 0.10);
+  --color-components-tree-indent-line: rgba(255, 255, 255, 0.1);
   --color-components-tree-expand-icon: #71717a;
   --color-components-transfer-bg: #1a1a1a;
-  --color-components-transfer-border: rgba(255, 255, 255, 0.10);
+  --color-components-transfer-border: rgba(255, 255, 255, 0.1);
   --color-components-transfer-header-bg: #141414;
   --color-components-transfer-header-text: #ffffff;
   --color-components-transfer-item-bg: rgba(255, 255, 255, 0.03);
@@ -581,13 +677,13 @@ html[data-theme="dark"], [data-theme="dark"] {
   --color-components-rate-star-active: #fbbf24;
   --color-components-rate-star-hover: #f59e0b;
   --color-components-anchor-bg: #1a1a1a;
-  --color-components-anchor-border: rgba(255, 255, 255, 0.10);
+  --color-components-anchor-border: rgba(255, 255, 255, 0.1);
   --color-components-anchor-link: #a1a1aa;
   --color-components-anchor-link-active: #a5b4fc;
   --color-components-anchor-link-hover: #ffffff;
   --color-components-backtop-bg: #1e1e1e;
   --color-components-backtop-text: #a1a1aa;
-  --color-components-backtop-border: rgba(255, 255, 255, 0.10);
+  --color-components-backtop-border: rgba(255, 255, 255, 0.1);
   --color-components-backtop-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
   --color-components-backtop-bg-hover: rgba(255, 255, 255, 0.06);
   --color-components-image-placeholder-bg: rgba(255, 255, 255, 0.05);
@@ -602,7 +698,7 @@ html[data-theme="dark"], [data-theme="dark"] {
   --color-components-empty-icon: #52525b;
   --color-components-watermark-text: rgba(255, 255, 255, 0.04);
   --color-components-segmented-bg: rgba(255, 255, 255, 0.05);
-  --color-components-segmented-border: rgba(255, 255, 255, 0.10);
+  --color-components-segmented-border: rgba(255, 255, 255, 0.1);
   --color-components-segmented-item-bg: transparent;
   --color-components-segmented-item-bg-hover: rgba(255, 255, 255, 0.06);
   --color-components-segmented-item-bg-active: rgba(255, 255, 255, 0.12);
@@ -613,27 +709,27 @@ html[data-theme="dark"], [data-theme="dark"] {
   --color-components-mentions-item-bg-hover: rgba(255, 255, 255, 0.06);
   --color-components-mentions-item-text: #ffffff;
   --color-components-colorpicker-bg: #1e1e1e;
-  --color-components-colorpicker-border: rgba(255, 255, 255, 0.10);
+  --color-components-colorpicker-border: rgba(255, 255, 255, 0.1);
   --color-components-colorpicker-slider-bg: rgba(255, 255, 255, 0.06);
   --color-components-colorpicker-handle: #ffffff;
   --color-components-layout-header-bg: #1a1a1a;
-  --color-components-layout-header-border: rgba(255, 255, 255, 0.10);
+  --color-components-layout-header-border: rgba(255, 255, 255, 0.1);
   --color-components-layout-sider-bg: #1a1a1a;
-  --color-components-layout-sider-border: rgba(255, 255, 255, 0.10);
+  --color-components-layout-sider-border: rgba(255, 255, 255, 0.1);
   --color-components-layout-content-bg: #121212;
   --color-components-layout-footer-bg: #1a1a1a;
-  --color-components-layout-footer-border: rgba(255, 255, 255, 0.10);
+  --color-components-layout-footer-border: rgba(255, 255, 255, 0.1);
   --color-components-grid-gutter: #1a1a1a;
   --color-components-list-bg: #1a1a1a;
-  --color-components-list-border: rgba(255, 255, 255, 0.10);
+  --color-components-list-border: rgba(255, 255, 255, 0.1);
   --color-components-list-item-bg: rgba(255, 255, 255, 0.03);
   --color-components-list-item-bg-hover: rgba(255, 255, 255, 0.06);
-  --color-components-list-item-border: rgba(255, 255, 255, 0.10);
+  --color-components-list-item-border: rgba(255, 255, 255, 0.1);
   --color-components-list-item-meta-title: #ffffff;
   --color-components-list-item-meta-description: #a1a1aa;
   --color-components-list-item-actions: #71717a;
   --color-components-descriptions-bg: #1a1a1a;
-  --color-components-descriptions-border: rgba(255, 255, 255, 0.10);
+  --color-components-descriptions-border: rgba(255, 255, 255, 0.1);
   --color-components-descriptions-title: #ffffff;
   --color-components-descriptions-content: #ffffff;
   --color-components-descriptions-label: #a1a1aa;
@@ -644,7 +740,7 @@ html[data-theme="dark"], [data-theme="dark"] {
   --color-components-api-key-value-text: #f4f4f5;
   --color-components-api-key-value-masked: #52525b;
   --color-components-api-key-actions-bg: #1e1e1e;
-  --color-components-api-key-actions-border: rgba(255, 255, 255, 0.10);
+  --color-components-api-key-actions-border: rgba(255, 255, 255, 0.1);
   --color-components-api-status-online-bg: rgba(34, 197, 94, 0.12);
   --color-components-api-status-online-text: #86efac;
   --color-components-api-status-online-dot: #22c55e;
@@ -670,60 +766,77 @@ html[data-theme="dark"], [data-theme="dark"] {
   --color-components-http-method-patch-text: #d8b4fe;
   --color-components-http-method-patch-border: rgba(168, 85, 247, 0.25);
   --color-components-api-docs-bg: #1a1a1a;
-  --color-components-api-docs-border: rgba(255, 255, 255, 0.10);
-  --color-components-api-docs-header-bg: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(165, 180, 252, 0.12) 100%);
+  --color-components-api-docs-border: rgba(255, 255, 255, 0.1);
+  --color-components-api-docs-header-bg: linear-gradient(
+    135deg,
+    rgba(99, 102, 241, 0.08) 0%,
+    rgba(165, 180, 252, 0.12) 100%
+  );
   --color-components-api-docs-header-border: rgba(255, 255, 255, 0.08);
   --color-components-api-docs-content-bg: #1e1e1e;
   --color-components-api-docs-search-bg: rgba(255, 255, 255, 0.05);
   --color-components-api-docs-search-border: rgba(255, 255, 255, 0.12);
   --color-components-api-docs-search-focus-border: #818cf8;
-  --color-components-glassmorphism-bg: rgba(26, 26, 26, 0.80);
-  --color-components-glassmorphism-border: rgba(255, 255, 255, 0.10);
+  --color-components-glassmorphism-bg: rgba(26, 26, 26, 0.8);
+  --color-components-glassmorphism-border: rgba(255, 255, 255, 0.1);
   --color-components-glassmorphism-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-  --color-components-gradient-primary: linear-gradient(135deg, #818cf8 0%, #a78bfa 100%);
-  --color-components-gradient-secondary: linear-gradient(135deg, #f0abfc 0%, #f472b6 100%);
-  --color-components-gradient-accent: linear-gradient(135deg, #67e8f9 0%, #22d3ee 100%);
+  --color-components-gradient-primary: linear-gradient(
+    135deg,
+    #818cf8 0%,
+    #a78bfa 100%
+  );
+  --color-components-gradient-secondary: linear-gradient(
+    135deg,
+    #f0abfc 0%,
+    #f472b6 100%
+  );
+  --color-components-gradient-accent: linear-gradient(
+    135deg,
+    #67e8f9 0%,
+    #22d3ee 100%
+  );
   --color-components-app-shell-bg: #09090b;
   --color-components-app-shell-surface: #15181c;
-  --color-components-app-shell-border: rgba(255, 255, 255, 0.10);
+  --color-components-app-shell-border: rgba(255, 255, 255, 0.1);
   --color-components-app-shell-shadow: 0 24px 48px -24px rgba(0, 0, 0, 0.6);
   --color-components-main-workbench-bg: #111317;
   --color-components-main-workbench-surface: #181b20;
-  --color-components-main-workbench-border: rgba(255, 255, 255, 0.10);
-  --color-components-main-workbench-shadow: 0 24px 48px -24px rgba(0, 0, 0, 0.65);
+  --color-components-main-workbench-border: rgba(255, 255, 255, 0.1);
+  --color-components-main-workbench-shadow: 0 24px 48px -24px
+    rgba(0, 0, 0, 0.65);
   --color-components-page-header-bg: rgba(22, 22, 24, 0.94);
-  --color-components-page-header-border: rgba(255, 255, 255, 0.10);
+  --color-components-page-header-border: rgba(255, 255, 255, 0.1);
   --color-components-page-header-title: #ffffff;
   --color-components-page-header-description: #a1a1aa;
   --color-components-page-toolbar-bg: rgba(22, 22, 24, 0.92);
-  --color-components-page-toolbar-border: rgba(255, 255, 255, 0.10);
+  --color-components-page-toolbar-border: rgba(255, 255, 255, 0.1);
   --color-components-page-toolbar-text: #a1a1aa;
   --color-components-page-state-bg: #202025;
-  --color-components-page-state-border: rgba(255, 255, 255, 0.10);
+  --color-components-page-state-border: rgba(255, 255, 255, 0.1);
   --color-components-page-state-icon-bg: rgba(255, 255, 255, 0.07);
-  --color-components-page-state-icon: #33D4CB;
+  --color-components-page-state-icon: #33d4cb;
   --color-components-page-state-title: #ffffff;
   --color-components-page-state-description: #a1a1aa;
   --color-components-settings-rail-bg: #161618;
-  --color-components-settings-rail-border: rgba(255, 255, 255, 0.10);
+  --color-components-settings-rail-border: rgba(255, 255, 255, 0.1);
   --color-components-settings-rail-title: #ffffff;
   --color-components-settings-rail-description: #a1a1aa;
   --color-components-settings-rail-section-text: #6b7280;
   --color-components-console-bg: #121417;
   --color-components-console-surface: #181b20;
-  --color-components-console-border: rgba(255, 255, 255, 0.10);
+  --color-components-console-border: rgba(255, 255, 255, 0.1);
   --color-components-workspace-bg: #121417;
   --color-components-workspace-surface: #181b20;
-  --color-components-workspace-border: rgba(255, 255, 255, 0.10);
+  --color-components-workspace-border: rgba(255, 255, 255, 0.1);
   --color-components-studio-bg: #101317;
   --color-components-studio-surface: #181c21;
-  --color-components-studio-border: rgba(255, 255, 255, 0.10);
+  --color-components-studio-border: rgba(255, 255, 255, 0.1);
   --color-components-split-pane-bg: #111419;
   --color-components-split-pane-surface: #181b20;
-  --color-components-split-pane-border: rgba(255, 255, 255, 0.10);
+  --color-components-split-pane-border: rgba(255, 255, 255, 0.1);
   --color-components-settings-content-bg: #121417;
   --color-components-settings-section-bg: #202025;
-  --color-components-settings-section-border: rgba(255, 255, 255, 0.10);
+  --color-components-settings-section-border: rgba(255, 255, 255, 0.1);
   --color-components-settings-section-title: #ffffff;
   --color-components-settings-section-description: #a1a1aa;
   --color-components-settings-user-role-bg: rgba(0, 190, 180, 0.15);
@@ -735,13 +848,13 @@ html[data-theme="dark"], [data-theme="dark"] {
   --color-components-system-header-title: #ffffff;
   --color-components-system-header-description: #a1a1aa;
   --color-components-system-version-tag-bg: rgba(255, 255, 255, 0.05);
-  --color-components-system-version-tag-border: rgba(255, 255, 255, 0.10);
+  --color-components-system-version-tag-border: rgba(255, 255, 255, 0.1);
   --color-components-system-version-tag-label: #a1a1aa;
   --color-components-system-version-tag-value: #e5e7eb;
   --color-components-system-section-title: #a1a1aa;
-  --color-components-system-section-divider: rgba(255, 255, 255, 0.10);
+  --color-components-system-section-divider: rgba(255, 255, 255, 0.1);
   --color-components-system-empty-bg: #1e1e1e;
-  --color-components-system-empty-border: rgba(255, 255, 255, 0.10);
+  --color-components-system-empty-border: rgba(255, 255, 255, 0.1);
   --color-components-system-health-ok-bg: rgba(34, 197, 94, 0.12);
   --color-components-system-health-ok-border: #22c55e;
   --color-components-system-health-ok-text: #4ade80;
@@ -760,7 +873,7 @@ html[data-theme="dark"], [data-theme="dark"] {
   --color-components-system-status-error-bg: rgba(239, 68, 68, 0.12);
   --color-components-system-status-error-border: rgba(239, 68, 68, 0.35);
   --color-components-system-status-error-text: #f87171;
-  --color-components-system-chart-grid: rgba(255, 255, 255, 0.10);
+  --color-components-system-chart-grid: rgba(255, 255, 255, 0.1);
   --color-components-system-chart-axis: #a1a1aa;
   --color-components-system-chart-done: #4ade80;
   --color-components-system-chart-done-soft: rgba(74, 222, 128, 0.12);
@@ -771,5 +884,4 @@ html[data-theme="dark"], [data-theme="dark"] {
   --color-components-system-chart-lag: #94a3b8;
   --color-components-system-chart-info-pill-bg: rgba(255, 255, 255, 0.05);
   --color-components-system-chart-info-pill-text: #a1a1aa;
-
 }

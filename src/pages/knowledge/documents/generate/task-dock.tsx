@@ -60,18 +60,9 @@ const TaskDockComponent: React.FC<TaskDockProps> = ({
   if (items.length === 0) return null
 
   return (
-    <div
-      className="mb-4 rounded-lg p-4"
-      style={{
-        backgroundColor: 'var(--color-background-surface)',
-        border: '1px solid var(--color-border-default)',
-      }}
-    >
+    <div className="mb-4 rounded-lg border border-border-default bg-background-surface p-4">
       <div className="mb-3 flex items-center justify-between">
-        <h4
-          className="text-sm font-medium"
-          style={{ color: 'var(--color-text-primary)' }}
-        >
+        <h4 className="text-sm font-medium text-text-primary">
           {t('knowledge.documents.generate.tasksTitle')}
         </h4>
         <Button

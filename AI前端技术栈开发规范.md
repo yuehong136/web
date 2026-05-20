@@ -139,11 +139,13 @@ src/
 
 `src/themes/tokens.ts` 包含约 1452 个 token。常用：
 
-- 颜色：`surface-*`、`text-*`、`border-*`、`status-*`
+- 颜色：`surface-*`、`text-*`、`border-*`、`status-*`（反馈态）、`state-*`（交互态）
 - 间距：`space-xs/sm/base/md/lg/xl/2xl`
 - 圆角：`radius-sm/md/lg/xl/full`
 - 阴影：`elevation-low/medium/high`
 - 图标：`icon-sm/md/lg/xl/2xl`
+
+> **反馈态 vs 交互态（强制）**：反馈色（success/warning/error/info）用 canonical `status-*`（含 `-10`/`-subtle`）；交互色（hover/active/focus/disabled/loading）用 `state-*`。`state-success/warning/error/info` 是 `status-*` 的 legacy alias，仅在全仓迁移完成前保留——新代码反馈态只写 `status-*`，不要新写反馈态 `state-*`，也不要删 alias。详见 `src/themes/design-system.md`。
 
 **场景 token**（壳层、模板、状态块强制使用）：
 

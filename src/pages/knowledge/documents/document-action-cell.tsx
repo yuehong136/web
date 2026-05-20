@@ -87,7 +87,7 @@ export const DocumentActionCell: React.FC<DocumentActionCellProps> = ({
           variant="ghost"
           size="icon-sm"
           onClick={onDelete}
-          style={{ color: 'var(--color-text-error)' }}
+          className="text-text-error"
         >
           <Trash2 className="h-4 w-4" />
         </Button>

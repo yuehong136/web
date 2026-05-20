@@ -205,18 +205,26 @@ No spinner-plus-gray-text ad-hoc states.
 
 `src/themes/tokens.ts` defines ~1,452 token keys. Light/dark palettes live in `theme-generator.ts`; CSS is regenerated via `npm run build:themes`. Dark mode is automatic — **never use `dark:` prefixes** in app code.
 
-| Category  | ✅ Use                                                          | ❌ Forbidden                              |
-| --------- | --------------------------------------------------------------- | ----------------------------------------- |
-| Surface   | `bg-surface-primary`, `bg-surface-secondary`                    | `bg-white`, `bg-[#1a73e8]`, `bg-blue-600` |
-| Text      | `text-text-primary`, `text-text-secondary`, `text-text-caption` | `text-gray-*`, `text-black`               |
-| Border    | `border-border-default`, `border-border-subtle`                 | `border-gray-*`                           |
-| Status    | `text-status-success`, `bg-status-error-subtle`                 | `text-green-500`, `bg-red-100`            |
-| Spacing   | `p-space-base`, `gap-space-md`                                  | `p-4`, `p-[20px]`                         |
-| Radius    | `rounded-radius-lg`                                             | `rounded-lg`, `rounded-[12px]`            |
-| Shadow    | `shadow-elevation-low/medium/high`                              | `shadow-md`, `shadow-sm`                  |
-| Icon size | `size-icon-sm/md/lg/xl/2xl`                                     | `w-4 h-4`                                 |
+| Category          | ✅ Use                                                          | ❌ Forbidden                              |
+| ----------------- | --------------------------------------------------------------- | ----------------------------------------- |
+| Surface           | `bg-surface-primary`, `bg-surface-secondary`                    | `bg-white`, `bg-[#1a73e8]`, `bg-blue-600` |
+| Text              | `text-text-primary`, `text-text-secondary`, `text-text-caption` | `text-gray-*`, `text-black`               |
+| Border            | `border-border-default`, `border-border-subtle`                 | `border-gray-*`                           |
+| Status (feedback) | `text-status-success`, `bg-status-error-subtle`                 | `text-green-500`, `bg-red-100`            |
+| Spacing           | `p-space-base`, `gap-space-md`                                  | `p-4`, `p-[20px]`                         |
+| Radius            | `rounded-radius-lg`                                             | `rounded-lg`, `rounded-[12px]`            |
+| Shadow            | `shadow-elevation-low/medium/high`                              | `shadow-md`, `shadow-sm`                  |
+| Icon size         | `size-icon-sm/md/lg/xl/2xl`                                     | `w-4 h-4`                                 |
 
 Allowed Tailwind utilities (not tokens): layout (`flex`, `grid`, `absolute`), sizing (`w-full`, `h-screen`, `max-w-*`), state prefixes (`hover:`, `focus:`, `disabled:`, `sm:`, `md:`).
+
+#### Status colors: feedback (`status-*`) vs interactive (`state-*`) — MANDATORY
+
+These two prefixes are different semantic axes. Do not confuse them.
+
+- **Feedback** (success / warning / error / info) → **`status-*`** (canonical): `status-{success,warning,error,info}` plus the `-10` and `-subtle` variants. Examples: `text-status-error`, `bg-status-info-10`, `border-status-warning-subtle`, `bg-status-success/10`.
+- **Interactive** (hover / active / focus / disabled / loading) → **`state-*`**: `state-hover`, `state-active`, `state-focus`, `state-disabled`, `state-loading` (plus `state-focus-10`/`state-focus-subtle`). These are NOT feedback colors — never migrate them to `status-*`.
+- `state-{success,warning,error,info}` (and their `-10`/`-subtle` variants) are **legacy aliases** of the `status-*` feedback tokens, kept equal-valued for backward compatibility while a repo-wide migration finishes. **Write new feedback styling with `status-*` only; do not introduce new feedback `state-*`, and do not delete the aliases** until the migration completes. Knowledge module is already fully migrated (see `docs/knowledge-refactor/2026-05-20-knowledge-status-token-audit-summary.md`).
 
 ### Scene tokens (MANDATORY for shells/templates/state blocks)
 

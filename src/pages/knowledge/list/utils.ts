@@ -109,11 +109,11 @@ export const getUniqueOptions = (
 
 export const getStatusClassName = (knowledgeBase: KnowledgeBase) => {
   if (knowledgeBase.doc_num > 0) {
-    return 'bg-state-success-subtle text-state-success'
+    return 'bg-status-success-subtle text-status-success'
   }
 
   if (knowledgeBase.permission === 'me') {
-    return 'bg-state-info-subtle text-state-info'
+    return 'bg-status-info-subtle text-status-info'
   }
 
   return 'bg-background-subtle text-text-secondary'

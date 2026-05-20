@@ -7,6 +7,7 @@
 import React, { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FileText } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { Modal, Button } from '@/components/ui'
 import { Tooltip } from '@/components/ui/tooltip'
 import { TaskStatus, TaskStatusConfig } from './constants'
@@ -49,29 +50,19 @@ const InfoItem: React.FC<{
     <div
       className={`mb-4 flex flex-col ${fullWidth ? 'w-full' : 'w-1/2'} ${className}`}
     >
-      <span className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>
-        {label}
-      </span>
+      <span className="text-sm text-text-tertiary">{label}</span>
       {overflowTip ? (
         <Tooltip
           content={value}
           position="bottom"
           className="max-w-[300px] break-words"
         >
-          <span
-            className="mt-1 w-full truncate"
-            style={{ color: 'var(--color-text-primary)' }}
-          >
+          <span className="mt-1 w-full truncate text-text-primary">
             {value}
           </span>
         </Tooltip>
       ) : (
-        <span
-          className="mt-1 truncate"
-          style={{ color: 'var(--color-text-primary)' }}
-        >
-          {value}
-        </span>
+        <span className="mt-1 truncate text-text-primary">{value}</span>
       )}
     </div>
   )
@@ -86,16 +77,15 @@ const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
 
   return (
     <span
-      className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium"
-      style={{
-        backgroundColor: config.bgToken,
-        border: `1px solid ${config.borderToken}`,
-        color: config.textToken,
-      }}
+      className={cn(
+        'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium',
+        config.bgClass,
+        config.borderClass,
+        config.textClass,
+      )}
     >
       <span
-        className="inline-flex h-1.5 w-1.5 rounded-full"
-        style={{ backgroundColor: config.dotToken }}
+        className={cn('inline-flex h-1.5 w-1.5 rounded-full', config.dotClass)}
       />
       {t(config.textKey)}
     </span>
@@ -115,7 +105,7 @@ const highlightErrors = (text: string): React.ReactNode => {
   return parts.map((part, index) => {
     if (part.match(/^\[ERROR\]/)) {
       return (
-        <span key={index} className="text-red-500">
+        <span key={index} className="text-text-error">
           {part}
         </span>
       )
@@ -194,13 +184,7 @@ export const ProcessLogModal: React.FC<ProcessLogModalProps> = ({
                     label={label}
                     fullWidth
                     value={
-                      <div
-                        className="mt-1 h-fit max-h-[350px] w-full overflow-y-auto whitespace-pre-line text-wrap rounded-lg p-3 scrollbar-thin"
-                        style={{
-                          backgroundColor: 'var(--color-surface-secondary)',
-                          color: 'var(--color-text-secondary)',
-                        }}
-                      >
+                      <div className="bg-surface-secondary mt-1 h-fit max-h-[350px] w-full overflow-y-auto whitespace-pre-line text-wrap rounded-lg p-3 text-text-secondary scrollbar-thin">
                         {highlightErrors(value as string)}
                       </div>
                     }
@@ -213,12 +197,7 @@ export const ProcessLogModal: React.FC<ProcessLogModalProps> = ({
             if (key === 'status') {
               return (
                 <div className="mb-4 flex w-1/2 flex-col" key={key}>
-                  <span
-                    className="text-sm"
-                    style={{ color: 'var(--color-text-tertiary)' }}
-                  >
-                    {label}
-                  </span>
+                  <span className="text-sm text-text-tertiary">{label}</span>
                   <div className="mt-1">
                     <StatusBadge status={value as string} />
                   </div>
@@ -244,5 +223,3 @@ export const ProcessLogModal: React.FC<ProcessLogModalProps> = ({
     </Modal>
   )
 }
-
-export default ProcessLogModal

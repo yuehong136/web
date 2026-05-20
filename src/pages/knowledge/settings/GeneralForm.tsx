@@ -76,6 +76,7 @@ export function GeneralForm({
                 </AvatarFallback>
               </Avatar>
               <div>
+                {/* eslint-disable-next-line no-restricted-syntax -- hidden file input: @/components/ui/input has no type="file" hidden + ref-click pattern */}
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -172,5 +173,3 @@ export function GeneralForm({
     </div>
   )
 }
-
-export default GeneralForm

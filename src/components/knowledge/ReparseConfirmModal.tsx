@@ -135,7 +135,7 @@ export const ReparseConfirmModal: FC<ReparseConfirmModalProps> = ({
                 checked={deleteChunks}
                 onChange={setDeleteChunks}
                 icon={<Trash2 className="h-4 w-4" />}
-                iconColor="text-[var(--color-state-error)]"
+                iconColor="text-[var(--color-status-error)]"
                 title={t('knowledge.documents.reparse.clearChunksTitle', {
                   count: stats.totalChunks,
                 })}
@@ -259,7 +259,7 @@ const OptionCard: FC<OptionCardProps> = ({
             </p>
           )}
           {warning && (
-            <p className="flex items-center gap-1.5 text-xs leading-relaxed text-[var(--color-state-warning)]">
+            <p className="flex items-center gap-1.5 text-xs leading-relaxed text-[var(--color-status-warning)]">
               <AlertCircle className="h-3 w-3 shrink-0" />
               <span>{warning}</span>
             </p>

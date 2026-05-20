@@ -21,9 +21,9 @@ const VARIANT_CLASSES: Record<
     iconText: 'text-state-focus',
   },
   warning: {
-    decoration: 'bg-state-warning',
-    icon: 'bg-state-warning-10',
-    iconText: 'text-state-warning',
+    decoration: 'bg-status-warning',
+    icon: 'bg-status-warning-10',
+    iconText: 'text-status-warning',
   },
 }
 
@@ -136,14 +136,14 @@ function LogStatProcessItem({ label, value, tone }: LogStatProcessItemProps) {
   const toneClasses =
     tone === 'success'
       ? {
-          root: 'bg-state-success-10',
-          dot: 'bg-state-success',
-          value: 'text-state-success',
+          root: 'bg-status-success-10',
+          dot: 'bg-status-success',
+          value: 'text-status-success',
         }
       : {
-          root: 'bg-state-error-10',
-          dot: 'bg-state-error',
-          value: 'text-state-error',
+          root: 'bg-status-error-10',
+          dot: 'bg-status-error',
+          value: 'text-status-error',
         }
 
   return (

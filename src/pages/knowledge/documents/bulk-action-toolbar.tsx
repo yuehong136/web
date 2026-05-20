@@ -40,29 +40,14 @@ export const BulkActionToolbar: React.FC<BulkActionToolbarProps> = ({
   if (selectedCount === 0) return null
 
   return (
-    <div
-      className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 transform rounded-lg p-4 shadow-lg"
-      style={{
-        backgroundColor: 'var(--color-background-surface)',
-        border: '1px solid var(--color-border-default)',
-      }}
-    >
+    <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 transform rounded-lg border border-border-default bg-background-surface p-4 shadow-lg">
       <div className="flex items-center space-x-4">
         {/* 选中计数 */}
         <div className="flex items-center space-x-2">
-          <div
-            className="rounded-lg p-2"
-            style={{ backgroundColor: 'var(--color-state-info-subtle)' }}
-          >
-            <FileText
-              className="h-4 w-4"
-              style={{ color: 'var(--color-state-info)' }}
-            />
+          <div className="rounded-lg bg-status-info-subtle p-2">
+            <FileText className="h-4 w-4 text-status-info" />
           </div>
-          <span
-            className="text-sm"
-            style={{ color: 'var(--color-text-secondary)' }}
-          >
+          <span className="text-sm text-text-secondary">
             {t('knowledge.documents.bulkActions.selected', {
               count: selectedCount,
             })}
@@ -70,10 +55,7 @@ export const BulkActionToolbar: React.FC<BulkActionToolbarProps> = ({
         </div>
 
         {/* 分隔线 */}
-        <div
-          className="h-6 w-px"
-          style={{ backgroundColor: 'var(--color-border-default)' }}
-        />
+        <div className="h-6 w-px bg-border-default" />
 
         {/* 操作按钮 */}
         <div className="flex items-center space-x-2">
@@ -82,10 +64,7 @@ export const BulkActionToolbar: React.FC<BulkActionToolbarProps> = ({
             size="sm"
             onClick={onEnable}
             disabled={isLoading}
-            style={{
-              color: 'var(--color-text-success)',
-              borderColor: 'var(--color-border-success)',
-            }}
+            className="border-border-success text-text-success"
           >
             <CheckCircle className="mr-1 h-4 w-4" />
             {t('knowledge.documents.bulkActions.enable')}
@@ -95,10 +74,7 @@ export const BulkActionToolbar: React.FC<BulkActionToolbarProps> = ({
             size="sm"
             onClick={onDisable}
             disabled={isLoading}
-            style={{
-              color: 'var(--color-text-secondary)',
-              borderColor: 'var(--color-border-default)',
-            }}
+            className="border-border-default text-text-secondary"
           >
             <XCircle className="mr-1 h-4 w-4" />
             {t('knowledge.documents.bulkActions.disable')}
@@ -108,10 +84,7 @@ export const BulkActionToolbar: React.FC<BulkActionToolbarProps> = ({
             size="sm"
             onClick={onStartParse}
             disabled={isLoading}
-            style={{
-              color: 'var(--color-text-accent)',
-              borderColor: 'var(--color-border-accent)',
-            }}
+            className="border-border-accent text-text-accent"
           >
             <Play className="mr-1 h-4 w-4" />
             {t('knowledge.documents.bulkActions.startParse')}
@@ -121,10 +94,7 @@ export const BulkActionToolbar: React.FC<BulkActionToolbarProps> = ({
             size="sm"
             onClick={onStopParse}
             disabled={isLoading}
-            style={{
-              color: 'var(--color-text-warning)',
-              borderColor: 'var(--color-border-warning)',
-            }}
+            className="border-border-warning text-text-warning"
           >
             <Square className="mr-1 h-4 w-4" />
             {t('knowledge.documents.bulkActions.stopTask')}
@@ -143,7 +113,7 @@ export const BulkActionToolbar: React.FC<BulkActionToolbarProps> = ({
             size="sm"
             onClick={onClearSelection}
             disabled={isLoading}
-            style={{ color: 'var(--color-text-tertiary)' }}
+            className="text-text-tertiary"
           >
             <X className="mr-1 h-4 w-4" />
             {t('knowledge.documents.bulkActions.clearSelection')}

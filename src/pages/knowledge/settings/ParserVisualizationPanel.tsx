@@ -25,9 +25,9 @@ interface ParserVisualizationPanelProps {
   selectedParser: DocumentParserType | string | null
 }
 
-const ParserVisualizationPanel: React.FC<ParserVisualizationPanelProps> = ({
-  selectedParser,
-}) => {
+export const ParserVisualizationPanel: React.FC<
+  ParserVisualizationPanelProps
+> = ({ selectedParser }) => {
   const { t } = useTranslation()
   const [images, setImages] = React.useState<string[]>([])
 
@@ -100,7 +100,7 @@ const ParserVisualizationPanel: React.FC<ParserVisualizationPanelProps> = ({
       {/* 头部信息 */}
       <div className="border-b border-border-default p-6">
         <div className="flex items-start gap-4">
-          <div className="rounded-radius-xl flex h-11 w-11 flex-shrink-0 items-center justify-center bg-state-info-subtle">
+          <div className="rounded-radius-xl flex h-11 w-11 flex-shrink-0 items-center justify-center bg-status-info-subtle">
             <Lightbulb className="h-5 w-5 text-text-accent" />
           </div>
           <div className="min-w-0 flex-1">
@@ -169,5 +169,3 @@ const ParserVisualizationPanel: React.FC<ParserVisualizationPanelProps> = ({
     </div>
   )
 }
-
-export default ParserVisualizationPanel

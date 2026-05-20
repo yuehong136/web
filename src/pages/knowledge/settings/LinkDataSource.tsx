@@ -2,7 +2,14 @@
 
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Link, Settings, Unlink, RefreshCw, Database, Loader2 } from 'lucide-react'
+import {
+  Link,
+  Settings,
+  Unlink,
+  RefreshCw,
+  Database,
+  Loader2,
+} from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -23,7 +30,10 @@ import {
   useDataSourceRebuild,
 } from '@/hooks/use-datasource-request'
 import { useDataSourceInfo } from '@/pages/settings/datasource/constants'
-import { type IConnector, DataSourceKey } from '@/pages/settings/datasource/types'
+import {
+  type IConnector,
+  DataSourceKey,
+} from '@/pages/settings/datasource/types'
 
 // 导出类型供外部使用
 export type DataSourceItem = IConnector
@@ -54,18 +64,22 @@ function DataSourceItemCard({
   }
 
   return (
-    <div className="flex items-center justify-between gap-2 px-3 h-12 rounded-lg border border-border group hover:bg-surface-secondary transition-colors">
+    <div className="hover:bg-surface-secondary group flex h-12 items-center justify-between gap-2 rounded-lg border border-border px-3 transition-colors">
       <div className="flex items-center gap-2">
-        <div className="w-6 h-6 flex-shrink-0 flex items-center justify-center">
+        <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center">
           {sourceInfo.icon}
         </div>
-        <div className="text-sm font-medium text-text-primary">{sourceInfo.name}</div>
+        <div className="text-sm font-medium text-text-primary">
+          {sourceInfo.name}
+        </div>
         <div className="text-sm text-text-secondary">{item.name}</div>
       </div>
       <div className="flex items-center gap-1">
         {/* 自动解析开关 */}
-        <div className="items-center gap-2 hidden mr-3 group-hover:flex">
-          <span className="text-xs text-text-tertiary">{t('datasource.autoParse')}</span>
+        <div className="mr-3 hidden items-center gap-2 group-hover:flex">
+          <span className="text-xs text-text-tertiary">
+            {t('datasource.autoParse')}
+          </span>
           <Switch
             checked={item.auto_parse === '1'}
             onCheckedChange={onAutoParse}
@@ -79,7 +93,7 @@ function DataSourceItemCard({
             variant="ghost"
             size="sm"
             type="button"
-            className="h-8 w-8 p-0 hidden group-hover:flex"
+            className="hidden h-8 w-8 p-0 group-hover:flex"
             onClick={onRebuild}
           >
             <RefreshCw className="h-4 w-4" />
@@ -91,7 +105,7 @@ function DataSourceItemCard({
             variant="ghost"
             size="sm"
             type="button"
-            className="h-8 w-8 p-0 hidden group-hover:flex"
+            className="hidden h-8 w-8 p-0 group-hover:flex"
             onClick={onSettings}
           >
             <Settings className="h-4 w-4" />
@@ -103,7 +117,7 @@ function DataSourceItemCard({
             variant="ghost"
             size="sm"
             type="button"
-            className="h-8 w-8 p-0 hidden group-hover:flex text-status-error hover:text-status-error"
+            className="hidden h-8 w-8 p-0 text-status-error group-hover:flex hover:text-status-error"
             onClick={onUnbind}
           >
             <Unlink className="h-4 w-4" />
@@ -136,7 +150,9 @@ function LinkDataSourceModal({
   const [selected, setSelected] = useState<string | null>(null)
 
   // 过滤掉已链接的数据源
-  const availableSources = list.filter((source) => !linkedIds.includes(source.id))
+  const availableSources = list.filter(
+    (source) => !linkedIds.includes(source.id),
+  )
 
   const handleSubmit = () => {
     if (selected) {
@@ -150,10 +166,10 @@ function LinkDataSourceModal({
       <DialogContent size="md">
         <DialogHeader>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600">
               <Link className="h-5 w-5 text-white" />
             </div>
-            <div className="flex-1 min-w-0">
+            <div className="min-w-0 flex-1">
               <DialogTitle>{t('datasource.linkDataSource')}</DialogTitle>
               <DialogDescription>
                 {t('datasource.linkDataSourceDescription')}
@@ -162,14 +178,16 @@ function LinkDataSourceModal({
           </div>
         </DialogHeader>
 
-        <div className="px-6 py-4 space-y-3 max-h-[320px] overflow-y-auto">
+        <div className="max-h-[320px] space-y-3 overflow-y-auto px-6 py-4">
           {isFetching ? (
             <div className="flex items-center justify-center py-10">
-              <Loader2 className="w-6 h-6 animate-spin text-text-tertiary" />
+              <Loader2 className="h-6 w-6 animate-spin text-text-tertiary" />
             </div>
           ) : availableSources.length > 0 ? (
             availableSources.map((source) => {
-              const sourceInfo = dataSourceInfo[source.source as DataSourceKey] || {
+              const sourceInfo = dataSourceInfo[
+                source.source as DataSourceKey
+              ] || {
                 icon: <Database className="h-5 w-5 text-text-tertiary" />,
                 name: source.source,
               }
@@ -178,15 +196,15 @@ function LinkDataSourceModal({
                 <div
                   key={source.id}
                   className={cn(
-                    'flex items-center justify-between px-4 py-3 rounded-xl border-2 cursor-pointer transition-all',
+                    'flex cursor-pointer items-center justify-between rounded-xl border-2 px-4 py-3 transition-all',
                     isSelected
-                      ? 'border-border-accent bg-surface-accent-subtle'
-                      : 'border-border hover:border-border-hover hover:bg-surface-secondary'
+                      ? 'bg-surface-accent-subtle border-border-accent'
+                      : 'hover:border-border-hover hover:bg-surface-secondary border-border',
                   )}
                   onClick={() => setSelected(source.id)}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-surface-secondary flex items-center justify-center">
+                    <div className="bg-surface-secondary flex h-9 w-9 items-center justify-center rounded-lg">
                       {sourceInfo.icon}
                     </div>
                     <div className="flex flex-col">
@@ -200,28 +218,28 @@ function LinkDataSourceModal({
                   </div>
                   <div
                     className={cn(
-                      'w-5 h-5 rounded-full border-2 transition-all flex items-center justify-center',
+                      'flex h-5 w-5 items-center justify-center rounded-full border-2 transition-all',
                       isSelected
-                        ? 'border-border-accent bg-surface-accent'
-                        : 'border-border'
+                        ? 'bg-surface-accent border-border-accent'
+                        : 'border-border',
                     )}
                   >
                     {isSelected && (
-                      <div className="w-2 h-2 rounded-full bg-background-surface" />
+                      <div className="h-2 w-2 rounded-full bg-background-surface" />
                     )}
                   </div>
                 </div>
               )
             })
           ) : (
-            <div className="text-center py-10">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-surface-secondary flex items-center justify-center">
+            <div className="py-10 text-center">
+              <div className="bg-surface-secondary mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl">
                 <Database className="h-8 w-8 text-text-tertiary" />
               </div>
               <p className="text-sm font-medium text-text-secondary">
                 {t('datasource.noAvailableSources')}
               </p>
-              <p className="text-xs text-text-tertiary mt-1">
+              <p className="mt-1 text-xs text-text-tertiary">
                 {t('datasource.configureSourcesFirst')}
               </p>
             </div>
@@ -263,7 +281,13 @@ export function LinkDataSource({ kbId, className }: LinkDataSourceProps) {
 
   // 获取已链接的数据源
   const { dataSources, isFetching, refetch: _refetch } = useDataSourceByKb(kbId)
-  const { link, unlink, updateAutoParse, isLinking, isUnlinking: _isUnlinking } = useLinkDataSource(kbId)
+  const {
+    link,
+    unlink,
+    updateAutoParse,
+    isLinking,
+    isUnlinking: _isUnlinking,
+  } = useLinkDataSource(kbId)
   const { handleRebuild } = useDataSourceRebuild()
 
   // 转换为 IConnector 类型
@@ -297,7 +321,7 @@ export function LinkDataSource({ kbId, className }: LinkDataSourceProps) {
           <h3 className="text-base font-medium text-text-primary">
             {t('datasource.dataSources')}
           </h3>
-          <p className="text-xs text-text-tertiary mt-0.5">
+          <p className="mt-0.5 text-xs text-text-tertiary">
             {t('datasource.manageLinkedSources')}
           </p>
         </div>
@@ -316,7 +340,7 @@ export function LinkDataSource({ kbId, className }: LinkDataSourceProps) {
       {/* 已链接的数据源列表 */}
       {isFetching ? (
         <div className="flex items-center justify-center py-8">
-          <Loader2 className="w-6 h-6 animate-spin text-text-tertiary" />
+          <Loader2 className="h-6 w-6 animate-spin text-text-tertiary" />
         </div>
       ) : linkedSources.length > 0 ? (
         <div className="space-y-2">
@@ -332,10 +356,12 @@ export function LinkDataSource({ kbId, className }: LinkDataSourceProps) {
           ))}
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center py-8 border border-dashed border-border rounded-lg">
-          <Database className="h-10 w-10 text-text-tertiary mb-2" />
-          <p className="text-sm text-text-tertiary">{t('datasource.noLinkedSources')}</p>
-          <p className="text-xs text-text-tertiary mt-1">
+        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-8">
+          <Database className="mb-2 h-10 w-10 text-text-tertiary" />
+          <p className="text-sm text-text-tertiary">
+            {t('datasource.noLinkedSources')}
+          </p>
+          <p className="mt-1 text-xs text-text-tertiary">
             {t('datasource.linkSourcesTip')}
           </p>
         </div>
@@ -352,5 +378,3 @@ export function LinkDataSource({ kbId, className }: LinkDataSourceProps) {
     </div>
   )
 }
-
-export default LinkDataSource

@@ -205,18 +205,26 @@ if (doc.status === '1') {
 
 `src/themes/tokens.ts` 定义约 1452 个 token。明暗调色板在 `theme-generator.ts`，CSS 通过 `npm run build:themes` 生成。深色模式自动适配，**业务代码禁止使用 `dark:` 前缀**。
 
-| 类别     | ✅ 使用                                                         | ❌ 禁止                                   |
-| -------- | --------------------------------------------------------------- | ----------------------------------------- |
-| 表面     | `bg-surface-primary`、`bg-surface-secondary`                    | `bg-white`、`bg-[#1a73e8]`、`bg-blue-600` |
-| 文字     | `text-text-primary`、`text-text-secondary`、`text-text-caption` | `text-gray-*`、`text-black`               |
-| 边框     | `border-border-default`、`border-border-subtle`                 | `border-gray-*`                           |
-| 状态     | `text-status-success`、`bg-status-error-subtle`                 | `text-green-500`、`bg-red-100`            |
-| 间距     | `p-space-base`、`gap-space-md`                                  | `p-4`、`p-[20px]`                         |
-| 圆角     | `rounded-radius-lg`                                             | `rounded-lg`、`rounded-[12px]`            |
-| 阴影     | `shadow-elevation-low/medium/high`                              | `shadow-md`、`shadow-sm`                  |
-| 图标尺寸 | `size-icon-sm/md/lg/xl/2xl`                                     | `w-4 h-4`                                 |
+| 类别         | ✅ 使用                                                         | ❌ 禁止                                   |
+| ------------ | --------------------------------------------------------------- | ----------------------------------------- |
+| 表面         | `bg-surface-primary`、`bg-surface-secondary`                    | `bg-white`、`bg-[#1a73e8]`、`bg-blue-600` |
+| 文字         | `text-text-primary`、`text-text-secondary`、`text-text-caption` | `text-gray-*`、`text-black`               |
+| 边框         | `border-border-default`、`border-border-subtle`                 | `border-gray-*`                           |
+| 状态（反馈） | `text-status-success`、`bg-status-error-subtle`                 | `text-green-500`、`bg-red-100`            |
+| 间距         | `p-space-base`、`gap-space-md`                                  | `p-4`、`p-[20px]`                         |
+| 圆角         | `rounded-radius-lg`                                             | `rounded-lg`、`rounded-[12px]`            |
+| 阴影         | `shadow-elevation-low/medium/high`                              | `shadow-md`、`shadow-sm`                  |
+| 图标尺寸     | `size-icon-sm/md/lg/xl/2xl`                                     | `w-4 h-4`                                 |
 
 允许的非 token Tailwind 类：布局（`flex`、`grid`、`absolute`）、尺寸（`w-full`、`h-screen`、`max-w-*`）、状态前缀（`hover:`、`focus:`、`disabled:`、`sm:`、`md:`）。
+
+#### 状态色：反馈态（`status-*`）与交互态（`state-*`）—— 强制
+
+这是两条不同的语义轴，不要混用：
+
+- **反馈态**（success / warning / error / info）→ **`status-*`**（canonical）：`status-{success,warning,error,info}` 及 `-10`、`-subtle` 变体。示例：`text-status-error`、`bg-status-info-10`、`border-status-warning-subtle`、`bg-status-success/10`。
+- **交互态**（hover / active / focus / disabled / loading）→ **`state-*`**：`state-hover`、`state-active`、`state-focus`、`state-disabled`、`state-loading`（及 `state-focus-10`/`state-focus-subtle`）。它们不是反馈色，**不要**迁移到 `status-*`。
+- `state-{success,warning,error,info}`（含 `-10`/`-subtle`）是 `status-*` 反馈 token 的 **legacy alias**，数值等同，仅在全仓迁移完成前保留。**新代码反馈态一律用 `status-*`，不要新写反馈态 `state-*`，迁移完成前也不要删除 alias。** 知识库模块已完成迁移（见 `docs/knowledge-refactor/2026-05-20-knowledge-status-token-audit-summary.md`）。
 
 ### 场景 token（壳层 / 模板 / 状态块强制）
 

@@ -17,6 +17,7 @@ import {
   ChevronDown,
   ChevronUp,
 } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui'
 import { Tooltip } from '@/components/ui/tooltip'
 import { Progress } from '@/components/ui/progress'
@@ -91,29 +92,25 @@ const TaskItemComponent: React.FC<TaskItemProps> = ({
   if (compact && isQuiet) {
     return (
       <div
-        className="flex items-center justify-between rounded-lg px-3 py-2 transition-colors"
-        style={{
-          border: `1px solid ${statusConfig.borderToken}`,
-          backgroundColor: statusConfig.bgToken,
-        }}
+        className={cn(
+          'flex items-center justify-between rounded-lg border px-3 py-2 transition-colors',
+          statusConfig.bgClass,
+          statusConfig.borderClass,
+        )}
       >
         <div className="flex min-w-0 items-center gap-2">
           <Icon
-            className="h-3.5 w-3.5 shrink-0"
-            style={{ color: statusConfig.textToken }}
+            className={cn('h-3.5 w-3.5 shrink-0', statusConfig.textClass)}
           />
-          <span
-            className="truncate text-sm font-medium"
-            style={{ color: 'var(--color-text-primary)' }}
-          >
+          <span className="truncate text-sm font-medium text-text-primary">
             {t(typeConfig.labelKey)}
           </span>
           <span
-            className="shrink-0 rounded-full px-1.5 py-0.5 text-xs"
-            style={{
-              color: statusConfig.textToken,
-              border: `1px solid ${statusConfig.borderToken}`,
-            }}
+            className={cn(
+              'shrink-0 rounded-full border px-1.5 py-0.5 text-xs',
+              statusConfig.textClass,
+              statusConfig.borderClass,
+            )}
           >
             {t(statusConfig.textKey)}
           </span>
@@ -141,10 +138,7 @@ const TaskItemComponent: React.FC<TaskItemProps> = ({
                 onClick={handleDelete}
                 disabled={isActionPending}
               >
-                <Trash2
-                  className="h-3 w-3"
-                  style={{ color: 'var(--color-state-error)' }}
-                />
+                <Trash2 className="h-3 w-3 text-status-error" />
               </Button>
             </Tooltip>
           )}
@@ -156,29 +150,26 @@ const TaskItemComponent: React.FC<TaskItemProps> = ({
   // 完整卡片模式（running/failed，或下拉菜单中的所有状态）
   return (
     <div
-      className="rounded-lg p-3 transition-colors"
-      style={{
-        border: `1px solid ${statusConfig.borderToken}`,
-        backgroundColor: statusConfig.bgToken,
-      }}
+      className={cn(
+        'rounded-lg border p-3 transition-colors',
+        statusConfig.bgClass,
+        statusConfig.borderClass,
+      )}
     >
       {/* 标题行 */}
       <div className="mb-1.5 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Icon className="h-4 w-4" style={{ color: statusConfig.textToken }} />
-          <span
-            className="text-sm font-medium"
-            style={{ color: 'var(--color-text-primary)' }}
-          >
+          <Icon className={cn('h-4 w-4', statusConfig.textClass)} />
+          <span className="text-sm font-medium text-text-primary">
             {t(typeConfig.labelKey)}
           </span>
           <span
-            className="rounded-full px-1.5 py-0.5 text-xs"
-            style={{
-              color: statusConfig.textToken,
-              backgroundColor: statusConfig.bgToken,
-              border: `1px solid ${statusConfig.borderToken}`,
-            }}
+            className={cn(
+              'rounded-full border px-1.5 py-0.5 text-xs',
+              statusConfig.textClass,
+              statusConfig.bgClass,
+              statusConfig.borderClass,
+            )}
           >
             {t(statusConfig.textKey)}
           </span>
@@ -211,10 +202,7 @@ const TaskItemComponent: React.FC<TaskItemProps> = ({
                 onClick={handlePause}
                 disabled={isActionPending}
               >
-                <CirclePause
-                  className="h-3.5 w-3.5"
-                  style={{ color: 'var(--color-state-warning)' }}
-                />
+                <CirclePause className="h-3.5 w-3.5 text-status-warning" />
               </Button>
             </Tooltip>
           )}
@@ -227,10 +215,7 @@ const TaskItemComponent: React.FC<TaskItemProps> = ({
                 onClick={handleDelete}
                 disabled={isActionPending}
               >
-                <Trash2
-                  className="h-3.5 w-3.5"
-                  style={{ color: 'var(--color-state-error)' }}
-                />
+                <Trash2 className="h-3.5 w-3.5 text-status-error" />
               </Button>
             </Tooltip>
           )}
@@ -239,10 +224,7 @@ const TaskItemComponent: React.FC<TaskItemProps> = ({
 
       {/* 描述行（仅 start/completed） */}
       {isQuiet && (
-        <p
-          className="mb-0 text-xs"
-          style={{ color: 'var(--color-text-tertiary)' }}
-        >
+        <p className="mb-0 text-xs text-text-tertiary">
           {t(typeConfig.descriptionKey)}
         </p>
       )}
@@ -259,7 +241,7 @@ const TaskItemComponent: React.FC<TaskItemProps> = ({
                 style={
                   status === GenerateTaskStatus.Failed
                     ? ({
-                        '--progress-fill': 'var(--color-state-error)',
+                        '--progress-fill': 'var(--color-status-error)',
                       } as React.CSSProperties)
                     : undefined
                 }
@@ -267,8 +249,10 @@ const TaskItemComponent: React.FC<TaskItemProps> = ({
             </div>
             {status === GenerateTaskStatus.Running && (
               <span
-                className="min-w-[32px] text-right text-xs font-medium tabular-nums"
-                style={{ color: statusConfig.textToken }}
+                className={cn(
+                  'min-w-[32px] text-right text-xs font-medium tabular-nums',
+                  statusConfig.textClass,
+                )}
               >
                 {percent}%
               </span>
@@ -279,19 +263,21 @@ const TaskItemComponent: React.FC<TaskItemProps> = ({
           {traceData?.progress_msg && (
             <div>
               <div
-                className={`overflow-hidden whitespace-pre-line text-xs leading-relaxed transition-all duration-200 ${
+                className={cn(
+                  'overflow-hidden whitespace-pre-line text-xs leading-relaxed text-text-tertiary transition-all duration-200',
                   logExpanded
                     ? 'max-h-[200px] overflow-y-auto scrollbar-thin'
-                    : 'max-h-[3.6em]'
-                }`}
-                style={{ color: 'var(--color-text-tertiary)' }}
+                    : 'max-h-[3.6em]',
+                )}
               >
                 {traceData.progress_msg}
               </div>
               <button
                 type="button"
-                className="mt-1 flex items-center gap-0.5 text-xs transition-colors hover:opacity-80"
-                style={{ color: statusConfig.textToken }}
+                className={cn(
+                  'mt-1 flex items-center gap-0.5 text-xs transition-colors hover:opacity-80',
+                  statusConfig.textClass,
+                )}
                 onClick={() => setLogExpanded((v) => !v)}
               >
                 {logExpanded ? (

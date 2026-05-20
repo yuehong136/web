@@ -162,6 +162,20 @@ export const lightTokens: DesignTokens = {
   'state-error-subtle': 'rgba(239, 68, 68, 0.1)',
   'state-info-subtle': 'rgba(14, 165, 233, 0.1)',
 
+  // ===== 反馈状态 status-* (canonical, 数值镜像 state 反馈态) =====
+  'status-success': '#10b981',
+  'status-warning': '#f59e0b',
+  'status-error': '#ef4444',
+  'status-info': '#0ea5e9',
+  'status-success-10': 'rgba(16, 185, 129, 0.1)',
+  'status-warning-10': 'rgba(245, 158, 11, 0.1)',
+  'status-error-10': 'rgba(239, 68, 68, 0.1)',
+  'status-info-10': 'rgba(14, 165, 233, 0.1)',
+  'status-success-subtle': 'rgba(16, 185, 129, 0.1)',
+  'status-warning-subtle': 'rgba(245, 158, 11, 0.1)',
+  'status-error-subtle': 'rgba(239, 68, 68, 0.1)',
+  'status-info-subtle': 'rgba(14, 165, 233, 0.1)',
+
   // ===== HTTP方法颜色系统 =====
   'components-method-get-bg': 'rgba(34, 197, 94, 0.1)',
   'components-method-get-text': '#166534',
@@ -1099,6 +1113,20 @@ export const darkTokens: DesignTokens = {
   'state-warning-subtle': 'rgba(245, 158, 11, 0.12)',
   'state-error-subtle': 'rgba(239, 68, 68, 0.12)',
   'state-info-subtle': 'rgba(56, 189, 248, 0.12)',
+
+  // ===== 反馈状态 status-* (canonical, 数值镜像 state 反馈态) =====
+  'status-success': '#22c55e',
+  'status-warning': '#f59e0b',
+  'status-error': '#ef4444',
+  'status-info': '#38bdf8',
+  'status-success-10': 'rgba(34, 197, 94, 0.12)',
+  'status-warning-10': 'rgba(245, 158, 11, 0.12)',
+  'status-error-10': 'rgba(239, 68, 68, 0.12)',
+  'status-info-10': 'rgba(56, 189, 248, 0.12)',
+  'status-success-subtle': 'rgba(34, 197, 94, 0.12)',
+  'status-warning-subtle': 'rgba(245, 158, 11, 0.12)',
+  'status-error-subtle': 'rgba(239, 68, 68, 0.12)',
+  'status-info-subtle': 'rgba(56, 189, 248, 0.12)',
 
   // ===== HTTP方法颜色系统 =====
   'components-method-get-bg': 'rgba(34, 197, 94, 0.2)',

@@ -53,9 +53,10 @@ import { MetadataManageType } from '@/types/api'
 import { PageEmptyState, PageHeader, SectionCard } from '@/components/patterns'
 import { SplitDetailPageTemplate } from '@/components/page-templates'
 
-const ParserVisualizationPanel = React.lazy(
-  () => import('./settings/ParserVisualizationPanel'),
-)
+const ParserVisualizationPanel = React.lazy(async () => ({
+  default: (await import('./settings/ParserVisualizationPanel'))
+    .ParserVisualizationPanel,
+}))
 const ManageMetadataModal = React.lazy(() =>
   import('./metadata/ManageMetadataModal').then((module) => ({
     default: module.ManageMetadataModal,
@@ -510,7 +511,7 @@ const KnowledgeSettingsPage: React.FC = () => {
                       {parserDescription ? (
                         <div className="gap-space-xs flex items-start">
                           <div className="w-1/4" />
-                          <div className="rounded-radius-md px-space-base py-space-sm w-3/4 border border-border-accent bg-state-info-subtle">
+                          <div className="rounded-radius-md px-space-base py-space-sm w-3/4 border border-border-accent bg-status-info-subtle">
                             <p className="text-sm text-text-accent">
                               {parserDescription}
                             </p>

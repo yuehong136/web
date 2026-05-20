@@ -5,6 +5,7 @@
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 import { X, CheckCircle, XCircle } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { Tooltip } from '@/components/ui'
 import { Switch } from '@/components/ui/switch'
 import type { Document } from '@/types/api'
@@ -32,64 +33,26 @@ export const DocumentStatusCell: React.FC<DocumentStatusCellProps> = ({
     const progressPercent = Math.round(progress * 100)
     return (
       <div className="inline-flex items-center gap-2">
-        <div
-          className="inline-flex items-center gap-2 rounded-full px-2.5 py-1.5"
-          style={{
-            background: 'var(--color-components-task-status-running-bg)',
-            border:
-              '1px solid var(--color-components-task-status-running-border)',
-          }}
-        >
+        <div className="inline-flex items-center gap-2 rounded-full border border-components-task-status-running-border bg-components-task-status-running-bg px-2.5 py-1.5">
           {/* 脉冲动画点 */}
           <span className="relative flex h-2 w-2">
-            <span
-              className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75"
-              style={{
-                backgroundColor:
-                  'var(--color-components-task-status-running-dot)',
-              }}
-            />
-            <span
-              className="relative inline-flex h-2 w-2 rounded-full"
-              style={{
-                backgroundColor:
-                  'var(--color-components-task-status-running-dot)',
-              }}
-            />
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-components-task-status-running-dot opacity-75" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-components-task-status-running-dot" />
           </span>
           {/* 进度条 */}
-          <div
-            className="relative h-1.5 w-16 overflow-hidden rounded-full"
-            style={{
-              background:
-                'var(--color-components-task-status-running-progress-bg)',
-            }}
-          >
+          <div className="relative h-1.5 w-16 overflow-hidden rounded-full bg-components-task-status-running-progress-bg">
             <div
-              className="absolute inset-y-0 left-0 rounded-full transition-all duration-300"
-              style={{
-                width: `${progressPercent}%`,
-                background:
-                  'var(--color-components-task-status-running-progress-fill)',
-              }}
+              className="absolute inset-y-0 left-0 rounded-full bg-components-task-status-running-progress-fill transition-all duration-300"
+              style={{ width: `${progressPercent}%` }}
             />
             {/* 光晕效果 */}
             <div
-              className="absolute inset-y-0 left-0 rounded-full opacity-50 blur-sm transition-all duration-300"
-              style={{
-                width: `${progressPercent}%`,
-                background:
-                  'var(--color-components-task-status-running-progress-glow)',
-              }}
+              className="absolute inset-y-0 left-0 rounded-full bg-components-task-status-running-progress-glow opacity-50 blur-sm transition-all duration-300"
+              style={{ width: `${progressPercent}%` }}
             />
           </div>
           {/* 百分比 */}
-          <span
-            className="text-xs font-medium tabular-nums"
-            style={{
-              color: 'var(--color-components-task-status-running-text)',
-            }}
-          >
+          <span className="text-xs font-medium tabular-nums text-components-task-status-running-text">
             {progressPercent}%
           </span>
         </div>
@@ -97,11 +60,7 @@ export const DocumentStatusCell: React.FC<DocumentStatusCellProps> = ({
         <Tooltip content={t('knowledge.documents.actions.viewDetail')}>
           <button
             onClick={handleClick}
-            className="h-2 w-2 cursor-pointer rounded-full transition-all hover:scale-150"
-            style={{
-              backgroundColor:
-                'var(--color-components-task-status-running-dot)',
-            }}
+            className="h-2 w-2 cursor-pointer rounded-full bg-components-task-status-running-dot transition-all hover:scale-150"
           />
         </Tooltip>
       </div>
@@ -124,8 +83,10 @@ export const DocumentStatusCell: React.FC<DocumentStatusCellProps> = ({
       default:
         return (
           <span
-            className="inline-flex h-1.5 w-1.5 rounded-full"
-            style={{ backgroundColor: statusConfig.dotToken }}
+            className={cn(
+              'inline-flex h-1.5 w-1.5 rounded-full',
+              statusConfig.dotClass,
+            )}
           />
         )
     }
@@ -134,12 +95,12 @@ export const DocumentStatusCell: React.FC<DocumentStatusCellProps> = ({
   return (
     <div className="inline-flex items-center gap-2">
       <span
-        className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium"
-        style={{
-          backgroundColor: statusConfig.bgToken,
-          border: `1px solid ${statusConfig.borderToken}`,
-          color: statusConfig.textToken,
-        }}
+        className={cn(
+          'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium',
+          statusConfig.bgClass,
+          statusConfig.borderClass,
+          statusConfig.textClass,
+        )}
       >
         {getStatusIcon()}
         {t(statusConfig.textKey)}
@@ -148,10 +109,10 @@ export const DocumentStatusCell: React.FC<DocumentStatusCellProps> = ({
       <Tooltip content={t('knowledge.documents.actions.viewDetail')}>
         <button
           onClick={handleClick}
-          className="h-2 w-2 cursor-pointer rounded-full transition-all hover:scale-150"
-          style={{
-            backgroundColor: statusConfig.dotToken,
-          }}
+          className={cn(
+            'h-2 w-2 cursor-pointer rounded-full transition-all hover:scale-150',
+            statusConfig.dotClass,
+          )}
         />
       </Tooltip>
     </div>
@@ -185,18 +146,12 @@ export const DocumentMetadataCell: React.FC<DocumentMetadataCellProps> = ({
       <Tooltip
         content={
           <div className="max-w-xs">
-            <div
-              className="mb-1 font-medium"
-              style={{ color: 'var(--color-text-primary)' }}
-            >
+            <div className="mb-1 font-medium text-text-primary">
               {t('knowledge.documents.metadataCell.configured', {
                 count: metadataCount,
               })}
             </div>
-            <div
-              className="space-y-0.5 text-xs"
-              style={{ color: 'var(--color-text-secondary)' }}
-            >
+            <div className="space-y-0.5 text-xs text-text-secondary">
               {Object.entries(document.meta_fields!)
                 .slice(0, 5)
                 .map(([key, value]) => (
@@ -216,16 +171,8 @@ export const DocumentMetadataCell: React.FC<DocumentMetadataCellProps> = ({
         }
       >
         <div className="flex cursor-help items-center gap-1">
-          <div
-            className="h-2 w-2 rounded-full"
-            style={{ backgroundColor: 'var(--color-state-success)' }}
-          />
-          <span
-            className="text-xs"
-            style={{ color: 'var(--color-text-success)' }}
-          >
-            {metadataCount}
-          </span>
+          <div className="h-2 w-2 rounded-full bg-status-success" />
+          <span className="text-xs text-text-success">{metadataCount}</span>
         </div>
       </Tooltip>
     )
@@ -244,14 +191,8 @@ export const DocumentMetadataCell: React.FC<DocumentMetadataCellProps> = ({
         className={`flex items-center gap-1 ${hasMetadataEnabled ? 'cursor-pointer hover:opacity-80' : 'cursor-default'}`}
         onClick={hasMetadataEnabled ? onClickReparse : undefined}
       >
-        <div
-          className="h-2 w-2 rounded-full"
-          style={{ backgroundColor: 'var(--color-state-warning)' }}
-        />
-        <span
-          className="text-xs"
-          style={{ color: 'var(--color-text-tertiary)' }}
-        >
+        <div className="h-2 w-2 rounded-full bg-status-warning" />
+        <span className="text-xs text-text-tertiary">
           {t('knowledge.documents.metadataCell.none')}
         </span>
       </div>

@@ -18,46 +18,46 @@ export const TaskStatusConfig: Record<
   TaskStatus,
   {
     textKey: string
-    bgToken: string
-    borderToken: string
-    textToken: string
-    dotToken: string
+    bgClass: string
+    borderClass: string
+    textClass: string
+    dotClass: string
   }
 > = {
   [TaskStatus.UNSTART]: {
     textKey: 'knowledge.documents.taskStatus.unstart',
-    bgToken: 'var(--color-components-task-status-idle-bg)',
-    borderToken: 'var(--color-components-task-status-idle-border)',
-    textToken: 'var(--color-components-task-status-idle-text)',
-    dotToken: 'var(--color-components-task-status-idle-dot)',
+    bgClass: 'bg-components-task-status-idle-bg',
+    borderClass: 'border-components-task-status-idle-border',
+    textClass: 'text-components-task-status-idle-text',
+    dotClass: 'bg-components-task-status-idle-dot',
   },
   [TaskStatus.RUNNING]: {
     textKey: 'knowledge.documents.taskStatus.running',
-    bgToken: 'var(--color-components-task-status-running-bg)',
-    borderToken: 'var(--color-components-task-status-running-border)',
-    textToken: 'var(--color-components-task-status-running-text)',
-    dotToken: 'var(--color-components-task-status-running-dot)',
+    bgClass: 'bg-components-task-status-running-bg',
+    borderClass: 'border-components-task-status-running-border',
+    textClass: 'text-components-task-status-running-text',
+    dotClass: 'bg-components-task-status-running-dot',
   },
   [TaskStatus.CANCEL]: {
     textKey: 'knowledge.documents.taskStatus.cancel',
-    bgToken: 'var(--color-components-task-status-cancelled-bg)',
-    borderToken: 'var(--color-components-task-status-cancelled-border)',
-    textToken: 'var(--color-components-task-status-cancelled-text)',
-    dotToken: 'var(--color-components-task-status-cancelled-dot)',
+    bgClass: 'bg-components-task-status-cancelled-bg',
+    borderClass: 'border-components-task-status-cancelled-border',
+    textClass: 'text-components-task-status-cancelled-text',
+    dotClass: 'bg-components-task-status-cancelled-dot',
   },
   [TaskStatus.DONE]: {
     textKey: 'knowledge.documents.taskStatus.done',
-    bgToken: 'var(--color-components-task-status-completed-bg)',
-    borderToken: 'var(--color-components-task-status-completed-border)',
-    textToken: 'var(--color-components-task-status-completed-text)',
-    dotToken: 'var(--color-components-task-status-completed-dot)',
+    bgClass: 'bg-components-task-status-completed-bg',
+    borderClass: 'border-components-task-status-completed-border',
+    textClass: 'text-components-task-status-completed-text',
+    dotClass: 'bg-components-task-status-completed-dot',
   },
   [TaskStatus.FAIL]: {
     textKey: 'knowledge.documents.taskStatus.fail',
-    bgToken: 'var(--color-components-task-status-failed-bg)',
-    borderToken: 'var(--color-components-task-status-failed-border)',
-    textToken: 'var(--color-components-task-status-failed-text)',
-    dotToken: 'var(--color-components-task-status-failed-dot)',
+    bgClass: 'bg-components-task-status-failed-bg',
+    borderClass: 'border-components-task-status-failed-border',
+    textClass: 'text-components-task-status-failed-text',
+    dotClass: 'bg-components-task-status-failed-dot',
   },
 }
 

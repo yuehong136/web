@@ -158,9 +158,9 @@ export const EmbeddingModelSelector: FC<EmbeddingModelSelectorProps> = ({
             {label}
           </div>
         )}
-        <div className="flex h-10 w-full items-center rounded-md border border-state-error bg-state-error-subtle px-3 py-2">
-          <AlertCircle className="h-3 w-3 text-state-error" />
-          <span className="ml-2 text-sm text-state-error">{error}</span>
+        <div className="flex h-10 w-full items-center rounded-md border border-status-error bg-status-error-subtle px-3 py-2">
+          <AlertCircle className="h-3 w-3 text-status-error" />
+          <span className="ml-2 text-sm text-status-error">{error}</span>
         </div>
       </div>
     )
@@ -174,9 +174,9 @@ export const EmbeddingModelSelector: FC<EmbeddingModelSelectorProps> = ({
             {label}
           </div>
         )}
-        <div className="flex h-10 w-full items-center rounded-md border border-state-warning bg-state-warning-subtle px-3 py-2">
-          <AlertCircle className="h-3 w-3 text-state-warning" />
-          <span className="ml-2 text-sm text-state-warning">
+        <div className="flex h-10 w-full items-center rounded-md border border-status-warning bg-status-warning-subtle px-3 py-2">
+          <AlertCircle className="h-3 w-3 text-status-warning" />
+          <span className="ml-2 text-sm text-status-warning">
             {t('knowledge.embeddingSelector.empty')}
           </span>
         </div>

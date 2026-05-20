@@ -49,25 +49,8 @@ export const ParserMethodCell: React.FC<ParserMethodCellProps> = ({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <div
-          className="inline-flex cursor-pointer items-center rounded-sm px-2 py-1 transition-colors"
-          style={{
-            backgroundColor: 'transparent',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor =
-              'var(--color-state-hover, rgba(0, 0, 0, 0.05))'
-            e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)'
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'transparent'
-            e.currentTarget.style.boxShadow = 'none'
-          }}
-        >
-          <span
-            className="max-w-[80px] truncate text-sm"
-            style={{ color: 'var(--color-text-secondary)' }}
-          >
+        <div className="hover:shadow-elevation-low inline-flex cursor-pointer items-center rounded-sm px-2 py-1 transition-colors hover:bg-state-hover">
+          <span className="max-w-[80px] truncate text-sm text-text-secondary">
             {parserLabel}
           </span>
         </div>
@@ -81,5 +64,3 @@ export const ParserMethodCell: React.FC<ParserMethodCellProps> = ({
     </DropdownMenu>
   )
 }
-
-export default ParserMethodCell

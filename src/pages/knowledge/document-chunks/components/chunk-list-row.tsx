@@ -278,7 +278,7 @@ const StatusBadge = ({ available }: { available: boolean }) => {
       <span
         className={cn(
           'mr-1.5 h-1.5 w-1.5 rounded-full',
-          available ? 'bg-state-success' : 'bg-state-error',
+          available ? 'bg-status-success' : 'bg-status-error',
         )}
       />
       {available

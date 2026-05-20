@@ -191,14 +191,14 @@ function highlightLogText(text: string): ReactNode {
   return parts.map((part, index) => {
     if (part.includes('[ERROR]')) {
       return (
-        <span key={index} className="font-medium text-state-error">
+        <span key={index} className="font-medium text-status-error">
           {part}
         </span>
       )
     }
     if (part.includes('[WARNING]')) {
       return (
-        <span key={index} className="text-state-warning">
+        <span key={index} className="text-status-warning">
           {part}
         </span>
       )
