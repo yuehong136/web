@@ -89,7 +89,24 @@
 // 变体：status-*-10（10% 弱底色）、status-*-subtle（卡片/提示条底色）
 ```
 
-> **强制**：反馈态一律用 `status-*`。历史 alias `state-success/warning/error/info`（含 `-10`/`-subtle`）已**物理删除**（全仓迁移 + alias 删除均完成）。ESLint 规则 `design-tokens/no-feedback-state-token`（`error` 级）拦截 class（含 `from-/via-/to-` 渐变档位）、`var(--color-state-*)` 及裸字符串 / `readCssVar()` / 拼接等任何复活形式，新写直接报错。交互态 `state-hover/active/focus/disabled/loading` 与中性 `state-neutral-10` 照常使用；分类/层级着色用 `data-viz-categorical-1..6`。
+> **强制**：反馈态一律用 `status-*`。历史 alias `state-success/warning/error/info`（含 `-10`/`-subtle`）已**物理删除**（全仓迁移 + alias 删除均完成）。ESLint 规则 `design-tokens/no-feedback-state-token`（`error` 级）拦截 class（含 `from-/via-/to-` 渐变档位）、`var(--color-state-*)` 及裸字符串 / `readCssVar()` / 拼接等任何复活形式，新写直接报错。交互态 `state-hover/active/focus/disabled/loading` 与中性 `state-neutral-10` 照常使用；分类/层级着色用 `data-viz-categorical-1..10`。
+
+### 分类/序列着色 `data-viz-categorical-*`
+
+多色、无单一语义的分类/序列色统一走 `data-viz-categorical-1..10`（明暗自动切换），消费者用 `@/lib/design-tokens` 共享工具，**不要硬编码 hex 调色板**：
+
+```ts
+import {
+  getCategoricalPalette, // 实时颜色数组，喂给 canvas/G6/recharts 等
+  getCategoricalIndex, // 分类 key → 确定性槽位（多处着色一致）
+  getCategoricalColorVar, // var(--color-data-viz-categorical-N)，供 style 用
+} from '@/lib/design-tokens'
+
+const palette = getCategoricalPalette(container) // 默认 10 档；mindmap 取前 6
+const color = palette[getCategoricalIndex(entityType)]
+```
+
+语义状态图表色（done/failed/pending 等）仍用 `components-system-chart-*`，不要混进 categorical。详见 `design-system.md` 同名章节。
 
 ## 🛠️ 使用方法
 

@@ -18,12 +18,11 @@ import {
 import { useIsDarkTheme } from '@/themes'
 import type { KnowledgeGraph } from '@/types/api'
 import {
-  NODE_TYPE_PALETTE,
-  NODE_TYPE_PALETTE_DARK,
   COMBO_LAYOUT_CONFIG,
   FORCE_LAYOUT_CONFIG,
   DEFAULT_COMBO_LABEL,
 } from '../constants'
+import { getCategoricalPalette } from '@/lib/design-tokens'
 import { LayoutMode } from '../types'
 import {
   detectLayoutMode,
@@ -66,8 +65,10 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
       () => [...new Set(data.nodes.map((n) => n.type).filter(Boolean))],
       [data.nodes],
     )
+    // isDark 作为依赖触发重算：data-viz-categorical-* 的解析值随主题切换。
     const colorMap = useMemo(
-      () => buildTypeColorMap(nodeTypes, isDark),
+      () => buildTypeColorMap(nodeTypes),
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       [nodeTypes, isDark],
     )
 
@@ -172,7 +173,7 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
       const container = containerRef.current
       if (!container) return
 
-      const palette = isDark ? NODE_TYPE_PALETTE_DARK : NODE_TYPE_PALETTE
+      const palette = getCategoricalPalette(container)
       const graphTheme = getGraphTheme(container)
 
       const graph = new Graph({
@@ -357,7 +358,6 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
     }, [
       graphData,
       colorMap,
-      isDark,
       onNodeClick,
       onEdgeClick,
       onCanvasClick,

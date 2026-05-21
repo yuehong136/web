@@ -1,31 +1,6 @@
-// G6 node/content palette. These hex values color graph entities themselves,
-// not page chrome; keep them local to the graph adapter instead of registering
-// Tailwind UI tokens.
-export const NODE_TYPE_PALETTE = [
-  '#6366f1', // indigo
-  '#8b5cf6', // violet
-  '#ec4899', // pink
-  '#f43f5e', // rose
-  '#f97316', // orange
-  '#eab308', // yellow
-  '#22c55e', // green
-  '#14b8a6', // teal
-  '#06b6d4', // cyan
-  '#3b82f6', // blue
-] as const
-
-export const NODE_TYPE_PALETTE_DARK = [
-  '#818cf8',
-  '#a78bfa',
-  '#f472b6',
-  '#fb7185',
-  '#fb923c',
-  '#facc15',
-  '#4ade80',
-  '#2dd4bf',
-  '#22d3ee',
-  '#60a5fa',
-] as const
+// 节点实体类型分类色已收敛到设计令牌 `data-viz-categorical-1..10`（明暗自动切换），
+// 通过 src/lib/design-tokens/getCategoricalPalette() 消费，不再在此硬编码 hex palette。
+// 见 docs/design-tokens/2026-05-20-data-viz-palette-consolidation-summary.md。
 
 export const DEFAULT_COMBO_LABEL = 'defaultCombo'
 

@@ -166,14 +166,20 @@ export interface DesignTokens {
   'status-info-subtle': string
 
   // ===== 数据可视化分类调色板 (data-viz categorical) =====
-  // 用于图表/思维导图等的「分类/层级」着色（非反馈、非交互语义）。
-  // 当前消费者：src/pages/search/detail/mindmap/indented-tree.tsx 缩进树调色板。
+  // 用于图表/思维导图/知识图谱等的「分类/层级」着色（非反馈、非交互语义）。
+  // 消费者：src/pages/search/detail/mindmap/indented-tree.tsx（用 1-6）、
+  // src/pages/knowledge/graph（实体类型分类色，用 1-10）。
+  // 统一通过 src/lib/design-tokens/getCategoricalPalette() 消费，不要再硬编码 hex。
   'data-viz-categorical-1': string
   'data-viz-categorical-2': string
   'data-viz-categorical-3': string
   'data-viz-categorical-4': string
   'data-viz-categorical-5': string
   'data-viz-categorical-6': string
+  'data-viz-categorical-7': string
+  'data-viz-categorical-8': string
+  'data-viz-categorical-9': string
+  'data-viz-categorical-10': string
 
   // ===== HTTP方法颜色系统 =====
   'components-method-get-bg': string
@@ -1120,6 +1126,10 @@ export const defaultTokens: DesignTokens = {
   'data-viz-categorical-4': '',
   'data-viz-categorical-5': '',
   'data-viz-categorical-6': '',
+  'data-viz-categorical-7': '',
+  'data-viz-categorical-8': '',
+  'data-viz-categorical-9': '',
+  'data-viz-categorical-10': '',
 
   // HTTP方法颜色系统
   'components-method-get-bg': '',

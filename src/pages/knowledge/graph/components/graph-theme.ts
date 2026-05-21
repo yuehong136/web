@@ -1,3 +1,5 @@
+import { readCssVar } from '@/lib/design-tokens'
+
 export interface GraphTheme {
   accentColor: string
   borderColor: string
@@ -12,11 +14,10 @@ export interface GraphTheme {
   workspaceBorderColor: string
 }
 
+// 复用共享 readCssVar（带 dev-only 空值告警）。结构色解析失败时回退到 `var(--color-*)`
+// 引用，让浏览器仍能延迟解析，同时在 dev 控制台暴露失效 token 名。
 function readDesignToken(element: HTMLElement, token: string) {
-  return (
-    getComputedStyle(element).getPropertyValue(`--color-${token}`).trim() ||
-    `var(--color-${token})`
-  )
+  return readCssVar(token, `var(--color-${token})`, element)
 }
 
 export function getGraphTheme(element: HTMLElement): GraphTheme {

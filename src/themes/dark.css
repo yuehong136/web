@@ -481,6 +481,10 @@ html[data-theme='dark'],
   --color-data-viz-categorical-4: #f59e0b;
   --color-data-viz-categorical-5: #ef4444;
   --color-data-viz-categorical-6: #a78bfa;
+  --color-data-viz-categorical-7: #f472b6;
+  --color-data-viz-categorical-8: #fb923c;
+  --color-data-viz-categorical-9: #60a5fa;
+  --color-data-viz-categorical-10: #a3e635;
   --color-components-method-get-bg: rgba(34, 197, 94, 0.2);
   --color-components-method-get-text: #4ade80;
   --color-components-method-get-border: #22c55e;

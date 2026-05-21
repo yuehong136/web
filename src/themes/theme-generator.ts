@@ -165,15 +165,21 @@ export const lightTokens: DesignTokens = {
   'status-info-subtle': 'rgba(14, 165, 233, 0.1)',
 
   // ===== 数据可视化分类调色板 (data-viz categorical) =====
-  // 思维导图/图表的分类层级着色（非反馈、非交互）。6 个彼此区分、可读的色相：
-  // sky / emerald / teal / amber / red / violet。1-5 沿用历史 mindmap 配色；
-  // 6 取分类紫（与 indented-tree NODE_COLORS 兜底意图一致），替换历史误继承的近黑 text-accent。
+  // 思维导图/图表/知识图谱的分类层级着色（非反馈、非交互）。10 个彼此区分、可读的色相：
+  // sky / emerald / teal / amber / red / violet / pink / orange / blue / lime。
+  // 1-5 沿用历史 mindmap 配色；6 取分类紫（与 indented-tree NODE_COLORS 兜底意图一致），
+  // 替换历史误继承的近黑 text-accent。7-10 复用知识图谱旧 palette 成熟色相并补一档 lime
+  // 拉开与 red/pink/orange 的距离。mindmap 用 1-6，知识图谱实体类型色用 1-10。
   'data-viz-categorical-1': '#0ea5e9',
   'data-viz-categorical-2': '#10b981',
   'data-viz-categorical-3': '#00BEB4',
   'data-viz-categorical-4': '#f59e0b',
   'data-viz-categorical-5': '#ef4444',
   'data-viz-categorical-6': '#8b5cf6',
+  'data-viz-categorical-7': '#ec4899',
+  'data-viz-categorical-8': '#f97316',
+  'data-viz-categorical-9': '#3b82f6',
+  'data-viz-categorical-10': '#84cc16',
 
   // ===== HTTP方法颜色系统 =====
   'components-method-get-bg': 'rgba(34, 197, 94, 0.1)',
@@ -1116,15 +1122,21 @@ export const darkTokens: DesignTokens = {
   'status-info-subtle': 'rgba(56, 189, 248, 0.12)',
 
   // ===== 数据可视化分类调色板 (data-viz categorical) =====
-  // 思维导图/图表的分类层级着色（非反馈、非交互）。6 个彼此区分、可读的色相：
-  // sky / emerald / indigo / amber / red / violet。1-5 沿用历史 mindmap 配色；
-  // 6 取分类紫（与 NODE_COLORS 兜底意图一致），避免与 slot-1 蓝撞色，替换历史误继承的 text-accent 蓝。
+  // 思维导图/图表/知识图谱的分类层级着色（非反馈、非交互）。10 个彼此区分、可读的色相：
+  // sky / emerald / indigo / amber / red / violet / pink / orange / blue / lime。
+  // 1-5 沿用历史 mindmap 配色；6 取分类紫（与 NODE_COLORS 兜底意图一致），避免与 slot-1 蓝撞色，
+  // 替换历史误继承的 text-accent 蓝。7-10 取知识图谱旧 dark palette 成熟色相并补一档 lime。
+  // mindmap 用 1-6，知识图谱实体类型色用 1-10。
   'data-viz-categorical-1': '#38bdf8',
   'data-viz-categorical-2': '#22c55e',
   'data-viz-categorical-3': '#818cf8',
   'data-viz-categorical-4': '#f59e0b',
   'data-viz-categorical-5': '#ef4444',
   'data-viz-categorical-6': '#a78bfa',
+  'data-viz-categorical-7': '#f472b6',
+  'data-viz-categorical-8': '#fb923c',
+  'data-viz-categorical-9': '#60a5fa',
+  'data-viz-categorical-10': '#a3e635',
 
   // ===== HTTP方法颜色系统 =====
   'components-method-get-bg': 'rgba(34, 197, 94, 0.2)',

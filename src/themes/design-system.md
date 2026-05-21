@@ -148,9 +148,24 @@ Tailwind 集成 (tailwind.config.js):
 - ❌ **禁止以任何形式复活** `state-success/warning/error/info`：class（含 `from-/via-/to-` 渐变档位）、`var(--color-state-*)`、裸字符串 / `readCssVar()` / 拼接均被 ESLint 规则 `design-tokens/no-feedback-state-token`（`error` 级，覆盖 `src/**/*.{ts,tsx}`，排除 `src/themes/**`）拦截，新写会直接报错；
 - ✅ 交互态 `state-hover/active/focus/disabled/loading`（含 `state-focus-10`/`-subtle`）与中性 `state-neutral-10` 不受影响，继续使用。
 
-**全仓状态**：反馈态 `state-*` → `status-*` 迁移与 alias 删除均已完成（迁移见 `docs/design-tokens/2026-05-20-design-token-feedback-migration-summary.md`，alias 删除见 `docs/design-tokens/2026-05-20-feedback-state-alias-deprecate-summary.md`）。原先唯一刻意保留的例外 `src/pages/search/detail/mindmap/indented-tree.tsx` 分类调色板，已迁至独立的 `data-viz-categorical-1..6`（非反馈、非交互的分类/层级着色 token）。
+**全仓状态**：反馈态 `state-*` → `status-*` 迁移与 alias 删除均已完成（迁移见 `docs/design-tokens/2026-05-20-design-token-feedback-migration-summary.md`，alias 删除见 `docs/design-tokens/2026-05-20-feedback-state-alias-deprecate-summary.md`）。原先各自硬编码分类调色板的 mindmap 与知识图谱，已统一收敛到 `data-viz-categorical-1..10`（见下节）。
 
 > 注：基础令牌里的 `text-success/warning/error`、`border-success/warning/error` 是「文本/边框」专用语义键，与反馈意图色独立，不在本次 `state-*`→`status-*` 迁移范围内。
+
+### 数据可视化分类调色板 `data-viz-categorical-*`（强制）
+
+「分类/序列」着色（多色、无单一语义）的**唯一来源**。明暗主题各一套值，切换由 CSS 变量自动负责。
+
+- **档位**：`data-viz-categorical-1..10`。色相顺序（light）：sky / emerald / teal / amber / red / violet / pink / orange / blue / lime。1-6 为原 mindmap 配色（不可改，避免视觉回归），7-10 为知识图谱扩档。
+- **用途**：图表多序列、思维导图层级色、知识图谱实体类型色等。当前消费者：`src/pages/search/detail/mindmap`（用 1-6）、`src/pages/knowledge/graph`（用 1-10）。
+- **如何消费**：统一走 `@/lib/design-tokens` 共享工具，**不要硬编码 hex、不要在页面里另起调色板**：
+  - `getCategoricalPalette(element?, count?)` —— 读出实时颜色数组，喂给 canvas / G6 / recharts 等非 Tailwind 渲染器；
+  - `getCategoricalIndex(key, count?)` —— 把分类 key（如实体类型名）确定性映射到槽位，使同一类型在多处（如画布与侧栏）颜色一致；
+  - `getCategoricalColorVar(index)` —— 返回 `var(--color-data-viz-categorical-N)`，供 DOM `style` 引用；
+  - `readCssVar(token, fallback, element?)` —— 通用 CSS 变量读取，dev 下对「解析为空」按 token 去重告警（fail-loud-in-dev）。
+- **与 `components-system-chart-*` 的分工**：`data-viz-categorical-*` 是**无语义的分类/序列**色；`components-system-chart-*`（done/failed/pending/lag + grid/axis/tooltip）是**语义状态图表**色（如 `task-executor-chart`）。语义状态色不要塞进 categorical，分类色也不要复用状态色。
+- **无障碍**：categorical 色不单独承载语义，分类识别仍须配合 label / tooltip / 文案（颜色非唯一信号）。
+- **约定**：分类 token 用静态字面量 / `enum → 静态 class map`，**不要字符串拼接构造 token classname**，使完整字面量可被 lint / grep 检索。
 
 ## 🏗️ 实施架构
 

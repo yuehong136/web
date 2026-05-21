@@ -23,6 +23,7 @@ import {
 } from '@antv/g6'
 import { useIsDarkTheme } from '@/themes'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
+import { getCategoricalPalette } from '@/lib/design-tokens'
 import type { MindmapTreeNode } from './utils'
 
 const ROOT_ID = 'root'
@@ -30,34 +31,7 @@ const TREE_EVENT = {
   COLLAPSE_EXPAND: 'search-mindmap-collapse-expand',
 }
 
-const NODE_COLORS = [
-  '#0EA5E9',
-  '#14B8A6',
-  '#22C55E',
-  '#F59E0B',
-  '#EF4444',
-  '#8B5CF6',
-]
-
 let extensionRegistered = false
-
-const warnedTokens = new Set<string>()
-
-const readCssVar = (token: string, fallback: string) => {
-  if (typeof window === 'undefined') return fallback
-  const value = getComputedStyle(document.documentElement)
-    .getPropertyValue(`--color-${token}`)
-    .trim()
-  // 失败即响：token 名失效（被删除 / 拼错 / 动态拼接出错）时 --color-* 会解析为空，
-  // 静态 lint 无法覆盖运行期拼接，这里在 dev 下按 token 去重告警，使静默回退变成可见信号。
-  if (import.meta.env.DEV && !value && !warnedTokens.has(token)) {
-    warnedTokens.add(token)
-    console.warn(
-      `[design-token] --color-${token} 解析为空，回退到 ${fallback}。请确认 token 名是否有效。`,
-    )
-  }
-  return value || fallback
-}
 
 class SearchIndentedNode extends BaseNode {
   constructor(options: any) {
@@ -322,14 +296,11 @@ const IndentedTree = forwardRef<IndentedTreeRef, IndentedTreeProps>(
     const graphRef = useRef<Graph | null>(null)
     const isDark = useIsDarkTheme()
     const theme = useMemo(() => {
-      const palette = [
-        readCssVar('data-viz-categorical-1', NODE_COLORS[0]),
-        readCssVar('data-viz-categorical-2', NODE_COLORS[2]),
-        readCssVar('data-viz-categorical-3', NODE_COLORS[1]),
-        readCssVar('data-viz-categorical-4', NODE_COLORS[3]),
-        readCssVar('data-viz-categorical-5', NODE_COLORS[4]),
-        readCssVar('data-viz-categorical-6', NODE_COLORS[5]),
-      ]
+      // 缩进树按节点层级循环取色，用分类调色板前 6 档（明暗自动切换）。
+      const palette = getCategoricalPalette(
+        typeof document !== 'undefined' ? document.documentElement : null,
+        6,
+      )
 
       return {
         palette,
