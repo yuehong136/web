@@ -1,5 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { Circle, Link2 } from 'lucide-react'
+import { useIsDarkTheme } from '@/themes'
+import type { ThemeMode } from '@/lib/design-tokens'
 import { Badge } from '@/components/ui/badge'
 import type { SelectedElement } from '../types'
 import {
@@ -16,8 +18,9 @@ interface NodeDetailProps {
 
 export function NodeDetail({ element, onNodeNavigate }: NodeDetailProps) {
   const { t } = useTranslation()
+  const theme: ThemeMode = useIsDarkTheme() ? 'dark' : 'light'
   const { data, neighbors, edges } = element
-  const color = getTypeColor(data.type || 'default')
+  const color = getTypeColor(data.type || 'default', theme)
 
   return (
     <div className="space-y-5">
@@ -80,7 +83,9 @@ export function NodeDetail({ element, onNodeNavigate }: NodeDetailProps) {
               >
                 <Circle
                   className="size-2.5 shrink-0"
-                  style={getNodeIconStyle(getTypeColor(node.type || 'default'))}
+                  style={getNodeIconStyle(
+                    getTypeColor(node.type || 'default', theme),
+                  )}
                 />
                 <span className="truncate text-text-primary">{node.label}</span>
                 {node.type && (

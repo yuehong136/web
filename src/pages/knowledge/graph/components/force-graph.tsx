@@ -22,7 +22,7 @@ import {
   FORCE_LAYOUT_CONFIG,
   DEFAULT_COMBO_LABEL,
 } from '../constants'
-import { getCategoricalPalette } from '@/lib/design-tokens'
+import { getCategoricalPalette, type ThemeMode } from '@/lib/design-tokens'
 import { LayoutMode } from '../types'
 import {
   detectLayoutMode,
@@ -59,17 +59,17 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
     const selectedNodeIdRef = useRef(selectedNodeId)
     const [tooltip, setTooltip] = useState<GraphTooltipData | null>(null)
     const isDark = useIsDarkTheme()
+    const theme: ThemeMode = isDark ? 'dark' : 'light'
     selectedNodeIdRef.current = selectedNodeId
 
     const nodeTypes = useMemo(
       () => [...new Set(data.nodes.map((n) => n.type).filter(Boolean))],
       [data.nodes],
     )
-    // isDark 作为依赖触发重算：data-viz-categorical-* 的解析值随主题切换。
+    // theme 作为依赖触发重算：data-viz-categorical-* 的值按主题切换。
     const colorMap = useMemo(
-      () => buildTypeColorMap(nodeTypes),
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      [nodeTypes, isDark],
+      () => buildTypeColorMap(nodeTypes, theme),
+      [nodeTypes, theme],
     )
 
     const layoutMode = useMemo(() => detectLayoutMode(data), [data])
@@ -173,8 +173,8 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
       const container = containerRef.current
       if (!container) return
 
-      const palette = getCategoricalPalette(container)
-      const graphTheme = getGraphTheme(container)
+      const palette = getCategoricalPalette(theme)
+      const graphTheme = getGraphTheme(theme)
 
       const graph = new Graph({
         container,
@@ -358,6 +358,7 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
     }, [
       graphData,
       colorMap,
+      theme,
       onNodeClick,
       onEdgeClick,
       onCanvasClick,

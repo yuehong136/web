@@ -296,11 +296,8 @@ const IndentedTree = forwardRef<IndentedTreeRef, IndentedTreeProps>(
     const graphRef = useRef<Graph | null>(null)
     const isDark = useIsDarkTheme()
     const theme = useMemo(() => {
-      // 缩进树按节点层级循环取色，用分类调色板前 6 档（明暗自动切换）。
-      const palette = getCategoricalPalette(
-        typeof document !== 'undefined' ? document.documentElement : null,
-        6,
-      )
+      // 缩进树按节点层级循环取色，用分类调色板前 6 档（按当前主题取色）。
+      const palette = getCategoricalPalette(isDark ? 'dark' : 'light', 6)
 
       return {
         palette,

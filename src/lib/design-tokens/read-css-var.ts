@@ -3,8 +3,10 @@ const warnedTokens = new Set<string>()
 /**
  * 读取设计 token 的运行期 CSS 变量值（`--color-<token>`），解析为空时回退到 fallback。
  *
- * 供 JS 侧需要把 token 喂给 canvas / G6 / recharts 等非 Tailwind 渲染器的场景使用
- * （Tailwind class 路径应直接用 token class，不要走这里）。
+ * ⚠️ 仅限 scoped-theme / embed 子树:这些场景下 DOM 层级覆盖了 `data-theme`,真实生效的
+ * token 值只能在运行期从该子树元素读出。**根主题消费请改用静态、类型安全的按主题访问器**
+ * `getTokenValue(name, theme)` / `getCategoricalPalette(theme)`(来自 `@/lib/design-tokens`),
+ * 不要再走本函数的 getComputedStyle 路径。
  *
  * 失败即响：token 名失效（被删除 / 拼错 / 运行期拼接出错）时 `--color-*` 会解析为空字符串，
  * 静态 lint 无法覆盖运行期拼接，这里在 dev 下按 token 去重地告警，使静默回退变成可见信号

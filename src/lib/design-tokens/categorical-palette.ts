@@ -1,10 +1,11 @@
-import { readCssVar } from './read-css-var'
+import { getTokenValue, type ThemeMode } from './token-values'
 
 /**
  * 分类/序列调色板 `data-viz-categorical-*` 的单一消费入口。
  *
  * 这是「分类/层级」着色（多色、无单一语义）的唯一来源 —— 图表、思维导图、知识图谱实体类型色都从此读取，
- * 不要再在页面/组件里硬编码 hex 数组。明暗主题切换由 CSS 变量自动负责，调用方无需区分 light/dark。
+ * 不要再在页面/组件里硬编码 hex 数组。明暗两套色值来自单一来源的 typed JS target，
+ * 调用方按当前主题(`useIsDarkTheme() ? 'dark' : 'light'` / `getResolvedTheme()`)传入 theme。
  * 语义状态色（done/failed/pending 等）请用 `components-system-chart-*`，不要混进 categorical。
  *
  * categorical 色不单独承载语义：分类识别仍需配合 label / tooltip / 文案（颜色非唯一信号）。
@@ -27,8 +28,9 @@ export const DATA_VIZ_CATEGORICAL_TOKENS = [
 ] as const
 
 /**
- * CSS 变量解析失败时的兜底（= 各档 light token 值，保证视觉与 token 一致）。
- * 仅在 SSR / token 名失效等异常路径生效；正常运行时读到的是实时 CSS 变量值。
+ * `readCssVar` 兜底（= 各档 light token 值，保证视觉与 token 一致）。
+ * 仅供 scoped-theme / embed 子树经 `readCssVar` 解析失败时使用；静态按主题路径
+ * (`getCategoricalPalette(theme)`) 不再依赖该数组。
  */
 export const CATEGORICAL_FALLBACKS = [
   '#0ea5e9',
@@ -44,21 +46,18 @@ export const CATEGORICAL_FALLBACKS = [
 ] as const
 
 /**
- * 读取分类调色板的实时颜色值（供 canvas / G6 等非 Tailwind 渲染器用）。
- * @param element 读取 CSS 变量的元素（默认 document.documentElement）；传入容器可支持 scoped-theme 子树。
- * @param count   返回的档位数（默认 10；mindmap 取 6）。
+ * 按主题取分类调色板的颜色值（供 canvas / G6 等非 Tailwind 渲染器用）。
+ * 静态、类型安全、SSR 安全 —— 取代旧的运行期 getComputedStyle 路径。
+ * @param theme 当前主题（`useIsDarkTheme() ? 'dark' : 'light'` / `getResolvedTheme()`）。
+ * @param count 返回的档位数（默认 10；mindmap 取 6）。
  */
 export function getCategoricalPalette(
-  element?: HTMLElement | null,
+  theme: ThemeMode,
   count: number = CATEGORICAL_PALETTE_SIZE,
 ): string[] {
   const size = Math.min(count, CATEGORICAL_PALETTE_SIZE)
   return Array.from({ length: size }, (_, i) =>
-    readCssVar(
-      DATA_VIZ_CATEGORICAL_TOKENS[i],
-      CATEGORICAL_FALLBACKS[i],
-      element,
-    ),
+    getTokenValue(DATA_VIZ_CATEGORICAL_TOKENS[i], theme),
   )
 }
 

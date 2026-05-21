@@ -18,7 +18,7 @@ const jsxA11yWarningRules = Object.fromEntries(
 )
 
 export default tseslint.config([
-  globalIgnores(['dist', 'coverage', 'node_modules']),
+  globalIgnores(['dist', 'coverage', 'node_modules', '**/*.generated.ts']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
