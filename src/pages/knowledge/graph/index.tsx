@@ -21,6 +21,7 @@ function KnowledgeGraphPageComponent() {
     zoomOut: () => void
     fitView: () => void
   } | null>(null)
+  const fullscreenTargetRef = useRef<HTMLDivElement | null>(null)
 
   const isEmpty = !data || (data.nodes.length === 0 && data.edges.length === 0)
 
@@ -58,7 +59,10 @@ function KnowledgeGraphPageComponent() {
 
   return (
     <WorkspacePageTemplate className="h-full">
-      <div className="relative h-full w-full overflow-hidden bg-components-workspace-bg">
+      <div
+        ref={fullscreenTargetRef}
+        className="relative h-full w-full overflow-hidden bg-components-workspace-bg"
+      >
         <ForceGraph
           ref={graphRef}
           data={data}
@@ -72,7 +76,11 @@ function KnowledgeGraphPageComponent() {
           }
         />
 
-        <GraphControls graphRef={graphRef} stats={stats} />
+        <GraphControls
+          graphRef={graphRef}
+          fullscreenTargetRef={fullscreenTargetRef}
+          stats={stats}
+        />
 
         <GraphSidePanel
           selectedElement={selectedElement}

@@ -24,11 +24,8 @@ import {
 } from '../constants'
 import { getCategoricalPalette, type ThemeMode } from '@/lib/design-tokens'
 import { LayoutMode } from '../types'
-import {
-  detectLayoutMode,
-  buildCombosFromCommunities,
-  spreadInitialPositions,
-} from '../utils'
+import { detectLayoutMode } from '../utils'
+import { buildGraphRenderData } from '../graph-data'
 import { getGraphTheme } from './graph-theme'
 import { buildTypeColorMap } from './graph-node-colors'
 import {
@@ -36,6 +33,7 @@ import {
   GraphTooltip,
   type GraphTooltipData,
 } from './graph-tooltip'
+import { buildSelectedNodeStatePatch } from './selection-state'
 
 interface ForceGraphProps {
   data: KnowledgeGraph
@@ -57,6 +55,7 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
     const graphRef = useRef<Graph | null>(null)
     const pendingRenderRef = useRef(new WeakMap<Graph, Promise<void>>())
     const selectedNodeIdRef = useRef(selectedNodeId)
+    const prevSelectedNodeIdRef = useRef<string | undefined>(undefined)
     const [tooltip, setTooltip] = useState<GraphTooltipData | null>(null)
     const isDark = useIsDarkTheme()
     const theme: ThemeMode = isDark ? 'dark' : 'light'
@@ -74,41 +73,10 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
 
     const layoutMode = useMemo(() => detectLayoutMode(data), [data])
 
-    const graphData = useMemo(() => {
-      const positions = spreadInitialPositions(data.nodes.length)
-
-      const baseNodes = data.nodes.map((n, i) => ({
-        id: n.id,
-        data: {
-          label: n.label,
-          entityType: n.type,
-          properties: n.properties,
-          rank: n.properties?.rank ?? n.properties?.weight ?? 1,
-          communities: n.properties?.communities,
-          x: positions[i].x,
-          y: positions[i].y,
-        },
-      }))
-
-      const edges = data.edges.map((e) => ({
-        id: e.id,
-        source: e.source,
-        target: e.target,
-        data: {
-          label: e.label,
-          weight: e.properties?.weight ?? 1,
-          properties: e.properties,
-        },
-      }))
-
-      if (layoutMode === LayoutMode.COMBO) {
-        const { nodes: comboNodes, combos } =
-          buildCombosFromCommunities(baseNodes)
-        return { nodes: comboNodes, edges, combos }
-      }
-
-      return { nodes: baseNodes, edges }
-    }, [data, layoutMode])
+    const graphData = useMemo(
+      () => buildGraphRenderData(data, layoutMode),
+      [data, layoutMode],
+    )
 
     const handleGraphError = useCallback((graph: Graph, error: unknown) => {
       if (graph.destroyed || graphRef.current !== graph) return
@@ -142,11 +110,14 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
       (graph: Graph, nodeId?: string) => {
         if (graph.destroyed || graphRef.current !== graph || !graph.rendered)
           return
-        const states = Object.fromEntries(
-          graph
-            .getNodeData()
-            .map((node) => [node.id, node.id === nodeId ? ['selected'] : []]),
+        const states = buildSelectedNodeStatePatch(
+          graph,
+          prevSelectedNodeIdRef.current,
+          nodeId,
         )
+        prevSelectedNodeIdRef.current = nodeId
+        if (Object.keys(states).length === 0) return
+
         void graph.setElementState(states, false).catch((error) => {
           handleGraphError(graph, error)
         })
@@ -296,14 +267,15 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
 
       destroyGraph(graphRef.current)
       graphRef.current = graph
+      prevSelectedNodeIdRef.current = undefined
 
       graph.setData(graphData)
 
       graph.once(GraphEvent.AFTER_LAYOUT, () => {
         if (graph.destroyed || graphRef.current !== graph) return
-        void graph.fitView(undefined, { duration: 500 }).catch((error) => {
-          handleGraphError(graph, error)
-        })
+        void graph
+          .fitView(undefined, { duration: 500 })
+          .catch((error) => handleGraphError(graph, error))
       })
 
       graph.on('node:click', (e: IElementEvent) => {
@@ -375,6 +347,7 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
       return () => {
         const graph = graphRef.current
         graphRef.current = null
+        prevSelectedNodeIdRef.current = undefined
         setTooltip(null)
         destroyGraph(graph)
       }
