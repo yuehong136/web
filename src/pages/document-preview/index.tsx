@@ -4,19 +4,13 @@ import { ArrowLeft, Download, FileText, Loader2 } from 'lucide-react'
 import { Watermark } from 'antd'
 import { Button, Tooltip } from '@/components/ui'
 import { DocumentPreview } from '@/components/knowledge/document-preview'
-import { API_BASE_URL, API_VERSION, STORAGE_KEYS } from '@/constants'
+import {
+  buildAuthHeader,
+  getDocumentUrl,
+} from '@/lib/knowledge/preview-resource'
 import { toast } from '@/lib/toast'
 import { useAuthStore } from '@/stores'
-
-function buildAuthHeader(): string | null {
-  try {
-    const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)
-    if (!token) return null
-    return token.startsWith('Bearer ') ? token : `Bearer ${token}`
-  } catch {
-    return null
-  }
-}
+import { usePreviewResource } from '@/hooks/use-preview-resource'
 
 const DocumentPreviewPage: React.FC = () => {
   const { docId } = useParams<{ docId: string }>()
@@ -25,6 +19,7 @@ const DocumentPreviewPage: React.FC = () => {
   const user = useAuthStore((s) => s.user)
 
   const docName = searchParams.get('name') || undefined
+  const resource = usePreviewResource({ docId, docName })
 
   const watermarkContent = useMemo(() => {
     const email = user?.email || user?.nickname || ''
@@ -36,7 +31,7 @@ const DocumentPreviewPage: React.FC = () => {
     if (!docId) return
     setDownloading(true)
     try {
-      const url = `${API_BASE_URL}/${API_VERSION}/document/get/${docId}?action=download`
+      const url = getDocumentUrl(docId, 'download')
       const auth = buildAuthHeader()
       const headers: HeadersInit = {}
       if (auth) headers.Authorization = auth
@@ -130,7 +125,7 @@ const DocumentPreviewPage: React.FC = () => {
 
       <Watermark content={watermarkContent} className="min-h-0 flex-1">
         <DocumentPreview
-          docId={docId}
+          resource={resource}
           docName={docName}
           hideHeader
           className="h-full"

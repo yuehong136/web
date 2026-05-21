@@ -1,6 +1,5 @@
 import {
   memo,
-  useEffect,
   useRef,
   useState,
   type FC,
@@ -17,19 +16,16 @@ import {
 import { useTranslation } from 'react-i18next'
 import { Button, Tooltip } from '@/components/ui'
 import { cn } from '@/lib/utils'
-import { fetchWithAuth, isAbortError } from '../utils'
-import { ErrorState, LoadingState } from './preview-state'
+import { ErrorState } from './preview-state'
 
 const ImagePreviewInner: FC<{
-  url: string
+  objectUrl?: string
+  sourceUrl: string
   alt?: string
-}> = ({ url, alt }) => {
+}> = ({ objectUrl, sourceUrl, alt }) => {
   const { t } = useTranslation()
   const [scale, setScale] = useState(1)
   const [rotation, setRotation] = useState(0)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(false)
-  const [blobUrl, setBlobUrl] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [position, setPosition] = useState({ x: 0, y: 0 })
   const dragStartRef = useRef({ x: 0, y: 0, posX: 0, posY: 0 })
@@ -42,53 +38,6 @@ const ImagePreviewInner: FC<{
     setRotation(0)
     setPosition({ x: 0, y: 0 })
   }
-
-  useEffect(() => {
-    const controller = new AbortController()
-    let mounted = true
-    let objectUrl: string | null = null
-
-    const loadImage = async () => {
-      try {
-        setLoading(true)
-        setError(false)
-
-        const response = await fetchWithAuth(url, { signal: controller.signal })
-        if (!response.ok) {
-          throw new Error(
-            t('knowledge.preview.imageLoadFailedWithStatus', {
-              status: response.status,
-            }),
-          )
-        }
-
-        const blob = await response.blob()
-        objectUrl = URL.createObjectURL(blob)
-
-        if (mounted) {
-          setBlobUrl(objectUrl)
-          setLoading(false)
-        }
-      } catch (err) {
-        if (isAbortError(err)) return
-        console.error('Image load error:', err)
-        if (mounted) {
-          setError(true)
-          setLoading(false)
-        }
-      }
-    }
-
-    loadImage()
-
-    return () => {
-      mounted = false
-      controller.abort()
-      if (objectUrl) {
-        URL.revokeObjectURL(objectUrl)
-      }
-    }
-  }, [t, url])
 
   const handleMouseDown = (event: MouseEvent) => {
     if (scale > 1) {
@@ -140,16 +89,12 @@ const ImagePreviewInner: FC<{
     event.preventDefault()
   }
 
-  if (loading) {
-    return <LoadingState message={t('knowledge.preview.loadingImage')} />
-  }
-
-  if (error) {
+  if (!objectUrl) {
     return (
       <ErrorState
         icon={<ImageIcon className="h-16 w-16" />}
         title={t('knowledge.preview.imageLoadFailed')}
-        url={url}
+        url={sourceUrl}
       />
     )
   }
@@ -207,17 +152,15 @@ const ImagePreviewInner: FC<{
         onMouseLeave={handleMouseUp}
         onKeyDown={handleKeyDown}
       >
-        {blobUrl && (
-          <img
-            src={blobUrl}
-            alt={alt || t('knowledge.preview.imagePreview')}
-            className="max-h-full max-w-full select-none object-contain transition-transform duration-200"
-            style={{
-              transform: `scale(${scale}) rotate(${rotation}deg) translate(${position.x / scale}px, ${position.y / scale}px)`,
-            }}
-            draggable={false}
-          />
-        )}
+        <img
+          src={objectUrl}
+          alt={alt || t('knowledge.preview.imagePreview')}
+          className="max-h-full max-w-full select-none object-contain transition-transform duration-200"
+          style={{
+            transform: `scale(${scale}) rotate(${rotation}deg) translate(${position.x / scale}px, ${position.y / scale}px)`,
+          }}
+          draggable={false}
+        />
       </button>
     </div>
   )

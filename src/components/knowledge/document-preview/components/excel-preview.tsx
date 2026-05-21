@@ -1,12 +1,12 @@
 import { memo, useEffect, useRef, useState, type FC } from 'react'
 import { FileSpreadsheet } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { fetchWithAuth, isAbortError } from '../utils'
 import { ErrorState, LoadingState } from './preview-state'
 
 const ExcelPreviewInner: FC<{
-  url: string
-}> = ({ url }) => {
+  arrayBuffer?: ArrayBuffer
+  sourceUrl: string
+}> = ({ arrayBuffer, sourceUrl }) => {
   const { t } = useTranslation()
   const containerRef = useRef<HTMLDivElement>(null)
   const [loading, setLoading] = useState(true)
@@ -16,7 +16,6 @@ const ExcelPreviewInner: FC<{
   > | null>(null)
 
   useEffect(() => {
-    const controller = new AbortController()
     let mounted = true
 
     const loadExcel = async () => {
@@ -29,16 +28,9 @@ const ExcelPreviewInner: FC<{
         const jsPreviewExcel = await import('@js-preview/excel')
         await import('@js-preview/excel/lib/index.css')
 
-        const response = await fetchWithAuth(url, { signal: controller.signal })
-        if (!response.ok) {
-          throw new Error(
-            t('knowledge.preview.excelLoadFailedWithStatus', {
-              status: response.status,
-            }),
-          )
+        if (!arrayBuffer) {
+          throw new Error(t('knowledge.preview.excelPreviewFailed'))
         }
-
-        const arrayBuffer = await response.arrayBuffer()
 
         if (!mounted || !containerRef.current) return
 
@@ -55,7 +47,6 @@ const ExcelPreviewInner: FC<{
           setLoading(false)
         }
       } catch (err) {
-        if (isAbortError(err)) return
         if (mounted) {
           console.error('Excel preview error:', err)
           setError(
@@ -72,13 +63,12 @@ const ExcelPreviewInner: FC<{
 
     return () => {
       mounted = false
-      controller.abort()
       if (previewerRef.current) {
         previewerRef.current.destroy()
         previewerRef.current = null
       }
     }
-  }, [t, url])
+  }, [arrayBuffer, t])
 
   if (error) {
     return (
@@ -86,7 +76,7 @@ const ExcelPreviewInner: FC<{
         icon={<FileSpreadsheet className="h-16 w-16" />}
         title={t('knowledge.preview.excelPreviewFailed')}
         message={error}
-        url={url}
+        url={sourceUrl}
       />
     )
   }

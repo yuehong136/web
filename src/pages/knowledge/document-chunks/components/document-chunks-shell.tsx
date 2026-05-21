@@ -3,6 +3,7 @@ import { PanelRightOpen } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Button, Tooltip } from '@/components/ui'
 import { DocumentPreview } from '@/components/knowledge/document-preview'
+import { usePreviewResource } from '@/hooks/use-preview-resource'
 import { cn } from '@/lib/utils'
 import type { ChunkData, ChunkListDocument, CSSVarStyle } from '../types'
 
@@ -34,6 +35,11 @@ export const DocumentPreviewPane = ({
   onResizeStart,
 }: DocumentPreviewPaneProps) => {
   const { t } = useTranslation()
+  const resource = usePreviewResource({
+    docId: open ? docId : undefined,
+    docName: docInfo?.name,
+    docType: docInfo?.type,
+  })
 
   if (!open) return null
 
@@ -46,7 +52,7 @@ export const DocumentPreviewPane = ({
         >
           <div className="flex-1 overflow-hidden">
             <DocumentPreview
-              docId={docId}
+              resource={resource}
               docName={docInfo.name}
               docType={docInfo.type}
               selectedChunkId={selectedChunk?.chunk_id}

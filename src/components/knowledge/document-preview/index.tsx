@@ -10,19 +10,21 @@ import { ImagePreview } from './components/image-preview'
 import { MdPreview, TxtPreview } from './components/text-preview'
 import { PdfPreview } from './components/pdf-preview'
 import { PptPreview } from './components/ppt-preview'
+import { ErrorState, LoadingState } from './components/preview-state'
 import { UnsupportedPreview } from './components/unsupported-preview'
 import { VideoPreview } from './components/video-preview'
 import type { DocumentPreviewProps } from './types'
-import { getDocumentUrl, getFileType } from './utils'
 
 const DocumentPreviewHeader: FC<{
   docName?: string
-  documentUrl: string
+  documentUrl?: string
   onClose?: () => void
   canDownload?: boolean
 }> = ({ docName, documentUrl, onClose, canDownload = false }) => {
   const { t } = useTranslation()
   const title = docName || t('knowledge.preview.documentPreview')
+  const canUseDocumentUrl = Boolean(documentUrl)
+  const canDownloadDocument = canDownload && canUseDocumentUrl
 
   return (
     <div className="flex items-center justify-between border-b border-border-default bg-background-surface px-4 py-2.5">
@@ -37,7 +39,7 @@ const DocumentPreviewHeader: FC<{
       <div className="flex items-center gap-0.5">
         <Tooltip
           content={
-            canDownload
+            canDownloadDocument
               ? t('knowledge.preview.download')
               : t('knowledge.preview.downloadDisabled')
           }
@@ -45,10 +47,10 @@ const DocumentPreviewHeader: FC<{
           <Button
             variant="ghost"
             size="sm"
-            disabled={!canDownload}
-            asChild={canDownload}
+            disabled={!canDownloadDocument}
+            asChild={canDownloadDocument}
           >
-            {canDownload ? (
+            {canDownloadDocument ? (
               <a href={documentUrl} download={docName}>
                 <Download className="h-4 w-4" />
               </a>
@@ -58,10 +60,19 @@ const DocumentPreviewHeader: FC<{
           </Button>
         </Tooltip>
         <Tooltip content={t('knowledge.preview.openInNewWindow')}>
-          <Button variant="ghost" size="sm" asChild>
-            <a href={documentUrl} target="_blank" rel="noopener noreferrer">
+          <Button
+            variant="ghost"
+            size="sm"
+            disabled={!canUseDocumentUrl}
+            asChild={canUseDocumentUrl}
+          >
+            {canUseDocumentUrl ? (
+              <a href={documentUrl} target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="h-4 w-4" />
+              </a>
+            ) : (
               <ExternalLink className="h-4 w-4" />
-            </a>
+            )}
           </Button>
         </Tooltip>
         {onClose && (
@@ -77,52 +88,106 @@ const DocumentPreviewHeader: FC<{
 }
 
 export const DocumentPreview: FC<DocumentPreviewProps> = ({
-  docId,
+  resource,
   docName,
-  docType,
   highlights,
   className,
   onClose,
   hideHeader = false,
   canDownload = false,
 }) => {
-  const fileType = useMemo(
-    () => getFileType(docName, docType),
-    [docName, docType],
-  )
-  const documentUrl = useMemo(() => getDocumentUrl(docId), [docId])
+  const { t } = useTranslation()
+  const documentUrl = resource.sourceUrl
 
   const preview = useMemo(() => {
-    switch (fileType) {
+    if (resource.kind === 'idle') {
+      return <LoadingState />
+    }
+
+    if (resource.kind === 'loading') {
+      return <LoadingState />
+    }
+
+    if (resource.kind === 'error') {
+      return (
+        <ErrorState
+          title={t('knowledge.preview.loadFailed')}
+          message={resource.error}
+          url={resource.sourceUrl}
+        />
+      )
+    }
+
+    if (resource.kind === 'unsupported') {
+      return (
+        <UnsupportedPreview
+          url={resource.sourceUrl}
+          filename={docName}
+          fileType={resource.fileType}
+          canDownload={canDownload}
+        />
+      )
+    }
+
+    switch (resource.fileType) {
       case 'pdf':
-        return <PdfPreview url={documentUrl} highlights={highlights} />
-      case 'image':
-        return <ImagePreview url={documentUrl} alt={docName} />
-      case 'video':
-        return <VideoPreview url={documentUrl} />
-      case 'docx':
-        return <DocxPreview url={documentUrl} />
-      case 'xlsx':
-        return <ExcelPreview url={documentUrl} />
-      case 'pptx':
-        return <PptPreview url={documentUrl} />
-      case 'txt':
-        return <TxtPreview url={documentUrl} />
-      case 'md':
-        return <MdPreview url={documentUrl} />
-      case 'csv':
-        return <CsvPreview url={documentUrl} />
-      default:
         return (
-          <UnsupportedPreview
-            url={documentUrl}
-            filename={docName}
-            fileType={fileType}
-            canDownload={canDownload}
+          <PdfPreview
+            objectUrl={resource.objectUrl}
+            sourceUrl={resource.sourceUrl}
+            highlights={highlights}
           />
         )
+      case 'image':
+        return (
+          <ImagePreview
+            objectUrl={resource.objectUrl}
+            sourceUrl={resource.sourceUrl}
+            alt={docName}
+          />
+        )
+      case 'video':
+        return (
+          <VideoPreview
+            objectUrl={resource.objectUrl}
+            sourceUrl={resource.sourceUrl}
+          />
+        )
+      case 'docx':
+        return (
+          <DocxPreview
+            arrayBuffer={resource.arrayBuffer}
+            sourceUrl={resource.sourceUrl}
+          />
+        )
+      case 'xlsx':
+        return (
+          <ExcelPreview
+            arrayBuffer={resource.arrayBuffer}
+            sourceUrl={resource.sourceUrl}
+          />
+        )
+      case 'pptx':
+        return (
+          <PptPreview
+            arrayBuffer={resource.arrayBuffer}
+            sourceUrl={resource.sourceUrl}
+          />
+        )
+      case 'txt':
+        return (
+          <TxtPreview content={resource.text} sourceUrl={resource.sourceUrl} />
+        )
+      case 'md':
+        return (
+          <MdPreview content={resource.text} sourceUrl={resource.sourceUrl} />
+        )
+      case 'csv':
+        return (
+          <CsvPreview content={resource.text} sourceUrl={resource.sourceUrl} />
+        )
     }
-  }, [canDownload, docName, documentUrl, fileType, highlights])
+  }, [canDownload, docName, highlights, resource, t])
 
   return (
     <div

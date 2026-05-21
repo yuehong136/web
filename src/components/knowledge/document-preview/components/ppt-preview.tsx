@@ -3,10 +3,12 @@ import { Presentation, RotateCcw, ZoomIn, ZoomOut } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui'
 import { cn } from '@/lib/utils'
-import { fetchWithAuth, isAbortError } from '../utils'
 import { ErrorState, LoadingState } from './preview-state'
 
-const PptPreviewInner: FC<{ url: string }> = ({ url }) => {
+const PptPreviewInner: FC<{
+  arrayBuffer?: ArrayBuffer
+  sourceUrl: string
+}> = ({ arrayBuffer, sourceUrl }) => {
   const { t } = useTranslation()
   const measureRef = useRef<HTMLDivElement>(null)
   const wrapperRef = useRef<HTMLDivElement>(null)
@@ -16,7 +18,6 @@ const PptPreviewInner: FC<{ url: string }> = ({ url }) => {
   const [zoom, setZoom] = useState(100)
 
   useEffect(() => {
-    const controller = new AbortController()
     let mounted = true
 
     const loadPpt = async () => {
@@ -30,16 +31,9 @@ const PptPreviewInner: FC<{ url: string }> = ({ url }) => {
 
         const pptxPreview = await import('pptx-preview')
 
-        const response = await fetchWithAuth(url, { signal: controller.signal })
-        if (!response.ok) {
-          throw new Error(
-            t('knowledge.preview.pptLoadFailedWithStatus', {
-              status: response.status,
-            }),
-          )
+        if (!arrayBuffer) {
+          throw new Error(t('knowledge.preview.pptPreviewFailed'))
         }
-
-        const arrayBuffer = await response.arrayBuffer()
         if (!mounted || !measureRef.current || !wrapperRef.current) return
 
         const slideWidth = Math.max(measureRef.current.clientWidth - 64, 480)
@@ -59,7 +53,6 @@ const PptPreviewInner: FC<{ url: string }> = ({ url }) => {
           setLoading(false)
         }
       } catch (err) {
-        if (isAbortError(err)) return
         if (mounted) {
           console.error('PPT preview error:', err)
           setError(
@@ -75,9 +68,8 @@ const PptPreviewInner: FC<{ url: string }> = ({ url }) => {
     loadPpt()
     return () => {
       mounted = false
-      controller.abort()
     }
-  }, [t, url])
+  }, [arrayBuffer, t])
 
   if (error) {
     return (
@@ -85,7 +77,7 @@ const PptPreviewInner: FC<{ url: string }> = ({ url }) => {
         icon={<Presentation className="h-16 w-16" />}
         title={t('knowledge.preview.pptPreviewFailed')}
         message={error}
-        url={url}
+        url={sourceUrl}
       />
     )
   }

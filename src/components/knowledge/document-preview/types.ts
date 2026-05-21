@@ -1,14 +1,9 @@
-export type FileType =
-  | 'pdf'
-  | 'image'
-  | 'video'
-  | 'docx'
-  | 'xlsx'
-  | 'pptx'
-  | 'txt'
-  | 'md'
-  | 'csv'
-  | 'unknown'
+import type {
+  FileType,
+  PreviewResource,
+} from '@/lib/knowledge/preview-resource'
+
+export type { FileType }
 
 export interface RawHighlight {
   page: number
@@ -19,7 +14,7 @@ export interface RawHighlight {
 }
 
 export interface DocumentPreviewProps {
-  docId: string
+  resource: PreviewResource
   docName?: string
   docType?: string
   highlights?: RawHighlight[]

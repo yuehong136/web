@@ -4,7 +4,6 @@ import DOMPurify from 'dompurify'
 import { FileText } from 'lucide-react'
 import mammoth from 'mammoth'
 import { useTranslation } from 'react-i18next'
-import { fetchWithAuth, isAbortError, isZipLikeBlob } from '../utils'
 import { ErrorState, LoadingState } from './preview-state'
 
 const styleDocxHtml = (html: string): string => {
@@ -51,62 +50,27 @@ const styleDocxHtml = (html: string): string => {
     .replace(/<em>/g, '<em class="italic">')
 }
 
-const DocxUnsupportedState: FC = () => {
-  const { t } = useTranslation()
-  return (
-    <div className="flex h-full items-center justify-center bg-background-surface p-6">
-      <div className="max-w-2xl rounded-xl border border-dashed border-border-default p-8 text-center">
-        <p className="mb-4 text-xl font-bold text-text-primary">
-          {t('knowledge.preview.wordUnsupportedTitle')}
-        </p>
-        <p className="text-sm leading-relaxed text-text-secondary">
-          {t('knowledge.preview.wordUnsupportedDescription')}
-        </p>
-      </div>
-    </div>
-  )
-}
-
 const DocxPreviewInner: FC<{
-  url: string
-}> = ({ url }) => {
+  arrayBuffer?: ArrayBuffer
+  sourceUrl: string
+}> = ({ arrayBuffer, sourceUrl }) => {
   const { t } = useTranslation()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [htmlContent, setHtmlContent] = useState<string>('')
-  const [unsupported, setUnsupported] = useState(false)
 
   useEffect(() => {
-    const controller = new AbortController()
     let mounted = true
 
     const loadDocx = async () => {
       try {
         setLoading(true)
         setError(null)
-        setUnsupported(false)
 
-        const response = await fetchWithAuth(url, { signal: controller.signal })
-        if (!response.ok) {
-          throw new Error(
-            t('knowledge.preview.documentLoadFailedWithStatus', {
-              status: response.status,
-            }),
-          )
+        if (!arrayBuffer) {
+          throw new Error(t('knowledge.preview.documentPreviewFailed'))
         }
 
-        const blob = await response.blob()
-        const looksLikeZip = await isZipLikeBlob(blob)
-
-        if (!looksLikeZip) {
-          if (mounted) {
-            setUnsupported(true)
-            setLoading(false)
-          }
-          return
-        }
-
-        const arrayBuffer = await blob.arrayBuffer()
         const result = await mammoth.convertToHtml(
           { arrayBuffer },
           { includeDefaultStyleMap: true },
@@ -124,7 +88,6 @@ const DocxPreviewInner: FC<{
           setLoading(false)
         }
       } catch (err) {
-        if (isAbortError(err)) return
         if (mounted) {
           console.error('Docx preview error:', err)
           setError(
@@ -141,16 +104,11 @@ const DocxPreviewInner: FC<{
 
     return () => {
       mounted = false
-      controller.abort()
     }
-  }, [t, url])
+  }, [arrayBuffer, t])
 
   if (loading) {
     return <LoadingState message={t('knowledge.preview.loadingDocument')} />
-  }
-
-  if (unsupported) {
-    return <DocxUnsupportedState />
   }
 
   if (error) {
@@ -159,7 +117,7 @@ const DocxPreviewInner: FC<{
         icon={<FileText className="h-16 w-16" />}
         title={t('knowledge.preview.documentPreviewFailed')}
         message={error}
-        url={url}
+        url={sourceUrl}
       />
     )
   }

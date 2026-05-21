@@ -1,21 +1,19 @@
-import { memo, useCallback, useEffect, useState, type FC } from 'react'
+import { memo, useMemo, type FC } from 'react'
 import { FileSpreadsheet } from 'lucide-react'
 import { parse } from 'papaparse'
 import { useTranslation } from 'react-i18next'
 import type { CSVData } from '../types'
-import { fetchWithAuth, isAbortError } from '../utils'
-import { ErrorState, LoadingState } from './preview-state'
+import { ErrorState } from './preview-state'
 
 const CsvPreviewInner: FC<{
-  url: string
-}> = ({ url }) => {
+  content?: string
+  sourceUrl: string
+}> = ({ content, sourceUrl }) => {
   const { t } = useTranslation()
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [data, setData] = useState<CSVData | null>(null)
 
-  const parseCSV = useCallback((csvText: string): CSVData => {
-    const result = parse<string[]>(csvText, {
+  const data = useMemo<CSVData | null>(() => {
+    if (content === undefined) return null
+    const result = parse<string[]>(content, {
       header: false,
       skipEmptyLines: false,
     })
@@ -25,67 +23,15 @@ const CsvPreviewInner: FC<{
     const dataRows = rows.slice(1)
 
     return { headers, rows: dataRows }
-  }, [])
+  }, [content])
 
-  useEffect(() => {
-    const controller = new AbortController()
-    let mounted = true
-
-    const loadCsv = async () => {
-      try {
-        setLoading(true)
-        setError(null)
-
-        const response = await fetchWithAuth(url, { signal: controller.signal })
-        if (!response.ok) {
-          throw new Error(
-            t('knowledge.preview.csvLoadFailedWithStatus', {
-              status: response.status,
-            }),
-          )
-        }
-
-        const text = await response.text()
-        const parsedData = parseCSV(text)
-
-        if (mounted) {
-          setData(parsedData)
-          setLoading(false)
-        }
-      } catch (err) {
-        if (isAbortError(err)) return
-        if (mounted) {
-          console.error('CSV load error:', err)
-          setError(
-            err instanceof Error
-              ? err.message
-              : t('knowledge.preview.csvLoadFailed'),
-          )
-          setLoading(false)
-        }
-      }
-    }
-
-    loadCsv()
-
-    return () => {
-      mounted = false
-      controller.abort()
-      setData(null)
-    }
-  }, [t, url, parseCSV])
-
-  if (loading) {
-    return <LoadingState message={t('knowledge.preview.loadingCsv')} />
-  }
-
-  if (error) {
+  if (content === undefined) {
     return (
       <ErrorState
         icon={<FileSpreadsheet className="h-16 w-16" />}
         title={t('knowledge.preview.csvLoadFailed')}
-        message={error}
-        url={url}
+        message={t('knowledge.preview.csvLoadFailed')}
+        url={sourceUrl}
       />
     )
   }
@@ -95,7 +41,7 @@ const CsvPreviewInner: FC<{
       <ErrorState
         icon={<FileSpreadsheet className="h-16 w-16" />}
         title={t('knowledge.preview.csvEmpty')}
-        url={url}
+        url={sourceUrl}
       />
     )
   }
