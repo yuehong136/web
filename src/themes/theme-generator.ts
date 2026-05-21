@@ -170,16 +170,19 @@ export const lightTokens: DesignTokens = {
   // 1-5 沿用历史 mindmap 配色；6 取分类紫（与 indented-tree NODE_COLORS 兜底意图一致），
   // 替换历史误继承的近黑 text-accent。7-10 复用知识图谱旧 palette 成熟色相并补一档 lime
   // 拉开与 red/pink/orange 的距离。mindmap 用 1-6，知识图谱实体类型色用 1-10。
-  'data-viz-categorical-1': '#0ea5e9',
-  'data-viz-categorical-2': '#10b981',
-  'data-viz-categorical-3': '#00BEB4',
-  'data-viz-categorical-4': '#f59e0b',
-  'data-viz-categorical-5': '#ef4444',
-  'data-viz-categorical-6': '#8b5cf6',
-  'data-viz-categorical-7': '#ec4899',
-  'data-viz-categorical-8': '#f97316',
-  'data-viz-categorical-9': '#3b82f6',
-  'data-viz-categorical-10': '#84cc16',
+  // 色盲安全 / 感知均匀的 OKLCH 生成 scale（light，L≈0.60 C≈0.142，hue 环 36° 均匀）。
+  // 各档对白底画布 ≥3:1，相邻档在 protan/deutan/tritan 下仍可区分。
+  // provenance: scripts/gen-categorical-oklch.mjs（hues=[20,200,92,272,164,344,56,236,128,308]）。
+  'data-viz-categorical-1': '#c7585c',
+  'data-viz-categorical-2': '#009298',
+  'data-viz-categorical-3': '#9a7d03',
+  'data-viz-categorical-4': '#6378d4',
+  'data-viz-categorical-5': '#0a976c',
+  'data-viz-categorical-6': '#b95995',
+  'data-viz-categorical-7': '#be650f',
+  'data-viz-categorical-8': '#058ac2',
+  'data-viz-categorical-9': '#678f21',
+  'data-viz-categorical-10': '#9866c1',
 
   // ===== HTTP方法颜色系统 =====
   'components-method-get-bg': 'rgba(34, 197, 94, 0.1)',
@@ -1127,16 +1130,19 @@ export const darkTokens: DesignTokens = {
   // 1-5 沿用历史 mindmap 配色；6 取分类紫（与 NODE_COLORS 兜底意图一致），避免与 slot-1 蓝撞色，
   // 替换历史误继承的 text-accent 蓝。7-10 取知识图谱旧 dark palette 成熟色相并补一档 lime。
   // mindmap 用 1-6，知识图谱实体类型色用 1-10。
-  'data-viz-categorical-1': '#38bdf8',
-  'data-viz-categorical-2': '#22c55e',
-  'data-viz-categorical-3': '#818cf8',
-  'data-viz-categorical-4': '#f59e0b',
-  'data-viz-categorical-5': '#ef4444',
-  'data-viz-categorical-6': '#a78bfa',
-  'data-viz-categorical-7': '#f472b6',
-  'data-viz-categorical-8': '#fb923c',
-  'data-viz-categorical-9': '#60a5fa',
-  'data-viz-categorical-10': '#a3e635',
+  // 色盲安全 / 感知均匀的 OKLCH 生成 scale（dark，L≈0.74 C≈0.123，hue 环与 light 同）。
+  // 各档对暗底画布(#202025) ≥3:1，相邻档在 protan/deutan/tritan 下仍可区分。
+  // provenance: scripts/gen-categorical-oklch.mjs。
+  'data-viz-categorical-1': '#ee8a8a',
+  'data-viz-categorical-2': '#17c2c9',
+  'data-viz-categorical-3': '#c7a844',
+  'data-viz-categorical-4': '#90a5f8',
+  'data-viz-categorical-5': '#52c396',
+  'data-viz-categorical-6': '#e18abe',
+  'data-viz-categorical-7': '#e6955a',
+  'data-viz-categorical-8': '#51b6ee',
+  'data-viz-categorical-9': '#94b962',
+  'data-viz-categorical-10': '#c095e7',
 
   // ===== HTTP方法颜色系统 =====
   'components-method-get-bg': 'rgba(34, 197, 94, 0.2)',

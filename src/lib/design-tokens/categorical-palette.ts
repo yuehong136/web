@@ -33,16 +33,16 @@ export const DATA_VIZ_CATEGORICAL_TOKENS = [
  * (`getCategoricalPalette(theme)`) 不再依赖该数组。
  */
 export const CATEGORICAL_FALLBACKS = [
-  '#0ea5e9',
-  '#10b981',
-  '#00BEB4',
-  '#f59e0b',
-  '#ef4444',
-  '#8b5cf6',
-  '#ec4899',
-  '#f97316',
-  '#3b82f6',
-  '#84cc16',
+  '#c7585c',
+  '#009298',
+  '#9a7d03',
+  '#6378d4',
+  '#0a976c',
+  '#b95995',
+  '#be650f',
+  '#058ac2',
+  '#678f21',
+  '#9866c1',
 ] as const
 
 /**

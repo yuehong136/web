@@ -93,18 +93,23 @@
 
 ### 分类/序列着色 `data-viz-categorical-*`
 
-多色、无单一语义的分类/序列色统一走 `data-viz-categorical-1..10`（明暗自动切换），消费者用 `@/lib/design-tokens` 共享工具，**不要硬编码 hex 调色板**：
+多色、无单一语义的分类/序列色统一走 `data-viz-categorical-1..10`（色盲安全的 OKLCH 生成 scale，明暗各一套），消费者用 `@/lib/design-tokens` 共享工具，**不要硬编码 hex 调色板**。默认消费方式是**静态按主题** import（取代旧的运行期 getComputedStyle 读 CSS 变量）：
 
 ```ts
 import {
-  getCategoricalPalette, // 实时颜色数组，喂给 canvas/G6/recharts 等
+  getCategoricalPalette, // 按主题取颜色数组，喂给 canvas/G6/recharts 等
   getCategoricalIndex, // 分类 key → 确定性槽位（多处着色一致）
-  getCategoricalColorVar, // var(--color-data-viz-categorical-N)，供 style 用
+  getTokenValue, // 按主题取任意 token 值（name 受 keyof DesignTokens 约束）
 } from '@/lib/design-tokens'
+import { useIsDarkTheme } from '@/themes'
 
-const palette = getCategoricalPalette(container) // 默认 10 档；mindmap 取前 6
+const theme = useIsDarkTheme() ? 'dark' : 'light' // 非 hook 场景用 getResolvedTheme()
+const palette = getCategoricalPalette(theme) // 默认 10 档；mindmap 取前 6
 const color = palette[getCategoricalIndex(entityType)]
+const cardBg = getTokenValue('components-card-bg', theme)
 ```
+
+颜色值来自单一来源的 typed JS 产物 `src/themes/token-values.generated.ts`（由 `npm run build:themes` 与 `light.css`/`dark.css` 一起生成，是构建产物，勿手改；改 token 后重跑 `build:themes`）。运行期 `readCssVar` / `getCategoricalColorVar` 仅保留给 scoped-theme / embed 子树。
 
 语义状态图表色（done/failed/pending 等）仍用 `components-system-chart-*`，不要混进 categorical。详见 `design-system.md` 同名章节。
 

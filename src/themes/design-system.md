@@ -154,15 +154,17 @@ Tailwind 集成 (tailwind.config.js):
 
 ### 数据可视化分类调色板 `data-viz-categorical-*`（强制）
 
-「分类/序列」着色（多色、无单一语义）的**唯一来源**。明暗主题各一套值，切换由 CSS 变量自动负责。
+「分类/序列」着色（多色、无单一语义）的**唯一来源**。明暗主题各一套值。
 
-- **档位**：`data-viz-categorical-1..10`。色相顺序（light）：sky / emerald / teal / amber / red / violet / pink / orange / blue / lime。1-6 为原 mindmap 配色（不可改，避免视觉回归），7-10 为知识图谱扩档。
+- **单一来源 → 多 target**：`theme-generator.ts` 的 `lightTokens`/`darkTokens` 既产出 CSS 变量（`light.css`/`dark.css`，给 Tailwind / DOM / scoped-theme），又产出 typed JS 值（`src/themes/token-values.generated.ts`，给 canvas / G6）。两者由 `npm run build:themes` 同时生成；`*.generated.ts` 是构建产物，勿手改，改 token 后重跑 `build:themes`。
+- **档位**：`data-viz-categorical-1..10`，色盲安全 / 感知均匀的 **OKLCH 生成 scale**（light L≈0.60 C≈0.142，dark L≈0.74 C≈0.123，hue 环 36° 均匀）。色相顺序（light）：red / 青 / 黄 / 蓝 / 绿 / 品红 / 橙 / 天蓝 / 黄绿 / 紫。各档对该主题画布 ≥3:1，相邻档在 protan/deutan/tritan 模拟下仍可区分。provenance：`scripts/gen-categorical-oklch.mjs`。
 - **用途**：图表多序列、思维导图层级色、知识图谱实体类型色等。当前消费者：`src/pages/search/detail/mindmap`（用 1-6）、`src/pages/knowledge/graph`（用 1-10）。
-- **如何消费**：统一走 `@/lib/design-tokens` 共享工具，**不要硬编码 hex、不要在页面里另起调色板**：
-  - `getCategoricalPalette(element?, count?)` —— 读出实时颜色数组，喂给 canvas / G6 / recharts 等非 Tailwind 渲染器；
+- **如何消费（默认 = 静态按主题）**：统一走 `@/lib/design-tokens`，**不要硬编码 hex、不要在页面里另起调色板**：
+  - `getCategoricalPalette(theme, count?)` —— 按主题取颜色数组（静态、类型安全、SSR 安全），喂给 canvas / G6 / recharts。theme 由 `useIsDarkTheme() ? 'dark' : 'light'`（组件）或 `getResolvedTheme()`（非 hook）得到；
+  - `getTokenValue(name, theme)` —— 按主题取任意 token 值（`name` 受 `keyof DesignTokens` 约束，编译期拒绝拼错）；
   - `getCategoricalIndex(key, count?)` —— 把分类 key（如实体类型名）确定性映射到槽位，使同一类型在多处（如画布与侧栏）颜色一致；
-  - `getCategoricalColorVar(index)` —— 返回 `var(--color-data-viz-categorical-N)`，供 DOM `style` 引用；
-  - `readCssVar(token, fallback, element?)` —— 通用 CSS 变量读取，dev 下对「解析为空」按 token 去重告警（fail-loud-in-dev）。
+  - `getCategoricalColorVar(index)` —— 返回 `var(--color-data-viz-categorical-N)`，供 DOM `style` 引用（随 scoped-theme 切换）；
+  - `readCssVar(token, fallback, element?)` —— **仅限 scoped-theme / embed 子树**的运行期 CSS 变量读取（dev 下对解析为空按 token 去重告警）。根主题消费请用上面的静态访问器，不要走 getComputedStyle。
 - **与 `components-system-chart-*` 的分工**：`data-viz-categorical-*` 是**无语义的分类/序列**色；`components-system-chart-*`（done/failed/pending/lag + grid/axis/tooltip）是**语义状态图表**色（如 `task-executor-chart`）。语义状态色不要塞进 categorical，分类色也不要复用状态色。
 - **无障碍**：categorical 色不单独承载语义，分类识别仍须配合 label / tooltip / 文案（颜色非唯一信号）。
 - **约定**：分类 token 用静态字面量 / `enum → 静态 class map`，**不要字符串拼接构造 token classname**，使完整字面量可被 lint / grep 检索。
