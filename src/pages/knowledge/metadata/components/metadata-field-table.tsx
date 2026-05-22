@@ -1,9 +1,9 @@
-import React from 'react'
+import type { FC } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Database } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { MetadataFieldRow } from '@/components/knowledge/MetadataFieldRow'
 import type { MetadataTableData } from '@/types/api'
+import { MetadataFieldRow } from './metadata-field-row'
 
 interface MetadataFieldTableProps {
   data: MetadataTableData[]
@@ -16,7 +16,7 @@ interface MetadataFieldTableProps {
   disabled?: boolean
 }
 
-export const MetadataFieldTable: React.FC<MetadataFieldTableProps> = ({
+export const MetadataFieldTable: FC<MetadataFieldTableProps> = ({
   data,
   isLoading,
   isSettingMode,

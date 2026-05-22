@@ -1092,6 +1092,7 @@ export default {
         selectValue: '选择值',
         valueInputPlaceholder: '值（多个值用逗号分隔）',
         addMetadataButton: '添加元数据',
+        removeValueAria: '删除 {{value}}',
       },
     },
     preview: {

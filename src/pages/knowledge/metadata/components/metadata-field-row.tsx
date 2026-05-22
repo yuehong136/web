@@ -1,8 +1,7 @@
-import React from 'react'
+import type { FC } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Settings, Trash2, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { MetadataValueTag } from './MetadataValueTag'
 import { Button } from '@/components/ui/button'
 import {
   TooltipRoot as Tooltip,
@@ -10,60 +9,23 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { MetadataValueTag } from './metadata-value-tag'
 
 interface MetadataFieldRowProps {
-  /**
-   * 字段名
-   */
   field: string
-  /**
-   * 字段描述
-   */
   description?: string
-  /**
-   * 值列表（可带计数）
-   */
   values: Array<{ value: string; count?: number }>
-  /**
-   * 最多显示的值数量
-   */
   maxDisplayValues?: number
-  /**
-   * 是否显示描述列
-   */
   showDescription?: boolean
-  /**
-   * 是否允许删除单个值
-   */
   allowRemoveValue?: boolean
-  /**
-   * 删除单个值回调
-   */
   onRemoveValue?: (value: string) => void
-  /**
-   * 编辑按钮回调
-   */
   onEdit?: () => void
-  /**
-   * 删除整行回调
-   */
   onDelete?: () => void
-  /**
-   * 是否禁用操作
-   */
   disabled?: boolean
-  /**
-   * 自定义类名
-   */
   className?: string
 }
 
-/**
- * Metadata 字段行组件
- * 用于在表格中展示单个 metadata 字段及其值
- * 采用现代化表格行布局，支持 Tooltip 和流畅动效
- */
-export const MetadataFieldRow: React.FC<MetadataFieldRowProps> = ({
+export const MetadataFieldRow: FC<MetadataFieldRowProps> = ({
   field,
   description,
   values,
@@ -91,7 +53,6 @@ export const MetadataFieldRow: React.FC<MetadataFieldRowProps> = ({
         className,
       )}
     >
-      {/* 字段名 */}
       <div className="w-[140px] shrink-0 px-4 py-3">
         <TooltipProvider delayDuration={400}>
           <Tooltip>
@@ -109,7 +70,6 @@ export const MetadataFieldRow: React.FC<MetadataFieldRowProps> = ({
         </TooltipProvider>
       </div>
 
-      {/* 描述 */}
       {showDescription && (
         <div className="w-[160px] shrink-0 px-4 py-3">
           <TooltipProvider delayDuration={400}>
@@ -129,7 +89,6 @@ export const MetadataFieldRow: React.FC<MetadataFieldRowProps> = ({
         </div>
       )}
 
-      {/* 值列表 */}
       <div className="min-w-0 flex-1 px-4 py-2.5">
         <div className="flex flex-wrap items-center gap-1.5">
           {displayValues.length > 0 ? (
@@ -168,7 +127,6 @@ export const MetadataFieldRow: React.FC<MetadataFieldRowProps> = ({
         </div>
       </div>
 
-      {/* 操作按钮 */}
       <div className="flex w-[88px] shrink-0 items-center justify-end gap-0.5 px-2 py-3">
         <div
           className={cn(
@@ -226,7 +184,6 @@ export const MetadataFieldRow: React.FC<MetadataFieldRowProps> = ({
             </TooltipProvider>
           )}
         </div>
-        {/* 展开箭头指示 */}
         {onEdit && (
           <ChevronRight
             className={cn(

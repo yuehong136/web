@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useEffect, useState, type FC } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   Dialog,
@@ -9,10 +9,13 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { DocumentMetadataEditor } from '@/components/knowledge/DocumentMetadataEditor'
 import { useUpdateDocumentMeta } from '@/hooks/use-metadata'
 import { FileText, Loader2, Info } from 'lucide-react'
 import type { MetadataFieldDefinition } from '@/types/api'
+import {
+  DocumentMetadataEditor,
+  type DocumentMetadataRecord,
+} from './components/document-metadata-editor'
 
 interface DocumentMetadataModalProps {
   open: boolean
@@ -20,12 +23,12 @@ interface DocumentMetadataModalProps {
   docId: string
   docName: string
   kbId?: string
-  metaFields: Record<string, any>
+  metaFields: DocumentMetadataRecord
   fieldDefinitions?: MetadataFieldDefinition[]
   onSuccess?: () => void
 }
 
-export const DocumentMetadataModal: React.FC<DocumentMetadataModalProps> = ({
+export const DocumentMetadataModal: FC<DocumentMetadataModalProps> = ({
   open,
   onClose,
   docId,
@@ -36,7 +39,7 @@ export const DocumentMetadataModal: React.FC<DocumentMetadataModalProps> = ({
   onSuccess,
 }) => {
   const { t } = useTranslation()
-  const [localMeta, setLocalMeta] = useState<Record<string, any>>({})
+  const [localMeta, setLocalMeta] = useState<DocumentMetadataRecord>({})
 
   const updateMetaMutation = useUpdateDocumentMeta()
 
@@ -64,7 +67,7 @@ export const DocumentMetadataModal: React.FC<DocumentMetadataModalProps> = ({
         <DialogHeader>
           <div className="flex items-center gap-3">
             <div className="bg-status-info/10 flex h-10 w-10 items-center justify-center rounded-xl">
-              <FileText className="text-status-info h-5 w-5" />
+              <FileText className="h-5 w-5 text-status-info" />
             </div>
             <div className="min-w-0 flex-1">
               <DialogTitle>

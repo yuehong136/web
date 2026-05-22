@@ -1144,6 +1144,7 @@ export default {
         selectValue: 'Select value',
         valueInputPlaceholder: 'Value. Separate multiple values with commas.',
         addMetadataButton: 'Add metadata',
+        removeValueAria: 'Remove {{value}}',
       },
     },
     preview: {

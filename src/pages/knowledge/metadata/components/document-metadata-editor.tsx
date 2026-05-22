@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useEffect, useState, type FC } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Plus, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -13,47 +13,25 @@ import {
 } from '@/components/ui/select'
 import type { MetadataFieldDefinition } from '@/types/api'
 
+export type DocumentMetadataValue = string | number | boolean | string[]
+export type DocumentMetadataRecord = Record<string, DocumentMetadataValue>
+
 interface MetadataEntry {
   key: string
   value: string
 }
 
 interface DocumentMetadataEditorProps {
-  /**
-   * 当前 metadata 值
-   */
-  value: Record<string, any>
-  /**
-   * 值变更回调
-   */
-  onChange: (value: Record<string, any>) => void
-  /**
-   * 知识库定义的字段模板（可选）
-   */
+  value: DocumentMetadataRecord
+  onChange: (value: DocumentMetadataRecord) => void
   fieldDefinitions?: MetadataFieldDefinition[]
-  /**
-   * 是否禁用
-   */
   disabled?: boolean
-  /**
-   * 是否只读
-   */
   readOnly?: boolean
-  /**
-   * 是否紧凑模式
-   */
   compact?: boolean
-  /**
-   * 自定义类名
-   */
   className?: string
 }
 
-/**
- * 文档 Metadata 编辑器组件
- * 用于编辑单个文档的 metadata 键值对
- */
-export const DocumentMetadataEditor: React.FC<DocumentMetadataEditorProps> = ({
+export const DocumentMetadataEditor: FC<DocumentMetadataEditorProps> = ({
   value,
   onChange,
   fieldDefinitions = [],
@@ -63,10 +41,8 @@ export const DocumentMetadataEditor: React.FC<DocumentMetadataEditorProps> = ({
   className,
 }) => {
   const { t } = useTranslation()
-  // 将 Record 转换为数组便于编辑
   const [entries, setEntries] = useState<MetadataEntry[]>([])
 
-  // 初始化 entries
   useEffect(() => {
     const initialEntries = Object.entries(value || {}).map(([key, val]) => ({
       key,
@@ -75,32 +51,29 @@ export const DocumentMetadataEditor: React.FC<DocumentMetadataEditorProps> = ({
     setEntries(initialEntries.length > 0 ? initialEntries : [])
   }, [value])
 
-  // 同步更新到父组件
   const syncToParent = (newEntries: MetadataEntry[]) => {
-    const newValue: Record<string, any> = {}
+    const newValue: DocumentMetadataRecord = {}
     newEntries.forEach(({ key, value: val }) => {
-      if (key.trim()) {
-        // 如果值包含逗号，转换为数组
-        if (val.includes(',')) {
-          newValue[key.trim()] = val
-            .split(',')
-            .map((v) => v.trim())
-            .filter(Boolean)
-        } else {
-          newValue[key.trim()] = val.trim()
-        }
+      const trimmedKey = key.trim()
+      if (!trimmedKey) return
+
+      if (val.includes(',')) {
+        newValue[trimmedKey] = val
+          .split(',')
+          .map((v) => v.trim())
+          .filter(Boolean)
+      } else {
+        newValue[trimmedKey] = val.trim()
       }
     })
     onChange(newValue)
   }
 
-  // 添加新条目
   const handleAdd = () => {
     const newEntries = [...entries, { key: '', value: '' }]
     setEntries(newEntries)
   }
 
-  // 更新条目
   const handleUpdate = (
     index: number,
     field: 'key' | 'value',
@@ -113,20 +86,17 @@ export const DocumentMetadataEditor: React.FC<DocumentMetadataEditorProps> = ({
     syncToParent(newEntries)
   }
 
-  // 删除条目
   const handleRemove = (index: number) => {
     const newEntries = entries.filter((_, i) => i !== index)
     setEntries(newEntries)
     syncToParent(newEntries)
   }
 
-  // 获取字段的预定义值
   const getFieldEnum = (fieldKey: string): string[] | undefined => {
     const def = fieldDefinitions.find((d) => d.key === fieldKey)
     return def?.enum
   }
 
-  // 获取未使用的字段定义
   const getUnusedFields = (): MetadataFieldDefinition[] => {
     const usedKeys = new Set(entries.map((e) => e.key))
     return fieldDefinitions.filter((d) => !usedKeys.has(d.key))
@@ -157,7 +127,6 @@ export const DocumentMetadataEditor: React.FC<DocumentMetadataEditorProps> = ({
 
   return (
     <div className={cn('gap-space-sm flex flex-col', className)}>
-      {/* 条目列表 */}
       {entries.map((entry, index) => {
         const enumValues = getFieldEnum(entry.key)
         const hasEnum = enumValues && enumValues.length > 0
@@ -170,7 +139,6 @@ export const DocumentMetadataEditor: React.FC<DocumentMetadataEditorProps> = ({
               compact ? 'gap-space-xs' : 'gap-space-sm',
             )}
           >
-            {/* 字段名 */}
             {fieldDefinitions.length > 0 ? (
               <Select
                 value={entry.key}
@@ -185,11 +153,9 @@ export const DocumentMetadataEditor: React.FC<DocumentMetadataEditorProps> = ({
                   />
                 </SelectTrigger>
                 <SelectContent>
-                  {/* 当前选中的 */}
                   {entry.key && (
                     <SelectItem value={entry.key}>{entry.key}</SelectItem>
                   )}
-                  {/* 未使用的字段 */}
                   {getUnusedFields().map((def) => (
                     <SelectItem key={def.key} value={def.key}>
                       {def.key}
@@ -207,7 +173,6 @@ export const DocumentMetadataEditor: React.FC<DocumentMetadataEditorProps> = ({
               />
             )}
 
-            {/* 值 */}
             {hasEnum ? (
               <Select
                 value={entry.value}
@@ -239,14 +204,16 @@ export const DocumentMetadataEditor: React.FC<DocumentMetadataEditorProps> = ({
               />
             )}
 
-            {/* 删除按钮 */}
             <Button
               type="button"
               variant="ghost"
               size="sm"
               onClick={() => handleRemove(index)}
               disabled={disabled}
-              className="hover:text-status-error h-[32px] w-[32px] shrink-0 p-0"
+              className="h-[32px] w-[32px] shrink-0 p-0 hover:text-status-error"
+              aria-label={t('knowledge.metadata.editor.removeValueAria', {
+                value: entry.key || entry.value,
+              })}
             >
               <X className="w-icon-sm h-icon-sm" />
             </Button>
@@ -254,7 +221,6 @@ export const DocumentMetadataEditor: React.FC<DocumentMetadataEditorProps> = ({
         )
       })}
 
-      {/* 添加按钮 */}
       {!disabled && (
         <Button
           type="button"
@@ -268,7 +234,6 @@ export const DocumentMetadataEditor: React.FC<DocumentMetadataEditorProps> = ({
         </Button>
       )}
 
-      {/* 空状态 */}
       {entries.length === 0 && disabled && (
         <span className="text-body-sm py-space-sm text-center text-text-tertiary">
           {t('knowledge.metadata.editor.noMetadata')}
