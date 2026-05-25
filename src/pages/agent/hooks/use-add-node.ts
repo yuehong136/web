@@ -59,6 +59,7 @@ import {
   initialHierarchicalMergerValues,
   initialExtractorValues,
 } from '../constant'
+import { initialHTMLReportValues } from '../form/html-report/constants'
 import useGraphStore from '../store'
 import {
   clampIterationChildPosition,
@@ -133,6 +134,7 @@ export const useInitializeOperatorParams = () => {
       [Operator.UserFillUp]: initialUserFillUpValues,
       [Operator.StringTransform]: initialStringTransformValues,
       [Operator.PDFGenerator]: initialPDFGeneratorValues,
+      [Operator.HTMLReport]: initialHTMLReportValues,
       [Operator.ExcelProcessor]: initialExcelProcessorValues,
       [Operator.DataOperations]: initialDataOperationsValues,
       [Operator.ListOperations]: initialListOperationsValues,

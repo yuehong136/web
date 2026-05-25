@@ -16,6 +16,7 @@ export enum AgentOperatorCategory {
   AGENT = 'agent',
   TOOL = 'tool',
   DATA = 'data',
+  CONTENT = 'content',
   PIPELINE = 'pipeline',
   UTILITY = 'utility',
 }

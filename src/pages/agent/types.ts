@@ -298,6 +298,7 @@ export type RAGFlowNodeType =
   | IUserFillUpNode
   | IStringTransformNode
   | IPDFGeneratorNode
+  | IHTMLReportNode
   | IFileNode
   | IParserNode
   | ITokenizerNode
@@ -408,6 +409,13 @@ export interface IPDFGeneratorForm {
   [key: string]: any
 }
 
+// HTMLReport节点表单（skeleton 为设计时骨架，见 form/html-report/types 的 SkeletonSchema）
+export interface IHTMLReportForm {
+  skeleton?: Record<string, unknown>
+  outputs?: Record<string, any>
+  [key: string]: any
+}
+
 // Pipeline节点表单
 export interface IFileForm {
   outputs?: Record<string, any>
@@ -451,6 +459,7 @@ export type IExeSQLNode = BaseNode<IExeSQLForm>
 export type IUserFillUpNode = BaseNode<IUserFillUpForm>
 export type IStringTransformNode = BaseNode<IStringTransformForm>
 export type IPDFGeneratorNode = BaseNode<IPDFGeneratorForm>
+export type IHTMLReportNode = BaseNode<IHTMLReportForm>
 export type IFileNode = BaseNode<IFileForm>
 export type IParserNode = BaseNode<IParserForm>
 export type ITokenizerNode = BaseNode<ITokenizerForm>
