@@ -8,18 +8,11 @@ import {
 import { CSS } from '@dnd-kit/utilities'
 import { GripVertical, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { cn } from '@/lib/utils'
-import { LAYOUT_LABEL, SIDEBAR_LAYOUTS } from './block-meta'
+import { SIDEBAR_LAYOUTS } from './block-meta'
 import { CanvasBlockChip } from './canvas-block-chip'
 import type { SectionDragData, SlotDropData } from './dnd'
-import type { BlockRole, LayoutType, SkeletonSection } from '../types'
+import type { BlockRole, SkeletonSection } from '../types'
 
 interface CanvasSectionProps {
   section: SkeletonSection
@@ -28,7 +21,6 @@ interface CanvasSectionProps {
   sectionSelected: boolean
   onSelectSection: () => void
   onSelectBlock: (blockId: string) => void
-  onSetLayout: (layout: LayoutType) => void
   onRemoveSection: () => void
   onRemoveBlock: (blockId: string) => void
   onSetBlockRole: (blockId: string, role: BlockRole) => void
@@ -41,7 +33,6 @@ export function CanvasSection({
   sectionSelected,
   onSelectSection,
   onSelectBlock,
-  onSetLayout,
   onRemoveSection,
   onRemoveBlock,
   onSetBlockRole,
@@ -103,27 +94,10 @@ export function CanvasSection({
         >
           {t('flow.htmlReportSection', 'Section')} {index + 1}
         </button>
-        <div className="ml-auto">
-          <Select
-            value={section.layout}
-            onValueChange={(value) => onSetLayout(value as LayoutType)}
-          >
-            <SelectTrigger className="h-7 w-36 text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {Object.entries(LAYOUT_LABEL).map(([value, label]) => (
-                <SelectItem key={value} value={value} className="text-xs">
-                  {t(label.labelKey, label.fallback)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
         <button
           type="button"
           onClick={onRemoveSection}
-          className="text-text-caption hover:text-status-error"
+          className="text-text-caption ml-auto hover:text-status-error"
           aria-label={t('flow.htmlReportDeleteSection', 'Delete section')}
         >
           <Trash2 className="size-icon-sm" />

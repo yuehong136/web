@@ -65,6 +65,12 @@ export type DraftAction =
       value: string
     }
   | {
+      type: 'replaceBlock'
+      sectionId: string
+      blockId: string
+      block: SkeletonBlock
+    }
+  | {
       type: 'setFieldValue'
       sectionId: string
       blockId: string
@@ -221,6 +227,13 @@ function nextPresent(
         ...b,
         annotation: action.value,
       }))
+    case 'replaceBlock':
+      return updateBlock(
+        skeleton,
+        action.sectionId,
+        action.blockId,
+        () => action.block,
+      )
     case 'setFieldValue':
       return updateBlock(skeleton, action.sectionId, action.blockId, (b) => ({
         ...b,

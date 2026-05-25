@@ -1,6 +1,7 @@
 /**
- * 新建 Block 的默认结构。chart 默认带一个 `data` 的 llm 指令(决策 #24:用户定形状、
- * LLM 填数据行);其余字段默认 static 空,由用户在 Inspector 决定填法。
+ * 新建 Block 的默认结构。"整段数据"型字段(chart 的 data、table 的 rows、
+ * comparison 的 criteria)默认带一个 llm 指令(决策 #24:用户定形状/列头、LLM 填数据);
+ * 其余字段默认 static 空,由用户在 Inspector 决定填法。
  */
 import { makeId } from '../skeleton-utils'
 import type {
@@ -14,7 +15,8 @@ import type {
 
 type Fields = Partial<BlockData>
 
-function chartFields(chartType: ChartType): Fields {
+/** 按图表类型造默认形状字段(形状全 static,data 留空待指令填) */
+export function buildChartFields(chartType: ChartType): Fields {
   const base = { type: 'chart', chartType, data: [] }
   if (chartType === 'pie' || chartType === 'donut' || chartType === 'funnel') {
     return { ...base, nameKey: 'name', valueKey: 'value' } as Fields
@@ -47,7 +49,14 @@ const DEFAULT_FIELDS: Record<BlockKind, () => Fields> = {
   'comparison-matrix': () =>
     ({ type: 'comparison-matrix', items: ['', ''], criteria: [] }) as Fields,
   timeline: () => ({ type: 'timeline', items: [] }) as Fields,
-  chart: () => chartFields('bar'),
+  chart: () => buildChartFields('bar'),
+}
+
+/** 默认就交给模型填的"整段数据"字段路径(其余字段默认 static) */
+const DEFAULT_LLM_PATH: Partial<Record<BlockKind, string>> = {
+  chart: 'data',
+  table: 'rows',
+  'comparison-matrix': 'criteria',
 }
 
 export function createDefaultBlock(
@@ -60,13 +69,14 @@ export function createDefaultBlock(
     type,
     fields:
       type === 'chart' && chartType
-        ? chartFields(chartType)
+        ? buildChartFields(chartType)
         : DEFAULT_FIELDS[type](),
   }
   if (role) block.role = role
-  if (type === 'chart') {
+  const llmPath = DEFAULT_LLM_PATH[type]
+  if (llmPath) {
     const directive: FieldDirective = { mode: 'llm' }
-    block.fieldDirectives = { data: directive }
+    block.fieldDirectives = { [llmPath]: directive }
   }
   return block
 }

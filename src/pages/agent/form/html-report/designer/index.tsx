@@ -11,8 +11,8 @@ import {
   useSensors,
   type DragEndEvent,
 } from '@dnd-kit/core'
-import { Redo2, Save, Undo2, X } from 'lucide-react'
-import { useEffect, useRef } from 'react'
+import { Maximize2, Minimize2, Redo2, Save, Undo2, X } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import {
@@ -21,8 +21,6 @@ import {
   SheetDescription,
   SheetTitle,
 } from '@/components/ui/sheet'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { cn } from '@/lib/utils'
 import { createDefaultBlock } from './block-defaults'
 import { Canvas } from './canvas'
 import { resolveDragEnd } from './dnd'
@@ -49,6 +47,7 @@ export function Designer({
   const { t } = useTranslation()
   const { state, dispatch, canUndo, canRedo } =
     useSkeletonDraft(initialSkeleton)
+  const [previewFull, setPreviewFull] = useState(false)
 
   // 仅在「打开」的上升沿用最新骨架重新播种草稿,避免开着时父组件重渲染冲掉编辑
   const wasOpen = useRef(false)
@@ -138,6 +137,15 @@ export function Designer({
             <Button
               variant="outline"
               size="sm"
+              disabled={state.present.sections.length === 0}
+              leftIcon={<Maximize2 className="size-icon-sm" />}
+              onClick={() => setPreviewFull(true)}
+            >
+              {t('flow.htmlReportPreviewFull', 'Full preview')}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
               disabled
               title={t('flow.htmlReportTryRunSoon', 'Trial run is coming soon')}
             >
@@ -162,52 +170,62 @@ export function Designer({
           </div>
         </header>
 
-        {/* 三栏 */}
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
-        >
-          <div className="flex min-h-0 flex-1">
-            <aside className="w-48 shrink-0 border-r border-border-default">
-              <Palette
-                onAddBlock={handleAddBlock}
-                onAddSection={handleAddSection}
-              />
-            </aside>
-            <main className="bg-surface-secondary min-w-0 flex-1">
-              <Canvas
-                sections={state.present.sections}
-                selection={state.selection}
-                dispatch={dispatch}
-              />
-            </main>
-            <aside className="flex w-96 shrink-0 flex-col border-l border-border-default">
-              <Tabs
-                defaultValue="inspector"
-                className="flex min-h-0 flex-1 flex-col"
-              >
-                <TabsList className="px-space-sm border-b border-border-default">
-                  <TabsTrigger value="inspector">
+        {/* 三栏 + 全屏预览覆盖层 */}
+        <div className="relative flex min-h-0 flex-1 flex-col">
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <div className="flex min-h-0 flex-1">
+              <aside className="w-48 shrink-0 border-r border-border-default">
+                <Palette
+                  onAddBlock={handleAddBlock}
+                  onAddSection={handleAddSection}
+                />
+              </aside>
+              <main className="bg-surface-secondary min-w-0 flex-1">
+                <Canvas
+                  sections={state.present.sections}
+                  selection={state.selection}
+                  dispatch={dispatch}
+                />
+              </main>
+              <aside className="flex w-96 shrink-0 flex-col border-l border-border-default">
+                <div className="px-space-base py-space-sm border-b border-border-default">
+                  <span className="text-sm font-medium text-text-primary">
                     {t('flow.htmlReportTabInspector', 'Properties')}
-                  </TabsTrigger>
-                  <TabsTrigger value="preview">
-                    {t('flow.htmlReportTabPreview', 'Preview')}
-                  </TabsTrigger>
-                </TabsList>
-                <TabsContent
-                  value="inspector"
-                  className={cn('min-h-0 flex-1 overflow-auto')}
-                >
+                  </span>
+                </div>
+                <div className="min-h-0 flex-1 overflow-auto">
                   <Inspector state={state} dispatch={dispatch} />
-                </TabsContent>
-                <TabsContent value="preview" className={cn('min-h-0 flex-1')}>
-                  <Preview skeleton={state.present} />
-                </TabsContent>
-              </Tabs>
-            </aside>
-          </div>
-        </DndContext>
+                </div>
+              </aside>
+            </div>
+          </DndContext>
+
+          {previewFull && (
+            <div className="bg-surface-primary absolute inset-0 z-10 flex flex-col">
+              <div className="gap-space-sm px-space-base py-space-sm flex items-center border-b border-border-default">
+                <span className="text-sm font-medium text-text-primary">
+                  {t('flow.htmlReportPreview', 'Preview')}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  className="ml-auto"
+                  onClick={() => setPreviewFull(false)}
+                  aria-label={t('flow.htmlReportPreviewExit', 'Exit preview')}
+                >
+                  <Minimize2 className="size-icon-sm" />
+                </Button>
+              </div>
+              <div className="min-h-0 flex-1">
+                <Preview skeleton={state.present} variant="full" />
+              </div>
+            </div>
+          )}
+        </div>
       </SheetContent>
     </Sheet>
   )

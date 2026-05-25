@@ -1,12 +1,21 @@
 /**
- * Designer 右栏(3b 轻量版):按选中目标显示报告/小节/块的基础属性。
- * 字段级 directive 编辑器(static/variable/llm,10 个块各一套)在 3c 接入。
+ * Designer 右栏:按选中目标渲染属性/字段编辑器。
+ * - none / theme → 报告级(标题、副标题、主色)
+ * - section      → 小节属性
+ * - block        → 块标题 + 字段编辑(chart 走形状编辑器)+ 块级注解
  */
 import { useTranslation } from 'react-i18next'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { blockDisplayLabel } from './block-meta'
+import { BlockFields } from './field-editors/block-fields'
+import { ChartShapeFields } from './field-editors/chart-shape-fields'
+import {
+  EmptyHint,
+  InspectorField,
+  InspectorHeading,
+} from './field-editors/field-primitives'
+import { ReportFields } from './field-editors/report-fields'
+import { SectionFields } from './field-editors/section-fields'
 import type { DraftAction, DraftState } from './use-skeleton-draft'
 
 interface InspectorProps {
@@ -26,55 +35,7 @@ export function Inspector({ state, dispatch }: InspectorProps) {
           text={t('flow.htmlReportInspectorNone', 'Select an item to edit')}
         />
       )
-    return (
-      <div className="space-y-space-md p-space-base">
-        <Heading
-          text={t('flow.htmlReportSectionSettings', 'Section settings')}
-        />
-        <Field label={t('flow.htmlReportSectionTitle', 'Section title')}>
-          <Input
-            value={section.title ?? ''}
-            onChange={(e) =>
-              dispatch({
-                type: 'setSectionField',
-                sectionId: section.id,
-                key: 'title',
-                value: e.target.value,
-              })
-            }
-          />
-        </Field>
-        <Field label={t('flow.htmlReportSectionSubtitle', 'Section subtitle')}>
-          <Input
-            value={section.subtitle ?? ''}
-            onChange={(e) =>
-              dispatch({
-                type: 'setSectionField',
-                sectionId: section.id,
-                key: 'subtitle',
-                value: e.target.value,
-              })
-            }
-          />
-        </Field>
-        <Field
-          label={t('flow.htmlReportAnnotation', 'Annotation (for the model)')}
-        >
-          <Textarea
-            rows={3}
-            value={section.annotation ?? ''}
-            onChange={(e) =>
-              dispatch({
-                type: 'setSectionField',
-                sectionId: section.id,
-                key: 'annotation',
-                value: e.target.value,
-              })
-            }
-          />
-        </Field>
-      </div>
-    )
+    return <SectionFields section={section} dispatch={dispatch} />
   }
 
   if (selection.kind === 'block') {
@@ -89,8 +50,21 @@ export function Inspector({ state, dispatch }: InspectorProps) {
     const label = blockDisplayLabel(block)
     return (
       <div className="space-y-space-md p-space-base">
-        <Heading text={t(label.labelKey, label.fallback)} />
-        <Field
+        <InspectorHeading text={t(label.labelKey, label.fallback)} />
+        {block.type === 'chart' ? (
+          <ChartShapeFields
+            block={block}
+            sectionId={selection.sectionId}
+            dispatch={dispatch}
+          />
+        ) : (
+          <BlockFields
+            block={block}
+            sectionId={selection.sectionId}
+            dispatch={dispatch}
+          />
+        )}
+        <InspectorField
           label={t('flow.htmlReportAnnotation', 'Annotation (for the model)')}
         >
           <Textarea
@@ -105,80 +79,10 @@ export function Inspector({ state, dispatch }: InspectorProps) {
               })
             }
           />
-        </Field>
-        <p className="text-text-caption text-xs">
-          {t(
-            'flow.htmlReportFieldEditorSoon',
-            'Per-field editing (static / variable / model) comes next.',
-          )}
-        </p>
+        </InspectorField>
       </div>
     )
   }
 
-  // none / theme:报告元信息 + 主题主色
-  return (
-    <div className="space-y-space-md p-space-base">
-      <Heading text={t('flow.htmlReportReportSettings', 'Report settings')} />
-      <Field label={t('flow.htmlReportTitle', 'Report title')}>
-        <Input
-          value={present.title}
-          onChange={(e) =>
-            dispatch({
-              type: 'setReportField',
-              key: 'title',
-              value: e.target.value,
-            })
-          }
-        />
-      </Field>
-      <Field label={t('flow.htmlReportSubtitle', 'Report subtitle')}>
-        <Input
-          value={present.subtitle ?? ''}
-          onChange={(e) =>
-            dispatch({
-              type: 'setReportField',
-              key: 'subtitle',
-              value: e.target.value,
-            })
-          }
-        />
-      </Field>
-      <Field label={t('flow.htmlReportPrimaryColor', 'Primary color')}>
-        <Input
-          value={present.theme?.primaryColor ?? ''}
-          placeholder="#1677ff"
-          onChange={(e) =>
-            dispatch({
-              type: 'setTheme',
-              theme: { ...present.theme, primaryColor: e.target.value },
-            })
-          }
-        />
-      </Field>
-    </div>
-  )
-}
-
-function Heading({ text }: { text: string }) {
-  return <h3 className="text-sm font-semibold text-text-primary">{text}</h3>
-}
-
-function Field({
-  label,
-  children,
-}: {
-  label: string
-  children: React.ReactNode
-}) {
-  return (
-    <div className="space-y-space-xs">
-      <Label className="text-xs text-text-secondary">{label}</Label>
-      {children}
-    </div>
-  )
-}
-
-function EmptyHint({ text }: { text: string }) {
-  return <p className="p-space-base text-text-caption text-sm">{text}</p>
+  return <ReportFields present={present} dispatch={dispatch} />
 }
