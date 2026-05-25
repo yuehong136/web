@@ -11,7 +11,15 @@ import {
   useSensors,
   type DragEndEvent,
 } from '@dnd-kit/core'
-import { Maximize2, Minimize2, Redo2, Save, Undo2, X } from 'lucide-react'
+import {
+  Maximize2,
+  Minimize2,
+  Redo2,
+  Save,
+  Sparkles,
+  Undo2,
+  X,
+} from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
@@ -21,6 +29,7 @@ import {
   SheetDescription,
   SheetTitle,
 } from '@/components/ui/sheet'
+import { AiSkeletonDialog } from './ai-skeleton/ai-skeleton-dialog'
 import { createDefaultBlock } from './block-defaults'
 import { Canvas } from './canvas'
 import { resolveDragEnd } from './dnd'
@@ -48,6 +57,7 @@ export function Designer({
   const { state, dispatch, canUndo, canRedo } =
     useSkeletonDraft(initialSkeleton)
   const [previewFull, setPreviewFull] = useState(false)
+  const [aiOpen, setAiOpen] = useState(false)
 
   // 仅在「打开」的上升沿用最新骨架重新播种草稿,避免开着时父组件重渲染冲掉编辑
   const wasOpen = useRef(false)
@@ -133,6 +143,14 @@ export function Designer({
               aria-label={t('flow.htmlReportRedo', 'Redo')}
             >
               <Redo2 className="size-icon-sm" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              leftIcon={<Sparkles className="size-icon-sm" />}
+              onClick={() => setAiOpen(true)}
+            >
+              {t('flow.htmlReportAiGenerate', 'AI generate')}
             </Button>
             <Button
               variant="outline"
@@ -226,6 +244,16 @@ export function Designer({
             </div>
           )}
         </div>
+
+        <AiSkeletonDialog
+          open={aiOpen}
+          hasContent={state.present.sections.length > 0}
+          onGenerated={(skeleton) => {
+            dispatch({ type: 'reset', skeleton })
+            setAiOpen(false)
+          }}
+          onClose={() => setAiOpen(false)}
+        />
       </SheetContent>
     </Sheet>
   )
