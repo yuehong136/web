@@ -297,6 +297,16 @@ export interface AgentShareSummary {
   inputs: Record<string, AgentShareInputField>
 }
 
+/**
+ * datav workflow inputPlugin 人员数据项。
+ * Begin 节点 `persondata` 输入类型的候选项：列表展示 `title`，选中推送 `dataobject`。
+ */
+export interface PersonDataItem {
+  checked: boolean
+  dataobject: string
+  title: string
+}
+
 export interface AgentPublishSummary {
   id: string
   title: string

@@ -23,6 +23,7 @@ import type {
   AgentTraceItem,
   AgentVersionSummary,
   AgentWebhookTraceRequest,
+  PersonDataItem,
 } from '@/types/agent'
 
 export const agentQueryKeys = {
@@ -54,6 +55,8 @@ export const agentQueryKeys = {
     ] as const,
   webhookTrace: (id: string, params: AgentWebhookTraceRequest) =>
     [...agentQueryKeys.all, 'webhook-trace', id, params] as const,
+  personDataList: (workflowId: string, external: boolean) =>
+    [...agentQueryKeys.all, 'persondata-list', workflowId, external] as const,
 }
 
 function useResolvedAgentId(id?: string) {
@@ -337,6 +340,43 @@ export const useFetchExternalAgentInputs = (
 
   return {
     data: query.data || ({} as AgentExternalInputs),
+    isLoading: query.isFetching,
+    isError: query.isError,
+    error: query.error,
+    refetch: query.refetch,
+  }
+}
+
+/**
+ * Begin 节点 persondata 输入类型候选项。
+ * 传入 betaToken 走分享/嵌入公开接口（agentbots/{id}/persondataList），
+ * 否则走登录态接口（/v1/datav/persondataList/{id}）。
+ */
+export const useFetchPersonDataList = ({
+  workflowId,
+  betaToken,
+}: {
+  workflowId?: string
+  betaToken?: string
+}) => {
+  const external = Boolean(betaToken)
+  const query = useQuery({
+    queryKey: agentQueryKeys.personDataList(workflowId || '', external),
+    enabled: Boolean(workflowId),
+    retry: false,
+    staleTime: 5 * 60 * 1000,
+    queryFn: async () =>
+      external
+        ? await agentAPI.fetchExternalPersonDataList(
+            workflowId || '',
+            betaToken || '',
+          )
+        : await agentAPI.fetchPersonDataList(workflowId || ''),
+    placeholderData: () => [] as PersonDataItem[],
+  })
+
+  return {
+    items: query.data || ([] as PersonDataItem[]),
     isLoading: query.isFetching,
     isError: query.isError,
     error: query.error,

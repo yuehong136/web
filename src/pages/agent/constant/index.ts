@@ -1287,6 +1287,8 @@ export const BeginQueryType = {
   File: 'file',
   Integer: 'integer',
   Boolean: 'boolean',
+  // 与第三方厂商（datav）合作的定制化入口参数类型：候选项运行时动态拉取
+  PersonData: 'persondata',
 } as const
 
 export type BeginQueryType =

@@ -456,7 +456,7 @@ export default function AgentSharePage() {
       >
         <div className="flex h-full min-h-0 flex-col">
           {runner.lastError ? (
-            <div className="mt-space-base rounded-radius-md border-status-error bg-surface-secondary p-space-sm text-status-error mx-auto w-full max-w-4xl border text-sm">
+            <div className="mt-space-base rounded-radius-md bg-surface-secondary p-space-sm mx-auto w-full max-w-4xl border border-status-error text-sm text-status-error">
               {runner.lastError}
             </div>
           ) : null}
@@ -542,6 +542,8 @@ export default function AgentSharePage() {
           values={formValues}
           error={formError}
           theme={access.theme}
+          workflowId={access.agentId}
+          betaToken={access.betaToken}
           disabled={runner.isRunning || uploading}
           onOpenChange={setParameterDialogOpen}
           onChange={handleChange}

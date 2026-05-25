@@ -25,6 +25,7 @@ import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
 import { BeginQueryType } from '../constant'
 import type { BeginQuery } from '../types'
+import { PersonDataMultiSelect } from '../components/persondata-multi-select'
 import { FileUploadDirectUpload } from './uploader'
 
 const StringFields = [
@@ -45,10 +46,7 @@ interface IProps {
   maxHeight?: string
 }
 
-const resolveOptionValue = (
-  query: BeginQuery,
-  value: unknown,
-) => {
+const resolveOptionValue = (query: BeginQuery, value: unknown) => {
   if (!Array.isArray(query.options)) {
     return value
   }
@@ -95,6 +93,12 @@ const DebugContent = ({
         } else if (type === BeginQueryType.Integer || type === 'float') {
           fieldSchema = z.coerce.number()
           value = 0
+        } else if (type === BeginQueryType.PersonData) {
+          const personDataSchema = z.array(z.string())
+          fieldSchema = cur.optional
+            ? personDataSchema
+            : personDataSchema.min(1)
+          value = []
         } else {
           fieldSchema = z.any()
           value = null
@@ -143,7 +147,7 @@ const DebugContent = ({
               <FormItem className="flex-1">
                 <FormLabel>{props.label}</FormLabel>
                 <FormControl>
-                  <Input {...field} value={field.value as string || ''} />
+                  <Input {...field} value={(field.value as string) || ''} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -159,7 +163,11 @@ const DebugContent = ({
               <FormItem className="flex-1">
                 <FormLabel>{props.label}</FormLabel>
                 <FormControl>
-                  <Textarea rows={3} {...field} value={field.value as string || ''} />
+                  <Textarea
+                    rows={3}
+                    {...field}
+                    value={(field.value as string) || ''}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -205,7 +213,11 @@ const DebugContent = ({
               <FormItem className="flex-1">
                 <FormLabel>{props.label}</FormLabel>
                 <FormControl>
-                  <Input type="number" {...field} value={field.value as number || 0} />
+                  <Input
+                    type="number"
+                    {...field}
+                    value={(field.value as number) || 0}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -222,7 +234,7 @@ const DebugContent = ({
                 <FormLabel>{props.label}</FormLabel>
                 <FormControl>
                   <Switch
-                    checked={field.value as boolean || false}
+                    checked={(field.value as boolean) || false}
                     onCheckedChange={field.onChange}
                   />
                 </FormControl>
@@ -246,6 +258,26 @@ const DebugContent = ({
                     onChange={field.onChange}
                     multiple
                     maxFiles={5}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        ),
+        [BeginQueryType.PersonData]: (
+          <FormField
+            key={idx}
+            control={form.control}
+            name={props.name}
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel>{props.label}</FormLabel>
+                <FormControl>
+                  <PersonDataMultiSelect
+                    workflowId={canvasId}
+                    value={Array.isArray(field.value) ? field.value : []}
+                    onChange={field.onChange}
                   />
                 </FormControl>
                 <FormMessage />
@@ -284,7 +316,10 @@ const DebugContent = ({
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <section
-            className={cn('overflow-auto px-space-sm space-y-space-base pb-space-base', maxHeight)}
+            className={cn(
+              'px-space-sm space-y-space-base pb-space-base overflow-auto',
+              maxHeight,
+            )}
           >
             {parameters.map((x, idx) => (
               <div key={idx}>{renderWidget(x, idx.toString())}</div>
@@ -294,7 +329,7 @@ const DebugContent = ({
             <Button
               type="submit"
               disabled={loading || submitButtonDisabled}
-              className="w-full mt-space-xs"
+              className="mt-space-xs w-full"
             >
               {loading
                 ? t('common.loading', '加载中...')

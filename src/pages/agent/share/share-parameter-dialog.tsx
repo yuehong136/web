@@ -25,6 +25,10 @@ interface ShareParameterDialogProps {
   error?: string
   theme?: string | null
   disabled?: boolean
+  /** persondata 候选项来源（分享页为 agent id） */
+  workflowId?: string
+  /** persondata 公开接口 beta token */
+  betaToken?: string
   onOpenChange: (open: boolean) => void
   onChange: (key: string, value: ShareFormValue) => void
   onUpload: (key: string, files: FileList) => Promise<void>
@@ -40,6 +44,8 @@ export function ShareParameterDialog({
   error,
   theme,
   disabled,
+  workflowId,
+  betaToken,
   onOpenChange,
   onChange,
   onUpload,
@@ -70,13 +76,15 @@ export function ShareParameterDialog({
               field={field}
               value={values[key]}
               disabled={disabled}
+              workflowId={workflowId}
+              betaToken={betaToken}
               onChange={onChange}
               onUpload={onUpload}
             />
           ))}
 
           {error ? (
-            <div className="rounded-radius-md border-status-error bg-surface-secondary p-space-sm text-status-error border text-sm">
+            <div className="rounded-radius-md bg-surface-secondary p-space-sm border border-status-error text-sm text-status-error">
               {error}
             </div>
           ) : null}

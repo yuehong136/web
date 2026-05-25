@@ -19,6 +19,7 @@ import type {
   AgentWebhookTraceResponse,
   DebugAgentNodePayload,
   ExternalAgentCompletionPayload,
+  PersonDataItem,
   RunAgentPayload,
   SetAgentPayload,
   UpdateAgentSettingsPayload,
@@ -63,7 +64,8 @@ export const agentAPI = {
     if (params.page_size !== undefined) query.page_size = params.page_size
     if (params.orderby) query.orderby = params.orderby
     if (params.desc !== undefined) query.desc = params.desc
-    if (params.keywords || params.name) query.keywords = params.keywords || params.name || ''
+    if (params.keywords || params.name)
+      query.keywords = params.keywords || params.name || ''
     if (params.canvas_category) {
       query.canvas_category = params.canvas_category
     } else if (params.canvas_type) {
@@ -75,7 +77,8 @@ export const agentAPI = {
     })
   },
 
-  fetchAgent: async (id: string) => apiClient.get<AgentFlow>(`/v1/canvas/get/${id}`),
+  fetchAgent: async (id: string) =>
+    apiClient.get<AgentFlow>(`/v1/canvas/get/${id}`),
 
   setAgent: async (payload: SetAgentPayload) => {
     const canvasCategory =
@@ -151,24 +154,29 @@ export const agentAPI = {
   ) => {
     const baseURL = getRuntimeApiBaseUrl()
     const token = getAuthToken()
-    const response = await fetch(`${baseURL}/v1/canvas/${payload.id}/completion`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    const response = await fetch(
+      `${baseURL}/v1/canvas/${payload.id}/completion`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          query: payload.query || '',
+          session_id: payload.session_id,
+          files: payload.files || [],
+          inputs: payload.inputs || {},
+          ...(payload.a2ui ? { a2ui: payload.a2ui } : {}),
+          ...(payload.metadata ? { metadata: payload.metadata } : {}),
+          ...(payload.release !== undefined
+            ? { release: payload.release }
+            : {}),
+          ...(payload.user_id ? { user_id: payload.user_id } : {}),
+        }),
+        signal: options?.signal,
       },
-      body: JSON.stringify({
-        query: payload.query || '',
-        session_id: payload.session_id,
-        files: payload.files || [],
-        inputs: payload.inputs || {},
-        ...(payload.a2ui ? { a2ui: payload.a2ui } : {}),
-        ...(payload.metadata ? { metadata: payload.metadata } : {}),
-        ...(payload.release !== undefined ? { release: payload.release } : {}),
-        ...(payload.user_id ? { user_id: payload.user_id } : {}),
-      }),
-      signal: options?.signal,
-    })
+    )
 
     return response
   },
@@ -293,16 +301,27 @@ export const agentAPI = {
     }),
 
   fetchExternalAgentInputs: async (canvasId: string, betaToken: string) =>
-    apiClient.get<AgentExternalInputs>(
-      `/agentbots/${canvasId}/inputs`,
-      {
-        ...agentAPI.externalApiBase,
-        skipAuth: true,
-        headers: {
-          Authorization: `Bearer ${betaToken}`,
-        },
+    apiClient.get<AgentExternalInputs>(`/agentbots/${canvasId}/inputs`, {
+      ...agentAPI.externalApiBase,
+      skipAuth: true,
+      headers: {
+        Authorization: `Bearer ${betaToken}`,
       },
-    ),
+    }),
+
+  // Begin 节点 persondata 输入类型候选项（登录态）：GET /v1/datav/persondataList/{id}
+  fetchPersonDataList: async (workflowId: string) =>
+    apiClient.get<PersonDataItem[]>(`/v1/datav/persondataList/${workflowId}`),
+
+  // 同上的分享/嵌入公开变体：GET /api/v1/agentbots/{id}/persondataList，beta token 鉴权
+  fetchExternalPersonDataList: async (workflowId: string, betaToken: string) =>
+    apiClient.get<PersonDataItem[]>(`/agentbots/${workflowId}/persondataList`, {
+      ...agentAPI.externalApiBase,
+      skipAuth: true,
+      headers: {
+        Authorization: `Bearer ${betaToken}`,
+      },
+    }),
 
   runExternalAgent: async (
     payload: ExternalAgentCompletionPayload,
@@ -355,7 +374,9 @@ export const agentAPI = {
     return new Promise<AgentCanvasUploadResult>((resolve, reject) => {
       const xhr = new XMLHttpRequest()
       const baseURL =
-        options?.baseURL ?? import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
+        options?.baseURL ??
+        import.meta.env.VITE_API_BASE_URL ??
+        'http://localhost:8000'
 
       xhr.open('POST', `${baseURL}/v1/canvas/upload/${canvasId}`)
 
@@ -380,7 +401,9 @@ export const agentAPI = {
               resolve(response.data)
               return
             }
-            reject(new Error(response.message || response.retmsg || 'Upload failed'))
+            reject(
+              new Error(response.message || response.retmsg || 'Upload failed'),
+            )
           } catch {
             reject(new Error('Invalid response format'))
           }
@@ -457,7 +480,10 @@ export const agentAPI = {
         const formData = new FormData()
         Object.entries((body || {}) as Record<string, unknown>).forEach(
           ([key, value]) => {
-            formData.append(key, value instanceof Blob ? value : String(value ?? ''))
+            formData.append(
+              key,
+              value instanceof Blob ? value : String(value ?? ''),
+            )
           },
         )
         requestBody = formData
@@ -481,14 +507,11 @@ export const agentAPI = {
     canvasId: string,
     payload: AgentWebhookTraceRequest = {},
   ) =>
-    apiClient.get<AgentWebhookTraceResponse>(
-      `/webhook_trace/${canvasId}`,
-      {
-        ...agentAPI.externalApiBase,
-        skipAuth: true,
-        params: payload,
-      },
-    ),
+    apiClient.get<AgentWebhookTraceResponse>(`/webhook_trace/${canvasId}`, {
+      ...agentAPI.externalApiBase,
+      skipAuth: true,
+      params: payload,
+    }),
 
   downloadFile: async (fileId: string, chunkId: string) =>
     apiClient.get(`/v1/canvas/download`, {

@@ -1,8 +1,5 @@
 import { BeginQueryType } from '../constant'
-import type {
-  AgentShareInputField,
-  AgentShareSummary,
-} from '@/types/agent'
+import type { AgentShareInputField, AgentShareSummary } from '@/types/agent'
 
 export type ShareFormValue = string | number | boolean | unknown[]
 export type ShareFormValues = Record<string, ShareFormValue>
@@ -36,6 +33,8 @@ export function getDefaultShareInputValue(
     case BeginQueryType.Boolean:
       return false
     case BeginQueryType.File:
+      return []
+    case BeginQueryType.PersonData:
       return []
     case BeginQueryType.Options:
       return Array.isArray(field.options) && field.options.length > 0
@@ -91,7 +90,9 @@ export function formatShareInputSummary(values: ShareFormValues) {
         return `${key}: ${value
           .map((item) => {
             if (isRecord(item)) {
-              return item.name || item.filename || item.id || JSON.stringify(item)
+              return (
+                item.name || item.filename || item.id || JSON.stringify(item)
+              )
             }
             return String(item)
           })

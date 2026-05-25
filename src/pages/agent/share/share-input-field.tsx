@@ -14,6 +14,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Upload } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { BeginQueryType } from '../constant'
+import { PersonDataMultiSelect } from '../components/persondata-multi-select'
 import { isRequiredShareInput, type ShareFormValue } from './utils'
 import type {
   AgentCanvasUploadResult,
@@ -25,6 +26,10 @@ interface ShareInputFieldProps {
   field: AgentShareInputField
   value: ShareFormValue
   disabled?: boolean
+  /** datav workflow id（分享页为 agent id），persondata 候选项来源 */
+  workflowId?: string
+  /** 分享页 beta token，persondata 走公开接口 */
+  betaToken?: string
   onChange: (key: string, value: ShareFormValue) => void
   onUpload: (key: string, files: FileList) => Promise<void>
 }
@@ -38,6 +43,8 @@ export function ShareInputField({
   field,
   value,
   disabled,
+  workflowId,
+  betaToken,
   onChange,
   onUpload,
 }: ShareInputFieldProps) {
@@ -95,6 +102,14 @@ export function ShareInputField({
             ))}
           </SelectContent>
         </Select>
+      ) : field.type === BeginQueryType.PersonData ? (
+        <PersonDataMultiSelect
+          workflowId={workflowId}
+          betaToken={betaToken}
+          value={Array.isArray(value) ? (value as string[]) : []}
+          disabled={disabled}
+          onChange={(next) => onChange(fieldKey, next)}
+        />
       ) : field.type === BeginQueryType.Boolean ? (
         <label className="gap-space-sm flex items-center text-sm text-text-primary">
           <Checkbox
