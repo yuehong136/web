@@ -35,6 +35,10 @@ export function useDocumentPageModals({
   const [editingParserDoc, setEditingParserDoc] = useState<Document | null>(
     null,
   )
+  const [singleFileMetadataModalOpen, setSingleFileMetadataModalOpen] =
+    useState(false)
+  const [singleFileMetadataDoc, setSingleFileMetadataDoc] =
+    useState<Document | null>(null)
   const { updateDocumentParser, isLoading: isUpdatingParser } =
     useUpdateDocumentParser()
 
@@ -138,6 +142,16 @@ export function useDocumentPageModals({
     setChunkMethodModalOpen(true)
   }, [])
 
+  const handleShowSingleFileMetadataSettings = useCallback((doc: Document) => {
+    setSingleFileMetadataDoc(doc)
+    setSingleFileMetadataModalOpen(true)
+  }, [])
+
+  const handleShowDocumentMetadata = useCallback((doc: Document) => {
+    setEditingDocMeta(doc)
+    setDocMetadataModalOpen(true)
+  }, [])
+
   const handleChunkMethodSubmit = useCallback(
     async (data: {
       docId: string
@@ -176,6 +190,10 @@ export function useDocumentPageModals({
     setChunkMethodModalOpen,
     editingParserDoc,
     setEditingParserDoc,
+    singleFileMetadataModalOpen,
+    setSingleFileMetadataModalOpen,
+    singleFileMetadataDoc,
+    setSingleFileMetadataDoc,
     isUpdatingParser,
     handleStartParse,
     handleBatchStartParse,
@@ -185,7 +203,9 @@ export function useDocumentPageModals({
     requestDelete,
     handleDelete,
     handleBulkDelete,
+    handleShowDocumentMetadata,
     handleShowChunkMethodModal,
+    handleShowSingleFileMetadataSettings,
     handleChunkMethodSubmit,
   }
 }

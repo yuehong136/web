@@ -554,15 +554,15 @@ export interface Conversation {
 
 // 元数据过滤条件中的单个条件
 export interface MetadataFilterCondition {
-  name: string                    // 元数据字段名
-  comparison_operator: string     // 比较操作符: is, not is, contains, not contains, start with, end with, empty, not empty, >, <, ≥, ≤
-  value?: string | number | boolean  // 值 (对于 empty/not empty 可选)
+  name: string // 元数据字段名
+  comparison_operator: string // 比较操作符: is, not is, contains, not contains, start with, end with, empty, not empty, >, <, ≥, ≤
+  value?: string | number | boolean // 值 (对于 empty/not empty 可选)
 }
 
 // 元数据过滤条件对象
 export interface MetadataCondition {
-  logic?: 'and' | 'or'            // 逻辑运算符，默认 and
-  conditions?: MetadataFilterCondition[]  // 条件列表
+  logic?: 'and' | 'or' // 逻辑运算符，默认 and
+  conditions?: MetadataFilterCondition[] // 条件列表
 }
 
 // ============================================================================
@@ -571,41 +571,45 @@ export interface MetadataCondition {
 
 // Metadata 字段定义 (知识库模板)
 export interface MetadataFieldDefinition {
-  key: string                      // 字段名 (仅允许英文字母和下划线)
-  description?: string             // 字段描述
-  enum?: string[]                  // 允许的值列表 (可选)
-  restrictDefinedValues?: boolean  // 是否限制为预定义值
+  key: string // 字段名 (仅允许英文字母和下划线)
+  description?: string // 字段描述
+  enum?: string[] // 允许的值列表 (可选)
+  restrictDefinedValues?: boolean // 是否限制为预定义值
 }
 
 // Metadata 汇总项 (聚合统计)
 export interface MetadataSummaryItem {
-  field: string                    // 字段名
+  field: string // 字段名
   type?: string
   values: Array<[string | number, number]>
 }
 
 // Metadata 汇总响应
 export interface MetadataSummaryResponse {
-  summary: Record<string, MetadataSummaryItem | Array<[string | number, number]>>
+  summary: Record<
+    string,
+    MetadataSummaryItem | Array<[string | number, number]>
+  >
   total_docs?: number
 }
 
 // Metadata 更新操作
 export interface MetadataUpdateOperation {
-  key: string                      // 字段名
-  match: string                    // 原始值 (用于匹配)
-  value: string                    // 新值
+  key: string // 字段名
+  match: string // 原始值 (用于匹配)
+  value: string // 新值
 }
 
 // Metadata 删除操作
 export interface MetadataDeleteOperation {
-  key: string                      // 字段名
-  value?: string                   // 具体值 (不提供则删除整个字段)
+  key: string // 字段名
+  value?: string // 具体值 (不提供则删除整个字段)
 }
 
 // Metadata 批量操作请求
 export interface MetadataBatchRequest {
   kb_id: string
+  doc_ids?: string[]
   updates?: MetadataUpdateOperation[]
   deletes?: MetadataDeleteOperation[]
 }
@@ -626,7 +630,7 @@ export interface DocumentMetadataSettingsRequest {
 // 文档 Metadata 更新请求 (更新 meta_fields)
 export interface DocumentMetadataUpdateRequest {
   doc_id: string
-  meta: string  // JSON 字符串格式的 Record<string, any>
+  meta: string // JSON 字符串格式的 Record<string, any>
 }
 
 // Metadata 表格数据 (UI 展示用)
@@ -639,13 +643,14 @@ export interface MetadataTableData {
 
 // Metadata 管理操作类型
 export const MetadataManageType = {
-  MANAGE: 1,           // 管理知识库级别 metadata 汇总
-  UPDATE_SINGLE: 2,    // 编辑单个文档 metadata
-  SETTING: 3,          // 知识库 metadata 模板设置
-  SINGLE_FILE_SETTING: 4,  // 单文件 metadata 设置
+  MANAGE: 1, // 管理知识库级别 metadata 汇总
+  UPDATE_SINGLE: 2, // 编辑单个文档 metadata
+  SETTING: 3, // 知识库 metadata 模板设置
+  SINGLE_FILE_SETTING: 4, // 单文件 metadata 设置
 } as const
 
-export type MetadataManageType = typeof MetadataManageType[keyof typeof MetadataManageType]
+export type MetadataManageType =
+  (typeof MetadataManageType)[keyof typeof MetadataManageType]
 
 export interface ChatCompletionRequest {
   message: string
@@ -657,7 +662,7 @@ export interface ChatCompletionRequest {
   kb_ids?: string[]
   system_prompt?: string
   tools?: string[]
-  metadata_condition?: MetadataCondition  // 元数据过滤条件
+  metadata_condition?: MetadataCondition // 元数据过滤条件
 }
 
 export interface ChatCompletionResponse {
@@ -746,7 +751,7 @@ export interface KnowledgeBase {
   embd_id: string
   nickname?: string
   tenant_avatar?: string | null
-  update_time: number  // 时间戳格式
+  update_time: number // 时间戳格式
 
   // 可选字段（用于兼容不同版本的API）
   created_by?: string
@@ -1136,7 +1141,13 @@ export interface AIAnalysisResponse {
 // ============================================================================
 
 // 模型类型枚举，对应后端的 LLMType
-export type LLMType = 'chat' | 'embedding' | 'speech2text' | 'image2text' | 'rerank' | 'tts'
+export type LLMType =
+  | 'chat'
+  | 'embedding'
+  | 'speech2text'
+  | 'image2text'
+  | 'rerank'
+  | 'tts'
 
 export interface LLMModel {
   id: string
@@ -1380,15 +1391,15 @@ export interface APIError {
 
 // 日志运行状态
 export const RunningStatus = {
-  UNSTART: '0',   // 待处理
-  RUNNING: '1',   // 运行中
-  CANCEL: '2',    // 已取消
-  DONE: '3',      // 成功
-  FAIL: '4',      // 失败
-  SCHEDULE: '5',  // 已调度
+  UNSTART: '0', // 待处理
+  RUNNING: '1', // 运行中
+  CANCEL: '2', // 已取消
+  DONE: '3', // 成功
+  FAIL: '4', // 失败
+  SCHEDULE: '5', // 已调度
 } as const
 
-export type RunningStatus = typeof RunningStatus[keyof typeof RunningStatus]
+export type RunningStatus = (typeof RunningStatus)[keyof typeof RunningStatus]
 
 // 日志运行状态显示名称映射
 export const RunningStatusMap: Record<RunningStatus, string> = {
@@ -1406,7 +1417,7 @@ export const LogTabType = {
   DATASET_LOGS: 'datasetLogs',
 } as const
 
-export type LogTabType = typeof LogTabType[keyof typeof LogTabType]
+export type LogTabType = (typeof LogTabType)[keyof typeof LogTabType]
 
 // 处理类型
 export const ProcessingType = {
@@ -1414,7 +1425,8 @@ export const ProcessingType = {
   RAPTOR: 'RAPTOR',
 } as const
 
-export type ProcessingType = typeof ProcessingType[keyof typeof ProcessingType]
+export type ProcessingType =
+  (typeof ProcessingType)[keyof typeof ProcessingType]
 
 // 处理类型显示名称映射
 export const ProcessingTypeMap: Record<ProcessingType, string> = {
@@ -1503,8 +1515,23 @@ export interface ILogDetailInfo {
 // ============================================================================
 
 export type SortDirection = 'asc' | 'desc'
-export type FilterOperator = 'eq' | 'ne' | 'gt' | 'lt' | 'gte' | 'lte' | 'in' | 'like' | 'between'
-export type FileType = 'document' | 'image' | 'audio' | 'video' | 'archive' | 'other'
+export type FilterOperator =
+  | 'eq'
+  | 'ne'
+  | 'gt'
+  | 'lt'
+  | 'gte'
+  | 'lte'
+  | 'in'
+  | 'like'
+  | 'between'
+export type FileType =
+  | 'document'
+  | 'image'
+  | 'audio'
+  | 'video'
+  | 'archive'
+  | 'other'
 export type ProcessingStatus = 'pending' | 'processing' | 'completed' | 'failed'
 export type Permission = 'read' | 'write' | 'delete' | 'admin'
 

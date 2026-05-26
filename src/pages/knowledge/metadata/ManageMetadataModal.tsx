@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Plus, Settings2, Database, Sparkles } from 'lucide-react'
 import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import type { MetadataFieldDefinition, MetadataManageType } from '@/types/api'
+import { MetadataManageType, type MetadataFieldDefinition } from '@/types/api'
 import { DeleteMetadataConfirm } from './components/delete-metadata-confirm'
 import { MetadataFieldTable } from './components/metadata-field-table'
 import { MetadataModalHeader } from './components/metadata-modal-header'
@@ -46,7 +46,7 @@ export const ManageMetadataModal: React.FC<ManageMetadataModalProps> = ({
 
   const { title, subtitle } = getModalConfig(mode, t)
   const headerIcon = editor.isSettingMode ? (
-    <Sparkles className="text-status-info h-5 w-5" />
+    <Sparkles className="h-5 w-5 text-status-info" />
   ) : (
     <Database className="h-5 w-5 text-text-secondary" />
   )
@@ -54,7 +54,8 @@ export const ManageMetadataModal: React.FC<ManageMetadataModalProps> = ({
     ? 'bg-status-info/10'
     : 'bg-surface-secondary'
 
-  const allowRemoveValue = editor.isManageMode
+  const allowRemoveValue =
+    editor.isManageMode || mode === MetadataManageType.UPDATE_SINGLE
   const editingFieldName = editor.fieldEditor.editingData?.field
   const editorExistingKeys = editor.existingKeys.filter(
     (key) => key !== editingFieldName,

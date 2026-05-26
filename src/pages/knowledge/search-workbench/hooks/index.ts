@@ -1,4 +1,7 @@
-export { useSearchParamsState } from './use-search-params'
+export {
+  createActiveMetaDataFilter,
+  useSearchParamsState,
+} from './use-search-params'
 export type { UseSearchParamsResult } from './use-search-params'
 
 export { useSearchExecution } from './use-search-execution'

@@ -48,12 +48,12 @@ export const knowledgeAPI = {
         page_size: pageSize.toString(),
         orderby: params?.orderby || 'update_time',
         desc: (params?.desc ?? true).toString(),
-        keywords: params?.keywords || ''
+        keywords: params?.keywords || '',
       })
-      
-      return apiClient.post(`/v1/kb/list?${queryParams.toString()}`, { 
+
+      return apiClient.post(`/v1/kb/list?${queryParams.toString()}`, {
         owner_ids: params?.owner_ids || [],
-        filter_params: params?.filter_params || {}
+        filter_params: params?.filter_params || {},
       })
     },
 
@@ -91,18 +91,18 @@ export const knowledgeAPI = {
     }): Promise<{
       chunks: Array<DocumentChunk & { score: number }>
       total: number
-    }> =>
-      apiClient.post('/v1/kb/search', data),
+    }> => apiClient.post('/v1/kb/search', data),
 
     // 获取知识库统计
-    getStats: (kbId: string): Promise<{
+    getStats: (
+      kbId: string,
+    ): Promise<{
       document_count: number
       chunk_count: number
       total_tokens: number
       storage_used: number
       last_updated: string
-    }> =>
-      apiClient.get(`/v1/kb/${kbId}/stats`),
+    }> => apiClient.get(`/v1/kb/${kbId}/stats`),
 
     // 重新索引知识库
     reindex: (kbId: string): Promise<{ task_id: string }> =>
@@ -110,7 +110,10 @@ export const knowledgeAPI = {
 
     // 导出知识库
     export: (kbId: string, format: 'json' | 'csv'): Promise<void> =>
-      apiClient.download(`/v1/kb/${kbId}/export?format=${format}`, `kb_${kbId}.${format}`),
+      apiClient.download(
+        `/v1/kb/${kbId}/export?format=${format}`,
+        `kb_${kbId}.${format}`,
+      ),
   },
 
   // 文档管理
@@ -125,14 +128,22 @@ export const knowledgeAPI = {
       desc?: boolean
       filter_params: DocumentFilter
     }): Promise<{ total: number; docs: Document[] }> => {
-      const { kb_id, keywords = '', page = 0, page_size = 0, orderby = 'create_time', desc = true, filter_params } = params
+      const {
+        kb_id,
+        keywords = '',
+        page = 0,
+        page_size = 0,
+        orderby = 'create_time',
+        desc = true,
+        filter_params,
+      } = params
       const queryParams = new URLSearchParams({
         kb_id,
         keywords: keywords,
         page: page.toString(),
         page_size: page_size.toString(),
         orderby,
-        desc: desc.toString()
+        desc: desc.toString(),
       })
       // 构建筛选参数，包含 metadata 筛选和无元数据过滤
       const filterBody: DocumentFilter = {
@@ -141,7 +152,10 @@ export const knowledgeAPI = {
         metadata: filter_params.metadata,
         return_empty_metadata: filter_params.return_empty_metadata,
       }
-      return apiClient.post(`/v1/document/list?${queryParams.toString()}`, filterBody)
+      return apiClient.post(
+        `/v1/document/list?${queryParams.toString()}`,
+        filterBody,
+      )
     },
 
     // 获取文档筛选选项（动态获取可用的筛选值）
@@ -154,26 +168,36 @@ export const knowledgeAPI = {
       apiClient.get(`/v1/document/get/${docId}`),
 
     // 上传文档
-    upload: (kbId: string, files: File[], options?: {
-      parser_id?: string
-      chunk_size?: number
-      chunk_overlap?: number
-      parser_config?: Record<string, any>
-    }): Promise<Array<{
-      id: string
-      name: string
-      size: number
-      type: string
-      thumbnail?: string
-      created_time: string
-      status: string
-    }>> => {
+    upload: (
+      kbId: string,
+      files: File[],
+      options?: {
+        parser_id?: string
+        chunk_size?: number
+        chunk_overlap?: number
+        parser_config?: Record<string, any>
+      },
+    ): Promise<
+      Array<{
+        id: string
+        name: string
+        size: number
+        type: string
+        thumbnail?: string
+        created_time: string
+        status: string
+      }>
+    > => {
       // kb_id作为查询参数，其他作为FormData
       const uploadData: Record<string, any> = {
         ...options,
       }
-      
-      return apiClient.uploadMultiple(`/v1/document/upload?kb_id=${kbId}`, files, uploadData)
+
+      return apiClient.uploadMultiple(
+        `/v1/document/upload?kb_id=${kbId}`,
+        files,
+        uploadData,
+      )
     },
 
     // 解析网页
@@ -185,22 +209,24 @@ export const knowledgeAPI = {
       doc_id: string
       parser_id: string
       parser_config?: Record<string, any>
-    }): Promise<void> =>
-      apiClient.post('/v1/document/change_parser', data),
+    }): Promise<void> => apiClient.post('/v1/document/change_parser', data),
 
     // 删除文档
     delete: (docIds: string[]): Promise<void> =>
       apiClient.post('/v1/document/rm', { doc_id: docIds }),
 
     // 重新解析文档
-    reparse: (docId: string, options?: {
-      parser_id?: string
-      chunk_size?: number
-      chunk_overlap?: number
-      parser_config?: Record<string, any>
-    }): Promise<{ task_id: string }> =>
+    reparse: (
+      docId: string,
+      options?: {
+        parser_id?: string
+        chunk_size?: number
+        chunk_overlap?: number
+        parser_config?: Record<string, any>
+      },
+    ): Promise<{ task_id: string }> =>
       apiClient.post(`/v1/document/${docId}/reparse`, options),
-    
+
     // 别名：parse -> 批量解析文档
     parse: (docIds: string[]): Promise<void> =>
       apiClient.post('/v1/document/run', { doc_ids: docIds }),
@@ -211,16 +237,19 @@ export const knowledgeAPI = {
 
     // 获取文档块
     getChunks: (
-      docId: string, 
-      params?: PaginationRequest
+      docId: string,
+      params?: PaginationRequest,
     ): Promise<PaginatedData<DocumentChunk>> =>
       apiClient.get(`/v1/document/${docId}/chunks`, { params }),
 
     // 更新文档块
-    updateChunk: (chunkId: string, data: {
-      content?: string
-      metadata?: Record<string, any>
-    }): Promise<DocumentChunk> =>
+    updateChunk: (
+      chunkId: string,
+      data: {
+        content?: string
+        metadata?: Record<string, any>
+      },
+    ): Promise<DocumentChunk> =>
       apiClient.post(`/v1/document/chunk/${chunkId}/update`, data),
 
     // 删除文档块
@@ -236,28 +265,39 @@ export const knowledgeAPI = {
       apiClient.download(`/v1/document/get/${docId}?action=download`, filename),
 
     // 获取文档解析状态
-    getParseStatus: (docId: string): Promise<{
+    getParseStatus: (
+      docId: string,
+    ): Promise<{
       status: 'pending' | 'processing' | 'completed' | 'failed'
       progress: number
       error?: string
       chunks_created: number
-    }> =>
-      apiClient.get(`/v1/document/${docId}/parse-status`),
+    }> => apiClient.get(`/v1/document/${docId}/parse-status`),
 
     // 批量操作文档
-    batch: (operation: 'delete' | 'reparse' | 'move', data: {
-      doc_ids: string[]
-      target_kb_id?: string
-      parser_config?: Record<string, any>
-    }): Promise<{ success_count: number; failed_count: number; errors?: any[] }> =>
-      apiClient.post('/v1/document/batch', { operation, ...data }),
+    batch: (
+      operation: 'delete' | 'reparse' | 'move',
+      data: {
+        doc_ids: string[]
+        target_kb_id?: string
+        parser_config?: Record<string, any>
+      },
+    ): Promise<{
+      success_count: number
+      failed_count: number
+      errors?: any[]
+    }> => apiClient.post('/v1/document/batch', { operation, ...data }),
 
     // 文档运行控制: 0=未开始/重置, 1=启动/重试, 2=取消当前解析任务
-    run: (docIds: string[], run: number, deleteHistory?: boolean): Promise<void> =>
-      apiClient.post('/v1/document/run', { 
-        doc_ids: docIds, 
-        run, 
-        delete: deleteHistory || false 
+    run: (
+      docIds: string[],
+      run: number,
+      deleteHistory?: boolean,
+    ): Promise<void> =>
+      apiClient.post('/v1/document/run', {
+        doc_ids: docIds,
+        run,
+        delete: deleteHistory || false,
       }),
 
     // 更新文档状态 (启用/禁用) - 新接口
@@ -266,12 +306,11 @@ export const knowledgeAPI = {
       status: number
       doc_id?: string // 向后兼容
     }): Promise<{
-      [docId: string]: { 
+      [docId: string]: {
         status?: string
-        error?: string 
+        error?: string
       }
-    }> =>
-      apiClient.post('/v1/document/change_status', params),
+    }> => apiClient.post('/v1/document/change_status', params),
 
     // 更新文档状态 (启用/禁用) - 旧接口，保持兼容
     updateStatus: (docIds: string[], status: '0' | '1'): Promise<void> =>
@@ -282,35 +321,38 @@ export const knowledgeAPI = {
       apiClient.post('/v1/document/rename', { doc_id: docId, name }),
 
     // 获取文档详细信息
-    getInfos: (docIds: string[]): Promise<Array<{
-      location: string
-      process_duration: number
-      update_date: string
-      meta_fields: Record<string, any>
-      parser_id: string
-      size: number
-      create_time: number
-      parser_config: Record<string, any>
-      auth: any
-      suffix: string
-      update_time: number
-      source_type: string
-      token_num: number
-      chunk_num: number
-      run: string
-      id: string
-      type: string
-      progress: number
-      status: string
-      thumbnail: string
-      created_by: string
-      progress_msg: string
-      create_date: string
-      kb_id: string
-      name: string
-      process_begin_at: string
-    }>> =>
-      apiClient.post('/v1/document/infos', docIds),
+    getInfos: (
+      docIds: string[],
+    ): Promise<
+      Array<{
+        location: string
+        process_duration: number
+        update_date: string
+        meta_fields: Record<string, any>
+        parser_id: string
+        size: number
+        create_time: number
+        parser_config: Record<string, any>
+        auth: any
+        suffix: string
+        update_time: number
+        source_type: string
+        token_num: number
+        chunk_num: number
+        run: string
+        id: string
+        type: string
+        progress: number
+        status: string
+        thumbnail: string
+        created_by: string
+        progress_msg: string
+        create_date: string
+        kb_id: string
+        name: string
+        process_begin_at: string
+      }>
+    > => apiClient.post('/v1/document/infos', docIds),
 
     // 获取文档分段列表
     listChunks: (params: {
@@ -360,8 +402,7 @@ export const knowledgeAPI = {
         create_time: number
         update_time: number
       }
-    }> =>
-      apiClient.post('/v1/chunk/list', params),
+    }> => apiClient.post('/v1/chunk/list', params),
 
     // 创建文档分段
     createChunk: (params: {
@@ -380,7 +421,9 @@ export const knowledgeAPI = {
       }),
 
     // 获取单个分段详情
-    getChunk: (chunkId: string): Promise<{
+    getChunk: (
+      chunkId: string,
+    ): Promise<{
       chunk_id: string
       content_with_weight: string
       doc_id: string
@@ -415,23 +458,20 @@ export const knowledgeAPI = {
     setDocumentMeta: (params: {
       doc_id: string
       meta: Record<string, any>
-    }): Promise<boolean> =>
-      apiClient.post('/v1/document/set_meta', params),
+    }): Promise<boolean> => apiClient.post('/v1/document/set_meta', params),
 
     // 批量切换文档分段状态
     switchChunks: (params: {
       doc_id: string
       chunk_ids: string[]
       available_int: number
-    }): Promise<boolean> =>
-      apiClient.post('/v1/chunk/switch', params),
+    }): Promise<boolean> => apiClient.post('/v1/chunk/switch', params),
 
     // 删除文档分段
     deleteChunks: (params: {
       doc_id: string
       chunk_ids: string[]
-    }): Promise<boolean> =>
-      apiClient.post('/v1/chunk/rm', params),
+    }): Promise<boolean> => apiClient.post('/v1/chunk/rm', params),
   },
 
   // 标签管理
@@ -441,16 +481,21 @@ export const knowledgeAPI = {
       apiClient.get('/v1/kb/tags'),
 
     // 创建标签
-    create: (data: { name: string; color?: string; description?: string }): Promise<void> =>
-      apiClient.post('/v1/kb/tags', data),
+    create: (data: {
+      name: string
+      color?: string
+      description?: string
+    }): Promise<void> => apiClient.post('/v1/kb/tags', data),
 
     // 更新标签
-    update: (tagName: string, data: { 
-      new_name?: string
-      color?: string
-      description?: string 
-    }): Promise<void> =>
-      apiClient.put(`/v1/kb/tags/${tagName}`, data),
+    update: (
+      tagName: string,
+      data: {
+        new_name?: string
+        color?: string
+        description?: string
+      },
+    ): Promise<void> => apiClient.put(`/v1/kb/tags/${tagName}`, data),
 
     // 删除标签
     delete: (tagName: string): Promise<void> =>
@@ -473,8 +518,9 @@ export const knowledgeAPI = {
       kb_ids?: string[]
       filters?: Record<string, any>
       pagination?: PaginationRequest
-    }): Promise<PaginatedData<DocumentChunk & { score: number; highlights: string[] }>> =>
-      apiClient.post('/v1/kb/search/fulltext', data),
+    }): Promise<
+      PaginatedData<DocumentChunk & { score: number; highlights: string[] }>
+    > => apiClient.post('/v1/kb/search/fulltext', data),
 
     // 向量搜索
     vector: (data: {
@@ -493,24 +539,33 @@ export const knowledgeAPI = {
       top_k?: number
       alpha?: number // 向量搜索权重
       filters?: Record<string, any>
-    }): Promise<Array<DocumentChunk & { score: number; search_type: 'vector' | 'fulltext' | 'hybrid' }>> =>
-      apiClient.post('/v1/kb/search/hybrid', data),
+    }): Promise<
+      Array<
+        DocumentChunk & {
+          score: number
+          search_type: 'vector' | 'fulltext' | 'hybrid'
+        }
+      >
+    > => apiClient.post('/v1/kb/search/hybrid', data),
 
     // 搜索建议
     suggestions: (query: string, limit?: number): Promise<string[]> =>
-      apiClient.get('/v1/kb/search/suggestions', { 
-        params: { query, limit } 
+      apiClient.get('/v1/kb/search/suggestions', {
+        params: { query, limit },
       }),
 
     // 搜索历史
-    history: (params?: PaginationRequest): Promise<PaginatedData<{
-      id: string
-      query: string
-      kb_ids: string[]
-      result_count: number
-      created_at: string
-    }>> =>
-      apiClient.get('/v1/kb/search/history', { params }),
+    history: (
+      params?: PaginationRequest,
+    ): Promise<
+      PaginatedData<{
+        id: string
+        query: string
+        kb_ids: string[]
+        result_count: number
+        created_at: string
+      }>
+    > => apiClient.get('/v1/kb/search/history', { params }),
 
     // 清除搜索历史
     clearHistory: (): Promise<void> =>
@@ -567,8 +622,7 @@ export const knowledgeAPI = {
         count: number
       }>
       labels: Record<string, any>
-    }> =>
-      apiClient.post('/v1/chunk/retrieval_test', data),
+    }> => apiClient.post('/v1/chunk/retrieval_test', data),
   },
 
   // 知识库日志管理
@@ -613,16 +667,25 @@ export const knowledgeAPI = {
       }>
       total: number
     }> => {
-      const { kb_id, page = 1, page_size = 10, keywords = '', operation_status } = params
+      const {
+        kb_id,
+        page = 1,
+        page_size = 10,
+        keywords = '',
+        operation_status,
+      } = params
       const queryParams = new URLSearchParams({
         kb_id,
         page: page.toString(),
         page_size: page_size.toString(),
         keywords,
       })
-      return apiClient.post(`/v1/kb/list_pipeline_logs?${queryParams.toString()}`, {
-        operation_status: operation_status || []
-      })
+      return apiClient.post(
+        `/v1/kb/list_pipeline_logs?${queryParams.toString()}`,
+        {
+          operation_status: operation_status || [],
+        },
+      )
     },
 
     // 获取数据集日志列表
@@ -651,52 +714,74 @@ export const knowledgeAPI = {
       }>
       total: number
     }> => {
-      const { kb_id, page = 1, page_size = 10, keywords = '', operation_status } = params
+      const {
+        kb_id,
+        page = 1,
+        page_size = 10,
+        keywords = '',
+        operation_status,
+      } = params
       const queryParams = new URLSearchParams({
         kb_id,
         page: page.toString(),
         page_size: page_size.toString(),
         keywords,
       })
-      return apiClient.post(`/v1/kb/list_pipeline_dataset_logs?${queryParams.toString()}`, {
-        operation_status: operation_status || []
-      })
+      return apiClient.post(
+        `/v1/kb/list_pipeline_dataset_logs?${queryParams.toString()}`,
+        {
+          operation_status: operation_status || [],
+        },
+      )
     },
 
     // 获取知识库基础统计信息
-    getBasicInfo: (kbId: string): Promise<{
+    getBasicInfo: (
+      kbId: string,
+    ): Promise<{
       cancelled: number
       failed: number
       finished: number
       processing: number
       downloaded: number
-    }> =>
-      apiClient.get(`/v1/kb/basic_info?kb_id=${kbId}`),
+    }> => apiClient.get(`/v1/kb/basic_info?kb_id=${kbId}`),
   },
 
   // Metadata 管理
   metadata: {
     // 获取知识库 metadata 汇总 (聚合所有文档的 metadata)
-    getSummary: (kbId: string): Promise<MetadataSummaryResponse> =>
-      apiClient.post('/v1/document/metadata/summary', { kb_id: kbId }),
+    getSummary: (
+      kbId: string,
+      docIds?: string[],
+    ): Promise<MetadataSummaryResponse> =>
+      apiClient.post('/v1/document/metadata/summary', {
+        kb_id: kbId,
+        ...(docIds?.length ? { doc_ids: docIds } : {}),
+      }),
 
     // 批量更新/删除 metadata 值
-    batchUpdate: (data: MetadataBatchRequest): Promise<{
+    batchUpdate: (
+      data: MetadataBatchRequest,
+    ): Promise<{
       updated_count: number
       deleted_count: number
-    }> =>
-      apiClient.post('/v1/document/metadata/update', data),
+    }> => apiClient.post('/v1/document/metadata/update', data),
 
     // 更新知识库 metadata 模板设置
     updateKBSettings: (data: KBMetadataSettingsRequest): Promise<void> =>
       apiClient.post('/v1/kb/update_metadata_setting', data),
 
     // 更新单文档 metadata 模板设置
-    updateDocumentSettings: (data: DocumentMetadataSettingsRequest): Promise<void> =>
+    updateDocumentSettings: (
+      data: DocumentMetadataSettingsRequest,
+    ): Promise<void> =>
       apiClient.post('/v1/document/update_metadata_setting', data),
 
     // 更新单文档 metadata 值 (更新 meta_fields)
-    updateDocumentMeta: (docId: string, meta: Record<string, any>): Promise<void> =>
+    updateDocumentMeta: (
+      docId: string,
+      meta: Record<string, any>,
+    ): Promise<void> =>
       apiClient.post('/v1/document/set_meta', {
         doc_id: docId,
         meta: JSON.stringify(meta),
@@ -705,42 +790,56 @@ export const knowledgeAPI = {
 
   // GraphRAG / RAPTOR 生成任务
   generate: {
-    runGraphRag: (payload: { kb_id: string; doc_ids?: string[] }): Promise<{ graphrag_task_id: string }> =>
+    runGraphRag: (payload: {
+      kb_id: string
+      doc_ids?: string[]
+    }): Promise<{ graphrag_task_id: string }> =>
       apiClient.post('/v1/kb/run_graphrag', payload),
 
-    traceGraphRag: (kbId: string): Promise<{
-      id: string
-      progress: number
-      progress_msg: string
-      begin_at: string
-      create_date: string
-      update_date: string
-      process_duration: number
-      task_type: string
-    } | Record<string, never>> =>
-      apiClient.get(`/v1/kb/trace_graphrag?kb_id=${kbId}`),
+    traceGraphRag: (
+      kbId: string,
+    ): Promise<
+      | {
+          id: string
+          progress: number
+          progress_msg: string
+          begin_at: string
+          create_date: string
+          update_date: string
+          process_duration: number
+          task_type: string
+        }
+      | Record<string, never>
+    > => apiClient.get(`/v1/kb/trace_graphrag?kb_id=${kbId}`),
 
-    runRaptor: (payload: { kb_id: string; doc_ids?: string[] }): Promise<{ raptor_task_id: string }> =>
+    runRaptor: (payload: {
+      kb_id: string
+      doc_ids?: string[]
+    }): Promise<{ raptor_task_id: string }> =>
       apiClient.post('/v1/kb/run_raptor', payload),
 
-    traceRaptor: (kbId: string): Promise<{
-      id: string
-      progress: number
-      progress_msg: string
-      begin_at: string
-      create_date: string
-      update_date: string
-      process_duration: number
-      task_type: string
-    } | Record<string, never>> =>
-      apiClient.get(`/v1/kb/trace_raptor?kb_id=${kbId}`),
+    traceRaptor: (
+      kbId: string,
+    ): Promise<
+      | {
+          id: string
+          progress: number
+          progress_msg: string
+          begin_at: string
+          create_date: string
+          update_date: string
+          process_duration: number
+          task_type: string
+        }
+      | Record<string, never>
+    > => apiClient.get(`/v1/kb/trace_raptor?kb_id=${kbId}`),
 
     unbindPipelineTask: (params: {
       kb_id: string
       pipeline_task_type: 'GraphRAG' | 'RAPTOR'
     }): Promise<boolean> =>
       apiClient.delete(
-        `/v1/kb/unbind_task?kb_id=${params.kb_id}&pipeline_task_type=${params.pipeline_task_type}`
+        `/v1/kb/unbind_task?kb_id=${params.kb_id}&pipeline_task_type=${params.pipeline_task_type}`,
       ),
   },
 }

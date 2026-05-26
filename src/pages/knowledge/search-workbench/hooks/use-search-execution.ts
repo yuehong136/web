@@ -9,6 +9,7 @@ import type {
   RetrievalMetaDataFilter,
   RetrievalResult,
   RetrievalResultView,
+  SearchConfigState,
   SearchMode,
   SearchParams,
 } from '../types'
@@ -25,6 +26,15 @@ interface SearchOverride {
   page?: number
   pageSize?: number
   selectedDocIds?: string[]
+  config?: Partial<
+    Pick<
+      SearchConfigState,
+      | 'searchParams'
+      | 'searchMode'
+      | 'selectedLanguages'
+      | 'activeMetaDataFilter'
+    >
+  >
 }
 
 export interface UseSearchExecutionResult {
@@ -49,6 +59,7 @@ export interface UseSearchExecutionResult {
   handleClearDocFilter: () => void
   handleSelectAllDocs: () => void
   toggleDocFilter: () => void
+  commitConfigPageSize: (size: number) => void
 }
 
 export const useSearchExecution = ({
@@ -103,6 +114,14 @@ export const useSearchExecution = ({
       const effectivePage = override?.page ?? latest.currentPage
       const effectivePageSize = override?.pageSize ?? latest.pageSize
       const effectiveDocIds = override?.selectedDocIds ?? latest.selectedDocIds
+      const effectiveSearchParams =
+        override?.config?.searchParams ?? latest.searchParams
+      const effectiveSearchMode =
+        override?.config?.searchMode ?? latest.searchMode
+      const effectiveSelectedLanguages =
+        override?.config?.selectedLanguages ?? latest.selectedLanguages
+      const effectiveMetaDataFilter =
+        override?.config?.activeMetaDataFilter ?? latest.activeMetaDataFilter
 
       const myRequestId = ++requestIdRef.current
       setIsSearching(true)
@@ -110,25 +129,28 @@ export const useSearchExecution = ({
       const searchData = {
         kb_ids: [kbId],
         question: trimmedQuery,
-        similarity_threshold: latest.searchParams.similarity_threshold,
-        vector_similarity_weight: latest.searchParams.vector_similarity_weight,
-        use_kg: latest.searchParams.use_kg,
-        top_k: latest.searchParams.top_k,
-        rerank_id: latest.searchParams.rerank_id,
-        highlight: latest.searchParams.highlight,
-        keyword: latest.searchParams.keyword,
+        similarity_threshold: effectiveSearchParams.similarity_threshold,
+        vector_similarity_weight:
+          effectiveSearchParams.vector_similarity_weight,
+        use_kg: effectiveSearchParams.use_kg,
+        top_k: effectiveSearchParams.top_k,
+        rerank_id: effectiveSearchParams.rerank_id,
+        highlight: effectiveSearchParams.highlight,
+        keyword: effectiveSearchParams.keyword,
         page: effectivePage,
         size: effectivePageSize,
         doc_ids: effectiveDocIds.length > 0 ? effectiveDocIds : null,
         cross_languages:
-          latest.selectedLanguages.length > 0 ? latest.selectedLanguages : null,
-        meta_data_filter: latest.activeMetaDataFilter,
+          effectiveSelectedLanguages.length > 0
+            ? effectiveSelectedLanguages
+            : null,
+        meta_data_filter: effectiveMetaDataFilter,
         search_mode:
-          latest.searchMode.type !== 'fusion'
-            ? latest.searchMode
+          effectiveSearchMode.type !== 'fusion'
+            ? effectiveSearchMode
             : {
                 type: 'fusion' as const,
-                weights: latest.searchMode.weights || FUSION_DEFAULT_WEIGHTS,
+                weights: effectiveSearchMode.weights || FUSION_DEFAULT_WEIGHTS,
               },
       }
 
@@ -212,6 +234,11 @@ export const useSearchExecution = ({
     setShowDocFilter((open) => !open)
   }, [])
 
+  const commitConfigPageSize = React.useCallback((size: number) => {
+    setPageSize(size)
+    setCurrentPage(1)
+  }, [])
+
   React.useEffect(() => {
     if (docAggs.length > 0 && !showDocFilter && hasSearched) {
       setShowDocFilter(true)
@@ -250,5 +277,6 @@ export const useSearchExecution = ({
     handleClearDocFilter,
     handleSelectAllDocs,
     toggleDocFilter,
+    commitConfigPageSize,
   }
 }

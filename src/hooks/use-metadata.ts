@@ -44,7 +44,7 @@ function normalizeSummaryValues(values: MetadataSummaryFieldValues): string[] {
 }
 
 export function summaryToTableData(
-  summary: Record<string, MetadataSummaryFieldValues>
+  summary: Record<string, MetadataSummaryFieldValues>,
 ): MetadataTableData[] {
   return Object.entries(summary).map(([field, values]) => ({
     field,
@@ -57,7 +57,7 @@ export function summaryToTableData(
  * 将表格数据转换为 JSON 格式 (用于文档 meta_fields)
  */
 export function tableDataToJSON(
-  data: MetadataTableData[]
+  data: MetadataTableData[],
 ): Record<string, string[]> {
   return data.reduce<Record<string, string[]>>((acc, item) => {
     acc[item.field] = item.values
@@ -69,7 +69,7 @@ export function tableDataToJSON(
  * 将表格数据转换为 Metadata 设置格式 (用于 KB/文档模板)
  */
 export function tableDataToSettings(
-  data: MetadataTableData[]
+  data: MetadataTableData[],
 ): MetadataFieldDefinition[] {
   return data.map((item) => ({
     key: item.field,
@@ -83,7 +83,7 @@ export function tableDataToSettings(
  * 将 Metadata 设置转换为表格数据格式
  */
 export function settingsToTableData(
-  settings: MetadataFieldDefinition[]
+  settings: MetadataFieldDefinition[],
 ): MetadataTableData[] {
   if (!Array.isArray(settings)) return []
   return settings.map((item) => ({
@@ -98,7 +98,7 @@ export function settingsToTableData(
  * 将 JSON 格式的 meta_fields 转换为表格数据
  */
 export function jsonToTableData(
-  data: Record<string, string | string[]>
+  data: Record<string, string | string[]>,
 ): MetadataTableData[] {
   return Object.entries(data).map(([field, value]) => {
     let values: string[] = []
@@ -124,10 +124,14 @@ export function jsonToTableData(
 /**
  * 获取知识库 Metadata 汇总
  */
-export const useMetadataSummary = (kbId: string, enabled: boolean = true) => {
+export const useMetadataSummary = (
+  kbId: string,
+  enabled: boolean = true,
+  docIds?: string[],
+) => {
   return useQuery({
-    queryKey: queryKeys.metadata.summary(kbId),
-    queryFn: () => knowledgeAPI.metadata.getSummary(kbId),
+    queryKey: queryKeys.metadata.summary(kbId, docIds),
+    queryFn: () => knowledgeAPI.metadata.getSummary(kbId, docIds),
     enabled: !!kbId && enabled,
   })
 }
@@ -141,11 +145,9 @@ export const useBatchUpdateMetadata = () => {
   return useMutation({
     mutationFn: (data: MetadataBatchRequest) =>
       knowledgeAPI.metadata.batchUpdate(data),
-    onSuccess: (result, variables) => {
+    onSuccess: (result) => {
       // 使 metadata summary 缓存失效
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.metadata.summary(variables.kb_id),
-      })
+      queryClient.invalidateQueries({ queryKey: queryKeys.metadata.all })
       // 使文档列表缓存失效
       invalidateQueries.documents()
 

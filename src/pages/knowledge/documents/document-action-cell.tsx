@@ -31,6 +31,12 @@ export const DocumentActionCell: React.FC<DocumentActionCellProps> = ({
 }) => {
   const { t } = useTranslation()
   const isRunning = document.run === TaskStatus.RUNNING
+  const parseLabel = isRunning
+    ? t('knowledge.documents.actions.stopTask')
+    : t('knowledge.documents.actions.startParse')
+  const downloadLabel = canDownload
+    ? t('knowledge.documents.actions.download')
+    : t('knowledge.documents.actions.noDownloadPermission')
 
   const handleDownloadClick = useCallback(() => {
     if (!canDownload) {
@@ -42,17 +48,12 @@ export const DocumentActionCell: React.FC<DocumentActionCellProps> = ({
 
   return (
     <div className="flex items-center justify-end space-x-2">
-      <Tooltip
-        content={
-          isRunning
-            ? t('knowledge.documents.actions.stopTask')
-            : t('knowledge.documents.actions.startParse')
-        }
-      >
+      <Tooltip content={parseLabel}>
         <Button
           variant="ghost"
           size="icon-sm"
           onClick={isRunning ? onStopParse : onStartParse}
+          aria-label={parseLabel}
         >
           {isRunning ? (
             <Square className="h-4 w-4" />
@@ -62,22 +63,22 @@ export const DocumentActionCell: React.FC<DocumentActionCellProps> = ({
         </Button>
       </Tooltip>
       <Tooltip content={t('knowledge.documents.actions.rename')}>
-        <Button variant="ghost" size="icon-sm" onClick={onRename}>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          onClick={onRename}
+          aria-label={t('knowledge.documents.actions.rename')}
+        >
           <Edit2 className="h-4 w-4" />
         </Button>
       </Tooltip>
-      <Tooltip
-        content={
-          canDownload
-            ? t('knowledge.documents.actions.download')
-            : t('knowledge.documents.actions.noDownloadPermission')
-        }
-      >
+      <Tooltip content={downloadLabel}>
         <Button
           variant="ghost"
           size="icon-sm"
           disabled={!canDownload}
           onClick={handleDownloadClick}
+          aria-label={downloadLabel}
         >
           <Download className="h-4 w-4" />
         </Button>
@@ -88,6 +89,7 @@ export const DocumentActionCell: React.FC<DocumentActionCellProps> = ({
           size="icon-sm"
           onClick={onDelete}
           className="text-text-error"
+          aria-label={t('knowledge.documents.actions.delete')}
         >
           <Trash2 className="h-4 w-4" />
         </Button>

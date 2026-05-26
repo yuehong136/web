@@ -69,6 +69,8 @@ export function useMetadataEditor(
 
   const isSettingMode = checkSettingMode(mode)
   const isManageMode = mode === MetadataManageType.MANAGE
+  const isUpdateSingleMode = mode === MetadataManageType.UPDATE_SINGLE
+  const isValueManageMode = isManageMode || isUpdateSingleMode
   const isSingleFileSettingMode =
     mode === MetadataManageType.SINGLE_FILE_SETTING
 
@@ -85,7 +87,8 @@ export function useMetadataEditor(
 
   const { data: summaryData, isLoading } = useMetadataSummary(
     kbId,
-    isManageMode && open,
+    isValueManageMode && open,
+    isUpdateSingleMode && documentId ? [documentId] : undefined,
   )
 
   const batchUpdateMutation = useBatchUpdateMetadata()
@@ -96,10 +99,10 @@ export function useMetadataEditor(
     if (!open) return
     if (isSettingMode) {
       setTableData(settingsToTableData(initialSettings))
-    } else if (isManageMode && summaryData?.summary) {
+    } else if (isValueManageMode && summaryData?.summary) {
       setTableData(summaryToTableData(summaryData.summary))
     }
-  }, [open, isSettingMode, isManageMode, initialSettings, summaryData])
+  }, [open, isSettingMode, isValueManageMode, initialSettings, summaryData])
 
   useEffect(() => {
     if (open) return
@@ -140,14 +143,14 @@ export function useMetadataEditor(
         item.field,
         deleteTextConfig.fieldWarn,
         () => {
-          if (isManageMode) {
+          if (isValueManageMode) {
             setPendingDeletes((prev) => [...prev, { key: item.field }])
           }
           setTableData((prev) => prev.filter((_, i) => i !== index))
         },
       )
     },
-    [deleteConfirm, deleteTextConfig, isManageMode, tableData],
+    [deleteConfirm, deleteTextConfig, isValueManageMode, tableData],
   )
 
   const removeValue = useCallback(
@@ -159,7 +162,7 @@ export function useMetadataEditor(
         value,
         deleteTextConfig.valueWarn,
         () => {
-          if (isManageMode) {
+          if (isValueManageMode) {
             setPendingDeletes((prev) => [...prev, { key: item.field, value }])
           }
           setTableData((prev) =>
@@ -172,7 +175,7 @@ export function useMetadataEditor(
         },
       )
     },
-    [deleteConfirm, deleteTextConfig, isManageMode, tableData],
+    [deleteConfirm, deleteTextConfig, isValueManageMode, tableData],
   )
 
   const saveField = useCallback(
@@ -203,10 +206,12 @@ export function useMetadataEditor(
 
   const save = useCallback(async () => {
     try {
-      if (isManageMode) {
+      if (isValueManageMode) {
         if (pendingDeletes.length > 0 || pendingUpdates.length > 0) {
           await batchUpdateMutation.mutateAsync({
             kb_id: kbId,
+            doc_ids:
+              isUpdateSingleMode && documentId ? [documentId] : undefined,
             deletes: pendingDeletes,
             updates: pendingUpdates,
           })
@@ -237,9 +242,10 @@ export function useMetadataEditor(
   }, [
     batchUpdateMutation,
     documentId,
-    isManageMode,
     isSettingMode,
     isSingleFileSettingMode,
+    isUpdateSingleMode,
+    isValueManageMode,
     kbId,
     onClose,
     onSuccess,

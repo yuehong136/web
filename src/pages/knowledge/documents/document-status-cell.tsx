@@ -6,7 +6,7 @@ import React from 'react'
 import { useTranslation } from 'react-i18next'
 import { X, CheckCircle, XCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { Tooltip } from '@/components/ui'
+import { Button, Tooltip } from '@/components/ui'
 import { Switch } from '@/components/ui/switch'
 import type { Document } from '@/types/api'
 import { TaskStatus, TaskStatusConfig } from './constants'
@@ -61,6 +61,7 @@ export const DocumentStatusCell: React.FC<DocumentStatusCellProps> = ({
           <button
             onClick={handleClick}
             className="h-2 w-2 cursor-pointer rounded-full bg-components-task-status-running-dot transition-all hover:scale-150"
+            aria-label={t('knowledge.documents.actions.viewDetail')}
           />
         </Tooltip>
       </div>
@@ -113,6 +114,7 @@ export const DocumentStatusCell: React.FC<DocumentStatusCellProps> = ({
             'h-2 w-2 cursor-pointer rounded-full transition-all hover:scale-150',
             statusConfig.dotClass,
           )}
+          aria-label={t('knowledge.documents.actions.viewDetail')}
         />
       </Tooltip>
     </div>
@@ -126,13 +128,12 @@ export const DocumentStatusCell: React.FC<DocumentStatusCellProps> = ({
 interface DocumentMetadataCellProps {
   document: Document
   hasMetadataEnabled?: boolean
-  onClickReparse?: () => void
+  onEditMetadata?: () => void
 }
 
 export const DocumentMetadataCell: React.FC<DocumentMetadataCellProps> = ({
   document,
-  hasMetadataEnabled = false,
-  onClickReparse,
+  onEditMetadata,
 }) => {
   const { t } = useTranslation()
   const hasMetadata =
@@ -170,32 +171,34 @@ export const DocumentMetadataCell: React.FC<DocumentMetadataCellProps> = ({
           </div>
         }
       >
-        <div className="flex cursor-help items-center gap-1">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-auto gap-1 px-1.5 py-1"
+          onClick={onEditMetadata}
+          aria-label={t('knowledge.metadata.editor.editMetadata')}
+        >
           <div className="h-2 w-2 rounded-full bg-status-success" />
           <span className="text-xs text-text-success">{metadataCount}</span>
-        </div>
+        </Button>
       </Tooltip>
     )
   }
 
-  // 无元数据时显示快捷操作
   return (
-    <Tooltip
-      content={
-        hasMetadataEnabled
-          ? t('knowledge.documents.metadataCell.reparseTip')
-          : t('knowledge.documents.metadataCell.notConfigured')
-      }
-    >
-      <div
-        className={`flex items-center gap-1 ${hasMetadataEnabled ? 'cursor-pointer hover:opacity-80' : 'cursor-default'}`}
-        onClick={hasMetadataEnabled ? onClickReparse : undefined}
+    <Tooltip content={t('knowledge.metadata.editor.editMetadata')}>
+      <Button
+        variant="ghost"
+        size="sm"
+        className="h-auto gap-1 px-1.5 py-1"
+        onClick={onEditMetadata}
+        aria-label={t('knowledge.metadata.editor.editMetadata')}
       >
         <div className="h-2 w-2 rounded-full bg-status-warning" />
         <span className="text-xs text-text-tertiary">
           {t('knowledge.documents.metadataCell.none')}
         </span>
-      </div>
+      </Button>
     </Tooltip>
   )
 }
@@ -224,7 +227,16 @@ export const DocumentEnableSwitch: React.FC<DocumentEnableSwitchProps> = ({
           : t('knowledge.documents.actions.enableDocument')
       }
     >
-      <Switch size="sm" checked={isEnabled} onCheckedChange={onToggle} />
+      <Switch
+        size="sm"
+        checked={isEnabled}
+        onCheckedChange={onToggle}
+        aria-label={
+          isEnabled
+            ? t('knowledge.documents.actions.disableDocument')
+            : t('knowledge.documents.actions.enableDocument')
+        }
+      />
     </Tooltip>
   )
 }

@@ -44,7 +44,6 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { GraphRagFormFields } from '@/components/forms/GraphRagFormFields'
 import { RaptorFormFields } from '@/components/forms/RaptorFormFields'
-import { AutoMetadataFormField } from '@/components/forms/KnowledgeFormFields'
 import { GeneralForm } from './settings/GeneralForm'
 import { ChunkMethodForm } from './settings/ChunkMethodForm'
 import { PipelineSelect, type PipelineOption } from './settings/PipelineSelect'
@@ -521,9 +520,10 @@ const KnowledgeSettingsPage: React.FC = () => {
 
                       {selectedParserId ? (
                         <div className="space-y-space-md pt-space-md border-t border-border-subtle">
-                          <ChunkMethodForm />
-                          <AutoMetadataFormField
-                            onSettingsClick={() => setMetadataModalOpen(true)}
+                          <ChunkMethodForm
+                            onMetadataSettingsClick={() =>
+                              setMetadataModalOpen(true)
+                            }
                             metadataCount={
                               currentKnowledgeBase?.metadata_settings?.length ??
                               0

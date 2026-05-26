@@ -49,11 +49,15 @@ export const ParserMethodCell: React.FC<ParserMethodCellProps> = ({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <div className="hover:shadow-elevation-low inline-flex cursor-pointer items-center rounded-sm px-2 py-1 transition-colors hover:bg-state-hover">
+        <button
+          type="button"
+          className="hover:shadow-elevation-low inline-flex cursor-pointer items-center rounded-sm px-2 py-1 transition-colors hover:bg-state-hover"
+          aria-label={t('knowledge.documents.configureParser')}
+        >
           <span className="max-w-[80px] truncate text-sm text-text-secondary">
             {parserLabel}
           </span>
-        </div>
+        </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="left">
         <DropdownMenuItem onClick={() => onShowChunkMethodModal(document)}>

@@ -33,6 +33,55 @@ export interface UseSearchParamsResult {
   activeConfigBadges: string[]
 }
 
+export function createActiveMetaDataFilter(options: {
+  metadataMode: MetadataFilterMode
+  metadataCondition: MetadataCondition
+  metadataSemiAutoFields: MetadataSemiAutoField[]
+}): RetrievalMetaDataFilter | undefined {
+  const { metadataMode, metadataCondition, metadataSemiAutoFields } = options
+
+  if (metadataMode === 'disabled') return undefined
+
+  if (metadataMode === 'auto') {
+    return { method: 'auto' }
+  }
+
+  if (metadataMode === 'semi_auto') {
+    const semiAuto = metadataSemiAutoFields
+      .filter((item) => item.key)
+      .map((item) => (item.op ? { key: item.key, op: item.op } : item.key))
+
+    if (semiAuto.length === 0) return undefined
+
+    return {
+      method: 'semi_auto',
+      semi_auto: semiAuto,
+    }
+  }
+
+  const manual = (metadataCondition.conditions || [])
+    .map((condition) => ({
+      key: condition.name?.trim() || '',
+      op: condition.comparison_operator || 'is',
+      value: String(condition.value ?? '').trim(),
+    }))
+    .filter(
+      (condition) =>
+        condition.key &&
+        (condition.op === 'empty' ||
+          condition.op === 'not empty' ||
+          condition.value),
+    )
+
+  if (manual.length === 0) return undefined
+
+  return {
+    method: 'manual',
+    logic: metadataCondition.logic || 'and',
+    manual,
+  }
+}
+
 export const useSearchParamsState = (): UseSearchParamsResult => {
   const { t } = useTranslation()
 
@@ -56,48 +105,15 @@ export const useSearchParamsState = (): UseSearchParamsResult => {
 
   const activeMetaDataFilter = React.useMemo<
     RetrievalMetaDataFilter | undefined
-  >(() => {
-    if (metadataMode === 'disabled') return undefined
-
-    if (metadataMode === 'auto') {
-      return { method: 'auto' }
-    }
-
-    if (metadataMode === 'semi_auto') {
-      const semiAuto = metadataSemiAutoFields
-        .filter((item) => item.key)
-        .map((item) => (item.op ? { key: item.key, op: item.op } : item.key))
-
-      if (semiAuto.length === 0) return undefined
-
-      return {
-        method: 'semi_auto',
-        semi_auto: semiAuto,
-      }
-    }
-
-    const manual = (metadataCondition.conditions || [])
-      .map((condition) => ({
-        key: condition.name?.trim() || '',
-        op: condition.comparison_operator || 'is',
-        value: String(condition.value ?? '').trim(),
-      }))
-      .filter(
-        (condition) =>
-          condition.key &&
-          (condition.op === 'empty' ||
-            condition.op === 'not empty' ||
-            condition.value),
-      )
-
-    if (manual.length === 0) return undefined
-
-    return {
-      method: 'manual',
-      logic: metadataCondition.logic || 'and',
-      manual,
-    }
-  }, [metadataCondition, metadataMode, metadataSemiAutoFields])
+  >(
+    () =>
+      createActiveMetaDataFilter({
+        metadataMode,
+        metadataCondition,
+        metadataSemiAutoFields,
+      }),
+    [metadataCondition, metadataMode, metadataSemiAutoFields],
+  )
 
   const activeConfigBadges = React.useMemo(() => {
     const badges = [

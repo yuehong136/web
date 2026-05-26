@@ -61,6 +61,7 @@ interface UseDocumentTableColumnsProps {
   onRename: (doc: Document) => void
   onDownload: (doc: Document) => void
   onDelete: (doc: Document) => void
+  onEditMetadata: (doc: Document) => void
   onShowLog?: (doc: Document) => void
   onShowChunkMethodModal?: (doc: Document) => void
 }
@@ -77,6 +78,7 @@ export function useDocumentTableColumns({
   onRename,
   onDownload,
   onDelete,
+  onEditMetadata,
   onShowLog,
   onShowChunkMethodModal,
 }: UseDocumentTableColumnsProps): Column<Document>[] {
@@ -232,7 +234,7 @@ export function useDocumentTableColumns({
           <DocumentMetadataCell
             document={record}
             hasMetadataEnabled={hasMetadataEnabled}
-            onClickReparse={() => onStartParse(record)}
+            onEditMetadata={() => onEditMetadata(record)}
           />
         ),
       },
@@ -348,6 +350,7 @@ export function useDocumentTableColumns({
       onRename,
       onDownload,
       onDelete,
+      onEditMetadata,
       onShowLog,
       onShowChunkMethodModal,
       navigate,

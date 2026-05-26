@@ -310,8 +310,10 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
       graph.on('node:drag', hideTooltip)
       graph.on('canvas:click', hideTooltip)
 
-      graph.on('canvas:click', () => {
+      graph.on('canvas:click', (event: IElementEvent) => {
         if (graph.destroyed || graphRef.current !== graph) return
+        const targetId = event.target?.id
+        if (targetId) return
         onCanvasClick()
       })
 

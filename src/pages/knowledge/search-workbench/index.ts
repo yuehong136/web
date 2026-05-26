@@ -7,12 +7,14 @@ export type {
   RetrievalDocAgg,
   RetrievalResult,
   RetrievalResultView,
+  SearchConfigState,
   SearchMode,
   SearchParams,
 } from './types'
 
 export {
   useSearchParamsState,
+  createActiveMetaDataFilter,
   useSearchExecution,
   useFetchRerankLLMs,
   useResultPreview,

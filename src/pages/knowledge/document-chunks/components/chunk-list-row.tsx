@@ -85,6 +85,9 @@ export const ChunkListRow = ({
           >
             <Checkbox
               checked={isSelected}
+              aria-label={t('knowledge.chunks.list.selectChunk', {
+                no: sliceNo,
+              })}
               onCheckedChange={(checked) =>
                 onCheckboxChange(chunk.chunk_id, !!checked)
               }
@@ -145,6 +148,7 @@ export const ChunkListRow = ({
                 event.stopPropagation()
                 onEditChunk(chunk)
               }}
+              aria-label={t('knowledge.chunks.list.editChunk')}
             >
               <Edit2 className="h-4 w-4 text-text-accent" />
             </Button>
@@ -157,6 +161,7 @@ export const ChunkListRow = ({
                 event.stopPropagation()
                 onDeleteChunk(chunk.chunk_id)
               }}
+              aria-label={t('knowledge.chunks.list.deleteChunk')}
             >
               <Trash2 className="h-4 w-4 text-text-error" />
             </Button>
@@ -166,13 +171,24 @@ export const ChunkListRow = ({
 
       <div className="flex items-stretch gap-3">
         {chunk.img_id && (
-          <div
-            className="group/thumb relative flex-shrink-0 cursor-pointer self-stretch"
+          <button
+            type="button"
+            aria-label={t('knowledge.chunks.list.previewImage')}
+            className="group/thumb relative flex-shrink-0 cursor-pointer self-stretch border-0 bg-transparent p-0 text-left"
             onClick={(event) => {
               event.stopPropagation()
               onPreviewImage(
                 `${API_BASE_URL}/${API_VERSION}/document/image/${chunk.img_id}`,
               )
+            }}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault()
+                event.stopPropagation()
+                onPreviewImage(
+                  `${API_BASE_URL}/${API_VERSION}/document/image/${chunk.img_id}`,
+                )
+              }
             }}
             style={{
               minHeight: '64px',
@@ -191,7 +207,7 @@ export const ChunkListRow = ({
             <div className="absolute inset-0 flex items-center justify-center rounded bg-black/0 opacity-0 transition-all duration-200 group-hover/thumb:bg-black/30 group-hover/thumb:opacity-100">
               <ZoomIn className="h-5 w-5 text-white drop-shadow-lg" />
             </div>
-          </div>
+          </button>
         )}
 
         <div className="flex-1 text-sm leading-relaxed text-text-secondary">

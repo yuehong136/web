@@ -65,6 +65,17 @@ export interface MetadataState {
   semiAutoFields: MetadataSemiAutoField[]
 }
 
+export interface SearchConfigState {
+  searchParams: SearchParams
+  searchMode: SearchMode
+  pageSize: number
+  selectedLanguages: string[]
+  metadataMode: MetadataFilterMode
+  metadataCondition: MetadataCondition
+  metadataSemiAutoFields: MetadataSemiAutoField[]
+  activeMetaDataFilter?: RetrievalMetaDataFilter
+}
+
 export interface RawLLMModel {
   id?: string
   name?: string

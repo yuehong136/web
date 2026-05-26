@@ -1,5 +1,5 @@
 import type { FC } from 'react'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FormProvider, useForm, useWatch } from 'react-hook-form'
 import { Settings2 } from 'lucide-react'
@@ -22,6 +22,7 @@ interface ChunkMethodModalProps {
     parserId: string
     parserConfig?: Record<string, unknown>
   }) => Promise<void>
+  onMetadataSettingsClick?: (document: Document) => void
   isLoading?: boolean
 }
 
@@ -133,48 +134,15 @@ const PipelineSelector: FC<{
   )
 }
 
-const MetadataSettingsModal: FC<{
-  open: boolean
-  onClose: () => void
-}> = ({ open, onClose }) => {
-  const { t } = useTranslation()
-
-  return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      title={t('knowledge.documents.chunkMethodModal.metadataTitle')}
-      size="lg"
-      footer={
-        <div className="flex w-full justify-end gap-3">
-          <Button variant="outline" onClick={onClose}>
-            {t('knowledge.common.cancel')}
-          </Button>
-          <Button onClick={onClose}>{t('knowledge.documents.confirm')}</Button>
-        </div>
-      }
-    >
-      <div className="space-y-4">
-        <p className="text-sm text-text-secondary">
-          {t('knowledge.documents.chunkMethodModal.metadataDescription')}
-        </p>
-        <div className="rounded-radius-lg p-space-base border border-border-default text-center text-text-tertiary">
-          {t('knowledge.documents.chunkMethodModal.metadataTodo')}
-        </div>
-      </div>
-    </Modal>
-  )
-}
-
 export const ChunkMethodModal: FC<ChunkMethodModalProps> = ({
   open,
   onClose,
   document,
   onSubmit,
+  onMetadataSettingsClick,
   isLoading = false,
 }) => {
   const { t } = useTranslation()
-  const [metadataModalOpen, setMetadataModalOpen] = useState(false)
 
   const methods = useForm<FormValues>({
     defaultValues: {
@@ -211,8 +179,10 @@ export const ChunkMethodModal: FC<ChunkMethodModalProps> = ({
   }
 
   const handleMetadataSettingsClick = useCallback(() => {
-    setMetadataModalOpen(true)
-  }, [])
+    if (document) {
+      onMetadataSettingsClick?.(document)
+    }
+  }, [document, onMetadataSettingsClick])
 
   const parseType = useWatch({
     control: methods.control,
@@ -289,11 +259,6 @@ export const ChunkMethodModal: FC<ChunkMethodModalProps> = ({
           </form>
         </FormProvider>
       </Modal>
-
-      <MetadataSettingsModal
-        open={metadataModalOpen}
-        onClose={() => setMetadataModalOpen(false)}
-      />
     </>
   )
 }

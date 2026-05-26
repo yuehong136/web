@@ -56,6 +56,7 @@ export function KnowledgeDocumentsPage() {
     onRename: pageModals.openRenameModal,
     onDownload: actions.handleDownload,
     onDelete: pageModals.requestDelete,
+    onEditMetadata: pageModals.handleShowDocumentMetadata,
     onShowLog: logModal.showLog,
     onShowChunkMethodModal: pageModals.handleShowChunkMethodModal,
   })

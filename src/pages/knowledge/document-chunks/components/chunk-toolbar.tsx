@@ -85,6 +85,7 @@ export const ChunkToolbar = ({
                 size="sm"
                 onClick={onOpenPreviewPanel}
                 className="hidden lg:flex"
+                aria-label={t('knowledge.chunks.toolbar.showPreview')}
               >
                 <PanelLeftOpen className="h-4 w-4" />
               </Button>
@@ -132,6 +133,7 @@ export const ChunkToolbar = ({
                   onSearchOpenChange(false)
                   onSearchKeywordChange('')
                 }}
+                aria-label={t('knowledge.chunks.toolbar.closeSearch')}
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -142,6 +144,7 @@ export const ChunkToolbar = ({
                 variant="ghost"
                 size="sm"
                 onClick={() => onSearchOpenChange(true)}
+                aria-label={t('knowledge.chunks.toolbar.search')}
               >
                 <Search className="h-4 w-4" />
               </Button>
@@ -184,7 +187,12 @@ export const ChunkToolbar = ({
           </Popover>
 
           <Tooltip content={t('knowledge.chunks.toolbar.addChunk')}>
-            <Button variant="ghost" size="sm" onClick={onAddChunk}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onAddChunk}
+              aria-label={t('knowledge.chunks.toolbar.addChunk')}
+            >
               <Plus className="h-4 w-4" />
             </Button>
           </Tooltip>

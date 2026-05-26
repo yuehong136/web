@@ -65,7 +65,12 @@ export const ChunkEditOverlay = ({
               </span>
             </Tooltip>
           </div>
-          <Button variant="ghost" size="icon-sm" onClick={onCancel}>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={onCancel}
+            aria-label={t('knowledge.chunks.edit.close')}
+          >
             <X className="h-4 w-4" />
           </Button>
         </div>
