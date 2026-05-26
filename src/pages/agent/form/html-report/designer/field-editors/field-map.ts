@@ -36,7 +36,7 @@ export interface DirectiveField {
   control: ControlKind
 }
 
-/** 纯结构枚举叶子(恒为 static,下拉选择) */
+/** 结构枚举叶子:默认恒 static(下拉选择) */
 export interface StructureField {
   kind: 'structure'
   path: string
@@ -44,6 +44,11 @@ export interface StructureField {
   fallback: string
   options: EnumOption[]
   valueType?: 'number' | 'boolean'
+  /**
+   * 取值由内容决定的语义枚举(标注框样式、指标卡趋势)置 true:Inspector 额外给
+   * 「固定/模型」开关,模型模式下由模型在 options 里选。版式枚举(级别、列表样式)不开。
+   */
+  allowLlm?: boolean
 }
 
 export type FieldDescriptor = DirectiveField | StructureField
@@ -54,7 +59,11 @@ export interface ListItemField {
   labelKey: string
   fallback: string
   control: ControlKind
-  structure?: { options: EnumOption[]; valueType?: 'number' | 'boolean' }
+  structure?: {
+    options: EnumOption[]
+    valueType?: 'number' | 'boolean'
+    allowLlm?: boolean
+  }
 }
 
 export interface ListGroup {
@@ -121,6 +130,7 @@ export const BLOCK_FIELDS: Record<BlockKind, FieldDescriptor[]> = {
       labelKey: 'flow.htmlReportFieldVariant',
       fallback: 'Style',
       options: VARIANT_OPTIONS,
+      allowLlm: true,
     },
     TITLE_FIELD,
     {
@@ -170,6 +180,7 @@ export const BLOCK_FIELDS: Record<BlockKind, FieldDescriptor[]> = {
       labelKey: 'flow.htmlReportFieldTrend',
       fallback: 'Trend',
       options: TREND_OPTIONS,
+      allowLlm: true,
     },
     {
       kind: 'directive',

@@ -84,7 +84,7 @@ export const STAT_ITEM_FIELDS: ListItemField[] = [
     labelKey: 'flow.htmlReportFieldTrend',
     fallback: 'Trend',
     control: 'text',
-    structure: { options: TREND_OPTIONS },
+    structure: { options: TREND_OPTIONS, allowLlm: true },
   },
   {
     key: 'description',

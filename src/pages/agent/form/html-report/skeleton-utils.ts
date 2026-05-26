@@ -14,6 +14,7 @@ import type {
   Block,
   BlockData,
   BlockKind,
+  ChartBlock,
   FieldDirective,
   ReportSchema,
   SkeletonBlock,
@@ -76,6 +77,30 @@ export function setFieldValue<T>(
   value: unknown,
 ): T {
   return setIn(target, parsePath(path), value) as T
+}
+
+/**
+ * 图表行对象的字段名:类别键 + 一组数值键,由形状字段(xAxisKey / radarKeys /
+ * nameKey / valueKey / series)推导。预览(mock-fill)造样例行、填值(prompt-builder /
+ * schema-fill)导出行 schema 都靠它——单一真源,避免两处推导漂移。
+ */
+export function chartRowKeys(block: SkeletonBlock): {
+  category: string
+  values: string[]
+} {
+  const f = (block.fields ?? {}) as Partial<ChartBlock>
+  const category = f.xAxisKey || f.radarKeys?.[0] || f.nameKey || 'name'
+  const values = new Set<string>()
+  for (const series of f.series ?? []) {
+    if (series.xKey && series.yKey) {
+      values.add(series.xKey)
+      values.add(series.yKey)
+    } else if (series.dataKey) {
+      values.add(series.dataKey)
+    }
+  }
+  if (values.size === 0) values.add(f.valueKey || 'value')
+  return { category, values: [...values] }
 }
 
 const STATIC_DIRECTIVE: FieldDirective = { mode: 'static' }

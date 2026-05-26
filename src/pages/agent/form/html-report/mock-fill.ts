@@ -6,7 +6,7 @@
  * 也避免在 `src/pages/agent` 引入硬编码中文。真实填充走 Phase 4 的 schema-fill,
  * 与本文件共用 {@link mergeSkeleton}。
  */
-import { mergeSkeleton } from './skeleton-utils'
+import { chartRowKeys, mergeSkeleton } from './skeleton-utils'
 import type {
   ChartBlock,
   ChartDatum,
@@ -66,6 +66,10 @@ function mockValue(
   if (directive.mode === 'variable') {
     return directive.ref ? `{${directive.ref}}` : '{variable}'
   }
+  // 语义枚举(模型模式):回落到合法枚举值。渲染端按值直接拼 class,不能灌 hint 文案。
+  const leaf = path.split('.').pop() ?? path
+  if (leaf === 'variant') return 'info'
+  if (leaf === 'trend') return 'neutral'
   // llm:优先回显用户写的 hint(更直观),否则给中性占位
   return directive.hint?.trim() || placeholderFor(path)
 }
@@ -89,26 +93,11 @@ function staticChartData(block: SkeletonBlock): ChartDatum[] {
 }
 
 function mockChartRows(block: SkeletonBlock): ChartDatum[] {
-  const fields = chartFields(block)
-  const categoryKey =
-    fields.xAxisKey || fields.radarKeys?.[0] || fields.nameKey || 'name'
-
-  const valueKeys = new Set<string>()
-  for (const series of fields.series ?? []) {
-    if (series.xKey && series.yKey) {
-      valueKeys.add(series.xKey)
-      valueKeys.add(series.yKey)
-    } else if (series.dataKey) {
-      valueKeys.add(series.dataKey)
-    }
-  }
-  if (valueKeys.size === 0) valueKeys.add(fields.valueKey || 'value')
-
-  const keys = [...valueKeys]
+  const { category, values } = chartRowKeys(block)
   const rows: ChartDatum[] = []
   for (let i = 0; i < PREVIEW_ROW_COUNT; i += 1) {
-    const row: ChartDatum = { [categoryKey]: `Item ${i + 1}` }
-    keys.forEach((key, j) => {
+    const row: ChartDatum = { [category]: `Item ${i + 1}` }
+    values.forEach((key, j) => {
       row[key] = (i + 1) * 20 + j * 7
     })
     rows.push(row)

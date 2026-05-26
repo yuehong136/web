@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { getFieldValue } from '../../skeleton-utils'
 import type { SkeletonBlock } from '../../types'
 import type { DraftAction } from '../use-skeleton-draft'
+import { EnumField } from './enum-field'
 import { FieldDirectiveRow } from './field-directive-row'
 import {
   BLOCK_BULK,
@@ -18,11 +19,7 @@ import {
   type ListGroup,
   type StaticArrayGroup,
 } from './field-map'
-import {
-  InspectorField,
-  StructureSelect,
-  ValueControl,
-} from './field-primitives'
+import { InspectorField, ValueControl } from './field-primitives'
 
 interface BlockFieldsProps {
   block: SkeletonBlock
@@ -90,29 +87,17 @@ function FieldRow({
 }) {
   const { t } = useTranslation()
   if (field.kind === 'structure') {
-    const current =
-      getFieldValue(block.fields ?? {}, field.path) ?? field.options[0]?.value
     return (
-      <InspectorField label={t(field.labelKey, field.fallback)}>
-        <StructureSelect
-          value={String(current)}
-          options={field.options}
-          onChange={(raw) =>
-            dispatch({
-              type: 'setFieldValue',
-              sectionId,
-              blockId: block.id,
-              path: field.path,
-              value:
-                field.valueType === 'number'
-                  ? Number(raw)
-                  : field.valueType === 'boolean'
-                    ? raw === 'true'
-                    : raw,
-            })
-          }
-        />
-      </InspectorField>
+      <EnumField
+        block={block}
+        sectionId={sectionId}
+        path={field.path}
+        label={t(field.labelKey, field.fallback)}
+        options={field.options}
+        valueType={field.valueType}
+        allowLlm={field.allowLlm}
+        dispatch={dispatch}
+      />
     )
   }
   return (
@@ -176,28 +161,18 @@ function ListEditor({
               ? `${group.arrayPath}[${index}].${itemField.key}`
               : `${group.arrayPath}[${index}]`
             if (itemField.structure) {
-              const current =
-                getFieldValue(block.fields ?? {}, path) ??
-                itemField.structure.options[0]?.value
               return (
-                <InspectorField
+                <EnumField
                   key={path}
+                  block={block}
+                  sectionId={sectionId}
+                  path={path}
                   label={t(itemField.labelKey, itemField.fallback)}
-                >
-                  <StructureSelect
-                    value={String(current)}
-                    options={itemField.structure.options}
-                    onChange={(raw) =>
-                      dispatch({
-                        type: 'setFieldValue',
-                        sectionId,
-                        blockId: block.id,
-                        path,
-                        value: raw,
-                      })
-                    }
-                  />
-                </InspectorField>
+                  options={itemField.structure.options}
+                  valueType={itemField.structure.valueType}
+                  allowLlm={itemField.structure.allowLlm}
+                  dispatch={dispatch}
+                />
               )
             }
             return (

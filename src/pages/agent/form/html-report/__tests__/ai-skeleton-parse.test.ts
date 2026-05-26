@@ -209,6 +209,37 @@ test('template previews + renders, and reports pending fills', () => {
   assert.ok(summarizeSkeleton(s).pending > 0)
 })
 
+test('preview fills model-mode enum directives with a valid enum value', () => {
+  const s = parseSkeletonResponse(
+    minimal([
+      { type: 'callout', content: 'x', variant: 'warning' },
+      { type: 'stat-card', label: 'Revenue' },
+    ]),
+  )
+  // 模拟右栏把语义枚举切到「模型」:variant / trend 挂上 llm 指令
+  const callout = s.sections[0].blocks[0]
+  callout.fieldDirectives = {
+    ...callout.fieldDirectives,
+    variant: { mode: 'llm', hint: 'warn when risky' },
+  }
+  const stat = s.sections[0].blocks[1]
+  stat.fieldDirectives = { ...stat.fieldDirectives, trend: { mode: 'llm' } }
+
+  const schema = buildPreviewSchema(s)
+  const renderedCallout = schema.sections[0].blocks[0]
+  const renderedStat = schema.sections[0].blocks[1]
+  assert.equal(renderedCallout.type, 'callout')
+  assert.equal(renderedStat.type, 'stat-card')
+  // 回落到合法枚举,而非把 hint 文案灌进 variant/trend
+  if (renderedCallout.type === 'callout') {
+    assert.equal(renderedCallout.variant, 'info')
+  }
+  if (renderedStat.type === 'stat-card') {
+    assert.equal(renderedStat.trend, 'neutral')
+  }
+  assert.ok(buildReportHtml(schema).includes('<html'))
+})
+
 // ---- outline (第①步) ----
 
 test('parseOutline parses sections from fenced JSON', () => {
