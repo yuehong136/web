@@ -43,7 +43,8 @@ export function SectionFields({ section, dispatch }: SectionFieldsProps) {
           <SelectTrigger className="h-9 text-xs">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent>
+          {/* 同 StructureSelect:恢复指针事件,避免模态 Sheet 下点击穿透 */}
+          <SelectContent className="pointer-events-auto">
             {Object.entries(LAYOUT_LABEL).map(([value, label]) => (
               <SelectItem key={value} value={value} className="text-xs">
                 {t(label.labelKey, label.fallback)}

@@ -85,7 +85,9 @@ export function StructureSelect({
       <SelectTrigger className="h-9 text-xs">
         <SelectValue />
       </SelectTrigger>
-      <SelectContent>
+      {/* portal 到 body 的下拉会继承模态 Sheet 的 pointer-events:none,
+          点击会穿透到背后字段,显式恢复指针事件 */}
+      <SelectContent className="pointer-events-auto">
         {options.map((opt) => (
           <SelectItem key={opt.value} value={opt.value} className="text-xs">
             {t(opt.labelKey, opt.fallback)}
