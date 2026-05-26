@@ -62,6 +62,19 @@ export const BLOCK_LABEL: Record<BlockKind, Label> = {
   chart: { labelKey: 'flow.htmlReportBlockChart', fallback: 'Chart' },
 }
 
+/**
+ * 显示「块级注解」的块:含列表/数组/整段数据的多槽块。标量单内容块(标题、段落、标注、
+ * 单指标卡)不显示——其唯一内容字段的「模型」提示词即该块的说明,避免与注解重复。
+ */
+export const ANNOTATABLE_BLOCKS: ReadonlySet<BlockKind> = new Set<BlockKind>([
+  'chart',
+  'table',
+  'comparison-matrix',
+  'stat-card-group',
+  'timeline',
+  'list',
+])
+
 export const CHART_LABEL: Record<ChartType, Label> = {
   bar: { labelKey: 'flow.htmlReportChartBar', fallback: 'Bar' },
   line: { labelKey: 'flow.htmlReportChartLine', fallback: 'Line' },

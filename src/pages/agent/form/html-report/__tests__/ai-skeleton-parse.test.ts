@@ -21,7 +21,7 @@ const dirOf = (block: SkeletonBlock, path: string) =>
 const minimal = (blocks: unknown[]) =>
   JSON.stringify({ title: 'T', sections: [{ layout: 'full', blocks }] })
 
-test('fenced JSON: content becomes an llm directive + block annotation', () => {
+test('paragraph: hint lands on the content directive, no block annotation', () => {
   const raw =
     '```json\n' +
     minimal([{ type: 'paragraph', hint: 'Summarize the quarter' }]) +
@@ -33,7 +33,8 @@ test('fenced JSON: content becomes an llm directive + block annotation', () => {
   assert.equal(block.type, 'paragraph')
   assert.equal(dirOf(block, 'content')?.mode, 'llm')
   assert.equal(dirOf(block, 'content')?.hint, 'Summarize the quarter')
-  assert.equal(block.annotation, 'Summarize the quarter')
+  // 单内容块:说明只在字段 hint 上,不再重复写进块级注解
+  assert.equal(block.annotation, undefined)
 })
 
 test('heading content stays static framework (no directive)', () => {
@@ -93,6 +94,9 @@ test('chart kept as framework without data; data becomes a directive', () => {
   assert.equal(fieldsOf(block).chartType, 'bar')
   assert.equal(fieldsOf(block).xAxisKey, 'quarter')
   assert.equal(dirOf(block, 'data')?.mode, 'llm')
+  // 多字段块:说明落到块级注解,字段 hint 留空(供手动细化 / 运行时回落)
+  assert.equal(dirOf(block, 'data')?.hint, undefined)
+  assert.equal(block.annotation, 'Revenue by quarter')
   assert.equal(summarizeSkeleton(s).charts, 1)
 })
 

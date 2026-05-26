@@ -2,9 +2,12 @@
  * 把 LLM 给的「扁平块」JSON 归一成 {@link SkeletonBlock}(框架静态 / 内容 llm 指令)。
  * 从 parse.ts 拆出,供「整篇回退解析」与「逐节解析」共用,并控制各文件行数。
  *
- * 决策 B「纯模板」:结构性字段落 `fields` 静态;变量内容转 `fieldDirectives` 的 `llm`
- * 指令(`hint` 描述放什么),块的 `hint` 落 `annotation`。缺失框架用默认兜底,不丢弃块
- * (尤其图表不再因缺数据被丢)。
+ * 决策 B「纯模板」:结构性字段落 `fields` 静态;变量内容转 `fieldDirectives` 的 `llm` 指令。
+ * 提示词(`hint`)按块归属落位、不重复:
+ *  - 单内容块(段落/标注/单指标卡):落到该内容字段的 `llm.hint`,不写块级 `annotation`。
+ *  - 多字段块(图表/表格/对比/指标卡组/时间线/列表):落到块级 `annotation`(整块说明),
+ *    其整段/逐项指令留空 `llm()`(供右栏手动细化,或运行时回落到 annotation)。
+ * 缺失框架用默认兜底,不丢弃块(尤其图表不再因缺数据被丢)。
  */
 import { makeId } from '../../skeleton-utils'
 import type {
@@ -14,6 +17,7 @@ import type {
   SkeletonBlock,
 } from '../../types'
 import { buildChartFields } from '../block-defaults'
+import { ANNOTATABLE_BLOCKS } from '../block-meta'
 import {
   BLOCK_KINDS,
   CARTESIAN,
@@ -53,8 +57,8 @@ interface Built {
   directives: Record<string, FieldDirective>
 }
 
-/** chart:形状键静态(缺则 buildChartFields 兜底),data 作整段 llm 指令。 */
-function buildChart(raw: Dict, hint?: string): Built {
+/** chart:形状键静态(缺则 buildChartFields 兜底),data 作整段 llm 指令(说明落块注解)。 */
+function buildChart(raw: Dict): Built {
   const chartType = optEnum(raw.chartType, CHART_TYPES) ?? 'bar'
   const fields = { ...(buildChartFields(chartType) as Fields) }
   if (optStr(raw.title)) fields.title = raw.title
@@ -76,7 +80,7 @@ function buildChart(raw: Dict, hint?: string): Built {
     )
     if (series.length > 0) fields.series = series
   }
-  return { fields, directives: { data: llm(hint) } }
+  return { fields, directives: { data: llm() } }
 }
 
 /** 按块类型造「框架 fields + 内容 directives」。 */
@@ -105,7 +109,7 @@ function buildBlock(type: BlockKind, raw: Dict, hint?: string): Built {
       }
       if (optStr(raw.title)) fields.title = raw.title
       const directives: Record<string, FieldDirective> = {}
-      slots.forEach((txt, i) => (directives[`items[${i}]`] = llm(txt || hint)))
+      slots.forEach((txt, i) => (directives[`items[${i}]`] = llm(txt)))
       return { fields, directives }
     }
     case 'stat-card': {
@@ -133,7 +137,7 @@ function buildBlock(type: BlockKind, raw: Dict, hint?: string): Built {
         headers: headers.length > 0 ? headers : ['', ''],
       }
       if (optStr(raw.title)) fields.title = raw.title
-      return { fields, directives: { rows: llm(hint) } }
+      return { fields, directives: { rows: llm() } }
     }
     case 'comparison-matrix': {
       const items = strArr(raw.items)
@@ -142,7 +146,7 @@ function buildBlock(type: BlockKind, raw: Dict, hint?: string): Built {
         items: items.length > 0 ? items : ['', ''],
       }
       if (optStr(raw.title)) fields.title = raw.title
-      return { fields, directives: { criteria: llm(hint) } }
+      return { fields, directives: { criteria: llm() } }
     }
     case 'timeline': {
       const raws = Array.isArray(raw.items) ? raw.items.filter(isObj) : []
@@ -156,7 +160,7 @@ function buildBlock(type: BlockKind, raw: Dict, hint?: string): Built {
       return { fields, directives }
     }
     case 'chart':
-      return buildChart(raw, hint)
+      return buildChart(raw)
     case 'paragraph':
     default:
       return {
@@ -182,6 +186,7 @@ export function normalizeBlock(
   }
   if (Object.keys(directives).length > 0) block.fieldDirectives = directives
   if (sidebar) block.role = raw.role === 'side' ? 'side' : 'main'
-  if (hint) block.annotation = hint
+  // 多字段块:整块说明落 annotation(单内容块的 hint 已在字段指令上,避免重复)
+  if (hint && ANNOTATABLE_BLOCKS.has(type)) block.annotation = hint
   return block
 }

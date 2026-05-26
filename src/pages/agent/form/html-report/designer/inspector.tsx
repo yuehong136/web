@@ -6,7 +6,7 @@
  */
 import { useTranslation } from 'react-i18next'
 import { Textarea } from '@/components/ui/textarea'
-import { blockDisplayLabel } from './block-meta'
+import { ANNOTATABLE_BLOCKS, blockDisplayLabel } from './block-meta'
 import { BlockFields } from './field-editors/block-fields'
 import { ChartShapeFields } from './field-editors/chart-shape-fields'
 import {
@@ -64,22 +64,24 @@ export function Inspector({ state, dispatch }: InspectorProps) {
             dispatch={dispatch}
           />
         )}
-        <InspectorField
-          label={t('flow.htmlReportAnnotation', 'Annotation (for the model)')}
-        >
-          <Textarea
-            rows={3}
-            value={block.annotation ?? ''}
-            onChange={(e) =>
-              dispatch({
-                type: 'setBlockAnnotation',
-                sectionId: selection.sectionId,
-                blockId: block.id,
-                value: e.target.value,
-              })
-            }
-          />
-        </InspectorField>
+        {ANNOTATABLE_BLOCKS.has(block.type) && (
+          <InspectorField
+            label={t('flow.htmlReportAnnotation', 'Annotation (for the model)')}
+          >
+            <Textarea
+              rows={3}
+              value={block.annotation ?? ''}
+              onChange={(e) =>
+                dispatch({
+                  type: 'setBlockAnnotation',
+                  sectionId: selection.sectionId,
+                  blockId: block.id,
+                  value: e.target.value,
+                })
+              }
+            />
+          </InspectorField>
+        )}
       </div>
     )
   }
