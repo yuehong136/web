@@ -339,12 +339,20 @@ export default defineConfig(({ mode }) => {
                   ]) || isPackagePrefix(id, '@tanstack/'),
               },
               {
+                name: 'vendor-graph-antv',
+                priority: 66,
+                // @antv/g6 pulls @antv/layout, which contains nested CommonJS
+                // modules. Splitting this ecosystem by size can create browser
+                // startup cycles where CommonJS module holders are still
+                // undefined during ESM initialization.
+                test: (id: string) => isPackagePrefix(id, '@antv/'),
+              },
+              {
                 name: 'vendor-graph',
                 priority: 65,
                 entriesAware: true,
                 maxSize: 1024 * 1024,
                 test: (id: string) =>
-                  isPackagePrefix(id, '@antv/') ||
                   isPackagePrefix(id, '@xyflow/') ||
                   isPackagePrefix(id, 'cytoscape'),
               },
