@@ -14,6 +14,7 @@ import {
 import {
   Maximize2,
   Minimize2,
+  Play,
   Redo2,
   Save,
   Sparkles,
@@ -36,6 +37,7 @@ import { resolveDragEnd } from './dnd'
 import { Inspector } from './inspector'
 import { Palette } from './palette'
 import { Preview } from './preview'
+import { RunDialog } from './run-dialog'
 import { useSkeletonDraft } from './use-skeleton-draft'
 import { makeId } from '../skeleton-utils'
 import type { BlockKind, ChartType, LayoutType, SkeletonSchema } from '../types'
@@ -58,6 +60,7 @@ export function Designer({
     useSkeletonDraft(initialSkeleton)
   const [previewFull, setPreviewFull] = useState(false)
   const [aiOpen, setAiOpen] = useState(false)
+  const [runOpen, setRunOpen] = useState(false)
 
   // 仅在「打开」的上升沿用最新骨架重新播种草稿,避免开着时父组件重渲染冲掉编辑
   const wasOpen = useRef(false)
@@ -164,8 +167,9 @@ export function Designer({
             <Button
               variant="outline"
               size="sm"
-              disabled
-              title={t('flow.htmlReportTryRunSoon', 'Trial run is coming soon')}
+              disabled={state.present.sections.length === 0}
+              leftIcon={<Play className="size-icon-sm" />}
+              onClick={() => setRunOpen(true)}
             >
               {t('flow.htmlReportTryRun', 'Trial run')}
             </Button>
@@ -253,6 +257,12 @@ export function Designer({
             setAiOpen(false)
           }}
           onClose={() => setAiOpen(false)}
+        />
+
+        <RunDialog
+          open={runOpen}
+          skeleton={state.present}
+          onClose={() => setRunOpen(false)}
         />
       </SheetContent>
     </Sheet>
