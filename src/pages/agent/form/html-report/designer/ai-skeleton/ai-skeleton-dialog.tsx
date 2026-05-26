@@ -44,7 +44,7 @@ export function AiSkeletonDialog({
       onGenerated(skeleton)
     },
   )
-  const streaming = status === 'streaming'
+  const busy = status === 'outline' || status === 'sections'
 
   // 模型清单到达后默认选首个
   useEffect(() => {
@@ -67,7 +67,7 @@ export function AiSkeletonDialog({
   if (!open) return null
 
   const close = () => {
-    if (streaming) cancel()
+    if (busy) cancel()
     onClose()
   }
 
@@ -91,7 +91,7 @@ export function AiSkeletonDialog({
       )}
       className="p-space-lg absolute inset-0 z-20 m-0 flex h-full w-full max-w-none items-center justify-center border-0 bg-transparent"
     >
-      {streaming ? (
+      {busy ? (
         <div className="absolute inset-0 bg-background-overlay backdrop-blur-sm" />
       ) : (
         <button
@@ -111,7 +111,7 @@ export function AiSkeletonDialog({
             <button
               type="button"
               onClick={close}
-              disabled={streaming}
+              disabled={busy}
               aria-label={t('common.close', 'Close')}
               className="text-text-caption hover:text-text-primary disabled:opacity-50"
             >
@@ -121,7 +121,7 @@ export function AiSkeletonDialog({
           <p className="mt-space-2xs text-sm text-text-secondary">
             {t(
               'flow.htmlReportAiDialogDesc',
-              'Paste a complete report; the model builds the report structure for you.',
+              'Paste a complete report; the model builds a reusable template structure for you.',
             )}
           </p>
         </div>
@@ -134,7 +134,7 @@ export function AiSkeletonDialog({
             <ModelSelect
               value={model}
               options={options}
-              disabled={streaming || isLoading || options.length === 0}
+              disabled={busy || isLoading || options.length === 0}
               placeholder={t(
                 'flow.htmlReportAiModelEmpty',
                 'No chat model available',
@@ -150,7 +150,7 @@ export function AiSkeletonDialog({
             <Textarea
               rows={12}
               value={text}
-              disabled={streaming}
+              disabled={busy}
               placeholder={t(
                 'flow.htmlReportAiSourcePlaceholder',
                 'Paste the full report text here…',
@@ -159,7 +159,7 @@ export function AiSkeletonDialog({
             />
           </div>
 
-          {hasContent && !streaming && (
+          {hasContent && !busy && (
             <p className="text-xs text-status-warning">
               {t(
                 'flow.htmlReportAiReplaceWarn',
@@ -168,7 +168,7 @@ export function AiSkeletonDialog({
             </p>
           )}
 
-          {streaming && (
+          {busy && (
             <div
               className="gap-space-xs text-text-caption flex items-center text-xs"
               aria-live="polite"
@@ -176,12 +176,13 @@ export function AiSkeletonDialog({
             >
               <Loader2 className="size-icon-sm animate-spin" />
               <span>
-                {progress.length > 0
-                  ? t('flow.htmlReportAiReceived', {
-                      count: progress.length,
-                      defaultValue: 'Building the report… ({{count}} chars)',
+                {progress.phase === 'sections' && progress.total > 0
+                  ? t('flow.htmlReportAiSectionProgress', {
+                      current: progress.current,
+                      total: progress.total,
+                      defaultValue: 'Building section {{current}}/{{total}}…',
                     })
-                  : t('flow.htmlReportAiGenerating', 'Generating…')}
+                  : t('flow.htmlReportAiOutlining', 'Planning sections…')}
               </span>
             </div>
           )}
@@ -199,7 +200,7 @@ export function AiSkeletonDialog({
         </div>
 
         <div className="gap-space-sm px-space-lg py-space-base flex shrink-0 items-center justify-end border-t border-border-subtle">
-          {streaming ? (
+          {busy ? (
             <Button variant="outline" size="sm" onClick={cancel}>
               {t('flow.htmlReportAiCancel', 'Cancel')}
             </Button>
@@ -211,9 +212,9 @@ export function AiSkeletonDialog({
           <Button
             variant="default"
             size="sm"
-            disabled={streaming || !text.trim() || !model}
+            disabled={busy || !text.trim() || !model}
             leftIcon={
-              streaming ? (
+              busy ? (
                 <Loader2 className="size-icon-sm animate-spin" />
               ) : (
                 <Sparkles className="size-icon-sm" />
@@ -221,7 +222,7 @@ export function AiSkeletonDialog({
             }
             onClick={handleGenerate}
           >
-            {streaming
+            {busy
               ? t('flow.htmlReportAiGenerating', 'Generating…')
               : t('flow.htmlReportAiRun', 'Generate')}
           </Button>

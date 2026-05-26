@@ -1,41 +1,25 @@
 /**
- * 把 LLM 返回的文本解析、校验、归一化成合法 {@link SkeletonSchema}。
+ * 把 LLM 文本解析成模板结构。三个入口:
+ * - {@link parseOutline}   —— 大纲调用的产物:有序的节(标题/布局/意图),不含块。
+ * - {@link parseSection}   —— 单节调用的产物:`{blocks:[...]}` → 一个 {@link SkeletonSection}。
+ * - {@link parseSkeletonResponse} —— 单次整篇生成的产物(大纲失败时的回退路径)。
  *
- * LLM 的 JSON 不可靠:可能带 markdown 围栏/散文、字段缺失、枚举非法、图表形状不全。
- * 这里防御式处理——产出的骨架必须能直接喂进 Designer 画布与渲染器,不崩。
- * 决策 A「导入式」:全部内容落 `fields` 静态值,**不写任何 fieldDirectives**。
+ * 块归一(框架静态 / 内容 llm 指令)共用 {@link normalizeBlock}(见 build-block.ts)。
+ * LLM 的 JSON 不可靠:可能带 markdown 围栏/散文、字段缺失、枚举非法,这里防御式处理。
  */
 import { DEFAULT_THEME } from '../../constants'
 import { makeId } from '../../skeleton-utils'
 import type {
-  BlockData,
-  BlockKind,
+  LayoutType,
   SkeletonBlock,
   SkeletonSchema,
   SkeletonSection,
   ThemeConfig,
 } from '../../types'
-import {
-  BLOCK_KINDS,
-  CARTESIAN,
-  CHART_TYPES,
-  type Dict,
-  type Fields,
-  isObj,
-  LAYOUTS,
-  level,
-  oneOf,
-  optEnum,
-  optStr,
-  PROPORTION,
-  SIDEBAR,
-  str,
-  strArr,
-  TRENDS,
-  VARIANTS,
-} from './coerce'
+import { normalizeBlock } from './build-block'
+import { isObj, LAYOUTS, oneOf, optStr, SIDEBAR, str, strArr } from './coerce'
 
-/** 解析失败(无法定位/解析 JSON,或归一化后无任何合法 section)。 */
+/** 解析失败(无法定位/解析 JSON,或归一化后无任何合法内容)。 */
 export class SkeletonParseError extends Error {
   constructor(message: string) {
     super(message)
@@ -65,185 +49,71 @@ function extractJson(raw: string): unknown {
   }
 }
 
-// ---- 子数组归一化 ----
-function normStatItems(v: unknown): Fields[] {
-  if (!Array.isArray(v)) return []
-  return v.filter(isObj).map((it) => {
-    const item: Fields = { label: str(it.label), value: str(it.value) }
-    if (optStr(it.change)) item.change = it.change
-    const trend = optEnum(it.trend, TRENDS)
-    if (trend) item.trend = trend
-    if (optStr(it.description)) item.description = it.description
-    return item
-  })
+// ============================================================
+// 大纲(第①步)
+// ============================================================
+
+export interface OutlineSection {
+  title?: string
+  layout: LayoutType
+  intent?: string
 }
 
-function normRows(v: unknown): string[][] {
-  if (!Array.isArray(v)) return []
-  return v.filter((r): r is unknown[] => Array.isArray(r)).map((r) => strArr(r))
+export interface ReportOutline {
+  title: string
+  sections: OutlineSection[]
 }
 
-function normCriteria(v: unknown): Fields[] {
-  if (!Array.isArray(v)) return []
-  return v
-    .filter(isObj)
-    .map((c) => ({ name: str(c.name), values: strArr(c.values) }))
-}
-
-function normTimeline(v: unknown): Fields[] {
-  if (!Array.isArray(v)) return []
-  return v.filter(isObj).map((it) => {
-    const item: Fields = { date: str(it.date), title: str(it.title) }
-    if (optStr(it.description)) item.description = it.description
-    return item
-  })
-}
-
-function normSeries(v: unknown): Fields[] {
-  if (!Array.isArray(v)) return []
-  return v.filter(isObj).map((s) => {
-    const out: Fields = { dataKey: str(s.dataKey) }
-    if (optStr(s.name)) out.name = s.name
-    if (optStr(s.xKey)) out.xKey = s.xKey
-    if (optStr(s.yKey)) out.yKey = s.yKey
-    if (optStr(s.color)) out.color = s.color
+/** 文本 → 报告大纲(有序的节);无合法节抛 {@link SkeletonParseError}。 */
+export function parseOutline(raw: string): ReportOutline {
+  const obj = extractJson(raw)
+  if (!isObj(obj)) throw new SkeletonParseError('outline is not an object')
+  const sectionsRaw = Array.isArray(obj.sections) ? obj.sections : []
+  const sections = sectionsRaw.filter(isObj).map((s) => {
+    const out: OutlineSection = { layout: oneOf(s.layout, LAYOUTS, 'full') }
+    const title = optStr(s.title)
+    if (title) out.title = title
+    const intent = optStr(s.intent)
+    if (intent) out.intent = intent
     return out
   })
-}
-
-/** chart 数据行:仅保留对象行,值收敛为 string|number。 */
-function normData(v: unknown): Record<string, string | number>[] {
-  if (!Array.isArray(v)) return []
-  const rows: Record<string, string | number>[] = []
-  for (const r of v) {
-    if (!isObj(r)) continue
-    const row: Record<string, string | number> = {}
-    for (const [k, val] of Object.entries(r)) {
-      if (typeof val === 'number' && Number.isFinite(val)) row[k] = val
-      else if (typeof val === 'string') row[k] = val
-      else if (typeof val === 'boolean') row[k] = String(val)
-    }
-    rows.push(row)
+  if (sections.length === 0) {
+    throw new SkeletonParseError('outline has no sections')
   }
-  return rows
+  return { title: str(obj.title), sections }
 }
 
-// ---- 块归一化 ----
-/** 非 chart 块的 fields。 */
-function buildFields(type: BlockKind, raw: Dict): Fields {
-  switch (type) {
-    case 'heading':
-      return { type, level: level(raw.level), content: str(raw.content) }
-    case 'callout': {
-      const f: Fields = {
-        type,
-        variant: oneOf(raw.variant, VARIANTS, 'info'),
-        content: str(raw.content),
-      }
-      if (optStr(raw.title)) f.title = raw.title
-      return f
-    }
-    case 'list': {
-      const f: Fields = {
-        type,
-        ordered: raw.ordered === true,
-        items: strArr(raw.items),
-      }
-      if (optStr(raw.title)) f.title = raw.title
-      return f
-    }
-    case 'stat-card': {
-      const f: Fields = { type, label: str(raw.label), value: str(raw.value) }
-      if (optStr(raw.change)) f.change = raw.change
-      const trend = optEnum(raw.trend, TRENDS)
-      if (trend) f.trend = trend
-      if (optStr(raw.description)) f.description = raw.description
-      return f
-    }
-    case 'stat-card-group':
-      return { type, items: normStatItems(raw.items) }
-    case 'table': {
-      const f: Fields = {
-        type,
-        headers: strArr(raw.headers),
-        rows: normRows(raw.rows),
-      }
-      if (optStr(raw.title)) f.title = raw.title
-      return f
-    }
-    case 'comparison-matrix': {
-      const f: Fields = {
-        type,
-        items: strArr(raw.items),
-        criteria: normCriteria(raw.criteria),
-      }
-      if (optStr(raw.title)) f.title = raw.title
-      return f
-    }
-    case 'timeline': {
-      const f: Fields = { type, items: normTimeline(raw.items) }
-      if (optStr(raw.title)) f.title = raw.title
-      return f
-    }
-    case 'paragraph':
-    default:
-      return { type: 'paragraph', content: str(raw.content) }
+// ============================================================
+// 单节(第②步)
+// ============================================================
+
+/** `{blocks:[...]}`(或裸数组)+ 大纲里的节信息 → 一个 SkeletonSection。 */
+export function parseSection(
+  raw: string,
+  outline: OutlineSection,
+): SkeletonSection {
+  const obj = extractJson(raw)
+  const blocksRaw = isObj(obj) && Array.isArray(obj.blocks) ? obj.blocks : []
+  const sidebar = SIDEBAR.has(outline.layout)
+  const blocks = blocksRaw
+    .map((b) => normalizeBlock(b, sidebar))
+    .filter((b): b is SkeletonBlock => b !== null)
+  if (blocks.length === 0) {
+    throw new SkeletonParseError('section has no valid blocks')
   }
-}
-
-/** chart 块的 fields;形状键/数据不全则返回 null(丢弃该块)。 */
-function buildChart(raw: Dict): Fields | null {
-  const chartType = optEnum(raw.chartType, CHART_TYPES)
-  if (!chartType) return null
-  const data = normData(raw.data)
-  if (data.length === 0) return null
-
-  const f: Fields = { type: 'chart', chartType, data }
-  if (optStr(raw.title)) f.title = raw.title
-
-  if (CARTESIAN.has(chartType)) {
-    const xAxisKey = optStr(raw.xAxisKey)
-    const series = normSeries(raw.series)
-    if (!xAxisKey || series.length === 0) return null
-    f.xAxisKey = xAxisKey
-    f.series = series
-    if (optStr(raw.yAxisLabel)) f.yAxisLabel = raw.yAxisLabel
-  } else if (PROPORTION.has(chartType)) {
-    const nameKey = optStr(raw.nameKey)
-    const valueKey = optStr(raw.valueKey)
-    if (!nameKey || !valueKey) return null
-    f.nameKey = nameKey
-    f.valueKey = valueKey
-  } else if (chartType === 'radar') {
-    const radarKeys = strArr(raw.radarKeys)
-    const series = normSeries(raw.series)
-    if (radarKeys.length === 0 || series.length === 0) return null
-    f.radarKeys = radarKeys
-    f.series = series
-  } else {
-    // scatter:每个系列必须带 xKey/yKey
-    const series = normSeries(raw.series).filter(
-      (s) => typeof s.xKey === 'string' && typeof s.yKey === 'string',
-    )
-    if (series.length === 0) return null
-    f.series = series
+  const section: SkeletonSection = {
+    id: makeId('sec'),
+    layout: outline.layout,
+    blocks,
   }
-  return f
+  if (outline.title) section.title = outline.title
+  if (outline.intent) section.annotation = outline.intent
+  return section
 }
 
-function normalizeBlock(raw: unknown, sidebar: boolean): SkeletonBlock | null {
-  if (!isObj(raw)) return null
-  const type = oneOf(raw.type, BLOCK_KINDS, 'paragraph')
-  const fields = type === 'chart' ? buildChart(raw) : buildFields(type, raw)
-  if (!fields) return null
-  const block: SkeletonBlock = {
-    id: makeId('blk'),
-    type: fields.type as BlockKind,
-    fields: fields as Partial<BlockData>,
-  }
-  if (sidebar) block.role = raw.role === 'side' ? 'side' : 'main'
-  return block
-}
+// ============================================================
+// 整篇(回退:大纲失败时单次生成)
+// ============================================================
 
 function normalizeSection(raw: unknown): SkeletonSection | null {
   if (!isObj(raw)) return null
@@ -259,6 +129,8 @@ function normalizeSection(raw: unknown): SkeletonSection | null {
   if (title) section.title = title
   const subtitle = optStr(raw.subtitle)
   if (subtitle) section.subtitle = subtitle
+  const annotation = optStr(raw.annotation)
+  if (annotation) section.annotation = annotation
   return section
 }
 
@@ -291,7 +163,7 @@ function normalizeSkeleton(obj: unknown): SkeletonSchema {
   return skeleton
 }
 
-/** 文本 → 合法 SkeletonSchema;失败抛 {@link SkeletonParseError}。 */
+/** 文本 → 合法 SkeletonSchema 模板(整篇);失败抛 {@link SkeletonParseError}。 */
 export function parseSkeletonResponse(raw: string): SkeletonSchema {
   return normalizeSkeleton(extractJson(raw))
 }

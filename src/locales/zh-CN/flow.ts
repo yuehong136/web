@@ -322,7 +322,8 @@ export default {
     htmlReportPreviewExit: '退出预览',
     htmlReportAiGenerate: 'AI 生成',
     htmlReportAiDialogTitle: '从报告文本生成',
-    htmlReportAiDialogDesc: '粘贴一整篇报告，模型自动为你搭好报告结构。',
+    htmlReportAiDialogDesc:
+      '粘贴一整篇报告，模型自动为你搭出可复用的报告模板结构。',
     htmlReportAiModel: '模型',
     htmlReportAiModelEmpty: '暂无可用对话模型',
     htmlReportAiSource: '报告文本',
@@ -330,6 +331,8 @@ export default {
     htmlReportAiReplaceWarn: '生成将替换当前画布中的内容。',
     htmlReportAiGenerating: '生成中……',
     htmlReportAiReceived: '正在搭建报告……（已接收 {{count}} 字）',
+    htmlReportAiOutlining: '正在规划分节……',
+    htmlReportAiSectionProgress: '正在生成第 {{current}}/{{total}} 节……',
     htmlReportAiRun: '生成',
     htmlReportAiCancel: '取消',
     htmlReportAiSuccess: '报告结构已生成',

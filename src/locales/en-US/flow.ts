@@ -616,7 +616,7 @@ export default {
     htmlReportAiGenerate: 'AI generate',
     htmlReportAiDialogTitle: 'Generate from report text',
     htmlReportAiDialogDesc:
-      'Paste a complete report; the model builds the report structure for you.',
+      'Paste a complete report; the model builds a reusable template structure for you.',
     htmlReportAiModel: 'Model',
     htmlReportAiModelEmpty: 'No chat model available',
     htmlReportAiSource: 'Report text',
@@ -625,6 +625,8 @@ export default {
       'Generating will replace the current canvas content.',
     htmlReportAiGenerating: 'Generating…',
     htmlReportAiReceived: 'Building the report… ({{count}} chars)',
+    htmlReportAiOutlining: 'Planning sections…',
+    htmlReportAiSectionProgress: 'Building section {{current}}/{{total}}…',
     htmlReportAiRun: 'Generate',
     htmlReportAiCancel: 'Cancel',
     htmlReportAiSuccess: 'Report structure generated',

@@ -9,7 +9,7 @@ import { CSS } from '@dnd-kit/utilities'
 import { GripVertical, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
-import { SIDEBAR_LAYOUTS } from './block-meta'
+import { LAYOUT_LABEL, SIDEBAR_LAYOUTS } from './block-meta'
 import { CanvasBlockChip } from './canvas-block-chip'
 import type { SectionDragData, SlotDropData } from './dnd'
 import type { BlockRole, SkeletonSection } from '../types'
@@ -39,6 +39,7 @@ export function CanvasSection({
 }: CanvasSectionProps) {
   const { t } = useTranslation()
   const isSidebar = SIDEBAR_LAYOUTS.has(section.layout)
+  const layoutLabel = LAYOUT_LABEL[section.layout]
 
   const sectionData: SectionDragData = {
     source: 'section',
@@ -90,14 +91,19 @@ export function CanvasSection({
         <button
           type="button"
           onClick={onSelectSection}
-          className="text-xs font-medium text-text-secondary hover:text-text-primary"
+          className="gap-space-xs flex flex-1 items-center text-left"
         >
-          {t('flow.htmlReportSection', 'Section')} {index + 1}
+          <span className="text-xs font-medium text-text-secondary">
+            {t('flow.htmlReportSection', 'Section')} {index + 1}
+          </span>
+          <span className="rounded-radius-sm px-space-2xs text-text-caption bg-state-hover text-xs">
+            {t(layoutLabel.labelKey, layoutLabel.fallback)}
+          </span>
         </button>
         <button
           type="button"
           onClick={onRemoveSection}
-          className="text-text-caption ml-auto hover:text-status-error"
+          className="text-text-caption hover:text-status-error"
           aria-label={t('flow.htmlReportDeleteSection', 'Delete section')}
         >
           <Trash2 className="size-icon-sm" />

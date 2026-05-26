@@ -1,17 +1,18 @@
 /**
- * 喂给 LLM 的「报告骨架」JSON 契约文本(英文,因为是给模型的结构指令;
- * 报告内容的语言由 prompt 要求跟随源文)。
+ * 喂给 LLM 的「报告模板」JSON 契约(英文,因为是给模型的结构指令;
+ * 模板文字的语言由 prompt 要求跟随源文)。
  *
- * 这里描述的是**扁平 block 形状**(字段直接在 block 顶层,与 `../../types`
- * 的运行时 Block 一致),让模型最自然地产出;`parse.ts` 再把已知字段收进
- * `SkeletonBlock.fields`。形状/字段名与 `renderer/echarts-option.ts` 实际消费
- * 的键严格对齐,否则图表渲染空白。
+ * 产物是**可复用模板**而非成品报告:结构性字段(标题/表头/标签/图表形状)填真实值,
+ * 变量内容**不写出**、改用每块 `hint` + 每节 `annotation` 描述「这里放什么」。
+ * `parse.ts` 据此把内容字段转成 llm 填充指令。形状/字段名与 `renderer/echarts-option.ts`
+ * 实际消费的键严格对齐,否则图表渲染空白。
  *
  * 单独成文以免 `prompt.ts` 超 300 行。
  */
 
-/** 完整 JSON 契约 + 块选型指南。 */
-export const SKELETON_CONTRACT = `OUTPUT SHAPE — a single JSON object:
+/** 完整 JSON 契约 + 块选型指南(模板版)。 */
+export const SKELETON_CONTRACT = `OUTPUT — a single JSON object describing a REUSABLE report TEMPLATE
+(not a finished report):
 {
   "title": string,                 // report title (required)
   "subtitle"?: string,
@@ -23,95 +24,136 @@ Section:
   "title"?: string,
   "subtitle"?: string,
   "layout": "full" | "two-column" | "three-column" | "sidebar-left" | "sidebar-right",
-  "blocks": Block[]                // ordered content blocks in this section
+  "annotation"?: string,           // one line: what this whole section is for (guides fill-in)
+  "blocks": Block[]
 }
 Do NOT emit "id" fields — they are generated downstream.
-Layout guidance: default to "full". Use "two-column"/"three-column" only when blocks are
-clearly parallel (e.g. two comparable stat groups). Use "sidebar-left"/"sidebar-right" only
-when one block is primary and another is supporting; in that case set each block's
-"role": "main" | "side". Otherwise omit "role".
+Layout: default "full". Use "two-column"/"three-column" only when blocks are clearly parallel;
+use "sidebar-left"/"sidebar-right" only for one primary + one supporting block, and then set each
+block's "role": "main" | "side". Otherwise omit "role".
 
-BLOCK TYPES — pick the MOST SPECIFIC type for each piece of content. Never dump everything
-as paragraphs.
+TEMPLATE PRINCIPLE — separate FRAMEWORK from CONTENT:
+- FRAMEWORK = the parts that recur in every report of this kind. Fill them with REAL values from
+  the source: section/heading titles, table headers, comparison column items, chart type and
+  axis/series FIELD NAMES, stat-card labels, callout variant, list ordered flag, heading level.
+- CONTENT = the variable text/numbers that change each time (narrative prose, metric values,
+  table rows, chart data points, the wording of list items, timeline events). DO NOT write the
+  actual content. Describe it with a one-line "hint" so the runtime can fill it later.
 
-1. heading — a title/subtitle inside the content flow.
+Every block carries "hint": string — a one-line note (source language) that says TWO things:
+(1) WHICH part of the report this block covers / visualizes, and (2) WHICH components could be
+used here. Example: "five-year enrollment numbers; a line or bar chart, or a table, all work".
+Describe the content — never write the actual values.
+
+BLOCK TYPES — pick the MOST SPECIFIC type for each piece of content. Never dump everything as
+paragraphs.
+
+1. heading — a title/subtitle inside the content flow (FRAMEWORK text — write it for real).
    { "type":"heading", "level":1|2|3, "content":string }
 
-2. paragraph — narrative prose. Supports inline markdown: **bold**, *italic*, \`code\`.
-   { "type":"paragraph", "content":string }
+2. paragraph — narrative prose (CONTENT). Give a hint, not the prose.
+   { "type":"paragraph", "hint":string }
 
-3. callout — a key takeaway / risk / tip / highlight that should stand out.
-   { "type":"callout", "variant":"info"|"success"|"warning"|"insight", "title"?:string, "content":string }
+3. callout — a key takeaway / risk / tip (FRAMEWORK variant & title; CONTENT body).
+   { "type":"callout", "variant":"info"|"success"|"warning"|"insight", "title"?:string, "hint":string }
 
-4. list — a bulleted or numbered enumeration.
-   { "type":"list", "ordered":boolean, "title"?:string, "items":string[] }
+4. list — a bulleted/numbered enumeration. Give a SHORT topic/label per intended bullet in
+   "items"; the wording is rewritten from data at fill time.
+   { "type":"list", "ordered":boolean, "title"?:string, "items":string[], "hint"?:string }
 
-5. stat-card — ONE key metric / KPI. Prefer stat-card-group for several.
-   { "type":"stat-card", "label":string, "value":string, "change"?:string, "trend"?:"up"|"down"|"neutral", "description"?:string }
+5. stat-card — ONE KPI. "label" is FRAMEWORK; its value is CONTENT.
+   { "type":"stat-card", "label":string, "trend"?:"up"|"down"|"neutral", "hint":string }
 
-6. stat-card-group — a row of KPIs.
-   { "type":"stat-card-group", "items":[{ "label":string, "value":string, "change"?:string, "trend"?:"up"|"down"|"neutral", "description"?:string }] }
+6. stat-card-group — a row of KPIs. Each item "label" is FRAMEWORK; the values are CONTENT.
+   { "type":"stat-card-group", "items":[{ "label":string, "trend"?:"up"|"down"|"neutral" }], "hint":string }
 
-7. table — tabular data. Every row's length MUST equal headers' length.
-   { "type":"table", "title"?:string, "headers":string[], "rows":string[][] }
+7. table — "headers" are FRAMEWORK; the rows are CONTENT (do NOT emit rows).
+   { "type":"table", "title"?:string, "headers":string[], "hint":string }
 
-8. comparison-matrix — compare options across dimensions. "items" are the compared
-   objects (columns); each criterion's "values" align 1:1 with "items".
-   { "type":"comparison-matrix", "title"?:string, "items":string[], "criteria":[{ "name":string, "values":string[] }] }
+8. comparison-matrix — "items" (the compared objects / column heads) are FRAMEWORK; the
+   per-criterion values are CONTENT (do NOT emit criteria).
+   { "type":"comparison-matrix", "title"?:string, "items":string[], "hint":string }
 
-9. timeline — chronological events / phases.
-   { "type":"timeline", "title"?:string, "items":[{ "date":string, "title":string, "description"?:string }] }
+9. timeline — each entry "date" is FRAMEWORK; its title/description are CONTENT.
+   { "type":"timeline", "title"?:string, "items":[{ "date":string }], "hint":string }
 
-10. chart — a data visualization. "chartType" decides the required shape keys. Each row in
-    "data" is an object; its keys MUST match the keys you declare. "data" values are numbers.
-    chartType "bar" | "line" | "area" (cartesian):
-      { "type":"chart","chartType":"bar","title"?:string,"xAxisKey":string,"yAxisLabel"?:string,
-        "series":[{ "dataKey":string,"name"?:string }],
-        "data":[{ [xAxisKey]:string, [series.dataKey]:number, ... }] }
-    chartType "pie" | "donut" | "funnel" (proportion):
-      { "type":"chart","chartType":"pie","nameKey":string,"valueKey":string,
-        "data":[{ [nameKey]:string, [valueKey]:number }] }
-    chartType "radar": one data row per dimension; radarKeys[0] is the field naming the dimension:
+10. chart — "chartType" + shape keys are FRAMEWORK; the data is CONTENT (do NOT emit "data").
+    The shape keys NAME the data fields (they are not themselves data). "chartType" decides them:
+    bar | line | area:
+      { "type":"chart","chartType":"bar","title"?:string,"xAxisKey":string,
+        "series":[{ "dataKey":string,"name"?:string }],"hint":string }
+    pie | donut | funnel:
+      { "type":"chart","chartType":"pie","nameKey":string,"valueKey":string,"hint":string }
+    radar:
       { "type":"chart","chartType":"radar","radarKeys":[string],
-        "series":[{ "dataKey":string,"name"?:string }],
-        "data":[{ [radarKeys[0]]:string, [series.dataKey]:number, ... }] }
-    chartType "scatter": each series reads xKey/yKey from the same data rows:
+        "series":[{ "dataKey":string,"name"?:string }],"hint":string }
+    scatter:
       { "type":"chart","chartType":"scatter",
-        "series":[{ "dataKey":string,"xKey":string,"yKey":string,"name"?:string }],
-        "data":[{ [xKey]:number, [yKey]:number }] }`
+        "series":[{ "dataKey":string,"xKey":string,"yKey":string,"name"?:string }],"hint":string }
 
-/** 一份紧凑的「文本 → 骨架」few-shot 样例(依从性的最大杠杆)。 */
+RULES:
+- Reconstruct the full structure: every section and block the report implies, in order.
+- Prefer common, flexible components (paragraph, list, table, bar/line chart, stat-card-group).
+  Pick a sensible default; do NOT rigidly commit to a niche type — note the alternatives in "hint".
+- Emit a chart/table/stat/comparison/timeline whenever the source describes that KIND of content,
+  even though you are NOT writing the numbers — the template captures the intent of each block.
+- Do NOT invent framework the source does not support; keep titles/labels/headers faithful.
+- Write all framework text and hints in the SAME LANGUAGE as the source report.
+- Output ONE JSON object and nothing else: no markdown code fences, no comments, no prose.`
+
+/** 一份紧凑的「文本 → 模板」few-shot 样例(依从性的最大杠杆)。 */
 export const FEW_SHOT_EXAMPLE = `{
-  "title": "2024 Annual Performance Review",
-  "subtitle": "Revenue, growth and outlook",
+  "title": "Quarterly Business Review",
+  "subtitle": "A reusable template",
   "sections": [
     {
+      "title": "Executive Summary",
       "layout": "full",
+      "annotation": "High-level recap of the quarter's performance.",
       "blocks": [
-        { "type": "heading", "level": 2, "content": "Executive Summary" },
-        { "type": "paragraph", "content": "Revenue grew steadily through 2024, driven by the **enterprise** segment." },
-        { "type": "stat-card-group", "items": [
-          { "label": "Total Revenue", "value": "$12.4M", "change": "+18%", "trend": "up" },
-          { "label": "Active Customers", "value": "3,210", "change": "+9%", "trend": "up" },
-          { "label": "Churn", "value": "2.1%", "change": "-0.4%", "trend": "down" }
-        ] },
+        { "type": "paragraph", "hint": "Two or three sentences on overall performance and the main driver." },
+        { "type": "stat-card-group",
+          "items": [{ "label": "Total Revenue" }, { "label": "Active Customers" }, { "label": "Churn" }],
+          "hint": "The current value and period-over-period change for each KPI." },
         { "type": "callout", "variant": "insight", "title": "Key insight",
-          "content": "Enterprise deals now account for 62% of revenue." }
+          "hint": "The single most important takeaway of the quarter." }
       ]
     },
     {
+      "title": "Revenue Trend",
       "layout": "full",
       "blocks": [
-        { "type": "heading", "level": 2, "content": "Quarterly Revenue" },
         { "type": "chart", "chartType": "bar", "title": "Revenue by quarter",
-          "xAxisKey": "quarter", "series": [{ "dataKey": "revenue", "name": "Revenue ($M)" }],
-          "data": [
-            { "quarter": "Q1", "revenue": 2.6 },
-            { "quarter": "Q2", "revenue": 3.0 },
-            { "quarter": "Q3", "revenue": 3.2 },
-            { "quarter": "Q4", "revenue": 3.6 }
-          ] }
+          "xAxisKey": "quarter", "series": [{ "dataKey": "revenue", "name": "Revenue" }],
+          "hint": "Revenue for each quarter of the reporting period." }
       ]
     }
+  ]
+}`
+
+/** 大纲调用的 JSON 契约(只列分节,不含块)。 */
+export const OUTLINE_CONTRACT = `OUTPUT — a single JSON object, the section OUTLINE only:
+{
+  "title": string,                 // report title
+  "sections": [                    // ordered, one entry per logical top-level section
+    {
+      "title": string,             // short section title (from the report)
+      "layout": "full" | "two-column" | "three-column" | "sidebar-left" | "sidebar-right",
+      "intent": string             // one line: what this section covers / its purpose
+    }
+  ]
+}
+Default "layout" to "full" unless the section clearly has parallel ("two-column"/"three-column")
+or primary+supporting ("sidebar-*") content. Do NOT include content blocks — only the section list.`
+
+/** 单节 few-shot:产出 {blocks:[...]},组件柔性、hint 写「内容范围 + 候选组件」。 */
+export const FEW_SHOT_SECTION = `{
+  "blocks": [
+    { "type": "paragraph", "hint": "Opening narrative of this section: scale and positioning; a prose paragraph." },
+    { "type": "chart", "chartType": "line", "title": "Enrollment trend",
+      "xAxisKey": "year", "series": [{ "dataKey": "students", "name": "Students" }],
+      "hint": "Five-year enrollment numbers; a line or bar chart, or a table, all work." },
+    { "type": "table", "title": "Enrollment by level", "headers": ["Level", "Count", "Share"],
+      "hint": "Per-level breakdown; a table fits, or a pie/donut if a chart is preferred." }
   ]
 }`
