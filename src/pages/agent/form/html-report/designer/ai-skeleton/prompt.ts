@@ -81,6 +81,42 @@ export function buildSectionMessages(
 }
 
 // ============================================================
+// 生成区:作者给 brief → 该区域的块(运行时展开,严格遵循作者的组件编排)
+// ============================================================
+const REGION_SYSTEM = `You are a report-TEMPLATE engine building ONE region of a report, guided by the
+AUTHOR'S OWN INSTRUCTION for that region. The author tells you (1) which part of the report this region
+should cover and (2) which components to use — how many, of what kind, in what order. FOLLOW the
+author's component instruction precisely: honor the requested kinds, counts, and ordering. When the
+author is vague (e.g. "three charts, you pick the type"), choose sensible common types yourself.
+
+Principles:
+- FRAMEWORK fields are real (titles, table headers, chart axis/series field names, stat labels,
+  list/section structure). CONTENT is NOT written out — describe it in each block's "hint".
+- Each "hint" says, in the source language, which part of the report this block covers / visualizes.
+- Build ONLY this region's blocks. Output ONE JSON object {"blocks":[...]} and nothing else.
+
+${SKELETON_CONTRACT}
+
+EXAMPLE blocks (illustration only — produce blocks from the user's actual report + instruction):
+${FEW_SHOT_SECTION}`
+
+export function buildRegionMessages(
+  reportText: string,
+  region: { sectionTitle?: string; brief: string },
+): ChatMessage[] {
+  const where = region.sectionTitle
+    ? ` This region sits in the section titled "${region.sectionTitle}".`
+    : ''
+  return [
+    { role: 'system', content: REGION_SYSTEM },
+    {
+      role: 'user',
+      content: `Author's instruction for this region:\n${region.brief.trim() || '(no instruction — infer a sensible region from the report)'}\n\nBuild ONLY this region's blocks from the report below, following the instruction above.${where} Output {"blocks":[...]} only.\n\n---\n${reportText.trim()}`,
+    },
+  ]
+}
+
+// ============================================================
 // 回退:大纲失败时,单次整篇生成
 // ============================================================
 const SYSTEM_PROMPT = `You are a report-TEMPLATE engine. Given one complete report written in plain

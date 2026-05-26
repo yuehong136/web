@@ -14,6 +14,7 @@ import {
   InspectorField,
   InspectorHeading,
 } from './field-editors/field-primitives'
+import { OpenRegionFields } from './field-editors/open-region-fields'
 import { ReportFields } from './field-editors/report-fields'
 import { SectionFields } from './field-editors/section-fields'
 import type { DraftAction, DraftState } from './use-skeleton-draft'
@@ -48,6 +49,18 @@ export function Inspector({ state, dispatch }: InspectorProps) {
         />
       )
     const label = blockDisplayLabel(block)
+    if (block.type === 'open-region') {
+      return (
+        <div className="space-y-space-md p-space-base">
+          <InspectorHeading text={t(label.labelKey, label.fallback)} />
+          <OpenRegionFields
+            block={block}
+            sectionId={selection.sectionId}
+            dispatch={dispatch}
+          />
+        </div>
+      )
+    }
     return (
       <div className="space-y-space-md p-space-base">
         <InspectorHeading text={t(label.labelKey, label.fallback)} />

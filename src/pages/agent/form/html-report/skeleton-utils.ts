@@ -10,6 +10,7 @@
  *   'series[1].dataKey'      嵌套数组
  *   'data'                   chart 的整段数据数组(作为一个 llm directive)
  */
+import { isOpenRegion } from './types'
 import type {
   Block,
   BlockData,
@@ -141,6 +142,8 @@ export function collectPendingFills(skeleton: SkeletonSchema): PendingFill[] {
   const fills: PendingFill[] = []
   for (const section of skeleton.sections) {
     for (const block of section.blocks) {
+      // 生成区无填充槽,运行前已被展开
+      if (isOpenRegion(block)) continue
       for (const [path, directive] of Object.entries(
         block.fieldDirectives ?? {},
       )) {
@@ -193,9 +196,10 @@ export function mergeSkeleton(
       title: section.title,
       subtitle: section.subtitle,
       layout: section.layout,
-      blocks: section.blocks.map((block) =>
-        mergeBlock(block, filledByBlock[block.id] ?? {}),
-      ),
+      // 生成区运行前必被展开;此处过滤是防漏保险,避免占位块渲染成畸形块。
+      blocks: section.blocks
+        .filter((block) => !isOpenRegion(block))
+        .map((block) => mergeBlock(block, filledByBlock[block.id] ?? {})),
     })),
   }
 }
@@ -204,6 +208,8 @@ export interface SkeletonSummary {
   sections: number
   blocks: number
   charts: number
+  /** 生成区(运行时由模型展开)的数量 */
+  openRegions: number
   pending: number
 }
 
@@ -211,16 +217,19 @@ export interface SkeletonSummary {
 export function summarizeSkeleton(skeleton: SkeletonSchema): SkeletonSummary {
   let blocks = 0
   let charts = 0
+  let openRegions = 0
   for (const section of skeleton.sections) {
     blocks += section.blocks.length
     for (const block of section.blocks) {
       if (block.type === 'chart') charts += 1
+      else if (isOpenRegion(block)) openRegions += 1
     }
   }
   return {
     sections: skeleton.sections.length,
     blocks,
     charts,
+    openRegions,
     pending: collectPendingFills(skeleton).length,
   }
 }

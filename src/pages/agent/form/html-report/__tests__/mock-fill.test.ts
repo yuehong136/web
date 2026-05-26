@@ -120,6 +120,31 @@ test('chart with no directive and empty data still gets mock rows (no empty char
   assert.ok('value' in data[0])
 })
 
+test('open-region is substituted by a callout placeholder in preview (no malformed block)', () => {
+  const skeleton: SkeletonSchema = {
+    title: 'T',
+    sections: [
+      {
+        id: 's',
+        layout: 'full',
+        blocks: [
+          {
+            id: 'open',
+            type: 'open-region',
+            annotation: 'First a paragraph, then a pie chart',
+          },
+        ],
+      },
+    ],
+  }
+  const schema = buildPreviewSchema(skeleton)
+  const block = firstBlock(schema.sections)
+  // 替身是合法 callout(非 open-region),brief 进正文,渲染不抛
+  assert.equal(block.type, 'callout')
+  assert.ok(String(block.content).includes('First a paragraph'))
+  assert.ok(buildReportHtml(schema).includes('<html'))
+})
+
 test('preview schema renders to a chart-bearing document with parseable specs', () => {
   const skeleton: SkeletonSchema = {
     title: 'Preview',

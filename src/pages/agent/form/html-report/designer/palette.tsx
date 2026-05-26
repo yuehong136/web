@@ -3,7 +3,7 @@
  * 布局项点击新增一个该布局的小节。
  */
 import { useDraggable } from '@dnd-kit/core'
-import { BarChart3, LayoutGrid, Table2, Type } from 'lucide-react'
+import { BarChart3, LayoutGrid, Sparkles, Table2, Type } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import type { PaletteDragData } from './dnd'
@@ -111,6 +111,15 @@ const CHART_BLOCKS: BlockItem[] = [
     chartType: 'scatter',
     labelKey: 'flow.htmlReportChartScatter',
     fallback: 'Scatter',
+  },
+]
+
+// 生成区:不预设组件,由模型在运行时按 brief 生成(柔性、提示词驱动)。
+const GENERATIVE_BLOCKS: BlockItem[] = [
+  {
+    blockType: 'open-region',
+    labelKey: 'flow.htmlReportBlockOpenRegion',
+    fallback: 'Generative region',
   },
 ]
 
@@ -236,6 +245,19 @@ export function Palette({ onAddBlock, onAddSection }: PaletteProps) {
             key={item.chartType}
             item={item}
             onAdd={() => onAddBlock('chart', item.chartType)}
+          />
+        ))}
+      </PaletteGroup>
+
+      <PaletteGroup
+        icon={<Sparkles className="size-icon-sm" />}
+        title={t('flow.htmlReportGroupGenerative', 'Generative')}
+      >
+        {GENERATIVE_BLOCKS.map((item) => (
+          <PaletteChip
+            key={item.blockType}
+            item={item}
+            onAdd={() => onAddBlock(item.blockType)}
           />
         ))}
       </PaletteGroup>

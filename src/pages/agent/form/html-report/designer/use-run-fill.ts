@@ -14,12 +14,15 @@ import {
 import type { ChatMessage } from '../prompt-builder'
 import { fillSkeleton } from '../schema-fill'
 import type { ReportSchema, SkeletonSchema } from '../types'
+import { expandOpenRegions } from './ai-skeleton/expand-regions'
 
 const ENDPOINT = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/v1/llm/enhanced_chat_sse`
 
 export type RunStatus = 'idle' | 'running' | 'done' | 'error'
 
 export interface RunProgress {
+  /** 当前阶段:先展开生成区,再逐节填值 */
+  phase: 'expand' | 'fill'
   current: number
   total: number
 }
@@ -33,7 +36,7 @@ export interface RunFillArgs {
   resolveRef: (ref: string) => unknown
 }
 
-const INITIAL_PROGRESS: RunProgress = { current: 0, total: 0 }
+const INITIAL_PROGRESS: RunProgress = { phase: 'expand', current: 0, total: 0 }
 
 export function useRunFill() {
   const [status, setStatus] = useState<RunStatus>('idle')
@@ -41,6 +44,8 @@ export function useRunFill() {
   const [result, setResult] = useState<ReportSchema | null>(null)
   /** 解析失败、被跳过的节数(部分成功时给用户的告警) */
   const [failedSections, setFailedSections] = useState(0)
+  /** 展开失败、被剔除的生成区数 */
+  const [failedRegions, setFailedRegions] = useState(0)
   const parserRef = useRef<EnhancedSSEParser | null>(null)
 
   const teardown = useCallback(() => {
@@ -67,6 +72,7 @@ export function useRunFill() {
       setProgress(INITIAL_PROGRESS)
       setResult(null)
       setFailedSections(0)
+      setFailedRegions(0)
 
       // 逐节调用:schema-fill 顺序 await,故复用同一 parser;取消时抛出让本节失败、
       // 后续节也立即失败,最终 live() 守卫丢弃整轮结果。
@@ -94,21 +100,32 @@ export function useRunFill() {
       }
 
       try {
-        const res = await fillSkeleton(skeleton, {
+        // ① 展开生成区(若有)→ 无生成区的骨架;② 再逐节填值。两段复用同一 callLLM。
+        const expanded = await expandOpenRegions(skeleton, {
+          sourceText,
+          callLLM,
+          onProgress: (current, total) => {
+            if (live()) setProgress({ phase: 'expand', current, total })
+          },
+        })
+        if (!live()) return
+        setFailedRegions(expanded.errors.length)
+
+        const res = await fillSkeleton(expanded.skeleton, {
           sourceText,
           resolveRef,
           callLLM,
           onProgress: (current, total) => {
-            if (live()) setProgress({ current, total })
+            if (live()) setProgress({ phase: 'fill', current, total })
           },
         })
         if (!live()) return
         setResult(res.schema)
         setFailedSections(res.errors.length)
-        // 需调模型的节全军覆没 → 视为失败;否则完成(可能带部分告警)
-        setStatus(
-          res.llmSections > 0 && res.okSections === 0 ? 'error' : 'done',
-        )
+        // 需调模型的工作(展开 + 填值)全军覆没 → 视为失败;否则完成(可能带部分告警)
+        const modelWork = expanded.openRegions + res.llmSections
+        const modelOk = expanded.okRegions + res.okSections
+        setStatus(modelWork > 0 && modelOk === 0 ? 'error' : 'done')
       } catch {
         if (live()) setStatus('error')
       } finally {
@@ -118,7 +135,15 @@ export function useRunFill() {
     [teardown],
   )
 
-  return { run, cancel, status, progress, result, failedSections }
+  return {
+    run,
+    cancel,
+    status,
+    progress,
+    result,
+    failedSections,
+    failedRegions,
+  }
 }
 
 function buildRequest(messages: ChatMessage[], llmName: string) {

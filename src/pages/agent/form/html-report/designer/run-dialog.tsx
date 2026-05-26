@@ -31,7 +31,15 @@ export function RunDialog({ open, skeleton, onClose }: RunDialogProps) {
   const [model, setModel] = useState('')
   const [text, setText] = useState('')
   const [samples, setSamples] = useState<Record<string, string>>({})
-  const { run, cancel, status, progress, result, failedSections } = useRunFill()
+  const {
+    run,
+    cancel,
+    status,
+    progress,
+    result,
+    failedSections,
+    failedRegions,
+  } = useRunFill()
   const busy = status === 'running'
   const showResult = status === 'done' && result !== null
 
@@ -205,13 +213,21 @@ export function RunDialog({ open, skeleton, onClose }: RunDialogProps) {
               >
                 <Loader2 className="size-icon-sm animate-spin" />
                 <span>
-                  {progress.total > 0
-                    ? t('flow.htmlReportRunProgress', {
-                        current: progress.current,
-                        total: progress.total,
-                        defaultValue: 'Filling section {{current}}/{{total}}…',
-                      })
-                    : t('flow.htmlReportRunStarting', 'Starting…')}
+                  {progress.total === 0
+                    ? t('flow.htmlReportRunStarting', 'Starting…')
+                    : progress.phase === 'expand'
+                      ? t('flow.htmlReportRunExpanding', {
+                          current: progress.current,
+                          total: progress.total,
+                          defaultValue:
+                            'Expanding generative region {{current}}/{{total}}…',
+                        })
+                      : t('flow.htmlReportRunProgress', {
+                          current: progress.current,
+                          total: progress.total,
+                          defaultValue:
+                            'Filling section {{current}}/{{total}}…',
+                        })}
                 </span>
               </div>
             )}
@@ -225,13 +241,26 @@ export function RunDialog({ open, skeleton, onClose }: RunDialogProps) {
         )}
 
         <div className="gap-space-sm px-space-lg py-space-base flex shrink-0 items-center justify-end border-t border-border-subtle">
-          {showResult && failedSections > 0 && (
-            <span className="mr-auto text-xs text-status-warning">
-              {t('flow.htmlReportRunPartial', {
-                count: failedSections,
-                defaultValue: '{{count}} section(s) could not be filled',
-              })}
-            </span>
+          {showResult && (failedRegions > 0 || failedSections > 0) && (
+            <div className="space-y-space-2xs mr-auto text-xs text-status-warning">
+              {failedRegions > 0 && (
+                <p>
+                  {t('flow.htmlReportRunRegionFailed', {
+                    count: failedRegions,
+                    defaultValue:
+                      '{{count}} generative region(s) could not be expanded',
+                  })}
+                </p>
+              )}
+              {failedSections > 0 && (
+                <p>
+                  {t('flow.htmlReportRunPartial', {
+                    count: failedSections,
+                    defaultValue: '{{count}} section(s) could not be filled',
+                  })}
+                </p>
+              )}
+            </div>
           )}
           {busy ? (
             <Button variant="outline" size="sm" onClick={cancel}>

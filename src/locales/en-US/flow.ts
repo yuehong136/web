@@ -567,9 +567,13 @@ export default {
       'Paste sample upstream text the model should fill from…',
     htmlReportRunVariables: 'Sample variable values',
     htmlReportRunProgress: 'Filling section {{current}}/{{total}}…',
+    htmlReportRunExpanding:
+      'Expanding generative region {{current}}/{{total}}…',
     htmlReportRunStarting: 'Starting…',
     htmlReportRunError: 'Trial run failed',
     htmlReportRunPartial: '{{count}} section(s) could not be filled',
+    htmlReportRunRegionFailed:
+      '{{count}} generative region(s) could not be expanded',
     htmlReportRunResult: 'Trial run result',
     htmlReportRunBack: 'Back to inputs',
     htmlReportRunRunning: 'Running…',
@@ -581,6 +585,7 @@ export default {
     htmlReportGroupData: 'Data',
     htmlReportGroupChart: 'Chart',
     htmlReportGroupLayout: 'Layout',
+    htmlReportGroupGenerative: 'Generative',
     htmlReportBlockHeading: 'Heading',
     htmlReportBlockParagraph: 'Paragraph',
     htmlReportBlockCallout: 'Callout',
@@ -591,6 +596,12 @@ export default {
     htmlReportBlockComparison: 'Comparison',
     htmlReportBlockTimeline: 'Timeline',
     htmlReportBlockChart: 'Chart',
+    htmlReportBlockOpenRegion: 'Generative region',
+    htmlReportOpenRegionBrief: 'Generation brief',
+    htmlReportOpenRegionBriefPlaceholder:
+      'Describe what this area covers and which components to use…',
+    htmlReportOpenRegionHelp:
+      'The model builds this region at run time from your brief — e.g. "Three charts, you pick the type" or "First a paragraph, then a pie chart".',
     htmlReportChartBar: 'Bar',
     htmlReportChartLine: 'Line',
     htmlReportChartArea: 'Area',

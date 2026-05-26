@@ -1,12 +1,12 @@
 /** 画布里的单个块芯片:可排序拖拽(grip 把手)、选中高亮、删除、sidebar 下切换 role。 */
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { GripVertical, Trash2 } from 'lucide-react'
+import { GripVertical, Sparkles, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { blockDisplayLabel } from './block-meta'
 import type { BlockDragData } from './dnd'
-import type { BlockRole, SkeletonBlock } from '../types'
+import { isOpenRegion, type BlockRole, type SkeletonBlock } from '../types'
 
 interface CanvasBlockChipProps {
   block: SkeletonBlock
@@ -31,6 +31,7 @@ export function CanvasBlockChip({
 }: CanvasBlockChipProps) {
   const { t } = useTranslation()
   const label = blockDisplayLabel(block)
+  const generative = isOpenRegion(block)
   const data: BlockDragData = {
     source: 'block',
     sectionId,
@@ -57,7 +58,10 @@ export function CanvasBlockChip({
       ref={setNodeRef}
       style={style}
       className={cn(
-        'gap-space-xs rounded-radius-md bg-surface-primary px-space-xs py-space-xs flex items-center border',
+        'gap-space-xs rounded-radius-md px-space-xs py-space-xs flex items-center border',
+        generative
+          ? 'bg-surface-secondary border-dashed'
+          : 'bg-surface-primary',
         selected
           ? 'border-border-focus ring-1 ring-state-focus'
           : 'border-border-default',
@@ -77,9 +81,12 @@ export function CanvasBlockChip({
       <button
         type="button"
         onClick={onSelect}
-        className="flex-1 truncate text-left text-xs text-text-primary"
+        className="gap-space-2xs flex flex-1 items-center truncate text-left text-xs text-text-primary"
       >
-        {t(label.labelKey, label.fallback)}
+        {generative && (
+          <Sparkles className="size-icon-sm text-text-caption shrink-0" />
+        )}
+        <span className="truncate">{t(label.labelKey, label.fallback)}</span>
       </button>
 
       {isSidebar && (

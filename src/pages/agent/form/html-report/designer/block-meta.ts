@@ -60,6 +60,10 @@ export const BLOCK_LABEL: Record<BlockKind, Label> = {
   },
   timeline: { labelKey: 'flow.htmlReportBlockTimeline', fallback: 'Timeline' },
   chart: { labelKey: 'flow.htmlReportBlockChart', fallback: 'Chart' },
+  'open-region': {
+    labelKey: 'flow.htmlReportBlockOpenRegion',
+    fallback: 'Generative region',
+  },
 }
 
 /**

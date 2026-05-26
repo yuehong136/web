@@ -50,6 +50,8 @@ const DEFAULT_FIELDS: Record<BlockKind, () => Fields> = {
     ({ type: 'comparison-matrix', items: ['', ''], criteria: [] }) as Fields,
   timeline: () => ({ type: 'timeline', items: [] }) as Fields,
   chart: () => buildChartFields('bar'),
+  // 生成区无固定字段:brief 存于 block.annotation,运行时由模型展开成真块。
+  'open-region': () => ({}) as Fields,
 }
 
 /** 默认就交给模型填的"整段数据"字段路径(其余字段默认 static) */

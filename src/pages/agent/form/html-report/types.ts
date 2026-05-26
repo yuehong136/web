@@ -265,7 +265,10 @@ export interface SkeletonBlock {
    * 字段路径用点/方括号寻址，如 'value' / 'items[0].value' / 'data'。
    */
   fieldDirectives?: Record<string, FieldDirective>
-  /** Block 级语义注解，拼进 prompt，作用于该 Block 内所有 llm 字段 */
+  /**
+   * Block 级语义注解，拼进 prompt，作用于该 Block 内所有 llm 字段。
+   * 对生成区(type==='open-region')而言，此字段即它的 brief（描述这块讲什么 + 用什么组件）。
+   */
   annotation?: string
 }
 
@@ -279,5 +282,20 @@ export interface FieldDirective {
 
 export type FieldMode = 'static' | 'variable' | 'llm'
 
-/** Block 的 `type` 取值集合（即判别联合里所有 `type` 字面量） */
-export type BlockKind = Block['type']
+/**
+ * Block 的 `type` 取值集合（判别联合里所有 `type` 字面量）+ `'open-region'`。
+ *
+ * `'open-region'`（生成区）是**设计时占位**:用户只摆位置 + 写 brief(存于
+ * `SkeletonBlock.annotation`),由模型在运行时按 brief 展开成真块。它只活在
+ * {@link SkeletonSchema},运行前必被 `expandOpenRegions` 展开、预览时必被替身,
+ * 绝不进 {@link ReportSchema}/渲染器(故不在 {@link Block} 联合里)。
+ */
+export type BlockKind = Block['type'] | 'open-region'
+
+/** 生成区占位块的 type 字面量。 */
+export const OPEN_REGION = 'open-region'
+
+/** 是否为生成区占位块。 */
+export function isOpenRegion(block: SkeletonBlock): boolean {
+  return block.type === OPEN_REGION
+}

@@ -144,11 +144,12 @@ test('collectPendingFills gathers only non-static directives', () => {
   ])
 })
 
-test('summarizeSkeleton counts sections/blocks/charts/pending', () => {
+test('summarizeSkeleton counts sections/blocks/charts/openRegions/pending', () => {
   assert.deepEqual(summarizeSkeleton(sampleSkeleton()), {
     sections: 1,
     blocks: 3,
     charts: 1,
+    openRegions: 0,
     pending: 2,
   })
 })

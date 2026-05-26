@@ -7,7 +7,9 @@
  * 与本文件共用 {@link mergeSkeleton}。
  */
 import { chartRowKeys, mergeSkeleton } from './skeleton-utils'
+import { isOpenRegion } from './types'
 import type {
+  BlockData,
   ChartBlock,
   ChartDatum,
   ComparisonCriterion,
@@ -21,10 +23,43 @@ import type {
 
 const PREVIEW_ROW_COUNT = 5
 
+// 预览替身文案:刻意用中性英文(同本文件其余占位),非产品 UI 文案。生成区的真展开走运行时。
+const OPEN_REGION_PREVIEW =
+  'Generative region — the model builds this at run time.'
+
+/** 生成区在无模型预览里换成一个 callout 替身(展示 brief),避免产出畸形块。 */
+function previewBlock(block: SkeletonBlock): SkeletonBlock {
+  if (!isOpenRegion(block)) return block
+  const brief = block.annotation?.trim()
+  const next: SkeletonBlock = {
+    id: block.id,
+    type: 'callout',
+    fields: {
+      type: 'callout',
+      variant: 'info',
+      title: 'Generative region',
+      content: brief
+        ? `${OPEN_REGION_PREVIEW}\n\n${brief}`
+        : OPEN_REGION_PREVIEW,
+    } as Partial<BlockData>,
+  }
+  if (block.role) next.role = block.role
+  return next
+}
+
 export function buildPreviewSchema(skeleton: SkeletonSchema): ReportSchema {
   const filledByBlock: Record<string, Record<string, unknown>> = {}
 
-  for (const section of skeleton.sections) {
+  // 先把生成区替换为 callout 替身;此后循环里不会再见到 open-region。
+  const preview: SkeletonSchema = {
+    ...skeleton,
+    sections: skeleton.sections.map((section) => ({
+      ...section,
+      blocks: section.blocks.map(previewBlock),
+    })),
+  }
+
+  for (const section of preview.sections) {
     for (const block of section.blocks) {
       const fills: Record<string, unknown> = {}
       for (const [path, directive] of Object.entries(
@@ -45,7 +80,7 @@ export function buildPreviewSchema(skeleton: SkeletonSchema): ReportSchema {
     }
   }
 
-  return mergeSkeleton(skeleton, filledByBlock)
+  return mergeSkeleton(preview, filledByBlock)
 }
 
 function mockValue(

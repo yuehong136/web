@@ -195,6 +195,8 @@ export const BLOCK_FIELDS: Record<BlockKind, FieldDescriptor[]> = {
   'comparison-matrix': [TITLE_FIELD],
   timeline: [TITLE_FIELD],
   chart: [],
+  // 生成区无标量叶子:Inspector 走专属 OpenRegionFields(brief 编辑),不经 BlockFields。
+  'open-region': [],
 }
 
 // ============================================================
