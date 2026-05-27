@@ -28,11 +28,7 @@ import { RetrievalFrom, initialRetrievalValues } from '../../constant'
 import { useFormValues } from '../../hooks/use-form-values'
 import { useWatchFormChange } from '../../hooks/use-watch-form-change'
 import type { INextOperatorForm } from '../../types'
-import {
-  FormWrapper,
-  Output,
-  buildOutputList,
-} from '../components'
+import { FormWrapper, Output, buildOutputList } from '../components'
 import { KnowledgeBaseSelectField } from '../components/knowledge-base-select-field'
 import { LLMSelectField } from '../components/llm-select-field'
 import { MetadataFilter } from '../components/metadata-filter'
@@ -97,7 +93,10 @@ export function RetrievalForm({ node }: INextOperatorForm) {
 
   const isMemoryMode = retrievalFrom === RetrievalFrom.Memory
 
-  const outputs = useMemo(() => buildOutputList(form.getValues('outputs')), [form])
+  const outputs = useMemo(
+    () => buildOutputList(form.getValues('outputs')),
+    [form],
+  )
 
   return (
     <Form {...form}>
@@ -128,17 +127,17 @@ export function RetrievalForm({ node }: INextOperatorForm) {
               <FormLabel>{t('flow.retrievalFrom', 'Retrieval From')}</FormLabel>
               <FormControl>
                 <RadioGroup
-                  className="grid grid-cols-2 gap-space-sm"
+                  className="gap-space-sm grid grid-cols-2"
                   value={field.value ?? RetrievalFrom.Dataset}
                   onValueChange={field.onChange}
                 >
-                  <label className="flex items-center gap-space-sm rounded-radius-md border border-border-default px-space-sm py-space-sm">
+                  <label className="gap-space-sm rounded-radius-md px-space-sm py-space-sm flex items-center border border-border-default">
                     <RadioGroupItem value={RetrievalFrom.Dataset} />
-                    <span>{t('knowledgeDetails.dataset', 'Dataset')}</span>
+                    <span>{t('flow.dataset', 'Dataset')}</span>
                   </label>
-                  <label className="flex items-center gap-space-sm rounded-radius-md border border-border-default px-space-sm py-space-sm">
+                  <label className="gap-space-sm rounded-radius-md px-space-sm py-space-sm flex items-center border border-border-default">
                     <RadioGroupItem value={RetrievalFrom.Memory} />
-                    <span>{t('header.memories', 'Memories')}</span>
+                    <span>{t('flow.memories', 'Memories')}</span>
                   </label>
                 </RadioGroup>
               </FormControl>
@@ -168,7 +167,7 @@ export function RetrievalForm({ node }: INextOperatorForm) {
         )}
 
         <Collapsible defaultOpen>
-          <CollapsibleTrigger className="flex items-center gap-space-xs text-sm font-medium text-text-primary">
+          <CollapsibleTrigger className="gap-space-xs flex items-center text-sm font-medium text-text-primary">
             <ChevronDown className="size-4" />
             {t('flow.advancedSettings', 'Advanced Settings')}
           </CollapsibleTrigger>
@@ -228,7 +227,7 @@ export function RetrievalForm({ node }: INextOperatorForm) {
               )}
             />
 
-            <div className="grid gap-space-md md:grid-cols-2">
+            <div className="gap-space-md grid md:grid-cols-2">
               <FormField
                 control={form.control}
                 name="top_n"
@@ -304,7 +303,7 @@ export function RetrievalForm({ node }: INextOperatorForm) {
                   control={form.control}
                   name="use_kg"
                   render={({ field }) => (
-                    <FormItem className="flex items-center justify-between rounded-radius-md border border-border-default px-space-sm py-space-sm">
+                    <FormItem className="rounded-radius-md px-space-sm py-space-sm flex items-center justify-between border border-border-default">
                       <FormLabel>
                         {t('flow.useKnowledgeGraph', 'Use Knowledge Graph')}
                       </FormLabel>
@@ -322,7 +321,7 @@ export function RetrievalForm({ node }: INextOperatorForm) {
                   control={form.control}
                   name="toc_enhance"
                   render={({ field }) => (
-                    <FormItem className="flex items-center justify-between rounded-radius-md border border-border-default px-space-sm py-space-sm">
+                    <FormItem className="rounded-radius-md px-space-sm py-space-sm flex items-center justify-between border border-border-default">
                       <FormLabel>
                         {t('flow.tocEnhance', 'TOC Enhance')}
                       </FormLabel>

@@ -34,7 +34,7 @@ export function MemorySelectField({
       name={name}
       render={({ field }) => (
         <FormItem>
-          <FormLabel>{label || t('header.memories', 'Memories')}</FormLabel>
+          <FormLabel>{label || t('flow.memories', 'Memories')}</FormLabel>
           <FormControl>
             <MultiSelectWithSearch
               options={options}

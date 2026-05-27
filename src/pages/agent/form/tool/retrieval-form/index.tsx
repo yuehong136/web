@@ -96,11 +96,11 @@ function RetrievalToolFields() {
               >
                 <label className="gap-space-sm rounded-radius-md px-space-sm py-space-sm flex items-center border border-border-default">
                   <RadioGroupItem value={RetrievalFrom.Dataset} />
-                  <span>{t('knowledgeDetails.dataset', 'Dataset')}</span>
+                  <span>{t('flow.dataset', 'Dataset')}</span>
                 </label>
                 <label className="gap-space-sm rounded-radius-md px-space-sm py-space-sm flex items-center border border-border-default">
                   <RadioGroupItem value={RetrievalFrom.Memory} />
-                  <span>{t('header.memories', 'Memories')}</span>
+                  <span>{t('flow.memories', 'Memories')}</span>
                 </label>
               </RadioGroup>
             </FormControl>

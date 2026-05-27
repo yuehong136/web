@@ -198,6 +198,7 @@ export default {
     dataManipulation: 'Data manipulation',
     database: 'Database',
     datatype: 'Datatype',
+    dataset: 'Dataset',
     days: 'Days',
     dbType: 'Database type',
     debug: 'Debug',
@@ -267,6 +268,7 @@ export default {
     maximumLoopCount: 'Maximum loop count',
     mcpSelect: 'Select MCP servers',
     messageHistoryWindowSize: 'Message window size',
+    memories: 'Memories',
     messagePlaceholder:
       "Please enter your message content, use '/' to quickly insert variables.",
     metadataFilter: 'Metadata Filter',
