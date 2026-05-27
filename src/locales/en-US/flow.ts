@@ -559,6 +559,10 @@ export default {
     htmlReportSave: 'Save',
     htmlReportTryRun: 'Trial run',
     htmlReportTryRunSoon: 'Trial run is coming soon',
+    htmlReportImport: 'Import config',
+    htmlReportExport: 'Export config',
+    htmlReportImportOk: 'Report imported',
+    htmlReportImportError: 'Could not import: invalid report file',
     htmlReportRunTitle: 'Trial run',
     htmlReportRunDesc:
       'Fill the template with sample input to preview a real report.',

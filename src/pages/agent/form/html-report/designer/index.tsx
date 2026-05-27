@@ -34,6 +34,7 @@ import { AiSkeletonDialog } from './ai-skeleton/ai-skeleton-dialog'
 import { createDefaultBlock } from './block-defaults'
 import { Canvas } from './canvas'
 import { resolveDragEnd } from './dnd'
+import { ImportExportButtons } from './import-export-buttons'
 import { Inspector } from './inspector'
 import { Palette } from './palette'
 import { Preview } from './preview'
@@ -112,6 +113,10 @@ export function Designer({
       <SheetContent
         showCloseButton={false}
         className="inset-0 flex h-full w-full max-w-none flex-col gap-0 p-0 sm:max-w-none"
+        // 试运行打开时，ESC 交给 RunDialog 自己分层退出，别一键关掉整个 Designer
+        onEscapeKeyDown={(e) => {
+          if (runOpen) e.preventDefault()
+        }}
       >
         <SheetTitle className="sr-only">
           {t('flow.htmlReportDesignerTitle', 'Report designer')}
@@ -173,6 +178,10 @@ export function Designer({
             >
               {t('flow.htmlReportTryRun', 'Trial run')}
             </Button>
+            <ImportExportButtons
+              skeleton={state.present}
+              onImport={(skeleton) => dispatch({ type: 'reset', skeleton })}
+            />
             <Button
               variant="default"
               size="sm"

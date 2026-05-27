@@ -14,9 +14,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { useChatModelOptions } from '@/hooks/use-llm-request'
-import { ReportFrame } from '../report-frame'
 import type { SkeletonSchema } from '../types'
 import { ModelSelect } from './ai-skeleton/model-select'
+import { RunResult } from './run-result'
 import { useRunFill } from './use-run-fill'
 
 interface RunDialogProps {
@@ -74,7 +74,33 @@ export function RunDialog({ open, skeleton, onClose }: RunDialogProps) {
     }
   }, [status, t])
 
+  // ESC 分层退出(Designer 的 onEscapeKeyDown 已拦住 Sheet 关闭):成品→退回输入、
+  // 表单→关对话框、运行中→忽略(避免误取消在途的昂贵填值)。
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape' || busy) return
+      if (showResult) cancel()
+      else onClose()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [open, busy, showResult, cancel, onClose])
+
   if (!open) return null
+
+  // 成品:整屏覆盖呈现,报告全宽展示;ESC/返回退回输入而非销毁(见 RunResult)。
+  if (showResult) {
+    return (
+      <RunResult
+        schema={result}
+        failedRegions={failedRegions}
+        failedSections={failedSections}
+        onBack={cancel}
+        onClose={onClose}
+      />
+    )
+  }
 
   const handleRun = () => {
     if (!text.trim()) {
@@ -110,11 +136,7 @@ export function RunDialog({ open, skeleton, onClose }: RunDialogProps) {
         />
       )}
 
-      <div
-        className={`rounded-radius-lg shadow-elevation-high relative z-10 flex max-h-full w-full max-w-3xl flex-col overflow-hidden border border-border-default bg-background-surface ${
-          showResult ? 'h-[80vh]' : ''
-        }`}
-      >
+      <div className="rounded-radius-lg shadow-elevation-high relative z-10 flex max-h-full w-full max-w-3xl flex-col overflow-hidden border border-border-default bg-background-surface">
         <div className="px-space-lg pt-space-lg pb-space-sm shrink-0">
           <div className="gap-space-sm flex items-start justify-between">
             <h2 className="text-base font-semibold text-text-primary">
@@ -138,162 +160,125 @@ export function RunDialog({ open, skeleton, onClose }: RunDialogProps) {
           </p>
         </div>
 
-        {showResult ? (
-          <div className="min-h-0 flex-1">
-            <ReportFrame
-              schema={result}
-              title={t('flow.htmlReportRunResult', 'Trial run result')}
+        <div className="space-y-space-md px-space-lg pb-space-md min-h-0 flex-1 overflow-auto">
+          <div className="space-y-space-xs">
+            <Label className="text-xs text-text-secondary">
+              {t('flow.htmlReportAiModel', 'Model')}
+            </Label>
+            <ModelSelect
+              value={model}
+              options={options}
+              disabled={busy || isLoading || options.length === 0}
+              placeholder={t(
+                'flow.htmlReportAiModelEmpty',
+                'No chat model available',
+              )}
+              onChange={setModel}
             />
           </div>
-        ) : (
-          <div className="space-y-space-md px-space-lg pb-space-md min-h-0 flex-1 overflow-auto">
-            <div className="space-y-space-xs">
-              <Label className="text-xs text-text-secondary">
-                {t('flow.htmlReportAiModel', 'Model')}
-              </Label>
-              <ModelSelect
-                value={model}
-                options={options}
-                disabled={busy || isLoading || options.length === 0}
-                placeholder={t(
-                  'flow.htmlReportAiModelEmpty',
-                  'No chat model available',
-                )}
-                onChange={setModel}
-              />
-            </div>
 
-            <div className="space-y-space-xs">
-              <Label className="text-xs text-text-secondary">
-                {t('flow.htmlReportRunSource', 'Sample source text')}
-              </Label>
-              <Textarea
-                rows={10}
-                value={text}
-                disabled={busy}
-                placeholder={t(
-                  'flow.htmlReportRunSourcePlaceholder',
-                  'Paste sample upstream text the model should fill from…',
-                )}
-                onChange={(e) => setText(e.target.value)}
-              />
-            </div>
-
-            {variableRefs.length > 0 && (
-              <div className="space-y-space-xs">
-                <Label className="text-xs text-text-secondary">
-                  {t('flow.htmlReportRunVariables', 'Sample variable values')}
-                </Label>
-                {variableRefs.map((ref) => (
-                  <div key={ref} className="gap-space-xs flex items-center">
-                    <code className="text-text-caption shrink-0 text-xs">
-                      {ref}
-                    </code>
-                    <Input
-                      inputSize="sm"
-                      value={samples[ref] ?? ''}
-                      disabled={busy}
-                      onChange={(e) =>
-                        setSamples((prev) => ({
-                          ...prev,
-                          [ref]: e.target.value,
-                        }))
-                      }
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {busy && (
-              <div
-                className="gap-space-xs text-text-caption flex items-center text-xs"
-                aria-live="polite"
-                aria-busy="true"
-              >
-                <Loader2 className="size-icon-sm animate-spin" />
-                <span>
-                  {progress.total === 0
-                    ? t('flow.htmlReportRunStarting', 'Starting…')
-                    : progress.phase === 'expand'
-                      ? t('flow.htmlReportRunExpanding', {
-                          current: progress.current,
-                          total: progress.total,
-                          defaultValue:
-                            'Expanding generative region {{current}}/{{total}}…',
-                        })
-                      : t('flow.htmlReportRunProgress', {
-                          current: progress.current,
-                          total: progress.total,
-                          defaultValue:
-                            'Filling section {{current}}/{{total}}…',
-                        })}
-                </span>
-              </div>
-            )}
-
-            {status === 'error' && (
-              <p className="text-xs text-status-error" role="alert">
-                {t('flow.htmlReportRunError', 'Trial run failed')}
-              </p>
-            )}
+          <div className="space-y-space-xs">
+            <Label className="text-xs text-text-secondary">
+              {t('flow.htmlReportRunSource', 'Sample source text')}
+            </Label>
+            <Textarea
+              rows={10}
+              value={text}
+              disabled={busy}
+              placeholder={t(
+                'flow.htmlReportRunSourcePlaceholder',
+                'Paste sample upstream text the model should fill from…',
+              )}
+              onChange={(e) => setText(e.target.value)}
+            />
           </div>
-        )}
 
-        <div className="gap-space-sm px-space-lg py-space-base flex shrink-0 items-center justify-end border-t border-border-subtle">
-          {showResult && (failedRegions > 0 || failedSections > 0) && (
-            <div className="space-y-space-2xs mr-auto text-xs text-status-warning">
-              {failedRegions > 0 && (
-                <p>
-                  {t('flow.htmlReportRunRegionFailed', {
-                    count: failedRegions,
-                    defaultValue:
-                      '{{count}} generative region(s) could not be expanded',
-                  })}
-                </p>
-              )}
-              {failedSections > 0 && (
-                <p>
-                  {t('flow.htmlReportRunPartial', {
-                    count: failedSections,
-                    defaultValue: '{{count}} section(s) could not be filled',
-                  })}
-                </p>
-              )}
+          {variableRefs.length > 0 && (
+            <div className="space-y-space-xs">
+              <Label className="text-xs text-text-secondary">
+                {t('flow.htmlReportRunVariables', 'Sample variable values')}
+              </Label>
+              {variableRefs.map((ref) => (
+                <div key={ref} className="gap-space-xs flex items-center">
+                  <code className="text-text-caption shrink-0 text-xs">
+                    {ref}
+                  </code>
+                  <Input
+                    inputSize="sm"
+                    value={samples[ref] ?? ''}
+                    disabled={busy}
+                    onChange={(e) =>
+                      setSamples((prev) => ({
+                        ...prev,
+                        [ref]: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+              ))}
             </div>
           )}
+
+          {busy && (
+            <div
+              className="gap-space-xs text-text-caption flex items-center text-xs"
+              aria-live="polite"
+              aria-busy="true"
+            >
+              <Loader2 className="size-icon-sm animate-spin" />
+              <span>
+                {progress.total === 0
+                  ? t('flow.htmlReportRunStarting', 'Starting…')
+                  : progress.phase === 'expand'
+                    ? t('flow.htmlReportRunExpanding', {
+                        current: progress.current,
+                        total: progress.total,
+                        defaultValue:
+                          'Expanding generative region {{current}}/{{total}}…',
+                      })
+                    : t('flow.htmlReportRunProgress', {
+                        current: progress.current,
+                        total: progress.total,
+                        defaultValue: 'Filling section {{current}}/{{total}}…',
+                      })}
+              </span>
+            </div>
+          )}
+
+          {status === 'error' && (
+            <p className="text-xs text-status-error" role="alert">
+              {t('flow.htmlReportRunError', 'Trial run failed')}
+            </p>
+          )}
+        </div>
+
+        <div className="gap-space-sm px-space-lg py-space-base flex shrink-0 items-center justify-end border-t border-border-subtle">
           {busy ? (
             <Button variant="outline" size="sm" onClick={cancel}>
               {t('flow.htmlReportAiCancel', 'Cancel')}
-            </Button>
-          ) : showResult ? (
-            <Button variant="outline" size="sm" onClick={cancel}>
-              {t('flow.htmlReportRunBack', 'Back to inputs')}
             </Button>
           ) : (
             <Button variant="ghost" size="sm" onClick={onClose}>
               {t('common.close', 'Close')}
             </Button>
           )}
-          {!showResult && (
-            <Button
-              variant="default"
-              size="sm"
-              disabled={busy || !text.trim() || !model}
-              leftIcon={
-                busy ? (
-                  <Loader2 className="size-icon-sm animate-spin" />
-                ) : (
-                  <Play className="size-icon-sm" />
-                )
-              }
-              onClick={handleRun}
-            >
-              {busy
-                ? t('flow.htmlReportRunRunning', 'Running…')
-                : t('flow.htmlReportRunStart', 'Run')}
-            </Button>
-          )}
+          <Button
+            variant="default"
+            size="sm"
+            disabled={busy || !text.trim() || !model}
+            leftIcon={
+              busy ? (
+                <Loader2 className="size-icon-sm animate-spin" />
+              ) : (
+                <Play className="size-icon-sm" />
+              )
+            }
+            onClick={handleRun}
+          >
+            {busy
+              ? t('flow.htmlReportRunRunning', 'Running…')
+              : t('flow.htmlReportRunStart', 'Run')}
+          </Button>
         </div>
       </div>
     </dialog>
