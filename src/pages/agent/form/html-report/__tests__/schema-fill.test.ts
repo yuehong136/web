@@ -4,6 +4,7 @@ import { parseSkeletonResponse } from '../designer/ai-skeleton/parse'
 import {
   buildFillSchema,
   collectFillPlan,
+  describeSection,
   fillKey,
   splitFillKey,
   type FillPlan,
@@ -110,12 +111,24 @@ test('buildFillSchema: table rows → string[][] with fixed columns', () => {
   assert.equal(inner.maxItems, 3)
 })
 
+test('describeSection: surfaces per-slot guidance after an em-dash', () => {
+  const s = parseSkeletonResponse(
+    minimal([
+      { type: 'paragraph', hint: 'overview text' },
+      { type: 'table', headers: ['Year', 'Count'], hint: 'rows by year' },
+    ]),
+  )
+  const section = s.sections[0]
+  const text = describeSection(section, collectFillPlan(section))
+  assert.match(text, /— overview text/)
+  assert.match(text, /— rows by year/)
+})
+
 // ---- schema-fill ----
 
 test('fillSkeleton: fills llm slots from model JSON, merges + renders', async () => {
   const s = parseSkeletonResponse(
     minimal([
-      { type: 'heading', level: 2, content: 'Scale' },
       { type: 'paragraph', hint: 'overview' },
       { type: 'table', headers: ['Year', 'Count'], hint: 'rows' },
       {
@@ -158,16 +171,16 @@ test('fillSkeleton: fills llm slots from model JSON, merges + renders', async ()
   assert.equal(result.errors.length, 0)
 
   const blocks = result.schema.sections[0].blocks
-  const para = blocks[1]
+  const para = blocks[0]
   if (para.type === 'paragraph') assert.equal(para.content, 'filled text')
-  const table = blocks[2]
+  const table = blocks[1]
   if (table.type === 'table') {
     assert.deepEqual(table.rows, [
       ['2021', '12000'],
       ['2022', '15000'],
     ])
   }
-  const chart = blocks[3]
+  const chart = blocks[2]
   if (chart.type === 'chart') {
     assert.equal(chart.data.length, 1)
     assert.equal(chart.data[0].year, '2021')

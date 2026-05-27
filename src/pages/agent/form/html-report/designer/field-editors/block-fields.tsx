@@ -61,14 +61,14 @@ export function BlockFields({ block, sectionId, dispatch }: BlockFieldsProps) {
         />
       )}
       {bulk && (
-        <FieldDirectiveRow
-          block={block}
-          sectionId={sectionId}
-          path={bulk.path}
-          label={t(bulk.labelKey, bulk.fallback)}
-          modes={['llm']}
-          dispatch={dispatch}
-        />
+        <InspectorField label={t(bulk.labelKey, bulk.fallback)}>
+          <p className="text-text-caption text-xs leading-relaxed">
+            {t(
+              'flow.htmlReportBulkModelFilled',
+              'Filled by the model, guided by the annotation below.',
+            )}
+          </p>
+        </InspectorField>
       )}
     </div>
   )

@@ -177,6 +177,9 @@ export function normalizeBlock(
 ): SkeletonBlock | null {
   if (!isObj(raw)) return null
   const type = oneOf(raw.type, BLOCK_KINDS, 'paragraph')
+  // AI 生成不产出独立标题块:小节 title/subtitle 已渲染为该节抬头,再来个 heading 会重复。
+  // 手动从面板加 heading 走 createDefaultBlock(不经此函数),不受影响。
+  if (type === 'heading') return null
   const hint = optStr(raw.hint)
   const { fields, directives } = buildBlock(type, raw, hint)
   const block: SkeletonBlock = {

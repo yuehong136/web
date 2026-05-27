@@ -15,6 +15,8 @@ Rules:
   row objects (chart data) using EXACTLY the given field keys; or one of the allowed enum values.
 - For table rows, every row must have exactly the stated number of cells. For comparison criteria,
   "values" must have exactly the stated number of entries (column order preserved).
+- A slot may carry guidance after an em-dash "—" in the list: follow it. It states what that slot's
+  content must be (topic, ordering, units, tone). Honor it together with the section's overall focus.
 - Write in the SAME LANGUAGE as the source text. Be concise and faithful to the source; never invent
   facts. If the source lacks a value, give the closest faithful summary rather than fabricating.
 - Output ONLY the JSON object: no markdown code fences, no comments, no prose before or after.`

@@ -34,8 +34,8 @@ block's "role": "main" | "side". Otherwise omit "role".
 
 TEMPLATE PRINCIPLE — separate FRAMEWORK from CONTENT:
 - FRAMEWORK = the parts that recur in every report of this kind. Fill them with REAL values from
-  the source: section/heading titles, table headers, comparison column items, chart type and
-  axis/series FIELD NAMES, stat-card labels, callout variant, list ordered flag, heading level.
+  the source: section titles, table headers, comparison column items, chart type and
+  axis/series FIELD NAMES, stat-card labels, callout variant, list ordered flag.
 - CONTENT = the variable text/numbers that change each time (narrative prose, metric values,
   table rows, chart data points, the wording of list items, timeline events). DO NOT write the
   actual content. Describe it with a one-line "hint" so the runtime can fill it later.
@@ -48,36 +48,33 @@ Describe the content — never write the actual values.
 BLOCK TYPES — pick the MOST SPECIFIC type for each piece of content. Never dump everything as
 paragraphs.
 
-1. heading — a title/subtitle inside the content flow (FRAMEWORK text — write it for real).
-   { "type":"heading", "level":1|2|3, "content":string }
-
-2. paragraph — narrative prose (CONTENT). Give a hint, not the prose.
+1. paragraph — narrative prose (CONTENT). Give a hint, not the prose.
    { "type":"paragraph", "hint":string }
 
-3. callout — a key takeaway / risk / tip (FRAMEWORK variant & title; CONTENT body).
+2. callout — a key takeaway / risk / tip (FRAMEWORK variant & title; CONTENT body).
    { "type":"callout", "variant":"info"|"success"|"warning"|"insight", "title"?:string, "hint":string }
 
-4. list — a bulleted/numbered enumeration. Give a SHORT topic/label per intended bullet in
+3. list — a bulleted/numbered enumeration. Give a SHORT topic/label per intended bullet in
    "items"; the wording is rewritten from data at fill time.
    { "type":"list", "ordered":boolean, "title"?:string, "items":string[], "hint"?:string }
 
-5. stat-card — ONE KPI. "label" is FRAMEWORK; its value is CONTENT.
+4. stat-card — ONE KPI. "label" is FRAMEWORK; its value is CONTENT.
    { "type":"stat-card", "label":string, "trend"?:"up"|"down"|"neutral", "hint":string }
 
-6. stat-card-group — a row of KPIs. Each item "label" is FRAMEWORK; the values are CONTENT.
+5. stat-card-group — a row of KPIs. Each item "label" is FRAMEWORK; the values are CONTENT.
    { "type":"stat-card-group", "items":[{ "label":string, "trend"?:"up"|"down"|"neutral" }], "hint":string }
 
-7. table — "headers" are FRAMEWORK; the rows are CONTENT (do NOT emit rows).
+6. table — "headers" are FRAMEWORK; the rows are CONTENT (do NOT emit rows).
    { "type":"table", "title"?:string, "headers":string[], "hint":string }
 
-8. comparison-matrix — "items" (the compared objects / column heads) are FRAMEWORK; the
+7. comparison-matrix — "items" (the compared objects / column heads) are FRAMEWORK; the
    per-criterion values are CONTENT (do NOT emit criteria).
    { "type":"comparison-matrix", "title"?:string, "items":string[], "hint":string }
 
-9. timeline — each entry "date" is FRAMEWORK; its title/description are CONTENT.
+8. timeline — each entry "date" is FRAMEWORK; its title/description are CONTENT.
    { "type":"timeline", "title"?:string, "items":[{ "date":string }], "hint":string }
 
-10. chart — "chartType" + shape keys are FRAMEWORK; the data is CONTENT (do NOT emit "data").
+9. chart — "chartType" + shape keys are FRAMEWORK; the data is CONTENT (do NOT emit "data").
     The shape keys NAME the data fields (they are not themselves data). "chartType" decides them:
     bar | line | area:
       { "type":"chart","chartType":"bar","title"?:string,"xAxisKey":string,
@@ -93,6 +90,8 @@ paragraphs.
 
 RULES:
 - Reconstruct the full structure: every section and block the report implies, in order.
+- Do NOT emit "heading" blocks. A section's "title"/"subtitle" already render as its heading; an
+  in-flow heading would duplicate it. Put heading text into the section's "title"/"subtitle".
 - Prefer common, flexible components (paragraph, list, table, bar/line chart, stat-card-group).
   Pick a sensible default; do NOT rigidly commit to a niche type — note the alternatives in "hint".
 - Emit a chart/table/stat/comparison/timeline whenever the source describes that KIND of content,

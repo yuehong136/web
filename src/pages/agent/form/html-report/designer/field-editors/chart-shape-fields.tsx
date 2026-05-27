@@ -2,7 +2,14 @@
  * 图表 Block 的字段编辑区:图表类型(切换会按新形状重建)+ 标题 + 形状键(全 static,
  * 描述数据的字段名)+ 整段 data(默认 llm,模型按形状填行)。决策 #24。
  */
+import { ChevronDown, ChevronRight } from 'lucide-react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible'
 import { getFieldValue } from '../../skeleton-utils'
 import type { ChartBlock, ChartType, SkeletonBlock } from '../../types'
 import { CHART_LABEL } from '../block-meta'
@@ -106,6 +113,7 @@ export function ChartShapeFields({
   dispatch,
 }: ChartShapeFieldsProps) {
   const { t } = useTranslation()
+  const [advancedOpen, setAdvancedOpen] = useState(false)
   const fields = (block.fields ?? {}) as Partial<ChartBlock>
   const chartType = fields.chartType ?? 'bar'
 
@@ -148,41 +156,56 @@ export function ChartShapeFields({
         dispatch={dispatch}
       />
 
-      <p className="text-text-caption text-xs">
-        {t(
-          'flow.htmlReportChartShapeHint',
-          'These keys name the data fields; the model fills the rows below.',
-        )}
-      </p>
-      {shapeFields(chartType).map((field) => (
-        <InspectorField
-          key={field.path}
-          label={t(field.labelKey, field.fallback)}
-        >
-          <ValueControl
-            control="text"
-            value={String(getFieldValue(block.fields ?? {}, field.path) ?? '')}
-            onChange={(value) =>
-              dispatch({
-                type: 'setFieldValue',
-                sectionId,
-                blockId: block.id,
-                path: field.path,
-                value,
-              })
-            }
-          />
-        </InspectorField>
-      ))}
+      <InspectorField label={t('flow.htmlReportFieldData', 'Data')}>
+        <p className="text-text-caption text-xs leading-relaxed">
+          {t(
+            'flow.htmlReportBulkModelFilled',
+            'Filled by the model, guided by the annotation below.',
+          )}
+        </p>
+      </InspectorField>
 
-      <FieldDirectiveRow
-        block={block}
-        sectionId={sectionId}
-        path="data"
-        label={t('flow.htmlReportFieldData', 'Data')}
-        modes={['llm']}
-        dispatch={dispatch}
-      />
+      {/* 形状键是连接数据与图表轴的内部字段名,有默认值、报告里不显示;收进高级,默认收起。 */}
+      <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen}>
+        <CollapsibleTrigger className="gap-space-2xs flex items-center text-xs text-text-secondary hover:text-text-primary">
+          {advancedOpen ? (
+            <ChevronDown className="size-icon-sm" />
+          ) : (
+            <ChevronRight className="size-icon-sm" />
+          )}
+          {t('flow.htmlReportChartAdvanced', 'Advanced · data field keys')}
+        </CollapsibleTrigger>
+        <CollapsibleContent className="space-y-space-md pt-space-sm">
+          <p className="text-text-caption text-xs">
+            {t(
+              'flow.htmlReportChartShapeHint',
+              'These keys name the data fields; the model fills the data using them.',
+            )}
+          </p>
+          {shapeFields(chartType).map((field) => (
+            <InspectorField
+              key={field.path}
+              label={t(field.labelKey, field.fallback)}
+            >
+              <ValueControl
+                control="text"
+                value={String(
+                  getFieldValue(block.fields ?? {}, field.path) ?? '',
+                )}
+                onChange={(value) =>
+                  dispatch({
+                    type: 'setFieldValue',
+                    sectionId,
+                    blockId: block.id,
+                    path: field.path,
+                    value,
+                  })
+                }
+              />
+            </InspectorField>
+          ))}
+        </CollapsibleContent>
+      </Collapsible>
     </div>
   )
 }

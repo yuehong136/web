@@ -37,16 +37,24 @@ test('paragraph: hint lands on the content directive, no block annotation', () =
   assert.equal(block.annotation, undefined)
 })
 
-test('heading content stays static framework (no directive)', () => {
-  const raw =
-    'Sure! Here is the template:\n' +
-    minimal([{ type: 'heading', level: 2, content: 'Executive Summary' }]) +
-    '\nHope this helps.'
-  const block = parseSkeletonResponse(raw).sections[0].blocks[0]
-  assert.equal(block.type, 'heading')
-  assert.equal(fieldsOf(block).content, 'Executive Summary')
-  assert.equal(fieldsOf(block).level, 2)
-  assert.equal(block.fieldDirectives, undefined)
+test('AI generation drops heading blocks (section title is the heading)', () => {
+  // 只有 heading 的节 → 无合法块 → 抛错
+  assert.throws(
+    () =>
+      parseSkeletonResponse(
+        minimal([{ type: 'heading', level: 2, content: 'Executive Summary' }]),
+      ),
+    SkeletonParseError,
+  )
+  // heading 与其他块混排 → heading 被剔除,其余保留
+  const s = parseSkeletonResponse(
+    minimal([
+      { type: 'heading', level: 1, content: 'Title' },
+      { type: 'paragraph', hint: 'overview' },
+    ]),
+  )
+  assert.equal(s.sections[0].blocks.length, 1)
+  assert.equal(s.sections[0].blocks[0].type, 'paragraph')
 })
 
 test('strips <think>; list items kept as framework + per-item llm', () => {
@@ -190,7 +198,6 @@ test('throws when no valid sections remain', () => {
 
 test('template previews + renders, and reports pending fills', () => {
   const raw = minimal([
-    { type: 'heading', level: 1, content: 'Annual Report' },
     { type: 'paragraph', hint: 'overview' },
     { type: 'stat-card-group', items: [{ label: 'Students' }], hint: 'totals' },
     {
@@ -205,7 +212,7 @@ test('template previews + renders, and reports pending fills', () => {
   const s = parseSkeletonResponse(raw)
   const html = buildReportHtml(buildPreviewSchema(s))
   assert.ok(html.includes('<html'))
-  assert.equal(summarizeSkeleton(s).blocks, 5)
+  assert.equal(summarizeSkeleton(s).blocks, 4)
   assert.ok(summarizeSkeleton(s).pending > 0)
 })
 
@@ -282,7 +289,6 @@ test('parseOutline throws when there are no sections', () => {
 test('parseSection builds a section from {blocks} + outline meta', () => {
   const raw = JSON.stringify({
     blocks: [
-      { type: 'heading', level: 2, content: 'Scale' },
       { type: 'paragraph', hint: 'overview of scale' },
       { type: 'table', headers: ['Year', 'Count'], hint: 'enrollment by year' },
     ],
@@ -296,15 +302,12 @@ test('parseSection builds a section from {blocks} + outline meta', () => {
   assert.equal(section.layout, 'full')
   assert.equal(section.title, 'Scale')
   assert.equal(section.annotation, 'enrollment scale')
-  assert.equal(section.blocks.length, 3)
-  // heading framework static, no directive
-  assert.equal(fieldsOf(section.blocks[0]).content, 'Scale')
-  assert.equal(section.blocks[0].fieldDirectives, undefined)
+  assert.equal(section.blocks.length, 2)
   // paragraph content -> llm
-  assert.equal(section.blocks[1].fieldDirectives?.content?.mode, 'llm')
+  assert.equal(section.blocks[0].fieldDirectives?.content?.mode, 'llm')
   // table headers static, rows -> llm
-  assert.deepEqual(fieldsOf(section.blocks[2]).headers, ['Year', 'Count'])
-  assert.equal(section.blocks[2].fieldDirectives?.rows?.mode, 'llm')
+  assert.deepEqual(fieldsOf(section.blocks[1]).headers, ['Year', 'Count'])
+  assert.equal(section.blocks[1].fieldDirectives?.rows?.mode, 'llm')
 })
 
 test('parseSection throws when no valid blocks', () => {

@@ -34,7 +34,7 @@ export interface FillItem {
   blockId: string
   path: string
   spec: ValueSpec
-  /** 给模型的「要什么」:字段 hint → 块注解 → 节注解 逐级回落 */
+  /** 给模型的「这一槽要什么」:字段提示 → 块注解 逐级回落(小节注解走整节口径行) */
   description: string
 }
 
@@ -93,11 +93,9 @@ export function collectFillPlan(section: SkeletonSection): FillPlan {
         blockId: block.id,
         path,
         spec: specFor(block, path),
-        description:
-          dirs[path].hint?.trim() ||
-          block.annotation?.trim() ||
-          section.annotation?.trim() ||
-          '',
+        // 逐槽说明:字段提示 → 块注解。小节注解不在此兜底——它已作为整节口径
+        // 出现在 buildFillMessages 的 (about: …) 行,避免每个空槽重复同一句。
+        description: dirs[path].hint?.trim() || block.annotation?.trim() || '',
       })
     }
   }
@@ -242,8 +240,10 @@ export function describeSection(
     if (!items?.length) continue
     lines.push(`- ${blockSummary(block)}:`)
     for (const item of items) {
+      // 逐槽说明拼在 `—` 后,让模型在最常读的清单里就看到「这一槽要什么」
+      const guide = item.description ? ` — ${item.description}` : ''
       lines.push(
-        `    · [${item.key}] ${humanizePath(item.path)}${slotHint(item.spec)}`,
+        `    · [${item.key}] ${humanizePath(item.path)}${slotHint(item.spec)}${guide}`,
       )
     }
   }

@@ -684,6 +684,9 @@ export default {
     htmlReportFieldCriteria: 'Criteria',
     htmlReportFieldChartType: 'Chart type',
     htmlReportFieldData: 'Data',
+    htmlReportBulkModelFilled:
+      'Filled by the model, guided by the annotation below.',
+    htmlReportChartAdvanced: 'Advanced · data field keys',
     htmlReportFieldXAxis: 'X axis key',
     htmlReportFieldSeriesKey: 'Series key',
     htmlReportFieldSeriesName: 'Series name',
@@ -693,7 +696,7 @@ export default {
     htmlReportFieldXKey: 'X key',
     htmlReportFieldYKey: 'Y key',
     htmlReportChartShapeHint:
-      'These keys name the data fields; the model fills the rows below.',
+      'These keys name the data fields; the model fills the data using them.',
     htmlReportLevel1: 'Heading 1',
     htmlReportLevel2: 'Heading 2',
     htmlReportLevel3: 'Heading 3',

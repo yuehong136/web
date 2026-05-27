@@ -386,6 +386,8 @@ export default {
     htmlReportFieldCriteria: '对比维度',
     htmlReportFieldChartType: '图表类型',
     htmlReportFieldData: '数据',
+    htmlReportBulkModelFilled: '由模型按下方注解填充。',
+    htmlReportChartAdvanced: '高级 · 数据字段键',
     htmlReportFieldXAxis: 'X 轴字段',
     htmlReportFieldSeriesKey: '系列字段',
     htmlReportFieldSeriesName: '系列名称',
@@ -395,7 +397,7 @@ export default {
     htmlReportFieldXKey: 'X 字段',
     htmlReportFieldYKey: 'Y 字段',
     htmlReportChartShapeHint:
-      '这些字段名描述数据结构，具体行数据由模型在下方填充。',
+      '这些字段名描述数据结构，具体数据由模型按这些字段名填充。',
     htmlReportLevel1: '一级标题',
     htmlReportLevel2: '二级标题',
     htmlReportLevel3: '三级标题',

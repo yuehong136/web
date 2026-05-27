@@ -129,18 +129,20 @@ How to think (do this before emitting JSON):
 2. For each section, map each piece to the most fitting block type: numbers/KPIs ->
    stat-card-group; option-vs-criteria comparisons -> comparison-matrix; chronological items ->
    timeline; standout takeaways/risks -> callout; enumerations -> list; tabular data -> table;
-   quantitative series/distributions -> chart; titles -> heading; narrative -> paragraph.
+   quantitative series/distributions -> chart; narrative -> paragraph. Section/sub-section titles
+   go into the section's own "title"/"subtitle", NOT into a content block.
 3. Choose a layout per section (default "full"; multi-column/sidebar only for clearly parallel
    or primary+supporting content).
 4. For each block, fill the FRAMEWORK fields with real values from the source, and describe the
    variable CONTENT with a one-line "hint" instead of writing it out.
 
 Hard rules:
-- FRAMEWORK (recurs in every report of this kind) is real: section/heading titles, table headers,
+- FRAMEWORK (recurs in every report of this kind) is real: section titles, table headers,
   comparison column items, chart type + axis/series field names, stat-card labels, callout variant,
-  list ordered flag, heading level. CONTENT (changes each time) is described by "hint", never
+  list ordered flag. CONTENT (changes each time) is described by "hint", never
   written out: narrative prose, metric values, table rows, chart data, the wording of list items,
   timeline events.
+- Do NOT emit "heading" blocks — section "title"/"subtitle" already serve as the heading.
 - Do NOT fabricate framework the source does not support. Keep titles/labels/headers faithful.
 - For chart blocks the shape keys NAME the data fields; never emit a "data" array.
 - Write all framework text and hints in the SAME LANGUAGE as the source report.
