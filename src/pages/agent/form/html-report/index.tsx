@@ -9,9 +9,13 @@ import { FileChartColumn } from 'lucide-react'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
+import { useParams } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
+import { useFetchAgent } from '../../hooks/use-fetch-data'
 import { useFormValues } from '../../hooks/use-form-values'
+import { useSaveGraph } from '../../hooks/use-save-graph'
 import { useWatchFormChange } from '../../hooks/use-watch-form-change'
+import useGraphStore from '../../store'
 import type { INextOperatorForm } from '../../types'
 import { initialHTMLReportValues } from './constants'
 import { Designer } from './designer'
@@ -33,6 +37,11 @@ export function HTMLReportForm({ node }: INextOperatorForm) {
   useWatchFormChange(node?.id, form)
   const [designerOpen, setDesignerOpen] = useState(false)
 
+  const { id: agentId } = useParams<{ id: string }>()
+  const { data: agent } = useFetchAgent()
+  const { saveGraph } = useSaveGraph(agentId, false)
+  const updateNodeForm = useGraphStore((s) => s.updateNodeForm)
+
   const skeleton =
     (form.watch('skeleton') as SkeletonSchema | undefined) ??
     (initialHTMLReportValues.skeleton as SkeletonSchema)
@@ -41,6 +50,17 @@ export function HTMLReportForm({ node }: INextOperatorForm) {
   const handleSave = (next: SkeletonSchema) => {
     form.setValue('skeleton', next, { shouldDirty: true })
     setDesignerOpen(false)
+
+    // Designer 的「保存」需立即落库:setValue→store 的同步是异步的,且画布的
+    // 自动保存有 20s 防抖,用户保存后立刻刷新/离开会丢配置。这里直接写 store
+    // (updateNodeForm 同步返回最新节点)再即时保存,绕开防抖窗口。
+    if (!node?.id || !agentId || !agent?.title) return
+    const nextNodes = updateNodeForm(node.id, { skeleton: next })
+    const title =
+      typeof agent.title === 'string'
+        ? agent.title
+        : agent.title.zh || agent.title.en || 'Untitled'
+    void saveGraph(title, nextNodes)
   }
 
   return (
