@@ -3,6 +3,7 @@ import { cn } from '@/lib/utils'
 import { Copy, Play, Trash2 } from 'lucide-react'
 import type { PropsWithChildren } from 'react'
 import { memo, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Operator } from '../../constant'
 import useGraphStore from '../../store'
 
@@ -41,6 +42,7 @@ export const ToolBar = memo(
   }: ToolBarProps) => {
     const { deleteNodeById, deleteIterationNodeById, duplicateNode } =
       useGraphStore()
+    const { t } = useTranslation()
 
     const handleDelete = useCallback(
       (e: React.MouseEvent) => {
@@ -77,19 +79,22 @@ export const ToolBar = memo(
             )}
           >
             {showRun && (
-              <IconWrapper title="调试节点">
+              <IconWrapper title={t('flow.debugNode', 'Debug node')}>
                 <Play className="size-3.5" data-play />
               </IconWrapper>
             )}
             {showCopy && (
-              <IconWrapper onClick={handleDuplicate} title="复制节点">
+              <IconWrapper
+                onClick={handleDuplicate}
+                title={t('flow.duplicateNode', 'Duplicate node')}
+              >
                 <Copy className="size-3.5" />
               </IconWrapper>
             )}
             <IconWrapper
               className="hover:text-status-error"
               onClick={handleDelete}
-              title="删除节点"
+              title={t('flow.deleteNode', 'Delete node')}
             >
               <Trash2 className="size-3.5" />
             </IconWrapper>

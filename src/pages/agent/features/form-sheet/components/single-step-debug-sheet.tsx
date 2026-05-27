@@ -1,7 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
-import {
-  Button,
-} from '@/components/ui/button'
+import { Button } from '@/components/ui/button'
 import {
   Sheet,
   SheetContent,
@@ -12,6 +10,7 @@ import {
 import { useDebugSingle, useFetchInputForm } from '@/hooks/use-agent-request'
 import { toast } from '@/lib/toast'
 import { X } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import DebugContent from '../../../debug-content'
 import { buildBeginInputListFromObject } from '../../../hooks/use-get-begin-query'
 import type { BeginQuery } from '../../../types'
@@ -33,15 +32,18 @@ interface DebugResponseLike {
 }
 
 function transferInputsArrayToObject(inputs: BeginQuery[] = []) {
-  return inputs.reduce<Record<string, Omit<BeginQuery, 'key'>>>((result, item) => {
-    if (!item.key) {
-      return result
-    }
+  return inputs.reduce<Record<string, Omit<BeginQuery, 'key'>>>(
+    (result, item) => {
+      if (!item.key) {
+        return result
+      }
 
-    const { key, ...rest } = item
-    result[key] = rest
-    return result
-  }, {})
+      const { key, ...rest } = item
+      result[key] = rest
+      return result
+    },
+    {},
+  )
 }
 
 export function SingleStepDebugSheet({
@@ -50,6 +52,7 @@ export function SingleStepDebugSheet({
   componentId,
   onClose,
 }: SingleStepDebugSheetProps) {
+  const { t } = useTranslation()
   const { data: inputForm } = useFetchInputForm(canvasId, componentId)
   const { debugSingle, isLoading } = useDebugSingle()
   const [result, setResult] = useState<unknown>(null)
@@ -65,7 +68,12 @@ export function SingleStepDebugSheet({
   const handleRunDebug = useCallback(
     async (nextValues: BeginQuery[]) => {
       if (!canvasId || !componentId) {
-        toast.error('缺少画布 ID，无法调试')
+        toast.error(
+          t(
+            'flow.missingCanvasForDebug',
+            'Missing canvas ID. Unable to debug.',
+          ),
+        )
         return
       }
 
@@ -87,12 +95,18 @@ export function SingleStepDebugSheet({
         responseMeta.ok === true
 
       if (ok) {
-        toast.success('已触发单节点调试')
+        toast.success(
+          t('flow.singleStepDebugStarted', 'Single-node debug started'),
+        )
       } else if (responseMeta.retmsg || responseMeta.message) {
-        toast.error(responseMeta.retmsg || responseMeta.message || '单节点调试失败')
+        toast.error(
+          responseMeta.retmsg ||
+            responseMeta.message ||
+            t('flow.singleStepDebugFailed', 'Single-node debug failed'),
+        )
       }
     },
-    [canvasId, componentId, debugSingle],
+    [canvasId, componentId, debugSingle, t],
   )
 
   const serializedResult = useMemo(() => {
@@ -121,15 +135,20 @@ export function SingleStepDebugSheet({
         showCloseButton={false}
         className="top-20 p-0 sm:max-w-[560px]"
       >
-        <SheetTitle className="sr-only">测试运行</SheetTitle>
+        <SheetTitle className="sr-only">
+          {t('flow.testRun', 'Test run')}
+        </SheetTitle>
         <SheetDescription className="sr-only">
-          配置当前节点的调试输入并查看单步调试结果
+          {t(
+            'flow.singleStepDebugDescription',
+            'Configure debug inputs for the current node and inspect the single-step result.',
+          )}
         </SheetDescription>
 
-        <SheetHeader className="border-b border-border-primary px-space-md py-space-sm">
+        <SheetHeader className="border-border-primary px-space-md py-space-sm border-b">
           <div className="flex items-center justify-between">
             <span className="text-base font-medium text-text-primary">
-              测试运行
+              {t('flow.testRun', 'Test run')}
             </span>
             <Button
               type="button"
@@ -143,23 +162,23 @@ export function SingleStepDebugSheet({
           </div>
         </SheetHeader>
 
-        <section className="overflow-y-auto px-space-md py-space-sm">
+        <section className="px-space-md py-space-sm overflow-y-auto">
           <DebugContent
             canvasId={canvasId}
             parameters={parameters}
             ok={handleRunDebug}
             isNext={false}
             loading={isLoading}
-            className="min-h-0 flex-1 overflow-auto pb-space-md"
+            className="pb-space-md min-h-0 flex-1 overflow-auto"
             maxHeight="max-h-screen"
           />
 
           {result ? (
-            <div className="mt-space-md rounded-radius-md border border-border-primary bg-surface-secondary">
-              <div className="border-b border-border-primary px-space-sm py-space-xs text-sm text-text-secondary">
+            <div className="mt-space-md rounded-radius-md border-border-primary bg-surface-secondary border">
+              <div className="border-border-primary px-space-sm py-space-xs border-b text-sm text-text-secondary">
                 JSON
               </div>
-              <pre className="max-h-screen overflow-auto p-space-sm text-xs text-text-primary">
+              <pre className="p-space-sm max-h-screen overflow-auto text-xs text-text-primary">
                 {serializedResult}
               </pre>
             </div>

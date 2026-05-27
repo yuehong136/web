@@ -1,4 +1,5 @@
 import type { Edge } from '@xyflow/react'
+import type { TFunction } from 'i18next'
 import type { AgentOperatorDefinition } from '@/types/agent'
 import type { MCPServer } from '@/types/mcp'
 import { Operator, type Operator as OperatorType } from '../../constant'
@@ -7,9 +8,6 @@ import type { RAGFlowNodeType } from '../../types'
 import type { SelectedToolContext } from './types'
 
 export const MCP_FORM_RENDERER_KEY = '__mcp_form__'
-
-const UNKNOWN_DESCRIPTION = '当前节点仍在复用旧表单内容层。'
-const MCP_DESCRIPTION = '配置 MCP Server 连接与可用工具。'
 
 interface ResolveSelectedToolContextOptions {
   operatorType?: OperatorType
@@ -24,6 +22,7 @@ interface ResolveFormSheetMetadataOptions {
   operatorType?: OperatorType
   operatorDefinition?: AgentOperatorDefinition
   toolContext?: SelectedToolContext
+  t?: TFunction
 }
 
 interface LegacyToolConfig {
@@ -89,8 +88,7 @@ export function resolveSelectedToolContext({
         agentNodeId: agentNode.id,
         toolIndex,
         operator: normalizeOperator(selectedTool.component_name),
-        name:
-          selectedTool.name || selectedTool.component_name || clickedToolId,
+        name: selectedTool.name || selectedTool.component_name || clickedToolId,
         description: selectedTool.description,
         tool: selectedTool,
       }
@@ -153,9 +151,35 @@ export function resolveFormSheetDescription({
   operatorType,
   operatorDefinition,
   toolContext,
+  t,
 }: ResolveFormSheetMetadataOptions) {
+  const translate = (
+    key: string,
+    fallback: string,
+    options?: Record<string, unknown>,
+  ) =>
+    t
+      ? t(key, fallback, options)
+      : fallback.replace('{{type}}', String(options?.type ?? ''))
+  const unknownDescription = operatorType
+    ? translate(
+        'flow.legacyNodeDescriptionWithType',
+        '{{type}} node is still using legacy form content.',
+        { type: operatorType },
+      )
+    : translate(
+        'flow.legacyNodeDescription',
+        'This node is still using legacy form content.',
+      )
+
   if (toolContext?.mcpServer) {
-    return toolContext.description || MCP_DESCRIPTION
+    return (
+      toolContext.description ||
+      translate(
+        'flow.mcpToolDescription',
+        'Configure the MCP Server connection and available tools.',
+      )
+    )
   }
 
   if (toolContext?.operator) {
@@ -163,7 +187,7 @@ export function resolveFormSheetDescription({
       toolContext.description ||
       getOperatorDefinition(toolContext.operator)?.description ||
       operatorDefinition?.description ||
-      UNKNOWN_DESCRIPTION
+      unknownDescription
     )
   }
 
@@ -171,12 +195,7 @@ export function resolveFormSheetDescription({
     return toolContext.description
   }
 
-  return (
-    operatorDefinition?.description ||
-    (operatorType
-      ? `${operatorType} 节点仍在复用旧表单内容层。`
-      : UNKNOWN_DESCRIPTION)
-  )
+  return operatorDefinition?.description || unknownDescription
 }
 
 export function resolveLegacyRendererKey(

@@ -3,6 +3,7 @@ import type { Edge, ReactFlowInstance } from '@xyflow/react'
 import { Position } from '@xyflow/react'
 import { humanId } from 'human-id'
 import { t } from 'i18next'
+import lowerFirst from 'lodash/lowerFirst.js'
 import { useFetchMyLLMs } from '@/hooks/use-llm-request'
 import { findFirstEnabledModelByType } from '@/stores/model'
 import {
@@ -183,26 +184,7 @@ export const useInitializeOperatorParams = () => {
 
 export const useGetNodeName = () => {
   const getNodeName = useCallback((type: string) => {
-    // 简单的翻译逻辑，后续可以接入i18n
-    const nameMap: Record<string, string> = {
-      [Operator.Begin]: '开始',
-      [Operator.Retrieval]: '检索',
-      [Operator.Message]: '回复',
-      [Operator.A2UI]: 'A2UI 卡片',
-      [Operator.Categorize]: '分类',
-      [Operator.Switch]: '条件',
-      [Operator.Relevant]: '相关性',
-      [Operator.RewriteQuestion]: '重写问题',
-      [Operator.KeywordExtract]: '关键词提取',
-      [Operator.Code]: '代码',
-      [Operator.Agent]: 'Agent',
-      [Operator.Note]: '备注',
-      [Operator.DuckDuckGo]: 'DuckDuckGo',
-      [Operator.Wikipedia]: 'Wikipedia',
-      [Operator.Invoke]: 'HTTP请求',
-      [Operator.Email]: '邮件',
-    }
-    return nameMap[type] || type
+    return t(`flow.${lowerFirst(type)}`, type)
   }, [])
 
   return getNodeName
@@ -234,8 +216,7 @@ export function useAddNode(
       sourceNodeId: string | undefined,
       absPosition: { x: number; y: number } | undefined,
     ) => {
-      const isIteration =
-        type === Operator.Iteration || type === Operator.Loop
+      const isIteration = type === Operator.Iteration || type === Operator.Loop
       if (isIteration || !absPosition) return undefined
 
       if (sourceNodeId) {
@@ -329,7 +310,10 @@ export function useAddNode(
       const maxX = Math.max(...childAgentXPositions)
 
       return {
-        x: childAgentXPositions.length > 0 ? maxX + 262 : sourceNode.position.x + 82,
+        x:
+          childAgentXPositions.length > 0
+            ? maxX + 262
+            : sourceNode.position.x + 82,
         y: sourceNode.position.y + 140,
       }
     },
@@ -394,7 +378,10 @@ export function useAddNode(
             : {}),
           data: {
             label: type,
-            name: generateNodeNamesWithIncreasingIndex(getNodeName(type), nodes),
+            name: generateNodeNamesWithIncreasingIndex(
+              getNodeName(type),
+              nodes,
+            ),
             form: initializeOperatorParams(type as Operator, params.position),
           },
           sourcePosition: Position.Right,
@@ -422,7 +409,9 @@ export function useAddNode(
 
         if (isIteration) {
           const startType =
-            type === Operator.Loop ? Operator.LoopStart : Operator.IterationStart
+            type === Operator.Loop
+              ? Operator.LoopStart
+              : Operator.IterationStart
           const startNode = {
             id: `${startType}:${humanId()}`,
             type: NodeMap[startType as Operator] || 'iterationStartNode',
@@ -477,7 +466,10 @@ export function useAddNode(
 
   const addNoteNode = useCallback(
     (mouse: { clientX: number; clientY: number }) => {
-      addCanvasNode(Operator.Note)({ clientX: mouse.clientX, clientY: mouse.clientY })
+      addCanvasNode(Operator.Note)({
+        clientX: mouse.clientX,
+        clientY: mouse.clientY,
+      })
     },
     [addCanvasNode],
   )

@@ -9,6 +9,7 @@ import {
   useRef,
   useState,
 } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useChangeNodeName } from '../../../hooks/use-change-node-name'
 import type { RAGFlowNodeType } from '../../../types'
 
@@ -17,14 +18,12 @@ interface NodeTitleInputProps {
   titleEditable: boolean
 }
 
-export function NodeTitleInput({
-  node,
-  titleEditable,
-}: NodeTitleInputProps) {
+export function NodeTitleInput({ node, titleEditable }: NodeTitleInputProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [isEditing, setIsEditing] = useState(false)
   const [draftName, setDraftName] = useState(node?.data?.name || '')
   const { changeNodeName, validateNodeName } = useChangeNodeName()
+  const { t } = useTranslation()
 
   useEffect(() => {
     setDraftName(node?.data?.name || '')
@@ -47,25 +46,21 @@ export function NodeTitleInput({
     const nextName = draftName.trim()
     const validation = validateNodeName(node.id, nextName)
     if (!validation.valid) {
-      toast.error(validation.error || '节点名称无效')
+      toast.error(
+        validation.error || t('flow.invalidNodeName', 'Invalid node name'),
+      )
       return false
     }
 
     const changed = changeNodeName(node.id, nextName)
     if (!changed) {
-      toast.error('节点名称已存在')
+      toast.error(t('flow.duplicateNodeName', 'Node name already exists'))
       return false
     }
 
     setIsEditing(false)
     return true
-  }, [
-    changeNodeName,
-    draftName,
-    node?.id,
-    titleEditable,
-    validateNodeName,
-  ])
+  }, [changeNodeName, draftName, node?.id, t, titleEditable, validateNodeName])
 
   const handleBlur = useCallback(() => {
     const committed = commitNodeName()
@@ -79,7 +74,9 @@ export function NodeTitleInput({
     return (
       <div className="min-w-0 flex-1">
         <div className="truncate text-base font-medium text-text-primary">
-          {node?.data?.name || node?.data?.label || '未命名节点'}
+          {node?.data?.name ||
+            node?.data?.label ||
+            t('flow.unnamedNode', 'Untitled node')}
         </div>
       </div>
     )
@@ -103,16 +100,18 @@ export function NodeTitleInput({
             }
           }}
           className="h-9"
-          placeholder="输入节点标题"
+          placeholder={t('flow.nodeTitlePlaceholder', 'Enter node title')}
         />
       </div>
     )
   }
 
   return (
-    <div className="flex min-w-0 flex-1 items-center gap-space-xs">
+    <div className="gap-space-xs flex min-w-0 flex-1 items-center">
       <div className="truncate text-base font-medium text-text-primary">
-        {node?.data?.name || node?.data?.label || '未命名节点'}
+        {node?.data?.name ||
+          node?.data?.label ||
+          t('flow.unnamedNode', 'Untitled node')}
       </div>
       <Button
         type="button"

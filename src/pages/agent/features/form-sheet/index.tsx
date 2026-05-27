@@ -1,5 +1,11 @@
-import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/components/ui/sheet'
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetTitle,
+} from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
+import { useTranslation } from 'react-i18next'
 import { useFormSheetOffsetClass, useResolvedFormSheetContext } from './hooks'
 import type { FormSheetProps } from './types'
 import { FormRenderer } from './components/form-renderer'
@@ -15,6 +21,7 @@ export function FormSheet({
   runtimeDrawerVisible = false,
   canvasId,
 }: FormSheetProps) {
+  const { t } = useTranslation()
   const offsetClassName = useFormSheetOffsetClass(runtimeDrawerVisible)
   const context = useResolvedFormSheetContext(node)
 
@@ -40,13 +47,19 @@ export function FormSheet({
         )}
       >
         <SheetTitle className="sr-only">
-          {node.data?.name || node.data?.label || '节点配置'}
+          {node.data?.name ||
+            node.data?.label ||
+            t('flow.nodeConfig', 'Node configuration')}
         </SheetTitle>
         <SheetDescription className="sr-only">
-          {context.description || '编辑当前节点的配置参数'}
+          {context.description ||
+            t(
+              'flow.editNodeConfigDescription',
+              'Edit the current node configuration.',
+            )}
         </SheetDescription>
 
-        <section className="border-b border-border-primary px-space-md py-space-sm">
+        <section className="border-border-primary px-space-md py-space-sm border-b">
           <OperatorHeader
             node={node}
             titleEditable={context.titleEditable}

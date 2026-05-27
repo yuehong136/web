@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { useFetchMCPServers } from '@/hooks/use-mcp-request'
+import { useTranslation } from 'react-i18next'
 import { Operator, type Operator as OperatorType } from '../../constant'
 import { useCalculateSheetRight } from '../../hooks/use-calculate-sheet-right'
 import { getOperatorDefinition } from '../../operators'
@@ -24,6 +25,7 @@ export function useFormSheetOffsetClass(runtimeDrawerVisible = false) {
 export function useResolvedFormSheetContext(
   node?: RAGFlowNodeType,
 ): ResolvedFormSheetContext {
+  const { t } = useTranslation()
   const operatorType = node?.data?.label as OperatorType | undefined
   const operatorDefinition = useMemo(
     () => getOperatorDefinition(operatorType),
@@ -66,6 +68,7 @@ export function useResolvedFormSheetContext(
         operatorType,
         operatorDefinition,
         toolContext,
+        t,
       }),
       titleEditable: isFormSheetTitleEditable(operatorDefinition),
       debugEnabled: canShowSingleStepDebug(operatorDefinition),
@@ -74,6 +77,6 @@ export function useResolvedFormSheetContext(
         Boolean(toolContext?.mcpServer),
       ),
     }),
-    [node, operatorType, operatorDefinition, toolContext],
+    [node, operatorType, operatorDefinition, toolContext, t],
   )
 }
