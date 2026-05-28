@@ -552,6 +552,9 @@ export default {
     htmlReportSummaryBlocks: 'Blocks',
     htmlReportSummaryCharts: 'Charts',
     htmlReportSummaryPending: 'Fields to fill',
+    htmlReportSource: 'Source material',
+    htmlReportSourceDesc:
+      'Upstream content used to fill the report at run time.',
     htmlReportDesignerTitle: 'Report designer',
     htmlReportDesignerDesc: 'Lay out report sections, blocks and charts',
     htmlReportUndo: 'Undo',

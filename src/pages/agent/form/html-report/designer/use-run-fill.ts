@@ -32,6 +32,8 @@ export interface RunFillArgs {
   /** 源料:试运行时用户粘的样本上游文本 */
   sourceText: string
   llmName: string
+  /** 生成温度(取自节点配置;缺省时不进 gen_conf,用后端默认) */
+  temperature?: number
   /** variable 字段的样本值解析(无变量则永远返回 undefined) */
   resolveRef: (ref: string) => unknown
 }
@@ -62,7 +64,13 @@ export function useRunFill() {
   }, [teardown])
 
   const run = useCallback(
-    async ({ skeleton, sourceText, llmName, resolveRef }: RunFillArgs) => {
+    async ({
+      skeleton,
+      sourceText,
+      llmName,
+      temperature,
+      resolveRef,
+    }: RunFillArgs) => {
       teardown()
       const parser = new EnhancedSSEParser()
       parserRef.current = parser
@@ -89,7 +97,7 @@ export function useRunFill() {
         }
         await parser.connect(
           ENDPOINT,
-          buildRequest(messages, llmName),
+          buildRequest(messages, llmName, temperature),
           handle,
           (err) => {
             failed = err
@@ -146,12 +154,16 @@ export function useRunFill() {
   }
 }
 
-function buildRequest(messages: ChatMessage[], llmName: string) {
+function buildRequest(
+  messages: ChatMessage[],
+  llmName: string,
+  temperature?: number,
+) {
   return {
     prompt: '',
     messages,
     llm_name: llmName,
     stream: true,
-    gen_conf: {},
+    gen_conf: temperature == null ? {} : { temperature },
   }
 }

@@ -1,9 +1,11 @@
 /**
  * HTMLReport 节点表单(FormSheet 内)。
  *
- * 持有 RHF 表单(承载 SkeletonSchema)+ 骨架摘要卡 + 打开全屏 Designer 的入口。
- * Designer 保存时 setValue('skeleton'),经 useWatchFormChange 持久化进 graph store。
- * 完整的轻配置(源料输入 / model / temperature)留待 Phase 4。
+ * 承载两类配置:
+ * - 运行期输入(给后端的契约):源料上游引用 `query`、填充模型 `llm_id`、温度 `temperature`。
+ * - 报告骨架 `skeleton`:摘要卡 + 打开全屏 Designer 的入口。
+ *
+ * 普通字段经 useWatchFormChange 持久化进 graph store;Designer 保存时另走 handleSave 即时落库。
  */
 import { FileChartColumn } from 'lucide-react'
 import { useState } from 'react'
@@ -11,19 +13,34 @@ import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
 import { useFetchAgent } from '../../hooks/use-fetch-data'
 import { useFormValues } from '../../hooks/use-form-values'
 import { useSaveGraph } from '../../hooks/use-save-graph'
 import { useWatchFormChange } from '../../hooks/use-watch-form-change'
 import useGraphStore from '../../store'
 import type { INextOperatorForm } from '../../types'
-import { initialHTMLReportValues } from './constants'
+import { FormWrapper } from '../components'
+import { LLMSelectField } from '../components/llm-select-field'
+import { QueryVariable } from '../components/query-variable'
+import { DEFAULT_TEMPERATURE, initialHTMLReportValues } from './constants'
 import { Designer } from './designer'
 import { summarizeSkeleton } from './skeleton-utils'
 import type { SkeletonSchema } from './types'
 
 interface HTMLReportFormValues {
   skeleton: SkeletonSchema
+  query?: string
+  llm_id?: string
+  temperature?: number
   outputs?: Record<string, unknown>
 }
 
@@ -64,46 +81,94 @@ export function HTMLReportForm({ node }: INextOperatorForm) {
   }
 
   return (
-    <div className="space-y-space-base p-space-base">
-      <div className="space-y-space-sm rounded-radius-lg bg-surface-secondary p-space-base border border-border-default">
-        <p className="text-xs font-medium text-text-secondary">
-          {t('flow.htmlReportSummaryTitle', 'Report skeleton')}
-        </p>
-        <div className="gap-space-sm grid grid-cols-2">
-          <SummaryStat
-            label={t('flow.htmlReportSummarySections', 'Sections')}
-            value={summary.sections}
-          />
-          <SummaryStat
-            label={t('flow.htmlReportSummaryBlocks', 'Blocks')}
-            value={summary.blocks}
-          />
-          <SummaryStat
-            label={t('flow.htmlReportSummaryCharts', 'Charts')}
-            value={summary.charts}
-          />
-          <SummaryStat
-            label={t('flow.htmlReportSummaryPending', 'Fields to fill')}
-            value={summary.pending}
-          />
-        </div>
-      </div>
+    <>
+      <Form {...form}>
+        <FormWrapper>
+          {/* 运行配置:运行时报告据以填充的源料 + 模型 + 温度 */}
+          <div className="space-y-space-xs">
+            <QueryVariable
+              name="query"
+              nodeId={node?.id}
+              label={t('flow.htmlReportSource', 'Source material')}
+            />
+            <p className="text-text-caption text-xs">
+              {t(
+                'flow.htmlReportSourceDesc',
+                'Upstream content used to fill the report at run time.',
+              )}
+            </p>
+          </div>
 
-      <Button
-        className="w-full"
-        leftIcon={<FileChartColumn className="size-icon-sm" />}
-        onClick={() => setDesignerOpen(true)}
-      >
-        {t('flow.htmlReportOpenDesigner', 'Open report designer')}
-      </Button>
+          <LLMSelectField type="chat" valueMode="nameWithProvider" />
+
+          <FormField
+            control={form.control}
+            name="temperature"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('flow.temperature', 'Temperature')}</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={1}
+                    step={0.1}
+                    value={field.value ?? DEFAULT_TEMPERATURE}
+                    onChange={(event) =>
+                      field.onChange(Number(event.target.value))
+                    }
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* 报告骨架摘要 */}
+          <div className="space-y-space-sm rounded-radius-lg bg-surface-secondary p-space-base border border-border-default">
+            <p className="text-xs font-medium text-text-secondary">
+              {t('flow.htmlReportSummaryTitle', 'Report skeleton')}
+            </p>
+            <div className="gap-space-sm grid grid-cols-2">
+              <SummaryStat
+                label={t('flow.htmlReportSummarySections', 'Sections')}
+                value={summary.sections}
+              />
+              <SummaryStat
+                label={t('flow.htmlReportSummaryBlocks', 'Blocks')}
+                value={summary.blocks}
+              />
+              <SummaryStat
+                label={t('flow.htmlReportSummaryCharts', 'Charts')}
+                value={summary.charts}
+              />
+              <SummaryStat
+                label={t('flow.htmlReportSummaryPending', 'Fields to fill')}
+                value={summary.pending}
+              />
+            </div>
+          </div>
+
+          <Button
+            type="button"
+            className="w-full"
+            leftIcon={<FileChartColumn className="size-icon-sm" />}
+            onClick={() => setDesignerOpen(true)}
+          >
+            {t('flow.htmlReportOpenDesigner', 'Open report designer')}
+          </Button>
+        </FormWrapper>
+      </Form>
 
       <Designer
         open={designerOpen}
         initialSkeleton={skeleton}
+        llmId={form.watch('llm_id')}
+        temperature={form.watch('temperature')}
         onSave={handleSave}
         onClose={() => setDesignerOpen(false)}
       />
-    </div>
+    </>
   )
 }
 

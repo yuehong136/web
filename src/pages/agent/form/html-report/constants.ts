@@ -139,12 +139,20 @@ export const DEFAULT_THEME: Required<ThemeConfig> = {
 // 算子节点初始值
 // ============================================================
 
+/** 默认温度（与多数 chat 算子一致的低发散取值） */
+export const DEFAULT_TEMPERATURE = 0.1
+
 /**
  * HTMLReport 节点的表单初始值。
  *
  * 节点持久化的是设计时 {@link SkeletonSchema}（骨架 + 字段填充指令），体积仅几 KB；
  * 运行时由后端按指令补值得到 ReportSchema，消费端再拼成自包含 HTML（决策 #29/#30）。
  * 放在本文件而非 `constant/index.ts`，避免后者（已 1400+ 行）继续膨胀。
+ *
+ * 运行期输入(给后端的契约，沿用全仓约定字段名)：
+ * - `query`：源料的上游变量引用，运行时填充报告所据的内容。
+ * - `llm_id`：填充用 chat 模型（`name@provider` 形式）。
+ * - `temperature`：生成温度。
  */
 export const initialHTMLReportValues = {
   skeleton: {
@@ -152,5 +160,8 @@ export const initialHTMLReportValues = {
     sections: [],
     theme: DEFAULT_THEME,
   } satisfies SkeletonSchema,
+  query: '',
+  llm_id: '',
+  temperature: DEFAULT_TEMPERATURE,
   outputs: {} as Record<string, unknown>,
 }

@@ -46,6 +46,10 @@ import type { BlockKind, ChartType, LayoutType, SkeletonSchema } from '../types'
 interface DesignerProps {
   open: boolean
   initialSkeleton: SkeletonSchema
+  /** 节点配置的填充模型(`name@provider`),透传给试运行复用 */
+  llmId?: string
+  /** 节点配置的生成温度,透传给试运行复用 */
+  temperature?: number
   onSave: (skeleton: SkeletonSchema) => void
   onClose: () => void
 }
@@ -53,6 +57,8 @@ interface DesignerProps {
 export function Designer({
   open,
   initialSkeleton,
+  llmId,
+  temperature,
   onSave,
   onClose,
 }: DesignerProps) {
@@ -271,6 +277,8 @@ export function Designer({
         <RunDialog
           open={runOpen}
           skeleton={state.present}
+          llmId={llmId}
+          temperature={temperature}
           onClose={() => setRunOpen(false)}
         />
       </SheetContent>

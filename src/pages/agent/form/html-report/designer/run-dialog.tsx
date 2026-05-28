@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { useChatModelOptions } from '@/hooks/use-llm-request'
+import { parseLLMValue } from '@/stores/model'
 import type { SkeletonSchema } from '../types'
 import { ModelSelect } from './ai-skeleton/model-select'
 import { RunResult } from './run-result'
@@ -22,10 +23,20 @@ import { useRunFill } from './use-run-fill'
 interface RunDialogProps {
   open: boolean
   skeleton: SkeletonSchema
+  /** 节点配置的填充模型(`name@provider`):试运行默认选它 */
+  llmId?: string
+  /** 节点配置的生成温度:试运行用它发起请求 */
+  temperature?: number
   onClose: () => void
 }
 
-export function RunDialog({ open, skeleton, onClose }: RunDialogProps) {
+export function RunDialog({
+  open,
+  skeleton,
+  llmId,
+  temperature,
+  onClose,
+}: RunDialogProps) {
   const { t } = useTranslation()
   const { options, isLoading } = useChatModelOptions()
   const [model, setModel] = useState('')
@@ -58,10 +69,16 @@ export function RunDialog({ open, skeleton, onClose }: RunDialogProps) {
     return [...refs]
   }, [skeleton])
 
-  // 模型清单到达后默认选首个
+  // 模型清单到达后默认选节点配置的模型(选项 value 是裸模型名,故拆掉 provider 后缀
+  // 再匹配);未配置或匹配不到再回落首个。
   useEffect(() => {
-    if (!model && options.length > 0) setModel(options[0].value)
-  }, [options, model])
+    if (model || options.length === 0) return
+    const preferred = parseLLMValue(llmId).modelName
+    const matched = preferred
+      ? options.find((option) => option.value === preferred)
+      : undefined
+    setModel(matched?.value ?? options[0].value)
+  }, [options, model, llmId])
 
   // 关闭时复位(取消在途流、回到表单态)
   useEffect(() => {
@@ -114,6 +131,7 @@ export function RunDialog({ open, skeleton, onClose }: RunDialogProps) {
       skeleton,
       sourceText: text,
       llmName: model,
+      temperature,
       resolveRef: (ref) => samples[ref],
     })
   }

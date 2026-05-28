@@ -260,6 +260,8 @@ export default {
     htmlReportSummaryBlocks: '内容块',
     htmlReportSummaryCharts: '图表',
     htmlReportSummaryPending: '待填字段',
+    htmlReportSource: '源料',
+    htmlReportSourceDesc: '运行时用于填充报告的上游内容。',
     htmlReportDesignerTitle: '报告编排器',
     htmlReportDesignerDesc: '编排报告的小节、内容块与图表',
     htmlReportUndo: '撤销',
