@@ -3,7 +3,7 @@
  * 使用通用 ResourceListRow 组件，整行可点击进入、悬停高亮
  */
 
-import React from 'react'
+import { type FC } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Edit, Trash2, Database, User, Users, Layers } from 'lucide-react'
@@ -71,7 +71,7 @@ const formatTime = (timestamp: number, format: TimeFormatType): string => {
 }
 
 // 记忆库头像
-const MemoryAvatar: React.FC<{ memory: Memory }> = ({ memory }) => {
+const MemoryAvatar: FC<{ memory: Memory }> = ({ memory }) => {
   const gradient = getAvatarGradient(memory.name)
 
   if (memory.avatar) {
@@ -93,7 +93,7 @@ const MemoryAvatar: React.FC<{ memory: Memory }> = ({ memory }) => {
         gradient,
       )}
     >
-      <span className="text-xl font-semibold text-white">
+      <span className="text-xl font-semibold text-components-button-primary-text">
         {memory.name.charAt(0).toUpperCase()}
       </span>
     </div>
@@ -101,7 +101,7 @@ const MemoryAvatar: React.FC<{ memory: Memory }> = ({ memory }) => {
 }
 
 // 列表行组件
-const MemoryListRow: React.FC<{
+const MemoryListRow: FC<{
   memory: Memory
   selected: boolean
   onSelect?: () => void
@@ -120,7 +120,7 @@ const MemoryListRow: React.FC<{
   if (onEdit) {
     actions.push({
       key: 'edit',
-      label: t('common.edit', '编辑'),
+      label: t('common.edit'),
       icon: <Edit className="h-4 w-4" />,
       onClick: onEdit,
     })
@@ -128,7 +128,7 @@ const MemoryListRow: React.FC<{
   if (onDelete) {
     actions.push({
       key: 'delete',
-      label: t('common.delete', '删除'),
+      label: t('common.delete'),
       icon: <Trash2 className="h-4 w-4" />,
       onClick: onDelete,
       danger: true,
@@ -164,12 +164,12 @@ const MemoryListRow: React.FC<{
         {memory.storage_type === 'graph' ? (
           <>
             <Layers className="h-3.5 w-3.5" />
-            <span>{t('memory.fields.graph', '图')}</span>
+            <span>{t('memory.fields.graph')}</span>
           </>
         ) : (
           <>
             <Database className="h-3.5 w-3.5" />
-            <span>{t('memory.fields.table', '表格')}</span>
+            <span>{t('memory.fields.table')}</span>
           </>
         )}
       </div>
@@ -179,12 +179,12 @@ const MemoryListRow: React.FC<{
         {memory.permissions === 'me' ? (
           <>
             <User className="h-3.5 w-3.5" />
-            <span>{t('memory.fields.onlyMe', '仅自己')}</span>
+            <span>{t('memory.fields.onlyMe')}</span>
           </>
         ) : (
           <>
             <Users className="h-3.5 w-3.5" />
-            <span>{t('memory.fields.team', '团队')}</span>
+            <span>{t('memory.fields.team')}</span>
           </>
         )}
       </div>
@@ -202,7 +202,7 @@ const MemoryListRow: React.FC<{
   )
 }
 
-export const MemoryListView: React.FC<MemoryListViewProps> = ({
+export const MemoryListView: FC<MemoryListViewProps> = ({
   data,
   onEdit,
   onDelete,
@@ -215,13 +215,13 @@ export const MemoryListView: React.FC<MemoryListViewProps> = ({
   const { t } = useTranslation()
   const allSelected = data.length > 0 && selectedIds.length === data.length
   const headerColumns = [
-    { key: 'name', label: t('memory.fields.name', '名称') },
-    { key: 'memory_type', label: t('memory.filters.memoryType', '记忆类型') },
-    { key: 'storage_type', label: t('memory.fields.storageType', '存储类型') },
-    { key: 'permissions', label: t('memory.fields.permission', '权限') },
-    { key: 'create_time', label: t('memory.fields.createdAt', '创建时间') },
-    { key: 'update_time', label: t('memory.fields.updatedAt', '更新时间') },
-    { key: 'actions', label: t('common.action', '操作') },
+    { key: 'name', label: t('memory.fields.name') },
+    { key: 'memory_type', label: t('memory.filters.memoryType') },
+    { key: 'storage_type', label: t('memory.fields.storageType') },
+    { key: 'permissions', label: t('memory.fields.permission') },
+    { key: 'create_time', label: t('memory.fields.createdAt') },
+    { key: 'update_time', label: t('memory.fields.updatedAt') },
+    { key: 'actions', label: t('common.action') },
   ]
 
   return (

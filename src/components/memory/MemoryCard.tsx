@@ -4,7 +4,13 @@
  * 参考 MCP 服务器卡片的悬停效果实现
  */
 
-import React, { useState } from 'react'
+import {
+  useMemo,
+  useState,
+  type FC,
+  type KeyboardEvent,
+  type MouseEvent,
+} from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
@@ -64,7 +70,7 @@ const formatTime = (timestamp: number, format: TimeFormatType): string => {
   }
 }
 
-export const MemoryCard: React.FC<MemoryCardProps> = ({
+export const MemoryCard: FC<MemoryCardProps> = ({
   data,
   onEdit,
   onDelete,
@@ -80,22 +86,29 @@ export const MemoryCard: React.FC<MemoryCardProps> = ({
     navigate(`/memory/${data.id}`)
   }
 
+  const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      handleClick()
+    }
+  }
+
   const handleCheckboxChange = () => {
     onSelect?.(data.id)
   }
 
-  const handleEdit = (e: React.MouseEvent) => {
+  const handleEdit = (e: MouseEvent) => {
     e.stopPropagation()
     onEdit?.(data)
   }
 
-  const handleDelete = (e: React.MouseEvent) => {
+  const handleDelete = (e: MouseEvent) => {
     e.stopPropagation()
     onDelete?.(data)
   }
 
   // 生成头像背景渐变 - 使用语义令牌
-  const avatarGradient = React.useMemo(() => {
+  const avatarGradient = useMemo(() => {
     const gradients = [
       'from-components-avatar-gradient-purple-from to-components-avatar-gradient-purple-to',
       'from-components-avatar-gradient-blue-from to-components-avatar-gradient-blue-to',
@@ -112,7 +125,7 @@ export const MemoryCard: React.FC<MemoryCardProps> = ({
       className={cn(
         'group relative cursor-pointer rounded-2xl border transition-all duration-300',
         'hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/5',
-        isHovered && 'ring-2 ring-blue-500/20',
+        isHovered && 'ring-text-accent/20 ring-2',
         selected && 'ring-2 ring-text-accent',
       )}
       style={{
@@ -124,6 +137,9 @@ export const MemoryCard: React.FC<MemoryCardProps> = ({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={handleClick}
+      onKeyDown={handleKeyDown}
+      role="button"
+      tabIndex={0}
     >
       {/* 卡片内容 */}
       <div className="relative p-4 pt-5">
@@ -155,7 +171,7 @@ export const MemoryCard: React.FC<MemoryCardProps> = ({
                   avatarGradient,
                 )}
               >
-                <span className="text-xl font-semibold text-white">
+                <span className="text-xl font-semibold text-components-button-primary-text">
                   {data.name.charAt(0).toUpperCase()}
                 </span>
               </div>
@@ -175,7 +191,11 @@ export const MemoryCard: React.FC<MemoryCardProps> = ({
           </div>
 
           {/* 操作菜单 */}
-          <div onClick={(e) => e.stopPropagation()}>
+          <div
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
+            role="presentation"
+          >
             <Dropdown
               trigger={
                 <Button variant="ghost" size="icon-sm">
@@ -187,14 +207,14 @@ export const MemoryCard: React.FC<MemoryCardProps> = ({
                 icon={<Edit className="h-4 w-4" />}
                 onClick={handleEdit}
               >
-                {t('common.edit', '编辑')}
+                {t('common.edit')}
               </DropdownItem>
               <DropdownItem
                 icon={<Trash2 className="h-4 w-4" />}
                 onClick={handleDelete}
                 danger
               >
-                {t('common.delete', '删除')}
+                {t('common.delete')}
               </DropdownItem>
             </Dropdown>
           </div>

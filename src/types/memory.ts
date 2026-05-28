@@ -46,25 +46,25 @@ export interface Memory {
   name: string
   description?: string
   avatar?: string
-  
+
   // 记忆配置
   memory_type: MemoryType[]
   storage_type: StorageType
   permissions: PermissionType
-  
+
   // 模型配置
-  embd_id: string      // 嵌入模型 ID
-  llm_id: string       // LLM 模型 ID
-  
+  embd_id: string // 嵌入模型 ID
+  llm_id: string // LLM 模型 ID
+
   // 容量和策略
   memory_size: number
   forgetting_policy: ForgettingPolicy
-  
+
   // 高级设置
   temperature?: number
   system_prompt?: string
   user_prompt?: string
-  
+
   // 元数据
   tenant_id: string
   owner_name: string
@@ -78,26 +78,29 @@ export interface Memory {
  * 记忆消息实体
  */
 export interface MemoryMessage {
-  id: string
+  message_id: number
   session_id: string
   memory_id: string
-  
+
   // 消息内容
-  content: string
-  content_embed?: string
-  
+  content?: string
+  content_embed?: number[] | string
+
   // 消息元数据
+  agent_id?: string
   agent_name?: string
+  user_id?: string
   message_type: MemoryType
-  source_id?: string
-  
+  source_id?: string | number
+
   // 时间和状态
   valid_at: string
   forget_at?: string
   status: boolean
-  
+
   // 子消息（用于展开显示）
   extract?: MemoryMessage[]
+  task?: Record<string, unknown>
 }
 
 // ============ API 请求参数类型 ============
@@ -108,7 +111,7 @@ export interface MemoryMessage {
  */
 export interface CreateMemoryParams {
   name: string
-  memory_type: string[]  // 后端接受字符串数组，如 ['raw', 'semantic']
+  memory_type: string[] // 后端接受字符串数组，如 ['raw', 'semantic']
   embd_id: string
   llm_id: string
 }
@@ -149,8 +152,7 @@ export interface MessageListParams {
   page?: number
   page_size?: number
   keywords?: string
-  message_type?: MemoryType[]
-  status?: boolean
+  agent_id?: string[]
   session_id?: string
 }
 
@@ -170,6 +172,15 @@ export interface MemoryListResponse {
 export interface MessageListResponse {
   message_list: MemoryMessage[]
   total_count: number
+  storage_type?: StorageType
+}
+
+/**
+ * 记忆库详情消息响应
+ */
+export interface MemoryMessagesDetailResponse {
+  messages: MessageListResponse
+  storage_type: StorageType
 }
 
 /**
@@ -177,7 +188,7 @@ export interface MessageListResponse {
  */
 export interface MessageContentResponse {
   content: string
-  content_embed?: string
+  content_embed?: number[] | string
 }
 
 // ============ 前端状态类型 ============
@@ -197,8 +208,7 @@ export interface MemoryFilterState {
  */
 export interface MessageFilterState {
   keywords: string
-  messageType: MemoryType[]
-  status: boolean | null
+  agentId: string[]
 }
 
 // ============ 表单类型 ============
@@ -208,7 +218,7 @@ export interface MessageFilterState {
  */
 export interface CreateMemoryFormValues {
   name: string
-  memory_type: string[]  // 如 ['raw', 'semantic']
+  memory_type: string[] // 如 ['raw', 'semantic']
   embd_id: string
   llm_id: string
 }

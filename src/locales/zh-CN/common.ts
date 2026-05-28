@@ -2,6 +2,7 @@ export default {
   common: {
     // 操作按钮
     add: '添加',
+    create: '创建',
     remove: '移除',
     edit: '编辑',
     delete: '删除',

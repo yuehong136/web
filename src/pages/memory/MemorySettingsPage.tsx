@@ -1,28 +1,33 @@
 /**
  * 记忆库设置页面
  * 优化版本：水平布局表单 + 高级设置折叠 + 模型选择器对接
- * 
+ *
  * 禁用逻辑（参考 ragflow）：
  * - 嵌入模型：始终禁用（创建后不能修改）
  * - LLM 模型、记忆类型：当记忆库中有消息记录时禁用
  */
 
-import React from 'react'
+import { useCallback, useEffect, useMemo, type FC, type ReactNode } from 'react'
 import { useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Save, Loader2, HelpCircle, User, Users, RotateCcw, AlertCircle, Lock } from 'lucide-react'
+import {
+  Save,
+  Loader2,
+  HelpCircle,
+  User,
+  Users,
+  RotateCcw,
+  AlertCircle,
+  Lock,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Slider } from '@/components/ui/slider'
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormMessage,
-} from '@/components/ui/form'
+import { Form, FormControl, FormField, FormMessage } from '@/components/ui/form'
 import {
   TooltipRoot as Tooltip,
   TooltipContent,
@@ -45,34 +50,40 @@ import { MemoryTypeSelect } from '@/components/memory/MemoryTypeSelect'
 import { AvatarUpload } from '@/components/memory/AvatarUpload'
 import { IconFontFill } from '@/components/ui/icon-font'
 import { formatBytes, cn } from '@/lib/utils'
-import { useMemoryConfig, useUpdateMemory, useMessageList } from '@/hooks/use-memory'
+import {
+  useMemoryConfig,
+  useUpdateMemory,
+  useMessageList,
+} from '@/hooks/use-memory'
 import { IconMap, LLMFactory } from '@/stores/model'
 import { useIsDarkTheme } from '@/themes'
-import { MEMORY_TEXTS } from '@/constants/memory-texts'
 
 // 表单验证 Schema
 // 注意：后端不允许修改 storage_type, embd_id
 // memory_type 和 llm_id 在有消息记录时禁用编辑
-const memorySettingsSchema = z.object({
-  name: z.string().min(1, MEMORY_TEXTS.memories.nameRequired),
-  description: z.string().optional(),
-  avatar: z.string().optional(),
-  memory_type: z
-    .array(z.string())
-    .min(1, MEMORY_TEXTS.memories.memoryTypeRequired)
-    .refine((arr) => arr.includes('raw'), {
-      message: MEMORY_TEXTS.memories.rawRequired,
-    }),
-  permissions: z.enum(['me', 'team'] as const),
-  llm_id: z.string().min(1, MEMORY_TEXTS.memories.selectLlmRequired),
-  memory_size: z.number().min(1048576).max(104857600), // 1MB - 100MB
-  forgetting_policy: z.enum(['FIFO', 'LRU'] as const),
-  temperature: z.number().min(0).max(1),  // 后端限制 0-1
-  system_prompt: z.string().optional(),
-  user_prompt: z.string().optional(),
-})
+const getMemorySettingsSchema = (t: ReturnType<typeof useTranslation>['t']) =>
+  z.object({
+    name: z.string().min(1, t('memory.validation.nameRequired')),
+    description: z.string().optional(),
+    avatar: z.string().optional(),
+    memory_type: z
+      .array(z.string())
+      .min(1, t('memory.validation.memoryTypeRequired'))
+      .refine((arr) => arr.includes('raw'), {
+        message: t('memory.validation.rawRequired'),
+      }),
+    permissions: z.enum(['me', 'team'] as const),
+    llm_id: z.string().min(1, t('memory.validation.selectLlmRequired')),
+    memory_size: z.number().min(1048576).max(104857600), // 1MB - 100MB
+    forgetting_policy: z.enum(['FIFO', 'LRU'] as const),
+    temperature: z.number().min(0).max(1), // 后端限制 0-1
+    system_prompt: z.string().optional(),
+    user_prompt: z.string().optional(),
+  })
 
-type MemorySettingsFormValues = z.infer<typeof memorySettingsSchema>
+type MemorySettingsFormValues = z.infer<
+  ReturnType<typeof getMemorySettingsSchema>
+>
 
 // 水平表单项组件
 interface HorizontalFormItemProps {
@@ -81,11 +92,11 @@ interface HorizontalFormItemProps {
   tooltip?: string
   disabled?: boolean
   disabledHint?: string
-  children: React.ReactNode
+  children: ReactNode
   className?: string
 }
 
-const HorizontalFormItem: React.FC<HorizontalFormItemProps> = ({
+const HorizontalFormItem: FC<HorizontalFormItemProps> = ({
   label,
   required,
   tooltip,
@@ -96,14 +107,14 @@ const HorizontalFormItem: React.FC<HorizontalFormItemProps> = ({
 }) => (
   <div className={cn('flex items-start gap-4', className)}>
     <div className="w-28 shrink-0 pt-2.5">
-      <div className="flex items-center gap-1.5 flex-wrap">
+      <div className="flex flex-wrap items-center gap-1.5">
         <span className="text-sm text-text-secondary">{label}</span>
         {required && <span className="text-status-error">*</span>}
         {tooltip && (
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <HelpCircle className="h-3.5 w-3.5 text-text-tertiary cursor-help" />
+                <HelpCircle className="h-3.5 w-3.5 cursor-help text-text-tertiary" />
               </TooltipTrigger>
               <TooltipContent className="max-w-xs whitespace-pre-line">
                 {tooltip}
@@ -116,17 +127,17 @@ const HorizontalFormItem: React.FC<HorizontalFormItemProps> = ({
         )}
       </div>
     </div>
-    <div className="flex-1 min-w-0">{children}</div>
+    <div className="min-w-0 flex-1">{children}</div>
   </div>
 )
 
 // 只读字段组件
 interface ReadOnlyFieldProps {
-  value: React.ReactNode
+  value: ReactNode
 }
 
-const ReadOnlyField: React.FC<ReadOnlyFieldProps> = ({ value }) => (
-  <div className="h-10 px-3 flex items-center rounded-md border border-border-default bg-surface-secondary/50 text-text-secondary text-sm">
+const ReadOnlyField: FC<ReadOnlyFieldProps> = ({ value }) => (
+  <div className="bg-surface-secondary/50 flex h-10 items-center rounded-md border border-border-default px-3 text-sm text-text-secondary">
     {value || '-'}
   </div>
 )
@@ -153,48 +164,57 @@ interface ReadOnlyModelFieldProps {
   modelId: string | undefined
 }
 
-const ReadOnlyModelField: React.FC<ReadOnlyModelFieldProps> = ({ modelId }) => {
+const ReadOnlyModelField: FC<ReadOnlyModelFieldProps> = ({ modelId }) => {
   const isDark = useIsDarkTheme()
-  
+
   if (!modelId) {
     return (
-      <div className="h-10 px-3 flex items-center rounded-md border border-border-default bg-surface-secondary/50 text-text-tertiary text-sm">
+      <div className="bg-surface-secondary/50 flex h-10 items-center rounded-md border border-border-default px-3 text-sm text-text-tertiary">
         -
       </div>
     )
   }
-  
+
   // 解析模型 ID，格式：modelName@providerName
   const atIndex = modelId.lastIndexOf('@')
   const modelName = atIndex > 0 ? modelId.substring(0, atIndex) : modelId
   const provider = atIndex > 0 ? modelId.substring(atIndex + 1) : ''
   const iconName = provider ? getIconName(provider, isDark) : 'moxing-default'
-  
+
   return (
-    <div className="h-10 px-3 flex items-center gap-2 rounded-md border border-border-default bg-surface-secondary/50 text-text-secondary text-sm">
-      <IconFontFill name={iconName} className="w-5 h-5 shrink-0" />
+    <div className="bg-surface-secondary/50 flex h-10 items-center gap-2 rounded-md border border-border-default px-3 text-sm text-text-secondary">
+      <IconFontFill name={iconName} className="h-5 w-5 shrink-0" />
       <span className="truncate">{modelName}</span>
-      <Lock className="h-3.5 w-3.5 text-text-tertiary ml-auto shrink-0" />
+      <Lock className="ml-auto h-3.5 w-3.5 shrink-0 text-text-tertiary" />
     </div>
   )
 }
 
-export const MemorySettingsPage: React.FC = () => {
+export const MemorySettingsPage: FC = () => {
+  const { t } = useTranslation()
   const { id: memoryId } = useParams<{ id: string }>()
+  const memorySettingsSchema = useMemo(() => getMemorySettingsSchema(t), [t])
 
   // 获取配置
   const { data: config, isLoading } = useMemoryConfig(memoryId)
   const updateMutation = useUpdateMemory()
-  
+
   // 获取消息数量，用于判断是否允许编辑某些字段
-  const { data: messageData } = useMessageList(memoryId, { page: 1, page_size: 1 })
+  const { data: messageData } = useMessageList(memoryId, {
+    page: 1,
+    page_size: 1,
+  })
   const messageCount = messageData?.total_count || 0
-  
+
   // 是否有消息记录 - 决定 memory_type 和 llm_id 是否可编辑
   const hasMessages = messageCount > 0
+  const getMemoryTypeLabel = useCallback(
+    (type: string) => t(`memory.filters.${type}`, type),
+    [t],
+  )
 
   // 生成头像渐变背景
-  const avatarGradient = React.useMemo(() => {
+  const avatarGradient = useMemo(() => {
     const name = config?.name || 'M'
     const gradients = [
       'from-purple-500 to-pink-500',
@@ -226,7 +246,7 @@ export const MemorySettingsPage: React.FC = () => {
   })
 
   // 加载配置后填充表单
-  React.useEffect(() => {
+  useEffect(() => {
     if (config) {
       form.reset({
         name: config.name,
@@ -247,12 +267,12 @@ export const MemorySettingsPage: React.FC = () => {
   // 提交表单
   const onSubmit = (values: MemorySettingsFormValues) => {
     if (!memoryId) return
-    
+
     // 如果有消息记录，不提交 memory_type（后端也不接受）
-    const submitData = hasMessages 
+    const submitData = hasMessages
       ? { ...values, memory_type: undefined }
       : values
-    
+
     updateMutation.mutate({
       id: memoryId,
       data: submitData,
@@ -280,7 +300,7 @@ export const MemorySettingsPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="h-full flex items-center justify-center">
+      <div className="flex h-full items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-text-tertiary" />
       </div>
     )
@@ -288,14 +308,14 @@ export const MemorySettingsPage: React.FC = () => {
 
   return (
     <div className="h-full overflow-auto">
-      <div className="max-w-3xl mx-auto py-6 px-6">
+      <div className="mx-auto max-w-3xl px-6 py-6">
         {/* 页面标题 */}
         <div className="mb-8">
           <h2 className="text-xl font-semibold text-text-primary">
-            {MEMORY_TEXTS.config.pageTitle}
+            {t('memory.config.title')}
           </h2>
-          <p className="text-sm text-text-secondary mt-1">
-            {MEMORY_TEXTS.config.pageDescription}
+          <p className="mt-1 text-sm text-text-secondary">
+            {t('memory.config.description')}
           </p>
         </div>
 
@@ -304,7 +324,7 @@ export const MemorySettingsPage: React.FC = () => {
             {/* ==================== 基础信息 ==================== */}
             <section className="space-y-5">
               <h3 className="text-base font-medium text-text-primary">
-                {MEMORY_TEXTS.config.basicInfo}
+                {t('memory.config.basicInfo')}
               </h3>
 
               {/* 头像 */}
@@ -312,29 +332,29 @@ export const MemorySettingsPage: React.FC = () => {
                 control={form.control}
                 name="avatar"
                 render={({ field }) => (
-                  <HorizontalFormItem label="头像">
+                  <HorizontalFormItem label={t('memory.fields.avatar')}>
                     <AvatarUpload
                       value={field.value}
                       onChange={field.onChange}
                       size="lg"
                       fallbackLetter={form.watch('name')?.charAt(0) || 'M'}
                       gradientClass={avatarGradient}
-                      tips="支持 JPG、PNG，最大 5MB"
+                      tips={t('memory.fields.avatarUploadTips')}
                     />
                     <FormMessage className="mt-1" />
                   </HorizontalFormItem>
                 )}
               />
-              
+
               {/* 名称 */}
               <FormField
                 control={form.control}
                 name="name"
                 render={({ field }) => (
-                  <HorizontalFormItem label={MEMORY_TEXTS.memories.name} required>
+                  <HorizontalFormItem label={t('memory.fields.name')} required>
                     <FormControl>
                       <Input
-                        placeholder={MEMORY_TEXTS.memories.memoryNamePlaceholder}
+                        placeholder={t('memory.fields.namePlaceholder')}
                         {...field}
                       />
                     </FormControl>
@@ -348,10 +368,10 @@ export const MemorySettingsPage: React.FC = () => {
                 control={form.control}
                 name="description"
                 render={({ field }) => (
-                  <HorizontalFormItem label={MEMORY_TEXTS.config.description}>
+                  <HorizontalFormItem label={t('memory.fields.description')}>
                     <FormControl>
                       <Textarea
-                        placeholder={MEMORY_TEXTS.config.descriptionPlaceholder}
+                        placeholder={t('memory.fields.descriptionPlaceholder')}
                         rows={3}
                         className="resize-none"
                         {...field}
@@ -367,12 +387,18 @@ export const MemorySettingsPage: React.FC = () => {
                 control={form.control}
                 name="memory_type"
                 render={({ field }) => (
-                  <HorizontalFormItem 
-                    label={MEMORY_TEXTS.memories.memoryType}
+                  <HorizontalFormItem
+                    label={t('memory.filters.memoryType')}
                     required
                     disabled={hasMessages}
-                    disabledHint={hasMessages ? `已有 ${messageCount} 条消息` : undefined}
-                    tooltip={MEMORY_TEXTS.memories.memoryTypeTooltip}
+                    disabledHint={
+                      hasMessages
+                        ? t('memory.config.messageLockedHint', {
+                            count: messageCount,
+                          })
+                        : undefined
+                    }
+                    tooltip={t('memory.filters.tooltip')}
                   >
                     {hasMessages ? (
                       // 有消息时只读展示
@@ -380,11 +406,13 @@ export const MemorySettingsPage: React.FC = () => {
                         {field.value?.map((type) => (
                           <span
                             key={type}
-                            className="px-2.5 py-1 text-xs rounded-md bg-surface-accent/10 text-text-accent font-medium"
+                            className="bg-surface-accent/10 rounded-md px-2.5 py-1 text-xs font-medium text-text-accent"
                           >
-                            {type}
+                            {getMemoryTypeLabel(type)}
                           </span>
-                        )) || <span className="text-text-tertiary text-sm">-</span>}
+                        )) || (
+                          <span className="text-sm text-text-tertiary">-</span>
+                        )}
                       </div>
                     ) : (
                       // 无消息时可编辑
@@ -409,22 +437,26 @@ export const MemorySettingsPage: React.FC = () => {
             <section className="space-y-5">
               <div className="flex items-center justify-between">
                 <h3 className="text-base font-medium text-text-primary">
-                  {MEMORY_TEXTS.config.modelConfig}
+                  {t('memory.config.modelConfig')}
                 </h3>
                 {hasMessages && (
                   <div className="flex items-center gap-1.5 text-xs text-status-warning">
                     <AlertCircle className="h-3.5 w-3.5" />
-                    <span>已有 {messageCount} 条消息记录，部分配置无法修改</span>
+                    <span>
+                      {t('memory.config.messageLockedBanner', {
+                        count: messageCount,
+                      })}
+                    </span>
                   </div>
                 )}
               </div>
 
               {/* 嵌入模型 - 始终只读 */}
-              <HorizontalFormItem 
-                label={MEMORY_TEXTS.memories.embeddingModel} 
-                tooltip={MEMORY_TEXTS.memories.embeddingModelTooltip}
-                disabled 
-                disabledHint={MEMORY_TEXTS.common.notEditable}
+              <HorizontalFormItem
+                label={t('memory.fields.embeddingModel')}
+                tooltip={t('memory.fields.embeddingModelTooltip')}
+                disabled
+                disabledHint={t('memory.common.notEditable')}
               >
                 <ReadOnlyModelField modelId={config?.embd_id} />
               </HorizontalFormItem>
@@ -434,12 +466,18 @@ export const MemorySettingsPage: React.FC = () => {
                 control={form.control}
                 name="llm_id"
                 render={({ field }) => (
-                  <HorizontalFormItem 
-                    label={MEMORY_TEXTS.memories.llm} 
+                  <HorizontalFormItem
+                    label={t('memory.fields.llm')}
                     required
-                    tooltip={MEMORY_TEXTS.memories.llmTooltip}
+                    tooltip={t('memory.fields.llmTooltip')}
                     disabled={hasMessages}
-                    disabledHint={hasMessages ? `已有 ${messageCount} 条消息` : undefined}
+                    disabledHint={
+                      hasMessages
+                        ? t('memory.config.messageLockedHint', {
+                            count: messageCount,
+                          })
+                        : undefined
+                    }
                   >
                     {hasMessages ? (
                       // 有消息时只读展示（带厂商图标）
@@ -463,14 +501,17 @@ export const MemorySettingsPage: React.FC = () => {
             <Separator />
 
             {/* ==================== 高级设置（可折叠） ==================== */}
-            <CollapsibleSection title={MEMORY_TEXTS.config.advancedSettings} defaultOpen={false}>
+            <CollapsibleSection
+              title={t('memory.config.advancedSettings')}
+              defaultOpen={false}
+            >
               <div className="space-y-5">
                 {/* 权限 */}
                 <FormField
                   control={form.control}
                   name="permissions"
                   render={({ field }) => (
-                    <HorizontalFormItem label={MEMORY_TEXTS.config.permission}>
+                    <HorizontalFormItem label={t('memory.fields.permission')}>
                       <FormControl>
                         <RadioGroup
                           value={field.value}
@@ -481,20 +522,20 @@ export const MemorySettingsPage: React.FC = () => {
                             <RadioGroupItem value="me" id="perm-me" />
                             <Label
                               htmlFor="perm-me"
-                              className="flex items-center gap-1.5 cursor-pointer text-sm"
+                              className="flex cursor-pointer items-center gap-1.5 text-sm"
                             >
                               <User className="h-4 w-4" />
-                              {MEMORY_TEXTS.config.onlyMe}
+                              {t('memory.fields.onlyMe')}
                             </Label>
                           </div>
                           <div className="flex items-center gap-2">
                             <RadioGroupItem value="team" id="perm-team" />
                             <Label
                               htmlFor="perm-team"
-                              className="flex items-center gap-1.5 cursor-pointer text-sm"
+                              className="flex cursor-pointer items-center gap-1.5 text-sm"
                             >
                               <Users className="h-4 w-4" />
-                              {MEMORY_TEXTS.config.team}
+                              {t('memory.fields.team')}
                             </Label>
                           </div>
                         </RadioGroup>
@@ -505,13 +546,17 @@ export const MemorySettingsPage: React.FC = () => {
                 />
 
                 {/* 存储类型 - 只读 */}
-                <HorizontalFormItem 
-                  label={MEMORY_TEXTS.config.storageType} 
-                  disabled 
-                  disabledHint={MEMORY_TEXTS.common.notEditable}
+                <HorizontalFormItem
+                  label={t('memory.fields.storageType')}
+                  disabled
+                  disabledHint={t('memory.common.notEditable')}
                 >
-                  <ReadOnlyField 
-                    value={config?.storage_type === 'graph' ? MEMORY_TEXTS.config.graph : MEMORY_TEXTS.config.table} 
+                  <ReadOnlyField
+                    value={
+                      config?.storage_type === 'graph'
+                        ? t('memory.fields.graph')
+                        : t('memory.fields.table')
+                    }
                   />
                 </HorizontalFormItem>
 
@@ -520,9 +565,9 @@ export const MemorySettingsPage: React.FC = () => {
                   control={form.control}
                   name="memory_size"
                   render={({ field }) => (
-                    <HorizontalFormItem 
-                      label={MEMORY_TEXTS.config.memorySize}
-                      tooltip={MEMORY_TEXTS.config.memorySizeTooltip}
+                    <HorizontalFormItem
+                      label={t('memory.config.memorySize')}
+                      tooltip={t('memory.config.memorySizeTooltip')}
                     >
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
@@ -536,7 +581,7 @@ export const MemorySettingsPage: React.FC = () => {
                               className="flex-1"
                             />
                           </FormControl>
-                          <span className="ml-4 text-sm text-text-secondary min-w-[60px] text-right">
+                          <span className="ml-4 min-w-[60px] text-right text-sm text-text-secondary">
                             {formatBytes(field.value)}
                           </span>
                         </div>
@@ -551,7 +596,9 @@ export const MemorySettingsPage: React.FC = () => {
                   control={form.control}
                   name="forgetting_policy"
                   render={({ field }) => (
-                    <HorizontalFormItem label={MEMORY_TEXTS.config.forgettingPolicy}>
+                    <HorizontalFormItem
+                      label={t('memory.config.forgettingPolicy')}
+                    >
                       <Select
                         value={field.value}
                         onValueChange={field.onChange}
@@ -562,11 +609,11 @@ export const MemorySettingsPage: React.FC = () => {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                        <SelectItem value="FIFO">
-                          {MEMORY_TEXTS.config.fifo}
-                        </SelectItem>
-                        <SelectItem value="LRU">
-                            {MEMORY_TEXTS.config.lru}
+                          <SelectItem value="FIFO">
+                            {t('memory.config.fifo')}
+                          </SelectItem>
+                          <SelectItem value="LRU">
+                            {t('memory.config.lru')}
                           </SelectItem>
                         </SelectContent>
                       </Select>
@@ -580,9 +627,9 @@ export const MemorySettingsPage: React.FC = () => {
                   control={form.control}
                   name="temperature"
                   render={({ field }) => (
-                    <HorizontalFormItem 
-                      label={MEMORY_TEXTS.config.temperature}
-                      tooltip={MEMORY_TEXTS.config.temperatureTooltip}
+                    <HorizontalFormItem
+                      label={t('memory.config.temperature')}
+                      tooltip={t('memory.config.temperatureTooltip')}
                     >
                       <div className="flex items-center gap-4">
                         <FormControl>
@@ -601,8 +648,10 @@ export const MemorySettingsPage: React.FC = () => {
                           max={1}
                           step={0.1}
                           value={field.value}
-                          onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                          className="w-20 h-8 text-center"
+                          onChange={(e) =>
+                            field.onChange(parseFloat(e.target.value) || 0)
+                          }
+                          className="h-8 w-20 text-center"
                         />
                       </div>
                       <FormMessage className="mt-1" />
@@ -615,10 +664,15 @@ export const MemorySettingsPage: React.FC = () => {
                   control={form.control}
                   name="system_prompt"
                   render={({ field }) => (
-                    <HorizontalFormItem label={MEMORY_TEXTS.config.systemPrompt} className="items-start">
+                    <HorizontalFormItem
+                      label={t('memory.config.systemPrompt')}
+                      className="items-start"
+                    >
                       <FormControl>
                         <Textarea
-                          placeholder={MEMORY_TEXTS.config.systemPromptPlaceholder}
+                          placeholder={t(
+                            'memory.config.systemPromptPlaceholder',
+                          )}
                           rows={4}
                           className="resize-none"
                           {...field}
@@ -634,10 +688,13 @@ export const MemorySettingsPage: React.FC = () => {
                   control={form.control}
                   name="user_prompt"
                   render={({ field }) => (
-                    <HorizontalFormItem label={MEMORY_TEXTS.config.userPrompt} className="items-start">
+                    <HorizontalFormItem
+                      label={t('memory.config.userPrompt')}
+                      className="items-start"
+                    >
                       <FormControl>
                         <Textarea
-                          placeholder={MEMORY_TEXTS.config.userPromptPlaceholder}
+                          placeholder={t('memory.config.userPromptPlaceholder')}
                           rows={4}
                           className="resize-none"
                           {...field}
@@ -651,7 +708,7 @@ export const MemorySettingsPage: React.FC = () => {
             </CollapsibleSection>
 
             {/* ==================== 操作按钮 ==================== */}
-            <div className="flex justify-end gap-3 pt-6 border-t border-border-default">
+            <div className="flex justify-end gap-3 border-t border-border-default pt-6">
               <Button
                 type="button"
                 variant="outline"
@@ -660,7 +717,7 @@ export const MemorySettingsPage: React.FC = () => {
                 className="gap-2"
               >
                 <RotateCcw className="h-4 w-4" />
-                {MEMORY_TEXTS.common.cancel}
+                {t('common.cancel')}
               </Button>
               <Button
                 type="submit"
@@ -672,7 +729,7 @@ export const MemorySettingsPage: React.FC = () => {
                 ) : (
                   <Save className="h-4 w-4" />
                 )}
-                {MEMORY_TEXTS.config.save}
+                {t('common.save')}
               </Button>
             </div>
           </form>

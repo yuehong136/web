@@ -3,7 +3,8 @@
  * 基于 cmdk 实现的多选下拉框，支持搜索、一键清除、关闭
  */
 
-import React from 'react'
+import { useMemo, useState, type MouseEvent } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Check, ChevronsUpDown, Lock, X, Search, RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -21,7 +22,6 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
-import { MEMORY_TEXTS } from '@/constants/memory-texts'
 
 // 记忆类型使用字符串，与后端保持一致
 type MemoryTypeValue = 'raw' | 'semantic' | 'episodic' | 'procedural'
@@ -33,72 +33,80 @@ interface MemoryTypeSelectProps {
   className?: string
 }
 
-// 记忆类型选项配置
-const memoryTypeOptions: Array<{
+type MemoryTypeOption = {
   value: MemoryTypeValue
   label: string
   description: string
   required?: boolean
-}> = [
-  {
-    value: 'raw',
-    label: MEMORY_TEXTS.memories.raw,
-    description: MEMORY_TEXTS.memories.rawDesc,
-    required: true, // raw 是必选的
-  },
-  {
-    value: 'semantic',
-    label: MEMORY_TEXTS.memories.semantic,
-    description: MEMORY_TEXTS.memories.semanticDesc,
-  },
-  {
-    value: 'episodic',
-    label: MEMORY_TEXTS.memories.episodic,
-    description: MEMORY_TEXTS.memories.episodicDesc,
-  },
-  {
-    value: 'procedural',
-    label: MEMORY_TEXTS.memories.procedural,
-    description: MEMORY_TEXTS.memories.proceduralDesc,
-  },
-]
+}
 
 // 记忆类型颜色映射 - 使用 Badge variant
-const memoryTypeVariants: Record<MemoryTypeValue, 'blue' | 'purple' | 'green' | 'orange'> = {
+const memoryTypeVariants: Record<
+  MemoryTypeValue,
+  'blue' | 'purple' | 'green' | 'orange'
+> = {
   raw: 'blue',
   semantic: 'purple',
   episodic: 'green',
   procedural: 'orange',
 }
 
-export const MemoryTypeSelect: React.FC<MemoryTypeSelectProps> = ({
+export function MemoryTypeSelect({
   value,
   onChange,
   disabled = false,
   className,
-}) => {
-  const [open, setOpen] = React.useState(false)
-  const [searchQuery, setSearchQuery] = React.useState('')
+}: MemoryTypeSelectProps) {
+  const { t } = useTranslation()
+  const [open, setOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+
+  const memoryTypeOptions = useMemo<MemoryTypeOption[]>(
+    () => [
+      {
+        value: 'raw',
+        label: t('memory.filters.raw'),
+        description: t('memory.filters.rawDescription'),
+        required: true,
+      },
+      {
+        value: 'semantic',
+        label: t('memory.filters.semantic'),
+        description: t('memory.filters.semanticDescription'),
+      },
+      {
+        value: 'episodic',
+        label: t('memory.filters.episodic'),
+        description: t('memory.filters.episodicDescription'),
+      },
+      {
+        value: 'procedural',
+        label: t('memory.filters.procedural'),
+        description: t('memory.filters.proceduralDescription'),
+      },
+    ],
+    [t],
+  )
 
   // 过滤选项
-  const filteredOptions = React.useMemo(() => {
+  const filteredOptions = useMemo(() => {
     if (!searchQuery.trim()) return memoryTypeOptions
     const query = searchQuery.toLowerCase()
     return memoryTypeOptions.filter(
       (option) =>
         option.label.toLowerCase().includes(query) ||
-        option.description.toLowerCase().includes(query)
+        option.description.toLowerCase().includes(query),
     )
-  }, [searchQuery])
+  }, [memoryTypeOptions, searchQuery])
 
   // 非必选项的数量
   const optionalSelectedCount = value.filter(
-    (v) => !memoryTypeOptions.find((o) => o.value === v)?.required
+    (v) => !memoryTypeOptions.find((o) => o.value === v)?.required,
   ).length
 
   const handleSelect = (type: string) => {
     const option = memoryTypeOptions.find((o) => o.value === type)
-    
+
     // 如果是必选项，不允许取消选择
     if (option?.required && value.includes(type)) {
       return
@@ -111,22 +119,22 @@ export const MemoryTypeSelect: React.FC<MemoryTypeSelectProps> = ({
     }
   }
 
-  const handleRemove = (type: string, e: React.MouseEvent) => {
+  const handleRemove = (type: string, e: MouseEvent) => {
     e.stopPropagation()
     const option = memoryTypeOptions.find((o) => o.value === type)
-    
+
     // 如果是必选项，不允许移除
     if (option?.required) {
       return
     }
-    
+
     onChange(value.filter((v) => v !== type))
   }
 
   // 清除所有非必选项
   const handleClearOptional = () => {
     const requiredValues = value.filter(
-      (v) => memoryTypeOptions.find((o) => o.value === v)?.required
+      (v) => memoryTypeOptions.find((o) => o.value === v)?.required,
     )
     onChange(requiredValues)
   }
@@ -134,8 +142,10 @@ export const MemoryTypeSelect: React.FC<MemoryTypeSelectProps> = ({
   const getLabelForType = (type: string) => {
     return memoryTypeOptions.find((o) => o.value === type)?.label || type
   }
-  
-  const getVariantForType = (type: string): 'blue' | 'purple' | 'green' | 'orange' => {
+
+  const getVariantForType = (
+    type: string,
+  ): 'blue' | 'purple' | 'green' | 'orange' => {
     return memoryTypeVariants[type as MemoryTypeValue] || 'blue'
   }
 
@@ -148,16 +158,16 @@ export const MemoryTypeSelect: React.FC<MemoryTypeSelectProps> = ({
           aria-expanded={open}
           disabled={disabled}
           className={cn(
-            'w-full justify-between min-h-[42px] h-auto px-3 py-2',
-            'bg-background-surface border-border-default',
+            'h-auto min-h-[42px] w-full justify-between px-3 py-2',
+            'border-border-default bg-background-surface',
             'hover:bg-background-subtle',
-            className
+            className,
           )}
         >
-          <div className="flex flex-wrap gap-1.5 flex-1">
+          <div className="flex flex-1 flex-wrap gap-1.5">
             {value.length === 0 ? (
               <span className="text-text-muted">
-                {MEMORY_TEXTS.common.selectMemoryType}
+                {t('memory.filters.selectTypePlaceholder')}
               </span>
             ) : (
               value.map((type) => {
@@ -166,7 +176,7 @@ export const MemoryTypeSelect: React.FC<MemoryTypeSelectProps> = ({
                   <Badge
                     key={type}
                     variant={getVariantForType(type)}
-                    className="text-xs gap-1"
+                    className="gap-1 text-xs"
                   >
                     {getLabelForType(type)}
                     {option?.required ? (
@@ -182,16 +192,16 @@ export const MemoryTypeSelect: React.FC<MemoryTypeSelectProps> = ({
               })
             )}
           </div>
-          <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50 ml-2" />
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[400px] p-0" align="start">
         <Command shouldFilter={false}>
           {/* 头部：搜索 + 操作按钮 */}
-          <div className="flex items-center gap-2 p-3 border-b border-border-default">
+          <div className="flex items-center gap-2 border-b border-border-default p-3">
             <div className="flex-1">
               <Input
-                placeholder="搜索记忆类型..."
+                placeholder={t('memory.filters.searchTypePlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="h-8 text-sm"
@@ -203,17 +213,17 @@ export const MemoryTypeSelect: React.FC<MemoryTypeSelectProps> = ({
                 variant="ghost"
                 size="sm"
                 onClick={handleClearOptional}
-                className="h-8 px-2 text-xs text-text-tertiary hover:text-text-primary shrink-0"
+                className="h-8 shrink-0 px-2 text-xs text-text-tertiary hover:text-text-primary"
               >
-                <RotateCcw className="h-3.5 w-3.5 mr-1" />
-                清除
+                <RotateCcw className="mr-1 h-3.5 w-3.5" />
+                {t('memory.common.clear')}
               </Button>
             )}
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setOpen(false)}
-              className="h-8 w-8 p-0 text-text-tertiary hover:text-text-primary shrink-0"
+              className="h-8 w-8 shrink-0 p-0 text-text-tertiary hover:text-text-primary"
             >
               <X className="h-4 w-4" />
             </Button>
@@ -221,7 +231,7 @@ export const MemoryTypeSelect: React.FC<MemoryTypeSelectProps> = ({
 
           <CommandList className="max-h-[280px]">
             <CommandEmpty className="py-6 text-center text-sm text-text-tertiary">
-              {MEMORY_TEXTS.memories.noMemoryTypeFound}
+              {t('memory.filters.noTypeFound')}
             </CommandEmpty>
             <CommandGroup>
               {filteredOptions.map((option) => {
@@ -232,19 +242,19 @@ export const MemoryTypeSelect: React.FC<MemoryTypeSelectProps> = ({
                     value={option.value}
                     onSelect={() => handleSelect(option.value)}
                     className={cn(
-                      'flex items-start gap-3 p-3 cursor-pointer',
-                      option.required && isSelected && 'opacity-70'
+                      'flex cursor-pointer items-start gap-3 p-3',
+                      option.required && isSelected && 'opacity-70',
                     )}
                   >
                     <div
                       className={cn(
-                        'flex h-5 w-5 items-center justify-center rounded border mt-0.5',
+                        'mt-0.5 flex h-5 w-5 items-center justify-center rounded border',
                         'border-border-default',
-                        isSelected && 'bg-text-accent border-text-accent'
+                        isSelected && 'border-text-accent bg-text-accent',
                       )}
                     >
                       {isSelected && (
-                        <Check className="w-icon-xs h-icon-xs text-white" />
+                        <Check className="w-icon-xs h-icon-xs text-components-button-primary-text" />
                       )}
                     </div>
                     <div className="flex-1 space-y-1">
@@ -254,7 +264,7 @@ export const MemoryTypeSelect: React.FC<MemoryTypeSelectProps> = ({
                         </span>
                         {option.required && (
                           <Badge variant="outline" className="text-xs">
-                            {MEMORY_TEXTS.memories.required}
+                            {t('memory.filters.required')}
                           </Badge>
                         )}
                       </div>
@@ -269,13 +279,11 @@ export const MemoryTypeSelect: React.FC<MemoryTypeSelectProps> = ({
           </CommandList>
 
           {/* 底部：已选数量提示 */}
-          <div className="px-3 py-2 border-t border-border-default bg-surface-secondary/30 text-xs text-text-tertiary">
-            已选择 {value.length} 项（必选 1 项）
+          <div className="bg-surface-secondary/30 border-t border-border-default px-3 py-2 text-xs text-text-tertiary">
+            {t('memory.common.selectedCount', { count: value.length })}
           </div>
         </Command>
       </PopoverContent>
     </Popover>
   )
 }
-
-MemoryTypeSelect.displayName = 'MemoryTypeSelect'

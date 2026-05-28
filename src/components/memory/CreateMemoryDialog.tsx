@@ -5,6 +5,7 @@
  */
 
 import { useEffect, useMemo, type FC } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -34,7 +35,6 @@ import { AvatarUpload } from './AvatarUpload'
 import { EmbeddingModelSelector } from '@/components/knowledge/EmbeddingModelSelector'
 import { cn } from '@/lib/utils'
 import { useModelStore } from '@/stores/model'
-import { MEMORY_TEXTS } from '@/constants/memory-texts'
 import type {
   Memory,
   CreateMemoryParams,
@@ -42,27 +42,29 @@ import type {
 } from '@/types/memory'
 
 // ============ Create form schema ============
-const createMemorySchema = z.object({
-  name: z.string().min(1, MEMORY_TEXTS.memories.nameRequired),
-  avatar: z.string().optional(),
-  memory_type: z
-    .array(z.string())
-    .min(1, MEMORY_TEXTS.memories.memoryTypeRequired)
-    .refine((arr) => arr.includes('raw'), {
-      message: MEMORY_TEXTS.memories.rawRequired,
-    }),
-  embd_id: z.string().min(1, MEMORY_TEXTS.memories.selectEmbeddingRequired),
-  llm_id: z.string().min(1, MEMORY_TEXTS.memories.selectLlmRequired),
-})
+const getCreateMemorySchema = (t: ReturnType<typeof useTranslation>['t']) =>
+  z.object({
+    name: z.string().min(1, t('memory.validation.nameRequired')),
+    avatar: z.string().optional(),
+    memory_type: z
+      .array(z.string())
+      .min(1, t('memory.validation.memoryTypeRequired'))
+      .refine((arr) => arr.includes('raw'), {
+        message: t('memory.validation.rawRequired'),
+      }),
+    embd_id: z.string().min(1, t('memory.validation.selectEmbeddingRequired')),
+    llm_id: z.string().min(1, t('memory.validation.selectLlmRequired')),
+  })
 
 // ============ Edit form schema ============
-const editMemorySchema = z.object({
-  name: z.string().min(1, MEMORY_TEXTS.memories.nameRequired),
-  avatar: z.string().optional(),
-})
+const getEditMemorySchema = (t: ReturnType<typeof useTranslation>['t']) =>
+  z.object({
+    name: z.string().min(1, t('memory.validation.nameRequired')),
+    avatar: z.string().optional(),
+  })
 
-type CreateMemoryFormValues = z.infer<typeof createMemorySchema>
-type EditMemoryFormValues = z.infer<typeof editMemorySchema>
+type CreateMemoryFormValues = z.infer<ReturnType<typeof getCreateMemorySchema>>
+type EditMemoryFormValues = z.infer<ReturnType<typeof getEditMemorySchema>>
 
 interface CreateMemoryDialogProps {
   open: boolean
@@ -81,7 +83,10 @@ export const CreateMemoryDialog: FC<CreateMemoryDialogProps> = ({
   isLoading = false,
   initialData,
 }) => {
+  const { t } = useTranslation()
   const isEditMode = !!initialData
+  const createMemorySchema = useMemo(() => getCreateMemorySchema(t), [t])
+  const editMemorySchema = useMemo(() => getEditMemorySchema(t), [t])
   const modelProviders = useModelStore((state) => state.myLLMs)
   const isLoadingModels = useModelStore((state) => state.isLoading)
   const loadMyLLMs = useModelStore((state) => state.loadMyLLMs)
@@ -175,12 +180,12 @@ export const CreateMemoryDialog: FC<CreateMemoryDialogProps> = ({
                   avatarGradient,
                 )}
               >
-                <Brain className="w-icon-md h-icon-md text-white" />
+                <Brain className="w-icon-md h-icon-md text-components-button-primary-text" />
               </div>
               <div className="min-w-0 flex-1">
-                <DialogTitle>{MEMORY_TEXTS.memories.editMemory}</DialogTitle>
+                <DialogTitle>{t('memory.dialog.editTitle')}</DialogTitle>
                 <DialogDescription>
-                  {MEMORY_TEXTS.memories.editMemoryDescription}
+                  {t('memory.dialog.editDescription')}
                 </DialogDescription>
               </div>
             </div>
@@ -202,7 +207,7 @@ export const CreateMemoryDialog: FC<CreateMemoryDialogProps> = ({
                           editForm.watch('name')?.charAt(0) || 'M'
                         }
                         gradientClass={avatarGradient}
-                        tips={MEMORY_TEXTS.memories.avatarUploadTips}
+                        tips={t('memory.fields.avatarUploadTips')}
                       />
                       <FormMessage />
                     </FormItem>
@@ -215,13 +220,11 @@ export const CreateMemoryDialog: FC<CreateMemoryDialogProps> = ({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-sm font-medium text-[var(--color-text-primary)]">
-                        {MEMORY_TEXTS.memories.name}
+                        {t('memory.fields.name')}
                       </FormLabel>
                       <FormControl>
                         <Input
-                          placeholder={
-                            MEMORY_TEXTS.memories.memoryNamePlaceholder
-                          }
+                          placeholder={t('memory.fields.namePlaceholder')}
                           {...field}
                         />
                       </FormControl>
@@ -231,7 +234,7 @@ export const CreateMemoryDialog: FC<CreateMemoryDialogProps> = ({
                 />
 
                 <p className="text-center text-xs text-[var(--color-text-tertiary)]">
-                  {MEMORY_TEXTS.memories.editSettingsTip}
+                  {t('memory.dialog.editSettingsTip')}
                 </p>
               </div>
 
@@ -242,13 +245,13 @@ export const CreateMemoryDialog: FC<CreateMemoryDialogProps> = ({
                   onClick={() => onOpenChange(false)}
                   disabled={isLoading}
                 >
-                  {MEMORY_TEXTS.common.cancel}
+                  {t('common.cancel')}
                 </Button>
                 <Button type="submit" disabled={isLoading}>
                   {isLoading && (
                     <Loader2 className="w-icon-sm h-icon-sm mr-space-sm animate-spin" />
                   )}
-                  {MEMORY_TEXTS.common.save}
+                  {t('common.save')}
                 </Button>
               </DialogFooter>
             </form>
@@ -270,12 +273,12 @@ export const CreateMemoryDialog: FC<CreateMemoryDialogProps> = ({
                 'bg-gradient-to-br from-components-avatar-gradient-purple-from to-components-avatar-gradient-purple-to',
               )}
             >
-              <Brain className="w-icon-md h-icon-md text-white" />
+              <Brain className="w-icon-md h-icon-md text-components-button-primary-text" />
             </div>
             <div className="min-w-0 flex-1">
-              <DialogTitle>{MEMORY_TEXTS.memories.createMemory}</DialogTitle>
+              <DialogTitle>{t('memory.dialog.createTitle')}</DialogTitle>
               <DialogDescription>
-                {MEMORY_TEXTS.memories.createMemoryDescription}
+                {t('memory.dialog.createDescription')}
               </DialogDescription>
             </div>
           </div>
@@ -290,13 +293,11 @@ export const CreateMemoryDialog: FC<CreateMemoryDialogProps> = ({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-sm font-medium text-[var(--color-text-primary)]">
-                      {MEMORY_TEXTS.memories.name}
+                      {t('memory.fields.name')}
                     </FormLabel>
                     <FormControl>
                       <Input
-                        placeholder={
-                          MEMORY_TEXTS.memories.memoryNamePlaceholder
-                        }
+                        placeholder={t('memory.fields.namePlaceholder')}
                         {...field}
                       />
                     </FormControl>
@@ -312,11 +313,9 @@ export const CreateMemoryDialog: FC<CreateMemoryDialogProps> = ({
                   <FormItem>
                     <div className="flex items-center">
                       <FormLabel className="text-sm font-medium text-[var(--color-text-primary)]">
-                        {MEMORY_TEXTS.memories.memoryType}
+                        {t('memory.filters.memoryType')}
                       </FormLabel>
-                      <FormTooltip
-                        tooltip={MEMORY_TEXTS.memories.memoryTypeTooltip}
-                      />
+                      <FormTooltip tooltip={t('memory.filters.tooltip')} />
                     </div>
                     <FormControl>
                       <MemoryTypeSelect
@@ -336,10 +335,10 @@ export const CreateMemoryDialog: FC<CreateMemoryDialogProps> = ({
                   <FormItem>
                     <div className="flex items-center">
                       <FormLabel className="text-sm font-medium text-[var(--color-text-primary)]">
-                        {MEMORY_TEXTS.memories.embeddingModel}
+                        {t('memory.fields.embeddingModel')}
                       </FormLabel>
                       <FormTooltip
-                        tooltip={MEMORY_TEXTS.memories.embeddingModelTooltip}
+                        tooltip={t('memory.fields.embeddingModelTooltip')}
                       />
                     </div>
                     <FormControl>
@@ -363,9 +362,9 @@ export const CreateMemoryDialog: FC<CreateMemoryDialogProps> = ({
                   <FormItem>
                     <div className="flex items-center">
                       <FormLabel className="text-sm font-medium text-[var(--color-text-primary)]">
-                        {MEMORY_TEXTS.memories.llm}
+                        {t('memory.fields.llm')}
                       </FormLabel>
-                      <FormTooltip tooltip={MEMORY_TEXTS.memories.llmTooltip} />
+                      <FormTooltip tooltip={t('memory.fields.llmTooltip')} />
                     </div>
                     <FormControl>
                       <ChatModelSelector
@@ -387,13 +386,13 @@ export const CreateMemoryDialog: FC<CreateMemoryDialogProps> = ({
                 onClick={() => onOpenChange(false)}
                 disabled={isLoading}
               >
-                {MEMORY_TEXTS.common.cancel}
+                {t('common.cancel')}
               </Button>
               <Button type="submit" disabled={isLoading}>
                 {isLoading && (
                   <Loader2 className="w-icon-sm h-icon-sm mr-space-sm animate-spin" />
                 )}
-                {MEMORY_TEXTS.common.create}
+                {t('common.create')}
               </Button>
             </DialogFooter>
           </form>

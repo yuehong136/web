@@ -2,6 +2,7 @@ export default {
   common: {
     // Action buttons
     add: 'Add',
+    create: 'Create',
     remove: 'Remove',
     edit: 'Edit',
     delete: 'Delete',

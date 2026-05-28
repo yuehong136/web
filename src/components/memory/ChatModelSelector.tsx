@@ -3,12 +3,21 @@
  * 复用 EmbeddingModelSelector 的模式，从 modelStore 获取 chat 和 image2text 类型模型
  */
 
-import React, { useMemo, useEffect } from 'react'
+import { useMemo, useEffect, type ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import { AlertCircle } from 'lucide-react'
-import { SelectWithSearch, type SelectOptionGroup } from '@/components/ui/select-with-search'
+import {
+  SelectWithSearch,
+  type SelectOptionGroup,
+} from '@/components/ui/select-with-search'
 import { FormTooltip } from '@/components/ui/tooltip'
 import { IconFontFill } from '@/components/ui/icon-font'
-import { useModelStore, IconMap, LLMFactory, isLLMModelEnabled } from '@/stores/model'
+import {
+  useModelStore,
+  IconMap,
+  LLMFactory,
+  isLLMModelEnabled,
+} from '@/stores/model'
 import { useIsDarkTheme } from '@/themes'
 
 interface ChatModelSelectorProps {
@@ -29,7 +38,7 @@ interface ChatModelSelectorProps {
 }
 
 // 需要主题切换的厂商
-const THEME_AWARE_FACTORIES = [
+const THEME_AWARE_FACTORIES: string[] = [
   LLMFactory.FishAudio,
   LLMFactory.TogetherAI,
   LLMFactory.Meituan,
@@ -39,23 +48,26 @@ const THEME_AWARE_FACTORIES = [
 // 获取图标名称
 const getIconName = (provider: string, isDark: boolean): string => {
   const baseIcon = IconMap[provider as keyof typeof IconMap] || 'moxing-default'
-  if (THEME_AWARE_FACTORIES.includes(provider as any)) {
+  if (THEME_AWARE_FACTORIES.includes(provider)) {
     return isDark ? `${baseIcon}-dark` : `${baseIcon}-bright`
   }
   return baseIcon
 }
 
 // 带图标的模型选项 Label（与系统设置页面保持一致）
-const ModelOptionLabel: React.FC<{ 
+function ModelOptionLabel({
+  provider,
+  modelName,
+}: {
   provider: string
   modelName: string
-}> = ({ provider, modelName }) => {
+}) {
   const isDark = useIsDarkTheme()
   const iconName = getIconName(provider, isDark)
-  
+
   return (
-    <div className="flex items-center gap-2 min-w-0 w-full">
-      <IconFontFill name={iconName} className="w-5 h-5 shrink-0" />
+    <div className="flex w-full min-w-0 items-center gap-2">
+      <IconFontFill name={iconName} className="h-5 w-5 shrink-0" />
       <span className="truncate">{modelName}</span>
     </div>
   )
@@ -65,16 +77,19 @@ const ModelOptionLabel: React.FC<{
  * 对话模型选择器
  * 直接从 modelStore 获取数据，与模型提供商页面的设置保持一致
  */
-export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
+export function ChatModelSelector({
   selectedModelId,
   onSelect,
   disabled = false,
   error,
   showLabel = true,
-  labelText = '对话模型',
-  tooltipText = '用于记忆提取和总结的大语言模型。选择适合的模型可以提升记忆处理的质量。'
-}) => {
+  labelText,
+  tooltipText,
+}: ChatModelSelectorProps) {
+  const { t } = useTranslation()
   const { myLLMs, loadMyLLMs, isLoading } = useModelStore()
+  const resolvedLabelText = labelText ?? t('memory.fields.llm')
+  const resolvedTooltipText = tooltipText ?? t('memory.fields.llmTooltip')
 
   // 加载模型列表
   useEffect(() => {
@@ -89,26 +104,28 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
   // 按厂商分组选项（与系统设置页面保持一致）
   const groupedOptions = useMemo((): SelectOptionGroup[] => {
     const groups: SelectOptionGroup[] = []
-    
+
     Object.entries(myLLMs).forEach(([providerName, providerData]) => {
       // 过滤出 chat 和 image2text 类型的模型
-      const supportedModels = providerData.llm.filter(model => 
-        SUPPORTED_MODEL_TYPES.includes(model.type) && isLLMModelEnabled(model)
+      const supportedModels = providerData.llm.filter(
+        (model) =>
+          SUPPORTED_MODEL_TYPES.includes(model.type) &&
+          isLLMModelEnabled(model),
       )
-      
+
       if (supportedModels.length > 0) {
         groups.push({
           label: providerName,
-          options: supportedModels.map(model => ({
+          options: supportedModels.map((model) => ({
             label: (
-              <ModelOptionLabel 
-                provider={providerName} 
+              <ModelOptionLabel
+                provider={providerName}
                 modelName={model.name}
               />
-            ),
+            ) as ReactNode,
             // 使用 name@provider 格式作为 value，与系统设置页面保持一致
-            value: `${model.name}@${providerName}`
-          }))
+            value: `${model.name}@${providerName}`,
+          })),
         })
       }
     })
@@ -122,8 +139,12 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
     const values: Map<string, string> = new Map()
     Object.entries(myLLMs).forEach(([providerName, providerData]) => {
       providerData.llm
-        .filter(model => SUPPORTED_MODEL_TYPES.includes(model.type) && isLLMModelEnabled(model))
-        .forEach(model => {
+        .filter(
+          (model) =>
+            SUPPORTED_MODEL_TYPES.includes(model.type) &&
+            isLLMModelEnabled(model),
+        )
+        .forEach((model) => {
           const fullValue = `${model.name}@${providerName}`
           // 存储多种可能的匹配格式
           values.set(fullValue.toLowerCase(), fullValue)
@@ -144,7 +165,11 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
     }
     // 尝试匹配（忽略大小写和连字符变化）
     for (const [key, fullValue] of allModelValues) {
-      if (key.replace(/-/g, '').includes(lowerValue.replace(/-/g, '').replace(/@.*$/, ''))) {
+      if (
+        key
+          .replace(/-/g, '')
+          .includes(lowerValue.replace(/-/g, '').replace(/@.*$/, ''))
+      ) {
         return fullValue
       }
     }
@@ -158,11 +183,15 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
     return (
       <div className="space-y-2">
         {showLabel && (
-          <label className="block text-sm font-medium text-text-primary">{labelText}</label>
+          <div className="block text-sm font-medium text-text-primary">
+            {resolvedLabelText}
+          </div>
         )}
-        <div className="w-full px-3 py-2 border border-border-default rounded-md bg-surface-secondary/50 flex items-center h-10">
-          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-text-accent"></div>
-          <span className="ml-2 text-text-tertiary text-sm">加载模型中...</span>
+        <div className="bg-surface-secondary/50 flex h-10 w-full items-center rounded-md border border-border-default px-3 py-2">
+          <div className="h-3 w-3 animate-spin rounded-full border-b-2 border-text-accent"></div>
+          <span className="ml-2 text-sm text-text-tertiary">
+            {t('memory.model.loading')}
+          </span>
         </div>
       </div>
     )
@@ -172,11 +201,13 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
     return (
       <div className="space-y-2">
         {showLabel && (
-          <label className="block text-sm font-medium text-text-primary">{labelText}</label>
+          <div className="block text-sm font-medium text-text-primary">
+            {resolvedLabelText}
+          </div>
         )}
-        <div className="w-full px-3 py-2 border border-status-error rounded-md bg-status-error/10 flex items-center h-10">
+        <div className="bg-status-error/10 flex h-10 w-full items-center rounded-md border border-status-error px-3 py-2">
           <AlertCircle className="h-3 w-3 text-status-error" />
-          <span className="ml-2 text-status-error text-sm">{error}</span>
+          <span className="ml-2 text-sm text-status-error">{error}</span>
         </div>
       </div>
     )
@@ -186,11 +217,15 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
     return (
       <div className="space-y-2">
         {showLabel && (
-          <label className="block text-sm font-medium text-text-primary">{labelText}</label>
+          <div className="block text-sm font-medium text-text-primary">
+            {resolvedLabelText}
+          </div>
         )}
-        <div className="w-full px-3 py-2 border border-status-warning rounded-md bg-status-warning/10 flex items-center h-10">
+        <div className="bg-status-warning/10 flex h-10 w-full items-center rounded-md border border-status-warning px-3 py-2">
           <AlertCircle className="h-3 w-3 text-status-warning" />
-          <span className="ml-2 text-status-warning text-sm">暂无可用的对话模型，请先在模型供应商中添加</span>
+          <span className="ml-2 text-sm text-status-warning">
+            {t('memory.model.noChatModels')}
+          </span>
         </div>
       </div>
     )
@@ -199,23 +234,23 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
   return (
     <div className="space-y-2">
       {showLabel && (
-        <div className="flex items-center mb-1">
-          <label className="block text-sm font-medium text-text-primary">{labelText}</label>
-          {tooltipText && <FormTooltip tooltip={tooltipText} />}
+        <div className="mb-1 flex items-center">
+          <div className="block text-sm font-medium text-text-primary">
+            {resolvedLabelText}
+          </div>
+          {resolvedTooltipText && <FormTooltip tooltip={resolvedTooltipText} />}
         </div>
       )}
-      
+
       <SelectWithSearch
         value={normalizedValue}
         options={groupedOptions}
         onChange={(value) => onSelect(value || null)}
-        placeholder="请选择对话模型"
-        emptyText="未找到匹配的对话模型"
+        placeholder={t('memory.model.chatPlaceholder')}
+        emptyText={t('memory.model.chatEmpty')}
         triggerClassName="h-10"
         disabled={disabled}
       />
     </div>
   )
 }
-
-ChatModelSelector.displayName = 'ChatModelSelector'

@@ -17,10 +17,29 @@ import type {
   MemoryListResponse,
   MessageListResponse,
   MessageContentResponse,
+  MemoryMessagesDetailResponse,
 } from '@/types/memory'
 
 /** apiClient 的 baseURL 覆盖，使请求走 /api/v1/... */
 const sdkBase = { baseURL: `${API_BASE_URL}/api` }
+
+type SdkEnvelope<T> = {
+  retcode?: number
+  retmsg?: string
+  data?: T
+}
+
+function unwrapSdkEnvelope<T>(response: T | SdkEnvelope<T>): T {
+  if (
+    response &&
+    typeof response === 'object' &&
+    'data' in response &&
+    ('retcode' in response || 'retmsg' in response)
+  ) {
+    return (response as SdkEnvelope<T>).data as T
+  }
+  return response as T
+}
 
 export const memoryAPI = {
   // ============ 记忆库管理 ============
@@ -34,15 +53,19 @@ export const memoryAPI = {
       const queryParams = new URLSearchParams()
 
       if (params?.page) queryParams.set('page', params.page.toString())
-      if (params?.page_size) queryParams.set('page_size', params.page_size.toString())
+      if (params?.page_size)
+        queryParams.set('page_size', params.page_size.toString())
       if (params?.keywords) queryParams.set('keywords', params.keywords)
-      if (params?.storage_type) queryParams.set('storage_type', params.storage_type)
+      if (params?.storage_type)
+        queryParams.set('storage_type', params.storage_type)
 
       if (params?.memory_type?.length) {
-        params.memory_type.forEach(type => queryParams.append('memory_type', type))
+        params.memory_type.forEach((type) =>
+          queryParams.append('memory_type', type),
+        )
       }
       if (params?.tenant_id?.length) {
-        params.tenant_id.forEach(id => queryParams.append('tenant_id', id))
+        params.tenant_id.forEach((id) => queryParams.append('tenant_id', id))
       }
 
       const qs = queryParams.toString()
@@ -63,18 +86,22 @@ export const memoryAPI = {
      * 获取记忆库详情及消息列表
      * GET /api/v1/memories/{id}
      */
-    getDetail: (id: string, params?: {
-      agent_id?: string[]
-      keywords?: string
-      page?: number
-      page_size?: number
-    }): Promise<{ messages: MessageListResponse; storage_type: string }> => {
+    getDetail: (
+      id: string,
+      params?: {
+        agent_id?: string[]
+        keywords?: string
+        page?: number
+        page_size?: number
+      },
+    ): Promise<MemoryMessagesDetailResponse> => {
       const queryParams = new URLSearchParams()
       if (params?.keywords) queryParams.set('keywords', params.keywords)
       if (params?.page) queryParams.set('page', params.page.toString())
-      if (params?.page_size) queryParams.set('page_size', params.page_size.toString())
+      if (params?.page_size)
+        queryParams.set('page_size', params.page_size.toString())
       if (params?.agent_id?.length) {
-        params.agent_id.forEach(id => queryParams.append('agent_id', id))
+        params.agent_id.forEach((id) => queryParams.append('agent_id', id))
       }
       const qs = queryParams.toString()
       return apiClient.get(`/memories/${id}${qs ? `?${qs}` : ''}`, sdkBase)
@@ -116,8 +143,10 @@ export const memoryAPI = {
       limit?: number
     }): Promise<MessageListResponse> => {
       const queryParams = new URLSearchParams()
-      const ids = Array.isArray(params.memory_id) ? params.memory_id : [params.memory_id]
-      ids.forEach(id => queryParams.append('memory_id', id))
+      const ids = Array.isArray(params.memory_id)
+        ? params.memory_id
+        : [params.memory_id]
+      ids.forEach((id) => queryParams.append('memory_id', id))
       if (params.agent_id) queryParams.set('agent_id', params.agent_id)
       if (params.session_id) queryParams.set('session_id', params.session_id)
       if (params.limit) queryParams.set('limit', params.limit.toString())
@@ -136,37 +165,60 @@ export const memoryAPI = {
       top_n?: number
       agent_id?: string
       session_id?: string
-    }): Promise<any> => {
+    }): Promise<unknown> => {
       const queryParams = new URLSearchParams()
-      params.memory_id.forEach(id => queryParams.append('memory_id', id))
+      params.memory_id.forEach((id) => queryParams.append('memory_id', id))
       queryParams.set('query', params.query)
-      if (params.similarity_threshold !== undefined) queryParams.set('similarity_threshold', params.similarity_threshold.toString())
-      if (params.keywords_similarity_weight !== undefined) queryParams.set('keywords_similarity_weight', params.keywords_similarity_weight.toString())
-      if (params.top_n !== undefined) queryParams.set('top_n', params.top_n.toString())
+      if (params.similarity_threshold !== undefined)
+        queryParams.set(
+          'similarity_threshold',
+          params.similarity_threshold.toString(),
+        )
+      if (params.keywords_similarity_weight !== undefined)
+        queryParams.set(
+          'keywords_similarity_weight',
+          params.keywords_similarity_weight.toString(),
+        )
+      if (params.top_n !== undefined)
+        queryParams.set('top_n', params.top_n.toString())
       if (params.agent_id) queryParams.set('agent_id', params.agent_id)
       if (params.session_id) queryParams.set('session_id', params.session_id)
-      return apiClient.get(`/messages/search?${queryParams.toString()}`, sdkBase)
+      return apiClient.get(
+        `/messages/search?${queryParams.toString()}`,
+        sdkBase,
+      )
     },
 
     /**
      * 获取消息内容
      * GET /api/v1/messages/{memory_id}:{message_id}/content
      */
-    getContent: (memoryId: string, messageId: string): Promise<MessageContentResponse> =>
-      apiClient.get(`/messages/${memoryId}:${messageId}/content`, sdkBase),
+    getContent: async (
+      memoryId: string,
+      messageId: string | number,
+    ): Promise<MessageContentResponse> => {
+      const response = await apiClient.get<
+        MessageContentResponse | SdkEnvelope<MessageContentResponse>
+      >(`/messages/${memoryId}:${messageId}/content`, sdkBase)
+      return unwrapSdkEnvelope(response)
+    },
 
     /**
      * 更新消息状态（启用/禁用）
      * PUT /api/v1/messages/{memory_id}:{message_id}
      */
-    updateState: (memoryId: string, messageId: string, status: boolean): Promise<void> =>
+    updateState: (
+      memoryId: string,
+      messageId: string | number,
+      status: boolean,
+    ): Promise<void> =>
       apiClient.put(`/messages/${memoryId}:${messageId}`, { status }, sdkBase),
 
     /**
      * 遗忘消息（软删除）
      * DELETE /api/v1/messages/{memory_id}:{message_id}
      */
-    forget: (memoryId: string, messageId: string): Promise<void> =>
+    forget: (memoryId: string, messageId: string | number): Promise<void> =>
       apiClient.delete(`/messages/${memoryId}:${messageId}`, sdkBase),
 
     /**
@@ -180,8 +232,7 @@ export const memoryAPI = {
       user_input: string
       agent_response: string
       user_id?: string
-    }): Promise<void> =>
-      apiClient.post('/messages', data, sdkBase),
+    }): Promise<void> => apiClient.post('/messages', data, sdkBase),
   },
 }
 

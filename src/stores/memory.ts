@@ -19,23 +19,23 @@ interface MemoryState {
   memories: Memory[]
   total: number
   isLoading: boolean
-  
+
   // 筛选状态
   filter: MemoryFilterState
-  
+
   // 分页状态
   page: number
   pageSize: number
-  
+
   // 视图状态
   viewMode: 'grid' | 'list'
-  
+
   // 选中状态（用于批量操作）
   selectedIds: string[]
-  
+
   // 当前记忆库详情
   currentMemory: Memory | null
-  
+
   // 消息列表状态
   messages: MemoryMessage[]
   messagesTotal: number
@@ -43,7 +43,7 @@ interface MemoryState {
   messageFilter: MessageFilterState
   messagePage: number
   messagePageSize: number
-  
+
   // 弹窗状态
   createModalOpen: boolean
   editingMemory: Memory | null
@@ -53,27 +53,27 @@ interface MemoryActions {
   // 列表操作
   setMemories: (memories: Memory[], total: number) => void
   setLoading: (loading: boolean) => void
-  
+
   // 筛选操作
   setFilter: (filter: Partial<MemoryFilterState>) => void
   resetFilter: () => void
-  
+
   // 分页操作
   setPage: (page: number) => void
   setPageSize: (pageSize: number) => void
-  
+
   // 视图操作
   setViewMode: (mode: 'grid' | 'list') => void
-  
+
   // 选中操作
   toggleSelect: (id: string) => void
   selectAll: (ids: string[]) => void
   clearSelection: () => void
-  
+
   // 当前记忆库操作
   setCurrentMemory: (memory: Memory | null) => void
   updateCurrentMemory: (updates: Partial<Memory>) => void
-  
+
   // 消息操作
   setMessages: (messages: MemoryMessage[], total: number) => void
   setMessagesLoading: (loading: boolean) => void
@@ -81,20 +81,20 @@ interface MemoryActions {
   resetMessageFilter: () => void
   setMessagePage: (page: number) => void
   setMessagePageSize: (pageSize: number) => void
-  updateMessageStatus: (messageId: string, status: boolean) => void
-  removeMessage: (messageId: string) => void
-  
+  updateMessageStatus: (messageId: number, status: boolean) => void
+  removeMessage: (messageId: number) => void
+
   // 弹窗操作
   openCreateModal: () => void
   closeCreateModal: () => void
   openEditModal: (memory: Memory) => void
   closeEditModal: () => void
-  
+
   // CRUD 后的列表更新
   addMemory: (memory: Memory) => void
   updateMemory: (id: string, updates: Partial<Memory>) => void
   removeMemory: (id: string) => void
-  
+
   // 重置
   reset: () => void
 }
@@ -110,8 +110,7 @@ const initialFilterState: MemoryFilterState = {
 
 const initialMessageFilterState: MessageFilterState = {
   keywords: '',
-  messageType: [],
-  status: null,
+  agentId: [],
 }
 
 const initialState: MemoryState = {
@@ -254,7 +253,7 @@ export const useMemoryStore = create<MemoryState & MemoryActions>()(
 
     updateMessageStatus: (messageId, status) =>
       set((state) => {
-        const message = state.messages.find((m) => m.id === messageId)
+        const message = state.messages.find((m) => m.message_id === messageId)
         if (message) {
           message.status = status
         }
@@ -262,7 +261,9 @@ export const useMemoryStore = create<MemoryState & MemoryActions>()(
 
     removeMessage: (messageId) =>
       set((state) => {
-        state.messages = state.messages.filter((m) => m.id !== messageId)
+        state.messages = state.messages.filter(
+          (m) => m.message_id !== messageId,
+        )
         state.messagesTotal -= 1
       }),
 
@@ -321,14 +322,13 @@ export const useMemoryStore = create<MemoryState & MemoryActions>()(
 
     // 重置
     reset: () => set(initialState),
-  }))
+  })),
 )
 
 // ============ 选择器 ============
 
 // 获取筛选后的记忆库数量
-export const useFilteredCount = () =>
-  useMemoryStore((state) => state.total)
+export const useFilteredCount = () => useMemoryStore((state) => state.total)
 
 // 获取是否有活跃筛选
 export const useHasActiveFilters = () =>
@@ -348,7 +348,8 @@ export const useSelectedCount = () =>
 
 // 获取是否全选
 export const useIsAllSelected = () =>
-  useMemoryStore((state) =>
-    state.memories.length > 0 &&
-    state.selectedIds.length === state.memories.length
+  useMemoryStore(
+    (state) =>
+      state.memories.length > 0 &&
+      state.selectedIds.length === state.memories.length,
   )

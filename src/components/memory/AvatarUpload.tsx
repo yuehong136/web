@@ -3,7 +3,8 @@
  * 用于记忆库的头像设置
  */
 
-import React, { useRef } from 'react'
+import { useRef, type ChangeEvent, type MouseEvent } from 'react'
+import { useTranslation } from 'react-i18next'
 import { PenLine, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
@@ -43,7 +44,7 @@ const editIconInnerClasses = {
   lg: 'w-3.5 h-3.5',
 }
 
-export const AvatarUpload: React.FC<AvatarUploadProps> = ({
+export function AvatarUpload({
   value,
   onChange,
   size = 'md',
@@ -51,7 +52,8 @@ export const AvatarUpload: React.FC<AvatarUploadProps> = ({
   gradientClass = 'from-purple-500 to-pink-500',
   tips,
   disabled = false,
-}) => {
+}: AvatarUploadProps) {
+  const { t } = useTranslation()
   const inputRef = useRef<HTMLInputElement>(null)
 
   const handleClick = () => {
@@ -60,19 +62,19 @@ export const AvatarUpload: React.FC<AvatarUploadProps> = ({
     }
   }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
 
     // 验证文件类型
     if (!file.type.startsWith('image/')) {
-      toast.error('请选择图片文件')
+      toast.error(t('memory.upload.invalidType'))
       return
     }
 
     // 验证文件大小 (5MB)
     if (file.size > 5 * 1024 * 1024) {
-      toast.error('头像文件大小不能超过 5MB')
+      toast.error(t('memory.upload.tooLarge'))
       return
     }
 
@@ -83,7 +85,7 @@ export const AvatarUpload: React.FC<AvatarUploadProps> = ({
       onChange(base64)
     }
     reader.onerror = () => {
-      toast.error('读取文件失败')
+      toast.error(t('memory.upload.readFailed'))
     }
     reader.readAsDataURL(file)
 
@@ -91,89 +93,103 @@ export const AvatarUpload: React.FC<AvatarUploadProps> = ({
     e.target.value = ''
   }
 
-  const handleRemove = (e: React.MouseEvent) => {
+  const handleRemove = (e: MouseEvent) => {
     e.stopPropagation()
     onChange('')
   }
 
   return (
     <div className="flex items-center gap-4">
-      <div 
+      <div
         className={cn(
-          'relative cursor-pointer group',
-          disabled && 'cursor-not-allowed opacity-60'
+          'group relative',
+          disabled && 'cursor-not-allowed opacity-60',
         )}
-        onClick={handleClick}
       >
         {/* 头像容器 */}
-        <div
+        <button
+          type="button"
+          aria-label={t('memory.upload.changeAvatar')}
+          disabled={disabled}
+          onClick={handleClick}
           className={cn(
-            'rounded-full flex items-center justify-center overflow-hidden',
+            'flex items-center justify-center overflow-hidden rounded-full',
+            'cursor-pointer disabled:cursor-not-allowed',
             'bg-gradient-to-br shadow-md transition-transform',
             'group-hover:scale-105',
             sizeClasses[size],
-            gradientClass
+            gradientClass,
           )}
         >
           {value ? (
-            <img 
-              src={value} 
-              alt="avatar" 
-              className="w-full h-full object-cover" 
+            <img
+              src={value}
+              alt={t('memory.fields.avatar')}
+              className="h-full w-full object-cover"
             />
           ) : (
-            <span className="text-white font-semibold text-xl">
+            <span className="text-xl font-semibold text-components-button-primary-text">
               {fallbackLetter.charAt(0).toUpperCase()}
             </span>
           )}
-        </div>
+        </button>
 
         {/* 编辑图标 */}
         {!disabled && (
-          <label
+          <button
+            type="button"
+            aria-label={t('memory.upload.changeAvatar')}
             className={cn(
-              'absolute -bottom-0.5 -right-0.5 bg-surface-primary border border-border-default',
-              'rounded-full flex items-center justify-center cursor-pointer',
-              'hover:bg-surface-secondary transition-colors shadow-sm',
-              editIconSizeClasses[size]
+              'bg-surface-primary absolute -bottom-0.5 -right-0.5 border border-border-default',
+              'flex cursor-pointer items-center justify-center rounded-full',
+              'hover:bg-surface-secondary shadow-sm transition-colors',
+              editIconSizeClasses[size],
             )}
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation()
+              handleClick()
+            }}
           >
-            <PenLine className={cn('text-text-secondary', editIconInnerClasses[size])} />
-            <input
-              ref={inputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleChange}
-              className="hidden"
-              disabled={disabled}
+            <PenLine
+              className={cn('text-text-secondary', editIconInnerClasses[size])}
             />
-          </label>
+          </button>
         )}
+
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleChange}
+          className="hidden"
+          disabled={disabled}
+        />
 
         {/* 删除按钮（有头像时显示） */}
         {value && !disabled && (
           <button
             type="button"
+            aria-label={t('memory.upload.removeAvatar')}
             className={cn(
-              'absolute -top-0.5 -right-0.5 bg-status-error border border-surface-primary',
-              'rounded-full flex items-center justify-center cursor-pointer',
-              'hover:bg-status-error/80 transition-colors shadow-sm',
+              'border-surface-primary absolute -right-0.5 -top-0.5 border bg-status-error',
+              'flex cursor-pointer items-center justify-center rounded-full',
+              'hover:bg-status-error/80 shadow-sm transition-colors',
               'opacity-0 group-hover:opacity-100',
-              editIconSizeClasses[size]
+              editIconSizeClasses[size],
             )}
             onClick={handleRemove}
           >
-            <Trash2 className={cn('text-white', editIconInnerClasses[size])} />
+            <Trash2
+              className={cn(
+                'text-components-button-primary-text',
+                editIconInnerClasses[size],
+              )}
+            />
           </button>
         )}
       </div>
 
-      {tips && (
-        <span className="text-xs text-text-tertiary">{tips}</span>
-      )}
+      {tips && <span className="text-xs text-text-tertiary">{tips}</span>}
     </div>
   )
 }
-
-AvatarUpload.displayName = 'AvatarUpload'

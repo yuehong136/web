@@ -2,9 +2,10 @@
  * 记忆库消息列表页面
  */
 
-import React from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { Search, SlidersHorizontal, Info } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -15,7 +16,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { MemoryMessageTable, MemoryEmptyState } from '@/components/memory'
-import { cn } from '@/lib/utils'
+import { memoryAPI } from '@/api/memory'
 import { useMemoryStore } from '@/stores/memory'
 import {
   useMessageList,
@@ -23,10 +24,10 @@ import {
   useForgetMessage,
   useDebouncedSearch,
 } from '@/hooks/use-memory'
-import { MEMORY_TEXTS } from '@/constants/memory-texts'
-import { MemoryType } from '@/types/memory'
+import type { MemoryMessage } from '@/types/memory'
 
-export const MemoryMessagesPage: React.FC = () => {
+export function MemoryMessagesPage() {
+  const { t } = useTranslation()
   const { id: memoryId } = useParams<{ id: string }>()
 
   // Store state
@@ -39,11 +40,11 @@ export const MemoryMessagesPage: React.FC = () => {
   } = useMemoryStore()
 
   // 搜索防抖
-  const [searchInput, setSearchInput] = React.useState(messageFilter.keywords)
+  const [searchInput, setSearchInput] = useState(messageFilter.keywords)
   const debouncedSearch = useDebouncedSearch(searchInput)
 
   // 更新筛选条件
-  React.useEffect(() => {
+  useEffect(() => {
     if (debouncedSearch !== messageFilter.keywords) {
       setMessageFilter({ keywords: debouncedSearch })
     }
@@ -54,82 +55,93 @@ export const MemoryMessagesPage: React.FC = () => {
     page: messagePage,
     page_size: messagePageSize,
     keywords: messageFilter.keywords,
-    message_type:
-      messageFilter.messageType.length > 0
-        ? messageFilter.messageType
-        : undefined,
-    status: messageFilter.status ?? undefined,
+    agent_id:
+      messageFilter.agentId.length > 0 ? messageFilter.agentId : undefined,
   })
 
   const updateStateMutation = useUpdateMessageState()
   const forgetMutation = useForgetMessage()
 
   // 消息列表
-  const messages = data?.message_list || []
+  const messages = useMemo(() => data?.message_list ?? [], [data?.message_list])
   const total = data?.total_count || 0
+  const totalPages = Math.ceil(total / messagePageSize)
+
+  const agentOptions = useMemo(() => {
+    const options = new Map<string, string>()
+    for (const message of messages) {
+      if (message.agent_id) {
+        options.set(message.agent_id, message.agent_name || message.agent_id)
+      }
+    }
+    return Array.from(options, ([value, label]) => ({ value, label }))
+  }, [messages])
 
   // 处理状态变更
-  const handleStatusChange = (messageId: string, status: boolean) => {
+  const handleStatusChange = (messageId: number, status: boolean) => {
     if (!memoryId) return
     updateStateMutation.mutate({ memoryId, messageId, status })
   }
 
   // 处理遗忘
-  const handleForget = (messageId: string) => {
+  const handleForget = (messageId: number) => {
     if (!memoryId) return
     forgetMutation.mutate({ memoryId, messageId })
   }
 
-  // 消息类型筛选选项
-  const messageTypeOptions = [
-    { value: MemoryType.Raw, label: MEMORY_TEXTS.memories.raw },
-    { value: MemoryType.Semantic, label: MEMORY_TEXTS.memories.semantic },
-    { value: MemoryType.Episodic, label: MEMORY_TEXTS.memories.episodic },
-    { value: MemoryType.Procedural, label: MEMORY_TEXTS.memories.procedural },
-  ]
+  const handleViewContent = async (message: MemoryMessage) => {
+    if (!memoryId) return message
+    const content = await memoryAPI.message.getContent(
+      memoryId,
+      message.message_id,
+    )
+    return {
+      ...message,
+      content: content.content || '',
+      content_embed: content.content_embed || [],
+    }
+  }
 
-  // 切换消息类型筛选
-  const toggleMessageType = (type: MemoryType) => {
-    const newTypes = messageFilter.messageType.includes(type)
-      ? messageFilter.messageType.filter((t) => t !== type)
-      : [...messageFilter.messageType, type]
-    setMessageFilter({ messageType: newTypes })
+  const toggleAgent = (agentId: string) => {
+    const newAgentIds = messageFilter.agentId.includes(agentId)
+      ? messageFilter.agentId.filter((id) => id !== agentId)
+      : [...messageFilter.agentId, agentId]
+    setMessageFilter({ agentId: newAgentIds })
   }
 
   // 判断是否有活跃筛选
-  const hasActiveFilters =
-    messageFilter.messageType.length > 0 || messageFilter.status !== null
+  const hasActiveFilters = messageFilter.agentId.length > 0
 
   // 判断是否显示空状态
   const showEmptyState = !isLoading && messages.length === 0
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="flex h-full flex-col">
       {/* 页面头部 */}
-      <div className="flex-shrink-0 px-6 py-4 border-b border-border-default bg-background-surface">
-        <div className="flex items-center justify-between mb-3">
+      <div className="flex-shrink-0 border-b border-border-default bg-background-surface px-6 py-4">
+        <div className="mb-3 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-text-primary">
-            {MEMORY_TEXTS.messages.pageTitle}
+            {t('memory.messages.title')}
           </h2>
           <span className="text-sm text-text-secondary">
-            共 {total} 条
+            {t('memory.messages.total', { count: total })}
           </span>
         </div>
 
         {/* 提示信息 */}
-        <div className="flex items-start gap-2 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300">
-          <Info className="h-4 w-4 mt-0.5 shrink-0" />
-          <p className="text-sm">{MEMORY_TEXTS.messages.messageDescription}</p>
+        <div className="rounded-radius-lg p-space-sm flex items-start gap-2 border border-status-info-subtle bg-status-info-10 text-status-info">
+          <Info className="mt-0.5 h-4 w-4 shrink-0" />
+          <p className="text-sm">{t('memory.messages.description')}</p>
         </div>
       </div>
 
       {/* 筛选工具栏 */}
-      <div className="flex-shrink-0 px-6 py-3 border-b border-border-default bg-background-surface">
+      <div className="flex-shrink-0 border-b border-border-default bg-background-surface px-6 py-3">
         <div className="flex items-center gap-3">
           {/* 搜索框 */}
-          <div className="flex-1 max-w-md">
+          <div className="max-w-md flex-1">
             <Input
-              placeholder="搜索消息..."
+              placeholder={t('memory.messages.searchPlaceholder')}
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               leftIcon={<Search className="h-4 w-4" />}
@@ -141,103 +153,46 @@ export const MemoryMessagesPage: React.FC = () => {
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
-                className={cn(
-                  'gap-2',
-                  hasActiveFilters && 'border-text-accent text-text-accent'
-                )}
+                className={
+                  hasActiveFilters
+                    ? 'gap-2 border-text-accent text-text-accent'
+                    : 'gap-2'
+                }
               >
                 <SlidersHorizontal className="h-4 w-4" />
-                {MEMORY_TEXTS.memories.filter}
+                {t('common.filter')}
                 {hasActiveFilters && (
-                  <span className="ml-1 px-1.5 py-0.5 text-xs bg-text-accent text-white rounded-full">
-                    {messageFilter.messageType.length +
-                      (messageFilter.status !== null ? 1 : 0)}
+                  <span className="ml-1 rounded-full bg-text-accent px-1.5 py-0.5 text-xs text-components-button-primary-text">
+                    {messageFilter.agentId.length}
                   </span>
                 )}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-64" align="start">
               <div className="space-y-4">
-                {/* 类型筛选 */}
                 <div>
-                  <Label className="text-sm font-medium text-text-primary mb-2 block">
-                    {MEMORY_TEXTS.messages.type}
+                  <Label className="mb-2 block text-sm font-medium text-text-primary">
+                    {t('memory.messages.agent')}
                   </Label>
                   <div className="space-y-2">
-                    {messageTypeOptions.map((option) => (
+                    {agentOptions.map((option) => (
                       <div
                         key={option.value}
                         className="flex items-center gap-2"
                       >
                         <Checkbox
-                          id={`msg-type-${option.value}`}
-                          checked={messageFilter.messageType.includes(
-                            option.value
-                          )}
-                          onCheckedChange={() => toggleMessageType(option.value)}
+                          id={`agent-${option.value}`}
+                          checked={messageFilter.agentId.includes(option.value)}
+                          onCheckedChange={() => toggleAgent(option.value)}
                         />
                         <Label
-                          htmlFor={`msg-type-${option.value}`}
-                          className="text-sm text-text-secondary cursor-pointer"
+                          htmlFor={`agent-${option.value}`}
+                          className="cursor-pointer text-sm text-text-secondary"
                         >
                           {option.label}
                         </Label>
                       </div>
                     ))}
-                  </div>
-                </div>
-
-                {/* 状态筛选 */}
-                <div>
-                  <Label className="text-sm font-medium text-text-primary mb-2 block">
-                    {MEMORY_TEXTS.messages.enable}
-                  </Label>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Checkbox
-                        id="status-all"
-                        checked={messageFilter.status === null}
-                        onCheckedChange={() =>
-                          setMessageFilter({ status: null })
-                        }
-                      />
-                      <Label
-                        htmlFor="status-all"
-                        className="text-sm text-text-secondary cursor-pointer"
-                      >
-                        全部
-                      </Label>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Checkbox
-                        id="status-enabled"
-                        checked={messageFilter.status === true}
-                        onCheckedChange={() =>
-                          setMessageFilter({ status: true })
-                        }
-                      />
-                      <Label
-                        htmlFor="status-enabled"
-                        className="text-sm text-text-secondary cursor-pointer"
-                      >
-                        {MEMORY_TEXTS.messages.enabled}
-                      </Label>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Checkbox
-                        id="status-disabled"
-                        checked={messageFilter.status === false}
-                        onCheckedChange={() =>
-                          setMessageFilter({ status: false })
-                        }
-                      />
-                      <Label
-                        htmlFor="status-disabled"
-                        className="text-sm text-text-secondary cursor-pointer"
-                      >
-                        {MEMORY_TEXTS.messages.disabled}
-                      </Label>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -257,11 +212,12 @@ export const MemoryMessagesPage: React.FC = () => {
               isLoading={isLoading}
               onStatusChange={handleStatusChange}
               onForget={handleForget}
+              onViewContent={handleViewContent}
             />
 
             {/* 分页 */}
             {total > messagePageSize && (
-              <div className="flex justify-center mt-6">
+              <div className="mt-6 flex justify-center">
                 <div className="flex items-center gap-2">
                   <Button
                     variant="outline"
@@ -269,19 +225,21 @@ export const MemoryMessagesPage: React.FC = () => {
                     disabled={messagePage <= 1}
                     onClick={() => setMessagePage(messagePage - 1)}
                   >
-                    上一页
+                    {t('memory.messages.previous')}
                   </Button>
                   <span className="text-sm text-text-secondary">
-                    第 {messagePage} 页 / 共{' '}
-                    {Math.ceil(total / messagePageSize)} 页
+                    {t('memory.messages.pageStatus', {
+                      page: messagePage,
+                      totalPages,
+                    })}
                   </span>
                   <Button
                     variant="outline"
                     size="sm"
-                    disabled={messagePage >= Math.ceil(total / messagePageSize)}
+                    disabled={messagePage >= totalPages}
                     onClick={() => setMessagePage(messagePage + 1)}
                   >
-                    下一页
+                    {t('memory.messages.next')}
                   </Button>
                 </div>
               </div>
@@ -292,5 +250,3 @@ export const MemoryMessagesPage: React.FC = () => {
     </div>
   )
 }
-
-MemoryMessagesPage.displayName = 'MemoryMessagesPage'

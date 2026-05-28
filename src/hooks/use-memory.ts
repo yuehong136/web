@@ -3,11 +3,12 @@
  * 使用 TanStack Query 进行服务端状态管理
  */
 
+import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { memoryAPI } from '@/api/memory'
 import { useMemoryStore } from '@/stores/memory'
-import { MEMORY_TEXTS } from '@/constants/memory-texts'
 import type {
   CreateMemoryParams,
   UpdateMemoryParams,
@@ -24,7 +25,8 @@ export const memoryKeys = {
   details: () => [...memoryKeys.all, 'detail'] as const,
   detail: (id: string) => [...memoryKeys.details(), id] as const,
   config: (id: string) => [...memoryKeys.all, 'config', id] as const,
-  messages: (memoryId: string) => [...memoryKeys.all, memoryId, 'messages'] as const,
+  messages: (memoryId: string) =>
+    [...memoryKeys.all, memoryId, 'messages'] as const,
   messageList: (memoryId: string, params: MessageListParams) =>
     [...memoryKeys.messages(memoryId), params] as const,
 }
@@ -94,6 +96,7 @@ export function useMemoryConfig(id: string | undefined) {
  * 创建记忆库
  */
 export function useCreateMemory() {
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
   const { closeCreateModal, addMemory } = useMemoryStore()
 
@@ -102,21 +105,24 @@ export function useCreateMemory() {
     onSuccess: (result, variables) => {
       // 后端返回完整的 Memory 对象，直接添加到列表
       addMemory(result)
-      
+
       // 使列表缓存失效
       queryClient.invalidateQueries({ queryKey: memoryKeys.lists() })
-      
+
       // 关闭弹窗
       closeCreateModal()
-      
+
       // 提示成功
-      toast.success(MEMORY_TEXTS.common.success, {
-        description: `${MEMORY_TEXTS.memories.memory} "${variables.name}" ${MEMORY_TEXTS.common.create}${MEMORY_TEXTS.common.success}`,
+      toast.success(t('common.saved'), {
+        description: t('memory.toast.createSuccess', { name: variables.name }),
       })
     },
     onError: (error) => {
-      toast.error(MEMORY_TEXTS.common.failed, {
-        description: error instanceof Error ? error.message : MEMORY_TEXTS.memories.createFailed,
+      toast.error(t('common.errors.serverError'), {
+        description:
+          error instanceof Error
+            ? error.message
+            : t('memory.toast.createFailed'),
       })
     },
   })
@@ -126,6 +132,7 @@ export function useCreateMemory() {
  * 更新记忆库
  */
 export function useUpdateMemory() {
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
   const { updateMemory, closeEditModal } = useMemoryStore()
 
@@ -135,21 +142,24 @@ export function useUpdateMemory() {
     onSuccess: (_result, { id, data }) => {
       // 更新本地状态
       updateMemory(id, data)
-      
+
       // 使缓存失效
       queryClient.invalidateQueries({ queryKey: memoryKeys.detail(id) })
       queryClient.invalidateQueries({ queryKey: memoryKeys.config(id) })
       queryClient.invalidateQueries({ queryKey: memoryKeys.lists() })
-      
+
       // 关闭弹窗
       closeEditModal()
-      
+
       // 提示成功
-      toast.success(MEMORY_TEXTS.config.saveSuccess)
+      toast.success(t('memory.config.saveSuccess'))
     },
     onError: (error) => {
-      toast.error(MEMORY_TEXTS.config.saveFailed, {
-        description: error instanceof Error ? error.message : MEMORY_TEXTS.memories.updateFailed,
+      toast.error(t('memory.config.saveFailed'), {
+        description:
+          error instanceof Error
+            ? error.message
+            : t('memory.toast.updateFailed'),
       })
     },
   })
@@ -159,6 +169,7 @@ export function useUpdateMemory() {
  * 删除记忆库
  */
 export function useDeleteMemory() {
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
   const { removeMemory } = useMemoryStore()
 
@@ -167,18 +178,21 @@ export function useDeleteMemory() {
     onSuccess: (_, id) => {
       // 更新本地状态
       removeMemory(id)
-      
+
       // 使列表缓存失效
       queryClient.invalidateQueries({ queryKey: memoryKeys.lists() })
-      
+
       // 提示成功
-      toast.success(MEMORY_TEXTS.common.success, {
-        description: `${MEMORY_TEXTS.memories.memory}${MEMORY_TEXTS.common.delete}${MEMORY_TEXTS.common.success}`,
+      toast.success(t('common.deleted'), {
+        description: t('memory.toast.deleteSuccess'),
       })
     },
     onError: (error) => {
-      toast.error(MEMORY_TEXTS.common.failed, {
-        description: error instanceof Error ? error.message : MEMORY_TEXTS.memories.deleteFailed,
+      toast.error(t('common.errors.serverError'), {
+        description:
+          error instanceof Error
+            ? error.message
+            : t('memory.toast.deleteFailed'),
       })
     },
   })
@@ -189,7 +203,10 @@ export function useDeleteMemory() {
 /**
  * 获取消息列表
  */
-export function useMessageList(memoryId: string | undefined, params?: MessageListParams) {
+export function useMessageList(
+  memoryId: string | undefined,
+  params?: MessageListParams,
+) {
   const { setMessages, setMessagesLoading } = useMemoryStore()
 
   return useQuery({
@@ -198,9 +215,13 @@ export function useMessageList(memoryId: string | undefined, params?: MessageLis
       if (!memoryId) throw new Error('Memory ID is required')
       setMessagesLoading(true)
       try {
-        const data = await memoryAPI.message.list({ memory_id: memoryId, ...params })
-        setMessages(data.message_list, data.total_count)
-        return data
+        const data = await memoryAPI.memory.getDetail(memoryId, params)
+        const messages = {
+          ...data.messages,
+          storage_type: data.storage_type,
+        }
+        setMessages(messages.message_list, messages.total_count)
+        return messages
       } finally {
         setMessagesLoading(false)
       }
@@ -213,7 +234,11 @@ export function useMessageList(memoryId: string | undefined, params?: MessageLis
 /**
  * 获取消息内容
  */
-export function useMessageContent(memoryId: string, messageId: string, enabled = false) {
+export function useMessageContent(
+  memoryId: string,
+  messageId: string,
+  enabled = false,
+) {
   return useQuery({
     queryKey: ['message-content', memoryId, messageId],
     queryFn: () => memoryAPI.message.getContent(memoryId, messageId),
@@ -227,6 +252,7 @@ export function useMessageContent(memoryId: string, messageId: string, enabled =
  * 更新消息状态（启用/禁用）
  */
 export function useUpdateMessageState() {
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
   const { updateMessageStatus } = useMemoryStore()
 
@@ -237,7 +263,7 @@ export function useUpdateMessageState() {
       status,
     }: {
       memoryId: string
-      messageId: string
+      messageId: number
       status: boolean
     }) => memoryAPI.message.updateState(memoryId, messageId, status),
     onMutate: async ({ messageId, status }) => {
@@ -247,15 +273,18 @@ export function useUpdateMessageState() {
     onSuccess: (_, { memoryId }) => {
       // 使消息列表缓存失效
       queryClient.invalidateQueries({ queryKey: memoryKeys.messages(memoryId) })
-      
-      toast.success(MEMORY_TEXTS.common.success)
+
+      toast.success(t('common.saved'))
     },
     onError: (error, { messageId, status }) => {
       // 回滚乐观更新
       updateMessageStatus(messageId, !status)
-      
-      toast.error(MEMORY_TEXTS.common.failed, {
-        description: error instanceof Error ? error.message : MEMORY_TEXTS.memories.updateMessageStatusFailed,
+
+      toast.error(t('common.errors.serverError'), {
+        description:
+          error instanceof Error
+            ? error.message
+            : t('memory.toast.updateMessageStatusFailed'),
       })
     },
   })
@@ -265,6 +294,7 @@ export function useUpdateMessageState() {
  * 遗忘消息
  */
 export function useForgetMessage() {
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
   const { removeMessage } = useMemoryStore()
 
@@ -274,20 +304,23 @@ export function useForgetMessage() {
       messageId,
     }: {
       memoryId: string
-      messageId: string
+      messageId: number
     }) => memoryAPI.message.forget(memoryId, messageId),
     onSuccess: (_, { memoryId, messageId }) => {
       // 更新本地状态
       removeMessage(messageId)
-      
+
       // 使消息列表缓存失效
       queryClient.invalidateQueries({ queryKey: memoryKeys.messages(memoryId) })
-      
-      toast.success(MEMORY_TEXTS.messages.forget + MEMORY_TEXTS.common.success)
+
+      toast.success(t('memory.toast.forgetMessageSuccess'))
     },
     onError: (error) => {
-      toast.error(MEMORY_TEXTS.common.failed, {
-        description: error instanceof Error ? error.message : MEMORY_TEXTS.memories.forgetMessageFailed,
+      toast.error(t('common.errors.serverError'), {
+        description:
+          error instanceof Error
+            ? error.message
+            : t('memory.toast.forgetMessageFailed'),
       })
     },
   })
@@ -299,9 +332,9 @@ export function useForgetMessage() {
  * 使用防抖的搜索值
  */
 export function useDebouncedSearch(value: string, delay = 300) {
-  const [debouncedValue, setDebouncedValue] = React.useState(value)
+  const [debouncedValue, setDebouncedValue] = useState(value)
 
-  React.useEffect(() => {
+  useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedValue(value)
     }, delay)
@@ -311,6 +344,3 @@ export function useDebouncedSearch(value: string, delay = 300) {
 
   return debouncedValue
 }
-
-// 需要导入 React
-import React from 'react'

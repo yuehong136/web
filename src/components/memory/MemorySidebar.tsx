@@ -3,14 +3,21 @@
  * 优化版本：状态指示、活跃指示条、渐变光环
  */
 
-import React from 'react'
+import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { NavLink, useParams, useNavigate } from 'react-router-dom'
-import { MessageSquare, Settings, Database, Clock, Activity, ArrowLeft } from 'lucide-react'
+import {
+  MessageSquare,
+  Settings,
+  Database,
+  Clock,
+  Activity,
+  ArrowLeft,
+} from 'lucide-react'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { cn, formatRelativeTime, formatBytes } from '@/lib/utils'
 import { ROUTES } from '@/constants'
-import { MEMORY_TEXTS } from '@/constants/memory-texts'
 import type { Memory } from '@/types/memory'
 
 interface MemorySidebarProps {
@@ -18,10 +25,11 @@ interface MemorySidebarProps {
   isLoading?: boolean
 }
 
-export const MemorySidebar: React.FC<MemorySidebarProps> = ({
+export function MemorySidebar({
   memory,
   isLoading = false,
-}) => {
+}: MemorySidebarProps) {
+  const { t } = useTranslation()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
 
@@ -30,19 +38,20 @@ export const MemorySidebar: React.FC<MemorySidebarProps> = ({
     {
       to: `/memory/${id}`,
       icon: MessageSquare,
-      label: MEMORY_TEXTS.sideBar.messages,
+      label: t('memory.messages.title'),
       end: true,
     },
     {
       to: `/memory/${id}/settings`,
       icon: Settings,
-      label: MEMORY_TEXTS.sideBar.configuration,
+      label: t('memory.config.title'),
     },
   ]
 
   // 生成头像背景渐变 - 使用语义令牌
-  const avatarGradient = React.useMemo(() => {
-    if (!memory?.name) return 'from-components-avatar-gradient-purple-from to-components-avatar-gradient-purple-to'
+  const avatarGradient = useMemo(() => {
+    if (!memory?.name)
+      return 'from-components-avatar-gradient-purple-from to-components-avatar-gradient-purple-to'
     const gradients = [
       'from-components-avatar-gradient-purple-from to-components-avatar-gradient-purple-to',
       'from-components-avatar-gradient-blue-from to-components-avatar-gradient-blue-to',
@@ -56,9 +65,9 @@ export const MemorySidebar: React.FC<MemorySidebarProps> = ({
 
   if (isLoading) {
     return (
-      <div className="h-full flex flex-col bg-background-surface border-r border-border-default">
+      <div className="flex h-full flex-col border-r border-border-default bg-background-surface">
         {/* 返回按钮 - 加载时也可用 */}
-        <div className="px-4 pt-4 pb-0">
+        <div className="px-4 pb-0 pt-4">
           <Button
             variant="ghost"
             size="sm"
@@ -66,23 +75,23 @@ export const MemorySidebar: React.FC<MemorySidebarProps> = ({
             onClick={() => navigate(ROUTES.MEMORY)}
           >
             <ArrowLeft className="h-4 w-4" />
-            <span>{MEMORY_TEXTS.common.allMemories}</span>
+            <span>{t('memory.common.allMemories')}</span>
           </Button>
         </div>
         {/* 骨架屏 */}
-        <div className="px-6 pb-6 pt-4 space-y-4 animate-pulse">
-          <div className="w-16 h-16 rounded-2xl bg-background-subtle" />
-          <div className="h-5 w-3/4 bg-background-subtle rounded" />
-          <div className="h-4 w-1/2 bg-background-subtle rounded" />
+        <div className="animate-pulse space-y-4 px-6 pb-6 pt-4">
+          <div className="h-16 w-16 rounded-2xl bg-background-subtle" />
+          <div className="h-5 w-3/4 rounded bg-background-subtle" />
+          <div className="h-4 w-1/2 rounded bg-background-subtle" />
         </div>
       </div>
     )
   }
 
   return (
-    <div className="h-full flex flex-col bg-background-surface border-r border-border-default">
+    <div className="flex h-full flex-col border-r border-border-default bg-background-surface">
       {/* 返回按钮 */}
-      <div className="px-4 pt-4 pb-0">
+      <div className="px-4 pb-0 pt-4">
         <Button
           variant="ghost"
           size="sm"
@@ -90,68 +99,74 @@ export const MemorySidebar: React.FC<MemorySidebarProps> = ({
           onClick={() => navigate(ROUTES.MEMORY)}
         >
           <ArrowLeft className="h-4 w-4" />
-          <span>{MEMORY_TEXTS.common.allMemories}</span>
+          <span>{t('memory.common.allMemories')}</span>
         </Button>
       </div>
 
       {/* 头部信息区 */}
-      <div className="px-6 pb-6 pt-4 border-b border-border-default">
+      <div className="border-b border-border-default px-6 pb-6 pt-4">
         {/* 头像带渐变光环和状态指示 */}
-        <div className="mb-4 relative inline-block">
+        <div className="relative mb-4 inline-block">
           {/* 渐变光环背景 */}
-          <div className={cn(
-            'absolute -inset-1 rounded-2xl opacity-30 blur-sm',
-            'bg-gradient-to-br',
-            avatarGradient
-          )} />
-          
+          <div
+            className={cn(
+              'absolute -inset-1 rounded-2xl opacity-30 blur-sm',
+              'bg-gradient-to-br',
+              avatarGradient,
+            )}
+          />
+
           {memory?.avatar ? (
-            <Avatar className="relative ring-2 ring-surface-primary shadow-lg w-16 h-16">
+            <Avatar className="ring-surface-primary relative h-16 w-16 shadow-lg ring-2">
               <AvatarImage src={memory.avatar} alt={memory.name} />
-              <AvatarFallback><Database className="h-6 w-6" /></AvatarFallback>
+              <AvatarFallback>
+                <Database className="h-6 w-6" />
+              </AvatarFallback>
             </Avatar>
           ) : (
             <div
               className={cn(
-                'relative w-16 h-16 rounded-2xl flex items-center justify-center',
+                'relative flex h-16 w-16 items-center justify-center rounded-2xl',
                 'bg-gradient-to-br shadow-sm',
-                avatarGradient
+                avatarGradient,
               )}
             >
-              <span className="text-white font-semibold text-[28px]">
+              <span className="text-[28px] font-semibold text-components-button-primary-text">
                 {memory?.name?.charAt(0).toUpperCase() || 'M'}
               </span>
             </div>
           )}
-          
+
           {/* 状态指示点 */}
-          <div className={cn(
-            'absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full',
-            'border-2 border-surface-primary',
-            'bg-status-success'
-          )} />
+          <div
+            className={cn(
+              'absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full',
+              'border-surface-primary border-2',
+              'bg-status-success',
+            )}
+          />
         </div>
 
         {/* 名称和描述 */}
-        <h2 className="text-lg font-semibold text-text-primary mb-1">
-          {memory?.name || MEMORY_TEXTS.common.loading}
+        <h2 className="mb-1 text-lg font-semibold text-text-primary">
+          {memory?.name || t('memory.common.loading')}
         </h2>
-        <p className="text-sm text-text-secondary line-clamp-2 mb-3">
-          {memory?.description || MEMORY_TEXTS.config.descriptionPlaceholder}
+        <p className="mb-3 line-clamp-2 text-sm text-text-secondary">
+          {memory?.description || t('memory.fields.descriptionPlaceholder')}
         </p>
 
         {/* 元信息 */}
         <div className="flex flex-col gap-2.5 text-xs">
           <div className="flex items-center gap-2 text-text-secondary">
             <Activity className="h-3.5 w-3.5 text-status-success" />
-            <span>在线</span>
+            <span>{t('memory.common.online')}</span>
           </div>
           <div className="flex items-center gap-2 text-text-tertiary">
             <Database className="h-3.5 w-3.5" />
             <span>
               {memory?.storage_type === 'graph'
-                ? MEMORY_TEXTS.config.graph
-                : MEMORY_TEXTS.config.table}
+                ? t('memory.fields.graph')
+                : t('memory.fields.table')}
             </span>
             {memory?.memory_size && (
               <>
@@ -179,11 +194,11 @@ export const MemorySidebar: React.FC<MemorySidebarProps> = ({
               end={item.end}
               className={({ isActive }) =>
                 cn(
-                  'flex items-center gap-3 px-4 py-2.5 rounded-lg relative',
+                  'relative flex items-center gap-3 rounded-lg px-4 py-2.5',
                   'text-sm font-medium transition-all duration-200',
                   isActive
                     ? 'bg-text-accent/10 text-text-accent'
-                    : 'text-text-secondary hover:bg-surface-secondary hover:text-text-primary'
+                    : 'hover:bg-surface-secondary text-text-secondary hover:text-text-primary',
                 )
               }
             >
@@ -191,12 +206,12 @@ export const MemorySidebar: React.FC<MemorySidebarProps> = ({
                 <>
                   {/* 左侧活跃指示条 */}
                   {isActive && (
-                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-r-full bg-text-accent" />
+                    <div className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-text-accent" />
                   )}
                   <item.icon
                     className={cn(
                       'h-4 w-4 transition-transform duration-200',
-                      isActive ? 'text-text-accent' : 'group-hover:scale-110'
+                      isActive ? 'text-text-accent' : 'group-hover:scale-110',
                     )}
                   />
                   <span>{item.label}</span>
@@ -209,5 +224,3 @@ export const MemorySidebar: React.FC<MemorySidebarProps> = ({
     </div>
   )
 }
-
-MemorySidebar.displayName = 'MemorySidebar'
