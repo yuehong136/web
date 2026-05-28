@@ -575,6 +575,8 @@ export default {
     cleanHtmlTip: '如果响应是 HTML 格式且只需要主要内容，请将其打开。',
     invalidUrl:
       '必须是有效的 URL 或包含变量占位符的 URL，格式为 {variable_name} 或 {component@variable}',
+    invalidProxy: '代理必须是合法的 URL。',
+    duplicateParameterKey: '参数键必须唯一。',
     reference: '引用',
     input: '输入',
     output: '输出',

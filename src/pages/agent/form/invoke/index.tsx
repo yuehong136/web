@@ -36,13 +36,8 @@ import {
   buildOutputList,
 } from '../components'
 import { invokeMethodOptions } from './constants'
-import { invokeFormSchema } from './schema'
-import {
-  invokeDatatypeOptions,
-  normalizeInvokeFormForStore,
-} from './utils'
-
-type InvokeFormValues = z.input<typeof invokeFormSchema>
+import { createInvokeFormSchema } from './schema'
+import { invokeDatatypeOptions, normalizeInvokeFormForStore } from './utils'
 
 export function InvokeForm({ node }: INextOperatorForm) {
   const { t } = useTranslation()
@@ -50,19 +45,25 @@ export function InvokeForm({ node }: INextOperatorForm) {
     useFormValues(initialInvokeValues, node),
   )
 
+  // Schema messages depend on the current language; rebuild when t changes.
+  const schema = useMemo(() => createInvokeFormSchema(t), [t])
+
   const form = useForm<
-    InvokeFormValues,
+    z.input<typeof schema>,
     unknown,
-    z.output<typeof invokeFormSchema>
+    z.output<typeof schema>
   >({
-    resolver: zodResolver(invokeFormSchema),
-    defaultValues: values as InvokeFormValues,
+    resolver: zodResolver(schema),
+    defaultValues: values as z.input<typeof schema>,
     mode: 'onChange',
   })
 
   useWatchFormChange(node?.id, form)
 
-  const outputs = useMemo(() => buildOutputList(form.getValues('outputs')), [form])
+  const outputs = useMemo(
+    () => buildOutputList(form.getValues('outputs')),
+    [form],
+  )
 
   return (
     <Form {...form}>
@@ -72,7 +73,7 @@ export function InvokeForm({ node }: INextOperatorForm) {
           name="url"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>URL</FormLabel>
+              <FormLabel>{t('flow.url', 'URL')}</FormLabel>
               <FormControl>
                 <PromptEditor
                   value={field.value ?? ''}
@@ -88,7 +89,7 @@ export function InvokeForm({ node }: INextOperatorForm) {
           )}
         />
 
-        <div className="grid gap-space-md md:grid-cols-3">
+        <div className="gap-space-md grid md:grid-cols-3">
           <FormField
             control={form.control}
             name="method"
@@ -197,8 +198,15 @@ export function InvokeForm({ node }: INextOperatorForm) {
           control={form.control}
           name="clean_html"
           render={({ field }) => (
-            <FormItem className="flex items-center justify-between rounded-radius-md border border-border-default px-space-sm py-space-sm">
-              <FormLabel>{t('flow.cleanHtml', 'Clean HTML')}</FormLabel>
+            <FormItem className="rounded-radius-md px-space-sm py-space-sm flex items-center justify-between border border-border-default">
+              <FormLabel
+                tooltip={t(
+                  'flow.cleanHtmlTip',
+                  'Turn this on if the response is HTML and you only need the main content.',
+                )}
+              >
+                {t('flow.cleanHtml', 'Clean HTML')}
+              </FormLabel>
               <FormControl>
                 <Switch
                   checked={field.value ?? false}
@@ -217,10 +225,7 @@ export function InvokeForm({ node }: INextOperatorForm) {
           defaultValue={{ key: '', ref: '', value: '' }}
         >
           {({ field, index, ctx }) => (
-            <CompactRecordRow
-              key={field.id}
-              onRemove={() => ctx.remove(index)}
-            >
+            <CompactRecordRow key={field.id} onRemove={() => ctx.remove(index)}>
               <FormField
                 control={form.control}
                 name={`variables.${index}.key`}
@@ -241,7 +246,7 @@ export function InvokeForm({ node }: INextOperatorForm) {
               <QueryVariable
                 name={`variables.${index}.ref`}
                 hideLabel
-                className="flex-1 min-w-0"
+                className="min-w-0 flex-1"
                 nodeId={node?.id}
               />
 
@@ -249,7 +254,7 @@ export function InvokeForm({ node }: INextOperatorForm) {
                 control={form.control}
                 name={`variables.${index}.value`}
                 render={({ field: inputField }) => (
-                  <FormItem className="flex-1 min-w-0">
+                  <FormItem className="min-w-0 flex-1">
                     <FormControl>
                       <Input
                         {...inputField}

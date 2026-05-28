@@ -35,7 +35,9 @@ function normalizeInvokeHeaders(value: unknown) {
 }
 
 function normalizeInvokeVariable(value: unknown): InvokeVariable {
-  const item = (value && typeof value === 'object' ? value : {}) as Partial<InvokeVariable>
+  const item = (
+    value && typeof value === 'object' ? value : {}
+  ) as Partial<InvokeVariable>
 
   return {
     key: typeof item.key === 'string' ? item.key : '',
@@ -62,9 +64,8 @@ function normalizeNumber(value: unknown, fallback: number) {
 export function normalizeInvokeFormForStore(
   form: Record<string, unknown> = {},
 ) {
-  const datatype = typeof form.datatype === 'string'
-    ? form.datatype.toLowerCase()
-    : 'json'
+  const datatype =
+    typeof form.datatype === 'string' ? form.datatype.toLowerCase() : 'json'
 
   return {
     ...form,
@@ -74,7 +75,9 @@ export function normalizeInvokeFormForStore(
     headers: normalizeInvokeHeaders(form.headers),
     proxy: typeof form.proxy === 'string' ? form.proxy : '',
     clean_html: Boolean(form.clean_html),
-    datatype: invokeDatatypeOptions.includes(datatype as (typeof invokeDatatypeOptions)[number])
+    datatype: invokeDatatypeOptions.includes(
+      datatype as (typeof invokeDatatypeOptions)[number],
+    )
       ? datatype
       : 'json',
     variables: Array.isArray(form.variables)
@@ -84,13 +87,19 @@ export function normalizeInvokeFormForStore(
   }
 }
 
-export function serializeInvokeFormForDsl(
-  form: Record<string, unknown> = {},
-) {
+export function serializeInvokeFormForDsl(form: Record<string, unknown> = {}) {
   const nextForm = normalizeInvokeFormForStore(form)
 
+  // `datatype` is our local extension (json/formdata). ragflow's backend does
+  // not understand the field — so we only emit it when it deviates from the
+  // implicit json default, keeping the on-wire DSL identical for the common
+  // case.
+  const { datatype, ...rest } = nextForm
+  const datatypeForDsl = datatype && datatype !== 'json' ? { datatype } : {}
+
   return {
-    ...nextForm,
+    ...rest,
+    ...datatypeForDsl,
     outputs: invokeOutputs,
     variables: nextForm.variables.map((item) => ({
       key: item.key,

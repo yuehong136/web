@@ -209,6 +209,8 @@ export default {
     chunker: 'Chunker',
     cite: 'Cite',
     cleanHtml: 'Clean HTML',
+    cleanHtmlTip:
+      'Turn this on if the response is HTML and you only need the main content.',
     code: 'Code',
     componentId: 'Component ID',
     conversationVariable: 'Conversation variable',
@@ -377,6 +379,7 @@ export default {
     sortBy: 'Sort by',
     sortMethod: 'Sort method',
     splitRef: 'Split Ref',
+    seconds: 'sec',
     sqlStatement: 'SQL statement',
     start: 'Start',
     stockCode: 'Stock code',
@@ -402,6 +405,7 @@ export default {
     topN: 'Top N Results',
     topic: 'Topic',
     type: 'Type',
+    url: 'URL',
     urls: 'URLs',
     useKnowledgeGraph: 'Use Knowledge Graph',
     userId: 'User ID',
@@ -498,6 +502,10 @@ export default {
     invoke: 'HTTP request',
     invokeDescription:
       "A component capable of calling remote services, using other components' outputs or constants as inputs.",
+    invalidUrl:
+      'Must be a valid URL or contain placeholders like {variable_name} or {component@variable}',
+    invalidProxy: 'Proxy must be a valid URL.',
+    duplicateParameterKey: 'Parameter key must be unique.',
     iteration: 'Iteration',
     iterationDescription:
       'A looping component that iterates over an input array and executes a defined logic for each item.',

@@ -83,7 +83,9 @@ test('parser normalizer rebuilds keyed backend setups into file-type cards and b
     },
   })
 
-  const pdfSetup = normalized.find((item) => item.fileFormat === ParserFileType.PDF)
+  const pdfSetup = normalized.find(
+    (item) => item.fileFormat === ParserFileType.PDF,
+  )
   const imageSetup = normalized.find(
     (item) => item.fileFormat === ParserFileType.Image,
   )
@@ -240,6 +242,25 @@ test('invoke normalizer keeps monaco headers and variable refs in backend shape'
   assert.equal(serialized.datatype, 'formdata')
 })
 
+test('invoke serializer omits datatype when it defaults to json', () => {
+  const serialized = serializeInvokeFormForDsl({
+    url: 'https://api.example.com',
+    method: 'get',
+    timeout: 10,
+    headers: '{}',
+    proxy: '',
+    clean_html: false,
+    datatype: 'json',
+    variables: [],
+  })
+
+  assert.equal(
+    Object.prototype.hasOwnProperty.call(serialized, 'datatype'),
+    false,
+    'datatype should be omitted when it equals the implicit json default',
+  )
+})
+
 test('iteration utilities derive dynamic outputs from structured output items', () => {
   const normalized = normalizeIterationOutputItems({
     items: {
@@ -289,22 +310,19 @@ test('variable aggregator derives outputs from selected variable groups', () => 
     },
   ])
 
-  const outputs = buildVariableAggregatorOutputs(
-    groups,
-    [
-      {
-        label: 'Retrieval',
-        title: 'Retrieval',
-        options: [
-          {
-            label: 'json',
-            value: 'retrieval@json',
-            type: 'Array<Object>',
-          },
-        ],
-      },
-    ] as unknown as QueryVariableOptionGroup[],
-  )
+  const outputs = buildVariableAggregatorOutputs(groups, [
+    {
+      label: 'Retrieval',
+      title: 'Retrieval',
+      options: [
+        {
+          label: 'json',
+          value: 'retrieval@json',
+          type: 'Array<Object>',
+        },
+      ],
+    },
+  ] as unknown as QueryVariableOptionGroup[])
 
   assert.deepEqual(groups, [
     {
@@ -344,12 +362,18 @@ test('retrieval normalizer keeps metadata filter bridge at serializer boundary',
   assert.equal(normalized.retrieval_from, 'memory')
   assert.deepEqual(normalized.memory_ids, ['memory-1'])
   assert.deepEqual(normalized.cross_languages, ['English', 'Japanese'])
-  assert.equal(normalized.meta_data_filter.method, retrievalMetaDataMethod.SemiAuto)
+  assert.equal(
+    normalized.meta_data_filter.method,
+    retrievalMetaDataMethod.SemiAuto,
+  )
 
   const serialized = serializeRetrievalFormForDsl(normalized)
 
   assert.deepEqual(serialized.meta_data_filter, metadataFilter)
-  assert.deepEqual(Object.keys(serialized.outputs), ['formalized_content', 'json'])
+  assert.deepEqual(Object.keys(serialized.outputs), [
+    'formalized_content',
+    'json',
+  ])
 })
 
 test('begin input bridge converts keyed input objects into compact-record rows and back', () => {
