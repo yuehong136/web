@@ -1,22 +1,17 @@
 /**
- * Designer「试运行」编排:把 `/v1/llm/enhanced_chat_sse` 包成 schema-fill 要的 `callLLM`,
- * 顺序逐节填值,出一份真 ReportSchema。镜像 use-generate-skeleton:复用一个 parser、
- * `live()` 让取消/被取代的旧序列失效、disconnect 收尾。
+ * Designer「试运行」hook —— 瘦 SSE 客户端。
  *
- * 这一层只负责「调模型 + 状态机」;真正的提示词/解析/merge 在纯模块 schema-fill 里(可单测)。
+ * 展开生成区 + 逐节填值的真逻辑已收口到后端 `POST /v1/report/fill`(report_skeleton.expand +
+ * report_fill.fill,与真实工作流算子同一条路径 → 预览=生产)。本 hook 只:扫骨架里 variable
+ * 字段的引用 → 用 resolveRef 取样本值拼成 variables map → 发一次请求 → 流式读 expand/fill 进度
+ * + 末尾 ReportSchema。公共 API 与旧实现一致,故 run-dialog 无需改动。
+ *
+ * 判败口径与后端算子一致:有 llm 空槽要填(llmSections>0)却一个都没填成(okSections===0)→ error;
+ * 生成区展开失败只作告警(failedRegions),不判败——同 html_report。
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
-import {
-  EnhancedSSEParser,
-  type SSEMessage,
-  type SSEParserState,
-} from '@/components/chat/EnhancedSSEParser'
-import type { ChatMessage } from '../prompt-builder'
-import { fillSkeleton } from '../schema-fill'
 import type { ReportSchema, SkeletonSchema } from '../types'
-import { expandOpenRegions } from './ai-skeleton/expand-regions'
-
-const ENDPOINT = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/v1/llm/enhanced_chat_sse`
+import { type ReportProgress, streamReport } from './report-sse'
 
 export type RunStatus = 'idle' | 'running' | 'done' | 'error'
 
@@ -32,13 +27,32 @@ export interface RunFillArgs {
   /** 源料:试运行时用户粘的样本上游文本 */
   sourceText: string
   llmName: string
-  /** 生成温度(取自节点配置;缺省时不进 gen_conf,用后端默认) */
+  /** 生成温度(取自节点配置;缺省时不传,用后端默认) */
   temperature?: number
   /** variable 字段的样本值解析(无变量则永远返回 undefined) */
   resolveRef: (ref: string) => unknown
 }
 
 const INITIAL_PROGRESS: RunProgress = { phase: 'expand', current: 0, total: 0 }
+
+/** 扫骨架里所有 variable 指令的 ref,用 resolveRef 取样本值 → 发给后端的 variables map。 */
+function collectVariableSamples(
+  skeleton: SkeletonSchema,
+  resolveRef: (ref: string) => unknown,
+): Record<string, unknown> {
+  const out: Record<string, unknown> = {}
+  for (const section of skeleton.sections) {
+    for (const block of section.blocks) {
+      for (const directive of Object.values(block.fieldDirectives ?? {})) {
+        if (directive.mode === 'variable' && directive.ref) {
+          const value = resolveRef(directive.ref)
+          if (value !== undefined) out[directive.ref] = value
+        }
+      }
+    }
+  }
+  return out
+}
 
 export function useRunFill() {
   const [status, setStatus] = useState<RunStatus>('idle')
@@ -48,11 +62,11 @@ export function useRunFill() {
   const [failedSections, setFailedSections] = useState(0)
   /** 展开失败、被剔除的生成区数 */
   const [failedRegions, setFailedRegions] = useState(0)
-  const parserRef = useRef<EnhancedSSEParser | null>(null)
+  const abortRef = useRef<AbortController | null>(null)
 
   const teardown = useCallback(() => {
-    parserRef.current?.disconnect()
-    parserRef.current = null
+    abortRef.current?.abort()
+    abortRef.current = null
   }, [])
 
   useEffect(() => teardown, [teardown])
@@ -72,9 +86,9 @@ export function useRunFill() {
       resolveRef,
     }: RunFillArgs) => {
       teardown()
-      const parser = new EnhancedSSEParser()
-      parserRef.current = parser
-      const live = () => parserRef.current === parser
+      const controller = new AbortController()
+      abortRef.current = controller
+      const live = () => abortRef.current === controller
 
       setStatus('running')
       setProgress(INITIAL_PROGRESS)
@@ -82,62 +96,39 @@ export function useRunFill() {
       setFailedSections(0)
       setFailedRegions(0)
 
-      // 逐节调用:schema-fill 顺序 await,故复用同一 parser;取消时抛出让本节失败、
-      // 后续节也立即失败,最终 live() 守卫丢弃整轮结果。
-      const callLLM = async (messages: ChatMessage[]): Promise<string> => {
-        if (!live()) throw new Error('cancelled')
-        let text = ''
-        let failed: Error | null = null
-        const handle = (message: SSEMessage, state: SSEParserState) => {
-          if (message.type === 'text' || message.type === 'complete') {
-            text = state.accumulatedText
-          } else if (message.type === 'error') {
-            failed = new Error('stream error')
-          }
-        }
-        await parser.connect(
-          ENDPOINT,
-          buildRequest(messages, llmName, temperature),
-          handle,
-          (err) => {
-            failed = err
-          },
-        )
-        if (failed) throw failed
-        return text
+      const body: Record<string, unknown> = {
+        skeleton,
+        source_text: sourceText,
+        llm_name: llmName,
+        variables: collectVariableSamples(skeleton, resolveRef),
       }
+      if (temperature != null) body.temperature = temperature
 
       try {
-        // ① 展开生成区(若有)→ 无生成区的骨架;② 再逐节填值。两段复用同一 callLLM。
-        const expanded = await expandOpenRegions(skeleton, {
-          sourceText,
-          callLLM,
-          onProgress: (current, total) => {
-            if (live()) setProgress({ phase: 'expand', current, total })
+        const res = await streamReport(
+          '/fill',
+          body,
+          (p: ReportProgress) => {
+            if (!live()) return
+            const phase = p.phase === 'fill' ? 'fill' : 'expand'
+            setProgress({ phase, current: p.current ?? 0, total: p.total ?? 0 })
           },
-        })
+          controller.signal,
+        )
         if (!live()) return
-        setFailedRegions(expanded.errors.length)
-
-        const res = await fillSkeleton(expanded.skeleton, {
-          sourceText,
-          resolveRef,
-          callLLM,
-          onProgress: (current, total) => {
-            if (live()) setProgress({ phase: 'fill', current, total })
-          },
-        })
+        setResult((res.schema as ReportSchema | undefined) ?? null)
+        setFailedSections(Number(res.failedSections ?? 0))
+        setFailedRegions(Number(res.failedRegions ?? 0))
+        // 需调模型的节全军覆没 → 视为失败;否则完成(可能带部分告警),口径同后端算子。
+        const llmSections = Number(res.llmSections ?? 0)
+        const okSections = Number(res.okSections ?? 0)
+        setStatus(llmSections > 0 && okSections === 0 ? 'error' : 'done')
+      } catch (err) {
         if (!live()) return
-        setResult(res.schema)
-        setFailedSections(res.errors.length)
-        // 需调模型的工作(展开 + 填值)全军覆没 → 视为失败;否则完成(可能带部分告警)
-        const modelWork = expanded.openRegions + res.llmSections
-        const modelOk = expanded.okRegions + res.okSections
-        setStatus(modelWork > 0 && modelOk === 0 ? 'error' : 'done')
-      } catch {
-        if (live()) setStatus('error')
+        if ((err as Error)?.name === 'AbortError') return
+        setStatus('error')
       } finally {
-        if (live()) parserRef.current = null
+        if (live()) abortRef.current = null
       }
     },
     [teardown],
@@ -151,19 +142,5 @@ export function useRunFill() {
     result,
     failedSections,
     failedRegions,
-  }
-}
-
-function buildRequest(
-  messages: ChatMessage[],
-  llmName: string,
-  temperature?: number,
-) {
-  return {
-    prompt: '',
-    messages,
-    llm_name: llmName,
-    stream: true,
-    gen_conf: temperature == null ? {} : { temperature },
   }
 }
