@@ -4,7 +4,8 @@
  *   npx tsx src/pages/agent/form/html-report/renderer/__dev__/build-sample.ts
  *
  * 产出 `docs/html-report/sample-report.html`：内联真实 echarts.min.js 的自包含
- * 单文件，双击浏览器离线打开，核对 9 种文本/数据 Block + 多种图表是否都出来。
+ * 单文件，双击浏览器离线打开，核对各文本/数据 Block + 多种图表是否都出来，
+ * 并肉眼核对指标卡升/降/平变化率的红/绿/灰渲染。
  */
 import { readFileSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
@@ -50,6 +51,43 @@ const schema: ReportSchema = {
           title: '关键洞察',
           content:
             '营收增长主要由**企业版**贡献，环比提升 `18%`；但 *中小客户* 流失需关注。',
+        },
+      ],
+    },
+    {
+      id: 's-change',
+      title: '指标卡变化率（红绿示意）',
+      subtitle:
+        '升→绿、降→红、平/未判向→灰；颜色由 trend 决定，trend 在后端按 change 符号推导，认不出则落灰（绝不上错色）',
+      layout: 'three-column',
+      blocks: [
+        {
+          id: 'b-chg-up',
+          type: 'stat-card',
+          label: '营收环比',
+          value: '¥38.6M',
+          change: '+12.5%',
+          trend: 'up',
+          description: '正号 → 绿（--rpt-success）',
+        },
+        {
+          id: 'b-chg-down',
+          type: 'stat-card',
+          label: '获客成本环比',
+          value: '¥214',
+          // Unicode 减号 U+2212（非 ASCII 连字符），后端 _trend_from_change 同样判为 down
+          change: '−3.2%',
+          trend: 'down',
+          description: '负号 → 红（--rpt-error）',
+        },
+        {
+          id: 'b-chg-flat',
+          type: 'stat-card',
+          label: '毛利率环比',
+          value: '47.0%',
+          change: '0.0%',
+          trend: 'neutral',
+          description: '零/未判向 → 灰',
         },
       ],
     },

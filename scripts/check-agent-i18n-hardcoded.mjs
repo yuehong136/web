@@ -10,6 +10,9 @@ const scanPaths = [
 
 const ignoredFilePatterns = [
   /\/__tests__\//,
+  // 离线开发脚本（如样例报告生成器）：产出物非 UI，内容是中文样例数据而非界面文案，
+  // 与 __tests__ 同属不随产品发布的开发目录，故同样豁免硬编码中文检查。
+  /\/__dev__\//,
   /\.test\.[jt]sx?$/,
   /src\/locales\//,
 ]
