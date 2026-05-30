@@ -8,6 +8,7 @@
 import { makeId } from '../skeleton-utils'
 import type {
   BlockKind,
+  ReportSchema,
   SkeletonBlock,
   SkeletonSchema,
   SkeletonSection,
@@ -79,12 +80,12 @@ export function parseSkeletonJson(text: string): SkeletonSchema {
 }
 
 /** 文件名安全化:仅留常见字符,空则回落。 */
-function safeFilename(title: string): string {
+function safeFilename(title: string, fallback = 'report-skeleton'): string {
   const base = title
     .trim()
     .replace(/[^\w一-鿿-]+/g, '_')
     .slice(0, 60)
-  return `${base || 'report-skeleton'}.json`
+  return `${base || fallback}.json`
 }
 
 /** 当前编排 → 触发浏览器下载一份 .json。 */
@@ -95,6 +96,20 @@ export function downloadSkeleton(skeleton: SkeletonSchema): void {
   const a = document.createElement('a')
   a.href = url
   a.download = safeFilename(skeleton.title)
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  URL.revokeObjectURL(url)
+}
+
+/** 试运行产物(已填的 ReportSchema)→ 下载一份 .json(导出原始生成结构)。 */
+export function downloadReportSchema(schema: ReportSchema): void {
+  const json = JSON.stringify(schema, null, 2)
+  const blob = new Blob([json], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = safeFilename(schema.title, 'report-structure')
   document.body.appendChild(a)
   a.click()
   a.remove()

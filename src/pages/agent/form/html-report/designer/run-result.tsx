@@ -5,11 +5,12 @@
  *
  * 纯展示——进来已填好的 ReportSchema + 失败计数,出按钮回调。
  */
-import { ArrowLeft, X } from 'lucide-react'
+import { ArrowLeft, Download, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { ReportFrame } from '../report-frame'
 import type { ReportSchema } from '../types'
+import { downloadReportSchema } from './skeleton-io'
 
 interface RunResultProps {
   schema: ReportSchema
@@ -60,6 +61,14 @@ export function RunResult({
             onClick={onBack}
           >
             {t('flow.htmlReportRunBack', 'Back to inputs')}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            leftIcon={<Download className="size-icon-sm" />}
+            onClick={() => downloadReportSchema(schema)}
+          >
+            {t('flow.htmlReportRunExportStructure', 'Export structure')}
           </Button>
           <Button
             variant="ghost"

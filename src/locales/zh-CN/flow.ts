@@ -286,6 +286,7 @@ export default {
     htmlReportRunRegionFailed: '有 {{count}} 个生成区未能展开',
     htmlReportRunResult: '试运行结果',
     htmlReportRunBack: '返回修改',
+    htmlReportRunExportStructure: '导出结构',
     htmlReportRunRunning: '运行中…',
     htmlReportRunStart: '运行',
     htmlReportRunEmpty: '请先粘贴样本源料',
@@ -355,6 +356,13 @@ export default {
       '粘贴一整篇报告，模型自动为你搭出可复用的报告模板结构。',
     htmlReportAiModel: '模型',
     htmlReportAiModelEmpty: '暂无可用对话模型',
+    htmlReportAiExtractionMode: '抽取模式',
+    htmlReportAiModeDetailed: '详细语义',
+    htmlReportAiModeDetailedHelp:
+      '生成具体类型的内容块，其标题、标签取自样报并固定不变 —— 适合同主题、换数据。',
+    htmlReportAiModeLayout: '布局优先',
+    htmlReportAiModeLayoutHelp:
+      '只保留版式骨架，每块按「角色 + 组件」留作生成区，运行时按新主题重新生成内容 —— 适合一套版式套用到不同主题。',
     htmlReportAiSource: '报告文本',
     htmlReportAiSourcePlaceholder: '在此粘贴完整的报告文本……',
     htmlReportAiReplaceWarn: '生成将替换当前画布中的内容。',

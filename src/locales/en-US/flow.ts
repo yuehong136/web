@@ -583,6 +583,7 @@ export default {
       '{{count}} generative region(s) could not be expanded',
     htmlReportRunResult: 'Trial run result',
     htmlReportRunBack: 'Back to inputs',
+    htmlReportRunExportStructure: 'Export structure',
     htmlReportRunRunning: 'Running…',
     htmlReportRunStart: 'Run',
     htmlReportRunEmpty: 'Paste some sample source text first',
@@ -653,6 +654,13 @@ export default {
       'Paste a complete report; the model builds a reusable template structure for you.',
     htmlReportAiModel: 'Model',
     htmlReportAiModelEmpty: 'No chat model available',
+    htmlReportAiExtractionMode: 'Extraction mode',
+    htmlReportAiModeDetailed: 'Detailed semantics',
+    htmlReportAiModeDetailedHelp:
+      'Concrete blocks with titles and labels taken from the sample and kept fixed — best for the same subject with new data.',
+    htmlReportAiModeLayout: 'Layout first',
+    htmlReportAiModeLayoutHelp:
+      'Keeps only the layout; each block becomes a generative region (role + component) re-derived per subject — best for reusing one layout across subjects.',
     htmlReportAiSource: 'Report text',
     htmlReportAiSourcePlaceholder: 'Paste the full report text here…',
     htmlReportAiReplaceWarn:

@@ -14,6 +14,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { Segmented, SegmentedItem } from '@/components/vendor/ui/segmented'
 import { useChatModelOptions } from '@/hooks/use-llm-request'
 import type { SkeletonSchema } from '../../types'
 import { ModelSelect } from './model-select'
@@ -37,12 +38,14 @@ export function AiSkeletonDialog({
   const { options, isLoading } = useChatModelOptions()
   const [text, setText] = useState('')
   const [model, setModel] = useState('')
+  const [mode, setMode] = useState<'detailed' | 'layout'>('detailed')
 
   const { generate, cancel, status, progress, error } = useGenerateSkeleton(
     (skeleton) => {
       toast.success(t('flow.htmlReportAiSuccess', 'Skeleton generated'))
       onGenerated(skeleton)
     },
+    mode,
   )
   const busy = status === 'outline' || status === 'sections'
 
@@ -141,6 +144,35 @@ export function AiSkeletonDialog({
               )}
               onChange={setModel}
             />
+          </div>
+
+          <div className="space-y-space-xs">
+            <Label className="text-xs text-text-secondary">
+              {t('flow.htmlReportAiExtractionMode', 'Extraction mode')}
+            </Label>
+            <Segmented
+              value={mode}
+              onValueChange={(v) => setMode(v as 'detailed' | 'layout')}
+              block
+            >
+              <SegmentedItem value="detailed">
+                {t('flow.htmlReportAiModeDetailed', 'Detailed semantics')}
+              </SegmentedItem>
+              <SegmentedItem value="layout">
+                {t('flow.htmlReportAiModeLayout', 'Layout first')}
+              </SegmentedItem>
+            </Segmented>
+            <p className="text-text-caption text-xs">
+              {mode === 'layout'
+                ? t(
+                    'flow.htmlReportAiModeLayoutHelp',
+                    'Keeps only the layout; each block becomes a generative region (role + component) re-derived per subject — best for reusing one layout across subjects.',
+                  )
+                : t(
+                    'flow.htmlReportAiModeDetailedHelp',
+                    'Concrete blocks with titles and labels taken from the sample and kept fixed — best for the same subject with new data.',
+                  )}
+            </p>
           </div>
 
           <div className="space-y-space-xs">

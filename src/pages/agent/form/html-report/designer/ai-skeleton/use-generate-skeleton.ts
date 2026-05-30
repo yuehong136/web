@@ -28,6 +28,7 @@ const INITIAL_PROGRESS: GenerateProgress = {
 
 export function useGenerateSkeleton(
   onResult: (skeleton: SkeletonSchema) => void,
+  mode: 'detailed' | 'layout' = 'detailed',
 ) {
   const [status, setStatus] = useState<GenerateStatus>('idle')
   const [progress, setProgress] = useState<GenerateProgress>(INITIAL_PROGRESS)
@@ -64,7 +65,7 @@ export function useGenerateSkeleton(
       try {
         const out = await streamReport(
           '/skeleton',
-          { report_text: reportText, llm_name: llmName, gen_conf: {} },
+          { report_text: reportText, llm_name: llmName, gen_conf: {}, mode },
           (p: ReportProgress) => {
             if (!live()) return
             const phase = p.phase === 'sections' ? 'sections' : 'outline'
@@ -93,7 +94,7 @@ export function useGenerateSkeleton(
         if (live()) abortRef.current = null
       }
     },
-    [teardown],
+    [teardown, mode],
   )
 
   return { generate, cancel, status, progress, error }
