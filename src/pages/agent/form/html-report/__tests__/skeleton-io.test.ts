@@ -5,8 +5,8 @@ import { parseSkeletonJson, SkeletonImportError } from '../designer/skeleton-io'
 test('round-trips a skeleton preserving directives/annotation/role/theme', () => {
   const original = {
     title: 'Q3',
-    subtitle: 'demo',
-    theme: { primaryColor: '#1677ff' },
+    titleDirective: { mode: 'llm', hint: 'derive from the source' },
+    theme: { colorPalette: ['#1677ff'] },
     sections: [
       {
         id: 'sec-1',

@@ -38,9 +38,6 @@ function collectCharts(sections: Section[]): ChartBlock[] {
 }
 
 function renderHeader(schema: ReportSchema): string {
-  const subtitle = schema.subtitle
-    ? `<p class="rpt__subtitle">${escapeHtml(schema.subtitle)}</p>`
-    : ''
   const metaParts: string[] = []
   if (schema.date) metaParts.push(`<span>${escapeHtml(schema.date)}</span>`)
   if (schema.author) metaParts.push(`<span>${escapeHtml(schema.author)}</span>`)
@@ -50,7 +47,7 @@ function renderHeader(schema: ReportSchema): string {
   return (
     `<header class="rpt__header">` +
     `<h1 class="rpt__title">${escapeHtml(schema.title)}</h1>` +
-    `${subtitle}${meta}</header>`
+    `${meta}</header>`
   )
 }
 

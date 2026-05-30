@@ -13,7 +13,6 @@ import type {
   SkeletonBlock,
   SkeletonSchema,
   SkeletonSection,
-  ThemeConfig,
 } from '../types'
 
 export type Selection =
@@ -84,8 +83,8 @@ export type DraftAction =
       path: string
       directive: FieldDirective | null
     }
-  | { type: 'setTheme'; theme: ThemeConfig }
-  | { type: 'setReportField'; key: 'title' | 'subtitle'; value: string }
+  | { type: 'setReportField'; key: 'title'; value: string }
+  | { type: 'setTitleDirective'; directive: FieldDirective | null }
   | { type: 'select'; selection: Selection }
   | { type: 'undo' }
   | { type: 'redo' }
@@ -243,10 +242,14 @@ function nextPresent(
       return updateBlock(skeleton, action.sectionId, action.blockId, (b) =>
         setDirective(b, action.path, action.directive),
       )
-    case 'setTheme':
-      return { ...skeleton, theme: action.theme }
     case 'setReportField':
       return { ...skeleton, [action.key]: action.value }
+    case 'setTitleDirective': {
+      const next = { ...skeleton }
+      if (action.directive) next.titleDirective = action.directive
+      else delete next.titleDirective
+      return next
+    }
     default:
       return null
   }

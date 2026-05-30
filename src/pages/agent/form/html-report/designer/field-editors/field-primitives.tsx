@@ -116,7 +116,7 @@ export function ModeSwitch({
 }) {
   const { t } = useTranslation()
   return (
-    <div className="gap-space-2xs bg-surface-secondary rounded-radius-md p-space-2xs inline-flex border border-border-subtle">
+    <div className="gap-space-2xs rounded-radius-md p-space-2xs inline-flex border border-border-subtle bg-background-subtle">
       {modes.map((mode) => {
         const active = mode === value
         const label = MODE_LABELS[mode]
@@ -128,7 +128,7 @@ export function ModeSwitch({
             className={cn(
               'rounded-radius-sm px-space-sm py-space-2xs text-xs transition-colors',
               active
-                ? 'bg-surface-primary shadow-elevation-low text-text-primary'
+                ? 'shadow-elevation-low bg-background-surface text-text-primary'
                 : 'text-text-secondary hover:text-text-primary',
             )}
           >

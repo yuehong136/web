@@ -642,8 +642,8 @@ export default {
       'Per-field editing (static / variable / model) comes next.',
     htmlReportReportSettings: 'Report settings',
     htmlReportTitle: 'Report title',
-    htmlReportSubtitle: 'Report subtitle',
-    htmlReportPrimaryColor: 'Primary color',
+    htmlReportTitleLlmPlaceholder:
+      'Describe the title the model should generate',
     htmlReportPreview: 'Preview',
     htmlReportPreviewEmpty: 'The preview shows here as you build the report',
     htmlReportPreviewFull: 'Full preview',

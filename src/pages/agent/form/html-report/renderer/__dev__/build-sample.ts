@@ -20,11 +20,9 @@ const echartsScript = readFileSync(
 
 const schema: ReportSchema = {
   title: 'Q3 业务经营分析报告',
-  subtitle: '示例报告 · 用于 Phase 1 渲染器离线验证',
   date: '2026-05-25',
   author: '增长分析团队',
   theme: {
-    primaryColor: '#1677ff',
     colorPalette: ['#1677ff', '#36cfc9', '#ffc53d', '#ff7a45', '#9254de'],
   },
   sections: [

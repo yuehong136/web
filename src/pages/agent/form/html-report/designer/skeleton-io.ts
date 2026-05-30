@@ -8,6 +8,7 @@
 import { makeId } from '../skeleton-utils'
 import type {
   BlockKind,
+  FieldDirective,
   ReportSchema,
   SkeletonBlock,
   SkeletonSchema,
@@ -73,8 +74,8 @@ export function parseSkeletonJson(text: string): SkeletonSchema {
     title: str(parsed.title) ?? '',
     sections,
   }
-  const subtitle = str(parsed.subtitle)
-  if (subtitle) schema.subtitle = subtitle
+  if (isObj(parsed.titleDirective))
+    schema.titleDirective = parsed.titleDirective as unknown as FieldDirective
   if (isObj(parsed.theme)) schema.theme = parsed.theme as ThemeConfig
   return schema
 }

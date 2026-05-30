@@ -1,7 +1,6 @@
 import type { ThemeConfig } from '../types'
 import { CHART_HEIGHT, REPORT_CONTENT_WIDTH } from '../constants'
 
-const DEFAULT_PRIMARY = '#1677ff'
 const DEFAULT_PALETTE = ['#1677ff', '#36cfc9', '#ffc53d', '#ff7a45', '#9254de']
 
 /**
@@ -12,7 +11,6 @@ const DEFAULT_PALETTE = ['#1677ff', '#36cfc9', '#ffc53d', '#ff7a45', '#9254de']
  * 渲染端例外（决策 #7）：报告只用 `.rpt` / `--rpt-*`，不用主应用 Tailwind 语义 token。
  */
 export function buildReportStyles(theme?: ThemeConfig): string {
-  const primary = theme?.primaryColor || DEFAULT_PRIMARY
   const palette =
     theme?.colorPalette && theme.colorPalette.length > 0
       ? theme.colorPalette
@@ -24,7 +22,6 @@ export function buildReportStyles(theme?: ThemeConfig): string {
 
   return `
 .rpt {
-  --rpt-primary: ${primary};
   --rpt-bg: #ffffff;
   --rpt-surface: #f8fafc;
   --rpt-surface-muted: #f1f5f9;
@@ -64,7 +61,6 @@ ${paletteVars}
 /* ----- header ----- */
 .rpt__header { margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid var(--rpt-border); }
 .rpt__title { font-size: 30px; font-weight: 700; margin: 0 0 8px; color: var(--rpt-text); }
-.rpt__subtitle { font-size: 16px; color: var(--rpt-text-muted); margin: 0; }
 .rpt__meta { margin-top: 12px; font-size: 13px; color: var(--rpt-text-caption); display: flex; gap: 16px; }
 
 /* ----- section ----- */
@@ -152,7 +148,7 @@ ${paletteVars}
   width: 2px; background: var(--rpt-border); }
 .rpt-timeline__item { position: relative; padding: 0 0 16px 8px; }
 .rpt-timeline__dot { position: absolute; left: -22px; top: 5px; width: 12px; height: 12px;
-  border-radius: 50%; background: var(--rpt-primary);
+  border-radius: 50%; background: var(--rpt-chart-1);
   box-shadow: 0 0 0 3px var(--rpt-bg), 0 0 0 4px var(--rpt-border); }
 .rpt-timeline__date { font-size: 12px; color: var(--rpt-text-caption); }
 .rpt-timeline__heading { font-weight: 600; color: var(--rpt-text); margin: 2px 0; }

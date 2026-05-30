@@ -189,7 +189,6 @@ export function mergeSkeleton(
 ): ReportSchema {
   return {
     title: skeleton.title,
-    subtitle: skeleton.subtitle,
     theme: skeleton.theme,
     sections: skeleton.sections.map((section) => ({
       id: section.id,

@@ -131,7 +131,6 @@ export enum FieldModeKind {
 // ============================================================
 
 export const DEFAULT_THEME: Required<ThemeConfig> = {
-  primaryColor: '#1677ff',
   colorPalette: ['#1677ff', '#36cfc9', '#ffc53d', '#ff7a45', '#9254de'],
 }
 

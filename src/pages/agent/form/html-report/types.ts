@@ -16,8 +16,6 @@
 // ============================================================
 
 export interface ThemeConfig {
-  /** 主色调，CSS 颜色值 */
-  primaryColor?: string
   /** 图表调色板，按顺序使用 */
   colorPalette?: string[]
 }
@@ -28,7 +26,6 @@ export interface ThemeConfig {
 
 export interface ReportSchema {
   title: string
-  subtitle?: string
   /** 报告日期，格式 YYYY-MM-DD */
   date?: string
   /** 报告作者/来源 */
@@ -237,7 +234,8 @@ export type BlockData = Omit<Block, 'id' | 'role'>
 
 export interface SkeletonSchema {
   title: string
-  subtitle?: string
+  /** 标题填充指令:缺省/static=用 title 字符串;llm=运行时按源文生成 */
+  titleDirective?: FieldDirective
   theme?: ThemeConfig
   sections: SkeletonSection[]
 }

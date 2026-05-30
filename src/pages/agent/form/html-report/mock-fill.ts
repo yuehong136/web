@@ -53,6 +53,13 @@ export function buildPreviewSchema(skeleton: SkeletonSchema): ReportSchema {
   // 先把生成区替换为 callout 替身;此后循环里不会再见到 open-region。
   const preview: SkeletonSchema = {
     ...skeleton,
+    // llm 态标题运行时才生成,预览用 hint/静态值占位,避免空 H1
+    title:
+      skeleton.titleDirective?.mode === 'llm'
+        ? skeleton.titleDirective.hint?.trim() ||
+          skeleton.title ||
+          'Generated title'
+        : skeleton.title,
     sections: skeleton.sections.map((section) => ({
       ...section,
       blocks: section.blocks.map(previewBlock),
