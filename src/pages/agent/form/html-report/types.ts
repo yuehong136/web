@@ -236,6 +236,11 @@ export interface SkeletonSchema {
   title: string
   /** 标题填充指令:缺省/static=用 title 字符串;llm=运行时按源文生成 */
   titleDirective?: FieldDirective
+  /**
+   * 布局优先骨架标记(由「布局优先」生成置 true)。运行时据此:展开按新源文重建框架标签、
+   * 默认标题模型态、空块/空节收缩。换主题套同版式的开关。
+   */
+  layoutFirst?: boolean
   theme?: ThemeConfig
   sections: SkeletonSection[]
 }
@@ -244,6 +249,8 @@ export interface SkeletonSection {
   id: string
   title?: string
   subtitle?: string
+  /** 小节标题填充指令：缺省/static=用 title 字符串；llm=运行时按源文重生成（跨主题重命名） */
+  titleDirective?: FieldDirective
   layout: LayoutType
   blocks: SkeletonBlock[]
   /** 整段语义注解，拼进 LLM prompt，作用于该 Section 内所有 llm 字段 */

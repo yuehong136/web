@@ -6,11 +6,13 @@ test('round-trips a skeleton preserving directives/annotation/role/theme', () =>
   const original = {
     title: 'Q3',
     titleDirective: { mode: 'llm', hint: 'derive from the source' },
+    layoutFirst: true,
     theme: { colorPalette: ['#1677ff'] },
     sections: [
       {
         id: 'sec-1',
         title: 'Metrics',
+        titleDirective: { mode: 'llm', hint: 'rename by source' },
         layout: 'two-column',
         annotation: 'overall focus',
         blocks: [

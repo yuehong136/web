@@ -76,6 +76,10 @@ export function parseSkeletonJson(text: string): SkeletonSchema {
   }
   if (isObj(parsed.titleDirective))
     schema.titleDirective = parsed.titleDirective as unknown as FieldDirective
+  // 顶层 schema 是显式重建(非展开透传),故 layoutFirst 须显式保留;section.titleDirective
+  // 走 coerceSection 的整段展开,天然保真。
+  if (typeof parsed.layoutFirst === 'boolean')
+    schema.layoutFirst = parsed.layoutFirst
   if (isObj(parsed.theme)) schema.theme = parsed.theme as ThemeConfig
   return schema
 }

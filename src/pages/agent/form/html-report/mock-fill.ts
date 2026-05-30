@@ -62,6 +62,13 @@ export function buildPreviewSchema(skeleton: SkeletonSchema): ReportSchema {
         : skeleton.title,
     sections: skeleton.sections.map((section) => ({
       ...section,
+      // llm 态小节标题运行时才生成,预览用 hint/静态值占位,避免空标题
+      title:
+        section.titleDirective?.mode === 'llm'
+          ? section.titleDirective.hint?.trim() ||
+            section.title ||
+            'Generated title'
+          : section.title,
       blocks: section.blocks.map(previewBlock),
     })),
   }

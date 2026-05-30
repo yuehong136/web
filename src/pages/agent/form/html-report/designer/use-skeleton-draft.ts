@@ -40,6 +40,11 @@ export type DraftAction =
       value: string
     }
   | {
+      type: 'setSectionTitleDirective'
+      sectionId: string
+      directive: FieldDirective | null
+    }
+  | {
       type: 'addBlock'
       sectionId: string
       block: SkeletonBlock
@@ -179,6 +184,13 @@ function nextPresent(
         ...s,
         [action.key]: action.value,
       }))
+    case 'setSectionTitleDirective':
+      return updateSection(skeleton, action.sectionId, (s) => {
+        const next = { ...s }
+        if (action.directive) next.titleDirective = action.directive
+        else delete next.titleDirective
+        return next
+      })
     case 'addBlock':
       return updateSection(skeleton, action.sectionId, (s) => {
         const blocks = [...s.blocks]
