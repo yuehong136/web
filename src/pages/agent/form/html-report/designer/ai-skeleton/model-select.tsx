@@ -50,7 +50,7 @@ export function ModelSelect({
         onClick={() => setOpen((o) => !o)}
         className="gap-space-xs rounded-radius-md px-space-sm flex h-9 w-full items-center justify-between border border-components-input-border bg-components-input-bg text-sm text-text-primary disabled:cursor-not-allowed disabled:opacity-50"
       >
-        <span className={cn('truncate', !selected && 'text-text-caption')}>
+        <span className={cn('truncate', !selected && 'text-text-tertiary')}>
           {selected?.label ?? placeholder}
         </span>
         <ChevronDown

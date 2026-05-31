@@ -165,7 +165,7 @@ export function RunDialog({
               onClick={onClose}
               disabled={busy}
               aria-label={t('common.close', 'Close')}
-              className="text-text-caption hover:text-text-primary disabled:opacity-50"
+              className="text-text-tertiary hover:text-text-primary disabled:opacity-50"
             >
               <X className="size-icon-sm" />
             </button>
@@ -218,7 +218,7 @@ export function RunDialog({
               </Label>
               {variableRefs.map((ref) => (
                 <div key={ref} className="gap-space-xs flex items-center">
-                  <code className="text-text-caption shrink-0 text-xs">
+                  <code className="shrink-0 text-xs text-text-tertiary">
                     {ref}
                   </code>
                   <Input
@@ -239,7 +239,7 @@ export function RunDialog({
 
           {busy && (
             <div
-              className="gap-space-xs text-text-caption flex items-center text-xs"
+              className="gap-space-xs flex items-center text-xs text-text-tertiary"
               aria-live="polite"
               aria-busy="true"
             >

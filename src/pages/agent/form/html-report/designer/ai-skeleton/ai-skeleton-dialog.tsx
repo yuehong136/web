@@ -116,7 +116,7 @@ export function AiSkeletonDialog({
               onClick={close}
               disabled={busy}
               aria-label={t('common.close', 'Close')}
-              className="text-text-caption hover:text-text-primary disabled:opacity-50"
+              className="text-text-tertiary hover:text-text-primary disabled:opacity-50"
             >
               <X className="size-icon-sm" />
             </button>
@@ -162,7 +162,7 @@ export function AiSkeletonDialog({
                 {t('flow.htmlReportAiModeLayout', 'Layout first')}
               </SegmentedItem>
             </Segmented>
-            <p className="text-text-caption text-xs">
+            <p className="text-xs text-text-tertiary">
               {mode === 'layout'
                 ? t(
                     'flow.htmlReportAiModeLayoutHelp',
@@ -202,7 +202,7 @@ export function AiSkeletonDialog({
 
           {busy && (
             <div
-              className="gap-space-xs text-text-caption flex items-center text-xs"
+              className="gap-space-xs flex items-center text-xs text-text-tertiary"
               aria-live="polite"
               aria-busy="true"
             >
