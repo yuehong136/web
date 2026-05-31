@@ -7,9 +7,11 @@
  */
 import { makeId } from '../skeleton-utils'
 import type {
+  Block,
   BlockKind,
   FieldDirective,
   ReportSchema,
+  Section,
   SkeletonBlock,
   SkeletonSchema,
   SkeletonSection,
@@ -81,6 +83,70 @@ export function parseSkeletonJson(text: string): SkeletonSchema {
   if (typeof parsed.layoutFirst === 'boolean')
     schema.layoutFirst = parsed.layoutFirst
   if (isObj(parsed.theme)) schema.theme = parsed.theme as ThemeConfig
+  return schema
+}
+
+// ============================================================
+// 已产出报告(ReportSchema)的导入 —— 供全屏预览直接渲染
+// ============================================================
+
+/** 已渲染报告里的合法块类型:必为具体块(不含生成区占位 open-region)。 */
+const REPORT_KINDS = new Set<string>(BLOCK_KINDS)
+
+/** 整块透传(保留所有已填字段),仅补 id;类型非法则丢弃。 */
+function coerceReportBlock(raw: unknown): Block | null {
+  if (
+    !isObj(raw) ||
+    typeof raw.type !== 'string' ||
+    !REPORT_KINDS.has(raw.type)
+  )
+    return null
+  return {
+    ...(raw as Record<string, unknown>),
+    id: str(raw.id) || makeId('blk'),
+  } as Block
+}
+
+function coerceReportSection(raw: unknown): Section | null {
+  if (!isObj(raw)) return null
+  const blocksRaw = Array.isArray(raw.blocks) ? raw.blocks : []
+  const blocks = blocksRaw
+    .map(coerceReportBlock)
+    .filter((b): b is Block => b !== null)
+  return {
+    ...(raw as Record<string, unknown>),
+    id: str(raw.id) || makeId('sec'),
+    layout: oneOf(raw.layout, LAYOUTS, 'full'),
+    blocks,
+  } as Section
+}
+
+/**
+ * JSON 文本 → 已产出的 {@link ReportSchema}(运行/试运行的成品),用于全屏预览直接渲染。
+ * 与 {@link parseSkeletonJson} 区别:这里是「已填好的具体块」,不含 fieldDirectives /
+ * 生成区,直接喂渲染器。形状不对则抛 {@link SkeletonImportError}。
+ */
+export function parseReportJson(text: string): ReportSchema {
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(text)
+  } catch {
+    throw new SkeletonImportError('invalid-json')
+  }
+  if (!isObj(parsed) || !Array.isArray(parsed.sections)) {
+    throw new SkeletonImportError('invalid-shape')
+  }
+  const sections = parsed.sections
+    .map(coerceReportSection)
+    .filter((s): s is Section => s !== null)
+
+  const schema: ReportSchema = {
+    title: str(parsed.title) ?? '',
+    sections,
+  }
+  if (isObj(parsed.theme)) schema.theme = parsed.theme as ThemeConfig
+  if (str(parsed.date)) schema.date = str(parsed.date)
+  if (str(parsed.author)) schema.author = str(parsed.author)
   return schema
 }
 

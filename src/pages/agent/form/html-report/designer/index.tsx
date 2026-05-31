@@ -11,16 +11,7 @@ import {
   useSensors,
   type DragEndEvent,
 } from '@dnd-kit/core'
-import {
-  Maximize2,
-  Minimize2,
-  Play,
-  Redo2,
-  Save,
-  Sparkles,
-  Undo2,
-  X,
-} from 'lucide-react'
+import { Maximize2, Play, Redo2, Save, Sparkles, Undo2, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
@@ -34,10 +25,10 @@ import { AiSkeletonDialog } from './ai-skeleton/ai-skeleton-dialog'
 import { createDefaultBlock } from './block-defaults'
 import { Canvas } from './canvas'
 import { resolveDragEnd } from './dnd'
+import { FullPreview } from './full-preview'
 import { ImportExportButtons } from './import-export-buttons'
 import { Inspector } from './inspector'
 import { Palette } from './palette'
-import { Preview } from './preview'
 import { RunDialog } from './run-dialog'
 import { useSkeletonDraft } from './use-skeleton-draft'
 import { makeId } from '../skeleton-utils'
@@ -242,25 +233,10 @@ export function Designer({
           </DndContext>
 
           {previewFull && (
-            <div className="bg-surface-primary absolute inset-0 z-10 flex flex-col">
-              <div className="gap-space-sm px-space-base py-space-sm flex items-center border-b border-border-default">
-                <span className="text-sm font-medium text-text-primary">
-                  {t('flow.htmlReportPreview', 'Preview')}
-                </span>
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  className="ml-auto"
-                  onClick={() => setPreviewFull(false)}
-                  aria-label={t('flow.htmlReportPreviewExit', 'Exit preview')}
-                >
-                  <Minimize2 className="size-icon-sm" />
-                </Button>
-              </div>
-              <div className="min-h-0 flex-1">
-                <Preview skeleton={state.present} variant="full" />
-              </div>
-            </div>
+            <FullPreview
+              skeleton={state.present}
+              onClose={() => setPreviewFull(false)}
+            />
           )}
         </div>
 

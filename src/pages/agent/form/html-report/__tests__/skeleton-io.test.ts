@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { parseSkeletonJson, SkeletonImportError } from '../designer/skeleton-io'
+import {
+  parseReportJson,
+  parseSkeletonJson,
+  SkeletonImportError,
+} from '../designer/skeleton-io'
 
 test('round-trips a skeleton preserving directives/annotation/role/theme', () => {
   const original = {
@@ -74,4 +78,59 @@ test('rejects invalid JSON and wrong shape', () => {
   assert.throws(() => parseSkeletonJson('not json'), SkeletonImportError)
   assert.throws(() => parseSkeletonJson('{"title":"x"}'), SkeletonImportError)
   assert.throws(() => parseSkeletonJson('[]'), SkeletonImportError)
+})
+
+test('parseReportJson keeps concrete blocks + title/theme/date/author', () => {
+  const report = {
+    title: '云岭市 2025 文旅报告',
+    date: '2025-05-01',
+    author: '文旅局',
+    theme: { colorPalette: ['#1677ff'] },
+    sections: [
+      {
+        id: 'sec-1',
+        title: '城市概况',
+        layout: 'full',
+        blocks: [
+          { id: 'b1', type: 'paragraph', content: 'hello' },
+          {
+            id: 'b2',
+            type: 'stat-card-group',
+            items: [{ label: '游客量', value: '6820 万' }],
+          },
+        ],
+      },
+    ],
+  }
+  const parsed = parseReportJson(JSON.stringify(report))
+  assert.deepEqual(parsed, report)
+})
+
+test('parseReportJson drops open-region/invalid blocks, backfills ids/layout', () => {
+  const parsed = parseReportJson(
+    JSON.stringify({
+      title: 'T',
+      sections: [
+        {
+          layout: 'nope',
+          blocks: [
+            { type: 'open-region', annotation: 'x' },
+            { type: 'bogus' },
+            { type: 'table', headers: ['A'], rows: [['1']] },
+          ],
+        },
+      ],
+    }),
+  )
+  assert.equal(parsed.sections[0].layout, 'full')
+  assert.ok(parsed.sections[0].id.length > 0)
+  assert.equal(parsed.sections[0].blocks.length, 1)
+  assert.equal(parsed.sections[0].blocks[0].type, 'table')
+  assert.ok(parsed.sections[0].blocks[0].id.length > 0)
+})
+
+test('parseReportJson rejects invalid JSON and wrong shape', () => {
+  assert.throws(() => parseReportJson('not json'), SkeletonImportError)
+  assert.throws(() => parseReportJson('{"title":"x"}'), SkeletonImportError)
+  assert.throws(() => parseReportJson('[]'), SkeletonImportError)
 })

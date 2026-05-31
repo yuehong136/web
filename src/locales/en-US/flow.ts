@@ -648,6 +648,11 @@ export default {
     htmlReportPreviewEmpty: 'The preview shows here as you build the report',
     htmlReportPreviewFull: 'Full preview',
     htmlReportPreviewExit: 'Exit preview',
+    htmlReportPreviewImportReport: 'Import report',
+    htmlReportPreviewReportImported: 'Imported report',
+    htmlReportPreviewBackToSkeleton: 'Back to skeleton preview',
+    htmlReportPreviewReportOk: 'Report loaded',
+    htmlReportPreviewReportError: 'Could not load: invalid report JSON',
     htmlReportAiGenerate: 'AI generate',
     htmlReportAiDialogTitle: 'Generate from report text',
     htmlReportAiDialogDesc:

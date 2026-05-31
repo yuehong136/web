@@ -349,6 +349,11 @@ export default {
     htmlReportPreviewEmpty: '编排报告时，这里会实时显示预览',
     htmlReportPreviewFull: '全屏预览',
     htmlReportPreviewExit: '退出预览',
+    htmlReportPreviewImportReport: '导入报告',
+    htmlReportPreviewReportImported: '已导入报告',
+    htmlReportPreviewBackToSkeleton: '返回骨架预览',
+    htmlReportPreviewReportOk: '已加载报告',
+    htmlReportPreviewReportError: '加载失败：报告 JSON 格式不正确',
     htmlReportAiGenerate: 'AI 生成',
     htmlReportAiDialogTitle: '从报告文本生成',
     htmlReportAiDialogDesc:
