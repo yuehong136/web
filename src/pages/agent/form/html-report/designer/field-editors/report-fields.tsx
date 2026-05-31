@@ -33,19 +33,15 @@ export function ReportFields({ present, dispatch }: ReportFieldsProps) {
           <ModeSwitch
             value={titleMode}
             modes={TITLE_MODES}
-            onChange={(mode) =>
-              dispatch(
-                mode === 'llm'
-                  ? {
-                      type: 'setTitleDirective',
-                      directive: {
-                        mode: 'llm',
-                        hint: present.titleDirective?.hint ?? '',
-                      },
-                    }
-                  : { type: 'setTitleDirective', directive: null },
-              )
-            }
+            onChange={(mode) => {
+              // 切到「固定」时保留已输入的模型提示词(mode:'static' 与无指令同义,hint 仅
+              // 留待切回模型时回填),避免 固定↔模型 来回切丢内容;无提示词则照常清空。
+              const hint = present.titleDirective?.hint ?? ''
+              dispatch({
+                type: 'setTitleDirective',
+                directive: mode === 'llm' || hint ? { mode, hint } : null,
+              })
+            }}
           />
         </div>
         {titleMode === 'static' ? (

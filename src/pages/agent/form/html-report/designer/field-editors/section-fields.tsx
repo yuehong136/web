@@ -71,16 +71,16 @@ export function SectionFields({ section, dispatch }: SectionFieldsProps) {
           <ModeSwitch
             value={titleMode}
             modes={TITLE_MODES}
-            onChange={(mode) =>
+            onChange={(mode) => {
+              // 切到「固定」时保留已输入的模型提示词(mode:'static' 与无指令同义,hint 仅
+              // 留待切回模型时回填),避免 固定↔模型 来回切丢内容;无提示词则照常清空。
+              const hint = section.titleDirective?.hint ?? ''
               dispatch({
                 type: 'setSectionTitleDirective',
                 sectionId: section.id,
-                directive:
-                  mode === 'llm'
-                    ? { mode: 'llm', hint: section.titleDirective?.hint ?? '' }
-                    : null,
+                directive: mode === 'llm' || hint ? { mode, hint } : null,
               })
-            }
+            }}
           />
         </div>
         {titleMode === 'static' ? (
