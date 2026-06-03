@@ -96,7 +96,7 @@ export const useDocumentChunksController = (
   const handleCreateChunk = useCallback(async () => {
     if (!addForm.canSubmit) return
     try {
-      await actions.createChunk(addForm.toPayload())
+      await actions.createChunk(await addForm.toPayloadAsync())
       addForm.close()
     } catch (error) {
       console.error('Failed to create chunk:', error)

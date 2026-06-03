@@ -1,4 +1,5 @@
 import type { MetadataEntry } from '../types'
+import type { UploadFile } from '@/components/ui/file-uploader'
 import { AddChunkModal } from './add-chunk-modal'
 import { ChunkDeleteConfirms } from './chunk-delete-confirms'
 import { ChunkImagePreviewModal } from './chunk-image-preview-modal'
@@ -13,6 +14,8 @@ interface ChunkModalsProps {
   onNewImportantKwdChange: (keywords: string[]) => void
   newQuestionKwd: string[]
   onNewQuestionKwdChange: (questions: string[]) => void
+  newImage: UploadFile[]
+  onNewImageChange: (files: UploadFile[]) => void
   onCreateChunk: () => void
   deleteConfirmOpen: boolean
   onDeleteConfirmClose: () => void
@@ -43,6 +46,8 @@ export const ChunkModals = ({
   onNewImportantKwdChange,
   newQuestionKwd,
   onNewQuestionKwdChange,
+  newImage,
+  onNewImageChange,
   onCreateChunk,
   deleteConfirmOpen,
   onDeleteConfirmClose,
@@ -73,6 +78,8 @@ export const ChunkModals = ({
       onImportantKwdChange={onNewImportantKwdChange}
       questionKwd={newQuestionKwd}
       onQuestionKwdChange={onNewQuestionKwdChange}
+      image={newImage}
+      onImageChange={onNewImageChange}
       onCreate={onCreateChunk}
     />
 

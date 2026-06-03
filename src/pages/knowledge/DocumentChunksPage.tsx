@@ -134,6 +134,8 @@ const DocumentChunksPage = () => {
         onNewImportantKwdChange={addForm.setImportantKwd}
         newQuestionKwd={addForm.questionKwd}
         onNewQuestionKwdChange={addForm.setQuestionKwd}
+        newImage={addForm.image}
+        onNewImageChange={addForm.setImage}
         onCreateChunk={c.handleCreateChunk}
         deleteConfirmOpen={deleteState.deleteConfirmOpen}
         onDeleteConfirmClose={deleteState.closeDeleteSingle}

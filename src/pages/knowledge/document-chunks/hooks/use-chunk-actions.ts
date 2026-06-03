@@ -78,6 +78,7 @@ export const useChunkActions = ({
       content: string
       important_kwd?: string[]
       question_kwd?: string[]
+      image_base64?: string
     }) => {
       if (!docId) return false
       return knowledgeAPI.document.createChunk({
@@ -85,6 +86,7 @@ export const useChunkActions = ({
         content_with_weight: params.content,
         important_kwd: params.important_kwd,
         question_kwd: params.question_kwd,
+        image_base64: params.image_base64,
         available_int: 1,
       })
     },

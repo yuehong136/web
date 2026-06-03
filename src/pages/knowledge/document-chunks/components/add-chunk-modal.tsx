@@ -1,8 +1,16 @@
 import type { ReactNode } from 'react'
-import { Key, MessageCircleQuestion, Plus } from 'lucide-react'
+import {
+  Image as ImageIcon,
+  Key,
+  MessageCircleQuestion,
+  Plus,
+} from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Button, Modal, TagEditor } from '@/components/ui'
+import { FileUploader, type UploadFile } from '@/components/ui/file-uploader'
 import { Textarea } from '@/components/ui/textarea'
+
+const ADD_CHUNK_IMAGE_MAX_SIZE_BYTES = 10 * 1024 * 1024
 
 interface AddChunkModalProps {
   open: boolean
@@ -13,6 +21,8 @@ interface AddChunkModalProps {
   onImportantKwdChange: (keywords: string[]) => void
   questionKwd: string[]
   onQuestionKwdChange: (questions: string[]) => void
+  image: UploadFile[]
+  onImageChange: (files: UploadFile[]) => void
   onCreate: () => void
 }
 
@@ -25,6 +35,8 @@ export const AddChunkModal = ({
   onImportantKwdChange,
   questionKwd,
   onQuestionKwdChange,
+  image,
+  onImageChange,
   onCreate,
 }: AddChunkModalProps) => {
   const { t } = useTranslation()
@@ -38,12 +50,62 @@ export const AddChunkModal = ({
     >
       <div className="space-y-5">
         <div>
-          <FieldLabel>{t('knowledge.chunks.modal.content')}</FieldLabel>
+          <span
+            id="new-chunk-content-label"
+            className="mb-2 block text-sm font-medium text-text-primary"
+          >
+            {t('knowledge.chunks.modal.content')}
+          </span>
           <Textarea
+            id="new-chunk-content"
+            aria-labelledby="new-chunk-content-label"
             value={content}
             onChange={(event) => onContentChange(event.target.value)}
             placeholder={t('knowledge.chunks.modal.contentPlaceholder')}
             className="h-40 rounded-md px-3 py-2"
+          />
+        </div>
+
+        <div>
+          <div className="mb-2 flex items-center gap-2">
+            <ImageIcon className="size-icon-sm text-text-accent" />
+            <FieldLabel>{t('knowledge.chunks.modal.image')}</FieldLabel>
+            <span className="text-xs text-text-tertiary">
+              {t('knowledge.chunks.modal.optional')}
+            </span>
+          </div>
+          <FileUploader
+            value={image}
+            onValueChange={onImageChange}
+            accept={{
+              'image/png': [],
+              'image/jpeg': [],
+              'image/webp': [],
+            }}
+            maxFileCount={1}
+            maxSize={ADD_CHUNK_IMAGE_MAX_SIZE_BYTES}
+            multiple={false}
+            hideDropzoneOnMaxFileCount
+            enableFolderUpload={false}
+            title={t('knowledge.chunks.modal.imageUploaderTitle')}
+            description={t('knowledge.chunks.modal.imageUploaderDescription')}
+            texts={{
+              selectFile: t('knowledge.chunks.modal.selectImage'),
+              selectedFiles: (count, maxFileCount) =>
+                t('knowledge.chunks.modal.selectedImages', {
+                  count,
+                  maxFileCount,
+                }),
+              clearAll: t('knowledge.chunks.modal.clearImage'),
+              totalSize: t('knowledge.chunks.modal.totalSize'),
+              remainingFiles: (count) =>
+                t('knowledge.chunks.modal.remainingImages', { count }),
+              removeFile: t('knowledge.chunks.modal.removeImage'),
+              tooManyFiles: (maxFileCount) =>
+                t('knowledge.chunks.modal.tooManyImages', { maxFileCount }),
+            }}
+            showProgress={false}
+            compact
           />
         </div>
 
@@ -120,7 +182,7 @@ const TagModalSection = ({
 }
 
 const FieldLabel = ({ children }: { children: ReactNode }) => (
-  <label className="mb-2 block text-sm font-medium text-text-primary">
+  <span className="mb-2 block text-sm font-medium text-text-primary">
     {children}
-  </label>
+  </span>
 )
