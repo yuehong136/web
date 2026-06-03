@@ -39,6 +39,57 @@ export const TREND_OPTIONS: EnumOption[] = [
   },
 ]
 
+/**
+ * 指标卡图标选项。`value` 必须与 `renderer/icons.ts` 的 `ICON_SVGS` 键一致;
+ * 首项 `'auto'` 是「自动」哨兵(不在 ICON_SVGS 中),渲染时回落到 label 关键词启发式
+ * (Radix Select 不接受空串 value,故用 'auto' 而非 '')。
+ */
+export const ICON_OPTIONS: EnumOption[] = [
+  { value: 'auto', labelKey: 'flow.htmlReportIconAuto', fallback: 'Auto' },
+  { value: 'users', labelKey: 'flow.htmlReportIconUsers', fallback: 'People' },
+  { value: 'money', labelKey: 'flow.htmlReportIconMoney', fallback: 'Money' },
+  {
+    value: 'trending-up',
+    labelKey: 'flow.htmlReportIconTrend',
+    fallback: 'Growth',
+  },
+  {
+    value: 'thumbs-up',
+    labelKey: 'flow.htmlReportIconThumbsUp',
+    fallback: 'Approval',
+  },
+  {
+    value: 'building',
+    labelKey: 'flow.htmlReportIconBuilding',
+    fallback: 'Building',
+  },
+  {
+    value: 'calendar',
+    labelKey: 'flow.htmlReportIconCalendar',
+    fallback: 'Calendar',
+  },
+  {
+    value: 'clock',
+    labelKey: 'flow.htmlReportIconClock',
+    fallback: 'Duration',
+  },
+  { value: 'flag', labelKey: 'flow.htmlReportIconFlag', fallback: 'Milestone' },
+  { value: 'chart', labelKey: 'flow.htmlReportIconChart', fallback: 'Chart' },
+  { value: 'star', labelKey: 'flow.htmlReportIconStar', fallback: 'Rating' },
+  {
+    value: 'target',
+    labelKey: 'flow.htmlReportIconTarget',
+    fallback: 'Target',
+  },
+  { value: 'layers', labelKey: 'flow.htmlReportIconLayers', fallback: 'Scale' },
+  { value: 'globe', labelKey: 'flow.htmlReportIconGlobe', fallback: 'Global' },
+  {
+    value: 'check',
+    labelKey: 'flow.htmlReportIconCheck',
+    fallback: 'Verified',
+  },
+]
+
 export const ORDERED_OPTIONS: EnumOption[] = [
   {
     value: 'false',
@@ -91,6 +142,13 @@ export const STAT_ITEM_FIELDS: ListItemField[] = [
     labelKey: 'flow.htmlReportFieldDescription',
     fallback: 'Description',
     control: 'text',
+  },
+  {
+    key: 'icon',
+    labelKey: 'flow.htmlReportFieldIcon',
+    fallback: 'Icon',
+    control: 'text',
+    structure: { options: ICON_OPTIONS },
   },
 ]
 

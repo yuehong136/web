@@ -53,6 +53,55 @@ test('renders each block type with its .rpt class', () => {
   assert.match(html, /rpt-table/)
 })
 
+test('hero renders eyebrow + subtitle when present', () => {
+  const html = buildReportHtml(
+    baseSchema({ eyebrow: '2025 年度报告', subtitle: '一句话概述' }),
+  )
+  assert.match(html, /rpt__eyebrow[^>]*>2025 年度报告</)
+  assert.match(html, /rpt__subtitle[^>]*>一句话概述</)
+})
+
+test('hero omits eyebrow/subtitle markup when absent', () => {
+  const html = buildReportHtml(baseSchema())
+  // 断元素不存在（CSS 里有 .rpt__eyebrow 规则，故只查元素 class 属性，不查规则名）
+  assert.doesNotMatch(html, /class="rpt__eyebrow"/)
+  assert.doesNotMatch(html, /class="rpt__subtitle"/)
+})
+
+test('only titled sections get an incrementing 01/02 index badge', () => {
+  const html = buildReportHtml(
+    baseSchema({
+      sections: [
+        { id: 'a', title: '第一节', layout: 'full', blocks: [] },
+        // 无标题小节不计入编号、不出徽标
+        { id: 'b', layout: 'full', blocks: [] },
+        { id: 'c', title: '第二节', layout: 'full', blocks: [] },
+      ],
+    }),
+  )
+  assert.match(html, /rpt-section__index">01</)
+  assert.match(html, /rpt-section__index">02</)
+  assert.doesNotMatch(html, /rpt-section__index">03</)
+})
+
+test('stat card renders a colored icon circle with inline svg', () => {
+  const html = buildReportHtml(
+    baseSchema({
+      sections: [
+        {
+          id: 's',
+          layout: 'full',
+          blocks: [
+            { id: 'sc', type: 'stat-card', label: '游客总量', value: '6820' },
+          ],
+        },
+      ],
+    }),
+  )
+  assert.match(html, /rpt-stat-card__icon rpt-stat-card__icon--1/)
+  assert.match(html, /<svg viewBox="0 0 24 24"/)
+})
+
 test('escapes HTML in user/LLM text to block injection', () => {
   const html = buildReportHtml(
     baseSchema({

@@ -20,6 +20,8 @@ const echartsScript = readFileSync(
 
 const schema: ReportSchema = {
   title: 'Q3 业务经营分析报告',
+  eyebrow: '2026 第三季度',
+  subtitle: '以核心 KPI、趋势构成与渠道对比，复盘本季度经营全貌',
   date: '2026-05-25',
   author: '增长分析团队',
   theme: {
@@ -36,8 +38,21 @@ const schema: ReportSchema = {
           id: 'b-kpi',
           type: 'stat-card-group',
           items: [
-            { label: '总营收', value: '¥12.4M', change: '+18%', trend: 'up' },
-            { label: '新增客户', value: '3,210', change: '+7%', trend: 'up' },
+            // 显式 icon 示范 money/users；后两张留空走 label 关键词启发式（流失率→trending-up、NPS→star）
+            {
+              label: '总营收',
+              value: '¥12.4M',
+              change: '+18%',
+              trend: 'up',
+              icon: 'money',
+            },
+            {
+              label: '新增客户',
+              value: '3,210',
+              change: '+7%',
+              trend: 'up',
+              icon: 'users',
+            },
             { label: '流失率', value: '4.2%', change: '-1.1pt', trend: 'down' },
             { label: 'NPS', value: '52', change: '+0', trend: 'neutral' },
           ],

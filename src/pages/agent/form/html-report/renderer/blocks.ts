@@ -22,6 +22,7 @@ import type {
   TableBlock,
   TimelineBlock,
 } from '../types'
+import { ICON_SVGS, pickIconByLabel, renderStatIcon } from './icons'
 
 // ============================================================
 // 文本转义 / 极简行内 Markdown
@@ -93,10 +94,14 @@ function renderList(b: ListBlock): string {
   const items = (b.items ?? [])
     .map((item) => `<li>${inlineMarkdown(item)}</li>`)
     .join('')
-  return `<div class="rpt-list">${title}<${tag}>${items}</${tag}></div>`
+  return `<div class="rpt-list rpt-card">${title}<${tag}>${items}</${tag}></div>`
 }
 
-function renderStatCardInner(card: StatCardData): string {
+/** accent: 1..5 的着色槽（按卡序轮转，决定图标圆与强调色） */
+function renderStatCardInner(card: StatCardData, accent: number): string {
+  const iconName =
+    card.icon && ICON_SVGS[card.icon] ? card.icon : pickIconByLabel(card.label)
+  const icon = renderStatIcon(iconName, accent)
   const trend = card.trend ?? 'neutral'
   const change = card.change
     ? `<span class="rpt-stat-card__change rpt-stat-card__change--${trend}">${escapeHtml(
@@ -107,6 +112,7 @@ function renderStatCardInner(card: StatCardData): string {
     ? `<div class="rpt-stat-card__description">${escapeHtml(card.description)}</div>`
     : ''
   return (
+    icon +
     `<div class="rpt-stat-card__label">${escapeHtml(card.label)}</div>` +
     `<div class="rpt-stat-card__value-row">` +
     `<span class="rpt-stat-card__value">${escapeHtml(card.value)}</span>${change}` +
@@ -115,13 +121,14 @@ function renderStatCardInner(card: StatCardData): string {
 }
 
 function renderStatCard(b: StatCardBlock): string {
-  return `<div class="rpt-stat-card">${renderStatCardInner(b)}</div>`
+  return `<div class="rpt-stat-card">${renderStatCardInner(b, 1)}</div>`
 }
 
 function renderStatCardGroup(b: StatCardGroupBlock): string {
   const cards = (b.items ?? [])
     .map(
-      (card) => `<div class="rpt-stat-card">${renderStatCardInner(card)}</div>`,
+      (card, i) =>
+        `<div class="rpt-stat-card">${renderStatCardInner(card, (i % 5) + 1)}</div>`,
     )
     .join('')
   return `<div class="rpt-stat-card-group">${cards}</div>`
@@ -140,7 +147,7 @@ function renderTable(b: TableBlock): string {
         `<tr>${row.map((cell) => `<td>${escapeHtml(cell)}</td>`).join('')}</tr>`,
     )
     .join('')}</tbody>`
-  return `<div>${title}<table class="rpt-table">${head}${body}</table></div>`
+  return `<div class="rpt-card">${title}<table class="rpt-table">${head}${body}</table></div>`
 }
 
 function renderComparisonMatrix(b: ComparisonMatrixBlock): string {
@@ -158,7 +165,7 @@ function renderComparisonMatrix(b: ComparisonMatrixBlock): string {
           .join('')}</tr>`,
     )
     .join('')}</tbody>`
-  return `<div>${title}<table class="rpt-matrix">${head}${body}</table></div>`
+  return `<div class="rpt-card">${title}<table class="rpt-matrix">${head}${body}</table></div>`
 }
 
 function renderTimeline(b: TimelineBlock): string {
@@ -178,7 +185,7 @@ function renderTimeline(b: TimelineBlock): string {
         `</li>`,
     )
     .join('')
-  return `<div class="rpt-timeline">${title}<ul class="rpt-timeline__list">${items}</ul></div>`
+  return `<div class="rpt-timeline rpt-card">${title}<ul class="rpt-timeline__list">${items}</ul></div>`
 }
 
 function renderChart(b: ChartBlock): string {
@@ -186,7 +193,7 @@ function renderChart(b: ChartBlock): string {
     ? `<p class="rpt-chart__title">${escapeHtml(b.title)}</p>`
     : ''
   // 仅挂载点；ECharts init/setOption 由 build-report-html 注入。
-  return `<div class="rpt-chart">${title}<div id="${chartMountId(
+  return `<div class="rpt-chart rpt-card">${title}<div id="${chartMountId(
     b.id,
   )}" class="rpt-chart__canvas"></div></div>`
 }

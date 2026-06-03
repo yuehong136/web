@@ -73,6 +73,48 @@ export function ReportFields({ present, dispatch }: ReportFieldsProps) {
           />
         )}
       </div>
+
+      {/* Hero 顶部装饰:eyebrow 小标 + 副标题,皆静态可选(留空则渲染时优雅省略) */}
+      <div className="space-y-space-xs">
+        <Label className="text-xs text-text-secondary">
+          {t('flow.htmlReportEyebrow', 'Eyebrow')}
+        </Label>
+        <Input
+          inputSize="sm"
+          value={present.eyebrow ?? ''}
+          placeholder={t(
+            'flow.htmlReportEyebrowPlaceholder',
+            'e.g. 2025 Annual Report',
+          )}
+          onChange={(e) =>
+            dispatch({
+              type: 'setReportField',
+              key: 'eyebrow',
+              value: e.target.value,
+            })
+          }
+        />
+      </div>
+      <div className="space-y-space-xs">
+        <Label className="text-xs text-text-secondary">
+          {t('flow.htmlReportSubtitle', 'Subtitle')}
+        </Label>
+        <Input
+          inputSize="sm"
+          value={present.subtitle ?? ''}
+          placeholder={t(
+            'flow.htmlReportSubtitlePlaceholder',
+            'One-line summary under the title',
+          )}
+          onChange={(e) =>
+            dispatch({
+              type: 'setReportField',
+              key: 'subtitle',
+              value: e.target.value,
+            })
+          }
+        />
+      </div>
     </div>
   )
 }

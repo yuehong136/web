@@ -26,6 +26,10 @@ export interface ThemeConfig {
 
 export interface ReportSchema {
   title: string
+  /** Hero 顶部的 eyebrow 药丸/导语小标（如「2025 年度报告」），可选 */
+  eyebrow?: string
+  /** 报告副标题（Hero 大标题下方一行），可选 */
+  subtitle?: string
   /** 报告日期，格式 YYYY-MM-DD */
   date?: string
   /** 报告作者/来源 */
@@ -123,6 +127,11 @@ export interface StatCardBlock extends BlockBase {
   change?: string
   trend?: 'up' | 'down' | 'neutral'
   description?: string
+  /**
+   * 指标卡左上角图标名（内置内联 SVG 集，见 `renderer/icons.ts`）。可选；
+   * 缺省时渲染器按 label 关键词启发式自动挑图标。
+   */
+  icon?: string
 }
 
 /** 多个 KPI 卡片，内部自动等分排列 */
@@ -234,6 +243,10 @@ export type BlockData = Omit<Block, 'id' | 'role'>
 
 export interface SkeletonSchema {
   title: string
+  /** Hero eyebrow 药丸/导语小标（设计器静态填）；运行时经 mergeSkeleton 透传到 ReportSchema */
+  eyebrow?: string
+  /** 报告副标题（设计器静态填）；运行时经 mergeSkeleton 透传到 ReportSchema */
+  subtitle?: string
   /** 标题填充指令:缺省/static=用 title 字符串;llm=运行时按源文生成 */
   titleDirective?: FieldDirective
   /**

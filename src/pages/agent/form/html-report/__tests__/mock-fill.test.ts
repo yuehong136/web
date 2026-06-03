@@ -145,6 +145,38 @@ test('open-region is substituted by a callout placeholder in preview (no malform
   assert.ok(buildReportHtml(schema).includes('<html'))
 })
 
+test('hero eyebrow/subtitle + stat-card icon survive preview merge', () => {
+  const skeleton: SkeletonSchema = {
+    title: 'T',
+    eyebrow: '2025 年度报告',
+    subtitle: '一句话概述',
+    sections: [
+      {
+        id: 's',
+        layout: 'full',
+        blocks: [
+          {
+            id: 'sc',
+            type: 'stat-card',
+            fields: fields({
+              type: 'stat-card',
+              label: '总营收',
+              value: '745',
+              icon: 'money',
+            }),
+          },
+        ],
+      },
+    ],
+  }
+  const schema = buildPreviewSchema(skeleton)
+  assert.equal(schema.eyebrow, '2025 年度报告')
+  assert.equal(schema.subtitle, '一句话概述')
+  assert.equal(firstBlock(schema.sections).icon, 'money')
+  // 显式 icon 落进渲染输出（对应的内联 svg 路径出现）
+  assert.match(buildReportHtml(schema), /rpt-stat-card__icon/)
+})
+
 test('preview schema renders to a chart-bearing document with parseable specs', () => {
   const skeleton: SkeletonSchema = {
     title: 'Preview',

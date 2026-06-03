@@ -16,7 +16,14 @@ const SIDEBAR_LAYOUTS: ReadonlySet<LayoutType> = new Set([
   'sidebar-right',
 ])
 
-function renderSectionHeader(section: Section): string {
+/** 两位序号徽标；仅在小节有标题且传入序号时出现（序号由 build-report-html 按有标题小节递增）。 */
+function renderSectionIndex(section: Section, displayIndex?: number): string {
+  if (!section.title || displayIndex == null) return ''
+  const label = String(displayIndex).padStart(2, '0')
+  return `<span class="rpt-section__index">${label}</span>`
+}
+
+function renderSectionHeader(section: Section, displayIndex?: number): string {
   if (!section.title && !section.subtitle) return ''
   const title = section.title
     ? `<h2 class="rpt-section__title">${escapeText(section.title)}</h2>`
@@ -24,7 +31,8 @@ function renderSectionHeader(section: Section): string {
   const subtitle = section.subtitle
     ? `<p class="rpt-section__subtitle">${escapeText(section.subtitle)}</p>`
     : ''
-  return `<div class="rpt-section__header">${title}${subtitle}</div>`
+  const index = renderSectionIndex(section, displayIndex)
+  return `<div class="rpt-section__header">${index}<div class="rpt-section__heading-text">${title}${subtitle}</div></div>`
 }
 
 /** Section 标题/副标题转义（与 blocks 同一规则，避免循环导入这里内联一份） */
@@ -63,9 +71,12 @@ function renderGridBody(layout: LayoutType, blocks: Block[]): string {
   return layout === 'sidebar-left' ? sideCol + mainCol : mainCol + sideCol
 }
 
-/** 单个 Section → HTML 字符串片段。 */
-export function renderSection(section: Section): string {
-  const header = renderSectionHeader(section)
+/**
+ * 单个 Section → HTML 字符串片段。
+ * @param displayIndex 有标题小节的递增序号（用于 `01` 徽标）；无则不显徽标。
+ */
+export function renderSection(section: Section, displayIndex?: number): string {
+  const header = renderSectionHeader(section, displayIndex)
   const grid = `<div class="rpt-section__grid rpt-section__grid--${section.layout}">${renderGridBody(
     section.layout,
     section.blocks ?? [],

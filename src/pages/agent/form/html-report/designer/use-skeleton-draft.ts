@@ -88,7 +88,11 @@ export type DraftAction =
       path: string
       directive: FieldDirective | null
     }
-  | { type: 'setReportField'; key: 'title'; value: string }
+  | {
+      type: 'setReportField'
+      key: 'title' | 'eyebrow' | 'subtitle'
+      value: string
+    }
   | { type: 'setTitleDirective'; directive: FieldDirective | null }
   | { type: 'select'; selection: Selection }
   | { type: 'undo' }

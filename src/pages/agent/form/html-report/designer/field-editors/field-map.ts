@@ -10,6 +10,7 @@
  */
 import type { BlockKind } from '../../types'
 import {
+  ICON_OPTIONS,
   LEVEL_OPTIONS,
   ORDERED_OPTIONS,
   STAT_ITEM_FIELDS,
@@ -188,6 +189,13 @@ export const BLOCK_FIELDS: Record<BlockKind, FieldDescriptor[]> = {
       labelKey: 'flow.htmlReportFieldDescription',
       fallback: 'Description',
       control: 'text',
+    },
+    {
+      kind: 'structure',
+      path: 'icon',
+      labelKey: 'flow.htmlReportFieldIcon',
+      fallback: 'Icon',
+      options: ICON_OPTIONS,
     },
   ],
   'stat-card-group': [],

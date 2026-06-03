@@ -38,6 +38,12 @@ function collectCharts(sections: Section[]): ChartBlock[] {
 }
 
 function renderHeader(schema: ReportSchema): string {
+  const eyebrow = schema.eyebrow
+    ? `<div class="rpt__eyebrow">${escapeHtml(schema.eyebrow)}</div>`
+    : ''
+  const subtitle = schema.subtitle
+    ? `<p class="rpt__subtitle">${escapeHtml(schema.subtitle)}</p>`
+    : ''
   const metaParts: string[] = []
   if (schema.date) metaParts.push(`<span>${escapeHtml(schema.date)}</span>`)
   if (schema.author) metaParts.push(`<span>${escapeHtml(schema.author)}</span>`)
@@ -46,8 +52,9 @@ function renderHeader(schema: ReportSchema): string {
     : ''
   return (
     `<header class="rpt__header">` +
+    `${eyebrow}` +
     `<h1 class="rpt__title">${escapeHtml(schema.title)}</h1>` +
-    `${meta}</header>`
+    `${subtitle}${meta}</header>`
   )
 }
 
@@ -101,7 +108,13 @@ export function buildReportHtml(
   const sections = schema.sections ?? []
   const styles = buildReportStyles(schema.theme)
   const header = renderHeader(schema)
-  const body = sections.map(renderSection).join('')
+  // 仅「有标题」小节参与 01/02… 编号，按出现顺序递增。
+  let titledCount = 0
+  const body = sections
+    .map((section) =>
+      renderSection(section, section.title ? ++titledCount : undefined),
+    )
+    .join('')
   const chartScript = renderChartScript(
     collectCharts(sections),
     schema.theme,
