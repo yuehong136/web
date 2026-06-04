@@ -11,27 +11,7 @@ import NodeHeader from './node-header'
 import { NodeWrapper } from './node-wrapper'
 import { ToolBar } from './toolbar'
 
-const SearchMethodLabelMap: Record<string, string> = {
-  embedding: 'Embedding',
-  full_text: 'Full Text',
-}
-
-function getSearchMethodLabel(value: string) {
-  return (
-    SearchMethodLabelMap[value] ||
-    value
-      .split('_')
-      .map((item) => item.charAt(0).toUpperCase() + item.slice(1))
-      .join(' ')
-  )
-}
-
-function InnerTokenizerNode({
-  id,
-  data,
-  isConnectable,
-  selected,
-}: NodeProps) {
+function InnerTokenizerNode({ id, data, isConnectable, selected }: NodeProps) {
   const { t } = useTranslation()
   const searchMethods =
     ((data.form ?? {}) as { search_method?: string[] }).search_method ?? []
@@ -64,18 +44,22 @@ function InnerTokenizerNode({
             />
           }
         />
-        <LabelCard className="flex flex-col gap-space-xs text-text-primary">
+        <LabelCard className="gap-space-xs flex flex-col text-text-primary">
           <span className="text-text-secondary">
             {t('flow.searchMethod', 'Search Method')}
           </span>
           {searchMethods.length > 0 ? (
             <ul className="space-y-space-xs">
               {searchMethods.map((item) => (
-                <li key={item}>{getSearchMethodLabel(item)}</li>
+                <li key={item}>
+                  {t(`flow.tokenizerSearchMethodOptions.${item}`, item)}
+                </li>
               ))}
             </ul>
           ) : (
-            <span>{t('flow.noSearchMethod', 'No search methods configured')}</span>
+            <span>
+              {t('flow.noSearchMethod', 'No search methods configured')}
+            </span>
           )}
         </LabelCard>
       </NodeWrapper>

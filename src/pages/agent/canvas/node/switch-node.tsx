@@ -1,6 +1,6 @@
 import { memo, useLayoutEffect, useRef, useState } from 'react'
 import type { NodeProps } from '@xyflow/react'
-import { Position } from '@xyflow/react'
+import { Position, useUpdateNodeInternals } from '@xyflow/react'
 import { useTranslation } from 'react-i18next'
 import type { ISwitchCondition, ISwitchNode } from '../../types'
 import { ComparisonOperator, SwitchOperatorOptions } from '../../constant'
@@ -12,16 +12,19 @@ import { NodeWrapper } from './node-wrapper'
 import { ToolBar } from './toolbar'
 import { needsSingleStepDebugging, showCopyIcon } from '../../utils'
 import { useBuildSwitchHandlePositions } from './use-build-switch-handle-positions'
-import { useUpdateNodeInternals } from '@xyflow/react'
 
-const getConditionKey = (idx: number, length: number) => {
+const getConditionLabel = (
+  t: ReturnType<typeof useTranslation>['t'],
+  idx: number,
+  length: number,
+) => {
   if (idx === 0 && length !== 1) {
-    return 'If'
+    return t('flow.switchBranchLabels.if', 'If')
   } else if (idx === length - 1) {
-    return 'Else'
+    return t('flow.switchBranchLabels.else', 'Else')
   }
 
-  return 'ElseIf'
+  return t('flow.switchBranchLabels.elseIf', 'Else if')
 }
 
 const SwitchOperatorGlyphMap: Record<string, string> = {
@@ -65,24 +68,27 @@ const ConditionBlock = ({
   }
 
   return (
-    <div className="bg-surface-secondary rounded-radius-sm p-space-xs flex flex-col gap-space-xs">
+    <div className="bg-surface-secondary rounded-radius-sm p-space-xs gap-space-xs flex flex-col">
       {items.map((item, idx) => {
         const operatorLabelKey = getOperatorLabelKey(item?.operator)
         const operatorLabel = operatorLabelKey
-          ? t(`flow.switchOperatorOptions.${operatorLabelKey}`, operatorLabelKey)
+          ? t(
+              `flow.switchOperatorOptions.${operatorLabelKey}`,
+              operatorLabelKey,
+            )
           : item?.operator || ''
 
         return (
           <section
             key={idx}
-            className="flex items-center justify-between gap-space-sm text-xs"
+            className="gap-space-sm flex items-center justify-between text-xs"
           >
             <div className="flex-1 truncate text-text-accent">
               {getLabel(item?.cpn_id)}
             </div>
             <span
               title={operatorLabel}
-              className="inline-flex min-w-10 shrink-0 items-center justify-center rounded-radius-sm border border-border-default bg-surface-primary px-space-xs py-px font-mono text-[11px] leading-5 text-text-secondary"
+              className="rounded-radius-sm bg-surface-primary px-space-xs inline-flex min-w-10 shrink-0 items-center justify-center border border-border-default py-px font-mono text-[11px] leading-5 text-text-secondary"
             >
               {getOperatorGlyph(item?.operator)}
             </span>
@@ -95,6 +101,7 @@ const ConditionBlock = ({
 }
 
 function InnerSwitchNode({ id, data, selected }: NodeProps<ISwitchNode>) {
+  const { t } = useTranslation()
   const { positions } = useBuildSwitchHandlePositions({ data, id })
   const containerRef = useRef<HTMLDivElement | null>(null)
   const headerRefs = useRef<Array<HTMLDivElement | null>>([])
@@ -133,7 +140,7 @@ function InnerSwitchNode({ id, data, selected }: NodeProps<ISwitchNode>) {
         <LeftEndHandle nodeId={id} />
         <NodeHeader id={id} name={data.name} label={data.label} />
 
-        <section className="flex flex-col gap-space-sm">
+        <section className="gap-space-sm flex flex-col">
           {positions.map((position, idx) => (
             <div key={position.text}>
               <section className="flex flex-col text-xs">
@@ -143,14 +150,22 @@ function InnerSwitchNode({ id, data, selected }: NodeProps<ISwitchNode>) {
                   }}
                   className="text-right"
                 >
-                  <span>{getConditionKey(idx, positions.length)}</span>
+                  <span>{getConditionLabel(t, idx, positions.length)}</span>
                   <div className="text-text-secondary">
-                    {idx < positions.length - 1 && position.text}
+                    {idx < positions.length - 1 &&
+                      t('flow.switchBranchLabels.case', {
+                        index: idx + 1,
+                        defaultValue: position.text,
+                      })}
                   </div>
                 </div>
                 <span className="text-text-accent">
                   {idx < positions.length - 1 &&
-                    position.condition?.logical_operator?.toUpperCase()}
+                    position.condition?.logical_operator &&
+                    t(
+                      `flow.switchLogicOperatorOptions.${position.condition.logical_operator}`,
+                      position.condition.logical_operator.toUpperCase(),
+                    )}
                 </span>
                 {position.condition && (
                   <ConditionBlock condition={position.condition} nodeId={id} />

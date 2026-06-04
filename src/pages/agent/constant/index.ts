@@ -932,6 +932,13 @@ export const VariableAssignerLogicalNumberOperator = {
   Divide: '/=',
 } as const
 
+export const VariableAssignerLogicalNumberOperatorLabelMap = {
+  [VariableAssignerLogicalNumberOperator.Add]: 'add',
+  [VariableAssignerLogicalNumberOperator.Subtract]: 'subtract',
+  [VariableAssignerLogicalNumberOperator.Multiply]: 'multiply',
+  [VariableAssignerLogicalNumberOperator.Divide]: 'divide',
+} as const
+
 export const VariableAssignerLogicalArrayOperator = {
   Overwrite: 'overwrite',
   Clear: 'clear',

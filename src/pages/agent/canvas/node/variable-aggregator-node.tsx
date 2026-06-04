@@ -1,5 +1,6 @@
 import type { NodeProps } from '@xyflow/react'
 import { memo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { RagNode } from './index'
 import { LabelCard } from './card'
@@ -21,6 +22,7 @@ function InnerVariableAggregatorNode({
   ...props
 }: NodeProps<BaseNode<VariableAggregatorSummary>>) {
   const { id, data } = props
+  const { t } = useTranslation()
   const groups = data.form?.groups || []
   const { getLabel } = useGetVariableLabelOrTypeByValue({ nodeId: id })
 
@@ -28,11 +30,14 @@ function InnerVariableAggregatorNode({
     <RagNode {...props}>
       <SummaryList
         items={groups}
-        empty={<LabelCard>No groups configured</LabelCard>}
+        empty={<LabelCard>{t('flow.noGroups', 'No groups yet')}</LabelCard>}
         renderItem={(group, idx, { withDivider }) => (
           <section
             key={`${id}-group-${idx}`}
-            className={cn('space-y-space-sm', withDivider && 'border-t border-border-subtle pt-space-sm')}
+            className={cn(
+              'space-y-space-sm',
+              withDivider && 'pt-space-sm border-t border-border-subtle',
+            )}
           >
             <div className="flex items-center justify-between gap-2 text-xs">
               <span className="min-w-0 flex-1 truncate">

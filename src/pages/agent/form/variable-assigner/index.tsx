@@ -1,10 +1,10 @@
 import {
+  Form,
   FormControl,
   FormField,
   FormItem,
   FormLabel,
 } from '@/components/ui/form'
-import { Form } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { SelectWithSearch } from '@/components/ui/select-with-search'
 import { Switch } from '@/components/ui/switch'
@@ -33,6 +33,7 @@ import {
   RecordAdvancedPanel,
 } from '../components'
 import { findQueryVariableOption } from '../components/query-variable-utils'
+import { getVariableAssignerOperatorLabel } from './utils'
 
 const variableAssignerSchema = z.object({
   variables: z
@@ -60,7 +61,10 @@ function getArrayElementType(type?: string) {
   return 'unknown'
 }
 
-function buildOperatorOptions(type?: string) {
+function buildOperatorOptions(
+  t: ReturnType<typeof useTranslation>['t'],
+  type?: string,
+) {
   const normalized = (type || '').toLowerCase()
 
   if (normalized.startsWith('array')) {
@@ -71,7 +75,10 @@ function buildOperatorOptions(type?: string) {
       VariableAssignerLogicalArrayOperator.Extend,
       VariableAssignerLogicalArrayOperator.RemoveFirst,
       VariableAssignerLogicalArrayOperator.RemoveLast,
-    ].map((value) => ({ label: value, value }))
+    ].map((value) => ({
+      label: getVariableAssignerOperatorLabel(t, value),
+      value,
+    }))
   }
 
   if (normalized === JsonSchemaDataType.Number) {
@@ -83,22 +90,30 @@ function buildOperatorOptions(type?: string) {
       VariableAssignerLogicalNumberOperator.Subtract,
       VariableAssignerLogicalNumberOperator.Multiply,
       VariableAssignerLogicalNumberOperator.Divide,
-    ].map((value) => ({ label: value, value }))
+    ].map((value) => ({
+      label: getVariableAssignerOperatorLabel(t, value),
+      value,
+    }))
   }
 
   return [
     VariableAssignerLogicalOperator.Overwrite,
     VariableAssignerLogicalOperator.Clear,
     VariableAssignerLogicalOperator.Set,
-  ].map((value) => ({ label: value, value }))
+  ].map((value) => ({
+    label: getVariableAssignerOperatorLabel(t, value),
+    value,
+  }))
 }
 
 function needsParameter(operator?: string) {
-  return !([
-    VariableAssignerLogicalOperator.Clear,
-    VariableAssignerLogicalArrayOperator.RemoveFirst,
-    VariableAssignerLogicalArrayOperator.RemoveLast,
-  ] as string[]).includes(operator || '')
+  return !(
+    [
+      VariableAssignerLogicalOperator.Clear,
+      VariableAssignerLogicalArrayOperator.RemoveFirst,
+      VariableAssignerLogicalArrayOperator.RemoveLast,
+    ] as string[]
+  ).includes(operator || '')
 }
 
 function VariableParameterField({
@@ -177,9 +192,7 @@ function VariableParameterField({
                 type="number"
                 {...field}
                 value={field.value ?? 0}
-                onChange={(event) =>
-                  field.onChange(Number(event.target.value))
-                }
+                onChange={(event) => field.onChange(Number(event.target.value))}
               />
             </FormControl>
           </FormItem>
@@ -252,9 +265,13 @@ export const VariableAssignerForm = memo(function VariableAssignerForm({
     () =>
       variables.map(
         (item) =>
-          (findQueryVariableOption(variableOptions, item?.variable) as {
-            type?: string
-          } | undefined)?.type,
+          (
+            findQueryVariableOption(variableOptions, item?.variable) as
+              | {
+                  type?: string
+                }
+              | undefined
+          )?.type,
       ),
     [variableOptions, variables],
   )
@@ -290,14 +307,14 @@ export const VariableAssignerForm = memo(function VariableAssignerForm({
                 <QueryVariable
                   name={`variables.${index}.variable`}
                   hideLabel
-                  className="flex-[2_1_0] min-w-0"
+                  className="min-w-0 flex-[2_1_0]"
                 />
 
                 <FormField
                   control={form.control}
                   name={`variables.${index}.operator`}
                   render={({ field: operatorField }) => (
-                    <FormItem className="flex-[1_1_0] min-w-0">
+                    <FormItem className="min-w-0 flex-[1_1_0]">
                       <FormControl>
                         <SelectWithSearch
                           value={
@@ -305,7 +322,7 @@ export const VariableAssignerForm = memo(function VariableAssignerForm({
                             VariableAssignerLogicalOperator.Overwrite
                           }
                           onChange={operatorField.onChange}
-                          options={buildOperatorOptions(type)}
+                          options={buildOperatorOptions(t, type)}
                         />
                       </FormControl>
                     </FormItem>

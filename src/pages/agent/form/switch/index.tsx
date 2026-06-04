@@ -81,8 +81,17 @@ export function SwitchForm({ node }: INextOperatorForm) {
             <section key={field.id} className="space-y-space-md">
               <div className="flex items-center justify-between">
                 <section>
-                  <span>{index === 0 ? 'IF' : 'ELSEIF'}</span>
-                  <div className="text-text-secondary">Case {index + 1}</div>
+                  <span>
+                    {index === 0
+                      ? t('flow.switchBranchLabels.if', 'If')
+                      : t('flow.switchBranchLabels.elseIf', 'Else if')}
+                  </span>
+                  <div className="text-text-secondary">
+                    {t('flow.switchBranchLabels.case', {
+                      index: index + 1,
+                      defaultValue: `Case ${index + 1}`,
+                    })}
+                  </div>
                 </section>
                 {index !== 0 && (
                   <Button
@@ -97,7 +106,7 @@ export function SwitchForm({ node }: INextOperatorForm) {
                   </Button>
                 )}
               </div>
-              <section className="relative flex gap-space-sm">
+              <section className="gap-space-sm relative flex">
                 {conditionLength > 1 && (
                   <section className="flex w-[72px] shrink-0 flex-col items-center">
                     <div className="relative w-1 flex-1 before:absolute before:bottom-0 before:left-10 before:top-20 before:w-px before:bg-border-default" />
@@ -111,7 +120,7 @@ export function SwitchForm({ node }: INextOperatorForm) {
                               value={logicField.value}
                               onValueChange={logicField.onChange}
                             >
-                              <SelectTrigger className="h-10 min-w-20 rounded-radius-md border border-border-default bg-surface-primary px-space-sm py-space-xs text-sm shadow-elevation-low">
+                              <SelectTrigger className="rounded-radius-md bg-surface-primary px-space-sm py-space-xs shadow-elevation-low h-10 min-w-20 border border-border-default text-sm">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
