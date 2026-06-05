@@ -438,7 +438,7 @@ export default function AgentSharePage() {
                     : t('agent.share.conversation', 'Conversation')}
                 </Badge>
                 <Button variant="outline" onClick={() => void handleCopyLink()}>
-                  <Copy className="mr-space-xs h-4 w-4" />
+                  <Copy className="mr-space-xs" />
                   {t('common.copy', '复制')}
                 </Button>
                 <Button
@@ -446,7 +446,7 @@ export default function AgentSharePage() {
                   onClick={handleResetSession}
                   disabled={runner.isRunning}
                 >
-                  <RotateCcw className="mr-space-xs h-4 w-4" />
+                  <RotateCcw className="mr-space-xs" />
                   {t('agent.share.resetSession', '重置会话')}
                 </Button>
               </>
@@ -454,70 +454,75 @@ export default function AgentSharePage() {
           />
         }
       >
-        <div className="flex h-full min-h-0 flex-col">
-          {runner.lastError ? (
-            <div className="mt-space-base rounded-radius-md bg-surface-secondary p-space-sm mx-auto w-full max-w-4xl border border-status-error text-sm text-status-error">
-              {runner.lastError}
+        <div className="px-space-md sm:px-space-lg flex h-full min-h-0 bg-components-workspace-bg">
+          <div className="mx-auto flex min-h-0 w-full max-w-4xl flex-col">
+            {runner.lastError ? (
+              <div className="mt-space-base rounded-radius-md bg-surface-secondary p-space-sm w-full border border-status-error text-sm text-status-error">
+                {runner.lastError}
+              </div>
+            ) : null}
+
+            <div className="min-h-0 flex-1 overflow-auto">
+              <ShareMessageList
+                canvasId={access.agentId}
+                messages={runner.messages}
+                status={status}
+                title={shareQuery.data.title}
+                prologue={shareQuery.data.prologue}
+                className="py-space-xl px-0"
+                onSubmitAwaitingInputs={handleSubmitAwaitingInputs}
+                onXCardAction={runner.submitXCardAction}
+                onDownloadAttachment={handleDownloadAttachment}
+              />
             </div>
-          ) : null}
 
-          <div className="min-h-0 flex-1 overflow-auto">
-            <ShareMessageList
-              canvasId={access.agentId}
-              messages={runner.messages}
-              status={status}
-              title={shareQuery.data.title}
-              prologue={shareQuery.data.prologue}
-              onSubmitAwaitingInputs={handleSubmitAwaitingInputs}
-              onXCardAction={runner.submitXCardAction}
-              onDownloadAttachment={handleDownloadAttachment}
-            />
-          </div>
-
-          {isTaskMode ? (
-            <div className="bg-surface-primary px-space-lg py-space-base shrink-0 border-t border-border-subtle">
-              <div className="gap-space-sm rounded-radius-xl bg-surface-secondary p-space-sm shadow-elevation-low mx-auto flex w-full max-w-4xl flex-wrap items-center justify-between border border-border-default">
-                <div className="gap-space-sm flex items-center text-sm text-text-secondary">
-                  <Badge variant="purple">Task</Badge>
-                  {runner.isRunning
-                    ? t('agent.share.taskRunning', '任务运行中')
-                    : t(
-                        'agent.share.taskModeHint',
-                        '任务模式通过 Begin inputs 启动运行',
-                      )}
-                </div>
-                <div className="gap-space-sm flex flex-wrap">
-                  {inputEntries.length > 0 ? (
-                    <Button
-                      variant="outline"
-                      onClick={() => setParameterDialogOpen(true)}
-                      disabled={runner.isRunning || uploading}
-                    >
-                      {t('agent.share.parameters', '运行参数')}
-                    </Button>
-                  ) : null}
+            {isTaskMode ? (
+              <div className="py-space-base shrink-0 border-t border-border-subtle bg-components-workspace-bg">
+                <div className="gap-space-sm rounded-radius-xl bg-surface-secondary p-space-sm shadow-elevation-low flex w-full flex-wrap items-center justify-between border border-border-default">
+                  <div className="gap-space-sm flex items-center text-sm text-text-secondary">
+                    <Badge variant="purple">Task</Badge>
+                    {runner.isRunning
+                      ? t('agent.share.taskRunning', '任务运行中')
+                      : t(
+                          'agent.share.taskModeHint',
+                          '任务模式通过 Begin inputs 启动运行',
+                        )}
+                  </div>
+                  <div className="gap-space-sm flex flex-wrap">
+                    {inputEntries.length > 0 ? (
+                      <Button
+                        variant="outline"
+                        onClick={() => setParameterDialogOpen(true)}
+                        disabled={runner.isRunning || uploading}
+                      >
+                        {t('agent.share.parameters', '运行参数')}
+                      </Button>
+                    ) : null}
+                  </div>
                 </div>
               </div>
-            </div>
-          ) : (
-            <ShareComposer
-              value={messageValue}
-              files={messageFiles}
-              isRunning={runner.isRunning}
-              uploading={uploading}
-              hasParameters={inputEntries.length > 0}
-              attachmentInputRef={attachmentInputRef}
-              onChange={setMessageValue}
-              onSubmit={(value) => {
-                void handleSendMessage(value)
-              }}
-              onStop={runner.stop}
-              onOpenParameters={() => setParameterDialogOpen(true)}
-              onUploadFiles={(files) => {
-                void handleMessageFileUpload(files)
-              }}
-            />
-          )}
+            ) : (
+              <ShareComposer
+                value={messageValue}
+                files={messageFiles}
+                isRunning={runner.isRunning}
+                uploading={uploading}
+                hasParameters={inputEntries.length > 0}
+                attachmentInputRef={attachmentInputRef}
+                layout="inline"
+                className="py-space-base shrink-0 border-t border-border-subtle bg-components-workspace-bg"
+                onChange={setMessageValue}
+                onSubmit={(value) => {
+                  void handleSendMessage(value)
+                }}
+                onStop={runner.stop}
+                onOpenParameters={() => setParameterDialogOpen(true)}
+                onUploadFiles={(files) => {
+                  void handleMessageFileUpload(files)
+                }}
+              />
+            )}
+          </div>
         </div>
 
         <ShareParameterDialog

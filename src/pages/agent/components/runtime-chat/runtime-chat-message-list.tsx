@@ -30,10 +30,7 @@ import {
 } from '../../features/runtime-workbench/types'
 import { hideRawA2UICommandContent } from '../../features/runtime-workbench/utils'
 import type { BeginQuery } from '../../types'
-import {
-  AgentXCardRenderer,
-  type AgentXCardActionPayload,
-} from '../../x-card'
+import { AgentXCardRenderer, type AgentXCardActionPayload } from '../../x-card'
 import {
   shouldShowRuntimeBubbleLoading,
   shouldShowRuntimeMessageFooter,
@@ -50,7 +47,7 @@ interface RuntimeChatMessageListProps {
   canvasId: string
   messages: RuntimeMessage[]
   status: AgentRuntimeStatus
-  density?: 'comfortable' | 'compact'
+  density?: 'comfortable' | 'compact' | 'flush'
   className?: string
   onSubmitAwaitingInputs: (
     messageId: string,
@@ -71,11 +68,13 @@ export function RuntimeChatMessageList({
   onDownloadAttachment,
 }: RuntimeChatMessageListProps) {
   const [detailOpen, setDetailOpen] = useState(false)
-  const [selectedChunk, setSelectedChunk] = useState<ReferenceChunk | null>(null)
-  const [detailChunks, setDetailChunks] = useState<ReferenceChunk[]>([])
-  const [completedTypingMessageIds, setCompletedTypingMessageIds] = useState<Set<string>>(
-    () => new Set(),
+  const [selectedChunk, setSelectedChunk] = useState<ReferenceChunk | null>(
+    null,
   )
+  const [detailChunks, setDetailChunks] = useState<ReferenceChunk[]>([])
+  const [completedTypingMessageIds, setCompletedTypingMessageIds] = useState<
+    Set<string>
+  >(() => new Set())
 
   const handleViewDetail = useCallback(
     (chunk: ReferenceChunk, chunks: ReferenceChunk[]) => {
@@ -240,113 +239,135 @@ export function RuntimeChatMessageList({
                 padding: '0',
               },
             },
-        contentRender: useTextTyping ? undefined : () => (
-          <div className="space-y-space-sm">
-            {isUser ? (
-              <>
-                {message.content ? (
-                  <div className="whitespace-pre-wrap break-words text-sm">
-                    {message.content}
-                  </div>
-                ) : null}
-                <RuntimeAttachmentList
-                  message={message}
-                />
-              </>
-            ) : (
-              <>
-                {message.logEvents?.length ? (
-                  <RuntimeTracePanel
-                    messages={[message]}
-                    loading={isStreaming}
-                    placement="message"
-                  />
-                ) : null}
+        contentRender: useTextTyping
+          ? undefined
+          : () => (
+              <div className="space-y-space-sm">
+                {isUser ? (
+                  <>
+                    {message.content ? (
+                      <div className="whitespace-pre-wrap break-words text-sm">
+                        {message.content}
+                      </div>
+                    ) : null}
+                    <RuntimeAttachmentList message={message} />
+                  </>
+                ) : (
+                  <>
+                    {message.logEvents?.length ? (
+                      <RuntimeTracePanel
+                        messages={[message]}
+                        loading={isStreaming}
+                        placement="message"
+                      />
+                    ) : null}
 
-                {thinkContent ? (
-                  <ThinkWrapper status={thinkingStatus} messageId={message.id}>
-                    <div className="whitespace-pre-wrap text-sm text-text-secondary">
-                      {thinkContent}
-                    </div>
-                  </ThinkWrapper>
-                ) : null}
+                    {thinkContent ? (
+                      <ThinkWrapper
+                        status={thinkingStatus}
+                        messageId={message.id}
+                      >
+                        <div className="whitespace-pre-wrap text-sm text-text-secondary">
+                          {thinkContent}
+                        </div>
+                      </ThinkWrapper>
+                    ) : null}
 
-                {renderContentWithCarousels()}
+                    {renderContentWithCarousels()}
 
-                <AgentXCardRenderer
-                  commands={message.xCardCommands}
-                  surfaceIds={message.xCardSurfaceIds}
-                  status={message.xCardStatus}
-                  onAction={onXCardAction}
-                />
-
-                <RuntimeAttachmentList
-                  message={message}
-                  onDownloadAttachment={onDownloadAttachment}
-                />
-
-                {references.length && !isStreaming ? (
-                  <ReferenceImageList
-                    referenceChunks={references}
-                    messageContent={mainContent}
-                    className="mt-space-base"
-                    onImageClick={(chunk) => handleViewDetail(chunk, references)}
-                  />
-                ) : null}
-
-                {references.length && !isStreaming ? (
-                  <ReferencePanel
-                    chunks={references}
-                    onChunkClick={(chunk) => handleViewDetail(chunk, references)}
-                    defaultVisiblePerDoc={2}
-                  />
-                ) : null}
-
-                {message.awaitingInputs?.length && isLatest ? (
-                  <div className="mt-space-md rounded-radius-md border border-border-primary bg-surface-primary p-space-sm">
-                    <DebugContent
-                      canvasId={canvasId}
-                      parameters={message.awaitingInputs}
-                      ok={(values) => onSubmitAwaitingInputs(message.id, values)}
-                      isNext={false}
-                      loading={status === AgentRuntimeStatus.RUNNING}
-                      btnText="提交继续运行"
-                      className="min-h-0"
-                      maxHeight="max-h-none"
+                    <AgentXCardRenderer
+                      commands={message.xCardCommands}
+                      surfaceIds={message.xCardSurfaceIds}
+                      status={message.xCardStatus}
+                      onAction={onXCardAction}
                     />
-                  </div>
-                ) : null}
 
-                {message.error ? (
-                  <p className="text-xs text-status-error">{message.error}</p>
-                ) : null}
-              </>
-            )}
-          </div>
-        ),
-        footer:
-          showFooter ? (
-            <MessageActionsFooter
-              content={mainContent}
-              onCopy={() => {
-                void handleCopyContent(mainContent)
-              }}
-              showRegenerate={false}
-              showFeedback={false}
-            />
-          ) : undefined,
+                    <RuntimeAttachmentList
+                      message={message}
+                      onDownloadAttachment={onDownloadAttachment}
+                    />
+
+                    {references.length && !isStreaming ? (
+                      <ReferenceImageList
+                        referenceChunks={references}
+                        messageContent={mainContent}
+                        className="mt-space-base"
+                        onImageClick={(chunk) =>
+                          handleViewDetail(chunk, references)
+                        }
+                      />
+                    ) : null}
+
+                    {references.length && !isStreaming ? (
+                      <ReferencePanel
+                        chunks={references}
+                        onChunkClick={(chunk) =>
+                          handleViewDetail(chunk, references)
+                        }
+                        defaultVisiblePerDoc={2}
+                      />
+                    ) : null}
+
+                    {message.awaitingInputs?.length && isLatest ? (
+                      <div className="mt-space-md rounded-radius-md border-border-primary bg-surface-primary p-space-sm border">
+                        <DebugContent
+                          canvasId={canvasId}
+                          parameters={message.awaitingInputs}
+                          ok={(values) =>
+                            onSubmitAwaitingInputs(message.id, values)
+                          }
+                          isNext={false}
+                          loading={status === AgentRuntimeStatus.RUNNING}
+                          btnText="提交继续运行"
+                          className="min-h-0"
+                          maxHeight="max-h-none"
+                        />
+                      </div>
+                    ) : null}
+
+                    {message.error ? (
+                      <p className="text-xs text-status-error">
+                        {message.error}
+                      </p>
+                    ) : null}
+                  </>
+                )}
+              </div>
+            ),
+        footer: showFooter ? (
+          <MessageActionsFooter
+            content={mainContent}
+            onCopy={() => {
+              void handleCopyContent(mainContent)
+            }}
+            showRegenerate={false}
+            showFeedback={false}
+          />
+        ) : undefined,
       }
     })
-  }, [canvasId, completedTypingMessageIds, handleCopyContent, handleViewDetail, messages, onDownloadAttachment, onSubmitAwaitingInputs, onXCardAction, status])
+  }, [
+    canvasId,
+    completedTypingMessageIds,
+    handleCopyContent,
+    handleViewDetail,
+    messages,
+    onDownloadAttachment,
+    onSubmitAwaitingInputs,
+    onXCardAction,
+    status,
+  ])
 
   return (
     <>
       <div
         className={cn(
-          'runtime-chat-message-list mx-auto w-full py-space-lg',
-          density === 'compact'
-            ? 'max-w-full px-space-md'
-            : 'max-w-4xl px-space-lg',
+          'runtime-chat-message-list py-space-lg mx-auto w-full',
+          density === 'flush'
+            ? 'max-w-full px-0'
+            : density === 'compact'
+              ? 'px-space-md max-w-full'
+              : 'px-space-lg max-w-4xl',
           className,
         )}
       >

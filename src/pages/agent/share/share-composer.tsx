@@ -3,6 +3,7 @@ import type { RefObject } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 import {
   ArrowUp,
   Paperclip,
@@ -18,6 +19,8 @@ interface ShareComposerProps {
   isRunning?: boolean
   uploading?: boolean
   hasParameters?: boolean
+  className?: string
+  layout?: 'default' | 'inline'
   attachmentInputRef: RefObject<HTMLInputElement | null>
   onChange: (value: string) => void
   onSubmit: (value: string) => void
@@ -32,6 +35,8 @@ export function ShareComposer({
   isRunning,
   uploading,
   hasParameters,
+  className,
+  layout = 'default',
   attachmentInputRef,
   onChange,
   onSubmit,
@@ -41,10 +46,18 @@ export function ShareComposer({
 }: ShareComposerProps) {
   const { t } = useTranslation()
   const canSend = Boolean(value.trim() || files.length > 0)
+  const isInlineLayout = layout === 'inline'
 
   return (
-    <div className="bg-surface-primary px-space-lg py-space-base shrink-0">
-      <div className="mx-auto w-full max-w-4xl">
+    <div
+      className={cn(
+        isInlineLayout
+          ? undefined
+          : 'bg-surface-primary px-space-lg py-space-base shrink-0',
+        className,
+      )}
+    >
+      <div className={isInlineLayout ? 'w-full' : 'mx-auto w-full max-w-4xl'}>
         <div className="agent-share-composer rounded-radius-xl shadow-elevation-low overflow-hidden border border-components-input-border bg-components-input-bg transition-colors focus-within:border-components-input-border-focus">
           <style>{`
             .agent-share-composer .ant-sender {
@@ -107,7 +120,7 @@ export function ShareComposer({
 
           <div className="gap-space-sm px-space-base pb-space-sm pt-space-xs flex items-center justify-between">
             <div className="gap-space-xs flex items-center">
-              {/* Hidden file input is required because the shared Input wrapper renders visible layout chrome. */}
+              {/* eslint-disable-next-line no-restricted-syntax -- Native file picker is hidden; the shared Input wrapper renders visible chrome here. */}
               <input
                 ref={attachmentInputRef}
                 type="file"
@@ -136,11 +149,7 @@ export function ShareComposer({
                     : t('agent.share.uploadAttachment', '上传附件')
                 }
               >
-                {uploading ? (
-                  <Upload className="h-4 w-4" />
-                ) : (
-                  <Paperclip className="h-4 w-4" />
-                )}
+                {uploading ? <Upload /> : <Paperclip />}
               </Button>
               {hasParameters ? (
                 <Button
@@ -151,7 +160,7 @@ export function ShareComposer({
                   title={t('agent.share.parameters', '运行参数')}
                   aria-label={t('agent.share.parameters', '运行参数')}
                 >
-                  <SlidersHorizontal className="h-4 w-4" />
+                  <SlidersHorizontal />
                 </Button>
               ) : null}
             </div>
@@ -164,7 +173,7 @@ export function ShareComposer({
                 title={t('agent.share.stop', '停止输出')}
                 aria-label={t('agent.share.stop', '停止输出')}
               >
-                <Square className="h-4 w-4" />
+                <Square />
               </Button>
             ) : (
               <Button
@@ -174,7 +183,7 @@ export function ShareComposer({
                 title={t('agent.share.send', '发送')}
                 aria-label={t('agent.share.send', '发送')}
               >
-                <ArrowUp className="h-4 w-4" />
+                <ArrowUp />
               </Button>
             )}
           </div>

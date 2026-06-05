@@ -1,4 +1,5 @@
 import { PageEmptyState, AppScene } from '@/components/patterns'
+import { cn } from '@/lib/utils'
 import { useTranslation } from 'react-i18next'
 import { RuntimeChatMessageList } from '../components/runtime-chat'
 import {
@@ -15,6 +16,7 @@ interface ShareMessageListProps {
   status: AgentRuntimeStatus
   title?: string
   prologue?: string
+  className?: string
   onSubmitAwaitingInputs: (
     messageId: string,
     values: BeginQuery[],
@@ -29,6 +31,7 @@ export function ShareMessageList({
   status,
   title,
   prologue,
+  className,
   onSubmitAwaitingInputs,
   onXCardAction,
   onDownloadAttachment,
@@ -37,7 +40,12 @@ export function ShareMessageList({
 
   if (!messages.length) {
     return (
-      <div className="p-space-lg flex min-h-[320px] items-center justify-center">
+      <div
+        className={cn(
+          'p-space-lg flex min-h-full items-center justify-center',
+          className,
+        )}
+      >
         <PageEmptyState
           scene={AppScene.WORKSPACE}
           compact
@@ -59,6 +67,8 @@ export function ShareMessageList({
       canvasId={canvasId}
       messages={messages}
       status={status}
+      density="flush"
+      className={className}
       onSubmitAwaitingInputs={onSubmitAwaitingInputs}
       onXCardAction={onXCardAction}
       onDownloadAttachment={onDownloadAttachment}
