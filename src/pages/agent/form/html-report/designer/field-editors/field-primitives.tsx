@@ -1,4 +1,5 @@
 /** Inspector 字段编辑器共用的小部件:标签行、静态值控件、结构下拉、三态切换。 */
+import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -70,6 +71,34 @@ export function ValueControl({
 }
 
 /** 结构枚举下拉(恒 static) */
+/**
+ * 模态(Designer 全屏 Sheet)用 react-remove-scroll 锁滚动,会在 document 上 preventDefault
+ * 那些「不在锁定容器内」的滚轮;而本下拉 SelectContent 是 portal 到 body 的,正好落在容器外,
+ * 滚轮被吃掉(只能拖滚动条)。不动共享 select.tsx 的前提下,在 feature 侧用 window 捕获阶段的
+ * 滚轮兜底:抢在 scroll-lock 之前,对带标记类的下拉自管 scrollTop。仅装一次,只作用于本类。
+ */
+const WHEELABLE_CLASS = 'rpt-wheel-scroll'
+let wheelPatchInstalled = false
+function installSelectWheelPatch(): void {
+  if (wheelPatchInstalled || typeof window === 'undefined') return
+  wheelPatchInstalled = true
+  window.addEventListener(
+    'wheel',
+    (e: WheelEvent) => {
+      const target = e.target as Element | null
+      const el = target?.closest?.(`.${WHEELABLE_CLASS}`) as HTMLElement | null
+      if (!el) return // 非本类下拉:放行,不干预 scroll-lock 的正常行为
+      // 行/页模式归一到像素,避免 Firefox 行模式一格只滚几像素
+      const factor =
+        e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? el.clientHeight : 1
+      el.scrollTop += e.deltaY * factor
+      e.stopPropagation() // 抢在 document 上的 scroll-lock 监听之前截断
+      e.preventDefault() // 自管滚动,禁掉原生默认以免双重滚动
+    },
+    { capture: true, passive: false },
+  )
+}
+
 export function StructureSelect({
   value,
   options,
@@ -80,14 +109,17 @@ export function StructureSelect({
   onChange: (value: string) => void
 }) {
   const { t } = useTranslation()
+  useEffect(() => {
+    installSelectWheelPatch()
+  }, [])
   return (
     <Select value={value} onValueChange={onChange}>
       <SelectTrigger className="h-9 text-xs">
         <SelectValue />
       </SelectTrigger>
       {/* portal 到 body 的下拉会继承模态 Sheet 的 pointer-events:none,
-          点击会穿透到背后字段,显式恢复指针事件 */}
-      <SelectContent className="pointer-events-auto">
+          点击会穿透到背后字段,显式恢复指针事件;rpt-wheel-scroll 标记供上面的滚轮兜底识别 */}
+      <SelectContent className={`pointer-events-auto ${WHEELABLE_CLASS}`}>
         {options.map((opt) => (
           <SelectItem key={opt.value} value={opt.value} className="text-xs">
             {t(opt.labelKey, opt.fallback)}

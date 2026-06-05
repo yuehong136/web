@@ -150,6 +150,8 @@ test('hero eyebrow/subtitle + stat-card icon survive preview merge', () => {
     title: 'T',
     eyebrow: '2025 年度报告',
     subtitle: '一句话概述',
+    headerArt: 'medical',
+    headerLayout: 'card',
     sections: [
       {
         id: 's',
@@ -172,9 +174,16 @@ test('hero eyebrow/subtitle + stat-card icon survive preview merge', () => {
   const schema = buildPreviewSchema(skeleton)
   assert.equal(schema.eyebrow, '2025 年度报告')
   assert.equal(schema.subtitle, '一句话概述')
+  // 设计器手选的头图 + 排布也须透传,否则预览看不到图文卡
+  assert.equal(schema.headerArt, 'medical')
+  assert.equal(schema.headerLayout, 'card')
   assert.equal(firstBlock(schema.sections).icon, 'money')
+  const html = buildReportHtml(schema)
   // 显式 icon 落进渲染输出（对应的内联 svg 路径出现）
-  assert.match(buildReportHtml(schema), /rpt-stat-card__icon/)
+  assert.match(html, /rpt-stat-card__icon/)
+  // 头图 + card 排布落进渲染输出（出图 + 图文卡 markup）
+  assert.match(html, /rpt__header--card/)
+  assert.match(html, /data:image\/jpeg;base64/)
 })
 
 test('preview schema renders to a chart-bearing document with parseable specs', () => {

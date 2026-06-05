@@ -34,6 +34,10 @@ export interface ReportSchema {
   date?: string
   /** 报告作者/来源 */
   author?: string
+  /** Hero 头图 slug（命中 renderer/header-art 的 HEADER_ARTWORKS 才出图，否则纯文字 Hero） */
+  headerArt?: string
+  /** 头图与文字的排布；仅 headerArt 命中时生效，缺省 'band'（横幅在上） */
+  headerLayout?: HeaderLayout
   theme?: ThemeConfig
   sections: Section[]
 }
@@ -61,6 +65,16 @@ export type LayoutType =
   | 'three-column'
   | 'sidebar-left'
   | 'sidebar-right'
+
+/**
+ * Hero 头图与文字的排布（仅 headerArt 命中时生效）：
+ * - card:    图文卡——整块圆角卡，文字在左、头图融入右侧出血（要求素材左侧留白）
+ * - band:    横幅在上、文字在下（最稳，图纯装饰）
+ * - cover:   文字压在图上 + 底部渐变压暗（封面式）
+ * - split:   左文右图分栏
+ * - frosted: 满幅背景图 + 文字毛玻璃卡
+ */
+export type HeaderLayout = 'card' | 'band' | 'cover' | 'split' | 'frosted'
 
 /** sidebar 布局中的位置角色；非 sidebar 布局时可省略 */
 export type BlockRole = 'main' | 'side'
@@ -247,6 +261,10 @@ export interface SkeletonSchema {
   eyebrow?: string
   /** 报告副标题（设计器静态填）；运行时经 mergeSkeleton 透传到 ReportSchema */
   subtitle?: string
+  /** Hero 头图 slug（设计器手选；命中 renderer/header-art 才出图）；经 mergeSkeleton 透传 */
+  headerArt?: string
+  /** 头图排布（设计器手选）；仅 headerArt 命中时生效，经 mergeSkeleton 透传 */
+  headerLayout?: HeaderLayout
   /** 标题填充指令:缺省/static=用 title 字符串;llm=运行时按源文生成 */
   titleDirective?: FieldDirective
   /**

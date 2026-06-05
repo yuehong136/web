@@ -192,6 +192,8 @@ export function mergeSkeleton(
     // Hero 顶部字段:顶层透传(设计器静态填),否则连预览都拿不到
     eyebrow: skeleton.eyebrow,
     subtitle: skeleton.subtitle,
+    headerArt: skeleton.headerArt,
+    headerLayout: skeleton.headerLayout,
     theme: skeleton.theme,
     sections: skeleton.sections.map((section) => ({
       id: section.id,

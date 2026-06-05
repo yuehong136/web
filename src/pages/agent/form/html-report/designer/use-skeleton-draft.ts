@@ -9,6 +9,7 @@ import { setDirective, setFieldValue, makeId } from '../skeleton-utils'
 import type {
   BlockRole,
   FieldDirective,
+  HeaderLayout,
   LayoutType,
   SkeletonBlock,
   SkeletonSchema,
@@ -90,9 +91,10 @@ export type DraftAction =
     }
   | {
       type: 'setReportField'
-      key: 'title' | 'eyebrow' | 'subtitle'
+      key: 'title' | 'eyebrow' | 'subtitle' | 'headerArt'
       value: string
     }
+  | { type: 'setHeaderLayout'; layout: HeaderLayout }
   | { type: 'setTitleDirective'; directive: FieldDirective | null }
   | { type: 'select'; selection: Selection }
   | { type: 'undo' }
@@ -260,6 +262,8 @@ function nextPresent(
       )
     case 'setReportField':
       return { ...skeleton, [action.key]: action.value }
+    case 'setHeaderLayout':
+      return { ...skeleton, headerLayout: action.layout }
     case 'setTitleDirective': {
       const next = { ...skeleton }
       if (action.directive) next.titleDirective = action.directive

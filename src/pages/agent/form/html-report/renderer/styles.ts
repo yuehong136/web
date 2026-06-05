@@ -121,6 +121,66 @@ ${accentVars}
   font-size: 13px; color: var(--rpt-text-caption); display: flex; gap: 16px;
 }
 
+/* ----- hero 头图五种排布（缺图/未命中则回落上面的纯文字 Hero） ----- */
+/* 图文卡（对照设计图）：圆角大卡 + 浅蓝渐变底，文字左、头图融入右侧出血 */
+.rpt__header--card .rpt__card-hero { position: relative; display: flex; align-items: center;
+  min-height: 240px; border-radius: 20px; overflow: hidden;
+  border: 1px solid var(--rpt-border); box-shadow: var(--rpt-shadow-card);
+  background: linear-gradient(120deg, #ffffff 0%, #eef3fb 100%); }
+.rpt__card-img { position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; object-position: right center; }
+/* 左侧白→透明渐变：素材左侧留白处文字落在浅色区，对比足够；最左 0.8、50% 处透明，左半多留素材底色 */
+.rpt__header--card .rpt__card-hero::after { content: ""; position: absolute; inset: 0;
+  background: linear-gradient(90deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.5) 26%,
+    rgba(255,255,255,0) 50%); }
+.rpt__card-text { position: relative; z-index: 1; max-width: 66%; padding: 40px 44px; }
+.rpt__header--card .rpt__eyebrow { color: #ffffff; background: var(--rpt-accent-1); }
+.rpt__header--card .rpt__title { font-size: 40px; line-height: 1.18; }
+.rpt__header--card .rpt__meta { border-top: none; padding-top: 0; margin-top: 18px; }
+@media (max-width: 720px) {
+  .rpt__card-text { max-width: 100%; }
+  .rpt__header--card .rpt__card-hero::after {
+    background: linear-gradient(90deg, rgba(255,255,255,0.94) 0%, rgba(255,255,255,0.86) 100%); }
+  .rpt__header--card .rpt__title { font-size: 30px; }
+}
+
+/* A band：横幅在上、文字在下 */
+.rpt__art { border-radius: var(--rpt-radius-lg); overflow: hidden; margin-bottom: 20px;
+  box-shadow: var(--rpt-shadow-card); }
+.rpt__art-img { display: block; width: 100%; aspect-ratio: 3 / 1; object-fit: cover; }
+
+/* B cover：文字压在图上 + 底部渐变压暗 */
+.rpt__header--cover .rpt__cover { position: relative; display: flex; align-items: flex-end;
+  aspect-ratio: 5 / 2; min-height: 200px; border-radius: var(--rpt-radius-lg);
+  overflow: hidden; box-shadow: var(--rpt-shadow-card); }
+.rpt__cover-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.rpt__cover::after { content: ""; position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0) 35%, rgba(15, 23, 42, 0.78) 100%); }
+.rpt__cover-text { position: relative; z-index: 1; padding: 22px 26px; }
+.rpt__header--cover .rpt__title { color: #ffffff; border-left-color: rgba(255, 255, 255, 0.85); }
+.rpt__header--cover .rpt__subtitle { color: rgba(255, 255, 255, 0.9); }
+.rpt__header--cover .rpt__eyebrow { color: #ffffff; background: rgba(255, 255, 255, 0.22); }
+
+/* C split：左文右图 */
+.rpt__header--split { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 24px;
+  align-items: center; }
+.rpt__split-art { border-radius: var(--rpt-radius-lg); overflow: hidden;
+  box-shadow: var(--rpt-shadow-card); }
+.rpt__split-img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
+@media (max-width: 720px) { .rpt__header--split { grid-template-columns: 1fr; } }
+
+/* D frosted：满幅背景 + 文字毛玻璃卡 */
+.rpt__header--frosted .rpt__frost { position: relative; display: flex; padding: 32px 26px;
+  border-radius: var(--rpt-radius-lg); overflow: hidden; box-shadow: var(--rpt-shadow-card); }
+.rpt__frost-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.rpt__header--frosted .rpt__frost::after { content: ""; position: absolute; inset: 0;
+  background: rgba(15, 23, 42, 0.25); }
+.rpt__frost-card { position: relative; z-index: 1; width: 100%;
+  background: rgba(255, 255, 255, 0.74);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.55); border-radius: var(--rpt-radius);
+  padding: 22px 24px; }
+
 /* ----- section ----- */
 .rpt-section { margin-bottom: 40px; }
 .rpt-section__header {

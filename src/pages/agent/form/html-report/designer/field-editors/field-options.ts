@@ -90,6 +90,65 @@ export const ICON_OPTIONS: EnumOption[] = [
   },
 ]
 
+/**
+ * Hero 头图选项。首项 `'none'` 是「无头图」哨兵(不在 header-art 注册表,
+ * resolveHeaderArt 落空 → 纯文字 Hero);其余 `value` 必须与 `renderer/header-art.ts`
+ * 的 `HEADER_ARTWORKS` 键一致。
+ */
+export const HEADER_ART_OPTIONS: EnumOption[] = [
+  { value: 'none', labelKey: 'flow.htmlReportHeaderArtNone', fallback: 'None' },
+  {
+    value: 'medical',
+    labelKey: 'flow.htmlReportHeaderArtMedical',
+    fallback: 'Healthcare',
+  },
+  {
+    value: 'business',
+    labelKey: 'flow.htmlReportHeaderArtBusiness',
+    fallback: 'Business growth',
+  },
+  {
+    value: 'government',
+    labelKey: 'flow.htmlReportHeaderArtGovernment',
+    fallback: 'Government',
+  },
+  {
+    value: 'tourism',
+    labelKey: 'flow.htmlReportHeaderArtTourism',
+    fallback: 'Culture & tourism',
+  },
+  {
+    value: 'ecology',
+    labelKey: 'flow.htmlReportHeaderArtEcology',
+    fallback: 'Ecology',
+  },
+  {
+    value: 'campus',
+    labelKey: 'flow.htmlReportHeaderArtCampus',
+    fallback: 'Campus',
+  },
+  {
+    value: 'campus-talent',
+    labelKey: 'flow.htmlReportHeaderArtCampusTalent',
+    fallback: 'Campus · talent',
+  },
+  {
+    value: 'campus-growth',
+    labelKey: 'flow.htmlReportHeaderArtCampusGrowth',
+    fallback: 'Campus · development',
+  },
+  {
+    value: 'campus-teaching',
+    labelKey: 'flow.htmlReportHeaderArtCampusTeaching',
+    fallback: 'Campus · teaching',
+  },
+  {
+    value: 'campus-data',
+    labelKey: 'flow.htmlReportHeaderArtCampusData',
+    fallback: 'Campus · data governance',
+  },
+]
+
 export const ORDERED_OPTIONS: EnumOption[] = [
   {
     value: 'false',

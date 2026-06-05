@@ -10,6 +10,7 @@ import type {
   Block,
   BlockKind,
   FieldDirective,
+  HeaderLayout,
   ReportSchema,
   Section,
   SkeletonBlock,
@@ -28,6 +29,15 @@ export class SkeletonImportError extends Error {
 
 /** 合法块类型(含生成区占位)。 */
 const VALID_KINDS = new Set<string>([...BLOCK_KINDS, 'open-region'])
+
+/** 合法头图排布(导入保真校验用)。与 types.ts 的 HeaderLayout 联合对齐。 */
+const HEADER_LAYOUTS = new Set<string>([
+  'card',
+  'band',
+  'cover',
+  'split',
+  'frosted',
+])
 
 const str = (v: unknown): string | undefined =>
   typeof v === 'string' ? v : undefined
@@ -82,6 +92,13 @@ export function parseSkeletonJson(text: string): SkeletonSchema {
   // 走 coerceSection 的整段展开,天然保真。
   if (typeof parsed.layoutFirst === 'boolean')
     schema.layoutFirst = parsed.layoutFirst
+  // Hero 头图(设计器手选)同样是显式重建,须保留,否则导出→导入丢
+  if (typeof parsed.headerArt === 'string') schema.headerArt = parsed.headerArt
+  if (
+    typeof parsed.headerLayout === 'string' &&
+    HEADER_LAYOUTS.has(parsed.headerLayout)
+  )
+    schema.headerLayout = parsed.headerLayout as HeaderLayout
   if (isObj(parsed.theme)) schema.theme = parsed.theme as ThemeConfig
   return schema
 }

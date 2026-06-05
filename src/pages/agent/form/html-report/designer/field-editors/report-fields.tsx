@@ -5,7 +5,12 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import type { FieldMode, SkeletonSchema } from '../../types'
 import type { DraftAction } from '../use-skeleton-draft'
-import { InspectorHeading, ModeSwitch } from './field-primitives'
+import { HEADER_ART_OPTIONS } from './field-options'
+import {
+  InspectorHeading,
+  ModeSwitch,
+  StructureSelect,
+} from './field-primitives'
 
 interface ReportFieldsProps {
   present: SkeletonSchema
@@ -19,6 +24,11 @@ export function ReportFields({ present, dispatch }: ReportFieldsProps) {
   const { t } = useTranslation()
   const titleMode: FieldMode =
     present.titleDirective?.mode === 'llm' ? 'llm' : 'static'
+  // 头图:undefined/'' 一律视为「无」哨兵 'none';排布固定图文卡(渲染器缺省即 card)
+  const headerArt =
+    present.headerArt && present.headerArt !== 'none'
+      ? present.headerArt
+      : 'none'
 
   return (
     <div className="space-y-space-md p-space-base">
@@ -112,6 +122,20 @@ export function ReportFields({ present, dispatch }: ReportFieldsProps) {
               key: 'subtitle',
               value: e.target.value,
             })
+          }
+        />
+      </div>
+
+      {/* Hero 头图:手选素材;默认「无」= 纯文字 Hero,选图即用图文卡排布 */}
+      <div className="space-y-space-xs">
+        <Label className="text-xs text-text-secondary">
+          {t('flow.htmlReportHeaderArt', 'Header image')}
+        </Label>
+        <StructureSelect
+          value={headerArt}
+          options={HEADER_ART_OPTIONS}
+          onChange={(value) =>
+            dispatch({ type: 'setReportField', key: 'headerArt', value })
           }
         />
       </div>
