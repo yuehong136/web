@@ -555,6 +555,12 @@ export default {
     htmlReportSource: 'Source material',
     htmlReportSourceDesc:
       'Upstream content used to fill the report at run time.',
+    htmlReportParallelFill: 'Parallel fill',
+    htmlReportParallelFillDesc:
+      'Fill sections by calling the model concurrently to speed up generation; off runs section by section.',
+    htmlReportConcurrency: 'Concurrency limit',
+    htmlReportConcurrencyDesc:
+      'Max simultaneous model calls when parallel (covers section fills and titles).',
     htmlReportDesignerTitle: 'Report designer',
     htmlReportDesignerDesc: 'Lay out report sections, blocks and charts',
     htmlReportUndo: 'Undo',

@@ -22,6 +22,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { Switch } from '@/components/ui/switch'
 import { useFetchAgent } from '../../hooks/use-fetch-data'
 import { useFormValues } from '../../hooks/use-form-values'
 import { useSaveGraph } from '../../hooks/use-save-graph'
@@ -31,7 +32,11 @@ import type { INextOperatorForm } from '../../types'
 import { FormWrapper } from '../components'
 import { LLMSelectField } from '../components/llm-select-field'
 import { QueryVariable } from '../components/query-variable'
-import { DEFAULT_TEMPERATURE, initialHTMLReportValues } from './constants'
+import {
+  DEFAULT_FILL_CONCURRENCY,
+  DEFAULT_TEMPERATURE,
+  initialHTMLReportValues,
+} from './constants'
 import { Designer } from './designer'
 import { summarizeSkeleton } from './skeleton-utils'
 import type { SkeletonSchema } from './types'
@@ -41,6 +46,10 @@ interface HTMLReportFormValues {
   query?: string
   llm_id?: string
   temperature?: number
+  /** 是否并行填充各小节(关则逐节串行) */
+  parallel_fill?: boolean
+  /** 并行时的并发上限(同时在飞的模型调用数) */
+  fill_concurrency?: number
   outputs?: Record<string, unknown>
 }
 
@@ -123,6 +132,74 @@ export function HTMLReportForm({ node }: INextOperatorForm) {
               </FormItem>
             )}
           />
+
+          {/* 生成性能:是否并行填充各小节 + 并发上限 */}
+          <FormField
+            control={form.control}
+            name="parallel_fill"
+            render={({ field }) => (
+              <FormItem className="gap-space-base flex items-center justify-between">
+                <div className="space-y-space-2xs">
+                  <FormLabel>
+                    {t('flow.htmlReportParallelFill', 'Parallel fill')}
+                  </FormLabel>
+                  <p className="text-text-caption text-xs">
+                    {t(
+                      'flow.htmlReportParallelFillDesc',
+                      'Fill sections by calling the model concurrently to speed up generation; off runs section by section.',
+                    )}
+                  </p>
+                </div>
+                <FormControl>
+                  <Switch
+                    checked={field.value ?? true}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+
+          {form.watch('parallel_fill') !== false && (
+            <FormField
+              control={form.control}
+              name="fill_concurrency"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    {t('flow.htmlReportConcurrency', 'Concurrency limit')}
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      min={1}
+                      max={16}
+                      step={1}
+                      value={field.value ?? DEFAULT_FILL_CONCURRENCY}
+                      onChange={(event) =>
+                        field.onChange(
+                          Math.max(
+                            1,
+                            Math.floor(
+                              Number(event.target.value) ||
+                                DEFAULT_FILL_CONCURRENCY,
+                            ),
+                          ),
+                        )
+                      }
+                    />
+                  </FormControl>
+                  <p className="text-text-caption text-xs">
+                    {t(
+                      'flow.htmlReportConcurrencyDesc',
+                      'Max simultaneous model calls when parallel (covers section fills and titles).',
+                    )}
+                  </p>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
 
           {/* 报告骨架摘要 */}
           <div className="space-y-space-sm rounded-radius-lg bg-surface-secondary p-space-base border border-border-default">

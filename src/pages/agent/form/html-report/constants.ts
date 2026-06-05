@@ -141,6 +141,9 @@ export const DEFAULT_THEME: Required<ThemeConfig> = {
 /** 默认温度（与多数 chat 算子一致的低发散取值） */
 export const DEFAULT_TEMPERATURE = 0.1
 
+/** 默认填充并发上限（与后端 report_fill.DEFAULT_FILL_CONCURRENCY 对齐） */
+export const DEFAULT_FILL_CONCURRENCY = 4
+
 /**
  * HTMLReport 节点的表单初始值。
  *
@@ -152,6 +155,8 @@ export const DEFAULT_TEMPERATURE = 0.1
  * - `query`：源料的上游变量引用，运行时填充报告所据的内容。
  * - `llm_id`：填充用 chat 模型（`name@provider` 形式）。
  * - `temperature`：生成温度。
+ * - `parallel_fill`：是否并行填充各小节（默认开，提速；关则逐节串行）。
+ * - `fill_concurrency`：并行时的并发上限（同时在飞的模型调用数）。
  */
 export const initialHTMLReportValues = {
   skeleton: {
@@ -162,5 +167,7 @@ export const initialHTMLReportValues = {
   query: '',
   llm_id: '',
   temperature: DEFAULT_TEMPERATURE,
+  parallel_fill: true,
+  fill_concurrency: DEFAULT_FILL_CONCURRENCY,
   outputs: {} as Record<string, unknown>,
 }

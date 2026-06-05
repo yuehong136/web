@@ -262,6 +262,12 @@ export default {
     htmlReportSummaryPending: '待填字段',
     htmlReportSource: '源料',
     htmlReportSourceDesc: '运行时用于填充报告的上游内容。',
+    htmlReportParallelFill: '并行填充',
+    htmlReportParallelFillDesc:
+      '各小节同时调用模型填充以加快生成;关闭则逐节串行。',
+    htmlReportConcurrency: '并发上限',
+    htmlReportConcurrencyDesc:
+      '并行时同时进行的模型调用数上限(含小节填充与标题生成)。',
     htmlReportDesignerTitle: '报告编排器',
     htmlReportDesignerDesc: '编排报告的小节、内容块与图表',
     htmlReportUndo: '撤销',
