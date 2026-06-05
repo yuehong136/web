@@ -768,6 +768,41 @@ export interface KnowledgeBase {
   enable_metadata?: boolean
 }
 
+/**
+ * RESTful `/api/v1/datasets` 传输契约（transport DTO）。
+ *
+ * 后端 `remap_dictionary_keys` 重命名了 4 个字段：
+ * `doc_num→document_count`、`chunk_num→chunk_count`、
+ * `parser_id→chunk_method`、`embd_id→embedding_model`。
+ * 仅在 API 边界（`src/api/knowledge.ts` 的 `normalizeDataset`）出现；
+ * 前端业务层一律消费稳定的 {@link KnowledgeBase}，不直接依赖本类型。
+ */
+export interface DatasetDTO {
+  id: string
+  name: string
+  avatar?: string | null
+  description?: string | null
+  tenant_id?: string
+  permission?: string
+  language?: string
+  // 重命名后的字段
+  document_count?: number
+  chunk_count?: number
+  chunk_method?: string
+  embedding_model?: string
+  // 透传字段
+  token_num?: number
+  nickname?: string
+  tenant_avatar?: string | null
+  created_by?: string
+  parser_config?: Record<string, any>
+  pagerank?: number
+  status?: string
+  update_time?: number
+  create_time?: string
+  [key: string]: unknown
+}
+
 export interface CreateKBRequest {
   name: string
   description?: string

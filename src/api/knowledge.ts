@@ -1,6 +1,8 @@
-import { apiClient } from './client'
+import { apiClient, type ApiEnvelope } from './client'
+import { API_BASE_URL } from '@/constants'
 import type {
   KnowledgeBase,
+  DatasetDTO,
   CreateKBRequest,
   UpdateKBRequest,
   Document,
@@ -18,68 +20,144 @@ import type {
   IDocumentInfoFilter,
 } from '../types/api'
 
+/**
+ * apiClient baseURL 覆盖，使请求走 RESTful `/api/v1/...`（对标 src/api/memory.ts）。
+ * 最终 URL = `${API_BASE_URL}/api` + `/v1/datasets...`。
+ */
+const sdkBase = { baseURL: `${API_BASE_URL}/api` }
+
+/**
+ * 防腐层：RESTful dataset 传输 DTO → 前端稳定领域模型 KnowledgeBase。
+ * 仅吸收后端 `remap_dictionary_keys` 的 4 个字段名差异，其余字段透传。
+ */
+export const normalizeDataset = (dto: DatasetDTO): KnowledgeBase =>
+  ({
+    ...dto,
+    doc_num: dto.document_count ?? 0,
+    chunk_num: dto.chunk_count ?? 0,
+    parser_id: dto.chunk_method ?? 'naive',
+    embd_id: dto.embedding_model ?? '',
+  }) as unknown as KnowledgeBase
+
+/** toDatasetBody 的入参：CreateKBRequest 与 UpdateKBRequest 的并集（取较宽松的可空类型）。 */
+type DatasetBodyInput = {
+  name?: string
+  description?: string | null
+  avatar?: string | null
+  permission?: string | null
+  parser_id?: string | null
+  embd_id?: string | null
+  parser_config?: Record<string, any> | null
+  language?: string | null
+  pagerank?: number | null
+  similarity_threshold?: number
+  vector_similarity_weight?: number
+}
+
+/**
+ * CreateKBRequest / UpdateKBRequest → RESTful dataset 请求体。
+ * 命名字段两端 pydantic 均接受；其余旧字段（language/pagerank/相似度权重）走 `ext` 透传，
+ * 后端 create/update 都会把 `ext` 合并回建库/更新参数。
+ */
+const toDatasetBody = (data: DatasetBodyInput): Record<string, unknown> => {
+  const body: Record<string, unknown> = {}
+  if (data.name !== undefined) body.name = data.name
+  if (data.description !== undefined && data.description !== null)
+    body.description = data.description
+  if (data.avatar !== undefined && data.avatar !== null)
+    body.avatar = data.avatar
+  if (data.permission !== undefined && data.permission !== null)
+    body.permission = data.permission
+  if (data.parser_id !== undefined && data.parser_id !== null)
+    body.chunk_method = data.parser_id
+  if (data.embd_id !== undefined && data.embd_id !== null)
+    body.embedding_model = data.embd_id
+  if (data.parser_config !== undefined && data.parser_config !== null)
+    body.parser_config = data.parser_config
+
+  const ext: Record<string, unknown> = {}
+  if (data.language !== undefined) ext.language = data.language
+  if (data.pagerank !== undefined && data.pagerank !== null)
+    ext.pagerank = data.pagerank
+  if (data.similarity_threshold !== undefined)
+    ext.similarity_threshold = data.similarity_threshold
+  if (data.vector_similarity_weight !== undefined)
+    ext.vector_similarity_weight = data.vector_similarity_weight
+  if (Object.keys(ext).length > 0) body.ext = ext
+
+  return body
+}
+
 export const knowledgeAPI = {
   // 知识库管理
   knowledgeBase: {
-    // 获取知识库列表 - 使用POST方法，匹配后端ListKbsRequest
-    list: (params?: {
+    // 获取知识库列表 —— RESTful GET /api/v1/datasets
+    // 总数在信封顶层 total_datasets，经 withEnvelope 取回；DTO 经 normalizeDataset 还原为 KnowledgeBase。
+    list: async (params?: {
       page?: number
       page_size?: number
       orderby?: string
       desc?: boolean
       keywords?: string
       owner_ids?: string[]
-      filter_params?: {
-        permissions?: string[]
-        languages?: string[]
-        parser_ids?: string[]
-        embd_ids?: string[]
-        doc_num_range?: [number, number]
-        time_range?: string
-      }
+      parser_id?: string
     }): Promise<{ kbs: KnowledgeBase[]; total: number }> => {
-      // 后端按 1 基页码分页，这里直接透传（默认第一页）
-      const page = params?.page ?? 1
-      const pageSize = params?.page_size ?? 12
+      const query = new URLSearchParams()
+      query.set('page', String(params?.page ?? 1))
+      query.set('page_size', String(params?.page_size ?? 12))
+      query.set('orderby', params?.orderby || 'update_time')
+      query.set('desc', String(params?.desc ?? true))
+      if (params?.keywords) query.set('keywords', params.keywords)
+      if (params?.parser_id) query.set('parser_id', params.parser_id)
+      // owner_ids 为可重复 query 参数：?owner_ids=a&owner_ids=b
+      for (const id of params?.owner_ids ?? []) query.append('owner_ids', id)
 
-      // 构建查询参数（保留 1 基页码）
-      const queryParams = new URLSearchParams({
-        page: page.toString(),
-        page_size: pageSize.toString(),
-        orderby: params?.orderby || 'update_time',
-        desc: (params?.desc ?? true).toString(),
-        keywords: params?.keywords || '',
-      })
-
-      return apiClient.post(`/v1/kb/list?${queryParams.toString()}`, {
-        owner_ids: params?.owner_ids || [],
-        filter_params: params?.filter_params || {},
-      })
+      const env = await apiClient.get<ApiEnvelope<DatasetDTO[]>>(
+        `/v1/datasets?${query.toString()}`,
+        { ...sdkBase, withEnvelope: true },
+      )
+      return {
+        kbs: (env.data ?? []).map(normalizeDataset),
+        total: env.total ?? 0,
+      }
     },
 
     // 获取知识库详情
     get: (kbId: string): Promise<KnowledgeBase> =>
       apiClient.get(`/v1/kb/detail?kb_id=${kbId}`),
 
-    // 创建知识库
-    create: (data: CreateKBRequest): Promise<{ kb_id: string }> =>
-      apiClient.post('/v1/kb/create', data),
+    // 创建知识库 —— RESTful POST /api/v1/datasets（对外仍返回 { kb_id }）
+    create: async (data: CreateKBRequest): Promise<{ kb_id: string }> => {
+      const ds = await apiClient.post<DatasetDTO>(
+        '/v1/datasets',
+        toDatasetBody(data),
+        sdkBase,
+      )
+      return { kb_id: ds.id }
+    },
 
-    // 更新知识库
-    update: (data: UpdateKBRequest): Promise<KnowledgeBase> =>
-      apiClient.post('/v1/kb/update', data),
+    // 更新知识库 —— RESTful PUT /api/v1/datasets/{dataset_id}
+    update: async (data: UpdateKBRequest): Promise<KnowledgeBase> => {
+      const ds = await apiClient.put<DatasetDTO>(
+        `/v1/datasets/${data.kb_id}`,
+        toDatasetBody(data),
+        sdkBase,
+      )
+      return normalizeDataset(ds)
+    },
 
-    // 删除知识库
+    // 删除知识库 —— RESTful DELETE /api/v1/datasets，body { ids:[...] }
     delete: (kbId: string): Promise<void> =>
-      apiClient.post('/v1/kb/rm', { kb_id: kbId }),
+      apiClient.delete('/v1/datasets', { ...sdkBase, data: { ids: [kbId] } }),
 
-    // 复制知识库
+    // 复制知识库（无 RESTful 等价物，保留旧端点）
     duplicate: (kbId: string, newName: string): Promise<{ kb_id: string }> =>
       apiClient.post(`/v1/kb/${kbId}/duplicate`, { name: newName }),
 
-    // 获取知识图谱
+    // 获取知识图谱 —— RESTful GET /api/v1/datasets/{dataset_id}/knowledge_graph
+    // 返回 { graph:{nodes,edges}, mind_map }，由 use-knowledge-request 的 normalizeGraphResponse 兼容
     getKnowledgeGraph: (kbId: string): Promise<KnowledgeGraph> =>
-      apiClient.get(`/v1/kb/${kbId}/knowledge_graph`),
+      apiClient.get(`/v1/datasets/${kbId}/knowledge_graph`, sdkBase),
 
     // 搜索知识库
     search: (data: {
@@ -790,12 +868,18 @@ export const knowledgeAPI = {
 
   // GraphRAG / RAPTOR 生成任务
   generate: {
+    // RESTful POST /api/v1/datasets/{dataset_id}/run_graphrag（id 进路径，无 body）
     runGraphRag: (payload: {
       kb_id: string
       doc_ids?: string[]
     }): Promise<{ graphrag_task_id: string }> =>
-      apiClient.post('/v1/kb/run_graphrag', payload),
+      apiClient.post(
+        `/v1/datasets/${payload.kb_id}/run_graphrag`,
+        undefined,
+        sdkBase,
+      ),
 
+    // RESTful GET /api/v1/datasets/{dataset_id}/trace_graphrag
     traceGraphRag: (
       kbId: string,
     ): Promise<
@@ -810,14 +894,20 @@ export const knowledgeAPI = {
           task_type: string
         }
       | Record<string, never>
-    > => apiClient.get(`/v1/kb/trace_graphrag?kb_id=${kbId}`),
+    > => apiClient.get(`/v1/datasets/${kbId}/trace_graphrag`, sdkBase),
 
+    // RESTful POST /api/v1/datasets/{dataset_id}/run_raptor（id 进路径，无 body）
     runRaptor: (payload: {
       kb_id: string
       doc_ids?: string[]
     }): Promise<{ raptor_task_id: string }> =>
-      apiClient.post('/v1/kb/run_raptor', payload),
+      apiClient.post(
+        `/v1/datasets/${payload.kb_id}/run_raptor`,
+        undefined,
+        sdkBase,
+      ),
 
+    // RESTful GET /api/v1/datasets/{dataset_id}/trace_raptor
     traceRaptor: (
       kbId: string,
     ): Promise<
@@ -832,7 +922,7 @@ export const knowledgeAPI = {
           task_type: string
         }
       | Record<string, never>
-    > => apiClient.get(`/v1/kb/trace_raptor?kb_id=${kbId}`),
+    > => apiClient.get(`/v1/datasets/${kbId}/trace_raptor`, sdkBase),
 
     unbindPipelineTask: (params: {
       kb_id: string

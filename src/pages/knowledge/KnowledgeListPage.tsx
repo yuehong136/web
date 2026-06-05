@@ -2,7 +2,6 @@ import type { FC } from 'react'
 import {
   ArrowUpDown,
   Database,
-  Filter,
   Grid3X3,
   List as ListIcon,
   Plus,
@@ -13,18 +12,12 @@ import { Button } from '@/components/ui/button'
 import { CustomSelect } from '@/components/ui/custom-select'
 import { Input } from '@/components/ui/input'
 import { Loading } from '@/components/ui/loading'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
 import { ViewToggle } from '@/components/ui/view-toggle'
 import { KnowledgeListView } from '@/components/knowledge'
 import { ListPageTemplate } from '@/components/page-templates'
 import { PageEmptyState } from '@/components/patterns/page-states'
 import { CreateKnowledgeModal } from './components/CreateKnowledgeModal'
 import { KnowledgeCard } from './list/knowledge-card'
-import { KnowledgeFilterPanel } from './list/knowledge-filter-panel'
 import { KnowledgeListPagination } from './list/knowledge-list-pagination'
 import { KnowledgeListStats } from './list/knowledge-list-stats'
 import { KnowledgeQuickEditDialog } from './list/quick-edit-modal'
@@ -36,7 +29,7 @@ export const KnowledgeListPage: FC = () => {
   const emptyState = (
     <PageEmptyState
       action={
-        !page.searchQuery && !page.hasActiveFilters ? (
+        !page.hasActiveSearch ? (
           <Button onClick={() => page.setShowCreateModal(true)}>
             <Plus className="h-4 w-4" />
             {page.t('knowledge.list.actions.create')}
@@ -44,13 +37,13 @@ export const KnowledgeListPage: FC = () => {
         ) : undefined
       }
       description={
-        page.searchQuery || page.hasActiveFilters
+        page.hasActiveSearch
           ? page.t('knowledge.list.empty.filteredDescription')
           : page.t('knowledge.list.empty.description')
       }
       icon={<Database className="h-6 w-6" />}
       title={
-        page.searchQuery || page.hasActiveFilters
+        page.hasActiveSearch
           ? page.t('knowledge.list.empty.filteredTitle')
           : page.t('knowledge.list.empty.title')
       }
@@ -59,45 +52,6 @@ export const KnowledgeListPage: FC = () => {
 
   const toolbarRight = (
     <>
-      <Popover
-        onOpenChange={page.setFilterPopoverOpen}
-        open={page.filterPopoverOpen}
-      >
-        <PopoverTrigger asChild>
-          <Button
-            className={
-              page.hasActiveFilters
-                ? 'h-9 border-state-focus bg-state-focus-subtle text-state-focus'
-                : 'h-9'
-            }
-            size="sm"
-            variant="outline"
-          >
-            <Filter className="h-4 w-4" />
-            {page.t('knowledge.list.filters.trigger')}
-            {page.hasActiveFilters ? (
-              <span className="rounded-radius-full px-space-sm ml-1 inline-flex items-center justify-center bg-state-focus py-0.5 text-xs font-bold leading-none text-text-inverted">
-                {page.activeFilterCount}
-              </span>
-            ) : null}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent align="end" className="w-[980px] p-0">
-          <KnowledgeFilterPanel
-            clearAllFilters={page.clearAllFilters}
-            embeddingOptions={page.embeddingOptions}
-            filters={page.filters}
-            hasActiveFilters={page.hasActiveFilters}
-            languageOptions={page.languageOptions}
-            parserOptions={page.parserOptions}
-            permissionOptions={page.permissionOptions}
-            searchQuery={page.searchQuery}
-            setFilters={page.setFilters}
-            timeRangeOptions={page.timeRangeOptions}
-          />
-        </PopoverContent>
-      </Popover>
-
       <CustomSelect
         className="min-w-[110px]"
         onChange={(value) =>
@@ -143,7 +97,7 @@ export const KnowledgeListPage: FC = () => {
   const content =
     page.viewMode === 'grid' ? (
       <div className="gap-space-base grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
-        {page.filteredKnowledgeBases.map((knowledgeBase) => (
+        {page.knowledgeBases.map((knowledgeBase) => (
           <KnowledgeCard
             formatTime={page.formatTime}
             getStatusClassName={page.getStatusClassName}
@@ -162,7 +116,7 @@ export const KnowledgeListPage: FC = () => {
       </div>
     ) : (
       <KnowledgeListView
-        data={page.filteredKnowledgeBases}
+        data={page.knowledgeBases}
         getStatusColor={page.getStatusClassName}
         getStatusText={page.getStatusText}
         isLoading={page.isLoading}
@@ -218,7 +172,7 @@ export const KnowledgeListPage: FC = () => {
         state={
           page.isLoading
             ? 'loading'
-            : page.filteredKnowledgeBases.length === 0
+            : page.knowledgeBases.length === 0
               ? 'empty'
               : 'content'
         }

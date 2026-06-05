@@ -5,29 +5,10 @@ import { ROUTES } from '@/constants'
 import { useKnowledgeStore } from '@/stores/knowledge'
 import { useUIStore } from '@/stores/ui'
 import type { KnowledgeBase } from '@/types/api'
-import { DEFAULT_KNOWLEDGE_FILTERS, DEFAULT_PAGE_SIZE } from './constants'
+import { DEFAULT_PAGE_SIZE } from './constants'
 import { useQuickEdit } from './use-quick-edit'
-import {
-  formatKnowledgeTime,
-  getStatusClassName,
-  getUniqueOptions,
-  matchesKnowledgeFilters,
-} from './utils'
-import type {
-  KnowledgeFilterOption,
-  KnowledgeFilterState,
-  KnowledgeTimeFormat,
-  KnowledgeViewMode,
-} from './types'
-
-const getPermissionLabel = (
-  permission: string,
-  t: ReturnType<typeof useTranslation>['t'],
-) => {
-  if (permission === 'me') return t('knowledge.list.filters.permission.me')
-  if (permission === 'team') return t('knowledge.list.filters.permission.team')
-  return permission
-}
+import { formatKnowledgeTime, getStatusClassName } from './utils'
+import type { KnowledgeTimeFormat, KnowledgeViewMode } from './types'
 
 export const useKnowledgeListPage = () => {
   const navigate = useNavigate()
@@ -49,47 +30,23 @@ export const useKnowledgeListPage = () => {
     'update_time',
   )
   const [sortDesc, setSortDesc] = useState(true)
-  const [filterPopoverOpen, setFilterPopoverOpen] = useState(false)
   const [timeFormat, setTimeFormat] = useState<KnowledgeTimeFormat>('detailed')
   const [editingKnowledgeBase, setEditingKnowledgeBase] =
     useState<KnowledgeBase | null>(null)
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
-  const [filters, setFilters] = useState<KnowledgeFilterState>(
-    DEFAULT_KNOWLEDGE_FILTERS,
-  )
-
-  const backendFilterParams = useMemo(
-    () => ({
-      permissions:
-        filters.permissions.length > 0 ? filters.permissions : undefined,
-      languages: filters.languages.length > 0 ? filters.languages : undefined,
-      parser_ids:
-        filters.parser_ids.length > 0 ? filters.parser_ids : undefined,
-      embd_ids: filters.embd_ids.length > 0 ? filters.embd_ids : undefined,
-    }),
-    [filters],
-  )
 
   const loadCurrentPage = useCallback(() => {
+    // 仅传后端能准确分页/计数的条件：关键词搜索 + 排序 + 分页
     loadKnowledgeBases({
       page: currentPage,
       page_size: pageSize,
       orderby: sortBy,
       desc: sortDesc,
       keywords: searchQuery,
-      filter_params: backendFilterParams,
     })
-  }, [
-    backendFilterParams,
-    currentPage,
-    loadKnowledgeBases,
-    pageSize,
-    searchQuery,
-    sortBy,
-    sortDesc,
-  ])
+  }, [currentPage, loadKnowledgeBases, pageSize, searchQuery, sortBy, sortDesc])
 
   useEffect(() => {
     loadCurrentPage()
@@ -97,49 +54,9 @@ export const useKnowledgeListPage = () => {
 
   useEffect(() => {
     setCurrentPage((prevPage) => (prevPage === 1 ? prevPage : 1))
-  }, [filters, searchQuery])
-
-  const filteredKnowledgeBases = useMemo(() => {
-    const now = Date.now()
-    return knowledgeBases.filter((knowledgeBase) =>
-      matchesKnowledgeFilters(knowledgeBase, filters, now),
-    )
-  }, [filters, knowledgeBases])
+  }, [searchQuery])
 
   const totalPages = Math.ceil(total / pageSize)
-
-  const permissionOptions = useMemo<KnowledgeFilterOption[]>(() => {
-    return getUniqueOptions(knowledgeBases, 'permission').map((option) => ({
-      ...option,
-      label: getPermissionLabel(option.value, t),
-    }))
-  }, [knowledgeBases, t])
-
-  const languageOptions = useMemo(
-    () => getUniqueOptions(knowledgeBases, 'language'),
-    [knowledgeBases],
-  )
-
-  const parserOptions = useMemo(
-    () => getUniqueOptions(knowledgeBases, 'parser_id'),
-    [knowledgeBases],
-  )
-
-  const embeddingOptions = useMemo(
-    () => getUniqueOptions(knowledgeBases, 'embd_id'),
-    [knowledgeBases],
-  )
-
-  const timeRangeOptions = useMemo(
-    () => [
-      { value: 'all', label: t('knowledge.list.filters.time.all') },
-      { value: 'today', label: t('knowledge.list.filters.time.today') },
-      { value: 'week', label: t('knowledge.list.filters.time.week') },
-      { value: 'month', label: t('knowledge.list.filters.time.month') },
-      { value: 'quarter', label: t('knowledge.list.filters.time.quarter') },
-    ],
-    [t],
-  )
 
   const timeFormatOptions = useMemo(
     () => [
@@ -150,34 +67,8 @@ export const useKnowledgeListPage = () => {
     [t],
   )
 
-  const hasActiveFilters = useMemo(
-    () =>
-      filters.permissions.length > 0 ||
-      filters.languages.length > 0 ||
-      filters.parser_ids.length > 0 ||
-      filters.embd_ids.length > 0 ||
-      filters.doc_num_range.length > 0 ||
-      filters.time_range !== 'all' ||
-      searchQuery.trim() !== '',
-    [filters, searchQuery],
-  )
-
-  const activeFilterCount = useMemo(
-    () =>
-      filters.permissions.length +
-      filters.languages.length +
-      filters.parser_ids.length +
-      filters.embd_ids.length +
-      filters.doc_num_range.length +
-      (filters.time_range !== 'all' ? 1 : 0) +
-      (searchQuery.trim() ? 1 : 0),
-    [filters, searchQuery],
-  )
-
-  const clearAllFilters = useCallback(() => {
-    setFilters(DEFAULT_KNOWLEDGE_FILTERS)
-    setSearchQuery('')
-  }, [setSearchQuery])
+  // 列表只保留后端可信筛选：关键词搜索。是否处于筛选态即「有搜索词」。
+  const hasActiveSearch = searchQuery.trim() !== ''
 
   const formatTime = useCallback(
     (timestamp: number) => formatKnowledgeTime(timestamp, timeFormat),
@@ -298,21 +189,15 @@ export const useKnowledgeListPage = () => {
 
   const toggleSelectAll = useCallback(() => {
     setSelectedBases((prev) =>
-      prev.length === filteredKnowledgeBases.length
+      prev.length === knowledgeBases.length
         ? []
-        : filteredKnowledgeBases.map((knowledgeBase) => knowledgeBase.id),
+        : knowledgeBases.map((knowledgeBase) => knowledgeBase.id),
     )
-  }, [filteredKnowledgeBases])
+  }, [knowledgeBases])
 
   return {
-    activeFilterCount,
-    clearAllFilters,
     currentPage,
     editingKnowledgeBase,
-    embeddingOptions,
-    filterPopoverOpen,
-    filteredKnowledgeBases,
-    filters,
     formatTime,
     getStatusClassName,
     getStatusText,
@@ -321,19 +206,14 @@ export const useKnowledgeListPage = () => {
     handleDelete,
     handleQuickEditSubmit,
     handleView,
-    hasActiveFilters,
+    hasActiveSearch,
     isLoading,
     isQuickEditSubmitting,
     knowledgeBases,
-    languageOptions,
-    parserOptions,
-    permissionOptions,
     searchQuery,
     selectedBases,
     setCurrentPage,
     setEditingKnowledgeBase,
-    setFilterPopoverOpen,
-    setFilters,
     setPageSize,
     setSearchQuery,
     setShowCreateModal,
@@ -345,7 +225,6 @@ export const useKnowledgeListPage = () => {
     t,
     timeFormat,
     timeFormatOptions,
-    timeRangeOptions,
     toggleGridSelection,
     toggleSelectedBase,
     toggleSelectAll,

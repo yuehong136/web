@@ -173,7 +173,7 @@ export const DropdownMenuContent: React.FC<DropdownMenuContentProps> = ({
         data-theme={theme}
         ref={dropdownRef}
         className={cn(
-          'rounded-radius-md bg-surface-primary p-space-xs shadow-elevation-medium fixed z-[9999] min-w-[180px] border border-border-default',
+          'rounded-radius-md p-space-xs shadow-elevation-medium fixed z-[9999] min-w-[180px] border border-border-default bg-background-surface',
           className,
         )}
         style={{
@@ -208,7 +208,7 @@ export const DropdownMenuItem: React.FC<DropdownMenuItemProps> = ({
     <button
       type="button"
       className={cn(
-        'gap-space-sm rounded-radius-sm px-space-sm hover:bg-surface-secondary [&_svg]:h-icon-sm [&_svg]:w-icon-sm flex h-8 w-full items-center text-left text-sm font-medium text-text-primary transition-colors disabled:pointer-events-none disabled:opacity-50 [&_svg]:shrink-0 [&_svg]:stroke-[1.75] [&_svg]:text-text-secondary',
+        'gap-space-sm rounded-radius-sm px-space-sm [&_svg]:h-icon-sm [&_svg]:w-icon-sm flex h-8 w-full items-center text-left text-sm font-medium text-text-primary transition-colors hover:bg-background-subtle disabled:pointer-events-none disabled:opacity-50 [&_svg]:shrink-0 [&_svg]:stroke-[1.75] [&_svg]:text-text-secondary',
         className,
       )}
       onClick={handleClick}

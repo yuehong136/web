@@ -27,6 +27,23 @@ export interface RequestConfig extends RequestInit {
   params?: Record<string, any> | any
   /** POST/PUT 等请求体（若由调用方直接传入 config 时使用） */
   data?: unknown
+  /**
+   * 返回完整信封而非仅 data.data。开启后返回 {@link ApiEnvelope}，
+   * 用于取回信封顶层的分页总数（如 RESTful list 的 `total_datasets`）。
+   * 默认 false —— 其它接口行为完全不变（opt-in）。
+   */
+  withEnvelope?: boolean
+}
+
+/**
+ * opt-in 信封返回（{@link RequestConfig.withEnvelope}）。
+ * `total` 取自响应顶层 `total_datasets`（兼容 `total`），不在 `data` 内。
+ */
+export interface ApiEnvelope<T = any> {
+  data: T
+  total?: number
+  retcode: number
+  retmsg?: string
 }
 
 class APIClient {
@@ -116,6 +133,7 @@ class APIClient {
       headers = {},
       params,
       data,
+      withEnvelope = false,
       ...requestConfig
     } = config
 
@@ -267,6 +285,16 @@ class APIClient {
         endpoint.includes('/user/register')
       ) {
         return data as T
+      }
+
+      // opt-in：返回完整信封，保留顶层分页总数（RESTful list 的 total_datasets）
+      if (withEnvelope) {
+        return {
+          data: data.data,
+          total: rawData.total_datasets ?? rawData.total,
+          retcode: data.retcode,
+          retmsg: data.retmsg,
+        } as T
       }
 
       return data.data as T
