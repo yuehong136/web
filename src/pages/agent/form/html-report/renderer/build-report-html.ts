@@ -154,7 +154,8 @@ function renderFrostedHero(schema: ReportSchema, art: string): string {
 }
 
 function renderHeader(schema: ReportSchema): string {
-  const art = resolveHeaderArt(schema.headerArt)
+  // 缺省(未设/空)回落「高校·默认」头图;显式 'none' 才纯文字 Hero(用户明确选「无」)。
+  const art = resolveHeaderArt(schema.headerArt || 'campus')
   if (!art) return renderTextHero(schema)
   // 缺省(及显式 'card')= 图文卡;band/cover/split/frosted 仍保留供 dev 样张/将来扩展。
   switch (schema.headerLayout) {

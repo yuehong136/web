@@ -68,6 +68,21 @@ test('hero omits eyebrow/subtitle markup when absent', () => {
   assert.doesNotMatch(html, /class="rpt__subtitle"/)
 })
 
+test('hero defaults to the campus header image when headerArt is unset', () => {
+  // 全局默认:未设 headerArt → 回落「高校·默认」图文卡(内联底图)。
+  // 查元素 class 属性 + 内联 data-URI,不查 CSS 规则名(.rpt__header--card 在 style 里也有)。
+  const html = buildReportHtml(baseSchema())
+  assert.match(html, /class="rpt__header rpt__header--card"/)
+  assert.match(html, /data:image\/jpeg;base64/)
+})
+
+test("explicit headerArt 'none' suppresses the image and renders the text hero", () => {
+  // 用户明确选「无」→ 纯文字 Hero。data-URI 是「有没有真内联图」的可靠判别(CSS 里没有)。
+  const html = buildReportHtml(baseSchema({ headerArt: 'none' }))
+  assert.match(html, /<header class="rpt__header">/)
+  assert.doesNotMatch(html, /data:image\/jpeg;base64/)
+})
+
 test('only titled sections get an incrementing 01/02 index badge', () => {
   const html = buildReportHtml(
     baseSchema({

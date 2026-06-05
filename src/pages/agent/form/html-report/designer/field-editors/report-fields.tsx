@@ -24,11 +24,9 @@ export function ReportFields({ present, dispatch }: ReportFieldsProps) {
   const { t } = useTranslation()
   const titleMode: FieldMode =
     present.titleDirective?.mode === 'llm' ? 'llm' : 'static'
-  // 头图:undefined/'' 一律视为「无」哨兵 'none';排布固定图文卡(渲染器缺省即 card)
+  // 头图:显式 'none'=用户选「无」(纯文字);undefined/'' 缺省回落「高校·默认」,与渲染器全局默认一致
   const headerArt =
-    present.headerArt && present.headerArt !== 'none'
-      ? present.headerArt
-      : 'none'
+    present.headerArt === 'none' ? 'none' : present.headerArt || 'campus'
 
   return (
     <div className="space-y-space-md p-space-base">
@@ -126,7 +124,7 @@ export function ReportFields({ present, dispatch }: ReportFieldsProps) {
         />
       </div>
 
-      {/* Hero 头图:手选素材;默认「无」= 纯文字 Hero,选图即用图文卡排布 */}
+      {/* Hero 头图:缺省=「高校·默认」图文卡;选「无」=纯文字 Hero;手选其它主题即用该图 */}
       <div className="space-y-space-xs">
         <Label className="text-xs text-text-secondary">
           {t('flow.htmlReportHeaderArt', 'Header image')}
