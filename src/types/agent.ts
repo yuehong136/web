@@ -255,6 +255,7 @@ export interface AgentSession {
   duration?: number
   tokens?: number
   reference?: unknown[]
+  version_title?: string
   latestMessageId?: string
   latestOutput?: unknown
   [key: string]: unknown

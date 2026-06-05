@@ -65,6 +65,25 @@ test('buildAgentLogCsv derives error summary and row fields', () => {
   assert.match(csv, /失败/)
 })
 
+test('buildAgentLogCsv reads version_title from each session', () => {
+  const csv = buildAgentLogCsv({
+    canvasId: 'canvas-1',
+    sessions: [
+      {
+        id: 's1',
+        version_title: 'tenant_客服 Agent_2026-04-01 00:00:00',
+      },
+      {
+        id: 's2',
+        version_title: 'tenant_客服 Agent_2026-04-02 09:30:00',
+      },
+    ],
+  })
+
+  assert.match(csv, /tenant_客服 Agent_2026-04-01 00:00:00/)
+  assert.match(csv, /tenant_客服 Agent_2026-04-02 09:30:00/)
+})
+
 test('escapeCsvCell escapes commas quotes and newlines', () => {
   assert.equal(escapeCsvCell('a,b'), '"a,b"')
   assert.equal(escapeCsvCell('a"b'), '"a""b"')

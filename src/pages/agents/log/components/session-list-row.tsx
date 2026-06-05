@@ -93,6 +93,15 @@ export function SessionListRow({
           <span>耗时 {formatDuration(session.duration)}</span>
         </div>
 
+        {session.version_title ? (
+          <div className="flex min-w-0 items-center text-xs text-text-tertiary">
+            <span className="shrink-0">版本</span>
+            <span className="ml-space-xs truncate font-mono">
+              {session.version_title}
+            </span>
+          </div>
+        ) : null}
+
         {errorSummary ? (
           <div className="gap-space-xs rounded-radius-sm px-space-sm py-space-xs flex min-w-0 items-center border border-status-error bg-status-error-subtle text-xs text-status-error">
             <AlertTriangle className="size-3.5 shrink-0" />

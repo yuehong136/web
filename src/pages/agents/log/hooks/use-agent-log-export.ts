@@ -108,9 +108,6 @@ export function buildAgentLogCsv({
   sessions,
 }: BuildCsvOptions): string {
   const agentTitle = resolveLocalizedText(agent?.title, '')
-  const versionTitle = resolveUnknownText(
-    (agent as Record<string, unknown> | undefined)?.version_title,
-  )
   const rows = sessions.map((session) => {
     const status = extractAgentLogStatus(session)
     const row = {
@@ -131,7 +128,7 @@ export function buildAgentLogCsv({
       latest_output_summary: summarizeLatestSessionOutput(session),
       create_time: toCsvTime(session, 'create'),
       update_time: toCsvTime(session, 'update'),
-      version_title: versionTitle,
+      version_title: resolveUnknownText(session.version_title),
     }
 
     return AGENT_LOG_CSV_COLUMNS.map((column) =>
