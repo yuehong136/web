@@ -355,6 +355,7 @@ export default {
     htmlReportEyebrowPlaceholder: '如「2025 年度报告」',
     htmlReportSubtitle: '副标题',
     htmlReportSubtitlePlaceholder: '标题下方的一句话概述',
+    htmlReportSubtitleLlmPlaceholder: '描述模型该生成的副标题',
     htmlReportHeaderArt: '头图',
     htmlReportHeaderArtNone: '无',
     htmlReportHeaderArtMedical: '医疗环境',

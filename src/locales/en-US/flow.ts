@@ -654,6 +654,8 @@ export default {
     htmlReportEyebrowPlaceholder: 'e.g. 2025 Annual Report',
     htmlReportSubtitle: 'Subtitle',
     htmlReportSubtitlePlaceholder: 'One-line summary under the title',
+    htmlReportSubtitleLlmPlaceholder:
+      'Describe the subtitle the model should generate',
     htmlReportHeaderArt: 'Header image',
     htmlReportHeaderArtNone: 'None',
     htmlReportHeaderArtMedical: 'Healthcare',

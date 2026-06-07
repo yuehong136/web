@@ -42,6 +42,17 @@ test('round-trips a skeleton preserving directives/annotation/role/theme', () =>
   assert.deepEqual(parseSkeletonJson(JSON.stringify(original)), original)
 })
 
+test('round-trips top-level subtitle + subtitleDirective (model mode)', () => {
+  const original = {
+    title: 'Q3',
+    subtitle: '一句话概述',
+    subtitleDirective: { mode: 'llm', hint: '按源文写一行概述' },
+    sections: [{ id: 's', title: '概览', layout: 'full', blocks: [] }],
+  }
+  // 副标题及其模型态指令在导出→导入中保真,否则真实/手动报告丢副标题
+  assert.deepEqual(parseSkeletonJson(JSON.stringify(original)), original)
+})
+
 test('backfills missing ids and defaults bad layout to full', () => {
   const parsed = parseSkeletonJson(
     JSON.stringify({

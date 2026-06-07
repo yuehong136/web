@@ -186,6 +186,18 @@ test('hero eyebrow/subtitle + stat-card icon survive preview merge', () => {
   assert.match(html, /data:image\/jpeg;base64/)
 })
 
+test('llm subtitle previews its hint (so the hero is not empty before run)', () => {
+  const skeleton: SkeletonSchema = {
+    title: 'T',
+    subtitle: '',
+    subtitleDirective: { mode: 'llm', hint: '按源文写一行概述' },
+    sections: [],
+  }
+  // 模型态副标题运行时才生成,预览回显 hint 占位,避免预览看不到副标题
+  const schema = buildPreviewSchema(skeleton)
+  assert.equal(schema.subtitle, '按源文写一行概述')
+})
+
 test('preview schema renders to a chart-bearing document with parseable specs', () => {
   const skeleton: SkeletonSchema = {
     title: 'Preview',

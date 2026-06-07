@@ -17,13 +17,15 @@ interface ReportFieldsProps {
   dispatch: React.Dispatch<DraftAction>
 }
 
-// 标题只暴露「固定 / 模型」两态(同字段),不含 variable。
+// 标题/副标题只暴露「固定 / 模型」两态,不含 variable。
 const TITLE_MODES: FieldMode[] = ['static', 'llm']
 
 export function ReportFields({ present, dispatch }: ReportFieldsProps) {
   const { t } = useTranslation()
   const titleMode: FieldMode =
     present.titleDirective?.mode === 'llm' ? 'llm' : 'static'
+  const subtitleMode: FieldMode =
+    present.subtitleDirective?.mode === 'llm' ? 'llm' : 'static'
   // 头图:显式 'none'=用户选「无」(纯文字);undefined/'' 缺省回落「高校·默认」,与渲染器全局默认一致
   const headerArt =
     present.headerArt === 'none' ? 'none' : present.headerArt || 'campus'
@@ -103,25 +105,57 @@ export function ReportFields({ present, dispatch }: ReportFieldsProps) {
           }
         />
       </div>
+      {/* 副标题:固定/模型(对称报告标题);模型态运行时按源文生成一行概述,布局优先自动开 */}
       <div className="space-y-space-xs">
-        <Label className="text-xs text-text-secondary">
-          {t('flow.htmlReportSubtitle', 'Subtitle')}
-        </Label>
-        <Input
-          inputSize="sm"
-          value={present.subtitle ?? ''}
-          placeholder={t(
-            'flow.htmlReportSubtitlePlaceholder',
-            'One-line summary under the title',
-          )}
-          onChange={(e) =>
-            dispatch({
-              type: 'setReportField',
-              key: 'subtitle',
-              value: e.target.value,
-            })
-          }
-        />
+        <div className="gap-space-sm flex items-center justify-between">
+          <Label className="text-xs text-text-secondary">
+            {t('flow.htmlReportSubtitle', 'Subtitle')}
+          </Label>
+          <ModeSwitch
+            value={subtitleMode}
+            modes={TITLE_MODES}
+            onChange={(mode) => {
+              // 同标题:切到「固定」保留已输入的模型提示词,无提示词则清空
+              const hint = present.subtitleDirective?.hint ?? ''
+              dispatch({
+                type: 'setSubtitleDirective',
+                directive: mode === 'llm' || hint ? { mode, hint } : null,
+              })
+            }}
+          />
+        </div>
+        {subtitleMode === 'static' ? (
+          <Input
+            inputSize="sm"
+            value={present.subtitle ?? ''}
+            placeholder={t(
+              'flow.htmlReportSubtitlePlaceholder',
+              'One-line summary under the title',
+            )}
+            onChange={(e) =>
+              dispatch({
+                type: 'setReportField',
+                key: 'subtitle',
+                value: e.target.value,
+              })
+            }
+          />
+        ) : (
+          <Textarea
+            rows={2}
+            value={present.subtitleDirective?.hint ?? ''}
+            placeholder={t(
+              'flow.htmlReportSubtitleLlmPlaceholder',
+              'Describe the subtitle the model should generate',
+            )}
+            onChange={(e) =>
+              dispatch({
+                type: 'setSubtitleDirective',
+                directive: { mode: 'llm', hint: e.target.value },
+              })
+            }
+          />
+        )}
       </div>
 
       {/* Hero 头图:缺省=「高校·默认」图文卡;选「无」=纯文字 Hero;手选其它主题即用该图 */}

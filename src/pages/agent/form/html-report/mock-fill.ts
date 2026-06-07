@@ -60,6 +60,13 @@ export function buildPreviewSchema(skeleton: SkeletonSchema): ReportSchema {
           skeleton.title ||
           'Generated title'
         : skeleton.title,
+    // llm 态副标题同理:预览用 hint/静态值占位(对称标题),避免预览看不到副标题
+    subtitle:
+      skeleton.subtitleDirective?.mode === 'llm'
+        ? skeleton.subtitleDirective.hint?.trim() ||
+          skeleton.subtitle ||
+          'Generated subtitle'
+        : skeleton.subtitle,
     sections: skeleton.sections.map((section) => ({
       ...section,
       // llm 态小节标题运行时才生成,预览用 hint/静态值占位,避免空标题

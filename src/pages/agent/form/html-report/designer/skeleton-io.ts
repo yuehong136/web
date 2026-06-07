@@ -88,6 +88,11 @@ export function parseSkeletonJson(text: string): SkeletonSchema {
   }
   if (isObj(parsed.titleDirective))
     schema.titleDirective = parsed.titleDirective as unknown as FieldDirective
+  // 副标题及其指令同 title:显式重建路径须保留,否则导出→导入丢副标题/模型态。
+  if (typeof parsed.subtitle === 'string') schema.subtitle = parsed.subtitle
+  if (isObj(parsed.subtitleDirective))
+    schema.subtitleDirective =
+      parsed.subtitleDirective as unknown as FieldDirective
   // 顶层 schema 是显式重建(非展开透传),故 layoutFirst 须显式保留;section.titleDirective
   // 走 coerceSection 的整段展开,天然保真。
   if (typeof parsed.layoutFirst === 'boolean')

@@ -96,6 +96,7 @@ export type DraftAction =
     }
   | { type: 'setHeaderLayout'; layout: HeaderLayout }
   | { type: 'setTitleDirective'; directive: FieldDirective | null }
+  | { type: 'setSubtitleDirective'; directive: FieldDirective | null }
   | { type: 'select'; selection: Selection }
   | { type: 'undo' }
   | { type: 'redo' }
@@ -268,6 +269,12 @@ function nextPresent(
       const next = { ...skeleton }
       if (action.directive) next.titleDirective = action.directive
       else delete next.titleDirective
+      return next
+    }
+    case 'setSubtitleDirective': {
+      const next = { ...skeleton }
+      if (action.directive) next.subtitleDirective = action.directive
+      else delete next.subtitleDirective
       return next
     }
     default:

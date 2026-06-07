@@ -267,6 +267,8 @@ export interface SkeletonSchema {
   headerLayout?: HeaderLayout
   /** 标题填充指令:缺省/static=用 title 字符串;llm=运行时按源文生成 */
   titleDirective?: FieldDirective
+  /** 副标题填充指令:缺省/static=用 subtitle 字符串;llm=运行时按源文生成(对称 titleDirective) */
+  subtitleDirective?: FieldDirective
   /**
    * 布局优先骨架标记(由「布局优先」生成置 true)。运行时据此:展开按新源文重建框架标签、
    * 默认标题模型态、空块/空节收缩。换主题套同版式的开关。
