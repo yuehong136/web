@@ -273,6 +273,9 @@ export const LLMFactory = {
   MinerU: 'MinerU',
   PaddleOCR: 'PaddleOCR',
   N1n: 'n1n',
+  Avian: 'Avian',
+  RAGcon: 'RAGcon',
+  Perplexity: 'Perplexity',
 } as const
 
 // IconMap - 与 ragflow iconfont.js 中的图标名称匹配
@@ -342,6 +345,9 @@ export const IconMap: Record<string, string> = {
   [LLMFactory.MinerU]: 'mineru',
   [LLMFactory.PaddleOCR]: 'paddleocr',
   [LLMFactory.N1n]: 'n1n',
+  [LLMFactory.Avian]: 'avian',
+  [LLMFactory.RAGcon]: 'ragcon',
+  [LLMFactory.Perplexity]: 'perplexity',
 }
 
 export interface LLMFactoryInterface {
