@@ -96,6 +96,7 @@
     "cmdk": "^1.1.1",
     "docx-preview": "^0.3.7",
     "dompurify": "^3.3.2",
+    "echarts": "^6.1.0",
     "embla-carousel-react": "^8.6.0",
     "eventsource-parser": "^3.0.6",
     "highlight.js": "^11.11.1",

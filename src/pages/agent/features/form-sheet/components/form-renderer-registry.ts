@@ -26,6 +26,7 @@ import { LoopForm } from '../../../form/loop'
 import { McpForm } from '../../../form/mcp-form'
 import { MessageForm } from '../../../form/message'
 import { ParserForm } from '../../../form/parser'
+import { HTMLReportForm } from '../../../form/html-report'
 import { PDFGeneratorForm } from '../../../form/pdf-generator'
 import { PubMedForm } from '../../../form/pubmed'
 import { RelevantForm } from '../../../form/relevant-form'
@@ -79,6 +80,7 @@ export const migratedFormRenderers: Record<
   [Operator.Extractor]: ExtractorForm,
   [Operator.HierarchicalMerger]: HierarchicalMergerForm,
   [Operator.PDFGenerator]: PDFGeneratorForm,
+  [Operator.HTMLReport]: HTMLReportForm,
   [Operator.ExeSQL]: ExeSQLForm,
   [Operator.Crawler]: CrawlerForm,
   [Operator.DuckDuckGo]: DuckDuckGoForm,

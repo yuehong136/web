@@ -12,6 +12,8 @@ export enum AgentOperatorCategory {
   AGENT = 'agent',
   TOOL = 'tool',
   DATA = 'data',
+  // 内容生产/结构化产物（HTMLReport 等），与纯数据处理的 DATA 区分
+  CONTENT = 'content',
   PIPELINE = 'pipeline',
   UTILITY = 'utility',
 }

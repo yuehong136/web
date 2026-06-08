@@ -10,6 +10,9 @@ const scanPaths = [
 
 const ignoredFilePatterns = [
   /\/__tests__\//,
+  // 离线开发脚本（如样例报告生成器）：产出物非 UI，内容是中文样例数据而非界面文案，
+  // 与 __tests__ 同属不随产品发布的开发目录，故同样豁免硬编码中文检查。
+  /\/__dev__\//,
   /\.test\.[jt]sx?$/,
   /src\/locales\//,
 ]
@@ -28,6 +31,12 @@ const allowedFileLinePatterns = [
   {
     file: /src\/pages\/agent\/canvas\/node\/node-display\.ts$/,
     line: /DEFAULT_NAME_ALIASES|^\s+\[Operator\./,
+  },
+  {
+    // 算子描述元数据：整文件为中文常量映射，不走 i18n（节点配置面板头部展示），
+    // 与全部既有条目一致；仅放行该文件的 `key: '...'` 描述行。
+    file: /src\/pages\/agent\/operators\/descriptions\.ts$/,
+    line: /^\s+\w+:\s*'/,
   },
 ]
 

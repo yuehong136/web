@@ -38,6 +38,7 @@ export const operatorDescriptions: Partial<Record<Operator, string>> = {
   UserFillUp: '等待用户补充表单参数。',
   StringTransform: '进行字符串拼接、拆分与转换。',
   PDFGenerator: '生成 PDF 内容。',
+  HTMLReport: '可视化编排报告骨架，渲染为自包含 HTML 报告页面。',
   ExcelProcessor: '处理 Excel 内容。',
   DataOperations: '对对象数组进行筛选、重命名、合并等操作。',
   ListOperations: '对列表执行聚合、切片和映射。',

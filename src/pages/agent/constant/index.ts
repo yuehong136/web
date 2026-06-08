@@ -54,6 +54,7 @@ export const Operator = {
   UserFillUp: 'UserFillUp',
   StringTransform: 'StringTransform',
   PDFGenerator: 'PDFGenerator',
+  HTMLReport: 'HTMLReport',
   ExcelProcessor: 'ExcelProcessor',
 
   // 数据操作节点
@@ -135,6 +136,7 @@ export const NodeMap: Record<string, string> = {
   [Operator.UserFillUp]: 'ragNode',
   [Operator.StringTransform]: 'ragNode',
   [Operator.PDFGenerator]: 'ragNode',
+  [Operator.HTMLReport]: 'ragNode',
   [Operator.ExcelProcessor]: 'ragNode',
   [Operator.DataOperations]: 'dataOperationsNode',
   [Operator.ListOperations]: 'listOperationsNode',
@@ -1161,6 +1163,7 @@ export const RestrictedUpstreamMap: Record<string, Operator[]> = {
   [Operator.UserFillUp]: [Operator.Begin],
   [Operator.StringTransform]: [Operator.Begin],
   [Operator.PDFGenerator]: [Operator.Begin],
+  [Operator.HTMLReport]: [Operator.Begin],
   [Operator.ExcelProcessor]: [Operator.Begin],
   [Operator.DataOperations]: [Operator.Begin],
   [Operator.ListOperations]: [Operator.Begin],

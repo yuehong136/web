@@ -58,6 +58,7 @@ import {
   initialYahooFinanceValues,
   type Operator as OperatorType,
 } from '../constant'
+import { initialHTMLReportValues } from '../form/html-report/constants'
 
 const operatorDefaultValues: Record<OperatorType, Record<string, unknown>> = {
   [Operator.Begin]: initialBeginValues,
@@ -97,6 +98,7 @@ const operatorDefaultValues: Record<OperatorType, Record<string, unknown>> = {
   [Operator.UserFillUp]: initialUserFillUpValues,
   [Operator.StringTransform]: initialStringTransformValues,
   [Operator.PDFGenerator]: initialPDFGeneratorValues,
+  [Operator.HTMLReport]: initialHTMLReportValues,
   [Operator.ExcelProcessor]: initialExcelProcessorValues,
   [Operator.DataOperations]: initialDataOperationsValues,
   [Operator.ListOperations]: initialListOperationsValues,
@@ -141,10 +143,7 @@ export function mergeOperatorFormWithDefaults(
     mergedForm.setups = nextForm.setups
   }
 
-  return normalizeOperatorFormForStore(
-    operator,
-    mergedForm,
-  )
+  return normalizeOperatorFormForStore(operator, mergedForm)
 }
 
 export function buildDslOperatorParams(

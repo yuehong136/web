@@ -57,6 +57,7 @@ const DATA_COMPONENT_TYPES = new Set<string>([
   Operator.ExeSQL,
   Operator.StringTransform,
   Operator.PDFGenerator,
+  Operator.HTMLReport,
   Operator.ExcelProcessor,
   Operator.DataOperations,
   Operator.ListOperations,
@@ -70,13 +71,14 @@ const DATA_COMPONENT_TYPES = new Set<string>([
   Operator.Extractor,
 ])
 
-const ACTION_LABEL_MAP: Record<RuntimeThoughtChainNode['actionKind'], string> = {
-  action: 'Agent Action',
-  tool: 'Tool Call',
-  control: 'Flow Control',
-  data: 'Data Step',
-  system: 'Runtime',
-}
+const ACTION_LABEL_MAP: Record<RuntimeThoughtChainNode['actionKind'], string> =
+  {
+    action: 'Agent Action',
+    tool: 'Tool Call',
+    control: 'Flow Control',
+    data: 'Data Step',
+    system: 'Runtime',
+  }
 
 const isRecord = (value: unknown): value is Record<string, unknown> => {
   return typeof value === 'object' && value !== null
@@ -189,7 +191,10 @@ const getNodeError = (nodeEvents: Array<{ data: INodeData }>) => {
   return undefined
 }
 
-export function shouldStoreRuntimeThoughtEvent(event: string, data?: INodeData) {
+export function shouldStoreRuntimeThoughtEvent(
+  event: string,
+  data?: INodeData,
+) {
   return (
     event === 'node_started' ||
     event === 'node_finished' ||
@@ -216,7 +221,8 @@ export function buildRuntimeThoughtChainNodes(
   const orderedEvents = preferredEvents.reduce<
     Array<{ event: string; data: INodeData; index: number }>
   >((result, item, index) => {
-    const componentId = item.data.component_id || `${item.event || 'event'}-${index}`
+    const componentId =
+      item.data.component_id || `${item.event || 'event'}-${index}`
 
     if (
       result.every(
@@ -236,7 +242,8 @@ export function buildRuntimeThoughtChainNodes(
       item.data.component_id || `${item.event || 'event'}-${item.index}`
     const nodeEvents = visibleEvents.filter((event) => {
       const eventComponentId =
-        event.data.component_id || (event.event === item.event ? componentId : '')
+        event.data.component_id ||
+        (event.event === item.event ? componentId : '')
       return eventComponentId === componentId
     })
     const finishedEvent = nodeEvents.find(
