@@ -1,17 +1,11 @@
-import React, { useRef, useCallback, useMemo, useEffect, useState } from 'react'
+import { useRef, useCallback, useMemo, useEffect, useState } from 'react'
+import type { KeyboardEvent, RefObject } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Bot, User } from 'lucide-react'
 import { Bubble } from '@ant-design/x'
 import type { BubbleListProps } from '@ant-design/x'
-import XMarkdown from '@ant-design/x-markdown'
 import { ChatBubbleLoading } from '@/components/chat/ChatBubbleLoading'
-import {
-  getMarkdownStreamingOptions,
-  mergeMarkdownComponents,
-  markdownConfig,
-  type MarkdownComponents,
-  useMarkdownComponents,
-} from '@/components/chat/MarkdownCodeBlock'
+import { mergeMarkdownComponents } from '@/components/chat/MarkdownCodeBlock'
 import {
   findFirstEnabledModelByType,
   findProviderNameByModelName,
@@ -20,7 +14,7 @@ import {
 } from '@/stores/model'
 import { useHomeStore } from '@/stores/home'
 import { ProviderIcon } from '@/components/ui/provider-icon'
-import { ToolCallRenderer } from '@/components/chat/ToolCallRenderer'
+import { AgentThoughtChain } from '@/components/chat/AgentThoughtChain'
 import { ThinkWrapper } from '@/components/chat/ThinkWrapper'
 import { MessageActionsFooter } from '@/components/chat/MessageActionsFooter'
 import { ReferencePanel } from '@/components/chat/ReferencePanel'
@@ -38,90 +32,9 @@ import { toast } from '@/lib/toast'
 import type { ChatMessage } from '../types'
 import type { DialogApp } from '@/types/api'
 import type { MCPServer } from '@/types/mcp'
-import type { ToolCallInfo } from '@/components/chat/EnhancedSSEParser'
 import type { ReferenceChunk } from '@/utils/reference-replacer'
-
-// 稳定的 Markdown 渲染组件，支持引用标记
-interface StableMarkdownProps {
-  content: string
-  components?: Partial<MarkdownComponents>
-}
-
-const StableMarkdown = React.memo(
-  ({ content, components }: StableMarkdownProps) => {
-    const stableContentRef = React.useRef(content)
-    const [stableContent, setStableContent] = React.useState(content)
-    const markdownComponents = useMarkdownComponents(components)
-
-    React.useEffect(() => {
-      if (content !== stableContentRef.current) {
-        stableContentRef.current = content
-        const rafId = requestAnimationFrame(() => {
-          setStableContent(content)
-        })
-        return () => cancelAnimationFrame(rafId)
-      }
-      return undefined
-    }, [content])
-
-    if (!stableContent || !stableContent.trim()) {
-      return null
-    }
-
-    return (
-      <div className="bubble-copy-text markdown-content prose prose-sm max-w-none dark:prose-invert">
-        <XMarkdown
-          paragraphTag="div"
-          config={markdownConfig}
-          components={markdownComponents}
-          streaming={getMarkdownStreamingOptions(false)}
-        >
-          {stableContent}
-        </XMarkdown>
-      </div>
-    )
-  },
-  (prevProps, nextProps) => {
-    if (
-      prevProps.content === nextProps.content &&
-      prevProps.components === nextProps.components
-    )
-      return true
-    const diff = Math.abs(
-      (nextProps.content?.length || 0) - (prevProps.content?.length || 0),
-    )
-    return diff < 10 && nextProps.content?.startsWith(prevProps.content || '')
-  },
-)
-
-interface StreamingMarkdownProps {
-  content: string
-  isStreaming: boolean
-  components?: Partial<MarkdownComponents>
-}
-
-const StreamingMarkdown = React.memo(
-  ({ content, isStreaming, components }: StreamingMarkdownProps) => {
-    const markdownComponents = useMarkdownComponents(components)
-
-    if (!content || !content.trim()) {
-      return null
-    }
-
-    return (
-      <div className="bubble-copy-text markdown-content prose prose-sm max-w-none dark:prose-invert">
-        <XMarkdown
-          paragraphTag="div"
-          config={markdownConfig}
-          components={markdownComponents}
-          streaming={getMarkdownStreamingOptions(isStreaming)}
-        >
-          {content}
-        </XMarkdown>
-      </div>
-    )
-  },
-)
+import { createTimelineNodesFromToolCalls } from '@/utils/agent-timeline-events'
+import { StableMarkdown, StreamingMarkdown } from './chat-markdown-renderers'
 
 interface ChatSectionProps {
   messages: ChatMessage[]
@@ -132,12 +45,11 @@ interface ChatSectionProps {
   isStreaming: boolean
   streamingContent: string
   streamingThinking?: string
-  streamingToolCalls: ToolCallInfo[]
   isToolAnalyzing: boolean
   isLoadingHistory?: boolean
 }
 
-export const ChatSection: React.FC<ChatSectionProps> = ({
+export const ChatSection = ({
   messages,
   inputValue,
   onInputChange,
@@ -146,18 +58,16 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
   isStreaming,
   streamingContent,
   streamingThinking = '',
-  streamingToolCalls,
   isToolAnalyzing,
   isLoadingHistory = false,
-}) => {
+}: ChatSectionProps) => {
   const { t } = useTranslation()
   const chatContainerRef = useRef<HTMLDivElement>(null)
   const atButtonRef = useRef<HTMLButtonElement>(
     null!,
-  ) as React.RefObject<HTMLButtonElement>
+  ) as RefObject<HTMLButtonElement>
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-  // 引用详情侧边栏状态
   const [detailSheetOpen, setDetailSheetOpen] = useState(false)
   const [selectedChunk, setSelectedChunk] = useState<ReferenceChunk | null>(
     null,
@@ -166,7 +76,6 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
     ReferenceChunk[]
   >([])
 
-  // Store 状态
   const { myLLMs, isLoading: modelsLoading } = useModelStore()
   const {
     selectedMCPIds,
@@ -182,7 +91,6 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
     startNewConversation,
   } = useHomeStore()
 
-  // @ 触发逻辑
   const {
     skillPanelOpen,
     setSkillPanelOpen,
@@ -190,14 +98,12 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
     removeAtSymbol,
   } = useAtTrigger()
 
-  // 滚动到底部
   useEffect(() => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight
     }
   }, [messages, streamingContent])
 
-  // 确保当前选中的是可用聊天模型；如果被禁用则自动切换
   useEffect(() => {
     if (modelsLoading || !myLLMs || Object.keys(myLLMs).length === 0) return
 
@@ -209,12 +115,10 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
     }
   }, [selectedModelId, myLLMs, modelsLoading, setSelectedModelId])
 
-  // 根据选中的模型名称找到对应的厂商名称
   const selectedProviderName = useMemo(() => {
     return findProviderNameByModelName(myLLMs, selectedModelId, true)
   }, [selectedModelId, myLLMs])
 
-  // 获取 AI 头像
   const getAssistantAvatar = useCallback(() => {
     if (selectedProviderName) {
       return (
@@ -232,7 +136,6 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
     )
   }, [selectedProviderName])
 
-  // 获取用户头像
   const getUserAvatar = useCallback(
     () => (
       <div className="flex h-8 min-h-[32px] w-8 min-w-[32px] flex-shrink-0 items-center justify-center rounded-full bg-components-avatar-gradient-blue-from">
@@ -242,7 +145,6 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
     [],
   )
 
-  // 处理输入变化
   const handleInputChangeInternal = useCallback(
     (value: string) => {
       const cursorPosition = textareaRef.current?.selectionStart || value.length
@@ -252,9 +154,8 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
     [inputValue, onInputChange, handleAtInput],
   )
 
-  // 处理键盘事件
   const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
+    (e: KeyboardEvent) => {
       if (shouldIgnoreEnterForIme(e)) {
         return
       }
@@ -331,7 +232,8 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
       const isCurrentStreamingMsg =
         isAppModeStreaming &&
         index === messages.length - 1 &&
-        msg.role === 'assistant'
+        msg.role === 'assistant' &&
+        Boolean(msg.isStreaming || isStreaming)
 
       return {
         key: msg.id,
@@ -367,18 +269,66 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
             ? () => {
                 // 优先使用消息中的 thinking 字段，回退到从 content 提取
                 const fallback = extractThinkContent(msg.content || '')
-                const thinkContent = msg.thinking || fallback.thinkContent
+                const timelineNodes =
+                  msg.timelineNodes && msg.timelineNodes.length > 0
+                    ? msg.timelineNodes
+                    : msg.parsedToolCalls && msg.parsedToolCalls.length > 0
+                      ? createTimelineNodesFromToolCalls(msg.parsedToolCalls)
+                      : []
+                // 末尾的 reasoning 节点 = 工具调用结束后、最终回复前的思考，
+                // 需要拆出来作为独立的 Think 展示（而不是塞在思维链底部）。
+                const lastNode = timelineNodes[timelineNodes.length - 1]
+                const trailingReasoningNode =
+                  lastNode?.kind === 'reasoning' &&
+                  typeof lastNode.content === 'string' &&
+                  lastNode.content.trim()
+                    ? lastNode
+                    : undefined
+                const chainNodes = trailingReasoningNode
+                  ? timelineNodes.slice(0, -1)
+                  : timelineNodes
+
+                // 思维链仅在存在真正的工具/系统/错误节点时展示。
+                // 调用工具前的 think 仍随工具节点展示（对齐 antdx ThoughtChain）；
+                // 纯聊天（只有 reasoning 或没有节点）则完全走独立的 Think 组件。
+                const hasToolFlow = chainNodes.some(
+                  (node) =>
+                    node.kind === 'tool' ||
+                    node.kind === 'mcp' ||
+                    node.kind === 'skill' ||
+                    node.kind === 'system' ||
+                    node.kind === 'error',
+                )
+
+                // 思考内容：优先用拆出来的末尾思考；否则回退到历史消息字段。
+                const trailingReasoning =
+                  typeof trailingReasoningNode?.content === 'string'
+                    ? trailingReasoningNode.content
+                    : ''
+                const thinkContent =
+                  trailingReasoning ||
+                  (timelineNodes.length > 0
+                    ? ''
+                    : msg.thinking || fallback.thinkContent)
                 const mainContent =
-                  msg.thinking !== undefined
+                  timelineNodes.length > 0
                     ? msg.content || ''
-                    : fallback.mainContent
+                    : msg.thinking !== undefined
+                      ? msg.content || ''
+                      : fallback.mainContent
 
                 // 确定思考状态
-                let status = fallback.status
-                if (thinkContent && isCurrentStreamingMsg) {
-                  status = 'thinking' // 正在流式输出时，思考状态为 thinking
-                } else if (thinkContent) {
-                  status = 'complete' // 完成后，思考状态为 complete
+                let status: ThinkingStatus = fallback.status
+                if (thinkContent) {
+                  if (trailingReasoningNode) {
+                    status =
+                      isCurrentStreamingMsg &&
+                      trailingReasoningNode.status === 'loading'
+                        ? 'thinking'
+                        : 'complete'
+                  } else {
+                    status = isCurrentStreamingMsg ? 'thinking' : 'complete'
+                  }
                 }
 
                 const references = msg.references || []
@@ -407,20 +357,10 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
 
                 return (
                   <div className="space-y-4">
-                    {/* 工具调用 */}
-                    {msg.parsedToolCalls && msg.parsedToolCalls.length > 0 && (
-                      <ToolCallRenderer
-                        toolCalls={msg.parsedToolCalls.map((call) => ({
-                          id: call.id || `${Date.now()}_${Math.random()}`,
-                          name: call.name,
-                          arguments: call.arguments || {},
-                          result: call.result,
-                          status: call.status || 'success',
-                          timestamp:
-                            call.timestamp || new Date().toLocaleTimeString(),
-                        }))}
-                        showTimestamp={true}
-                        collapsible={true}
+                    {hasToolFlow && (
+                      <AgentThoughtChain
+                        nodes={chainNodes}
+                        streaming={isCurrentStreamingMsg}
                       />
                     )}
 
@@ -521,19 +461,6 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
         },
         contentRender: () => (
           <div className="space-y-4">
-            {(isToolAnalyzing || streamingToolCalls.length > 0) && (
-              <div className="rounded-lg border border-components-tool-call-border bg-components-tool-call-bg p-3">
-                <h4 className="mb-2 text-sm font-medium text-components-tool-call-title">
-                  🛠️ 工具调用状态
-                </h4>
-                <ToolCallRenderer
-                  toolCalls={streamingToolCalls}
-                  isAnalyzing={isToolAnalyzing}
-                  showTimestamp={true}
-                  collapsible={false}
-                />
-              </div>
-            )}
             {thinkContent && (
               <ThinkWrapper status={status} messageId="streaming">
                 <div className="whitespace-pre-wrap text-sm text-text-secondary">
@@ -545,10 +472,9 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
               <StreamingMarkdown content={mainContent} isStreaming={true} />
             )}
             {/* 如果没有任何内容，显示 Ant Design X 三点加载动画 */}
-            {!thinkContent &&
-              !mainContent &&
-              !isToolAnalyzing &&
-              streamingToolCalls.length === 0 && <ChatBubbleLoading />}
+            {!thinkContent && !mainContent && !isToolAnalyzing && (
+              <ChatBubbleLoading />
+            )}
           </div>
         ),
       })
@@ -561,7 +487,6 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
     isAppModeStreaming,
     streamingContent,
     streamingThinking,
-    streamingToolCalls,
     isToolAnalyzing,
     getAssistantAvatar,
     getUserAvatar,
@@ -676,7 +601,7 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
                 onStartNewConversation={handleStartNewConversation}
                 selectedSkillIds={selectedMCPIds}
                 selectedAppIds={selectedAppIds}
-                anchorRef={atButtonRef as React.RefObject<HTMLElement>}
+                anchorRef={atButtonRef as RefObject<HTMLElement>}
                 direction="up"
               />
             }

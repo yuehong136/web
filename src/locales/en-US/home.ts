@@ -17,6 +17,15 @@ export default {
       talk: 'Chat',
       stop: 'Stop generating',
     },
+    agentTimeline: {
+      arguments: 'Arguments',
+      result: 'Result',
+      toolRunning: 'Tool is running...',
+      noToolDetail: 'No tool details yet',
+      reasoningPending: 'Preparing reasoning...',
+      reasoningTitle: 'Reasoning',
+      step: 'Execution step',
+    },
     tabs: {
       writing: 'Writing',
       ppt: 'PPT',

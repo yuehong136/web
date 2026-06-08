@@ -3,6 +3,7 @@
  */
 
 import type { ToolCallInfo } from '@/components/chat/EnhancedSSEParser'
+import type { AgentTimelineNode } from '@/utils/agent-timeline'
 import type { ReferenceChunk } from '@/utils/reference-replacer'
 
 // Re-export think types from common utils
@@ -15,6 +16,8 @@ export interface ChatMessage {
   content: string
   timestamp: string
   parsedToolCalls?: ToolCallInfo[]
+  timelineNodes?: AgentTimelineNode[]
+  isStreaming?: boolean
   // 应用对话模式的附加字段
   references?: ReferenceChunk[]
   thinking?: string

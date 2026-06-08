@@ -1,6 +1,6 @@
 /**
  * 首页组件
- * 
+ *
  * 功能：
  * - 欢迎界面：问候语、功能标签、推荐卡片
  * - 对话界面：消息列表、输入框、工具栏
@@ -8,19 +8,19 @@
  * - 应用历史对话选择（加载历史消息并继续对话）
  */
 
-import React, { useState, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { useHomeStore } from '@/stores/home'
 import { WelcomeSection, ChatSection } from './components'
 import { useHomeChat } from './hooks'
 
-export const HomePage: React.FC = () => {
+export const HomePage = () => {
   const [inputValue, setInputValue] = useState('')
-  
+
   // 从 store 获取状态
-  const { 
-    selectedMCPIds, 
-    selectedModelId, 
-    selectedApps, 
+  const {
+    selectedMCPIds,
+    selectedModelId,
+    selectedApps,
     selectedConversationId,
     selectConversation,
   } = useHomeStore()
@@ -34,7 +34,6 @@ export const HomePage: React.FC = () => {
     isStreaming,
     streamingContent,
     streamingThinking,
-    streamingToolCalls,
     isToolAnalyzing,
     isLoadingHistory,
     sendMessage,
@@ -59,7 +58,7 @@ export const HomePage: React.FC = () => {
   const showWelcome = messages.length === 0 && !isStreaming && !isLoadingHistory
 
   return (
-    <div className="h-full bg-background-subtle flex flex-col">
+    <div className="flex h-full flex-col bg-background-subtle">
       {showWelcome ? (
         <WelcomeSection
           inputValue={inputValue}
@@ -76,7 +75,6 @@ export const HomePage: React.FC = () => {
           isStreaming={isStreaming}
           streamingContent={streamingContent}
           streamingThinking={streamingThinking}
-          streamingToolCalls={streamingToolCalls}
           isToolAnalyzing={isToolAnalyzing}
           isLoadingHistory={isLoadingHistory}
         />

@@ -83,6 +83,22 @@ function normalizeModuleId(id: string): string {
   return id.replaceAll('\\', '/')
 }
 
+// react-shiki 的 dist/style.css 使用了裸 `@layer base`，在 Tailwind v3 的 PostCSS
+// 流程里（该 css 被单独处理、缺少 @tailwind 指令）会报错。我们用自定义的
+// code-block.css 提供样式，不需要它的默认样式，这里直接把它置空以跳过 PostCSS。
+function stubReactShikiCss(): Plugin {
+  return {
+    name: 'stub-react-shiki-css',
+    enforce: 'pre',
+    load(id) {
+      if (normalizeModuleId(id).includes('/react-shiki/dist/style.css')) {
+        return ''
+      }
+      return null
+    },
+  }
+}
+
 function isPackage(id: string, packageName: string): boolean {
   const normalized = normalizeModuleId(id)
   return (
@@ -125,6 +141,7 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [
+      stubReactShikiCss(),
       react(),
       monacoStaticAssetsPlugin(),
       ...(shouldAnalyze

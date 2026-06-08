@@ -1,21 +1,27 @@
 import React, { memo } from 'react'
-import { CodeHighlighter, Mermaid } from '@ant-design/x'
+import { Mermaid } from '@ant-design/x'
 import type { ComponentProps, XMarkdownProps } from '@ant-design/x-markdown'
 import type { MarkedExtension } from 'marked'
 import Latex from '@ant-design/x-markdown/plugins/Latex'
+import { CodeBlock } from './CodeBlock'
 
-export type MarkdownComponents = Record<string, React.ComponentType<ComponentProps>>
+export type MarkdownComponents = Record<
+  string,
+  React.ComponentType<ComponentProps>
+>
 
 /**
  * Extract plain text from React children (may be string, element tree, or mixed).
- * CodeHighlighter and Mermaid expect a `string` child.
+ * CodeBlock and Mermaid expect a `string` child.
  */
 function extractText(children: React.ReactNode): string {
   if (typeof children === 'string') return children
   if (typeof children === 'number') return String(children)
   if (Array.isArray(children)) return children.map(extractText).join('')
   if (React.isValidElement(children)) {
-    return extractText((children.props as Record<string, unknown>).children as React.ReactNode)
+    return extractText(
+      (children.props as Record<string, unknown>).children as React.ReactNode,
+    )
   }
   return ''
 }
@@ -50,7 +56,7 @@ function normalizeMermaidSource(source: string): string {
 
       const normalizedEdgeLabel = line.replace(
         /((?:-->|==>|-.->|---|<--|<->|<-->|o-->|x-->|--o|--x)\s*)([A-Za-z][\w-]*)\s+\[/g,
-        '$1$2['
+        '$1$2[',
       )
 
       return normalizedEdgeLabel.replace(/^(\s*[A-Za-z][\w-]*)\s+\[/, '$1[')
@@ -60,7 +66,10 @@ function normalizeMermaidSource(source: string): string {
 
 const mermaidValidationCache = new Map<string, boolean>()
 let mermaidValidatorPromise: Promise<{
-  parse: (text: string, options?: { suppressErrors?: boolean }) => Promise<boolean | unknown>
+  parse: (
+    text: string,
+    options?: { suppressErrors?: boolean },
+  ) => Promise<boolean | unknown>
   initialize: (config: Record<string, unknown>) => void
 }> | null = null
 
@@ -93,15 +102,20 @@ async function validateMermaidSource(source: string): Promise<boolean> {
   }
 }
 
-const SafeMermaid: React.FC<{ code: string; streamStatus: ComponentProps['streamStatus'] }> = ({
-  code,
-  streamStatus,
-}) => {
-  const normalizedCode = React.useMemo(() => normalizeMermaidSource(code), [code])
-  const [canRenderMermaid, setCanRenderMermaid] = React.useState<boolean>(() => {
-    const cached = mermaidValidationCache.get(normalizedCode)
-    return cached ?? true
-  })
+const SafeMermaid: React.FC<{
+  code: string
+  streamStatus: ComponentProps['streamStatus']
+}> = ({ code, streamStatus }) => {
+  const normalizedCode = React.useMemo(
+    () => normalizeMermaidSource(code),
+    [code],
+  )
+  const [canRenderMermaid, setCanRenderMermaid] = React.useState<boolean>(
+    () => {
+      const cached = mermaidValidationCache.get(normalizedCode)
+      return cached ?? true
+    },
+  )
 
   React.useEffect(() => {
     let cancelled = false
@@ -132,7 +146,7 @@ const SafeMermaid: React.FC<{ code: string; streamStatus: ComponentProps['stream
   }, [normalizedCode, streamStatus])
 
   if (!canRenderMermaid) {
-    return <CodeHighlighter lang="mermaid">{normalizedCode}</CodeHighlighter>
+    return <CodeBlock code={normalizedCode} language="mermaid" />
   }
 
   return <Mermaid>{normalizedCode}</Mermaid>
@@ -146,7 +160,7 @@ const SafeMermaid: React.FC<{ code: string; streamStatus: ComponentProps['stream
  *
  * For block code:
  *   - language "mermaid" → renders interactive Mermaid diagram
- *   - other languages → renders CodeHighlighter with syntax highlighting
+ *   - other languages → renders CodeBlock (Shiki) with syntax highlighting
  * For inline code:
  *   - renders styled <code> tag
  */
@@ -162,7 +176,7 @@ const MarkdownCode: React.FC<ComponentProps> = ({
   if (!block) {
     return (
       <code
-        className="bg-[var(--color-components-code-bg)] text-[var(--color-components-code-text)] border border-[var(--color-components-code-border)] px-1.5 py-0.5 rounded text-sm font-mono"
+        className="rounded border border-[var(--color-components-code-border)] bg-[var(--color-components-code-bg)] px-1.5 py-0.5 font-mono text-sm text-[var(--color-components-code-text)]"
         {...rest}
       >
         {children}
@@ -177,14 +191,20 @@ const MarkdownCode: React.FC<ComponentProps> = ({
     return <SafeMermaid code={code} streamStatus={streamStatus} />
   }
 
-  return <CodeHighlighter lang={lang}>{code}</CodeHighlighter>
+  return (
+    <CodeBlock
+      code={code}
+      language={lang}
+      streaming={streamStatus === 'loading'}
+    />
+  )
 }
 
 /**
  * Transparent pre wrapper.
  *
  * XMarkdown renders fenced code as <pre><code ...>...</code></pre>.
- * Since CodeHighlighter and Mermaid render their own containers,
+ * Since CodeBlock and Mermaid render their own containers,
  * we strip the <pre> wrapper to avoid double-wrapping.
  */
 const MarkdownPre: React.FC<ComponentProps> = ({ children }) => {
@@ -192,7 +212,9 @@ const MarkdownPre: React.FC<ComponentProps> = ({ children }) => {
 }
 
 function getStreamingPendingText(domNode: ComponentProps['domNode']): string {
-  const raw = (domNode as { attribs?: Record<string, string> })?.attribs?.['data-raw']
+  const raw = (domNode as { attribs?: Record<string, string> })?.attribs?.[
+    'data-raw'
+  ]
   if (!raw) return ''
   try {
     return decodeURIComponent(raw)
@@ -206,7 +228,7 @@ const IncompleteMarkdownToken: React.FC<ComponentProps> = ({ domNode }) => {
   if (!pendingText) return null
 
   return (
-    <span className="text-text-tertiary whitespace-pre-wrap">
+    <span className="whitespace-pre-wrap text-text-tertiary">
       {pendingText}
     </span>
   )
@@ -240,7 +262,9 @@ export const markdownStreamingComponents: MarkdownComponents = {
   'incomplete-inline-code': memo(IncompleteMarkdownToken),
 }
 
-export function mergeMarkdownComponents(components?: Partial<MarkdownComponents>): MarkdownComponents {
+export function mergeMarkdownComponents(
+  components?: Partial<MarkdownComponents>,
+): MarkdownComponents {
   if (!components || Object.keys(components).length === 0) {
     return markdownStreamingComponents
   }
@@ -258,22 +282,27 @@ export function mergeMarkdownComponents(components?: Partial<MarkdownComponents>
   return merged
 }
 
-export function useMarkdownComponents(components?: Partial<MarkdownComponents>): MarkdownComponents {
+export function useMarkdownComponents(
+  components?: Partial<MarkdownComponents>,
+): MarkdownComponents {
   return React.useMemo(() => mergeMarkdownComponents(components), [components])
 }
 
-export function getMarkdownStreamingOptions(isStreaming: boolean): XMarkdownProps['streaming'] {
-  if (isStreaming) {
-    return {
-      hasNextChunk: true,
-      enableAnimation: true,
-      tail: true,
-    }
-  }
+// 稳定的引用，避免每次渲染都传入新对象，导致 XMarkdown 内部 renderer / effect 反复重建。
+const STREAMING_MARKDOWN_OPTIONS: XMarkdownProps['streaming'] = {
+  hasNextChunk: true,
+  enableAnimation: true,
+  tail: true,
+}
 
-  return {
-    hasNextChunk: false,
-  }
+const STATIC_MARKDOWN_OPTIONS: XMarkdownProps['streaming'] = {
+  hasNextChunk: false,
+}
+
+export function getMarkdownStreamingOptions(
+  isStreaming: boolean,
+): XMarkdownProps['streaming'] {
+  return isStreaming ? STREAMING_MARKDOWN_OPTIONS : STATIC_MARKDOWN_OPTIONS
 }
 
 /**

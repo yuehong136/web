@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { CodeHighlighter } from '@ant-design/x'
+import { CodeBlock } from './CodeBlock'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -99,9 +99,11 @@ function ParamValue({ value }: { value: any }) {
       const parsed = JSON.parse(value)
       if (typeof parsed === 'object' && parsed !== null) {
         return (
-          <CodeHighlighter lang="json">
-            {JSON.stringify(parsed, null, 2)}
-          </CodeHighlighter>
+          <CodeBlock
+            code={JSON.stringify(parsed, null, 2)}
+            language="json"
+            showHeader={false}
+          />
         )
       }
     } catch {
@@ -109,7 +111,7 @@ function ParamValue({ value }: { value: any }) {
     }
     const lang = detectLang(value)
     if (lang !== 'plaintext' || value.length > 80 || value.includes('\n')) {
-      return <CodeHighlighter lang={lang}>{value}</CodeHighlighter>
+      return <CodeBlock code={value} language={lang} showHeader={false} />
     }
     return (
       <span
@@ -121,9 +123,11 @@ function ParamValue({ value }: { value: any }) {
     )
   }
   return (
-    <CodeHighlighter lang="json">
-      {JSON.stringify(value, null, 2)}
-    </CodeHighlighter>
+    <CodeBlock
+      code={JSON.stringify(value, null, 2)}
+      language="json"
+      showHeader={false}
+    />
   )
 }
 
@@ -203,9 +207,11 @@ function ResultView({
           )
         }
         return (
-          <CodeHighlighter lang="json">
-            {JSON.stringify(parsed, null, 2)}
-          </CodeHighlighter>
+          <CodeBlock
+            code={JSON.stringify(parsed, null, 2)}
+            language="json"
+            showHeader={false}
+          />
         )
       }
     } catch {
@@ -222,7 +228,7 @@ function ResultView({
 
   return (
     <div className="space-y-1.5">
-      <CodeHighlighter lang={lang}>{text}</CodeHighlighter>
+      <CodeBlock code={text} language={lang} showHeader={false} />
       {onOpenModal && text.length > 500 && (
         <Button
           variant="ghost"
@@ -582,7 +588,13 @@ export function ToolCallDisplay({
                 /* ignore */
               }
               const lang = detectLang(modalText)
-              return <CodeHighlighter lang={lang}>{modalText}</CodeHighlighter>
+              return (
+                <CodeBlock
+                  code={modalText}
+                  language={lang}
+                  showHeader={false}
+                />
+              )
             })()}
           </div>
         </DialogContent>

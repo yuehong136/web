@@ -14,7 +14,7 @@ import {
   Terminal,
   Zap,
 } from 'lucide-react'
-import { CodeHighlighter } from '@ant-design/x'
+import { CodeBlock } from './CodeBlock'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Loading } from '@/components/ui/loading'
@@ -116,9 +116,11 @@ const ParamValue: React.FC<{ value: any }> = ({ value }) => {
       const parsed = JSON.parse(value)
       if (typeof parsed === 'object' && parsed !== null) {
         return (
-          <CodeHighlighter lang="json">
-            {JSON.stringify(parsed, null, 2)}
-          </CodeHighlighter>
+          <CodeBlock
+            code={JSON.stringify(parsed, null, 2)}
+            language="json"
+            showHeader={false}
+          />
         )
       }
     } catch {
@@ -126,7 +128,7 @@ const ParamValue: React.FC<{ value: any }> = ({ value }) => {
     }
     const lang = detectLang(value)
     if (lang !== 'plaintext' || value.length > 80 || value.includes('\n')) {
-      return <CodeHighlighter lang={lang}>{value}</CodeHighlighter>
+      return <CodeBlock code={value} language={lang} showHeader={false} />
     }
     return (
       <span
@@ -138,9 +140,11 @@ const ParamValue: React.FC<{ value: any }> = ({ value }) => {
     )
   }
   return (
-    <CodeHighlighter lang="json">
-      {JSON.stringify(value, null, 2)}
-    </CodeHighlighter>
+    <CodeBlock
+      code={JSON.stringify(value, null, 2)}
+      language="json"
+      showHeader={false}
+    />
   )
 }
 
@@ -203,9 +207,11 @@ const ResultContent: React.FC<{ result: any; status: string }> = ({
           return <ParamsList args={parsed} />
         }
         return (
-          <CodeHighlighter lang="json">
-            {JSON.stringify(parsed, null, 2)}
-          </CodeHighlighter>
+          <CodeBlock
+            code={JSON.stringify(parsed, null, 2)}
+            language="json"
+            showHeader={false}
+          />
         )
       }
     } catch {
@@ -213,7 +219,7 @@ const ResultContent: React.FC<{ result: any; status: string }> = ({
     }
     const lang = detectLang(result)
     if (lang !== 'plaintext' || result.includes('\n') || result.length > 100) {
-      return <CodeHighlighter lang={lang}>{result}</CodeHighlighter>
+      return <CodeBlock code={result} language={lang} showHeader={false} />
     }
     return (
       <span className="text-sm" style={{ color: 'var(--color-text-primary)' }}>
@@ -228,9 +234,11 @@ const ResultContent: React.FC<{ result: any; status: string }> = ({
       return <ParamsList args={result} />
     }
     return (
-      <CodeHighlighter lang="json">
-        {JSON.stringify(result, null, 2)}
-      </CodeHighlighter>
+      <CodeBlock
+        code={JSON.stringify(result, null, 2)}
+        language="json"
+        showHeader={false}
+      />
     )
   }
 

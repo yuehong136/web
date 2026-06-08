@@ -17,6 +17,15 @@ export default {
       talk: '聊一聊',
       stop: '停止输出',
     },
+    agentTimeline: {
+      arguments: '参数',
+      result: '结果',
+      toolRunning: '工具正在执行...',
+      noToolDetail: '暂无工具详情',
+      reasoningPending: '正在整理思考过程...',
+      reasoningTitle: '思考过程',
+      step: '执行步骤',
+    },
     tabs: {
       writing: '写作',
       ppt: 'PPT',
