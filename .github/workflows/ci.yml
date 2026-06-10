@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Lint & Typecheck & Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      # postinstall 跑 patch-package（patches/ 已提交），prepare 跑 husky
+      - name: Install dependencies
+        run: npm ci
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: ESLint (type-aware, Agent critical dirs)
+        run: npm run lint:typed
+
+      - name: Typecheck (Agent strict)
+        run: npm run typecheck:agent-strict
+
+      - name: Test (agent serializers & adapters)
+        run: npm run test:agent-t1
+
+      - name: Test (design tokens)
+        run: npm run test:design-tokens
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # tsc -b（全量类型检查）+ vite build
+      - name: Build
+        run: npm run build
