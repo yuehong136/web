@@ -24,7 +24,8 @@ dist-ssr
 *.sw?
 
 deploy
-docs
+docs/*
+!docs/engineering-modernization-roadmap.md
 .env.production
 
 .codex
