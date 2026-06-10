@@ -8,6 +8,8 @@ import tailwindcss from 'eslint-plugin-tailwindcss'
 import tseslint from 'typescript-eslint'
 import { globalIgnores } from 'eslint/config'
 import noFeedbackStateToken from './eslint-rules/no-feedback-state-token.js'
+import noUnsafeIframeSandbox from './eslint-rules/no-unsafe-iframe-sandbox.js'
+import noTargetBlankWithoutRel from './eslint-rules/no-target-blank-without-rel.js'
 
 const typedLint = process.env.ESLINT_TYPED === 'true'
 const jsxA11yWarningRules = Object.fromEntries(
@@ -132,6 +134,35 @@ export default tseslint.config([
     },
     rules: {
       'design-tokens/no-feedback-state-token': 'error',
+    },
+  },
+  {
+    // 模型输出是不可信输入（CLAUDE.md / AGENTS.md「安全与隐私」）的可执行子集：
+    // - iframe 沙箱不得 allow-scripts + allow-same-origin 同开；srcDoc 必须有 sandbox
+    // - target="_blank" 必须带 rel noopener/noreferrer
+    // - 禁止 eval / new Function / javascript: URL（模型生成代码仅展示，执行只在沙箱 iframe 内）
+    files: ['src/**/*.{ts,tsx}'],
+    plugins: {
+      security: {
+        rules: {
+          'no-unsafe-iframe-sandbox': noUnsafeIframeSandbox,
+          'no-target-blank-without-rel': noTargetBlankWithoutRel,
+        },
+      },
+    },
+    rules: {
+      'security/no-unsafe-iframe-sandbox': 'error',
+      'security/no-target-blank-without-rel': 'error',
+      'no-eval': 'error',
+      'no-new-func': 'error',
+      'no-script-url': 'error',
+    },
+  },
+  {
+    // 测试里允许出现 javascript: 字面量（如 isValidOrigin 的攻击样例断言）
+    files: ['src/**/__tests__/**', 'src/**/*.test.{ts,tsx}'],
+    rules: {
+      'no-script-url': 'off',
     },
   },
 ])
