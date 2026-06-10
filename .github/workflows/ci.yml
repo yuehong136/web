@@ -32,6 +32,9 @@ jobs:
       - name: ESLint
         run: npm run lint
 
+      - name: File size ratchet
+        run: npm run lint:file-size
+
       - name: ESLint (type-aware, Agent critical dirs)
         run: npm run lint:typed
 
@@ -61,3 +64,6 @@ jobs:
       # tsc -b（全量类型检查）+ vite build
       - name: Build
         run: npm run build
+
+      - name: Bundle size budget
+        run: npm run check:bundle-size

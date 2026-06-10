@@ -1,0 +1,6 @@
+{
+  "_doc": "Bundle 体积预算（check-bundle-size.mjs 消费）。预算=2026-06-10 实测+5%，只许下调不许上调；调整须在 docs/engineering-modernization-roadmap.md ENG-4 记录。实测基线：total 26,059,624 B / entry gzip 116,721 B / max chunk gzip 720,700 B (editor-runtime-rail)。",
+  "totalJsBytes": 27400000,
+  "entryGzipBytes": 123000,
+  "maxChunkGzipBytes": 757000
+}

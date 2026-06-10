@@ -21,11 +21,14 @@ npm run build:docker # vite build without tsc -b (Docker image build only — ne
 npm run preview      # Preview production build
 npm run test:agent-t1 # node --test via tsx: agent serializers + adapters
 npm run test:design-tokens # node --test via tsx: design-token utilities (palette, token values)
+npm run lint:file-size # File-size ratchet: oversized files must not grow (baseline: scripts/file-size-baseline.json)
+npm run lint:file-size:update # Tighten the ratchet baseline after shrinking a debt file (never to loosen it)
+npm run check:bundle-size # Bundle budget gate, run after build (budgets: scripts/bundle-size-budget.json)
 ```
 
 There is **no generic `test`, `format`, or `typecheck` npm script**. Full type checking happens inside `npm run build`; Agent critical directories also have `npm run typecheck:agent-strict`. Formatting is handled by Prettier + lint-staged for staged files only; do not format the whole repo. The formal test gates are `test:agent-t1` and `test:design-tokens` (`tsx --test`); Vitest baseline config exists for future additions/migration. Do not introduce Jest.
 
-**CI**: `.github/workflows/ci.yml` runs on every push/PR to `master` — `lint`, `lint:typed`, `typecheck:agent-strict`, `test:agent-t1`, `test:design-tokens`, and `build` must all pass. `lint:i18n-agent` stays a local-only gate (it diffs the working tree). The pre-commit hook only runs lint-staged; still run the relevant gates locally before pushing — never claim they pass without actually running them.
+**CI**: `.github/workflows/ci.yml` runs on every push/PR to `master` — `lint`, `lint:file-size`, `lint:typed`, `typecheck:agent-strict`, `test:agent-t1`, `test:design-tokens`, `build`, and `check:bundle-size` must all pass. `lint:i18n-agent` stays a local-only gate (it diffs the working tree). The pre-commit hook only runs lint-staged; still run the relevant gates locally before pushing — never claim they pass without actually running them.
 
 ## Stack (verified, 2026-05)
 
@@ -101,7 +104,7 @@ Use `@/` path alias for all internal imports.
 | 400–600 | 🔶 Attention | Refactor scheduled |
 | > 600   | ❌ FORBIDDEN | Must split         |
 
-**Known debt** (do not extend): `ApiKeysPage.tsx` (3293), `ExplorePage.tsx` (2279), `DocumentChunksPage.tsx` (2239), `api-key-modal.tsx` (1757), `agent/options/google.ts` (1589), `agent/constant/index.ts` (1443), `MCPChatPage.tsx` (1409), `KnowledgeListPage.tsx` (1219). When touching these, _reduce_ line count or split — never add to them. `CreateAppPage.tsx` was already split into `pages/studio/create-app/` — use that as the reference pattern.
+**Known debt — ENFORCED by ratchet**: every file over 600 lines is recorded with its current line count in `scripts/file-size-baseline.json` (36 files as of 2026-06-10; worst: `ApiKeysPage.tsx` 4068, `ExplorePage.tsx` 2369). CI fails if any baselined file grows by even one line, or if a new file exceeds 600 lines. When you shrink a debt file, run `npm run lint:file-size:update` to tighten the baseline in the same PR. `CreateAppPage.tsx` was already split into `pages/studio/create-app/` — use that as the reference pattern.
 
 ### Module structure
 
@@ -460,4 +463,5 @@ Do not introduce Jest. Vitest baseline config exists, but do not opportunistical
 2. Read `docs/agent-frontend-rewrite-plan.md` and `docs/agent-capability-completion-roadmap.md` for the agent program direction.
 3. Read the relevant `docs/agent-t*-summary.md` for the latest landed capability (T1 foundation, T2 form-sheet, T3 pipeline nodes, T4 runtime, T6 log workbench, T7 share/publish/webhook, T8 observability, T9 explore, T10 variables/structured output, T11 cleanup/acceptance, T12 asset/log ops, T13 trace workbench).
 4. Read `docs/design-tokens/*.md` for token-system change history (feedback-state alias removal, JS token target, OKLCH categorical palette).
-5. Read the human-facing handbook `AI前端技术栈开发规范.md` for _why_ a rule exists.
+5. Read `docs/engineering-modernization-roadmap.md` for the audited engineering-debt backlog (SEC/ARCH/ENG/HYG items) — it is the single progress ledger; anyone completing an item MUST update its status table there.
+6. Read the human-facing handbook `AI前端技术栈开发规范.md` for _why_ a rule exists.

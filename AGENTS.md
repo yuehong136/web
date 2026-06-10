@@ -21,11 +21,14 @@ npm run build:docker # 不跑 tsc -b 的 vite build（仅 Docker 镜像构建用
 npm run preview      # 预览生产构建
 npm run test:agent-t1 # tsx 跑 node --test：agent serializer + adapter
 npm run test:design-tokens # tsx 跑 node --test：设计令牌工具（调色板、token 取值）
+npm run lint:file-size # 文件体积棘轮：超标文件不得膨胀（基线：scripts/file-size-baseline.json）
+npm run lint:file-size:update # 偿还债务（行数下降）后收紧基线（禁止用来放宽）
+npm run check:bundle-size # Bundle 预算门禁，build 后运行（预算：scripts/bundle-size-budget.json）
 ```
 
 **注意**：暂无通用 `test`、`format`、`typecheck` 脚本。全量类型检查由 `npm run build` 完成；Agent 关键目录补充跑 `npm run typecheck:agent-strict`。格式化通过 Prettier + lint-staged 作用于 staged 文件，**不要做全仓格式化**。正式测试门禁是 `test:agent-t1` 与 `test:design-tokens`（`tsx --test`）；Vitest 基础配置已落地用于后续新增/迁移，**不要引入 Jest**。
 
-**CI**：`.github/workflows/ci.yml` 在每次 push/PR 到 `master` 时运行 —— `lint`、`lint:typed`、`typecheck:agent-strict`、`test:agent-t1`、`test:design-tokens`、`build` 全部必须通过。`lint:i18n-agent` 仍是本地门禁（它 diff 工作区）。pre-commit hook 只跑 lint-staged；推送前仍需本地跑相关门禁 —— **没有实际运行就不得声称通过**。
+**CI**：`.github/workflows/ci.yml` 在每次 push/PR 到 `master` 时运行 —— `lint`、`lint:file-size`、`lint:typed`、`typecheck:agent-strict`、`test:agent-t1`、`test:design-tokens`、`build`、`check:bundle-size` 全部必须通过。`lint:i18n-agent` 仍是本地门禁（它 diff 工作区）。pre-commit hook 只跑 lint-staged；推送前仍需本地跑相关门禁 —— **没有实际运行就不得声称通过**。
 
 ## 技术栈（2026-05 校核）
 
@@ -101,7 +104,7 @@ src/
 | 400–600 | 🔶 注意 | 排期重构 |
 | > 600   | ❌ 禁止 | 必须拆分 |
 
-**已知技术债**（不得继续扩张）：`ApiKeysPage.tsx`(3293)、`ExplorePage.tsx`(2279)、`DocumentChunksPage.tsx`(2239)、`api-key-modal.tsx`(1757)、`agent/options/google.ts`(1589)、`agent/constant/index.ts`(1443)、`MCPChatPage.tsx`(1409)、`KnowledgeListPage.tsx`(1219)。修改这些文件时必须**减少**或拆分，不得增加。`CreateAppPage.tsx` 已拆为 `pages/studio/create-app/`，参考此模式。
+**已知技术债 —— 棘轮强制**：所有超 600 行的文件连同当前行数记录在 `scripts/file-size-baseline.json`（2026-06-10 共 36 个；最严重：`ApiKeysPage.tsx` 4068、`ExplorePage.tsx` 2369）。在册文件哪怕膨胀 1 行、或新文件超 600 行，CI 直接红。偿还债务后必须在同一 PR 里跑 `npm run lint:file-size:update` 收紧基线。`CreateAppPage.tsx` 已拆为 `pages/studio/create-app/`，参考此模式。
 
 ### 模块形态
 
@@ -458,4 +461,5 @@ Mutation 错误用 `sonner` toast 暴露，不用 dialog 阻塞，除非用户�
 2. `docs/agent-frontend-rewrite-plan.md`、`docs/agent-capability-completion-roadmap.md` — Agent 大方向
 3. `docs/agent-t*-summary.md` — 最新落地能力（T1 地基、T2 form-sheet、T3 pipeline 节点、T4 runtime、T6 日志工作台、T7 share/publish/webhook、T8 可观测性、T9 explore、T10 变量与结构化输出、T11 清理验收、T12 资产/日志运维、T13 trace 工作台）
 4. `docs/design-tokens/*.md` — 令牌系统变更史（feedback-state alias 删除、JS token 目标、OKLCH 分类色阶）
-5. 面向人的手册 `AI前端技术栈开发规范.md` — 每条规则**为什么**这么定
+5. `docs/engineering-modernization-roadmap.md` — 全仓审计后的工程债清单（SEC/ARCH/ENG/HYG 条目），**唯一进度账本**；完成任一条目必须更新其中的状态表
+6. 面向人的手册 `AI前端技术栈开发规范.md` — 每条规则**为什么**这么定
