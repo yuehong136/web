@@ -7,10 +7,8 @@
 import React from 'react'
 import {
   FileText,
-  Table2,
   Image,
   Copy,
-  FileType,
   Database,
   Hash,
   Layers,
@@ -27,6 +25,13 @@ import {
   SheetDescription,
 } from '@/components/ui/sheet'
 import { SafeHtml } from '@/components/ui/safe-html'
+import {
+  getDocTypeIcon,
+  getDocTypeLabel,
+  getSimilarityColor,
+  getSimilarityLabel,
+  truncateId,
+} from './reference-meta'
 import { copyToClipboard } from '@/lib/utils'
 import { toast } from '@/lib/toast'
 import { useAuthStore } from '@/stores'
@@ -43,104 +48,6 @@ export interface ReferenceDetailSheetProps {
   allChunks?: ReferenceChunk[]
   /** 复制成功回调 */
   onCopySuccess?: () => void
-}
-
-/**
- * 获取文档类型图标
- */
-function getDocTypeIcon(docType?: string, docName?: string) {
-  if (docType === 'table') {
-    return (
-      <Table2
-        className="h-5 w-5"
-        style={{ color: 'var(--color-text-accent)' }}
-      />
-    )
-  }
-  if (docType === 'image') {
-    return (
-      <Image
-        className="h-5 w-5"
-        style={{ color: 'var(--color-text-success)' }}
-      />
-    )
-  }
-
-  if (docName) {
-    const ext = docName.split('.').pop()?.toLowerCase()
-    switch (ext) {
-      case 'pdf':
-        return (
-          <FileText
-            className="h-5 w-5"
-            style={{ color: 'var(--color-text-error)' }}
-          />
-        )
-      case 'doc':
-      case 'docx':
-        return (
-          <FileText
-            className="h-5 w-5"
-            style={{ color: 'var(--color-text-accent)' }}
-          />
-        )
-      case 'xls':
-      case 'xlsx':
-        return (
-          <Table2
-            className="h-5 w-5"
-            style={{ color: 'var(--color-text-success)' }}
-          />
-        )
-      case 'md':
-      case 'mdx':
-        return (
-          <FileType
-            className="h-5 w-5"
-            style={{ color: 'var(--color-text-secondary)' }}
-          />
-        )
-    }
-  }
-
-  return (
-    <FileText
-      className="h-5 w-5"
-      style={{ color: 'var(--color-text-tertiary)' }}
-    />
-  )
-}
-
-/**
- * 获取文档类型标签
- */
-function getDocTypeLabel(docType?: string): string {
-  switch (docType) {
-    case 'table':
-      return '表格'
-    case 'image':
-      return '图片'
-    default:
-      return '文本'
-  }
-}
-
-/**
- * 获取相似度颜色
- */
-function getSimilarityColor(similarity: number): string {
-  if (similarity >= 0.8) return 'var(--color-text-success)'
-  if (similarity >= 0.6) return 'var(--color-text-accent)'
-  return 'var(--color-text-tertiary)'
-}
-
-/**
- * 获取相似度等级标签
- */
-function getSimilarityLabel(similarity: number): string {
-  if (similarity >= 0.8) return '高度匹配'
-  if (similarity >= 0.6) return '较为相关'
-  return '可能相关'
 }
 
 // 引用内容白名单（chunk 内容来自文档解析，按不可信输入对待）
@@ -166,14 +73,6 @@ const CHUNK_CONTENT_PURIFY_OPTIONS: Config = {
     'li',
   ],
   ALLOWED_ATTR: ['rowspan', 'colspan', 'class', 'style'],
-}
-
-/**
- * 截断 ID 显示
- */
-function truncateId(id: string, maxLength = 12): string {
-  if (!id || id.length <= maxLength) return id
-  return id.slice(0, maxLength) + '...'
 }
 
 /**

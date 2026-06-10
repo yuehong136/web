@@ -5,15 +5,7 @@
  * 展示组件原则：只接收 props，不包含业务逻辑
  */
 import React from 'react'
-import {
-  FileText,
-  Table2,
-  Image,
-  Copy,
-  FileType,
-  ChevronRight,
-  ExternalLink,
-} from 'lucide-react'
+import { Copy, ChevronRight, ExternalLink } from 'lucide-react'
 import type { Config } from 'dompurify'
 import {
   Popover,
@@ -21,6 +13,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { SafeHtml } from '@/components/ui/safe-html'
+import { getDocTypeIcon, getSimilarityColor } from './reference-meta'
 import { cn } from '@/lib/utils'
 import type { ReferenceChunk } from '@/utils/reference-replacer'
 
@@ -35,83 +28,6 @@ export interface ReferenceMarkerProps {
   onCopy?: (content: string) => void
   /** XMarkdown 组件传入的 children */
   children?: React.ReactNode
-}
-
-/**
- * 获取文档类型图标
- */
-function getDocTypeIcon(docType?: string, docName?: string) {
-  // 根据 doc_type 判断
-  if (docType === 'table') {
-    return (
-      <Table2
-        className="h-4 w-4"
-        style={{ color: 'var(--color-text-accent)' }}
-      />
-    )
-  }
-  if (docType === 'image') {
-    return (
-      <Image
-        className="h-4 w-4"
-        style={{ color: 'var(--color-text-success)' }}
-      />
-    )
-  }
-
-  // 根据文件扩展名判断
-  if (docName) {
-    const ext = docName.split('.').pop()?.toLowerCase()
-    switch (ext) {
-      case 'pdf':
-        return (
-          <FileText
-            className="h-4 w-4"
-            style={{ color: 'var(--color-text-error)' }}
-          />
-        )
-      case 'doc':
-      case 'docx':
-        return (
-          <FileText
-            className="h-4 w-4"
-            style={{ color: 'var(--color-text-accent)' }}
-          />
-        )
-      case 'xls':
-      case 'xlsx':
-        return (
-          <Table2
-            className="h-4 w-4"
-            style={{ color: 'var(--color-text-success)' }}
-          />
-        )
-      case 'md':
-      case 'mdx':
-        return (
-          <FileType
-            className="h-4 w-4"
-            style={{ color: 'var(--color-text-secondary)' }}
-          />
-        )
-    }
-  }
-
-  return (
-    <FileText
-      className="h-4 w-4"
-      style={{ color: 'var(--color-text-tertiary)' }}
-    />
-  )
-}
-
-/**
- * 获取相似度颜色
- */
-function getSimilarityColor(similarity: number): string {
-  if (similarity >= 0.8) return 'var(--color-text-success)'
-  if (similarity >= 0.6) return 'var(--color-text-accent)'
-  return 'var(--color-text-tertiary)'
 }
 
 /**
@@ -210,7 +126,7 @@ export const ReferenceMarker: React.FC<ReferenceMarkerProps> = ({
               backgroundColor: 'var(--color-background-subtle)',
             }}
           >
-            {getDocTypeIcon(chunk.doc_type, chunk.document_name)}
+            {getDocTypeIcon(chunk.doc_type, chunk.document_name, 'h-4 w-4')}
             <div className="min-w-0 flex-1">
               <span
                 className="block truncate text-sm font-medium"
