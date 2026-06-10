@@ -160,7 +160,7 @@ Chrome/Edge 111+, Firefox 114+, and Safari 16.4+.
 
 ## License
 
-Proprietary. All rights reserved.
+Licensed under the [Apache License 2.0](./LICENSE).
 
 ---
 

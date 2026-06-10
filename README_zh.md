@@ -160,7 +160,7 @@ Chrome/Edge 111+、Firefox 114+、Safari 16.4+。
 
 ## 许可证
 
-专有软件，保留所有权利。
+基于 [Apache License 2.0](./LICENSE) 开源。
 
 ---
 
