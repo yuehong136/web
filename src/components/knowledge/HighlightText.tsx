@@ -1,6 +1,13 @@
 import React from 'react'
-import DOMPurify from 'dompurify'
+import type { Config } from 'dompurify'
+import { SafeHtml } from '@/components/ui/safe-html'
 import './HighlightText.css'
+
+// 检索高亮 HTML 来自后端（文档派生内容，按不可信输入对待），只允许 em 标签
+const HIGHLIGHT_PURIFY_OPTIONS: Config = {
+  ALLOWED_TAGS: ['em'],
+  ALLOWED_ATTR: [],
+}
 
 interface HighlightTextProps {
   /**
@@ -38,7 +45,7 @@ interface HighlightTextProps {
 const truncateHtml = (html: string, maxLength: number): string => {
   // 移除 HTML 标签计算纯文本长度
   const textContent = html.replace(/<[^>]*>/g, '')
-  
+
   if (textContent.length <= maxLength) {
     return html
   }
@@ -47,10 +54,10 @@ const truncateHtml = (html: string, maxLength: number): string => {
   let charCount = 0
   let result = ''
   let inTag = false
-  
+
   for (let i = 0; i < html.length; i++) {
     const char = html[i]
-    
+
     if (char === '<') {
       inTag = true
     } else if (char === '>') {
@@ -58,34 +65,34 @@ const truncateHtml = (html: string, maxLength: number): string => {
       result += char
       continue
     }
-    
+
     if (!inTag && charCount < maxLength) {
       charCount++
     }
-    
+
     result += char
-    
+
     if (charCount >= maxLength && !inTag) {
       break
     }
   }
-  
+
   // 关闭未闭合的 em 标签
   const openTags = (result.match(/<em>/g) || []).length
   const closeTags = (result.match(/<\/em>/g) || []).length
   const unclosedTags = openTags - closeTags
-  
+
   for (let i = 0; i < unclosedTags; i++) {
     result += '</em>'
   }
-  
+
   return result + '...'
 }
 
 /**
  * 高亮文本组件
  * 用于渲染包含 <em> 标签的 HTML 内容，将 <em> 标签内的文本高亮显示
- * 
+ *
  * 后端返回的 highlight 字段格式示例：
  * "<em><em>段落</em>风<em>格</em></em>、数据引用不统一...缺乏可控的大纲—章节—<em>段落</em>数据模型"
  */
@@ -116,18 +123,11 @@ export const HighlightText: React.FC<HighlightTextProps> = ({
     }
   }
 
-  // 使用 DOMPurify 清理 HTML，防止 XSS 攻击
-  // 只允许 em 标签，其他标签都会被移除
-  const sanitizedHtml = DOMPurify.sanitize(content, {
-    ALLOWED_TAGS: ['em'],
-    ALLOWED_ATTR: [],
-  })
-
   return (
-    <div
+    <SafeHtml
       className={`highlight-text ${className}`}
-      dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
+      html={content}
+      options={HIGHLIGHT_PURIFY_OPTIONS}
     />
   )
 }
-

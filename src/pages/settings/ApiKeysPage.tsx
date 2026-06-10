@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
+import './api-keys-page.css'
 import {
   Search,
   Globe,
@@ -1791,39 +1792,7 @@ const ApiDocumentationPage: React.FC = () => {
             </div>
           </div>
 
-          <div
-            className="custom-scrollbar flex-1 overflow-auto"
-            style={{
-              scrollbarWidth: 'thin',
-              scrollbarColor: 'rgba(203, 213, 225, 0.5) transparent',
-            }}
-          >
-            <style
-              dangerouslySetInnerHTML={{
-                __html: `
-                .custom-scrollbar::-webkit-scrollbar {
-                  width: 8px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-track {
-                  background: transparent;
-                }
-                .custom-scrollbar::-webkit-scrollbar-thumb {
-                  background: rgba(203, 213, 225, 0.4);
-                  border-radius: 4px;
-                  transition: all 0.2s ease;
-                }
-                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                  background: rgba(148, 163, 184, 0.7);
-                }
-                .dark .custom-scrollbar::-webkit-scrollbar-thumb {
-                  background: rgba(71, 85, 105, 0.5);
-                }
-                .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                  background: rgba(100, 116, 139, 0.8);
-                }
-              `,
-              }}
-            />
+          <div className="api-keys-scrollbar flex-1 overflow-auto">
             <div className="space-y-4 px-4 pb-4">
               {Object.entries(groupedEndpoints).map(([tag, endpoints]) => {
                 const IconComponent =

@@ -1,15 +1,15 @@
 /**
  * 引用详情侧边栏组件
  * 用于展示单个引用的完整详情，从右侧滑出
- * 
+ *
  * 展示组件原则：只接收 props，不包含业务逻辑
  */
 import React from 'react'
-import { 
-  FileText, 
-  Table2, 
-  Image, 
-  Copy, 
+import {
+  FileText,
+  Table2,
+  Image,
+  Copy,
   FileType,
   Database,
   Hash,
@@ -18,7 +18,7 @@ import {
   ExternalLink,
 } from 'lucide-react'
 import { Watermark } from 'antd'
-import DOMPurify from 'dompurify'
+import type { Config } from 'dompurify'
 import {
   Sheet,
   SheetContent,
@@ -26,6 +26,7 @@ import {
   SheetTitle,
   SheetDescription,
 } from '@/components/ui/sheet'
+import { SafeHtml } from '@/components/ui/safe-html'
 import { copyToClipboard } from '@/lib/utils'
 import { toast } from '@/lib/toast'
 import { useAuthStore } from '@/stores'
@@ -49,30 +50,65 @@ export interface ReferenceDetailSheetProps {
  */
 function getDocTypeIcon(docType?: string, docName?: string) {
   if (docType === 'table') {
-    return <Table2 className="h-5 w-5" style={{ color: 'var(--color-text-accent)' }} />
+    return (
+      <Table2
+        className="h-5 w-5"
+        style={{ color: 'var(--color-text-accent)' }}
+      />
+    )
   }
   if (docType === 'image') {
-    return <Image className="h-5 w-5" style={{ color: 'var(--color-text-success)' }} />
+    return (
+      <Image
+        className="h-5 w-5"
+        style={{ color: 'var(--color-text-success)' }}
+      />
+    )
   }
-  
+
   if (docName) {
     const ext = docName.split('.').pop()?.toLowerCase()
     switch (ext) {
       case 'pdf':
-        return <FileText className="h-5 w-5" style={{ color: 'var(--color-text-error)' }} />
+        return (
+          <FileText
+            className="h-5 w-5"
+            style={{ color: 'var(--color-text-error)' }}
+          />
+        )
       case 'doc':
       case 'docx':
-        return <FileText className="h-5 w-5" style={{ color: 'var(--color-text-accent)' }} />
+        return (
+          <FileText
+            className="h-5 w-5"
+            style={{ color: 'var(--color-text-accent)' }}
+          />
+        )
       case 'xls':
       case 'xlsx':
-        return <Table2 className="h-5 w-5" style={{ color: 'var(--color-text-success)' }} />
+        return (
+          <Table2
+            className="h-5 w-5"
+            style={{ color: 'var(--color-text-success)' }}
+          />
+        )
       case 'md':
       case 'mdx':
-        return <FileType className="h-5 w-5" style={{ color: 'var(--color-text-secondary)' }} />
+        return (
+          <FileType
+            className="h-5 w-5"
+            style={{ color: 'var(--color-text-secondary)' }}
+          />
+        )
     }
   }
-  
-  return <FileText className="h-5 w-5" style={{ color: 'var(--color-text-tertiary)' }} />
+
+  return (
+    <FileText
+      className="h-5 w-5"
+      style={{ color: 'var(--color-text-tertiary)' }}
+    />
+  )
 }
 
 /**
@@ -107,14 +143,29 @@ function getSimilarityLabel(similarity: number): string {
   return '可能相关'
 }
 
-/**
- * 安全渲染 HTML 内容
- */
-function sanitizeHtml(html: string): string {
-  return DOMPurify.sanitize(html, {
-    ALLOWED_TAGS: ['table', 'thead', 'tbody', 'tr', 'th', 'td', 'caption', 'br', 'p', 'div', 'span', 'strong', 'em', 'b', 'i', 'ul', 'ol', 'li'],
-    ALLOWED_ATTR: ['rowspan', 'colspan', 'class', 'style'],
-  })
+// 引用内容白名单（chunk 内容来自文档解析，按不可信输入对待）
+const CHUNK_CONTENT_PURIFY_OPTIONS: Config = {
+  ALLOWED_TAGS: [
+    'table',
+    'thead',
+    'tbody',
+    'tr',
+    'th',
+    'td',
+    'caption',
+    'br',
+    'p',
+    'div',
+    'span',
+    'strong',
+    'em',
+    'b',
+    'i',
+    'ul',
+    'ol',
+    'li',
+  ],
+  ALLOWED_ATTR: ['rowspan', 'colspan', 'class', 'style'],
 }
 
 /**
@@ -136,15 +187,15 @@ interface MetadataItemProps {
   onCopy?: () => void
 }
 
-const MetadataItem: React.FC<MetadataItemProps> = ({ 
-  icon, 
-  label, 
-  value, 
+const MetadataItem: React.FC<MetadataItemProps> = ({
+  icon,
+  label,
+  value,
   copyable = false,
-  onCopy 
+  onCopy,
 }) => {
   const [copied, setCopied] = React.useState(false)
-  
+
   const handleCopy = async () => {
     try {
       await copyToClipboard(value)
@@ -156,20 +207,20 @@ const MetadataItem: React.FC<MetadataItemProps> = ({
       toast.error('复制失败')
     }
   }
-  
+
   return (
     <div className="flex items-start gap-2 py-2">
       <span style={{ color: 'var(--color-text-tertiary)' }}>{icon}</span>
-      <div className="flex-1 min-w-0">
-        <div 
-          className="text-xs mb-0.5"
+      <div className="min-w-0 flex-1">
+        <div
+          className="mb-0.5 text-xs"
           style={{ color: 'var(--color-text-tertiary)' }}
         >
           {label}
         </div>
         <div className="flex items-center gap-2">
-          <span 
-            className="text-sm font-mono truncate"
+          <span
+            className="truncate font-mono text-sm"
             style={{ color: 'var(--color-text-secondary)' }}
             title={value}
           >
@@ -177,12 +228,20 @@ const MetadataItem: React.FC<MetadataItemProps> = ({
           </span>
           {copyable && (
             <button
-              className="flex-shrink-0 p-1 rounded transition-colors"
-              style={{ color: copied ? 'var(--color-text-success)' : 'var(--color-text-tertiary)' }}
+              className="flex-shrink-0 rounded p-1 transition-colors"
+              style={{
+                color: copied
+                  ? 'var(--color-text-success)'
+                  : 'var(--color-text-tertiary)',
+              }}
               onClick={handleCopy}
               title="复制"
             >
-              {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+              {copied ? (
+                <Check className="h-3 w-3" />
+              ) : (
+                <Copy className="h-3 w-3" />
+              )}
             </button>
           )}
         </div>
@@ -199,7 +258,7 @@ export const ReferenceDetailSheet: React.FC<ReferenceDetailSheetProps> = ({
   onOpenChange,
   chunk,
   allChunks,
-  onCopySuccess
+  onCopySuccess,
 }) => {
   const [contentCopied, setContentCopied] = React.useState(false)
   const user = useAuthStore((s) => s.user)
@@ -209,17 +268,20 @@ export const ReferenceDetailSheet: React.FC<ReferenceDetailSheetProps> = ({
     const date = new Date().toLocaleDateString('zh-CN')
     return [email, date]
   }, [user?.email, user?.nickname])
-  
+
   const relatedChunks = React.useMemo(() => {
     if (!allChunks || !chunk?.document_id) return []
-    return allChunks.filter(
-      c => c.document_id === chunk.document_id && c.id !== chunk.id
-    ).slice(0, 3)
+    return allChunks
+      .filter((c) => c.document_id === chunk.document_id && c.id !== chunk.id)
+      .slice(0, 3)
   }, [allChunks, chunk])
-  
+
   const handleCopyContent = React.useCallback(async () => {
     if (!chunk?.content) return
-    const textContent = chunk.content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
+    const textContent = chunk.content
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
     try {
       await copyToClipboard(textContent)
       setContentCopied(true)
@@ -230,35 +292,35 @@ export const ReferenceDetailSheet: React.FC<ReferenceDetailSheetProps> = ({
       toast.error('复制失败')
     }
   }, [chunk?.content, onCopySuccess])
-  
+
   // 条件返回必须在所有 hooks 之后
   if (!chunk) return null
-  
+
   const similarity = chunk.similarity ?? 0
   const similarityPercent = Math.round(similarity * 100)
   const similarityColor = getSimilarityColor(similarity)
   const isHtmlContent = chunk.content?.includes('<')
-  
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent 
-        side="right" 
-        className="w-full sm:max-w-md overflow-y-auto p-0"
+      <SheetContent
+        side="right"
+        className="w-full overflow-y-auto p-0 sm:max-w-md"
         style={{ backgroundColor: 'var(--color-background-body)' }}
       >
         {/* 头部 */}
-        <SheetHeader 
-          className="px-4 py-3 sticky top-0 z-10"
-          style={{ 
+        <SheetHeader
+          className="sticky top-0 z-10 px-4 py-3"
+          style={{
             backgroundColor: 'var(--color-background-surface)',
-            borderBottom: '1px solid var(--color-border-subtle)'
+            borderBottom: '1px solid var(--color-border-subtle)',
           }}
         >
           <div className="flex items-center gap-3">
             {getDocTypeIcon(chunk.doc_type, chunk.document_name)}
-            <div className="flex-1 min-w-0">
-              <SheetTitle 
-                className="text-base font-semibold truncate"
+            <div className="min-w-0 flex-1">
+              <SheetTitle
+                className="truncate text-base font-semibold"
                 style={{ color: 'var(--color-text-primary)' }}
               >
                 {chunk.document_name || '未知文档'}
@@ -266,12 +328,12 @@ export const ReferenceDetailSheet: React.FC<ReferenceDetailSheetProps> = ({
               <SheetDescription className="sr-only">
                 引用内容详情，包含相似度、内容和元数据信息
               </SheetDescription>
-              <div className="flex items-center gap-2 mt-0.5">
-                <span 
-                  className="text-xs px-1.5 py-0.5 rounded"
-                  style={{ 
+              <div className="mt-0.5 flex items-center gap-2">
+                <span
+                  className="rounded px-1.5 py-0.5 text-xs"
+                  style={{
                     backgroundColor: 'var(--color-background-subtle)',
-                    color: 'var(--color-text-tertiary)'
+                    color: 'var(--color-text-tertiary)',
                   }}
                 >
                   {getDocTypeLabel(chunk.doc_type)}
@@ -280,14 +342,15 @@ export const ReferenceDetailSheet: React.FC<ReferenceDetailSheetProps> = ({
             </div>
             {chunk.document_id && (
               <button
-                className="flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-md transition-colors"
+                className="flex flex-shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors"
                 style={{
                   color: 'var(--color-text-accent)',
                   backgroundColor: 'var(--color-state-focus-10)',
                 }}
                 onClick={() => {
                   const params = new URLSearchParams()
-                  if (chunk.document_name) params.set('name', chunk.document_name)
+                  if (chunk.document_name)
+                    params.set('name', chunk.document_name)
                   window.open(
                     `/document/${chunk.document_id}/preview?${params.toString()}`,
                     '_blank',
@@ -301,55 +364,75 @@ export const ReferenceDetailSheet: React.FC<ReferenceDetailSheetProps> = ({
             )}
           </div>
         </SheetHeader>
-        
-        <div className="px-4 py-4 space-y-4">
+
+        <div className="space-y-4 px-4 py-4">
           {/* 相似度 */}
-          <div 
-            className="p-3 rounded-lg"
+          <div
+            className="rounded-lg p-3"
             style={{ backgroundColor: 'var(--color-background-subtle)' }}
           >
-            <div className="flex items-center justify-between mb-2">
-              <span 
+            <div className="mb-2 flex items-center justify-between">
+              <span
                 className="text-sm font-medium"
                 style={{ color: 'var(--color-text-primary)' }}
               >
                 相似度
               </span>
-              <span 
+              <span
                 className="text-sm font-semibold"
                 style={{ color: similarityColor }}
               >
                 {similarityPercent}% · {getSimilarityLabel(similarity)}
               </span>
             </div>
-            <div 
-              className="h-2 rounded-full overflow-hidden"
+            <div
+              className="h-2 overflow-hidden rounded-full"
               style={{ backgroundColor: 'var(--color-background-default)' }}
             >
-              <div 
+              <div
                 className="h-full rounded-full transition-all duration-500"
-                style={{ 
+                style={{
                   width: `${similarityPercent}%`,
-                  backgroundColor: similarityColor
+                  backgroundColor: similarityColor,
                 }}
               />
             </div>
-            
+
             {/* 详细相似度信息 */}
-            {(chunk.vector_similarity !== undefined || chunk.term_similarity !== undefined) && (
-              <div className="mt-3 pt-3 grid grid-cols-2 gap-3" style={{ borderTop: '1px solid var(--color-border-subtle)' }}>
+            {(chunk.vector_similarity !== undefined ||
+              chunk.term_similarity !== undefined) && (
+              <div
+                className="mt-3 grid grid-cols-2 gap-3 pt-3"
+                style={{ borderTop: '1px solid var(--color-border-subtle)' }}
+              >
                 {chunk.vector_similarity !== undefined && (
                   <div>
-                    <div className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>向量相似度</div>
-                    <div className="text-sm font-medium" style={{ color: 'var(--color-text-secondary)' }}>
+                    <div
+                      className="text-xs"
+                      style={{ color: 'var(--color-text-tertiary)' }}
+                    >
+                      向量相似度
+                    </div>
+                    <div
+                      className="text-sm font-medium"
+                      style={{ color: 'var(--color-text-secondary)' }}
+                    >
                       {Math.round(chunk.vector_similarity * 100)}%
                     </div>
                   </div>
                 )}
                 {chunk.term_similarity !== undefined && (
                   <div>
-                    <div className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>词汇相似度</div>
-                    <div className="text-sm font-medium" style={{ color: 'var(--color-text-secondary)' }}>
+                    <div
+                      className="text-xs"
+                      style={{ color: 'var(--color-text-tertiary)' }}
+                    >
+                      词汇相似度
+                    </div>
+                    <div
+                      className="text-sm font-medium"
+                      style={{ color: 'var(--color-text-secondary)' }}
+                    >
                       {Math.round(chunk.term_similarity * 100)}%
                     </div>
                   </div>
@@ -357,45 +440,56 @@ export const ReferenceDetailSheet: React.FC<ReferenceDetailSheetProps> = ({
               </div>
             )}
           </div>
-          
+
           {/* 内容 */}
           <div>
-            <div className="flex items-center justify-between mb-2">
-              <span 
+            <div className="mb-2 flex items-center justify-between">
+              <span
                 className="text-sm font-medium"
                 style={{ color: 'var(--color-text-primary)' }}
               >
                 内容
               </span>
               <button
-                className="flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors"
-                style={{ 
-                  color: contentCopied ? 'var(--color-text-success)' : 'var(--color-text-tertiary)',
-                  backgroundColor: 'var(--color-background-subtle)'
+                className="flex items-center gap-1 rounded px-2 py-1 text-xs transition-colors"
+                style={{
+                  color: contentCopied
+                    ? 'var(--color-text-success)'
+                    : 'var(--color-text-tertiary)',
+                  backgroundColor: 'var(--color-background-subtle)',
                 }}
                 onClick={handleCopyContent}
               >
-                {contentCopied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                {contentCopied ? (
+                  <Check className="h-3 w-3" />
+                ) : (
+                  <Copy className="h-3 w-3" />
+                )}
                 {contentCopied ? '已复制' : '复制'}
               </button>
             </div>
-            <Watermark content={watermarkContent} font={{ fontSize: 12 }} gap={[80, 80]}>
-              <div 
-                className="p-3 rounded-lg overflow-auto max-h-80"
-                style={{ 
+            <Watermark
+              content={watermarkContent}
+              font={{ fontSize: 12 }}
+              gap={[80, 80]}
+            >
+              <div
+                className="max-h-80 overflow-auto rounded-lg p-3"
+                style={{
                   backgroundColor: 'var(--color-background-subtle)',
-                  border: '1px solid var(--color-border-subtle)'
+                  border: '1px solid var(--color-border-subtle)',
                 }}
               >
                 {isHtmlContent ? (
-                  <div 
+                  <SafeHtml
                     className="prose prose-sm max-w-none"
                     style={{ color: 'var(--color-text-primary)' }}
-                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(chunk.content || '') }}
+                    html={chunk.content || ''}
+                    options={CHUNK_CONTENT_PURIFY_OPTIONS}
                   />
                 ) : (
-                  <p 
-                    className="text-sm whitespace-pre-wrap"
+                  <p
+                    className="whitespace-pre-wrap text-sm"
                     style={{ color: 'var(--color-text-primary)' }}
                   >
                     {chunk.content || '无内容'}
@@ -404,21 +498,21 @@ export const ReferenceDetailSheet: React.FC<ReferenceDetailSheetProps> = ({
               </div>
             </Watermark>
           </div>
-          
+
           {/* 元数据 */}
           <div>
-            <div 
-              className="text-sm font-medium mb-2"
+            <div
+              className="mb-2 text-sm font-medium"
               style={{ color: 'var(--color-text-primary)' }}
             >
               元数据
             </div>
-            <div 
-              className="rounded-lg divide-y"
-              style={{ 
+            <div
+              className="divide-y rounded-lg"
+              style={{
                 backgroundColor: 'var(--color-background-subtle)',
                 border: '1px solid var(--color-border-subtle)',
-                borderColor: 'var(--color-border-subtle)'
+                borderColor: 'var(--color-border-subtle)',
               }}
             >
               <div className="px-3">
@@ -470,48 +564,57 @@ export const ReferenceDetailSheet: React.FC<ReferenceDetailSheetProps> = ({
               )}
             </div>
           </div>
-          
+
           {/* 同文档其他引用 */}
           {relatedChunks.length > 0 && (
             <div>
-              <div 
-                className="text-sm font-medium mb-2"
+              <div
+                className="mb-2 text-sm font-medium"
                 style={{ color: 'var(--color-text-primary)' }}
               >
                 同文档其他引用 ({relatedChunks.length})
               </div>
               <div className="space-y-2">
                 {relatedChunks.map((relatedChunk, index) => (
-                  <div 
+                  <div
                     key={relatedChunk.id || index}
-                    className="p-2 rounded-lg"
-                    style={{ 
+                    className="rounded-lg p-2"
+                    style={{
                       backgroundColor: 'var(--color-background-subtle)',
-                      border: '1px solid var(--color-border-subtle)'
+                      border: '1px solid var(--color-border-subtle)',
                     }}
                   >
-                    <div className="flex items-center gap-2 mb-1">
-                      <span 
-                        className="text-xs px-1.5 py-0.5 rounded"
-                        style={{ 
+                    <div className="mb-1 flex items-center gap-2">
+                      <span
+                        className="rounded px-1.5 py-0.5 text-xs"
+                        style={{
                           backgroundColor: 'var(--color-background-default)',
-                          color: 'var(--color-text-tertiary)'
+                          color: 'var(--color-text-tertiary)',
                         }}
                       >
                         {getDocTypeLabel(relatedChunk.doc_type)}
                       </span>
-                      <span 
+                      <span
                         className="text-xs font-medium"
-                        style={{ color: getSimilarityColor(relatedChunk.similarity ?? 0) }}
+                        style={{
+                          color: getSimilarityColor(
+                            relatedChunk.similarity ?? 0,
+                          ),
+                        }}
                       >
                         {Math.round((relatedChunk.similarity ?? 0) * 100)}%
                       </span>
                     </div>
-                    <p 
-                      className="text-xs line-clamp-2"
+                    <p
+                      className="line-clamp-2 text-xs"
                       style={{ color: 'var(--color-text-secondary)' }}
                     >
-                      {(relatedChunk.content || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 100)}...
+                      {(relatedChunk.content || '')
+                        .replace(/<[^>]*>/g, ' ')
+                        .replace(/\s+/g, ' ')
+                        .trim()
+                        .slice(0, 100)}
+                      ...
                     </p>
                   </div>
                 ))}

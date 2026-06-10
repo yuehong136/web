@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import DOMPurify from 'dompurify'
+import type { Config } from 'dompurify'
 import {
   Copy,
   Edit2,
@@ -12,8 +12,15 @@ import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
 import { API_BASE_URL, API_VERSION } from '@/constants'
 import { Button, Checkbox, ToggleSwitch, Tooltip } from '@/components/ui'
+import { SafeHtml } from '@/components/ui/safe-html'
 import { cn } from '@/lib/utils'
 import type { ChunkData, TextMode } from '../types'
+
+// chunk 内容来自文档解析（不可信输入），只保留高亮/强调标签
+const CHUNK_CONTENT_PURIFY_OPTIONS: Config = {
+  ALLOWED_TAGS: ['em', 'strong', 'b', 'i', 'br'],
+  ALLOWED_ATTR: [],
+}
 
 interface ChunkListRowProps {
   chunk: ChunkData
@@ -211,14 +218,10 @@ export const ChunkListRow = ({
         )}
 
         <div className="flex-1 text-sm leading-relaxed text-text-secondary">
-          <div
+          <SafeHtml
             className={textMode === 'full' ? '' : 'line-clamp-3'}
-            dangerouslySetInnerHTML={{
-              __html: DOMPurify.sanitize(chunk.content_with_weight, {
-                ALLOWED_TAGS: ['em', 'strong', 'b', 'i', 'br'],
-                ALLOWED_ATTR: [],
-              }),
-            }}
+            html={chunk.content_with_weight}
+            options={CHUNK_CONTENT_PURIFY_OPTIONS}
           />
         </div>
       </div>

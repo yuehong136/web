@@ -1,6 +1,7 @@
-import { memo, useMemo, useState, type FC } from 'react'
-import purify from 'dompurify'
+import { memo, useState, type FC } from 'react'
+import type { Config } from 'dompurify'
 import { ChevronDown, ChevronUp, FileText, Layers } from 'lucide-react'
+import { SafeHtml } from '@/components/ui/safe-html'
 import type { ChunkResult } from '@/types/search'
 
 interface SearchChunkListProps {
@@ -10,22 +11,21 @@ interface SearchChunkListProps {
   onViewDetail: (chunk: ChunkResult, allChunks: ChunkResult[]) => void
 }
 
-const sanitizeContent = (content: string) => {
-  return purify.sanitize(content, {
-    ALLOWED_TAGS: [
-      'mark',
-      'b',
-      'strong',
-      'i',
-      'em',
-      'p',
-      'br',
-      'span',
-      'code',
-      'pre',
-    ],
-    ALLOWED_ATTR: ['class'],
-  })
+// 检索高亮/块内容来自文档解析（不可信输入）
+const CHUNK_HIGHLIGHT_PURIFY_OPTIONS: Config = {
+  ALLOWED_TAGS: [
+    'mark',
+    'b',
+    'strong',
+    'i',
+    'em',
+    'p',
+    'br',
+    'span',
+    'code',
+    'pre',
+  ],
+  ALLOWED_ATTR: ['class'],
 }
 
 const SearchChunkCard: FC<{
@@ -38,7 +38,6 @@ const SearchChunkCard: FC<{
   const similarity = Math.round((chunk.similarity || 0) * 100)
   const rawContent =
     chunk.highlight || chunk.content_with_weight || chunk.text || ''
-  const html = useMemo(() => sanitizeContent(rawContent), [rawContent])
   const longContent = rawContent.length > 400
 
   return (
@@ -72,13 +71,14 @@ const SearchChunkCard: FC<{
         <span>{similarity}%</span>
       </div>
 
-      <div
+      <SafeHtml
         className={
           !expanded && longContent
             ? 'line-clamp-5 text-sm leading-relaxed text-text-secondary'
             : 'text-sm leading-relaxed text-text-secondary'
         }
-        dangerouslySetInnerHTML={{ __html: html }}
+        html={rawContent}
+        options={CHUNK_HIGHLIGHT_PURIFY_OPTIONS}
       />
 
       {longContent ? (

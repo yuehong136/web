@@ -1,9 +1,8 @@
 import { memo, useEffect, useState, type FC } from 'react'
-// eslint-disable-next-line import-x/no-named-as-default -- DOMPurify exposes sanitize on its default browser instance.
-import DOMPurify from 'dompurify'
 import { FileText } from 'lucide-react'
 import mammoth from 'mammoth'
 import { useTranslation } from 'react-i18next'
+import { SafeHtml } from '@/components/ui/safe-html'
 import { ErrorState, LoadingState } from './preview-state'
 
 const styleDocxHtml = (html: string): string => {
@@ -76,15 +75,9 @@ const DocxPreviewInner: FC<{
           { includeDefaultStyleMap: true },
         )
 
-        const sanitizedContent = DOMPurify.sanitize(
-          styleDocxHtml(result.value),
-          {
-            USE_PROFILES: { html: true },
-          },
-        )
-
         if (mounted) {
-          setHtmlContent(sanitizedContent)
+          // mammoth 转换的是用户上传文档（不可信），渲染前由 SafeHtml 统一净化
+          setHtmlContent(styleDocxHtml(result.value))
           setLoading(false)
         }
       } catch (err) {
@@ -124,10 +117,7 @@ const DocxPreviewInner: FC<{
 
   return (
     <div className="h-full w-full overflow-auto bg-background-surface p-6">
-      <div
-        className="mx-auto max-w-4xl"
-        dangerouslySetInnerHTML={{ __html: htmlContent }}
-      />
+      <SafeHtml className="mx-auto max-w-4xl" html={htmlContent} />
     </div>
   )
 }

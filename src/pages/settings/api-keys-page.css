@@ -1,0 +1,23 @@
+/* ApiKeysPage 文档面板滚动条样式（原内联 <style> 迁出，改用语义滚动条令牌，明暗主题自动切换） */
+.api-keys-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-components-scrollbar-thumb) transparent;
+}
+
+.api-keys-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.api-keys-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.api-keys-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--color-components-scrollbar-thumb);
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.api-keys-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--color-components-scrollbar-thumb-hover);
+}
