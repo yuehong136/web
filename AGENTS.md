@@ -401,9 +401,9 @@ const KnowledgePage = lazy(() => import('@/pages/knowledge'))
 
 ### 模型输出是不可信输入（强制）
 
-LLM 产出或工具返回的一切 —— 文本、markdown、HTML、代码、URL、tool-call 参数 —— 都按攻击者可控对待（默认存在 prompt injection）。可静态检查的子集已由 `error` 级 lint 规则强制：`security/no-unsafe-iframe-sandbox`、`security/no-target-blank-without-rel`，以及核心 `no-eval` / `no-new-func` / `no-script-url`（见 `eslint-rules/`）：
+LLM 产出或工具返回的一切 —— 文本、markdown、HTML、代码、URL、tool-call 参数 —— 都按攻击者可控对待（默认存在 prompt injection）。可静态检查的子集已由 `error` 级 lint 规则强制：`security/no-unsafe-iframe-sandbox`、`security/no-target-blank-without-rel`、`security/no-raw-dangerously-set-inner-html`，以及核心 `no-eval` / `no-new-func` / `no-script-url`（见 `eslint-rules/`）：
 
-- 模型产出的 HTML 全部走 DOMPurify；完整 HTML 文档/artifact 在**沙箱 iframe** 渲染（`allow-scripts` 与 `allow-same-origin` 不得同时开启），**禁止**注入应用 DOM。
+- 模型产出的 HTML 全部走 DOMPurify；应用内 HTML 渲染统一走唯一出口 `SafeHtml`（`@/components/ui/safe-html`，内部 DOMPurify；标签/属性白名单经 `options` 传入，请提为模块级常量）—— 裸 `dangerouslySetInnerHTML` 会被 `security/no-raw-dangerously-set-inner-html` 拒绝（仅放行 `SafeHtml` 自身实现及 `__html` 值为 `sanitize(...)` 调用字面量的形式）。完整 HTML 文档/artifact 在**沙箱 iframe** 渲染（`allow-scripts` 与 `allow-same-origin` 不得同时开启），**禁止**注入应用 DOM。
 - 模型/工具输出里的链接：仅放行 `http(s):`/`mailto:` 协议（拒绝 `javascript:`、`data:`），渲染加 `target="_blank" rel="noopener noreferrer"`。
 - **禁止** `eval` / `new Function` / 动态 import 模型生成的代码。代码 artifact 仅作展示（Shiki/Monaco），执行只能发生在沙箱 iframe 内。
 - Tool-call 参数与结果走结构化查看器（注册表渲染器、JSON viewer）渲染，**不得**按原始 HTML 渲染。

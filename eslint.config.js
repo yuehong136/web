@@ -10,6 +10,7 @@ import { globalIgnores } from 'eslint/config'
 import noFeedbackStateToken from './eslint-rules/no-feedback-state-token.js'
 import noUnsafeIframeSandbox from './eslint-rules/no-unsafe-iframe-sandbox.js'
 import noTargetBlankWithoutRel from './eslint-rules/no-target-blank-without-rel.js'
+import noRawDangerouslySetInnerHtml from './eslint-rules/no-raw-dangerously-set-inner-html.js'
 
 const typedLint = process.env.ESLINT_TYPED === 'true'
 const jsxA11yWarningRules = Object.fromEntries(
@@ -140,6 +141,7 @@ export default tseslint.config([
     // 模型输出是不可信输入（CLAUDE.md / AGENTS.md「安全与隐私」）的可执行子集：
     // - iframe 沙箱不得 allow-scripts + allow-same-origin 同开；srcDoc 必须有 sandbox
     // - target="_blank" 必须带 rel noopener/noreferrer
+    // - 禁止裸 dangerouslySetInnerHTML（统一走 SafeHtml / DOMPurify 净化出口）
     // - 禁止 eval / new Function / javascript: URL（模型生成代码仅展示，执行只在沙箱 iframe 内）
     files: ['src/**/*.{ts,tsx}'],
     plugins: {
@@ -147,12 +149,14 @@ export default tseslint.config([
         rules: {
           'no-unsafe-iframe-sandbox': noUnsafeIframeSandbox,
           'no-target-blank-without-rel': noTargetBlankWithoutRel,
+          'no-raw-dangerously-set-inner-html': noRawDangerouslySetInnerHtml,
         },
       },
     },
     rules: {
       'security/no-unsafe-iframe-sandbox': 'error',
       'security/no-target-blank-without-rel': 'error',
+      'security/no-raw-dangerously-set-inner-html': 'error',
       'no-eval': 'error',
       'no-new-func': 'error',
       'no-script-url': 'error',

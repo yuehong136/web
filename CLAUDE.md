@@ -403,9 +403,9 @@ const KnowledgePage = lazy(() => import('@/pages/knowledge'))
 
 ### Model output is untrusted input (MANDATORY)
 
-Treat everything produced by an LLM or returned by a tool — text, markdown, HTML, code, URLs, tool-call arguments — as attacker-controllable (prompt injection is assumed). The statically checkable subset is enforced by `error`-level lint rules: `security/no-unsafe-iframe-sandbox`, `security/no-target-blank-without-rel`, plus core `no-eval` / `no-new-func` / `no-script-url` (see `eslint-rules/`):
+Treat everything produced by an LLM or returned by a tool — text, markdown, HTML, code, URLs, tool-call arguments — as attacker-controllable (prompt injection is assumed). The statically checkable subset is enforced by `error`-level lint rules: `security/no-unsafe-iframe-sandbox`, `security/no-target-blank-without-rel`, `security/no-raw-dangerously-set-inner-html`, plus core `no-eval` / `no-new-func` / `no-script-url` (see `eslint-rules/`):
 
-- All HTML produced by the model goes through DOMPurify. Full HTML documents/artifacts render in a **sandboxed iframe** (no `allow-same-origin` together with `allow-scripts`), never injected into the app DOM.
+- All HTML produced by the model goes through DOMPurify. In-app HTML rendering uses the single outlet `SafeHtml` (`@/components/ui/safe-html`, DOMPurify inside; pass tag/attr whitelists via `options` as module-level constants) — raw `dangerouslySetInnerHTML` is rejected by `security/no-raw-dangerously-set-inner-html` (only `SafeHtml`'s own implementation and `__html` values that are literal `sanitize(...)` calls are exempt). Full HTML documents/artifacts render in a **sandboxed iframe** (no `allow-same-origin` together with `allow-scripts`), never injected into the app DOM.
 - Links from model/tool output: allow only `http(s):`/`mailto:` schemes (no `javascript:`, no `data:`), and render with `target="_blank" rel="noopener noreferrer"`.
 - Never `eval` / `new Function` / dynamically import model-generated code. Code artifacts are display-only (Shiki/Monaco) unless executed inside the sandboxed iframe.
 - Tool-call arguments and results render through structured viewers (registry renderers, JSON viewers) — never as raw HTML.
