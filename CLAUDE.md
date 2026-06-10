@@ -2,6 +2,8 @@
 
 Mandatory rules for AI agents working in this repo. Project version: `0.9.8`. Sister doc in Chinese: `AGENTS.md`. Detailed handbook for humans: `AI前端技术栈开发规范.md`.
 
+**Doc sync rule**: `CLAUDE.md` and `AGENTS.md` are the same ruleset in two languages. Any change to one MUST be mirrored in the other in the same commit. If they ever disagree, treat the stricter rule as authoritative and fix the drift.
+
 ## Commands
 
 ```bash
@@ -14,12 +16,16 @@ npm run lint:all     # eslint .
 npm run lint:typed   # Type-aware lint for Agent critical directories
 npm run lint:i18n-agent # Scan Agent/Layout diffs for newly hardcoded Chinese UI text
 npm run typecheck:agent-strict # Strict type check for Agent critical directories
-npm run build:themes # Regenerate src/themes/{light,dark}.css after tokens.ts changes
+npm run build:themes # Regenerate src/themes/{light,dark}.css + token-values.generated.ts after tokens.ts changes
+npm run build:docker # vite build without tsc -b (Docker image build only — never use it to skip type errors)
 npm run preview      # Preview production build
-npm run test:agent-t1 # node --test runner via tsx (only formal test script today)
+npm run test:agent-t1 # node --test via tsx: agent serializers + adapters
+npm run test:design-tokens # node --test via tsx: design-token utilities (palette, token values)
 ```
 
-There is **no generic `test`, `format`, or `typecheck` npm script**. Full type checking happens inside `npm run build`; Agent critical directories also have `npm run typecheck:agent-strict`. Formatting is handled by Prettier + lint-staged for staged files only; do not format the whole repo. Existing formal tests still run with `tsx --test`; Vitest baseline config exists for future additions/migration. Do not introduce Jest.
+There is **no generic `test`, `format`, or `typecheck` npm script**. Full type checking happens inside `npm run build`; Agent critical directories also have `npm run typecheck:agent-strict`. Formatting is handled by Prettier + lint-staged for staged files only; do not format the whole repo. The formal test gates are `test:agent-t1` and `test:design-tokens` (`tsx --test`); Vitest baseline config exists for future additions/migration. Do not introduce Jest.
+
+**CI**: `.github/workflows/ci.yml` runs on every push/PR to `master` — `lint`, `lint:typed`, `typecheck:agent-strict`, `test:agent-t1`, `test:design-tokens`, and `build` must all pass. `lint:i18n-agent` stays a local-only gate (it diffs the working tree). The pre-commit hook only runs lint-staged; still run the relevant gates locally before pushing — never claim they pass without actually running them.
 
 ## Stack (verified, 2026-05)
 
@@ -224,7 +230,13 @@ These two prefixes are different semantic axes. Do not confuse them.
 
 - **Feedback** (success / warning / error / info) → **`status-*`** (canonical): `status-{success,warning,error,info}` plus the `-10` and `-subtle` variants. Examples: `text-status-error`, `bg-status-info-10`, `border-status-warning-subtle`, `bg-status-success/10`.
 - **Interactive** (hover / active / focus / disabled / loading) → **`state-*`**: `state-hover`, `state-active`, `state-focus`, `state-disabled`, `state-loading` (plus `state-focus-10`/`state-focus-subtle`). These are NOT feedback colors — never migrate them to `status-*`.
-- `state-{success,warning,error,info}` (and their `-10`/`-subtle` variants) were legacy aliases of the `status-*` feedback tokens; the repo-wide migration is complete and these 12 aliases have been **physically removed** (tokens/theme/CSS). **Write feedback styling with `status-*` only** — the `error`-level lint rule `design-tokens/no-feedback-state-token` now rejects any feedback `state-*` form (class incl. `from-/via-/to-` gradient stops, `var(--color-state-*)`, bare strings / `readCssVar()` / templates). See `docs/design-tokens/2026-05-20-feedback-state-alias-deprecate-summary.md`. For categorical/level data-viz coloring (e.g. the search mindmap) use `data-viz-categorical-1..6`.
+- `state-{success,warning,error,info}` (and their `-10`/`-subtle` variants) were legacy aliases of the `status-*` feedback tokens; the repo-wide migration is complete and these 12 aliases have been **physically removed** (tokens/theme/CSS). **Write feedback styling with `status-*` only** — the `error`-level lint rule `design-tokens/no-feedback-state-token` now rejects any feedback `state-*` form (class incl. `from-/via-/to-` gradient stops, `var(--color-state-*)`, bare strings / `readCssVar()` / templates). See `docs/design-tokens/2026-05-20-feedback-state-alias-deprecate-summary.md`. For categorical/level data-viz coloring (e.g. the search mindmap) use `data-viz-categorical-1..10` (colorblind-safe OKLCH scale; regenerate via `node scripts/gen-categorical-oklch.mjs`).
+
+#### Token consumption in JS/canvas code (G6, charts, mindmap, knowledge graph) — MANDATORY
+
+- Default path is **static by theme**: `getTokenValue(name, theme)` / `getCategoricalPalette(theme, count?)` from `@/lib/design-tokens`, with `theme` resolved via `useIsDarkTheme()` (or `getResolvedTheme()` outside React). Values come from the generated `token-values.generated.ts`.
+- `readCssVar` / runtime `getComputedStyle` reads are reserved for scoped-theme/embed surfaces ONLY. Never hardcode hex values.
+- Semantic chart status colors use `components-system-chart-*`.
 
 ### Scene tokens (MANDATORY for shells/templates/state blocks)
 
@@ -254,6 +266,14 @@ Plus the granular component tokens for `components-button-*`, `components-input-
 ### Scoped theming
 
 Embedded surfaces (agent share widget, external embed) use `src/themes/scoped-theme.tsx` to scope tokens to a subtree. Do not reach for `dark:` or `style={{}}` to override embed visuals.
+
+## API Layer (MANDATORY)
+
+- All HTTP goes through the shared `APIClient` in `src/api/client.ts` (auth header, timeout, retry, error envelope). ❌ Never call `fetch`/`axios` directly from pages, components, or stores.
+- One domain = one file in `src/api/` (`agent.ts`, `knowledge.ts`, …). New endpoints go into the matching domain file, never inline in a hook or component.
+- Errors are surfaced as the typed `APIError` (status / code / message / details). Do not re-wrap into ad-hoc error shapes; UI branches on `APIError.code`/`status`.
+- Pagination totals that live on the envelope top level use the opt-in `withEnvelope: true` (`ApiEnvelope`), not a second request.
+- **Query key factories are mandatory**: each domain exposes a `<domain>Keys` factory (`datasourceKeys.list()`, `datasourceKeys.detail(id)`) and all `queryKey` / `invalidateQueries` calls go through it. Never inline array-literal query keys in components.
 
 ## State Management
 
@@ -378,12 +398,29 @@ const KnowledgePage = lazy(() => import('@/pages/knowledge'))
 
 ## Security & Privacy
 
-- All HTML produced by the model goes through DOMPurify.
+### Model output is untrusted input (MANDATORY)
+
+Treat everything produced by an LLM or returned by a tool — text, markdown, HTML, code, URLs, tool-call arguments — as attacker-controllable (prompt injection is assumed). The statically checkable subset is enforced by `error`-level lint rules: `security/no-unsafe-iframe-sandbox`, `security/no-target-blank-without-rel`, plus core `no-eval` / `no-new-func` / `no-script-url` (see `eslint-rules/`):
+
+- All HTML produced by the model goes through DOMPurify. Full HTML documents/artifacts render in a **sandboxed iframe** (no `allow-same-origin` together with `allow-scripts`), never injected into the app DOM.
+- Links from model/tool output: allow only `http(s):`/`mailto:` schemes (no `javascript:`, no `data:`), and render with `target="_blank" rel="noopener noreferrer"`.
+- Never `eval` / `new Function` / dynamically import model-generated code. Code artifacts are display-only (Shiki/Monaco) unless executed inside the sandboxed iframe.
+- Tool-call arguments and results render through structured viewers (registry renderers, JSON viewers) — never as raw HTML.
+- Any MCP tool with side effects requires explicit user confirmation in the UI before invocation (also stated in the MCP section — both apply).
+
+### General
+
 - User input that flows into URL params, query strings, or innerHTML must be encoded/sanitized at the boundary.
 - Never persist conversation content, prompts, or tool outputs to localStorage. Persist _UI prefs only_.
 - Sensitive fields (API keys, tokens) — masked in the UI, never logged, never sent to third parties.
 - Trace IDs may be logged; prompt content must not be.
 - Env variables exposed to the browser must be `VITE_*` prefixed; never inline secrets.
+
+## Environment & Configuration
+
+- Every `VITE_*` variable must be registered in `.env.example` with a safe placeholder/default in the same PR that introduces it. `.env.local` / `.env.production` are never committed with real secrets.
+- Feature switches follow the `VITE_ENABLE_*` naming already in use (`VITE_ENABLE_AGENT_EMBED`, …). Read them at module boundary/constants level, not scattered `import.meta.env` reads inside components.
+- Anything secret (API keys, signing secrets) lives server-side only — a `VITE_*` variable is public by definition.
 
 ## Error Handling
 
@@ -401,7 +438,7 @@ Mutations surface errors via `sonner` (toast), not via dialogs, unless the actio
 
 ## Testing
 
-Current state: 20 `*.test.ts(x)` files run via `tsx --test`. Coverage focuses on `pages/agent/operators`, `adapters`, `runtime-workbench`, `pipeline-workbench`, `prompt-editor`, `schema-editor`. The single formal npm test script is still `test:agent-t1`.
+Current state: 20+ `*.test.ts(x)` files run via `tsx --test`. Coverage focuses on `pages/agent/operators`, `adapters`, `runtime-workbench`, `pipeline-workbench`, `prompt-editor`, `schema-editor`, and `lib/design-tokens`. Formal npm test scripts: `test:agent-t1` and `test:design-tokens`.
 
 Required when touching:
 
@@ -414,12 +451,13 @@ Do not introduce Jest. Vitest baseline config exists, but do not opportunistical
 ## Git
 
 - Conventional Commits: `feat`, `fix`, `docs`, `refactor`, `chore`, `perf`, `test`, `style`. Optional scope (`feat(agent): …`).
-- PR description must include: summary, screenshots in **both** light and dark themes for any UI change, and a confirmation that `npm run lint` and `npm run build` pass. When touching Agent serializers/adapters/operators, also confirm `npm run lint:typed`, `npm run typecheck:agent-strict`, and `npm run test:agent-t1`.
+- PR description must include: summary, screenshots in **both** light and dark themes for any UI change, and a confirmation that `npm run lint` and `npm run build` pass. When touching Agent serializers/adapters/operators, also confirm `npm run lint:typed`, `npm run typecheck:agent-strict`, and `npm run test:agent-t1`. When touching design tokens, also confirm `npm run build:themes` regenerated output is committed and `npm run test:design-tokens` passes.
 - Never bypass hooks (`--no-verify`) without explicit user instruction. If a hook fails, fix the underlying issue.
 
 ## When in doubt
 
 1. Read `src/themes/design-system.md`, `src/themes/development-guide.md`, `src/themes/migration-guide.md` for token specifics.
 2. Read `docs/agent-frontend-rewrite-plan.md` and `docs/agent-capability-completion-roadmap.md` for the agent program direction.
-3. Read the relevant `docs/agent-t*-summary.md` for the latest landed capability (T1 foundation, T2 form-sheet, T3 pipeline nodes, T4 runtime, T6 log workbench, T7 share/publish/webhook, T8 observability, T9 explore, T10 variables/structured output).
-4. Read the human-facing handbook `AI前端技术栈开发规范.md` for _why_ a rule exists.
+3. Read the relevant `docs/agent-t*-summary.md` for the latest landed capability (T1 foundation, T2 form-sheet, T3 pipeline nodes, T4 runtime, T6 log workbench, T7 share/publish/webhook, T8 observability, T9 explore, T10 variables/structured output, T11 cleanup/acceptance, T12 asset/log ops, T13 trace workbench).
+4. Read `docs/design-tokens/*.md` for token-system change history (feedback-state alias removal, JS token target, OKLCH categorical palette).
+5. Read the human-facing handbook `AI前端技术栈开发规范.md` for _why_ a rule exists.

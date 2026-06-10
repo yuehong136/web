@@ -2,6 +2,8 @@
 
 面向 AI 编码工具（Cursor、Claude Code、Copilot 等）的强约束规范。当前项目版本 `0.9.8`。英文同步版本：`CLAUDE.md`。面向人的详尽手册：`AI前端技术栈开发规范.md`。
 
+**文档同步规则**：`CLAUDE.md` 与 `AGENTS.md` 是同一套规则的双语版本，改其中一份**必须**在同一次提交里同步另一份。两份不一致时，以更严格的一条为准，并立即修复漂移。
+
 ## 命令
 
 ```bash
@@ -14,12 +16,16 @@ npm run lint:all     # eslint .
 npm run lint:typed   # type-aware lint，先覆盖 Agent 关键目录
 npm run lint:i18n-agent # 扫描 Agent/Layout 新增硬编码中文 UI 文案
 npm run typecheck:agent-strict # Agent 关键目录严格类型检查
-npm run build:themes # 修改 tokens.ts 后重新生成 src/themes/{light,dark}.css
+npm run build:themes # 修改 tokens.ts 后重新生成 src/themes/{light,dark}.css + token-values.generated.ts
+npm run build:docker # 不跑 tsc -b 的 vite build（仅 Docker 镜像构建用 — 不得用来绕过类型错误）
 npm run preview      # 预览生产构建
-npm run test:agent-t1 # 通过 tsx 跑 node --test（目前唯一正式测试脚本）
+npm run test:agent-t1 # tsx 跑 node --test：agent serializer + adapter
+npm run test:design-tokens # tsx 跑 node --test：设计令牌工具（调色板、token 取值）
 ```
 
-**注意**：暂无通用 `test`、`format`、`typecheck` 脚本。全量类型检查由 `npm run build` 完成；Agent 关键目录补充跑 `npm run typecheck:agent-strict`。格式化通过 Prettier + lint-staged 作用于 staged 文件，**不要做全仓格式化**。现有正式测试仍用 `tsx --test`，Vitest 基础配置已落地用于后续新增/迁移，**不要引入 Jest**。
+**注意**：暂无通用 `test`、`format`、`typecheck` 脚本。全量类型检查由 `npm run build` 完成；Agent 关键目录补充跑 `npm run typecheck:agent-strict`。格式化通过 Prettier + lint-staged 作用于 staged 文件，**不要做全仓格式化**。正式测试门禁是 `test:agent-t1` 与 `test:design-tokens`（`tsx --test`）；Vitest 基础配置已落地用于后续新增/迁移，**不要引入 Jest**。
+
+**CI**：`.github/workflows/ci.yml` 在每次 push/PR 到 `master` 时运行 —— `lint`、`lint:typed`、`typecheck:agent-strict`、`test:agent-t1`、`test:design-tokens`、`build` 全部必须通过。`lint:i18n-agent` 仍是本地门禁（它 diff 工作区）。pre-commit hook 只跑 lint-staged；推送前仍需本地跑相关门禁 —— **没有实际运行就不得声称通过**。
 
 ## 技术栈（2026-05 校核）
 
@@ -224,7 +230,13 @@ if (doc.status === '1') {
 
 - **反馈态**（success / warning / error / info）→ **`status-*`**（canonical）：`status-{success,warning,error,info}` 及 `-10`、`-subtle` 变体。示例：`text-status-error`、`bg-status-info-10`、`border-status-warning-subtle`、`bg-status-success/10`。
 - **交互态**（hover / active / focus / disabled / loading）→ **`state-*`**：`state-hover`、`state-active`、`state-focus`、`state-disabled`、`state-loading`（及 `state-focus-10`/`state-focus-subtle`）。它们不是反馈色，**不要**迁移到 `status-*`。
-- `state-{success,warning,error,info}`（含 `-10`/`-subtle`）曾是 `status-*` 反馈 token 的 legacy alias；全仓迁移已完成，这 12 个 alias 已**物理删除**（tokens/theme/CSS）。**反馈态一律用 `status-*`** —— `error` 级 lint 规则 `design-tokens/no-feedback-state-token` 现在拦截任何反馈态 `state-*` 形式（class 含 `from-/via-/to-` 渐变档位、`var(--color-state-*)`、裸字符串 / `readCssVar()` / 拼接）。详见 `docs/design-tokens/2026-05-20-feedback-state-alias-deprecate-summary.md`。分类/层级 data-viz 着色（如搜索 mindmap）用 `data-viz-categorical-1..6`。
+- `state-{success,warning,error,info}`（含 `-10`/`-subtle`）曾是 `status-*` 反馈 token 的 legacy alias；全仓迁移已完成，这 12 个 alias 已**物理删除**（tokens/theme/CSS）。**反馈态一律用 `status-*`** —— `error` 级 lint 规则 `design-tokens/no-feedback-state-token` 现在拦截任何反馈态 `state-*` 形式（class 含 `from-/via-/to-` 渐变档位、`var(--color-state-*)`、裸字符串 / `readCssVar()` / 拼接）。详见 `docs/design-tokens/2026-05-20-feedback-state-alias-deprecate-summary.md`。分类/层级 data-viz 着色（如搜索 mindmap）用 `data-viz-categorical-1..10`（色盲友好 OKLCH 色阶；用 `node scripts/gen-categorical-oklch.mjs` 重新生成）。
+
+#### JS/画布代码取 token（G6、图表、mindmap、知识图谱）—— 强制
+
+- 默认路径是**按主题静态取值**：从 `@/lib/design-tokens` 用 `getTokenValue(name, theme)` / `getCategoricalPalette(theme, count?)`，`theme` 由 `useIsDarkTheme()`（React 外用 `getResolvedTheme()`）解析。取值来源是生成的 `token-values.generated.ts`。
+- `readCssVar` / 运行时 `getComputedStyle` 只保留给 scoped-theme/embed 表面。**禁止硬编码 hex**。
+- 图表语义状态色用 `components-system-chart-*`。
 
 ### 场景 token（壳层 / 模板 / 状态块强制）
 
@@ -254,6 +266,14 @@ if (doc.status === '1') {
 ### 作用域主题
 
 嵌入式表面（agent share widget、外部 embed）通过 `src/themes/scoped-theme.tsx` 把 token 限定到子树，**不得**用 `dark:` 或内联 `style` 覆盖嵌入视觉。
+
+## API 层（强制）
+
+- 所有 HTTP 走 `src/api/client.ts` 的共享 `APIClient`（鉴权头、超时、重试、错误信封）。❌ 页面、组件、store 里**禁止**直接 `fetch`/`axios`。
+- 一个领域一个文件（`src/api/agent.ts`、`knowledge.ts`…）。新端点加进对应领域文件，**不得**内联在 hook 或组件里。
+- 错误统一抛类型化 `APIError`（status / code / message / details），不要再包一层临时错误对象；UI 按 `APIError.code`/`status` 分支。
+- 信封顶层的分页总数用 opt-in 的 `withEnvelope: true`（`ApiEnvelope`）取回，不要发第二个请求。
+- **Query key factory 强制**：每个领域暴露 `<domain>Keys` 工厂（`datasourceKeys.list()`、`datasourceKeys.detail(id)`），所有 `queryKey` / `invalidateQueries` 统一走工厂。**禁止**在组件里手写数组字面量 query key。
 
 ## 状态管理
 
@@ -376,12 +396,29 @@ const KnowledgePage = lazy(() => import('@/pages/knowledge'))
 
 ## 安全与隐私
 
-- 模型产出的 HTML 全部走 DOMPurify
+### 模型输出是不可信输入（强制）
+
+LLM 产出或工具返回的一切 —— 文本、markdown、HTML、代码、URL、tool-call 参数 —— 都按攻击者可控对待（默认存在 prompt injection）。可静态检查的子集已由 `error` 级 lint 规则强制：`security/no-unsafe-iframe-sandbox`、`security/no-target-blank-without-rel`，以及核心 `no-eval` / `no-new-func` / `no-script-url`（见 `eslint-rules/`）：
+
+- 模型产出的 HTML 全部走 DOMPurify；完整 HTML 文档/artifact 在**沙箱 iframe** 渲染（`allow-scripts` 与 `allow-same-origin` 不得同时开启），**禁止**注入应用 DOM。
+- 模型/工具输出里的链接：仅放行 `http(s):`/`mailto:` 协议（拒绝 `javascript:`、`data:`），渲染加 `target="_blank" rel="noopener noreferrer"`。
+- **禁止** `eval` / `new Function` / 动态 import 模型生成的代码。代码 artifact 仅作展示（Shiki/Monaco），执行只能发生在沙箱 iframe 内。
+- Tool-call 参数与结果走结构化查看器（注册表渲染器、JSON viewer）渲染，**不得**按原始 HTML 渲染。
+- 有副作用的 MCP 工具调用必须在 UI 上二次确认（MCP 章节亦有此条，两处同时生效）。
+
+### 通用
+
 - 用户输入流入 URL 参数、query string、innerHTML 时，必须在边界编码/净化
 - **禁止**把对话内容、prompt、tool 输出写入 localStorage。仅持久化 UI 偏好
 - 敏感字段（API key、token）UI 里掩码，**不写日志**、**不发第三方**
 - Trace ID 可写日志；prompt 内容不可
 - 浏览器侧环境变量必须 `VITE_*` 前缀；**不得**内联密钥
+
+## 环境变量与配置
+
+- 每个 `VITE_*` 变量必须在引入它的同一个 PR 里登记进 `.env.example`，并给安全的占位/默认值。`.env.local` / `.env.production` 不得带真实密钥提交。
+- 功能开关沿用既有 `VITE_ENABLE_*` 命名（`VITE_ENABLE_AGENT_EMBED` 等），在模块边界/constants 层统一读取，不要在组件里散落 `import.meta.env`。
+- 任何机密（API key、签名密钥）只能在服务端 —— `VITE_*` 变量天然是公开的。
 
 ## 错误处理
 
@@ -399,7 +436,7 @@ Mutation 错误用 `sonner` toast 暴露，不用 dialog 阻塞，除非用户�
 
 ## 测试
 
-现状：20 个 `*.test.ts(x)` 文件，通过 `tsx --test` 运行。覆盖在 `pages/agent/operators`、`adapters`、`runtime-workbench`、`pipeline-workbench`、`prompt-editor`、`schema-editor`。目前唯一正式测试脚本仍是 `test:agent-t1`。
+现状：20+ 个 `*.test.ts(x)` 文件，通过 `tsx --test` 运行。覆盖在 `pages/agent/operators`、`adapters`、`runtime-workbench`、`pipeline-workbench`、`prompt-editor`、`schema-editor`、`lib/design-tokens`。正式测试脚本：`test:agent-t1` 与 `test:design-tokens`。
 
 接触下面层时**必须**配套测试：
 
@@ -412,12 +449,13 @@ Mutation 错误用 `sonner` toast 暴露，不用 dialog 阻塞，除非用户�
 ## Git
 
 - Conventional Commits：`feat`、`fix`、`docs`、`refactor`、`chore`、`perf`、`test`、`style`，可选 scope（`feat(agent): …`）
-- PR 描述包含：摘要、UI 变更的明暗双主题截图、`npm run lint` 与 `npm run build` 通过确认；接触 Agent serializer/adapter/operator 时补充 `npm run lint:typed`、`npm run typecheck:agent-strict`、`npm run test:agent-t1`
+- PR 描述包含：摘要、UI 变更的明暗双主题截图、`npm run lint` 与 `npm run build` 通过确认；接触 Agent serializer/adapter/operator 时补充 `npm run lint:typed`、`npm run typecheck:agent-strict`、`npm run test:agent-t1`；接触设计令牌时补充 `npm run build:themes` 产物已提交 + `npm run test:design-tokens` 通过
 - **不得**用 `--no-verify` 绕过 hook，除非用户明确要求；hook 失败要修根因
 
 ## 拿不准时去看
 
 1. `src/themes/design-system.md`、`development-guide.md`、`migration-guide.md` — token 细节
 2. `docs/agent-frontend-rewrite-plan.md`、`docs/agent-capability-completion-roadmap.md` — Agent 大方向
-3. `docs/agent-t*-summary.md` — 最新落地能力（T1 地基、T2 form-sheet、T3 pipeline 节点、T4 runtime、T6 日志工作台、T7 share/publish/webhook、T8 可观测性、T9 explore、T10 变量与结构化输出）
-4. 面向人的手册 `AI前端技术栈开发规范.md` — 每条规则**为什么**这么定
+3. `docs/agent-t*-summary.md` — 最新落地能力（T1 地基、T2 form-sheet、T3 pipeline 节点、T4 runtime、T6 日志工作台、T7 share/publish/webhook、T8 可观测性、T9 explore、T10 变量与结构化输出、T11 清理验收、T12 资产/日志运维、T13 trace 工作台）
+4. `docs/design-tokens/*.md` — 令牌系统变更史（feedback-state alias 删除、JS token 目标、OKLCH 分类色阶）
+5. 面向人的手册 `AI前端技术栈开发规范.md` — 每条规则**为什么**这么定
