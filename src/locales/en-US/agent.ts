@@ -88,6 +88,14 @@ export default {
       webhookWidgetHint:
         'Webhook Agents are triggered by external HTTP requests and do not use the widget chat input.',
     },
+    markdownArtifact: {
+      imageLoading: 'Loading artifact image...',
+      imageLoadFailed: 'Failed to load artifact image',
+      downloading: 'Downloading...',
+      downloadFailed: 'Failed to download artifact',
+      opening: 'Opening artifact...',
+      openFailed: 'Failed to open artifact',
+    },
     shareEmbed: {
       title: 'Share and Embed',
       description: 'Configure and generate public access links or embed code.',

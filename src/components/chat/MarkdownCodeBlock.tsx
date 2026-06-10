@@ -3,6 +3,10 @@ import { Mermaid } from '@ant-design/x'
 import type { ComponentProps, XMarkdownProps } from '@ant-design/x-markdown'
 import type { MarkedExtension } from 'marked'
 import Latex from '@ant-design/x-markdown/plugins/Latex'
+import {
+  MemoizedMarkdownArtifactImage,
+  MemoizedMarkdownArtifactLink,
+} from './MarkdownArtifact'
 import { CodeBlock } from './CodeBlock'
 
 export type MarkdownComponents = Record<
@@ -245,6 +249,8 @@ const IncompleteMarkdownToken: React.FC<ComponentProps> = ({ domNode }) => {
 export const markdownCodeComponents: MarkdownComponents = {
   pre: memo(MarkdownPre),
   code: memo(MarkdownCode),
+  a: MemoizedMarkdownArtifactLink,
+  img: MemoizedMarkdownArtifactImage,
 }
 
 /**

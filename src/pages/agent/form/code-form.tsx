@@ -1,11 +1,11 @@
 import {
+  Form,
   FormControl,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
-import { Form } from '@/components/ui/form'
 import {
   Select,
   SelectContent,
@@ -26,6 +26,7 @@ import {
 import { useFormValues } from '../hooks/use-form-values'
 import { useWatchFormChange } from '../hooks/use-watch-form-change'
 import type { INextOperatorForm } from '../types'
+import { getCodeNodeOutputs } from '../utils/code-outputs'
 import { FormWrapper, Output, transferOutputs } from './components'
 
 const schema = z.object({
@@ -46,7 +47,7 @@ export function CodeForm({ node }: INextOperatorForm) {
 
   useWatchFormChange(node?.id, form)
 
-  const outputs = form.getValues('outputs')
+  const outputs = getCodeNodeOutputs(form.getValues('outputs'))
 
   return (
     <Form {...form}>
@@ -63,9 +64,7 @@ export function CodeForm({ node }: INextOperatorForm) {
                   onValueChange={(val) => {
                     field.onChange(val)
                     const template =
-                      CodeTemplateStrMap[
-                        val as keyof typeof CodeTemplateStrMap
-                      ]
+                      CodeTemplateStrMap[val as keyof typeof CodeTemplateStrMap]
                     if (template) {
                       form.setValue('script', template)
                     }
@@ -108,7 +107,7 @@ export function CodeForm({ node }: INextOperatorForm) {
           )}
         />
 
-        {outputs && <Output list={transferOutputs(outputs)} />}
+        <Output list={transferOutputs(outputs)} />
       </FormWrapper>
     </Form>
   )

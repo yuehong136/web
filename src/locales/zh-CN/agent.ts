@@ -82,6 +82,14 @@ export default {
       webhookWidgetHint:
         'Webhook Agent 通过外部 HTTP 请求触发，不使用浮窗对话输入框。',
     },
+    markdownArtifact: {
+      imageLoading: '正在加载产物图片...',
+      imageLoadFailed: '产物图片加载失败',
+      downloading: '下载中...',
+      downloadFailed: '产物下载失败',
+      opening: '正在打开产物...',
+      openFailed: '产物打开失败',
+    },
     shareEmbed: {
       title: '分享与嵌入',
       description: '配置并生成对外公开的访问链接或嵌入代码。',

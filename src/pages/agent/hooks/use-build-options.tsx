@@ -2,10 +2,15 @@ import { type ReactNode, useMemo } from 'react'
 import type { Edge } from '@xyflow/react'
 import get from 'lodash/get.js'
 import isEmpty from 'lodash/isEmpty.js'
-import { AgentStructuredOutputField, JsonSchemaDataType, Operator } from '../constant'
+import {
+  AgentStructuredOutputField,
+  JsonSchemaDataType,
+  Operator,
+} from '../constant'
 import OperatorIcon from '../operator-icon'
 import useGraphStore from '../store'
 import type { RAGFlowNodeType } from '../types'
+import { getCodeNodeOutputs, type CodeOutputMap } from '../utils/code-outputs'
 
 type OutputOption = {
   label: string
@@ -14,6 +19,8 @@ type OutputOption = {
   icon?: ReactNode
   type?: string
 }
+
+type OutputMap = Record<string, { type?: string } | undefined>
 
 function filterAllUpstreamNodeIds(edges: Edge[], nodeIds: string[]) {
   return nodeIds.reduce<string[]>((pre, nodeId) => {
@@ -46,7 +53,7 @@ function buildVariableValue(value: string, nodeId?: string) {
 }
 
 function buildSecondaryOutputOptions(
-  outputs: Record<string, any> = {},
+  outputs: OutputMap = {},
   nodeId?: string,
   parentLabel?: string,
   icon?: ReactNode,
@@ -68,12 +75,21 @@ function buildOutputOptions(node: RAGFlowNodeType) {
     value: node.id,
     title: node.data.name,
     options: buildSecondaryOutputOptions(
-      get(node, 'data.form.outputs', {}),
+      getNodeOutputs(node),
       node.id,
       node.data.name,
       <OperatorIcon name={node.data.label as Operator} />,
     ),
   }
+}
+
+function getNodeOutputs(node: RAGFlowNodeType) {
+  const outputs = get(node, 'data.form.outputs', {}) as CodeOutputMap
+  if (node.data.label !== Operator.Code) {
+    return outputs
+  }
+
+  return getCodeNodeOutputs(outputs)
 }
 
 function buildNodeOutputOptions({
@@ -84,7 +100,7 @@ function buildNodeOutputOptions({
   nodeIds: string[]
 }) {
   const nodeWithOutputList = nodes.filter(
-    (x) => nodeIds.some((y) => y === x.id) && !isEmpty(x.data?.form?.outputs),
+    (x) => nodeIds.some((y) => y === x.id) && !isEmpty(getNodeOutputs(x)),
   )
 
   return nodeWithOutputList.map((node) => buildOutputOptions(node))
