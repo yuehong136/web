@@ -60,16 +60,26 @@
 
 ### SEC-3 dangerouslySetInnerHTML 净化缺口审计
 
-- **状态**：未开始
+- **状态**：已完成（2026-06-10）
 - **问题**：`dangerouslySetInnerHTML` 出现在 9 个文件，引用 DOMPurify 的只有 7 个文件。差值文件需逐处审计（文件级粗测，可能有同文件内净化但跨文件传入未净化的情况）。
 - **当时命中的 9 个文件**：chat/ReferenceMarker、chat/MarkdownRenderer、chat/ReferenceDetailSheet、knowledge/HighlightText、knowledge/document-preview/docx-preview、settings/ApiKeysPage、studio/create-app/utils、search/detail/search-chunk-list、knowledge/document-chunks/chunk-list-row。
 - **方案**：逐处确认 `__html` 的数据来源与净化链路；不可信来源（模型输出、文档内容、用户输入）必须净化；封装一个 `SafeHtml` 组件统一走 DOMPurify，逐步替换裸用法；考虑加自定义 lint 规则强制 `__html` 只能来自净化函数。
 - **验收**：9 处全部有结论（安全来源说明 or 已修复）；新增 lint 防回归。
+- **审计结论（9/9 全部有结论）**：
+  - **已修复（原裸渲染模型输出，实锤 XSS 缺口）**：chat/MarkdownRenderer（聊天消息经 markdown-it `html:true` 直渲）、studio/create-app/utils（预览消息同样直渲）。两处改走 `SafeHtml`（`ADD_ATTR: ['target','rel']` 保留外链属性，DOMPurify 默认白名单不含 target）。
+  - **已净化、迁移到 SafeHtml 统一出口**：chat/ReferenceMarker、chat/ReferenceDetailSheet、knowledge/HighlightText、knowledge/document-preview/docx-preview、search/detail/search-chunk-list、knowledge/document-chunks/chunk-list-row（数据来源均为文档解析/检索高亮，不可信但原已过 DOMPurify；白名单提为模块常量经 `options` 传入）。
+  - **安全来源（静态可信常量）**：settings/ApiKeysPage 的内联 `<style>` 滚动条 CSS（模板字面量、无插值）。已移入 `api-keys-page.css` 并改用 `components-scrollbar-*` 语义令牌，文件净减 31 行（棘轮基线同步收紧 4068 → 4037）。
+- **落地物**：`src/components/ui/safe-html.tsx`（唯一 HTML 渲染出口，内部 DOMPurify）；`eslint-rules/no-raw-dangerously-set-inner-html.js`（error 级，仅放行 SafeHtml 自身实现与 `__html` 为 `sanitize(...)` 调用字面量的形式；已用临时违例 fixture 实测命中后删除）；CLAUDE.md / AGENTS.md 安全章节同步。
+- **验证**：`npm run lint`（0 errors）、`npm run lint:file-size`、`npm run build`、`npm run check:bundle-size`、`npm run test:agent-t1`（47 pass）、`npm run test:design-tokens`（11 pass）、`npm run lint:i18n-agent` 全部通过。
+- **遗留**：lint 规则的 `sanitize*` 调用放行是静态启发（不验证函数体确实走 DOMPurify），由 code review 把关；迁移后全仓已无该形式的使用。
 - **状态与进展记录**：
 
-| 日期       | 动作 | 提交 | 备注 |
-| ---------- | ---- | ---- | ---- |
-| 2026-06-10 | 立项 | —    | —    |
+| 日期       | 动作                                                       | 提交    | 备注                                              |
+| ---------- | ---------------------------------------------------------- | ------- | ------------------------------------------------- |
+| 2026-06-10 | 立项                                                       | —       | —                                                 |
+| 2026-06-10 | 新增 SafeHtml 统一净化出口                                 | 4ed8f89 | `src/components/ui/safe-html.tsx`                 |
+| 2026-06-10 | 修复 2 处未净化 + 迁移 6 处 + ApiKeysPage 内联 style 迁出  | 1dd6c3f | 9/9 命中处全部收口；棘轮基线收紧                  |
+| 2026-06-10 | 上线 `security/no-raw-dangerously-set-inner-html`（error） | a2c66a7 | 含 CLAUDE.md / AGENTS.md 同步；全仓 lint 0 errors |
 
 ---
 
