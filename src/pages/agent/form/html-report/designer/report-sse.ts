@@ -8,9 +8,15 @@
  *   - data === true      → 收尾标记(忽略)
  *   - 其余 data 对象     → 进度帧 → onProgress(data)
  *
- * 用仓库统一的 `EventSourceParserStream` 解析,不手撕 `\n\n`。AbortSignal 透传以支持取消。
+ * 读循环走共享运行时 `@/lib/streaming`(ARCH-1 阶段 2)。signal 只交给 fetch、
+ * 不传给 readSSEStream:两个调用方依赖中止时 AbortError 向外传播来静默退出,
+ * 干净 resolve 反而会误抛「ended without a result」。
  */
-import { EventSourceParserStream } from 'eventsource-parser/stream'
+import {
+  assertSSEResponse,
+  readSSEStream,
+  type SSEEnvelope,
+} from '@/lib/streaming'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
@@ -18,12 +24,6 @@ export interface ReportProgress {
   phase?: string
   current?: number
   total?: number
-}
-
-interface Envelope {
-  retcode?: number
-  retmsg?: string
-  data?: unknown
 }
 
 /**
@@ -47,41 +47,25 @@ export async function streamReport(
     body: JSON.stringify(body),
     signal,
   })
-  if (!response.ok || !response.body) {
-    throw new Error(`HTTP ${response.status}`)
-  }
-
-  const reader = response.body
-    .pipeThrough(new TextDecoderStream())
-    .pipeThrough(new EventSourceParserStream())
-    .getReader()
+  await assertSSEResponse(response)
 
   let result: Record<string, unknown> | null = null
 
-  while (true) {
-    const { done, value } = await reader.read()
-    if (done) break
-    const raw = value?.data
-    if (!raw) continue
-    let env: Envelope
-    try {
-      env = JSON.parse(raw)
-    } catch {
-      // 跳过畸形分片
-      continue
-    }
-    if (typeof env.retcode === 'number' && env.retcode !== 0) {
-      throw new Error(env.retmsg || 'report stream error')
-    }
-    if (env.retmsg === 'done') {
-      result = (env.data as Record<string, unknown>) ?? {}
-      continue
-    }
-    if (env.data === true) continue // 收尾标记
-    if (env.data && typeof env.data === 'object') {
-      onProgress(env.data as ReportProgress)
-    }
-  }
+  await readSSEStream<SSEEnvelope>(response, {
+    onEvent: (env) => {
+      if (typeof env.retcode === 'number' && env.retcode !== 0) {
+        throw new Error(env.retmsg || 'report stream error')
+      }
+      if (env.retmsg === 'done') {
+        result = (env.data as Record<string, unknown>) ?? {}
+        return
+      }
+      if (env.data === true) return // 收尾标记
+      if (env.data && typeof env.data === 'object') {
+        onProgress(env.data as ReportProgress)
+      }
+    },
+  })
 
   if (!result) throw new Error('report stream ended without a result')
   return result

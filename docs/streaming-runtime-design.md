@@ -82,7 +82,7 @@ export async function readSSEStream<T = unknown>(
 按风险升序：
 
 1. ~~`runtime-stream.ts`~~（✅ 2026-06-11 已迁移：改为委托 lib 的薄模块，61→18 行；刻意不向 `readSSEStream` 传 signal——两个调用方依赖 AbortError 向外传播进入 STOPPED 态）
-2. `report-sse.ts`（88 行，callback 式，envelope 已兼容）
+2. ~~`report-sse.ts`~~（✅ 2026-06-11 已迁移：读循环换 `readSSEStream<SSEEnvelope>`，88→68 行；同样不传 signal——调用方依赖 AbortError 静默退出，干净 resolve 会误抛「ended without a result」）
 3. `mcp-agent-stream.ts`（67 行；`parseErrorMode: 'throw'` 保原行为；顺带把死测试 `src/utils/__tests__/agent-timeline.test.ts` 接入测试门禁）
 4. `use-pipeline-workbench.ts`（新入账的手写 split 面）
 5. ~~`use-create-app-preview.ts`~~（✅ 本阶段试点已迁移）
