@@ -6,6 +6,19 @@ export {
   type StreamingAnswerState,
 } from './answer-reducer'
 export {
+  consumeAgentTimelineEvent,
+  createInitialAgentTimelineState,
+  type AgentStreamEvent,
+  type AgentTimelineKind,
+  type AgentTimelineNode,
+  type AgentTimelineState,
+  type AgentTimelineStatus,
+} from './agent-timeline'
+export {
+  createTimelineNodesFromToolCalls,
+  normalizeAgentSSEPayload,
+} from './agent-timeline-events'
+export {
   assertSSEResponse,
   readSSEStream,
   type ReadSSEStreamOptions,

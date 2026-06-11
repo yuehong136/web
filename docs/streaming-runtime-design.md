@@ -83,7 +83,7 @@ export async function readSSEStream<T = unknown>(
 
 1. ~~`runtime-stream.ts`~~（✅ 2026-06-11 已迁移：改为委托 lib 的薄模块，61→18 行；刻意不向 `readSSEStream` 传 signal——两个调用方依赖 AbortError 向外传播进入 STOPPED 态）
 2. ~~`report-sse.ts`~~（✅ 2026-06-11 已迁移：读循环换 `readSSEStream<SSEEnvelope>`，88→68 行；同样不传 signal——调用方依赖 AbortError 静默退出，干净 resolve 会误抛「ended without a result」）
-3. `mcp-agent-stream.ts`（67 行；`parseErrorMode: 'throw'` 保原行为；顺带把死测试 `src/utils/__tests__/agent-timeline.test.ts` 接入测试门禁）
+3. ~~`mcp-agent-stream.ts`~~（✅ 2026-06-11 已迁移：`parseErrorMode: 'throw'` 保「坏帧即抛错」原行为；timeline reducer（agent-timeline.ts + agent-timeline-events.ts）照 answer-reducer 模式物理搬入 lib + 原址 shim，死测试 agent-timeline.test.ts 随迁进 `test:streaming` 门禁；此面把 signal 传给了 readSSEStream——调用方 useHomeChat 在 catch 里直接查 `signal.aborted` 而非依赖 AbortError 类型，干净退出正是原代码 `signal.aborted → reader.cancel()` 的本意）
 4. `use-pipeline-workbench.ts`（新入账的手写 split 面）
 5. ~~`use-create-app-preview.ts`~~（✅ 本阶段试点已迁移）
 6. `useHomeChat.ts`（双模式：app completion + mcp timeline）

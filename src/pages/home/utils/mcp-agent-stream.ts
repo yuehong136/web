@@ -1,11 +1,12 @@
-import { EventSourceParserStream } from 'eventsource-parser/stream'
 import type { MCPChatServiceRequest } from '@/api/mcp-chat-service'
 import {
+  assertSSEResponse,
   consumeAgentTimelineEvent,
   createInitialAgentTimelineState,
+  normalizeAgentSSEPayload,
+  readSSEStream,
   type AgentTimelineState,
-} from '@/utils/agent-timeline'
-import { normalizeAgentSSEPayload } from '@/utils/agent-timeline-events'
+} from '@/lib/streaming'
 
 interface StreamMCPAgentChatOptions {
   request: MCPChatServiceRequest
@@ -13,6 +14,11 @@ interface StreamMCPAgentChatOptions {
   onState: (state: AgentTimelineState) => void
 }
 
+/**
+ * MCP agent chat SSE, on the shared streaming runtime (ARCH-1 phase 2).
+ * parseErrorMode is 'throw' to keep this surface's original behavior: a
+ * malformed frame aborts the run and surfaces an error to the caller.
+ */
 export const streamMCPAgentChat = async ({
   request,
   signal,
@@ -33,35 +39,22 @@ export const streamMCPAgentChat = async ({
     },
   )
 
-  if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
-  if (!response.body) throw new Error('Response body is not readable')
+  await assertSSEResponse(response)
 
-  const reader = response.body
-    .pipeThrough(new TextDecoderStream())
-    .pipeThrough(new EventSourceParserStream())
-    .getReader()
   let timelineState = createInitialAgentTimelineState()
 
-  while (true) {
-    const { done, value } = await reader.read()
-    if (done) break
+  await readSSEStream(response, {
+    signal,
+    parseErrorMode: 'throw',
+    onEvent: (raw) => {
+      const events = normalizeAgentSSEPayload(raw)
+      if (events.length === 0) return
 
-    if (signal.aborted) {
-      reader.cancel()
-      break
-    }
+      for (const event of events) {
+        timelineState = consumeAgentTimelineEvent(timelineState, event)
+      }
 
-    const jsonStr = value?.data
-    if (!jsonStr) continue
-
-    const raw = JSON.parse(jsonStr)
-    const events = normalizeAgentSSEPayload(raw)
-    if (events.length === 0) continue
-
-    for (const event of events) {
-      timelineState = consumeAgentTimelineEvent(timelineState, event)
-    }
-
-    onState(timelineState)
-  }
+      onState(timelineState)
+    },
+  })
 }
