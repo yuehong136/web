@@ -2,10 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { agentAPI } from '@/api/agent'
-import {
-  useCancelDataflow,
-  useFetchAgent,
-} from '@/hooks/use-agent-request'
+import { assertSSEResponse, readSSEStream } from '@/lib/streaming'
+import { useCancelDataflow, useFetchAgent } from '@/hooks/use-agent-request'
 import { resolveLocalizedText } from '@/lib/agent'
 import { toast } from '@/lib/toast'
 import type { AgentTraceItem } from '@/types/agent'
@@ -40,9 +38,7 @@ interface UsePipelineWorkbenchOptions {
   canvasId?: string
   currentView: PipelineWorkbenchView
   onViewChange: (view: PipelineWorkbenchView) => void
-  onSummaryChange?: (
-    summary: PipelineRuntimeController['summary'],
-  ) => void
+  onSummaryChange?: (summary: PipelineRuntimeController['summary']) => void
 }
 
 export function usePipelineWorkbench({
@@ -67,9 +63,8 @@ export function usePipelineWorkbench({
   const [lastRunAt, setLastRunAt] = useState<number>()
   const [lastError, setLastError] = useState<string>()
   const [lastTaskId, setLastTaskId] = useState<string>()
-  const [uploadedFile, setUploadedFile] = useState<
-    PipelineRuntimeController['uploadedFile']
-  >()
+  const [uploadedFile, setUploadedFile] =
+    useState<PipelineRuntimeController['uploadedFile']>()
   const abortControllerRef = useRef<AbortController | null>(null)
 
   const traceQuery = useQuery<AgentTraceItem[]>({
@@ -80,15 +75,14 @@ export function usePipelineWorkbench({
         await agentAPI.fetchTrace(canvasId || '', messageId),
       ),
     refetchInterval: () =>
-      status === PipelineRuntimeStatus.RUNNING ? PIPELINE_TRACE_INTERVAL : false,
+      status === PipelineRuntimeStatus.RUNNING
+        ? PIPELINE_TRACE_INTERVAL
+        : false,
     gcTime: 0,
     initialData: [],
   })
 
-  const trace = useMemo(
-    () => traceQuery.data || [],
-    [traceQuery.data],
-  )
+  const trace = useMemo(() => traceQuery.data || [], [traceQuery.data])
   const completed = useMemo(() => isPipelineCompleted(trace), [trace])
   const endOutput = useMemo(() => findPipelineEndOutput(trace), [trace])
   const outputAvailable = useMemo(
@@ -169,8 +163,10 @@ export function usePipelineWorkbench({
       }
 
       const beginNode = getNode(BeginId)
-      const currentInputs = (beginNode?.data?.form?.inputs ||
-        {}) as Record<string, BeginQuery>
+      const currentInputs = (beginNode?.data?.form?.inputs || {}) as Record<
+        string,
+        BeginQuery
+      >
       const nextInputs = buildBeginQueryWithObject(currentInputs, values)
       updateNodeForm(BeginId, nextInputs, ['inputs'])
 
@@ -214,50 +210,26 @@ export function usePipelineWorkbench({
           },
         )
 
-        if (!response.ok) {
-          let errorMessage = `HTTP ${response.status}: ${response.statusText}`
-          try {
-            const errorBody = await response.clone().json()
-            errorMessage =
-              errorBody?.message || errorBody?.retmsg || errorMessage
-          } catch {
-            // ignore non-json error bodies
-          }
-          throw new Error(errorMessage)
-        }
+        await assertSSEResponse(response)
 
-        if (!response.body) {
-          throw new Error('Pipeline 运行接口没有返回可读的数据流')
-        }
-
-        const reader = response.body
-          .pipeThrough(new TextDecoderStream())
-          .getReader()
-
-        let buffer = ''
-        let resolvedMessageId: string | undefined
-
-        while (!resolvedMessageId) {
-          const { done, value } = await reader.read()
-          if (done) {
-            break
-          }
-
-          buffer += value || ''
-
-          for (const line of buffer.split(/\r?\n/)) {
-            const trimmed = line.trim()
-            if (!trimmed) continue
-            const payload = trimmed.startsWith('data:')
-              ? trimmed.slice(5).trim()
-              : trimmed
-            const candidate = extractMessageIdFromChunk(payload)
-            if (candidate) {
-              resolvedMessageId = candidate
-              break
-            }
-          }
-        }
+        // 拿到 message_id 即继续往下走；流在后台排空、不 cancel 连接——
+        // 运行由服务端继续，LOG 视图轮询 trace（与原实现一致，停止运行
+        // 另走 cancelDataflow）。不传 signal：catch 依赖 AbortError 进 STOPPED 态。
+        const resolvedMessageId = await new Promise<string | undefined>(
+          (resolve, reject) => {
+            let found: string | undefined
+            readSSEStream(response, {
+              onEvent: (_event, rawData) => {
+                if (found) return
+                const candidate = extractMessageIdFromChunk(rawData)
+                if (candidate) {
+                  found = candidate
+                  resolve(candidate)
+                }
+              },
+            }).then(() => resolve(found), reject)
+          },
+        )
 
         if (resolvedMessageId) {
           setMessageId(resolvedMessageId)
@@ -277,9 +249,7 @@ export function usePipelineWorkbench({
 
         setLastError(errorMessage)
         setStatus(
-          isAbort
-            ? PipelineRuntimeStatus.STOPPED
-            : PipelineRuntimeStatus.ERROR,
+          isAbort ? PipelineRuntimeStatus.STOPPED : PipelineRuntimeStatus.ERROR,
         )
 
         if (!isAbort) {
@@ -315,7 +285,8 @@ export function usePipelineWorkbench({
       await cancelDataflow(messageId)
       setStatus(PipelineRuntimeStatus.STOPPED)
     } catch (error) {
-      const message = error instanceof Error ? error.message : '取消 Pipeline 失败'
+      const message =
+        error instanceof Error ? error.message : '取消 Pipeline 失败'
       setLastError(message)
       toast.error(message)
     }
