@@ -9,15 +9,17 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { toast } from '@/lib/toast'
-import { EventSourceParserStream } from 'eventsource-parser/stream'
 import type { MCPChatServiceRequest } from '@/api/mcp-chat-service'
 import { conversationAPI } from '@/api/conversation'
 import type { DialogApp } from '@/types/api'
 import type { ChatMessage } from '../types'
 import {
+  assertSSEResponse,
   consumeStreamingAnswerChunk,
   createInitialStreamingAnswerState,
-} from '@/utils/streaming-answer'
+  readSSEStream,
+  type SSEEnvelope,
+} from '@/lib/streaming'
 import { streamMCPAgentChat } from '../utils/mcp-agent-stream'
 import {
   extractReferencesFromSSEData,
@@ -204,8 +206,10 @@ export const useHomeChat = ({
 
       const userMessageContent = inputValue.trim()
 
-      // 创建 AbortController 用于停止输出
-      abortControllerRef.current = new AbortController()
+      // 创建 AbortController 用于停止输出（局部捕获：stopStreaming 会把 ref 置
+      // null，catch/onEvent 必须用这个局部引用判断 aborted，不能依赖 ref）
+      const abortController = new AbortController()
+      abortControllerRef.current = abortController
 
       try {
         // 优先使用 selectedConversationId（用户选择的历史对话）
@@ -289,42 +293,25 @@ export const useHomeChat = ({
           }),
         )
 
-        const response = await conversationAPI.completion({
-          conversation_id: conversationId!,
-          messages: requestMessages,
-          quote: true,
-        })
+        const response = await conversationAPI.completion(
+          {
+            conversation_id: conversationId!,
+            messages: requestMessages,
+            quote: true,
+          },
+          { signal: abortController.signal },
+        )
 
-        if (!response.ok)
-          throw new Error(`HTTP error! status: ${response.status}`)
-        if (!response.body) throw new Error('No response body')
-
-        // 使用 EventSourceParserStream 处理 SSE 流
-        const reader = response.body
-          .pipeThrough(new TextDecoderStream())
-          .pipeThrough(new EventSourceParserStream())
-          .getReader()
+        await assertSSEResponse(response)
 
         let streamState = createInitialStreamingAnswerState()
 
-        while (true) {
-          const { done, value } = await reader.read()
-          if (done) break
-
-          // 检查是否已被中止
-          if (abortControllerRef.current?.signal.aborted) {
-            reader.cancel()
-            break
-          }
-
-          try {
-            const jsonStr = value?.data
-            if (!jsonStr) continue
-
-            const data = JSON.parse(jsonStr)
+        await readSSEStream<SSEEnvelope>(response, {
+          signal: abortController.signal,
+          onEvent: (data) => {
             const chunk = consumeStreamingAnswerChunk(streamState, data)
             streamState = chunk.nextState
-            if (chunk.isDone) continue
+            if (chunk.isDone) return
 
             const chunkData =
               chunk.payload && typeof chunk.payload === 'object'
@@ -377,13 +364,11 @@ export const useHomeChat = ({
               }
               return newMsgs
             })
-          } catch (e) {
-            // JSON 解析错误，忽略
-          }
-        }
+          },
+        })
       } catch (error) {
         console.error('Error sending app message:', error)
-        if (!abortControllerRef.current?.signal.aborted) {
+        if (!abortController.signal.aborted) {
           toast.error(error instanceof Error ? error.message : '发送消息失败')
           // 更新最后一条消息为错误消息
           updateMessages((prev) => {

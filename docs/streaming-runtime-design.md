@@ -86,7 +86,7 @@ export async function readSSEStream<T = unknown>(
 3. ~~`mcp-agent-stream.ts`~~（✅ 2026-06-11 已迁移：`parseErrorMode: 'throw'` 保「坏帧即抛错」原行为；timeline reducer（agent-timeline.ts + agent-timeline-events.ts）照 answer-reducer 模式物理搬入 lib + 原址 shim，死测试 agent-timeline.test.ts 随迁进 `test:streaming` 门禁；此面把 signal 传给了 readSSEStream——调用方 useHomeChat 在 catch 里直接查 `signal.aborted` 而非依赖 AbortError 类型，干净退出正是原代码 `signal.aborted → reader.cancel()` 的本意）
 4. ~~`use-pipeline-workbench.ts`~~（✅ 2026-06-11 已迁移：手写 `split(/\r?\n/)` 解析换 `readSSEStream` + Promise 早返回——拿到 message_id 即继续，流在后台排空、不 cancel 连接（运行由服务端继续，停止另走 cancelDataflow）；不传 signal，保 AbortError → STOPPED 语义；`extractMessageIdFromChunk` util 零改动，吃 rawData）
 5. ~~`use-create-app-preview.ts`~~（✅ 本阶段试点已迁移）
-6. `useHomeChat.ts`（双模式：app completion + mcp timeline）
+6. ~~`useHomeChat.ts`~~（✅ 2026-06-11 已迁移：app 模式读循环换 `readSSEStream<SSEEnvelope>`，completion 挂上 signal（迁移前停止按钮在 app 模式实际失效——fetch 无 signal 且 stopStreaming 先 abort 后置 null ref，循环判 ref 永 falsy）；catch 改判局部 `abortController.signal.aborted` 防 ref 竞态。MCP 模式经 mcp-agent-stream 已在 lib 上，其 catch 的 ref 竞态按「不顺手修」保留现状）
 7. `use-shared-agent-runner.ts`（事件状态机较重，外部 embed 面，回归点多）
 8. `useSearchExecution.ts`（多阶段 + rAF 批处理，迁移时不得破坏批处理节奏）
 9. `ExplorePage.tsx` 内联两段（棘轮在册 2369 行，建议与文件拆分一起做）
