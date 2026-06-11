@@ -47,6 +47,9 @@ jobs:
       - name: Test (design tokens)
         run: npm run test:design-tokens
 
+      - name: Test (streaming runtime)
+        run: npm run test:streaming
+
   build:
     name: Build
     runs-on: ubuntu-latest

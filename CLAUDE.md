@@ -21,14 +21,15 @@ npm run build:docker # vite build without tsc -b (Docker image build only — ne
 npm run preview      # Preview production build
 npm run test:agent-t1 # node --test via tsx: agent serializers + adapters
 npm run test:design-tokens # node --test via tsx: design-token utilities (palette, token values)
+npm run test:streaming # node --test via tsx: shared streaming runtime (SSE transport + chunk-merge reducer)
 npm run lint:file-size # File-size ratchet: oversized files must not grow (baseline: scripts/file-size-baseline.json)
 npm run lint:file-size:update # Tighten the ratchet baseline after shrinking a debt file (never to loosen it)
 npm run check:bundle-size # Bundle budget gate, run after build (budgets: scripts/bundle-size-budget.json)
 ```
 
-There is **no generic `test`, `format`, or `typecheck` npm script**. Full type checking happens inside `npm run build`; Agent critical directories also have `npm run typecheck:agent-strict`. Formatting is handled by Prettier + lint-staged for staged files only; do not format the whole repo. The formal test gates are `test:agent-t1` and `test:design-tokens` (`tsx --test`); Vitest baseline config exists for future additions/migration. Do not introduce Jest.
+There is **no generic `test`, `format`, or `typecheck` npm script**. Full type checking happens inside `npm run build`; Agent critical directories also have `npm run typecheck:agent-strict`. Formatting is handled by Prettier + lint-staged for staged files only; do not format the whole repo. The formal test gates are `test:agent-t1`, `test:design-tokens`, and `test:streaming` (`tsx --test`); Vitest baseline config exists for future additions/migration. Do not introduce Jest.
 
-**CI**: `.github/workflows/ci.yml` runs on every push/PR to `master` — `lint`, `lint:file-size`, `lint:typed`, `typecheck:agent-strict`, `test:agent-t1`, `test:design-tokens`, `build`, and `check:bundle-size` must all pass. `lint:i18n-agent` stays a local-only gate (it diffs the working tree). The pre-commit hook only runs lint-staged; still run the relevant gates locally before pushing — never claim they pass without actually running them.
+**CI**: `.github/workflows/ci.yml` runs on every push/PR to `master` — `lint`, `lint:file-size`, `lint:typed`, `typecheck:agent-strict`, `test:agent-t1`, `test:design-tokens`, `test:streaming`, `build`, and `check:bundle-size` must all pass. `lint:i18n-agent` stays a local-only gate (it diffs the working tree). The pre-commit hook only runs lint-staged; still run the relevant gates locally before pushing — never claim they pass without actually running them.
 
 ## Stack (verified, 2026-05)
 
@@ -441,7 +442,9 @@ Mutations surface errors via `sonner` (toast), not via dialogs, unless the actio
 
 ## Testing
 
-Current state: 20+ `*.test.ts(x)` files run via `tsx --test`. Coverage focuses on `pages/agent/operators`, `adapters`, `runtime-workbench`, `pipeline-workbench`, `prompt-editor`, `schema-editor`, and `lib/design-tokens`. Formal npm test scripts: `test:agent-t1` and `test:design-tokens`.
+Current state: 20+ `*.test.ts(x)` files run via `tsx --test`. Coverage focuses on `pages/agent/operators`, `adapters`, `runtime-workbench`, `pipeline-workbench`, `prompt-editor`, `schema-editor`, `lib/design-tokens`, and `lib/streaming`. Formal npm test scripts: `test:agent-t1`, `test:design-tokens`, and `test:streaming`.
+
+New SSE consumers use the shared runtime in `src/lib/streaming/` (`readSSEStream` + `assertSSEResponse` + typed envelopes + answer reducer) instead of hand-rolling the decode/parse loop; see `docs/streaming-runtime-design.md`.
 
 Required when touching:
 

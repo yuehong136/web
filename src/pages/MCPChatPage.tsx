@@ -874,7 +874,7 @@ export default function MCPChatPage() {
                     id: call.id,
                     name: call.name,
                     args: call.arguments || {},
-                    result: call.result || '',
+                    result: (call.result || '') as string,
                     status: call.status,
                     timestamp: call.timestamp,
                   })),

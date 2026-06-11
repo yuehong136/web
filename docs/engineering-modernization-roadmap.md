@@ -101,10 +101,11 @@
 - **验收**：~~`grep -rn "new TextDecoder\|split('\\n\\n')" src` 在流式场景零命中~~（口径修正 2026-06-11：原模式会子串误命中合法的 `new TextDecoderStream()`，且漏掉 `split('\n')` / `split(/\r?\n/)` 形态的手写解析）。改为分阶段验收：每个已迁移面 `grep -n "EventSourceParserStream\|TextDecoderStream\|JSON.parse"` 零命中（解析样板收口到 `@/lib/streaming`）；终态用精确模式（`new TextDecoder(`、`split('\n')`、`split(/\r?\n/)` 限流式读循环）扫描零命中。所有流式入口共享同一 abort/重连语义；reducer 有单测。详见 `docs/streaming-runtime-design.md` 第 4 节。
 - **状态与进展记录**：
 
-| 日期       | 动作                                                                 | 提交 | 备注                                  |
-| ---------- | -------------------------------------------------------------------- | ---- | ------------------------------------- |
-| 2026-06-10 | 立项；动手前先出设计稿放 `docs/streaming-runtime-design.md`          | —    | —                                     |
-| 2026-06-11 | 设计稿落地；实扫补记第 9 个面 pipeline-workbench；验收 grep 口径修正 | 待填 | 见 `docs/streaming-runtime-design.md` |
+| 日期       | 动作                                                                                                                                                                                                                                                                                                | 提交    | 备注                                                |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | --------------------------------------------------- |
+| 2026-06-10 | 立项；动手前先出设计稿放 `docs/streaming-runtime-design.md`                                                                                                                                                                                                                                         | —       | —                                                   |
+| 2026-06-11 | 设计稿落地；实扫补记第 9 个面 pipeline-workbench；验收 grep 口径修正                                                                                                                                                                                                                                | 5a8126c | 见 `docs/streaming-runtime-design.md`               |
+| 2026-06-11 | `src/lib/streaming/` 落地（transport / types / answer-reducer + 25 个单测）；`test:streaming` 进 CI；reducer 自 `src/utils/streaming-answer.ts` 物理搬迁（原址留 shim，存量面零改动）；EnhancedSSEParser 消息类型归一到 lib；`conversationAPI.completion` 补 `{ signal }`；CLAUDE.md/AGENTS.md 同步 | 待填    | 验证：`npm run test:streaming`（25 pass）+ 全量门禁 |
 
 ### ARCH-2 API 契约零保证 → 代码生成或边界校验
 
