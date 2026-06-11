@@ -437,7 +437,9 @@ export const useHomeChat = ({
       setIsStreaming(true)
       setStreamingContent('')
       setIsToolAnalyzing(false)
-      abortControllerRef.current = new AbortController()
+      // 局部捕获：stopStreaming 会把 ref 置 null，catch 判 aborted 不能依赖 ref
+      const abortController = new AbortController()
+      abortControllerRef.current = abortController
 
       try {
         const allMessages = [
@@ -464,7 +466,7 @@ export const useHomeChat = ({
 
         await streamMCPAgentChat({
           request,
-          signal: abortControllerRef.current.signal,
+          signal: abortController.signal,
           onState: (timelineState) => {
             setStreamingContent(timelineState.answer)
             setIsToolAnalyzing(timelineState.isToolAnalyzing)
@@ -485,7 +487,7 @@ export const useHomeChat = ({
         })
       } catch (error) {
         console.error('Error sending message:', error)
-        if (!abortControllerRef.current?.signal.aborted) {
+        if (!abortController.signal.aborted) {
           toast.error(error instanceof Error ? error.message : '发送消息失败')
           const errorMessage =
             error instanceof Error ? error.message : '发送消息失败'
