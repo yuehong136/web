@@ -88,21 +88,23 @@
 
 ### ARCH-1 统一 streaming/chat runtime（最大架构收益）
 
-- **状态**：未开始
+- **状态**：进行中（阶段 1：共享 runtime + 试点迁移）
 - **问题**：全仓至少 **8 套并行流式实现**，各自维护 transport、解析、abort、状态：
   `src/pages/home/hooks/useHomeChat.ts`、`src/pages/home/utils/mcp-agent-stream.ts`、`src/pages/agent/form/html-report/designer/report-sse.ts`、`src/pages/agent/features/runtime-workbench/runtime-stream.ts`、`src/pages/studio/create-app/hooks/use-create-app-preview.ts`、`src/pages/explore/ExplorePage.tsx`（内联）、`src/pages/search/detail/hooks/useSearchExecution.ts`、`src/pages/agent/share/use-shared-agent-runner.ts`。
   另有 `src/components/chat/EnhancedSSEParser.ts` 是**手写 SSE 解析器**（不依赖 eventsource-parser），直接违反 CLAUDE.md 流式规则第 3 条。后果：abort/重连/token 统计行为在各面上不一致，每加一个聊天面就 fork 一份逻辑。
+  **补记（2026-06-11 实扫）**：另发现第 9 个流式读取面 `src/pages/agent/features/pipeline-workbench/hooks/use-pipeline-workbench.ts`（手动 `split(/\r?\n/)` + `data:` 前缀剥离提取 message_id），归入迁移清单；`conversationAPI.completion` 此前不接收 AbortSignal，fetch 发起阶段无法取消（阶段 1 已补）。
 - **主流对照**：Vercel AI SDK（useChat + 统一 stream protocol + typed parts）、assistant-ui、@ant-design/x-sdk（已安装未充分利用）。共同点：单一 transport + 单一消息状态机，渲染层只消费 typed parts。
 - **方案**（建议分三步，每步可独立合并）：
   1. 抽 `src/lib/streaming/`：transport（fetch+eventsource-parser+AbortController 生命周期）、事件 envelope 类型（合并 EnhancedSSEParser 的消息类型定义）、chunk-merge reducer（纯函数，必须配测试）。
   2. 把 8 个实现逐个迁移到该 runtime（每个一个 PR，回归点明确）。
   3. 删除 EnhancedSSEParser 与各处手写解析。
-- **验收**：`grep -rn "new TextDecoder\|split('\\n\\n')" src` 在流式场景零命中；所有流式入口共享同一 abort/重连语义；reducer 有单测。
+- **验收**：~~`grep -rn "new TextDecoder\|split('\\n\\n')" src` 在流式场景零命中~~（口径修正 2026-06-11：原模式会子串误命中合法的 `new TextDecoderStream()`，且漏掉 `split('\n')` / `split(/\r?\n/)` 形态的手写解析）。改为分阶段验收：每个已迁移面 `grep -n "EventSourceParserStream\|TextDecoderStream\|JSON.parse"` 零命中（解析样板收口到 `@/lib/streaming`）；终态用精确模式（`new TextDecoder(`、`split('\n')`、`split(/\r?\n/)` 限流式读循环）扫描零命中。所有流式入口共享同一 abort/重连语义；reducer 有单测。详见 `docs/streaming-runtime-design.md` 第 4 节。
 - **状态与进展记录**：
 
-| 日期       | 动作                                                        | 提交 | 备注 |
-| ---------- | ----------------------------------------------------------- | ---- | ---- |
-| 2026-06-10 | 立项；动手前先出设计稿放 `docs/streaming-runtime-design.md` | —    | —    |
+| 日期       | 动作                                                                 | 提交 | 备注                                  |
+| ---------- | -------------------------------------------------------------------- | ---- | ------------------------------------- |
+| 2026-06-10 | 立项；动手前先出设计稿放 `docs/streaming-runtime-design.md`          | —    | —                                     |
+| 2026-06-11 | 设计稿落地；实扫补记第 9 个面 pipeline-workbench；验收 grep 口径修正 | 待填 | 见 `docs/streaming-runtime-design.md` |
 
 ### ARCH-2 API 契约零保证 → 代码生成或边界校验
 
@@ -250,7 +252,7 @@
 | --- | ------------------------------------------- | -------------------- |
 | 1   | SEC-1 token 出 localStorage + SEC-2 CSP     | 未开始（需后端）     |
 | 2   | ENG-1 ratchet + ENG-4 bundle 预算           | ✅ 已完成 2026-06-10 |
-| 3   | ARCH-1 统一 streaming runtime               | 未开始（先设计稿）   |
+| 3   | ARCH-1 统一 streaming runtime               | 进行中（阶段 1）     |
 | 4   | ARCH-2 API 契约代码生成                     | 未开始               |
 | 5   | ARCH-3 删中央 queryKeys + ARCH-4 store 清退 | 未开始               |
 | 6   | ENG-2 流式单测 + Playwright 冒烟            | 未开始               |

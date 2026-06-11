@@ -26,6 +26,7 @@ dist-ssr
 deploy
 docs/*
 !docs/engineering-modernization-roadmap.md
+!docs/streaming-runtime-design.md
 .env.production
 
 .codex
