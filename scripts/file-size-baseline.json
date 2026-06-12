@@ -7,7 +7,7 @@
   "src/themes/tokens.ts": 1892,
   "src/types/api.ts": 1604,
   "src/pages/agent/options/google.ts": 1589,
-  "src/pages/MCPChatPage.tsx": 1583,
+  "src/pages/MCPChatPage.tsx": 1581,
   "src/pages/agent/constant/index.ts": 1465,
   "src/components/chat/ChatSettingsPanel.tsx": 1072,
   "src/pages/ai-tools/ref/DataInput.tsx": 1061,

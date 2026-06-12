@@ -14,11 +14,8 @@ import {
   useMarkdownComponents,
 } from '@/components/chat/MarkdownCodeBlock'
 import type { MCPChatServiceRequest } from '@/api/mcp-chat-service'
-import {
-  EnhancedSSEParser,
-  type SSEMessage,
-  type ToolCallInfo,
-} from '@/components/chat/EnhancedSSEParser'
+import { type StreamToolCallInfo as ToolCallInfo } from '@/lib/streaming'
+import { streamStructuredChat } from '@/components/chat/structured-chat-stream'
 import { ToolCallRenderer } from '@/components/chat/ToolCallRenderer'
 import {
   findFirstEnabledModelByType,
@@ -369,9 +366,6 @@ export default function MCPChatPage() {
 
   const activeSession = sessions.find((s) => s.id === activeSessionId)
 
-  // 加载和流式响应状态（保留用于其他功能）
-  // const abortControllerRef = useRef<AbortController | null>(null);
-
   // 流式响应状态管理
   const [_isLoading, setIsLoading] = useState(false)
   const [streamingContent, setStreamingContent] = useState('')
@@ -381,8 +375,8 @@ export default function MCPChatPage() {
   const [isStreaming, setIsStreaming] = useState(false)
   const [isToolAnalyzing, setIsToolAnalyzing] = useState(false)
 
-  // SSE解析器实例
-  const sseParserRef = useRef<EnhancedSSEParser | null>(null)
+  // 流式连接的 AbortController（原 EnhancedSSEParser 实例内部的同款生命周期）
+  const abortControllerRef = useRef<AbortController | null>(null)
   const scrollFrameRef = useRef<number | null>(null)
 
   type StreamUIPatch = {
@@ -832,88 +826,92 @@ export default function MCPChatPage() {
           delta_stream: true,
         }
 
-        // 初始化增强SSE解析器
-        const parser = new EnhancedSSEParser()
-        sseParserRef.current = parser
+        // 流式连接（局部捕获 controller：停止按钮/卸载会把 ref 置 null）
+        const abortController = new AbortController()
+        abortControllerRef.current = abortController
 
-        // 使用增强SSE解析器处理流式响应
-        await parser.connect(
-          `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/v1/llm/enhanced_chat_sse`,
-          request,
-          (message: SSEMessage, parserState) => {
-            switch (message.type) {
-              case 'text':
-                scheduleStreamPatch({
-                  streamingContent: parserState.accumulatedText,
-                })
-                break
+        // 复刻原 connect() 错误边界：AbortError 静默，其余打日志 + toast（不进外层 catch）
+        try {
+          await streamStructuredChat({
+            url: `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/v1/llm/enhanced_chat_sse`,
+            requestBody: request,
+            signal: abortController.signal,
+            onMessage: (message, parserState) => {
+              switch (message.type) {
+                case 'text':
+                  scheduleStreamPatch({
+                    streamingContent: parserState.accumulatedText,
+                  })
+                  break
 
-              case 'tool_call':
-              case 'tool_result':
-                scheduleStreamPatch({
-                  streamingToolCalls: [...parserState.toolCalls],
-                })
-                break
+                case 'tool_call':
+                case 'tool_result':
+                  scheduleStreamPatch({
+                    streamingToolCalls: [...parserState.toolCalls],
+                  })
+                  break
 
-              case 'tool_start':
-                scheduleStreamPatch({ isToolAnalyzing: true })
-                break
+                case 'tool_start':
+                  scheduleStreamPatch({ isToolAnalyzing: true })
+                  break
 
-              case 'tool_end':
-                scheduleStreamPatch({ isToolAnalyzing: false })
-                break
+                case 'tool_end':
+                  scheduleStreamPatch({ isToolAnalyzing: false })
+                  break
 
-              case 'complete': {
-                flushStreamPatch()
-                const assistantMessage = {
-                  id: Date.now().toString(),
-                  role: 'assistant' as const,
-                  content: parserState.accumulatedText,
-                  timestamp: new Date().toLocaleTimeString(),
-                  parsedToolCalls: parserState.toolCalls.map((call) => ({
-                    id: call.id,
-                    name: call.name,
-                    args: call.arguments || {},
-                    result: (call.result || '') as string,
-                    status: call.status,
-                    timestamp: call.timestamp,
-                  })),
+                case 'complete': {
+                  flushStreamPatch()
+                  const assistantMessage = {
+                    id: Date.now().toString(),
+                    role: 'assistant' as const,
+                    content: parserState.accumulatedText,
+                    timestamp: new Date().toLocaleTimeString(),
+                    parsedToolCalls: parserState.toolCalls.map((call) => ({
+                      id: call.id,
+                      name: call.name,
+                      args: call.arguments || {},
+                      result: (call.result || '') as string,
+                      status: call.status,
+                      timestamp: call.timestamp,
+                    })),
+                  }
+
+                  setSessions((prev) =>
+                    prev.map((session) =>
+                      session.id === activeSessionId
+                        ? {
+                            ...session,
+                            messages: [...session.messages, assistantMessage],
+                          }
+                        : session,
+                    ),
+                  )
+                  break
                 }
 
-                setSessions((prev) =>
-                  prev.map((session) =>
-                    session.id === activeSessionId
-                      ? {
-                          ...session,
-                          messages: [...session.messages, assistantMessage],
-                        }
-                      : session,
-                  ),
-                )
-                break
+                case 'error': {
+                  const errorMsg = message.content as any
+                  throw new Error(errorMsg.error || 'Unknown error')
+                }
               }
 
-              case 'error': {
-                const errorMsg = message.content as any
-                throw new Error(errorMsg.error || 'Unknown error')
-              }
-            }
-
-            scheduleAutoScroll()
-          },
-          (error) => {
+              scheduleAutoScroll()
+            },
+          })
+        } catch (error) {
+          if (error instanceof Error && error.name !== 'AbortError') {
             console.error('Enhanced SSE Parser error:', error)
             toast.error(error.message || '连接出错')
-          },
-        )
+          }
+        }
       } catch (error) {
         console.error('Error sending message:', error)
         toast.error(error instanceof Error ? error.message : '发送消息失败')
       } finally {
         // 清理状态和连接
-        if (sseParserRef.current) {
-          sseParserRef.current.disconnect()
-          sseParserRef.current = null
+        if (abortControllerRef.current) {
+          abortControllerRef.current.abort()
+          abortControllerRef.current = null
         }
         resetStreamPatch()
         setIsLoading(false)
@@ -941,9 +939,9 @@ export default function MCPChatPage() {
   // 组件卸载时清理SSE连接
   useEffect(() => {
     return () => {
-      if (sseParserRef.current) {
-        sseParserRef.current.disconnect()
-        sseParserRef.current = null
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
+        abortControllerRef.current = null
       }
     }
   }, [])
@@ -1455,9 +1453,9 @@ export default function MCPChatPage() {
                       className="h-8 w-8 p-0"
                       onClick={() => {
                         // 停止输出（断开 SSE 连接）
-                        if (sseParserRef.current) {
-                          sseParserRef.current.disconnect()
-                          sseParserRef.current = null
+                        if (abortControllerRef.current) {
+                          abortControllerRef.current.abort()
+                          abortControllerRef.current = null
                         }
                         setIsLoading(false)
                         setIsStreaming(false)
@@ -1483,9 +1481,9 @@ export default function MCPChatPage() {
                 }}
                 onCancel={() => {
                   // 停止输出
-                  if (sseParserRef.current) {
-                    sseParserRef.current.disconnect()
-                    sseParserRef.current = null
+                  if (abortControllerRef.current) {
+                    abortControllerRef.current.abort()
+                    abortControllerRef.current = null
                   }
                   setIsLoading(false)
                   setIsStreaming(false)

@@ -94,6 +94,7 @@ export async function readSSEStream<T = unknown>(
 阶段 3：迁移 MCPChatPage / DataInput 两个 EnhancedSSEParser 使用者到 lib + 各自 reducer，然后删除 EnhancedSSEParser 运行时（类型已在阶段 1 归一到 `@/lib/streaming`）。
 
 - ~~3a. 状态机抽纯函数~~（✅ 2026-06-12：`structured-chat-reducer.ts` 逐行移植 handleMessage / processStructuredMessage / processLegacyMessage / think 标记 / legacy tool_call 正则 / 签名去重 / call_id 生命周期，`createSyntheticCompleteMessage` 复刻流尽合成 complete 抑制；10 个单测进 `test:streaming`，43 pass）
+- ~~3b. MCPChatPage~~（✅ 2026-06-12：connect() 换共享薄助手 `components/chat/structured-chat-stream.ts`（两个使用者本就共享 connect，对称替代；fetch 自持照 mcp-agent-stream 先例）；onMessage switch 逐行原样；signal 只挂 fetch 不传 readSSEStream——原 connect catch 依赖 AbortError 静默（A 型），abort 中断读取、合成 complete 天然跳过；页内 try/catch 复刻原 onError 的 console.error + toast '连接出错'；棘轮 1583 → 1581）
 
 ## 6. 测试与门禁
 
