@@ -2,8 +2,8 @@ import { useCallback, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { dialogAPI } from '@/api/dialog'
 import { knowledgeAPI } from '@/api/knowledge'
-import { queryKeys, invalidateQueries } from '@/lib/query-client'
 import { knowledgeKeys } from '@/hooks/use-knowledge-request'
+import { dialogKeys } from '@/hooks/use-dialog-apps'
 import { toast } from '@/lib/toast'
 import type { DialogApp } from '@/types/api'
 import type { ChatSettings } from '@/components/chat/ChatSettingsPanel'
@@ -206,7 +206,7 @@ export function useChatSettings(dialogId: string | undefined) {
     isLoading: dialogLoading,
     error: dialogError,
   } = useQuery({
-    queryKey: queryKeys.dialogApps.detail(dialogId || ''),
+    queryKey: dialogKeys.detail(dialogId || ''),
     queryFn: () => dialogAPI.getDetail(dialogId!),
     enabled: !!dialogId,
   })
@@ -224,9 +224,9 @@ export function useChatSettings(dialogId: string | undefined) {
     onSuccess: () => {
       // 使缓存失效
       queryClient.invalidateQueries({
-        queryKey: queryKeys.dialogApps.detail(dialogId || ''),
+        queryKey: dialogKeys.detail(dialogId || ''),
       })
-      invalidateQueries.dialogApps()
+      queryClient.invalidateQueries({ queryKey: dialogKeys.all })
       toast.success('设置保存成功')
     },
     onError: (error: any) => {

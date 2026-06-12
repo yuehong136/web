@@ -1,10 +1,20 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState, useCallback } from 'react'
 import { dialogAPI, type DialogListResponse } from '@/api/dialog'
-import { queryKeys, invalidateQueries } from '@/lib/query-client'
 import { toast } from '@/lib/toast'
 import type { DialogApp } from '../types/api'
 import { useDebouncedValue } from './useDebouncedValue'
+
+// dialogApps 域 query key 工厂（形状复刻原中央 queryKeys.dialogApps，逐元素不变）
+export const dialogKeys = {
+  all: ['dialogApps'] as const,
+  lists: () => [...dialogKeys.all, 'list'] as const,
+  // 支持分页和搜索参数
+  list: (params?: { keywords?: string; page?: number; page_size?: number }) =>
+    [...dialogKeys.lists(), params ?? {}] as const,
+  details: () => [...dialogKeys.all, 'detail'] as const,
+  detail: (id: string) => [...dialogKeys.details(), id] as const,
+}
 
 // 分页参数类型
 interface PaginationState {
@@ -28,27 +38,29 @@ export const useFetchDialogList = (
   const handleInputChange = useCallback((value: string) => {
     setSearchString(value)
     // 搜索时重置到第一页
-    setPagination(prev => ({ ...prev, current: 1 }))
+    setPagination((prev) => ({ ...prev, current: 1 }))
   }, [])
 
-  const { data, isFetching, isError, error, refetch } = useQuery<DialogListResponse>({
-    queryKey: queryKeys.dialogApps.list({
-      keywords: debouncedSearchString,
-      page: pagination.current,
-      page_size: pagination.pageSize,
-    }),
-    queryFn: () => dialogAPI.list({
-      keywords: debouncedSearchString,
-      page: pagination.current,
-      page_size: pagination.pageSize,
-    }),
-    // 使用 placeholderData 而不是 initialData，确保触发真实的 API 请求
-    placeholderData: { dialogs: [], total: 0 },
-    staleTime: 0,
-    gcTime: 5 * 60 * 1000, // 5 分钟
-    refetchOnWindowFocus: false,
-    enabled: options?.enabled ?? true,
-  })
+  const { data, isFetching, isError, error, refetch } =
+    useQuery<DialogListResponse>({
+      queryKey: dialogKeys.list({
+        keywords: debouncedSearchString,
+        page: pagination.current,
+        page_size: pagination.pageSize,
+      }),
+      queryFn: () =>
+        dialogAPI.list({
+          keywords: debouncedSearchString,
+          page: pagination.current,
+          page_size: pagination.pageSize,
+        }),
+      // 使用 placeholderData 而不是 initialData，确保触发真实的 API 请求
+      placeholderData: { dialogs: [], total: 0 },
+      staleTime: 0,
+      gcTime: 5 * 60 * 1000, // 5 分钟
+      refetchOnWindowFocus: false,
+      enabled: options?.enabled ?? true,
+    })
 
   return {
     data: data ?? { dialogs: [], total: 0 },
@@ -65,7 +77,10 @@ export const useFetchDialogList = (
 
 // 获取对话应用列表（简化版，向后兼容）
 export const useDialogApps = (options?: { enabled?: boolean }) => {
-  const { data, loading, isError, error, refetch } = useFetchDialogList(100, options)
+  const { data, loading, isError, error, refetch } = useFetchDialogList(
+    100,
+    options,
+  )
   return {
     data: data.dialogs,
     isLoading: loading,
@@ -78,7 +93,7 @@ export const useDialogApps = (options?: { enabled?: boolean }) => {
 // 获取对话应用详情
 export const useDialogApp = (dialogId: string) => {
   return useQuery({
-    queryKey: queryKeys.dialogApps.detail(dialogId),
+    queryKey: dialogKeys.detail(dialogId),
     queryFn: () => dialogAPI.getDetail(dialogId),
     enabled: !!dialogId,
   })
@@ -87,7 +102,7 @@ export const useDialogApp = (dialogId: string) => {
 // 创建或更新对话应用
 export const useSetDialogApp = () => {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn: (data: {
       dialog_id?: string
@@ -104,9 +119,9 @@ export const useSetDialogApp = () => {
           system: '你是一个智能助手，请提供有帮助的回答。',
           prologue: '您好，我是您的助手！',
           empty_response: '',
-          parameters: []
+          parameters: [],
         },
-        kb_ids: data.kb_ids || []
+        kb_ids: data.kb_ids || [],
       }
       return dialogAPI.set(requestData)
     },
@@ -114,14 +129,14 @@ export const useSetDialogApp = () => {
       // 更新缓存
       if (variables.dialog_id) {
         queryClient.setQueryData(
-          queryKeys.dialogApps.detail(variables.dialog_id),
-          dialogApp
+          dialogKeys.detail(variables.dialog_id),
+          dialogApp,
         )
       }
-      
+
       // 使对话应用列表查询失效
-      invalidateQueries.dialogApps()
-      
+      queryClient.invalidateQueries({ queryKey: dialogKeys.all })
+
       toast.success(variables.dialog_id ? '应用更新成功' : '应用创建成功')
       return dialogApp
     },
@@ -140,22 +155,25 @@ export const useCreateDialogApp = () => {
 // 更新对话应用
 export const useUpdateDialogApp = () => {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
-    mutationFn: ({ dialogId, data }: { 
+    mutationFn: ({
+      dialogId,
+      data,
+    }: {
       dialogId: string
       data: Partial<DialogApp>
     }) => dialogAPI.update(dialogId, data),
     onSuccess: (updatedDialogApp) => {
       // 更新缓存
       queryClient.setQueryData(
-        queryKeys.dialogApps.detail(updatedDialogApp.id),
-        updatedDialogApp
+        dialogKeys.detail(updatedDialogApp.id),
+        updatedDialogApp,
       )
-      
+
       // 使对话应用列表查询失效
-      invalidateQueries.dialogApps()
-      
+      queryClient.invalidateQueries({ queryKey: dialogKeys.all })
+
       toast.success('应用更新成功')
     },
     onError: (error: any) => {
@@ -167,21 +185,20 @@ export const useUpdateDialogApp = () => {
 // 删除对话应用
 export const useDeleteDialogApps = () => {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
-    mutationFn: (dialogIds: string[]) => 
-      dialogAPI.remove(dialogIds),
+    mutationFn: (dialogIds: string[]) => dialogAPI.remove(dialogIds),
     onSuccess: (_, dialogIds) => {
       // 从缓存中移除
-      dialogIds.forEach(dialogId => {
+      dialogIds.forEach((dialogId) => {
         queryClient.removeQueries({
-          queryKey: queryKeys.dialogApps.detail(dialogId)
+          queryKey: dialogKeys.detail(dialogId),
         })
       })
-      
+
       // 使对话应用列表查询失效
-      invalidateQueries.dialogApps()
-      
+      queryClient.invalidateQueries({ queryKey: dialogKeys.all })
+
       toast.success('应用删除成功')
     },
     onError: (error: any) => {
@@ -205,12 +222,14 @@ export const useExportDialogApps = () => {
 
 // 导入对话应用模版
 export const useImportDialogApps = () => {
+  const queryClient = useQueryClient()
+
   return useMutation({
     mutationFn: (file: File) => dialogAPI.importTemplates(file),
     onSuccess: (result) => {
       const { imported, failed } = result
       if (imported.length > 0) {
-        invalidateQueries.dialogApps()
+        queryClient.invalidateQueries({ queryKey: dialogKeys.all })
       }
       if (failed.length > 0) {
         toast.error(`${failed.length} 个模版导入失败`)
