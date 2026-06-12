@@ -19,6 +19,13 @@ export {
   normalizeAgentSSEPayload,
 } from './agent-timeline-events'
 export {
+  consumeStructuredChatChunk,
+  createInitialStructuredChatState,
+  createSyntheticCompleteMessage,
+  type StructuredChatChunkResult,
+  type StructuredChatState,
+} from './structured-chat-reducer'
+export {
   assertSSEResponse,
   readSSEStream,
   type ReadSSEStreamOptions,

@@ -93,6 +93,8 @@ export async function readSSEStream<T = unknown>(
 
 阶段 3：迁移 MCPChatPage / DataInput 两个 EnhancedSSEParser 使用者到 lib + 各自 reducer，然后删除 EnhancedSSEParser 运行时（类型已在阶段 1 归一到 `@/lib/streaming`）。
 
+- ~~3a. 状态机抽纯函数~~（✅ 2026-06-12：`structured-chat-reducer.ts` 逐行移植 handleMessage / processStructuredMessage / processLegacyMessage / think 标记 / legacy tool_call 正则 / 签名去重 / call_id 生命周期，`createSyntheticCompleteMessage` 复刻流尽合成 complete 抑制；10 个单测进 `test:streaming`，43 pass）
+
 ## 6. 测试与门禁
 
 - `npm run test:streaming`：`tsx --tsconfig tsconfig.app.json --test src/lib/streaming/__tests__/*.ts`，进 `.github/workflows/ci.yml` checks job。
