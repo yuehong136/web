@@ -163,7 +163,8 @@
 | 2026-06-12 | 删除死文件 `use-auth.ts`（196 行）+ `use-conversations.ts`（299 行）——中央 user/conversations 两域的唯一消费方，连带消灭内联 `['auth','channels']`、`['conversation','stats',timeRange]`                  | 5730594  | 删除前复扫全部导出零导入；行为零漂移（无人引用）                  |
 | 2026-06-12 | system 域：新建 `systemKeys`（use-system-status.ts），`['systemStatus']`/`['systemVersion']` 形状逐元素不变；整删 `constants/index.ts` 的 `QUERY_KEYS`（14 键中仅 SYSTEM\_\* 两键被消费，其余 12 个死键） | 759ff3b  | 形状无变化、该域无失效方/写入方配对；查询配置零改动               |
 | 2026-06-12 | profile 域：新建 `profileKeys`（use-profile.ts），`['userProfile']` 形状不变；同文件 query+invalidate 成对同步迁移                                                                                        | 3d7f016  | 形状无变化；写入/失效配对均在同文件、同提交迁移                   |
-| 2026-06-12 | admin 域：新建 `adminKeys`（settings/admin/hooks/use-admin-users.ts），`['admin','users']` 形状不变；同文件 1 query + 5 invalidate 成对迁移                                                               | （待填） | 形状无变化；配对均在同文件、同提交迁移                            |
+| 2026-06-12 | admin 域：新建 `adminKeys`（settings/admin/hooks/use-admin-users.ts），`['admin','users']` 形状不变；同文件 1 query + 5 invalidate 成对迁移                                                               | 773f323  | 形状无变化；配对均在同文件、同提交迁移                            |
+| 2026-06-12 | memory 域：`memoryKeys` 新增 `messageContent(memoryId,messageId)`，`['message-content',…]` 形状不变（刻意不挂 messages 前缀：行 275/314 的消息状态/删除失效不应连带重取消息原文）                         | （待填） | 形状无变化；该 key 无失效方/写入方配对                            |
 
 ### ARCH-4 Zustand store 中的服务器状态清退
 

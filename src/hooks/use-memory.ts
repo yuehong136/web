@@ -29,6 +29,10 @@ export const memoryKeys = {
     [...memoryKeys.all, memoryId, 'messages'] as const,
   messageList: (memoryId: string, params: MessageListParams) =>
     [...memoryKeys.messages(memoryId), params] as const,
+  // 独立根，刻意不挂 messages(memoryId) 前缀：消息状态/删除 mutation 失效
+  // messages 前缀时不应连带重取消息原文（形状沿用原内联 key，不变）
+  messageContent: (memoryId: string, messageId: string) =>
+    ['message-content', memoryId, messageId] as const,
 }
 
 // ============ 记忆库列表 ============
@@ -240,7 +244,7 @@ export function useMessageContent(
   enabled = false,
 ) {
   return useQuery({
-    queryKey: ['message-content', memoryId, messageId],
+    queryKey: memoryKeys.messageContent(memoryId, messageId),
     queryFn: () => memoryAPI.message.getContent(memoryId, messageId),
     enabled,
   })
