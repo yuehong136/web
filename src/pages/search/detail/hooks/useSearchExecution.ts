@@ -1,14 +1,16 @@
 import { useCallback, useRef, useState } from 'react'
-import { EventSourceParserStream } from 'eventsource-parser/stream'
 import { conversationAPI } from '@/api/conversation'
 import { knowledgeAPI } from '@/api/knowledge'
 import { llmAPI } from '@/api/llm'
 import { searchAPI } from '@/api/search'
 import {
+  assertSSEResponse,
   consumeStreamingAnswerChunk,
   createInitialStreamingAnswerState,
   finalizeStreamingAnswerState,
-} from '@/utils/streaming-answer'
+  readSSEStream,
+  type SSEEnvelope,
+} from '@/lib/streaming'
 import {
   SearchExecutionPhase,
   SearchExecutionMode,
@@ -313,52 +315,32 @@ export const useSearchExecution = (
                 signal,
               })
 
-              if (!response.ok || !response.body) {
-                throw new Error(`HTTP ${response.status}`)
-              }
-
-              const reader = response.body
-                .pipeThrough(new TextDecoderStream())
-                .pipeThrough(new EventSourceParserStream())
-                .getReader()
+              await assertSSEResponse(response)
 
               let streamState = createInitialStreamingAnswerState()
 
-              while (true) {
-                const { done, value } = await reader.read()
-                if (done) break
-                if (signal.aborted) {
-                  await reader.cancel()
-                  break
-                }
+              // Signal passed through on purpose: the original loop did its
+              // own `signal.aborted → reader.cancel() → break`, and the catch
+              // below checks the aborted boolean, not the AbortError type.
+              await readSSEStream<SSEEnvelope>(response, {
+                signal,
+                onEvent: (data) => {
+                  const streamError = getStreamErrorMessage(data)
+                  if (streamError) throw new Error(streamError)
 
-                const jsonStr = value?.data
-                if (!jsonStr) continue
+                  const chunk = consumeStreamingAnswerChunk(streamState, data)
+                  streamState = chunk.nextState
+                  if (chunk.isDone || chunk.isFinal) {
+                    streamState = finalizeStreamingAnswerState(streamState)
+                  }
 
-                let data: unknown
-                try {
-                  data = JSON.parse(jsonStr)
-                } catch {
-                  // Ignore malformed SSE chunk.
-                  continue
-                }
-
-                const streamError = getStreamErrorMessage(data)
-                if (streamError) throw new Error(streamError)
-
-                const chunk = consumeStreamingAnswerChunk(streamState, data)
-                streamState = chunk.nextState
-                if (chunk.isDone || chunk.isFinal) {
-                  streamState = finalizeStreamingAnswerState(streamState)
-                }
-
-                scheduleStreamPatch(
-                  turnId,
-                  streamState.content,
-                  streamState.thinking,
-                )
-                if (chunk.isDone) continue
-              }
+                  scheduleStreamPatch(
+                    turnId,
+                    streamState.content,
+                    streamState.thinking,
+                  )
+                },
+              })
 
               streamState = finalizeStreamingAnswerState(streamState)
               scheduleStreamPatch(
