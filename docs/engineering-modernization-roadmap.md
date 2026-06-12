@@ -137,15 +137,29 @@
 
 ### ARCH-3 两套 query key 工厂并存
 
-- **状态**：未开始
+- **状态**：进行中（2026-06-12 起）
 - **问题**：`src/lib/query-client.ts:34` 有中央 `queryKeys`（user/conversations/knowledgeBases…），同时 hooks 里有 10 个领域工厂（`datasourceKeys`、`memoryKeys`、`llmKeys`、`documentKeys`、`chatKeys`、`generateKeys`、`teamKeys`、`agentQueryKeys`、`mcpQueryKeys` 等）。两套 key 空间不互通，invalidate 命中与否靠运气。CLAUDE.md 已把领域工厂定为规范（2026-06-10 起）。
 - **方案**：盘点中央 `queryKeys` 的全部引用 → 逐域迁到对应领域工厂（无对应领域的先建）→ 删除中央对象。注意 key 形状变化会导致一次性缓存失效，属可接受。
 - **验收**：`lib/query-client.ts` 只剩 QueryClient 配置；全仓 queryKey 引用 100% 走领域工厂。
+- **实扫盘点（2026-06-12，基准 ec24e4b；迁移以本清单划线）**：
+  - **中央 `queryKeys` / `invalidateQueries` 消费方仅 5 个文件**：
+    1. `src/hooks/use-auth.ts`（`user.info()` setQueryData×3 + useQuery×1；另有内联 `['auth','channels']`）——**死文件**：全部导出全仓零导入。
+    2. `src/hooks/use-conversations.ts`（`conversations.*` 全套 + `invalidateQueries.conversations()`；内联 `['conversation','stats',timeRange]`）——**死文件**：全部导出全仓零导入；同名 `useCreate/Update/DeleteConversation` 实际来自 `use-chat-request.ts`。
+    3. `src/hooks/use-chat-settings.ts`（`dialogApps.detail` query:189 + invalidate:207、`invalidateQueries.dialogApps()`:209；内联 `['knowledgeBases']`:233）。
+    4. `src/hooks/use-dialog-apps.ts`（`dialogApps.list/detail`：useQuery×2、setQueryData×2、removeQueries×1；`invalidateQueries.dialogApps()`×5）。
+    5. `src/hooks/use-metadata.ts`（`metadata.summary/all`、`knowledgeBases.detail` 失效:184、`invalidateQueries.documents()`×3）。
+  - **内联字面量 key 13 处**（立项时点数 18 已漂移）：`use-profile.ts:97,203 ['userProfile']`（同文件成对）；`use-system-status.ts:17,37 [QUERY_KEYS.SYSTEM_STATUS/VERSION]`；`use-memory.ts:243 ['message-content',…]`；`use-chat-settings.ts:233 ['knowledgeBases']`；`pipeline-workbench/hooks/use-pipeline-workbench.ts:71 ['pipeline-trace',…]`；`agent/components/TemplatesPage.tsx:77 ['agentTemplates']`；`agent/hooks/use-agent-delivery-token.ts:4 ['agent','delivery-token']`（模块 const）；`knowledge/KnowledgeChunksLayout.tsx:33 ['documentDetail',…]`；`knowledge/document-chunks/hooks/use-chunk-list-state.ts:38 ['documentChunks',…]`；`knowledge/logs/hooks/use-log-list-state.ts:27 [('fileLogs'|'datasetLogs'),…]`；`knowledge/logs/hooks/use-log-stats.ts:17 ['logStats',…]`；`explore/ExplorePage.tsx:351 ['dialogConversations',…]`；`settings/admin/hooks/use-admin-users.ts:5 ['admin','users']`（模块 const）。除 use-profile / use-admin-users 同文件成对外，其余均无失效方/写入方配对（形状变化仅一次性缓存失效）。豁免：`search-workbench/hooks/use-fetch-rerank-llms.ts:7` 的 `rerankLLMsQueryKey` 已是命名导出单 key 工厂形态，保持原样。
+  - **缺工厂域**：dialogApps、metadata、profile、system、admin、knowledge-logs（6 个新建）；agent/memory/document/knowledge/chat 工厂需扩展方法。
+  - **关键等价性事实**：`invalidateQueries.documents()` → `['documents']` 与领域工厂 `documentKeys.all` 逐元素相等（意外根碰撞使 metadata 变更今天确实刷新文档列表），迁移形状零变化。
+  - **既有缺陷（owner 已点名顺手修，单独 fix 提交）**：`use-metadata.ts:184` 失效 `['knowledgeBases','detail',kbId]` 今天命中空集——活的 KB 详情查询走 `knowledgeKeys`（根 `'knowledge'`），全仓无查询以 `['knowledgeBases','detail']` 开头；表现为保存 KB 元数据模板后详情不刷新。修法：改 `knowledgeKeys.detail(kb_id)`。
+  - **owner 决策（2026-06-12）**：死文件 `use-auth.ts` / `use-conversations.ts` 整文件删除（不为死代码建工厂）；上述死失效顺手修。
+  - **迁移方针**：保形状优先（新工厂方法产出与旧字面量逐元素相等 → 零失效漂移、零缓存丢失）；无配对的 key 归一到工厂根时在提交信息声明一次性缓存失效；查询配置（staleTime/enabled/select）一行不动。
 - **状态与进展记录**：
 
-| 日期       | 动作 | 提交 | 备注 |
-| ---------- | ---- | ---- | ---- |
-| 2026-06-10 | 立项 | —    | —    |
+| 日期       | 动作                                                                               | 提交     | 备注                                                              |
+| ---------- | ---------------------------------------------------------------------------------- | -------- | ----------------------------------------------------------------- |
+| 2026-06-10 | 立项                                                                               | —        | —                                                                 |
+| 2026-06-12 | 开工实扫盘点（消费方 5 文件、内联 key 13 处、缺口 6 工厂）写入本条目；状态改进行中 | （待填） | 含两项 owner 决策：死文件整删、knowledgeBases.detail 死失效顺手修 |
 
 ### ARCH-4 Zustand store 中的服务器状态清退
 
