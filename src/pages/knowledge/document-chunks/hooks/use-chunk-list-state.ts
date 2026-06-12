@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useParams } from 'react-router-dom'
 import { knowledgeAPI } from '@/api/knowledge'
+import { documentKeys } from '@/hooks/use-document-request'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import type {
   ChunkData,
@@ -35,14 +36,13 @@ export const useChunkListState = () => {
     error,
     refetch: refetchChunkList,
   } = useQuery({
-    queryKey: [
-      'documentChunks',
+    queryKey: documentKeys.chunkList(
       docId,
       page,
       pageSize,
       debouncedSearchKeyword,
       availableInt,
-    ],
+    ),
     enabled: Boolean(docId),
     gcTime: 0,
     queryFn: async () => {

@@ -21,6 +21,25 @@ export const documentKeys = {
     [...documentKeys.all, 'chunks', documentId, params] as const,
   filter: (knowledgeBaseId: string) =>
     [...documentKeys.all, 'filter', knowledgeBaseId] as const,
+  // 以下两个保留独立根（原页面内联形状，无失效方配对）：不并入 'documents'
+  // 根，避免 metadata 等域对 ['documents'] 前缀的失效新增命中这两个查询
+  standaloneDetail: (documentId: string | undefined) =>
+    ['documentDetail', documentId] as const,
+  chunkList: (
+    documentId: string | undefined,
+    page: number,
+    pageSize: number,
+    keywords: string,
+    availableInt: number | undefined,
+  ) =>
+    [
+      'documentChunks',
+      documentId,
+      page,
+      pageSize,
+      keywords,
+      availableInt,
+    ] as const,
 }
 
 // 获取当前知识库 ID

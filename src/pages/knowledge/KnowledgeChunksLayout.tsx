@@ -14,6 +14,7 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
 import { knowledgeAPI } from '@/api/knowledge'
+import { documentKeys } from '@/hooks/use-document-request'
 import { ROUTES } from '@/constants'
 import { useKnowledgeStore } from '@/stores/knowledge'
 
@@ -30,7 +31,7 @@ const KnowledgeChunksLayout = () => {
   }, [getKnowledgeBase, id])
 
   const { data: currentDocument } = useQuery({
-    queryKey: ['documentDetail', docId],
+    queryKey: documentKeys.standaloneDetail(docId),
     enabled: Boolean(docId),
     queryFn: async () => knowledgeAPI.document.get(docId!),
   })
