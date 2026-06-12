@@ -114,24 +114,6 @@ export const WS_EVENTS = {
   STOP_TYPING: 'stop_typing',
 } as const
 
-// 查询键
-export const QUERY_KEYS = {
-  USER: 'user',
-  CONVERSATIONS: 'conversations',
-  KNOWLEDGE_BASES: 'knowledgeBases',
-  DOCUMENTS: 'documents',
-  MCP_SERVERS: 'mcpServers',
-  LLMS: 'llms',
-  WORKFLOWS: 'workflows',
-  AGENTS: 'agents',
-  AGENT_DETAIL: 'agentDetail',
-  MEMORIES: 'memories',
-  MEMORY_DETAIL: 'memoryDetail',
-  MEMORY_MESSAGES: 'memoryMessages',
-  SYSTEM_STATUS: 'systemStatus',
-  SYSTEM_VERSION: 'systemVersion',
-} as const
-
 // 状态常量
 export const STATUS = {
   IDLE: 'idle',
