@@ -1,3 +1,5 @@
+import type { LogFilterValue } from './types'
+
 export enum RunningStatus {
   UNSTART = '0',
   RUNNING = '1',
@@ -66,3 +68,17 @@ export const StatusClassConfig = {
 
 export const DEFAULT_PAGE_SIZE = 10
 export const PAGE_SIZE_OPTIONS = [10, 20, 50, 100]
+
+// knowledge-logs 域 query key 工厂。LogTabType 的枚举值即原内联 key 的
+// 'fileLogs' / 'datasetLogs' 前缀，形状沿用原内联数组，不变
+export const knowledgeLogKeys = {
+  list: (
+    tab: LogTabType,
+    kbId: string | undefined,
+    page: number,
+    pageSize: number,
+    keywords: string,
+    filter: LogFilterValue,
+  ) => [tab, kbId, page, pageSize, keywords, filter] as const,
+  stats: (kbId: string | undefined) => ['logStats', kbId] as const,
+}

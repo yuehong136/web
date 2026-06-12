@@ -2,7 +2,7 @@ import { useCallback, useState, type ChangeEvent } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useParams } from 'react-router-dom'
 import { knowledgeAPI } from '@/api/knowledge'
-import { DEFAULT_PAGE_SIZE, LogTabType } from '../constants'
+import { DEFAULT_PAGE_SIZE, LogTabType, knowledgeLogKeys } from '../constants'
 import type { LogFilterValue, LogListState, PaginationState } from '../types'
 
 const EMPTY_LOG_LIST = { logs: [], total: 0 }
@@ -20,18 +20,15 @@ export function useLogListState(
   })
   const [filterValue, setFilterValue] = useState<LogFilterValue>({})
 
-  const queryKeyPrefix =
-    tab === LogTabType.FILE_LOGS ? 'fileLogs' : 'datasetLogs'
-
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: [
-      queryKeyPrefix,
+    queryKey: knowledgeLogKeys.list(
+      tab,
       id,
       pagination.page,
       pagination.pageSize,
       searchString,
       filterValue,
-    ],
+    ),
     queryFn: async () => {
       if (!id) return EMPTY_LOG_LIST
       const params = {
