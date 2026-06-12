@@ -13,6 +13,11 @@ import {
   type ProfileFormErrors,
 } from '@/pages/settings/profile/types'
 
+// profile 域 query key 工厂（key 沿用原内联 ['userProfile']，形状不变）
+export const profileKeys = {
+  all: ['userProfile'] as const,
+}
+
 export const TimezoneList = [
   'UTC-12\tPacific/Kwajalein',
   'UTC-11\tPacific/Midway',
@@ -80,7 +85,9 @@ const getProfileFromResponse = (userInfo: {
 })
 
 const getFirstIssueMessage = (errors: Record<string, string[] | undefined>) => {
-  const firstError = Object.values(errors).find((messages) => messages && messages.length > 0)
+  const firstError = Object.values(errors).find(
+    (messages) => messages && messages.length > 0,
+  )
   return firstError?.[0]
 }
 
@@ -94,7 +101,7 @@ export const useProfile = () => {
   const [mode, setMode] = useState<ProfileMode>(ProfileMode.VIEW)
 
   const { data: userInfo, isLoading: loading } = useQuery({
-    queryKey: ['userProfile'],
+    queryKey: profileKeys.all,
     queryFn: async () => authAPI.getUserProfile(),
     gcTime: 0,
   })
@@ -119,19 +126,21 @@ export const useProfile = () => {
 
   const saveProfileMutation = useMutation({
     mutationKey: ['saveProfile'],
-    mutationFn: async (nextProfile: ProfileData) => authAPI.updateUserSettings({
-      nickname: nextProfile.userName,
-      timezone: nextProfile.timeZone,
-      avatar: nextProfile.avatar,
-    }),
+    mutationFn: async (nextProfile: ProfileData) =>
+      authAPI.updateUserSettings({
+        nickname: nextProfile.userName,
+        timezone: nextProfile.timeZone,
+        avatar: nextProfile.avatar,
+      }),
   })
 
   const changePasswordMutation = useMutation({
     mutationKey: ['changePassword'],
-    mutationFn: async (data: PasswordChangeFormData) => authAPI.updateUserSettings({
-      password: data.currPasswd,
-      new_password: data.newPasswd,
-    }),
+    mutationFn: async (data: PasswordChangeFormData) =>
+      authAPI.updateUserSettings({
+        password: data.currPasswd,
+        new_password: data.newPasswd,
+      }),
   })
 
   const startEditing = useCallback(() => {
@@ -200,71 +209,79 @@ export const useProfile = () => {
         nickname: nextProfile.userName,
       })
 
-      queryClient.invalidateQueries({ queryKey: ['userProfile'] })
+      queryClient.invalidateQueries({ queryKey: profileKeys.all })
       toast.success('个人资料已更新')
       return true
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : '个人资料保存失败，请稍后重试'
+      const message =
+        error instanceof Error ? error.message : '个人资料保存失败，请稍后重试'
       toast.error(message)
       return false
     }
   }, [draft, queryClient, saveProfileMutation, updateUser])
 
-  const changePassword = useCallback(async (data: PasswordChangeFormData) => {
-    const parsed = passwordChangeSchema.safeParse(data)
+  const changePassword = useCallback(
+    async (data: PasswordChangeFormData) => {
+      const parsed = passwordChangeSchema.safeParse(data)
 
-    if (!parsed.success) {
-      toast.error('请检查密码输入后重试')
-      return false
-    }
-
-    try {
-      const response = await changePasswordMutation.mutateAsync(parsed.data)
-
-      if (response.retcode !== 0) {
-        toast.error(response.retmsg || '密码修改失败，请稍后重试')
+      if (!parsed.success) {
+        toast.error('请检查密码输入后重试')
         return false
       }
 
-      setMode(ProfileMode.VIEW)
-      toast.success('密码修改成功')
-      return true
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : '密码修改失败，请稍后重试'
-      toast.error(message)
-      return false
-    }
-  }, [changePasswordMutation])
+      try {
+        const response = await changePasswordMutation.mutateAsync(parsed.data)
 
-  return useMemo(() => ({
-    profile,
-    draft,
-    profileErrors,
-    loading,
-    savingProfile: saveProfileMutation.isPending,
-    changingPassword: changePasswordMutation.isPending,
-    mode,
-    startEditing,
-    startChangingPassword,
-    cancelEditing,
-    closePasswordDialog,
-    updateDraft,
-    saveProfile,
-    changePassword,
-  }), [
-    cancelEditing,
-    changePassword,
-    changePasswordMutation.isPending,
-    closePasswordDialog,
-    draft,
-    loading,
-    mode,
-    profile,
-    profileErrors,
-    saveProfile,
-    saveProfileMutation.isPending,
-    startChangingPassword,
-    startEditing,
-    updateDraft,
-  ])
+        if (response.retcode !== 0) {
+          toast.error(response.retmsg || '密码修改失败，请稍后重试')
+          return false
+        }
+
+        setMode(ProfileMode.VIEW)
+        toast.success('密码修改成功')
+        return true
+      } catch (error: unknown) {
+        const message =
+          error instanceof Error ? error.message : '密码修改失败，请稍后重试'
+        toast.error(message)
+        return false
+      }
+    },
+    [changePasswordMutation],
+  )
+
+  return useMemo(
+    () => ({
+      profile,
+      draft,
+      profileErrors,
+      loading,
+      savingProfile: saveProfileMutation.isPending,
+      changingPassword: changePasswordMutation.isPending,
+      mode,
+      startEditing,
+      startChangingPassword,
+      cancelEditing,
+      closePasswordDialog,
+      updateDraft,
+      saveProfile,
+      changePassword,
+    }),
+    [
+      cancelEditing,
+      changePassword,
+      changePasswordMutation.isPending,
+      closePasswordDialog,
+      draft,
+      loading,
+      mode,
+      profile,
+      profileErrors,
+      saveProfile,
+      saveProfileMutation.isPending,
+      startChangingPassword,
+      startEditing,
+      updateDraft,
+    ],
+  )
 }
