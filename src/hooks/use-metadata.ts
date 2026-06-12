@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { knowledgeAPI } from '@/api/knowledge'
-import { queryKeys } from '@/lib/query-client'
 import { documentKeys } from '@/hooks/use-document-request'
+import { knowledgeKeys } from '@/hooks/use-knowledge-request'
 import { toast } from '@/lib/toast'
 import type {
   MetadataBatchRequest,
@@ -188,9 +188,9 @@ export const useUpdateKBMetadataSettings = () => {
     mutationFn: (data: KBMetadataSettingsRequest) =>
       knowledgeAPI.metadata.updateKBSettings(data),
     onSuccess: (_, variables) => {
-      // 使知识库详情缓存失效
+      // 使知识库详情缓存失效（活的 KB 详情查询在 knowledgeKeys 根下）
       queryClient.invalidateQueries({
-        queryKey: queryKeys.knowledgeBases.detail(variables.kb_id),
+        queryKey: knowledgeKeys.detail(variables.kb_id),
       })
       toast.success('元数据模板已更新')
     },
