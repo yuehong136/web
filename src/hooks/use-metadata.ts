@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { knowledgeAPI } from '@/api/knowledge'
-import { queryKeys, invalidateQueries } from '@/lib/query-client'
+import { queryKeys } from '@/lib/query-client'
+import { documentKeys } from '@/hooks/use-document-request'
 import { toast } from '@/lib/toast'
 import type {
   MetadataBatchRequest,
@@ -9,6 +10,13 @@ import type {
   MetadataTableData,
   MetadataFieldDefinition,
 } from '@/types/api'
+
+// metadata 域 query key 工厂（形状复刻原中央 queryKeys.metadata，逐元素不变）
+export const metadataKeys = {
+  all: ['metadata'] as const,
+  summary: (kbId: string, docIds?: string[]) =>
+    [...metadataKeys.all, 'summary', kbId, docIds?.join(',') ?? 'all'] as const,
+}
 
 // ============================================================================
 // 工具函数 - Metadata 数据格式转换
@@ -130,7 +138,7 @@ export const useMetadataSummary = (
   docIds?: string[],
 ) => {
   return useQuery({
-    queryKey: queryKeys.metadata.summary(kbId, docIds),
+    queryKey: metadataKeys.summary(kbId, docIds),
     queryFn: () => knowledgeAPI.metadata.getSummary(kbId, docIds),
     enabled: !!kbId && enabled,
   })
@@ -147,9 +155,9 @@ export const useBatchUpdateMetadata = () => {
       knowledgeAPI.metadata.batchUpdate(data),
     onSuccess: (result) => {
       // 使 metadata summary 缓存失效
-      queryClient.invalidateQueries({ queryKey: queryKeys.metadata.all })
+      queryClient.invalidateQueries({ queryKey: metadataKeys.all })
       // 使文档列表缓存失效
-      invalidateQueries.documents()
+      queryClient.invalidateQueries({ queryKey: documentKeys.all })
 
       const messages: string[] = []
       if (result.updated_count > 0) {
@@ -196,11 +204,13 @@ export const useUpdateKBMetadataSettings = () => {
  * 更新单文档 Metadata 模板设置
  */
 export const useUpdateDocumentMetadataSettings = () => {
+  const queryClient = useQueryClient()
+
   return useMutation({
     mutationFn: (data: DocumentMetadataSettingsRequest) =>
       knowledgeAPI.metadata.updateDocumentSettings(data),
     onSuccess: () => {
-      invalidateQueries.documents()
+      queryClient.invalidateQueries({ queryKey: documentKeys.all })
       toast.success('文档元数据设置已更新')
     },
     onError: (error: any) => {
@@ -227,11 +237,11 @@ export const useUpdateDocumentMeta = () => {
     }) => knowledgeAPI.metadata.updateDocumentMeta(docId, meta),
     onSuccess: (_, variables) => {
       // 使文档列表缓存失效
-      invalidateQueries.documents()
+      queryClient.invalidateQueries({ queryKey: documentKeys.all })
       // 如果提供了 kbId，也使 metadata summary 失效
       if (variables.kbId) {
         queryClient.invalidateQueries({
-          queryKey: queryKeys.metadata.summary(variables.kbId),
+          queryKey: metadataKeys.summary(variables.kbId),
         })
       }
       toast.success('文档元数据已更新')
