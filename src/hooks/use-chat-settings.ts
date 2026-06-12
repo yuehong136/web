@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { dialogAPI } from '@/api/dialog'
 import { knowledgeAPI } from '@/api/knowledge'
 import { queryKeys, invalidateQueries } from '@/lib/query-client'
+import { knowledgeKeys } from '@/hooks/use-knowledge-request'
 import { toast } from '@/lib/toast'
 import type { DialogApp } from '@/types/api'
 import type { ChatSettings } from '@/components/chat/ChatSettingsPanel'
@@ -14,19 +15,24 @@ import { isLLMModelEnabled } from '@/stores/model'
 /**
  * 从 DialogApp 转换为 ChatSettings
  */
-export function dialogToSettings(dialog: DialogApp | null | undefined): ChatSettings {
+export function dialogToSettings(
+  dialog: DialogApp | null | undefined,
+): ChatSettings {
   if (!dialog) return defaultChatSettings
 
   const promptConfig = (dialog.prompt_config || {}) as any
-  
+
   // 解析元数据过滤设置
   let metadataFilterMode: MetadataFilterMode = 'disabled'
   let metadataCondition = defaultChatSettings.metadataCondition
-  
+
   // 从 dialog 中读取 meta_data_filter (如果存在)
   const metaDataFilter = (dialog as any).meta_data_filter
   if (metaDataFilter) {
-    if (metaDataFilter.method === 'manual' || (metaDataFilter.manual && metaDataFilter.manual.length > 0)) {
+    if (
+      metaDataFilter.method === 'manual' ||
+      (metaDataFilter.manual && metaDataFilter.manual.length > 0)
+    ) {
       metadataFilterMode = 'manual'
       metadataCondition = {
         logic: metaDataFilter.logic || 'and',
@@ -46,7 +52,7 @@ export function dialogToSettings(dialog: DialogApp | null | undefined): ChatSett
     description: dialog.description || '',
     emptyResponse: promptConfig.empty_response || '',
     prologue: promptConfig.prologue || '您好，我是您的助手！有什么可以帮您的？',
-    
+
     // 开关选项
     quote: promptConfig.quote !== false, // 默认 true
     keyword: promptConfig.keyword || false,
@@ -55,17 +61,17 @@ export function dialogToSettings(dialog: DialogApp | null | undefined): ChatSett
     refineMultiturn: promptConfig.refine_multiturn !== false, // 默认 true
     useKnowledgeGraph: promptConfig.use_kg || false,
     reasoning: promptConfig.reasoning || false,
-    
+
     // API Key
     tavilyApiKey: promptConfig.tavily_api_key || '',
-    
+
     // 知识库
     kbIds: dialog.kb_ids || [],
-    
+
     // 元数据过滤
     metadataFilterMode,
     metadataCondition,
-    
+
     // 提示工程
     systemPrompt: promptConfig.system || '',
     similarityThreshold: dialog.similarity_threshold ?? 0.2,
@@ -76,11 +82,11 @@ export function dialogToSettings(dialog: DialogApp | null | undefined): ChatSett
       key: p.key || '',
       optional: p.optional || false,
     })),
-    
+
     // 重排序
     rerankId: dialog.rerank_id || '',
     topK: dialog.top_k ?? 1024,
-    
+
     // LLM 设置
     llmId: dialog.llm_id || '',
     // 参数值
@@ -116,14 +122,20 @@ export function dialogToSettings(dialog: DialogApp | null | undefined): ChatSett
 /**
  * 从 ChatSettings 转换为 DialogApp 更新请求
  */
-export function settingsToDialogUpdate(settings: ChatSettings, dialogId: string): Partial<DialogApp> & { dialog_id: string } {
+export function settingsToDialogUpdate(
+  settings: ChatSettings,
+  dialogId: string,
+): Partial<DialogApp> & { dialog_id: string } {
   // 构建 meta_data_filter
   let metaDataFilter: any = { method: 'disabled' }
-  if (settings.metadataFilterMode === 'manual' && settings.metadataCondition.conditions?.length) {
+  if (
+    settings.metadataFilterMode === 'manual' &&
+    settings.metadataCondition.conditions?.length
+  ) {
     metaDataFilter = {
       method: 'manual',
       logic: settings.metadataCondition.logic || 'and',
-      manual: settings.metadataCondition.conditions.map(c => ({
+      manual: settings.metadataCondition.conditions.map((c) => ({
         key: c.name,
         op: c.comparison_operator,
         value: c.value,
@@ -145,10 +157,16 @@ export function settingsToDialogUpdate(settings: ChatSettings, dialogId: string)
     llm_id: settings.llmId || undefined,
     llm_setting: {
       // 只发送启用的参数，参考 ragflow 的 removeUselessFieldsFromValues 逻辑
-      ...(settings.temperatureEnabled ? { temperature: settings.temperature } : {}),
+      ...(settings.temperatureEnabled
+        ? { temperature: settings.temperature }
+        : {}),
       ...(settings.topPEnabled ? { top_p: settings.topP } : {}),
-      ...(settings.presencePenaltyEnabled ? { presence_penalty: settings.presencePenalty } : {}),
-      ...(settings.frequencyPenaltyEnabled ? { frequency_penalty: settings.frequencyPenalty } : {}),
+      ...(settings.presencePenaltyEnabled
+        ? { presence_penalty: settings.presencePenalty }
+        : {}),
+      ...(settings.frequencyPenaltyEnabled
+        ? { frequency_penalty: settings.frequencyPenalty }
+        : {}),
       ...(settings.maxTokensEnabled ? { max_tokens: settings.maxTokens } : {}),
     },
     prompt_config: {
@@ -164,10 +182,12 @@ export function settingsToDialogUpdate(settings: ChatSettings, dialogId: string)
       reasoning: settings.reasoning,
       tavily_api_key: settings.tavilyApiKey,
       cross_languages: settings.crossLanguages,
-      parameters: settings.variables.filter(v => v.key).map(v => ({
-        key: v.key,
-        optional: v.optional,
-      })),
+      parameters: settings.variables
+        .filter((v) => v.key)
+        .map((v) => ({
+          key: v.key,
+          optional: v.optional,
+        })),
     },
     meta_data_filter: metaDataFilter,
   } as any
@@ -181,8 +201,8 @@ export function useChatSettings(dialogId: string | undefined) {
   const queryClient = useQueryClient()
 
   // 获取 dialog 详情
-  const { 
-    data: dialog, 
+  const {
+    data: dialog,
     isLoading: dialogLoading,
     error: dialogError,
   } = useQuery({
@@ -203,8 +223,8 @@ export function useChatSettings(dialogId: string | undefined) {
     },
     onSuccess: () => {
       // 使缓存失效
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.dialogApps.detail(dialogId || '') 
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.dialogApps.detail(dialogId || ''),
       })
       invalidateQueries.dialogApps()
       toast.success('设置保存成功')
@@ -230,9 +250,12 @@ export function useChatSettings(dialogId: string | undefined) {
  */
 export function useKnowledgeBases() {
   const { data, isLoading, error } = useQuery({
-    queryKey: ['knowledgeBases'],
+    queryKey: knowledgeKeys.simpleList(),
     queryFn: async () => {
-      const result = await knowledgeAPI.knowledgeBase.list({ page: 1, page_size: 100 })
+      const result = await knowledgeAPI.knowledgeBase.list({
+        page: 1,
+        page_size: 100,
+      })
       return result.kbs || []
     },
   })
@@ -274,25 +297,31 @@ export function useRerankModels(myLLMs: any) {
       available: boolean
       max_tokens?: number
     }> = []
-    
+
     if (!myLLMs || typeof myLLMs !== 'object') return models
 
-    Object.entries(myLLMs).forEach(([providerName, providerData]: [string, any]) => {
-      if (providerData?.llm && Array.isArray(providerData.llm)) {
-        providerData.llm.forEach((model: any) => {
-          if (model?.type === 'rerank' && model?.name && isLLMModelEnabled(model)) {
-            models.push({
-              id: `${model.name}@${providerName}`,
-              llm_name: model.name,
-              fid: providerName,
-              mdl_type: 'rerank',
-              available: true,
-              max_tokens: model.max_tokens,
-            })
-          }
-        })
-      }
-    })
+    Object.entries(myLLMs).forEach(
+      ([providerName, providerData]: [string, any]) => {
+        if (providerData?.llm && Array.isArray(providerData.llm)) {
+          providerData.llm.forEach((model: any) => {
+            if (
+              model?.type === 'rerank' &&
+              model?.name &&
+              isLLMModelEnabled(model)
+            ) {
+              models.push({
+                id: `${model.name}@${providerName}`,
+                llm_name: model.name,
+                fid: providerName,
+                mdl_type: 'rerank',
+                available: true,
+                max_tokens: model.max_tokens,
+              })
+            }
+          })
+        }
+      },
+    )
 
     return models
   }, [myLLMs])
@@ -304,22 +333,28 @@ export function useRerankModels(myLLMs: any) {
 export function useLLMModels(myLLMs: any) {
   return useMemo(() => {
     const models: { id: string; name: string; provider?: string }[] = []
-    
+
     if (!myLLMs || typeof myLLMs !== 'object') return models
 
-    Object.entries(myLLMs).forEach(([providerName, providerData]: [string, any]) => {
-      if (providerData?.llm && Array.isArray(providerData.llm)) {
-        providerData.llm.forEach((model: any) => {
-          if (model?.type === 'chat' && model?.name && isLLMModelEnabled(model)) {
-            models.push({
-              id: model.name,
-              name: model.name,
-              provider: providerName,
-            })
-          }
-        })
-      }
-    })
+    Object.entries(myLLMs).forEach(
+      ([providerName, providerData]: [string, any]) => {
+        if (providerData?.llm && Array.isArray(providerData.llm)) {
+          providerData.llm.forEach((model: any) => {
+            if (
+              model?.type === 'chat' &&
+              model?.name &&
+              isLLMModelEnabled(model)
+            ) {
+              models.push({
+                id: model.name,
+                name: model.name,
+                provider: providerName,
+              })
+            }
+          })
+        }
+      },
+    )
 
     return models
   }, [myLLMs])
@@ -334,7 +369,7 @@ export function buildMetadataCondition(settings: ChatSettings) {
 
   return {
     logic: settings.metadataCondition.logic || 'and',
-    conditions: settings.metadataCondition.conditions.map(c => ({
+    conditions: settings.metadataCondition.conditions.map((c) => ({
       name: c.name,
       comparison_operator: c.comparison_operator,
       value: c.value,

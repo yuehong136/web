@@ -1,8 +1,8 @@
 /**
  * Knowledge Base Request Hooks
- * 
+ *
  * 使用 TanStack Query 管理知识库相关的服务器状态
- * 
+ *
  * 优点：
  * - 自动缓存管理，无需 localStorage
  * - 自动请求去重和并发控制
@@ -23,9 +23,14 @@ import type {
 export const knowledgeKeys = {
   all: ['knowledge'] as const,
   lists: () => [...knowledgeKeys.all, 'list'] as const,
-  list: (params: Record<string, any>) => [...knowledgeKeys.lists(), params] as const,
+  list: (params: Record<string, any>) =>
+    [...knowledgeKeys.lists(), params] as const,
   details: () => [...knowledgeKeys.all, 'detail'] as const,
   detail: (id: string) => [...knowledgeKeys.details(), id] as const,
+  graph: (id: string) => [...knowledgeKeys.detail(id), 'graph'] as const,
+  // chat-settings 的简单知识库列表，沿用原内联 ['knowledgeBases'] 形状
+  // （缓存为 kbs 数组，与 list() 的分页响应形态不同，刻意不共 key）
+  simpleList: () => ['knowledgeBases'] as const,
 }
 
 // 获取当前知识库 ID
@@ -44,11 +49,27 @@ export interface UseFetchKnowledgeListParams {
   owner_ids?: string[]
 }
 
-export const useFetchKnowledgeList = (params: UseFetchKnowledgeListParams = {}) => {
-  const { page = 1, page_size = 12, orderby = 'update_time', desc = true, keywords, owner_ids } = params
+export const useFetchKnowledgeList = (
+  params: UseFetchKnowledgeListParams = {},
+) => {
+  const {
+    page = 1,
+    page_size = 12,
+    orderby = 'update_time',
+    desc = true,
+    keywords,
+    owner_ids,
+  } = params
 
   const { data, isFetching, isError, error, refetch } = useQuery({
-    queryKey: knowledgeKeys.list({ page, page_size, orderby, desc, keywords, owner_ids }),
+    queryKey: knowledgeKeys.list({
+      page,
+      page_size,
+      orderby,
+      desc,
+      keywords,
+      owner_ids,
+    }),
     queryFn: async () => {
       const response = await knowledgeAPI.knowledgeBase.list({
         page,
@@ -139,7 +160,9 @@ export const useUpdateKnowledge = () => {
       // 更新成功后，使列表和详情缓存失效
       queryClient.invalidateQueries({ queryKey: knowledgeKeys.lists() })
       if (data.kb_id) {
-        queryClient.invalidateQueries({ queryKey: knowledgeKeys.detail(data.kb_id) })
+        queryClient.invalidateQueries({
+          queryKey: knowledgeKeys.detail(data.kb_id),
+        })
       }
     },
   })
@@ -183,7 +206,7 @@ export const useFetchKnowledgeGraph = (id?: string) => {
   const targetId = id || knowledgeBaseId
 
   const { data, isFetching, isError, error, refetch } = useQuery({
-    queryKey: [...knowledgeKeys.detail(targetId), 'graph'] as const,
+    queryKey: knowledgeKeys.graph(targetId),
     queryFn: async () => {
       const raw = await knowledgeAPI.knowledgeBase.getKnowledgeGraph(targetId)
       return normalizeGraphResponse(raw)
@@ -214,7 +237,10 @@ function normalizeGraphResponse(raw: unknown): KnowledgeGraph {
 
   // ragflow format: { graph: { nodes, edges }, mind_map }
   const graphField = obj.graph
-  const source = (graphField && typeof graphField === 'object') ? graphField as Record<string, unknown> : obj
+  const source =
+    graphField && typeof graphField === 'object'
+      ? (graphField as Record<string, unknown>)
+      : obj
 
   const rawNodes = Array.isArray(source.nodes) ? source.nodes : []
   const rawEdges = Array.isArray(source.edges) ? source.edges : []
@@ -238,7 +264,9 @@ function normalizeGraphResponse(raw: unknown): KnowledgeGraph {
 
 // 知识库选项列表（用于下拉选择）
 export const useKnowledgeOptions = () => {
-  const { knowledgeBases, isLoading } = useFetchKnowledgeList({ page_size: 1000 })
+  const { knowledgeBases, isLoading } = useFetchKnowledgeList({
+    page_size: 1000,
+  })
 
   const options = knowledgeBases.map((kb) => ({
     label: kb.name,
