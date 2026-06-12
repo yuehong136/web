@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
-import { EventSourceParserStream } from 'eventsource-parser/stream'
 import { agentAPI } from '@/api/agent'
+import { assertSSEResponse, readSSEStream } from '@/lib/streaming'
 import {
   consumeRuntimeMessageChunk,
   normalizeRuntimeAttachments,
@@ -172,8 +172,7 @@ export function useSharedAgentRunner({
 
       if (normalizedEvent.event === 'message_end') {
         const reference =
-          isRecord(normalizedEvent.data) &&
-          'reference' in normalizedEvent.data
+          isRecord(normalizedEvent.data) && 'reference' in normalizedEvent.data
             ? normalizedEvent.data.reference
             : undefined
 
@@ -189,7 +188,8 @@ export function useSharedAgentRunner({
 
       if (normalizedEvent.event === 'workflow_finished') {
         const outputs =
-          isRecord(normalizedEvent.data) && isRecord(normalizedEvent.data.outputs)
+          isRecord(normalizedEvent.data) &&
+          isRecord(normalizedEvent.data.outputs)
             ? normalizedEvent.data.outputs
             : undefined
 
@@ -214,12 +214,13 @@ export function useSharedAgentRunner({
       }
 
       if (normalizedEvent.event === 'user_inputs') {
-        const payload = isRecord(normalizedEvent.data) ? normalizedEvent.data : {}
+        const payload = isRecord(normalizedEvent.data)
+          ? normalizedEvent.data
+          : {}
 
         updateMessageById(assistantId, (message) => ({
           ...message,
-          tips:
-            typeof payload.tips === 'string' ? payload.tips : message.tips,
+          tips: typeof payload.tips === 'string' ? payload.tips : message.tips,
           awaitingInputs: normalizeRuntimeAwaitingInputs(payload.inputs),
           isStreaming: false,
           messageId: normalizedEvent.messageId || message.messageId,
@@ -288,46 +289,15 @@ export function useSharedAgentRunner({
           { signal: abortController.signal },
         )
 
-        if (!response.ok) {
-          let errorMessage = `HTTP ${response.status}: ${response.statusText}`
+        await assertSSEResponse(response)
 
-          try {
-            const errorBody = await response.clone().json()
-            errorMessage =
-              errorBody?.message || errorBody?.retmsg || errorMessage
-          } catch {
-            // ignore non-json error bodies
-          }
-
-          throw new Error(errorMessage)
-        }
-
-        if (!response.body) {
-          throw new Error('公共运行接口没有返回可读的数据流')
-        }
-
-        const reader = response.body
-          .pipeThrough(new TextDecoderStream())
-          .pipeThrough(new EventSourceParserStream())
-          .getReader()
-
-        while (true) {
-          const { done, value } = await reader.read()
-          if (done) {
-            break
-          }
-
-          const rawData = value?.data
-          if (!rawData) {
-            continue
-          }
-
-          try {
-            handleNormalizedEvent(assistantId, JSON.parse(rawData))
-          } catch {
-            // ignore malformed SSE chunks
-          }
-        }
+        // No signal here on purpose: the catch below relies on the AbortError
+        // thrown by the fetch body stream to render the stopped state.
+        await readSSEStream(response, {
+          onEvent: (event) => {
+            handleNormalizedEvent(assistantId, event)
+          },
+        })
 
         updateMessageById(assistantId, (message) => ({
           ...message,
@@ -390,12 +360,15 @@ export function useSharedAgentRunner({
     [submit],
   )
 
-  const clearAwaitingInputs = useCallback((messageId: string) => {
-    updateMessageById(messageId, (message) => ({
-      ...message,
-      awaitingInputs: undefined,
-    }))
-  }, [updateMessageById])
+  const clearAwaitingInputs = useCallback(
+    (messageId: string) => {
+      updateMessageById(messageId, (message) => ({
+        ...message,
+        awaitingInputs: undefined,
+      }))
+    },
+    [updateMessageById],
+  )
 
   const reset = useCallback(() => {
     abortControllerRef.current?.abort()

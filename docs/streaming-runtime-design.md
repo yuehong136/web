@@ -87,7 +87,7 @@ export async function readSSEStream<T = unknown>(
 4. ~~`use-pipeline-workbench.ts`~~（✅ 2026-06-11 已迁移：手写 `split(/\r?\n/)` 解析换 `readSSEStream` + Promise 早返回——拿到 message_id 即继续，流在后台排空、不 cancel 连接（运行由服务端继续，停止另走 cancelDataflow）；不传 signal，保 AbortError → STOPPED 语义；`extractMessageIdFromChunk` util 零改动，吃 rawData）
 5. ~~`use-create-app-preview.ts`~~（✅ 本阶段试点已迁移）
 6. ~~`useHomeChat.ts`~~（✅ 2026-06-11 已迁移：app 模式读循环换 `readSSEStream<SSEEnvelope>`，completion 挂上 signal（迁移前停止按钮在 app 模式实际失效——fetch 无 signal 且 stopStreaming 先 abort 后置 null ref，循环判 ref 永 falsy）；catch 改判局部 `abortController.signal.aborted` 防 ref 竞态。MCP 模式经 mcp-agent-stream 已在 lib 上，其 catch 的 ref 竞态随后按 owner 指示一并修复）
-7. `use-shared-agent-runner.ts`（事件状态机较重，外部 embed 面，回归点多）
+7. ~~`use-shared-agent-runner.ts`~~（✅ 2026-06-12 已迁移：读循环换 `assertSSEResponse` + `readSSEStream`；normalizeRuntimeEvent / handleNormalizedEvent 事件状态机与 messageStateRef 逐行原样；**不传 signal** 给 readSSEStream——本面 catch 依赖 `error.name === 'AbortError'`（DOMException 判断）进「已停止当前运行」分支，干净 resolve 会丢失停止提示；signal 仍挂在 `agentAPI.runExternalAgent` 的 fetch 上；`parseErrorMode` 缺省 'ignore' 对应原「ignore malformed SSE chunks」；share/widget 两个嵌入消费者零改动，scoped-theme / postMessage 文件未触碰）
 8. `useSearchExecution.ts`（多阶段 + rAF 批处理，迁移时不得破坏批处理节奏）
 9. `ExplorePage.tsx` 内联两段（棘轮在册 2369 行，建议与文件拆分一起做）
 
