@@ -2,7 +2,7 @@
  * 首页相关类型定义
  */
 
-import type { ToolCallInfo } from '@/components/chat/EnhancedSSEParser'
+import type { StreamToolCallInfo as ToolCallInfo } from '@/lib/streaming'
 import type { AgentTimelineNode } from '@/utils/agent-timeline'
 import type { ReferenceChunk } from '@/utils/reference-replacer'
 

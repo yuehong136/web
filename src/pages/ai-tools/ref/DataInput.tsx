@@ -2,7 +2,12 @@ import React, { useEffect, useState } from 'react'
 import { Button } from '@/components/vendor/ui/button'
 import { Input } from '@/components/vendor/ui/input'
 import { Textarea } from '@/components/vendor/ui/textarea'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/vendor/ui/tabs'
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/vendor/ui/tabs'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -10,7 +15,7 @@ import { toast } from '@/lib/toast'
 import { Modal } from '@/components/ui/modal'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Switch } from '@/components/ui/switch'
-import { EnhancedSSEParser } from '@/components/chat/EnhancedSSEParser'
+import { streamStructuredChat } from '@/components/chat/structured-chat-stream'
 import { ChatModelSelector } from '@/components/chat/ChatModelSelector'
 import { documentAPI } from '@/api/document'
 import { mcpAPI } from '@/api/mcp'
@@ -39,10 +44,12 @@ import {
   Plus,
   Trash2,
   FileText,
-  X
+  X,
 } from 'lucide-react'
 
-export interface PlaceholderData { [key: string]: string }
+export interface PlaceholderData {
+  [key: string]: string
+}
 
 type UserInputMode = 'manual' | 'file' | 'datasource'
 
@@ -73,7 +80,8 @@ interface DataInputProps {
   setIsLoading: (loading: boolean) => void
 }
 
-const DEFAULT_SYSTEM_PROMPT = '你是一名严谨的表单填充助手。请只输出 JSON，不要包含多余说明。输入给你占位符的 JSON 模板和用户补充信息，请根据语义补全缺失字段，保持键名不变，值为字符串或数组，必须返回有效 JSON。'
+const DEFAULT_SYSTEM_PROMPT =
+  '你是一名严谨的表单填充助手。请只输出 JSON，不要包含多余说明。输入给你占位符的 JSON 模板和用户补充信息，请根据语义补全缺失字段，保持键名不变，值为字符串或数组，必须返回有效 JSON。'
 
 const DataInput: React.FC<DataInputProps> = ({
   placeholders,
@@ -107,18 +115,22 @@ const DataInput: React.FC<DataInputProps> = ({
     systemPrompt: DEFAULT_SYSTEM_PROMPT,
     userInput: '',
   })
-  const [settingsTab, setSettingsTab] = useState<'llm' | 'prompt' | 'mcp'>('llm')
+  const [settingsTab, setSettingsTab] = useState<'llm' | 'prompt' | 'mcp'>(
+    'llm',
+  )
   const [searchKey, setSearchKey] = useState('')
   const [showOnlyEmpty, setShowOnlyEmpty] = useState(false)
   const [aiRawOutput, setAiRawOutput] = useState('')
   const [showAiRaw, setShowAiRaw] = useState(false)
-  
+
   // 用户输入模式相关
   const [userInputMode, setUserInputMode] = useState<UserInputMode>('manual')
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
   const [dataSources, setDataSources] = useState<DataSourceItem[]>([])
   const [showAddDataSource, setShowAddDataSource] = useState(false)
-  const [newDataSourceType, setNewDataSourceType] = useState<'api' | 'database'>('api')
+  const [newDataSourceType, setNewDataSourceType] = useState<
+    'api' | 'database'
+  >('api')
   const [newDataSourceForm, setNewDataSourceForm] = useState({
     name: '',
     description: '',
@@ -163,7 +175,6 @@ const DataInput: React.FC<DataInputProps> = ({
     }
   }, [settingsOpen, loadMyLLMs])
 
-
   const _validateData = (_data: PlaceholderData) => {
     // 不再强制必填，允许部分字段为空
     return [] as string[]
@@ -178,7 +189,12 @@ const DataInput: React.FC<DataInputProps> = ({
 
   const handleJsonChange = (value: string) => {
     setJsonInput(value)
-    try { setFormData(JSON.parse(value)); setValidationErrors([]) } catch { /* ignore */ }
+    try {
+      setFormData(JSON.parse(value))
+      setValidationErrors([])
+    } catch {
+      /* ignore */
+    }
   }
 
   const buildUserMessage = (userInput: string, data: PlaceholderData) => {
@@ -235,7 +251,9 @@ const DataInput: React.FC<DataInputProps> = ({
       llm_name: llmConfig.llm_name,
       stream: true,
       gen_conf: {
-        ...(llmConfig.temperature !== undefined ? { temperature: llmConfig.temperature } : {}),
+        ...(llmConfig.temperature !== undefined
+          ? { temperature: llmConfig.temperature }
+          : {}),
         ...(llmConfig.max_tokens ? { max_tokens: llmConfig.max_tokens } : {}),
       },
       mcp_ids: mcpConfig.mcp_ids,
@@ -246,23 +264,21 @@ const DataInput: React.FC<DataInputProps> = ({
       delta_stream: true,
     }
 
-    const parser = new EnhancedSSEParser()
     let latestText = ''
     setAiFilling(true)
     setIsLoading(true)
     setAiRawOutput('')
     try {
-      const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
-      await parser.connect(
-        `${apiBase}/v1/llm/enhanced_chat_sse`,
+      const apiBase =
+        import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+      // 错误（含 HTTP 失败）直接传播到下面的 catch——等价于原 onError 的 throw
+      await streamStructuredChat({
+        url: `${apiBase}/v1/llm/enhanced_chat_sse`,
         requestBody,
-        (_message, state) => {
+        onMessage: (_message, state) => {
           latestText = state.accumulatedText
         },
-        (err) => {
-          throw err
-        }
-      )
+      })
       setAiRawOutput(latestText)
       const parsed = extractJsonFromText(latestText)
       if (!parsed) {
@@ -277,11 +293,14 @@ const DataInput: React.FC<DataInputProps> = ({
       toast.error('AI 填写失败，请重试')
     } finally {
       setAiFilling(false)
-    setIsLoading(false)
+      setIsLoading(false)
     }
   }
 
-  const copyJson = () => { navigator.clipboard.writeText(jsonInput); toast.success('JSON已复制到剪贴板') }
+  const copyJson = () => {
+    navigator.clipboard.writeText(jsonInput)
+    toast.success('JSON已复制到剪贴板')
+  }
   const resetForm = () => {
     const initial: PlaceholderData = {}
     Object.keys(placeholders).forEach((k) => (initial[k] = ''))
@@ -303,14 +322,17 @@ const DataInput: React.FC<DataInputProps> = ({
         const byteString = atob(clean)
         const ab = new ArrayBuffer(byteString.length)
         const ia = new Uint8Array(ab)
-        for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i)
-        return new File([ia], filename, { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' })
+        for (let i = 0; i < byteString.length; i++)
+          ia[i] = byteString.charCodeAt(i)
+        return new File([ia], filename, {
+          type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        })
       }
       const safeName = originalFileName || 'document.docx'
       const uploadFile = base64ToFile(processedFile, safeName)
       const resp = await documentAPI.fillDocx(uploadFile, formData)
       onDataFilled(resp.file)
-    toast.success('文档填充成功！')
+      toast.success('文档填充成功！')
     } catch (error) {
       console.error(error)
       toast.error('填充文档失败，请重试')
@@ -327,15 +349,17 @@ const DataInput: React.FC<DataInputProps> = ({
     return hit
   })
 
-  const filledCount = placeholderKeys.filter(k => formData[k] && formData[k].trim() !== '').length
+  const filledCount = placeholderKeys.filter(
+    (k) => formData[k] && formData[k].trim() !== '',
+  ).length
 
   return (
     <div className="space-y-6">
       {/* 顶部操作栏 */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="sm" onClick={onBackToUpload}>
-            <ArrowLeft className="w-4 h-4 mr-1" />
+            <ArrowLeft className="mr-1 h-4 w-4" />
             返回
           </Button>
           <div className="h-4 w-px bg-border-default" />
@@ -347,39 +371,47 @@ const DataInput: React.FC<DataInputProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => setSettingsOpen(true)}>
-            <Settings2 className="w-4 h-4 mr-1" />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setSettingsOpen(true)}
+          >
+            <Settings2 className="mr-1 h-4 w-4" />
             设置
           </Button>
           <Button
             size="sm"
             onClick={handleAIFill}
             disabled={isLoading || aiFilling || placeholderKeys.length === 0}
-            className="bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 text-white border-0"
+            className="border-0 bg-gradient-to-r from-violet-500 to-purple-500 text-white hover:from-violet-600 hover:to-purple-600"
           >
             {aiFilling ? (
-              <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+              <Loader2 className="mr-1 h-4 w-4 animate-spin" />
             ) : (
-              <Sparkles className="w-4 h-4 mr-1" />
+              <Sparkles className="mr-1 h-4 w-4" />
             )}
             AI 填写
           </Button>
           <Button variant="ghost" size="sm" onClick={resetForm}>
-            <RotateCcw className="w-4 h-4" />
+            <RotateCcw className="h-4 w-4" />
           </Button>
         </div>
       </div>
 
       {/* 状态信息 */}
       <div className="flex flex-wrap items-center gap-3 text-sm">
-        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-background-body-subtle">
+        <div className="bg-background-body-subtle flex items-center gap-1.5 rounded-md px-2.5 py-1">
           <span className="text-text-secondary">模型:</span>
-          <span className="font-medium text-text-primary">{llmConfig.llm_name || '未选择'}</span>
+          <span className="font-medium text-text-primary">
+            {llmConfig.llm_name || '未选择'}
+          </span>
         </div>
         {mcpConfig.mcp_ids.length > 0 && (
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-background-body-subtle">
-            <PlugZap className="w-3.5 h-3.5 text-text-secondary" />
-            <span className="font-medium text-text-primary">{mcpConfig.mcp_ids.length} MCP</span>
+          <div className="bg-background-body-subtle flex items-center gap-1.5 rounded-md px-2.5 py-1">
+            <PlugZap className="h-3.5 w-3.5 text-text-secondary" />
+            <span className="font-medium text-text-primary">
+              {mcpConfig.mcp_ids.length} MCP
+            </span>
           </div>
         )}
       </div>
@@ -389,8 +421,10 @@ const DataInput: React.FC<DataInputProps> = ({
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            <ul className="list-disc list-inside space-y-1">
-              {validationErrors.slice(0, 3).map((err) => (<li key={err}>{err}</li>))}
+            <ul className="list-inside list-disc space-y-1">
+              {validationErrors.slice(0, 3).map((err) => (
+                <li key={err}>{err}</li>
+              ))}
               {validationErrors.length > 3 && (
                 <li>还有 {validationErrors.length - 3} 个字段未填写</li>
               )}
@@ -401,30 +435,30 @@ const DataInput: React.FC<DataInputProps> = ({
 
       {/* 主内容区 - Tabs */}
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
-        <div className="flex items-center justify-between gap-4 mb-4">
+        <div className="mb-4 flex items-center justify-between gap-4">
           <TabsList className="bg-background-body-subtle">
             <TabsTrigger value="form" className="gap-1.5">
-              <FormInput className="w-4 h-4" />
+              <FormInput className="h-4 w-4" />
               表单
-          </TabsTrigger>
+            </TabsTrigger>
             <TabsTrigger value="json" className="gap-1.5">
-              <Code2 className="w-4 h-4" />
+              <Code2 className="h-4 w-4" />
               JSON
-          </TabsTrigger>
-        </TabsList>
+            </TabsTrigger>
+          </TabsList>
 
           {activeTab === 'form' && (
             <div className="flex items-center gap-3">
               <div className="relative">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
+                <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-text-secondary" />
                 <Input
                   value={searchKey}
                   onChange={(e) => setSearchKey(e.target.value)}
                   placeholder="搜索字段..."
-                  className="pl-8 h-8 w-[160px]"
+                  className="h-8 w-[160px] pl-8"
                 />
               </div>
-              <label className="flex items-center gap-2 text-sm text-text-secondary cursor-pointer">
+              <label className="flex cursor-pointer items-center gap-2 text-sm text-text-secondary">
                 <Switch
                   checked={showOnlyEmpty}
                   onCheckedChange={setShowOnlyEmpty}
@@ -437,35 +471,32 @@ const DataInput: React.FC<DataInputProps> = ({
         </div>
 
         <TabsContent value="form" className="mt-0">
-              {placeholderKeys.length === 0 ? (
-            <div className="text-center py-12 text-text-secondary">
+          {placeholderKeys.length === 0 ? (
+            <div className="py-12 text-center text-text-secondary">
               文档中没有检测到占位符
             </div>
           ) : filteredKeys.length === 0 ? (
-            <div className="text-center py-12 text-text-secondary">
+            <div className="py-12 text-center text-text-secondary">
               没有匹配的字段
             </div>
           ) : (
             <div
-              className="max-h-[50vh] overflow-auto pr-2 -mr-2"
+              className="-mr-2 max-h-[50vh] overflow-auto pr-2"
               style={{ WebkitOverflowScrolling: 'touch' }}
             >
               <div className="grid gap-4 sm:grid-cols-2">
                 {filteredKeys.map((k) => (
                   <div key={k} className="space-y-1.5">
-                    <label className="text-sm font-medium text-text-primary truncate block">
+                    <label className="block truncate text-sm font-medium text-text-primary">
                       {k}
                     </label>
                     <Input
                       value={formData[k] || ''}
                       onChange={(e) => handleFormChange(k, e.target.value)}
-                      className={cn(
-                        'h-10',
-                        !formData[k] && 'border-dashed'
-                      )}
+                      className={cn('h-10', !formData[k] && 'border-dashed')}
                     />
-                    </div>
-                  ))}
+                  </div>
+                ))}
               </div>
             </div>
           )}
@@ -476,33 +507,37 @@ const DataInput: React.FC<DataInputProps> = ({
             <Textarea
               value={jsonInput}
               onChange={(e) => handleJsonChange(e.target.value)}
-              className="font-mono text-sm min-h-[240px] resize-none"
+              className="min-h-[240px] resize-none font-mono text-sm"
             />
             <Button
               variant="ghost"
               size="sm"
               onClick={copyJson}
-              className="absolute top-2 right-2"
+              className="absolute right-2 top-2"
             >
-              <Copy className="w-4 h-4" />
+              <Copy className="h-4 w-4" />
             </Button>
           </div>
 
           {aiRawOutput && (
-            <div className="rounded-lg border border-border-default overflow-hidden">
+            <div className="overflow-hidden rounded-lg border border-border-default">
               <button
-                onClick={() => setShowAiRaw(v => !v)}
-                className="w-full flex items-center justify-between px-4 py-2.5 bg-background-body-subtle hover:bg-muted transition-colors"
+                onClick={() => setShowAiRaw((v) => !v)}
+                className="bg-background-body-subtle flex w-full items-center justify-between px-4 py-2.5 transition-colors hover:bg-muted"
               >
-                <span className="text-sm font-medium flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-purple-500" />
+                <span className="flex items-center gap-2 text-sm font-medium">
+                  <Sparkles className="h-4 w-4 text-purple-500" />
                   AI 原始输出
                 </span>
-                {showAiRaw ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                {showAiRaw ? (
+                  <ChevronUp className="h-4 w-4" />
+                ) : (
+                  <ChevronDown className="h-4 w-4" />
+                )}
               </button>
               {showAiRaw && (
-                <div className="p-4 bg-background-body">
-                  <pre className="text-xs text-text-secondary whitespace-pre-wrap overflow-auto max-h-40">
+                <div className="bg-background-body p-4">
+                  <pre className="max-h-40 overflow-auto whitespace-pre-wrap text-xs text-text-secondary">
                     {aiRawOutput}
                   </pre>
                 </div>
@@ -513,7 +548,7 @@ const DataInput: React.FC<DataInputProps> = ({
       </Tabs>
 
       {/* 提交按钮 */}
-      <div className="flex justify-end pt-4 border-t border-border-default">
+      <div className="flex justify-end border-t border-border-default pt-4">
         <Button
           onClick={fillDocument}
           disabled={isLoading || placeholderKeys.length === 0}
@@ -521,12 +556,12 @@ const DataInput: React.FC<DataInputProps> = ({
         >
           {isLoading ? (
             <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               正在填充...
             </>
           ) : (
             <>
-              <Save className="w-4 h-4 mr-2" />
+              <Save className="mr-2 h-4 w-4" />
               生成文档
             </>
           )}
@@ -542,8 +577,11 @@ const DataInput: React.FC<DataInputProps> = ({
         size="lg"
       >
         <div className="space-y-4">
-          <Tabs value={settingsTab} onValueChange={(v) => setSettingsTab(v as any)}>
-            <TabsList className="w-full grid grid-cols-3 mb-4">
+          <Tabs
+            value={settingsTab}
+            onValueChange={(v) => setSettingsTab(v as any)}
+          >
+            <TabsList className="mb-4 grid w-full grid-cols-3">
               <TabsTrigger value="llm">模型</TabsTrigger>
               <TabsTrigger value="prompt">提示词</TabsTrigger>
               <TabsTrigger value="mcp">高级</TabsTrigger>
@@ -551,91 +589,120 @@ const DataInput: React.FC<DataInputProps> = ({
 
             <TabsContent value="llm" className="space-y-4">
               <div>
-                <label className="text-sm font-medium text-text-primary mb-2 block">选择模型</label>
+                <label className="mb-2 block text-sm font-medium text-text-primary">
+                  选择模型
+                </label>
                 <ChatModelSelector
                   models={myLLMs}
                   selectedModelName={llmConfig.llm_name}
-                  onSelect={(name) => setLlmConfig((prev) => ({ ...prev, llm_name: name || '' }))}
+                  onSelect={(name) =>
+                    setLlmConfig((prev) => ({ ...prev, llm_name: name || '' }))
+                  }
                   modelTypes={['chat']}
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm text-text-secondary mb-1.5 block">Temperature</label>
+                  <label className="mb-1.5 block text-sm text-text-secondary">
+                    Temperature
+                  </label>
                   <Input
                     type="number"
                     step="0.1"
                     min="0"
                     max="1"
                     value={llmConfig.temperature}
-                    onChange={(e) => setLlmConfig((prev) => ({ ...prev, temperature: Number(e.target.value) }))}
+                    onChange={(e) =>
+                      setLlmConfig((prev) => ({
+                        ...prev,
+                        temperature: Number(e.target.value),
+                      }))
+                    }
                   />
                 </div>
                 <div>
-                  <label className="text-sm text-text-secondary mb-1.5 block">Max Tokens</label>
+                  <label className="mb-1.5 block text-sm text-text-secondary">
+                    Max Tokens
+                  </label>
                   <Input
                     type="number"
                     min="256"
                     max="4096"
                     value={llmConfig.max_tokens}
-                    onChange={(e) => setLlmConfig((prev) => ({ ...prev, max_tokens: Number(e.target.value) }))}
+                    onChange={(e) =>
+                      setLlmConfig((prev) => ({
+                        ...prev,
+                        max_tokens: Number(e.target.value),
+                      }))
+                    }
                   />
                 </div>
               </div>
-        </TabsContent>
+            </TabsContent>
 
             <TabsContent value="prompt" className="space-y-4">
               <div>
-                <label className="text-sm font-medium text-text-primary mb-1.5 block">系统提示词</label>
+                <label className="mb-1.5 block text-sm font-medium text-text-primary">
+                  系统提示词
+                </label>
                 <Textarea
                   className="min-h-[80px] resize-none"
                   value={promptConfig.systemPrompt}
-                  onChange={(e) => setPromptConfig((prev) => ({ ...prev, systemPrompt: e.target.value }))}
+                  onChange={(e) =>
+                    setPromptConfig((prev) => ({
+                      ...prev,
+                      systemPrompt: e.target.value,
+                    }))
+                  }
                   placeholder={DEFAULT_SYSTEM_PROMPT}
                 />
-                <p className="text-xs text-text-secondary mt-1.5">为空时将使用默认提示词</p>
+                <p className="mt-1.5 text-xs text-text-secondary">
+                  为空时将使用默认提示词
+                </p>
               </div>
 
               <div>
-                <label className="text-sm font-medium text-text-primary mb-2 block">用户输入</label>
-                
+                <label className="mb-2 block text-sm font-medium text-text-primary">
+                  用户输入
+                </label>
+
                 {/* 输入模式切换 */}
-                <div className="flex items-center gap-1 p-1 bg-muted rounded-lg mb-3">
+                <div className="mb-3 flex items-center gap-1 rounded-lg bg-muted p-1">
                   <button
                     onClick={() => setUserInputMode('manual')}
                     className={cn(
-                      'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all',
+                      'flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-all',
                       userInputMode === 'manual'
                         ? 'bg-background-body text-text-primary shadow-sm'
-                        : 'text-text-secondary hover:text-text-primary'
+                        : 'text-text-secondary hover:text-text-primary',
                     )}
                   >
-                    <PenLine className="w-3.5 h-3.5" />
+                    <PenLine className="h-3.5 w-3.5" />
                     手动输入
                   </button>
                   <button
                     onClick={() => setUserInputMode('file')}
                     className={cn(
-                      'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all',
+                      'flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-all',
                       userInputMode === 'file'
                         ? 'bg-background-body text-text-primary shadow-sm'
-                        : 'text-text-secondary hover:text-text-primary'
+                        : 'text-text-secondary hover:text-text-primary',
                     )}
                   >
-                    <FileUp className="w-3.5 h-3.5" />
+                    <FileUp className="h-3.5 w-3.5" />
                     本地文件
                   </button>
                   <button
                     onClick={() => setUserInputMode('datasource')}
                     className={cn(
-                      'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all',
+                      'flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-all',
                       userInputMode === 'datasource'
                         ? 'bg-background-body text-text-primary shadow-sm'
-                        : 'text-text-secondary hover:text-text-primary'
+                        : 'text-text-secondary hover:text-text-primary',
                     )}
                   >
-                    <Database className="w-3.5 h-3.5" />
+                    <Database className="h-3.5 w-3.5" />
                     数据源
                   </button>
                 </div>
@@ -645,7 +712,12 @@ const DataInput: React.FC<DataInputProps> = ({
                   <Textarea
                     className="min-h-[100px] resize-none"
                     value={promptConfig.userInput}
-                    onChange={(e) => setPromptConfig((prev) => ({ ...prev, userInput: e.target.value }))}
+                    onChange={(e) =>
+                      setPromptConfig((prev) => ({
+                        ...prev,
+                        userInput: e.target.value,
+                      }))
+                    }
                     placeholder="输入补充信息，将与占位符 JSON 一并发送给模型"
                   />
                 )}
@@ -654,7 +726,7 @@ const DataInput: React.FC<DataInputProps> = ({
                 {userInputMode === 'file' && (
                   <div className="space-y-3">
                     {/* 上传区域 */}
-                    <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-border-default rounded-lg cursor-pointer hover:border-primary/50 hover:bg-background-body-subtle transition-colors">
+                    <label className="hover:bg-background-body-subtle flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border-default p-6 transition-colors hover:border-primary/50">
                       <input
                         type="file"
                         className="hidden"
@@ -662,51 +734,63 @@ const DataInput: React.FC<DataInputProps> = ({
                         multiple
                         onChange={(e) => {
                           const files = Array.from(e.target.files || [])
-                          files.forEach(file => {
+                          files.forEach((file) => {
                             const reader = new FileReader()
                             reader.onload = (ev) => {
                               const newFile: UploadedFile = {
                                 id: `file-${Date.now()}-${Math.random().toString(36).slice(2)}`,
                                 name: file.name,
                                 size: file.size,
-                                content: ev.target?.result as string
+                                content: ev.target?.result as string,
                               }
-                              setUploadedFiles(prev => [...prev, newFile])
+                              setUploadedFiles((prev) => [...prev, newFile])
                             }
                             reader.readAsText(file)
                           })
                           e.target.value = ''
                         }}
                       />
-                      <FileUp className="w-8 h-8 text-text-secondary mb-2" />
-                      <p className="text-sm text-text-secondary">点击上传文件</p>
-                      <p className="text-xs text-text-secondary mt-1">支持 .txt, .json, .csv, .md 格式</p>
+                      <FileUp className="mb-2 h-8 w-8 text-text-secondary" />
+                      <p className="text-sm text-text-secondary">
+                        点击上传文件
+                      </p>
+                      <p className="mt-1 text-xs text-text-secondary">
+                        支持 .txt, .json, .csv, .md 格式
+                      </p>
                     </label>
 
                     {/* 已上传文件列表 */}
                     {uploadedFiles.length > 0 && (
                       <div className="space-y-2">
-                        <p className="text-xs text-text-secondary">已上传 {uploadedFiles.length} 个文件</p>
-                        <div className="space-y-1.5 max-h-32 overflow-auto">
-                          {uploadedFiles.map(file => (
+                        <p className="text-xs text-text-secondary">
+                          已上传 {uploadedFiles.length} 个文件
+                        </p>
+                        <div className="max-h-32 space-y-1.5 overflow-auto">
+                          {uploadedFiles.map((file) => (
                             <div
                               key={file.id}
-                              className="flex items-center justify-between p-2 bg-background-body-subtle rounded-md"
+                              className="bg-background-body-subtle flex items-center justify-between rounded-md p-2"
                             >
-                              <div className="flex items-center gap-2 min-w-0">
-                                <FileText className="w-4 h-4 text-text-secondary shrink-0" />
-                                <span className="text-sm truncate">{file.name}</span>
-                                <span className="text-xs text-text-secondary shrink-0">
+                              <div className="flex min-w-0 items-center gap-2">
+                                <FileText className="h-4 w-4 shrink-0 text-text-secondary" />
+                                <span className="truncate text-sm">
+                                  {file.name}
+                                </span>
+                                <span className="shrink-0 text-xs text-text-secondary">
                                   {(file.size / 1024).toFixed(1)} KB
                                 </span>
                               </div>
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="h-6 w-6 p-0 shrink-0"
-                                onClick={() => setUploadedFiles(prev => prev.filter(f => f.id !== file.id))}
+                                className="h-6 w-6 shrink-0 p-0"
+                                onClick={() =>
+                                  setUploadedFiles((prev) =>
+                                    prev.filter((f) => f.id !== file.id),
+                                  )
+                                }
                               >
-                                <X className="w-3.5 h-3.5" />
+                                <X className="h-3.5 w-3.5" />
                               </Button>
                             </div>
                           ))}
@@ -725,19 +809,25 @@ const DataInput: React.FC<DataInputProps> = ({
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => { setNewDataSourceType('api'); setShowAddDataSource(true) }}
+                          onClick={() => {
+                            setNewDataSourceType('api')
+                            setShowAddDataSource(true)
+                          }}
                           className="gap-1.5"
                         >
-                          <Globe className="w-3.5 h-3.5" />
+                          <Globe className="h-3.5 w-3.5" />
                           API 接口
                         </Button>
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => { setNewDataSourceType('database'); setShowAddDataSource(true) }}
+                          onClick={() => {
+                            setNewDataSourceType('database')
+                            setShowAddDataSource(true)
+                          }}
                           className="gap-1.5"
                         >
-                          <Database className="w-3.5 h-3.5" />
+                          <Database className="h-3.5 w-3.5" />
                           数据库
                         </Button>
                       </div>
@@ -745,13 +835,18 @@ const DataInput: React.FC<DataInputProps> = ({
 
                     {/* 添加数据源表单 */}
                     {showAddDataSource && (
-                      <div className="p-4 border border-border-default rounded-lg bg-background-body-subtle space-y-3">
+                      <div className="bg-background-body-subtle space-y-3 rounded-lg border border-border-default p-4">
                         <div className="flex items-center justify-between">
-                          <h4 className="text-sm font-medium flex items-center gap-2">
+                          <h4 className="flex items-center gap-2 text-sm font-medium">
                             {newDataSourceType === 'api' ? (
-                              <><Globe className="w-4 h-4" /> 添加 API 数据源</>
+                              <>
+                                <Globe className="h-4 w-4" /> 添加 API 数据源
+                              </>
                             ) : (
-                              <><Database className="w-4 h-4" /> 添加数据库数据源</>
+                              <>
+                                <Database className="h-4 w-4" />{' '}
+                                添加数据库数据源
+                              </>
                             )}
                           </h4>
                           <Button
@@ -760,16 +855,23 @@ const DataInput: React.FC<DataInputProps> = ({
                             className="h-6 w-6 p-0"
                             onClick={() => setShowAddDataSource(false)}
                           >
-                            <X className="w-4 h-4" />
+                            <X className="h-4 w-4" />
                           </Button>
                         </div>
 
                         <div className="grid gap-3">
                           <div>
-                            <label className="text-xs text-text-secondary mb-1 block">名称</label>
+                            <label className="mb-1 block text-xs text-text-secondary">
+                              名称
+                            </label>
                             <Input
                               value={newDataSourceForm.name}
-                              onChange={(e) => setNewDataSourceForm(prev => ({ ...prev, name: e.target.value }))}
+                              onChange={(e) =>
+                                setNewDataSourceForm((prev) => ({
+                                  ...prev,
+                                  name: e.target.value,
+                                }))
+                              }
                               placeholder="数据源名称"
                               className="h-8"
                             />
@@ -778,31 +880,52 @@ const DataInput: React.FC<DataInputProps> = ({
                           {newDataSourceType === 'api' ? (
                             <>
                               <div>
-                                <label className="text-xs text-text-secondary mb-1 block">API URL</label>
+                                <label className="mb-1 block text-xs text-text-secondary">
+                                  API URL
+                                </label>
                                 <Input
                                   value={newDataSourceForm.apiUrl}
-                                  onChange={(e) => setNewDataSourceForm(prev => ({ ...prev, apiUrl: e.target.value }))}
+                                  onChange={(e) =>
+                                    setNewDataSourceForm((prev) => ({
+                                      ...prev,
+                                      apiUrl: e.target.value,
+                                    }))
+                                  }
                                   placeholder="https://api.example.com/data"
                                   className="h-8"
                                 />
                               </div>
                               <div className="grid grid-cols-2 gap-2">
                                 <div>
-                                  <label className="text-xs text-text-secondary mb-1 block">请求方法</label>
+                                  <label className="mb-1 block text-xs text-text-secondary">
+                                    请求方法
+                                  </label>
                                   <select
                                     value={newDataSourceForm.apiMethod}
-                                    onChange={(e) => setNewDataSourceForm(prev => ({ ...prev, apiMethod: e.target.value }))}
-                                    className="w-full h-8 px-2 rounded-md border border-input bg-background-body text-sm"
+                                    onChange={(e) =>
+                                      setNewDataSourceForm((prev) => ({
+                                        ...prev,
+                                        apiMethod: e.target.value,
+                                      }))
+                                    }
+                                    className="h-8 w-full rounded-md border border-input bg-background-body px-2 text-sm"
                                   >
                                     <option value="GET">GET</option>
                                     <option value="POST">POST</option>
                                   </select>
                                 </div>
                                 <div>
-                                  <label className="text-xs text-text-secondary mb-1 block">请求头 (JSON)</label>
+                                  <label className="mb-1 block text-xs text-text-secondary">
+                                    请求头 (JSON)
+                                  </label>
                                   <Input
                                     value={newDataSourceForm.apiHeaders}
-                                    onChange={(e) => setNewDataSourceForm(prev => ({ ...prev, apiHeaders: e.target.value }))}
+                                    onChange={(e) =>
+                                      setNewDataSourceForm((prev) => ({
+                                        ...prev,
+                                        apiHeaders: e.target.value,
+                                      }))
+                                    }
                                     placeholder='{"Authorization": "..."}'
                                     className="h-8 font-mono text-xs"
                                   />
@@ -813,32 +936,55 @@ const DataInput: React.FC<DataInputProps> = ({
                             <>
                               <div className="grid grid-cols-3 gap-2">
                                 <div>
-                                  <label className="text-xs text-text-secondary mb-1 block">数据库类型</label>
+                                  <label className="mb-1 block text-xs text-text-secondary">
+                                    数据库类型
+                                  </label>
                                   <select
                                     value={newDataSourceForm.dbType}
-                                    onChange={(e) => setNewDataSourceForm(prev => ({ ...prev, dbType: e.target.value }))}
-                                    className="w-full h-8 px-2 rounded-md border border-input bg-background-body text-sm"
+                                    onChange={(e) =>
+                                      setNewDataSourceForm((prev) => ({
+                                        ...prev,
+                                        dbType: e.target.value,
+                                      }))
+                                    }
+                                    className="h-8 w-full rounded-md border border-input bg-background-body px-2 text-sm"
                                   >
                                     <option value="mysql">MySQL</option>
-                                    <option value="postgresql">PostgreSQL</option>
+                                    <option value="postgresql">
+                                      PostgreSQL
+                                    </option>
                                     <option value="mongodb">MongoDB</option>
                                     <option value="sqlite">SQLite</option>
                                   </select>
                                 </div>
                                 <div>
-                                  <label className="text-xs text-text-secondary mb-1 block">主机</label>
+                                  <label className="mb-1 block text-xs text-text-secondary">
+                                    主机
+                                  </label>
                                   <Input
                                     value={newDataSourceForm.dbHost}
-                                    onChange={(e) => setNewDataSourceForm(prev => ({ ...prev, dbHost: e.target.value }))}
+                                    onChange={(e) =>
+                                      setNewDataSourceForm((prev) => ({
+                                        ...prev,
+                                        dbHost: e.target.value,
+                                      }))
+                                    }
                                     placeholder="localhost"
                                     className="h-8"
                                   />
                                 </div>
                                 <div>
-                                  <label className="text-xs text-text-secondary mb-1 block">端口</label>
+                                  <label className="mb-1 block text-xs text-text-secondary">
+                                    端口
+                                  </label>
                                   <Input
                                     value={newDataSourceForm.dbPort}
-                                    onChange={(e) => setNewDataSourceForm(prev => ({ ...prev, dbPort: e.target.value }))}
+                                    onChange={(e) =>
+                                      setNewDataSourceForm((prev) => ({
+                                        ...prev,
+                                        dbPort: e.target.value,
+                                      }))
+                                    }
                                     placeholder="3306"
                                     className="h-8"
                                   />
@@ -846,39 +992,67 @@ const DataInput: React.FC<DataInputProps> = ({
                               </div>
                               <div className="grid grid-cols-3 gap-2">
                                 <div>
-                                  <label className="text-xs text-text-secondary mb-1 block">数据库名</label>
+                                  <label className="mb-1 block text-xs text-text-secondary">
+                                    数据库名
+                                  </label>
                                   <Input
                                     value={newDataSourceForm.dbName}
-                                    onChange={(e) => setNewDataSourceForm(prev => ({ ...prev, dbName: e.target.value }))}
+                                    onChange={(e) =>
+                                      setNewDataSourceForm((prev) => ({
+                                        ...prev,
+                                        dbName: e.target.value,
+                                      }))
+                                    }
                                     placeholder="database"
                                     className="h-8"
                                   />
                                 </div>
                                 <div>
-                                  <label className="text-xs text-text-secondary mb-1 block">用户名</label>
+                                  <label className="mb-1 block text-xs text-text-secondary">
+                                    用户名
+                                  </label>
                                   <Input
                                     value={newDataSourceForm.dbUser}
-                                    onChange={(e) => setNewDataSourceForm(prev => ({ ...prev, dbUser: e.target.value }))}
+                                    onChange={(e) =>
+                                      setNewDataSourceForm((prev) => ({
+                                        ...prev,
+                                        dbUser: e.target.value,
+                                      }))
+                                    }
                                     placeholder="root"
                                     className="h-8"
                                   />
                                 </div>
                                 <div>
-                                  <label className="text-xs text-text-secondary mb-1 block">密码</label>
+                                  <label className="mb-1 block text-xs text-text-secondary">
+                                    密码
+                                  </label>
                                   <Input
                                     type="password"
                                     value={newDataSourceForm.dbPassword}
-                                    onChange={(e) => setNewDataSourceForm(prev => ({ ...prev, dbPassword: e.target.value }))}
+                                    onChange={(e) =>
+                                      setNewDataSourceForm((prev) => ({
+                                        ...prev,
+                                        dbPassword: e.target.value,
+                                      }))
+                                    }
                                     placeholder="••••••"
                                     className="h-8"
                                   />
                                 </div>
                               </div>
                               <div>
-                                <label className="text-xs text-text-secondary mb-1 block">查询语句</label>
+                                <label className="mb-1 block text-xs text-text-secondary">
+                                  查询语句
+                                </label>
                                 <Input
                                   value={newDataSourceForm.dbQuery}
-                                  onChange={(e) => setNewDataSourceForm(prev => ({ ...prev, dbQuery: e.target.value }))}
+                                  onChange={(e) =>
+                                    setNewDataSourceForm((prev) => ({
+                                      ...prev,
+                                      dbQuery: e.target.value,
+                                    }))
+                                  }
                                   placeholder="SELECT * FROM table LIMIT 100"
                                   className="h-8 font-mono text-xs"
                                 />
@@ -906,25 +1080,48 @@ const DataInput: React.FC<DataInputProps> = ({
                                 id: `ds-${Date.now()}`,
                                 type: newDataSourceType,
                                 name: newDataSourceForm.name,
-                                description: newDataSourceType === 'api' 
-                                  ? newDataSourceForm.apiUrl 
-                                  : `${newDataSourceForm.dbType}://${newDataSourceForm.dbHost}:${newDataSourceForm.dbPort}/${newDataSourceForm.dbName}`,
-                                config: newDataSourceType === 'api' 
-                                  ? { url: newDataSourceForm.apiUrl, method: newDataSourceForm.apiMethod, headers: newDataSourceForm.apiHeaders }
-                                  : { type: newDataSourceForm.dbType, host: newDataSourceForm.dbHost, port: newDataSourceForm.dbPort, database: newDataSourceForm.dbName, user: newDataSourceForm.dbUser, query: newDataSourceForm.dbQuery },
+                                description:
+                                  newDataSourceType === 'api'
+                                    ? newDataSourceForm.apiUrl
+                                    : `${newDataSourceForm.dbType}://${newDataSourceForm.dbHost}:${newDataSourceForm.dbPort}/${newDataSourceForm.dbName}`,
+                                config:
+                                  newDataSourceType === 'api'
+                                    ? {
+                                        url: newDataSourceForm.apiUrl,
+                                        method: newDataSourceForm.apiMethod,
+                                        headers: newDataSourceForm.apiHeaders,
+                                      }
+                                    : {
+                                        type: newDataSourceForm.dbType,
+                                        host: newDataSourceForm.dbHost,
+                                        port: newDataSourceForm.dbPort,
+                                        database: newDataSourceForm.dbName,
+                                        user: newDataSourceForm.dbUser,
+                                        query: newDataSourceForm.dbQuery,
+                                      },
                                 status: 'disconnected',
-                                createdAt: new Date()
+                                createdAt: new Date(),
                               }
-                              setDataSources(prev => [...prev, newSource])
+                              setDataSources((prev) => [...prev, newSource])
                               setShowAddDataSource(false)
                               setNewDataSourceForm({
-                                name: '', description: '', apiUrl: '', apiMethod: 'GET', apiHeaders: '',
-                                dbType: 'mysql', dbHost: '', dbPort: '', dbName: '', dbUser: '', dbPassword: '', dbQuery: ''
+                                name: '',
+                                description: '',
+                                apiUrl: '',
+                                apiMethod: 'GET',
+                                apiHeaders: '',
+                                dbType: 'mysql',
+                                dbHost: '',
+                                dbPort: '',
+                                dbName: '',
+                                dbUser: '',
+                                dbPassword: '',
+                                dbQuery: '',
                               })
                               toast.success('数据源添加成功（后端接口待对接）')
                             }}
                           >
-                            <Plus className="w-3.5 h-3.5 mr-1" />
+                            <Plus className="mr-1 h-3.5 w-3.5" />
                             添加
                           </Button>
                         </div>
@@ -934,44 +1131,69 @@ const DataInput: React.FC<DataInputProps> = ({
                     {/* 数据源列表 */}
                     {dataSources.length > 0 && (
                       <div className="space-y-2">
-                        <p className="text-xs text-text-secondary">已添加 {dataSources.length} 个数据源</p>
-                        <div className="space-y-2 max-h-40 overflow-auto">
-                          {dataSources.map(ds => (
+                        <p className="text-xs text-text-secondary">
+                          已添加 {dataSources.length} 个数据源
+                        </p>
+                        <div className="max-h-40 space-y-2 overflow-auto">
+                          {dataSources.map((ds) => (
                             <div
                               key={ds.id}
-                              className="flex items-center justify-between p-3 bg-background-body-subtle rounded-lg border border-border-default"
+                              className="bg-background-body-subtle flex items-center justify-between rounded-lg border border-border-default p-3"
                             >
-                              <div className="flex items-center gap-3 min-w-0">
-                                <div className={cn(
-                                  'w-8 h-8 rounded-lg flex items-center justify-center shrink-0',
-                                  ds.type === 'api' ? 'bg-blue-500/10 text-blue-500' : 'bg-green-500/10 text-green-500'
-                                )}>
-                                  {ds.type === 'api' ? <Globe className="w-4 h-4" /> : <Database className="w-4 h-4" />}
+                              <div className="flex min-w-0 items-center gap-3">
+                                <div
+                                  className={cn(
+                                    'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg',
+                                    ds.type === 'api'
+                                      ? 'bg-blue-500/10 text-blue-500'
+                                      : 'bg-green-500/10 text-green-500',
+                                  )}
+                                >
+                                  {ds.type === 'api' ? (
+                                    <Globe className="h-4 w-4" />
+                                  ) : (
+                                    <Database className="h-4 w-4" />
+                                  )}
                                 </div>
                                 <div className="min-w-0">
-                                  <p className="text-sm font-medium truncate">{ds.name}</p>
-                                  <p className="text-xs text-text-secondary truncate">{ds.description}</p>
+                                  <p className="truncate text-sm font-medium">
+                                    {ds.name}
+                                  </p>
+                                  <p className="truncate text-xs text-text-secondary">
+                                    {ds.description}
+                                  </p>
                                 </div>
                               </div>
-                              <div className="flex items-center gap-2 shrink-0">
+                              <div className="flex shrink-0 items-center gap-2">
                                 <Badge
                                   variant="outline"
                                   className={cn(
                                     'text-xs',
-                                    ds.status === 'connected' && 'border-green-500 text-green-500',
-                                    ds.status === 'disconnected' && 'border-muted-foreground text-text-secondary',
-                                    ds.status === 'error' && 'border-destructive text-destructive'
+                                    ds.status === 'connected' &&
+                                      'border-green-500 text-green-500',
+                                    ds.status === 'disconnected' &&
+                                      'border-muted-foreground text-text-secondary',
+                                    ds.status === 'error' &&
+                                      'border-destructive text-destructive',
                                   )}
                                 >
-                                  {ds.status === 'connected' ? '已连接' : ds.status === 'error' ? '错误' : '未连接'}
+                                  {ds.status === 'connected'
+                                    ? '已连接'
+                                    : ds.status === 'error'
+                                      ? '错误'
+                                      : '未连接'}
                                 </Badge>
                                 <Button
                                   variant="ghost"
                                   size="sm"
                                   className="h-7 w-7 p-0 text-destructive hover:text-destructive"
-                                  onClick={() => setDataSources(prev => prev.filter(d => d.id !== ds.id))}
+                                  onClick={() =>
+                                    setDataSources((prev) =>
+                                      prev.filter((d) => d.id !== ds.id),
+                                    )
+                                  }
                                 >
-                                  <Trash2 className="w-3.5 h-3.5" />
+                                  <Trash2 className="h-3.5 w-3.5" />
                                 </Button>
                               </div>
                             </div>
@@ -981,30 +1203,41 @@ const DataInput: React.FC<DataInputProps> = ({
                     )}
 
                     {dataSources.length === 0 && !showAddDataSource && (
-                      <div className="text-center py-6 text-text-secondary">
-                        <Database className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                      <div className="py-6 text-center text-text-secondary">
+                        <Database className="mx-auto mb-2 h-8 w-8 opacity-50" />
                         <p className="text-sm">暂无数据源</p>
-                        <p className="text-xs mt-1">点击上方按钮添加 API 或数据库数据源</p>
+                        <p className="mt-1 text-xs">
+                          点击上方按钮添加 API 或数据库数据源
+                        </p>
                       </div>
                     )}
                   </div>
                 )}
               </div>
-        </TabsContent>
+            </TabsContent>
 
             <TabsContent value="mcp" className="space-y-4">
               <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <label className="text-sm font-medium text-text-primary">MCP 工具</label>
-                  {mcpLoading && <Loader2 className="w-3.5 h-3.5 animate-spin text-text-secondary" />}
+                <div className="mb-2 flex items-center gap-2">
+                  <label className="text-sm font-medium text-text-primary">
+                    MCP 工具
+                  </label>
+                  {mcpLoading && (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin text-text-secondary" />
+                  )}
                 </div>
                 <ScrollArea className="h-32 rounded-md border border-border-default p-2">
                   {mcpServers.length === 0 ? (
-                    <div className="text-sm text-text-secondary text-center py-4">暂无可用 MCP</div>
+                    <div className="py-4 text-center text-sm text-text-secondary">
+                      暂无可用 MCP
+                    </div>
                   ) : (
                     <div className="space-y-2">
                       {mcpServers.map((server) => (
-                        <label key={server.id} className="flex items-center gap-2 text-sm cursor-pointer">
+                        <label
+                          key={server.id}
+                          className="flex cursor-pointer items-center gap-2 text-sm"
+                        >
                           <Checkbox
                             checked={mcpConfig.mcp_ids.includes(server.id)}
                             onCheckedChange={(checked) => {
@@ -1012,11 +1245,15 @@ const DataInput: React.FC<DataInputProps> = ({
                                 ...prev,
                                 mcp_ids: checked
                                   ? [...prev.mcp_ids, server.id]
-                                  : prev.mcp_ids.filter((id) => id !== server.id)
+                                  : prev.mcp_ids.filter(
+                                      (id) => id !== server.id,
+                                    ),
                               }))
                             }}
                           />
-                          <span className="text-text-primary">{server.name}</span>
+                          <span className="text-text-primary">
+                            {server.name}
+                          </span>
                         </label>
                       ))}
                     </div>
@@ -1026,33 +1263,49 @@ const DataInput: React.FC<DataInputProps> = ({
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm text-text-secondary mb-1.5 block">超时时间（秒）</label>
+                  <label className="mb-1.5 block text-sm text-text-secondary">
+                    超时时间（秒）
+                  </label>
                   <Input
                     type="number"
                     min="1"
                     max="60"
                     value={mcpConfig.mcp_timeout}
-                    onChange={(e) => setMcpConfig((prev) => ({ ...prev, mcp_timeout: Number(e.target.value) }))}
+                    onChange={(e) =>
+                      setMcpConfig((prev) => ({
+                        ...prev,
+                        mcp_timeout: Number(e.target.value),
+                      }))
+                    }
                   />
                 </div>
                 <div>
-                  <label className="text-sm text-text-secondary mb-1.5 block">工具调用详情</label>
-                  <div className="h-9 flex items-center">
+                  <label className="mb-1.5 block text-sm text-text-secondary">
+                    工具调用详情
+                  </label>
+                  <div className="flex h-9 items-center">
                     <Switch
                       checked={mcpConfig.verbose_tool_use}
-                      onCheckedChange={(checked) => setMcpConfig((prev) => ({ ...prev, verbose_tool_use: checked }))}
+                      onCheckedChange={(checked) =>
+                        setMcpConfig((prev) => ({
+                          ...prev,
+                          verbose_tool_use: checked,
+                        }))
+                      }
                     />
                   </div>
                 </div>
               </div>
-        </TabsContent>
-      </Tabs>
+            </TabsContent>
+          </Tabs>
 
-          <div className="flex justify-end gap-2 pt-2 border-t border-border-default">
-            <Button variant="outline" onClick={() => setSettingsOpen(false)}>取消</Button>
+          <div className="flex justify-end gap-2 border-t border-border-default pt-2">
+            <Button variant="outline" onClick={() => setSettingsOpen(false)}>
+              取消
+            </Button>
             <Button onClick={() => setSettingsOpen(false)}>确定</Button>
           </div>
-      </div>
+        </div>
       </Modal>
     </div>
   )

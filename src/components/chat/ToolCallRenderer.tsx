@@ -23,7 +23,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
-import type { ToolCallInfo } from './EnhancedSSEParser'
+import type { StreamToolCallInfo as ToolCallInfo } from '@/lib/streaming'
 
 interface ToolCallRendererProps {
   toolCalls: ToolCallInfo[]

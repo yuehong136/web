@@ -5,8 +5,9 @@
  * - `SSEEnvelope<TData>`: the generic backend wrapper used by conversation /
  *   report / agent streams (`data === true` is the terminal frame).
  * - `StructuredStreamMessage`: the structured message union consolidated from
- *   `src/components/chat/EnhancedSSEParser.ts` (single type source as of
- *   ARCH-1 phase 1; the hand-rolled parser itself is removed in a later phase).
+ *   the former hand-rolled EnhancedSSEParser (type source unified in ARCH-1
+ *   phase 1; the parser itself was deleted in phase 3 — see
+ *   `structured-chat-reducer.ts` for the ported state machine).
  *
  * Per-surface payloads instantiate the transport generic
  * (e.g. `readSSEStream<SSEEnvelope<ReportProgress>>`); there is deliberately

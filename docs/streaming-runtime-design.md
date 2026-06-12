@@ -95,6 +95,7 @@ export async function readSSEStream<T = unknown>(
 
 - ~~3a. 状态机抽纯函数~~（✅ 2026-06-12：`structured-chat-reducer.ts` 逐行移植 handleMessage / processStructuredMessage / processLegacyMessage / think 标记 / legacy tool_call 正则 / 签名去重 / call_id 生命周期，`createSyntheticCompleteMessage` 复刻流尽合成 complete 抑制；10 个单测进 `test:streaming`，43 pass）
 - ~~3b. MCPChatPage~~（✅ 2026-06-12：connect() 换共享薄助手 `components/chat/structured-chat-stream.ts`（两个使用者本就共享 connect，对称替代；fetch 自持照 mcp-agent-stream 先例）；onMessage switch 逐行原样；signal 只挂 fetch 不传 readSSEStream——原 connect catch 依赖 AbortError 静默（A 型），abort 中断读取、合成 complete 天然跳过；页内 try/catch 复刻原 onError 的 console.error + toast '连接出错'；棘轮 1583 → 1581）
+- ~~3c. DataInput + 删除本体~~（✅ 2026-06-12：DataInput 换同一薄助手，错误直接传播到原外层 catch（等价于原 onError 的 throw）；原本就无 abort/卸载清理，未新增（零漂移）；删除 `EnhancedSSEParser.ts`；ToolCallRenderer 与 pages/home/types.ts 的 `ToolCallInfo` 类型导入改为 `@/lib/streaming` 的 `StreamToolCallInfo` 别名；终态精确 grep（第 4 节口径）零命中——`new TextDecoder(` 0、`split('\n')` 仅展示类非流式上下文、`split(/\r?\n/)` 仅第 1 节豁免的 runtime-workbench NDJSON 分类、lib 外 EventSourceParserStream/TextDecoderStream 0）
 
 ## 6. 测试与门禁
 
