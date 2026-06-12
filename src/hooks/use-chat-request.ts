@@ -1,6 +1,6 @@
 /**
  * Chat Request Hooks
- * 
+ *
  * 使用 TanStack Query 管理聊天相关的服务器状态
  */
 
@@ -12,10 +12,18 @@ import { conversationAPI } from '@/api/conversation'
 export const chatKeys = {
   all: ['chat'] as const,
   conversations: () => [...chatKeys.all, 'conversations'] as const,
-  conversationList: (params: Record<string, any>) => [...chatKeys.conversations(), 'list', params] as const,
-  conversationsByDialog: (dialogId: string) => [...chatKeys.conversations(), 'byDialog', dialogId] as const,
-  conversationDetail: (id: string) => [...chatKeys.conversations(), 'detail', id] as const,
-  messages: (conversationId: string) => [...chatKeys.all, 'messages', conversationId] as const,
+  conversationList: (params: Record<string, any>) =>
+    [...chatKeys.conversations(), 'list', params] as const,
+  conversationsByDialog: (dialogId: string) =>
+    [...chatKeys.conversations(), 'byDialog', dialogId] as const,
+  conversationDetail: (id: string) =>
+    [...chatKeys.conversations(), 'detail', id] as const,
+  messages: (conversationId: string) =>
+    [...chatKeys.all, 'messages', conversationId] as const,
+  // ExplorePage 话题列表，沿用原内联形状（与 conversationsByDialog 同 API，
+  // 但查询配置不同且缓存形态独立，刻意不共 key）
+  dialogConversations: (dialogId: string) =>
+    ['dialogConversations', dialogId] as const,
 }
 
 // 获取当前对话 ID
@@ -32,11 +40,18 @@ export interface UseFetchConversationListParams {
   keywords?: string
 }
 
-export const useFetchConversationList = (params: UseFetchConversationListParams = {}) => {
+export const useFetchConversationList = (
+  params: UseFetchConversationListParams = {},
+) => {
   const { dialogId, page = 1, page_size = 20, keywords } = params
 
   const { data, isFetching, isError, error, refetch } = useQuery({
-    queryKey: chatKeys.conversationList({ dialogId, page, page_size, keywords }),
+    queryKey: chatKeys.conversationList({
+      dialogId,
+      page,
+      page_size,
+      keywords,
+    }),
     queryFn: async () => {
       const response = await conversationAPI.list({
         dialog_id: dialogId,
@@ -48,7 +63,7 @@ export const useFetchConversationList = (params: UseFetchConversationListParams 
     },
     enabled: !!dialogId,
     staleTime: 2 * 60 * 1000, // 2 分钟内认为数据新鲜
-    gcTime: 5 * 60 * 1000,    // 缓存保留 5 分钟
+    gcTime: 5 * 60 * 1000, // 缓存保留 5 分钟
     refetchOnWindowFocus: false,
   })
 
@@ -157,8 +172,8 @@ export const useUpdateConversation = () => {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: chatKeys.conversations() })
-      queryClient.invalidateQueries({ 
-        queryKey: chatKeys.conversationDetail(data.conversationId) 
+      queryClient.invalidateQueries({
+        queryKey: chatKeys.conversationDetail(data.conversationId),
       })
     },
   })
@@ -177,13 +192,15 @@ export const useDeleteConversation = () => {
 
   const { mutateAsync, isPending, isError, error } = useMutation({
     mutationFn: async (conversationIds: string | string[]) => {
-      const ids = Array.isArray(conversationIds) ? conversationIds : [conversationIds]
+      const ids = Array.isArray(conversationIds)
+        ? conversationIds
+        : [conversationIds]
       await conversationAPI.delete(ids)
       return ids
     },
     onSuccess: (deletedIds) => {
       queryClient.invalidateQueries({ queryKey: chatKeys.conversations() })
-      deletedIds.forEach(id => {
+      deletedIds.forEach((id) => {
         queryClient.removeQueries({ queryKey: chatKeys.conversationDetail(id) })
         queryClient.removeQueries({ queryKey: chatKeys.messages(id) })
       })
@@ -209,7 +226,9 @@ export const useDeleteMessage = () => {
       return { conversationId, messageId }
     },
     onSuccess: ({ conversationId }) => {
-      queryClient.invalidateQueries({ queryKey: chatKeys.messages(conversationId) })
+      queryClient.invalidateQueries({
+        queryKey: chatKeys.messages(conversationId),
+      })
     },
   })
 
@@ -227,7 +246,10 @@ export const useFetchConversationsByDialog = (dialogId?: string | null) => {
     queryKey: chatKeys.conversationsByDialog(dialogId || ''),
     queryFn: async () => {
       if (!dialogId) return []
-      console.log('[useFetchConversationsByDialog] Fetching conversations for dialog:', dialogId)
+      console.log(
+        '[useFetchConversationsByDialog] Fetching conversations for dialog:',
+        dialogId,
+      )
       const response = await conversationAPI.getConversationsByDialog(dialogId)
       console.log('[useFetchConversationsByDialog] Response:', response)
       // API 直接返回数组
@@ -235,12 +257,19 @@ export const useFetchConversationsByDialog = (dialogId?: string | null) => {
     },
     enabled: !!dialogId,
     staleTime: 2 * 60 * 1000, // 2 分钟内认为数据新鲜
-    gcTime: 5 * 60 * 1000,    // 缓存保留 5 分钟
+    gcTime: 5 * 60 * 1000, // 缓存保留 5 分钟
     refetchOnWindowFocus: false,
   })
 
   // 调试日志
-  console.log('[useFetchConversationsByDialog] dialogId:', dialogId, 'data:', data, 'isLoading:', isFetching)
+  console.log(
+    '[useFetchConversationsByDialog] dialogId:',
+    dialogId,
+    'data:',
+    data,
+    'isLoading:',
+    isFetching,
+  )
 
   return {
     conversations: Array.isArray(data) ? data : [],

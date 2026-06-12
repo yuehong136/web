@@ -54,8 +54,8 @@ import {
   useRerankModels,
 } from '@/hooks/use-chat-settings'
 import { useChatUpload } from '@/hooks/use-chat-upload'
+import { useDialogConversations } from './hooks/use-dialog-conversations'
 import { conversationAPI } from '@/api/conversation'
-import { useQuery } from '@tanstack/react-query'
 import type { TFunction } from 'i18next'
 import { useTranslation } from 'react-i18next'
 import {
@@ -347,12 +347,10 @@ export const ExplorePage: FC = () => {
     isLoading: dialogConversationsLoading,
     error: dialogConversationsError,
     refetch: refetchConversations,
-  } = useQuery({
-    queryKey: ['dialogConversations', selectedApp],
-    queryFn: async () => conversationAPI.getConversationsByDialog(selectedApp),
-    enabled: !!selectedApp && activeTab === 'topics',
-    retry: 1,
-  })
+  } = useDialogConversations(
+    selectedApp,
+    !!selectedApp && activeTab === 'topics',
+  )
 
   const dialogConversations = dialogConversationsData || []
   const uploadedAttachments = useMemo(
