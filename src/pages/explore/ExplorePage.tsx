@@ -62,7 +62,6 @@ import {
   chatConfig,
   type ChatMessage,
   type ChatServiceRequest,
-  type SSEResponse,
   uploadConfig,
   type UploadFile,
   type UploadedFileInfo,
@@ -94,10 +93,12 @@ import { ReferenceDetailSheet } from '@/components/chat/ReferenceDetailSheet'
 import { createReferenceMarkerComponent } from '@/components/chat/ReferenceMarker'
 import { ReferenceImageList } from '@/components/chat/ReferenceImageList'
 import {
+  assertSSEResponse,
   consumeStreamingAnswerChunk,
   createInitialStreamingAnswerState,
-} from '@/utils/streaming-answer'
-import { EventSourceParserStream } from 'eventsource-parser/stream'
+  readSSEStream,
+  type SSEEnvelope,
+} from '@/lib/streaming'
 import { ExploreSidebar, type ExploreTab } from './components/explore-sidebar'
 import { getExploreAppIcon } from './components/explore-app-icon'
 
@@ -570,8 +571,10 @@ export const ExplorePage: FC = () => {
       }
     }
 
-    // 创建新的 AbortController 用于停止输出
-    abortControllerRef.current = new AbortController()
+    // 创建新的 AbortController 用于停止输出（局部捕获：handleStopOutput 会把
+    // ref 置 null，catch 必须用这个局部引用判断 aborted，不能依赖 ref）
+    const abortController = new AbortController()
+    abortControllerRef.current = abortController
     let hasReceivedContent = false
 
     try {
@@ -617,34 +620,20 @@ export const ExplorePage: FC = () => {
           completionParams.metadata_condition = chatSettings.metadataCondition
         }
 
-        const response = await conversationAPI.completion(completionParams)
+        const response = await conversationAPI.completion(completionParams, {
+          signal: abortController.signal,
+        })
 
-        if (!response.ok)
-          throw new Error(`HTTP error! status: ${response.status}`)
-        if (!response.body) throw new Error('No response body')
-
-        // 使用 EventSourceParserStream 处理 SSE 流（参考 ragflow 最佳实践）
-        // 自动处理 TCP 分包、SSE 格式解析等边界情况
-        const reader = response.body
-          .pipeThrough(new TextDecoderStream())
-          .pipeThrough(new EventSourceParserStream())
-          .getReader()
+        await assertSSEResponse(response)
 
         let streamState = createInitialStreamingAnswerState()
 
-        while (true) {
-          const { done, value } = await reader.read()
-          if (done) break
-
-          try {
-            // value 已经是解析好的 SSE 事件对象
-            const jsonStr = value?.data
-            if (!jsonStr) continue
-
-            const data = JSON.parse(jsonStr)
+        await readSSEStream<SSEEnvelope>(response, {
+          signal: abortController.signal,
+          onEvent: (data) => {
             const chunk = consumeStreamingAnswerChunk(streamState, data)
             streamState = chunk.nextState
-            if (chunk.isDone) continue
+            if (chunk.isDone) return
 
             const chunkData =
               chunk.payload && typeof chunk.payload === 'object'
@@ -676,10 +665,8 @@ export const ExplorePage: FC = () => {
               }
               return newMsgs
             })
-          } catch (e) {
-            // JSON 解析错误，忽略
-          }
-        }
+          },
+        })
       } else {
         // 回退：无应用或创建会话失败时，使用 chat_service_sse 直接聊天
         const historyMessages: ChatMessage[] = updatedMessages.map((msg) => ({
@@ -708,33 +695,19 @@ export const ExplorePage: FC = () => {
             ...(token && { Authorization: `Bearer ${token}` }),
           },
           body: JSON.stringify(requestBody),
+          signal: abortController.signal,
         })
 
-        if (!response.ok)
-          throw new Error(`HTTP error! status: ${response.status}`)
-        if (!response.body) throw new Error('No response body')
-
-        // 使用 EventSourceParserStream 处理 SSE 流（参考 ragflow 最佳实践）
-        const reader = response.body
-          .pipeThrough(new TextDecoderStream())
-          .pipeThrough(new EventSourceParserStream())
-          .getReader()
+        await assertSSEResponse(response)
 
         let streamState = createInitialStreamingAnswerState()
 
-        while (true) {
-          const { done, value } = await reader.read()
-          if (done) break
-
-          try {
-            // value 已经是解析好的 SSE 事件对象
-            const jsonStr = value?.data
-            if (!jsonStr) continue
-
-            const data: SSEResponse = JSON.parse(jsonStr)
+        await readSSEStream<SSEEnvelope>(response, {
+          signal: abortController.signal,
+          onEvent: (data) => {
             const chunk = consumeStreamingAnswerChunk(streamState, data)
             streamState = chunk.nextState
-            if (chunk.isDone) continue
+            if (chunk.isDone) return
 
             setMessages((prev) => {
               const newMsgs = [...prev]
@@ -749,12 +722,13 @@ export const ExplorePage: FC = () => {
               }
               return newMsgs
             })
-          } catch (e) {
-            // JSON 解析错误，忽略
-          }
-        }
+          },
+        })
       }
     } catch (error) {
+      // 用户主动停止（fetch 发起阶段 abort 会抛 AbortError）：不报错、不回滚，
+      // 保留已收内容，finally 仍复位 isStreaming
+      if (abortController.signal.aborted) return
       console.error('Failed to send message:', error)
       if (!hasReceivedContent) {
         setMessages(previousMessages)
