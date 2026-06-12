@@ -1,6 +1,6 @@
 # 统一 Streaming Runtime 设计稿（ARCH-1）
 
-> 状态：阶段 1 实施中。本稿是 `docs/engineering-modernization-roadmap.md` ARCH-1 要求的动工前设计文档。
+> 状态：已完成（2026-06-12，阶段 1/2/3 全部落地，EnhancedSSEParser 已删除）。本稿是 `docs/engineering-modernization-roadmap.md` ARCH-1 要求的动工前设计文档，第 5 节迁移清单含每面的语义保全记录。
 
 ## 1. 问题与库存核实（2026-06-11 实扫）
 
