@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { agentAPI } from '@/api/agent'
 import { assertSSEResponse, readSSEStream } from '@/lib/streaming'
 import { useCancelDataflow, useFetchAgent } from '@/hooks/use-agent-request'
+import { agentQueryKeys } from '@/hooks/use-agent-query'
 import { resolveLocalizedText } from '@/lib/agent'
 import { toast } from '@/lib/toast'
 import type { AgentTraceItem } from '@/types/agent'
@@ -68,7 +69,7 @@ export function usePipelineWorkbench({
   const abortControllerRef = useRef<AbortController | null>(null)
 
   const traceQuery = useQuery<AgentTraceItem[]>({
-    queryKey: ['pipeline-trace', canvasId, messageId],
+    queryKey: agentQueryKeys.pipelineTrace(canvasId, messageId),
     enabled: Boolean(canvasId && messageId),
     queryFn: async () =>
       adaptAgentTraceItems(

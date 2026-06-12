@@ -40,8 +40,10 @@ export const agentQueryKeys = {
     [...agentQueryKeys.all, 'trace', canvasId, messageId] as const,
   inputForm: (canvasId: string, componentId: string) =>
     [...agentQueryKeys.all, 'input-form', canvasId, componentId] as const,
+  sessionsByCanvas: (canvasId: string) =>
+    [...agentQueryKeys.all, 'sessions', canvasId] as const,
   sessions: (canvasId: string, params?: AgentSessionListParams) =>
-    [...agentQueryKeys.all, 'sessions', canvasId, params || {}] as const,
+    [...agentQueryKeys.sessionsByCanvas(canvasId), params || {}] as const,
   session: (canvasId: string, sessionId: string) =>
     [...agentQueryKeys.all, 'session', canvasId, sessionId] as const,
   avatar: (id: string) => [...agentQueryKeys.all, 'avatar', id] as const,
@@ -57,6 +59,13 @@ export const agentQueryKeys = {
     [...agentQueryKeys.all, 'webhook-trace', id, params] as const,
   personDataList: (workflowId: string, external: boolean) =>
     [...agentQueryKeys.all, 'persondata-list', workflowId, external] as const,
+  deliveryToken: () => [...agentQueryKeys.all, 'delivery-token'] as const,
+  // 独立根，沿用原内联形状（无失效方配对；不并入 'agent' 根以保证零漂移迁移）
+  pipelineTrace: (canvasId: string | undefined, messageId: string) =>
+    ['pipeline-trace', canvasId, messageId] as const,
+  // 缓存的是未经 adaptAgentTemplate 的原始 IFlow[]，与 templates()
+  // （适配后 AgentTemplate[]）缓存形状不同，禁止合并到同一 key
+  templatesRaw: () => ['agentTemplates'] as const,
 }
 
 function useResolvedAgentId(id?: string) {

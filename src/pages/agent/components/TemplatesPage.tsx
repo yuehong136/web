@@ -27,6 +27,7 @@ import {
   PencilRuler,
 } from 'lucide-react'
 import { agentAPI } from '@/api/agent'
+import { agentQueryKeys } from '@/hooks/use-agent-query'
 import {
   buildAgentCanvasPath,
   isPipelineFlow,
@@ -57,7 +58,11 @@ type TemplateCategory = (typeof TemplateCategory)[keyof typeof TemplateCategory]
 const categoryMenu = [
   { key: TemplateCategory.Recommended, label: '推荐', icon: Sparkles },
   { key: TemplateCategory.Agent, label: '智能体', icon: Box },
-  { key: TemplateCategory.CustomerSupport, label: '客服支持', icon: MessageCircleCode },
+  {
+    key: TemplateCategory.CustomerSupport,
+    label: '客服支持',
+    icon: MessageCircleCode,
+  },
   { key: TemplateCategory.Marketing, label: '营销', icon: ChartPie },
   { key: TemplateCategory.ConsumerApp, label: '消费应用', icon: Component },
   { key: TemplateCategory.Pipeline, label: 'Ingestion Pipeline', icon: Route },
@@ -67,14 +72,20 @@ const categoryMenu = [
 export const TemplatesPage = ({ onBack }: TemplatesPageProps) => {
   const navigate = useNavigate()
   const [searchKeyword, setSearchKeyword] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState<TemplateCategory>(TemplateCategory.Recommended)
+  const [selectedCategory, setSelectedCategory] = useState<TemplateCategory>(
+    TemplateCategory.Recommended,
+  )
   const [selectedTemplate, setSelectedTemplate] = useState<IFlow | null>(null)
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
   const [newAgentName, setNewAgentName] = useState('')
 
   // 获取模版列表
-  const { data: templatesData, isLoading, error } = useQuery({
-    queryKey: ['agentTemplates'],
+  const {
+    data: templatesData,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: agentQueryKeys.templatesRaw(),
     queryFn: async () => {
       console.log('🔍 请求模版列表: /v1/canvas/templates')
       const result = await agentAPI.fetchTemplates()
@@ -107,7 +118,10 @@ export const TemplatesPage = ({ onBack }: TemplatesPageProps) => {
     let result = templates
 
     // 按分类过滤 - RAGFlow的逻辑
-    if (!selectedCategory || selectedCategory === TemplateCategory.Recommended) {
+    if (
+      !selectedCategory ||
+      selectedCategory === TemplateCategory.Recommended
+    ) {
       // 推荐：显示所有
       result = templates
     } else {
@@ -157,13 +171,14 @@ export const TemplatesPage = ({ onBack }: TemplatesPageProps) => {
       const result = await agentAPI.setAgent({
         title: newAgentName.trim(),
         description,
-        canvas_type: selectedTemplate.canvas_type === 'pipeline' ? 'pipeline' : 'agent',
+        canvas_type:
+          selectedTemplate.canvas_type === 'pipeline' ? 'pipeline' : 'agent',
         canvas_category:
           selectedTemplate.canvas_category ||
           resolveCanvasCategory(
             selectedTemplate.canvas_type === 'pipeline' ? 'pipeline' : 'agent',
           ),
-        dsl: selectedTemplate.dsl,  // 直接传递dsl，API层会处理
+        dsl: selectedTemplate.dsl, // 直接传递dsl，API层会处理
         avatar: selectedTemplate.avatar,
       })
 
@@ -174,7 +189,7 @@ export const TemplatesPage = ({ onBack }: TemplatesPageProps) => {
         setCreateDialogOpen(false)
         setSelectedTemplate(null)
         setNewAgentName('')
-        
+
         // 照抄RAGFlow：创建成功后直接跳转到画布页面
         console.log('🚀 [从模版创建] 跳转到画布:', result.id)
         navigate(buildAgentCanvasPath(result.id, result))
@@ -188,11 +203,16 @@ export const TemplatesPage = ({ onBack }: TemplatesPageProps) => {
   return (
     <div className="flex h-full">
       {/* 左侧分类边栏 */}
-      <aside className="w-64 bg-card border-r border-border flex flex-col flex-shrink-0">
+      <aside className="flex w-64 flex-shrink-0 flex-col border-r border-border bg-card">
         {/* 返回按钮 */}
-        <div className="p-4 border-b border-border">
-          <Button variant="ghost" size="sm" onClick={onBack} className="w-full justify-start">
-            <ArrowLeft className="w-4 h-4 mr-2" />
+        <div className="border-b border-border p-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onBack}
+            className="w-full justify-start"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
             返回
           </Button>
         </div>
@@ -207,19 +227,22 @@ export const TemplatesPage = ({ onBack }: TemplatesPageProps) => {
                 key={item.key}
                 onClick={() => setSelectedCategory(item.key)}
                 className={cn(
-                  'w-full flex items-center gap-4 px-6 py-4 transition-all relative',
+                  'relative flex w-full items-center gap-4 px-6 py-4 transition-all',
                   'hover:bg-[var(--color-components-sidebar-item-bg-hover)]',
-                  isActive && 'bg-[var(--color-components-sidebar-item-bg-active)] text-[var(--color-components-sidebar-item-text-active)] font-medium',
+                  isActive &&
+                    'bg-[var(--color-components-sidebar-item-bg-active)] font-medium text-[var(--color-components-sidebar-item-text-active)]',
                 )}
               >
-                <Icon className="w-5 h-5" />
+                <Icon className="h-5 w-5" />
                 <span>{item.label}</span>
                 {isActive && (
-                  <div 
-                    className="absolute right-0 w-1 h-12 rounded-l-lg" 
-                    style={{ 
-                      backgroundColor: 'var(--color-components-sidebar-item-text-active)',
-                      boxShadow: '0 0 8px var(--color-components-sidebar-item-text-active)'
+                  <div
+                    className="absolute right-0 h-12 w-1 rounded-l-lg"
+                    style={{
+                      backgroundColor:
+                        'var(--color-components-sidebar-item-text-active)',
+                      boxShadow:
+                        '0 0 8px var(--color-components-sidebar-item-text-active)',
                     }}
                   />
                 )}
@@ -230,20 +253,20 @@ export const TemplatesPage = ({ onBack }: TemplatesPageProps) => {
       </aside>
 
       {/* 右侧主内容区 */}
-      <main className="flex-1 flex flex-col bg-background overflow-hidden">
+      <main className="flex flex-1 flex-col overflow-hidden bg-background">
         {/* 顶部标题和搜索 */}
-        <div className="px-8 py-6 border-b border-border bg-card flex-shrink-0">
-          <div className="flex items-center justify-between mb-4">
+        <div className="flex-shrink-0 border-b border-border bg-card px-8 py-6">
+          <div className="mb-4 flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-bold text-foreground">创建智能体</h2>
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="mt-1 text-sm text-muted-foreground">
                 选择一个模版快速开始
               </p>
             </div>
 
             {/* 搜索框 */}
-            <div className="w-80 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <div className="relative w-80">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-muted-foreground" />
               <Input
                 placeholder="搜索模版..."
                 value={searchKeyword}
@@ -255,7 +278,11 @@ export const TemplatesPage = ({ onBack }: TemplatesPageProps) => {
 
           {/* 统计信息 */}
           <div className="text-sm text-muted-foreground">
-            找到 <span className="font-semibold text-foreground">{filteredTemplates.length}</span> 个模版
+            找到{' '}
+            <span className="font-semibold text-foreground">
+              {filteredTemplates.length}
+            </span>{' '}
+            个模版
           </div>
         </div>
 
@@ -264,72 +291,78 @@ export const TemplatesPage = ({ onBack }: TemplatesPageProps) => {
           {isLoading ? (
             <div className="flex items-center justify-center py-32">
               <div className="text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                <div className="text-sm text-muted-foreground">加载模版中...</div>
+                <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-primary"></div>
+                <div className="text-sm text-muted-foreground">
+                  加载模版中...
+                </div>
               </div>
             </div>
           ) : error ? (
             <div className="flex flex-col items-center justify-center py-32">
-              <Sparkles className="w-16 h-16 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground mb-4">加载模版失败</p>
-              <Button variant="outline" onClick={() => window.location.reload()}>
+              <Sparkles className="mb-4 h-16 w-16 text-muted-foreground" />
+              <p className="mb-4 text-muted-foreground">加载模版失败</p>
+              <Button
+                variant="outline"
+                onClick={() => window.location.reload()}
+              >
                 重试
               </Button>
             </div>
           ) : filteredTemplates.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-32">
-              <Sparkles className="w-16 h-16 text-muted-foreground mb-4" />
+              <Sparkles className="mb-4 h-16 w-16 text-muted-foreground" />
               <p className="text-muted-foreground">
                 {searchKeyword ? '没有找到匹配的模版' : '该分类下暂无模版'}
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {filteredTemplates.map((template) => {
                 const templateTitle = getTemplateTitle(template)
                 const templateDesc = getTemplateDescription(template)
-                
+
                 return (
                   <Card
                     key={template.id}
-                    className="group relative overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer border hover:border-primary/50 bg-card"
+                    className="group relative cursor-pointer overflow-hidden border bg-card transition-all duration-300 hover:border-primary/50 hover:shadow-xl"
                     onClick={() => handleTemplateClick(template)}
                   >
                     <div className="p-6">
                       {/* 头部：小图标 + 标题 */}
-                      <div className="flex items-start gap-4 mb-4">
+                      <div className="mb-4 flex items-start gap-4">
                         {/* Avatar小图标 - 参考RAGFlow策略 */}
-                        <div className="w-12 h-12 rounded-lg flex-shrink-0 overflow-hidden bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                        <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-blue-500 to-purple-600">
                           {template.avatar ? (
                             <img
                               src={template.avatar}
                               alt={templateTitle}
-                              className="w-full h-full object-cover"
+                              className="h-full w-full object-cover"
                               onError={(e) => {
                                 // 图片加载失败时显示fallback
                                 const target = e.currentTarget
                                 target.style.display = 'none'
                                 const parent = target.parentElement
                                 if (parent) {
-                                  parent.innerHTML = '<svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>'
+                                  parent.innerHTML =
+                                    '<svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>'
                                 }
                               }}
                             />
                           ) : (
-                            <Sparkles className="w-6 h-6 text-white" />
+                            <Sparkles className="h-6 w-6 text-white" />
                           )}
                         </div>
-                        
+
                         {/* 标题 */}
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-bold text-foreground text-lg mb-1 line-clamp-1 group-hover:text-primary transition-colors">
+                        <div className="min-w-0 flex-1">
+                          <h3 className="mb-1 line-clamp-1 text-lg font-bold text-foreground transition-colors group-hover:text-primary">
                             {templateTitle}
                           </h3>
-                          
+
                           {/* 推荐标签 */}
                           {template.canvas_type === 'Recommended' && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-xs font-medium">
-                              <Sparkles className="w-3 h-3" />
+                            <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                              <Sparkles className="h-3 w-3" />
                               推荐
                             </span>
                           )}
@@ -337,15 +370,15 @@ export const TemplatesPage = ({ onBack }: TemplatesPageProps) => {
                       </div>
 
                       {/* 描述 */}
-                      <p className="text-sm text-muted-foreground line-clamp-3 mb-4 min-h-[3.75rem] leading-relaxed">
+                      <p className="mb-4 line-clamp-3 min-h-[3.75rem] text-sm leading-relaxed text-muted-foreground">
                         {templateDesc || '暂无描述'}
                       </p>
 
                       {/* 底部：类型标签 */}
-                      <div className="flex items-center justify-between pt-4 border-t border-border/50">
+                      <div className="flex items-center justify-between border-t border-border/50 pt-4">
                         <span
                           className={cn(
-                            'px-3 py-1.5 rounded-lg text-xs font-semibold',
+                            'rounded-lg px-3 py-1.5 text-xs font-semibold',
                             isPipelineFlow(template)
                               ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
                               : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
@@ -359,16 +392,16 @@ export const TemplatesPage = ({ onBack }: TemplatesPageProps) => {
                     </div>
 
                     {/* 悬停遮罩和按钮 */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-8">
+                    <div className="absolute inset-0 flex items-end justify-center bg-gradient-to-t from-black/90 via-black/50 to-transparent pb-8 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
                       <Button
                         size="lg"
-                        className="shadow-2xl bg-background-surface text-text-primary hover:bg-background-subtle"
+                        className="bg-background-surface text-text-primary shadow-2xl hover:bg-background-subtle"
                         onClick={(e) => {
                           e.stopPropagation()
                           handleTemplateClick(template)
                         }}
                       >
-                        <Sparkles className="w-4 h-4 mr-2" />
+                        <Sparkles className="mr-2 h-4 w-4" />
                         使用此模版
                       </Button>
                     </div>
@@ -385,16 +418,16 @@ export const TemplatesPage = ({ onBack }: TemplatesPageProps) => {
         <DialogContent size="md" className="overflow-hidden">
           <DialogHeader className="pb-0">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-violet-500 to-purple-600 shadow-md">
-                <Sparkles className="w-5 h-5 text-white" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-md">
+                <Sparkles className="h-5 w-5 text-white" />
               </div>
-              <div className="flex-1 min-w-0">
+              <div className="min-w-0 flex-1">
                 <DialogTitle className="text-lg font-semibold text-[var(--color-text-primary)]">
                   创建智能体
                 </DialogTitle>
                 <DialogDescription className="text-[var(--color-text-secondary)]">
                   基于模版
-                  <span className="font-semibold text-[var(--color-text-primary)] mx-1">
+                  <span className="mx-1 font-semibold text-[var(--color-text-primary)]">
                     "{selectedTemplate && getTemplateTitle(selectedTemplate)}"
                   </span>
                   创建
@@ -405,39 +438,39 @@ export const TemplatesPage = ({ onBack }: TemplatesPageProps) => {
 
           {/* 模版预览 */}
           {selectedTemplate && (
-            <div className="px-6 py-5 space-y-5">
+            <div className="space-y-5 px-6 py-5">
               {/* 模版卡片预览 */}
-              <div className="rounded-xl border-2 border-[var(--color-border-default)] p-4 bg-[var(--color-surface-secondary)]/50">
+              <div className="bg-[var(--color-surface-secondary)]/50 rounded-xl border-2 border-[var(--color-border-default)] p-4">
                 <div className="flex items-start gap-4">
                   {/* 模版图标 */}
-                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-md overflow-hidden">
+                  <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 shadow-md">
                     {selectedTemplate.avatar ? (
                       <img
                         src={selectedTemplate.avatar}
                         alt={getTemplateTitle(selectedTemplate)}
-                        className="w-full h-full object-cover"
+                        className="h-full w-full object-cover"
                       />
                     ) : (
-                      <Sparkles className="w-7 h-7 text-white" />
+                      <Sparkles className="h-7 w-7 text-white" />
                     )}
                   </div>
-                  
+
                   {/* 模版信息 */}
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold text-[var(--color-text-primary)] mb-1.5">
+                  <div className="min-w-0 flex-1">
+                    <h4 className="mb-1.5 font-semibold text-[var(--color-text-primary)]">
                       {getTemplateTitle(selectedTemplate)}
                     </h4>
                     {getTemplateDescription(selectedTemplate) ? (
-                      <Tooltip 
-                        content={getTemplateDescription(selectedTemplate)} 
+                      <Tooltip
+                        content={getTemplateDescription(selectedTemplate)}
                         position="bottom"
                       >
-                        <p className="text-sm text-[var(--color-text-tertiary)] line-clamp-2 leading-relaxed cursor-default">
+                        <p className="line-clamp-2 cursor-default text-sm leading-relaxed text-[var(--color-text-tertiary)]">
                           {getTemplateDescription(selectedTemplate)}
                         </p>
                       </Tooltip>
                     ) : (
-                      <p className="text-sm text-[var(--color-text-tertiary)] leading-relaxed">
+                      <p className="text-sm leading-relaxed text-[var(--color-text-tertiary)]">
                         暂无描述
                       </p>
                     )}
@@ -447,7 +480,10 @@ export const TemplatesPage = ({ onBack }: TemplatesPageProps) => {
 
               {/* 名称输入 */}
               <div>
-                <Label htmlFor="new-agent-name" className="text-sm font-medium text-[var(--color-text-primary)] mb-2 block">
+                <Label
+                  htmlFor="new-agent-name"
+                  className="mb-2 block text-sm font-medium text-[var(--color-text-primary)]"
+                >
                   名称
                 </Label>
                 <Input
@@ -465,7 +501,7 @@ export const TemplatesPage = ({ onBack }: TemplatesPageProps) => {
                   }}
                   autoFocus
                 />
-                <p className="text-xs text-[var(--color-text-tertiary)] mt-1.5">
+                <p className="mt-1.5 text-xs text-[var(--color-text-tertiary)]">
                   给智能体起一个清晰、描述性的名称
                 </p>
               </div>
@@ -473,16 +509,19 @@ export const TemplatesPage = ({ onBack }: TemplatesPageProps) => {
           )}
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setCreateDialogOpen(false)}
+            >
               取消
             </Button>
-            <Button 
-              onClick={handleCreateFromTemplate} 
+            <Button
+              onClick={handleCreateFromTemplate}
               disabled={!newAgentName.trim()}
               className="gap-1.5"
             >
               创建
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="h-4 w-4" />
             </Button>
           </DialogFooter>
         </DialogContent>

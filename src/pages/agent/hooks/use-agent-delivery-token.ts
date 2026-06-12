@@ -1,19 +1,16 @@
 import { useQuery } from '@tanstack/react-query'
 import { systemAPI } from '@/api/system'
-
-const deliveryTokenQueryKey = ['agent', 'delivery-token'] as const
+import { agentQueryKeys } from '@/hooks/use-agent-query'
 
 const pickToken = (
-  tokens:
-    | Awaited<ReturnType<typeof systemAPI.getTokenList>>
-    | undefined,
+  tokens: Awaited<ReturnType<typeof systemAPI.getTokenList>> | undefined,
 ) => {
   return tokens?.[0]?.beta || ''
 }
 
 export function useAgentDeliveryToken(enabled = true) {
   const query = useQuery({
-    queryKey: deliveryTokenQueryKey,
+    queryKey: agentQueryKeys.deliveryToken(),
     queryFn: () => systemAPI.getTokenList(),
     enabled,
     staleTime: 60_000,
@@ -27,10 +24,14 @@ export function useAgentDeliveryToken(enabled = true) {
     }
 
     if (!currentTokens?.length) {
-      throw new Error('未检测到系统 API Token，请先在系统 Token 管理中创建 Token。')
+      throw new Error(
+        '未检测到系统 API Token，请先在系统 Token 管理中创建 Token。',
+      )
     }
 
-    throw new Error('第一条系统 API Token 缺少 beta，无法生成 RAGFlow 标准 Share 链接。')
+    throw new Error(
+      '第一条系统 API Token 缺少 beta，无法生成 RAGFlow 标准 Share 链接。',
+    )
   }
 
   return {
