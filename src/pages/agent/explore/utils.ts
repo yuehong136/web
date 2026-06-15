@@ -1,16 +1,18 @@
 import { AgentDialogueMode, BeginId } from '../constant'
 import type { BeginQuery } from '../types'
-import type { AgentFlow, AgentSession, AgentSessionMessage } from '@/types/agent'
+import { getOrderedBeginInputEntries } from '../utils/begin-input-order'
+import type {
+  AgentFlow,
+  AgentSession,
+  AgentSessionMessage,
+} from '@/types/agent'
 import type {
   RuntimeAttachment,
   RuntimeMessage,
 } from '../features/runtime-workbench/types'
 import { normalizeRuntimeAttachments } from '../features/runtime-workbench/utils'
 import { XCardStatus, type AgentXCardCommand } from '../x-card'
-import type {
-  ExploreSession,
-  ExploreSessionListParams,
-} from './types'
+import type { ExploreSession, ExploreSessionListParams } from './types'
 
 const SYNTHETIC_TEMP_SESSION_ID = 'temporary-explore-session'
 
@@ -18,9 +20,7 @@ const isRecord = (value: unknown): value is Record<string, unknown> => {
   return typeof value === 'object' && value !== null
 }
 
-export function resolveExploreSessionId(
-  searchParams: URLSearchParams,
-): {
+export function resolveExploreSessionId(searchParams: URLSearchParams): {
   sessionId: string
   legacySessionId: string
   isNew: boolean
@@ -67,7 +67,9 @@ export function selectNextSessionIdAfterDelete(
   sessions: AgentSession[],
   deletedSessionId: string,
 ) {
-  const remaining = sessions.filter((session) => session.id !== deletedSessionId)
+  const remaining = sessions.filter(
+    (session) => session.id !== deletedSessionId,
+  )
   return remaining[0]?.id || ''
 }
 
@@ -85,7 +87,9 @@ export function createDefaultExploreSessionParams(): ExploreSessionListParams {
 }
 
 function getBeginForm(agent?: AgentFlow) {
-  const beginNode = agent?.dsl?.graph?.nodes?.find((node) => node.id === BeginId)
+  const beginNode = agent?.dsl?.graph?.nodes?.find(
+    (node) => node.id === BeginId,
+  )
   const data = isRecord(beginNode?.data) ? beginNode.data : undefined
   return isRecord(data?.form) ? data.form : undefined
 }
@@ -97,7 +101,7 @@ export function getBeginInputsFromAgent(agent?: AgentFlow): BeginQuery[] {
     return []
   }
 
-  return Object.entries(inputs as Record<string, BeginQuery>).map(
+  return getOrderedBeginInputEntries(inputs as Record<string, BeginQuery>).map(
     ([key, value]) => ({
       ...value,
       key,
@@ -153,7 +157,9 @@ export function mapSessionMessageToRuntimeMessage(
   return {
     id: message.id || `session-message-${index}`,
     role: normalizeRole(message.role),
-    content: stringifyContent(message.content ?? record.answer ?? record.output),
+    content: stringifyContent(
+      message.content ?? record.answer ?? record.output,
+    ),
     files: files as RuntimeAttachment[],
     reference: record.reference,
     error: typeof record.error === 'string' ? record.error : undefined,

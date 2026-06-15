@@ -21,6 +21,7 @@ import type {
   AgentTraceItem,
 } from '@/types/agent'
 import type { BeginQuery } from '../../../types'
+import { getOrderedBeginInputEntries } from '../../../utils/begin-input-order'
 import type { LogDetailSource, LogDetailViewModel } from '../types'
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -32,26 +33,30 @@ function toBeginInputs(value: unknown): BeginQuery[] {
     return []
   }
 
-  return Object.entries(value).map(([key, field]) => {
-    const record = isRecord(field) ? field : { value: field }
-    return {
-      key,
-      type: typeof record.type === 'string' ? record.type : 'line',
-      value: String(record.value ?? ''),
-      optional: Boolean(record.optional),
-      name:
-        typeof record.name === 'string'
-          ? record.name
-          : typeof record.label === 'string'
-            ? record.label
-            : key,
-      label: typeof record.label === 'string' ? record.label : undefined,
-      required: Boolean(record.required),
-      options: Array.isArray(record.options)
-        ? (record.options as BeginQuery['options'])
-        : undefined,
-    }
-  })
+  return getOrderedBeginInputEntries(value as Record<string, BeginQuery>).map(
+    ([key, field]) => {
+      const record: Record<string, unknown> = isRecord(field)
+        ? field
+        : { value: field }
+      return {
+        key,
+        type: typeof record.type === 'string' ? record.type : 'line',
+        value: String(record.value ?? ''),
+        optional: Boolean(record.optional),
+        name:
+          typeof record.name === 'string'
+            ? record.name
+            : typeof record.label === 'string'
+              ? record.label
+              : key,
+        label: typeof record.label === 'string' ? record.label : undefined,
+        required: Boolean(record.required),
+        options: Array.isArray(record.options)
+          ? (record.options as BeginQuery['options'])
+          : undefined,
+      }
+    },
+  )
 }
 
 function latestAssistantMessage(messages: RuntimeMessage[]) {

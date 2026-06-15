@@ -44,6 +44,7 @@ export default {
     other: '其他',
     agents: '智能体',
     beginInput: '开始输入',
+    dragToReorderInput: '拖拽排序输入项',
     guidingQuestionTip: '用户填写表单前展示的引导问题。',
     seconds: '秒',
     ref: '引用变量',

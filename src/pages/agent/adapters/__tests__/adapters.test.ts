@@ -12,6 +12,7 @@ import {
 import {
   buildInitialShareValues,
   buildShareInputsPayload,
+  getShareInputEntries,
 } from '../../share/utils'
 import { adaptAgentFlow } from '../flow'
 import { adaptAgentPublishSummary } from '../publish'
@@ -724,6 +725,21 @@ test('share input utilities build values and completion payload', () => {
   assert.equal(payload.count?.value, 3)
   assert.equal(payload.enabled?.value, true)
   assert.deepEqual(payload.docs?.value, [{ id: 'file-1', name: 'demo.pdf' }])
+})
+
+test('share input utilities preserve explicit begin input order', () => {
+  const fields = adaptAgentShareSummary({
+    inputs: {
+      10: { type: 'line', order: 2 },
+      2: { type: 'line', order: 0 },
+      alpha: { type: 'line', order: 1 },
+    },
+  }).inputs
+
+  assert.deepEqual(
+    getShareInputEntries(fields).map((entry) => entry.key),
+    ['2', 'alpha', '10'],
+  )
 })
 
 test('webhook trace adapter exposes status, input, output and errors', () => {

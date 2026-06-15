@@ -73,6 +73,7 @@ export const UserFillUpForm = memo(function UserFillUpForm({
     showModal,
     otherThanCurrentQuery,
     handleDeleteRecord,
+    handleMoveRecord,
   } = useEditQueryRecord({
     form,
   })
@@ -162,6 +163,7 @@ export const UserFillUpForm = memo(function UserFillUpForm({
             data={inputs}
             showModal={showModal}
             deleteRecord={handleDeleteRecord}
+            moveRecord={handleMoveRecord}
           />
         </CollapsibleSection>
 

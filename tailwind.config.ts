@@ -54,6 +54,14 @@ const config = {
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },
+      spacing: {
+        'icon-xs': '0.75rem',
+        'icon-sm': '1rem',
+        'icon-md': '1.25rem',
+        'icon-lg': '1.5rem',
+        'icon-xl': '2rem',
+        'icon-2xl': '2.5rem',
+      },
       // boxShadow.soft/medium/large 已删除：项目统一使用 elevation-low/medium/high token。
       animation: {
         'fade-in': 'fadeIn 0.5s ease-in-out',

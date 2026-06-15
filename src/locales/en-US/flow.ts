@@ -206,6 +206,7 @@ export default {
     basic: 'basic',
     begin: 'Begin',
     beginInput: 'Begin input',
+    dragToReorderInput: 'Drag to reorder input',
     boolean: 'Boolean',
     cashFlowStatement: 'Cash flow statement',
     ccEmail: 'CC email',

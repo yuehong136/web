@@ -1,4 +1,5 @@
 import { BeginQueryType } from '../constant'
+import { getOrderedBeginInputEntries } from '../utils/begin-input-order'
 import type { AgentShareInputField, AgentShareSummary } from '@/types/agent'
 
 export type ShareFormValue = string | number | boolean | unknown[]
@@ -9,7 +10,7 @@ const isRecord = (value: unknown): value is Record<string, unknown> => {
 }
 
 export function getShareInputEntries(inputs?: AgentShareSummary['inputs']) {
-  return Object.entries(inputs || {}).map(([key, field]) => ({
+  return getOrderedBeginInputEntries(inputs).map(([key, field]) => ({
     key,
     field: {
       ...field,

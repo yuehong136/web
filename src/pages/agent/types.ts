@@ -483,6 +483,7 @@ export interface BeginQuery {
   name: string
   label?: string
   required?: boolean
+  order?: number
   options?: (number | string | boolean)[]
 }
 

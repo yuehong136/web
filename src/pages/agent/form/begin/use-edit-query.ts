@@ -22,9 +22,8 @@ function buildEmptyRecord(): BeginInputEditorItem {
 export function useEditQueryRecord({ form }: UseEditQueryRecordParams) {
   const [open, setOpen] = useState(false)
   const [index, setIndex] = useState(-1)
-  const [currentRecord, setCurrentRecord] = useState<BeginInputEditorItem>(
-    buildEmptyRecord(),
-  )
+  const [currentRecord, setCurrentRecord] =
+    useState<BeginInputEditorItem>(buildEmptyRecord())
 
   const watchedInputs = useWatch({
     control: form.control,
@@ -46,11 +45,14 @@ export function useEditQueryRecord({ form }: UseEditQueryRecordParams) {
     setCurrentRecord(buildEmptyRecord())
   }, [])
 
-  const showModal = useCallback((idx?: number, record?: BeginInputEditorItem) => {
-    setIndex(idx ?? -1)
-    setCurrentRecord(record || buildEmptyRecord())
-    setOpen(true)
-  }, [])
+  const showModal = useCallback(
+    (idx?: number, record?: BeginInputEditorItem) => {
+      setIndex(idx ?? -1)
+      setCurrentRecord(record || buildEmptyRecord())
+      setOpen(true)
+    },
+    [],
+  )
 
   const handleEditRecord = useCallback(
     (record: BeginInputEditorItem) => {
@@ -82,6 +84,33 @@ export function useEditQueryRecord({ form }: UseEditQueryRecordParams) {
     [form, inputs],
   )
 
+  const handleMoveRecord = useCallback(
+    (fromIndex: number, toIndex: number) => {
+      if (
+        fromIndex === toIndex ||
+        fromIndex < 0 ||
+        toIndex < 0 ||
+        fromIndex >= inputs.length ||
+        toIndex >= inputs.length
+      ) {
+        return
+      }
+
+      const nextInputs = [...inputs]
+      const [movedInput] = nextInputs.splice(fromIndex, 1)
+      if (!movedInput) {
+        return
+      }
+
+      nextInputs.splice(toIndex, 0, movedInput)
+      form.setValue('inputs', nextInputs, {
+        shouldDirty: true,
+        shouldValidate: true,
+      })
+    },
+    [form, inputs],
+  )
+
   return {
     ok: handleEditRecord,
     currentRecord,
@@ -90,5 +119,6 @@ export function useEditQueryRecord({ form }: UseEditQueryRecordParams) {
     showModal,
     otherThanCurrentQuery,
     handleDeleteRecord,
+    handleMoveRecord,
   }
 }

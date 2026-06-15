@@ -14,6 +14,7 @@ import { useTranslation } from 'react-i18next'
 import DebugContent from '../../../debug-content'
 import { buildBeginInputListFromObject } from '../../../hooks/use-get-begin-query'
 import type { BeginQuery } from '../../../types'
+import { coerceBeginInputOrder } from '../../../utils/begin-input-order'
 
 interface SingleStepDebugSheetProps {
   open: boolean
@@ -33,13 +34,16 @@ interface DebugResponseLike {
 
 function transferInputsArrayToObject(inputs: BeginQuery[] = []) {
   return inputs.reduce<Record<string, Omit<BeginQuery, 'key'>>>(
-    (result, item) => {
+    (result, item, index) => {
       if (!item.key) {
         return result
       }
 
       const { key, ...rest } = item
-      result[key] = rest
+      result[key] = {
+        ...rest,
+        order: coerceBeginInputOrder(rest.order) ?? index,
+      }
       return result
     },
     {},

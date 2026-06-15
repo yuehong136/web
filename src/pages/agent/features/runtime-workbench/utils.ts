@@ -13,6 +13,10 @@ import {
 } from './types'
 import type { INodeData } from '../../hooks/use-node-loading'
 import {
+  coerceBeginInputOrder,
+  getOrderedBeginInputEntries,
+} from '../../utils/begin-input-order'
+import {
   XCardStatus,
   normalizeA2UICommandEventData,
   type AgentXCardCommand,
@@ -60,7 +64,9 @@ const A2UI_COMMAND_KEYS = new Set([
   'deleteSurface',
 ])
 
-const isA2UICommandRecord = (value: unknown): value is Record<string, unknown> => {
+const isA2UICommandRecord = (
+  value: unknown,
+): value is Record<string, unknown> => {
   if (!isRecord(value) || value.version !== 'v0.9') {
     return false
   }
@@ -184,13 +190,16 @@ export function buildRuntimeInputObject(
   values: BeginQuery[] = [],
 ): Record<string, Omit<BeginQuery, 'key'>> {
   return values.reduce<Record<string, Omit<BeginQuery, 'key'>>>(
-    (result, item) => {
+    (result, item, index) => {
       if (!item.key) {
         return result
       }
 
       const { key, ...rest } = item
-      result[key] = rest
+      result[key] = {
+        ...rest,
+        order: coerceBeginInputOrder(rest.order) ?? index,
+      }
       return result
     },
     {},
@@ -204,12 +213,10 @@ export function formatRuntimeInputSummary(values: BeginQuery[] = []) {
     .join('\n')
 }
 
-export function normalizeRuntimeAttachments(value: unknown): RuntimeAttachment[] {
-  const list = Array.isArray(value)
-    ? value
-    : value
-      ? [value]
-      : []
+export function normalizeRuntimeAttachments(
+  value: unknown,
+): RuntimeAttachment[] {
+  const list = Array.isArray(value) ? value : value ? [value] : []
 
   return list.reduce<RuntimeAttachment[]>((result, item) => {
     if (!isRecord(item)) {
@@ -256,10 +263,12 @@ export function normalizeRuntimeAwaitingInputs(value: unknown): BeginQuery[] {
     return []
   }
 
-  return Object.entries(value).map(([key, field]) => ({
-    key,
-    ...(isRecord(field) ? field : {}),
-  })) as BeginQuery[]
+  return getOrderedBeginInputEntries(value as Record<string, BeginQuery>).map(
+    ([key, field]) => ({
+      key,
+      ...(isRecord(field) ? field : {}),
+    }),
+  ) as BeginQuery[]
 }
 
 export function normalizeRuntimeEvent(raw: unknown): NormalizedRuntimeEvent {
@@ -277,9 +286,7 @@ export function normalizeRuntimeEvent(raw: unknown): NormalizedRuntimeEvent {
         : 0
 
   const errorMessage =
-    code !== 0
-      ? payload.retmsg || payload.message || '运行失败'
-      : undefined
+    code !== 0 ? payload.retmsg || payload.message || 'Run failed' : undefined
 
   const logEvent =
     payload.event &&

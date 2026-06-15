@@ -7,6 +7,10 @@ import isObject from 'lodash/isObject.js'
 import omit from 'lodash/omit.js'
 import sample from 'lodash/sample.js'
 import { Operator, CategorizeAnchorPointPositions } from './constant'
+import {
+  coerceBeginInputOrder,
+  getOrderedBeginInputEntries,
+} from './utils/begin-input-order'
 import type {
   RAGFlowNodeType,
   ICategorizeItemResult,
@@ -373,16 +377,18 @@ export function buildBeginQueryWithObject(
   inputs: Record<string, any>,
   values: any[],
 ) {
-  const nextInputs = Object.keys(inputs).reduce<Record<string, any>>(
-    (pre, key) => {
-      const item = values.find((x) => x.key === key)
-      if (item) {
-        pre[key] = { ...item }
+  const nextInputs = getOrderedBeginInputEntries(inputs).reduce<
+    Record<string, any>
+  >((pre, [key, field], index) => {
+    const item = values.find((x) => x.key === key)
+    if (item) {
+      pre[key] = {
+        ...item,
+        order: coerceBeginInputOrder(item.order ?? field?.order) ?? index,
       }
-      return pre
-    },
-    {},
-  )
+    }
+    return pre
+  }, {})
 
   return nextInputs
 }

@@ -1,10 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { BeginQueryType } from '../../../constant'
-import {
-  AgentRuntimeStatus,
-  RuntimeWorkbenchView,
-} from '../types'
+import { AgentRuntimeStatus, RuntimeWorkbenchView } from '../types'
 import {
   buildRuntimeInputObject,
   buildRuntimeSummary,
@@ -79,6 +76,7 @@ test('buildRuntimeInputObject preserves mixed begin-query field metadata', () =>
     'mode',
   ])
   assert.equal(inputs.question?.value, 'hello')
+  assert.equal(inputs.question?.order, 0)
   assert.equal(inputs.retry?.value, true)
   assert.equal(inputs.limit?.value, 3)
   assert.deepEqual(inputs.mode?.options, ['fast', 'safe'])
@@ -251,10 +249,7 @@ test('normalizeRuntimeEvent extracts A2UI v0.9 commands incrementally', () => {
   const command = normalized.xCardCommands?.[0] as
     | { createSurface?: { surfaceId?: string } }
     | undefined
-  assert.equal(
-    command?.createSurface?.surfaceId,
-    'message-card',
-  )
+  assert.equal(command?.createSurface?.surfaceId, 'message-card')
 })
 
 test('normalizeRuntimeEvent preserves raw A2UI JSON from node output fallback', () => {
@@ -511,22 +506,21 @@ test('normalizeCommandsForXCardRenderer adapts Basic Catalog List and Tabs shape
     | undefined
 
   assert.equal(command?.updateComponents?.components?.[0]?.children, undefined)
-  assert.deepEqual(
-    command?.updateComponents?.components?.[0]?.items,
-    { path: '/records' },
-  )
+  assert.deepEqual(command?.updateComponents?.components?.[0]?.items, {
+    path: '/records',
+  })
   assert.equal(
     command?.updateComponents?.components?.[0]?.itemsPath,
     '/records',
   )
-  assert.deepEqual(
-    command?.updateComponents?.components?.[1]?.children,
-    ['today', 'week'],
-  )
-  assert.deepEqual(
-    command?.updateComponents?.components?.[1]?.tabTitles,
-    ['今日', '本周'],
-  )
+  assert.deepEqual(command?.updateComponents?.components?.[1]?.children, [
+    'today',
+    'week',
+  ])
+  assert.deepEqual(command?.updateComponents?.components?.[1]?.tabTitles, [
+    '今日',
+    '本周',
+  ])
 })
 
 test('normalizeCommandsForXCardRenderer preserves canonical component payloads without legacy props flattening', () => {

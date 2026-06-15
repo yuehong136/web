@@ -1,9 +1,12 @@
 import type { BeginQuery } from '../../types'
+import {
+  coerceBeginInputOrder,
+  getOrderedBeginInputEntries,
+} from '../../utils/begin-input-order'
 
 type BeginOptionValue = string | number | boolean
 
-export interface BeginInputEditorItem
-  extends Omit<BeginQuery, 'options'> {
+export interface BeginInputEditorItem extends Omit<BeginQuery, 'options'> {
   options?: Array<{ value: BeginOptionValue }>
 }
 
@@ -57,7 +60,7 @@ export function normalizeBeginInputsForEditor(
   inputs: unknown,
 ): BeginInputEditorItem[] {
   if (Array.isArray(inputs)) {
-    return inputs.map((item) => {
+    return inputs.map((item, index) => {
       const nextItem = (item || {}) as Partial<BeginQuery>
 
       return {
@@ -66,6 +69,7 @@ export function normalizeBeginInputsForEditor(
         value: typeof nextItem.value === 'string' ? nextItem.value : '',
         type: nextItem.type || 'line',
         optional: Boolean(nextItem.optional),
+        order: coerceBeginInputOrder(nextItem.order) ?? index,
         options: Array.isArray(nextItem.options)
           ? nextItem.options.map((option) => ({
               value: normalizeOptionValue(option),
@@ -79,8 +83,8 @@ export function normalizeBeginInputsForEditor(
     return []
   }
 
-  return Object.entries(inputs as Record<string, BeginQuery>).map(
-    ([key, value]) => ({
+  return getOrderedBeginInputEntries(inputs as Record<string, BeginQuery>).map(
+    ([key, value], index) => ({
       key,
       name: value?.name || key,
       value: typeof value?.value === 'string' ? value.value : '',
@@ -88,6 +92,7 @@ export function normalizeBeginInputsForEditor(
       optional: Boolean(value?.optional),
       label: value?.label,
       required: value?.required,
+      order: coerceBeginInputOrder(value?.order) ?? index,
       options: Array.isArray(value?.options)
         ? value.options.map((option) => ({
             value: normalizeOptionValue(option),
@@ -101,7 +106,7 @@ export function serializeBeginInputsForStore(
   inputs: BeginInputEditorItem[] = [],
 ) {
   return inputs.reduce<Record<string, Omit<BeginQuery, 'key'>>>(
-    (result, item) => {
+    (result, item, index) => {
       const key = item.key?.trim()
 
       if (!key) {
@@ -115,6 +120,7 @@ export function serializeBeginInputsForStore(
         optional: Boolean(item.optional),
         label: item.label,
         required: item.required,
+        order: index,
         options: Array.isArray(item.options)
           ? item.options
               .map((option) => normalizeOptionValue(option))

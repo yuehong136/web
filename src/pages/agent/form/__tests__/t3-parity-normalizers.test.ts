@@ -401,6 +401,7 @@ test('begin input bridge converts keyed input objects into compact-record rows a
       value: '',
       optional: false,
       required: undefined,
+      order: 0,
       options: [],
     },
     {
@@ -411,6 +412,7 @@ test('begin input bridge converts keyed input objects into compact-record rows a
       value: '',
       optional: true,
       required: undefined,
+      order: 1,
       options: [],
     },
   ])
@@ -425,6 +427,7 @@ test('begin input bridge converts keyed input objects into compact-record rows a
       optional: false,
       label: undefined,
       required: undefined,
+      order: 0,
       options: [],
     },
     attachments: {
@@ -434,9 +437,41 @@ test('begin input bridge converts keyed input objects into compact-record rows a
       optional: true,
       label: undefined,
       required: undefined,
+      order: 1,
       options: [],
     },
   })
+})
+
+test('begin input bridge sorts object inputs by explicit order metadata', () => {
+  const normalized = normalizeBeginInputsForEditor({
+    10: {
+      name: 'Tenth',
+      type: 'line',
+      value: '',
+      optional: false,
+      order: 2,
+    },
+    2: {
+      name: 'Second',
+      type: 'line',
+      value: '',
+      optional: false,
+      order: 0,
+    },
+    alpha: {
+      name: 'Alpha',
+      type: 'line',
+      value: '',
+      optional: false,
+      order: 1,
+    },
+  })
+
+  assert.deepEqual(
+    normalized.map((item) => item.key),
+    ['2', 'alpha', '10'],
+  )
 })
 
 test('begin webhook schema derives direct outputs for query, headers, and body keys', () => {

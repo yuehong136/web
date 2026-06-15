@@ -3,12 +3,16 @@ import type {
   AgentShareInputField,
   AgentShareSummary,
 } from '@/types/agent'
+import {
+  coerceBeginInputOrder,
+  getOrderedBeginInputEntries,
+} from '../utils/begin-input-order'
 
 export function adaptAgentShareInputs(
   inputs: AgentExternalInputs['inputs'] | undefined,
 ): Record<string, AgentShareInputField> {
   return Object.fromEntries(
-    Object.entries(inputs || {}).map(([key, value]) => [
+    getOrderedBeginInputEntries(inputs).map(([key, value], index) => [
       key,
       {
         key,
@@ -18,6 +22,7 @@ export function adaptAgentShareInputs(
         required: value?.required ?? !value?.optional,
         name: value?.name || key,
         label: value?.label || value?.name || key,
+        order: coerceBeginInputOrder(value?.order) ?? index,
         options: value?.options || [],
       },
     ]),

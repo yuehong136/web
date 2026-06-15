@@ -287,6 +287,7 @@ export interface AgentShareInputField {
   required?: boolean
   name?: string
   label?: string
+  order?: number
   options?: Array<string | number | boolean>
   [key: string]: unknown
 }

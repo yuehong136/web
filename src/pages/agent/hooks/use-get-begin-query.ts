@@ -19,6 +19,7 @@ import {
 } from '../constant'
 import useGraphStore from '../store'
 import type { BeginQuery } from '../types'
+import { getOrderedBeginInputEntries } from '../utils/begin-input-order'
 import { useTranslation } from 'react-i18next'
 
 type FlattenedVariableOption = {
@@ -35,7 +36,7 @@ export function buildBeginInputListFromObject(
   inputs: Record<string, BeginQuery> | undefined,
 ): BeginQuery[] {
   if (!inputs) return []
-  return Object.entries(inputs).map(([key, value]) => ({
+  return getOrderedBeginInputEntries(inputs).map(([key, value]) => ({
     ...value,
     key,
   }))
@@ -219,7 +220,9 @@ export function useBuildGlobalWithBeginVariableOptions(): VariableOptionGroup[] 
   }, [beginOptions, data?.dsl?.globals])
 }
 
-export function useBuildPromptVariableOptions(nodeId?: string): VariableOptionGroup[] {
+export function useBuildPromptVariableOptions(
+  nodeId?: string,
+): VariableOptionGroup[] {
   const clickedNodeId = useGraphStore((state) => state.clickedNodeId)
   const upstreamOptions = useBuildNodeOutputOptions(nodeId || clickedNodeId)
   const globalWithBeginOptions = useBuildGlobalWithBeginVariableOptions()
@@ -308,16 +311,15 @@ export function useGetVariableLabelOrTypeByValue({
         return ''
       }
 
-      const { nodeId: sourceNodeId, field } = splitVariableReference(normalizedValue)
+      const { nodeId: sourceNodeId, field } =
+        splitVariableReference(normalizedValue)
       const sourceNode = getNode(sourceNodeId)
 
       if (!sourceNode) {
         return normalizedValue
       }
 
-      return field
-        ? `${sourceNode.data.name}.${field}`
-        : sourceNode.data.name
+      return field ? `${sourceNode.data.name}.${field}` : sourceNode.data.name
     },
     [getNode],
   )
@@ -330,7 +332,9 @@ export function useGetVariableLabelOrTypeByValue({
         return `${item.groupTitle}.${item.label}`
       }
 
-      return findAgentStructuredOutputLabelByValue(value) || getFallbackLabel(value)
+      return (
+        findAgentStructuredOutputLabelByValue(value) || getFallbackLabel(value)
+      )
     },
     [findAgentStructuredOutputLabelByValue, getFallbackLabel, getItem],
   )
@@ -354,12 +358,16 @@ export function useGetVariableLabelOrTypeByValue({
         return ''
       }
 
-      const { nodeId: sourceNodeId, field } = splitVariableReference(normalizedValue)
+      const { nodeId: sourceNodeId, field } =
+        splitVariableReference(normalizedValue)
       const sourceNode = getNode(sourceNodeId)
       const nextType =
         field && sourceNode?.data?.form
-          ? (sourceNode.data.form as { outputs?: Record<string, { type?: string }> })
-            .outputs?.[field]?.type
+          ? (
+              sourceNode.data.form as {
+                outputs?: Record<string, { type?: string }>
+              }
+            ).outputs?.[field]?.type
           : undefined
 
       return nextType ? normalizeBeginInputType(nextType) : undefined

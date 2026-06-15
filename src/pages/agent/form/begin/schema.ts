@@ -12,6 +12,7 @@ export const beginInputSchema = z.object({
   name: z.string().trim().min(1),
   label: z.string().optional(),
   required: z.boolean().optional(),
+  order: z.number().optional(),
   options: z.array(beginInputOptionSchema).optional(),
 })
 
@@ -27,7 +28,9 @@ export const beginFormSchema = z.object({
   security: z
     .object({
       auth_type: z.string().optional(),
-      ip_whitelist: z.array(z.object({ value: z.string().optional() })).optional(),
+      ip_whitelist: z
+        .array(z.object({ value: z.string().optional() }))
+        .optional(),
       token: z
         .object({
           token_header: z.string().optional(),
@@ -53,7 +56,9 @@ export const beginFormSchema = z.object({
           secret: z.string().optional(),
           issuer: z.string().optional(),
           audience: z.string().optional(),
-          required_claims: z.array(z.object({ value: z.string().optional() })).optional(),
+          required_claims: z
+            .array(z.object({ value: z.string().optional() }))
+            .optional(),
         })
         .optional(),
       hmac: z

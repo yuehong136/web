@@ -78,6 +78,7 @@ export function BeginForm({ node }: INextOperatorForm) {
     showModal,
     otherThanCurrentQuery,
     handleDeleteRecord,
+    handleMoveRecord,
   } = useEditQueryRecord({
     form,
   })
@@ -210,6 +211,7 @@ export function BeginForm({ node }: INextOperatorForm) {
                 data={inputs}
                 showModal={showModal}
                 deleteRecord={handleDeleteRecord}
+                moveRecord={handleMoveRecord}
               />
             </CollapsibleSection>
             {hasFileInput && (
