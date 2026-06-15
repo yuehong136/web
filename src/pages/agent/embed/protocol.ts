@@ -13,7 +13,6 @@ export type EmbedNavigateTarget =
   | 'back'
   | 'explore'
   | 'webhook'
-  | 'share'
   | 'versions'
   | 'settings'
   | 'variables'

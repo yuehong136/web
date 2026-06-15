@@ -13,13 +13,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { JsonViewer } from '../form/components/json-viewer'
 import { cn, copyToClipboard } from '@/lib/utils'
 import { toast } from '@/lib/toast'
-import {
-  Check,
-  Copy,
-  Loader2,
-  Play,
-  RefreshCw,
-} from 'lucide-react'
+import { Check, Copy, Loader2, Play, RefreshCw } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { adaptAgentWebhookTrace } from '../adapters'
 import { WebhookTimeline } from './webhook-timeline'
 import {
@@ -28,10 +23,7 @@ import {
   getWebhookBeginConfig,
   summarizeWebhookResponse,
 } from './utils'
-import type {
-  AgentFlow,
-  AgentWebhookTraceSummary,
-} from '@/types/agent'
+import type { AgentFlow, AgentWebhookTraceSummary } from '@/types/agent'
 
 enum WebhookTraceTab {
   Overview = 'overview',
@@ -63,6 +55,7 @@ export function WebhookSheet({
   webhookUrl = '',
   flow,
 }: WebhookSheetProps) {
+  const { t } = useTranslation()
   const [copied, setCopied] = useState(false)
   const [trace, setTrace] = useState<AgentWebhookTraceSummary>()
   const [responseSummary, setResponseSummary] = useState<unknown>()
@@ -175,13 +168,16 @@ export function WebhookSheet({
 
       await pollTrace(baseline)
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Webhook 测试失败'
+      const message =
+        error instanceof Error
+          ? error.message
+          : t('agent.webhook.testFailed', 'Webhook test failed')
       setTestError(message)
       toast.error(message)
     } finally {
       setTesting(false)
     }
-  }, [flow?.id, pollTrace, testBuild.request])
+  }, [flow?.id, pollTrace, t, testBuild.request])
 
   const handleRefreshTrace = useCallback(async () => {
     if (!flow?.id) {
@@ -196,11 +192,14 @@ export function WebhookSheet({
   return (
     <Sheet open onOpenChange={hideModal} modal={false}>
       <SheetContent
-        className={cn('top-20 flex h-[calc(100vh-5rem)] w-[min(720px,90vw)] flex-col')}
+        showOverlay={false}
+        className={cn(
+          'top-20 flex h-[calc(100vh-5rem)] w-[min(720px,90vw)] flex-col',
+        )}
         onInteractOutside={(event) => event.preventDefault()}
       >
         <SheetHeader>
-          <SheetTitle className="flex items-center gap-space-sm">
+          <SheetTitle className="gap-space-sm flex items-center">
             Webhook 测试
             <Badge
               variant={
@@ -218,14 +217,14 @@ export function WebhookSheet({
           </SheetTitle>
         </SheetHeader>
 
-        <div className="flex-1 space-y-space-lg overflow-auto py-space-lg">
+        <div className="space-y-space-lg py-space-lg flex-1 overflow-auto">
           <section className="space-y-space-sm">
             <p className="text-sm font-medium text-text-primary">Webhook URL</p>
-            <div className="flex gap-space-sm">
+            <div className="gap-space-sm flex">
               <Input
                 value={webhookUrl}
                 readOnly
-                className="flex-1 bg-surface-secondary"
+                className="bg-surface-secondary flex-1"
               />
               <Button
                 variant="outline"
@@ -248,7 +247,7 @@ export function WebhookSheet({
           </section>
 
           {testBuild.warnings.length ? (
-            <div className="space-y-space-xs rounded-radius-md border border-border-subtle bg-surface-secondary p-space-sm text-sm text-text-secondary">
+            <div className="space-y-space-xs rounded-radius-md bg-surface-secondary p-space-sm border border-border-subtle text-sm text-text-secondary">
               {testBuild.warnings.map((warning) => (
                 <p key={warning}>{warning}</p>
               ))}
@@ -256,13 +255,16 @@ export function WebhookSheet({
           ) : null}
 
           {testError ? (
-            <div className="rounded-radius-md border border-status-error bg-surface-secondary p-space-sm text-sm text-status-error">
+            <div className="rounded-radius-md bg-surface-secondary p-space-sm border border-status-error text-sm text-status-error">
               {testError}
             </div>
           ) : null}
 
-          <div className="flex flex-wrap gap-space-sm">
-            <Button onClick={() => void handleTest()} disabled={testing || !flow?.id}>
+          <div className="gap-space-sm flex flex-wrap">
+            <Button
+              onClick={() => void handleTest()}
+              disabled={testing || !flow?.id}
+            >
               {testing ? (
                 <Loader2 className="mr-space-xs h-4 w-4 animate-spin" />
               ) : (
@@ -282,37 +284,51 @@ export function WebhookSheet({
 
           <Tabs defaultValue={WebhookTraceTab.Overview}>
             <TabsList>
-              <TabsTrigger value={WebhookTraceTab.Overview}>Overview</TabsTrigger>
-              <TabsTrigger value={WebhookTraceTab.Timeline}>Timeline</TabsTrigger>
+              <TabsTrigger value={WebhookTraceTab.Overview}>
+                Overview
+              </TabsTrigger>
+              <TabsTrigger value={WebhookTraceTab.Timeline}>
+                Timeline
+              </TabsTrigger>
               <TabsTrigger value={WebhookTraceTab.Request}>Request</TabsTrigger>
             </TabsList>
-            <TabsContent value={WebhookTraceTab.Overview} className="space-y-space-md">
-              <div className="grid gap-space-md md:grid-cols-2">
+            <TabsContent
+              value={WebhookTraceTab.Overview}
+              className="space-y-space-md"
+            >
+              <div className="gap-space-md grid md:grid-cols-2">
                 <div className="space-y-space-sm">
                   <p className="text-sm font-medium text-text-primary">Input</p>
                   <JsonViewer data={trace?.firstInput || {}} />
                 </div>
                 <div className="space-y-space-sm">
-                  <p className="text-sm font-medium text-text-primary">Output</p>
+                  <p className="text-sm font-medium text-text-primary">
+                    Output
+                  </p>
                   <JsonViewer data={trace?.latestOutput || {}} />
                 </div>
               </div>
               <div className="space-y-space-sm">
-                <p className="text-sm font-medium text-text-primary">Response</p>
+                <p className="text-sm font-medium text-text-primary">
+                  Response
+                </p>
                 <JsonViewer data={responseSummary || {}} />
               </div>
             </TabsContent>
             <TabsContent value={WebhookTraceTab.Timeline}>
               <WebhookTimeline events={trace?.events || []} />
             </TabsContent>
-            <TabsContent value={WebhookTraceTab.Request} className="space-y-space-md">
+            <TabsContent
+              value={WebhookTraceTab.Request}
+              className="space-y-space-md"
+            >
               <div className="space-y-space-sm">
                 <p className="text-sm font-medium text-text-primary">Request</p>
                 <JsonViewer data={testBuild.request} />
               </div>
               <div className="space-y-space-sm">
                 <p className="text-sm font-medium text-text-primary">curl</p>
-                <pre className="max-h-60 overflow-auto rounded-radius-md bg-surface-secondary p-space-sm text-xs text-text-primary">
+                <pre className="rounded-radius-md bg-surface-secondary p-space-sm max-h-60 overflow-auto text-xs text-text-primary">
                   {curlExample}
                 </pre>
               </div>

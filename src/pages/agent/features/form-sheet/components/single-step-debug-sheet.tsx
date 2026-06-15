@@ -136,6 +136,7 @@ export function SingleStepDebugSheet({
       modal={false}
     >
       <SheetContent
+        showOverlay={false}
         showCloseButton={false}
         className="top-20 p-0 sm:max-w-[560px]"
       >

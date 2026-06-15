@@ -45,6 +45,7 @@ export function PipelineWorkbench({
   return (
     <Sheet open={open} onOpenChange={onOpenChange} modal={false}>
       <SheetContent
+        showOverlay={false}
         showCloseButton={false}
         className={cn(
           'top-20 flex h-auto min-w-[420px] max-w-[680px] flex-col gap-0 overflow-hidden p-0 sm:max-w-[680px]',

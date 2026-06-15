@@ -44,11 +44,12 @@ export function GlobalVariableSheet({ hideModal }: GlobalVariableSheetProps) {
     <>
       <Sheet open onOpenChange={hideModal} modal={false}>
         <SheetContent
-          className={cn('top-20 h-auto flex flex-col p-0 gap-0')}
+          showOverlay={false}
+          className={cn('top-20 flex h-auto flex-col gap-0 p-0')}
           onInteractOutside={(event) => event.preventDefault()}
         >
           <SheetHeader className="p-space-lg">
-            <SheetTitle className="flex items-center gap-space-sm">
+            <SheetTitle className="gap-space-sm flex items-center">
               {t('flow.conversationVariable', '会话变量')}
             </SheetTitle>
             <SheetDescription>
@@ -66,25 +67,25 @@ export function GlobalVariableSheet({ hideModal }: GlobalVariableSheetProps) {
               onClick={showAddModal}
               disabled={loading}
             >
-              <Plus className="size-4 mr-space-xs" />
+              <Plus className="mr-space-xs size-4" />
               {t('flow.add', '添加')}
             </Button>
           </div>
 
-          <div className="flex flex-col gap-space-sm px-space-lg pb-space-lg">
+          <div className="gap-space-sm px-space-lg pb-space-lg flex flex-col">
             {entries.length === 0 ? (
-              <div className="text-center text-text-secondary py-space-xl">
+              <div className="py-space-xl text-center text-text-secondary">
                 {t('flow.noVariables', '暂无变量')}
               </div>
             ) : (
               entries.map(([key, item]) => (
                 <div
                   key={key}
-                  className="flex min-h-14 cursor-pointer items-center justify-between gap-space-sm rounded-radius-lg border border-border-default px-space-lg py-space-sm hover:bg-surface-secondary group"
+                  className="gap-space-sm rounded-radius-lg px-space-lg py-space-sm hover:bg-surface-secondary group flex min-h-14 cursor-pointer items-center justify-between border border-border-default"
                   onClick={() => showEditModal(key)}
                 >
-                  <div className="min-w-0 flex flex-col">
-                    <div className="flex min-w-0 items-center gap-space-sm">
+                  <div className="flex min-w-0 flex-col">
+                    <div className="gap-space-sm flex min-w-0 items-center">
                       <span className="truncate font-medium text-text-primary">
                         {item.name || key}
                       </span>

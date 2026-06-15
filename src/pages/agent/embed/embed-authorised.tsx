@@ -1,10 +1,8 @@
-import { useCallback, useEffect, useState, type RefObject } from 'react'
+import { useCallback, useEffect, useState, type RefCallback } from 'react'
 import { ReactFlowProvider } from '@xyflow/react'
 import { useParams } from 'react-router-dom'
 import { isPipelineFlow, resolveLocalizedText } from '@/lib/agent'
-import { useFetchVersionList } from '@/hooks/use-agent-request'
 import AgentCanvas from '../canvas'
-import { EditorRuntimeRail } from '../components/editor-runtime-rail'
 import {
   AgentRuntimeStatus,
   RuntimeWorkbenchView,
@@ -18,13 +16,14 @@ import { useFetchDataOnMount } from '../hooks/use-fetch-data'
 import { useSaveGraph } from '../hooks/use-save-graph'
 import { EmbedShell, EmbedWaitingHost } from './embed-shell'
 import { EmbedToolbar } from './embed-toolbar'
+import { EmbedRuntimeRail } from './embed-runtime-rail'
 import type { EmbedAccess } from './use-embed-access'
 import type { useEmbedBridge } from './use-embed-bridge'
 import type { EmbedNavigateTarget } from './protocol'
 
 interface EmbedAuthorisedProps {
   access: EmbedAccess
-  containerRef: RefObject<HTMLDivElement | null>
+  containerRef: RefCallback<HTMLDivElement>
   postToParent: ReturnType<typeof useEmbedBridge>['postToParent']
   triggerSaveRef: React.MutableRefObject<() => void>
 }
@@ -43,7 +42,6 @@ export function EmbedAuthorised({
   const { id = '' } = useParams<{ id: string }>()
   const { flowDetail, loading } = useFetchDataOnMount()
   const { saveGraph, loading: saving } = useSaveGraph(id)
-  const versionQuery = useFetchVersionList(id)
 
   const editorMode: 'agent' | 'pipeline' = isPipelineFlow(flowDetail)
     ? 'pipeline'
@@ -132,9 +130,6 @@ export function EmbedAuthorised({
     [postToParent],
   )
 
-  // Keep version query warm in case the rail surfaces version state later.
-  void versionQuery
-
   if (loading || !flowDetail?.id) {
     return (
       <EmbedShell>
@@ -160,19 +155,13 @@ export function EmbedAuthorised({
   )
 
   const sidePanel = access.hideRail ? null : (
-    <EditorRuntimeRail
+    <EmbedRuntimeRail
       flow={flowDetail}
       editorMode={editorMode}
-      autosaveLabel={undefined}
+      show={access.show}
       runtimeSummary={runtimeSummary}
       onOpenRuntime={openRuntimeWorkbench}
-      onOpenExplore={() => navRequest('explore')}
-      onOpenVersions={() => navRequest('versions')}
-      onOpenWebhook={() => navRequest('webhook')}
-      onOpenSettings={() => navRequest('settings')}
-      // Share is permanently disabled in embed mode — never bridge it.
-      onOpenShare={() => undefined}
-      onOpenVariables={() => navRequest('variables')}
+      onNavigateRequest={navRequest}
     />
   )
 

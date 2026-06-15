@@ -33,7 +33,10 @@ export default function AgentEmbedPage() {
 function EmbedRoot({ access }: { access: EmbedAccess }) {
   const [authState, setAuthState] = useState<AuthState>('pending')
   const [theme, setTheme] = useState<EmbedThemeValue | undefined>(access.theme)
-  const containerRef = useRef<HTMLDivElement | null>(null)
+  const [resizeTarget, setResizeTarget] = useState<HTMLDivElement | null>(null)
+  const handleContainerRef = useCallback((node: HTMLDivElement | null) => {
+    setResizeTarget(node)
+  }, [])
 
   // Install the apiClient patch exactly once. The onAuthExpired callback is
   // stable via ref so we can mutate the auth state without re-installing.
@@ -85,7 +88,7 @@ function EmbedRoot({ access }: { access: EmbedAccess }) {
 
   const bridge = useEmbedBridge({
     parentOrigin: access.parentOrigin,
-    resizeTarget: containerRef.current,
+    resizeTarget,
     onInit: handleInit,
     onAuthRefreshed: handleAuthRefreshed,
     onSetTheme: handleSetTheme,
@@ -131,7 +134,7 @@ function EmbedRoot({ access }: { access: EmbedAccess }) {
     <ScopedTheme theme={theme}>
       <EmbedAuthorised
         access={access}
-        containerRef={containerRef}
+        containerRef={handleContainerRef}
         postToParent={bridge.postToParent}
         triggerSaveRef={triggerSaveRef}
       />

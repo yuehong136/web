@@ -30,6 +30,51 @@ export default {
       publishSuccessWithNote: 'Published: {{note}}',
       publishFailed: 'Publish failed',
     },
+    embedRail: {
+      assetSummary: 'Asset summary',
+      agentDescription:
+        'Orchestrate conversations, tool calls, and delivery actions.',
+      pipelineDescription:
+        'Upload documents, process the dataflow, and inspect node output.',
+      type: 'Type',
+      runtimeStatus: 'Runtime status',
+      nodes: 'Nodes',
+      edges: 'Edges',
+      updatedAt: 'Updated: {{time}}',
+      agentRun: 'Agent run',
+      pipelineRun: 'Pipeline run',
+      runningDescription:
+        'Running. Open the workbench to inspect live progress.',
+      lastRunAt: 'Last run: {{time}}',
+      agentIdleDescription:
+        'Enter the runtime, conversation, and log workbench from here.',
+      pipelineIdleDescription:
+        'Upload documents to trigger the dataflow and inspect outputs.',
+      nodeEvents: 'Node events',
+      available: 'Available',
+      none: 'None',
+      canOpen: 'Can open',
+      canDownload: 'Can download',
+      openWorkbench: 'Open workbench',
+      continueConversation: 'Continue conversation',
+      viewNodeLogs: 'View node logs',
+      uploadAndRunPipeline: 'Upload and run Pipeline',
+      viewDataflowTimeline: 'View dataflow timeline',
+      viewResultOutput: 'View result / END output',
+      deliveryTitle: 'Delivery and debug',
+      configTitle: 'Configuration',
+      explore: 'Explore session',
+      publish: 'Publish',
+      webhook: 'Webhook',
+      variables: 'Conversation variables',
+      settings: 'Edit basic settings',
+      hostManagedTitle: 'Host-managed surface',
+      hostManagedDescription:
+        'This iframe only exposes the save action. Runtime and delivery actions stay hidden until the host enables them through the show parameter.',
+    },
+    webhook: {
+      testFailed: 'Webhook test failed',
+    },
     share: {
       copied: 'Share link copied',
       copyFailed: 'Copy failed. Copy the Share link manually.',

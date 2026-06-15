@@ -58,19 +58,19 @@ iframe 加载 URL：
 ```
 /agent/<canvas-id>/embed
   ?parent_origin=https://embedder.example.com
-  &show=save,run,nav,publish,webhook,settings,variables   # CSV，按需开启；save 总在
+  &show=save,run,nav,publish,webhook,settings,variables   # capability CSV; save is always included
   &theme=light|dark
   &locale=zh-CN|en-US
   &hide_rail=1                                            # 隐藏右栏
 ```
 
-| 参数            | 必需 | 说明                                                                         |
-| --------------- | ---- | ---------------------------------------------------------------------------- |
-| `parent_origin` | ✅   | 宿主页 origin，严格校验所有 postMessage 来源；非法立即报错页                 |
-| `show`          | ❌   | 工具栏可见按钮 CSV 白名单；默认仅 `save`；`share` 永久禁用（不接受任何配置） |
-| `theme`         | ❌   | 初始主题；可被运行时 `set-theme` 覆盖                                        |
-| `locale`        | ❌   | 初始语言；可被运行时 `set-locale` 覆盖                                       |
-| `hide_rail`     | ❌   | `1` / `true` / `yes` 隐藏右栏；默认显示                                      |
+| 参数            | 必需 | 说明                                                                                               |
+| --------------- | ---- | -------------------------------------------------------------------------------------------------- |
+| `parent_origin` | ✅   | 宿主页 origin，严格校验所有 postMessage 来源；非法立即报错页                                       |
+| `show`          | ❌   | Capability allowlist for the toolbar and right rail. Default is `save`; `share` is never accepted. |
+| `theme`         | ❌   | 初始主题；可被运行时 `set-theme` 覆盖                                                              |
+| `locale`        | ❌   | 初始语言；可被运行时 `set-locale` 覆盖                                                             |
+| `hide_rail`     | ❌   | `1` / `true` / `yes` 隐藏右栏；默认显示                                                            |
 
 **URL 永不携带 JWT 或 DSL 数据**。
 
@@ -82,17 +82,17 @@ iframe 加载 URL：
 
 ### iframe → host
 
-| `type`             | 触发时机                   | 载荷                                                                      |
-| ------------------ | -------------------------- | ------------------------------------------------------------------------- |
-| `ready`            | iframe 挂载完成            | —                                                                         |
-| `auth-expired`     | 任一 API 收到 401          | —                                                                         |
-| `save-success`     | 用户保存成功               | `agentId`, `title`                                                        |
-| `save-error`       | 保存失败                   | `error`                                                                   |
-| `run-start`        | （P1+）运行启动            | `runId`                                                                   |
-| `run-end`          | （P1+）运行结束            | `runId`, `status`                                                         |
-| `navigate-request` | 用户点了出站按钮           | `target` ∈ {back, explore, webhook, share, versions, settings, variables} |
-| `resize`           | 画布尺寸变化（节流 100ms） | `height`                                                                  |
-| `error`            | 卫星内部异常               | `code`, `message`                                                         |
+| `type`             | 触发时机                       | 载荷                                                               |
+| ------------------ | ------------------------------ | ------------------------------------------------------------------ |
+| `ready`            | iframe 挂载完成                | —                                                                  |
+| `auth-expired`     | 任一 API 收到 401              | —                                                                  |
+| `save-success`     | 用户保存成功                   | `agentId`, `title`                                                 |
+| `save-error`       | 保存失败                       | `error`                                                            |
+| `run-start`        | （P1+）运行启动                | `runId`                                                            |
+| `run-end`          | （P1+）运行结束                | `runId`, `status`                                                  |
+| `navigate-request` | User clicks an outbound button | `target` ∈ {back, explore, webhook, versions, settings, variables} |
+| `resize`           | 画布尺寸变化（节流 100ms）     | `height`                                                           |
+| `error`            | 卫星内部异常                   | `code`, `message`                                                  |
 
 ### host → iframe
 

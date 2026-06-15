@@ -40,6 +40,7 @@ export function FormSheet({
       modal={false}
     >
       <SheetContent
+        showOverlay={false}
         showCloseButton={false}
         className={cn(
           'top-20 flex h-auto w-[500px] flex-col gap-0 overflow-hidden p-0 sm:w-[600px] sm:max-w-[600px]',
