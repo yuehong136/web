@@ -1,4 +1,5 @@
 import { apiClient } from './client'
+import { API_BASE_URL } from '@/constants'
 import type { SearchApp, SearchAppListItem } from '@/types/search'
 import type {
   CreateSearchRequest,
@@ -7,38 +8,44 @@ import type {
   RemoveSearchRequest,
 } from '@/types'
 
+const sdkBase = { baseURL: `${API_BASE_URL}/api` }
+
 export const searchAPI = {
   // 获取搜索应用列表
   list: (
     params?: ListSearchRequest,
   ): Promise<{ search_apps: SearchAppListItem[]; total: number }> => {
-    const queryParams = new URLSearchParams({
-      page: (params?.page ?? 1).toString(),
-      page_size: (params?.page_size ?? 12).toString(),
-      orderby: params?.orderby || 'update_time',
-      desc: (params?.desc ?? true).toString(),
-      keywords: params?.keywords || '',
-    })
-    return apiClient.post(`/v1/search/list?${queryParams.toString()}`, {
-      owner_ids: params?.owner_ids ?? [],
-    })
+    const queryParams = new URLSearchParams()
+    queryParams.set('page', (params?.page ?? 1).toString())
+    queryParams.set('page_size', (params?.page_size ?? 12).toString())
+    queryParams.set('orderby', params?.orderby || 'update_time')
+    queryParams.set('desc', (params?.desc ?? true).toString())
+    if (params?.keywords) queryParams.set('keywords', params.keywords)
+    params?.owner_ids?.forEach((ownerId) =>
+      queryParams.append('owner_ids', ownerId),
+    )
+
+    return apiClient.get(`/searches?${queryParams.toString()}`, sdkBase)
   },
 
   // 获取搜索应用详情
   detail: (searchId: string): Promise<SearchApp> =>
-    apiClient.get(`/v1/search/detail?search_id=${searchId}`),
+    apiClient.get(`/searches/${searchId}`, sdkBase),
 
   // 创建搜索应用
   create: (data: CreateSearchRequest): Promise<{ search_id: string }> =>
-    apiClient.post('/v1/search/create', data),
+    apiClient.post('/searches', data, sdkBase),
 
   // 更新搜索应用
-  update: (data: UpdateSearchRequest): Promise<SearchApp> =>
-    apiClient.post('/v1/search/update', data),
+  update: (data: UpdateSearchRequest): Promise<SearchApp> => {
+    const { search_id, tenant_id, ...body } = data
+    void tenant_id
+    return apiClient.put(`/searches/${search_id}`, body, sdkBase)
+  },
 
   // 删除搜索应用
   remove: (searchId: RemoveSearchRequest['search_id']): Promise<boolean> =>
-    apiClient.post('/v1/search/rm', { search_id: searchId }),
+    apiClient.delete(`/searches/${searchId}`, sdkBase),
 
   // 流式问答 (返回 fetch Response 用于 SSE 处理)
   askStream: (data: {
