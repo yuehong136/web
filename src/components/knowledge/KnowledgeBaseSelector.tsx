@@ -76,6 +76,19 @@ const KnowledgeBaseOptionLabel: FC<{
       {kb.name}
     </span>
 
+    {kb.nickname && (
+      <div
+        className={cn(
+          'max-w-[120px] shrink-0 truncate rounded-md border px-2 py-0.5 text-xs',
+          'border-border-subtle bg-background-subtle text-text-secondary',
+          isDisabled && 'text-text-disabled',
+        )}
+        title={kb.nickname}
+      >
+        {kb.nickname}
+      </div>
+    )}
+
     {kb.embd_id && (
       <div
         className={cn(
@@ -96,10 +109,18 @@ const SelectedKnowledgeBaseBadge: FC<{
 }> = ({ kb, onRemove }) => (
   <Badge
     variant="secondary"
-    className="flex h-6 max-w-[180px] items-center gap-1 bg-components-badge-info-bg px-1.5 py-0.5 text-xs text-components-badge-info-text"
+    className="flex h-6 max-w-[240px] items-center gap-1 bg-components-badge-info-bg px-1.5 py-0.5 text-xs text-components-badge-info-text"
   >
     <KnowledgeBaseAvatar name={kb.name} avatar={kb.avatar} size="sm" />
-    <span className="truncate">{kb.name}</span>
+    <span className="min-w-0 truncate">{kb.name}</span>
+    {kb.nickname && (
+      <span
+        className="max-w-[80px] shrink-0 truncate opacity-70"
+        title={kb.nickname}
+      >
+        · {kb.nickname}
+      </span>
+    )}
     <XCircleIcon
       className="h-4 w-4 shrink-0 cursor-pointer hover:opacity-70"
       onClick={(event) => {
