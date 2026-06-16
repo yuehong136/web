@@ -20,6 +20,10 @@ interface EmbedRuntimeRailProps {
   runtimeSummary: EmbedRuntimeSummary
   onOpenRuntime: (view?: string) => void
   onNavigateRequest: (target: EmbedNavigateTarget) => void
+  onOpenVersions: () => void
+  onOpenWebhook: () => void
+  onOpenVariables: () => void
+  onOpenSettings: () => void
 }
 
 export function EmbedRuntimeRail({
@@ -29,6 +33,10 @@ export function EmbedRuntimeRail({
   runtimeSummary,
   onOpenRuntime,
   onNavigateRequest,
+  onOpenVersions,
+  onOpenWebhook,
+  onOpenVariables,
+  onOpenSettings,
 }: EmbedRuntimeRailProps) {
   const { t } = useTranslation()
   const isPipeline = editorMode === 'pipeline'
@@ -88,6 +96,10 @@ export function EmbedRuntimeRail({
           showVariables={showVariables}
           showSettings={showSettings}
           onNavigateRequest={onNavigateRequest}
+          onOpenVersions={onOpenVersions}
+          onOpenWebhook={onOpenWebhook}
+          onOpenVariables={onOpenVariables}
+          onOpenSettings={onOpenSettings}
         />
       ) : null}
 

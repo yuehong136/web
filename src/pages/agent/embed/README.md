@@ -46,6 +46,7 @@ VITE_ENABLE_AGENT_EMBED=false npm run build   # 关闭（路由不挂，摇树�
 - **禁止**把 JWT 放进 URL / localStorage / sessionStorage / cookie。JWT 仅经 postMessage `embed-init` 注入，存放在 apiClient 内存字段。
 - **禁止** dispatch 任何全局自定义事件（`auth:logout` 等）。
 - **禁止**直接 `navigate(...)` 跳到 `/agents`、`/auth/login`、`/agent/:id/explore` 等出站路径，统一改成 `postMessage({type:'navigate-request', target:...})` 让宿主决策。
+- Publish, Webhook, settings, and variables are editor-local panels; they must open inside the iframe and must not emit outbound navigation messages.
 - **禁止** `postMessage(payload, '*')` —— origin 必须严格校验，传 `parentOrigin`。
 - **禁止**新增 `useEffect` 注册 `window.onbeforeunload` 等阻拦宿主页关闭的行为。
 
@@ -82,17 +83,17 @@ iframe 加载 URL：
 
 ### iframe → host
 
-| `type`             | 触发时机                       | 载荷                                                               |
-| ------------------ | ------------------------------ | ------------------------------------------------------------------ |
-| `ready`            | iframe 挂载完成                | —                                                                  |
-| `auth-expired`     | 任一 API 收到 401              | —                                                                  |
-| `save-success`     | 用户保存成功                   | `agentId`, `title`                                                 |
-| `save-error`       | 保存失败                       | `error`                                                            |
-| `run-start`        | （P1+）运行启动                | `runId`                                                            |
-| `run-end`          | （P1+）运行结束                | `runId`, `status`                                                  |
-| `navigate-request` | User clicks an outbound button | `target` ∈ {back, explore, webhook, versions, settings, variables} |
-| `resize`           | 画布尺寸变化（节流 100ms）     | `height`                                                           |
-| `error`            | 卫星内部异常                   | `code`, `message`                                                  |
+| `type`             | Trigger                              | Payload                    |
+| ------------------ | ------------------------------------ | -------------------------- |
+| `ready`            | iframe mounted                       | —                          |
+| `auth-expired`     | Any API returns 401                  | —                          |
+| `save-success`     | User save succeeds                   | `agentId`, `title`         |
+| `save-error`       | User save fails                      | `error`                    |
+| `run-start`        | Runtime starts (P1+)                 | `runId`                    |
+| `run-end`          | Runtime ends (P1+)                   | `runId`, `status`          |
+| `navigate-request` | User clicks a true route-exit button | `target` ∈ {back, explore} |
+| `resize`           | Canvas size changes, throttled 100ms | `height`                   |
+| `error`            | Internal embed error                 | `code`, `message`          |
 
 ### host → iframe
 
@@ -159,7 +160,7 @@ iframe 加载 URL：
         console.warn('保存失败', msg.error)
         break
       case 'navigate-request':
-        // 例如关闭 iframe / 回到宿主主页 / 显示发布提示
+        // For example: close the iframe, return to host home, or enter Explore.
         console.log('用户点了', msg.target)
         break
       case 'resize':

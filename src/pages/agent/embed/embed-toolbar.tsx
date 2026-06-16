@@ -30,8 +30,12 @@ export interface EmbedToolbarProps {
   /** Runtime workbench opener (P0: optional, gated by `show=run`). */
   onRun?: () => void
 
-  /** Navigation requests get bridged to the host via postMessage. */
+  /** Only true route exits get bridged to the host via postMessage. */
   onNavigateRequest: (target: EmbedNavigateTarget) => void
+  onOpenVersions: () => void
+  onOpenWebhook: () => void
+  onOpenVariables: () => void
+  onOpenSettings: () => void
 
   /** Optional banner / description below the title. */
   description?: string
@@ -41,7 +45,8 @@ export interface EmbedToolbarProps {
  * Toolbar for the embed shell. Imports the main project's PageHeader and
  * Button so any visual upgrade to those primitives automatically propagates
  * here. The shape mirrors `AgentEditorPage`'s toolbar but with embed-specific
- * wiring: save calls useSaveGraph (real backend write), navigation buttons
+ * wiring: save calls useSaveGraph (real backend write), editor actions open
+ * the same dialogs/sheets as the full editor, and only true route exits
  * postMessage to the host instead of `navigate(...)`.
  *
  * The `share` button is intentionally absent — embedded surfaces must never
@@ -55,6 +60,10 @@ export function EmbedToolbar({
   saving,
   onRun,
   onNavigateRequest,
+  onOpenVersions,
+  onOpenWebhook,
+  onOpenVariables,
+  onOpenSettings,
   description,
 }: EmbedToolbarProps) {
   const handleNav = useCallback(
@@ -99,28 +108,28 @@ export function EmbedToolbar({
           ) : null}
 
           {showPublish ? (
-            <Button variant="outline" onClick={handleNav('versions')}>
+            <Button variant="outline" onClick={onOpenVersions}>
               <History className="mr-space-xs h-4 w-4" />
               发布
             </Button>
           ) : null}
 
           {showWebhook ? (
-            <Button variant="outline" onClick={handleNav('webhook')}>
+            <Button variant="outline" onClick={onOpenWebhook}>
               <Link2 className="mr-space-xs h-4 w-4" />
               Webhook
             </Button>
           ) : null}
 
           {showVariables ? (
-            <Button variant="outline" onClick={handleNav('variables')}>
+            <Button variant="outline" onClick={onOpenVariables}>
               <MessageSquareCode className="mr-space-xs h-4 w-4" />
               会话变量
             </Button>
           ) : null}
 
           {showSettings ? (
-            <Button variant="outline" onClick={handleNav('settings')}>
+            <Button variant="outline" onClick={onOpenSettings}>
               <Settings2 className="mr-space-xs h-4 w-4" />
               设置
             </Button>

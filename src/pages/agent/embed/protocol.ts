@@ -9,13 +9,7 @@
 
 export const EMBED_PROTOCOL_VERSION = 1
 
-export type EmbedNavigateTarget =
-  | 'back'
-  | 'explore'
-  | 'webhook'
-  | 'versions'
-  | 'settings'
-  | 'variables'
+export type EmbedNavigateTarget = 'back' | 'explore'
 
 export type EmbedThemeValue = 'light' | 'dark'
 

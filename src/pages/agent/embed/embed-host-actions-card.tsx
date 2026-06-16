@@ -19,6 +19,10 @@ interface EmbedHostActionsCardProps {
   showVariables: boolean
   showSettings: boolean
   onNavigateRequest: (target: EmbedNavigateTarget) => void
+  onOpenVersions: () => void
+  onOpenWebhook: () => void
+  onOpenVariables: () => void
+  onOpenSettings: () => void
 }
 
 export function EmbedHostActionsCard({
@@ -29,6 +33,10 @@ export function EmbedHostActionsCard({
   showVariables,
   showSettings,
   onNavigateRequest,
+  onOpenVersions,
+  onOpenWebhook,
+  onOpenVariables,
+  onOpenSettings,
 }: EmbedHostActionsCardProps) {
   const { t } = useTranslation()
   const handleNavigate = useCallback(
@@ -54,19 +62,19 @@ export function EmbedHostActionsCard({
           </Button>
         ) : null}
         {showPublish ? (
-          <Button variant="outline" onClick={handleNavigate('versions')}>
+          <Button variant="outline" onClick={onOpenVersions}>
             <History className="mr-space-xs size-icon-sm" />
             {t('agent.embedRail.publish', 'Publish')}
           </Button>
         ) : null}
         {showWebhook ? (
-          <Button variant="outline" onClick={handleNavigate('webhook')}>
+          <Button variant="outline" onClick={onOpenWebhook}>
             <Link2 className="mr-space-xs size-icon-sm" />
             {t('agent.embedRail.webhook', 'Webhook')}
           </Button>
         ) : null}
         {showVariables ? (
-          <Button variant="outline" onClick={handleNavigate('variables')}>
+          <Button variant="outline" onClick={onOpenVariables}>
             <MessageSquareCode className="mr-space-xs size-icon-sm" />
             {t('agent.embedRail.variables', 'Conversation variables')}
           </Button>
@@ -75,7 +83,7 @@ export function EmbedHostActionsCard({
           <Button
             variant="outline"
             className="bg-surface-secondary"
-            onClick={handleNavigate('settings')}
+            onClick={onOpenSettings}
           >
             <Settings2 className="mr-space-xs size-icon-sm" />
             {t('agent.embedRail.settings', 'Edit basic settings')}
