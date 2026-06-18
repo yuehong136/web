@@ -21,13 +21,20 @@ import {
   createTempConfig,
 } from '../constants'
 import type { AppConfig, TempAppConfig, VariableForm } from '../types'
-import { buildKnowledgeFallback, mapLLMProviders, normalizeDialogConfig, type DialogDetailResponse, type ProviderResponseEntry } from '../data'
+import {
+  buildKnowledgeFallback,
+  mapLLMProviders,
+  normalizeDialogConfig,
+  type DialogDetailResponse,
+  type ProviderResponseEntry,
+} from '../data'
 import { useCreateAppPreview } from './use-create-app-preview'
 import { useCurrentTheme } from './use-current-theme'
 
 export const useCreateAppPage = () => {
   const [searchParams] = useSearchParams()
-  const initialDialogId = searchParams.get('dialog_id') || searchParams.get('id')
+  const initialDialogId =
+    searchParams.get('dialog_id') || searchParams.get('id')
 
   const [leftCollapsed, setLeftCollapsed] = useState(false)
   const [rightCollapsed, setRightCollapsed] = useState(false)
@@ -41,36 +48,51 @@ export const useCreateAppPage = () => {
 
   const currentTheme = useCurrentTheme()
   const [currentDialogId, setCurrentDialogId] = useState(initialDialogId)
-  const [config, setConfig] = useState<AppConfig>(() => createInitialConfig({
-    name: searchParams.get('name'),
-    description: searchParams.get('description'),
-    icon: searchParams.get('icon'),
-  }))
+  const [config, setConfig] = useState<AppConfig>(() =>
+    createInitialConfig({
+      name: searchParams.get('name'),
+      description: searchParams.get('description'),
+      icon: searchParams.get('icon'),
+    }),
+  )
 
-  const [tempConfig, setTempConfig] = useState<TempAppConfig>(() => createTempConfig(createInitialConfig({
-    name: searchParams.get('name'),
-    description: searchParams.get('description'),
-    icon: searchParams.get('icon'),
-  })))
+  const [tempConfig, setTempConfig] = useState<TempAppConfig>(() =>
+    createTempConfig(
+      createInitialConfig({
+        name: searchParams.get('name'),
+        description: searchParams.get('description'),
+        icon: searchParams.get('icon'),
+      }),
+    ),
+  )
 
   const [chatModels, setChatModels] = useState<MyLLMProvider>({})
   const [rerankModels, setRerankModels] = useState<LLMModel[]>([])
   const [modelsLoading, setModelsLoading] = useState(false)
   const [modelsError, setModelsError] = useState<string | undefined>()
   const [knowledgeBases, setKnowledgeBases] = useState<KnowledgeBase[]>([])
-  const [availableKnowledgeBases, setAvailableKnowledgeBases] = useState<KnowledgeBase[]>([])
+  const [availableKnowledgeBases, setAvailableKnowledgeBases] = useState<
+    KnowledgeBase[]
+  >([])
   const [knowledgeSearch, setKnowledgeSearch] = useState('')
   const [knowledgePage, setKnowledgePage] = useState(1)
   const [knowledgeTotal, setKnowledgeTotal] = useState(0)
-  const [addedKnowledgeBases, setAddedKnowledgeBases] = useState<Set<string>>(new Set())
+  const [addedKnowledgeBases, setAddedKnowledgeBases] = useState<Set<string>>(
+    new Set(),
+  )
 
-  const [currentPreset, setCurrentPreset] = useState<GenerationPresetType>(GenerationPresetType.Custom)
+  const [currentPreset, setCurrentPreset] = useState<GenerationPresetType>(
+    GenerationPresetType.Custom,
+  )
   const [modelSectionExpanded, setModelSectionExpanded] = useState(true)
   const [knowledgeSectionExpanded, setKnowledgeSectionExpanded] = useState(true)
   const [advancedSectionExpanded, setAdvancedSectionExpanded] = useState(true)
   const [variableSectionExpanded, setVariableSectionExpanded] = useState(true)
-  const [experienceSectionExpanded, setExperienceSectionExpanded] = useState(true)
-  const [variableForm, setVariableForm] = useState<VariableForm>(DEFAULT_VARIABLE_FORM)
+  const [experienceSectionExpanded, setExperienceSectionExpanded] =
+    useState(true)
+  const [variableForm, setVariableForm] = useState<VariableForm>(
+    DEFAULT_VARIABLE_FORM,
+  )
 
   const [saving, setSaving] = useState(false)
 
@@ -84,7 +106,7 @@ export const useCreateAppPage = () => {
 
   const loadDialogConfig = useCallback(async (dialogId: string) => {
     try {
-      const data = await dialogAPI.getDetail(dialogId) as DialogDetailResponse
+      const data = (await dialogAPI.getDetail(dialogId)) as DialogDetailResponse
 
       if (!data) {
         return
@@ -96,14 +118,16 @@ export const useCreateAppPage = () => {
       setCurrentPreset(matchedPreset)
 
       if (data.kb_ids && Array.isArray(data.kb_ids) && data.kb_ids.length > 0) {
-        const kbPromises = data.kb_ids.map(async (kbId: string, index: number) => {
-          try {
-            return await knowledgeAPI.knowledgeBase.get(kbId)
-          } catch (error) {
-            console.error(`Failed to fetch knowledge base ${kbId}:`, error)
-            return buildKnowledgeFallback(data, kbId, index)
-          }
-        })
+        const kbPromises = data.kb_ids.map(
+          async (kbId: string, index: number) => {
+            try {
+              return await knowledgeAPI.knowledgeBase.get(kbId)
+            } catch (error) {
+              console.error(`Failed to fetch knowledge base ${kbId}:`, error)
+              return buildKnowledgeFallback(data, kbId, index)
+            }
+          },
+        )
 
         const kbs = await Promise.all(kbPromises)
         setKnowledgeBases(kbs)
@@ -125,13 +149,15 @@ export const useCreateAppPage = () => {
 
       const response = await llmAPI.list()
       if (response && typeof response === 'object') {
-        const { chatModels: chatModelData, rerankModels: allRerankModels } = mapLLMProviders(
-          response as Record<string, ProviderResponseEntry>,
-        )
+        const { chatModels: chatModelData, rerankModels: allRerankModels } =
+          mapLLMProviders(response as Record<string, ProviderResponseEntry>)
         setChatModels(chatModelData)
         setRerankModels(allRerankModels)
         setConfig((previousConfig) => {
-          if (previousConfig.llm_id || Object.keys(chatModelData).length === 0) {
+          if (
+            previousConfig.llm_id ||
+            Object.keys(chatModelData).length === 0
+          ) {
             return previousConfig
           }
 
@@ -201,9 +227,12 @@ export const useCreateAppPage = () => {
     prologue: config.prompt_config.prologue,
   })
 
-  const handleConfigChange = useCallback(<K extends keyof AppConfig>(key: K, value: AppConfig[K]) => {
-    setConfig((previousConfig) => ({ ...previousConfig, [key]: value }))
-  }, [])
+  const handleConfigChange = useCallback(
+    <K extends keyof AppConfig>(key: K, value: AppConfig[K]) => {
+      setConfig((previousConfig) => ({ ...previousConfig, [key]: value }))
+    },
+    [],
+  )
 
   const collapseLeftPanel = useCallback(() => {
     setLeftCollapsed(true)
@@ -226,8 +255,14 @@ export const useCreateAppPage = () => {
   }, [])
 
   const handlePresetChange = useCallback((presetType: GenerationPresetType) => {
-    if (presetType !== GenerationPresetType.Custom && presetType in generationPresetConfigMapSnake) {
-      const presetConfig = generationPresetConfigMapSnake[presetType as Exclude<GenerationPresetType, 'custom'>]
+    if (
+      presetType !== GenerationPresetType.Custom &&
+      presetType in generationPresetConfigMapSnake
+    ) {
+      const presetConfig =
+        generationPresetConfigMapSnake[
+          presetType as Exclude<GenerationPresetType, 'custom'>
+        ]
       const enabledFields = getDefaultEnabledFieldsSnake()
 
       setConfig((previousConfig) => ({
@@ -249,36 +284,41 @@ export const useCreateAppPage = () => {
     setCurrentPreset(GenerationPresetType.Custom)
   }, [])
 
-  const handleLLMSettingChange = useCallback(<K extends keyof AppConfig['llm_setting']>(
-    field: K,
-    value: AppConfig['llm_setting'][K],
-  ) => {
-    setConfig((previousConfig) => {
-      const nextSetting = {
-        ...previousConfig.llm_setting,
-        [field]: value,
-      }
+  const handleLLMSettingChange = useCallback(
+    <K extends keyof AppConfig['llm_setting']>(
+      field: K,
+      value: AppConfig['llm_setting'][K],
+    ) => {
+      setConfig((previousConfig) => {
+        const nextSetting = {
+          ...previousConfig.llm_setting,
+          [field]: value,
+        }
 
-      const matchedPreset = detectMatchingPresetSnake({
-        temperature: nextSetting.temperature ?? 0.5,
-        top_p: nextSetting.top_p ?? 0.85,
-        presence_penalty: nextSetting.presence_penalty ?? 0.2,
-        frequency_penalty: nextSetting.frequency_penalty ?? 0.3,
-        max_tokens: nextSetting.max_tokens ?? 4096,
-        temperature_enabled: nextSetting.temperature_enabled ?? false,
-        top_p_enabled: nextSetting.top_p_enabled ?? false,
-        presence_penalty_enabled: nextSetting.presence_penalty_enabled ?? false,
-        frequency_penalty_enabled: nextSetting.frequency_penalty_enabled ?? false,
-        max_tokens_enabled: nextSetting.max_tokens_enabled ?? false,
+        const matchedPreset = detectMatchingPresetSnake({
+          temperature: nextSetting.temperature ?? 0.5,
+          top_p: nextSetting.top_p ?? 0.85,
+          presence_penalty: nextSetting.presence_penalty ?? 0.2,
+          frequency_penalty: nextSetting.frequency_penalty ?? 0.3,
+          max_tokens: nextSetting.max_tokens ?? 4096,
+          temperature_enabled: nextSetting.temperature_enabled ?? false,
+          top_p_enabled: nextSetting.top_p_enabled ?? false,
+          presence_penalty_enabled:
+            nextSetting.presence_penalty_enabled ?? false,
+          frequency_penalty_enabled:
+            nextSetting.frequency_penalty_enabled ?? false,
+          max_tokens_enabled: nextSetting.max_tokens_enabled ?? false,
+        })
+        setCurrentPreset(matchedPreset)
+
+        return {
+          ...previousConfig,
+          llm_setting: nextSetting,
+        }
       })
-      setCurrentPreset(matchedPreset)
-
-      return {
-        ...previousConfig,
-        llm_setting: nextSetting,
-      }
-    })
-  }, [])
+    },
+    [],
+  )
 
   const handleOpenKnowledgeModal = useCallback(() => {
     setShowKnowledgeModal(true)
@@ -291,18 +331,26 @@ export const useCreateAppPage = () => {
     void loadKnowledgeBases(knowledgeSearch, 1)
   }, [knowledgeSearch, loadKnowledgeBases])
 
-  const handleKnowledgePageChange = useCallback((page: number) => {
-    setKnowledgePage(page)
-    void loadKnowledgeBases(knowledgeSearch, page)
-  }, [knowledgeSearch, loadKnowledgeBases])
+  const handleKnowledgePageChange = useCallback(
+    (page: number) => {
+      setKnowledgePage(page)
+      void loadKnowledgeBases(knowledgeSearch, page)
+    },
+    [knowledgeSearch, loadKnowledgeBases],
+  )
 
   const handleAddKnowledgeBase = useCallback((knowledgeBase: KnowledgeBase) => {
     setConfig((previousConfig) => ({
       ...previousConfig,
       kb_ids: [...previousConfig.kb_ids, knowledgeBase.id],
     }))
-    setKnowledgeBases((previousKnowledgeBases) => [...previousKnowledgeBases, knowledgeBase])
-    setAddedKnowledgeBases((previousAddedBases) => new Set(previousAddedBases).add(knowledgeBase.id))
+    setKnowledgeBases((previousKnowledgeBases) => [
+      ...previousKnowledgeBases,
+      knowledgeBase,
+    ])
+    setAddedKnowledgeBases((previousAddedBases) =>
+      new Set(previousAddedBases).add(knowledgeBase.id),
+    )
   }, [])
 
   const handleRemoveKnowledgeBase = useCallback((knowledgeBaseId: string) => {
@@ -310,7 +358,9 @@ export const useCreateAppPage = () => {
       ...previousConfig,
       kb_ids: previousConfig.kb_ids.filter((id) => id !== knowledgeBaseId),
     }))
-    setKnowledgeBases((previousKnowledgeBases) => previousKnowledgeBases.filter((item) => item.id !== knowledgeBaseId))
+    setKnowledgeBases((previousKnowledgeBases) =>
+      previousKnowledgeBases.filter((item) => item.id !== knowledgeBaseId),
+    )
     setAddedKnowledgeBases((previousAddedBases) => {
       const nextAddedBases = new Set(previousAddedBases)
       nextAddedBases.delete(knowledgeBaseId)
@@ -324,7 +374,9 @@ export const useCreateAppPage = () => {
       return
     }
 
-    const exists = config.prompt_config.parameters.some((item) => item.key === variableForm.key)
+    const exists = config.prompt_config.parameters.some(
+      (item) => item.key === variableForm.key,
+    )
     if (exists) {
       toast.error('变量名已存在')
       return
@@ -334,7 +386,10 @@ export const useCreateAppPage = () => {
       ...previousConfig,
       prompt_config: {
         ...previousConfig.prompt_config,
-        parameters: [...previousConfig.prompt_config.parameters, { ...variableForm }],
+        parameters: [
+          ...previousConfig.prompt_config.parameters,
+          { ...variableForm },
+        ],
       },
     }))
     setVariableForm(DEFAULT_VARIABLE_FORM)
@@ -346,7 +401,9 @@ export const useCreateAppPage = () => {
       ...previousConfig,
       prompt_config: {
         ...previousConfig.prompt_config,
-        parameters: previousConfig.prompt_config.parameters.filter((item) => item.key !== key),
+        parameters: previousConfig.prompt_config.parameters.filter(
+          (item) => item.key !== key,
+        ),
       },
     }))
   }, [])
@@ -386,11 +443,21 @@ export const useCreateAppPage = () => {
       }
 
       const enabledLlmSettings = {
-        ...(config.llm_setting.temperature_enabled && { temperature: Number(config.llm_setting.temperature) }),
-        ...(config.llm_setting.top_p_enabled && { top_p: Number(config.llm_setting.top_p) }),
-        ...(config.llm_setting.presence_penalty_enabled && { presence_penalty: Number(config.llm_setting.presence_penalty) }),
-        ...(config.llm_setting.frequency_penalty_enabled && { frequency_penalty: Number(config.llm_setting.frequency_penalty) }),
-        ...(config.llm_setting.max_tokens_enabled && { max_tokens: Number(config.llm_setting.max_tokens) }),
+        ...(config.llm_setting.temperature_enabled && {
+          temperature: Number(config.llm_setting.temperature),
+        }),
+        ...(config.llm_setting.top_p_enabled && {
+          top_p: Number(config.llm_setting.top_p),
+        }),
+        ...(config.llm_setting.presence_penalty_enabled && {
+          presence_penalty: Number(config.llm_setting.presence_penalty),
+        }),
+        ...(config.llm_setting.frequency_penalty_enabled && {
+          frequency_penalty: Number(config.llm_setting.frequency_penalty),
+        }),
+        ...(config.llm_setting.max_tokens_enabled && {
+          max_tokens: Number(config.llm_setting.max_tokens),
+        }),
       }
 
       let searchMode: Record<string, unknown> | null = null
@@ -409,7 +476,9 @@ export const useCreateAppPage = () => {
       }
 
       const hasKnowledgeBase = Boolean(config.kb_ids?.length)
-      const hasTavilyRetrieval = Boolean(config.prompt_config.tavily_api_key?.trim())
+      const hasTavilyRetrieval = Boolean(
+        config.prompt_config.tavily_api_key?.trim(),
+      )
       const isRetrievalApp = hasKnowledgeBase || hasTavilyRetrieval
 
       let systemPrompt = config.systemPrompt
@@ -430,13 +499,17 @@ export const useCreateAppPage = () => {
         description: config.description,
         icon: config.icon || '',
         llm_id: config.llm_id,
-        llm_setting: Object.keys(enabledLlmSettings).length > 0 ? enabledLlmSettings : null,
+        llm_setting:
+          Object.keys(enabledLlmSettings).length > 0
+            ? enabledLlmSettings
+            : null,
         prompt_config: {
           system: systemPrompt,
           prologue: config.prompt_config.prologue || '您好，我是您的助手！',
           empty_response: isRetrievalApp
-            ? (config.prompt_config.empty_response || '抱歉，我无法回答这个问题。')
-            : (config.prompt_config.empty_response || ''),
+            ? config.prompt_config.empty_response ||
+              '抱歉，我无法回答这个问题。'
+            : config.prompt_config.empty_response || '',
           quote: config.prompt_config.quote,
           keyword: config.prompt_config.keyword,
           tts: config.prompt_config.tts,
@@ -448,9 +521,11 @@ export const useCreateAppPage = () => {
           cross_languages: config.prompt_config.cross_languages || [],
           parameters: isRetrievalApp
             ? config.prompt_config.parameters
-            : config.prompt_config.parameters.filter((item) => item.key !== 'knowledge'),
+            : config.prompt_config.parameters.filter(
+                (item) => item.key !== 'knowledge',
+              ),
         },
-        kb_ids: config.kb_ids || [],
+        dataset_ids: config.kb_ids || [],
         top_n: config.top_n,
         top_k: config.top_k,
         do_refer: config.do_refer,
@@ -459,14 +534,13 @@ export const useCreateAppPage = () => {
         rerank_id: config.rerank_id || null,
       }
 
-      if (currentDialogId) {
-        requestData.dialog_id = currentDialogId
-      }
       if (searchMode) {
         requestData.search_mode = searchMode
       }
 
-      const result = await dialogAPI.set(requestData)
+      const result = currentDialogId
+        ? await dialogAPI.updateChat(currentDialogId, requestData)
+        : await dialogAPI.createChat(requestData)
       toast.success('保存成功')
 
       if (!currentDialogId && result?.id) {
@@ -484,7 +558,10 @@ export const useCreateAppPage = () => {
   }, [config, currentDialogId])
 
   const handleIconUpload = useCallback((file: File) => {
-    const isAllowedType = file.type === 'image/jpeg' || file.type === 'image/png' || file.type === 'image/svg+xml'
+    const isAllowedType =
+      file.type === 'image/jpeg' ||
+      file.type === 'image/png' ||
+      file.type === 'image/svg+xml'
     if (!isAllowedType) {
       toast.error('只能上传 JPG/PNG/SVG 格式的图片!')
       return false
@@ -498,7 +575,10 @@ export const useCreateAppPage = () => {
 
     const reader = new FileReader()
     reader.onload = () => {
-      setTempConfig((previousConfig) => ({ ...previousConfig, icon: reader.result as string }))
+      setTempConfig((previousConfig) => ({
+        ...previousConfig,
+        icon: reader.result as string,
+      }))
     }
     reader.onerror = () => {
       toast.error('读取图片失败，请重试')
@@ -512,13 +592,16 @@ export const useCreateAppPage = () => {
     iconInputRef.current?.click()
   }, [])
 
-  const handleIconInputChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (file) {
-      handleIconUpload(file)
-    }
-    event.target.value = ''
-  }, [handleIconUpload])
+  const handleIconInputChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0]
+      if (file) {
+        handleIconUpload(file)
+      }
+      event.target.value = ''
+    },
+    [handleIconUpload],
+  )
 
   return {
     dialogId: currentDialogId,

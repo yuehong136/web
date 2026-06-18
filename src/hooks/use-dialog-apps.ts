@@ -111,19 +111,24 @@ export const useSetDialogApp = () => {
       icon: string
       prompt_config?: any
       kb_ids?: string[]
+      dataset_ids?: string[]
     }) => {
       // 如果没有提供 prompt_config，添加一个默认的不包含 {knowledge} 的配置
       const requestData = {
-        ...data,
+        name: data.name,
+        description: data.description,
+        icon: data.icon,
         prompt_config: data.prompt_config || {
           system: '你是一个智能助手，请提供有帮助的回答。',
           prologue: '您好，我是您的助手！',
           empty_response: '',
           parameters: [],
         },
-        kb_ids: data.kb_ids || [],
+        dataset_ids: data.dataset_ids || data.kb_ids || [],
       }
-      return dialogAPI.set(requestData)
+      return data.dialog_id
+        ? dialogAPI.updateChat(data.dialog_id, requestData)
+        : dialogAPI.createChat(requestData)
     },
     onSuccess: (dialogApp, variables) => {
       // 更新缓存
@@ -187,7 +192,7 @@ export const useDeleteDialogApps = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (dialogIds: string[]) => dialogAPI.remove(dialogIds),
+    mutationFn: (dialogIds: string[]) => dialogAPI.bulkDeleteChats(dialogIds),
     onSuccess: (_, dialogIds) => {
       // 从缓存中移除
       dialogIds.forEach((dialogId) => {

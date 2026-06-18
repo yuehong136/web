@@ -124,8 +124,7 @@ export function dialogToSettings(
  */
 export function settingsToDialogUpdate(
   settings: ChatSettings,
-  dialogId: string,
-): Partial<DialogApp> & { dialog_id: string } {
+): Partial<DialogApp> & { dataset_ids: string[] } {
   // 构建 meta_data_filter
   let metaDataFilter: any = { method: 'disabled' }
   if (
@@ -144,11 +143,10 @@ export function settingsToDialogUpdate(
   }
 
   return {
-    dialog_id: dialogId,
     icon: settings.icon || undefined,
     name: settings.name || undefined,
     description: settings.description || undefined,
-    kb_ids: settings.kbIds,
+    dataset_ids: settings.kbIds,
     similarity_threshold: settings.similarityThreshold,
     vector_similarity_weight: settings.vectorSimilarityWeight,
     top_n: settings.topN,
@@ -218,8 +216,8 @@ export function useChatSettings(dialogId: string | undefined) {
   const { mutateAsync: saveSettings, isPending: saving } = useMutation({
     mutationFn: async (newSettings: ChatSettings) => {
       if (!dialogId) throw new Error('Dialog ID is required')
-      const updateData = settingsToDialogUpdate(newSettings, dialogId)
-      return dialogAPI.set(updateData)
+      const updateData = settingsToDialogUpdate(newSettings)
+      return dialogAPI.updateChat(dialogId, updateData)
     },
     onSuccess: () => {
       // 使缓存失效

@@ -472,6 +472,7 @@ export interface DialogApp {
   do_refer: string
   rerank_id: string | null
   kb_ids: string[]
+  dataset_ids?: string[]
   search_mode: {
     dense?: Record<string, any>
     hybrid?: {
@@ -492,10 +493,11 @@ export interface RemoveDialogRequest {
 }
 
 export interface SetDialogRequest {
-  dialog_id: string
+  dialog_id?: string
   name: string
   description: string
   icon: string
+  dataset_ids?: string[]
   prompt_config: {
     system: string
     prologue: string
