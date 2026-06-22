@@ -29,7 +29,7 @@ import { ChatModelSelector } from '@/components/chat/ChatModelSelector'
 import { documentAPI } from '@/api/document'
 import { mcpAPI } from '@/api/mcp'
 import type { MCPServer } from '@/types/mcp'
-import { useModelStore } from '@/stores/model'
+import { useFetchMyLLMs } from '@/hooks/use-llm-request'
 import { cn } from '@/lib/utils'
 import {
   Save,
@@ -82,7 +82,7 @@ const DataInput: React.FC<DataInputProps> = ({
   const [mcpServers, setMcpServers] = useState<MCPServer[]>([])
   const [mcpLoading, setMcpLoading] = useState(false)
   const [aiFilling, setAiFilling] = useState(false)
-  const { myLLMs, loadMyLLMs } = useModelStore()
+  const { myLLMs } = useFetchMyLLMs()
   const [llmConfig, setLlmConfig] = useState({
     llm_name: '',
     temperature: 0.3,
@@ -140,9 +140,9 @@ const DataInput: React.FC<DataInputProps> = ({
   useEffect(() => {
     if (settingsOpen) {
       fetchMcpServers()
-      loadMyLLMs()
     }
-  }, [settingsOpen, loadMyLLMs])
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 仅在打开设置时拉取一次 MCP 服务列表
+  }, [settingsOpen])
 
   const _validateData = (_data: PlaceholderData) => {
     // 不再强制必填，允许部分字段为空

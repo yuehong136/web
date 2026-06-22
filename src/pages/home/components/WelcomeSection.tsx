@@ -3,8 +3,8 @@ import { useTranslation } from 'react-i18next'
 import {
   findFirstEnabledModelByType,
   hasEnabledModelName,
-  useModelStore,
 } from '@/stores/model'
+import { useFetchMyLLMs } from '@/hooks/use-llm-request'
 import { useHomeStore } from '@/stores/home'
 import { WaveText } from './WaveText'
 import { FunctionTabs } from './FunctionTabs'
@@ -36,7 +36,7 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   // Store 状态
-  const { myLLMs, isLoading: modelsLoading, loadMyLLMs } = useModelStore()
+  const { myLLMs, isLoading: modelsLoading } = useFetchMyLLMs()
   const {
     selectedMCPIds,
     selectedMCPServers,
@@ -58,13 +58,6 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({
     handleInputChange: handleAtInput,
     removeAtSymbol,
   } = useAtTrigger()
-
-  // 加载模型列表
-  useEffect(() => {
-    if (Object.keys(myLLMs || {}).length === 0 && !modelsLoading) {
-      loadMyLLMs()
-    }
-  }, [loadMyLLMs, myLLMs, modelsLoading])
 
   // 自动选择第一个可用的聊天模型
   useEffect(() => {

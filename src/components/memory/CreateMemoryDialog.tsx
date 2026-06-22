@@ -34,7 +34,7 @@ import { ChatModelSelector } from './ChatModelSelector'
 import { AvatarUpload } from './AvatarUpload'
 import { EmbeddingModelSelector } from '@/components/knowledge/EmbeddingModelSelector'
 import { cn } from '@/lib/utils'
-import { useModelStore } from '@/stores/model'
+import { useFetchMyLLMs } from '@/hooks/use-llm-request'
 import type {
   Memory,
   CreateMemoryParams,
@@ -87,9 +87,8 @@ export const CreateMemoryDialog: FC<CreateMemoryDialogProps> = ({
   const isEditMode = !!initialData
   const createMemorySchema = useMemo(() => getCreateMemorySchema(t), [t])
   const editMemorySchema = useMemo(() => getEditMemorySchema(t), [t])
-  const modelProviders = useModelStore((state) => state.myLLMs)
-  const isLoadingModels = useModelStore((state) => state.isLoading)
-  const loadMyLLMs = useModelStore((state) => state.loadMyLLMs)
+  const { myLLMs: modelProviders, isLoading: isLoadingModels } =
+    useFetchMyLLMs()
 
   const avatarGradient = useMemo(() => {
     const name = initialData?.name || 'M'
@@ -103,12 +102,6 @@ export const CreateMemoryDialog: FC<CreateMemoryDialogProps> = ({
     const index = name.charCodeAt(0) % gradients.length
     return gradients[index]
   }, [initialData?.name])
-
-  useEffect(() => {
-    if (Object.keys(modelProviders).length === 0) {
-      void loadMyLLMs()
-    }
-  }, [loadMyLLMs, modelProviders])
 
   // ============ Create form ============
   const createForm = useForm<CreateMemoryFormValues>({
@@ -180,7 +173,7 @@ export const CreateMemoryDialog: FC<CreateMemoryDialogProps> = ({
                   avatarGradient,
                 )}
               >
-                <Brain className="w-icon-md h-icon-md text-components-button-primary-text" />
+                <Brain className="h-icon-md w-icon-md text-components-button-primary-text" />
               </div>
               <div className="min-w-0 flex-1">
                 <DialogTitle>{t('memory.dialog.editTitle')}</DialogTitle>
@@ -249,7 +242,7 @@ export const CreateMemoryDialog: FC<CreateMemoryDialogProps> = ({
                 </Button>
                 <Button type="submit" disabled={isLoading}>
                   {isLoading && (
-                    <Loader2 className="w-icon-sm h-icon-sm mr-space-sm animate-spin" />
+                    <Loader2 className="mr-space-sm h-icon-sm w-icon-sm animate-spin" />
                   )}
                   {t('common.save')}
                 </Button>
@@ -273,7 +266,7 @@ export const CreateMemoryDialog: FC<CreateMemoryDialogProps> = ({
                 'bg-gradient-to-br from-components-avatar-gradient-purple-from to-components-avatar-gradient-purple-to',
               )}
             >
-              <Brain className="w-icon-md h-icon-md text-components-button-primary-text" />
+              <Brain className="h-icon-md w-icon-md text-components-button-primary-text" />
             </div>
             <div className="min-w-0 flex-1">
               <DialogTitle>{t('memory.dialog.createTitle')}</DialogTitle>
@@ -390,7 +383,7 @@ export const CreateMemoryDialog: FC<CreateMemoryDialogProps> = ({
               </Button>
               <Button type="submit" disabled={isLoading}>
                 {isLoading && (
-                  <Loader2 className="w-icon-sm h-icon-sm mr-space-sm animate-spin" />
+                  <Loader2 className="mr-space-sm h-icon-sm w-icon-sm animate-spin" />
                 )}
                 {t('common.create')}
               </Button>

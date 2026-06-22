@@ -44,8 +44,8 @@ import { toast } from '@/lib/toast'
 import {
   findFirstEnabledModelByType,
   hasEnabledModelName,
-  useModelStore,
 } from '@/stores/model'
+import { useFetchMyLLMs } from '@/hooks/use-llm-request'
 import { useDialogApps } from '@/hooks/use-dialog-apps'
 import {
   useChatSettings,
@@ -184,7 +184,7 @@ const toChatMessageItem = (
 
 export const ExplorePage: FC = () => {
   const { t } = useTranslation()
-  const { myLLMs, isLoading: modelsLoading, loadMyLLMs } = useModelStore()
+  const { myLLMs, isLoading: modelsLoading } = useFetchMyLLMs()
 
   // 获取对话应用列表
   const {
@@ -385,12 +385,6 @@ export const ExplorePage: FC = () => {
           : undefined,
     }))
   }, [retryUploadFile, t, uploadFiles])
-
-  // 加载模型列表
-  useEffect(() => {
-    loadMyLLMs()
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- 首次加载一次，store action 引用稳定
-  }, [])
 
   // 自动选择第一个可用的聊天模型
   useEffect(() => {

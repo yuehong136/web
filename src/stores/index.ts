@@ -1,7 +1,6 @@
 // Zustand stores 统一导出
 export { useAuthStore } from './auth'
 export { useUIStore } from './ui'
-export { useModelStore } from './model'
 export {
   useStudioStore,
   useHasActiveFilters as useStudioHasActiveFilters,

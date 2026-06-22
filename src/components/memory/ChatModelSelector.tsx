@@ -3,7 +3,7 @@
  * 复用 EmbeddingModelSelector 的模式，从 modelStore 获取 chat 和 image2text 类型模型
  */
 
-import { useMemo, useEffect, type ReactNode } from 'react'
+import { useMemo, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { AlertCircle } from 'lucide-react'
 import {
@@ -12,12 +12,8 @@ import {
 } from '@/components/ui/select-with-search'
 import { FormTooltip } from '@/components/ui/tooltip'
 import { IconFontFill } from '@/components/ui/icon-font'
-import {
-  useModelStore,
-  IconMap,
-  LLMFactory,
-  isLLMModelEnabled,
-} from '@/stores/model'
+import { IconMap, LLMFactory, isLLMModelEnabled } from '@/stores/model'
+import { useFetchMyLLMs } from '@/hooks/use-llm-request'
 import { useIsDarkTheme } from '@/themes'
 
 interface ChatModelSelectorProps {
@@ -87,16 +83,9 @@ export function ChatModelSelector({
   tooltipText,
 }: ChatModelSelectorProps) {
   const { t } = useTranslation()
-  const { myLLMs, loadMyLLMs, isLoading } = useModelStore()
+  const { myLLMs, isLoading } = useFetchMyLLMs()
   const resolvedLabelText = labelText ?? t('memory.fields.llm')
   const resolvedTooltipText = tooltipText ?? t('memory.fields.llmTooltip')
-
-  // 加载模型列表
-  useEffect(() => {
-    if (Object.keys(myLLMs).length === 0) {
-      loadMyLLMs()
-    }
-  }, [myLLMs, loadMyLLMs])
 
   // 支持的模型类型：chat 和 image2text
   const SUPPORTED_MODEL_TYPES = ['chat', 'image2text']

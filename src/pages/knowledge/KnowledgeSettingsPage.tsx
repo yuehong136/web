@@ -17,12 +17,8 @@ import {
   useUpdateKnowledge,
 } from '@/hooks/use-knowledge-request'
 import { useUIStore } from '@/stores/ui'
-import {
-  useModelStore,
-  IconMap,
-  LLMFactory,
-  isLLMModelEnabled,
-} from '@/stores/model'
+import { IconMap, LLMFactory, isLLMModelEnabled } from '@/stores/model'
+import { useFetchMyLLMs } from '@/hooks/use-llm-request'
 import { useIsDarkTheme } from '@/themes'
 import { ROUTES } from '@/constants'
 import type { UpdateKBRequest } from '@/types/api'
@@ -117,7 +113,7 @@ const KnowledgeSettingsPage: React.FC = () => {
   const { knowledgeBase: currentKnowledgeBase } = useFetchKnowledgeDetail(id)
   const { updateKnowledge } = useUpdateKnowledge()
   const { addNotification } = useUIStore()
-  const { myLLMs, loadMyLLMs, isLoading: isLoadingModels } = useModelStore()
+  const { myLLMs, isLoading: isLoadingModels } = useFetchMyLLMs()
 
   const [isLoading, setIsLoading] = React.useState(false)
 
@@ -167,12 +163,6 @@ const KnowledgeSettingsPage: React.FC = () => {
   }, [parseType, form])
 
   // 加载模型列表（复用 modelStore）
-  React.useEffect(() => {
-    // 如果 store 中还没有数据，则加载
-    if (Object.keys(myLLMs).length === 0) {
-      loadMyLLMs()
-    }
-  }, [myLLMs, loadMyLLMs])
 
   // 构建所有嵌入模型的 value 映射（用于查找匹配）
   const allEmbeddingModelValues = React.useMemo(() => {

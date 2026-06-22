@@ -1,6 +1,6 @@
 /**
  * LLM Request Hooks
- * 
+ *
  * 使用 TanStack Query 管理 LLM 模型相关的服务器状态
  */
 
@@ -14,6 +14,7 @@ import {
   type MyLLMProvider,
   type LLMFactoryInterface,
   type AddLlmParams,
+  type ModelVerifyResult,
 } from '@/stores/model'
 
 // Query Keys 统一管理
@@ -40,16 +41,18 @@ export type LLMGroupedOptionGroup = {
 
 // 获取我的 LLM 列表
 export const useFetchMyLLMs = () => {
-  const { data, isFetching, isError, error, refetch } = useQuery<MyLLMProvider>({
-    queryKey: llmKeys.myLLMs(),
-    queryFn: async () => {
-      const response = await llmAPI.getMyLLMs()
-      return response as unknown as MyLLMProvider
+  const { data, isFetching, isError, error, refetch } = useQuery<MyLLMProvider>(
+    {
+      queryKey: llmKeys.myLLMs(),
+      queryFn: async () => {
+        const response = await llmAPI.getMyLLMs()
+        return response as unknown as MyLLMProvider
+      },
+      staleTime: 5 * 60 * 1000,
+      gcTime: 10 * 60 * 1000,
+      refetchOnWindowFocus: false,
     },
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
-    refetchOnWindowFocus: false,
-  })
+  )
 
   return {
     myLLMs: (data ?? {}) as MyLLMProvider,
@@ -62,7 +65,9 @@ export const useFetchMyLLMs = () => {
 
 // 获取可用的 LLM 工厂列表
 export const useFetchFactories = () => {
-  const { data, isFetching, isError, error, refetch } = useQuery<LLMFactoryInterface[]>({
+  const { data, isFetching, isError, error, refetch } = useQuery<
+    LLMFactoryInterface[]
+  >({
     queryKey: llmKeys.factories(),
     queryFn: async () => {
       const response = await llmAPI.getFactories()
@@ -82,57 +87,126 @@ export const useFetchFactories = () => {
   }
 }
 
-// 设置 API Key
+// 设置 API Key（云服务厂商）；verify 模式返回校验结果且不刷新列表，否则失效 myLLMs
 export const useSetApiKey = () => {
   const queryClient = useQueryClient()
 
-  const { mutateAsync, isPending, isError, error } = useMutation({
-    mutationFn: async (params: {
+  const mutation = useMutation({
+    mutationFn: (params: {
       llmFactory: string
       apiKey: string
       baseUrl?: string
       additionalParams?: Record<string, unknown>
-    }) => {
-      await llmAPI.setApiKey(
-        params.llmFactory, 
+      verify?: boolean
+    }) =>
+      llmAPI.setApiKey(
+        params.llmFactory,
         params.apiKey,
         params.baseUrl,
-        params.additionalParams
-      )
-      return params
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: llmKeys.myLLMs() })
+        params.additionalParams,
+        params.verify,
+      ),
+    onSuccess: (_response, params) => {
+      if (!params.verify) {
+        queryClient.invalidateQueries({ queryKey: llmKeys.myLLMs() })
+      }
     },
   })
 
+  // 位置参数包装，保持与原 store.setApiKey 一致的调用签名与返回形态
+  const setApiKey = async (
+    llmFactory: string,
+    apiKey: string,
+    baseUrl?: string,
+    additionalParams?: Record<string, unknown>,
+    verify = false,
+  ): Promise<ModelVerifyResult | undefined> => {
+    const response = await mutation.mutateAsync({
+      llmFactory,
+      apiKey,
+      baseUrl,
+      additionalParams,
+      verify,
+    })
+    if (verify) {
+      return { isValid: !!response?.success, logs: response?.message || '' }
+    }
+    return undefined
+  }
+
   return {
-    setApiKey: mutateAsync,
-    isLoading: isPending,
-    isError,
-    error,
+    setApiKey,
+    isLoading: mutation.isPending,
+    isError: mutation.isError,
+    error: mutation.error,
   }
 }
 
-// 添加 LLM 模型
+// 添加本地模型；verify 模式返回校验结果且不刷新列表，否则失效 myLLMs
 export const useAddLLM = () => {
   const queryClient = useQueryClient()
 
-  const { mutateAsync, isPending, isError, error } = useMutation({
-    mutationFn: async (params: AddLlmParams) => {
-      await llmAPI.addLLM(params)
-      return params
+  const mutation = useMutation({
+    mutationFn: ({
+      params,
+      verify,
+    }: {
+      params: AddLlmParams
+      verify?: boolean
+    }) => llmAPI.addLLM(params, verify),
+    onSuccess: (_response, { verify }) => {
+      if (!verify) {
+        queryClient.invalidateQueries({ queryKey: llmKeys.myLLMs() })
+      }
     },
+  })
+
+  const addLLM = async (
+    params: AddLlmParams,
+    verify = false,
+  ): Promise<ModelVerifyResult | undefined> => {
+    const response = await mutation.mutateAsync({ params, verify })
+    if (verify) {
+      return { isValid: !!response?.success, logs: response?.message || '' }
+    }
+    return undefined
+  }
+
+  return {
+    addLLM,
+    isLoading: mutation.isPending,
+    isError: mutation.isError,
+    error: mutation.error,
+  }
+}
+
+// 启用/禁用指定模型，成功后失效 myLLMs
+export const useEnableLLM = () => {
+  const queryClient = useQueryClient()
+
+  const mutation = useMutation({
+    mutationFn: ({
+      llmFactory,
+      llmName,
+      enabled,
+    }: {
+      llmFactory: string
+      llmName: string
+      enabled: boolean
+    }) => llmAPI.enableLlm(llmFactory, llmName, enabled),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: llmKeys.myLLMs() })
     },
   })
 
+  const enableLlm = (llmFactory: string, llmName: string, enabled: boolean) =>
+    mutation.mutateAsync({ llmFactory, llmName, enabled })
+
   return {
-    addLLM: mutateAsync,
-    isLoading: isPending,
-    isError,
-    error,
+    enableLlm,
+    isLoading: mutation.isPending,
+    isError: mutation.isError,
+    error: mutation.error,
   }
 }
 
@@ -164,7 +238,9 @@ export const useLLMOptions = (type?: 'chat' | 'embedding' | 'rerank') => {
 
   const options = Object.entries(myLLMs).flatMap(([providerName, provider]) => {
     return (provider.llm || [])
-      .filter((model) => (!type || model.type === type) && isLLMModelEnabled(model))
+      .filter(
+        (model) => (!type || model.type === type) && isLLMModelEnabled(model),
+      )
       .map((model) => ({
         label: `${providerName} / ${model.name}`,
         value: model.name,
@@ -235,7 +311,8 @@ export const useRerankModelOptions = () => useLLMOptions('rerank')
 export const useChatModelGroupedOptions = () => useLLMGroupedOptions('chat')
 
 // 获取分组的 Embedding 模型选项
-export const useEmbeddingModelGroupedOptions = () => useLLMGroupedOptions('embedding')
+export const useEmbeddingModelGroupedOptions = () =>
+  useLLMGroupedOptions('embedding')
 
 // 获取分组的 Rerank 模型选项
 export const useRerankModelGroupedOptions = () => useLLMGroupedOptions('rerank')

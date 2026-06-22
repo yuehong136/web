@@ -10,8 +10,8 @@ import {
   findFirstEnabledModelByType,
   findProviderNameByModelName,
   hasEnabledModelName,
-  useModelStore,
 } from '@/stores/model'
+import { useFetchMyLLMs } from '@/hooks/use-llm-request'
 import { useHomeStore } from '@/stores/home'
 import { ProviderIcon } from '@/components/ui/provider-icon'
 import { AgentThoughtChain } from '@/components/chat/AgentThoughtChain'
@@ -76,7 +76,7 @@ export const ChatSection = ({
     ReferenceChunk[]
   >([])
 
-  const { myLLMs, isLoading: modelsLoading } = useModelStore()
+  const { myLLMs, isLoading: modelsLoading } = useFetchMyLLMs()
   const {
     selectedMCPIds,
     selectedMCPServers,

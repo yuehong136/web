@@ -21,8 +21,8 @@ import {
   findFirstEnabledModelByType,
   findProviderNameByModelName,
   hasEnabledModelName,
-  useModelStore,
 } from '@/stores/model'
+import { useFetchMyLLMs } from '@/hooks/use-llm-request'
 import { useMcpUpload } from '@/hooks/use-mcp-upload'
 import { useStreamBatcher } from '@/hooks/useStreamBatcher'
 import { toast } from '@/lib/toast'
@@ -361,7 +361,7 @@ export default function MCPChatPage() {
   }, [])
 
   // 模型选择相关状态 - 使用真实的模型数据
-  const { myLLMs, isLoading: modelsLoading, loadMyLLMs } = useModelStore()
+  const { myLLMs, isLoading: modelsLoading } = useFetchMyLLMs()
   const [selectedModelId, setSelectedModelId] = useState<string>('')
 
   const activeSession = sessions.find((s) => s.id === activeSessionId)
@@ -692,14 +692,6 @@ export default function MCPChatPage() {
     isToolAnalyzing,
     getAssistantAvatar,
   ])
-
-  // 加载模型列表
-  useEffect(() => {
-    if (Object.keys(myLLMs || {}).length === 0 && !modelsLoading) {
-      console.log('Loading models...')
-      loadMyLLMs()
-    }
-  }, [loadMyLLMs, myLLMs, modelsLoading])
 
   // 新消息进入会话时自动滚动到底部（单通道调度）
   useEffect(() => {
