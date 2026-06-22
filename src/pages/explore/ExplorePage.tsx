@@ -41,7 +41,6 @@ import { Button } from '@/components/ui/button'
 import { FileIcon, getFileCategory } from '@/components/ui/file-icon'
 import { cn, copyToClipboard, formatBytes } from '@/lib/utils'
 import { toast } from '@/lib/toast'
-import { useChatStore } from '@/stores/chat'
 import {
   findFirstEnabledModelByType,
   hasEnabledModelName,
@@ -185,7 +184,6 @@ const toChatMessageItem = (
 
 export const ExplorePage: FC = () => {
   const { t } = useTranslation()
-  const { clearChat } = useChatStore()
   const { myLLMs, isLoading: modelsLoading, loadMyLLMs } = useModelStore()
 
   // 获取对话应用列表
@@ -1299,7 +1297,6 @@ export const ExplorePage: FC = () => {
   const handleTopicsClick = () => {
     setActiveTab('topics')
     setMode('chat')
-    clearChat()
     setSelectedConversationDetail(null)
     setActiveConversationKey(undefined)
     setMessages([])
