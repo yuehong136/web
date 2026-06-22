@@ -41,20 +41,9 @@ export const memoryKeys = {
  * 获取记忆库列表
  */
 export function useMemoryList(params?: MemoryListParams) {
-  const { setMemories, setLoading } = useMemoryStore()
-
   return useQuery({
     queryKey: memoryKeys.list(params || {}),
-    queryFn: async () => {
-      setLoading(true)
-      try {
-        const data = await memoryAPI.memory.list(params)
-        setMemories(data.memory_list, data.total_count)
-        return data
-      } finally {
-        setLoading(false)
-      }
-    },
+    queryFn: () => memoryAPI.memory.list(params),
     staleTime: 30 * 1000, // 30 秒内不重新请求
     placeholderData: (previousData) => previousData, // 保持之前的数据，避免闪烁
   })
@@ -66,15 +55,11 @@ export function useMemoryList(params?: MemoryListParams) {
  * 获取记忆库详情
  */
 export function useMemoryDetail(id: string | undefined) {
-  const { setCurrentMemory } = useMemoryStore()
-
   return useQuery({
     queryKey: memoryKeys.detail(id || ''),
-    queryFn: async () => {
+    queryFn: () => {
       if (!id) throw new Error('Memory ID is required')
-      const data = await memoryAPI.memory.get(id)
-      setCurrentMemory(data)
-      return data
+      return memoryAPI.memory.get(id)
     },
     enabled: !!id,
   })
@@ -102,15 +87,12 @@ export function useMemoryConfig(id: string | undefined) {
 export function useCreateMemory() {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
-  const { closeCreateModal, addMemory } = useMemoryStore()
+  const { closeCreateModal } = useMemoryStore()
 
   return useMutation({
     mutationFn: (data: CreateMemoryParams) => memoryAPI.memory.create(data),
-    onSuccess: (result, variables) => {
-      // 后端返回完整的 Memory 对象，直接添加到列表
-      addMemory(result)
-
-      // 使列表缓存失效
+    onSuccess: (_result, variables) => {
+      // 使列表缓存失效，由 React Query 重新拉取最新列表
       queryClient.invalidateQueries({ queryKey: memoryKeys.lists() })
 
       // 关闭弹窗
@@ -138,16 +120,13 @@ export function useCreateMemory() {
 export function useUpdateMemory() {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
-  const { updateMemory, closeEditModal } = useMemoryStore()
+  const { closeEditModal } = useMemoryStore()
 
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateMemoryParams }) =>
       memoryAPI.memory.update(id, data),
-    onSuccess: (_result, { id, data }) => {
-      // 更新本地状态
-      updateMemory(id, data)
-
-      // 使缓存失效
+    onSuccess: (_result, { id }) => {
+      // 使缓存失效，由 React Query 重新拉取详情/配置/列表
       queryClient.invalidateQueries({ queryKey: memoryKeys.detail(id) })
       queryClient.invalidateQueries({ queryKey: memoryKeys.config(id) })
       queryClient.invalidateQueries({ queryKey: memoryKeys.lists() })
@@ -175,15 +154,10 @@ export function useUpdateMemory() {
 export function useDeleteMemory() {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
-  const { removeMemory } = useMemoryStore()
-
   return useMutation({
     mutationFn: (id: string) => memoryAPI.memory.delete(id),
-    onSuccess: (_, id) => {
-      // 更新本地状态
-      removeMemory(id)
-
-      // 使列表缓存失效
+    onSuccess: () => {
+      // 使列表缓存失效，由 React Query 重新拉取最新列表
       queryClient.invalidateQueries({ queryKey: memoryKeys.lists() })
 
       // 提示成功
@@ -211,23 +185,14 @@ export function useMessageList(
   memoryId: string | undefined,
   params?: MessageListParams,
 ) {
-  const { setMessages, setMessagesLoading } = useMemoryStore()
-
   return useQuery({
     queryKey: memoryKeys.messageList(memoryId || '', params || {}),
     queryFn: async () => {
       if (!memoryId) throw new Error('Memory ID is required')
-      setMessagesLoading(true)
-      try {
-        const data = await memoryAPI.memory.getDetail(memoryId, params)
-        const messages = {
-          ...data.messages,
-          storage_type: data.storage_type,
-        }
-        setMessages(messages.message_list, messages.total_count)
-        return messages
-      } finally {
-        setMessagesLoading(false)
+      const data = await memoryAPI.memory.getDetail(memoryId, params)
+      return {
+        ...data.messages,
+        storage_type: data.storage_type,
       }
     },
     enabled: !!memoryId,
@@ -258,8 +223,6 @@ export function useMessageContent(
 export function useUpdateMessageState() {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
-  const { updateMessageStatus } = useMemoryStore()
-
   return useMutation({
     mutationFn: ({
       memoryId,
@@ -270,20 +233,13 @@ export function useUpdateMessageState() {
       messageId: number
       status: boolean
     }) => memoryAPI.message.updateState(memoryId, messageId, status),
-    onMutate: async ({ messageId, status }) => {
-      // 乐观更新
-      updateMessageStatus(messageId, status)
-    },
     onSuccess: (_, { memoryId }) => {
-      // 使消息列表缓存失效
+      // 使消息列表缓存失效，由 React Query 重新拉取
       queryClient.invalidateQueries({ queryKey: memoryKeys.messages(memoryId) })
 
       toast.success(t('common.saved'))
     },
-    onError: (error, { messageId, status }) => {
-      // 回滚乐观更新
-      updateMessageStatus(messageId, !status)
-
+    onError: (error) => {
       toast.error(t('common.errors.serverError'), {
         description:
           error instanceof Error
@@ -300,8 +256,6 @@ export function useUpdateMessageState() {
 export function useForgetMessage() {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
-  const { removeMessage } = useMemoryStore()
-
   return useMutation({
     mutationFn: ({
       memoryId,
@@ -310,11 +264,8 @@ export function useForgetMessage() {
       memoryId: string
       messageId: number
     }) => memoryAPI.message.forget(memoryId, messageId),
-    onSuccess: (_, { memoryId, messageId }) => {
-      // 更新本地状态
-      removeMessage(messageId)
-
-      // 使消息列表缓存失效
+    onSuccess: (_, { memoryId }) => {
+      // 使消息列表缓存失效，由 React Query 重新拉取
       queryClient.invalidateQueries({ queryKey: memoryKeys.messages(memoryId) })
 
       toast.success(t('memory.toast.forgetMessageSuccess'))

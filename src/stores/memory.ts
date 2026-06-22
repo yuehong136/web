@@ -1,13 +1,15 @@
 /**
- * 记忆库状态管理
+ * 记忆库 UI 状态管理
  * 使用 Zustand 5.0 + Immer
+ *
+ * 仅持有客户端 UI 态（筛选/分页/视图/选择/弹窗）。服务端数据（记忆库列表、
+ * 详情、消息列表）统一走 React Query（见 src/hooks/use-memory.ts），不在此缓存。
  */
 
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
 import type {
   Memory,
-  MemoryMessage,
   MemoryFilterState,
   MessageFilterState,
 } from '@/types/memory'
@@ -15,11 +17,6 @@ import type {
 // ============ 状态类型 ============
 
 interface MemoryState {
-  // 列表页状态
-  memories: Memory[]
-  total: number
-  isLoading: boolean
-
   // 筛选状态
   filter: MemoryFilterState
 
@@ -33,13 +30,7 @@ interface MemoryState {
   // 选中状态（用于批量操作）
   selectedIds: string[]
 
-  // 当前记忆库详情
-  currentMemory: Memory | null
-
-  // 消息列表状态
-  messages: MemoryMessage[]
-  messagesTotal: number
-  messagesLoading: boolean
+  // 消息列表 UI 状态
   messageFilter: MessageFilterState
   messagePage: number
   messagePageSize: number
@@ -50,10 +41,6 @@ interface MemoryState {
 }
 
 interface MemoryActions {
-  // 列表操作
-  setMemories: (memories: Memory[], total: number) => void
-  setLoading: (loading: boolean) => void
-
   // 筛选操作
   setFilter: (filter: Partial<MemoryFilterState>) => void
   resetFilter: () => void
@@ -70,30 +57,17 @@ interface MemoryActions {
   selectAll: (ids: string[]) => void
   clearSelection: () => void
 
-  // 当前记忆库操作
-  setCurrentMemory: (memory: Memory | null) => void
-  updateCurrentMemory: (updates: Partial<Memory>) => void
-
-  // 消息操作
-  setMessages: (messages: MemoryMessage[], total: number) => void
-  setMessagesLoading: (loading: boolean) => void
+  // 消息列表 UI 操作
   setMessageFilter: (filter: Partial<MessageFilterState>) => void
   resetMessageFilter: () => void
   setMessagePage: (page: number) => void
   setMessagePageSize: (pageSize: number) => void
-  updateMessageStatus: (messageId: number, status: boolean) => void
-  removeMessage: (messageId: number) => void
 
   // 弹窗操作
   openCreateModal: () => void
   closeCreateModal: () => void
   openEditModal: (memory: Memory) => void
   closeEditModal: () => void
-
-  // CRUD 后的列表更新
-  addMemory: (memory: Memory) => void
-  updateMemory: (id: string, updates: Partial<Memory>) => void
-  removeMemory: (id: string) => void
 
   // 重置
   reset: () => void
@@ -114,18 +88,11 @@ const initialMessageFilterState: MessageFilterState = {
 }
 
 const initialState: MemoryState = {
-  memories: [],
-  total: 0,
-  isLoading: false,
   filter: initialFilterState,
   page: 1,
   pageSize: 12,
   viewMode: 'grid',
   selectedIds: [],
-  currentMemory: null,
-  messages: [],
-  messagesTotal: 0,
-  messagesLoading: false,
   messageFilter: initialMessageFilterState,
   messagePage: 1,
   messagePageSize: 20,
@@ -138,18 +105,6 @@ const initialState: MemoryState = {
 export const useMemoryStore = create<MemoryState & MemoryActions>()(
   immer((set) => ({
     ...initialState,
-
-    // 列表操作
-    setMemories: (memories, total) =>
-      set((state) => {
-        state.memories = memories
-        state.total = total
-      }),
-
-    setLoading: (loading) =>
-      set((state) => {
-        state.isLoading = loading
-      }),
 
     // 筛选操作
     setFilter: (filter) =>
@@ -203,31 +158,7 @@ export const useMemoryStore = create<MemoryState & MemoryActions>()(
         state.selectedIds = []
       }),
 
-    // 当前记忆库操作
-    setCurrentMemory: (memory) =>
-      set((state) => {
-        state.currentMemory = memory
-      }),
-
-    updateCurrentMemory: (updates) =>
-      set((state) => {
-        if (state.currentMemory) {
-          Object.assign(state.currentMemory, updates)
-        }
-      }),
-
-    // 消息操作
-    setMessages: (messages, total) =>
-      set((state) => {
-        state.messages = messages
-        state.messagesTotal = total
-      }),
-
-    setMessagesLoading: (loading) =>
-      set((state) => {
-        state.messagesLoading = loading
-      }),
-
+    // 消息列表 UI 操作
     setMessageFilter: (filter) =>
       set((state) => {
         Object.assign(state.messageFilter, filter)
@@ -249,22 +180,6 @@ export const useMemoryStore = create<MemoryState & MemoryActions>()(
       set((state) => {
         state.messagePageSize = pageSize
         state.messagePage = 1
-      }),
-
-    updateMessageStatus: (messageId, status) =>
-      set((state) => {
-        const message = state.messages.find((m) => m.message_id === messageId)
-        if (message) {
-          message.status = status
-        }
-      }),
-
-    removeMessage: (messageId) =>
-      set((state) => {
-        state.messages = state.messages.filter(
-          (m) => m.message_id !== messageId,
-        )
-        state.messagesTotal -= 1
       }),
 
     // 弹窗操作
@@ -291,44 +206,12 @@ export const useMemoryStore = create<MemoryState & MemoryActions>()(
         state.createModalOpen = false
       }),
 
-    // CRUD 后的列表更新
-    addMemory: (memory) =>
-      set((state) => {
-        state.memories.unshift(memory)
-        state.total += 1
-      }),
-
-    updateMemory: (id, updates) =>
-      set((state) => {
-        const index = state.memories.findIndex((m) => m.id === id)
-        if (index !== -1) {
-          Object.assign(state.memories[index], updates)
-        }
-        // 同步更新 currentMemory
-        if (state.currentMemory?.id === id) {
-          Object.assign(state.currentMemory, updates)
-        }
-      }),
-
-    removeMemory: (id) =>
-      set((state) => {
-        state.memories = state.memories.filter((m) => m.id !== id)
-        state.total -= 1
-        state.selectedIds = state.selectedIds.filter((i) => i !== id)
-        if (state.currentMemory?.id === id) {
-          state.currentMemory = null
-        }
-      }),
-
     // 重置
     reset: () => set(initialState),
   })),
 )
 
 // ============ 选择器 ============
-
-// 获取筛选后的记忆库数量
-export const useFilteredCount = () => useMemoryStore((state) => state.total)
 
 // 获取是否有活跃筛选
 export const useHasActiveFilters = () =>
@@ -345,11 +228,3 @@ export const useHasActiveFilters = () =>
 // 获取选中数量
 export const useSelectedCount = () =>
   useMemoryStore((state) => state.selectedIds.length)
-
-// 获取是否全选
-export const useIsAllSelected = () =>
-  useMemoryStore(
-    (state) =>
-      state.memories.length > 0 &&
-      state.selectedIds.length === state.memories.length,
-  )
