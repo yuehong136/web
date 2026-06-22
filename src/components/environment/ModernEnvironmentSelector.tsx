@@ -1,14 +1,21 @@
 // src/components/environment/ModernEnvironmentSelector.tsx
-import { useEffect } from 'react'
-import { ChevronDown, Globe, Zap, Plus, Settings2, RefreshCw } from 'lucide-react'
+import {
+  ChevronDown,
+  Globe,
+  Zap,
+  Plus,
+  Settings2,
+  RefreshCw,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useEnvironmentStore } from '@/stores/environmentStore'
+import { useFetchEnvironments } from '@/hooks/use-environment-request'
 import { cn } from '@/lib/utils'
 
 interface ModernEnvironmentSelectorProps {
@@ -17,28 +24,20 @@ interface ModernEnvironmentSelectorProps {
   className?: string
 }
 
-export function ModernEnvironmentSelector({ 
-  onEnvironmentChange, 
+export function ModernEnvironmentSelector({
+  onEnvironmentChange,
   onManageClick,
-  className 
+  className,
 }: ModernEnvironmentSelectorProps) {
-  const {
-    environments,
-    selectedEnvironmentId,
-    selectEnvironment,
-    loadEnvironments,
-    isLoading
-  } = useEnvironmentStore()
+  const { selectedEnvironmentId, selectEnvironment } = useEnvironmentStore()
+  const { environments, isLoading } = useFetchEnvironments()
 
+  const selectedEnvironment = environments.find(
+    (env) => env.id === selectedEnvironmentId,
+  )
 
-  useEffect(() => {
-    loadEnvironments()
-  }, [loadEnvironments])
-
-  const selectedEnvironment = environments.find(env => env.id === selectedEnvironmentId)
-
-  const handleEnvironmentSelect = async (environmentId: string) => {
-    await selectEnvironment(environmentId)
+  const handleEnvironmentSelect = (environmentId: string) => {
+    selectEnvironment(environmentId)
     onEnvironmentChange?.(environmentId)
   }
 
@@ -48,17 +47,17 @@ export function ModernEnvironmentSelector({
       'dxl-193': 'bg-purple-500',
       '1': 'bg-green-500',
       '192-local': 'bg-teal-500',
-      'production': 'bg-emerald-500',
-      'prod': 'bg-emerald-500',
-      'staging': 'bg-amber-500',
-      'stage': 'bg-amber-500',
-      'development': 'bg-blue-500',
-      'dev': 'bg-blue-500',
-      'test': 'bg-purple-500',
-      'testing': 'bg-purple-500',
-      'local': 'bg-text-tertiary'
+      production: 'bg-emerald-500',
+      prod: 'bg-emerald-500',
+      staging: 'bg-amber-500',
+      stage: 'bg-amber-500',
+      development: 'bg-blue-500',
+      dev: 'bg-blue-500',
+      test: 'bg-purple-500',
+      testing: 'bg-purple-500',
+      local: 'bg-text-tertiary',
     }
-    
+
     return colorMap[normalized] || 'bg-violet-500'
   }
 
@@ -69,12 +68,12 @@ export function ModernEnvironmentSelector({
 
   if (isLoading) {
     return (
-      <Button 
-        variant="outline" 
-        className={cn("w-64 gap-2 text-muted-foreground", className)}
+      <Button
+        variant="outline"
+        className={cn('w-64 gap-2 text-muted-foreground', className)}
         disabled
       >
-        <RefreshCw className="w-4 h-4 animate-spin" />
+        <RefreshCw className="h-4 w-4 animate-spin" />
         加载中...
       </Button>
     )
@@ -82,12 +81,15 @@ export function ModernEnvironmentSelector({
 
   if (environments.length === 0) {
     return (
-      <Button 
-        variant="outline" 
-        className={cn("min-w-[160px] max-w-[200px] gap-2 text-muted-foreground", className)}
+      <Button
+        variant="outline"
+        className={cn(
+          'min-w-[160px] max-w-[200px] gap-2 text-muted-foreground',
+          className,
+        )}
         onClick={onManageClick}
       >
-        <Plus className="w-4 h-4" />
+        <Plus className="h-4 w-4" />
         请先创建环境
       </Button>
     )
@@ -96,150 +98,164 @@ export function ModernEnvironmentSelector({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           className={cn(
-            "gap-3 justify-between min-w-[160px] max-w-[200px] h-10 px-4",
-            "bg-background border-border",
-            "hover:bg-background/90 hover:border-border/80 hover:shadow-sm",
-            "transition-colors duration-150",
-            className
+            'h-10 min-w-[160px] max-w-[200px] justify-between gap-3 px-4',
+            'border-border bg-background',
+            'hover:border-border/80 hover:bg-background/90 hover:shadow-sm',
+            'transition-colors duration-150',
+            className,
           )}
         >
           {selectedEnvironment ? (
-            <div className="flex items-center gap-2 min-w-0 flex-1">
+            <div className="flex min-w-0 flex-1 items-center gap-2">
               {/* Environment Icon */}
-              <div className={cn(
-                "w-6 h-6 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-sm flex-shrink-0",
-                getEnvironmentColor(selectedEnvironment.name)
-              )}>
+              <div
+                className={cn(
+                  'flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-sm font-bold text-white shadow-sm',
+                  getEnvironmentColor(selectedEnvironment.name),
+                )}
+              >
                 {getEnvironmentIcon(selectedEnvironment.name)}
               </div>
-              
+
               {/* Environment Name */}
-              <div className="flex items-center gap-2 min-w-0">
-                <span className="font-medium text-sm truncate text-foreground">
+              <div className="flex min-w-0 items-center gap-2">
+                <span className="truncate text-sm font-medium text-foreground">
                   {selectedEnvironment.name}
                 </span>
                 {selectedEnvironment.is_default && (
-                  <Zap className="w-3 h-3 text-amber-500 flex-shrink-0" />
+                  <Zap className="h-3 w-3 flex-shrink-0 text-amber-500" />
                 )}
                 {selectedEnvironment.is_global && (
-                  <Globe className="w-3 h-3 text-blue-500 flex-shrink-0" />
+                  <Globe className="h-3 w-3 flex-shrink-0 text-blue-500" />
                 )}
               </div>
             </div>
           ) : (
-            <span className="text-muted-foreground text-sm">
-              {isLoading ? "加载中..." : environments.length > 0 ? "请选择环境" : "暂无环境"}
+            <span className="text-sm text-muted-foreground">
+              {isLoading
+                ? '加载中...'
+                : environments.length > 0
+                  ? '请选择环境'
+                  : '暂无环境'}
             </span>
           )}
-          
-          <ChevronDown className={cn(
-            "w-4 h-4 text-muted-foreground transition-transform duration-200 flex-shrink-0"
-          )} />
+
+          <ChevronDown
+            className={cn(
+              'h-4 w-4 flex-shrink-0 text-muted-foreground transition-transform duration-200',
+            )}
+          />
         </Button>
       </DropdownMenuTrigger>
-      
-      <DropdownMenuContent 
-        align="right" 
-        className="w-[240px] p-1 shadow-xl border border-border bg-background"
+
+      <DropdownMenuContent
+        align="right"
+        className="w-[240px] border border-border bg-background p-1 shadow-xl"
       >
         <div className="py-0.5">
           {environments.map((env, index) => {
             const isSelected = env.id === selectedEnvironmentId
             const bgColor = getEnvironmentColor(env.name)
             const icon = getEnvironmentIcon(env.name)
-            
+
             return (
               <div key={env.id}>
                 <DropdownMenuItem
                   onClick={() => handleEnvironmentSelect(env.id)}
                   className={cn(
-                    "px-3 py-2.5 mx-1 rounded-lg cursor-pointer border-0",
-                    "hover:bg-accent focus:bg-accent",
-                    "transition-colors duration-150",
-                    isSelected && "bg-primary/20 hover:bg-primary/25 focus:bg-primary/25 ring-1 ring-primary/30"
+                    'mx-1 cursor-pointer rounded-lg border-0 px-3 py-2.5',
+                    'hover:bg-accent focus:bg-accent',
+                    'transition-colors duration-150',
+                    isSelected &&
+                      'bg-primary/20 ring-1 ring-primary/30 hover:bg-primary/25 focus:bg-primary/25',
                   )}
                 >
                   <div className="flex flex-col gap-0.5">
                     {/* 第一行：选中指示器 + 图标 + 名称 + 状态标识 + 变量数量 */}
                     <div className="flex items-center gap-3">
                       {/* 选中指示器 - 最左侧 */}
-                      <div className="w-2 flex justify-start flex-shrink-0">
+                      <div className="flex w-2 flex-shrink-0 justify-start">
                         {isSelected && (
-                          <div className="w-2 h-2 rounded-full bg-primary" />
+                          <div className="h-2 w-2 rounded-full bg-primary" />
                         )}
                       </div>
-                      
+
                       {/* Environment Icon */}
-                      <div className={cn(
-                        "w-6 h-6 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-sm flex-shrink-0",
-                        bgColor
-                      )}>
+                      <div
+                        className={cn(
+                          'flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-sm font-bold text-white shadow-sm',
+                          bgColor,
+                        )}
+                      >
                         {icon}
                       </div>
-                      
+
                       {/* 名称和状态标识 */}
-                      <div className="flex items-center gap-2 min-w-0 flex-1">
-                        <span className="font-medium text-sm text-foreground truncate">
+                      <div className="flex min-w-0 flex-1 items-center gap-2">
+                        <span className="truncate text-sm font-medium text-foreground">
                           {env.name}
                         </span>
-                        
+
                         {/* Status Badges */}
                         {env.is_default && (
-                          <div className="w-2 h-2 rounded-full bg-amber-400 flex-shrink-0" title="默认环境" />
+                          <div
+                            className="h-2 w-2 flex-shrink-0 rounded-full bg-amber-400"
+                            title="默认环境"
+                          />
                         )}
                         {env.is_global && (
-                          <div className="w-2 h-2 rounded-full bg-blue-400 flex-shrink-0" title="全局环境" />
+                          <div
+                            className="h-2 w-2 flex-shrink-0 rounded-full bg-blue-400"
+                            title="全局环境"
+                          />
                         )}
                       </div>
-                      
+
                       {/* 右侧：变量数量 */}
-                      <span className="text-xs text-muted-foreground flex-shrink-0">
+                      <span className="flex-shrink-0 text-xs text-muted-foreground">
                         {env.variables_count} 变量
                       </span>
                     </div>
-                    
+
                     {/* 第二行：仅描述 */}
                     {env.description && (
-                      <div className="text-xs text-muted-foreground truncate ml-11">
+                      <div className="ml-11 truncate text-xs text-muted-foreground">
                         {env.description}
                       </div>
                     )}
                   </div>
                 </DropdownMenuItem>
-                
+
                 {/* 分隔线 */}
                 {index < environments.length - 1 && (
-                  <div className="h-px bg-border mx-3 my-0.5" />
+                  <div className="mx-3 my-0.5 h-px bg-border" />
                 )}
               </div>
             )
           })}
         </div>
-        
-        
-        <div className="h-px bg-border mx-3 my-2" />
-        
+
+        <div className="mx-3 my-2 h-px bg-border" />
+
         <div className="px-1 pb-1">
           <DropdownMenuItem
             onClick={() => onManageClick?.()}
-            className="px-3 py-2.5 mx-1 rounded-lg cursor-pointer border-0 hover:bg-primary/10 transition-colors duration-150"
+            className="mx-1 cursor-pointer rounded-lg border-0 px-3 py-2.5 transition-colors duration-150 hover:bg-primary/10"
           >
             <div className="flex items-center gap-3">
               {/* 占位符保持对齐 */}
               <div className="w-2 flex-shrink-0"></div>
-              
+
               {/* 管理图标 */}
-              <div className="w-6 h-6 rounded-full bg-primary/15 flex items-center justify-center flex-shrink-0">
-                <Settings2 className="w-4 h-4 text-primary" />
+              <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary/15">
+                <Settings2 className="h-4 w-4 text-primary" />
               </div>
-              
+
               {/* 管理环境文字 */}
-              <span className="font-medium text-sm text-primary">
-                管理环境
-              </span>
+              <span className="text-sm font-medium text-primary">管理环境</span>
             </div>
           </DropdownMenuItem>
         </div>

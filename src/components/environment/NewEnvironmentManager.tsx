@@ -3,7 +3,11 @@ import { useState, useEffect } from 'react'
 import { Save } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
-import { useEnvironmentStore } from '@/stores/environmentStore'
+import {
+  useFetchEnvironment,
+  useFetchEnvironments,
+  useFetchGlobalEnvironments,
+} from '@/hooks/use-environment-request'
 import { EnvironmentList, EnvironmentDetail } from '@/components/environment'
 import { toast } from '@/lib/toast'
 
@@ -12,39 +16,43 @@ interface NewEnvironmentManagerProps {
   onClose: () => void
 }
 
-export function NewEnvironmentManager({ isOpen, onClose }: NewEnvironmentManagerProps) {
-  const {
-    environments,
-    globalEnvironments,
-    currentEnvironment,
-    loadEnvironments,
-    loadGlobalEnvironments,
-    loadEnvironment
-  } = useEnvironmentStore()
-
-  const [selectedEnvironmentId, setSelectedEnvironmentId] = useState<string | null>(null)
+export function NewEnvironmentManager({
+  isOpen,
+  onClose,
+}: NewEnvironmentManagerProps) {
+  const [selectedEnvironmentId, setSelectedEnvironmentId] = useState<
+    string | null
+  >(null)
   const [isDirty, setIsDirty] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
 
-  // 初始化数据
-  useEffect(() => {
-    if (isOpen) {
-      loadEnvironments()
-      loadGlobalEnvironments()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- store action 引用稳定，只在 isOpen 变化时触发
-  }, [isOpen])
+  // 服务器态走 React Query，仅在弹窗打开时拉取
+  const { environments } = useFetchEnvironments({ enabled: isOpen })
+  const { globalEnvironments } = useFetchGlobalEnvironments({ enabled: isOpen })
+  const detailEnvironmentId =
+    selectedEnvironmentId &&
+    selectedEnvironmentId !== 'global' &&
+    selectedEnvironmentId !== 'create-new'
+      ? selectedEnvironmentId
+      : null
+  const { environment: currentEnvironment } = useFetchEnvironment(
+    detailEnvironmentId,
+    { enabled: isOpen },
+  )
 
   // 当环境列表加载完成后，自动选择第一个环境
   useEffect(() => {
     if (isOpen && environments.length > 0 && !selectedEnvironmentId) {
-      const defaultEnv = environments.find(env => env.is_default) || environments[0]
+      const defaultEnv =
+        environments.find((env) => env.is_default) || environments[0]
       handleEnvironmentSelect(defaultEnv.id)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- 仅在环境列表加载完成后自动选一次，依赖 environments.length 而非 environments 避免重复选择
   }, [isOpen, environments.length, selectedEnvironmentId])
 
-  const handleEnvironmentSelect = async (environmentId: string | 'global' | 'create-new') => {
+  const handleEnvironmentSelect = (
+    environmentId: string | 'global' | 'create-new',
+  ) => {
     // 如果有未保存的更改，提示用户
     if (isDirty) {
       const confirmed = window.confirm('您有未保存的更改，确定要切换环境吗？')
@@ -53,29 +61,21 @@ export function NewEnvironmentManager({ isOpen, onClose }: NewEnvironmentManager
       }
     }
 
-    if (environmentId === 'global') {
-      setSelectedEnvironmentId('global')
-    } else if (environmentId === 'create-new') {
-      setSelectedEnvironmentId('create-new')
-      // 创建模式不需要加载环境详情
-    } else {
-      setSelectedEnvironmentId(environmentId)
-      try {
-        await loadEnvironment(environmentId)
-      } catch (error) {
-        console.error('加载环境详情失败:', error)
-      }
-    }
+    // 详情由 useFetchEnvironment(detailEnvironmentId) 自动按选中 id 拉取
+    setSelectedEnvironmentId(environmentId)
     setIsDirty(false)
   }
 
   const handleSave = async () => {
     if (!selectedEnvironmentId || selectedEnvironmentId === 'global') return
-    
+
     setIsSaving(true)
     try {
       // 调用EnvironmentDetail暴露的保存方法
-      if (typeof window !== 'undefined' && (window as any).__saveEnvironmentData) {
+      if (
+        typeof window !== 'undefined' &&
+        (window as any).__saveEnvironmentData
+      ) {
         await (window as any).__saveEnvironmentData()
         setIsDirty(false)
       } else {
@@ -103,15 +103,11 @@ export function NewEnvironmentManager({ isOpen, onClose }: NewEnvironmentManager
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-7xl w-full h-[90vh] p-0 gap-0">
-        <DialogHeader className="flex-row items-center justify-between px-6 py-4 border-b">
+      <DialogContent className="h-[90vh] w-full max-w-7xl gap-0 p-0">
+        <DialogHeader className="flex-row items-center justify-between border-b px-6 py-4">
           <h2 className="text-lg font-semibold">环境管理</h2>
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleClose}
-            >
+            <Button variant="outline" size="sm" onClick={handleClose}>
               关闭
             </Button>
             <Button
@@ -119,18 +115,21 @@ export function NewEnvironmentManager({ isOpen, onClose }: NewEnvironmentManager
               onClick={handleSave}
               disabled={!isDirty || isSaving}
             >
-              <Save className="w-4 h-4 mr-1" />
-              {isSaving 
-                ? (selectedEnvironmentId === 'create-new' ? '创建中...' : '保存中...') 
-                : (selectedEnvironmentId === 'create-new' ? '创建' : '保存')
-              }
+              <Save className="mr-1 h-4 w-4" />
+              {isSaving
+                ? selectedEnvironmentId === 'create-new'
+                  ? '创建中...'
+                  : '保存中...'
+                : selectedEnvironmentId === 'create-new'
+                  ? '创建'
+                  : '保存'}
             </Button>
           </div>
         </DialogHeader>
 
         <div className="flex flex-1 overflow-hidden">
           {/* 左侧环境列表 */}
-          <div className="w-80 border-r bg-muted/20">
+          <div className="bg-muted/20 w-80 border-r">
             <EnvironmentList
               environments={environments}
               globalEnvironments={globalEnvironments}
@@ -149,10 +148,12 @@ export function NewEnvironmentManager({ isOpen, onClose }: NewEnvironmentManager
                 onSaveRequest={handleSave}
               />
             ) : (
-              <div className="flex items-center justify-center h-full text-muted-foreground">
+              <div className="flex h-full items-center justify-center text-muted-foreground">
                 <div className="text-center">
-                  <p className="text-lg mb-2">请选择一个环境</p>
-                  <p className="text-sm">从左侧列表中选择一个环境来查看和编辑其详细信息</p>
+                  <p className="mb-2 text-lg">请选择一个环境</p>
+                  <p className="text-sm">
+                    从左侧列表中选择一个环境来查看和编辑其详细信息
+                  </p>
                 </div>
               </div>
             )}

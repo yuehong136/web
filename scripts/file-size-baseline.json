@@ -1,5 +1,5 @@
 {
-  "src/pages/settings/ApiKeysPage.tsx": 4037,
+  "src/pages/settings/ApiKeysPage.tsx": 4031,
   "src/pages/explore/ExplorePage.tsx": 2338,
   "src/themes/theme-generator.ts": 2206,
   "src/types/index.ts": 2075,
@@ -10,7 +10,7 @@
   "src/pages/MCPChatPage.tsx": 1581,
   "src/pages/agent/constant/index.ts": 1465,
   "src/components/chat/ChatSettingsPanel.tsx": 1072,
-  "src/components/environment/EnvironmentDetail.tsx": 998,
+  "src/components/environment/EnvironmentDetail.tsx": 989,
   "src/api/knowledge.ts": 935,
   "src/components/forms/KnowledgeFormFields.tsx": 911,
   "src/pages/agent/operators/serializers.ts": 864,
@@ -30,7 +30,6 @@
   "src/pages/settings/MCPToolsPage.tsx": 678,
   "src/components/ui/file-icon.tsx": 630,
   "src/pages/home/components/ChatSection.tsx": 630,
-  "src/components/environment/EnvironmentVariablesTable.tsx": 615,
   "src/pages/settings/MCPTestPage.tsx": 609,
   "src/components/chat/ToolCallDisplay.tsx": 604,
   "src/pages/studio/StudioPage.tsx": 602

@@ -1,138 +1,37 @@
 // src/components/environment/EnvironmentDetail.tsx
 import React, { useState, useEffect } from 'react'
-import { TestTube, Copy, Plus, Trash2, Eye, EyeOff } from 'lucide-react'
+import { TestTube, Copy, Plus } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { EnvironmentVariablesTable } from '@/components/environment'
-import { useEnvironmentStore } from '@/stores/environmentStore'
+import {
+  useCreateEnvironment,
+  useUpdateEnvironment,
+  useEnvironmentVariableMutations,
+} from '@/hooks/use-environment-request'
+import { environmentAPI } from '@/api/environment'
 import { toast } from '@/lib/toast'
 import { cn } from '@/lib/utils'
 import type { Environment } from '@/types/api'
-
-// 创建模式变量表格组件
-interface CreateModeVariable {
-  id: string
-  key_name: string
-  key_value: string
-  description: string
-  is_secret: boolean
-  variable_type: 'string' | 'number' | 'boolean'
-}
-
-interface CreateModeVariablesTableProps {
-  variables: CreateModeVariable[]
-  onVariablesChange: (variables: CreateModeVariable[]) => void
-}
-
-function CreateModeVariablesTable({ variables, onVariablesChange }: CreateModeVariablesTableProps) {
-  const [visibilityMap, setVisibilityMap] = useState<Record<string, boolean>>({})
-
-  const toggleVisibility = (id: string) => {
-    setVisibilityMap(prev => ({ ...prev, [id]: !prev[id] }))
-  }
-
-  const copyValue = async (value: string) => {
-    try {
-      await navigator.clipboard.writeText(value)
-      toast.success('变量值已复制')
-    } catch {
-      toast.error('复制失败')
-    }
-  }
-
-  const deleteVariable = (id: string) => {
-    onVariablesChange(variables.filter(v => v.id !== id))
-    toast.success('变量已移除')
-  }
-
-  return (
-    <div className="px-6 pb-6">
-      <div className="border rounded-lg overflow-hidden">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b bg-muted/30">
-              <th className="text-left p-3 text-sm font-medium">变量名</th>
-              <th className="text-left p-3 text-sm font-medium">类型</th>
-              <th className="text-left p-3 text-sm font-medium">值</th>
-              <th className="text-center p-3 text-sm font-medium">密钥</th>
-              <th className="text-left p-3 text-sm font-medium">说明</th>
-              <th className="text-center p-3 text-sm font-medium">操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            {variables.map((variable) => (
-              <tr key={variable.id} className="border-b hover:bg-muted/20">
-                <td className="p-3">
-                  <code className="text-sm font-mono">{variable.key_name}</code>
-                </td>
-                <td className="p-3">
-                  <Badge variant="secondary" className="text-xs">
-                    {variable.variable_type}
-                  </Badge>
-                </td>
-                <td className="p-3 max-w-xs">
-                  <div className="flex items-center gap-2">
-                    <code className="text-sm font-mono truncate flex-1">
-                      {variable.is_secret && !visibilityMap[variable.id] 
-                        ? '•'.repeat(Math.min(variable.key_value.length, 8))
-                        : variable.key_value
-                      }
-                    </code>
-                    {variable.is_secret && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => toggleVisibility(variable.id)}
-                        className="w-8 h-8 p-0"
-                      >
-                        {visibilityMap[variable.id] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </Button>
-                    )}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => copyValue(variable.key_value)}
-                      className="w-8 h-8 p-0"
-                    >
-                      <Copy className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </td>
-                <td className="p-3 text-center">
-                  {variable.is_secret && (
-                    <Badge variant="outline" className="text-xs">密钥</Badge>
-                  )}
-                </td>
-                <td className="p-3">
-                  <span className="text-sm text-muted-foreground truncate">
-                    {variable.description || ''}
-                  </span>
-                </td>
-                <td className="p-3 text-center">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => deleteVariable(variable.id)}
-                    className="w-8 h-8 p-0 text-destructive"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  )
-}
+import { CreateModeVariablesTable } from './create-mode-variables-table'
 
 interface EnvironmentDetailProps {
   environmentId: string | 'global' | 'create-new'
@@ -153,24 +52,26 @@ export function EnvironmentDetail({
   environmentId,
   currentEnvironment,
   onDataChange,
-  onSaveRequest
+  onSaveRequest,
 }: EnvironmentDetailProps) {
-  const { updateEnvironment, createEnvironment, resolveVariablesOnServer, addVariable, loadEnvironments } = useEnvironmentStore()
-  
+  const { createEnvironment } = useCreateEnvironment()
+  const { updateEnvironment } = useUpdateEnvironment()
+  const { addVariable } = useEnvironmentVariableMutations()
+
   // 判断是否为创建模式
   const isCreateMode = environmentId === 'create-new'
   const [formData, setFormData] = useState<EnvironmentFormData>({
     name: '',
     description: '',
     base_url: '',
-    is_default: false
+    is_default: false,
   })
 
   const [originalData, setOriginalData] = useState<EnvironmentFormData>({
     name: '',
     description: '',
     base_url: '',
-    is_default: false
+    is_default: false,
   })
 
   // 变量解析状态
@@ -196,32 +97,37 @@ export function EnvironmentDetail({
     key_value: '',
     description: '',
     is_secret: false,
-    variable_type: 'string'
+    variable_type: 'string',
   })
 
   // 创建模式下的变量列表
-  const [createModeVariables, setCreateModeVariables] = useState<Array<{
-    key_name: string
-    key_value: string
-    description: string
-    is_secret: boolean
-    variable_type: 'string' | 'number' | 'boolean'
-    id: string // 临时ID
-  }>>([])
+  const [createModeVariables, setCreateModeVariables] = useState<
+    Array<{
+      key_name: string
+      key_value: string
+      description: string
+      is_secret: boolean
+      variable_type: 'string' | 'number' | 'boolean'
+      id: string // 临时ID
+    }>
+  >([])
 
   // 重置创建模式变量列表和对话框状态
   useEffect(() => {
-    console.log('🔄 环境切换或模式变化，重置对话框状态', { environmentId, isCreateMode })
-    
+    console.log('🔄 环境切换或模式变化，重置对话框状态', {
+      environmentId,
+      isCreateMode,
+    })
+
     if (isCreateMode) {
       setCreateModeVariables([])
     }
-    
+
     // 环境切换时强制重置所有对话框状态
     setIsAddVariableDialogOpen(false)
     setIsPreviewDialogOpen(false)
     setResolveResult(null)
-    
+
     console.log('✅ 所有对话框状态已重置')
     // eslint-disable-next-line react-hooks/exhaustive-deps -- 只依赖 environmentId，避免切换时循环触发
   }, [environmentId])
@@ -234,7 +140,7 @@ export function EnvironmentDetail({
         name: '',
         description: '',
         base_url: '',
-        is_default: false
+        is_default: false,
       }
       setFormData(emptyData)
       setOriginalData(emptyData)
@@ -244,7 +150,7 @@ export function EnvironmentDetail({
         name: currentEnvironment.name || '',
         description: currentEnvironment.description || '',
         base_url: currentEnvironment.base_url || '',
-        is_default: currentEnvironment.is_default || false
+        is_default: currentEnvironment.is_default || false,
       }
       setFormData(newData)
       setOriginalData(newData)
@@ -258,7 +164,10 @@ export function EnvironmentDetail({
     return isDirty
   }
 
-  const handleFormChange = (field: keyof EnvironmentFormData, value: string | boolean) => {
+  const handleFormChange = (
+    field: keyof EnvironmentFormData,
+    value: string | boolean,
+  ) => {
     const newFormData = { ...formData, [field]: value }
     setFormData(newFormData)
     checkDirty(newFormData)
@@ -283,20 +192,19 @@ export function EnvironmentDetail({
           base_url: formData.base_url,
           is_default: formData.is_default,
           is_global: false,
-          variables: createModeVariables.map(v => ({
+          variables: createModeVariables.map((v) => ({
             key_name: v.key_name,
             key_value: v.key_value,
             description: v.description,
             is_secret: v.is_secret,
-            variable_type: v.variable_type
-          }))
+            variable_type: v.variable_type,
+          })),
         }
 
         await createEnvironment(createData)
         toast.success('环境创建成功')
-        await loadEnvironments() // 刷新环境列表
         setOriginalData(formData)
-        
+
         // 创建成功后，不需要特殊处理，环境列表会自动刷新
       } else {
         // 编辑模式：更新环境
@@ -304,13 +212,20 @@ export function EnvironmentDetail({
 
         // 只提交有变更的字段
         const changedFields: any = {}
-        if (formData.name !== originalData.name) changedFields.name = formData.name
-        if (formData.description !== originalData.description) changedFields.description = formData.description
-        if (formData.base_url !== originalData.base_url) changedFields.base_url = formData.base_url
-        if (formData.is_default !== originalData.is_default) changedFields.is_default = formData.is_default
+        if (formData.name !== originalData.name)
+          changedFields.name = formData.name
+        if (formData.description !== originalData.description)
+          changedFields.description = formData.description
+        if (formData.base_url !== originalData.base_url)
+          changedFields.base_url = formData.base_url
+        if (formData.is_default !== originalData.is_default)
+          changedFields.is_default = formData.is_default
 
         if (Object.keys(changedFields).length > 0) {
-          await updateEnvironment(currentEnvironment.id, changedFields)
+          await updateEnvironment({
+            id: currentEnvironment.id,
+            data: changedFields,
+          })
           setOriginalData(formData)
           toast.success('环境信息已保存')
         } else {
@@ -319,11 +234,12 @@ export function EnvironmentDetail({
       }
     } catch (error) {
       console.error('保存环境信息失败:', error)
-      toast.error(`保存环境信息失败: ${error instanceof Error ? error.message : '未知错误'}`)
+      toast.error(
+        `保存环境信息失败: ${error instanceof Error ? error.message : '未知错误'}`,
+      )
       throw error
     }
   }
-
 
   // 打开通用变量解析测试
   const handleOpenVariableTest = () => {
@@ -335,13 +251,13 @@ export function EnvironmentDetail({
   // 执行变量解析
   const performResolve = async (text: string) => {
     if (!text.trim()) return
-    
+
     setIsResolving(true)
     try {
       if (isCreateMode) {
         // 创建模式：使用本地变量进行解析
         const variableMap: Record<string, string> = {}
-        createModeVariables.forEach(v => {
+        createModeVariables.forEach((v) => {
           variableMap[v.key_name] = v.key_value
         })
 
@@ -349,19 +265,28 @@ export function EnvironmentDetail({
           return variableMap[key] !== undefined ? variableMap[key] : match
         })
 
-        const usedVariables = Object.keys(variableMap).filter(key => text.includes(`{{${key}}}`))
-        const allVariableRefs = [...text.matchAll(/\{\{(\w+)\}\}/g)].map(match => match[1])
-        const missingVariables = allVariableRefs.filter(key => variableMap[key] === undefined)
+        const usedVariables = Object.keys(variableMap).filter((key) =>
+          text.includes(`{{${key}}}`),
+        )
+        const allVariableRefs = [...text.matchAll(/\{\{(\w+)\}\}/g)].map(
+          (match) => match[1],
+        )
+        const missingVariables = allVariableRefs.filter(
+          (key) => variableMap[key] === undefined,
+        )
 
         setResolveResult({
           resolved_text: resolvedText,
           variables_used: usedVariables,
-          missing_variables: Array.from(new Set(missingVariables))
+          missing_variables: Array.from(new Set(missingVariables)),
         })
         toast.success('变量解析完成')
       } else {
         // 编辑模式：使用服务器端解析
-        const result = await resolveVariablesOnServer(currentEnvironment?.id || environmentId, text)
+        const result = await environmentAPI.resolveVariablesOnServer(
+          currentEnvironment?.id || environmentId,
+          text,
+        )
         setResolveResult(result)
         toast.success('变量解析完成')
       }
@@ -377,7 +302,7 @@ export function EnvironmentDetail({
   // 复制解析结果
   const copyResolvedText = async () => {
     if (!resolveResult?.resolved_text) return
-    
+
     try {
       await navigator.clipboard.writeText(resolveResult.resolved_text)
       toast.success('已复制解析结果')
@@ -393,7 +318,7 @@ export function EnvironmentDetail({
       key_value: '',
       description: '',
       is_secret: false,
-      variable_type: 'string'
+      variable_type: 'string',
     })
     setIsAddVariableDialogOpen(true)
   }
@@ -401,61 +326,64 @@ export function EnvironmentDetail({
   // 保存新变量
   const handleSaveNewVariable = async () => {
     if (!newVariable.key_name.trim()) {
-      toast.error("变量名不能为空")
+      toast.error('变量名不能为空')
       return
     }
 
     // 验证变量名格式
     const nameRegex = /^[A-Za-z_][A-Za-z0-9_]*$/
     if (!nameRegex.test(newVariable.key_name)) {
-      toast.error("变量名只能包含字母、数字和下划线，且不能以数字开头")
+      toast.error('变量名只能包含字母、数字和下划线，且不能以数字开头')
       return
     }
 
     if (isCreateMode) {
       // 创建模式：添加到本地变量列表
       // 检查变量名唯一性
-      const existingVar = createModeVariables.find(v => v.key_name === newVariable.key_name)
+      const existingVar = createModeVariables.find(
+        (v) => v.key_name === newVariable.key_name,
+      )
       if (existingVar) {
-        toast.error("变量名已存在")
+        toast.error('变量名已存在')
         return
       }
 
       const newVar = {
         ...newVariable,
-        id: `temp-${Date.now()}` // 临时ID
+        id: `temp-${Date.now()}`, // 临时ID
       }
       setCreateModeVariables([...createModeVariables, newVar])
-      toast.success("变量已添加到列表")
+      toast.success('变量已添加到列表')
       onDataChange(true) // 标记有变更
       setIsAddVariableDialogOpen(false)
     } else {
       // 编辑模式：直接调用API
       // 检查变量名唯一性
-      const existingVar = currentEnvironment?.variables?.find(v => v.key_name === newVariable.key_name)
+      const existingVar = currentEnvironment?.variables?.find(
+        (v) => v.key_name === newVariable.key_name,
+      )
       if (existingVar) {
-        toast.error("变量名已存在")
+        toast.error('变量名已存在')
         return
       }
 
       try {
         await addVariable(currentEnvironment?.id || environmentId, newVariable)
-        toast.success("变量已添加")
+        toast.success('变量已添加')
         onDataChange(true)
         setIsAddVariableDialogOpen(false)
       } catch (error) {
         console.error('添加变量失败:', error)
-        toast.error("添加变量失败")
+        toast.error('添加变量失败')
       }
     }
   }
-
 
   // 暴露保存方法给父组件
   React.useEffect(() => {
     if (onSaveRequest) {
       // 通过全局变量暴露保存方法
-      (window as any).__saveEnvironmentData = saveEnvironmentData
+      ;(window as any).__saveEnvironmentData = saveEnvironmentData
     }
     return () => {
       if (typeof window !== 'undefined') {
@@ -478,11 +406,11 @@ export function EnvironmentDetail({
   // 如果是全局变量视图
   if (environmentId === 'global') {
     return (
-      <div className="flex flex-col h-full">
-        <div className="p-6 border-b bg-background">
+      <div className="flex h-full flex-col">
+        <div className="border-b bg-background p-6">
           <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-100">
-              <span className="text-blue-600 font-semibold">G</span>
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100">
+              <span className="font-semibold text-blue-600">G</span>
             </div>
             <div>
               <h1 className="text-xl font-semibold">全局变量</h1>
@@ -493,13 +421,13 @@ export function EnvironmentDetail({
           </div>
         </div>
 
-        <div className="flex-1 p-6 overflow-auto">
+        <div className="flex-1 overflow-auto p-6">
           <Card>
             <CardHeader>
               <CardTitle>全局变量</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
+              <div className="py-8 text-center text-muted-foreground">
                 <p>全局变量管理功能开发中...</p>
               </div>
             </CardContent>
@@ -512,49 +440,53 @@ export function EnvironmentDetail({
   // 如果是创建新环境模式
   if (isCreateMode) {
     return (
-      <div className="flex flex-col h-full">
+      <div className="flex h-full flex-col">
         {/* Header */}
-        <div className="p-6 border-b bg-background">
+        <div className="border-b bg-background p-6">
           <div className="flex items-start justify-between gap-4">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full" />
+            <div className="min-w-0 flex-1">
+              <div className="mb-2 flex items-center gap-3">
+                <div className="h-2 w-2 rounded-full bg-green-500" />
                 <Input
                   value={formData.name}
                   onChange={(e) => handleFormChange('name', e.target.value)}
-                  className="text-xl font-semibold border-none px-0 h-auto bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+                  className="h-auto border-none bg-transparent px-0 text-xl font-semibold focus-visible:ring-0 focus-visible:ring-offset-0"
                   placeholder="新环境名称"
                 />
               </div>
               <Textarea
                 value={formData.description}
-                onChange={(e) => handleFormChange('description', e.target.value)}
+                onChange={(e) =>
+                  handleFormChange('description', e.target.value)
+                }
                 placeholder="环境描述（可选）"
-                className="text-sm text-muted-foreground resize-none border-none px-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+                className="resize-none border-none bg-transparent px-0 text-sm text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
                 rows={2}
               />
             </div>
-            
+
             <div className="flex items-center gap-4">
               {/* 是否默认开关 */}
               <div className="flex items-center space-x-2">
                 <Switch
                   id="is-default"
                   checked={formData.is_default}
-                  onCheckedChange={(checked) => handleFormChange('is_default', checked)}
+                  onCheckedChange={(checked) =>
+                    handleFormChange('is_default', checked)
+                  }
                 />
                 <Label htmlFor="is-default" className="text-sm">
                   默认环境
                 </Label>
               </div>
-              
+
               <Badge variant="secondary">新建</Badge>
             </div>
           </div>
         </div>
 
         {/* Content */}
-        <div className="flex-1 p-6 overflow-y-auto space-y-6">
+        <div className="flex-1 space-y-6 overflow-y-auto p-6">
           {/* 前置 URL 卡片 */}
           <Card>
             <CardHeader className="pb-3">
@@ -568,8 +500,10 @@ export function EnvironmentDetail({
                   onChange={(e) => handleFormChange('base_url', e.target.value)}
                   placeholder="http://192.168.188.192:8123"
                   className={cn(
-                    "font-mono text-sm",
-                    !isValidUrl(formData.base_url) && formData.base_url && "border-red-500"
+                    'font-mono text-sm',
+                    !isValidUrl(formData.base_url) &&
+                      formData.base_url &&
+                      'border-red-500',
                   )}
                 />
                 {!isValidUrl(formData.base_url) && formData.base_url && (
@@ -596,7 +530,7 @@ export function EnvironmentDetail({
                     onClick={handleOpenVariableTest}
                     disabled={createModeVariables.length === 0}
                   >
-                    <TestTube className="w-4 h-4 mr-1" />
+                    <TestTube className="mr-1 h-4 w-4" />
                     测试解析
                   </Button>
                   <Button
@@ -604,7 +538,7 @@ export function EnvironmentDetail({
                     size="sm"
                     onClick={handleAddVariable}
                   >
-                    <Plus className="w-4 h-4 mr-1" />
+                    <Plus className="mr-1 h-4 w-4" />
                     添加变量
                   </Button>
                 </div>
@@ -612,15 +546,15 @@ export function EnvironmentDetail({
             </CardHeader>
             <CardContent className="p-0">
               {createModeVariables.length === 0 ? (
-                <div className="text-center py-12 text-muted-foreground">
-                  <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
-                    <Plus className="w-6 h-6" />
+                <div className="py-12 text-center text-muted-foreground">
+                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+                    <Plus className="h-6 w-6" />
                   </div>
-                  <p className="text-sm mb-2">暂无变量</p>
+                  <p className="mb-2 text-sm">暂无变量</p>
                   <p className="text-xs">点击上方【添加变量】开始添加</p>
                 </div>
               ) : (
-                <CreateModeVariablesTable 
+                <CreateModeVariablesTable
                   variables={createModeVariables}
                   onVariablesChange={(vars) => {
                     setCreateModeVariables(vars)
@@ -632,7 +566,10 @@ export function EnvironmentDetail({
           </Card>
         </div>
         {/* 正式添加变量对话框（创建模式可见） */}
-        <Dialog open={isAddVariableDialogOpen} onOpenChange={setIsAddVariableDialogOpen}>
+        <Dialog
+          open={isAddVariableDialogOpen}
+          onOpenChange={setIsAddVariableDialogOpen}
+        >
           <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>添加环境变量</DialogTitle>
@@ -642,7 +579,9 @@ export function EnvironmentDetail({
                 <Label>变量名 *</Label>
                 <Input
                   value={newVariable.key_name}
-                  onChange={(e) => setNewVariable({ ...newVariable, key_name: e.target.value })}
+                  onChange={(e) =>
+                    setNewVariable({ ...newVariable, key_name: e.target.value })
+                  }
                   placeholder="变量名，如: bearer_token"
                   className="font-mono"
                 />
@@ -652,7 +591,12 @@ export function EnvironmentDetail({
                   <Label>类型</Label>
                   <Select
                     value={newVariable.variable_type}
-                    onValueChange={(v) => setNewVariable({ ...newVariable, variable_type: v as any })}
+                    onValueChange={(v) =>
+                      setNewVariable({
+                        ...newVariable,
+                        variable_type: v as any,
+                      })
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="选择类型" />
@@ -668,7 +612,9 @@ export function EnvironmentDetail({
                   <Switch
                     id="is-secret"
                     checked={newVariable.is_secret}
-                    onCheckedChange={(checked) => setNewVariable({ ...newVariable, is_secret: checked })}
+                    onCheckedChange={(checked) =>
+                      setNewVariable({ ...newVariable, is_secret: checked })
+                    }
                   />
                   <Label htmlFor="is-secret">密钥</Label>
                 </div>
@@ -677,7 +623,12 @@ export function EnvironmentDetail({
                 <Label>变量值 *</Label>
                 <Input
                   value={newVariable.key_value}
-                  onChange={(e) => setNewVariable({ ...newVariable, key_value: e.target.value })}
+                  onChange={(e) =>
+                    setNewVariable({
+                      ...newVariable,
+                      key_value: e.target.value,
+                    })
+                  }
                   placeholder="变量值"
                   className="font-mono"
                   type={newVariable.is_secret ? 'password' : 'text'}
@@ -687,13 +638,23 @@ export function EnvironmentDetail({
                 <Label>说明</Label>
                 <Textarea
                   value={newVariable.description}
-                  onChange={(e) => setNewVariable({ ...newVariable, description: e.target.value })}
+                  onChange={(e) =>
+                    setNewVariable({
+                      ...newVariable,
+                      description: e.target.value,
+                    })
+                  }
                   placeholder="该变量的用途说明（可选）"
                   rows={3}
                 />
               </div>
               <div className="flex justify-end gap-2 pt-2">
-                <Button variant="outline" onClick={() => setIsAddVariableDialogOpen(false)}>取消</Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsAddVariableDialogOpen(false)}
+                >
+                  取消
+                </Button>
                 <Button onClick={handleSaveNewVariable}>保存</Button>
               </div>
             </div>
@@ -706,16 +667,17 @@ export function EnvironmentDetail({
   // 如果没有环境数据
   if (!currentEnvironment) {
     return (
-      <div className="flex items-center justify-center h-full text-muted-foreground">
+      <div className="flex h-full items-center justify-center text-muted-foreground">
         <div className="text-center">
-          <p className="text-lg mb-2">
-            {environmentId !== 'global' ? '加载环境数据中...' : '请选择一个环境'}
+          <p className="mb-2 text-lg">
+            {environmentId !== 'global'
+              ? '加载环境数据中...'
+              : '请选择一个环境'}
           </p>
           <p className="text-sm">
-            {environmentId !== 'global' 
-              ? '正在获取环境详细信息' 
-              : '从左侧列表中选择一个环境来查看和编辑其详细信息'
-            }
+            {environmentId !== 'global'
+              ? '正在获取环境详细信息'
+              : '从左侧列表中选择一个环境来查看和编辑其详细信息'}
           </p>
         </div>
       </div>
@@ -723,17 +685,17 @@ export function EnvironmentDetail({
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex h-full flex-col">
       {/* Header */}
-      <div className="p-6 border-b bg-background">
+      <div className="border-b bg-background p-6">
         <div className="flex items-start justify-between gap-4">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-2 h-2 bg-blue-500 rounded-full" />
+          <div className="min-w-0 flex-1">
+            <div className="mb-2 flex items-center gap-3">
+              <div className="h-2 w-2 rounded-full bg-blue-500" />
               <Input
                 value={formData.name}
                 onChange={(e) => handleFormChange('name', e.target.value)}
-                className="text-xl font-semibold border-none px-0 h-auto bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+                className="h-auto border-none bg-transparent px-0 text-xl font-semibold focus-visible:ring-0 focus-visible:ring-offset-0"
                 placeholder="环境名称"
               />
             </div>
@@ -741,24 +703,26 @@ export function EnvironmentDetail({
               value={formData.description}
               onChange={(e) => handleFormChange('description', e.target.value)}
               placeholder="环境描述（可选）"
-              className="text-sm text-muted-foreground resize-none border-none px-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+              className="resize-none border-none bg-transparent px-0 text-sm text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
               rows={2}
             />
           </div>
-          
+
           <div className="flex items-center gap-4">
             {/* 是否默认开关 */}
             <div className="flex items-center space-x-2">
               <Switch
                 id="is-default"
                 checked={formData.is_default}
-                onCheckedChange={(checked) => handleFormChange('is_default', checked)}
+                onCheckedChange={(checked) =>
+                  handleFormChange('is_default', checked)
+                }
               />
               <Label htmlFor="is-default" className="text-sm">
                 默认环境
               </Label>
             </div>
-            
+
             {/* 全局标识 */}
             {currentEnvironment.is_global && (
               <Badge variant="outline">全局</Badge>
@@ -768,7 +732,7 @@ export function EnvironmentDetail({
       </div>
 
       {/* Content */}
-      <div className="flex-1 p-6 overflow-y-auto space-y-6">
+      <div className="flex-1 space-y-6 overflow-y-auto p-6">
         {/* 前置 URL 卡片 */}
         <Card>
           <CardHeader className="pb-3">
@@ -782,8 +746,10 @@ export function EnvironmentDetail({
                 onChange={(e) => handleFormChange('base_url', e.target.value)}
                 placeholder="http://192.168.188.192:8123"
                 className={cn(
-                  "font-mono text-sm",
-                  !isValidUrl(formData.base_url) && formData.base_url && "border-red-500"
+                  'font-mono text-sm',
+                  !isValidUrl(formData.base_url) &&
+                    formData.base_url &&
+                    'border-red-500',
                 )}
               />
               {!isValidUrl(formData.base_url) && formData.base_url && (
@@ -809,15 +775,11 @@ export function EnvironmentDetail({
                   size="sm"
                   onClick={handleOpenVariableTest}
                 >
-                  <TestTube className="w-4 h-4 mr-1" />
+                  <TestTube className="mr-1 h-4 w-4" />
                   测试解析
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleAddVariable}
-                >
-                  <Plus className="w-4 h-4 mr-1" />
+                <Button variant="outline" size="sm" onClick={handleAddVariable}>
+                  <Plus className="mr-1 h-4 w-4" />
                   添加变量
                 </Button>
               </div>
@@ -841,7 +803,7 @@ export function EnvironmentDetail({
           <DialogHeader>
             <DialogTitle>变量解析预览</DialogTitle>
           </DialogHeader>
-          
+
           <div className="space-y-4 pt-4">
             {/* 输入文本 */}
             <div className="space-y-2">
@@ -850,9 +812,9 @@ export function EnvironmentDetail({
                 value={previewText}
                 onChange={(e) => setPreviewText(e.target.value)}
                 placeholder="输入包含变量引用的文本，如: https://{{server_ip}}:{{port}}/api"
-                className="font-mono text-sm min-h-[80px]"
+                className="min-h-[80px] font-mono text-sm"
               />
-              <div className="flex justify-between items-center">
+              <div className="flex items-center justify-between">
                 <p className="text-xs text-muted-foreground">
                   变量格式：<code>{'{{变量名}}'}</code>
                 </p>
@@ -868,7 +830,7 @@ export function EnvironmentDetail({
 
             {/* 解析结果 */}
             {resolveResult && (
-              <div className="space-y-4 pt-4 border-t">
+              <div className="space-y-4 border-t pt-4">
                 {/* 解析后的文本 */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
@@ -878,12 +840,12 @@ export function EnvironmentDetail({
                       size="sm"
                       onClick={copyResolvedText}
                     >
-                      <Copy className="w-4 h-4 mr-1" />
+                      <Copy className="mr-1 h-4 w-4" />
                       复制
                     </Button>
                   </div>
-                  <div className="p-3 bg-muted/50 rounded-md">
-                    <code className="text-sm break-all">
+                  <div className="bg-muted/50 rounded-md p-3">
+                    <code className="break-all text-sm">
                       {resolveResult.resolved_text}
                     </code>
                   </div>
@@ -894,8 +856,12 @@ export function EnvironmentDetail({
                   <div className="space-y-2">
                     <Label>使用的变量</Label>
                     <div className="flex flex-wrap gap-1">
-                      {resolveResult.variables_used.map(variable => (
-                        <Badge key={variable} variant="secondary" className="text-xs">
+                      {resolveResult.variables_used.map((variable) => (
+                        <Badge
+                          key={variable}
+                          variant="secondary"
+                          className="text-xs"
+                        >
                           {variable}
                         </Badge>
                       ))}
@@ -908,8 +874,12 @@ export function EnvironmentDetail({
                   <div className="space-y-2">
                     <Label className="text-destructive">缺失的变量</Label>
                     <div className="flex flex-wrap gap-1">
-                      {resolveResult.missing_variables.map(variable => (
-                        <Badge key={variable} variant="destructive" className="text-xs">
+                      {resolveResult.missing_variables.map((variable) => (
+                        <Badge
+                          key={variable}
+                          variant="destructive"
+                          className="text-xs"
+                        >
                           {variable}
                         </Badge>
                       ))}
@@ -926,7 +896,10 @@ export function EnvironmentDetail({
       </Dialog>
 
       {/* 添加变量对话框（正式） */}
-      <Dialog open={isAddVariableDialogOpen} onOpenChange={setIsAddVariableDialogOpen}>
+      <Dialog
+        open={isAddVariableDialogOpen}
+        onOpenChange={setIsAddVariableDialogOpen}
+      >
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>添加环境变量</DialogTitle>
@@ -936,7 +909,9 @@ export function EnvironmentDetail({
               <Label>变量名 *</Label>
               <Input
                 value={newVariable.key_name}
-                onChange={(e) => setNewVariable({ ...newVariable, key_name: e.target.value })}
+                onChange={(e) =>
+                  setNewVariable({ ...newVariable, key_name: e.target.value })
+                }
                 placeholder="变量名，如: bearer_token"
                 className="font-mono"
               />
@@ -946,7 +921,9 @@ export function EnvironmentDetail({
                 <Label>类型</Label>
                 <Select
                   value={newVariable.variable_type}
-                  onValueChange={(v) => setNewVariable({ ...newVariable, variable_type: v as any })}
+                  onValueChange={(v) =>
+                    setNewVariable({ ...newVariable, variable_type: v as any })
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="选择类型" />
@@ -962,7 +939,9 @@ export function EnvironmentDetail({
                 <Switch
                   id="is-secret"
                   checked={newVariable.is_secret}
-                  onCheckedChange={(checked) => setNewVariable({ ...newVariable, is_secret: checked })}
+                  onCheckedChange={(checked) =>
+                    setNewVariable({ ...newVariable, is_secret: checked })
+                  }
                 />
                 <Label htmlFor="is-secret">密钥</Label>
               </div>
@@ -971,7 +950,9 @@ export function EnvironmentDetail({
               <Label>变量值 *</Label>
               <Input
                 value={newVariable.key_value}
-                onChange={(e) => setNewVariable({ ...newVariable, key_value: e.target.value })}
+                onChange={(e) =>
+                  setNewVariable({ ...newVariable, key_value: e.target.value })
+                }
                 placeholder="变量值"
                 className="font-mono"
                 type={newVariable.is_secret ? 'password' : 'text'}
@@ -981,13 +962,23 @@ export function EnvironmentDetail({
               <Label>说明</Label>
               <Textarea
                 value={newVariable.description}
-                onChange={(e) => setNewVariable({ ...newVariable, description: e.target.value })}
+                onChange={(e) =>
+                  setNewVariable({
+                    ...newVariable,
+                    description: e.target.value,
+                  })
+                }
                 placeholder="该变量的用途说明（可选）"
                 rows={3}
               />
             </div>
             <div className="flex justify-end gap-2 pt-2">
-              <Button variant="outline" onClick={() => setIsAddVariableDialogOpen(false)}>取消</Button>
+              <Button
+                variant="outline"
+                onClick={() => setIsAddVariableDialogOpen(false)}
+              >
+                取消
+              </Button>
               <Button onClick={handleSaveNewVariable}>保存</Button>
             </div>
           </div>

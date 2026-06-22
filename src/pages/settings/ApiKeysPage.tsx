@@ -77,7 +77,7 @@ import {
   NewEnvironmentManager,
 } from '@/components/environment'
 import { EditApiKeyDialog } from '@/pages/settings/components/edit-api-key-dialog'
-import { useEnvironmentStore } from '@/stores/environmentStore'
+import { useEnvironmentResolver } from '@/hooks/use-environment-request'
 
 import { systemAPI } from '@/api/system'
 import type { OpenAPISpec, APITokenCreateRequest } from '@/types/api'
@@ -267,13 +267,10 @@ const ApiDocumentationPage: React.FC = () => {
     selectEnvironment,
     resolveText,
     getVariableMap,
-  } = useEnvironmentStore()
+  } = useEnvironmentResolver()
 
   // 环境管理弹窗状态
   const [showEnvironmentManager, setShowEnvironmentManager] = useState(false)
-
-  // 强制更新状态
-  const [, forceUpdate] = useState({})
 
   // 获取基础URL的辅助函数
   const getBaseUrl = useCallback(() => {
@@ -2246,10 +2243,7 @@ const ApiDocumentationPage: React.FC = () => {
                       <ModernEnvironmentSelector
                         onEnvironmentChange={(id) => {
                           if (id) {
-                            selectEnvironment(id).then(() => {
-                              // 强制触发重新渲染
-                              forceUpdate({})
-                            })
+                            selectEnvironment(id)
                           }
                         }}
                         onManageClick={() => setShowEnvironmentManager(true)}
