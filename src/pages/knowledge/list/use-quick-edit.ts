@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useKnowledgeStore } from '@/stores/knowledge'
+import { useUpdateKnowledge } from '@/hooks/use-knowledge-request'
 import { useUIStore } from '@/stores/ui'
 import type { KnowledgeBase, UpdateKBRequest } from '@/types/api'
 import type { QuickEditValues } from './types'
@@ -21,7 +21,7 @@ export const useQuickEdit = ({
   onUpdated: () => void
 }) => {
   const { t } = useTranslation()
-  const { updateKnowledgeBase } = useKnowledgeStore()
+  const { updateKnowledge } = useUpdateKnowledge()
   const { addNotification } = useUIStore()
   const [isQuickEditSubmitting, setIsQuickEditSubmitting] = useState(false)
 
@@ -116,7 +116,7 @@ export const useQuickEdit = ({
 
       try {
         setIsQuickEditSubmitting(true)
-        await updateKnowledgeBase(updateData)
+        await updateKnowledge(updateData)
         addNotification({
           type: 'success',
           title: t('knowledge.list.quickEdit.success.title'),
@@ -139,7 +139,7 @@ export const useQuickEdit = ({
       getQuickEditErrorMessage,
       onUpdated,
       t,
-      updateKnowledgeBase,
+      updateKnowledge,
     ],
   )
 

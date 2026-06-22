@@ -13,7 +13,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Loading } from '@/components/ui/loading'
-import { useKnowledgeStore } from '@/stores/knowledge'
+import { useFetchKnowledgeDetail } from '@/hooks/use-knowledge-request'
 import { ROUTES } from '@/constants'
 import { getAvatarGradient } from '@/components/ui/resource-list'
 import { cn } from '@/lib/utils'
@@ -73,14 +73,8 @@ const KnowledgeDetailLayout: React.FC = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const location = useLocation()
-  const { currentKnowledgeBase, isLoading, getKnowledgeBase } =
-    useKnowledgeStore()
-
-  React.useEffect(() => {
-    if (id) {
-      getKnowledgeBase(id)
-    }
-  }, [id, getKnowledgeBase])
+  const { knowledgeBase: currentKnowledgeBase, isLoading } =
+    useFetchKnowledgeDetail(id)
 
   const navGroups: SettingsRailGroup[] = React.useMemo(() => {
     if (!id) return []

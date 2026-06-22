@@ -1,4 +1,3 @@
-import { useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Outlet, useNavigate, useParams } from 'react-router-dom'
@@ -16,19 +15,13 @@ import {
 import { knowledgeAPI } from '@/api/knowledge'
 import { documentKeys } from '@/hooks/use-document-request'
 import { ROUTES } from '@/constants'
-import { useKnowledgeStore } from '@/stores/knowledge'
+import { useFetchKnowledgeDetail } from '@/hooks/use-knowledge-request'
 
 const KnowledgeChunksLayout = () => {
   const { t } = useTranslation()
   const { id, docId } = useParams<{ id: string; docId: string }>()
   const navigate = useNavigate()
-  const { currentKnowledgeBase, getKnowledgeBase } = useKnowledgeStore()
-
-  useEffect(() => {
-    if (id) {
-      getKnowledgeBase(id)
-    }
-  }, [getKnowledgeBase, id])
+  const { knowledgeBase: currentKnowledgeBase } = useFetchKnowledgeDetail(id)
 
   const { data: currentDocument } = useQuery({
     queryKey: documentKeys.standaloneDetail(docId),

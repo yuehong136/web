@@ -1,7 +1,7 @@
 import { useNavigate, useParams } from 'react-router-dom'
 import { ListPageTemplate } from '@/components/page-templates'
 import { useAbilities } from '@/hooks/use-abilities'
-import { useKnowledgeStore } from '@/stores/knowledge'
+import { useFetchKnowledgeDetail } from '@/hooks/use-knowledge-request'
 import { BulkActionToolbar } from './bulk-action-toolbar'
 import { DocumentEmptyState } from './components/document-empty-state'
 import { DocumentListPanel } from './components/document-list-panel'
@@ -22,7 +22,7 @@ import { useDocumentTableColumns } from './document-table-columns'
 export function KnowledgeDocumentsPage() {
   const { id: kbId } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { currentKnowledgeBase } = useKnowledgeStore()
+  const { knowledgeBase: currentKnowledgeBase } = useFetchKnowledgeDetail(kbId)
   const listState = useDocumentListState()
   const filterCollections = useFilterCollections(listState.filterOptions)
   const filterGroup = useFilterGroup()

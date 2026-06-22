@@ -28,7 +28,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { SliderInputFormField } from '@/components/forms/SliderInputFormField'
-import { useKnowledgeStore } from '@/stores/knowledge'
+import { useFetchKnowledgeList } from '@/hooks/use-knowledge-request'
 import { DocumentParserType } from '@/types/document-parser'
 
 // 标签知识库选择组件
@@ -43,7 +43,7 @@ export function TagSetItem({
 }: TagSetItemProps) {
   const { t } = useTranslation()
   const form = useFormContext()
-  const { knowledgeBases } = useKnowledgeStore()
+  const { knowledgeBases } = useFetchKnowledgeList({ page_size: 1000 })
   const [open, setOpen] = useState(false)
 
   // 过滤出解析器类型为 'tag' 的知识库

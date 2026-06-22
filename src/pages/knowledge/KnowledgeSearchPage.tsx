@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
 
 import { SplitDetailPageTemplate } from '@/components/page-templates'
-import { useKnowledgeStore } from '@/stores/knowledge'
+import { useFetchKnowledgeDetail } from '@/hooks/use-knowledge-request'
 
 import {
   ConfigPanelSheet,
@@ -23,7 +23,7 @@ import {
 const KnowledgeSearchPage: React.FC = () => {
   const { t } = useTranslation()
   const { id } = useParams<{ id: string }>()
-  const { currentKnowledgeBase } = useKnowledgeStore()
+  const { knowledgeBase: currentKnowledgeBase } = useFetchKnowledgeDetail(id)
 
   const params = useSearchParamsState()
   const execution = useSearchExecution({

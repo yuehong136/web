@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useKnowledgeStore } from '@/stores/knowledge'
+import { useCreateKnowledge as useCreateKnowledgeRequest } from '@/hooks/use-knowledge-request'
 import { useUIStore } from '@/stores/ui'
 import type { CreateKBRequest } from '@/types/api'
 import { DEFAULT_CREATE_FORM_VALUES } from './constants'
@@ -15,7 +15,7 @@ export const useCreateKnowledge = ({
   onCreated,
 }: UseCreateKnowledgeOptions) => {
   const { t } = useTranslation()
-  const { createKnowledgeBase } = useKnowledgeStore()
+  const { createKnowledge } = useCreateKnowledgeRequest()
   const { addNotification } = useUIStore()
 
   const [formData, setFormData] = useState<CreateKnowledgeFormValues>(
@@ -89,7 +89,7 @@ export const useCreateKnowledge = ({
         parser_id: 'naive',
       }
 
-      const newKnowledgeBase = await createKnowledgeBase(createData)
+      const result = await createKnowledge(createData)
 
       addNotification({
         type: 'success',
@@ -98,7 +98,7 @@ export const useCreateKnowledge = ({
       })
 
       resetForm()
-      onCreated?.(newKnowledgeBase.id)
+      onCreated?.(result.kb_id)
     } catch (error) {
       console.error('Create knowledge base failed:', error)
       addNotification({
@@ -109,7 +109,7 @@ export const useCreateKnowledge = ({
     } finally {
       setIsLoading(false)
     }
-  }, [addNotification, createKnowledgeBase, formData, onCreated, resetForm, t])
+  }, [addNotification, createKnowledge, formData, onCreated, resetForm, t])
 
   const canSubmit = Boolean(
     formData.name.trim() && formData.embd_id && !nameError,

@@ -2,7 +2,10 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { ROUTES } from '@/constants'
-import { useKnowledgeStore } from '@/stores/knowledge'
+import {
+  useDeleteKnowledge,
+  useFetchKnowledgeList,
+} from '@/hooks/use-knowledge-request'
 import { useUIStore } from '@/stores/ui'
 import type { KnowledgeBase } from '@/types/api'
 import { DEFAULT_PAGE_SIZE } from './constants'
@@ -13,15 +16,6 @@ import type { KnowledgeTimeFormat, KnowledgeViewMode } from './types'
 export const useKnowledgeListPage = () => {
   const navigate = useNavigate()
   const { t } = useTranslation()
-  const {
-    deleteKnowledgeBase,
-    isLoading,
-    knowledgeBases,
-    loadKnowledgeBases,
-    searchQuery,
-    setSearchQuery,
-    total,
-  } = useKnowledgeStore()
   const { addNotification } = useUIStore()
 
   const [viewMode, setViewMode] = useState<KnowledgeViewMode>('grid')
@@ -36,21 +30,18 @@ export const useKnowledgeListPage = () => {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
+  const [searchQuery, setSearchQuery] = useState('')
 
-  const loadCurrentPage = useCallback(() => {
-    // 仅传后端能准确分页/计数的条件：关键词搜索 + 排序 + 分页
-    loadKnowledgeBases({
-      page: currentPage,
-      page_size: pageSize,
-      orderby: sortBy,
-      desc: sortDesc,
-      keywords: searchQuery,
-    })
-  }, [currentPage, loadKnowledgeBases, pageSize, searchQuery, sortBy, sortDesc])
-
-  useEffect(() => {
-    loadCurrentPage()
-  }, [loadCurrentPage])
+  // 服务器态走 React Query：分页/排序/搜索参数进 queryKey，变更自动重取
+  // （替代原 store.loadKnowledgeBases 的手动 fetch-effect，行为等价）
+  const { knowledgeBases, total, isLoading, refetch } = useFetchKnowledgeList({
+    page: currentPage,
+    page_size: pageSize,
+    orderby: sortBy,
+    desc: sortDesc,
+    keywords: searchQuery,
+  })
+  const { deleteKnowledge } = useDeleteKnowledge()
 
   useEffect(() => {
     setCurrentPage((prevPage) => (prevPage === 1 ? prevPage : 1))
@@ -92,10 +83,10 @@ export const useKnowledgeListPage = () => {
 
   const handleCreateSuccess = useCallback(
     (knowledgeBaseId: string) => {
-      loadCurrentPage()
+      void refetch()
       navigate(`${ROUTES.KNOWLEDGE}/${knowledgeBaseId}`)
     },
-    [loadCurrentPage, navigate],
+    [navigate, refetch],
   )
 
   const handleView = useCallback(
@@ -112,7 +103,7 @@ export const useKnowledgeListPage = () => {
       }
 
       try {
-        await deleteKnowledgeBase(knowledgeBaseId)
+        await deleteKnowledge(knowledgeBaseId)
         addNotification({
           type: 'success',
           title: t('knowledge.list.notifications.deleteSuccessTitle'),
@@ -126,7 +117,7 @@ export const useKnowledgeListPage = () => {
         })
       }
     },
-    [addNotification, deleteKnowledgeBase, t],
+    [addNotification, deleteKnowledge, t],
   )
 
   const handleBulkDelete = useCallback(async () => {
@@ -145,7 +136,7 @@ export const useKnowledgeListPage = () => {
     }
 
     try {
-      await Promise.all(selectedBases.map((id) => deleteKnowledgeBase(id)))
+      await Promise.all(selectedBases.map((id) => deleteKnowledge(id)))
       setSelectedBases([])
       addNotification({
         type: 'success',
@@ -161,7 +152,7 @@ export const useKnowledgeListPage = () => {
         message: t('knowledge.list.notifications.deleteErrorMessage'),
       })
     }
-  }, [addNotification, deleteKnowledgeBase, selectedBases, t])
+  }, [addNotification, deleteKnowledge, selectedBases, t])
 
   const { handleQuickEditSubmit, isQuickEditSubmitting } = useQuickEdit({
     editingKnowledgeBase,

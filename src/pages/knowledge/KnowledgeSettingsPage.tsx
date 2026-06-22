@@ -12,7 +12,10 @@ import {
   type SelectOptionGroup,
 } from '@/components/ui/select-with-search'
 import { IconFontFill } from '@/components/ui/icon-font'
-import { useKnowledgeStore } from '@/stores/knowledge'
+import {
+  useFetchKnowledgeDetail,
+  useUpdateKnowledge,
+} from '@/hooks/use-knowledge-request'
 import { useUIStore } from '@/stores/ui'
 import {
   useModelStore,
@@ -22,7 +25,7 @@ import {
 } from '@/stores/model'
 import { useIsDarkTheme } from '@/themes'
 import { ROUTES } from '@/constants'
-import type { KnowledgeBase, UpdateKBRequest } from '@/types/api'
+import type { UpdateKBRequest } from '@/types/api'
 import {
   DocumentParserType,
   DOCUMENT_PARSER_TYPE_LABELS,
@@ -48,6 +51,7 @@ import { GeneralForm } from './settings/GeneralForm'
 import { ChunkMethodForm } from './settings/ChunkMethodForm'
 import { PipelineSelect, type PipelineOption } from './settings/PipelineSelect'
 import { LinkDataSource } from './settings/LinkDataSource'
+import { buildKnowledgeSettingsFormValues } from './settings/knowledge-settings-form-values'
 import { MetadataManageType } from '@/types/api'
 import { PageEmptyState, PageHeader, SectionCard } from '@/components/patterns'
 import { SplitDetailPageTemplate } from '@/components/page-templates'
@@ -63,10 +67,6 @@ const ManageMetadataModal = React.lazy(() =>
 )
 
 const KB_SETTINGS_FORM_ID = 'kb-settings-form'
-
-type KnowledgeBaseWithPipeline = KnowledgeBase & {
-  pipeline_id?: string | null
-}
 
 // 需要主题切换的厂商
 const THEME_AWARE_FACTORIES: readonly string[] = [
@@ -109,42 +109,13 @@ const parserTypeOptions: SelectOptionGroup[] = Object.values(
   value: type,
 }))
 
-const buildKnowledgeSettingsFormValues = (
-  currentKnowledgeBase: KnowledgeBaseWithPipeline,
-  normalizeEmbdId: (value: string) => string,
-): KnowledgeSettingsFormData => {
-  const defaultValues = getDefaultFormValues()
-  const rawValues = {
-    name: currentKnowledgeBase.name || '',
-    description: currentKnowledgeBase.description || '',
-    permission: (currentKnowledgeBase.permission as 'me' | 'team') || 'me',
-    avatar: currentKnowledgeBase.avatar || '',
-    parseType: currentKnowledgeBase.pipeline_id ? 2 : 1,
-    parser_id: currentKnowledgeBase.parser_id || 'naive',
-    pipeline_id: currentKnowledgeBase.pipeline_id || '',
-    embd_id: normalizeEmbdId(currentKnowledgeBase.embd_id || ''),
-    pagerank: currentKnowledgeBase.pagerank || 0,
-    parser_config: {
-      ...defaultValues.parser_config,
-      ...currentKnowledgeBase.parser_config,
-      // 回退兼容：优先使用 image_table_context_window，否则回退到 image_context_size 或 table_context_size
-      image_table_context_window:
-        currentKnowledgeBase.parser_config?.image_table_context_window ??
-        currentKnowledgeBase.parser_config?.image_context_size ??
-        currentKnowledgeBase.parser_config?.table_context_size ??
-        0,
-    },
-  }
-
-  return knowledgeSettingsFormSchema.parse(rawValues)
-}
-
 const KnowledgeSettingsPage: React.FC = () => {
   const { t } = useTranslation()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
-  const { currentKnowledgeBase, updateKnowledgeBase } = useKnowledgeStore()
+  const { knowledgeBase: currentKnowledgeBase } = useFetchKnowledgeDetail(id)
+  const { updateKnowledge } = useUpdateKnowledge()
   const { addNotification } = useUIStore()
   const { myLLMs, loadMyLLMs, isLoading: isLoadingModels } = useModelStore()
 
@@ -325,7 +296,7 @@ const KnowledgeSettingsPage: React.FC = () => {
         // pipeline_id: data.parseType === 2 ? data.pipeline_id : null, // 后端暂不支持
       }
 
-      await updateKnowledgeBase(updateData)
+      await updateKnowledge(updateData)
 
       addNotification({
         type: 'success',

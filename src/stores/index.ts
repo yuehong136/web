@@ -1,7 +1,6 @@
 // Zustand stores 统一导出
 export { useAuthStore } from './auth'
 export { useUIStore } from './ui'
-export { useKnowledgeStore } from './knowledge'
 export { useModelStore } from './model'
 export {
   useStudioStore,

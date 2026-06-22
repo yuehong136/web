@@ -33,6 +33,5 @@
   "src/components/environment/EnvironmentVariablesTable.tsx": 615,
   "src/pages/settings/MCPTestPage.tsx": 609,
   "src/components/chat/ToolCallDisplay.tsx": 604,
-  "src/pages/studio/StudioPage.tsx": 602,
-  "src/pages/knowledge/KnowledgeSettingsPage.tsx": 601
+  "src/pages/studio/StudioPage.tsx": 602
 }
