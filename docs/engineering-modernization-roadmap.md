@@ -188,15 +188,31 @@
 
 ### ARCH-4 Zustand store 中的服务器状态清退
 
-- **状态**：未开始
+- **状态**：进行中
 - **问题**：13 个 store 共 3498 行。`model.ts`（751 行）、`knowledge.ts`（443 行）等明显持有服务器数据副本，与 React Query 领域重叠（违反自家规范）；`chat`/`conversation` + dialog 页职责交叉。
-- **方案**：逐 store 审计字段：服务器数据 → 迁 React Query；流式临时态 → 保留；UI 偏好 → 保留。从 `model.ts` 开始（最大、最典型）。
-- **验收**：store 总行数显著下降；任一 store 不再有"列表数据 + loading + error"三件套字段。
+- **方案**：逐 store 三分类审计——服务器数据（列表/详情 + loading + error）→ 迁 React Query；流式临时态 → 保留；UI/选择/偏好 → 保留。执行顺序按风险升序（先删死 store，最后动最大面 `model.ts`），每 store 一个原子提交、全绿再下一个、不 push 等 owner 指示。复用 ARCH-3 已落地的领域 `*Keys` 工厂 + `use-*-request` hook，多数为「删 store 副本、改用已有 hook」。
+- **验收**：store 总行数显著下降；任一 store 不再有"列表数据 + loading + error"三件套字段；全仓服务器读取 100% 走 React Query 领域 hook；store 内无手写 fetch-effect / `await loadX()` 手动重取。
+- **不扩 scope**：不动 ARCH-2 API 契约、ARCH-5 token；`auth.ts` token/refresh-token 的 localStorage 安全改造归 SEC-1（本任务审计后显式 defer，不宣称把所有 persist store 变 UI-only）。
+- **库存清单（实扫 2026-06-18，复核 2026-06-22 行数零漂移）**：
+
+| store                            | 行数   | 三分类结论                                                                                                                                                                                                       | 动作                                                                                                                                                             |
+| -------------------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| model.ts                         | 751    | 服务器：myLLMs/factories/isLoading + mutation；UI：selectedProvider（0 消费）；助手/常量/类型（1-364，外部大量 import）                                                                                          | 迁移：补 `enableLlm` api+hook、增强 `setApiKey/addLLM`（source_fid+verify）、迁 14 消费方 → 删 store 半，留助手/类型模块（在册→收紧棘轮）                        |
+| knowledge.ts                     | 443    | 服务器：knowledgeBases/documents/total/isLoading/currentKnowledgeBase + 全 CRUD；UI：searchQuery                                                                                                                 | 迁移：9 消费方切已有 hook，currentKB→`useFetchKnowledgeDetail(id)`，searchQuery→局部 state → 整 store 删；mock 假数据兜底刻意丢弃                                |
+| memory.ts                        | 355    | 服务器：memories/total/currentMemory/messages/...（RQ→store 桥接死写，消费方早已读 query data）；UI：filter/page/view/模态                                                                                       | 迁移：拆桥（query 只 return data）→ 删服务器字段，零页面改动                                                                                                     |
+| environmentStore.ts              | 276    | 服务器：environments/currentEnvironment/globalEnvironments/isLoading + 13 mutation（多处 await loadX 手动重取）；UI：selectedEnvironmentId（persist 正确）；纯工具 resolveText/getVariableMap/validateReferences | 迁移：新建 `use-environment-request.ts`（environmentKeys + query/mutation）→ 迁 6 消费方（ApiKeysPage 4037 在册谨慎）→ store 仅留 selectedEnvironmentId + 纯工具 |
+| conversation.ts                  | 227    | 死 store：仅 `stores/index.ts` barrel + resetAllStores 引用，0 运行时消费                                                                                                                                        | 删除（verify-then-remove）                                                                                                                                       |
+| chat.ts                          | 348    | 死 store：服务器副本 + 旧 SSE 全为死代码，唯一消费 ExplorePage 仅 `clearChat()`（其真实流式是局部态）                                                                                                            | 删除（删 ExplorePage 3 行；在册→收紧棘轮）                                                                                                                       |
+| auth.ts                          | 265    | 会话身份快照 + 认证态，与 SEC-1（token localStorage）+ 启动时序强耦合，非三件套                                                                                                                                  | 审计后不迁，状态 "audited, deferred to SEC-1/AUTH bootstrap"                                                                                                     |
+| ui/studio/home/team/search/index | 19–203 | 纯客户端态（已无服务器副本，服务器数据已走各自 use-\*-request）                                                                                                                                                  | 审计后不迁                                                                                                                                                       |
+
+- **复核要点（2026-06-22）**：① `client.ts:146-148` 自动补 `/v1` 前缀，model.ts `/llm/*` 与 llm.ts `/v1/llm/*` 同 URL，无版本契约问题；② model.ts 的 addProvider/removeProvider/updateProviderConfig 0 消费 → 随 store 删，不建 hook；现有 `useSetApiKey/llmAPI.setApiKey` 未复制 SILICONFLOW `source_fid` 分支与 `verify→ModelVerifyResult` 返回，迁移须补；③ memory 两个消费页早已读 `data?.memory_list/total_count`，store 桥接为死写，迁移近零页面改动。
 - **状态与进展记录**：
 
-| 日期       | 动作 | 提交 | 备注 |
-| ---------- | ---- | ---- | ---- |
-| 2026-06-10 | 立项 | —    | —    |
+| 日期       | 动作                                                                | 提交   | 备注                                                                                                    |
+| ---------- | ------------------------------------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------- |
+| 2026-06-10 | 立项                                                                | —      | —                                                                                                       |
+| 2026-06-22 | 盘点：13 store 三分类 + 死代码判定 + 风险升序执行顺序，状态置进行中 | 待回填 | model/knowledge/memory/environment 迁移，conversation/chat 删除，auth 归 SEC-1，5 个纯客户端 store 不动 |
 
 ### ARCH-5 设计令牌治理 + Tailwind 4 评估
 
