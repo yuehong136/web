@@ -1,11 +1,14 @@
 // Zustand stores 统一导出
 export { useAuthStore } from './auth'
 export { useUIStore } from './ui'
-export { useConversationStore } from './conversation'
 export { useChatStore } from './chat'
 export { useKnowledgeStore } from './knowledge'
 export { useModelStore } from './model'
-export { useStudioStore, useHasActiveFilters as useStudioHasActiveFilters, useSelectedCount as useStudioSelectedCount } from './studio'
+export {
+  useStudioStore,
+  useHasActiveFilters as useStudioHasActiveFilters,
+  useSelectedCount as useStudioSelectedCount,
+} from './studio'
 export { useSearchStore } from './search'
 export {
   useHomeStore,
@@ -20,30 +23,24 @@ export {
 // 导入stores用于初始化
 import { useAuthStore } from './auth'
 import { useUIStore } from './ui'
-import { useConversationStore } from './conversation'
 import { apiClient } from '@/api/client'
 import { authAPI } from '@/api/auth'
 
 // 导出类型
-export type { } from './auth'
-export type { } from './ui'
-export type { } from './conversation'
+export type {} from './auth'
+export type {} from './ui'
 
 // 创建一个全局store重置函数
 export const resetAllStores = () => {
   // 获取所有store的引用并重置
   const authStore = useAuthStore.getState()
   const uiStore = useUIStore.getState()
-  const conversationStore = useConversationStore.getState()
 
   // 执行登出操作，这会清理相关状态
   authStore.logout().catch(console.error)
 
   // 清理UI状态
   uiStore.clearNotifications()
-
-  // 清理对话状态
-  conversationStore.clearCurrentConversation()
 }
 
 // 创建一个初始化函数
