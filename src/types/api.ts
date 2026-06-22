@@ -506,13 +506,6 @@ export interface SetDialogRequest {
   }
 }
 
-export interface DialogTemplateFile {
-  format: 'multirag_dialog_template'
-  version: string
-  export_time: string
-  app: Record<string, unknown>
-}
-
 export interface DialogImportResultItem {
   id: string
   name: string
