@@ -13,7 +13,11 @@ export const DataSourceFormDefaultValues: Record<DataSourceKey, any> = {
     source: DataSourceKey.R2,
     config: {
       bucket_name: '',
-      credentials: { account_id: '', r2_access_key_id: '', r2_secret_access_key: '' },
+      credentials: {
+        account_id: '',
+        r2_access_key_id: '',
+        r2_secret_access_key: '',
+      },
     },
   },
   [DataSourceKey.GOOGLE_CLOUD_STORAGE]: {
@@ -29,7 +33,12 @@ export const DataSourceFormDefaultValues: Record<DataSourceKey, any> = {
     source: DataSourceKey.OCI_STORAGE,
     config: {
       bucket_name: '',
-      credentials: { namespace: '', region: '', access_key_id: '', secret_access_key: '' },
+      credentials: {
+        namespace: '',
+        region: '',
+        access_key_id: '',
+        secret_access_key: '',
+      },
     },
   },
   [DataSourceKey.DROPBOX]: {
@@ -45,7 +54,11 @@ export const DataSourceFormDefaultValues: Record<DataSourceKey, any> = {
   [DataSourceKey.WEBDAV]: {
     name: '',
     source: DataSourceKey.WEBDAV,
-    config: { base_url: '', remote_path: '/', credentials: { username: '', password: '' } },
+    config: {
+      base_url: '',
+      remote_path: '/',
+      credentials: { username: '', password: '' },
+    },
   },
   [DataSourceKey.NOTION]: {
     name: '',
@@ -67,7 +80,11 @@ export const DataSourceFormDefaultValues: Record<DataSourceKey, any> = {
       labels_to_skip: [],
       comment_email_blacklist: [],
       scoped_token: false,
-      credentials: { jira_user_email: '', jira_api_token: '', jira_password: '' },
+      credentials: {
+        jira_user_email: '',
+        jira_api_token: '',
+        jira_password: '',
+      },
     },
   },
   [DataSourceKey.ASANA]: {
@@ -83,14 +100,22 @@ export const DataSourceFormDefaultValues: Record<DataSourceKey, any> = {
   [DataSourceKey.AIRTABLE]: {
     name: '',
     source: DataSourceKey.AIRTABLE,
-    config: { base_id: '', table_name_or_id: '', credentials: { airtable_access_token: '' } },
+    config: {
+      base_id: '',
+      table_name_or_id: '',
+      credentials: { airtable_access_token: '' },
+    },
   },
   [DataSourceKey.ZENDESK]: {
     name: '',
     source: DataSourceKey.ZENDESK,
     config: {
       zendesk_content_type: 'articles',
-      credentials: { zendesk_subdomain: '', zendesk_email: '', zendesk_token: '' },
+      credentials: {
+        zendesk_subdomain: '',
+        zendesk_email: '',
+        zendesk_token: '',
+      },
     },
   },
   [DataSourceKey.GITHUB]: {
@@ -118,6 +143,36 @@ export const DataSourceFormDefaultValues: Record<DataSourceKey, any> = {
     },
   },
   [DataSourceKey.BITBUCKET]: bitbucketDefaultValues,
+  [DataSourceKey.MYSQL]: {
+    name: '',
+    source: DataSourceKey.MYSQL,
+    config: {
+      host: 'localhost',
+      port: 3306,
+      database: '',
+      query: '',
+      content_columns: '',
+      metadata_columns: '',
+      id_column: '',
+      timestamp_column: '',
+      credentials: { username: '', password: '' },
+    },
+  },
+  [DataSourceKey.POSTGRESQL]: {
+    name: '',
+    source: DataSourceKey.POSTGRESQL,
+    config: {
+      host: 'localhost',
+      port: 5432,
+      database: '',
+      query: '',
+      content_columns: '',
+      metadata_columns: '',
+      id_column: '',
+      timestamp_column: '',
+      credentials: { username: '', password: '' },
+    },
+  },
   [DataSourceKey.GOOGLE_DRIVE]: {
     name: '',
     source: DataSourceKey.GOOGLE_DRIVE,
@@ -130,20 +185,32 @@ export const DataSourceFormDefaultValues: Record<DataSourceKey, any> = {
       shared_folder_urls: '',
       my_drive_emails: '',
       specific_user_emails: '',
-      credentials: { google_primary_admin: '', google_tokens: '', authentication_method: 'uploaded' },
+      credentials: {
+        google_primary_admin: '',
+        google_tokens: '',
+        authentication_method: 'uploaded',
+      },
     },
   },
   [DataSourceKey.GMAIL]: {
     name: '',
     source: DataSourceKey.GMAIL,
     config: {
-      credentials: { google_primary_admin: '', google_tokens: '', authentication_method: 'uploaded' },
+      credentials: {
+        google_primary_admin: '',
+        google_tokens: '',
+        authentication_method: 'uploaded',
+      },
     },
   },
   [DataSourceKey.DISCORD]: {
     name: '',
     source: DataSourceKey.DISCORD,
-    config: { server_ids: [], channels: [], credentials: { discord_bot_token: '' } },
+    config: {
+      server_ids: [],
+      channels: [],
+      credentials: { discord_bot_token: '' },
+    },
   },
   [DataSourceKey.MOODLE]: {
     name: '',

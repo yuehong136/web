@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 
 /**
- * 数据源类型枚举 - 支持 22 种数据源
+ * 数据源类型枚举 - 支持 23 种数据源
  */
 export enum DataSourceKey {
   // 云存储类
@@ -25,6 +25,10 @@ export enum DataSourceKey {
   GITHUB = 'github',
   GITLAB = 'gitlab',
   BITBUCKET = 'bitbucket',
+
+  // 数据库类
+  MYSQL = 'mysql',
+  POSTGRESQL = 'postgresql',
 
   // 其他
   GOOGLE_DRIVE = 'google_drive',
@@ -107,11 +111,14 @@ export interface IDataSourceLog {
 /**
  * 数据源信息映射类型
  */
-export type IDataSourceInfoMap = Record<DataSourceKey, {
-  name: string
-  description: string
-  icon: ReactNode
-}>
+export type IDataSourceInfoMap = Record<
+  DataSourceKey,
+  {
+    name: string
+    description: string
+    icon: ReactNode
+  }
+>
 
 /**
  * 数据源关联知识库的信息
