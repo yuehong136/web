@@ -1,5 +1,5 @@
 import type { useTranslation } from 'react-i18next'
-import { camelCase } from 'lodash'
+import camelCase from 'lodash/camelCase.js'
 import { VariableAssignerLogicalNumberOperatorLabelMap } from '../../constant'
 
 export function getVariableAssignerOperatorLabel(

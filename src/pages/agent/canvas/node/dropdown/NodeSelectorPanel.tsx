@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { AgentInstanceContext, HandleContext } from '../../../context'
 import { Operator } from '../../../constant'
+import { getOperatorDefinition } from '../../../operators/registry'
 import { cn } from '@/lib/utils'
 import lowerFirst from 'lodash/lowerFirst.js'
 import { useTranslation } from 'react-i18next'
@@ -115,6 +116,8 @@ export const NodeSelectorPanel = ({
               <div className="space-y-1 px-2">
                 {category.nodes.map((node) => {
                   const Icon = node.icon
+                  const fallbackName =
+                    getOperatorDefinition(node.type)?.defaultName || node.type
                   return (
                     <button
                       key={node.type}
@@ -127,7 +130,7 @@ export const NodeSelectorPanel = ({
                     >
                       <Icon className={cn('h-4 w-4', node.color)} />
                       <span className="text-sm text-text-secondary group-hover:text-text-primary">
-                        {t(`flow.${lowerFirst(node.type)}`, node.type)}
+                        {t(`flow.${lowerFirst(node.type)}`, fallbackName)}
                       </span>
                     </button>
                   )

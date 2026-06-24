@@ -504,9 +504,6 @@ export default {
     googleScholarDescription:
       'A component that searches https://scholar.google.com/. You can use Top N to specify the number of search results.',
     goto: 'Exception branch',
-    hierarchicalMerger: 'Title',
-    hierarchicalMergerDescription:
-      'Split documents into sections by title hierarchy with regex rules for finer control.',
     invoke: 'HTTP request',
     invokeDescription:
       "A component capable of calling remote services, using other components' outputs or constants as inputs.",
@@ -777,6 +774,87 @@ export default {
     htmlReportCard: 'Card',
     htmlReportRemove: 'Remove',
     period: 'Period',
+    pipelineResult: {
+      title: 'Pipeline Run Result',
+      description:
+        'Review this Pipeline output by chunk and inspect text, image, table, and vectorization status.',
+      fallbackAgentTitle: 'Pipeline',
+      backPipeline: 'Back to Pipeline',
+      downloadJson: 'Download JSON',
+      downloadFileBaseName: 'pipeline-output',
+      missingTitle: 'Missing Pipeline result context',
+      missingDescription:
+        'This link is missing the context required to read the Pipeline output.',
+      backToAgents: 'Back to agents',
+      loadingTitle: 'Reading Pipeline trace',
+      loadingDescription:
+        'Fetching this run result from agent_id and message_id.',
+      loadFailedTitle: 'Failed to read Pipeline result',
+      loadFailedDescription:
+        'The trace is temporarily unavailable. Retry or return to the Pipeline logs.',
+      retry: 'Retry',
+      runSummaryTitle: 'This run',
+      runSummaryDescription:
+        'Check the run source, chunk type mix, and vectorization status before reviewing the output below.',
+      contextTitle: 'Run context',
+      overviewTitle: 'Result overview',
+      outputTitle: 'END node output',
+      emptyTitle: 'No END node output',
+      emptyDescription:
+        'This run does not have displayable output yet. Check the Pipeline logs or run it again.',
+      searchPlaceholder: 'Search text, title, order, or image ID',
+      searchLabel: 'Search Pipeline output chunks',
+      typeFilter: 'Filter by chunk type',
+      viewModeLabel: 'Result view',
+      chunksTab: 'Chunk review',
+      jsonTab: 'Compact JSON',
+      filteredCount: 'Showing {{count}} / {{total}} chunks',
+      noChunksTitle: 'No matching chunks',
+      noChunksDescription: 'Adjust the search keyword or type filter.',
+      detailTitle: 'Chunk details',
+      noSelectionTitle: 'No chunk selected',
+      noSelectionDescription: 'Select a chunk from the list to inspect fields.',
+      compactJsonHint:
+        'Vector arrays are collapsed into dimension summaries on this page. Download JSON keeps the full raw output.',
+      chunkOrder: '#{{order}}',
+      textLength: '{{count}} chars',
+      emptyChunkText:
+        'This chunk has no text content and may contain only image, table, or structured fields.',
+      pagesBadge: 'Pages {{pages}}',
+      vectorBadge: '{{dimensions}}d vector',
+      imageBadge: 'Image reference',
+      chunkTextLabel: 'Text content',
+      vectorSummaryLabel: 'Vector summary',
+      metadataTitle: 'Structured fields',
+      rawChunkLabel: 'Compact field JSON',
+      vectorDimensions: '{{dimensions}} dimensions',
+      emptyValue: '-',
+      metadata: {
+        agent: 'Agent',
+        agentId: 'Agent ID',
+        messageId: 'Message ID',
+        documentId: 'Document ID',
+        extension: 'Extension',
+        createdBy: 'Created By',
+      },
+      stats: {
+        totalChunks: 'Total chunks',
+        textChunks: 'Text chunks',
+        mediaChunks: 'Media chunks',
+        vectorizedChunks: 'Vectorized',
+        tableChunks: 'Table chunks',
+        imageChunks: 'Image chunks',
+        otherChunks: 'Other chunks',
+        textCharacters: 'Text characters',
+      },
+      types: {
+        all: 'All types',
+        text: 'Text',
+        table: 'Table',
+        image: 'Image',
+        other: 'Other',
+      },
+    },
     placeholder: 'Placeholder',
     placeholderDescription: 'Placeholder node',
     pubMed: 'PubMed',
@@ -798,9 +876,12 @@ export default {
     semicolon: 'Semicolon',
     space: 'Space',
     split: 'Split',
-    splitter: 'Token',
-    splitterDescription:
+    tokenChunker: 'Token Chunker',
+    tokenChunkerDescription:
       'Split text into chunks by token length with optional delimiters and overlap.',
+    titleChunker: 'Title Chunker',
+    titleChunkerDescription:
+      'Split documents into sections by title hierarchy. Define heading levels with regex rules, then choose Hierarchy or Group mode to control how chunks are structured.',
     stringTransform: 'Text processing',
     stringTransformDescription:
       'Modifies text content. Currently supports: Splitting or concatenating text.',

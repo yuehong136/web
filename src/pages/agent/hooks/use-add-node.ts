@@ -55,11 +55,14 @@ import {
   initialFileValues,
   initialParserValues,
   initialTokenizerValues,
-  initialSplitterValues,
-  initialHierarchicalMergerValues,
   initialExtractorValues,
 } from '../constant'
+import {
+  initialTitleChunkerValues,
+  initialTokenChunkerValues,
+} from '../form/chunker-constants'
 import { initialHTMLReportValues } from '../form/html-report/constants'
+import { getOperatorDefinition } from '../operators/registry'
 import useGraphStore from '../store'
 import {
   clampIterationChildPosition,
@@ -148,8 +151,8 @@ export const useInitializeOperatorParams = () => {
       [Operator.File]: initialFileValues,
       [Operator.Parser]: initialParserValues,
       [Operator.Tokenizer]: initialTokenizerValues,
-      [Operator.Splitter]: initialSplitterValues,
-      [Operator.HierarchicalMerger]: initialHierarchicalMergerValues,
+      [Operator.TokenChunker]: initialTokenChunkerValues,
+      [Operator.TitleChunker]: initialTitleChunkerValues,
       [Operator.Extractor]: {
         ...initialExtractorValues,
         llm_id: defaultChatModel,
@@ -186,7 +189,8 @@ export const useInitializeOperatorParams = () => {
 
 export const useGetNodeName = () => {
   const getNodeName = useCallback((type: string) => {
-    return t(`flow.${lowerFirst(type)}`, type)
+    const fallbackName = getOperatorDefinition(type)?.defaultName || type
+    return t(`flow.${lowerFirst(type)}`, fallbackName)
   }, [])
 
   return getNodeName

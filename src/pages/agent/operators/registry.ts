@@ -340,19 +340,16 @@ export const agentOperatorRegistry: OperatorRegistry = {
     mode: AgentOperatorMode.PIPELINE,
     defaultName: 'Tokenizer',
   }),
-  [LegacyOperator.Splitter]: defineOperator(LegacyOperator.Splitter, {
+  [LegacyOperator.TokenChunker]: defineOperator(LegacyOperator.TokenChunker, {
     category: AgentOperatorCategory.PIPELINE,
     mode: AgentOperatorMode.PIPELINE,
-    defaultName: 'Splitter',
+    defaultName: 'Token Chunker',
   }),
-  [LegacyOperator.HierarchicalMerger]: defineOperator(
-    LegacyOperator.HierarchicalMerger,
-    {
-      category: AgentOperatorCategory.PIPELINE,
-      mode: AgentOperatorMode.PIPELINE,
-      defaultName: 'Hierarchical Merger',
-    },
-  ),
+  [LegacyOperator.TitleChunker]: defineOperator(LegacyOperator.TitleChunker, {
+    category: AgentOperatorCategory.PIPELINE,
+    mode: AgentOperatorMode.PIPELINE,
+    defaultName: 'Title Chunker',
+  }),
   [LegacyOperator.Extractor]: defineOperator(LegacyOperator.Extractor, {
     category: AgentOperatorCategory.PIPELINE,
     mode: AgentOperatorMode.PIPELINE,

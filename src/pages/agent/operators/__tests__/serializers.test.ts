@@ -16,6 +16,7 @@ import {
   buildInitialDsl,
   buildInitialGraph,
   deserializeDslToGraph,
+  normalizeLegacyChunkerDsl,
   serializeGraphToDsl,
 } from '../serializers'
 
@@ -103,10 +104,12 @@ test('serializeGraphToDsl excludes non-component operators but preserves persist
 
   assert.deepEqual(Object.keys(dsl.components).sort(), [BeginId, 'message-1'])
   assert.equal(dsl.history[0], 'kept')
-  assert.deepEqual(
-    dsl.graph?.nodes.map((node) => node.id).sort(),
-    [BeginId, 'message-1', 'note-1', 'tool-1'],
-  )
+  assert.deepEqual(dsl.graph?.nodes.map((node) => node.id).sort(), [
+    BeginId,
+    'message-1',
+    'note-1',
+    'tool-1',
+  ])
   assert.equal(dsl.graph?.edges.length, 2)
   assert.equal(dsl.graph?.edges[0]?.type, 'buttonEdge')
 })
@@ -136,10 +139,9 @@ test('message nodes normalize editor object content back to persisted string arr
     },
   })
 
-  assert.deepEqual(
-    dsl.components['message-object']?.obj.params.content,
-    ['hello'],
-  )
+  assert.deepEqual(dsl.components['message-object']?.obj.params.content, [
+    'hello',
+  ])
 
   const reconstructed = deserializeDslToGraph(
     {
@@ -165,8 +167,11 @@ test('message nodes normalize editor object content back to persisted string arr
   )
 
   assert.deepEqual(
-    (reconstructed.graph.nodes[0]?.data.form as Record<string, unknown> | undefined)
-      ?.content,
+    (
+      reconstructed.graph.nodes[0]?.data.form as
+        | Record<string, unknown>
+        | undefined
+    )?.content,
     ['world'],
   )
 })
@@ -286,7 +291,10 @@ test('buildInitialDsl always includes path as an empty array', () => {
 
   assert.ok(Array.isArray(agentDsl.path), 'agent dsl.path should be an array')
   assert.deepEqual(agentDsl.path, [])
-  assert.ok(Array.isArray(pipelineDsl.path), 'pipeline dsl.path should be an array')
+  assert.ok(
+    Array.isArray(pipelineDsl.path),
+    'pipeline dsl.path should be an array',
+  )
   assert.deepEqual(pipelineDsl.path, [])
 })
 
@@ -347,12 +355,12 @@ test('components-only reconstruction skips terminal operators without source han
             component_name: Operator.Tokenizer,
             params: {},
           },
-          downstream: ['splitter-1'],
+          downstream: ['Splitter:legacy'],
           upstream: ['parser-1'],
         },
-        'splitter-1': {
+        'Splitter:legacy': {
           obj: {
-            component_name: Operator.Splitter,
+            component_name: 'Splitter',
             params: {},
           },
           downstream: [],
@@ -415,6 +423,105 @@ test('components-only reconstruction skips terminal operators without source han
       .filter((item) => terminalSources.includes(item.source))
       .map((item) => `${item.source}->${item.target}`),
     [],
+  )
+})
+
+test('legacy chunker DSL is normalized before graph reconstruction', () => {
+  const legacyDsl = {
+    components: {
+      'Splitter:old': {
+        obj: {
+          component_name: 'Splitter',
+          params: {
+            prompts: 'Use {Splitter:old@chunks}',
+          },
+        },
+        downstream: ['HierarchicalMerger:old'],
+        upstream: ['Parser:old'],
+      },
+      'HierarchicalMerger:old': {
+        obj: {
+          component_name: 'HierarchicalMerger',
+          params: {
+            levels: [['^#[^#]']],
+          },
+        },
+        downstream: [],
+        upstream: ['Splitter:old'],
+      },
+    },
+    path: [['Splitter:old']],
+    graph: {
+      nodes: [
+        {
+          id: 'Splitter:old',
+          type: 'splitterNode',
+          position: { x: 0, y: 0 },
+          data: {
+            label: 'Splitter',
+            name: 'Splitter',
+            form: {
+              query: '{Splitter:old@chunks}',
+            },
+          },
+        },
+        {
+          id: 'HierarchicalMerger:old',
+          type: 'splitterNode',
+          position: { x: 200, y: 0 },
+          data: {
+            label: 'HierarchicalMerger',
+            name: 'HierarchicalMerger',
+            form: {},
+          },
+        },
+      ],
+      edges: [
+        {
+          id: 'Splitter:old:start:HierarchicalMerger:old:end',
+          source: 'Splitter:old',
+          target: 'HierarchicalMerger:old',
+        },
+      ],
+    },
+    history: ['{Splitter:old@chunks}'],
+    messages: [],
+    reference: [],
+    globals: {},
+    retrieval: [],
+  }
+
+  const normalized = normalizeLegacyChunkerDsl(legacyDsl)
+  assert.ok(normalized?.components?.['TokenChunker:old'])
+  assert.ok(normalized?.components?.['TitleChunker:old'])
+  assert.equal(
+    normalized?.components?.['TokenChunker:old']?.obj.component_name,
+    Operator.TokenChunker,
+  )
+  assert.equal(
+    normalized?.components?.['TitleChunker:old']?.obj.component_name,
+    Operator.TitleChunker,
+  )
+  assert.deepEqual(normalized?.path, [['TokenChunker:old']])
+  assert.equal(normalized?.graph?.nodes?.[0]?.type, 'chunkerNode')
+  assert.equal(
+    (normalized?.graph?.nodes?.[0]?.data.form as { query?: string } | undefined)
+      ?.query,
+    '{TokenChunker:old@chunks}',
+  )
+  assert.equal(
+    normalized?.graph?.edges?.[0]?.id,
+    'TokenChunker:old:start:TitleChunker:old:end',
+  )
+
+  const reconstructed = deserializeDslToGraph(legacyDsl)
+  assert.deepEqual(
+    reconstructed.graph.nodes.map((node) => node.id),
+    ['TokenChunker:old', 'TitleChunker:old'],
+  )
+  assert.deepEqual(
+    reconstructed.graph.nodes.map((node) => node.data.label),
+    [Operator.TokenChunker, Operator.TitleChunker],
   )
 })
 
@@ -616,7 +723,9 @@ test('deserializeDslToGraph fixes iteration child layout metadata', () => {
   const startNode = reconstructed.graph.nodes.find(
     (node) => node.id === 'iteration-start-1',
   )
-  const agentNode = reconstructed.graph.nodes.find((node) => node.id === 'agent-1')
+  const agentNode = reconstructed.graph.nodes.find(
+    (node) => node.id === 'agent-1',
+  )
 
   assert.deepEqual(startNode?.position, { x: 24, y: 108 })
   assert.equal(startNode?.expandParent, false)
@@ -641,20 +750,22 @@ test('high-risk rebuilt operators serialize UI-only form state back to backend r
       ],
     },
   })
-  const splitterNode = buildGraphNode(Operator.Splitter, {
-    id: 'splitter-1',
+  const tokenChunkerNode = buildGraphNode(Operator.TokenChunker, {
+    id: 'TokenChunker:token-1',
     form: {
+      delimiter_mode: 'delimiter',
       delimiters: [{ value: '\n' }],
       enable_children: true,
       children_delimiters: [{ value: '##' }],
+      image_table_context_window: 3,
     },
   })
-  const mergerNode = buildGraphNode(Operator.HierarchicalMerger, {
-    id: 'merger-1',
+  const titleChunkerNode = buildGraphNode(Operator.TitleChunker, {
+    id: 'TitleChunker:title-1',
     form: {
-      levels: [
-        { expressions: [{ expression: '^#[^#]' }] },
-        { expressions: [{ expression: '^##[^#]' }] },
+      hierarchyRules: [
+        { levels: [{ expression: '^#[^#]' }] },
+        { levels: [{ expression: '^##[^#]' }] },
       ],
     },
   })
@@ -703,8 +814,8 @@ test('high-risk rebuilt operators serialize UI-only form state back to backend r
     graph: {
       nodes: [
         parserNode,
-        splitterNode,
-        mergerNode,
+        tokenChunkerNode,
+        titleChunkerNode,
         invokeNode,
         iterationNode,
         aggregatorNode,
@@ -725,14 +836,21 @@ test('high-risk rebuilt operators serialize UI-only form state back to backend r
   const parserParams = (dsl.components['parser-1']?.obj.params || {}) as {
     setups?: Record<
       string,
-      { preprocess?: string[]; suffix?: string[]; prompt?: string; llm_id?: string }
+      {
+        preprocess?: string[]
+        suffix?: string[]
+        prompt?: string
+        llm_id?: string
+      }
     >
   }
-  const splitterParams = (dsl.components['splitter-1']?.obj.params || {}) as {
+  const tokenChunkerParams = (dsl.components['TokenChunker:token-1']?.obj
+    .params || {}) as {
     delimiters?: string[]
     children_delimiters?: string[]
   }
-  const mergerParams = (dsl.components['merger-1']?.obj.params || {}) as {
+  const titleChunkerParams = (dsl.components['TitleChunker:title-1']?.obj
+    .params || {}) as {
     levels?: string[][]
   }
   const invokeParams = (dsl.components['invoke-1']?.obj.params || {}) as {
@@ -741,7 +859,8 @@ test('high-risk rebuilt operators serialize UI-only form state back to backend r
   const iterationParams = (dsl.components['iteration-1']?.obj.params || {}) as {
     outputs?: Record<string, { ref?: string; type?: string }>
   }
-  const aggregatorParams = (dsl.components['aggregator-1']?.obj.params || {}) as {
+  const aggregatorParams = (dsl.components['aggregator-1']?.obj.params ||
+    {}) as {
     groups?: Array<{
       group_name: string
       type?: string
@@ -760,27 +879,34 @@ test('high-risk rebuilt operators serialize UI-only form state back to backend r
   assert.deepEqual(parserParams.setups?.video?.suffix, ['mp4', 'avi', 'mkv'])
   assert.equal(parserParams.setups?.video?.llm_id, 'vision-model@OpenAI')
   assert.equal(parserParams.setups?.video?.prompt, 'describe the clip')
-  assert.deepEqual(splitterParams.delimiters, ['\n'])
-  assert.deepEqual(splitterParams.children_delimiters, [
-    '##',
-  ])
+  assert.equal(
+    dsl.components['TokenChunker:token-1']?.obj.component_name,
+    Operator.TokenChunker,
+  )
+  assert.equal(
+    dsl.components['TitleChunker:title-1']?.obj.component_name,
+    Operator.TitleChunker,
+  )
+  assert.deepEqual(tokenChunkerParams.delimiters, ['\n'])
+  assert.deepEqual(tokenChunkerParams.children_delimiters, ['##'])
   assert.equal(
     'enable_children' in
-      ((dsl.components['splitter-1']?.obj.params as Record<string, unknown>) || {}),
+      ((dsl.components['TokenChunker:token-1']?.obj.params as Record<
+        string,
+        unknown
+      >) || {}),
     false,
   )
-  const splitterParamsFull = (dsl.components['splitter-1']?.obj.params ||
-    {}) as Record<string, unknown>
-  assert.equal('table_context_size' in splitterParamsFull, false)
-  assert.equal('image_context_size' in splitterParamsFull, false)
-  assert.equal(
-    typeof splitterParamsFull.image_table_context_window,
-    'number',
-  )
-  assert.deepEqual(
-    mergerParams.levels?.slice(0, 2),
-    [['^#[^#]'], ['^##[^#]']],
-  )
+  const tokenChunkerParamsFull = (dsl.components['TokenChunker:token-1']?.obj
+    .params || {}) as Record<string, unknown>
+  assert.equal('image_table_context_window' in tokenChunkerParamsFull, false)
+  assert.equal(tokenChunkerParamsFull.table_context_size, 3)
+  assert.equal(tokenChunkerParamsFull.image_context_size, 3)
+  assert.equal(typeof tokenChunkerParamsFull.overlapped_percent, 'number')
+  assert.deepEqual(titleChunkerParams.levels?.slice(0, 2), [
+    ['^#[^#]'],
+    ['^##[^#]'],
+  ])
   assert.equal(invokeParams.variables?.[0]?.ref, 'begin@user_id')
   assert.deepEqual(iterationParams.outputs, {
     docs: {
@@ -878,7 +1004,10 @@ test('serializeGraphToDsl folds agent sub-agents and exception edges into ragflo
     },
   })
 
-  assert.deepEqual(Object.keys(dsl.components).sort(), ['agent-parent', 'message-1'])
+  assert.deepEqual(Object.keys(dsl.components).sort(), [
+    'agent-parent',
+    'message-1',
+  ])
   assert.deepEqual(dsl.components['agent-parent']?.downstream, ['message-1'])
 
   const agentParams = (dsl.components['agent-parent']?.obj.params ||
@@ -938,8 +1067,10 @@ test('serializeGraphToDsl writes categorize handle targets back into category_de
     },
   })
 
-  const params = (dsl.components['categorize-1']?.obj.params ||
-    {}) as Record<string, unknown>
+  const params = (dsl.components['categorize-1']?.obj.params || {}) as Record<
+    string,
+    unknown
+  >
   const categoryDescription = (params.category_description || {}) as Record<
     string,
     Record<string, unknown>
@@ -992,7 +1123,8 @@ test('deserializeDslToGraph keeps graph form authoritative when graph and compon
   )
 
   assert.deepEqual(
-    (reconstructed.graph.nodes[0]?.data.form as Record<string, unknown>)?.content,
+    (reconstructed.graph.nodes[0]?.data.form as Record<string, unknown>)
+      ?.content,
     ['graph-value'],
   )
 })

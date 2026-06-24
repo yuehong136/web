@@ -26,7 +26,6 @@ import {
   initialGithubValues,
   initialGoogleScholarValues,
   initialGoogleValues,
-  initialHierarchicalMergerValues,
   initialIterationStartValues,
   initialIterationValues,
   initialInvokeValues,
@@ -43,7 +42,6 @@ import {
   initialRetrievalValues,
   initialRewriteQuestionValues,
   initialSearXNGValues,
-  initialSplitterValues,
   initialStringTransformValues,
   initialSwitchValues,
   initialTavilyExtractValues,
@@ -58,6 +56,10 @@ import {
   initialYahooFinanceValues,
   type Operator as OperatorType,
 } from '../constant'
+import {
+  initialTitleChunkerValues,
+  initialTokenChunkerValues,
+} from '../form/chunker-constants'
 import { initialHTMLReportValues } from '../form/html-report/constants'
 
 const operatorDefaultValues: Record<OperatorType, Record<string, unknown>> = {
@@ -110,8 +112,8 @@ const operatorDefaultValues: Record<OperatorType, Record<string, unknown>> = {
   [Operator.File]: initialFileValues,
   [Operator.Parser]: initialParserValues,
   [Operator.Tokenizer]: initialTokenizerValues,
-  [Operator.Splitter]: initialSplitterValues,
-  [Operator.HierarchicalMerger]: initialHierarchicalMergerValues,
+  [Operator.TokenChunker]: initialTokenChunkerValues,
+  [Operator.TitleChunker]: initialTitleChunkerValues,
   [Operator.Extractor]: initialExtractorValues,
 }
 
@@ -141,6 +143,22 @@ export function mergeOperatorFormWithDefaults(
 
   if (operator === Operator.Parser && 'setups' in nextForm) {
     mergedForm.setups = nextForm.setups
+  }
+
+  if (operator === Operator.TokenChunker) {
+    ;(['delimiters', 'children_delimiters'] as const).forEach((key) => {
+      if (key in nextForm) {
+        mergedForm[key] = nextForm[key]
+      }
+    })
+  }
+
+  if (operator === Operator.TitleChunker) {
+    ;(['hierarchyRules', 'groupRules'] as const).forEach((key) => {
+      if (key in nextForm) {
+        mergedForm[key] = nextForm[key]
+      }
+    })
   }
 
   return normalizeOperatorFormForStore(operator, mergedForm)

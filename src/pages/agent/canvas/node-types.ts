@@ -24,7 +24,7 @@ import { LabeledGroupNode } from './node/labeled-group-node'
 import { FileNode } from './node/file-node'
 import { ParserNode } from './node/parser-node'
 import { TokenizerNode } from './node/tokenizer-node'
-import { SplitterNode } from './node/splitter-node'
+import { ChunkerNode } from './node/chunker-node'
 import { ExtractorNode } from './node/extractor-node'
 import { ButtonEdge } from './edge'
 
@@ -70,7 +70,8 @@ export const nodeTypes: NodeTypes = {
   fileNode: FileNode,
   parserNode: ParserNode,
   tokenizerNode: TokenizerNode,
-  splitterNode: SplitterNode,
+  chunkerNode: ChunkerNode,
+  splitterNode: ChunkerNode,
   contextNode: ExtractorNode,
 }
 

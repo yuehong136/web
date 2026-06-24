@@ -16,7 +16,6 @@ import { ExeSQLForm } from '../../../form/exesql'
 import { GithubForm } from '../../../form/github'
 import { GoogleForm } from '../../../form/google'
 import { GoogleScholarForm } from '../../../form/google-scholar'
-import { HierarchicalMergerForm } from '../../../form/hierarchical-merger'
 import { InvokeForm } from '../../../form/invoke'
 import { IterationForm } from '../../../form/iteration'
 import { IterationStartForm } from '../../../form/iteration-start'
@@ -33,7 +32,8 @@ import { RelevantForm } from '../../../form/relevant-form'
 import { RetrievalForm } from '../../../form/retrieval'
 import { RewriteQuestionForm } from '../../../form/rewrite-question'
 import { SearXNGForm } from '../../../form/searxng'
-import { SplitterForm } from '../../../form/splitter'
+import { TitleChunkerForm } from '../../../form/title-chunker'
+import { TokenChunkerForm } from '../../../form/token-chunker'
 import { StringTransformForm } from '../../../form/string-transform'
 import { SwitchForm } from '../../../form/switch'
 import { TavilyExtractForm } from '../../../form/tavily-extract'
@@ -76,9 +76,9 @@ export const migratedFormRenderers: Record<
   [Operator.StringTransform]: StringTransformForm,
   [Operator.Parser]: ParserForm,
   [Operator.Tokenizer]: TokenizerForm,
-  [Operator.Splitter]: SplitterForm,
+  [Operator.TokenChunker]: TokenChunkerForm,
   [Operator.Extractor]: ExtractorForm,
-  [Operator.HierarchicalMerger]: HierarchicalMergerForm,
+  [Operator.TitleChunker]: TitleChunkerForm,
   [Operator.PDFGenerator]: PDFGeneratorForm,
   [Operator.HTMLReport]: HTMLReportForm,
   [Operator.ExeSQL]: ExeSQLForm,

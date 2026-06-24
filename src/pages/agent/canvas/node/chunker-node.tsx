@@ -1,7 +1,7 @@
 import { memo } from 'react'
 import type { NodeProps } from '@xyflow/react'
 import { Position } from '@xyflow/react'
-import { Scissors } from 'lucide-react'
+import { ListTree } from 'lucide-react'
 import { NodeHandleId } from '../../constant'
 import { LabelCard } from './card'
 import { CommonHandle } from './handle'
@@ -10,12 +10,7 @@ import NodeHeader from './node-header'
 import { NodeWrapper } from './node-wrapper'
 import { ToolBar } from './toolbar'
 
-function InnerSplitterNode({
-  id,
-  data,
-  isConnectable,
-  selected,
-}: NodeProps) {
+function InnerChunkerNode({ id, data, isConnectable, selected }: NodeProps) {
   return (
     <ToolBar
       selected={selected}
@@ -46,12 +41,19 @@ function InnerSplitterNode({
           id={id}
           name={data.name as string}
           label={data.label as string}
-          icon={<Scissors className="w-4 h-4" style={{ color: 'var(--color-components-canvas-icon-splitter)' }} />}
+          icon={
+            <ListTree
+              className="h-4 w-4"
+              style={{ color: 'var(--color-components-canvas-icon-splitter)' }}
+            />
+          }
         />
-        <LabelCard className="text-text-primary">{data.name as string}</LabelCard>
+        <LabelCard className="text-text-primary">
+          {data.name as string}
+        </LabelCard>
       </NodeWrapper>
     </ToolBar>
   )
 }
 
-export const SplitterNode = memo(InnerSplitterNode)
+export const ChunkerNode = memo(InnerChunkerNode)

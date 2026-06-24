@@ -184,8 +184,8 @@ export function PipelineAccordionOperators({
   const chunkerOperators = useMemo(() => {
     return [
       ...restrictSingleOperatorOnCanvas([
-        Operator.Splitter,
-        Operator.HierarchicalMerger,
+        Operator.TokenChunker,
+        Operator.TitleChunker,
       ]),
     ]
   }, [restrictSingleOperatorOnCanvas])

@@ -1,9 +1,8 @@
 import { Operator, type Operator as OperatorType } from '../constant'
-import { normalizeExtractorFormForStore, serializeExtractorFormForDsl } from '../form/extractor/utils'
 import {
-  normalizeHierarchicalMergerFormForStore,
-  serializeHierarchicalMergerFormForDsl,
-} from '../form/hierarchical-merger/utils'
+  normalizeExtractorFormForStore,
+  serializeExtractorFormForDsl,
+} from '../form/extractor/utils'
 import {
   normalizeInvokeFormForStore,
   serializeInvokeFormForDsl,
@@ -21,9 +20,13 @@ import {
   serializeRetrievalFormForDsl,
 } from '../form/retrieval/utils'
 import {
-  normalizeSplitterFormForStore,
-  serializeSplitterFormForDsl,
-} from '../form/splitter/utils'
+  normalizeTitleChunkerFormForStore,
+  serializeTitleChunkerFormForDsl,
+} from '../form/title-chunker/utils'
+import {
+  normalizeTokenChunkerFormForStore,
+  serializeTokenChunkerFormForDsl,
+} from '../form/token-chunker/utils'
 import {
   buildVariableAggregatorOutputs,
   normalizeVariableAggregatorGroups,
@@ -37,14 +40,18 @@ function normalizeIterationFormForStore(form: FormRecord = {}) {
   return {
     ...form,
     items_ref: normalizeVariableReference(form.items_ref as string | undefined),
-    output_items: normalizeIterationOutputItems(form.output_items || form.outputs),
+    output_items: normalizeIterationOutputItems(
+      form.output_items || form.outputs,
+    ),
     outputs:
       form.outputs && typeof form.outputs === 'object' ? form.outputs : {},
   }
 }
 
 function serializeIterationFormForDsl(form: FormRecord = {}) {
-  const outputItems = normalizeIterationOutputItems(form.output_items || form.outputs)
+  const outputItems = normalizeIterationOutputItems(
+    form.output_items || form.outputs,
+  )
   const rest = { ...form }
   delete rest.output_items
 
@@ -116,28 +123,32 @@ function normalizeListOperationsFormForStore(form: FormRecord = {}) {
   }
 }
 
-const storeNormalizers: Partial<Record<OperatorType, (form?: FormRecord) => FormRecord>> = {
+const storeNormalizers: Partial<
+  Record<OperatorType, (form?: FormRecord) => FormRecord>
+> = {
   [Operator.Retrieval]: normalizeRetrievalFormForStore,
   [Operator.Iteration]: normalizeIterationFormForStore,
   [Operator.Invoke]: normalizeInvokeFormForStore,
   [Operator.VariableAggregator]: normalizeVariableAggregatorFormForStore,
   [Operator.Parser]: normalizeParserFormForStore,
-  [Operator.Splitter]: normalizeSplitterFormForStore,
-  [Operator.HierarchicalMerger]: normalizeHierarchicalMergerFormForStore,
+  [Operator.TokenChunker]: normalizeTokenChunkerFormForStore,
+  [Operator.TitleChunker]: normalizeTitleChunkerFormForStore,
   [Operator.Extractor]: normalizeExtractorFormForStore,
   [Operator.Switch]: normalizeSwitchFormForStore,
   [Operator.StringTransform]: normalizeStringTransformFormForStore,
   [Operator.ListOperations]: normalizeListOperationsFormForStore,
 }
 
-const dslNormalizers: Partial<Record<OperatorType, (form?: FormRecord) => FormRecord>> = {
+const dslNormalizers: Partial<
+  Record<OperatorType, (form?: FormRecord) => FormRecord>
+> = {
   [Operator.Retrieval]: serializeRetrievalFormForDsl,
   [Operator.Iteration]: serializeIterationFormForDsl,
   [Operator.Invoke]: serializeInvokeFormForDsl,
   [Operator.VariableAggregator]: serializeVariableAggregatorFormForDsl,
   [Operator.Parser]: serializeParserFormForDsl,
-  [Operator.Splitter]: serializeSplitterFormForDsl,
-  [Operator.HierarchicalMerger]: serializeHierarchicalMergerFormForDsl,
+  [Operator.TokenChunker]: serializeTokenChunkerFormForDsl,
+  [Operator.TitleChunker]: serializeTitleChunkerFormForDsl,
   [Operator.Extractor]: serializeExtractorFormForDsl,
 }
 
@@ -145,14 +156,18 @@ export function normalizeOperatorFormForStore(
   operator: OperatorType,
   form?: FormRecord,
 ) {
-  return (storeNormalizers[operator] || ((value?: FormRecord) => value || {}))(form)
+  return (storeNormalizers[operator] || ((value?: FormRecord) => value || {}))(
+    form,
+  )
 }
 
 export function normalizeOperatorFormForDsl(
   operator: OperatorType,
   form?: FormRecord,
 ) {
-  return (dslNormalizers[operator] || ((value?: FormRecord) => value || {}))(form)
+  return (dslNormalizers[operator] || ((value?: FormRecord) => value || {}))(
+    form,
+  )
 }
 
 export function buildVariableAggregatorOutputsForStore(

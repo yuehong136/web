@@ -50,8 +50,8 @@ export const operatorDescriptions: Partial<Record<Operator, string>> = {
   File: 'Pipeline 的文件输入根节点。',
   Parser: '解析文件内容。',
   Tokenizer: '将文本切分为 token。',
-  Splitter: '将文本拆分为块。',
-  HierarchicalMerger: '对拆分后的内容分层聚合。',
+  TokenChunker: '按 token 长度、分隔符或单块模式切分文档。',
+  TitleChunker: '按标题层级或分组规则切分文档。',
   Extractor: '从文档块中抽取结构化信息。',
 }
 

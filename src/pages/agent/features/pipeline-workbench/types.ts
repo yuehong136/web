@@ -1,6 +1,6 @@
 import type { AgentTraceItem } from '@/types/agent'
 import type { BeginQuery } from '../../types'
-import { AgentRuntimeStatus } from '../runtime-workbench'
+import { AgentRuntimeStatus } from '../runtime-workbench/types'
 
 export { AgentRuntimeStatus as PipelineRuntimeStatus }
 

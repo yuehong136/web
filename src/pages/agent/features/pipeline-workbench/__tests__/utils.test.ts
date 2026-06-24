@@ -1,30 +1,44 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import type { AgentTraceItem } from '@/types/agent'
-import {
-  PipelineRuntimeStatus,
-  PipelineWorkbenchView,
-} from '../types'
+import { PipelineRuntimeStatus, PipelineWorkbenchView } from '../types'
 import {
   buildPipelineInputObject,
   buildPipelineSummary,
   buildPipelineResultPath,
   extractMessageIdFromChunk,
+  extractMessageIdFromPayload,
   findFirstPipelineRunFile,
   findLastFailureMessage,
   findPipelineEndOutput,
   isPipelineCompleted,
   isPipelineEndOutputEmpty,
+  resolvePipelineRunMessageId,
 } from '../utils'
 
-const baseTrace = (
-  partial: Partial<AgentTraceItem>,
-): AgentTraceItem => ({
+const encoder = new TextEncoder()
+
+const baseTrace = (partial: Partial<AgentTraceItem>): AgentTraceItem => ({
   component_id: '',
   component_name: '',
   status: 'unknown',
   ...partial,
 })
+
+const sseResponse = (chunks: string[]): Response => {
+  const stream = new ReadableStream<Uint8Array>({
+    start(controller) {
+      for (const chunk of chunks) {
+        controller.enqueue(encoder.encode(chunk))
+      }
+      controller.close()
+    },
+  })
+
+  return new Response(stream, {
+    headers: { 'Content-Type': 'text/event-stream' },
+  })
+}
 
 test('isPipelineCompleted is false until END node carries trace messages', () => {
   assert.equal(isPipelineCompleted(undefined), false)
@@ -124,6 +138,52 @@ test('extractMessageIdFromChunk reads message_id from first SSE-like chunk', () 
     'top-level',
   )
   assert.equal(extractMessageIdFromChunk('not-json'), undefined)
+})
+
+test('extractMessageIdFromPayload reads ragflow message_id envelopes', () => {
+  assert.equal(extractMessageIdFromPayload(undefined), undefined)
+  assert.equal(
+    extractMessageIdFromPayload({ retcode: 0, data: { message_id: 'm-1' } }),
+    'm-1',
+  )
+  assert.equal(
+    extractMessageIdFromPayload({ message_id: 'top-level' }),
+    'top-level',
+  )
+})
+
+test('resolvePipelineRunMessageId reads JSON dataflow start responses', async () => {
+  const response = new Response(
+    JSON.stringify({
+      retcode: 0,
+      retmsg: 'success',
+      data: { message_id: 'json-message-id' },
+    }),
+    {
+      headers: { 'Content-Type': 'application/json; charset=utf-8' },
+    },
+  )
+
+  assert.equal(await resolvePipelineRunMessageId(response), 'json-message-id')
+})
+
+test('resolvePipelineRunMessageId keeps SSE start response compatibility', async () => {
+  assert.equal(
+    await resolvePipelineRunMessageId(
+      sseResponse(['data: {"data":{"message_id":"sse-message-id"}}\n\n']),
+    ),
+    'sse-message-id',
+  )
+})
+
+test('resolvePipelineRunMessageId surfaces backend JSON errors', async () => {
+  const response = new Response(JSON.stringify({ retmsg: 'Pipeline 不存在' }), {
+    status: 404,
+    statusText: 'Not Found',
+    headers: { 'Content-Type': 'application/json' },
+  })
+
+  await assert.rejects(resolvePipelineRunMessageId(response), /Pipeline 不存在/)
 })
 
 test('buildPipelineInputObject keeps non-key fields and drops missing keys', () => {

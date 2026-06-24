@@ -1,6 +1,7 @@
 import get from 'lodash/get.js'
 import isEmpty from 'lodash/isEmpty.js'
 import { downloadJsonFile } from '@/lib/download'
+import { assertSSEResponse, readSSEStream } from '@/lib/streaming'
 import type { AgentTraceItem } from '@/types/agent'
 import {
   PipelineRuntimeStatus,
@@ -49,7 +50,9 @@ export function isPipelineCompleted(trace?: AgentTraceItem[]): boolean {
   return latest?.component_id === END_COMPONENT_ID && !isEmpty(message)
 }
 
-export function findLastFailureMessage(trace?: AgentTraceItem[]): string | undefined {
+export function findLastFailureMessage(
+  trace?: AgentTraceItem[],
+): string | undefined {
   if (!Array.isArray(trace)) {
     return undefined
   }
@@ -101,17 +104,72 @@ export function buildPipelineSummary(params: {
   }
 }
 
-export function extractMessageIdFromChunk(chunk: string | undefined): string | undefined {
+export function extractMessageIdFromPayload(
+  payload: unknown,
+): string | undefined {
+  if (!isRecord(payload)) {
+    return undefined
+  }
+
+  const directMessageId = payload.message_id
+  if (typeof directMessageId === 'string' && directMessageId) {
+    return directMessageId
+  }
+
+  const data = payload.data
+  if (!isRecord(data)) {
+    return undefined
+  }
+
+  const nestedMessageId = data.message_id
+  return typeof nestedMessageId === 'string' && nestedMessageId
+    ? nestedMessageId
+    : undefined
+}
+
+export function extractMessageIdFromChunk(
+  chunk: string | undefined,
+): string | undefined {
   if (!chunk) {
     return undefined
   }
 
   try {
-    const parsed = JSON.parse(chunk) as { data?: { message_id?: string }; message_id?: string }
-    return parsed?.data?.message_id || parsed?.message_id
+    return extractMessageIdFromPayload(JSON.parse(chunk) as unknown)
   } catch {
     return undefined
   }
+}
+
+export async function resolvePipelineRunMessageId(
+  response: Response,
+): Promise<string | undefined> {
+  await assertSSEResponse(response)
+
+  const contentType = response.headers.get('content-type')?.toLowerCase() || ''
+  if (contentType.includes('json')) {
+    try {
+      return extractMessageIdFromPayload((await response.json()) as unknown)
+    } catch {
+      return undefined
+    }
+  }
+
+  // Streaming agent runs emit message_id in an SSE frame. Keep draining the
+  // stream after the id is found so the server-side run is not cancelled.
+  return new Promise<string | undefined>((resolve, reject) => {
+    let found: string | undefined
+    readSSEStream(response, {
+      onEvent: (_event, rawData) => {
+        if (found) return
+        const candidate = extractMessageIdFromChunk(rawData)
+        if (candidate) {
+          found = candidate
+          resolve(candidate)
+        }
+      },
+    }).then(() => resolve(found), reject)
+  })
 }
 
 type PipelineInputItem = Record<string, unknown> & { key?: string }
@@ -128,7 +186,9 @@ export function buildPipelineInputObject(values: readonly PipelineInputItem[]) {
   }, {})
 }
 
-export function normalizePipelineRunFile(file: unknown): PipelineRunFile | undefined {
+export function normalizePipelineRunFile(
+  file: unknown,
+): PipelineRunFile | undefined {
   if (!isRecord(file)) {
     return undefined
   }

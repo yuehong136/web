@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { agentAPI } from '@/api/agent'
-import { assertSSEResponse, readSSEStream } from '@/lib/streaming'
 import { useCancelDataflow, useFetchAgent } from '@/hooks/use-agent-request'
 import { agentQueryKeys } from '@/hooks/use-agent-query'
 import { resolveLocalizedText } from '@/lib/agent'
@@ -25,12 +24,12 @@ import {
   buildPipelineInputObject,
   buildPipelineSummary,
   downloadJsonFile,
-  extractMessageIdFromChunk,
   findFirstPipelineRunFile,
   findLastFailureMessage,
   findPipelineEndOutput,
   isPipelineCompleted,
   isPipelineEndOutputEmpty,
+  resolvePipelineRunMessageId,
 } from '../utils'
 
 const PIPELINE_TRACE_INTERVAL = 2000
@@ -211,26 +210,7 @@ export function usePipelineWorkbench({
           },
         )
 
-        await assertSSEResponse(response)
-
-        // 拿到 message_id 即继续往下走；流在后台排空、不 cancel 连接——
-        // 运行由服务端继续，LOG 视图轮询 trace（与原实现一致，停止运行
-        // 另走 cancelDataflow）。不传 signal：catch 依赖 AbortError 进 STOPPED 态。
-        const resolvedMessageId = await new Promise<string | undefined>(
-          (resolve, reject) => {
-            let found: string | undefined
-            readSSEStream(response, {
-              onEvent: (_event, rawData) => {
-                if (found) return
-                const candidate = extractMessageIdFromChunk(rawData)
-                if (candidate) {
-                  found = candidate
-                  resolve(candidate)
-                }
-              },
-            }).then(() => resolve(found), reject)
-          },
-        )
+        const resolvedMessageId = await resolvePipelineRunMessageId(response)
 
         if (resolvedMessageId) {
           setMessageId(resolvedMessageId)

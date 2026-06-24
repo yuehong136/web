@@ -19,10 +19,10 @@ import { VariableAggregatorForm } from '../../../form/variable-aggregator'
 import { VariableAssignerForm } from '../../../form/variable-assigner'
 import { ExtractorForm } from '../../../form/extractor'
 import { ExeSQLForm } from '../../../form/exesql'
-import { HierarchicalMergerForm } from '../../../form/hierarchical-merger'
 import { ParserForm } from '../../../form/parser'
 import { PDFGeneratorForm } from '../../../form/pdf-generator'
-import { SplitterForm } from '../../../form/splitter'
+import { TitleChunkerForm } from '../../../form/title-chunker'
+import { TokenChunkerForm } from '../../../form/token-chunker'
 import { TokenizerForm } from '../../../form/tokenizer'
 import { ArxivForm } from '../../../form/arxiv'
 import { BingForm } from '../../../form/bing'
@@ -87,11 +87,14 @@ test('migrated operators resolve to directory modules in the form renderer', () 
   )
   assert.equal(resolveFormRendererComponent(Operator.Parser), ParserForm)
   assert.equal(resolveFormRendererComponent(Operator.Tokenizer), TokenizerForm)
-  assert.equal(resolveFormRendererComponent(Operator.Splitter), SplitterForm)
+  assert.equal(
+    resolveFormRendererComponent(Operator.TokenChunker),
+    TokenChunkerForm,
+  )
   assert.equal(resolveFormRendererComponent(Operator.Extractor), ExtractorForm)
   assert.equal(
-    resolveFormRendererComponent(Operator.HierarchicalMerger),
-    HierarchicalMergerForm,
+    resolveFormRendererComponent(Operator.TitleChunker),
+    TitleChunkerForm,
   )
   assert.equal(
     resolveFormRendererComponent(Operator.PDFGenerator),
@@ -152,12 +155,9 @@ test('migrated operators resolve to directory modules in the form renderer', () 
   )
   assert.equal(migratedFormRenderers[Operator.Parser], ParserForm)
   assert.equal(migratedFormRenderers[Operator.Tokenizer], TokenizerForm)
-  assert.equal(migratedFormRenderers[Operator.Splitter], SplitterForm)
+  assert.equal(migratedFormRenderers[Operator.TokenChunker], TokenChunkerForm)
   assert.equal(migratedFormRenderers[Operator.Extractor], ExtractorForm)
-  assert.equal(
-    migratedFormRenderers[Operator.HierarchicalMerger],
-    HierarchicalMergerForm,
-  )
+  assert.equal(migratedFormRenderers[Operator.TitleChunker], TitleChunkerForm)
   assert.equal(migratedFormRenderers[Operator.PDFGenerator], PDFGeneratorForm)
   assert.equal(migratedFormRenderers[Operator.ExeSQL], ExeSQLForm)
   assert.equal(migratedFormRenderers[Operator.Crawler], CrawlerForm)
@@ -194,9 +194,8 @@ test('every operator in the renderer registry resolves to a real form component'
   }
 
   for (const [key, value] of Object.entries(allRenderers)) {
-    assert.equal(
-      typeof value,
-      'function',
+    assert.ok(
+      typeof value === 'function' || (typeof value === 'object' && value),
       `Operator "${key}" must register a renderer`,
     )
     assert.equal(

@@ -76,7 +76,7 @@ i18n
   .init({
     resources: createI18nResources(),
     fallbackLng: DEFAULT_PRODUCT_LANGUAGE, // 默认语言
-    debug: import.meta.env.DEV, // 开发环境开启调试
+    debug: Boolean(import.meta.env?.DEV), // 开发环境开启调试
 
     interpolation: {
       escapeValue: false, // React 已经处理 XSS

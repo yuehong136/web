@@ -72,8 +72,8 @@ export const Operator = {
   File: 'File',
   Parser: 'Parser',
   Tokenizer: 'Tokenizer',
-  Splitter: 'Splitter',
-  HierarchicalMerger: 'HierarchicalMerger',
+  TokenChunker: 'TokenChunker',
+  TitleChunker: 'TitleChunker',
   Extractor: 'Extractor',
 } as const
 
@@ -148,8 +148,8 @@ export const NodeMap: Record<string, string> = {
   [Operator.File]: 'fileNode',
   [Operator.Parser]: 'parserNode',
   [Operator.Tokenizer]: 'tokenizerNode',
-  [Operator.Splitter]: 'splitterNode',
-  [Operator.HierarchicalMerger]: 'splitterNode',
+  [Operator.TokenChunker]: 'chunkerNode',
+  [Operator.TitleChunker]: 'chunkerNode',
   [Operator.Extractor]: 'contextNode',
 }
 
@@ -1072,31 +1072,6 @@ export const initialTokenizerValues = {
   outputs: {},
 }
 
-export const initialSplitterValues = {
-  outputs: {
-    chunks: { type: 'Array<Object>', value: [] },
-  },
-  chunk_token_size: 512,
-  overlapped_percent: 0,
-  delimiters: [{ value: '\n' }],
-  enable_children: false,
-  children_delimiters: [] as Array<{ value: string }>,
-  image_table_context_window: 0,
-}
-
-export const initialHierarchicalMergerValues = {
-  outputs: {
-    chunks: { type: 'Array<Object>', value: [] },
-  },
-  hierarchy: '3',
-  levels: [
-    { expressions: [{ expression: '^#[^#]' }] },
-    { expressions: [{ expression: '^##[^#]' }] },
-    { expressions: [{ expression: '^###[^#]' }] },
-    { expressions: [{ expression: '^####[^#]' }] },
-  ],
-}
-
 export const initialExtractorValues = {
   ...initialLlmBaseValues,
   field_name: 'summary',
@@ -1175,8 +1150,8 @@ export const RestrictedUpstreamMap: Record<string, Operator[]> = {
   [Operator.File]: [Operator.Begin],
   [Operator.Parser]: [Operator.Begin],
   [Operator.Tokenizer]: [Operator.Begin],
-  [Operator.Splitter]: [Operator.Begin],
-  [Operator.HierarchicalMerger]: [Operator.Begin],
+  [Operator.TokenChunker]: [Operator.Begin],
+  [Operator.TitleChunker]: [Operator.Begin],
   [Operator.Extractor]: [Operator.Begin],
 }
 
@@ -1193,8 +1168,8 @@ export const NoDebugOperatorsList = [
   Operator.File,
   Operator.Parser,
   Operator.Tokenizer,
-  Operator.Splitter,
-  Operator.HierarchicalMerger,
+  Operator.TokenChunker,
+  Operator.TitleChunker,
   Operator.Extractor,
   Operator.Tool,
 ]
@@ -1204,8 +1179,8 @@ export const NoCopyOperatorsList = [
   Operator.File,
   Operator.Parser,
   Operator.Tokenizer,
-  Operator.Splitter,
-  Operator.HierarchicalMerger,
+  Operator.TokenChunker,
+  Operator.TitleChunker,
   Operator.Extractor,
 ]
 
@@ -1444,8 +1419,8 @@ export const DataflowOperator = {
   Note: 'Note',
   Parser: 'Parser',
   Tokenizer: 'Tokenizer',
-  Splitter: 'Splitter',
-  HierarchicalMerger: 'HierarchicalMerger',
+  TokenChunker: 'TokenChunker',
+  TitleChunker: 'TitleChunker',
   Extractor: 'Extractor',
 } as const
 

@@ -30,6 +30,11 @@ import {
   buildDslOperatorParams,
   mergeOperatorFormWithDefaults,
 } from './defaults'
+import { inferCanvasTypeFromGraph } from './canvas-type'
+import {
+  normalizeLegacyChunkerDsl,
+  normalizeLegacyOperatorName,
+} from './legacy-chunker-migration'
 import {
   getOperatorDefinition,
   isDslOperator,
@@ -51,7 +56,8 @@ const AGENT_CHILD_X_OFFSET = 82
 const AGENT_CHILD_X_GAP = 262
 const TOOL_CHILD_X_OFFSET = -82
 const createHumanId =
-  (humanIdModule as { default?: () => string; humanId?: () => string }).default ||
+  (humanIdModule as { default?: () => string; humanId?: () => string })
+    .default ||
   (humanIdModule as { humanId?: () => string }).humanId ||
   (() => crypto.randomUUID())
 
@@ -62,6 +68,9 @@ type AgentToolEntry = {
   name?: string
   params?: FormRecord
 }
+
+export { normalizeLegacyChunkerDsl } from './legacy-chunker-migration'
+export { inferCanvasTypeFromGraph } from './canvas-type'
 
 function normalizeEdge(edge: Edge): Edge {
   return {
@@ -93,9 +102,7 @@ function toStringArray(value: unknown): string[] {
 function buildGridPosition(index: number) {
   return {
     x: DEFAULT_GRAPH_POSITION.x + (index % 4) * COMPONENT_GRID_X_GAP,
-    y:
-      DEFAULT_GRAPH_POSITION.y +
-      Math.floor(index / 4) * COMPONENT_GRID_Y_GAP,
+    y: DEFAULT_GRAPH_POSITION.y + Math.floor(index / 4) * COMPONENT_GRID_Y_GAP,
   }
 }
 
@@ -294,10 +301,7 @@ function reconstructGraphFromComponents(
         buildGraphNode(Operator.Agent, {
           id: tool.id || buildNodeId(Operator.Agent),
           name: tool.name,
-          form: normalizeComponentFormForGraph(
-            Operator.Agent,
-            tool.params,
-          ),
+          form: normalizeComponentFormForGraph(Operator.Agent, tool.params),
           parentId: parentNode.parentId,
           position: {
             x:
@@ -414,8 +418,7 @@ function reconstructGraphFromComponents(
 
         items.forEach((item, index) => {
           const itemWithUuid = item as { uuid?: string; to?: string[] }
-          const sourceHandle =
-            itemWithUuid.uuid || `cat-${index}`
+          const sourceHandle = itemWithUuid.uuid || `cat-${index}`
 
           toStringArray(itemWithUuid.to)
             .filter((target) => nodeMap.has(target))
@@ -445,17 +448,16 @@ export function deserializeDslToGraph(
   dsl: Partial<AgentDsl> | undefined,
   options: DeserializeDslOptions = {},
 ): ReconstructedGraph {
-  const graph = dsl?.graph
+  const normalizedDsl = normalizeLegacyChunkerDsl(dsl)
+  const graph = normalizedDsl?.graph
 
   if (graph?.nodes?.length || graph?.edges?.length) {
     const nodes = normalizeIterationNodes(
       (graph.nodes || []).map((node) => {
-        const component = dsl?.components?.[node.id]
-        const operator = (
-          node.data?.label ||
+        const component = normalizedDsl?.components?.[node.id]
+        const operator = (node.data?.label ||
           component?.obj?.component_name ||
-          Operator.Note
-        ) as OperatorType
+          Operator.Note) as OperatorType
         const definition = getOperatorDefinition(operator)
         // Legacy DSLs persisted iteration containers under xyflow's built-in
         // `group` type, which inherits a default 150px width that conflicts
@@ -495,14 +497,19 @@ export function deserializeDslToGraph(
   }
 
   const canvasType = options.canvasType || inferCanvasTypeFromGraph(undefined)
-  if (!dsl?.components || Object.keys(dsl.components).length === 0) {
+  if (
+    !normalizedDsl?.components ||
+    Object.keys(normalizedDsl.components).length === 0
+  ) {
     return {
       graph: buildInitialGraph(canvasType),
       isReconstructed: true,
     }
   }
 
-  const reconstructed = reconstructGraphFromComponents(dsl?.components || {})
+  const reconstructed = reconstructGraphFromComponents(
+    normalizedDsl?.components || {},
+  )
 
   return {
     graph: {
@@ -541,8 +548,7 @@ export function buildDslComponentsByGraph(
         let isNotExceptionGoto = true
 
         if (isBuildDownstream && node?.data.label === Operator.Agent) {
-          isNotExceptionGoto =
-            edge.sourceHandle !== NodeHandleId.AgentException
+          isNotExceptionGoto = edge.sourceHandle !== NodeHandleId.AgentException
           isNotUpstreamTool = targetNode?.data.label !== Operator.Tool
           isNotUpstreamAgent = !(
             targetNode?.data.label === Operator.Agent &&
@@ -635,8 +641,7 @@ export function buildDslComponentsByGraph(
           to: edges
             .filter(
               (edge) =>
-                edge.source === nodeId &&
-                edge.sourceHandle === sourceHandle,
+                edge.source === nodeId && edge.sourceHandle === sourceHandle,
             )
             .map((edge) => edge.target),
         }
@@ -666,12 +671,14 @@ export function buildDslComponentsByGraph(
     )
 
     const conditions = Array.isArray(form.conditions)
-      ? (form.conditions as Array<Record<string, unknown>>).map((condition) => ({
-          ...condition,
-          to: toStringArray(condition.to).filter((target) =>
-            validNodeIds.has(target),
-          ),
-        }))
+      ? (form.conditions as Array<Record<string, unknown>>).map(
+          (condition) => ({
+            ...condition,
+            to: toStringArray(condition.to).filter((target) =>
+              validNodeIds.has(target),
+            ),
+          }),
+        )
       : []
 
     return {
@@ -683,48 +690,51 @@ export function buildDslComponentsByGraph(
     }
   }
 
-  return nodes.reduce<NonNullable<AgentDsl['components']>>((components, node) => {
-    const operator = node.data.label as OperatorType
-    if (
-      !getOperatorDefinition(operator) ||
-      !isDslOperator(operator) ||
-      isBottomSubAgent(edges, node.id)
-    ) {
+  return nodes.reduce<NonNullable<AgentDsl['components']>>(
+    (components, node) => {
+      const operator = normalizeLegacyOperatorName(node.data.label)
+      if (
+        !getOperatorDefinition(operator) ||
+        !isDslOperator(operator) ||
+        isBottomSubAgent(edges, node.id)
+      ) {
+        return components
+      }
+
+      let form = node.data.form as FormRecord | undefined
+      switch (operator) {
+        case Operator.Agent:
+          form = buildAgentFormForDsl(node.id)
+          break
+        case Operator.Categorize:
+          form = buildCategorizeFormForDsl(node.id)
+          break
+        case Operator.Switch:
+          form = buildSwitchFormForDsl(node.id)
+          break
+        default:
+          break
+      }
+
+      const params = buildDslOperatorParams(operator, form)
+      if (operator === Operator.Categorize) {
+        delete (params as FormRecord).items
+      }
+
+      components[node.id] = {
+        obj: {
+          component_name: operator,
+          params,
+        },
+        downstream: buildComponentDownstreamOrUpstream(node.id, true),
+        upstream: buildComponentDownstreamOrUpstream(node.id, false),
+        parent_id: node.parentId,
+      } satisfies AgentOperator
+
       return components
-    }
-
-    let form = node.data.form as FormRecord | undefined
-    switch (operator) {
-      case Operator.Agent:
-        form = buildAgentFormForDsl(node.id)
-        break
-      case Operator.Categorize:
-        form = buildCategorizeFormForDsl(node.id)
-        break
-      case Operator.Switch:
-        form = buildSwitchFormForDsl(node.id)
-        break
-      default:
-        break
-    }
-
-    const params = buildDslOperatorParams(operator, form)
-    if (operator === Operator.Categorize) {
-      delete (params as FormRecord).items
-    }
-
-    components[node.id] = {
-      obj: {
-        component_name: operator,
-        params,
-      },
-      downstream: buildComponentDownstreamOrUpstream(node.id, true),
-      upstream: buildComponentDownstreamOrUpstream(node.id, false),
-      parent_id: node.parentId,
-    } satisfies AgentOperator
-
-    return components
-  }, {})
+    },
+    {},
+  )
 }
 
 function isSystemGlobalKey(key: string) {
@@ -847,18 +857,4 @@ export function buildInitialDsl(kind: AgentCanvasType): AgentDsl {
       path: [],
     },
   })
-}
-
-export function inferCanvasTypeFromGraph(graph: AgentGraph | undefined): AgentCanvasType {
-  const labels = new Set((graph?.nodes || []).map((node) => node.data.label))
-  if (
-    labels.has(Operator.File) ||
-    labels.has(Operator.Parser) ||
-    labels.has(Operator.Tokenizer) ||
-    labels.has(Operator.Splitter) ||
-    labels.has(Operator.Extractor)
-  ) {
-    return CanvasType.PIPELINE
-  }
-  return CanvasType.AGENT
 }

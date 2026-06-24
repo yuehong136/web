@@ -9,13 +9,13 @@ import {
   serializeParserSetupsForDsl,
 } from '../parser/utils'
 import {
-  normalizeSplitterFormForStore,
-  serializeSplitterFormForDsl,
-} from '../splitter/utils'
+  normalizeTitleChunkerFormForStore,
+  serializeTitleChunkerFormForDsl,
+} from '../title-chunker/utils'
 import {
-  normalizeHierarchicalMergerFormForStore,
-  serializeHierarchicalMergerFormForDsl,
-} from '../hierarchical-merger/utils'
+  normalizeTokenChunkerFormForStore,
+  serializeTokenChunkerFormForDsl,
+} from '../token-chunker/utils'
 import {
   normalizeInvokeFormForStore,
   serializeInvokeFormForDsl,
@@ -168,58 +168,102 @@ test('parser serializer injects suffix and preserves pdf advanced options for ke
   assert.equal(serialized.pdf?.mineru_lang, 'Japanese')
 })
 
-test('splitter bridge converts delimiter cards into backend string arrays', () => {
-  const normalized = normalizeSplitterFormForStore({
+test('token chunker bridge converts delimiter cards into backend string arrays', () => {
+  const normalized = normalizeTokenChunkerFormForStore({
     delimiters: ['\n', '---'],
     children_delimiters: ['##'],
     image_table_context_window: 6,
   })
 
+  assert.equal(normalized.delimiter_mode, 'delimiter')
   assert.deepEqual(normalized.delimiters, [{ value: '\n' }, { value: '---' }])
   assert.equal(normalized.enable_children, true)
   assert.equal(normalized.image_table_context_window, 6)
   assert.equal('table_context_size' in normalized, false)
   assert.equal('image_context_size' in normalized, false)
 
-  const serialized = serializeSplitterFormForDsl(normalized)
+  const serialized = serializeTokenChunkerFormForDsl(normalized)
 
   assert.deepEqual(serialized.delimiters, ['\n', '---'])
   assert.deepEqual(serialized.children_delimiters, ['##'])
   assert.equal('enable_children' in serialized, false)
-  assert.equal(serialized.image_table_context_window, 6)
-  assert.equal('table_context_size' in serialized, false)
-  assert.equal('image_context_size' in serialized, false)
+  assert.equal('image_table_context_window' in serialized, false)
+  assert.equal(serialized.table_context_size, 6)
+  assert.equal(serialized.image_context_size, 6)
 })
 
-test('splitter normalizer merges legacy split table/image fields into single window', () => {
-  const normalized = normalizeSplitterFormForStore({
+test('token chunker token-size mode clears delimiter-only backend fields', () => {
+  const normalized = normalizeTokenChunkerFormForStore({
+    delimiter_mode: 'token_size',
     delimiters: ['\n'],
     table_context_size: 10,
     image_context_size: 4,
+    overlapped_percent: 0.2,
   })
 
+  assert.equal(normalized.delimiter_mode, 'token_size')
+  assert.equal(normalized.overlapped_percent, 20)
   assert.equal(normalized.image_table_context_window, 10)
-  assert.equal('table_context_size' in normalized, false)
-  assert.equal('image_context_size' in normalized, false)
+
+  const serialized = serializeTokenChunkerFormForDsl(normalized)
+  assert.deepEqual(serialized.delimiters, [])
+  assert.deepEqual(serialized.children_delimiters, [])
+  assert.equal(serialized.overlapped_percent, 0.2)
+  assert.equal(serialized.table_context_size, 10)
+  assert.equal(serialized.image_context_size, 10)
 })
 
-test('hierarchical merger bridge converts regex cards into nested level arrays', () => {
-  const normalized = normalizeHierarchicalMergerFormForStore({
+test('token chunker one mode disables overlap and child delimiters', () => {
+  const serialized = serializeTokenChunkerFormForDsl({
+    delimiter_mode: 'one',
+    overlapped_percent: 20,
+    enable_children: true,
+    children_delimiters: [{ value: '##' }],
+  })
+
+  assert.equal(serialized.overlapped_percent, 0)
+  assert.deepEqual(serialized.delimiters, [])
+  assert.deepEqual(serialized.children_delimiters, [])
+})
+
+test('title chunker bridge converts legacy levels into active rule arrays', () => {
+  const normalized = normalizeTitleChunkerFormForStore({
     hierarchy: 2,
     levels: [['^#[^#]'], ['^##[^#]', '^###[^#]']],
   })
 
-  assert.deepEqual(normalized.levels, [
-    { expressions: [{ expression: '^#[^#]' }] },
+  assert.equal(normalized.method, 'hierarchy')
+  assert.equal(normalized.hierarchyHierarchy, '2')
+  assert.deepEqual(normalized.hierarchyRules, [
+    { levels: [{ expression: '^#[^#]' }] },
     {
-      expressions: [{ expression: '^##[^#]' }, { expression: '^###[^#]' }],
+      levels: [{ expression: '^##[^#]' }, { expression: '^###[^#]' }],
     },
   ])
 
-  const serialized = serializeHierarchicalMergerFormForDsl(normalized)
+  const serialized = serializeTitleChunkerFormForDsl(normalized)
 
-  assert.equal(serialized.hierarchy, '2')
+  assert.equal(serialized.method, 'hierarchy')
+  assert.equal(serialized.hierarchy, 2)
+  assert.equal(serialized.include_heading_content, false)
   assert.deepEqual(serialized.levels, [['^#[^#]'], ['^##[^#]', '^###[^#]']])
+})
+
+test('title chunker serializes group mode from group-specific rules', () => {
+  const serialized = serializeTitleChunkerFormForDsl({
+    method: 'group',
+    hierarchyGroup: '0',
+    hierarchyRules: [{ levels: [{ expression: '^#[^#]' }] }],
+    groupRules: [{ levels: [{ expression: '^##[^#]' }] }],
+    include_heading_content: true,
+    root_chunk_as_heading: true,
+  })
+
+  assert.equal(serialized.method, 'group')
+  assert.equal(serialized.hierarchy, 0)
+  assert.equal(serialized.include_heading_content, true)
+  assert.deepEqual(serialized.levels, [['^##[^#]']])
+  assert.equal('root_chunk_as_heading' in serialized, false)
 })
 
 test('invoke normalizer keeps monaco headers and variable refs in backend shape', () => {

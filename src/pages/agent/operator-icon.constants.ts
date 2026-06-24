@@ -97,7 +97,7 @@ export const LucideIconMap: Record<string, typeof Bot> = {
   [Operator.File]: FileText,
   [Operator.Parser]: FileCode,
   [Operator.Tokenizer]: Type,
-  [Operator.Splitter]: ListTree,
-  [Operator.HierarchicalMerger]: Layers,
+  [Operator.TokenChunker]: ListTree,
+  [Operator.TitleChunker]: Layers,
   [Operator.Extractor]: Filter,
 }

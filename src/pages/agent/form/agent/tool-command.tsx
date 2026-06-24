@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/command'
 import OperatorIcon from '../../operator-icon'
 import { Operator } from '../../constant'
+import { getOperatorDefinition } from '../../operators/registry'
 
 const toolMenus = [
   {
@@ -70,11 +71,13 @@ export function BuiltInToolCommand({
           >
             {group.list.map((operator) => {
               const isRetrieval = operator === Operator.Retrieval
+              const fallbackName =
+                getOperatorDefinition(operator)?.defaultName || operator
 
               return (
                 <CommandItem
                   key={operator}
-                  className="flex items-center gap-space-sm"
+                  className="gap-space-sm flex items-center"
                   onSelect={() => onSelect(operator)}
                 >
                   {isRetrieval ? (
@@ -88,7 +91,7 @@ export function BuiltInToolCommand({
                     />
                   )}
                   <OperatorIcon name={operator} />
-                  <span>{t(`flow.${lowerFirst(operator)}`, operator)}</span>
+                  <span>{t(`flow.${lowerFirst(operator)}`, fallbackName)}</span>
                 </CommandItem>
               )
             })}
@@ -131,7 +134,7 @@ export function McpToolCommand({
           return (
             <CommandItem
               key={server.id}
-              className="flex items-center gap-space-sm"
+              className="gap-space-sm flex items-center"
               onSelect={() => {
                 const nextIds = checked
                   ? selectedMcpIdList.filter((id) => id !== server.id)
@@ -139,10 +142,7 @@ export function McpToolCommand({
                 onChange(nextIds)
               }}
             >
-              <Checkbox
-                checked={checked}
-                className="pointer-events-none"
-              />
+              <Checkbox checked={checked} className="pointer-events-none" />
               <div className="min-w-0 flex-1">
                 <div className="truncate text-sm text-text-primary">
                   {server.name}

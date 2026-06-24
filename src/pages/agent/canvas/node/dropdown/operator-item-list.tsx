@@ -7,6 +7,7 @@ import {
 import { Operator } from '@/pages/agent/constant'
 import { AgentInstanceContext, HandleContext } from '@/pages/agent/context'
 import OperatorIcon from '@/pages/agent/operator-icon'
+import { getOperatorDefinition } from '@/pages/agent/operators/registry'
 import { Position } from '@xyflow/react'
 import lowerFirst from 'lodash/lowerFirst.js'
 import { useContext } from 'react'
@@ -57,14 +58,18 @@ export function OperatorItemList({
     }
 
   const renderOperatorItem = (operator: Operator) => {
+    const operatorDefinition = getOperatorDefinition(operator)
+    const fallbackName = operatorDefinition?.defaultName || operator
+    const fallbackDescription =
+      operatorDefinition?.description || `${fallbackName} node`
     const content = (
       <div
-        className="flex cursor-pointer items-center justify-start gap-space-sm rounded-radius-sm px-space-sm py-space-xs transition-colors hover:bg-components-dropdown-item-bg-hover"
+        className="gap-space-sm rounded-radius-sm px-space-sm py-space-xs flex cursor-pointer items-center justify-start transition-colors hover:bg-components-dropdown-item-bg-hover"
         onClick={handleClick(operator)}
       >
         <OperatorIcon name={operator} />
         <span className="text-text-primary">
-          {t(`flow.${lowerFirst(operator)}`, operator)}
+          {t(`flow.${lowerFirst(operator)}`, fallbackName)}
         </span>
       </div>
     )
@@ -76,7 +81,12 @@ export function OperatorItemList({
             <li>{content}</li>
           </TooltipTrigger>
           <TooltipContent side="right" sideOffset={24}>
-            <p>{t(`flow.${lowerFirst(operator)}Description`, `${operator} node`)}</p>
+            <p>
+              {t(
+                `flow.${lowerFirst(operator)}Description`,
+                fallbackDescription,
+              )}
+            </p>
           </TooltipContent>
         </TooltipRoot>
       </TooltipProvider>
@@ -84,7 +94,7 @@ export function OperatorItemList({
   }
 
   return (
-    <ul className="space-y-space-xs text-text-primary font-normal">
+    <ul className="space-y-space-xs font-normal text-text-primary">
       {operators.map(renderOperatorItem)}
     </ul>
   )

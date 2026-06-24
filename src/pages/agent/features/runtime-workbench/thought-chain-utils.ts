@@ -66,8 +66,8 @@ const DATA_COMPONENT_TYPES = new Set<string>([
   Operator.File,
   Operator.Parser,
   Operator.Tokenizer,
-  Operator.Splitter,
-  Operator.HierarchicalMerger,
+  Operator.TokenChunker,
+  Operator.TitleChunker,
   Operator.Extractor,
 ])
 
