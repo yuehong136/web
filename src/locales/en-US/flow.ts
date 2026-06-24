@@ -808,7 +808,7 @@ export default {
       viewModeLabel: 'Result view',
       chunksTab: 'Chunk review',
       jsonTab: 'Compact JSON',
-      filteredCount: 'Showing {{count}} / {{total}} chunks',
+      filteredCount: 'Showing {{shown}} / {{total}} chunks',
       noChunksTitle: 'No matching chunks',
       noChunksDescription: 'Adjust the search keyword or type filter.',
       detailTitle: 'Chunk details',
@@ -817,7 +817,7 @@ export default {
       compactJsonHint:
         'Vector arrays are collapsed into dimension summaries on this page. Download JSON keeps the full raw output.',
       chunkOrder: '#{{order}}',
-      textLength: '{{count}} chars',
+      textLength: '{{value}} chars',
       emptyChunkText:
         'This chunk has no text content and may contain only image, table, or structured fields.',
       pagesBadge: 'Pages {{pages}}',

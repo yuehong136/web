@@ -2,6 +2,12 @@ import { FormFieldType, type FormFieldConfig, DataSourceKey } from '../types'
 import { getS3FormFields } from './s3'
 import { getConfluenceFormFields } from './confluence'
 import { getBitbucketFormFields } from './bitbucket'
+import {
+  getGoogleCloudStorageFormFields,
+  getOciStorageFormFields,
+  getR2FormFields,
+} from './cloud-storage'
+import { getMySQLFormFields, getPostgreSQLFormFields } from './rdbms'
 
 /**
  * 基础表单字段（所有数据源共用）
@@ -40,84 +46,9 @@ export const getDataSourceFormFields = (
   t: (key: string) => string,
 ): Record<DataSourceKey, FormFieldConfig[]> => ({
   [DataSourceKey.S3]: getS3FormFields(t),
-  [DataSourceKey.R2]: [
-    {
-      label: 'R2 Account ID',
-      name: 'config.credentials.account_id',
-      type: FormFieldType.Text,
-      required: true,
-    },
-    {
-      label: 'R2 Access Key ID',
-      name: 'config.credentials.r2_access_key_id',
-      type: FormFieldType.Text,
-      required: true,
-    },
-    {
-      label: 'R2 Secret Access Key',
-      name: 'config.credentials.r2_secret_access_key',
-      type: FormFieldType.Password,
-      required: true,
-    },
-    {
-      label: 'Bucket Name',
-      name: 'config.bucket_name',
-      type: FormFieldType.Text,
-      required: true,
-    },
-  ],
-  [DataSourceKey.GOOGLE_CLOUD_STORAGE]: [
-    {
-      label: 'GCS Access Key ID',
-      name: 'config.credentials.access_key_id',
-      type: FormFieldType.Text,
-      required: true,
-    },
-    {
-      label: 'GCS Secret Access Key',
-      name: 'config.credentials.secret_access_key',
-      type: FormFieldType.Password,
-      required: true,
-    },
-    {
-      label: 'Bucket Name',
-      name: 'config.bucket_name',
-      type: FormFieldType.Text,
-      required: true,
-    },
-  ],
-  [DataSourceKey.OCI_STORAGE]: [
-    {
-      label: 'OCI Namespace',
-      name: 'config.credentials.namespace',
-      type: FormFieldType.Text,
-      required: true,
-    },
-    {
-      label: 'OCI Region',
-      name: 'config.credentials.region',
-      type: FormFieldType.Text,
-      required: true,
-    },
-    {
-      label: 'OCI Access Key ID',
-      name: 'config.credentials.access_key_id',
-      type: FormFieldType.Text,
-      required: true,
-    },
-    {
-      label: 'OCI Secret Access Key',
-      name: 'config.credentials.secret_access_key',
-      type: FormFieldType.Password,
-      required: true,
-    },
-    {
-      label: 'Bucket Name',
-      name: 'config.bucket_name',
-      type: FormFieldType.Text,
-      required: true,
-    },
-  ],
+  [DataSourceKey.R2]: getR2FormFields(),
+  [DataSourceKey.GOOGLE_CLOUD_STORAGE]: getGoogleCloudStorageFormFields(),
+  [DataSourceKey.OCI_STORAGE]: getOciStorageFormFields(),
   [DataSourceKey.DROPBOX]: [
     {
       label: 'Access Token',
@@ -416,154 +347,8 @@ export const getDataSourceFormFields = (
     },
   ],
   [DataSourceKey.BITBUCKET]: getBitbucketFormFields(t),
-  [DataSourceKey.MYSQL]: [
-    {
-      label: t('datasource.fieldHost'),
-      name: 'config.host',
-      type: FormFieldType.Text,
-      required: true,
-      placeholder: 'localhost',
-    },
-    {
-      label: t('datasource.fieldPort'),
-      name: 'config.port',
-      type: FormFieldType.Number,
-      required: true,
-      placeholder: '3306',
-    },
-    {
-      label: t('datasource.fieldDatabase'),
-      name: 'config.database',
-      type: FormFieldType.Text,
-      required: true,
-    },
-    {
-      label: t('datasource.fieldUsername'),
-      name: 'config.credentials.username',
-      type: FormFieldType.Text,
-      required: true,
-    },
-    {
-      label: t('datasource.fieldPassword'),
-      name: 'config.credentials.password',
-      type: FormFieldType.Password,
-      required: true,
-    },
-    {
-      label: t('datasource.fieldSqlQuery'),
-      name: 'config.query',
-      type: FormFieldType.Textarea,
-      required: false,
-      placeholder: t('datasource.rdbmsQueryPlaceholder'),
-      tooltip: t('datasource.mysqlQueryTip'),
-    },
-    {
-      label: t('datasource.fieldContentColumns'),
-      name: 'config.content_columns',
-      type: FormFieldType.Text,
-      required: false,
-      placeholder: 'title,description,content',
-      tooltip: t('datasource.mysqlContentColumnsTip'),
-    },
-    {
-      label: t('datasource.fieldMetadataColumns'),
-      name: 'config.metadata_columns',
-      type: FormFieldType.Text,
-      required: false,
-      placeholder: 'id,category,status',
-      tooltip: t('datasource.mysqlMetadataColumnsTip'),
-    },
-    {
-      label: t('datasource.fieldIdColumn'),
-      name: 'config.id_column',
-      type: FormFieldType.Text,
-      required: false,
-      placeholder: 'id',
-      tooltip: t('datasource.mysqlIdColumnTip'),
-    },
-    {
-      label: t('datasource.fieldTimestampColumn'),
-      name: 'config.timestamp_column',
-      type: FormFieldType.Text,
-      required: false,
-      placeholder: 'updated_at',
-      tooltip: t('datasource.mysqlTimestampColumnTip'),
-    },
-  ],
-  [DataSourceKey.POSTGRESQL]: [
-    {
-      label: t('datasource.fieldHost'),
-      name: 'config.host',
-      type: FormFieldType.Text,
-      required: true,
-      placeholder: 'localhost',
-    },
-    {
-      label: t('datasource.fieldPort'),
-      name: 'config.port',
-      type: FormFieldType.Number,
-      required: true,
-      placeholder: '5432',
-    },
-    {
-      label: t('datasource.fieldDatabase'),
-      name: 'config.database',
-      type: FormFieldType.Text,
-      required: true,
-    },
-    {
-      label: t('datasource.fieldUsername'),
-      name: 'config.credentials.username',
-      type: FormFieldType.Text,
-      required: true,
-    },
-    {
-      label: t('datasource.fieldPassword'),
-      name: 'config.credentials.password',
-      type: FormFieldType.Password,
-      required: true,
-    },
-    {
-      label: t('datasource.fieldSqlQuery'),
-      name: 'config.query',
-      type: FormFieldType.Textarea,
-      required: false,
-      placeholder: t('datasource.rdbmsQueryPlaceholder'),
-      tooltip: t('datasource.postgresqlQueryTip'),
-    },
-    {
-      label: t('datasource.fieldContentColumns'),
-      name: 'config.content_columns',
-      type: FormFieldType.Text,
-      required: false,
-      placeholder: 'title,description,content',
-      tooltip: t('datasource.postgresqlContentColumnsTip'),
-    },
-    {
-      label: t('datasource.fieldMetadataColumns'),
-      name: 'config.metadata_columns',
-      type: FormFieldType.Text,
-      required: false,
-      placeholder: 'id,category,status',
-      tooltip: t('datasource.postgresqlMetadataColumnsTip'),
-    },
-    {
-      label: t('datasource.fieldIdColumn'),
-      name: 'config.id_column',
-      type: FormFieldType.Text,
-      required: false,
-      placeholder: 'id',
-      tooltip: t('datasource.postgresqlIdColumnTip'),
-    },
-    {
-      label: t('datasource.fieldTimestampColumn'),
-      name: 'config.timestamp_column',
-      type: FormFieldType.Text,
-      required: false,
-      placeholder: 'updated_at',
-      tooltip: t('datasource.postgresqlTimestampColumnTip'),
-    },
-  ],
+  [DataSourceKey.MYSQL]: getMySQLFormFields(t),
+  [DataSourceKey.POSTGRESQL]: getPostgreSQLFormFields(t),
   [DataSourceKey.GOOGLE_DRIVE]: [
     {
       label: 'Primary Admin Email',

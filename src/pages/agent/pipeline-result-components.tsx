@@ -178,7 +178,7 @@ export function ChunkCard({
         </div>
         <span className="text-xs text-text-tertiary">
           {t('flow.pipelineResult.textLength', {
-            count: formatNumber.format(text.length),
+            value: formatNumber.format(text.length),
           })}
         </span>
       </div>

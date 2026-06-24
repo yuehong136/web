@@ -340,7 +340,7 @@ export default function PipelineResultPage() {
                     </div>
                     <p className="shrink-0 text-sm font-medium text-text-secondary">
                       {t('flow.pipelineResult.filteredCount', {
-                        count: formatNumber.format(filteredChunks.length),
+                        shown: formatNumber.format(filteredChunks.length),
                         total: formatNumber.format(chunks.length),
                       })}
                     </p>
