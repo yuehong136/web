@@ -420,6 +420,23 @@ test('retrieval normalizer keeps metadata filter bridge at serializer boundary',
   ])
 })
 
+test('retrieval normalizer bridges legacy kb_ids to dataset_ids', () => {
+  const normalized = normalizeRetrievalFormForStore({
+    kb_ids: ['kb-1', '', 'kb-2'],
+  })
+
+  assert.deepEqual(normalized.dataset_ids, ['kb-1', 'kb-2'])
+  assert.deepEqual(normalized.kb_ids, ['kb-1', 'kb-2'])
+
+  const serialized = serializeRetrievalFormForDsl({
+    dataset_ids: ['dataset-1'],
+    kb_ids: ['legacy-kb'],
+  })
+
+  assert.deepEqual(serialized.dataset_ids, ['dataset-1'])
+  assert.deepEqual(serialized.kb_ids, ['dataset-1'])
+})
+
 test('begin input bridge converts keyed input objects into compact-record rows and back', () => {
   const normalized = normalizeBeginInputsForEditor({
     user_id: {

@@ -43,6 +43,7 @@ const retrievalSchema = z.object({
   top_k: z.number().optional(),
   rerank_id: z.string().optional(),
   empty_response: z.string().optional(),
+  dataset_ids: z.array(z.string()).optional(),
   kb_ids: z.array(z.string()).optional(),
   memory_ids: z.array(z.string()).optional(),
   user_id: z.string().optional(),

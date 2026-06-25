@@ -35,7 +35,7 @@ type MetadataFilterProps = {
 
 export function MetadataFilter({
   name = 'meta_data_filter',
-  kbIdsName = 'kb_ids',
+  kbIdsName = 'dataset_ids',
   nodeId,
 }: MetadataFilterProps) {
   const { t } = useTranslation()
@@ -44,7 +44,15 @@ export function MetadataFilter({
     control: form.control,
     name: kbIdsName,
   }) as string[] | undefined
-  const selectedKbId = (kbIds || []).find(
+  const legacyKbIds = useWatch({
+    control: form.control,
+    name: 'kb_ids',
+  }) as string[] | undefined
+  const selectedKbId = (
+    kbIds ||
+    (kbIdsName === 'dataset_ids' ? legacyKbIds : undefined) ||
+    []
+  ).find(
     (item) => typeof item === 'string' && item.trim() && !item.includes('@'),
   )
   const method = useWatch({
@@ -77,7 +85,7 @@ export function MetadataFilter({
   })
 
   return (
-    <section className="space-y-space-md rounded-radius-md border border-border-default p-space-base">
+    <section className="space-y-space-md rounded-radius-md p-space-base border border-border-default">
       <div className="space-y-space-xs">
         <div className="text-sm font-medium text-text-primary">
           {t('flow.metadataFilter', 'Metadata Filter')}
@@ -95,7 +103,7 @@ export function MetadataFilter({
         </div>
       </div>
 
-      <div className="grid gap-space-md md:grid-cols-2">
+      <div className="gap-space-md grid md:grid-cols-2">
         <FormField
           control={form.control}
           name={`${name}.method`}
@@ -179,9 +187,9 @@ export function MetadataFilter({
             return (
               <div
                 key={manualField.id}
-                className="space-y-space-sm rounded-radius-md border border-border-default p-space-sm"
+                className="space-y-space-sm rounded-radius-md p-space-sm border border-border-default"
               >
-                <div className="grid gap-space-sm md:grid-cols-[1.2fr_0.8fr]">
+                <div className="gap-space-sm grid md:grid-cols-[1.2fr_0.8fr]">
                   <FormField
                     control={form.control}
                     name={fieldKeyName}
@@ -192,7 +200,9 @@ export function MetadataFilter({
                           <MultiSelectWithSearch
                             options={metadataFieldOptions}
                             value={field.value ? [field.value] : []}
-                            onChange={(values) => field.onChange(values[0] || '')}
+                            onChange={(values) =>
+                              field.onChange(values[0] || '')
+                            }
                             maxDisplayItems={1}
                             placeholder={t('flow.selectField', 'Select field')}
                           />
@@ -209,16 +219,21 @@ export function MetadataFilter({
                       <FormItem>
                         <FormLabel>{t('flow.operator', 'Operator')}</FormLabel>
                         <FormControl>
-                          <Select value={field.value} onValueChange={field.onChange}>
+                          <Select
+                            value={field.value}
+                            onValueChange={field.onChange}
+                          >
                             <SelectTrigger>
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              {retrievalMetaDataOperatorOptions.map((option) => (
-                                <SelectItem key={option} value={option}>
-                                  {option}
-                                </SelectItem>
-                              ))}
+                              {retrievalMetaDataOperatorOptions.map(
+                                (option) => (
+                                  <SelectItem key={option} value={option}>
+                                    {option}
+                                  </SelectItem>
+                                ),
+                              )}
                             </SelectContent>
                           </Select>
                         </FormControl>
@@ -244,7 +259,8 @@ export function MetadataFilter({
                       </FormControl>
                       {suggestedValues.length > 0 && (
                         <div className="text-xs text-text-secondary">
-                          {t('flow.suggestedValues', 'Suggested values')}: {suggestedValues.slice(0, 5).join(', ')}
+                          {t('flow.suggestedValues', 'Suggested values')}:{' '}
+                          {suggestedValues.slice(0, 5).join(', ')}
                         </div>
                       )}
                       <FormMessage />

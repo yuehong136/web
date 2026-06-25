@@ -30,12 +30,13 @@ function InnerRetrievalNode({
   const form = (data.form ?? {}) as {
     retrieval_from?: string
     memory_ids?: string[]
+    dataset_ids?: string[]
     kb_ids?: string[]
   }
   const isMemoryMode = form.retrieval_from === RetrievalFrom.Memory
   const itemIds = isMemoryMode
     ? (form.memory_ids ?? [])
-    : (form.kb_ids ?? [])
+    : (form.dataset_ids ?? form.kb_ids ?? [])
   const knowledgeMap = useMemo(
     () => new Map(knowledgeBases.map((item) => [item.id, item])),
     [knowledgeBases],
@@ -71,7 +72,12 @@ function InnerRetrievalNode({
           id={id}
           name={data.name}
           label={data.label}
-          icon={<Database className="w-4 h-4" style={{ color: 'var(--color-components-canvas-icon-retrieval)' }} />}
+          icon={
+            <Database
+              className="h-4 w-4"
+              style={{ color: 'var(--color-components-canvas-icon-retrieval)' }}
+            />
+          }
         />
         <SummaryList
           items={itemIds}
@@ -92,7 +98,7 @@ function InnerRetrievalNode({
               <div
                 key={`${itemId}-${index}`}
                 className={cn(
-                  'flex items-center gap-space-sm px-space-sm py-space-sm',
+                  'gap-space-sm px-space-sm py-space-sm flex items-center',
                   withDivider && 'border-t border-border-subtle',
                 )}
               >

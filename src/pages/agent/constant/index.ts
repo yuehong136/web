@@ -255,6 +255,7 @@ export const initialRetrievalValues = {
   query: AgentGlobalsSysQueryWithBrace,
   top_n: 8,
   top_k: 1024,
+  dataset_ids: [] as string[],
   kb_ids: [],
   memory_ids: [] as string[],
   user_id: '',

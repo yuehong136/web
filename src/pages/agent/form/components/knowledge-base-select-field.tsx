@@ -7,7 +7,7 @@ import {
 } from '@/components/ui/form'
 import { MultiSelectWithSearch } from '@/components/ui/multi-select-with-search'
 import { useKnowledgeOptions } from '@/hooks/use-knowledge-request'
-import { useFormContext } from 'react-hook-form'
+import { useFormContext, useWatch } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
 interface KnowledgeBaseSelectFieldProps {
@@ -17,13 +17,17 @@ interface KnowledgeBaseSelectFieldProps {
 }
 
 export function KnowledgeBaseSelectField({
-  name = 'kb_ids',
+  name = 'dataset_ids',
   label,
   placeholder,
 }: KnowledgeBaseSelectFieldProps) {
   const { t } = useTranslation()
   const form = useFormContext()
   const { options, isLoading } = useKnowledgeOptions()
+  const legacyKbIds = useWatch({
+    control: form.control,
+    name: 'kb_ids',
+  }) as string[] | undefined
 
   // Transform to SelectOptionGroup format (flat list without groups)
   const selectOptions = options.map((opt) => ({
@@ -37,14 +41,32 @@ export function KnowledgeBaseSelectField({
       name={name}
       render={({ field }) => (
         <FormItem>
-          <FormLabel>{label || t('flow.knowledgeBases', 'Knowledge Bases')}</FormLabel>
+          <FormLabel>
+            {label || t('flow.knowledgeBases', 'Knowledge Bases')}
+          </FormLabel>
           <FormControl>
             <MultiSelectWithSearch
               options={selectOptions}
-              value={field.value ?? []}
-              onChange={field.onChange}
-              placeholder={placeholder || t('flow.selectKnowledgeBases', 'Select knowledge bases')}
-              emptyText={isLoading ? t('common.loading', 'Loading...') : t('flow.noKnowledgeBases', 'No knowledge bases available')}
+              value={
+                field.value ??
+                (name === 'dataset_ids' ? legacyKbIds : undefined) ??
+                []
+              }
+              onChange={(value) => {
+                field.onChange(value)
+                if (name === 'dataset_ids') {
+                  form.setValue('kb_ids', value, { shouldDirty: true })
+                }
+              }}
+              placeholder={
+                placeholder ||
+                t('flow.selectKnowledgeBases', 'Select knowledge bases')
+              }
+              emptyText={
+                isLoading
+                  ? t('common.loading', 'Loading...')
+                  : t('flow.noKnowledgeBases', 'No knowledge bases available')
+              }
               allowClear
             />
           </FormControl>

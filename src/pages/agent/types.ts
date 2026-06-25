@@ -130,6 +130,7 @@ export interface IRetrievalForm {
   top_k?: number
   rerank_id?: string
   empty_response?: string
+  dataset_ids?: string[]
   kb_ids: string[]
   query?: string
 }

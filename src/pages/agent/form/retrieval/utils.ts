@@ -47,34 +47,44 @@ export type RetrievalMetadataFilter = {
 
 function normalizeStringArray(value: unknown) {
   if (Array.isArray(value)) {
-    return value.filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
+    return value.filter(
+      (item): item is string =>
+        typeof item === 'string' && item.trim().length > 0,
+    )
   }
 
   return []
 }
 
-function normalizeMetadataManualItem(value: unknown): RetrievalMetadataManualItem {
-  const item = (value && typeof value === 'object'
-    ? value
-    : {}) as Partial<RetrievalMetadataManualItem>
+function normalizeMetadataManualItem(
+  value: unknown,
+): RetrievalMetadataManualItem {
+  const item = (
+    value && typeof value === 'object' ? value : {}
+  ) as Partial<RetrievalMetadataManualItem>
 
   return {
     key: typeof item.key === 'string' ? item.key : '',
-    op: typeof item.op === 'string' ? item.op : retrievalMetaDataOperatorOptions[0],
+    op:
+      typeof item.op === 'string'
+        ? item.op
+        : retrievalMetaDataOperatorOptions[0],
     value: typeof item.value === 'string' ? item.value : '',
   }
 }
 
-export function normalizeMetadataFilter(value: unknown): RetrievalMetadataFilter {
-  const filter = (value && typeof value === 'object'
-    ? value
-    : {}) as Partial<RetrievalMetadataFilter>
-  const method = typeof filter.method === 'string'
-    ? filter.method
-    : retrievalMetaDataMethod.Manual
-  const logic = typeof filter.logic === 'string'
-    ? filter.logic
-    : retrievalMetaDataLogic.And
+export function normalizeMetadataFilter(
+  value: unknown,
+): RetrievalMetadataFilter {
+  const filter = (
+    value && typeof value === 'object' ? value : {}
+  ) as Partial<RetrievalMetadataFilter>
+  const method =
+    typeof filter.method === 'string'
+      ? filter.method
+      : retrievalMetaDataMethod.Manual
+  const logic =
+    typeof filter.logic === 'string' ? filter.logic : retrievalMetaDataLogic.And
 
   return {
     method:
@@ -110,6 +120,8 @@ function normalizeNumber(value: unknown, fallback: number) {
 export function normalizeRetrievalFormForStore(
   form: Record<string, unknown> = {},
 ) {
+  const datasetIds = normalizeStringArray(form.dataset_ids ?? form.kb_ids)
+
   return {
     ...form,
     query: typeof form.query === 'string' ? form.query : '{sys.query}',
@@ -120,14 +132,14 @@ export function normalizeRetrievalFormForStore(
       form.keywords_similarity_weight,
       0.3,
     ),
-    kb_ids: normalizeStringArray(form.kb_ids),
+    dataset_ids: datasetIds,
+    kb_ids: datasetIds,
     memory_ids: normalizeStringArray(form.memory_ids),
     user_id: typeof form.user_id === 'string' ? form.user_id : '',
     rerank_id: typeof form.rerank_id === 'string' ? form.rerank_id : '',
     empty_response:
       typeof form.empty_response === 'string' ? form.empty_response : '',
-    retrieval_from:
-      form.retrieval_from === 'memory' ? 'memory' : 'dataset',
+    retrieval_from: form.retrieval_from === 'memory' ? 'memory' : 'dataset',
     cross_languages: normalizeStringArray(form.cross_languages),
     use_kg: Boolean(form.use_kg),
     toc_enhance: Boolean(form.toc_enhance),
