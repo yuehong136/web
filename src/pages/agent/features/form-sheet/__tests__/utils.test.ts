@@ -6,12 +6,14 @@ import { buildGraphNode } from '../../../operators'
 import { getOperatorDefinition } from '../../../operators/registry'
 import {
   canShowSingleStepDebug,
+  groupCodeExecDebugOutput,
   isFormSheetTitleEditable,
   MCP_FORM_RENDERER_KEY,
   resolveFormSheetDescription,
   resolveFormSheetIconKey,
   resolveLegacyRendererKey,
   resolveSelectedToolContext,
+  shouldUseCodeExecDebugLayout,
 } from '../utils'
 
 test('normal operator metadata resolves from registry defaults', () => {
@@ -31,10 +33,7 @@ test('normal operator metadata resolves from registry defaults', () => {
     }),
     operatorDefinition?.iconKey,
   )
-  assert.equal(
-    resolveLegacyRendererKey(Operator.Agent, false),
-    Operator.Agent,
-  )
+  assert.equal(resolveLegacyRendererKey(Operator.Agent, false), Operator.Agent)
 })
 
 test('root nodes stay read-only while normal nodes remain editable', () => {
@@ -46,7 +45,10 @@ test('root nodes stay read-only while normal nodes remain editable', () => {
     isFormSheetTitleEditable(getOperatorDefinition(Operator.File)),
     false,
   )
-  assert.equal(isFormSheetTitleEditable(getOperatorDefinition(Operator.Tool)), true)
+  assert.equal(
+    isFormSheetTitleEditable(getOperatorDefinition(Operator.Tool)),
+    true,
+  )
 })
 
 test('debug availability is driven by registry metadata', () => {
@@ -58,6 +60,64 @@ test('debug availability is driven by registry metadata', () => {
     canShowSingleStepDebug(getOperatorDefinition(Operator.Begin)),
     false,
   )
+})
+
+test('CodeExec debug layout is selected only for Code nodes', () => {
+  assert.equal(shouldUseCodeExecDebugLayout(Operator.Code), true)
+  assert.equal(shouldUseCodeExecDebugLayout(Operator.Agent), false)
+})
+
+test('groupCodeExecDebugOutput separates business value and system outputs', () => {
+  const grouped = groupCodeExecDebugOutput(
+    {
+      answer: { ok: true },
+      actual_type: 'object',
+      raw_result: { ok: true },
+      content: 'printed log',
+      _ERROR: '',
+      _ARTIFACTS: ['chart.png'],
+      attachments: ['chart.png'],
+      _ATTACHMENT_CONTENT: [{ name: 'chart.png' }],
+      ignored: 'value',
+    },
+    {
+      name: 'answer',
+      type: 'object',
+    },
+  )
+
+  assert.equal(grouped.businessOutputName, 'answer')
+  assert.deepEqual(grouped.businessOutputValue, { ok: true })
+  assert.equal(grouped.hasBusinessOutput, true)
+  assert.equal(grouped.expectedType, 'object')
+  assert.equal(grouped.actualType, 'object')
+  assert.deepEqual(grouped.rawResult, { ok: true })
+  assert.equal(grouped.content, 'printed log')
+  assert.deepEqual(grouped.systemOutputs, {
+    _ERROR: '',
+    _ARTIFACTS: ['chart.png'],
+    attachments: ['chart.png'],
+    _ATTACHMENT_CONTENT: [{ name: 'chart.png' }],
+  })
+})
+
+test('groupCodeExecDebugOutput falls back to raw_result when business key is absent', () => {
+  const grouped = groupCodeExecDebugOutput(
+    {
+      actual_type: 'array',
+      raw_result: [1, 2, 3],
+      content: '',
+    },
+    {
+      name: 'result',
+      type: 'array',
+    },
+  )
+
+  assert.equal(grouped.businessOutputName, 'result')
+  assert.equal(grouped.businessOutputValue, undefined)
+  assert.equal(grouped.hasBusinessOutput, true)
+  assert.deepEqual(grouped.rawResult, [1, 2, 3])
 })
 
 test('tool context resolves legacy tool metadata and MCP context separately', () => {
@@ -180,7 +240,7 @@ test('unknown operators fall back safely when no renderer or registry metadata e
     resolveFormSheetDescription({
       operatorType: 'UnknownOperator' as Operator,
     }),
-    'UnknownOperator 节点仍在复用旧表单内容层。',
+    'UnknownOperator node is still using legacy form content.',
   )
   assert.equal(
     resolveFormSheetIconKey({

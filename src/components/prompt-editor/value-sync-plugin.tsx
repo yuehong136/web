@@ -15,6 +15,7 @@ import {
   buildVariableOptionLookup,
   buildVariableOptionSignature,
   flattenVariableOptions,
+  resolvePromptVariableOption,
 } from './utils'
 import { $createVariableNode } from './variable-node'
 
@@ -51,7 +52,9 @@ function parseLineContent(
     }
 
     const option =
-      optionLookup[matchedValue] ?? resolveStructured(matchedValue, flatOptions)
+      optionLookup[matchedValue] ??
+      resolvePromptVariableOption(matchedValue, flatOptions) ??
+      resolveStructured(matchedValue, flatOptions)
     if (option) {
       paragraph.append(
         $createVariableNode(

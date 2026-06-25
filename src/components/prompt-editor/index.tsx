@@ -13,6 +13,7 @@ import {
 } from 'lexical'
 
 import { Button } from '@/components/ui/button'
+import { Switch } from '@/components/ui/switch'
 import { Tooltip } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 import { useBuildPromptVariableOptions } from '@/pages/agent/hooks/use-get-begin-query'
@@ -74,6 +75,8 @@ type PromptContentProps = {
   multiLine?: boolean
   onBlur?: () => void
   placeholder?: ReactNode
+  pathAutoMergeEnabled?: boolean
+  onPathAutoMergeChange?: (checked: boolean) => void
 }
 
 type IProps = {
@@ -84,6 +87,7 @@ type IProps = {
   options?: VariableOptionGroup[]
   extraOptions?: VariableOptionGroup[]
   nodeId?: string
+  enablePathQueryAutoMerge?: boolean
 } & Omit<PromptContentProps, 'onBlur'>
 
 function PromptContent({
@@ -91,6 +95,8 @@ function PromptContent({
   multiLine = true,
   onBlur,
   placeholder,
+  pathAutoMergeEnabled = true,
+  onPathAutoMergeChange,
 }: PromptContentProps) {
   const [editor] = useLexicalComposerContext()
   const [isFocused, setIsFocused] = useState(false)
@@ -139,12 +145,26 @@ function PromptContent({
       {showToolbar && (
         <div
           className={cn(
-            'gap-space-sm px-space-sm py-space-xs flex items-center justify-end border-b transition-colors',
+            'gap-space-sm px-space-sm py-space-xs flex items-center justify-between border-b transition-colors',
             isFocused
               ? 'border-components-system-accent-border'
               : 'border-border-default',
           )}
         >
+          <Tooltip content={<p>{t('flow.mergePathTip')}</p>}>
+            <label className="gap-space-xs flex min-w-0 cursor-pointer items-center text-xs text-text-secondary">
+              <Switch
+                size="sm"
+                checked={pathAutoMergeEnabled}
+                onCheckedChange={onPathAutoMergeChange}
+                onMouseDown={(e) => e.preventDefault()}
+                aria-label={t('flow.mergePath', 'Merge path')}
+              />
+              <span className="truncate">
+                {t('flow.mergePath', 'Merge path')}
+              </span>
+            </label>
+          </Tooltip>
           <Tooltip content={<p>{t('flow.insertVariableTip')}</p>}>
             <Button
               type="button"
@@ -202,7 +222,16 @@ export function PromptEditor({
   options = [],
   extraOptions = [],
   nodeId,
+  enablePathQueryAutoMerge = true,
 }: IProps) {
+  const [pathAutoMergeEnabled, setPathAutoMergeEnabled] = useState(
+    enablePathQueryAutoMerge,
+  )
+
+  useEffect(() => {
+    setPathAutoMergeEnabled(enablePathQueryAutoMerge)
+  }, [enablePathQueryAutoMerge])
+
   const defaultOptions = useBuildPromptVariableOptions(nodeId)
   const baseOptions = useMemo(
     () => (options.length > 0 ? options : defaultOptions),
@@ -247,6 +276,8 @@ export function PromptEditor({
               multiLine={multiLine}
               onBlur={onBlur}
               placeholder={placeholder}
+              pathAutoMergeEnabled={pathAutoMergeEnabled}
+              onPathAutoMergeChange={setPathAutoMergeEnabled}
             ></PromptContent>
           }
           placeholder={null}
@@ -260,10 +291,11 @@ export function PromptEditor({
         <EnterKeyPlugin />
         <VariableOnChangePlugin
           onChange={onValueChange}
+          enablePathQueryAutoMerge={pathAutoMergeEnabled}
         ></VariableOnChangePlugin>
       </LexicalComposer>
       {missingReferences.length > 0 ? (
-        <p className="text-status-warning text-xs">
+        <p className="text-xs text-status-warning">
           {`Missing variables: ${missingReferences.join(', ')}`}
         </p>
       ) : null}

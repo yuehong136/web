@@ -425,7 +425,12 @@ export const initialCodeValues = {
     arg1: '',
     arg2: '',
   },
-  outputs: {},
+  outputs: {
+    result: {
+      type: 'string',
+      value: null,
+    },
+  },
 }
 
 // Agent节点初始值

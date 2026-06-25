@@ -5,6 +5,12 @@ import type { MCPServer } from '@/types/mcp'
 import { Operator, type Operator as OperatorType } from '../../constant'
 import { getOperatorDefinition } from '../../operators'
 import type { RAGFlowNodeType } from '../../types'
+import {
+  CodeAttachmentsOutputKey,
+  CodeContentOutputKey,
+  type CodeOutputContract,
+  CodeRawResultOutputKey,
+} from '../../utils/code-outputs'
 import type { SelectedToolContext } from './types'
 
 export const MCP_FORM_RENDERER_KEY = '__mcp_form__'
@@ -38,6 +44,24 @@ interface LegacyMcpConfig {
   mcp_id?: string
   tools?: Record<string, unknown>
   [key: string]: unknown
+}
+
+const CODE_EXEC_DEBUG_SYSTEM_OUTPUT_NAMES = new Set([
+  '_ERROR',
+  '_ARTIFACTS',
+  CodeAttachmentsOutputKey,
+  '_ATTACHMENT_CONTENT',
+])
+
+export type GroupedCodeExecDebugOutput = {
+  businessOutputName: string
+  businessOutputValue: unknown
+  hasBusinessOutput: boolean
+  expectedType: string
+  actualType: string
+  rawResult: unknown
+  content: string
+  systemOutputs: Record<string, unknown>
 }
 
 function normalizeOperator(value?: string): OperatorType | undefined {
@@ -129,6 +153,36 @@ export function canShowSingleStepDebug(
   operatorDefinition?: AgentOperatorDefinition,
 ) {
   return Boolean(operatorDefinition?.allowSingleStepDebug)
+}
+
+export function shouldUseCodeExecDebugLayout(label?: string): boolean {
+  return label === Operator.Code
+}
+
+export function groupCodeExecDebugOutput(
+  data: Record<string, unknown> | undefined,
+  contract: CodeOutputContract,
+): GroupedCodeExecDebugOutput {
+  const source = data ?? {}
+  const hasContractValue = contract.name in source
+
+  return {
+    businessOutputName: contract.name,
+    businessOutputValue: hasContractValue ? source[contract.name] : undefined,
+    hasBusinessOutput:
+      hasContractValue || source[CodeRawResultOutputKey] !== undefined,
+    expectedType: contract.type,
+    actualType: String(source.actual_type ?? ''),
+    rawResult:
+      source[CodeRawResultOutputKey] ??
+      (hasContractValue ? source[contract.name] : undefined),
+    content: String(source[CodeContentOutputKey] ?? ''),
+    systemOutputs: Object.fromEntries(
+      Object.entries(source).filter(([key]) =>
+        CODE_EXEC_DEBUG_SYSTEM_OUTPUT_NAMES.has(key),
+      ),
+    ),
+  }
 }
 
 export function resolveFormSheetIconKey({

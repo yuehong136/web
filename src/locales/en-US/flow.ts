@@ -29,6 +29,44 @@ export default {
     singleStepDebugFailed: 'Single-node debug failed',
     singleStepDebugDescription:
       'Configure debug inputs for the current node and inspect the single-step result.',
+    codeRunInspector: 'Code run inspector',
+    codeRunInspectorTip:
+      'Business value, type metadata, logs, and raw payload from this run.',
+    businessOutput: 'Business output',
+    businessOutputTip: 'The value returned by main().',
+    businessOutputValue: 'Business output value',
+    expectedType: 'Expected type',
+    actualType: 'Actual type',
+    resultStatus: 'Status',
+    succeeded: 'Succeeded',
+    failed: 'Failed',
+    ready: 'Ready',
+    empty: 'Empty',
+    emptyValue: 'No value',
+    rawResult: 'Raw result',
+    rawComponentOutput: 'Raw component output',
+    noSystemOutputs: 'No system outputs',
+    codeReturnValue: 'Return value',
+    codeReturnValueTip:
+      'Expose one business output from main(). System outputs stay available for logs and diagnostics.',
+    codeSingleOutputBadge: 'Single output',
+    codeInvalidOutputName:
+      'Use a non-empty name without dots or reserved system keys.',
+    outputType: 'Type',
+    codeOutputContract: 'Output contract',
+    codeOutputContractTip:
+      'Use the business value in downstream nodes; use system outputs for rendering, checks, and troubleshooting.',
+    systemOutputs: 'System outputs',
+    systemOutputsTip:
+      'Runtime metadata for logs, type checks, raw result, and attachments.',
+    codeMainReturnTip:
+      'Return a JSON-serializable value from main(). It will be exposed as the single business output below.',
+    codeRuntimeShape: 'Runtime shape',
+    codeRuntimeShapeTip:
+      'Downstream nodes see the same contract that the runtime validates.',
+    mergePath: 'Merge path',
+    mergePathTip:
+      'Merge dot paths after a variable into one reference, for example {node@result}.answer.',
     testRun: 'Test run',
     temperature: 'Temperature',
     topP: 'Top P',
