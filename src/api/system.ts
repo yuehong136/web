@@ -95,18 +95,20 @@ export const systemAPI = {
   // API Token 管理
   // 创建新的API访问令牌
   async createToken(data: APITokenCreateRequest): Promise<SystemAPIToken> {
-    return apiClient.post<SystemAPIToken>('/system/new_token', data)
+    return apiClient.post<SystemAPIToken>('/system/tokens', data, sdkBase)
   },
 
   // 获取API访问令牌列表
   async getTokenList(): Promise<SystemAPIToken[]> {
-    return apiClient.get<SystemAPIToken[]>('/system/token_list')
+    return apiClient.get<SystemAPIToken[]>('/system/tokens', sdkBase)
   },
 
   // 删除API访问令牌
   async deleteToken(token: string): Promise<boolean> {
-    // 尝试作为简单的字符串值发送
-    return apiClient.post<boolean>('/system/rm', token)
+    return apiClient.delete<boolean>(
+      `/system/tokens/${encodeURIComponent(token)}`,
+      sdkBase,
+    )
   },
 
   // OpenAPI 文档过滤

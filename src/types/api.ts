@@ -1369,7 +1369,7 @@ export interface UpdateTokenRequest {
 }
 
 // ============================================================================
-// 系统API Token管理 - 匹配后端 /v1/system/new_token 和 token_list 接口
+// 系统API Token管理 - 匹配后端 /api/v1/system/tokens 接口
 // ============================================================================
 
 export interface APITokenCreateRequest {
