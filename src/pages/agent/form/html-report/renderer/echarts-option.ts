@@ -119,6 +119,14 @@ function funnelOption(
   }
 }
 
+/** 雷达轴统一刻度的上限:最大值向上取整到 1/2/5×10^k(1–5 分制 → 5,百分制 → 100)。 */
+function niceCeil(value: number): number {
+  if (value <= 0) return 1
+  const base = 10 ** Math.floor(Math.log10(value))
+  const unit = value / base
+  return (unit <= 1 ? 1 : unit <= 2 ? 2 : unit <= 5 ? 5 : 10) * base
+}
+
 function radarOption(
   block: ChartBlock,
   theme: ThemeConfig | undefined,
@@ -126,8 +134,13 @@ function radarOption(
   const data = block.data ?? []
   const series = block.series ?? []
   const dimensionKey = block.radarKeys?.[0]
+  // 全轴必须共用同一 max:不设时 ECharts 按轴各自定刻度,低分轴(自动 max=自身值)
+  // 会顶到最外圈,与高分轴等长,图形失真(5/4/4/1/4 画成近满五边形)。
+  const max = niceCeil(
+    Math.max(0, ...series.flatMap((s) => data.map((d) => num(d[s.dataKey])))),
+  )
   const indicators = dimensionKey
-    ? data.map((d) => ({ name: String(d[dimensionKey] ?? '') }))
+    ? data.map((d) => ({ name: String(d[dimensionKey] ?? ''), max }))
     : []
   return {
     color: palette(theme),
