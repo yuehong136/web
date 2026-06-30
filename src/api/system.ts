@@ -1,5 +1,14 @@
 import { apiClient } from '@/api/client'
-import type { APITokenCreateRequest, SystemAPIToken, FilterRule, FilterResponse } from '@/types/api'
+import { API_BASE_URL } from '@/constants'
+import type {
+  APITokenCreateRequest,
+  SystemAPIToken,
+  FilterRule,
+  FilterResponse,
+} from '@/types/api'
+
+// RESTful 端点（/api/v1）使用的 base，区别于默认的 /v1
+const sdkBase = { baseURL: `${API_BASE_URL}/api` }
 
 // 系统状态相关类型定义
 export interface SystemComponentStatus {
@@ -75,9 +84,12 @@ export const systemAPI = {
     return apiClient.get<SystemStatusResponse>('/system/status')
   },
 
-  // 获取系统版本信息
+  // 获取系统版本信息（已迁移到 RESTful /api/v1/system/version）
   async getVersion(): Promise<SystemVersionResponse | SystemVersionString> {
-    return apiClient.get<SystemVersionResponse | SystemVersionString>('/system/version')
+    return apiClient.get<SystemVersionResponse | SystemVersionString>(
+      '/system/version',
+      sdkBase,
+    )
   },
 
   // API Token 管理
@@ -100,6 +112,9 @@ export const systemAPI = {
   // OpenAPI 文档过滤
   // 根据指定规则过滤 OpenAPI 文档
   async filterOpenAPI(rule: FilterRule): Promise<FilterResponse> {
-    return apiClient.post<FilterResponse>('/openapi_filter/openapi-filtered', rule)
+    return apiClient.post<FilterResponse>(
+      '/openapi_filter/openapi-filtered',
+      rule,
+    )
   },
 }
