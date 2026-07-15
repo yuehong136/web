@@ -112,10 +112,10 @@ test('parser normalizer rebuilds keyed backend setups into file-type cards and b
   assert.equal('fileFormat' in (serialized.pdf || {}), false)
 })
 
-test('parser defaults only expand the seven visible ragflow-aligned cards in order', () => {
+test('parser defaults only expand the nine visible ragflow-aligned cards in order', () => {
   const defaultSetups = normalizeParserSetupsForStore(undefined)
 
-  assert.equal(defaultSetups.length, 7)
+  assert.equal(defaultSetups.length, 9)
   assert.deepEqual(
     defaultSetups.map((item) => item.fileFormat),
     parserDefaultVisibleFileTypes,

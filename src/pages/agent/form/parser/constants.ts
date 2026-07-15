@@ -19,8 +19,10 @@ const parserFileTypeLabelKeyMap: Record<ParserFileTypeValue, string> = {
   [ParserFileType.Spreadsheet]: 'spreadsheet',
   [ParserFileType.Image]: 'image',
   [ParserFileType.Email]: 'email',
-  [ParserFileType.TextMarkdown]: 'textMarkdown',
-  [ParserFileType.Word]: 'word',
+  [ParserFileType.TextMarkdown]: 'markdown',
+  [ParserFileType.TextCode]: 'textCode',
+  [ParserFileType.Doc]: 'doc',
+  [ParserFileType.Docx]: 'docx',
   [ParserFileType.Slides]: 'slides',
   [ParserFileType.Audio]: 'audio',
   [ParserFileType.Video]: 'video',
@@ -31,8 +33,10 @@ const parserFileTypeFallbackLabelMap: Record<ParserFileTypeValue, string> = {
   [ParserFileType.Spreadsheet]: 'Spreadsheet',
   [ParserFileType.Image]: 'Image',
   [ParserFileType.Email]: 'Email',
-  [ParserFileType.TextMarkdown]: 'Text / Markdown',
-  [ParserFileType.Word]: 'Word',
+  [ParserFileType.TextMarkdown]: 'Markdown',
+  [ParserFileType.TextCode]: 'Text & Code',
+  [ParserFileType.Doc]: 'DOC',
+  [ParserFileType.Docx]: 'DOCX',
   [ParserFileType.Slides]: 'Slides',
   [ParserFileType.Audio]: 'Audio',
   [ParserFileType.Video]: 'Video',
@@ -49,7 +53,11 @@ const parserFileTypeBadgeClassNameMap: Record<ParserFileTypeValue, string> = {
     'bg-components-badge-orange-bg text-components-badge-orange-text',
   [ParserFileType.TextMarkdown]:
     'bg-components-badge-purple-bg text-components-badge-purple-text',
-  [ParserFileType.Word]:
+  [ParserFileType.TextCode]:
+    'bg-components-badge-purple-bg text-components-badge-purple-text',
+  [ParserFileType.Doc]:
+    'bg-components-badge-blue-bg text-components-badge-blue-text',
+  [ParserFileType.Docx]:
     'bg-components-badge-blue-bg text-components-badge-blue-text',
   [ParserFileType.Slides]:
     'bg-components-badge-orange-bg text-components-badge-orange-text',
@@ -94,9 +102,7 @@ export const parserMineruParseMethodOptions = MineruParseMethodOptions.map(
   }),
 )
 
-export const parserDoclingParseMethodOptions = [
-  { label: 'Raw', value: 'raw' },
-]
+export const parserDoclingParseMethodOptions = [{ label: 'Raw', value: 'raw' }]
 
 export const parserPaddleOCRParseMethodOptions = [
   { label: 'Raw', value: 'raw' },
@@ -119,10 +125,12 @@ export const parserPdfBuiltInParseMethodOptions = [
   { label: 'TCADP Parser', value: ParserParseMethod.TCADPParser },
 ]
 
-export const emailFieldOptions = Object.values(ParserEmailField).map((value) => ({
-  label: value,
-  value,
-}))
+export const emailFieldOptions = Object.values(ParserEmailField).map(
+  (value) => ({
+    label: value,
+    value,
+  }),
+)
 
 export const FIELD_LABEL_CLASSNAME =
   'text-base font-medium leading-7 text-text-secondary'
@@ -138,10 +146,7 @@ export type ParserFileMeta = {
   badgeClassName: string
 }
 
-export function getParserFileTypeLabel(
-  t: TFunction,
-  fileFormat?: string,
-) {
+export function getParserFileTypeLabel(t: TFunction, fileFormat?: string) {
   if (!fileFormat || !(fileFormat in parserFileTypeLabelKeyMap)) {
     return fileFormat || t('common.unassigned', 'Unassigned')
   }
@@ -171,10 +176,7 @@ export function getParserMeta(
   }
 }
 
-export function getParserPreprocessLabel(
-  t: TFunction,
-  value: string,
-) {
+export function getParserPreprocessLabel(t: TFunction, value: string) {
   const labelKey = preprocessLabelKeyMap[value]
   if (!labelKey) {
     return value
@@ -183,9 +185,7 @@ export function getParserPreprocessLabel(
   return t(`flow.preprocess.${labelKey}`, value)
 }
 
-export function getParserParseMethodLabel(
-  value?: string,
-) {
+export function getParserParseMethodLabel(value?: string) {
   if (!value) {
     return ''
   }
@@ -224,7 +224,10 @@ function getCompactParserModelLabel(value?: string) {
 
 export function getParserSetupSummary(
   t: TFunction,
-  setup?: Pick<ParserSetupValue, 'fileFormat' | 'output_format' | 'parse_method' | 'llm_id'>,
+  setup?: Pick<
+    ParserSetupValue,
+    'fileFormat' | 'output_format' | 'parse_method' | 'llm_id'
+  >,
 ) {
   if (!setup) {
     return t('common.unassigned', 'Unassigned')

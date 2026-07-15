@@ -5,8 +5,10 @@ export const ParserFileType = {
   Spreadsheet: 'spreadsheet',
   Image: 'image',
   Email: 'email',
-  TextMarkdown: 'text&markdown',
-  Word: 'word',
+  TextMarkdown: 'markdown',
+  TextCode: 'text&code',
+  Doc: 'doc',
+  Docx: 'docx',
   Slides: 'slides',
   Audio: 'audio',
   Video: 'video',
@@ -71,14 +73,16 @@ export const parserFileTypeOrder: ParserFileTypeValue[] = [
   ParserFileType.Image,
   ParserFileType.Email,
   ParserFileType.TextMarkdown,
-  ParserFileType.Word,
+  ParserFileType.TextCode,
+  ParserFileType.Doc,
+  ParserFileType.Docx,
   ParserFileType.Slides,
   ParserFileType.Audio,
   ParserFileType.Video,
 ]
 
 export const parserDefaultVisibleFileTypes: ParserFileTypeValue[] =
-  parserFileTypeOrder.slice(0, 7)
+  parserFileTypeOrder.slice(0, 9)
 
 export const parserOutputs: OutputMap = {
   markdown: { type: 'string', value: '' },
@@ -92,8 +96,25 @@ export const parserFileTypeSuffixMap: Record<ParserFileTypeValue, string[]> = {
   [ParserFileType.Spreadsheet]: ['xls', 'xlsx', 'csv'],
   [ParserFileType.Image]: ['jpg', 'jpeg', 'png', 'gif'],
   [ParserFileType.Email]: ['eml', 'msg'],
-  [ParserFileType.TextMarkdown]: ['md', 'markdown', 'mdx', 'txt'],
-  [ParserFileType.Word]: ['doc', 'docx'],
+  [ParserFileType.TextMarkdown]: ['md', 'markdown', 'mdx'],
+  [ParserFileType.TextCode]: [
+    'txt',
+    'py',
+    'js',
+    'java',
+    'c',
+    'cpp',
+    'h',
+    'php',
+    'go',
+    'ts',
+    'sh',
+    'cs',
+    'kt',
+    'sql',
+  ],
+  [ParserFileType.Doc]: ['doc'],
+  [ParserFileType.Docx]: ['docx'],
   [ParserFileType.Slides]: ['pptx', 'ppt'],
   [ParserFileType.Audio]: [
     'da',
@@ -124,7 +145,9 @@ export const parserVisibleOutputFormatsMap: Record<
   [ParserFileType.Image]: ['json'],
   [ParserFileType.Email]: ['text', 'json'],
   [ParserFileType.TextMarkdown]: ['text', 'json'],
-  [ParserFileType.Word]: ['json', 'markdown'],
+  [ParserFileType.TextCode]: ['text', 'json'],
+  [ParserFileType.Doc]: ['json', 'markdown'],
+  [ParserFileType.Docx]: ['json', 'markdown'],
   [ParserFileType.Slides]: ['json'],
   [ParserFileType.Audio]: ['text'],
   [ParserFileType.Video]: ['text'],
@@ -164,7 +187,12 @@ export const parserPreprocessOptionsMap: Partial<
     ParserPreprocessValue.MainContent,
     ParserPreprocessValue.SectionTitle,
   ],
-  [ParserFileType.Word]: [
+  [ParserFileType.TextCode]: [ParserPreprocessValue.MainContent],
+  [ParserFileType.Doc]: [
+    ParserPreprocessValue.MainContent,
+    ParserPreprocessValue.SectionTitle,
+  ],
+  [ParserFileType.Docx]: [
     ParserPreprocessValue.MainContent,
     ParserPreprocessValue.SectionTitle,
   ],
@@ -217,11 +245,23 @@ const defaultParserSetupMap: Record<ParserFileTypeValue, ParserSetupValue> = {
     preprocess: [ParserPreprocessValue.MainContent],
     suffix: parserFileTypeSuffixMap[ParserFileType.TextMarkdown],
   },
-  [ParserFileType.Word]: {
-    fileFormat: ParserFileType.Word,
+  [ParserFileType.TextCode]: {
+    fileFormat: ParserFileType.TextCode,
     output_format: 'json',
     preprocess: [ParserPreprocessValue.MainContent],
-    suffix: parserFileTypeSuffixMap[ParserFileType.Word],
+    suffix: parserFileTypeSuffixMap[ParserFileType.TextCode],
+  },
+  [ParserFileType.Doc]: {
+    fileFormat: ParserFileType.Doc,
+    output_format: 'json',
+    preprocess: [ParserPreprocessValue.MainContent],
+    suffix: parserFileTypeSuffixMap[ParserFileType.Doc],
+  },
+  [ParserFileType.Docx]: {
+    fileFormat: ParserFileType.Docx,
+    output_format: 'json',
+    preprocess: [ParserPreprocessValue.MainContent],
+    suffix: parserFileTypeSuffixMap[ParserFileType.Docx],
   },
   [ParserFileType.Slides]: {
     fileFormat: ParserFileType.Slides,
@@ -265,7 +305,8 @@ function cloneValue<T>(value: T): T {
 function normalizeStringArray(value: unknown) {
   if (Array.isArray(value)) {
     return value.filter(
-      (item): item is string => typeof item === 'string' && item.trim().length > 0,
+      (item): item is string =>
+        typeof item === 'string' && item.trim().length > 0,
     )
   }
 
@@ -295,7 +336,8 @@ function withRequiredPreprocessValues(
   fileType: string | undefined,
   values: string[],
 ) {
-  const allowedValues = parserPreprocessOptionsMap[fileType as ParserFileTypeValue]
+  const allowedValues =
+    parserPreprocessOptionsMap[fileType as ParserFileTypeValue]
 
   if (!allowedValues?.length) {
     return []
@@ -307,9 +349,7 @@ function withRequiredPreprocessValues(
     return nextValues
   }
 
-  return Array.from(
-    new Set([ParserPreprocessValue.MainContent, ...nextValues]),
-  )
+  return Array.from(new Set([ParserPreprocessValue.MainContent, ...nextValues]))
 }
 
 function buildCommonSerializedSetup(item: ParserSetupValue) {
@@ -372,14 +412,19 @@ export function isParserMethodFromProvider(
   value: string | undefined,
   providerName: string,
 ) {
-  return value?.trim().toLowerCase().endsWith(`@${providerName.toLowerCase()}`) || false
+  return (
+    value?.trim().toLowerCase().endsWith(`@${providerName.toLowerCase()}`) ||
+    false
+  )
 }
 
 export function normalizeParserSetup(
   value: unknown,
   fallbackFileType?: string,
 ): ParserSetupValue {
-  const rawValue = (value && typeof value === 'object' ? value : {}) as ParserSetupValue
+  const rawValue = (
+    value && typeof value === 'object' ? value : {}
+  ) as ParserSetupValue
   const fileFormat = rawValue.fileFormat || fallbackFileType || ''
   const baseValue = getDefaultParserSetup(fileFormat)
   const outputFormat =
@@ -461,12 +506,15 @@ export function serializeParserSetupsForDsl(value: unknown) {
           ...commonSetup,
           preprocess: normalizedPreprocess,
           parse_method: item.parse_method,
-          lang: isParserMethodFromProvider(item.parse_method, 'MinerU') ||
+          lang:
+            isParserMethodFromProvider(item.parse_method, 'MinerU') ||
             isParserMethodEqual(item.parse_method, 'mineru')
-            ? item.mineru_lang || item.lang
-            : item.lang,
+              ? item.mineru_lang || item.lang
+              : item.lang,
         }
-        if (isParserMethodEqual(item.parse_method, ParserParseMethod.TCADPParser)) {
+        if (
+          isParserMethodEqual(item.parse_method, ParserParseMethod.TCADPParser)
+        ) {
           nextSetup.table_result_type = item.table_result_type
           nextSetup.markdown_image_response_type =
             item.markdown_image_response_type
@@ -493,14 +541,18 @@ export function serializeParserSetupsForDsl(value: unknown) {
           preprocess: normalizedPreprocess,
           parse_method: item.parse_method,
         }
-        if (isParserMethodEqual(item.parse_method, ParserParseMethod.TCADPParser)) {
+        if (
+          isParserMethodEqual(item.parse_method, ParserParseMethod.TCADPParser)
+        ) {
           nextSetup.table_result_type = item.table_result_type
           nextSetup.markdown_image_response_type =
             item.markdown_image_response_type
         }
         break
-      case ParserFileType.Word:
+      case ParserFileType.Doc:
+      case ParserFileType.Docx:
       case ParserFileType.TextMarkdown:
+      case ParserFileType.TextCode:
         nextSetup = {
           ...commonSetup,
           preprocess: normalizedPreprocess,
@@ -552,9 +604,7 @@ export function normalizeParserFormForStore(
   }
 }
 
-export function serializeParserFormForDsl(
-  form: Record<string, unknown> = {},
-) {
+export function serializeParserFormForDsl(form: Record<string, unknown> = {}) {
   return {
     ...form,
     outputs: parserOutputs,
