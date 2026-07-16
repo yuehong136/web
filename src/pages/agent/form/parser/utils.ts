@@ -241,7 +241,7 @@ const defaultParserSetupMap: Record<ParserFileTypeValue, ParserSetupValue> = {
   },
   [ParserFileType.TextMarkdown]: {
     fileFormat: ParserFileType.TextMarkdown,
-    output_format: 'text',
+    output_format: 'json',
     preprocess: [ParserPreprocessValue.MainContent],
     suffix: parserFileTypeSuffixMap[ParserFileType.TextMarkdown],
   },
