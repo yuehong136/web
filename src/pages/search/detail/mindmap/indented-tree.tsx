@@ -24,12 +24,39 @@ import {
 import { useIsDarkTheme } from '@/themes'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
 import { getCategoricalPalette } from '@/lib/design-tokens'
+import {
+  buildMindmapNodeSizeMap,
+  getMindmapNodeSize,
+  type MindmapNodeSize,
+} from './node-size'
 import type { MindmapTreeNode } from './utils'
 
 const ROOT_ID = 'root'
 const TREE_EVENT = {
   COLLAPSE_EXPAND: 'search-mindmap-collapse-expand',
 }
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null
+
+const getNodeText = (datum: unknown): string => {
+  if (!isRecord(datum)) return ''
+  const style = isRecord(datum.style) ? datum.style : undefined
+  const candidates = [style?.labelText, datum.labelText, datum.originalId]
+  const text = candidates.find(
+    (value): value is string => typeof value === 'string' && value.length > 0,
+  )
+
+  return text || (datum.id === ROOT_ID ? 'Mind Map' : '')
+}
+
+const getNodeSize = (datum: unknown): [number, number] => {
+  const isRoot = isRecord(datum) && datum.id === ROOT_ID
+  return getMindmapNodeSize(getNodeText(datum), isRoot)
+}
+
+const getNodeId = (datum: unknown): string | undefined =>
+  isRecord(datum) && typeof datum.id === 'string' ? datum.id : undefined
 
 let extensionRegistered = false
 
@@ -321,6 +348,11 @@ const IndentedTree = forwardRef<IndentedTreeRef, IndentedTreeProps>(
 
         ensureRegisterExtensions()
         graphRef.current?.destroy()
+        const nodeSizeMap = buildMindmapNodeSizeMap(treeData)
+        const getLayoutNodeSize = (datum: unknown): MindmapNodeSize => {
+          const nodeId = getNodeId(datum)
+          return (nodeId && nodeSizeMap.get(nodeId)) || getNodeSize(datum)
+        }
 
         const graph = new Graph({
           container,
@@ -328,15 +360,7 @@ const IndentedTree = forwardRef<IndentedTreeRef, IndentedTreeProps>(
           node: {
             type: 'search-indented',
             style: {
-              size: (datum: any) => {
-                const text = (datum?.style?.labelText ||
-                  datum?.labelText ||
-                  datum?.originalId ||
-                  '') as string
-                const isRoot = datum?.id === ROOT_ID
-                const width = Math.max(text.length * 6 + 10, isRoot ? 100 : 60)
-                return [width, 20]
-              },
+              size: getNodeSize,
               labelBackground: true,
               labelPadding: [2, 6],
               labelBackgroundRadius: 4,
@@ -349,11 +373,7 @@ const IndentedTree = forwardRef<IndentedTreeRef, IndentedTreeProps>(
               labelFontWeight: (datum: any) =>
                 datum.id === ROOT_ID ? 700 : 400,
               labelFontSize: (datum: any) => (datum.id === ROOT_ID ? 13 : 12),
-              labelText: (datum: any) =>
-                datum.style?.labelText ||
-                datum.labelText ||
-                datum.originalId ||
-                (datum.id === ROOT_ID ? 'Mind Map' : ''),
+              labelText: getNodeText,
               labelTextAlign: (datum: any) =>
                 datum.id === ROOT_ID ? 'center' : 'left',
               labelTextBaseline: 'top',
@@ -393,7 +413,8 @@ const IndentedTree = forwardRef<IndentedTreeRef, IndentedTreeProps>(
             direction: 'LR',
             isHorizontal: true,
             indent: 40,
-            getHeight: () => 20,
+            getHeight: (datum: unknown) => getLayoutNodeSize(datum)[1],
+            getWidth: (datum: unknown) => getLayoutNodeSize(datum)[0],
             getVGap: () => 10,
           },
           behaviors: [
