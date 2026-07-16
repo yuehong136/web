@@ -790,7 +790,7 @@ const SearchSettingsSheet: React.FC<SearchSettingsSheetProps> = ({
           <Button
             className="w-full"
             onClick={onSave}
-            disabled={isSaving || !isDirty || !config.kb_ids.length}
+            disabled={isSaving || !isDirty}
           >
             {isSaving ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />

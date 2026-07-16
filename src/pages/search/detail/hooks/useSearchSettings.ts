@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { toast } from 'sonner'
 import { useUpdateSearch } from '@/hooks/use-search-request'
 import { useUIStore } from '@/stores/ui'
 import { DEFAULT_SEARCH_CONFIG } from '../../constants'
@@ -25,7 +26,9 @@ const buildDefaultConfig = (): SearchConfig => ({
   },
 })
 
-const normalizeModelConfig = (rawConfig: Partial<SearchConfig>): SearchConfig => {
+const normalizeModelConfig = (
+  rawConfig: Partial<SearchConfig>,
+): SearchConfig => {
   const selectedModel = rawConfig.chat_id || rawConfig.llm_id
 
   return {
@@ -50,13 +53,18 @@ export const useSearchSettings = (searchApp: SearchApp | null) => {
   const { updateSearch, isLoading } = useUpdateSearch()
   const { addNotification } = useUIStore()
   const [config, setConfig] = useState<SearchConfig>(buildDefaultConfig)
-  const [savedConfig, setSavedConfig] = useState<SearchConfig>(buildDefaultConfig)
-  const [basicInfo, setBasicInfo] = useState<Pick<SearchApp, 'name' | 'description' | 'avatar'>>({
+  const [savedConfig, setSavedConfig] =
+    useState<SearchConfig>(buildDefaultConfig)
+  const [basicInfo, setBasicInfo] = useState<
+    Pick<SearchApp, 'name' | 'description' | 'avatar'>
+  >({
     name: '',
     description: '',
     avatar: '',
   })
-  const [savedBasicInfo, setSavedBasicInfo] = useState<Pick<SearchApp, 'name' | 'description' | 'avatar'>>({
+  const [savedBasicInfo, setSavedBasicInfo] = useState<
+    Pick<SearchApp, 'name' | 'description' | 'avatar'>
+  >({
     name: '',
     description: '',
     avatar: '',
@@ -64,7 +72,8 @@ export const useSearchSettings = (searchApp: SearchApp | null) => {
 
   useEffect(() => {
     if (!searchApp) return
-    const rawSearchConfig = (searchApp.search_config || {}) as Partial<SearchConfig>
+    const rawSearchConfig = (searchApp.search_config ||
+      {}) as Partial<SearchConfig>
     const mergedConfig = normalizeModelConfig(rawSearchConfig)
     setConfig(mergedConfig)
     setSavedConfig(mergedConfig)
@@ -81,26 +90,33 @@ export const useSearchSettings = (searchApp: SearchApp | null) => {
     () =>
       JSON.stringify(config) !== JSON.stringify(savedConfig) ||
       JSON.stringify(basicInfo) !== JSON.stringify(savedBasicInfo),
-    [basicInfo, config, savedBasicInfo, savedConfig]
+    [basicInfo, config, savedBasicInfo, savedConfig],
   )
 
   const updateConfig = useCallback((partial: Partial<SearchConfig>) => {
     setConfig((prev) => normalizeModelConfig({ ...prev, ...partial }))
   }, [])
 
-  const updateBasicInfo = useCallback((partial: Partial<Pick<SearchApp, 'name' | 'description' | 'avatar'>>) => {
-    setBasicInfo((prev) => ({ ...prev, ...partial }))
-  }, [])
+  const updateBasicInfo = useCallback(
+    (partial: Partial<Pick<SearchApp, 'name' | 'description' | 'avatar'>>) => {
+      setBasicInfo((prev) => ({ ...prev, ...partial }))
+    },
+    [],
+  )
 
   const saveConfig = useCallback(async () => {
     if (!searchApp) return
     if (!config.kb_ids?.length) {
-      addNotification({ type: 'error', title: '保存失败', message: '至少需要选择一个知识库。' })
+      toast.error('至少需要选择一个知识库。')
       return
     }
     const trimmedName = (basicInfo.name || '').trim()
     if (!trimmedName) {
-      addNotification({ type: 'error', title: '保存失败', message: '名称不能为空。' })
+      addNotification({
+        type: 'error',
+        title: '保存失败',
+        message: '名称不能为空。',
+      })
       return
     }
 
@@ -121,11 +137,27 @@ export const useSearchSettings = (searchApp: SearchApp | null) => {
         description: (basicInfo.description || '').trim(),
         avatar: basicInfo.avatar || '',
       })
-      addNotification({ type: 'success', title: '保存成功', message: '搜索配置已更新。' })
+      addNotification({
+        type: 'success',
+        title: '保存成功',
+        message: '搜索配置已更新。',
+      })
     } catch {
-      addNotification({ type: 'error', title: '保存失败', message: '更新搜索配置时发生错误。' })
+      addNotification({
+        type: 'error',
+        title: '保存失败',
+        message: '更新搜索配置时发生错误。',
+      })
     }
-  }, [addNotification, basicInfo.avatar, basicInfo.description, basicInfo.name, config, searchApp, updateSearch])
+  }, [
+    addNotification,
+    basicInfo.avatar,
+    basicInfo.description,
+    basicInfo.name,
+    config,
+    searchApp,
+    updateSearch,
+  ])
 
   return {
     basicInfo,
