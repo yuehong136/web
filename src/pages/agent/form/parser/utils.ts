@@ -1,4 +1,11 @@
 import type { OutputMap } from '../components/output'
+import {
+  cloneValue,
+  normalizeBoolean,
+  normalizeOptionalString,
+  normalizeStringArray,
+  stripUndefined,
+} from './value-utils'
 
 export const ParserFileType = {
   PDF: 'pdf',
@@ -294,44 +301,6 @@ export const initialParserFormValues = {
   ),
 }
 
-function cloneValue<T>(value: T): T {
-  if (typeof structuredClone === 'function') {
-    return structuredClone(value)
-  }
-
-  return JSON.parse(JSON.stringify(value)) as T
-}
-
-function normalizeStringArray(value: unknown) {
-  if (Array.isArray(value)) {
-    return value.filter(
-      (item): item is string =>
-        typeof item === 'string' && item.trim().length > 0,
-    )
-  }
-
-  if (typeof value === 'string' && value.trim()) {
-    return value
-      .split(',')
-      .map((item) => item.trim())
-      .filter(Boolean)
-  }
-
-  return []
-}
-
-function normalizeOptionalString(value: unknown) {
-  return typeof value === 'string' ? value : undefined
-}
-
-function normalizeBoolean(value: unknown, fallback: boolean | undefined) {
-  if (typeof value === 'boolean') {
-    return value
-  }
-
-  return fallback
-}
-
 function withRequiredPreprocessValues(
   fileType: string | undefined,
   values: string[],
@@ -357,26 +326,6 @@ function buildCommonSerializedSetup(item: ParserSetupValue) {
     output_format: item.output_format,
     suffix: normalizeStringArray(item.suffix),
   }
-}
-
-function stripUndefined<T extends Record<string, unknown>>(value: T) {
-  return Object.fromEntries(
-    Object.entries(value).filter(([, item]) => {
-      if (item === undefined) {
-        return false
-      }
-
-      if (item === '') {
-        return false
-      }
-
-      if (Array.isArray(item) && item.length === 0) {
-        return false
-      }
-
-      return true
-    }),
-  ) as T
 }
 
 export function getDefaultParserSetup(fileType: string) {
