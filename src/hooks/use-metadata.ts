@@ -229,21 +229,18 @@ export const useUpdateDocumentMeta = () => {
     mutationFn: ({
       docId,
       meta,
-      kbId: _kbId,
+      kbId,
     }: {
       docId: string
       meta: Record<string, any>
-      kbId?: string
-    }) => knowledgeAPI.metadata.updateDocumentMeta(docId, meta),
+      kbId: string
+    }) => knowledgeAPI.metadata.updateDocumentMeta(kbId, docId, meta),
     onSuccess: (_, variables) => {
       // 使文档列表缓存失效
       queryClient.invalidateQueries({ queryKey: documentKeys.all })
-      // 如果提供了 kbId，也使 metadata summary 失效
-      if (variables.kbId) {
-        queryClient.invalidateQueries({
-          queryKey: metadataKeys.summary(variables.kbId),
-        })
-      }
+      queryClient.invalidateQueries({
+        queryKey: metadataKeys.summary(variables.kbId),
+      })
       toast.success('文档元数据已更新')
     },
     onError: (error: any) => {

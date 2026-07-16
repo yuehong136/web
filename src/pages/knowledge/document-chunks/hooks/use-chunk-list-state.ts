@@ -12,7 +12,7 @@ import type {
 } from '../types'
 
 export const useChunkListState = () => {
-  const { docId } = useParams<{ id: string; docId: string }>()
+  const { id: kbId, docId } = useParams<{ id: string; docId: string }>()
 
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(20)
@@ -83,6 +83,7 @@ export const useChunkListState = () => {
   }, [refetchChunkList])
 
   return {
+    kbId,
     docId,
     page,
     pageSize,

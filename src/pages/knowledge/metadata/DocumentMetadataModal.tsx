@@ -22,7 +22,7 @@ interface DocumentMetadataModalProps {
   onClose: () => void
   docId: string
   docName: string
-  kbId?: string
+  kbId: string
   metaFields: DocumentMetadataRecord
   fieldDefinitions?: MetadataFieldDefinition[]
   onSuccess?: () => void

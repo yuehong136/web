@@ -532,12 +532,6 @@ export const knowledgeAPI = {
         question_kwd: params.question_kwd ?? [],
       }),
 
-    // 设置文档元数据
-    setDocumentMeta: (params: {
-      doc_id: string
-      meta: Record<string, any>
-    }): Promise<boolean> => apiClient.post('/v1/document/set_meta', params),
-
     // 批量切换文档分段状态
     switchChunks: (params: {
       doc_id: string
@@ -857,14 +851,17 @@ export const knowledgeAPI = {
       apiClient.post('/v1/document/update_metadata_setting', data),
 
     // 更新单文档 metadata 值 (更新 meta_fields)
+    // 已迁移到 RESTful PUT /api/v1/datasets/{id}/documents/{id}（body 传 meta_fields）
     updateDocumentMeta: (
+      kbId: string,
       docId: string,
       meta: Record<string, any>,
     ): Promise<void> =>
-      apiClient.post('/v1/document/set_meta', {
-        doc_id: docId,
-        meta: JSON.stringify(meta),
-      }),
+      apiClient.put(
+        `/v1/datasets/${kbId}/documents/${docId}`,
+        { meta_fields: meta },
+        sdkBase,
+      ),
   },
 
   // GraphRAG / RAPTOR 生成任务

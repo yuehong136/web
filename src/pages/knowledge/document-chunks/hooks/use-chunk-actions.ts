@@ -2,12 +2,14 @@ import { useMutation } from '@tanstack/react-query'
 import { knowledgeAPI } from '@/api/knowledge'
 
 interface UseChunkActionsOptions {
+  kbId: string | undefined
   docId: string | undefined
   onMutationSuccess: () => void
   onBulkMutationSuccess?: () => void
 }
 
 export const useChunkActions = ({
+  kbId,
   docId,
   onMutationSuccess,
   onBulkMutationSuccess,
@@ -95,11 +97,9 @@ export const useChunkActions = ({
 
   const setMetaMutation = useMutation({
     mutationFn: async (meta: Record<string, unknown>) => {
-      if (!docId) return false
-      return knowledgeAPI.document.setDocumentMeta({
-        doc_id: docId,
-        meta,
-      })
+      if (!docId || !kbId) return false
+      await knowledgeAPI.metadata.updateDocumentMeta(kbId, docId, meta)
+      return true
     },
     onSuccess: onMutationSuccess,
   })

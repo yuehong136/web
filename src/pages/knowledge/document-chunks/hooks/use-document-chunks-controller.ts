@@ -30,6 +30,7 @@ export const useDocumentChunksController = (
   const resetEditForm = editForm.reset
   const selectedChunkId = editForm.selectedChunk?.chunk_id
   const actions = useChunkActions({
+    kbId: list.kbId,
     docId: list.docId,
     onMutationSuccess: list.delayedRefetchChunkList,
     onBulkMutationSuccess: clearSelection,
