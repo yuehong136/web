@@ -919,6 +919,10 @@ export default {
     tokenChunker: 'Token Chunker',
     tokenChunkerDescription:
       'Split text into chunks by token length with optional delimiters and overlap.',
+    tokenSize: 'Token Size',
+    one: 'One',
+    oneChunkTitle: 'One chunk',
+    oneChunkDescription: 'Keep the upstream document content as one chunk.',
     titleChunker: 'Title Chunker',
     titleChunkerDescription:
       'Split documents into sections by title hierarchy. Define heading levels with regex rules, then choose Hierarchy or Group mode to control how chunks are structured.',

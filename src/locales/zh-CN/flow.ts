@@ -1010,6 +1010,10 @@ export default {
     tokenChunker: '按 Token 分块',
     tokenChunkerDescription:
       '按 token 长度、分隔符或单块模式将文本切分为文档块。',
+    tokenSize: 'Token 数',
+    one: '单块',
+    oneChunkTitle: '单块模式',
+    oneChunkDescription: '上游文档内容将按原始顺序合并为一个分块。',
     titleChunker: '按标题分块',
     titleChunkerDescription:
       '按标题层级将文档切分为章节，并可用正则规则选择层级或分组方式。',
