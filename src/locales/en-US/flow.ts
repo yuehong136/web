@@ -32,6 +32,10 @@ export default {
     codeRunInspector: 'Code run inspector',
     codeRunInspectorTip:
       'Business value, type metadata, logs, and raw payload from this run.',
+    codeContractError: 'Return type mismatch',
+    codeExecutionError: 'Execution error',
+    applyActualCodeOutputType: 'Use actual type: {{type}}',
+    codeOutputTypeUpdated: 'Output type updated to {{type}}',
     businessOutput: 'Business output',
     businessOutputTip: 'The value returned by main().',
     businessOutputValue: 'Business output value',
@@ -44,6 +48,8 @@ export default {
     empty: 'Empty',
     emptyValue: 'No value',
     rawResult: 'Raw result',
+    attachments: 'Attachments',
+    codeAttachmentsTip: 'Files produced by this code run.',
     rawComponentOutput: 'Raw component output',
     noSystemOutputs: 'No system outputs',
     codeReturnValue: 'Return value',
@@ -61,6 +67,17 @@ export default {
       'Runtime metadata for logs, type checks, raw result, and attachments.',
     codeMainReturnTip:
       'Return a JSON-serializable value from main(). It will be exposed as the single business output below.',
+    codeTemplate: 'Template',
+    codeTemplateTip:
+      'Templates update the code body and the declared return type together.',
+    codeTemplateStringResult: 'Return string',
+    codeTemplateObjectResult: 'Return object',
+    codeTemplateCsvArtifact: 'Generate artifact',
+    codeParameterPreview: 'Parameter preview',
+    codeJsRuntimeArgsHint: 'JavaScript receives this object as main(args).',
+    codePythonRuntimeArgsHint: 'Python receives these keys as main(**args).',
+    codeReturnTypeContractHint:
+      'The value returned by main() must match {{type}}. Use the template selector above to switch both code and output type together.',
     codeRuntimeShape: 'Runtime shape',
     codeRuntimeShapeTip:
       'Downstream nodes see the same contract that the runtime validates.',

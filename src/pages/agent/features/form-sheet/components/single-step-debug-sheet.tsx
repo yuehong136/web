@@ -16,7 +16,10 @@ import {
   AlertCircle,
   Braces,
   CheckCircle2,
+  ExternalLink,
   FileText,
+  Paperclip,
+  Wrench,
   X,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -25,9 +28,14 @@ import { buildBeginInputListFromObject } from '../../../hooks/use-get-begin-quer
 import useGraphStore from '../../../store'
 import type { BeginQuery } from '../../../types'
 import { coerceBeginInputOrder } from '../../../utils/begin-input-order'
-import { deserializeCodeOutputContract } from '../../../utils/code-outputs'
+import {
+  deserializeCodeOutputContract,
+  serializeCodeOutputContract,
+} from '../../../utils/code-outputs'
 import { TraceJsonViewer } from '../../trace-workbench/components/trace-json-viewer'
 import {
+  CodeExecDebugStatus,
+  parseCodeExecAttachmentLink,
   groupCodeExecDebugOutput,
   shouldUseCodeExecDebugLayout,
 } from '../utils'
@@ -58,22 +66,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
 }
 
-function isEmptyDebugValue(value: unknown) {
-  if (value === undefined || value === null || value === '') {
-    return true
-  }
-
-  if (Array.isArray(value)) {
-    return value.length === 0
-  }
-
-  if (typeof value === 'object') {
-    return Object.keys(value).length === 0
-  }
-
-  return false
-}
-
 function resolveDebugPayload(result: unknown) {
   if (!isRecord(result)) {
     return result
@@ -90,6 +82,18 @@ function resolveDebugPayload(result: unknown) {
   return result
 }
 
+function getCodeExecPayloadError(result: unknown) {
+  const payload = resolveDebugPayload(result)
+
+  if (!isRecord(payload)) {
+    return ''
+  }
+
+  const error = payload._ERROR
+
+  return typeof error === 'string' ? error.trim() : ''
+}
+
 function DebugMetric({
   label,
   value,
@@ -103,8 +107,8 @@ function DebugMetric({
     <div
       className={cn(
         'rounded-radius-md bg-surface-primary px-space-sm py-space-xs min-w-0 border',
-        tone === 'success' && 'border-status-success-border',
-        tone === 'error' && 'border-status-error-border',
+        tone === 'success' && 'border-status-success',
+        tone === 'error' && 'border-status-error',
         tone === 'default' && 'border-border-subtle',
       )}
     >
@@ -113,6 +117,130 @@ function DebugMetric({
         {value || '-'}
       </div>
     </div>
+  )
+}
+
+function CodeExecErrorPanel({
+  grouped,
+  onApplyActualType,
+}: {
+  grouped: ReturnType<typeof groupCodeExecDebugOutput>
+  onApplyActualType: () => void
+}) {
+  const { t } = useTranslation()
+  const canApplyActualType =
+    grouped.status === CodeExecDebugStatus.ContractError &&
+    Boolean(grouped.suggestedType)
+
+  if (!grouped.errorMessage) {
+    return null
+  }
+
+  return (
+    <section className="rounded-radius-lg p-space-base border border-status-error bg-status-error-subtle">
+      <div className="gap-space-sm flex items-start">
+        <AlertCircle className="mt-0.5 size-4 shrink-0 text-status-error" />
+        <div className="space-y-space-sm min-w-0 flex-1">
+          <div>
+            <h5 className="text-sm font-semibold text-status-error">
+              {grouped.status === CodeExecDebugStatus.ContractError
+                ? t('flow.codeContractError', 'Return type mismatch')
+                : t('flow.codeExecutionError', 'Execution error')}
+            </h5>
+            <p className="break-words text-sm leading-6 text-status-error">
+              {grouped.errorMessage}
+            </p>
+          </div>
+
+          {grouped.contractMismatch ? (
+            <div className="gap-space-sm grid sm:grid-cols-2">
+              <DebugMetric
+                label={t('flow.expectedType', 'Expected type')}
+                value={grouped.contractMismatch.expectedType}
+                tone="error"
+              />
+              <DebugMetric
+                label={t('flow.actualType', 'Actual type')}
+                value={grouped.contractMismatch.actualType}
+                tone="error"
+              />
+            </div>
+          ) : null}
+
+          {canApplyActualType ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="gap-space-xs"
+              onClick={onApplyActualType}
+            >
+              <Wrench className="size-4" />
+              {t(
+                'flow.applyActualCodeOutputType',
+                'Use actual type: {{type}}',
+                { type: grouped.suggestedType },
+              )}
+            </Button>
+          ) : null}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function CodeExecAttachmentList({ attachments }: { attachments: string[] }) {
+  const { t } = useTranslation()
+
+  if (attachments.length === 0) {
+    return null
+  }
+
+  return (
+    <section className="rounded-radius-lg bg-surface-secondary p-space-base border border-border-subtle">
+      <div className="mb-space-sm gap-space-sm flex items-center">
+        <span className="rounded-radius-md flex size-8 shrink-0 items-center justify-center bg-components-system-accent-soft text-components-system-accent-text">
+          <Paperclip className="size-4" />
+        </span>
+        <div className="min-w-0">
+          <h5 className="text-sm font-semibold text-text-primary">
+            {t('flow.attachments', 'Attachments')}
+          </h5>
+          <p className="text-xs leading-5 text-text-secondary">
+            {t('flow.codeAttachmentsTip', 'Files produced by this code run.')}
+          </p>
+        </div>
+      </div>
+
+      <div className="space-y-space-xs">
+        {attachments.map((attachment, index) => {
+          const link = parseCodeExecAttachmentLink(attachment)
+
+          return (
+            <div
+              key={`${attachment}-${index}`}
+              className="rounded-radius-md bg-surface-primary px-space-sm py-space-xs border border-border-subtle text-sm"
+            >
+              {link.href ? (
+                <a
+                  className="gap-space-xs flex min-w-0 items-center text-components-system-accent-text hover:underline"
+                  href={link.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <span className="truncate">{link.label}</span>
+                  <ExternalLink className="size-3.5 shrink-0" />
+                </a>
+              ) : (
+                <span className="break-words text-text-primary">
+                  {link.label}
+                </span>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </section>
   )
 }
 
@@ -125,6 +253,7 @@ function CodeExecDebugInspector({
 }) {
   const { t } = useTranslation()
   const node = useGraphStore((state) => state.getNode(componentId))
+  const updateNodeForm = useGraphStore((state) => state.updateNodeForm)
   const debugPayload = resolveDebugPayload(result)
   const debugData = isRecord(debugPayload) ? debugPayload : undefined
   const formData = isRecord(node?.data?.form)
@@ -138,15 +267,37 @@ function CodeExecDebugInspector({
     () => groupCodeExecDebugOutput(debugData, contract),
     [contract, debugData],
   )
-  const hasError = !isEmptyDebugValue(grouped.systemOutputs._ERROR)
-  const hasPayload = !isEmptyDebugValue(debugPayload)
+  const hasError =
+    grouped.status === CodeExecDebugStatus.ExecutionError ||
+    grouped.status === CodeExecDebugStatus.ContractError
+  const hasPayload = grouped.status !== CodeExecDebugStatus.Empty
+
+  const handleApplyActualType = useCallback(() => {
+    if (!componentId || !grouped.suggestedType) {
+      return
+    }
+
+    updateNodeForm(
+      componentId,
+      serializeCodeOutputContract({
+        name: contract.name,
+        type: grouped.suggestedType,
+      }),
+      ['outputs'],
+    )
+    toast.success(
+      t('flow.codeOutputTypeUpdated', 'Output type updated to {{type}}', {
+        type: grouped.suggestedType,
+      }),
+    )
+  }, [componentId, contract.name, grouped.suggestedType, t, updateNodeForm])
 
   return (
     <div className="mt-space-md space-y-space-base">
       <section
         className={cn(
           'rounded-radius-lg bg-surface-secondary p-space-base border',
-          hasError ? 'border-status-error-border' : 'border-border-subtle',
+          hasError ? 'border-status-error' : 'border-border-subtle',
         )}
       >
         <div className="mb-space-base gap-space-base flex items-start justify-between">
@@ -155,8 +306,8 @@ function CodeExecDebugInspector({
               className={cn(
                 'rounded-radius-md mt-0.5 flex size-9 shrink-0 items-center justify-center',
                 hasError
-                  ? 'bg-status-error-bg text-status-error-text'
-                  : 'bg-status-success-bg text-status-success-text',
+                  ? 'bg-status-error-subtle text-status-error'
+                  : 'bg-status-success-subtle text-status-success',
               )}
             >
               {hasError ? (
@@ -180,7 +331,9 @@ function CodeExecDebugInspector({
           <Badge variant={hasError ? 'destructive' : 'success'}>
             {hasError
               ? t('flow.failed', 'Failed')
-              : t('flow.succeeded', 'Succeeded')}
+              : hasPayload
+                ? t('flow.succeeded', 'Succeeded')
+                : t('flow.empty', 'Empty')}
           </Badge>
         </div>
 
@@ -212,6 +365,11 @@ function CodeExecDebugInspector({
         </div>
       </section>
 
+      <CodeExecErrorPanel
+        grouped={grouped}
+        onApplyActualType={handleApplyActualType}
+      />
+
       {grouped.hasBusinessOutput ? (
         <TraceJsonViewer
           title={t('flow.businessOutputValue', 'Business output value')}
@@ -221,6 +379,8 @@ function CodeExecDebugInspector({
           height={260}
         />
       ) : null}
+
+      <CodeExecAttachmentList attachments={grouped.attachments} />
 
       <TraceJsonViewer
         title={t('flow.rawResult', 'Raw result')}
@@ -323,8 +483,11 @@ export function SingleStepDebugSheet({
         responseMeta.retcode === 0 ||
         responseMeta.code === 0 ||
         responseMeta.ok === true
+      const codeExecError = getCodeExecPayloadError(response)
 
-      if (ok) {
+      if (codeExecError) {
+        toast.error(codeExecError)
+      } else if (ok) {
         toast.success(
           t('flow.singleStepDebugStarted', 'Single-node debug started'),
         )

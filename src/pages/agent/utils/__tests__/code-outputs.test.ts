@@ -1,6 +1,11 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { JsonSchemaDataType } from '../../constant'
+import {
+  CodeTemplateStrMap,
+  JsonSchemaDataType,
+  ProgrammingLanguage,
+  initialCodeValues,
+} from '../../constant'
 import {
   CodeActualTypeOutputKey,
   CodeAttachmentsOutputKey,
@@ -13,6 +18,43 @@ import {
   isValidCodeOutputName,
   serializeCodeOutputContract,
 } from '../code-outputs'
+import { CodeTemplateId, CodeTemplatePresetMap } from '../code-templates'
+
+test('default CodeExec template returns the declared string output type', () => {
+  assert.equal(initialCodeValues.outputs.result.type, JsonSchemaDataType.String)
+  assert.match(
+    CodeTemplateStrMap[ProgrammingLanguage.Python],
+    /return "success"/,
+  )
+  assert.doesNotMatch(
+    CodeTemplateStrMap[ProgrammingLanguage.Python],
+    /return\s+\{/,
+  )
+})
+
+test('default JavaScript CodeExec template matches main(args) runtime', () => {
+  const script = CodeTemplateStrMap[ProgrammingLanguage.JavaScript]
+
+  assert.match(script, /function main\(args\)/)
+  assert.match(script, /module\.exports\s*=\s*\{\s*main\s*\}/)
+  assert.doesNotMatch(script, /function main\(arg1,\s*arg2\)/)
+  assert.doesNotMatch(script, /process\.argv/)
+})
+
+test('CodeExec template presets declare matching output types', () => {
+  assert.equal(
+    CodeTemplatePresetMap[CodeTemplateId.StringResult].outputType,
+    JsonSchemaDataType.String,
+  )
+  assert.equal(
+    CodeTemplatePresetMap[CodeTemplateId.ObjectResult].outputType,
+    JsonSchemaDataType.Object,
+  )
+  assert.equal(
+    CodeTemplatePresetMap[CodeTemplateId.CsvArtifact].language,
+    ProgrammingLanguage.Python,
+  )
+})
 
 test('getCodeNodeOutputs adds CodeExec panel system outputs', () => {
   const outputs = getCodeNodeOutputs({

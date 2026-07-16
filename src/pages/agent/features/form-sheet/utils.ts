@@ -6,6 +6,7 @@ import { Operator, type Operator as OperatorType } from '../../constant'
 import { getOperatorDefinition } from '../../operators'
 import type { RAGFlowNodeType } from '../../types'
 import {
+  CodeActualTypeOutputKey,
   CodeAttachmentsOutputKey,
   CodeContentOutputKey,
   type CodeOutputContract,
@@ -49,9 +50,32 @@ interface LegacyMcpConfig {
 const CODE_EXEC_DEBUG_SYSTEM_OUTPUT_NAMES = new Set([
   '_ERROR',
   '_ARTIFACTS',
+  CodeActualTypeOutputKey,
+  CodeContentOutputKey,
+  CodeRawResultOutputKey,
   CodeAttachmentsOutputKey,
   '_ATTACHMENT_CONTENT',
 ])
+
+export const CodeExecDebugStatus = {
+  Succeeded: 'succeeded',
+  ExecutionError: 'execution_error',
+  ContractError: 'contract_error',
+  Empty: 'empty',
+} as const
+
+export type CodeExecDebugStatus =
+  (typeof CodeExecDebugStatus)[keyof typeof CodeExecDebugStatus]
+
+export type CodeExecContractMismatch = {
+  expectedType: string
+  actualType: string
+}
+
+export type CodeExecAttachmentLink = {
+  label: string
+  href?: string
+}
 
 export type GroupedCodeExecDebugOutput = {
   businessOutputName: string
@@ -61,7 +85,103 @@ export type GroupedCodeExecDebugOutput = {
   actualType: string
   rawResult: unknown
   content: string
+  errorMessage: string
+  status: CodeExecDebugStatus
+  contractMismatch?: CodeExecContractMismatch
+  suggestedType?: string
+  attachments: string[]
   systemOutputs: Record<string, unknown>
+}
+
+const CODE_EXEC_CONTRACT_TYPE_MAP: Record<string, string> = {
+  string: 'string',
+  number: 'number',
+  boolean: 'boolean',
+  object: 'object',
+  array: 'array',
+  'array<string>': 'array<string>',
+  'array<number>': 'array<number>',
+  'array<boolean>': 'array<boolean>',
+  'array<object>': 'array<object>',
+}
+
+function isEmptyDebugPayload(source: Record<string, unknown>) {
+  return Object.keys(source).length === 0
+}
+
+function normalizeErrorMessage(value: unknown) {
+  return typeof value === 'string' ? value.trim() : ''
+}
+
+function normalizeCodeExecTypeName(value: string) {
+  return value
+    .trim()
+    .replace(/\s+/g, '')
+    .replace(/^Array<(.+)>$/i, (_, inner: string) => `array<${inner}>`)
+    .toLowerCase()
+}
+
+export function normalizeCodeExecActualTypeForContract(
+  actualType: string,
+): string | undefined {
+  const normalized = normalizeCodeExecTypeName(actualType)
+
+  return CODE_EXEC_CONTRACT_TYPE_MAP[normalized]
+}
+
+export function parseCodeExecContractMismatch(
+  errorMessage: string,
+): CodeExecContractMismatch | undefined {
+  const match = errorMessage.match(
+    /expected type\s+([^,]+),\s+got\s+([^\s.]+)/i,
+  )
+
+  if (!match) {
+    return undefined
+  }
+
+  return {
+    expectedType: match[1].trim(),
+    actualType: match[2].trim(),
+  }
+}
+
+function normalizeAttachments(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return []
+  }
+
+  return value.filter((item): item is string => typeof item === 'string')
+}
+
+function isSafeAttachmentHref(href: string) {
+  return href.startsWith('/') || /^https?:\/\//i.test(href)
+}
+
+export function parseCodeExecAttachmentLink(
+  attachment: string,
+): CodeExecAttachmentLink {
+  const markdownMatch = attachment.match(/!?\[([^\]]+)\]\(([^)]+)\)/)
+
+  if (markdownMatch) {
+    const href = markdownMatch[2].trim()
+
+    return {
+      label: markdownMatch[1].trim() || href,
+      href: isSafeAttachmentHref(href) ? href : undefined,
+    }
+  }
+
+  const value = attachment.trim()
+
+  if (isSafeAttachmentHref(value)) {
+    return {
+      label: value.split('/').pop() || value,
+      href: value,
+    }
+  }
+
+  return { label: value || attachment }
 }
 
 function normalizeOperator(value?: string): OperatorType | undefined {
@@ -165,6 +285,19 @@ export function groupCodeExecDebugOutput(
 ): GroupedCodeExecDebugOutput {
   const source = data ?? {}
   const hasContractValue = contract.name in source
+  const errorMessage = normalizeErrorMessage(source._ERROR)
+  const contractMismatch = parseCodeExecContractMismatch(errorMessage)
+  const actualType = String(
+    source[CodeActualTypeOutputKey] ?? contractMismatch?.actualType ?? '',
+  )
+  const status = errorMessage
+    ? contractMismatch
+      ? CodeExecDebugStatus.ContractError
+      : CodeExecDebugStatus.ExecutionError
+    : isEmptyDebugPayload(source)
+      ? CodeExecDebugStatus.Empty
+      : CodeExecDebugStatus.Succeeded
+  const attachments = normalizeAttachments(source[CodeAttachmentsOutputKey])
 
   return {
     businessOutputName: contract.name,
@@ -172,11 +305,18 @@ export function groupCodeExecDebugOutput(
     hasBusinessOutput:
       hasContractValue || source[CodeRawResultOutputKey] !== undefined,
     expectedType: contract.type,
-    actualType: String(source.actual_type ?? ''),
+    actualType,
     rawResult:
       source[CodeRawResultOutputKey] ??
       (hasContractValue ? source[contract.name] : undefined),
     content: String(source[CodeContentOutputKey] ?? ''),
+    errorMessage,
+    status,
+    contractMismatch,
+    suggestedType: contractMismatch
+      ? normalizeCodeExecActualTypeForContract(contractMismatch.actualType)
+      : undefined,
+    attachments,
     systemOutputs: Object.fromEntries(
       Object.entries(source).filter(([key]) =>
         CODE_EXEC_DEBUG_SYSTEM_OUTPUT_NAMES.has(key),

@@ -5,10 +5,14 @@ import { Operator } from '../../../constant'
 import { buildGraphNode } from '../../../operators'
 import { getOperatorDefinition } from '../../../operators/registry'
 import {
+  CodeExecDebugStatus,
   canShowSingleStepDebug,
   groupCodeExecDebugOutput,
   isFormSheetTitleEditable,
   MCP_FORM_RENDERER_KEY,
+  normalizeCodeExecActualTypeForContract,
+  parseCodeExecAttachmentLink,
+  parseCodeExecContractMismatch,
   resolveFormSheetDescription,
   resolveFormSheetIconKey,
   resolveLegacyRendererKey,
@@ -93,9 +97,14 @@ test('groupCodeExecDebugOutput separates business value and system outputs', () 
   assert.equal(grouped.actualType, 'object')
   assert.deepEqual(grouped.rawResult, { ok: true })
   assert.equal(grouped.content, 'printed log')
+  assert.equal(grouped.status, CodeExecDebugStatus.Succeeded)
+  assert.deepEqual(grouped.attachments, ['chart.png'])
   assert.deepEqual(grouped.systemOutputs, {
     _ERROR: '',
     _ARTIFACTS: ['chart.png'],
+    actual_type: 'object',
+    raw_result: { ok: true },
+    content: 'printed log',
     attachments: ['chart.png'],
     _ATTACHMENT_CONTENT: [{ name: 'chart.png' }],
   })
@@ -118,6 +127,88 @@ test('groupCodeExecDebugOutput falls back to raw_result when business key is abs
   assert.equal(grouped.businessOutputValue, undefined)
   assert.equal(grouped.hasBusinessOutput, true)
   assert.deepEqual(grouped.rawResult, [1, 2, 3])
+  assert.equal(grouped.status, CodeExecDebugStatus.Succeeded)
+})
+
+test('CodeExec debug output treats _ERROR as a failed run', () => {
+  const grouped = groupCodeExecDebugOutput(
+    {
+      result: null,
+      _ERROR: 'Exception executing code',
+      actual_type: '',
+      raw_result: null,
+      attachments: [],
+    },
+    {
+      name: 'result',
+      type: 'string',
+    },
+  )
+
+  assert.equal(grouped.status, CodeExecDebugStatus.ExecutionError)
+  assert.equal(grouped.errorMessage, 'Exception executing code')
+  assert.equal(grouped.suggestedType, undefined)
+})
+
+test('CodeExec execution errors do not suggest output type changes', () => {
+  const grouped = groupCodeExecDebugOutput(
+    {
+      result: null,
+      _ERROR: 'Exception executing code',
+      actual_type: 'Object',
+      raw_result: { partial: true },
+    },
+    {
+      name: 'result',
+      type: 'string',
+    },
+  )
+
+  assert.equal(grouped.status, CodeExecDebugStatus.ExecutionError)
+  assert.equal(grouped.actualType, 'Object')
+  assert.equal(grouped.suggestedType, undefined)
+})
+
+test('CodeExec contract mismatch extracts expected and actual types', () => {
+  const message =
+    'CodeExec contract mismatch at value: expected type String, got Object'
+  const mismatch = parseCodeExecContractMismatch(message)
+  const grouped = groupCodeExecDebugOutput(
+    {
+      result: null,
+      _ERROR: message,
+      actual_type: 'Object',
+      raw_result: { result: 'success' },
+    },
+    {
+      name: 'result',
+      type: 'string',
+    },
+  )
+
+  assert.deepEqual(mismatch, {
+    expectedType: 'String',
+    actualType: 'Object',
+  })
+  assert.equal(grouped.status, CodeExecDebugStatus.ContractError)
+  assert.deepEqual(grouped.contractMismatch, mismatch)
+  assert.equal(grouped.suggestedType, 'object')
+  assert.equal(normalizeCodeExecActualTypeForContract('Object'), 'object')
+})
+
+test('CodeExec attachment strings are normalized into safe links', () => {
+  assert.deepEqual(
+    parseCodeExecAttachmentLink(
+      '[Download result.csv](/v1/document/artifact/a)',
+    ),
+    {
+      label: 'Download result.csv',
+      href: '/v1/document/artifact/a',
+    },
+  )
+  assert.deepEqual(parseCodeExecAttachmentLink('javascript:alert(1)'), {
+    label: 'javascript:alert(1)',
+  })
 })
 
 test('tool context resolves legacy tool metadata and MCP context separately', () => {

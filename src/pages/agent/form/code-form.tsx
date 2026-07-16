@@ -24,6 +24,7 @@ import {
   type ReactNode,
   useCallback,
   useEffect,
+  useId,
   useMemo,
   useState,
 } from 'react'
@@ -38,6 +39,7 @@ import {
   initialCodeValues,
 } from '../constant'
 import { useFormValues } from '../hooks/use-form-values'
+import { useSyncCodeOutputs } from '../hooks/use-sync-code-outputs'
 import { useWatchFormChange } from '../hooks/use-watch-form-change'
 import type { INextOperatorForm } from '../types'
 import {
@@ -50,6 +52,7 @@ import {
   isValidCodeOutputName,
   serializeCodeOutputContract,
 } from '../utils/code-outputs'
+import { CodeTemplateId, CodeTemplatePresetMap } from '../utils/code-templates'
 import { FormWrapper, Output, transferOutputs } from './components'
 
 const schema = z.object({
@@ -70,6 +73,63 @@ const codeOutputTypeOptions = [
   TypesWithArray.ArrayBoolean,
   TypesWithArray.ArrayObject,
 ]
+
+const codeTemplateIds = [
+  CodeTemplateId.StringResult,
+  CodeTemplateId.ObjectResult,
+  CodeTemplateId.CsvArtifact,
+]
+
+type CodeTemplateIdValue = (typeof CodeTemplateId)[keyof typeof CodeTemplateId]
+type ProgrammingLanguageValue =
+  (typeof ProgrammingLanguage)[keyof typeof ProgrammingLanguage]
+
+function getCodeTemplateLabel(
+  templateId: CodeTemplateIdValue,
+  t: ReturnType<typeof useTranslation>['t'],
+) {
+  const labels: Record<CodeTemplateIdValue, string> = {
+    [CodeTemplateId.StringResult]: t(
+      'flow.codeTemplateStringResult',
+      'Return string',
+    ),
+    [CodeTemplateId.ObjectResult]: t(
+      'flow.codeTemplateObjectResult',
+      'Return object',
+    ),
+    [CodeTemplateId.CsvArtifact]: t(
+      'flow.codeTemplateCsvArtifact',
+      'Generate artifact',
+    ),
+  }
+
+  return labels[templateId]
+}
+
+function getLanguageRuntimeHint(
+  language: string | undefined,
+  t: ReturnType<typeof useTranslation>['t'],
+) {
+  if (language === ProgrammingLanguage.JavaScript) {
+    return t(
+      'flow.codeJsRuntimeArgsHint',
+      'JavaScript receives this object as main(args).',
+    )
+  }
+
+  return t(
+    'flow.codePythonRuntimeArgsHint',
+    'Python receives these keys as main(**args).',
+  )
+}
+
+function stringifyPreview(value: unknown) {
+  try {
+    return JSON.stringify(value ?? {}, null, 2)
+  } catch {
+    return '{}'
+  }
+}
 
 function SectionHeader({
   icon,
@@ -127,6 +187,8 @@ function ReturnValueEditor({
     [outputs],
   )
   const [draft, setDraft] = useReturnValueDraft(contract)
+  const outputNameId = useId()
+  const outputTypeId = useId()
   const isNameValid = isValidCodeOutputName(draft.name)
 
   const commit = useCallback(
@@ -184,10 +246,12 @@ function ReturnValueEditor({
 
       <div className="gap-space-base grid sm:grid-cols-[minmax(0,1fr)_11rem]">
         <div className="space-y-space-xs">
-          <label className="text-sm text-text-secondary">
+          <div className="text-sm text-text-secondary">
             {t('flow.outputName', 'Output name')}
-          </label>
+          </div>
           <Input
+            id={outputNameId}
+            aria-label={t('flow.outputName', 'Output name')}
             value={draft.name}
             inputSize="sm"
             onChange={handleNameChange}
@@ -203,11 +267,15 @@ function ReturnValueEditor({
         </div>
 
         <div className="space-y-space-xs">
-          <label className="text-sm text-text-secondary">
+          <div className="text-sm text-text-secondary">
             {t('flow.outputType', 'Type')}
-          </label>
+          </div>
           <Select value={draft.type} onValueChange={handleTypeChange}>
-            <SelectTrigger className="h-10">
+            <SelectTrigger
+              id={outputTypeId}
+              aria-label={t('flow.outputType', 'Type')}
+              className="h-10"
+            >
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -220,6 +288,78 @@ function ReturnValueEditor({
           </Select>
         </div>
       </div>
+
+      <p className="rounded-radius-md bg-surface-secondary px-space-sm py-space-xs border border-border-subtle text-xs leading-5 text-text-secondary">
+        {t(
+          'flow.codeReturnTypeContractHint',
+          'The value returned by main() must match {{type}}. Use the template selector above to switch both code and output type together.',
+          { type: draft.type },
+        )}
+      </p>
+    </section>
+  )
+}
+
+function CodeTemplateSelector({
+  value,
+  onApply,
+}: {
+  value: CodeTemplateIdValue
+  onApply: (templateId: CodeTemplateIdValue) => void
+}) {
+  const { t } = useTranslation()
+
+  return (
+    <FormItem>
+      <FormLabel>{t('flow.codeTemplate', 'Template')}</FormLabel>
+      <Select
+        value={value}
+        onValueChange={(nextValue) => onApply(nextValue as CodeTemplateIdValue)}
+      >
+        <SelectTrigger>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {codeTemplateIds.map((templateId) => (
+            <SelectItem key={templateId} value={templateId}>
+              {getCodeTemplateLabel(templateId, t)}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <FormDescription>
+        {t(
+          'flow.codeTemplateTip',
+          'Templates update the code body and the declared return type together.',
+        )}
+      </FormDescription>
+    </FormItem>
+  )
+}
+
+function ParameterPreview({
+  argumentsValue,
+  language,
+}: {
+  argumentsValue?: Record<string, unknown>
+  language?: string
+}) {
+  const { t } = useTranslation()
+  const preview = useMemo(
+    () => stringifyPreview(argumentsValue),
+    [argumentsValue],
+  )
+
+  return (
+    <section className="space-y-space-sm rounded-radius-lg bg-surface-secondary p-space-base border border-border-subtle">
+      <SectionHeader
+        icon={<Variable className="size-4" />}
+        title={t('flow.codeParameterPreview', 'Parameter preview')}
+        description={getLanguageRuntimeHint(language, t)}
+      />
+      <pre className="rounded-radius-md bg-surface-primary p-space-sm max-h-52 overflow-auto border border-border-subtle font-mono text-xs leading-5 text-text-primary">
+        {preview}
+      </pre>
     </section>
   )
 }
@@ -265,6 +405,8 @@ function CodeOutputOverview({ outputs }: { outputs?: CodeOutputMap }) {
 export function CodeForm({ node }: INextOperatorForm) {
   const { t } = useTranslation()
   const values = useFormValues(initialCodeValues, node)
+  const [selectedTemplateId, setSelectedTemplateId] =
+    useState<CodeTemplateIdValue>(CodeTemplateId.StringResult)
 
   const form = useForm({
     resolver: zodResolver(schema),
@@ -273,47 +415,116 @@ export function CodeForm({ node }: INextOperatorForm) {
 
   useWatchFormChange(node?.id, form)
 
+  const watchedLanguage = form.watch('lang') as ProgrammingLanguageValue
+  const watchedArguments = form.watch('arguments') as
+    | Record<string, unknown>
+    | undefined
   const watchedOutputs = form.watch('outputs') as CodeOutputMap | undefined
   const outputs = getCodeNodeOutputs(watchedOutputs)
+  const externalOutputs = values.outputs as CodeOutputMap | undefined
+  useSyncCodeOutputs(form, externalOutputs)
+
+  const applyTemplate = useCallback(
+    (
+      templateId: CodeTemplateIdValue,
+      nextLanguage?: ProgrammingLanguageValue,
+    ) => {
+      const preset = CodeTemplatePresetMap[templateId]
+      const preferredLanguage =
+        preset.language ??
+        nextLanguage ??
+        watchedLanguage ??
+        ProgrammingLanguage.Python
+      const script = preset.scripts[preferredLanguage]
+      const { contract } = deserializeCodeOutputContract({
+        outputs: form.getValues('outputs') as CodeOutputMap | undefined,
+      })
+
+      setSelectedTemplateId(templateId)
+      form.setValue('lang', preferredLanguage, {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: true,
+      })
+      form.setValue('script', script, {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: true,
+      })
+      form.setValue(
+        'outputs',
+        serializeCodeOutputContract({
+          name: contract.name,
+          type: preset.outputType,
+        }),
+        {
+          shouldDirty: true,
+          shouldTouch: true,
+          shouldValidate: true,
+        },
+      )
+    },
+    [form, watchedLanguage],
+  )
 
   return (
     <Form {...form}>
       <FormWrapper>
-        <FormField
-          control={form.control}
-          name="lang"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('flow.language', 'Language')}</FormLabel>
-              <FormControl>
-                <Select
-                  value={field.value}
-                  onValueChange={(val) => {
-                    field.onChange(val)
-                    const template =
-                      CodeTemplateStrMap[val as keyof typeof CodeTemplateStrMap]
-                    if (template) {
-                      form.setValue('script', template)
-                    }
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={ProgrammingLanguage.Python}>
-                      Python
-                    </SelectItem>
-                    <SelectItem value={ProgrammingLanguage.JavaScript}>
-                      JavaScript
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="gap-space-base grid sm:grid-cols-2">
+          <FormField
+            control={form.control}
+            name="lang"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('flow.language', 'Language')}</FormLabel>
+                <FormControl>
+                  <Select
+                    value={field.value}
+                    onValueChange={(val) => {
+                      const nextLanguage = val as ProgrammingLanguageValue
+                      field.onChange(nextLanguage)
+                      const nextTemplateId =
+                        selectedTemplateId === CodeTemplateId.CsvArtifact
+                          ? CodeTemplateId.StringResult
+                          : selectedTemplateId
+                      const template =
+                        CodeTemplatePresetMap[nextTemplateId].scripts[
+                          nextLanguage
+                        ] ?? CodeTemplateStrMap[nextLanguage]
+
+                      setSelectedTemplateId(nextTemplateId)
+                      if (template) {
+                        form.setValue('script', template, {
+                          shouldDirty: true,
+                          shouldTouch: true,
+                          shouldValidate: true,
+                        })
+                      }
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={ProgrammingLanguage.Python}>
+                        Python
+                      </SelectItem>
+                      <SelectItem value={ProgrammingLanguage.JavaScript}>
+                        JavaScript
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <CodeTemplateSelector
+            value={selectedTemplateId}
+            onApply={(templateId) => applyTemplate(templateId)}
+          />
+        </div>
 
         <FormField
           control={form.control}
@@ -338,6 +549,11 @@ export function CodeForm({ node }: INextOperatorForm) {
               <FormMessage />
             </FormItem>
           )}
+        />
+
+        <ParameterPreview
+          argumentsValue={watchedArguments}
+          language={watchedLanguage}
         />
 
         <ReturnValueEditor

@@ -407,17 +407,17 @@ export const initialNoteValues = {
 export const ProgrammingLanguage = {
   Python: 'python',
   JavaScript: 'javascript',
-}
+} as const
 
 export const CodeTemplateStrMap = {
   [ProgrammingLanguage.Python]: `def main(arg1, arg2):
-    # Your code here
-    return {"result": "success"}`,
-  [ProgrammingLanguage.JavaScript]: `function main(arg1, arg2) {
-    // Your code here
-    return { result: "success" };
-}`,
+    return "success"`,
+  [ProgrammingLanguage.JavaScript]: `function main(args) {
+  return "success";
 }
+
+module.exports = { main };`,
+} as const
 
 export const initialCodeValues = {
   lang: ProgrammingLanguage.Python,
