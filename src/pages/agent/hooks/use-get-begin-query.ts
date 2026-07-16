@@ -220,22 +220,64 @@ export function useBuildGlobalWithBeginVariableOptions(): VariableOptionGroup[] 
   }, [beginOptions, data?.dsl?.globals])
 }
 
+export function filterDocGeneratorDownloadOutputOptions(
+  groups: VariableOptionGroup[],
+  allowDocGeneratorDownloadOutput: boolean,
+  getOperatorTypeFromId: (nodeId?: string | null) => string | undefined,
+): VariableOptionGroup[] {
+  if (allowDocGeneratorDownloadOutput) {
+    return groups
+  }
+
+  return groups.map((group) => ({
+    ...group,
+    options: group.options.filter((option) => {
+      const separatorIndex = option.value.indexOf('@')
+      if (separatorIndex < 0) {
+        return true
+      }
+
+      const sourceNodeId = option.value.slice(0, separatorIndex)
+      const output = option.value.slice(separatorIndex + 1)
+      return !(
+        output === 'download' &&
+        getOperatorTypeFromId(sourceNodeId) === Operator.DocGenerator
+      )
+    }),
+  }))
+}
+
 export function useBuildPromptVariableOptions(
   nodeId?: string,
 ): VariableOptionGroup[] {
   const clickedNodeId = useGraphStore((state) => state.clickedNodeId)
-  const upstreamOptions = useBuildNodeOutputOptions(nodeId || clickedNodeId)
+  const getOperatorTypeFromId = useGraphStore(
+    (state) => state.getOperatorTypeFromId,
+  )
+  const targetNodeId = nodeId || clickedNodeId
+  const upstreamOptions = useBuildNodeOutputOptions(targetNodeId)
   const globalWithBeginOptions = useBuildGlobalWithBeginVariableOptions()
   const conversationOptions = useBuildConversationVariableOptions()
 
-  return useMemo(
-    () => [
+  return useMemo(() => {
+    const groups = [
       ...globalWithBeginOptions,
       ...conversationOptions,
       ...upstreamOptions,
-    ],
-    [conversationOptions, globalWithBeginOptions, upstreamOptions],
-  )
+    ]
+
+    return filterDocGeneratorDownloadOutputOptions(
+      groups,
+      getOperatorTypeFromId(targetNodeId) === Operator.Message,
+      getOperatorTypeFromId,
+    )
+  }, [
+    conversationOptions,
+    getOperatorTypeFromId,
+    globalWithBeginOptions,
+    targetNodeId,
+    upstreamOptions,
+  ])
 }
 
 function normalizeVariableReference(value?: string) {

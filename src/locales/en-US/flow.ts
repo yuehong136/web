@@ -592,9 +592,8 @@ export default {
     messageDescription:
       'This component returns the final data output of the workflow along with predefined message content. ',
     noteDescription: 'Note',
-    pDFGenerator: 'Docs Generator',
-    pDFGeneratorDescription:
-      'A component that generates documents (PDF, DOCX, TXT) from markdown-formatted content with customizable styling, images, and tables. Supports: **bold**, *italic*, # headings, - lists, tables with | syntax.',
+    docGenerator: 'Doc Generator',
+    docGeneratorDescription: 'Generate a file from Markdown content.',
     hTMLReport: 'HTML Report',
     hTMLReportDescription:
       'Visually orchestrate a report skeleton — sections, blocks and charts — that renders to a self-contained HTML report page.',

@@ -53,7 +53,7 @@ export const Operator = {
   Email: 'Email',
   UserFillUp: 'UserFillUp',
   StringTransform: 'StringTransform',
-  PDFGenerator: 'PDFGenerator',
+  DocGenerator: 'DocGenerator',
   HTMLReport: 'HTMLReport',
   ExcelProcessor: 'ExcelProcessor',
 
@@ -135,7 +135,7 @@ export const NodeMap: Record<string, string> = {
   [Operator.Email]: 'ragNode',
   [Operator.UserFillUp]: 'ragNode',
   [Operator.StringTransform]: 'ragNode',
-  [Operator.PDFGenerator]: 'ragNode',
+  [Operator.DocGenerator]: 'ragNode',
   [Operator.HTMLReport]: 'ragNode',
   [Operator.ExcelProcessor]: 'ragNode',
   [Operator.DataOperations]: 'dataOperationsNode',
@@ -996,68 +996,19 @@ export const initialExcelProcessorValues = {
   },
 }
 
-// PDFGenerator节点初始值
-export const PDFGeneratorFontFamily = {
-  Helvetica: 'Helvetica',
-  TimesRoman: 'Times-Roman',
-  Courier: 'Courier',
-  HelveticaBold: 'Helvetica-Bold',
-  TimesBold: 'Times-Bold',
-} as const
-
-export const PDFGeneratorLogoPosition = {
-  Left: 'left',
-  Center: 'center',
-  Right: 'right',
-} as const
-
-export const PDFGeneratorPageSize = {
-  A4: 'A4',
-  Letter: 'Letter',
-} as const
-
-export const PDFGeneratorOrientation = {
-  Portrait: 'portrait',
-  Landscape: 'landscape',
-} as const
-
-export const initialPDFGeneratorValues = {
+// DocGenerator节点初始值
+export const initialDocGeneratorValues = {
   output_format: 'pdf',
   content: '',
-  title: '',
-  subtitle: '',
+  filename: '',
   header_text: '',
   footer_text: '',
-  logo_image: '',
-  logo_position: PDFGeneratorLogoPosition.Left,
-  logo_width: 2.0,
-  logo_height: 1.0,
-  font_family: PDFGeneratorFontFamily.Helvetica,
-  font_size: 12,
-  title_font_size: 24,
-  heading1_font_size: 18,
-  heading2_font_size: 16,
-  heading3_font_size: 14,
-  text_color: '#000000',
-  title_color: '#000000',
-  page_size: PDFGeneratorPageSize.A4,
-  orientation: PDFGeneratorOrientation.Portrait,
-  margin_top: 1.0,
-  margin_bottom: 1.0,
-  margin_left: 1.0,
-  margin_right: 1.0,
-  line_spacing: 1.2,
-  filename: '',
-  output_directory: '/tmp/pdf_outputs',
+  watermark_text: '',
   add_page_numbers: true,
   add_timestamp: true,
-  watermark_text: '',
-  enable_toc: false,
+  font_size: 12,
   outputs: {
-    file_path: { type: 'string' },
-    pdf_base64: { type: 'string' },
-    download: { type: 'string' },
-    success: { type: 'boolean' },
+    download: { type: 'string', value: '' },
   },
 }
 
@@ -1143,7 +1094,7 @@ export const RestrictedUpstreamMap: Record<string, Operator[]> = {
   [Operator.Email]: [Operator.Begin],
   [Operator.UserFillUp]: [Operator.Begin],
   [Operator.StringTransform]: [Operator.Begin],
-  [Operator.PDFGenerator]: [Operator.Begin],
+  [Operator.DocGenerator]: [Operator.Begin],
   [Operator.HTMLReport]: [Operator.Begin],
   [Operator.ExcelProcessor]: [Operator.Begin],
   [Operator.DataOperations]: [Operator.Begin],

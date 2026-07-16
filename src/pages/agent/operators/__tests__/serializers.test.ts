@@ -525,6 +525,64 @@ test('legacy chunker DSL is normalized before graph reconstruction', () => {
   )
 })
 
+test('legacy PDFGenerator DSL is normalized to DocGenerator', () => {
+  const legacyDsl = {
+    components: {
+      'PDFGenerator:report': {
+        obj: {
+          component_name: 'PDFGenerator',
+          params: { outputs: { download: { type: 'string' } } },
+        },
+        downstream: ['Message:answer'],
+        upstream: [],
+      },
+      'Message:answer': {
+        obj: {
+          component_name: 'Message',
+          params: { content: ['{PDFGenerator:report@download}'] },
+        },
+        downstream: [],
+        upstream: ['PDFGenerator:report'],
+      },
+    },
+    path: [['PDFGenerator:report', 'Message:answer']],
+    graph: {
+      nodes: [
+        {
+          id: 'PDFGenerator:report',
+          type: 'ragNode',
+          position: { x: 0, y: 0 },
+          data: {
+            label: 'PDFGenerator',
+            name: 'PDFGenerator',
+            form: {},
+          },
+        },
+      ],
+      edges: [],
+    },
+    history: [],
+    messages: [],
+    reference: [],
+    globals: {},
+    retrieval: [],
+  }
+
+  const normalized = normalizeLegacyChunkerDsl(legacyDsl)
+
+  assert.ok(normalized?.components?.['DocGenerator:report'])
+  assert.equal(
+    normalized?.components?.['DocGenerator:report']?.obj.component_name,
+    Operator.DocGenerator,
+  )
+  assert.deepEqual(normalized?.path, [
+    ['DocGenerator:report', 'Message:answer'],
+  ])
+  const messageParams = normalized?.components?.['Message:answer']?.obj
+    .params as { content?: string[] } | undefined
+  assert.equal(messageParams?.content?.[0], '{DocGenerator:report@download}')
+})
+
 test('rewrite question keeps ragflow b/c handle ids when graph is authoritative', () => {
   const beginNode = buildGraphNode(Operator.Begin, { id: BeginId })
   const rewriteNode = buildGraphNode(Operator.RewriteQuestion, {

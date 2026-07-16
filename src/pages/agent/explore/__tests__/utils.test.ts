@@ -122,6 +122,14 @@ test('explore maps persisted session messages to runtime messages', () => {
         role: 'assistant',
         content: 'answer',
         files: [{ id: 'f1', name: 'report.pdf' }],
+        downloads: [
+          {
+            doc_id: 'd1',
+            filename: 'generated.docx',
+            mime_type:
+              'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          },
+        ],
         reference: [{ id: 'chunk-1' }],
       },
     ],
@@ -130,5 +138,6 @@ test('explore maps persisted session messages to runtime messages', () => {
   assert.equal(messages[0]?.role, 'user')
   assert.equal(messages[1]?.role, 'assistant')
   assert.equal(messages[1]?.files?.[0]?.name, 'report.pdf')
+  assert.equal(messages[1]?.files?.[1]?.name, 'generated.docx')
   assert.deepEqual(messages[1]?.reference, [{ id: 'chunk-1' }])
 })

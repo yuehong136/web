@@ -257,10 +257,10 @@ export const agentOperatorRegistry: OperatorRegistry = {
       defaultName: 'String Transform',
     },
   ),
-  [LegacyOperator.PDFGenerator]: defineOperator(LegacyOperator.PDFGenerator, {
+  [LegacyOperator.DocGenerator]: defineOperator(LegacyOperator.DocGenerator, {
     category: AgentOperatorCategory.DATA,
     mode: AgentOperatorMode.SHARED,
-    defaultName: 'PDF Generator',
+    defaultName: 'Doc Generator',
   }),
   [LegacyOperator.HTMLReport]: defineOperator(LegacyOperator.HTMLReport, {
     category: AgentOperatorCategory.CONTENT,

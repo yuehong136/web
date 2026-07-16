@@ -4,6 +4,7 @@ import { Operator, type Operator as OperatorType } from '../constant'
 const LEGACY_COMPONENT_RENAMES: Record<string, OperatorType> = {
   Splitter: Operator.TokenChunker,
   HierarchicalMerger: Operator.TitleChunker,
+  PDFGenerator: Operator.DocGenerator,
 }
 const LEGACY_NODE_TYPE_RENAMES: Record<string, string> = {
   splitterNode: 'chunkerNode',

@@ -235,6 +235,7 @@ export interface AgentSessionMessage {
   role?: string
   content?: string
   files?: unknown[]
+  downloads?: unknown[]
   create_time?: number
   update_time?: number
   [key: string]: unknown

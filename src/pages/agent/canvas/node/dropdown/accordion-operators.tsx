@@ -128,7 +128,7 @@ export function AccordionOperators({
               Operator.Invoke,
               Operator.WenCai,
               Operator.SearXNG,
-              Operator.PDFGenerator,
+              Operator.DocGenerator,
               Operator.HTMLReport,
             ]}
             isCustomDropdown={isCustomDropdown}

@@ -56,7 +56,7 @@ const CONTROL_COMPONENT_TYPES = new Set<string>([
 const DATA_COMPONENT_TYPES = new Set<string>([
   Operator.ExeSQL,
   Operator.StringTransform,
-  Operator.PDFGenerator,
+  Operator.DocGenerator,
   Operator.HTMLReport,
   Operator.ExcelProcessor,
   Operator.DataOperations,

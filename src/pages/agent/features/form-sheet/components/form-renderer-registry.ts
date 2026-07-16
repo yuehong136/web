@@ -26,7 +26,7 @@ import { McpForm } from '../../../form/mcp-form'
 import { MessageForm } from '../../../form/message'
 import { ParserForm } from '../../../form/parser'
 import { HTMLReportForm } from '../../../form/html-report'
-import { PDFGeneratorForm } from '../../../form/pdf-generator'
+import { DocGeneratorForm } from '../../../form/doc-generator'
 import { PubMedForm } from '../../../form/pubmed'
 import { RelevantForm } from '../../../form/relevant-form'
 import { RetrievalForm } from '../../../form/retrieval'
@@ -79,7 +79,7 @@ export const migratedFormRenderers: Record<
   [Operator.TokenChunker]: TokenChunkerForm,
   [Operator.Extractor]: ExtractorForm,
   [Operator.TitleChunker]: TitleChunkerForm,
-  [Operator.PDFGenerator]: PDFGeneratorForm,
+  [Operator.DocGenerator]: DocGeneratorForm,
   [Operator.HTMLReport]: HTMLReportForm,
   [Operator.ExeSQL]: ExeSQLForm,
   [Operator.Crawler]: CrawlerForm,

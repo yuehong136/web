@@ -162,6 +162,55 @@ test('normalizeRuntimeAttachments handles upload payloads and scalar values', ()
   ])
 })
 
+test('normalizeRuntimeEvent merges document downloads into workflow attachments', () => {
+  const event = normalizeRuntimeEvent({
+    event: 'workflow_finished',
+    data: {
+      outputs: {
+        attachment: {
+          doc_id: 'attachment-1',
+          file_name: 'answer.md',
+          format: 'markdown',
+        },
+        downloads: [
+          {
+            doc_id: 'document-1',
+            filename: 'report.pdf',
+            mime_type: 'application/pdf',
+            size: 2048,
+          },
+        ],
+      },
+    },
+  })
+  const data = event.data as {
+    outputs?: { attachment?: unknown }
+  }
+
+  assert.deepEqual(normalizeRuntimeAttachments(data.outputs?.attachment), [
+    {
+      doc_id: 'attachment-1',
+      file_name: 'answer.md',
+      format: 'markdown',
+      name: 'answer.md',
+      type: 'markdown',
+      mimeType: undefined,
+      size: undefined,
+      url: undefined,
+    },
+    {
+      doc_id: 'document-1',
+      filename: 'report.pdf',
+      mime_type: 'application/pdf',
+      size: 2048,
+      name: 'report.pdf',
+      type: undefined,
+      mimeType: 'application/pdf',
+      url: undefined,
+    },
+  ])
+})
+
 test('normalizeRuntimeEvent extracts ids, log events, and runtime errors', () => {
   const logEvent = normalizeRuntimeEvent({
     event: 'node_finished',

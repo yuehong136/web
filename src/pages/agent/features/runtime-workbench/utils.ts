@@ -122,17 +122,45 @@ export const hideRawA2UICommandContent = (content: string) =>
   isRawA2UICommandContent(content) ? '' : content
 
 const normalizeEventData = (payload: RuntimeEventRecord): unknown => {
+  let data = payload.data
+
   if (
-    isRecord(payload.data) &&
-    isRecord(payload.data.data) &&
-    !('component_id' in payload.data) &&
-    !('content' in payload.data) &&
-    !('outputs' in payload.data)
+    isRecord(data) &&
+    isRecord(data.data) &&
+    !('component_id' in data) &&
+    !('content' in data) &&
+    !('outputs' in data)
   ) {
-    return payload.data.data
+    data = data.data
   }
 
-  return payload.data
+  if (
+    payload.event !== 'workflow_finished' ||
+    !isRecord(data) ||
+    !isRecord(data.outputs)
+  ) {
+    return data
+  }
+
+  const outputs = data.outputs
+  const attachments = Array.isArray(outputs.attachment)
+    ? outputs.attachment
+    : outputs.attachment
+      ? [outputs.attachment]
+      : []
+  const downloads = Array.isArray(outputs.downloads)
+    ? outputs.downloads
+    : outputs.downloads
+      ? [outputs.downloads]
+      : []
+
+  return {
+    ...data,
+    outputs: {
+      ...outputs,
+      attachment: [...attachments, ...downloads],
+    },
+  }
 }
 
 const extractRuntimeOutputContent = (data: unknown): string | undefined => {

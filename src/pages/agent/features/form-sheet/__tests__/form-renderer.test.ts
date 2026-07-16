@@ -20,7 +20,7 @@ import { VariableAssignerForm } from '../../../form/variable-assigner'
 import { ExtractorForm } from '../../../form/extractor'
 import { ExeSQLForm } from '../../../form/exesql'
 import { ParserForm } from '../../../form/parser'
-import { PDFGeneratorForm } from '../../../form/pdf-generator'
+import { DocGeneratorForm } from '../../../form/doc-generator'
 import { TitleChunkerForm } from '../../../form/title-chunker'
 import { TokenChunkerForm } from '../../../form/token-chunker'
 import { TokenizerForm } from '../../../form/tokenizer'
@@ -97,8 +97,8 @@ test('migrated operators resolve to directory modules in the form renderer', () 
     TitleChunkerForm,
   )
   assert.equal(
-    resolveFormRendererComponent(Operator.PDFGenerator),
-    PDFGeneratorForm,
+    resolveFormRendererComponent(Operator.DocGenerator),
+    DocGeneratorForm,
   )
   assert.equal(resolveFormRendererComponent(Operator.ExeSQL), ExeSQLForm)
   assert.equal(resolveFormRendererComponent(Operator.Crawler), CrawlerForm)
@@ -158,7 +158,7 @@ test('migrated operators resolve to directory modules in the form renderer', () 
   assert.equal(migratedFormRenderers[Operator.TokenChunker], TokenChunkerForm)
   assert.equal(migratedFormRenderers[Operator.Extractor], ExtractorForm)
   assert.equal(migratedFormRenderers[Operator.TitleChunker], TitleChunkerForm)
-  assert.equal(migratedFormRenderers[Operator.PDFGenerator], PDFGeneratorForm)
+  assert.equal(migratedFormRenderers[Operator.DocGenerator], DocGeneratorForm)
   assert.equal(migratedFormRenderers[Operator.ExeSQL], ExeSQLForm)
   assert.equal(migratedFormRenderers[Operator.Crawler], CrawlerForm)
   assert.equal(migratedFormRenderers[Operator.DuckDuckGo], DuckDuckGoForm)

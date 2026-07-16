@@ -140,7 +140,10 @@ export function mapSessionMessageToRuntimeMessage(
   index: number,
 ): RuntimeMessage {
   const record = message as Record<string, unknown>
-  const files = normalizeRuntimeAttachments(message.files)
+  const files = [
+    ...normalizeRuntimeAttachments(message.files),
+    ...normalizeRuntimeAttachments(message.downloads),
+  ]
   const a2ui = isRecord(record.a2ui) ? record.a2ui : undefined
   const xCardCommands = Array.isArray(a2ui?.commands)
     ? a2ui.commands.filter(
