@@ -828,13 +828,14 @@ export const knowledgeAPI = {
   // Metadata 管理
   metadata: {
     // 获取知识库 metadata 汇总 (聚合所有文档的 metadata)
+    // 已迁移到 RESTful GET /api/v1/datasets/{id}/metadata/summary，doc_ids 为逗号分隔 query 参数
     getSummary: (
       kbId: string,
       docIds?: string[],
     ): Promise<MetadataSummaryResponse> =>
-      apiClient.post('/v1/document/metadata/summary', {
-        kb_id: kbId,
-        ...(docIds?.length ? { doc_ids: docIds } : {}),
+      apiClient.get(`/v1/datasets/${kbId}/metadata/summary`, {
+        ...sdkBase,
+        params: docIds?.length ? { doc_ids: docIds.join(',') } : undefined,
       }),
 
     // 批量更新/删除 metadata 值
