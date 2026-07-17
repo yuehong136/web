@@ -246,6 +246,8 @@ export const knowledgeAPI = {
       apiClient.get(`/v1/document/get/${docId}`),
 
     // 上传文档
+    // 已迁移到 RESTful POST /api/v1/datasets/{dataset_id}/documents
+    // （响应为映射后键名：dataset_id/chunk_count/... + run，本处消费的字段不受影响）
     upload: (
       kbId: string,
       files: File[],
@@ -264,17 +266,18 @@ export const knowledgeAPI = {
         thumbnail?: string
         created_time: string
         status: string
+        run?: string
       }>
     > => {
-      // kb_id作为查询参数，其他作为FormData
       const uploadData: Record<string, any> = {
         ...options,
       }
 
       return apiClient.uploadMultiple(
-        `/v1/document/upload?kb_id=${kbId}`,
+        `/v1/datasets/${kbId}/documents`,
         files,
         uploadData,
+        sdkBase,
       )
     },
 
