@@ -1,5 +1,8 @@
 import { apiClient, type ApiEnvelope } from './client'
-import { API_BASE_URL } from '@/constants'
+import {
+  knowledgeRestConfig as sdkBase,
+  uploadDatasetDocuments,
+} from './knowledge-rest'
 import type {
   KnowledgeBase,
   DatasetDTO,
@@ -19,12 +22,6 @@ import type {
   MetadataCondition,
   IDocumentInfoFilter,
 } from '../types/api'
-
-/**
- * apiClient baseURL 覆盖，使请求走 RESTful `/api/v1/...`（对标 src/api/memory.ts）。
- * 最终 URL = `${API_BASE_URL}/api` + `/v1/datasets...`。
- */
-const sdkBase = { baseURL: `${API_BASE_URL}/api` }
 
 /**
  * 防腐层：RESTful dataset 传输 DTO → 前端稳定领域模型 KnowledgeBase。
@@ -245,41 +242,8 @@ export const knowledgeAPI = {
     get: (docId: string): Promise<Document> =>
       apiClient.get(`/v1/document/get/${docId}`),
 
-    // 上传文档
-    // 已迁移到 RESTful POST /api/v1/datasets/{dataset_id}/documents
-    // （响应为映射后键名：dataset_id/chunk_count/... + run，本处消费的字段不受影响）
-    upload: (
-      kbId: string,
-      files: File[],
-      options?: {
-        parser_id?: string
-        chunk_size?: number
-        chunk_overlap?: number
-        parser_config?: Record<string, any>
-      },
-    ): Promise<
-      Array<{
-        id: string
-        name: string
-        size: number
-        type: string
-        thumbnail?: string
-        created_time: string
-        status: string
-        run?: string
-      }>
-    > => {
-      const uploadData: Record<string, any> = {
-        ...options,
-      }
-
-      return apiClient.uploadMultiple(
-        `/v1/datasets/${kbId}/documents`,
-        files,
-        uploadData,
-        sdkBase,
-      )
-    },
+    // RESTful POST /api/v1/datasets/{dataset_id}/documents
+    upload: uploadDatasetDocuments,
 
     // 解析网页
     parseWeb: (data: ParseWebRequest): Promise<{ doc_id: string }> =>
