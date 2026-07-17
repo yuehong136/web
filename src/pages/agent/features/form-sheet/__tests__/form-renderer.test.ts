@@ -3,6 +3,7 @@ import test from 'node:test'
 import { Operator } from '../../../constant'
 import { AgentForm } from '../../../form/agent'
 import { BeginForm } from '../../../form/begin'
+import { CodeForm } from '../../../form/code-form'
 import { DataOperationsForm } from '../../../form/data-operations'
 import { InvokeForm } from '../../../form/invoke'
 import { IterationForm } from '../../../form/iteration'
@@ -178,6 +179,8 @@ test('migrated operators resolve to directory modules in the form renderer', () 
 })
 
 test('legacy operators and the MCP renderer stay on compatibility bridges', () => {
+  assert.equal(resolveFormRendererComponent(Operator.Code), CodeForm)
+  assert.equal(resolveFormRendererComponent(Operator.WaitingDialogue), CodeForm)
   assert.equal(resolveFormRendererComponent(Operator.Bing), BingForm)
   assert.equal(resolveFormRendererComponent(Operator.Email), EmailForm)
   assert.equal(resolveFormRendererComponent(MCP_FORM_RENDERER_KEY), McpForm)
