@@ -67,6 +67,15 @@ export default {
       'Runtime metadata for logs, type checks, raw result, and attachments.',
     codeMainReturnTip:
       'Return a JSON-serializable value from main(). It will be exposed as the single business output below.',
+    codeEditorTitle: 'Code editor',
+    codeEditorDescription:
+      'Edit the current Code node script in a focused workspace.',
+    codeEditorAriaLabel: '{{language}} code editor',
+    codeEditorLoading: 'Loading code editor…',
+    codeEditorExpand: 'Open wide code editor',
+    codeEditorCollapse: 'Return to node configuration',
+    codeEditorLineCount: 'Lines: {{count}}',
+    codeEditorEscapeHint: 'Return to node configuration',
     codeTemplate: 'Template',
     codeTemplateTip:
       'Templates update the code body and the declared return type together.',
