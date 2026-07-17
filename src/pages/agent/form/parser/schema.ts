@@ -8,6 +8,7 @@ export const parserSchema = z.object({
         suffix: z.array(z.string()).optional(),
         preprocess: z.array(z.string()).optional(),
         output_format: z.string().optional(),
+        flatten_media_to_text: z.boolean().optional(),
         parse_method: z.string().optional(),
         lang: z.string().optional(),
         fields: z.array(z.string()).optional(),
@@ -31,4 +32,6 @@ export const parserSchema = z.object({
 })
 
 export type ParserFormValues = z.input<typeof parserSchema>
-export type ParserSetupFormValue = NonNullable<ParserFormValues['setups']>[number]
+export type ParserSetupFormValue = NonNullable<
+  ParserFormValues['setups']
+>[number]

@@ -16,10 +16,7 @@ import {
   emailFieldOptions,
 } from './constants'
 import { ParserSetupAdvancedFields } from './parser-setup-advanced-fields'
-import {
-  ParserFieldLabel,
-  ParserSelectField,
-} from './parser-form-fields'
+import { ParserFieldLabel, ParserSelectField } from './parser-form-fields'
 import {
   buildFlatOptions,
   buildModelOptions,
@@ -36,6 +33,7 @@ import {
   parserPreprocessOptionsMap,
   parserVisibleOutputFormatsMap,
   parserVisibleParseMethodsMap,
+  supportsParserMediaFlattening,
 } from './utils'
 
 type ParserSetupBodyProps = {
@@ -56,12 +54,10 @@ function ParserBodySection({
     <section
       className={cn(
         'space-y-space-xl',
-        subtle && 'rounded-radius-xl bg-background-subtle p-space-xl',
+        subtle && 'rounded-radius-xl p-space-xl bg-background-subtle',
       )}
     >
-      <div className="text-base font-semibold text-text-secondary">
-        {title}
-      </div>
+      <div className="text-base font-semibold text-text-secondary">{title}</div>
       {children}
     </section>
   )
@@ -105,7 +101,10 @@ export function ParserSetupBody({
   const selectedFileTypeOptions = useMemo(
     () =>
       parserAddableFileTypeOptions
-        .filter((value) => value === currentFileType || !allFileFormats.includes(value))
+        .filter(
+          (value) =>
+            value === currentFileType || !allFileFormats.includes(value),
+        )
         .map((value) => ({
           label: getParserFileTypeLabel(t, value),
           value,
@@ -115,12 +114,14 @@ export function ParserSetupBody({
 
   const preprocessOptions = useMemo(
     () =>
-      (parserPreprocessOptionsMap[fileFormat as keyof typeof parserPreprocessOptionsMap] || []).map(
-        (value) => ({
-          label: getParserPreprocessLabel(t, value),
-          value,
-        }),
-      ),
+      (
+        parserPreprocessOptionsMap[
+          fileFormat as keyof typeof parserPreprocessOptionsMap
+        ] || []
+      ).map((value) => ({
+        label: getParserPreprocessLabel(t, value),
+        value,
+      })),
     [fileFormat, t],
   )
 
@@ -128,7 +129,9 @@ export function ParserSetupBody({
     () =>
       ensureCurrentOption(
         buildFlatOptions(
-          parserVisibleOutputFormatsMap[fileFormat as keyof typeof parserVisibleOutputFormatsMap] || [],
+          parserVisibleOutputFormatsMap[
+            fileFormat as keyof typeof parserVisibleOutputFormatsMap
+          ] || [],
           getParserOutputFormatLabel,
         ),
         currentOutputFormat,
@@ -142,7 +145,8 @@ export function ParserSetupBody({
       buildModelOptions(
         ocrModelOptions.filter(
           (group) =>
-            group.providerName === 'MinerU' || group.providerName === 'PaddleOCR',
+            group.providerName === 'MinerU' ||
+            group.providerName === 'PaddleOCR',
         ),
       ),
     [ocrModelOptions],
@@ -180,7 +184,9 @@ export function ParserSetupBody({
 
     return ensureCurrentOption(
       buildFlatOptions(
-        parserVisibleParseMethodsMap[fileFormat as keyof typeof parserVisibleParseMethodsMap] || [],
+        parserVisibleParseMethodsMap[
+          fileFormat as keyof typeof parserVisibleParseMethodsMap
+        ] || [],
         getParserParseMethodLabel,
       ),
       parseMethod,
@@ -233,12 +239,14 @@ export function ParserSetupBody({
     fileFormat === ParserFileType.Image &&
     !!parseMethod &&
     !isParserMethodEqual(parseMethod, ParserParseMethod.OCR)
+  const showMediaFlattening = supportsParserMediaFlattening(fileFormat)
   const modelEmptyText =
     isImageModelLoading || isSpeechModelLoading || isOCRModelLoading
       ? t('common.loading', 'Loading...')
       : t('flow.noModels', 'No models available')
 
   const showAdvancedSection =
+    showMediaFlattening ||
     showTCADPOptions ||
     showMineruOptions ||
     showPaddleOCROptions ||
@@ -265,7 +273,7 @@ export function ParserSetupBody({
           triggerClassName={controlTriggerClassName}
         />
 
-        <div className="grid gap-space-xl md:grid-cols-2">
+        <div className="gap-space-xl grid md:grid-cols-2">
           <ParserSelectField
             control={form.control}
             name={`setups.${index}.output_format`}
@@ -291,7 +299,9 @@ export function ParserSetupBody({
                 ) {
                   form.setValue(
                     `setups.${index}.table_result_type`,
-                    setup?.table_result_type || defaultSetup.table_result_type || '1',
+                    setup?.table_result_type ||
+                      defaultSetup.table_result_type ||
+                      '1',
                     { shouldDirty: true },
                   )
                   form.setValue(
@@ -383,7 +393,9 @@ export function ParserSetupBody({
                     options={preprocessOptions}
                     value={field.value || []}
                     onChange={(value) =>
-                      field.onChange(normalizeParserPreprocess(fileFormat, value))
+                      field.onChange(
+                        normalizeParserPreprocess(fileFormat, value),
+                      )
                     }
                     triggerClassName={controlTriggerClassName}
                   />
@@ -414,7 +426,9 @@ export function ParserSetupBody({
             name={`setups.${index}.fields`}
             render={({ field }) => (
               <FormItem className="space-y-space-md">
-                <ParserFieldLabel>{t('flow.fields', 'Fields')}</ParserFieldLabel>
+                <ParserFieldLabel>
+                  {t('flow.fields', 'Fields')}
+                </ParserFieldLabel>
                 <FormControl>
                   <MultiSelectWithSearch
                     options={emailFieldOptions}
@@ -430,10 +444,7 @@ export function ParserSetupBody({
       </ParserBodySection>
 
       {showAdvancedSection ? (
-        <ParserBodySection
-          title={t('flow.advanced', 'Advanced')}
-          subtle
-        >
+        <ParserBodySection title={t('flow.advanced', 'Advanced')} subtle>
           <ParserSetupAdvancedFields
             index={index}
             fileFormat={fileFormat}
@@ -445,6 +456,7 @@ export function ParserSetupBody({
             showMineruOptions={showMineruOptions}
             showPaddleOCROptions={showPaddleOCROptions}
             showImageVisualFields={showImageVisualFields}
+            showMediaFlattening={showMediaFlattening}
           />
         </ParserBodySection>
       ) : null}

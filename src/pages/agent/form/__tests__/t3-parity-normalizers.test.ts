@@ -3,10 +3,12 @@ import test from 'node:test'
 import {
   ParserFileType,
   parserDefaultVisibleFileTypes,
+  getDefaultParserSetup,
   initialParserFormValues,
   ParserPreprocessValue,
   normalizeParserSetupsForStore,
   serializeParserSetupsForDsl,
+  supportsParserMediaFlattening,
 } from '../parser/utils'
 import {
   normalizeTitleChunkerFormForStore,
@@ -77,6 +79,7 @@ test('parser normalizer rebuilds keyed backend setups into file-type cards and b
     [ParserFileType.PDF]: {
       preprocess: [ParserPreprocessValue.SectionTitle],
       output_format: 'markdown',
+      flatten_media_to_text: true,
     },
     [ParserFileType.Image]: {
       system_prompt: 'describe image',
@@ -95,6 +98,7 @@ test('parser normalizer rebuilds keyed backend setups into file-type cards and b
     ParserPreprocessValue.SectionTitle,
   ])
   assert.equal(pdfSetup?.output_format, 'markdown')
+  assert.equal(pdfSetup?.flatten_media_to_text, true)
   assert.deepEqual(pdfSetup?.suffix, ['pdf'])
   assert.equal(imageSetup?.parse_method, 'ocr')
   assert.equal(imageSetup?.output_format, 'json')
@@ -107,9 +111,36 @@ test('parser normalizer rebuilds keyed backend setups into file-type cards and b
     ParserPreprocessValue.SectionTitle,
   ])
   assert.deepEqual(serialized.pdf?.suffix, ['pdf'])
+  assert.equal(serialized.pdf?.flatten_media_to_text, true)
   assert.equal(serialized.image?.parse_method, 'ocr')
   assert.equal(serialized.image?.output_format, 'json')
   assert.equal('fileFormat' in (serialized.pdf || {}), false)
+})
+
+test('parser media-flattening capability drives defaults and serialization consistently', () => {
+  const supportedFileTypes = [
+    ParserFileType.PDF,
+    ParserFileType.Spreadsheet,
+    ParserFileType.TextMarkdown,
+    ParserFileType.Docx,
+  ]
+
+  for (const fileType of supportedFileTypes) {
+    assert.equal(supportsParserMediaFlattening(fileType), true)
+    const defaultSetup = getDefaultParserSetup(fileType)
+    assert.equal(defaultSetup.flatten_media_to_text, false)
+    assert.equal(
+      serializeParserSetupsForDsl([defaultSetup])[fileType]
+        ?.flatten_media_to_text,
+      false,
+    )
+  }
+
+  assert.equal(supportsParserMediaFlattening(ParserFileType.Doc), false)
+  const serialized = serializeParserSetupsForDsl([
+    { fileFormat: ParserFileType.Doc, flatten_media_to_text: true },
+  ])
+  assert.equal('flatten_media_to_text' in (serialized.doc || {}), false)
 })
 
 test('parser defaults only expand the nine visible ragflow-aligned cards in order', () => {

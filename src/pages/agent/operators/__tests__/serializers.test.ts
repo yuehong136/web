@@ -799,6 +799,7 @@ test('high-risk rebuilt operators serialize UI-only form state back to backend r
         {
           fileFormat: 'pdf',
           preprocess: ['title'],
+          flatten_media_to_text: true,
         },
         {
           fileFormat: 'video',
@@ -897,6 +898,7 @@ test('high-risk rebuilt operators serialize UI-only form state back to backend r
       {
         preprocess?: string[]
         suffix?: string[]
+        flatten_media_to_text?: boolean
         prompt?: string
         llm_id?: string
       }
@@ -934,6 +936,7 @@ test('high-risk rebuilt operators serialize UI-only form state back to backend r
     'title',
   ])
   assert.deepEqual(parserParams.setups?.pdf?.suffix, ['pdf'])
+  assert.equal(parserParams.setups?.pdf?.flatten_media_to_text, true)
   assert.deepEqual(parserParams.setups?.video?.suffix, ['mp4', 'avi', 'mkv'])
   assert.equal(parserParams.setups?.video?.llm_id, 'vision-model@OpenAI')
   assert.equal(parserParams.setups?.video?.prompt, 'describe the clip')

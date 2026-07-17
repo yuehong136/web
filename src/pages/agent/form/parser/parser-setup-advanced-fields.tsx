@@ -30,6 +30,7 @@ type ParserSetupAdvancedFieldsProps = {
   showMineruOptions: boolean
   showPaddleOCROptions: boolean
   showImageVisualFields: boolean
+  showMediaFlattening: boolean
 }
 
 export function ParserSetupAdvancedFields({
@@ -43,25 +44,42 @@ export function ParserSetupAdvancedFields({
   showMineruOptions,
   showPaddleOCROptions,
   showImageVisualFields,
+  showMediaFlattening,
 }: ParserSetupAdvancedFieldsProps) {
   const { t } = useTranslation()
   const form = useFormContext<ParserFormValues>()
 
   return (
     <>
+      {showMediaFlattening ? (
+        <ParserSwitchField
+          control={form.control}
+          name={`setups.${index}.flatten_media_to_text`}
+          label={t('flow.flattenMediaToText', 'Treat media as text')}
+          description={t(
+            'flow.flattenMediaToTextTip',
+            'Classify detected images and tables as text and skip vision-model enrichment.',
+          )}
+        />
+      ) : null}
+
       {showPdfLanguageField ? (
         <ParserSelectField
           control={form.control}
           name={`setups.${index}.lang`}
           label={t('flow.lang', 'Language')}
-          options={ensureCurrentOption(parserLanguageOptions, setup?.lang, setup?.lang)}
+          options={ensureCurrentOption(
+            parserLanguageOptions,
+            setup?.lang,
+            setup?.lang,
+          )}
           value={setup?.lang}
           triggerClassName={controlTriggerClassName}
         />
       ) : null}
 
       {showTCADPOptions ? (
-        <div className="grid gap-space-xl md:grid-cols-2">
+        <div className="gap-space-xl grid md:grid-cols-2">
           <ParserSelectField
             control={form.control}
             name={`setups.${index}.table_result_type`}
@@ -94,8 +112,10 @@ export function ParserSetupAdvancedFields({
 
       {showMineruOptions ? (
         <>
-          <div className="text-base font-semibold text-text-secondary">MinerU</div>
-          <div className="grid gap-space-xl md:grid-cols-2">
+          <div className="text-base font-semibold text-text-secondary">
+            MinerU
+          </div>
+          <div className="gap-space-xl grid md:grid-cols-2">
             <ParserSelectField
               control={form.control}
               name={`setups.${index}.mineru_parse_method`}
@@ -121,7 +141,7 @@ export function ParserSetupAdvancedFields({
               triggerClassName={controlTriggerClassName}
             />
           </div>
-          <div className="grid gap-space-xl md:grid-cols-2">
+          <div className="gap-space-xl grid md:grid-cols-2">
             <ParserSwitchField
               control={form.control}
               name={`setups.${index}.mineru_formula_enable`}
@@ -168,12 +188,16 @@ export function ParserSetupAdvancedFields({
       ) : null}
 
       {showImageVisualFields ? (
-        <div className="grid gap-space-xl md:grid-cols-2">
+        <div className="gap-space-xl grid md:grid-cols-2">
           <ParserSelectField
             control={form.control}
             name={`setups.${index}.lang`}
             label={t('flow.lang', 'Language')}
-            options={ensureCurrentOption(parserLanguageOptions, setup?.lang, setup?.lang)}
+            options={ensureCurrentOption(
+              parserLanguageOptions,
+              setup?.lang,
+              setup?.lang,
+            )}
             value={setup?.lang}
             triggerClassName={controlTriggerClassName}
           />
@@ -186,7 +210,9 @@ export function ParserSetupAdvancedFields({
           name={`setups.${index}.system_prompt`}
           render={({ field }) => (
             <FormItem className="space-y-space-md">
-              <ParserFieldLabel>{t('flow.systemPrompt', 'System prompt')}</ParserFieldLabel>
+              <ParserFieldLabel>
+                {t('flow.systemPrompt', 'System prompt')}
+              </ParserFieldLabel>
               <FormControl>
                 <PromptEditor
                   value={field.value || ''}
@@ -209,7 +235,9 @@ export function ParserSetupAdvancedFields({
           name={`setups.${index}.prompt`}
           render={({ field }) => (
             <FormItem className="space-y-space-md">
-              <ParserFieldLabel>{t('flow.promptWorkspace', 'Prompt workspace')}</ParserFieldLabel>
+              <ParserFieldLabel>
+                {t('flow.promptWorkspace', 'Prompt workspace')}
+              </ParserFieldLabel>
               <FormControl>
                 <PromptEditor
                   value={field.value || ''}

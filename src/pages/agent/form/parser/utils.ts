@@ -1,4 +1,5 @@
 import type { OutputMap } from '../components/output'
+import type { ParserSetupFormValue } from './schema'
 import {
   cloneValue,
   normalizeBoolean,
@@ -51,27 +52,19 @@ export const ParserEmailField = {
 export type ParserFileTypeValue =
   (typeof ParserFileType)[keyof typeof ParserFileType]
 
-export type ParserSetupValue = {
-  fileFormat?: string
-  suffix?: string[]
-  preprocess?: string[]
-  output_format?: string
-  parse_method?: string
-  lang?: string
-  fields?: string[]
-  llm_id?: string
-  system_prompt?: string
-  prompt?: string
-  table_result_type?: string
-  markdown_image_response_type?: string
-  mineru_parse_method?: string
-  mineru_formula_enable?: boolean
-  mineru_table_enable?: boolean
-  mineru_lang?: string
-  mineru_llm_name?: string
-  paddleocr_parse_method?: string
-  paddleocr_llm_name?: string
-  docling_parse_method?: string
+export type ParserSetupValue = ParserSetupFormValue
+
+// RAGFlow's legacy `.doc` parser does not consume this flag, even though its
+// current web serializer forwards it. Keep the capability tied to runtime use.
+const parserMediaFlatteningFileTypes: ReadonlySet<string> = new Set([
+  ParserFileType.PDF,
+  ParserFileType.Spreadsheet,
+  ParserFileType.TextMarkdown,
+  ParserFileType.Docx,
+])
+
+export function supportsParserMediaFlattening(fileType?: string) {
+  return !!fileType && parserMediaFlatteningFileTypes.has(fileType)
 }
 
 export const parserFileTypeOrder: ParserFileTypeValue[] = [
@@ -328,9 +321,16 @@ function buildCommonSerializedSetup(item: ParserSetupValue) {
   }
 }
 
-export function getDefaultParserSetup(fileType: string) {
+export function getDefaultParserSetup(fileType: string): ParserSetupValue {
   const setup = defaultParserSetupMap[fileType as ParserFileTypeValue]
-  return cloneValue(setup || { fileFormat: fileType })
+  const baseSetup = setup || { fileFormat: fileType }
+
+  return cloneValue({
+    ...baseSetup,
+    ...(supportsParserMediaFlattening(fileType)
+      ? { flatten_media_to_text: false }
+      : {}),
+  })
 }
 
 export function getDefaultParserSetups() {
@@ -393,6 +393,12 @@ export function normalizeParserSetup(
       rawValue.preprocess ?? baseValue.preprocess,
     ),
     fields: normalizeStringArray(rawValue.fields ?? baseValue.fields),
+    flatten_media_to_text: supportsParserMediaFlattening(fileFormat)
+      ? (normalizeBoolean(
+          rawValue.flatten_media_to_text,
+          baseValue.flatten_media_to_text,
+        ) ?? false)
+      : undefined,
     mineru_parse_method:
       normalizeOptionalString(rawValue.mineru_parse_method) ||
       baseValue.mineru_parse_method,
@@ -536,6 +542,11 @@ export function serializeParserSetupsForDsl(value: unknown) {
         break
       default:
         break
+    }
+
+    if (supportsParserMediaFlattening(item.fileFormat)) {
+      nextSetup.flatten_media_to_text =
+        normalizeBoolean(item.flatten_media_to_text, false) ?? false
     }
 
     acc[item.fileFormat] = stripUndefined(nextSetup)

@@ -158,6 +158,9 @@ export default {
       needsAttention: 'Needs attention',
     },
     parserMethod: 'Parse method',
+    flattenMediaToText: 'Treat media as text',
+    flattenMediaToTextTip:
+      'Classify detected images and tables as text and skip vision-model enrichment.',
     tableResultType: 'Table result type',
     markdownImageResponseType: 'Markdown image response type',
     systemPrompt: 'System prompt',

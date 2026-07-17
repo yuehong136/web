@@ -1,4 +1,11 @@
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import {
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
 import {
   SelectWithSearch,
   type SelectOptionGroup,
@@ -49,7 +56,9 @@ export function ParserSelectField({
           <FormControl>
             <SelectWithSearch
               options={options}
-              value={value ?? (typeof field.value === 'string' ? field.value : '')}
+              value={
+                value ?? (typeof field.value === 'string' ? field.value : '')
+              }
               onChange={(nextValue) => {
                 onValueChange?.(nextValue)
                 field.onChange(nextValue)
@@ -70,18 +79,25 @@ export function ParserSwitchField({
   control,
   name,
   label,
+  description,
 }: {
   control: ReturnType<typeof useFormContext<ParserFormValues>>['control']
   name: ParserSetupPath
   label: string
+  description?: string
 }) {
   return (
     <FormField
       control={control}
       name={name}
       render={({ field }) => (
-        <FormItem className="flex min-h-12 items-center justify-between rounded-radius-xl border border-border-default bg-surface-primary px-space-base py-space-sm">
-          <ParserFieldLabel>{label}</ParserFieldLabel>
+        <FormItem className="gap-space-base rounded-radius-xl bg-surface-primary px-space-base py-space-sm flex min-h-12 items-center justify-between border border-border-default">
+          <div className="space-y-space-xs min-w-0">
+            <ParserFieldLabel>{label}</ParserFieldLabel>
+            {description ? (
+              <FormDescription>{description}</FormDescription>
+            ) : null}
+          </div>
           <FormControl>
             <Switch
               checked={Boolean(field.value)}

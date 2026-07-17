@@ -26,7 +26,7 @@
     "postinstall": "patch-package",
     "prepare": "husky",
     "typecheck:agent-strict": "tsc -p tsconfig.agent-strict.json",
-    "test:agent-t1": "tsx --tsconfig tsconfig.app.json --test src/pages/agent/operators/__tests__/serializers.test.ts src/pages/agent/adapters/__tests__/adapters.test.ts",
+    "test:agent-t1": "tsx --tsconfig tsconfig.app.json --test src/pages/agent/operators/__tests__/serializers.test.ts src/pages/agent/adapters/__tests__/adapters.test.ts src/pages/agent/form/__tests__/t3-parity-normalizers.test.ts",
     "test:design-tokens": "tsx --tsconfig tsconfig.app.json --test src/lib/design-tokens/__tests__/*.ts",
     "test:streaming": "tsx --tsconfig tsconfig.app.json --test src/lib/streaming/__tests__/*.ts",
     "preview": "vite preview"
