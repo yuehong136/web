@@ -63,7 +63,7 @@ export const metadataFieldSchema = z.object({
 // 解析器配置 Schema
 export const parserConfigSchema = z.object({
   layout_recognize: z.string().default('DeepDOC'),
-  chunk_token_num: numericField().min(0).max(8192).default(512),
+  chunk_token_num: numericField().min(1).max(8192).default(512),
   delimiter: z.string().default('\n'),
   auto_keywords: numericField().min(0).max(30).default(0),
   auto_questions: numericField().min(0).max(10).default(0),

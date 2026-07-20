@@ -9,6 +9,14 @@ export type KnowledgeBaseWithPipeline = KnowledgeBase & {
   pipeline_id?: string | null
 }
 
+const normalizeChunkTokenNum = (value: unknown, fallback: number): number => {
+  if (value === null || value === undefined || value === '') return fallback
+
+  const numericValue = Number(value)
+
+  return Number.isFinite(numericValue) ? Math.max(numericValue, 1) : fallback
+}
+
 /**
  * 将知识库详情映射为设置表单的初始值。纯函数，从 KnowledgeSettingsPage 抽出以控制文件体积。
  */
@@ -30,6 +38,10 @@ export const buildKnowledgeSettingsFormValues = (
     parser_config: {
       ...defaultValues.parser_config,
       ...currentKnowledgeBase.parser_config,
+      chunk_token_num: normalizeChunkTokenNum(
+        currentKnowledgeBase.parser_config?.chunk_token_num,
+        defaultValues.parser_config?.chunk_token_num ?? 512,
+      ),
       // 回退兼容：优先使用 image_table_context_window，否则回退到 image_context_size 或 table_context_size
       image_table_context_window:
         currentKnowledgeBase.parser_config?.image_table_context_window ??

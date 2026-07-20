@@ -115,7 +115,7 @@ export function MaxTokenNumberFormField({
       name={name}
       label={t('knowledge.settings.fields.maxToken')}
       tooltip={t('knowledge.settings.fields.maxTokenTooltip')}
-      min={0}
+      min={1}
       max={max}
       step={1}
       defaultValue={initialValue}
