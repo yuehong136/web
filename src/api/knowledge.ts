@@ -1,6 +1,7 @@
 import { apiClient, type ApiEnvelope } from './client'
 import {
   knowledgeRestConfig as sdkBase,
+  listDatasetDocuments,
   uploadDatasetDocuments,
 } from './knowledge-rest'
 import type {
@@ -203,34 +204,7 @@ export const knowledgeAPI = {
       desc?: boolean
       filter_params: DocumentFilter
     }): Promise<{ total: number; docs: Document[] }> => {
-      const {
-        kb_id,
-        keywords = '',
-        page = 0,
-        page_size = 0,
-        orderby = 'create_time',
-        desc = true,
-        filter_params,
-      } = params
-      const queryParams = new URLSearchParams({
-        kb_id,
-        keywords: keywords,
-        page: page.toString(),
-        page_size: page_size.toString(),
-        orderby,
-        desc: desc.toString(),
-      })
-      // 构建筛选参数，包含 metadata 筛选和无元数据过滤
-      const filterBody: DocumentFilter = {
-        run_status: filter_params.run_status,
-        suffix: filter_params.suffix,
-        metadata: filter_params.metadata,
-        return_empty_metadata: filter_params.return_empty_metadata,
-      }
-      return apiClient.post(
-        `/v1/document/list?${queryParams.toString()}`,
-        filterBody,
-      )
+      return listDatasetDocuments(params)
     },
 
     // 获取文档筛选选项（动态获取可用的筛选值）
