@@ -37,7 +37,7 @@ test('knowledge settings normalize a legacy zero chunk size to one', () => {
     (value) => value,
   )
 
-  assert.equal(values.parser_config.chunk_token_num, 1)
+  assert.equal(values.parser_config?.chunk_token_num, 1)
 })
 
 test('knowledge settings preserve a valid chunk size', () => {
@@ -46,5 +46,5 @@ test('knowledge settings preserve a valid chunk size', () => {
     (value) => value,
   )
 
-  assert.equal(values.parser_config.chunk_token_num, 256)
+  assert.equal(values.parser_config?.chunk_token_num, 256)
 })
