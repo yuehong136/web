@@ -343,40 +343,6 @@ export const knowledgeAPI = {
     rename: (docId: string, name: string): Promise<Document> =>
       apiClient.post('/v1/document/rename', { doc_id: docId, name }),
 
-    // 获取文档详细信息
-    getInfos: (
-      docIds: string[],
-    ): Promise<
-      Array<{
-        location: string
-        process_duration: number
-        update_date: string
-        meta_fields: Record<string, any>
-        parser_id: string
-        size: number
-        create_time: number
-        parser_config: Record<string, any>
-        auth: any
-        suffix: string
-        update_time: number
-        source_type: string
-        token_num: number
-        chunk_num: number
-        run: string
-        id: string
-        type: string
-        progress: number
-        status: string
-        thumbnail: string
-        created_by: string
-        progress_msg: string
-        create_date: string
-        kb_id: string
-        name: string
-        process_begin_at: string
-      }>
-    > => apiClient.post('/v1/document/infos', docIds),
-
     // 获取文档分段列表
     listChunks: (params: {
       doc_id: string
