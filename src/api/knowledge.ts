@@ -1,5 +1,6 @@
 import { apiClient, type ApiEnvelope } from './client'
 import {
+  getDatasetDocumentFilter,
   knowledgeRestConfig as sdkBase,
   listDatasetDocuments,
   uploadDatasetDocuments,
@@ -208,9 +209,12 @@ export const knowledgeAPI = {
     },
 
     // 获取文档筛选选项（动态获取可用的筛选值）
-    // 注意：后端 API 是 POST /v1/document/filter，不是 GET /v1/document/get_filter
-    getFilter: (kbId: string): Promise<{ filter: IDocumentInfoFilter }> =>
-      apiClient.post('/v1/document/filter', { kb_id: kbId }),
+    // RESTful GET /api/v1/datasets/{dataset_id}/documents?type=filter
+    // （旧 POST /v1/document/filter 已弃用）
+    getFilter: (
+      kbId: string,
+    ): Promise<{ total: number; filter: IDocumentInfoFilter }> =>
+      getDatasetDocumentFilter(kbId),
 
     // 获取文档详情
     get: (docId: string): Promise<Document> =>

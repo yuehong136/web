@@ -1,5 +1,5 @@
 import { API_BASE_URL } from '@/constants'
-import type { Document, DocumentFilter } from '@/types/api'
+import type { Document, DocumentFilter, IDocumentInfoFilter } from '@/types/api'
 import { apiClient } from './client'
 
 export const knowledgeRestConfig = { baseURL: `${API_BASE_URL}/api` }
@@ -98,6 +98,15 @@ export async function listDatasetDocuments(
     total: result.total,
     docs: result.docs.map(normalizeDatasetDocument),
   }
+}
+
+export async function getDatasetDocumentFilter(
+  datasetId: string,
+): Promise<{ total: number; filter: IDocumentInfoFilter }> {
+  return apiClient.get<{ total: number; filter: IDocumentInfoFilter }>(
+    `/v1/datasets/${encodeURIComponent(datasetId)}/documents?type=filter`,
+    knowledgeRestConfig,
+  )
 }
 
 export function uploadDatasetDocuments(
