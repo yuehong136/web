@@ -41,6 +41,13 @@ const API_KEY_WITH_BASE_URL = [
   'Perplexity',
 ]
 
+// 普通 API Key 厂商里额外支持「自填模型名」的厂商。
+// 填了模型名 → 走 add_llm 只注册这一个模型，用于接第三方兼容端点
+// （智谱 https://open.bigmodel.cn/api/anthropic、百炼 https://dashscope.aliyuncs.com/apps/anthropic
+//   这类入口用的是自家模型名 glm-*/qwen-*，不在官方目录里）；
+// 留空 → 走 set_api_key，一次性注册该厂商目录里的全部模型（官方 claude-* 的原有用法）。
+const API_KEY_WITH_CUSTOM_MODEL = ['Anthropic']
+
 // Base URL 提示和占位符
 const BASE_URL_CONFIG: Record<
   string,
@@ -59,8 +66,15 @@ const BASE_URL_CONFIG: Record<
     tooltip: 'MiniMax API 地址',
   },
   Anthropic: {
-    placeholder: 'https://api.anthropic.com/v1',
-    tooltip: '如果使用代理，请填写',
+    // /v1/messages 由后端自动补，这里必须填到「根」，多填 /v1 会拼成 /v1/v1/messages
+    placeholder: 'https://api.anthropic.com',
+    tooltip:
+      '填到根地址即可（不要带 /v1 或 /v1/messages）。接第三方 Anthropic 兼容端点时，填该端点的根并在下方填写它的模型名，例如智谱 https://open.bigmodel.cn/api/anthropic + glm-4.6，阿里百炼 https://dashscope.aliyuncs.com/apps/anthropic',
+  },
+  'OpenAI-API-Compatible': {
+    placeholder: 'https://open.bigmodel.cn/api/paas/v4',
+    tooltip:
+      '填到版本段为止，不要带 /chat/completions。示例：智谱 https://open.bigmodel.cn/api/paas/v4；阿里百炼 https://dashscope.aliyuncs.com/compatible-mode/v1；vLLM/自建 http://host:8000（缺版本段会自动补 /v1）',
   },
   BaiduYiyan: {
     placeholder: 'https://qianfan.baidubce.com/v2',
@@ -202,6 +216,10 @@ const FACTORY_MODEL_TYPES: Record<string, { value: string; label: string }[]> =
     'Azure-OpenAI': [
       { value: 'chat', label: 'Chat' },
       { value: 'embedding', label: 'Embedding' },
+      { value: 'image2text', label: 'Image2Text' },
+    ],
+    Anthropic: [
+      { value: 'chat', label: 'Chat' },
       { value: 'image2text', label: 'Image2Text' },
     ],
     MinerU: [{ value: 'ocr', label: 'OCR' }],
@@ -781,6 +799,19 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
         // 传递可选的 Base URL
         if (baseUrl.trim()) {
           finalBaseUrl = baseUrl.trim()
+        }
+        // 填了模型名就改走 add_llm，只注册这一个模型（第三方兼容端点的模型名不在官方目录里）
+        if (
+          API_KEY_WITH_CUSTOM_MODEL.includes(providerName) &&
+          modelName.trim()
+        ) {
+          additionalParams.llm_name = modelName.trim()
+          additionalParams.mdl_type = modelType
+          additionalParams.max_tokens = maxTokens
+          additionalParams.llm_factory = providerName
+          if (finalBaseUrl) {
+            additionalParams.api_base = finalBaseUrl
+          }
         }
         if (providerName === 'MiniMax' && groupId) {
           additionalParams.group_id = groupId
@@ -1694,12 +1725,22 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                 <Input
                   value={baseUrl}
                   onChange={(e) => setBaseUrl(e.target.value)}
-                  placeholder={defaultBaseUrl || 'http://localhost:11434'}
+                  placeholder={
+                    BASE_URL_CONFIG[providerName]?.placeholder ||
+                    defaultBaseUrl ||
+                    'http://localhost:11434'
+                  }
                 />
-                {defaultBaseUrl && (
+                {BASE_URL_CONFIG[providerName]?.tooltip ? (
                   <p className="mt-1.5 text-xs text-text-tertiary">
-                    默认地址：{defaultBaseUrl}
+                    {BASE_URL_CONFIG[providerName].tooltip}
                   </p>
+                ) : (
+                  defaultBaseUrl && (
+                    <p className="mt-1.5 text-xs text-text-tertiary">
+                      默认地址：{defaultBaseUrl}
+                    </p>
+                  )
                 )}
               </div>
               <div>
@@ -1810,6 +1851,64 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                     </p>
                   )}
                 </div>
+              )}
+
+              {/* 自定义模型名 - 用于第三方兼容端点（模型名不在官方目录里） */}
+              {API_KEY_WITH_CUSTOM_MODEL.includes(providerName) && (
+                <>
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-text-primary">
+                      模型名称{' '}
+                      <span className="ml-1 font-normal text-text-tertiary">
+                        (可选)
+                      </span>
+                    </label>
+                    <Input
+                      value={modelName}
+                      onChange={(e) => setModelName(e.target.value)}
+                      placeholder="留空则注册该厂商目录里的全部模型"
+                    />
+                    <p className="mt-1.5 text-xs text-text-tertiary">
+                      接第三方兼容端点时填该端点的模型名（如
+                      glm-4.6、qwen3-coder-plus），只注册这一个模型
+                    </p>
+                  </div>
+                  {modelName.trim() && (
+                    <>
+                      <div>
+                        <label className="mb-2 block text-sm font-medium text-text-primary">
+                          模型类型 <span className="text-red-500">*</span>
+                        </label>
+                        <Select value={modelType} onValueChange={setModelType}>
+                          <SelectTrigger className="w-full">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {modelTypes.map((type) => (
+                              <SelectItem key={type.value} value={type.value}>
+                                {type.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <label className="mb-2 block text-sm font-medium text-text-primary">
+                          Max Tokens <span className="text-red-500">*</span>
+                        </label>
+                        <Input
+                          type="number"
+                          value={maxTokens}
+                          onChange={(e) =>
+                            setMaxTokens(parseInt(e.target.value) || 8192)
+                          }
+                          placeholder="8192"
+                          min={1}
+                        />
+                      </div>
+                    </>
+                  )}
+                </>
               )}
 
               {/* MiniMax: Group ID */}

@@ -83,8 +83,11 @@ export const ModelProvidersPage: React.FC = () => {
       apiKeyModal.providerName,
     )
 
-    // 特殊配置厂商和本地模型使用 add_llm 接口
-    const needsAddLlm = isLocal || isSpecialConfig
+    // 特殊配置厂商和本地模型使用 add_llm 接口；
+    // 普通 API Key 厂商一旦自填了模型名（如 Anthropic 接第三方兼容端点）也走 add_llm，
+    // 否则 set_api_key 只会按官方目录注册，填的模型名会被丢掉
+    const needsAddLlm =
+      isLocal || isSpecialConfig || Boolean(additionalParams?.llm_name)
     const hasRequiredParams = additionalParams?.llm_name
 
     if (needsAddLlm && hasRequiredParams) {
