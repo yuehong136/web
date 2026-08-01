@@ -22,14 +22,15 @@ npm run preview      # 预览生产构建
 npm run test:agent-t1 # tsx 跑 node --test：agent serializer + adapter
 npm run test:design-tokens # tsx 跑 node --test：设计令牌工具（调色板、token 取值）
 npm run test:streaming # tsx 跑 node --test：共享流式运行时（SSE transport + chunk 合并 reducer）
+npm run test:api     # tsx 跑 node --test：API 层契约（路由、信封、归一化）
 npm run lint:file-size # 文件体积棘轮：超标文件不得膨胀（基线：scripts/file-size-baseline.json）
 npm run lint:file-size:update # 偿还债务（行数下降）后收紧基线（禁止用来放宽）
 npm run check:bundle-size # Bundle 预算门禁，build 后运行（预算：scripts/bundle-size-budget.json）
 ```
 
-**注意**：暂无通用 `test`、`format`、`typecheck` 脚本。全量类型检查由 `npm run build` 完成；Agent 关键目录补充跑 `npm run typecheck:agent-strict`。格式化通过 Prettier + lint-staged 作用于 staged 文件，**不要做全仓格式化**。正式测试门禁是 `test:agent-t1`、`test:design-tokens` 与 `test:streaming`（`tsx --test`）；Vitest 基础配置已落地用于后续新增/迁移，**不要引入 Jest**。
+**注意**：暂无通用 `test`、`format`、`typecheck` 脚本。全量类型检查由 `npm run build` 完成；Agent 关键目录补充跑 `npm run typecheck:agent-strict`。格式化通过 Prettier + lint-staged 作用于 staged 文件，**不要做全仓格式化**。正式测试门禁是 `test:agent-t1`、`test:design-tokens`、`test:streaming` 与 `test:api`（`tsx --test`）；Vitest 基础配置已落地用于后续新增/迁移，**不要引入 Jest**。
 
-**CI**：`.github/workflows/ci.yml` 在每次 push/PR 到 `master` 时运行 —— `lint`、`lint:file-size`、`lint:typed`、`typecheck:agent-strict`、`test:agent-t1`、`test:design-tokens`、`test:streaming`、`build`、`check:bundle-size` 全部必须通过。`lint:i18n-agent` 仍是本地门禁（它 diff 工作区）。pre-commit hook 只跑 lint-staged；推送前仍需本地跑相关门禁 —— **没有实际运行就不得声称通过**。
+**CI**：`.github/workflows/ci.yml` 在每次 push/PR 到 `master` 时运行 —— `lint`、`lint:file-size`、`lint:typed`、`typecheck:agent-strict`、`test:agent-t1`、`test:design-tokens`、`test:streaming`、`test:api`、`build`、`check:bundle-size` 全部必须通过。`lint:i18n-agent` 仍是本地门禁（它 diff 工作区）。pre-commit hook 只跑 lint-staged；推送前仍需本地跑相关门禁 —— **没有实际运行就不得声称通过**。
 
 ## 技术栈（2026-05 校核）
 
@@ -440,7 +441,7 @@ Mutation 错误用 `sonner` toast 暴露，不用 dialog 阻塞，除非用户�
 
 ## 测试
 
-现状：20+ 个 `*.test.ts(x)` 文件，通过 `tsx --test` 运行。覆盖在 `pages/agent/operators`、`adapters`、`runtime-workbench`、`pipeline-workbench`、`prompt-editor`、`schema-editor`、`lib/design-tokens`、`lib/streaming`。正式测试脚本：`test:agent-t1`、`test:design-tokens` 与 `test:streaming`。
+现状：20+ 个 `*.test.ts(x)` 文件，通过 `tsx --test` 运行。覆盖在 `pages/agent/operators`、`adapters`、`runtime-workbench`、`pipeline-workbench`、`prompt-editor`、`schema-editor`、`lib/design-tokens`、`lib/streaming`、`api`。正式测试脚本：`test:agent-t1`、`test:design-tokens`、`test:streaming` 与 `test:api`。
 
 新增 SSE 消费面使用 `src/lib/streaming/` 的共享运行时（`readSSEStream` + `assertSSEResponse` + 类型化 envelope + answer reducer），不要再手写解码/解析循环；见 `docs/streaming-runtime-design.md`。
 
@@ -449,6 +450,7 @@ Mutation 错误用 `sonner` toast 暴露，不用 dialog 阻塞，除非用户�
 - Serializer、adapter、registry、parser
 - `lib/` 下的纯工具
 - 流式 reducer — 测 chunk 合并逻辑，不测网络
+- `src/api/` 下的 API 客户端 — 端点路径、信封处理、响应归一化必须在 `src/api/__tests__/` 配套测试（由 `test:api` 执行）
 
 **禁止引入 Jest**。Vitest 基础配置已落地，但不要顺手迁移存量测试；现阶段存量仍沿用 `tsx --test` 风格，放在 `__tests__/` 目录。新增 Vitest 测试必须保持范围清晰，并不得替换 `test:agent-t1` 门禁。
 
