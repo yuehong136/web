@@ -221,6 +221,7 @@ export function useMetadataEditor(
       } else if (isSingleFileSettingMode && documentId) {
         const settings = tableDataToSettings(tableData)
         await updateDocSettingsMutation.mutateAsync({
+          kb_id: kbId,
           doc_id: documentId,
           metadata: settings,
         })

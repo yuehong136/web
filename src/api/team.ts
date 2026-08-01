@@ -6,7 +6,8 @@
  */
 
 import { API_BASE_URL } from '@/constants'
-import { APIError, apiClient } from './client'
+import { apiClient } from './client'
+import { withLegacyFallback } from './legacy-fallback'
 import type {
   TenantInfo,
   TeamMembersResponse,
@@ -18,31 +19,11 @@ import type {
 const teamRestConfig = { baseURL: `${API_BASE_URL}/api` }
 
 /**
- * 后端还没有 RESTful 团队路由时的判据。
- *
- * 路由不存在只会以 HTTP 404/405 出现——后端的业务错误一律是 HTTP 200 + 信封里的
- * 非零 code，不会走到这里。
- */
-const isMissingRouteError = (error: unknown): boolean =>
-  error instanceof APIError && (error.status === 404 || error.status === 405)
-
-/**
  * TODO(2026-08-01): 兼容期实现——优先打 `/api/v1/tenants/*`，只有后端尚未上线该路由
  * （404/405）时才回落到旧的 web 端点 `/v1/tenant/*`。待所有部署环境的后端都带上
  * RESTful 团队路由后，删掉本文件的全部 legacy 回退分支；后端届时也可以摘掉
  * `/v1/tenant/*`。
  */
-async function withLegacyFallback<T>(
-  restCall: () => Promise<T>,
-  legacyCall: () => Promise<T>,
-): Promise<T> {
-  try {
-    return await restCall()
-  } catch (error) {
-    if (!isMissingRouteError(error)) throw error
-    return legacyCall()
-  }
-}
 
 const removeTenantUser = (tenantId: string, userId: string): Promise<void> =>
   withLegacyFallback(

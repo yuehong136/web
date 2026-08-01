@@ -7,6 +7,7 @@ import {
   listDatasetDocuments,
   uploadDatasetDocuments,
 } from './knowledge-rest'
+import { withLegacyFallback } from './legacy-fallback'
 import type {
   KnowledgeBase,
   DatasetDTO,
@@ -764,10 +765,26 @@ export const knowledgeAPI = {
       apiClient.post('/v1/kb/update_metadata_setting', data),
 
     // 更新单文档 metadata 模板设置
-    updateDocumentSettings: (
-      data: DocumentMetadataSettingsRequest,
-    ): Promise<void> =>
-      apiClient.post('/v1/document/update_metadata_setting', data),
+    // 已迁移到 RESTful PUT /api/v1/datasets/{id}/documents/{id}/metadata/config；
+    // TODO(2026-08-01): 后端全环境上线该路由后删掉 legacy 回退分支。
+    updateDocumentSettings: ({
+      kb_id,
+      doc_id,
+      metadata,
+    }: DocumentMetadataSettingsRequest): Promise<void> =>
+      withLegacyFallback(
+        () =>
+          apiClient.put<void>(
+            `/v1/datasets/${encodeURIComponent(kb_id)}/documents/${encodeURIComponent(doc_id)}/metadata/config`,
+            { metadata },
+            sdkBase,
+          ),
+        () =>
+          apiClient.post<void>('/v1/document/update_metadata_setting', {
+            doc_id,
+            metadata,
+          }),
+      ),
 
     // 更新单文档 metadata 值 (更新 meta_fields)
     // 已迁移到 RESTful PUT /api/v1/datasets/{id}/documents/{id}（body 传 meta_fields）

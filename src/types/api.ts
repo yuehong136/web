@@ -618,6 +618,7 @@ export interface KBMetadataSettingsRequest {
 
 // 文档 Metadata 设置更新请求
 export interface DocumentMetadataSettingsRequest {
+  kb_id: string
   doc_id: string
   metadata: MetadataFieldDefinition[]
 }
