@@ -1,8 +1,7 @@
-import { API_BASE_URL } from '@/constants'
 import type { Document, DocumentFilter, IDocumentInfoFilter } from '@/types/api'
-import { APIError, apiClient } from './client'
-
-export const knowledgeRestConfig = { baseURL: `${API_BASE_URL}/api` }
+import { apiClient } from './client'
+import { knowledgeRestConfig } from './knowledge-config'
+import { isMissingRouteError } from './legacy-fallback'
 
 export type DocumentUploadOptions = {
   parser_id?: string
@@ -109,18 +108,7 @@ export async function getDatasetDocumentFilter(
   )
 }
 
-/**
- * 后端还没有 RESTful 删除路由时的判据。
- *
- * 路由不存在只会以 HTTP 404/405 出现——后端的业务错误一律是 HTTP 200 + 信封里的
- * 非零 code，不会走到这里。
- *
- * 返回值判据是兜底：apiClient 现在会对非 2xx 的非信封响应抛 APIError，但反代把
- * 上游 404 改写成 200 + `{"detail": ...}` 这类形状仍只能从返回值看出来。
- */
-const isMissingRouteError = (error: unknown): boolean =>
-  error instanceof APIError && (error.status === 404 || error.status === 405)
-
+/** 反代把上游 404 改写成 200 时，只能从响应形状识别缺失路由。 */
 const looksLikeMissingRouteResult = (result: unknown): boolean =>
   typeof result === 'object' &&
   result !== null &&

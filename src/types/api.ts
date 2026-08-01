@@ -3,6 +3,10 @@
 // 基于 OpenAPI 3.1 规范自动生成
 // ============================================================================
 
+import type { MetadataCondition, MetadataFieldDefinition } from './metadata'
+
+export * from './metadata'
+
 // ============================================================================
 // 环境管理模块
 // ============================================================================
@@ -542,111 +546,6 @@ export interface Conversation {
   messages?: Message[]
   metadata?: Record<string, any>
 }
-
-// ============================================================================
-// 元数据过滤条件 (Metadata Filtering)
-// ============================================================================
-
-// 元数据过滤条件中的单个条件
-export interface MetadataFilterCondition {
-  name: string // 元数据字段名
-  comparison_operator: string // 比较操作符: is, not is, contains, not contains, start with, end with, empty, not empty, >, <, ≥, ≤
-  value?: string | number | boolean // 值 (对于 empty/not empty 可选)
-}
-
-// 元数据过滤条件对象
-export interface MetadataCondition {
-  logic?: 'and' | 'or' // 逻辑运算符，默认 and
-  conditions?: MetadataFilterCondition[] // 条件列表
-}
-
-// ============================================================================
-// Metadata 管理模块 (知识库元数据字段定义和管理)
-// ============================================================================
-
-// Metadata 字段定义 (知识库模板)
-export interface MetadataFieldDefinition {
-  key: string // 字段名 (仅允许英文字母和下划线)
-  description?: string // 字段描述
-  enum?: string[] // 允许的值列表 (可选)
-  restrictDefinedValues?: boolean // 是否限制为预定义值
-}
-
-// Metadata 汇总项 (聚合统计)
-export interface MetadataSummaryItem {
-  field: string // 字段名
-  type?: string
-  values: Array<[string | number, number]>
-}
-
-// Metadata 汇总响应
-export interface MetadataSummaryResponse {
-  summary: Record<
-    string,
-    MetadataSummaryItem | Array<[string | number, number]>
-  >
-  total_docs?: number
-}
-
-// Metadata 更新操作
-export interface MetadataUpdateOperation {
-  key: string // 字段名
-  match: string // 原始值 (用于匹配)
-  value: string // 新值
-}
-
-// Metadata 删除操作
-export interface MetadataDeleteOperation {
-  key: string // 字段名
-  value?: string // 具体值 (不提供则删除整个字段)
-}
-
-// Metadata 批量操作请求
-export interface MetadataBatchRequest {
-  kb_id: string
-  doc_ids?: string[]
-  updates?: MetadataUpdateOperation[]
-  deletes?: MetadataDeleteOperation[]
-}
-
-// 知识库 Metadata 设置更新请求
-export interface KBMetadataSettingsRequest {
-  kb_id: string
-  metadata: MetadataFieldDefinition[]
-  enable_metadata?: boolean
-}
-
-// 文档 Metadata 设置更新请求
-export interface DocumentMetadataSettingsRequest {
-  kb_id: string
-  doc_id: string
-  metadata: MetadataFieldDefinition[]
-}
-
-// 文档 Metadata 更新请求 (更新 meta_fields)
-export interface DocumentMetadataUpdateRequest {
-  doc_id: string
-  meta: string // JSON 字符串格式的 Record<string, any>
-}
-
-// Metadata 表格数据 (UI 展示用)
-export interface MetadataTableData {
-  field: string
-  description: string
-  restrictDefinedValues?: boolean
-  values: string[]
-}
-
-// Metadata 管理操作类型
-export const MetadataManageType = {
-  MANAGE: 1, // 管理知识库级别 metadata 汇总
-  UPDATE_SINGLE: 2, // 编辑单个文档 metadata
-  SETTING: 3, // 知识库 metadata 模板设置
-  SINGLE_FILE_SETTING: 4, // 单文件 metadata 设置
-} as const
-
-export type MetadataManageType =
-  (typeof MetadataManageType)[keyof typeof MetadataManageType]
 
 export interface ChatCompletionRequest {
   message: string

@@ -1,12 +1,18 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { APIError, apiClient, type RequestConfig } from '../client'
+import { knowledgeAPI } from '../knowledge'
+import { knowledgeDocumentAPI } from '../knowledge-documents'
 import {
   deleteDatasetDocuments,
   listDatasetDocuments,
   normalizeDatasetDocument,
   type DatasetDocumentDTO,
 } from '../knowledge-rest'
+
+test('knowledge facade exposes the domain document client', () => {
+  assert.equal(knowledgeAPI.document, knowledgeDocumentAPI)
+})
 
 const dto: DatasetDocumentDTO = {
   id: 'doc-1',
