@@ -4,6 +4,34 @@ import { STORAGE_KEYS, API_BASE_URL, API_VERSION } from '@/constants'
 
 const te = (key: string) => i18n.t(`common.errors.${key}`)
 
+/**
+ * 从非信封格式的错误响应里取一条可读消息。
+ *
+ * FastAPI 的 `detail` 既可能是字符串（HTTPException），也可能是 422 校验错误的
+ * 数组（每项带 `msg`）；网关返回的错误 JSON 一般是 `message`。
+ */
+const extractErrorMessage = (rawData: unknown): string | null => {
+  if (typeof rawData !== 'object' || rawData === null) return null
+  const record = rawData as Record<string, unknown>
+
+  const detail = record.detail
+  if (typeof detail === 'string' && detail) return detail
+  if (Array.isArray(detail)) {
+    const messages = detail
+      .map((item) =>
+        typeof item === 'object' && item !== null && 'msg' in item
+          ? String((item as { msg: unknown }).msg)
+          : null,
+      )
+      .filter((msg): msg is string => Boolean(msg))
+    if (messages.length > 0) return messages.join('; ')
+  }
+
+  return typeof record.message === 'string' && record.message
+    ? record.message
+    : null
+}
+
 export class APIError extends Error {
   public status: number
   public code: string
@@ -243,6 +271,19 @@ class APIClient {
             401,
             'UNAUTHORIZED',
             rawData.detail || rawData.message || te('unauthorized'),
+          )
+        }
+
+        // 非信封格式的错误响应（FastAPI 的 {"detail": ...}、网关返回的错误 JSON
+        // 等）同样要抛错——否则调用方拿到的是一个形状完全不对的“数据”，错误会在
+        // 更远的地方以更迷惑的方式爆出来。
+        if (!response.ok) {
+          throw new APIError(
+            response.status,
+            'HTTP_ERROR',
+            extractErrorMessage(rawData) ||
+              `HTTP ${response.status}: ${response.statusText}`,
+            rawData,
           )
         }
 

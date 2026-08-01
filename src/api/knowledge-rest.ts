@@ -113,9 +113,10 @@ export async function getDatasetDocumentFilter(
  * 后端还没有 RESTful 删除路由时的判据。
  *
  * 路由不存在只会以 HTTP 404/405 出现——后端的业务错误一律是 HTTP 200 + 信封里的
- * 非零 code，不会走到这里。另外 apiClient 对「非信封格式的错误响应」不抛错而是把
- * 响应体原样透出（FastAPI 的 `{"detail": "Not Found"}` 正是这种形状），所以返回值
- * 也要验一道。
+ * 非零 code，不会走到这里。
+ *
+ * 返回值判据是兜底：apiClient 现在会对非 2xx 的非信封响应抛 APIError，但反代把
+ * 上游 404 改写成 200 + `{"detail": ...}` 这类形状仍只能从返回值看出来。
  */
 const isMissingRouteError = (error: unknown): boolean =>
   error instanceof APIError && (error.status === 404 || error.status === 405)
