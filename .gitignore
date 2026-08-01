@@ -23,7 +23,11 @@ dist-ssr
 *.sln
 *.sw?
 
+# Deployment artifacts
 deploy
+deploy.zip
+web-deploy.tar.gz
+
 docs/*
 !docs/engineering-modernization-roadmap.md
 !docs/streaming-runtime-design.md
