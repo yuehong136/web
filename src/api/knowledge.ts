@@ -1,5 +1,7 @@
 import { apiClient, type ApiEnvelope } from './client'
 import {
+  deleteDatasetDocuments,
+  deleteDocumentsLegacy,
   getDatasetDocumentFilter,
   knowledgeRestConfig as sdkBase,
   listDatasetDocuments,
@@ -235,8 +237,14 @@ export const knowledgeAPI = {
     }): Promise<void> => apiClient.post('/v1/document/change_parser', data),
 
     // 删除文档
-    delete: (docIds: string[]): Promise<void> =>
-      apiClient.post('/v1/document/rm', { doc_id: docIds }),
+    // RESTful DELETE /api/v1/datasets/{dataset_id}/documents
+    // TODO(2026-08-01): datasetId 可选是兼容期设计——拿不到 datasetId 的调用方直接
+    // 走旧的 /v1/document/rm。待所有调用方都带上 datasetId 且后端全部升级后，改成
+    // 必填参数并删除 legacy 分支。
+    delete: (docIds: string[], datasetId?: string): Promise<void> =>
+      datasetId
+        ? deleteDatasetDocuments(datasetId, docIds)
+        : deleteDocumentsLegacy(docIds),
 
     // 重新解析文档
     reparse: (

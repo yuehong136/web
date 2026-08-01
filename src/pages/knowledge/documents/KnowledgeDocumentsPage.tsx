@@ -29,7 +29,7 @@ export function KnowledgeDocumentsPage() {
   const actions = useDocumentActions(() => {
     listState.clearSelection()
     listState.refetch()
-  })
+  }, kbId)
   const logModal = useDocumentLogModal(listState.documents)
   const generate = useGenerateState(kbId || '')
   const pageModals = useDocumentPageModals({

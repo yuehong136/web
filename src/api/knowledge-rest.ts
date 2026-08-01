@@ -1,6 +1,6 @@
 import { API_BASE_URL } from '@/constants'
 import type { Document, DocumentFilter, IDocumentInfoFilter } from '@/types/api'
-import { apiClient } from './client'
+import { APIError, apiClient } from './client'
 
 export const knowledgeRestConfig = { baseURL: `${API_BASE_URL}/api` }
 
@@ -107,6 +107,61 @@ export async function getDatasetDocumentFilter(
     `/v1/datasets/${encodeURIComponent(datasetId)}/documents?type=filter`,
     knowledgeRestConfig,
   )
+}
+
+/**
+ * 后端还没有 RESTful 删除路由时的判据。
+ *
+ * 路由不存在只会以 HTTP 404/405 出现——后端的业务错误一律是 HTTP 200 + 信封里的
+ * 非零 code，不会走到这里。另外 apiClient 对「非信封格式的错误响应」不抛错而是把
+ * 响应体原样透出（FastAPI 的 `{"detail": "Not Found"}` 正是这种形状），所以返回值
+ * 也要验一道。
+ */
+const isMissingRouteError = (error: unknown): boolean =>
+  error instanceof APIError && (error.status === 404 || error.status === 405)
+
+const looksLikeMissingRouteResult = (result: unknown): boolean =>
+  typeof result === 'object' &&
+  result !== null &&
+  'detail' in result &&
+  !('deleted' in result)
+
+/**
+ * 删除数据集下的文档。
+ *
+ * TODO(2026-08-01): 兼容期实现——优先打统一的 RESTful 入口，只有后端尚未上线该
+ * 路由（404/405）时才回落到旧的 web 端点 `POST /v1/document/rm`。待所有部署环境
+ * 的后端都带上 `DELETE /api/v1/datasets/{dataset_id}/documents` 后，删掉本文件的
+ * 回退分支与 `deleteDocumentsLegacy`、`knowledge.ts` 里 datasetId 可选的分支，只
+ * 保留 RESTful 调用；后端届时也可以摘掉 `/v1/document/rm`。
+ */
+export async function deleteDatasetDocuments(
+  datasetId: string,
+  documentIds: string[],
+): Promise<void> {
+  try {
+    const result = await apiClient.delete<unknown>(
+      `/v1/datasets/${encodeURIComponent(datasetId)}/documents`,
+      { ...knowledgeRestConfig, data: { ids: documentIds } },
+    )
+    if (!looksLikeMissingRouteResult(result)) return
+  } catch (error) {
+    if (!isMissingRouteError(error)) throw error
+  }
+
+  console.warn(
+    '[documents] RESTful delete route unavailable, falling back to /v1/document/rm',
+  )
+  await deleteDocumentsLegacy(documentIds)
+}
+
+/**
+ * TODO(2026-08-01): 兼容期实现，随 {@link deleteDatasetDocuments} 的回退分支一起删除。
+ */
+export async function deleteDocumentsLegacy(
+  documentIds: string[],
+): Promise<void> {
+  await apiClient.post('/v1/document/rm', { doc_id: documentIds })
 }
 
 export function uploadDatasetDocuments(
