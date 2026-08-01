@@ -1,4 +1,6 @@
+import { API_BASE_URL } from '@/constants'
 import { apiClient } from './client'
+import { withLegacyFallback } from './legacy-fallback'
 import type {
   IDataSource,
   IDataSourceBase,
@@ -37,39 +39,103 @@ export interface BoxOAuthStartPayload {
   redirect_uri?: string
 }
 
+const connectorRestConfig = { baseURL: `${API_BASE_URL}/api` }
+
+const connectorPath = (id: string) => `/v1/connectors/${encodeURIComponent(id)}`
+
 export const datasourceAPI = {
   // 数据源 CRUD
   connector: {
     // 获取数据源列表
     list: (): Promise<IDataSource[]> =>
-      apiClient.get('/v1/connector/list'),
+      withLegacyFallback(
+        () =>
+          apiClient.get<IDataSource[]>('/v1/connectors', connectorRestConfig),
+        () => apiClient.get<IDataSource[]>('/v1/connector/list'),
+      ),
 
     // 获取数据源详情
     get: (id: string): Promise<IDataSource> =>
-      apiClient.get(`/v1/connector/${id}`),
+      withLegacyFallback(
+        () =>
+          apiClient.get<IDataSource>(connectorPath(id), connectorRestConfig),
+        () => apiClient.get<IDataSource>(`/v1/connector/${id}`),
+      ),
 
-    // 创建/更新数据源
-    set: (data: DataSourceSetRequest): Promise<{ id: string }> =>
-      apiClient.post('/v1/connector/set', data),
+    // 创建/更新数据源（RESTful 面拆成了建 POST /connectors 与改 PATCH /connectors/{id}）
+    set: ({ id, ...data }: DataSourceSetRequest): Promise<{ id: string }> =>
+      withLegacyFallback(
+        () =>
+          id
+            ? apiClient.patch<{ id: string }>(
+                connectorPath(id),
+                { config: data.config },
+                connectorRestConfig,
+              )
+            : apiClient.post<{ id: string }>(
+                '/v1/connectors',
+                data,
+                connectorRestConfig,
+              ),
+        () =>
+          apiClient.post<{ id: string }>('/v1/connector/set', { id, ...data }),
+      ),
 
     // 删除数据源
     delete: (id: string): Promise<void> =>
-      apiClient.post(`/v1/connector/${id}/rm`),
+      withLegacyFallback(
+        () => apiClient.delete<void>(connectorPath(id), connectorRestConfig),
+        () => apiClient.post<void>(`/v1/connector/${id}/rm`),
+      ),
 
     // 暂停/恢复数据源
     resume: (id: string, resume: boolean): Promise<void> =>
-      apiClient.put(`/v1/connector/${id}/resume`, { resume }),
+      withLegacyFallback(
+        () =>
+          apiClient.post<void>(
+            `${connectorPath(id)}/resume`,
+            { resume },
+            connectorRestConfig,
+          ),
+        () => apiClient.put<void>(`/v1/connector/${id}/resume`, { resume }),
+      ),
 
     // 重建数据源
     rebuild: (id: string, kbId: string): Promise<void> =>
-      apiClient.put(`/v1/connector/${id}/rebuild`, { kb_id: kbId }),
+      withLegacyFallback(
+        () =>
+          apiClient.post<void>(
+            `${connectorPath(id)}/rebuild`,
+            { kb_id: kbId },
+            connectorRestConfig,
+          ),
+        () =>
+          apiClient.put<void>(`/v1/connector/${id}/rebuild`, { kb_id: kbId }),
+      ),
 
     // 获取数据源日志
-    logs: (id: string, params?: DataSourceLogsParams): Promise<DataSourceLogsResponse> =>
-      apiClient.get(`/v1/connector/${id}/logs`, { params }),
+    logs: (
+      id: string,
+      params?: DataSourceLogsParams,
+    ): Promise<DataSourceLogsResponse> =>
+      withLegacyFallback(
+        () =>
+          apiClient.get<DataSourceLogsResponse>(`${connectorPath(id)}/logs`, {
+            ...connectorRestConfig,
+            params,
+          }),
+        () =>
+          apiClient.get<DataSourceLogsResponse>(`/v1/connector/${id}/logs`, {
+            params,
+          }),
+      ),
 
     // 链接数据源到知识库
-    link: (connectorId: string, kbId: string, autoParse?: boolean): Promise<void> =>
+    link: (
+      connectorId: string,
+      kbId: string,
+      autoParse?: boolean,
+    ): Promise<void> =>
       apiClient.post('/v1/connector/link', {
         connector_id: connectorId,
         kb_id: kbId,
@@ -84,7 +150,11 @@ export const datasourceAPI = {
       }),
 
     // 更新数据源自动解析设置
-    updateAutoParse: (connectorId: string, kbId: string, autoParse: boolean): Promise<void> =>
+    updateAutoParse: (
+      connectorId: string,
+      kbId: string,
+      autoParse: boolean,
+    ): Promise<void> =>
       apiClient.post('/v1/connector/update_auto_parse', {
         connector_id: connectorId,
         kb_id: kbId,
@@ -99,27 +169,39 @@ export const datasourceAPI = {
   // OAuth 认证
   oauth: {
     // Google Drive OAuth 开始
-    startGoogleDrive: (payload: OAuthStartPayload): Promise<{ flow_id: string; auth_url: string }> =>
+    startGoogleDrive: (
+      payload: OAuthStartPayload,
+    ): Promise<{ flow_id: string; auth_url: string }> =>
       apiClient.post('/v1/connector/google-drive/auth/start', payload),
 
     // Google Drive OAuth 轮询结果
-    pollGoogleDrive: (payload: OAuthPollPayload): Promise<{ status: string; tokens?: string }> =>
+    pollGoogleDrive: (
+      payload: OAuthPollPayload,
+    ): Promise<{ status: string; tokens?: string }> =>
       apiClient.post('/v1/connector/google-drive/auth/result', payload),
 
     // Gmail OAuth 开始
-    startGmail: (payload: OAuthStartPayload): Promise<{ flow_id: string; auth_url: string }> =>
+    startGmail: (
+      payload: OAuthStartPayload,
+    ): Promise<{ flow_id: string; auth_url: string }> =>
       apiClient.post('/v1/connector/gmail/auth/start', payload),
 
     // Gmail OAuth 轮询结果
-    pollGmail: (payload: OAuthPollPayload): Promise<{ status: string; tokens?: string }> =>
+    pollGmail: (
+      payload: OAuthPollPayload,
+    ): Promise<{ status: string; tokens?: string }> =>
       apiClient.post('/v1/connector/gmail/auth/result', payload),
 
     // Box OAuth 开始
-    startBox: (payload: BoxOAuthStartPayload): Promise<{ flow_id: string; auth_url: string }> =>
+    startBox: (
+      payload: BoxOAuthStartPayload,
+    ): Promise<{ flow_id: string; auth_url: string }> =>
       apiClient.post('/v1/connector/box/auth/start', payload),
 
     // Box OAuth 轮询结果
-    pollBox: (payload: OAuthPollPayload): Promise<{ status: string; tokens?: string }> =>
+    pollBox: (
+      payload: OAuthPollPayload,
+    ): Promise<{ status: string; tokens?: string }> =>
       apiClient.post('/v1/connector/box/auth/result', payload),
   },
 }
