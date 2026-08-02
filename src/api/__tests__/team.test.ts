@@ -37,6 +37,26 @@ test('listJoinedTeams hits the RESTful tenants route', async () => {
   assert.ok(calls[0]?.config?.baseURL?.endsWith('/api'))
 })
 
+test('getTenantInfo uses the RESTful current-user models route', async () => {
+  const calls: Call[] = []
+  const restore = stub(
+    'get',
+    async (endpoint: string, config?: RequestConfig) => {
+      calls.push({ endpoint, config })
+      return {}
+    },
+  )
+
+  try {
+    await teamAPI.getTenantInfo()
+  } finally {
+    restore()
+  }
+
+  assert.equal(calls[0]?.endpoint, '/users/me/models')
+  assert.ok(calls[0]?.config?.baseURL?.endsWith('/api'))
+})
+
 test('acceptInvitation uses PATCH on the tenant resource', async () => {
   const calls: Call[] = []
   const restore = stub(

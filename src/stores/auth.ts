@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { STORAGE_KEYS } from '@/constants'
+import { API_BASE_URL, STORAGE_KEYS } from '@/constants'
 import { apiClient } from '@/api/client'
 import { encryptPassword } from '@/utils/crypt'
 import type { UserInfo, TenantInfo } from '@/types/api'
@@ -12,18 +12,22 @@ interface AuthState {
   token: string | null
   isAuthenticated: boolean
   isLoading: boolean
-  
+
   // 动作
   setUser: (user: UserInfo | null) => void
   setTenant: (tenant: TenantInfo | null) => void
   setToken: (token: string | null) => void
   setLoading: (loading: boolean) => void
   login: (email: string, password: string, remember?: boolean) => Promise<void>
-  register: (data: { nickname: string; email: string; password: string }) => Promise<void>
+  register: (data: {
+    nickname: string
+    email: string
+    password: string
+  }) => Promise<void>
   logout: () => Promise<void>
   updateUser: (updates: Partial<UserInfo>) => void
   refreshToken: () => Promise<void>
-  
+
   // 工具方法
   hasPermission: (permission: string) => boolean
   hasRole: (role: string) => boolean
@@ -37,26 +41,26 @@ export const useAuthStore = create<AuthState>()(
         window.addEventListener('auth:logout', (event: any) => {
           const { reason } = event.detail || {}
           console.log('Auth logout event received:', reason)
-          
+
           // 清除状态但不调用后端logout API（因为token已经无效）
           apiClient.setAuthToken(null)
           localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN)
           localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN)
           localStorage.removeItem(STORAGE_KEYS.USER_INFO)
           localStorage.removeItem('tenant_info')
-          
+
           set({
             user: null,
             tenant: null,
             token: null,
             isAuthenticated: false,
-            isLoading: false
+            isLoading: false,
           })
 
           window.location.reload()
         })
       }
-      
+
       return {
         // 初始状态
         user: null,
@@ -66,19 +70,21 @@ export const useAuthStore = create<AuthState>()(
         isLoading: false,
 
         // 设置用户
-        setUser: (user) => set({ 
-          user, 
-          isAuthenticated: !!user 
-        }),
+        setUser: (user) =>
+          set({
+            user,
+            isAuthenticated: !!user,
+          }),
 
         // 设置租户
         setTenant: (tenant) => set({ tenant }),
 
         // 设置token
-        setToken: (token) => set({ 
-          token, 
-          isAuthenticated: !!token && !!get().user 
-        }),
+        setToken: (token) =>
+          set({
+            token,
+            isAuthenticated: !!token && !!get().user,
+          }),
 
         // 设置加载状态
         setLoading: (isLoading) => set({ isLoading }),
@@ -87,32 +93,39 @@ export const useAuthStore = create<AuthState>()(
         login: async (email, password) => {
           set({ isLoading: true })
           try {
-            const response = await apiClient.post('/user/login', {
-              username: email,  // 后端期望的是username字段
-              password: encryptPassword(password)
-            })
+            const response = await apiClient.post(
+              '/auth/login',
+              {
+                username: email, // 后端期望的是username字段
+                password: encryptPassword(password),
+              },
+              { baseURL: `${API_BASE_URL}/api`, skipAuth: true },
+            )
 
             // 后端返回的数据结构：{ data: user_info, auth: jwt_token, retcode: 200, retmsg: "Welcome back!" }
             console.log('Full login response:', response)
-            
+
             const { data: user, auth: access_token, refresh_token } = response
-            
+
             console.log('Extracted user:', user)
             console.log('Extracted token:', access_token)
-            console.log('Login successful, setting token:', access_token?.substring(0, 20) + '...')
-            
+            console.log(
+              'Login successful, setting token:',
+              access_token?.substring(0, 20) + '...',
+            )
+
             // 设置API客户端的token
             apiClient.setAuthToken(access_token)
-            
+
             // 更新状态
-            set({ 
-              token: access_token, 
-              user, 
+            set({
+              token: access_token,
+              user,
               tenant: null, // 租户信息需要单独获取
               isAuthenticated: true,
-              isLoading: false 
+              isLoading: false,
             })
-            
+
             // 保存到本地存储
             localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, access_token)
             if (refresh_token) {
@@ -130,54 +143,61 @@ export const useAuthStore = create<AuthState>()(
         // 注册
         register: async (data) => {
           set({ isLoading: true })
-        try {
-          const response = await apiClient.post('/v1/user/register', {
-            email: data.email,
-            nickname: data.nickname,
-            password: encryptPassword(data.password)
-          })
+          try {
+            const response = await apiClient.post(
+              '/users',
+              {
+                email: data.email,
+                nickname: data.nickname,
+                password: encryptPassword(data.password),
+              },
+              { baseURL: `${API_BASE_URL}/api`, skipAuth: true },
+            )
 
-          console.log('Full register response:', response)
+            console.log('Full register response:', response)
 
-          // 检查是否注册被禁用
-          if (response.retcode && response.retcode !== 200) {
-            throw new Error(response.retmsg || '注册失败')
+            // 检查是否注册被禁用
+            if (response.retcode && response.retcode !== 200) {
+              throw new Error(response.retmsg || '注册失败')
+            }
+
+            // 后端返回的数据结构：{ data: user_info, auth: jwt_token, retcode: 200, retmsg: "Welcome aboard!" }
+            const { data: user, auth: access_token, refresh_token } = response
+
+            if (!access_token || !user) {
+              throw new Error('注册响应数据不完整')
+            }
+
+            console.log('Extracted user:', user)
+            console.log(
+              'Extracted token:',
+              access_token?.substring(0, 20) + '...',
+            )
+
+            // 设置API客户端的token
+            apiClient.setAuthToken(access_token)
+
+            // 更新状态
+            set({
+              token: access_token,
+              user,
+              tenant: null,
+              isAuthenticated: true,
+              isLoading: false,
+            })
+
+            // 保存到本地存储
+            localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, access_token)
+            if (refresh_token) {
+              localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refresh_token)
+            } else {
+              localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN)
+            }
+            localStorage.setItem(STORAGE_KEYS.USER_INFO, JSON.stringify(user))
+          } catch (error) {
+            set({ isLoading: false })
+            throw error
           }
-
-          // 后端返回的数据结构：{ data: user_info, auth: jwt_token, retcode: 200, retmsg: "Welcome aboard!" }
-          const { data: user, auth: access_token, refresh_token } = response
-          
-          if (!access_token || !user) {
-            throw new Error('注册响应数据不完整')
-          }
-
-          console.log('Extracted user:', user)
-          console.log('Extracted token:', access_token?.substring(0, 20) + '...')
-          
-          // 设置API客户端的token
-          apiClient.setAuthToken(access_token)
-          
-          // 更新状态
-          set({ 
-            token: access_token, 
-            user, 
-            tenant: null,
-            isAuthenticated: true,
-            isLoading: false 
-          })
-          
-          // 保存到本地存储
-          localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, access_token)
-          if (refresh_token) {
-            localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refresh_token)
-          } else {
-            localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN)
-          }
-          localStorage.setItem(STORAGE_KEYS.USER_INFO, JSON.stringify(user))
-        } catch (error) {
-          set({ isLoading: false })
-          throw error
-        }
         },
 
         // 登出
@@ -189,22 +209,22 @@ export const useAuthStore = create<AuthState>()(
             console.warn('Backend logout failed:', error)
             // 即使后端logout失败，也要清除前端状态
           }
-          
+
           // 清除API客户端的token
           apiClient.setAuthToken(null)
-          
+
           // 清除本地存储
           localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN)
           localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN)
           localStorage.removeItem(STORAGE_KEYS.USER_INFO)
           localStorage.removeItem('tenant_info')
-          
-          set({ 
-            user: null, 
+
+          set({
+            user: null,
             tenant: null,
-            token: null, 
+            token: null,
             isAuthenticated: false,
-            isLoading: false 
+            isLoading: false,
           })
         },
 
@@ -219,9 +239,12 @@ export const useAuthStore = create<AuthState>()(
           if (currentUser) {
             const updatedUser = { ...currentUser, ...updates }
             set({ user: updatedUser })
-            
+
             // 更新本地存储
-            localStorage.setItem(STORAGE_KEYS.USER_INFO, JSON.stringify(updatedUser))
+            localStorage.setItem(
+              STORAGE_KEYS.USER_INFO,
+              JSON.stringify(updatedUser),
+            )
           }
         },
 
@@ -260,6 +283,6 @@ export const useAuthStore = create<AuthState>()(
           }
         }
       },
-    }
-  )
+    },
+  ),
 )

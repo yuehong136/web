@@ -51,7 +51,7 @@ export interface JoinedTeam {
 }
 
 // 当前租户信息
-// 来自 /user/tenant_info 接口
+// 来自 /api/v1/users/me/models 接口
 // 注意：此接口只返回当前用户作为 owner 的租户信息
 export interface TenantInfo {
   tenant_id: string // 租户 ID（即当前用户的 user_id）

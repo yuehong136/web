@@ -10,6 +10,9 @@ import { apiClient } from '@/api/client'
 import { toast } from '@/lib/toast'
 import { IconFontFill } from '@/components/ui/icon-font'
 import { useIsDarkTheme } from '@/themes'
+import { API_BASE_URL } from '@/constants'
+
+const userRestConfig = { baseURL: `${API_BASE_URL}/api` }
 
 interface TenantInfo {
   tenant_id: string
@@ -112,7 +115,7 @@ export const SystemSetting: React.FC = () => {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const response = await apiClient.get('/user/tenant_info')
+        const response = await apiClient.get('/users/me/models', userRestConfig)
         if (response) {
           setTenantInfo({
             tenant_id: response.tenant_id || '',
@@ -225,16 +228,20 @@ export const SystemSetting: React.FC = () => {
 
       try {
         // 传递完整的设置对象，与 ragflow 一致
-        await apiClient.post('/user/set_tenant_info', {
-          tenant_id: updatedInfo.tenant_id,
-          name: updatedInfo.name,
-          llm_id: updatedInfo.llm_id,
-          embd_id: updatedInfo.embd_id,
-          img2txt_id: updatedInfo.img2txt_id,
-          asr_id: updatedInfo.asr_id,
-          rerank_id: updatedInfo.rerank_id,
-          tts_id: updatedInfo.tts_id,
-        })
+        await apiClient.patch(
+          '/users/me/models',
+          {
+            tenant_id: updatedInfo.tenant_id,
+            name: updatedInfo.name,
+            llm_id: updatedInfo.llm_id,
+            embd_id: updatedInfo.embd_id,
+            img2txt_id: updatedInfo.img2txt_id,
+            asr_id: updatedInfo.asr_id,
+            rerank_id: updatedInfo.rerank_id,
+            tts_id: updatedInfo.tts_id,
+          },
+          userRestConfig,
+        )
         toast.success('已更新')
       } catch (error) {
         console.error('Failed to save settings:', error)

@@ -43,7 +43,8 @@ const removeTenantUser = (tenantId: string, userId: string): Promise<void> =>
 
 export const teamAPI = {
   // 获取当前租户信息
-  getTenantInfo: (): Promise<TenantInfo> => apiClient.get('/user/tenant_info'),
+  getTenantInfo: (): Promise<TenantInfo> =>
+    apiClient.get('/users/me/models', teamRestConfig),
 
   // 获取团队成员列表（owner 和 admin 均可调用）
   listTeamMembers: (tenantId: string): Promise<TeamMembersResponse> =>

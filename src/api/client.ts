@@ -224,10 +224,7 @@ class APIClient {
       }
 
       // 对于登录接口，从响应头中提取token
-      if (
-        endpoint.includes('/user/login') ||
-        endpoint.includes('/user/register')
-      ) {
+      if (endpoint === '/auth/login' || endpoint === '/users') {
         const token = response.headers.get('Authorization')
         if (token) {
           ;(data as any).auth = token
@@ -254,10 +251,7 @@ class APIClient {
 
       // 对于登录等特殊接口，需要返回完整数据（包含auth字段）
       // 检查URL是否是登录接口
-      if (
-        endpoint.includes('/user/login') ||
-        endpoint.includes('/user/register')
-      ) {
+      if (endpoint === '/auth/login' || endpoint === '/users') {
         return data as T
       }
 
