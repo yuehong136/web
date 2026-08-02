@@ -44,6 +44,7 @@ export enum DataSourceKey {
 export const enum DataSourceStatus {
   PENDING = 'pending',
   RUNNING = 'running',
+  SCHEDULED = 'scheduled',
   PAUSED = 'paused',
   COMPLETED = 'completed',
   FAILED = 'failed',
@@ -99,8 +100,14 @@ export interface IDataSourceLog {
   error_count: number
   error_msg: string
   new_docs_indexed: number
+  total_docs_indexed?: number
+  docs_removed_from_index?: number
   poll_range_start: string | null
   poll_range_end: string | null
+  task_type?: 'sync' | 'prune'
+  time_started?: string | null
+  refresh_freq?: number
+  prune_freq?: number
   reindex: string
   timeout_secs: number
   tenant_id: string

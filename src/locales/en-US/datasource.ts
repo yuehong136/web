@@ -24,12 +24,19 @@ export default {
     // Detail page
     configuration: 'Configuration',
     syncLogs: 'Sync Logs',
+    syncOverview: 'Sync overview',
+    syncHistory: 'Sync history',
     notFound: 'Data source not found',
+    notFoundDescription:
+      'This data source may have been deleted or is not accessible to this account.',
     backToList: 'Back to list',
+    loadingDetail: 'Loading data source',
+    loadingDetailDescription: 'Fetching configuration and recent sync state.',
 
     // Status
     statusPending: 'Pending',
     statusRunning: 'Running',
+    statusScheduled: 'Scheduled',
     statusPaused: 'Paused',
     statusCompleted: 'Completed',
     statusFailed: 'Failed',
@@ -48,6 +55,26 @@ export default {
     logErrors: 'Errors',
     logTime: 'Time Range',
     noLogs: 'No sync logs yet',
+    noLogsDescription: 'Task results will appear here after the first sync.',
+    logUpdatedAt: 'Updated at',
+    logSummary: 'Task summary',
+    logCursor: 'Synced through',
+    logSummaryScheduled: 'Waiting for the next automatic sync',
+    logSummaryRunning:
+      'Fetching the data source and updating the knowledge base',
+    logSummaryPaused: 'Task paused',
+    logSummaryFailed: 'Sync task failed',
+    logSummaryCompleted:
+      'Added {{added}} · Total {{total}} · Errors {{errors}}',
+    currentState: 'Current state',
+    lastSuccessfulSync: 'Last successful sync',
+    nextEstimatedSync: 'Estimated next sync',
+    waitingForSchedule: 'Waiting for schedule details',
+    syncEveryMinutes: 'Checks every {{count}} minutes',
+    lastSyncSummary: 'Added {{added}} this run, {{total}} total',
+    zeroChangesExplanation:
+      '“Added 0” means no upstream changes were found and the task still succeeded. Scheduled means automatic sync is enabled, not that the first run is pending.',
+    notAvailable: 'Not available',
 
     // Link data source
     dataSources: 'Data Sources',

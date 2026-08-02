@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { APIError, apiClient, type RequestConfig } from '../client'
-import { datasourceAPI } from '../datasource'
+import { DataSourceStatus } from '@/pages/settings/datasource/types'
+import { datasourceAPI, normalizeDataSourceStatus } from '../datasource'
 
 type Call = { endpoint: string; data?: unknown; config?: RequestConfig }
 
@@ -15,6 +16,52 @@ function stub(
     apiClient[verb] = original
   }
 }
+
+test('normalizes RAGFlow semantic and legacy numeric task statuses', () => {
+  assert.equal(normalizeDataSourceStatus('0'), DataSourceStatus.PENDING)
+  assert.equal(normalizeDataSourceStatus('RUNNING'), DataSourceStatus.RUNNING)
+  assert.equal(normalizeDataSourceStatus('2'), DataSourceStatus.PAUSED)
+  assert.equal(normalizeDataSourceStatus('DONE'), DataSourceStatus.COMPLETED)
+  assert.equal(normalizeDataSourceStatus('4'), DataSourceStatus.FAILED)
+  assert.equal(normalizeDataSourceStatus('5'), DataSourceStatus.SCHEDULED)
+  assert.equal(
+    normalizeDataSourceStatus('SCHEDULE'),
+    DataSourceStatus.SCHEDULED,
+  )
+})
+
+test('normalizes connector and log statuses at the API boundary', async () => {
+  const restore = stub('get', async (endpoint: string) => {
+    if (endpoint.endsWith('/logs')) {
+      return {
+        logs: [
+          { id: 'scheduled', status: '5' },
+          { id: 'completed', status: '3' },
+        ],
+        total: 2,
+      }
+    }
+    if (endpoint === '/v1/connectors') {
+      return [{ id: 'conn-1', status: 'SCHEDULE' }]
+    }
+    return { id: 'conn-1', status: '1' }
+  })
+
+  try {
+    const list = await datasourceAPI.connector.list()
+    const detail = await datasourceAPI.connector.get('conn-1')
+    const logResult = await datasourceAPI.connector.logs('conn-1')
+
+    assert.equal(list[0]?.status, DataSourceStatus.SCHEDULED)
+    assert.equal(detail.status, DataSourceStatus.RUNNING)
+    assert.deepEqual(
+      logResult.logs.map((log) => log.status),
+      [DataSourceStatus.SCHEDULED, DataSourceStatus.COMPLETED],
+    )
+  } finally {
+    restore()
+  }
+})
 
 test('list and detail hit the RESTful connectors routes', async () => {
   const calls: Call[] = []

@@ -21,12 +21,18 @@ export default {
     // 详情页
     configuration: '配置信息',
     syncLogs: '同步日志',
+    syncOverview: '同步概览',
+    syncHistory: '同步历史',
     notFound: '数据源不存在',
+    notFoundDescription: '该数据源可能已被删除，或当前账号无权访问。',
     backToList: '返回列表',
+    loadingDetail: '正在加载数据源',
+    loadingDetailDescription: '正在获取配置与最近同步状态。',
 
     // 状态
     statusPending: '待处理',
     statusRunning: '运行中',
+    statusScheduled: '已排期',
     statusPaused: '已暂停',
     statusCompleted: '已完成',
     statusFailed: '失败',
@@ -45,6 +51,24 @@ export default {
     logErrors: '错误数',
     logTime: '时间范围',
     noLogs: '暂无同步日志',
+    noLogsDescription: '完成首次同步后，任务结果会显示在这里。',
+    logUpdatedAt: '更新时间',
+    logSummary: '任务摘要',
+    logCursor: '同步至',
+    logSummaryScheduled: '等待下一轮自动同步',
+    logSummaryRunning: '正在从数据源拉取并更新知识库',
+    logSummaryPaused: '任务已暂停',
+    logSummaryFailed: '同步任务失败',
+    logSummaryCompleted: '新增 {{added}} · 累计 {{total}} · 错误 {{errors}}',
+    currentState: '当前状态',
+    lastSuccessfulSync: '最近成功同步',
+    nextEstimatedSync: '预计下次同步',
+    waitingForSchedule: '等待调度信息',
+    syncEveryMinutes: '每 {{count}} 分钟检查一次',
+    lastSyncSummary: '本轮新增 {{added}}，累计 {{total}}',
+    zeroChangesExplanation:
+      '“新增 0”表示本轮没有发现上游变更，任务仍然是成功的；已排期表示自动同步已开启，并非尚未执行。',
+    notAvailable: '暂无',
 
     // 链接数据源
     dataSources: '数据源',

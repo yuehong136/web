@@ -7,6 +7,7 @@ import type {
   IDataSourceLog,
   DataSourceKey,
 } from '@/pages/settings/datasource/types'
+import { DataSourceStatus } from '@/pages/settings/datasource/types'
 
 export interface DataSourceSetRequest {
   id?: string
@@ -60,6 +61,52 @@ const datasetConnectorPath = (kbId: string, connectorId: string) =>
 /** 后端「授权尚未完成」用信封里的 RetCode.RUNNING 表达，apiClient 会把它抛成 APIError。 */
 const RETCODE_RUNNING = '106'
 
+type RawDataSource = Omit<IDataSource, 'status'> & { status: unknown }
+type RawDataSourceLog = Omit<IDataSourceLog, 'status'> & { status: unknown }
+
+const DATA_SOURCE_STATUS_MAP: Record<string, DataSourceStatus> = {
+  '0': DataSourceStatus.PENDING,
+  UNSTART: DataSourceStatus.PENDING,
+  pending: DataSourceStatus.PENDING,
+  '1': DataSourceStatus.RUNNING,
+  RUNNING: DataSourceStatus.RUNNING,
+  running: DataSourceStatus.RUNNING,
+  '2': DataSourceStatus.PAUSED,
+  CANCEL: DataSourceStatus.PAUSED,
+  CANCELLED: DataSourceStatus.PAUSED,
+  canceled: DataSourceStatus.PAUSED,
+  cancelled: DataSourceStatus.PAUSED,
+  paused: DataSourceStatus.PAUSED,
+  '3': DataSourceStatus.COMPLETED,
+  DONE: DataSourceStatus.COMPLETED,
+  SUCCESS: DataSourceStatus.COMPLETED,
+  completed: DataSourceStatus.COMPLETED,
+  done: DataSourceStatus.COMPLETED,
+  success: DataSourceStatus.COMPLETED,
+  '4': DataSourceStatus.FAILED,
+  FAIL: DataSourceStatus.FAILED,
+  FAILED: DataSourceStatus.FAILED,
+  fail: DataSourceStatus.FAILED,
+  failed: DataSourceStatus.FAILED,
+  '5': DataSourceStatus.SCHEDULED,
+  SCHEDULE: DataSourceStatus.SCHEDULED,
+  scheduled: DataSourceStatus.SCHEDULED,
+  schedule: DataSourceStatus.SCHEDULED,
+}
+
+export function normalizeDataSourceStatus(status: unknown): DataSourceStatus {
+  if (typeof status !== 'string') return DataSourceStatus.PENDING
+  return DATA_SOURCE_STATUS_MAP[status] ?? DataSourceStatus.PENDING
+}
+
+function normalizeDataSource(source: RawDataSource): IDataSource {
+  return { ...source, status: normalizeDataSourceStatus(source.status) }
+}
+
+function normalizeDataSourceLog(log: RawDataSourceLog): IDataSourceLog {
+  return { ...log, status: normalizeDataSourceStatus(log.status) }
+}
+
 /**
  * 轮询 OAuth 结果：未完成回 pending，完成回凭证；其余错误照抛。
  *
@@ -89,20 +136,24 @@ export const datasourceAPI = {
   // 数据源 CRUD
   connector: {
     // 获取数据源列表
-    list: (): Promise<IDataSource[]> =>
-      withLegacyFallback(
+    list: async (): Promise<IDataSource[]> => {
+      const sources = await withLegacyFallback(
         () =>
-          apiClient.get<IDataSource[]>('/v1/connectors', connectorRestConfig),
-        () => apiClient.get<IDataSource[]>('/v1/connector/list'),
-      ),
+          apiClient.get<RawDataSource[]>('/v1/connectors', connectorRestConfig),
+        () => apiClient.get<RawDataSource[]>('/v1/connector/list'),
+      )
+      return sources.map(normalizeDataSource)
+    },
 
     // 获取数据源详情
-    get: (id: string): Promise<IDataSource> =>
-      withLegacyFallback(
+    get: async (id: string): Promise<IDataSource> => {
+      const source = await withLegacyFallback(
         () =>
-          apiClient.get<IDataSource>(connectorPath(id), connectorRestConfig),
-        () => apiClient.get<IDataSource>(`/v1/connector/${id}`),
-      ),
+          apiClient.get<RawDataSource>(connectorPath(id), connectorRestConfig),
+        () => apiClient.get<RawDataSource>(`/v1/connector/${id}`),
+      )
+      return normalizeDataSource(source)
+    },
 
     // 创建/更新数据源（RESTful 面拆成了建 POST /connectors 与改 PATCH /connectors/{id}）
     set: ({ id, ...data }: DataSourceSetRequest): Promise<{ id: string }> =>
@@ -162,15 +213,22 @@ export const datasourceAPI = {
     ): Promise<DataSourceLogsResponse> =>
       withLegacyFallback(
         () =>
-          apiClient.get<DataSourceLogsResponse>(`${connectorPath(id)}/logs`, {
-            ...connectorRestConfig,
-            params,
-          }),
+          apiClient.get<{ logs: RawDataSourceLog[]; total: number }>(
+            `${connectorPath(id)}/logs`,
+            {
+              ...connectorRestConfig,
+              params,
+            },
+          ),
         () =>
-          apiClient.get<DataSourceLogsResponse>(`/v1/connector/${id}/logs`, {
-            params,
-          }),
-      ),
+          apiClient.get<{ logs: RawDataSourceLog[]; total: number }>(
+            `/v1/connector/${id}/logs`,
+            { params },
+          ),
+      ).then((response) => ({
+        ...response,
+        logs: response.logs.map(normalizeDataSourceLog),
+      })),
 
     // 链接数据源到知识库（PUT 幂等：已关联时只更新 auto_parse）
     link: (
