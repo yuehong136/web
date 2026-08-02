@@ -43,10 +43,11 @@ export const useChunkListState = () => {
       debouncedSearchKeyword,
       availableInt,
     ),
-    enabled: Boolean(docId),
+    enabled: Boolean(kbId && docId),
     gcTime: 0,
     queryFn: async () => {
       return knowledgeAPI.document.listChunks({
+        kb_id: kbId!,
         doc_id: docId!,
         page,
         size: pageSize,

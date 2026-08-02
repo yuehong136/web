@@ -14,6 +14,129 @@ test('knowledge facade exposes the domain document client', () => {
   assert.equal(knowledgeAPI.document, knowledgeDocumentAPI)
 })
 
+test('chunk management uses canonical RESTful routes and preserves the UI model', async () => {
+  const originalGet = apiClient.get
+  const originalPost = apiClient.post
+  const originalPatch = apiClient.patch
+  const originalDelete = apiClient.delete
+  const calls: Array<{
+    method: string
+    endpoint: string
+    data?: unknown
+    config?: RequestConfig
+  }> = []
+
+  apiClient.get = (async (endpoint: string, config?: RequestConfig) => {
+    calls.push({ method: 'GET', endpoint, config })
+    return {
+      total: 1,
+      chunks: [
+        {
+          id: 'chunk-1',
+          content: 'hello',
+          document_id: 'doc-1',
+          important_keywords: ['important'],
+          questions: ['question'],
+          available: false,
+        },
+      ],
+      doc: {
+        id: 'doc-1',
+        dataset_id: 'kb-1',
+        chunk_method: 'naive',
+        chunk_count: 1,
+        token_count: 2,
+      },
+    }
+  }) as typeof apiClient.get
+  apiClient.post = (async (
+    endpoint: string,
+    data?: unknown,
+    config?: RequestConfig,
+  ) => {
+    calls.push({ method: 'POST', endpoint, data, config })
+    return {}
+  }) as typeof apiClient.post
+  apiClient.patch = (async (
+    endpoint: string,
+    data?: unknown,
+    config?: RequestConfig,
+  ) => {
+    calls.push({ method: 'PATCH', endpoint, data, config })
+    return {}
+  }) as typeof apiClient.patch
+  apiClient.delete = (async (endpoint: string, config?: RequestConfig) => {
+    calls.push({ method: 'DELETE', endpoint, config })
+    return {}
+  }) as typeof apiClient.delete
+
+  try {
+    const listed = await knowledgeDocumentAPI.listChunks({
+      kb_id: 'kb-1',
+      doc_id: 'doc-1',
+      page: 2,
+      size: 20,
+      available_int: 0,
+    })
+    assert.equal(listed.chunks[0]?.chunk_id, 'chunk-1')
+    assert.equal(listed.chunks[0]?.content_with_weight, 'hello')
+    assert.equal(listed.chunks[0]?.available_int, 0)
+    assert.equal(listed.doc.kb_id, 'kb-1')
+    assert.equal(listed.doc.parser_id, 'naive')
+
+    await knowledgeDocumentAPI.createChunk({
+      kb_id: 'kb-1',
+      doc_id: 'doc-1',
+      content_with_weight: 'new chunk',
+    })
+    await knowledgeDocumentAPI.setChunk({
+      kb_id: 'kb-1',
+      doc_id: 'doc-1',
+      chunk_id: 'chunk-1',
+      content_with_weight: 'updated chunk',
+    })
+    await knowledgeDocumentAPI.switchChunks({
+      kb_id: 'kb-1',
+      doc_id: 'doc-1',
+      chunk_ids: ['chunk-1'],
+      available_int: 1,
+    })
+    await knowledgeDocumentAPI.deleteChunks({
+      kb_id: 'kb-1',
+      doc_id: 'doc-1',
+      chunk_ids: ['chunk-1'],
+    })
+  } finally {
+    apiClient.get = originalGet
+    apiClient.post = originalPost
+    apiClient.patch = originalPatch
+    apiClient.delete = originalDelete
+  }
+
+  const collection = '/datasets/kb-1/documents/doc-1/chunks'
+  assert.deepEqual(
+    calls.map((call) => [call.method, call.endpoint]),
+    [
+      ['GET', collection],
+      ['POST', collection],
+      ['PATCH', `${collection}/chunk-1`],
+      ['PATCH', collection],
+      ['DELETE', collection],
+    ],
+  )
+  assert.equal(
+    calls.every((call) => call.config?.baseURL?.endsWith('/api')),
+    true,
+  )
+  assert.deepEqual(calls[0]?.config?.params, {
+    page: 2,
+    page_size: 20,
+    keywords: undefined,
+    available: false,
+  })
+  assert.deepEqual(calls[4]?.config?.data, { chunk_ids: ['chunk-1'] })
+})
+
 const dto: DatasetDocumentDTO = {
   id: 'doc-1',
   name: 'report.pdf',
