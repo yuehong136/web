@@ -45,8 +45,11 @@ export interface MetadataDeleteOperation {
 }
 
 export interface MetadataBatchRequest {
-  kb_id: string
-  doc_ids?: string[]
+  dataset_id: string
+  selector?: {
+    document_ids?: string[]
+    metadata_condition?: MetadataCondition
+  }
   updates?: MetadataUpdateOperation[]
   deletes?: MetadataDeleteOperation[]
 }

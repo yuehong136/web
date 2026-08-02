@@ -160,11 +160,8 @@ export const useBatchUpdateMetadata = () => {
       queryClient.invalidateQueries({ queryKey: documentKeys.all })
 
       const messages: string[] = []
-      if (result.updated_count > 0) {
-        messages.push(`更新了 ${result.updated_count} 条`)
-      }
-      if (result.deleted_count > 0) {
-        messages.push(`删除了 ${result.deleted_count} 条`)
+      if (result.updated > 0) {
+        messages.push(`更新了 ${result.updated} 个文档`)
       }
       if (messages.length > 0) {
         toast.success(messages.join('，'))

@@ -22,8 +22,14 @@ export const knowledgeMetadataAPI = {
   /** 批量更新或删除文档 metadata 值。 */
   batchUpdate: (
     data: MetadataBatchRequest,
-  ): Promise<{ updated_count: number; deleted_count: number }> =>
-    apiClient.post('/v1/document/metadata/update', data),
+  ): Promise<{ updated: number; matched_docs: number }> => {
+    const { dataset_id, selector, updates, deletes } = data
+    return apiClient.patch(
+      `/v1/datasets/${encodeURIComponent(dataset_id)}/documents/metadatas`,
+      { selector, updates, deletes },
+      knowledgeRestConfig,
+    )
+  },
 
   /** 更新知识库 metadata 模板设置。 */
   updateKBSettings: (data: KBMetadataSettingsRequest): Promise<void> =>
@@ -59,7 +65,7 @@ export const knowledgeMetadataAPI = {
     docId: string,
     meta: Record<string, unknown>,
   ): Promise<void> =>
-    apiClient.put(
+    apiClient.patch(
       `/v1/datasets/${encodeURIComponent(kbId)}/documents/${encodeURIComponent(docId)}`,
       { meta_fields: meta },
       knowledgeRestConfig,

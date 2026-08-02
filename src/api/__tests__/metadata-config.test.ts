@@ -18,9 +18,11 @@ test('metadata methods preserve their REST and legacy transport contracts', asyn
   const getCalls: Call[] = []
   const postCalls: Call[] = []
   const putCalls: Call[] = []
+  const patchCalls: Call[] = []
   const originalGet = apiClient.get
   const originalPost = apiClient.post
   const originalPut = apiClient.put
+  const originalPatch = apiClient.patch
   apiClient.get = (async (endpoint: string, config?: RequestConfig) => {
     getCalls.push({ endpoint, config })
     return { summary: {} }
@@ -35,12 +37,19 @@ test('metadata methods preserve their REST and legacy transport contracts', asyn
   ) => {
     putCalls.push({ endpoint, data, config })
   }) as typeof apiClient.put
+  apiClient.patch = (async (
+    endpoint: string,
+    data?: unknown,
+    config?: RequestConfig,
+  ) => {
+    patchCalls.push({ endpoint, data, config })
+  }) as typeof apiClient.patch
 
   try {
     await knowledgeAPI.metadata.getSummary('kb/1', ['doc-1', 'doc-2'])
     await knowledgeAPI.metadata.batchUpdate({
-      kb_id: 'kb-1',
-      doc_ids: ['doc-1'],
+      dataset_id: 'kb/1',
+      selector: { document_ids: ['doc-1'] },
     })
     await knowledgeAPI.metadata.updateKBSettings({
       kb_id: 'kb-1',
@@ -53,6 +62,7 @@ test('metadata methods preserve their REST and legacy transport contracts', asyn
     apiClient.get = originalGet
     apiClient.post = originalPost
     apiClient.put = originalPut
+    apiClient.patch = originalPatch
   }
 
   assert.equal(getCalls[0]?.endpoint, '/v1/datasets/kb%2F1/metadata/summary')
@@ -60,19 +70,26 @@ test('metadata methods preserve their REST and legacy transport contracts', asyn
   assert.ok(getCalls[0]?.config?.baseURL?.endsWith('/api'))
   assert.deepEqual(postCalls, [
     {
-      endpoint: '/v1/document/metadata/update',
-      data: { kb_id: 'kb-1', doc_ids: ['doc-1'] },
-    },
-    {
       endpoint: '/v1/kb/update_metadata_setting',
       data: { kb_id: 'kb-1', metadata: settings },
     },
   ])
-  assert.equal(putCalls[0]?.endpoint, '/v1/datasets/kb%2F1/documents/doc%2F1')
-  assert.deepEqual(putCalls[0]?.data, {
+  assert.equal(
+    patchCalls[0]?.endpoint,
+    '/v1/datasets/kb%2F1/documents/metadatas',
+  )
+  assert.deepEqual(patchCalls[0]?.data, {
+    selector: { document_ids: ['doc-1'] },
+    updates: undefined,
+    deletes: undefined,
+  })
+  assert.ok(patchCalls[0]?.config?.baseURL?.endsWith('/api'))
+  assert.equal(patchCalls[1]?.endpoint, '/v1/datasets/kb%2F1/documents/doc%2F1')
+  assert.deepEqual(patchCalls[1]?.data, {
     meta_fields: { author: 'alice' },
   })
-  assert.ok(putCalls[0]?.config?.baseURL?.endsWith('/api'))
+  assert.ok(patchCalls[1]?.config?.baseURL?.endsWith('/api'))
+  assert.equal(putCalls.length, 0)
 })
 
 test('updateDocumentSettings puts the settings array on the RESTful config route', async () => {
