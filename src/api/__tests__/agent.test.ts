@@ -2,10 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { agentAPI } from '../agent'
 import { apiClient } from '../client'
-import {
-  AgentCanvasCategory,
-  AgentCanvasType,
-} from '@/types/agent'
+import { AgentCanvasCategory, AgentCanvasType } from '@/types/agent'
 
 test('setAgent sends pipeline canvas_category when creating a pipeline', async () => {
   const originalPost = apiClient.post
@@ -27,7 +24,7 @@ test('setAgent sends pipeline canvas_category when creating a pipeline', async (
   }
 
   assert.equal(calls.length, 1)
-  assert.equal(calls[0]?.endpoint, '/v1/canvas/set')
+  assert.equal(calls[0]?.endpoint, '/agents')
   assert.equal(
     (calls[0]?.data as Record<string, unknown>).canvas_category,
     AgentCanvasCategory.INGESTION,
@@ -35,13 +32,13 @@ test('setAgent sends pipeline canvas_category when creating a pipeline', async (
 })
 
 test('setAgent does not backfill agent_canvas during graph-only updates', async () => {
-  const originalPost = apiClient.post
+  const originalPut = apiClient.put
   const calls: Array<{ endpoint: string; data: unknown }> = []
 
-  apiClient.post = (async (endpoint: string, data?: unknown) => {
+  apiClient.put = (async (endpoint: string, data?: unknown) => {
     calls.push({ endpoint, data })
     return { id: 'pipeline-1' }
-  }) as typeof apiClient.post
+  }) as typeof apiClient.put
 
   try {
     await agentAPI.setAgent({
@@ -50,18 +47,18 @@ test('setAgent does not backfill agent_canvas during graph-only updates', async 
       dsl: { graph: { nodes: [], edges: [] } },
     })
   } finally {
-    apiClient.post = originalPost
+    apiClient.put = originalPut
   }
 
   assert.equal(calls.length, 1)
-  assert.equal(calls[0]?.endpoint, '/v1/canvas/set')
+  assert.equal(calls[0]?.endpoint, '/agents/pipeline-1')
   assert.equal(
     'canvas_category' in ((calls[0]?.data as Record<string, unknown>) || {}),
     false,
   )
 })
 
-test('runAgent uses RAGFlow editor runtime canvas completion endpoint', async () => {
+test('runAgent uses the RESTful agent completion endpoint', async () => {
   const originalFetch = globalThis.fetch
   const calls: Array<{ url: string; body: Record<string, unknown> }> = []
 
@@ -86,13 +83,16 @@ test('runAgent uses RAGFlow editor runtime canvas completion endpoint', async ()
   }
 
   assert.equal(calls.length, 1)
-  assert.equal(calls[0]?.url, 'http://localhost:8000/v1/canvas/completion')
-  assert.equal(calls[0]?.body.id, 'agent-1')
+  assert.equal(
+    calls[0]?.url,
+    'http://localhost:8000/api/v1/agents/chat/completion',
+  )
+  assert.equal(calls[0]?.body.agent_id, 'agent-1')
   assert.equal(calls[0]?.body.query, 'hello')
   assert.equal(calls[0]?.body.session_id, 'session-1')
 })
 
-test('runAgentSession keeps explore session completion endpoint isolated', async () => {
+test('runAgentSession uses the consolidated RESTful completion endpoint', async () => {
   const originalFetch = globalThis.fetch
   const calls: Array<{ url: string; body: Record<string, unknown> }> = []
 
@@ -118,8 +118,37 @@ test('runAgentSession keeps explore session completion endpoint isolated', async
 
   assert.equal(
     calls[0]?.url,
-    'http://localhost:8000/v1/canvas/agent-1/completion',
+    'http://localhost:8000/api/v1/agents/chat/completion',
   )
-  assert.equal('id' in (calls[0]?.body || {}), false)
+  assert.equal(calls[0]?.body.agent_id, 'agent-1')
   assert.equal(calls[0]?.body.session_id, 'session-1')
+})
+
+test('downloadFile maps the RESTful file ownership query', async () => {
+  const originalGet = apiClient.get
+  const calls: Array<{
+    endpoint: string
+    params?: Record<string, unknown>
+  }> = []
+
+  apiClient.get = (async (
+    endpoint: string,
+    config?: { params?: Record<string, unknown> },
+  ) => {
+    calls.push({ endpoint, params: config?.params })
+    return new Response()
+  }) as typeof apiClient.get
+
+  try {
+    await agentAPI.downloadFile('file-1', 'tenant-1')
+  } finally {
+    apiClient.get = originalGet
+  }
+
+  assert.deepEqual(calls, [
+    {
+      endpoint: '/agents/download',
+      params: { id: 'file-1', created_by: 'tenant-1' },
+    },
+  ])
 })
