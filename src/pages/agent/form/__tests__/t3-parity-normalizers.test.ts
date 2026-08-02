@@ -294,7 +294,7 @@ test('title chunker serializes group mode from group-specific rules', () => {
   assert.equal(serialized.hierarchy, 0)
   assert.equal(serialized.include_heading_content, true)
   assert.deepEqual(serialized.levels, [['^##[^#]']])
-  assert.equal('root_chunk_as_heading' in serialized, false)
+  assert.equal(serialized.root_chunk_as_heading, true)
 })
 
 test('invoke normalizer keeps monaco headers and variable refs in backend shape', () => {
