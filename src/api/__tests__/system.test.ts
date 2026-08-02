@@ -3,6 +3,28 @@ import test from 'node:test'
 import { systemAPI } from '../system'
 import { apiClient, type RequestConfig } from '../client'
 
+test('system status API uses RESTful /api/v1/system/status endpoint', async () => {
+  const originalGet = apiClient.get
+  const calls: Array<{ endpoint: string; config?: RequestConfig }> = []
+
+  apiClient.get = (async (endpoint: string, config?: RequestConfig) => {
+    calls.push({ endpoint, config })
+    return {}
+  }) as typeof apiClient.get
+
+  try {
+    await systemAPI.getStatus()
+  } finally {
+    apiClient.get = originalGet
+  }
+
+  assert.deepEqual(
+    calls.map((call) => call.endpoint),
+    ['/system/status'],
+  )
+  assert.equal(calls[0]?.config?.baseURL, 'http://localhost:8000/api')
+})
+
 test('system token API uses RESTful /api/v1/system/tokens endpoints', async () => {
   const originalGet = apiClient.get
   const originalPost = apiClient.post
