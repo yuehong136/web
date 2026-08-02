@@ -384,10 +384,6 @@ export interface ListMCPServerRequest {
   mcp_ids?: string[]
 }
 
-export interface GetMultipleMCPServerRequest {
-  id_list: string[]
-}
-
 export interface RemoveMCPServerRequest {
   mcp_ids: string[]
 }

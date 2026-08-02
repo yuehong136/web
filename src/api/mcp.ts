@@ -1,28 +1,30 @@
-import { apiClient } from './client'
-import type { 
-  MCPServer, 
-  CreateMCPServerRequest, 
-  UpdateMCPServerRequest, 
-  ListMCPServerRequest, 
-  GetMultipleMCPServerRequest,
-  ImportMCPServerRequest,
-  ExportMCPServerRequest,
-  ListToolsRequest,
-  TestToolRequest,
+import { API_BASE_URL } from '@/constants'
+import type {
   CacheToolsRequest,
-  TestMCPRequest,
+  CreateMCPServerRequest,
+  ExportMCPServerRequest,
+  ExportMCPServersResponse,
+  ImportMCPServerRequest,
+  ListMCPServerRequest,
+  ListToolsRequest,
+  MCPServer,
+  MCPTool,
+  MCPToolCallResult,
   PaginatedResponse,
-  MCPTool 
+  TestMCPRequest,
+  TestToolRequest,
+  UpdateMCPServerRequest,
 } from '@/types/mcp'
+import { apiClient } from './client'
 
-/**
- * MCP服务器相关API
- * 基于现有项目的API架构模式
- */
+const restBase = { baseURL: `${API_BASE_URL}/api` }
+const mcpServersPath = '/mcp/servers'
+
+const mcpServerPath = (mcpId: string) =>
+  `${mcpServersPath}/${encodeURIComponent(mcpId)}`
+
+/** MCP 服务器 API。对外保持已有 web 调用形状，内部统一访问 RESTful 资源。 */
 export const mcpAPI = {
-  /**
-   * 获取MCP服务器列表
-   */
   listServers: async (
     request: ListMCPServerRequest,
     params: {
@@ -31,96 +33,115 @@ export const mcpAPI = {
       page_size?: number
       orderby?: string
       desc?: boolean
-    } = {}
-  ): Promise<PaginatedResponse<MCPServer>> => {
-    // 构建查询参数字符串
-    const searchParams = new URLSearchParams()
-    if (params.keywords) searchParams.append('keywords', params.keywords)
-    if (params.page) searchParams.append('page', params.page.toString())
-    if (params.page_size) searchParams.append('page_size', params.page_size.toString())
-    if (params.orderby) searchParams.append('orderby', params.orderby)
-    if (params.desc !== undefined) searchParams.append('desc', params.desc.toString())
+    } = {},
+  ): Promise<PaginatedResponse<MCPServer>> =>
+    apiClient.get<PaginatedResponse<MCPServer>>(mcpServersPath, {
+      ...restBase,
+      params: {
+        ...params,
+        mcp_ids: request.mcp_ids?.join(','),
+      },
+    }),
 
-    const queryString = searchParams.toString()
-    // 端点路径为 v1/mcp_server/list
-    const endpoint = `/mcp_server/list${queryString ? '?' + queryString : ''}`
-    
-    return apiClient.post(endpoint, request)
+  getServerDetail: async (mcpId: string): Promise<MCPServer> =>
+    apiClient.get<MCPServer>(mcpServerPath(mcpId), {
+      ...restBase,
+      params: { mode: 'preview' },
+    }),
+
+  createServer: async (request: CreateMCPServerRequest): Promise<MCPServer> =>
+    apiClient.post<MCPServer>(mcpServersPath, request, restBase),
+
+  updateServer: async (request: UpdateMCPServerRequest): Promise<MCPServer> => {
+    const { mcp_id: mcpId, ...payload } = request
+    return apiClient.put<MCPServer>(mcpServerPath(mcpId), payload, restBase)
   },
 
-  /**
-   * 获取MCP服务器详情
-   */
-  getServerDetail: async (mcpId: string): Promise<MCPServer> =>
-    apiClient.get(`/v1/mcp_server/detail?mcp_id=${mcpId}`),
+  deleteServers: async (mcpIds: string[]): Promise<boolean> => {
+    await Promise.all(
+      mcpIds.map((mcpId) =>
+        apiClient.delete<boolean>(mcpServerPath(mcpId), restBase),
+      ),
+    )
+    return true
+  },
 
-  /**
-   * 创建MCP服务器
-   */
-  createServer: async (request: CreateMCPServerRequest): Promise<MCPServer> =>
-    apiClient.post('/v1/mcp_server/create', request),
+  import: async (
+    request: ImportMCPServerRequest,
+  ): Promise<{ results: unknown[] }> =>
+    apiClient.post<{ results: unknown[] }>(
+      `${mcpServersPath}/import`,
+      request,
+      restBase,
+    ),
 
-  /**
-   * 更新MCP服务器
-   */
-  updateServer: async (request: UpdateMCPServerRequest): Promise<MCPServer> =>
-    apiClient.post('/v1/mcp_server/update', request),
+  export: async (
+    request: ExportMCPServerRequest,
+  ): Promise<ExportMCPServersResponse> => {
+    const exports = await Promise.all(
+      request.mcp_ids.map((mcpId) =>
+        apiClient.get<ExportMCPServersResponse>(mcpServerPath(mcpId), {
+          ...restBase,
+          params: { mode: 'download' },
+        }),
+      ),
+    )
 
-  /**
-   * 删除MCP服务器
-   */
-  deleteServers: async (mcpIds: string[]): Promise<boolean> =>
-    apiClient.post('/v1/mcp_server/rm', { mcp_ids: mcpIds }),
+    return {
+      mcpServers: Object.assign(
+        {},
+        ...exports.map((result) => result.mcpServers),
+      ),
+    }
+  },
 
-  /**
-   * 获取服务器工具列表
-   */
-  listTools: async (request: ListToolsRequest): Promise<Record<string, MCPTool[]>> =>
-    apiClient.post('/v1/mcp_server/list_tools', request),
-
-  /**
-   * 测试工具
-   */
-  testTool: async (request: TestToolRequest): Promise<{ content: any[]; isError: boolean }> =>
-    apiClient.post('/v1/mcp_server/test_tool', request),
-
-  /**
-   * 测试MCP连接
-   */
   testConnection: async (request: TestMCPRequest): Promise<MCPTool[]> =>
-    apiClient.post('/v1/mcp_server/test_mcp', request),
+    apiClient.post<MCPTool[]>(
+      `${mcpServersPath}/preview/test`,
+      request,
+      restBase,
+    ),
 
-  /**
-   * 批量获取MCP服务器
-   */
-  getMultiple: async (request: GetMultipleMCPServerRequest): Promise<MCPServer[]> =>
-    apiClient.post('/v1/mcp_server/get_multiple', request),
+  listTools: async (
+    request: ListToolsRequest,
+  ): Promise<Record<string, MCPTool[]>> => {
+    const entries = await Promise.all(
+      request.mcp_ids.map(async (mcpId) => {
+        const tools = await apiClient.get<MCPTool[]>(
+          `${mcpServerPath(mcpId)}/tools`,
+          {
+            ...restBase,
+            params: { timeout: request.timeout },
+          },
+        )
+        return [mcpId, tools] as const
+      }),
+    )
+    return Object.fromEntries(entries)
+  },
 
-  /**
-   * 批量导入MCP服务器
-   */
-  import: async (request: ImportMCPServerRequest): Promise<{ results: any[] }> =>
-    apiClient.post('/v1/mcp_server/import', request),
+  testTool: async (request: TestToolRequest): Promise<MCPToolCallResult> => {
+    const {
+      mcp_id: mcpId,
+      tool_name: toolName,
+      arguments: toolArguments,
+      timeout,
+    } = request
+    return apiClient.post<MCPToolCallResult>(
+      `${mcpServerPath(mcpId)}/tools/${encodeURIComponent(toolName)}/test`,
+      { arguments: toolArguments, timeout },
+      restBase,
+    )
+  },
 
-  /**
-   * 批量导出MCP服务器
-   */
-  export: async (request: ExportMCPServerRequest): Promise<{ mcpServers: Record<string, any> }> =>
-    apiClient.post('/v1/mcp_server/export', request),
-
-  /**
-   * 缓存MCP工具配置
-   */
-  cacheTools: async (request: CacheToolsRequest): Promise<Record<string, MCPTool>> =>
-    apiClient.post('/v1/mcp_server/cache_tools', request),
+  cacheTools: async (
+    request: CacheToolsRequest,
+  ): Promise<Record<string, MCPTool>> => {
+    const { mcp_id: mcpId, tools } = request
+    return apiClient.put<Record<string, MCPTool>>(
+      `${mcpServerPath(mcpId)}/tools`,
+      { tools },
+      restBase,
+    )
+  },
 }
-
-
-
-
-
-
-
-
-
-

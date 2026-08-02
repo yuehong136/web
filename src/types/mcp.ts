@@ -27,6 +27,16 @@ export interface MCPTool {
   enabled?: boolean
 }
 
+export interface MCPToolCallContent {
+  text?: string
+  [key: string]: unknown
+}
+
+export interface MCPToolCallResult {
+  content: MCPToolCallContent[]
+  isError: boolean
+}
+
 export interface CreateMCPServerRequest {
   name: string
   server_type: string
@@ -50,25 +60,36 @@ export interface ListMCPServerRequest {
   mcp_ids?: string[]
 }
 
-export interface GetMultipleMCPServerRequest {
-  id_list: string[]
-}
-
 export interface RemoveMCPServerRequest {
   mcp_ids: string[]
 }
 
 export interface ImportMCPServerRequest {
-  mcpServers: Record<string, {
-    type: string
-    url: string
-    authorization_token?: string
-    tool_configuration?: Record<string, any>
-  }>
+  mcpServers: Record<
+    string,
+    {
+      type: string
+      url: string
+      authorization_token?: string
+      tool_configuration?: Record<string, any>
+    }
+  >
 }
 
 export interface ExportMCPServerRequest {
   mcp_ids: string[]
+}
+
+export interface ExportedMCPServer {
+  type: string
+  url: string
+  name: string
+  authorization_token: string
+  tools: Record<string, MCPTool>
+}
+
+export interface ExportMCPServersResponse {
+  mcpServers: Record<string, ExportedMCPServer>
 }
 
 export interface ListToolsRequest {
@@ -108,80 +129,86 @@ export interface PaginatedResponse<T> {
 }
 
 // MCP服务器类型常量 - 基于后端VALID_MCP_SERVER_TYPES
-export const MCP_SERVER_TYPES = ['stdio', 'sse', 'streamable-http', 'http', 'websocket'] as const
-export type MCPServerType = typeof MCP_SERVER_TYPES[number]
+export const MCP_SERVER_TYPES = [
+  'stdio',
+  'sse',
+  'streamable-http',
+  'http',
+  'websocket',
+] as const
+export type MCPServerType = (typeof MCP_SERVER_TYPES)[number]
 
 // MCP实验场聊天相关类型定义
 export interface MCPChatConfig {
-  mcp_ids: string[];
-  mcp_timeout: number;
-  verbose_tool_use: boolean;
+  mcp_ids: string[]
+  mcp_timeout: number
+  verbose_tool_use: boolean
 }
 
 export interface ChatToolCall {
-  name: string;
-  args: Record<string, any>;
-  result?: string;
+  name: string
+  args: Record<string, any>
+  result?: string
 }
 
 export interface ParsedChatToolCall {
-  id?: string;
-  name: string;
-  args: Record<string, any>;
-  arguments?: Record<string, any>;
-  result: string;
-  status?: 'pending' | 'running' | 'success' | 'error';
-  timestamp?: string;
+  id?: string
+  name: string
+  args: Record<string, any>
+  arguments?: Record<string, any>
+  result: string
+  status?: 'pending' | 'running' | 'success' | 'error'
+  timestamp?: string
 }
 
 export interface ChatMessage {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: string;
-  toolCalls?: ChatToolCall[];
-  parsedToolCalls?: ParsedChatToolCall[];
+  id: string
+  role: 'user' | 'assistant'
+  content: string
+  timestamp: string
+  toolCalls?: ChatToolCall[]
+  parsedToolCalls?: ParsedChatToolCall[]
 }
 
 export interface ChatSession {
-  id: string;
-  title: string;
-  timestamp: string;
-  messages: ChatMessage[];
+  id: string
+  title: string
+  timestamp: string
+  messages: ChatMessage[]
 }
 
 export interface SpeechConfig {
-  enabled: boolean;
-  continuous?: boolean;
-  interimResults?: boolean;
-  language?: string;
+  enabled: boolean
+  continuous?: boolean
+  interimResults?: boolean
+  language?: string
 }
 
-export type SubmitType = 'enter' | 'shiftEnter';
+export type SubmitType = 'enter' | 'shiftEnter'
 
 export interface PromptItem {
-  id: string;
-  title: string;
-  description: string;
-  content: string;
-  icon: React.ReactNode;
-  category?: string;
+  id: string
+  title: string
+  description: string
+  content: string
+  icon: React.ReactNode
+  category?: string
 }
 
 // 工具选择器相关类型
 export interface MCPServerInfo {
-  id: string;
-  name: string;
-  description: string;
-  enabled: boolean;
-  category?: string;
+  id: string
+  name: string
+  description: string
+  enabled: boolean
+  category?: string
 }
 
 // 模型选择器相关类型
 export interface ModelInfo {
-  id: string;
-  name: string;
-  provider: string;
-  description?: string;
-  maxTokens?: number;
+  id: string
+  name: string
+  provider: string
+  description?: string
+  maxTokens?: number
 }
