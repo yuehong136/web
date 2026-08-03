@@ -17,6 +17,7 @@ export default {
       mcpTools: 'MCP 工具',
       mcpTest: 'MCP 测试',
       mcpBatch: 'MCP 批处理',
+      channels: '渠道接入',
       team: '团队',
       profile: '个人资料',
       systemStatus: '系统状态',

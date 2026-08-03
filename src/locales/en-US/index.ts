@@ -13,6 +13,7 @@ import studio from './studio'
 import tools from './tools'
 import mcp from './mcp'
 import settings from './settings'
+import channel from './channel'
 
 export default {
   ...common,
@@ -30,4 +31,5 @@ export default {
   ...tools,
   ...mcp,
   ...settings,
+  ...channel,
 }

@@ -45,7 +45,10 @@ for (const file of files) {
   totalJsBytes += content.length
   const gzip = gzipSync(content).length
   if (gzip > maxChunk.gzip) maxChunk = { file, gzip }
-  if (/(^|\/)index-[\w-]+\.js$/.test(file) && path.dirname(file) === DIST_JS) {
+  if (
+    /^index-[\w-]+\.js$/.test(path.basename(file)) &&
+    path.dirname(file) === DIST_JS
+  ) {
     entry = { file, gzip }
   }
 }

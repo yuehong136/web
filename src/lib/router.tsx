@@ -204,6 +204,10 @@ const AdminUsersPage = lazyNamed(
   () => import('@/pages/settings/admin'),
   'AdminUsersPage',
 )
+const ChannelsPage = lazyNamed(
+  () => import('@/pages/settings/channels'),
+  'ChannelsPage',
+)
 
 // Document Preview
 const DocumentPreviewPage = lazy(() => import('@/pages/document-preview'))
@@ -546,6 +550,10 @@ export const router = createBrowserRouter([
           {
             path: 'mcp-batch',
             element: withLoading(MCPBatchPage),
+          },
+          {
+            path: 'channels',
+            element: withLoading(ChannelsPage),
           },
           {
             path: 'api-keys',

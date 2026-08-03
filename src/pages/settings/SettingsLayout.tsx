@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react'
+import * as React from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
@@ -12,6 +12,7 @@ import {
   Key,
   UserCog,
   Settings as SettingsIcon,
+  MessageCircleMore,
 } from 'lucide-react'
 import { useAuthStore } from '@/stores'
 import { IconFontFill } from '@/components/ui/icon-font'
@@ -42,7 +43,7 @@ export const SettingsLayout: React.FC = () => {
   const logout = useAuthStore((state) => state.logout)
 
   const defaultPageDescription = t('settings.description')
-  const settingsGroups = useMemo<SettingsRailGroup[]>(
+  const settingsGroups = React.useMemo<SettingsRailGroup[]>(
     () => [
       {
         label: t('settings.groups.workspace'),
@@ -62,6 +63,11 @@ export const SettingsLayout: React.FC = () => {
             href: '/settings/mcp-servers',
             icon: McpIcon,
             matcher: (pathname) => pathname.startsWith('/settings/mcp'),
+          },
+          {
+            title: t('settings.nav.channels'),
+            href: '/settings/channels',
+            icon: MessageCircleMore,
           },
         ],
       },
@@ -119,7 +125,7 @@ export const SettingsLayout: React.FC = () => {
     [t],
   )
 
-  const pageMeta = useMemo<
+  const pageMeta = React.useMemo<
     Record<string, { title: string; description: string }>
   >(
     () => ({
@@ -147,6 +153,10 @@ export const SettingsLayout: React.FC = () => {
         title: t('settings.nav.mcpBatch'),
         description: defaultPageDescription,
       },
+      '/settings/channels': {
+        title: t('channel.title'),
+        description: t('channel.description'),
+      },
       '/settings/team': {
         title: t('settings.nav.team'),
         description: defaultPageDescription,
@@ -171,7 +181,7 @@ export const SettingsLayout: React.FC = () => {
     [defaultPageDescription, t],
   )
 
-  const handleLogout = useCallback(async () => {
+  const handleLogout = React.useCallback(async () => {
     try {
       await logout()
     } catch (error) {

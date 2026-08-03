@@ -18,6 +18,7 @@ export default {
       mcpTools: 'MCP tools',
       mcpTest: 'MCP test',
       mcpBatch: 'MCP batch',
+      channels: 'Channels',
       team: 'Team',
       profile: 'Profile',
       systemStatus: 'System status',

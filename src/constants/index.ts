@@ -36,6 +36,7 @@ export const ROUTES = {
   SETTINGS_NOTIFICATIONS: '/settings/notifications',
   SETTINGS_APPEARANCE: '/settings/appearance',
   SETTINGS_MODEL_PROVIDERS: '/settings/model-providers',
+  SETTINGS_CHANNELS: '/settings/channels',
   SETTINGS_API_KEYS: '/settings/api-keys',
   DOCUMENT_PREVIEW: '/document/:docId/preview',
 } as const
