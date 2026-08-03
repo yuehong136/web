@@ -128,6 +128,10 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
   const [paddleocrApiUrl, setPaddleocrApiUrl] = useState('')
   const [paddleocrAccessToken, setPaddleocrAccessToken] = useState('')
   const [paddleocrAlgorithm, setPaddleocrAlgorithm] = useState('PaddleOCR-VL')
+  // OpenDataLoader fields
+  const [opendataloaderApiServer, setOpendataloaderApiServer] = useState('')
+  const [opendataloaderApiKey, setOpendataloaderApiKey] = useState('')
+  const [opendataloaderTimeout, setOpendataloaderTimeout] = useState(600)
 
   const [showApiKey, setShowApiKey] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -149,6 +153,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
     if (providerName === 'Azure-OpenAI') return 'embedding'
     if (providerName === 'MinerU') return 'ocr'
     if (providerName === 'PaddleOCR') return 'ocr'
+    if (providerName === 'OpenDataLoader') return 'ocr'
     return 'chat'
   }
 
@@ -198,6 +203,10 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
       setPaddleocrApiUrl('')
       setPaddleocrAccessToken('')
       setPaddleocrAlgorithm('PaddleOCR-VL')
+      // OpenDataLoader
+      setOpendataloaderApiServer('')
+      setOpendataloaderApiKey('')
+      setOpendataloaderTimeout(600)
       // Verify 状态
       setIsVerifying(false)
       setVerifyResult(null)
@@ -519,6 +528,34 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
         additionalParams.max_tokens = 0
         additionalParams.llm_factory = providerName
         additionalParams.api_key = paddleocrConfig
+        additionalParams.api_base = ''
+      }
+
+      // OpenDataLoader
+      else if (providerName === 'OpenDataLoader') {
+        if (!modelName.trim()) {
+          setError('请输入模型名称')
+          return
+        }
+        if (!opendataloaderApiServer.trim()) {
+          setError('请输入 OpenDataLoader API Server')
+          return
+        }
+
+        const opendataloaderConfig: Record<string, string> = {
+          opendataloader_apiserver: opendataloaderApiServer.trim(),
+          opendataloader_timeout: String(opendataloaderTimeout || 600),
+        }
+        if (opendataloaderApiKey.trim()) {
+          opendataloaderConfig.opendataloader_api_key =
+            opendataloaderApiKey.trim()
+        }
+
+        additionalParams.llm_name = modelName
+        additionalParams.mdl_type = 'ocr'
+        additionalParams.max_tokens = 0
+        additionalParams.llm_factory = providerName
+        additionalParams.api_key = opendataloaderConfig
         additionalParams.api_base = ''
       }
 
@@ -1435,6 +1472,75 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                     <SelectItem value="PaddleOCR-VL">PaddleOCR-VL</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+            </>
+          )}
+
+          {/* ========== OpenDataLoader 专用表单 ========== */}
+          {providerName === 'OpenDataLoader' && (
+            <>
+              <div>
+                <label className="mb-2 block text-sm font-medium text-text-primary">
+                  模型类型
+                </label>
+                <Input
+                  value="OCR"
+                  disabled
+                  className="cursor-not-allowed bg-muted"
+                />
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-medium text-text-primary">
+                  模型名称 <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  value={modelName}
+                  onChange={(event) => setModelName(event.target.value)}
+                  placeholder="opendataloader-from-env-1"
+                />
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-medium text-text-primary">
+                  API Server <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  value={opendataloaderApiServer}
+                  onChange={(event) =>
+                    setOpendataloaderApiServer(event.target.value)
+                  }
+                  placeholder="http://host.docker.internal:9383"
+                />
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-medium text-text-primary">
+                  API Key{' '}
+                  <span className="ml-1 font-normal text-text-tertiary">
+                    (可选)
+                  </span>
+                </label>
+                <Input
+                  type="password"
+                  value={opendataloaderApiKey}
+                  onChange={(event) =>
+                    setOpendataloaderApiKey(event.target.value)
+                  }
+                  placeholder="Bearer token"
+                />
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-medium text-text-primary">
+                  请求超时（秒）
+                </label>
+                <Input
+                  type="number"
+                  min={1}
+                  value={opendataloaderTimeout}
+                  onChange={(event) =>
+                    setOpendataloaderTimeout(
+                      Number.parseInt(event.target.value, 10) || 600,
+                    )
+                  }
+                />
               </div>
             </>
           )}

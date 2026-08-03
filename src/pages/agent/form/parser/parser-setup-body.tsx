@@ -146,7 +146,8 @@ export function ParserSetupBody({
         ocrModelOptions.filter(
           (group) =>
             group.providerName === 'MinerU' ||
-            group.providerName === 'PaddleOCR',
+            group.providerName === 'PaddleOCR' ||
+            group.providerName === 'OpenDataLoader',
         ),
       ),
     [ocrModelOptions],
@@ -163,6 +164,7 @@ export function ParserSetupBody({
           ...parserPdfBuiltInParseMethodOptions,
           { label: 'MinerU', value: 'mineru' },
           { label: 'PaddleOCR', value: 'paddleocr' },
+          { label: 'OpenDataLoader', value: 'opendataloader' },
           ...pdfOCRModelOptions,
           ...buildModelOptions(imageModelOptions),
         ],
@@ -227,6 +229,10 @@ export function ParserSetupBody({
     fileFormat === ParserFileType.PDF &&
     (isParserMethodEqual(parseMethod, 'paddleocr') ||
       isParserMethodFromProvider(parseMethod, 'PaddleOCR'))
+  const showOpenDataLoaderOptions =
+    fileFormat === ParserFileType.PDF &&
+    (isParserMethodEqual(parseMethod, 'opendataloader') ||
+      isParserMethodFromProvider(parseMethod, 'OpenDataLoader'))
   const showPdfLanguageField =
     fileFormat === ParserFileType.PDF &&
     !!parseMethod &&
@@ -234,7 +240,8 @@ export function ParserSetupBody({
     !isParserMethodEqual(parseMethod, ParserParseMethod.PlainText) &&
     !isParserMethodEqual(parseMethod, ParserParseMethod.TCADPParser) &&
     !showMineruOptions &&
-    !showPaddleOCROptions
+    !showPaddleOCROptions &&
+    !showOpenDataLoaderOptions
   const showImageVisualFields =
     fileFormat === ParserFileType.Image &&
     !!parseMethod &&

@@ -176,6 +176,17 @@ test('parser serializer preserves hidden round-trip fields and parser-specific a
   assert.deepEqual(serialized.video?.suffix, ['mp4', 'avi', 'mkv'])
   assert.equal(serialized.pdf?.parse_method, 'paddle-model@PaddleOCR')
   assert.equal(serialized.pdf?.paddleocr_parse_method, 'raw')
+
+  const opendataloaderSerialized = serializeParserSetupsForDsl([
+    {
+      fileFormat: ParserFileType.PDF,
+      parse_method: 'opendataloader-model@OpenDataLoader',
+    },
+  ])
+  assert.equal(
+    opendataloaderSerialized.pdf?.parse_method,
+    'opendataloader-model@OpenDataLoader',
+  )
 })
 
 test('parser serializer injects suffix and preserves pdf advanced options for keyed setup payloads', () => {

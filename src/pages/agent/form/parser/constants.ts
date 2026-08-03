@@ -74,6 +74,7 @@ const parserParseMethodLabelMap: Record<string, string> = {
   [ParserParseMethod.OCR]: 'OCR',
   mineru: 'MinerU',
   paddleocr: 'PaddleOCR',
+  opendataloader: 'OpenDataLoader',
 }
 
 const preprocessLabelKeyMap: Record<string, string> = {

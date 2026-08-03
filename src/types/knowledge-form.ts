@@ -16,7 +16,9 @@ export const raptorSchema = z.object({
 // GraphRAG 配置 Schema
 export const graphragSchema = z.object({
   use_graphrag: z.boolean().default(false),
-  entity_types: z.array(z.string()).default(['organization', 'person', 'geo', 'event', 'category']),
+  entity_types: z
+    .array(z.string())
+    .default(['organization', 'person', 'geo', 'event', 'category']),
   method: z.enum(['light', 'general']).default('light'),
   resolution: z.boolean().default(false),
   community: z.boolean().default(false),
@@ -108,7 +110,9 @@ export type RaptorConfig = z.infer<typeof raptorSchema>
 export type GraphragConfig = z.infer<typeof graphragSchema>
 export type MetadataField = z.infer<typeof metadataFieldSchema>
 export type ParserConfig = z.infer<typeof parserConfigSchema>
-export type KnowledgeSettingsFormData = z.infer<typeof knowledgeSettingsFormSchema>
+export type KnowledgeSettingsFormData = z.infer<
+  typeof knowledgeSettingsFormSchema
+>
 
 // 权限选项
 export const PermissionOptions = [
@@ -122,6 +126,7 @@ export const LayoutRecognizeOptions = [
   { label: '纯文本', value: 'Plain Text' },
   { label: 'MinerU', value: 'MinerU' },
   { label: 'Docling', value: 'Docling' },
+  { label: 'OpenDataLoader', value: 'OpenDataLoader' },
   { label: 'TCADP Parser', value: 'TCADP Parser' },
 ] as const
 
@@ -140,7 +145,7 @@ export const RaptorScopeOptions = [
 // 默认实体类型
 export const DefaultEntityTypes = [
   'organization',
-  'person', 
+  'person',
   'geo',
   'event',
   'category',

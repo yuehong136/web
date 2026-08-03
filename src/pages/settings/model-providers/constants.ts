@@ -106,6 +106,7 @@ export const SPECIAL_FORM_FACTORIES = [
   'Bedrock', // AWS Bedrock：AK + SK + Region
   'MinerU', // MinerU：API Server + Output Dir + Backend + Server URL
   'PaddleOCR', // PaddleOCR：API URL + Access Token + Algorithm
+  'OpenDataLoader', // OpenDataLoader：API Server + optional API key/timeout
 ]
 
 // 厂商文档链接
@@ -134,6 +135,8 @@ export const FACTORY_DOC_LINKS: Record<string, string> = {
   'Tencent Cloud': 'https://cloud.tencent.com/document/api/1093/37823',
   MinerU: 'https://github.com/opendatalab/MinerU',
   PaddleOCR: 'https://www.paddleocr.ai/latest/',
+  OpenDataLoader:
+    'https://github.com/opendataloader-project/opendataloader-pdf',
   RAGcon: 'https://www.ragcon.ai/erste-schritte-mit-ragflow/',
   Avian: 'https://avian.io',
   Perplexity: 'https://docs.perplexity.ai/docs/embeddings/quickstart',
@@ -209,6 +212,7 @@ export const FACTORY_MODEL_TYPES: Record<
   ],
   MinerU: [{ value: 'ocr', label: 'OCR' }],
   PaddleOCR: [{ value: 'ocr', label: 'OCR' }],
+  OpenDataLoader: [{ value: 'ocr', label: 'OCR' }],
   RAGcon: [
     { value: 'chat', label: 'Chat' },
     { value: 'embedding', label: 'Embedding' },

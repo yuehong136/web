@@ -41,6 +41,7 @@ const SPECIAL_CONFIG_FACTORIES = [
   'Google Cloud',
   'MinerU',
   'PaddleOCR',
+  'OpenDataLoader',
 ]
 
 export const ModelProvidersPage: React.FC = () => {
