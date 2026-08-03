@@ -152,3 +152,37 @@ test('downloadFile maps the RESTful file ownership query', async () => {
     },
   ])
 })
+
+test('agent webhooks use the consolidated RESTful endpoints', async () => {
+  const originalFetch = globalThis.fetch
+  const originalGet = apiClient.get
+  const fetchCalls: string[] = []
+  const getCalls: string[] = []
+
+  globalThis.fetch = (async (url: RequestInfo | URL) => {
+    fetchCalls.push(String(url))
+    return new Response()
+  }) as typeof fetch
+  apiClient.get = (async (endpoint: string) => {
+    getCalls.push(endpoint)
+    return { events: [] }
+  }) as typeof apiClient.get
+
+  try {
+    await agentAPI.testWebhook({
+      canvasId: 'agent-1',
+      method: 'POST',
+      query: {},
+      headers: {},
+      body: {},
+      contentType: 'application/json',
+    })
+    await agentAPI.fetchWebhookTrace('agent-1')
+  } finally {
+    globalThis.fetch = originalFetch
+    apiClient.get = originalGet
+  }
+
+  assert.deepEqual(fetchCalls, ['/api/v1/agents/agent-1/webhook/test'])
+  assert.deepEqual(getCalls, ['/agents/agent-1/webhook/logs'])
+})

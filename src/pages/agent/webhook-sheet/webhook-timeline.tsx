@@ -21,8 +21,8 @@ const getEventTitle = (event: AgentWebhookTraceEvent) => {
 export function WebhookTimeline({ events }: WebhookTimelineProps) {
   if (!events.length) {
     return (
-      <div className="rounded-radius-lg border border-border-subtle bg-surface-secondary p-space-lg text-center text-sm text-text-secondary">
-        暂无 trace 事件。点击测试后会从 webhook_trace 轮询事件。
+      <div className="rounded-radius-lg bg-surface-secondary p-space-lg border border-border-subtle text-center text-sm text-text-secondary">
+        暂无 trace 事件。点击测试后会从 webhook logs 接口轮询事件。
       </div>
     )
   }
@@ -41,9 +41,9 @@ export function WebhookTimeline({ events }: WebhookTimelineProps) {
         return (
           <div
             key={`${event.event}-${event.message_id || index}-${index}`}
-            className="rounded-radius-lg border border-border-default bg-surface-secondary p-space-base"
+            className="rounded-radius-lg bg-surface-secondary p-space-base border border-border-default"
           >
-            <div className="mb-space-sm flex flex-wrap items-center justify-between gap-space-sm">
+            <div className="mb-space-sm gap-space-sm flex flex-wrap items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-text-primary">
                   {getEventTitle(event)}

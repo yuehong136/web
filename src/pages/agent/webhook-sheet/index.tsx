@@ -73,7 +73,7 @@ export function WebhookSheet({
   const testUrl = useMemo(
     () =>
       flow?.id
-        ? `${location.protocol}//${location.host}/api/v1/webhook_test/${flow.id}`
+        ? `${location.protocol}//${location.host}/api/v1/agents/${flow.id}/webhook/test`
         : '',
     [flow?.id],
   )

@@ -547,7 +547,7 @@ export const agentAPI = {
     }
 
     return fetch(
-      `${EXTERNAL_API_BASE_URL}/v1/webhook_test/${canvasId}${search.toString() ? `?${search.toString()}` : ''}`,
+      `${EXTERNAL_API_BASE_URL}/v1/agents/${canvasId}/webhook/test${search.toString() ? `?${search.toString()}` : ''}`,
       {
         method: upperMethod,
         headers: requestHeaders,
@@ -560,11 +560,14 @@ export const agentAPI = {
     canvasId: string,
     payload: AgentWebhookTraceRequest = {},
   ) =>
-    apiClient.get<AgentWebhookTraceResponse>(`/webhook_trace/${canvasId}`, {
-      ...agentAPI.externalApiBase,
-      skipAuth: true,
-      params: payload,
-    }),
+    apiClient.get<AgentWebhookTraceResponse>(
+      `/agents/${canvasId}/webhook/logs`,
+      {
+        ...agentAPI.externalApiBase,
+        skipAuth: true,
+        params: payload,
+      },
+    ),
 
   downloadFile: async (fileId: string, createdBy: string) =>
     apiClient.get(`/agents/download`, {
