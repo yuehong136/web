@@ -111,13 +111,17 @@ export default {
       errorCode: '运行错误：{{code}}',
       states: {
         pending: '等待启动',
+        // 没有存活 runner 持有该 binding 时上报，包含 runner 停止心跳之后。
+        waiting: '等待启动',
         starting: '正在连接',
         connected: '已连接',
         running: '运行中',
         healthy: '健康',
         online: '在线',
+        stopping: '正在停止',
         stopped: '已停止',
         disabled: '已停用',
+        error: '运行异常',
         failed: '运行失败',
       },
     },

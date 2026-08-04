@@ -118,13 +118,18 @@ export default {
       errorCode: 'Runtime error: {{code}}',
       states: {
         pending: 'Pending',
+        // Reported while no live runner holds the binding, including after a
+        // runner stops sending heartbeats.
+        waiting: 'Waiting to start',
         starting: 'Connecting',
         connected: 'Connected',
         running: 'Running',
         healthy: 'Healthy',
         online: 'Online',
+        stopping: 'Stopping',
         stopped: 'Stopped',
         disabled: 'Disabled',
+        error: 'Runtime error',
         failed: 'Failed',
       },
     },
