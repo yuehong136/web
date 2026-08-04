@@ -26,7 +26,8 @@ export const datasourceKeys = {
   list: () => [...datasourceKeys.lists()] as const,
   details: () => [...datasourceKeys.all, 'detail'] as const,
   detail: (id: string) => [...datasourceKeys.details(), id] as const,
-  logs: (id: string, page?: number) => [...datasourceKeys.all, 'logs', id, page] as const,
+  logs: (id: string, page?: number) =>
+    [...datasourceKeys.all, 'logs', id, page] as const,
   byKb: (kbId: string) => [...datasourceKeys.all, 'by-kb', kbId] as const,
 }
 
@@ -36,7 +37,11 @@ export const datasourceKeys = {
 export const useListDataSource = () => {
   const { dataSourceInfo } = useDataSourceInfo()
 
-  const { data: list, isFetching, refetch } = useQuery<IDataSource[]>({
+  const {
+    data: list,
+    isFetching,
+    refetch,
+  } = useQuery<IDataSource[]>({
     queryKey: datasourceKeys.list(),
     queryFn: async () => {
       const response = await datasourceAPI.connector.list()
@@ -50,10 +55,8 @@ export const useListDataSource = () => {
   const categorizedList = useMemo<ICategorizedDataSource[]>(() => {
     if (!list || list.length === 0) return []
 
-    const categorizedData: Record<DataSourceKey, IDataSourceBase[]> = {} as Record<
-      DataSourceKey,
-      IDataSourceBase[]
-    >
+    const categorizedData: Record<DataSourceKey, IDataSourceBase[]> =
+      {} as Record<DataSourceKey, IDataSourceBase[]>
 
     list.forEach((item) => {
       const source = item.source
@@ -90,10 +93,19 @@ export const useAddDataSource = () => {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
   const [addingModalVisible, setAddingModalVisible] = useState(false)
-  const [addSource, setAddSource] = useState<{ id: DataSourceKey; name: string; description: string; icon: React.ReactNode } | undefined>()
+  const [addSource, setAddSource] = useState<
+    | {
+        id: DataSourceKey
+        name: string
+        description: string
+        icon: React.ReactNode
+      }
+    | undefined
+  >()
 
   const mutation = useMutation({
-    mutationFn: (data: DataSourceSetRequest) => datasourceAPI.connector.set(data),
+    mutationFn: (data: DataSourceSetRequest) =>
+      datasourceAPI.connector.set(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: datasourceKeys.lists() })
       message.success(t('common.operationSuccess'))
@@ -114,9 +126,12 @@ export const useAddDataSource = () => {
     setAddSource(undefined)
   }, [])
 
-  const handleAddOk = useCallback(async (data: DataSourceSetRequest) => {
-    await mutation.mutateAsync(data)
-  }, [mutation])
+  const handleAddOk = useCallback(
+    async (data: DataSourceSetRequest) => {
+      await mutation.mutateAsync(data)
+    },
+    [mutation],
+  )
 
   return {
     addSource,
@@ -177,10 +192,13 @@ export const useFetchDataSourceDetail = (id?: string) => {
 /**
  * 获取数据源日志
  */
-export const useDataSourceLogs = (id: string, refreshFreq?: number | false) => {
+export const useDataSourceLogs = (id: string, autoRefresh = false) => {
   const [pagination, setPagination] = useState({ page: 1, pageSize: 10 })
 
-  const { data, isFetching, refetch } = useQuery<{ logs: IDataSourceLog[]; total: number }>({
+  const { data, isFetching, refetch } = useQuery<{
+    logs: IDataSourceLog[]
+    total: number
+  }>({
     queryKey: datasourceKeys.logs(id, pagination.page),
     queryFn: async () => {
       const response = await datasourceAPI.connector.logs(id, {
@@ -190,7 +208,7 @@ export const useDataSourceLogs = (id: string, refreshFreq?: number | false) => {
       return response
     },
     enabled: !!id,
-    refetchInterval: refreshFreq ? refreshFreq * 60 * 1000 : false,
+    refetchInterval: autoRefresh ? 5_000 : false,
     staleTime: 1 * 60 * 1000,
   })
 
@@ -214,9 +232,12 @@ export const useDataSourceResume = (id?: string) => {
   const queryClient = useQueryClient()
 
   const mutation = useMutation({
-    mutationFn: (resume: boolean) => datasourceAPI.connector.resume(targetId, resume),
+    mutationFn: (resume: boolean) =>
+      datasourceAPI.connector.resume(targetId, resume),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: datasourceKeys.detail(targetId) })
+      queryClient.invalidateQueries({
+        queryKey: datasourceKeys.detail(targetId),
+      })
       message.success(t('common.operationSuccess'))
     },
     onError: (error: any) => {
@@ -238,7 +259,8 @@ export const useDataSourceRebuild = () => {
   const { id: kbId } = useParams()
 
   const mutation = useMutation({
-    mutationFn: (sourceId: string) => datasourceAPI.connector.rebuild(sourceId, kbId as string),
+    mutationFn: (sourceId: string) =>
+      datasourceAPI.connector.rebuild(sourceId, kbId as string),
     onSuccess: () => {
       message.success(t('common.operationSuccess'))
     },
@@ -279,8 +301,13 @@ export const useLinkDataSource = (kbId: string) => {
   const queryClient = useQueryClient()
 
   const linkMutation = useMutation({
-    mutationFn: ({ connectorId, autoParse }: { connectorId: string; autoParse?: boolean }) =>
-      datasourceAPI.connector.link(connectorId, kbId, autoParse),
+    mutationFn: ({
+      connectorId,
+      autoParse,
+    }: {
+      connectorId: string
+      autoParse?: boolean
+    }) => datasourceAPI.connector.link(connectorId, kbId, autoParse),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: datasourceKeys.byKb(kbId) })
       message.success(t('common.operationSuccess'))
@@ -291,7 +318,8 @@ export const useLinkDataSource = (kbId: string) => {
   })
 
   const unlinkMutation = useMutation({
-    mutationFn: (connectorId: string) => datasourceAPI.connector.unlink(connectorId, kbId),
+    mutationFn: (connectorId: string) =>
+      datasourceAPI.connector.unlink(connectorId, kbId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: datasourceKeys.byKb(kbId) })
       message.success(t('common.operationSuccess'))
@@ -302,8 +330,13 @@ export const useLinkDataSource = (kbId: string) => {
   })
 
   const updateAutoMutation = useMutation({
-    mutationFn: ({ connectorId, autoParse }: { connectorId: string; autoParse: boolean }) =>
-      datasourceAPI.connector.updateAutoParse(connectorId, kbId, autoParse),
+    mutationFn: ({
+      connectorId,
+      autoParse,
+    }: {
+      connectorId: string
+      autoParse: boolean
+    }) => datasourceAPI.connector.updateAutoParse(connectorId, kbId, autoParse),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: datasourceKeys.byKb(kbId) })
     },

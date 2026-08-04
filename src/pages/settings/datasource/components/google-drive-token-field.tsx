@@ -20,7 +20,10 @@ type AuthStatus = 'idle' | 'waiting' | 'success' | 'error'
  * 1. 直接粘贴 OAuth Token JSON
  * 2. 通过 Web OAuth 流程获取
  */
-export function GoogleDriveTokenField({ value, onChange }: GoogleDriveTokenFieldProps) {
+export function GoogleDriveTokenField({
+  value,
+  onChange,
+}: GoogleDriveTokenFieldProps) {
   const { t } = useTranslation()
   const [authStatus, setAuthStatus] = useState<AuthStatus>('idle')
   const [errorMessage, setErrorMessage] = useState<string>('')
@@ -48,52 +51,54 @@ export function GoogleDriveTokenField({ value, onChange }: GoogleDriveTokenField
 
       // 打开认证窗口
       const authWindow = window.open(
-        response.auth_url,
+        response.authorization_url,
         'google_auth',
-        'width=600,height=700,scrollbars=yes'
+        'width=600,height=700,scrollbars=yes',
       )
 
       // 开始轮询结果
       const flowId = response.flow_id
-      pollingRef.current = setInterval(async () => {
-        try {
-          const result = await datasourceAPI.oauth.pollGoogleDrive({ flow_id: flowId })
-          
-          if (result.status === 'completed' && result.tokens) {
-            // 认证成功
-            onChange(result.tokens)
-            setAuthStatus('success')
-            if (pollingRef.current) {
-              clearInterval(pollingRef.current)
-              pollingRef.current = null
-            }
-            authWindow?.close()
-          } else if (result.status === 'error') {
-            // 认证失败
-            setAuthStatus('error')
-            setErrorMessage(t('datasource.oauthError'))
-            if (pollingRef.current) {
-              clearInterval(pollingRef.current)
-              pollingRef.current = null
-            }
-            authWindow?.close()
-          }
-        } catch {
-          // 忽略轮询错误，继续轮询
-        }
-      }, 3000)
-
-      // 30 秒超时
-      setTimeout(() => {
+      const stopPolling = () => {
         if (pollingRef.current) {
           clearInterval(pollingRef.current)
           pollingRef.current = null
-          if (authStatus === 'waiting') {
-            setAuthStatus('error')
-            setErrorMessage(t('datasource.oauthTimeout'))
-          }
         }
-      }, 30000)
+      }
+      pollingRef.current = setInterval(async () => {
+        try {
+          const result = await datasourceAPI.oauth.pollGoogleDrive({
+            flow_id: flowId,
+          })
+
+          if (result.status === 'completed') {
+            onChange(String(result.credentials))
+            setAuthStatus('success')
+            stopPolling()
+            authWindow?.close()
+          }
+        } catch (error) {
+          setAuthStatus('error')
+          setErrorMessage(
+            error instanceof Error ? error.message : t('datasource.oauthError'),
+          )
+          stopPolling()
+          authWindow?.close()
+        }
+      }, 3000)
+
+      // 与后端 flow 有效期一致（15 分钟）：用户要在弹窗里登录并授权，30 秒根本不够
+      setTimeout(
+        () => {
+          if (pollingRef.current) {
+            stopPolling()
+            if (authStatus === 'waiting') {
+              setAuthStatus('error')
+              setErrorMessage(t('datasource.oauthTimeout'))
+            }
+          }
+        },
+        15 * 60 * 1000,
+      )
     } catch (error: any) {
       setAuthStatus('error')
       setErrorMessage(error?.message || t('datasource.oauthError'))
@@ -136,13 +141,13 @@ export function GoogleDriveTokenField({ value, onChange }: GoogleDriveTokenField
 
         {/* 状态指示 */}
         {authStatus === 'success' && (
-          <div className="flex items-center gap-1 text-status-success text-sm">
+          <div className="flex items-center gap-1 text-sm text-status-success">
             <CheckCircle className="h-4 w-4" />
             {t('datasource.authSuccess')}
           </div>
         )}
         {authStatus === 'error' && (
-          <div className="flex items-center gap-1 text-status-error text-sm">
+          <div className="flex items-center gap-1 text-sm text-status-error">
             <XCircle className="h-4 w-4" />
             {errorMessage}
           </div>

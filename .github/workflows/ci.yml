@@ -50,6 +50,9 @@ jobs:
       - name: Test (streaming runtime)
         run: npm run test:streaming
 
+      - name: Test (API contracts)
+        run: npm run test:api
+
   build:
     name: Build
     runs-on: ubuntu-latest

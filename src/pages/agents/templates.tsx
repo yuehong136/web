@@ -49,9 +49,13 @@ export default function AgentTemplatesPage() {
   const setAgent = useSetAgent()
   const [keyword, setKeyword] = useState('')
   const [selectedKey, setSelectedKey] = useState<string>(ALL_CATEGORY_KEY)
-  const [selectedTemplate, setSelectedTemplate] = useState<AgentTemplate | null>(null)
+  const [selectedTemplate, setSelectedTemplate] =
+    useState<AgentTemplate | null>(null)
 
-  const templates = useMemo(() => templatesQuery.data || [], [templatesQuery.data])
+  const templates = useMemo(
+    () => templatesQuery.data || [],
+    [templatesQuery.data],
+  )
 
   const categoryCounts = useMemo(() => {
     const counts: Record<string, number> = {
@@ -123,16 +127,24 @@ export default function AgentTemplatesPage() {
   const mainSectionTemplates =
     selectedKey === ALL_CATEGORY_KEY
       ? filteredTemplates.filter(
-          (template) => normalizeCategoryKey(template.canvas_type) !== RECOMMENDED_KEY,
+          (template) =>
+            normalizeCategoryKey(template.canvas_type) !== RECOMMENDED_KEY,
         )
       : filteredTemplates
 
-  const gridClasses = 'grid grid-cols-1 gap-space-lg md:grid-cols-2 xl:grid-cols-3'
+  const gridClasses =
+    'grid grid-cols-1 gap-space-lg md:grid-cols-2 xl:grid-cols-3'
 
-  const renderSectionHeader = (title: string, count: number, tone?: ReactNode) => (
-    <div className="flex min-w-0 items-center gap-space-sm">
+  const renderSectionHeader = (
+    title: string,
+    count: number,
+    tone?: ReactNode,
+  ) => (
+    <div className="gap-space-sm flex min-w-0 items-center">
       {tone}
-      <h2 className="truncate text-base font-semibold text-text-primary">{title}</h2>
+      <h2 className="truncate text-base font-semibold text-text-primary">
+        {title}
+      </h2>
       <span className="text-sm font-medium text-text-tertiary">
         {count} 个模板
       </span>
@@ -140,9 +152,9 @@ export default function AgentTemplatesPage() {
   )
 
   const renderContent = () => (
-    <div className="flex flex-col gap-space-2xl pb-space-md">
+    <div className="gap-space-2xl pb-space-md flex flex-col">
       {showRecommendedSection ? (
-        <section className="flex flex-col gap-space-lg">
+        <section className="gap-space-lg flex flex-col">
           {renderSectionHeader(
             '精选推荐',
             recommendedTemplates.length,
@@ -160,7 +172,7 @@ export default function AgentTemplatesPage() {
         </section>
       ) : null}
 
-      <section className="flex flex-col gap-space-lg">
+      <section className="gap-space-lg flex flex-col">
         {renderSectionHeader(mainSectionTitle, mainSectionTemplates.length)}
         <div className={gridClasses}>
           {mainSectionTemplates.map((template) => (
@@ -178,7 +190,8 @@ export default function AgentTemplatesPage() {
   const pageState: 'content' | 'loading' | 'empty' | 'error' = (() => {
     if (templatesQuery.isLoading) return 'loading'
     if (templatesQuery.isError) return 'error'
-    if (!filteredTemplates.length && !recommendedTemplates.length) return 'empty'
+    if (!filteredTemplates.length && !recommendedTemplates.length)
+      return 'empty'
     return 'content'
   })()
 
@@ -197,7 +210,7 @@ export default function AgentTemplatesPage() {
             description="从官方模板库出发快速构建 Agent 与 Pipeline,按分类浏览或搜索关键词。"
             headerActions={
               <Button variant="outline" onClick={() => navigate('/agents')}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
+                <ArrowLeft className="mr-2 h-4 w-4" />
                 返回 Agent Center
               </Button>
             }
@@ -222,7 +235,7 @@ export default function AgentTemplatesPage() {
               <PageErrorState
                 scene={AppScene.CONSOLE}
                 title="模板加载失败"
-                description="请检查 `/v1/canvas/templates` 接口。"
+                description="请检查 `/api/v1/agents/templates` 接口。"
                 onRetry={() => {
                   void templatesQuery.refetch()
                 }}
@@ -230,7 +243,11 @@ export default function AgentTemplatesPage() {
             }
             emptyState={
               <AgentEmptyState
-                type={keyword || selectedKey !== ALL_CATEGORY_KEY ? 'search' : 'list'}
+                type={
+                  keyword || selectedKey !== ALL_CATEGORY_KEY
+                    ? 'search'
+                    : 'list'
+                }
                 onCreate={() => navigate('/agents?create=1')}
               />
             }

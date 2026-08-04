@@ -1,4 +1,4 @@
-import { STORAGE_KEYS } from '@/constants'
+import { API_BASE_URL, STORAGE_KEYS } from '@/constants'
 import { resolveCanvasCategory } from '@/lib/agent'
 import { apiClient } from './client'
 import type {
@@ -26,6 +26,7 @@ import type {
 } from '@/types/agent'
 
 const EXTERNAL_API_BASE_URL = '/api'
+const restBase = { baseURL: `${API_BASE_URL}/api` }
 
 const getRuntimeApiBaseUrl = () =>
   import.meta.env?.VITE_API_BASE_URL || 'http://localhost:8000'
@@ -72,13 +73,14 @@ export const agentAPI = {
       query.canvas_category = resolveCanvasCategory(params.canvas_type)
     }
 
-    return apiClient.get<AgentListResponse>('/v1/canvas/list', {
+    return apiClient.get<AgentListResponse>('/agents', {
+      ...restBase,
       params: query,
     })
   },
 
   fetchAgent: async (id: string) =>
-    apiClient.get<AgentFlow>(`/v1/canvas/get/${id}`),
+    apiClient.get<AgentFlow>(`/agents/${encodeURIComponent(id)}`, restBase),
 
   setAgent: async (payload: SetAgentPayload) => {
     const canvasCategory =
@@ -107,13 +109,20 @@ export const agentAPI = {
       nextPayload.release = payload.release
     }
 
-    return apiClient.post<AgentFlow>('/v1/canvas/set', nextPayload)
+    if (payload.id) {
+      delete nextPayload.id
+      return apiClient.put<AgentFlow>(
+        `/agents/${encodeURIComponent(payload.id)}`,
+        nextPayload,
+        restBase,
+      )
+    }
+
+    return apiClient.post<AgentFlow>('/agents', nextPayload, restBase)
   },
 
   deleteAgent: async (id: string) =>
-    apiClient.post('/v1/canvas/rm', {
-      canvas_ids: [id],
-    }),
+    apiClient.delete(`/agents/${encodeURIComponent(id)}`, restBase),
 
   runAgent: async (
     payload: RunAgentPayload,
@@ -123,14 +132,14 @@ export const agentAPI = {
   ) => {
     const baseURL = getRuntimeApiBaseUrl()
     const token = getAuthToken()
-    const response = await fetch(`${baseURL}/v1/canvas/completion`, {
+    const response = await fetch(`${baseURL}/api/v1/agents/chat/completion`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: JSON.stringify({
-        id: payload.id,
+        agent_id: payload.id,
         query: payload.query || '',
         session_id: payload.session_id,
         files: payload.files || [],
@@ -154,54 +163,57 @@ export const agentAPI = {
   ) => {
     const baseURL = getRuntimeApiBaseUrl()
     const token = getAuthToken()
-    const response = await fetch(
-      `${baseURL}/v1/canvas/${payload.id}/completion`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({
-          query: payload.query || '',
-          session_id: payload.session_id,
-          files: payload.files || [],
-          inputs: payload.inputs || {},
-          ...(payload.a2ui ? { a2ui: payload.a2ui } : {}),
-          ...(payload.metadata ? { metadata: payload.metadata } : {}),
-          ...(payload.release !== undefined
-            ? { release: payload.release }
-            : {}),
-          ...(payload.user_id ? { user_id: payload.user_id } : {}),
-        }),
-        signal: options?.signal,
+    const response = await fetch(`${baseURL}/api/v1/agents/chat/completion`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
-    )
+      body: JSON.stringify({
+        agent_id: payload.id,
+        query: payload.query || '',
+        session_id: payload.session_id,
+        files: payload.files || [],
+        inputs: payload.inputs || {},
+        ...(payload.a2ui ? { a2ui: payload.a2ui } : {}),
+        ...(payload.metadata ? { metadata: payload.metadata } : {}),
+        ...(payload.release !== undefined ? { release: payload.release } : {}),
+        ...(payload.user_id ? { user_id: payload.user_id } : {}),
+      }),
+      signal: options?.signal,
+    })
 
     return response
   },
 
-  resetAgent: async (id: string) => apiClient.post('/v1/canvas/reset', { id }),
+  resetAgent: async (id: string) =>
+    apiClient.post(`/agents/${encodeURIComponent(id)}/reset`, {}, restBase),
 
   debugNode: async (payload: DebugAgentNodePayload) =>
-    apiClient.post('/v1/canvas/debug', {
-      id: payload.canvas_id,
-      component_id: payload.component_id,
-      params: payload.inputs || {},
-    }),
+    apiClient.post(
+      `/agents/${encodeURIComponent(payload.canvas_id)}/components/${encodeURIComponent(payload.component_id)}/debug`,
+      { params: payload.inputs || {} },
+      restBase,
+    ),
 
   debugSingle: async (payload: DebugAgentNodePayload) =>
-    apiClient.post('/v1/canvas/debug', {
-      id: payload.canvas_id,
-      component_id: payload.component_id,
-      params: payload.inputs || {},
-    }),
+    apiClient.post(
+      `/agents/${encodeURIComponent(payload.canvas_id)}/components/${encodeURIComponent(payload.component_id)}/debug`,
+      { params: payload.inputs || {} },
+      restBase,
+    ),
 
   fetchVersions: async (id: string) =>
-    apiClient.get<AgentVersionSummary[]>(`/v1/canvas/getlistversion/${id}`),
+    apiClient.get<AgentVersionSummary[]>(
+      `/agents/${encodeURIComponent(id)}/versions`,
+      restBase,
+    ),
 
-  fetchVersion: async (versionId: string) =>
-    apiClient.get<AgentFlow>(`/v1/canvas/getversion/${versionId}`),
+  fetchVersion: async (agentId: string, versionId: string) =>
+    apiClient.get<AgentFlow>(
+      `/agents/${encodeURIComponent(agentId)}/versions/${encodeURIComponent(versionId)}`,
+      restBase,
+    ),
 
   /**
    * Fetches the transient workflow trace stored under
@@ -212,52 +224,81 @@ export const agentAPI = {
    * available instead of polling indefinitely.
    */
   fetchTrace: async (canvasId: string, messageId: string) =>
-    apiClient.get<AgentTraceItem[]>(`/v1/canvas/trace`, {
-      params: {
-        canvas_id: canvasId,
-        message_id: messageId,
-      },
-    }),
+    apiClient.get<AgentTraceItem[]>(
+      `/agents/${encodeURIComponent(canvasId)}/logs/${encodeURIComponent(messageId)}`,
+      restBase,
+    ),
 
   fetchTemplates: async () =>
-    apiClient.get<AgentTemplate[]>('/v1/canvas/templates'),
+    apiClient.get<AgentTemplate[]>('/agents/templates', restBase),
 
   fetchPrompt: async () =>
-    apiClient.get<Record<string, string>>('/v1/canvas/prompts'),
+    apiClient.get<Record<string, string>>('/agents/prompts', restBase),
 
   updateSetting: async (payload: UpdateAgentSettingsPayload) =>
-    apiClient.post('/v1/canvas/setting', payload),
+    apiClient.put(
+      `/agents/${encodeURIComponent(payload.id)}`,
+      {
+        title: payload.title,
+        description: payload.description,
+        avatar: payload.avatar,
+        permission: payload.permission,
+      },
+      restBase,
+    ),
 
   testDbConnect: async (payload: Record<string, unknown>) =>
-    apiClient.post('/v1/canvas/test_db_connect', payload),
+    apiClient.post('/agents/test_db_connection', payload, restBase),
 
   uploadFile: async (canvasId: string, file: File | File[]) =>
     Array.isArray(file)
-      ? apiClient.uploadRepeated(`/v1/canvas/upload/${canvasId}`, 'file', file)
-      : apiClient.upload(`/v1/canvas/upload/${canvasId}`, file),
+      ? apiClient.uploadRepeated(
+          `/agents/${encodeURIComponent(canvasId)}/upload`,
+          'file',
+          file,
+          undefined,
+          restBase,
+        )
+      : apiClient.upload(
+          `/agents/${encodeURIComponent(canvasId)}/upload`,
+          file,
+          undefined,
+          restBase,
+        ),
 
   uploadPublicFile: async (canvasId: string, file: File | File[]) =>
     Array.isArray(file)
       ? apiClient.uploadRepeated(
-          `/v1/canvas/upload/${canvasId}`,
+          `/agents/${encodeURIComponent(canvasId)}/upload`,
           'file',
           file,
           undefined,
           {
             skipAuth: true,
-            baseURL: '',
+            baseURL: '/api',
           },
         )
-      : apiClient.upload(`/v1/canvas/upload/${canvasId}`, file, undefined, {
-          skipAuth: true,
-          baseURL: '',
-        }),
+      : apiClient.upload(
+          `/agents/${encodeURIComponent(canvasId)}/upload`,
+          file,
+          undefined,
+          {
+            skipAuth: true,
+            baseURL: '/api',
+          },
+        ),
 
   fetchCanvasSSE: async (canvasId: string) =>
-    apiClient.get<AgentFlow>(`/v1/canvas/getsse/${canvasId}`),
+    apiClient.get<AgentFlow>(
+      `/agents/${encodeURIComponent(canvasId)}`,
+      restBase,
+    ),
 
   fetchAgentAvatar: async (canvasId: string) =>
-    apiClient.get<AgentFlow>(`/v1/canvas/getsse/${canvasId}`),
+    apiClient.get<AgentFlow>(
+      `/agents/${encodeURIComponent(canvasId)}`,
+      restBase,
+    ),
 
   /**
    * Lists persisted `t_ai_api4conversations` rows for a canvas.
@@ -271,20 +312,31 @@ export const agentAPI = {
     params: AgentSessionListParams = {},
   ) =>
     apiClient.get<AgentSessionListResponse | AgentSession[]>(
-      `/v1/canvas/${canvasId}/sessions`,
+      `/agents/${encodeURIComponent(canvasId)}/sessions`,
       {
+        ...restBase,
         params: buildAgentSessionListQuery(params),
       },
     ),
 
   fetchSession: async (canvasId: string, sessionId: string) =>
-    apiClient.get<AgentSession>(`/v1/canvas/${canvasId}/sessions/${sessionId}`),
+    apiClient.get<AgentSession>(
+      `/agents/${encodeURIComponent(canvasId)}/sessions/${encodeURIComponent(sessionId)}`,
+      restBase,
+    ),
 
   createSession: async (canvasId: string, name: string) =>
-    apiClient.put<AgentSession>(`/v1/canvas/${canvasId}/sessions`, { name }),
+    apiClient.post<AgentSession>(
+      `/agents/${encodeURIComponent(canvasId)}/sessions`,
+      { name },
+      restBase,
+    ),
 
   deleteSession: async (canvasId: string, sessionId: string) =>
-    apiClient.delete(`/v1/canvas/${canvasId}/sessions/${sessionId}`),
+    apiClient.delete(
+      `/agents/${encodeURIComponent(canvasId)}/sessions/${encodeURIComponent(sessionId)}`,
+      restBase,
+    ),
 
   cancelTask: async (taskId: string) =>
     apiClient.put(`/v1/canvas/cancel/${taskId}`),
@@ -293,12 +345,10 @@ export const agentAPI = {
     apiClient.put(`/v1/canvas/cancel/${taskId}`),
 
   inputForm: async (canvasId: string, componentId: string) =>
-    apiClient.get<AgentInputFormSchema>(`/v1/canvas/input_form`, {
-      params: {
-        id: canvasId,
-        component_id: componentId,
-      },
-    }),
+    apiClient.get<AgentInputFormSchema>(
+      `/agents/${encodeURIComponent(canvasId)}/components/${encodeURIComponent(componentId)}/input-form`,
+      restBase,
+    ),
 
   fetchExternalAgentInputs: async (canvasId: string, betaToken: string) =>
     apiClient.get<AgentExternalInputs>(`/agentbots/${canvasId}/inputs`, {
@@ -378,7 +428,10 @@ export const agentAPI = {
         import.meta.env.VITE_API_BASE_URL ??
         'http://localhost:8000'
 
-      xhr.open('POST', `${baseURL}/v1/canvas/upload/${canvasId}`)
+      xhr.open(
+        'POST',
+        `${baseURL}/api/v1/agents/${encodeURIComponent(canvasId)}/upload`,
+      )
 
       const token = options?.skipAuth
         ? null
@@ -513,11 +566,12 @@ export const agentAPI = {
       params: payload,
     }),
 
-  downloadFile: async (fileId: string, chunkId: string) =>
-    apiClient.get(`/v1/canvas/download`, {
+  downloadFile: async (fileId: string, createdBy: string) =>
+    apiClient.get(`/agents/download`, {
+      ...restBase,
       params: {
-        file_id: fileId,
-        chunk_id: chunkId,
+        id: fileId,
+        created_by: createdBy,
       },
     }),
 }

@@ -87,7 +87,7 @@ export const TemplatesPage = ({ onBack }: TemplatesPageProps) => {
   } = useQuery({
     queryKey: agentQueryKeys.templatesRaw(),
     queryFn: async () => {
-      console.log('🔍 请求模版列表: /v1/canvas/templates')
+      console.log('🔍 请求模版列表: /api/v1/agents/templates')
       const result = await agentAPI.fetchTemplates()
       console.log('📦 模版API返回:', result)
       return result

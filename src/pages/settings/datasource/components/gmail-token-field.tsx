@@ -41,48 +41,52 @@ export function GmailTokenField({ value, onChange }: GmailTokenFieldProps) {
       })
 
       const authWindow = window.open(
-        response.auth_url,
+        response.authorization_url,
         'gmail_auth',
-        'width=600,height=700,scrollbars=yes'
+        'width=600,height=700,scrollbars=yes',
       )
 
       const flowId = response.flow_id
-      pollingRef.current = setInterval(async () => {
-        try {
-          const result = await datasourceAPI.oauth.pollGmail({ flow_id: flowId })
-          
-          if (result.status === 'completed' && result.tokens) {
-            onChange(result.tokens)
-            setAuthStatus('success')
-            if (pollingRef.current) {
-              clearInterval(pollingRef.current)
-              pollingRef.current = null
-            }
-            authWindow?.close()
-          } else if (result.status === 'error') {
-            setAuthStatus('error')
-            setErrorMessage(t('datasource.oauthError'))
-            if (pollingRef.current) {
-              clearInterval(pollingRef.current)
-              pollingRef.current = null
-            }
-            authWindow?.close()
-          }
-        } catch {
-          // 继续轮询
-        }
-      }, 3000)
-
-      setTimeout(() => {
+      const stopPolling = () => {
         if (pollingRef.current) {
           clearInterval(pollingRef.current)
           pollingRef.current = null
-          if (authStatus === 'waiting') {
-            setAuthStatus('error')
-            setErrorMessage(t('datasource.oauthTimeout'))
-          }
         }
-      }, 30000)
+      }
+      pollingRef.current = setInterval(async () => {
+        try {
+          const result = await datasourceAPI.oauth.pollGmail({
+            flow_id: flowId,
+          })
+
+          if (result.status === 'completed') {
+            onChange(String(result.credentials))
+            setAuthStatus('success')
+            stopPolling()
+            authWindow?.close()
+          }
+        } catch (error) {
+          setAuthStatus('error')
+          setErrorMessage(
+            error instanceof Error ? error.message : t('datasource.oauthError'),
+          )
+          stopPolling()
+          authWindow?.close()
+        }
+      }, 3000)
+
+      setTimeout(
+        () => {
+          if (pollingRef.current) {
+            stopPolling()
+            if (authStatus === 'waiting') {
+              setAuthStatus('error')
+              setErrorMessage(t('datasource.oauthTimeout'))
+            }
+          }
+        },
+        15 * 60 * 1000,
+      )
     } catch (error: any) {
       setAuthStatus('error')
       setErrorMessage(error?.message || t('datasource.oauthError'))
@@ -122,13 +126,13 @@ export function GmailTokenField({ value, onChange }: GmailTokenFieldProps) {
         </Button>
 
         {authStatus === 'success' && (
-          <div className="flex items-center gap-1 text-status-success text-sm">
+          <div className="flex items-center gap-1 text-sm text-status-success">
             <CheckCircle className="h-4 w-4" />
             {t('datasource.authSuccess')}
           </div>
         )}
         {authStatus === 'error' && (
-          <div className="flex items-center gap-1 text-status-error text-sm">
+          <div className="flex items-center gap-1 text-sm text-status-error">
             <XCircle className="h-4 w-4" />
             {errorMessage}
           </div>

@@ -25,13 +25,15 @@ const getMutationCounts = (result: Record<string, { error?: string }>) => {
   return { successCount, errorCount }
 }
 
-export function useDocumentActions(onSuccess?: () => void) {
+export function useDocumentActions(onSuccess?: () => void, datasetId?: string) {
   const { t } = useTranslation()
   const { runDocument, isLoading: isRunning } = useRunDocument()
   const { changeStatus, isLoading: isChangingStatus } =
     useChangeDocumentStatus()
   const { renameDocument, isLoading: isRenaming } = useRenameDocument()
-  const { deleteDocument, isLoading: isDeleting } = useDeleteDocument()
+  // TODO(2026-08-01): datasetId 可选是兼容期设计（见 api/knowledge-rest.ts），
+  // 后端全部升级后收紧为必填。
+  const { deleteDocument, isLoading: isDeleting } = useDeleteDocument(datasetId)
   const { downloadDocument, isLoading: isDownloading } = useDownloadDocument()
 
   const handleStartParse = useCallback(

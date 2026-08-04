@@ -1,8 +1,7 @@
-import { API_BASE_URL } from '@/constants'
 import type { Document, DocumentFilter, IDocumentInfoFilter } from '@/types/api'
 import { apiClient } from './client'
-
-export const knowledgeRestConfig = { baseURL: `${API_BASE_URL}/api` }
+import { knowledgeRestConfig } from './knowledge-config'
+import { isMissingRouteError } from './legacy-fallback'
 
 export type DocumentUploadOptions = {
   parser_id?: string
@@ -107,6 +106,51 @@ export async function getDatasetDocumentFilter(
     `/v1/datasets/${encodeURIComponent(datasetId)}/documents?type=filter`,
     knowledgeRestConfig,
   )
+}
+
+/** 反代把上游 404 改写成 200 时，只能从响应形状识别缺失路由。 */
+const looksLikeMissingRouteResult = (result: unknown): boolean =>
+  typeof result === 'object' &&
+  result !== null &&
+  'detail' in result &&
+  !('deleted' in result)
+
+/**
+ * 删除数据集下的文档。
+ *
+ * TODO(2026-08-01): 兼容期实现——优先打统一的 RESTful 入口，只有后端尚未上线该
+ * 路由（404/405）时才回落到旧的 web 端点 `POST /v1/document/rm`。待所有部署环境
+ * 的后端都带上 `DELETE /api/v1/datasets/{dataset_id}/documents` 后，删掉本文件的
+ * 回退分支与 `deleteDocumentsLegacy`、`knowledge.ts` 里 datasetId 可选的分支，只
+ * 保留 RESTful 调用；后端届时也可以摘掉 `/v1/document/rm`。
+ */
+export async function deleteDatasetDocuments(
+  datasetId: string,
+  documentIds: string[],
+): Promise<void> {
+  try {
+    const result = await apiClient.delete<unknown>(
+      `/v1/datasets/${encodeURIComponent(datasetId)}/documents`,
+      { ...knowledgeRestConfig, data: { ids: documentIds } },
+    )
+    if (!looksLikeMissingRouteResult(result)) return
+  } catch (error) {
+    if (!isMissingRouteError(error)) throw error
+  }
+
+  console.warn(
+    '[documents] RESTful delete route unavailable, falling back to /v1/document/rm',
+  )
+  await deleteDocumentsLegacy(documentIds)
+}
+
+/**
+ * TODO(2026-08-01): 兼容期实现，随 {@link deleteDatasetDocuments} 的回退分支一起删除。
+ */
+export async function deleteDocumentsLegacy(
+  documentIds: string[],
+): Promise<void> {
+  await apiClient.post('/v1/document/rm', { doc_id: documentIds })
 }
 
 export function uploadDatasetDocuments(

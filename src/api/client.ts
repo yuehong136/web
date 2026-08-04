@@ -1,50 +1,11 @@
-import i18n from 'i18next'
 import type { APIResponse } from '@/types/api'
 import { STORAGE_KEYS, API_BASE_URL, API_VERSION } from '@/constants'
+import { APIError, extractErrorMessage, te } from './client-types'
+import type { RequestConfig } from './client-types'
 
-const te = (key: string) => i18n.t(`common.errors.${key}`)
-
-export class APIError extends Error {
-  public status: number
-  public code: string
-  public details?: any
-
-  constructor(status: number, code: string, message: string, details?: any) {
-    super(message)
-    this.name = 'APIError'
-    this.status = status
-    this.code = code
-    this.details = details
-  }
-}
-
-export interface RequestConfig extends RequestInit {
-  timeout?: number
-  skipAuth?: boolean
-  baseURL?: string
-  _isRetry?: boolean
-  /** GET 等请求的 URL 查询参数，会在 request 中序列化到 URL */
-  params?: Record<string, any> | any
-  /** POST/PUT 等请求体（若由调用方直接传入 config 时使用） */
-  data?: unknown
-  /**
-   * 返回完整信封而非仅 data.data。开启后返回 {@link ApiEnvelope}，
-   * 用于取回信封顶层的分页总数（如 RESTful list 的 `total_datasets`）。
-   * 默认 false —— 其它接口行为完全不变（opt-in）。
-   */
-  withEnvelope?: boolean
-}
-
-/**
- * opt-in 信封返回（{@link RequestConfig.withEnvelope}）。
- * `total` 取自响应顶层 `total_datasets`（兼容 `total`），不在 `data` 内。
- */
-export interface ApiEnvelope<T = any> {
-  data: T
-  total?: number
-  retcode: number
-  retmsg?: string
-}
+// 错误契约与请求配置类型见 ./client-types，这里重新导出以保持既有导入路径不变
+export { APIError } from './client-types'
+export type { ApiEnvelope, RequestConfig } from './client-types'
 
 class APIClient {
   private baseURL: string
@@ -243,6 +204,19 @@ class APIClient {
             401,
             'UNAUTHORIZED',
             rawData.detail || rawData.message || te('unauthorized'),
+          )
+        }
+
+        // 非信封格式的错误响应（FastAPI 的 {"detail": ...}、网关返回的错误 JSON
+        // 等）同样要抛错——否则调用方拿到的是一个形状完全不对的“数据”，错误会在
+        // 更远的地方以更迷惑的方式爆出来。
+        if (!response.ok) {
+          throw new APIError(
+            response.status,
+            'HTTP_ERROR',
+            extractErrorMessage(rawData) ||
+              `HTTP ${response.status}: ${response.statusText}`,
+            rawData,
           )
         }
 

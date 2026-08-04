@@ -16,8 +16,9 @@ export const useChunkActions = ({
 }: UseChunkActionsOptions) => {
   const switchChunkMutation = useMutation({
     mutationFn: async (params: { chunkId: string; availableInt: number }) => {
-      if (!docId) return false
+      if (!kbId || !docId) return false
       return knowledgeAPI.document.switchChunks({
+        kb_id: kbId,
         doc_id: docId,
         chunk_ids: [params.chunkId],
         available_int: params.availableInt,
@@ -31,8 +32,9 @@ export const useChunkActions = ({
       chunkIds: string[]
       availableInt: number
     }) => {
-      if (!docId) return false
+      if (!kbId || !docId) return false
       return knowledgeAPI.document.switchChunks({
+        kb_id: kbId,
         doc_id: docId,
         chunk_ids: params.chunkIds,
         available_int: params.availableInt,
@@ -52,8 +54,9 @@ export const useChunkActions = ({
       question_kwd?: string[]
       image_base64?: string
     }) => {
-      if (!docId) return false
+      if (!kbId || !docId) return false
       return knowledgeAPI.document.setChunk({
+        kb_id: kbId,
         doc_id: docId,
         chunk_id: params.chunkId,
         content_with_weight: params.content,
@@ -66,8 +69,9 @@ export const useChunkActions = ({
 
   const deleteChunksMutation = useMutation({
     mutationFn: async (chunkIds: string[]) => {
-      if (!docId) return false
+      if (!kbId || !docId) return false
       return knowledgeAPI.document.deleteChunks({
+        kb_id: kbId,
         doc_id: docId,
         chunk_ids: chunkIds,
       })
@@ -82,8 +86,9 @@ export const useChunkActions = ({
       question_kwd?: string[]
       image_base64?: string
     }) => {
-      if (!docId) return false
+      if (!kbId || !docId) return false
       return knowledgeAPI.document.createChunk({
+        kb_id: kbId,
         doc_id: docId,
         content_with_weight: params.content,
         important_kwd: params.important_kwd,

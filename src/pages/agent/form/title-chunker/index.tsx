@@ -305,23 +305,42 @@ export function TitleChunkerForm({ node }: INextOperatorForm) {
         />
 
         {method === TitleChunkerMethod.Hierarchy && (
-          <FormField
-            control={form.control}
-            name="include_heading_content"
-            render={({ field }) => (
-              <FormItem className="rounded-radius-md px-space-sm py-space-sm flex items-center justify-between border border-border-default">
-                <FormLabel>
-                  {t('flow.includeHeadingContent', 'Include heading content')}
-                </FormLabel>
-                <FormControl>
-                  <Switch
-                    checked={Boolean(field.value)}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
+          <>
+            <FormField
+              control={form.control}
+              name="include_heading_content"
+              render={({ field }) => (
+                <FormItem className="rounded-radius-md px-space-sm py-space-sm flex items-center justify-between border border-border-default">
+                  <FormLabel>
+                    {t('flow.includeHeadingContent', 'Include heading content')}
+                  </FormLabel>
+                  <FormControl>
+                    <Switch
+                      checked={Boolean(field.value)}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="root_chunk_as_heading"
+              render={({ field }) => (
+                <FormItem className="rounded-radius-md px-space-sm py-space-sm flex items-center justify-between border border-border-default">
+                  <FormLabel>
+                    {t('flow.rootAsHeading', 'Use root as H0 heading')}
+                  </FormLabel>
+                  <FormControl>
+                    <Switch
+                      checked={Boolean(field.value)}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </>
         )}
 
         {method === TitleChunkerMethod.Group ? (

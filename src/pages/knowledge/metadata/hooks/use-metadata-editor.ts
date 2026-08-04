@@ -209,9 +209,11 @@ export function useMetadataEditor(
       if (isValueManageMode) {
         if (pendingDeletes.length > 0 || pendingUpdates.length > 0) {
           await batchUpdateMutation.mutateAsync({
-            kb_id: kbId,
-            doc_ids:
-              isUpdateSingleMode && documentId ? [documentId] : undefined,
+            dataset_id: kbId,
+            selector: {
+              document_ids:
+                isUpdateSingleMode && documentId ? [documentId] : undefined,
+            },
             deletes: pendingDeletes,
             updates: pendingUpdates,
           })
@@ -221,6 +223,7 @@ export function useMetadataEditor(
       } else if (isSingleFileSettingMode && documentId) {
         const settings = tableDataToSettings(tableData)
         await updateDocSettingsMutation.mutateAsync({
+          kb_id: kbId,
           doc_id: documentId,
           metadata: settings,
         })

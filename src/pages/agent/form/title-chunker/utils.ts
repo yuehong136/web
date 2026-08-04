@@ -189,6 +189,7 @@ export function serializeTitleChunkerFormForDsl(
     method: nextForm.method,
     hierarchy: toNumber(hierarchy, 0),
     include_heading_content: Boolean(nextForm.include_heading_content),
+    root_chunk_as_heading: Boolean(nextForm.root_chunk_as_heading),
     levels: serializeRulesForDsl(activeRules),
   }
 }

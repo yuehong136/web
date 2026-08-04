@@ -81,7 +81,7 @@ export type SystemVersionString = string
 export const systemAPI = {
   // 获取系统状态
   async getStatus(): Promise<SystemStatusResponse> {
-    return apiClient.get<SystemStatusResponse>('/system/status')
+    return apiClient.get<SystemStatusResponse>('/system/status', sdkBase)
   },
 
   // 获取系统版本信息（已迁移到 RESTful /api/v1/system/version）

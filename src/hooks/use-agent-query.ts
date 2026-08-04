@@ -179,11 +179,12 @@ export const useFetchVersionList = (id?: string) => {
 }
 
 export const useFetchVersion = (versionId?: string) => {
+  const agentId = useResolvedAgentId()
   const query = useQuery({
-    queryKey: agentQueryKeys.version(versionId || ''),
-    enabled: Boolean(versionId),
+    queryKey: agentQueryKeys.version(`${agentId}:${versionId || ''}`),
+    enabled: Boolean(agentId && versionId),
     queryFn: async () =>
-      adaptAgentFlow(await agentAPI.fetchVersion(versionId || '')),
+      adaptAgentFlow(await agentAPI.fetchVersion(agentId, versionId || '')),
   })
 
   return {

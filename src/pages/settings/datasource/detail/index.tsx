@@ -1,31 +1,37 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ArrowLeft, Play, Pause, Loader2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import { ArrowLeft, Pause, Play } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
+import { datasourceAPI, type DataSourceSetRequest } from '@/api/datasource'
 import { DynamicForm } from '@/components/dynamic-form'
 import {
-  useFetchDataSourceDetail,
+  PageEmptyState,
+  PageHeader,
+  PageLoadingState,
+  SectionCard,
+} from '@/components/patterns'
+import { Button } from '@/components/ui/button'
+import {
+  datasourceKeys,
+  useDataSourceLogs,
   useDataSourceResume,
+  useFetchDataSourceDetail,
 } from '@/hooks/use-datasource-request'
 import {
-  useDataSourceInfo,
-  useDataSourceFormFields,
   DataSourceFormDefaultValues,
+  useDataSourceFormFields,
+  useDataSourceInfo,
 } from '../constants'
-import { type FormFieldConfig, DataSourceKey, DataSourceStatus } from '../types'
+import { DataSourceKey, type FormFieldConfig } from '../types'
 import { DataSourceLogsTable } from './logs-table'
-import { datasourceAPI, type DataSourceSetRequest } from '@/api/datasource'
-import { message } from 'antd'
-import { useQueryClient } from '@tanstack/react-query'
-import { datasourceKeys } from '@/hooks/use-datasource-request'
+import { DataSourceStatusBadge, isDataSourceActive } from './status-display'
+import { SyncOverview } from './sync-overview'
 
-/**
- * 数据源详情页面
- */
+/** Data source configuration and sync operations console. */
 export default function DataSourceDetailPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
@@ -37,172 +43,161 @@ export default function DataSourceDetailPage() {
   const { handleResume, isLoading: resumeLoading } = useDataSourceResume(id)
   const { dataSourceInfo } = useDataSourceInfo()
   const { formFields, baseFields } = useDataSourceFormFields()
-
-  const [fields, setFields] = useState<FormFieldConfig[]>([])
   const [saveLoading, setSaveLoading] = useState(false)
 
-  // 构建表单字段（名称字段只读）
-  useEffect(() => {
-    if (detail?.source) {
-      const sourceFields = formFields[detail.source as DataSourceKey] || []
-      const modifiedBaseFields = baseFields.map((field) => {
-        if (field.name === 'name') {
-          return { ...field, disabled: true }
-        }
-        return field
-      })
-      setFields([...modifiedBaseFields, ...sourceFields])
-    }
-  }, [detail?.source, formFields, baseFields])
+  const isActive = isDataSourceActive(detail?.status)
+  const logsState = useDataSourceLogs(id, isActive)
 
-  // 保存配置
-  const handleSave = async (values: any) => {
+  const fields = useMemo<FormFieldConfig[]>(() => {
+    if (!detail?.source) return []
+    const sourceFields = formFields[detail.source as DataSourceKey] || []
+    const readOnlyBaseFields = baseFields.map((field) =>
+      field.name === 'name' ? { ...field, disabled: true } : field,
+    )
+    return [...readOnlyBaseFields, ...sourceFields]
+  }, [baseFields, detail?.source, formFields])
+
+  const handleSave = async (values: Record<string, unknown>) => {
+    if (!detail) return
+
     try {
       setSaveLoading(true)
       const data: DataSourceSetRequest = {
         ...values,
-        id: detail?.id,
-        source: detail?.source,
+        id: detail.id,
+        name: detail.name,
+        source: detail.source,
+        config: (values.config as Record<string, unknown>) || detail.config,
       }
       await datasourceAPI.connector.set(data)
-      queryClient.invalidateQueries({ queryKey: datasourceKeys.detail(id) })
-      message.success(t('common.saved'))
-    } catch (error: any) {
-      message.error(error?.message || t('common.saveFailed'))
+      await queryClient.invalidateQueries({
+        queryKey: datasourceKeys.detail(id),
+      })
+      toast.success(t('common.saved'))
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : t('common.saveFailed'),
+      )
     } finally {
       setSaveLoading(false)
     }
   }
 
-  // 获取状态徽章
-  const getStatusBadge = (status?: DataSourceStatus) => {
-    switch (status) {
-      case DataSourceStatus.RUNNING:
-        return <Badge variant="success">{t('datasource.statusRunning')}</Badge>
-      case DataSourceStatus.PAUSED:
-        return <Badge variant="warning">{t('datasource.statusPaused')}</Badge>
-      case DataSourceStatus.COMPLETED:
-        return <Badge variant="default">{t('datasource.statusCompleted')}</Badge>
-      case DataSourceStatus.FAILED:
-        return <Badge variant="destructive">{t('datasource.statusFailed')}</Badge>
-      default:
-        return <Badge variant="secondary">{t('datasource.statusPending')}</Badge>
-    }
-  }
-
-  const sourceInfo = detail?.source ? dataSourceInfo[detail.source] : null
-
   if (isFetching && !detail) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <Loader2 className="w-8 h-8 animate-spin text-text-tertiary" />
-      </div>
+      <PageLoadingState
+        title={t('datasource.loadingDetail')}
+        description={t('datasource.loadingDetailDescription')}
+      />
     )
   }
 
   if (!detail) {
     return (
-      <div className="flex flex-col items-center justify-center h-full">
-        <p className="text-text-secondary">{t('datasource.notFound')}</p>
-        <Button variant="link" onClick={() => navigate('/settings/datasource')}>
-          {t('datasource.backToList')}
-        </Button>
-      </div>
+      <PageEmptyState
+        title={t('datasource.notFound')}
+        description={t('datasource.notFoundDescription')}
+        action={
+          <Button
+            variant="outline"
+            onClick={() => navigate('/settings/datasource')}
+          >
+            {t('datasource.backToList')}
+          </Button>
+        }
+      />
     )
   }
 
+  const sourceInfo = dataSourceInfo[detail.source]
+
   return (
-    <div className="flex flex-col h-full">
-      {/* 页面头部 */}
-      <div className="flex-shrink-0 px-6 py-4 border-b border-border">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="gap-1"
-            onClick={() => navigate('/settings/datasource')}
+    <div className="h-full overflow-y-auto bg-components-settings-content-bg">
+      <PageHeader
+        compact
+        titleSize="md"
+        title={detail.name}
+        description={sourceInfo?.name}
+        leading={
+          <>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-space-xs"
+              onClick={() => navigate('/settings/datasource')}
+            >
+              <ArrowLeft className="size-icon-sm" aria-hidden="true" />
+              {t('common.back')}
+            </Button>
+            <div className="h-8 w-8" aria-hidden="true">
+              {sourceInfo?.icon}
+            </div>
+          </>
+        }
+        actions={
+          <>
+            <DataSourceStatusBadge status={detail.status} />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleResume(!isActive)}
+              disabled={resumeLoading}
+              className="gap-space-xs"
+            >
+              {isActive ? (
+                <Pause className="size-icon-sm" aria-hidden="true" />
+              ) : (
+                <Play className="size-icon-sm" aria-hidden="true" />
+              )}
+              {isActive ? t('datasource.pause') : t('datasource.resume')}
+            </Button>
+          </>
+        }
+      />
+
+      <main className="p-space-lg">
+        <div className="gap-space-lg mx-auto grid w-full max-w-7xl grid-cols-1 xl:grid-cols-3">
+          <SectionCard
+            title={t('datasource.configuration')}
+            className="xl:col-span-2"
           >
-            <ArrowLeft className="w-4 h-4" />
-            {t('common.back')}
-          </Button>
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8">{sourceInfo?.icon}</div>
-            <div>
-              <h1 className="text-lg font-semibold text-text-primary">{detail.name}</h1>
-              <p className="text-sm text-text-secondary">{sourceInfo?.name}</p>
-            </div>
-          </div>
-          <div className="ml-auto flex items-center gap-2">
-            {getStatusBadge(detail.status)}
-            {detail.status === DataSourceStatus.RUNNING ? (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleResume(false)}
-                disabled={resumeLoading}
-                className="gap-1"
-              >
-                <Pause className="w-4 h-4" />
-                {t('datasource.pause')}
-              </Button>
-            ) : (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleResume(true)}
-                disabled={resumeLoading}
-                className="gap-1"
-              >
-                <Play className="w-4 h-4" />
-                {t('datasource.resume')}
-              </Button>
-            )}
-          </div>
-        </div>
-      </div>
+            <DynamicForm.Root
+              fields={fields}
+              onSubmit={handleSave}
+              defaultValues={{
+                ...DataSourceFormDefaultValues[detail.source as DataSourceKey],
+                ...detail,
+                ...detail.config,
+              }}
+              labelClassName="font-normal"
+            >
+              <div className="mt-space-lg pt-space-base flex justify-end border-t border-border-subtle">
+                <DynamicForm.SavingButton
+                  submitLoading={saveLoading}
+                  buttonText={t('common.save')}
+                  submitFunc={handleSave}
+                />
+              </div>
+            </DynamicForm.Root>
+          </SectionCard>
 
-      {/* 内容区域 */}
-      <div className="flex-1 overflow-y-auto px-6 py-4">
-        <div className="max-w-3xl space-y-6">
-          {/* 配置表单 */}
-          <section>
-            <h2 className="text-base font-semibold text-text-primary mb-4">
-              {t('datasource.configuration')}
-            </h2>
-            <div className="p-4 border border-border rounded-radius-lg">
-              <DynamicForm.Root
-                fields={fields}
-                onSubmit={handleSave}
-                defaultValues={{
-                  ...DataSourceFormDefaultValues[detail.source as DataSourceKey],
-                  ...detail,
-                  ...detail.config,
-                }}
-                labelClassName="font-normal"
-              >
-                <div className="flex justify-end pt-4 mt-4 border-t border-border">
-                  <DynamicForm.SavingButton
-                    submitLoading={saveLoading}
-                    buttonText={t('common.save')}
-                    submitFunc={handleSave}
-                  />
-                </div>
-              </DynamicForm.Root>
-            </div>
-          </section>
+          <SyncOverview
+            status={detail.status}
+            logs={logsState.logs}
+            refreshFreq={detail.refresh_freq}
+          />
 
-          {/* 同步日志 */}
-          <section>
-            <h2 className="text-base font-semibold text-text-primary mb-4">
-              {t('datasource.syncLogs')}
-            </h2>
-            <DataSourceLogsTable
-              dataSourceId={id}
-              refreshFreq={detail.refresh_freq}
-            />
-          </section>
+          <SectionCard
+            title={t('datasource.syncHistory')}
+            padding="none"
+            className="xl:col-span-3"
+          >
+            <div className="p-space-lg">
+              <DataSourceLogsTable state={logsState} />
+            </div>
+          </SectionCard>
         </div>
-      </div>
+      </main>
     </div>
   )
 }

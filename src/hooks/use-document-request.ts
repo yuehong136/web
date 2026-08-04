@@ -205,13 +205,15 @@ export const useUploadDocument = () => {
 }
 
 // 删除文档
-export const useDeleteDocument = () => {
+// TODO(2026-08-01): datasetId 可选是兼容期设计，随 knowledge-rest 的回退分支一起
+// 收紧为必填。
+export const useDeleteDocument = (datasetId?: string) => {
   const queryClient = useQueryClient()
 
   const { mutateAsync, isPending, isError, error } = useMutation({
     mutationFn: async (documentIds: string | string[]) => {
       const ids = Array.isArray(documentIds) ? documentIds : [documentIds]
-      await knowledgeAPI.document.delete(ids)
+      await knowledgeAPI.document.delete(ids, datasetId)
       return ids
     },
     onSuccess: () => {
