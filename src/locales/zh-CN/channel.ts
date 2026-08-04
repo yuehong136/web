@@ -89,6 +89,8 @@ export default {
       staleRelease: '原绑定版本 {{revision}}（已过期）',
       staleReleaseDescription:
         'Agent 已发布新版本。请选择当前发布版本并保存，系统不会静默切换 DSL。',
+      revisionStale:
+        '绑定版本已过期，机器人暂时无法应答。请编辑并选择当前发布版本。',
       dialogRevisionDescription: '对话应用当前不需要单独选择发布版本。',
       currentRelease: '当前发布版本',
       versionLabel: '版本 {{number}}',

@@ -94,6 +94,8 @@ export default {
       staleRelease: 'Previous revision {{revision}} (outdated)',
       staleReleaseDescription:
         'The Agent has a newer release. Select the current revision and save; MultiRAG will not switch DSL silently.',
+      revisionStale:
+        'Bound release is outdated, so the bot cannot answer. Edit this channel and select the current release.',
       dialogRevisionDescription:
         'Dialog apps do not currently require a separate release revision.',
       currentRelease: 'Current published revision',

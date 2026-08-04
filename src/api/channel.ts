@@ -39,6 +39,12 @@ export interface ChannelBinding {
   target_revision_id: string | null
   policy: Record<string, unknown>
   enabled: boolean
+  /**
+   * Server-resolved hint present on read responses only (like `runtime`):
+   * `true` once the bound Canvas release is no longer the latest published one,
+   * `null` for dialog targets or when the server did not resolve it.
+   */
+  revision_stale?: boolean | null
 }
 
 export interface ChannelRuntime {
@@ -117,6 +123,7 @@ export interface ChannelFormInput {
   targetId: string
   targetRevisionId: string
   privateChatOnly: boolean
+  bindingEnabled: boolean
 }
 
 export interface ChannelMutationPayload {
@@ -166,7 +173,7 @@ export const buildChannelMutationPayload = (
           ? input.targetRevisionId.trim()
           : null,
       policy: { private_chat_only: input.privateChatOnly },
-      enabled: false,
+      enabled: mode === 'update' && input.bindingEnabled,
     },
   }
 }

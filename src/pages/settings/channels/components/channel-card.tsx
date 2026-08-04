@@ -13,7 +13,11 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { formatDate } from '@/lib/utils'
-import { isChannelEnabled, isRuntimeHealthy } from '../utils'
+import {
+  isBindingRevisionStale,
+  isChannelEnabled,
+  isRuntimeHealthy,
+} from '../utils'
 
 interface ChannelCardProps {
   channel: ChatChannel
@@ -120,6 +124,12 @@ export const ChannelCard = ({
             </div>
           ) : null}
         </dl>
+
+        {isBindingRevisionStale(channel.binding) ? (
+          <output className="rounded-radius-md p-space-sm border border-status-warning-subtle bg-status-warning-subtle text-xs text-status-warning">
+            {t('channel.binding.revisionStale')}
+          </output>
+        ) : null}
 
         {channel.runtime?.last_error_code ? (
           <output className="rounded-radius-md p-space-sm border border-status-error-subtle bg-status-error-subtle text-xs text-status-error">

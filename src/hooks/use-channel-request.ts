@@ -23,6 +23,7 @@ export const useFetchChannels = () =>
     queryKey: channelKeys.list(),
     queryFn: channelAPI.list,
     staleTime: 10 * 1000,
+    refetchInterval: 15 * 1000,
   })
 
 export const useFetchChannelDetail = (id: string | null) =>

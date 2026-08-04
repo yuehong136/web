@@ -31,6 +31,7 @@ const baseInput: ChannelFormInput = {
   targetId: ' agent_1 ',
   targetRevisionId: 'revision_1',
   privateChatOnly: true,
+  bindingEnabled: true,
 }
 
 test('update serializer preserves an existing secret when the field is blank', () => {
@@ -46,7 +47,7 @@ test('update serializer preserves an existing secret when the field is blank', (
   assert.deepEqual(payload.connection.config.allowed_open_ids, ['ou_1', 'ou_2'])
   assert.equal(payload.binding.target_type, 'multirag.canvas_agent')
   assert.equal(payload.binding.target_revision_id, 'revision_1')
-  assert.equal(payload.binding.enabled, false)
+  assert.equal(payload.binding.enabled, true)
 })
 
 test('create serializer nests credentials and never sends a top-level secret', () => {
@@ -218,7 +219,7 @@ test('save creates channel and disabled binding atomically', async () => {
   assert.equal(putCalled, false)
 })
 
-test('save update stores connection and disabled binding atomically', async () => {
+test('save update stores connection and preserves active binding atomically', async () => {
   const originalUpdate = channelAPI.update
   const originalPutBinding = channelAPI.putBinding
   let updateRequest: Parameters<typeof channelAPI.update>[1] | undefined
@@ -247,7 +248,7 @@ test('save update stores connection and disabled binding atomically', async () =
     channelAPI.putBinding = originalPutBinding
   }
 
-  assert.equal(updateRequest?.binding?.enabled, false)
+  assert.equal(updateRequest?.binding?.enabled, true)
   assert.equal(putCalled, false)
 })
 

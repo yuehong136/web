@@ -128,6 +128,7 @@ export const ChannelFormSheet = ({
         targetId: values.targetId,
         targetRevisionId: values.targetRevisionId,
         privateChatOnly: values.privateChatOnly,
+        bindingEnabled: currentChannel?.binding?.enabled ?? false,
       },
       currentChannel ? 'update' : 'create',
     )
