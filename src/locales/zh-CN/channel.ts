@@ -28,6 +28,8 @@ export default {
       errorDescription: '暂时无法读取渠道信息，请稍后重试。',
       empty: '还没有渠道',
       emptyDescription: '创建飞书渠道，并绑定一个 MultiRAG Agent 或对话应用。',
+      providersUnavailable:
+        '暂时取不到渠道类型元数据，无法新建或编辑渠道；已有渠道的启停与删除不受影响。',
     },
     form: {
       createTitle: '新建渠道',
@@ -80,6 +82,7 @@ export default {
       targetId: '目标 ID',
       targetIdDescription: '目标必须属于当前租户，并且已有可执行的发布版本。',
       selectTarget: '选择已发布目标',
+      searchTargets: '搜索 Agent…',
       loadingTargets: '正在加载可用目标',
       targetsLoadFailed: '可用目标加载失败，请关闭后重试。',
       unnamedTarget: '未命名目标',
@@ -109,24 +112,33 @@ export default {
       unknown: '未知',
       lastHeartbeat: '最近心跳',
       errorCode: '运行错误：{{code}}',
+      // 服务端 RuntimeState 的六个取值，不多不少。
+      // 曾经这里有十二条，其中六条（pending/running/healthy/online/disabled/
+      // failed）服务端永远不会返回——词表是从客户端凭空发明的。
       states: {
-        pending: '等待启动',
         // 没有存活 runner 持有该 binding 时上报，包含 runner 停止心跳之后。
         waiting: '等待启动',
         starting: '正在连接',
         connected: '已连接',
-        running: '运行中',
-        healthy: '健康',
-        online: '在线',
         stopping: '正在停止',
         stopped: '已停止',
-        disabled: '已停用',
         error: '运行异常',
-        failed: '运行失败',
       },
     },
     validation: {
       required: '此项为必填项',
+    },
+    // 服务端在失败信封的 data.error_code 里给出的码。写成「是什么 + 你该做什么」，
+    // 因为这四类失败的处置路径毫无共同点。
+    errorCodes: {
+      CHANNEL_NOT_ACCESSIBLE: '该渠道不属于当前账号，请确认后重试',
+      CHANNEL_TARGET_NOT_ACCESSIBLE:
+        '你没有权限把该目标发布到外部渠道；请联系目标所属团队的管理员',
+      INVALID_CHANNEL_CONFIGURATION:
+        '渠道配置不完整或已失效（凭据缺失、未绑定目标、或绑定的 Agent 版本已过期）',
+      CHANNEL_SECRET_STORE_UNAVAILABLE:
+        '密钥库当前不可用，这不是配置问题，请联系运维',
+      CHANNEL_OPERATION_FAILED: '服务端处理失败，请联系运维并提供操作时间',
     },
     messages: {
       saved: '渠道草稿已保存',

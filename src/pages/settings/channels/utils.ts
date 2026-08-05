@@ -7,10 +7,15 @@ export const isChannelEnabled = (status: string | number | boolean): boolean =>
     String(status).trim().toLowerCase(),
   )
 
+/**
+ * `connected` is the only healthy state the server can report.
+ *
+ * This used to list four values; three of them (`healthy`, `online`,
+ * `running`) were unreachable — invented client-side and never emitted by
+ * anything. The result happened to be correct, by luck rather than design.
+ */
 export const isRuntimeHealthy = (state: string | undefined): boolean =>
-  ['connected', 'healthy', 'online', 'running'].includes(
-    state?.trim().toLowerCase() ?? '',
-  )
+  state?.trim().toLowerCase() === 'connected'
 
 /**
  * A stale binding keeps a healthy runner but fails every message, so the card

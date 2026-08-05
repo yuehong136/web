@@ -3,9 +3,16 @@ import test from 'node:test'
 import {
   buildChannelMutationPayload,
   channelAPI,
+  channelErrorMessageKey,
+  CHANNEL_ERROR_CODES,
+  RUNTIME_STATES,
   type ChannelFormInput,
   type ChannelProviderManifest,
 } from '../channel'
+import {
+  isBindingRevisionStale,
+  isRuntimeHealthy,
+} from '@/pages/settings/channels/utils'
 import { apiClient, type RequestConfig } from '../client'
 import { channelKeys, saveChannel } from '@/hooks/use-channel-request'
 import {
@@ -275,6 +282,61 @@ test('channel API uses RESTful /api/v1 endpoints', async () => {
     calls.every((call) => call.config?.baseURL?.endsWith('/api') === true),
     true,
   )
+})
+
+test('error mapping degrades to the generic key on any backend version', () => {
+  const fallback = 'channel.messages.toggleFailed'
+
+  // A backend that does not yet return error_code — exactly today's message.
+  assert.equal(channelErrorMessageKey(new Error('boom'), fallback), fallback)
+  assert.equal(channelErrorMessageKey(null, fallback), fallback)
+  assert.equal(
+    channelErrorMessageKey({ details: undefined }, fallback),
+    fallback,
+  )
+  // An unknown code must not be rendered raw at an admin.
+  assert.equal(
+    channelErrorMessageKey({ details: { error_code: 'WAT' } }, fallback),
+    fallback,
+  )
+})
+
+test('every server error code maps to its own message key', () => {
+  for (const code of CHANNEL_ERROR_CODES) {
+    assert.equal(
+      channelErrorMessageKey({ details: { error_code: code } }, 'fallback'),
+      `channel.errorCodes.${code}`,
+    )
+  }
+  // The catch-all branch is included: it is the likeliest failure to reach an
+  // admin, so it is the one that must not be left without actionable text.
+  assert.ok(CHANNEL_ERROR_CODES.includes('CHANNEL_OPERATION_FAILED'))
+})
+
+test('runtime state vocabulary matches the server, with no invented values', () => {
+  assert.deepEqual(
+    [...RUNTIME_STATES],
+    ['waiting', 'starting', 'connected', 'stopping', 'stopped', 'error'],
+  )
+  // `connected` is the only healthy state the server can report; `healthy`,
+  // `online` and `running` were client-side inventions.
+  assert.equal(isRuntimeHealthy('connected'), true)
+  for (const invented of ['healthy', 'online', 'running', 'pending']) {
+    assert.equal(isRuntimeHealthy(invented), false)
+  }
+  assert.equal(isRuntimeHealthy(undefined), false)
+})
+
+test('a stale binding only warns when the server says so', () => {
+  assert.equal(isBindingRevisionStale({ revision_stale: true } as never), true)
+  assert.equal(
+    isBindingRevisionStale({ revision_stale: false } as never),
+    false,
+  )
+  // Absent on mutation responses and on dialog targets — never invent a warning.
+  assert.equal(isBindingRevisionStale({ revision_stale: null } as never), false)
+  assert.equal(isBindingRevisionStale(undefined), false)
+  assert.equal(isBindingRevisionStale({} as never), false)
 })
 
 test('channel query keys keep list, detail, and runtime invalidation isolated', () => {

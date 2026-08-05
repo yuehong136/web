@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useDeferredValue, useEffect, useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useFormContext } from 'react-hook-form'
@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { useFetchAgentList, useFetchVersionList } from '@/hooks/use-agent-query'
 import { useDialogApps } from '@/hooks/use-dialog-apps'
@@ -34,9 +35,16 @@ export const BindingFields = () => {
   const form = useFormContext<ChannelFormValues>()
   const targetType = form.watch('targetType')
   const targetId = form.watch('targetId')
+  // Server-side search rather than a hardcoded first page. With a fixed
+  // page_size of 100 and no search box, a tenant's 101st Agent simply did not
+  // exist as far as this form was concerned — and the published filter below
+  // narrows that window further, so the practical ceiling was lower still.
+  const [targetSearch, setTargetSearch] = useState('')
+  const deferredSearch = useDeferredValue(targetSearch)
   const agentQuery = useFetchAgentList({
     page: 1,
-    page_size: 100,
+    page_size: 50,
+    keywords: deferredSearch,
     canvas_category: AgentCanvasCategory.AGENT,
   })
   const dialogQuery = useDialogApps({
@@ -147,6 +155,18 @@ export const BindingFields = () => {
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
+                {targetType === 'multirag.canvas_agent' ? (
+                  <div className="p-space-xs">
+                    <Input
+                      value={targetSearch}
+                      onChange={(event) => setTargetSearch(event.target.value)}
+                      placeholder={t('channel.binding.searchTargets')}
+                      // Radix Select treats printable keys as type-ahead; without
+                      // this the search box would never receive them.
+                      onKeyDown={(event) => event.stopPropagation()}
+                    />
+                  </div>
+                ) : null}
                 {targetType === 'multirag.canvas_agent'
                   ? releasedAgents.map((agent) => (
                       <SelectItem key={agent.id} value={agent.id}>

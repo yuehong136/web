@@ -31,6 +31,8 @@ export default {
       empty: 'No channels yet',
       emptyDescription:
         'Create a Feishu channel and bind a MultiRAG Agent or dialog app.',
+      providersUnavailable:
+        'Channel type metadata is temporarily unavailable, so channels cannot be created or edited. Enabling, disabling and deleting existing channels still work.',
     },
     form: {
       createTitle: 'New channel',
@@ -84,6 +86,7 @@ export default {
       targetIdDescription:
         'The target must belong to the current tenant and have an executable published version.',
       selectTarget: 'Select a published target',
+      searchTargets: 'Search agents…',
       loadingTargets: 'Loading available targets',
       targetsLoadFailed:
         'Unable to load available targets. Close this panel and try again.',
@@ -116,24 +119,36 @@ export default {
       unknown: 'Unknown',
       lastHeartbeat: 'Last heartbeat',
       errorCode: 'Runtime error: {{code}}',
+      // Exactly the six values the server's RuntimeState can hold.
+      // There used to be twelve; six of them (pending/running/healthy/online/
+      // disabled/failed) were invented client-side and never emitted.
       states: {
-        pending: 'Pending',
         // Reported while no live runner holds the binding, including after a
         // runner stops sending heartbeats.
         waiting: 'Waiting to start',
         starting: 'Connecting',
         connected: 'Connected',
-        running: 'Running',
-        healthy: 'Healthy',
-        online: 'Online',
         stopping: 'Stopping',
         stopped: 'Stopped',
-        disabled: 'Disabled',
         error: 'Runtime error',
-        failed: 'Failed',
       },
     },
     validation: { required: 'This field is required' },
+    // Codes the server puts in the failure envelope's data.error_code. Written
+    // as "what happened + what to do", because these failures have nothing in
+    // common in terms of how an admin resolves them.
+    errorCodes: {
+      CHANNEL_NOT_ACCESSIBLE:
+        'This channel does not belong to the current account',
+      CHANNEL_TARGET_NOT_ACCESSIBLE:
+        'You do not have permission to publish this target to an external channel. Ask an admin of the owning team.',
+      INVALID_CHANNEL_CONFIGURATION:
+        'The channel configuration is incomplete or no longer valid (missing credentials, no bound target, or a stale Agent revision)',
+      CHANNEL_SECRET_STORE_UNAVAILABLE:
+        'The secret store is unavailable. This is not a configuration problem — contact your operators.',
+      CHANNEL_OPERATION_FAILED:
+        'The server failed to process the request. Contact your operators with the time it happened.',
+    },
     messages: {
       saved: 'Channel draft saved',
       saveFailed: 'Unable to save the channel',

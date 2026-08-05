@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react'
-import { MessageCircleMore, Plus } from 'lucide-react'
+import { MessageCircleMore, Plus, TriangleAlert } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
-import type { ChatChannel } from '@/api/channel'
+import { channelErrorMessageKey, type ChatChannel } from '@/api/channel'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,7 +25,6 @@ import {
   useFetchChannels,
   useSetChannelEnabled,
 } from '@/hooks/use-channel-request'
-import { FEISHU_FALLBACK_MANIFEST } from './form-model'
 import { ChannelCard } from './components/channel-card'
 import { ChannelFormSheet } from './components/channel-form-sheet'
 
@@ -41,10 +40,15 @@ export const ChannelsPage = () => {
   )
   const [pendingDelete, setPendingDelete] = useState<ChatChannel | null>(null)
 
-  const providers = useMemo(() => {
-    const items = providersQuery.data?.items ?? []
-    return items.length > 0 ? items : [FEISHU_FALLBACK_MANIFEST]
-  }, [providersQuery.data])
+  const providers = useMemo(
+    () => providersQuery.data?.items ?? [],
+    [providersQuery.data],
+  )
+  // Provider metadata is what the create/edit form is built from, so losing it
+  // disables authoring — but it must not hide channels that are already there.
+  // Blanking the whole page also took away the one control that matters during
+  // an incident: disabling a channel that is misbehaving.
+  const providersUnavailable = providersQuery.isError || providers.length === 0
 
   const openCreate = () => {
     setSelectedChannel(null)
@@ -64,8 +68,10 @@ export const ChannelsPage = () => {
           ? t('channel.messages.enabled')
           : t('channel.messages.disabled'),
       )
-    } catch {
-      toast.error(t('channel.messages.toggleFailed'))
+    } catch (error) {
+      toast.error(
+        t(channelErrorMessageKey(error, 'channel.messages.toggleFailed')),
+      )
     }
   }
 
@@ -75,8 +81,10 @@ export const ChannelsPage = () => {
       await deleteMutation.mutateAsync(pendingDelete.id)
       toast.success(t('channel.messages.deleted'))
       setPendingDelete(null)
-    } catch {
-      toast.error(t('channel.messages.deleteFailed'))
+    } catch (error) {
+      toast.error(
+        t(channelErrorMessageKey(error, 'channel.messages.deleteFailed')),
+      )
     }
   }
 
@@ -94,7 +102,9 @@ export const ChannelsPage = () => {
     )
   }
 
-  if (channelsQuery.isError || providersQuery.isError) {
+  // Only a channels-query failure is fatal to this page. A providers failure
+  // is surfaced inline below, with the existing channels still listed.
+  if (channelsQuery.isError) {
     return (
       <PageErrorState
         title={t('channel.states.error')}
@@ -114,11 +124,26 @@ export const ChannelsPage = () => {
         <p className="max-w-3xl text-sm text-text-secondary">
           {t('channel.overview')}
         </p>
-        <Button onClick={openCreate}>
+        <Button onClick={openCreate} disabled={providersUnavailable}>
           <Plus className="size-icon-sm" aria-hidden="true" />
           {t('channel.actions.create')}
         </Button>
       </div>
+
+      {providersUnavailable ? (
+        <output className="gap-space-sm px-space-lg py-space-sm flex w-full shrink-0 items-center border-b border-status-warning-subtle bg-status-warning-subtle text-sm text-status-warning">
+          <TriangleAlert className="size-icon-sm shrink-0" aria-hidden="true" />
+          <span>{t('channel.states.providersUnavailable')}</span>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="ml-auto"
+            onClick={() => void providersQuery.refetch()}
+          >
+            {t('channel.actions.retry')}
+          </Button>
+        </output>
+      ) : null}
 
       <div className="scroll-area p-space-lg min-h-0 flex-1 overflow-y-auto">
         {channels.length === 0 ? (
@@ -129,7 +154,7 @@ export const ChannelsPage = () => {
               <MessageCircleMore className="size-icon-lg" aria-hidden="true" />
             }
             action={
-              <Button onClick={openCreate}>
+              <Button onClick={openCreate} disabled={providersUnavailable}>
                 <Plus className="size-icon-sm" aria-hidden="true" />
                 {t('channel.actions.create')}
               </Button>

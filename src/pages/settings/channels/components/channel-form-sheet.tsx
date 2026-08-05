@@ -1,11 +1,16 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useQueryClient } from '@tanstack/react-query'
 import { Loader2, RadioTower } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useForm, type Resolver } from 'react-hook-form'
 import { toast } from 'sonner'
 import type { ChannelProviderManifest, ChatChannel } from '@/api/channel'
-import { buildChannelMutationPayload } from '@/api/channel'
+import {
+  buildChannelMutationPayload,
+  channelAPI,
+  channelErrorMessageKey,
+} from '@/api/channel'
 import { Button } from '@/components/ui/button'
 import {
   Form,
@@ -32,6 +37,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import {
+  channelKeys,
   useFetchChannelDetail,
   useFetchChannelRuntime,
   useSaveChannel,
@@ -81,15 +87,25 @@ export const ChannelFormSheet = ({
     defaultValues: getChannelFormDefaults(manifest, currentChannel),
   })
   const saveMutation = useSaveChannel()
+  const queryClient = useQueryClient()
   const runtimeQuery = useFetchChannelRuntime(
     currentChannel?.id ?? null,
     open && Boolean(currentChannel),
   )
 
+  // Reset on channel identity, not on object identity. Keying this effect on
+  // `currentChannel` meant any background refetch produced a fresh object and
+  // wiped the form — including a just-typed App Secret, which is the one field
+  // the server never sends back, so nothing on screen revealed the loss.
+  // The channel is read through a ref so the dependency list stays honest.
+  const currentChannelRef = useRef(currentChannel)
+  currentChannelRef.current = currentChannel
+  const currentChannelId = currentChannel?.id ?? null
+  const isDirty = form.formState.isDirty
   useEffect(() => {
-    if (!open) return
-    form.reset(getChannelFormDefaults(manifest, currentChannel))
-  }, [currentChannel, form, manifest, open])
+    if (!open || isDirty) return
+    form.reset(getChannelFormDefaults(manifest, currentChannelRef.current))
+  }, [currentChannelId, form, manifest, open, isDirty])
 
   const selectedProvider = form.watch('provider')
   const selectedManifest =
@@ -113,6 +129,30 @@ export const ChannelFormSheet = ({
 
   const handleSubmit = form.handleSubmit(async (values) => {
     const fields = getProviderFields(selectedManifest)
+
+    // PATCH resends `binding.enabled`, and the cached detail behind it can be
+    // five minutes old — long enough for someone else to have disabled this
+    // channel in the meantime, which a save of an unrelated field would then
+    // silently undo. Refetching shrinks that window to one round-trip.
+    //
+    // Omitting the field instead is unsafe: `ChannelBindingUpsertRequest`
+    // defaults `enabled` to false, so an older backend would read the omission
+    // as "disable". A server-side concurrency token would be the complete fix
+    // but forces a hard cross-repo deploy order for a sub-second race.
+    let bindingEnabled = currentChannel?.binding?.enabled ?? false
+    if (currentChannel) {
+      try {
+        const fresh = await queryClient.fetchQuery({
+          queryKey: channelKeys.detail(currentChannel.id),
+          queryFn: () => channelAPI.get(currentChannel.id),
+        })
+        bindingEnabled = fresh.binding?.enabled ?? false
+      } catch {
+        // Fall back to the cached value: a save that fails on a transient read
+        // is worse than one that carries a slightly stale flag.
+      }
+    }
+
     const payload = buildChannelMutationPayload(
       {
         name: values.name,
@@ -128,7 +168,7 @@ export const ChannelFormSheet = ({
         targetId: values.targetId,
         targetRevisionId: values.targetRevisionId,
         privateChatOnly: values.privateChatOnly,
-        bindingEnabled: currentChannel?.binding?.enabled ?? false,
+        bindingEnabled,
       },
       currentChannel ? 'update' : 'create',
     )
@@ -137,8 +177,10 @@ export const ChannelFormSheet = ({
       await saveMutation.mutateAsync({ id: currentChannel?.id, payload })
       toast.success(t('channel.messages.saved'))
       handleOpenChange(false)
-    } catch {
-      toast.error(t('channel.messages.saveFailed'))
+    } catch (error) {
+      toast.error(
+        t(channelErrorMessageKey(error, 'channel.messages.saveFailed')),
+      )
     }
   })
 

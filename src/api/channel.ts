@@ -6,6 +6,61 @@ const sdkBase = { baseURL: `${API_BASE_URL}/api` }
 export type ChannelProvider = 'feishu' | (string & {})
 export type ChannelTargetType = 'multirag.canvas_agent' | 'multirag.dialog'
 
+/**
+ * The six states the server actually reports, mirroring `RuntimeState` in
+ * `api/channel_runtime/schemas.py`. `(string & {})` keeps an unknown future
+ * value renderable instead of crashing — the union is a hint, not a filter.
+ *
+ * The client used to carry twelve; six of them (`pending`, `running`,
+ * `healthy`, `online`, `disabled`, `failed`) were never emitted by anything.
+ */
+export const RUNTIME_STATES = [
+  'waiting',
+  'starting',
+  'connected',
+  'stopping',
+  'stopped',
+  'error',
+] as const
+
+export type RuntimeState = (typeof RUNTIME_STATES)[number] | (string & {})
+
+/**
+ * Error codes the control plane returns in the failure envelope's `data`,
+ * which `apiClient` surfaces as `APIError.details`. Kept in sync by hand with
+ * `ChannelControlError` subclasses; an unknown code falls back to the generic
+ * message rather than rendering a raw identifier at an admin.
+ */
+export const CHANNEL_ERROR_CODES = [
+  'CHANNEL_NOT_ACCESSIBLE',
+  'CHANNEL_TARGET_NOT_ACCESSIBLE',
+  'INVALID_CHANNEL_CONFIGURATION',
+  'CHANNEL_SECRET_STORE_UNAVAILABLE',
+  'CHANNEL_OPERATION_FAILED',
+] as const
+
+export type ChannelErrorCode = (typeof CHANNEL_ERROR_CODES)[number]
+
+const isChannelErrorCode = (value: unknown): value is ChannelErrorCode =>
+  typeof value === 'string' &&
+  (CHANNEL_ERROR_CODES as readonly string[]).includes(value)
+
+/**
+ * Resolve one i18n key for a failed channel operation.
+ *
+ * Safe against every backend version: one that does not yet return
+ * `error_code` simply falls through to `fallbackKey`, which is exactly the
+ * message shown today.
+ */
+export const channelErrorMessageKey = (
+  error: unknown,
+  fallbackKey: string,
+): string => {
+  const details = (error as { details?: unknown } | null)?.details
+  const code = (details as { error_code?: unknown } | null)?.error_code
+  return isChannelErrorCode(code) ? `channel.errorCodes.${code}` : fallbackKey
+}
+
 export interface ChannelJsonSchemaProperty {
   type?: 'string' | 'array' | 'boolean' | 'object'
   title?: string
@@ -51,7 +106,7 @@ export interface ChannelRuntime {
   binding_id: string | null
   desired_generation: number | null
   observed_generation: number
-  state: string
+  state: RuntimeState
   runner_id: string | null
   heartbeat_at: string | null
   connected_at: string | null
