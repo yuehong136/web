@@ -252,7 +252,7 @@
 
 ### ARCH-6 channel 管理页：provider 知识散落在客户端，三处独立断裂
 
-- **状态**：未开始
+- **状态**：前端三步已完成（CHN-P5/P6/P7），等后端钉钉落地做零改动验收
 - **问题**：这个页面号称由服务端 `config_schema` 驱动，实际是「飞书特例 + 通用回退」双轨，且回退那条路走不通。三处独立断裂，修好任一条都不够：
   1. **渲染断裂**：`src/pages/settings/channels/form-model.ts:148` 按 `manifest.provider === 'feishu'` 分支，唯一的 `$ref` 解析器（`:106-114`）只在飞书分支里被调用；`:153` 把 required 硬编码成 `new Set(['app_id','app_secret'])`；`:186-188` 对 `app_id` 特判。第二个 provider 走通用分支拿到的是根级 `{credential: {$ref}}`，会渲染出**一个明文输入框**，凭据字段一个都不出现。
   2. **序列化断裂**：`src/api/channel.ts:143-179 buildChannelMutationPayload` 只读 `app_id`/`app_secret`/`domain`/`allowed_open_ids` 四个键，`:88-96` 的出参类型也把 `config.credential` 钉死成这两个字段。第二个 provider 填的凭据**一个字节都不会进 POST 体**。
@@ -270,6 +270,8 @@
 | 2026-08-05 | **补记**：channel 管理页此前的三次落地未记账（本表建立前）                                                                                                                                                                                                                                                                                              | 9ee3c1e / 6f0e5bd / 162fb1f | `feat(settings): add managed channel configuration` / `feat(settings): keep channel bindings intact and fix portal select` / `fix(settings): label the runtime states the server can actually report`。其中 162fb1f 只补了 3 条缺失的状态标签（+9 行、零代码），没删 6 个幽灵状态、没修 `isRuntimeHealthy`、没收紧 `ChannelRuntime.state` 类型——根因原封未动，本条目 (b) 步接手 |
 | 2026-08-05 | 立项（channel 子系统跨三仓审计）                                                                                                                                                                                                                                                                                                                        | 8cbaf3a                     | 与 MultiRAG 侧 `docs/channel-program/` 账本配套；本条目起 channel 相关提交 scope 由 `settings` 改为 `channel`，并双标 CHN ID                                                                                                                                                                                                                                                    |
 | 2026-08-05 | 落地 (a)(b) 两步：错误码接线（三处裸 catch → `channelErrorMessageKey` 按 code 映射，对任何后端版本都安全降级）、providers 失败改内联横幅不再清空整页、运行时状态词表从 12 条删到服务端真实的 6 条、`isRuntimeHealthy` 按真实词表重写、表单重置守卫（ref + `isDirty`，不用 eslint-disable）、`setQueryData` 改 `invalidateQueries`、绑定下拉改服务端搜索 | 本次提交                    | 对应后端 CHN-U1~U7。测试落在 `src/api/__tests__/channel.test.ts`（唯一进 CI 的路径），新增 4 条共 61 passed；eslint 0 errors；build + check:bundle-size 三档全过。(c)(d)(e) 三步（form-spec 纯函数 / UI 接线 / 删兜底 manifest）仍待做                                                                                                                                          |
+| 2026-08-05 | 落地 (c)：服务端 `manifest.form.fields` 驱动的纯函数层 `form-spec.ts`（`assembleConfig` 按点号路径组装嵌套 config，空 secret 字段整个省略）。`buildChannelMutationPayload` 不再提任何 provider 字段名——它过去只读四个飞书键，第二个 provider 的凭据会被表单收上来再被它默默丢掉                                                                         | `c294088`                   | 对应 `CHN-P5`。放在纯函数层是因为只有 `src/api/__tests__/*.ts` 进 CI 门禁                                                                                                                                                                                                                                                                                                       |
+| 2026-08-05 | 落地 (d)(e) 两步：UI 接到 spec，**死表单修掉**（schema 与渲染统一 key 在 `activeManifest`）；`provider-fields.tsx` 按 `field.kind` 渲染，**未知 kind 渲染成 disabled 而不抛错**；删掉客户端兜底 manifest 与飞书编译分支（`form-model.ts` 262 → 111 行）；`listProviders()` 丢弃缺 `form` 的 manifest 并把类型收窄成 `RenderableProviderManifest`        | 本次提交                    | 对应 `CHN-P6`/`CHN-P7`。老后端半态：providers 为空 → 横幅 + 禁用新建，列表/启停/删除照常。**至此前端已具备零改动接纳第二个 provider 的能力，等后端 `CHN-P10` 做验收**                                                                                                                                                                                                           |
 
 ---
 
@@ -372,7 +374,7 @@
 | 2   | ENG-1 ratchet + ENG-4 bundle 预算       | ✅ 已完成 2026-06-10                        |
 | 3   | ARCH-1 统一 streaming runtime           | ✅ 已完成 2026-06-12                        |
 | 4   | ARCH-2 API 契约代码生成                 | 部分完成（契约测试已进 CI；codegen 未开始） |
-| 4b  | ARCH-6 channel provider 驱动表单        | 未开始（channel 程序，进行中）              |
+| 4b  | ARCH-6 channel provider 驱动表单        | 前端已完成，待后端钉钉验收（channel 程序）  |
 | 5   | ARCH-3 删中央 queryKeys                 | ✅ 已完成 2026-06-12                        |
 | 5b  | ARCH-4 store 清退                       | ✅ 已完成 2026-06-22                        |
 | 6   | ENG-2 流式单测 + Playwright 冒烟        | 未开始                                      |

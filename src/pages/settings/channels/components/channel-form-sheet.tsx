@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useQueryClient } from '@tanstack/react-query'
-import { Loader2, RadioTower } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useForm, type Resolver } from 'react-hook-form'
 import { toast } from 'sonner'
-import type { ChannelProviderManifest, ChatChannel } from '@/api/channel'
+import type { RenderableProviderManifest, ChatChannel } from '@/api/channel'
 import {
   buildChannelMutationPayload,
   channelAPI,
@@ -44,18 +44,18 @@ import {
 } from '@/hooks/use-channel-request'
 import {
   createChannelFormSchema,
-  FEISHU_FALLBACK_MANIFEST,
   getChannelFormDefaults,
-  getProviderFields,
   type ChannelFormValues,
 } from '../form-model'
+import { assembleConfig } from '../form-spec'
 import { BindingFields } from './binding-fields'
+import { ChannelRuntimeBanner } from './channel-runtime-banner'
 import { ProviderFields } from './provider-fields'
 
 interface ChannelFormSheetProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  providers: ChannelProviderManifest[]
+  providers: RenderableProviderManifest[]
   channel: ChatChannel | null
 }
 
@@ -68,23 +68,46 @@ export const ChannelFormSheet = ({
   const { t } = useTranslation()
   const detailQuery = useFetchChannelDetail(open ? (channel?.id ?? null) : null)
   const currentChannel = detailQuery.data ?? channel
-  const provider = currentChannel?.channel ?? providers[0]?.provider ?? 'feishu'
-  const manifest =
-    providers.find((item) => item.provider === provider) ??
-    FEISHU_FALLBACK_MANIFEST
+  const provider = currentChannel?.channel ?? providers[0]?.provider ?? ''
+  // `providers` is already filtered to renderable manifests by listProviders,
+  // and the page disables authoring when it is empty, so there is nothing to
+  // fall back to — a client-side manifest would only ever be a stale copy of
+  // something the server owns.
+  const manifest = providers.find((item) => item.provider === provider)
   const secretConfigured = currentChannel?.secret.configured ?? false
+
+  // Everything below keys off `activeManifest`, never off `manifest`.
+  //
+  // The dead-form bug lived in exactly this gap: the schema was built from
+  // `providers[0]` while the fields rendered came from the selected provider.
+  // Choosing any other provider produced zod issues on fields that were not
+  // mounted, so `handleSubmit` never reached its success branch and never
+  // showed an error either — Save did nothing, silently, forever.
+  const [pendingProvider, setPendingProvider] = useState<string | null>(null)
+  const activeManifest =
+    providers.find((item) => item.provider === (pendingProvider ?? provider)) ??
+    manifest
+  const fields = useMemo(
+    () => activeManifest?.form.fields ?? [],
+    [activeManifest],
+  )
+
   const schema = useMemo(
     () =>
       createChannelFormSchema(
-        manifest,
+        fields,
         secretConfigured,
         t('channel.validation.required'),
       ),
-    [manifest, secretConfigured, t],
+    [fields, secretConfigured, t],
   )
   const form = useForm<ChannelFormValues>({
     resolver: zodResolver(schema) as Resolver<ChannelFormValues>,
-    defaultValues: getChannelFormDefaults(manifest, currentChannel),
+    defaultValues: getChannelFormDefaults(
+      fields,
+      activeManifest?.provider ?? '',
+      currentChannel,
+    ),
   })
   const saveMutation = useSaveChannel()
   const queryClient = useQueryClient()
@@ -104,17 +127,24 @@ export const ChannelFormSheet = ({
   const isDirty = form.formState.isDirty
   useEffect(() => {
     if (!open || isDirty) return
-    form.reset(getChannelFormDefaults(manifest, currentChannelRef.current))
-  }, [currentChannelId, form, manifest, open, isDirty])
-
-  const selectedProvider = form.watch('provider')
-  const selectedManifest =
-    providers.find((item) => item.provider === selectedProvider) ?? manifest
+    form.reset(
+      getChannelFormDefaults(
+        fields,
+        activeManifest?.provider ?? '',
+        currentChannelRef.current,
+      ),
+    )
+  }, [currentChannelId, form, fields, activeManifest?.provider, open, isDirty])
 
   const handleProviderChange = (nextProvider: string) => {
-    const nextManifest =
-      providers.find((item) => item.provider === nextProvider) ?? manifest
-    const defaults = getChannelFormDefaults(nextManifest)
+    const nextManifest = providers.find(
+      (item) => item.provider === nextProvider,
+    )
+    const defaults = getChannelFormDefaults(
+      nextManifest?.form.fields ?? [],
+      nextProvider,
+    )
+    setPendingProvider(nextProvider)
     form.setValue('provider', nextProvider, { shouldValidate: true })
     form.setValue('config', defaults.config)
     form.setValue('secrets', defaults.secrets)
@@ -122,14 +152,19 @@ export const ChannelFormSheet = ({
 
   const handleOpenChange = (nextOpen: boolean) => {
     if (!nextOpen) {
-      form.reset(getChannelFormDefaults(manifest, currentChannel))
+      setPendingProvider(null)
+      form.reset(
+        getChannelFormDefaults(
+          fields,
+          activeManifest?.provider ?? '',
+          currentChannel,
+        ),
+      )
     }
     onOpenChange(nextOpen)
   }
 
   const handleSubmit = form.handleSubmit(async (values) => {
-    const fields = getProviderFields(selectedManifest)
-
     // PATCH resends `binding.enabled`, and the cached detail behind it can be
     // five minutes old — long enough for someone else to have disabled this
     // channel in the meantime, which a save of an unrelated field would then
@@ -157,13 +192,9 @@ export const ChannelFormSheet = ({
       {
         name: values.name,
         provider: values.provider,
-        config: values.config,
-        secrets: values.secrets,
-        listFields: new Set(
-          fields
-            .filter((field) => field.kind === 'string_list')
-            .map((field) => field.key),
-        ),
+        // The nested config is assembled from the server's field paths, so
+        // nothing here knows what any provider's fields are called.
+        config: assembleConfig(fields, values),
         targetType: values.targetType,
         targetId: values.targetId,
         targetRevisionId: values.targetRevisionId,
@@ -216,22 +247,7 @@ export const ChannelFormSheet = ({
               noValidate
             >
               {currentChannel ? (
-                <div className="gap-space-sm rounded-radius-lg bg-surface-secondary p-space-base flex items-center border border-border-subtle text-sm">
-                  <RadioTower
-                    className="size-icon-md text-text-secondary"
-                    aria-hidden="true"
-                  />
-                  <span className="text-text-secondary">
-                    {t('channel.runtime.label')}:
-                  </span>
-                  <span className="font-medium text-text-primary">
-                    {runtime?.state
-                      ? t(`channel.runtime.states.${runtime.state}`, {
-                          defaultValue: runtime.state,
-                        })
-                      : t('channel.runtime.unknown')}
-                  </span>
-                </div>
+                <ChannelRuntimeBanner runtime={runtime} />
               ) : null}
 
               <section
@@ -303,7 +319,7 @@ export const ChannelFormSheet = ({
                   {t('channel.form.connectionSection')}
                 </h3>
                 <ProviderFields
-                  manifest={selectedManifest}
+                  fields={fields}
                   secretConfigured={secretConfigured}
                 />
               </section>

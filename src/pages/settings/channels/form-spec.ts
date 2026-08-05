@@ -10,11 +10,7 @@
  * `MultiRAG:docs/channel-program/CONTRACT.md` §5.
  */
 
-import type {
-  ChannelFormField,
-  ChannelProviderManifest,
-  ChatChannel,
-} from '@/api/channel'
+import type { ChannelFormField, ChatChannel } from '@/api/channel'
 
 /** Split a value out of nested config by dotted path. */
 export const readPath = (source: unknown, path: string): unknown => {
@@ -62,19 +58,6 @@ export const parseStringList = (value: string): string[] => [
       .filter(Boolean),
   ),
 ]
-
-/**
- * The fields to render for a provider.
- *
- * When the server sends `form`, that is the whole answer. When it does not —
- * an older backend — fall back to the legacy Feishu compile so this ships
- * before the backend does. The fallback is deleted in CHN-P7, once
- * `manifest.form` is deployed everywhere.
- */
-export const resolveFormFields = (
-  manifest: ChannelProviderManifest,
-  legacy: (manifest: ChannelProviderManifest) => ChannelFormField[],
-): ChannelFormField[] => manifest.form?.fields ?? legacy(manifest)
 
 /** Form state key for a field. `/` is not a react-hook-form path separator. */
 export const fieldKey = (field: ChannelFormField): string =>

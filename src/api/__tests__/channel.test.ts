@@ -8,7 +8,6 @@ import {
   RUNTIME_STATES,
   type ChannelFormField,
   type ChannelFormInput,
-  type ChannelProviderManifest,
 } from '../channel'
 import {
   isBindingRevisionStale,
@@ -18,7 +17,6 @@ import {
   assembleConfig,
   buildFormValues,
   missingRequiredFields,
-  resolveFormFields,
 } from '@/pages/settings/channels/form-spec'
 import { apiClient, type RequestConfig } from '../client'
 import { channelKeys, saveChannel } from '@/hooks/use-channel-request'
@@ -26,21 +24,20 @@ import {
   createChannelFormSchema,
   getChannelFormDefaults,
   getLatestReleasedRevision,
-  getProviderFields,
   isPublishedAgent,
   resolveCanvasRevisionGuard,
 } from '@/pages/settings/channels/form-model'
 
+// The config arrives pre-assembled now — `assembleConfig` owns the nesting and
+// the trimming — so this fixture states the wire shape directly.
 const baseInput: ChannelFormInput = {
   name: ' Leadership demo ',
   provider: 'feishu',
   config: {
-    app_id: ' cli_xxx ',
-    domain: ' feishu ',
-    allowed_open_ids: 'ou_1\nou_2, ou_1',
+    credential: { app_id: 'cli_xxx' },
+    domain: 'feishu',
+    allowed_open_ids: ['ou_1', 'ou_2'],
   },
-  secrets: { app_secret: '' },
-  listFields: new Set(['allowed_open_ids']),
   targetType: 'multirag.canvas_agent',
   targetId: ' agent_1 ',
   targetRevisionId: 'revision_1',
@@ -55,9 +52,16 @@ test('update serializer preserves an existing secret when the field is blank', (
   assert.deepEqual(payload.connection.config.credential, {
     app_id: 'cli_xxx',
   })
+  // A credential must never appear anywhere but under config.credential, and
+  // a blank secret must not travel at all. Same assertions as before the
+  // spec-driven rewrite -- only the fixture's shape moved.
   assert.equal('secret' in payload.connection, false)
   assert.equal('app_secret' in payload.connection, false)
-  assert.equal('app_secret' in payload.connection.config.credential, false)
+  assert.equal(
+    'app_secret' in
+      (payload.connection.config.credential as Record<string, unknown>),
+    false,
+  )
   assert.deepEqual(payload.connection.config.allowed_open_ids, ['ou_1', 'ou_2'])
   assert.equal(payload.binding.target_type, 'multirag.canvas_agent')
   assert.equal(payload.binding.target_revision_id, 'revision_1')
@@ -66,7 +70,14 @@ test('update serializer preserves an existing secret when the field is blank', (
 
 test('create serializer nests credentials and never sends a top-level secret', () => {
   const payload = buildChannelMutationPayload(
-    { ...baseInput, secrets: { app_secret: ' new-secret ' } },
+    {
+      ...baseInput,
+      config: {
+        credential: { app_id: 'cli_xxx', app_secret: 'new-secret' },
+        domain: 'feishu',
+        allowed_open_ids: ['ou_1', 'ou_2'],
+      },
+    },
     'create',
   )
 
@@ -79,52 +90,34 @@ test('create serializer nests credentials and never sends a top-level secret', (
   assert.equal('secret' in payload.connection, false)
 })
 
-test('nested provider schema is flattened for the Feishu form only', () => {
-  const manifest: ChannelProviderManifest = {
-    provider: 'feishu',
-    display_name: 'Feishu',
-    capabilities: {},
-    config_schema: {
-      properties: {
-        credential: { $ref: '#/$defs/FeishuCredentialInput' },
-        domain: { type: 'string', default: 'lark' },
-        allowed_open_ids: { type: 'array', items: { type: 'string' } },
-      },
-      $defs: {
-        FeishuCredentialInput: {
-          type: 'object',
-          properties: {
-            app_id: { type: 'string', title: 'App ID' },
-            app_secret: {
-              type: 'string',
-              title: 'App Secret',
-              writeOnly: true,
-            },
-          },
-        },
-      },
+test('the form seeded from a stored channel never carries a secret', () => {
+  // Replaces the old 'flattened for the Feishu form only' test, whose very name
+  // admitted it pinned a provider special case (CONTRACT §6-A). What survives
+  // is the assertion that mattered: the server sent a secret in this fixture
+  // and it must not reach the form.
+  const fields: ChannelFormField[] = [
+    {
+      path: 'credential.app_id',
+      kind: 'text',
+      label: 'App ID',
+      required: true,
     },
-  }
-  const fields = getProviderFields(manifest)
+    {
+      path: 'credential.app_secret',
+      kind: 'password',
+      label: 'App Secret',
+      required: true,
+      secret: true,
+    },
+    { path: 'domain', kind: 'select', label: 'Domain' },
+  ]
 
-  assert.equal(
-    fields.find((field) => field.key === 'app_secret')?.kind,
-    'secret',
-  )
-  assert.equal(
-    fields.find((field) => field.key === 'allowed_open_ids')?.kind,
-    'string_list',
-  )
-
-  const defaults = getChannelFormDefaults(manifest, {
+  const defaults = getChannelFormDefaults(fields, 'feishu', {
     id: 'channel_1',
     name: 'Demo',
     channel: 'feishu',
     config: {
-      credential: {
-        app_id: 'cli_xxx',
-        app_secret: 'must-not-reach-form',
-      },
+      credential: { app_id: 'cli_xxx', app_secret: 'must-not-reach-form' },
       domain: 'lark',
     },
     status: 0,
@@ -132,27 +125,20 @@ test('nested provider schema is flattened for the Feishu form only', () => {
     secret: { configured: true, version: 2 },
     binding: null,
   })
-  assert.equal(defaults.config.app_id, 'cli_xxx')
+
+  assert.equal(defaults.config['credential/app_id'], 'cli_xxx')
   assert.equal(defaults.config.domain, 'lark')
-  assert.equal(defaults.secrets.app_secret, '')
+  assert.equal(defaults.secrets['credential/app_secret'], '')
+  assert.equal(JSON.stringify(defaults).includes('must-not-reach-form'), false)
 })
 
 test('canvas binding requires a concrete released revision and dialog clears it', () => {
-  const schema = createChannelFormSchema(
-    {
-      provider: 'feishu',
-      display_name: 'Feishu',
-      capabilities: {},
-      config_schema: {},
-    },
-    true,
-    'required',
-  )
+  const schema = createChannelFormSchema([], true, 'required')
   const values = {
     name: 'Demo',
     provider: 'feishu',
-    config: { app_id: 'cli_xxx', domain: 'feishu', allowed_open_ids: '' },
-    secrets: { app_secret: '' },
+    config: { 'credential/app_id': 'cli_xxx', domain: 'feishu' },
+    secrets: { 'credential/app_secret': '' },
     targetType: 'multirag.canvas_agent' as const,
     targetId: 'agent_1',
     targetRevisionId: '',
@@ -218,7 +204,14 @@ test('save creates channel and disabled binding atomically', async () => {
 
   try {
     const payload = buildChannelMutationPayload(
-      { ...baseInput, secrets: { app_secret: 'new-secret' } },
+      {
+        ...baseInput,
+        config: {
+          credential: { app_id: 'cli_xxx', app_secret: 'new-secret' },
+          domain: 'feishu',
+          allowed_open_ids: ['ou_1', 'ou_2'],
+        },
+      },
       'create',
     )
     await saveChannel({ payload })
@@ -509,25 +502,41 @@ test('a stored secret satisfies required without re-entry', () => {
   ])
 })
 
-test('resolveFormFields prefers the server form and falls back when absent', () => {
-  const withForm: ChannelProviderManifest = {
-    provider: 'feishu',
-    display_name: 'Feishu',
-    capabilities: {},
-    form: { version: 1, fields: feishuFormFields },
-    config_schema: {},
-  }
-  const withoutForm: ChannelProviderManifest = {
-    provider: 'feishu',
-    display_name: 'Feishu',
-    capabilities: {},
-    config_schema: {},
-  }
-  const legacy = () => [
-    { path: 'legacy', kind: 'text' as const, label: 'Legacy' },
-  ]
+test('listProviders drops a manifest this client cannot render', async () => {
+  const originalGet = apiClient.get
+  apiClient.get = (async () => ({
+    items: [
+      {
+        provider: 'feishu',
+        display_name: 'Feishu',
+        capabilities: {},
+        config_schema: {},
+      },
+      {
+        provider: 'dingtalk',
+        display_name: 'DingTalk',
+        capabilities: {},
+        form: {
+          version: 1,
+          fields: [
+            { path: 'credential.client_id', kind: 'text', label: 'Client ID' },
+          ],
+        },
+        config_schema: {},
+      },
+    ],
+  })) as typeof apiClient.get
 
-  assert.equal(resolveFormFields(withForm, legacy).length, 4)
-  // Older backend: the fallback keeps this shippable ahead of the server.
-  assert.equal(resolveFormFields(withoutForm, legacy)[0]?.path, 'legacy')
+  try {
+    const { items } = await channelAPI.listProviders()
+    // The form-less manifest is from a backend older than CHN-P2. Rendering it
+    // would produce a zero-field form with an enabled Save button; dropping it
+    // routes the page into its "providers unavailable" banner instead.
+    assert.deepEqual(
+      items.map((item) => item.provider),
+      ['dingtalk'],
+    )
+  } finally {
+    apiClient.get = originalGet
+  }
 })

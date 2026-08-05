@@ -121,9 +121,10 @@ export interface ChannelProviderManifest {
   description?: string
   capabilities: Record<string, boolean>
   /**
-   * The render contract (CHN-P2). Optional only for the tolerate window: an
-   * older backend does not send it and the client falls back to compiling the
-   * Feishu shape out of `config_schema`. That fallback goes away in CHN-P7.
+   * The render contract (CHN-P2). Optional on the wire — and only there: a
+   * backend older than CHN-P2 does not send it. `listProviders` drops those
+   * rows, so everything downstream of it sees `RenderableProviderManifest`,
+   * where the field is required.
    */
   form?: ChannelProviderForm
   /**
@@ -184,21 +185,31 @@ export interface ChatChannelList {
   total: number
 }
 
+/**
+ * A manifest this client can actually draw a form from.
+ *
+ * The distinction is the whole of the CHN-P7 half-state guard, expressed in
+ * the type system rather than in a comment: the wire type keeps `form`
+ * optional because an old backend really does omit it, and `listProviders` is
+ * the one place that narrows. No consumer needs `?.` on `form`, and none can
+ * reintroduce a client-side fallback without first widening this type back.
+ */
+export type RenderableProviderManifest = ChannelProviderManifest & {
+  form: ChannelProviderForm
+}
+
 export interface ChannelProviderList {
-  items: ChannelProviderManifest[]
+  items: RenderableProviderManifest[]
 }
 
 export interface ChannelConnectionWriteRequest {
   name: string
   channel?: ChannelProvider
-  config: {
-    credential: {
-      app_id?: string
-      app_secret?: string
-    }
-    domain?: string
-    allowed_open_ids?: string[]
-  }
+  /**
+   * Opaque to this layer. The shape belongs to the provider and is assembled
+   * from the server's field paths, so nothing here names a provider's fields.
+   */
+  config: Record<string, unknown>
 }
 
 export interface ChannelCreateWriteRequest extends ChannelConnectionWriteRequest {
@@ -222,9 +233,8 @@ export interface ChannelBindingWriteRequest {
 export interface ChannelFormInput {
   name: string
   provider: ChannelProvider
-  config: Record<string, string>
-  secrets: Record<string, string>
-  listFields: ReadonlySet<string>
+  /** Already assembled into the provider's nested shape by `assembleConfig`. */
+  config: Record<string, unknown>
   targetType: ChannelTargetType
   targetId: string
   targetRevisionId: string
@@ -237,39 +247,24 @@ export interface ChannelMutationPayload {
   binding: ChannelBindingWriteRequest
 }
 
-const cleanStringList = (value: string): string[] => [
-  ...new Set(
-    value
-      .split(/[\n,]/)
-      .map((item) => item.trim())
-      .filter(Boolean),
-  ),
-]
-
+/**
+ * Wrap an assembled config in the request envelope.
+ *
+ * The function body no longer mentions a single provider field. It used to
+ * read `app_id` / `app_secret` / `domain` / `allowed_open_ids` by name, which
+ * meant a second provider's credentials were silently dropped: the form
+ * collected them and this function threw them away, producing a POST whose
+ * `credential` was `{}`.
+ */
 export const buildChannelMutationPayload = (
   input: ChannelFormInput,
   mode: 'create' | 'update',
 ): ChannelMutationPayload => {
-  const appId = input.config.app_id?.trim() ?? ''
-  const appSecret = input.secrets.app_secret?.trim() ?? ''
-  const domain = input.config.domain?.trim() ?? ''
-  const allowedOpenIds = input.listFields.has('allowed_open_ids')
-    ? cleanStringList(input.config.allowed_open_ids ?? '')
-    : []
-
-  const credential: { app_id?: string; app_secret?: string } = {}
-  if (appId) credential.app_id = appId
-  if (appSecret) credential.app_secret = appSecret
-
   return {
     connection: {
       name: input.name.trim(),
       ...(mode === 'create' ? { channel: input.provider } : {}),
-      config: {
-        credential,
-        ...(domain ? { domain } : {}),
-        allowed_open_ids: allowedOpenIds,
-      },
+      config: input.config,
     },
     binding: {
       target_type: input.targetType,
@@ -293,11 +288,25 @@ const normalizeList = <T>(
 }
 
 export const channelAPI = {
+  /**
+   * Provider manifests, minus any the client cannot render.
+   *
+   * A manifest without `form` comes from a backend older than CHN-P2. Dropping
+   * it is what makes this deployable independently: with no providers the page
+   * shows "provider metadata unavailable" and disables authoring, while the
+   * channel list, enable/disable and delete all keep working. Keeping it would
+   * render a form with zero fields and an enabled Save button — silent, and
+   * the exact half-state this ordering exists to avoid.
+   */
   async listProviders(): Promise<ChannelProviderList> {
     const response = await apiClient.get<
       ChannelProviderList | ChannelProviderManifest[]
     >('/chat-channels/providers', sdkBase)
-    return { items: normalizeList(response).items }
+    const items = normalizeList(response).items.filter(
+      (manifest): manifest is RenderableProviderManifest =>
+        (manifest.form?.fields?.length ?? 0) > 0,
+    )
+    return { items }
   },
 
   async list(): Promise<ChatChannelList> {
