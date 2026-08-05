@@ -6,6 +6,7 @@ import {
   channelErrorMessageKey,
   CHANNEL_ERROR_CODES,
   RUNTIME_STATES,
+  type ChannelFormField,
   type ChannelFormInput,
   type ChannelProviderManifest,
 } from '../channel'
@@ -13,6 +14,12 @@ import {
   isBindingRevisionStale,
   isRuntimeHealthy,
 } from '@/pages/settings/channels/utils'
+import {
+  assembleConfig,
+  buildFormValues,
+  missingRequiredFields,
+  resolveFormFields,
+} from '@/pages/settings/channels/form-spec'
 import { apiClient, type RequestConfig } from '../client'
 import { channelKeys, saveChannel } from '@/hooks/use-channel-request'
 import {
@@ -352,4 +359,175 @@ test('channel query keys keep list, detail, and runtime invalidation isolated', 
     'channel_1',
     'runtime',
   ])
+})
+
+const feishuFormFields: ChannelFormField[] = [
+  {
+    path: 'credential.app_id',
+    kind: 'text',
+    label: 'App ID',
+    required: true,
+  },
+  {
+    path: 'credential.app_secret',
+    kind: 'password',
+    label: 'App Secret',
+    required: true,
+    secret: true,
+  },
+  {
+    path: 'domain',
+    kind: 'select',
+    label: 'Domain',
+    required: true,
+    default: 'feishu',
+  },
+  { path: 'allowed_open_ids', kind: 'string_list', label: 'Allowed open IDs' },
+]
+
+test('assembleConfig reproduces the Feishu payload without naming its fields', () => {
+  const payload = assembleConfig(feishuFormFields, {
+    config: {
+      'credential/app_id': ' cli_xxx ',
+      domain: ' feishu ',
+      allowed_open_ids: 'ou_1\nou_2, ou_1',
+    },
+    secrets: { 'credential/app_secret': ' new-secret ' },
+  })
+
+  // Byte-identical to what the hardcoded serializer produced. This is the
+  // proof that the generic path is a refactor and not a rewrite.
+  assert.deepEqual(payload, {
+    credential: { app_id: 'cli_xxx', app_secret: 'new-secret' },
+    domain: 'feishu',
+    allowed_open_ids: ['ou_1', 'ou_2'],
+  })
+})
+
+test('a blank secret is omitted entirely, never sent as an empty value', () => {
+  const payload = assembleConfig(feishuFormFields, {
+    config: {
+      'credential/app_id': 'cli_xxx',
+      domain: 'feishu',
+      allowed_open_ids: '',
+    },
+    secrets: { 'credential/app_secret': '   ' },
+  })
+
+  // Blank means "keep the stored credential". An empty string would read as
+  // "clear it", which is the one thing this must never do by accident.
+  assert.deepEqual(payload.credential, { app_id: 'cli_xxx' })
+  assert.equal('app_secret' in (payload.credential as object), false)
+})
+
+test('a second provider serialises without touching this file', () => {
+  // The whole point of CHN-P: no code here knows what DingTalk is.
+  const dingtalk: ChannelFormField[] = [
+    {
+      path: 'credential.client_id',
+      kind: 'text',
+      label: 'Client ID',
+      required: true,
+    },
+    {
+      path: 'credential.client_secret',
+      kind: 'password',
+      label: 'Client Secret',
+      required: true,
+      secret: true,
+    },
+  ]
+
+  const payload = assembleConfig(dingtalk, {
+    config: { 'credential/client_id': 'ding_aaaa' },
+    secrets: { 'credential/client_secret': 'aaaa-bbbb' },
+  })
+
+  assert.deepEqual(payload, {
+    credential: { client_id: 'ding_aaaa', client_secret: 'aaaa-bbbb' },
+  })
+})
+
+test('nested and boolean fields survive the round trip', () => {
+  const fields: ChannelFormField[] = [
+    {
+      path: 'credential.nickserv.account',
+      kind: 'text',
+      label: 'NickServ account',
+    },
+    { path: 'tls', kind: 'switch', label: 'TLS', default: true },
+  ]
+
+  const payload = assembleConfig(fields, {
+    config: { 'credential/nickserv/account': 'bot', tls: false },
+    secrets: {},
+  })
+
+  // Two levels of nesting and a real boolean — neither of which the old
+  // Record<string,string> form model could represent at all.
+  assert.deepEqual(payload, {
+    credential: { nickserv: { account: 'bot' } },
+    tls: false,
+  })
+})
+
+test('form values start with every secret blank', () => {
+  const { config, secrets } = buildFormValues(feishuFormFields, {
+    id: 'channel_1',
+    name: 'Demo',
+    channel: 'feishu',
+    config: {
+      credential: { app_id: 'cli_xxx', app_secret: 'must-not-reach-form' },
+      domain: 'lark',
+      allowed_open_ids: ['ou_1', 'ou_2'],
+    },
+    status: 0,
+    generation: 1,
+    secret: { configured: true, version: 2 },
+    binding: null,
+  })
+
+  assert.equal(config['credential/app_id'], 'cli_xxx')
+  assert.equal(config.domain, 'lark')
+  assert.equal(config.allowed_open_ids, 'ou_1\nou_2')
+  assert.equal(secrets['credential/app_secret'], '')
+})
+
+test('a stored secret satisfies required without re-entry', () => {
+  const values = {
+    config: {
+      'credential/app_id': 'cli_xxx',
+      domain: 'feishu',
+      allowed_open_ids: '',
+    },
+    secrets: { 'credential/app_secret': '' },
+  }
+
+  assert.deepEqual(missingRequiredFields(feishuFormFields, values, true), [])
+  assert.deepEqual(missingRequiredFields(feishuFormFields, values, false), [
+    'credential.app_secret',
+  ])
+})
+
+test('resolveFormFields prefers the server form and falls back when absent', () => {
+  const withForm: ChannelProviderManifest = {
+    provider: 'feishu',
+    display_name: 'Feishu',
+    capabilities: {},
+    form: { version: 1, fields: feishuFormFields },
+    config_schema: {},
+  }
+  const withoutForm: ChannelProviderManifest = {
+    provider: 'feishu',
+    display_name: 'Feishu',
+    capabilities: {},
+    config_schema: {},
+  }
+  const legacy = () => [
+    { path: 'legacy', kind: 'text' as const, label: 'Legacy' },
+  ]
+
+  assert.equal(resolveFormFields(withForm, legacy).length, 4)
+  // Older backend: the fallback keeps this shippable ahead of the server.
+  assert.equal(resolveFormFields(withoutForm, legacy)[0]?.path, 'legacy')
 })

@@ -75,11 +75,62 @@ export interface ChannelJsonSchemaProperty {
   ['x-secret']?: boolean
 }
 
+/**
+ * One rendered input, already flattened by the server out of the nested config.
+ *
+ * `kind` is an open union on purpose: a value this client does not recognise
+ * must render as a disabled field showing its label, never throw. That is what
+ * lets the server introduce a control type without a coordinated release.
+ */
+export type ChannelFieldKind =
+  | 'text'
+  | 'password'
+  | 'string_list'
+  | 'select'
+  | 'switch'
+  | (string & {})
+
+export interface ChannelFieldOption {
+  value: string
+  label: string
+}
+
+export interface ChannelFormField {
+  path: string
+  kind: ChannelFieldKind
+  label: string
+  i18n_key?: string | null
+  required?: boolean
+  secret?: boolean
+  placeholder?: string | null
+  help_text?: string | null
+  default?: string | boolean | string[] | null
+  options?: ChannelFieldOption[] | null
+  max_length?: number | null
+  max_items?: number | null
+}
+
+export interface ChannelProviderForm {
+  version: number
+  fields: ChannelFormField[]
+}
+
 export interface ChannelProviderManifest {
   provider: ChannelProvider
   display_name: string
   description?: string
   capabilities: Record<string, boolean>
+  /**
+   * The render contract (CHN-P2). Optional only for the tolerate window: an
+   * older backend does not send it and the client falls back to compiling the
+   * Feishu shape out of `config_schema`. That fallback goes away in CHN-P7.
+   */
+  form?: ChannelProviderForm
+  /**
+   * Validation / OpenAPI contract. Never used for rendering — notably its
+   * `required` array is always empty, because every provider field carries a
+   * default so PATCH can mean merge.
+   */
   config_schema: {
     type?: 'object'
     required?: string[]
