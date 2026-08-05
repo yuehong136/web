@@ -82,6 +82,19 @@
 | 2026-06-10 | 上线 `security/no-raw-dangerously-set-inner-html`（error） | a2c66a7 | 含 CLAUDE.md / AGENTS.md 同步；全仓 lint 0 errors                                                                                                                  |
 | 2026-06-11 | 修复 CI 棘轮红：拆出 `reference-meta.tsx` 共享辅助         | 38ef444 | Prettier 提交时重排版使 ReferenceDetailSheet.tsx 涨到 630 行；抽出与 ReferenceMarker 重复的 doc-type/相似度辅助后降到 529 行（按格式化后形态实测），全门禁复跑通过 |
 
+### SEC-4 已停用的 channel 会被另一个人的保存操作静默重新启用
+
+- **状态**：未开始
+- **问题**：`src/pages/settings/channels/components/channel-form-sheet.tsx:131` 把 `bindingEnabled: currentChannel?.binding?.enabled ?? false` 交给 `src/api/channel.ts:176`，而 `currentChannel` 来自 `useFetchChannelDetail`，未覆写 `staleTime`，继承 `src/lib/query-client.ts` 的 5 分钟。PATCH 请求体里没有任何并发令牌（`ChannelUpdateWriteRequest` 无 generation/version 字段），后端 `update_channel` 直接按请求覆写 `binding.enabled` 并 bump generation。场景：管理员 A 打开编辑面板，期间 B（或另一个标签页、或运维脚本）调 `/disable` 停掉渠道；A 只改了个渠道名点保存，payload 里 `enabled` 仍是缓存快照里的 `true` → 渠道被静默重新启用、worker 重新拉起，页面无任何提示。反向亦然。**「停用」作为 kill switch 因此不可靠**，这是把它列为 SEC 而非 ENG 的理由。
+- **方案**：提交前 `queryClient.fetchQuery(channelKeys.detail(id))` 拿新鲜的 `binding.enabled`，不用缓存值。**刻意不选**另外两条：省略 `enabled` 会让老后端读到 `ChannelBindingUpsertRequest.enabled` 的 `False` 默认值 → 静默*停用*渠道（更坏的半态）；加后端并发令牌会为一个亚秒级竞态制造硬跨仓部署顺序约束。refetch 是纯前端、对任何后端版本都安全，把窗口从 5 分钟压到一次往返；残余竞态已知并接受。
+- **验收**：`npm run test:api` 新增断言——update payload 的 `binding.enabled` 取自 refetch 结果而非 prop。
+- **对应后端条目**：`MultiRAG:docs/channel-program/PROGRESS.md` 的 `CHN-U6`（纯前端，无跨仓顺序约束）。
+- **状态与进展记录**：
+
+| 日期       | 动作                                 | 提交 | 备注 |
+| ---------- | ------------------------------------ | ---- | ---- |
+| 2026-08-05 | 立项（channel 子系统跨三仓审计发现） | —    | —    |
+
 ---
 
 ## ARCH — 架构级
@@ -124,16 +137,17 @@
 
 ### ARCH-2 API 契约零保证 → 代码生成或边界校验
 
-- **状态**：未开始
+- **状态**：部分完成（2026-08-05 复核订正）——契约测试已进 CI（`test:api`，`src/api/__tests__/` 下 10 个文件），codegen 与 zod 边界校验仍未开始
 - **问题**：`types/api.ts`（1604 行）+ `types/index.ts`（2075 行）全部手写；API 边界零 zod 校验；`: any` 246 处。后端改字段前端编译照样绿，错误在运行时爆。
 - **主流对照**：OpenAPI → `openapi-typescript` / orval 生成类型与 TanStack Query hooks；或无 spec 时在边界 `z.parse()`。
 - **方案**：先确认后端是否有 OpenAPI/Swagger spec。有 → 引入 openapi-typescript，生成物替换手写类型（渐进式：先新接口用生成物，旧的逐域迁移）；无 → 推动后端补 spec，短期对高风险接口（auth、agent run、知识库）加 zod 边界校验。
 - **验收**：新增接口不再手写类型；CI 里有 spec 同步检查（生成物 diff 为空）。
 - **状态与进展记录**：
 
-| 日期       | 动作                       | 提交 | 备注 |
-| ---------- | -------------------------- | ---- | ---- |
-| 2026-06-10 | 立项，待确认后端 spec 现状 | —    | —    |
+| 日期       | 动作                                                                                                                                                                                                                                                                                                                                                             | 提交                                                   | 备注                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-06-10 | 立项，待确认后端 spec 现状                                                                                                                                                                                                                                                                                                                                       | —                                                      | —                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| 2026-08-05 | **复核订正**：本条目此前一直标「未开始」，与实际不符。`npm run test:api` 已存在并进 CI（`.github/workflows/ci.yml` checks job 第 8 步），`src/api/__tests__/` 下已有 10 个契约测试（channel / client / datasource / knowledge-rest / mcp / metadata-config / system / team / agent / normalize-dataset），锁住端点路径、信封归一化与载荷形状。状态改「部分完成」 | d676360 `test(api): gate src/api contract tests in CI` | 后端 spec 现状也已确认：MultiRAG 是 FastAPI + Pydantic，`/openapi.json` 是白送的产物（本仓 `public/openapi.json` 是它的一份静态快照，被 `ApiKeysPage.tsx:1170` 运行时 fetch 用于文档 UI，**不是** codegen 输入，且其中 grep 不到任何 channel 端点）。所以「有没有 spec」这个开工前提已解除，剩下的是要不要引入 openapi-typescript/orval 的决策。**注意**：channel 的 `config` 字段按定义是运行时多态（见 ARCH-6），静态 codegen 会把它生成成 `FeishuConfigInput`，等于用生成器的形式把飞书硬编码请回来——那个字段应显式排除在 codegen 之外 |
 
 ### ARCH-3 两套 query key 工厂并存
 
@@ -235,6 +249,26 @@
 | ---------- | ---- | ---- | ---- |
 | 2026-06-10 | 立项 | —    | —    |
 
+### ARCH-6 channel 管理页：provider 知识散落在客户端，三处独立断裂
+
+- **状态**：未开始
+- **问题**：这个页面号称由服务端 `config_schema` 驱动，实际是「飞书特例 + 通用回退」双轨，且回退那条路走不通。三处独立断裂，修好任一条都不够：
+  1. **渲染断裂**：`src/pages/settings/channels/form-model.ts:148` 按 `manifest.provider === 'feishu'` 分支，唯一的 `$ref` 解析器（`:106-114`）只在飞书分支里被调用；`:153` 把 required 硬编码成 `new Set(['app_id','app_secret'])`；`:186-188` 对 `app_id` 特判。第二个 provider 走通用分支拿到的是根级 `{credential: {$ref}}`，会渲染出**一个明文输入框**，凭据字段一个都不出现。
+  2. **序列化断裂**：`src/api/channel.ts:143-179 buildChannelMutationPayload` 只读 `app_id`/`app_secret`/`domain`/`allowed_open_ids` 四个键，`:88-96` 的出参类型也把 `config.credential` 钉死成这两个字段。第二个 provider 填的凭据**一个字节都不会进 POST 体**。
+  3. **死表单**：`components/channel-form-sheet.tsx:70-78` 用 `providers[0]` 的 manifest 构造 zod schema，而 `:94-96`/`:263-266` 渲染 `selectedManifest`。选中第二个 provider 时，zod 在未挂载的字段上产生 issue、对应 `<FormMessage/>` 不在 DOM 里 → `handleSubmit` 的 success 分支永不执行，点保存**没有任何反应、不报错、不提交**。
+     另有三条今天就在生产里发生的：`index.tsx:67-69,78-80` 与 `channel-form-sheet.tsx:140-142` 三处裸 `catch { toast.error(通用文案) }`，把后端分档的 `retcode` + `safe_message` 全部丢弃（版本过期 / 密钥没配 / 密钥库不可用 / 越权压成一句话）；locale 里 12 个 runtime state 中有 6 个服务端永不上报，`utils.ts:10-13` 的 `isRuntimeHealthy` 4 个值里 3 个不可达；`channel-form-sheet.tsx:89-92` 的 effect 依赖 `currentChannel` 对象引用，一次 `refetchOnReconnect` 就会 `form.reset` 静默清空已输入的 App Secret。
+     **根因在后端表达力**：实测 `FeishuConfigInput.model_json_schema()` 根级与 `$defs` 里**都没有 `required` 数组**（所有字段带默认值以支持 PATCH merge），`format:"password"` 埋在 `anyOf[0]`。前端硬编码不是偷懒，是在补服务端的缺口——而且补的方式是撒谎。
+- **主流对照**：服务端拥有表单描述已是共识（Airbyte `connectionSpecification` + `airbyte_secret`/`order`/`group`、Backstage scaffolder、n8n `INodeProperties` 的 `displayOptions`、Zapier `inputFields`）。分界线是「前端能不能养一个 schema 引擎」：养得起的用 JSON Schema + 厂商扩展 + RJSF；养不起的用服务端拍平的有序描述符。本仓属后者——无 ajv/@rjsf/formily 依赖，表单栈被 AGENTS.md 钉死为 react-hook-form + zod，且 600 行文件棘轮塞不下一个自研 `$ref`/`oneOf` 求值器。顺带一提，Airbyte 自己的 webapp 也没用 rjsf。
+- **方案**：后端展平出有序 FieldSpec（`manifest.form.fields`，含 `path`/`kind`/`required`/`secret`/`i18n_key`），前端**不解析 JSON Schema**，只做排序、按 `visible_when` 过滤、按 bucket 分桶。分四步落地，每步都能独立发布：(a) 错误码接线 + providers 失败不再清空整页；(b) 状态词表收紧到服务端的 6 个 + 表单重置守卫 + invalidate 替代 setQueryData；(c) 新增 `form-spec.ts` 纯函数（`resolveFormFields` 有 `form` 用 `form`、没有回落到既有飞书编译分支）+ UI 接线 + 修死表单；(d) 删除客户端兜底 manifest 与飞书编译分支——**这一步是全程序唯一一条真跨仓依赖**，必须在后端 `manifest.form` 已部署之后，且 `listProviders()` 要丢弃缺 `form` 的 manifest，让老后端降级成「provider 不可用」横幅而不是渲染出零字段却可点保存的表单。
+- **验收**：后端注册第二个 provider（钉钉）后，**本条目最后一次构建出来的前端不重新部署**就能渲染它的表单并保存成功；`git diff --stat` 里零个 `web/` 路径。`rg "provider === 'feishu'" src/pages/settings/channels` → 空；`rg 'FALLBACK_MANIFEST' src/` → 空。
+- **对应后端条目**：`MultiRAG:docs/channel-program/PROGRESS.md` 的 `CHN-U1`（错误码透出，后端先）、`CHN-P2`（发 `manifest.form`，后端先）、`CHN-P5/P6/P7`（前端三步）。契约见 `MultiRAG:docs/channel-program/CONTRACT.md`。
+- **状态与进展记录**：
+
+| 日期       | 动作                                                       | 提交                        | 备注                                                                                                                                                                                                                                                                                                                                                                            |
+| ---------- | ---------------------------------------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-08-05 | **补记**：channel 管理页此前的三次落地未记账（本表建立前） | 9ee3c1e / 6f0e5bd / 162fb1f | `feat(settings): add managed channel configuration` / `feat(settings): keep channel bindings intact and fix portal select` / `fix(settings): label the runtime states the server can actually report`。其中 162fb1f 只补了 3 条缺失的状态标签（+9 行、零代码），没删 6 个幽灵状态、没修 `isRuntimeHealthy`、没收紧 `ChannelRuntime.state` 类型——根因原封未动，本条目 (b) 步接手 |
+| 2026-08-05 | 立项（channel 子系统跨三仓审计）                           | —                           | 与 MultiRAG 侧 `docs/channel-program/` 账本配套；本条目起 channel 相关提交 scope 由 `settings` 改为 `channel`，并双标 CHN ID                                                                                                                                                                                                                                                    |
+
 ---
 
 ## ENG — 工程执行
@@ -329,15 +363,17 @@
 
 ## 攻坚顺序（建议）
 
-| #   | 条目                                    | 状态                 |
-| --- | --------------------------------------- | -------------------- |
-| 1   | SEC-1 token 出 localStorage + SEC-2 CSP | 未开始（需后端）     |
-| 2   | ENG-1 ratchet + ENG-4 bundle 预算       | ✅ 已完成 2026-06-10 |
-| 3   | ARCH-1 统一 streaming runtime           | ✅ 已完成 2026-06-12 |
-| 4   | ARCH-2 API 契约代码生成                 | 未开始               |
-| 5   | ARCH-3 删中央 queryKeys                 | ✅ 已完成 2026-06-12 |
-| 5b  | ARCH-4 store 清退                       | ✅ 已完成 2026-06-22 |
-| 6   | ENG-2 流式单测 + Playwright 冒烟        | 未开始               |
-| 7   | ENG-3 空头支票四件套                    | 未开始               |
-| 8   | HYG-1 LICENSE/tag/CHANGELOG             | ✅ 已完成 2026-06-10 |
-| 9   | ARCH-5 Tailwind 4 / token 治理 + HYG-2  | 未开始               |
+| #   | 条目                                    | 状态                                        |
+| --- | --------------------------------------- | ------------------------------------------- |
+| 1   | SEC-1 token 出 localStorage + SEC-2 CSP | 未开始（需后端）                            |
+| 1b  | SEC-4 channel 停用被静默重新启用        | 未开始（channel 程序，进行中）              |
+| 2   | ENG-1 ratchet + ENG-4 bundle 预算       | ✅ 已完成 2026-06-10                        |
+| 3   | ARCH-1 统一 streaming runtime           | ✅ 已完成 2026-06-12                        |
+| 4   | ARCH-2 API 契约代码生成                 | 部分完成（契约测试已进 CI；codegen 未开始） |
+| 4b  | ARCH-6 channel provider 驱动表单        | 未开始（channel 程序，进行中）              |
+| 5   | ARCH-3 删中央 queryKeys                 | ✅ 已完成 2026-06-12                        |
+| 5b  | ARCH-4 store 清退                       | ✅ 已完成 2026-06-22                        |
+| 6   | ENG-2 流式单测 + Playwright 冒烟        | 未开始                                      |
+| 7   | ENG-3 空头支票四件套                    | 未开始                                      |
+| 8   | HYG-1 LICENSE/tag/CHANGELOG             | ✅ 已完成 2026-06-10                        |
+| 9   | ARCH-5 Tailwind 4 / token 治理 + HYG-2  | 未开始                                      |
