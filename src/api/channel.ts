@@ -3,6 +3,35 @@ import { API_BASE_URL } from '@/constants'
 
 const sdkBase = { baseURL: `${API_BASE_URL}/api` }
 
+/**
+ * The channel contract this build was written against.
+ *
+ * Documented in `MultiRAG:docs/channel-program/CONTRACT.md`, which bumps only
+ * on a breaking change — deleting a field, changing what one means, or making
+ * an optional one required. Additive change is logged there and leaves this
+ * alone, because bumping on every addition would make the assertion below fire
+ * weekly and teach everyone to edit the constant until it goes green.
+ *
+ * The assertion is the entire tooling budget for keeping the two repos honest:
+ * everything else is convention plus the two `git log` reconciliation commands
+ * in `PROGRESS.md`.
+ */
+export const CHANNEL_API_VERSION = 'channel-api/v1'
+
+/**
+ * The highest `form.version` this build knows how to render.
+ *
+ * The server bumps that number only when an older client would render a form
+ * *wrongly* — changed path semantics, or a field it must honour and cannot
+ * know about. Adding fields, kinds or options does not bump it, since unknown
+ * kinds already render disabled and unknown keys are ignored.
+ *
+ * So a higher version is not a hint, it is a refusal: `listProviders` drops
+ * the manifest into the same "providers unavailable" path as a missing form.
+ * Rendering it anyway is the one outcome the version exists to prevent.
+ */
+export const SUPPORTED_FORM_VERSION = 1
+
 export type ChannelProvider = 'feishu' | (string & {})
 export type ChannelTargetType = 'multirag.canvas_agent' | 'multirag.dialog'
 
@@ -291,12 +320,17 @@ export const channelAPI = {
   /**
    * Provider manifests, minus any the client cannot render.
    *
-   * A manifest without `form` comes from a backend older than CHN-P2. Dropping
-   * it is what makes this deployable independently: with no providers the page
-   * shows "provider metadata unavailable" and disables authoring, while the
-   * channel list, enable/disable and delete all keep working. Keeping it would
-   * render a form with zero fields and an enabled Save button — silent, and
-   * the exact half-state this ordering exists to avoid.
+   * Two ways a manifest can be unrenderable, both handled the same way. No
+   * `form` at all means a backend older than CHN-P2. A `form.version` above
+   * `SUPPORTED_FORM_VERSION` means one newer than this build, which by the
+   * bump rule has changed something this code would get wrong.
+   *
+   * Dropping them is what makes the two repos deployable independently: with
+   * no providers the page shows "provider metadata unavailable" and disables
+   * authoring, while the channel list, enable/disable and delete keep working.
+   * Keeping a form-less manifest would render zero fields under an enabled
+   * Save button — silent, and the exact half-state this ordering exists to
+   * avoid.
    */
   async listProviders(): Promise<ChannelProviderList> {
     const response = await apiClient.get<
@@ -304,7 +338,8 @@ export const channelAPI = {
     >('/chat-channels/providers', sdkBase)
     const items = normalizeList(response).items.filter(
       (manifest): manifest is RenderableProviderManifest =>
-        (manifest.form?.fields?.length ?? 0) > 0,
+        (manifest.form?.fields?.length ?? 0) > 0 &&
+        (manifest.form?.version ?? 1) <= SUPPORTED_FORM_VERSION,
     )
     return { items }
   },

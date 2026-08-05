@@ -4,8 +4,10 @@ import {
   buildChannelMutationPayload,
   channelAPI,
   channelErrorMessageKey,
+  CHANNEL_API_VERSION,
   CHANNEL_ERROR_CODES,
   RUNTIME_STATES,
+  SUPPORTED_FORM_VERSION,
   type ChannelFormField,
   type ChannelFormInput,
 } from '../channel'
@@ -502,26 +504,47 @@ test('a stored secret satisfies required without re-entry', () => {
   ])
 })
 
-test('listProviders drops a manifest this client cannot render', async () => {
+test('this build states which channel contract it was written against', () => {
+  // The whole tooling budget for cross-repo drift. It catches one thing: the
+  // documented contract was bumped and nobody looked at this client. Bumps are
+  // breaking-only by rule (CONTRACT.md), so a green run here is meaningful
+  // rather than routine -- if it went red weekly, everyone would learn to edit
+  // the constant instead of reading the change.
+  assert.equal(CHANNEL_API_VERSION, 'channel-api/v1')
+  assert.equal(SUPPORTED_FORM_VERSION, 1)
+})
+
+test('listProviders drops every manifest this client cannot render', async () => {
+  const field = {
+    path: 'credential.client_id',
+    kind: 'text',
+    label: 'Client ID',
+  }
   const originalGet = apiClient.get
   apiClient.get = (async () => ({
     items: [
+      // No form at all: a backend older than CHN-P2.
       {
         provider: 'feishu',
         display_name: 'Feishu',
         capabilities: {},
         config_schema: {},
       },
+      // A form version this build does not know. The server bumps that number
+      // only when an older client would render the form wrongly, so guessing
+      // is the one outcome the version exists to prevent.
+      {
+        provider: 'wecom',
+        display_name: 'WeCom',
+        capabilities: {},
+        form: { version: SUPPORTED_FORM_VERSION + 1, fields: [field] },
+        config_schema: {},
+      },
       {
         provider: 'dingtalk',
         display_name: 'DingTalk',
         capabilities: {},
-        form: {
-          version: 1,
-          fields: [
-            { path: 'credential.client_id', kind: 'text', label: 'Client ID' },
-          ],
-        },
+        form: { version: SUPPORTED_FORM_VERSION, fields: [field] },
         config_schema: {},
       },
     ],
@@ -529,9 +552,10 @@ test('listProviders drops a manifest this client cannot render', async () => {
 
   try {
     const { items } = await channelAPI.listProviders()
-    // The form-less manifest is from a backend older than CHN-P2. Rendering it
-    // would produce a zero-field form with an enabled Save button; dropping it
-    // routes the page into its "providers unavailable" banner instead.
+    // Rendering either dropped manifest would put an enabled Save button under
+    // a form that is wrong or empty; dropping them routes the page into its
+    // "providers unavailable" banner instead, with the list and the
+    // enable/disable/delete actions still working.
     assert.deepEqual(
       items.map((item) => item.provider),
       ['dingtalk'],
