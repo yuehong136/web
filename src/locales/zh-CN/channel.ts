@@ -50,6 +50,12 @@ export default {
     connected: {
       title: '已接入渠道（{{count}}）',
     },
+    filter: {
+      placeholder: '搜索渠道或平台…',
+      matched: '匹配 {{count}} 个',
+      noMatch: '没有匹配的渠道。',
+      noMatchProvider: '没有匹配的平台。',
+    },
     health: {
       connected: '已连接',
       pending: '等待中',

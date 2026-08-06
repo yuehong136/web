@@ -47,6 +47,12 @@ export const ProviderGallery = ({
         </p>
       </div>
 
+      {providers.length === 0 ? (
+        <p className="py-space-base text-sm text-text-secondary">
+          {t('channel.filter.noMatchProvider')}
+        </p>
+      ) : null}
+
       <ul className="gap-space-base grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3">
         {providers.map((manifest) => {
           const connected = connectedCounts[manifest.provider] ?? 0

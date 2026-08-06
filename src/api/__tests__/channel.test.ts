@@ -12,11 +12,13 @@ import {
   type ChannelFormInput,
 } from '../channel'
 import {
+  channelHealth,
+  countFaulted,
+  filterChannels,
   formatHeartbeatAge,
   isBindingRevisionStale,
   isRuntimeHealthy,
 } from '@/pages/settings/channels/utils'
-import { channelHealth } from '@/pages/settings/channels/components/channel-status'
 import {
   assembleConfig,
   buildFormValues,
@@ -741,4 +743,90 @@ test('a heartbeat is shown as an age, because that is the question it answers', 
   )
   assert.equal(formatHeartbeatAge(null, 'en', now), '—')
   assert.equal(formatHeartbeatAge('not-a-date', 'en', now), '—')
+})
+
+test('the list filter searches what people actually remember a channel by', () => {
+  const make = (
+    id: string,
+    name: string,
+    provider: string,
+    targetId?: string,
+  ) =>
+    ({
+      id,
+      name,
+      channel: provider,
+      config: {},
+      status: 1,
+      generation: 1,
+      secret: { configured: true, version: 1 },
+      binding: targetId
+        ? ({
+            target_id: targetId,
+            target_type: 'multirag.canvas_agent',
+          } as never)
+        : null,
+      runtime: { state: 'connected' } as never,
+    }) as never
+
+  const channels = [
+    make('1', '小丽0803', 'feishu', 'agent_alpha'),
+    make('2', 'Support bot', 'dingtalk', 'agent_beta'),
+  ]
+  const labels = { feishu: '飞书', dingtalk: '钉钉' }
+  const find = (query: string) =>
+    filterChannels(channels, {
+      query,
+      onlyFaulted: false,
+      providerLabels: labels,
+    }).map((channel) => channel.id)
+
+  assert.deepEqual(find(''), ['1', '2'])
+  assert.deepEqual(find('小丽'), ['1'])
+  // The localised platform name, which the server never sends — it only knows
+  // `feishu` and "Feishu / Lark", so searching in Chinese would find nothing
+  // without the label map.
+  assert.deepEqual(find('飞书'), ['1'])
+  assert.deepEqual(find('dingtalk'), ['2'])
+  // The bound target id: the one value people paste in from somewhere else,
+  // chasing "which channel points at this agent?".
+  assert.deepEqual(find('agent_beta'), ['2'])
+  assert.deepEqual(find('  SUPPORT  '), ['2'])
+  assert.deepEqual(find('nothing'), [])
+})
+
+test('the faults filter narrows to faults and counts them independently', () => {
+  const make = (id: string, status: number, state: string) =>
+    ({
+      id,
+      name: id,
+      channel: 'feishu',
+      config: {},
+      status,
+      generation: 1,
+      secret: { configured: true, version: 1 },
+      binding: null,
+      runtime: { state } as never,
+    }) as never
+
+  const channels = [
+    make('ok', 1, 'connected'),
+    make('bad', 1, 'error'),
+    // Paused, with a stale error row left behind. It must not be counted as a
+    // fault, or every channel anyone ever paused would demand attention.
+    make('paused', 0, 'error'),
+  ]
+
+  assert.equal(countFaulted(channels), 1)
+  assert.deepEqual(
+    filterChannels(channels, { query: '', onlyFaulted: true }).map((c) => c.id),
+    ['bad'],
+  )
+  // Query and toggle compose rather than override each other.
+  assert.deepEqual(
+    filterChannels(channels, { query: 'ok', onlyFaulted: true }).map(
+      (c) => c.id,
+    ),
+    [],
+  )
 })

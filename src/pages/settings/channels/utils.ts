@@ -1,4 +1,4 @@
-import type { ChannelBinding } from '@/api/channel'
+import type { ChannelBinding, ChatChannel } from '@/api/channel'
 
 export const isChannelEnabled = (status: string | number | boolean): boolean =>
   status === true ||
@@ -64,3 +64,76 @@ export const formatHeartbeatAge = (
   }
   return '—'
 }
+
+export type ChannelHealth = 'connected' | 'pending' | 'faulted' | 'off'
+
+/**
+ * One status per channel, instead of two that had to be read together.
+ *
+ * The card used to show an "enabled / draft" badge *and* a separate runtime
+ * row, so the only question an operator actually has — is this working? — had
+ * no single answer, and the two disagreed in the normal case: a channel
+ * enabled thirty seconds ago read "enabled" and "waiting" at once.
+ *
+ * Collapsing them is safe because the states are not independent. A disabled
+ * channel has no runner by definition, so its last runtime row is stale noise
+ * — which is why `off` wins over a leftover `error`.
+ *
+ * Lives here rather than beside its Tailwind classes because filtering needs
+ * it, and a component importing this file while this file imported the
+ * component would be a cycle.
+ */
+export const channelHealth = (channel: ChatChannel): ChannelHealth => {
+  if (!isChannelEnabled(channel.status)) return 'off'
+  const state = channel.runtime?.state
+  if (isRuntimeHealthy(state)) return 'connected'
+  // `error` is also synthesised by the control plane for a binding whose
+  // Canvas release went stale, even while the runner itself is healthy.
+  if (state === 'error') return 'faulted'
+  return 'pending'
+}
+
+const normalize = (value: string): string => value.trim().toLowerCase()
+
+/**
+ * Whether a channel matches a free-text query.
+ *
+ * Matches the fields an operator actually remembers a channel by: what they
+ * named it, which platform it is on, and what it is bound to. The bound target
+ * id is included because it is the one value that gets pasted from elsewhere
+ * when someone is chasing "which channel points at this agent?".
+ */
+export const channelMatchesQuery = (
+  channel: ChatChannel,
+  query: string,
+  providerLabel = '',
+): boolean => {
+  const needle = normalize(query)
+  if (!needle) return true
+  return [
+    channel.name,
+    channel.channel,
+    providerLabel,
+    channel.binding?.target_id ?? '',
+  ].some((field) => normalize(field).includes(needle))
+}
+
+export interface ChannelFilter {
+  query: string
+  onlyFaulted: boolean
+  /** Localised provider names, so a search for "飞书" finds them. */
+  providerLabels?: Record<string, string>
+}
+
+export const filterChannels = (
+  channels: readonly ChatChannel[],
+  { query, onlyFaulted, providerLabels = {} }: ChannelFilter,
+): ChatChannel[] =>
+  channels.filter(
+    (channel) =>
+      channelMatchesQuery(channel, query, providerLabels[channel.channel]) &&
+      (!onlyFaulted || channelHealth(channel) === 'faulted'),
+  )
+
+export const countFaulted = (channels: readonly ChatChannel[]): number =>
+  channels.filter((channel) => channelHealth(channel) === 'faulted').length

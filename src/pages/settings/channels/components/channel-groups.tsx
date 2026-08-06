@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import type { ChatChannel } from '@/api/channel'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { channelHealth } from './channel-status'
+import { countFaulted } from '../utils'
 import { ChannelRow } from './channel-row'
 import { ProviderLogo } from './provider-logo'
 
@@ -49,13 +49,15 @@ export const ChannelGroups = ({
   return (
     <div className="space-y-space-base">
       {[...groups.entries()].map(([provider, rows]) => {
-        const faulted = rows.filter(
-          (row) => channelHealth(row) === 'faulted',
-        ).length
+        const faulted = countFaulted(rows)
 
         return (
-          <Card key={provider} padding="none" className="overflow-hidden">
-            <div className="gap-space-sm px-space-base py-space-sm bg-surface-secondary flex items-center border-b border-border-subtle">
+          <Card key={provider} padding="none">
+            {/* Sticky so the platform stays named while you scroll ten rows
+                of it. Deliberately no `overflow-hidden` on the Card: a
+                clipping ancestor silently disables position:sticky, and the
+                header carries its own top rounding instead. */}
+            <div className="gap-space-sm px-space-base py-space-sm bg-surface-secondary sticky top-0 z-10 flex items-center rounded-t-lg border-b border-border-subtle">
               <ProviderLogo
                 provider={provider}
                 displayName={provider}

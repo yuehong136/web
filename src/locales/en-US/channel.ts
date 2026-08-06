@@ -56,6 +56,12 @@ export default {
     connected: {
       title: 'Connected channels ({{count}})',
     },
+    filter: {
+      placeholder: 'Search channels or platforms…',
+      matched: '{{count}} matching',
+      noMatch: 'No channels match this filter.',
+      noMatchProvider: 'No platforms match this filter.',
+    },
     health: {
       connected: 'Connected',
       pending: 'Starting',

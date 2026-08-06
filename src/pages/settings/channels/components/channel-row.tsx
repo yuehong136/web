@@ -18,11 +18,12 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { formatDate } from '@/lib/utils'
 import {
+  channelHealth,
   formatHeartbeatAge,
   isBindingRevisionStale,
   isChannelEnabled,
 } from '../utils'
-import { channelHealth, HEALTH_DOT, HEALTH_TEXT } from './channel-status'
+import { HEALTH_DOT, HEALTH_TEXT } from './channel-status'
 
 interface ChannelRowProps {
   channel: ChatChannel
