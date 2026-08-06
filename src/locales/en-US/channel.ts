@@ -6,7 +6,16 @@ export default {
     overview:
       'Channel credentials are stored only on the server. Once enabled, an independent Channel Runtime receives messages and invokes the bound MultiRAG target.',
     providers: {
-      feishu: 'Feishu',
+      dingtalk: {
+        name: 'DingTalk',
+        description:
+          'Answer messages from a DingTalk robot over its stream connection.',
+      },
+      feishu: {
+        name: 'Feishu / Lark',
+        description:
+          'Answer direct messages from a Feishu or Lark bot over a long-lived connection.',
+      },
     },
     actions: {
       create: 'New channel',
@@ -43,6 +52,16 @@ export default {
       connectionSection: 'Platform connection',
       bindingSection: 'MultiRAG binding',
     },
+    connected: {
+      title: 'Connected channels ({{count}})',
+    },
+    gallery: {
+      title: 'Available channels',
+      description:
+        'Pick a platform to connect. The list comes from the server, so a new channel needs no frontend release.',
+      connect: 'Connect',
+      connectedCount: '{{count}} connected',
+    },
     fields: {
       name: { label: 'Channel name' },
       provider: { label: 'Channel type' },
@@ -68,6 +87,30 @@ export default {
         description:
           'Optional. Enter one Open ID per line or comma-separated. Leave blank to rely on the app availability scope.',
         placeholder: 'ou_xxx',
+      },
+      client_id: {
+        label: 'Client ID',
+        description:
+          'The DingTalk app Client ID. Older consoles call this the AppKey.',
+        placeholder: 'dingxxxxxxxxxxxxxxxx',
+      },
+      client_secret: {
+        label: 'Client Secret',
+        description:
+          'Sent to the server-side secret store only and never echoed back.',
+        placeholder: 'Enter the Client Secret',
+      },
+      robot_code: {
+        label: 'Robot code',
+        description:
+          'Which robot the app answers as. Find it on the robot page of the DingTalk console.',
+        placeholder: 'robot_xxx',
+      },
+      allowed_user_ids: {
+        label: 'Allowed user IDs',
+        description:
+          'Optional. One user ID per line or comma separated; empty falls back to the app visibility scope.',
+        placeholder: 'user_xxx',
       },
     },
     secret: {

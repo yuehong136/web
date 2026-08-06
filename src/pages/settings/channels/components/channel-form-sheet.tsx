@@ -57,6 +57,12 @@ interface ChannelFormSheetProps {
   onOpenChange: (open: boolean) => void
   providers: RenderableProviderManifest[]
   channel: ChatChannel | null
+  /**
+   * Which provider the user picked in the gallery. Only meaningful when
+   * creating: an existing channel's provider comes from the row and cannot be
+   * changed, since its credential shape is already stored.
+   */
+  initialProvider?: string
 }
 
 export const ChannelFormSheet = ({
@@ -64,11 +70,13 @@ export const ChannelFormSheet = ({
   onOpenChange,
   providers,
   channel,
+  initialProvider,
 }: ChannelFormSheetProps) => {
   const { t } = useTranslation()
   const detailQuery = useFetchChannelDetail(open ? (channel?.id ?? null) : null)
   const currentChannel = detailQuery.data ?? channel
-  const provider = currentChannel?.channel ?? providers[0]?.provider ?? ''
+  const provider =
+    currentChannel?.channel ?? initialProvider ?? providers[0]?.provider ?? ''
   // `providers` is already filtered to renderable manifests by listProviders,
   // and the page disables authoring when it is empty, so there is nothing to
   // fall back to — a client-side manifest would only ever be a stale copy of
@@ -297,7 +305,9 @@ export const ChannelFormSheet = ({
                               key={item.provider}
                               value={item.provider}
                             >
-                              {item.display_name}
+                              {t(`channel.providers.${item.provider}.name`, {
+                                defaultValue: item.display_name,
+                              })}
                             </SelectItem>
                           ))}
                         </SelectContent>

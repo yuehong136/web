@@ -5,7 +5,14 @@ export default {
     overview:
       '渠道凭据只在服务端保存；启用后，独立 Channel Runtime 将接收消息并调用已绑定的 MultiRAG 目标。',
     providers: {
-      feishu: '飞书',
+      dingtalk: {
+        name: '钉钉',
+        description: '通过 Stream 长连接接收钉钉机器人消息并回复。',
+      },
+      feishu: {
+        name: '飞书',
+        description: '通过长连接接收飞书 / Lark 机器人的私聊消息并回复。',
+      },
     },
     actions: {
       create: '新建渠道',
@@ -39,6 +46,16 @@ export default {
       connectionSection: '平台连接',
       bindingSection: 'MultiRAG 绑定',
     },
+    connected: {
+      title: '已接入渠道（{{count}}）',
+    },
+    gallery: {
+      title: '可接入渠道',
+      description:
+        '选择一个平台开始接入。列表由服务端下发，新增渠道无需更新前端。',
+      connect: '接入',
+      connectedCount: '已接入 {{count}}',
+    },
     fields: {
       name: {
         label: '渠道名称',
@@ -66,6 +83,28 @@ export default {
         description:
           '可选。每行或逗号分隔一个 Open ID；留空时依赖飞书应用可用范围。',
         placeholder: 'ou_xxx',
+      },
+      client_id: {
+        label: 'Client ID',
+        description: '钉钉开放平台应用的 Client ID，旧版控制台称 AppKey。',
+        placeholder: 'dingxxxxxxxxxxxxxxxx',
+      },
+      client_secret: {
+        label: 'Client Secret',
+        description: '仅提交到服务端密钥存储，保存后不会再次回显。',
+        placeholder: '输入 Client Secret',
+      },
+      robot_code: {
+        label: '机器人编码',
+        description:
+          '应用要以哪个机器人身份回话，在钉钉开放平台的机器人配置页获取。',
+        placeholder: 'robot_xxx',
+      },
+      allowed_user_ids: {
+        label: '允许的用户 ID',
+        description:
+          '可选。每行或逗号分隔一个用户 ID；留空时依赖钉钉应用可见范围。',
+        placeholder: 'user_xxx',
       },
     },
     secret: {

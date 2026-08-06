@@ -147,7 +147,14 @@ export interface ChannelProviderForm {
 export interface ChannelProviderManifest {
   provider: ChannelProvider
   display_name: string
+  /**
+   * Server-owned copy for a provider nobody has connected yet, with an
+   * optional key so a local translation can win. Both optional on the wire: a
+   * backend older than CHN-P13 sends neither, and a card with no subtitle is a
+   * better outcome than one that cannot render.
+   */
   description?: string
+  description_i18n_key?: string | null
   capabilities: Record<string, boolean>
   /**
    * The render contract (CHN-P2). Optional on the wire — and only there: a

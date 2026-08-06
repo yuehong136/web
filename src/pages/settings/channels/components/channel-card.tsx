@@ -52,7 +52,7 @@ export const ChannelCard = ({
                 {channel.name}
               </h3>
               <p className="text-sm text-text-secondary">
-                {t(`channel.providers.${channel.channel}`, {
+                {t(`channel.providers.${channel.channel}.name`, {
                   defaultValue: channel.channel,
                 })}
               </p>

@@ -27,6 +27,7 @@ import {
 } from '@/hooks/use-channel-request'
 import { ChannelCard } from './components/channel-card'
 import { ChannelFormSheet } from './components/channel-form-sheet'
+import { ProviderGallery } from './components/provider-gallery'
 
 export const ChannelsPage = () => {
   const { t } = useTranslation()
@@ -39,6 +40,7 @@ export const ChannelsPage = () => {
     null,
   )
   const [pendingDelete, setPendingDelete] = useState<ChatChannel | null>(null)
+  const [creatingProvider, setCreatingProvider] = useState<string | undefined>()
 
   const providers = useMemo(
     () => providersQuery.data?.items ?? [],
@@ -50,13 +52,15 @@ export const ChannelsPage = () => {
   // an incident: disabling a channel that is misbehaving.
   const providersUnavailable = providersQuery.isError || providers.length === 0
 
-  const openCreate = () => {
+  const openCreate = (provider?: string) => {
     setSelectedChannel(null)
+    setCreatingProvider(provider)
     setSheetOpen(true)
   }
 
   const openEdit = (channel: ChatChannel) => {
     setSelectedChannel(channel)
+    setCreatingProvider(undefined)
     setSheetOpen(true)
   }
 
@@ -117,6 +121,16 @@ export const ChannelsPage = () => {
 
   const channels = channelsQuery.data?.items ?? []
   const busy = toggleMutation.isPending || deleteMutation.isPending
+  // How many channels each provider already has. Shown on its gallery card
+  // rather than hiding the card: connecting a second bot of the same provider
+  // is a normal thing to want, and a disappearing tile reads as a bug.
+  const connectedCounts = channels.reduce<Record<string, number>>(
+    (counts, channel) => {
+      counts[channel.channel] = (counts[channel.channel] ?? 0) + 1
+      return counts
+    },
+    {},
+  )
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -124,7 +138,7 @@ export const ChannelsPage = () => {
         <p className="max-w-3xl text-sm text-text-secondary">
           {t('channel.overview')}
         </p>
-        <Button onClick={openCreate} disabled={providersUnavailable}>
+        <Button onClick={() => openCreate()} disabled={providersUnavailable}>
           <Plus className="size-icon-sm" aria-hidden="true" />
           {t('channel.actions.create')}
         </Button>
@@ -145,34 +159,55 @@ export const ChannelsPage = () => {
         </output>
       ) : null}
 
-      <div className="scroll-area p-space-lg min-h-0 flex-1 overflow-y-auto">
-        {channels.length === 0 ? (
-          <PageEmptyState
-            title={t('channel.states.empty')}
-            description={t('channel.states.emptyDescription')}
-            icon={
-              <MessageCircleMore className="size-icon-lg" aria-hidden="true" />
-            }
-            action={
-              <Button onClick={openCreate} disabled={providersUnavailable}>
-                <Plus className="size-icon-sm" aria-hidden="true" />
-                {t('channel.actions.create')}
-              </Button>
-            }
+      <div className="scroll-area p-space-lg space-y-space-xl min-h-0 flex-1 overflow-y-auto">
+        <section
+          className="space-y-space-base"
+          aria-labelledby="channel-connected-heading"
+        >
+          <h3
+            id="channel-connected-heading"
+            className="font-semibold text-text-primary"
+          >
+            {t('channel.connected.title', { count: channels.length })}
+          </h3>
+          {channels.length === 0 ? (
+            <PageEmptyState
+              title={t('channel.states.empty')}
+              description={t('channel.states.emptyDescription')}
+              icon={
+                <MessageCircleMore
+                  className="size-icon-lg"
+                  aria-hidden="true"
+                />
+              }
+            />
+          ) : (
+            <div className="gap-space-base grid grid-cols-1 xl:grid-cols-2">
+              {channels.map((channel) => (
+                <ChannelCard
+                  key={channel.id}
+                  channel={channel}
+                  busy={busy}
+                  onEdit={openEdit}
+                  onToggle={handleToggle}
+                  onDelete={setPendingDelete}
+                />
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* The gallery is the answer to "what can I connect?", which the page
+            previously only revealed once you had already started creating
+            something. It stays visible with channels present, because adding a
+            second one is the next thing anyone does. */}
+        {providersUnavailable ? null : (
+          <ProviderGallery
+            providers={providers}
+            connectedCounts={connectedCounts}
+            disabled={busy}
+            onSelect={openCreate}
           />
-        ) : (
-          <div className="gap-space-base grid grid-cols-1 xl:grid-cols-2">
-            {channels.map((channel) => (
-              <ChannelCard
-                key={channel.id}
-                channel={channel}
-                busy={busy}
-                onEdit={openEdit}
-                onToggle={handleToggle}
-                onDelete={setPendingDelete}
-              />
-            ))}
-          </div>
         )}
       </div>
 
@@ -182,6 +217,7 @@ export const ChannelsPage = () => {
           onOpenChange={setSheetOpen}
           providers={providers}
           channel={selectedChannel}
+          initialProvider={creatingProvider}
         />
       ) : null}
 
