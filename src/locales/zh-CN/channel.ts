@@ -23,6 +23,7 @@ export default {
       cancel: '取消',
       retry: '重试',
       saveDraft: '保存草稿',
+      more: '{{name}} 的更多操作',
     },
     status: {
       enabled: '已启用',
@@ -48,6 +49,13 @@ export default {
     },
     connected: {
       title: '已接入渠道（{{count}}）',
+    },
+    health: {
+      connected: '已连接',
+      pending: '等待中',
+      faulted: '异常',
+      off: '已停用',
+      faultedCount: '{{count}} 个异常',
     },
     gallery: {
       title: '可接入渠道',
@@ -131,6 +139,7 @@ export default {
       staleRelease: '原绑定版本 {{revision}}（已过期）',
       staleReleaseDescription:
         'Agent 已发布新版本。请选择当前发布版本并保存，系统不会静默切换 DSL。',
+      staleShort: '版本过期',
       revisionStale:
         '绑定版本已过期，机器人暂时无法应答。请编辑并选择当前发布版本。',
       dialogRevisionDescription: '对话应用当前不需要单独选择发布版本。',

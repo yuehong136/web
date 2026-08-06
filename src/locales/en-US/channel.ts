@@ -26,6 +26,7 @@ export default {
       cancel: 'Cancel',
       retry: 'Retry',
       saveDraft: 'Save draft',
+      more: 'More actions for {{name}}',
     },
     status: {
       enabled: 'Enabled',
@@ -54,6 +55,13 @@ export default {
     },
     connected: {
       title: 'Connected channels ({{count}})',
+    },
+    health: {
+      connected: 'Connected',
+      pending: 'Starting',
+      faulted: 'Faulted',
+      off: 'Off',
+      faultedCount: '{{count}} faulted',
     },
     gallery: {
       title: 'Available channels',
@@ -140,6 +148,7 @@ export default {
       staleRelease: 'Previous revision {{revision}} (outdated)',
       staleReleaseDescription:
         'The Agent has a newer release. Select the current revision and save; MultiRAG will not switch DSL silently.',
+      staleShort: 'Outdated',
       revisionStale:
         'Bound release is outdated, so the bot cannot answer. Edit this channel and select the current release.',
       dialogRevisionDescription:

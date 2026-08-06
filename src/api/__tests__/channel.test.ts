@@ -12,9 +12,11 @@ import {
   type ChannelFormInput,
 } from '../channel'
 import {
+  formatHeartbeatAge,
   isBindingRevisionStale,
   isRuntimeHealthy,
 } from '@/pages/settings/channels/utils'
+import { channelHealth } from '@/pages/settings/channels/components/channel-status'
 import {
   assembleConfig,
   buildFormValues,
@@ -681,4 +683,62 @@ test('a provider this build has never heard of renders and submits', () => {
     robot_code: 'robot-aaaa',
     allowed_user_ids: ['user_a', 'user_b'],
   })
+})
+
+test('a channel reports one status rather than two that disagree', () => {
+  // The card used to show an "enabled" badge next to a separate runtime row,
+  // so the only question an operator has -- is this working? -- had no single
+  // answer, and in the normal case the two contradicted each other: a channel
+  // enabled thirty seconds ago reads "enabled" and "waiting" at once.
+  const base = {
+    id: 'c1',
+    name: 'Demo',
+    channel: 'feishu',
+    config: {},
+    generation: 1,
+    secret: { configured: true, version: 1 },
+    binding: null,
+  }
+
+  const health = (status: unknown, state?: string) =>
+    channelHealth({
+      ...base,
+      status,
+      runtime: state ? ({ state } as never) : null,
+    } as never)
+
+  assert.equal(health(1, 'connected'), 'connected')
+  assert.equal(health(1, 'waiting'), 'pending')
+  assert.equal(health(1, 'starting'), 'pending')
+  assert.equal(health(1, 'error'), 'faulted')
+  // A disabled channel has no runner by definition, so whatever its last
+  // runtime row said is stale noise -- reporting it as "faulted" would put a
+  // red dot on every channel anyone ever paused.
+  assert.equal(health(0, 'error'), 'off')
+  assert.equal(health(0, 'connected'), 'off')
+  // No runtime row at all is still "not yet connected", not "broken".
+  assert.equal(health(1), 'pending')
+})
+
+test('a heartbeat is shown as an age, because that is the question it answers', () => {
+  const now = Date.UTC(2026, 7, 6, 12, 0, 0)
+  const at = (secondsAgo: number) =>
+    formatHeartbeatAge(
+      new Date(now - secondsAgo * 1000).toISOString(),
+      'en',
+      now,
+    )
+
+  assert.equal(at(5), '5 seconds ago')
+  assert.equal(at(90), '1 minute ago')
+  assert.equal(at(7200), '2 hours ago')
+  assert.equal(at(172800), '2 days ago')
+  // A clock skewed into the future must not render "in 3 seconds", which reads
+  // as a bug in the page rather than in the clock.
+  assert.equal(
+    formatHeartbeatAge(new Date(now + 3000).toISOString(), 'en', now),
+    'now',
+  )
+  assert.equal(formatHeartbeatAge(null, 'en', now), '—')
+  assert.equal(formatHeartbeatAge('not-a-date', 'en', now), '—')
 })

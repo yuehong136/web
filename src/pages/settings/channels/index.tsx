@@ -25,7 +25,7 @@ import {
   useFetchChannels,
   useSetChannelEnabled,
 } from '@/hooks/use-channel-request'
-import { ChannelCard } from './components/channel-card'
+import { ChannelGroups } from './components/channel-groups'
 import { ChannelFormSheet } from './components/channel-form-sheet'
 import { ProviderGallery } from './components/provider-gallery'
 
@@ -182,18 +182,14 @@ export const ChannelsPage = () => {
               }
             />
           ) : (
-            <div className="gap-space-base grid grid-cols-1 xl:grid-cols-2">
-              {channels.map((channel) => (
-                <ChannelCard
-                  key={channel.id}
-                  channel={channel}
-                  busy={busy}
-                  onEdit={openEdit}
-                  onToggle={handleToggle}
-                  onDelete={setPendingDelete}
-                />
-              ))}
-            </div>
+            <ChannelGroups
+              channels={channels}
+              busy={busy}
+              onEdit={openEdit}
+              onToggle={handleToggle}
+              onDelete={setPendingDelete}
+              onAdd={openCreate}
+            />
           )}
         </section>
 
