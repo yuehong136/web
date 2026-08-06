@@ -6,7 +6,7 @@ import {
 } from '@/components/ui/select-with-search'
 import { IconMap, LLMFactory, isLLMModelEnabled } from '@/stores/model'
 import { useFetchMyLLMs } from '@/hooks/use-llm-request'
-import { apiClient } from '@/api/client'
+import { authAPI } from '@/api/auth'
 import { toast } from '@/lib/toast'
 import { IconFontFill } from '@/components/ui/icon-font'
 import { useIsDarkTheme } from '@/themes'
@@ -112,7 +112,7 @@ export const SystemSetting: React.FC = () => {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const response = await apiClient.get('/user/tenant_info')
+        const response = await authAPI.getTenantInfo()
         if (response) {
           setTenantInfo({
             tenant_id: response.tenant_id || '',
@@ -225,7 +225,7 @@ export const SystemSetting: React.FC = () => {
 
       try {
         // 传递完整的设置对象，与 ragflow 一致
-        await apiClient.post('/user/set_tenant_info', {
+        await authAPI.updateTenantInfo({
           tenant_id: updatedInfo.tenant_id,
           name: updatedInfo.name,
           llm_id: updatedInfo.llm_id,

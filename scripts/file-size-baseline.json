@@ -7,7 +7,7 @@
   "src/pages/settings/model-providers/components/api-key-modal.tsx": 1772,
   "src/pages/agent/options/google.ts": 1589,
   "src/pages/MCPChatPage.tsx": 1573,
-  "src/types/api.ts": 1499,
+  "src/types/api.ts": 1495,
   "src/pages/agent/constant/index.ts": 1397,
   "src/components/chat/ChatSettingsPanel.tsx": 1072,
   "src/components/environment/EnvironmentDetail.tsx": 989,

@@ -234,7 +234,7 @@ export interface LoginChannel {
   config: Record<string, any>
 }
 
-// 用户档案信息 - 匹配后端 /v1/user/info 接口响应
+// 用户档案信息 - 匹配后端 GET /api/v1/users/me 接口响应
 export interface UserProfile {
   id: string
   access_token: string

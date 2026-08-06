@@ -7,6 +7,36 @@ import type { RequestConfig } from './client-types'
 export { APIError } from './client-types'
 export type { ApiEnvelope, RequestConfig } from './client-types'
 
+/**
+ * 登录/注册端点（RESTful `/api/v1`）：`POST /auth/login`、`POST /users`。
+ *
+ * 这两条要单独识别，因为它们的 JWT 只在 `Authorization` 响应头里，而且调用方需要
+ * 完整信封（`auth` + `data`）而不是 `data.data`。
+ */
+const AUTH_ENVELOPE_ENDPOINTS = new Set(['/auth/login', '/users'])
+
+/**
+ * 判断是否登录/注册端点。
+ *
+ * 必须是精确路径匹配 + 方法匹配，不能用 `endpoint.includes()`：`/auth/login/channels`、
+ * `/auth/login/{channel}`、`/users/me`、`/users/me/models` 都是返回普通信封的端点，
+ * 一旦被顺带命中，调用方拿到的就是信封而不是数据。
+ */
+function isAuthEnvelopeEndpoint(endpoint: string, method?: string): boolean {
+  if ((method ?? 'GET').toUpperCase() !== 'POST') return false
+
+  const rawPath = endpoint.startsWith('http')
+    ? new URL(endpoint).pathname
+    : (endpoint.split('?')[0] ?? '')
+
+  const path = rawPath
+    .replace(/^\/api/, '')
+    .replace(/^\/v1/, '')
+    .replace(/\/+$/, '')
+
+  return AUTH_ENVELOPE_ENDPOINTS.has(path)
+}
+
 class APIClient {
   private baseURL: string
   private defaultTimeout: number = 30000
@@ -97,6 +127,11 @@ class APIClient {
       withEnvelope = false,
       ...requestConfig
     } = config
+
+    const isAuthEnvelope = isAuthEnvelopeEndpoint(
+      endpoint,
+      requestConfig.method,
+    )
 
     // 构建完整URL
     let url: string
@@ -224,10 +259,7 @@ class APIClient {
       }
 
       // 对于登录接口，从响应头中提取token
-      if (
-        endpoint.includes('/user/login') ||
-        endpoint.includes('/user/register')
-      ) {
+      if (isAuthEnvelope) {
         const token = response.headers.get('Authorization')
         if (token) {
           ;(data as any).auth = token
@@ -253,11 +285,7 @@ class APIClient {
       }
 
       // 对于登录等特殊接口，需要返回完整数据（包含auth字段）
-      // 检查URL是否是登录接口
-      if (
-        endpoint.includes('/user/login') ||
-        endpoint.includes('/user/register')
-      ) {
+      if (isAuthEnvelope) {
         return data as T
       }
 
