@@ -41,6 +41,7 @@ import {
   useFetchChannelDetail,
   useFetchChannelRuntime,
   useSaveChannel,
+  useVerifyChannel,
 } from '@/hooks/use-channel-request'
 import {
   createChannelFormSchema,
@@ -118,6 +119,7 @@ export const ChannelFormSheet = ({
     ),
   })
   const saveMutation = useSaveChannel()
+  const verifyMutation = useVerifyChannel()
   const queryClient = useQueryClient()
   const runtimeQuery = useFetchChannelRuntime(
     currentChannel?.id ?? null,
@@ -222,6 +224,28 @@ export const ChannelFormSheet = ({
       )
     }
   })
+
+  /**
+   * Check the saved credential, not the one being typed.
+   *
+   * The server reads what it stored, so editing a secret and pressing this
+   * tests the previous value. That is the honest reading of an endpoint with
+   * no request body, and it is why the control sits next to Save rather than
+   * next to the secret field, where it would imply otherwise.
+   */
+  const handleVerify = async () => {
+    if (!currentChannel) return
+    try {
+      await verifyMutation.mutateAsync(currentChannel.id)
+      toast.success(t('channel.messages.verifyPassed'))
+    } catch (error) {
+      // Every outcome keeps its own message. `unreachable` in particular must
+      // not read as a rejection: the credential may be perfectly good.
+      toast.error(
+        t(channelErrorMessageKey(error, 'channel.messages.verifyFailed')),
+      )
+    }
+  }
 
   const isLoading = Boolean(channel) && detailQuery.isLoading
   const runtime = runtimeQuery.data ?? currentChannel?.runtime
@@ -351,6 +375,25 @@ export const ChannelFormSheet = ({
         )}
 
         <SheetFooter className="p-space-lg border-t border-border-subtle">
+          {currentChannel ? (
+            <Button
+              type="button"
+              variant="outline"
+              className="mr-auto"
+              onClick={handleVerify}
+              disabled={verifyMutation.isPending || verifyMutation.coolingDown}
+            >
+              {verifyMutation.isPending ? (
+                <Loader2
+                  className="size-icon-sm animate-spin"
+                  aria-hidden="true"
+                />
+              ) : null}
+              {verifyMutation.isPending
+                ? t('channel.actions.verifying')
+                : t('channel.actions.verify')}
+            </Button>
+          ) : null}
           <Button
             type="button"
             variant="outline"

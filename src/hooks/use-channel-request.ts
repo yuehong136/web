@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useEffect, useState } from 'react'
 import { channelAPI, type ChannelMutationPayload } from '@/api/channel'
 
 export const channelKeys = {
@@ -106,6 +107,45 @@ export const useSetChannelEnabled = () => {
       })
     },
   })
+}
+
+/** Mirrors the server's per-channel cooldown (CHN-O6). */
+export const CHANNEL_VERIFY_COOLDOWN_MS = 10 * 1000
+
+/**
+ * Run one credential self-check and keep the control disabled afterwards.
+ *
+ * The cooldown is the server's, re-stated here so the button greys out instead
+ * of letting an admin collect `CHANNEL_VERIFICATION_THROTTLED` by clicking. It
+ * is a courtesy, not the enforcement — that lives on the server, because a
+ * disabled button is not a rate limit.
+ *
+ * Nothing is invalidated on success: this reads the provider, not our state.
+ */
+export const useVerifyChannel = () => {
+  const [cooldownUntil, setCooldownUntil] = useState(0)
+  const [, forceTick] = useState(0)
+
+  const mutation = useMutation({
+    mutationFn: channelAPI.verify,
+    onSettled: () => setCooldownUntil(Date.now() + CHANNEL_VERIFY_COOLDOWN_MS),
+  })
+
+  // Re-render once when the cooldown lapses; without this the button stays
+  // disabled until some unrelated render happens to come along.
+  useEffect(() => {
+    if (cooldownUntil <= Date.now()) return
+    const timer = setTimeout(
+      () => forceTick((tick) => tick + 1),
+      cooldownUntil - Date.now(),
+    )
+    return () => clearTimeout(timer)
+  }, [cooldownUntil])
+
+  return {
+    ...mutation,
+    coolingDown: cooldownUntil > Date.now(),
+  }
 }
 
 export const useDeleteChannel = () => {

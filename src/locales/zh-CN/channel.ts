@@ -23,6 +23,8 @@ export default {
       cancel: '取消',
       retry: '重试',
       saveDraft: '保存草稿',
+      verify: '测试连接',
+      verifying: '测试中…',
       more: '{{name}} 的更多操作',
     },
     status: {
@@ -192,6 +194,17 @@ export default {
         '渠道配置不完整或已失效（凭据缺失、未绑定目标、或绑定的 Agent 版本已过期）',
       CHANNEL_SECRET_STORE_UNAVAILABLE:
         '密钥库当前不可用，这不是配置问题，请联系运维',
+      // 下面五个只可能来自连接自检。前两个是「凭据错了，去改」，
+      // 第三个是「这次没查成，凭据可能没问题」——**不能写成同一句**，
+      // 否则会让人去重填一个本来正确的密钥。
+      CHANNEL_CREDENTIAL_REJECTED:
+        '服务商拒绝了这份凭据：App ID 或密钥不正确，请重新填写',
+      CHANNEL_CREDENTIAL_INCOMPLETE: '凭据字段填写不完整，请补齐后重试',
+      CHANNEL_VERIFICATION_UNAVAILABLE:
+        '这次没能验证成功（连不上服务商），**不代表凭据有问题**；稍后重试，持续如此请联系运维检查出网',
+      CHANNEL_VERIFICATION_NOT_SUPPORTED:
+        '该渠道类型暂不支持连接自检，可直接保存并查看运行状态',
+      CHANNEL_VERIFICATION_THROTTLED: '刚刚已经测过了，请稍等几秒再试',
       CHANNEL_OPERATION_FAILED: '服务端处理失败，请联系运维并提供操作时间',
     },
     messages: {
@@ -202,6 +215,8 @@ export default {
       toggleFailed: '渠道状态更新失败',
       deleted: '渠道已删除',
       deleteFailed: '渠道删除失败',
+      verifyPassed: '连接正常：服务商已确认这份凭据可用',
+      verifyFailed: '连接测试未通过',
     },
     delete: {
       title: '删除渠道？',

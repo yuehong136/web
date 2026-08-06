@@ -26,6 +26,8 @@ export default {
       cancel: 'Cancel',
       retry: 'Retry',
       saveDraft: 'Save draft',
+      verify: 'Test connection',
+      verifying: 'Testing…',
       more: 'More actions for {{name}}',
     },
     status: {
@@ -204,6 +206,20 @@ export default {
         'The channel configuration is incomplete or no longer valid (missing credentials, no bound target, or a stale Agent revision)',
       CHANNEL_SECRET_STORE_UNAVAILABLE:
         'The secret store is unavailable. This is not a configuration problem — contact your operators.',
+      // The five below only ever come from the connection self-check. The
+      // first two mean "the credential is wrong, go change it"; the third
+      // means "we could not tell" — they must never share wording, or an
+      // admin re-types a secret that was correct all along.
+      CHANNEL_CREDENTIAL_REJECTED:
+        'The provider rejected this credential. Check the App ID and secret, then save again.',
+      CHANNEL_CREDENTIAL_INCOMPLETE:
+        'Some credential fields are missing. Fill them in and try again.',
+      CHANNEL_VERIFICATION_UNAVAILABLE:
+        'The check could not be completed — the provider was unreachable. This says nothing about your credential. Try again shortly; if it persists, ask your operators to check outbound access.',
+      CHANNEL_VERIFICATION_NOT_SUPPORTED:
+        'This channel type cannot self-check yet. Save it and watch the runtime status instead.',
+      CHANNEL_VERIFICATION_THROTTLED:
+        'That was just checked. Give it a few seconds.',
       CHANNEL_OPERATION_FAILED:
         'The server failed to process the request. Contact your operators with the time it happened.',
     },
@@ -215,6 +231,8 @@ export default {
       toggleFailed: 'Unable to update the channel state',
       deleted: 'Channel deleted',
       deleteFailed: 'Unable to delete the channel',
+      verifyPassed: 'Connection works — the provider accepted this credential',
+      verifyFailed: 'Connection test did not pass',
     },
     delete: {
       title: 'Delete channel?',

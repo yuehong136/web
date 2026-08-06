@@ -4,6 +4,7 @@ import {
   buildChannelMutationPayload,
   channelAPI,
   channelErrorMessageKey,
+  channelVerifyFailure,
   CHANNEL_API_VERSION,
   CHANNEL_ERROR_CODES,
   RUNTIME_STATES,
@@ -26,7 +27,11 @@ import {
   RENDERABLE_KINDS,
 } from '@/pages/settings/channels/form-spec'
 import { apiClient, type RequestConfig } from '../client'
-import { channelKeys, saveChannel } from '@/hooks/use-channel-request'
+import {
+  CHANNEL_VERIFY_COOLDOWN_MS,
+  channelKeys,
+  saveChannel,
+} from '@/hooks/use-channel-request'
 import {
   createChannelFormSchema,
   getChannelFormDefaults,
@@ -318,6 +323,90 @@ test('every server error code maps to its own message key', () => {
   // The catch-all branch is included: it is the likeliest failure to reach an
   // admin, so it is the one that must not be left without actionable text.
   assert.ok(CHANNEL_ERROR_CODES.includes('CHANNEL_OPERATION_FAILED'))
+})
+
+test('the self-check posts to the saved channel and sends no credential', async () => {
+  const originalPost = apiClient.post
+  const calls: Array<{ endpoint: string; body: unknown }> = []
+  apiClient.post = (async (endpoint: string, body: unknown) => {
+    calls.push({ endpoint, body })
+    return { verified: true, provider: 'feishu' }
+  }) as typeof apiClient.post
+
+  try {
+    await channelAPI.verify('channel/one')
+  } finally {
+    apiClient.post = originalPost
+  }
+
+  // Path-encoded like every other id-bearing endpoint, and — the part that
+  // matters — no body. The server checks the credential it already stored, so
+  // the secret never leaves the browser a second time.
+  assert.equal(calls[0].endpoint, '/chat-channels/channel%2Fone/verify')
+  assert.equal(calls[0].body, undefined)
+})
+
+test('a rejected credential and an unreachable provider never read the same', () => {
+  // The whole point of the endpoint. Collapsing these sends an admin to
+  // re-type a secret that was correct, which is the wasted loop CHN-O6 exists
+  // to remove — reappearing one layer up.
+  assert.equal(
+    channelVerifyFailure({
+      details: { error_code: 'CHANNEL_CREDENTIAL_REJECTED' },
+    }),
+    'rejected',
+  )
+  assert.equal(
+    channelVerifyFailure({
+      details: { error_code: 'CHANNEL_VERIFICATION_UNAVAILABLE' },
+    }),
+    'unreachable',
+  )
+  assert.notEqual(
+    channelErrorMessageKey(
+      { details: { error_code: 'CHANNEL_CREDENTIAL_REJECTED' } },
+      'fallback',
+    ),
+    channelErrorMessageKey(
+      { details: { error_code: 'CHANNEL_VERIFICATION_UNAVAILABLE' } },
+      'fallback',
+    ),
+  )
+
+  assert.equal(
+    channelVerifyFailure({
+      details: { error_code: 'CHANNEL_VERIFICATION_THROTTLED' },
+    }),
+    'throttled',
+  )
+  assert.equal(
+    channelVerifyFailure({
+      details: { error_code: 'CHANNEL_VERIFICATION_NOT_SUPPORTED' },
+    }),
+    'unsupported',
+  )
+  // An incomplete credential is still the admin's to fix, so it groups with
+  // rejection rather than becoming a fourth thing to explain.
+  assert.equal(
+    channelVerifyFailure({
+      details: { error_code: 'CHANNEL_CREDENTIAL_INCOMPLETE' },
+    }),
+    'rejected',
+  )
+  // Anything else, including a backend that predates the endpoint.
+  assert.equal(channelVerifyFailure(new Error('boom')), 'unknown')
+  assert.equal(channelVerifyFailure(null), 'unknown')
+  assert.equal(
+    channelVerifyFailure({ details: { error_code: 'WAT' } }),
+    'unknown',
+  )
+})
+
+test('the client cooldown restates the server cooldown rather than guessing', () => {
+  // A disabled button is a courtesy, not a rate limit -- but if the two
+  // numbers drift the courtesy stops working and admins collect throttle
+  // errors by clicking.
+  assert.equal(CHANNEL_VERIFY_COOLDOWN_MS, 10 * 1000)
 })
 
 test('runtime state vocabulary matches the server, with no invented values', () => {

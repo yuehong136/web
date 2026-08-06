@@ -65,6 +65,11 @@ export const CHANNEL_ERROR_CODES = [
   'CHANNEL_TARGET_NOT_ACCESSIBLE',
   'INVALID_CHANNEL_CONFIGURATION',
   'CHANNEL_SECRET_STORE_UNAVAILABLE',
+  'CHANNEL_CREDENTIAL_REJECTED',
+  'CHANNEL_CREDENTIAL_INCOMPLETE',
+  'CHANNEL_VERIFICATION_UNAVAILABLE',
+  'CHANNEL_VERIFICATION_NOT_SUPPORTED',
+  'CHANNEL_VERIFICATION_THROTTLED',
   'CHANNEL_OPERATION_FAILED',
 ] as const
 
@@ -88,6 +93,38 @@ export const channelErrorMessageKey = (
   const details = (error as { details?: unknown } | null)?.details
   const code = (details as { error_code?: unknown } | null)?.error_code
   return isChannelErrorCode(code) ? `channel.errorCodes.${code}` : fallbackKey
+}
+
+/**
+ * How a failed self-check should read to an admin.
+ *
+ * `rejected` and `unreachable` must never collapse into one another. A
+ * rejection means go re-enter the credential; an unreachable provider says
+ * nothing at all about the credential, and rendering it as a rejection sends
+ * someone to re-type a secret that was correct — the same wasted loop the
+ * self-check exists to remove, in a new costume.
+ */
+export type ChannelVerifyFailure =
+  | 'rejected'
+  | 'unreachable'
+  | 'throttled'
+  | 'unsupported'
+  | 'unknown'
+
+const VERIFY_FAILURES: Record<string, ChannelVerifyFailure> = {
+  CHANNEL_CREDENTIAL_REJECTED: 'rejected',
+  CHANNEL_CREDENTIAL_INCOMPLETE: 'rejected',
+  CHANNEL_VERIFICATION_UNAVAILABLE: 'unreachable',
+  CHANNEL_VERIFICATION_THROTTLED: 'throttled',
+  CHANNEL_VERIFICATION_NOT_SUPPORTED: 'unsupported',
+}
+
+export const channelVerifyFailure = (error: unknown): ChannelVerifyFailure => {
+  const details = (error as { details?: unknown } | null)?.details
+  const code = (details as { error_code?: unknown } | null)?.error_code
+  return typeof code === 'string'
+    ? (VERIFY_FAILURES[code] ?? 'unknown')
+    : 'unknown'
 }
 
 export interface ChannelJsonSchemaProperty {
@@ -232,6 +269,11 @@ export interface ChatChannelList {
  */
 export type RenderableProviderManifest = ChannelProviderManifest & {
   form: ChannelProviderForm
+}
+
+export interface ChannelVerifyResult {
+  verified: boolean
+  provider: ChannelProvider
 }
 
 export interface ChannelProviderList {
@@ -412,6 +454,24 @@ export const channelAPI = {
   async runtime(id: string): Promise<ChannelRuntime> {
     return apiClient.get(
       `/chat-channels/${encodeURIComponent(id)}/runtime`,
+      sdkBase,
+    )
+  },
+
+  /**
+   * Check the credential this channel already has against its provider.
+   *
+   * Deliberately sends no body: the server checks what it stored, so the
+   * secret never leaves the browser a second time. That also means this only
+   * works on a saved channel — there is no "try before saving".
+   *
+   * Server-side there is a per-channel cooldown; exceeding it fails with
+   * `CHANNEL_VERIFICATION_THROTTLED` rather than queueing.
+   */
+  async verify(id: string): Promise<ChannelVerifyResult> {
+    return apiClient.post(
+      `/chat-channels/${encodeURIComponent(id)}/verify`,
+      undefined,
       sdkBase,
     )
   },
