@@ -10,7 +10,31 @@
  * `MultiRAG:docs/channel-program/CONTRACT.md` §5.
  */
 
-import type { ChannelFormField, ChatChannel } from '@/api/channel'
+import type {
+  ChannelFieldKind,
+  ChannelFormField,
+  ChatChannel,
+} from '@/api/channel'
+
+/**
+ * The kinds this build can draw a real input for.
+ *
+ * Lives here rather than inline in the renderer so a test can see it: it is
+ * what decides whether a provider the client has never heard of gets a usable
+ * form or a row of disabled placeholders, and that is the property the whole
+ * server-owned FieldSpec contract is for. Anything outside this list still
+ * renders — disabled, with its label — instead of throwing.
+ */
+export const RENDERABLE_KINDS: readonly ChannelFieldKind[] = [
+  'text',
+  'password',
+  'string_list',
+  'select',
+  'switch',
+]
+
+export const isRenderableKind = (kind: ChannelFieldKind): boolean =>
+  RENDERABLE_KINDS.includes(kind)
 
 /** Split a value out of nested config by dotted path. */
 export const readPath = (source: unknown, path: string): unknown => {

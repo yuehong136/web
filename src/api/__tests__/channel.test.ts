@@ -19,6 +19,7 @@ import {
   assembleConfig,
   buildFormValues,
   missingRequiredFields,
+  RENDERABLE_KINDS,
 } from '@/pages/settings/channels/form-spec'
 import { apiClient, type RequestConfig } from '../client'
 import { channelKeys, saveChannel } from '@/hooks/use-channel-request'
@@ -563,4 +564,121 @@ test('listProviders drops every manifest this client cannot render', async () =>
   } finally {
     apiClient.get = originalGet
   }
+})
+
+// The DingTalk form exactly as the backend emits it, copied from
+// `GET /chat-channels/providers` (MultiRAG:api/channel_providers/dingtalk.py).
+// Kept verbatim, nulls included, so this fails if the wire shape drifts rather
+// than if someone tidied the fixture.
+const DINGTALK_FIELDS: ChannelFormField[] = [
+  {
+    path: 'credential.client_id',
+    kind: 'text',
+    label: 'Client ID',
+    i18n_key: 'channel.fields.client_id',
+    required: true,
+    secret: false,
+    placeholder: 'dingxxxxxxxxxxxxxxxx',
+    help_text: 'Called AppKey in older DingTalk consoles.',
+    default: null,
+    options: null,
+    max_length: null,
+    max_items: null,
+  },
+  {
+    path: 'credential.client_secret',
+    kind: 'password',
+    label: 'Client Secret',
+    i18n_key: 'channel.fields.client_secret',
+    required: true,
+    secret: true,
+    placeholder: null,
+    help_text: null,
+    default: null,
+    options: null,
+    max_length: null,
+    max_items: null,
+  },
+  {
+    path: 'robot_code',
+    kind: 'text',
+    label: 'Robot code',
+    i18n_key: 'channel.fields.robot_code',
+    required: true,
+    secret: false,
+    placeholder: null,
+    help_text: null,
+    default: null,
+    options: null,
+    max_length: null,
+    max_items: null,
+  },
+  {
+    path: 'allowed_user_ids',
+    kind: 'string_list',
+    label: 'Allowed user IDs',
+    i18n_key: 'channel.fields.allowed_user_ids',
+    required: false,
+    secret: false,
+    placeholder: null,
+    help_text: null,
+    default: null,
+    options: null,
+    max_length: null,
+    max_items: 1000,
+  },
+]
+
+test('a provider this build has never heard of renders and submits', () => {
+  // The cross-repo acceptance criterion (CHN-X3), as far as it goes without a
+  // live DingTalk transport: this file was written before DingTalk existed and
+  // still names none of its fields. Every assertion below is derived from the
+  // server's field list.
+  assert.deepEqual(
+    DINGTALK_FIELDS.map((field) => field.kind).filter(
+      (kind) => !RENDERABLE_KINDS.includes(kind),
+    ),
+    [],
+  )
+
+  const defaults = getChannelFormDefaults(DINGTALK_FIELDS, 'dingtalk')
+  assert.deepEqual(defaults.config, {
+    'credential/client_id': '',
+    robot_code: '',
+    allowed_user_ids: '',
+  })
+  // Secrets live in their own bucket and start blank, whatever the provider
+  // calls them — `client_secret` here, `app_secret` for Feishu.
+  assert.deepEqual(defaults.secrets, { 'credential/client_secret': '' })
+
+  // Required-ness comes from the form layer, so an empty form is incomplete
+  // without this file knowing which fields matter.
+  assert.deepEqual(missingRequiredFields(DINGTALK_FIELDS, defaults, false), [
+    'credential.client_id',
+    'credential.client_secret',
+    'robot_code',
+  ])
+
+  const filled = {
+    ...defaults,
+    config: {
+      'credential/client_id': 'dingaaaaaaaaaaaaaaaa',
+      robot_code: 'robot-aaaa',
+      allowed_user_ids: 'user_a, user_b',
+    },
+    secrets: { 'credential/client_secret': 'secret-aaaa-bbbb-cccc' },
+  }
+  assert.deepEqual(missingRequiredFields(DINGTALK_FIELDS, filled, false), [])
+
+  // The payload the backend's DingTalkConfigInput accepts. Asserted verbatim
+  // in MultiRAG:tests/unit/test_channel_provider_spec.py so the two halves of
+  // this acceptance cannot drift apart.
+  assert.deepEqual(assembleConfig(DINGTALK_FIELDS, filled), {
+    credential: {
+      client_id: 'dingaaaaaaaaaaaaaaaa',
+      client_secret: 'secret-aaaa-bbbb-cccc',
+    },
+    robot_code: 'robot-aaaa',
+    allowed_user_ids: ['user_a', 'user_b'],
+  })
 })

@@ -19,7 +19,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import type { ChannelFormField } from '@/api/channel'
-import { fieldKey } from '../form-spec'
+import { fieldKey, isRenderableKind } from '../form-spec'
 import type { ChannelFormValues } from '../form-model'
 
 interface ProviderFieldsProps {
@@ -64,12 +64,7 @@ const ProviderField = ({
     | `secrets.${string}`
     | `config.${string}`
 
-  const isKnownKind =
-    field.kind === 'text' ||
-    field.kind === 'password' ||
-    field.kind === 'string_list' ||
-    field.kind === 'select' ||
-    field.kind === 'switch'
+  const isKnownKind = isRenderableKind(field.kind)
 
   return (
     <FormField<ChannelFormValues, typeof name>
