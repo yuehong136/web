@@ -13,7 +13,7 @@ export function McpCard({ server, selected, onToggle }: McpCardProps) {
     <Card
       variant="interactive"
       padding="sm"
-      className="flex items-start justify-between gap-space-sm"
+      className="gap-space-sm flex items-start justify-between"
       onClick={() => onToggle(server.id)}
     >
       <div className="space-y-1">
@@ -21,13 +21,19 @@ export function McpCard({ server, selected, onToggle }: McpCardProps) {
           {server.name}
         </div>
         {server.description && (
-          <div className="text-xs text-text-secondary">{server.description}</div>
+          <div className="text-xs text-text-secondary">
+            {server.description}
+          </div>
         )}
         <div className="text-xs text-text-tertiary">
           {server.server_type} · {server.url}
         </div>
       </div>
-      <Checkbox checked={selected} />
+      <Checkbox
+        checked={selected}
+        onCheckedChange={() => onToggle(server.id)}
+        onClick={(event) => event.stopPropagation()}
+      />
     </Card>
   )
 }

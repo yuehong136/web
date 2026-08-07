@@ -6,10 +6,7 @@ import useGraphStore from '../store'
 
 export function useWatchFormChange<
   TFieldValues extends FieldValues = FieldValues,
->(
-  id?: string,
-  form?: UseFormReturn<TFieldValues>,
-) {
+>(id?: string, form?: UseFormReturn<TFieldValues>) {
   const values = useWatch({ control: form?.control })
   const binding = useFormBinding()
   const updateNodeForm = useGraphStore((state) => state.updateNodeForm)
@@ -17,9 +14,10 @@ export function useWatchFormChange<
   const path = binding?.path
 
   useEffect(() => {
-    if (nodeId) {
-      const nextValues = form?.getValues() || {}
-      updateNodeForm(nodeId, nextValues, path)
+    if (!nodeId || !form?.formState.isDirty) {
+      return
     }
+    const nextValues = form.getValues() || {}
+    updateNodeForm(nodeId, nextValues, path)
   }, [form, form?.formState.isDirty, nodeId, path, updateNodeForm, values])
 }
