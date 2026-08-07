@@ -9,7 +9,6 @@ import {
   canShowSingleStepDebug,
   groupCodeExecDebugOutput,
   isFormSheetTitleEditable,
-  MCP_FORM_RENDERER_KEY,
   normalizeCodeExecActualTypeForContract,
   parseCodeExecAttachmentLink,
   parseCodeExecContractMismatch,
@@ -37,7 +36,7 @@ test('normal operator metadata resolves from registry defaults', () => {
     }),
     operatorDefinition?.iconKey,
   )
-  assert.equal(resolveLegacyRendererKey(Operator.Agent, false), Operator.Agent)
+  assert.equal(resolveLegacyRendererKey(Operator.Agent), Operator.Agent)
 })
 
 test('root nodes stay read-only while normal nodes remain editable', () => {
@@ -295,10 +294,7 @@ test('tool context resolves legacy tool metadata and MCP context separately', ()
     }),
     Operator.Wikipedia,
   )
-  assert.equal(
-    resolveLegacyRendererKey(Operator.Tool, Boolean(toolContext?.mcpServer)),
-    Operator.Tool,
-  )
+  assert.equal(resolveLegacyRendererKey(Operator.Tool), Operator.Tool)
 
   assert.equal(mcpContext?.mcpServer?.id, 'mcp-1')
   assert.equal(mcpContext?.agentNodeId, agentNode.id)
@@ -319,14 +315,11 @@ test('tool context resolves legacy tool metadata and MCP context separately', ()
     }),
     Operator.Tool,
   )
-  assert.equal(
-    resolveLegacyRendererKey(Operator.Tool, Boolean(mcpContext?.mcpServer)),
-    MCP_FORM_RENDERER_KEY,
-  )
+  assert.equal(resolveLegacyRendererKey(Operator.Tool), Operator.Tool)
 })
 
 test('unknown operators fall back safely when no renderer or registry metadata exists', () => {
-  assert.equal(resolveLegacyRendererKey(undefined, false), undefined)
+  assert.equal(resolveLegacyRendererKey(undefined), undefined)
   assert.equal(
     resolveFormSheetDescription({
       operatorType: 'UnknownOperator' as Operator,

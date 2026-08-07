@@ -72,10 +72,7 @@ export function useResolvedFormSheetContext(
       }),
       titleEditable: isFormSheetTitleEditable(operatorDefinition),
       debugEnabled: canShowSingleStepDebug(operatorDefinition),
-      rendererKey: resolveLegacyRendererKey(
-        operatorType,
-        Boolean(toolContext?.mcpServer),
-      ),
+      rendererKey: resolveLegacyRendererKey(operatorType),
     }),
     [node, operatorType, operatorDefinition, toolContext, t],
   )

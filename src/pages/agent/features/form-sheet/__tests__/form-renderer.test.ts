@@ -33,7 +33,6 @@ import { EmailForm } from '../../../form/email'
 import { GithubForm } from '../../../form/github'
 import { GoogleForm } from '../../../form/google'
 import { GoogleScholarForm } from '../../../form/google-scholar'
-import { McpForm } from '../../../form/mcp-form'
 import { PubMedForm } from '../../../form/pubmed'
 import { SearXNGForm } from '../../../form/searxng'
 import { TavilyExtractForm } from '../../../form/tavily-extract'
@@ -46,7 +45,6 @@ import {
   migratedFormRenderers,
   resolveFormRendererComponent,
 } from '../components/form-renderer-registry'
-import { MCP_FORM_RENDERER_KEY } from '../utils'
 
 test('migrated operators resolve to directory modules in the form renderer', () => {
   assert.equal(resolveFormRendererComponent(Operator.Begin), BeginForm)
@@ -178,15 +176,13 @@ test('migrated operators resolve to directory modules in the form renderer', () 
   assert.equal(migratedFormRenderers[Operator.Email], EmailForm)
 })
 
-test('legacy operators and the MCP renderer stay on compatibility bridges', () => {
+test('legacy operators stay on compatibility bridges', () => {
   assert.equal(resolveFormRendererComponent(Operator.Code), CodeForm)
   assert.equal(resolveFormRendererComponent(Operator.WaitingDialogue), CodeForm)
   assert.equal(resolveFormRendererComponent(Operator.Bing), BingForm)
   assert.equal(resolveFormRendererComponent(Operator.Email), EmailForm)
-  assert.equal(resolveFormRendererComponent(MCP_FORM_RENDERER_KEY), McpForm)
   assert.equal(legacyFormRenderers[Operator.Bing], undefined)
   assert.equal(legacyFormRenderers[Operator.Email], undefined)
-  assert.equal(legacyFormRenderers[MCP_FORM_RENDERER_KEY], McpForm)
   assert.equal(resolveFormRendererComponent(undefined), null)
 })
 
