@@ -12,7 +12,10 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Clipboard, Plus, X } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
+import { toast } from '@/lib/toast'
+import { copyToClipboard } from '@/lib/utils'
 import type { INextOperatorForm } from '../../types'
 import { FormWrapper } from '../components'
 import { A2UIBasicCatalogId } from '../../constant'
@@ -28,7 +31,8 @@ const a2uiSchema = z.object({
 })
 
 export function A2UIForm({ node }: INextOperatorForm) {
-  const [copyLabel, setCopyLabel] = useState('Copy agent prompt')
+  const { t } = useTranslation()
+  const [copied, setCopied] = useState(false)
   const values = useA2UIFormValues(node)
   const form = useForm({
     resolver: zodResolver(a2uiSchema),
@@ -41,11 +45,16 @@ export function A2UIForm({ node }: INextOperatorForm) {
 
   useWatchA2UIFormChange(node?.id, form)
 
-  const handleCopyPrompt = useCallback(() => {
-    void navigator.clipboard?.writeText(A2UI_AGENT_PROMPT_TEMPLATE)
-    setCopyLabel('Copied')
-    window.setTimeout(() => setCopyLabel('Copy agent prompt'), 1200)
-  }, [])
+  const handleCopyPrompt = useCallback(async () => {
+    try {
+      await copyToClipboard(A2UI_AGENT_PROMPT_TEMPLATE)
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 1200)
+    } catch {
+      setCopied(false)
+      toast.error(t('common.copyFailed', 'Copy failed'))
+    }
+  }, [t])
 
   return (
     <Form {...form}>
@@ -106,7 +115,9 @@ export function A2UIForm({ node }: INextOperatorForm) {
               <FormLabel>Agent prompt template</FormLabel>
               <Button type="button" variant="outline" size="sm" onClick={handleCopyPrompt}>
                 <Clipboard className="size-4" />
-                {copyLabel}
+                {copied
+                  ? t('common.copied', 'Copied')
+                  : t('flow.copyAgentPrompt', 'Copy agent prompt')}
               </Button>
             </div>
             <pre className="max-h-60 overflow-auto whitespace-pre-wrap rounded-radius-sm bg-surface-primary p-space-sm text-xs leading-5 text-text-secondary">

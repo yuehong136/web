@@ -6,7 +6,9 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
+import { toast } from '@/lib/toast'
 import { cn, copyToClipboard } from '@/lib/utils'
 import { formatTracePayload } from '../utils'
 
@@ -16,7 +18,6 @@ interface DisplayLine {
   number?: number
   text: string
 }
-
 interface TraceJsonViewerProps {
   title: string
   value: unknown
@@ -69,6 +70,7 @@ export function TraceJsonViewer({
   className,
   dedupeArrays = false,
 }: TraceJsonViewerProps) {
+  const { t } = useTranslation()
   const [copied, setCopied] = useState(false)
   const [collapsed, setCollapsed] = useState(false)
   const payload = useMemo(
@@ -84,9 +86,14 @@ export function TraceJsonViewer({
   const panelHeight = resolvePanelHeight(height)
 
   const handleCopy = async () => {
-    await copyToClipboard(payload.text)
-    setCopied(true)
-    window.setTimeout(() => setCopied(false), 1400)
+    try {
+      await copyToClipboard(payload.text)
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 1400)
+    } catch {
+      setCopied(false)
+      toast.error(t('common.copyFailed', '复制失败'))
+    }
   }
 
   return (

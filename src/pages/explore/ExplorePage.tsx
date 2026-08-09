@@ -39,7 +39,8 @@ import {
 } from '@/components/chat/MarkdownCodeBlock'
 import { Button } from '@/components/ui/button'
 import { FileIcon, getFileCategory } from '@/components/ui/file-icon'
-import { cn, copyToClipboard, formatBytes } from '@/lib/utils'
+import { copyToClipboardWithFeedback } from '@/lib/clipboard'
+import { cn, formatBytes } from '@/lib/utils'
 import { toast } from '@/lib/toast'
 import {
   findFirstEnabledModelByType,
@@ -863,10 +864,12 @@ export const ExplorePage: FC = () => {
 
   // 处理复制
   const handleCopyContent = useCallback(
-    (content: string) => {
-      copyToClipboard(content)
-      toast.success(t('explore.toast.copied'))
-    },
+    (content: string) =>
+      copyToClipboardWithFeedback(
+        content,
+        t('explore.toast.copied'),
+        t('explore.toast.copyFailed'),
+      ),
     [t],
   )
 
@@ -1195,14 +1198,7 @@ export const ExplorePage: FC = () => {
             msg.role === 'assistant' && !isCurrentStreamingMessage ? (
               <MessageActionsFooter
                 content={msg.content || ''}
-                onCopy={async () => {
-                  try {
-                    await copyToClipboard(msg.content || '')
-                    toast.success(t('explore.toast.copied'))
-                  } catch {
-                    toast.error(t('explore.toast.copyFailed'))
-                  }
-                }}
+                onCopy={() => handleCopyContent(msg.content || '')}
                 onRegenerate={() => handleRegenerateMessage(index)}
                 onLike={() => toast.success(t('explore.toast.like'))}
                 onDislike={() => toast.success(t('explore.toast.dislike'))}

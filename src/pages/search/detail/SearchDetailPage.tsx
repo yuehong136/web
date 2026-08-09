@@ -103,9 +103,13 @@ export const SearchDetailPage: React.FC = () => {
     }
   }, [setSettingsOpen, settingsOpen])
 
-  const handleShare = useCallback(() => {
-    copyToClipboard(window.location.href)
-    toast.success('链接已复制')
+  const handleShare = useCallback(async () => {
+    try {
+      await copyToClipboard(window.location.href)
+      toast.success('链接已复制')
+    } catch {
+      toast.error('复制失败')
+    }
   }, [])
 
   const handleExport = useCallback(() => {

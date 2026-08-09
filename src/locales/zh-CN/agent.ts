@@ -235,6 +235,9 @@ export default {
       duration: '总耗时',
       slowestNode: '最慢节点',
       refresh: '刷新 Trace',
+      sessionIdCopied: '已复制 Session ID',
+      rawJsonCopied: '已复制原始 JSON',
+      tracePathsCopied: '已复制 Trace 路径',
     },
   },
 }

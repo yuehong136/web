@@ -58,7 +58,7 @@ import {
   hasServerTools,
 } from '@/hooks/use-mcp-request'
 import { toast } from '@/lib/toast'
-import { cn } from '@/lib/utils'
+import { cn, copyToClipboard } from '@/lib/utils'
 
 interface ServerListPageProps {
   onServerSelect?: (serverId: string) => void
@@ -240,7 +240,7 @@ export const MCPServersPage: React.FC<ServerListPageProps> = ({
   // 复制 URL
   const handleCopyUrl = async (server: MCPServer) => {
     try {
-      await navigator.clipboard.writeText(server.url)
+      await copyToClipboard(server.url)
       setCopiedId(server.id)
       toast.success(t('mcp.servers.copySuccess', '已复制服务器地址'))
       setTimeout(() => setCopiedId(null), 2000)

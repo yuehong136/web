@@ -1,6 +1,8 @@
 import { memo, useCallback, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useShikiHighlighter } from 'react-shiki'
 import { Check, Copy } from 'lucide-react'
+import { toast } from '@/lib/toast'
 import { cn, copyToClipboard } from '@/lib/utils'
 import { CODE_THEMES, shikiEngine } from './shiki-engine'
 import './code-block.css'
@@ -34,6 +36,7 @@ export const CodeBlock = memo(function CodeBlock({
   streaming = false,
   className,
 }: CodeBlockProps) {
+  const { t } = useTranslation()
   const [copied, setCopied] = useState(false)
   const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const normalizedLanguage = (language || FALLBACK_LANGUAGE).toLowerCase()
@@ -49,12 +52,17 @@ export const CodeBlock = memo(function CodeBlock({
     },
   )
 
-  const handleCopy = useCallback(() => {
-    copyToClipboard(code)
-    setCopied(true)
-    if (copyTimerRef.current) clearTimeout(copyTimerRef.current)
-    copyTimerRef.current = setTimeout(() => setCopied(false), 1500)
-  }, [code])
+  const handleCopy = useCallback(async () => {
+    try {
+      await copyToClipboard(code)
+      setCopied(true)
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current)
+      copyTimerRef.current = setTimeout(() => setCopied(false), 1500)
+    } catch {
+      setCopied(false)
+      toast.error(t('common.copyFailed', '复制失败'))
+    }
+  }, [code, t])
 
   return (
     <div
@@ -72,15 +80,15 @@ export const CodeBlock = memo(function CodeBlock({
             type="button"
             onClick={handleCopy}
             className="hover:bg-surface-primary flex items-center gap-1 rounded px-1.5 py-0.5 text-xs text-text-tertiary transition-colors hover:text-text-secondary"
-            aria-label="复制代码"
+            aria-label={t('common.copy', '复制')}
           >
             {copied ? (
               <>
-                <Check className="size-3.5" /> 已复制
+                <Check className="size-3.5" /> {t('common.copied', '已复制')}
               </>
             ) : (
               <>
-                <Copy className="size-3.5" /> 复制
+                <Copy className="size-3.5" /> {t('common.copy', '复制')}
               </>
             )}
           </button>

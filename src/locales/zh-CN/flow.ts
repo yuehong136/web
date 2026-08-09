@@ -1,6 +1,7 @@
 export default {
   flow: {
     copy: '复制',
+    copyAgentPrompt: '复制智能体提示词',
     debug: '调试',
     delete: '删除',
     debugNode: '调试节点',

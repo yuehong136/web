@@ -77,9 +77,13 @@ const SearchSummaryCard = ({
     () =>
       createReferenceMarkerComponent(referenceChunks, {
         onViewDetail: handleViewReferenceDetail,
-        onCopy: (content) => {
-          copyToClipboard(content)
-          toast.success('已复制到剪贴板')
+        onCopy: async (content) => {
+          try {
+            await copyToClipboard(content)
+            toast.success('已复制到剪贴板')
+          } catch {
+            toast.error('复制失败')
+          }
         },
       }),
     [handleViewReferenceDetail, referenceChunks],

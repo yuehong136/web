@@ -3,6 +3,7 @@ import { Copy, Trash2, Eye, EyeOff } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { toast } from '@/lib/toast'
+import { copyToClipboard } from '@/lib/utils'
 
 export interface CreateModeVariable {
   id: string
@@ -33,7 +34,7 @@ export function CreateModeVariablesTable({
 
   const copyValue = async (value: string) => {
     try {
-      await navigator.clipboard.writeText(value)
+      await copyToClipboard(value)
       toast.success('变量值已复制')
     } catch {
       toast.error('复制失败')

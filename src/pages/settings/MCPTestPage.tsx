@@ -200,11 +200,6 @@ export const MCPTestPage: React.FC = () => {
     }
   }
 
-  const _copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text)
-    toast.success('已复制到剪贴板')
-  }
-
   const getServerTypeDescription = (type: string) => {
     const descriptions: Record<string, string> = {
       'stdio': '标准输入输出协议，适合本地进程通信',

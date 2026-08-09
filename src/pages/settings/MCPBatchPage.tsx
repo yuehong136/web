@@ -28,6 +28,7 @@ import {
 import type { MCPServer } from '@/types/mcp'
 import { mcpAPI } from '@/api/mcp'
 import { toast } from '@/lib/toast'
+import { copyToClipboardWithFeedback } from '@/lib/clipboard'
 
 interface BatchOperation {
   type: 'import' | 'export' | 'delete'
@@ -231,10 +232,8 @@ export const MCPBatchPage: React.FC = () => {
     }
   }
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text)
-    toast.success('已复制到剪贴板')
-  }
+  const copyExportResult = (text: string) =>
+    copyToClipboardWithFeedback(text, '已复制到剪贴板', '复制失败')
 
   const downloadFile = (content: string, filename: string) => {
     const blob = new Blob([content], { type: 'application/json' })
@@ -404,7 +403,7 @@ export const MCPBatchPage: React.FC = () => {
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => copyToClipboard(exportResult)}
+                              onClick={() => copyExportResult(exportResult)}
                             >
                               <Copy className="h-3 w-3 mr-1" />
                               复制

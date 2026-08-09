@@ -54,6 +54,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { useCopyFeedback } from '@/hooks/use-copy-feedback'
 import { cn } from '@/lib/utils'
 import type { MemoryMessage, MemoryType } from '@/types/memory'
 
@@ -166,19 +167,12 @@ export function MemoryMessageTable({
   )
   const [isContentLoading, setIsContentLoading] = useState(false)
   const [contentError, setContentError] = useState<string | null>(null)
-  const [copiedId, setCopiedId] = useState<string | null>(null)
+  const { copiedStates, copyWithFeedback: handleCopy } = useCopyFeedback()
   const getMemoryTypeLabel = (type: MemoryType) =>
     t(`memory.filters.${type}`, type)
   const parsedContent = parseMemoryContent(selectedMessage?.content)
   const vectorPreview = formatVectorPreview(selectedMessage?.content_embed)
   const vectorDimensions = getVectorDimensions(selectedMessage?.content_embed)
-
-  // 复制到剪贴板
-  const handleCopy = async (text: string, id: string) => {
-    await navigator.clipboard.writeText(text)
-    setCopiedId(id)
-    setTimeout(() => setCopiedId(null), 2000)
-  }
 
   // 打开遗忘确认弹窗
   const handleOpenForgetDialog = (messageId: number) => {
@@ -261,7 +255,7 @@ export function MemoryMessageTable({
               size="icon-sm"
               onClick={() => handleCopy(id, `session-${id}`)}
             >
-              {copiedId === `session-${id}` ? (
+              {copiedStates[`session-${id}`] ? (
                 <Check className="size-4 text-status-success" />
               ) : (
                 <Copy className="size-4" />
@@ -579,8 +573,9 @@ export function MemoryMessageTable({
                               }
                               title={t('common.copy')}
                             >
-                              {copiedId ===
-                              `user-${selectedMessage.message_id}` ? (
+                              {copiedStates[
+                                `user-${selectedMessage.message_id}`
+                              ] ? (
                                 <Check className="size-4 text-status-success" />
                               ) : (
                                 <Copy className="size-4" />
@@ -612,8 +607,9 @@ export function MemoryMessageTable({
                               }
                               title={t('common.copy')}
                             >
-                              {copiedId ===
-                              `agent-${selectedMessage.message_id}` ? (
+                              {copiedStates[
+                                `agent-${selectedMessage.message_id}`
+                              ] ? (
                                 <Check className="size-4 text-status-success" />
                               ) : (
                                 <Copy className="size-4" />
@@ -661,7 +657,7 @@ export function MemoryMessageTable({
                           }
                           title={t('common.copy')}
                         >
-                          {copiedId === `raw-${selectedMessage.message_id}` ? (
+                          {copiedStates[`raw-${selectedMessage.message_id}`] ? (
                             <Check className="size-4 text-status-success" />
                           ) : (
                             <Copy className="size-4" />

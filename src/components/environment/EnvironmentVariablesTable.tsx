@@ -37,6 +37,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { toast } from '@/lib/toast'
+import { copyToClipboard } from '@/lib/utils'
 import { useEnvironmentVariableMutations } from '@/hooks/use-environment-request'
 import type {
   EnvironmentVariable,
@@ -251,7 +252,7 @@ export function EnvironmentVariablesTable({
   // 复制变量值
   const handleCopyValue = async (variable: EditableVariable) => {
     try {
-      await navigator.clipboard.writeText(variable.key_value)
+      await copyToClipboard(variable.key_value)
       setCopiedVariable(variable.id)
       toast.success('变量值已复制到剪贴板')
       setTimeout(() => setCopiedVariable(null), 2000)
