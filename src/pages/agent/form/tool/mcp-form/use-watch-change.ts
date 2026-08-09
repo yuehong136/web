@@ -25,10 +25,18 @@ export function useWatchFormChange(
   )
 
   useEffect(() => {
-    if (Object.keys(tools).length === 0) {
+    if (!form.formState.isDirty || Object.keys(tools).length === 0) {
       return
     }
 
     updateNodeForm(agentNodeId, nextTools, ['mcp', mcpIndex, 'tools'])
-  }, [agentNodeId, mcpIndex, nextTools, tools, updateNodeForm])
+  }, [
+    agentNodeId,
+    form,
+    form.formState.isDirty,
+    mcpIndex,
+    nextTools,
+    tools,
+    updateNodeForm,
+  ])
 }

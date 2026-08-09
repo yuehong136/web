@@ -296,6 +296,7 @@ export default {
       'Configure conversation variables that Agent runtime prompts can reference through env.*.',
     conversational: 'Conversational',
     copy: 'Copy',
+    copyAgentPrompt: 'Copy agent prompt',
     country: 'Country & region',
     crossLanguages: 'Cross Languages',
     dataManipulation: 'Data manipulation',

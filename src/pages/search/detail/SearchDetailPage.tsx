@@ -52,16 +52,36 @@ export const SearchDetailPage: React.FC = () => {
   const location = useLocation()
   const { settingsOpen, setSettingsOpen } = useSearchStore()
   const { searchApp, isLoading } = useFetchSearchAppDetail()
-  const { basicInfo, config, appliedConfig, updateBasicInfo, updateConfig, saveConfig, isSaving, isDirty } = useSearchSettings(searchApp)
-  const { turns, phase, isSearching, search, stop, clear } = useSearchExecution(searchApp, appliedConfig)
+  const {
+    basicInfo,
+    config,
+    appliedConfig,
+    updateBasicInfo,
+    updateConfig,
+    saveConfig,
+    isSaving,
+    isDirty,
+  } = useSearchSettings(searchApp)
+  const { turns, phase, isSearching, search, stop, clear } = useSearchExecution(
+    searchApp,
+    appliedConfig,
+  )
 
-  const [docFilterByTurnId, setDocFilterByTurnId] = useState<Record<string, string[]>>({})
+  const [docFilterByTurnId, setDocFilterByTurnId] = useState<
+    Record<string, string[]>
+  >({})
   const [detailOpen, setDetailOpen] = useState(false)
-  const [selectedChunk, setSelectedChunk] = useState<ReferenceChunk | null>(null)
-  const [selectedChunkList, setSelectedChunkList] = useState<ReferenceChunk[]>([])
+  const [selectedChunk, setSelectedChunk] = useState<ReferenceChunk | null>(
+    null,
+  )
+  const [selectedChunkList, setSelectedChunkList] = useState<ReferenceChunk[]>(
+    [],
+  )
   const [prefillText, setPrefillText] = useState('')
   const [prefillVersion, setPrefillVersion] = useState(0)
-  const [expandedByTurnId, setExpandedByTurnId] = useState<Record<string, boolean>>({})
+  const [expandedByTurnId, setExpandedByTurnId] = useState<
+    Record<string, boolean>
+  >({})
   const [mindmapOpen, setMindmapOpen] = useState(false)
   const executionMode = SearchExecutionMode.DEEP_RESEARCH
   const sourceMode = SearchSourceMode.KNOWLEDGE_BASE
@@ -75,7 +95,7 @@ export const SearchDetailPage: React.FC = () => {
         sourceMode,
       })
     },
-    [executionMode, search, sourceMode]
+    [executionMode, search, sourceMode],
   )
 
   const handleClear = useCallback(() => {
@@ -83,13 +103,16 @@ export const SearchDetailPage: React.FC = () => {
     setDocFilterByTurnId({})
   }, [clear])
 
-  const handleOpenChunkDetail = useCallback((chunk: ChunkResult, chunks: ChunkResult[]) => {
-    const mappedChunk = toReferenceChunk(chunk)
-    const mappedChunks = chunks.map(toReferenceChunk)
-    setSelectedChunk(mappedChunk)
-    setSelectedChunkList(mappedChunks)
-    setDetailOpen(true)
-  }, [])
+  const handleOpenChunkDetail = useCallback(
+    (chunk: ChunkResult, chunks: ChunkResult[]) => {
+      const mappedChunk = toReferenceChunk(chunk)
+      const mappedChunks = chunks.map(toReferenceChunk)
+      setSelectedChunk(mappedChunk)
+      setSelectedChunkList(mappedChunks)
+      setDetailOpen(true)
+    },
+    [],
+  )
 
   const handlePrefillFromCard = useCallback((query: string) => {
     setPrefillText(query)
@@ -103,9 +126,13 @@ export const SearchDetailPage: React.FC = () => {
     }
   }, [setSettingsOpen, settingsOpen])
 
-  const handleShare = useCallback(() => {
-    copyToClipboard(window.location.href)
-    toast.success('链接已复制')
+  const handleShare = useCallback(async () => {
+    try {
+      await copyToClipboard(window.location.href)
+      toast.success('链接已复制')
+    } catch {
+      toast.error('复制失败')
+    }
   }, [])
 
   const handleExport = useCallback(() => {
@@ -117,7 +144,10 @@ export const SearchDetailPage: React.FC = () => {
       if (!turns.length) return {}
 
       const latestTurnId = turns[turns.length - 1].id
-      const isNewTurn = !Object.prototype.hasOwnProperty.call(prev, latestTurnId)
+      const isNewTurn = !Object.prototype.hasOwnProperty.call(
+        prev,
+        latestTurnId,
+      )
 
       const next: Record<string, boolean> = {}
       if (isNewTurn) {
@@ -143,7 +173,7 @@ export const SearchDetailPage: React.FC = () => {
       turns.reduce<Record<string, boolean>>((acc, turn) => {
         acc[turn.id] = true
         return acc
-      }, {})
+      }, {}),
     )
   }, [turns])
 
@@ -152,28 +182,31 @@ export const SearchDetailPage: React.FC = () => {
       turns.reduce<Record<string, boolean>>((acc, turn) => {
         acc[turn.id] = false
         return acc
-      }, {})
+      }, {}),
     )
   }, [turns])
 
   const allExpanded = useMemo(
     () => turns.length > 0 && turns.every((turn) => expandedByTurnId[turn.id]),
-    [expandedByTurnId, turns]
+    [expandedByTurnId, turns],
   )
 
   const allCollapsed = useMemo(
     () => turns.length > 0 && turns.every((turn) => !expandedByTurnId[turn.id]),
-    [expandedByTurnId, turns]
+    [expandedByTurnId, turns],
   )
 
   const hasTurns = useMemo(() => turns.length > 0, [turns.length])
   const latestTurn = turns.length ? turns[turns.length - 1] : null
-  const isShareMode = useMemo(() => new URLSearchParams(location.search).has('shared_id'), [location.search])
+  const isShareMode = useMemo(
+    () => new URLSearchParams(location.search).has('shared_id'),
+    [location.search],
+  )
   const canOpenMindmap = Boolean(
     hasTurns &&
-      latestTurn?.mindmapEnabled &&
-      latestTurn?.query.trim() &&
-      (latestTurn?.kbIdsSnapshot.length || 0) > 0
+    latestTurn?.mindmapEnabled &&
+    latestTurn?.query.trim() &&
+    (latestTurn?.kbIdsSnapshot.length || 0) > 0,
   )
 
   const handleToggleMindmap = useCallback(() => {
@@ -194,7 +227,7 @@ export const SearchDetailPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="h-full flex items-center justify-center">
+      <div className="flex h-full items-center justify-center">
         <Loading />
       </div>
     )
@@ -202,7 +235,7 @@ export const SearchDetailPage: React.FC = () => {
 
   if (!searchApp) {
     return (
-      <div className="h-full flex flex-col items-center justify-center gap-space-sm">
+      <div className="gap-space-sm flex h-full flex-col items-center justify-center">
         <p className="text-text-secondary">搜索应用不存在或已被删除</p>
         <Button variant="outline" onClick={() => navigate(ROUTES.SEARCH)}>
           返回列表
@@ -212,11 +245,13 @@ export const SearchDetailPage: React.FC = () => {
   }
 
   return (
-    <div className="h-full flex flex-col bg-surface-primary">
+    <div className="bg-surface-primary flex h-full flex-col">
       <SearchDetailHeader
         appName={searchApp.name}
         kbCount={kbCount}
-        phaseLabel={phaseLabelMap[phase] || phaseLabelMap[SearchExecutionPhase.IDLE]}
+        phaseLabel={
+          phaseLabelMap[phase] || phaseLabelMap[SearchExecutionPhase.IDLE]
+        }
         hasTurns={hasTurns}
         canOpenMindmap={canOpenMindmap}
         mindmapOpen={mindmapOpen}
@@ -229,9 +264,9 @@ export const SearchDetailPage: React.FC = () => {
         onToggleSettings={handleToggleSettings}
       />
 
-      <div className="flex-1 min-h-0 flex bg-surface-primary">
-        <div className="flex-1 min-w-0 flex flex-col">
-          <main className="relative flex-1 min-h-0 overflow-y-auto px-space-base py-space-lg bg-surface-primary">
+      <div className="bg-surface-primary flex min-h-0 flex-1">
+        <div className="flex min-w-0 flex-1 flex-col">
+          <main className="px-space-base py-space-lg bg-surface-primary relative min-h-0 flex-1 overflow-y-auto">
             {!hasTurns ? (
               <SearchStarterView
                 onSearch={handleSearch}
@@ -242,18 +277,18 @@ export const SearchDetailPage: React.FC = () => {
                 onPrefill={handlePrefillFromCard}
               />
             ) : (
-              <div className="max-w-6xl mx-auto space-y-space-base pb-space-base">
-                <div className="flex items-center justify-between rounded-radius-lg border border-border-default bg-surface-secondary px-space-base py-space-xs">
+              <div className="space-y-space-base pb-space-base mx-auto max-w-6xl">
+                <div className="rounded-radius-lg bg-surface-secondary px-space-base py-space-xs flex items-center justify-between border border-border-default">
                   <p className="text-xs text-text-secondary">
                     共 {turns.length} 轮查询，可折叠查看历史轮次
                   </p>
-                  <div className="flex items-center gap-space-xs">
+                  <div className="gap-space-xs flex items-center">
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={handleExpandAllTurns}
                       disabled={allExpanded}
-                      className="h-7 px-space-sm text-xs"
+                      className="px-space-sm h-7 text-xs"
                     >
                       全部展开
                     </Button>
@@ -262,7 +297,7 @@ export const SearchDetailPage: React.FC = () => {
                       size="sm"
                       onClick={handleCollapseAllTurns}
                       disabled={allCollapsed}
-                      className="h-7 px-space-sm text-xs"
+                      className="px-space-sm h-7 text-xs"
                     >
                       全部折叠
                     </Button>
@@ -274,12 +309,17 @@ export const SearchDetailPage: React.FC = () => {
                     key={turn.id}
                     index={index}
                     isLatest={index === turns.length - 1}
-                    expanded={expandedByTurnId[turn.id] ?? index === turns.length - 1}
+                    expanded={
+                      expandedByTurnId[turn.id] ?? index === turns.length - 1
+                    }
                     turn={turn}
                     selectedDocIds={docFilterByTurnId[turn.id] || []}
                     onToggleExpand={() => handleToggleTurnExpand(turn.id)}
                     onDocFilterChange={(turnId, docIds) =>
-                      setDocFilterByTurnId((prev) => ({ ...prev, [turnId]: docIds }))
+                      setDocFilterByTurnId((prev) => ({
+                        ...prev,
+                        [turnId]: docIds,
+                      }))
                     }
                     onAskRelated={handleSearch}
                     onViewChunkDetail={handleOpenChunkDetail}
@@ -290,8 +330,8 @@ export const SearchDetailPage: React.FC = () => {
           </main>
 
           {hasTurns ? (
-            <footer className="shrink-0 bg-surface-primary px-space-base py-space-sm">
-              <div className="max-w-5xl mx-auto">
+            <footer className="bg-surface-primary px-space-base py-space-sm shrink-0">
+              <div className="mx-auto max-w-5xl">
                 <SearchComposer
                   onSearch={handleSearch}
                   onStop={stop}

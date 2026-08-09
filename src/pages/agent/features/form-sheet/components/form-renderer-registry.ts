@@ -22,7 +22,6 @@ import { IterationStartForm } from '../../../form/iteration-start'
 import { KeywordExtractForm } from '../../../form/keyword-extract-form'
 import { ListOperationsForm } from '../../../form/list-operations'
 import { LoopForm } from '../../../form/loop'
-import { McpForm } from '../../../form/mcp-form'
 import { MessageForm } from '../../../form/message'
 import { ParserForm } from '../../../form/parser'
 import { HTMLReportForm } from '../../../form/html-report'
@@ -47,7 +46,6 @@ import { WenCaiForm } from '../../../form/wencai'
 import { WikipediaForm } from '../../../form/wikipedia'
 import { YahooFinanceForm } from '../../../form/yahoo-finance'
 import type { INextOperatorForm } from '../../../types'
-import { MCP_FORM_RENDERER_KEY } from '../utils'
 
 const EmptyForm: ComponentType<INextOperatorForm> = () => null
 
@@ -112,7 +110,6 @@ export const legacyFormRenderers: Record<
   [Operator.File]: EmptyForm,
   [Operator.Note]: EmptyForm,
   [Operator.Placeholder]: EmptyForm,
-  [MCP_FORM_RENDERER_KEY]: McpForm,
 }
 
 export function resolveFormRendererComponent(rendererKey?: string) {

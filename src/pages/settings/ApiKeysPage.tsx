@@ -78,6 +78,7 @@ import {
 } from '@/components/environment'
 import { EditApiKeyDialog } from '@/pages/settings/components/edit-api-key-dialog'
 import { useEnvironmentResolver } from '@/hooks/use-environment-request'
+import { useCopyFeedback } from '@/hooks/use-copy-feedback'
 
 import { systemAPI } from '@/api/system'
 import type { OpenAPISpec, APITokenCreateRequest } from '@/types/api'
@@ -314,7 +315,7 @@ const ApiDocumentationPage: React.FC = () => {
   const [testLoading, setTestLoading] = useState(false)
   const [testResponse, setTestResponse] = useState<TestResponse | null>(null)
   const [formattedResponse, setFormattedResponse] = useState<string>('')
-  const [copiedStates, setCopiedStates] = useState<Record<string, boolean>>({})
+  const { copiedStates, copyWithFeedback: handleCopy } = useCopyFeedback()
 
   // Apifox风格的测试状态
   const [testParams, setTestParams] = useState<ParamRow[]>([])
@@ -1276,17 +1277,6 @@ const ApiDocumentationPage: React.FC = () => {
       return groups
     },
     {} as Record<string, APIEndpoint[]>,
-  )
-
-  const handleCopy = useCallback(
-    (text: string, key: string) => {
-      navigator.clipboard.writeText(text)
-      setCopiedStates({ ...copiedStates, [key]: true })
-      setTimeout(() => {
-        setCopiedStates({ ...copiedStates, [key]: false })
-      }, 2000)
-    },
-    [copiedStates],
   )
 
   // API Key 相关函数

@@ -31,6 +31,7 @@ web-deploy.tar.gz
 docs/*
 !docs/engineering-modernization-roadmap.md
 !docs/streaming-runtime-design.md
+!docs/channel-frontend-design.md
 .env.production
 
 .codex

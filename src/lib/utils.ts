@@ -209,15 +209,19 @@ export function throttle<T extends (...args: any[]) => any>(
   }
 }
 
-export function copyToClipboard(text: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    // 优先使用 Clipboard API（需要 HTTPS 或 localhost）
-    if (navigator.clipboard && window.isSecureContext) {
-      navigator.clipboard.writeText(text).then(resolve).catch(reject)
+export async function copyToClipboard(text: string): Promise<void> {
+  // 优先使用 Clipboard API（需要 HTTPS 或 localhost）
+  if (navigator.clipboard && window.isSecureContext) {
+    try {
+      await navigator.clipboard.writeText(text)
       return
+    } catch {
+      // 权限被拒绝时继续尝试兼容方案
     }
+  }
 
-    // 回退方案：使用 execCommand
+  return new Promise((resolve, reject) => {
+    // 兼容方案：使用 execCommand
     // 创建一个临时的 textarea 元素
     const textArea = document.createElement('textarea')
 

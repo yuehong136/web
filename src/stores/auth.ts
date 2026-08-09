@@ -1,8 +1,8 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { API_BASE_URL, STORAGE_KEYS } from '@/constants'
+import { STORAGE_KEYS } from '@/constants'
 import { apiClient } from '@/api/client'
-import { encryptPassword } from '@/utils/crypt'
+import { authAPI } from '@/api/auth'
 import type { UserInfo, TenantInfo } from '@/types/api'
 
 interface AuthState {
@@ -93,19 +93,17 @@ export const useAuthStore = create<AuthState>()(
         login: async (email, password) => {
           set({ isLoading: true })
           try {
-            const response = await apiClient.post(
-              '/auth/login',
-              {
-                username: email, // 后端期望的是username字段
-                password: encryptPassword(password),
-              },
-              { baseURL: `${API_BASE_URL}/api`, skipAuth: true },
-            )
+            // 端点/字段名归 authAPI 统一维护（POST /api/v1/auth/login）
+            const response = await authAPI.login({ email, password })
 
             // 后端返回的数据结构：{ data: user_info, auth: jwt_token, retcode: 200, retmsg: "Welcome back!" }
             console.log('Full login response:', response)
 
             const { data: user, auth: access_token, refresh_token } = response
+
+            if (!access_token || !user) {
+              throw new Error('登录响应数据不完整')
+            }
 
             console.log('Extracted user:', user)
             console.log('Extracted token:', access_token)
@@ -144,15 +142,12 @@ export const useAuthStore = create<AuthState>()(
         register: async (data) => {
           set({ isLoading: true })
           try {
-            const response = await apiClient.post(
-              '/users',
-              {
-                email: data.email,
-                nickname: data.nickname,
-                password: encryptPassword(data.password),
-              },
-              { baseURL: `${API_BASE_URL}/api`, skipAuth: true },
-            )
+            // 端点归 authAPI 统一维护（POST /api/v1/users）
+            const response = await authAPI.register({
+              email: data.email,
+              nickname: data.nickname,
+              password: data.password,
+            })
 
             console.log('Full register response:', response)
 
@@ -203,8 +198,8 @@ export const useAuthStore = create<AuthState>()(
         // 登出
         logout: async () => {
           try {
-            // 调用后端logout接口
-            await apiClient.get('/logout')
+            // 调用后端logout接口（POST /api/v1/auth/logout）
+            await authAPI.logout()
           } catch (error) {
             console.warn('Backend logout failed:', error)
             // 即使后端logout失败，也要清除前端状态

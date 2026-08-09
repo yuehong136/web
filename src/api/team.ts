@@ -42,7 +42,7 @@ const removeTenantUser = (tenantId: string, userId: string): Promise<void> =>
   )
 
 export const teamAPI = {
-  // 获取当前租户信息
+  // 获取当前租户信息（旧 `/v1/user/tenant_info` 已随 user_app.py 一起删除）
   getTenantInfo: (): Promise<TenantInfo> =>
     apiClient.get('/users/me/models', teamRestConfig),
 

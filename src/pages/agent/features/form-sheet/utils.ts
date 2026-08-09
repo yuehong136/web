@@ -14,8 +14,6 @@ import {
 } from '../../utils/code-outputs'
 import type { SelectedToolContext } from './types'
 
-export const MCP_FORM_RENDERER_KEY = '__mcp_form__'
-
 interface ResolveSelectedToolContextOptions {
   operatorType?: OperatorType
   clickedToolId?: string
@@ -392,17 +390,6 @@ export function resolveFormSheetDescription({
   return operatorDefinition?.description || unknownDescription
 }
 
-export function resolveLegacyRendererKey(
-  operatorType?: OperatorType,
-  isMcp?: boolean,
-) {
-  if (!operatorType) {
-    return undefined
-  }
-
-  if (operatorType === Operator.Tool && isMcp) {
-    return MCP_FORM_RENDERER_KEY
-  }
-
+export function resolveLegacyRendererKey(operatorType?: OperatorType) {
   return operatorType
 }

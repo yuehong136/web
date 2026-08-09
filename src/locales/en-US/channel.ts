@@ -1,0 +1,243 @@
+export default {
+  channel: {
+    title: 'Channels',
+    description:
+      'Manage external messaging platforms and bind them securely to published MultiRAG capabilities.',
+    overview:
+      'Channel credentials are stored only on the server. Once enabled, an independent Channel Runtime receives messages and invokes the bound MultiRAG target.',
+    providers: {
+      dingtalk: {
+        name: 'DingTalk',
+        description:
+          'Answer messages from a DingTalk robot over its stream connection.',
+      },
+      feishu: {
+        name: 'Feishu / Lark',
+        description:
+          'Answer direct messages from a Feishu or Lark bot over a long-lived connection.',
+      },
+    },
+    actions: {
+      create: 'New channel',
+      edit: 'Edit',
+      enable: 'Enable',
+      disable: 'Disable',
+      delete: 'Delete',
+      cancel: 'Cancel',
+      retry: 'Retry',
+      saveDraft: 'Save draft',
+      verify: 'Test connection',
+      verifying: 'Testing…',
+      more: 'More actions for {{name}}',
+    },
+    status: {
+      enabled: 'Enabled',
+      draft: 'Draft',
+    },
+    states: {
+      loading: 'Loading channels',
+      loadingDescription: 'Reading channel configuration and runtime state.',
+      error: 'Unable to load channels',
+      errorDescription:
+        'Channel information is temporarily unavailable. Try again shortly.',
+      empty: 'No channels yet',
+      emptyDescription:
+        'Create a Feishu channel and bind a MultiRAG Agent or dialog app.',
+      providersUnavailable:
+        'Channel type metadata is temporarily unavailable, so channels cannot be created or edited. Enabling, disabling and deleting existing channels still work.',
+    },
+    form: {
+      createTitle: 'New channel',
+      editTitle: 'Edit channel',
+      description:
+        'Save a draft first, then enable it after confirming credentials and the binding.',
+      basicSection: 'Basics',
+      connectionSection: 'Platform connection',
+      bindingSection: 'MultiRAG binding',
+    },
+    connected: {
+      title: 'Connected channels ({{count}})',
+    },
+    filter: {
+      placeholder: 'Search channels or platforms…',
+      matched: '{{count}} matching',
+      noMatch: 'No channels match this filter.',
+      noMatchProvider: 'No platforms match this filter.',
+    },
+    health: {
+      connected: 'Connected',
+      pending: 'Starting',
+      faulted: 'Faulted',
+      off: 'Off',
+      faultedCount: '{{count}} faulted',
+    },
+    gallery: {
+      title: 'Available channels',
+      description:
+        'Pick a platform to connect. The list comes from the server, so a new channel needs no frontend release.',
+      connect: 'Connect',
+      connectedCount: '{{count}} connected',
+    },
+    fields: {
+      name: { label: 'Channel name' },
+      provider: { label: 'Channel type' },
+      app_id: {
+        label: 'App ID',
+        description: 'The App ID from the Feishu Open Platform.',
+        placeholder: 'cli_xxx',
+      },
+      app_secret: {
+        label: 'App Secret',
+        description:
+          'Submitted only to server-side secret storage and never displayed again.',
+        placeholder: 'Enter the App Secret',
+      },
+      domain: {
+        label: 'Feishu domain',
+        description:
+          'Use feishu for mainland China or lark for Lark international.',
+        placeholder: 'feishu',
+      },
+      allowed_open_ids: {
+        label: 'Allowed user Open IDs',
+        description:
+          'Optional. Enter one Open ID per line or comma-separated. Leave blank to rely on the app availability scope.',
+        placeholder: 'ou_xxx',
+      },
+      client_id: {
+        label: 'Client ID',
+        description:
+          'The DingTalk app Client ID. Older consoles call this the AppKey.',
+        placeholder: 'dingxxxxxxxxxxxxxxxx',
+      },
+      client_secret: {
+        label: 'Client Secret',
+        description:
+          'Sent to the server-side secret store only and never echoed back.',
+        placeholder: 'Enter the Client Secret',
+      },
+      robot_code: {
+        label: 'Robot code',
+        description:
+          'Which robot the app answers as. Find it on the robot page of the DingTalk console.',
+        placeholder: 'robot_xxx',
+      },
+      allowed_user_ids: {
+        label: 'Allowed user IDs',
+        description:
+          'Optional. One user ID per line or comma separated; empty falls back to the app visibility scope.',
+        placeholder: 'user_xxx',
+      },
+    },
+    secret: {
+      label: 'Platform secret',
+      configured: 'Configured',
+      missing: 'Not configured',
+      keepPlaceholder: 'Leave blank to keep the existing secret',
+      keepHelp:
+        'The existing value is never displayed. Enter a new value only to rotate it.',
+    },
+    binding: {
+      target: 'Bound target',
+      targetType: 'Target type',
+      selectTargetType: 'Select a target type',
+      targetId: 'Target ID',
+      targetIdDescription:
+        'The target must belong to the current tenant and have an executable published version.',
+      selectTarget: 'Select a published target',
+      searchTargets: 'Search agents…',
+      loadingTargets: 'Loading available targets',
+      targetsLoadFailed:
+        'Unable to load available targets. Close this panel and try again.',
+      unnamedTarget: 'Unnamed target',
+      revisionId: 'Release revision ID',
+      revisionIdDescription:
+        'This ID verifies that the Agent is still on its latest published revision; execution continues to use MultiRAG release mode.',
+      staleRelease: 'Previous revision {{revision}} (outdated)',
+      staleReleaseDescription:
+        'The Agent has a newer release. Select the current revision and save; MultiRAG will not switch DSL silently.',
+      staleShort: 'Outdated',
+      revisionStale:
+        'Bound release is outdated, so the bot cannot answer. Edit this channel and select the current release.',
+      dialogRevisionDescription:
+        'Dialog apps do not currently require a separate release revision.',
+      currentRelease: 'Current published revision',
+      versionLabel: 'Version {{number}}',
+      notConfigured: 'Not bound',
+      types: {
+        canvasAgent: 'MultiRAG Agent',
+        dialog: 'MultiRAG dialog app',
+      },
+    },
+    policy: {
+      privateChatOnly: 'Private chats only',
+      privateChatOnlyDescription:
+        'Group messages will not invoke the bound target.',
+    },
+    runtime: {
+      label: 'Runtime',
+      unknown: 'Unknown',
+      lastHeartbeat: 'Last heartbeat',
+      errorCode: 'Runtime error: {{code}}',
+      // Exactly the six values the server's RuntimeState can hold.
+      // There used to be twelve; six of them (pending/running/healthy/online/
+      // disabled/failed) were invented client-side and never emitted.
+      states: {
+        // Reported while no live runner holds the binding, including after a
+        // runner stops sending heartbeats.
+        waiting: 'Waiting to start',
+        starting: 'Connecting',
+        connected: 'Connected',
+        stopping: 'Stopping',
+        stopped: 'Stopped',
+        error: 'Runtime error',
+      },
+    },
+    validation: { required: 'This field is required' },
+    // Codes the server puts in the failure envelope's data.error_code. Written
+    // as "what happened + what to do", because these failures have nothing in
+    // common in terms of how an admin resolves them.
+    errorCodes: {
+      CHANNEL_NOT_ACCESSIBLE:
+        'This channel does not belong to the current account',
+      CHANNEL_TARGET_NOT_ACCESSIBLE:
+        'You do not have permission to publish this target to an external channel. Ask an admin of the owning team.',
+      INVALID_CHANNEL_CONFIGURATION:
+        'The channel configuration is incomplete or no longer valid (missing credentials, no bound target, or a stale Agent revision)',
+      CHANNEL_SECRET_STORE_UNAVAILABLE:
+        'The secret store is unavailable. This is not a configuration problem — contact your operators.',
+      // The five below only ever come from the connection self-check. The
+      // first two mean "the credential is wrong, go change it"; the third
+      // means "we could not tell" — they must never share wording, or an
+      // admin re-types a secret that was correct all along.
+      CHANNEL_CREDENTIAL_REJECTED:
+        'The provider rejected this credential. Check the App ID and secret, then save again.',
+      CHANNEL_CREDENTIAL_INCOMPLETE:
+        'Some credential fields are missing. Fill them in and try again.',
+      CHANNEL_VERIFICATION_UNAVAILABLE:
+        'The check could not be completed — the provider was unreachable. This says nothing about your credential. Try again shortly; if it persists, ask your operators to check outbound access.',
+      CHANNEL_VERIFICATION_NOT_SUPPORTED:
+        'This channel type cannot self-check yet. Save it and watch the runtime status instead.',
+      CHANNEL_VERIFICATION_THROTTLED:
+        'That was just checked. Give it a few seconds.',
+      CHANNEL_OPERATION_FAILED:
+        'The server failed to process the request. Contact your operators with the time it happened.',
+    },
+    messages: {
+      saved: 'Channel draft saved',
+      saveFailed: 'Unable to save the channel',
+      enabled: 'Channel enabled',
+      disabled: 'Channel disabled',
+      toggleFailed: 'Unable to update the channel state',
+      deleted: 'Channel deleted',
+      deleteFailed: 'Unable to delete the channel',
+      verifyPassed: 'Connection works — the provider accepted this credential',
+      verifyFailed: 'Connection test did not pass',
+    },
+    delete: {
+      title: 'Delete channel?',
+      description:
+        'This deletes the connection, binding, and runtime state for “{{name}}”. This action cannot be undone.',
+    },
+  },
+}

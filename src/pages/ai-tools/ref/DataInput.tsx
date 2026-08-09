@@ -30,6 +30,7 @@ import { documentAPI } from '@/api/document'
 import { mcpAPI } from '@/api/mcp'
 import type { MCPServer } from '@/types/mcp'
 import { useFetchMyLLMs } from '@/hooks/use-llm-request'
+import { copyToClipboardWithFeedback } from '@/lib/clipboard'
 import { cn } from '@/lib/utils'
 import {
   Save,
@@ -266,10 +267,8 @@ const DataInput: React.FC<DataInputProps> = ({
     }
   }
 
-  const copyJson = () => {
-    navigator.clipboard.writeText(jsonInput)
-    toast.success('JSON已复制到剪贴板')
-  }
+  const copyJson = () =>
+    copyToClipboardWithFeedback(jsonInput, 'JSON已复制到剪贴板', '复制失败')
   const resetForm = () => {
     const initial: PlaceholderData = {}
     Object.keys(placeholders).forEach((k) => (initial[k] = ''))

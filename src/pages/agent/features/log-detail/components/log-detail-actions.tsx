@@ -4,6 +4,7 @@ import { copyToClipboard } from '@/lib/utils'
 import { toast } from '@/lib/toast'
 import type { AgentTraceItem } from '@/types/agent'
 import { Copy, Download, RefreshCcw, RotateCcw } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import type { LogDetailSource, LogDetailViewModel } from '../types'
 
 interface LogDetailActionsProps {
@@ -11,7 +12,6 @@ interface LogDetailActionsProps {
   viewModel: LogDetailViewModel
   onRefetchTrace: () => void
 }
-
 function collectTracePaths(items: AgentTraceItem[], prefix = ''): string[] {
   return items.flatMap((item) => {
     const name = item.component_name || item.component_id || 'Unknown'
@@ -20,9 +20,17 @@ function collectTracePaths(items: AgentTraceItem[], prefix = ''): string[] {
   })
 }
 
-async function copyText(text: string, successMessage: string) {
-  await copyToClipboard(text)
-  toast.success(successMessage)
+async function copyText(
+  text: string,
+  successMessage: string,
+  failureMessage: string,
+) {
+  try {
+    await copyToClipboard(text)
+    toast.success(successMessage)
+  } catch {
+    toast.error(failureMessage)
+  }
 }
 
 export function LogDetailActions({
@@ -30,6 +38,8 @@ export function LogDetailActions({
   viewModel,
   onRefetchTrace,
 }: LogDetailActionsProps) {
+  const { t } = useTranslation()
+  const copyFailedMessage = t('common.copyFailed', '复制失败')
   const rawJson = viewModel.rawSession || viewModel
   const terminalWithEmptyTrace =
     (viewModel.status === 'success' || viewModel.status === 'error') &&
@@ -37,14 +47,18 @@ export function LogDetailActions({
     viewModel.traceUnavailableReason !== 'no-message-id'
 
   return (
-    <div className="flex flex-wrap items-center gap-space-xs">
+    <div className="gap-space-xs flex flex-wrap items-center">
       {viewModel.sessionId ? (
         <Button
           type="button"
           variant="outline"
           size="sm"
           onClick={() => {
-            void copyText(viewModel.sessionId || '', '已复制 session id')
+            void copyText(
+              viewModel.sessionId || '',
+              t('agent.trace.sessionIdCopied', 'Session ID copied'),
+              copyFailedMessage,
+            )
           }}
         >
           <Copy className="size-4" />
@@ -56,7 +70,11 @@ export function LogDetailActions({
         variant="outline"
         size="sm"
         onClick={() => {
-          void copyText(JSON.stringify(rawJson, null, 2), '已复制原始 JSON')
+          void copyText(
+            JSON.stringify(rawJson, null, 2),
+            t('agent.trace.rawJsonCopied', 'Raw JSON copied'),
+            copyFailedMessage,
+          )
         }}
       >
         <Copy className="size-4" />
@@ -68,7 +86,9 @@ export function LogDetailActions({
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => downloadJsonFile(viewModel.traceItems, 'agent-trace.json')}
+            onClick={() =>
+              downloadJsonFile(viewModel.traceItems, 'agent-trace.json')
+            }
           >
             <Download className="size-4" />
             下载 Trace
@@ -80,7 +100,8 @@ export function LogDetailActions({
             onClick={() => {
               void copyText(
                 collectTracePaths(viewModel.traceItems).join('\n'),
-                '已复制 Trace 路径',
+                t('agent.trace.tracePathsCopied', 'Trace paths copied'),
+                copyFailedMessage,
               )
             }}
           >

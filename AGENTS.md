@@ -467,4 +467,5 @@ Mutation 错误用 `sonner` toast 暴露，不用 dialog 阻塞，除非用户�
 3. `docs/agent-t*-summary.md` — 最新落地能力（T1 地基、T2 form-sheet、T3 pipeline 节点、T4 runtime、T6 日志工作台、T7 share/publish/webhook、T8 可观测性、T9 explore、T10 变量与结构化输出、T11 清理验收、T12 资产/日志运维、T13 trace 工作台）
 4. `docs/design-tokens/*.md` — 令牌系统变更史（feedback-state alias 删除、JS token 目标、OKLCH 分类色阶）
 5. `docs/engineering-modernization-roadmap.md` — 全仓审计后的工程债清单（SEC/ARCH/ENG/HYG 条目），**唯一进度账本**；完成任一条目必须更新其中的状态表
-6. 面向人的手册 `AI前端技术栈开发规范.md` — 每条规则**为什么**这么定
+6. **要动 `src/pages/settings/channels/**`、`src/api/channel.ts`、`src/hooks/use-channel-request.ts`或`src/locales/\*/channel.ts`？先读 `docs/channel-frontend-design.md`（ARCH-6）。** channel 是跨仓程序：接口契约的唯一真源在后端仓的 `docs/channel-program/CONTRACT.md`，任务账本在 `docs/channel-program/PROGRESS.md`。提交要**双标** ID，形如 `fix(channel): surface server error codes (ARCH-6, CHN-U2)`；scope 用 `channel`，不用 `settings`
+7. 面向人的手册 `AI前端技术栈开发规范.md` — 每条规则**为什么**这么定

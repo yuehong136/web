@@ -29,7 +29,7 @@ import {
 } from '@/hooks/use-environment-request'
 import { environmentAPI } from '@/api/environment'
 import { toast } from '@/lib/toast'
-import { cn } from '@/lib/utils'
+import { cn, copyToClipboard } from '@/lib/utils'
 import type { Environment } from '@/types/api'
 import { CreateModeVariablesTable } from './create-mode-variables-table'
 
@@ -304,7 +304,7 @@ export function EnvironmentDetail({
     if (!resolveResult?.resolved_text) return
 
     try {
-      await navigator.clipboard.writeText(resolveResult.resolved_text)
+      await copyToClipboard(resolveResult.resolved_text)
       toast.success('已复制解析结果')
     } catch (error) {
       toast.error('复制失败')

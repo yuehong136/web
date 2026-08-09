@@ -27,8 +27,7 @@ import { useAtTrigger } from '../hooks'
 import { shouldIgnoreEnterForIme } from '../utils'
 import { extractThinkContent, type ThinkingStatus } from '@/utils/think-utils'
 import { convertReferencesToSup } from '@/utils/message-utils'
-import { copyToClipboard } from '@/lib/utils'
-import { toast } from '@/lib/toast'
+import { copyToClipboardWithFeedback } from '@/lib/clipboard'
 import type { ChatMessage } from '../types'
 import type { DialogApp } from '@/types/api'
 import type { MCPServer } from '@/types/mcp'
@@ -211,11 +210,15 @@ export const ChatSection = ({
     [],
   )
 
-  // 处理引用内容复制
-  const handleCopyReference = useCallback((content: string) => {
-    copyToClipboard(content)
-    toast.success('已复制到剪贴板')
-  }, [])
+  const handleCopyReference = useCallback(
+    (content: string) =>
+      copyToClipboardWithFeedback(
+        content,
+        t('common.copied', '已复制'),
+        t('common.copyFailed', '复制失败'),
+      ),
+    [t],
+  )
 
   // 检查是否是应用模式（最后一条消息是 assistant 且在 streaming 中）
   // 应用模式下，AI 消息已经在 messages 中，流式更新直接修改这条消息
@@ -416,10 +419,7 @@ export const ChatSection = ({
                     {!isCurrentStreamingMsg && (
                       <MessageActionsFooter
                         content={mainContent}
-                        onCopy={() => {
-                          copyToClipboard(mainContent)
-                          toast.success('已复制到剪贴板')
-                        }}
+                        onCopy={() => handleCopyReference(mainContent)}
                         showRegenerate={false}
                         showFeedback={false}
                       />

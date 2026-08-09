@@ -256,6 +256,9 @@ export default {
       duration: 'Duration',
       slowestNode: 'Slowest node',
       refresh: 'Refresh Trace',
+      sessionIdCopied: 'Session ID copied',
+      rawJsonCopied: 'Raw JSON copied',
+      tracePathsCopied: 'Trace paths copied',
     },
   },
 }
