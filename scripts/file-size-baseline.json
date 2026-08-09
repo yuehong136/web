@@ -4,7 +4,7 @@
   "src/themes/theme-generator.ts": 2206,
   "src/types/index.ts": 2075,
   "src/themes/tokens.ts": 1892,
-  "src/pages/settings/model-providers/components/api-key-modal.tsx": 1772,
+  "src/pages/settings/model-providers/components/api-key-modal.tsx": 1761,
   "src/pages/agent/options/google.ts": 1589,
   "src/pages/MCPChatPage.tsx": 1573,
   "src/types/api.ts": 1495,

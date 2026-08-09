@@ -21,6 +21,13 @@ import { Switch } from '@/components/ui/switch'
 import { ProviderIcon } from '@/components/ui/provider-icon'
 import { Segmented, SegmentedItem } from '@/components/vendor/ui/segmented'
 import type { ModelVerifyResult } from '@/stores/model'
+import {
+  buildOpenDataLoaderParams,
+  getDefaultModelType,
+  normalizeVerifyResult,
+  type ApiKeyModalProps,
+} from './api-key-modal-utils'
+import { OpenDataLoaderFields } from './opendataloader-fields'
 
 import {
   API_KEY_WITH_BASE_URL,
@@ -35,23 +42,6 @@ import {
   TENCENT_CLOUD_MODELS,
 } from '../constants'
 import type { BedrockAuthMode } from '../constants'
-
-interface ApiKeyModalProps {
-  isOpen: boolean
-  onClose: () => void
-  providerName: string
-  isLocal?: boolean
-  onSave: (
-    apiKey: string,
-    baseUrl?: string,
-    additionalParams?: Record<string, any>,
-  ) => Promise<void | ModelVerifyResult>
-  onVerify?: (
-    apiKey: string,
-    baseUrl?: string,
-    additionalParams?: Record<string, any>,
-  ) => Promise<void | ModelVerifyResult>
-}
 
 export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
   isOpen,
@@ -146,23 +136,12 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
     FACTORY_MODEL_TYPES[providerName] || FACTORY_MODEL_TYPES['Default']
   const defaultBaseUrl = DEFAULT_BASE_URLS[providerName] || ''
 
-  // 获取默认模型类型
-  const getDefaultModelType = () => {
-    if (providerName === 'Fish Audio') return 'tts'
-    if (providerName === 'Tencent Cloud') return 'speech2text'
-    if (providerName === 'Azure-OpenAI') return 'embedding'
-    if (providerName === 'MinerU') return 'ocr'
-    if (providerName === 'PaddleOCR') return 'ocr'
-    if (providerName === 'OpenDataLoader') return 'ocr'
-    return 'chat'
-  }
-
   // 重置表单
   useEffect(() => {
     if (isOpen) {
       setApiKey('')
       setBaseUrl(defaultBaseUrl)
-      setModelType(getDefaultModelType())
+      setModelType(getDefaultModelType(providerName))
       setModelName(providerName === 'Azure-OpenAI' ? 'gpt-3.5-turbo' : '')
       setMaxTokens(8192)
       setVision(false)
@@ -212,35 +191,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
       setVerifyResult(null)
       setError('')
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- getDefaultModelType 在组件内，只用于初始化默认值，依赖 isOpen 足矣
   }, [isOpen, defaultBaseUrl, providerName])
-
-  const normalizeVerifyResult = (result: unknown): ModelVerifyResult => {
-    if (result && typeof result === 'object') {
-      const r = result as {
-        isValid?: boolean | null
-        success?: boolean
-        logs?: string
-        message?: string
-      }
-      if (typeof r.isValid === 'boolean' || r.isValid === null) {
-        return {
-          isValid: r.isValid,
-          logs: r.logs || r.message || '',
-        }
-      }
-      if (typeof r.success === 'boolean') {
-        return {
-          isValid: r.success,
-          logs: r.message || r.logs || '',
-        }
-      }
-    }
-    return {
-      isValid: false,
-      logs: '验证失败，未返回可识别的验证结果',
-    }
-  }
 
   const handleSave = async (isVerify = false) => {
     if (isVerify) {
@@ -533,30 +484,17 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
 
       // OpenDataLoader
       else if (providerName === 'OpenDataLoader') {
-        if (!modelName.trim()) {
-          setError('请输入模型名称')
+        const result = buildOpenDataLoaderParams({
+          modelName,
+          apiServer: opendataloaderApiServer,
+          apiKey: opendataloaderApiKey,
+          timeout: opendataloaderTimeout,
+        })
+        if (!result.ok) {
+          setError(result.error)
           return
         }
-        if (!opendataloaderApiServer.trim()) {
-          setError('请输入 OpenDataLoader API Server')
-          return
-        }
-
-        const opendataloaderConfig: Record<string, string> = {
-          opendataloader_apiserver: opendataloaderApiServer.trim(),
-          opendataloader_timeout: String(opendataloaderTimeout || 600),
-        }
-        if (opendataloaderApiKey.trim()) {
-          opendataloaderConfig.opendataloader_api_key =
-            opendataloaderApiKey.trim()
-        }
-
-        additionalParams.llm_name = modelName
-        additionalParams.mdl_type = 'ocr'
-        additionalParams.max_tokens = 0
-        additionalParams.llm_factory = providerName
-        additionalParams.api_key = opendataloaderConfig
-        additionalParams.api_base = ''
+        Object.assign(additionalParams, result.params)
       }
 
       // ========== 本地模型厂商 ==========
@@ -1478,71 +1416,16 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
 
           {/* ========== OpenDataLoader 专用表单 ========== */}
           {providerName === 'OpenDataLoader' && (
-            <>
-              <div>
-                <label className="mb-2 block text-sm font-medium text-text-primary">
-                  模型类型
-                </label>
-                <Input
-                  value="OCR"
-                  disabled
-                  className="cursor-not-allowed bg-muted"
-                />
-              </div>
-              <div>
-                <label className="mb-2 block text-sm font-medium text-text-primary">
-                  模型名称 <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  value={modelName}
-                  onChange={(event) => setModelName(event.target.value)}
-                  placeholder="opendataloader-from-env-1"
-                />
-              </div>
-              <div>
-                <label className="mb-2 block text-sm font-medium text-text-primary">
-                  API Server <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  value={opendataloaderApiServer}
-                  onChange={(event) =>
-                    setOpendataloaderApiServer(event.target.value)
-                  }
-                  placeholder="http://host.docker.internal:9383"
-                />
-              </div>
-              <div>
-                <label className="mb-2 block text-sm font-medium text-text-primary">
-                  API Key{' '}
-                  <span className="ml-1 font-normal text-text-tertiary">
-                    (可选)
-                  </span>
-                </label>
-                <Input
-                  type="password"
-                  value={opendataloaderApiKey}
-                  onChange={(event) =>
-                    setOpendataloaderApiKey(event.target.value)
-                  }
-                  placeholder="Bearer token"
-                />
-              </div>
-              <div>
-                <label className="mb-2 block text-sm font-medium text-text-primary">
-                  请求超时（秒）
-                </label>
-                <Input
-                  type="number"
-                  min={1}
-                  value={opendataloaderTimeout}
-                  onChange={(event) =>
-                    setOpendataloaderTimeout(
-                      Number.parseInt(event.target.value, 10) || 600,
-                    )
-                  }
-                />
-              </div>
-            </>
+            <OpenDataLoaderFields
+              modelName={modelName}
+              apiServer={opendataloaderApiServer}
+              apiKey={opendataloaderApiKey}
+              timeout={opendataloaderTimeout}
+              onModelNameChange={setModelName}
+              onApiServerChange={setOpendataloaderApiServer}
+              onApiKeyChange={setOpendataloaderApiKey}
+              onTimeoutChange={setOpendataloaderTimeout}
+            />
           )}
 
           {/* ========== 本地模型厂商表单 ========== */}
