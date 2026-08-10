@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware'
 import { STORAGE_KEYS } from '@/constants'
 import { apiClient } from '@/api/client'
 import { authAPI } from '@/api/auth'
+import { queryClient } from '@/lib/query-client'
 import type { UserInfo, TenantInfo } from '@/types/api'
 
 interface AuthState {
@@ -56,6 +57,7 @@ export const useAuthStore = create<AuthState>()(
             isAuthenticated: false,
             isLoading: false,
           })
+          queryClient.clear()
 
           window.location.reload()
         })
@@ -111,6 +113,9 @@ export const useAuthStore = create<AuthState>()(
               'Login successful, setting token:',
               access_token?.substring(0, 20) + '...',
             )
+
+            // 身份切换前清空上一账号的服务端状态缓存
+            queryClient.clear()
 
             // 设置API客户端的token
             apiClient.setAuthToken(access_token)
@@ -169,6 +174,9 @@ export const useAuthStore = create<AuthState>()(
               access_token?.substring(0, 20) + '...',
             )
 
+            // 身份切换前清空上一账号的服务端状态缓存
+            queryClient.clear()
+
             // 设置API客户端的token
             apiClient.setAuthToken(access_token)
 
@@ -197,13 +205,9 @@ export const useAuthStore = create<AuthState>()(
 
         // 登出
         logout: async () => {
-          try {
-            // 调用后端logout接口（POST /api/v1/auth/logout）
-            await authAPI.logout()
-          } catch (error) {
-            console.warn('Backend logout failed:', error)
-            // 即使后端logout失败，也要清除前端状态
-          }
+          // 先启动后端登出请求，让它在本地 token 被移除前捕获认证头。
+          // 本地隔离不能等待网络返回，否则最坏会继续暴露旧账号缓存 30 秒。
+          const backendLogout = authAPI.logout()
 
           // 清除API客户端的token
           apiClient.setAuthToken(null)
@@ -221,6 +225,14 @@ export const useAuthStore = create<AuthState>()(
             isAuthenticated: false,
             isLoading: false,
           })
+          queryClient.clear()
+
+          try {
+            await backendLogout
+          } catch (error) {
+            console.warn('Backend logout failed:', error)
+            // 即使后端logout失败，本地身份和缓存也已经完成隔离
+          }
         },
 
         // 刷新token
