@@ -58,6 +58,9 @@ export const LoginPage: React.FC = () => {
     setError,
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
+    defaultValues: {
+      remember: false,
+    },
   })
 
   const onSubmit = async (data: LoginFormData) => {
