@@ -59,8 +59,8 @@ export const useCreateAppSave = ({
         if (config.search_mode.type === 'hybrid') {
           searchMode = {
             type: 'hybrid',
-            weight_dense: config.search_mode.weight_dense || 0.7,
-            weight_sparse: config.search_mode.weight_sparse || 0.3,
+            weight_dense: config.search_mode.weight_dense ?? 0.7,
+            weight_sparse: config.search_mode.weight_sparse ?? 0.3,
           }
         } else {
           searchMode = {
