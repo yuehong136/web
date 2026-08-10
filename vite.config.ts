@@ -5,10 +5,12 @@ import react from '@vitejs/plugin-react'
 import path from 'path'
 import { visualizer } from 'rollup-plugin-visualizer'
 
+const PROJECT_DIR = import.meta.dirname
+
 function readPackageVersion(): string {
   try {
     const packageJson = JSON.parse(
-      fs.readFileSync(path.resolve(__dirname, 'package.json'), 'utf-8'),
+      fs.readFileSync(path.resolve(PROJECT_DIR, 'package.json'), 'utf-8'),
     ) as { version?: string }
     return packageJson.version ?? '0.0.0'
   } catch {
@@ -20,7 +22,7 @@ function readGitCommitSha(): string {
   try {
     return (
       execSync('git rev-parse --short HEAD', {
-        cwd: __dirname,
+        cwd: PROJECT_DIR,
         stdio: ['ignore', 'pipe', 'ignore'],
       })
         .toString()
@@ -32,8 +34,11 @@ function readGitCommitSha(): string {
 }
 
 function monacoStaticAssetsPlugin(): Plugin {
-  const sourceDir = path.resolve(__dirname, 'node_modules/monaco-editor/min/vs')
-  const outputDir = path.resolve(__dirname, 'dist/vs')
+  const sourceDir = path.resolve(
+    PROJECT_DIR,
+    'node_modules/monaco-editor/min/vs',
+  )
+  const outputDir = path.resolve(PROJECT_DIR, 'dist/vs')
 
   return {
     name: 'monaco-static-assets',
@@ -164,7 +169,7 @@ export default defineConfig(({ mode }) => {
 
     resolve: {
       alias: {
-        '@': path.resolve(__dirname, './src'),
+        '@': path.resolve(PROJECT_DIR, './src'),
       },
     },
 
