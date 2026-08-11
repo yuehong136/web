@@ -1,5 +1,6 @@
 import { memo, useEffect, useRef, useState } from 'react'
 import XMarkdown from '@ant-design/x-markdown'
+import { StreamingXMarkdown } from '@/components/chat/streaming-x-markdown'
 import {
   getMarkdownStreamingOptions,
   markdownConfig,
@@ -77,14 +78,13 @@ export const StreamingMarkdown = memo(
 
     return (
       <div className="bubble-copy-text markdown-content prose prose-sm max-w-none">
-        <XMarkdown
+        <StreamingXMarkdown
           paragraphTag="div"
           config={markdownConfig}
           components={markdownComponents}
-          streaming={getMarkdownStreamingOptions(isStreaming)}
-        >
-          {content}
-        </XMarkdown>
+          content={content}
+          isStreaming={isStreaming}
+        />
       </div>
     )
   },

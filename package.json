@@ -28,7 +28,7 @@
     "typecheck:agent-strict": "tsc -p tsconfig.agent-strict.json",
     "test:agent-t1": "tsx --tsconfig tsconfig.app.json --test src/pages/agent/operators/__tests__/serializers.test.ts src/pages/agent/adapters/__tests__/adapters.test.ts src/pages/agent/form/__tests__/t3-parity-normalizers.test.ts",
     "test:design-tokens": "tsx --tsconfig tsconfig.app.json --test src/lib/design-tokens/__tests__/*.ts",
-    "test:streaming": "tsx --tsconfig tsconfig.app.json --test src/lib/streaming/__tests__/*.ts",
+    "test:streaming": "tsx --tsconfig tsconfig.app.json --test src/lib/streaming/__tests__/*.ts && vitest run src/components/chat/__tests__/streaming-x-markdown.test.tsx",
     "test:api": "tsx --tsconfig tsconfig.app.json --test src/api/__tests__/*.ts",
     "preview": "vite preview"
   },
@@ -45,7 +45,7 @@
   "dependencies": {
     "@ant-design/x": "^2.7.0",
     "@ant-design/x-card": "^2.7.0",
-    "@ant-design/x-markdown": "^2.7.0",
+    "@ant-design/x-markdown": "^2.9.0",
     "@ant-design/x-sdk": "^2.7.0",
     "@antv/g6": "5.1.1",
     "@dnd-kit/core": "^6.3.1",

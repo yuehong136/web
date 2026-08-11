@@ -1,13 +1,12 @@
 import { FileCard } from '@ant-design/x'
-import XMarkdown from '@ant-design/x-markdown'
 import type { ComponentProps } from 'react'
 import { Bot, User } from 'lucide-react'
 import {
-  getMarkdownStreamingOptions,
   markdownConfig,
   type MarkdownComponents,
   useMarkdownComponents,
 } from '@/components/chat/MarkdownCodeBlock'
+import { StreamingXMarkdown } from '@/components/chat/streaming-x-markdown'
 import {
   extractReferencesFromSSEData,
   type ReferenceChunk,
@@ -60,14 +59,13 @@ export function RuntimeChatMarkdown({
 
   return (
     <div className="prose prose-sm max-w-none dark:prose-invert bubble-copy-text markdown-content">
-      <XMarkdown
+      <StreamingXMarkdown
         paragraphTag="div"
         config={markdownConfig}
         components={markdownComponents}
-        streaming={getMarkdownStreamingOptions(streaming)}
-      >
-        {content}
-      </XMarkdown>
+        content={content}
+        isStreaming={streaming}
+      />
     </div>
   )
 }

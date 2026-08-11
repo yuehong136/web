@@ -1,10 +1,9 @@
 import { memo, useCallback, useMemo } from 'react'
-import XMarkdown from '@ant-design/x-markdown'
 import {
-  getMarkdownStreamingOptions,
   markdownConfig,
   mergeMarkdownComponents,
 } from '@/components/chat/MarkdownCodeBlock'
+import { StreamingXMarkdown } from '@/components/chat/streaming-x-markdown'
 import { Sparkles } from 'lucide-react'
 import { ReferenceImageList } from '@/components/chat/ReferenceImageList'
 import { createReferenceMarkerComponent } from '@/components/chat/ReferenceMarker'
@@ -181,14 +180,15 @@ const SearchSummaryCard = ({
                     max-height: 70vh !important;
                   }
                 `}</style>
-                <XMarkdown
+                <StreamingXMarkdown
                   paragraphTag="div"
                   config={markdownConfig}
                   components={markdownComponents}
-                  streaming={getMarkdownStreamingOptions(isStreaming)}
-                >
-                  {referenceChunks.length > 0 ? summaryWithSup : displaySummary}
-                </XMarkdown>
+                  content={
+                    referenceChunks.length > 0 ? summaryWithSup : displaySummary
+                  }
+                  isStreaming={isStreaming}
+                />
               </div>
               {referenceChunks.length > 0 && !isStreaming ? (
                 <>

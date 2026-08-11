@@ -30,13 +30,12 @@ import {
   type PromptsProps,
 } from '@ant-design/x'
 import type { RcFile } from 'antd/es/upload/interface'
-import XMarkdown from '@ant-design/x-markdown'
 import { ChatBubbleLoading } from '@/components/chat/ChatBubbleLoading'
 import {
-  getMarkdownStreamingOptions,
   markdownConfig,
   mergeMarkdownComponents,
 } from '@/components/chat/MarkdownCodeBlock'
+import { StreamingXMarkdown } from '@/components/chat/streaming-x-markdown'
 import { Button } from '@/components/ui/button'
 import { FileIcon, getFileCategory } from '@/components/ui/file-icon'
 import { copyToClipboardWithFeedback } from '@/lib/clipboard'
@@ -1082,16 +1081,13 @@ export const ExplorePage: FC = () => {
                     if (carouselGroups.length === 0) {
                       // 没有轮播组，直接渲染
                       return (
-                        <XMarkdown
+                        <StreamingXMarkdown
                           config={markdownConfig}
                           components={markdownComponents}
                           paragraphTag="div"
-                          streaming={getMarkdownStreamingOptions(
-                            isCurrentStreamingMessage,
-                          )}
-                        >
-                          {mainContentWithSup}
-                        </XMarkdown>
+                          content={mainContentWithSup}
+                          isStreaming={isCurrentStreamingMessage}
+                        />
                       )
                     }
 
@@ -1105,17 +1101,14 @@ export const ExplorePage: FC = () => {
                       // 渲染文本部分
                       if (part.trim()) {
                         elements.push(
-                          <XMarkdown
+                          <StreamingXMarkdown
                             key={`text-${idx}`}
                             config={markdownConfig}
                             components={markdownComponents}
                             paragraphTag="div"
-                            streaming={getMarkdownStreamingOptions(
-                              isCurrentStreamingMessage,
-                            )}
-                          >
-                            {part}
-                          </XMarkdown>,
+                            content={part}
+                            isStreaming={isCurrentStreamingMessage}
+                          />,
                         )
                       }
 

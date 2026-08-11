@@ -8,6 +8,7 @@ import { User, Bot, Paperclip, Square, Upload } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ProviderIcon } from '@/components/ui/provider-icon'
 import XMarkdown, { type ComponentProps } from '@ant-design/x-markdown'
+import { StreamingXMarkdown } from '@/components/chat/streaming-x-markdown'
 import {
   getMarkdownStreamingOptions,
   markdownConfig,
@@ -122,14 +123,13 @@ const StreamingMarkdown = React.memo(
 
     return (
       <div className="bubble-copy-text markdown-content prose prose-sm max-w-none dark:prose-invert">
-        <XMarkdown
+        <StreamingXMarkdown
           paragraphTag="div"
           config={markdownConfig}
           components={markdownComponents}
-          streaming={getMarkdownStreamingOptions(isStreaming)}
-        >
-          {content}
-        </XMarkdown>
+          content={content}
+          isStreaming={isStreaming}
+        />
       </div>
     )
   },
