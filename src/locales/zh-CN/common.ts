@@ -105,6 +105,7 @@ export default {
       validationError: '输入数据格式不正确',
       fileTooLarge: '文件大小超过限制',
       unsupportedFileType: '不支持的文件类型',
+      loginFailed: '登录失败，请检查网络或账户信息后重试',
       unknown: '未知错误',
     },
   },

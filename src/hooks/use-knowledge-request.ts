@@ -13,6 +13,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useParams } from 'react-router-dom'
 import { knowledgeAPI } from '@/api/knowledge'
+import { MutationErrorFeedback } from '@/lib/mutation-error-feedback'
 import type {
   CreateKBRequest,
   UpdateKBRequest,
@@ -141,6 +142,7 @@ export const useCreateKnowledge = () => {
   const queryClient = useQueryClient()
 
   const { mutateAsync, isPending, isError, error } = useMutation({
+    meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: async (params: CreateKBRequest) => {
       const response = await knowledgeAPI.knowledgeBase.create(params)
       return response
@@ -164,6 +166,7 @@ export const useUpdateKnowledge = () => {
   const queryClient = useQueryClient()
 
   const { mutateAsync, isPending, isError, error } = useMutation({
+    meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: async (params: UpdateKBRequest) => {
       await knowledgeAPI.knowledgeBase.update(params)
       return params
@@ -192,6 +195,7 @@ export const useDeleteKnowledge = () => {
   const queryClient = useQueryClient()
 
   const { mutateAsync, isPending, isError, error } = useMutation({
+    meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: async (id: string) => {
       await knowledgeAPI.knowledgeBase.delete(id)
       return id

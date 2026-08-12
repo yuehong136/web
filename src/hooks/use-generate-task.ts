@@ -8,6 +8,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { knowledgeAPI } from '@/api/knowledge'
 import { agentAPI } from '@/api/agent'
+import { MutationErrorFeedback } from '@/lib/mutation-error-feedback'
 import { knowledgeKeys } from './use-knowledge-request'
 
 // ============================================================================
@@ -51,8 +52,15 @@ export const generateKeys = {
 // 状态推导
 // ============================================================================
 
-export function deriveTaskStatus(data: TraceInfo | null | undefined): GenerateTaskStatus {
-  if (!data || !('progress' in data) || data.progress === undefined || data.progress === null) {
+export function deriveTaskStatus(
+  data: TraceInfo | null | undefined,
+): GenerateTaskStatus {
+  if (
+    !data ||
+    !('progress' in data) ||
+    data.progress === undefined ||
+    data.progress === null
+  ) {
     return GenerateTaskStatus.Start
   }
   if (data.progress >= 1) return GenerateTaskStatus.Completed
@@ -80,7 +88,9 @@ export function useTraceKnowledgeTask(params: {
 }) {
   const { kbId, type, enabled = true } = params
 
-  const { data, isFetching, isError, error, refetch } = useQuery<TraceInfo | Record<string, never>>({
+  const { data, isFetching, isError, error, refetch } = useQuery<
+    TraceInfo | Record<string, never>
+  >({
     queryKey: generateKeys.trace(kbId, type),
     queryFn: async () => {
       const fn =
@@ -95,7 +105,9 @@ export function useTraceKnowledgeTask(params: {
     retryDelay: 1000,
     refetchInterval: (query) => {
       const d = query.state.data as TraceInfo | undefined
-      return isRunning(d as TraceInfo | null | undefined) ? POLLING_INTERVAL : false
+      return isRunning(d as TraceInfo | null | undefined)
+        ? POLLING_INTERVAL
+        : false
     },
     placeholderData: (prev) => prev,
   })
@@ -113,6 +125,7 @@ export function useRunKnowledgeTask() {
   const queryClient = useQueryClient()
 
   const { mutateAsync, isPending } = useMutation({
+    meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: async (params: { kbId: string; type: GenerateTaskType }) => {
       const fn =
         params.type === GenerateTaskType.GraphRAG
@@ -140,6 +153,7 @@ export function usePauseKnowledgeTask() {
   const queryClient = useQueryClient()
 
   const { mutateAsync, isPending } = useMutation({
+    meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: async (params: {
       taskId: string
       kbId: string
@@ -171,6 +185,7 @@ export function useUnbindKnowledgeTask() {
   const queryClient = useQueryClient()
 
   const { mutateAsync, isPending } = useMutation({
+    meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: async (params: { kbId: string; type: GenerateTaskType }) => {
       return knowledgeAPI.generate.unbindPipelineTask({
         kb_id: params.kbId,

@@ -5,11 +5,8 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { teamAPI } from '@/api/team'
-import type {
-  TeamMember,
-  JoinedTeam,
-  BatchInviteResponse,
-} from '@/types/team'
+import { MutationErrorFeedback } from '@/lib/mutation-error-feedback'
+import type { TeamMember, JoinedTeam, BatchInviteResponse } from '@/types/team'
 
 // Query Keys 统一管理
 export const teamKeys = {
@@ -95,11 +92,19 @@ export const useInviteMember = () => {
   const queryClient = useQueryClient()
 
   const { mutateAsync, isPending, isError, error } = useMutation({
-    mutationFn: async ({ tenantId, email }: { tenantId: string; email: string }) => {
+    mutationFn: async ({
+      tenantId,
+      email,
+    }: {
+      tenantId: string
+      email: string
+    }) => {
       await teamAPI.inviteMember(tenantId, email)
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: teamKeys.memberList(variables.tenantId) })
+      queryClient.invalidateQueries({
+        queryKey: teamKeys.memberList(variables.tenantId),
+      })
     },
   })
 
@@ -116,11 +121,20 @@ export const useBatchInviteMembers = () => {
   const queryClient = useQueryClient()
 
   const { mutateAsync, isPending, isError, error } = useMutation({
-    mutationFn: async ({ tenantId, emails }: { tenantId: string; emails: string[] }): Promise<BatchInviteResponse> => {
+    meta: { errorFeedback: MutationErrorFeedback.Local },
+    mutationFn: async ({
+      tenantId,
+      emails,
+    }: {
+      tenantId: string
+      emails: string[]
+    }): Promise<BatchInviteResponse> => {
       return await teamAPI.batchInviteMembers(tenantId, emails)
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: teamKeys.memberList(variables.tenantId) })
+      queryClient.invalidateQueries({
+        queryKey: teamKeys.memberList(variables.tenantId),
+      })
     },
   })
 
@@ -137,11 +151,22 @@ export const useUpdateMemberRole = () => {
   const queryClient = useQueryClient()
 
   const { mutateAsync, isPending, isError, error } = useMutation({
-    mutationFn: async ({ tenantId, userId, role }: { tenantId: string; userId: string; role: 'admin' | 'normal' }) => {
+    meta: { errorFeedback: MutationErrorFeedback.Local },
+    mutationFn: async ({
+      tenantId,
+      userId,
+      role,
+    }: {
+      tenantId: string
+      userId: string
+      role: 'admin' | 'normal'
+    }) => {
       return await teamAPI.updateMemberRole(tenantId, userId, role)
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: teamKeys.memberList(variables.tenantId) })
+      queryClient.invalidateQueries({
+        queryKey: teamKeys.memberList(variables.tenantId),
+      })
     },
   })
 
@@ -158,11 +183,20 @@ export const useRemoveMember = () => {
   const queryClient = useQueryClient()
 
   const { mutateAsync, isPending, isError, error } = useMutation({
-    mutationFn: async ({ tenantId, userId }: { tenantId: string; userId: string }) => {
+    meta: { errorFeedback: MutationErrorFeedback.Local },
+    mutationFn: async ({
+      tenantId,
+      userId,
+    }: {
+      tenantId: string
+      userId: string
+    }) => {
       await teamAPI.removeMember(tenantId, userId)
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: teamKeys.memberList(variables.tenantId) })
+      queryClient.invalidateQueries({
+        queryKey: teamKeys.memberList(variables.tenantId),
+      })
     },
   })
 
@@ -179,6 +213,7 @@ export const useAcceptInvitation = () => {
   const queryClient = useQueryClient()
 
   const { mutateAsync, isPending, isError, error } = useMutation({
+    meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: async (tenantId: string) => {
       await teamAPI.acceptInvitation(tenantId)
     },
@@ -200,7 +235,14 @@ export const useRejectInvitation = () => {
   const queryClient = useQueryClient()
 
   const { mutateAsync, isPending, isError, error } = useMutation({
-    mutationFn: async ({ tenantId, userId }: { tenantId: string; userId: string }) => {
+    meta: { errorFeedback: MutationErrorFeedback.Local },
+    mutationFn: async ({
+      tenantId,
+      userId,
+    }: {
+      tenantId: string
+      userId: string
+    }) => {
       await teamAPI.rejectInvitation(tenantId, userId)
     },
     onSuccess: () => {

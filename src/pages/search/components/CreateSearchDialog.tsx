@@ -108,17 +108,12 @@ const CreateSearchDialog: React.FC<CreateSearchDialogProps> = ({
       } else {
         navigate(`${ROUTES.SEARCH}/${result.search_id}`)
       }
-    } catch (error: unknown) {
-      const msg =
-        (
-          error as {
-            response?: { data?: { message?: string } }
-            message?: string
-          }
-        )?.response?.data?.message ||
-        (error as { message?: string })?.message ||
-        '创建失败'
-      addNotification({ type: 'error', title: '创建失败', message: msg })
+    } catch {
+      addNotification({
+        type: 'error',
+        title: '创建失败',
+        message: '创建搜索应用时发生错误',
+      })
     }
   }, [
     name,

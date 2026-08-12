@@ -2,12 +2,20 @@ import { act } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { useUpdateAgentSetting } from '@/hooks/use-agent-mutation'
+import { APIError } from '@/api/client-types'
+import { useSetAgent, useUpdateAgentSetting } from '@/hooks/use-agent-mutation'
 import { agentQueryKeys } from '@/hooks/use-agent-query'
+import { createQueryClient } from '@/lib/query-client'
+import { MutationErrorFeedback } from '@/lib/mutation-error-feedback'
 import type { AgentFlow } from '@/types/agent'
 
 const agentApiMock = vi.hoisted(() => ({
+  setAgent: vi.fn(),
   updateSetting: vi.fn(),
+}))
+const toastMock = vi.hoisted(() => ({
+  success: vi.fn(),
+  error: vi.fn(),
 }))
 
 vi.mock('@/api/agent', async (importOriginal) => {
@@ -16,21 +24,85 @@ vi.mock('@/api/agent', async (importOriginal) => {
     ...actual,
     agentAPI: {
       ...actual.agentAPI,
+      setAgent: agentApiMock.setAgent,
       updateSetting: agentApiMock.updateSetting,
     },
   }
 })
 
 vi.mock('@/lib/toast', () => ({
-  toast: {
-    success: vi.fn(),
-    error: vi.fn(),
-  },
+  toast: toastMock,
 }))
 
 type UpdateSettingMutation = ReturnType<typeof useUpdateAgentSetting>
 
 Reflect.set(globalThis, 'IS_REACT_ACT_ENVIRONMENT', true)
+
+describe('useSetAgent error feedback ownership', () => {
+  async function runFailure(
+    options: Parameters<typeof useSetAgent>[0],
+    backendMessage = 'unsafe backend detail',
+  ): Promise<number> {
+    const notifyMutationError = vi.fn()
+    const queryClient = createQueryClient({ notifyMutationError })
+    const container = document.createElement('div')
+    const root = createRoot(container)
+    let mutation: ReturnType<typeof useSetAgent>
+
+    function Harness() {
+      mutation = useSetAgent(options)
+      return null
+    }
+
+    document.body.append(container)
+    agentApiMock.setAgent.mockRejectedValueOnce(
+      new APIError(500, 'SERVER_ERROR', backendMessage),
+    )
+
+    await act(async () => {
+      root.render(
+        <QueryClientProvider client={queryClient}>
+          <Harness />
+        </QueryClientProvider>,
+      )
+    })
+
+    await act(async () => {
+      await mutation.setAgent({ title: 'Agent' }).catch(() => undefined)
+    })
+
+    await act(async () => root.unmount())
+    queryClient.clear()
+    container.remove()
+    return notifyMutationError.mock.calls.length
+  }
+
+  beforeEach(() => {
+    agentApiMock.setAgent.mockReset()
+    toastMock.success.mockReset()
+    toastMock.error.mockReset()
+  })
+
+  it('keeps no-toast mutations globally visible unless explicitly silent', async () => {
+    expect(await runFailure({ showToast: false })).toBe(1)
+    expect(
+      await runFailure({
+        showToast: false,
+        errorFeedback: MutationErrorFeedback.Silent,
+      }),
+    ).toBe(0)
+    expect(await runFailure({ showToast: true })).toBe(0)
+  })
+
+  it('never renders backend error details from a locally owned mutation', async () => {
+    const secret = 'database-password-do-not-render'
+
+    await runFailure({ showToast: true }, secret)
+
+    expect(toastMock.error).toHaveBeenCalledWith('保存失败')
+    expect(JSON.stringify(toastMock.error.mock.calls)).not.toContain(secret)
+  })
+})
 
 describe('useUpdateAgentSetting cache contract', () => {
   let container: HTMLDivElement

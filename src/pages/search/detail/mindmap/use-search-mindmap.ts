@@ -44,8 +44,8 @@ export const useSearchMindmap = () => {
       setProgress(100)
       setTimeout(() => setProgress(0), 300)
     },
-    onError: (err: unknown) => {
-      setError((err as Error)?.message || '思维导图生成失败，请重试。')
+    onError: () => {
+      setError('思维导图生成失败，请重试。')
       setProgress(0)
     },
   })

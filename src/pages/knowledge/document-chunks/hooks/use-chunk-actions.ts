@@ -1,5 +1,6 @@
 import { useMutation } from '@tanstack/react-query'
 import { knowledgeAPI } from '@/api/knowledge'
+import { MutationErrorFeedback } from '@/lib/mutation-error-feedback'
 
 interface UseChunkActionsOptions {
   kbId: string | undefined
@@ -15,6 +16,7 @@ export const useChunkActions = ({
   onBulkMutationSuccess,
 }: UseChunkActionsOptions) => {
   const switchChunkMutation = useMutation({
+    meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: async (params: { chunkId: string; availableInt: number }) => {
       if (!kbId || !docId) return false
       return knowledgeAPI.document.switchChunks({
@@ -28,6 +30,7 @@ export const useChunkActions = ({
   })
 
   const bulkSwitchChunksMutation = useMutation({
+    meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: async (params: {
       chunkIds: string[]
       availableInt: number
@@ -47,6 +50,7 @@ export const useChunkActions = ({
   })
 
   const setChunkMutation = useMutation({
+    meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: async (params: {
       chunkId: string
       content: string
@@ -68,6 +72,7 @@ export const useChunkActions = ({
   })
 
   const deleteChunksMutation = useMutation({
+    meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: async (chunkIds: string[]) => {
       if (!kbId || !docId) return false
       return knowledgeAPI.document.deleteChunks({
@@ -80,6 +85,7 @@ export const useChunkActions = ({
   })
 
   const createChunkMutation = useMutation({
+    meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: async (params: {
       content: string
       important_kwd?: string[]
@@ -101,6 +107,7 @@ export const useChunkActions = ({
   })
 
   const setMetaMutation = useMutation({
+    meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: async (meta: Record<string, unknown>) => {
       if (!docId || !kbId) return false
       await knowledgeAPI.metadata.updateDocumentMeta(kbId, docId, meta)

@@ -87,5 +87,5 @@ export const getCreateKnowledgeErrorMessage = (
     return t('knowledge.create.errors.integrity')
   }
 
-  return backendMessage
+  return t('knowledge.create.errors.generic')
 }

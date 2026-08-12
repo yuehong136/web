@@ -144,6 +144,8 @@ if (import.meta.hot) {
       './en-US/tools',
       './zh-CN/mcp',
       './en-US/mcp',
+      './zh-CN/route-errors',
+      './en-US/route-errors',
     ],
     reloadLocaleResources,
   )

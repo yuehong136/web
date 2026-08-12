@@ -100,7 +100,6 @@ export const useCreateKnowledge = ({
       resetForm()
       onCreated?.(result.kb_id)
     } catch (error) {
-      console.error('Create knowledge base failed:', error)
       addNotification({
         type: 'error',
         title: t('knowledge.create.errors.title'),

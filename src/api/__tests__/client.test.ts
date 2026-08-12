@@ -123,3 +123,55 @@ test('request keeps reporting envelope business errors', async () => {
     },
   )
 })
+
+test('401 preserves the deep link before notifying the reload listener', async () => {
+  const originalWindow = Object.getOwnPropertyDescriptor(globalThis, 'window')
+  const order: string[] = []
+  const fakeWindow = {
+    location: {
+      href: 'https://app.example/agent/a?tab=run#node-x',
+    },
+    history: {
+      replaceState: (_state: unknown, _title: string, url: string | URL) => {
+        order.push('replace')
+        fakeWindow.location.href = String(url)
+      },
+    },
+    dispatchEvent: (_event: Event) => {
+      order.push('dispatch')
+      assert.equal(
+        new URL(fakeWindow.location.href).searchParams.get('expired'),
+        'true',
+      )
+      return true
+    },
+  }
+
+  Object.defineProperty(globalThis, 'window', {
+    configurable: true,
+    value: fakeWindow,
+  })
+  apiClient.setAuthToken('expired-test-token')
+
+  try {
+    await withFetch(
+      () => jsonResponse(401, { detail: 'expired' }, 'Unauthorized'),
+      async () => {
+        await assert.rejects(apiClient.get('/v1/protected'), APIError)
+      },
+    )
+
+    assert.deepEqual(order, ['replace', 'dispatch'])
+    assert.equal(
+      fakeWindow.location.href,
+      'https://app.example/agent/a?tab=run&expired=true#node-x',
+    )
+  } finally {
+    apiClient.setAuthToken(null)
+    if (originalWindow) {
+      Object.defineProperty(globalThis, 'window', originalWindow)
+    } else {
+      Reflect.deleteProperty(globalThis, 'window')
+    }
+  }
+})

@@ -6,6 +6,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { llmAPI } from '@/api/llm'
+import { MutationErrorFeedback } from '@/lib/mutation-error-feedback'
 import {
   buildLLMValue,
   isLLMModelEnabled,
@@ -92,6 +93,7 @@ export const useSetApiKey = () => {
   const queryClient = useQueryClient()
 
   const mutation = useMutation({
+    meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: (params: {
       llmFactory: string
       apiKey: string
@@ -129,7 +131,10 @@ export const useSetApiKey = () => {
       verify,
     })
     if (verify) {
-      return { isValid: !!response?.success, logs: response?.message || '' }
+      return {
+        isValid: Boolean(response?.success),
+        logs: response?.success ? '验证成功' : '验证失败',
+      }
     }
     return undefined
   }
@@ -147,6 +152,7 @@ export const useAddLLM = () => {
   const queryClient = useQueryClient()
 
   const mutation = useMutation({
+    meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: ({
       params,
       verify,
@@ -167,7 +173,10 @@ export const useAddLLM = () => {
   ): Promise<ModelVerifyResult | undefined> => {
     const response = await mutation.mutateAsync({ params, verify })
     if (verify) {
-      return { isValid: !!response?.success, logs: response?.message || '' }
+      return {
+        isValid: Boolean(response?.success),
+        logs: response?.success ? '验证成功' : '验证失败',
+      }
     }
     return undefined
   }

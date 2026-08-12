@@ -50,14 +50,12 @@ export function useGenerateState(kbId: string) {
             label: t(TASK_TYPE_CONFIG[type].labelKey),
           }),
         )
-      } catch (err: unknown) {
-        const msg =
-          err instanceof Error
-            ? err.message
-            : t('knowledge.documents.generate.runError', {
-                label: t(TASK_TYPE_CONFIG[type].labelKey),
-              })
-        toast.error(msg)
+      } catch {
+        toast.error(
+          t('knowledge.documents.generate.runError', {
+            label: t(TASK_TYPE_CONFIG[type].labelKey),
+          }),
+        )
       }
     },
     [kbId, runTask, t],
@@ -72,14 +70,12 @@ export function useGenerateState(kbId: string) {
             label: t(TASK_TYPE_CONFIG[type].labelKey),
           }),
         )
-      } catch (err: unknown) {
-        const msg =
-          err instanceof Error
-            ? err.message
-            : t('knowledge.documents.generate.pauseError', {
-                label: t(TASK_TYPE_CONFIG[type].labelKey),
-              })
-        toast.error(msg)
+      } catch {
+        toast.error(
+          t('knowledge.documents.generate.pauseError', {
+            label: t(TASK_TYPE_CONFIG[type].labelKey),
+          }),
+        )
       }
     },
     [kbId, pauseTask, t],
@@ -99,12 +95,8 @@ export function useGenerateState(kbId: string) {
           label: t(TASK_TYPE_CONFIG[deletingType].labelKey),
         }),
       )
-    } catch (err: unknown) {
-      const msg =
-        err instanceof Error
-          ? err.message
-          : t('knowledge.documents.generate.deleteError')
-      toast.error(msg)
+    } catch {
+      toast.error(t('knowledge.documents.generate.deleteError'))
     } finally {
       setDeleteConfirmOpen(false)
       setDeletingType(null)

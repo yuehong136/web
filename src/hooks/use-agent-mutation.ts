@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { agentAPI } from '@/api/agent'
 import { toast } from '@/lib/toast'
+import { MutationErrorFeedback } from '@/lib/mutation-error-feedback'
 import { adaptAgentFlow, adaptAgentSession } from '@/pages/agent/adapters'
 import { agentQueryKeys } from './use-agent-query'
 import type {
@@ -17,11 +18,20 @@ export interface UploadCanvasFileParams {
   signal?: AbortSignal
 }
 
-export const useSetAgent = (options?: { showToast?: boolean }) => {
+interface UseSetAgentOptions {
+  showToast?: boolean
+  errorFeedback?: MutationErrorFeedback
+}
+
+export const useSetAgent = (options?: UseSetAgentOptions) => {
   const queryClient = useQueryClient()
   const showToast = options?.showToast ?? true
+  const errorFeedback =
+    options?.errorFeedback ??
+    (showToast ? MutationErrorFeedback.Local : MutationErrorFeedback.Global)
 
   const mutation = useMutation({
+    meta: { errorFeedback },
     mutationFn: async (payload: SetAgentPayload) =>
       adaptAgentFlow(await agentAPI.setAgent(payload)),
     onSuccess: (data, variables) => {
@@ -38,9 +48,9 @@ export const useSetAgent = (options?: { showToast?: boolean }) => {
         toast.success('保存成功')
       }
     },
-    onError: (error: Error) => {
+    onError: () => {
       if (showToast) {
-        toast.error(`保存失败: ${error.message}`)
+        toast.error('保存失败')
       }
     },
   })
@@ -62,8 +72,8 @@ export const useDeleteAgent = () => {
       queryClient.removeQueries({ queryKey: agentQueryKeys.detail(id) })
       toast.success('已删除智能体')
     },
-    onError: (error: Error) => {
-      toast.error(`删除失败: ${error.message}`)
+    onError: () => {
+      toast.error('删除失败')
     },
   })
 
@@ -81,8 +91,8 @@ export const useResetAgent = () => {
     onSuccess: () => {
       toast.success('执行状态已重置')
     },
-    onError: (error: Error) => {
-      toast.error(`重置失败: ${error.message}`)
+    onError: () => {
+      toast.error('重置失败')
     },
   })
 
@@ -124,8 +134,8 @@ export const useUpdateAgentSetting = () => {
       })
       toast.success('配置已更新')
     },
-    onError: (error: Error) => {
-      toast.error(`更新失败: ${error.message}`)
+    onError: () => {
+      toast.error('更新失败')
     },
   })
 
@@ -160,8 +170,8 @@ export const useUploadCanvasFile = () => {
 
       return agentAPI.uploadFile(canvasId, file)
     },
-    onError: (error: Error) => {
-      toast.error(`上传失败: ${error.message}`)
+    onError: () => {
+      toast.error('上传失败')
     },
   })
 
@@ -196,8 +206,8 @@ export const useUploadPublicCanvasFile = () => {
 
       return agentAPI.uploadPublicFile(canvasId, file)
     },
-    onError: (error: Error) => {
-      toast.error(`上传失败: ${error.message}`)
+    onError: () => {
+      toast.error('上传失败')
     },
   })
 
@@ -213,8 +223,8 @@ export const useTestWebhook = () => {
   const mutation = useMutation({
     mutationFn: async (payload: AgentWebhookTestRequest) =>
       agentAPI.testWebhook(payload),
-    onError: (error: Error) => {
-      toast.error(`Webhook 测试失败: ${error.message}`)
+    onError: () => {
+      toast.error('Webhook 测试失败')
     },
   })
 
@@ -230,8 +240,8 @@ export const useDebugSingle = () => {
   const mutation = useMutation({
     mutationFn: async (payload: DebugAgentNodePayload) =>
       agentAPI.debugSingle(payload),
-    onError: (error: Error) => {
-      toast.error(`调试失败: ${error.message}`)
+    onError: () => {
+      toast.error('调试失败')
     },
   })
 
@@ -245,6 +255,7 @@ export const useDebugSingle = () => {
 
 export const useCancelConversation = () => {
   const mutation = useMutation({
+    meta: { errorFeedback: MutationErrorFeedback.Silent },
     mutationFn: async (taskId: string) => agentAPI.cancelTask(taskId),
   })
 
@@ -258,6 +269,7 @@ export const useCancelConversation = () => {
 
 export const useCancelDataflow = () => {
   const mutation = useMutation({
+    meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: async (taskId: string) => agentAPI.cancelDataflow(taskId),
   })
 
@@ -272,6 +284,7 @@ export const useCancelDataflow = () => {
 export const useCreateAgentSession = (canvasId: string) => {
   const queryClient = useQueryClient()
   const mutation = useMutation({
+    meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: async (name: string) =>
       adaptAgentSession(await agentAPI.createSession(canvasId, name)),
     onSuccess: () => {
@@ -292,6 +305,7 @@ export const useCreateAgentSession = (canvasId: string) => {
 export const useDeleteAgentSession = (canvasId: string) => {
   const queryClient = useQueryClient()
   const mutation = useMutation({
+    meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: async (sessionId: string) =>
       agentAPI.deleteSession(canvasId, sessionId),
     onSuccess: () => {

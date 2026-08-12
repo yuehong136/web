@@ -301,6 +301,7 @@ export default {
     crossLanguages: 'Cross Languages',
     dataManipulation: 'Data manipulation',
     database: 'Database',
+    databaseConnectionTestFailed: 'Database connection test failed',
     datatype: 'Datatype',
     dataset: 'Dataset',
     days: 'Days',

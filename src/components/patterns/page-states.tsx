@@ -29,6 +29,9 @@ interface PageErrorStateProps extends BasePageStateProps {
   description?: React.ReactNode
   retryLabel?: string
   onRetry?: () => void
+  titleAs?: 'h1' | 'h2' | 'h3'
+  icon?: React.ReactNode
+  action?: React.ReactNode
 }
 
 const PageStateShell: React.FC<
@@ -114,24 +117,31 @@ export const PageErrorState: React.FC<PageErrorStateProps> = ({
   description = '当前内容暂时不可用，请稍后重试。',
   retryLabel = '重试',
   onRetry,
+  titleAs: Title = 'h2',
+  icon,
+  action,
   ...props
 }) => {
   return (
     <PageStateShell {...props}>
       <div className="rounded-radius-full flex h-12 w-12 items-center justify-center bg-status-error-subtle text-status-error">
-        <AlertTriangle className="h-6 w-6" />
+        {icon ?? <AlertTriangle className="h-6 w-6" aria-hidden="true" />}
       </div>
       <div className="gap-space-xs flex flex-col">
-        <h2 className="text-lg font-semibold text-components-page-state-title">
+        <Title className="text-lg font-semibold text-components-page-state-title">
           {title}
-        </h2>
+        </Title>
         {description ? (
           <p className="text-sm text-components-page-state-description">
             {description}
           </p>
         ) : null}
       </div>
-      {onRetry ? (
+      {action ? (
+        <div className="gap-space-sm flex flex-wrap items-center justify-center">
+          {action}
+        </div>
+      ) : onRetry ? (
         <Button variant="outline" onClick={onRetry}>
           {retryLabel}
         </Button>

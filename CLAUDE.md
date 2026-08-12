@@ -23,7 +23,7 @@ npm run test:agent-t1 # node --test via tsx: agent serializers + adapters
 npm run test:design-tokens # node --test via tsx: design-token utilities (palette, token values)
 npm run test:streaming # node --test via tsx: shared streaming runtime (SSE transport + chunk-merge reducer)
 npm run test:api     # node --test via tsx: API-layer contracts (routes, envelopes, normalizers)
-npm run test:product-ui # product capability UI contracts (Agent settings, Home, Studio, Search, API Keys)
+npm run test:product-ui # product capability, route recovery, and mutation-ownership contracts
 npm run test:security # security lint rules + toast DOM-injection boundary regression
 npm run lint:file-size # File-size ratchet: oversized files must not grow (baseline: scripts/file-size-baseline.json)
 npm run lint:file-size:update # Tighten the ratchet baseline after shrinking a debt file (never to loosen it)
@@ -432,21 +432,25 @@ Treat everything produced by an LLM or returned by a tool — text, markdown, HT
 
 ## Error Handling
 
-Every route must declare an `errorElement`. Use the shared `ErrorFallback`:
+The route tree must declare the shared `ErrorFallback` once on a pathless top-level branch. Descendants inherit that boundary, and nested render, loader, and lazy-import failures bubble to it; do not repeat it on every leaf route. The top-level branch must also include an explicit `*` catch-all that renders the product 404:
 
 ```tsx
 {
-  path: '/knowledge',
-  element: <Suspense fallback={<PageLoadingState />}><KnowledgePage /></Suspense>,
   errorElement: <ErrorFallback />,
+  children: [
+    ...topLevelRoutes,
+    { path: '*', element: <NotFoundPage /> },
+  ],
 }
 ```
 
-Mutations surface errors via `sonner` (toast), not via dialogs, unless the action requires the user to recover state.
+Keep the shared `ErrorBoundary` around the application root so render failures outside the router provider are also recoverable. Until ENG-10 provides sanitized telemetry, React and Router caught-error callbacks must not emit raw Error objects; later telemetry may include only fixed classifications, route, release, and trace ID.
+
+Declare mutation error ownership with `MutationErrorFeedback`: `Global` lets the QueryClient provide consistent `sonner` feedback, `Local` requires the calling surface to present a recoverable error, and `Silent` is reserved for expected cancellation or background work that genuinely needs no feedback. Every new or modified user-facing notice must map to fixed, internationalized safe copy; never render or concatenate raw `error.message`, `details`, response bodies, or mutation variables. Retire legacy violations through the ENG-3 mutation-UX ratchet. Do not use blocking dialogs unless the user must recover state in place.
 
 ## Testing
 
-Tests run through `tsx --test`, Node test, and Vitest. Coverage focuses on `pages/agent/operators`, `adapters`, `runtime-workbench`, `pipeline-workbench`, `prompt-editor`, `schema-editor`, `lib/design-tokens`, `lib/streaming`, `api`, product capability UI, and security boundaries. Formal npm test scripts: `test:agent-t1`, `test:design-tokens`, `test:streaming`, `test:api`, `test:product-ui`, and `test:security`.
+Tests run through `tsx --test`, Node test, and Vitest. Coverage focuses on `pages/agent/operators`, `adapters`, `runtime-workbench`, `pipeline-workbench`, `prompt-editor`, `schema-editor`, `lib/design-tokens`, `lib/streaming`, `api`, product capabilities, route recovery, mutation error ownership, and security boundaries. Formal npm test scripts: `test:agent-t1`, `test:design-tokens`, `test:streaming`, `test:api`, `test:product-ui`, and `test:security`.
 
 New SSE consumers use the shared runtime in `src/lib/streaming/` (`readSSEStream` + `assertSSEResponse` + typed envelopes + answer reducer) instead of hand-rolling the decode/parse loop; see `docs/streaming-runtime-design.md`.
 

@@ -103,12 +103,9 @@ export function useCreateMemory() {
         description: t('memory.toast.createSuccess', { name: variables.name }),
       })
     },
-    onError: (error) => {
+    onError: () => {
       toast.error(t('common.errors.serverError'), {
-        description:
-          error instanceof Error
-            ? error.message
-            : t('memory.toast.createFailed'),
+        description: t('memory.toast.createFailed'),
       })
     },
   })
@@ -137,12 +134,9 @@ export function useUpdateMemory() {
       // 提示成功
       toast.success(t('memory.config.saveSuccess'))
     },
-    onError: (error) => {
+    onError: () => {
       toast.error(t('memory.config.saveFailed'), {
-        description:
-          error instanceof Error
-            ? error.message
-            : t('memory.toast.updateFailed'),
+        description: t('memory.toast.updateFailed'),
       })
     },
   })
@@ -165,12 +159,9 @@ export function useDeleteMemory() {
         description: t('memory.toast.deleteSuccess'),
       })
     },
-    onError: (error) => {
+    onError: () => {
       toast.error(t('common.errors.serverError'), {
-        description:
-          error instanceof Error
-            ? error.message
-            : t('memory.toast.deleteFailed'),
+        description: t('memory.toast.deleteFailed'),
       })
     },
   })
@@ -239,12 +230,9 @@ export function useUpdateMessageState() {
 
       toast.success(t('common.saved'))
     },
-    onError: (error) => {
+    onError: () => {
       toast.error(t('common.errors.serverError'), {
-        description:
-          error instanceof Error
-            ? error.message
-            : t('memory.toast.updateMessageStatusFailed'),
+        description: t('memory.toast.updateMessageStatusFailed'),
       })
     },
   })
@@ -270,12 +258,9 @@ export function useForgetMessage() {
 
       toast.success(t('memory.toast.forgetMessageSuccess'))
     },
-    onError: (error) => {
+    onError: () => {
       toast.error(t('common.errors.serverError'), {
-        description:
-          error instanceof Error
-            ? error.message
-            : t('memory.toast.forgetMessageFailed'),
+        description: t('memory.toast.forgetMessageFailed'),
       })
     },
   })

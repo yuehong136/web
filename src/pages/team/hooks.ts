@@ -16,7 +16,13 @@ import {
 } from '@/hooks/use-team-request'
 import { useTeamStore } from '@/stores/team'
 import { useAuthStore } from '@/stores'
-import { TenantRole, type TeamMember, type JoinedTeam, type TeamPermissions, type TeamStats } from '@/types/team'
+import {
+  TenantRole,
+  type TeamMember,
+  type JoinedTeam,
+  type TeamPermissions,
+  type TeamStats,
+} from '@/types/team'
 import { toast } from '@/lib/toast'
 
 /** 页面数据和权限计算 */
@@ -32,13 +38,14 @@ export const useTeamPageData = () => {
       joinedTeams.filter(
         (t) =>
           (t.role === TenantRole.Owner || t.role === TenantRole.Admin) &&
-          t.tenant_id !== tenantInfo?.tenant_id
+          t.tenant_id !== tenantInfo?.tenant_id,
       ),
-    [joinedTeams, tenantInfo?.tenant_id]
+    [joinedTeams, tenantInfo?.tenant_id],
   )
 
   // 当前选中的团队 ID
-  const selectedTenantId = selectedManagedTenantId ?? tenantInfo?.tenant_id ?? null
+  const selectedTenantId =
+    selectedManagedTenantId ?? tenantInfo?.tenant_id ?? null
 
   // 当前选中团队的角色
   const selectedRole = useMemo(() => {
@@ -50,29 +57,40 @@ export const useTeamPageData = () => {
   }, [selectedTenantId, tenantInfo?.tenant_id, joinedTeams])
 
   // 获取选中团队的成员列表
-  const { members, isLoading: membersLoading, refetch: refetchMembers } = useFetchTeamMembers(
-    selectedTenantId ?? undefined
-  )
+  const {
+    members,
+    isLoading: membersLoading,
+    refetch: refetchMembers,
+  } = useFetchTeamMembers(selectedTenantId ?? undefined)
 
   // 权限
-  const permissions: TeamPermissions = useMemo(() => ({
-    canInvite: selectedRole === TenantRole.Owner || selectedRole === TenantRole.Admin,
-    canRemove: selectedRole === TenantRole.Owner || selectedRole === TenantRole.Admin,
-    canChangeRole: selectedRole === TenantRole.Owner,
-  }), [selectedRole])
+  const permissions: TeamPermissions = useMemo(
+    () => ({
+      canInvite:
+        selectedRole === TenantRole.Owner || selectedRole === TenantRole.Admin,
+      canRemove:
+        selectedRole === TenantRole.Owner || selectedRole === TenantRole.Admin,
+      canChangeRole: selectedRole === TenantRole.Owner,
+    }),
+    [selectedRole],
+  )
 
   // 统计数据
-  const stats: TeamStats = useMemo(() => ({
-    totalMembers: members.length,
-    activeMembers: members.filter((m) => m.role !== TenantRole.Invite).length,
-    adminMembers: members.filter((m) => m.role === TenantRole.Admin).length,
-    pendingInvites: members.filter((m) => m.role === TenantRole.Invite).length,
-    joinedTeams: joinedTeams.length,
-  }), [members, joinedTeams])
+  const stats: TeamStats = useMemo(
+    () => ({
+      totalMembers: members.length,
+      activeMembers: members.filter((m) => m.role !== TenantRole.Invite).length,
+      adminMembers: members.filter((m) => m.role === TenantRole.Admin).length,
+      pendingInvites: members.filter((m) => m.role === TenantRole.Invite)
+        .length,
+      joinedTeams: joinedTeams.length,
+    }),
+    [members, joinedTeams],
+  )
 
   const pendingTeamInvites = useMemo(
     () => joinedTeams.filter((t) => t.role === TenantRole.Invite).length,
-    [joinedTeams]
+    [joinedTeams],
   )
 
   return {
@@ -120,32 +138,51 @@ export const useTeamActions = (selectedTenantId: string | null) => {
   const handleConfirmRemove = async () => {
     if (!confirmDialog.target || !selectedTenantId) return
     try {
-      await removeMember({ tenantId: selectedTenantId, userId: confirmDialog.target.id })
+      await removeMember({
+        tenantId: selectedTenantId,
+        userId: confirmDialog.target.id,
+      })
       toast.success('操作成功')
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : '操作失败')
+    } catch {
+      toast.error('操作失败')
     } finally {
       closeConfirmDialog()
     }
   }
 
-  const handleChangeRole = (userId: string, nickname: string, currentRole: TenantRole) => {
+  const handleChangeRole = (
+    userId: string,
+    nickname: string,
+    currentRole: TenantRole,
+  ) => {
     const newRole = currentRole === TenantRole.Admin ? 'normal' : 'admin'
-    openConfirmDialog('change-role', { id: userId, name: nickname }, { newRole })
+    openConfirmDialog(
+      'change-role',
+      { id: userId, name: nickname },
+      { newRole },
+    )
   }
 
   const handleConfirmRoleChange = async () => {
-    if (!confirmDialog.target || !selectedTenantId || !confirmDialog.roleChangeInfo) return
+    if (
+      !confirmDialog.target ||
+      !selectedTenantId ||
+      !confirmDialog.roleChangeInfo
+    )
+      return
     try {
       await updateRole({
         tenantId: selectedTenantId,
         userId: confirmDialog.target.id,
         role: confirmDialog.roleChangeInfo.newRole,
       })
-      const label = confirmDialog.roleChangeInfo.newRole === 'admin' ? '已设为管理员' : '已取消管理员'
+      const label =
+        confirmDialog.roleChangeInfo.newRole === 'admin'
+          ? '已设为管理员'
+          : '已取消管理员'
       toast.success(label)
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : '操作失败')
+    } catch {
+      toast.error('操作失败')
     } finally {
       closeConfirmDialog()
     }
@@ -155,8 +192,8 @@ export const useTeamActions = (selectedTenantId: string | null) => {
     try {
       await acceptInvitation(tenantId)
       toast.success('已接受邀请')
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : '操作失败')
+    } catch {
+      toast.error('操作失败')
     }
   }
 
@@ -165,8 +202,8 @@ export const useTeamActions = (selectedTenantId: string | null) => {
     try {
       await rejectInvitation({ tenantId, userId: user.id })
       toast.success('已拒绝邀请')
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : '操作失败')
+    } catch {
+      toast.error('操作失败')
     }
   }
 
@@ -180,10 +217,13 @@ export const useTeamActions = (selectedTenantId: string | null) => {
       return
     }
     try {
-      await rejectInvitation({ tenantId: confirmDialog.target.id, userId: user.id })
+      await rejectInvitation({
+        tenantId: confirmDialog.target.id,
+        userId: user.id,
+      })
       toast.success('已退出团队')
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : '操作失败')
+    } catch {
+      toast.error('操作失败')
     } finally {
       closeConfirmDialog()
     }
@@ -213,7 +253,7 @@ export const useTeamActions = (selectedTenantId: string | null) => {
 export const useFilteredMembers = (
   members: TeamMember[],
   searchQuery: string,
-  sortDesc: boolean
+  sortDesc: boolean,
 ) => {
   return useMemo(() => {
     const query = searchQuery.toLowerCase().trim()
@@ -221,7 +261,7 @@ export const useFilteredMembers = (
       ? members.filter(
           (m) =>
             m.nickname?.toLowerCase().includes(query) ||
-            m.email?.toLowerCase().includes(query)
+            m.email?.toLowerCase().includes(query),
         )
       : members
 
@@ -237,7 +277,7 @@ export const useFilteredMembers = (
 export const useFilteredJoinedTeams = (
   joinedTeams: JoinedTeam[],
   searchQuery: string,
-  sortDesc: boolean
+  sortDesc: boolean,
 ) => {
   return useMemo(() => {
     const query = searchQuery.toLowerCase().trim()
@@ -245,7 +285,7 @@ export const useFilteredJoinedTeams = (
       ? joinedTeams.filter(
           (t) =>
             t.nickname?.toLowerCase().includes(query) ||
-            t.email?.toLowerCase().includes(query)
+            t.email?.toLowerCase().includes(query),
         )
       : joinedTeams
 

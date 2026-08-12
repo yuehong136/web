@@ -77,17 +77,17 @@ class APIClient {
       return
     }
 
-    window.dispatchEvent(
-      new CustomEvent('auth:logout', {
-        detail: { reason: 'token_expired' },
-      }),
-    )
-
     const currentUrl = new URL(window.location.href)
     if (!currentUrl.pathname.startsWith('/auth/')) {
       currentUrl.searchParams.set('expired', 'true')
       window.history.replaceState({}, '', currentUrl.toString())
     }
+
+    window.dispatchEvent(
+      new CustomEvent('auth:logout', {
+        detail: { reason: 'token_expired' },
+      }),
+    )
   }
 
   private handleUnauthorized(skipAuth = false): void {

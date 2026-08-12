@@ -53,7 +53,7 @@ jobs:
       - name: Test (API contracts)
         run: npm run test:api
 
-      - name: Test (product capability UI)
+      - name: Test (product contracts & recovery)
         run: npm run test:product-ui
 
       - name: Test (security boundaries)

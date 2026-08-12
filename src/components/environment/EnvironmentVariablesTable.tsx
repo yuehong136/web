@@ -159,7 +159,7 @@ export function EnvironmentVariablesTable({
       toast.success('变量已添加')
       onVariablesChange()
       setIsAddDialogOpen(false)
-    } catch (error) {
+    } catch {
       toast.error('保存变量失败')
     }
   }
@@ -214,7 +214,7 @@ export function EnvironmentVariablesTable({
       toast.success('变量已更新')
       onVariablesChange()
       setEditingVariableId(null)
-    } catch (error) {
+    } catch {
       toast.error('保存变量失败')
     }
   }
@@ -232,11 +232,8 @@ export function EnvironmentVariablesTable({
       await deleteVariable(environmentId, variableId)
       toast.success('变量已删除')
       onVariablesChange()
-    } catch (error) {
-      console.error('删除变量失败:', error)
-      toast.error(
-        `删除变量失败: ${error instanceof Error ? error.message : '未知错误'}`,
-      )
+    } catch {
+      toast.error('删除变量失败')
     }
   }
 

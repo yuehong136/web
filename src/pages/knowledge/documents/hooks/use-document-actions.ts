@@ -46,8 +46,7 @@ export function useDocumentActions(onSuccess?: () => void, datasetId?: string) {
           }),
         )
         onSuccess?.()
-      } catch (error) {
-        console.error('Failed to start parsing:', error)
+      } catch {
         toast.error(t('knowledge.documents.toasts.parseStartError'))
       }
     },
@@ -64,8 +63,7 @@ export function useDocumentActions(onSuccess?: () => void, datasetId?: string) {
           }),
         )
         onSuccess?.()
-      } catch (error) {
-        console.error('Failed to stop parsing:', error)
+      } catch {
         toast.error(t('knowledge.documents.toasts.parseStopError'))
       }
     },
@@ -82,11 +80,7 @@ export function useDocumentActions(onSuccess?: () => void, datasetId?: string) {
         })
         const docResult = result[doc.id]
         if (docResult?.error) {
-          toast.error(
-            t('knowledge.documents.toasts.statusToggleDetailError', {
-              error: docResult.error,
-            }),
-          )
+          toast.error(t('knowledge.documents.toasts.statusToggleError'))
           return
         }
         toast.success(
@@ -97,8 +91,7 @@ export function useDocumentActions(onSuccess?: () => void, datasetId?: string) {
           ),
         )
         onSuccess?.()
-      } catch (error) {
-        console.error('Failed to toggle document status:', error)
+      } catch {
         toast.error(t('knowledge.documents.toasts.statusToggleError'))
       }
     },
@@ -125,8 +118,7 @@ export function useDocumentActions(onSuccess?: () => void, datasetId?: string) {
           )
         }
         onSuccess?.()
-      } catch (error) {
-        console.error('Failed to enable documents:', error)
+      } catch {
         toast.error(t('knowledge.documents.toasts.bulkEnableError'))
       }
     },
@@ -153,8 +145,7 @@ export function useDocumentActions(onSuccess?: () => void, datasetId?: string) {
           )
         }
         onSuccess?.()
-      } catch (error) {
-        console.error('Failed to disable documents:', error)
+      } catch {
         toast.error(t('knowledge.documents.toasts.bulkDisableError'))
       }
     },
@@ -167,8 +158,7 @@ export function useDocumentActions(onSuccess?: () => void, datasetId?: string) {
         await renameDocument({ docId, name: newName })
         toast.success(t('knowledge.documents.toasts.renameSuccess'))
         onSuccess?.()
-      } catch (error) {
-        console.error('Failed to rename document:', error)
+      } catch {
         toast.error(t('knowledge.documents.toasts.renameError'))
       }
     },
@@ -179,13 +169,8 @@ export function useDocumentActions(onSuccess?: () => void, datasetId?: string) {
     async (doc: Document) => {
       try {
         await downloadDocument({ docId: doc.id, filename: doc.name })
-      } catch (error) {
-        console.error('Failed to download document:', error)
-        const msg =
-          error instanceof Error
-            ? error.message
-            : t('knowledge.documents.toasts.downloadError')
-        toast.error(msg)
+      } catch {
+        toast.error(t('knowledge.documents.toasts.downloadError'))
       }
     },
     [downloadDocument, t],
@@ -201,8 +186,7 @@ export function useDocumentActions(onSuccess?: () => void, datasetId?: string) {
           }),
         )
         onSuccess?.()
-      } catch (error) {
-        console.error('Failed to delete documents:', error)
+      } catch {
         toast.error(t('knowledge.documents.toasts.deleteError'))
       }
     },

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { authAPI } from '@/api/auth'
 import { toast } from '@/lib/toast'
+import { MutationErrorFeedback } from '@/lib/mutation-error-feedback'
 import { useAuthStore } from '@/stores/auth'
 import {
   defaultProfileData,
@@ -126,6 +127,7 @@ export const useProfile = () => {
 
   const saveProfileMutation = useMutation({
     mutationKey: ['saveProfile'],
+    meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: async (nextProfile: ProfileData) =>
       authAPI.updateUserSettings({
         nickname: nextProfile.userName,
@@ -136,6 +138,7 @@ export const useProfile = () => {
 
   const changePasswordMutation = useMutation({
     mutationKey: ['changePassword'],
+    meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: async (data: PasswordChangeFormData) =>
       authAPI.updateUserSettings({
         password: data.currPasswd,
@@ -195,7 +198,7 @@ export const useProfile = () => {
       const response = await saveProfileMutation.mutateAsync(nextProfile)
 
       if (response.retcode !== 0) {
-        toast.error(response.retmsg || '个人资料保存失败')
+        toast.error('个人资料保存失败')
         return false
       }
 
@@ -212,10 +215,8 @@ export const useProfile = () => {
       queryClient.invalidateQueries({ queryKey: profileKeys.all })
       toast.success('个人资料已更新')
       return true
-    } catch (error: unknown) {
-      const message =
-        error instanceof Error ? error.message : '个人资料保存失败，请稍后重试'
-      toast.error(message)
+    } catch {
+      toast.error('个人资料保存失败，请稍后重试')
       return false
     }
   }, [draft, queryClient, saveProfileMutation, updateUser])
@@ -233,17 +234,15 @@ export const useProfile = () => {
         const response = await changePasswordMutation.mutateAsync(parsed.data)
 
         if (response.retcode !== 0) {
-          toast.error(response.retmsg || '密码修改失败，请稍后重试')
+          toast.error('密码修改失败，请稍后重试')
           return false
         }
 
         setMode(ProfileMode.VIEW)
         toast.success('密码修改成功')
         return true
-      } catch (error: unknown) {
-        const message =
-          error instanceof Error ? error.message : '密码修改失败，请稍后重试'
-        toast.error(message)
+      } catch {
+        toast.error('密码修改失败，请稍后重试')
         return false
       }
     },

@@ -23,7 +23,7 @@ npm run test:agent-t1 # tsx 跑 node --test：agent serializer + adapter
 npm run test:design-tokens # tsx 跑 node --test：设计令牌工具（调色板、token 取值）
 npm run test:streaming # tsx 跑 node --test：共享流式运行时（SSE transport + chunk 合并 reducer）
 npm run test:api     # tsx 跑 node --test：API 层契约（路由、信封、归一化）
-npm run test:product-ui # 产品能力 UI 合同（Agent 设置、Home、Studio、Search、API Keys）
+npm run test:product-ui # 产品能力、路由恢复与 mutation ownership 合同
 npm run test:security # 安全 lint 规则 + Toast DOM 注入边界回归
 npm run lint:file-size # 文件体积棘轮：超标文件不得膨胀（基线：scripts/file-size-baseline.json）
 npm run lint:file-size:update # 偿还债务（行数下降）后收紧基线（禁止用来放宽）
@@ -430,21 +430,25 @@ LLM 产出或工具返回的一切 —— 文本、markdown、HTML、代码、UR
 
 ## 错误处理
 
-每条路由必须声明 `errorElement`，统一用 `ErrorFallback`：
+路由树必须由一个无 `path` 的顶层分支统一声明共享 `ErrorFallback`。后代路由继承该边界，嵌套 render / loader / lazy import 错误向上冒泡；不要在每个叶子路由重复声明。顶层分支还必须有显式 `*` catch-all，呈现产品化 404：
 
 ```tsx
 {
-  path: '/knowledge',
-  element: <Suspense fallback={<PageLoadingState />}><KnowledgePage /></Suspense>,
   errorElement: <ErrorFallback />,
+  children: [
+    ...topLevelRoutes,
+    { path: '*', element: <NotFoundPage /> },
+  ],
 }
 ```
 
-Mutation 错误用 `sonner` toast 暴露，不用 dialog 阻塞，除非用户必须现场恢复状态。
+应用根节点必须保留共享 `ErrorBoundary`，覆盖路由 provider 之外的渲染失败。React / Router 捕获回调在 ENG-10 脱敏遥测落地前不得输出原始 Error；接入遥测后也只允许固定分类、route、release 与 trace ID。
+
+Mutation 错误归属通过 `MutationErrorFeedback` 明确标注：`Global` 由 QueryClient 用 `sonner` 给统一反馈，`Local` 由调用面呈现可恢复错误，`Silent` 仅用于预期取消或确实无需提示的后台动作。新增或修改的用户反馈必须映射为固定、已国际化的安全文案，**禁止**渲染或拼接原始 `error.message`、`details`、响应体或 mutation variables；存量违规按 ENG-3 的 mutation UX 棘轮持续清退。除非用户必须现场恢复状态，否则不用 dialog 阻塞错误反馈。
 
 ## 测试
 
-现状：测试分别通过 `tsx --test`、Node test 与 Vitest 运行，覆盖 `pages/agent/operators`、`adapters`、`runtime-workbench`、`pipeline-workbench`、`prompt-editor`、`schema-editor`、`lib/design-tokens`、`lib/streaming`、`api`、产品能力 UI 和安全边界。正式测试脚本：`test:agent-t1`、`test:design-tokens`、`test:streaming`、`test:api`、`test:product-ui` 与 `test:security`。
+现状：测试分别通过 `tsx --test`、Node test 与 Vitest 运行，覆盖 `pages/agent/operators`、`adapters`、`runtime-workbench`、`pipeline-workbench`、`prompt-editor`、`schema-editor`、`lib/design-tokens`、`lib/streaming`、`api`、产品能力、路由恢复、mutation 错误归属和安全边界。正式测试脚本：`test:agent-t1`、`test:design-tokens`、`test:streaming`、`test:api`、`test:product-ui` 与 `test:security`。
 
 新增 SSE 消费面使用 `src/lib/streaming/` 的共享运行时（`readSSEStream` + `assertSSEResponse` + 类型化 envelope + answer reducer），不要再手写解码/解析循环；见 `docs/streaming-runtime-design.md`。
 

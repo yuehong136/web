@@ -67,7 +67,7 @@ export const useQuickEdit = ({
         return t('knowledge.list.quickEdit.errors.tenantNotFound')
       }
 
-      return backendMessage
+      return t('knowledge.list.quickEdit.errors.generic')
     },
     [t],
   )

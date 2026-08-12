@@ -1,15 +1,35 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import { PageErrorState } from '@/components/patterns'
 
 interface ErrorBoundaryState {
   hasError: boolean
-  error?: Error
-  errorInfo?: React.ErrorInfo
 }
 
 interface ErrorBoundaryProps {
   children: React.ReactNode
-  fallback?: (error: Error, retry: () => void) => React.ReactNode
+  fallback?: (retry: () => void) => React.ReactNode
+  onRetry?: () => void
+}
+
+export const handleCaughtApplicationError = () => undefined
+
+function DefaultErrorFallback({ onRetry }: { onRetry: () => void }) {
+  const { t } = useTranslation()
+
+  return (
+    <div className="flex h-full min-h-[320px] flex-col">
+      <PageErrorState
+        title={t('routeErrors.unexpected.title', '页面无法显示')}
+        description={t(
+          'routeErrors.unexpected.description',
+          '页面遇到了意外问题，请重新加载。',
+        )}
+        retryLabel={t('routeErrors.actions.retry', '重新加载')}
+        onRetry={onRetry}
+      />
+    </div>
+  )
 }
 
 export class ErrorBoundary extends React.Component<
@@ -21,46 +41,25 @@ export class ErrorBoundary extends React.Component<
     this.state = { hasError: false }
   }
 
-  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    return { hasError: true, error }
-  }
-
-  override componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('ErrorBoundary caught an error:', error, errorInfo)
-    this.setState({ error, errorInfo })
+  static getDerivedStateFromError(): ErrorBoundaryState {
+    return { hasError: true }
   }
 
   handleRetry = () => {
-    this.setState({ hasError: false, error: undefined, errorInfo: undefined })
+    if (this.props.onRetry) {
+      this.props.onRetry()
+      return
+    }
+    this.setState({ hasError: false })
   }
 
   override render() {
     if (this.state.hasError) {
-      if (this.props.fallback && this.state.error) {
-        return this.props.fallback(this.state.error, this.handleRetry)
+      if (this.props.fallback) {
+        return this.props.fallback(this.handleRetry)
       }
 
-      return (
-        <div className="flex h-full min-h-[320px] flex-col">
-          <PageErrorState
-            title="出现了一个错误"
-            description={this.state.error?.message || '应用程序遇到了意外错误'}
-            onRetry={this.handleRetry}
-          />
-          {process.env.NODE_ENV === 'development' && this.state.error ? (
-            <div className="px-space-lg pb-space-lg">
-              <details className="rounded-radius-lg p-space-base border border-border-subtle bg-background-subtle">
-                <summary className="cursor-pointer text-xs text-text-secondary">
-                  错误详情 (开发模式)
-                </summary>
-                <pre className="mt-space-sm rounded-radius-md p-space-sm overflow-auto bg-background-surface text-xs text-text-secondary">
-                  {this.state.error.stack}
-                </pre>
-              </details>
-            </div>
-          ) : null}
-        </div>
-      )
+      return <DefaultErrorFallback onRetry={this.handleRetry} />
     }
 
     return this.props.children
@@ -70,7 +69,7 @@ export class ErrorBoundary extends React.Component<
 // 函数组件包装器
 export const withErrorBoundary = <P extends object>(
   Component: React.ComponentType<P>,
-  fallback?: (error: Error, retry: () => void) => React.ReactNode,
+  fallback?: (retry: () => void) => React.ReactNode,
 ) => {
   const WrappedComponent = (props: P) => (
     <ErrorBoundary fallback={fallback}>

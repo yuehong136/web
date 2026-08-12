@@ -169,8 +169,8 @@ export const useBatchUpdateMetadata = () => {
         toast.success('操作完成')
       }
     },
-    onError: (error: any) => {
-      toast.error(error.message || '元数据更新失败')
+    onError: () => {
+      toast.error('元数据更新失败')
     },
   })
 }
@@ -191,8 +191,8 @@ export const useUpdateKBMetadataSettings = () => {
       })
       toast.success('元数据模板已更新')
     },
-    onError: (error: any) => {
-      toast.error(error.message || '元数据模板更新失败')
+    onError: () => {
+      toast.error('元数据模板更新失败')
     },
   })
 }
@@ -210,8 +210,8 @@ export const useUpdateDocumentMetadataSettings = () => {
       queryClient.invalidateQueries({ queryKey: documentKeys.all })
       toast.success('文档元数据设置已更新')
     },
-    onError: (error: any) => {
-      toast.error(error.message || '文档元数据设置更新失败')
+    onError: () => {
+      toast.error('文档元数据设置更新失败')
     },
   })
 }
@@ -240,8 +240,8 @@ export const useUpdateDocumentMeta = () => {
       })
       toast.success('文档元数据已更新')
     },
-    onError: (error: any) => {
-      toast.error(error.message || '文档元数据更新失败')
+    onError: () => {
+      toast.error('文档元数据更新失败')
     },
   })
 }

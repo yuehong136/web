@@ -145,9 +145,8 @@ export const useSetDialogApp = () => {
       toast.success(variables.dialog_id ? '应用更新成功' : '应用创建成功')
       return dialogApp
     },
-    onError: (error: any) => {
-      console.error('Dialog app creation error:', error)
-      toast.error(error.message || '操作失败')
+    onError: () => {
+      toast.error('操作失败')
     },
   })
 }
@@ -181,8 +180,8 @@ export const useUpdateDialogApp = () => {
 
       toast.success('应用更新成功')
     },
-    onError: (error: any) => {
-      toast.error(error.message || '更新应用失败')
+    onError: () => {
+      toast.error('更新应用失败')
     },
   })
 }
@@ -206,8 +205,8 @@ export const useDeleteDialogApps = () => {
 
       toast.success('应用删除成功')
     },
-    onError: (error: any) => {
-      toast.error(error.message || '删除应用失败')
+    onError: () => {
+      toast.error('删除应用失败')
     },
   })
 }
@@ -219,8 +218,8 @@ export const useExportDialogApps = () => {
     onSuccess: () => {
       toast.success('模版导出成功')
     },
-    onError: (error: any) => {
-      toast.error(error.message || '模版导出失败')
+    onError: () => {
+      toast.error('模版导出失败')
     },
   })
 }
@@ -242,8 +241,8 @@ export const useImportDialogApps = () => {
         toast.success(`成功导入 ${imported.length} 个应用`)
       }
     },
-    onError: (error: any) => {
-      toast.error(error.message || '模版导入失败')
+    onError: () => {
+      toast.error('模版导入失败')
     },
   })
 }

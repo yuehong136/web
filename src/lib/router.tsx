@@ -1,5 +1,10 @@
 import { Suspense, lazy, type ComponentType } from 'react'
-import { createBrowserRouter, Navigate, useParams } from 'react-router-dom'
+import {
+  createBrowserRouter,
+  Navigate,
+  type RouteObject,
+  useParams,
+} from 'react-router-dom'
 import { Layout } from '@/components/layout/Layout'
 import {
   AppScene,
@@ -7,6 +12,7 @@ import {
   PageLoadingState,
 } from '@/components/patterns'
 import { ROUTES } from '@/constants'
+import { ErrorFallback, NotFoundPage } from '@/pages/error'
 
 // ---------------------------------------------------------------------------
 // Static imports — critical path for first paint
@@ -221,48 +227,42 @@ const ThemeDemoPage = lazyNamed(
 // ---------------------------------------------------------------------------
 // Placeholder pages
 // ---------------------------------------------------------------------------
-const documentsElement = (
-  <div className="p-space-lg flex h-full items-center justify-center">
-    <PageEmptyState
-      scene={AppScene.CONSOLE}
-      title="文件中心即将推出"
-      description="文件中心能力正在整理为统一控制台体验。"
-      compact
-    />
-  </div>
-)
+function placeholderElement(
+  scene: AppScene,
+  title: string,
+  description: string,
+) {
+  return (
+    <div className="p-space-lg flex h-full items-center justify-center">
+      <PageEmptyState
+        scene={scene}
+        title={title}
+        description={description}
+        compact
+      />
+    </div>
+  )
+}
 
-const workflowElement = (
-  <div className="p-space-lg flex h-full items-center justify-center">
-    <PageEmptyState
-      scene={AppScene.STUDIO}
-      title="工作流模块即将推出"
-      description="工作流会在后续以统一 Studio 骨架接入。"
-      compact
-    />
-  </div>
+const documentsElement = placeholderElement(
+  AppScene.CONSOLE,
+  '文件中心即将推出',
+  '文件中心能力正在整理为统一控制台体验。',
 )
-
-const notificationsElement = (
-  <div className="p-space-lg flex h-full items-center justify-center">
-    <PageEmptyState
-      scene={AppScene.CONSOLE}
-      title="通知设置即将推出"
-      description="该设置项会复用统一 Console 模板补充。"
-      compact
-    />
-  </div>
+const workflowElement = placeholderElement(
+  AppScene.STUDIO,
+  '工作流模块即将推出',
+  '工作流会在后续以统一 Studio 骨架接入。',
 )
-
-const appearanceElement = (
-  <div className="p-space-lg flex h-full items-center justify-center">
-    <PageEmptyState
-      scene={AppScene.CONSOLE}
-      title="界面设置即将推出"
-      description="界面设置会在新骨架和主题规则稳定后接入。"
-      compact
-    />
-  </div>
+const notificationsElement = placeholderElement(
+  AppScene.CONSOLE,
+  '通知设置即将推出',
+  '该设置项会复用统一 Console 模板补充。',
+)
+const appearanceElement = placeholderElement(
+  AppScene.CONSOLE,
+  '界面设置即将推出',
+  '界面设置会在新骨架和主题规则稳定后接入。',
 )
 
 function AgentLogRedirect() {
@@ -306,7 +306,7 @@ const embedRoutes: { path: string; element: React.ReactElement }[] =
       })()
     : []
 
-export const router = createBrowserRouter([
+const topLevelRoutes: RouteObject[] = [
   ...authRoutes,
 
   {
@@ -571,4 +571,13 @@ export const router = createBrowserRouter([
       },
     ],
   },
-])
+]
+
+export const appRoutes: RouteObject[] = [
+  {
+    errorElement: <ErrorFallback />,
+    children: [...topLevelRoutes, { path: '*', element: <NotFoundPage /> }],
+  },
+]
+
+export const router = createBrowserRouter(appRoutes)

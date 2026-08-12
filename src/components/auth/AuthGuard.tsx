@@ -3,6 +3,7 @@ import { Navigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from '@/stores/auth'
 import { Loading } from '@/components/ui/loading'
 import { ROUTES } from '@/constants'
+import { RouteErrorKind, RouteRecoveryPage } from '@/components/routing'
 
 interface AuthGuardProps {
   children: React.ReactNode
@@ -18,12 +19,13 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
   requiredRoles = [],
 }) => {
   const location = useLocation()
-  const { isAuthenticated, isLoading, user, hasPermission, hasRole } = useAuthStore()
+  const { isAuthenticated, isLoading, user, hasPermission, hasRole } =
+    useAuthStore()
 
   // 如果正在加载，显示加载状态
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center">
         <Loading variant="spinner" size="lg" />
       </div>
     )
@@ -34,53 +36,43 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
     // 检查是否因为token过期而重定向
     const urlParams = new URLSearchParams(window.location.search)
     const isExpired = urlParams.get('expired') === 'true'
-    
+
+    const from = `${location.pathname}${location.search}${location.hash}`
+
     return (
-      <Navigate 
+      <Navigate
         to={`${ROUTES.LOGIN}${isExpired ? '?expired=true' : ''}`}
-        state={{ from: location.pathname }} 
-        replace 
+        state={{ from }}
+        replace
       />
     )
   }
 
   // 如果用户已登录但访问登录/注册页，重定向到仪表板
-  if (!requireAuth && isAuthenticated && (
-    location.pathname === ROUTES.LOGIN || 
-    location.pathname === ROUTES.REGISTER
-  )) {
+  if (
+    !requireAuth &&
+    isAuthenticated &&
+    (location.pathname === ROUTES.LOGIN ||
+      location.pathname === ROUTES.REGISTER)
+  ) {
     return <Navigate to={ROUTES.HOME} replace />
   }
 
   // 检查权限
   if (requiredPermissions.length > 0 && user) {
-    const hasAllPermissions = requiredPermissions.every(permission => 
-      hasPermission(permission)
+    const hasAllPermissions = requiredPermissions.every((permission) =>
+      hasPermission(permission),
     )
     if (!hasAllPermissions) {
-      return (
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-text-primary mb-2">访问被拒绝</h2>
-            <p className="text-text-secondary">您没有访问此页面的权限</p>
-          </div>
-        </div>
-      )
+      return <RouteRecoveryPage kind={RouteErrorKind.FORBIDDEN} />
     }
   }
 
   // 检查角色
   if (requiredRoles.length > 0 && user) {
-    const hasAllRoles = requiredRoles.every(role => hasRole(role))
+    const hasAllRoles = requiredRoles.every((role) => hasRole(role))
     if (!hasAllRoles) {
-      return (
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-text-primary mb-2">访问被拒绝</h2>
-            <p className="text-text-secondary">您没有访问此页面的角色权限</p>
-          </div>
-        </div>
-      )
+      return <RouteRecoveryPage kind={RouteErrorKind.FORBIDDEN} />
     }
   }
 

@@ -576,14 +576,14 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
         await onSave(finalApiKey, finalBaseUrl, additionalParams)
         handleClose()
       }
-    } catch (err: any) {
+    } catch {
       if (isVerify) {
         setVerifyResult({
           isValid: false,
-          logs: err?.message || '验证失败，请重试',
+          logs: '验证失败，请重试',
         })
       } else {
-        setError(err?.message || '保存失败，请重试')
+        setError('保存失败，请重试')
       }
     } finally {
       if (isVerify) {

@@ -7,6 +7,7 @@ import React, {
   useMemo,
   useRef,
 } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Rect } from '@antv/g'
 import {
   Badge,
@@ -319,6 +320,7 @@ const applyAllExpandState = async (graph: Graph, collapsed: boolean) => {
 
 const IndentedTree = forwardRef<IndentedTreeRef, IndentedTreeProps>(
   ({ data, visible }, ref) => {
+    const { t } = useTranslation()
     const containerRef = useRef<HTMLDivElement>(null)
     const graphRef = useRef<Graph | null>(null)
     const isDark = useIsDarkTheme()
@@ -481,15 +483,20 @@ const IndentedTree = forwardRef<IndentedTreeRef, IndentedTreeProps>(
 
     return (
       <ErrorBoundary
-        fallback={(error, retry) => (
+        fallback={(retry) => (
           <div className="gap-space-sm flex h-full flex-col items-center justify-center">
-            <p className="text-sm text-status-error">{error.message}</p>
+            <p className="text-sm text-status-error">
+              {t(
+                'routeErrors.unexpected.description',
+                '页面遇到了意外问题，请重新加载。',
+              )}
+            </p>
             <button
               type="button"
               onClick={retry}
               className="rounded-radius-md px-space-sm py-space-xs border border-border-default text-sm text-text-secondary hover:text-text-primary"
             >
-              重试渲染
+              {t('routeErrors.actions.retry', '重新加载')}
             </button>
           </div>
         )}

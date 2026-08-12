@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { agentAPI } from '@/api/agent'
 import {
   useCancelConversation,
@@ -44,6 +45,7 @@ export function useExploreSessionChat({
   isNew: boolean
   onSessionReady: (sessionId: string) => void
 }) {
+  const { t } = useTranslation()
   const agentQuery = useFetchAgent(canvasId)
   const sessionQuery = useFetchAgentSession(canvasId, sessionId)
   const { createAgentSession } = useCreateAgentSession(canvasId)
@@ -59,13 +61,18 @@ export function useExploreSessionChat({
   )
 
   const [messages, setMessages] = useState<RuntimeMessage[]>([])
-  const [status, setStatus] = useState<AgentRuntimeStatus>(AgentRuntimeStatus.IDLE)
+  const [status, setStatus] = useState<AgentRuntimeStatus>(
+    AgentRuntimeStatus.IDLE,
+  )
   const [lastError, setLastError] = useState<string>()
   const [currentMessageId, setCurrentMessageId] = useState<string>()
   const [latestTaskId, setLatestTaskId] = useState<string>()
   const [parameterDialogOpen, setParameterDialogOpen] = useState(false)
-  const [submittedBeginInputs, setSubmittedBeginInputs] = useState<BeginQuery[] | null>(null)
-  const [pendingRequest, setPendingRequest] = useState<ExploreSendRequest | null>(null)
+  const [submittedBeginInputs, setSubmittedBeginInputs] = useState<
+    BeginQuery[] | null
+  >(null)
+  const [pendingRequest, setPendingRequest] =
+    useState<ExploreSendRequest | null>(null)
 
   const abortControllerRef = useRef<AbortController | null>(null)
   const sessionIdRef = useRef(sessionId)
@@ -107,18 +114,22 @@ export function useExploreSessionChat({
     return assistantId
   }, [])
 
-  const { handleNormalizedEvent, resetRuntimeEventState } = useExploreRuntimeEvents({
-    sessionIdRef,
-    onSessionReady,
-    setCurrentMessageId,
-    setLatestTaskId,
-    setLastError,
-    setStatus,
-    updateMessageById,
-  })
+  const { handleNormalizedEvent, resetRuntimeEventState } =
+    useExploreRuntimeEvents({
+      sessionIdRef,
+      onSessionReady,
+      setCurrentMessageId,
+      setLatestTaskId,
+      setLastError,
+      setStatus,
+      updateMessageById,
+    })
 
   useEffect(() => {
-    if (streamingSessionIdRef.current && sessionId === streamingSessionIdRef.current) {
+    if (
+      streamingSessionIdRef.current &&
+      sessionId === streamingSessionIdRef.current
+    ) {
       return
     }
 
@@ -173,11 +184,18 @@ export function useExploreSessionChat({
 
       let activeSessionId = sessionIdRef.current
       if (!activeSessionId) {
-        const session = await createAgentSession(buildExploreSessionName(content))
-        activeSessionId = session.id
-        sessionIdRef.current = session.id
-        streamingSessionIdRef.current = session.id
-        onSessionReady(session.id)
+        try {
+          const session = await createAgentSession(
+            buildExploreSessionName(content),
+          )
+          activeSessionId = session.id
+          sessionIdRef.current = session.id
+          streamingSessionIdRef.current = session.id
+          onSessionReady(session.id)
+        } catch {
+          toast.error(t('agent.runtime.createSessionFailed'))
+          return
+        }
       } else {
         streamingSessionIdRef.current = activeSessionId
       }
@@ -234,17 +252,13 @@ export function useExploreSessionChat({
       } catch (error) {
         const isAbortError =
           error instanceof DOMException && error.name === 'AbortError'
-        const errorMessage = isAbortError
-          ? '已停止当前运行'
-          : error instanceof Error
-            ? error.message
-            : '运行失败'
+        const errorMessage = t(
+          isAbortError ? 'agent.runtime.runStopped' : 'agent.runtime.runFailed',
+        )
 
         setLastError(errorMessage)
         setStatus(
-          isAbortError
-            ? AgentRuntimeStatus.STOPPED
-            : AgentRuntimeStatus.ERROR,
+          isAbortError ? AgentRuntimeStatus.STOPPED : AgentRuntimeStatus.ERROR,
         )
         updateMessageById(assistantId, (message) => ({
           ...message,
@@ -270,6 +284,7 @@ export function useExploreSessionChat({
       handleNormalizedEvent,
       onSessionReady,
       sessionQuery,
+      t,
       updateMessageById,
     ],
   )
@@ -347,7 +362,9 @@ export function useExploreSessionChat({
 
       await runRequest({
         content: actionInput.query,
-        runtimeInputs: buildRuntimeInputObject(submittedBeginInputs || beginInputs),
+        runtimeInputs: buildRuntimeInputObject(
+          submittedBeginInputs || beginInputs,
+        ),
         a2ui: actionInput.a2ui,
         metadata: actionInput.metadata,
         appendUserMessage: true,

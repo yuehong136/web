@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   useDeleteAgentSession,
   useFetchAgentSessions,
@@ -10,10 +11,7 @@ import {
   createTemporaryExploreSession,
   selectNextSessionIdAfterDelete,
 } from '../utils'
-import type {
-  ExploreSession,
-  ExploreSessionListParams,
-} from '../types'
+import type { ExploreSession, ExploreSessionListParams } from '../types'
 
 export function useExploreSessions({
   canvasId,
@@ -26,12 +24,15 @@ export function useExploreSessions({
   isNew: boolean
   onSelectSession: (sessionId?: string, isNew?: boolean) => void
 }) {
+  const { t } = useTranslation()
   const [params, setParams] = useState<ExploreSessionListParams>(
     createDefaultExploreSessionParams,
   )
   const sessionsQuery = useFetchAgentSessions(canvasId, params)
-  const { deleteAgentSession, isLoading: deleting } = useDeleteAgentSession(canvasId)
-  const [temporarySession, setTemporarySession] = useState<ExploreSession | null>(null)
+  const { deleteAgentSession, isLoading: deleting } =
+    useDeleteAgentSession(canvasId)
+  const [temporarySession, setTemporarySession] =
+    useState<ExploreSession | null>(null)
 
   const sessions = useMemo(() => {
     const serverSessions = sessionsQuery.data.sessions
@@ -78,22 +79,20 @@ export function useExploreSessions({
         await deleteAgentSession(target.id)
         const nextSessionId =
           sessionId === target.id
-            ? selectNextSessionIdAfterDelete(sessionsQuery.data.sessions, target.id)
+            ? selectNextSessionIdAfterDelete(
+                sessionsQuery.data.sessions,
+                target.id,
+              )
             : sessionId
 
         onSelectSession(nextSessionId || undefined, false)
         void sessionsQuery.refetch()
         toast.success('会话已删除')
-      } catch (error) {
-        toast.error(error instanceof Error ? error.message : '删除会话失败')
+      } catch {
+        toast.error(t('agent.runtime.deleteSessionFailed'))
       }
     },
-    [
-      deleteAgentSession,
-      onSelectSession,
-      sessionId,
-      sessionsQuery,
-    ],
+    [deleteAgentSession, onSelectSession, sessionId, sessionsQuery, t],
   )
 
   return {

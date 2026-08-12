@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   useCreateAgentSession,
   useFetchAgent,
@@ -8,7 +9,10 @@ import { resolveLocalizedText } from '@/lib/agent'
 import { toast } from '@/lib/toast'
 import { BeginId } from '../../../constant'
 import { useCacheChatLog } from '../../../hooks/use-cache-chat-log'
-import { useGetBeginNodeDataInputs, useIsTaskMode } from '../../../hooks/use-get-begin-query'
+import {
+  useGetBeginNodeDataInputs,
+  useIsTaskMode,
+} from '../../../hooks/use-get-begin-query'
 import { useNodeLoading } from '../../../hooks/use-node-loading'
 import { useSaveGraph } from '../../../hooks/use-save-graph'
 import { useStopMessage } from '../../../hooks/use-stop-message'
@@ -42,24 +46,21 @@ import {
   mergeSurfaceIds,
   type AgentXCardActionPayload,
 } from '../../../x-card'
-
 interface UseAgentRuntimeWorkbenchOptions {
   canvasId?: string
   currentView: RuntimeWorkbenchView
   onViewChange: (view: RuntimeWorkbenchView) => void
   onSummaryChange?: (summary: ReturnType<typeof buildRuntimeSummary>) => void
 }
-
-const isRecord = (value: unknown): value is Record<string, unknown> => {
-  return typeof value === 'object' && value !== null
-}
-
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null
 export function useAgentRuntimeWorkbench({
   canvasId,
   currentView,
   onViewChange,
   onSummaryChange,
 }: UseAgentRuntimeWorkbenchOptions): AgentRuntimeController {
+  const { t } = useTranslation()
   const getNode = useGraphStore((state) => state.getNode)
   const updateNodeForm = useGraphStore((state) => state.updateNodeForm)
   const beginInputs = useGetBeginNodeDataInputs()
@@ -77,7 +78,6 @@ export function useAgentRuntimeWorkbench({
     latestTaskId,
     setCurrentMessageId,
   } = useCacheChatLog()
-
   const [messages, setMessages] = useState<RuntimeMessage[]>([])
   const [status, setStatus] = useState<AgentRuntimeStatus>(
     AgentRuntimeStatus.IDLE,
@@ -439,17 +439,13 @@ export function useAgentRuntimeWorkbench({
       } catch (error) {
         const isAbortError =
           error instanceof DOMException && error.name === 'AbortError'
-        const errorMessage = isAbortError
-          ? '已停止当前运行'
-          : error instanceof Error
-            ? error.message
-            : '运行失败'
+        const errorMessage = t(
+          isAbortError ? 'agent.runtime.runStopped' : 'agent.runtime.runFailed',
+        )
 
         setLastError(errorMessage)
         setStatus(
-          isAbortError
-            ? AgentRuntimeStatus.STOPPED
-            : AgentRuntimeStatus.ERROR,
+          isAbortError ? AgentRuntimeStatus.STOPPED : AgentRuntimeStatus.ERROR,
         )
         updateMessageById(assistantId, (message) => ({
           ...message,
@@ -476,6 +472,7 @@ export function useAgentRuntimeWorkbench({
       saveCurrentGraph,
       sessionsQuery,
       sessionId,
+      t,
       updateMessageById,
     ],
   )
@@ -598,19 +595,16 @@ export function useAgentRuntimeWorkbench({
         setViewingSessionId(undefined)
         onViewChange(RuntimeWorkbenchView.CONVERSATION)
         toast.success('已创建新会话')
-      } catch (error) {
-        toast.error(error instanceof Error ? error.message : '创建会话失败')
+      } catch {
+        toast.error(t('agent.runtime.createSessionFailed'))
       }
     },
-    [canvasId, clearRuntimeState, createAgentSession, onViewChange],
+    [canvasId, clearRuntimeState, createAgentSession, onViewChange, t],
   )
 
-  const handleSwitchViewingSession = useCallback(
-    (id: string | undefined) => {
-      setViewingSessionId(id)
-    },
-    [],
-  )
+  const handleSwitchViewingSession = useCallback((id: string | undefined) => {
+    setViewingSessionId(id)
+  }, [])
 
   const handleAdoptViewingSession = useCallback(() => {
     if (!viewingSessionId) {

@@ -8,6 +8,7 @@
 import { useCallback, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { environmentAPI } from '@/api/environment'
+import { MutationErrorFeedback } from '@/lib/mutation-error-feedback'
 import { useEnvironmentStore } from '@/stores/environmentStore'
 import type {
   EnvironmentCreate,
@@ -105,6 +106,7 @@ export const useFetchGlobalEnvironments = (opts: QueryOpts = {}) => {
 export const useCreateEnvironment = () => {
   const queryClient = useQueryClient()
   const { mutateAsync, isPending } = useMutation({
+    meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: (data: EnvironmentCreate) =>
       environmentAPI.createEnvironment(data),
     onSuccess: () => {
@@ -117,6 +119,7 @@ export const useCreateEnvironment = () => {
 export const useUpdateEnvironment = () => {
   const queryClient = useQueryClient()
   const { mutateAsync, isPending } = useMutation({
+    meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: ({ id, data }: { id: string; data: EnvironmentUpdate }) =>
       environmentAPI.updateEnvironment(id, data),
     onSuccess: (_result, { id }) => {
@@ -130,6 +133,7 @@ export const useUpdateEnvironment = () => {
 export const useDeleteEnvironment = () => {
   const queryClient = useQueryClient()
   const { mutateAsync, isPending } = useMutation({
+    meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: (id: string) => environmentAPI.deleteEnvironment(id),
     onSuccess: (_result, id) => {
       queryClient.invalidateQueries({ queryKey: environmentKeys.lists() })
@@ -142,6 +146,7 @@ export const useDeleteEnvironment = () => {
 export const useDuplicateEnvironment = () => {
   const queryClient = useQueryClient()
   const { mutateAsync, isPending } = useMutation({
+    meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: ({ id, newName }: { id: string; newName: string }) =>
       environmentAPI.duplicateEnvironment(id, newName),
     onSuccess: () => {
@@ -163,6 +168,7 @@ export const useEnvironmentVariableMutations = () => {
   )
 
   const addMutation = useMutation({
+    meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: ({
       environmentId,
       data,
@@ -174,6 +180,7 @@ export const useEnvironmentVariableMutations = () => {
   })
 
   const updateMutation = useMutation({
+    meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: ({
       environmentId,
       variableId,
@@ -187,6 +194,7 @@ export const useEnvironmentVariableMutations = () => {
   })
 
   const deleteMutation = useMutation({
+    meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: ({
       environmentId,
       variableId,

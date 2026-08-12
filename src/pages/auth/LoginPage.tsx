@@ -1,5 +1,11 @@
 import React from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import {
+  Link,
+  useLocation,
+  useNavigate,
+  useSearchParams,
+} from 'react-router-dom'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -11,6 +17,7 @@ import { useAuthStore } from '@/stores/auth'
 import { ROUTES } from '@/constants'
 import { AlertTriangle, Eye, EyeOff, Mail, X } from 'lucide-react'
 import { AuthCarousel } from '@/components/auth/AuthCarousel'
+import { getSafeLoginRedirect } from './login-redirect'
 
 const loginSchema = z.object({
   email: z.string().email('请输入有效的邮箱地址'),
@@ -21,7 +28,9 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>
 
 export const LoginPage: React.FC = () => {
+  const { t } = useTranslation()
   const navigate = useNavigate()
+  const location = useLocation()
   const [searchParams, setSearchParams] = useSearchParams()
   const { login, isLoading } = useAuthStore()
   const [showPassword, setShowPassword] = React.useState(false)
@@ -66,12 +75,11 @@ export const LoginPage: React.FC = () => {
   const onSubmit = async (data: LoginFormData) => {
     try {
       await login(data.email, data.password, data.remember)
-      navigate(ROUTES.HOME)
-    } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : '登录失败，请重试'
+      const from = (location.state as { from?: unknown } | null)?.from
+      navigate(getSafeLoginRedirect(from), { replace: true })
+    } catch {
       setError('root', {
-        message: errorMessage,
+        message: t('common.errors.loginFailed'),
       })
     }
   }
@@ -170,7 +178,7 @@ export const LoginPage: React.FC = () => {
               />
             </div>
 
-            <div className="flex items-center justify-between">
+            <div className="flex items-center">
               <div className="gap-space-xs flex items-center">
                 <Controller
                   name="remember"
@@ -189,15 +197,6 @@ export const LoginPage: React.FC = () => {
                 >
                   记住我
                 </label>
-              </div>
-
-              <div className="text-sm">
-                <Link
-                  to="/auth/forgot-password"
-                  className="hover:text-text-accent/80 font-medium text-text-accent"
-                >
-                  忘记密码？
-                </Link>
               </div>
             </div>
 

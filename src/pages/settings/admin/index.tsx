@@ -253,8 +253,8 @@ const UsersPanel: React.FC<{
         await createUser.mutateAsync(data)
         setCreateOpen(false)
         toast.success('用户创建成功')
-      } catch (e: any) {
-        toast.error(e?.message || '创建失败')
+      } catch {
+        toast.error('创建失败')
       }
     },
     [createUser],
@@ -271,8 +271,8 @@ const UsersPanel: React.FC<{
       try {
         await deleteUser.mutateAsync(user.email)
         toast.success('用户已删除')
-      } catch (e: any) {
-        toast.error(e?.message || '删除失败')
+      } catch {
+        toast.error('删除失败')
       }
     },
     [deleteUser],
@@ -286,8 +286,8 @@ const UsersPanel: React.FC<{
           activate: !user.is_active,
         })
         toast.success(`用户已${user.is_active ? '停用' : '启用'}`)
-      } catch (e: any) {
-        toast.error(e?.message || '操作失败')
+      } catch {
+        toast.error('操作失败')
       }
     },
     [updateActivate],
@@ -298,8 +298,8 @@ const UsersPanel: React.FC<{
       try {
         await grantAdmin.mutateAsync(user.email)
         toast.success(`已授予「${user.nickname || user.email}」管理员权限`)
-      } catch (e: any) {
-        toast.error(e?.message || '操作失败')
+      } catch {
+        toast.error('操作失败')
       }
     },
     [grantAdmin],
@@ -316,8 +316,8 @@ const UsersPanel: React.FC<{
         await updatePassword.mutateAsync({ username, newPassword })
         setChangePassUser(null)
         toast.success('密码修改成功')
-      } catch (e: any) {
-        toast.error(e?.message || '修改失败')
+      } catch {
+        toast.error('修改失败')
       }
     },
     [updatePassword],

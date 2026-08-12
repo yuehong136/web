@@ -111,8 +111,8 @@ export const useAddDataSource = () => {
       message.success(t('common.operationSuccess'))
       setAddingModalVisible(false)
     },
-    onError: (error: any) => {
-      message.error(error?.message || t('common.operationFailed'))
+    onError: () => {
+      message.error(t('common.operationFailed'))
     },
   })
 
@@ -156,8 +156,8 @@ export const useDeleteDataSource = () => {
       queryClient.invalidateQueries({ queryKey: datasourceKeys.lists() })
       message.success(t('common.deleted'))
     },
-    onError: (error: any) => {
-      message.error(error?.message || t('common.operationFailed'))
+    onError: () => {
+      message.error(t('common.operationFailed'))
     },
   })
 
@@ -240,8 +240,8 @@ export const useDataSourceResume = (id?: string) => {
       })
       message.success(t('common.operationSuccess'))
     },
-    onError: (error: any) => {
-      message.error(error?.message || t('common.operationFailed'))
+    onError: () => {
+      message.error(t('common.operationFailed'))
     },
   })
 
@@ -264,8 +264,8 @@ export const useDataSourceRebuild = () => {
     onSuccess: () => {
       message.success(t('common.operationSuccess'))
     },
-    onError: (error: any) => {
-      message.error(error?.message || t('common.operationFailed'))
+    onError: () => {
+      message.error(t('common.operationFailed'))
     },
   })
 
@@ -312,8 +312,8 @@ export const useLinkDataSource = (kbId: string) => {
       queryClient.invalidateQueries({ queryKey: datasourceKeys.byKb(kbId) })
       message.success(t('common.operationSuccess'))
     },
-    onError: (error: any) => {
-      message.error(error?.message || t('common.operationFailed'))
+    onError: () => {
+      message.error(t('common.operationFailed'))
     },
   })
 
@@ -324,8 +324,8 @@ export const useLinkDataSource = (kbId: string) => {
       queryClient.invalidateQueries({ queryKey: datasourceKeys.byKb(kbId) })
       message.success(t('common.operationSuccess'))
     },
-    onError: (error: any) => {
-      message.error(error?.message || t('common.operationFailed'))
+    onError: () => {
+      message.error(t('common.operationFailed'))
     },
   })
 
@@ -340,8 +340,8 @@ export const useLinkDataSource = (kbId: string) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: datasourceKeys.byKb(kbId) })
     },
-    onError: (error: any) => {
-      message.error(error?.message || t('common.operationFailed'))
+    onError: () => {
+      message.error(t('common.operationFailed'))
     },
   })
 

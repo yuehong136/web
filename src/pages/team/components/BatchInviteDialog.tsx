@@ -79,8 +79,8 @@ export const BatchInviteDialog: React.FC<BatchInviteDialogProps> = ({
       const response = await onInvite(parsedEmails)
       setResults(response)
       setPhase('results')
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '邀请失败，请重试')
+    } catch {
+      setError('邀请失败，请重试')
       setPhase('input')
     }
   }, [parsedEmails, invalidEmails, validEmails, onInvite])

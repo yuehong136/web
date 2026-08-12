@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { channelAPI, type ChannelMutationPayload } from '@/api/channel'
+import { MutationErrorFeedback } from '@/lib/mutation-error-feedback'
 
 export const channelKeys = {
   all: ['channels'] as const,
@@ -90,6 +91,7 @@ const invalidateChannel = (
 export const useSaveChannel = () => {
   const queryClient = useQueryClient()
   return useMutation({
+    meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: saveChannel,
     onSuccess: (channel) => invalidateChannel(queryClient, channel.id),
   })
@@ -98,6 +100,7 @@ export const useSaveChannel = () => {
 export const useSetChannelEnabled = () => {
   const queryClient = useQueryClient()
   return useMutation({
+    meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: ({ id, enabled }: { id: string; enabled: boolean }) =>
       enabled ? channelAPI.enable(id) : channelAPI.disable(id),
     onSuccess: (channel) => {
@@ -127,6 +130,7 @@ export const useVerifyChannel = () => {
   const [, forceTick] = useState(0)
 
   const mutation = useMutation({
+    meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: channelAPI.verify,
     onSettled: () => setCooldownUntil(Date.now() + CHANNEL_VERIFY_COOLDOWN_MS),
   })
@@ -151,6 +155,7 @@ export const useVerifyChannel = () => {
 export const useDeleteChannel = () => {
   const queryClient = useQueryClient()
   return useMutation({
+    meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: channelAPI.remove,
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: channelKeys.lists() })

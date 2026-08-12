@@ -81,8 +81,7 @@ export function NewEnvironmentManager({
       } else {
         toast.error('保存功能暂不可用')
       }
-    } catch (error) {
-      console.error('环境保存失败:', error)
+    } catch {
       toast.error('保存失败')
     } finally {
       setIsSaving(false)

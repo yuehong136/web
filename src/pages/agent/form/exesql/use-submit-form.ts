@@ -1,6 +1,7 @@
 import { agentAPI } from '@/api/agent'
 import { toast } from '@/lib/toast'
 import { useMutation } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
 
 const exeSqlBaseSchema = z.object({
@@ -13,29 +14,36 @@ const exeSqlBaseSchema = z.object({
   max_records: z.number(),
 })
 
-export const exeSqlSchema = exeSqlBaseSchema.extend({
-  sql: z.string().optional(),
-  outputs: z.record(z.string(), z.any()).optional(),
-}).superRefine((value, ctx) => {
-  if (value.db_type !== 'trino' && !(value.password && value.password.trim().length > 0)) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: 'Password is required',
-      path: ['password'],
-    })
-  }
-})
+export const exeSqlSchema = exeSqlBaseSchema
+  .extend({
+    sql: z.string().optional(),
+    outputs: z.record(z.string(), z.any()).optional(),
+  })
+  .superRefine((value, ctx) => {
+    if (
+      value.db_type !== 'trino' &&
+      !(value.password && value.password.trim().length > 0)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Password is required',
+        path: ['password'],
+      })
+    }
+  })
 
 export type ExeSqlFormValues = z.infer<typeof exeSqlSchema>
 
 export function useSubmitForm() {
+  const { t } = useTranslation()
   const mutation = useMutation({
-    mutationFn: async (values: ExeSqlFormValues) => agentAPI.testDbConnect(values),
+    mutationFn: async (values: ExeSqlFormValues) =>
+      agentAPI.testDbConnect(values),
     onSuccess: () => {
       toast.success('数据库连接测试成功')
     },
-    onError: (error: Error) => {
-      toast.error(`数据库连接测试失败: ${error.message}`)
+    onError: () => {
+      toast.error(t('flow.databaseConnectionTestFailed'))
     },
   })
 

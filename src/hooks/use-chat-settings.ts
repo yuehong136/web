@@ -227,8 +227,8 @@ export function useChatSettings(dialogId: string | undefined) {
       queryClient.invalidateQueries({ queryKey: dialogKeys.all })
       toast.success('设置保存成功')
     },
-    onError: (error: any) => {
-      toast.error(error.message || '保存设置失败')
+    onError: () => {
+      toast.error('保存设置失败')
     },
   })
 

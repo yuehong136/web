@@ -39,8 +39,7 @@ class ErrorBoundaryWrapper extends React.Component<
     return { hasError: true }
   }
 
-  override componentDidCatch(error: Error) {
-    console.error('ImageCarousel error:', error)
+  override componentDidCatch() {
     this.props.onError()
   }
 

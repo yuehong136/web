@@ -7,16 +7,15 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useParams } from 'react-router-dom'
 import { searchAPI } from '@/api/search'
-import type {
-  CreateSearchRequest,
-  UpdateSearchRequest,
-} from '@/types'
+import { MutationErrorFeedback } from '@/lib/mutation-error-feedback'
+import type { CreateSearchRequest, UpdateSearchRequest } from '@/types'
 
 // Query Keys 统一管理
 export const searchKeys = {
   all: ['search'] as const,
   lists: () => [...searchKeys.all, 'list'] as const,
-  list: (params: Record<string, unknown>) => [...searchKeys.lists(), params] as const,
+  list: (params: Record<string, unknown>) =>
+    [...searchKeys.lists(), params] as const,
   details: () => [...searchKeys.all, 'detail'] as const,
   detail: (id: string) => [...searchKeys.details(), id] as const,
   configs: () => [...searchKeys.all, 'config'] as const,
@@ -52,7 +51,14 @@ export const useFetchSearchList = (params: UseFetchSearchListParams = {}) => {
   } = params
 
   const { data, isFetching, isError, error, refetch } = useQuery({
-    queryKey: searchKeys.list({ owner_ids, page, page_size, orderby, desc, keywords }),
+    queryKey: searchKeys.list({
+      owner_ids,
+      page,
+      page_size,
+      orderby,
+      desc,
+      keywords,
+    }),
     queryFn: async () => {
       const response = await searchAPI.list({
         owner_ids,
@@ -113,6 +119,7 @@ export const useCreateSearch = () => {
   const queryClient = useQueryClient()
 
   const { mutateAsync, isPending, isError, error } = useMutation({
+    meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: async (params: CreateSearchRequest) => {
       const response = await searchAPI.create(params)
       return response
@@ -135,6 +142,7 @@ export const useUpdateSearch = () => {
   const queryClient = useQueryClient()
 
   const { mutateAsync, isPending, isError, error } = useMutation({
+    meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: async (params: UpdateSearchRequest) => {
       const response = await searchAPI.update(params)
       return response
@@ -142,7 +150,9 @@ export const useUpdateSearch = () => {
     onSuccess: (_, vars) => {
       queryClient.invalidateQueries({ queryKey: searchKeys.lists() })
       if (vars.search_id) {
-        queryClient.invalidateQueries({ queryKey: searchKeys.detail(vars.search_id) })
+        queryClient.invalidateQueries({
+          queryKey: searchKeys.detail(vars.search_id),
+        })
       }
     },
   })
@@ -160,6 +170,7 @@ export const useDeleteSearch = () => {
   const queryClient = useQueryClient()
 
   const { mutateAsync, isPending, isError, error } = useMutation({
+    meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: async (searchId: string) => {
       await searchAPI.remove(searchId)
       return searchId

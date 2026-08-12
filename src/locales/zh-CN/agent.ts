@@ -223,6 +223,13 @@ export default {
       startRun: '开始运行',
       enterChat: '进入对话',
       runInstructions: '运行说明',
+      createSessionFailed: '创建会话失败',
+      deleteSessionFailed: '删除会话失败',
+      cancelPipelineFailed: '取消 Pipeline 失败',
+      runStopped: '已停止当前运行',
+      runFailed: '运行失败，请稍后重试',
+      pipelineRunStopped: '已停止当前 Pipeline 运行',
+      pipelineStartFailed: 'Pipeline 启动失败，请稍后重试',
     },
     trace: {
       session: 'Session',

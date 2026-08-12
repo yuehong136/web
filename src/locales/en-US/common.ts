@@ -107,6 +107,7 @@ export default {
       validationError: 'Invalid input format.',
       fileTooLarge: 'File size exceeds the limit.',
       unsupportedFileType: 'Unsupported file type.',
+      loginFailed: 'Sign-in failed. Check your connection or account details.',
       unknown: 'Unknown error.',
     },
   },

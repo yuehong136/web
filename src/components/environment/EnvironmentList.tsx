@@ -118,8 +118,7 @@ export function EnvironmentList({
       setIsDuplicateDialogOpen(false)
       setSelectedEnv(null)
       setNewEnvName('')
-    } catch (error) {
-      console.error('复制环境失败:', error)
+    } catch {
       toast.error('复制环境失败')
     }
   }
@@ -138,8 +137,7 @@ export function EnvironmentList({
       if (selectedEnvironmentId === selectedEnv.id) {
         onEnvironmentSelect('global')
       }
-    } catch (error) {
-      console.error('删除环境失败:', error)
+    } catch {
       toast.error('删除环境失败')
     }
   }

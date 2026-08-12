@@ -14,6 +14,7 @@ import tools from './tools'
 import mcp from './mcp'
 import settings from './settings'
 import channel from './channel'
+import routeErrors from './route-errors'
 
 export default {
   ...common,
@@ -32,4 +33,5 @@ export default {
   ...mcp,
   ...settings,
   ...channel,
+  ...routeErrors,
 }

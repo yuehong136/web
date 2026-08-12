@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { agentAPI } from '@/api/agent'
@@ -47,6 +48,7 @@ export function usePipelineWorkbench({
   onViewChange,
   onSummaryChange,
 }: UsePipelineWorkbenchOptions): PipelineRuntimeController {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const getNode = useGraphStore((state) => state.getNode)
   const findNodeByName = useGraphStore((state) => state.findNodeByName)
@@ -222,11 +224,11 @@ export function usePipelineWorkbench({
       } catch (error) {
         const isAbort =
           error instanceof DOMException && error.name === 'AbortError'
-        const errorMessage = isAbort
-          ? '已停止当前 Pipeline 运行'
-          : error instanceof Error
-            ? error.message
-            : 'Pipeline 启动失败'
+        const errorMessage = t(
+          isAbort
+            ? 'agent.runtime.pipelineRunStopped'
+            : 'agent.runtime.pipelineStartFailed',
+        )
 
         setLastError(errorMessage)
         setStatus(
@@ -249,6 +251,7 @@ export function usePipelineWorkbench({
       getNode,
       onViewChange,
       saveCurrentGraph,
+      t,
       updateNodeForm,
     ],
   )
@@ -265,13 +268,12 @@ export function usePipelineWorkbench({
     try {
       await cancelDataflow(messageId)
       setStatus(PipelineRuntimeStatus.STOPPED)
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : '取消 Pipeline 失败'
+    } catch {
+      const message = t('agent.runtime.cancelPipelineFailed')
       setLastError(message)
       toast.error(message)
     }
-  }, [cancelDataflow, messageId])
+  }, [cancelDataflow, messageId, t])
 
   const handleReset = useCallback(() => {
     clearPipelineState()

@@ -1,10 +1,22 @@
-import { QueryClient } from '@tanstack/react-query'
+import { MutationCache, QueryClient } from '@tanstack/react-query'
+import i18n from '@/locales/i18n'
+import { toast } from '@/lib/toast'
+import {
+  getMutationErrorNotice,
+  MutationErrorFeedback,
+  type MutationErrorNotice,
+} from '@/lib/mutation-error-feedback'
 
 const queryConfig = {
   queries: {
-    retry: (failureCount: number, error: any) => {
+    retry: (failureCount: number, error: unknown) => {
       // 不重试认证错误
-      if (error?.status === 401 || error?.status === 403) {
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'status' in error &&
+        (error.status === 401 || error.status === 403)
+      ) {
         return false
       }
       // 最多重试2次
@@ -19,13 +31,38 @@ const queryConfig = {
   },
   mutations: {
     retry: false,
-    onError: (error: any) => {
-      // 全局错误处理
-      console.error('Query error:', error)
-    },
   },
 }
 
-export const queryClient = new QueryClient({
-  defaultOptions: queryConfig,
-})
+export type MutationErrorNotifier = (notice: MutationErrorNotice) => void
+
+export interface CreateQueryClientOptions {
+  notifyMutationError?: MutationErrorNotifier
+}
+
+const defaultMutationErrorNotifier: MutationErrorNotifier = (notice) => {
+  toast.error(i18n.t(notice.messageKey), { id: notice.toastId })
+}
+
+export const createQueryClient = ({
+  notifyMutationError = defaultMutationErrorNotifier,
+}: CreateQueryClientOptions = {}) =>
+  new QueryClient({
+    defaultOptions: queryConfig,
+    mutationCache: new MutationCache({
+      onError: (error, _variables, _context, mutation) => {
+        const feedback =
+          mutation.meta?.errorFeedback ??
+          (mutation.options.onError
+            ? MutationErrorFeedback.Local
+            : MutationErrorFeedback.Global)
+
+        if (feedback !== MutationErrorFeedback.Global) return
+
+        const notice = getMutationErrorNotice(error)
+        if (notice) notifyMutationError(notice)
+      },
+    }),
+  })
+
+export const queryClient = createQueryClient()

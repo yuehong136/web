@@ -86,8 +86,7 @@ export const useDocumentChunksController = (
           chunkId: chunk.chunk_id,
           availableInt: chunk.available_int === 1 ? 0 : 1,
         })
-      } catch (error) {
-        console.error('Failed to toggle chunk status:', error)
+      } catch {
         toast.error(t('knowledge.chunks.errors.toggleStatus'))
       }
     },
@@ -99,8 +98,7 @@ export const useDocumentChunksController = (
     try {
       await actions.createChunk(await addForm.toPayloadAsync())
       addForm.close()
-    } catch (error) {
-      console.error('Failed to create chunk:', error)
+    } catch {
       toast.error(t('knowledge.chunks.errors.create'))
     }
   }, [actions, addForm, t])
@@ -113,8 +111,7 @@ export const useDocumentChunksController = (
       await actions.setChunk(payload)
       editForm.reset()
       list.delayedRefetchChunkList()
-    } catch (error) {
-      console.error('Failed to edit chunk:', error)
+    } catch {
       toast.error(t('knowledge.chunks.errors.save'))
     }
   }, [actions, editForm, list, t])
@@ -134,8 +131,7 @@ export const useDocumentChunksController = (
     try {
       await actions.deleteChunks([deletingChunkId])
       closeDeleteSingle()
-    } catch (error) {
-      console.error('Failed to delete chunk:', error)
+    } catch {
       toast.error(t('knowledge.chunks.errors.delete'))
     }
   }, [actions, closeDeleteSingle, deletingChunkId, list.docId, t])
@@ -156,8 +152,7 @@ export const useDocumentChunksController = (
           chunkIds: selection.selectedChunkIds,
           availableInt,
         })
-      } catch (error) {
-        console.error('Failed to bulk update chunks:', error)
+      } catch {
         const errorMessageKey =
           errorKey === 'bulkEnable'
             ? 'knowledge.chunks.errors.bulkEnable'
@@ -184,8 +179,7 @@ export const useDocumentChunksController = (
       await actions.deleteChunks(selection.selectedChunkIds)
       selection.clear()
       closeBulkDelete()
-    } catch (error) {
-      console.error('Failed to bulk delete chunks:', error)
+    } catch {
       toast.error(t('knowledge.chunks.errors.bulkDelete'))
     }
   }, [actions, closeBulkDelete, selection, t])
@@ -199,8 +193,7 @@ export const useDocumentChunksController = (
     try {
       await actions.setMeta(metaForm.toPayload())
       metaForm.close()
-    } catch (error) {
-      console.error('Failed to save meta:', error)
+    } catch {
       toast.error(t('knowledge.chunks.errors.saveMeta'))
     }
   }, [actions, list.docId, metaForm, t])

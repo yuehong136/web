@@ -2,11 +2,17 @@ import { useCallback } from 'react'
 import { useBuildDslData, type BuildDslDataOptions } from './use-build-dsl'
 import type { RAGFlowNodeType } from '../types'
 import { toast } from '@/lib/toast'
+import { MutationErrorFeedback } from '@/lib/mutation-error-feedback'
 import { useSetAgent } from '@/hooks/use-agent-mutation'
 
 export const useSaveGraph = (agentId?: string, showMessage: boolean = true) => {
   const { buildDslData } = useBuildDslData()
-  const { setAgent, isLoading } = useSetAgent({ showToast: showMessage })
+  const { setAgent, isLoading } = useSetAgent({
+    showToast: showMessage,
+    errorFeedback: showMessage
+      ? MutationErrorFeedback.Local
+      : MutationErrorFeedback.Silent,
+  })
 
   const saveGraph = useCallback(
     async (

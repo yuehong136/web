@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { adminAPI } from '@/api/admin'
+import { MutationErrorFeedback } from '@/lib/mutation-error-feedback'
 import type { CreateUserParams } from '../types'
 
 // admin 域 query key 工厂（users 形状沿用原 ['admin','users']，不变）
@@ -20,6 +21,7 @@ export function useFetchAdminUsers() {
 export function useCreateAdminUser() {
   const queryClient = useQueryClient()
   return useMutation({
+    meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: (data: CreateUserParams) => adminAPI.createUser(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: adminKeys.users() })
@@ -30,6 +32,7 @@ export function useCreateAdminUser() {
 export function useDeleteAdminUser() {
   const queryClient = useQueryClient()
   return useMutation({
+    meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: (username: string) => adminAPI.deleteUser(username),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: adminKeys.users() })
@@ -40,6 +43,7 @@ export function useDeleteAdminUser() {
 export function useUpdateUserActivate() {
   const queryClient = useQueryClient()
   return useMutation({
+    meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: ({
       username,
       activate,
@@ -55,6 +59,7 @@ export function useUpdateUserActivate() {
 
 export function useUpdateUserPassword() {
   return useMutation({
+    meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: ({
       username,
       newPassword,
@@ -68,6 +73,7 @@ export function useUpdateUserPassword() {
 export function useGrantAdmin() {
   const queryClient = useQueryClient()
   return useMutation({
+    meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: (username: string) => adminAPI.grantAdmin(username),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: adminKeys.users() })

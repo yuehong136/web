@@ -7,6 +7,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useParams } from 'react-router-dom'
 import { knowledgeAPI } from '@/api/knowledge'
+import { MutationErrorFeedback } from '@/lib/mutation-error-feedback'
 import type { DocumentFilter } from '@/types/api'
 
 // Query Keys 统一管理
@@ -211,6 +212,7 @@ export const useDeleteDocument = (datasetId?: string) => {
   const queryClient = useQueryClient()
 
   const { mutateAsync, isPending, isError, error } = useMutation({
+    meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: async (documentIds: string | string[]) => {
       const ids = Array.isArray(documentIds) ? documentIds : [documentIds]
       await knowledgeAPI.document.delete(ids, datasetId)
@@ -345,6 +347,7 @@ export const useRunDocument = () => {
   const queryClient = useQueryClient()
 
   const { mutateAsync, isPending, isError, error } = useMutation({
+    meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: async (params: {
       docIds: string[]
       run: 0 | 1 | 2 // 0=停止, 1=开始, 2=取消
@@ -375,6 +378,7 @@ export const useChangeDocumentStatus = () => {
   const queryClient = useQueryClient()
 
   const { mutateAsync, isPending, isError, error } = useMutation({
+    meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: async (params: { docIds: string[]; status: 0 | 1 }) => {
       const result = await knowledgeAPI.document.changeStatus({
         doc_ids: params.docIds,
@@ -400,6 +404,7 @@ export const useRenameDocument = () => {
   const queryClient = useQueryClient()
 
   const { mutateAsync, isPending, isError, error } = useMutation({
+    meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: async (params: { docId: string; name: string }) => {
       const result = await knowledgeAPI.document.rename(
         params.docId,
@@ -423,6 +428,7 @@ export const useRenameDocument = () => {
 // 下载文档
 export const useDownloadDocument = () => {
   const { mutateAsync, isPending, isError, error } = useMutation({
+    meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: async (params: { docId: string; filename?: string }) => {
       await knowledgeAPI.document.download(params.docId, params.filename)
       return params

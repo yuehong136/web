@@ -244,6 +244,13 @@ export default {
       startRun: 'Start run',
       enterChat: 'Enter chat',
       runInstructions: 'Run notes',
+      createSessionFailed: 'Failed to create session',
+      deleteSessionFailed: 'Failed to delete session',
+      cancelPipelineFailed: 'Failed to cancel Pipeline',
+      runStopped: 'The current run was stopped',
+      runFailed: 'The run failed. Try again later.',
+      pipelineRunStopped: 'The current Pipeline run was stopped',
+      pipelineStartFailed: 'Failed to start the Pipeline. Try again later.',
     },
     trace: {
       session: 'Session',

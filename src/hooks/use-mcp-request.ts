@@ -18,20 +18,27 @@ import { toast } from '@/lib/toast'
 export const mcpQueryKeys = {
   all: ['mcp'] as const,
   servers: () => [...mcpQueryKeys.all, 'servers'] as const,
-  serverList: (params?: { keywords?: string; page?: number; page_size?: number }) =>
-    [...mcpQueryKeys.servers(), 'list', params] as const,
-  serverDetail: (id: string) => [...mcpQueryKeys.servers(), 'detail', id] as const,
+  serverList: (params?: {
+    keywords?: string
+    page?: number
+    page_size?: number
+  }) => [...mcpQueryKeys.servers(), 'list', params] as const,
+  serverDetail: (id: string) =>
+    [...mcpQueryKeys.servers(), 'detail', id] as const,
   tools: () => [...mcpQueryKeys.all, 'tools'] as const,
-  toolsByServers: (mcpIds: string[]) => [...mcpQueryKeys.tools(), mcpIds] as const,
+  toolsByServers: (mcpIds: string[]) =>
+    [...mcpQueryKeys.tools(), mcpIds] as const,
 }
 
 /**
  * 从服务器的 variables.tools 中提取工具列表
  */
 export const getServerTools = (server: MCPServer): MCPTool[] => {
-  const toolsMap = server.variables?.tools as Record<string, MCPTool> | undefined
+  const toolsMap = server.variables?.tools as
+    | Record<string, MCPTool>
+    | undefined
   if (!toolsMap) return []
-  
+
   return Object.entries(toolsMap).map(([name, tool]) => ({
     name,
     description: tool.description || '',
@@ -44,7 +51,9 @@ export const getServerTools = (server: MCPServer): MCPTool[] => {
  * 判断服务器是否有缓存的工具（视为在线）
  */
 export const hasServerTools = (server: MCPServer): boolean => {
-  const toolsMap = server.variables?.tools as Record<string, MCPTool> | undefined
+  const toolsMap = server.variables?.tools as
+    | Record<string, MCPTool>
+    | undefined
   return toolsMap ? Object.keys(toolsMap).length > 0 : false
 }
 
@@ -62,11 +71,14 @@ export const useFetchMCPServers = (params?: {
   return useQuery({
     queryKey: mcpQueryKeys.serverList({ keywords, page, page_size }),
     queryFn: async () => {
-      const response = await mcpAPI.listServers({}, {
-        keywords: keywords || undefined,
-        page,
-        page_size,
-      })
+      const response = await mcpAPI.listServers(
+        {},
+        {
+          keywords: keywords || undefined,
+          page,
+          page_size,
+        },
+      )
       return response
     },
     enabled,
@@ -113,8 +125,8 @@ export const useCreateMCPServer = () => {
       queryClient.invalidateQueries({ queryKey: mcpQueryKeys.servers() })
       toast.success('服务器创建成功')
     },
-    onError: (error: Error) => {
-      toast.error(`创建失败: ${error.message}`)
+    onError: () => {
+      toast.error('创建失败')
     },
   })
 }
@@ -129,11 +141,13 @@ export const useUpdateMCPServer = () => {
     mutationFn: (data: UpdateMCPServerRequest) => mcpAPI.updateServer(data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: mcpQueryKeys.servers() })
-      queryClient.invalidateQueries({ queryKey: mcpQueryKeys.serverDetail(variables.mcp_id) })
+      queryClient.invalidateQueries({
+        queryKey: mcpQueryKeys.serverDetail(variables.mcp_id),
+      })
       toast.success('服务器更新成功')
     },
-    onError: (error: Error) => {
-      toast.error(`更新失败: ${error.message}`)
+    onError: () => {
+      toast.error('更新失败')
     },
   })
 }
@@ -150,8 +164,8 @@ export const useDeleteMCPServer = () => {
       queryClient.invalidateQueries({ queryKey: mcpQueryKeys.servers() })
       toast.success('服务器删除成功')
     },
-    onError: (error: Error) => {
-      toast.error(`删除失败: ${error.message}`)
+    onError: () => {
+      toast.error('删除失败')
     },
   })
 }
@@ -162,8 +176,8 @@ export const useDeleteMCPServer = () => {
 export const useTestMCPConnection = () => {
   return useMutation({
     mutationFn: (data: TestMCPRequest) => mcpAPI.testConnection(data),
-    onError: (error: Error) => {
-      toast.error(`连接测试失败: ${error.message}`)
+    onError: () => {
+      toast.error('连接测试失败')
     },
   })
 }
@@ -172,8 +186,10 @@ export const useTestMCPConnection = () => {
  * 计算 MCP 统计数据（基于列表数据，不调用额外接口）
  */
 export const useMCPStats = () => {
-  const { data: serversData, isLoading } = useFetchMCPServers({ page_size: 100 })
-  
+  const { data: serversData, isLoading } = useFetchMCPServers({
+    page_size: 100,
+  })
+
   const servers = serversData?.mcp_servers || []
 
   // 计算工具总数（从 variables.tools 中获取）
@@ -183,7 +199,9 @@ export const useMCPStats = () => {
   }, 0)
 
   // 计算有工具的服务器数（视为活跃/在线）
-  const activeServers = servers.filter((server: MCPServer) => hasServerTools(server)).length
+  const activeServers = servers.filter((server: MCPServer) =>
+    hasServerTools(server),
+  ).length
 
   // 计算服务器类型数量
   const serverTypes = new Set(servers.map((s: MCPServer) => s.server_type)).size

@@ -233,10 +233,7 @@ export function EnvironmentDetail({
         }
       }
     } catch (error) {
-      console.error('保存环境信息失败:', error)
-      toast.error(
-        `保存环境信息失败: ${error instanceof Error ? error.message : '未知错误'}`,
-      )
+      toast.error('保存环境信息失败')
       throw error
     }
   }
@@ -372,8 +369,7 @@ export function EnvironmentDetail({
         toast.success('变量已添加')
         onDataChange(true)
         setIsAddVariableDialogOpen(false)
-      } catch (error) {
-        console.error('添加变量失败:', error)
+      } catch {
         toast.error('添加变量失败')
       }
     }

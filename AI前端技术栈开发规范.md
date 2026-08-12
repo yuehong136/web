@@ -390,16 +390,23 @@ export function ExampleStudioPage() {
 
 ### 10.3 路由配置
 
-每条路由必须 `errorElement`，使用 `lazy` + `Suspense`：
+路由树使用一个无 `path` 的顶层分支统一承载共享 `ErrorFallback`；后代路由继承边界，嵌套 render / loader / lazy import 错误向上冒泡。顶层同时声明显式 `*` catch-all，呈现产品化 404。路由组件继续使用 `lazy` + `Suspense`：
 
 ```tsx
 const KnowledgePage = lazy(() => import('@/pages/knowledge'))
 {
-  path: '/knowledge',
-  element: <Suspense fallback={<PageLoadingState />}><KnowledgePage /></Suspense>,
   errorElement: <ErrorFallback />,
+  children: [
+    {
+      path: '/knowledge',
+      element: <Suspense fallback={<PageLoadingState />}><KnowledgePage /></Suspense>,
+    },
+    { path: '*', element: <NotFoundPage /> },
+  ],
 }
 ```
+
+应用根节点继续用共享 `ErrorBoundary` 覆盖 RouterProvider 之外的渲染失败；React / Router 捕获回调不得把原始 Error 写入 console。路由恢复页只展示固定的中英文产品文案，不显示原始 error message、details 或 stack。Mutation 失败通过 `MutationErrorFeedback` 明确归属：`Global` 由 QueryClient 统一显示去重 toast，`Local` 由业务面负责可恢复反馈，`Silent` 只用于预期取消或确实无需提示的后台动作；所有反馈都只允许固定 i18n 安全文案。
 
 ## 11. React 19 时代的范式更新
 
@@ -485,7 +492,7 @@ useEffect(() => {
 
 - Suspense 仅用于*首屏*加载（拿到第一帧前）
 - 流式进度归 store/UI，不写在 suspending fallback 里
-- 错误边界（`errorElement`）只兜首屏错误，流式中错误用 toast + 重试
+- 路由 `errorElement` 兜 render / loader / lazy import 错误；流式运行中的协议或传输错误仍由运行时 UI 用 toast + 重试处理
 
 ### 12.7 可访问性
 
@@ -590,10 +597,11 @@ Widget bundle 是关键链路 — 重型依赖（Lexical、Monaco、mermaid、pd
 
 ### 18.1 现状
 
-- 20+ `*.test.ts(x)` 文件，跑在 `tsx --test`（node native test runner）
-- 覆盖：`pages/agent/operators`、`adapters`、`runtime-workbench`、`pipeline-workbench`、`prompt-editor`、`schema-editor`、`api/agent`、`lib/agent`、`lib/search`
-- 唯一正式测试脚本：`npm run test:agent-t1`
-- `vitest.config.ts` 已存在，但不迁移存量测试；新 Vitest 测试必须范围明确，不得替代 `test:agent-t1` 门禁
+- 测试分别运行在 `tsx --test`、Node test 与 Vitest；存量测试不做机械迁移
+- 覆盖：Agent serializer/adapter/runtime、设计令牌、共享流式运行时、API 契约、产品 capability、路由恢复、mutation 错误归属与安全边界
+- 正式脚本：`test:agent-t1`、`test:design-tokens`、`test:streaming`、`test:api`、`test:product-ui`、`test:security`，全部进入 CI
+- `test:product-ui` 同时承载产品能力和路由恢复合同；未知路由、懒加载/render 错误不泄露原始内容、权限拒绝、恢复动作/焦点与登录深链必须保持回归覆盖
+- `vitest.config.ts` 已落地；新增 Vitest 测试必须范围明确，不得替代现有正式门禁
 
 ### 18.2 必须测的层
 
@@ -608,9 +616,9 @@ Widget bundle 是关键链路 — 重型依赖（Lexical、Monaco、mermaid、pd
 - ❌ 测实现细节，只测稳定外部行为
 - ❌ Mock 真实流（用 fixture）
 
-### 18.4 待办
+### 18.4 后续演进
 
-Vitest 迁移已规划。迁移前存量沿用 `tsx --test` 风格，文件放 `__tests__/` 目录；后续新增 Vitest 测试应先覆盖独立纯逻辑，不做大面积测试框架替换。
+继续把新增行为接入对应正式脚本，不新增游离于 CI 的测试入口。是否统一测试运行时由 ENG-2 单独评估；在此之前保持 `tsx --test` / Node test / Vitest 并存，不做大面积框架替换。
 
 ## 19. 性能
 
@@ -765,6 +773,11 @@ npm run lint:typed        # type-aware lint，先覆盖 Agent 关键目录
 npm run typecheck:agent-strict # Agent 关键目录严格类型检查
 npm run build:themes      # 重生 themes/{light,dark}.css
 npm run test:agent-t1     # 跑 agent T1 相关测试
+npm run test:design-tokens # 设计令牌合同
+npm run test:streaming    # 共享流式运行时合同
+npm run test:api          # API 与 mutation 错误反馈合同
+npm run test:product-ui   # 产品能力与路由恢复合同
+npm run test:security     # 安全规则与渲染边界合同
 ```
 
 ## 26. 总结：什么是"现代 AI 前端"在这里的含义

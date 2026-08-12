@@ -293,8 +293,7 @@ const KnowledgeSettingsPage: React.FC = () => {
         title: t('knowledge.settings.successTitle'),
         message: t('knowledge.settings.successMessage'),
       })
-    } catch (error) {
-      console.error('Update knowledge base failed:', error)
+    } catch {
       addNotification({
         type: 'error',
         title: t('knowledge.settings.errorTitle'),
