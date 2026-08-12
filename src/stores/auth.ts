@@ -39,10 +39,7 @@ export const useAuthStore = create<AuthState>()(
     (set, get) => {
       // 监听API客户端发出的登出事件
       if (typeof window !== 'undefined') {
-        window.addEventListener('auth:logout', (event: any) => {
-          const { reason } = event.detail || {}
-          console.log('Auth logout event received:', reason)
-
+        window.addEventListener('auth:logout', () => {
           // 清除状态但不调用后端logout API（因为token已经无效）
           apiClient.setAuthToken(null)
           localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN)
@@ -98,21 +95,11 @@ export const useAuthStore = create<AuthState>()(
             // 端点/字段名归 authAPI 统一维护（POST /api/v1/auth/login）
             const response = await authAPI.login({ email, password })
 
-            // 后端返回的数据结构：{ data: user_info, auth: jwt_token, retcode: 200, retmsg: "Welcome back!" }
-            console.log('Full login response:', response)
-
             const { data: user, auth: access_token, refresh_token } = response
 
             if (!access_token || !user) {
               throw new Error('登录响应数据不完整')
             }
-
-            console.log('Extracted user:', user)
-            console.log('Extracted token:', access_token)
-            console.log(
-              'Login successful, setting token:',
-              access_token?.substring(0, 20) + '...',
-            )
 
             // 身份切换前清空上一账号的服务端状态缓存
             queryClient.clear()
@@ -154,8 +141,6 @@ export const useAuthStore = create<AuthState>()(
               password: data.password,
             })
 
-            console.log('Full register response:', response)
-
             // 检查是否注册被禁用
             if (response.retcode && response.retcode !== 200) {
               throw new Error(response.retmsg || '注册失败')
@@ -167,12 +152,6 @@ export const useAuthStore = create<AuthState>()(
             if (!access_token || !user) {
               throw new Error('注册响应数据不完整')
             }
-
-            console.log('Extracted user:', user)
-            console.log(
-              'Extracted token:',
-              access_token?.substring(0, 20) + '...',
-            )
 
             // 身份切换前清空上一账号的服务端状态缓存
             queryClient.clear()
@@ -229,8 +208,7 @@ export const useAuthStore = create<AuthState>()(
 
           try {
             await backendLogout
-          } catch (error) {
-            console.warn('Backend logout failed:', error)
+          } catch {
             // 即使后端logout失败，本地身份和缓存也已经完成隔离
           }
         },

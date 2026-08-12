@@ -23,14 +23,15 @@ npm run test:agent-t1 # node --test via tsx: agent serializers + adapters
 npm run test:design-tokens # node --test via tsx: design-token utilities (palette, token values)
 npm run test:streaming # node --test via tsx: shared streaming runtime (SSE transport + chunk-merge reducer)
 npm run test:api     # node --test via tsx: API-layer contracts (routes, envelopes, normalizers)
+npm run test:security # security lint rules + toast DOM-injection boundary regression
 npm run lint:file-size # File-size ratchet: oversized files must not grow (baseline: scripts/file-size-baseline.json)
 npm run lint:file-size:update # Tighten the ratchet baseline after shrinking a debt file (never to loosen it)
 npm run check:bundle-size # Bundle budget gate, run after build (budgets: scripts/bundle-size-budget.json)
 ```
 
-There is **no generic `test`, `format`, or `typecheck` npm script**. Full type checking happens inside `npm run build`; Agent critical directories also have `npm run typecheck:agent-strict`. Formatting is handled by Prettier + lint-staged for staged files only; do not format the whole repo. The formal test gates are `test:agent-t1`, `test:design-tokens`, `test:streaming`, and `test:api` (`tsx --test`); Vitest baseline config exists for future additions/migration. Do not introduce Jest.
+There is **no generic `test`, `format`, or `typecheck` npm script**. Full type checking happens inside `npm run build`; Agent critical directories also have `npm run typecheck:agent-strict`. Formatting is handled by Prettier + lint-staged for staged files only; do not format the whole repo. The formal test gates are `test:agent-t1`, `test:design-tokens`, `test:streaming`, `test:api`, and `test:security`; the test runtimes are `tsx --test`, Node test, and Vitest. Do not introduce Jest.
 
-**CI**: `.github/workflows/ci.yml` runs on every push/PR to `master` — `lint`, `lint:file-size`, `lint:typed`, `typecheck:agent-strict`, `test:agent-t1`, `test:design-tokens`, `test:streaming`, `test:api`, `build`, and `check:bundle-size` must all pass. `lint:i18n-agent` stays a local-only gate (it diffs the working tree). The pre-commit hook only runs lint-staged; still run the relevant gates locally before pushing — never claim they pass without actually running them.
+**CI**: `.github/workflows/ci.yml` runs on every push/PR to `master` — `lint`, `lint:file-size`, `lint:typed`, `typecheck:agent-strict`, `test:agent-t1`, `test:design-tokens`, `test:streaming`, `test:api`, `test:security`, `build`, and `check:bundle-size` must all pass. `lint:i18n-agent` stays a local-only gate (it diffs the working tree). The pre-commit hook only runs lint-staged; still run the relevant gates locally before pushing — never claim they pass without actually running them.
 
 ## Stack (verified, 2026-05)
 
@@ -405,10 +406,11 @@ const KnowledgePage = lazy(() => import('@/pages/knowledge'))
 
 ### Model output is untrusted input (MANDATORY)
 
-Treat everything produced by an LLM or returned by a tool — text, markdown, HTML, code, URLs, tool-call arguments — as attacker-controllable (prompt injection is assumed). The statically checkable subset is enforced by `error`-level lint rules: `security/no-unsafe-iframe-sandbox`, `security/no-target-blank-without-rel`, `security/no-raw-dangerously-set-inner-html`, plus core `no-eval` / `no-new-func` / `no-script-url` (see `eslint-rules/`):
+Treat everything produced by an LLM or returned by a tool — text, markdown, HTML, code, URLs, tool-call arguments — as attacker-controllable (prompt injection is assumed). The statically checkable subset is enforced by `error`-level lint rules: `security/no-unsafe-iframe-sandbox`, `security/no-target-blank-without-rel`, `security/no-raw-dangerously-set-inner-html`, `security/no-imperative-html`, `security/no-sensitive-data-in-console`, plus core `no-eval` / `no-new-func` / `no-script-url` (see `eslint-rules/`):
 
 - All HTML produced by the model goes through DOMPurify. In-app HTML rendering uses the single outlet `SafeHtml` (`@/components/ui/safe-html`, DOMPurify inside; pass tag/attr whitelists via `options` as module-level constants) — raw `dangerouslySetInnerHTML` is rejected by `security/no-raw-dangerously-set-inner-html` (only `SafeHtml`'s own implementation and `__html` values that are literal `sanitize(...)` calls are exempt). Full HTML documents/artifacts render in a **sandboxed iframe** (no `allow-same-origin` together with `allow-scripts`), never injected into the app DOM.
 - Links from model/tool output: allow only `http(s):`/`mailto:` schemes (no `javascript:`, no `data:`), and render with `target="_blank" rel="noopener noreferrer"`.
+- Do not bypass React / `SafeHtml` with non-empty `innerHTML` / `outerHTML`, `insertAdjacentHTML`, or `document.write*`; only `innerHTML = ''` may clear third-party preview containers.
 - Never `eval` / `new Function` / dynamically import model-generated code. Code artifacts are display-only (Shiki/Monaco) unless executed inside the sandboxed iframe.
 - Tool-call arguments and results render through structured viewers (registry renderers, JSON viewers) — never as raw HTML.
 - Any MCP tool with side effects requires explicit user confirmation in the UI before invocation (also stated in the MCP section — both apply).
@@ -443,7 +445,7 @@ Mutations surface errors via `sonner` (toast), not via dialogs, unless the actio
 
 ## Testing
 
-Current state: 20+ `*.test.ts(x)` files run via `tsx --test`. Coverage focuses on `pages/agent/operators`, `adapters`, `runtime-workbench`, `pipeline-workbench`, `prompt-editor`, `schema-editor`, `lib/design-tokens`, `lib/streaming`, and `api`. Formal npm test scripts: `test:agent-t1`, `test:design-tokens`, `test:streaming`, and `test:api`.
+Tests run through `tsx --test`, Node test, and Vitest. Coverage focuses on `pages/agent/operators`, `adapters`, `runtime-workbench`, `pipeline-workbench`, `prompt-editor`, `schema-editor`, `lib/design-tokens`, `lib/streaming`, `api`, and security boundaries. Formal npm test scripts: `test:agent-t1`, `test:design-tokens`, `test:streaming`, `test:api`, and `test:security`.
 
 New SSE consumers use the shared runtime in `src/lib/streaming/` (`readSSEStream` + `assertSSEResponse` + typed envelopes + answer reducer) instead of hand-rolling the decode/parse loop; see `docs/streaming-runtime-design.md`.
 

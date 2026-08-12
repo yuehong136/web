@@ -94,7 +94,10 @@ const originalLogin = authAPI.login
 const originalLogout = authAPI.logout
 const originalRegister = authAPI.register
 const originalConsoleLog = console.log
+const originalConsoleInfo = console.info
+const originalConsoleDebug = console.debug
 const originalConsoleWarn = console.warn
+const originalConsoleError = console.error
 
 function seedAuthenticatedSession(): void {
   apiClient.setAuthToken('token-a')
@@ -136,7 +139,10 @@ afterEach(() => {
   authAPI.logout = originalLogout
   authAPI.register = originalRegister
   console.log = originalConsoleLog
+  console.info = originalConsoleInfo
+  console.debug = originalConsoleDebug
   console.warn = originalConsoleWarn
+  console.error = originalConsoleError
 })
 
 test('manual logout clears cached data from the previous identity', async () => {
@@ -204,7 +210,12 @@ test('token-expiry logout event clears cache before reloading', () => {
 
 test('direct account replacement cannot inherit the previous identity cache', async () => {
   seedAuthenticatedSession()
-  console.log = () => undefined
+  const consoleMessages: unknown[][] = []
+  console.log = (...args: unknown[]) => void consoleMessages.push(args)
+  console.info = (...args: unknown[]) => void consoleMessages.push(args)
+  console.debug = (...args: unknown[]) => void consoleMessages.push(args)
+  console.warn = (...args: unknown[]) => void consoleMessages.push(args)
+  console.error = (...args: unknown[]) => void consoleMessages.push(args)
   authAPI.login = async () => ({
     data: USER_B,
     auth: 'token-b',
@@ -215,11 +226,17 @@ test('direct account replacement cannot inherit the previous identity cache', as
   assert.equal(queryClient.getQueryCache().getAll().length, 0)
   assert.equal(useAuthStore.getState().user?.id, USER_B.id)
   assert.equal(useAuthStore.getState().token, 'token-b')
+  assert.deepEqual(consoleMessages, [])
 })
 
 test('registration cannot inherit cache from an existing identity', async () => {
   seedAuthenticatedSession()
-  console.log = () => undefined
+  const consoleMessages: unknown[][] = []
+  console.log = (...args: unknown[]) => void consoleMessages.push(args)
+  console.info = (...args: unknown[]) => void consoleMessages.push(args)
+  console.debug = (...args: unknown[]) => void consoleMessages.push(args)
+  console.warn = (...args: unknown[]) => void consoleMessages.push(args)
+  console.error = (...args: unknown[]) => void consoleMessages.push(args)
   authAPI.register = async () => ({
     data: USER_B,
     auth: 'token-b',
@@ -234,4 +251,5 @@ test('registration cannot inherit cache from an existing identity', async () => 
   assert.equal(queryClient.getQueryCache().getAll().length, 0)
   assert.equal(queryClient.getMutationCache().getAll().length, 0)
   assert.equal(useAuthStore.getState().user?.id, USER_B.id)
+  assert.deepEqual(consoleMessages, [])
 })

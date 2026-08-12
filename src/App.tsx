@@ -4,6 +4,7 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { XProvider } from '@ant-design/x'
 import { App as AntApp } from 'antd'
+import { Toaster } from 'sonner'
 import { queryClient } from './lib/query-client'
 import { router } from './lib/router'
 import { buildAntdTheme } from './lib/antd-theme'
@@ -67,6 +68,7 @@ function App() {
       <XProvider theme={buildAntdTheme(isDark)} direction="ltr">
         <AntApp>
           <RouterProvider router={router} />
+          <Toaster position="top-right" richColors closeButton />
           <ReactQueryDevtools initialIsOpen={false} />
         </AntApp>
       </XProvider>

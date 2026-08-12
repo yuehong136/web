@@ -2,6 +2,7 @@
 
 > 本文档是一次全仓批判性审计的产物与后续整改的**唯一进度账本**。
 > 审计日期：2026-06-10，基准提交：`030a3b2`，审计者：Claude（Fable 5）+ 仓库 owner 确认。
+> 最新复核：2026-08-13，基准提交：`01b5b0e`；新增当前排序、工作量估算与运行态证据，原始基线保留用于比较。
 > 对照系：2026 年主流 AI 前端/全栈项目实践（Vercel AI SDK、assistant-ui、shadcn 生态、TanStack 官方范式、OpenAPI codegen 工作流等）。
 
 ## 维护协议（MANDATORY — 任何处理本文档条目的 agent 必须遵守）
@@ -31,11 +32,70 @@
 
 ---
 
+## 2026-08-13 复核快照与当前执行队列
+
+> 本节是当前待办的排序入口；各工作包的完整问题、方案与验收仍记录在对应稳定 ID 条目中。只登记未完成、部分完成或需要重开的工作，不把已经落地的共享 StreamingXMarkdown、Query key factory、认证边界 cache isolation、SafeHtml、路由懒加载、文件/Bundle 棘轮重复算作遗留问题。
+
+### 优先级与工作量口径
+
+- **P0**：已确认的凭证泄漏或注入路径，立即止血；不用于泛指“重要”。
+- **P1**：影响业务正确性、用户信任、核心 AI 运行可靠性或生产诊断能力，进入最近两个迭代。
+- **P2**：影响规模化质量、性能、可维护性或体验一致性，按季度持续偿还。
+- **P3**：战略性产品/工具链升级，收益依赖前置条件，不得挤占可靠性治理资源。
+- **工作量**：前端主导人日，`1 人日 ≈ 6 小时有效工程时间`，包含实现、单元/契约测试、评审修正和必要文档；不包含产品决策等待、后端实现和 CSP 灰度观察期。`XS ≤ 1`、`S = 1–2`、`M = 3–5`、`L = 6–10`、`XL = 11–25`、`XXL = 25–45` 人日。
+- **估算使用方式**：范围是排期基线，不是承诺工期。跨端条目分别列出前端和外部投入；开工时必须重新核实接口、数据量和现有测试，拆成可独立合并的 PR。
+
+### 复核基线
+
+| 指标                |                                                        2026-08-13 实测 | 结论                                                                          |
+| ------------------- | ---------------------------------------------------------------------: | ----------------------------------------------------------------------------- |
+| `src` 下 `.ts/.tsx` |                                                                1402 个 | 比原始基线继续增长                                                            |
+| 测试文件            |                                      66 个（`src` 65 + ESLint 规则 1） | 正式五个脚本直接纳入 23 个；文件数不等于语句覆盖率                            |
+| lint                |                                 0 errors / 1489 warnings（359 个文件） | 528 个 `no-explicit-any`；可访问性警告仍为主要存量                            |
+| 文件体积债务        |                                                          32 个在册文件 | 棘轮通过，但 ApiKeysPage 等核心文件仍超大                                     |
+| Bundle 三预算       | 总 JS 25.67/26.13 MB；入口 gzip 116/120 KB；最大 chunk gzip 723/739 KB | 均已使用 96% 以上余量，且只覆盖 `dist/js`                                     |
+| 测试实跑            |        API 91、Agent 70、Streaming 43+2、Design Token 11、Security 2+1 | 本轮通过；没有真实 Playwright E2E                                             |
+| 生产依赖            |                                          79 个直接依赖落后；audit 5 项 | 1 critical/1 high/3 moderate 均需先做可达性校准，不能按工具等级直接定业务等级 |
+
+### 当前排序总表
+
+|   # | ID     | 工作包                                                                                               | 优先级 |      前端工作量 | 类型 / 主要依赖                                   | 状态     |
+| --: | ------ | ---------------------------------------------------------------------------------------------------- | :----: | --------------: | ------------------------------------------------- | -------- |
+|   1 | ENG-6  | 假成功/无行为入口止血：隐藏、禁用或明确标注未开放能力                                                |   P1   |   S–M，2–4 人日 | 前端 + 产品确认正式开放范围                       | 未开始   |
+|   2 | ENG-7  | 产品化 404、根 `errorElement`/ErrorBoundary、统一 mutation 错误反馈                                  |   P1   |     M，3–5 人日 | 纯前端                                            | 未开始   |
+|   3 | ENG-8  | 忘记密码、发布、导出、API Key 测试等正式业务闭环                                                     |   P1   |    L，5–10 人日 | 跨前后端；需接口、权限和状态机契约                | 未开始   |
+|   4 | ENG-9  | 修正 Studio 分页 KPI、Memory 硬编码统计等数据口径                                                    |   P1   |   M–L，3–6 人日 | 跨前后端；优先服务端聚合字段                      | 未开始   |
+|   5 | ARCH-7 | 统一 SSE 终态、Abort/timeout、REST/SSE 401 与意外 EOF 语义                                           |   P1   |    L，6–10 人日 | 前端主导；最好先约定服务端完成帧                  | 未开始   |
+|   6 | SEC-1  | 会话凭证迁移至 HttpOnly/Secure/SameSite refresh cookie 或 BFF                                        |   P1   |     L，5–8 人日 | 后端另约 5–10 人日；含 CSRF/跨标签页设计          | 未开始   |
+|   7 | SEC-2  | CSP Report-Only、nonce/hash、违规监控与强制模式                                                      |   P1   |     M，3–5 人日 | 前端/部署；另需约 1 周观察期                      | 未开始   |
+|   8 | ENG-10 | 错误、Web Vitals、LLM TTFT、流中断率、取消率和 Trace ID 可观测性                                     |   P1   |     L，5–8 人日 | 平台另约 2–4 人日；先定义隐私边界                 | 未开始   |
+|   9 | ENG-2  | 统一 `test:unit`/CI，并增加三条 Playwright 黄金链路                                                  |   P1   | L–XL，9–14 人日 | 需稳定测试账号、数据和接口；依赖 ENG-6～9、ARCH-7 | 部分完成 |
+|  10 | HYG-2  | 对 5 个生产依赖告警做可达性验证，分批升级并引入依赖自动化                                            |   P1   |   S–M，2–5 人日 | 若证实浏览器生产路径可利用，对应项升 P0           | 部分完成 |
+|  11 | ARCH-2 | auth/Agent run/Knowledge 试点 OpenAPI codegen + Zod；收口绕过 API/Query 边界的旧页面                 |   P2   | L–XL，8–15 人日 | 后端另约 4–8 人日；需稳定 OpenAPI                 | 部分完成 |
+|  12 | ENG-11 | Bundle 门禁扩展到真实路由 preload、全部 `dist` 和静态资产，并优化登录图/超大 SVG/Monaco/Ant Design X |   P2   |   M–L，4–7 人日 | 最好先有 ENG-10 RUM 基线                          | 未开始   |
+|  13 | ENG-3  | a11y 棘轮、核心模板小屏降级、i18n/route locale 收口、虚拟化和 mutation UX                            |   P2   | XXL，28–45 人日 | 拆成 4–6 个独立 PR；需产品确认移动端范围          | 未开始   |
+|  14 | HYG-3  | 修正文档版本表、环境变量登记和路线图状态漂移                                                         |   P2   |   S–M，2–4 人日 | AGENTS.md/CLAUDE.md 双语同提交                    | 未开始   |
+|  15 | ARCH-8 | 共享 Chat Workbench：composer、附件、滚动、停止/重试、工具调用、反馈和可访问状态                     |   P2   |  XL，15–25 人日 | 依赖 ARCH-7、ENG-2；需稳定消息/工具协议           | 未开始   |
+|  16 | ENG-12 | 按活跃度拆 ApiKeys、Provider modal、MCPChat、Explore，并收紧文件棘轮                                 |   P2   | XXL，25–40 人日 | 先修业务正确性，避免重构错误行为                  | 未开始   |
+|  17 | ARCH-9 | 试点 Projects/Spaces + Assets 信息架构，整合聊天、文件、知识、指令与 Studio                          |   P3   | XXL，25–45 人日 | 跨产品/前后端；需数据模型、权限和迁移方案         | 未开始   |
+|  18 | ARCH-5 | Tailwind 4 评估与设计令牌内部简化                                                                    |   P3   |    L，8–12 人日 | 可靠性、体验和 Bundle 工作稳定后再做              | 未开始   |
+
+### 推荐执行波次
+
+1. **信任与恢复（立即接续）**：#1～#2，约 5–9 前端人日；先清理假成功/无行为入口，再统一路由错误恢复。
+2. **核心可靠性（未来 2～4 周）**：#3～#10，约 38–66 前端人日，建议 2～3 人并行；跨后端事项先冻结契约再实施。
+3. **工程规模化（1～2 个季度）**：#11～#16，按模块持续偿还，不做全仓机械迁移。
+4. **产品架构试点**：#17 先做单一 Project/Space，不直接重构全部导航。
+5. **工具链尾项**：#18 不得排在安全、运行闭环、E2E 和观测之前。
+
+---
+
 ## SEC — 安全级（最高优先）
 
 ### SEC-1 认证凭证存 localStorage（含 refresh token）
 
 - **状态**：未开始
+- **优先级 / 工作量**：P1 / L，5–8 前端人日；后端另约 5–10 人日
 - **问题**：`auth_token` 与 `refresh_token` 均持久化在 localStorage（`src/api/client.ts:119`、`src/constants/index.ts:45-46`）。本产品大量渲染 LLM/工具输出，XSS 攻击面真实存在（prompt injection → XSS 升级链已被 ESLint 规则部分拦截，但拦不住全部）。一旦 XSS，攻击者拿走 refresh token = **永久账号接管**。
 - **主流对照**：refresh token 放 httpOnly + Secure + SameSite cookie；access token 只活在内存（页面刷新用 refresh cookie 静默换取）。
 - **方案**：需要后端配合改造登录/刷新接口（Set-Cookie）。前端侧：`APIClient` 去掉 localStorage 读写，token 改内存字段；401 时静默 refresh（已有 `_isRetry` 重试骨架可复用）；登出调后端清 cookie。过渡期可先做"refresh token 进 cookie、access token 仍短时 localStorage"的折中。
@@ -49,6 +109,7 @@
 ### SEC-2 全站无 Content-Security-Policy
 
 - **状态**：未开始
+- **优先级 / 工作量**：P1 / M，3–5 前端人日；另需部署配合与约 1 周 Report-Only 观察期
 - **问题**：`index.html`、`docker/`、`deploy/` 中均无 CSP 配置。对渲染模型输出的产品，CSP 是第一道防线，DOMPurify 只是第二道。
 - **方案**：在 nginx/部署层下发 CSP 响应头（meta 标签为降级方案）。起步策略建议：`default-src 'self'; script-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'self'`，配合 report-only 模式灰度一周收集违例再收紧。注意已知的合法外联：API/WS 域名（`VITE_API_BASE_URL`）、模型头像/附件代理域。sandbox iframe 的 `srcdoc` 内容受嵌入页 CSP 约束，需验证 html-report 渲染不被误杀（可能需要 `frame-src data:` 或单独的 frame CSP）。
 - **验收**：生产响应头含 CSP；html-report、文档预览、agent share embed 三个高危面功能正常；report-only 期无误杀后切 enforce。
@@ -84,7 +145,7 @@
 
 ### SEC-4 已停用的 channel 会被另一个人的保存操作静默重新启用
 
-- **状态**：未开始
+- **状态**：已完成（2026-08-05，残余亚秒竞态已接受）
 - **问题**：`src/pages/settings/channels/components/channel-form-sheet.tsx:131` 把 `bindingEnabled: currentChannel?.binding?.enabled ?? false` 交给 `src/api/channel.ts:176`，而 `currentChannel` 来自 `useFetchChannelDetail`，未覆写 `staleTime`，继承 `src/lib/query-client.ts` 的 5 分钟。PATCH 请求体里没有任何并发令牌（`ChannelUpdateWriteRequest` 无 generation/version 字段），后端 `update_channel` 直接按请求覆写 `binding.enabled` 并 bump generation。场景：管理员 A 打开编辑面板，期间 B（或另一个标签页、或运维脚本）调 `/disable` 停掉渠道；A 只改了个渠道名点保存，payload 里 `enabled` 仍是缓存快照里的 `true` → 渠道被静默重新启用、worker 重新拉起，页面无任何提示。反向亦然。**「停用」作为 kill switch 因此不可靠**，这是把它列为 SEC 而非 ENG 的理由。
 - **方案**：提交前 `queryClient.fetchQuery(channelKeys.detail(id))` 拿新鲜的 `binding.enabled`，不用缓存值。**刻意不选**另外两条：省略 `enabled` 会让老后端读到 `ChannelBindingUpsertRequest.enabled` 的 `False` 默认值 → 静默*停用*渠道（更坏的半态）；加后端并发令牌会为一个亚秒级竞态制造硬跨仓部署顺序约束。refetch 是纯前端、对任何后端版本都安全，把窗口从 5 分钟压到一次往返；残余竞态已知并接受。
 - **验收**：`npm run test:api` 新增断言——update payload 的 `binding.enabled` 取自 refetch 结果而非 prop。
@@ -96,13 +157,41 @@
 | 2026-08-05 | 立项（channel 子系统跨三仓审计发现）                                          | 8cbaf3a  | —                                                                                                                                                                                                                |
 | 2026-08-05 | 落地：提交前 `fetchQuery` 拿新鲜的 `binding.enabled`，不再回传 5 分钟旧缓存值 | 本次提交 | 刻意不选另外两条：省略字段会让老后端读 `enabled` 的 False 默认值从而静默*停用*渠道（更坏的半态），加后端并发令牌会为一个亚秒级竞态制造硬跨仓部署顺序约束。残余竞态已知并接受。验证：`npm run test:api` 61 passed |
 
+### SEC-5 认证响应与 Token 写入浏览器日志
+
+- **状态**：已完成（2026-08-13）
+- **优先级 / 工作量**：P0 / XS，0.5–1 前端人日
+- **问题与证据**：`src/stores/auth.ts` 的登录与注册流程在非 DEV 条件下输出完整响应、用户对象和 access token。生产构建未配置统一的 console 剔除；浏览器扩展、远程调试、录屏或日志采集都可能扩大泄漏面。
+- **方案**：删除敏感日志；仅允许统一 logger 输出脱敏后的 trace/build 标识；增加静态检查或单测，拒绝 `token`、`password`、完整 auth response 进入 `console.*`。
+- **验收**：登录、注册、刷新、登出流程中没有凭证或用户详情日志；生产 bundle 精确搜索敏感日志文案零命中；认证契约测试继续通过。
+- **状态与进展记录**：
+
+| 日期       | 动作                                                                                                                                              | 提交     | 备注                                                                                                                                                                 |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-08-13 | 复核立项                                                                                                                                          | —        | 已确认活跃登录路径可达，列为第一顺位止血项                                                                                                                           |
+| 2026-08-13 | 落地：删除 auth store 的登录/注册/登出事件敏感日志；认证 store/API 边界启用 `no-console`；增加 `security/no-sensitive-data-in-console` 和规则测试 | 本次提交 | 保留 `queryClient.clear()`、登出本地先隔离和后端 best-effort 撤销语义。验证：API 91/定向 auth 6、Security 2+1、lint 0 errors、build 通过；生产产物敏感日志签名零命中 |
+
+### SEC-6 imperative `innerHTML` toast 注入链
+
+- **状态**：已完成（2026-08-13）
+- **优先级 / 工作量**：P0 / S，1–2 前端人日
+- **问题与证据**：`src/lib/toast.ts` 把 message 原样插入 `toast.innerHTML`；MCP SSE 的远端错误文本可经 `MCPChatPage` 的 `Error.message` 到达该 sink。现有 `security/no-raw-dangerously-set-inner-html` 只覆盖 React `dangerouslySetInnerHTML`，拦不住直接 DOM 属性赋值。生产环境中远端字段的攻击者可控程度仍需后端验证，但危险 sink 与前端传播链已经成立。
+- **方案**：删除自制 DOM toast，统一到 sonner/React 文本节点；全局 Toaster 放到 App 根，覆盖鉴权内外路由；新增 `security/no-imperative-html` 规则覆盖 `.innerHTML`、`.outerHTML`、`insertAdjacentHTML` 与 `document.write*`，仅允许 `innerHTML = ''` 清空第三方预览容器。
+- **验收**：业务代码无直接 DOM HTML 写入；恶意错误字符串按纯文本显示；MCP 错误、上传失败、文档预览错误等既有调用面回归通过；lint 单测覆盖各危险 sink 和空容器清理例外。
+- **状态与进展记录**：
+
+| 日期       | 动作                                                                                                                                                                                      | 提交     | 备注                                                                                                                                       |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| 2026-08-13 | 复核立项                                                                                                                                                                                  | —        | 与 SEC-3 的 SafeHtml 成果分开记账；SEC-3 不回退为未完成                                                                                    |
+| 2026-08-13 | 落地：`@/lib/toast` 改为 sonner 适配层，Toaster 移到 App 根，删除内联 HTML/onclick 实现；Templates 头像 fallback 改为 React state；增加 imperative HTML lint 与真实 sonner/jsdom 注入回归 | 本次提交 | 验证：恶意 `<img onerror>` / `<script>` 完整作为文本显示，无 DOM 元素或 marker 执行；Security 2+1、lint 0 errors、build 与 bundle 预算通过 |
+
 ---
 
 ## ARCH — 架构级
 
 ### ARCH-1 统一 streaming/chat runtime（最大架构收益）
 
-- **状态**：已完成（2026-06-12）——阶段 1 lib 落地、阶段 2 全部 9 面迁移、阶段 3 删除 EnhancedSSEParser；终态精确 grep 零命中（见进展表末行）
+- **状态**：已完成（2026-06-12，范围于 2026-08-13 订正）——解析 transport、9 个读取面迁移与 EnhancedSSEParser 删除已完成；流终态、Abort/timeout、401 和续传语义不属于本条已完成范围，转 ARCH-7。
 - **问题**：全仓至少 **8 套并行流式实现**，各自维护 transport、解析、abort、状态：
   `src/pages/home/hooks/useHomeChat.ts`、`src/pages/home/utils/mcp-agent-stream.ts`、`src/pages/agent/form/html-report/designer/report-sse.ts`、`src/pages/agent/features/runtime-workbench/runtime-stream.ts`、`src/pages/studio/create-app/hooks/use-create-app-preview.ts`、`src/pages/explore/ExplorePage.tsx`（内联）、`src/pages/search/detail/hooks/useSearchExecution.ts`、`src/pages/agent/share/use-shared-agent-runner.ts`。
   另有 `src/components/chat/EnhancedSSEParser.ts` 是**手写 SSE 解析器**（不依赖 eventsource-parser），直接违反 CLAUDE.md 流式规则第 3 条。后果：abort/重连/token 统计行为在各面上不一致，每加一个聊天面就 fork 一份逻辑。
@@ -112,7 +201,7 @@
   1. 抽 `src/lib/streaming/`：transport（fetch+eventsource-parser+AbortController 生命周期）、事件 envelope 类型（合并 EnhancedSSEParser 的消息类型定义）、chunk-merge reducer（纯函数，必须配测试）。
   2. 把 8 个实现逐个迁移到该 runtime（每个一个 PR，回归点明确）。
   3. 删除 EnhancedSSEParser 与各处手写解析。
-- **验收**：~~`grep -rn "new TextDecoder\|split('\\n\\n')" src` 在流式场景零命中~~（口径修正 2026-06-11：原模式会子串误命中合法的 `new TextDecoderStream()`，且漏掉 `split('\n')` / `split(/\r?\n/)` 形态的手写解析）。改为分阶段验收：每个已迁移面 `grep -n "EventSourceParserStream\|TextDecoderStream\|JSON.parse"` 零命中（解析样板收口到 `@/lib/streaming`）；终态用精确模式（`new TextDecoder(`、`split('\n')`、`split(/\r?\n/)` 限流式读循环）扫描零命中。所有流式入口共享同一 abort/重连语义；reducer 有单测。详见 `docs/streaming-runtime-design.md` 第 4 节。
+- **验收**：~~`grep -rn "new TextDecoder\|split('\\n\\n')" src` 在流式场景零命中~~（口径修正 2026-06-11：原模式会子串误命中合法的 `new TextDecoderStream()`，且漏掉 `split('\n')` / `split(/\r?\n/)` 形态的手写解析）。改为分阶段验收：每个已迁移面 `grep -n "EventSourceParserStream\|TextDecoderStream\|JSON.parse"` 零命中（解析样板收口到 `@/lib/streaming`）；终态用精确模式（`new TextDecoder(`、`split('\n')`、`split(/\r?\n/)` 限流式读循环）扫描零命中；reducer 有单测。2026-08-13 复核确认，旧文案中的“所有流式入口共享同一 abort/重连语义”并未完成，已从本条验收移出并由 ARCH-7 承接。
 - **状态与进展记录**：
 
 | 日期       | 动作                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | 提交           | 备注                                                                                                                                                                                                                                                                                                                                                                   |
@@ -139,6 +228,7 @@
 ### ARCH-2 API 契约零保证 → 代码生成或边界校验
 
 - **状态**：部分完成（2026-08-05 复核订正）——契约测试已进 CI（`test:api`，`src/api/__tests__/` 下 10 个文件），codegen 与 zod 边界校验仍未开始
+- **优先级 / 工作量**：P2 / L–XL，8–15 前端人日；后端 spec 修正另约 4–8 人日
 - **问题**：`types/api.ts`（1604 行）+ `types/index.ts`（2075 行）全部手写；API 边界零 zod 校验；`: any` 246 处。后端改字段前端编译照样绿，错误在运行时爆。
 - **主流对照**：OpenAPI → `openapi-typescript` / orval 生成类型与 TanStack Query hooks；或无 spec 时在边界 `z.parse()`。
 - **方案**：先确认后端是否有 OpenAPI/Swagger spec。有 → 引入 openapi-typescript，生成物替换手写类型（渐进式：先新接口用生成物，旧的逐域迁移）；无 → 推动后端补 spec，短期对高风险接口（auth、agent run、知识库）加 zod 边界校验。
@@ -241,6 +331,7 @@
 ### ARCH-5 设计令牌治理 + Tailwind 4 评估
 
 - **状态**：未开始
+- **优先级 / 工作量**：P3 / L，8–12 前端人日；只做用量治理和 go/no-go 评估，实际迁移另估
 - **问题**：1472 个 token、`theme-generator.ts` 2206 行；`components-*` 粒度 token 随组件数线性增长，对比主流（shadcn/Radix Themes 30–60 个语义变量）成本过高。Tailwind 停在 3.4，落后主流一个大版本；Tailwind 4 的 CSS-first `@theme` 与 build:themes 管线天然同构，迁移可能反而删管线。
 - **方案**：(a) 先做 token 用量统计（哪些 token 全仓 0 引用 → 删）；(b) 新组件默认复用语义层 token，`components-*` 新增需 review 说明理由；(c) 单独立项评估 Tailwind 4 迁移（eslint-plugin-tailwindcss 兼容性、@theme 映射 PoC）。
 - **验收**：0 引用 token 清零；token 新增有治理流程；Tailwind 4 评估有结论文档。
@@ -275,6 +366,48 @@
 | 2026-08-06 | **落地 `CHN-O13`（`CHN-O6` 的前端半边）**：`channelAPI.verify(id)`（无请求体）、五个新 error code 进 `CHANNEL_ERROR_CODES` + 两份 locale、编辑抽屉页脚加「测试连接」（只对已保存渠道出现）、`useVerifyChannel` 带 10 秒冷却禁用。核心是 `channelVerifyFailure`——把「凭据被拒」和「没查成」分成两种结局，两条文案措辞刻意不同：把超时说成密钥错，会让人去重填一个本来正确的密钥。纯逻辑（端点路径、无 body、失败分类、冷却常量与服务端一致）放在 `src/api/__tests__/channel.test.ts`，那是唯一被门禁覆盖的位置；按钮本身靠人工验证 | 本次提交                    | 门禁：`test:api` 83 pass、`lint` 0 error、`typecheck:agent-strict` 通过、`lint:file-size` 通过、`build` + `check:bundle-size` 通过、两个棘轮 JSON 无 diff。**`lint:typed` 在 Windows 上跑不了**（`ESLINT_TYPED=true` 是 bash 语法，cmd 不认），它只覆盖 `src/lib/agent.ts` 与 agent operators/adapters，本次一个都没碰                                                                                                                      |
 | 2026-08-06 | **后端进展，本仓尚未动工**：`POST /chat-channels/{id}/verify` 已上线（后端 `CHN-O6`）。它用**已存**凭据向 provider 打一次真实认证，把「填错 App Secret」的反馈环从数十秒压到一次往返——今天这个页面唯一一处「用户做对了事却要等很久才知道」的地方                                                                                                                                                                                                                                                                                  | —（后端 `CHN-O6`）          | 接的时候三个要点，都在后端 `docs/channel-program/CONTRACT.md` §1/§4.1：① **请求体为空**，凭据不从前端发；② `CHANNEL_CREDENTIAL_REJECTED`（凭据错，去改）与 `CHANNEL_VERIFICATION_UNAVAILABLE`（没查成，凭据可能没问题）**必须分开渲染**，混成一句会让人去重填一个正确的密钥；③ 有每渠道 10 秒冷却，超出返回 `CHANNEL_VERIFICATION_THROTTLED`（retcode 107），按钮要据此禁用。新增五个 error code 需要进 `CHANNEL_ERROR_CODES` + 两份 locale |
 
+### ARCH-7 流式终态、Abort/timeout 与认证语义统一
+
+- **状态**：未开始
+- **优先级 / 工作量**：P1 / L，6–10 前端人日；如需新增服务端完成帧、幂等续传或 Last-Event-ID，后端另估
+- **依赖**：沿用 ARCH-1 已完成的 parser/transport 基础；与 ENG-2 黄金 E2E 联动
+- **问题与证据**：共享 `readSSEStream` 遇到任意 EOF 都正常返回，`structured-chat-stream` 在没有服务端 complete 帧时合成完成；APIClient 覆盖调用方 signal 并把所有 AbortError 归类为 timeout；REST 401 会清理会话而 SSE 401 只抛普通 Error。用户取消、超时、鉴权失效和网络截断因此会被不同页面解释成不同结果，部分路径把截断显示成成功。
+- **方案**：定义 `completed / aborted / timed_out / interrupted / unauthorized` 类型化终态；组合调用方 signal 与 timeout signal；统一 raw/stream request 的 base URL、auth、401 和 APIError；无 complete 帧默认 interrupted；只有服务端支持幂等续传时才自动带 Last-Event-ID。
+- **验收**：共享 transport/reducer 单测覆盖五种终态；Home、MCP、Agent share、Studio、Search 都使用相同状态与提示；意外 EOF 不再写成功结果；组件卸载和用户停止都能确认服务端连接取消。
+- **状态与进展记录**：
+
+| 日期       | 动作                     | 提交 | 备注                                 |
+| ---------- | ------------------------ | ---- | ------------------------------------ |
+| 2026-08-13 | 从 ARCH-1 完成范围中拆出 | —    | 解析收口成果保留，本条只处理运行语义 |
+
+### ARCH-8 共享 Chat Workbench 产品与运行合同
+
+- **状态**：未开始
+- **优先级 / 工作量**：P2 / XL，15–25 前端人日
+- **依赖**：ARCH-7 终态协议、ENG-2 E2E；需冻结消息、附件与工具调用协议
+- **问题与证据**：Home、MCP、Explore、Agent runtime、Studio preview、Search 分别组装 composer、消息列表、自动滚动、停止/重试和工具状态。Home 强制滚底而 MCP 尊重用户上滚；流式 `aria-live/aria-busy`、附件反馈和错误恢复也不一致。
+- **方案**：抽共享 headless controller + 展示 pattern，统一 composer、附件、滚动锚点、停止/重试、工具调用、引用、反馈、成本与可访问状态；各业务面只注入 transport adapter 和能力配置。
+- **验收**：至少 Home、MCP、Agent runtime 三个高流量面迁移；相同流事件产生相同 UI 终态；用户上滚不被抢回底部；键盘、屏读器和 burst streaming E2E 通过。
+- **状态与进展记录**：
+
+| 日期       | 动作     | 提交 | 备注                                                  |
+| ---------- | -------- | ---- | ----------------------------------------------------- |
+| 2026-08-13 | 复核立项 | —    | 不重复实现 StreamingXMarkdown；它继续作为共享渲染边界 |
+
+### ARCH-9 Projects/Spaces + Assets 信息架构试点
+
+- **状态**：未开始
+- **优先级 / 工作量**：P3 / XXL，25–45 前端人日；后端与产品另估
+- **依赖**：项目/空间数据模型、权限、资产关联、迁移方案；ARCH-8 稳定后再扩大
+- **问题与证据**：一级导航主要按实现模块拆分（Explore、Search、Knowledge、Memory、Agents、Studio、Tools、MCP），用户需要理解内部能力边界。主流 AI 产品逐渐以长期任务空间组织聊天、文件、知识、指令和产物，并把 Studio/管理能力放到次级工作区。
+- **方案**：先试点单一 Project/Space：聚合聊天、知识/文件、项目指令和产物引用；Assets 提供统一搜索与复用；Studio、Agents、Tools/MCP、Settings 保留为构建/管理区。先验证数据模型和迁移，不直接重做全部导航。
+- **验收**：试点空间能创建、迁入对话、关联资产、配置项目指令并保持权限隔离；现有深链接不失效；埋点能比较任务完成率与跨模块跳转成本。
+- **状态与进展记录**：
+
+| 日期       | 动作     | 提交 | 备注                                     |
+| ---------- | -------- | ---- | ---------------------------------------- |
+| 2026-08-13 | 复核立项 | —    | 战略性试点，不能排在安全与可靠性工作之前 |
+
 ---
 
 ## ENG — 工程执行
@@ -294,25 +427,30 @@
 
 ### ENG-2 测试覆盖结构性失衡 + 零 E2E
 
-- **状态**：未开始
-- **问题**：40/1308 文件有测试（约 3%），全部集中 agent 序列化层；流式 reducer、stores、APIClient 零测试；零 E2E（登录、聊天流式、知识库主链路无任何冒烟）。
-- **方案**：(a) ARCH-1 落地时强制 streaming reducer 带单测；(b) 引入 Playwright，先写 1 条冒烟（登录 → 发消息 → 收到流式回复），进 CI（可用 mock 后端或 staging）；(c) 聚合 `npm test` 脚本统一入口。
-- **验收**：CI 有 E2E job；流式 reducer 覆盖率可见。
+- **状态**：部分完成（2026-08-13 复核）——专项单测与 API 契约门禁已有明显进展；统一测试入口、覆盖率基线和真实 E2E 仍未开始
+- **优先级 / 工作量**：P1 / L–XL，9–14 前端人日
+- **问题**：仓库现有 64 个 `*.test/spec.ts(x)`，四个正式脚本直接纳入约 21 个，另约 43 个没有进入常规 CI；这是文件匹配统计，不代表语句覆盖率。Streaming reducer/transport、API 契约、Agent serializer 已有测试，但登录、真实流式停止/重试、知识库上传检索、Studio 发布没有 Playwright/Cypress E2E。
+- **方案**：(a) 建 `test:unit` 收口全部可在 Node/Vitest 运行的测试，保留专项脚本供局部快速反馈；(b) 建覆盖率基线和 ratchet，不追求一次性高百分比；(c) 引入 Playwright，按依赖顺序落三条黄金链路：登录→流式对话→停止/重试、知识库上传→检索、Studio 保存→预览→发布；(d) 测试数据可重建、账号权限固定、失败保留 trace/screenshot。
+- **验收**：现有测试文件不存在“写了但 CI 永远不跑”的状态；CI 有稳定 E2E job；三条链路覆盖成功、权限/错误和恢复路径；flake 率可见且有 owner。
 - **状态与进展记录**：
 
-| 日期       | 动作 | 提交 | 备注 |
-| ---------- | ---- | ---- | ---- |
-| 2026-06-10 | 立项 | —    | —    |
+| 日期       | 动作               | 提交 | 备注                                                                                                      |
+| ---------- | ------------------ | ---- | --------------------------------------------------------------------------------------------------------- |
+| 2026-06-10 | 立项               | —    | —                                                                                                         |
+| 2026-08-13 | 复核订正为部分完成 | —    | API 91、Agent 70、Streaming 43+2、Design Token 11 本轮通过；64 个测试文件中约 21 个进入正式脚本，仍无 E2E |
 
 ### ENG-3 "空头支票"规则落地（虚拟化 / a11y / mutation 错误 / i18n 分包）
 
 - **状态**：未开始
+- **优先级 / 工作量**：P2 / XXL，28–45 前端人日；必须拆成 4–6 个独立 PR 和独立棘轮，不能作为一个大改合并
 - **问题**：四条文档规则与现实相反：
   1. 文档强制 >200 行列表虚拟化，但**仓库未安装任何虚拟化库**（无 @tanstack/react-virtual / react-window）。
   2. 文档称 a11y "强制"，eslint 里 jsx-a11y 全量降为 warn（`eslint.config.js` 的 `jsxA11yWarningRules`）。
   3. 文档要求 mutation 错误走 sonner toast，实际全局 `mutations.onError` 只有 `console.error`（`lib/query-client.ts:23`）。
   4. 文档要求 locale 按语言分包，实际 zh+en 全部随主包打（仅 knowledge 命名空间 2700+ 行），且 locale 是 .ts 不是 JSON（翻译平台无法处理）；`ensureLocaleLoaded()` 预留未实现。
-- **方案**：1) 装 @tanstack/react-virtual，对最大的两个列表页先落地；2) 挑致命子集（alt-text、aria-props、role 系列）升 error；3) 全局 onError 接 sonner（带去重）；4) locale 迁 JSON + i18next 动态加载，实现 ensureLocaleLoaded。四项可拆四个独立 PR。
+  5. 2026-08-13 复核：lint 仍有 1490 warnings，其中 400+ 是主要 a11y 问题；Home/Agent/Studio/Search 的流式区缺 `aria-live/aria-busy`，多个图标按钮、菜单、可点击 div 缺名称和键盘语义。
+  6. List、Settings rail、Studio 三栏和 Search rail 缺小屏降级合同；route locale override 缺卸载恢复，公开 share/widget 可能把临时语言带回主应用。
+- **方案**：1) 大列表改服务端检索/分页或 @tanstack/react-virtual，日志导出改服务端任务/流式下载；2) a11y warning 建基线并逐批升 error，先修共享组件、菜单/焦点、流式状态；3) 全局 mutation onError 接 sonner（带去重），业务可恢复错误保留局部处理；4) locale 动态 import 当前语言，补 route locale cleanup 与 RTL direction；5) 核心页面模板定义 desktop/tablet/mobile 降级（drawer、tabs 或逐层导航）。
 - **验收**：每条对应文档规则与代码一致；不一致的规则要么落地要么从文档删除。
 - **状态与进展记录**：
 
@@ -337,6 +475,102 @@
 - **状态**：未开始（执行归 ENG-3）
 - 单列存档：`lib/query-client.ts` 全局 `onError: console.error` 与文档"sonner toast"冲突，用户侧表现为操作失败无感知。
 
+### ENG-6 假成功与无行为入口止血
+
+- **状态**：未开始
+- **优先级 / 工作量**：P1 / S–M，2–4 前端人日
+- **依赖**：产品确认哪些能力正式开放；不依赖后端即可先止血
+- **问题与证据**：Agent 设置保存只 console.log 后关闭；API Key 编辑等待后关闭，“API 测试”随机生成 200/耗时/request ID；Studio 发布无 handler；Search 导出仅提示“即将支持”；首页附件/灵感按钮和推荐卡呈现可点击但没有完整行为。
+- **方案**：建立活跃路由 capability 清单；没有真实能力的入口隐藏或 disabled，并提供明确原因/开放条件；Demo 数据必须有永久可见的 Demo 标识，禁止复用真实成功 toast、状态色和 request ID 形态。
+- **验收**：活跃路由中不存在“点击后静默”“随机成功”“console.log 后关闭”或仅靠 hover 才暴露的主操作；每个暂不可用入口有产品确认记录。
+- **状态与进展记录**：
+
+| 日期       | 动作     | 提交 | 备注                         |
+| ---------- | -------- | ---- | ---------------------------- |
+| 2026-08-13 | 复核立项 | —    | 待产品确认开放范围后分批止血 |
+
+### ENG-7 路由恢复、根错误边界与统一 mutation 错误反馈
+
+- **状态**：未开始
+- **优先级 / 工作量**：P1 / M，3–5 前端人日
+- **问题与证据**：`/auth/forgot-password` 指向不存在的路由，运行态进入 React Router 开发者 404；路由无根 `errorElement`/catch-all；现有 ErrorBoundary 只在局部使用；Query mutation 全局错误仅 console.error。
+- **方案**：补产品化 404/权限不足/路由异常页面和恢复动作；每条路由使用统一 ErrorFallback；全局 mutation 默认走去重 toast，业务可恢复错误保留局部覆盖；错误消息使用类型化 APIError，不暴露原始堆栈或敏感响应。
+- **验收**：未知路由、懒加载失败、render error、401/403/5xx 均有可恢复页面或提示；忘记密码在 ENG-8 正式闭环前不再进入开发者错误页；错误上报接入 ENG-10。
+- **状态与进展记录**：
+
+| 日期       | 动作     | 提交 | 备注                           |
+| ---------- | -------- | ---- | ------------------------------ |
+| 2026-08-13 | 复核立项 | —    | 运行态已复现忘记密码开发者 404 |
+
+### ENG-8 用户可见业务闭环
+
+- **状态**：未开始
+- **优先级 / 工作量**：P1 / L，5–10 前端人日；后端另估
+- **依赖**：忘记密码、Studio 发布/版本、Search 导出、API Key 验证等接口及权限/状态机契约
+- **问题**：ENG-6 只能停止误导，不能交付功能。当前用户能看到并尝试多个没有后端闭环的主操作，且 Documents/Workflow/Knowledge Import 等占位面也混在正式导航或路由中。
+- **方案**：按使用价值逐项确定“实现 / 保持 disabled / 移出正式导航”；实现项必须定义请求、幂等、权限、进行中、成功、失败、重试、审计和回滚状态；有副作用的发布/工具调用补确认与结果可追踪性。
+- **验收**：每个保留的主操作都有真实接口和状态机，不以延时或随机数模拟；黄金 E2E 覆盖 Studio 保存→预览→发布，其他闭环至少有契约测试。
+- **状态与进展记录**：
+
+| 日期       | 动作     | 提交 | 备注                   |
+| ---------- | -------- | ---- | ---------------------- |
+| 2026-08-13 | 复核立项 | —    | 待产品和后端拆分子任务 |
+
+### ENG-9 统计与筛选数据口径正确性
+
+- **状态**：未开始
+- **优先级 / 工作量**：P1 / M–L，3–6 前端人日；后端聚合字段另估
+- **问题与证据**：Studio 的发布/草稿/最近更新 KPI、状态筛选和排序基于当前分页 `dialogApps`，却与服务端全集 total 同屏；Memory 使用 `1280`、`45.6 MB`、`total * 0.8` 等硬编码/推导统计。企业租户数据量增大时会显示“总数很多但筛选为空”或错误 KPI。
+- **方案**：服务端返回全量聚合和排序/筛选结果；前端只展示有来源、口径和更新时间的数据。暂时拿不到真实字段时删除卡片或标记“当前页”，不能猜算全局值。
+- **验收**：跨页数据下 KPI、筛选、排序与服务端查询一致；统计响应有契约测试；页面不再含伪造常量或基于当前页冒充全量的计算。
+- **状态与进展记录**：
+
+| 日期       | 动作     | 提交 | 备注           |
+| ---------- | -------- | ---- | -------------- |
+| 2026-08-13 | 复核立项 | —    | 待接口口径确认 |
+
+### ENG-10 产品级错误与性能可观测性
+
+- **状态**：未开始
+- **优先级 / 工作量**：P1 / L，5–8 前端人日；平台接入另约 2–4 人日
+- **依赖**：先定义隐私边界与采样策略；禁止上传 prompt、对话、token 和工具结果原文
+- **问题与证据**：无 Sentry/Datadog/OpenTelemetry/Web Vitals 集成，根错误边界缺失；源码仍有大量 console；API/SSE 失败、LLM TTFT、stream interrupted/abort、重试和真实路由性能不可观测。Vite 已注入版本/commit/build time，可直接作为 release 元数据。
+- **方案**：接入统一错误与性能 SDK；只记录 release、route、API code/status、trace ID、TTFT、duration、terminal state、Core Web Vitals 和脱敏标签；source map 私有上传并确认部署产物不公开；建立告警阈值和 owner。
+- **验收**：能回答“哪个版本、哪条路由、哪类错误、影响多少会话”；流完成/中断/取消率和 TTFT 有仪表盘；敏感字段自动脱敏并有测试。
+- **状态与进展记录**：
+
+| 日期       | 动作     | 提交 | 备注                     |
+| ---------- | -------- | ---- | ------------------------ |
+| 2026-08-13 | 复核立项 | —    | 待平台选型与隐私边界确认 |
+
+### ENG-11 真实路由与全资产性能预算
+
+- **状态**：未开始
+- **优先级 / 工作量**：P2 / M–L，4–7 前端人日
+- **依赖**：最好先有 ENG-10 RUM 基线；保留 ENG-4 已完成的 `dist/js` 三预算
+- **问题与证据**：当前预算使用已达 96%～98%，脚本不覆盖 `dist/vs`、图片、字体、SVG 和 HTML modulepreload 闭包；登录页静态导入三张大图，存在约 11.2 MB SVG，Monaco worker/editor 与 Ant Design X 形成大块依赖。单入口 chunk 通过不代表 `/auth/login`、`/home`、share/widget 的真实首次加载合理。
+- **方案**：增加 route manifest/无头浏览器采集，分别限制初始请求数、preload gzip、CSS/字体/图片和解析耗时；压缩/转换登录资产与超大 SVG；拆 antd 与 XMarkdown/XSDK；share/widget 独立验证重型依赖未进入初始闭包。
+- **验收**：四条关键路由预算进入 CI；优化后收紧而非放宽预算；线上 LCP/INP/资源错误率没有回归。
+- **状态与进展记录**：
+
+| 日期       | 动作     | 提交 | 备注                     |
+| ---------- | -------- | ---- | ------------------------ |
+| 2026-08-13 | 复核立项 | —    | ENG-4 历史状态保持已完成 |
+
+### ENG-12 巨型活跃模块的分层拆分
+
+- **状态**：未开始
+- **优先级 / 工作量**：P2 / XXL，25–40 前端人日，按模块分批
+- **依赖**：先完成对应业务正确性、API 契约和 E2E；不得在未知行为上重构
+- **问题与证据**：文件棘轮防止继续膨胀，但仍有 32 个在册债务文件；ApiKeysPage 约 4021 行、ExplorePage 约 2321 行、provider API key modal 约 1761 行、MCPChatPage 约 1573 行。Provider modal 以 40+ state 和厂商分支同时承担验证、序列化与 UI。
+- **方案**：按活跃度和变更频率排序：ApiKeys/provider modal → MCPChat → Explore；先抽 hooks，再抽子组件/类型/常量；provider 改 schema/adapter registry + 通用表单壳；每次减债同步运行 `lint:file-size:update` 收紧基线。
+- **验收**：目标页面容器只做编排；厂商新增不再修改巨型 switch/组件；核心模块有行为测试；基线单调下降，无全文件格式化噪音。
+- **状态与进展记录**：
+
+| 日期       | 动作     | 提交 | 备注                           |
+| ---------- | -------- | ---- | ------------------------------ |
+| 2026-08-13 | 复核立项 | —    | 待按活跃度和业务风险拆分子任务 |
+
 ---
 
 ## HYG — 仓库卫生
@@ -355,31 +589,58 @@
 
 ### HYG-2 仓库杂物与依赖治理
 
-- **状态**：未开始（(d) 部分豁免已于 2026-06-10 处理）
-- **问题**：(a) `.claude/settings.local.json` 被提交（"local" 语义即不该入库）；(b) 根目录工作区残留 `agent-ops-center-demo.html`、`project-contribution-report.html`（未跟踪）；(c) 无 Dependabot/Renovate，`patch-package` 的 4 个补丁在依赖升级时是隐性回归源；(d) **重大：整个 `docs/` 目录被 .gitignore 忽略，0 个文档被 git 跟踪**——CLAUDE.md「拿不准时去看」指引的全部 agent-t\* 总结、设计令牌文档、rewrite plan 只存在于单机工作区，fresh clone 和 CI 中的 agent 全部看不到，且无任何备份。
-- **方案**：(a) `git rm --cached` + 加 .gitignore；(b) 删除或挪 docs；(c) 加 `.github/dependabot.yml`（npm 周更、分组小版本），patch 对应的依赖锁死并注释原因；(d) owner 决策哪些 docs 应入库——若无敏感内容建议整目录解除忽略并提交（这是团队知识库）；已先行豁免本路线图文件（`.gitignore` 改为 `docs/*` + `!docs/engineering-modernization-roadmap.md`），因为它必须对无上下文的后续 agent 可见。
+- **状态**：部分完成（2026-08-13 复核）——根目录临时报告已清理、路线图已跟踪、低风险依赖维护做过一轮；本地配置、依赖自动化和剩余告警治理未完成
+- **优先级 / 工作量**：P1（剩余生产依赖告警校准）+ P2（一般卫生）/ S–M，2–5 前端人日
+- **问题**：(a) `.claude/settings.local.json` 仍被提交；(b) 无 Dependabot/Renovate；(c) `patch-package` 补丁使 Ant Design X 等升级必须先核对上游与真实流式回归；(d) 2026-08-13 实测 79 个直接依赖落后、`npm audit --omit=dev` 仍有 5 项（1 critical/1 high/3 moderate），但 optional tar 与 pptx-preview 链未证明在浏览器生产路径可利用，不能照搬工具等级；(e) 其余 docs 是否应入库仍缺明确分类。
+- **方案**：(a) 将个人配置移出 Git；(b) 先做 5 项告警的 source-to-sink/实际 API 使用校准，再分批升级，禁止 `npm audit fix --force`；(c) 加周更的 Renovate/Dependabot，低风险小版本分组，major/0.x 和 patch-package 依赖单独 PR；(d) 建补丁台账与“上游已合并/可删除”条件；(e) 将可共享工程文档解除忽略，敏感/本机资料保持忽略。
 - **状态与进展记录**：
 
-| 日期       | 动作                                        | 提交           | 备注                            |
-| ---------- | ------------------------------------------- | -------------- | ------------------------------- |
-| 2026-06-10 | 立项                                        | —              | —                               |
-| 2026-06-10 | 发现 docs/ 整体未被跟踪；豁免并提交本路线图 | （见 git log） | 其余 docs 入库与否待 owner 决策 |
+| 日期       | 动作                                        | 提交           | 备注                                                                                       |
+| ---------- | ------------------------------------------- | -------------- | ------------------------------------------------------------------------------------------ |
+| 2026-06-10 | 立项                                        | —              | —                                                                                          |
+| 2026-06-10 | 发现 docs/ 整体未被跟踪；豁免并提交本路线图 | （见 git log） | 其余 docs 入库与否待 owner 决策                                                            |
+| 2026-08-10 | 低风险依赖维护与 auth cache isolation       | 见 git log     | audit 31→5；补丁敏感和 breaking 升级保留为独立工作                                         |
+| 2026-08-13 | 复核订正为部分完成                          | —              | 根目录两个临时报告已不存在；settings.local 仍 tracked；无依赖机器人；剩余 5 项需可达性校准 |
+
+### HYG-3 规范、环境变量与进度账本漂移
+
+- **状态**：未开始
+- **优先级 / 工作量**：P2 / S–M，2–4 前端人日
+- **问题与证据**：AGENTS.md/CLAUDE.md 版本表仍写 React 19.1、Vite 8.0、Router 7.7、Query 5.83，实际已是 19.2.8/8.2.1/7.18.2/5.101.4；`VITE_ADMIN_API_BASE_URL`、`VITE_ANALYZE`、`VITE_COMMIT_SHA` 已使用但未全部登记到 `.env.example`，部分已声明变量又无消费；本路线图此前存在 SEC-4、ARCH-1、ENG-2 状态漂移。
+- **方案**：增加轻量校验：版本表从 package.json 生成或 CI 比对；`import.meta.env` 使用面与 `.env.example`/类型声明双向核对；路线图状态变更纳入 PR checklist；AGENTS.md 与 CLAUDE.md 保持同提交镜像。
+- **验收**：版本和环境变量清单无双向漂移；新增 `VITE_*` 未登记会失败；完成条目的代码、状态和进展表一致。
+- **状态与进展记录**：
+
+| 日期       | 动作             | 提交   | 备注                                                    |
+| ---------- | ---------------- | ------ | ------------------------------------------------------- |
+| 2026-08-13 | 纠正账本状态漂移 | 待提交 | SEC-4、ARCH-1、ENG-2 已订正；自动校验和规范同步仍待实现 |
 
 ---
 
-## 攻坚顺序（建议）
+## 当前攻坚顺序
 
-| #   | 条目                                    | 状态                                        |
-| --- | --------------------------------------- | ------------------------------------------- |
-| 1   | SEC-1 token 出 localStorage + SEC-2 CSP | 未开始（需后端）                            |
-| 1b  | SEC-4 channel 停用被静默重新启用        | 未开始（channel 程序，进行中）              |
-| 2   | ENG-1 ratchet + ENG-4 bundle 预算       | ✅ 已完成 2026-06-10                        |
-| 3   | ARCH-1 统一 streaming runtime           | ✅ 已完成 2026-06-12                        |
-| 4   | ARCH-2 API 契约代码生成                 | 部分完成（契约测试已进 CI；codegen 未开始） |
-| 4b  | ARCH-6 channel provider 驱动表单        | 前端已完成，待后端钉钉验收（channel 程序）  |
-| 5   | ARCH-3 删中央 queryKeys                 | ✅ 已完成 2026-06-12                        |
-| 5b  | ARCH-4 store 清退                       | ✅ 已完成 2026-06-22                        |
-| 6   | ENG-2 流式单测 + Playwright 冒烟        | 未开始                                      |
-| 7   | ENG-3 空头支票四件套                    | 未开始                                      |
-| 8   | HYG-1 LICENSE/tag/CHANGELOG             | ✅ 已完成 2026-06-10                        |
-| 9   | ARCH-5 Tailwind 4 / token 治理 + HYG-2  | 未开始                                      |
+唯一逐项顺序见本文顶部“2026-08-13 复核快照与当前执行队列”。这里仅保留可用于排期的波次，避免两张排序表再次漂移。
+
+| 波次          | 条目                                       | 进入条件                     | 退出条件                                                                   |
+| ------------- | ------------------------------------------ | ---------------------------- | -------------------------------------------------------------------------- |
+| 0：安全止血   | SEC-5、SEC-6                               | 无                           | 已完成（2026-08-13）：敏感日志和 imperative HTML sink 清零，防回归门禁落地 |
+| 1：信任与恢复 | ENG-6、ENG-7                               | 产品确认正式开放范围         | 无假成功/死入口；所有路由错误可恢复                                        |
+| 2：核心可靠性 | ENG-8、ENG-9、ARCH-7、SEC-1、SEC-2、ENG-10 | 后端/部署契约冻结            | 业务闭环、数据口径、流终态、会话安全和观测均可验收                         |
+| 3：质量门禁   | ENG-2、HYG-2、ARCH-2、ENG-11               | 波次 1/2 的关键路径稳定      | 单元测试全收口，三条 E2E 稳定，依赖与路由性能有门禁                        |
+| 4：规模化偿债 | ENG-3、HYG-3、ARCH-8、ENG-12               | 有 RUM/E2E 基线              | a11y/响应式/i18n/大文件与共享 Chat 合同按棘轮持续下降                      |
+| 5：战略试点   | ARCH-9、ARCH-5                             | 前四波稳定且有明确产品 owner | 单一 Project/Space 试点得出数据；Tailwind 4 有 go/no-go 结论               |
+
+### 已完成历史（不占当前排序）
+
+| 条目   | 完成状态                                                                                                     |
+| ------ | ------------------------------------------------------------------------------------------------------------ |
+| SEC-3  | SafeHtml/DOMPurify 与 React `dangerouslySetInnerHTML` lint 已完成；SEC-6 是新的直接 DOM sink，不回退本条状态 |
+| SEC-4  | 2026-08-05 已完成；提交前 refetch 最新 `binding.enabled`，残余亚秒竞态已接受                                 |
+| SEC-5  | 2026-08-13 已完成；认证链路零 console，敏感日志启发式规则与定向认证边界 `no-console` 已进 CI                 |
+| SEC-6  | 2026-08-13 已完成；Toast 改为全局 sonner/React 出口，imperative HTML lint 与恶意字符串回归已进 CI            |
+| ARCH-1 | parser/transport、9 个读取面迁移和 EnhancedSSEParser 删除已完成；运行终态转 ARCH-7                           |
+| ARCH-3 | 领域 query key factory 收口完成                                                                              |
+| ARCH-4 | Zustand 服务器状态清退完成                                                                                   |
+| ENG-1  | 文件体积棘轮完成，债务数量仍由 ENG-12 偿还                                                                   |
+| ENG-4  | `dist/js` 三预算门禁完成，真实路由/全资产覆盖转 ENG-11                                                       |
+| HYG-1  | LICENSE、CHANGELOG、版本 tag 流程完成                                                                        |

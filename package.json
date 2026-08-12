@@ -30,6 +30,7 @@
     "test:design-tokens": "tsx --tsconfig tsconfig.app.json --test src/lib/design-tokens/__tests__/*.ts",
     "test:streaming": "tsx --tsconfig tsconfig.app.json --test src/lib/streaming/__tests__/*.ts && vitest run src/components/chat/__tests__/streaming-x-markdown.test.tsx",
     "test:api": "tsx --tsconfig tsconfig.app.json --test src/api/__tests__/*.ts",
+    "test:security": "node --test eslint-rules/__tests__/*.test.mjs && vitest run src/lib/__tests__/toast.test.tsx",
     "preview": "vite preview"
   },
   "browserslist": [

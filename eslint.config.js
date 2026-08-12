@@ -11,6 +11,8 @@ import noFeedbackStateToken from './eslint-rules/no-feedback-state-token.js'
 import noUnsafeIframeSandbox from './eslint-rules/no-unsafe-iframe-sandbox.js'
 import noTargetBlankWithoutRel from './eslint-rules/no-target-blank-without-rel.js'
 import noRawDangerouslySetInnerHtml from './eslint-rules/no-raw-dangerously-set-inner-html.js'
+import noSensitiveDataInConsole from './eslint-rules/no-sensitive-data-in-console.js'
+import noImperativeHtml from './eslint-rules/no-imperative-html.js'
 
 const typedLint = process.env.ESLINT_TYPED === 'true'
 const jsxA11yWarningRules = Object.fromEntries(
@@ -141,7 +143,8 @@ export default tseslint.config([
     // 模型输出是不可信输入（CLAUDE.md / AGENTS.md「安全与隐私」）的可执行子集：
     // - iframe 沙箱不得 allow-scripts + allow-same-origin 同开；srcDoc 必须有 sandbox
     // - target="_blank" 必须带 rel noopener/noreferrer
-    // - 禁止裸 dangerouslySetInnerHTML（统一走 SafeHtml / DOMPurify 净化出口）
+    // - 禁止裸 dangerouslySetInnerHTML 和 imperative HTML sink（统一走 SafeHtml / React）
+    // - 禁止把认证凭证、密码、密钥或完整认证响应写入 console
     // - 禁止 eval / new Function / javascript: URL（模型生成代码仅展示，执行只在沙箱 iframe 内）
     files: ['src/**/*.{ts,tsx}'],
     plugins: {
@@ -150,6 +153,8 @@ export default tseslint.config([
           'no-unsafe-iframe-sandbox': noUnsafeIframeSandbox,
           'no-target-blank-without-rel': noTargetBlankWithoutRel,
           'no-raw-dangerously-set-inner-html': noRawDangerouslySetInnerHtml,
+          'no-sensitive-data-in-console': noSensitiveDataInConsole,
+          'no-imperative-html': noImperativeHtml,
         },
       },
     },
@@ -157,9 +162,18 @@ export default tseslint.config([
       'security/no-unsafe-iframe-sandbox': 'error',
       'security/no-target-blank-without-rel': 'error',
       'security/no-raw-dangerously-set-inner-html': 'error',
+      'security/no-sensitive-data-in-console': 'error',
+      'security/no-imperative-html': 'error',
       'no-eval': 'error',
       'no-new-func': 'error',
       'no-script-url': 'error',
+    },
+  },
+  {
+    // 认证边界不应有任何 console 输出：即使变量叫 response/value，也不能绕过启发式敏感名检查。
+    files: ['src/stores/auth.ts', 'src/api/auth.ts', 'src/api/admin.ts'],
+    rules: {
+      'no-console': 'error',
     },
   },
   {

@@ -13,7 +13,7 @@ const warnedTokens = new Set<string>()
  * （思路同 i18next missingKey）。
  */
 export function readCssVar(
-  token: string,
+  tokenName: string,
   fallback: string,
   element: HTMLElement | null = typeof document !== 'undefined'
     ? document.documentElement
@@ -21,12 +21,12 @@ export function readCssVar(
 ): string {
   if (typeof window === 'undefined' || !element) return fallback
   const value = getComputedStyle(element)
-    .getPropertyValue(`--color-${token}`)
+    .getPropertyValue(`--color-${tokenName}`)
     .trim()
-  if (import.meta.env.DEV && !value && !warnedTokens.has(token)) {
-    warnedTokens.add(token)
+  if (import.meta.env.DEV && !value && !warnedTokens.has(tokenName)) {
+    warnedTokens.add(tokenName)
     console.warn(
-      `[design-token] --color-${token} 解析为空，回退到 ${fallback}。请确认 token 名是否有效。`,
+      `[design-token] --color-${tokenName} 解析为空，回退到 ${fallback}。请确认 token 名是否有效。`,
     )
   }
   return value || fallback
