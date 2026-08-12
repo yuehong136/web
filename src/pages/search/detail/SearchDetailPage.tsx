@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Loading } from '@/components/ui/loading'
@@ -12,7 +13,7 @@ import {
   SearchSourceMode,
   type ChunkResult,
 } from '@/types/search'
-import { copyToClipboard } from '@/lib/utils'
+import { copyToClipboard, formatDate } from '@/lib/utils'
 import { toast } from '@/lib/toast'
 import type { ReferenceChunk } from '@/utils/reference-replacer'
 import SearchComposer from './components/search-composer'
@@ -23,6 +24,10 @@ import SearchSettingsSheet from './components/SearchSettingsSheet'
 import SearchMindmapDrawer from './mindmap/mindmap-drawer'
 import { useSearchExecution } from './hooks/useSearchExecution'
 import { useSearchSettings } from './hooks/useSearchSettings'
+import {
+  canExportSearchSession,
+  downloadSearchSessionMarkdown,
+} from './export/search-session-export'
 
 const toReferenceChunk = (chunk: ChunkResult): ReferenceChunk => ({
   id: chunk.chunk_id,
@@ -48,6 +53,7 @@ const phaseLabelMap: Record<SearchExecutionPhase, string> = {
 }
 
 export const SearchDetailPage: React.FC = () => {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const location = useLocation()
   const { settingsOpen, setSettingsOpen } = useSearchStore()
@@ -87,6 +93,7 @@ export const SearchDetailPage: React.FC = () => {
   const sourceMode = SearchSourceMode.KNOWLEDGE_BASE
 
   const kbCount = appliedConfig?.kb_ids?.length || 0
+  const hasTurns = turns.length > 0
 
   const handleSearch = useCallback(
     (query: string) => {
@@ -134,6 +141,44 @@ export const SearchDetailPage: React.FC = () => {
       toast.error('复制失败')
     }
   }, [])
+
+  const canExport = canExportSearchSession(turns)
+  const handleExport = useCallback(() => {
+    if (!canExport) return
+
+    const now = new Date()
+    try {
+      downloadSearchSessionMarkdown({
+        appName: searchApp?.name || basicInfo.name,
+        turns,
+        now,
+        copy: {
+          exportedAt: t('searchPage.export.document.exportedAt', {
+            date: formatDate(now),
+            defaultValue: '导出时间：{{date}}',
+          }),
+          round: (index) =>
+            t('searchPage.export.document.round', {
+              index,
+              defaultValue: '第 {{index}} 轮',
+            }),
+          question: t('searchPage.export.document.question', '问题'),
+          answer: t('searchPage.export.document.answer', '回答'),
+          relatedQuestions: t(
+            'searchPage.export.document.relatedQuestions',
+            '相关问题',
+          ),
+          noSummary: t(
+            'searchPage.export.document.noSummary',
+            '本轮没有可导出的 AI 总结。',
+          ),
+        },
+      })
+      toast.success(t('searchPage.export.success', '当前会话已导出'))
+    } catch {
+      toast.error(t('searchPage.export.failed', '导出失败，请重试'))
+    }
+  }, [basicInfo.name, canExport, searchApp?.name, t, turns])
 
   useEffect(() => {
     setExpandedByTurnId((prev) => {
@@ -192,7 +237,6 @@ export const SearchDetailPage: React.FC = () => {
     [expandedByTurnId, turns],
   )
 
-  const hasTurns = useMemo(() => turns.length > 0, [turns.length])
   const latestTurn = turns.length ? turns[turns.length - 1] : null
   const isShareMode = useMemo(
     () => new URLSearchParams(location.search).has('shared_id'),
@@ -252,10 +296,17 @@ export const SearchDetailPage: React.FC = () => {
         canOpenMindmap={canOpenMindmap}
         mindmapOpen={mindmapOpen}
         settingsOpen={settingsOpen}
+        canExport={canExport}
+        exportLabel={t('searchPage.export.action', '导出当前会话')}
+        exportDisabledReason={t(
+          'searchPage.export.streamingDisabled',
+          '搜索进行中，完成后可导出',
+        )}
         onBack={() => navigate(ROUTES.SEARCH)}
         onClear={handleClear}
         onToggleMindmap={handleToggleMindmap}
         onShare={handleShare}
+        onExport={handleExport}
         onToggleSettings={handleToggleSettings}
       />
 

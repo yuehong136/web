@@ -600,7 +600,7 @@ Widget bundle 是关键链路 — 重型依赖（Lexical、Monaco、mermaid、pd
 - 测试分别运行在 `tsx --test`、Node test 与 Vitest；存量测试不做机械迁移
 - 覆盖：Agent serializer/adapter/runtime、设计令牌、共享流式运行时、API 契约、产品 capability、路由恢复、mutation 错误归属与安全边界
 - 正式脚本：`test:agent-t1`、`test:design-tokens`、`test:streaming`、`test:api`、`test:product-ui`、`test:security`，全部进入 CI
-- `test:product-ui` 同时承载产品能力和路由恢复合同；未知路由、懒加载/render 错误不泄露原始内容、权限拒绝、恢复动作/焦点与登录深链必须保持回归覆盖
+- `test:product-ui` 同时承载产品能力、Search 导出和路由恢复合同；未知路由、懒加载/render 错误不泄露原始内容、权限拒绝、恢复动作/焦点与登录深链必须保持回归覆盖
 - `vitest.config.ts` 已落地；新增 Vitest 测试必须范围明确，不得替代现有正式门禁
 
 ### 18.2 必须测的层
@@ -776,7 +776,7 @@ npm run test:agent-t1     # 跑 agent T1 相关测试
 npm run test:design-tokens # 设计令牌合同
 npm run test:streaming    # 共享流式运行时合同
 npm run test:api          # API 与 mutation 错误反馈合同
-npm run test:product-ui   # 产品能力与路由恢复合同
+npm run test:product-ui   # 产品能力、Search 导出与路由恢复合同
 npm run test:security     # 安全规则与渲染边界合同
 ```
 

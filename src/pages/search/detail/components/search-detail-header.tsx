@@ -1,7 +1,8 @@
-import React, { memo } from 'react'
+import React, { memo, useId } from 'react'
 import {
   ArrowLeft,
   BrainCircuit,
+  Download,
   RotateCcw,
   Settings,
   Share2,
@@ -16,10 +17,14 @@ interface SearchDetailHeaderProps {
   canOpenMindmap: boolean
   mindmapOpen: boolean
   settingsOpen: boolean
+  canExport: boolean
+  exportLabel: string
+  exportDisabledReason: string
   onBack: () => void
   onClear: () => void
   onToggleMindmap: () => void
   onShare: () => void
+  onExport: () => void
   onToggleSettings: () => void
 }
 
@@ -31,12 +36,18 @@ const SearchDetailHeader: React.FC<SearchDetailHeaderProps> = ({
   canOpenMindmap,
   mindmapOpen,
   settingsOpen,
+  canExport,
+  exportLabel,
+  exportDisabledReason,
   onBack,
   onClear,
   onToggleMindmap,
   onShare,
+  onExport,
   onToggleSettings,
 }) => {
+  const exportDisabledReasonId = useId()
+
   return (
     <header className="bg-surface-primary px-space-base py-space-sm shrink-0 border-b border-border-default">
       <div className="gap-space-sm flex items-center justify-between">
@@ -105,6 +116,24 @@ const SearchDetailHeader: React.FC<SearchDetailHeaderProps> = ({
           >
             <Share2 className="h-4 w-4" />
           </Button>
+          {hasTurns ? (
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={onExport}
+              disabled={!canExport}
+              title={canExport ? exportLabel : exportDisabledReason}
+              aria-label={exportLabel}
+              aria-describedby={canExport ? undefined : exportDisabledReasonId}
+            >
+              <Download className="size-icon-sm" />
+            </Button>
+          ) : null}
+          {hasTurns && !canExport ? (
+            <span id={exportDisabledReasonId} className="sr-only">
+              {exportDisabledReason}
+            </span>
+          ) : null}
           <Button
             variant={settingsOpen ? 'outline' : 'ghost'}
             size="icon-sm"

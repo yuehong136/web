@@ -55,6 +55,20 @@ export default {
       deleteFailedTitle: '删除失败',
       deleteFailedMessage: '删除搜索应用时发生错误',
     },
+    export: {
+      action: '导出当前会话',
+      streamingDisabled: '搜索进行中，完成后可导出',
+      success: '当前会话已导出',
+      failed: '导出失败，请重试',
+      document: {
+        exportedAt: '导出时间：{{date}}',
+        round: '第 {{index}} 轮',
+        question: '问题',
+        answer: '回答',
+        relatedQuestions: '相关问题',
+        noSummary: '本轮没有可导出的 AI 总结。',
+      },
+    },
     deleteDialog: {
       title: '删除搜索应用',
       description: '将永久删除「{{name}}」，该操作不可撤销。',

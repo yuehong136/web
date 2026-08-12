@@ -23,7 +23,7 @@ npm run test:agent-t1 # tsx 跑 node --test：agent serializer + adapter
 npm run test:design-tokens # tsx 跑 node --test：设计令牌工具（调色板、token 取值）
 npm run test:streaming # tsx 跑 node --test：共享流式运行时（SSE transport + chunk 合并 reducer）
 npm run test:api     # tsx 跑 node --test：API 层契约（路由、信封、归一化）
-npm run test:product-ui # 产品能力、路由恢复与 mutation ownership 合同
+npm run test:product-ui # 产品能力、Search 导出、路由恢复与 mutation ownership 合同
 npm run test:security # 安全 lint 规则 + Toast DOM 注入边界回归
 npm run lint:file-size # 文件体积棘轮：超标文件不得膨胀（基线：scripts/file-size-baseline.json）
 npm run lint:file-size:update # 偿还债务（行数下降）后收紧基线（禁止用来放宽）
@@ -448,7 +448,7 @@ Mutation 错误归属通过 `MutationErrorFeedback` 明确标注：`Global` 由 
 
 ## 测试
 
-现状：测试分别通过 `tsx --test`、Node test 与 Vitest 运行，覆盖 `pages/agent/operators`、`adapters`、`runtime-workbench`、`pipeline-workbench`、`prompt-editor`、`schema-editor`、`lib/design-tokens`、`lib/streaming`、`api`、产品能力、路由恢复、mutation 错误归属和安全边界。正式测试脚本：`test:agent-t1`、`test:design-tokens`、`test:streaming`、`test:api`、`test:product-ui` 与 `test:security`。
+现状：测试分别通过 `tsx --test`、Node test 与 Vitest 运行，覆盖 `pages/agent/operators`、`adapters`、`runtime-workbench`、`pipeline-workbench`、`prompt-editor`、`schema-editor`、`lib/design-tokens`、`lib/streaming`、`api`、产品能力、Search 导出、路由恢复、mutation 错误归属和安全边界。正式测试脚本：`test:agent-t1`、`test:design-tokens`、`test:streaming`、`test:api`、`test:product-ui` 与 `test:security`。
 
 新增 SSE 消费面使用 `src/lib/streaming/` 的共享运行时（`readSSEStream` + `assertSSEResponse` + 类型化 envelope + answer reducer），不要再手写解码/解析循环；见 `docs/streaming-runtime-design.md`。
 

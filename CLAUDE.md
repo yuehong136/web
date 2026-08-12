@@ -23,7 +23,7 @@ npm run test:agent-t1 # node --test via tsx: agent serializers + adapters
 npm run test:design-tokens # node --test via tsx: design-token utilities (palette, token values)
 npm run test:streaming # node --test via tsx: shared streaming runtime (SSE transport + chunk-merge reducer)
 npm run test:api     # node --test via tsx: API-layer contracts (routes, envelopes, normalizers)
-npm run test:product-ui # product capability, route recovery, and mutation-ownership contracts
+npm run test:product-ui # product capability, Search export, route recovery, and mutation-ownership contracts
 npm run test:security # security lint rules + toast DOM-injection boundary regression
 npm run lint:file-size # File-size ratchet: oversized files must not grow (baseline: scripts/file-size-baseline.json)
 npm run lint:file-size:update # Tighten the ratchet baseline after shrinking a debt file (never to loosen it)
@@ -450,7 +450,7 @@ Declare mutation error ownership with `MutationErrorFeedback`: `Global` lets the
 
 ## Testing
 
-Tests run through `tsx --test`, Node test, and Vitest. Coverage focuses on `pages/agent/operators`, `adapters`, `runtime-workbench`, `pipeline-workbench`, `prompt-editor`, `schema-editor`, `lib/design-tokens`, `lib/streaming`, `api`, product capabilities, route recovery, mutation error ownership, and security boundaries. Formal npm test scripts: `test:agent-t1`, `test:design-tokens`, `test:streaming`, `test:api`, `test:product-ui`, and `test:security`.
+Tests run through `tsx --test`, Node test, and Vitest. Coverage focuses on `pages/agent/operators`, `adapters`, `runtime-workbench`, `pipeline-workbench`, `prompt-editor`, `schema-editor`, `lib/design-tokens`, `lib/streaming`, `api`, product capabilities, Search export, route recovery, mutation error ownership, and security boundaries. Formal npm test scripts: `test:agent-t1`, `test:design-tokens`, `test:streaming`, `test:api`, `test:product-ui`, and `test:security`.
 
 New SSE consumers use the shared runtime in `src/lib/streaming/` (`readSSEStream` + `assertSSEResponse` + typed envelopes + answer reducer) instead of hand-rolling the decode/parse loop; see `docs/streaming-runtime-design.md`.
 

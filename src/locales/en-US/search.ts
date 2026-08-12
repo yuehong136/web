@@ -56,6 +56,20 @@ export default {
       deleteFailedTitle: 'Delete failed',
       deleteFailedMessage: 'An error occurred while deleting the search app',
     },
+    export: {
+      action: 'Export current session',
+      streamingDisabled: 'Export is available after the search finishes',
+      success: 'Current session exported',
+      failed: 'Export failed. Try again.',
+      document: {
+        exportedAt: 'Exported at: {{date}}',
+        round: 'Round {{index}}',
+        question: 'Question',
+        answer: 'Answer',
+        relatedQuestions: 'Related questions',
+        noSummary: 'No AI summary is available for this round.',
+      },
+    },
     deleteDialog: {
       title: 'Delete search app',
       description:

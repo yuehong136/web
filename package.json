@@ -30,7 +30,7 @@
     "test:design-tokens": "tsx --tsconfig tsconfig.app.json --test src/lib/design-tokens/__tests__/*.ts",
     "test:streaming": "tsx --tsconfig tsconfig.app.json --test src/lib/streaming/__tests__/*.ts && vitest run src/components/chat/__tests__/streaming-x-markdown.test.tsx",
     "test:api": "tsx --tsconfig tsconfig.app.json --test src/api/__tests__/*.ts",
-    "test:product-ui": "tsx --tsconfig tsconfig.app.json --test src/pages/settings/__tests__/api-keys-capabilities.test.ts && vitest run src/hooks/__tests__/use-agent-mutation.test.tsx src/pages/agent/setting-dialog/__tests__/setting-dialog.test.tsx src/pages/home/components/__tests__/eng-6-capabilities.test.tsx src/pages/studio/create-app/components/__tests__/editor-header.test.tsx src/pages/search/detail/components/__tests__/search-detail-header.test.tsx src/pages/error/__tests__/route-recovery.test.tsx",
+    "test:product-ui": "tsx --tsconfig tsconfig.app.json --test src/pages/settings/__tests__/api-keys-capabilities.test.ts && vitest run src/hooks/__tests__/use-agent-mutation.test.tsx src/pages/agent/setting-dialog/__tests__/setting-dialog.test.tsx src/pages/home/components/__tests__/eng-6-capabilities.test.tsx src/pages/studio/create-app/components/__tests__/editor-header.test.tsx src/pages/search/detail/components/__tests__/search-detail-header.test.tsx src/pages/search/detail/export/__tests__/search-session-export.test.ts src/pages/error/__tests__/route-recovery.test.tsx",
     "test:security": "node --test eslint-rules/__tests__/*.test.mjs && vitest run src/lib/__tests__/toast.test.tsx",
     "preview": "vite preview"
   },
