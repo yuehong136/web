@@ -6,6 +6,7 @@ import { agentQueryKeys } from './use-agent-query'
 import type {
   DebugAgentNodePayload,
   AgentWebhookTestRequest,
+  AgentFlow,
   SetAgentPayload,
 } from '@/types/agent'
 
@@ -98,6 +99,25 @@ export const useUpdateAgentSetting = () => {
   const mutation = useMutation({
     mutationFn: agentAPI.updateSetting,
     onSuccess: (_, variables) => {
+      queryClient.setQueryData<AgentFlow>(
+        agentQueryKeys.detail(variables.id),
+        (current) =>
+          current
+            ? {
+                ...current,
+                title: variables.title,
+                ...(variables.description !== undefined
+                  ? { description: variables.description }
+                  : {}),
+                ...(variables.avatar !== undefined
+                  ? { avatar: variables.avatar }
+                  : {}),
+                ...(variables.permission !== undefined
+                  ? { permission: variables.permission }
+                  : {}),
+              }
+            : current,
+      )
       void queryClient.invalidateQueries({ queryKey: agentQueryKeys.lists() })
       void queryClient.invalidateQueries({
         queryKey: agentQueryKeys.detail(variables.id),

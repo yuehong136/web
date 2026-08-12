@@ -154,7 +154,10 @@ export function EmbedAuthorised({
     saving,
     saveGraph,
     onExplore: () => navRequest('explore'),
-    onTitleSaved: () => setTitleDirty(false),
+    onTitleSaved: (nextTitle) => {
+      setTitle(nextTitle)
+      setTitleDirty(false)
+    },
   })
 
   if (loading || !flowDetail?.id) {

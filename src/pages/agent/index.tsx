@@ -405,7 +405,22 @@ export default function AgentEditorPage() {
       ) : null}
 
       {settingState.visible ? (
-        <SettingDialog hideModal={settingState.hideModal} />
+        <SettingDialog
+          agentId={id}
+          title={
+            title ||
+            resolveLocalizedText(
+              flowDetail.title,
+              t('agent.unnamedAsset', '未命名资产'),
+            )
+          }
+          description={resolveLocalizedText(flowDetail.description, '')}
+          hideModal={settingState.hideModal}
+          onSaved={(nextTitle) => {
+            setTitle(nextTitle)
+            setTitleDirty(false)
+          }}
+        />
       ) : null}
     </>
   )

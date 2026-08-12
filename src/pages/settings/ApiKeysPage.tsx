@@ -23,7 +23,6 @@ import {
   Minus,
   Save,
   Archive,
-  Edit2,
   Trash2,
   MoreHorizontal,
   Settings2,
@@ -76,9 +75,9 @@ import {
   ModernEnvironmentSelector,
   NewEnvironmentManager,
 } from '@/components/environment'
-import { EditApiKeyDialog } from '@/pages/settings/components/edit-api-key-dialog'
 import { useEnvironmentResolver } from '@/hooks/use-environment-request'
 import { useCopyFeedback } from '@/hooks/use-copy-feedback'
+import { apiKeysCapabilities } from '@/pages/settings/api-keys-capabilities'
 
 import { systemAPI } from '@/api/system'
 import type { OpenAPISpec, APITokenCreateRequest } from '@/types/api'
@@ -312,8 +311,7 @@ const ApiDocumentationPage: React.FC = () => {
   )
 
   // API测试相关状态
-  const [testLoading, setTestLoading] = useState(false)
-  const [testResponse, setTestResponse] = useState<TestResponse | null>(null)
+  const [testResponse] = useState<TestResponse | null>(null)
   const [formattedResponse, setFormattedResponse] = useState<string>('')
   const { copiedStates, copyWithFeedback: handleCopy } = useCopyFeedback()
 
@@ -879,10 +877,8 @@ const ApiDocumentationPage: React.FC = () => {
   const [apiKeyPageSize, setApiKeyPageSize] = useState(10)
   const [apiKeyTotal, setApiKeyTotal] = useState(0)
   const [apiKeySearchQuery, setApiKeySearchQuery] = useState('')
-  const [editingApiKey, setEditingApiKey] = useState<ApiKey | null>(null)
   const [createApiKeyModalOpen, setCreateApiKeyModalOpen] = useState(false)
   const [createApiKeyLoading, setCreateApiKeyLoading] = useState(false)
-  const [editApiKeyLoading, setEditApiKeyLoading] = useState(false)
   const [operatingKeys, setOperatingKeys] = useState<Set<string>>(new Set())
   const [openDropdowns, setOpenDropdowns] = useState<Set<string>>(new Set())
   const [dropdownPositions, setDropdownPositions] = useState<
@@ -1403,34 +1399,6 @@ const ApiDocumentationPage: React.FC = () => {
     }
   }
 
-  const handleEditApiKey = async ({
-    name,
-    description,
-  }: {
-    name: string
-    description: string | null
-  }) => {
-    if (!editingApiKey) return
-
-    setEditApiKeyLoading(true)
-    try {
-      // 当前后端尚未提供更新接口，暂时保留现有模拟流程
-      await new Promise((resolve) => setTimeout(resolve, 500))
-      console.log('编辑 API Key:', {
-        id: editingApiKey.tenant_id,
-        name,
-        description,
-      })
-      setEditingApiKey(null)
-      loadApiKeys() // 不需要 await，让它在后台刷新
-    } catch (error) {
-      console.error('Failed to edit API key:', error)
-      throw error
-    } finally {
-      setEditApiKeyLoading(false)
-    }
-  }
-
   const toggleDropdown = (
     apiKeyId: string,
     buttonElement: HTMLButtonElement,
@@ -1471,59 +1439,6 @@ const ApiDocumentationPage: React.FC = () => {
       document.removeEventListener('click', handleClickOutside)
     }
   }, [openDropdowns.size])
-
-  const handleTestAPI = async () => {
-    if (!selectedAPI) return
-
-    setTestLoading(true)
-    setTestResponse(null)
-
-    try {
-      // 真实API调用示例（当前为模拟）：
-      // const url = getFullApiUrl(selectedAPI.path)
-      // const response = await fetch(url, {
-      //   method: selectedAPI.method,
-      //   headers: resolveText(JSON.stringify(testHeaders))
-      //   body: resolveText(testBody)
-      // })
-
-      // 模拟API测试
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-
-      const mockResponse = {
-        status: 200,
-        statusText: 'OK',
-        time: Math.floor(Math.random() * 500) + 100,
-        size: '1.2KB',
-        headers: {
-          'Content-Type': 'application/json',
-          Date: new Date().toISOString(),
-          'X-RateLimit-Remaining': '99',
-          'X-Request-ID': 'req_' + Math.random().toString(36).substr(2, 9),
-        },
-        data: {
-          message: 'API测试成功',
-          timestamp: new Date().toISOString(),
-          data: {
-            id: Math.floor(Math.random() * 1000),
-            name: 'Test Data',
-            status: 'success',
-          },
-        },
-      }
-
-      setTestResponse(mockResponse)
-    } catch (error) {
-      setTestResponse({
-        status: 500,
-        statusText: 'Internal Server Error',
-        time: 1000,
-        data: { error: 'API测试失败' },
-      })
-    } finally {
-      setTestLoading(false)
-    }
-  }
 
   // 处理参数表格更新
   const updateParamRow = <K extends keyof ParamRow>(
@@ -1660,7 +1575,7 @@ const ApiDocumentationPage: React.FC = () => {
                     用户管理系统 API
                   </h1>
                   <p className="text-sm text-muted-foreground">
-                    开放接口文档与测试平台
+                    开放接口文档与 API Key 管理
                   </p>
                 </div>
               </div>
@@ -1728,7 +1643,7 @@ const ApiDocumentationPage: React.FC = () => {
                   </div>
                   <div className="flex items-center gap-2">
                     <Play className="h-4 w-4 text-muted-foreground" />
-                    <span>在线接口测试工具</span>
+                    <span>在线接口调试（尚未开放）</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Key className="h-4 w-4 text-muted-foreground" />
@@ -1898,18 +1813,27 @@ const ApiDocumentationPage: React.FC = () => {
                 <div className="to-muted/20 flex items-center gap-6 border-b bg-gradient-to-r from-background px-6 py-4">
                   <Tabs
                     value={mainMode}
-                    onValueChange={(value) =>
-                      setMainMode(value as 'interface' | 'test')
-                    }
+                    onValueChange={(value) => {
+                      if (
+                        value === 'interface' ||
+                        apiKeysCapabilities.liveRequest.enabled
+                      ) {
+                        setMainMode(value as 'interface' | 'test')
+                      }
+                    }}
                   >
                     <TabsList className="h-10">
                       <TabsTrigger value="interface" className="gap-2 px-4">
                         <FileText className="h-4 w-4" />
                         接口
                       </TabsTrigger>
-                      <TabsTrigger value="test" className="gap-2 px-4">
+                      <TabsTrigger
+                        value="test"
+                        className="gap-2 px-4"
+                        disabled={!apiKeysCapabilities.liveRequest.enabled}
+                      >
                         <Play className="h-4 w-4" />
-                        运行
+                        运行（未开放）
                       </TabsTrigger>
                     </TabsList>
                   </Tabs>
@@ -1940,7 +1864,7 @@ const ApiDocumentationPage: React.FC = () => {
                             API Key 管理
                           </DialogTitle>
                           <DialogDescription>
-                            管理您的 API Key，包括创建、编辑和删除操作
+                            管理您的 API Key，包括创建、重新生成和删除操作
                           </DialogDescription>
                         </DialogHeader>
 
@@ -2597,26 +2521,22 @@ const ApiDocumentationPage: React.FC = () => {
                           </div>
                           <div className="flex items-center gap-3">
                             <Button
-                              onClick={handleTestAPI}
-                              disabled={testLoading}
+                              disabled={
+                                !apiKeysCapabilities.liveRequest.enabled
+                              }
                               className="h-10 shadow-lg transition-colors duration-150 hover:shadow-xl"
                               variant="default"
                               size="default"
+                              title={apiKeysCapabilities.liveRequest.reason}
                             >
-                              {testLoading ? (
-                                <>
-                                  <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                                  发送中...
-                                </>
-                              ) : (
-                                '发送'
-                              )}
+                              在线调试未开放
                             </Button>
                             <Button
                               variant="outline"
                               size="default"
                               className="h-10 px-3"
-                              title="保存为用例"
+                              disabled={!apiKeysCapabilities.saveCase.enabled}
+                              title={apiKeysCapabilities.saveCase.reason}
                             >
                               <Save className="h-4 w-4" />
                             </Button>
@@ -2624,7 +2544,10 @@ const ApiDocumentationPage: React.FC = () => {
                               variant="outline"
                               size="default"
                               className="h-10 px-3"
-                              title="保存为环境"
+                              disabled={
+                                !apiKeysCapabilities.saveEnvironment.enabled
+                              }
+                              title={apiKeysCapabilities.saveEnvironment.reason}
                             >
                               <Archive className="h-4 w-4" />
                             </Button>
@@ -3893,10 +3816,10 @@ const ApiDocumentationPage: React.FC = () => {
                                   </div>
                                   <div>
                                     <h4 className="mb-2 text-lg font-semibold">
-                                      点击"发送"按钮获取响应结果
+                                      在线调试尚未开放
                                     </h4>
                                     <p className="text-sm text-muted-foreground">
-                                      配置好参数后点击发送按钮来测试API
+                                      当前仅提供接口文档与请求参数预览，不会发送真实请求。
                                     </p>
                                   </div>
                                 </div>
@@ -3917,7 +3840,7 @@ const ApiDocumentationPage: React.FC = () => {
                     选择一个 API 接口
                   </h3>
                   <p className="mb-6 text-sm text-muted-foreground">
-                    从左侧列表中选择一个 API 接口来查看详细信息和进行测试
+                    从左侧列表中选择一个 API 接口来查看详细文档
                   </p>
                   {apiSpec && (
                     <div className="space-y-2 text-xs text-muted-foreground">
@@ -3943,16 +3866,6 @@ const ApiDocumentationPage: React.FC = () => {
           onSubmit={handleCreateApiKey}
         />
 
-        {/* 编辑 API Key 弹窗 */}
-        <EditApiKeyDialog
-          apiKey={editingApiKey}
-          isLoading={editApiKeyLoading}
-          onOpenChange={(open) => {
-            if (!open) setEditingApiKey(null)
-          }}
-          onSubmit={handleEditApiKey}
-        />
-
         {/* Portal 渲染的下拉菜单 */}
         {openDropdowns.size > 0 &&
           createPortal(
@@ -3973,17 +3886,6 @@ const ApiDocumentationPage: React.FC = () => {
                     }}
                   >
                     <div className="py-1">
-                      <button
-                        onClick={() => {
-                          setEditingApiKey(apiKey)
-                          setOpenDropdowns(new Set())
-                        }}
-                        disabled={operatingKeys.has(apiKey.tenant_id)}
-                        className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm transition-colors hover:bg-background-subtle disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        <Edit2 className="h-4 w-4" />
-                        编辑
-                      </button>
                       <button
                         onClick={() => {
                           regenerateApiKey(apiKey)

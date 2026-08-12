@@ -58,6 +58,49 @@ test('setAgent does not backfill agent_canvas during graph-only updates', async 
   )
 })
 
+test('updateSetting maps basic settings to the RESTful agent update contract', async () => {
+  const originalPut = apiClient.put
+  const calls: Array<{
+    endpoint: string
+    data: unknown
+    baseURL?: string
+  }> = []
+
+  apiClient.put = (async (
+    endpoint: string,
+    data?: unknown,
+    config?: { baseURL?: string },
+  ) => {
+    calls.push({ endpoint, data, baseURL: config?.baseURL })
+    return true
+  }) as typeof apiClient.put
+
+  try {
+    await agentAPI.updateSetting({
+      id: 'agent/with space',
+      title: 'Renamed agent',
+      description: 'Updated description',
+      avatar: 'avatar.svg',
+      permission: 'write',
+    })
+  } finally {
+    apiClient.put = originalPut
+  }
+
+  assert.deepEqual(calls, [
+    {
+      endpoint: '/agents/agent%2Fwith%20space',
+      data: {
+        title: 'Renamed agent',
+        description: 'Updated description',
+        avatar: 'avatar.svg',
+        permission: 'write',
+      },
+      baseURL: 'http://localhost:8000/api',
+    },
+  ])
+})
+
 test('runAgent uses the RESTful agent completion endpoint', async () => {
   const originalFetch = globalThis.fetch
   const calls: Array<{ url: string; body: Record<string, unknown> }> = []

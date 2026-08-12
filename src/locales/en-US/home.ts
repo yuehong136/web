@@ -16,6 +16,9 @@ export default {
       loadingHistory: 'Loading conversation history...',
       talk: 'Chat',
       stop: 'Stop generating',
+      selectSkills: 'Select skills or apps',
+      addAttachment: 'Add attachment',
+      inspiration: 'Get inspiration',
     },
     agentTimeline: {
       arguments: 'Arguments',

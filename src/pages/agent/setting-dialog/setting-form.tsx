@@ -14,21 +14,25 @@ import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
 
 const settingFormSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
+  name: z.string().trim().min(1, 'Name is required'),
   description: z.string().optional(),
-  avatar: z.string().optional(),
 })
 
 export type SettingFormSchemaType = z.infer<typeof settingFormSchema>
 
 interface SettingFormProps {
-  submit: (values: SettingFormSchemaType) => void
+  submit: (values: SettingFormSchemaType) => void | Promise<void>
   defaultValues?: Partial<SettingFormSchemaType>
+  disabled?: boolean
 }
 
 export const AgentSettingId = 'agent-setting-form'
 
-export function SettingForm({ submit, defaultValues }: SettingFormProps) {
+export function SettingForm({
+  submit,
+  defaultValues,
+  disabled = false,
+}: SettingFormProps) {
   const { t } = useTranslation()
 
   const form = useForm<SettingFormSchemaType>({
@@ -36,7 +40,6 @@ export function SettingForm({ submit, defaultValues }: SettingFormProps) {
     defaultValues: {
       name: '',
       description: '',
-      avatar: '',
       ...defaultValues,
     },
   })
@@ -55,7 +58,11 @@ export function SettingForm({ submit, defaultValues }: SettingFormProps) {
             <FormItem>
               <FormLabel>{t('common.name', '名称')}</FormLabel>
               <FormControl>
-                <Input placeholder={t('common.namePlaceholder', '请输入名称')} {...field} />
+                <Input
+                  placeholder={t('common.namePlaceholder', '请输入名称')}
+                  disabled={disabled}
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -72,6 +79,7 @@ export function SettingForm({ submit, defaultValues }: SettingFormProps) {
                 <Textarea
                   placeholder={t('common.descriptionPlaceholder', '请输入描述')}
                   rows={4}
+                  disabled={disabled}
                   {...field}
                 />
               </FormControl>

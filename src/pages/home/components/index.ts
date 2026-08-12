@@ -1,5 +1,4 @@
 export { WaveText } from './WaveText'
-export { FunctionTabs } from './FunctionTabs'
 export { RecommendCards } from './RecommendCards'
 export { SelectedTags } from './SelectedTags'
 export { InputToolbar } from './InputToolbar'

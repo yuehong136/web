@@ -135,10 +135,6 @@ export const SearchDetailPage: React.FC = () => {
     }
   }, [])
 
-  const handleExport = useCallback(() => {
-    toast.info('导出功能即将支持')
-  }, [])
-
   useEffect(() => {
     setExpandedByTurnId((prev) => {
       if (!turns.length) return {}
@@ -260,7 +256,6 @@ export const SearchDetailPage: React.FC = () => {
         onClear={handleClear}
         onToggleMindmap={handleToggleMindmap}
         onShare={handleShare}
-        onExport={handleExport}
         onToggleSettings={handleToggleSettings}
       />
 

@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, useState, useEffect } from 'react'
+import React, { useRef, useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   findFirstEnabledModelByType,
@@ -7,11 +7,10 @@ import {
 import { useFetchMyLLMs } from '@/hooks/use-llm-request'
 import { useHomeStore } from '@/stores/home'
 import { WaveText } from './WaveText'
-import { FunctionTabs } from './FunctionTabs'
 import { RecommendCards } from './RecommendCards'
 import { ChatInputBox } from './ChatInputBox'
 import { SkillPanel } from './SkillPanel'
-import { functionTabs, recommendCards } from '../constants'
+import { recommendCards } from '../constants'
 import { getGreetingKey, shouldIgnoreEnterForIme } from '../utils'
 import { useAtTrigger } from '../hooks'
 import type { DialogApp } from '@/types/api'
@@ -29,7 +28,6 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({
   onSend,
 }) => {
   const { t } = useTranslation()
-  const [activeTab, setActiveTab] = useState<string | null>(null)
   const atButtonRef = useRef<HTMLButtonElement>(
     null!,
   ) as React.RefObject<HTMLButtonElement>
@@ -138,14 +136,6 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({
     [onInputChange],
   )
 
-  // 处理标签点击
-  const handleTabClick = useCallback(
-    (tabId: string) => {
-      setActiveTab(activeTab === tabId ? null : tabId)
-    },
-    [activeTab],
-  )
-
   // 问候语文本
   const greeting = t(getGreetingKey())
   const greetingText = t(
@@ -205,13 +195,6 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({
             variant="welcome"
           />
         </div>
-
-        {/* TabsRow - 功能标签 */}
-        <FunctionTabs
-          tabs={functionTabs}
-          activeTab={activeTab}
-          onTabClick={handleTabClick}
-        />
 
         {/* CardsSection - 推荐卡片 */}
         <RecommendCards cards={recommendCards} onCardClick={handleCardClick} />

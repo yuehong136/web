@@ -16,6 +16,9 @@ export default {
       loadingHistory: '加载对话历史...',
       talk: '聊一聊',
       stop: '停止输出',
+      selectSkills: '选择技能或应用',
+      addAttachment: '添加附件',
+      inspiration: '获取灵感',
     },
     agentTimeline: {
       arguments: '参数',

@@ -21,7 +21,7 @@ interface UseEmbedEditorActionsParams {
   saving: boolean
   saveGraph: ReturnType<typeof useSaveGraph>['saveGraph']
   onExplore: () => void
-  onTitleSaved: () => void
+  onTitleSaved: (title: string) => void
 }
 
 export function useEmbedEditorActions({
@@ -82,7 +82,7 @@ export function useEmbedEditorActions({
           release: true,
         })
 
-        onTitleSaved()
+        onTitleSaved(nextTitle)
         setPublishedShareUrl(shareUrl)
         toast.success(
           note
@@ -142,7 +142,19 @@ export function useEmbedEditorActions({
       ) : null}
 
       {settingsOpen ? (
-        <SettingDialog hideModal={() => setSettingsOpen(false)} />
+        <SettingDialog
+          agentId={id}
+          title={
+            title ||
+            resolveLocalizedText(
+              flow.title,
+              t('agent.unnamedAsset', '未命名资产'),
+            )
+          }
+          description={resolveLocalizedText(flow.description, '')}
+          hideModal={() => setSettingsOpen(false)}
+          onSaved={onTitleSaved}
+        />
       ) : null}
     </>
   ) : null

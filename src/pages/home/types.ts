@@ -23,13 +23,6 @@ export interface ChatMessage {
   thinking?: string
 }
 
-// 功能标签项
-export interface FunctionTab {
-  id: string
-  label: string
-  labelKey?: string
-}
-
 // 推荐卡片项
 export interface RecommendCard {
   id: number

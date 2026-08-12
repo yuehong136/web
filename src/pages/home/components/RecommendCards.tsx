@@ -21,10 +21,13 @@ export const RecommendCards: React.FC<RecommendCardsProps> = ({
         const tag = card.tagKey ? t(card.tagKey, card.tag) : card.tag
 
         return (
-          <div
+          <button
+            type="button"
             key={card.id}
+            onClick={() => onCardClick(title)}
+            aria-label={title}
             className={cn(
-              'group relative flex h-[200px] flex-1 cursor-pointer flex-col justify-between overflow-hidden rounded-2xl p-5',
+              'group relative flex h-[200px] flex-1 cursor-pointer flex-col justify-between overflow-hidden rounded-2xl border-0 p-5 text-left',
               card.bgColor,
             )}
           >
@@ -48,22 +51,18 @@ export const RecommendCards: React.FC<RecommendCardsProps> = ({
             </p>
 
             {/* 悬停时显示的聊一聊按钮 */}
-            <div className="absolute bottom-0 left-0 right-0 translate-y-full transition-transform duration-300 ease-out group-hover:translate-y-0">
+            <div className="absolute bottom-0 left-0 right-0 translate-y-full transition-transform duration-300 ease-out group-hover:translate-y-0 group-focus-visible:translate-y-0">
               <div className="h-px bg-border-subtle" />
               <div className="p-3">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onCardClick(title)
-                  }}
-                  className="flex w-full items-center justify-center gap-2 rounded-full bg-text-primary py-2.5 text-sm font-medium text-text-inverted transition-colors hover:bg-text-secondary"
-                >
-                  <span className="text-base">✨</span>
+                <span className="flex w-full items-center justify-center gap-2 rounded-full bg-text-primary py-2.5 text-sm font-medium text-text-inverted transition-colors hover:bg-text-secondary">
+                  <span aria-hidden="true" className="text-base">
+                    ✨
+                  </span>
                   {t('home.input.talk', '聊一聊')}
-                </button>
+                </span>
               </div>
             </div>
-          </div>
+          </button>
         )
       })}
     </div>
