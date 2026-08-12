@@ -1,6 +1,6 @@
 # Client Platform 执行路线图
 
-> 本页是 Client Platform 的唯一执行账本。稳定 ID 使用 `CLP-*`；当前仅 `CLP-F0` 在本仓落文档，其他均是目标计划，不代表已实现。
+> 本页是 Client Platform 的唯一执行账本。稳定 ID 使用 `CLP-*`；`CLP-F0` 已完成，`CLP-P0` 仅完成独立 task ID 与 Web 被动 detach 两个切片，其余不代表已实现。
 
 ## 1. 批准主线
 
@@ -21,16 +21,16 @@ Electron MVP 依赖云端 durable Run，不依赖 Rust Host、PTY、Git 或本�
 
 ## 2. 工程量与周期
 
-| ID       | 工作包                                           |       基础工程量 | 状态                 |
-| -------- | ------------------------------------------------ | ---------------: | -------------------- |
-| CLP-F0   | 架构、目录、合同、决策、版本、测试安全和导航基线 |         4–6 人日 | 已完成（2026-08-13） |
-| CLP-P0   | 当前 Web 正确性、认证、流式终态与边界收口        |       35–50 人日 | 未开始               |
-| CLP-RS2  | 云端 durable Run Service v2                      |       47–70 人日 | 未开始；跨后端       |
-| CLP-SC   | Web/Desktop 共用 Shared Client                   |       28–43 人日 | 未开始               |
-| CLP-DESK | Electron stable 薄壳与平台能力                   |       32–48 人日 | 未开始               |
-| CLP-REL  | 发布工程、质量、安全、性能与灰度                 |       42–67 人日 | 未开始               |
-|          | **MVP 基础合计**                                 | **188–284 人日** |                      |
-|          | **含 20–25% 风险缓冲**                           | **230–340 人日** |                      |
+| ID       | 工作包                                           |       基础工程量 | 状态                      |
+| -------- | ------------------------------------------------ | ---------------: | ------------------------- |
+| CLP-F0   | 架构、目录、合同、决策、版本、测试安全和导航基线 |         4–6 人日 | 已完成（2026-08-13）      |
+| CLP-P0   | 当前 Web 正确性、认证、流式终态与边界收口        |       35–50 人日 | 🟡 进行中（两个切片完成） |
+| CLP-RS2  | 云端 durable Run Service v2                      |       47–70 人日 | 🟡 RUN-F1a 进行中；跨后端 |
+| CLP-SC   | Web/Desktop 共用 Shared Client                   |       28–43 人日 | 未开始                    |
+| CLP-DESK | Electron stable 薄壳与平台能力                   |       32–48 人日 | 未开始                    |
+| CLP-REL  | 发布工程、质量、安全、性能与灰度                 |       42–67 人日 | 未开始                    |
+|          | **MVP 基础合计**                                 | **188–284 人日** |                           |
+|          | **含 20–25% 风险缓冲**                           | **230–340 人日** |                           |
 
 以 5 人稳定跨职能团队估算，MVP 为 **16–22 周**。这是工程容量基线，不包含产品/安全审批等待和团队切换成本。
 
@@ -100,6 +100,17 @@ Electron MVP 依赖云端 durable Run，不依赖 Rust Host、PTY、Git 或本�
 
 依赖当前工程账本中的 SEC-1、ARCH-7、ENG-6/7/8/2 等条目，但状态仍在原条目维护；本页只记录 Client Platform 的进入门槛。
 
+已完成切片（2026-08-13）：
+
+- MultiRAG `916ed873`：Canvas 每次执行使用唯一 task ID，消除同 Agent 并发共享取消键；不包含取消授权。
+- Web `8866b09`：被动卸载/刷新只 abort 本地 transport，显式 Stop 才请求 server cancel；这不承诺 v1
+  request-bound Runner 在断连后继续计算，持久运行/回放仍依赖 CLP-RS2。
+- MultiRAG `eb0a5999`：RUN-F1a 落地无身份依赖的九状态 reducer、v2 envelope、`message.delta`
+  JSON Schema 与 replay 不变量；不包含 route、ledger/outbox、stream gateway 或授权接入，RUN-F1 仍未完成。
+
+身份/授权收口必须等待 EIM 稳定 port。客户端任务不实现 SDK API Key Principal、Channel workload/
+candidate capability、active tenant 或团队角色策略；被撤出的探索补丁不得作为 CLP-P0 完成证据。
+
 ## 5. CLP-RS2：云端 durable Run Service v2
 
 目标：Run 生命周期独立于页面、SSE/WS 连接和 Electron 进程。
@@ -111,7 +122,7 @@ Electron MVP 依赖云端 durable Run，不依赖 Rust Host、PTY、Git 或本�
 - 支持断线补放、重复去重、gap 检测、幂等取消和 interaction 参数摘要/重授权。
 - 保留 trace id 与隐私边界；客户端重载后可重建任务投影。
 - 每个 Run 只能提交一个 `completed|failed|cancelled|interrupted` 终态；无安全 checkpoint 的 Runner 崩溃必须明确进入 `interrupted`，不得伪装续跑成功。
-- 读取、订阅、interaction 与取消都必须以服务端加载的 tenant、Principal、membership 和 Run ownership/policy 鉴权，跨租户 ID 不得泄露存在性。
+- 读取、订阅、interaction 与取消都必须基于服务端加载的 Run 自身资源事实，并消费 EIM/目标领域授权端口返回的 opaque policy decision；Run Service 不解释 membership 或团队角色，跨租户 ID 不得泄露存在性。
 - v2/v1 并行运行，先发布兼容消费者，再生产 v2 新事件。
 
 退出条件：

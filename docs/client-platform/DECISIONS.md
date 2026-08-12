@@ -22,6 +22,7 @@
 | CP-014 | 本地只保存恢复游标、状态等最小元数据                            | Accepted                |
 | CP-015 | 首期保持单包，出现两个真实消费者后才迁移 workspace              | Accepted                |
 | CP-016 | 首发仅 macOS/Windows 企业私有分发，beta/stable 私有更新         | Accepted                |
+| CP-017 | Client/Run 只消费 EIM 身份上下文，不构造 SDK/Channel/角色语义   | Accepted                |
 
 ## CP-001：为什么先选 Electron
 
@@ -73,6 +74,18 @@ Web 与 Desktop 的安全边界不同，但不能形成两套账号或页面判�
 ## CP-016：为什么先做企业私有分发
 
 首发范围固定为 macOS + Windows 的企业私有下载和 `beta/stable` HTTPS 更新通道，先把证书、签名、公证、安装器、停推和回滚闭环做实。Linux、应用商店和公开下载会带来新的包格式、审核、沙箱与支持责任，均不进入 MVP；范围扩大必须新增 ADR 与工程量。
+
+## CP-017：为什么客户端平台不构造身份语义
+
+Web、Desktop 和 Run Service 会消费 tenant/principal reference，但 API Key service identity、Channel
+workload/actor 绑定、active tenant、团队角色、OIDC provider-subject 及高风险 delegated authorization
+属于 EIM/Channel/目标领域。客户端平台不得从 API Key、邮箱、Channel actor、target id 或客户端
+`user_id` 自行拼 Principal，也不得用 `sdk-tenant:*` 等命名约定创造跨入口 ownership。
+
+Shared Client 只接收服务端已经认证的 session/opaque identity 结果；Run Service 只消费 EIM 稳定 port
+产生的 authenticated execution context 和 authorization result。接口未冻结时保持依赖未满足/功能关闭，
+不由客户端补一套临时身份模型。这样允许纯状态机、事件协议和 Renderer 工作先行，又不抢占并行 EIM/
+Channel 的决策权。
 
 ## 备选方案与当前判断
 

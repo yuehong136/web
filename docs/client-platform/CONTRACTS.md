@@ -121,6 +121,11 @@ MVP 的云端 Run 事件由 Shared Client 在 Renderer 内消费，不经 IPC。
 - Electron deep link/loopback callback 只能交接短期 code/state；URL、localStorage、日志和 telemetry 禁止出现 token。
 - EIM-I6 建立并验证显式 provider-subject binding 前，OIDC 必须 fail closed；禁止按相同邮箱静默登录、注册或合并账号。
 - auth 完成后 Shared Client 获取/恢复 Run 的权威身份；main 不能自行推导租户权限。
+- Client Platform 只消费 EIM/服务端返回的 authenticated session/context；不得从 API Key、邮箱、
+  Channel actor、target id 或 `user_id` 推导 Principal，不定义 owner/admin/member、SDK service identity、
+  Channel workload/candidate capability 或跨入口 ownership 等价关系。
+- Run/Shared Client 看到的 `tenant_id`、`principal_id` 与 authorization handle 都是 opaque server result；
+  EIM port 未冻结或授权依赖不可用时相应能力 fail closed，不用字符串前缀或本地规则兜底。
 
 ## 8. Downloads、notifications、updates
 
