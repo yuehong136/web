@@ -1,32 +1,38 @@
 # Client Platform 测试、性能与安全门禁
 
-> 当前只有 Web 门禁。所有桌面/Host/packaging 条目都是后续阶段必须落地的目标门禁。
+> 当前已有 CLP-DESK0 源码、合同、构建与 staging 门禁；正式安装包 E2E、签名/公证、更新、性能和 Host 门禁仍是后续目标。
 
 ## 1. 当前已验证边界
 
-本仓当前 CI 覆盖 Web lint、文件/Bundle 棘轮、类型检查、Agent/API/Streaming/Design Token/Security 专项测试和 Vite build。当前没有：
+本仓当前 CI 覆盖 Web lint、文件/Bundle 棘轮、类型检查、Agent/API/Streaming/Design Token/Security 专项测试和 Vite build。CLP-DESK0 额外覆盖：
 
-- Electron main/preload 测试；
-- packaged app E2E；
-- Rust/Cargo 测试；
-- fuses/ASAR/签名/更新验证；
-- 桌面冷启动、内存或 PTY benchmark。
+- path-scoped Electron/Node/React 依赖方向 lint，main/preload 独立 typecheck。
+- Renderer Bridge 暴露面、BrowserWindow/session/navigation 策略、`app://bundle/` URL/路径/fallback 的 Node 合同测试。
+- Rolldown 单入口产物、electron-builder 配置、staging allowlist/拒绝规则和 package verifier 的合同测试。
+- CI 上的 Web build → main/preload build → staging → stage verifier。CI 不生成或启动平台安装包。
 
-因此 F0 不宣称桌面安全或性能已经通过。
+当前仍没有：
+
+- 登录、durable Run、全路由/lazy asset、下载或更新的 packaged app E2E；
+- Windows 打包/启动/正式签名实测，macOS Developer ID 签名/公证与安装器验收；
+- Rust/Cargo/Host 测试；
+- 桌面冷启动、内存、8 小时 soak 或 PTY benchmark。
+
+因此 DESK0 不宣称完整桌面安全、发布或性能门禁已经通过。
 
 ## 2. 测试金字塔
 
-| 层           | 目标测试                                           | 阶段          |
-| ------------ | -------------------------------------------------- | ------------- |
-| 纯 Web       | 现有 CI、browser adapter、runtime config           | 持续          |
-| Run Contract | v1/v2 schema、cursor、重复/gap、终态、interaction  | CLP-RS2/SC    |
-| Main         | sender、permission、navigation、protocol、平台能力 | CLP-DESK      |
-| Preload      | 暴露面、参数过滤、event 剥离、unsubscribe          | CLP-DESK      |
-| Rust crates  | domain、framing、PTY/process、Git/fs、migration    | CLP-BETA-HOST |
-| Integration  | main ↔ 可选 Host、取消、crash、背压、版本不匹配    | CLP-BETA-HOST |
-| E2E          | 登录、durable Run、Monaco/预览、下载、更新         | CLP-P0 起     |
-| Packaging    | allowlist、ASAR、fuses、签名、arch、SBOM           | CLP-DESK/REL  |
-| Performance  | packaged cold/warm、长流、固定负载、8h soak        | CLP-SC 起     |
+| 层           | 目标测试                                           | 阶段                          |
+| ------------ | -------------------------------------------------- | ----------------------------- |
+| 纯 Web       | 现有 CI、browser adapter、runtime config           | 持续                          |
+| Run Contract | v1/v2 schema、cursor、重复/gap、终态、interaction  | CLP-RS2/SC                    |
+| Main         | sender、permission、navigation、protocol、平台能力 | DESK0 部分；CLP-DESK 持续     |
+| Preload      | 暴露面、参数过滤、event 剥离、unsubscribe          | DESK0 最小子集；CLP-DESK 持续 |
+| Rust crates  | domain、framing、PTY/process、Git/fs、migration    | CLP-BETA-HOST                 |
+| Integration  | main ↔ 可选 Host、取消、crash、背压、版本不匹配    | CLP-BETA-HOST                 |
+| E2E          | 登录、durable Run、Monaco/预览、下载、更新         | CLP-P0 起                     |
+| Packaging    | allowlist、ASAR、fuses、签名、arch、SBOM           | DESK0 部分；CLP-DESK/REL 持续 |
+| Performance  | packaged cold/warm、长流、固定负载、8h soak        | CLP-SC 起                     |
 
 ## 3. 批准性能与恢复门槛
 
@@ -144,6 +150,10 @@ CLP-DESK packaged smoke 至少覆盖：
 
 Packaging test 必须读取最终 binary 的 fuse 状态，检查 ASAR integrity header、app.asar allowlist 和意外 `app/` fallback。Beta 加入 Rust Host 后再检查 sidecar hash/架构/权限与 macOS nested signing/Windows binary signing。
 
+DESK0 已有上述 ASAR/fuse 配置和最终产物验证器，但当前跨平台 CI 只运行到 stage verifier。产物验证必须在目标 OS 原生 runner 上执行 `desktop:package:dir` 和 `desktop:verify:package`；未执行的平台不得声称通过。
+
+2026-08-13 的 macOS arm64 本地 unpacked 产物已通过启动 smoke、ASAR/manifest/fuse 验证与 `codesign --verify`。显式 smoke 模式使用唯一临时 profile 与 Chromium mock keychain，避免读取真实桌面 profile 或被 macOS Keychain 阻塞；正常启动仍走生产 profile 与 cookie-encryption fuse，因此该 smoke 不验证真实 Keychain/cookie-encryption 启动路径。本地目录包为了在改写 fuses 后恢复可执行签名，使用 ad-hoc identity 且关闭 hardened runtime；这些都只是本地测试策略。正式 release config 仍保持 hardened runtime 并期望 Developer ID，但证书、notarization、installer 和 Windows 实测都未完成。
+
 ## 7. IPC、Run 与 Beta Host 威胁用例
 
 必须自动化覆盖：
@@ -176,6 +186,8 @@ Packaging test 必须读取最终 binary 的 fuse 状态，检查 ASAR integrity
 - update metadata 与 artifact 同批生成并验证 channel/arch；
 - 不包含 `.env*`、source map、测试 fixture、源码 secret、prompt 或本地用户数据；
 - 安装、启动、更新、回滚、卸载和旧数据迁移 smoke 通过。
+
+2026-08-13 的 `npm audit` 基线仍有 5 项既有告警（3 moderate、1 high、1 critical）：`pptx-preview` 的嵌套 `echarts`/`uuid`，以及可选 `canvas -> @mapbox/node-pre-gyp -> tar` 链。当前没有兼容且非破坏性的自动修复，禁止用 `npm audit fix --force` 掩盖。DESK0 最终 ASAR 已验证不包含 `node_modules`，所以这些包没有进入当前桌面 artifact；它们仍是 Web/开发供应链债务，必须在 CLP-REL 前分别升级、替换或形成有期限的风险接受记录。
 
 ## 10. 隐私与观测
 

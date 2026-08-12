@@ -50,7 +50,7 @@
 ## 版本官方源
 
 - [Node.js Releases](https://nodejs.org/en/about/previous-releases) 与 [official dist index](https://nodejs.org/dist/index.json) — 当前 LTS 与随附 npm。
-- [npm registry: Electron](https://registry.npmjs.org/electron)、[electron-vite](https://registry.npmjs.org/electron-vite)、[electron-builder](https://registry.npmjs.org/electron-builder)、[electron-updater](https://registry.npmjs.org/electron-updater)、[@electron/fuses](https://registry.npmjs.org/@electron%2ffuses) — package version/dist-tag/peer 元数据。
+- [npm registry: Electron](https://registry.npmjs.org/electron)、[electron-vite](https://registry.npmjs.org/electron-vite)、[electron-builder](https://registry.npmjs.org/electron-builder)、[electron-updater](https://registry.npmjs.org/electron-updater)、[@electron/fuses](https://registry.npmjs.org/@electron%2ffuses)、[@electron/asar](https://registry.npmjs.org/@electron%2fasar) — package version/dist-tag/peer 元数据。
 - [Python release downloads](https://www.python.org/downloads/) — Python 受支持版本；不采用第三方生命周期 API 代替官方发布页。
 - [FastAPI on PyPI](https://pypi.org/project/fastapi/) — Python backend package stable 元数据。
 - [PostgreSQL Downloads](https://www.postgresql.org/download/) 与 [News](https://www.postgresql.org/about/news/) — 当前 major/minor 发布。

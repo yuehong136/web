@@ -1,6 +1,23 @@
 # Client Platform 推荐目录与构建边界
 
-> 这是分阶段目标布局。F0 当前只存在 `docs/client-platform/`；MVP 创建 Shared Client 与 Electron 部分，`host/`、Host RPC 和对应测试只在 `CLP-BETA-HOST` 创建。
+> 这是分阶段布局。CLP-DESK0 已实体化 Electron 安全壳、最小 Renderer Bridge、构建/staging/packaging 工具和对应测试；Shared Client、PlatformPort adapter、`host/`、Host RPC 和发布资产仍是后续阶段目标。
+
+## 0. 当前 DESK0 子集
+
+```text
+desktop/
+├── electron/
+│   ├── main/                         # 生命周期、窗口、安全策略、app://bundle/
+│   └── preload/                      # 最小 capability bridge
+├── protocol/renderer-bridge/          # 浏览器安全 types/DTO，不依赖 Electron
+├── build/                             # direct Rolldown、staging、builder、产物验证
+├── tests/                             # contract/main/security/packaging
+├── tsconfig.main.json
+├── tsconfig.preload.json
+└── .out/                              # 全部 gitignored
+```
+
+DESK0 没有创建 `src/entrypoints`、`src/platform`、`src/agent-runtime`、`desktop/host` 或 `desktop/protocol/host-rpc`。这是有意的渐进边界：在 Shared Client 和远程 Run 合同冻结前，安全壳不猜 auth、Principal 或 Run wire。
 
 ## 1. 推荐布局
 
@@ -53,12 +70,13 @@ web/
     │       ├── host-storage/
     │       └── host-telemetry/
     ├── build/
-    │   ├── rolldown.main.config.ts
-    │   ├── rolldown.preload.config.ts
-    │   ├── electron-builder.config.ts
-    │   ├── dev-runner.mjs
+    │   ├── rolldown.main.config.mjs
+    │   ├── rolldown.preload.config.mjs
+    │   ├── electron-builder.config.mjs
+    │   ├── build-electron.mjs
     │   ├── stage.mjs
-    │   ├── generate-protocol.mjs
+    │   ├── verify-stage.mjs
+    │   ├── package-electron.mjs
     │   └── verify-package.mjs
     ├── release/                         # 配置与公开资源，不含 secret
     │   ├── icons/

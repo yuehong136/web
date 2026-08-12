@@ -1,12 +1,13 @@
 # Client Platform 文档总览
 
-> 状态：F0 已完成；CLP-P0 与 Run F1a 的独立切片进行中，2026-08-13。本文档集描述获准进入验证阶段的目标方案，**不代表桌面客户端已经实现或发布**。
+> 状态：F0 已完成；CLP-P0、Run F1a 与 CLP-DESK0 安全壳是相互独立的切片，2026-08-13。DESK0 只是非发布态构建/安全基线，**不代表可用桌面 MVP 已实现或发布**。
 
 ## 当前事实
 
-- 本仓当前仍是纯 Web 的 React/Vite 应用；生产入口、构建、部署和运行行为均未改变。
-- 仓库当前没有 Electron main/preload、Rust Host、桌面安装包、自动更新或本地 PTY/MCP 运行时。
-- F0 当时只增加文档、导航和工程规则；后续已落地 task ID 隔离、Web 被动 detach 与无身份依赖的 Run F1a 协议核心，均不等于桌面或 durable Run 已完成。
+- Web React/Vite 应用仍是唯一生产产品，根 `dist/` 构建、Docker 与 Web 发布保持独立。
+- `desktop/` 已有 CLP-DESK0：Electron main、sandbox preload、版本化最小 capability bridge、`app://bundle/` 协议、Rolldown 独立构建、显式 staging allowlist 与 electron-builder/ASAR/fuses 验证链路。
+- DESK0 不包含认证、Shared `RunClient`、durable Run 恢复、自动更新、本地 Host/PTY/MCP，也没有经验证的 Windows 安装包/签名。
+- F0 后还已落地 task ID 隔离、Web 被动 detach 与无身份依赖的 Run F1a 协议核心；它们与 DESK0 均不等于 durable Run 或完整桌面产品已完成。
 - 现有 `src/` 继续是唯一产品 UI 源码。未来客户端不能复制一套长期分叉的 renderer。
 
 ## 目标方向

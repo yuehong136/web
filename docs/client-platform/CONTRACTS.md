@@ -1,6 +1,6 @@
 # Client Platform 合同设计
 
-> 合同先于实现。本文描述目标语义；当前仓库尚无 Shared Client、桌面 bridge 或 Host RPC。远程 schema 的真相源在 MultiRAG 后端，本仓只链接/消费，不复制维护。
+> 合同先于实现。CLP-DESK0 已有版本为 `1` 的最小静态 capability bridge；当前仓库仍无 Shared Client、通用桌面 IPC 能力或 Host RPC。远程 schema 的真相源在 MultiRAG 后端，本仓只链接/消费，不复制维护。
 
 ## 1. 合同分层
 
@@ -59,6 +59,10 @@ submitInteraction(runId, input) -> RunProjection
 - schema URL、版本和生成命令在 Shared Client 实施时登记；服务端 schema 不可达时 CI 应使用已审核 artifact，而不是临时猜 shape。
 
 ## 4. Renderer Bridge
+
+### 当前 DESK0 子集
+
+preload 目前只通过 `window.multiRagDesktop` 暴露版本号和 `capabilities()`。返回值中只有 `desktop=true`；`updater`、`notifications`、`localAgent`、`pty`、`localMcp` 固定为 `false`。该子集不调用 `ipcRenderer`，不包含 auth、Run、下载或外链方法，不得作为下述目标 Bridge 已完成的证据。
 
 ### API 形态
 

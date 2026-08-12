@@ -1,6 +1,6 @@
 # Multi-RAG Frontend
 
-Multi-RAG 平台的企业级 React 前端：智能对话、知识库管理、Agent / Pipeline 编排、可外嵌的 Agent Share Widget、MCP 服务器集成、系统管理。
+Multi-RAG 平台的企业级 React 前端，并已加入早期 Electron 安全壳构建基线：智能对话、知识库管理、Agent / Pipeline 编排、可外嵌的 Agent Share Widget、MCP 服务器集成、系统管理。
 
 > English: [`README.md`](./README.md)
 
@@ -63,6 +63,7 @@ Multi-RAG 平台的企业级 React 前端：智能对话、知识库管理、Age
 | 图表 / 流程图 | recharts / mermaid                                                            | 3.1 / 11.12 |
 | 净化          | DOMPurify                                                                     | 3.3         |
 | 国际化        | react-i18next + i18next + browser-languagedetector                            | 16.5 / 25.8 |
+| 桌面安全壳    | Electron + Rolldown 独立构建 main/preload                                     | 43.4 / 1.2  |
 
 完整依赖见 `package.json`。
 
@@ -87,11 +88,17 @@ src/
 ├── lib/              # 领域工具、运行时工具、adapters
 ├── locales/          # i18n：en-US/、zh-CN/
 └── assets/
+desktop/
+├── electron/         # DESK0 main + sandboxed preload；尚无产品认证/Run/更新
+├── protocol/         # 最小、类型化 Renderer Bridge
+├── build/            # Rolldown、allowlist staging、electron-builder、产物验证
+├── tests/            # main/preload/协议/打包合同测试
+└── .out/             # 构建、staging 与 artifact 产物（gitignored）
 ```
 
 为什么这样分层（四层骨架、展示/容器分离、文件大小红线），见 `AI前端技术栈开发规范.md` 与 `AGENTS.md`。
 
-分阶段的客户端平台目标目录另见 [`docs/client-platform/REPOSITORY_LAYOUT.md`](./docs/client-platform/REPOSITORY_LAYOUT.md)；仓库当前仍是纯 Web 应用。
+Web 应用仍是唯一生产产品，且保持独立构建与发布。`desktop/` 已有非发布态 `CLP-DESK0` 安全壳基线（Electron main/preload、`app://bundle/`、staging 与产物检查），但尚不提供认证、Shared `RunClient`、durable Run 恢复、自动更新、本地 Host，也没有 Windows 打包/签名实测。详见 [`docs/client-platform/README.md`](./docs/client-platform/README.md)。
 
 ## 快速开始
 
@@ -125,6 +132,12 @@ npm run lint:typed      # type-aware lint，先覆盖 Agent 关键目录
 npm run typecheck:agent-strict # Agent 关键目录严格类型检查
 npm run build:themes    # 修改 tokens.ts 后重新生成 themes/{light,dark}.css
 npm run test:agent-t1   # 通过 tsx --test 运行 agent T1 测试
+npm run lint:desktop    # 检查桌面壳/构建源码
+npm run desktop:typecheck # 类型检查 Electron main 与 preload project
+npm run test:desktop    # 运行桌面壳合同与打包测试
+npm run desktop:build   # 使用 Rolldown 生成 main ESM 与 sandbox preload CJS
+npm run desktop:stage   # 组装显式 allowlist 的桌面 staging app
+npm run desktop:verify:stage # 验证 staging allowlist 与 build manifest
 ```
 
 目前**没有**通用 `test`、`format`、`typecheck` 脚本。类型检查由 `npm run build` 完成，Agent 关键目录可补充跑 `npm run typecheck:agent-strict`。格式化通过 Prettier + lint-staged 作用于 staged 文件，不做全仓格式化。现有正式测试仍用 `tsx --test`，Vitest 基础配置已落地用于后续新增/迁移。

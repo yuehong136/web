@@ -1,5 +1,6 @@
 import js from '@eslint/js'
 import globals from 'globals'
+import { builtinModules } from 'node:module'
 import importX from 'eslint-plugin-import-x'
 import jsxA11y from 'eslint-plugin-jsx-a11y'
 import reactHooks from 'eslint-plugin-react-hooks'
@@ -13,8 +14,39 @@ import noTargetBlankWithoutRel from './eslint-rules/no-target-blank-without-rel.
 import noRawDangerouslySetInnerHtml from './eslint-rules/no-raw-dangerously-set-inner-html.js'
 import noSensitiveDataInConsole from './eslint-rules/no-sensitive-data-in-console.js'
 import noImperativeHtml from './eslint-rules/no-imperative-html.js'
+import noRestrictedDynamicImport from './eslint-rules/no-restricted-dynamic-import.js'
 
 const typedLint = process.env.ESLINT_TYPED === 'true'
+const restrictedNodeImportPaths = builtinModules
+  .flatMap((moduleName) =>
+    moduleName.startsWith('node:')
+      ? [moduleName]
+      : [moduleName, `node:${moduleName}`],
+  )
+  .map((name) => ({
+    name,
+    message:
+      'This trust boundary cannot import Node built-ins; use its declared browser-safe contract.',
+  }))
+const restrictedRuntimeGlobals = [
+  'process',
+  'Buffer',
+  'require',
+  'global',
+  '__dirname',
+  '__filename',
+  'module',
+  'exports',
+].map((name) => ({
+  name,
+  message:
+    'This trust boundary cannot use Node runtime globals; use its declared browser-safe contract.',
+}))
+const platformBoundaryPlugin = {
+  rules: {
+    'no-restricted-dynamic-import': noRestrictedDynamicImport,
+  },
+}
 const jsxA11yWarningRules = Object.fromEntries(
   Object.keys(jsxA11y.rules).map((ruleName) => [
     `jsx-a11y/${ruleName}`,
@@ -23,7 +55,13 @@ const jsxA11yWarningRules = Object.fromEntries(
 )
 
 export default tseslint.config([
-  globalIgnores(['dist', 'coverage', 'node_modules', '**/*.generated.ts']),
+  globalIgnores([
+    'dist',
+    'coverage',
+    'node_modules',
+    'desktop/.out',
+    '**/*.generated.ts',
+  ]),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
@@ -103,6 +141,190 @@ export default tseslint.config([
     files: ['vite.config.ts', 'tailwind.config.ts', 'vitest.config.ts'],
     languageOptions: {
       globals: globals.node,
+    },
+  },
+  {
+    files: ['desktop/**/*.mjs'],
+    extends: [js.configs.recommended],
+    languageOptions: {
+      ecmaVersion: 'latest',
+      globals: globals.node,
+    },
+  },
+  {
+    // Renderer production code remains inside the browser permission model.
+    // Tests and explicit dev generators may use Node to inspect fixtures.
+    files: ['src/**/*.{ts,tsx}'],
+    ignores: [
+      'src/**/__tests__/**',
+      'src/**/*.test.{ts,tsx}',
+      'src/**/__dev__/**',
+      'src/themes/build-themes.ts',
+    ],
+    plugins: {
+      'platform-boundaries': platformBoundaryPlugin,
+    },
+    rules: {
+      'platform-boundaries/no-restricted-dynamic-import': [
+        'error',
+        {
+          disallowNodeBuiltins: true,
+          packages: ['electron', '@electron/remote'],
+          patterns: ['(^|/)desktop(/|$)'],
+        },
+      ],
+      'no-restricted-globals': ['error', ...restrictedRuntimeGlobals],
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            ...restrictedNodeImportPaths,
+            {
+              name: 'electron',
+              message:
+                'Renderer code must use PlatformPort, never Electron directly.',
+            },
+            {
+              name: '@electron/remote',
+              message: '@electron/remote is forbidden in the Renderer.',
+            },
+          ],
+          patterns: [
+            {
+              regex: '(^|/)desktop(/|$)',
+              message:
+                'Renderer product code cannot depend on Electron, preload, or host implementation paths.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ['desktop/**/*.{ts,tsx}'],
+    languageOptions: {
+      globals: globals.node,
+    },
+  },
+  {
+    files: ['desktop/electron/main/**/*.{ts,tsx}'],
+    plugins: {
+      'platform-boundaries': platformBoundaryPlugin,
+    },
+    rules: {
+      'platform-boundaries/no-restricted-dynamic-import': [
+        'error',
+        {
+          packages: ['react', 'react-dom'],
+          patterns: ['^(?:@/|src/)', '(^|/)src(/|$)', '(^|/)preload(/|$)'],
+        },
+      ],
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [],
+          patterns: [
+            {
+              regex: '^(?:react|react-dom)(?:/|$)',
+              message: 'Electron main must not depend on the React product UI.',
+            },
+            {
+              group: ['@/**', 'src/**', '**/src/**'],
+              message:
+                'Electron main is an independent composition root and cannot import Renderer product code.',
+            },
+            {
+              regex: '(^|/)preload(/|$)',
+              message:
+                'Electron main and preload implementations are separate trust boundaries.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ['desktop/electron/preload/**/*.{ts,tsx}'],
+    plugins: {
+      'platform-boundaries': platformBoundaryPlugin,
+    },
+    rules: {
+      'platform-boundaries/no-restricted-dynamic-import': [
+        'error',
+        {
+          disallowNodeBuiltins: true,
+          packages: ['react', 'react-dom'],
+          patterns: ['^(?:@/|src/)', '(^|/)src(/|$)', '(^|/)main(/|$)'],
+        },
+      ],
+      'no-restricted-globals': ['error', ...restrictedRuntimeGlobals],
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [...restrictedNodeImportPaths],
+          patterns: [
+            {
+              regex: '^(?:react|react-dom)(?:/|$)',
+              message: 'Preload must not depend on React or product state.',
+            },
+            {
+              group: ['@/**', 'src/**', '**/src/**'],
+              message:
+                'Preload cannot import Renderer product code or Electron main implementation.',
+            },
+            {
+              regex: '(^|/)main(/|$)',
+              message:
+                'Preload cannot import Electron main implementation modules.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ['desktop/protocol/**/*.{ts,tsx}'],
+    plugins: {
+      'platform-boundaries': platformBoundaryPlugin,
+    },
+    rules: {
+      'platform-boundaries/no-restricted-dynamic-import': [
+        'error',
+        {
+          disallowNodeBuiltins: true,
+          packages: ['electron', 'react', 'react-dom'],
+          patterns: ['^(?:@/|src/)', '(^|/)src(/|$)', '(^|/)electron(/|$)'],
+        },
+      ],
+      'no-restricted-globals': ['error', ...restrictedRuntimeGlobals],
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            ...restrictedNodeImportPaths,
+            {
+              name: 'electron',
+              message: 'Bridge contracts must remain Electron-independent.',
+            },
+          ],
+          patterns: [
+            {
+              regex: '^(?:react|react-dom)(?:/|$)',
+              message: 'Bridge contracts must remain UI-independent.',
+            },
+            {
+              group: ['@/**', 'src/**', '**/src/**'],
+              message:
+                'Bridge contracts must be pure data/schema modules without runtime implementation dependencies.',
+            },
+            {
+              regex: '(^|/)electron(/|$)',
+              message:
+                'Bridge contracts cannot import Electron implementation modules.',
+            },
+          ],
+        },
+      ],
     },
   },
   {

@@ -3,6 +3,7 @@ import { test } from 'node:test'
 import { Linter } from 'eslint'
 import noImperativeHtml from '../no-imperative-html.js'
 import noSensitiveDataInConsole from '../no-sensitive-data-in-console.js'
+import noRestrictedDynamicImport from '../no-restricted-dynamic-import.js'
 
 function verify(ruleName, rule, code) {
   const linter = new Linter({ configType: 'flat' })
@@ -10,6 +11,28 @@ function verify(ruleName, rule, code) {
     languageOptions: { ecmaVersion: 'latest', sourceType: 'module' },
     plugins: { security: { rules: { [ruleName]: rule } } },
     rules: { [`security/${ruleName}`]: 'error' },
+  })
+}
+
+function verifyDynamicImport(code) {
+  const linter = new Linter({ configType: 'flat' })
+  return linter.verify(code, {
+    languageOptions: { ecmaVersion: 'latest', sourceType: 'module' },
+    plugins: {
+      boundaries: {
+        rules: { 'no-restricted-dynamic-import': noRestrictedDynamicImport },
+      },
+    },
+    rules: {
+      'boundaries/no-restricted-dynamic-import': [
+        'error',
+        {
+          disallowNodeBuiltins: true,
+          packages: ['electron', 'react'],
+          patterns: ['(^|/)desktop(/|$)'],
+        },
+      ],
+    },
   })
 }
 
@@ -78,6 +101,27 @@ test('no-imperative-html rejects HTML sinks but permits container clearing', () 
       noImperativeHtml,
       "node.innerHTML = ''; node.textContent = message; node.replaceChildren(child)",
     ),
+    [],
+  )
+})
+
+test('no-restricted-dynamic-import mirrors static trust boundaries', () => {
+  for (const code of [
+    "import('node:fs')",
+    "import('electron/renderer')",
+    "import('react/jsx-runtime')",
+    "import('../../desktop/electron/main')",
+    'import(runtimeSpecifier)',
+  ]) {
+    assert.deepEqual(
+      verifyDynamicImport(code).map((message) => message.ruleId),
+      ['boundaries/no-restricted-dynamic-import'],
+      code,
+    )
+  }
+
+  assert.deepEqual(
+    verifyDynamicImport("import('./feature'); import('mermaid')"),
     [],
   )
 })

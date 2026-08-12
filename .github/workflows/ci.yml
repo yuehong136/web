@@ -38,8 +38,14 @@ jobs:
       - name: ESLint (type-aware, Agent critical dirs)
         run: npm run lint:typed
 
+      - name: ESLint (desktop shell)
+        run: npm run lint:desktop
+
       - name: Typecheck (Agent strict)
         run: npm run typecheck:agent-strict
+
+      - name: Typecheck (desktop shell)
+        run: npm run desktop:typecheck
 
       - name: Test (agent serializers & adapters)
         run: npm run test:agent-t1
@@ -58,6 +64,9 @@ jobs:
 
       - name: Test (security boundaries)
         run: npm run test:security
+
+      - name: Test (desktop shell contracts)
+        run: npm run test:desktop
 
   build:
     name: Build
@@ -79,3 +88,12 @@ jobs:
 
       - name: Bundle size budget
         run: npm run check:bundle-size
+
+      - name: Build Electron main and preload
+        run: npm run desktop:build
+
+      - name: Assemble desktop staging app
+        run: npm run desktop:stage
+
+      - name: Verify desktop staging allowlist
+        run: npm run desktop:verify:stage

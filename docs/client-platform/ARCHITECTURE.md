@@ -6,15 +6,19 @@
 
 截至 2026-08-13：
 
-- `src/` 是浏览器中的 React/Vite 应用，`npm run build` 生成根目录 `dist/`。
+- `src/` 是浏览器中的 React/Vite 应用，`npm run build` 生成根目录 `dist/`；Web 仍是唯一生产产品。
 - Monaco、Lexical、Mermaid、PDF/DOCX/PPTX/XLSX 预览、图与画布等重型能力按 Web 运行时工作。
 - 聊天和 Agent 流式入口复用 Web SSE 运行时；浏览器直接访问云端 API。
-- 项目没有 Electron、preload、原生 sidecar、本地 PTY、自动更新或桌面签名链路。
+- `desktop/` 已实现 CLP-DESK0 安全壳：Electron main 在 ready 前注册 `app://bundle/` 安全 scheme 并开启全局 sandbox，BrowserWindow 使用 context isolation/sandbox、禁用 Node integration/webview/任意导航，session 默认拒绝权限、设备与下载。
+- DESK0 preload 只暴露版本为 `1` 的静态 capability bridge；除 `desktop=true` 外，updater/notifications/localAgent/PTY/localMCP 均显式为 unsupported，没有通用 IPC。
+- main/preload 通过独立 Rolldown 构建，renderer 从根 `dist/` 按 allowlist 组装到 staging；electron-builder/ASAR/fuses 配置和验证器已存在。Web 构建不依赖这些产物。
+- strict CSP 在 macOS packaged smoke 中拒绝了 renderer 引用的 Google Inter 外部 CSS，应用使用 fallback 字体继续工作。这是待本地打包字体的 renderer 资产问题，不通过扩大 `style-src`/`font-src` 第三方域解决。
+- 项目仍没有 Shared `RunClient`、桌面认证/凭据存储、自动更新、原生 sidecar、本地 PTY/MCP、Windows 安装包实测或签名发布链路。
 - API origin 仍存在编译期绝对地址与相对 `/api` 混用，桌面试点前必须收口为统一 runtime config。
 - 当前 Web 仍把 access/refresh credential 写入 `localStorage`；这是 `CLP-P0` 必须消除的现状，不是目标认证设计。
 - 当前 MultiRAG OAuth callback 在 EIM-I6 建立显式 provider-subject binding 前固定 fail closed，不按邮箱登录、注册或合并账号。
 
-因此，以下内容全部是**目标方案**。
+因此，DESK0 只证明安全宿主和供应链边界开始成型；以下 Shared Client、认证、durable Run、更新、签名与 Host 仍是**目标方案**。
 
 ## 2. MVP 目标上下文
 

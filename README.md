@@ -1,6 +1,6 @@
 # Multi-RAG Frontend
 
-Enterprise-grade React frontend for the Multi-RAG platform: intelligent conversation, knowledge bases, agent / pipeline orchestration, embeddable agent share widget, MCP server integration, and system administration.
+Enterprise-grade React frontend for the Multi-RAG platform, with an early secure Electron shell build baseline: intelligent conversation, knowledge bases, agent / pipeline orchestration, embeddable agent share widget, MCP server integration, and system administration.
 
 > 中文文档：[`README_zh.md`](./README_zh.md)
 
@@ -63,6 +63,7 @@ This README is the project front door — it intentionally stays short. The auth
 | Charts / Diagrams | recharts / mermaid                                                            | 3.1 / 11.12 |
 | Sanitization      | DOMPurify                                                                     | 3.3         |
 | i18n              | react-i18next + i18next + browser-languagedetector                            | 16.5 / 25.8 |
+| Desktop shell     | Electron + direct Rolldown main/preload build                                 | 43.4 / 1.2  |
 
 Full list lives in `package.json`.
 
@@ -87,11 +88,17 @@ src/
 ├── lib/              # Domain helpers, runtime utilities, adapters
 ├── locales/          # i18n: en-US/, zh-CN/
 └── assets/
+desktop/
+├── electron/         # DESK0 main + sandboxed preload; no product auth/Run/updater yet
+├── protocol/         # Minimal, typed renderer bridge
+├── build/            # Rolldown, allowlist staging, electron-builder, package verification
+├── tests/            # Main/preload/protocol/packaging contracts
+└── .out/             # Generated build, stage, and artifact output (gitignored)
 ```
 
 For the _why_ behind this layout (page-skeleton four-layer rule, presentational/container split, file-size limits), see `AI前端技术栈开发规范.md` and `AGENTS.md`.
 
-The staged client-platform target layout is documented separately in [`docs/client-platform/REPOSITORY_LAYOUT.md`](./docs/client-platform/REPOSITORY_LAYOUT.md); the repository is still a pure Web application today.
+The Web application remains the only production product and can still build and ship independently. `desktop/` now contains the non-release `CLP-DESK0` secure-shell baseline (Electron main/preload, `app://bundle/`, staging and package checks), but it does **not** provide authentication, Shared `RunClient`, durable Run recovery, auto-update, a local Host, or verified Windows packaging/signing. See [`docs/client-platform/README.md`](./docs/client-platform/README.md).
 
 ## Getting Started
 
@@ -125,6 +132,12 @@ npm run lint:typed      # Type-aware lint for Agent critical directories
 npm run typecheck:agent-strict # Strict type check for Agent critical directories
 npm run build:themes    # Regenerate themes/{light,dark}.css after tokens.ts changes
 npm run test:agent-t1   # Run agent T1 tests via tsx --test
+npm run lint:desktop    # Lint desktop shell/build sources
+npm run desktop:typecheck # Type-check Electron main and preload projects
+npm run test:desktop    # Run desktop shell contract and packaging tests
+npm run desktop:build   # Build main ESM + sandbox preload CJS with Rolldown
+npm run desktop:stage   # Assemble the explicit desktop staging app
+npm run desktop:verify:stage # Verify staging allowlist and build manifest
 ```
 
 There is no generic `test`, `format`, or `typecheck` script today. Type checking happens inside `npm run build`, with stricter Agent-slice checks available via `npm run typecheck:agent-strict`. Formatting is handled by Prettier + lint-staged for staged files only; do not run a whole-repo format pass. Existing formal tests run via `tsx --test`; Vitest baseline config exists for future additions/migration.

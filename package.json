@@ -15,6 +15,7 @@
     "build": "tsc -b && vite build",
     "build:analyze": "VITE_ANALYZE=true npm run build",
     "build:docker": "vite build",
+    "build:desktop": "npm run build && npm run desktop:build && npm run desktop:stage",
     "build:themes": "tsx src/themes/build-themes.ts",
     "check:bundle-size": "node scripts/check-bundle-size.mjs",
     "lint:file-size": "node scripts/check-file-size-ratchet.mjs",
@@ -22,9 +23,17 @@
     "lint:i18n-agent": "node scripts/check-agent-i18n-hardcoded.mjs",
     "lint": "eslint src",
     "lint:all": "eslint .",
+    "lint:desktop": "eslint desktop",
     "lint:typed": "ESLINT_TYPED=true eslint src/lib/agent.ts src/pages/agent/operators src/pages/agent/adapters",
     "postinstall": "patch-package",
     "prepare": "husky",
+    "desktop:build": "node desktop/build/build-electron.mjs",
+    "desktop:stage": "node desktop/build/stage.mjs",
+    "desktop:verify:stage": "node desktop/build/verify-stage.mjs",
+    "desktop:package:dir": "node desktop/build/package-electron.mjs",
+    "desktop:verify:package": "node desktop/build/verify-package.mjs",
+    "desktop:typecheck": "tsc -p desktop/tsconfig.main.json && tsc -p desktop/tsconfig.preload.json",
+    "test:desktop": "tsx --test desktop/tests/**/*.test.ts desktop/tests/**/*.test.mjs",
     "typecheck:agent-strict": "tsc -p tsconfig.agent-strict.json",
     "test:agent-t1": "tsx --tsconfig tsconfig.app.json --test src/pages/agent/operators/__tests__/serializers.test.ts src/pages/agent/adapters/__tests__/adapters.test.ts src/pages/agent/form/__tests__/t3-parity-normalizers.test.ts src/pages/agent/setting-dialog/__tests__/settings-payload.test.ts src/pages/agent/features/runtime-workbench/__tests__/runtime-lifecycle.test.ts",
     "test:design-tokens": "tsx --tsconfig tsconfig.app.json --test src/lib/design-tokens/__tests__/*.ts",
@@ -41,8 +50,9 @@
     "Safari >= 16.4"
   ],
   "lint-staged": {
-    "*.{js,jsx,ts,tsx,json,css,md}": "prettier --write",
-    "src/**/*.{ts,tsx}": "eslint"
+    "*.{js,mjs,jsx,ts,tsx,json,css,md}": "prettier --write",
+    "src/**/*.{ts,tsx}": "eslint",
+    "desktop/**/*.{mjs,ts,tsx}": "eslint"
   },
   "dependencies": {
     "@ant-design/x": "^2.7.0",
@@ -152,6 +162,8 @@
     "zustand": "^5.0.6"
   },
   "devDependencies": {
+    "@electron/asar": "4.2.1",
+    "@electron/fuses": "2.1.3",
     "@eslint/js": "^9.39.5",
     "@tailwindcss/container-queries": "^0.1.1",
     "@types/node": "^24.1.0",
@@ -160,6 +172,8 @@
     "@types/react-syntax-highlighter": "^15.5.13",
     "@types/uuid": "^10.0.0",
     "@vitejs/plugin-react": "^6.0.5",
+    "electron": "43.4.0",
+    "electron-builder": "26.15.7",
     "eslint": "^9.39.5",
     "eslint-import-resolver-typescript": "^4.4.5",
     "eslint-plugin-import-x": "^4.17.1",
@@ -174,6 +188,7 @@
     "patch-package": "^8.0.1",
     "prettier": "^3.8.3",
     "prettier-plugin-tailwindcss": "^0.8.1",
+    "rolldown": "1.2.4",
     "rollup-plugin-visualizer": "^7.0.1",
     "tailwind-scrollbar": "^3.1.0",
     "tsx": "^4.23.12",

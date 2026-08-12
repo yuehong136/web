@@ -25,14 +25,20 @@ npm run test:streaming # node --test via tsx: shared streaming runtime (SSE tran
 npm run test:api     # node --test via tsx: API-layer contracts (routes, envelopes, normalizers)
 npm run test:product-ui # product capability, Search export, route recovery, and mutation-ownership contracts
 npm run test:security # security lint rules + toast DOM-injection boundary regression
+npm run lint:desktop # Lint Electron main/preload, protocol, and build scripts
+npm run desktop:typecheck # Type-check the Electron main and preload projects separately
+npm run test:desktop # Desktop main/preload/protocol/packaging contract tests
+npm run desktop:build # Build main ESM + sandbox preload CJS with direct Rolldown configs
+npm run desktop:stage # Assemble the staging app from explicit Web/main/preload allowlists
+npm run desktop:verify:stage # Verify the staging allowlist, manifest, and sensitive-file exclusions
 npm run lint:file-size # File-size ratchet: oversized files must not grow (baseline: scripts/file-size-baseline.json)
 npm run lint:file-size:update # Tighten the ratchet baseline after shrinking a debt file (never to loosen it)
 npm run check:bundle-size # Bundle budget gate, run after build (budgets: scripts/bundle-size-budget.json)
 ```
 
-There is **no generic `test`, `format`, or `typecheck` npm script**. Full type checking happens inside `npm run build`; Agent critical directories also have `npm run typecheck:agent-strict`. Formatting is handled by Prettier + lint-staged for staged files only; do not format the whole repo. The formal test gates are `test:agent-t1`, `test:design-tokens`, `test:streaming`, `test:api`, `test:product-ui`, and `test:security`; the test runtimes are `tsx --test`, Node test, and Vitest. Do not introduce Jest.
+There is **no generic `test`, `format`, or `typecheck` npm script**. Full Web type checking happens inside `npm run build`; Agent critical directories also have `npm run typecheck:agent-strict`, while the desktop shell uses `npm run desktop:typecheck`. Formatting is handled by Prettier + lint-staged for staged files only; do not format the whole repo. The formal test gates are `test:agent-t1`, `test:design-tokens`, `test:streaming`, `test:api`, `test:product-ui`, `test:security`, and `test:desktop`; the test runtimes are `tsx --test`, Node test, and Vitest. Do not introduce Jest.
 
-**CI**: `.github/workflows/ci.yml` runs on every push/PR to `master` — `lint`, `lint:file-size`, `lint:typed`, `typecheck:agent-strict`, `test:agent-t1`, `test:design-tokens`, `test:streaming`, `test:api`, `test:product-ui`, `test:security`, `build`, and `check:bundle-size` must all pass. `lint:i18n-agent` stays a local-only gate (it diffs the working tree). The pre-commit hook only runs lint-staged; still run the relevant gates locally before pushing — never claim they pass without actually running them.
+**CI**: `.github/workflows/ci.yml` runs the existing Web gates on every push/PR to `master`, plus `lint:desktop`, `desktop:typecheck`, `test:desktop`, `desktop:build`, `desktop:stage`, and `desktop:verify:stage`. These desktop gates cover cross-platform source/contracts/build/staging only; they do not prove Windows packaging, signing, or installer E2E. `lint:i18n-agent` stays a local-only gate (it diffs the working tree). The pre-commit hook only runs lint-staged; still run the relevant gates locally before pushing — never claim they pass without actually running them.
 
 ## Stack (verified, 2026-05)
 
@@ -465,7 +471,7 @@ Do not introduce Jest. Vitest baseline config exists, but do not opportunistical
 
 ## Client Platform (MANDATORY)
 
-- This repository is still a pure Web application. `docs/client-platform/` defines the target client-platform architecture and the `CLP-*` execution ledger; it does not mean Electron, auto-update, local PTY/MCP, or a Rust Host exists today.
+- Web remains the only production product and still builds independently. `desktop/` now contains the non-release `CLP-DESK0` secure-shell baseline: Electron main, sandboxed preload, `app://bundle/`, Rolldown, explicit staging, and electron-builder/ASAR/fuse verification. It has no authentication, Shared `RunClient`, durable Run, auto-update, local PTY/MCP/Rust Host, or verified Windows packaging/signing; never describe it as a released desktop client.
 - Before any Shared Client, desktop shell, run protocol, update/signing, or local-capability work, read `docs/client-platform/README.md`, then the task-relevant `ARCHITECTURE.md`, `CONTRACTS.md`, `ROADMAP.md`, `VERSION_BASELINE.md`, and `TESTING_SECURITY.md`.
 - The MVP sequence is fixed: Web correctness and authentication → cloud durable Run Service v2 → Web/Desktop Shared Client → stable Electron thin shell → release quality. The Rust Host is post-MVP Beta only and must not become a hidden desktop-MVP prerequisite.
 - The Renderer remains the only product UI and must not import `electron`, `node:*`, or a Host transport. Inject platform differences only through the fixed `PlatformPort` (`capabilities/auth/openExternal/downloads/notifications/updates/runs`) and adapters.
