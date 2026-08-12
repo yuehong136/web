@@ -22,7 +22,7 @@
   "src/components/mcp/MCPServerForm.tsx": 735,
   "src/pages/studio/create-app/components/config-pane.tsx": 716,
   "src/components/memory/MemoryMessageTable.tsx": 702,
-  "src/pages/agent/features/runtime-workbench/hooks/use-agent-runtime-workbench.ts": 700,
+  "src/pages/agent/features/runtime-workbench/hooks/use-agent-runtime-workbench.ts": 691,
   "src/components/chat/ChatInput.tsx": 691,
   "src/pages/settings/MCPBatchPage.tsx": 678,
   "src/pages/settings/MCPToolsPage.tsx": 678,

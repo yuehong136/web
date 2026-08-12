@@ -41,6 +41,7 @@ import {
   consumeRuntimeStream,
   createLocalRuntimeMessageId,
 } from '../runtime-stream'
+import { detachRuntimeTransport, stopRuntimeRun } from '../runtime-lifecycle'
 import {
   buildA2UIActionInput,
   mergeSurfaceIds,
@@ -88,13 +89,9 @@ export function useAgentRuntimeWorkbench({
   const [viewingSessionId, setViewingSessionId] = useState<string>()
 
   const abortControllerRef = useRef<AbortController | null>(null)
-  const messageStateRef = useRef<Record<string, ReturnType<typeof consumeRuntimeMessageChunk>['nextState']>>({})
-  const latestTaskIdRef = useRef(latestTaskId)
-
-  useEffect(() => {
-    latestTaskIdRef.current = latestTaskId
-  }, [latestTaskId])
-
+  const messageStateRef = useRef<
+    Record<string, ReturnType<typeof consumeRuntimeMessageChunk>['nextState']>
+  >({})
   const logEvents = useMemo(() => {
     if (!currentMessageId) {
       return []
@@ -111,19 +108,23 @@ export function useAgentRuntimeWorkbench({
     currentEventListWithoutMessageById,
     currentMessageId,
   })
-  const lastNodeId = startButNotFinishedNodeIds[startButNotFinishedNodeIds.length - 1]
+  const lastNodeId =
+    startButNotFinishedNodeIds[startButNotFinishedNodeIds.length - 1]
 
-  const clearRuntimeState = useCallback((nextSessionId = sessionId) => {
-    abortControllerRef.current?.abort()
-    abortControllerRef.current = null
-    messageStateRef.current = {}
-    setMessages([])
-    setSessionId(nextSessionId ?? null)
-    clearEventList()
-    setCurrentMessageId('')
-    setLastError(undefined)
-    setStatus(AgentRuntimeStatus.IDLE)
-  }, [clearEventList, sessionId, setCurrentMessageId])
+  const clearRuntimeState = useCallback(
+    (nextSessionId = sessionId) => {
+      abortControllerRef.current?.abort()
+      abortControllerRef.current = null
+      messageStateRef.current = {}
+      setMessages([])
+      setSessionId(nextSessionId ?? null)
+      clearEventList()
+      setCurrentMessageId('')
+      setLastError(undefined)
+      setStatus(AgentRuntimeStatus.IDLE)
+    },
+    [clearEventList, sessionId, setCurrentMessageId],
+  )
 
   const updateMessageById = useCallback(
     (
@@ -148,8 +149,9 @@ export function useAgentRuntimeWorkbench({
       return undefined
     }
 
-    return sessionsQuery.data.sessions.find((session) => session.id === sessionId)
-      ?.name
+    return sessionsQuery.data.sessions.find(
+      (session) => session.id === sessionId,
+    )?.name
   }, [sessionId, sessionsQuery.data.sessions])
 
   const saveCurrentGraph = useCallback(async () => {
@@ -200,17 +202,9 @@ export function useAgentRuntimeWorkbench({
       const logEvent = normalizedEvent.logEvent
 
       if (logEvent) {
-        addEventList(
-          [logEvent],
-          logEvent.message_id,
-        )
+        addEventList([logEvent], logEvent.message_id)
 
-        if (
-          shouldStoreRuntimeThoughtEvent(
-            logEvent.event,
-            logEvent.data,
-          )
-        ) {
+        if (shouldStoreRuntimeThoughtEvent(logEvent.event, logEvent.data)) {
           updateMessageById(assistantId, (message) => ({
             ...message,
             logEvents: [
@@ -292,8 +286,7 @@ export function useAgentRuntimeWorkbench({
 
       if (normalizedEvent.event === 'message_end') {
         const reference =
-          isRecord(normalizedEvent.data) &&
-          'reference' in normalizedEvent.data
+          isRecord(normalizedEvent.data) && 'reference' in normalizedEvent.data
             ? normalizedEvent.data.reference
             : undefined
 
@@ -309,7 +302,8 @@ export function useAgentRuntimeWorkbench({
 
       if (normalizedEvent.event === 'workflow_finished') {
         const outputs =
-          isRecord(normalizedEvent.data) && isRecord(normalizedEvent.data.outputs)
+          isRecord(normalizedEvent.data) &&
+          isRecord(normalizedEvent.data.outputs)
             ? normalizedEvent.data.outputs
             : undefined
 
@@ -335,12 +329,13 @@ export function useAgentRuntimeWorkbench({
       }
 
       if (normalizedEvent.event === 'user_inputs') {
-        const payload = isRecord(normalizedEvent.data) ? normalizedEvent.data : {}
+        const payload = isRecord(normalizedEvent.data)
+          ? normalizedEvent.data
+          : {}
 
         updateMessageById(assistantId, (message) => ({
           ...message,
-          tips:
-            typeof payload.tips === 'string' ? payload.tips : message.tips,
+          tips: typeof payload.tips === 'string' ? payload.tips : message.tips,
           awaitingInputs: normalizeRuntimeAwaitingInputs(payload.inputs),
           isStreaming: false,
           messageId: normalizedEvent.messageId || message.messageId,
@@ -520,7 +515,13 @@ export function useAgentRuntimeWorkbench({
   )
 
   const handleSendMessage = useCallback(
-    async ({ content = '', files = [] }: { content?: string; files?: RuntimeAttachment[] }) => {
+    async ({
+      content = '',
+      files = [],
+    }: {
+      content?: string
+      files?: RuntimeAttachment[]
+    }) => {
       if (!content.trim() && files.length === 0) {
         return
       }
@@ -574,8 +575,7 @@ export function useAgentRuntimeWorkbench({
   )
 
   const handleStop = useCallback(async () => {
-    abortControllerRef.current?.abort()
-    await stopMessage(latestTaskId)
+    await stopRuntimeRun(abortControllerRef.current, latestTaskId, stopMessage)
   }, [latestTaskId, stopMessage])
 
   const handleReset = useCallback(() => {
@@ -650,12 +650,9 @@ export function useAgentRuntimeWorkbench({
 
   useEffect(() => {
     return () => {
-      abortControllerRef.current?.abort()
-      if (latestTaskIdRef.current) {
-        void stopMessage(latestTaskIdRef.current)
-      }
+      detachRuntimeTransport(abortControllerRef.current)
     }
-  }, [stopMessage])
+  }, [])
 
   return {
     canvasId,

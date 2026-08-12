@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react'
+import { useCallback } from 'react'
 import { useCancelConversation } from '@/hooks/use-agent-request'
 
 export function useStopMessage() {
@@ -18,25 +18,6 @@ export function useStopMessage() {
     },
     [cancelConversation],
   )
-
-  return { stopMessage }
-}
-
-export function useStopMessageUnmount(chatVisible: boolean, taskId?: string) {
-  const { stopMessage } = useStopMessage()
-
-  const handleBeforeUnload = useCallback(() => {
-    if (chatVisible) {
-      void stopMessage(taskId)
-    }
-  }, [chatVisible, stopMessage, taskId])
-
-  useEffect(() => {
-    window.addEventListener('beforeunload', handleBeforeUnload)
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload)
-    }
-  }, [handleBeforeUnload])
 
   return { stopMessage }
 }
