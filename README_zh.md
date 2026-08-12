@@ -15,6 +15,7 @@ Multi-RAG 平台的企业级 React 前端：智能对话、知识库管理、Age
 - **`docs/agent-frontend-rewrite-plan.md`** 与 **`docs/agent-capability-completion-roadmap.md`** — Agent 计划与能力路线
 - **`docs/agent-t1` … `agent-t10` summaries** — 各阶段落地纪要
 - **`docs/agent-share-*-guide.md`** — Agent Share widget 集成
+- **[`docs/client-platform/README.md`](./docs/client-platform/README.md)** — Web/Desktop 客户端平台的架构、契约、路线与安全基线
 
 ## 最新进展（2026 Q2）
 
@@ -89,6 +90,8 @@ src/
 ```
 
 为什么这样分层（四层骨架、展示/容器分离、文件大小红线），见 `AI前端技术栈开发规范.md` 与 `AGENTS.md`。
+
+分阶段的客户端平台目标目录另见 [`docs/client-platform/REPOSITORY_LAYOUT.md`](./docs/client-platform/REPOSITORY_LAYOUT.md)；仓库当前仍是纯 Web 应用。
 
 ## 快速开始
 

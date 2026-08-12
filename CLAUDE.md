@@ -459,6 +459,15 @@ Required when touching:
 
 Do not introduce Jest. Vitest baseline config exists, but do not opportunistically migrate existing tests; existing tests continue to follow the `tsx --test` style under `__tests__/` directories. New Vitest tests must stay tightly scoped and must not replace the `test:agent-t1` gate.
 
+## Client Platform (MANDATORY)
+
+- This repository is still a pure Web application. `docs/client-platform/` defines the target client-platform architecture and the `CLP-*` execution ledger; it does not mean Electron, auto-update, local PTY/MCP, or a Rust Host exists today.
+- Before any Shared Client, desktop shell, run protocol, update/signing, or local-capability work, read `docs/client-platform/README.md`, then the task-relevant `ARCHITECTURE.md`, `CONTRACTS.md`, `ROADMAP.md`, `VERSION_BASELINE.md`, and `TESTING_SECURITY.md`.
+- The MVP sequence is fixed: Web correctness and authentication → cloud durable Run Service v2 → Web/Desktop Shared Client → stable Electron thin shell → release quality. The Rust Host is post-MVP Beta only and must not become a hidden desktop-MVP prerequisite.
+- The Renderer remains the only product UI and must not import `electron`, `node:*`, or a Host transport. Inject platform differences only through the fixed `PlatformPort` (`capabilities/auth/openExternal/downloads/notifications/updates/runs`) and adapters.
+- The shared `RunClient` is fixed to `createRun/getRun/subscribe/cancelRun/submitInteraction`. The MultiRAG backend is the single source of truth for remote Run API/event schemas; this repo consumes generated artifacts/fixtures and links, never a second handwritten schema.
+- Keep exact version snapshots only in `docs/client-platform/VERSION_BASELINE.md`; long-lived prose names supported stable channels. Do not downgrade Vite 8 or adopt an incompatible stable/prerelease electron-vite; main/preload use independent build and staging boundaries.
+
 ## Git
 
 - Conventional Commits: `feat`, `fix`, `docs`, `refactor`, `chore`, `perf`, `test`, `style`. Optional scope (`feat(agent): …`).
@@ -473,4 +482,5 @@ Do not introduce Jest. Vitest baseline config exists, but do not opportunistical
 4. Read `docs/design-tokens/*.md` for token-system change history (feedback-state alias removal, JS token target, OKLCH categorical palette).
 5. Read `docs/engineering-modernization-roadmap.md` for the audited engineering-debt backlog (SEC/ARCH/ENG/HYG items) — it is the single progress ledger; anyone completing an item MUST update its status table there.
 6. **Touching `src/pages/settings/channels/**`, `src/api/channel.ts`, `src/hooks/use-channel-request.ts`or`src/locales/\*/channel.ts`? Read `docs/channel-frontend-design.md`(ARCH-6) FIRST.** The channel work is a cross-repo programme: the wire contract's single source of truth lives in the backend repo at`docs/channel-program/CONTRACT.md`, and the task ledger at `docs/channel-program/PROGRESS.md`. Commits must carry both IDs, e.g. `fix(channel): surface server error codes (ARCH-6, CHN-U2)`. Use scope `channel`, not `settings`.
-7. Read the human-facing handbook `AI前端技术栈开发规范.md` for _why_ a rule exists.
+7. Read `docs/client-platform/README.md` before any Shared Client / Desktop / Run protocol / Host work.
+8. Read the human-facing handbook `AI前端技术栈开发规范.md` for _why_ a rule exists.

@@ -15,6 +15,7 @@ This README is the project front door — it intentionally stays short. The auth
 - **`docs/agent-frontend-rewrite-plan.md`** & **`docs/agent-capability-completion-roadmap.md`** — agent program roadmap
 - **`docs/agent-t1` … `agent-t10` summaries** — landed capabilities per phase
 - **`docs/agent-share-*-guide.md`** — agent share widget integration
+- **[`docs/client-platform/README.md`](./docs/client-platform/README.md)** — Web/Desktop client-platform architecture, contracts, roadmap, and security baseline
 
 ## What's New (2026-Q2)
 
@@ -89,6 +90,8 @@ src/
 ```
 
 For the _why_ behind this layout (page-skeleton four-layer rule, presentational/container split, file-size limits), see `AI前端技术栈开发规范.md` and `AGENTS.md`.
+
+The staged client-platform target layout is documented separately in [`docs/client-platform/REPOSITORY_LAYOUT.md`](./docs/client-platform/REPOSITORY_LAYOUT.md); the repository is still a pure Web application today.
 
 ## Getting Started
 

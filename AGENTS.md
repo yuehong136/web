@@ -457,6 +457,15 @@ Mutation 错误用 `sonner` toast 暴露，不用 dialog 阻塞，除非用户�
 
 **禁止引入 Jest**。Vitest 基础配置已落地，但不要顺手迁移存量测试；现阶段存量仍沿用 `tsx --test` 风格，放在 `__tests__/` 目录。新增 Vitest 测试必须保持范围清晰，并不得替换 `test:agent-t1` 门禁。
 
+## Client Platform（强制）
+
+- 仓库当前仍是纯 Web 应用；`docs/client-platform/` 是客户端平台的目标架构与 `CLP-*` 执行账本，不代表 Electron、自动更新、本地 PTY/MCP 或 Rust Host 已实现。
+- 开始任何 Shared Client、桌面壳、运行协议、更新/签名或本地能力工作前，必须先读 `docs/client-platform/README.md`，并按任务继续读 `ARCHITECTURE.md`、`CONTRACTS.md`、`ROADMAP.md`、`VERSION_BASELINE.md`、`TESTING_SECURITY.md`。
+- MVP 顺序固定为：Web 正确性与认证 → 云端 durable Run Service v2 → Web/Desktop Shared Client → Electron stable 薄壳 → 发布质量；Rust Host 只属于 MVP 后 Beta，不得作为桌面 MVP 隐藏前置。
+- Renderer 继续是唯一产品 UI，禁止导入 `electron`、`node:*` 或 Host transport；平台差异只通过固定 `PlatformPort`（`capabilities/auth/openExternal/downloads/notifications/updates/runs`）与 adapter 注入。
+- Shared `RunClient` 固定为 `createRun/getRun/subscribe/cancelRun/submitInteraction`。远程 Run API/事件 schema 的唯一真源在 MultiRAG 后端；本仓只消费生成物/fixture 和链接，不复制一份手写 schema。
+- 精确版本快照只维护在 `docs/client-platform/VERSION_BASELINE.md`；长期正文只写受支持 stable 通道。当前 Vite 8 不降级，也不采用不兼容的 electron-vite stable 或 prerelease；main/preload 使用独立构建与 staging 边界。
+
 ## Git
 
 - Conventional Commits：`feat`、`fix`、`docs`、`refactor`、`chore`、`perf`、`test`、`style`，可选 scope（`feat(agent): …`）
@@ -471,4 +480,5 @@ Mutation 错误用 `sonner` toast 暴露，不用 dialog 阻塞，除非用户�
 4. `docs/design-tokens/*.md` — 令牌系统变更史（feedback-state alias 删除、JS token 目标、OKLCH 分类色阶）
 5. `docs/engineering-modernization-roadmap.md` — 全仓审计后的工程债清单（SEC/ARCH/ENG/HYG 条目），**唯一进度账本**；完成任一条目必须更新其中的状态表
 6. **要动 `src/pages/settings/channels/**`、`src/api/channel.ts`、`src/hooks/use-channel-request.ts`或`src/locales/\*/channel.ts`？先读 `docs/channel-frontend-design.md`（ARCH-6）。** channel 是跨仓程序：接口契约的唯一真源在后端仓的 `docs/channel-program/CONTRACT.md`，任务账本在 `docs/channel-program/PROGRESS.md`。提交要**双标** ID，形如 `fix(channel): surface server error codes (ARCH-6, CHN-U2)`；scope 用 `channel`，不用 `settings`
-7. 面向人的手册 `AI前端技术栈开发规范.md` — 每条规则**为什么**这么定
+7. `docs/client-platform/README.md` — 客户端平台入口；任何 Shared Client / Desktop / Run protocol / Host 工作必须先读
+8. 面向人的手册 `AI前端技术栈开发规范.md` — 每条规则**为什么**这么定

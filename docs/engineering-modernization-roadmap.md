@@ -407,6 +407,21 @@
 | ---------- | -------- | ---- | ---------------------------------------- |
 | 2026-08-13 | 复核立项 | —    | 战略性试点，不能排在安全与可靠性工作之前 |
 
+### ARCH-10 Client Platform：Web/Desktop 共享产品与 durable Run
+
+- **状态**：F0 文档基线已完成（2026-08-13）；产品实现未开始，当前仓库仍是纯 Web
+- **执行账本**：稳定任务 ID、依赖、工程量与退出门禁统一维护在 `docs/client-platform/ROADMAP.md` 的 `CLP-*` 账本；本条只保留工程现代化入口，禁止复制第二套状态。
+- **问题与证据**：直接把当前页面包进桌面壳，无法解决认证、Run 生命周期、断线/重载恢复、平台能力隔离、签名更新与本地高权限边界；同时重写原生 UI 会复制现有 React/Vite 的复杂业务面。
+- **方案**：先完成 Web 正确性与认证，再建设 MultiRAG 云端 durable Run Service v2 和 Web/Desktop Shared Client；其后用 Electron stable 提供薄壳。MVP 不依赖 Rust Host；PTY、Git、workspace 文件系统、本地进程和本地 MCP 仅在 MVP 验证后的 Beta 独立评估。
+- **固定合同**：`PlatformPort` 仅含 `capabilities/auth/openExternal/downloads/notifications/updates/runs`；`RunClient` 仅含 `createRun/getRun/subscribe/cancelRun/submitInteraction`。远程 schema 的唯一真源在 MultiRAG 后端，本仓不复制手写版本。
+- **工程量**：F0 4–6、P0 35–50、Run Service v2 47–70、Shared Client 28–43、Desktop 32–48、发布质量 42–67 人日；原始 188–284，人力风险缓冲后 230–340 人日，5 人团队 MVP 约 16–22 周。Beta Rust Host 另计 130–200 人日（含 25% 风险）/ 12–18 周，整体约 7–10 个月。
+- **验收**：安全、性能、固定负载、恢复、packaging 与 Alpha→10%→50%→100% 灰度门槛统一以 `docs/client-platform/TESTING_SECURITY.md` 为准；不能用开发态启动、未签名包或外部产品营销数字替代。
+- **状态与进展记录**：
+
+| 日期       | 动作                      | 提交         | 备注                                                                                                                |
+| ---------- | ------------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------- |
+| 2026-08-13 | F0 架构与执行文档基线落地 | 当前文档提交 | 只含文档、导航与规则；相对链接、Prettier 与 `git diff --check` 已通过，不新增依赖、Electron/Rust 代码或生产能力声明 |
+
 ---
 
 ## ENG — 工程执行

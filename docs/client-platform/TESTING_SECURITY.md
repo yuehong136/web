@@ -1,0 +1,198 @@
+# Client Platform 测试、性能与安全门禁
+
+> 当前只有 Web 门禁。所有桌面/Host/packaging 条目都是后续阶段必须落地的目标门禁。
+
+## 1. 当前已验证边界
+
+本仓当前 CI 覆盖 Web lint、文件/Bundle 棘轮、类型检查、Agent/API/Streaming/Design Token/Security 专项测试和 Vite build。当前没有：
+
+- Electron main/preload 测试；
+- packaged app E2E；
+- Rust/Cargo 测试；
+- fuses/ASAR/签名/更新验证；
+- 桌面冷启动、内存或 PTY benchmark。
+
+因此 F0 不宣称桌面安全或性能已经通过。
+
+## 2. 测试金字塔
+
+| 层           | 目标测试                                           | 阶段          |
+| ------------ | -------------------------------------------------- | ------------- |
+| 纯 Web       | 现有 CI、browser adapter、runtime config           | 持续          |
+| Run Contract | v1/v2 schema、cursor、重复/gap、终态、interaction  | CLP-RS2/SC    |
+| Main         | sender、permission、navigation、protocol、平台能力 | CLP-DESK      |
+| Preload      | 暴露面、参数过滤、event 剥离、unsubscribe          | CLP-DESK      |
+| Rust crates  | domain、framing、PTY/process、Git/fs、migration    | CLP-BETA-HOST |
+| Integration  | main ↔ 可选 Host、取消、crash、背压、版本不匹配    | CLP-BETA-HOST |
+| E2E          | 登录、durable Run、Monaco/预览、下载、更新         | CLP-P0 起     |
+| Packaging    | allowlist、ASAR、fuses、签名、arch、SBOM           | CLP-DESK/REL  |
+| Performance  | packaged cold/warm、长流、固定负载、8h soak        | CLP-SC 起     |
+
+## 3. 批准性能与恢复门槛
+
+### 固定方法
+
+- 每个平台至少一台固定参考机，记录 CPU、RAM、OS patch、磁盘、电源模式和显示缩放。
+- 测正式 packaged artifact，不用 Vite dev server 或 Electron 默认 app。
+- 冷启动前清 OS 文件缓存的策略必须可复现；热启动单独统计。
+- 每场景至少 30 次，报告 p50/p95、离群值、commit、artifact hash 和 trace。
+- 对照同 commit 的浏览器 Web 路径；不得拿不同数据、不同网络或 hello-world 比较。
+- 使用 Chromium trace、Electron content tracing 和 OS 进程指标拆分 main/renderer/GPU；Beta 再加入 Host。
+- Tauri 挑战者 PoC 必须复用同一 Renderer、fixture、设备与采样方法：所有目标平台无兼容阻断，且冷启动或稳态内存至少一项相对 Electron 领先 `>20%`，同时流式输入、事件可见和帧耗时不退化，才重开首发选型。
+
+### 固定负载
+
+所有性能报告至少覆盖同一套批准负载：
+
+- 500 条消息；
+- 100 张工具卡；
+- 100 chunks/s；
+- 4 个并行 Run；
+- Monaco 5 MB 文本；
+- 百页文档；
+- 千节点画布。
+
+不得用 hello-world、空列表或不同 fixture 代替。网络相关指标需记录网络模型、服务版本与是否本地缓存。
+
+### MVP 门槛
+
+这些是批准的 go/no-go 门槛，不是当前实测：
+
+| 指标                 | 门槛                                        |
+| -------------------- | ------------------------------------------- |
+| 冷启动到可交互       | p95 `<= 1.5s`                               |
+| 热启动到可交互       | p95 `<= 800ms`                              |
+| 流式期间用户输入延迟 | keydown/input 到下一次 paint，p95 `<= 50ms` |
+| 事件到可见文本       | p95 `<= 100ms`                              |
+| 60 Hz 帧耗时         | p95 `<= 16.7ms`                             |
+| 空闲 CPU             | 均值 `< 1%`                                 |
+| 8 小时 soak          | 稳态内存增长 `< 10%`                        |
+| Renderer 重载        | `2s` 内恢复任务投影                         |
+
+不新增未批准的绝对 RSS 门槛。总/分进程 RSS、安装体积、main stall 与 long task 仍要记录和做趋势棘轮，但不能冒充本次批准的硬阈值。
+
+### Beta Host 额外门槛
+
+- Host 崩溃后 UI 不退出。
+- `2s` 内重启 Host 并恢复可恢复状态。
+- 不可恢复或副作用未知的 operation 必须明确标记，禁止自动重放。
+
+### 补充重负载与故障场景
+
+- 100 chunks/s 与 4 并行 Run 期间验证 rAF 合帧、事件有序、取消和投影恢复。
+- 500 消息/100 工具卡不全量触发昂贵重渲染，用户上滚不被抢回底部。
+- Monaco 5 MB 文本的首次打开、编辑、搜索与关闭后内存趋势。
+- 百页文档与千节点画布首开、交互、切换和重载。
+- PDF、DOCX、PPTX、XLSX 首开与跨页操作；资源缺失必须明确失败而非白屏。
+- Renderer reload、窗口关闭、睡眠唤醒、网络切换和 v2/v1 回退期间无假成功或 Run 丢失。
+- Beta 才增加 PTY burst、孤儿进程、Host crash/restart 和本地 journal 场景。
+
+### Run 正确性与授权硬门槛
+
+- 同一 Agent 的四个并发 Run 拥有不同 `run_id`/内部 task ID、取消键和日志关联键。
+- 取消一个 Run 不影响其他 Run；重复取消幂等，cancel/completion race 只产生一个实际终态。
+- detach、刷新、窗口关闭、Renderer reload 和 WS/SSE EOF 只取消订阅，不取消 Run。
+- 从最后已确认 `seq` 重连回放后投影无重复；outbox 重试不生成新 `event_id`/`seq`。
+- 每个 Run 只有一个 `completed|failed|cancelled|interrupted` 终态，终态后不再产生业务状态事件。
+- 未授权主体不能读取、订阅、提交 interaction 或取消其他 tenant/owner 的 Run，响应不泄露资源存在性。
+- Runner 无安全 checkpoint 时崩溃明确记为 `interrupted`；不得在同一 `run_id` 下从头重演或伪装恢复成功。
+- P0 先对当前 v1/执行入口建立定向测试；RS2 再以 PostgreSQL/Valkey/WS/SSE 集成测试证明同一合同。
+
+## 4. Web 与桌面体验一致性
+
+CLP-DESK packaged smoke 至少覆盖：
+
+- 登录/登出和账号切换 cache isolation；
+- 密码 refresh rotation、Web HttpOnly cookie、Desktop `safeStorage`、OIDC PKCE/state/loopback 单次消费与 EIM-I6 fail-closed；
+- REST/SSE API origin、401、取消、timeout、意外 EOF；
+- 所有路由 lazy chunk、Monaco `/vs`、PDF worker、Office preview 静态资源；
+- history deep link/reload、自定义协议 404 与 CSP；
+- 中文/英文、明/暗主题、系统缩放和键盘导航；
+- share/widget 继续走既有隔离，不因 Electron 获得 Node 权限。
+
+## 5. Electron 安全配置
+
+生产窗口统一：
+
+- `sandbox: true`
+- `contextIsolation: true`
+- `nodeIntegration: false`
+- `webSecurity: true`
+- `allowRunningInsecureContent: false`
+- 不启用不需要的 experimental/Blink features
+- permission request/check 默认拒绝并按 capability allowlist
+- 导航、新窗口、外链、下载与 deep link 使用协议/host allowlist
+- 每个 IPC 校验 sender frame、schema、权限和当前 operation
+
+生产只加载 packaged local renderer 或明确隔离的 secure remote content；远程 OAuth/网页不能继承产品 preload。
+
+## 6. Fuses、ASAR 与 sidecar
+
+目标 release policy：
+
+| Fuse                           | 目标                                          |
+| ------------------------------ | --------------------------------------------- |
+| Run as Node                    | 关闭                                          |
+| Cookie encryption              | 开启，从首个公开版本保持单向策略              |
+| Node options env               | 关闭                                          |
+| Node CLI inspect               | 正式包关闭                                    |
+| Embedded ASAR integrity        | macOS/Windows 开启                            |
+| Only load app from ASAR        | 开启                                          |
+| File protocol extra privileges | 关闭；生产不用 `file://`                      |
+| Browser-specific V8 snapshot   | 先 benchmark，默认不启用                      |
+| WASM trap handlers             | 保持安全/性能默认，不为省虚拟地址空间随意关闭 |
+
+Packaging test 必须读取最终 binary 的 fuse 状态，检查 ASAR integrity header、app.asar allowlist 和意外 `app/` fallback。Beta 加入 Rust Host 后再检查 sidecar hash/架构/权限与 macOS nested signing/Windows binary signing。
+
+## 7. IPC、Run 与 Beta Host 威胁用例
+
+必须自动化覆盖：
+
+- 恶意 iframe/弹窗发送合法 channel；
+- 任意 channel、超大 payload、循环对象、畸形 frame、sequence 重放；
+- 自定义协议目录穿越、编码绕过、MIME 混淆与 SPA fallback 误服务；
+- renderer 伪造路径、principal、approval 或 operation id；
+- Run 事件重复、gap、越权订阅、cursor 回退、取消/interaction 重放与 v1/v2 混流；
+- Beta：Host executable 被替换、协议降级、错误架构、启动超时和崩溃循环；
+- Beta：PTY command/env 注入、shell fallback、符号链接逃逸和孤儿进程；
+- side-effect 工具的确认重放、参数替换和未知结果自动重试；
+- update metadata/installer 被篡改、降级、通道混淆和断电中断。
+
+## 8. 自动化工具边界
+
+- Renderer/Web 单测继续使用本仓现有 Node/Vitest 工具。
+- Electron 开发态可用 Playwright 验证 renderer 和 main，但其 Electron 驱动依赖调试接口；不能为了测试让正式 release 保持 inspect fuse 开启。
+- 精确正式安装包增加 WebdriverIO 或平台黑盒 smoke，以及独立 packaging verifier。
+- Linux headless Electron 测试需要虚拟 display；平台签名与 installer 测试必须在原生 runner 运行。
+- Beta Rust Host 使用 `cargo test --workspace --locked`、clippy、fmt、audit/deny、target-specific integration 和基准。
+
+## 9. 供应链与发布门禁
+
+正式 artifact 必须：
+
+- 来自受控原生 runner；package lock 无漂移，Beta 再增加 Cargo lock 检查；
+- 生成 SBOM、checksum、build manifest 和私有 symbol/source-map 索引；
+- macOS 签名并公证，Windows 应用/sidecar/installer 签名；
+- update metadata 与 artifact 同批生成并验证 channel/arch；
+- 不包含 `.env*`、source map、测试 fixture、源码 secret、prompt 或本地用户数据；
+- 安装、启动、更新、回滚、卸载和旧数据迁移 smoke 通过。
+
+## 10. 隐私与观测
+
+- 允许：版本、平台、operation 状态、耗时、字节数、错误 code、trace/span id。
+- 默认禁止：prompt、对话、tool payload/result、token/API key、完整本地路径、文件内容、终端输出。
+- 诊断包由用户明确生成并可预览/删减；日志有大小/时间上限。
+- Renderer/main/后端只传播受控 trace context，不把身份或秘密塞入 baggage；Beta Host 同样适用。
+- 安装目录/app-data 检查只能出现加密 refresh credential 与最小 `run_id/cursor/projection version`；不得出现 access token、对话、prompt 或 tool payload/result。
+
+## 11. 批准灰度与自动停推
+
+- Run Service v2 与 v1 并行；先部署能兼容新旧事件的消费者，再开启新事件生产。
+- v1 至少保留一个完整发布周期。
+- 桌面更新使用私有 HTTPS `beta` / `stable` channel，不允许 Renderer 注入 feed URL。
+- 灰度顺序固定为 `Alpha -> 10% -> 50% -> 100%`。
+- crash/session、恢复失败率、事件延迟、TTFT 或内存越线时自动停推；只有定位、修复和复验后继续。
+
+## 12. 阶段退出报告
+
+每阶段交付一份带 artifact hash 的报告：实际运行命令、设备矩阵、通过/失败、未验证边界、安全差异、性能 p50/p95、包内容和是否改变 [DECISIONS.md](./DECISIONS.md)。没有实跑不得声称通过。
