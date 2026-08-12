@@ -59,30 +59,30 @@
 
 ### 当前排序总表
 
-|   # | ID     | 工作包                                                                                               | 优先级 |      前端工作量 | 类型 / 主要依赖                                   | 状态     |
-| --: | ------ | ---------------------------------------------------------------------------------------------------- | :----: | --------------: | ------------------------------------------------- | -------- |
-|   1 | SEC-7  | 重做密码重置授权：一次性 grant、原子消费、抗枚举与会话失效                                           |   P0   |     S，1–2 人日 | 后端 M，3–5 人日；安全/QA 另 1–2 人日             | 未开始   |
-|   2 | SEC-8  | 验证并收口 Dialog/Conversation 跨租户授权候选                                                        |   P1   |     XS，≤1 人日 | 先做授权动态验证；若成立后端 M、前端 S            | 未开始   |
-|   3 | ENG-8  | Studio 发布、API runner/用例与 API Key 安全轮换等正式业务闭环                                        |   P1   |   M–L，4–8 人日 | 后端 XL，13–25 人日；Search 导出已完成            | 部分完成 |
-|   4 | ENG-9  | 修正 Studio 发布状态/KPI、Memory 硬编码统计等数据口径                                                |   P1   |   M–L，3–6 人日 | 跨前后端；优先服务端聚合字段                      | 未开始   |
-|   5 | ARCH-7 | 统一 SSE 终态、Abort/timeout、REST/SSE 401 与意外 EOF 语义                                           |   P1   |    L，6–10 人日 | 前端主导；最好先约定服务端完成帧                  | 未开始   |
-|   6 | SEC-1  | 会话凭证迁移至 HttpOnly/Secure/SameSite refresh cookie 或 BFF                                        |   P1   |     L，5–8 人日 | 后端另约 5–10 人日；含 CSRF/跨标签页设计          | 未开始   |
-|   7 | SEC-2  | CSP Report-Only、nonce/hash、违规监控与强制模式                                                      |   P1   |     M，3–5 人日 | 前端/部署；另需约 1 周观察期                      | 未开始   |
-|   8 | ENG-10 | 错误、Web Vitals、LLM TTFT、流中断率、取消率和 Trace ID 可观测性                                     |   P1   |     L，5–8 人日 | 平台另约 2–4 人日；先定义隐私边界                 | 未开始   |
-|   9 | ENG-2  | 统一 `test:unit`/CI，并增加三条 Playwright 黄金链路                                                  |   P1   | L–XL，9–14 人日 | 需稳定测试账号、数据和接口；依赖 ENG-6～9、ARCH-7 | 部分完成 |
-|  10 | HYG-2  | 对 5 个生产依赖告警做可达性验证，分批升级并引入依赖自动化                                            |   P1   |   S–M，2–5 人日 | 若证实浏览器生产路径可利用，对应项升 P0           | 部分完成 |
-|  11 | ARCH-2 | auth/Agent run/Knowledge 试点 OpenAPI codegen + Zod；收口绕过 API/Query 边界的旧页面                 |   P2   | L–XL，8–15 人日 | 后端另约 4–8 人日；需稳定 OpenAPI                 | 部分完成 |
-|  12 | ENG-11 | Bundle 门禁扩展到真实路由 preload、全部 `dist` 和静态资产，并优化登录图/超大 SVG/Monaco/Ant Design X |   P2   |   M–L，4–7 人日 | 最好先有 ENG-10 RUM 基线                          | 未开始   |
-|  13 | ENG-3  | a11y 棘轮、核心模板小屏降级、i18n/route locale 收口、虚拟化和 mutation UX                            |   P2   | XXL，28–45 人日 | 拆成 4–6 个独立 PR；需产品确认移动端范围          | 未开始   |
-|  14 | HYG-3  | 修正文档版本表、环境变量登记和路线图状态漂移                                                         |   P2   |   S–M，2–4 人日 | AGENTS.md/CLAUDE.md 双语同提交                    | 未开始   |
-|  15 | ARCH-8 | 共享 Chat Workbench：composer、附件、滚动、停止/重试、工具调用、反馈和可访问状态                     |   P2   |  XL，15–25 人日 | 依赖 ARCH-7、ENG-2；需稳定消息/工具协议           | 未开始   |
-|  16 | ENG-12 | 按活跃度拆 ApiKeys、Provider modal、MCPChat、Explore，并收紧文件棘轮                                 |   P2   | XXL，25–40 人日 | 先修业务正确性，避免重构错误行为                  | 未开始   |
-|  17 | ARCH-9 | 试点 Projects/Spaces + Assets 信息架构，整合聊天、文件、知识、指令与 Studio                          |   P3   | XXL，25–45 人日 | 跨产品/前后端；需数据模型、权限和迁移方案         | 未开始   |
-|  18 | ARCH-5 | Tailwind 4 评估与设计令牌内部简化                                                                    |   P3   |    L，8–12 人日 | 可靠性、体验和 Bundle 工作稳定后再做              | 未开始   |
+|   # | ID     | 工作包                                                                                               | 优先级 |      前端工作量 | 类型 / 主要依赖                                   | 状态             |
+| --: | ------ | ---------------------------------------------------------------------------------------------------- | :----: | --------------: | ------------------------------------------------- | ---------------- |
+|   1 | SEC-7  | 重做密码重置授权：一次性 grant、原子消费、抗枚举与会话失效                                           |   P0   |     S，1–2 人日 | 后端 M，3–5 人日；依赖 EIM 身份/会话契约冻结      | 未开始（待依赖） |
+|   2 | SEC-8  | 验证并收口 Dialog/Conversation 跨租户授权候选                                                        |   P1   |     XS，≤1 人日 | 先做授权动态验证；若成立后端 M、前端 S            | 未开始           |
+|   3 | ENG-8  | Studio 发布、API runner/用例与 API Key 安全轮换等正式业务闭环                                        |   P1   |   M–L，4–8 人日 | 后端 XL，13–25 人日；Search 导出已完成            | 部分完成         |
+|   4 | ENG-9  | 修正 Studio 发布状态/KPI、Memory 硬编码统计等数据口径                                                |   P1   |   M–L，3–6 人日 | 跨前后端；优先服务端聚合字段                      | 未开始           |
+|   5 | ARCH-7 | 统一 SSE 终态、Abort/timeout、REST/SSE 401 与意外 EOF 语义                                           |   P1   |    L，6–10 人日 | 前端主导；最好先约定服务端完成帧                  | 未开始           |
+|   6 | SEC-1  | 会话凭证迁移至 HttpOnly/Secure/SameSite refresh cookie 或 BFF                                        |   P1   |     L，5–8 人日 | 后端另约 5–10 人日；含 CSRF/跨标签页设计          | 未开始           |
+|   7 | SEC-2  | CSP Report-Only、nonce/hash、违规监控与强制模式                                                      |   P1   |     M，3–5 人日 | 前端/部署；另需约 1 周观察期                      | 未开始           |
+|   8 | ENG-10 | 错误、Web Vitals、LLM TTFT、流中断率、取消率和 Trace ID 可观测性                                     |   P1   |     L，5–8 人日 | 平台另约 2–4 人日；先定义隐私边界                 | 未开始           |
+|   9 | ENG-2  | 统一 `test:unit`/CI，并增加三条 Playwright 黄金链路                                                  |   P1   | L–XL，9–14 人日 | 需稳定测试账号、数据和接口；依赖 ENG-6～9、ARCH-7 | 部分完成         |
+|  10 | HYG-2  | 对 5 个生产依赖告警做可达性验证，分批升级并引入依赖自动化                                            |   P1   |   S–M，2–5 人日 | 若证实浏览器生产路径可利用，对应项升 P0           | 部分完成         |
+|  11 | ARCH-2 | auth/Agent run/Knowledge 试点 OpenAPI codegen + Zod；收口绕过 API/Query 边界的旧页面                 |   P2   | L–XL，8–15 人日 | 后端另约 4–8 人日；需稳定 OpenAPI                 | 部分完成         |
+|  12 | ENG-11 | Bundle 门禁扩展到真实路由 preload、全部 `dist` 和静态资产，并优化登录图/超大 SVG/Monaco/Ant Design X |   P2   |   M–L，4–7 人日 | 最好先有 ENG-10 RUM 基线                          | 未开始           |
+|  13 | ENG-3  | a11y 棘轮、核心模板小屏降级、i18n/route locale 收口、虚拟化和 mutation UX                            |   P2   | XXL，28–45 人日 | 拆成 4–6 个独立 PR；需产品确认移动端范围          | 未开始           |
+|  14 | HYG-3  | 修正文档版本表、环境变量登记和路线图状态漂移                                                         |   P2   |   S–M，2–4 人日 | AGENTS.md/CLAUDE.md 双语同提交                    | 未开始           |
+|  15 | ARCH-8 | 共享 Chat Workbench：composer、附件、滚动、停止/重试、工具调用、反馈和可访问状态                     |   P2   |  XL，15–25 人日 | 依赖 ARCH-7、ENG-2；需稳定消息/工具协议           | 未开始           |
+|  16 | ENG-12 | 按活跃度拆 ApiKeys、Provider modal、MCPChat、Explore，并收紧文件棘轮                                 |   P2   | XXL，25–40 人日 | 先修业务正确性，避免重构错误行为                  | 未开始           |
+|  17 | ARCH-9 | 试点 Projects/Spaces + Assets 信息架构，整合聊天、文件、知识、指令与 Studio                          |   P3   | XXL，25–45 人日 | 跨产品/前后端；需数据模型、权限和迁移方案         | 未开始           |
+|  18 | ARCH-5 | Tailwind 4 评估与设计令牌内部简化                                                                    |   P3   |    L，8–12 人日 | 可靠性、体验和 Bundle 工作稳定后再做              | 未开始           |
 
 ### 推荐执行波次
 
-1. **新安全止血（立即）**：SEC-7 先停用或修复公开密码重置端点；SEC-8 只用两个 disposable tenant 做授权动态验证，成立即升 P0 并修复。
+1. **新安全止血（当前暂停实施）**：SEC-7 的静态证据与目标合同已收口，但按 owner 要求等待 MultiRAG `docs/enterprise-identity-mcp` 并行任务完成后再接续，避免抢先定义 Principal、credential/session version 与迁移语义。暂停期忘记密码 UI 继续隐藏，建议部署侧停用公开 forgot/reset 路由。不自动跳到 SEC-8；等 owner 明确恢复队列。
 2. **信任与恢复（已完成）**：ENG-6/ENG-7 已完成，能力真实性、路由恢复和 mutation 安全反馈均有正式门禁。
 3. **核心可靠性（未来 2～4 周）**：#3～#10，约 37–64 前端人日，建议 2～3 人并行；跨后端事项先冻结契约再实施。
 4. **工程规模化（1～2 个季度）**：#11～#16，按模块持续偿还，不做全仓机械迁移。
@@ -188,18 +188,23 @@
 
 ### SEC-7 密码重置授权状态仅绑定邮箱且非原子消费
 
-- **状态**：未开始（2026-08-13 源码静态高置信；未对部署环境做动态利用）
+- **状态**：未开始（静态验证与实施设计已完成；按 owner 要求等待 MultiRAG `docs/enterprise-identity-mcp` 并行任务完成后接续；未对部署环境做动态利用）
 - **优先级 / 工作量**：P0 / 前端 S，1–2 人日；后端 M，3–5 人日；安全验证与 QA 另约 S，1–2 人日
+- **前置依赖 / 暂停理由**：密码重置成功后必须使旧 web/admin 会话失效，这会直接触及 JWT claim、Principal 加载、SDK API key 边界、SQLAdmin cookie 和数据迁移。这些正与 MultiRAG `docs/enterprise-identity-mcp` 并行工作重叠；本轮不在代码中抢先复用 `User.access_token` 或新增 `session_version`，待身份架构任务明确唯一会话代际与迁移 owner 后再实施。
 - **问题与证据**：MultiRAG `user_api.py` 的 OTP verify 成功后只写入 `otp:verified:{email} = "1"`（5 分钟），`/auth/password/reset` 只凭 email 读取该共享标记，随后修改密码，最后再删除标记。授权既不绑定发起浏览器、具体 flow 或一次性 grant，检查→改密→删除也不是原子操作；源码因此存在高置信的账号接管竞争路径：同一邮箱的另一请求可在受害者完成 OTP 后抢占该共享授权。另有直接账号枚举差异：存在邮箱的 captcha 返回 JPEG，不存在邮箱返回 `invalid email` JSON，OTP/verify 也返回不同 retmsg。当前结论来自静态可达链，不写成“已动态利用成功”。
+- **补充证据**：OTP 当前仅 4 位大写字母（`26^4`），失败次数是 Redis 非原子 read-modify-write；OTP 成功也是 `GET → DELETE`，并发 verify 可重复签发后续授权。`send_email_html()` 在 SMTP 未配置时跳过发送但上层仍返回成功。现有 web/admin JWT 仅含 `sub/exp`，数据库 `access_token` 未与 JWT 绑定，密码重置当前不会可靠地失效旧 JWT 与 SQLAdmin cookie。
 - **立即止血**：Web 的忘记密码入口继续隐藏；安全协议落地前，后端或网关停用公开 forgot/reset 路由。隐藏前端入口本身不能保护仍可直接调用的 API。
 - **主流对照**：[OWASP Forgot Password Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html) 要求响应不可区分、token/code 随机且足够长、单次使用、限时，并在重置后处理现有会话。
-- **方案**：verify 返回高熵、短 TTL、绑定 `user_id + purpose + flow` 的 opaque reset grant，服务端只存摘要；reset 只接 grant，并用 Redis Lua/事务原子 compare-and-consume。同步统一存在/不存在账号的状态、媒体类型与近似时序，补 IP+账号双维限速、密码策略、审计，以及成功后的 session/credential version 失效。等价替代是取消独立 verify，把 OTP 与新密码在一次原子 reset 中校验和消费。
+- **冻结合同**：OTP verify 返回 `{ reset_grant, expires_in }`；reset body 只接 `reset_grant + new_password + confirm_new_password`，不再接 email 选择主体。grant 至少 256-bit 随机性，原文只返回客户端一次，Redis 只存摘要 key 和 `user_id/purpose/flow`，TTL 建议 5 分钟。一个 Lua 边界原子校验并消费 OTP/签发 grant，另一个 Lua 边界原子 `GET+DEL` 消费 grant；Redis 与 PostgreSQL 无分布式事务，所以必须先消费 grant 再改密，DB 失败时 fail closed 并要求重走流程，不得恢复 grant。
+- **抗枚举与密码策略**：captcha 不先查账号；send 对存在/不存在账号走相同 Redis 工作量并返回同一 accepted envelope，邮件在 response 后排队；verify 的不存在/错误/过期统一错误。补 subject+`request.client.host` 双维 Redis 原子限速，不盲信 `X-Forwarded-For`；OTP 改为至少 8 位去歧义大写字母数字。无 MFA 时新密码至少 15 字符、允许空格/Unicode、不加组合规则；当前 bcrypt 路径须拒绝超过 72 UTF-8 bytes 以避免静默截断，Argon2id/渐进 rehash 另立迁移。
+- **实施拆分**：恢复后按三个可独立评审批次推进：(1) email verified flag → one-time grant + Redis 并发集成测试；(2) 与 EIM 契约一致的 credential/session version，覆盖 web JWT、admin JWT、SQLAdmin cookie；(3) 注册/已登录改密/重置/admin 的共享密码策略。SDK API key 是否随恢复撤销必须由产品/身份契约决定，不在热修中暗中删除。
 - **验收**：两个并发 reset 只有一个成功；grant 跨用户/跨 flow/过期/二次使用全部拒绝；存在与不存在邮箱的 HTTP 状态、媒体类型、文案和耗时预算不可区分；旧 access/refresh 会话失效；所有测试只用 disposable 用户。
 - **状态与进展记录**：
 
-| 日期       | 动作         | 提交 | 备注                                                                                                |
-| ---------- | ------------ | ---- | --------------------------------------------------------------------------------------------------- |
-| 2026-08-13 | 源码静态复核 | —    | 发现共享 email verified 标记与非原子消费；动态验证因安全授权边界未执行，先按 P0 做后端停用/协议修复 |
+| 日期       | 动作               | 提交 | 备注                                                                                                                                                                                                       |
+| ---------- | ------------------ | ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-08-13 | 源码静态复核       | —    | 发现共享 email verified 标记与非原子消费；动态验证因安全授权边界未执行，先按 P0 做后端停用/协议修复                                                                                                        |
+| 2026-08-13 | 实施设计收口并暂停 | —    | 完成 grant/Lua、抗枚举、双维限速、密码策略、会话失效与测试矩阵设计。按 owner 要求撤回所有 MultiRAG 实验性代码，工作区仅保留并行任务自身改动；等 `docs/enterprise-identity-mcp` 任务完成后由 owner 明确恢复 |
 
 ### SEC-8 Dialog/Conversation 跨租户授权候选（待授权动态验证）
 
@@ -690,15 +695,15 @@
 
 唯一逐项顺序见本文顶部“2026-08-13 复核快照与当前执行队列”。这里仅保留可用于排期的波次，避免两张排序表再次漂移。
 
-| 波次               | 条目                                       | 进入条件                     | 退出条件                                                                   |
-| ------------------ | ------------------------------------------ | ---------------------------- | -------------------------------------------------------------------------- |
-| 0A：已完成安全止血 | SEC-5、SEC-6                               | 无                           | 已完成（2026-08-13）：敏感日志和 imperative HTML sink 清零，防回归门禁落地 |
-| 0B：当前安全止血   | SEC-7、SEC-8                               | 无                           | 密码重置安全停用/修复；跨租户候选经授权验证并按结论修复或否决              |
-| 1：信任与恢复      | ENG-6、ENG-7                               | 已完成                       | 已完成（2026-08-13）：能力真实性、路由恢复和 mutation 安全反馈门禁已落地   |
-| 2：核心可靠性      | ENG-8、ENG-9、ARCH-7、SEC-1、SEC-2、ENG-10 | 后端/部署契约冻结            | 业务闭环、数据口径、流终态、会话安全和观测均可验收                         |
-| 3：质量门禁        | ENG-2、HYG-2、ARCH-2、ENG-11               | 波次 1/2 的关键路径稳定      | 单元测试全收口，三条 E2E 稳定，依赖与路由性能有门禁                        |
-| 4：规模化偿债      | ENG-3、HYG-3、ARCH-8、ENG-12               | 有 RUM/E2E 基线              | a11y/响应式/i18n/大文件与共享 Chat 合同按棘轮持续下降                      |
-| 5：战略试点        | ARCH-9、ARCH-5                             | 前四波稳定且有明确产品 owner | 单一 Project/Space 试点得出数据；Tailwind 4 有 go/no-go 结论               |
+| 波次               | 条目                                       | 进入条件                                                        | 退出条件                                                                   |
+| ------------------ | ------------------------------------------ | --------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| 0A：已完成安全止血 | SEC-5、SEC-6                               | 无                                                              | 已完成（2026-08-13）：敏感日志和 imperative HTML sink 清零，防回归门禁落地 |
+| 0B：当前安全止血   | SEC-7、SEC-8                               | SEC-7 等 EIM 身份/会话契约冻结；SEC-8 等 disposable tenant 授权 | 密码重置安全停用/修复；跨租户候选经授权验证并按结论修复或否决              |
+| 1：信任与恢复      | ENG-6、ENG-7                               | 已完成                                                          | 已完成（2026-08-13）：能力真实性、路由恢复和 mutation 安全反馈门禁已落地   |
+| 2：核心可靠性      | ENG-8、ENG-9、ARCH-7、SEC-1、SEC-2、ENG-10 | 后端/部署契约冻结                                               | 业务闭环、数据口径、流终态、会话安全和观测均可验收                         |
+| 3：质量门禁        | ENG-2、HYG-2、ARCH-2、ENG-11               | 波次 1/2 的关键路径稳定                                         | 单元测试全收口，三条 E2E 稳定，依赖与路由性能有门禁                        |
+| 4：规模化偿债      | ENG-3、HYG-3、ARCH-8、ENG-12               | 有 RUM/E2E 基线                                                 | a11y/响应式/i18n/大文件与共享 Chat 合同按棘轮持续下降                      |
+| 5：战略试点        | ARCH-9、ARCH-5                             | 前四波稳定且有明确产品 owner                                    | 单一 Project/Space 试点得出数据；Tailwind 4 有 go/no-go 结论               |
 
 ### 已完成历史（不占当前排序）
 
