@@ -1,6 +1,6 @@
 # CLP-DX1 Desktop Experience Foundation
 
-> 状态：Accepted，实施中；2026-08-13。本文冻结第一阶段内部体验版的产品信息架构、composition、命令合同、验收证据和非目标。它不表示 durable Run、桌面认证或发布链路已经完成。
+> 状态：Accepted and completed；2026-08-13。本文冻结第一阶段内部体验版的产品信息架构、composition、命令合同、验收证据和非目标；实跑证据见 [DX1_EXIT_REPORT.md](./DX1_EXIT_REPORT.md)。它不表示 durable Run、桌面认证或发布链路已经完成。
 
 ## 1. 目标与成功定义
 
@@ -140,7 +140,7 @@ DX1 只允许持久化：
 - 经边界校验后的侧栏宽度；
 - 既有非敏感 UI 偏好。
 
-不得新增持久化：Conversation 正文、prompt、模型输出、tool payload/result、token、API key、完整本地路径或虚构 Run projection。状态 key 需要版本前缀和无效值回退；宽度必须夹在批准的最小/最大范围。
+不得新增持久化：Conversation 正文、prompt、模型输出、tool payload/result、token、API key、完整本地路径或虚构 Run projection。持久化 schema 需要显式 version/migrate 策略和无效值回退，无需为 DX1 遗弃已有非敏感 UI 偏好的 storage key；宽度必须夹在批准的最小/最大范围。
 
 ## 8. 工作包、估算与提交边界
 

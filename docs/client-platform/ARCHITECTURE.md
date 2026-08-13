@@ -10,7 +10,7 @@
 - Monaco、Lexical、Mermaid、PDF/DOCX/PPTX/XLSX 预览、图与画布等重型能力按 Web 运行时工作。
 - 聊天和 Agent 流式入口复用 Web SSE 运行时；浏览器直接访问云端 API。
 - `desktop/` 已实现 CLP-DESK0 安全壳：Electron main 在 ready 前注册 `app://bundle/` 安全 scheme 并开启全局 sandbox，BrowserWindow 使用 context isolation/sandbox、禁用 Node integration/webview/任意导航，session 默认拒绝权限、设备与下载。
-- DESK0 preload 只暴露版本为 `1` 的静态 capability bridge；除 `desktop=true` 外，updater/notifications/localAgent/PTY/localMCP 均显式为 unsupported，没有通用 IPC。
+- DESK0 初始 preload 只暴露版本为 `1` 的静态 capability bridge。当前代码已在 DX1 显式升级为 bridge v2，增加固定白名单的 main → preload → Renderer 命令事件；除 `desktop/nativeMenu=true` 外，updater/notifications/localAgent/PTY/localMCP 仍显式为 unsupported，没有通用 IPC。
 - main/preload 通过独立 Rolldown 构建，renderer 从根 `dist/` 按 allowlist 组装到 staging；electron-builder/ASAR/fuses 配置和验证器已存在。Web 构建不依赖这些产物。
 - Vite build 只把 `VITE_API_BASE_URL`、`VITE_ADMIN_API_BASE_URL`、`VITE_WS_BASE_URL` 三项公开网络输入写入 package 外的 receipt；staging 将 receipt 与当前 production-mode env 比对，一致后才生成版本化网络策略并写入 build manifest。main 启动时 fail closed 加载，只把精确 origin 注入 `connect-src`。远端只允许 HTTPS/WSS，本地 HTTP/WS 只允许精确 loopback host。
 - strict CSP 在 macOS packaged smoke 中拒绝了 renderer 引用的 Google Inter 外部 CSS，应用使用 fallback 字体继续工作。这是待本地打包字体的 renderer 资产问题，不通过扩大 `style-src`/`font-src` 第三方域解决。
@@ -18,9 +18,9 @@
 - 登录使用的绝对 API origin 已进入桌面网络策略；其余业务代码仍存在编译期绝对地址与相对 `/api` 混用，完整桌面黄金链路前必须收口为统一 runtime config。
 - 当前 Web 仍把 access/refresh credential 写入 `localStorage`；这是 `CLP-P0` 必须消除的现状，不是目标认证设计。
 - 当前 MultiRAG OAuth callback 在 EIM-I6 建立显式 provider-subject binding 前固定 fail closed，不按邮箱登录、注册或合并账号。
-- 当前 `src/main.tsx`、Router、认证 frame 与 `AppShell` 仍是单一 Web composition；产品页面尚未消费 `PlatformPort`，也没有 Desktop Workbench、统一命令注册表或原生菜单命令桥。这解释了 DESK0 为什么只有窗口层差异，不能写成桌面体验已经完成。
+- 当前 `src/main.tsx` 根据受信 scheme 选择 Web/Desktop composition，两端共享唯一 Application、Router、页面和业务组件。Web 使用现有 `AppShell`，Desktop 使用紧凑认证 frame、Activity Rail、上下文侧栏、Workspace、统一命令注册表和原生菜单命令桥。页面仍不读取 bridge 或 Electron/Node API。
 
-因此，DESK0 只证明安全宿主和供应链边界开始成型；以下 Shared Client、认证、durable Run、更新、签名与 Host 仍是**目标方案**。
+因此，DESK0 证明安全宿主和供应链边界，DX1 已通过 [退出门禁](./DX1_EXIT_REPORT.md)，证明桌面 composition 与交互基础。以下 Shared Client、认证、durable Run、更新、签名与 Host 仍是**目标方案**。
 
 ## 2. CLP-DX1 产品体验层
 

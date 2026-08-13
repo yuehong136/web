@@ -1,15 +1,20 @@
 # Client Platform 推荐目录与构建边界
 
-> 这是分阶段布局。CLP-DESK0 已实体化 Electron 安全壳、最小 Renderer Bridge、构建/staging/packaging 工具和对应测试；CLP-DX1 已冻结 entrypoint、最小 PlatformPort、Desktop Workbench 与命令目录，代码完成状态只以 [ROADMAP.md](./ROADMAP.md) 为准。Shared Client、`host/`、Host RPC 和发布资产仍是后续阶段目标。
+> 这是分阶段布局。CLP-DESK0 已实体化 Electron 安全壳、构建/staging/packaging 工具和对应测试；CLP-DX1 已实体化并验证 entrypoint、最小 PlatformPort、Desktop Workbench、命令系统和 Renderer Bridge v2。Shared Client、`host/`、Host RPC 和发布资产仍是后续阶段目标。
 
-## 0. 当前 DESK0 子集
+## 0. 当前 DESK0 + DX1 子集
 
 ```text
+src/
+├── entrypoints/                        # Web/Desktop composition + shared mount
+├── platform/{contracts,browser,desktop}/ # 最小 PlatformPort 与 adapter
+├── components/layout/desktop/          # Activity Rail/Context Panel/Workbench
+└── lib/commands/                       # 命令 ID、registry、palette、shortcut
 desktop/
 ├── electron/
-│   ├── main/                         # 生命周期、窗口、安全策略、app://bundle/
-│   └── preload/                      # 最小 capability bridge
-├── protocol/renderer-bridge/          # 浏览器安全 types/DTO，不依赖 Electron
+│   ├── main/                         # 生命周期、窗口、安全策略、菜单、app://bundle/
+│   └── preload/                      # bridge v2 命令过滤/订阅
+├── protocol/renderer-bridge/          # 纯 types/DTO/命令白名单，不依赖 Electron
 ├── build/                             # direct Rolldown、staging、builder、产物验证
 ├── tests/                             # contract/main/security/packaging
 ├── tsconfig.main.json
@@ -17,7 +22,7 @@ desktop/
 └── .out/                              # 全部 gitignored
 ```
 
-DESK0 没有创建 `src/entrypoints`、`src/platform`、`src/agent-runtime`、`desktop/host` 或 `desktop/protocol/host-rpc`。这是有意的渐进边界：DX1 只实体化前两项的最小 composition/capability 子集；在 Shared Client 和远程 Run 合同冻结前，安全壳不猜 auth、Principal 或 Run wire。
+DESK0 初始未创建 `src/entrypoints` 或 `src/platform`；DX1 现已实体化两者的最小 composition/capability 子集。`src/agent-runtime`、`desktop/host` 和 `desktop/protocol/host-rpc` 仍不存在；在 Shared Client 和远程 Run 合同冻结前，安全壳不猜 auth、Principal 或 Run wire。
 
 ## 1. 推荐布局
 
@@ -180,14 +185,14 @@ desktop/.out/stage/app/
 ├── main/index.mjs
 ├── preload/index.cjs
 ├── renderer/                # 从 /dist allowlist 复制
-└── build-manifest.json      # commit、版本、composition、Shared Client/Bridge；Beta 加 Host hash
+└── build-manifest.json      # source revision、app/target、security、Bridge/Run contract
 ```
 
 `stage.mjs` 必须：
 
 - 从干净的目标目录开始并校验目标路径，禁止未解析的危险 glob。
 - 排除 `*.map`、`stats.html`、测试、源码、环境文件和凭据。
-- 生成包含输入 hash、app、composition、Shared Client、Bridge 与 target 的 manifest；DX1 bridge 精确为 v2，Beta 再加入 Host/protocol/hash。
+- 生成包含 source revision、app、target、网络安全策略、文件 hash 与 contracts 的 manifest；DX1 Renderer Bridge 精确为 v2，Run Client protocol 在尚未实现时必须显式为 `null`，Beta 再加入 Host/protocol/hash。
 - 拒绝任何未在 allowlist 中的新文件，避免默认 `**/*` 悄悄扩大安装包。
 
 MVP 只有 renderer/main/preload，均进入 `app.asar`。Beta 才把 Rust executable 通过 `extraResources` 放到 `resources/host/<platform>-<arch>/`；Host 位于 ASAR 外、架构与 Electron 一致并在签名前组装。

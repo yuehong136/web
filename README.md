@@ -76,21 +76,23 @@ src/
 │   ├── ui/           # 65+ Radix-based primitives (+ vendor adapters)
 │   ├── patterns/     # Page structure blocks (PageHeader, page-states, SettingsRail, StatCard, ...)
 │   ├── page-templates/ # 6 page skeletons
-│   ├── layout/       # AppShell + Layout
+│   ├── layout/       # Web AppShell + DX1 Desktop Workbench
 │   └── auth, canvas, chat, dynamic-form, environment, feature, forms,
 │       jsonjoy-builder, knowledge, mcp, memory, prompt-editor, studio
+├── entrypoints/       # Web/Desktop composition roots + shared mount
+├── platform/          # Browser-safe PlatformPort contracts and adapters
 ├── pages/            # Route modules (~20 top-level features incl. agent, knowledge, studio, mcp-servers, ...)
 ├── hooks/            # TanStack Query hooks (use-*-request.ts) and cross-page hooks
 ├── stores/           # 13 Zustand stores (auth, ui, chat, conversation, knowledge, model,
 │                     #   environmentStore, home, search, studio, team, memory)
 ├── themes/           # tokens.ts (~1,452 tokens), generators, scoped-theme.tsx + design docs
 ├── types/            # Global TypeScript types
-├── lib/              # Domain helpers, runtime utilities, adapters
+├── lib/              # Domain helpers, runtime utilities, adapters, product commands
 ├── locales/          # i18n: en-US/, zh-CN/
 └── assets/
 desktop/
-├── electron/         # DESK0 main + sandboxed preload; no product auth/Run/updater yet
-├── protocol/         # Minimal, typed renderer bridge
+├── electron/         # Secure main/preload + allowlisted native command menu
+├── protocol/         # Typed Renderer Bridge v2; no generic IPC
 ├── build/            # Rolldown, allowlist staging, electron-builder, package verification
 ├── tests/            # Main/preload/protocol/packaging contracts
 └── .out/             # Generated build, stage, and artifact output (gitignored)
@@ -98,7 +100,7 @@ desktop/
 
 For the _why_ behind this layout (page-skeleton four-layer rule, presentational/container split, file-size limits), see `AI前端技术栈开发规范.md` and `AGENTS.md`.
 
-The Web application remains the only production product and can still build and ship independently. `desktop/` now contains the non-release `CLP-DESK0` secure-shell baseline (Electron main/preload, `app://bundle/`, staging and package checks). It can reuse the existing Web password login for local integration, but it does **not** provide desktop-native OIDC/credential hardening, Shared `RunClient`, durable Run recovery, auto-update, a local Host, or verified Windows packaging/signing. See [`docs/client-platform/README.md`](./docs/client-platform/README.md).
+The Web application remains the only production product and can still build and ship independently. On top of the `CLP-DESK0` secure-shell baseline, the completed non-release `CLP-DX1` foundation provides separate Web/Desktop composition roots, a browser-safe `PlatformPort`, a task-oriented Desktop Workbench, a shared command registry, and Renderer Bridge v2 native-menu events. It does **not** provide desktop-native OIDC/credential hardening, Shared `RunClient`, durable Run recovery, auto-update, a local Host, or verified Windows packaging/signing. See [`docs/client-platform/README.md`](./docs/client-platform/README.md).
 
 ## Getting Started
 
@@ -132,6 +134,7 @@ npm run lint:typed      # Type-aware lint for Agent critical directories
 npm run typecheck:agent-strict # Strict type check for Agent critical directories
 npm run build:themes    # Regenerate themes/{light,dark}.css after tokens.ts changes
 npm run test:agent-t1   # Run agent T1 tests via tsx --test
+npm run test:client-platform # Test Web/Desktop composition, PlatformPort, Workbench, and commands
 npm run lint:desktop    # Lint desktop shell/build sources
 npm run desktop:typecheck # Type-check Electron main and preload projects
 npm run test:desktop    # Run desktop shell contract and packaging tests
@@ -142,7 +145,7 @@ npm run desktop:package:dir # Build and verify the native unpacked package
 npm run desktop:verify:package # Re-verify the current native artifact
 ```
 
-There is no generic `test`, `format`, or `typecheck` script today. Type checking happens inside `npm run build`, with stricter Agent-slice checks available via `npm run typecheck:agent-strict`. Formatting is handled by Prettier + lint-staged for staged files only; do not run a whole-repo format pass. Existing formal tests run via `tsx --test`; Vitest baseline config exists for future additions/migration.
+There is no generic `test`, `format`, or `typecheck` script today. Type checking happens inside `npm run build`, with stricter Agent-slice checks available via `npm run typecheck:agent-strict`. Formatting is handled by Prettier + lint-staged for staged files only; do not run a whole-repo format pass. Formal tests use `tsx --test`, Node test, and Vitest; `test:client-platform` is the DX1 Renderer gate, while `test:desktop` covers main/preload/protocol/packaging contracts.
 
 ### Environment
 
@@ -171,7 +174,7 @@ For a local macOS desktop preview, set those origins in `.env.local`, start the 
 
 1. Fork & branch: `feature/*`, `fix/*`, `refactor/*`, `docs/*`, `perf/*`, `chore/*`
 2. Read `AGENTS.md` (the rules) and `AI前端技术栈开发规范.md` (the why)
-3. Before pushing: `npm run lint && npm run build`; for Agent serializers/adapters/operators also run `npm run lint:typed && npm run typecheck:agent-strict && npm run test:agent-t1`
+3. Before pushing: `npm run lint && npm run build`; for Agent serializers/adapters/operators also run `npm run lint:typed && npm run typecheck:agent-strict && npm run test:agent-t1`; for Client Platform changes also run `npm run test:client-platform && npm run lint:desktop && npm run desktop:typecheck && npm run test:desktop`
 4. PR description must include both light/dark theme screenshots for any UI change
 5. Use [Conventional Commits](https://www.conventionalcommits.org/): `feat`, `fix`, `docs`, `refactor`, `chore`, `perf`, `test`, `style` (with optional scope)
 

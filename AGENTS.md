@@ -24,6 +24,7 @@ npm run test:design-tokens # tsx 跑 node --test：设计令牌工具（调色�
 npm run test:streaming # tsx 跑 node --test：共享流式运行时（SSE transport + chunk 合并 reducer）
 npm run test:api     # tsx 跑 node --test：API 层契约（路由、信封、归一化）
 npm run test:product-ui # 产品能力、Search 导出、路由恢复与 mutation ownership 合同
+npm run test:client-platform # Web/Desktop composition、PlatformPort 与命令系统合同
 npm run test:security # 安全 lint 规则 + Toast DOM 注入边界回归
 npm run lint:desktop # 检查 Electron main/preload、协议与构建脚本
 npm run desktop:typecheck # 分别类型检查 Electron main 与 preload project
@@ -36,9 +37,9 @@ npm run lint:file-size:update # 偿还债务（行数下降）后收紧基线（
 npm run check:bundle-size # Bundle 预算门禁，build 后运行（预算：scripts/bundle-size-budget.json）
 ```
 
-**注意**：暂无通用 `test`、`format`、`typecheck` 脚本。全量类型检查由 `npm run build` 完成；Agent 关键目录补充跑 `npm run typecheck:agent-strict`，桌面壳使用 `npm run desktop:typecheck`。格式化通过 Prettier + lint-staged 作用于 staged 文件，**不要做全仓格式化**。正式测试门禁是 `test:agent-t1`、`test:design-tokens`、`test:streaming`、`test:api`、`test:product-ui`、`test:security` 与 `test:desktop`；测试运行时为 `tsx --test` / Node test / Vitest，**不要引入 Jest**。
+**注意**：暂无通用 `test`、`format`、`typecheck` 脚本。全量类型检查由 `npm run build` 完成；Agent 关键目录补充跑 `npm run typecheck:agent-strict`，桌面壳使用 `npm run desktop:typecheck`。格式化通过 Prettier + lint-staged 作用于 staged 文件，**不要做全仓格式化**。正式测试门禁是 `test:agent-t1`、`test:design-tokens`、`test:streaming`、`test:api`、`test:product-ui`、`test:client-platform`、`test:security` 与 `test:desktop`；测试运行时为 `tsx --test` / Node test / Vitest，**不要引入 Jest**。
 
-**CI**：`.github/workflows/ci.yml` 在每次 push/PR 到 `master` 时运行现有 Web 门禁，并增加 `lint:desktop`、`desktop:typecheck`、`test:desktop`、`desktop:build`、`desktop:stage` 与 `desktop:verify:stage`。这些桌面门禁只验证跨平台源码/合同/构建/staging，不代表 Windows 打包、签名或安装包 E2E 已通过。`lint:i18n-agent` 仍是本地门禁（它 diff 工作区）。pre-commit hook 只跑 lint-staged；推送前仍需本地跑相关门禁 —— **没有实际运行就不得声称通过**。
+**CI**：`.github/workflows/ci.yml` 在每次 push/PR 到 `master` 时运行现有 Web 门禁，并增加 `test:client-platform`、`lint:desktop`、`desktop:typecheck`、`test:desktop`、`desktop:build`、`desktop:stage` 与 `desktop:verify:stage`。这些桌面门禁只验证跨平台源码/合同/构建/staging，不代表 Windows 打包、签名或安装包 E2E 已通过。`lint:i18n-agent` 仍是本地门禁（它 diff 工作区）。pre-commit hook 只跑 lint-staged；推送前仍需本地跑相关门禁 —— **没有实际运行就不得声称通过**。
 
 ## 技术栈（2026-05 校核）
 
@@ -454,7 +455,7 @@ Mutation 错误归属通过 `MutationErrorFeedback` 明确标注：`Global` 由 
 
 ## 测试
 
-现状：测试分别通过 `tsx --test`、Node test 与 Vitest 运行，覆盖 `pages/agent/operators`、`adapters`、`runtime-workbench`、`pipeline-workbench`、`prompt-editor`、`schema-editor`、`lib/design-tokens`、`lib/streaming`、`api`、产品能力、Search 导出、路由恢复、mutation 错误归属和安全边界。正式测试脚本：`test:agent-t1`、`test:design-tokens`、`test:streaming`、`test:api`、`test:product-ui` 与 `test:security`。
+现状：测试分别通过 `tsx --test`、Node test 与 Vitest 运行，覆盖 `pages/agent/operators`、`adapters`、`runtime-workbench`、`pipeline-workbench`、`prompt-editor`、`schema-editor`、`lib/design-tokens`、`lib/streaming`、`api`、产品能力、Search 导出、路由恢复、mutation 错误归属、安全边界，以及 Web/Desktop composition、PlatformPort、Workbench、命令和桌面壳合同。正式测试脚本：`test:agent-t1`、`test:design-tokens`、`test:streaming`、`test:api`、`test:product-ui`、`test:client-platform`、`test:security` 与 `test:desktop`。
 
 新增 SSE 消费面使用 `src/lib/streaming/` 的共享运行时（`readSSEStream` + `assertSSEResponse` + 类型化 envelope + answer reducer），不要再手写解码/解析循环；见 `docs/streaming-runtime-design.md`。
 
@@ -469,10 +470,10 @@ Mutation 错误归属通过 `MutationErrorFeedback` 明确标注：`Global` 由 
 
 ## Client Platform（强制）
 
-- Web 仍是唯一生产产品并保持独立构建。`desktop/` 已有 `CLP-DESK0` 非发布态安全壳基线：Electron main、sandbox preload、`app://bundle/`、Rolldown、显式 staging、electron-builder/ASAR/fuses 验证链路。它尚无认证、Shared `RunClient`、durable Run、自动更新、本地 PTY/MCP/Rust Host，也未完成 Windows 打包/签名实测；不得称为已发布桌面客户端。
+- Web 仍是唯一生产产品并保持独立构建。`desktop/` 已有 `CLP-DESK0` 安全壳，`CLP-DX1` 增加 `src/entrypoints`、`src/platform`、Desktop Workbench 与固定命令桥；这些仍是非发布态内部体验基础。它尚无桌面原生认证、Shared `RunClient`、durable Run、自动更新、本地 PTY/MCP/Rust Host，也未完成 Windows 打包/签名实测；不得称为已发布桌面客户端。
 - 开始任何 Shared Client、桌面壳、运行协议、更新/签名或本地能力工作前，必须先读 `docs/client-platform/README.md`，并按任务继续读 `ARCHITECTURE.md`、`CONTRACTS.md`、`ROADMAP.md`、`VERSION_BASELINE.md`、`TESTING_SECURITY.md`。
 - MVP 顺序固定为：Web 正确性与认证 → 云端 durable Run Service v2 → Web/Desktop Shared Client → Electron stable 薄壳 → 发布质量；Rust Host 只属于 MVP 后 Beta，不得作为桌面 MVP 隐藏前置。
-- Renderer 继续是唯一产品 UI，禁止导入 `electron`、`node:*` 或 Host transport；平台差异只通过固定 `PlatformPort`（`capabilities/auth/openExternal/downloads/notifications/updates/runs`）与 adapter 注入。
+- Renderer 继续是唯一产品 UI，禁止导入 `electron`、`node:*` 或 Host transport；Web/Desktop 只在 `src/entrypoints` 组合，页面只消费 `src/platform` 的 `PlatformPort`。DX1 仅实现 `capabilities` 与固定命令源；`auth/openExternal/downloads/notifications/updates/runs` 必须等待对应合同，不得加空实现。
 - Shared `RunClient` 固定为 `createRun/getRun/subscribe/cancelRun/submitInteraction`。远程 Run API/事件 schema 的唯一真源在 MultiRAG 后端；本仓只消费生成物/fixture 和链接，不复制一份手写 schema。
 - 精确版本快照只维护在 `docs/client-platform/VERSION_BASELINE.md`；长期正文只写受支持 stable 通道。当前 Vite 8 不降级，也不采用不兼容的 electron-vite stable 或 prerelease；main/preload 使用独立构建与 staging 边界。
 

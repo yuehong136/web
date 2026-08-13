@@ -1,6 +1,6 @@
 # Client Platform 测试、性能与安全门禁
 
-> 当前已有 CLP-DESK0 源码、合同、构建与 staging 门禁；CLP-DX1 已批准独立 composition、Desktop Workbench、命令和 bridge v2 的内部体验版门禁。正式安装包 E2E、签名/公证、更新、durable Run 性能和 Host 门禁仍是后续目标。
+> 当前已有 CLP-DESK0 源码、合同、构建与 staging 门禁；CLP-DX1 已通过独立 composition、Desktop Workbench、命令系统和 bridge v2 的内部体验版门禁，证据见 [DX1_EXIT_REPORT.md](./DX1_EXIT_REPORT.md)。正式安装包 E2E、签名/公证、更新、durable Run 性能和 Host 门禁仍是后续目标。
 
 ## 1. 当前已验证边界
 
@@ -11,6 +11,8 @@
 - production-mode Vite 公共网络变量经 build receipt 到 versioned manifest/CSP 的合同测试；旧 `dist/`/当前 staging env 漂移，以及通配、凭据、远端明文、路径注入和策略扩张均 fail closed。
 - Rolldown 单入口产物、electron-builder 配置、staging allowlist/拒绝规则和 package verifier 的合同测试。
 - CI 上的 Web build → main/preload build → staging → stage verifier。CI 不生成或启动平台安装包。
+
+CLP-DX1 已新增 `test:client-platform` 并接入 CI。测试覆盖 runtime selection/fail-closed、PlatformPort/browser adapter、紧凑认证 frame、Workbench 960px composition 与偏好真实 rehydrate、命令 ID/registry、命令面板焦点恢复，以及 toolbar/palette/shortcut/native command source 的同一 handler 单次执行；真实 packaged artifact 也已通过固定 composition marker、ASAR/fuses、网络可达性和截图检查。完整命令与边界见 [DX1_EXIT_REPORT.md](./DX1_EXIT_REPORT.md)。
 
 当前仍没有：
 
@@ -200,7 +202,7 @@ Packaging test 必须读取最终 binary 的 fuse 状态，检查 ASAR integrity
 
 DESK0 已有上述 ASAR/fuse 配置和最终产物验证器，但当前跨平台 CI 只运行到 stage verifier。产物验证必须在目标 OS 原生 runner 上执行 `desktop:package:dir` 和 `desktop:verify:package`；未执行的平台不得声称通过。
 
-2026-08-13 的 macOS arm64 本地 unpacked 产物已通过启动 smoke、ASAR/manifest/fuse 验证与 `codesign --verify`。显式 smoke 模式使用唯一临时 profile 与 Chromium mock keychain，避免读取真实桌面 profile 或被 macOS Keychain 阻塞；正常启动仍走生产 profile 与 cookie-encryption fuse，因此该 smoke 不验证真实 Keychain/cookie-encryption 启动路径。另一次不含真实账号/token 的 packaged Renderer 探针向 manifest 中的本地登录 origin 发起带预检的 JSON POST，观察到 `OPTIONS 200` 与 `POST 200`；这证明 CSP/CORS/Chromium Local Network Access 没有在发包前阻断，但不等于 LoginPage、密码加密、token 提取与 session 生命周期 E2E 已通过。本地目录包为了在改写 fuses 后恢复可执行签名，使用 ad-hoc identity 且关闭 hardened runtime；这些都只是本地测试策略。正式 release config 仍保持 hardened runtime 并期望 Developer ID，但证书、notarization、installer 和 Windows 实测都未完成。
+2026-08-13 的 DESK0 macOS arm64 本地 unpacked 产物已通过启动 smoke、ASAR/manifest/fuse 验证与 `codesign --verify`。显式 smoke 模式使用唯一临时 profile 与 Chromium mock keychain，避免读取真实桌面 profile 或被 macOS Keychain 阻塞；正常启动仍走生产 profile 与 cookie-encryption fuse，因此该 smoke 不验证真实 Keychain/cookie-encryption 启动路径。该历史 smoke 只等待 DOM ready，不是 DX1 所要求的 `data-client-runtime="desktop"` composition 证据。另一次不含真实账号/token 的 packaged Renderer 探针向 manifest 中的本地登录 origin 发起带预检的 JSON POST，观察到 `OPTIONS 200` 与 `POST 200`；这证明 CSP/CORS/Chromium Local Network Access 没有在发包前阻断，但不等于 LoginPage、密码加密、token 提取与 session 生命周期 E2E 已通过。本地目录包为了在改写 fuses 后恢复可执行签名，使用 ad-hoc identity 且关闭 hardened runtime；这些都只是本地测试策略。正式 release config 仍保持 hardened runtime 并期望 Developer ID，但证书、notarization、installer 和 Windows 实测都未完成。
 
 ## 8. IPC、Run 与 Beta Host 威胁用例
 

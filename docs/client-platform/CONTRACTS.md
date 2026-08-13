@@ -1,6 +1,6 @@
 # Client Platform 合同设计
 
-> 合同先于实现。CLP-DESK0 当前已有版本为 `1` 的最小静态 capability bridge；CLP-DX1 已冻结双 composition、最小 `PlatformPort`、命令注册表和 bridge v2 目标，但实现证据仍以 [ROADMAP.md](./ROADMAP.md) 为准。远程 schema 的真相源在 MultiRAG 后端，本仓只链接/消费，不复制维护。
+> 合同先于实现。CLP-DESK0 初始提供版本 `1` 的最小静态 capability bridge；CLP-DX1 已实现并验证双 composition、最小 `PlatformPort`、命令注册表和 bridge v2，退出证据见 [DX1_EXIT_REPORT.md](./DX1_EXIT_REPORT.md)。远程 schema 的真相源在 MultiRAG 后端，本仓只链接/消费，不复制维护。
 
 ## 1. 合同分层
 
@@ -122,11 +122,11 @@ submitInteraction(runId, input) -> RunProjection
 
 ## 5. Renderer Bridge
 
-### 当前 DESK0 子集
+### DESK0 历史基线与当前 DX1 子集
 
-preload 目前只通过 `window.multiRagDesktop` 暴露版本号和 `capabilities()`。返回值中只有 `desktop=true`；`updater`、`notifications`、`localAgent`、`pty`、`localMcp` 固定为 `false`。该子集不调用 `ipcRenderer`，不包含 auth、Run、下载或外链方法，不得作为下述目标 Bridge 已完成的证据。
+DESK0 v1 只通过 `window.multiRagDesktop` 暴露版本号和静态 `capabilities()`。DX1 已将当前 bridge 升级为 v2，并新增固定 `DesktopCommandId` 的单向 `commands.onInvoked()` 订阅。当前 capability 中只有 `desktop/nativeMenu=true`；`updater`、`notifications`、`localAgent`、`pty`、`localMcp` 固定为 `false`。它仍不包含 auth、Run、下载或外链方法，也不暴露通用 IPC。
 
-### CLP-DX1 bridge v2 目标
+### 当前 CLP-DX1 bridge v2
 
 ```ts
 interface MultiRagDesktopBridge {
@@ -138,7 +138,7 @@ interface MultiRagDesktopBridge {
 }
 ```
 
-- v2 是 DESK0 v1 的显式不兼容升级；staging/build manifest 与 Renderer adapter 必须精确匹配 `2`。
+- v2 是 DESK0 v1 的显式不兼容升级；当前 staging/build manifest、Renderer adapter 和 package verifier 均要求精确匹配 `2`。
 - 命令通道只允许 main → preload → Renderer。preload 过滤固定 `DesktopCommandId`、不传 Electron event，并返回幂等 unsubscribe。
 - main 只向仍存活且顶层 URL 属于 `app://bundle/**` 的主窗口派发；开发来源必须继续经过精确 loopback policy。
 - 禁止 `send(channel)`、`invoke(channel)`、`on(channel)`、任意 `execute(commandId)` 或暴露 `ipcRenderer`。

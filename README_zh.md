@@ -76,21 +76,23 @@ src/
 │   ├── ui/           # 65+ 原子组件（Radix 封装，含 vendor 适配）
 │   ├── patterns/     # 页面结构块（PageHeader、page-states、SettingsRail、StatCard …）
 │   ├── page-templates/ # 6 个页面骨架
-│   ├── layout/       # AppShell + Layout
+│   ├── layout/       # Web AppShell + DX1 Desktop Workbench
 │   └── auth, canvas, chat, dynamic-form, environment, feature, forms,
 │       jsonjoy-builder, knowledge, mcp, memory, prompt-editor, studio
+├── entrypoints/       # Web/Desktop composition root + 共享挂载层
+├── platform/          # 浏览器安全的 PlatformPort 合同与 adapter
 ├── pages/            # 路由模块（约 20 个顶层 feature，含 agent、knowledge、studio、mcp-servers …）
 ├── hooks/            # TanStack Query hooks（use-*-request.ts）+ 跨页面 hooks
 ├── stores/           # 13 个 Zustand stores（auth、ui、chat、conversation、knowledge、model、
 │                     #   environmentStore、home、search、studio、team、memory）
 ├── themes/           # tokens.ts（约 1452 个）、生成器、scoped-theme.tsx + 设计文档
 ├── types/            # 全局类型
-├── lib/              # 领域工具、运行时工具、adapters
+├── lib/              # 领域工具、运行时工具、adapters、产品命令
 ├── locales/          # i18n：en-US/、zh-CN/
 └── assets/
 desktop/
-├── electron/         # DESK0 main + sandboxed preload；尚无产品认证/Run/更新
-├── protocol/         # 最小、类型化 Renderer Bridge
+├── electron/         # 安全 main/preload + 白名单原生命令菜单
+├── protocol/         # 类型化 Renderer Bridge v2；无通用 IPC
 ├── build/            # Rolldown、allowlist staging、electron-builder、产物验证
 ├── tests/            # main/preload/协议/打包合同测试
 └── .out/             # 构建、staging 与 artifact 产物（gitignored）
@@ -98,7 +100,7 @@ desktop/
 
 为什么这样分层（四层骨架、展示/容器分离、文件大小红线），见 `AI前端技术栈开发规范.md` 与 `AGENTS.md`。
 
-Web 应用仍是唯一生产产品，且保持独立构建与发布。`desktop/` 已有非发布态 `CLP-DESK0` 安全壳基线（Electron main/preload、`app://bundle/`、staging 与产物检查）。它可复用现有 Web 密码登录做本地联调，但尚不提供桌面原生 OIDC/凭据加固、Shared `RunClient`、durable Run 恢复、自动更新、本地 Host，也没有 Windows 打包/签名实测。详见 [`docs/client-platform/README.md`](./docs/client-platform/README.md)。
+Web 应用仍是唯一生产产品，且保持独立构建与发布。在 `CLP-DESK0` 安全壳基线之上，已完成的非发布态 `CLP-DX1` 基础提供 Web/Desktop 独立 composition root、浏览器安全的 `PlatformPort`、任务导向 Desktop Workbench、共享命令注册表和 Renderer Bridge v2 原生菜单事件。它尚不提供桌面原生 OIDC/凭据加固、Shared `RunClient`、durable Run 恢复、自动更新、本地 Host 或 Windows 打包/签名实测。详见 [`docs/client-platform/README.md`](./docs/client-platform/README.md)。
 
 ## 快速开始
 
@@ -132,6 +134,7 @@ npm run lint:typed      # type-aware lint，先覆盖 Agent 关键目录
 npm run typecheck:agent-strict # Agent 关键目录严格类型检查
 npm run build:themes    # 修改 tokens.ts 后重新生成 themes/{light,dark}.css
 npm run test:agent-t1   # 通过 tsx --test 运行 agent T1 测试
+npm run test:client-platform # 测试 Web/Desktop composition、PlatformPort、Workbench 与命令
 npm run lint:desktop    # 检查桌面壳/构建源码
 npm run desktop:typecheck # 类型检查 Electron main 与 preload project
 npm run test:desktop    # 运行桌面壳合同与打包测试
@@ -142,7 +145,7 @@ npm run desktop:package:dir # 构建并验证当前平台的 unpacked 包
 npm run desktop:verify:package # 重新验证当前原生产物
 ```
 
-目前**没有**通用 `test`、`format`、`typecheck` 脚本。类型检查由 `npm run build` 完成，Agent 关键目录可补充跑 `npm run typecheck:agent-strict`。格式化通过 Prettier + lint-staged 作用于 staged 文件，不做全仓格式化。现有正式测试仍用 `tsx --test`，Vitest 基础配置已落地用于后续新增/迁移。
+目前**没有**通用 `test`、`format`、`typecheck` 脚本。类型检查由 `npm run build` 完成，Agent 关键目录可补充跑 `npm run typecheck:agent-strict`。格式化通过 Prettier + lint-staged 作用于 staged 文件，不做全仓格式化。正式测试分别使用 `tsx --test`、Node test 和 Vitest；`test:client-platform` 是 DX1 Renderer 门禁，`test:desktop` 覆盖 main/preload/协议/打包合同。
 
 ### 环境变量
 
@@ -171,7 +174,7 @@ VITE_WS_BASE_URL=ws://localhost:8000
 
 1. Fork 与分支：`feature/*`、`fix/*`、`refactor/*`、`docs/*`、`perf/*`、`chore/*`
 2. 读 `AGENTS.md`（规范）和 `AI前端技术栈开发规范.md`（为什么）
-3. push 前：`npm run lint && npm run build`；接触 Agent serializer/adapter/operator 时补充 `npm run lint:typed && npm run typecheck:agent-strict && npm run test:agent-t1`
+3. push 前：`npm run lint && npm run build`；接触 Agent serializer/adapter/operator 时补充 `npm run lint:typed && npm run typecheck:agent-strict && npm run test:agent-t1`；接触客户端平台时补充 `npm run test:client-platform && npm run lint:desktop && npm run desktop:typecheck && npm run test:desktop`
 4. UI 改动 PR 必须附明暗双主题截图
 5. 用 [Conventional Commits](https://www.conventionalcommits.org/)：`feat`、`fix`、`docs`、`refactor`、`chore`、`perf`、`test`、`style`（可选 scope）
 

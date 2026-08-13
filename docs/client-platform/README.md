@@ -1,13 +1,13 @@
 # Client Platform 文档总览
 
-> 状态：F0 已完成；CLP-P0、Run F1a 与 CLP-DESK0 安全壳是相互独立的切片，CLP-DX1 Desktop Experience Foundation 已批准并进入实施，2026-08-13。DESK0/DX1 都不代表 durable Run 或可发布桌面 MVP 已完成。
+> 状态：F0 与 CLP-DX1 Desktop Experience Foundation 已完成；CLP-P0、Run F1a 与 CLP-DESK0/后续 CLP-DESK 是相互独立的切片，2026-08-13。DX1 只代表内部桌面体验基础，不代表 durable Run 或可发布桌面 MVP 已完成。
 
 ## 当前事实
 
 - Web React/Vite 应用仍是唯一生产产品，根 `dist/` 构建、Docker 与 Web 发布保持独立。
-- `desktop/` 已有 CLP-DESK0：Electron main、sandbox preload、版本化最小 capability bridge、`app://bundle/` 协议、Rolldown 独立构建、显式 staging allowlist 与 electron-builder/ASAR/fuses 验证链路。
-- DESK0 不包含认证、Shared `RunClient`、durable Run 恢复、自动更新、本地 Host/PTY/MCP，也没有经验证的 Windows 安装包/签名。
-- 当前 Renderer 仍只有一套 Web composition，页面尚未消费 `PlatformPort`，因此 DESK0 的可见产品体验仍接近网页。CLP-DX1 将增加 Web/Desktop 双 composition root、Desktop Workbench、统一命令注册表与 bridge v2；它仍不创建伪 Run。
+- `desktop/` 以 CLP-DESK0 安全壳为基线：Electron main、sandbox preload、`app://bundle/` 协议、Rolldown 独立构建、显式 staging allowlist 与 electron-builder/ASAR/fuses 验证链路。
+- CLP-DX1 已实现 Web/Desktop 双 composition root、最小 `PlatformPort`、Desktop Workbench、统一命令注册表、原生菜单与 Renderer Bridge v2。Web 仍独立使用现有 `AppShell`，Desktop 仅展示真实 Conversation，不创建伪 Run。
+- DX1 的最终源码、macOS arm64 directory app、composition marker、网络可达性、截图和趋势证据见 [DX1_EXIT_REPORT.md](./DX1_EXIT_REPORT.md)。当前不包含桌面原生认证、Shared `RunClient`、durable Run 恢复、自动更新、本地 Host/PTY/MCP，也没有经验证的 Windows 安装包/签名。
 - F0 后还已落地 task ID 隔离、Web 被动 detach 与无身份依赖的 Run F1a 协议核心；它们与 DESK0 均不等于 durable Run 或完整桌面产品已完成。
 - 现有 `src/` 继续是唯一产品 UI 源码。未来客户端不能复制一套长期分叉的 renderer。
 
@@ -31,6 +31,7 @@
 | ------------------------------------------------ | --------------------------------------------- |
 | [ARCHITECTURE.md](./ARCHITECTURE.md)             | 当前与目标架构、进程职责、关键数据流          |
 | [DESKTOP_EXPERIENCE.md](./DESKTOP_EXPERIENCE.md) | DX1 信息架构、composition、命令与验收边界     |
+| [DX1_EXIT_REPORT.md](./DX1_EXIT_REPORT.md)       | DX1 实跑门禁、artifact、截图、趋势和未验证项  |
 | [REPOSITORY_LAYOUT.md](./REPOSITORY_LAYOUT.md)   | 推荐目录、构建产物边界、禁止依赖              |
 | [CONTRACTS.md](./CONTRACTS.md)                   | Renderer Bridge、Host RPC、后端契约与版本规则 |
 | [DECISIONS.md](./DECISIONS.md)                   | 已接受的方向、备选方案及重评条件              |
