@@ -1,4 +1,5 @@
 import React, { useMemo, useState, Fragment } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { AlertCircle, ChevronDown, Check, Settings } from 'lucide-react'
 import {
@@ -98,6 +99,7 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
   dropdownDirection = 'up',
 }) => {
   const isDark = useIsDarkTheme()
+  const { t } = useTranslation()
   const [isOpen, setIsOpen] = useState(false)
   const navigate = useNavigate()
 
@@ -195,10 +197,12 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
             'text-status-warning hover:bg-status-warning-subtle',
             triggerClassName,
           )}
-          title="点击配置模型"
+          title={t('home.input.configureModelAction')}
         >
           <Settings className="h-4 w-4 shrink-0" />
-          <span className="whitespace-nowrap">配置模型</span>
+          <span className="whitespace-nowrap">
+            {t('home.input.configureModel')}
+          </span>
         </button>
       )
     }
@@ -316,10 +320,12 @@ export const ChatModelSelector: React.FC<ChatModelSelectorProps> = ({
             'text-status-warning hover:bg-status-warning-subtle',
             triggerClassName,
           )}
-          title="点击配置模型"
+          title={t('home.input.configureModelAction')}
         >
           <Settings className="h-4 w-4 shrink-0" />
-          <span className="whitespace-nowrap">配置模型</span>
+          <span className="whitespace-nowrap">
+            {t('home.input.configureModel')}
+          </span>
         </button>
       )
     }
