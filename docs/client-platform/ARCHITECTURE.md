@@ -18,10 +18,36 @@
 - 登录使用的绝对 API origin 已进入桌面网络策略；其余业务代码仍存在编译期绝对地址与相对 `/api` 混用，完整桌面黄金链路前必须收口为统一 runtime config。
 - 当前 Web 仍把 access/refresh credential 写入 `localStorage`；这是 `CLP-P0` 必须消除的现状，不是目标认证设计。
 - 当前 MultiRAG OAuth callback 在 EIM-I6 建立显式 provider-subject binding 前固定 fail closed，不按邮箱登录、注册或合并账号。
+- 当前 `src/main.tsx`、Router、认证 frame 与 `AppShell` 仍是单一 Web composition；产品页面尚未消费 `PlatformPort`，也没有 Desktop Workbench、统一命令注册表或原生菜单命令桥。这解释了 DESK0 为什么只有窗口层差异，不能写成桌面体验已经完成。
 
 因此，DESK0 只证明安全宿主和供应链边界开始成型；以下 Shared Client、认证、durable Run、更新、签名与 Host 仍是**目标方案**。
 
-## 2. MVP 目标上下文
+## 2. CLP-DX1 产品体验层
+
+CLP-DX1 在 durable Run 和 EIM 接入前，先建立不定义身份/执行语义的桌面产品边界：
+
+```mermaid
+flowchart TD
+  S["启动选择器"] -->|"http / https"| W["Web composition\nWeb AppShell"]
+  S -->|"app://bundle + bridge v2"| D["Desktop composition\nDesktop Workbench"]
+  W --> A["共享 Application\nRouter Pages Stores"]
+  D --> A
+  D --> R["Activity Rail\nContext Panel Commands"]
+  R --> P["Sandboxed Preload\nallowlisted command events"]
+  P --> M["Electron Main\nnative menu"]
+```
+
+稳定边界是：
+
+- Web/Desktop 使用不同 composition root，但共享唯一产品 Router、页面、状态、设计令牌和业务组件。
+- 平台选择只发生在 entrypoint；页面禁止 `isElectron`、bridge、Electron 或 Node 分支。
+- Desktop 采用 Activity Rail + 可折叠上下文侧栏 + 现有工作区；Web 继续使用现有 `AppShell`。
+- DX1 只展示真实 Conversation，并保留 durable Run 的名称、状态和恢复空间；`Needs attention/Running/Ready` 等分组必须等待服务端 Run projection。
+- bridge v2 只增加固定产品命令的 main → Renderer 通知；不增加通用 IPC、auth、Run、下载或本地能力。
+
+详细信息架构、命令 ID 和验收边界见 [DESKTOP_EXPERIENCE.md](./DESKTOP_EXPERIENCE.md)。
+
+## 3. MVP 目标上下文
 
 ```mermaid
 flowchart LR
@@ -34,7 +60,7 @@ flowchart LR
 
 MVP 核心原则是：先把 Run 做成云端可恢复的权威状态，再让 Web 与 Electron 薄壳复用同一个 Shared Client；不以本地 Runtime 作为客户端成立的前提。
 
-## 3. Beta 可选扩展
+## 4. Beta 可选扩展
 
 Rust Host 是 MVP 后的独立 Beta 增量，不属于 MVP 架构关键路径：
 
@@ -47,12 +73,12 @@ flowchart LR
 
 只有用户任务明确需要本地 workspace、PTY、Git、本地进程或本地 MCP，且 MVP 的稳定性、发布和观测门禁已经建立后，才启用这条路径。
 
-## 4. 组件与进程职责
+## 5. 组件与进程职责
 
 ### Renderer
 
 - 继续承载现有路由、页面、组件、设计令牌、i18n、流式 UI、Monaco 和文档预览。
-- 通过固定 `PlatformPort` 使用 `capabilities/auth/openExternal/downloads/notifications/updates/runs`；浏览器实现可以返回 unsupported，而不是散落 `if (electron)`。
+- DX1 先通过 composition 注入最小 `PlatformPort`、命令源和外壳；MVP 再扩展到 `auth/openExternal/downloads/notifications/updates/runs`。浏览器实现对不可用能力返回 unsupported，而不是散落 `if (electron)`。
 - 云端 API 默认仍走 HTTPS/SSE，不把所有网络请求代理进 Electron main。
 - 把模型、工具、文件内容视为不可信输入，继续使用现有 SafeHtml、URL allowlist 和 iframe sandbox。
 
@@ -67,7 +93,7 @@ Renderer 不拥有文件系统、进程、PTY、密钥、更新或 Host transpor
 
 ### Electron Main
 
-- 作为 composition root，负责应用生命周期、窗口、安全策略、自定义协议、菜单、深链、更新与 Host 监管。
+- 作为原生宿主 composition root，负责应用生命周期、窗口、安全策略、自定义协议、菜单、深链、更新与 Host 监管；Renderer 的 Web/Desktop composition 仍由各自 entrypoint 装配。
 - 统一创建 BrowserWindow，集中管理 permission、navigation、new-window、external URL 和 IPC sender 校验。
 - MVP 不启动 Rust Host；只处理窗口、认证接入、下载、通知、更新等薄壳能力。
 - Beta 启用 Host 时再负责启动、握手、监控和终止；main 自身仍不实现 PTY、SQLite、MCP 编排或大文件处理。
@@ -87,7 +113,11 @@ Renderer 不拥有文件系统、进程、PTY、密钥、更新或 Host transpor
 - 对客户端暴露版本化 API 与可观测 trace id；客户端不复制权限判断，也不把浏览器连接当作 Run 生命周期。
 - 后端升级由后端仓锁定，本文档集只记录兼容窗口和联调目标。
 
-## 5. 关键数据流
+## 6. 关键数据流
+
+### DX1 命令流
+
+Renderer 中的稳定命令注册表是产品动作真相源。命令面板、Activity Rail、toolbar 和 Renderer shortcut 直接调用同一 handler；Electron 原生菜单只把固定 allowlist 中的命令 ID 经 main → preload → Renderer 单向发送。preload 剥离 Electron event、过滤未知 ID 并返回幂等 unsubscribe。`conversation.new` 只进入现有 Conversation 工作流，不创建 durable Run。
 
 ### 云端聊天与 Agent 流
 
@@ -113,7 +143,7 @@ Renderer 只能得到用户选择后的 opaque handle 或最小元数据。真�
 
 遵循 `prepare -> confirmation -> re-authorize -> execute -> terminal result`。确认必须绑定 principal、工具、参数摘要、过期时间和一次性 nonce；未知执行结果不能静默重放。
 
-## 6. 本地资源协议
+## 7. 本地资源协议
 
 生产 renderer 使用类似 `app://bundle/` 的自定义 standard + secure scheme，不使用 `file://`：
 
@@ -123,7 +153,7 @@ Renderer 只能得到用户选择后的 opaque handle 或最小元数据。真�
 - handler 只服务 staging 中的 renderer allowlist，规范化路径并拒绝目录穿越。
 - 只有 HTML navigation 可做 SPA fallback；缺失 JS/CSS/worker/Monaco 资源必须返回 404。
 
-## 7. 失败与恢复
+## 8. 失败与恢复
 
 跨进程操作统一至少区分：`completed`、`cancelled`、`timed_out`、`interrupted`、`unauthorized`、`host_unavailable`、`incompatible_protocol`。EOF 不是成功；Host 崩溃时所有未终态 operation 必须明确进入 interrupted。
 
@@ -132,12 +162,13 @@ MVP 启动顺序建议：
 1. 注册安全 scheme 与全局 sandbox。
 2. Electron ready 后安装 session/IPC/protocol policy。
 3. 创建 renderer，使 Web UI 可先显示。
-4. Shared Client 恢复认证与仍在运行的 Run 投影。
-5. 桌面 capability 未就绪时 UI 显示降级状态，不阻塞云端 Run 路径。
+4. DX1 根据受信 scheme 和 bridge version 选择 Desktop composition；不兼容时 fail closed。
+5. Shared Client 恢复认证与仍在运行的 Run 投影。
+6. 桌面 capability 未就绪时 UI 显示降级状态，不阻塞云端 Run 路径。
 
 Beta 才在窗口可交互后延迟启动 Host，并完成版本、capability、build hash 握手。
 
-## 8. 性能策略
+## 9. 性能策略
 
 - 不复制或重写现有复杂 renderer，以保持 Chromium 渲染一致性和现有懒加载收益。
 - main/preload bundle 为小而固定的入口；非首屏模块延迟加载。
@@ -145,7 +176,7 @@ Beta 才在窗口可交互后延迟启动 Host，并完成版本、capability、
 - 长列表、日志和 token 流采用虚拟化、批处理和背压；不把每个事件写入 React state 或 Query cache。
 - 所有性能声明以 packaged artifact 的多轮冷/热启动和真实重负载基准为准，门槛见 [TESTING_SECURITY.md](./TESTING_SECURITY.md)。
 
-## 9. 可替换边界
+## 10. 可替换边界
 
 Electron 是当前 MVP 薄壳基线，不是永久不可替换的产品承诺。只要 Renderer Bridge、Beta Host RPC 和 `PlatformPort` 保持独立，将来可以：
 

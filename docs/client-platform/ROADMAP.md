@@ -1,6 +1,6 @@
 # Client Platform 执行路线图
 
-> 本页是 Client Platform 的唯一执行账本。稳定 ID 使用 `CLP-*`；`CLP-F0` 已完成，`CLP-P0` 仅完成独立 task ID 与 Web 被动 detach 等切片，`CLP-DESK0` 只是安全壳基线。这些都不代表 CLP-DESK 或 MVP 已完成。
+> 本页是 Client Platform 的唯一执行账本。稳定 ID 使用 `CLP-*`；`CLP-F0` 已完成，`CLP-P0` 仅完成独立 task ID 与 Web 被动 detach 等切片，`CLP-DESK0` 只是安全壳基线，`CLP-DX1` 已批准并进入文档/体验基础实施。这些都不代表 CLP-DESK、durable Run 或 MVP 已完成。
 
 ## 1. 批准主线
 
@@ -8,31 +8,34 @@ MVP 的产品/架构顺序是：
 
 ```text
 CLP-F0 文档基线
+  -> CLP-DX1 Desktop Experience Foundation -----------+
+                                                       |
   -> CLP-P0 Web 正确性与认证
   -> CLP-RS2 云端 durable Run Service v2
   -> CLP-SC Web/Desktop Shared Client
-  -> CLP-DESK Electron 薄壳
+  -> CLP-DESK Electron 薄壳 <--------------------------+
   -> CLP-REL 发布质量与灰度
 
 MVP 完成后，才评估 CLP-BETA-HOST Rust 本地能力。
 ```
 
-Electron MVP 依赖云端 durable Run，不依赖 Rust Host、PTY、Git 或本地 MCP。Web 继续独立构建和发布；所有阶段按退出门禁而非日期宣称完成。
+CLP-DX1 不依赖 EIM 或 Run Service，可与 P0/RS2 并行，但只交付双 composition、桌面工作台和命令基础，不伪造任务状态。Electron MVP 仍依赖云端 durable Run，不依赖 Rust Host、PTY、Git 或本地 MCP。Web 继续独立构建和发布；所有阶段按退出门禁而非日期宣称完成。
 
 ## 2. 工程量与周期
 
 | ID       | 工作包                                           |       基础工程量 | 状态                            |
 | -------- | ------------------------------------------------ | ---------------: | ------------------------------- |
 | CLP-F0   | 架构、目录、合同、决策、版本、测试安全和导航基线 |         4–6 人日 | 已完成（2026-08-13）            |
+| CLP-DX1  | 双 composition、Desktop Workbench、命令与菜单    |       18–26 人日 | 🟡 进行中（文档基线）           |
 | CLP-P0   | 当前 Web 正确性、认证、流式终态与边界收口        |       35–50 人日 | 🟡 进行中（两个切片完成）       |
 | CLP-RS2  | 云端 durable Run Service v2                      |       47–70 人日 | 🟡 RUN-F1a 进行中；跨后端       |
 | CLP-SC   | Web/Desktop 共用 Shared Client                   |       28–43 人日 | 未开始                          |
 | CLP-DESK | Electron stable 薄壳与平台能力                   |       32–48 人日 | 🟡 DESK0 安全壳切片；阶段未完成 |
 | CLP-REL  | 发布工程、质量、安全、性能与灰度                 |       42–67 人日 | 未开始                          |
-|          | **MVP 基础合计**                                 | **188–284 人日** |                                 |
-|          | **含 20–25% 风险缓冲**                           | **230–340 人日** |                                 |
+|          | **MVP 基础合计**                                 | **206–310 人日** |                                 |
+|          | **含 20–25% 风险缓冲**                           | **247–388 人日** |                                 |
 
-以 5 人稳定跨职能团队估算，MVP 为 **16–22 周**。这是工程容量基线，不包含产品/安全审批等待和团队切换成本。
+以 5 人稳定跨职能团队估算，MVP 为 **17–23 周**。这是工程容量基线，不包含产品/安全审批等待和团队切换成本。DX1 内部体验版由两名前端/桌面工程师并行，预计 **2–3 周**。
 
 `CLP-BETA-HOST` 为 MVP 后独立增量：**130–200 人日（已含 25% 风险）/ 12–18 周**。MVP + Beta 整体约 **7–10 个月**，不能把 Host 工作偷偷塞回 MVP 估算。
 
@@ -43,25 +46,27 @@ Electron MVP 依赖云端 durable Run，不依赖 Rust Host、PTY、Git 或本�
 | ID            | 前置依赖                                                          | 负责角色                                             | 完成证据                                                                                                   |
 | ------------- | ----------------------------------------------------------------- | ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
 | CLP-F0        | 无                                                                | Client/Web owner；Backend/Runtime owner              | 九份客户端文档、五份后端文档、两仓入口与规则；相对链接、格式和 `git diff --check` 通过；两个独立纯文档提交 |
+| CLP-DX1       | CLP-F0；DESK0 网络/CSP/登录可达性修复独立收口                     | Desktop owner；Web owner；QA                         | 双 composition、Desktop Workbench、命令/菜单同 handler、bridge v2、Web 无退化、packaged runtime 标记证据   |
 | CLP-P0        | CLP-F0；EIM 身份边界；后端 refresh/OIDC 契约                      | Web owner；Identity/API owner；QA                    | 认证/租户隔离、流终态、取消与核心链路契约测试；credential localStorage 清零；错误与日志脱敏报告            |
 | CLP-RS2       | CLP-F0；Principal/authorization ports；PostgreSQL/Valkey 运维评审 | Backend/Runtime owner；DB/Platform owner             | canonical schema、migration、真实 PG/Valkey 集成、故障/并发/回放测试、v1/v2 并行灰度下的单请求单执行证据   |
 | CLP-SC        | CLP-P0；RUN-F1 机器契约；可用 v2 canary                           | Web/Shared Client owner；Backend contract owner      | 生成物零漂移、golden event corpus、Web 黄金链路、四并行 Run/100 chunks/s、reload 恢复报告                  |
-| CLP-DESK      | CLP-SC 合同稳定；签名/发布账号已申请                              | Desktop owner；Web owner                             | macOS/Windows packaged E2E、安全协议/IPC/fuses/ASAR 检查、固定负载性能报告                                 |
+| CLP-DESK      | CLP-DX1；CLP-SC 合同稳定；签名/发布账号已申请                     | Desktop owner；Web owner                             | macOS/Windows packaged E2E、安全协议/IPC/fuses/ASAR 检查、固定负载性能报告                                 |
 | CLP-REL       | CLP-DESK；更新源、证书、公证与观测环境                            | Release/DevOps owner；QA owner；Security reviewer    | 已签名 artifact、SBOM/checksum/manifest、更新/回滚/卸载演练、8 小时 soak 与灰度停推证据                    |
 | CLP-BETA-HOST | MVP 稳定；产品需求与本地权限模型获批                              | Runtime/Rust owner；Desktop owner；Security reviewer | 协议兼容、sidecar 签名/哈希、PTY/进程树/权限/崩溃恢复与 Windows IME 报告                                   |
 
 ### 五人团队日历窗口
 
-| 周期        | 主交付                                                        |
-| ----------- | ------------------------------------------------------------- |
-| 第 1 周     | F0 文档基线、证书/发布账号申请、固定性能 fixture 与参考机登记 |
-| 第 2–4 周   | P0 正确性与认证、Run 协议冻结、Electron/Tauri 生产形态 PoC    |
-| 第 3–9 周   | Run Service v2 与 Electron 安全壳并行开发                     |
-| 第 8–14 周  | Shared Client、Web/Desktop 接入、OIDC、回放与多 Run           |
-| 第 13–18 周 | 签名更新、观测、E2E、压力/soak 与内部灰度                     |
-| 第 19–22 周 | 风险窗口、兼容修复、回滚演练与扩大灰度                        |
+| 周期        | 主交付                                                          |
+| ----------- | --------------------------------------------------------------- |
+| 第 1 周     | F0/网络修复收口、DX1 文档、证书/发布账号申请、性能 fixture 登记 |
+| 第 2–3 周   | DX1 双 composition、Desktop Workbench、命令/菜单内部体验版      |
+| 第 2–5 周   | P0 正确性与认证、Run 协议冻结                                   |
+| 第 3–10 周  | Run Service v2 与 Electron 平台能力并行开发                     |
+| 第 9–15 周  | Shared Client、Web/Desktop 接入、OIDC、回放与多 Run             |
+| 第 14–19 周 | 签名更新、观测、E2E、压力/soak 与内部灰度                       |
+| 第 20–23 周 | 风险窗口、兼容修复、回滚演练与扩大灰度                          |
 
-上述是依赖重叠的排程窗口，不把工程人日简单相加；证书、OIDC provider、安全评审或真实环境未就绪会消耗第 19–22 周缓冲。
+上述是依赖重叠的排程窗口，不把工程人日简单相加；证书、OIDC provider、安全评审或真实环境未就绪会消耗第 20–23 周缓冲。
 
 ## 3. CLP-F0：文档与决策基线
 
@@ -79,7 +84,32 @@ Electron MVP 依赖云端 durable Run，不依赖 Rust Host、PTY、Git 或本�
 - CLP 账本、工程量、性能/恢复/灰度门槛与批准计划一致。
 - diff 只含文档、导航与规则，无 `package*.json` 或业务源码改动。
 
-## 4. CLP-P0：Web 正确性与认证
+## 4. CLP-DX1：Desktop Experience Foundation
+
+目标：在不等待 Run Service/EIM、不复制产品 UI 的前提下，让 DESK0 从安全窗口基座演进为可辨识的内部桌面体验版。
+
+范围：
+
+- Web/Desktop 独立 composition root，共享 Application、Router、页面和业务组件。
+- 最小 `PlatformPort` 与 capability 真值；`app://bundle` 下 bridge 缺失/错版 fail closed。
+- Activity Rail + 可折叠/可调整上下文侧栏 + 现有 Workspace 的任务优先混合式 Desktop Workbench。
+- Web 营销登录 frame 保持；Desktop 使用共享表单的紧凑登录 frame。
+- 稳定命令注册表统一 `cmdk`、toolbar、快捷键和 Electron 原生菜单。
+- Renderer Bridge 升级到 v2，只新增 allowlisted main → Renderer command event。
+- 仅持久化 activity、侧栏开合/宽度等非敏感 UI 偏好。
+
+退出条件：
+
+- HTTP/Web 与 `app://bundle` Desktop composition 自动化测试通过；bridge 缺失、错版和非法命令 fail closed。
+- Web 布局/路由无退化；Desktop 在 960px 窗口保持工作台并通过中文/英文、键盘和焦点验收。
+- palette、toolbar、shortcut、native menu 调用同一 handler 且单次执行；输入/组合输入不误触发。
+- `conversation.new` 只进入现有 Conversation 工作流，没有伪 Run、后台任务或恢复状态。
+- bridge v2、staging/build manifest、ASAR/package verifier 一致；packaged smoke 验证 `data-client-runtime="desktop"`。
+- 退出报告包含截图、实际命令、commit、artifact hash、设备/OS 和未验证平台。
+
+明确非目标：RunClient/durable Run、认证存储/OIDC、通知、下载、更新、deep link、多窗口、自绘标题栏、Tauri PoC、Rust Host/文件/Git/PTY/本地 MCP。详细设计见 [DESKTOP_EXPERIENCE.md](./DESKTOP_EXPERIENCE.md)。
+
+## 5. CLP-P0：Web 正确性与认证
 
 目标：先让现有 Web 成为可复用的可靠产品层，避免桌面壳放大旧问题。
 
@@ -111,7 +141,7 @@ Electron MVP 依赖云端 durable Run，不依赖 Rust Host、PTY、Git 或本�
 身份/授权收口必须等待 EIM 稳定 port。客户端任务不实现 SDK API Key Principal、Channel workload/
 candidate capability、active tenant 或团队角色策略；被撤出的探索补丁不得作为 CLP-P0 完成证据。
 
-## 5. CLP-RS2：云端 durable Run Service v2
+## 6. CLP-RS2：云端 durable Run Service v2
 
 目标：Run 生命周期独立于页面、SSE/WS 连接和 Electron 进程。
 
@@ -132,7 +162,7 @@ candidate capability、active tenant 或团队角色策略；被撤出的探索�
 - 断线、重复、gap、取消、interaction、服务重启和未知执行结果有集成测试。
 - 服务端可从任意有效 cursor 回放并在 cursor 过期时提供明确 resync；Renderer 的 2 秒恢复门槛归 CLP-SC/DESK 验收。
 
-## 6. CLP-SC：Shared Client
+## 7. CLP-SC：Shared Client
 
 目标：Web 与 Desktop 共享一个 Run/auth/platform 产品合同。
 
@@ -147,7 +177,7 @@ candidate capability、active tenant 或团队角色策略；被撤出的探索�
 
 退出条件：Web 使用 Shared Client 跑通黄金链路；v1/v2 compatibility tests、100 chunks/s 和四并行 Run 固定负载通过；Renderer reload 恢复门槛通过。
 
-## 7. CLP-DESK：Electron MVP 薄壳
+## 8. CLP-DESK：Electron MVP 薄壳
 
 目标：以客户端形式提供现有产品，并补齐低权限桌面体验；不加入 Rust Host。
 
@@ -199,7 +229,7 @@ npm run desktop:verify:package
 - 冷/热启动、流输入/显示与 60Hz 帧耗时达到批准门槛。
 - 关闭/重载窗口不取消云 Run，2 秒内恢复投影。
 
-## 8. CLP-REL：发布、质量与灰度
+## 9. CLP-REL：发布、质量与灰度
 
 范围：
 
@@ -221,7 +251,7 @@ crash/session、恢复失败率、事件延迟、TTFT 或内存越线自动停�
 
 退出条件：安装、更新、回滚、卸载、断电/断网恢复与旧版本兼容演练通过；[TESTING_SECURITY.md](./TESTING_SECURITY.md) 的所有批准门槛有 artifact hash 和 p95/soak 证据。
 
-## 9. CLP-BETA-HOST：MVP 后本地能力
+## 10. CLP-BETA-HOST：MVP 后本地能力
 
 进入条件：MVP 已完成；产品数据证明用户确需 workspace/PTY/Git/本地进程/本地 MCP；团队已有 Rust 与跨平台发布 owner。
 
@@ -231,14 +261,15 @@ crash/session、恢复失败率、事件延迟、TTFT 或内存越线自动停�
 
 该阶段不改变 Run Service 仍为云端 Run 权威；本地 operation 与云 Run 通过显式 contract 关联。
 
-## 10. 关键依赖与并行策略
+## 11. 关键依赖与并行策略
 
+- CLP-DX1 可在 EIM/Run Service 前并行，但必须先独立收口 DESK0 网络/CSP/登录可达性修复；DX1 不定义 auth、Principal 或 Run wire。
 - CLP-P0 可与 CLP-RS2 的后端 schema 设计部分重叠，但 Shared Client 不在远程 schema 冻结前猜实现。
 - CLP-SC 的 browser adapter 先行，desktop adapter 与 CLP-DESK 后半可并行。
 - 签名、更新和性能采样在 CLP-DESK 就试跑，CLP-REL 负责产品化，不能拖到功能完成后首次接触。
 - CLP-BETA-HOST 绝不作为 CLP-DESK/CLP-REL 的隐藏前置条件。
 
-## 11. 状态更新规则
+## 12. 状态更新规则
 
 - 只在对应退出条件有实跑证据时把 CLP 状态改为完成。
 - 每次更新写日期、commit/artifact、验证命令、设备/服务版本和未验证边界。

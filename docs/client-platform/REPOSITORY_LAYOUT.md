@@ -1,6 +1,6 @@
 # Client Platform 推荐目录与构建边界
 
-> 这是分阶段布局。CLP-DESK0 已实体化 Electron 安全壳、最小 Renderer Bridge、构建/staging/packaging 工具和对应测试；Shared Client、PlatformPort adapter、`host/`、Host RPC 和发布资产仍是后续阶段目标。
+> 这是分阶段布局。CLP-DESK0 已实体化 Electron 安全壳、最小 Renderer Bridge、构建/staging/packaging 工具和对应测试；CLP-DX1 已冻结 entrypoint、最小 PlatformPort、Desktop Workbench 与命令目录，代码完成状态只以 [ROADMAP.md](./ROADMAP.md) 为准。Shared Client、`host/`、Host RPC 和发布资产仍是后续阶段目标。
 
 ## 0. 当前 DESK0 子集
 
@@ -17,7 +17,7 @@ desktop/
 └── .out/                              # 全部 gitignored
 ```
 
-DESK0 没有创建 `src/entrypoints`、`src/platform`、`src/agent-runtime`、`desktop/host` 或 `desktop/protocol/host-rpc`。这是有意的渐进边界：在 Shared Client 和远程 Run 合同冻结前，安全壳不猜 auth、Principal 或 Run wire。
+DESK0 没有创建 `src/entrypoints`、`src/platform`、`src/agent-runtime`、`desktop/host` 或 `desktop/protocol/host-rpc`。这是有意的渐进边界：DX1 只实体化前两项的最小 composition/capability 子集；在 Shared Client 和远程 Run 合同冻结前，安全壳不猜 auth、Principal 或 Run wire。
 
 ## 1. 推荐布局
 
@@ -27,11 +27,14 @@ web/
 │   ├── pages/、components/、api/、stores/ # 现有产品 UI，保持原位
 │   ├── entrypoints/
 │   │   ├── web.tsx
-│   │   └── desktop.tsx
+│   │   ├── desktop.tsx
+│   │   └── mount-application.tsx      # 共享 providers/Application 装配
 │   ├── platform/
 │   │   ├── contracts/                   # 浏览器安全的 PlatformPort/capability
 │   │   ├── browser/                     # Web adapter
 │   │   └── desktop/                     # 只调用 preload bridge
+│   ├── components/layout/desktop/        # DX1 Activity Rail/Context Panel/Workbench
+│   ├── lib/commands/                     # 稳定命令 registry/palette/shortcut
 │   └── agent-runtime/
 │       ├── client/                      # 固定 RunClient 五方法
 │       ├── protocol/generated/          # 从 MultiRAG 真源生成，禁止手写
@@ -125,7 +128,9 @@ MultiRAG 继续是独立 Python 后端仓，不并入客户端 workspace；远�
 | 层                                    | 允许依赖                                                                      | 禁止依赖                                                                           |
 | ------------------------------------- | ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
 | `src/pages`、`src/components` 产品 UI | Web API、React、`PlatformPort`、Shared `RunClient`                            | Renderer Bridge、`electron`、`node:*`、main/preload、Host transport、真实路径/凭据 |
+| `src/entrypoints`                     | Application、Router、Platform adapter、外壳 composition                       | Electron/Node runtime API、Host transport、身份或 Run wire 推导                    |
 | `src/platform/desktop`                | `PlatformPort`、纯 Renderer Bridge types                                      | `electron`、`node:*`、main/preload 实现、Host transport                            |
+| `src/lib/commands`                    | 浏览器安全命令 ID、注册表、Router/UI action ports                             | Electron event、`ipcRenderer`、任意 channel、业务持久化                            |
 | 其他 `src/` Renderer 基础层           | Web API、React、`PlatformPort`、Shared `RunClient`                            | `electron`、`node:*`、main/preload、Host transport、真实路径/凭据                  |
 | Preload                               | `contextBridge`、`ipcRenderer`、纯 schema/types                               | React pages/stores、`ipcMain`、fs/net/process、数据库、通用 IPC 暴露               |
 | Main                                  | Electron main API、Node async API、Renderer Bridge；Beta 可加 Host supervisor | React/UI store、PTY/SQLite/MCP 实现、同步 IPC、长 CPU/同步 IO                      |
@@ -137,11 +142,15 @@ MultiRAG 继续是独立 Python 后端仓，不并入客户端 workspace；远�
 
 这些边界应通过 path-scoped ESLint `no-restricted-imports`、独立 TypeScript project、Cargo crate graph 和 CI contract check 强制，而不是只靠约定。
 
+CLP-DX1 只允许 `src/platform/desktop/**` 和 Desktop entrypoint 静态依赖 `desktop/protocol/renderer-bridge` 的纯 types/DTO；该例外必须精确到路径。`src/pages/**`、通用组件和 stores 继续禁止任何包含 `desktop`、`electron` 或 `node:*` 的运行时依赖，并以反例 fixture 固化。
+
 ## 3. Vite 8 构建策略
 
 ### Renderer
 
 - 保持现有 `vite.config.ts` 为 renderer-only，继续输出根 `dist/`。
+- `src/main.tsx` 只做受信 scheme/bridge 的启动选择；Web/Desktop entrypoint 共享 mount/providers，不复制 Router 或产品页面。
+- Web build 可以包含 Desktop composition chunk，但不得在 HTTP 路径加载或执行 Desktop bridge adapter；staging 仍从同一个 `dist/` 复制 allowlist。
 - 不把 Electron 插件塞入现有配置；Web build 和 Docker build 不依赖桌面工具链。
 - 当前 Monaco 插件固定复制到 `dist/vs`，因此 main/preload 绝不能复用或清理根 `dist/`。
 
@@ -171,14 +180,14 @@ desktop/.out/stage/app/
 ├── main/index.mjs
 ├── preload/index.cjs
 ├── renderer/                # 从 /dist allowlist 复制
-└── build-manifest.json      # commit、版本、Shared Client/Bridge；Beta 加 Host hash
+└── build-manifest.json      # commit、版本、composition、Shared Client/Bridge；Beta 加 Host hash
 ```
 
 `stage.mjs` 必须：
 
 - 从干净的目标目录开始并校验目标路径，禁止未解析的危险 glob。
 - 排除 `*.map`、`stats.html`、测试、源码、环境文件和凭据。
-- 生成包含输入 hash、app、Shared Client、Bridge 与 target 的 manifest；Beta 再加入 Host/protocol/hash。
+- 生成包含输入 hash、app、composition、Shared Client、Bridge 与 target 的 manifest；DX1 bridge 精确为 v2，Beta 再加入 Host/protocol/hash。
 - 拒绝任何未在 allowlist 中的新文件，避免默认 `**/*` 悄悄扩大安装包。
 
 MVP 只有 renderer/main/preload，均进入 `app.asar`。Beta 才把 Rust executable 通过 `extraResources` 放到 `resources/host/<platform>-<arch>/`；Host 位于 ASAR 外、架构与 Electron 一致并在签名前组装。

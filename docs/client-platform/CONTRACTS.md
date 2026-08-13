@@ -1,6 +1,6 @@
 # Client Platform 合同设计
 
-> 合同先于实现。CLP-DESK0 已有版本为 `1` 的最小静态 capability bridge；当前仓库仍无 Shared Client、通用桌面 IPC 能力或 Host RPC。远程 schema 的真相源在 MultiRAG 后端，本仓只链接/消费，不复制维护。
+> 合同先于实现。CLP-DESK0 当前已有版本为 `1` 的最小静态 capability bridge；CLP-DX1 已冻结双 composition、最小 `PlatformPort`、命令注册表和 bridge v2 目标，但实现证据仍以 [ROADMAP.md](./ROADMAP.md) 为准。远程 schema 的真相源在 MultiRAG 后端，本仓只链接/消费，不复制维护。
 
 ## 1. 合同分层
 
@@ -13,7 +13,69 @@
 
 这些合同不得合并成“万能 RPC”。MVP 不依赖 Host RPC；云端 Run 不通过 Electron main 代理。
 
-## 2. 固定 `PlatformPort`
+## 2. CLP-DX1 最小 Composition 合同
+
+DX1 只引入当前桌面体验需要的浏览器安全合同：
+
+```ts
+enum PlatformKind {
+  WEB = 'web',
+  DESKTOP = 'desktop',
+}
+
+interface PlatformCapabilities {
+  desktop: boolean
+  nativeMenu: boolean
+  updater: boolean
+  notifications: boolean
+  localAgent: boolean
+  pty: boolean
+  localMcp: boolean
+}
+
+interface PlatformPort {
+  readonly kind: PlatformKind
+  capabilities(): Readonly<PlatformCapabilities>
+}
+
+interface CommandSource {
+  subscribe(listener: (id: ProductCommandId) => void): () => void
+}
+
+interface ApplicationComposition {
+  platform: PlatformPort
+  commandSource: CommandSource
+}
+```
+
+选择与失败语义固定为：
+
+- `http:` / `https:` 使用 Web composition；`app://bundle/` 使用 Desktop composition。
+- `app:` 下 bridge 缺失、shape 错误或版本不匹配必须显示脱敏兼容性错误，不得静默降级成 Web。
+- 未批准 scheme 不进入产品应用。
+- 平台判断只存在于 entrypoint/composition；`pages/components/stores` 不得读取 bridge 或导入 Electron/Node。
+- Web 的 `CommandSource` 不消费原生事件；Desktop 只消费 bridge v2 的 allowlisted command event。
+
+DX1 的 capability 真值是：Web 的 `desktop/nativeMenu=false`；Desktop 的 `desktop/nativeMenu=true`；`updater/notifications/localAgent/pty/localMcp` 均为 `false`。不得为了让 UI 可见而返回尚不存在的能力。
+
+### 产品命令合同
+
+DX1 固定命令 ID：
+
+```text
+palette.open
+conversation.new
+view.sidebar.toggle
+navigation.home
+navigation.search
+navigation.settings
+navigation.back
+navigation.forward
+```
+
+命令 ID 是产品动作的稳定标识，不是任意 IPC channel。命令注册表必须拒绝重复 ID，route-scoped 注册返回 disposer；命令面板、toolbar、快捷键与原生菜单调用同一 handler。`conversation.new` 只进入当前 Conversation 工作流，不能被解释成 durable Run 创建。
+
+## 3. MVP 扩展 `PlatformPort`
 
 产品 UI 只能依赖下列稳定能力域；实现 DTO 在 Shared Client 阶段生成，但能力名称和安全语义现在冻结：
 
@@ -29,7 +91,7 @@
 
 浏览器 adapter 必须实现同一 interface，对不可用能力返回类型化 unsupported；组件不得直接检查 `window.electron`。
 
-## 3. 固定 `RunClient`
+## 4. 固定 `RunClient`
 
 MVP 的 Shared Client 必须提供且只围绕以下核心操作设计：
 
@@ -58,11 +120,28 @@ submitInteraction(runId, input) -> RunProjection
 - 本仓可以生成 client types、保存测试 fixture 或记录服务端 schema digest，但**不得手写第二份远程 schema**。
 - schema URL、版本和生成命令在 Shared Client 实施时登记；服务端 schema 不可达时 CI 应使用已审核 artifact，而不是临时猜 shape。
 
-## 4. Renderer Bridge
+## 5. Renderer Bridge
 
 ### 当前 DESK0 子集
 
 preload 目前只通过 `window.multiRagDesktop` 暴露版本号和 `capabilities()`。返回值中只有 `desktop=true`；`updater`、`notifications`、`localAgent`、`pty`、`localMcp` 固定为 `false`。该子集不调用 `ipcRenderer`，不包含 auth、Run、下载或外链方法，不得作为下述目标 Bridge 已完成的证据。
+
+### CLP-DX1 bridge v2 目标
+
+```ts
+interface MultiRagDesktopBridge {
+  readonly version: 2
+  capabilities(): Readonly<DesktopCapabilities>
+  readonly commands: {
+    onInvoked(listener: (id: DesktopCommandId) => void): () => void
+  }
+}
+```
+
+- v2 是 DESK0 v1 的显式不兼容升级；staging/build manifest 与 Renderer adapter 必须精确匹配 `2`。
+- 命令通道只允许 main → preload → Renderer。preload 过滤固定 `DesktopCommandId`、不传 Electron event，并返回幂等 unsubscribe。
+- main 只向仍存活且顶层 URL 属于 `app://bundle/**` 的主窗口派发；开发来源必须继续经过精确 loopback policy。
+- 禁止 `send(channel)`、`invoke(channel)`、`on(channel)`、任意 `execute(commandId)` 或暴露 `ipcRenderer`。
 
 ### API 形态
 
@@ -85,7 +164,7 @@ preload 目前只通过 `window.multiRagDesktop` 暴露版本号和 `capabilitie
 
 MVP 的云端 Run 事件由 Shared Client 在 Renderer 内消费，不经 IPC。Beta 的 PTY/日志才使用一次低频 IPC 授权后建立的有界 MessagePort/流；禁止 synchronous IPC 和逐字符 `invoke`。
 
-## 5. Run 与错误语义
+## 6. Run 与错误语义
 
 云端 Run 至少区分：`queued`、`running`、`interaction_required`、`completed`、`cancelled`、`failed`、`interrupted`。Client transport 另外区分 `unauthorized`、`timed_out`、`disconnected` 和事件 gap，不能把 transport EOF 写成 Run completed。
 
@@ -102,7 +181,7 @@ MVP 的云端 Run 事件由 Shared Client 在 Renderer 内消费，不经 IPC。
 
 原始 OS error、命令行、token、prompt、完整路径不能直接进入 telemetry 或用户消息。
 
-## 6. 有副作用工具与交互
+## 7. 有副作用工具与交互
 
 服务端 interaction 不是本地布尔 UI 状态。确认至少绑定：
 
@@ -115,7 +194,7 @@ MVP 的云端 Run 事件由 Shared Client 在 Renderer 内消费，不经 IPC。
 
 `submitInteraction` 前后都由服务端重新验证权限和参数摘要。未知执行结果进入 interrupted/unknown，不能静默重发。password/API key/token/OAuth 不通过普通 MCP form 采集。
 
-## 7. Auth 合同
+## 8. Auth 合同
 
 - `PlatformPort.auth` 同时支持密码登录和系统浏览器 OIDC Authorization Code + PKCE，并统一为同一 session/Principal 语义。
 - 密码登录返回短期 access token，并使用 rotation refresh token；页面永远拿不到 refresh token 原文。
@@ -131,7 +210,7 @@ MVP 的云端 Run 事件由 Shared Client 在 Renderer 内消费，不经 IPC。
 - Run/Shared Client 看到的 `tenant_id`、`principal_id` 与 authorization handle 都是 opaque server result；
   EIM port 未冻结或授权依赖不可用时相应能力 fail closed，不用字符串前缀或本地规则兜底。
 
-## 8. Downloads、notifications、updates
+## 9. Downloads、notifications、updates
 
 - Downloads：服务器产生受控 download descriptor，desktop adapter 管理目标、进度、取消和文件名净化；任意 URL/path 不直接进入 main。
 - Notifications：只有明确 permission 和产品设置允许时发送；点击事件携带 opaque route/run id，经 Renderer 再取权威状态。
@@ -143,20 +222,20 @@ MVP 的云端 Run 事件由 Shared Client 在 Renderer 内消费，不经 IPC。
 - 禁止：access token、prompt、对话正文、模型输出、tool/MCP 参数与结果、任意文件内容、完整本地路径。
 - Run projection 可在启动时由 `getRun + subscribe` 重建；本地缓存损坏或删除不能改变云端 Run 权威状态。
 
-## 9. Host RPC（Beta）
+## 10. Host RPC（Beta）
 
 MVP 后确需本地能力才定义 Host RPC。其 envelope 至少有 protocol version、message/operation id、method/event、payload、sequence 和受控 trace context；启动先交换 build、protocol range、capabilities、platform/arch 与 executable hash。
 
 framed stdio 与仅当前用户可访问的 Unix domain socket/named pipe 在 Beta PoC 比较；禁止无认证 localhost port。所有长操作有取消、超时、单一 terminal state 和 Host crash 恢复策略。
 
-## 10. 文件与路径（Beta）
+## 11. 文件与路径（Beta）
 
 - UI 优先传用户选择产生的 opaque handle，不传任意绝对路径。
 - Host 每次重新规范化并验证允许根、符号链接、类型、大小和权限。
 - 路径展示/日志默认脱敏；上传云端必须有明确用户动作与数据分类。
 - 目录授权不自动扩展到父目录。
 
-## 11. 版本与迁移
+## 12. 版本与迁移
 
 - Run Service API/event 版本由 MultiRAG 真相源治理；Shared Client 显式声明 v1/v2 compatibility。
 - Bridge/Host 协议使用明确 major/minor；breaking 语义升 major。
@@ -164,7 +243,7 @@ framed stdio 与仅当前用户可访问的 Unix domain socket/named pipe 在 Be
 - Run Service v2 灰度遵循：兼容消费者先行 → v2/v1 并行 → Alpha → 10% → 50% → 100%；指标越线自动停推。
 - Host schema 生成 TS/Rust DTO 并做 drift check，但不复制远程 Run schema。
 
-## 12. 合同变更流程
+## 13. 合同变更流程
 
 1. 在真相源先定义 schema、终态、取消、权限和兼容性。
 2. 明确 breaking/non-breaking、v1/v2 并行窗口和回退路径。

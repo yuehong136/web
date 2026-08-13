@@ -23,6 +23,8 @@
 | CP-015 | 首期保持单包，出现两个真实消费者后才迁移 workspace              | Accepted                |
 | CP-016 | 首发仅 macOS/Windows 企业私有分发，beta/stable 私有更新         | Accepted                |
 | CP-017 | Client/Run 只消费 EIM 身份上下文，不构造 SDK/Channel/角色语义   | Accepted                |
+| CP-018 | DX1 采用双 composition + 任务优先混合式 Desktop Workbench       | Accepted                |
+| CP-019 | 稳定命令注册表驱动 UI/快捷键/原生菜单，bridge v2 只传白名单命令 | Accepted                |
 
 ## CP-001：为什么先选 Electron
 
@@ -86,6 +88,22 @@ Shared Client 只接收服务端已经认证的 session/opaque identity 结果�
 产生的 authenticated execution context 和 authorization result。接口未冻结时保持依赖未满足/功能关闭，
 不由客户端补一套临时身份模型。这样允许纯状态机、事件协议和 Renderer 工作先行，又不抢占并行 EIM/
 Channel 的决策权。
+
+## CP-018：为什么先建设独立 Desktop composition
+
+DESK0 复用了同一 Web 启动、认证 frame 和 `AppShell`，因此安全边界虽已建立，可见体验仍自然接近网页。更换为 Tauri 或其他壳而继续加载同一 composition 也不会自动产生桌面产品体验。
+
+DX1 采用 Web/Desktop 两个 composition root，共享唯一 Application、Router、页面、状态、设计系统和业务组件。Web 保持现有 `AppShell`；Desktop 使用 Activity Rail、上下文侧栏和现有 Workspace 组成任务优先混合式工作台，登录页使用共享表单的紧凑 Desktop frame。平台选择只发生在 entrypoint，页面不能出现 `isElectron` 分支。
+
+这一阶段允许在 EIM 和 Run Service 前并行，因为它不定义身份或执行语义。当前侧栏只展示真实 Conversation；`Needs attention/Running/Ready` 等任务状态必须等待 durable Run projection，不能用 mock UI 抢跑。该设计和验收边界以 [DESKTOP_EXPERIENCE.md](./DESKTOP_EXPERIENCE.md) 为准。
+
+## CP-019：为什么命令注册表是桌面交互真相源
+
+桌面产品同时存在命令面板、Activity Rail、toolbar、快捷键和原生菜单。如果每个入口分别实现动作，权限、可用条件、导航和副作用会漂移，也容易发生一次输入执行两次。
+
+DX1 固定稳定 `ProductCommandId` 和单一注册表；所有 Renderer 入口调用同一 handler。Electron menu 只向受信主窗口发送编译期 allowlist 中的命令 ID，preload 过滤 ID、剥离 Electron event 并提供幂等 unsubscribe。bridge 因此从 DESK0 静态 capability v1 显式升级为 v2，但仍禁止通用 `send/invoke/on(channel)` 和 Renderer 提供任意 command string。
+
+`conversation.new` 的当前语义严格是现有 Conversation 工作流。未来 durable Run 使用独立合同和命令，不通过改名把 Conversation 冒充 Run。
 
 ## 备选方案与当前判断
 
