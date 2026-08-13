@@ -22,6 +22,15 @@ type CompletionMessage = {
   files?: UploadedFileInfo[]
 }
 
+export interface DialogConversationSummary {
+  readonly id: string
+  readonly name?: string
+  readonly title?: string
+  readonly update_time: number
+  readonly update_date?: string
+  readonly message_count?: number
+}
+
 export const conversationAPI = {
   // 获取对话列表
   getConversations: (
@@ -37,11 +46,12 @@ export const conversationAPI = {
     conversationAPI.getConversations(params),
 
   // 根据dialog_id获取对话列表
-  getConversationsByDialog: (dialogId: string): Promise<any> => {
+  getConversationsByDialog: (
+    dialogId: string,
+  ): Promise<DialogConversationSummary[]> => {
     if (!dialogId) {
       throw new Error('dialog_id is required')
     }
-    console.log('API call with dialog_id:', dialogId)
     return apiClient.get(`/conversation/list?dialog_id=${dialogId}`)
   },
 

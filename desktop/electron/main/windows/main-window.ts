@@ -3,14 +3,17 @@ import { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { APP_ENTRY_URL } from '../app-protocol/constants'
 import { installWebContentsSecurityPolicy } from '../security/web-contents-policy'
-import { isExpectedRendererDocument } from './readiness-policy'
+import {
+  assertDesktopCompositionReady,
+  isExpectedRendererDocument,
+} from './readiness-policy'
 import { createMainWindowWebPreferences } from './window-options'
 
 const DOM_READY_TIMEOUT_MS = 15_000
 
 export enum MainWindowReadiness {
   LOAD = 'load',
-  DOM_READY = 'dom_ready',
+  DESKTOP_COMPOSITION = 'desktop_composition',
 }
 
 export interface MainWindowOptions {
@@ -93,12 +96,15 @@ export async function createMainWindow(
     preloadFailure = error
   })
   if (showWhenReady) window.once('ready-to-show', () => window.show())
-  const domReady =
-    readiness === MainWindowReadiness.DOM_READY ? waitForDomReady(window) : null
+  const desktopCompositionReady =
+    readiness === MainWindowReadiness.DESKTOP_COMPOSITION
+      ? waitForDomReady(window)
+      : null
   const load = window.loadURL(APP_ENTRY_URL)
-  if (domReady) {
+  if (desktopCompositionReady) {
     void load.catch(() => undefined)
-    await domReady
+    await desktopCompositionReady
+    await assertDesktopCompositionReady(window.webContents)
   } else {
     await load
   }

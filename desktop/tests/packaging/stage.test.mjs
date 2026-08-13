@@ -117,6 +117,10 @@ test('staging is deterministic, minimal, and has a sorted SHA-256 manifest', asy
   )
   assert.match(firstManifest.contentSha256, /^[a-f0-9]{64}$/)
   assert.equal(firstManifest.schemaVersion, 2)
+  assert.deepEqual(firstManifest.contracts, {
+    rendererBridgeVersion: 2,
+    runClientProtocolVersion: null,
+  })
   assert.deepEqual(firstManifest.security, fixtureNetworkPolicy)
   for (const file of firstManifest.files) {
     assert.match(file.sha256, /^[a-f0-9]{64}$/)
@@ -181,6 +185,29 @@ test('stage verifier detects manifest tampering', async (context) => {
   await assert.rejects(
     verifyStagedApplication(fixture.outputDirectory),
     /manifest (?:size|hash) mismatch/,
+  )
+})
+
+test('staging and verification reject renderer bridge contract drift', async (context) => {
+  const fixture = await createFixture(context)
+  await assert.rejects(
+    stageDesktopApp({
+      ...fixture,
+      sourceRevision: null,
+      rendererBridgeVersion: 1,
+    }),
+    /renderer bridge version must be 2/,
+  )
+
+  await stageDesktopApp({ ...fixture, sourceRevision: null })
+  const manifestPath = path.join(fixture.outputDirectory, 'build-manifest.json')
+  const manifest = JSON.parse(await fs.readFile(manifestPath, 'utf8'))
+  manifest.contracts.rendererBridgeVersion = 1
+  await fs.writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`)
+
+  await assert.rejects(
+    verifyStagedApplication(fixture.outputDirectory),
+    /renderer bridge version must be 2/,
   )
 })
 

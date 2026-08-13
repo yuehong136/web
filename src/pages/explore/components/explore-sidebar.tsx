@@ -12,8 +12,12 @@ import {
 import type { TFunction } from 'i18next'
 import { PageEmptyState } from '@/components/patterns/page-states'
 import { cn } from '@/lib/utils'
-import { getConversationDateGroup } from '@/utils/conversation-utils'
+import {
+  ConversationDateGroup,
+  getConversationDateGroup,
+} from '@/utils/conversation-utils'
 import type { DialogApp } from '@/types/api'
+import { translateConversationGroup } from './conversation-group-label'
 import { getExploreAppIcon } from './explore-app-icon'
 
 export type ExploreTab = 'workspace' | 'topics' | 'settings'
@@ -132,17 +136,6 @@ const CONVERSATION_STYLES = `
 `
 
 const TAB_ITEMS: ExploreTab[] = ['workspace', 'topics', 'settings']
-
-const translateConversationGroup = (group: string, t: TFunction): string => {
-  const keyMap: Record<string, string> = {
-    今天: 'explore.conversations.groups.today',
-    昨天: 'explore.conversations.groups.yesterday',
-    '最近 7 天': 'explore.conversations.groups.last7Days',
-    更早: 'explore.conversations.groups.earlier',
-  }
-
-  return keyMap[group] ? t(keyMap[group]) : group
-}
 
 const getTabLabel = (tab: ExploreTab, t: TFunction) => {
   if (tab === 'workspace') return t('explore.tabs.workspace')
@@ -331,7 +324,10 @@ export const ExploreSidebar: FC<ExploreSidebarProps> = ({
                           }}
                           groupable={{
                             label: (group) =>
-                              translateConversationGroup(String(group), t),
+                              translateConversationGroup(
+                                String(group) as ConversationDateGroup,
+                                t,
+                              ),
                           }}
                           items={
                             dialogConversations.length === 0

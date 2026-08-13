@@ -80,6 +80,47 @@ test('Renderer rejects bare Node built-ins and deep desktop imports', async () =
   )
 })
 
+test('Desktop Renderer adapter may import only the pure bridge contract', async () => {
+  await assertNoRuleError(
+    'src/entrypoints/virtual-composition.ts',
+    "import '@/platform/desktop'\n",
+    'no-restricted-imports',
+  )
+  await assertNoRuleError(
+    'src/platform/desktop/virtual-boundary.ts',
+    "import '../../../desktop/protocol/renderer-bridge/index'\n",
+    'no-restricted-imports',
+  )
+  await assertRestrictedImport(
+    'src/platform/desktop/virtual-boundary.ts',
+    "import '../../../desktop/electron/main/index'\n",
+  )
+  await assertRestrictedImport(
+    'src/platform/desktop/virtual-boundary.ts',
+    "import 'electron'\n",
+  )
+  await assertRestrictedImport(
+    'src/platform/desktop/virtual-boundary.ts',
+    "import 'node:path'\n",
+  )
+  await assertRestrictedDynamicImport(
+    'src/platform/desktop/virtual-boundary.ts',
+    "void import('../../../desktop/protocol/renderer-bridge/index')\n",
+  )
+  await assertRestrictedImport(
+    'src/pages/virtual-boundary.ts',
+    "import '../../desktop/protocol/renderer-bridge/index'\n",
+  )
+  await assertRestrictedImport(
+    'src/pages/virtual-boundary.ts',
+    "import '@/platform/desktop'\n",
+  )
+  await assertRestrictedDynamicImport(
+    'src/pages/virtual-boundary.ts',
+    "void import('@/platform/desktop')\n",
+  )
+})
+
 test('explicit build generators retain their scoped Node access', async () => {
   await assertNoRuleError(
     'src/themes/build-themes.ts',
@@ -94,6 +135,11 @@ test('explicit build generators retain their scoped Node access', async () => {
 })
 
 test('sandboxed preload rejects bare Node built-ins and main imports', async () => {
+  await assertNoRuleError(
+    'desktop/electron/preload/virtual-boundary.ts',
+    "import '../../protocol/renderer-bridge/index'\n",
+    'no-restricted-imports',
+  )
   await assertRestrictedImport(
     'desktop/electron/preload/virtual-boundary.ts',
     "import 'child_process'\n",
@@ -125,6 +171,11 @@ test('sandboxed preload rejects bare Node built-ins and main imports', async () 
 })
 
 test('Electron main keeps Node access but rejects UI and preload imports', async () => {
+  await assertNoRuleError(
+    'desktop/electron/main/virtual-boundary.ts',
+    "import '../../protocol/renderer-bridge/index'\n",
+    'no-restricted-imports',
+  )
   await assertNoRuleError(
     'desktop/electron/main/virtual-boundary.ts',
     "import 'node:path'\n",

@@ -13,6 +13,7 @@ import {
 import { extractFile, getRawHeader, listPackage } from '@electron/asar'
 
 import { DESKTOP_PRODUCT_NAME, STAGE_MANIFEST_VERSION } from './constants.mjs'
+import { validateDesktopContracts } from './contracts.mjs'
 import { validateDesktopNetworkPolicy } from './network-policy.mjs'
 import { artifactDirectory } from './paths.mjs'
 
@@ -124,6 +125,7 @@ function parseBuildManifest(archivePath) {
   if (manifest.schemaVersion !== STAGE_MANIFEST_VERSION) {
     throw new Error('app.asar build manifest has an unsupported schema version')
   }
+  validateDesktopContracts(manifest.contracts)
   validateDesktopNetworkPolicy(manifest.security)
   return manifest
 }

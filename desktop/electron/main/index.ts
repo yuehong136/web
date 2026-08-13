@@ -1,6 +1,7 @@
 import { app, BrowserWindow, session } from 'electron'
 import { join } from 'node:path'
 import { installAppProtocol, registerAppScheme } from './app-protocol/install'
+import { installDesktopApplicationMenu } from './menu/application-menu'
 import { loadDesktopNetworkPolicy } from './security/network-policy'
 import { installSessionSecurityPolicy } from './security/session-policy'
 import { configureDesktopSmokeRuntime } from './smoke/smoke-runtime'
@@ -12,11 +13,17 @@ const isSmokeTest = configureDesktopSmokeRuntime(app)
 registerAppScheme()
 app.enableSandbox()
 
+let mainWindow: BrowserWindow | null = null
+
 async function openMainWindow(
   showWhenReady = true,
   readiness = MainWindowReadiness.LOAD,
 ): Promise<void> {
-  await createMainWindow({ readiness, showWhenReady })
+  const createdWindow = await createMainWindow({ readiness, showWhenReady })
+  mainWindow = createdWindow
+  createdWindow.once('closed', () => {
+    if (mainWindow === createdWindow) mainWindow = null
+  })
 }
 
 function writeSmokeSuccess(): Promise<void> {
@@ -42,7 +49,9 @@ async function bootstrap(): Promise<void> {
   )
   await openMainWindow(
     !isSmokeTest,
-    isSmokeTest ? MainWindowReadiness.DOM_READY : MainWindowReadiness.LOAD,
+    isSmokeTest
+      ? MainWindowReadiness.DESKTOP_COMPOSITION
+      : MainWindowReadiness.LOAD,
   )
 
   if (isSmokeTest) {
@@ -50,6 +59,13 @@ async function bootstrap(): Promise<void> {
     app.exit(0)
     return
   }
+
+  installDesktopApplicationMenu({
+    appName: app.name,
+    locale: app.getLocale(),
+    platform: process.platform,
+    getMainWindow: () => mainWindow,
+  })
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {

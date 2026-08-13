@@ -1,0 +1,61 @@
+export const desktopResource = {
+  desktop: {
+    activityRail: {
+      label: 'Desktop workspace',
+      home: 'Go home',
+    },
+    activities: {
+      work: 'Work',
+      discover: 'Discover',
+      knowledge: 'Knowledge',
+      build: 'Build',
+      tools: 'Tools',
+    },
+    workbench: {
+      context: 'Workspace',
+      resizeContext: 'Resize context panel',
+    },
+    conversations: {
+      emptyTitle: 'Choose an app to view conversations',
+      emptyDescription:
+        'Your recent conversations for the selected app will appear here.',
+      chooseApp: 'Choose an app on Home',
+      panelTitle: '{{appName}} conversations',
+      appFallback: 'App',
+      newConversation: 'New conversation',
+      empty: 'No conversations yet',
+      untitled: 'Untitled conversation',
+      groups: {
+        today: 'Today',
+        yesterday: 'Yesterday',
+        lastSevenDays: 'Last 7 days',
+        earlier: 'Earlier',
+      },
+      time: {
+        justNow: 'Just now',
+        minutesAgo_one: '{{count}} minute ago',
+        minutesAgo_other: '{{count}} minutes ago',
+        hoursAgo_one: '{{count}} hour ago',
+        hoursAgo_other: '{{count}} hours ago',
+        yesterday: 'Yesterday',
+        daysAgo_one: '{{count}} day ago',
+        daysAgo_other: '{{count}} days ago',
+      },
+    },
+    commands: {
+      paletteLabel: 'Application commands',
+      paletteDescription: 'Search and run an available application command',
+      searchPlaceholder: 'Search commands…',
+      empty: 'No matching commands',
+      group: 'Available commands',
+      openPalette: 'Open command palette',
+      newConversation: 'New conversation',
+      toggleSidebar: 'Toggle context panel',
+      goHome: 'Go home',
+      goSearch: 'Go to search',
+      goSettings: 'Open settings',
+      back: 'Go back',
+      forward: 'Go forward',
+    },
+  },
+} as const

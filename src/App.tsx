@@ -15,8 +15,13 @@ import i18n, {
   getCurrentLanguage,
   normalizeLocale,
 } from './locales/i18n'
+import { PlatformProvider, type ApplicationComposition } from './platform'
 
-function App() {
+export interface ApplicationProps {
+  readonly composition: ApplicationComposition
+}
+
+export function Application({ composition }: ApplicationProps) {
   // 检测暗色模式 - 使用 data-theme 属性
   const [isDark, setIsDark] = React.useState(
     () => document.documentElement.getAttribute('data-theme') === 'dark',
@@ -65,19 +70,21 @@ function App() {
   }, [])
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <XProvider theme={buildAntdTheme(isDark)} direction="ltr">
-        <AntApp>
-          <RouterProvider
-            router={router}
-            onError={handleCaughtApplicationError}
-          />
-          <Toaster position="top-right" richColors closeButton />
-          <ReactQueryDevtools initialIsOpen={false} />
-        </AntApp>
-      </XProvider>
-    </QueryClientProvider>
+    <PlatformProvider composition={composition}>
+      <QueryClientProvider client={queryClient}>
+        <XProvider theme={buildAntdTheme(isDark)} direction="ltr">
+          <AntApp>
+            <RouterProvider
+              router={router}
+              onError={handleCaughtApplicationError}
+            />
+            <Toaster position="top-right" richColors closeButton />
+            <ReactQueryDevtools initialIsOpen={false} />
+          </AntApp>
+        </XProvider>
+      </QueryClientProvider>
+    </PlatformProvider>
   )
 }
 
-export default App
+export default Application

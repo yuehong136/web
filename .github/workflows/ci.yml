@@ -62,6 +62,9 @@ jobs:
       - name: Test (product contracts & recovery)
         run: npm run test:product-ui
 
+      - name: Test (client platform composition)
+        run: npm run test:client-platform
+
       - name: Test (security boundaries)
         run: npm run test:security
 

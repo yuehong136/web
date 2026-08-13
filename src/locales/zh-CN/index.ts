@@ -15,6 +15,8 @@ import mcp from './mcp'
 import settings from './settings'
 import channel from './channel'
 import routeErrors from './route-errors'
+import { authResource as auth } from './auth'
+import { desktopResource as desktop } from './desktop'
 
 export default {
   ...common,
@@ -34,4 +36,6 @@ export default {
   ...settings,
   ...channel,
   ...routeErrors,
+  ...auth,
+  ...desktop,
 }

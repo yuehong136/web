@@ -28,9 +28,15 @@ const validNetworkPolicy = {
   ],
 }
 
+const validContracts = {
+  rendererBridgeVersion: 2,
+  runClientProtocolVersion: null,
+}
+
 async function writeBuildManifest(
   sourceDirectory,
   networkPolicy = validNetworkPolicy,
+  contracts = validContracts,
 ) {
   const relativePaths = [
     'main/index.mjs',
@@ -55,6 +61,7 @@ async function writeBuildManifest(
     path.join(sourceDirectory, 'build-manifest.json'),
     `${JSON.stringify({
       schemaVersion: 2,
+      contracts,
       security: networkPolicy,
       contentSha256: digest.digest('hex'),
       files,
@@ -176,6 +183,54 @@ test('package verifier rejects a broadened manifest network policy', async (cont
       productName: 'MultiRAG',
     }),
     /connectSources must exactly match|absolute URL/,
+  )
+})
+
+test('package verifier rejects renderer bridge contract drift', async (context) => {
+  const rootDirectory = await fs.mkdtemp(
+    path.join(os.tmpdir(), 'multirag-package-contract-test-'),
+  )
+  context.after(() => fs.rm(rootDirectory, { recursive: true, force: true }))
+
+  const sourceDirectory = path.join(rootDirectory, 'source')
+  const appOutDirectory = path.join(rootDirectory, 'out')
+  const contentsDirectory = path.join(
+    appOutDirectory,
+    'MultiRAG.app',
+    'Contents',
+  )
+  const resourcesDirectory = path.join(contentsDirectory, 'Resources')
+  const executablePath = path.join(contentsDirectory, 'MacOS', 'MultiRAG')
+
+  for (const relativePath of [
+    'main/index.mjs',
+    'preload/index.cjs',
+    'renderer/index.html',
+  ]) {
+    const filePath = path.join(sourceDirectory, relativePath)
+    await fs.mkdir(path.dirname(filePath), { recursive: true })
+    await fs.writeFile(filePath, 'fixture\n')
+  }
+  await fs.writeFile(path.join(sourceDirectory, 'package.json'), '{}\n')
+  await writeBuildManifest(sourceDirectory, validNetworkPolicy, {
+    ...validContracts,
+    rendererBridgeVersion: 1,
+  })
+  await fs.mkdir(path.dirname(executablePath), { recursive: true })
+  await fs.mkdir(resourcesDirectory, { recursive: true })
+  await fs.writeFile(executablePath, 'not-electron\n')
+  await createPackage(
+    sourceDirectory,
+    path.join(resourcesDirectory, 'app.asar'),
+  )
+
+  await assert.rejects(
+    verifyPackagedArchive({
+      appOutDirectory,
+      platform: 'darwin',
+      productName: 'MultiRAG',
+    }),
+    /renderer bridge version must be 2/,
   )
 })
 

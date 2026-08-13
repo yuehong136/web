@@ -1,27 +1,28 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import 'antd/dist/reset.css'
-import '@ant-design/x-markdown/dist/x-markdown.css'
-import './index.css'
-import App from './App.tsx'
 import {
-  ErrorBoundary,
-  handleCaughtApplicationError,
-} from '@/components/ui/error-boundary'
-import { initTheme } from '@/themes'
+  ClientRuntime,
+  selectApplicationRuntime,
+} from '@/entrypoints/runtime-selection'
+import { mountCompatibilityFailure } from '@/entrypoints/compatibility-failure'
+import { mountDesktopApplication } from '@/entrypoints/desktop'
+import { mountWebApplication } from '@/entrypoints/web'
 
-// 初始化 i18n 国际化
-import '@/locales/i18n'
+const protocol = window.location.protocol
+const host = window.location.host
+const isDesktopDocument = protocol === 'app:' && host === 'bundle'
+const selection = selectApplicationRuntime({
+  protocol,
+  host,
+  ...(isDesktopDocument ? { bridge: window.multiRagDesktop } : {}),
+})
 
-// 初始化主题系统
-initTheme()
-
-createRoot(document.getElementById('root')!, {
-  onCaughtError: handleCaughtApplicationError,
-}).render(
-  <StrictMode>
-    <ErrorBoundary onRetry={() => window.location.reload()}>
-      <App />
-    </ErrorBoundary>
-  </StrictMode>,
-)
+switch (selection.runtime) {
+  case ClientRuntime.WEB:
+    mountWebApplication()
+    break
+  case ClientRuntime.DESKTOP:
+    mountDesktopApplication(selection.composition)
+    break
+  case ClientRuntime.INCOMPATIBLE:
+    mountCompatibilityFailure()
+    break
+}

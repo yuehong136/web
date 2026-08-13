@@ -42,6 +42,12 @@ const restrictedRuntimeGlobals = [
   message:
     'This trust boundary cannot use Node runtime globals; use its declared browser-safe contract.',
 }))
+const restrictedDesktopImplementationImportPattern =
+  '^(?:(?:\\.\\./)+desktop(?:/|$)|@/\\.\\./desktop(?:/|$)|desktop(?:/|$)|/.*?/desktop(?:/|$))'
+const restrictedDesktopOutsideRendererBridgeImportPattern =
+  '^(?:(?:\\.\\./)+desktop/|@/\\.\\./desktop/|desktop/|/.*?/desktop/)(?!protocol/renderer-bridge(?:/|$))'
+const restrictedDesktopAdapterImportPattern =
+  '^(?:@/platform/desktop|(?:\\.\\.?/)+platform/desktop)(?:/|$)'
 const platformBoundaryPlugin = {
   rules: {
     'no-restricted-dynamic-import': noRestrictedDynamicImport,
@@ -170,7 +176,10 @@ export default tseslint.config([
         {
           disallowNodeBuiltins: true,
           packages: ['electron', '@electron/remote'],
-          patterns: ['(^|/)desktop(/|$)'],
+          patterns: [
+            restrictedDesktopImplementationImportPattern,
+            restrictedDesktopAdapterImportPattern,
+          ],
         },
       ],
       'no-restricted-globals': ['error', ...restrictedRuntimeGlobals],
@@ -191,9 +200,77 @@ export default tseslint.config([
           ],
           patterns: [
             {
-              regex: '(^|/)desktop(/|$)',
+              regex: restrictedDesktopImplementationImportPattern,
               message:
                 'Renderer product code cannot depend on Electron, preload, or host implementation paths.',
+            },
+            {
+              regex: restrictedDesktopAdapterImportPattern,
+              message:
+                'Renderer product code must consume PlatformPort instead of a platform-specific adapter.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    // Composition roots choose an adapter; product pages consume only the
+    // resulting PlatformPort through the shared provider.
+    files: ['src/entrypoints/**/*.{ts,tsx}'],
+    ignores: ['src/entrypoints/**/__tests__/**'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            ...restrictedNodeImportPaths,
+            {
+              name: 'electron',
+              message:
+                'Renderer code must use PlatformPort, never Electron directly.',
+            },
+            {
+              name: '@electron/remote',
+              message: '@electron/remote is forbidden in the Renderer.',
+            },
+          ],
+          patterns: [
+            {
+              regex: restrictedDesktopImplementationImportPattern,
+              message:
+                'Renderer composition roots cannot depend on Electron, preload, or host implementation paths.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    // The Desktop adapter may consume the pure Renderer bridge contract. It
+    // still cannot import Electron, preload/main implementations, or Node.
+    files: ['src/platform/desktop/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            ...restrictedNodeImportPaths,
+            {
+              name: 'electron',
+              message:
+                'Renderer code must use PlatformPort, never Electron directly.',
+            },
+            {
+              name: '@electron/remote',
+              message: '@electron/remote is forbidden in the Renderer.',
+            },
+          ],
+          patterns: [
+            {
+              regex: restrictedDesktopOutsideRendererBridgeImportPattern,
+              message:
+                'The Desktop adapter may import only the pure Renderer bridge contract.',
             },
           ],
         },

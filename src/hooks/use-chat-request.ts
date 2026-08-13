@@ -246,12 +246,7 @@ export const useFetchConversationsByDialog = (dialogId?: string | null) => {
     queryKey: chatKeys.conversationsByDialog(dialogId || ''),
     queryFn: async () => {
       if (!dialogId) return []
-      console.log(
-        '[useFetchConversationsByDialog] Fetching conversations for dialog:',
-        dialogId,
-      )
       const response = await conversationAPI.getConversationsByDialog(dialogId)
-      console.log('[useFetchConversationsByDialog] Response:', response)
       // API 直接返回数组
       return response || []
     },
@@ -260,17 +255,6 @@ export const useFetchConversationsByDialog = (dialogId?: string | null) => {
     gcTime: 5 * 60 * 1000, // 缓存保留 5 分钟
     refetchOnWindowFocus: false,
   })
-
-  // 调试日志
-  console.log(
-    '[useFetchConversationsByDialog] dialogId:',
-    dialogId,
-    'data:',
-    data,
-    'isLoading:',
-    isFetching,
-  )
-
   return {
     conversations: Array.isArray(data) ? data : [],
     isLoading: isFetching,

@@ -5,6 +5,7 @@ import { pathToFileURL } from 'node:url'
 
 import { stageAppDirectory } from './paths.mjs'
 import { STAGE_MANIFEST_VERSION } from './constants.mjs'
+import { validateDesktopContracts } from './contracts.mjs'
 import { validateDesktopNetworkPolicy } from './network-policy.mjs'
 
 const allowedStageRoots = new Set([
@@ -73,6 +74,7 @@ export async function verifyStagedApplication(
   if (manifest.schemaVersion !== STAGE_MANIFEST_VERSION) {
     throw new Error('staging manifest has an unsupported schema version')
   }
+  validateDesktopContracts(manifest.contracts)
   validateDesktopNetworkPolicy(manifest.security)
   if (!Array.isArray(manifest.files)) {
     throw new Error('staging manifest files must be an array')

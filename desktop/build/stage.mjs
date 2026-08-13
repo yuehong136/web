@@ -13,6 +13,7 @@ import {
   RUN_CLIENT_PROTOCOL_VERSION,
   STAGE_MANIFEST_VERSION,
 } from './constants.mjs'
+import { validateDesktopContracts } from './contracts.mjs'
 import {
   createDesktopNetworkPolicyFromReceipt,
   loadRendererNetworkPolicyReceipt,
@@ -410,6 +411,12 @@ export async function stageDesktopApp({
   }
 
   const files = await createFileManifest(outputDirectory)
+  const contracts = {
+    rendererBridgeVersion,
+    runClientProtocolVersion,
+  }
+  validateDesktopContracts(contracts)
+
   const manifest = {
     schemaVersion: STAGE_MANIFEST_VERSION,
     app: {
@@ -423,10 +430,7 @@ export async function stageDesktopApp({
       electronVersion: ELECTRON_VERSION,
     },
     sourceRevision: resolvedSourceRevision,
-    contracts: {
-      rendererBridgeVersion,
-      runClientProtocolVersion,
-    },
+    contracts,
     security: resolvedNetworkPolicy,
     contentSha256: createContentHash(files),
     files,

@@ -33,6 +33,7 @@
     "desktop:package:dir": "node desktop/build/package-electron.mjs",
     "desktop:verify:package": "node desktop/build/verify-package.mjs",
     "desktop:typecheck": "tsc -p desktop/tsconfig.main.json && tsc -p desktop/tsconfig.preload.json",
+    "test:client-platform": "vitest run src/entrypoints/__tests__/*.test.ts src/entrypoints/__tests__/*.test.tsx src/platform/__tests__/*.test.tsx src/lib/commands/__tests__/*.test.ts src/lib/commands/__tests__/*.test.tsx src/pages/auth/__tests__/*.test.tsx src/components/layout/desktop/__tests__/*.test.tsx",
     "test:desktop": "tsx --test desktop/tests/**/*.test.ts desktop/tests/**/*.test.mjs",
     "typecheck:agent-strict": "tsc -p tsconfig.agent-strict.json",
     "test:agent-t1": "tsx --tsconfig tsconfig.app.json --test src/pages/agent/operators/__tests__/serializers.test.ts src/pages/agent/adapters/__tests__/adapters.test.ts src/pages/agent/form/__tests__/t3-parity-normalizers.test.ts src/pages/agent/setting-dialog/__tests__/settings-payload.test.ts src/pages/agent/features/runtime-workbench/__tests__/runtime-lifecycle.test.ts",
