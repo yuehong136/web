@@ -1,6 +1,7 @@
 import { app, BrowserWindow, session } from 'electron'
 import { join } from 'node:path'
 import { installAppProtocol, registerAppScheme } from './app-protocol/install'
+import { loadDesktopNetworkPolicy } from './security/network-policy'
 import { installSessionSecurityPolicy } from './security/session-policy'
 import { configureDesktopSmokeRuntime } from './smoke/smoke-runtime'
 import { createMainWindow, MainWindowReadiness } from './windows/main-window'
@@ -31,7 +32,14 @@ async function bootstrap(): Promise<void> {
   await app.whenReady()
 
   installSessionSecurityPolicy(session.defaultSession)
-  await installAppProtocol(join(app.getAppPath(), 'renderer'))
+  const appPath = app.getAppPath()
+  const networkPolicy = await loadDesktopNetworkPolicy(
+    join(appPath, 'build-manifest.json'),
+  )
+  await installAppProtocol(
+    join(appPath, 'renderer'),
+    networkPolicy.connectSources,
+  )
   await openMainWindow(
     !isSmokeTest,
     isSmokeTest ? MainWindowReadiness.DOM_READY : MainWindowReadiness.LOAD,

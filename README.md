@@ -98,7 +98,7 @@ desktop/
 
 For the _why_ behind this layout (page-skeleton four-layer rule, presentational/container split, file-size limits), see `AI前端技术栈开发规范.md` and `AGENTS.md`.
 
-The Web application remains the only production product and can still build and ship independently. `desktop/` now contains the non-release `CLP-DESK0` secure-shell baseline (Electron main/preload, `app://bundle/`, staging and package checks), but it does **not** provide authentication, Shared `RunClient`, durable Run recovery, auto-update, a local Host, or verified Windows packaging/signing. See [`docs/client-platform/README.md`](./docs/client-platform/README.md).
+The Web application remains the only production product and can still build and ship independently. `desktop/` now contains the non-release `CLP-DESK0` secure-shell baseline (Electron main/preload, `app://bundle/`, staging and package checks). It can reuse the existing Web password login for local integration, but it does **not** provide desktop-native OIDC/credential hardening, Shared `RunClient`, durable Run recovery, auto-update, a local Host, or verified Windows packaging/signing. See [`docs/client-platform/README.md`](./docs/client-platform/README.md).
 
 ## Getting Started
 
@@ -138,6 +138,8 @@ npm run test:desktop    # Run desktop shell contract and packaging tests
 npm run desktop:build   # Build main ESM + sandbox preload CJS with Rolldown
 npm run desktop:stage   # Assemble the explicit desktop staging app
 npm run desktop:verify:stage # Verify staging allowlist and build manifest
+npm run desktop:package:dir # Build and verify the native unpacked package
+npm run desktop:verify:package # Re-verify the current native artifact
 ```
 
 There is no generic `test`, `format`, or `typecheck` script today. Type checking happens inside `npm run build`, with stricter Agent-slice checks available via `npm run typecheck:agent-strict`. Formatting is handled by Prettier + lint-staged for staged files only; do not run a whole-repo format pass. Existing formal tests run via `tsx --test`; Vitest baseline config exists for future additions/migration.
@@ -146,10 +148,13 @@ There is no generic `test`, `format`, or `typecheck` script today. Type checking
 
 ```env
 VITE_API_BASE_URL=http://localhost:8000
+VITE_ADMIN_API_BASE_URL=http://localhost:8130
 VITE_WS_BASE_URL=ws://localhost:8000
 ```
 
 Browser-exposed env vars must use the `VITE_*` prefix. Never inline secrets.
+
+For a local macOS desktop preview, set those origins in `.env.local`, start the backend, then run `npm run build:desktop`, `npm run desktop:verify:stage`, and `npm run desktop:package:dir`. Open `desktop/.out/artifacts/mac-arm64/MultiRAG.app` on Apple Silicon (`mac/MultiRAG.app` on x64). Endpoint changes require a rebuild; the app never reads `.env.local` at runtime. See [`desktop/README.md`](./desktop/README.md) for limitations and native-platform notes.
 
 ## Architecture Highlights
 

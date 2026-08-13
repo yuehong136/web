@@ -4,8 +4,38 @@ import { defineConfig, loadEnv, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
 import { visualizer } from 'rollup-plugin-visualizer'
+import { createRendererNetworkPolicyReceipt } from './desktop/build/network-policy.mjs'
 
 const PROJECT_DIR = import.meta.dirname
+const RENDERER_NETWORK_POLICY_RECEIPT = path.resolve(
+  PROJECT_DIR,
+  'desktop/.out/build/renderer/network-policy.json',
+)
+
+function rendererNetworkPolicyReceiptPlugin(
+  environment: Record<string, string>,
+  viteMode: string,
+): Plugin {
+  return {
+    name: 'renderer-network-policy-receipt',
+    buildStart() {
+      fs.rmSync(RENDERER_NETWORK_POLICY_RECEIPT, { force: true })
+    },
+    closeBundle() {
+      const receipt = createRendererNetworkPolicyReceipt(environment, {
+        viteMode,
+      })
+      fs.mkdirSync(path.dirname(RENDERER_NETWORK_POLICY_RECEIPT), {
+        recursive: true,
+      })
+      fs.writeFileSync(
+        RENDERER_NETWORK_POLICY_RECEIPT,
+        `${JSON.stringify(receipt, null, 2)}\n`,
+        'utf8',
+      )
+    },
+  }
+}
 
 function readPackageVersion(): string {
   try {
@@ -128,7 +158,7 @@ function isAnyPackagePrefix(id: string, packagePrefixes: string[]): boolean {
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), '')
+  const env = loadEnv(mode, PROJECT_DIR, '')
   const fallbackApiBase = env.VITE_API_BASE_URL || 'http://localhost:8000'
   const shouldAnalyze = env.VITE_ANALYZE === 'true' || mode === 'analyze'
   const appVersion = readPackageVersion()
@@ -147,6 +177,7 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [
       stubReactShikiCss(),
+      rendererNetworkPolicyReceiptPlugin(env, mode),
       react(),
       monacoStaticAssetsPlugin(),
       ...(shouldAnalyze

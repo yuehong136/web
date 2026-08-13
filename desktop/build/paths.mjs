@@ -18,6 +18,11 @@ export const preloadBuildDirectory = path.join(
   electronBuildDirectory,
   'preload',
 )
+export const rendererNetworkPolicyReceiptPath = path.join(
+  electronBuildDirectory,
+  'renderer',
+  'network-policy.json',
+)
 
 export const stageDirectory = path.join(desktopDirectory, '.out', 'stage')
 export const stageAppDirectory = path.join(stageDirectory, 'app')

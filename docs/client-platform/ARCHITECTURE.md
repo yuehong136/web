@@ -12,9 +12,10 @@
 - `desktop/` 已实现 CLP-DESK0 安全壳：Electron main 在 ready 前注册 `app://bundle/` 安全 scheme 并开启全局 sandbox，BrowserWindow 使用 context isolation/sandbox、禁用 Node integration/webview/任意导航，session 默认拒绝权限、设备与下载。
 - DESK0 preload 只暴露版本为 `1` 的静态 capability bridge；除 `desktop=true` 外，updater/notifications/localAgent/PTY/localMCP 均显式为 unsupported，没有通用 IPC。
 - main/preload 通过独立 Rolldown 构建，renderer 从根 `dist/` 按 allowlist 组装到 staging；electron-builder/ASAR/fuses 配置和验证器已存在。Web 构建不依赖这些产物。
+- Vite build 只把 `VITE_API_BASE_URL`、`VITE_ADMIN_API_BASE_URL`、`VITE_WS_BASE_URL` 三项公开网络输入写入 package 外的 receipt；staging 将 receipt 与当前 production-mode env 比对，一致后才生成版本化网络策略并写入 build manifest。main 启动时 fail closed 加载，只把精确 origin 注入 `connect-src`。远端只允许 HTTPS/WSS，本地 HTTP/WS 只允许精确 loopback host。
 - strict CSP 在 macOS packaged smoke 中拒绝了 renderer 引用的 Google Inter 外部 CSS，应用使用 fallback 字体继续工作。这是待本地打包字体的 renderer 资产问题，不通过扩大 `style-src`/`font-src` 第三方域解决。
-- 项目仍没有 Shared `RunClient`、桌面认证/凭据存储、自动更新、原生 sidecar、本地 PTY/MCP、Windows 安装包实测或签名发布链路。
-- API origin 仍存在编译期绝对地址与相对 `/api` 混用，桌面试点前必须收口为统一 runtime config。
+- 当前可复用 Web 密码登录做本地联调，但项目仍没有 desktop auth adapter、OIDC/`safeStorage`、Shared `RunClient`、自动更新、原生 sidecar、本地 PTY/MCP、Windows 安装包实测或签名发布链路。
+- 登录使用的绝对 API origin 已进入桌面网络策略；其余业务代码仍存在编译期绝对地址与相对 `/api` 混用，完整桌面黄金链路前必须收口为统一 runtime config。
 - 当前 Web 仍把 access/refresh credential 写入 `localStorage`；这是 `CLP-P0` 必须消除的现状，不是目标认证设计。
 - 当前 MultiRAG OAuth callback 在 EIM-I6 建立显式 provider-subject binding 前固定 fail closed，不按邮箱登录、注册或合并账号。
 

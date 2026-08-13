@@ -7,12 +7,36 @@ This directory contains the non-release Electron secure-shell baseline around th
 - Electron main process with global sandboxing, a locked-down `BrowserWindow`, deny-by-default permissions/downloads, and blocked popups, webviews, and untrusted navigation.
 - Sandboxed preload exposing only bridge version `1` and static `capabilities()`; only `desktop` is supported. There is no generic IPC surface.
 - `app://bundle/` secure custom protocol with strict URL/path resolution, navigation-only SPA fallback, CSP, `nosniff`, and no-referrer headers.
+- A versioned network policy generated from the same production-mode `VITE_API_BASE_URL`, `VITE_ADMIN_API_BASE_URL`, and `VITE_WS_BASE_URL` inputs as the Renderer. Remote connections require exact HTTPS/WSS origins; insecure HTTP/WS is accepted only for exact loopback origins used during local development.
 - Independent Rolldown outputs: one main ESM file and one preload CJS file.
 - Explicit staging allowlist, SHA-256 build manifest, electron-builder configuration, ASAR integrity/fuse verification, and packaging contract tests.
 
 ## Explicit non-goals
 
-DESK0 does not implement authentication/OIDC/credential storage, `PlatformPort` desktop adapters, Shared `RunClient`, durable Run recovery, updater, notifications, controlled downloads, deep links, a Rust Host, PTY, Git, local MCP, signing/notarization, installer E2E, or performance/soak acceptance. It does not construct or interpret Principal, API-key, Channel workload, active-tenant, or team-role semantics; those remain owned by EIM/backend contracts.
+DESK0 reuses the existing Web password-login flow for local integration, but does not implement desktop-native OIDC, `safeStorage`, refresh-token hardening, or a desktop auth adapter. The legacy Renderer still persists credentials in `localStorage`, so this artifact is not suitable for production distribution. DESK0 also does not implement Shared `RunClient`, durable Run recovery, updater, notifications, controlled downloads, deep links, a Rust Host, PTY, Git, local MCP, signing/notarization, installer E2E, or performance/soak acceptance. It does not construct or interpret Principal, API-key, Channel workload, active-tenant, or team-role semantics; those remain owned by EIM/backend contracts.
+
+## Local use
+
+Configure the public backend origins in the ignored `.env.local` file before building. For the current local MultiRAG ports:
+
+```env
+VITE_API_BASE_URL=http://127.0.0.1:8123
+VITE_ADMIN_API_BASE_URL=http://127.0.0.1:8130
+VITE_WS_BASE_URL=ws://localhost:8123
+```
+
+Then build the Renderer and shell from the same environment, stage, package, and open the artifact:
+
+```bash
+npm run build:desktop
+npm run desktop:verify:stage
+npm run desktop:package:dir
+
+# macOS arm64 local artifact
+open desktop/.out/artifacts/mac-arm64/MultiRAG.app
+```
+
+Changing any endpoint requires rebuilding and restaging; the package deliberately does not read `.env.local` at runtime. A Vite build receipt makes staging fail if `dist/` was built with different network inputs. The selected public origins are compiled into the Renderer and recorded in `build-manifest.json`, while both the receipt and `.env.local` are excluded from the package. Start the API service before logging in. On Windows, run the native package command on Windows and launch the generated `MultiRAG.exe` under `desktop/.out/artifacts/win-*-unpacked/`.
 
 ## Commands
 
@@ -37,7 +61,7 @@ On macOS, `desktop:package:dir` intentionally uses an ad-hoc identity and disabl
 
 ## Current native evidence
 
-On 2026-08-13, a local macOS arm64 unpacked build using Node `24.4.1` / npm `11.5.1` completed the packaged smoke switch (`MULTIRAG_DESKTOP_SMOKE_OK`). Smoke mode alone uses a unique temporary profile and Chromium's mock keychain so that the test neither reads a real desktop profile nor blocks on macOS Keychain access; normal launches retain the production profile and cookie-encryption fuse path. This smoke therefore does not validate the real Keychain/cookie-encryption startup path. Verification reported 1,170 ASAR entries and 1,059 build-manifest files, no packaged `node_modules`, source maps, fallback `resources/app`, or `app.asar.unpacked`, exact manifest hashes, valid ASAR integrity metadata and hardened fuse states, and a passing `codesign --verify` for the local ad-hoc artifact. The local toolchain is not yet the release target recorded in `VERSION_BASELINE.md`; this is not evidence for release-toolchain alignment, Developer ID signing, notarization, Windows, installers, or production readiness.
+On 2026-08-13, a local macOS arm64 unpacked build using Node `24.4.1` / npm `11.5.1` completed the packaged smoke switch (`MULTIRAG_DESKTOP_SMOKE_OK`). Smoke mode alone uses a unique temporary profile and Chromium's mock keychain so that the test neither reads a real desktop profile nor blocks on macOS Keychain access; normal launches retain the production profile and cookie-encryption fuse path. This smoke therefore does not validate the real Keychain/cookie-encryption startup path. Verification reported 1,170 ASAR entries and 1,059 build-manifest files, no packaged `node_modules`, source maps, fallback `resources/app`, or `app.asar.unpacked`, exact manifest hashes, valid ASAR integrity metadata and hardened fuse states, and a passing `codesign --verify` for the local ad-hoc artifact. A separate no-credential probe from that packaged Renderer to the configured login origin observed an `OPTIONS 200` preflight followed by `POST 200`, proving that the exact-origin CSP reaches the local API without granting broad HTTP access. This is a transport-boundary check, not a complete LoginPage/auth/session E2E. The local toolchain is not yet the release target recorded in `VERSION_BASELINE.md`; this is not evidence for release-toolchain alignment, Developer ID signing, notarization, Windows, installers, or production readiness.
 
 The same smoke exposed one expected strict-CSP gap: the renderer's external Google Inter stylesheet is blocked, so the desktop shell uses the fallback font. A later renderer asset task should package the font locally; do not broaden the production CSP to trust a third-party font origin as a shortcut.
 

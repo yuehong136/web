@@ -166,6 +166,7 @@ candidate capability、active tenant 或团队角色策略；被撤出的探索�
 
 - Electron main 和 sandbox preload 使用独立 TypeScript project 与 direct Rolldown 配置，产物分别为单一 ESM 和单一 CJS。
 - `app://bundle/` 是 standard + secure 自定义协议；拒绝非 GET、越界/编码绕过/符号链接逃逸，仅 HTML navigation 可 SPA fallback，并附加 CSP/nosniff/referrer policy。
+- Vite build 生成只含 API/Admin/WS public inputs 的 package 外 receipt；staging 拒绝 receipt 与当前 production env 漂移，再固化 versioned network policy。main、stage verifier 与 package verifier 分层 fail closed；远端仅允许 exact HTTPS/WSS，本地明文仅允许 exact loopback origin，避免把 `connect-src` 放宽为整个 `http:`。
 - BrowserWindow 固定 sandbox/context isolation，禁用 Node integration、webview、弹窗与非受信导航；session 默认拒绝权限、设备和下载。
 - preload 只暴露 bridge version 和静态 `capabilities()`，未使用通用 IPC；桌面外的能力全部返回 unsupported。
 - staging 从 Web `dist/`、main/preload 产物按显式 allowlist 组装，拒绝 source map、源码、测试、`.env*`、凭据类文件、符号链接与未知根项，生成 SHA-256 build manifest。
@@ -187,9 +188,9 @@ npm run desktop:package:dir
 npm run desktop:verify:package
 ```
 
-未完成边界：DESK0 不含 auth/OIDC/`safeStorage`、PlatformPort desktop adapter、Shared `RunClient`、durable Run 恢复、updater、通知、受控下载、deep link、Host/PTY/MCP、性能/soak、安装器 E2E 或签名/公证。Windows 尚无打包、启动、签名实测，因此 CLP-DESK 保持进行中。认证与执行 ownership 仍以 EIM 稳定身份/授权 port 为前置；DESK0 不构造 Principal，不解释 API Key、Channel workload、active tenant 或团队角色。
+未完成边界：DESK0 仅复用现有 Web 密码登录做本地联调，不含 desktop auth adapter、OIDC/`safeStorage`、refresh rotation、PlatformPort desktop adapter、Shared `RunClient`、durable Run 恢复、updater、通知、受控下载、deep link、Host/PTY/MCP、性能/soak、安装器 E2E 或签名/公证。Windows 尚无打包、启动、签名实测，因此 CLP-DESK 保持进行中。认证与执行 ownership 仍以 EIM 稳定身份/授权 port 为前置；DESK0 不构造 Principal，不解释 API Key、Channel workload、active tenant 或团队角色。
 
-已记录的原生证据（macOS arm64，Node `24.4.1` / npm `11.5.1`，2026-08-13）：unpacked app 通过 `MULTIRAG_DESKTOP_SMOKE_OK`；显式 smoke 模式使用唯一临时 profile 与 Chromium mock keychain，正常启动不启用这些测试隔离项，因此该 smoke 不验证真实 Keychain/cookie-encryption 启动路径。最终 ASAR 含 1,170 个 entry，build manifest 记录 1,059 个文件，无 `node_modules`、source map、`resources/app` 或 `app.asar.unpacked`，manifest hash 精确匹配，ASAR integrity/fuses 与 `codesign --verify` 通过。该本地 toolchain 尚未对齐 release 目标版本；`desktop:package:dir` 产物使用本地 ad-hoc 签名且关闭 hardened runtime，仅为 fuse 改写后的 unpacked smoke。正式 release config 仍要求 hardened runtime + Developer ID，但尚无证书/公证实测，不得将 ad-hoc 结果当作正式签名证据。该 smoke 还证实 strict CSP 会拒绝 Google Inter 外部 CSS，当前回退字体可用；后续应本地打包字体，不为便利放开第三方 CSP 域。
+已记录的原生证据（macOS arm64，Node `24.4.1` / npm `11.5.1`，2026-08-13）：unpacked app 通过 `MULTIRAG_DESKTOP_SMOKE_OK`；显式 smoke 模式使用唯一临时 profile 与 Chromium mock keychain，正常启动不启用这些测试隔离项，因此该 smoke 不验证真实 Keychain/cookie-encryption 启动路径。最终 ASAR 含 1,170 个 entry，build manifest 记录 1,059 个文件，无 `node_modules`、source map、`resources/app` 或 `app.asar.unpacked`，manifest hash 精确匹配，ASAR integrity/fuses 与 `codesign --verify` 通过。no-credential packaged Renderer 探针向 manifest 登录 origin 发起 JSON POST，实测 `OPTIONS 200` 后 `POST 200`，证明精确 CSP、本机 CORS 与 Chromium Local Network Access 没有阻止发包；这不是完整登录/session E2E。该本地 toolchain 尚未对齐 release 目标版本；`desktop:package:dir` 产物使用本地 ad-hoc 签名且关闭 hardened runtime，仅为 fuse 改写后的 unpacked smoke。正式 release config 仍要求 hardened runtime + Developer ID，但尚无证书/公证实测，不得将 ad-hoc 结果当作正式签名证据。该 smoke 还证实 strict CSP 会拒绝 Google Inter 外部 CSS，当前回退字体可用；后续应本地打包字体，不为便利放开第三方 CSP 域。
 
 退出条件：
 

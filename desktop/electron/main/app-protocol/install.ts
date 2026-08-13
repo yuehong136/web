@@ -2,9 +2,9 @@ import { extname } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { net, protocol } from 'electron'
 import {
-  APP_CONTENT_SECURITY_POLICY,
   APP_SCHEME,
   APP_SCHEME_PRIVILEGES,
+  createAppContentSecurityPolicy,
 } from './constants'
 import {
   AppRequestResolutionKind,
@@ -23,23 +23,30 @@ export function registerAppScheme(): void {
   ])
 }
 
-function emptyResponse(status: number): Response {
+function emptyResponse(
+  status: number,
+  contentSecurityPolicy: string,
+): Response {
   return new Response(null, {
     status,
     headers: {
       ...RESPONSE_SECURITY_HEADERS,
-      'content-security-policy': APP_CONTENT_SECURITY_POLICY,
+      'content-security-policy': contentSecurityPolicy,
     },
   })
 }
 
-function withSecurityHeaders(response: Response, isHtml: boolean): Response {
+function withSecurityHeaders(
+  response: Response,
+  isHtml: boolean,
+  contentSecurityPolicy: string,
+): Response {
   const headers = new Headers(response.headers)
   for (const [name, value] of Object.entries(RESPONSE_SECURITY_HEADERS)) {
     headers.set(name, value)
   }
   if (isHtml) {
-    headers.set('content-security-policy', APP_CONTENT_SECURITY_POLICY)
+    headers.set('content-security-policy', contentSecurityPolicy)
   }
 
   return new Response(response.body, {
@@ -49,26 +56,33 @@ function withSecurityHeaders(response: Response, isHtml: boolean): Response {
   })
 }
 
-export async function installAppProtocol(rendererRoot: string): Promise<void> {
+export async function installAppProtocol(
+  rendererRoot: string,
+  connectSources: readonly string[],
+): Promise<void> {
   const resolver = await createAppRequestResolver(rendererRoot)
+  const contentSecurityPolicy = createAppContentSecurityPolicy(connectSources)
 
   protocol.handle(APP_SCHEME, async (request) => {
-    if (request.method !== 'GET') return emptyResponse(405)
+    if (request.method !== 'GET') {
+      return emptyResponse(405, contentSecurityPolicy)
+    }
 
     const resolution = await resolver.resolve(request.url, {
       documentNavigation: isDocumentNavigationRequest(request),
     })
     if (resolution.kind === AppRequestResolutionKind.INVALID) {
-      return emptyResponse(400)
+      return emptyResponse(400, contentSecurityPolicy)
     }
     if (resolution.kind !== AppRequestResolutionKind.FILE) {
-      return emptyResponse(404)
+      return emptyResponse(404, contentSecurityPolicy)
     }
 
     const response = await net.fetch(pathToFileURL(resolution.filePath).href)
     return withSecurityHeaders(
       response,
       extname(resolution.filePath).toLowerCase() === '.html',
+      contentSecurityPolicy,
     )
   })
 }

@@ -7,6 +7,12 @@ import test from 'node:test'
 
 import { stageDesktopApp } from '../../build/stage.mjs'
 import { verifyStagedApplication } from '../../build/verify-stage.mjs'
+import {
+  createDesktopNetworkPolicy,
+  createRendererNetworkPolicyReceipt,
+} from '../../build/network-policy.mjs'
+
+const fixtureNetworkPolicy = createDesktopNetworkPolicy({})
 
 async function createFixture(context) {
   const rootDirectory = await fs.mkdtemp(
@@ -19,6 +25,13 @@ async function createFixture(context) {
   const preloadDirectory = path.join(rootDirectory, '.out', 'build', 'preload')
   const outputGuardDirectory = path.join(rootDirectory, '.out', 'stage')
   const outputDirectory = path.join(outputGuardDirectory, 'app')
+  const networkPolicyReceiptPath = path.join(
+    rootDirectory,
+    '.out',
+    'build',
+    'renderer',
+    'network-policy.json',
+  )
 
   await fs.mkdir(path.join(rendererDirectory, 'assets'), { recursive: true })
   await fs.mkdir(path.join(rendererDirectory, 'js'), { recursive: true })
@@ -28,6 +41,7 @@ async function createFixture(context) {
   })
   await fs.mkdir(mainDirectory, { recursive: true })
   await fs.mkdir(preloadDirectory, { recursive: true })
+  await fs.mkdir(path.dirname(networkPolicyReceiptPath), { recursive: true })
 
   await Promise.all([
     fs.writeFile(
@@ -58,6 +72,10 @@ async function createFixture(context) {
     ),
     fs.writeFile(path.join(mainDirectory, 'index.mjs'), 'export {}\n'),
     fs.writeFile(path.join(preloadDirectory, 'index.cjs'), "'use strict'\n"),
+    fs.writeFile(
+      networkPolicyReceiptPath,
+      `${JSON.stringify(createRendererNetworkPolicyReceipt({}), null, 2)}\n`,
+    ),
   ])
 
   return {
@@ -67,6 +85,7 @@ async function createFixture(context) {
     preloadDirectory,
     outputGuardDirectory,
     outputDirectory,
+    networkPolicyReceiptPath,
   }
 }
 
@@ -97,6 +116,8 @@ test('staging is deterministic, minimal, and has a sorted SHA-256 manifest', asy
     [...firstManifest.files.map(({ path: filePath }) => filePath)].sort(),
   )
   assert.match(firstManifest.contentSha256, /^[a-f0-9]{64}$/)
+  assert.equal(firstManifest.schemaVersion, 2)
+  assert.deepEqual(firstManifest.security, fixtureNetworkPolicy)
   for (const file of firstManifest.files) {
     assert.match(file.sha256, /^[a-f0-9]{64}$/)
   }
@@ -160,6 +181,49 @@ test('stage verifier detects manifest tampering', async (context) => {
   await assert.rejects(
     verifyStagedApplication(fixture.outputDirectory),
     /manifest (?:size|hash) mismatch/,
+  )
+})
+
+test('stage verifier rejects a broadened network policy', async (context) => {
+  const fixture = await createFixture(context)
+  await stageDesktopApp({ ...fixture, sourceRevision: null })
+  const manifestPath = path.join(fixture.outputDirectory, 'build-manifest.json')
+  const manifest = JSON.parse(await fs.readFile(manifestPath, 'utf8'))
+  manifest.security.connectSources = ['http:']
+  await fs.writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`)
+
+  await assert.rejects(
+    verifyStagedApplication(fixture.outputDirectory),
+    /connectSources must exactly match|absolute URL/,
+  )
+})
+
+test('staging rejects Renderer and current environment network drift', async (context) => {
+  const fixture = await createFixture(context)
+  await fs.writeFile(
+    fixture.networkPolicyReceiptPath,
+    `${JSON.stringify(
+      createRendererNetworkPolicyReceipt({
+        VITE_API_BASE_URL: 'https://stale-renderer.example.com',
+      }),
+      null,
+      2,
+    )}\n`,
+  )
+
+  await assert.rejects(
+    stageDesktopApp(fixture),
+    /Renderer network configuration does not match/,
+  )
+})
+
+test('staging rejects a missing Renderer network receipt', async (context) => {
+  const fixture = await createFixture(context)
+  await fs.rm(fixture.networkPolicyReceiptPath)
+
+  await assert.rejects(
+    stageDesktopApp(fixture),
+    /Renderer network policy receipt cannot be read/,
   )
 })
 

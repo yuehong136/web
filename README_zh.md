@@ -98,7 +98,7 @@ desktop/
 
 为什么这样分层（四层骨架、展示/容器分离、文件大小红线），见 `AI前端技术栈开发规范.md` 与 `AGENTS.md`。
 
-Web 应用仍是唯一生产产品，且保持独立构建与发布。`desktop/` 已有非发布态 `CLP-DESK0` 安全壳基线（Electron main/preload、`app://bundle/`、staging 与产物检查），但尚不提供认证、Shared `RunClient`、durable Run 恢复、自动更新、本地 Host，也没有 Windows 打包/签名实测。详见 [`docs/client-platform/README.md`](./docs/client-platform/README.md)。
+Web 应用仍是唯一生产产品，且保持独立构建与发布。`desktop/` 已有非发布态 `CLP-DESK0` 安全壳基线（Electron main/preload、`app://bundle/`、staging 与产物检查）。它可复用现有 Web 密码登录做本地联调，但尚不提供桌面原生 OIDC/凭据加固、Shared `RunClient`、durable Run 恢复、自动更新、本地 Host，也没有 Windows 打包/签名实测。详见 [`docs/client-platform/README.md`](./docs/client-platform/README.md)。
 
 ## 快速开始
 
@@ -138,6 +138,8 @@ npm run test:desktop    # 运行桌面壳合同与打包测试
 npm run desktop:build   # 使用 Rolldown 生成 main ESM 与 sandbox preload CJS
 npm run desktop:stage   # 组装显式 allowlist 的桌面 staging app
 npm run desktop:verify:stage # 验证 staging allowlist 与 build manifest
+npm run desktop:package:dir # 构建并验证当前平台的 unpacked 包
+npm run desktop:verify:package # 重新验证当前原生产物
 ```
 
 目前**没有**通用 `test`、`format`、`typecheck` 脚本。类型检查由 `npm run build` 完成，Agent 关键目录可补充跑 `npm run typecheck:agent-strict`。格式化通过 Prettier + lint-staged 作用于 staged 文件，不做全仓格式化。现有正式测试仍用 `tsx --test`，Vitest 基础配置已落地用于后续新增/迁移。
@@ -146,10 +148,13 @@ npm run desktop:verify:stage # 验证 staging allowlist 与 build manifest
 
 ```env
 VITE_API_BASE_URL=http://localhost:8000
+VITE_ADMIN_API_BASE_URL=http://localhost:8130
 VITE_WS_BASE_URL=ws://localhost:8000
 ```
 
 浏览器侧环境变量必须 `VITE_*` 前缀。**不得**内联密钥。
+
+本地 macOS 客户端预览：先在 `.env.local` 配置上述 origin 并启动后端，再运行 `npm run build:desktop`、`npm run desktop:verify:stage`、`npm run desktop:package:dir`。Apple Silicon 打开 `desktop/.out/artifacts/mac-arm64/MultiRAG.app`（x64 为 `mac/MultiRAG.app`）。地址变化后必须重新构建；客户端运行时不会读取 `.env.local`。限制与原生平台说明见 [`desktop/README.md`](./desktop/README.md)。
 
 ## 架构亮点
 

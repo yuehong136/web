@@ -14,9 +14,15 @@ import {
   STAGE_MANIFEST_VERSION,
 } from './constants.mjs'
 import {
+  createDesktopNetworkPolicyFromReceipt,
+  loadRendererNetworkPolicyReceipt,
+  resolveDesktopNetworkPolicy,
+} from './network-policy.mjs'
+import {
   mainBuildDirectory,
   preloadBuildDirectory,
   rendererBuildDirectory,
+  rendererNetworkPolicyReceiptPath,
   repositoryRoot,
   stageAppDirectory,
   stageDirectory,
@@ -313,8 +319,33 @@ export async function stageDesktopApp({
   sourceRevision = process.env.SOURCE_REVISION,
   rendererBridgeVersion = RENDERER_BRIDGE_VERSION,
   runClientProtocolVersion = RUN_CLIENT_PROTOCOL_VERSION,
+  viteMode = 'production',
+  networkPolicyReceiptPath = rendererNetworkPolicyReceiptPath,
 } = {}) {
   await prepareSafeStageTarget(outputDirectory, outputGuardDirectory)
+
+  const rendererReceipt = await loadRendererNetworkPolicyReceipt(
+    networkPolicyReceiptPath,
+  )
+  if (rendererReceipt.viteMode !== viteMode) {
+    throw new Error(
+      `Renderer was built in Vite mode ${rendererReceipt.viteMode}, expected ${viteMode}`,
+    )
+  }
+  const rendererNetworkPolicy =
+    createDesktopNetworkPolicyFromReceipt(rendererReceipt)
+  const resolvedNetworkPolicy = resolveDesktopNetworkPolicy({
+    rootDirectory,
+    mode: viteMode,
+  })
+  if (
+    JSON.stringify(rendererNetworkPolicy) !==
+    JSON.stringify(resolvedNetworkPolicy)
+  ) {
+    throw new Error(
+      'Renderer network configuration does not match the current staging environment',
+    )
+  }
 
   const mainInput = path.join(mainDirectory, 'index.mjs')
   const preloadInput = path.join(preloadDirectory, 'index.cjs')
@@ -396,6 +427,7 @@ export async function stageDesktopApp({
       rendererBridgeVersion,
       runClientProtocolVersion,
     },
+    security: resolvedNetworkPolicy,
     contentSha256: createContentHash(files),
     files,
   }

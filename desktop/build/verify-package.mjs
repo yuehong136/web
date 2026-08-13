@@ -12,7 +12,8 @@ import {
 
 import { extractFile, getRawHeader, listPackage } from '@electron/asar'
 
-import { DESKTOP_PRODUCT_NAME } from './constants.mjs'
+import { DESKTOP_PRODUCT_NAME, STAGE_MANIFEST_VERSION } from './constants.mjs'
+import { validateDesktopNetworkPolicy } from './network-policy.mjs'
 import { artifactDirectory } from './paths.mjs'
 
 export const requiredPackagedPaths = Object.freeze([
@@ -120,6 +121,10 @@ function parseBuildManifest(archivePath) {
   if (!Array.isArray(manifest.files)) {
     throw new Error('app.asar build manifest files must be an array')
   }
+  if (manifest.schemaVersion !== STAGE_MANIFEST_VERSION) {
+    throw new Error('app.asar build manifest has an unsupported schema version')
+  }
+  validateDesktopNetworkPolicy(manifest.security)
   return manifest
 }
 

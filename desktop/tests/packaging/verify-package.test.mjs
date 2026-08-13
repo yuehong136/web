@@ -13,7 +13,25 @@ import {
   verifyPackagedArchive,
 } from '../../build/verify-package.mjs'
 
-async function writeBuildManifest(sourceDirectory) {
+const validNetworkPolicy = {
+  schemaVersion: 1,
+  viteMode: 'production',
+  endpoints: {
+    apiOrigin: 'https://api.example.com',
+    adminApiOrigin: 'https://admin.example.com',
+    webSocketOrigin: 'wss://stream.example.com',
+  },
+  connectSources: [
+    'https://admin.example.com',
+    'https://api.example.com',
+    'wss://stream.example.com',
+  ],
+}
+
+async function writeBuildManifest(
+  sourceDirectory,
+  networkPolicy = validNetworkPolicy,
+) {
   const relativePaths = [
     'main/index.mjs',
     'package.json',
@@ -35,7 +53,12 @@ async function writeBuildManifest(sourceDirectory) {
   }
   await fs.writeFile(
     path.join(sourceDirectory, 'build-manifest.json'),
-    `${JSON.stringify({ contentSha256: digest.digest('hex'), files })}\n`,
+    `${JSON.stringify({
+      schemaVersion: 2,
+      security: networkPolicy,
+      contentSha256: digest.digest('hex'),
+      files,
+    })}\n`,
   )
 }
 
@@ -105,6 +128,54 @@ test('package verifier fails closed when a packaged binary has no Electron fuse 
       productName: 'MultiRAG',
     }),
     /(?:Could not find sentinel|Electron Framework)/,
+  )
+})
+
+test('package verifier rejects a broadened manifest network policy', async (context) => {
+  const rootDirectory = await fs.mkdtemp(
+    path.join(os.tmpdir(), 'multirag-package-policy-test-'),
+  )
+  context.after(() => fs.rm(rootDirectory, { recursive: true, force: true }))
+
+  const sourceDirectory = path.join(rootDirectory, 'source')
+  const appOutDirectory = path.join(rootDirectory, 'out')
+  const contentsDirectory = path.join(
+    appOutDirectory,
+    'MultiRAG.app',
+    'Contents',
+  )
+  const resourcesDirectory = path.join(contentsDirectory, 'Resources')
+  const executablePath = path.join(contentsDirectory, 'MacOS', 'MultiRAG')
+
+  for (const relativePath of [
+    'main/index.mjs',
+    'preload/index.cjs',
+    'renderer/index.html',
+  ]) {
+    const filePath = path.join(sourceDirectory, relativePath)
+    await fs.mkdir(path.dirname(filePath), { recursive: true })
+    await fs.writeFile(filePath, 'fixture\n')
+  }
+  await fs.writeFile(path.join(sourceDirectory, 'package.json'), '{}\n')
+  await writeBuildManifest(sourceDirectory, {
+    ...validNetworkPolicy,
+    connectSources: ['http:'],
+  })
+  await fs.mkdir(path.dirname(executablePath), { recursive: true })
+  await fs.mkdir(resourcesDirectory, { recursive: true })
+  await fs.writeFile(executablePath, 'not-electron\n')
+  await createPackage(
+    sourceDirectory,
+    path.join(resourcesDirectory, 'app.asar'),
+  )
+
+  await assert.rejects(
+    verifyPackagedArchive({
+      appOutDirectory,
+      platform: 'darwin',
+      productName: 'MultiRAG',
+    }),
+    /connectSources must exactly match|absolute URL/,
   )
 })
 

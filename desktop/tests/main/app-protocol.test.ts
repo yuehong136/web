@@ -12,8 +12,8 @@ import { join } from 'node:path'
 import test from 'node:test'
 import { parseAppResourceUrl } from '../../electron/main/app-protocol/app-url'
 import {
-  APP_CONTENT_SECURITY_POLICY,
   APP_SCHEME_PRIVILEGES,
+  createAppContentSecurityPolicy,
 } from '../../electron/main/app-protocol/constants'
 import {
   AppRequestResolutionKind,
@@ -179,8 +179,30 @@ test('scheme privileges and CSP remain least-privilege', () => {
     codeCache: true,
     allowExtensions: false,
   })
-  assert.match(APP_CONTENT_SECURITY_POLICY, /script-src 'self'/)
-  assert.match(APP_CONTENT_SECURITY_POLICY, /connect-src 'self' https: wss:/)
-  assert.doesNotMatch(APP_CONTENT_SECURITY_POLICY, /unsafe-eval/)
-  assert.doesNotMatch(APP_CONTENT_SECURITY_POLICY, /localhost|http:/)
+  const productionPolicy = createAppContentSecurityPolicy([
+    'https://api.example.com',
+    'wss://api.example.com',
+  ])
+  assert.match(productionPolicy, /script-src 'self'/)
+  assert.match(
+    productionPolicy,
+    /connect-src 'self' https:\/\/api\.example\.com wss:\/\/api\.example\.com/,
+  )
+  assert.doesNotMatch(productionPolicy, /unsafe-eval|localhost|\bhttp:/)
+
+  const localPolicy = createAppContentSecurityPolicy(['http://127.0.0.1:8123'])
+  assert.match(localPolicy, /connect-src 'self' http:\/\/127\.0\.0\.1:8123/)
+  assert.doesNotMatch(localPolicy, /connect-src[^;]*\bhttp:\s/)
+
+  assert.throws(
+    () =>
+      createAppContentSecurityPolicy([
+        "https://api.example.com; script-src 'unsafe-eval'",
+      ]),
+    /absolute origin/,
+  )
+  assert.throws(
+    () => createAppContentSecurityPolicy(['https://*.example.com']),
+    /exact HTTP\(S\)\/WS\(S\) origin/,
+  )
 })
