@@ -4,7 +4,19 @@ import { AuthGuard } from '@/components/auth'
 import { ApplicationCommandProvider } from '@/lib/commands'
 import { PlatformKind, usePlatform } from '@/platform'
 import { AppShell } from './app-shell'
-import { DesktopWorkbench } from './desktop'
+
+const DesktopWorkbench = React.lazy(async () => {
+  const module = await import('./desktop')
+  return { default: module.DesktopWorkbench }
+})
+
+const DesktopWorkbenchFallback: React.FC = () => (
+  <div
+    className="h-dvh bg-components-app-shell-bg"
+    aria-busy="true"
+    data-desktop-workbench-loading="true"
+  />
+)
 
 export const Layout: React.FC = () => {
   const platform = usePlatform()
@@ -14,7 +26,9 @@ export const Layout: React.FC = () => {
     <AuthGuard requireAuth={true}>
       <ApplicationCommandProvider>
         {platform.kind === PlatformKind.DESKTOP ? (
-          <DesktopWorkbench>{content}</DesktopWorkbench>
+          <React.Suspense fallback={<DesktopWorkbenchFallback />}>
+            <DesktopWorkbench>{content}</DesktopWorkbench>
+          </React.Suspense>
         ) : (
           <AppShell>{content}</AppShell>
         )}
