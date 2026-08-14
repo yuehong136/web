@@ -119,7 +119,19 @@ test('resolver rejects symlink escapes even when the target is a file', async (c
   const { fixtureRoot, rendererRoot } = await createRendererFixture(context)
   const outsideFile = join(fixtureRoot, 'outside.js')
   await writeFile(outsideFile, 'secret')
-  await symlink(outsideFile, join(rendererRoot, 'assets', 'linked.js'))
+  try {
+    await symlink(outsideFile, join(rendererRoot, 'assets', 'linked.js'))
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      'code' in error &&
+      (error.code === 'EPERM' || error.code === 'EACCES')
+    ) {
+      context.skip('symlink creation is not available in this environment')
+      return
+    }
+    throw error
+  }
 
   const resolver = await createAppRequestResolver(rendererRoot)
   assert.deepEqual(

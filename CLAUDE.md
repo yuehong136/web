@@ -19,6 +19,9 @@ npm run typecheck:agent-strict # Strict type check for Agent critical directorie
 npm run build:themes # Regenerate src/themes/{light,dark}.css + token-values.generated.ts after tokens.ts changes
 npm run build:docker # vite build without tsc -b (Docker image build only — never use it to skip type errors)
 npm run preview      # Preview production build
+npm run verify:test-inventory # Verify every test/spec file belongs to exactly one formal test lane
+npm run test:unit    # Run every Node/Vitest unit test under src and tooling
+npm run test:ci      # Formal CI test entry: inventory + all src/tooling/desktop tests
 npm run test:agent-t1 # node --test via tsx: agent serializers + adapters
 npm run test:design-tokens # node --test via tsx: design-token utilities (palette, token values)
 npm run test:streaming # node --test via tsx: shared streaming runtime (SSE transport + chunk-merge reducer)
@@ -37,9 +40,9 @@ npm run lint:file-size:update # Tighten the ratchet baseline after shrinking a d
 npm run check:bundle-size # Bundle budget gate, run after build (budgets: scripts/bundle-size-budget.json)
 ```
 
-There is **no generic `test`, `format`, or `typecheck` npm script**. Full Web type checking happens inside `npm run build`; Agent critical directories also have `npm run typecheck:agent-strict`, while the desktop shell uses `npm run desktop:typecheck`. Formatting is handled by Prettier + lint-staged for staged files only; do not format the whole repo. The formal test gates are `test:agent-t1`, `test:design-tokens`, `test:streaming`, `test:api`, `test:product-ui`, `test:client-platform`, `test:security`, and `test:desktop`; the test runtimes are `tsx --test`, Node test, and Vitest. Do not introduce Jest.
+There is no bare `test`, `format`, or `typecheck` npm script. The formal test gate is `npm run test:ci`: it verifies the inventory, then dispatches every test under `src/`, `scripts/`, `eslint-rules/`, and `desktop/` to its declared runner. `test:unit` runs the non-Desktop unit inventory; existing scripts such as `test:agent-t1` and `test:api` remain focused fast-feedback entries. Full Web type checking happens inside `npm run build`; Agent critical directories also have `npm run typecheck:agent-strict`, while the desktop shell uses `npm run desktop:typecheck`. Formatting is handled by Prettier + lint-staged for staged files only; do not format the whole repo. Test runtimes are `tsx --test`, Node test, and Vitest. Do not introduce Jest.
 
-**CI**: `.github/workflows/ci.yml` runs the existing Web gates on every push/PR to `master`, plus `test:client-platform`, `lint:desktop`, `desktop:typecheck`, `test:desktop`, `desktop:build`, `desktop:stage`, and `desktop:verify:stage`. These desktop gates cover cross-platform source/contracts/build/staging only; they do not prove Windows packaging, signing, or installer E2E. `lint:i18n-agent` stays a local-only gate (it diffs the working tree). The pre-commit hook only runs lint-staged; still run the relevant gates locally before pushing — never claim they pass without actually running them.
+**CI**: `.github/workflows/ci.yml` runs the complete test inventory through `test:ci` on every push/PR to `master`, plus the existing lint, Web/Agent/Desktop type checks, Web build, bundle budget, and Desktop build/stage/verify gates. These desktop gates cover cross-platform source/contracts/build/staging only; they do not prove Windows packaging, signing, or installer E2E. `lint:i18n-agent` stays a local-only gate (it diffs the working tree). The pre-commit hook only runs lint-staged; still run the relevant gates locally before pushing — never claim they pass without actually running them.
 
 ## Stack (verified, 2026-05)
 
@@ -457,7 +460,7 @@ Declare mutation error ownership with `MutationErrorFeedback`: `Global` lets the
 
 ## Testing
 
-Tests run through `tsx --test`, Node test, and Vitest. Coverage focuses on `pages/agent/operators`, `adapters`, `runtime-workbench`, `pipeline-workbench`, `prompt-editor`, `schema-editor`, `lib/design-tokens`, `lib/streaming`, `api`, product capabilities, Search export, route recovery, mutation error ownership, security boundaries, plus Web/Desktop composition, PlatformPort, Workbench, command, and desktop-shell contracts. Formal npm test scripts: `test:agent-t1`, `test:design-tokens`, `test:streaming`, `test:api`, `test:product-ui`, `test:client-platform`, `test:security`, and `test:desktop`.
+Tests run through `tsx --test`, Node test, and Vitest. `verify:test-inventory` discovers every tracked or untracked `test/spec` file through Git and assigns exactly one of `source-node`, `source-vitest`, `desktop-node`, or `tooling-node`; a missing runner, mixed runners, or an unknown root fails the gate. The formal gate is `test:ci`; focused scripts remain available for fast local feedback.
 
 New SSE consumers use the shared runtime in `src/lib/streaming/` (`readSSEStream` + `assertSSEResponse` + typed envelopes + answer reducer) instead of hand-rolling the decode/parse loop; see `docs/streaming-runtime-design.md`.
 
@@ -468,7 +471,7 @@ Required when touching:
 - Streaming reducers — test the chunk-merging logic, not the network.
 - API-layer clients under `src/api/` — endpoint paths, envelope handling, and response normalizers must have a test in `src/api/__tests__/` (run by `test:api`).
 
-Do not introduce Jest. Vitest baseline config exists, but do not opportunistically migrate existing tests; existing tests continue to follow the `tsx --test` style under `__tests__/` directories. New Vitest tests must stay tightly scoped and must not replace the `test:agent-t1` gate.
+Do not introduce Jest. Vitest baseline config exists, but do not opportunistically migrate existing tests; existing tests continue to follow the `tsx --test` style under `__tests__/` directories. Every new test must be automatically classified by `verify:test-inventory` and executed by `test:ci`; adding it only to a focused script is insufficient.
 
 ## Client Platform (MANDATORY)
 

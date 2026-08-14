@@ -360,7 +360,15 @@ test('staging refuses a symlinked guard directory', async (context) => {
   const fixture = await createFixture(context)
   const escapedGuard = path.join(fixture.rootDirectory, 'escaped-stage')
   await fs.mkdir(escapedGuard)
-  await fs.symlink(escapedGuard, fixture.outputGuardDirectory)
+  try {
+    await fs.symlink(escapedGuard, fixture.outputGuardDirectory)
+  } catch (error) {
+    if (error?.code === 'EPERM' || error?.code === 'EACCES') {
+      context.skip('symlink creation is not available in this environment')
+      return
+    }
+    throw error
+  }
 
   await assert.rejects(
     stageDesktopApp(fixture),

@@ -47,29 +47,8 @@ jobs:
       - name: Typecheck (desktop shell)
         run: npm run desktop:typecheck
 
-      - name: Test (agent serializers & adapters)
-        run: npm run test:agent-t1
-
-      - name: Test (design tokens)
-        run: npm run test:design-tokens
-
-      - name: Test (streaming runtime)
-        run: npm run test:streaming
-
-      - name: Test (API contracts)
-        run: npm run test:api
-
-      - name: Test (product contracts & recovery)
-        run: npm run test:product-ui
-
-      - name: Test (client platform composition)
-        run: npm run test:client-platform
-
-      - name: Test (security boundaries)
-        run: npm run test:security
-
-      - name: Test (desktop shell contracts)
-        run: npm run test:desktop
+      - name: Test (complete inventory)
+        run: npm run test:ci
 
   build:
     name: Build

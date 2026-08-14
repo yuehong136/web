@@ -2,7 +2,12 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import test from 'node:test'
 import { fileURLToPath } from 'node:url'
-import { Operator, NodeMap, initialA2UIValues, initialMessageValues } from '../constant'
+import {
+  Operator,
+  NodeMap,
+  initialA2UIValues,
+  initialMessageValues,
+} from '../constant'
 import {
   A2UI_AGENT_PROMPT_TEMPLATE,
   A2UI_BASIC_COMPONENTS,
@@ -14,13 +19,11 @@ test('A2UI operator is registered across canvas and form registries', () => {
   assert.ok(initialA2UIValues.commands[0].includes('"version": "v0.9"'))
 
   const agentDir = fileURLToPath(new URL('..', import.meta.url))
-  const formMap = readFileSync(new URL('../form/index.ts', import.meta.url), 'utf8')
-  const sheetMap = readFileSync(
+  const formRendererRegistry = readFileSync(
     `${agentDir}/features/form-sheet/components/form-renderer-registry.ts`,
     'utf8',
   )
-  assert.match(formMap, /\[Operator\.A2UI\]: A2UIForm/)
-  assert.match(sheetMap, /\[Operator\.A2UI\]: A2UIForm/)
+  assert.match(formRendererRegistry, /\[Operator\.A2UI\]: A2UIForm/)
 })
 
 test('Message initial values no longer expose structured A2UI toggle', () => {
@@ -30,7 +33,10 @@ test('Message initial values no longer expose structured A2UI toggle', () => {
 test('A2UI agent prompt constrains output to official Basic Catalog', () => {
   assert.ok(A2UI_BASIC_COMPONENTS.includes('ChoicePicker'))
   assert.ok(A2UI_BASIC_COMPONENTS.includes('TextField'))
-  assert.equal((A2UI_BASIC_COMPONENTS as readonly string[]).includes('Form'), false)
+  assert.equal(
+    (A2UI_BASIC_COMPONENTS as readonly string[]).includes('Form'),
+    false,
+  )
   assert.match(A2UI_AGENT_PROMPT_TEMPLATE, /只输出一个 JSON array/)
   assert.match(A2UI_AGENT_PROMPT_TEMPLATE, /```json/)
   assert.match(A2UI_AGENT_PROMPT_TEMPLATE, /```a2ui/)

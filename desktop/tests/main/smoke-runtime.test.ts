@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { basename, dirname, join } from 'node:path'
 import test from 'node:test'
 import {
   configureDesktopSmokeRuntime,
@@ -46,10 +46,9 @@ test('packaged smoke uses an isolated profile and mock macOS keychain', () => {
     assert.deepEqual(fake.appendedSwitches, ['use-mock-keychain'])
     assert.equal(fake.paths.length, 1)
     assert.equal(fake.paths[0]?.[0], 'userData')
-    assert.match(
-      fake.paths[0]?.[1] ?? '',
-      new RegExp(`^${temporaryRoot}/multirag-desktop-smoke-[^/]+$`),
-    )
+    const userDataPath = fake.paths[0]?.[1] ?? ''
+    assert.equal(dirname(userDataPath), temporaryRoot)
+    assert.match(basename(userDataPath), /^multirag-desktop-smoke-[^\\/]+$/)
   } finally {
     rmSync(temporaryRoot, { force: true, recursive: true })
   }

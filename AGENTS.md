@@ -19,6 +19,9 @@ npm run typecheck:agent-strict # Agent 关键目录严格类型检查
 npm run build:themes # 修改 tokens.ts 后重新生成 src/themes/{light,dark}.css + token-values.generated.ts
 npm run build:docker # 不跑 tsc -b 的 vite build（仅 Docker 镜像构建用 — 不得用来绕过类型错误）
 npm run preview      # 预览生产构建
+npm run verify:test-inventory # 校验所有 test/spec 文件都有唯一正式测试 lane
+npm run test:unit    # 运行 src 与 tooling 的全部 Node/Vitest 单元测试
+npm run test:ci      # CI 正式测试入口：inventory + src/tooling/desktop 全量测试
 npm run test:agent-t1 # tsx 跑 node --test：agent serializer + adapter
 npm run test:design-tokens # tsx 跑 node --test：设计令牌工具（调色板、token 取值）
 npm run test:streaming # tsx 跑 node --test：共享流式运行时（SSE transport + chunk 合并 reducer）
@@ -37,9 +40,9 @@ npm run lint:file-size:update # 偿还债务（行数下降）后收紧基线（
 npm run check:bundle-size # Bundle 预算门禁，build 后运行（预算：scripts/bundle-size-budget.json）
 ```
 
-**注意**：暂无通用 `test`、`format`、`typecheck` 脚本。全量类型检查由 `npm run build` 完成；Agent 关键目录补充跑 `npm run typecheck:agent-strict`，桌面壳使用 `npm run desktop:typecheck`。格式化通过 Prettier + lint-staged 作用于 staged 文件，**不要做全仓格式化**。正式测试门禁是 `test:agent-t1`、`test:design-tokens`、`test:streaming`、`test:api`、`test:product-ui`、`test:client-platform`、`test:security` 与 `test:desktop`；测试运行时为 `tsx --test` / Node test / Vitest，**不要引入 Jest**。
+**注意**：没有裸 `test`、`format` 或 `typecheck` 脚本。正式测试门禁是 `npm run test:ci`；它先校验 inventory，再按 runner 自动执行全部 `src/`、`scripts/`、`eslint-rules/` 与 `desktop/` 测试。`test:unit` 运行不含 Desktop 的单元测试，原有 `test:agent-t1`、`test:api` 等脚本继续作为局部快速反馈入口。全量类型检查由 `npm run build` 完成；Agent 关键目录补充跑 `npm run typecheck:agent-strict`，桌面壳使用 `npm run desktop:typecheck`。格式化通过 Prettier + lint-staged 作用于 staged 文件，**不要做全仓格式化**。测试运行时为 `tsx --test` / Node test / Vitest，**不要引入 Jest**。
 
-**CI**：`.github/workflows/ci.yml` 在每次 push/PR 到 `master` 时运行现有 Web 门禁，并增加 `test:client-platform`、`lint:desktop`、`desktop:typecheck`、`test:desktop`、`desktop:build`、`desktop:stage` 与 `desktop:verify:stage`。这些桌面门禁只验证跨平台源码/合同/构建/staging，不代表 Windows 打包、签名或安装包 E2E 已通过。`lint:i18n-agent` 仍是本地门禁（它 diff 工作区）。pre-commit hook 只跑 lint-staged；推送前仍需本地跑相关门禁 —— **没有实际运行就不得声称通过**。
+**CI**：`.github/workflows/ci.yml` 在每次 push/PR 到 `master` 时通过 `test:ci` 执行完整测试 inventory，并运行现有 lint、Web/Agent/Desktop typecheck、Web build、Bundle budget、Desktop build/stage/verify 门禁。这些桌面门禁只验证跨平台源码/合同/构建/staging，不代表 Windows 打包、签名或安装包 E2E 已通过。`lint:i18n-agent` 仍是本地门禁（它 diff 工作区）。pre-commit hook 只跑 lint-staged；推送前仍需本地跑相关门禁 —— **没有实际运行就不得声称通过**。
 
 ## 技术栈（2026-05 校核）
 
@@ -455,7 +458,7 @@ Mutation 错误归属通过 `MutationErrorFeedback` 明确标注：`Global` 由 
 
 ## 测试
 
-现状：测试分别通过 `tsx --test`、Node test 与 Vitest 运行，覆盖 `pages/agent/operators`、`adapters`、`runtime-workbench`、`pipeline-workbench`、`prompt-editor`、`schema-editor`、`lib/design-tokens`、`lib/streaming`、`api`、产品能力、Search 导出、路由恢复、mutation 错误归属、安全边界，以及 Web/Desktop composition、PlatformPort、Workbench、命令和桌面壳合同。正式测试脚本：`test:agent-t1`、`test:design-tokens`、`test:streaming`、`test:api`、`test:product-ui`、`test:client-platform`、`test:security` 与 `test:desktop`。
+现状：测试分别通过 `tsx --test`、Node test 与 Vitest 运行。`verify:test-inventory` 用 Git 跟踪文件与未跟踪文件清单发现全部 `test/spec` 文件，按 `source-node`、`source-vitest`、`desktop-node`、`tooling-node` 分配唯一 lane；无 runner、混用 runner 或落在未知根目录的测试会使门禁失败。正式门禁是 `test:ci`，专项脚本继续用于局部快速反馈。
 
 新增 SSE 消费面使用 `src/lib/streaming/` 的共享运行时（`readSSEStream` + `assertSSEResponse` + 类型化 envelope + answer reducer），不要再手写解码/解析循环；见 `docs/streaming-runtime-design.md`。
 
@@ -466,7 +469,7 @@ Mutation 错误归属通过 `MutationErrorFeedback` 明确标注：`Global` 由 
 - 流式 reducer — 测 chunk 合并逻辑，不测网络
 - `src/api/` 下的 API 客户端 — 端点路径、信封处理、响应归一化必须在 `src/api/__tests__/` 配套测试（由 `test:api` 执行）
 
-**禁止引入 Jest**。Vitest 基础配置已落地，但不要顺手迁移存量测试；现阶段存量仍沿用 `tsx --test` 风格，放在 `__tests__/` 目录。新增 Vitest 测试必须保持范围清晰，并不得替换 `test:agent-t1` 门禁。
+**禁止引入 Jest**。Vitest 基础配置已落地，但不要顺手迁移存量测试；现阶段存量仍沿用 `tsx --test` 风格，放在 `__tests__/` 目录。新增测试必须能被 `verify:test-inventory` 自动归类并由 `test:ci` 执行，不得只接入某个专项脚本。
 
 ## Client Platform（强制）
 

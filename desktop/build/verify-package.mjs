@@ -191,7 +191,9 @@ export async function verifyPackagedArchive({
     }
   }
 
-  const archiveFiles = listPackage(archivePath, { isPack: false }).sort()
+  const archiveFiles = listPackage(archivePath, { isPack: false })
+    .map((archiveFile) => archiveFile.replaceAll('\\', '/'))
+    .sort()
   for (const requiredPath of requiredPackagedPaths) {
     if (!archiveFiles.includes(requiredPath)) {
       throw new Error(`app.asar is missing required path: ${requiredPath}`)
