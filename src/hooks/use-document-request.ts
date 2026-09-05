@@ -7,6 +7,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useParams } from 'react-router-dom'
 import { knowledgeAPI } from '@/api/knowledge'
+import { knowledgeKeys } from './use-knowledge-request'
 import { MutationErrorFeedback } from '@/lib/mutation-error-feedback'
 import type { DocumentFilter } from '@/types/api'
 
@@ -232,17 +233,23 @@ export const useDeleteDocument = (datasetId?: string) => {
 }
 
 // 重新解析文档
-export const useParseDocument = () => {
+export const useParseDocument = (datasetId: string) => {
   const queryClient = useQueryClient()
 
   const { mutateAsync, isPending, isError, error } = useMutation({
     mutationFn: async (documentIds: string | string[]) => {
       const ids = Array.isArray(documentIds) ? documentIds : [documentIds]
-      await knowledgeAPI.document.parse(ids)
+      await knowledgeAPI.document.parse(datasetId, ids)
       return ids
     },
-    onSuccess: () => {
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: documentKeys.lists() })
+      queryClient.invalidateQueries({
+        queryKey: documentKeys.filter(datasetId),
+      })
+      queryClient.invalidateQueries({
+        queryKey: knowledgeKeys.detail(datasetId),
+      })
     },
   })
 
@@ -343,25 +350,35 @@ export const useFetchDocumentFilter = (knowledgeBaseId?: string) => {
 }
 
 // 运行/停止文档解析
-export const useRunDocument = () => {
+export const useRunDocument = (datasetId: string) => {
   const queryClient = useQueryClient()
 
   const { mutateAsync, isPending, isError, error } = useMutation({
     meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: async (params: {
       docIds: string[]
-      run: 0 | 1 | 2 // 0=停止, 1=开始, 2=取消
+      run: 1 | 2 // 1=开始, 2=停止
       deleteHistory?: boolean
     }) => {
-      await knowledgeAPI.document.run(
-        params.docIds,
-        params.run,
-        params.deleteHistory,
-      )
+      if (params.run === 1) {
+        await knowledgeAPI.document.parse(
+          datasetId,
+          params.docIds,
+          params.deleteHistory,
+        )
+      } else {
+        await knowledgeAPI.document.stop(datasetId, params.docIds)
+      }
       return params
     },
-    onSuccess: () => {
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: documentKeys.lists() })
+      queryClient.invalidateQueries({
+        queryKey: documentKeys.filter(datasetId),
+      })
+      queryClient.invalidateQueries({
+        queryKey: knowledgeKeys.detail(datasetId),
+      })
     },
   })
 

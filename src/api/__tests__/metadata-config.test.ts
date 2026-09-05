@@ -68,12 +68,10 @@ test('metadata methods preserve their REST and legacy transport contracts', asyn
   assert.equal(getCalls[0]?.endpoint, '/v1/datasets/kb%2F1/metadata/summary')
   assert.deepEqual(getCalls[0]?.config?.params, { doc_ids: 'doc-1,doc-2' })
   assert.ok(getCalls[0]?.config?.baseURL?.endsWith('/api'))
-  assert.deepEqual(postCalls, [
-    {
-      endpoint: '/v1/kb/update_metadata_setting',
-      data: { kb_id: 'kb-1', metadata: settings },
-    },
-  ])
+  assert.deepEqual(postCalls, [])
+  assert.equal(putCalls[0]?.endpoint, '/v1/datasets/kb-1/metadata/config')
+  assert.deepEqual(putCalls[0]?.data, { enabled: true, fields: settings })
+  assert.ok(putCalls[0]?.config?.baseURL?.endsWith('/api'))
   assert.equal(
     patchCalls[0]?.endpoint,
     '/v1/datasets/kb%2F1/documents/metadatas',
@@ -89,7 +87,7 @@ test('metadata methods preserve their REST and legacy transport contracts', asyn
     meta_fields: { author: 'alice' },
   })
   assert.ok(patchCalls[1]?.config?.baseURL?.endsWith('/api'))
-  assert.equal(putCalls.length, 0)
+  assert.equal(putCalls.length, 1)
 })
 
 test('updateDocumentSettings puts the settings array on the RESTful config route', async () => {

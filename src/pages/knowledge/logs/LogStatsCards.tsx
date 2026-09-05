@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
-import { Download, Files, Loader2 } from 'lucide-react'
+import { Files, Layers, Loader2 } from 'lucide-react'
+import type { IngestionSummary } from '@/api/knowledge'
 import {
   LogStatCard,
   LogStatProcess,
@@ -7,68 +8,37 @@ import {
 } from './components/log-stat-card'
 
 interface LogStatsCardsProps {
-  totalFiles: number
-  downloading: number
-  downloadSuccess: number
-  downloadFailed: number
-  processing: number
-  processSuccess: number
-  processFailed: number
+  summary?: IngestionSummary | null
   isLoading?: boolean
 }
 
-export function LogStatsCards({
-  totalFiles,
-  downloading,
-  downloadSuccess,
-  downloadFailed,
-  processing,
-  processSuccess,
-  processFailed,
-  isLoading,
-}: LogStatsCardsProps) {
+export function LogStatsCards({ summary, isLoading }: LogStatsCardsProps) {
   const { t } = useTranslation()
-
-  if (isLoading) {
-    return <LogStatsSkeleton />
-  }
+  if (isLoading) return <LogStatsSkeleton />
+  if (!summary) return null
 
   return (
     <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
       <LogStatCard
         title={t('knowledge.logs.stats.totalFiles')}
-        value={totalFiles}
+        value={summary.doc_num}
         icon={<Files className="h-5 w-5" />}
-        tooltip={t('knowledge.logs.stats.totalFilesTooltip')}
       />
-
       <LogStatCard
-        title={t('knowledge.logs.stats.downloading')}
-        value={downloading}
-        icon={<Download className="h-5 w-5" />}
-        variant="info"
-        tooltip={t('knowledge.logs.stats.downloadingTooltip')}
-      >
-        <LogStatProcess
-          success={downloadSuccess}
-          failed={downloadFailed}
-          successLabel={t('knowledge.logs.stats.success')}
-          failedLabel={t('knowledge.logs.stats.failed')}
-          successTip={t('knowledge.logs.stats.downloadSuccessTip')}
-          failedTip={t('knowledge.logs.stats.downloadFailedTip')}
-        />
-      </LogStatCard>
-
+        title={t('knowledge.list.stats.totalChunks')}
+        value={summary.chunk_num}
+        icon={<Layers className="h-5 w-5" />}
+      />
       <LogStatCard
         title={t('knowledge.logs.stats.processing')}
-        value={processing}
-        icon={<Loader2 className="h-5 w-5 animate-spin" />}
+        value={summary.status.running_count}
+        icon={<Loader2 className="h-5 w-5" />}
         variant="warning"
         tooltip={t('knowledge.logs.stats.processingTooltip')}
       >
         <LogStatProcess
-          success={processSuccess}
-          failed={processFailed}
+          success={summary.status.done_count}
+          failed={summary.status.fail_count}
           successLabel={t('knowledge.logs.stats.success')}
           failedLabel={t('knowledge.logs.stats.failed')}
           successTip={t('knowledge.logs.stats.processSuccessTip')}

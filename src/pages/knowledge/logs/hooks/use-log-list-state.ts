@@ -43,7 +43,6 @@ export function useLogListState(
         : knowledgeAPI.logs.listDatasetLogs(params)
     },
     enabled: !!id && enabled,
-    placeholderData: (prev) => prev || EMPTY_LOG_LIST,
   })
 
   const handlePaginationChange = useCallback(

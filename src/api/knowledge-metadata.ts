@@ -2,6 +2,7 @@ import type {
   DocumentMetadataSettingsRequest,
   KBMetadataSettingsRequest,
   MetadataBatchRequest,
+  MetadataFieldDefinition,
   MetadataSummaryResponse,
 } from '@/types/metadata'
 import { apiClient } from './client'
@@ -9,6 +10,20 @@ import { knowledgeRestConfig } from './knowledge-config'
 import { withLegacyFallback } from './legacy-fallback'
 
 export const knowledgeMetadataAPI = {
+  getConfig: (
+    datasetId: string,
+  ): Promise<{ enabled: boolean; fields: MetadataFieldDefinition[] }> =>
+    apiClient.get(
+      `/v1/datasets/${encodeURIComponent(datasetId)}/metadata/config`,
+      knowledgeRestConfig,
+    ),
+
+  getFlattened: (datasetIds: string[]): Promise<Record<string, unknown>> =>
+    apiClient.get('/v1/datasets/metadata/flattened', {
+      ...knowledgeRestConfig,
+      params: { dataset_ids: datasetIds.join(',') },
+    }),
+
   /** 获取知识库 metadata 汇总。 */
   getSummary: (
     kbId: string,
@@ -33,7 +48,11 @@ export const knowledgeMetadataAPI = {
 
   /** 更新知识库 metadata 模板设置。 */
   updateKBSettings: (data: KBMetadataSettingsRequest): Promise<void> =>
-    apiClient.post('/v1/kb/update_metadata_setting', data),
+    apiClient.put(
+      `/v1/datasets/${encodeURIComponent(data.kb_id)}/metadata/config`,
+      { enabled: data.enable_metadata ?? true, fields: data.metadata },
+      knowledgeRestConfig,
+    ),
 
   /**
    * 更新单文档 metadata 模板设置。

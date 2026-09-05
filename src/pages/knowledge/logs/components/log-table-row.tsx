@@ -91,7 +91,7 @@ export function LogTableRow({
         <FileStatusBadge status={item.operation_status as RunningStatus} />
       </TableCell>
       <TableCell>
-        <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+        <div className="flex items-center gap-1">
           <Tooltip content={t('knowledge.logs.table.viewDetail')}>
             <Button
               variant="ghost"

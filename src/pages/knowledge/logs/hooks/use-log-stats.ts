@@ -3,14 +3,6 @@ import { useParams } from 'react-router-dom'
 import { knowledgeAPI } from '@/api/knowledge'
 import { knowledgeLogKeys } from '../constants'
 
-const EMPTY_LOG_STATS = {
-  cancelled: 0,
-  failed: 0,
-  finished: 0,
-  processing: 0,
-  downloaded: 0,
-}
-
 export function useLogStats() {
   const { id } = useParams<{ id: string }>()
 
@@ -18,14 +10,14 @@ export function useLogStats() {
     queryKey: knowledgeLogKeys.stats(id),
     queryFn: async () => {
       if (!id) return null
-      return knowledgeAPI.logs.getBasicInfo(id)
+      return knowledgeAPI.logs.getSummary(id)
     },
     enabled: !!id,
     staleTime: 30000,
   })
 
   return {
-    data: data || EMPTY_LOG_STATS,
+    data,
     isLoading,
     error,
     refetch,

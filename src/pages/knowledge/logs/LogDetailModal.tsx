@@ -1,3 +1,8 @@
+import { useQuery } from '@tanstack/react-query'
+import { useParams } from 'react-router-dom'
+import { knowledgeAPI } from '@/api/knowledge'
+import { LogLoadError } from './components/log-load-error'
+import { LogTableSkeleton } from './components/log-table-state'
 import { useTranslation } from 'react-i18next'
 import { Database, FileText } from 'lucide-react'
 import {
@@ -8,7 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { LogTabType } from './constants'
+import { LogTabType, knowledgeLogKeys } from './constants'
 import type { LogTableItem } from './types'
 import {
   LogDetailBody,
@@ -29,6 +34,13 @@ export function LogDetailModal({
   activeTab,
 }: LogDetailModalProps) {
   const { t } = useTranslation()
+  const { id } = useParams<{ id: string }>()
+  const detail = useQuery({
+    queryKey: knowledgeLogKeys.detail(id, logInfo?.id),
+    queryFn: () => knowledgeAPI.logs.get(id!, logInfo!.id),
+    enabled:
+      open && !!id && !!logInfo?.id && activeTab === LogTabType.DATASET_LOGS,
+  })
   const isFileLogs = activeTab === LogTabType.FILE_LOGS
   const title = isFileLogs
     ? t('knowledge.logs.detail.fileTitle')
@@ -52,7 +64,16 @@ export function LogDetailModal({
           </div>
         </DialogHeader>
 
-        <LogDetailBody logInfo={logInfo} activeTab={activeTab} />
+        {!isFileLogs && detail.isPending ? (
+          <LogTableSkeleton rows={3} />
+        ) : !isFileLogs && detail.error ? (
+          <LogLoadError onRetry={() => void detail.refetch()} />
+        ) : (
+          <LogDetailBody
+            logInfo={isFileLogs ? logInfo : (detail.data ?? null)}
+            activeTab={activeTab}
+          />
+        )}
 
         <DialogFooter>
           <LogDetailFooter onClose={onClose} />

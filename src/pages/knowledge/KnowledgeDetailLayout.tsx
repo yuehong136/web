@@ -1,6 +1,12 @@
 import React from 'react'
 import { useTranslation } from 'react-i18next'
-import { Outlet, useParams, useNavigate, useLocation } from 'react-router-dom'
+import {
+  Link,
+  Outlet,
+  useParams,
+  useNavigate,
+  useLocation,
+} from 'react-router-dom'
 import {
   ArrowLeft,
   FileText,
@@ -73,8 +79,11 @@ const KnowledgeDetailLayout: React.FC = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const location = useLocation()
-  const { knowledgeBase: currentKnowledgeBase, isLoading } =
-    useFetchKnowledgeDetail(id)
+  const {
+    knowledgeBase: currentKnowledgeBase,
+    isError,
+    refetch,
+  } = useFetchKnowledgeDetail(id)
 
   const navGroups: SettingsRailGroup[] = React.useMemo(() => {
     if (!id) return []
@@ -119,7 +128,21 @@ const KnowledgeDetailLayout: React.FC = () => {
     ]
   }, [id, t])
 
-  if (isLoading || !currentKnowledgeBase) {
+  if (isError) {
+    return (
+      <div
+        role="alert"
+        className="flex h-64 flex-col items-center justify-center gap-4"
+      >
+        <p>{t('knowledge.logs.loadError')}</p>
+        <Button variant="outline" onClick={() => void refetch()}>
+          {t('knowledge.common.retry')}
+        </Button>
+      </div>
+    )
+  }
+
+  if (!currentKnowledgeBase) {
     return (
       <div className="flex h-64 items-center justify-center">
         <Loading variant="spinner" size="lg" />
@@ -132,10 +155,40 @@ const KnowledgeDetailLayout: React.FC = () => {
       bodyOverflow="hidden"
       rail={
         <SettingsRail
+          className="hidden md:flex"
           navAriaLabel={t('knowledge.nav.label')}
           groups={navGroups}
           currentPath={location.pathname}
         />
+      }
+      toolbar={
+        <nav
+          aria-label={t('knowledge.nav.label')}
+          className="flex shrink-0 gap-1 overflow-x-auto border-b border-components-settings-rail-border px-3 py-2 md:hidden"
+        >
+          {navGroups
+            .flatMap((group) => group.items)
+            .map((item) => (
+              <Button
+                key={item.href}
+                asChild
+                variant={
+                  item.matcher?.(location.pathname) ? 'secondary' : 'ghost'
+                }
+                size="sm"
+                className="shrink-0"
+              >
+                <Link
+                  to={item.href}
+                  aria-current={
+                    item.matcher?.(location.pathname) ? 'page' : undefined
+                  }
+                >
+                  {item.title}
+                </Link>
+              </Button>
+            ))}
+        </nav>
       }
       header={
         <PageHeader
@@ -161,7 +214,11 @@ const KnowledgeDetailLayout: React.FC = () => {
             currentKnowledgeBase.description ||
             t('knowledge.common.emptyDescription')
           }
-          actions={<KnowledgeStats kb={currentKnowledgeBase} />}
+          actions={
+            <div className="hidden lg:block">
+              <KnowledgeStats kb={currentKnowledgeBase} />
+            </div>
+          }
         />
       }
     >

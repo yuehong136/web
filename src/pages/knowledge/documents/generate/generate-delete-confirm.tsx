@@ -10,6 +10,7 @@ import { TASK_TYPE_CONFIG } from './constants'
 
 interface GenerateDeleteConfirmProps {
   open: boolean
+  loading?: boolean
   type: GenerateTaskType | null
   onConfirm: () => void
   onClose: () => void
@@ -18,6 +19,7 @@ interface GenerateDeleteConfirmProps {
 const GenerateDeleteConfirmComponent: React.FC<GenerateDeleteConfirmProps> = ({
   open,
   type,
+  loading,
   onConfirm,
   onClose,
 }) => {
@@ -27,6 +29,10 @@ const GenerateDeleteConfirmComponent: React.FC<GenerateDeleteConfirmProps> = ({
   return (
     <ConfirmModal
       open={open}
+      loading={loading}
+      variant="destructive"
+      confirmText={t('common.delete')}
+      cancelText={t('common.cancel')}
       onClose={onClose}
       onConfirm={onConfirm}
       title={t('knowledge.documents.generate.deleteTitle', { label })}

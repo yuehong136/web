@@ -8,6 +8,10 @@ import type {
   ParseWebRequest,
 } from '@/types/api'
 import { apiClient } from './client'
+import {
+  parseDatasetDocuments,
+  stopDatasetDocuments,
+} from './knowledge-document-parsing'
 import { knowledgeRestConfig as sdkBase } from './knowledge-config'
 import {
   deleteDatasetDocuments,
@@ -174,8 +178,8 @@ export const knowledgeDocumentAPI = {
   ): Promise<{ task_id: string }> =>
     apiClient.post(`/v1/document/${docId}/reparse`, options),
 
-  parse: (docIds: string[]): Promise<void> =>
-    apiClient.post('/v1/document/run', { doc_ids: docIds }),
+  parse: parseDatasetDocuments,
+  stop: stopDatasetDocuments,
 
   getContent: (docId: string): Promise<{ content: string }> =>
     apiClient.get(`/v1/document/${docId}/content`),
@@ -225,17 +229,6 @@ export const knowledgeDocumentAPI = {
     failed_count: number
     errors?: unknown[]
   }> => apiClient.post('/v1/document/batch', { operation, ...data }),
-
-  run: (
-    docIds: string[],
-    run: number,
-    deleteHistory?: boolean,
-  ): Promise<void> =>
-    apiClient.post('/v1/document/run', {
-      doc_ids: docIds,
-      run,
-      delete: deleteHistory || false,
-    }),
 
   changeStatus: (params: {
     doc_ids: string[] | string

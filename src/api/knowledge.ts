@@ -2,6 +2,10 @@ import { apiClient, type ApiEnvelope } from './client'
 import { knowledgeRestConfig as sdkBase } from './knowledge-config'
 import { knowledgeDocumentAPI } from './knowledge-documents'
 import { knowledgeMetadataAPI } from './knowledge-metadata'
+import { knowledgeIndexAPI } from './knowledge-index'
+import { knowledgeTagAPI } from './knowledge-tags'
+import { knowledgeIngestionAPI } from './knowledge-ingestions'
+export type { IngestionSummary } from './knowledge-ingestions'
 import type {
   KnowledgeBase,
   DatasetDTO,
@@ -21,6 +25,9 @@ import type {
 export const normalizeDataset = (dto: DatasetDTO): KnowledgeBase =>
   ({
     ...dto,
+    metadata_settings: Array.isArray(dto.parser_config?.metadata)
+      ? dto.parser_config.metadata
+      : [],
     doc_num: dto.document_count ?? 0,
     chunk_num: dto.chunk_count ?? 0,
     parser_id: dto.chunk_method ?? 'naive',
@@ -111,8 +118,13 @@ export const knowledgeAPI = {
     },
 
     // 获取知识库详情
-    get: (kbId: string): Promise<KnowledgeBase> =>
-      apiClient.get(`/v1/kb/detail?kb_id=${kbId}`),
+    get: async (kbId: string): Promise<KnowledgeBase> =>
+      normalizeDataset(
+        await apiClient.get<DatasetDTO>(
+          `/v1/datasets/${encodeURIComponent(kbId)}`,
+          sdkBase,
+        ),
+      ),
 
     // 创建知识库 —— RESTful POST /api/v1/datasets（对外仍返回 { kb_id }）
     create: async (data: CreateKBRequest): Promise<{ kb_id: string }> => {
@@ -185,41 +197,7 @@ export const knowledgeAPI = {
   // 文档管理
   document: knowledgeDocumentAPI,
 
-  // 标签管理
-  tag: {
-    // 获取所有标签
-    list: (): Promise<Array<{ name: string; count: number; color?: string }>> =>
-      apiClient.get('/v1/kb/tags'),
-
-    // 创建标签
-    create: (data: {
-      name: string
-      color?: string
-      description?: string
-    }): Promise<void> => apiClient.post('/v1/kb/tags', data),
-
-    // 更新标签
-    update: (
-      tagName: string,
-      data: {
-        new_name?: string
-        color?: string
-        description?: string
-      },
-    ): Promise<void> => apiClient.put(`/v1/kb/tags/${tagName}`, data),
-
-    // 删除标签
-    delete: (tagName: string): Promise<void> =>
-      apiClient.delete(`/v1/kb/tags/${tagName}`),
-
-    // 为知识库添加标签
-    addToKB: (kbId: string, tags: string[]): Promise<void> =>
-      apiClient.post(`/v1/kb/${kbId}/tags`, { tags }),
-
-    // 从知识库移除标签
-    removeFromKB: (kbId: string, tags: string[]): Promise<void> =>
-      apiClient.delete(`/v1/kb/${kbId}/tags`, { data: { tags } }),
-  },
+  tag: knowledgeTagAPI,
 
   // 搜索和检索
   search: {
@@ -336,195 +314,10 @@ export const knowledgeAPI = {
     }> => apiClient.post('/v1/chunk/retrieval_test', data),
   },
 
-  // 知识库日志管理
-  logs: {
-    // 获取文件日志列表
-    listFileLogs: (params: {
-      kb_id: string
-      page?: number
-      page_size?: number
-      keywords?: string
-      operation_status?: string[]
-    }): Promise<{
-      logs: Array<{
-        id: string
-        create_date: string
-        create_time: number
-        document_id: string
-        document_name: string
-        document_suffix: string
-        document_type: string
-        dsl: any
-        path: string[]
-        task_id: string
-        name: string
-        kb_id: string
-        operation_status: string
-        parser_id: string
-        pipeline_id: string
-        pipeline_title: string
-        avatar: string
-        process_begin_at: string | null
-        process_duration: number
-        progress: number
-        progress_msg: string
-        source_type?: string
-        source_from?: string
-        status: string
-        task_type: string
-        tenant_id: string
-        update_date: string
-        update_time: number
-      }>
-      total: number
-    }> => {
-      const {
-        kb_id,
-        page = 1,
-        page_size = 10,
-        keywords = '',
-        operation_status,
-      } = params
-      const queryParams = new URLSearchParams({
-        kb_id,
-        page: page.toString(),
-        page_size: page_size.toString(),
-        keywords,
-      })
-      return apiClient.post(
-        `/v1/kb/list_pipeline_logs?${queryParams.toString()}`,
-        {
-          operation_status: operation_status || [],
-        },
-      )
-    },
-
-    // 获取数据集日志列表
-    listDatasetLogs: (params: {
-      kb_id: string
-      page?: number
-      page_size?: number
-      keywords?: string
-      operation_status?: string[]
-    }): Promise<{
-      logs: Array<{
-        id: string
-        create_date: string
-        create_time: number
-        kb_id: string
-        operation_status: string
-        process_begin_at: string | null
-        process_duration: number
-        progress: number
-        progress_msg: string
-        status: string
-        task_type: string
-        tenant_id: string
-        update_date: string
-        update_time: number
-      }>
-      total: number
-    }> => {
-      const {
-        kb_id,
-        page = 1,
-        page_size = 10,
-        keywords = '',
-        operation_status,
-      } = params
-      const queryParams = new URLSearchParams({
-        kb_id,
-        page: page.toString(),
-        page_size: page_size.toString(),
-        keywords,
-      })
-      return apiClient.post(
-        `/v1/kb/list_pipeline_dataset_logs?${queryParams.toString()}`,
-        {
-          operation_status: operation_status || [],
-        },
-      )
-    },
-
-    // 获取知识库基础统计信息
-    getBasicInfo: (
-      kbId: string,
-    ): Promise<{
-      cancelled: number
-      failed: number
-      finished: number
-      processing: number
-      downloaded: number
-    }> => apiClient.get(`/v1/kb/basic_info?kb_id=${kbId}`),
-  },
+  logs: knowledgeIngestionAPI,
 
   // Metadata 管理
   metadata: knowledgeMetadataAPI,
 
-  // GraphRAG / RAPTOR 生成任务
-  generate: {
-    // RESTful POST /api/v1/datasets/{dataset_id}/run_graphrag（id 进路径，无 body）
-    runGraphRag: (payload: {
-      kb_id: string
-      doc_ids?: string[]
-    }): Promise<{ graphrag_task_id: string }> =>
-      apiClient.post(
-        `/v1/datasets/${payload.kb_id}/run_graphrag`,
-        undefined,
-        sdkBase,
-      ),
-
-    // RESTful GET /api/v1/datasets/{dataset_id}/trace_graphrag
-    traceGraphRag: (
-      kbId: string,
-    ): Promise<
-      | {
-          id: string
-          progress: number
-          progress_msg: string
-          begin_at: string
-          create_date: string
-          update_date: string
-          process_duration: number
-          task_type: string
-        }
-      | Record<string, never>
-    > => apiClient.get(`/v1/datasets/${kbId}/trace_graphrag`, sdkBase),
-
-    // RESTful POST /api/v1/datasets/{dataset_id}/run_raptor（id 进路径，无 body）
-    runRaptor: (payload: {
-      kb_id: string
-      doc_ids?: string[]
-    }): Promise<{ raptor_task_id: string }> =>
-      apiClient.post(
-        `/v1/datasets/${payload.kb_id}/run_raptor`,
-        undefined,
-        sdkBase,
-      ),
-
-    // RESTful GET /api/v1/datasets/{dataset_id}/trace_raptor
-    traceRaptor: (
-      kbId: string,
-    ): Promise<
-      | {
-          id: string
-          progress: number
-          progress_msg: string
-          begin_at: string
-          create_date: string
-          update_date: string
-          process_duration: number
-          task_type: string
-        }
-      | Record<string, never>
-    > => apiClient.get(`/v1/datasets/${kbId}/trace_raptor`, sdkBase),
-
-    unbindPipelineTask: (params: {
-      kb_id: string
-      pipeline_task_type: 'GraphRAG' | 'RAPTOR'
-    }): Promise<boolean> =>
-      apiClient.delete(
-        `/v1/kb/unbind_task?kb_id=${params.kb_id}&pipeline_task_type=${params.pipeline_task_type}`,
-      ),
-  },
+  generate: knowledgeIndexAPI,
 }

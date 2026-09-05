@@ -145,7 +145,7 @@ export function DocumentUploadModal({
         if (parseOnUpload) {
           try {
             const docIds = uploadedDocs.map((doc) => doc.id)
-            await knowledgeAPI.document.run(docIds, 1, false)
+            await knowledgeAPI.document.parse(kbId, docIds)
             toast.success(
               t('knowledge.documents.toasts.parseStarted', {
                 count: docIds.length,

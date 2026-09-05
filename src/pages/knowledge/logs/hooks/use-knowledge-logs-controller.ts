@@ -33,20 +33,12 @@ export function useKnowledgeLogsController() {
     [currentLogs.data?.logs],
   )
 
-  const totalFiles = useMemo(() => {
-    if (activeTab === LogTabType.FILE_LOGS) {
-      return currentLogs.pagination.total
-    }
-    return fileLogs.pagination.total
-  }, [activeTab, currentLogs.pagination.total, fileLogs.pagination.total])
-
   return {
     activeTab,
     setActiveTab,
     stats,
     currentLogs,
     processedLogs,
-    totalFiles,
     detailModal,
     handleRefresh,
   }

@@ -8,6 +8,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { knowledgeAPI } from '@/api/knowledge'
 import { agentAPI } from '@/api/agent'
+import type { DatasetIndexType, IndexTrace } from '@/api/knowledge-index'
 import { MutationErrorFeedback } from '@/lib/mutation-error-feedback'
 import { knowledgeKeys } from './use-knowledge-request'
 
@@ -27,16 +28,7 @@ export enum GenerateTaskStatus {
   Failed = 'failed',
 }
 
-export interface TraceInfo {
-  id: string
-  progress: number
-  progress_msg: string
-  begin_at: string
-  create_date: string
-  update_date: string
-  process_duration: number
-  task_type: string
-}
+export type TraceInfo = IndexTrace
 
 // ============================================================================
 // Query Keys
@@ -76,6 +68,9 @@ function isRunning(data: TraceInfo | null | undefined): boolean {
 // Hooks
 // ============================================================================
 
+const indexType = (type: GenerateTaskType): DatasetIndexType =>
+  type === GenerateTaskType.GraphRAG ? 'graph' : 'raptor'
+
 const POLLING_INTERVAL = 5000
 
 /**
@@ -93,11 +88,7 @@ export function useTraceKnowledgeTask(params: {
   >({
     queryKey: generateKeys.trace(kbId, type),
     queryFn: async () => {
-      const fn =
-        type === GenerateTaskType.GraphRAG
-          ? knowledgeAPI.generate.traceGraphRag
-          : knowledgeAPI.generate.traceRaptor
-      return fn(kbId)
+      return knowledgeAPI.generate.trace(kbId, indexType(type))
     },
     enabled: !!kbId && enabled,
     gcTime: 0,
@@ -109,7 +100,6 @@ export function useTraceKnowledgeTask(params: {
         ? POLLING_INTERVAL
         : false
     },
-    placeholderData: (prev) => prev,
   })
 
   const traceData = (data && 'id' in data ? data : null) as TraceInfo | null
@@ -127,15 +117,14 @@ export function useRunKnowledgeTask() {
   const { mutateAsync, isPending } = useMutation({
     meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: async (params: { kbId: string; type: GenerateTaskType }) => {
-      const fn =
-        params.type === GenerateTaskType.GraphRAG
-          ? knowledgeAPI.generate.runGraphRag
-          : knowledgeAPI.generate.runRaptor
-      return fn({ kb_id: params.kbId })
+      return knowledgeAPI.generate.run(params.kbId, indexType(params.type))
     },
-    onSuccess: (_data, variables) => {
+    onSettled: (_data, _error, variables) => {
       queryClient.invalidateQueries({
         queryKey: generateKeys.trace(variables.kbId, variables.type),
+      })
+      queryClient.invalidateQueries({
+        queryKey: knowledgeKeys.graph(variables.kbId),
       })
       queryClient.invalidateQueries({
         queryKey: knowledgeKeys.detail(variables.kbId),
@@ -147,7 +136,7 @@ export function useRunKnowledgeTask() {
 }
 
 /**
- * 暂停生成任务（cancelDataflow + unbindPipelineTask）
+ * 请求取消生成任务，保留产物和 trace，等待 worker 报告终态。
  */
 export function usePauseKnowledgeTask() {
   const queryClient = useQueryClient()
@@ -160,14 +149,13 @@ export function usePauseKnowledgeTask() {
       type: GenerateTaskType
     }) => {
       await agentAPI.cancelDataflow(params.taskId)
-      await knowledgeAPI.generate.unbindPipelineTask({
-        kb_id: params.kbId,
-        pipeline_task_type: params.type,
-      })
     },
-    onSuccess: (_data, variables) => {
+    onSettled: (_data, _error, variables) => {
       queryClient.invalidateQueries({
         queryKey: generateKeys.trace(variables.kbId, variables.type),
+      })
+      queryClient.invalidateQueries({
+        queryKey: knowledgeKeys.graph(variables.kbId),
       })
       queryClient.invalidateQueries({
         queryKey: knowledgeKeys.detail(variables.kbId),
@@ -187,14 +175,14 @@ export function useUnbindKnowledgeTask() {
   const { mutateAsync, isPending } = useMutation({
     meta: { errorFeedback: MutationErrorFeedback.Local },
     mutationFn: async (params: { kbId: string; type: GenerateTaskType }) => {
-      return knowledgeAPI.generate.unbindPipelineTask({
-        kb_id: params.kbId,
-        pipeline_task_type: params.type,
-      })
+      return knowledgeAPI.generate.delete(params.kbId, indexType(params.type))
     },
-    onSuccess: (_data, variables) => {
+    onSettled: (_data, _error, variables) => {
       queryClient.invalidateQueries({
         queryKey: generateKeys.trace(variables.kbId, variables.type),
+      })
+      queryClient.invalidateQueries({
+        queryKey: knowledgeKeys.graph(variables.kbId),
       })
       queryClient.invalidateQueries({
         queryKey: knowledgeKeys.detail(variables.kbId),

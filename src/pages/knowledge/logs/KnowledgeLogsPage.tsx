@@ -5,6 +5,7 @@ import { ListPageTemplate } from '@/components/page-templates'
 import { LogStatsCards } from './LogStatsCards'
 import { LogTabFilter } from './LogTabFilter'
 import { LogTable } from './LogTable'
+import { LogLoadError } from './components/log-load-error'
 import { LogDetailModal } from './LogDetailModal'
 import { useKnowledgeLogsController } from './hooks'
 
@@ -16,7 +17,6 @@ export function KnowledgeLogsPage() {
     stats,
     currentLogs,
     processedLogs,
-    totalFiles,
     detailModal,
     handleRefresh,
   } = useKnowledgeLogsController()
@@ -39,19 +39,12 @@ export function KnowledgeLogsPage() {
           {t('knowledge.common.refresh')}
         </Button>
       }
-      stats={
-        <LogStatsCards
-          totalFiles={totalFiles}
-          downloading={stats.data.downloaded || 0}
-          downloadSuccess={stats.data.downloaded || 0}
-          downloadFailed={0}
-          processing={stats.data.processing || 0}
-          processSuccess={stats.data.finished || 0}
-          processFailed={stats.data.failed || 0}
-          isLoading={stats.isLoading}
-        />
-      }
     >
+      {stats.error ? (
+        <LogLoadError onRetry={stats.refetch} />
+      ) : (
+        <LogStatsCards summary={stats.data} isLoading={stats.isLoading} />
+      )}
       <div className="rounded-radius-xl p-space-lg border border-components-console-border bg-components-console-surface">
         <LogTabFilter
           activeTab={activeTab}
@@ -62,14 +55,18 @@ export function KnowledgeLogsPage() {
           onFilterChange={currentLogs.handleFilterSubmit}
         />
 
-        <LogTable
-          data={processedLogs}
-          isLoading={currentLogs.isLoading}
-          activeTab={activeTab}
-          pagination={currentLogs.pagination}
-          onPaginationChange={currentLogs.handlePaginationChange}
-          onViewDetail={detailModal.openDetail}
-        />
+        {currentLogs.error ? (
+          <LogLoadError onRetry={currentLogs.refetch} />
+        ) : (
+          <LogTable
+            data={processedLogs}
+            isLoading={currentLogs.isLoading}
+            activeTab={activeTab}
+            pagination={currentLogs.pagination}
+            onPaginationChange={currentLogs.handlePaginationChange}
+            onViewDetail={detailModal.openDetail}
+          />
+        )}
       </div>
 
       <LogDetailModal

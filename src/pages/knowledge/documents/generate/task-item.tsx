@@ -64,7 +64,7 @@ const TaskItemComponent: React.FC<TaskItemProps> = ({
     status === GenerateTaskStatus.Failed
       ? 100
       : status === GenerateTaskStatus.Running && traceData
-        ? Math.round(traceData.progress * 100)
+        ? Math.max(0, Math.min(100, Math.round(traceData.progress * 100)))
         : 0
 
   const canTrigger =
@@ -122,6 +122,7 @@ const TaskItemComponent: React.FC<TaskItemProps> = ({
                 variant="ghost"
                 size="sm"
                 className="h-6 w-6 p-0"
+                aria-label={t(statusConfig.actionTextKey)}
                 onClick={handleAction}
                 disabled={disabled || isActionPending}
               >
@@ -135,6 +136,7 @@ const TaskItemComponent: React.FC<TaskItemProps> = ({
                 variant="ghost"
                 size="sm"
                 className="h-6 w-6 p-0"
+                aria-label={t('knowledge.documents.generate.deleteResult')}
                 onClick={handleDelete}
                 disabled={isActionPending}
               >
@@ -182,6 +184,7 @@ const TaskItemComponent: React.FC<TaskItemProps> = ({
                 variant="ghost"
                 size="sm"
                 className="h-7 w-7 p-0"
+                aria-label={t(statusConfig.actionTextKey)}
                 onClick={handleAction}
                 disabled={disabled || isActionPending}
               >
@@ -199,6 +202,7 @@ const TaskItemComponent: React.FC<TaskItemProps> = ({
                 variant="ghost"
                 size="sm"
                 className="h-7 w-7 p-0"
+                aria-label={t('knowledge.documents.generate.pause')}
                 onClick={handlePause}
                 disabled={isActionPending}
               >
@@ -212,6 +216,7 @@ const TaskItemComponent: React.FC<TaskItemProps> = ({
                 variant="ghost"
                 size="sm"
                 className="h-7 w-7 p-0"
+                aria-label={t('knowledge.documents.generate.deleteResult')}
                 onClick={handleDelete}
                 disabled={isActionPending}
               >

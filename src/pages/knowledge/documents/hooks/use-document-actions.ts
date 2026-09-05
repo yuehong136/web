@@ -27,7 +27,7 @@ const getMutationCounts = (result: Record<string, { error?: string }>) => {
 
 export function useDocumentActions(onSuccess?: () => void, datasetId?: string) {
   const { t } = useTranslation()
-  const { runDocument, isLoading: isRunning } = useRunDocument()
+  const { runDocument, isLoading: isRunning } = useRunDocument(datasetId ?? '')
   const { changeStatus, isLoading: isChangingStatus } =
     useChangeDocumentStatus()
   const { renameDocument, isLoading: isRenaming } = useRenameDocument()

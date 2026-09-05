@@ -87,7 +87,7 @@ export function useGenerateState(kbId: string) {
   }, [])
 
   const handleDeleteConfirm = useCallback(async () => {
-    if (!deletingType) return
+    if (!deletingType || isUnbinding) return
     try {
       await unbindTask({ kbId, type: deletingType })
       toast.success(
@@ -95,18 +95,18 @@ export function useGenerateState(kbId: string) {
           label: t(TASK_TYPE_CONFIG[deletingType].labelKey),
         }),
       )
-    } catch {
-      toast.error(t('knowledge.documents.generate.deleteError'))
-    } finally {
       setDeleteConfirmOpen(false)
       setDeletingType(null)
+    } catch {
+      toast.error(t('knowledge.documents.generate.deleteError'))
     }
-  }, [kbId, deletingType, unbindTask, t])
+  }, [kbId, deletingType, isUnbinding, unbindTask, t])
 
   const handleDeleteCancel = useCallback(() => {
+    if (isUnbinding) return
     setDeleteConfirmOpen(false)
     setDeletingType(null)
-  }, [])
+  }, [isUnbinding])
 
   return {
     graph,

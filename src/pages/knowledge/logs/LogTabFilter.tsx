@@ -32,6 +32,7 @@ function TabButton({ active, onClick, children }: TabButtonProps) {
   return (
     <button
       type="button"
+      aria-pressed={active}
       onClick={onClick}
       className={cn(
         'rounded-radius-lg px-4 py-2 text-sm font-medium transition-all duration-200',
@@ -98,7 +99,7 @@ export function LogTabFilter({
   }
 
   return (
-    <div className="mb-4 flex items-center justify-between gap-4">
+    <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
       <div className="rounded-radius-lg flex items-center bg-background-subtle p-1">
         {LogTabOptions.map((tab) => (
           <TabButton
@@ -111,7 +112,7 @@ export function LogTabFilter({
         ))}
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <Popover open={filterOpen} onOpenChange={setFilterOpen}>
           <PopoverTrigger asChild>
             <Button
@@ -165,29 +166,31 @@ export function LogTabFilter({
           </PopoverContent>
         </Popover>
 
-        <Input
-          placeholder={t('knowledge.logs.filter.searchPlaceholder')}
-          value={searchValue}
-          onChange={onSearchChange}
-          className="h-9 w-48 text-sm"
-          leftIcon={<Search className="h-4 w-4" />}
-          rightIcon={
-            searchValue ? (
-              <button
-                type="button"
-                onClick={() =>
-                  onSearchChange({
-                    target: { value: '' },
-                  } as ChangeEvent<HTMLInputElement>)
-                }
-                className="rounded-radius-sm p-0.5 hover:bg-background-subtle"
-                aria-label={t('knowledge.logs.filter.clearSearch')}
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
-            ) : undefined
-          }
-        />
+        {activeTab === LogTabType.FILE_LOGS && (
+          <Input
+            placeholder={t('knowledge.logs.filter.searchPlaceholder')}
+            value={searchValue}
+            onChange={onSearchChange}
+            className="h-9 w-48 text-sm"
+            leftIcon={<Search className="h-4 w-4" />}
+            rightIcon={
+              searchValue ? (
+                <button
+                  type="button"
+                  onClick={() =>
+                    onSearchChange({
+                      target: { value: '' },
+                    } as ChangeEvent<HTMLInputElement>)
+                  }
+                  className="rounded-radius-sm p-0.5 hover:bg-background-subtle"
+                  aria-label={t('knowledge.logs.filter.clearSearch')}
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              ) : undefined
+            }
+          />
+        )}
       </div>
     </div>
   )

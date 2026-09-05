@@ -175,6 +175,7 @@ export function DocumentPageModals({
 
       <GenerateDeleteConfirm
         open={generate.deleteConfirmOpen}
+        loading={generate.isActionPending}
         type={generate.deletingType}
         onConfirm={generate.handleDeleteConfirm}
         onClose={generate.handleDeleteCancel}
