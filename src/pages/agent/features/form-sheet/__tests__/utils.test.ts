@@ -215,11 +215,11 @@ test('CodeExec attachment strings are normalized into safe links', () => {
   })
   assert.deepEqual(
     parseCodeExecAttachmentLink(
-      '[Download chart.png](/api/v1/documents/artifact/chart.png?session_id=session-1)',
+      '[Download chart.png](/api/v1/documents/artifact/chart.png?run_id=run-1)',
     ),
     {
       label: 'Download chart.png',
-      href: '/api/v1/documents/artifact/chart.png?session_id=session-1',
+      href: '/api/v1/documents/artifact/chart.png?run_id=run-1',
     },
   )
   assert.deepEqual(
@@ -237,8 +237,8 @@ test('CodeExec artifact links use the API origin while external links remain ord
       { i18n },
       createElement(CodeExecAttachmentList, {
         attachments: [
-          '[Chart](/api/v1/documents/artifact/chart.png?session_id=session-1)',
-          '[Legacy](/v1/document/artifact/old.csv)',
+          '[Chart](/api/v1/documents/artifact/chart.png?run_id=run-1&session_id=session-1)',
+          '[Legacy](/v1/document/artifact/old.csv?run_id=debug-run)',
           '[Outside](https://outside.example/v1/document/artifact/public.png)',
         ],
       }),
@@ -247,11 +247,11 @@ test('CodeExec artifact links use the API origin while external links remain ord
 
   assert.match(
     html,
-    /href="http:\/\/localhost:8000\/api\/v1\/documents\/artifact\/chart\.png\?session_id=session-1"/,
+    /href="http:\/\/localhost:8000\/api\/v1\/documents\/artifact\/chart\.png\?run_id=run-1&amp;session_id=session-1"/,
   )
   assert.match(
     html,
-    /href="http:\/\/localhost:8000\/v1\/document\/artifact\/old\.csv"/,
+    /href="http:\/\/localhost:8000\/v1\/document\/artifact\/old\.csv\?run_id=debug-run"/,
   )
   assert.match(
     html,

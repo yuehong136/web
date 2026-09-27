@@ -10,6 +10,7 @@ import {
   getArtifactName,
   isArtifactUrl,
   resolveArtifactUrl,
+  shouldForceArtifactDownload,
 } from '../MarkdownArtifact'
 import { PreviewResourceErrorResult } from '@/lib/knowledge/preview-resource'
 
@@ -56,7 +57,7 @@ const withFetch = async (
 test('isArtifactUrl matches only exact old/new paths on the configured API origin', () => {
   for (const url of [
     '/v1/document/artifact/chart.png',
-    '/api/v1/documents/artifact/chart.png?session_id=session-1',
+    '/api/v1/documents/artifact/chart.png?run_id=run-1&session_id=session-1',
     'http://localhost:8000/v1/document/artifact/chart.png',
     'http://localhost:8000/api/v1/documents/artifact/chart.png',
   ]) {
@@ -107,9 +108,9 @@ test('resolveArtifactUrl preserves queries for old and new API routes', () => {
   )
   assert.equal(
     resolveArtifactUrl(
-      '/api/v1/documents/artifact/chart.png?session_id=session-1&download=1',
+      '/api/v1/documents/artifact/chart.png?run_id=run-1&session_id=session-1',
     ),
-    'http://localhost:8000/api/v1/documents/artifact/chart.png?session_id=session-1&download=1',
+    'http://localhost:8000/api/v1/documents/artifact/chart.png?run_id=run-1&session_id=session-1',
   )
   assert.equal(
     resolveArtifactUrl('http://localhost:8000/v1/document/artifact/chart.png'),
@@ -168,8 +169,8 @@ test('fetchArtifactBlob sends auth only for old/new API URLs', async () => {
       }) as typeof fetch,
       async () => {
         for (const url of [
-          '/v1/document/artifact/chart.png',
-          '/api/v1/documents/artifact/chart.png?session_id=session-1',
+          '/v1/document/artifact/chart.png?run_id=run-1&session_id=session-1',
+          '/api/v1/documents/artifact/chart.png?run_id=run-1&session_id=session-1',
         ]) {
           const blob = await fetchArtifactBlob(url)
           assert.equal(blob.size, 11)
@@ -178,10 +179,62 @@ test('fetchArtifactBlob sends auth only for old/new API URLs', async () => {
       },
     )
     assert.deepEqual(seen, [
-      'http://localhost:8000/v1/document/artifact/chart.png',
-      'http://localhost:8000/api/v1/documents/artifact/chart.png?session_id=session-1',
+      'http://localhost:8000/v1/document/artifact/chart.png?run_id=run-1&session_id=session-1',
+      'http://localhost:8000/api/v1/documents/artifact/chart.png?run_id=run-1&session_id=session-1',
     ])
   })
+})
+
+test('fetchArtifactBlob accepts authorized JSON and HTML artifact files', async () => {
+  for (const [extension, contentType, disposition, contents] of [
+    ['json', 'application/json', 'inline', '{"chart":1}'],
+    ['html', 'text/html', 'attachment', '<h1>Chart</h1>'],
+  ]) {
+    await withFetch(
+      (async () =>
+        new Response(contents, {
+          status: 200,
+          headers: {
+            'content-type': contentType,
+            'content-disposition': `${disposition}; filename="1234.${extension}"`,
+          },
+        })) as typeof fetch,
+      async () => {
+        const blob = await fetchArtifactBlob(
+          `/api/v1/documents/artifact/1234.${extension}?run_id=run-1`,
+        )
+        assert.equal(await blob.text(), contents)
+      },
+    )
+  }
+})
+
+test('active artifact formats are downloaded instead of opened as app-origin blobs', () => {
+  assert.equal(
+    shouldForceArtifactDownload(
+      new Blob(['<script></script>'], { type: 'text/html' }),
+      'report.html',
+    ),
+    true,
+  )
+  assert.equal(
+    shouldForceArtifactDownload(
+      new Blob(['<svg/>'], { type: 'image/svg+xml' }),
+      'diagram.svg',
+    ),
+    true,
+  )
+  assert.equal(
+    shouldForceArtifactDownload(new Blob(['<svg/>']), 'diagram.svg'),
+    true,
+  )
+  assert.equal(
+    shouldForceArtifactDownload(
+      new Blob(['png'], { type: 'image/png' }),
+      'chart.png',
+    ),
+    false,
+  )
 })
 
 test('fetchArtifactBlob rejects external and protocol-relative URLs before fetch', async () => {
@@ -220,6 +273,25 @@ test('fetchArtifactBlob rejects JSON responses and empty files', async () => {
           error instanceof PreviewResourceErrorResult &&
           error.reason === 'json-error' &&
           error.message === 'login required',
+      )
+    },
+  )
+
+  await withFetch(
+    (async () =>
+      new Response('{"chart":1}', {
+        status: 200,
+        headers: {
+          'content-type': 'application/json',
+          'content-disposition': 'inline; filename="other.json"',
+        },
+      })) as typeof fetch,
+    async () => {
+      await assert.rejects(
+        () => fetchArtifactBlob('/api/v1/documents/artifact/report.json'),
+        (error) =>
+          error instanceof PreviewResourceErrorResult &&
+          error.reason === 'json-error',
       )
     },
   )

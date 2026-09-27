@@ -72,12 +72,21 @@ export const fetchArtifactBlob = async (
   url: string,
   signal?: AbortSignal,
 ): Promise<Blob> => {
-  const response = await fetchPreviewResource(
-    resolveArtifactUrl(url),
-    signal,
-    'error',
-  )
-  await assertPreviewResponse(response)
+  const resolvedUrl = resolveArtifactUrl(url)
+  const response = await fetchPreviewResource(resolvedUrl, signal, 'error')
+  const contentType = response.headers.get('content-type') || ''
+  const disposition = response.headers.get('content-disposition') || ''
+  const dispositionFilename =
+    /^(?:inline|attachment);\s*filename="([^"]+)"(?:;|$)/i.exec(
+      disposition,
+    )?.[1]
+  const requestedFilename = new URL(resolvedUrl).pathname.split('/').pop()
+  const isArtifactDocument =
+    response.ok &&
+    (contentType.includes('application/json') ||
+      contentType.includes('text/html')) &&
+    dispositionFilename === requestedFilename
+  if (!isArtifactDocument) await assertPreviewResponse(response)
   const blob = await response.blob()
   assertNonEmptyBlob(blob)
   return blob
@@ -94,6 +103,13 @@ export const downloadArtifactBlob = (blob: Blob, filename: string): void => {
   document.body.removeChild(link)
   revokePreviewObjectUrl(objectUrl)
 }
+
+export const shouldForceArtifactDownload = (
+  blob: Blob,
+  filename: string,
+): boolean =>
+  /^(?:text\/html|image\/svg\+xml)(?:;|$)/i.test(blob.type) ||
+  /\.(?:html|svg)$/i.test(filename)
 
 const getDomAttribute = (
   domNode: ComponentProps['domNode'],
@@ -240,6 +256,11 @@ export const ArtifactLink: FC<{
       setIsOpening(true)
       try {
         const blob = await fetchArtifactBlob(href)
+        const filename = getArtifactName(href)
+        if (shouldForceArtifactDownload(blob, filename)) {
+          downloadArtifactBlob(blob, filename)
+          return
+        }
         const objectUrl = createPreviewObjectUrl(blob)
         const openedWindow = window.open(
           objectUrl,
@@ -250,7 +271,7 @@ export const ArtifactLink: FC<{
         if (openedWindow) {
           scheduleObjectUrlRevoke(objectUrl)
         } else {
-          downloadArtifactBlob(blob, getArtifactName(href))
+          downloadArtifactBlob(blob, filename)
           revokePreviewObjectUrl(objectUrl)
         }
       } catch (error) {
