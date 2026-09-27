@@ -11,7 +11,7 @@ import type { ComponentProps } from '@ant-design/x-markdown'
 import { Download, ExternalLink } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
-import { API_BASE_URL } from '@/constants'
+import { isArtifactUrl, resolveArtifactUrl } from '@/lib/agent/artifact-url'
 import {
   assertNonEmptyBlob,
   assertPreviewResponse,
@@ -21,8 +21,9 @@ import {
   revokePreviewObjectUrl,
 } from '@/lib/knowledge/preview-resource'
 
-const ARTIFACT_URL_MARKER = '/document/artifact/'
 const OBJECT_URL_REVOKE_DELAY_MS = 60 * 1000
+
+export { isArtifactUrl, resolveArtifactUrl } from '@/lib/agent/artifact-url'
 
 type DomNodeWithAttributes = {
   attribs?: Record<string, string | undefined>
@@ -39,9 +40,6 @@ type MarkdownImageProps = ComponentProps<{
   alt?: string
 }>
 
-export const isArtifactUrl = (url?: string): boolean =>
-  Boolean(url && url.includes(ARTIFACT_URL_MARKER))
-
 const decodeFilename = (filename: string): string => {
   try {
     return decodeURIComponent(filename)
@@ -53,24 +51,6 @@ const decodeFilename = (filename: string): string => {
 const joinClassNames = (
   ...classNames: Array<string | false | null | undefined>
 ): string => classNames.filter(Boolean).join(' ')
-
-export const resolveArtifactUrl = (url: string): string => {
-  if (/^https?:\/\//i.test(url)) {
-    return url
-  }
-
-  if (url.startsWith('//')) {
-    const protocol =
-      typeof window !== 'undefined' ? window.location.protocol : 'http:'
-    return `${protocol}${url}`
-  }
-
-  if (url.startsWith('/')) {
-    return `${API_BASE_URL.replace(/\/$/, '')}${url}`
-  }
-
-  return new URL(url, `${API_BASE_URL.replace(/\/$/, '')}/`).toString()
-}
 
 export const getArtifactName = (url?: string, fallback?: string): string => {
   const trimmedFallback = fallback?.trim()
@@ -92,7 +72,11 @@ export const fetchArtifactBlob = async (
   url: string,
   signal?: AbortSignal,
 ): Promise<Blob> => {
-  const response = await fetchPreviewResource(resolveArtifactUrl(url), signal)
+  const response = await fetchPreviewResource(
+    resolveArtifactUrl(url),
+    signal,
+    'error',
+  )
   await assertPreviewResponse(response)
   const blob = await response.blob()
   assertNonEmptyBlob(blob)
@@ -240,7 +224,7 @@ const ArtifactImage: FC<{
   )
 }
 
-const ArtifactLink: FC<{
+export const ArtifactLink: FC<{
   href: string
   className?: string
   children: ReactNode
@@ -284,7 +268,7 @@ const ArtifactLink: FC<{
 
   return (
     <a
-      href={href}
+      href={resolveArtifactUrl(href)}
       className={joinClassNames(
         'gap-space-xs hover:text-text-accent/80 inline-flex items-center text-text-accent',
         className,

@@ -1,6 +1,11 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
+import { createElement } from 'react'
+import { renderToStaticMarkup } from 'react-dom/server'
+import { createInstance } from 'i18next'
+import { I18nextProvider } from 'react-i18next'
 import type { MCPServer } from '@/types/mcp'
+import { CodeExecAttachmentList } from '../components/code-exec-attachment-list'
 import { Operator } from '../../../constant'
 import { buildGraphNode } from '../../../operators'
 import { getOperatorDefinition } from '../../../operators/registry'
@@ -208,6 +213,50 @@ test('CodeExec attachment strings are normalized into safe links', () => {
   assert.deepEqual(parseCodeExecAttachmentLink('javascript:alert(1)'), {
     label: 'javascript:alert(1)',
   })
+  assert.deepEqual(
+    parseCodeExecAttachmentLink(
+      '[Download chart.png](/api/v1/documents/artifact/chart.png?session_id=session-1)',
+    ),
+    {
+      label: 'Download chart.png',
+      href: '/api/v1/documents/artifact/chart.png?session_id=session-1',
+    },
+  )
+  assert.deepEqual(
+    parseCodeExecAttachmentLink('//outside.example/v1/document/artifact/a'),
+    { label: '//outside.example/v1/document/artifact/a' },
+  )
+})
+
+test('CodeExec artifact links use the API origin while external links remain ordinary', async () => {
+  const i18n = createInstance()
+  await i18n.init({ lng: 'en-US', resources: { 'en-US': { translation: {} } } })
+  const html = renderToStaticMarkup(
+    createElement(
+      I18nextProvider,
+      { i18n },
+      createElement(CodeExecAttachmentList, {
+        attachments: [
+          '[Chart](/api/v1/documents/artifact/chart.png?session_id=session-1)',
+          '[Legacy](/v1/document/artifact/old.csv)',
+          '[Outside](https://outside.example/v1/document/artifact/public.png)',
+        ],
+      }),
+    ),
+  )
+
+  assert.match(
+    html,
+    /href="http:\/\/localhost:8000\/api\/v1\/documents\/artifact\/chart\.png\?session_id=session-1"/,
+  )
+  assert.match(
+    html,
+    /href="http:\/\/localhost:8000\/v1\/document\/artifact\/old\.csv"/,
+  )
+  assert.match(
+    html,
+    /href="https:\/\/outside\.example\/v1\/document\/artifact\/public\.png"/,
+  )
 })
 
 test('tool context resolves legacy tool metadata and MCP context separately', () => {

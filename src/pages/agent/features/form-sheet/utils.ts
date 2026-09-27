@@ -153,7 +153,12 @@ function normalizeAttachments(value: unknown): string[] {
 }
 
 function isSafeAttachmentHref(href: string) {
-  return href.startsWith('/') || /^https?:\/\//i.test(href)
+  return (
+    (href.startsWith('/') &&
+      !href.startsWith('//') &&
+      !href.startsWith('/\\')) ||
+    /^https?:\/\//i.test(href)
+  )
 }
 
 export function parseCodeExecAttachmentLink(

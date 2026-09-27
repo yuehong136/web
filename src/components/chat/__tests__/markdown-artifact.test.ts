@@ -1,6 +1,11 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
+import { createElement } from 'react'
+import { renderToStaticMarkup } from 'react-dom/server'
+import type { ComponentProps } from '@ant-design/x-markdown'
 import {
+  MarkdownArtifactImage,
+  MarkdownArtifactLink,
   fetchArtifactBlob,
   getArtifactName,
   isArtifactUrl,
@@ -48,15 +53,33 @@ const withFetch = async (
   }
 }
 
-test('isArtifactUrl only matches document artifact routes', () => {
-  assert.equal(isArtifactUrl('/v1/document/artifact/chart.png'), true)
-  assert.equal(
-    isArtifactUrl('http://localhost:8000/v1/document/artifact/chart.png'),
-    true,
-  )
-  assert.equal(isArtifactUrl('/v1/document/artifacts/chart.png'), false)
-  assert.equal(isArtifactUrl('/v1/document/get/chart.png'), false)
-  assert.equal(isArtifactUrl(undefined), false)
+test('isArtifactUrl matches only exact old/new paths on the configured API origin', () => {
+  for (const url of [
+    '/v1/document/artifact/chart.png',
+    '/api/v1/documents/artifact/chart.png?session_id=session-1',
+    'http://localhost:8000/v1/document/artifact/chart.png',
+    'http://localhost:8000/api/v1/documents/artifact/chart.png',
+  ]) {
+    assert.equal(isArtifactUrl(url), true, url)
+  }
+
+  for (const url of [
+    '/v1/document/artifacts/chart.png',
+    '/v1/document/get/chart.png',
+    '/api/v1/documents/artifact/chart.png/extra',
+    '/api/v1/documents/artifact/chart%2Fextra.png',
+    '/api/v1/documents/artifact/',
+    'https://outside.example/api/v1/documents/artifact/chart.png',
+    'http://localhost:8000.evil.example/v1/document/artifact/chart.png',
+    'http://other@localhost:8000/v1/document/artifact/chart.png',
+    '//outside.example/v1/document/artifact/chart.png',
+    '//localhost:8000/v1/document/artifact/chart.png',
+    'https://outside.example/?next=/v1/document/artifact/chart.png',
+    'javascript:alert(1)',
+    undefined,
+  ]) {
+    assert.equal(isArtifactUrl(url), false, String(url))
+  }
 })
 
 test('artifact names are derived from fallback, relative and absolute URLs', () => {
@@ -77,40 +100,109 @@ test('artifact names are derived from fallback, relative and absolute URLs', () 
   assert.equal(getArtifactName(undefined), 'artifact')
 })
 
-test('resolveArtifactUrl maps relative artifact URLs to the API base URL', () => {
+test('resolveArtifactUrl preserves queries for old and new API routes', () => {
   assert.equal(
     resolveArtifactUrl('/v1/document/artifact/chart.png?x=1'),
     'http://localhost:8000/v1/document/artifact/chart.png?x=1',
   )
   assert.equal(
-    resolveArtifactUrl('http://api.example/v1/document/artifact/chart.png'),
-    'http://api.example/v1/document/artifact/chart.png',
+    resolveArtifactUrl(
+      '/api/v1/documents/artifact/chart.png?session_id=session-1&download=1',
+    ),
+    'http://localhost:8000/api/v1/documents/artifact/chart.png?session_id=session-1&download=1',
+  )
+  assert.equal(
+    resolveArtifactUrl('http://localhost:8000/v1/document/artifact/chart.png'),
+    'http://localhost:8000/v1/document/artifact/chart.png',
+  )
+  assert.throws(
+    () =>
+      resolveArtifactUrl(
+        'https://outside.example/api/v1/documents/artifact/chart.png',
+      ),
+    TypeError,
   )
 })
 
-test('fetchArtifactBlob sends the auth header and returns a validated blob', async () => {
+test('external artifact-shaped links and images stay ordinary markup', () => {
+  const url = 'https://outside.example/api/v1/documents/artifact/chart.png'
+  const markdownProps = {
+    domNode: {} as ComponentProps['domNode'],
+    streamStatus: 'done' as const,
+  }
+  const link = renderToStaticMarkup(
+    createElement(
+      MarkdownArtifactLink,
+      { ...markdownProps, href: url },
+      'Outside',
+    ),
+  )
+  const image = renderToStaticMarkup(
+    createElement(MarkdownArtifactImage, {
+      ...markdownProps,
+      src: url,
+      alt: 'Outside',
+    }),
+  )
+  assert.match(link, /<a href="https:\/\/outside\.example\//)
+  assert.match(image, /<img src="https:\/\/outside\.example\//)
+  assert.doesNotMatch(link, /Opening artifact/)
+  assert.doesNotMatch(image, /Loading artifact image/)
+})
+
+test('fetchArtifactBlob sends auth only for old/new API URLs', async () => {
   await withLocalStorageToken('token-1', async () => {
+    const seen: string[] = []
     await withFetch(
       (async (input, init) => {
-        assert.equal(
-          input,
-          'http://localhost:8000/v1/document/artifact/chart.png',
-        )
+        seen.push(String(input))
         assert.equal(
           (init?.headers as Headers).get('Authorization'),
           'Bearer token-1',
         )
+        assert.equal(init?.redirect, 'error')
         return new Response(new Blob(['image-bytes'], { type: 'image/png' }), {
           status: 200,
           headers: { 'content-type': 'image/png' },
         })
       }) as typeof fetch,
       async () => {
-        const blob = await fetchArtifactBlob('/v1/document/artifact/chart.png')
-        assert.equal(blob.size, 11)
-        assert.equal(blob.type, 'image/png')
+        for (const url of [
+          '/v1/document/artifact/chart.png',
+          '/api/v1/documents/artifact/chart.png?session_id=session-1',
+        ]) {
+          const blob = await fetchArtifactBlob(url)
+          assert.equal(blob.size, 11)
+          assert.equal(blob.type, 'image/png')
+        }
       },
     )
+    assert.deepEqual(seen, [
+      'http://localhost:8000/v1/document/artifact/chart.png',
+      'http://localhost:8000/api/v1/documents/artifact/chart.png?session_id=session-1',
+    ])
+  })
+})
+
+test('fetchArtifactBlob rejects external and protocol-relative URLs before fetch', async () => {
+  await withLocalStorageToken('token-1', async () => {
+    let fetchCount = 0
+    await withFetch(
+      (async () => {
+        fetchCount += 1
+        throw new Error('Unexpected fetch')
+      }) as typeof fetch,
+      async () => {
+        for (const url of [
+          'https://outside.example/api/v1/documents/artifact/chart.png',
+          '//outside.example/v1/document/artifact/chart.png',
+          '//localhost:8000/api/v1/documents/artifact/chart.png',
+        ]) {
+          await assert.rejects(() => fetchArtifactBlob(url), TypeError)
+        }
+      },
+    )
+    assert.equal(fetchCount, 0)
   })
 })
 

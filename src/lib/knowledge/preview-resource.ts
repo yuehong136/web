@@ -117,11 +117,12 @@ export const buildAuthHeader = (): string | null => {
 export const fetchPreviewResource = async (
   url: string,
   signal?: AbortSignal,
+  redirect?: RequestRedirect,
 ): Promise<Response> => {
   const headers = new Headers()
   const auth = buildAuthHeader()
   if (auth) headers.set('Authorization', auth)
-  return fetch(url, { signal, headers })
+  return fetch(url, { signal, headers, redirect })
 }
 
 const readJsonErrorMessage = async (
