@@ -6,6 +6,8 @@ import { MetadataManageType as MetadataType } from '@/types/api'
 import type { KnowledgeBase, MetadataFieldDefinition } from '@/types/api'
 import { ManageMetadataModal } from '../../metadata'
 import { DocumentUploadModal } from '../document-upload-modal'
+import { DocumentCreateModal } from '../document-create-modal'
+import { DocumentCreationMode } from '@/api/knowledge-rest'
 import { GenerateDeleteConfirm } from '../generate'
 import { ProcessLogModal } from '../process-log-modal'
 import type { DocumentListState } from '../types'
@@ -94,6 +96,21 @@ export function DocumentPageModals({
           onClose={() => pageModals.setUploadModalOpen(false)}
           kbId={kbId}
           onSuccess={listState.refetch}
+        />
+      )}
+
+      {kbId && pageModals.createMode && (
+        <DocumentCreateModal
+          mode={pageModals.createMode}
+          kbId={kbId}
+          onClose={() => pageModals.setCreateMode(null)}
+          onCreated={(document, mode) => {
+            pageModals.setCreateMode(null)
+            listState.refetch()
+            if (mode === DocumentCreationMode.EMPTY) {
+              navigate(`/knowledge/${kbId}/documents/${document.id}/chunks`)
+            }
+          }}
         />
       )}
 

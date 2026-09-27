@@ -1,17 +1,23 @@
-import { FileText, Plus } from 'lucide-react'
+import { FileText } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { DocumentCreationMode } from '@/api/knowledge-rest'
 import { PageEmptyState } from '@/components/patterns'
-import { Button, Card } from '@/components/ui'
+import { Card } from '@/components/ui'
+import { DocumentCreateMenu } from './document-create-menu'
 import type { DocumentListState } from '../types'
 
 interface DocumentEmptyStateProps {
   listState: DocumentListState
   onOpenUpload: () => void
+  onOpenCreate: (
+    mode: DocumentCreationMode.WEB | DocumentCreationMode.EMPTY,
+  ) => void
 }
 
 export function DocumentEmptyState({
   listState,
   onOpenUpload,
+  onOpenCreate,
 }: DocumentEmptyStateProps) {
   const { t } = useTranslation()
 
@@ -26,10 +32,10 @@ export function DocumentEmptyState({
         description={t('knowledge.documents.emptyDescription')}
         icon={<FileText className="h-6 w-6" />}
         action={
-          <Button onClick={onOpenUpload}>
-            <Plus className="mr-2 h-4 w-4" />
-            {t('knowledge.documents.addDocument')}
-          </Button>
+          <DocumentCreateMenu
+            onOpenUpload={onOpenUpload}
+            onOpenCreate={onOpenCreate}
+          />
         }
       />
     </Card>

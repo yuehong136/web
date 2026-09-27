@@ -338,6 +338,22 @@ class APIClient {
     })
   }
 
+  async postForm<T = any>(
+    endpoint: string,
+    fields: Record<string, string>,
+    config?: RequestConfig,
+  ): Promise<T> {
+    const formData = new FormData()
+    Object.entries(fields).forEach(([key, value]) =>
+      formData.append(key, value),
+    )
+    return this.request<T>(endpoint, {
+      ...config,
+      method: 'POST',
+      body: formData,
+    })
+  }
+
   // PUT 请求
   async put<T = any>(
     endpoint: string,

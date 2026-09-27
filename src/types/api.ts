@@ -825,15 +825,6 @@ export interface DocumentDownloadRequest {
   doc_id: string
 }
 
-export interface ParseWebRequest {
-  url: string
-  kb_id?: string
-  parser_id?: string
-  max_depth?: number
-  include_patterns?: string[]
-  exclude_patterns?: string[]
-}
-
 export interface DocumentChunk {
   id: string
   document_id: string

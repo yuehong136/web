@@ -71,6 +71,7 @@ export function KnowledgeDocumentsPage() {
         chunkNum={chunkNum}
         onOpenMetadata={() => pageModals.setMetadataModalOpen(true)}
         onOpenUpload={() => pageModals.setUploadModalOpen(true)}
+        onOpenCreate={pageModals.setCreateMode}
       />
 
       <GenerateTaskDock
@@ -91,6 +92,7 @@ export function KnowledgeDocumentsPage() {
       <DocumentEmptyState
         listState={listState}
         onOpenUpload={() => pageModals.setUploadModalOpen(true)}
+        onOpenCreate={pageModals.setCreateMode}
       />
 
       <BulkActionToolbar

@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { DocumentCreationMode } from '@/api/knowledge-rest'
 import { useUpdateDocumentParser } from '@/hooks/use-document-request'
 import type { Document, KnowledgeBase } from '@/types/api'
 import type { DocumentListState } from '../types'
@@ -20,6 +21,9 @@ export function useDocumentPageModals({
 }: UseDocumentPageModalsProps) {
   const { t } = useTranslation()
   const [uploadModalOpen, setUploadModalOpen] = useState(false)
+  const [createMode, setCreateMode] = useState<
+    DocumentCreationMode.WEB | DocumentCreationMode.EMPTY | null
+  >(null)
   const [renameModalOpen, setRenameModalOpen] = useState(false)
   const [renamingDoc, setRenamingDoc] = useState<Document | null>(null)
   const [newDocName, setNewDocName] = useState('')
@@ -169,6 +173,8 @@ export function useDocumentPageModals({
   return {
     uploadModalOpen,
     setUploadModalOpen,
+    createMode,
+    setCreateMode,
     renameModalOpen,
     setRenameModalOpen,
     newDocName,

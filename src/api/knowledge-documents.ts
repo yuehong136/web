@@ -5,7 +5,6 @@ import type {
   IDocumentInfoFilter,
   PaginatedData,
   PaginationRequest,
-  ParseWebRequest,
 } from '@/types/api'
 import { apiClient } from './client'
 import {
@@ -14,6 +13,8 @@ import {
 } from './knowledge-document-parsing'
 import { knowledgeRestConfig as sdkBase } from './knowledge-config'
 import {
+  createEmptyDatasetDocument,
+  createWebDatasetDocument,
   deleteDatasetDocuments,
   deleteDocumentsLegacy,
   getDatasetDocumentFilter,
@@ -146,9 +147,8 @@ export const knowledgeDocumentAPI = {
     apiClient.get(`/v1/document/get/${docId}`),
 
   upload: uploadDatasetDocuments,
-
-  parseWeb: (data: ParseWebRequest): Promise<{ doc_id: string }> =>
-    apiClient.post('/v1/document/web_crawl', data),
+  createWeb: createWebDatasetDocument,
+  createEmpty: createEmptyDatasetDocument,
 
   changeParser: (data: {
     doc_id: string

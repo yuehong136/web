@@ -567,7 +567,7 @@ export default {
       totalItems: '{{count}} items',
       emptyTitle: 'No documents',
       emptyDescription:
-        'Upload a document to start building this knowledge base.',
+        'Upload files, import a webpage, or create a blank document.',
       addDocument: 'Add document',
       renameTitle: 'Rename document',
       newName: 'New name',

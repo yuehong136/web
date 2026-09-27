@@ -1,6 +1,8 @@
-import { RefreshCw, Search, Tag, Upload } from 'lucide-react'
+import { RefreshCw, Search, Tag } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { DocumentCreationMode } from '@/api/knowledge-rest'
 import { Button, Card, Input } from '@/components/ui'
+import { DocumentCreateMenu } from './document-create-menu'
 import { FilterButton } from '../document-filter-popover'
 import { GenerateButton } from '../generate'
 import type { DocumentListState, FilterCollection } from '../types'
@@ -16,6 +18,9 @@ interface DocumentPageToolbarProps {
   chunkNum: number
   onOpenMetadata: () => void
   onOpenUpload: () => void
+  onOpenCreate: (
+    mode: DocumentCreationMode.WEB | DocumentCreationMode.EMPTY,
+  ) => void
 }
 
 export function DocumentPageToolbar({
@@ -26,6 +31,7 @@ export function DocumentPageToolbar({
   chunkNum,
   onOpenMetadata,
   onOpenUpload,
+  onOpenCreate,
 }: DocumentPageToolbarProps) {
   const { t } = useTranslation()
 
@@ -77,10 +83,10 @@ export function DocumentPageToolbar({
             <Tag className="mr-2 h-4 w-4" />
             {t('knowledge.documents.manageMetadata')}
           </Button>
-          <Button onClick={onOpenUpload}>
-            <Upload className="mr-2 h-4 w-4" />
-            {t('knowledge.documents.import')}
-          </Button>
+          <DocumentCreateMenu
+            onOpenUpload={onOpenUpload}
+            onOpenCreate={onOpenCreate}
+          />
         </div>
       </div>
     </Card>

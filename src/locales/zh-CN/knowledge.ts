@@ -539,7 +539,7 @@ export default {
       displayCount: '显示 {{visible}} / {{total}} 个文档',
       totalItems: '共 {{count}} 项',
       emptyTitle: '暂无文档',
-      emptyDescription: '还没有上传任何文档，开始添加文档吧',
+      emptyDescription: '还没有文档，可上传文件、导入网页或创建空白文档',
       addDocument: '添加文档',
       renameTitle: '重命名文档',
       newName: '新名称',

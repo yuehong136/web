@@ -1,5 +1,5 @@
 import type { Document, DocumentFilter, IDocumentInfoFilter } from '@/types/api'
-import { apiClient } from './client'
+import { APIError, apiClient } from './client'
 import { knowledgeRestConfig } from './knowledge-config'
 import { isMissingRouteError } from './legacy-fallback'
 
@@ -8,6 +8,42 @@ export type DocumentUploadOptions = {
   chunk_size?: number
   chunk_overlap?: number
   parser_config?: Record<string, unknown>
+}
+
+export enum DocumentCreationMode {
+  LOCAL = 'local',
+  WEB = 'web',
+  EMPTY = 'empty',
+}
+
+export type CreatedDatasetDocument = {
+  id: string
+  name: string
+  dataset_id: string
+}
+
+const documentCreationPath = (datasetId: string, mode: DocumentCreationMode) =>
+  `/v1/datasets/${encodeURIComponent(datasetId)}/documents?type=${mode}`
+
+const requireCreatedDocument = (value: unknown): CreatedDatasetDocument => {
+  if (
+    !value ||
+    typeof value !== 'object' ||
+    !('id' in value) ||
+    typeof value.id !== 'string' ||
+    !value.id ||
+    !('name' in value) ||
+    typeof value.name !== 'string' ||
+    !('dataset_id' in value) ||
+    typeof value.dataset_id !== 'string'
+  ) {
+    throw new APIError(
+      502,
+      'INVALID_DOCUMENT_RESPONSE',
+      'Document creation response is missing required fields',
+    )
+  }
+  return value as CreatedDatasetDocument
 }
 
 export type UploadedDatasetDocument = {
@@ -161,9 +197,34 @@ export function uploadDatasetDocuments(
   const uploadData: Record<string, unknown> = { ...options }
 
   return apiClient.uploadMultiple(
-    `/v1/datasets/${datasetId}/documents`,
+    documentCreationPath(datasetId, DocumentCreationMode.LOCAL),
     files,
     uploadData,
     knowledgeRestConfig,
   )
+}
+
+export async function createWebDatasetDocument(
+  datasetId: string,
+  name: string,
+  url: string,
+): Promise<CreatedDatasetDocument> {
+  const result = await apiClient.postForm<unknown>(
+    documentCreationPath(datasetId, DocumentCreationMode.WEB),
+    { name, url },
+    knowledgeRestConfig,
+  )
+  return requireCreatedDocument(result)
+}
+
+export async function createEmptyDatasetDocument(
+  datasetId: string,
+  name: string,
+): Promise<CreatedDatasetDocument> {
+  const result = await apiClient.post<unknown>(
+    documentCreationPath(datasetId, DocumentCreationMode.EMPTY),
+    { name },
+    knowledgeRestConfig,
+  )
+  return requireCreatedDocument(result)
 }

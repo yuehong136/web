@@ -4,9 +4,12 @@ import { APIError, apiClient, type RequestConfig } from '../client'
 import { knowledgeAPI } from '../knowledge'
 import { knowledgeDocumentAPI } from '../knowledge-documents'
 import {
+  createEmptyDatasetDocument,
+  createWebDatasetDocument,
   deleteDatasetDocuments,
   listDatasetDocuments,
   normalizeDatasetDocument,
+  uploadDatasetDocuments,
   type DatasetDocumentDTO,
 } from '../knowledge-rest'
 
@@ -312,4 +315,175 @@ test('deleteDatasetDocuments surfaces real failures instead of retrying the lega
       assert.equal(legacy.length, 0, '业务错误不得退回旧端点重删一次')
     },
   )
+})
+
+test('document create modes use the REST contract and created documents read back', async () => {
+  const originalFetch = globalThis.fetch
+  const calls: Array<{ url: URL; init?: RequestInit }> = []
+  const storedDocs: DatasetDocumentDTO[] = []
+  const respond = (data: unknown, code = 0) =>
+    new Response(
+      JSON.stringify({ code, message: code ? 'Rejected' : '', data }),
+      {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      },
+    )
+
+  globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = new URL(String(input))
+    calls.push({ url, init })
+    if (init?.method === 'GET') {
+      return respond({ total: storedDocs.length, docs: storedDocs })
+    }
+    if (url.searchParams.get('type') === 'local') {
+      const form = init?.body as FormData
+      assert.ok(form instanceof FormData)
+      assert.equal(form.getAll('files').length, 1)
+      const file = form.get('files') as File
+      assert.equal(file.name, 'notes.txt')
+      const stored = {
+        ...dto,
+        id: 'doc-local',
+        name: file.name,
+        dataset_id: 'kb/1',
+        run: 'UNSTART',
+      }
+      storedDocs.push(stored)
+      return respond([stored])
+    }
+
+    const mode = url.searchParams.get('type')
+    const name =
+      mode === 'web'
+        ? (init?.body as FormData).get('name')
+        : JSON.parse(String(init?.body)).name
+    const id = mode === 'web' ? 'doc-web' : 'doc-empty'
+    const stored = {
+      ...dto,
+      id,
+      name: mode === 'web' ? `${name}.pdf` : name,
+      dataset_id: 'kb/1',
+      run: 'UNSTART',
+    }
+    storedDocs.push(stored)
+    return respond(stored)
+  }) as typeof fetch
+
+  try {
+    const local = await uploadDatasetDocuments('kb/1', [
+      new File(['hello'], 'notes.txt', { type: 'text/plain' }),
+    ])
+    assert.equal(local[0]?.id, 'doc-local')
+
+    const web = await createWebDatasetDocument(
+      'kb/1',
+      'Article',
+      'https://example.com/article',
+    )
+    const empty = await createEmptyDatasetDocument('kb/1', 'Draft.txt')
+    assert.equal(web.id, 'doc-web')
+    assert.equal(empty.id, 'doc-empty')
+
+    const readback = await listDatasetDocuments({
+      kb_id: 'kb/1',
+      filter_params: {},
+    })
+    assert.deepEqual(
+      readback.docs.map((document) => [
+        document.id,
+        document.name,
+        document.run,
+      ]),
+      [
+        ['doc-local', 'notes.txt', '0'],
+        ['doc-web', 'Article.pdf', '0'],
+        ['doc-empty', 'Draft.txt', '0'],
+      ],
+    )
+  } finally {
+    globalThis.fetch = originalFetch
+  }
+
+  for (const call of calls) {
+    assert.equal(call.url.pathname, '/api/v1/datasets/kb%2F1/documents')
+  }
+  assert.deepEqual(
+    calls.map((call) => [call.init?.method, call.url.searchParams.get('type')]),
+    [
+      ['POST', 'local'],
+      ['POST', 'web'],
+      ['POST', 'empty'],
+      ['GET', null],
+    ],
+  )
+  const webForm = calls[1]?.init?.body as FormData
+  assert.ok(webForm instanceof FormData)
+  assert.equal(webForm.get('name'), 'Article')
+  assert.equal(webForm.get('url'), 'https://example.com/article')
+  assert.equal(
+    (calls[1]?.init?.headers as Record<string, string>)['Content-Type'],
+    undefined,
+  )
+  assert.deepEqual(JSON.parse(String(calls[2]?.init?.body)), {
+    name: 'Draft.txt',
+  })
+  assert.equal(
+    (calls[2]?.init?.headers as Record<string, string>)['Content-Type'],
+    'application/json',
+  )
+})
+
+test('document creation surfaces business errors without reporting success', async () => {
+  const originalFetch = globalThis.fetch
+  let calls = 0
+  globalThis.fetch = (async () => {
+    calls += 1
+    return new Response(
+      JSON.stringify({
+        code: 102,
+        message: 'Duplicated document name',
+        data: null,
+      }),
+      { status: 200, headers: { 'content-type': 'application/json' } },
+    )
+  }) as typeof fetch
+
+  try {
+    for (const create of [
+      () => createWebDatasetDocument('kb-1', 'Article', 'https://example.com'),
+      () => createEmptyDatasetDocument('kb-1', 'Article'),
+    ]) {
+      await assert.rejects(create, (error: unknown) => {
+        assert.ok(error instanceof APIError)
+        assert.equal(error.code, '102')
+        return true
+      })
+    }
+    assert.equal(calls, 2)
+  } finally {
+    globalThis.fetch = originalFetch
+  }
+})
+
+test('document creation rejects an incomplete success payload', async () => {
+  const originalFetch = globalThis.fetch
+  globalThis.fetch = (async () =>
+    new Response(JSON.stringify({ code: 0, data: { name: 'Draft.txt' } }), {
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+    })) as typeof fetch
+
+  try {
+    await assert.rejects(
+      () => createEmptyDatasetDocument('kb-1', 'Draft.txt'),
+      (error: unknown) => {
+        assert.ok(error instanceof APIError)
+        assert.equal(error.code, 'INVALID_DOCUMENT_RESPONSE')
+        return true
+      },
+    )
+  } finally {
+    globalThis.fetch = originalFetch
+  }
 })

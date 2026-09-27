@@ -5,6 +5,7 @@ import layout from './layout'
 import agent from './agent'
 import agents from './agents'
 import knowledge from './knowledge'
+import documentCreate from './document-create'
 import home from './home'
 import explore from './explore'
 import search from './search'
@@ -26,6 +27,7 @@ export default {
   ...agent,
   ...agents,
   ...knowledge,
+  ...documentCreate,
   ...home,
   ...explore,
   ...search,
