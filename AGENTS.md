@@ -187,6 +187,11 @@ if (doc.status === '1') {
 - 拥有 hooks、queries、mutations、store 访问
 - 组合展示组件
 
+### 共享 UI 组件变更边界
+
+- 仅为单页或单个 feature 调整外观、交互时，优先使用 `src/components/ui/` 现有组件的 props / `className`，或在 feature 层包装、组合；不要把局部特例写进共享组件的默认样式或行为。
+- 共享组件自身的缺陷、无障碍或设计令牌问题，以及明确跨 feature 复用的基础能力，可以直接在 `src/components/ui/` 修复或新增；检查现有调用方的兼容性，并验证受影响的行为。业务编排仍留在容器层。
+
 ### 页面骨架分层（强制）
 
 | 层  | 目录                             | 职责         |

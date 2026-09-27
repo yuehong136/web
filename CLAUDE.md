@@ -187,6 +187,11 @@ if (doc.status === '1') {
 - Owns hooks, queries, mutations, store access
 - Composes presentational components
 
+### Shared UI component changes
+
+- For visual or interaction changes limited to one page or feature, prefer the existing `src/components/ui/` component's props / `className`, or wrap and compose it in the feature. Do not put one-off styling or behavior into a shared component's defaults.
+- Fix defects, accessibility or design-token issues in shared components, or add a base capability with clear cross-feature reuse, directly in `src/components/ui/` when needed. Check existing callers for compatibility and verify affected behavior. Business orchestration stays in containers.
+
 ### Page skeleton layers (MANDATORY)
 
 | Layer | Directory                        | Responsibility              |
