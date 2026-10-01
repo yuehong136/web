@@ -124,8 +124,10 @@ export function useExploreSessionChat({
     ) => {
       if (!owns(request)) return
       setView((previous) =>
-        owns(request) && previous.selection === request.selection
-          ? updater(previous)
+        // URL promotion can rebase queued updates from the same request.
+        // The owner check also rejects obsolete A -> B -> A generations.
+        owns(request)
+          ? { ...updater(previous), selection: request.selection }
           : previous,
       )
     },

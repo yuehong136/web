@@ -34,16 +34,32 @@
 
 ## 回归与门禁
 
-Three formal Vitest files cover 36 cases using actual Explore pages, hooks, queries, mutations, URL navigation, Composer, and shared SSE consumption. API responses and display-only message/debug surfaces are controlled test boundaries.
+Three formal Vitest files cover 37 cases using actual Explore pages, hooks, queries, mutations, URL navigation, Composer, and shared SSE consumption. API responses and display-only message/debug surfaces are controlled test boundaries.
 
 覆盖 A → B 立即发送、新建残留 ID、重复发送、URL 接入与续聊、历史延迟与失败重试、A → B → A、旧创建结果、旧首帧与 HTTP 错误、无 ID 帧、伪装 B 帧、终态和卸载，以及中英反馈切换。
 
 本轮实际通过：
 
-- `npm run test:ci`: 112 files, 708 passing cases (Node 488, Vitest 132, Desktop 81, tooling 7).
+- `npm run test:ci`: 112 files, 709 passing cases (Node 488, Vitest 133, Desktop 81, tooling 7).
 - `npm run lint`：0 error，全仓仍有 1493 warning。
 - `npm run build`、`npm run check:bundle-size`。
 - `npm run lint:typed`、`npm run typecheck:agent-strict`。
 - `npm run lint:i18n-agent`、`npm run lint:file-size`。
 
-真实跨端隔离验收待协调 session 发出后端最终默认值合同通知后执行。上述测试使用 API 替身，尚未验证实际 API 业务码、PostgreSQL / Redis 读回和浏览器截图。
+## Isolated cross-end acceptance (2026-10-02)
+
+Acceptance used the actual Web entrypoint (StrictMode and data router), Explore page, authenticated HTTP routes, shared SSE consumer, and real Begin / VariableAssigner / Message execution. PostgreSQL and Redis ran in dedicated containers. The backend included `bb2431f59e8ed15c627514f069a0c14403c9e496` and `768fd2f5384ece46e9d4b2103d017f90605a8e5c`; its inspected HEAD was `9bf2c4d7a797c1ed14ad35db3b2a69e1c850dca6`.
+
+Passed: current A/B request IDs; residual ID with `isNew`; create-ID promotion and continued sends using one creation; delayed create followed by B or repeated New; B history loading without A messages or Composer; sending immediately after history arrival without losing history; bilingual history failure and retry; cached A-B-A; draft and Begin input isolation; obsolete run delivery while B runs; stop then send; unmount; duplicate-send disabling; real missing-session 404/102 and recovery; and real Message component error feedback.
+
+Browser acceptance exposed a second defect: a fast new-session run saved a real answer in SQL, while URL promotion left the page RUNNING with a blank answer. Queued view updates now rely on the current request owner and carry its promoted selection. The actual browser then displayed the answer, completed, and continued on the same session ID. The added StrictMode/data-router regression covers this path; the exact failing timing was reproduced in the browser, not by the old-guard Vitest comparison.
+
+Transport controls held genuine HTTP responses after the server executed, deliberately ignored the transport AbortSignal, or injected a history failure. Foreign-only testing rewrote IDs in genuine SSE and appended DONE. Server audit preserves the original responses; these injected behaviors are contract-fault tests. Real current streams ended with `message_end`; failure ended with `error`. ID-free, spoofed-ID, user-input and other terminal combinations additionally have formal Hook/shared-SSE regressions.
+
+Independent SQL readback checked session owner, messages, DSL, variable definitions and runtime globals. Array, object, string, number and boolean defaults, including explicit false / 0 / empty values, were preserved. Existing sessions accumulated their own values; new sessions started from configured defaults. The original 6 Canvas rows, 10 versions and 6 Redis replicas remained unchanged. The historical `variables: []` template ran through the browser and remained serialized as `[]`. Begin outputs independently held A and new-session parameter values; the canceled B input produced no run.
+
+The workflow used deterministic actual components with no remote model calls, retrieval, attachment parsing or sandbox execution. Other local infrastructure connections used existing configuration. Client stop was tested against an already executed response held at the transport boundary; this does not establish cancellation of a long-running server workflow. Initial fixture construction mistakes (missing `sys.conversation_turns`, then duplicate title) are retained in the audit and excluded from accepted scenario results.
+
+Cleanup independently verified 71 SQL tables with zero rows, Redis DB 1/2 with zero keys, and the deleted user's JWT rejected with 401. Both dedicated containers and the PostgreSQL anonymous volume were removed; all four dedicated listeners closed. The temporary Web entry, credentials and scratch directory were deleted; browser local/session storage had zero keys before closing the tab.
+
+Evidence: [local acceptance report](/Users/xldu/.codex/visualizations/2026/09/27/01a0e29f-d9be-73e2-ab9b-7e11f071915c/4f-acceptance/report.md), original HTTP/SSE audit, before/after readback, verification and cleanup JSON, gate logs, and 31 screenshots reviewed through four annotated contact sheets. This acceptance covers the current Explore workflow; production deployment and complete model-driven templates were not tested.

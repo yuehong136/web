@@ -1,6 +1,11 @@
-import { act } from 'react'
+import { act, StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
+import {
+  MemoryRouter,
+  createMemoryRouter,
+  RouterProvider,
+  useLocation,
+} from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { vi } from 'vitest'
 import { agentQueryKeys } from '@/hooks/use-agent-query'
@@ -215,17 +220,20 @@ export async function mountPage(cached = ['A', 'B']) {
     location = useLocation().search
     return <AgentExplorePage />
   }
+  const router = createMemoryRouter(
+    [{ path: '/agent/:id/explore', element: <Page /> }],
+    { initialEntries: ['/agent/canvas/explore?sessionId=A'] },
+  )
   await act(async () =>
     root.render(
-      <QueryClientProvider client={queryClient}>
-        <MemoryRouter initialEntries={['/agent/canvas/explore?sessionId=A']}>
-          <Routes>
-            <Route path="/agent/:id/explore" element={<Page />} />
-          </Routes>
-        </MemoryRouter>
-      </QueryClientProvider>,
+      <StrictMode>
+        <QueryClientProvider client={queryClient}>
+          <RouterProvider router={router} />
+        </QueryClientProvider>
+      </StrictMode>,
     ),
   )
+
   return {
     container,
     get location() {
@@ -233,6 +241,7 @@ export async function mountPage(cached = ['A', 'B']) {
     },
     async dispose() {
       await act(async () => root.unmount())
+      router.dispose()
       queryClient.clear()
       container.remove()
     },

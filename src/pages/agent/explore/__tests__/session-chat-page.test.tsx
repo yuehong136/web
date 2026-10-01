@@ -191,3 +191,33 @@ it.each(['B', '新建'])(
     }
   },
 )
+
+it('retains frames and completion queued before new-session URL promotion in StrictMode', async () => {
+  page = await mountPage()
+  await waitForState(() => expect(button('B')).toBeTruthy())
+  api.createSession.mockResolvedValueOnce(session('fast-created'))
+  const body = stream()
+  body.emit({
+    event: 'message',
+    session_id: 'fast-created',
+    data: { content: 'fast answer' },
+  })
+  body.emit({
+    event: 'workflow_finished',
+    session_id: 'fast-created',
+    data: {},
+  })
+  body.end()
+  api.runAgentSession.mockResolvedValueOnce(body.response)
+  await act(async () => button('新建').click())
+  await type('fast new question')
+  await act(async () => button('发送').click())
+  await waitForState(() =>
+    expect(page.location).toBe('?sessionId=fast-created'),
+  )
+  await waitForState(() =>
+    expect(page.container.textContent).toContain('fast answer'),
+  )
+  expect(page.container.textContent).toContain('fast new question')
+  expect(page.container.querySelector('textarea')?.disabled).toBe(false)
+})
