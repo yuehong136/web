@@ -13,6 +13,7 @@ export default {
     close: 'Close',
     search: 'Search',
     reset: 'Reset',
+    retry: 'Retry',
     refresh: 'Refresh',
     clear: 'Clear',
     copy: 'Copy',

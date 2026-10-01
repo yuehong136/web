@@ -18,12 +18,14 @@ export default function AgentExplorePage() {
   const navigate = useNavigate()
   const { canvasId, sessionId, isNew, setSessionId } = useExploreUrlParams()
   const agentQuery = useFetchAgent(canvasId)
+  const [selectionRevision, setSelectionRevision] = useState(0)
   const [debugTab, setDebugTab] = useState<ExploreDebugTab>(
     ExploreDebugTab.SUMMARY,
   )
 
   const handleSelectSession = useCallback(
     (nextSessionId?: string, nextIsNew?: boolean) => {
+      setSelectionRevision((revision) => revision + 1)
       setSessionId(nextSessionId, nextIsNew)
     },
     [setSessionId],
@@ -40,6 +42,7 @@ export default function AgentExplorePage() {
     canvasId,
     sessionId,
     isNew,
+    selectionRevision,
     onSessionReady: (nextSessionId) => {
       sessions.clearTemporarySession()
       setSessionId(nextSessionId, false, true)
@@ -58,10 +61,12 @@ export default function AgentExplorePage() {
           title={title}
           description="面向持久化会话的 Explore 工作台，可继续对话、管理会话并查看调试信息。"
           actions={
-            <div className="flex items-center gap-space-sm">
+            <div className="gap-space-sm flex items-center">
               {sessionId ? (
                 <Button asChild variant="outline">
-                  <Link to={`/agent/${canvasId}/explore?sessionId=${encodeURIComponent(sessionId)}`}>
+                  <Link
+                    to={`/agent/${canvasId}/explore?sessionId=${encodeURIComponent(sessionId)}`}
+                  >
                     <ExternalLink className="size-4" />
                     当前链接
                   </Link>
@@ -99,13 +104,18 @@ export default function AgentExplorePage() {
         />
       }
       rightPane={
-        <div className="grid h-full min-h-0 grid-cols-[minmax(0,1fr)_360px] gap-space-lg p-space-lg">
-          <div className="min-h-0 overflow-hidden rounded-radius-lg border border-border-primary bg-surface-primary">
+        <div className="gap-space-lg p-space-lg grid h-full min-h-0 grid-cols-[minmax(0,1fr)_360px]">
+          <div className="rounded-radius-lg border-border-primary bg-surface-primary min-h-0 overflow-hidden border">
             <SessionChat
+              key={`${canvasId}:${isNew ? 'new' : 'saved'}:${sessionId}:${selectionRevision}`}
               canvasId={canvasId}
               active={active}
               isTaskMode={chat.isTaskMode}
-              loadingSession={chat.sessionQuery.isLoading}
+              loadingSession={chat.loadingSession}
+              sessionError={chat.sessionError}
+              onRetrySession={() => {
+                void chat.sessionQuery.refetch()
+              }}
               messages={chat.messages}
               status={chat.status}
               beginInputs={chat.beginInputs}

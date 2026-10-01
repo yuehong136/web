@@ -11,6 +11,20 @@ export default {
     pipelines: 'Pipelines',
     runtimeWorkbench: '运行工作台',
     pipelineWorkbench: 'Pipeline 工作台',
+    explore: {
+      loading: '正在加载会话',
+      loadingDescription: '正在恢复历史消息。',
+      loadFailed: '会话加载失败',
+      loadFailedDescription: '历史消息暂时不可用，请重试后继续发送。',
+      selectSession: '选择或新建会话',
+      selectSessionDescription: '左侧选择历史会话，或新建会话后开始发送消息。',
+      noMessages: '还没有消息',
+      noMessagesDescription: '发送第一条消息后会创建或继续持久化会话。',
+      beginInputs: '填写 Begin 输入',
+      beginInputsDescription:
+        'Explore 首次发送前需要补齐当前 Agent 的 Begin 参数。',
+      confirmSend: '确认并发送',
+    },
     editor: {
       openingTitle: '正在打开 Agent 编辑器',
       openingDescription: '正在加载画布、节点配置和运行状态。',

@@ -11,6 +11,23 @@ export default {
     pipelines: 'Pipelines',
     runtimeWorkbench: 'Runtime Workbench',
     pipelineWorkbench: 'Pipeline Workbench',
+    explore: {
+      loading: 'Loading session',
+      loadingDescription: 'Restoring conversation history.',
+      loadFailed: 'Failed to load session',
+      loadFailedDescription:
+        'Conversation history is unavailable. Retry before sending another message.',
+      selectSession: 'Select or create a session',
+      selectSessionDescription:
+        'Choose a session on the left, or create a new one to start chatting.',
+      noMessages: 'No messages yet',
+      noMessagesDescription:
+        'Send the first message to create or continue a saved session.',
+      beginInputs: 'Complete Begin inputs',
+      beginInputsDescription:
+        'Complete this Agent’s Begin parameters before the first Explore message.',
+      confirmSend: 'Confirm and send',
+    },
     editor: {
       openingTitle: 'Opening Agent editor',
       openingDescription:

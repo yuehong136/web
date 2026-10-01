@@ -1,4 +1,5 @@
 import type { AgentSession, AgentSessionListParams } from '@/types/agent'
+import type { BeginQuery } from '../types'
 import type {
   AgentRuntimeStatus,
   RuntimeAttachment,
@@ -34,4 +35,39 @@ export interface ExploreChatState {
   lastError?: string
   currentMessageId?: string
   latestTaskId?: string
+}
+
+export interface ExploreSelection {
+  canvasId: string
+  sessionId: string
+  isNew: boolean
+  revision: number
+}
+
+export interface ExploreRequestOwner {
+  selection: ExploreSelection
+  sessionId: string
+  controller: AbortController
+  assistantId?: string
+}
+
+export interface ExploreSessionView {
+  selection: ExploreSelection
+  messages: RuntimeMessage[]
+  status: AgentRuntimeStatus
+  lastError?: string
+  currentMessageId?: string
+  latestTaskId?: string
+  hasLocalMessages: boolean
+  parameterDialogOpen: boolean
+  submittedBeginInputs: BeginQuery[] | null
+  pendingRequest: ExploreSendRequest | null
+}
+
+export interface ExploreRunRequest extends ExploreSendRequest {
+  runtimeInputs: Record<string, unknown>
+  a2ui?: Array<Record<string, unknown>>
+  metadata?: Record<string, unknown>
+  appendUserMessage: boolean
+  userMessageContent?: string
 }

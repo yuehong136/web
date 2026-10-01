@@ -1,6 +1,8 @@
+import { useTranslation } from 'react-i18next'
 import {
   AppScene,
   PageEmptyState,
+  PageErrorState,
   PageLoadingState,
   SectionCard,
 } from '@/components/patterns'
@@ -28,6 +30,8 @@ interface SessionChatProps {
   active: boolean
   isTaskMode: boolean
   loadingSession: boolean
+  sessionError: boolean
+  onRetrySession: () => void
   messages: RuntimeMessage[]
   status: AgentRuntimeStatus
   beginInputs: BeginQuery[]
@@ -48,6 +52,8 @@ export function SessionChat({
   active,
   isTaskMode,
   loadingSession,
+  sessionError,
+  onRetrySession,
   messages,
   status,
   beginInputs,
@@ -59,26 +65,35 @@ export function SessionChat({
   onSend,
   onStop,
 }: SessionChatProps) {
+  const { t } = useTranslation()
   return (
-    <section className="flex h-full min-h-0 flex-col bg-surface-primary">
+    <section className="bg-surface-primary flex h-full min-h-0 flex-col">
       <div className="min-h-0 flex-1">
-        {loadingSession ? (
+        {sessionError ? (
+          <PageErrorState
+            scene={AppScene.SPLIT_DETAIL}
+            title={t('agent.explore.loadFailed')}
+            description={t('agent.explore.loadFailedDescription')}
+            retryLabel={t('common.retry')}
+            onRetry={onRetrySession}
+          />
+        ) : loadingSession ? (
           <PageLoadingState
             scene={AppScene.SPLIT_DETAIL}
-            title="正在加载会话"
-            description="正在恢复历史消息。"
+            title={t('agent.explore.loading')}
+            description={t('agent.explore.loadingDescription')}
           />
         ) : !active ? (
           <PageEmptyState
             scene={AppScene.SPLIT_DETAIL}
-            title="选择或新建会话"
-            description="左侧选择历史会话，或新建会话后开始发送消息。"
+            title={t('agent.explore.selectSession')}
+            description={t('agent.explore.selectSessionDescription')}
           />
         ) : messages.length === 0 ? (
           <PageEmptyState
             scene={AppScene.SPLIT_DETAIL}
-            title="还没有消息"
-            description="发送第一条消息后会创建或继续持久化会话。"
+            title={t('agent.explore.noMessages')}
+            description={t('agent.explore.noMessagesDescription')}
           />
         ) : (
           <ScrollArea className="h-full">
@@ -93,7 +108,7 @@ export function SessionChat({
         )}
       </div>
 
-      {active ? (
+      {active && !loadingSession && !sessionError ? (
         <RuntimeChatComposer
           canvasId={canvasId}
           status={status}
@@ -109,9 +124,9 @@ export function SessionChat({
       >
         <DialogContent size="xl" closeOnOverlayClick={false}>
           <DialogHeader>
-            <DialogTitle>填写 Begin 输入</DialogTitle>
+            <DialogTitle>{t('agent.explore.beginInputs')}</DialogTitle>
             <DialogDescription>
-              Explore 首次发送前需要补齐当前 Agent 的 Begin 参数。
+              {t('agent.explore.beginInputsDescription')}
             </DialogDescription>
           </DialogHeader>
           <div className="px-space-lg pb-space-lg">
@@ -122,7 +137,7 @@ export function SessionChat({
                 ok={onParametersOk}
                 isNext={false}
                 loading={status === AgentRuntimeStatus.RUNNING}
-                btnText="确认并发送"
+                btnText={t('agent.explore.confirmSend')}
                 className="min-h-0"
                 maxHeight="max-h-[60vh]"
               />

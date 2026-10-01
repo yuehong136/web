@@ -1,5 +1,5 @@
 import { useCallback, useRef } from 'react'
-import type { MutableRefObject } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   AgentRuntimeStatus,
   type RuntimeMessage,
@@ -18,16 +18,12 @@ const isRecord = (value: unknown): value is Record<string, unknown> => {
 }
 
 export function useExploreRuntimeEvents({
-  sessionIdRef,
-  onSessionReady,
   setCurrentMessageId,
   setLatestTaskId,
   setLastError,
   setStatus,
   updateMessageById,
 }: {
-  sessionIdRef: MutableRefObject<string>
-  onSessionReady: (sessionId: string) => void
   setCurrentMessageId: (messageId: string | undefined) => void
   setLatestTaskId: (taskId: string | undefined) => void
   setLastError: (error: string | undefined) => void
@@ -37,7 +33,10 @@ export function useExploreRuntimeEvents({
     updater: (message: RuntimeMessage) => RuntimeMessage,
   ) => void
 }) {
-  const messageStateRef = useRef<Record<string, ReturnType<typeof consumeRuntimeMessageChunk>['nextState']>>({})
+  const { t } = useTranslation()
+  const messageStateRef = useRef<
+    Record<string, ReturnType<typeof consumeRuntimeMessageChunk>['nextState']>
+  >({})
 
   const resetRuntimeEventState = useCallback(() => {
     messageStateRef.current = {}
@@ -46,13 +45,12 @@ export function useExploreRuntimeEvents({
   }, [setCurrentMessageId, setLatestTaskId])
 
   const handleNormalizedEvent = useCallback(
-    (assistantId: string, rawEvent: unknown) => {
+    (assistantId: string, rawEvent: unknown, sessionId: string) => {
       const normalizedEvent = normalizeRuntimeEvent(rawEvent)
 
-      if (normalizedEvent.sessionId && normalizedEvent.sessionId !== sessionIdRef.current) {
-        sessionIdRef.current = normalizedEvent.sessionId
-        onSessionReady(normalizedEvent.sessionId)
-      }
+      // Request ownership is checked by the caller, even for frames without IDs.
+      if (normalizedEvent.sessionId && normalizedEvent.sessionId !== sessionId)
+        return
 
       if (normalizedEvent.messageId) {
         setCurrentMessageId(normalizedEvent.messageId)
@@ -95,12 +93,13 @@ export function useExploreRuntimeEvents({
       }
 
       if (normalizedEvent.errorMessage) {
-        setLastError(normalizedEvent.errorMessage)
+        const errorMessage = t('agent.runtime.runFailed')
+        setLastError(errorMessage)
         setStatus(AgentRuntimeStatus.ERROR)
         updateMessageById(assistantId, (message) => ({
           ...message,
-          content: message.content || normalizedEvent.errorMessage || '',
-          error: normalizedEvent.errorMessage,
+          content: message.content || errorMessage,
+          error: errorMessage,
           isStreaming: false,
           messageId: normalizedEvent.messageId || message.messageId,
           taskId: normalizedEvent.taskId || message.taskId,
@@ -148,8 +147,7 @@ export function useExploreRuntimeEvents({
 
       if (normalizedEvent.event === 'message_end') {
         const reference =
-          isRecord(normalizedEvent.data) &&
-          'reference' in normalizedEvent.data
+          isRecord(normalizedEvent.data) && 'reference' in normalizedEvent.data
             ? normalizedEvent.data.reference
             : undefined
 
@@ -165,11 +163,14 @@ export function useExploreRuntimeEvents({
 
       if (normalizedEvent.event === 'workflow_finished') {
         const outputs =
-          isRecord(normalizedEvent.data) && isRecord(normalizedEvent.data.outputs)
+          isRecord(normalizedEvent.data) &&
+          isRecord(normalizedEvent.data.outputs)
             ? normalizedEvent.data.outputs
             : undefined
         const runtimeError =
-          typeof outputs?._ERROR === 'string' ? outputs._ERROR : undefined
+          typeof outputs?._ERROR === 'string' && outputs._ERROR
+            ? t('agent.runtime.runFailed')
+            : undefined
         const outputContent = normalizedEvent.outputContent
 
         if (runtimeError) {
@@ -190,12 +191,13 @@ export function useExploreRuntimeEvents({
       }
 
       if (normalizedEvent.event === 'user_inputs') {
-        const payload = isRecord(normalizedEvent.data) ? normalizedEvent.data : {}
+        const payload = isRecord(normalizedEvent.data)
+          ? normalizedEvent.data
+          : {}
 
         updateMessageById(assistantId, (message) => ({
           ...message,
-          tips:
-            typeof payload.tips === 'string' ? payload.tips : message.tips,
+          tips: typeof payload.tips === 'string' ? payload.tips : message.tips,
           awaitingInputs: normalizeRuntimeAwaitingInputs(payload.inputs),
           isStreaming: false,
           messageId: normalizedEvent.messageId || message.messageId,
@@ -204,12 +206,11 @@ export function useExploreRuntimeEvents({
       }
     },
     [
-      onSessionReady,
-      sessionIdRef,
       setCurrentMessageId,
       setLastError,
       setLatestTaskId,
       setStatus,
+      t,
       updateMessageById,
     ],
   )

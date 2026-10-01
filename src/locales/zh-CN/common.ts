@@ -13,6 +13,7 @@ export default {
     close: '关闭',
     search: '搜索',
     reset: '重置',
+    retry: '重试',
     refresh: '刷新',
     clear: '清除',
     copy: '复制',

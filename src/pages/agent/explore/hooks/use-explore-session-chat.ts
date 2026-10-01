@@ -1,13 +1,13 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { agentAPI } from '@/api/agent'
+import { useQueryClient } from '@tanstack/react-query'
 import {
   useCancelConversation,
   useCreateAgentSession,
   useFetchAgent,
   useFetchAgentSession,
 } from '@/hooks/use-agent-request'
-import { toast } from '@/lib/toast'
+import { agentQueryKeys } from '@/hooks/use-agent-query'
 import type { BeginQuery } from '../../types'
 import {
   AgentRuntimeStatus,
@@ -22,35 +22,82 @@ import {
   type AgentXCardActionPayload,
 } from '../../x-card'
 import {
-  consumeRuntimeStream,
-  createLocalRuntimeMessageId,
-} from '../../features/runtime-workbench/runtime-stream'
-import {
-  buildExploreSessionName,
   getBeginInputsFromAgent,
   isExploreTaskMode,
   mapSessionMessagesToRuntimeMessages,
 } from '../utils'
-import type { ExploreSendRequest } from '../types'
+import type {
+  ExploreRequestOwner,
+  ExploreSelection,
+  ExploreSendRequest,
+  ExploreSessionView,
+} from '../types'
 import { useExploreRuntimeEvents } from './use-explore-runtime-events'
+import { useExploreRequestOwner } from './use-explore-request-owner'
+import { useExploreRunRequest } from './use-explore-run-request'
+
+function initialView(selection: ExploreSelection): ExploreSessionView {
+  return {
+    selection,
+    messages: [],
+    status: AgentRuntimeStatus.IDLE,
+    hasLocalMessages: false,
+    parameterDialogOpen: false,
+    submittedBeginInputs: null,
+    pendingRequest: null,
+  }
+}
 
 export function useExploreSessionChat({
   canvasId,
   sessionId,
   isNew,
+  selectionRevision = 0,
   onSessionReady,
 }: {
   canvasId: string
   sessionId: string
   isNew: boolean
+  selectionRevision?: number
   onSessionReady: (sessionId: string) => void
 }) {
   const { t } = useTranslation()
+  const queryClient = useQueryClient()
   const agentQuery = useFetchAgent(canvasId)
-  const sessionQuery = useFetchAgentSession(canvasId, sessionId)
+  const sessionQuery = useFetchAgentSession(canvasId, isNew ? '' : sessionId)
   const { createAgentSession } = useCreateAgentSession(canvasId)
   const { cancelConversation } = useCancelConversation()
-
+  const selection = useMemo(
+    () => ({ canvasId, sessionId, isNew, revision: selectionRevision }),
+    [canvasId, sessionId, isNew, selectionRevision],
+  )
+  const [view, setView] = useState(() => initialView(selection))
+  const onSelectionChange = useCallback(
+    (next: ExploreSelection, promoted: boolean) => {
+      setView((previous) =>
+        promoted ? { ...previous, selection: next } : initialView(next),
+      )
+    },
+    [],
+  )
+  const owner = useExploreRequestOwner(selection, onSelectionChange)
+  const { owns } = owner
+  const visible =
+    view.selection === selection || owner.isPromotion(selection)
+      ? view
+      : initialView(selection)
+  const hasHistory = !isNew && sessionQuery.data?.id === sessionId
+  const needsHistory = Boolean(!isNew && sessionId && !visible.hasLocalMessages)
+  const sessionError = needsHistory && sessionQuery.isError
+  const loadingSession =
+    needsHistory && !sessionError && (sessionQuery.isLoading || !hasHistory)
+  const canSend = Boolean(
+    canvasId && (isNew || sessionId) && !sessionError && !loadingSession,
+  )
+  const messages =
+    !visible.hasLocalMessages && hasHistory
+      ? mapSessionMessagesToRuntimeMessages(sessionQuery.data)
+      : visible.messages
   const beginInputs = useMemo(
     () => getBeginInputsFromAgent(agentQuery.data),
     [agentQuery.data],
@@ -60,288 +107,184 @@ export function useExploreSessionChat({
     [agentQuery.data],
   )
 
-  const [messages, setMessages] = useState<RuntimeMessage[]>([])
-  const [status, setStatus] = useState<AgentRuntimeStatus>(
-    AgentRuntimeStatus.IDLE,
-  )
-  const [lastError, setLastError] = useState<string>()
-  const [currentMessageId, setCurrentMessageId] = useState<string>()
-  const [latestTaskId, setLatestTaskId] = useState<string>()
-  const [parameterDialogOpen, setParameterDialogOpen] = useState(false)
-  const [submittedBeginInputs, setSubmittedBeginInputs] = useState<
-    BeginQuery[] | null
-  >(null)
-  const [pendingRequest, setPendingRequest] =
-    useState<ExploreSendRequest | null>(null)
-
-  const abortControllerRef = useRef<AbortController | null>(null)
-  const sessionIdRef = useRef(sessionId)
-  const streamingSessionIdRef = useRef('')
-  const hasLocalMessageRef = useRef(false)
-
   useEffect(() => {
-    sessionIdRef.current = sessionId
-  }, [sessionId])
+    if (!hasHistory) return
+    const history = mapSessionMessagesToRuntimeMessages(sessionQuery.data)
+    setView((previous) =>
+      previous.selection === selection && !previous.hasLocalMessages
+        ? { ...previous, messages: history }
+        : previous,
+    )
+  }, [hasHistory, selection, sessionQuery.data])
 
+  const updateRequest = useCallback(
+    (
+      request: ExploreRequestOwner,
+      updater: (value: ExploreSessionView) => ExploreSessionView,
+    ) => {
+      if (!owns(request)) return
+      setView((previous) =>
+        owns(request) && previous.selection === request.selection
+          ? updater(previous)
+          : previous,
+      )
+    },
+    [owns],
+  )
+  const updateCurrentRequest = useCallback(
+    (updater: (value: ExploreSessionView) => ExploreSessionView) => {
+      const request = owner.active.current
+      if (request) updateRequest(request, updater)
+    },
+    [owner.active, updateRequest],
+  )
   const updateMessageById = useCallback(
     (
       messageId: string,
       updater: (message: RuntimeMessage) => RuntimeMessage,
     ) => {
-      setMessages((previous) =>
-        previous.map((message) =>
+      updateCurrentRequest((previous) => ({
+        ...previous,
+        messages: previous.messages.map((message) =>
           message.id === messageId ? updater(message) : message,
         ),
-      )
+      }))
     },
-    [],
+    [updateCurrentRequest],
   )
-
-  const appendAssistantPlaceholder = useCallback(() => {
-    const assistantId = createLocalRuntimeMessageId('assistant')
-    setMessages((previous) => [
-      ...previous,
-      {
-        id: assistantId,
-        role: 'assistant',
-        content: '',
-        thinking: '',
-        files: [],
-        isStreaming: true,
-      },
-    ])
-
-    return assistantId
-  }, [])
-
+  const setCurrentMessageId = useCallback(
+    (id: string | undefined) =>
+      updateCurrentRequest((previous) => ({
+        ...previous,
+        currentMessageId: id,
+      })),
+    [updateCurrentRequest],
+  )
+  const setLatestTaskId = useCallback(
+    (id: string | undefined) =>
+      updateCurrentRequest((previous) => ({ ...previous, latestTaskId: id })),
+    [updateCurrentRequest],
+  )
+  const setLastError = useCallback(
+    (error: string | undefined) =>
+      updateCurrentRequest((previous) => ({ ...previous, lastError: error })),
+    [updateCurrentRequest],
+  )
+  const setStatus = useCallback(
+    (status: AgentRuntimeStatus) =>
+      updateCurrentRequest((previous) => ({ ...previous, status })),
+    [updateCurrentRequest],
+  )
   const { handleNormalizedEvent, resetRuntimeEventState } =
     useExploreRuntimeEvents({
-      sessionIdRef,
-      onSessionReady,
       setCurrentMessageId,
       setLatestTaskId,
       setLastError,
       setStatus,
       updateMessageById,
     })
-
-  useEffect(() => {
-    if (
-      streamingSessionIdRef.current &&
-      sessionId === streamingSessionIdRef.current
-    ) {
-      return
-    }
-
-    abortControllerRef.current?.abort()
-    resetRuntimeEventState()
-    hasLocalMessageRef.current = false
-    setLastError(undefined)
-    setStatus(AgentRuntimeStatus.IDLE)
-    setSubmittedBeginInputs(null)
-    setPendingRequest(null)
-    setParameterDialogOpen(false)
-
-    if (isNew || !sessionId) {
-      setMessages([])
-    }
-  }, [isNew, resetRuntimeEventState, sessionId])
-
-  useEffect(() => {
-    if (hasLocalMessageRef.current) {
-      return
-    }
-
-    if (isNew || !sessionId) {
-      return
-    }
-
-    if (sessionQuery.data?.id === sessionId) {
-      setMessages(mapSessionMessagesToRuntimeMessages(sessionQuery.data))
-    }
-  }, [isNew, sessionId, sessionQuery.data])
-
-  const runRequest = useCallback(
-    async ({
-      content = '',
-      files = [],
-      runtimeInputs,
-      a2ui,
-      metadata,
-      appendUserMessage,
-      userMessageContent,
-    }: ExploreSendRequest & {
-      runtimeInputs: Record<string, unknown>
-      a2ui?: Array<Record<string, unknown>>
-      metadata?: Record<string, unknown>
-      appendUserMessage: boolean
-      userMessageContent?: string
-    }) => {
-      if (!canvasId) {
-        toast.error('缺少画布 ID，无法发送消息')
-        return
-      }
-
-      let activeSessionId = sessionIdRef.current
-      if (!activeSessionId) {
-        try {
-          const session = await createAgentSession(
-            buildExploreSessionName(content),
-          )
-          activeSessionId = session.id
-          sessionIdRef.current = session.id
-          streamingSessionIdRef.current = session.id
-          onSessionReady(session.id)
-        } catch {
-          toast.error(t('agent.runtime.createSessionFailed'))
-          return
-        }
-      } else {
-        streamingSessionIdRef.current = activeSessionId
-      }
-
-      if (appendUserMessage) {
-        setMessages((previous) => [
-          ...previous,
-          {
-            id: createLocalRuntimeMessageId('user'),
-            role: 'user',
-            content: userMessageContent || content.trim(),
-            files,
-          },
-        ])
-      }
-
-      hasLocalMessageRef.current = true
-      const assistantId = appendAssistantPlaceholder()
-      const abortController = new AbortController()
-      abortControllerRef.current = abortController
-      setStatus(AgentRuntimeStatus.RUNNING)
-      setLastError(undefined)
-
-      try {
-        const response = await agentAPI.runAgentSession(
-          {
-            id: canvasId,
-            query: content,
-            session_id: activeSessionId,
-            files,
-            inputs: runtimeInputs,
-            a2ui,
-            metadata,
-          },
-          {
-            signal: abortController.signal,
-          },
-        )
-
-        await consumeRuntimeStream(response, (event) => {
-          handleNormalizedEvent(assistantId, event)
-        })
-
-        setStatus((current) =>
-          current === AgentRuntimeStatus.ERROR
-            ? current
-            : AgentRuntimeStatus.SUCCESS,
-        )
-        updateMessageById(assistantId, (message) => ({
-          ...message,
-          isStreaming: false,
-        }))
-        void sessionQuery.refetch()
-      } catch (error) {
-        const isAbortError =
-          error instanceof DOMException && error.name === 'AbortError'
-        const errorMessage = t(
-          isAbortError ? 'agent.runtime.runStopped' : 'agent.runtime.runFailed',
-        )
-
-        setLastError(errorMessage)
-        setStatus(
-          isAbortError ? AgentRuntimeStatus.STOPPED : AgentRuntimeStatus.ERROR,
-        )
-        updateMessageById(assistantId, (message) => ({
-          ...message,
-          content: message.content || errorMessage,
-          error: errorMessage,
-          isStreaming: false,
-        }))
-
-        if (!isAbortError) {
-          toast.error(errorMessage)
-        }
-      } finally {
-        streamingSessionIdRef.current = ''
-        if (abortControllerRef.current === abortController) {
-          abortControllerRef.current = null
-        }
-      }
+  const refetchSession = useCallback(
+    (id: string, activeSessionId: string) => {
+      void queryClient.invalidateQueries({
+        queryKey: agentQueryKeys.session(id, activeSessionId),
+      })
     },
-    [
-      appendAssistantPlaceholder,
-      canvasId,
-      createAgentSession,
-      handleNormalizedEvent,
-      onSessionReady,
-      sessionQuery,
-      t,
-      updateMessageById,
-    ],
+    [queryClient],
   )
+  const runRequest = useExploreRunRequest({
+    owner,
+    canSend,
+    createAgentSession,
+    onSessionReady,
+    updateRequest,
+    handleNormalizedEvent,
+    resetRuntimeEventState,
+    refetchSession,
+  })
 
+  const updateSelection = useCallback(
+    (updater: (value: ExploreSessionView) => ExploreSessionView) => {
+      setView((previous) =>
+        previous.selection === selection ? updater(previous) : previous,
+      )
+    },
+    [selection],
+  )
+  const setParameterDialogOpen = useCallback(
+    (open: boolean) => {
+      updateSelection((previous) => ({
+        ...previous,
+        parameterDialogOpen: open,
+      }))
+    },
+    [updateSelection],
+  )
   const submitSendRequest = useCallback(
-    async (request: ExploreSendRequest, beginValues: BeginQuery[] | null) => {
+    async (request: ExploreSendRequest, values: BeginQuery[] | null) => {
       const content = request.content?.trim() || ''
       const files = request.files || []
-      if (!isTaskMode && !content && files.length === 0) {
-        return
-      }
-
+      if (!isTaskMode && !content && !files.length) return
       await runRequest({
         content,
         files,
-        runtimeInputs: buildRuntimeInputObject(beginValues || beginInputs),
-        appendUserMessage: Boolean(content || files.length > 0),
+        runtimeInputs: buildRuntimeInputObject(values || beginInputs),
+        appendUserMessage: Boolean(content || files.length),
       })
     },
     [beginInputs, isTaskMode, runRequest],
   )
-
   const handleSendMessage = useCallback(
     async (request: ExploreSendRequest) => {
-      if (status === AgentRuntimeStatus.RUNNING) {
+      if (!canSend || owner.active.current) return
+      if (beginInputs.length && visible.submittedBeginInputs === null) {
+        updateSelection((previous) => ({
+          ...previous,
+          pendingRequest: request,
+          parameterDialogOpen: true,
+        }))
         return
       }
-
-      if (beginInputs.length > 0 && submittedBeginInputs === null) {
-        setPendingRequest(request)
-        setParameterDialogOpen(true)
-        return
-      }
-
-      await submitSendRequest(request, submittedBeginInputs)
+      await submitSendRequest(request, visible.submittedBeginInputs)
     },
-    [beginInputs.length, status, submitSendRequest, submittedBeginInputs],
+    [
+      beginInputs.length,
+      canSend,
+      owner.active,
+      submitSendRequest,
+      updateSelection,
+      visible.submittedBeginInputs,
+    ],
   )
-
   const handleParametersOk = useCallback(
     async (values: BeginQuery[]) => {
-      setSubmittedBeginInputs(values)
-      setParameterDialogOpen(false)
-      const request = pendingRequest || { content: '' }
-      setPendingRequest(null)
-      await submitSendRequest(request, values)
+      if (!canSend || owner.active.current) return
+      updateSelection((previous) => ({
+        ...previous,
+        submittedBeginInputs: values,
+        parameterDialogOpen: false,
+        pendingRequest: null,
+      }))
+      await submitSendRequest(visible.pendingRequest || { content: '' }, values)
     },
-    [pendingRequest, submitSendRequest],
+    [
+      canSend,
+      owner.active,
+      submitSendRequest,
+      updateSelection,
+      visible.pendingRequest,
+    ],
   )
-
   const handleSubmitAwaitingInputs = useCallback(
     async (messageId: string, values: BeginQuery[]) => {
-      updateMessageById(messageId, (message) => ({
-        ...message,
-        awaitingInputs: undefined,
+      if (!canSend || owner.active.current) return
+      updateSelection((previous) => ({
+        ...previous,
+        messages: previous.messages.map((message) =>
+          message.id === messageId
+            ? { ...message, awaitingInputs: undefined }
+            : message,
+        ),
       }))
-
       await runRequest({
         content: '',
         runtimeInputs: buildRuntimeInputObject(values),
@@ -349,61 +292,71 @@ export function useExploreSessionChat({
         userMessageContent: formatRuntimeInputSummary(values),
       })
     },
-    [runRequest, updateMessageById],
+    [canSend, owner.active, runRequest, updateSelection],
   )
-
   const handleXCardAction = useCallback(
     async (payload: AgentXCardActionPayload) => {
-      if (status === AgentRuntimeStatus.RUNNING) {
-        return
-      }
-
-      const actionInput = buildA2UIActionInput(payload)
-
+      if (!canSend || owner.active.current) return
+      const input = buildA2UIActionInput(payload)
       await runRequest({
-        content: actionInput.query,
+        content: input.query,
         runtimeInputs: buildRuntimeInputObject(
-          submittedBeginInputs || beginInputs,
+          visible.submittedBeginInputs || beginInputs,
         ),
-        a2ui: actionInput.a2ui,
-        metadata: actionInput.metadata,
+        a2ui: input.a2ui,
+        metadata: input.metadata,
         appendUserMessage: true,
-        userMessageContent: actionInput.query,
+        userMessageContent: input.query,
       })
     },
-    [beginInputs, runRequest, status, submittedBeginInputs],
+    [
+      beginInputs,
+      canSend,
+      owner.active,
+      runRequest,
+      visible.submittedBeginInputs,
+    ],
   )
-
   const handleStop = useCallback(async () => {
-    abortControllerRef.current?.abort()
-    if (latestTaskId) {
+    const request = owner.active.current
+    if (!request || !owner.owns(request)) return
+    const taskId = visible.latestTaskId
+    const message = t('agent.runtime.runStopped')
+    updateRequest(request, (previous) => ({
+      ...previous,
+      status: AgentRuntimeStatus.STOPPED,
+      lastError: message,
+      messages: previous.messages.map((row) =>
+        row.id === request.assistantId ? { ...row, isStreaming: false } : row,
+      ),
+    }))
+    request.controller.abort()
+    owner.finish(request)
+    if (taskId) {
       try {
-        await cancelConversation(latestTaskId)
+        await cancelConversation(taskId)
       } catch {
-        // local abort state is handled in the stream catch path
+        /* local stop owns the feedback */
       }
     }
-  }, [cancelConversation, latestTaskId])
-
-  useEffect(() => {
-    return () => {
-      abortControllerRef.current?.abort()
-    }
-  }, [])
+  }, [cancelConversation, owner, t, updateRequest, visible.latestTaskId])
 
   return {
     agent: agentQuery.data,
-    session: sessionQuery.data,
+    session: hasHistory ? sessionQuery.data : undefined,
     sessionQuery,
     beginInputs,
     isTaskMode,
     messages,
-    status,
-    loading: status === AgentRuntimeStatus.RUNNING,
-    lastError,
-    currentMessageId,
-    latestTaskId,
-    parameterDialogOpen,
+    status: visible.status,
+    loading: visible.status === AgentRuntimeStatus.RUNNING,
+    loadingSession,
+    sessionError,
+    canSend,
+    lastError: visible.lastError,
+    currentMessageId: visible.currentMessageId,
+    latestTaskId: visible.latestTaskId,
+    parameterDialogOpen: visible.parameterDialogOpen,
     setParameterDialogOpen,
     handleParametersOk,
     handleSendMessage,
