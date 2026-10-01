@@ -77,6 +77,10 @@ export function stream() {
         new TextEncoder().encode(`data: ${JSON.stringify(frame)}\n\n`),
       )
     },
+    done() {
+      controller.enqueue(new TextEncoder().encode('data: [DONE]\n\n'))
+      controller.close()
+    },
     end() {
       controller.close()
     },

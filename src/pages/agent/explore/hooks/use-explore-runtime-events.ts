@@ -50,7 +50,14 @@ export function useExploreRuntimeEvents({
 
       // Request ownership is checked by the caller, even for frames without IDs.
       if (normalizedEvent.sessionId && normalizedEvent.sessionId !== sessionId)
-        return
+        return false
+      if (
+        !normalizedEvent.event &&
+        !normalizedEvent.errorMessage &&
+        !normalizedEvent.messageId &&
+        !normalizedEvent.taskId
+      )
+        return undefined
 
       if (normalizedEvent.messageId) {
         setCurrentMessageId(normalizedEvent.messageId)
@@ -104,7 +111,7 @@ export function useExploreRuntimeEvents({
           messageId: normalizedEvent.messageId || message.messageId,
           taskId: normalizedEvent.taskId || message.taskId,
         }))
-        return
+        return true
       }
 
       if (normalizedEvent.event === 'a2ui_command') {
@@ -123,7 +130,7 @@ export function useExploreRuntimeEvents({
           messageId: normalizedEvent.messageId || message.messageId,
           taskId: normalizedEvent.taskId || message.taskId,
         }))
-        return
+        return true
       }
 
       if (normalizedEvent.event === 'message') {
@@ -142,7 +149,7 @@ export function useExploreRuntimeEvents({
           messageId: normalizedEvent.messageId || message.messageId,
           taskId: normalizedEvent.taskId || message.taskId,
         }))
-        return
+        return true
       }
 
       if (normalizedEvent.event === 'message_end') {
@@ -158,7 +165,7 @@ export function useExploreRuntimeEvents({
           messageId: normalizedEvent.messageId || message.messageId,
           taskId: normalizedEvent.taskId || message.taskId,
         }))
-        return
+        return true
       }
 
       if (normalizedEvent.event === 'workflow_finished') {
@@ -187,7 +194,7 @@ export function useExploreRuntimeEvents({
           messageId: normalizedEvent.messageId || message.messageId,
           taskId: normalizedEvent.taskId || message.taskId,
         }))
-        return
+        return true
       }
 
       if (normalizedEvent.event === 'user_inputs') {
@@ -204,6 +211,7 @@ export function useExploreRuntimeEvents({
           taskId: normalizedEvent.taskId || message.taskId,
         }))
       }
+      return true
     },
     [
       setCurrentMessageId,

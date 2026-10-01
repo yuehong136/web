@@ -1,6 +1,8 @@
 import { act } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AgentRuntimeStatus } from '../../features/runtime-workbench/types'
+import { setProductLanguage } from '@/locales/i18n'
+import zhCNAgent from '@/locales/zh-CN/agent'
 import {
   api,
   deferred,
@@ -19,6 +21,140 @@ afterEach(async () => {
 })
 
 describe('Explore request owns setup, frames and completion', () => {
+  it.each(['message_end', 'workflow_finished', 'user_inputs'])(
+    'accepts current-ID and ID-free events with a valid %s terminal after foreign frames',
+    async (terminal) => {
+      harness = await mountChat({ id: 'B' })
+      const body = stream()
+      api.runAgentSession.mockResolvedValueOnce(body.response)
+      const request = await harness.start()
+      await act(async () => {
+        body.emit({
+          event: 'message',
+          session_id: 'A',
+          data: { content: 'foreign' },
+        })
+        body.emit({
+          event: 'message',
+          session_id: 'B',
+          data: { content: 'current ' },
+        })
+        body.emit({ event: 'message', data: { content: 'ID-free' } })
+        body.emit({
+          event: terminal,
+          data:
+            terminal === 'user_inputs'
+              ? { inputs: { reply: { type: 'string' } } }
+              : {},
+        })
+        body.done()
+        await request.pending
+      })
+      expect(harness.chat.status).toBe(AgentRuntimeStatus.SUCCESS)
+      expect(harness.chat.messages.at(-1)?.content).toBe('current ID-free')
+      expect(notifications.error).not.toHaveBeenCalled()
+      if (terminal === 'user_inputs')
+        expect(harness.chat.messages.at(-1)?.awaitingInputs).toBeTruthy()
+    },
+  )
+
+  it('a stopped foreign-only stream cannot fail or unlock a newer B request', async () => {
+    harness = await mountChat({ id: 'B' })
+    const old = stream()
+    api.runAgentSession.mockResolvedValueOnce(old.response)
+    const first = await harness.start('old B')
+    await act(async () =>
+      old.emit({
+        event: 'message',
+        session_id: 'A',
+        data: { content: 'foreign' },
+      }),
+    )
+    await act(async () => harness.chat.handleStop())
+    const current = stream()
+    api.runAgentSession.mockResolvedValueOnce(current.response)
+    const second = await harness.start('new B')
+    await act(async () => {
+      old.done()
+      await first.pending
+    })
+    expect(harness.chat.status).toBe(AgentRuntimeStatus.RUNNING)
+    expect(notifications.error).not.toHaveBeenCalled()
+    await act(async () => {
+      current.emit({ event: 'message', data: { content: 'new answer' } })
+      current.end()
+      await second.pending
+    })
+    expect(harness.chat.status).toBe(AgentRuntimeStatus.SUCCESS)
+    expect(harness.chat.messages.at(-1)?.content).toBe('new answer')
+  })
+
+  it('foreign-only failure also uses the fixed Chinese feedback and ignores ID-free DONE envelopes', async () => {
+    await setProductLanguage('zh-CN')
+    harness = await mountChat({ id: 'B' })
+    const body = stream()
+    api.runAgentSession.mockResolvedValueOnce(body.response)
+    const request = await harness.start()
+    await act(async () => {
+      body.emit({ event: 'message_end', session_id: 'A', data: {} })
+      body.emit({ retcode: 0, data: true })
+      body.done()
+      await request.pending
+    })
+    expect(harness.chat.status).toBe(AgentRuntimeStatus.ERROR)
+    expect(harness.chat.lastError).toBe(zhCNAgent.agent.runtime.runFailed)
+    expect(notifications.error).toHaveBeenCalledExactlyOnceWith(
+      zhCNAgent.agent.runtime.runFailed,
+    )
+  })
+
+  it.each([
+    ['message', 'EOF'],
+    ['message', 'DONE'],
+    ['error', 'EOF'],
+    ['error', 'DONE'],
+    ['message_end', 'EOF'],
+    ['message_end', 'DONE'],
+  ])(
+    'fails a B stream containing only foreign %s frames followed by %s',
+    async (event, ending) => {
+      await setProductLanguage('en-US')
+      harness = await mountChat({ id: 'B' })
+      const body = stream()
+      api.runAgentSession.mockResolvedValueOnce(body.response)
+      const invalidate = vi.spyOn(harness.queryClient, 'invalidateQueries')
+      const request = await harness.start('B question')
+      await act(async () => {
+        body.emit({
+          event,
+          session_id: 'A',
+          message_id: 'foreign',
+          task_id: 'foreign',
+          ...(event === 'error'
+            ? { retcode: 500, retmsg: 'private A failure' }
+            : {}),
+          data: { content: 'foreign answer' },
+        })
+        if (ending === 'DONE') body.done()
+        else body.end()
+        await request.pending
+      })
+      expect(harness.chat.status).toBe(AgentRuntimeStatus.ERROR)
+      expect(harness.chat.currentMessageId).toBeUndefined()
+      expect(harness.chat.latestTaskId).toBeUndefined()
+      expect(harness.chat.messages.at(-1)).toMatchObject({
+        content: 'The run failed. Try again later.',
+        error: 'The run failed. Try again later.',
+        isStreaming: false,
+      })
+      expect(notifications.error).toHaveBeenCalledExactlyOnceWith(
+        'The run failed. Try again later.',
+      )
+      expect(invalidate).not.toHaveBeenCalled()
+      expect(harness.onSessionReady).not.toHaveBeenCalled()
+    },
+  )
+
   it('drops all late A frames and terminal writes while B is running', async () => {
     harness = await mountChat()
     const a = stream()

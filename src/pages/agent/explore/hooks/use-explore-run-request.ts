@@ -38,7 +38,7 @@ export function useExploreRunRequest({
     assistantId: string,
     event: unknown,
     sessionId: string,
-  ) => void
+  ) => boolean | undefined
   resetRuntimeEventState: () => void
   refetchSession: (canvasId: string, sessionId: string) => void
 }) {
@@ -122,16 +122,26 @@ export function useExploreRunRequest({
           await response.body?.cancel()
           return
         }
+        let acceptedEvent = false
+        let foreignEvent = false
         await consumeRuntimeStream(response, (event) => {
           if (
             owner.active.current === request &&
             owner.owns(request) &&
             !request.controller.signal.aborted
           ) {
-            handleNormalizedEvent(assistantId, event, request.sessionId)
+            const accepted = handleNormalizedEvent(
+              assistantId,
+              event,
+              request.sessionId,
+            )
+            if (accepted === true) acceptedEvent = true
+            if (accepted === false) foreignEvent = true
           }
         })
         if (!owner.owns(request) || request.controller.signal.aborted) return
+        if (foreignEvent && !acceptedEvent)
+          throw new Error('Foreign session stream')
         updateRequest(request, (view) => ({
           ...view,
           status:

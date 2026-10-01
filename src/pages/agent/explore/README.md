@@ -18,6 +18,7 @@
 - 完成后只刷新本次实际运行的会话 key。旧请求的 finally 无法清除新请求的 controller。
 - Composer 随选择重新挂载，旧发送的异步完成无法清除新会话草稿。
 - 创建、运行和历史读取的错误反馈使用固定国际化文案。
+- A stream containing only rejected foreign-session frames fails at EOF / DONE. Discarded frames and generic DONE envelopes cannot establish success. Current-session and ID-free events retain the existing terminal and user-input contract.
 
 ## 当前后端契约
 
@@ -33,13 +34,13 @@
 
 ## 回归与门禁
 
-新增 3 个正式 Vitest 文件，共 25 项回归。测试使用真实 Explore 页面、Hook、Query、mutation、URL 跳转、Composer 和共享 SSE 消费器，在 API 边界控制历史、创建和流返回；消息展示、调试面板作为展示边界替身。
+Three formal Vitest files cover 36 cases using actual Explore pages, hooks, queries, mutations, URL navigation, Composer, and shared SSE consumption. API responses and display-only message/debug surfaces are controlled test boundaries.
 
 覆盖 A → B 立即发送、新建残留 ID、重复发送、URL 接入与续聊、历史延迟与失败重试、A → B → A、旧创建结果、旧首帧与 HTTP 错误、无 ID 帧、伪装 B 帧、终态和卸载，以及中英反馈切换。
 
 本轮实际通过：
 
-- `npm run test:ci`：112 个测试文件，697 项通过（Node 488、Vitest 121、Desktop 81、tooling 7）。
+- `npm run test:ci`: 112 files, 708 passing cases (Node 488, Vitest 132, Desktop 81, tooling 7).
 - `npm run lint`：0 error，全仓仍有 1493 warning。
 - `npm run build`、`npm run check:bundle-size`。
 - `npm run lint:typed`、`npm run typecheck:agent-strict`。
