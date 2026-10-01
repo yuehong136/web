@@ -376,6 +376,13 @@ export function extractSessionStatus(
     return 'error'
   }
 
+  if (
+    session?.messages?.some((message) => isRecord(message) && message.error) ||
+    extractSessionRuntimeEvents(session).some((event) => event.data?.error)
+  ) {
+    return 'error'
+  }
+
   if ((session?.messages || []).length > 0) {
     return 'success'
   }

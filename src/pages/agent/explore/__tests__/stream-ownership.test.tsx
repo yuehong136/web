@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AgentRuntimeStatus } from '../../features/runtime-workbench/types'
 import { setProductLanguage } from '@/locales/i18n'
 import zhCNAgent from '@/locales/zh-CN/agent'
+import { buildRuntimeThoughtChainNodes } from '../../features/runtime-workbench/thought-chain-utils'
 import {
   api,
   deferred,
@@ -19,6 +20,49 @@ beforeEach(resetAPI)
 afterEach(async () => {
   await harness?.dispose()
 })
+
+it.each([100, undefined])(
+  'strict failure code %s without message ID marks the trace as failed',
+  async (code) => {
+    await setProductLanguage('en-US')
+    harness = await mountChat({ id: 'B' })
+    const body = stream()
+    api.runAgentSession.mockResolvedValueOnce(body.response)
+    const request = await harness.start()
+    await act(async () => {
+      body.emit({
+        event: 'node_started',
+        message_id: 'real-message',
+        session_id: 'B',
+        data: { component_id: 'begin', component_name: 'Begin' },
+      })
+      body.emit({
+        event: 'node_finished',
+        message_id: 'real-message',
+        session_id: 'B',
+        data: { component_id: 'begin' },
+      })
+      body.emit({
+        event: 'error',
+        code,
+        message: 'private strict error',
+        session_id: 'B',
+        data: { error: 'private strict error' },
+      })
+      body.done()
+      await request.pending
+    })
+    expect(harness.chat.status).toBe(AgentRuntimeStatus.ERROR)
+    const message = harness.chat.messages.at(-1)
+    expect(message?.error).toBe('The run failed. Try again later.')
+    expect(
+      buildRuntimeThoughtChainNodes(message?.logEvents).some(
+        (node) => node.status === 'error',
+      ),
+    ).toBe(true)
+    expect(JSON.stringify(message)).not.toContain('private')
+  },
+)
 
 describe('Explore request owns setup, frames and completion', () => {
   it.each(['message_end', 'workflow_finished', 'user_inputs'])(

@@ -886,8 +886,12 @@ export const initialDataOperationsValues = {
   },
 }
 
-// ListOperations节点初始值
+export enum ListOperationsVersion {
+  Legacy = 1,
+  Current = 2,
+}
 export const ListOperations = {
+  Nth: 'nth',
   TopN: 'topN',
   Head: 'head',
   Tail: 'tail',
@@ -903,23 +907,19 @@ export const SortMethod = {
 
 export const initialListOperationsValues = {
   query: '',
-  operations: ListOperations.TopN,
-  n: 1,
+  operations_version: ListOperationsVersion.Current,
+  operations: ListOperations.Nth,
+  n: 0,
+  strict: false,
   sort_method: SortMethod.Asc,
   filter: {
     operator: ComparisonOperator.Equal,
     value: '',
   },
   outputs: {
-    result: {
-      type: 'Array<unknown>',
-    },
-    first: {
-      type: 'unknown',
-    },
-    last: {
-      type: 'unknown',
-    },
+    result: { type: 'Array<unknown>' },
+    first: { type: 'unknown' },
+    last: { type: 'unknown' },
   },
 }
 

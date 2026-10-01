@@ -13,6 +13,7 @@ import type {
 import { normalizeRuntimeAttachments } from '../features/runtime-workbench/utils'
 import { XCardStatus, type AgentXCardCommand } from '../x-card'
 import type { ExploreSession, ExploreSessionListParams } from './types'
+import { extractSessionStatus } from '../adapters/session'
 
 const SYNTHETIC_TEMP_SESSION_ID = 'temporary-explore-session'
 
@@ -175,8 +176,27 @@ export function mapSessionMessageToRuntimeMessage(
 
 export function mapSessionMessagesToRuntimeMessages(
   session?: AgentSession,
+  failureMessage?: string,
 ): RuntimeMessage[] {
-  return (session?.messages || []).map(mapSessionMessageToRuntimeMessage)
+  const messages = (session?.messages || []).map(
+    mapSessionMessageToRuntimeMessage,
+  )
+  if (!failureMessage || extractSessionStatus(session) !== 'error')
+    return messages
+  const last = messages.at(-1)
+  const failure: RuntimeMessage = {
+    id: `session-error-${session?.id}`,
+    role: 'assistant',
+    content: failureMessage,
+    error: failureMessage,
+    logEvents: [{ event: 'error', data: { error: failureMessage } }],
+  }
+  if (last?.role === 'assistant' && last.error) {
+    messages[messages.length - 1] = { ...last, ...failure, id: last.id }
+  } else {
+    messages.push(failure)
+  }
+  return messages
 }
 
 export function buildExploreSessionName(content?: string) {

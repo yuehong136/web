@@ -99,7 +99,7 @@ export function useExploreRuntimeEvents({
         }))
       }
 
-      if (normalizedEvent.errorMessage) {
+      if (normalizedEvent.errorMessage || normalizedEvent.event === 'error') {
         const errorMessage = t('agent.runtime.runFailed')
         setLastError(errorMessage)
         setStatus(AgentRuntimeStatus.ERROR)
@@ -107,6 +107,10 @@ export function useExploreRuntimeEvents({
           ...message,
           content: message.content || errorMessage,
           error: errorMessage,
+          logEvents: [
+            ...(message.logEvents || []),
+            { event: 'error', data: { error: errorMessage } },
+          ],
           isStreaming: false,
           messageId: normalizedEvent.messageId || message.messageId,
           taskId: normalizedEvent.taskId || message.taskId,

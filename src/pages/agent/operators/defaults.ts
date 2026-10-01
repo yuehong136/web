@@ -1,4 +1,5 @@
 import merge from 'lodash/merge'
+import { prepareListOperationsForm } from '../form/list-operations/utils'
 import type { AgentOperator } from '@/types/agent'
 import { normalizeMessageFormForStore } from '../utils/message-content'
 import {
@@ -136,9 +137,11 @@ export function mergeOperatorFormWithDefaults(
   form?: Record<string, unknown>,
 ): Record<string, unknown> {
   const nextForm =
-    operator === Operator.Message
-      ? normalizeMessageFormForStore(form)
-      : form || {}
+    operator === Operator.ListOperations
+      ? prepareListOperationsForm(form)
+      : operator === Operator.Message
+        ? normalizeMessageFormForStore(form)
+        : form || {}
   const mergedForm = merge({}, getOperatorDefaultForm(operator), nextForm)
 
   if (operator === Operator.Parser && 'setups' in nextForm) {

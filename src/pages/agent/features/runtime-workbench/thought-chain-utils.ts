@@ -215,7 +215,9 @@ export function buildRuntimeThoughtChainNodes(
   const preferredEvents = visibleEvents.some(
     (item) => item.event === 'node_started',
   )
-    ? visibleEvents.filter((item) => item.event === 'node_started')
+    ? visibleEvents.filter(
+        (item) => item.event === 'node_started' || item.event === 'error',
+      )
     : visibleEvents
 
   const orderedEvents = preferredEvents.reduce<

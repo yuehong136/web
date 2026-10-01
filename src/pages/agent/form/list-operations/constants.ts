@@ -1,10 +1,19 @@
 import { ListOperations } from '../../constant'
 
-export const listOperationOptions = [
-  { label: 'Top N', value: ListOperations.TopN },
-  { label: 'Head', value: ListOperations.Head },
-  { label: 'Tail', value: ListOperations.Tail },
-  { label: 'Filter', value: ListOperations.Filter },
-  { label: 'Sort', value: ListOperations.Sort },
-  { label: 'Drop Duplicates', value: ListOperations.DropDuplicates },
-]
+export const countOperations = new Set<string>([
+  ListOperations.Nth,
+  ListOperations.TopN,
+  ListOperations.Head,
+  ListOperations.Tail,
+])
+
+export function getListOperationValues(legacy: boolean) {
+  return [
+    legacy ? ListOperations.TopN : ListOperations.Nth,
+    ListOperations.Head,
+    ListOperations.Tail,
+    ListOperations.Filter,
+    ListOperations.Sort,
+    ListOperations.DropDuplicates,
+  ]
+}

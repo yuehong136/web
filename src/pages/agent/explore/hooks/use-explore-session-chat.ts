@@ -35,6 +35,7 @@ import type {
 import { useExploreRuntimeEvents } from './use-explore-runtime-events'
 import { useExploreRequestOwner } from './use-explore-request-owner'
 import { useExploreRunRequest } from './use-explore-run-request'
+import { extractSessionStatus } from '../../adapters/session'
 
 function initialView(selection: ExploreSelection): ExploreSessionView {
   return {
@@ -87,6 +88,10 @@ export function useExploreSessionChat({
       ? view
       : initialView(selection)
   const hasHistory = !isNew && sessionQuery.data?.id === sessionId
+  const historyFailure =
+    hasHistory && extractSessionStatus(sessionQuery.data) === 'error'
+      ? t('agent.runtime.runFailed')
+      : undefined
   const needsHistory = Boolean(!isNew && sessionId && !visible.hasLocalMessages)
   const sessionError = needsHistory && sessionQuery.isError
   const loadingSession =
@@ -96,7 +101,7 @@ export function useExploreSessionChat({
   )
   const messages =
     !visible.hasLocalMessages && hasHistory
-      ? mapSessionMessagesToRuntimeMessages(sessionQuery.data)
+      ? mapSessionMessagesToRuntimeMessages(sessionQuery.data, historyFailure)
       : visible.messages
   const beginInputs = useMemo(
     () => getBeginInputsFromAgent(agentQuery.data),
@@ -109,13 +114,22 @@ export function useExploreSessionChat({
 
   useEffect(() => {
     if (!hasHistory) return
-    const history = mapSessionMessagesToRuntimeMessages(sessionQuery.data)
+    const history = mapSessionMessagesToRuntimeMessages(
+      sessionQuery.data,
+      historyFailure,
+    )
     setView((previous) =>
       previous.selection === selection && !previous.hasLocalMessages
-        ? { ...previous, messages: history }
+        ? {
+            ...previous,
+            messages: history,
+            ...(historyFailure
+              ? { status: AgentRuntimeStatus.ERROR, lastError: historyFailure }
+              : {}),
+          }
         : previous,
     )
-  }, [hasHistory, selection, sessionQuery.data])
+  }, [hasHistory, historyFailure, selection, sessionQuery.data])
 
   const updateRequest = useCallback(
     (
@@ -350,12 +364,18 @@ export function useExploreSessionChat({
     beginInputs,
     isTaskMode,
     messages,
-    status: visible.status,
+    status:
+      !visible.hasLocalMessages && historyFailure
+        ? AgentRuntimeStatus.ERROR
+        : visible.status,
     loading: visible.status === AgentRuntimeStatus.RUNNING,
     loadingSession,
     sessionError,
     canSend,
-    lastError: visible.lastError,
+    lastError:
+      !visible.hasLocalMessages && historyFailure
+        ? historyFailure
+        : visible.lastError,
     currentMessageId: visible.currentMessageId,
     latestTaskId: visible.latestTaskId,
     parameterDialogOpen: visible.parameterDialogOpen,

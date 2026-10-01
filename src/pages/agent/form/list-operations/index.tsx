@@ -3,11 +3,14 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormDescription,
+  FormMessage,
 } from '@/components/ui/form'
 import { Form } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { SelectWithSearch } from '@/components/ui/select-with-search'
 import { Separator } from '@/components/ui/separator'
+import { Switch } from '@/components/ui/switch'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { memo, useEffect, useMemo } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
@@ -18,12 +21,11 @@ import {
   ComparisonOperator,
   DataOperationsOperatorOptions,
   ListOperations,
+  ListOperationsVersion,
   SortMethod,
-  initialListOperationsValues,
 } from '../../constant'
-import { useFormValues } from '../../hooks/use-form-values'
 import { useBuildPromptVariableOptions } from '../../hooks/use-get-begin-query'
-import { useWatchFormChange } from '../../hooks/use-watch-form-change'
+import { useFormBinding } from '../../hooks/use-form-binding'
 import type { INextOperatorForm } from '../../types'
 import {
   FormWrapper,
@@ -32,12 +34,23 @@ import {
   buildOutputList,
 } from '../components'
 import { findQueryVariableOption } from '../components/query-variable-utils'
-import { listOperationOptions } from './constants'
+import { countOperations, getListOperationValues } from './constants'
+import { ListCountInput } from './count-input'
+import { useListOperationsValues, usePersistListOperationsForm } from './hooks'
+import {
+  getListOperation,
+  getListOperationLabelKey,
+  getListOperationsVersion,
+  getListStrictValue,
+  isListOperationsVersionValid,
+} from './utils'
 
 const listOperationsSchema = z.object({
   query: z.string().optional(),
   operations: z.string().optional(),
-  n: z.coerce.number().optional(),
+  operations_version: z.unknown().optional(),
+  n: z.unknown().optional(),
+  strict: z.unknown().optional(),
   sort_method: z.string().optional(),
   filter: z
     .object({
@@ -45,7 +58,7 @@ const listOperationsSchema = z.object({
       value: z.string().optional(),
     })
     .optional(),
-  outputs: z.record(z.string(), z.any()).optional(),
+  outputs: z.record(z.string(), z.unknown()).optional(),
 })
 
 function getArrayElementType(type?: string) {
@@ -81,28 +94,50 @@ function buildListOutputs(itemType: string) {
   }
 }
 
-const countOperations = new Set<string>([
-  ListOperations.TopN,
-  ListOperations.Head,
-  ListOperations.Tail,
-])
-
 export const ListOperationsForm = memo(function ListOperationsForm({
   node,
 }: INextOperatorForm) {
+  const binding = useFormBinding()
+  return (
+    <ListOperationsFields
+      key={JSON.stringify([binding?.nodeId ?? node?.id, binding?.path])}
+      node={node}
+    />
+  )
+})
+
+const ListOperationsFields = memo(function ListOperationsFields({
+  node,
+}: INextOperatorForm) {
   const { t } = useTranslation()
-  const values = useFormValues(initialListOperationsValues, node)
+  const values = useListOperationsValues(node)
+  const version = getListOperationsVersion(values)
+  const legacy = version === ListOperationsVersion.Legacy
+  const validVersion = isListOperationsVersionValid(version)
   const optionGroups = useBuildPromptVariableOptions(node?.id)
 
-  const form = useForm({
+  const form = useForm<z.infer<typeof listOperationsSchema>>({
     resolver: zodResolver(listOperationsSchema),
     defaultValues: values,
   })
 
-  const operation = useWatch({
+  const watchedOperation = useWatch({
     control: form.control,
     name: 'operations',
   })
+  const operation = getListOperation({
+    operations: watchedOperation,
+    operations_version: version,
+  })
+  const listOperationOptions = getListOperationValues(legacy).map((value) => ({
+    value,
+    label: t(
+      getListOperationLabelKey({
+        operations: value,
+        operations_version: version,
+      }),
+    ),
+  }))
   const query = useWatch({
     control: form.control,
     name: 'query',
@@ -113,17 +148,17 @@ export const ListOperationsForm = memo(function ListOperationsForm({
     [optionGroups, query],
   )
   const itemType = useMemo(
-    () => getArrayElementType((selectedOption as { type?: string } | undefined)?.type),
+    () =>
+      getArrayElementType(
+        (selectedOption as { type?: string } | undefined)?.type,
+      ),
     [selectedOption],
   )
   const outputs = useMemo(() => buildListOutputs(itemType), [itemType])
 
   useEffect(() => {
+    if (!validVersion) return
     form.setValue('outputs', outputs, { shouldDirty: true })
-
-    if (countOperations.has(operation as string) && !form.getValues('n')) {
-      form.setValue('n', 1, { shouldDirty: true })
-    }
 
     if (operation === ListOperations.Sort && !form.getValues('sort_method')) {
       form.setValue('sort_method', SortMethod.Asc, { shouldDirty: true })
@@ -137,13 +172,26 @@ export const ListOperationsForm = memo(function ListOperationsForm({
         shouldDirty: true,
       })
     }
-  }, [form, operation, outputs])
+  }, [form, operation, outputs, validVersion])
 
-  useWatchFormChange(node?.id, form)
+  usePersistListOperationsForm(node?.id, form, validVersion)
+
+  if (!validVersion) {
+    return (
+      <p role="alert" className="p-space-base text-status-error">
+        {t('flow.listOperationsConfig.invalidVersion')}
+      </p>
+    )
+  }
 
   return (
     <Form {...form}>
       <FormWrapper>
+        {legacy && (
+          <p className="text-text-secondary">
+            {t('flow.listOperationsConfig.legacyTip')}
+          </p>
+        )}
         <QueryVariable
           name="query"
           label={t('flow.query', 'Query')}
@@ -160,7 +208,7 @@ export const ListOperationsForm = memo(function ListOperationsForm({
               <FormLabel>{t('flow.operations', 'Operations')}</FormLabel>
               <FormControl>
                 <SelectWithSearch
-                  value={field.value || ListOperations.TopN}
+                  value={operation}
                   onChange={field.onChange}
                   options={listOperationOptions}
                 />
@@ -175,18 +223,55 @@ export const ListOperationsForm = memo(function ListOperationsForm({
             name="n"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('flow.flowNum', 'Count')}</FormLabel>
+                <FormLabel>{t('flow.listOperationsConfig.count')}</FormLabel>
                 <FormControl>
-                  <Input
-                    type="number"
-                    min={1}
-                    {...field}
-                    value={field.value ?? 1}
-                    onChange={(event) =>
-                      field.onChange(Number(event.target.value))
+                  <ListCountInput
+                    ref={field.ref}
+                    name={field.name}
+                    onBlur={field.onBlur}
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    onValidityChange={(valid) =>
+                      valid
+                        ? form.clearErrors('n')
+                        : form.setError('n', {
+                            type: 'validate',
+                            message: t(
+                              'flow.listOperationsConfig.integerRequired',
+                            ),
+                          })
                     }
                   />
                 </FormControl>
+                <FormDescription>
+                  {t(
+                    legacy
+                      ? 'flow.listOperationsConfig.legacyCountTip'
+                      : operation === ListOperations.Nth
+                        ? 'flow.listOperationsConfig.nthTip'
+                        : 'flow.listOperationsConfig.sliceTip',
+                  )}
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+
+        {countOperations.has(operation) && !legacy && (
+          <FormField
+            control={form.control}
+            name="strict"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('flow.strictMode')}</FormLabel>
+                <FormControl>
+                  <Switch
+                    checked={getListStrictValue(field.value)}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+                <FormDescription>{t('flow.strictModeTip')}</FormDescription>
               </FormItem>
             )}
           />
@@ -204,7 +289,7 @@ export const ListOperationsForm = memo(function ListOperationsForm({
                     value={field.value || SortMethod.Asc}
                     onChange={field.onChange}
                     options={Object.values(SortMethod).map((value) => ({
-                      label: value,
+                      label: t(`flow.SortMethodOptions.${value}`),
                       value,
                     }))}
                   />
@@ -215,7 +300,7 @@ export const ListOperationsForm = memo(function ListOperationsForm({
         )}
 
         {operation === ListOperations.Filter && (
-          <div className="grid grid-cols-1 gap-space-md md:grid-cols-[0.8fr_1fr]">
+          <div className="gap-space-md grid grid-cols-1 md:grid-cols-[0.8fr_1fr]">
             <FormField
               control={form.control}
               name="filter.operator"

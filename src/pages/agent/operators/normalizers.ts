@@ -1,4 +1,5 @@
 import { Operator, type Operator as OperatorType } from '../constant'
+import { prepareListOperationsForm } from '../form/list-operations/utils'
 import {
   normalizeExtractorFormForStore,
   serializeExtractorFormForDsl,
@@ -118,7 +119,7 @@ function normalizeStringTransformFormForStore(form: FormRecord = {}) {
 
 function normalizeListOperationsFormForStore(form: FormRecord = {}) {
   return {
-    ...form,
+    ...prepareListOperationsForm(form),
     query: normalizeVariableReference(form.query as string | undefined),
   }
 }

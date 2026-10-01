@@ -1,8 +1,10 @@
 import type { Edge, Node } from '@xyflow/react'
 import type { AgentGlobalVariable } from '@/types/agent'
 import type { ITitleChunkerForm, ITokenChunkerForm } from './chunker-types'
+import type { IListOperationsForm } from './form/list-operations/types'
 
 export type { ITitleChunkerForm, ITokenChunkerForm } from './chunker-types'
+export type { IListOperationsForm } from './form/list-operations/types'
 
 // ==================== DSL相关类型 ====================
 
@@ -330,19 +332,6 @@ export interface IDataOperationsForm {
   updates?: Array<{ key?: string; value?: string }>
   rename_keys?: Array<{ old_key?: string; new_key?: string }>
   filter_values?: Array<{ key?: string; operator?: string; value?: string }>
-  outputs?: Record<string, any>
-}
-
-// ListOperations节点表单
-export interface IListOperationsForm {
-  query?: string
-  operations?: string
-  n?: number
-  sort_method?: string
-  filter?: {
-    operator?: string
-    value?: string
-  }
   outputs?: Record<string, any>
 }
 

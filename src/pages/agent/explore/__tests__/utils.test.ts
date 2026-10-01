@@ -141,3 +141,23 @@ test('explore maps persisted session messages to runtime messages', () => {
   assert.equal(messages[1]?.files?.[1]?.name, 'generated.docx')
   assert.deepEqual(messages[1]?.reference, [{ id: 'chunk-1' }])
 })
+
+test('reloaded strict failure gets fixed feedback without a saved successful assistant answer', () => {
+  const session = {
+    id: 'strict',
+    errors: 'private range error',
+    messages: [
+      { role: 'assistant', content: 'prologue' },
+      { role: 'user', content: 'run' },
+    ],
+  }
+  const original = structuredClone(session)
+  const messages = mapSessionMessagesToRuntimeMessages(
+    session,
+    'The run failed.',
+  )
+  assert.equal(messages.at(-1)?.error, 'The run failed.')
+  assert.equal(messages.at(-1)?.content, 'The run failed.')
+  assert.equal(JSON.stringify(messages).includes('private'), false)
+  assert.deepEqual(session, original)
+})

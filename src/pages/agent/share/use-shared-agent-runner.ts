@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { agentAPI } from '@/api/agent'
 import { assertSSEResponse, readSSEStream } from '@/lib/streaming'
 import {
@@ -38,6 +39,7 @@ export function useSharedAgentRunner({
   userId,
   buildInputs,
 }: UseSharedAgentRunnerOptions) {
+  const { t } = useTranslation()
   const [messages, setMessages] = useState<ShareRuntimeMessage[]>([])
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [isRunning, setIsRunning] = useState(false)
@@ -107,12 +109,17 @@ export function useSharedAgentRunner({
         }))
       }
 
-      if (normalizedEvent.errorMessage) {
-        setLastError(normalizedEvent.errorMessage)
+      if (normalizedEvent.errorMessage || normalizedEvent.event === 'error') {
+        const failure = t('agent.runtime.runFailed')
+        setLastError(failure)
         updateMessageById(assistantId, (message) => ({
           ...message,
-          content: message.content || normalizedEvent.errorMessage || '',
-          error: normalizedEvent.errorMessage,
+          content: message.content || failure,
+          error: failure,
+          logEvents: [
+            ...(message.logEvents || []),
+            { event: 'error', data: { error: failure } },
+          ],
           isStreaming: false,
           messageId: normalizedEvent.messageId || message.messageId,
           taskId: normalizedEvent.taskId || message.taskId,
@@ -194,7 +201,9 @@ export function useSharedAgentRunner({
             : undefined
 
         const runtimeError =
-          typeof outputs?._ERROR === 'string' ? outputs._ERROR : undefined
+          typeof outputs?._ERROR === 'string'
+            ? t('agent.runtime.runFailed')
+            : undefined
         const outputContent = normalizedEvent.outputContent
 
         if (runtimeError) {
@@ -228,7 +237,7 @@ export function useSharedAgentRunner({
         }))
       }
     },
-    [updateMessageById],
+    [t, updateMessageById],
   )
 
   const submit = useCallback(
@@ -307,10 +316,8 @@ export function useSharedAgentRunner({
         const isAbortError =
           error instanceof DOMException && error.name === 'AbortError'
         const errorMessage = isAbortError
-          ? '已停止当前运行'
-          : error instanceof Error
-            ? error.message
-            : '运行失败'
+          ? t('agent.runtime.runStopped')
+          : t('agent.runtime.runFailed')
 
         setLastError(errorMessage)
         updateMessageById(assistantId, (message) => ({
@@ -335,6 +342,7 @@ export function useSharedAgentRunner({
       isRunning,
       release,
       sessionId,
+      t,
       updateMessageById,
       userId,
     ],

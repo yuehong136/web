@@ -1,3 +1,5 @@
+import { listOperationsMessages } from './flow-list-operations'
+
 export default {
   flow: {
     copy: '复制',
@@ -1194,14 +1196,7 @@ Tokenizer 会根据所选方式将内容存储为对应的数据结构。`,
       removeKeys: '删除键',
       renameKeys: '重命名键',
     },
-    ListOperationsOptions: {
-      topN: '取前N项',
-      head: '取前第N项',
-      tail: '取后第N项',
-      sort: '排序',
-      filter: '筛选',
-      dropDuplicates: '去重',
-    },
+    ...listOperationsMessages,
     sortMethod: '排序方式',
     SortMethodOptions: {
       asc: '升序',

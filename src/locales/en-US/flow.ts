@@ -1,5 +1,8 @@
+import { listOperationsMessages } from './flow-list-operations'
+
 export default {
   flow: {
+    ...listOperationsMessages,
     switchPrompt: 'Switch prompt preset',
     model: 'Model',
     modelSettings: 'Model settings',
