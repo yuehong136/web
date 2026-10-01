@@ -2,26 +2,16 @@ import type { APIResponse } from '@/types/api'
 import { STORAGE_KEYS, API_BASE_URL, API_VERSION } from '@/constants'
 import { APIError, extractErrorMessage, te } from './client-types'
 import type { RequestConfig } from './client-types'
+import { uploadWithProgress } from './upload-transport'
 
 // 错误契约与请求配置类型见 ./client-types，这里重新导出以保持既有导入路径不变
 export { APIError } from './client-types'
 export type { ApiEnvelope, RequestConfig } from './client-types'
 
-/**
- * 登录/注册端点（RESTful `/api/v1`）：`POST /auth/login`、`POST /users`。
- *
- * 这两条要单独识别，因为它们的 JWT 只在 `Authorization` 响应头里，而且调用方需要
- * 完整信封（`auth` + `data`）而不是 `data.data`。
- */
+/** 登录/注册需要保留 Authorization 响应头中的 JWT 与完整信封。 */
 const AUTH_ENVELOPE_ENDPOINTS = new Set(['/auth/login', '/users'])
 
-/**
- * 判断是否登录/注册端点。
- *
- * 必须是精确路径匹配 + 方法匹配，不能用 `endpoint.includes()`：`/auth/login/channels`、
- * `/auth/login/{channel}`、`/users/me`、`/users/me/models` 都是返回普通信封的端点，
- * 一旦被顺带命中，调用方拿到的就是信封而不是数据。
- */
+/** 精确匹配方法及路径，避免登录子资源与 users/me 被误判。 */
 function isAuthEnvelopeEndpoint(endpoint: string, method?: string): boolean {
   if ((method ?? 'GET').toUpperCase() !== 'POST') return false
 
@@ -572,6 +562,25 @@ class APIClient {
   // 设置默认超时时间
   setDefaultTimeout(timeout: number): void {
     this.defaultTimeout = timeout
+  }
+
+  /** Explicit REST endpoint; multipart field is `file`, with no conversation ID. */
+  uploadWithProgress(
+    endpoint: string,
+    file: File,
+    onProgress?: (percent: number) => void,
+    signal?: AbortSignal,
+  ): Promise<unknown> {
+    return uploadWithProgress({
+      endpoint,
+      file,
+      onProgress,
+      signal,
+      baseURL: this.baseURL,
+      token: this.getAuthToken(),
+      timeout: this.defaultTimeout,
+      onUnauthorized: () => this.handleUnauthorized(),
+    })
   }
 }
 

@@ -1,4 +1,5 @@
 import { apiClient } from './client'
+import { uploadConversationAttachment } from './conversation-upload'
 import type {
   Conversation,
   Message,
@@ -329,77 +330,16 @@ export const conversationAPI = {
   // 文件上传相关接口
   // ============================================================================
 
-  /**
-   * 上传文件并返回运行时附件元数据
-   * 对齐 ragflow 内部聊天：使用 /document/upload_info，不需要 conversation_id
-   */
-  uploadInfo: (
-    file: File,
-    onProgress?: (progress: number) => void,
-    signal?: AbortSignal,
-  ): Promise<UploadedFileInfo> => {
-    return new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest()
-      const baseURL =
-        import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
-      xhr.open('POST', `${baseURL}/v1/document/upload_info`)
-
-      const token = localStorage.getItem('auth_token')
-      if (token) {
-        xhr.setRequestHeader('Authorization', `Bearer ${token}`)
-      }
-
-      xhr.upload.onprogress = (e) => {
-        if (e.lengthComputable) {
-          const progress = Math.round((e.loaded / e.total) * 100)
-          onProgress?.(progress)
-        }
-      }
-
-      xhr.onload = () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          try {
-            const response = JSON.parse(xhr.responseText)
-            if (response.code === 0 || response.retcode === 0) {
-              resolve(response.data)
-            } else {
-              reject(
-                new Error(
-                  response.message || response.retmsg || 'Upload failed',
-                ),
-              )
-            }
-          } catch {
-            reject(new Error('Invalid response format'))
-          }
-        } else {
-          reject(new Error(`HTTP ${xhr.status}: ${xhr.statusText}`))
-        }
-      }
-
-      xhr.onerror = () => reject(new Error('Network error'))
-      xhr.ontimeout = () => reject(new Error('Upload timeout'))
-
-      if (signal) {
-        signal.addEventListener('abort', () => {
-          xhr.abort()
-          reject(new Error('Upload cancelled'))
-        })
-      }
-
-      const formData = new FormData()
-      formData.append('file', file)
-      xhr.send(formData)
-    })
-  },
+  /** 上传运行时附件元数据，不关联会话，也不执行聊天解析。 */
+  uploadInfo: uploadConversationAttachment,
 
   /**
    * 上传并解析文件
    * 用于聊天时上传文件，文件会被解析后参与对话
    *
-   * 注意：使用 /document/upload_and_parse 接口（而非 /document/upload_info）
+   * 注意：使用 /document/upload_and_parse 接口（而非 /api/v1/documents/upload）
    * - upload_and_parse: 需要 conversation_id，文件会关联到对话
-   * - upload_info: 不需要 conversation_id，仅做文件解析
+   * - documents/upload: 不需要 conversation_id，仅上传附件元数据
    *
    * @param conversationId - 对话 ID
    * @param file - 要上传的文件

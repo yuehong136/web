@@ -2,25 +2,25 @@
 export const chatConfig = {
   // API endpoint for chat service - 使用相对路径，由apiClient处理baseURL
   apiEndpoint: '/llm/chat_service_sse',
-  
+
   // Default model configuration
   defaultModel: 'gpt-3.5-turbo', // 替换为您实际使用的模型名称
-  
+
   // Default generation configuration
   defaultGenConfig: {
     temperature: 0.7,
     max_tokens: 2000,
     top_p: 0.9,
     frequency_penalty: 0,
-    presence_penalty: 0
+    presence_penalty: 0,
   },
-  
+
   // Request timeout in milliseconds
   requestTimeout: 30000,
-  
+
   // Retry configuration
   maxRetries: 3,
-  retryDelay: 1000
+  retryDelay: 1000,
 }
 
 // Message types
@@ -78,7 +78,7 @@ export interface SSEResponse {
 
 /**
  * 上传文件响应类型
- * 后端 /v1/document/upload_info 接口返回的运行时附件元数据。
+ * 后端 /api/v1/documents/upload 接口返回的运行时附件元数据。
  * 该对象会在探索页发送消息时直接挂到 messages[].files。
  */
 export interface UploadedFileInfo {

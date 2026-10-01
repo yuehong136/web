@@ -293,7 +293,7 @@ export default function MCPChatPage() {
   const dropContainerRef = useRef<HTMLDivElement>(null)
   const dragCounterRef = useRef(0)
 
-  // 文件上传 Hook（使用 MCP 专用的 upload_info 接口）
+  // 文件上传 Hook（运行时附件元数据）
   const {
     files: uploadFiles,
     uploading: isUploading,
@@ -1410,7 +1410,7 @@ export default function MCPChatPage() {
                           fontSize: '12px',
                         },
                       }}
-                      // 自定义上传请求，使用 /v1/document/upload_info 接口
+                      // 自定义上传请求，使用 /api/v1/documents/upload 接口
                       customRequest={async (options) => {
                         const { file, onSuccess, onError } = options
                         try {
