@@ -1,6 +1,5 @@
 import { Key, MessageCircleQuestion, Save, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { API_BASE_URL, API_VERSION } from '@/constants'
 import { Button, Tooltip } from '@/components/ui'
 import type { ChunkData } from '../types'
 import { ChunkEditContentField } from './chunk-edit-content-field'
@@ -41,7 +40,6 @@ export const ChunkEditOverlay = ({
   onPreviewImage,
 }: ChunkEditOverlayProps) => {
   const { t } = useTranslation()
-  const selectedImageUrl = `${API_BASE_URL}/${API_VERSION}/document/image/${selectedChunk.img_id}`
   const displayChunkId =
     selectedChunk.chunk_id.length > 16
       ? `${selectedChunk.chunk_id.slice(0, 8)}...${selectedChunk.chunk_id.slice(-8)}`
@@ -76,7 +74,7 @@ export const ChunkEditOverlay = ({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-6 scrollbar-thin">
+      <div className="scrollbar-thin flex-1 overflow-y-auto p-6">
         <div className="space-y-5">
           <ChunkEditContentField
             editingChunkContent={editingChunkContent}
@@ -85,10 +83,9 @@ export const ChunkEditOverlay = ({
             onMarkdownPreviewChange={onMarkdownPreviewChange}
           />
 
-          {selectedChunk.doc_type_kwd === 'image' && (
+          {(selectedChunk.doc_type_kwd === 'image' || selectedChunk.img_id) && (
             <ChunkEditImageSection
               selectedChunk={selectedChunk}
-              selectedImageUrl={selectedImageUrl}
               editingImage={editingImage}
               onEditingImageChange={onEditingImageChange}
               onPreviewImage={onPreviewImage}

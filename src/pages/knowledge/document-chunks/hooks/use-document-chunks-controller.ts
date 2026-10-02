@@ -22,7 +22,7 @@ export const useDocumentChunksController = (
   const list = useChunkListState()
   const selection = useChunkSelection()
   const addForm = useChunkAddForm()
-  const editForm = useChunkEditForm()
+  const editForm = useChunkEditForm(`${list.kbId}:${list.docId}`)
   const metaForm = useChunkMetaForm()
   const clearSelection = selection.clear
   const selectChunk = editForm.selectChunk
@@ -40,7 +40,20 @@ export const useDocumentChunksController = (
   const [deletingChunkId, setDeletingChunkId] = useState('')
   const [deleteSelectedConfirmOpen, setDeleteSelectedConfirmOpen] =
     useState(false)
-  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null)
+  const [previewImage, setPreviewImage] = useState<{
+    ownerKey: string
+    imageId: string | null
+  } | null>(null)
+  const previewImageId =
+    previewImage && previewImage.ownerKey === `${list.kbId}:${list.docId}`
+      ? previewImage.imageId
+      : null
+  const setPreviewImageId = useCallback(
+    (imageId: string | null) => {
+      setPreviewImage({ ownerKey: `${list.kbId}:${list.docId}`, imageId })
+    },
+    [list.kbId, list.docId],
+  )
 
   useEffect(() => {
     clearSelection()
@@ -224,8 +237,8 @@ export const useDocumentChunksController = (
       openBulkDelete,
       closeBulkDelete,
     },
-    previewImageUrl,
-    setPreviewImageUrl,
+    previewImageId,
+    setPreviewImageId,
     handleSelectChunk,
     handleStartEdit,
     handleToggleChunkStatus,

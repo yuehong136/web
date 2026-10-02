@@ -3,7 +3,9 @@
  * 用于安全地渲染图片轮播，包含错误边界和懒加载
  */
 import React from 'react'
-import { toast } from '@/lib/toast'
+import { useTranslation } from 'react-i18next'
+import { getChunkByRefId } from '@/utils/reference-utils'
+import { DocumentImage } from '@/components/knowledge/document-image'
 import type { ReferenceGroup } from '@/utils/reference-utils'
 import type { ReferenceChunk } from '@/utils/reference-replacer'
 
@@ -73,16 +75,15 @@ export const CarouselWrapper: React.FC<CarouselWrapperProps> = ({
   className = 'my-4',
 }) => {
   const [hasError, setHasError] = React.useState(false)
+  const { t } = useTranslation()
 
   // 默认图片点击处理
   const handleImageClick = React.useCallback(
     (chunk: ReferenceChunk) => {
       if (onImageClick) {
         onImageClick(chunk)
-      } else if (chunk.url) {
+      } else if (chunk.url && /^https?:\/\//i.test(chunk.url)) {
         window.open(chunk.url, '_blank', 'noopener,noreferrer')
-      } else {
-        toast.success(`查看图片: Fig. ${parseInt(chunk.id || '0', 10) + 1}`)
       }
     },
     [onImageClick],
@@ -94,14 +95,12 @@ export const CarouselWrapper: React.FC<CarouselWrapperProps> = ({
       <div className={`flex flex-wrap justify-center gap-2 ${className}`}>
         {group.map((ref) => {
           const chunkIndex = parseInt(ref.id, 10)
-          const chunk = chunks[chunkIndex]
+          const chunk = getChunkByRefId(ref.id, chunks)
           if (!chunk?.image_id) return null
-          const baseUrl =
-            import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
           return (
-            <img
+            <DocumentImage
               key={ref.id}
-              src={`${baseUrl}/v1/document/image/${chunk.image_id}`}
+              source={{ kind: 'dataset', imageId: chunk.image_id }}
               alt={`Fig. ${chunkIndex + 1}`}
               className="max-h-36 cursor-pointer rounded-lg object-contain"
               style={{ border: '1px solid var(--color-border-subtle)' }}
@@ -118,7 +117,7 @@ export const CarouselWrapper: React.FC<CarouselWrapperProps> = ({
       fallback={
         <div className={`flex h-36 items-center justify-center ${className}`}>
           <span style={{ color: 'var(--color-text-tertiary)' }}>
-            加载图片...
+            {t('common.documentImage.loading')}
           </span>
         </div>
       }

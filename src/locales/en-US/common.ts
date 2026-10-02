@@ -1,5 +1,17 @@
 export default {
   common: {
+    documentImage: {
+      loading: 'Loading image...',
+      unavailable: 'Image is unavailable.',
+      invalid: 'Image data is invalid.',
+      auth: 'Sign in to view this image.',
+      retry: 'Retry image',
+      preview: 'Preview image',
+      windowBlocked: 'The image window could not be opened.',
+      rotate: 'Rotate image',
+      zoomIn: 'Zoom in',
+      zoomOut: 'Zoom out',
+    },
     // Action buttons
     add: 'Add',
     create: 'Create',

@@ -44,6 +44,7 @@ export const documentKeys = {
     pageSize: number,
     keywords: string,
     availableInt: number | undefined,
+    datasetId?: string,
   ) =>
     [
       'documentChunks',
@@ -52,6 +53,7 @@ export const documentKeys = {
       pageSize,
       keywords,
       availableInt,
+      ...(datasetId ? [datasetId] : []),
     ] as const,
 }
 

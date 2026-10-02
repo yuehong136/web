@@ -1,3 +1,8 @@
+import { isAuthEnvelopeEndpoint } from './client-auth-contract'
+import {
+  readBinaryResponse,
+  isSupersededBinaryResponse,
+} from './binary-response'
 import type { APIResponse } from '@/types/api'
 import { STORAGE_KEYS, API_BASE_URL, API_VERSION } from '@/constants'
 import { APIError, extractErrorMessage, te } from './client-types'
@@ -8,25 +13,6 @@ import { uploadWithProgress } from './upload-transport'
 // 错误契约与请求配置类型见 ./client-types，这里重新导出以保持既有导入路径不变
 export { APIError } from './client-types'
 export type { ApiEnvelope, RequestConfig } from './client-types'
-
-/** 登录/注册需要保留 Authorization 响应头中的 JWT 与完整信封。 */
-const AUTH_ENVELOPE_ENDPOINTS = new Set(['/auth/login', '/users'])
-
-/** 精确匹配方法及路径，避免登录子资源与 users/me 被误判。 */
-function isAuthEnvelopeEndpoint(endpoint: string, method?: string): boolean {
-  if ((method ?? 'GET').toUpperCase() !== 'POST') return false
-
-  const rawPath = endpoint.startsWith('http')
-    ? new URL(endpoint).pathname
-    : (endpoint.split('?')[0] ?? '')
-
-  const path = rawPath
-    .replace(/^\/api/, '')
-    .replace(/^\/v1/, '')
-    .replace(/\/+$/, '')
-
-  return AUTH_ENVELOPE_ENDPOINTS.has(path)
-}
 
 class APIClient {
   private baseURL: string
@@ -90,7 +76,6 @@ class APIClient {
     this.notifyUnauthorized()
   }
 
-  // 设置认证token
   setAuthToken(token: string | null): void {
     this.authToken = token
     if (typeof localStorage === 'undefined') {
@@ -117,6 +102,8 @@ class APIClient {
       data,
       withEnvelope = false,
       responseContract,
+      readResponse,
+      signal: callerSignal,
       ...requestConfig
     } = config
 
@@ -125,7 +112,6 @@ class APIClient {
       requestConfig.method,
     )
 
-    // 构建完整URL
     let url: string
     if (endpoint.startsWith('http')) {
       url = endpoint
@@ -149,7 +135,6 @@ class APIClient {
         typeof data === 'object' ? JSON.stringify(data) : (data as BodyInit)
     }
 
-    // 设置请求头
     const requestHeaders: Record<string, string> = {
       // 只在非FormData时设置Content-Type
       ...(!(requestConfig.body instanceof FormData) && {
@@ -158,14 +143,12 @@ class APIClient {
       ...(headers as Record<string, string>),
     }
 
-    // 过滤掉undefined值
     Object.keys(requestHeaders).forEach((key) => {
       if (requestHeaders[key] === undefined) {
         delete requestHeaders[key]
       }
     })
 
-    // 添加认证头
     if (!skipAuth) {
       const token = this.getAuthToken()
       if (token) {
@@ -173,22 +156,37 @@ class APIClient {
       }
     }
 
-    // 创建请求配置
     const requestOptions: RequestInit = {
       ...requestConfig,
       headers: requestHeaders,
     }
 
-    // 添加超时控制
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), timeout)
+    const onCallerAbort = () => controller.abort(callerSignal?.reason)
+    if (readResponse && callerSignal) {
+      if (callerSignal.aborted) onCallerAbort()
+      else callerSignal.addEventListener('abort', onCallerAbort, { once: true })
+    }
     requestOptions.signal = controller.signal
 
     try {
       const response = await fetch(url, requestOptions)
+      if (readResponse) {
+        return (await readBinaryResponse(
+          response,
+          controller.signal,
+          readResponse,
+          {
+            sentAuthorization: requestHeaders.Authorization,
+            currentToken: this.getAuthToken(),
+            skipAuth,
+            onUnauthorized: () => this.handleUnauthorized(skipAuth),
+          },
+        )) as T
+      }
       clearTimeout(timeoutId)
 
-      // 处理非JSON响应
       const contentType = response.headers.get('content-type')
       if (!contentType?.includes('application/json')) {
         if (!response.ok) {
@@ -302,6 +300,11 @@ class APIClient {
 
       const err = error as Error
       if (err.name === 'AbortError') {
+        if (
+          readResponse &&
+          (callerSignal?.aborted || isSupersededBinaryResponse(error))
+        )
+          throw error
         throw new APIError(408, 'TIMEOUT', te('timeout'))
       }
 
@@ -310,15 +313,16 @@ class APIClient {
       }
 
       throw new APIError(500, 'UNKNOWN_ERROR', err.message || te('serverError'))
+    } finally {
+      clearTimeout(timeoutId)
+      callerSignal?.removeEventListener('abort', onCallerAbort)
     }
   }
 
-  // GET 请求
   async get<T = any>(endpoint: string, config?: RequestConfig): Promise<T> {
     return this.request<T>(endpoint, { ...config, method: 'GET' })
   }
 
-  // POST 请求
   async post<T = any>(
     endpoint: string,
     data?: any,
@@ -360,7 +364,6 @@ class APIClient {
     })
   }
 
-  // PATCH 请求
   async patch<T = any>(
     endpoint: string,
     data?: any,
@@ -373,12 +376,10 @@ class APIClient {
     })
   }
 
-  // DELETE 请求
   async delete<T = any>(endpoint: string, config?: RequestConfig): Promise<T> {
     return this.request<T>(endpoint, { ...config, method: 'DELETE' })
   }
 
-  // 文件上传
   async upload<T = any>(
     endpoint: string,
     file: File,

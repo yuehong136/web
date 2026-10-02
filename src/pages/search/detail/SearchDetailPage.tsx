@@ -36,6 +36,7 @@ const toReferenceChunk = (chunk: ChunkResult): ReferenceChunk => ({
   document_name: chunk.docnm_kwd,
   dataset_id: chunk.kb_id,
   image_id: chunk.img_id,
+  doc_type: chunk.doc_type_kwd,
   positions: chunk.positions,
   similarity: chunk.similarity,
   vector_similarity: chunk.vector_similarity,
@@ -275,7 +276,7 @@ export const SearchDetailPage: React.FC = () => {
 
   if (!searchApp) {
     return (
-      <div className="gap-space-sm flex h-full flex-col items-center justify-center">
+      <div className="flex h-full flex-col items-center justify-center gap-space-sm">
         <p className="text-text-secondary">搜索应用不存在或已被删除</p>
         <Button variant="outline" onClick={() => navigate(ROUTES.SEARCH)}>
           返回列表
@@ -312,7 +313,7 @@ export const SearchDetailPage: React.FC = () => {
 
       <div className="bg-surface-primary flex min-h-0 flex-1">
         <div className="flex min-w-0 flex-1 flex-col">
-          <main className="px-space-base py-space-lg bg-surface-primary relative min-h-0 flex-1 overflow-y-auto">
+          <main className="bg-surface-primary relative min-h-0 flex-1 overflow-y-auto px-space-base py-space-lg">
             {!hasTurns ? (
               <SearchStarterView
                 onSearch={handleSearch}
@@ -323,18 +324,18 @@ export const SearchDetailPage: React.FC = () => {
                 onPrefill={handlePrefillFromCard}
               />
             ) : (
-              <div className="space-y-space-base pb-space-base mx-auto max-w-6xl">
-                <div className="rounded-radius-lg bg-surface-secondary px-space-base py-space-xs flex items-center justify-between border border-border-default">
+              <div className="mx-auto max-w-6xl space-y-space-base pb-space-base">
+                <div className="bg-surface-secondary flex items-center justify-between rounded-radius-lg border border-border-default px-space-base py-space-xs">
                   <p className="text-xs text-text-secondary">
                     共 {turns.length} 轮查询，可折叠查看历史轮次
                   </p>
-                  <div className="gap-space-xs flex items-center">
+                  <div className="flex items-center gap-space-xs">
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={handleExpandAllTurns}
                       disabled={allExpanded}
-                      className="px-space-sm h-7 text-xs"
+                      className="h-7 px-space-sm text-xs"
                     >
                       全部展开
                     </Button>
@@ -343,7 +344,7 @@ export const SearchDetailPage: React.FC = () => {
                       size="sm"
                       onClick={handleCollapseAllTurns}
                       disabled={allCollapsed}
-                      className="px-space-sm h-7 text-xs"
+                      className="h-7 px-space-sm text-xs"
                     >
                       全部折叠
                     </Button>
@@ -376,7 +377,7 @@ export const SearchDetailPage: React.FC = () => {
           </main>
 
           {hasTurns ? (
-            <footer className="bg-surface-primary px-space-base py-space-sm shrink-0">
+            <footer className="bg-surface-primary shrink-0 px-space-base py-space-sm">
               <div className="mx-auto max-w-5xl">
                 <SearchComposer
                   onSearch={handleSearch}

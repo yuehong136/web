@@ -10,7 +10,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
-import { API_BASE_URL, API_VERSION } from '@/constants'
+import { DocumentImage } from '@/components/knowledge/document-image'
 import { Button, Checkbox, ToggleSwitch, Tooltip } from '@/components/ui'
 import { SafeHtml } from '@/components/ui/safe-html'
 import { cn, copyToClipboard } from '@/lib/utils'
@@ -183,17 +183,13 @@ export const ChunkListRow = ({
             className="group/thumb relative shrink-0 cursor-pointer self-stretch border-0 bg-transparent p-0 text-left"
             onClick={(event) => {
               event.stopPropagation()
-              onPreviewImage(
-                `${API_BASE_URL}/${API_VERSION}/document/image/${chunk.img_id}`,
-              )
+              onPreviewImage(chunk.img_id!)
             }}
             onKeyDown={(event) => {
               if (event.key === 'Enter' || event.key === ' ') {
                 event.preventDefault()
                 event.stopPropagation()
-                onPreviewImage(
-                  `${API_BASE_URL}/${API_VERSION}/document/image/${chunk.img_id}`,
-                )
+                onPreviewImage(chunk.img_id!)
               }
             }}
             style={{
@@ -202,13 +198,11 @@ export const ChunkListRow = ({
               maxWidth: textMode === 'full' ? '160px' : '64px',
             }}
           >
-            <img
-              src={`${API_BASE_URL}/${API_VERSION}/document/image/${chunk.img_id}`}
+            <DocumentImage
+              source={{ kind: 'dataset', imageId: chunk.img_id }}
+              retryable={false}
               alt={t('knowledge.chunks.list.thumbnailAlt')}
               className="h-full w-full rounded border border-border-default bg-background-subtle object-cover transition-all duration-200 group-hover/thumb:ring-2 group-hover/thumb:ring-text-accent"
-              onError={(event) => {
-                ;(event.target as HTMLImageElement).style.display = 'none'
-              }}
             />
             <div className="absolute inset-0 flex items-center justify-center rounded bg-black/0 opacity-0 transition-all duration-200 group-hover/thumb:bg-black/30 group-hover/thumb:opacity-100">
               <ZoomIn className="h-5 w-5 text-white drop-shadow-lg" />

@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react'
 import { fileToBase64 } from '@/lib/utils'
 import type { ChunkData } from '../types'
 
-export const useChunkEditForm = () => {
+export const useChunkEditForm = (ownerKey: string) => {
   const [selectedChunk, setSelectedChunk] = useState<ChunkData | null>(null)
   const [isEditMode, setIsEditMode] = useState(false)
   const [editingChunkContent, setEditingChunkContent] = useState('')
@@ -43,6 +43,12 @@ export const useChunkEditForm = () => {
     setEditingImage([])
     setIsMarkdownPreview(false)
   }, [])
+
+  const [previousOwner, setPreviousOwner] = useState(ownerKey)
+  if (previousOwner !== ownerKey) {
+    setPreviousOwner(ownerKey)
+    reset()
+  }
 
   const clearSelected = useCallback(() => {
     setSelectedChunk(null)

@@ -33,7 +33,7 @@ interface ChunkModalsProps {
   onUpdateMetaKey: (id: string, key: string) => void
   onUpdateMetaValue: (id: string, value: unknown) => void
   onSaveMeta: () => void
-  previewImageUrl: string | null
+  previewImageId: string | null
   onPreviewImageClose: () => void
 }
 
@@ -65,7 +65,7 @@ export const ChunkModals = ({
   onUpdateMetaKey,
   onUpdateMetaValue,
   onSaveMeta,
-  previewImageUrl,
+  previewImageId,
   onPreviewImageClose,
 }: ChunkModalsProps) => (
   <>
@@ -106,7 +106,7 @@ export const ChunkModals = ({
     />
 
     <ChunkImagePreviewModal
-      previewImageUrl={previewImageUrl}
+      previewImageId={previewImageId}
       onClose={onPreviewImageClose}
     />
   </>

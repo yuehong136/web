@@ -81,7 +81,7 @@ const DocumentChunksPage = () => {
             onToggleChunkStatus={c.handleToggleChunkStatus}
             onDeleteChunk={deleteState.openDeleteSingle}
             onCheckboxChange={selection.toggleSingle}
-            onPreviewImage={c.setPreviewImageUrl}
+            onPreviewImage={c.setPreviewImageId}
           />
         </div>
 
@@ -109,7 +109,7 @@ const DocumentChunksPage = () => {
                 onMarkdownPreviewChange={editForm.setIsMarkdownPreview}
                 onCancel={editForm.reset}
                 onSave={c.handleEditChunk}
-                onPreviewImage={c.setPreviewImageUrl}
+                onPreviewImage={c.setPreviewImageId}
               />
             )}
 
@@ -153,8 +153,8 @@ const DocumentChunksPage = () => {
         onUpdateMetaKey={metaForm.updateKey}
         onUpdateMetaValue={metaForm.updateValue}
         onSaveMeta={c.handleSaveMeta}
-        previewImageUrl={c.previewImageUrl}
-        onPreviewImageClose={() => c.setPreviewImageUrl(null)}
+        previewImageId={c.previewImageId}
+        onPreviewImageClose={() => c.setPreviewImageId(null)}
       />
     </div>
   )

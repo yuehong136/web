@@ -1,3 +1,4 @@
+import { ExploreMessageAttachments } from './components/message-attachments'
 import { ControlledAttachments } from '@/components/chat/controlled-attachments'
 import { useChatAbortController } from '@/hooks/use-chat-abort-controller'
 import {
@@ -37,7 +38,7 @@ import {
 } from '@/components/chat/MarkdownCodeBlock'
 import { StreamingXMarkdown } from '@/components/chat/streaming-x-markdown'
 import { Button } from '@/components/ui/button'
-import { FileIcon, getFileCategory } from '@/components/ui/file-icon'
+import { FileIcon } from '@/components/ui/file-icon'
 import { copyToClipboardWithFeedback } from '@/lib/clipboard'
 import { cn, formatBytes } from '@/lib/utils'
 import { toast } from '@/lib/toast'
@@ -102,20 +103,6 @@ import { ExploreSidebar, type ExploreTab } from './components/explore-sidebar'
 import { getExploreAppIcon } from './components/explore-app-icon'
 
 type ExploreAttachment = NonNullable<AttachmentsProps['items']>[number]
-
-const isImageAttachment = (file?: UploadedFileInfo) => {
-  return !!file?.mime_type?.startsWith('image/')
-}
-
-/** 获取图片预览：优先 base64 data URI，回退到后端 /v1/document/image 端点 */
-const getImagePreviewUrl = (file: UploadedFileInfo): string | null => {
-  if (file.preview_url) return file.preview_url
-  if (file.created_by && file.id) {
-    const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
-    return `${baseURL}/v1/document/image/${file.created_by}-${file.id}`
-  }
-  return null
-}
 
 const getAttachmentStatusLabel = (file: UploadFile, t: TFunction) => {
   if (file.status === 'uploading') {
@@ -851,103 +838,8 @@ export const ExplorePage: FC = () => {
   )
 
   const renderMessageAttachments = useCallback(
-    (files?: UploadedFileInfo[]) => {
-      if (!files?.length) {
-        return null
-      }
-
-      const imageFiles = files.filter(isImageAttachment)
-      const otherFiles = files.filter((f) => !isImageAttachment(f))
-
-      return (
-        <div className="mt-3 grid gap-2">
-          {/* 图片附件：较大预览 */}
-          {imageFiles.length > 0 && (
-            <div
-              className={`grid gap-2 ${imageFiles.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}
-            >
-              {imageFiles.map((file) => {
-                const imgUrl = getImagePreviewUrl(file)
-                return (
-                  <div
-                    key={file.id}
-                    className="overflow-hidden rounded-xl border"
-                    style={{
-                      backgroundColor: 'rgba(255, 255, 255, 0.14)',
-                      borderColor: 'rgba(255, 255, 255, 0.18)',
-                    }}
-                  >
-                    {imgUrl ? (
-                      <button
-                        type="button"
-                        className="block w-full cursor-pointer"
-                        aria-label={t('explore.attachmentStatus.openPreview', {
-                          name: file.name,
-                        })}
-                        onClick={() => window.open(imgUrl, '_blank')}
-                      >
-                        <img
-                          src={imgUrl}
-                          alt={file.name}
-                          className="max-h-64 w-full object-contain"
-                          style={{ backgroundColor: 'rgba(0, 0, 0, 0.03)' }}
-                        />
-                      </button>
-                    ) : (
-                      <div
-                        className="flex h-32 items-center justify-center"
-                        style={{ backgroundColor: 'rgba(255, 255, 255, 0.12)' }}
-                      >
-                        <FileIcon fileName={file.name} size="md" />
-                      </div>
-                    )}
-                    <div className="px-3 py-1.5">
-                      <div className="truncate text-xs opacity-80">
-                        {file.name} · {formatBytes(file.size || 0)}
-                      </div>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          )}
-
-          {/* 非图片附件：文件卡片 */}
-          {otherFiles.map((file) => {
-            const category = getFileCategory(file.extension || '')
-            return (
-              <div
-                key={file.id}
-                className="flex items-center gap-3 rounded-xl border px-3 py-2"
-                style={{
-                  backgroundColor: 'rgba(255, 255, 255, 0.14)',
-                  borderColor: 'rgba(255, 255, 255, 0.18)',
-                }}
-              >
-                <div
-                  className="flex h-10 w-10 items-center justify-center rounded-lg"
-                  style={{ backgroundColor: 'rgba(255, 255, 255, 0.12)' }}
-                >
-                  <FileIcon fileName={file.name} size="md" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-medium">
-                    {file.name}
-                  </div>
-                  <div className="text-xs opacity-80">
-                    {category === 'image'
-                      ? t('explore.attachmentStatus.image')
-                      : file.extension?.toUpperCase() || 'FILE'}{' '}
-                    · {formatBytes(file.size || 0)}
-                  </div>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      )
-    },
-    [t],
+    (files?: UploadedFileInfo[]) => <ExploreMessageAttachments files={files} />,
+    [],
   )
 
   // 转换消息为 Bubble 格式

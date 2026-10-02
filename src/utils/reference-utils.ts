@@ -5,6 +5,7 @@
  */
 
 import DOMPurify from 'dompurify'
+import { resolveDocumentImageUrl } from '@/api/document-images'
 import type { ReferenceChunk } from './reference-replacer'
 
 /**
@@ -74,13 +75,13 @@ export function findAllReferenceMatches(text: string): ReferenceMatch[] {
 
 /**
  * 将连续出现的引用分组
- * 
+ *
  * 例如：
  * - 输入: "文本[ID:0][ID:1]更多文本[ID:2]"
  * - 输出: [[{id:'0',...}, {id:'1',...}], [{id:'2',...}]]
- * 
+ *
  * 判断连续的规则：当前引用的 start 等于上一个引用的 end
- * 
+ *
  * @param text 要分析的文本
  * @returns 分组后的引用数组（二维数组）
  */
@@ -124,32 +125,30 @@ const IMAGE_DOC_TYPES = ['image', 'table']
  * @returns 是否为图片类型
  */
 export function isImageChunk(chunk?: ReferenceChunk): boolean {
-  if (!chunk?.doc_type) return false
-  return IMAGE_DOC_TYPES.includes(chunk.doc_type)
+  return IMAGE_DOC_TYPES.includes(chunk?.doc_type ?? chunk?.doc_type_kwd ?? '')
 }
 
 /**
  * 判断一个引用分组是否应该显示为轮播
- * 
+ *
  * 条件：
  * 1. 分组中至少有 2 个引用
  * 2. 所有引用对应的 chunk 都是图片类型
- * 
+ *
  * @param group 引用分组
  * @param chunks 所有引用 chunk 数据
  * @returns 是否应该显示为轮播
  */
 export function shouldShowCarousel(
   group: ReferenceGroup,
-  chunks: ReferenceChunk[]
+  chunks: ReferenceChunk[],
 ): boolean {
   // 至少需要 2 个图片才显示轮播
   if (group.length < 2) return false
 
   // 检查所有引用是否都是图片类型
   return group.every((ref) => {
-    const chunkIndex = parseInt(ref.id, 10)
-    const chunk = chunks[chunkIndex]
+    const chunk = getChunkByRefId(ref.id, chunks)
     return chunk && isImageChunk(chunk)
   })
 }
@@ -162,10 +161,12 @@ export function shouldShowCarousel(
  */
 export function getChunkByRefId(
   refId: string,
-  chunks: ReferenceChunk[]
+  chunks: ReferenceChunk[],
 ): ReferenceChunk | undefined {
   const index = parseInt(refId, 10)
-  return chunks[index]
+  return chunks.some((chunk) => chunk.reference_index !== undefined)
+    ? chunks.find((chunk) => chunk.reference_index === index)
+    : chunks[index]
 }
 
 /**
@@ -174,17 +175,15 @@ export function getChunkByRefId(
  * @returns 完整的图片 URL
  */
 export function buildImageUrl(imageId: string): string {
-  const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
-  // 注意：API 需要 /v1 版本前缀
-  return `${baseUrl}/v1/document/image/${imageId}`
+  return resolveDocumentImageUrl({ kind: 'dataset', imageId })
 }
 
 /**
  * 处理文本中的引用，返回分组信息和处理后的内容片段
- * 
+ *
  * 这个函数用于在渲染前分析文本，将连续图片引用标记出来
  * 以便后续用轮播组件替换
- * 
+ *
  * @param text 原始文本
  * @param chunks 引用 chunk 数据
  * @returns 处理结果，包含分组和片段信息
@@ -198,7 +197,7 @@ export interface ProcessedReference {
 
 export function processReferenceGroups(
   text: string,
-  chunks: ReferenceChunk[]
+  chunks: ReferenceChunk[],
 ): ProcessedReference {
   const groups = groupConsecutiveReferences(text)
   const carouselGroupIndices: number[] = []
@@ -222,7 +221,7 @@ export function processReferenceGroups(
 /**
  * 安全渲染 HTML 内容（用于表格等结构化内容）
  * 使用 DOMPurify 防止 XSS 攻击
- * 
+ *
  * @param html 原始 HTML 字符串
  * @param options 可选配置
  * @returns 安全的 HTML 字符串
@@ -232,11 +231,30 @@ export function sanitizeHtmlContent(
   options?: {
     allowedTags?: string[]
     allowedAttrs?: string[]
-  }
+  },
 ): string {
-  const defaultTags = ['table', 'thead', 'tbody', 'tr', 'th', 'td', 'caption', 'br', 'p', 'div', 'span', 'strong', 'em', 'b', 'i', 'ul', 'ol', 'li']
+  const defaultTags = [
+    'table',
+    'thead',
+    'tbody',
+    'tr',
+    'th',
+    'td',
+    'caption',
+    'br',
+    'p',
+    'div',
+    'span',
+    'strong',
+    'em',
+    'b',
+    'i',
+    'ul',
+    'ol',
+    'li',
+  ]
   const defaultAttrs = ['rowspan', 'colspan', 'class', 'style']
-  
+
   return DOMPurify.sanitize(html, {
     ALLOWED_TAGS: options?.allowedTags || defaultTags,
     ALLOWED_ATTR: options?.allowedAttrs || defaultAttrs,
@@ -296,7 +314,15 @@ export function getSimilarityLabel(similarity: number): string {
 /**
  * 文档类型
  */
-export type DocType = 'table' | 'image' | 'text' | 'pdf' | 'word' | 'excel' | 'markdown' | 'unknown'
+export type DocType =
+  | 'table'
+  | 'image'
+  | 'text'
+  | 'pdf'
+  | 'word'
+  | 'excel'
+  | 'markdown'
+  | 'unknown'
 
 /**
  * 获取文档类型
@@ -307,7 +333,7 @@ export type DocType = 'table' | 'image' | 'text' | 'pdf' | 'word' | 'excel' | 'm
 export function getDocType(docType?: string, docName?: string): DocType {
   if (docType === 'table') return 'table'
   if (docType === 'image') return 'image'
-  
+
   if (docName) {
     const ext = docName.split('.').pop()?.toLowerCase()
     switch (ext) {
@@ -324,7 +350,7 @@ export function getDocType(docType?: string, docName?: string): DocType {
         return 'markdown'
     }
   }
-  
+
   return docType === 'text' ? 'text' : 'unknown'
 }
 
@@ -363,7 +389,10 @@ export function getDocTypeLabel(docType: DocType | string | undefined): string {
 export function truncateContent(content: string, maxLength = 100): string {
   if (!content) return ''
   // 移除 HTML 标签并合并空白
-  const textContent = content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
+  const textContent = content
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
   if (textContent.length <= maxLength) return textContent
   return textContent.slice(0, maxLength) + '...'
 }
@@ -388,36 +417,36 @@ export interface DocumentGroup {
 
 export function groupChunksByDocument(
   chunks: ReferenceChunk[],
-  docAggs?: DocAgg[]
+  docAggs?: DocAgg[],
 ): Map<string, DocumentGroup> {
   const groups = new Map<string, DocumentGroup>()
-  
+
   // 先按 chunks 分组
   chunks.forEach((chunk, index) => {
     const docId = chunk.document_id || 'unknown'
     const existing = groups.get(docId)
-    
+
     if (existing) {
       existing.chunks.push({ chunk, index })
     } else {
       groups.set(docId, {
         docName: chunk.document_name || '未知文档',
         docId,
-        chunks: [{ chunk, index }]
+        chunks: [{ chunk, index }],
       })
     }
   })
-  
+
   // 如果有 docAggs，更新 count 信息
   if (docAggs) {
-    docAggs.forEach(agg => {
+    docAggs.forEach((agg) => {
       const group = groups.get(agg.doc_id)
       if (group) {
         group.count = agg.count
       }
     })
   }
-  
+
   return groups
 }
 
@@ -438,19 +467,19 @@ interface ApiResponseData {
  */
 export function extractDocAggsFromResponse(data: unknown): DocAgg[] {
   if (!data || typeof data !== 'object') return []
-  
+
   const typedData = data as ApiResponseData
-  
+
   // 检查 reference.doc_aggs
   if (typedData.reference && Array.isArray(typedData.reference.doc_aggs)) {
     return typedData.reference.doc_aggs
   }
-  
+
   // 检查顶层 doc_aggs
   if (Array.isArray(typedData.doc_aggs)) {
     return typedData.doc_aggs
   }
-  
+
   return []
 }
 
@@ -471,5 +500,8 @@ export function isHtmlContent(content: string): boolean {
  */
 export function getPlainTextContent(content: string): string {
   if (!content) return ''
-  return content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
+  return content
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
 }

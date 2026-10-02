@@ -54,8 +54,10 @@ export const useChunkListState = () => {
       pageSize,
       debouncedSearchKeyword,
       availableInt,
+      kbId,
     ),
     enabled: Boolean(kbId && docId),
+    meta: { kbId, docId },
     gcTime: 0,
     queryFn: async () => {
       return knowledgeAPI.document.listChunks({
@@ -67,7 +69,10 @@ export const useChunkListState = () => {
         available_int: availableInt,
       })
     },
-    placeholderData: (previousData) => previousData,
+    placeholderData: (previousData, previousQuery) =>
+      previousQuery?.meta?.kbId === kbId && previousQuery?.meta?.docId === docId
+        ? previousData
+        : undefined,
   })
 
   const chunks = useMemo<ChunkData[]>(

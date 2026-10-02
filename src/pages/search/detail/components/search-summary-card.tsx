@@ -31,6 +31,7 @@ const toReferenceChunk = (chunk: ChunkResult): ReferenceChunk => ({
   document_name: chunk.docnm_kwd,
   dataset_id: chunk.kb_id,
   image_id: chunk.img_id,
+  doc_type: chunk.doc_type_kwd,
   positions: chunk.positions,
   similarity: chunk.similarity,
   vector_similarity: chunk.vector_similarity,

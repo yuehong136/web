@@ -297,6 +297,14 @@ export default defineConfig(({ mode }) => {
             includeDependenciesRecursively: true,
             groups: [
               {
+                name: 'document-images',
+                priority: 110,
+                test: (id: string) =>
+                  /\/src\/(api\/document-images|hooks\/use-document-image|lib\/document-image-resources|components\/knowledge\/document-image)\.tsx?$/.test(
+                    normalizeModuleId(id),
+                  ) || isPackage(id, 'react-photo-view'),
+              },
+              {
                 name: 'vendor-core',
                 priority: 100,
                 test: (id: string) =>

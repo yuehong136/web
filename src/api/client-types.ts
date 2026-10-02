@@ -69,6 +69,8 @@ export interface RequestConfig extends RequestInit {
   withEnvelope?: boolean
   /** Require actual HTTP 200 and an original integer REST code before normalization. */
   responseContract?: 'rest200'
+  /** Domain-owned binary reader; keeps timeout/caller abort alive through body consumption. */
+  readResponse?: (response: Response, signal: AbortSignal) => Promise<unknown>
 }
 
 /**

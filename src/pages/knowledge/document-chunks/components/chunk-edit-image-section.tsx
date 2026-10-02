@@ -1,11 +1,12 @@
 import { Image as ImageIcon, ZoomIn } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { ImageUploader, Tooltip } from '@/components/ui'
+import { ImageUploader } from '@/components/ui/image-uploader'
+import { Tooltip } from '@/components/ui/tooltip'
+import { DocumentImage } from '@/components/knowledge/document-image'
 import type { ChunkData } from '../types'
 
 interface ChunkEditImageSectionProps {
   selectedChunk: ChunkData
-  selectedImageUrl: string
   editingImage: File[]
   onEditingImageChange: (files: File[]) => void
   onPreviewImage: (url: string) => void
@@ -13,7 +14,6 @@ interface ChunkEditImageSectionProps {
 
 export const ChunkEditImageSection = ({
   selectedChunk,
-  selectedImageUrl,
   editingImage,
   onEditingImageChange,
   onPreviewImage,
@@ -36,13 +36,16 @@ export const ChunkEditImageSection = ({
 
       <div className="space-y-3">
         {selectedChunk.img_id && editingImage.length === 0 && (
-          <div
+          <button
+            type="button"
+            aria-label={t('knowledge.chunks.edit.viewLarge')}
             className="group relative cursor-pointer overflow-hidden rounded-lg border border-border-subtle bg-background-default"
-            onClick={() => onPreviewImage(selectedImageUrl)}
+            onClick={() => onPreviewImage(selectedChunk.img_id!)}
           >
             <div className="flex aspect-video items-center justify-center bg-background-subtle p-4">
-              <img
-                src={selectedImageUrl}
+              <DocumentImage
+                source={{ kind: 'dataset', imageId: selectedChunk.img_id }}
+                retryable={false}
                 alt={t('knowledge.chunks.edit.currentImageAlt')}
                 className="max-h-full max-w-full rounded object-contain shadow-xs"
               />
@@ -65,7 +68,7 @@ export const ChunkEditImageSection = ({
                 {t('knowledge.chunks.edit.viewLarge')}
               </span>
             </div>
-          </div>
+          </button>
         )}
 
         <ImageUploader

@@ -1,5 +1,17 @@
 export default {
   common: {
+    documentImage: {
+      loading: '正在加载图片…',
+      unavailable: '图片暂不可用。',
+      invalid: '图片数据无效。',
+      auth: '请登录后查看图片。',
+      retry: '重试图片',
+      preview: '预览图片',
+      windowBlocked: '无法打开图片窗口。',
+      rotate: '旋转图片',
+      zoomIn: '放大',
+      zoomOut: '缩小',
+    },
     // 操作按钮
     add: '添加',
     create: '创建',

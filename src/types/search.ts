@@ -90,6 +90,7 @@ export interface ChunkResult {
   highlight?: string
   positions?: number[][]
   img_id?: string
+  doc_type_kwd?: string
 }
 
 export interface DocAgg {
