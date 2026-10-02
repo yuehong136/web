@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   buildTraceDebugBundle,
   type TraceRunViewModel,
@@ -69,13 +69,12 @@ export function useTraceWorkbench(
   )
   const [selectedSpanId, setSelectedSpanId] = useState(defaultSpanId)
 
-  useEffect(() => {
-    const selectedExists = flatSpans.some((span) => span.id === selectedSpanId)
-
-    if (!selectedExists) {
-      setSelectedSpanId(defaultSpanId)
-    }
-  }, [defaultSpanId, flatSpans, selectedSpanId])
+  if (
+    selectedSpanId !== defaultSpanId &&
+    !flatSpans.some((span) => span.id === selectedSpanId)
+  ) {
+    setSelectedSpanId(defaultSpanId)
+  }
 
   const selectedSpan = flatSpans.find((span) => span.id === selectedSpanId)
 

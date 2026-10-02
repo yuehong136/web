@@ -41,25 +41,28 @@ const PdfBody: FC<{
   rawHighlights?: RawHighlight[]
 }> = ({ pdfDocument, rawHighlights }) => {
   const { t } = useTranslation()
-  const [pageSize, setPageSize] = useState<{
-    width: number
-    height: number
+  const [page, setPage] = useState<{
+    document: PdfDocument
+    size: { width: number; height: number }
   } | null>(null)
+  const pageSize = page?.document === pdfDocument ? page.size : null
   const scrollToRef = useRef<(highlight: IHighlight) => void>(() => {})
 
   useEffect(() => {
     let cancelled = false
-    setPageSize(null)
     pdfDocument
       .getPage(1)
       .then((page) => {
         if (cancelled) return
         const viewport = page.getViewport({ scale: 1 })
-        setPageSize({ width: viewport.width, height: viewport.height })
+        setPage({
+          document: pdfDocument,
+          size: { width: viewport.width, height: viewport.height },
+        })
       })
       .catch(() => {
         if (cancelled) return
-        setPageSize({ width: 849, height: 1200 })
+        setPage({ document: pdfDocument, size: { width: 849, height: 1200 } })
       })
     return () => {
       cancelled = true

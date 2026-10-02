@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useRuntimeSummary } from './use-runtime-summary'
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   useCreateAgentSession,
@@ -77,7 +78,7 @@ export function useAgentRuntimeWorkbench({
     latestTaskId,
     setLatestTaskId,
     setCurrentMessageId,
-  } = useCacheChatLog()
+  } = useCacheChatLog(canvasId)
   const [messages, setMessages] = useState<RuntimeMessage[]>([])
   const [status, setStatus] = useState<AgentRuntimeStatus>(
     AgentRuntimeStatus.IDLE,
@@ -464,10 +465,8 @@ export function useAgentRuntimeWorkbench({
   )
 
   const handleStop = useCallback(async () => {
-    const attempt = owner.current.current
-    if (!attempt || !attempt.active || attempt.stopRequested) return
-    attempt.stopRequested = true
-    attempt.active = false
+    const attempt = owner.requestStop()
+    if (!attempt) return
     setStatus(AgentRuntimeStatus.STOPPED)
     setLastError(t('agent.runtime.listeningStopped'))
     setMessages((previous) =>
@@ -523,41 +522,34 @@ export function useAgentRuntimeWorkbench({
     onViewChange(RuntimeWorkbenchView.CONVERSATION)
   }, [clearRuntimeState, onViewChange, viewingSessionId])
 
-  const summary = useMemo(
-    () =>
-      buildRuntimeSummary({
-        status,
-        currentView,
-        messageCount: messages.length,
-        hasLogs: logEvents.length > 0,
-        sessionId: sessionId || undefined,
-        sessionName,
-        lastRunAt,
-        lastMessageId: currentMessageId || undefined,
-        lastTaskId: latestTaskId || undefined,
-        lastError,
-      }),
-    [
-      currentMessageId,
-      currentView,
-      lastError,
-      lastRunAt,
-      latestTaskId,
-      logEvents.length,
-      messages.length,
-      sessionId,
-      sessionName,
+  const summary = useRuntimeSummary(
+    {
       status,
-    ],
+      currentView,
+      messageCount: messages.length,
+      hasLogs: logEvents.length > 0,
+      sessionId: sessionId || undefined,
+      sessionName,
+      lastRunAt,
+      lastMessageId: currentMessageId || undefined,
+      lastTaskId: latestTaskId || undefined,
+      lastError,
+    },
+    onSummaryChange,
   )
 
-  useEffect(() => {
-    onSummaryChange?.(summary)
-  }, [onSummaryChange, summary])
-
-  useEffect(() => {
-    clearRuntimeState()
-  }, [canvasId, clearRuntimeState])
+  const [previousCanvasId, setPreviousCanvasId] = useState(canvasId)
+  if (previousCanvasId !== canvasId) {
+    setPreviousCanvasId(canvasId)
+    setMessages([])
+    setSessionId(null)
+    setViewingSessionId(undefined)
+    setLastError(undefined)
+    setStatus(AgentRuntimeStatus.IDLE)
+  }
+  useLayoutEffect(() => {
+    messageStateRef.current = {}
+  }, [canvasId])
 
   return {
     canvasId,

@@ -5,7 +5,13 @@
  * 请求,流式读后端的结构化进度(phase=outline/sections)+ 末尾的 SkeletonSchema,回调出结果。
  * 公共 API 与旧实现一致(generate/cancel/status/progress/error),故对话框无需改动。
  */
-import { useCallback, useEffect, useRef, useState } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react'
 import type { SkeletonSchema } from '../../types'
 import { type ReportProgress, streamReport } from '../report-sse'
 
@@ -35,7 +41,9 @@ export function useGenerateSkeleton(
   const [error, setError] = useState<GenerateError | null>(null)
   const abortRef = useRef<AbortController | null>(null)
   const onResultRef = useRef(onResult)
-  onResultRef.current = onResult
+  useLayoutEffect(() => {
+    onResultRef.current = onResult
+  }, [onResult])
 
   const teardown = useCallback(() => {
     abortRef.current?.abort()

@@ -107,23 +107,23 @@ export const useProfile = () => {
     gcTime: 0,
   })
 
+  const [previousUserInfo, setPreviousUserInfo] =
+    useState<typeof userInfo>(undefined)
+  if (previousUserInfo !== userInfo) {
+    setPreviousUserInfo(userInfo)
+    if (userInfo) {
+      const nextProfile = getProfileFromResponse(userInfo)
+      setProfile(nextProfile)
+      if (mode !== ProfileMode.EDIT_PROFILE) setDraft(nextProfile)
+    }
+  }
   useEffect(() => {
-    if (!userInfo) {
-      return
-    }
-
-    const nextProfile = getProfileFromResponse(userInfo)
-    setProfile(nextProfile)
-
-    if (mode !== ProfileMode.EDIT_PROFILE) {
-      setDraft(nextProfile)
-    }
-
-    updateUser({
-      avatar: userInfo.avatar || '',
-      nickname: userInfo.nickname || '',
-    })
-  }, [mode, updateUser, userInfo])
+    if (userInfo)
+      updateUser({
+        avatar: userInfo.avatar || '',
+        nickname: userInfo.nickname || '',
+      })
+  }, [updateUser, userInfo])
 
   const saveProfileMutation = useMutation({
     mutationKey: ['saveProfile'],

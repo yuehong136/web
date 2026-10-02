@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { Think, ThoughtChain } from '@ant-design/x'
 import type { ThoughtChainItemType } from '@ant-design/x'
 import {
@@ -197,7 +197,16 @@ export function AgentThoughtChain({
     [visibleNodes],
   )
 
-  useEffect(() => {
+  const resetInputs0 = [activeKeys, visibleNodes]
+  const [previousInputs0, setPreviousInputs0] = useState<unknown[] | null>(null)
+  if (
+    previousInputs0 === null ||
+    resetInputs0.some(
+      (value, index) => !Object.is(value, previousInputs0[index]),
+    )
+  ) {
+    setPreviousInputs0(resetInputs0)
+
     setExpandedKeys((previous) => {
       const next = new Set(previous)
       activeKeys.forEach((key) => next.add(key))
@@ -206,7 +215,7 @@ export function AgentThoughtChain({
       )
       return areSameKeys(previous, nextKeys) ? previous : nextKeys
     })
-  }, [activeKeys, visibleNodes])
+  }
 
   const handleExpand = useCallback((keys: string[]) => {
     setExpandedKeys(keys)

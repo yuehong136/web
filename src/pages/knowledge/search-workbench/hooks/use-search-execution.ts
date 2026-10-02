@@ -93,7 +93,18 @@ export const useSearchExecution = ({
     currentPage,
   })
 
-  latestArgsRef.current = {
+  React.useLayoutEffect(() => {
+    latestArgsRef.current = {
+      query,
+      searchParams,
+      searchMode,
+      selectedLanguages,
+      activeMetaDataFilter,
+      pageSize,
+      selectedDocIds,
+      currentPage,
+    }
+  }, [
     query,
     searchParams,
     searchMode,
@@ -102,7 +113,7 @@ export const useSearchExecution = ({
     pageSize,
     selectedDocIds,
     currentPage,
-  }
+  ])
 
   const runSearch = React.useCallback(
     async (override?: SearchOverride) => {
@@ -239,11 +250,8 @@ export const useSearchExecution = ({
     setCurrentPage(1)
   }, [])
 
-  React.useEffect(() => {
-    if (docAggs.length > 0 && !showDocFilter && hasSearched) {
-      setShowDocFilter(true)
-    }
-  }, [docAggs.length, hasSearched, showDocFilter])
+  if (docAggs.length > 0 && !showDocFilter && hasSearched)
+    setShowDocFilter(true)
 
   const totalPages = Math.max(1, Math.ceil(totalResults / pageSize))
   const pageNumbers = React.useMemo(() => {

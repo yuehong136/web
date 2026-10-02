@@ -1,8 +1,13 @@
-import { memo, useCallback, useEffect, useState, type RefObject } from 'react'
+import { memo, useCallback, useSyncExternalStore, type RefObject } from 'react'
 import type { ForceGraphHandle } from './force-graph'
 import type { GraphStats } from '../types'
 import { GraphStatsBadge } from './graph-stats-badge'
 import { GraphToolbar } from './graph-toolbar'
+
+function subscribeFullscreen(listener: () => void) {
+  document.addEventListener('fullscreenchange', listener)
+  return () => document.removeEventListener('fullscreenchange', listener)
+}
 
 interface GraphControlsProps {
   graphRef: RefObject<ForceGraphHandle | null>
@@ -15,8 +20,6 @@ function GraphControlsComponent({
   fullscreenTargetRef,
   stats,
 }: GraphControlsProps) {
-  const [isFullscreen, setIsFullscreen] = useState(false)
-
   const handleZoomIn = useCallback(() => graphRef.current?.zoomIn(), [graphRef])
   const handleZoomOut = useCallback(
     () => graphRef.current?.zoomOut(),
@@ -32,40 +35,28 @@ function GraphControlsComponent({
     [fullscreenTargetRef],
   )
 
-  const syncFullscreenState = useCallback(() => {
-    setIsFullscreen(document.fullscreenElement === getFullscreenTarget())
+  const getFullscreenState = useCallback(() => {
+    const target = getFullscreenTarget()
+    return target !== null && document.fullscreenElement === target
   }, [getFullscreenTarget])
-
-  useEffect(() => {
-    syncFullscreenState()
-    document.addEventListener('fullscreenchange', syncFullscreenState)
-    return () => {
-      document.removeEventListener('fullscreenchange', syncFullscreenState)
-    }
-  }, [syncFullscreenState])
+  const isFullscreen = useSyncExternalStore(
+    subscribeFullscreen,
+    getFullscreenState,
+    () => false,
+  )
 
   const handleFullscreen = useCallback(() => {
     const element = getFullscreenTarget()
     if (!element || typeof element.requestFullscreen !== 'function') {
-      syncFullscreenState()
       return
     }
 
-    const syncAfterRequest = () => syncFullscreenState()
     if (!document.fullscreenElement) {
-      void element
-        .requestFullscreen()
-        .catch(() => {})
-        .finally(syncAfterRequest)
+      void element.requestFullscreen().catch(() => {})
     } else if (typeof document.exitFullscreen === 'function') {
-      void document
-        .exitFullscreen()
-        .catch(() => {})
-        .finally(syncAfterRequest)
-    } else {
-      syncFullscreenState()
+      void document.exitFullscreen().catch(() => {})
     }
-  }, [getFullscreenTarget, syncFullscreenState])
+  }, [getFullscreenTarget])
 
   return (
     <>

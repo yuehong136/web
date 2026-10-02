@@ -1,4 +1,8 @@
-import React, { useState, useEffect } from 'react'
+import {
+  mcpServerFormDefaults,
+  type MCPServerFormData as FormData,
+} from './mcp-server-form-state'
+import React, { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -38,15 +42,6 @@ interface MCPServerFormProps {
   onCancel: () => void
 }
 
-interface FormData {
-  name: string
-  server_type: string
-  url: string
-  description: string
-  variables: Record<string, any>
-  headers: Record<string, string>
-}
-
 type TabType = 'basic' | 'headers' | 'variables' | 'test'
 
 const tabs: { id: TabType; label: string; icon: React.ElementType }[] = [
@@ -74,14 +69,8 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
   const isEditing = Boolean(server)
   const [activeTab, setActiveTab] = useState<TabType>('basic')
 
-  const [formData, setFormData] = useState<FormData>({
-    name: '',
-    server_type: 'streamable-http',
-    url: '',
-    description: '',
-    variables: {},
-    headers: {},
-  })
+  const [initialForm] = useState(() => mcpServerFormDefaults(server))
+  const [formData, setFormData] = useState<FormData>(initialForm.formData)
 
   const [loading, setLoading] = useState(false)
   const [testing, setTesting] = useState(false)
@@ -91,38 +80,18 @@ export const MCPServerForm: React.FC<MCPServerFormProps> = ({
     error?: string
   } | null>(null)
 
-  const [variableEntries, setVariableEntries] = useState<
-    Array<{ key: string; value: string }>
-  >([])
-  const [headerEntries, setHeaderEntries] = useState<
-    Array<{ key: string; value: string }>
-  >([])
-
-  useEffect(() => {
-    if (server) {
-      setFormData({
-        name: server.name,
-        server_type: server.server_type,
-        url: server.url,
-        description: server.description || '',
-        variables: server.variables || {},
-        headers: server.headers || {},
-      })
-
-      setVariableEntries(
-        Object.entries(server.variables || {}).map(([key, value]) => ({
-          key,
-          value: typeof value === 'string' ? value : JSON.stringify(value),
-        })),
-      )
-      setHeaderEntries(
-        Object.entries(server.headers || {}).map(([key, value]) => ({
-          key,
-          value,
-        })),
-      )
-    }
-  }, [server])
+  const [variableEntries, setVariableEntries] = useState(
+    initialForm.variableEntries,
+  )
+  const [headerEntries, setHeaderEntries] = useState(initialForm.headerEntries)
+  const [previousServer, setPreviousServer] = useState(server)
+  if (previousServer !== server) {
+    setPreviousServer(server)
+    const next = mcpServerFormDefaults(server)
+    setFormData(next.formData)
+    setVariableEntries(next.variableEntries)
+    setHeaderEntries(next.headerEntries)
+  }
 
   const handleInputChange = (field: keyof FormData, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }))

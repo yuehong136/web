@@ -6,7 +6,7 @@ import type {
   OnConnectStart,
   ReactFlowInstance,
 } from '@xyflow/react'
-import { useCallback, useRef } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { useDropdownManager } from '../canvas/context'
 import { Operator, PREVENT_CLOSE_DELAY } from '../constant'
 import { useIsPipeline } from './use-is-pipeline'
@@ -48,6 +48,7 @@ export const useConnectionDrag = (
   // Reference for whether connection is established
   const isConnectedRef = useRef(false)
   // Reference for connection start parameters
+  const [nodeId, setNodeId] = useState<string | undefined>()
   const connectionStartRef = useRef<ConnectionStartParams | null>(null)
   // Reference to prevent immediate close
   const preventCloseRef = useRef(false)
@@ -77,12 +78,14 @@ export const useConnectionDrag = (
       params.handleType &&
       canStartConnectionDrag(params.handleType)
     ) {
+      setNodeId(params.nodeId)
       connectionStartRef.current = {
         nodeId: params.nodeId,
         handleId: params.handleId,
         handleType: params.handleType,
       }
     } else {
+      setNodeId(undefined)
       connectionStartRef.current = null
     }
   }, [])
@@ -244,7 +247,7 @@ export const useConnectionDrag = (
   }, [removePlaceholderNode, hideModal, clearActiveDropdown])
 
   return {
-    nodeId: connectionStartRef.current?.nodeId,
+    nodeId,
     onConnectStart,
     onConnectEnd,
     handleConnect,

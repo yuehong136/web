@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   useMetadataSummary,
@@ -82,7 +82,7 @@ export function useMetadataEditor(
     Array<{ key: string; match: string; value: string }>
   >([])
 
-  const fieldEditor = useFieldEditorState()
+  const fieldEditor = useFieldEditorState(open)
   const deleteConfirm = useDeleteConfirm()
 
   const { data: summaryData, isLoading } = useMetadataSummary(
@@ -95,21 +95,33 @@ export function useMetadataEditor(
   const updateKBSettingsMutation = useUpdateKBMetadataSettings()
   const updateDocSettingsMutation = useUpdateDocumentMetadataSettings()
 
-  useEffect(() => {
-    if (!open) return
-    if (isSettingMode) {
-      setTableData(settingsToTableData(initialSettings))
-    } else if (isValueManageMode && summaryData?.summary) {
-      setTableData(summaryToTableData(summaryData.summary))
+  const source = [
+    open,
+    isSettingMode,
+    isValueManageMode,
+    initialSettings,
+    summaryData,
+  ]
+  const [previousSource, setPreviousSource] = useState<unknown[] | null>(null)
+  if (
+    !previousSource ||
+    source.some((value, index) => !Object.is(value, previousSource[index]))
+  ) {
+    setPreviousSource(source)
+    if (open) {
+      if (isSettingMode) setTableData(settingsToTableData(initialSettings))
+      else if (isValueManageMode && summaryData?.summary)
+        setTableData(summaryToTableData(summaryData.summary))
     }
-  }, [open, isSettingMode, isValueManageMode, initialSettings, summaryData])
-
-  useEffect(() => {
-    if (open) return
-    setPendingDeletes([])
-    setPendingUpdates([])
-    fieldEditor.close()
-  }, [open, fieldEditor])
+  }
+  const [previousOpen, setPreviousOpen] = useState(open)
+  if (previousOpen !== open) {
+    setPreviousOpen(open)
+    if (!open) {
+      setPendingDeletes([])
+      setPendingUpdates([])
+    }
+  }
 
   const existingKeys = useMemo(
     () => tableData.map((item) => item.field),
@@ -150,7 +162,14 @@ export function useMetadataEditor(
         },
       )
     },
-    [deleteConfirm, deleteTextConfig, isValueManageMode, tableData],
+    [
+      deleteConfirm,
+      deleteTextConfig,
+      isValueManageMode,
+      tableData,
+      setPendingDeletes,
+      setTableData,
+    ],
   )
 
   const removeValue = useCallback(
@@ -175,7 +194,14 @@ export function useMetadataEditor(
         },
       )
     },
-    [deleteConfirm, deleteTextConfig, isValueManageMode, tableData],
+    [
+      deleteConfirm,
+      deleteTextConfig,
+      isValueManageMode,
+      tableData,
+      setPendingDeletes,
+      setTableData,
+    ],
   )
 
   const saveField = useCallback(
@@ -201,7 +227,7 @@ export function useMetadataEditor(
       })
       fieldEditor.close()
     },
-    [fieldEditor],
+    [fieldEditor, setTableData],
   )
 
   const save = useCallback(async () => {

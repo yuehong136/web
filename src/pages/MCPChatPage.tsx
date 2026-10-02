@@ -33,17 +33,15 @@ import type { ChatSession, MCPChatConfig } from '@/types/mcp'
 
 // Think 组件 - 处理 <think> 标签
 const _ThinkComponent = React.memo((props: ComponentProps) => {
-  const [title, setTitle] = React.useState('正在思考...')
-  const [loading, setLoading] = React.useState(true)
-  const [expand, setExpand] = React.useState(true)
-
-  React.useEffect(() => {
-    if (props.streamStatus === 'done') {
-      setTitle('思考完成')
-      setLoading(false)
-      setExpand(false)
-    }
-  }, [props.streamStatus])
+  const done = props.streamStatus === 'done'
+  const [expand, setExpand] = React.useState(!done)
+  const [previousDone, setPreviousDone] = React.useState(done)
+  if (previousDone !== done) {
+    setPreviousDone(done)
+    setExpand(!done)
+  }
+  const title = done ? '思考完成' : '正在思考...'
+  const loading = !done
 
   return (
     <Think
@@ -495,7 +493,6 @@ export default function MCPChatPage() {
     )
   }, [selectedProviderName])
 
-  // 获取用户头像
   const getUserAvatar = useCallback(
     () => (
       <div
@@ -511,9 +508,10 @@ export default function MCPChatPage() {
     [],
   )
 
+  const historyMessages = activeSession?.messages
   const historyBubbleItems = React.useMemo<BubbleListProps['items']>(() => {
-    if (!activeSession?.messages) return []
-    return activeSession.messages.map((msg) => ({
+    if (!historyMessages) return []
+    return historyMessages.map((msg) => ({
       key: msg.id,
       role: msg.role as 'user' | 'assistant',
       content: msg.content || '',
@@ -588,7 +586,7 @@ export default function MCPChatPage() {
             }
           : undefined,
     }))
-  }, [activeSession?.messages, getUserAvatar, getAssistantAvatar])
+  }, [historyMessages, getUserAvatar, getAssistantAvatar])
 
   // 转换消息数据为 Bubble.List 需要的格式
   const bubbleItems = React.useMemo<BubbleListProps['items']>(() => {
@@ -708,19 +706,14 @@ export default function MCPChatPage() {
     }
   }, [])
 
-  // 自动选择第一个可用的聊天模型
-  useEffect(() => {
-    if (!modelsLoading && myLLMs && Object.keys(myLLMs).length > 0) {
-      if (hasEnabledModelName(myLLMs, selectedModelId)) {
-        return
-      }
-
-      const firstEnabledChatModel = findFirstEnabledModelByType(myLLMs, 'chat')
-      if (firstEnabledChatModel) {
-        setSelectedModelId(firstEnabledChatModel)
-      }
-    }
-  }, [selectedModelId, modelsLoading, myLLMs])
+  if (
+    !modelsLoading &&
+    myLLMs &&
+    !hasEnabledModelName(myLLMs, selectedModelId)
+  ) {
+    const firstModel = findFirstEnabledModelByType(myLLMs, 'chat')
+    if (firstModel) setSelectedModelId(firstModel)
+  }
 
   // eslint-disable-next-line react-hooks/exhaustive-deps -- 调用方只在 onClick 时触发，不需要引用稳定
   const handleNewChat = () => {

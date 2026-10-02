@@ -1,8 +1,8 @@
-'use client'
+import { useConsumedSearchFlag } from '@/hooks/use-consumed-search-flag'
 
 import React from 'react'
 import { useTranslation } from 'react-i18next'
-import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Save } from 'lucide-react'
@@ -109,7 +109,6 @@ const KnowledgeSettingsPage: React.FC = () => {
   const { t } = useTranslation()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const [searchParams, setSearchParams] = useSearchParams()
   const { knowledgeBase: currentKnowledgeBase } = useFetchKnowledgeDetail(id)
   const { updateKnowledge } = useUpdateKnowledge()
   const { addNotification } = useUIStore()
@@ -125,17 +124,12 @@ const KnowledgeSettingsPage: React.FC = () => {
   ])
 
   // Metadata 设置模态框状态
-  const [metadataModalOpen, setMetadataModalOpen] = React.useState(false)
+  const [metadataModalOpen, setMetadataModalOpen] = useConsumedSearchFlag(
+    'openMetadata',
+    'true',
+  )
 
   // 检查 URL 参数，自动打开元数据设置弹窗
-  React.useEffect(() => {
-    if (searchParams.get('openMetadata') === 'true') {
-      setMetadataModalOpen(true)
-      // 清除 URL 参数
-      searchParams.delete('openMetadata')
-      setSearchParams(searchParams, { replace: true })
-    }
-  }, [searchParams, setSearchParams])
 
   // 初始化表单
   const form = useForm({

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
@@ -143,13 +143,14 @@ export const SearchDetailPage: React.FC = () => {
   }, [])
 
   const canExport = canExportSearchSession(turns)
+  const exportAppName = searchApp?.name || basicInfo.name
   const handleExport = useCallback(() => {
     if (!canExport) return
 
     const now = new Date()
     try {
       downloadSearchSessionMarkdown({
-        appName: searchApp?.name || basicInfo.name,
+        appName: exportAppName,
         turns,
         now,
         copy: {
@@ -178,9 +179,11 @@ export const SearchDetailPage: React.FC = () => {
     } catch {
       toast.error(t('searchPage.export.failed', '导出失败，请重试'))
     }
-  }, [basicInfo.name, canExport, searchApp?.name, t, turns])
+  }, [exportAppName, canExport, t, turns])
 
-  useEffect(() => {
+  const [previousTurns, setPreviousTurns] = useState<typeof turns | null>(null)
+  if (previousTurns !== turns) {
+    setPreviousTurns(turns)
     setExpandedByTurnId((prev) => {
       if (!turns.length) return {}
 
@@ -203,7 +206,7 @@ export const SearchDetailPage: React.FC = () => {
       })
       return next
     })
-  }, [turns])
+  }
 
   const handleToggleTurnExpand = useCallback((turnId: string) => {
     setExpandedByTurnId((prev) => ({ ...prev, [turnId]: !prev[turnId] }))
@@ -260,10 +263,7 @@ export const SearchDetailPage: React.FC = () => {
     })
   }, [canOpenMindmap, mindmapOpen, setSettingsOpen])
 
-  useEffect(() => {
-    if (canOpenMindmap) return
-    setMindmapOpen(false)
-  }, [canOpenMindmap])
+  if (!canOpenMindmap && mindmapOpen) setMindmapOpen(false)
 
   if (isLoading) {
     return (

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Plus } from 'lucide-react'
@@ -150,15 +150,9 @@ export const SearchListPage: React.FC = () => {
     [totalCount, pageSize],
   )
 
-  useEffect(() => {
-    if (totalPages === 0 && currentPage !== 1) {
-      setCurrentPage(1)
-      return
-    }
-    if (totalPages > 0 && currentPage > totalPages) {
-      setCurrentPage(totalPages)
-    }
-  }, [currentPage, totalPages])
+  if (totalPages === 0 && currentPage !== 1) setCurrentPage(1)
+  else if (totalPages > 0 && currentPage > totalPages)
+    setCurrentPage(totalPages)
 
   const handleKeywordChange = useCallback((value: string) => {
     setKeyword(value)

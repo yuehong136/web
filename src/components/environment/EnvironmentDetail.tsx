@@ -1,5 +1,9 @@
+import {
+  environmentFormDefaults,
+  type EnvironmentFormData,
+} from './environment-form-state'
 // src/components/environment/EnvironmentDetail.tsx
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { TestTube, Copy, Plus } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
@@ -39,13 +43,6 @@ interface EnvironmentDetailProps {
   onDataChange: (isDirty: boolean) => void
   onSaveRequest?: () => Promise<void>
   onEnvironmentCreated?: (environmentId: string) => void
-}
-
-interface EnvironmentFormData {
-  name: string
-  description: string
-  base_url: string
-  is_default: boolean
 }
 
 export function EnvironmentDetail({
@@ -113,11 +110,15 @@ export function EnvironmentDetail({
   >([])
 
   // 重置创建模式变量列表和对话框状态
-  useEffect(() => {
-    console.log('🔄 环境切换或模式变化，重置对话框状态', {
-      environmentId,
-      isCreateMode,
-    })
+  const resetInputs0 = [environmentId]
+  const [previousInputs0, setPreviousInputs0] = useState<unknown[] | null>(null)
+  if (
+    previousInputs0 === null ||
+    resetInputs0.some(
+      (value, index) => !Object.is(value, previousInputs0[index]),
+    )
+  ) {
+    setPreviousInputs0(resetInputs0)
 
     if (isCreateMode) {
       setCreateModeVariables([])
@@ -127,35 +128,31 @@ export function EnvironmentDetail({
     setIsAddVariableDialogOpen(false)
     setIsPreviewDialogOpen(false)
     setResolveResult(null)
-
-    console.log('✅ 所有对话框状态已重置')
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- 只依赖 environmentId，避免切换时循环触发
-  }, [environmentId])
+  }
 
   // 当环境数据变化时更新表单
-  useEffect(() => {
+  const resetInputs1 = [currentEnvironment, environmentId, isCreateMode]
+  const [previousInputs1, setPreviousInputs1] = useState<unknown[] | null>(null)
+  if (
+    previousInputs1 === null ||
+    resetInputs1.some(
+      (value, index) => !Object.is(value, previousInputs1[index]),
+    )
+  ) {
+    setPreviousInputs1(resetInputs1)
+
     if (isCreateMode) {
       // 创建模式：初始化空表单
-      const emptyData = {
-        name: '',
-        description: '',
-        base_url: '',
-        is_default: false,
-      }
+      const emptyData = environmentFormDefaults()
       setFormData(emptyData)
       setOriginalData(emptyData)
     } else if (currentEnvironment && environmentId !== 'global') {
       // 编辑模式：加载环境数据
-      const newData = {
-        name: currentEnvironment.name || '',
-        description: currentEnvironment.description || '',
-        base_url: currentEnvironment.base_url || '',
-        is_default: currentEnvironment.is_default || false,
-      }
+      const newData = environmentFormDefaults(currentEnvironment)
       setFormData(newData)
       setOriginalData(newData)
     }
-  }, [currentEnvironment, environmentId, isCreateMode])
+  }
 
   // 检查数据是否有变化
   const checkDirty = (newFormData: EnvironmentFormData) => {

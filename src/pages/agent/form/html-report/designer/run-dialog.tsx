@@ -71,14 +71,15 @@ export function RunDialog({
 
   // 模型清单到达后默认选节点配置的模型(选项 value 是裸模型名,故拆掉 provider 后缀
   // 再匹配);未配置或匹配不到再回落首个。
-  useEffect(() => {
-    if (model || options.length === 0) return
-    const preferred = parseLLMValue(llmId).modelName
-    const matched = preferred
-      ? options.find((option) => option.value === preferred)
-      : undefined
-    setModel(matched?.value ?? options[0].value)
-  }, [options, model, llmId])
+  {
+    if (!model && options.length > 0) {
+      const preferred = parseLLMValue(llmId).modelName
+      const matched = preferred
+        ? options.find((option) => option.value === preferred)
+        : undefined
+      setModel(matched?.value ?? options[0].value)
+    }
+  }
 
   // 关闭时复位(取消在途流、回到表单态)
   useEffect(() => {

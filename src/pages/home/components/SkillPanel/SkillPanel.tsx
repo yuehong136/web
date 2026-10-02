@@ -2,9 +2,8 @@ import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { mcpAPI } from '@/api/mcp'
+import { useFetchMCPServers } from '@/hooks/use-mcp-request'
 import { useDialogApps } from '@/hooks/use-dialog-apps'
-import { toast } from '@/lib/toast'
 import { SkillList } from './SkillList'
 import { AppList } from './AppList'
 import type { MCPServer } from '@/types/mcp'
@@ -36,8 +35,12 @@ export const SkillPanel: React.FC<SkillPanelProps> = ({
 }) => {
   const { t } = useTranslation()
   const [activeTab, setActiveTab] = useState<'skill' | 'app'>('skill')
-  const [servers, setServers] = useState<MCPServer[]>([])
-  const [skillLoading, setSkillLoading] = useState(false)
+  const { data: serverData, isFetching: skillLoading } = useFetchMCPServers({
+    page_size: 100,
+    errorMessage: t('home.skillPanel.loadFailed', '加载技能列表失败'),
+    enabled: open && activeTab === 'skill',
+  })
+  const servers = useMemo(() => serverData?.mcp_servers ?? [], [serverData])
   const [searchTerm, setSearchTerm] = useState('')
   const panelRef = useRef<HTMLDivElement>(null)
 
@@ -45,26 +48,6 @@ export const SkillPanel: React.FC<SkillPanelProps> = ({
   const { data: dialogApps = [], isLoading: appsLoading } = useDialogApps({
     enabled: open,
   })
-
-  const loadServers = React.useCallback(async () => {
-    try {
-      setSkillLoading(true)
-      const response = await mcpAPI.listServers({}, { page: 1, page_size: 100 })
-      setServers(response.mcp_servers || [])
-    } catch (error) {
-      toast.error(t('home.skillPanel.loadFailed', '加载技能列表失败'))
-      console.error('Load MCP servers error:', error)
-    } finally {
-      setSkillLoading(false)
-    }
-  }, [t])
-
-  // 加载 MCP 服务器列表
-  useEffect(() => {
-    if (open && activeTab === 'skill') {
-      loadServers()
-    }
-  }, [open, activeTab, loadServers])
 
   // 点击外部关闭
   useEffect(() => {
@@ -86,11 +69,6 @@ export const SkillPanel: React.FC<SkillPanelProps> = ({
       document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [open, onClose, anchorRef])
-
-  // 切换标签时清空搜索
-  useEffect(() => {
-    setSearchTerm('')
-  }, [activeTab])
 
   // 过滤后的技能列表
   const filteredServers = useMemo(() => {
@@ -149,7 +127,10 @@ export const SkillPanel: React.FC<SkillPanelProps> = ({
       {/* 标签切换 */}
       <div className="flex border-b border-border-default">
         <button
-          onClick={() => setActiveTab('skill')}
+          onClick={() => {
+            setActiveTab('skill')
+            setSearchTerm('')
+          }}
           className={cn(
             'flex-1 py-2.5 text-sm font-medium transition-colors',
             activeTab === 'skill'
@@ -160,7 +141,10 @@ export const SkillPanel: React.FC<SkillPanelProps> = ({
           {t('home.skillPanel.skills', '技能')}
         </button>
         <button
-          onClick={() => setActiveTab('app')}
+          onClick={() => {
+            setActiveTab('app')
+            setSearchTerm('')
+          }}
           className={cn(
             'flex-1 py-2.5 text-sm font-medium transition-colors',
             activeTab === 'app'

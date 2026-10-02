@@ -1,14 +1,10 @@
+import { useConsumedSearchFlag } from '@/hooks/use-consumed-search-flag'
 import React from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { AlertTriangle, Eye, EyeOff, Mail, X } from 'lucide-react'
 import { Controller, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import {
-  Link,
-  useLocation,
-  useNavigate,
-  useSearchParams,
-} from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -22,11 +18,13 @@ export const LoginForm: React.FC = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const location = useLocation()
-  const [searchParams, setSearchParams] = useSearchParams()
   const login = useAuthStore((state) => state.login)
   const isLoading = useAuthStore((state) => state.isLoading)
   const [showPassword, setShowPassword] = React.useState(false)
-  const [showExpiredAlert, setShowExpiredAlert] = React.useState(false)
+  const [showExpiredAlert, setShowExpiredAlert] = useConsumedSearchFlag(
+    'expired',
+    'true',
+  )
   const isRegistrationEnabled =
     import.meta.env.VITE_ENABLE_REGISTRATION === 'true'
 
@@ -53,15 +51,10 @@ export const LoginForm: React.FC = () => {
   })
 
   React.useEffect(() => {
-    if (searchParams.get('expired') !== 'true') return
-
-    setShowExpiredAlert(true)
-    const nextParams = new URLSearchParams(searchParams)
-    nextParams.delete('expired')
-    setSearchParams(nextParams, { replace: true })
+    if (!showExpiredAlert) return
     const timer = window.setTimeout(() => setShowExpiredAlert(false), 8000)
     return () => window.clearTimeout(timer)
-  }, [searchParams, setSearchParams])
+  }, [showExpiredAlert, setShowExpiredAlert])
 
   const onSubmit = async (data: LoginFormData) => {
     try {

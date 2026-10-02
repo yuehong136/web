@@ -1,3 +1,4 @@
+import { useShareStartup } from './use-share-startup'
 import {
   useCallback,
   useEffect,
@@ -39,7 +40,6 @@ import {
 } from './widget-shell'
 import { isEmptyShareValue, runnerStatusFromState } from './widget-utils'
 import {
-  buildInitialShareValues,
   buildShareInputsPayload,
   formatShareInputSummary,
   getShareInputEntries,
@@ -76,13 +76,9 @@ export default function AgentWidgetPage() {
 }
 
 function useIsStandaloneWidgetPreview() {
-  const [isStandalone, setIsStandalone] = useState(
+  const [isStandalone] = useState(
     () => typeof window !== 'undefined' && window.self === window.top,
   )
-
-  useEffect(() => {
-    setIsStandalone(window.self === window.top)
-  }, [])
 
   return isStandalone
 }
@@ -138,17 +134,11 @@ function WidgetChatWindow({
   )
   const { uploadCanvasFile, isLoading: uploading } = useUploadPublicCanvasFile()
   const attachmentInputRef = useRef<HTMLInputElement | null>(null)
-  const [formValues, setFormValues] = useState<ShareFormValues>({})
+
   const [messageValue, setMessageValue] = useState('')
   const [messageFiles, setMessageFiles] = useState<AgentCanvasUploadResult[]>(
     [],
   )
-  const [formError, setFormError] = useState<string>()
-  const [parameterDialogOpen, setParameterDialogOpen] = useState(false)
-  const [beginReady, setBeginReady] = useState(false)
-  const [pendingMessage, setPendingMessage] = useState<string | null>(null)
-  const [promptedBeginInputs, setPromptedBeginInputs] = useState(false)
-  const [taskStarted, setTaskStarted] = useState(false)
 
   const inputEntries = useMemo(
     () => getShareInputEntries(shareQuery.data.inputs),
@@ -165,6 +155,29 @@ function WidgetChatWindow({
       buildShareInputsPayload(shareQuery.data.inputs || {}, values),
   })
   const status = runnerStatusFromState(runner.isRunning, runner.lastError)
+  const {
+    formValues,
+    setFormValues,
+    formError,
+    setFormError,
+    parameterDialogOpen,
+    setParameterDialogOpen,
+    beginReady,
+    setBeginReady,
+    pendingMessage,
+    setPendingMessage,
+    markAutomaticTaskStarted,
+  } = useShareStartup({
+    access,
+    inputs: shareQuery.data.inputs,
+    inputCount: inputEntries.length,
+    title: shareQuery.data.title,
+    isTaskMode,
+    isWebhookMode,
+    runner,
+    startTaskMessage: t('agent.share.startTask', '启动任务'),
+  })
+
   const handleScrollPassthrough = useCallback(
     (event: WheelEvent<HTMLDivElement>) => {
       const element = event.currentTarget
@@ -199,55 +212,6 @@ function WidgetChatWindow({
     applyRouteLocale(access.locale)
   }, [access.locale])
 
-  useEffect(() => {
-    setFormValues(buildInitialShareValues(shareQuery.data.inputs, access.data))
-  }, [access.data, shareQuery.data.inputs])
-
-  useEffect(() => {
-    setBeginReady(inputEntries.length === 0)
-    setPromptedBeginInputs(false)
-    setTaskStarted(false)
-    setPendingMessage(null)
-    setFormError(undefined)
-  }, [access.agentId, inputEntries.length, isTaskMode, isWebhookMode])
-
-  useEffect(() => {
-    if (
-      !shareQuery.data.title ||
-      isWebhookMode ||
-      promptedBeginInputs ||
-      runner.isRunning
-    ) {
-      return
-    }
-
-    if (inputEntries.length > 0) {
-      setParameterDialogOpen(true)
-      setPromptedBeginInputs(true)
-      return
-    }
-
-    if (isTaskMode && !taskStarted) {
-      setTaskStarted(true)
-      void runner.submit({
-        query: '',
-        values: formValues,
-        files: [],
-        userMessage: t('agent.share.startTask', '启动任务'),
-      })
-    }
-  }, [
-    formValues,
-    inputEntries.length,
-    isTaskMode,
-    isWebhookMode,
-    promptedBeginInputs,
-    runner,
-    shareQuery.data.title,
-    taskStarted,
-    t,
-  ])
-
   const validateInputs = useCallback(() => {
     const missing = inputEntries.find(({ key, field }) => {
       return isRequiredShareInput(field) && isEmptyShareValue(formValues[key])
@@ -263,7 +227,7 @@ function WidgetChatWindow({
     }
 
     return true
-  }, [formValues, inputEntries, t])
+  }, [formValues, inputEntries, setFormError, t])
 
   const submitConversation = useCallback(
     async (content: string) => {
@@ -321,6 +285,8 @@ function WidgetChatWindow({
       inputEntries.length,
       messageValue,
       runner.isRunning,
+      setParameterDialogOpen,
+      setPendingMessage,
       submitConversation,
       uploading,
     ],
@@ -335,7 +301,7 @@ function WidgetChatWindow({
     setBeginReady(true)
 
     if (isTaskMode) {
-      setTaskStarted(true)
+      markAutomaticTaskStarted()
       await runner.submit({
         query: '',
         values: formValues,
@@ -355,8 +321,12 @@ function WidgetChatWindow({
   }, [
     formValues,
     isTaskMode,
+    markAutomaticTaskStarted,
     pendingMessage,
     runner,
+    setBeginReady,
+    setParameterDialogOpen,
+    setPendingMessage,
     submitConversation,
     t,
     validateInputs,
@@ -401,7 +371,7 @@ function WidgetChatWindow({
         title={t('agent.share.agentWidget', 'Agent Widget')}
         variant={shellVariant}
       >
-        <div className="p-space-lg text-status-error text-sm">
+        <div className="p-space-lg text-sm text-status-error">
           {t(
             'agent.share.widgetMissingAccess',
             '缺少 shared_id 或 auth，无法加载浮窗。',
@@ -427,7 +397,7 @@ function WidgetChatWindow({
             {t('agent.share.loadingTitle', '正在准备公共运行页')}
           </div>
         ) : shareQuery.isError ? (
-          <div className="p-space-lg text-status-error text-sm">
+          <div className="p-space-lg text-sm text-status-error">
             {t(
               'agent.share.widgetLoadFailed',
               '分享信息加载失败，请检查 shared_id 与 auth。',

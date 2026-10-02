@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import {
@@ -44,14 +44,10 @@ export function useDocumentListState(): DocumentListState {
     const metadataValues =
       (filterValue.metadata as Record<string, string[]>) || {}
 
-    let returnEmptyMetadata = false
-    const runValues = rawRunValues.filter((value) => {
-      if (value === EMPTY_METADATA_FIELD) {
-        returnEmptyMetadata = true
-        return false
-      }
-      return true
-    })
+    const returnEmptyMetadata = rawRunValues.includes(EMPTY_METADATA_FIELD)
+    const runValues = rawRunValues.filter(
+      (value) => value !== EMPTY_METADATA_FIELD,
+    )
 
     return {
       suffix: typeValues.length > 0 ? typeValues : undefined,
@@ -81,14 +77,13 @@ export function useDocumentListState(): DocumentListState {
   } = useFetchDocumentFilter(kbId)
   const filterCollections = useFilterCollections(filterOptions)
 
-  useEffect(() => {
-    if (!filterOptions) return
-
-    setFilterValue((prev) => {
-      const next = sanitizeFilterValueByCollections(prev, filterCollections)
-      return isSameFilterValue(prev, next) ? prev : next
-    })
-  }, [filterOptions, filterCollections])
+  if (filterOptions) {
+    const next = sanitizeFilterValueByCollections(
+      filterValue,
+      filterCollections,
+    )
+    if (!isSameFilterValue(filterValue, next)) setFilterValue(next)
+  }
 
   const filterCount = useMemo(() => {
     return typeof filterValue === 'object' && filterValue !== null

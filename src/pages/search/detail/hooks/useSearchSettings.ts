@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { useUpdateSearch } from '@/hooks/use-search-request'
 import { useUIStore } from '@/stores/ui'
@@ -70,21 +70,31 @@ export const useSearchSettings = (searchApp: SearchApp | null) => {
     avatar: '',
   })
 
-  useEffect(() => {
-    if (!searchApp) return
-    const rawSearchConfig = (searchApp.search_config ||
-      {}) as Partial<SearchConfig>
-    const mergedConfig = normalizeModelConfig(rawSearchConfig)
-    setConfig(mergedConfig)
-    setSavedConfig(mergedConfig)
-    const nextBasicInfo = {
-      name: searchApp.name || '',
-      description: searchApp.description || '',
-      avatar: searchApp.avatar || '',
+  const resetInputs0 = [searchApp]
+  const [previousInputs0, setPreviousInputs0] = useState<unknown[] | null>(null)
+  if (
+    previousInputs0 === null ||
+    resetInputs0.some(
+      (value, index) => !Object.is(value, previousInputs0[index]),
+    )
+  ) {
+    setPreviousInputs0(resetInputs0)
+
+    if (searchApp) {
+      const rawSearchConfig = (searchApp.search_config ||
+        {}) as Partial<SearchConfig>
+      const mergedConfig = normalizeModelConfig(rawSearchConfig)
+      setConfig(mergedConfig)
+      setSavedConfig(mergedConfig)
+      const nextBasicInfo = {
+        name: searchApp.name || '',
+        description: searchApp.description || '',
+        avatar: searchApp.avatar || '',
+      }
+      setBasicInfo(nextBasicInfo)
+      setSavedBasicInfo(nextBasicInfo)
     }
-    setBasicInfo(nextBasicInfo)
-    setSavedBasicInfo(nextBasicInfo)
-  }, [searchApp])
+  }
 
   const isDirty = useMemo(
     () =>

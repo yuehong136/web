@@ -1,3 +1,4 @@
+import { useChatAbortController } from '@/hooks/use-chat-abort-controller'
 import {
   useCallback,
   useEffect,
@@ -240,16 +241,7 @@ export const ExplorePage: FC = () => {
   const [enableInternet, setEnableInternet] = useState(false)
 
   // 流式输出控制器（用于停止输出）
-  const abortControllerRef = useRef<AbortController | null>(null)
-
-  // 用于存储最新的 handleSendMessage 引用，解决 useCallback 闭包陈旧问题
-  const handleSendMessageRef = useRef<
-    (
-      message: string,
-      baseMessages?: ChatMessageItem[],
-      overrideFiles?: UploadedFileInfo[],
-    ) => Promise<void>
-  >(null!)
+  const { createController, abort: abortChat } = useChatAbortController()
 
   // 全局拖拽事件处理
   useEffect(() => {
@@ -330,14 +322,17 @@ export const ExplorePage: FC = () => {
   // 获取重排序模型列表（LLMModel[] 格式）
   const rerankModels = useRerankModels(myLLMs)
 
-  // 当 dialog 设置加载完成后，同步到本地状态
-  // 使用 selectedApp 和 dialogSettings 作为依赖，确保切换应用时能正确更新
-  useEffect(() => {
-    if (selectedApp) {
-      // 当应用变化时，使用从服务器获取的设置更新本地状态
-      setChatSettings(dialogSettings)
-    }
-  }, [selectedApp, dialogSettings])
+  const [previousSettings, setPreviousSettings] = useState({
+    app: selectedApp,
+    settings: dialogSettings,
+  })
+  if (
+    previousSettings.app !== selectedApp ||
+    previousSettings.settings !== dialogSettings
+  ) {
+    setPreviousSettings({ app: selectedApp, settings: dialogSettings })
+    if (selectedApp) setChatSettings(dialogSettings)
+  }
 
   // 获取选中应用的对话列表
   const {
@@ -386,27 +381,14 @@ export const ExplorePage: FC = () => {
     }))
   }, [retryUploadFile, t, uploadFiles])
 
-  // 自动选择第一个可用的聊天模型
-  useEffect(() => {
-    if (!modelsLoading && myLLMs && Object.keys(myLLMs).length > 0) {
-      if (hasEnabledModelName(myLLMs, selectedModel)) {
-        return
-      }
-
-      const firstEnabledChatModel = findFirstEnabledModelByType(myLLMs, 'chat')
-      if (firstEnabledChatModel) {
-        setSelectedModel(firstEnabledChatModel)
-      }
-    }
-  }, [selectedModel, modelsLoading, myLLMs])
-
-  // 自动选择第一个应用
-  useEffect(() => {
-    if (!selectedApp && dialogApps.length > 0 && !dialogAppsLoading) {
-      const activeApp = dialogApps.find((app) => app.status === '1')
-      if (activeApp) setSelectedApp(activeApp.id)
-    }
-  }, [selectedApp, dialogApps, dialogAppsLoading])
+  if (!modelsLoading && myLLMs && !hasEnabledModelName(myLLMs, selectedModel)) {
+    const firstModel = findFirstEnabledModelByType(myLLMs, 'chat')
+    if (firstModel) setSelectedModel(firstModel)
+  }
+  if (!selectedApp && !dialogAppsLoading) {
+    const activeApp = dialogApps.find((app) => app.status === '1')
+    if (activeApp) setSelectedApp(activeApp.id)
+  }
 
   // 获取对话详情
   const fetchConversationDetail = async (conversationId: string) => {
@@ -437,15 +419,316 @@ export const ExplorePage: FC = () => {
 
   // 停止输出
   const handleStopOutput = useCallback(() => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort()
-      abortControllerRef.current = null
-    }
+    abortChat()
     setIsStreaming(false)
-  }, [])
+  }, [abortChat])
 
   // 重新生成消息（参考 ragflow 的 useRegenerateMessage 实现）
   // 当点击助手消息的重新生成按钮时，找到对应的用户消息并重新发送
+  // 发送消息（支持附件与失败恢复）
+  // baseMessages 参数用于重新生成场景，传入截断后的消息列表
+  const handleSendMessage = useCallback(
+    async (
+      message: string,
+      baseMessages?: ChatMessageItem[],
+      overrideFiles?: UploadedFileInfo[],
+    ) => {
+      if (isStreaming) return
+
+      const pendingFiles = overrideFiles ?? uploadedAttachments
+      const normalizedMessage = message.trim()
+      const messageContent =
+        normalizedMessage ||
+        (pendingFiles.length > 0 ? t('explore.attachmentOnlyPrompt') : '')
+      const conversationSeed =
+        normalizedMessage || pendingFiles[0]?.name || messageContent
+
+      if (!messageContent) return
+
+      const userMessage: ChatMessageItem = {
+        role: 'user',
+        content: messageContent,
+        id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        files: pendingFiles,
+      }
+
+      const previousMessages = baseMessages ?? messages
+      const updatedMessages = [...previousMessages, userMessage]
+      setMessages(updatedMessages)
+      setInputValue('')
+      if (!overrideFiles?.length) {
+        clearUploadFiles()
+      }
+      setIsStreaming(true)
+
+      // 解析会话 ID：如果没有会话但有选中的应用，自动创建新会话
+      // 参考首页 sendAppMessage 的实现方式
+      let conversationId = selectedConversationDetail?.id
+      const existingUserMessages = previousMessages.filter(
+        (m) => m.role === 'user',
+      )
+      const isFirstUserMessage = existingUserMessages.length === 0
+
+      if (!conversationId && selectedApp) {
+        // 自动创建新会话，使用消息内容作为名称（参考 RAGFlow 命名逻辑）
+        const conversationName =
+          conversationSeed.slice(0, 50) +
+          (conversationSeed.length > 50 ? '...' : '')
+        try {
+          const newConversation = await conversationAPI.setConversation({
+            dialog_id: selectedApp,
+            name: conversationName,
+            is_new: true,
+          })
+          if (newConversation?.id) {
+            conversationId = newConversation.id
+            setActiveConversationKey(newConversation.id)
+            setSelectedConversationDetail({
+              id: newConversation.id,
+              name: conversationName,
+            })
+            refetchConversations()
+          }
+        } catch (error) {
+          console.error('Failed to auto-create conversation:', error)
+        }
+      } else if (isFirstUserMessage && activeConversationKey && selectedApp) {
+        // 对于已存在的会话，如果是第一条用户消息，用消息内容更新会话名称
+        const conversationName =
+          conversationSeed.slice(0, 50) +
+          (conversationSeed.length > 50 ? '...' : '')
+        try {
+          await conversationAPI.setConversation({
+            dialog_id: selectedApp,
+            conversation_id: activeConversationKey,
+            name: conversationName,
+            is_new: false,
+          })
+          setSelectedConversationDetail((prev) =>
+            prev ? { ...prev, name: conversationName } : prev,
+          )
+          refetchConversations()
+        } catch (error) {
+          console.error('Failed to update conversation name:', error)
+        }
+      }
+
+      // 创建新的 AbortController 用于停止输出（局部捕获：handleStopOutput 会把
+      // ref 置 null，catch 必须用这个局部引用判断 aborted，不能依赖 ref）
+      const abortController = createController()
+      let hasReceivedContent = false
+
+      try {
+        // 准备 AI 消息
+        const aiMessage: ChatMessageItem = {
+          role: 'assistant',
+          content: '',
+          id: `msg-${Date.now()}-ai-${Math.random().toString(36).substr(2, 9)}`,
+          references: [],
+          thinking: '',
+          thinkingComplete: false,
+        }
+
+        setMessages((prev) => [...prev, aiMessage])
+
+        // 根据模式选择 API：有会话 ID 时使用 completion，否则回退到 chat_service_sse
+        if (conversationId) {
+          const completionMessages = updatedMessages.map((msg) => ({
+            role: msg.role,
+            content: msg.content,
+            id: msg.id,
+            ...(msg.files?.length ? { files: msg.files } : {}),
+          }))
+
+          // 会话模式 - 使用 completion API（支持话题模式和工作区自动创建的会话）
+          const completionParams: Parameters<
+            typeof conversationAPI.completion
+          >[0] = {
+            conversation_id: conversationId,
+            messages: completionMessages,
+            quote: chatSettings.quote,
+            // 功能开关参数（参考 ragflow）
+            reasoning: enableReasoning,
+            internet: enableInternet,
+          }
+
+          // 如果启用了元数据过滤且有条件，添加到请求中
+          if (
+            chatSettings.metadataFilterMode === 'manual' &&
+            chatSettings.metadataCondition.conditions &&
+            chatSettings.metadataCondition.conditions.length > 0
+          ) {
+            completionParams.metadata_condition = chatSettings.metadataCondition
+          }
+
+          const response = await conversationAPI.completion(completionParams, {
+            signal: abortController.signal,
+          })
+
+          await assertSSEResponse(response)
+
+          let streamState = createInitialStreamingAnswerState()
+
+          await readSSEStream<SSEEnvelope>(response, {
+            signal: abortController.signal,
+            onEvent: (data) => {
+              const chunk = consumeStreamingAnswerChunk(streamState, data)
+              streamState = chunk.nextState
+              if (chunk.isDone) return
+
+              const chunkData =
+                chunk.payload && typeof chunk.payload === 'object'
+                  ? (chunk.payload as Record<string, unknown>)
+                  : null
+              hasReceivedContent = true
+              // 只有当 SSE 返回了 references 数据时才更新，避免空数组覆盖之前的有效数据
+              const newReferences = chunkData
+                ? extractReferencesFromSSEData(chunkData)
+                : []
+              const cleanContent = streamState.content
+              const thinking = streamState.thinking
+
+              setMessages((prev) => {
+                const newMsgs = [...prev]
+                const lastIdx = newMsgs.length - 1
+                if (lastIdx >= 0 && newMsgs[lastIdx].role === 'assistant') {
+                  // 只有当新的 references 有数据时才更新，否则保留之前的
+                  const existingReferences = newMsgs[lastIdx].references || []
+                  const references =
+                    newReferences.length > 0
+                      ? newReferences
+                      : existingReferences
+
+                  newMsgs[lastIdx] = {
+                    ...newMsgs[lastIdx],
+                    content: cleanContent,
+                    references,
+                    thinking,
+                  }
+                }
+                return newMsgs
+              })
+            },
+          })
+        } else {
+          // 回退：无应用或创建会话失败时，使用 chat_service_sse 直接聊天
+          const historyMessages: ChatMessage[] = updatedMessages.map((msg) => ({
+            role: msg.role,
+            content: msg.content,
+          }))
+
+          const requestBody: ChatServiceRequest = {
+            prompt: '',
+            messages: historyMessages,
+            llm_name: selectedModel || 'gpt-4o-mini',
+            stream: true,
+            gen_conf: {},
+            tavily_api_key: '',
+          }
+
+          const baseURL =
+            import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+          const fullUrl = `${baseURL}/v1${chatConfig.apiEndpoint}`
+          const token = localStorage.getItem('auth_token')
+
+          const response = await fetch(fullUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              ...(token && { Authorization: `Bearer ${token}` }),
+            },
+            body: JSON.stringify(requestBody),
+            signal: abortController.signal,
+          })
+
+          await assertSSEResponse(response)
+
+          let streamState = createInitialStreamingAnswerState()
+
+          await readSSEStream<SSEEnvelope>(response, {
+            signal: abortController.signal,
+            onEvent: (data) => {
+              const chunk = consumeStreamingAnswerChunk(streamState, data)
+              streamState = chunk.nextState
+              if (chunk.isDone) return
+
+              setMessages((prev) => {
+                const newMsgs = [...prev]
+                const lastIdx = newMsgs.length - 1
+                if (lastIdx >= 0 && newMsgs[lastIdx].role === 'assistant') {
+                  hasReceivedContent = true
+                  newMsgs[lastIdx] = {
+                    ...newMsgs[lastIdx],
+                    content: streamState.content,
+                    thinking: streamState.thinking,
+                  }
+                }
+                return newMsgs
+              })
+            },
+          })
+        }
+      } catch (error) {
+        // 用户主动停止（fetch 发起阶段 abort 会抛 AbortError）：不报错、不回滚，
+        // 保留已收内容，finally 仍复位 isStreaming
+        if (abortController.signal.aborted) return
+        console.error('Failed to send message:', error)
+        if (!hasReceivedContent) {
+          setMessages(previousMessages)
+          setInputValue(messageContent)
+          if (pendingFiles.length > 0 && !overrideFiles?.length) {
+            setUploadFiles(
+              pendingFiles.map((file, index) => ({
+                uid: `${file.id}-${index}`,
+                name: file.name,
+                size: file.size,
+                type: file.mime_type,
+                status: 'done' as const,
+                percent: 100,
+                response: file,
+                thumbUrl: file.preview_url ?? undefined,
+              })),
+            )
+            setHeaderOpen(true)
+          }
+        } else {
+          setMessages((prev) => {
+            const newMsgs = [...prev]
+            const lastIdx = newMsgs.length - 1
+            if (lastIdx >= 0 && newMsgs[lastIdx].role === 'assistant') {
+              newMsgs[lastIdx] = {
+                ...newMsgs[lastIdx],
+                content: t('explore.toast.assistantError'),
+              }
+            }
+            return newMsgs
+          })
+        }
+      } finally {
+        setIsStreaming(false)
+      }
+    },
+    [
+      activeConversationKey,
+      chatSettings.metadataCondition,
+      chatSettings.metadataFilterMode,
+      chatSettings.quote,
+      clearUploadFiles,
+      createController,
+      enableInternet,
+      enableReasoning,
+      isStreaming,
+      messages,
+      refetchConversations,
+      selectedApp,
+      selectedConversationDetail?.id,
+      selectedModel,
+      setUploadFiles,
+      t,
+      uploadedAttachments,
+    ],
+  )
+
   const handleRegenerateMessage = useCallback(
     (assistantMessageIndex: number) => {
       if (isStreaming) return
@@ -465,299 +748,10 @@ export const ExplorePage: FC = () => {
       // 先立即更新 UI，移除当前用户消息和助手消息
       setMessages(baseMessages)
 
-      // 使用 queueMicrotask 确保 state 更新后再发送新消息
-      // 通过 ref 调用最新的 handleSendMessage，避免闭包陈旧问题
-      queueMicrotask(() => {
-        handleSendMessageRef.current?.(userContent, baseMessages, userFiles)
-      })
+      void handleSendMessage(userContent, baseMessages, userFiles)
     },
-    [isStreaming, messages, t],
+    [handleSendMessage, isStreaming, messages, t],
   )
-
-  // 发送消息（支持附件与失败恢复）
-  // baseMessages 参数用于重新生成场景，传入截断后的消息列表
-  const handleSendMessage = async (
-    message: string,
-    baseMessages?: ChatMessageItem[],
-    overrideFiles?: UploadedFileInfo[],
-  ) => {
-    if (isStreaming) return
-
-    const pendingFiles = overrideFiles ?? uploadedAttachments
-    const normalizedMessage = message.trim()
-    const messageContent =
-      normalizedMessage ||
-      (pendingFiles.length > 0 ? t('explore.attachmentOnlyPrompt') : '')
-    const conversationSeed =
-      normalizedMessage || pendingFiles[0]?.name || messageContent
-
-    if (!messageContent) return
-
-    const userMessage: ChatMessageItem = {
-      role: 'user',
-      content: messageContent,
-      id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      files: pendingFiles,
-    }
-
-    const previousMessages = baseMessages ?? messages
-    const updatedMessages = [...previousMessages, userMessage]
-    setMessages(updatedMessages)
-    setInputValue('')
-    if (!overrideFiles?.length) {
-      clearUploadFiles()
-    }
-    setIsStreaming(true)
-
-    // 解析会话 ID：如果没有会话但有选中的应用，自动创建新会话
-    // 参考首页 sendAppMessage 的实现方式
-    let conversationId = selectedConversationDetail?.id
-    const existingUserMessages = previousMessages.filter(
-      (m) => m.role === 'user',
-    )
-    const isFirstUserMessage = existingUserMessages.length === 0
-
-    if (!conversationId && selectedApp) {
-      // 自动创建新会话，使用消息内容作为名称（参考 RAGFlow 命名逻辑）
-      const conversationName =
-        conversationSeed.slice(0, 50) +
-        (conversationSeed.length > 50 ? '...' : '')
-      try {
-        const newConversation = await conversationAPI.setConversation({
-          dialog_id: selectedApp,
-          name: conversationName,
-          is_new: true,
-        })
-        if (newConversation?.id) {
-          conversationId = newConversation.id
-          setActiveConversationKey(newConversation.id)
-          setSelectedConversationDetail({
-            id: newConversation.id,
-            name: conversationName,
-          })
-          refetchConversations()
-        }
-      } catch (error) {
-        console.error('Failed to auto-create conversation:', error)
-      }
-    } else if (isFirstUserMessage && activeConversationKey && selectedApp) {
-      // 对于已存在的会话，如果是第一条用户消息，用消息内容更新会话名称
-      const conversationName =
-        conversationSeed.slice(0, 50) +
-        (conversationSeed.length > 50 ? '...' : '')
-      try {
-        await conversationAPI.setConversation({
-          dialog_id: selectedApp,
-          conversation_id: activeConversationKey,
-          name: conversationName,
-          is_new: false,
-        })
-        setSelectedConversationDetail((prev) =>
-          prev ? { ...prev, name: conversationName } : prev,
-        )
-        refetchConversations()
-      } catch (error) {
-        console.error('Failed to update conversation name:', error)
-      }
-    }
-
-    // 创建新的 AbortController 用于停止输出（局部捕获：handleStopOutput 会把
-    // ref 置 null，catch 必须用这个局部引用判断 aborted，不能依赖 ref）
-    const abortController = new AbortController()
-    abortControllerRef.current = abortController
-    let hasReceivedContent = false
-
-    try {
-      // 准备 AI 消息
-      const aiMessage: ChatMessageItem = {
-        role: 'assistant',
-        content: '',
-        id: `msg-${Date.now()}-ai-${Math.random().toString(36).substr(2, 9)}`,
-        references: [],
-        thinking: '',
-        thinkingComplete: false,
-      }
-
-      setMessages((prev) => [...prev, aiMessage])
-
-      // 根据模式选择 API：有会话 ID 时使用 completion，否则回退到 chat_service_sse
-      if (conversationId) {
-        const completionMessages = updatedMessages.map((msg) => ({
-          role: msg.role,
-          content: msg.content,
-          id: msg.id,
-          ...(msg.files?.length ? { files: msg.files } : {}),
-        }))
-
-        // 会话模式 - 使用 completion API（支持话题模式和工作区自动创建的会话）
-        const completionParams: Parameters<
-          typeof conversationAPI.completion
-        >[0] = {
-          conversation_id: conversationId,
-          messages: completionMessages,
-          quote: chatSettings.quote,
-          // 功能开关参数（参考 ragflow）
-          reasoning: enableReasoning,
-          internet: enableInternet,
-        }
-
-        // 如果启用了元数据过滤且有条件，添加到请求中
-        if (
-          chatSettings.metadataFilterMode === 'manual' &&
-          chatSettings.metadataCondition.conditions &&
-          chatSettings.metadataCondition.conditions.length > 0
-        ) {
-          completionParams.metadata_condition = chatSettings.metadataCondition
-        }
-
-        const response = await conversationAPI.completion(completionParams, {
-          signal: abortController.signal,
-        })
-
-        await assertSSEResponse(response)
-
-        let streamState = createInitialStreamingAnswerState()
-
-        await readSSEStream<SSEEnvelope>(response, {
-          signal: abortController.signal,
-          onEvent: (data) => {
-            const chunk = consumeStreamingAnswerChunk(streamState, data)
-            streamState = chunk.nextState
-            if (chunk.isDone) return
-
-            const chunkData =
-              chunk.payload && typeof chunk.payload === 'object'
-                ? (chunk.payload as Record<string, unknown>)
-                : null
-            hasReceivedContent = true
-            // 只有当 SSE 返回了 references 数据时才更新，避免空数组覆盖之前的有效数据
-            const newReferences = chunkData
-              ? extractReferencesFromSSEData(chunkData)
-              : []
-            const cleanContent = streamState.content
-            const thinking = streamState.thinking
-
-            setMessages((prev) => {
-              const newMsgs = [...prev]
-              const lastIdx = newMsgs.length - 1
-              if (lastIdx >= 0 && newMsgs[lastIdx].role === 'assistant') {
-                // 只有当新的 references 有数据时才更新，否则保留之前的
-                const existingReferences = newMsgs[lastIdx].references || []
-                const references =
-                  newReferences.length > 0 ? newReferences : existingReferences
-
-                newMsgs[lastIdx] = {
-                  ...newMsgs[lastIdx],
-                  content: cleanContent,
-                  references,
-                  thinking,
-                }
-              }
-              return newMsgs
-            })
-          },
-        })
-      } else {
-        // 回退：无应用或创建会话失败时，使用 chat_service_sse 直接聊天
-        const historyMessages: ChatMessage[] = updatedMessages.map((msg) => ({
-          role: msg.role,
-          content: msg.content,
-        }))
-
-        const requestBody: ChatServiceRequest = {
-          prompt: '',
-          messages: historyMessages,
-          llm_name: selectedModel || 'gpt-4o-mini',
-          stream: true,
-          gen_conf: {},
-          tavily_api_key: '',
-        }
-
-        const baseURL =
-          import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
-        const fullUrl = `${baseURL}/v1${chatConfig.apiEndpoint}`
-        const token = localStorage.getItem('auth_token')
-
-        const response = await fetch(fullUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(token && { Authorization: `Bearer ${token}` }),
-          },
-          body: JSON.stringify(requestBody),
-          signal: abortController.signal,
-        })
-
-        await assertSSEResponse(response)
-
-        let streamState = createInitialStreamingAnswerState()
-
-        await readSSEStream<SSEEnvelope>(response, {
-          signal: abortController.signal,
-          onEvent: (data) => {
-            const chunk = consumeStreamingAnswerChunk(streamState, data)
-            streamState = chunk.nextState
-            if (chunk.isDone) return
-
-            setMessages((prev) => {
-              const newMsgs = [...prev]
-              const lastIdx = newMsgs.length - 1
-              if (lastIdx >= 0 && newMsgs[lastIdx].role === 'assistant') {
-                hasReceivedContent = true
-                newMsgs[lastIdx] = {
-                  ...newMsgs[lastIdx],
-                  content: streamState.content,
-                  thinking: streamState.thinking,
-                }
-              }
-              return newMsgs
-            })
-          },
-        })
-      }
-    } catch (error) {
-      // 用户主动停止（fetch 发起阶段 abort 会抛 AbortError）：不报错、不回滚，
-      // 保留已收内容，finally 仍复位 isStreaming
-      if (abortController.signal.aborted) return
-      console.error('Failed to send message:', error)
-      if (!hasReceivedContent) {
-        setMessages(previousMessages)
-        setInputValue(messageContent)
-        if (pendingFiles.length > 0 && !overrideFiles?.length) {
-          setUploadFiles(
-            pendingFiles.map((file, index) => ({
-              uid: `${file.id}-${index}`,
-              name: file.name,
-              size: file.size,
-              type: file.mime_type,
-              status: 'done' as const,
-              percent: 100,
-              response: file,
-              thumbUrl: file.preview_url ?? undefined,
-            })),
-          )
-          setHeaderOpen(true)
-        }
-      } else {
-        setMessages((prev) => {
-          const newMsgs = [...prev]
-          const lastIdx = newMsgs.length - 1
-          if (lastIdx >= 0 && newMsgs[lastIdx].role === 'assistant') {
-            newMsgs[lastIdx] = {
-              ...newMsgs[lastIdx],
-              content: t('explore.toast.assistantError'),
-            }
-          }
-          return newMsgs
-        })
-      }
-    } finally {
-      setIsStreaming(false)
-    }
-  }
-
-  // 保持 ref 指向最新的 handleSendMessage
-  handleSendMessageRef.current = handleSendMessage
 
   // 新建对话
   const handleCreateConversation = async () => {

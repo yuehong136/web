@@ -1,5 +1,5 @@
 import type { FC } from 'react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { CheckIcon, ChevronDownIcon, XCircleIcon, XIcon } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
@@ -194,12 +194,21 @@ export const KnowledgeBaseSelector: FC<KnowledgeBaseSelectorProps> = ({
     [onLoadMore],
   )
 
-  useEffect(() => {
+  const resetInputs0 = [open]
+  const [previousInputs0, setPreviousInputs0] = useState<unknown[] | null>(null)
+  if (
+    previousInputs0 === null ||
+    resetInputs0.some(
+      (value, index) => !Object.is(value, previousInputs0[index]),
+    )
+  ) {
+    setPreviousInputs0(resetInputs0)
+
     if (open) {
       setSearchValue('')
       setSearchResults([])
     }
-  }, [open])
+  }
 
   const handleSelect = useCallback(
     (kb: KnowledgeBase) => {

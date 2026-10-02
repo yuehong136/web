@@ -4,7 +4,7 @@
  * 支持递归嵌套的筛选字段，参照 ragflow 的 filter-field.tsx 和 filter-popover.tsx
  */
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react'
+import React, { useState, useMemo, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ChevronDown, ChevronUp, Funnel } from 'lucide-react'
 import { Button } from '@/components/ui'
@@ -244,9 +244,18 @@ export const FilterPopover: React.FC<FilterPopoverProps> = ({
   const [searchTerms, setSearchTerms] = useState<Record<string, string>>({})
 
   // 同步外部 value 变化
-  useEffect(() => {
+  const resetInputs0 = [value]
+  const [previousInputs0, setPreviousInputs0] = useState<unknown[] | null>(null)
+  if (
+    previousInputs0 === null ||
+    resetInputs0.some(
+      (value, index) => !Object.is(value, previousInputs0[index]),
+    )
+  ) {
+    setPreviousInputs0(resetInputs0)
+
     setLocalValue(value)
-  }, [value])
+  }
 
   const handleOpenChange = (newOpen: boolean) => {
     onOpenChange?.(newOpen)

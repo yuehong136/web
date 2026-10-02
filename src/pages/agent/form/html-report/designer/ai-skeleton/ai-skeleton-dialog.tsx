@@ -50,9 +50,9 @@ export function AiSkeletonDialog({
   const busy = status === 'outline' || status === 'sections'
 
   // 模型清单到达后默认选首个
-  useEffect(() => {
+  {
     if (!model && options.length > 0) setModel(options[0].value)
-  }, [options, model])
+  }
 
   // 失败时 toast(内联文案同时保留)
   useEffect(() => {

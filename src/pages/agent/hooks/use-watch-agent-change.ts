@@ -24,12 +24,14 @@ export const useWatchAgentChange = () => {
     setTime(formatDate(updateTime))
   }, [])
 
-  // 初始化时设置时间
-  useEffect(() => {
-    if (flowDetail?.update_time) {
-      setSaveTime(flowDetail.update_time)
-    }
-  }, [flowDetail, setSaveTime])
+  const updateTime = flowDetail?.update_time
+  const [previousUpdateTime, setPreviousUpdateTime] = useState(updateTime)
+  if (previousUpdateTime !== updateTime) {
+    setPreviousUpdateTime(updateTime)
+    setTime(updateTime ? formatDate(updateTime) : undefined)
+  }
+  const displayedTime =
+    time ?? (updateTime ? formatDate(updateTime) : undefined)
 
   // 监听节点和边的变化，防抖保存
   useEffect(() => {
@@ -58,5 +60,5 @@ export const useWatchAgentChange = () => {
     return () => clearTimeout(timer)
   }, [nodes, edges, id, flowDetail, saveGraph, setSaveTime])
 
-  return time
+  return displayedTime
 }

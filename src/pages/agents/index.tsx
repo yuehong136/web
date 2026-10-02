@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useConsumedSearchFlag } from '@/hooks/use-consumed-search-flag'
+import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ListPageTemplate } from '@/components/page-templates'
 import {
@@ -74,7 +75,6 @@ const DEFAULT_PAGE_SIZE = 12
 export default function AgentsPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const [searchParams, setSearchParams] = useSearchParams()
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
   const [keyword, setKeyword] = useState('')
@@ -82,7 +82,7 @@ export default function AgentsPage() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [timeFormat, setTimeFormat] = useState<AgentTimeFormat>('detailed')
   const [sortDesc, setSortDesc] = useState(true)
-  const [createOpen, setCreateOpen] = useState(false)
+  const [createOpen, setCreateOpen] = useConsumedSearchFlag('create', '1')
   const [importOpen, setImportOpen] = useState(false)
   const [flowToDelete, setFlowToDelete] = useState<AgentFlow | null>(null)
   const [flowToRename, setFlowToRename] = useState<AgentFlow | null>(null)
@@ -96,15 +96,6 @@ export default function AgentsPage() {
   const setAgent = useSetAgent()
   const renameAgent = useRenameAgent()
   const deleteAgent = useDeleteAgent()
-
-  useEffect(() => {
-    if (searchParams.get('create') === '1') {
-      setCreateOpen(true)
-      const nextSearchParams = new URLSearchParams(searchParams)
-      nextSearchParams.delete('create')
-      setSearchParams(nextSearchParams, { replace: true })
-    }
-  }, [searchParams, setSearchParams])
 
   const stats = useMemo(() => {
     const agents = listQuery.agents || []

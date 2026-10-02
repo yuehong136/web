@@ -1,4 +1,10 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { useDebouncedValue } from '@/hooks/useDebouncedValue'
+import {
+  convertToAPIEndpoints,
+  loadApiSpecification,
+} from '@/pages/settings/api-documentation-data'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import './api-keys-page.css'
 import {
@@ -50,7 +56,6 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
-import { Progress } from '@/components/ui/progress'
 import {
   Dialog,
   DialogContent,
@@ -80,23 +85,15 @@ import { useCopyFeedback } from '@/hooks/use-copy-feedback'
 import { apiKeysCapabilities } from '@/pages/settings/api-keys-capabilities'
 
 import { systemAPI } from '@/api/system'
-import type { OpenAPISpec, APITokenCreateRequest } from '@/types/api'
+import type { APITokenCreateRequest } from '@/types/api'
 import {
   isRecord,
-  isHttpMethod,
   type APIEndpoint,
   type ApiKey,
   type BodyType,
   type FormDataRow,
   type HeaderRow,
-  type OpenAPIParameter,
-  type OpenAPIPathItem,
-  type OpenAPIRequestBody,
-  type OpenAPIResponseObject,
-  type Parameter,
   type ParamRow,
-  type RequestBody,
-  type Response,
   type Schema,
   type TestResponse,
   type UrlEncodedRow,
@@ -246,14 +243,37 @@ const ApiDocumentationPage: React.FC = () => {
   const [selectedAPI, setSelectedAPI] = useState<APIEndpoint | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
 
-  const [apiSpec, setApiSpec] = useState<OpenAPISpec | null>(null)
-  const [apiEndpoints, setApiEndpoints] = useState<APIEndpoint[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [loadingSource, setLoadingSource] = useState<
-    'static' | 'dynamic' | null
+  const [dynamicSource, setDynamicSource] = useState(false)
+  const specQuery = useQuery({
+    queryKey: ['apiDocumentation', 'spec', dynamicSource],
+    queryFn: ({ signal }) => loadApiSpecification(dynamicSource, signal),
+    staleTime: 60_000,
+  })
+  const apiSpec = specQuery.data?.spec ?? null
+  const apiEndpoints = useMemo(
+    () => (apiSpec ? convertToAPIEndpoints(apiSpec) : []),
+    [apiSpec],
+  )
+  const isLoading = specQuery.isFetching
+  const loadingSource =
+    specQuery.data?.source ?? (dynamicSource ? 'dynamic' : 'static')
+  const loadingError =
+    specQuery.error?.message ?? specQuery.data?.warning ?? null
+  const loadAPIData = async (dynamic = false) => {
+    if (dynamic !== dynamicSource) setDynamicSource(dynamic)
+    else await specQuery.refetch()
+  }
+  const [previousEndpoints, setPreviousEndpoints] = useState<
+    APIEndpoint[] | null
   >(null)
-  const [loadingProgress, setLoadingProgress] = useState(0)
-  const [loadingError, setLoadingError] = useState<string | null>(null)
+  if (previousEndpoints !== apiEndpoints) {
+    setPreviousEndpoints(apiEndpoints)
+    setSelectedAPI(
+      apiEndpoints.find((endpoint) => endpoint.id === selectedAPI?.id) ??
+        apiEndpoints[0] ??
+        null,
+    )
+  }
 
   // 分组收起状态 - 默认只展开第一个分组
   const [collapsedGroups, setCollapsedGroups] = useState<
@@ -312,7 +332,6 @@ const ApiDocumentationPage: React.FC = () => {
 
   // API测试相关状态
   const [testResponse] = useState<TestResponse | null>(null)
-  const [formattedResponse, setFormattedResponse] = useState<string>('')
   const { copiedStates, copyWithFeedback: handleCopy } = useCopyFeedback()
 
   // Apifox风格的测试状态
@@ -384,14 +403,7 @@ const ApiDocumentationPage: React.FC = () => {
     }
   }, [])
 
-  // 更新格式化响应数据
-  useEffect(() => {
-    if (testResponse) {
-      setFormattedResponse(formatResponseData(testResponse))
-    } else {
-      setFormattedResponse('')
-    }
-  }, [testResponse, formatResponseData])
+  const formattedResponse = formatResponseData(testResponse)
 
   // 自动清除格式化提示
   useEffect(() => {
@@ -406,7 +418,10 @@ const ApiDocumentationPage: React.FC = () => {
 
   // 根据schema生成示例数据
   const generateExampleFromSchema = useCallback(
-    (schema: Schema | undefined, fieldName?: string): unknown => {
+    function generateExampleFromSchema(
+      schema: Schema | undefined,
+      fieldName?: string,
+    ): unknown {
       if (!schema) return null
 
       // 如果schema有直接的example，优先使用
@@ -871,11 +886,8 @@ const ApiDocumentationPage: React.FC = () => {
 
   // API Key 管理状态
   const [apiKeyManagementOpen, setApiKeyManagementOpen] = useState(false)
-  const [apiKeys, setApiKeys] = useState<ApiKey[]>([])
-  const [apiKeyLoading, setApiKeyLoading] = useState(false)
   const [apiKeyPage, setApiKeyPage] = useState(1)
   const [apiKeyPageSize, setApiKeyPageSize] = useState(10)
-  const [apiKeyTotal, setApiKeyTotal] = useState(0)
   const [apiKeySearchQuery, setApiKeySearchQuery] = useState('')
   const [createApiKeyModalOpen, setCreateApiKeyModalOpen] = useState(false)
   const [createApiKeyLoading, setCreateApiKeyLoading] = useState(false)
@@ -915,7 +927,7 @@ const ApiDocumentationPage: React.FC = () => {
   )
 
   const getSchemaType = useCallback(
-    (schema: Schema | undefined): string => {
+    function getSchemaType(schema: Schema | undefined): string {
       const s = resolveSchemaRef(schema)
       if (!s) return 'unknown'
       if (s.type === 'array') {
@@ -930,51 +942,46 @@ const ApiDocumentationPage: React.FC = () => {
     [resolveSchemaRef],
   )
 
-  // 数据加载
-  useEffect(() => {
-    loadAPIData(false) // 默认加载静态数据
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- 首次挂载加载一次静态 API 数据
-  }, [])
-
-  // 当选中API变化时，初始化测试数据
-  useEffect(() => {
-    if (selectedAPI) {
-      initializeTestData(selectedAPI)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- initializeTestData 在组件内，仅随 selectedAPI 变化触发
-  }, [selectedAPI])
-
-  // 当 API Key 管理弹窗打开时加载数据
-  useEffect(() => {
-    if (apiKeyManagementOpen) {
-      loadApiKeys()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- 只在弹窗开关切换时触发一次加载
-  }, [apiKeyManagementOpen])
-
-  // 当分页、搜索参数变化时重新加载
-  useEffect(() => {
-    if (apiKeyManagementOpen) {
-      loadApiKeys()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- 仅在分页变化时触发，loadApiKeys 另有入口
-  }, [apiKeyPage, apiKeyPageSize])
-
-  // 搜索关键词变化时重新加载（带防抖）
-  useEffect(() => {
-    if (!apiKeyManagementOpen) return
-
-    const timeoutId = setTimeout(() => {
-      setApiKeyPage(1) // 搜索时重置到第一页
-      loadApiKeys()
-    }, 300)
-
-    return () => clearTimeout(timeoutId)
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- 搜索防抖仅在 searchQuery 变化时触发，apiKeyManagementOpen/loadApiKeys 另有 effect 管理
-  }, [apiKeySearchQuery])
+  const tokenQuery = useQuery({
+    queryKey: ['apiDocumentation', 'tokens'],
+    queryFn: () => systemAPI.getTokenList(),
+    enabled: apiKeyManagementOpen,
+    gcTime: 0,
+  })
+  const apiKeyLoading = tokenQuery.isFetching
+  const loadApiKeys = () => tokenQuery.refetch()
+  const debouncedKeySearch = useDebouncedValue(apiKeySearchQuery, 300)
+  const [previousKeySearch, setPreviousKeySearch] = useState(debouncedKeySearch)
+  if (previousKeySearch !== debouncedKeySearch) {
+    setPreviousKeySearch(debouncedKeySearch)
+    setApiKeyPage(1)
+  }
+  const filteredKeys = (tokenQuery.data ?? []).filter(
+    (key) =>
+      !debouncedKeySearch ||
+      key.name.toLowerCase().includes(debouncedKeySearch.toLowerCase()) ||
+      key.description
+        ?.toLowerCase()
+        .includes(debouncedKeySearch.toLowerCase()) ||
+      key.tenant_id.includes(debouncedKeySearch),
+  )
+  const apiKeyTotal = filteredKeys.length
+  const apiKeys = filteredKeys.slice(
+    (apiKeyPage - 1) * apiKeyPageSize,
+    apiKeyPage * apiKeyPageSize,
+  )
+  const [previousAPI, setPreviousAPI] = useState(selectedAPI)
+  if (previousAPI !== selectedAPI) {
+    setPreviousAPI(selectedAPI)
+    if (selectedAPI) initializeTestData(selectedAPI)
+  }
 
   // 初始化分组收起状态
-  useEffect(() => {
+  const [previousGroups, setPreviousGroups] = useState<APIEndpoint[] | null>(
+    null,
+  )
+  if (previousGroups !== apiEndpoints) {
+    setPreviousGroups(apiEndpoints)
     if (apiEndpoints.length > 0) {
       const allTags = Array.from(
         new Set(
@@ -987,9 +994,9 @@ const ApiDocumentationPage: React.FC = () => {
       })
       setCollapsedGroups(defaultCollapsed)
     }
-  }, [apiEndpoints])
+  }
 
-  const initializeTestData = (api: APIEndpoint) => {
+  function initializeTestData(api: APIEndpoint) {
     // 初始化参数表格
     const params: ParamRow[] =
       api.parameters?.map((param, index) => ({
@@ -1091,161 +1098,10 @@ const ApiDocumentationPage: React.FC = () => {
   }
 
   // 将OpenAPI规范转换为内部API端点格式
-  const convertToAPIEndpoints = useCallback(
-    (spec: OpenAPISpec): APIEndpoint[] => {
-      const endpoints: APIEndpoint[] = []
-
-      for (const [path, pathItem] of Object.entries(
-        spec.paths as Record<string, OpenAPIPathItem>,
-      )) {
-        for (const [method, operation] of Object.entries(pathItem)) {
-          if (!isHttpMethod(method) || !operation) continue
-
-          const op = operation
-
-          const endpoint: APIEndpoint = {
-            id: op.operationId || `${method}-${path}`.replace(/[^\w-]/g, '-'),
-            operationId: op.operationId,
-            summary: op.summary || `${method.toUpperCase()} ${path}`,
-            description: op.description,
-            method: method.toUpperCase() as APIEndpoint['method'],
-            path,
-            tags: op.tags,
-            parameters: convertParameters(op.parameters || []),
-            requestBody: convertRequestBody(op.requestBody),
-            responses: convertResponses(op.responses || {}),
-            security: op.security,
-            deprecated: op.deprecated,
-          }
-
-          endpoints.push(endpoint)
-        }
-      }
-
-      return endpoints
-    },
-    [],
-  )
-
-  const convertParameters = (params: OpenAPIParameter[]): Parameter[] => {
-    return params.map((param) => ({
-      name: param.name,
-      in: param.in,
-      schema: param.schema,
-      type: param.schema?.type || param.type,
-      required: param.required || false,
-      description: param.description || '',
-      example: param.example || param.schema?.example,
-    }))
-  }
-
-  const convertRequestBody = (
-    requestBody: OpenAPIRequestBody | undefined,
-  ): RequestBody | undefined => {
-    if (!requestBody) return undefined
-
-    return {
-      description: requestBody.description,
-      required: requestBody.required,
-      content: requestBody.content || {},
-    }
-  }
-
-  const convertResponses = (
-    responses: Record<string, OpenAPIResponseObject>,
-  ): Response[] => {
-    return Object.entries(responses).map(([status, response]) => ({
-      status: parseInt(status),
-      description: response.description || '',
-      content: response.content,
-      headers: response.headers,
-    }))
-  }
 
   // 加载静态OpenAPI数据
-  const loadStaticAPIData = async (): Promise<OpenAPISpec> => {
-    const response = await fetch('/openapi.json')
-    if (!response.ok) {
-      throw new Error(`Failed to load static spec: ${response.status}`)
-    }
-    return response.json()
-  }
 
   // 加载过滤的OpenAPI数据
-  const loadFilteredAPIData = async (): Promise<OpenAPISpec> => {
-    const filterRule = {
-      paths: ['/api/v1/*'],
-      match: 'glob' as const,
-      include_tags: ['chat', 'session', 'dataset', 'doc', 'files', 'agent'],
-      exclude_paths: [],
-      exclude_tags: [],
-      strict: true,
-      prune_examples: true,
-      oas_version_target: 'keep' as const,
-    }
-
-    return await systemAPI.filterOpenAPI(filterRule)
-  }
-
-  const loadAPIData = async (useFiltered: boolean = false) => {
-    setIsLoading(true)
-    setLoadingProgress(0)
-    setLoadingError(null)
-
-    try {
-      // 模拟加载进度
-      const progressInterval = setInterval(() => {
-        setLoadingProgress((prev) => Math.min(prev + 10, 90))
-      }, 200)
-
-      let spec: OpenAPISpec
-
-      if (useFiltered) {
-        setLoadingSource('dynamic')
-        try {
-          spec = await loadFilteredAPIData()
-        } catch (error) {
-          console.warn(
-            'Failed to load filtered data, falling back to static:',
-            error,
-          )
-          setLoadingError('后端接口加载失败，已切换到静态文件')
-          setLoadingSource('static')
-          spec = await loadStaticAPIData()
-        }
-      } else {
-        setLoadingSource('static')
-        spec = await loadStaticAPIData()
-      }
-
-      const endpoints = convertToAPIEndpoints(spec)
-
-      setApiSpec(spec)
-      setApiEndpoints(endpoints)
-
-      // Initialize selected API if none selected
-      if (endpoints.length > 0 && !selectedAPI) {
-        setSelectedAPI(endpoints[0])
-      }
-
-      clearInterval(progressInterval)
-      setLoadingProgress(100)
-
-      setTimeout(() => {
-        setIsLoading(false)
-        // 清除错误提示
-        if (loadingError) {
-          setTimeout(() => setLoadingError(null), 3000)
-        }
-      }, 300)
-    } catch (error) {
-      console.error('Failed to load API data:', error)
-      setLoadingError(
-        error instanceof Error ? error.message : '加载API数据失败',
-      )
-      setIsLoading(false)
-    }
-  }
 
   // 筛选API
   const filteredEndpoints = apiEndpoints.filter((endpoint) => {
@@ -1276,40 +1132,6 @@ const ApiDocumentationPage: React.FC = () => {
   )
 
   // API Key 相关函数
-  const loadApiKeys = async () => {
-    setApiKeyLoading(true)
-    try {
-      // 调用真实API获取Token列表
-      const apiKeys = await systemAPI.getTokenList()
-
-      // 应用搜索筛选
-      const filteredKeys = apiKeys.filter(
-        (key) =>
-          !apiKeySearchQuery ||
-          key.name.toLowerCase().includes(apiKeySearchQuery.toLowerCase()) ||
-          (key.description &&
-            key.description
-              .toLowerCase()
-              .includes(apiKeySearchQuery.toLowerCase())) ||
-          key.tenant_id.includes(apiKeySearchQuery),
-      )
-
-      // 应用分页
-      const startIndex = (apiKeyPage - 1) * apiKeyPageSize
-      const endIndex = startIndex + apiKeyPageSize
-      const paginatedKeys = filteredKeys.slice(startIndex, endIndex)
-
-      setApiKeys(paginatedKeys)
-      setApiKeyTotal(filteredKeys.length)
-    } catch (error) {
-      console.error('Failed to load API keys:', error)
-      // 如果API调用失败，可以显示空列表或错误信息
-      setApiKeys([])
-      setApiKeyTotal(0)
-    } finally {
-      setApiKeyLoading(false)
-    }
-  }
 
   const maskToken = (token: string) => {
     if (token.length <= 8) return token
@@ -1547,10 +1369,10 @@ const ApiDocumentationPage: React.FC = () => {
               从{loadingSource === 'static' ? '静态文件' : '动态接口'}
               获取API规范...
             </p>
-            <Progress value={loadingProgress} className="h-2" />
-            <p className="mt-2 text-xs text-text-tertiary">
-              {loadingProgress}%
-            </p>
+            <RefreshCw
+              className="mx-auto h-5 w-5 animate-spin text-text-accent"
+              aria-hidden
+            />
           </div>
         </Card>
       </div>
@@ -3727,9 +3549,6 @@ const ApiDocumentationPage: React.FC = () => {
                                           variant="outline"
                                           size="sm"
                                           onClick={() => {
-                                            const newFormatted =
-                                              formatResponseData(testResponse)
-                                            setFormattedResponse(newFormatted)
                                             setFormatMessage({
                                               type: 'success',
                                               text: '响应数据已重新格式化',

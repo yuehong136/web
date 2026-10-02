@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -32,8 +32,9 @@ import {
   Sparkles,
   Loader2,
 } from 'lucide-react'
-import type { MCPServer, MCPTool } from '@/types/mcp'
+import type { MCPTool } from '@/types/mcp'
 import { mcpAPI } from '@/api/mcp'
+import { useFetchMCPServers, useFetchMCPTools } from '@/hooks/use-mcp-request'
 import { toast } from '@/lib/toast'
 
 interface MCPToolsPageProps {
@@ -53,10 +54,41 @@ interface TestResult {
 }
 
 export const MCPToolsPage: React.FC<MCPToolsPageProps> = ({ serverId }) => {
-  const [servers, setServers] = useState<MCPServer[]>([])
-  const [tools, setTools] = useState<Record<string, MCPTool[]>>({})
-  const [flatTools, setFlatTools] = useState<ToolWithServer[]>([])
-  const [loading, setLoading] = useState(false)
+  const {
+    data: serverData,
+    isFetching: loadingServers,
+    refetch: refreshServers,
+  } = useFetchMCPServers({ page_size: 100 })
+  const servers = useMemo(() => serverData?.mcp_servers ?? [], [serverData])
+  const serverIds = useMemo(
+    () => (serverId ? [serverId] : servers.map((server) => server.id)),
+    [serverId, servers],
+  )
+  const {
+    data: toolsData,
+    isFetching: loadingTools,
+    refetch: refreshTools,
+    error: toolsError,
+  } = useFetchMCPTools(serverIds, servers.length > 0, 30000)
+  useEffect(() => {
+    if (toolsError) toast.error('加载工具列表失败: ' + toolsError.message)
+  }, [toolsError])
+  const tools = toolsData ?? {}
+  const loading = loadingServers || loadingTools
+  const flatTools = useMemo<ToolWithServer[]>(
+    () =>
+      Object.entries(toolsData ?? {}).flatMap(([id, toolList]) => {
+        const server = servers.find((server) => server.id === id)
+        return server
+          ? toolList.map((tool) => ({
+              ...tool,
+              serverId: id,
+              serverName: server.name,
+            }))
+          : []
+      }),
+    [servers, toolsData],
+  )
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedTool, setSelectedTool] = useState<ToolWithServer | null>(null)
   const [showTestDialog, setShowTestDialog] = useState(false)
@@ -67,56 +99,16 @@ export const MCPToolsPage: React.FC<MCPToolsPageProps> = ({ serverId }) => {
     serverId || 'all',
   )
 
-  useEffect(() => {
-    loadServersAndTools()
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- 首次加载一次，函数引用在组件内稳定
-  }, [])
-
+  const [previousServerId, setPreviousServerId] = useState(serverId)
+  if (previousServerId !== serverId) {
+    setPreviousServerId(serverId)
+    setSelectedServer(serverId || 'all')
+    setSelectedTool(null)
+    setShowTestDialog(false)
+    setTestResult(null)
+  }
   const loadServersAndTools = async () => {
-    try {
-      setLoading(true)
-
-      // 加载服务器列表
-      const serverResponse = await mcpAPI.listServers({}, { page_size: 100 })
-      const serverList = serverResponse.mcp_servers || []
-      setServers(serverList)
-
-      if (serverList.length === 0) {
-        setTools({})
-        setFlatTools([])
-        return
-      }
-
-      // 加载工具列表
-      const serverIds = serverId ? [serverId] : serverList.map((s) => s.id)
-      const toolsResponse = await mcpAPI.listTools({
-        mcp_ids: serverIds,
-        timeout: 30000,
-      })
-
-      setTools(toolsResponse)
-
-      // 转换为扁平化结构
-      const flat: ToolWithServer[] = []
-      Object.entries(toolsResponse).forEach(([serverIdKey, toolList]) => {
-        const server = serverList.find((s) => s.id === serverIdKey)
-        if (server && toolList) {
-          toolList.forEach((tool) => {
-            flat.push({
-              ...tool,
-              serverId: serverIdKey,
-              serverName: server.name,
-            })
-          })
-        }
-      })
-      setFlatTools(flat)
-    } catch (error: any) {
-      toast.error('加载工具列表失败: ' + (error.message || '未知错误'))
-      console.error('Load tools error:', error)
-    } finally {
-      setLoading(false)
-    }
+    await Promise.all([refreshServers(), refreshTools()])
   }
 
   const handleTestTool = async () => {

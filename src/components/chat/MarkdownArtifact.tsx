@@ -127,6 +127,12 @@ const ArtifactImage: FC<{
   src: string
   alt?: string
   className?: string
+}> = (props) => <ArtifactImageResource key={props.src} {...props} />
+
+const ArtifactImageResource: FC<{
+  src: string
+  alt?: string
+  className?: string
 }> = ({ src, alt, className }) => {
   const { t } = useTranslation()
   const [objectUrl, setObjectUrl] = useState('')
@@ -138,10 +144,6 @@ const ArtifactImage: FC<{
     const controller = new AbortController()
     let active = true
     let nextObjectUrl = ''
-
-    setIsLoading(true)
-    setHasError(false)
-    setObjectUrl('')
 
     void fetchArtifactBlob(src, controller.signal)
       .then((blob) => {

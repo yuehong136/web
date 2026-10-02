@@ -30,13 +30,31 @@ export const useCreateAppPreview = ({
   >(null)
   const abortControllerRef = useRef<AbortController | null>(null)
 
-  useEffect(() => {
-    setPreviewMessages(buildPrologueMessages(prologue))
-  }, [prologue])
+  const resetInputs0 = [prologue]
+  const [previousInputs0, setPreviousInputs0] = useState<unknown[] | null>(null)
+  if (
+    previousInputs0 === null ||
+    resetInputs0.some(
+      (value, index) => !Object.is(value, previousInputs0[index]),
+    )
+  ) {
+    setPreviousInputs0(resetInputs0)
 
-  useEffect(() => {
+    setPreviewMessages(buildPrologueMessages(prologue))
+  }
+
+  const resetInputs1 = [dialogId]
+  const [previousInputs1, setPreviousInputs1] = useState<unknown[] | null>(null)
+  if (
+    previousInputs1 === null ||
+    resetInputs1.some(
+      (value, index) => !Object.is(value, previousInputs1[index]),
+    )
+  ) {
+    setPreviousInputs1(resetInputs1)
+
     setPreviewConversationId(null)
-  }, [dialogId])
+  }
 
   useEffect(
     () => () => {

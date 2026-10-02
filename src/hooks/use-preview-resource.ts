@@ -52,18 +52,12 @@ export const usePreviewResource = ({
     if (!docId || !sourceUrl) {
       revokePreviewObjectUrl(objectUrlRef.current)
       objectUrlRef.current = null
-      setResource(INITIAL_RESOURCE)
       return undefined
     }
 
     if (fileType === 'unknown') {
       revokePreviewObjectUrl(objectUrlRef.current)
       objectUrlRef.current = null
-      setResource({
-        kind: 'unsupported',
-        fileType,
-        sourceUrl,
-      })
       return undefined
     }
 
@@ -73,7 +67,6 @@ export const usePreviewResource = ({
     const loadResource = async () => {
       revokePreviewObjectUrl(objectUrlRef.current)
       objectUrlRef.current = null
-      setResource({ kind: 'loading', fileType, sourceUrl })
 
       let nextObjectUrl: string | null = null
 
@@ -153,5 +146,15 @@ export const usePreviewResource = ({
     }
   }, [docId, fileType, sourceUrl])
 
+  if (!docId || !sourceUrl) return INITIAL_RESOURCE
+  if (fileType === 'unknown')
+    return { kind: 'unsupported', fileType, sourceUrl }
+  if (
+    resource.kind === 'idle' ||
+    resource.sourceUrl !== sourceUrl ||
+    resource.fileType !== fileType
+  ) {
+    return { kind: 'loading', fileType, sourceUrl }
+  }
   return resource
 }

@@ -1,5 +1,5 @@
 // src/components/environment/NewEnvironmentManager.tsx
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Save } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
@@ -29,6 +29,11 @@ export function NewEnvironmentManager({
   // 服务器态走 React Query，仅在弹窗打开时拉取
   const { environments } = useFetchEnvironments({ enabled: isOpen })
   const { globalEnvironments } = useFetchGlobalEnvironments({ enabled: isOpen })
+  if (isOpen && environments.length > 0 && !selectedEnvironmentId) {
+    setSelectedEnvironmentId(
+      (environments.find((env) => env.is_default) || environments[0]).id,
+    )
+  }
   const detailEnvironmentId =
     selectedEnvironmentId &&
     selectedEnvironmentId !== 'global' &&
@@ -39,16 +44,6 @@ export function NewEnvironmentManager({
     detailEnvironmentId,
     { enabled: isOpen },
   )
-
-  // 当环境列表加载完成后，自动选择第一个环境
-  useEffect(() => {
-    if (isOpen && environments.length > 0 && !selectedEnvironmentId) {
-      const defaultEnv =
-        environments.find((env) => env.is_default) || environments[0]
-      handleEnvironmentSelect(defaultEnv.id)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- 仅在环境列表加载完成后自动选一次，依赖 environments.length 而非 environments 避免重复选择
-  }, [isOpen, environments.length, selectedEnvironmentId])
 
   const handleEnvironmentSelect = (
     environmentId: string | 'global' | 'create-new',

@@ -93,26 +93,22 @@ export function usePipelineWorkbench({
     [completed, trace],
   )
 
+  const failure = findLastFailureMessage(trace)
+  if (status === PipelineRuntimeStatus.RUNNING && (completed || failure)) {
+    setStatus(
+      completed ? PipelineRuntimeStatus.SUCCESS : PipelineRuntimeStatus.ERROR,
+    )
+    if (!completed) setLastError(failure)
+  }
   useEffect(() => {
-    if (status !== PipelineRuntimeStatus.RUNNING) {
-      return
-    }
-
-    if (completed) {
-      setStatus(PipelineRuntimeStatus.SUCCESS)
-      const attempt = owner.current.current
-      if (attempt) owner.finish(attempt)
-      return
-    }
-
-    const failure = findLastFailureMessage(trace)
-    if (failure) {
-      setLastError(failure)
-      setStatus(PipelineRuntimeStatus.ERROR)
+    if (
+      status === PipelineRuntimeStatus.SUCCESS ||
+      status === PipelineRuntimeStatus.ERROR
+    ) {
       const attempt = owner.current.current
       if (attempt) owner.finish(attempt)
     }
-  }, [completed, owner, status, trace])
+  }, [owner, status])
 
   const resolveCanvasTitle = useMemo(
     () => resolveLocalizedText(agent?.title, '未命名资产'),
@@ -270,10 +266,8 @@ export function usePipelineWorkbench({
   )
 
   const handleCancel = useCallback(async () => {
-    const attempt = owner.current.current
-    if (!attempt || !attempt.active || attempt.stopRequested) return
-    attempt.stopRequested = true
-    attempt.active = false
+    const attempt = owner.requestStop()
+    if (!attempt) return
     attempt.controller.abort()
     setStatus(PipelineRuntimeStatus.STOPPED)
     setLastError(t('agent.runtime.listeningStopped'))
@@ -351,9 +345,15 @@ export function usePipelineWorkbench({
     onSummaryChange?.(summary)
   }, [onSummaryChange, summary])
 
-  useEffect(() => {
-    clearPipelineState()
-  }, [canvasId, clearPipelineState])
+  const [previousCanvasId, setPreviousCanvasId] = useState(canvasId)
+  if (previousCanvasId !== canvasId) {
+    setPreviousCanvasId(canvasId)
+    setMessageId('')
+    setLastTaskId(undefined)
+    setLastError(undefined)
+    setUploadedFile(undefined)
+    setStatus(PipelineRuntimeStatus.IDLE)
+  }
 
   return {
     canvasId,

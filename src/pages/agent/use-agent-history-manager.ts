@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import useGraphStore from './store'
 
 type CanvasState = { nodes: any[]; edges: any[] }
@@ -11,7 +11,10 @@ export class HistoryManager {
   private readonly setNodes: (nodes: any[]) => void
   private readonly setEdges: (edges: any[]) => void
 
-  constructor(setNodes: (nodes: any[]) => void, setEdges: (edges: any[]) => void) {
+  constructor(
+    setNodes: (nodes: any[]) => void,
+    setEdges: (edges: any[]) => void,
+  ) {
     this.setNodes = setNodes
     this.setEdges = setEdges
   }
@@ -85,13 +88,9 @@ export const useAgentHistoryManager = () => {
   const setNodes = useGraphStore((state) => state.setNodes)
   const setEdges = useGraphStore((state) => state.setEdges)
 
-  const historyManagerRef = useRef<HistoryManager | null>(null)
-
-  if (!historyManagerRef.current) {
-    historyManagerRef.current = new HistoryManager(setNodes, setEdges)
-  }
-
-  const historyManager = historyManagerRef.current
+  const [historyManager] = useState(
+    () => new HistoryManager(setNodes, setEdges),
+  )
 
   useEffect(() => {
     historyManager.push(nodes, edges)
@@ -128,4 +127,3 @@ export const useAgentHistoryManager = () => {
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [historyManager])
 }
-

@@ -84,13 +84,31 @@ export function EmbedAuthorised({
     RuntimeWorkbenchSummary | PipelineWorkbenchSummary
   >(buildIdleSummary)
 
-  useEffect(() => {
+  const resetInputs0 = [buildIdleSummary, defaultRuntimeView, editorMode]
+  const [previousInputs0, setPreviousInputs0] = useState<unknown[] | null>(null)
+  if (
+    previousInputs0 === null ||
+    resetInputs0.some(
+      (value, index) => !Object.is(value, previousInputs0[index]),
+    )
+  ) {
+    setPreviousInputs0(resetInputs0)
+
     setRuntimeWorkbenchOpen(false)
     setRuntimeWorkbenchView(defaultRuntimeView)
     setRuntimeSummary(buildIdleSummary())
-  }, [buildIdleSummary, defaultRuntimeView, editorMode])
+  }
 
-  useEffect(() => {
+  const resetInputs1 = [flowDetail?.title, t, titleDirty]
+  const [previousInputs1, setPreviousInputs1] = useState<unknown[] | null>(null)
+  if (
+    previousInputs1 === null ||
+    resetInputs1.some(
+      (value, index) => !Object.is(value, previousInputs1[index]),
+    )
+  ) {
+    setPreviousInputs1(resetInputs1)
+
     if (!titleDirty && flowDetail?.title) {
       setTitle(
         resolveLocalizedText(
@@ -99,7 +117,7 @@ export function EmbedAuthorised({
         ),
       )
     }
-  }, [flowDetail?.title, t, titleDirty])
+  }
 
   const handleSave = useCallback(async () => {
     if (!id) return

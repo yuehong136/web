@@ -17,7 +17,7 @@ import { ErrorFallback, NotFoundPage } from '@/pages/error'
 // ---------------------------------------------------------------------------
 // Static imports — critical path for first paint
 // ---------------------------------------------------------------------------
-import { LoginPage, RegisterPage } from '@/pages/auth'
+import { LoginPage } from '@/pages/auth/LoginPage'
 import { HomePage } from '@/pages/home'
 
 // ---------------------------------------------------------------------------
@@ -54,6 +54,11 @@ function lazyNamed<K extends string>(
 // ---------------------------------------------------------------------------
 // Lazy imports — code-split per route
 // ---------------------------------------------------------------------------
+
+const RegisterPage = lazyNamed(
+  () => import('@/pages/auth/RegisterPage'),
+  'RegisterPage',
+)
 
 // Knowledge
 const KnowledgeListPage = lazyNamed(
@@ -288,7 +293,7 @@ const authRoutes: { path: string; element: React.ReactElement }[] = [
 if (import.meta.env.VITE_ENABLE_REGISTRATION === 'true') {
   authRoutes.push({
     path: ROUTES.REGISTER,
-    element: <RegisterPage />,
+    element: withLoading(RegisterPage),
   })
 }
 

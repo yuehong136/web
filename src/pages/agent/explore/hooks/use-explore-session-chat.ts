@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
 import {
@@ -113,24 +113,22 @@ export function useExploreSessionChat({
     [agentQuery.data],
   )
 
-  useEffect(() => {
-    if (!hasHistory) return
-    const history = mapSessionMessagesToRuntimeMessages(
-      sessionQuery.data,
-      historyFailure,
-    )
-    setView((previous) =>
-      previous.selection === selection && !previous.hasLocalMessages
-        ? {
-            ...previous,
-            messages: history,
-            ...(historyFailure
-              ? { status: AgentRuntimeStatus.ERROR, lastError: historyFailure }
-              : {}),
-          }
-        : previous,
-    )
-  }, [hasHistory, historyFailure, selection, sessionQuery.data])
+  const seedHistory = useCallback(
+    (previous: ExploreSessionView): ExploreSessionView => {
+      if (previous.hasLocalMessages || !hasHistory) return previous
+      return {
+        ...previous,
+        messages: mapSessionMessagesToRuntimeMessages(
+          sessionQuery.data,
+          historyFailure,
+        ),
+        ...(historyFailure
+          ? { status: AgentRuntimeStatus.ERROR, lastError: historyFailure }
+          : {}),
+      }
+    },
+    [hasHistory, historyFailure, sessionQuery.data],
+  )
 
   const updateRequest = useCallback(
     (
@@ -142,11 +140,11 @@ export function useExploreSessionChat({
         // URL promotion can rebase queued updates from the same request.
         // The owner check also rejects obsolete A -> B -> A generations.
         owns(request)
-          ? { ...updater(previous), selection: request.selection }
+          ? { ...updater(seedHistory(previous)), selection: request.selection }
           : previous,
       )
     },
-    [owns],
+    [owns, seedHistory],
   )
   const updateCurrentRequest = useCallback(
     (updater: (value: ExploreSessionView) => ExploreSessionView) => {
@@ -222,10 +220,12 @@ export function useExploreSessionChat({
   const updateSelection = useCallback(
     (updater: (value: ExploreSessionView) => ExploreSessionView) => {
       setView((previous) =>
-        previous.selection === selection ? updater(previous) : previous,
+        previous.selection === selection
+          ? updater(seedHistory(previous))
+          : previous,
       )
     },
-    [selection],
+    [selection, seedHistory],
   )
   const setParameterDialogOpen = useCallback(
     (open: boolean) => {

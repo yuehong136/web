@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react'
 import {
   type EmbedInbound,
   type EmbedOutboundPayload,
@@ -65,13 +71,15 @@ export function useEmbedBridge(options: EmbedBridgeOptions): EmbedBridge {
     onSetLocale,
     onTriggerSave,
   })
-  handlersRef.current = {
-    onInit,
-    onAuthRefreshed,
-    onSetTheme,
-    onSetLocale,
-    onTriggerSave,
-  }
+  useLayoutEffect(() => {
+    handlersRef.current = {
+      onInit,
+      onAuthRefreshed,
+      onSetTheme,
+      onSetLocale,
+      onTriggerSave,
+    }
+  }, [onInit, onAuthRefreshed, onSetTheme, onSetLocale, onTriggerSave])
 
   const [status, setStatus] = useState<EmbedBridgeStatus>('awaiting-init')
 

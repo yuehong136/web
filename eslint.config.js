@@ -77,7 +77,7 @@ export default tseslint.config([
       importX.flatConfigs.recommended,
       importX.flatConfigs.typescript,
       jsxA11y.flatConfigs.recommended,
-      reactHooks.configs['recommended-latest'],
+      reactHooks.configs.flat['recommended-latest'],
       reactRefresh.configs.vite,
     ],
     languageOptions: {

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -15,8 +15,7 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import { Wrench, Search, Globe, Server, Settings2, Plug } from 'lucide-react'
-import { mcpAPI } from '@/api/mcp'
-import { toast } from '@/lib/toast'
+import { useFetchMCPServers } from '@/hooks/use-mcp-request'
 import type { MCPServer } from '@/types/mcp'
 
 // 临时定义类型以避免导入问题
@@ -121,42 +120,28 @@ export function MCPToolSelector({
   const [localConfig, setLocalConfig] = useState<MCPChatConfig>(mcpConfig)
   const [localSelectedIds, setLocalSelectedIds] =
     useState<string[]>(selectedMCPIds)
-  const [servers, setServers] = useState<MCPServer[]>([])
-  const [loading, setLoading] = useState(false)
+  const { data: serverData, isFetching: loading } = useFetchMCPServers({
+    page_size: 100,
+    errorMessage: '加载 MCP 服务器列表失败',
+    enabled: open,
+  })
+  const servers = useMemo(() => serverData?.mcp_servers ?? [], [serverData])
   const [searchTerm, setSearchTerm] = useState('')
 
-  // 加载 MCP 服务器列表
-  useEffect(() => {
-    if (open) {
-      loadServers()
-    }
-  }, [open])
-
-  // 同步外部状态
-  useEffect(() => {
+  const [previousSource, setPreviousSource] = useState({
+    open,
+    selectedMCPIds,
+    mcpConfig,
+  })
+  if (
+    previousSource.open !== open ||
+    previousSource.selectedMCPIds !== selectedMCPIds ||
+    previousSource.mcpConfig !== mcpConfig
+  ) {
+    setPreviousSource({ open, selectedMCPIds, mcpConfig })
     if (open) {
       setLocalSelectedIds(selectedMCPIds)
       setLocalConfig(mcpConfig)
-    }
-  }, [open, selectedMCPIds, mcpConfig])
-
-  const loadServers = async () => {
-    try {
-      setLoading(true)
-      const response = await mcpAPI.listServers(
-        {},
-        {
-          page: 1,
-          page_size: 100,
-        },
-      )
-
-      setServers(response.mcp_servers || [])
-    } catch (error) {
-      toast.error('加载 MCP 服务器列表失败')
-      console.error('Load MCP servers error:', error)
-    } finally {
-      setLoading(false)
     }
   }
 

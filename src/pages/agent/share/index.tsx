@@ -1,3 +1,4 @@
+import { useShareStartup } from './use-share-startup'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -36,7 +37,6 @@ import { ShareParameterDialog } from './share-parameter-dialog'
 import { parseAgentShareAccess } from './access'
 import { useSharedAgentRunner } from './use-shared-agent-runner'
 import {
-  buildInitialShareValues,
   buildShareInputsPayload,
   formatShareInputSummary,
   getShareInputEntries,
@@ -71,17 +71,11 @@ export default function AgentSharePage() {
   )
   const { uploadCanvasFile, isLoading: uploading } = useUploadPublicCanvasFile()
   const attachmentInputRef = useRef<HTMLInputElement | null>(null)
-  const [formValues, setFormValues] = useState<ShareFormValues>({})
+
   const [messageValue, setMessageValue] = useState('')
   const [messageFiles, setMessageFiles] = useState<AgentCanvasUploadResult[]>(
     [],
   )
-  const [formError, setFormError] = useState<string>()
-  const [parameterDialogOpen, setParameterDialogOpen] = useState(false)
-  const [beginReady, setBeginReady] = useState(false)
-  const [pendingMessage, setPendingMessage] = useState<string | null>(null)
-  const [promptedBeginInputs, setPromptedBeginInputs] = useState(false)
-  const [taskStarted, setTaskStarted] = useState(false)
 
   const inputEntries = useMemo(
     () => getShareInputEntries(shareQuery.data.inputs),
@@ -98,59 +92,38 @@ export default function AgentSharePage() {
       buildShareInputsPayload(shareQuery.data.inputs || {}, values),
   })
   const status = runnerStatusFromState(runner.isRunning, runner.lastError)
+  const {
+    formValues,
+    setFormValues,
+    formError,
+    setFormError,
+    parameterDialogOpen,
+    setParameterDialogOpen,
+    beginReady,
+    setBeginReady,
+    pendingMessage,
+    setPendingMessage,
+    markAutomaticTaskStarted,
+    resetAutomaticTask,
+  } = useShareStartup({
+    access,
+    inputs: shareQuery.data.inputs,
+    inputCount: inputEntries.length,
+    title: shareQuery.data.title,
+    isTaskMode,
+    runner,
+    startTaskMessage: t('agent.share.startTask', '启动任务'),
+  })
 
   useEffect(() => {
     applyRouteLocale(access.locale)
   }, [access.locale])
 
   useEffect(() => {
-    setFormValues(buildInitialShareValues(shareQuery.data.inputs, access.data))
-  }, [access.data, shareQuery.data.inputs])
-
-  useEffect(() => {
-    setBeginReady(inputEntries.length === 0)
-    setPromptedBeginInputs(false)
-    setTaskStarted(false)
-    setPendingMessage(null)
-    setFormError(undefined)
-  }, [access.agentId, inputEntries.length, isTaskMode])
-
-  useEffect(() => {
     if (!isTaskMode && shareQuery.data.prologue) {
       runner.appendAssistantMessage(shareQuery.data.prologue)
     }
   }, [isTaskMode, runner, shareQuery.data.prologue])
-
-  useEffect(() => {
-    if (!shareQuery.data.title || promptedBeginInputs || runner.isRunning) {
-      return
-    }
-
-    if (inputEntries.length > 0) {
-      setParameterDialogOpen(true)
-      setPromptedBeginInputs(true)
-      return
-    }
-
-    if (isTaskMode && !taskStarted) {
-      setTaskStarted(true)
-      void runner.submit({
-        query: '',
-        values: formValues,
-        files: [],
-        userMessage: t('agent.share.startTask', '启动任务'),
-      })
-    }
-  }, [
-    formValues,
-    inputEntries.length,
-    isTaskMode,
-    promptedBeginInputs,
-    runner,
-    shareQuery.data.title,
-    taskStarted,
-    t,
-  ])
 
   const handleCopyLink = useCallback(async () => {
     try {
@@ -163,13 +136,16 @@ export default function AgentSharePage() {
     }
   }, [t])
 
-  const handleChange = useCallback((key: string, value: unknown) => {
-    setFormValues((previous) => ({
-      ...previous,
-      [key]: value as ShareFormValues[string],
-    }))
-    setFormError(undefined)
-  }, [])
+  const handleChange = useCallback(
+    (key: string, value: unknown) => {
+      setFormValues((previous) => ({
+        ...previous,
+        [key]: value as ShareFormValues[string],
+      }))
+      setFormError(undefined)
+    },
+    [setFormError, setFormValues],
+  )
 
   const handleUpload = useCallback(
     async (key: string, files: FileList) => {
@@ -195,7 +171,7 @@ export default function AgentSharePage() {
       })
       toast.success(t('common.upload', '上传'))
     },
-    [access.agentId, t, uploadCanvasFile],
+    [access.agentId, setFormValues, t, uploadCanvasFile],
   )
 
   const handleMessageFileUpload = useCallback(
@@ -231,7 +207,7 @@ export default function AgentSharePage() {
     }
 
     return true
-  }, [formValues, inputEntries, t])
+  }, [formValues, inputEntries, setFormError, t])
 
   const submitConversation = useCallback(
     async (content: string) => {
@@ -271,6 +247,8 @@ export default function AgentSharePage() {
       beginReady,
       inputEntries.length,
       runner.isRunning,
+      setParameterDialogOpen,
+      setPendingMessage,
       submitConversation,
       uploading,
     ],
@@ -285,7 +263,7 @@ export default function AgentSharePage() {
     setBeginReady(true)
 
     if (isTaskMode) {
-      setTaskStarted(true)
+      markAutomaticTaskStarted()
       await runner.submit({
         query: '',
         values: formValues,
@@ -305,8 +283,12 @@ export default function AgentSharePage() {
   }, [
     formValues,
     isTaskMode,
+    markAutomaticTaskStarted,
     pendingMessage,
     runner,
+    setBeginReady,
+    setParameterDialogOpen,
+    setPendingMessage,
     submitConversation,
     t,
     validateInputs,
@@ -348,9 +330,8 @@ export default function AgentSharePage() {
   const handleResetSession = useCallback(() => {
     runner.reset()
     setBeginReady(inputEntries.length === 0)
-    setTaskStarted(false)
-    setPromptedBeginInputs(false)
-  }, [inputEntries.length, runner])
+    resetAutomaticTask()
+  }, [inputEntries.length, resetAutomaticTask, runner, setBeginReady])
 
   if (!access.agentId) {
     return (

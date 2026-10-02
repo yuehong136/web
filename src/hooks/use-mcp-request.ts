@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 /**
  * MCP 服务器相关的 TanStack Query Hooks
  * 遵循项目架构：服务器状态使用 TanStack Query
@@ -65,10 +66,17 @@ export const useFetchMCPServers = (params?: {
   page?: number
   page_size?: number
   enabled?: boolean
+  errorMessage?: string
 }) => {
-  const { keywords, page = 1, page_size = 50, enabled = true } = params || {}
+  const {
+    keywords,
+    page = 1,
+    page_size = 50,
+    enabled = true,
+    errorMessage,
+  } = params || {}
 
-  return useQuery({
+  const query = useQuery({
     queryKey: mcpQueryKeys.serverList({ keywords, page, page_size }),
     queryFn: async () => {
       const response = await mcpAPI.listServers(
@@ -84,6 +92,10 @@ export const useFetchMCPServers = (params?: {
     enabled,
     staleTime: 30 * 1000, // 30 秒内认为数据新鲜
   })
+  useEffect(() => {
+    if (enabled && errorMessage && query.error) toast.error(errorMessage)
+  }, [enabled, errorMessage, query.error])
+  return query
 }
 
 /**
@@ -101,12 +113,19 @@ export const useFetchMCPServerDetail = (mcpId: string, enabled = true) => {
  * 获取多个服务器的工具列表（用于测试连接）
  * 注意：这会实际调用后端测试接口，请谨慎使用
  */
-export const useFetchMCPTools = (mcpIds: string[], enabled = true) => {
+export const useFetchMCPTools = (
+  mcpIds: string[],
+  enabled = true,
+  timeout?: number,
+) => {
   return useQuery({
-    queryKey: mcpQueryKeys.toolsByServers(mcpIds),
+    queryKey: [...mcpQueryKeys.toolsByServers(mcpIds), { timeout }],
     queryFn: async () => {
       if (mcpIds.length === 0) return {}
-      return mcpAPI.listTools({ mcp_ids: mcpIds })
+      return mcpAPI.listTools({
+        mcp_ids: mcpIds,
+        ...(timeout === undefined ? {} : { timeout }),
+      })
     },
     enabled: enabled && mcpIds.length > 0,
     staleTime: 60 * 1000, // 1 分钟内认为数据新鲜

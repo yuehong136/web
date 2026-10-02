@@ -24,7 +24,7 @@ export const ExcludeTypes = [
   MessageEventType.MessageEnd,
 ]
 
-export function useCacheChatLog() {
+export function useCacheChatLog(scope?: string) {
   const [messageIdPool, setMessageIdPool] = useState<
     Record<string, IEventList>
   >({})
@@ -32,6 +32,14 @@ export function useCacheChatLog() {
   const [latestTaskId, setLatestTaskId] = useState('')
 
   const [currentMessageId, setCurrentMessageId] = useState('')
+
+  const [previousScope, setPreviousScope] = useState(scope)
+  if (previousScope !== scope) {
+    setPreviousScope(scope)
+    setMessageIdPool({})
+    setLatestTaskId('')
+    setCurrentMessageId('')
+  }
 
   const filterEventListByMessageId = useCallback(
     (messageId: string) => {

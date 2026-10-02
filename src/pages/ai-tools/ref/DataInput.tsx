@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { Button } from '@/components/vendor/ui/button'
 import { Input } from '@/components/vendor/ui/input'
 import { Textarea } from '@/components/vendor/ui/textarea'
@@ -27,8 +27,7 @@ import {
 } from './data-input-user-input-section'
 import { ChatModelSelector } from '@/components/chat/ChatModelSelector'
 import { documentAPI } from '@/api/document'
-import { mcpAPI } from '@/api/mcp'
-import type { MCPServer } from '@/types/mcp'
+import { useFetchMCPServers } from '@/hooks/use-mcp-request'
 import { useFetchMyLLMs } from '@/hooks/use-llm-request'
 import { copyToClipboardWithFeedback } from '@/lib/clipboard'
 import { cn } from '@/lib/utils'
@@ -80,8 +79,12 @@ const DataInput: React.FC<DataInputProps> = ({
   const [activeTab, setActiveTab] = useState<'form' | 'json'>('form')
   const [validationErrors, setValidationErrors] = useState<string[]>([])
   const [settingsOpen, setSettingsOpen] = useState(false)
-  const [mcpServers, setMcpServers] = useState<MCPServer[]>([])
-  const [mcpLoading, setMcpLoading] = useState(false)
+  const { data: serverData, isFetching: mcpLoading } = useFetchMCPServers({
+    page_size: 100,
+    errorMessage: '获取 MCP 列表失败',
+    enabled: settingsOpen,
+  })
+  const mcpServers = serverData?.mcp_servers ?? []
   const [aiFilling, setAiFilling] = useState(false)
   const { myLLMs } = useFetchMyLLMs()
   const [llmConfig, setLlmConfig] = useState({
@@ -118,32 +121,15 @@ const DataInput: React.FC<DataInputProps> = ({
     createEmptyDataSourceForm,
   )
 
-  useEffect(() => {
+  const [previousPlaceholders, setPreviousPlaceholders] =
+    useState<PlaceholderData | null>(null)
+  if (previousPlaceholders !== placeholders) {
+    setPreviousPlaceholders(placeholders)
     const initial: PlaceholderData = {}
     Object.keys(placeholders).forEach((k) => (initial[k] = ''))
     setFormData(initial)
     setJsonInput(JSON.stringify(initial, null, 2))
-  }, [placeholders])
-
-  const fetchMcpServers = async () => {
-    setMcpLoading(true)
-    try {
-      const resp = await mcpAPI.listServers({}, { page_size: 100 })
-      setMcpServers(resp.mcp_servers || [])
-    } catch (error) {
-      console.error(error)
-      toast.error('获取 MCP 列表失败')
-    } finally {
-      setMcpLoading(false)
-    }
   }
-
-  useEffect(() => {
-    if (settingsOpen) {
-      fetchMcpServers()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- 仅在打开设置时拉取一次 MCP 服务列表
-  }, [settingsOpen])
 
   const _validateData = (_data: PlaceholderData) => {
     // 不再强制必填，允许部分字段为空

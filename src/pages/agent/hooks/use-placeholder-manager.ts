@@ -175,7 +175,5 @@ export const usePlaceholderManager = (reactFlowInstance: any) => {
     setCreatedPlaceholderRef,
     resetUserSelectedFlag,
     checkAndRemoveExistingPlaceholder,
-    createdPlaceholderRef: createdPlaceholderRef.current,
-    userSelectedNodeRef: userSelectedNodeRef.current,
   }
 }

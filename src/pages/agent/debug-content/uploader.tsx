@@ -4,7 +4,7 @@ import { useUploadCanvasFile } from '@/hooks/use-agent-request'
 import { cn } from '@/lib/utils'
 import { toast } from '@/lib/toast'
 import { Upload, X } from 'lucide-react'
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useRef, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
 interface FileUploadDirectUploadProps {
@@ -62,21 +62,9 @@ export function FileUploadDirectUpload({
   const { t } = useTranslation()
   const { uploadCanvasFile, isLoading } = useUploadCanvasFile()
   const inputRef = useRef<HTMLInputElement>(null)
-  const [files, setFiles] = useState<Record<string, unknown>[]>([])
-
-  useEffect(() => {
-    if (Array.isArray(value)) {
-      setFiles(value)
-      return
-    }
-
-    if (value && typeof value === 'object') {
-      setFiles([value as Record<string, unknown>])
-      return
-    }
-
-    setFiles([])
-  }, [value])
+  const [internalFiles, setFiles] = useState<Record<string, unknown>[]>([])
+  const files =
+    value === undefined ? internalFiles : normalizeUploadResults(value)
 
   const handleFileChange = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -120,9 +108,7 @@ export function FileUploadDirectUpload({
         setFiles(nextFiles)
         onChange?.(nextFiles)
       } catch (error) {
-        toast.error(
-          error instanceof Error ? error.message : '上传文件失败',
-        )
+        toast.error(error instanceof Error ? error.message : '上传文件失败')
       } finally {
         e.target.value = ''
       }
@@ -153,7 +139,7 @@ export function FileUploadDirectUpload({
         onChange={handleFileChange}
         className="hidden"
       />
-      
+
       <Button
         type="button"
         variant={buttonVariant}
@@ -166,8 +152,16 @@ export function FileUploadDirectUpload({
           buttonClassName,
         )}
         disabled={disabled || isLoading}
-        aria-label={iconOnly ? buttonLabel || t('common.uploadFile', '上传文件') : undefined}
-        title={iconOnly ? buttonLabel || t('common.uploadFile', '上传文件') : undefined}
+        aria-label={
+          iconOnly
+            ? buttonLabel || t('common.uploadFile', '上传文件')
+            : undefined
+        }
+        title={
+          iconOnly
+            ? buttonLabel || t('common.uploadFile', '上传文件')
+            : undefined
+        }
       >
         {triggerIcon || (
           <Upload className={cn('size-4', !iconOnly && 'mr-space-xs')} />
@@ -176,13 +170,17 @@ export function FileUploadDirectUpload({
       </Button>
 
       {showFileList && files.length > 0 && (
-        <div className={cn(compact ? 'flex flex-wrap gap-space-xs' : 'space-y-space-xs')}>
+        <div
+          className={cn(
+            compact ? 'gap-space-xs flex flex-wrap' : 'space-y-space-xs',
+          )}
+        >
           {files.map((file, index) => (
             <div
               key={`${String(file.name || file.id || index)}-${index}`}
-              className="flex items-center justify-between px-space-sm py-space-xs bg-surface-secondary rounded-radius-sm"
+              className="px-space-sm py-space-xs bg-surface-secondary rounded-radius-sm flex items-center justify-between"
             >
-              <span className="text-sm truncate flex-1">
+              <span className="flex-1 truncate text-sm">
                 {String(file.name || file.id || `文件 ${index + 1}`)}
               </span>
               <Button
@@ -190,7 +188,7 @@ export function FileUploadDirectUpload({
                 variant="ghost"
                 size="sm"
                 onClick={() => handleRemoveFile(index)}
-                className="p-0 h-auto"
+                className="h-auto p-0"
               >
                 <X className="size-4" />
               </Button>

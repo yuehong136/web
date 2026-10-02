@@ -3,7 +3,7 @@ import type { ThoughtChainProps } from '@ant-design/x'
 import { Badge } from '@/components/ui/badge'
 import type { INodeEvent } from '../../../hooks/use-node-loading'
 import { buildRuntimeThoughtChainNodes } from '../thought-chain-utils'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   ACTION_BADGE_MAP,
   RuntimeStatusBadge,
@@ -11,6 +11,8 @@ import {
   getActionIcon,
   summarizeValue,
 } from './runtime-thought-chain-parts'
+
+const EMPTY_EVENTS: INodeEvent[] = []
 
 interface RuntimeThoughtChainProps {
   events?: INodeEvent[]
@@ -28,7 +30,7 @@ const formatElapsedTime = (elapsedTime?: number) => {
 }
 
 export function RuntimeThoughtChain({
-  events = [],
+  events = EMPTY_EVENTS,
   loading = false,
   compact = false,
   surface = 'framed',
@@ -49,13 +51,22 @@ export function RuntimeThoughtChain({
   }, [compact, nodes])
   const [expandedKeys, setExpandedKeys] = useState<string[]>(autoExpandedKeys)
 
-  useEffect(() => {
+  const resetInputs0 = [autoExpandedKeys, nodes]
+  const [previousInputs0, setPreviousInputs0] = useState<unknown[] | null>(null)
+  if (
+    previousInputs0 === null ||
+    resetInputs0.some(
+      (value, index) => !Object.is(value, previousInputs0[index]),
+    )
+  ) {
+    setPreviousInputs0(resetInputs0)
+
     setExpandedKeys((previous) => {
       const validKeys = new Set(nodes.map((node) => node.key))
       const retainedKeys = previous.filter((key) => validKeys.has(key))
       return Array.from(new Set([...retainedKeys, ...autoExpandedKeys]))
     })
-  }, [autoExpandedKeys, nodes])
+  }
 
   if (nodes.length === 0) {
     return null
@@ -64,10 +75,7 @@ export function RuntimeThoughtChain({
   const items: ThoughtChainProps['items'] = nodes.map((node) => {
     const elapsed = formatElapsedTime(node.elapsedTime)
     const hasContent = Boolean(
-      node.inputs ||
-        node.outputs ||
-        node.thoughts ||
-        node.error,
+      node.inputs || node.outputs || node.thoughts || node.error,
     )
     const inputSummary = summarizeValue(node.inputs, '无输入')
     const outputSummary = summarizeValue(node.outputs, '等待输出')
@@ -76,7 +84,7 @@ export function RuntimeThoughtChain({
     return {
       key: node.key,
       title: (
-        <div className="flex min-w-0 items-center gap-space-xs">
+        <div className="gap-space-xs flex min-w-0 items-center">
           <Badge
             variant={ACTION_BADGE_MAP[node.actionKind]}
             className="shrink-0"
@@ -95,7 +103,7 @@ export function RuntimeThoughtChain({
       ),
       description: (
         <div className="space-y-space-xs text-xs text-text-secondary">
-          <div className="flex min-w-0 flex-wrap items-center gap-space-xs">
+          <div className="gap-space-xs flex min-w-0 flex-wrap items-center">
             <RuntimeStatusBadge status={node.status} />
             {node.componentType ? <span>{node.componentType}</span> : null}
             {!compact && elapsed ? <span>{elapsed}</span> : null}
@@ -109,7 +117,7 @@ export function RuntimeThoughtChain({
       blink: node.blink,
       collapsible: hasContent,
       icon: (
-        <span className="inline-flex size-6 items-center justify-center rounded-radius-full border border-border-subtle bg-surface-primary text-text-secondary">
+        <span className="rounded-radius-full bg-surface-primary inline-flex size-6 items-center justify-center border border-border-subtle text-text-secondary">
           <ActionIcon className="size-3.5" />
         </span>
       ),
@@ -118,15 +126,11 @@ export function RuntimeThoughtChain({
           <RuntimeThoughtPayload label="思考 / Trace" value={node.thoughts} />
           <RuntimeThoughtPayload label="输入" value={node.inputs} />
           <RuntimeThoughtPayload label="输出" value={node.outputs} />
-          <RuntimeThoughtPayload
-            label="错误"
-            value={node.error}
-            tone="error"
-          />
+          <RuntimeThoughtPayload label="错误" value={node.error} tone="error" />
         </div>
       ) : undefined,
       footer: compact ? undefined : (
-        <div className="flex min-w-0 flex-wrap items-center gap-space-xs text-xs text-text-tertiary">
+        <div className="gap-space-xs flex min-w-0 flex-wrap items-center text-xs text-text-tertiary">
           <span>{node.eventName}</span>
           <span>{node.eventCount} events</span>
           <span className="max-w-xs truncate">{node.componentId}</span>
@@ -141,8 +145,8 @@ export function RuntimeThoughtChain({
         surface === 'bare'
           ? 'max-w-full overflow-hidden'
           : compact
-          ? 'max-w-full overflow-hidden rounded-radius-md border border-border-subtle bg-surface-primary p-space-sm'
-          : 'rounded-radius-md border border-border-default bg-surface-primary p-space-md'
+            ? 'rounded-radius-md bg-surface-primary p-space-sm max-w-full overflow-hidden border border-border-subtle'
+            : 'rounded-radius-md bg-surface-primary p-space-md border border-border-default'
       }
     >
       <ThoughtChain

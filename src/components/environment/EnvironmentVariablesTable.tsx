@@ -83,9 +83,20 @@ export function EnvironmentVariablesTable({
   })
 
   // 初始化可编辑变量列表
-  React.useEffect(() => {
+  const resetInputs0 = [variables]
+  const [previousInputs0, setPreviousInputs0] = React.useState<
+    unknown[] | null
+  >(null)
+  if (
+    previousInputs0 === null ||
+    resetInputs0.some(
+      (value, index) => !Object.is(value, previousInputs0[index]),
+    )
+  ) {
+    setPreviousInputs0(resetInputs0)
+
     setEditableVariables(variables.map((v) => ({ ...v, _showValue: false })))
-  }, [variables])
+  }
 
   // 拖拽传感器
   const sensors = useSensors(

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useParams } from 'react-router-dom'
 import { knowledgeAPI } from '@/api/knowledge'
@@ -22,6 +22,18 @@ export const useChunkListState = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false)
 
   const debouncedSearchKeyword = useDebouncedValue(searchKeyword.trim(), 400)
+
+  const [previousFilter, setPreviousFilter] = useState({
+    filterStatus,
+    debouncedSearchKeyword,
+  })
+  if (
+    previousFilter.filterStatus !== filterStatus ||
+    previousFilter.debouncedSearchKeyword !== debouncedSearchKeyword
+  ) {
+    setPreviousFilter({ filterStatus, debouncedSearchKeyword })
+    setPage(1)
+  }
 
   const availableInt = useMemo(() => {
     if (filterStatus === 'enabled') return 1
@@ -74,10 +86,6 @@ export const useChunkListState = () => {
         : chunk.available_int === 0,
     )
   }, [chunks, filterStatus])
-
-  useEffect(() => {
-    setPage(1)
-  }, [filterStatus, debouncedSearchKeyword])
 
   const delayedRefetchChunkList = useCallback(() => {
     setTimeout(() => refetchChunkList(), 500)

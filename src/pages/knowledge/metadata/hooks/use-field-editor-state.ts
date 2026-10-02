@@ -10,10 +10,20 @@ export interface UseFieldEditorStateReturn {
   close: () => void
 }
 
-export function useFieldEditorState(): UseFieldEditorStateReturn {
+export function useFieldEditorState(active = true): UseFieldEditorStateReturn {
   const [open, setOpen] = useState(false)
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
   const [editingData, setEditingData] = useState<MetadataTableData | null>(null)
+
+  const [previousActive, setPreviousActive] = useState(active)
+  if (previousActive !== active) {
+    setPreviousActive(active)
+    if (!active) {
+      setOpen(false)
+      setEditingIndex(null)
+      setEditingData(null)
+    }
+  }
 
   const openForAdd = useCallback((nextIndex: number) => {
     setEditingIndex(nextIndex)

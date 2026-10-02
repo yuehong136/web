@@ -48,8 +48,15 @@ export function useTaskRunOwner(canvasId?: string) {
     },
     [owns],
   )
+  const requestStop = useCallback(() => {
+    const attempt = current.current
+    if (!attempt || !attempt.active || attempt.stopRequested) return null
+    attempt.stopRequested = true
+    attempt.active = false
+    return attempt
+  }, [])
   return useMemo(
-    () => ({ current, begin, owns, finish, reset }),
-    [begin, owns, finish, reset],
+    () => ({ current, begin, owns, finish, reset, requestStop }),
+    [begin, owns, finish, reset, requestStop],
   )
 }
